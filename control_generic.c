@@ -3,7 +3,7 @@
  * Control interface to generic front ends.
  * written/copyrights 1997/99 by Andreas Neuhaus (and Michael Hipp)
  *
- * command parsing/processing reworked and partially rewritten in 2004 by Thomas Orgis
+ * command parsing/processing reworked and partially rewritten in 2004/5 by Thomas Orgis
  * ...and at bit of bugfixing...
  */
 
@@ -155,7 +155,8 @@ void control_generic (struct frame *fr)
  		outstream = stdout;
  		
  	setlinebuf(outstream);
-	fprintf(outstream, "@R MPG123 0.59r-ThOr\n");
+	/* the command behaviour is different, so is the ID */
+	fprintf(outstream, "@R MPG123 (ThOr)\n");
 
 	while (alive) {
 		tv.tv_sec = 0;
@@ -174,9 +175,7 @@ void control_generic (struct frame *fr)
 					generic_sendmsg("P 0");
 					continue;
 				}
-				/* generic_sendmsg("playing frame %d", framecnt);*/
 				play_frame(init,fr);
-				/* generic_sendmsg("played frame %d", framecnt); */
 				if (init) {
 					 static char *modes[4] = {"Stereo", "Joint-Stereo", "Dual-Channel", "Single-Channel"};
 					/* JMG */
@@ -219,260 +218,223 @@ void control_generic (struct frame *fr)
 		if (n > 0) {
 	
 			short int len = 1; /* length of buffer */
-			unsigned short int cnum = 0; /* number of commands */ 
+			short int cnum = 0; /* number of commands */ 
+			short int cind = 0; /* index for commands */
 			char *cmd, *comstr, *arg; /* variables for parsing, */
 			char buf[REMOTE_BUFFER_SIZE];
 			char **coms; /* list of commands */
 			short int counter;
+			coms = malloc(sizeof(*coms)); /* malloc magic */
+			coms[0] = &buf[0]; /* first command string */
 			
-			coms = malloc(sizeof(*coms));
+			/* read as much as possible, maybe multiple commands */
+			/* the break here means: go on with playing next frame */
+			/* ...hoping that it won't happen next time */
+			if((len = read(STDIN_FILENO, buf, REMOTE_BUFFER_SIZE)) < 1)	break;
 			
-			coms[0] = &buf[0];
-			
-			/* read command */
-			
-			
- 			if((len = read(STDIN_FILENO, buf, REMOTE_BUFFER_SIZE)) < 1)	break;
-			
+			/* one command on a line - separation by \n -> C strings in a row */
 			for(counter = 0; counter < len; ++counter) {
 				if(buf[counter] == '\n') { /* line end is command end */
-					buf[counter] = 0;
-					if(counter < (len - 1)) coms[++cnum] = &buf[counter+1];
+					buf[counter] = 0; /* now it's a properly ending C string */
+					 /* next char is first of next command (if there) */
+					if(counter < (len - 1)) coms[++cind] = &buf[counter+1];
 				}
 			}
+			cnum = cind+1;
+
+			/*
+			   when last command had no \n... should I discard it?
+			   Ideally, I should remember the part and wait for next
+				 read() to get the rest up to a \n. But that can go
+				 to infinity. Too long commands too quickly are just
+				 bad. Cannot/Won't change that. So, discard the unfinished
+				 command and have fingers crossed that the rest of this
+				 unfinished one qualifies as "unknown". 
+			*/
+			if(buf[len-1] != 0){
+				char lasti = buf[len-1];
+				buf[len-1] = 0;
+				generic_sendmsg("E Unfinished command: %s%c", coms[cind], lasti);
+				--cnum;
+			}
 			
-			if( !(cnum == 0) || !(strlen(coms[0]) == 0) )	{
-				
-				/* exit on error */
-				if (len < 0) {
-					exit(1);
+			for(cind = 0; cind < cnum; ++cind) {
+				comstr = coms[cind];
+				if(strlen(comstr) == 0) continue;
+
+				/* PAUSE */
+				if (!strcasecmp(comstr, "P") || !strcasecmp(comstr, "PAUSE")) {
+					if (!(mode == MODE_STOPPED))
+					{	
+						if (mode == MODE_PLAYING) {
+							mode = MODE_PAUSED;
+							audio_flush(param.outmode, &ai);
+							if (param.usebuffer)
+								kill(buffer_pid, SIGSTOP);
+							generic_sendmsg("P 1");
+						} else {
+							mode = MODE_PLAYING;
+							if (param.usebuffer)
+								kill(buffer_pid, SIGCONT);
+							generic_sendmsg("P 2");
+						}
+					}
+					continue;
 				}
 
-				for(counter = 0; counter <= cnum; ++counter) {
-					comstr = coms[counter];
-					if(strlen(comstr) == 0) continue;
-					cmd = NULL;
-					arg = NULL;
+				/* STOP */
+				if (!strcasecmp(comstr, "S") || !strcasecmp(comstr, "STOP")) {
+					if (mode != MODE_STOPPED) {
+						audio_flush(param.outmode, &ai);
+						rd->close(rd);
+						mode = MODE_STOPPED;
+						generic_sendmsg("P 0");
+					}
+					continue;
+				}
 
-					if(strlen(comstr)) {
+				/* SILENCE */
+				if(!strcasecmp(comstr, "SILENCE")) {
+					silent = 1;
+					generic_sendmsg("silence");
+					continue;
+				}
 
-						/* QUIT */
-						if (!strcasecmp(comstr, "Q") || !strcasecmp(comstr, "QUIT")) alive = FALSE;
-						else {
-							/* STOP */
-							if (!strcasecmp(comstr, "S") || !strcasecmp(comstr, "STOP")) {
-								if (mode != MODE_STOPPED) {
-									audio_flush(param.outmode, &ai);
-									rd->close(rd);
-									mode = MODE_STOPPED;
-									generic_sendmsg("P 0");
-								}
+				/* QUIT */
+				if (!strcasecmp(comstr, "Q") || !strcasecmp(comstr, "QUIT")){
+					alive = FALSE; continue;
+				}
+
+				/* commands with arguments */
+				cmd = NULL;
+				arg = NULL;
+				cmd = strtok(comstr," \t"); /* get the main command */
+				arg = strtok(NULL,""); /* get the args */
+
+				if (cmd && strlen(cmd) && arg && strlen(arg))
+				{
+					/* Simple EQ: SEQ <BASS> <MID> <TREBLE>  */
+					if (!strcasecmp(cmd, "S") || !strcasecmp(cmd, "SEQ")) {
+						real b,m,t;
+						int cn;
+						equalfile = TRUE;
+						if(sscanf(arg, "%f %f %f", &b, &m, &t) == 3){
+							/* very raw line */
+							if ((t >= 0) && (t <= 3))
+							for(cn=0; cn < 1; ++cn)
+							{
+								equalizer[0][cn] = b;
+								equalizer[1][cn] = b;
 							}
-							else {
-								/* PAUSE */
-								if (!strcasecmp(comstr, "P") || !strcasecmp(comstr, "PAUSE")) {
-									if (!(mode == MODE_STOPPED))
-									{	
-										if (mode == MODE_PLAYING) {
-											mode = MODE_PAUSED;
-											audio_flush(param.outmode, &ai);
-											if (param.usebuffer)
-												kill(buffer_pid, SIGSTOP);
-											generic_sendmsg("P 1");
-										} else {
-											mode = MODE_PLAYING;
-											if (param.usebuffer)
-												kill(buffer_pid, SIGCONT);
-											generic_sendmsg("P 2");
-										}
-									}
-								}	else {
-									if(!strcasecmp(comstr, "SILENCE")) {
-										/* fprintf(stderr, "going silent\n"); */
-										silent = 1;
-										generic_sendmsg("silence");
-									}	else {
-											
-										cmd = strtok(comstr," \t"); /* get the main command */
-										arg = strtok(NULL,""); /* get the args */
+							if ((m >= 0) && (m <= 3))
+							for(cn=1; cn < 2; ++cn)
+							{
+								equalizer[0][cn] = m;
+								equalizer[1][cn] = m;
+							}
+							if ((b >= 0) && (b <= 3))
+							for(cn=2; cn < 32; ++cn)
+							{
+								equalizer[0][cn] = t;
+								equalizer[1][cn] = t;
+							}
+							generic_sendmsg("bass: %f mid: %f treble: %f", b, m, t);
+						}
+						else generic_sendmsg("E invalid arguments for SEQ: %s", arg);
+						continue;
+					}
 
-										if (cmd && strlen(cmd)) {
-											/* combined SILENCE-LOAD-JUMP action, only definite jumps make sense */
-											if(!strcasecmp(cmd, "SLJ"))	{
-												char* filename;
-												int pos;
-												audio_flush(param.outmode, &ai);
-												pos = atoi(strtok(arg," \t"));
-												filename = strtok(NULL,"");
+					/* Equalizer control :) (JMG) */
+					if (!strcasecmp(cmd, "E") || !strcasecmp(cmd, "EQ")) {
+						float e;
+						int c, v;
+						equalfile = TRUE;
+						/*generic_sendmsg("%s",updown);*/
+						if( sscanf(arg, "%i %i %f", &c, &v, &e) == 3){
+							equalizer[c][v] = e;
+							generic_sendmsg("%i : %i : %f", c, v, e);
+						}
+						else generic_sendmsg("E invalid arguments for EQ: %s", arg);
+						continue;
+					}
 
-												/*SILENCE part*/
-												silent = 1;
+					/* JUMP */
+					if (!strcasecmp(cmd, "J") || !strcasecmp(cmd, "JUMP")) {
+						char *spos;
+						int pos, ok;
 
-												/* LOAD part */	
-												if (mode != MODE_STOPPED) {
-													rd->close(rd);
-													mode = MODE_STOPPED;
-												}
-												open_stream(filename, -1);
-												if (rd && rd->flags & READER_ID3TAG) generic_sendinfoid3((char *)rd->id3buf);
-												else generic_sendinfo(filename);
-												mode = MODE_PLAYING;
-												init = 1;
-												framecnt = 0;
-												read_frame_init();
-												generic_sendmsg("P 2");
+						spos = arg;
+						if (!spos)
+							continue;
+						if (spos[0] == '-')
+							pos = framecnt + atoi(spos);
+						else if (spos[0] == '+')
+							pos = framecnt + atoi(spos+1);
+						else
+							pos = atoi(spos);
 
-												/* JUMP part*/
-												int ok;
-
-												if (mode == MODE_STOPPED)
-													continue;
-												ok = 1;
-												if (pos < framecnt) {
-													rd->rewind(rd);
-													read_frame_init();
-													for (framecnt=0; ok && framecnt<pos; framecnt++) {
-														ok = read_frame(fr);
-														if (fr->lay == 3)
-															set_pointer(512);
-													}
-												} else {
-													for (; ok && framecnt<pos; framecnt++) {
-														ok = read_frame(fr);
-														if (fr->lay == 3)
-															set_pointer(512);
-													}
-												}
-												generic_sendmsg("J %d", framecnt); /*got to find out at what position we _really_ are*/
-													
-											}
-											else
-											{
-												/* Equalizer control :) (JMG) */
-												if (!strcasecmp(cmd, "E") || !strcasecmp(cmd, "EQ")) {
-													float e;
-													int c, v;
-													equalfile = TRUE;
-													/*generic_sendmsg("%s",updown);*/
-													sscanf(arg, "%i %i %f", &c, &v, &e);
-													equalizer[c][v] = e;
-													generic_sendmsg("%i : %i : %f", c, v, e);
-												}
-												else
-												{
-
-													/* LOAD - actually play*/
-													if (!strcasecmp(cmd, "L") || !strcasecmp(cmd, "LOAD")) {
-														audio_flush(param.outmode, &ai);
-														char *filename;
-														filename = arg;
-														if (mode != MODE_STOPPED) {
-															rd->close(rd);
-															mode = MODE_STOPPED;
-														}
-														open_stream(filename, -1);
-														if (rd && rd->flags & READER_ID3TAG)
-															generic_sendinfoid3((char *)rd->id3buf);
-														else
-															generic_sendinfo(filename);
-														mode = MODE_PLAYING;
-														init = 1;
-														framecnt = 0;
-														read_frame_init();
-														generic_sendmsg("P 2");
-													}
-													else
-													{
-
-														/* JUMP */
-														if (!strcasecmp(cmd, "J") || !strcasecmp(cmd, "JUMP")) {
-															char *spos;
-															int pos, ok;
-
-															spos = arg;
-															if (!spos)
-																continue;
-															if (spos[0] == '-')
-																pos = framecnt + atoi(spos);
-															else if (spos[0] == '+')
-																pos = framecnt + atoi(spos+1);
-															else
-																pos = atoi(spos);
-
-															if (mode == MODE_STOPPED)
-																continue;
-															ok = 1;
-															if (pos < framecnt) {
-																rd->rewind(rd);
-																read_frame_init();
-																for (framecnt=0; ok && framecnt<pos; framecnt++) {
-																	ok = read_frame(fr);
-																	if (fr->lay == 3)
-																		set_pointer(512);
-																}
-															} else {
-																for (; ok && framecnt<pos; framecnt++) {
-																	ok = read_frame(fr);
-																	if (fr->lay == 3)
-																		set_pointer(512);
-																}
-															}
-															generic_sendmsg("J %d", framecnt); /*got to find out at what position we _really_ are*/
-														}
-														else
-														{
-															/* Simple EQ: SEQ <BASS> <MID> <TREBLE>  */
-															if (!strcasecmp(cmd, "S") || !strcasecmp(cmd, "SEQ")) {
-																real b,m,t;
-																int cn;
-																equalfile = TRUE;
-																sscanf(arg, "%f %f %f", &b, &m, &t);
-																/* very raw line */
-																if ((t >= 0) && (t <= 3))
-																for(cn=0; cn < 1; ++cn)
-																{
-																	equalizer[0][cn] = b;
-																	equalizer[1][cn] = b;
-																}
-																if ((m >= 0) && (m <= 3))
-																for(cn=1; cn < 2; ++cn)
-																{
-																	equalizer[0][cn] = m;
-																	equalizer[1][cn] = m;
-																}
-																if ((b >= 0) && (b <= 3))
-																for(cn=2; cn < 32; ++cn)
-																{
-																	equalizer[0][cn] = t;
-																	equalizer[1][cn] = t;
-																}
-																generic_sendmsg("bass: %f mid: %f treble: %f", b, m, t);
-															}
-															else generic_sendmsg("E Unknown command '%s'", cmd); /* unknown command */
-														}
-													}
-												}
-											}
-										}
-									}
-								}
+						if (mode == MODE_STOPPED)
+							continue;
+						ok = 1;
+						if (pos < framecnt) {
+							rd->rewind(rd);
+							read_frame_init();
+							for (framecnt=0; ok && framecnt<pos; framecnt++) {
+								ok = read_frame(fr);
+								if (fr->lay == 3)
+									set_pointer(512);
+							}
+						} else {
+							for (; ok && framecnt<pos; framecnt++) {
+								ok = read_frame(fr);
+								if (fr->lay == 3)
+									set_pointer(512);
 							}
 						}
-					} /*end multiple-command loop */
+						generic_sendmsg("J %d", framecnt);
+						continue;
+					}
 
-					/* fprintf(stderr, "ende kommandobearbeitung\n"); */
+					/* LOAD - actually play */
+					if (!strcasecmp(cmd, "L") || !strcasecmp(cmd, "LOAD")) {
+						int erg = 0;
+						audio_flush(param.outmode, &ai);
+						if (mode != MODE_STOPPED) {
+							rd->close(rd);
+							mode = MODE_STOPPED;
+						}
+						if( (erg = open_stream_control(arg, -1)) < 0 ){
+							generic_sendmsg("E Error %i opening stream: %s", -1*erg, arg);
+							generic_sendmsg("P 0");
+							continue;
+						}
+						if (rd && rd->flags & READER_ID3TAG)
+							generic_sendinfoid3((char *)rd->id3buf);
+						else
+							generic_sendinfo(arg);
+						mode = MODE_PLAYING;
+						init = 1;
+						framecnt = 0;
+						read_frame_init();
+						generic_sendmsg("P 2");
+						continue;
+					}
 
-				} /* end else (nomem or no length) */
+					/* no command matched */
+					generic_sendmsg("E Unknown command: %s", cmd); /* unknown command */
+				} /* end commands with arguments */
+				else
+				{
+					generic_sendmsg("E Unknown command or no arguments: %s", comstr); /* unknown command */
+				}
 
+			} /*end command processing loop */
+
+			free(coms); /* release memory of command string (pointer) array */
 				
-				/* fprintf(stderr, "freeing (cnum: %d)\n",cnum); */
-				free(coms);
-				/* is this needed? clearing of buffer */
-				for(counter = 0; counter < REMOTE_BUFFER_SIZE; ++counter) buf[counter] = 0;
-				
-			} /* end command action */
-		} /* end command loop */
-	} /* end main loop */
+		} /* end command reading & processing */
+
+	} /* end main (alive) loop */
 
 	/* quit gracefully */
 	if (param.usebuffer) {

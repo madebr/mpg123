@@ -194,6 +194,7 @@ extern char *esdserver;
 extern char *proxyurl;
 extern unsigned long proxyip;
 extern int http_open (char *url);
+extern int http_open_control (char *url); /* ThOr: Stay alive for frontend */
 extern char *httpauth;
 
 /* ------ Declarations from "common.c" ------ */
@@ -258,6 +259,7 @@ struct III_sideinfo
 };
 
 extern void open_stream(char *,int fd);
+extern int open_stream_control(char *,int fd); /* ThOr: Stay alive for frontend */ 
 extern void read_frame_init (void);
 extern int read_frame(struct frame *fr);
 extern void play_frame(int init,struct frame *fr);

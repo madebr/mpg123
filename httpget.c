@@ -179,7 +179,7 @@ unsigned long proxyip = 0;
 unsigned int proxyport;
 
 #define ACCEPT_HEAD "Accept: audio/mpeg, audio/x-mpegurl, */*\r\n"
-
+#define REMOVE_ME! "*/"
 char *httpauth = NULL;
 char httpauth1[256];
 
@@ -305,6 +305,127 @@ int http_open (char *url)
 	if (relocate) {
 		fprintf (stderr, "Too many HTTP relocations.\n");
 		exit (1);
+	}
+	free (purl);
+	free (request);
+
+	return sock;
+}
+
+/* ThOr: dirty hack to prevent mpg123 from exit()ing in frontend mode */
+
+int http_open_control (char *url)
+{
+	char *purl, *host, *request, *sptr;
+	int linelength;
+	unsigned long myip;
+	unsigned int myport;
+	int sock;
+	int relocate, numrelocs = 0;
+	struct sockaddr_in server;
+	FILE *myfile;
+
+	if (!proxyip) {
+		if (!proxyurl)
+			if (!(proxyurl = getenv("MP3_HTTP_PROXY")))
+				if (!(proxyurl = getenv("http_proxy")))
+					proxyurl = getenv("HTTP_PROXY");
+		if (proxyurl && proxyurl[0] && strcmp(proxyurl, "none")) {
+			host = NULL;
+			if (!(url2hostport(proxyurl, &host, &proxyip, &proxyport))) {
+				return -111;
+			}
+			if (host)
+				free (host);
+		}
+		else
+			proxyip = INADDR_NONE;
+	}
+	
+	if ((linelength = strlen(url)+200) < 1024)
+		linelength = 1024;
+	if (!(request = malloc(linelength)) || !(purl = malloc(1024))) {
+		fprintf (stderr, "malloc() failed, out of memory.\n");
+		return -112; /* still good here? */
+	}
+	strncpy (purl, url, 1023);
+	purl[1023] = '\0';
+
+        getauthfromURL(purl,httpauth1);
+
+	do {
+		strcpy (request, "GET ");
+		if (proxyip != INADDR_NONE) {
+			if (strncmp(url, "http://", 7))
+				strcat (request, "http://");
+			strcat (request, purl);
+			myport = proxyport;
+			myip = proxyip;
+		}
+		else {
+			host = NULL;
+			if (!(sptr = url2hostport(purl, &host, &myip, &myport))) {
+				return -113;
+			}
+			strcat (request, sptr);
+		}
+		sprintf (request + strlen(request),
+			" HTTP/1.0\r\nUser-Agent: %s/%s\r\n",
+			prgName, prgVersion);
+		if (host) {
+			sprintf(request + strlen(request),
+				"Host: %s:%u\r\n", host, myport);
+			free (host);
+		}
+
+		strcat (request, ACCEPT_HEAD);
+		server.sin_family = AF_INET;
+		server.sin_port = htons(myport);
+		server.sin_addr.s_addr = myip;
+		if ((sock = socket(PF_INET, SOCK_STREAM, 6)) < 0) {
+			return -114;
+		}
+		if (connect(sock, (struct sockaddr *)&server, sizeof(server))) {
+			return -115;
+		}
+
+		if (strlen(httpauth1) || httpauth) {
+			char buf[1023];
+			strcat (request,"Authorization: Basic ");
+                        if(strlen(httpauth1))
+                          encode64(httpauth1,buf);
+                        else
+			  encode64(httpauth,buf);
+			strcat (request,buf);
+			strcat (request,"\r\n");
+		}
+		strcat (request, "\r\n");
+
+		writestring (sock, request);
+		if (!(myfile = fdopen(sock, "rb"))) {
+			return -116;
+		};
+		relocate = FALSE;
+		purl[0] = '\0';
+		readstring (request, linelength-1, myfile);
+		if ((sptr = strchr(request, ' '))) {
+			switch (sptr[1]) {
+				case '3':
+					relocate = TRUE;
+				case '2':
+					break;
+				default:
+					return -117;
+			}
+		}
+		do {
+			readstring (request, linelength-1, myfile);
+			if (!strncmp(request, "Location:", 9))
+				strncpy (purl, request+10, 1023);
+		} while (request[0] != '\r' && request[0] != '\n');
+	} while (relocate && purl[0] && numrelocs++ < 5);
+	if (relocate) {
+		return -118;
 	}
 	free (purl);
 	free (request);

@@ -1,6 +1,12 @@
-UNOFICIAL 0.59r-ThOr(remote-err,eq,flushing)
+UNOFFICIAL 0.59r-ThOr-3 (Thomas Orgis <thomas@orgis.org>)
 -----
--added audio_flush() calls to various places in control_generic.c to make sure there is nothing left in there that hurts later
+
+- hacked additional variants of http_open and open_stream that return errors instead of exit()ing; makes more sense when used by a frontend
+- further cleanup (and return to using continue instead of nested if(){}else{if()else{}}) in command processing, better error messages there
+
+UNOFFICIAL 0.59r-ThOr(remote-err,eq,flushing) (Thomas Orgis <thomas@orgis.org>)
+-----
+-added audio_flush() calls to various places in control_generic.c to make sure there is nothing left in there that hurts later (not sure if this has effects)
 -(re?)enabled (?) code for stream info
 -corrected answer of JUMP (now gives actual reached position, +/- 1 frame since I'll still have to figure out what frame 0 really is...)
 

@@ -1,3 +1,3 @@
-char *prgVersion = "0.59r-ThOr(remote-err,eq,flushing)";
-char *prgDate = "2004/Sep/20";
+char *prgVersion = "0.59r-ThOr-3";
+char *prgDate = "2005/Feb/24";
 char *prgName;

@@ -486,3 +486,45 @@ void open_stream(char *bs_filenam,int fd)
 }
 
 
+/* open the device to read the bit stream from it, just return on failure */
+
+int open_stream_control(char *bs_filenam,int fd)
+{
+    int i;
+    int filept_opened = 1;
+    int filept;
+
+    if (!bs_filenam) {
+			return -200;
+	}
+	else if (!strncmp(bs_filenam, "http://", 7)) 
+		filept = http_open_control(bs_filenam);
+#ifndef O_BINARY
+#define O_BINARY (0)
+#endif
+	else filept = open(bs_filenam, O_RDONLY|O_BINARY);
+		/* perror (bs_filenam); */
+	if(filept < 0) return filept;
+
+	rd = NULL;
+	for(i=0;;i++) {
+		readers[i].filelen = -1;
+		readers[i].filept  = filept;
+		readers[i].flags = 0;
+		if(filept_opened)
+			readers[i].flags |= READER_FD_OPENED;
+		if(!readers[i].init) {
+			fprintf(stderr,"Fatal error!\n"); /* ThOr: this may be fatal enough to exit - at least is it not so obvious to me if we can continue safely */
+			exit(1);
+		}
+		if(readers[i].init(readers+i) >= 0) {
+			rd = &readers[i];
+			break;
+		}
+	}
+
+	if(rd && rd->flags & READER_ID3TAG) {
+		print_id3_tag(rd->id3buf);
+	}
+	return 0;
+}
