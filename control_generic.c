@@ -227,8 +227,7 @@ void control_generic (struct frame *fr)
 			coms[0] = &buf[0]; /* first command string */
 			
 			/* read as much as possible, maybe multiple commands */
-			/* the break here means: go on with playing next frame */
-			/* ...hoping that there is no permanent error */
+			/* When there is nothing to read (EOF) or even an error, it is the end */
 			if((len = read(STDIN_FILENO, buf, REMOTE_BUFFER_SIZE)) < 1)	break;
 			
 			/* one command on a line - separation by \n -> C strings in a row */
