@@ -4,6 +4,7 @@
  * written/copyrights 1997/99 by Andreas Neuhaus (and Michael Hipp)
  *
  * command parsing/processing reworked and partially rewritten in 2004 by Thomas Orgis
+ * ...and at bit of bugfixing...
  */
 
 #include <stdio.h>
@@ -383,95 +384,71 @@ void control_generic (struct frame *fr)
 													else
 													{
 
-														/* LOAD_PAUSED - this is probably broken*/
-														if (!strcasecmp(cmd, "LP") || !strcasecmp(cmd, "LOAD_PAUSED")) {
-															audio_flush(param.outmode, &ai);
-															char *filename;
-															filename = arg;
-															if (mode != MODE_STOPPED) {
-																rd->close(rd);
-																mode = MODE_STOPPED;
-															}
-															open_stream(filename, -1);
-															if (rd && rd->flags & READER_ID3TAG)
-																	generic_sendinfoid3((char *)rd->id3buf);
+														/* JUMP */
+														if (!strcasecmp(cmd, "J") || !strcasecmp(cmd, "JUMP")) {
+															char *spos;
+															int pos, ok;
+
+															spos = arg;
+															if (!spos)
+																continue;
+															if (spos[0] == '-')
+																pos = framecnt + atoi(spos);
+															else if (spos[0] == '+')
+																pos = framecnt + atoi(spos+1);
 															else
-																generic_sendinfo(filename);
-															mode = MODE_PAUSED;
-															init = 1;
-															framecnt = 0;
-															read_frame_init();
-															generic_sendmsg("P 1");
+																pos = atoi(spos);
+
+															if (mode == MODE_STOPPED)
+																continue;
+															ok = 1;
+															if (pos < framecnt) {
+																rd->rewind(rd);
+																read_frame_init();
+																for (framecnt=0; ok && framecnt<pos; framecnt++) {
+																	ok = read_frame(fr);
+																	if (fr->lay == 3)
+																		set_pointer(512);
+																}
+															} else {
+																for (; ok && framecnt<pos; framecnt++) {
+																	ok = read_frame(fr);
+																	if (fr->lay == 3)
+																		set_pointer(512);
+																}
+															}
+															generic_sendmsg("J %d", framecnt); /*got to find out at what position we _really_ are*/
 														}
 														else
-														{		
-
-															/* JUMP */
-															if (!strcasecmp(cmd, "J") || !strcasecmp(cmd, "JUMP")) {
-																char *spos;
-																int pos, ok;
-
-																spos = arg;
-																if (!spos)
-																	continue;
-																if (spos[0] == '-')
-																	pos = framecnt + atoi(spos);
-																else if (spos[0] == '+')
-																	pos = framecnt + atoi(spos+1);
-																else
-																	pos = atoi(spos);
-
-																if (mode == MODE_STOPPED)
-																	continue;
-																ok = 1;
-																if (pos < framecnt) {
-																	rd->rewind(rd);
-																	read_frame_init();
-																	for (framecnt=0; ok && framecnt<pos; framecnt++) {
-																		ok = read_frame(fr);
-																		if (fr->lay == 3)
-																			set_pointer(512);
-																	}
-																} else {
-																	for (; ok && framecnt<pos; framecnt++) {
-																		ok = read_frame(fr);
-																		if (fr->lay == 3)
-																			set_pointer(512);
-																	}
+														{
+															/* Simple EQ: SEQ <BASS> <MID> <TREBLE>  */
+															if (!strcasecmp(cmd, "S") || !strcasecmp(cmd, "SEQ")) {
+																real b,m,t;
+																int cn;
+																equalfile = TRUE;
+																sscanf(arg, "%f %f %f", &b, &m, &t);
+																/* very raw line */
+																if ((t >= 0) && (t <= 3))
+																for(cn=0; cn < 1; ++cn)
+																{
+																	equalizer[0][cn] = b;
+																	equalizer[1][cn] = b;
 																}
-																generic_sendmsg("J %d", framecnt); /*got to find out at what position we _really_ are*/
-															}
-															else
-															{
-																/* Simple EQ: SEQ <BASS> <MID> <TREBLE>  */
-																if (!strcasecmp(cmd, "S") || !strcasecmp(cmd, "SEQ")) {
-																	real b,m,t;
-																	int cn;
-																	equalfile = TRUE;
-																	sscanf(arg, "%f %f %f", &b, &m, &t);
-																	/* very raw line */
-																	if ((t >= 0) && (t <= 3))
-																	for(cn=0; cn < 1; ++cn)
-																	{
-																		equalizer[0][cn] = b;
-																		equalizer[1][cn] = b;
-																	}
-																	if ((m >= 0) && (m <= 3))
-																	for(cn=1; cn < 2; ++cn)
-																	{
-																		equalizer[0][cn] = m;
-																		equalizer[1][cn] = m;
-																	}
-																	if ((b >= 0) && (b <= 3))
-																	for(cn=2; cn < 32; ++cn)
-																	{
-																		equalizer[0][cn] = t;
-																		equalizer[1][cn] = t;
-																	}
-																	generic_sendmsg("bass: %f mid: %f treble: %f", b, m, t);
+																if ((m >= 0) && (m <= 3))
+																for(cn=1; cn < 2; ++cn)
+																{
+																	equalizer[0][cn] = m;
+																	equalizer[1][cn] = m;
 																}
-																else generic_sendmsg("E Unknown command '%s'", cmd); /* unknown command */
+																if ((b >= 0) && (b <= 3))
+																for(cn=2; cn < 32; ++cn)
+																{
+																	equalizer[0][cn] = t;
+																	equalizer[1][cn] = t;
+																}
+																generic_sendmsg("bass: %f mid: %f treble: %f", b, m, t);
 															}
+															else generic_sendmsg("E Unknown command '%s'", cmd); /* unknown command */
 														}
 													}
 												}
