@@ -1,0 +1,15 @@
+Package: mpg123-alsa
+Architecture: i386
+Depends: ${shlibs:Depends}
+Provides: mpg123, mp3-decoder
+Conflicts: mpg123 (<< 0.59r-2)
+Description: MPEG layer 1/2/3 audio player with ALSA support
+ Mpg123 is a fast and portable MPEG audio player for Unix.  It supports
+ MPEG 1.0/2.0 layers 1, 2 and 3 (those famous "mp3" files).
+ . 
+ For full CD quality playback (44 kHz, 16 bit, stereo) a Pentium,
+ SPARCstation10, DEC Alpha or similar CPU is required.  Mono and/or reduced
+ quality playback (22 kHz or 11 kHz) is even possible on 486 CPUs.
+ .
+ This version uses the Advanced Linux Sound Architecture (ALSA)
+ for sound output.

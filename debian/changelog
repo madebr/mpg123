@@ -1,0 +1,380 @@
+mpg123 (0.59r-19) unstable; urgency=high
+
+  * layer2.c: Fix off-by-one error in boundary check introduced in -18.
+    Thanks to Jeremy Huddleston for noticing.
+  * layer1.c: Use proper parameter range in stereo test.
+
+ -- Daniel Kobras <kobras@debian.org>  Wed,  5 Jan 2005 17:18:30 +0100
+
+mpg123 (0.59r-18) unstable; urgency=high
+
+  * common.c, layer2.c: Fix insufficient validation of MPEG header
+    values, discovered by Yuri D'Elia (CAN-2004-0991).
+  * mpg123.c: Fix buffer overflow in playlist parser, discovered by
+    Bartlomiej Sieka (CAN-2004-1284). Thanks to Steve Kemp for the
+    patch. Closes: #287043
+  * httpget.c: Fix further heap overflows in http parser. Backported
+    from the Gentoo patch for CAN-2004-0982. Original path was coded
+    by Jeremy Huddleston for version pre0.59s.
+  * mpg123.c: Fix NULL pointer dereference if http_open() fails.
+  * httpget.c, xfermem.c: Do not explicitly declare errno variable.
+  * audio.c: Include stdlib.h to silence compiler warning.
+
+ -- Daniel Kobras <kobras@debian.org>  Mon,  3 Jan 2005 23:11:32 +0100
+
+mpg123 (0.59r-17) unstable; urgency=high
+
+  * httpget.c: Fix heap overflow in http authentication handler
+    (CAN-2004-0982). Closes: #277948
+  * mpg123.c: Apply patch by Dan Olson to fix handling of remote
+    playlists. Closes: #60058, #185544
+
+ -- Daniel Kobras <kobras@debian.org>  Wed, 27 Oct 2004 00:16:23 +0200
+
+mpg123 (0.59r-16) unstable; urgency=high
+
+  * layer2.c: Fix buffer overflow in layer2 decoder (CVE ID CAN-2004-0805).
+  * Makefile: Fix compiler options to build for generic targets on ARM,
+    but optimise for xscale. Closes: #261255
+  * README.3DNOW, dct36_3dnow.s, dct64_3dnow.s, decode_3dnow.s,
+    decode_i386.c, equalizer_3dnow.s, getcpuflags.s, layer3.c, mpg123.c,
+    mpg123.h, tabinit.c, debian/rules: Apply patch by KIMURA Takuhiro and
+    Syuuhei Kashiyama to fix errors in 3dnow-optimised decoding.
+    Thanks to Alberto Garcia for the patch-merging. Closes: #242212
+  * debian/prerm: De-register mp3-decoder alternative. Closes: #222982
+  * debian/changelog: Convert to utf8.
+  * debian/control: Bump standards version.
+
+ -- Daniel Kobras <kobras@debian.org>  Tue,  7 Sep 2004 15:57:57 +0200
+
+mpg123 (0.59r-15) unstable; urgency=high
+
+  * httpget.c: Fix heap overflow in http subsystem (cf. BID 8680, and Debian
+    bug #212584). As a side-effect, this imposes an upper limit on the
+    supported length of URLs (1013 characters).
+  * buffer.c: Fix potential loop in buffer process after parent has exited.
+    Closes: #181176
+  * term.c: Do not send internal signals to whole process group. Patch thanks
+    to Rupert Levene. Closes: #192547
+  * control_generic.c: Fix line reading (up to a max. length of 1023
+    characters). Closes: #64789
+  * mpg123.c: -R does not require any further argument on the command line.
+  * Makefile: Replace obsolete '-m486' by '-mcpu=i486'.
+  * mpg123.1: Add missing .TP separator. Closes: #190965
+  * mpg123.1: Document format of equalizer file. Closes: #107221
+  * README.Debian: Clarify that mpg123 does not contain GPLed code.
+    Closes: #149398
+  * debian/rules: Distribute README.Debian.
+  * debian/postinst: Check arguments and only act when called with
+    'configure'.
+  * debian/postinst: Install alternative for mp3-decoder. Closes: #144303
+
+ -- Daniel Kobras <kobras@debian.org>  Sun, 28 Sep 2003 15:29:07 +0200
+
+mpg123 (0.59r-14) unstable; urgency=high
+
+  * Finally understood why size calculation of audio fragments broke
+    PPC support--we're actually violating OSS v1.1 specs, and PPC's
+    dmasound driver traps it.  Reverted previous workaround and added
+    proper fix.
+  * common.h: Increase MAXFRAMESIZE to 3456 bytes, which is much closer to
+    reality.
+  * common.c: Add a sanity check on framesize overflow. Cannot happen now,
+    but let's be prepared.
+  * Makefile: Fix gcc commandline in linux-ppc target to keep gcc 3.2 happy.
+  * debian/postinst: Do not set symlink to /usr/doc.
+  * debian/control: Complies with current standards version.
+
+ -- Daniel Kobras <kobras@debian.org>  Wed, 29 Jan 2003 21:39:04 +0100
+
+mpg123 (0.59r-13) unstable; urgency=low
+
+  * Upstream's fix for zero length issue broke wav and cdr output.
+    Reverted and replaced with own version. Closes: #139300
+  * Enable term control keys on all Linux targets.
+
+ -- Daniel Kobras <kobras@debian.org>  Fri, 22 Mar 2002 16:43:39 +0100
+
+mpg123 (0.59r-12) unstable; urgency=low
+
+  * The "my patch is bigger than yours" release.
+  * When playing the _first_ song in buffered mode, wait until the buffer
+    is completely filled up before any output is produced.  The threshold
+    remains at 1/8 the buffer for all the later songs.  This hack gives
+    live streams a chance to fill up the whole buffer. Closes: #34844
+  * Clarify documentation of random play options. Closes: #131105
+  * Initialise output early to prevent segfault on zero length files.
+    Closes: #97899
+  * Applied slightly modified version of patch from Andreas Dilger
+    <adilger@turbolinux.com> to recognize ID3 tags.
+    Closes: #72372, #81260, #105329
+  * Applied patch from Erik B. Andersen <andersee@debian.org> for fixed
+    point arithmetic on arm. Closes: #72600
+  * Applied patch from Chris Butler <chrisb@debian.org> to fix size
+    calculation of OSS audio fragments.  Added a hack to make the patch
+    work on PPC. (WTF? Might be a bug in PPC's OSS implementation.)
+    Closes: #79566
+  * Shuffled includes in audio_oss.c to avoid redefinition of native
+    endian formats.
+  * Applied patch from Andreas Dilger <adilger@turbolinux.com> to skip
+    over unplayable files during shuffle play. Closes: #60726
+  * Applied patch from Martin Sjögren <md9ms@mdstud.chalmers.se> to
+    handle spaces in URLs. Closes: #75289
+  * Updated standards version.
+
+ -- Daniel Kobras <kobras@debian.org>  Sat,  9 Mar 2002 21:45:55 +0100
+
+mpg123 (0.59r-11) unstable; urgency=low
+
+  * Don't buffer output if writing to a file. (Patch from upstream CVS.)
+    Closes: #67346
+  * Introduce option --title to allow changing the window's title in an
+    xterm or rxvt. (Patch adapted from upstream CVS.) Document the new
+    option. Closes: #72453, #83907
+  * Correct broken URLs in man page. Closes: #82049
+  * Document control keys. (Patch from upstream CVS.) Closes: #111787
+  * Enable and document option to gain realtime priority. Closes: #92046
+  * Changed download location in copyright file to a working URL.
+  * Removed alsa build deps since the alsa version isn't built anyway.
+  * The nas target build depends on xlibs-dev for libXau.
+  * New Debian maintainer. Closes: #109254 
+
+ -- Daniel Kobras <kobras@debian.org>  Thu, 10 Jan 2002 00:52:04 +0100
+
+mpg123 (0.59r-10) unstable; urgency=low
+
+  * Debian QA upload.
+  * debian/control: Remove mpg123-alsa paragraph, as having it stay around
+    in the .dsc is confusing the archive scripts so that the old i386 binary
+    hasn't been removed. The old paragraph is in debian/control.alsa for
+    now.
+
+ -- Colin Watson <cjwatson@debian.org>  Fri, 30 Nov 2001 03:11:40 +0000
+
+mpg123 (0.59r-9) unstable; urgency=low
+
+  * Debian QA upload.
+  * Apply patch from Helge Deller <deller@gmx.de> to allow building on hppa
+    (closes: #110832).
+
+ -- Colin Watson <cjwatson@debian.org>  Sat,  1 Sep 2001 00:12:46 +0100
+
+mpg123 (0.59r-8) unstable; urgency=low
+
+  * Fix typo preventing build on powerpc (closes: #110134).
+
+ -- Colin Watson <cjwatson@debian.org>  Sun, 26 Aug 2001 13:43:47 +0100
+
+mpg123 (0.59r-7) unstable; urgency=low
+
+  * audio_oss.c: If opening /dev/dsp fails, try /dev/sound/dsp.
+    Thanks to Chet Hosey <chosey@budapress.com>. Closes: #78169.
+  * layer3.c: Cast getbyte() to unsigned long for 64-bit arches.
+    Thanks to Christopher C. Chimelis <chris@debian.org>.
+    Closes: #69944. Might be the same as #70552, but don't know.
+  * mpg123.1: Added the --wav, --au, --cdr options to the manpage.
+    Thanks to Roland Rosenfeld <roland@spinnaker.de>. Closes: #70786.
+  * debian/control: Provide mp3-decoder (Closes: #83247). Make
+    mpg123-oss-i486 have the same provides/conflicts as the other
+    packages.
+  * debian/rules: Use $(MAKE). Closes: #79563.
+  * mpg123.c: If $TERM is rxvt, send xterm title changing escape
+    codes. Thanks to Marcelo E. Magallon <mmagallo@debian.org>.
+    Closes: #103955. Note: the -C option doesn't seem to be working.
+  * Removed package mpg123-alsa until mpg123 is ported to the newer
+    ALSA API. Closes: #74234.
+  * New package mpg123-oss-3dnow. Closes: #101654. dct64_3dnow.s
+    and decode_3dnow.s had syntax errors, changed all "foo /comment"
+    to be two lines "/comment" and "foo".
+  * Orphaning the package, I've switched to using mpg321.
+
+ -- Tommi Virtanen <tv@debian.org>  Sat, 18 Aug 2001 15:40:28 +0300
+
+mpg123 (0.59r-6) unstable; urgency=low
+
+  * Do not crash when $TERM is unset. Closes: #69123.
+
+ -- Tommi Virtanen <tv@debian.org>  Sun, 27 Aug 2000 19:48:41 +0300
+
+mpg123 (0.59r-5) unstable; urgency=low
+
+  * Add "with <x> support" to short package descriptions. 
+    Closes: #65771.
+  * Fix off-by-one bounds check in translating genre numbers 
+    to names. Closes: #68662.
+  * Don't use -DREAD_MMAP. Closes: #20258, #64490.
+  * Add new package mpg123-oss-i486, optimized for i486 CPUs.
+  * Undo part of earlier bugfix: if -R 'line' consisted only 
+    of \n and/or \r, a buffer underflow would happen.
+
+ -- Tommi Virtanen <tv@debian.org>  Sun, 27 Aug 2000 17:56:10 +0300
+
+mpg123 (0.59r-4) unstable; urgency=low
+
+  * Fix buffer underflow when remote control mode read(0,..) fails.
+  * Make remote control mode exit on eof instead of 100% CPU usage.
+
+ -- Tommi Virtanen <tv@debian.org>  Sat, 27 May 2000 21:51:50 +0300
+
+mpg123 (0.59r-3) unstable; urgency=low
+
+  * Conflict with the mpg123 package from time
+    before the split.
+
+ -- Tommi Virtanen <tv@debian.org>  Sat, 20 May 2000 01:14:49 +0300
+
+mpg123 (0.59r-2) unstable; urgency=low
+
+  * Yes Virginia, it is a newer version now. Closes: #61370.
+  * Split the package to mgp123{-esd,-alsa,-nas}. 
+    Closes: #49940, #33416.
+  * Close all the bugs the previous maintainer
+    intended to close, but failed with the syntax.
+    Please reopen if they are not really fixed.
+    Closes: #32322, #27867, #28690, #17751, #14168,
+    #13659, #14118, #14759, #15312, #32668, #26899.
+  * It seems to be registered in mailcap already. Closes: #35770.
+  * Seems to handle stdin just fine. Closes: #22052.
+  * Seems to handle ctrl-C just fine. Closes: #32666, #25529.
+  * Added -lXt to mpg123-nas compilation to fix missing symbols
+  * Added declaration for esdserver in audio_esd.c
+  * Include support for ARM and Sparc architectures.
+    Needs testing. Closes: #58490, #53050.
+  * Remove all mentions of freeness from description. Closes: #48744.
+
+ -- Tommi Virtanen <tv@debian.org>  Fri, 19 May 2000 23:29:43 +0300
+
+mpg123 (0.59r-1) unstable; urgency=low
+
+  * New maintainer
+  * New upstream version
+  * Rewrite packaging to get rid of debstd
+  * Upgraded to policy 3.1.1 (FHS, no Build-Depends needed)
+  * Wait for the next upload for bug fixing or package splitting..
+
+ -- Tommi Virtanen <tv@debian.org>  Tue, 16 May 2000 18:14:56 +0300
+
+mpg123 (0.59q-2) unstable; urgency=low
+
+  * fixes #15434: changelog.debian is compressed
+  * fixes #27867: manpage is correct
+  * fixes #28690: copyright file updated with new url
+  * fixes #17751, #14168, #17751: random with one file doesn't crash anymore
+  * fixes #13659, #14118, #14759, #15312: sound doesn't stop after 20 minutes
+  * many thanks to justin mccright for helping me clean these up
+
+ -- Paul Haggart <phaggart@debian.org>  Sun, 14 Mar 1999 11:02:42 -0500
+
+mpg123 (0.59q-1) unstable; urgency=low
+
+  * fixes #32668: new upstream source 
+  * i think we lost gmp3 support though.. the patch was none too clean
+  * fixes #32322: add -DUSE_MMAP to alpha
+  * fixes #26899: registered mime type for audio/mpeg
+  * updated standards version to current
+
+ -- Paul Haggart <phaggart@debian.org>  Sun,  7 Feb 1999 17:14:17 -0500
+
+mpg123 (0.59o-3) unstable; urgency=low
+
+  * incorporated patches for gmp3 support
+
+ -- Paul Haggart <phaggart@debian.org>  Sun,  2 Aug 1998 12:50:31 -0400
+
+mpg123 (0.59o-2) frozen unstable; urgency=low
+
+  * fixed #20301: compiles under m68k
+
+ -- Paul Haggart <phaggart@debian.org>  Fri, 27 Mar 1998 15:19:43 -0500
+
+mpg123 (0.59o-1) unstable; urgency=low
+
+  * new upstream source
+  * fixed #17398: 8 bit cards supported with --8bit option
+  * fixed #15348: alpha architecture is supported
+  * fixed #14541: move me to non-free/sound!
+
+ -- Paul Haggart <phaggart@debian.org>  Sat, 14 Mar 1998 10:02:57 -0500
+
+mpg123 (0.59n-3) unstable; urgency=low
+
+  * moved to non-free/sound for real now.  
+
+ -- Paul Haggart <phaggart@debian.org>  Tue, 10 Feb 1998 10:51:59 -0500
+
+mpg123 (0.59n-2) unstable; urgency=low
+
+  * really added support for non-i386 this time.  last time I was just
+    kidding or something.
+
+ -- Paul Haggart <phaggart@debian.org>  Sat,  7 Feb 1998 14:26:10 -0500
+
+mpg123 (0.59n-1) unstable; urgency=low
+
+  * new upstream source
+  * hopefully added support for non-i386 architectures
+
+ -- Paul Haggart <phaggart@debian.org>  Sat, 24 Jan 1998 12:07:02 -0500
+
+mpg123 (0.59m-3) unstable; urgency=low
+
+  * okay, now we're -really- moved to non-free/sound.
+
+ -- Paul Haggart <phaggart@debian.org>  Thu, 20 Nov 1997 18:00:36 -0500
+
+mpg123 (0.59m-2) unstable; urgency=low
+
+  * moved to non-free/sound because of DFSG non-compliance.
+
+ -- Paul Haggart <phaggart@debian.org>  Tue, 18 Nov 1997 18:31:36 -0500
+
+mpg123 (0.59m-1) unstable; urgency=low
+
+  * new upstream source
+
+ -- Paul Haggart <phaggart@debian.org>  Wed, 22 Oct 1997 21:55:13 -0400
+
+mpg123 (0.59l-2) unstable; urgency=low
+
+  * i386 only :(  (bug #13833)
+
+ -- Paul Haggart <phaggart@debian.org>  Mon, 13 Oct 1997 14:27:39 -0400
+
+mpg123 (0.59l-1) unstable; urgency=low
+
+  * new upstream version
+
+ -- Paul Haggart <phaggart@debian.org>  Mon, 29 Sep 1997 15:59:57 -0400
+
+mpg123 (0.59k-2) unstable; urgency=low
+
+  * fixed bug #11465: mpg123 isn't i386 specific any more
+
+ -- Paul Haggart <phaggart@debian.org>  Wed, 23 Jul 1997 20:10:42 -0400
+
+mpg123 (0.59k-1) unstable; urgency=low
+
+  * new upstream version
+
+ -- Paul Haggart <phaggart@debian.org>  Sun, 13 Jul 1997 11:41:34 -0400
+
+mpg123 (0.59i-1) unstable; urgency=low
+
+  * new upstream version
+
+ -- Paul Haggart <phaggart@debian.org>  Thu, 19 Jun 1997 17:03:15 -0400
+
+mpg123 (0.59g-1) unstable; urgency=low
+
+  * recompiled with libc6
+  * new upstream source
+
+ -- Paul Haggart <phaggart@debian.org>  Sun, 4 May 1997 00:11:44 -0400
+
+mpg123 (0.59f-1) unstable; urgency=low
+
+  * Initial Release.
+
+ -- Paul Haggart <phaggart@debian.org>  Sun, 27 Apr 1997 15:09:37 -0400
+
+
