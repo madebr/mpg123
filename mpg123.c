@@ -17,8 +17,9 @@
 #include <errno.h>
 #include <string.h>
 #include <fcntl.h>
+#include <time.h>
 
-#if 0
+#if 1
 #define SET_RT 
 #endif
 
@@ -47,6 +48,7 @@ struct parameter param = {
   FALSE , /* remote to stderr */
   DECODE_AUDIO , /* write samples to audio device */
   FALSE , /* silent operation */
+  FALSE , /* xterm title on/off */
   0 ,     /* second level buffer size */
   TRUE ,  /* resync after stream error */
   0 ,     /* verbose level */
@@ -62,6 +64,10 @@ struct parameter param = {
   0 ,	  /* doublespeed */
   0 ,	  /* halfspeed */
   0 ,	  /* force_reopen, always (re)opens audio device for next song */
+#ifdef USE_3DNOW
+  0 ,     /* autodetect from CPUFLAGS */
+  FALSE , /* normal operation */
+#endif
   FALSE,  /* try to run process in 'realtime mode' */   
   { 0,},  /* wav,cdr,au Filename */
 };
@@ -147,6 +153,17 @@ void init_output(void)
     return;
   init_done = TRUE;
 #ifndef NOXFERMEM
+  /*
+   * Only DECODE_AUDIO and DECODE_FILE are sanely handled by the
+   * buffer process. For now, we just ignore the request
+   * to buffer the output. [dk]
+   */
+  if (param.usebuffer && (param.outmode != DECODE_AUDIO) &&
+      (param.outmode != DECODE_FILE)) {
+    fprintf(stderr, "Sorry, won't buffer output unless writing plain audio.\n");
+    param.usebuffer = 0;
+  } 
+  
   if (param.usebuffer) {
     unsigned int bufferbytes;
     sigset_t newsigset, oldsigset;
@@ -297,7 +314,7 @@ char *find_next_file (int argc, char *argv[])
                 fprintf (stderr, "Using playlist from %s ...\n",
                         listname ? listname : "standard input");
         }
-        do {
+        while (listfile) {
             if (fgets(line, 1023, listfile)) {
                 line[strcspn(line, "\t\n\r")] = '\0';
 #if !defined(WIN32)
@@ -308,9 +325,11 @@ char *find_next_file (int argc, char *argv[])
 #endif
                 if (line[0]=='\0' || line[0]=='#')
                     continue;
-		if ((listnamedir) && (line[0]!='/') && (line[0]!='\\')){
-                    strcpy (linetmp, listnamedir);
-                    strcat (linetmp, line);
+		if ((listnamedir) && (line[0]!='/') && (line[0]!='\\')
+		     && strncmp(line, "http://", 7)) {
+		    memset(linetmp,'\0',sizeof(linetmp));
+		    snprintf(linetmp, sizeof(linetmp)-1, "%s%s",
+		             listnamedir, line);
 		    strcpy (line, linetmp);
                 }
                 return (line);
@@ -321,7 +340,7 @@ char *find_next_file (int argc, char *argv[])
                 listname = NULL;
                 listfile = NULL;
             }
-        } while (listfile);
+        } 
     }
     if (loptind < argc)
     	return (argv[loptind++]);
@@ -518,6 +537,11 @@ topt opts[] = {
     {'Z', "random",      0,                  0, &param.shuffle,    2},
     {'E', "equalizer",	 GLO_ARG | GLO_CHAR, 0, &equalfile,1},
     {0,   "aggressive",	 0,   	             0, &param.aggressive,2},
+#ifdef USE_3DNOW
+    {0,   "force-3dnow", 0,                  0, &param.stat_3dnow,1},
+    {0,   "no-3dnow",    0,                  0, &param.stat_3dnow,2},
+    {0,   "test-3dnow",  0,                  0, &param.test_3dnow,TRUE},
+#endif
 #if !defined(WIN32) && !defined(GENERIC)
     {'u', "auth",        GLO_ARG | GLO_CHAR, 0, &httpauth,   0},
 #endif
@@ -526,6 +550,7 @@ topt opts[] = {
 #else
     {'T', "realtime",    0,       not_compiled, 0,           0 },    
 #endif
+    {0, "title",         0,                  0, &param.xterm_title, TRUE },
     {'w', "wav",         GLO_ARG | GLO_CHAR, set_wav, 0 , 0 },
     {0, "cdr",         GLO_ARG | GLO_CHAR, set_cdr, 0 , 0 },
     {0, "au",         GLO_ARG | GLO_CHAR, set_au, 0 , 0 },
@@ -727,10 +752,14 @@ void set_synth_functions(struct frame *fr)
 {
 	typedef int (*func)(real *,int,unsigned char *,int *);
 	typedef int (*func_mono)(real *,unsigned char *,int *);
+	typedef void (*func_dct36)(real *,real *,real *,real *,real *);
 	int ds = fr->down_sample;
 	int p8=0;
-
+#ifdef USE_3DNOW
+	static func funcs[3][4] = {
+#else
 	static func funcs[2][4] = { 
+#endif
 		{ synth_1to1,
 		  synth_2to1,
 		  synth_4to1,
@@ -739,6 +768,12 @@ void set_synth_functions(struct frame *fr)
 		  synth_2to1_8bit,
 		  synth_4to1_8bit,
 		  synth_ntom_8bit } 
+#ifdef USE_3DNOW
+  	       ,{ synth_1to1_3dnow,
+  		  synth_2to1,
+ 		  synth_4to1,
+  		  synth_ntom }
+#endif
 	};
 
 	static func_mono funcs_mono[2][2][4] = {    
@@ -760,10 +795,29 @@ void set_synth_functions(struct frame *fr)
 		    synth_ntom_8bit_mono } }
 	};
 
+#ifdef USE_3DNOW	
+	static func_dct36 funcs_dct36[2] = {dct36 , dct36_3dnow};
+#endif
+
 	if((ai.format & AUDIO_FORMAT_MASK) == AUDIO_FORMAT_8)
 		p8 = 1;
 	fr->synth = funcs[p8][ds];
 	fr->synth_mono = funcs_mono[param.force_stereo?0:1][p8][ds];
+
+#ifdef USE_3DNOW
+	/* check cpuflags bit 31 (3DNow!) and 23 (MMX) */
+	if((param.stat_3dnow < 2) && 
+	   ((param.stat_3dnow == 1) ||
+	    (getcpuflags() & 0x80800000) == 0x80800000))
+      	{
+	  fr->synth = funcs[2][ds]; /* 3DNow! optimized synth_1to1() */
+	  fr->dct36 = funcs_dct36[1]; /* 3DNow! optimized dct36() */
+	}
+	else
+	{
+	       	  fr->dct36 = funcs_dct36[0];
+      	}
+#endif
 
 	if(p8) {
 		make_conv16to8_table(ai.format);
@@ -817,7 +871,21 @@ int main(int argc, char *argv[])
 			exit (1);
 	}
 
-	if (loptind >= argc && !listname && !frontend_type)
+#ifdef USE_3DNOW
+	if (param.test_3dnow) {
+		int cpuflags = getcpuflags();
+		fprintf(stderr,"CPUFLAGS = %08x\n",cpuflags);
+		if ((cpuflags & 0x00800000) == 0x00800000) {
+			fprintf(stderr,"MMX instructions are supported.\n");
+		}
+		if ((cpuflags & 0x80000000) == 0x80000000) {
+			fprintf(stderr,"3DNow! instructions are supported.\n");
+		}
+		exit(0);
+	}
+#endif
+
+	if (loptind >= argc && !listname && !frontend_type && !param.remote)
 		usage(NULL);
 
 #if !defined(WIN32) && !defined(GENERIC)
@@ -915,7 +983,8 @@ int main(int argc, char *argv[])
 
 		if(!*fname || !strcmp(fname, "-"))
 			fname = NULL;
-		open_stream(fname,-1);
+               if (open_stream(fname,-1) < 0)
+                       continue;
       
 		if (!param.quiet) {
 			if (split_dir_file(fname ? fname : "standard input",
@@ -927,8 +996,10 @@ int main(int argc, char *argv[])
 {
      const char *term_type;
          term_type = getenv("TERM");
-         if (!strcmp(term_type,"xterm"))
-         {
+	 if (term_type &&
+	     param.xterm_title &&
+	     (!strcmp(term_type,"xterm") || !strcmp(term_type,"rxvt")))
+	 {
            fprintf(stderr, "\033]0;%s\007", filename);
          }
 }
@@ -1204,6 +1275,11 @@ static void long_usage(char *d)
   fprintf(o," -w <f> --wav <f>          Writes samples as WAV file in <f> (- is stdout)\n");
   fprintf(o,"        --au <f>           Writes samples as Sun AU file in <f> (- is stdout)\n");
   fprintf(o,"        --cdr <f>          Writes samples as CDR file in <f> (- is stdout)\n");
+#ifdef USE_3DNOW
+  fprintf(o,"        --test-3dnow       Display result of 3DNow! autodetect and exit\n");
+  fprintf(o,"        --force-3dnow      Force use of 3DNow! optimized routine\n");
+  fprintf(o,"        --no-3dnow         Force use of floating-pointer routine\n");
+#endif
 
   fprintf(o,"\nSee the manpage %s(1) for more information.\n", prgName);
   exit(0);

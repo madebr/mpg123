@@ -21,30 +21,50 @@ static int get_fileinfo(struct reader *,char *buf);
 /*******************************************************************
  * stream based operation
  */
-static int fullread(int fd,unsigned char *buf,int count)
+static int fullread(struct reader *rds,unsigned char *buf,int count)
 {
   int ret,cnt=0;
 
+  /*
+   * We check against READER_ID3TAG instead of rds->filelen >= 0 because
+   * if we got the ID3 TAG we know we have the end of the file.  If we
+   * don't have an ID3 TAG, then it is possible the file has grown since
+   * we started playing, so we want to keep reading from it if possible.
+   */
+  if ((rds->flags & READER_ID3TAG) && rds->filepos + count > rds->filelen)
+    count = rds->filelen - rds->filepos;
   while(cnt < count) {
-    ret = read(fd,buf+cnt,count-cnt);
+    ret = read(rds->filept,buf+cnt,count-cnt);
     if(ret < 0)
       return ret;
     if(ret == 0)
       break;
+    rds->filepos += ret;
     cnt += ret;
   } 
 
   return cnt;
 }
 
+static off_t stream_lseek(struct reader *rds, off_t pos, int whence)
+{
+  off_t ret;
+
+  ret = lseek(rds->filept, pos, whence);
+  if (ret >= 0)
+    rds->filepos = ret;
+
+  return ret;
+}
+
 static int default_init(struct reader *rds)
 {
   char buf[128];
 
-  rds->filepos = 0;
   rds->filelen = get_fileinfo(rds,buf);
+  rds->filepos = 0;
   
-  if(rds->filelen > 0) {
+  if(rds->filelen >= 0) {
     if(!strncmp(buf,"TAG",3)) {
       rds->flags |= READER_ID3TAG;
       memcpy(rds->id3buf,buf,128);
@@ -65,7 +85,7 @@ void stream_close(struct reader *rds)
  */
 static int stream_back_bytes(struct reader *rds,int bytes)
 {
-  if(lseek(rds->filept,-bytes,SEEK_CUR) < 0)
+  if(stream_lseek(rds,-bytes,SEEK_CUR) < 0)
     return -1;
   if(param.usebuffer)
 	  buffer_resync();
@@ -95,23 +115,23 @@ static int stream_back_frame(struct reader *rds,struct frame *fr,int num)
 /*
 		bytes += (long)(compute_buffer_offset(fr)*compute_bpf(fr));
 */	
-	if(lseek(rds->filept,-bytes,SEEK_CUR) < 0)
+	if(stream_lseek(rds,-bytes,SEEK_CUR) < 0)
 		return -1;
 
-	if(fullread(rds->filept,buf,4) != 4)
+	if(fullread(rds,buf,4) != 4)
 		return -1;
 
 	newhead = (buf[0]<<24) + (buf[1]<<16) + (buf[2]<<8) + buf[3];
 	
 	while( (newhead & HDRCMPMASK) != (firsthead & HDRCMPMASK) ) {
-		if(fullread(rds->filept,buf,1) != 1)
+		if(fullread(rds,buf,1) != 1)
 			return -1;
 		newhead <<= 8;
 		newhead |= buf[0];
 		newhead &= 0xffffffff;
 	}
 
-	if( lseek(rds->filept,-4,SEEK_CUR) < 0)
+	if( stream_lseek(rds,-4,SEEK_CUR) < 0)
 		return -1;
 	
 	read_frame(fr);
@@ -131,7 +151,7 @@ static int stream_head_read(struct reader *rds,unsigned long *newhead)
 {
   unsigned char hbuf[4];
 
-  if(fullread(rds->filept,hbuf,4) != 4)
+  if(fullread(rds,hbuf,4) != 4)
     return FALSE;
   
   *newhead = ((unsigned long) hbuf[0] << 24) |
@@ -146,7 +166,7 @@ static int stream_head_shift(struct reader *rds,unsigned long *head)
 {
   unsigned char hbuf;
 
-  if(fullread(rds->filept,&hbuf,1) != 1)
+  if(fullread(rds,&hbuf,1) != 1)
     return 0;
   *head <<= 8;
   *head |= hbuf;
@@ -156,16 +176,24 @@ static int stream_head_shift(struct reader *rds,unsigned long *head)
 
 static int stream_skip_bytes(struct reader *rds,int len)
 {
-  if (!param.usebuffer)
-  	return lseek(rds->filept,len,SEEK_CUR);
-
-  else {
-
-	int ret = lseek(rds->filept,len,SEEK_CUR);
-	buffer_resync();
+  if (rds->filelen >= 0) {
+    int ret = stream_lseek(rds, len, SEEK_CUR);
+    if (param.usebuffer)
+      buffer_resync();
+    return ret;
+  } else if (len >= 0) {
+    char buf[1024];
+    int ret;
+    while (len > 0) {
+      int num = len < sizeof(buf) ? len : sizeof(buf);
+      ret = fullread(rds, buf, num);
+      if (ret < 0)
 	return ret;
-
-  }
+      len -= ret;
+    }
+    return rds->filepos;
+  } else
+    return -1;
 }
 
 static int stream_read_frame_body(struct reader *rds,unsigned char *buf,
@@ -173,7 +201,7 @@ static int stream_read_frame_body(struct reader *rds,unsigned char *buf,
 {
   long l;
 
-  if( (l=fullread(rds->filept,buf,size)) != size)
+  if( (l=fullread(rds,buf,size)) != size)
   {
     if(l <= 0)
       return 0;
@@ -185,12 +213,12 @@ static int stream_read_frame_body(struct reader *rds,unsigned char *buf,
 
 static long stream_tell(struct reader *rds)
 {
-  return lseek(rds->filept,0,SEEK_CUR);
+  return rds->filepos;
 }
 
 static void stream_rewind(struct reader *rds)
 {
-  lseek(rds->filept,0,SEEK_SET);
+  stream_lseek(rds,0,SEEK_SET);
   if(param.usebuffer) 
 	  buffer_resync();
 }
@@ -208,7 +236,7 @@ static int get_fileinfo(struct reader *rds,char *buf)
         }
         if(lseek(rds->filept,-128,SEEK_END) < 0)
                 return -1;
-        if(fullread(rds->filept,(unsigned char *)buf,128) != 128) {
+        if(fullread(rds,(unsigned char *)buf,128) != 128) {
                 return -1;
         }
         if(!strncmp(buf,"TAG",3)) {
@@ -439,7 +467,7 @@ struct reader readers[] = {
 
 /* open the device to read the bit stream from it */
 
-void open_stream(char *bs_filenam,int fd)
+int open_stream(char *bs_filenam,int fd)
 {
     int i;
     int filept_opened = 1;
@@ -453,14 +481,16 @@ void open_stream(char *bs_filenam,int fd)
 		else
 			filept = fd;
 	}
-	else if (!strncmp(bs_filenam, "http://", 7)) 
-		filept = http_open(bs_filenam);
+       else if (!strncmp(bs_filenam, "http://", 7))  {
+               if ((filept = http_open(bs_filenam)) < 0)
+                       return filept;
+       }
 #ifndef O_BINARY
 #define O_BINARY (0)
 #endif
 	else if ( (filept = open(bs_filenam, O_RDONLY|O_BINARY)) < 0) {
 		perror (bs_filenam);
-		exit(1);
+               return filept;
 	}
 
     rd = NULL;
@@ -483,48 +513,6 @@ void open_stream(char *bs_filenam,int fd)
     if(rd && rd->flags & READER_ID3TAG) {
       print_id3_tag(rd->id3buf);
     }
-}
 
-
-/* open the device to read the bit stream from it, just return on failure */
-
-int open_stream_control(char *bs_filenam,int fd)
-{
-    int i;
-    int filept_opened = 1;
-    int filept;
-
-    if (!bs_filenam) {
-			return -200;
-	}
-	else if (!strncmp(bs_filenam, "http://", 7)) 
-		filept = http_open_control(bs_filenam);
-#ifndef O_BINARY
-#define O_BINARY (0)
-#endif
-	else filept = open(bs_filenam, O_RDONLY|O_BINARY);
-		/* perror (bs_filenam); */
-	if(filept < 0) return filept;
-
-	rd = NULL;
-	for(i=0;;i++) {
-		readers[i].filelen = -1;
-		readers[i].filept  = filept;
-		readers[i].flags = 0;
-		if(filept_opened)
-			readers[i].flags |= READER_FD_OPENED;
-		if(!readers[i].init) {
-			fprintf(stderr,"Fatal error!\n"); /* ThOr: this may be fatal enough to exit - at least is it not so obvious to me if we can continue safely */
-			exit(1);
-		}
-		if(readers[i].init(readers+i) >= 0) {
-			rd = &readers[i];
-			break;
-		}
-	}
-
-	if(rd && rd->flags & READER_ID3TAG) {
-		print_id3_tag(rd->id3buf);
-	}
-	return 0;
+    return filept;
 }

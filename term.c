@@ -12,6 +12,8 @@
 #include "term.h"
 #include "common.h"
 
+extern int buffer_pid;
+
 static int term_enable = 0;
 static struct termios old_tio;
 
@@ -126,10 +128,14 @@ static long term_handle_input(struct frame *fr, int do_delay)
           break;
 	case NEXT_KEY:
           audio_queueflush(&ai);
-	  kill(0,SIGINT);
+	  if (buffer_pid)
+		  kill(buffer_pid, SIGINT);
+	  kill(getpid(), SIGINT);
 	  break;
 	case QUIT_KEY:
-	  kill(0,SIGTERM);
+	  if (buffer_pid)
+		  kill(buffer_pid, SIGTERM);
+	  kill(getpid(), SIGTERM);
 	  break;
 	case PAUSE_KEY:
   	  paused=1-paused;

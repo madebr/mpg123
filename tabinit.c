@@ -3,13 +3,8 @@
 
 #include "mpg123.h"
 
-#ifdef USE_3DNOW
-real decwin[2*(512+32)];
-static real cos64[32],cos32[16],cos16[8],cos8[4],cos4[2];
-#else
 real decwin[512+32];
 static real cos64[16],cos32[8],cos16[4],cos8[2],cos4[1];
-#endif
 
 real *pnts[] = { cos64,cos32,cos16,cos8,cos4 };
 
@@ -56,11 +51,7 @@ void make_decode_tables(long scaleval)
     kr=0x10>>i; divv=0x40>>i;
     costab = pnts[i];
     for(k=0;k<kr;k++)
-      costab[k] = 1.0 / (2.0 * cos(M_PI * ((double) k * 2.0 + 1.0) / (double) divv));
-#ifdef USE_3DNOW
-    for(k=0;k<kr;k++)
-      costab[k+kr] = -costab[k];
-#endif
+      costab[k] = DOUBLE_TO_REAL(1.0 / (2.0 * cos(M_PI * ((double) k * 2.0 + 1.0) / (double) divv)));
 
   }
 
@@ -69,7 +60,7 @@ void make_decode_tables(long scaleval)
   for(i=0,j=0;i<256;i++,j++,idx+=32)
   {
     if(idx < 512+16)
-      decwin[idx+16] = decwin[idx] = (double) intwinbase[j] / 65536.0 * (double) scaleval;
+      decwin[idx+16] = decwin[idx] = DOUBLE_TO_REAL((double) intwinbase[j] / 65536.0 * (double) scaleval);
 
     if(i % 32 == 31)
       idx -= 1023;
@@ -80,22 +71,13 @@ void make_decode_tables(long scaleval)
   for( /* i=256 */ ;i<512;i++,j--,idx+=32)
   {
     if(idx < 512+16)
-      decwin[idx+16] = decwin[idx] = (double) intwinbase[j] / 65536.0 * (double) scaleval;
+      decwin[idx+16] = decwin[idx] = DOUBLE_TO_REAL((double) intwinbase[j] / 65536.0 * (double) scaleval);
 
     if(i % 32 == 31)
       idx -= 1023;
     if(i % 64 == 63)
       scaleval = - scaleval;
   }
-
-#ifdef USE_3DNOW
-  if(!param.down_sample) {
-    for(i=0;i<512+32;i++) {
-      decwin[512+31-i] *= 65536.0; /* allows faster clipping in 3dnow code */
-      decwin[512+32+i] = decwin[512+31-i];
-    }
-  }
-#endif
 
 }
 

@@ -47,7 +47,11 @@
 #define SETOUT(out,n,expr) out[FIR_BUFFER_SIZE*(n)]=(expr)
 #define MUL(a,b) (((a)*(b)) >> 15)
 #define MULL(a,b) (((long long)(a)*(long long)(b)) >> 15)
+#ifdef REAL_IS_FIXED
+#define TOINT(a) ((a) * 32768 / (int)REAL_FACTOR)
+#else
 #define TOINT(a) ((int)((a)*32768.0))
+#endif
 
 void dct64_1_486(int *out0,int *out1,int *b1,int *b2)
 {

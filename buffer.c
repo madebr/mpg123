@@ -11,7 +11,6 @@
 #include "mpg123.h"
 
 int outburst = MAXOUTBURST;
-int preload;
 
 static int intflag = FALSE;
 static int usr1flag = FALSE;
@@ -33,6 +32,8 @@ extern void buffer_sig(int signal, int block);
 void buffer_ignore_lowmem(void)
 {
 #ifndef NOXFERMEM
+	if (!buffermem)
+		return;
 	if(buffermem->wakeme[XF_READER])
 		xfermem_putcmd(buffermem->fd[XF_WRITER], XF_CMD_WAKEUP);
 #endif
@@ -41,6 +42,8 @@ void buffer_ignore_lowmem(void)
 void buffer_end(void)
 {
 #ifndef NOXFERMEM
+	if (!buffermem)
+		return;
 	xfermem_putcmd(buffermem->fd[XF_WRITER], XF_CMD_TERMINATE);
 #endif
 }
@@ -71,10 +74,12 @@ void buffer_sig(int signal, int block)
 {
 	
 #ifndef NOXFERMEM
-	
+	if (!buffermem)
+		return;
+
 	kill(buffer_pid, signal);
 	
-	if (!buffermem || !block)
+	if (!block)
 		return;
 
 	if(xfermem_block(XF_WRITER, buffermem) != XF_CMD_WAKEUP) 
@@ -92,6 +97,7 @@ void buffer_loop(struct audio_info_struct *ai, sigset_t *oldsigset)
 	int my_fd = buffermem->fd[XF_READER];
 	txfermem *xf = buffermem;
 	int done = FALSE;
+	int preload;
 
 	catchsignal (SIGINT, catch_interrupt);
 	catchsignal (SIGUSR1, catch_usr1);
@@ -102,6 +108,11 @@ void buffer_loop(struct audio_info_struct *ai, sigset_t *oldsigset)
 			exit(1);
 		}
 	}
+
+	/* Fill complete buffer on first run before starting to play.
+	 * Live mp3 streams constantly approach buffer underrun otherwise. [dk]
+	 */
+	preload = xf->size;
 
 	for (;;) {
 		if (intflag) {
@@ -143,7 +154,8 @@ void buffer_loop(struct audio_info_struct *ai, sigset_t *oldsigset)
 			/* if we got a buffer underrun we first
 			 * fill 1/8 of the buffer before continue/start
 			 * playing */
-			preload = xf->size>>3;
+			if (preload < xf->size>>3)
+				preload = xf->size>>3;
 			if(preload < outburst)
 				preload = outburst;
 		}
@@ -152,8 +164,11 @@ void buffer_loop(struct audio_info_struct *ai, sigset_t *oldsigset)
 			if (done && !bytes) { 
 				break;
 			}
-
+			
 			if(!done) {
+
+				/* Don't spill into errno check below. */
+				errno = 0;
 
 				cmd = xfermem_block(XF_READER, xf);
 
@@ -176,7 +191,8 @@ void buffer_loop(struct audio_info_struct *ai, sigset_t *oldsigset)
 					case -1:
 						if(errno==EINTR)
 							continue;
-						perror("Yuck! Error in buffer handling...");
+						if(errno)
+							perror("Yuck! Error in buffer handling...");
 						done = TRUE;
 						xf->readindex = xf->freeindex;
 						xfermem_putcmd(xf->fd[XF_READER], XF_CMD_TERMINATE);
@@ -186,6 +202,12 @@ void buffer_loop(struct audio_info_struct *ai, sigset_t *oldsigset)
 				}
 			}
 		}
+		/* Hack! The writer issues XF_CMD_WAKEUP when first adjust 
+		 * audio settings. We do not want to lower the preload mark
+		 * just yet!
+		 */
+		if (!bytes)
+			continue;
 		preload = outburst; /* set preload to lower mark */
 		if (bytes > xf->size - xf->readindex)
 			bytes = xf->size - xf->readindex;

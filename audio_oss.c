@@ -7,6 +7,15 @@
 
 #include "mpg123.h"
 
+#include <sys/ioctl.h>
+#ifdef LINUX
+#include <linux/soundcard.h>
+#elif defined(__bsdi__)
+#include <sys/soundcard.h>
+#else
+#include <machine/soundcard.h>
+#endif
+
 #ifndef AFMT_S16_NE
 # ifdef OSS_BIG_ENDIAN
 #  define AFMT_S16_NE AFMT_S16_BE
@@ -25,34 +34,34 @@
 
 extern int outburst;
 
-#include <sys/ioctl.h>
-#ifdef LINUX
-#include <linux/soundcard.h>
-#elif defined(__bsdi__)
-#include <sys/soundcard.h>
-#else
-#include <machine/soundcard.h>
-#endif
-
 int audio_open(struct audio_info_struct *ai)
 {
+  char usingdefdev = 0;
+
   if(!ai)
     return -1;
 
-  if(!ai->device)
+  if(!ai->device) {
     ai->device = "/dev/dsp";
+    usingdefdev = 1;
+  }
 
   ai->fn = open(ai->device,O_WRONLY);  
 
   if(ai->fn < 0)
   {
-    fprintf(stderr,"Can't open %s!\n",ai->device);
-    exit(1);
+    if(usingdefdev) {
+      ai->device = "/dev/sound/dsp";
+      ai->fn = open(ai->device,O_WRONLY);
+      if(ai->fn < 0) {
+	fprintf(stderr,"Can't open default sound device!\n");
+	exit(1);
+      }
+    } else {
+      fprintf(stderr,"Can't open %s!\n",ai->device);
+      exit(1);
+    }
   }
-
-  ioctl(ai->fn, SNDCTL_DSP_GETBLKSIZE, &outburst);
-  if(outburst > MAXOUTBURST)
-    outburst = MAXOUTBURST;
 
   if(audio_reset_parameters(ai) < 0) {
     close(ai->fn);
@@ -84,13 +93,28 @@ int audio_open(struct audio_info_struct *ai)
 int audio_reset_parameters(struct audio_info_struct *ai)
 {
   int ret;
-  ret = ioctl(ai->fn,SNDCTL_DSP_RESET,NULL);
+  ret = ioctl(ai->fn, SNDCTL_DSP_RESET, NULL);
   if(ret < 0)
     fprintf(stderr,"Can't reset audio!\n");
   ret = audio_set_format(ai);
+  if (ret == -1)
+    goto err;
   ret = audio_set_channels(ai);
+  if (ret == -1)
+    goto err;
   ret = audio_set_rate(ai);
+  if (ret == -1)
+    goto err;
 
+  /* Careful here.  As per OSS v1.1, the next ioctl() commits the format
+   * set above, so we must issue SNDCTL_DSP_RESET before we're allowed to
+   * change it again. [dk]
+   */
+  if (ioctl(ai->fn, SNDCTL_DSP_GETBLKSIZE, &outburst) == -1 ||
+      outburst > MAXOUTBURST)
+    outburst = MAXOUTBURST;
+
+err:
   return ret;
 }
 
@@ -217,6 +241,9 @@ int audio_get_formats(struct audio_info_struct *ai)
 	AUDIO_FORMAT_UNSIGNED_8 , AUDIO_FORMAT_SIGNED_8 ,
 	AUDIO_FORMAT_UNSIGNED_16 , AUDIO_FORMAT_ALAW_8 };
 	
+  /* Reset is required before we're allowed to set the new formats. [dk] */
+  ioctl(ai->fn, SNDCTL_DSP_RESET, NULL);
+
   for(i=0;i<6;i++) {
 	ai->format = fmts[i];
 	if(audio_set_format(ai) < 0) {

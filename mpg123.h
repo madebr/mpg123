@@ -57,8 +57,37 @@ typedef unsigned char byte;
 #  define real float
 #elif defined(REAL_IS_LONG_DOUBLE)
 #  define real long double
+#elif defined(REAL_IS_FIXED)
+# define real long
+
+# define REAL_RADIX            15
+# define REAL_FACTOR           (32.0 * 1024.0)
+
+# define REAL_PLUS_32767       ( 32767 << REAL_RADIX )
+# define REAL_MINUS_32768      ( -32768 << REAL_RADIX )
+
+# define DOUBLE_TO_REAL(x)     ((int)((x) * REAL_FACTOR))
+# define REAL_TO_SHORT(x)      ((x) >> REAL_RADIX)
+# define REAL_MUL(x, y)                (((long long)(x) * (long long)(y)) >> REAL_RADIX)
+
 #else
 #  define real double
+#endif
+
+#ifndef DOUBLE_TO_REAL
+# define DOUBLE_TO_REAL(x)     (x)
+#endif
+#ifndef REAL_TO_SHORT
+# define REAL_TO_SHORT(x)      (x)
+#endif
+#ifndef REAL_PLUS_32767
+# define REAL_PLUS_32767       32767.0
+#endif
+#ifndef REAL_MINUS_32768
+# define REAL_MINUS_32768      -32768.0
+#endif
+#ifndef REAL_MUL
+# define REAL_MUL(x, y)                ((x) * (y))
 #endif
 
 #ifdef __GNUC__
@@ -101,6 +130,9 @@ struct frame {
     struct al_table *alloc;
     int (*synth)(real *,int,unsigned char *,int *);
     int (*synth_mono)(real *,unsigned char *,int *);
+#ifdef USE_3DNOW
+    void (*dct36)(real *,real *,real *,real *,real *);
+#endif
     int stereo;
     int jsbound;
     int single;
@@ -132,6 +164,7 @@ struct parameter {
   int remote_err;	/* remote operation to stderr */
   int outmode;	/* where to out the decoded sampels */
   int quiet;	/* shut up! */
+  int xterm_title;	/* Change xterm title to song names? */
   long usebuffer;	/* second level buffer size */
   int tryresync;  /* resync stream after error */
   int verbose;    /* verbose level */
@@ -147,6 +180,10 @@ struct parameter {
   long doublespeed;
   long halfspeed;
   int force_reopen;
+#ifdef USE_3DNOW
+  int stat_3dnow; /* automatic/force/force-off 3DNow! optimized code */
+  int test_3dnow;
+#endif
   long realtime;
   char filename[256];
 };
@@ -194,7 +231,6 @@ extern char *esdserver;
 extern char *proxyurl;
 extern unsigned long proxyip;
 extern int http_open (char *url);
-extern int http_open_control (char *url); /* ThOr: Stay alive for frontend */
 extern char *httpauth;
 
 /* ------ Declarations from "common.c" ------ */
@@ -258,8 +294,7 @@ struct III_sideinfo
   } ch[2];
 };
 
-extern void open_stream(char *,int fd);
-extern int open_stream_control(char *,int fd); /* ThOr: Stay alive for frontend */ 
+extern int open_stream(char *,int fd);
 extern void read_frame_init (void);
 extern int read_frame(struct frame *fr);
 extern void play_frame(int init,struct frame *fr);
@@ -270,9 +305,6 @@ extern void do_equalizer(real *bandPtr,int channel);
 
 #ifdef PENTIUM_OPT
 extern int synth_1to1_pent (real *,int,unsigned char *);
-#endif
-#ifdef USE_3DNOW
-extern int synth_1to1_3dnow (real *,int,unsigned char *);
 #endif
 extern int synth_1to1 (real *,int,unsigned char *,int *);
 extern int synth_1to1_8bit (real *,int,unsigned char *,int *);
@@ -339,11 +371,7 @@ extern int cdr_close(void);
 extern unsigned char *conv16to8;
 extern long freqs[9];
 extern real muls[27][64];
-#ifdef USE_3DNOW
-extern real decwin[2*(512+32)];
-#else
 extern real decwin[512+32];
-#endif
 extern real *pnts[5];
 
 extern real equalizer[2][32];
@@ -359,5 +387,10 @@ extern struct parameter param;
 extern void dct64_486(int *a,int *b,real *c);
 extern int synth_1to1_486(real *bandPtr,int channel,unsigned char *out,int nb_blocks);
 
-
-
+/* 3DNow! optimizations */
+#ifdef USE_3DNOW
+extern int getcpuflags(void);
+extern void dct36(real *,real *,real *,real *,real *);
+extern void dct36_3dnow(real *,real *,real *,real *,real *);
+extern int synth_1to1_3dnow(real *,int,unsigned char *,int *);
+#endif

@@ -5,7 +5,7 @@ mpg123 \- play audio MPEG 1.0/2.0 file (layers 1, 2 and 3)
 .SH SYNOPSIS
 .B mpg123
 [
-.B \-tscvqy01m24
+.B \-tscvqy01m24wC
 ]
 [
 .BI \-b " size"
@@ -38,10 +38,16 @@ mpg123 \- play audio MPEG 1.0/2.0 file (layers 1, 2 and 3)
 .BI \-h " n"
 ]
 [
+.BI \-w " file"
+]
+[
 .BI \-p " proxy"
 ]
 [
 .BI \-@ " file"
+]
+[
+.BI \-E " file"
 ]
 .IR file " ... | " URL " ... | "
 .B \-
@@ -76,6 +82,11 @@ The output format is raw (headerless) linear PCM audio data,
 .BR \-c ", " \-\^\-check
 Check for filter range violations, and report them for each frame
 if any occur.
+.TP
+.BR \-C ", " \-\^\-control
+Enable control keys. By default use 's' to stop, 'p' to
+pause, 'f' to jump forward to the next song, 'b' to jump back to the
+beginning of the song, ',' to rewind, '.' to fast forward, and 'q' to quit.
 .TP
 .BR \-v ", " \-\^\-verbose
 Increase the verbosity level.  For example, displays the frame
@@ -181,6 +192,18 @@ used for special effects. Can also be combined with the
 option to double every third frame or things like that.
 Don't expect great sound quality when using this option.
 .TP
+\fB\-w \fIfile\fR, \fB\-\^\-wav
+Write output as WAV file. This will cause the MPEG stream to be decoded 
+and saved as file
+.I file
+, or standard output if
+.I -
+is used as file name. You can also use
+.I --au
+and
+.I --cdr
+for AU and CDR format, respectively.
+.TP
 \fB\-p \fIURL \fR| \fBnone\fR, \fB\-\^\-proxy \fIURL \fR| \fBnone
 The specified
 .I proxy
@@ -211,9 +234,26 @@ one
 option can be used (if more than one is specified, only the
 last one will be recognized).
 .TP
+\fB\-\^\-au \fIfile
+Does not play the MPEG file but writes it to
+.I file
+in SUN audio format.  If \- is used as the filename, the AU file is
+written to stdout.
+.TP
+\fB\-\^\-cdr \fIfile
+Does not play the MPEG file but writes it to
+.I file
+as a CDR file.  If \- is used as the filename, the CDR file is written
+to stdout.
+.TP
 .BR \-z ", " \-\^\-shuffle
-Shuffle play.  Randomly shuffles the files specified on the command line
-and in the list file.
+Shuffle play.  Randomly shuffles the order of files specified on the command
+line, or in the list file.
+.TP
+.BR \-Z ", " \-\-random
+Continuous random play.  Keeps picking a random file from the command line
+or the play list.  Unlike shuffle play above, random play never ends, and
+plays individual songs more than once.
 .TP
 .BR \-\-stereo
 Force stereo output
@@ -224,8 +264,31 @@ Forces reopen of the audiodevice after ever song
 .BR \-\-8bit
 Forces 8bit output
 .TP
-.BR \-Z ", " \-\-random
-Full random play
+\fB\-E \fIfile\fR, \fB\-\^\-equalizer
+Enables equalization, taken from
+.IR file .
+The file needs to contain 32 lines of data, additional comment lines may
+be prefixed with
+.IR # .
+Each data line consists of two floating-point entries, separated by
+whitespace.  They specify the multipliers for left and right channel of
+a certain frequency band, respectively.  The first line corresponds to the
+lowest, the 32nd to the highest frequency band.
+.TP
+.BR \-T ", " \-\-realtime
+Tries to gain realtime priority.  This option usually requires root
+privileges to have any effect.
+.TP
+\fB\-\^\-aggressive
+Tries to get higher priority
+.TP
+\fB\-\^\-title
+In an xterm, or rxvt, change the window's title to the name of song currently
+playing.
+.TP
+\fB\-\^\-help, \fB\-\^\-longhelp
+Shows usage instructions
+.TP
 .SH OPERANDS
 The following operands are supported:
 .TP 8
@@ -374,17 +437,8 @@ Thomas Woerner (SGI Audio)
 Damien Clermonte <clermond@esiee.fr> (HP-UX audio fixes)
 .br
 Oliver Fromme <oliver.fromme@heim3.tu-clausthal.de>
-.P
+.TP
 Internet references:
 .br
-http://www.sfs.nphil.uni-tuebingen.de/~hipp/mpg123.html
-.br
-http://www.heim3.tu-clausthal.de/~olli/mpg123/
-.br
-(includes information about the mpg123 mailing list)
-.P
-The latest version is also available from here:
-.br
-ftp.tu-clausthal.de:/pub/unix/audio/mpg123
-.br
-http://ftp.tu-clausthal.de/pub/unix/audio/mpg123
+http://www.mpg123.org
+

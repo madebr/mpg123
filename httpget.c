@@ -3,6 +3,7 @@
  *
  *   Oliver Fromme  <oliver.fromme@heim3.tu-clausthal.de>
  *   Wed Apr  9 20:57:47 MET DST 1997
+ *
  */
 
 #undef ALSA
@@ -18,10 +19,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include <ctype.h>
-
-extern int errno;
 
 #include "mpg123.h"
 
@@ -48,18 +47,17 @@ void writestring (int fd, char *string)
 	}
 }
 
-void readstring (char *string, int maxlen, FILE *f)
+int readstring (char *string, int maxlen, FILE *f)
 {
 #if 0
 	char *result;
 #endif
 	int pos = 0;
 
-	while(1) {
+	while(pos < maxlen) {
 		if( read(fileno(f),string+pos,1) == 1) {
 			pos++;
 			if(string[pos-1] == '\n') {
-				string[pos] = 0;
 				break;
 			}
 		}
@@ -68,6 +66,11 @@ void readstring (char *string, int maxlen, FILE *f)
 			exit(1);
 		}
 	}
+
+	string[pos] = 0;
+
+	return pos;
+
 #if 0
 	do {
 		result = fgets(string, maxlen, f);
@@ -111,7 +114,7 @@ void encode64 (char *source,char *destination)
 }
 
 /* VERY  simple auth-from-URL grabber */
-int getauthfromURL(char *url,char *auth)
+int getauthfromURL(char *url,char *auth,unsigned long authlen)
 {
   char *pos;
 
@@ -126,9 +129,13 @@ int getauthfromURL(char *url,char *auth)
       if( url[i] == '/' )
          return 0;
     }
+    if (pos-url >= authlen) {
+      fprintf (stderr, "Error: authentication data exceeds max. length.\n");
+      return -1;
+    }
     strncpy(auth,url,pos-url);
     auth[pos-url] = 0;
-    strcpy(url,pos+1);
+    memmove(url,pos+1,strlen(pos+1)+1);
     return 1;
   }
   return 0;
@@ -169,6 +176,10 @@ char *url2hostport (char *url, char **hname, unsigned long *hip, unsigned int *p
 		return (cptr);
 	}
 	*port = atoi(++cptr);
+	if (*port > 65535) {
+		/* Illegal port number. Ignore and use default. */
+		*port = 80;
+	}
 	while (*cptr && *cptr != '/')
 		cptr++;
 	return (cptr);
@@ -179,14 +190,13 @@ unsigned long proxyip = 0;
 unsigned int proxyport;
 
 #define ACCEPT_HEAD "Accept: audio/mpeg, audio/x-mpegurl, */*\r\n"
-#define REMOVE_ME! "*/"
 char *httpauth = NULL;
-char httpauth1[256];
+char *httpauth1 = NULL;
 
 int http_open (char *url)
 {
 	char *purl, *host, *request, *sptr;
-	int linelength;
+	unsigned int linelength, linelengthbase;
 	unsigned long myip;
 	unsigned int myport;
 	int sock;
@@ -194,96 +204,193 @@ int http_open (char *url)
 	struct sockaddr_in server;
 	FILE *myfile;
 
+	host = NULL;
+	purl = NULL;
+	request = NULL;
 	if (!proxyip) {
 		if (!proxyurl)
 			if (!(proxyurl = getenv("MP3_HTTP_PROXY")))
 				if (!(proxyurl = getenv("http_proxy")))
 					proxyurl = getenv("HTTP_PROXY");
 		if (proxyurl && proxyurl[0] && strcmp(proxyurl, "none")) {
-			host = NULL;
 			if (!(url2hostport(proxyurl, &host, &proxyip, &proxyport))) {
 				fprintf (stderr, "Unknown proxy host \"%s\".\n",
 					host ? host : "");
-				exit (1);
+				sock = -1;
+				goto exit;
 			}
-			if (host)
-				free (host);
 		}
 		else
 			proxyip = INADDR_NONE;
 	}
 	
-	if ((linelength = strlen(url)+200) < 1024)
-		linelength = 1024;
-	if (!(request = malloc(linelength)) || !(purl = malloc(1024))) {
+	/* The length of purl is upper bound by 3*strlen(url) + 1 if
+	 * everything in it is a space */
+	purl = (char *)malloc(strlen(url)*3 + 1);
+	if (!purl) {
 		fprintf (stderr, "malloc() failed, out of memory.\n");
 		exit (1);
 	}
-	strncpy (purl, url, 1023);
-	purl[1023] = '\0';
 
-        getauthfromURL(purl,httpauth1);
+	/*
+	 * 2000-10-21:
+	 * We would like spaces to be automatically converted to %20's when
+	 * fetching via HTTP.
+	 * -- Martin Sjögren <md9ms@mdstud.chalmers.se>
+	 */
+	if ((sptr = strchr(url, ' ')) == NULL) {
+		strcpy (purl, url);
+	} else {
+		char *urlptr = url;
+		purl[0] = '\0';
+		do {
+			strncat (purl, urlptr, sptr-urlptr);
+			strcat (purl, "%20");
+			urlptr = sptr + 1;
+		} while ((sptr = strchr (urlptr, ' ')) != NULL);
+		strcat (purl, urlptr);
+	}
+
+	httpauth1 = (char *)malloc((strlen(purl) + 1));
+	if(!httpauth1) {
+		fprintf(stderr, "malloc() failed, out of memory.\n");
+		exit(1);
+	}
+        if (getauthfromURL(purl,httpauth1,strlen(purl)) < 0) {
+		sock = -1;
+		goto exit;
+	}
+
+	/* "GET http://"		11
+	 * " HTTP/1.0\r\nUser-Agent: <prgName>/<prgVersion>\r\n"
+	 * 				26 + prgName + prgVersion
+	 * ACCEPT_HEAD               strlen(ACCEPT_HEAD)
+	 * "Authorization: Basic \r\n"	23
+	 * "\r\n"			 2
+	 */
+	linelengthbase = 62 + strlen(prgName) + strlen(prgVersion)
+	                 + strlen(ACCEPT_HEAD);
+
+	if(httpauth)
+		linelengthbase += (strlen(httpauth) + 1) * 4;
+
+	if(httpauth1)
+		linelengthbase += (strlen(httpauth1) + 1) * 4;
 
 	do {
-		strcpy (request, "GET ");
 		if (proxyip != INADDR_NONE) {
-			if (strncmp(url, "http://", 7))
-				strcat (request, "http://");
-			strcat (request, purl);
 			myport = proxyport;
 			myip = proxyip;
-		}
-		else {
-			host = NULL;
-			if (!(sptr = url2hostport(purl, &host, &myip, &myport))) {
-				fprintf (stderr, "Unknown host \"%s\".\n",
-					host ? host : "");
-				exit (1);
+
+			linelength = linelengthbase + strlen(purl);
+			if(host)
+				/* "Host: <host>:<port>\r\n" */
+				linelength += 9 + strlen(host) + 5;
+
+			request = (char *)malloc((linelength + 1));
+
+			if (!request) {
+				fprintf (stderr, "malloc() failed, out of memory.\n");
+				exit(1);
 			}
+
+			strcpy (request, "GET ");
+			if (strncasecmp(url, "http://", 7) != 0)
+				strcat (request, "http://");
+		} else {
+			if (host) {
+				free (host);
+				host = NULL;
+			}
+
+			sptr = url2hostport(purl, &host, &myip, &myport);
+			if (!sptr) {
+				fprintf (stderr, "Unknown host \"%s\".\n",
+				         host ? host : "");
+				sock = -1;
+				goto exit;
+			}
+
+			linelength = linelengthbase + strlen(sptr);
+			if (host)
+				/* "Host: <host>:<port>\r\n" */
+				linelength += 9 + strlen(host) + 5;
+
+			request = (char *)malloc((linelength + 1));
+
+			if (!request) {
+				fprintf (stderr, "malloc() failed, out of memory.\n");
+				exit(1);
+			}
+
+			strcpy (request, "GET ");
 			strcat (request, sptr);
 		}
+
 		sprintf (request + strlen(request),
-			" HTTP/1.0\r\nUser-Agent: %s/%s\r\n",
-			prgName, prgVersion);
+		         " HTTP/1.0\r\nUser-Agent: %s/%s\r\n",
+			 prgName, prgVersion);
 		if (host) {
 			sprintf(request + strlen(request),
-				"Host: %s:%u\r\n", host, myport);
-			free (host);
+			        "Host: %s:%u\r\n", host, myport);
 		}
-
 		strcat (request, ACCEPT_HEAD);
 		server.sin_family = AF_INET;
 		server.sin_port = htons(myport);
 		server.sin_addr.s_addr = myip;
 		if ((sock = socket(PF_INET, SOCK_STREAM, 6)) < 0) {
 			perror ("socket");
-			exit (1);
+                       goto exit;
 		}
 		if (connect(sock, (struct sockaddr *)&server, sizeof(server))) {
 			perror ("connect");
-			exit (1);
+                       close(sock);
+                       sock = -1;
+                       goto exit;
 		}
 
-		if (strlen(httpauth1) || httpauth) {
-			char buf[1023];
+		if (httpauth1 || httpauth) {
+			char *buf;
 			strcat (request,"Authorization: Basic ");
-                        if(strlen(httpauth1))
-                          encode64(httpauth1,buf);
-                        else
-			  encode64(httpauth,buf);
-			strcat (request,buf);
+			if(httpauth1) {
+				buf=(char *)malloc((strlen(httpauth1) + 1) * 4);
+				if(!buf) {
+					fprintf(stderr, "Error allocating sufficient memory for http authentication.  Exiting.");
+					exit(1);
+				}
+				encode64(httpauth1,buf);
+				free(httpauth1);
+			} else {
+				buf=(char *)malloc((strlen(httpauth) + 1) * 4);
+				if(!buf) {
+					fprintf(stderr, "Error allocating sufficient memory for http authentication.  Exiting.");
+					exit(1);
+				}
+				encode64(httpauth,buf);
+			}
+
+			strcat (request, buf);
 			strcat (request,"\r\n");
+			free(buf);
 		}
 		strcat (request, "\r\n");
 
 		writestring (sock, request);
 		if (!(myfile = fdopen(sock, "rb"))) {
 			perror ("fdopen");
-			exit (1);
-		};
+                       close(sock);
+                       sock = -1;
+                       goto exit;
+		}
 		relocate = FALSE;
 		purl[0] = '\0';
-		readstring (request, linelength-1, myfile);
+		if (readstring (request, linelength-1, myfile)
+		    == linelength-1) {
+			fprintf(stderr, "Command exceeds max. length\n");
+			close(sock);
+			sock = -1;
+			goto exit;
+		}
 		if ((sptr = strchr(request, ' '))) {
 			switch (sptr[1]) {
 				case '3':
@@ -291,149 +398,40 @@ int http_open (char *url)
 				case '2':
 					break;
 				default:
-					fprintf (stderr, "HTTP request failed: %s",
-						sptr+1); /* '\n' is included */
-					exit (1);
+                                       fprintf (stderr,
+                                                "HTTP request failed: %s",
+                                                sptr+1); /* '\n' is included */
+                                       close(sock);
+                                       sock = -1;
+                                       goto exit;
 			}
 		}
 		do {
-			readstring (request, linelength-1, myfile);
+			if (readstring (request, linelength-1, myfile)
+			    == linelength-1) {
+				fprintf(stderr, "URL exceeds max. length\n");
+				close(sock);
+				sock = -1;
+				goto exit;
+			}
 			if (!strncmp(request, "Location:", 9))
 				strncpy (purl, request+10, 1023);
 		} while (request[0] != '\r' && request[0] != '\n');
 	} while (relocate && purl[0] && numrelocs++ < 5);
 	if (relocate) {
 		fprintf (stderr, "Too many HTTP relocations.\n");
-		exit (1);
+               close(sock);
+               sock = -1;
 	}
-	free (purl);
-	free (request);
+exit:
+	free(host);
+	free(purl);
+	free(request);
 
 	return sock;
 }
 
-/* ThOr: dirty hack to prevent mpg123 from exit()ing in frontend mode */
-
-int http_open_control (char *url)
-{
-	char *purl, *host, *request, *sptr;
-	int linelength;
-	unsigned long myip;
-	unsigned int myport;
-	int sock;
-	int relocate, numrelocs = 0;
-	struct sockaddr_in server;
-	FILE *myfile;
-
-	if (!proxyip) {
-		if (!proxyurl)
-			if (!(proxyurl = getenv("MP3_HTTP_PROXY")))
-				if (!(proxyurl = getenv("http_proxy")))
-					proxyurl = getenv("HTTP_PROXY");
-		if (proxyurl && proxyurl[0] && strcmp(proxyurl, "none")) {
-			host = NULL;
-			if (!(url2hostport(proxyurl, &host, &proxyip, &proxyport))) {
-				return -111;
-			}
-			if (host)
-				free (host);
-		}
-		else
-			proxyip = INADDR_NONE;
-	}
-	
-	if ((linelength = strlen(url)+200) < 1024)
-		linelength = 1024;
-	if (!(request = malloc(linelength)) || !(purl = malloc(1024))) {
-		fprintf (stderr, "malloc() failed, out of memory.\n");
-		return -112; /* still good here? */
-	}
-	strncpy (purl, url, 1023);
-	purl[1023] = '\0';
-
-        getauthfromURL(purl,httpauth1);
-
-	do {
-		strcpy (request, "GET ");
-		if (proxyip != INADDR_NONE) {
-			if (strncmp(url, "http://", 7))
-				strcat (request, "http://");
-			strcat (request, purl);
-			myport = proxyport;
-			myip = proxyip;
-		}
-		else {
-			host = NULL;
-			if (!(sptr = url2hostport(purl, &host, &myip, &myport))) {
-				return -113;
-			}
-			strcat (request, sptr);
-		}
-		sprintf (request + strlen(request),
-			" HTTP/1.0\r\nUser-Agent: %s/%s\r\n",
-			prgName, prgVersion);
-		if (host) {
-			sprintf(request + strlen(request),
-				"Host: %s:%u\r\n", host, myport);
-			free (host);
-		}
-
-		strcat (request, ACCEPT_HEAD);
-		server.sin_family = AF_INET;
-		server.sin_port = htons(myport);
-		server.sin_addr.s_addr = myip;
-		if ((sock = socket(PF_INET, SOCK_STREAM, 6)) < 0) {
-			return -114;
-		}
-		if (connect(sock, (struct sockaddr *)&server, sizeof(server))) {
-			return -115;
-		}
-
-		if (strlen(httpauth1) || httpauth) {
-			char buf[1023];
-			strcat (request,"Authorization: Basic ");
-                        if(strlen(httpauth1))
-                          encode64(httpauth1,buf);
-                        else
-			  encode64(httpauth,buf);
-			strcat (request,buf);
-			strcat (request,"\r\n");
-		}
-		strcat (request, "\r\n");
-
-		writestring (sock, request);
-		if (!(myfile = fdopen(sock, "rb"))) {
-			return -116;
-		};
-		relocate = FALSE;
-		purl[0] = '\0';
-		readstring (request, linelength-1, myfile);
-		if ((sptr = strchr(request, ' '))) {
-			switch (sptr[1]) {
-				case '3':
-					relocate = TRUE;
-				case '2':
-					break;
-				default:
-					return -117;
-			}
-		}
-		do {
-			readstring (request, linelength-1, myfile);
-			if (!strncmp(request, "Location:", 9))
-				strncpy (purl, request+10, 1023);
-		} while (request[0] != '\r' && request[0] != '\n');
-	} while (relocate && purl[0] && numrelocs++ < 5);
-	if (relocate) {
-		return -118;
-	}
-	free (purl);
-	free (request);
-
-	return sock;
-}
-
-#else
+#else /* defined(WIN32) || defined(GENERIC) */
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -446,7 +444,7 @@ void writestring (int fd, char *string)
 {
 }
 
-void readstring (char *string, int maxlen, FILE *f)
+int readstring (char *string, int maxlen, FILE *f)
 {
 }
 

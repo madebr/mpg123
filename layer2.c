@@ -240,7 +240,7 @@ static void II_select_table(struct frame *fr)
        { alloc_0, alloc_1, alloc_2, alloc_3 , alloc_4 };
   static int sblims[5] = { 27 , 30 , 8, 12 , 30 };
 
-  if(fr->lsf)
+  if(fr->sampling_frequency >= 3)	/* Or equivalent: (fr->lsf == 1) */
     table = 4;
   else
     table = translate[fr->sampling_frequency][2-fr->stereo][fr->bitrate_index];
@@ -265,6 +265,11 @@ int do_layer2(struct frame *fr,int outmode,struct audio_info_struct *ai)
   fr->jsbound = (fr->mode == MPG_MD_JOINT_STEREO) ?
      (fr->mode_ext<<2)+4 : fr->II_sblimit;
 
+  if (fr->jsbound > fr->II_sblimit) {
+	  fprintf(stderr, "Truncating stereo boundary to sideband limit.\n");
+	  fr->jsbound=fr->II_sblimit;
+  }
+  
   if(stereo == 1 || single == 3)
     single = 0;
 

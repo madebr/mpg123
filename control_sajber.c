@@ -206,7 +206,8 @@ fprintf(stderr,"%d.%d\n",rmsg.type,rmsg.data);
 						exit(1);
 					}
 
-					open_stream(NULL,cmsghdr.fd);
+                                       if (open_stream(NULL,cmsghdr.fd) < 0)
+                                               continue;
 					mode = MODE_PLAYING;
 					init = 1;
 					framecnt = 0;

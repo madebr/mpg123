@@ -222,15 +222,16 @@ fprintf(stderr,"%08lx ",newhead);
 #endif
 
     if( (newhead & 0xffe00000) != 0xffe00000) {
-      if (!param.quiet)
-        fprintf(stderr,"Illegal Audio-MPEG-Header 0x%08lx at offset 0x%lx.\n",
-              newhead,rd->tell(rd)-4);
     /* and those ugly ID3 tags */
       if((newhead & 0xffffff00) == ('T'<<24)+('A'<<16)+('G'<<8)) {
            rd->skip_bytes(rd,124);
-           fprintf(stderr,"Skipped ID3 Tag!\n");
+	   if (!param.quiet)
+             fprintf(stderr,"Skipped ID3 Tag!\n");
            goto read_again;
       }
+      if (!param.quiet)
+        fprintf(stderr,"Illegal Audio-MPEG-Header 0x%08lx at offset 0x%lx.\n",
+              newhead,rd->tell(rd)-4);
       if (param.tryresync) {
         int try = 0;
             /* Read more bytes until we find something that looks
@@ -342,9 +343,12 @@ static int decode_header(struct frame *fr,unsigned long newhead)
       fr->mpeg25 = 1;
     }
     
-    if (!param.tryresync || !oldhead) {
-          /* If "tryresync" is true, assume that certain
-             parameters do not change within the stream! */
+    if (!param.tryresync || !oldhead ||
+        (((oldhead>>19)&0x3) ^ ((newhead>>19)&0x3))) {
+          /* If "tryresync" is false, assume that certain
+             parameters do not change within the stream!
+	     Force an update if lsf or mpeg25 settings
+	     have changed. */
       fr->lay = 4-((newhead>>17)&3);
       if( ((newhead>>10)&0x3) == 0x3) {
         fprintf(stderr,"Stream error\n");
@@ -416,6 +420,10 @@ static int decode_header(struct frame *fr,unsigned long newhead)
       default:
         fprintf(stderr,"Sorry, unknown layer type.\n"); 
         return (0);
+    }
+    if (fr->framesize > MAXFRAMESIZE) {
+      fprintf(stderr,"Frame size too big: %d\n", fr->framesize+4-fr->padding);
+      return (0);
     }
     return 1;
 }
@@ -493,7 +501,7 @@ void print_id3_tag(unsigned char *buf)
 	strncpy(year,tag->year,4);
 	strncpy(comment,tag->comment,30);
 
-	if ( tag->genre <= sizeof(genre_table)/sizeof(*genre_table) ) {
+	if (tag->genre <= genre_count) {
 		strncpy(genre, genre_table[tag->genre], 30);
 	} else {
 		strncpy(genre,"Unknown",30);

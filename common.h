@@ -3,7 +3,7 @@
  */
 
 /* max = 1728 */
-#define MAXFRAMESIZE 1792
+#define MAXFRAMESIZE 3456
 #define HDRCMPMASK 0xfffffd00
 
 extern void print_id3_tag(unsigned char *buf);

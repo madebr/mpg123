@@ -4,7 +4,7 @@
  * written/copyrights 1997/99 by Andreas Neuhaus (and Michael Hipp)
  *
  * command parsing/processing reworked and partially rewritten in 2004/5 by Thomas Orgis
- * ...and at bit of bugfixing...
+ *
  */
 
 #include <stdio.h>
@@ -210,13 +210,12 @@ void control_generic (struct frame *fr)
 
 		/* exit on error */
 		if (n < 0) {
-			generic_sendmsg("E Error waiting for command: %s\n", strerror(errno));
+			fprintf(stderr, "Error waiting for command: %s\n", strerror(errno));
 			exit(1);
 		}
 
 		/* process command */
 		if (n > 0) {
-	
 			short int len = 1; /* length of buffer */
 			short int cnum = 0; /* number of commands */ 
 			short int cind = 0; /* index for commands */
@@ -229,14 +228,17 @@ void control_generic (struct frame *fr)
 			
 			/* read as much as possible, maybe multiple commands */
 			/* the break here means: go on with playing next frame */
-			/* ...hoping that it won't happen next time */
+			/* ...hoping that there is no permanent error */
 			if((len = read(STDIN_FILENO, buf, REMOTE_BUFFER_SIZE)) < 1)	break;
 			
 			/* one command on a line - separation by \n -> C strings in a row */
 			for(counter = 0; counter < len; ++counter) {
-				if(buf[counter] == '\n') { /* line end is command end */
+				/* line end is command end */
+				if( (buf[counter] == '\n') || (buf[counter] == '\r') ) { 
 					buf[counter] = 0; /* now it's a properly ending C string */
-					 /* next char is first of next command (if there) */
+					/* next "real" char is first of next command */
+					if( (counter < (len - 1)) && ((buf[counter+1] == '\n') || (buf[counter+1] == '\r')) )
+						++counter; /* skip the additional line ender */
 					if(counter < (len - 1)) coms[++cind] = &buf[counter+1];
 				}
 			}
@@ -397,14 +399,13 @@ void control_generic (struct frame *fr)
 
 					/* LOAD - actually play */
 					if (!strcasecmp(cmd, "L") || !strcasecmp(cmd, "LOAD")) {
-						int erg = 0;
 						audio_flush(param.outmode, &ai);
 						if (mode != MODE_STOPPED) {
 							rd->close(rd);
 							mode = MODE_STOPPED;
 						}
-						if( (erg = open_stream_control(arg, -1)) < 0 ){
-							generic_sendmsg("E Error %i opening stream: %s", -1*erg, arg);
+						if( open_stream(arg, -1) < 0 ){
+							generic_sendmsg("E Error opening stream: %s", arg);
 							generic_sendmsg("P 0");
 							continue;
 						}
@@ -419,14 +420,10 @@ void control_generic (struct frame *fr)
 						generic_sendmsg("P 2");
 						continue;
 					}
-
 					/* no command matched */
 					generic_sendmsg("E Unknown command: %s", cmd); /* unknown command */
 				} /* end commands with arguments */
-				else
-				{
-					generic_sendmsg("E Unknown command or no arguments: %s", comstr); /* unknown command */
-				}
+				else generic_sendmsg("E Unknown command or no arguments: %s", comstr); /* unknown command */
 
 			} /*end command processing loop */
 

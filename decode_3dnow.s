@@ -1,265 +1,278 @@
-/ synth_1to1_3dnow works the same way as the c version of
-/ synth_1to1. this assembler code based 'decode-i586.s'
-/ (by Stefan Bieschewski <stb@acm.org>), two types of changes
-/ have been made:
-/ - use {MMX,3DNow!} instruction for reduce cpu 
-/ - remove unused(?) local symbols
 /
-/ useful sources of information on optimizing 3DNow! code include:
-/ AMD 3DNow! Technology Manual (Publication #21928)
-/     English:  http://www.amd.com/K6/k6docs/pdf/21928d.pdf
-/    (Japanese: http://www.amd.com/japan/K6/k6docs/j21928c.pdf)
-/ AMD-K6-2 Processor Code Optimization Application Note (Publication #21924)
-/     English:	http://www.amd.com/K6/k6docs/pdf/21924b.pdf
+/ decode_3dnow.s - 3DNow! optimized synth_1to1()
 /
-/ This code was tested only AMD-K6-2 processor Linux systems,
-/ please tell me:
-/ - whether this code works on other 3DNow! capable processors
-/  (ex.IDT-C6-2) or not
-/ - whether this code works on other OSes or not
+/ This code based 'decode_3dnow.s' by Syuuhei Kashiyama
+/ <squash@mb.kcom.ne.jp>,only two types of changes have been made:
 /
-/ by KIMURA Takuhiro <kim@hannah.ipc.miyakyo-u.ac.jp> - until 31.Mar.1998
-/                    <kim@comtec.co.jp>               - after  1.Apr.1998
+/ - remove PREFETCH instruction for speedup
+/ - change function name for support 3DNow! automatic detect
+/ - femms moved to before 'call dct64_3dnow'
+/
+/ You can find Kashiyama's original 3dnow! support patch
+/ (for mpg123-0.59o) at
+/ http://user.ecc.u-tokyo.ac.jp/~g810370/linux-simd/ (Japanese).
+/
+/ by KIMURA Takuhiro <kim@hannah.ipc.miyakyo-u.ac.jp> - until 31.Mar.1999
+/                    <kim@comtec.co.jp>               - after  1.Apr.1999
+/
 
-/ Enhancments for q-word operation by Michael Hipp
+///
+/// Replacement of synth_1to1() with AMD's 3DNow! SIMD operations support
+/// 
+/// Syuuhei Kashiyama <squash@mb.kcom.ne.jp>
+/// 
+/// The author of this program disclaim whole expressed or implied
+/// warranties with regard to this program, and in no event shall the
+/// author of this program liable to whatever resulted from the use of
+/// this program. Use it at your own risk.
+/// 
 
-.bss
-	.comm	buffs,4352,4
+	.local	buffs.40
+	.comm	buffs.40,4352,32
 .data
 	.align 4
-bo:
+	.type	 bo.42,@object
+	.size	 bo.42,4
+bo.42:
 	.long 1
 .text
 .globl synth_1to1_3dnow
+	.type	 synth_1to1_3dnow,@function
 synth_1to1_3dnow:
-	subl $12,%esp
+	subl $24,%esp
 	pushl %ebp
 	pushl %edi
+	xorl %ebp,%ebp
 	pushl %esi
 	pushl %ebx
-	movl 32(%esp),%eax
-	movl 40(%esp),%esi
-	movl $0,%edi
-	movl bo,%ebp
-	cmpl %edi,36(%esp)
-	jne .L48
-	decl %ebp
-	andl $15,%ebp
-	movl %ebp,bo
-	movl $buffs,%ecx
-	jmp .L49
-.L48:
-	addl $2,%esi
-	movl $buffs+2176,%ecx
-.L49:
-	testl $1,%ebp
-	je .L50
+	movl 56(%esp),%esi
+	movl 52(%esp),%edi
+	movl 0(%esi),%esi
+	movl 48(%esp),%ebx
+	addl %edi,%esi
+	movl %esi,16(%esp)
+
+	femms
+	/fixed by Takuhiro	
+	cmpl $0,equalfile
+	je .L25
+	pushl %ebx
+	pushl 48(%esp)
+	call do_equalizer_3dnow
+	addl $8,%esp
+.L25:
+	testl %ebx,%ebx
+	jne .L26
+	decl bo.42
+	movl $buffs.40,%ecx
+	andl $15,bo.42
+	jmp .L27
+.L26:
+	addl $2,16(%esp)
+	movl $buffs.40+2176,%ecx
+.L27:
+	movl bo.42,%edx
+	testb $1,%dl
+	je .L28
+	movl %edx,36(%esp)
 	movl %ecx,%ebx
-	movl %ebp,16(%esp)
+	movl 44(%esp),%esi
+	movl %edx,%edi
+	pushl %esi
+	sall $2,%edi
+	movl %ebx,%eax
+	movl %edi,24(%esp)
+	addl %edi,%eax
 	pushl %eax
-	movl 20(%esp),%edx
-	leal (%ebx,%edx,4),%eax
-	pushl %eax
-	movl 24(%esp),%eax
+	movl %edx,%eax
 	incl %eax
 	andl $15,%eax
 	leal 1088(,%eax,4),%eax
 	addl %ebx,%eax
-	jmp .L74
-.L50:
-	leal 1088(%ecx),%ebx
-	leal 1(%ebp),%edx
-	movl %edx,16(%esp)
 	pushl %eax
-	leal 1092(%ecx,%ebp,4),%eax
-	pushl %eax
-	leal (%ecx,%ebp,4),%eax
-.L74:
-	pushl %eax
-	call dct64
+	call dct64_3dnow
 	addl $12,%esp
-	movl 16(%esp),%edx
-	leal 0(,%edx,4),%edx
-	movl $decwin+64,%eax
-	movl %eax,%ecx
-	subl %edx,%ecx
-	movl $16,%ebp
+	jmp .L29
+.L28:
+	leal 1(%edx),%esi
+	movl 44(%esp),%edi
+	movl %esi,36(%esp)
+	leal 1092(%ecx,%edx,4),%eax
+	pushl %edi
+	leal 1088(%ecx),%ebx
+	pushl %eax
+	sall $2,%esi
+	leal (%ecx,%edx,4),%eax
+	pushl %eax
+	call dct64_3dnow
+	addl $12,%esp
+	movl %esi,20(%esp)
+.L29:
+	movl $decwin+64,%edx
+	movl $16,%ecx
+	subl 20(%esp),%edx
+	movl 16(%esp),%edi
 
-.L55:
-	movq (%ecx),%mm4
-	movq (%ebx),%mm3
-        movq 8(%ecx),%mm0
-        movq 8(%ebx),%mm1
-	pfmul %mm3,%mm4
-
-        movq 16(%ecx),%mm2
+	movq (%edx),%mm0
+	movq (%ebx),%mm1
+	.align 32
+.L33:
+	movq 8(%edx),%mm3
         pfmul %mm1,%mm0
-        movq 16(%ebx),%mm3
-	pfadd %mm0,%mm4
-
-        movq 24(%ecx),%mm0
-        pfmul %mm2,%mm3
-        movq 24(%ebx),%mm1
-        pfadd %mm3,%mm4
-
-        movq 32(%ecx),%mm2
-        pfmul %mm1,%mm0
-        movq 32(%ebx),%mm3
-        pfadd %mm0,%mm4
-
-        movq 40(%ecx),%mm0
-        pfmul %mm2,%mm3
-        movq 40(%ebx),%mm1
-        pfadd %mm3,%mm4
-
-        movq 48(%ecx),%mm2
-        pfmul %mm1,%mm0
-        movq 48(%ebx),%mm3
-        pfadd %mm0,%mm4
-
-        movq 56(%ecx),%mm0
-        pfmul %mm2,%mm3
-        movq 56(%ebx),%mm1
-        pfadd %mm3,%mm4
-
-        pfmul %mm1,%mm0
-        pfadd %mm0,%mm4
-
-	movq %mm4,%mm0
-	psrlq $32,%mm0
-	pfsub %mm0,%mm4
-
-	pf2id %mm4,%mm4
-	movd %mm4,%eax
-
-	sar	$16,%eax	/ new clip
-	movw %ax,(%esi)
-
-	addl $64,%ebx
-	subl $-128,%ecx
-	addl $4,%esi
-	decl %ebp
-	jnz .L55
-
-/ --- end of loop 1 ---
-
-	movd (%ecx),%mm2
-	movd (%ebx),%mm1
+	movq 8(%ebx),%mm4
+	movq 16(%edx),%mm5
+  	pfmul %mm4,%mm3
+	movq 16(%ebx),%mm6
+  	pfadd %mm3,%mm0
+	movq 24(%edx),%mm1
+	pfmul %mm6,%mm5
+	movq 24(%ebx),%mm2
+	pfadd %mm5,%mm0
+	movq 32(%edx),%mm3
+	pfmul %mm2,%mm1
+	movq 32(%ebx),%mm4
+	pfadd %mm1,%mm0
+	movq 40(%edx),%mm5
+	pfmul %mm4,%mm3
+	movq 40(%ebx),%mm6
+	pfadd %mm3,%mm0
+	movq 48(%edx),%mm1
+	pfmul %mm6,%mm5
+	movq 48(%ebx),%mm2
+	pfadd %mm0,%mm5
+	movq 56(%edx),%mm3
 	pfmul %mm1,%mm2
-
-	movd 8(%ecx),%mm0
-	movd 8(%ebx),%mm1
-	pfmul %mm0,%mm1
-	pfadd %mm1,%mm2
-
-        movd 16(%ecx),%mm0
-        movd 16(%ebx),%mm1
-        pfmul %mm0,%mm1
-        pfadd %mm1,%mm2
-
-        movd 24(%ecx),%mm0
-        movd 24(%ebx),%mm1
-        pfmul %mm0,%mm1
-        pfadd %mm1,%mm2
-
-        movd 32(%ecx),%mm0
-        movd 32(%ebx),%mm1
-        pfmul %mm0,%mm1
-        pfadd %mm1,%mm2
-
-        movd 40(%ecx),%mm0
-        movd 40(%ebx),%mm1
-        pfmul %mm0,%mm1
-        pfadd %mm1,%mm2
-
-        movd 48(%ecx),%mm0
-        movd 48(%ebx),%mm1
-        pfmul %mm0,%mm1
-        pfadd %mm1,%mm2
-
-        movd 56(%ecx),%mm0
-        movd 56(%ebx),%mm1
-        pfmul %mm0,%mm1
-        pfadd %mm1,%mm2
-
+	movq 56(%ebx),%mm4
+	pfadd %mm5,%mm2
+	addl $64,%ebx
+	subl $-128,%edx
+	movq (%edx),%mm0
+	pfmul %mm4,%mm3
+	movq (%ebx),%mm1
+	pfadd %mm3,%mm2
+	movq %mm2,%mm3
+	psrlq $32,%mm3
+	pfsub %mm3,%mm2
+	incl %ebp
 	pf2id %mm2,%mm2
+	packssdw %mm2,%mm2
 	movd %mm2,%eax
-
-	sar $16,%eax	/ new clip
-
-	movw %ax,(%esi)
-
-	addl $-64,%ebx
-	addl $4,%esi
-	addl $256,%ecx
-	movl $15,%ebp
-
-.L68:
-	psubd 	  %mm0,%mm0
-
-	movq    (%ebx),%mm1
-	movq    (%ecx),%mm2
-	pfmul     %mm1,%mm2
-	pfsub     %mm2,%mm0
-
-	movq   8(%ebx),%mm3
-	movq   8(%ecx),%mm4
-	pfmul     %mm3,%mm4
-	pfsub     %mm4,%mm0
-
-        movq  16(%ebx),%mm1
-        movq  16(%ecx),%mm2
-        pfmul     %mm1,%mm2
-        pfsub     %mm2,%mm0
-
-        movq  24(%ebx),%mm3
-        movq  24(%ecx),%mm4
-        pfmul     %mm3,%mm4
-        pfsub     %mm4,%mm0
-
-        movq  32(%ebx),%mm1
-        movq  32(%ecx),%mm2
-        pfmul     %mm1,%mm2
-        pfsub     %mm2,%mm0
-
-        movq  40(%ebx),%mm3
-        movq  40(%ecx),%mm4
-        pfmul     %mm3,%mm4
-        pfsub     %mm4,%mm0
-
-        movq  48(%ebx),%mm1
-        movq  48(%ecx),%mm2
-        pfmul     %mm1,%mm2
-        pfsub     %mm2,%mm0
-
-        movq  56(%ebx),%mm3
-        movq  56(%ecx),%mm4
-        pfmul     %mm3,%mm4
-        pfsub     %mm4,%mm0
-
-	pfacc     %mm0,%mm0
-
+	movw %ax,0(%edi)
+	addl $4,%edi
+	decl %ecx
+	jnz .L33
+	
+	movd (%ebx),%mm0
+	movd (%edx),%mm1
+	punpckldq 8(%ebx),%mm0
+	punpckldq 8(%edx),%mm1
+	movd 16(%ebx),%mm3
+	movd 16(%edx),%mm4
+	pfmul %mm1,%mm0
+	punpckldq 24(%ebx),%mm3
+	punpckldq 24(%edx),%mm4
+	movd 32(%ebx),%mm5
+	movd 32(%edx),%mm6
+	pfmul %mm4,%mm3
+	punpckldq 40(%ebx),%mm5
+	punpckldq 40(%edx),%mm6
+	pfadd %mm3,%mm0
+	movd 48(%ebx),%mm1
+	movd 48(%edx),%mm2
+	pfmul %mm6,%mm5
+	punpckldq 56(%ebx),%mm1
+	punpckldq 56(%edx),%mm2
+	pfadd %mm5,%mm0
+	pfmul %mm2,%mm1
+	pfadd %mm1,%mm0
+	pfacc %mm1,%mm0
 	pf2id %mm0,%mm0
+	packssdw %mm0,%mm0
 	movd %mm0,%eax
-
-	sar $16,%eax	/ new clip
-
-	movw %ax,(%esi)
-
+	movw %ax,0(%edi)
+	incl %ebp
+	movl 36(%esp),%esi
 	addl $-64,%ebx
-	subl $-128,%ecx
-	addl $4,%esi
-	decl %ebp
-	jnz .L68
+	movl $15,%ebp
+	addl $4,%edi
+	leal -128(%edx,%esi,8),%edx
 
-/ --- end of loop 2
+	movl $15,%ecx
+	movd (%ebx),%mm0
+	movd -4(%edx),%mm1
+	punpckldq 4(%ebx),%mm0
+	punpckldq -8(%edx),%mm1
+	.align 32
+.L46:						
+	movd 8(%ebx),%mm3
+	movd -12(%edx),%mm4
+	pfmul %mm1,%mm0
+	punpckldq 12(%ebx),%mm3
+	punpckldq -16(%edx),%mm4
+	movd 16(%ebx),%mm5
+	movd -20(%edx),%mm6
+	pfmul %mm4,%mm3
+	punpckldq 20(%ebx),%mm5
+	punpckldq -24(%edx),%mm6
+	pfadd %mm3,%mm0
+	movd 24(%ebx),%mm1		
+	movd -28(%edx),%mm2		
+	pfmul %mm6,%mm5
+	punpckldq 28(%ebx),%mm1	
+	punpckldq -32(%edx),%mm2
+	pfadd %mm5,%mm0
+	movd 32(%ebx),%mm3		
+	movd -36(%edx),%mm4		
+	pfmul %mm2,%mm1
+	punpckldq 36(%ebx),%mm3	
+	punpckldq -40(%edx),%mm4
+	pfadd %mm1,%mm0			
+	movd 40(%ebx),%mm5		
+	movd -44(%edx),%mm6		
+	pfmul %mm4,%mm3			
+	punpckldq 44(%ebx),%mm5	
+	punpckldq -48(%edx),%mm6
+	pfadd %mm3,%mm0			
+	movd 48(%ebx),%mm1		
+	movd -52(%edx),%mm2		
+	pfmul %mm6,%mm5			
+	punpckldq 52(%ebx),%mm1	
+	punpckldq -56(%edx),%mm2
+	pfadd %mm0,%mm5
+	movd 56(%ebx),%mm3		
+	movd -60(%edx),%mm4		
+	pfmul %mm2,%mm1
+	punpckldq 60(%ebx),%mm3	
+	punpckldq (%edx),%mm4
+	pfadd %mm1,%mm5			
+	addl $-128,%edx			
+	addl $-64,%ebx
+	movd (%ebx),%mm0
+	movd -4(%edx),%mm1
+	pfmul %mm4,%mm3
+	punpckldq 4(%ebx),%mm0
+	punpckldq -8(%edx),%mm1
+	pfadd %mm5,%mm3
+	pfacc %mm3,%mm3
+	incl %ebp
+	pf2id %mm3,%mm3
+  	movd %mm3,%eax
+  	negl %eax
+  	movd %eax,%mm3
+	packssdw %mm3,%mm3
+	movd %mm3,%eax
+  	movw %ax,(%edi)
+	addl $4,%edi
+	decl %ecx
+	jnz .L46
 
 	femms
-
-	movl %edi,%eax
+	movl 56(%esp),%esi
+	movl %ebp,%eax
+	subl $-128,0(%esi)
 	popl %ebx
 	popl %esi
 	popl %edi
 	popl %ebp
-	addl $12,%esp
+	addl $24,%esp
 	ret

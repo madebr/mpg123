@@ -195,7 +195,11 @@ int tk3play_handlemsg(struct frame *fr,struct timeval *timeout)
 
     if (mode == MODE_STOPPED) {
 	mode = MODE_PLAYING_AND_DECODING;
-	open_stream(filename,-1);
+       if (open_stream(filename,-1) < 0)
+         /* FIXME I don't know what the right action is here,
+          *       so it will still exit, like it used to.
+          */
+         exit(1);
 	init = 1;
 	framecnt = 0;
 	read_frame_init();
@@ -203,7 +207,11 @@ int tk3play_handlemsg(struct frame *fr,struct timeval *timeout)
 
     if (mode == MODE_PLAYING_NOT_DECODING) {
       mode = MODE_PLAYING_OLD_DECODING_NEW;
-      open_stream(filename,-1);
+      if (open_stream(filename,-1) < 0)
+        /* FIXME I don't know what the right action is here,
+         *       so it will still exit, like it used to.
+         */
+        exit(1);
       init = 1;
       framecnt = 0;
       read_frame_init();

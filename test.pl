@@ -11,13 +11,13 @@ while(<STDIN>) {
   if($_ =~ /st/) { print FH "stop\n"; }
   if($_ =~ /up/) { 
 	$e0 = $e0+0.1;
-	print FH "eq 0 0 $e0";
-	print FH "eq 1 0 $e0";
+	print FH "eq 0 0 $e0\n";
+	print FH "eq 1 0 $e0\n";
   }   
   if($_ =~ /dn/) { 
 	$e0--;
-	print FH "eq 0 0 $e0";
-	print FH "eq 1 0 $e0";
+	print FH "eq 0 0 $e0\n";
+	print FH "eq 1 0 $e0\n";
   }   
 }
 

@@ -10,6 +10,7 @@
 #endif
 
 static unsigned esd_rate = 0, esd_format = 0, esd_channels = 0;
+static char *esdserver = NULL;
 
 int audio_open(struct audio_info_struct *ai)
 {

@@ -1,4 +1,11 @@
-UNOFFICIAL 0.59r-ThOr-3 (Thomas Orgis <thomas@orgis.org>)
+UNOFFICIAL 0.59r-thor4 (Thomas Orgis <thomas@orgis.org>)
+-----
+
+- merged with 0.59r-19 from Debian project (Daniel Kobras <kobras@debian.org>), hopefully fixing all those security vulnerabilities
+	-> my dirty http_open and open_stream variants now replaced by more proper code
+	-> still my (rather workloaded) parsing/processing in control_generic, but now including the idea to watch out for \n, \r\n and \r (or \n\r, for that matter;-)
+
+UNOFFICIAL 0.59r-thor3 (Thomas Orgis <thomas@orgis.org>)
 -----
 
 - hacked additional variants of http_open and open_stream that return errors instead of exit()ing; makes more sense when used by a frontend

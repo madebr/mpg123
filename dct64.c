@@ -29,7 +29,7 @@ void dct64(real *out0,real *out1,real *samples)
   for(i=15;i>=0;i--)
     *bs++ = (*b1++ + *--b2); 
   for(i=15;i>=0;i--)
-    *bs++ = (*--b2 - *b1++) * *--costab;
+    *bs++ = REAL_MUL((*--b2 - *b1++), *--costab);
 
   b1 = bufs;
   costab = pnts[1]+8;
@@ -39,13 +39,13 @@ void dct64(real *out0,real *out1,real *samples)
     for(i=7;i>=0;i--)
       *bs++ = (*b1++ + *--b2); 
     for(i=7;i>=0;i--)
-      *bs++ = (*--b2 - *b1++) * *--costab; 
+      *bs++ = REAL_MUL((*--b2 - *b1++), *--costab);
     b2 += 32;
     costab += 8;
     for(i=7;i>=0;i--)
       *bs++ = (*b1++ + *--b2); 
     for(i=7;i>=0;i--)
-      *bs++ = (*b1++ - *--b2) * *--costab; 
+      *bs++ = REAL_MUL((*b1++ - *--b2), *--costab);
     b2 += 32;
   }
 
@@ -58,12 +58,12 @@ void dct64(real *out0,real *out1,real *samples)
     for(i=3;i>=0;i--)
       *bs++ = (*b1++ + *--b2); 
     for(i=3;i>=0;i--)
-      *bs++ = (*--b2 - *b1++) * costab[i]; 
+      *bs++ = REAL_MUL((*--b2 - *b1++), costab[i]);
     b2 += 16;
     for(i=3;i>=0;i--)
       *bs++ = (*b1++ + *--b2); 
     for(i=3;i>=0;i--)
-      *bs++ = (*b1++ - *--b2) * costab[i]; 
+      *bs++ = REAL_MUL((*b1++ - *--b2), costab[i]);
     b2 += 16;
   }
 
@@ -75,13 +75,13 @@ void dct64(real *out0,real *out1,real *samples)
   {
     *bs++ = (*b1++ + *--b2); 
     *bs++ = (*b1++ + *--b2);
-    *bs++ = (*--b2 - *b1++) * costab[1]; 
-    *bs++ = (*--b2 - *b1++) * costab[0];
+    *bs++ = REAL_MUL((*--b2 - *b1++), costab[1]);
+    *bs++ = REAL_MUL((*--b2 - *b1++), costab[0]);
     b2 += 8;
     *bs++ = (*b1++ + *--b2); 
     *bs++ = (*b1++ + *--b2);
-    *bs++ = (*b1++ - *--b2) * costab[1]; 
-    *bs++ = (*b1++ - *--b2) * costab[0];
+    *bs++ = REAL_MUL((*b1++ - *--b2), costab[1]);
+    *bs++ = REAL_MUL((*b1++ - *--b2), costab[0]);
     b2 += 8;
   }
   bs = bufs;
@@ -92,10 +92,10 @@ void dct64(real *out0,real *out1,real *samples)
     real v0,v1;
     v0=*b1++; v1 = *b1++;
     *bs++ = (v0 + v1);
-    *bs++ = (v0 - v1) * (*costab);
+    *bs++ = REAL_MUL((v0 - v1), (*costab));
     v0=*b1++; v1 = *b1++;
     *bs++ = (v0 + v1);
-    *bs++ = (v1 - v0) * (*costab);
+    *bs++ = REAL_MUL((v1 - v0), (*costab));
   }
 
  }

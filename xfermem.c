@@ -32,8 +32,6 @@
 #include <sys/shm.h>
 #endif
 
-extern int errno;
-
 #if defined (USE_MMAP) && defined(MAP_ANONYMOUS) && !defined(MAP_ANON)
 #define MAP_ANON MAP_ANONYMOUS
 #endif
@@ -41,7 +39,6 @@ extern int errno;
 void xfermem_init (txfermem **xf, int bufsize, int msize, int skipbuf)
 {
 	int regsize = bufsize + msize + skipbuf + sizeof(txfermem);
-	extern int preload;
 
 #ifdef USE_MMAP
 #  ifdef MAP_ANON
@@ -92,7 +89,6 @@ void xfermem_init (txfermem **xf, int bufsize, int msize, int skipbuf)
 	(*xf)->metadata = ((byte *) *xf) + sizeof(txfermem);
 	(*xf)->size = bufsize;
 	(*xf)->metasize = msize + skipbuf;
-	preload = bufsize>>3;
 }
 
 void xfermem_done (txfermem *xf)

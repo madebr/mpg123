@@ -236,14 +236,6 @@ int synth_1to1(real *bandPtr,int channel,unsigned char *out,int *pnt)
 
   return clip;
 #else
-#ifdef USE_3DNOW
-  {
-    int ret;
-    ret = synth_1to1_3dnow(bandPtr,channel,out+*pnt);
-    *pnt += 128;
-    return ret;
-  }
-#else
   {
     int ret;
     ret = synth_1to1_pent(bandPtr,channel,out+*pnt);
@@ -251,6 +243,4 @@ int synth_1to1(real *bandPtr,int channel,unsigned char *out,int *pnt)
     return ret;
   }
 #endif
-#endif
 }
-

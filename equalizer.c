@@ -13,7 +13,7 @@ void do_equalizer(real *bandPtr,int channel)
 
 	if(equalfile) {
 		for(i=0;i<32;i++)
-			bandPtr[i] *= equalizer[channel][i];
+			bandPtr[i] = REAL_MUL(bandPtr[i], equalizer[channel][i]);
 	}
 
 /*	if(param.equalizer & 0x2) {
@@ -28,7 +28,7 @@ void do_equalizerband(real *bandPtr,int channel)
 {
   int i;
   for(i=0;i<576;i++) {
-    bandPtr[i] *= equalizerband[channel][i];
+    bandPtr[i] = REAL_MUL(bandPtr[i], equalizerband[channel][i]);
   }
 }
 
