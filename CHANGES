@@ -1,6 +1,8 @@
 UNOFICIAL 0.59r-ThOr(remote-err,eq,flushing)
 -----
 -added audio_flush() calls to various places in control_generic.c to make sure there is nothing left in there that hurts later
+-(re?)enabled (?) code for stream info
+-corrected answer of JUMP (now gives actual reached position, +/- 1 frame since I'll still have to figure out what frame 0 really is...)
 
 UNOFFICIAL 0.59r-realeq-remoteerr: (Thomas Orgis <thomas@orgis.org>)
 -----

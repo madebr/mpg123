@@ -170,16 +170,16 @@ void control_generic (struct frame *fr)
 					mode = MODE_STOPPED;
 					audio_flush(param.outmode, &ai);
 					rd->close(rd);
-					/* generic_sendmsg("P 0 at frame %d", framecnt); */
+					generic_sendmsg("P 0");
 					continue;
 				}
 				/* generic_sendmsg("playing frame %d", framecnt);*/
 				play_frame(init,fr);
 				/* generic_sendmsg("played frame %d", framecnt); */
 				if (init) {
-					/* static char *modes[4] = {"Stereo", "Joint-Stereo", "Dual-Channel", "Single-Channel"}; */
+					 static char *modes[4] = {"Stereo", "Joint-Stereo", "Dual-Channel", "Single-Channel"};
 					/* JMG */
-					/*generic_sendmsg("S %s %d %ld %s %d %d %d %d %d %d %d %d",
+					generic_sendmsg("S %s %d %ld %s %d %d %d %d %d %d %d %d",
 						fr->mpeg25 ? "2.5" : (fr->lsf ? "2.0" : "1.0"),
 						fr->lay,
 						freqs[fr->sampling_frequency],
@@ -192,7 +192,6 @@ void control_generic (struct frame *fr)
 						fr->emphasis,
 						tabsel_123[fr->lsf][fr->lay-1][fr->bitrate_index],
 						fr->extension);
-					*/
 					generic_sendmsg("%f", equalizer[0][0]);
 					init = 0;
 				}
@@ -343,7 +342,7 @@ void control_generic (struct frame *fr)
 															set_pointer(512);
 													}
 												}
-												generic_sendmsg("J %d", pos);
+												generic_sendmsg("J %d", framecnt); /*got to find out at what position we _really_ are*/
 													
 											}
 											else
@@ -440,7 +439,7 @@ void control_generic (struct frame *fr)
 																			set_pointer(512);
 																	}
 																}
-																generic_sendmsg("J %d", pos);
+																generic_sendmsg("J %d", framecnt); /*got to find out at what position we _really_ are*/
 															}
 															else
 															{
