@@ -154,7 +154,7 @@ void control_generic (struct frame *fr)
  		outstream = stdout;
  		
  	setlinebuf(outstream);
-	fprintf(outstream, "@R MPG123\n");
+	fprintf(outstream, "@R MPG123 0.59r-ThOr\n");
 
 	while (alive) {
 		tv.tv_sec = 0;
