@@ -115,11 +115,11 @@ linux:
 			-finline-functions -ffast-math' \
 		mpg123-make
 
-linux-thor:
-	$(MAKE) CC=gcc LDFLAGS= \
+linux-static:
+	$(MAKE) CC=gcc LDFLAGS=-static \
 		OBJECTS='decode_i386.o dct64_i386.o decode_i586.o \
 			audio_oss.o term.o' \
-		CFLAGS='-static -DI386_ASSEM -DPENTIUM_OPT -DREAL_IS_FLOAT -DLINUX \
+		CFLAGS='-DI386_ASSEM -DPENTIUM_OPT -DREAL_IS_FLOAT -DLINUX \
 			-DREAD_MMAP -DOSS -DTERM_CONTROL\
 			-Wall -O2 -march=i486 \
 			-fomit-frame-pointer -funroll-all-loops \
