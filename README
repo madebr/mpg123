@@ -1,5 +1,5 @@
 **********************************************************************
-* MPEG 1.0/2.0 _AUDIO_ PLAYER, V0.59n                                * 
+* MPEG 1.0/2.0 _AUDIO_ PLAYER, V0.59r-thor5                          * 
 *                                                                    *
 * (full?) MPEG 1.0/2.0, Layer 1,2 and 3 support                      *
 * Layer-3 realtime only with a 'fast' machine                        *
@@ -16,6 +16,15 @@ written/modfied by:
    Michael Hipp (email: hippm@informatik.uni-tuebingen.de)
    Oliver Fromme <oliver.fromme@heim3.tu-clausthal.de>
     (several enhancements, man pages, Makefile, FreeBSD port, License, etc.)
+   Thomas Orgis <thomas@orgis.org>; maintainer of -thor patch/fork:
+      - generic control interface enhancement
+      - integration of security fixes (Debian r19)
+      - bugfix in command line parameter parsing to make it work on Alpha (where int != long)
+
+Official URL of the thor versions: http://thomas.orgis.org/mpg123-thor
+
+Much of the information following is outdated (esp. urls)... 
+
 
 Uses code (or at least ideas) from:
   MPEG Software Simulation Group: reference decoder package

@@ -1,4 +1,3 @@
-
 /*
  * Control interface to generic front ends.
  * written/copyrights 1997/99 by Andreas Neuhaus (and Michael Hipp)
@@ -318,8 +317,22 @@ void control_generic (struct frame *fr)
 					if (!strcasecmp(cmd, "S") || !strcasecmp(cmd, "SEQ")) {
 						real b,m,t;
 						int cn;
-						equalfile = TRUE;
+						have_eq_settings = TRUE;
+						/* ThOr: The type of real can vary greatly; on my XP1000 with OSF1 I got FPE on setting seq...
+							now using the same ifdefs as mpg123.h for the definition of real
+							I'd like to have the conversion specifier as constant.
+							
+							Also, I' not sure _how_ standard these conversion specifiers and their flags are... I have them from a glibc man page.
+						*/
+						#ifdef REAL_IS_FLOAT
 						if(sscanf(arg, "%f %f %f", &b, &m, &t) == 3){
+						#elif defined(REAL_IS_LONG_DOUBLE)
+						if(sscanf(arg, "%Lf %Lf %Lf", &b, &m, &t) == 3){
+						#elif defined(REAL_IS_FIXED)
+						if(sscanf(arg, "%ld %ld %ld", &b, &m, &t) == 3){
+						#else
+						if(sscanf(arg, "%lf %lf %lf", &b, &m, &t) == 3){
+						#endif
 							/* very raw line */
 							if ((t >= 0) && (t <= 3))
 							for(cn=0; cn < 1; ++cn)
@@ -347,11 +360,20 @@ void control_generic (struct frame *fr)
 
 					/* Equalizer control :) (JMG) */
 					if (!strcasecmp(cmd, "E") || !strcasecmp(cmd, "EQ")) {
-						float e;
+						real e; /* ThOr: equalizer is of type real... whatever that is */
 						int c, v;
-						equalfile = TRUE;
+						have_eq_settings = TRUE;
 						/*generic_sendmsg("%s",updown);*/
-						if( sscanf(arg, "%i %i %f", &c, &v, &e) == 3){
+						/* ThOr: This must be done in the header alongside the definition of real somehow! */
+						#ifdef REAL_IS_FLOAT
+						if(sscanf(arg, "%i %i %f", &c, &v, &e) == 3){
+						#elif defined(REAL_IS_LONG_DOUBLE)
+						if(sscanf(arg, "%i %i %Lf", &c, &v, &e) == 3){
+						#elif defined(REAL_IS_FIXED)
+						if(sscanf(arg, "%i %i %ld", &c, &v, &e) == 3){
+						#else
+						if(sscanf(arg, "%i %i %lf", &c, &v, &e) == 3){
+						#endif
 							equalizer[c][v] = e;
 							generic_sendmsg("%i : %i : %f", c, v, e);
 						}

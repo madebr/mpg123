@@ -20,4 +20,9 @@ Of course, there are some known bugs:
   SGI completly untested
   SUNOS 4.x completly untested
 
+ThOr:
+
+- options parsing ist buggy on OSF1 5.1b... I get two unaligned accesses and the 
+-s option gets interpreted differently depending on place in command line or if I 
+call mpg123 on a shell or with execlp(). getlopt.c needs some fixes there...
 

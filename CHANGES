@@ -1,3 +1,10 @@
+UNOFFICIAL 0.59r-thor5 (Thomas Orgis <thomas@orgis.org>)
+-----
+
+- Separated the the use of char* equalfile as filename from the use as TRUE/FALSE flag by introducing int have_eq_settings. Compilers kept nagging about assigning and integer (TRUE) to char* ... and it feels more right this way.
+
+- Made control_generic aware of real being possibly different than float (seq command used to raise an FPE on OSF1 when this assumption was not the case.
+
 UNOFFICIAL 0.59r-thor4 (Thomas Orgis <thomas@orgis.org>)
 -----
 

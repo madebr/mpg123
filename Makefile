@@ -467,6 +467,13 @@ sgi-gcc:
 dec:
 	$(MAKE) CC=cc LDFLAGS= OBJECTS='decode.o dct64.o audio_dummy.o' \
 		CFLAGS='-std1 -warnprotos -O4 -DUSE_MMAP' \
+		LDFLAGS='-lrt' \
+		mpg123-make
+
+dec-debug:
+	$(MAKE) CC=cc LDFLAGS= OBJECTS='decode.o dct64.o audio_dummy.o' \
+		CFLAGS='-g3 -std1 -warnprotos -O4 -DUSE_MMAP' \
+		LDFLAGS='-lrt' \
 		mpg123-make
 
 dec-nas:

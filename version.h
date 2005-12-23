@@ -1,3 +1,3 @@
-char *prgVersion = "0.59r-thor4 (including Debian's -19)";
-char *prgDate = "2005/Feb/24";
+char *prgVersion = "0.59r-thor5 (control, security and bugfix)";
+char *prgDate = "2005/Dec/23";
 char *prgName;

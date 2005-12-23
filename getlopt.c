@@ -3,9 +3,19 @@
  *
  *   Oliver Fromme  <oliver.fromme@heim3.tu-clausthal.de>
  *   Tue Apr  8 07:15:13 MET DST 1997
+ *
+ *   Clarification on int vs. long variable types (and the debug stuff):
+ *   Thomas Orgis  <thomas@orgis.org>
+ *   Fri Dec 23, 2005
  */
 
 #include "getlopt.h"
+
+/* #define GLO_DEBUG */
+
+#ifdef GLO_DEBUG
+#include <stdio.h>
+#endif
 
 int loptind = 1;	/* index in argv[] */
 int loptchr = 0;	/* index in argv[loptind] */
@@ -43,12 +53,34 @@ int performoption (int argc, char *argv[], topt *opt)
 {
 	int result = GLO_CONTINUE;
 
-	if (!(opt->flags & 1)) { /* doesn't take argument */
+	if (!(opt->flags & GLO_ARG)) { /* doesn't take argument */
 		if (opt->var) {
-			if (opt->flags & 2) /* var is *char */
-				*((char *) opt->var) = (char) opt->value;
-			else
-				*((long *) opt->var) = opt->value;
+			if (opt->flags & GLO_CHAR) /* var is *char */
+			{
+				#ifdef GLO_DEBUG
+				fprintf(stderr, "[char at %ld]\n", opt->var);
+				#endif
+				*((char *) opt->var) = (char) opt->value;\
+			}
+			else if(opt->flags & GLO_LONG)
+			{
+				#ifdef GLO_DEBUG
+				fprintf(stderr, "[long at %ld]\n", opt->var);
+				#endif
+				*( (long *) opt->var ) = opt->value;
+			}
+			else if(opt->flags & GLO_INT)
+			{
+				#ifdef GLO_DEBUG
+				fprintf(stderr, "[int at %ld]\n", opt->var);
+				#endif
+				*( (int *) opt->var ) = (int) opt->value;
+			}
+			#ifdef GLO_DEBUG
+			else fprintf(stderr, "[Option without type flag! This is a programming error!]\n");
+								
+			fprintf(stderr,"[dubious assignment done]\n");
+			#endif
 		}
 		else
 			result = opt->value ? opt->value : opt->sname;
@@ -59,10 +91,15 @@ int performoption (int argc, char *argv[], topt *opt)
 		loptarg = argv[loptind++]+loptchr;
 		loptchr = 0;
 		if (opt->var) {
-			if (opt->flags & 2) /* var is *char */
+			if (opt->flags & GLO_CHAR) /* var is *char */
 				*((char **) opt->var) = strdup(loptarg);
-			else
-				*((long *) opt->var) = atoi(loptarg);
+			else if(opt->flags & GLO_LONG)
+				*((long *) opt->var) = atol(loptarg);
+			else if(opt->flags & GLO_INT)
+				*((int *) opt->var) = atoi(loptarg);
+			#ifdef GLO_DEBUG
+			else fprintf(stderr, "[Option without type flag! This is a programming error!]\n");
+			#endif
 		}
 		else
 			result = opt->value ? opt->value : opt->sname;
@@ -81,6 +118,9 @@ int getsingleopt (int argc, char *argv[], topt *opts)
 	if (loptind >= argc)
 		return (GLO_END);
 	thisopt = argv[loptind];
+	#ifdef GLO_DEBUG
+	fprintf(stderr,"[getsingleopt: %s]\n", thisopt);
+	#endif
 	if (!loptchr) { /* start new option string */
 		if (thisopt[0] != '-' || !thisopt[1]) /* no more options */
 			return (GLO_END);
@@ -116,6 +156,7 @@ int getsingleopt (int argc, char *argv[], topt *opts)
 
 int getlopt (int argc, char *argv[], topt *opts)
 {
+	
 	int result;
 	
 	while ((result = getsingleopt(argc, argv, opts)) == GLO_CONTINUE);

@@ -6,6 +6,8 @@ Please see the file CHANGES for what I did and whose patches I used.
 
 The intend of my work on mpg123 was another project of mine: DerMixD, a tcp-controlled audio playing demon similar to and inspired by mixplayd (http://mixplayd.sf.net), but multi-threaded and written in C++ with classes that make extension more easy. This daemon includes a decoder backend for mp3s using mpg123 in remote mode. Thus, it is a "generic" front-end for mpg123.
 
+Another point in working on this package came up with the desire to listen to music on my Compaq Alpha machine at work; some specific bugs needed fixing. 
+
 Mpg123 needed some changes in its beaviour to be really useful for that (and maybe for someone else, too...).
 The control interface (the "API") has been modified and extended a bit; thus the id string on starting is not 
 

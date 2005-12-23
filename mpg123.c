@@ -75,6 +75,8 @@ struct parameter param = {
 char *listname = NULL;
 char *listnamedir = NULL;
 char *equalfile = NULL;
+/* ThOr: pointers are not TRUE or FALSE */
+int have_eq_settings = FALSE;
 long outscale  = 32768;
 long numframes = -1;
 long startFrame= 0;
@@ -491,31 +493,56 @@ void not_compiled(char *arg)
 }
 
 /* Please note: GLO_NUM expects point to LONG! */
+/* ThOr:
+ *  Yeah, and despite that numerous addresses to int variables were 
+passed.
+ *  That's not good on my Alpha machine with int=32bit and long=64bit!
+ *  Introduced GLO_INT and GLO_LONG as different bits to make that clear.
+ *  GLO_NUM no longer exists.
+ */
 topt opts[] = {
     {'k', "skip",        GLO_ARG | GLO_LONG, 0, &startFrame, 0},
     {'a', "audiodevice", GLO_ARG | GLO_CHAR, 0, &ai.device,  0},
-    {'2', "2to1",        0,                  0, &param.down_sample, 1},
-    {'4', "4to1",        0,                  0, &param.down_sample, 2},
-    {'t', "test",        0,                  0, &param.outmode, DECODE_TEST},
-    {'s', "stdout",      0,       SetOutStdout, &param.outmode, DECODE_FILE},
-    {'S', "STDOUT",      0,       SetOutStdout1, &param.outmode, DECODE_AUDIOFILE},
+    {'2', "2to1",        GLO_INT,                  0, &param.down_sample, 
+1},
+    {'4', "4to1",        GLO_INT,                  0, &param.down_sample, 
+2},
+    {'t', "test",        GLO_INT,                  0, &param.outmode, 
+DECODE_TEST},
+    {'s', "stdout",      GLO_INT,       SetOutStdout, &param.outmode, 
+DECODE_FILE},
+    {'S', "STDOUT",      GLO_INT,       SetOutStdout1, &param.outmode, 
+DECODE_AUDIOFILE},
     {'O', "outfile",     GLO_ARG | GLO_CHAR, SetOutFile, NULL, NULL},
-    {'c', "check",       0,                  0, &param.checkrange, TRUE},
+    {'c', "check",       GLO_INT,                  0, &param.checkrange, 
+TRUE},
     {'v', "verbose",     0,        set_verbose, 0,           0},
-    {'q', "quiet",       0,                  0, &param.quiet,      TRUE},
-    {'y', "resync",      0,                  0, &param.tryresync,  FALSE},
-    {'0', "single0",     0,                  0, &param.force_mono, 0},
-    {0,   "left",        0,                  0, &param.force_mono, 0},
-    {'1', "single1",     0,                  0, &param.force_mono, 1},
-    {0,   "right",       0,                  0, &param.force_mono, 1},
-    {'m', "singlemix",   0,                  0, &param.force_mono, 3},
-    {0,   "mix",         0,                  0, &param.force_mono, 3},
-    {0,   "mono",        0,                  0, &param.force_mono, 3},
-    {0,   "stereo",      0,                  0, &param.force_stereo, 1},
-    {0,   "reopen",      0,                  0, &param.force_reopen, 1},
+    {'q', "quiet",       GLO_INT,                  0, &param.quiet,      
+TRUE},
+    {'y', "resync",      GLO_INT,                  0, &param.tryresync,  
+FALSE},
+    {'0', "single0",     GLO_INT,                  0, &param.force_mono, 
+0},
+    {0,   "left",        GLO_INT,                  0, &param.force_mono, 
+0},
+    {'1', "single1",     GLO_INT,                  0, &param.force_mono, 
+1},
+    {0,   "right",       GLO_INT,                  0, &param.force_mono, 
+1},
+    {'m', "singlemix",   GLO_INT,                  0, &param.force_mono, 
+3},
+    {0,   "mix",         GLO_INT,                  0, &param.force_mono, 
+3},
+    {0,   "mono",        GLO_INT,                  0, &param.force_mono, 
+3},
+    {0,   "stereo",      GLO_INT,                  0, &param.force_stereo, 
+1},
+    {0,   "reopen",      GLO_INT,                  0, &param.force_reopen, 
+1},
     {'g', "gain",        GLO_ARG | GLO_LONG, 0, &ai.gain,    0},
     {'r', "rate",        GLO_ARG | GLO_LONG, 0, &param.force_rate,  0},
-    {0,   "8bit",        0,                  0, &param.force_8bit, 1},
+    {0,   "8bit",        GLO_INT,                  0, &param.force_8bit, 
+1},
     {0,   "headphones",  0,                  set_output_h, 0,0},
     {0,   "speaker",     0,                  set_output_s, 0,0},
     {0,   "lineout",     0,                  set_output_l, 0,0},
@@ -523,34 +550,45 @@ topt opts[] = {
     {'f', "scale",       GLO_ARG | GLO_LONG, 0, &outscale,   0},
     {'n', "frames",      GLO_ARG | GLO_LONG, 0, &numframes,  0},
 #ifdef TERM_CONTROL
-    {'C', "control",	 0,		     0, &param.term_ctrl, TRUE},
+    {'C', "control",	 GLO_INT,		     0, &param.term_ctrl, 
+TRUE},
 #endif
     {'b', "buffer",      GLO_ARG | GLO_LONG, 0, &param.usebuffer,  0},
-    {'R', "remote",      0,                  0, &param.remote,     TRUE},
-    {0,   "remote-err",  0,                  0, &param.remote_err, TRUE},
+    {'R', "remote",      GLO_INT,                  0, &param.remote,     
+TRUE},
+    {0,   "remote-err",  GLO_INT,                  0, &param.remote_err, 
+TRUE},
     {'d', "doublespeed", GLO_ARG | GLO_LONG, 0, &param.doublespeed,0},
     {'h', "halfspeed",   GLO_ARG | GLO_LONG, 0, &param.halfspeed,  0},
     {'p', "proxy",       GLO_ARG | GLO_CHAR, 0, &proxyurl,   0},
     {'@', "list",        GLO_ARG | GLO_CHAR, 0, &listname,   0},
 	/* 'z' comes from the the german word 'zufall' (eng: random) */
-    {'z', "shuffle",     0,                  0, &param.shuffle,    1},
-    {'Z', "random",      0,                  0, &param.shuffle,    2},
+    {'z', "shuffle",     GLO_INT,                  0, &param.shuffle,    
+1},
+    {'Z', "random",      GLO_INT,                  0, &param.shuffle,    
+2},
     {'E', "equalizer",	 GLO_ARG | GLO_CHAR, 0, &equalfile,1},
-    {0,   "aggressive",	 0,   	             0, &param.aggressive,2},
+    {0,   "aggressive",	 GLO_INT,   	             0, 
+&param.aggressive,2},
 #ifdef USE_3DNOW
-    {0,   "force-3dnow", 0,                  0, &param.stat_3dnow,1},
-    {0,   "no-3dnow",    0,                  0, &param.stat_3dnow,2},
-    {0,   "test-3dnow",  0,                  0, &param.test_3dnow,TRUE},
+    {0,   "force-3dnow", GLO_INT,                  0, 
+&param.stat_3dnow,1},
+    {0,   "no-3dnow",    GLO_INT,                  0, 
+&param.stat_3dnow,2},
+    {0,   "test-3dnow",  GLO_INT,                  0, 
+&param.test_3dnow,TRUE},
 #endif
 #if !defined(WIN32) && !defined(GENERIC)
     {'u', "auth",        GLO_ARG | GLO_CHAR, 0, &httpauth,   0},
 #endif
 #if defined(SET_RT)
-    {'T', "realtime",    0,                  0, &param.realtime, TRUE },
+    {'T', "realtime",    GLO_LONG,                  0, &param.realtime, 
+TRUE },
 #else
     {'T', "realtime",    0,       not_compiled, 0,           0 },    
 #endif
-    {0, "title",         0,                  0, &param.xterm_title, TRUE },
+    {0, "title",         GLO_INT,                  0, &param.xterm_title, 
+TRUE },
     {'w', "wav",         GLO_ARG | GLO_CHAR, set_wav, 0 , 0 },
     {0, "cdr",         GLO_ARG | GLO_CHAR, set_cdr, 0 , 0 },
     {0, "au",         GLO_ARG | GLO_CHAR, set_au, 0 , 0 },
@@ -870,7 +908,6 @@ int main(int argc, char *argv[])
 				prgName, loptarg);
 			exit (1);
 	}
-
 #ifdef USE_3DNOW
 	if (param.test_3dnow) {
 		int cpuflags = getcpuflags();
@@ -913,7 +950,7 @@ int main(int argc, char *argv[])
 		equalizer[0][j] = equalizer[1][j] = 1.0;
 		equalizer_sum[0][j] = equalizer_sum[1][j] = 0.0;
 	}		
-	if(equalfile) { /* tst */
+	if(equalfile != NULL) { /* tst; ThOr: not TRUE or FALSE: allocated or not... */
 		FILE *fe;
 		int i;
 
@@ -937,6 +974,7 @@ int main(int argc, char *argv[])
 				equalizer[1][i] = e1;	
 			}
 			fclose(fe);
+			have_eq_settings = TRUE;			
 		}
 		else
 			fprintf(stderr,"Can't open equalizer file '%s'\n",equalfile);
