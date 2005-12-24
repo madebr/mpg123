@@ -5,6 +5,8 @@ UNOFFICIAL 0.59r-thor5 (Thomas Orgis <thomas@orgis.org>)
 
 - Made control_generic aware of real being possibly different than float (seq command used to raise an FPE on OSF1 when this assumption was not the case.
 
+- Fixed the command line arg parsing to work properly on Alpha (32 and 64 bit mixup)
+
 UNOFFICIAL 0.59r-thor4 (Thomas Orgis <thomas@orgis.org>)
 -----
 

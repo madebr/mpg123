@@ -16,14 +16,13 @@ written/modfied by:
    Michael Hipp (email: hippm@informatik.uni-tuebingen.de)
    Oliver Fromme <oliver.fromme@heim3.tu-clausthal.de>
     (several enhancements, man pages, Makefile, FreeBSD port, License, etc.)
-   Thomas Orgis <thomas@orgis.org>; maintainer of -thor patch/fork:
+   Thomas Orgis <thomas@orgis.org>; maintainer of thor patch:
       - generic control interface enhancement
-      - integration of security fixes (Debian r19)
+      - integration of (security) fixes (Debian r20)
       - bugfix in command line parameter parsing to make it work on Alpha (where int != long)
+			- other small things
 
 Official URL of the thor versions: http://thomas.orgis.org/mpg123-thor
-
-Much of the information following is outdated (esp. urls)... 
 
 
 Uses code (or at least ideas) from:
@@ -46,6 +45,10 @@ Uses code (or at least ideas) from:
   Ryan R. Prosser <prosser@geocities.com> esd port for Solaris
   Daniel Kobras <daniel.kobras@student.uni-tuebingen.de>: lot of (DK)-bugfixes
   and more ....
+
+******************************************************************
+Note: Some of the following information is outdated (esp. urls)... 
+******************************************************************
 
 current distribution site for new test versions is:
   http://www-ti.informatik.uni-tuebingen.de/~hippm/mpg123.html
