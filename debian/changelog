@@ -1,3 +1,12 @@
+mpg123 (0.59r-20) unstable; urgency=high
+
+  * httpget.c: Fix integer overflows in http parser, introduced by
+    security patch for CAN-2004-0982.
+  * httpget.c: Ensure minimum size of receive buffer to fix regression
+    in 0.59r-18, caused by patch for CAN-2004-0982. Closes: #294801
+
+ -- Daniel Kobras <kobras@debian.org>  Sun,  8 May 2005 19:37:18 +0200
+
 mpg123 (0.59r-19) unstable; urgency=high
 
   * layer2.c: Fix off-by-one error in boundary check introduced in -18.
