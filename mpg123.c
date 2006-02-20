@@ -38,10 +38,13 @@ static void usage(char *dummy);
 static void long_usage(char *);
 static void print_title(void);
 
+int j;
+
 struct parameter param = { 
   FALSE , /* aggressiv */
   FALSE , /* shuffle */
   FALSE , /* remote */
+  FALSE , /* remote to stderr */
   DECODE_AUDIO , /* write samples to audio device */
   FALSE , /* silent operation */
   0 ,     /* second level buffer size */
@@ -505,6 +508,7 @@ topt opts[] = {
 #endif
     {'b', "buffer",      GLO_ARG | GLO_LONG, 0, &param.usebuffer,  0},
     {'R', "remote",      0,                  0, &param.remote,     TRUE},
+    {0,   "remote-err",  0,                  0, &param.remote_err, TRUE},
     {'d', "doublespeed", GLO_ARG | GLO_LONG, 0, &param.doublespeed,0},
     {'h', "halfspeed",   GLO_ARG | GLO_LONG, 0, &param.halfspeed,  0},
     {'p', "proxy",       GLO_ARG | GLO_CHAR, 0, &proxyurl,   0},
@@ -582,6 +586,7 @@ static void reset_audio(void)
  *
  * needs a major rewrite .. it's incredible ugly!
  */
+ 
 void play_frame(int init,struct frame *fr)
 {
 	int clip;
@@ -835,7 +840,11 @@ int main(int argc, char *argv[])
 	}
 
 	audio_capabilities(&ai);
-
+	/* JMG */
+	for(j=0; j<32; j++) {
+		equalizer[0][j] = equalizer[1][j] = 1.0;
+		equalizer_sum[0][j] = equalizer_sum[1][j] = 0.0;
+	}		
 	if(equalfile) { /* tst */
 		FILE *fe;
 		int i;
@@ -1176,8 +1185,9 @@ static void long_usage(char *d)
 #ifdef TERM_CONTROL
   fprintf(o," -C     --control          Enable control keys\n");
 #endif
-#if 0
+#if 1
   fprintf(o," -R     --remote		Generic remote interface\n");
+  fprintf(o,"        --remote-err		Use stderr for generic remote interface\n");
 #endif
   fprintf(o," -d     --doublespeed      Play only every second frame\n");
   fprintf(o," -h     --halfspeed        Play every frame twice\n");

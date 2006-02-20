@@ -2,6 +2,8 @@
 /*
  * Control interface to generic front ends.
  * written/copyrights 1997/99 by Andreas Neuhaus (and Michael Hipp)
+ *
+ * command parsing/processing reworked and partially rewritten in 2004 by Thomas Orgis
  */
 
 #include <stdio.h>
@@ -26,14 +28,16 @@ extern struct audio_info_struct ai;
 extern int buffer_pid;
 extern int tabsel_123[2][3][16];
 
+FILE *outstream;
+
 void generic_sendmsg (char *fmt, ...)
 {
 	va_list ap;
-	printf("@");
+	fprintf(outstream, "@");
 	va_start(ap, fmt);
-	vprintf(fmt, ap);
+	vfprintf(outstream, fmt, ap);
 	va_end(ap);
-	printf("\n");
+	fprintf(outstream, "\n");
 }
 
 static double compute_bpf (struct frame *fr)
@@ -139,9 +143,20 @@ void control_generic (struct frame *fr)
 	int init = 0;
 	int framecnt = 0;
 
-	setlinebuf(stdout);
-	printf("@R MPG123\n");
-	while (1) {
+	/* ThOr */
+	char alive = 1;
+	char silent = 0;
+	
+	/* responses to stderr for frontends needing audio data from stdout */
+	if (param.remote_err)
+ 		outstream = stderr;
+ 	else
+ 		outstream = stdout;
+ 		
+ 	setlinebuf(outstream);
+	fprintf(outstream, "@R MPG123\n");
+
+	while (alive) {
 		tv.tv_sec = 0;
 		tv.tv_usec = 0;
 		FD_ZERO(&fds);
@@ -153,14 +168,18 @@ void control_generic (struct frame *fr)
 			if (n == 0) {
 				if (!read_frame(fr)) {
 					mode = MODE_STOPPED;
+					audio_flush(param.outmode, &ai);
 					rd->close(rd);
-					generic_sendmsg("P 0");
+					/* generic_sendmsg("P 0 at frame %d", framecnt); */
 					continue;
 				}
+				/* generic_sendmsg("playing frame %d", framecnt);*/
 				play_frame(init,fr);
+				/* generic_sendmsg("played frame %d", framecnt); */
 				if (init) {
-					static char *modes[4] = {"Stereo", "Joint-Stereo", "Dual-Channel", "Single-Channel"};
-					generic_sendmsg("S %s %d %ld %s %d %d %d %d %d %d %d %d",
+					/* static char *modes[4] = {"Stereo", "Joint-Stereo", "Dual-Channel", "Single-Channel"}; */
+					/* JMG */
+					/*generic_sendmsg("S %s %d %ld %s %d %d %d %d %d %d %d %d",
 						fr->mpeg25 ? "2.5" : (fr->lsf ? "2.0" : "1.0"),
 						fr->lay,
 						freqs[fr->sampling_frequency],
@@ -173,10 +192,12 @@ void control_generic (struct frame *fr)
 						fr->emphasis,
 						tabsel_123[fr->lsf][fr->lay-1][fr->bitrate_index],
 						fr->extension);
+					*/
+					generic_sendmsg("%f", equalizer[0][0]);
 					init = 0;
 				}
-				framecnt++;
-				generic_sendstat(fr, framecnt);
+				++framecnt;
+				if(silent == 0) generic_sendstat(fr, framecnt);
 			}
 		}
 		else {
@@ -190,132 +211,292 @@ void control_generic (struct frame *fr)
 
 		/* exit on error */
 		if (n < 0) {
-			fprintf(stderr, "Error waiting for command: %s\n", strerror(errno));
+			generic_sendmsg("E Error waiting for command: %s\n", strerror(errno));
 			exit(1);
 		}
 
 		/* process command */
 		if (n > 0) {
-			int len;
-			char buf[1024];
-			char *cmd;
-
+	
+			short int len = 1; /* length of buffer */
+			unsigned short int cnum = 0; /* number of commands */ 
+			char *cmd, *comstr, *arg; /* variables for parsing, */
+			char buf[REMOTE_BUFFER_SIZE];
+			char **coms; /* list of commands */
+			short int counter;
+			
+			coms = malloc(sizeof(*coms));
+			
+			coms[0] = &buf[0];
+			
 			/* read command */
-			len = read(STDIN_FILENO, buf, sizeof(buf)-1);
-			buf[len] = 0;
-
-			/* exit on error */
-			if (len < 0) {
-				fprintf(stderr, "Error reading command: %s\n", strerror(errno));
-				exit(1);
-			}
-
-			/* strip CR/LF at EOL */
-			while (len>0 && (buf[strlen(buf)-1] == '\n' || buf[strlen(buf)-1] == '\r')) {
-				buf[strlen(buf)-1] = 0;
-				len--;
-			}
-
-			/* continue if no command */
-			if (len == 0)
-				continue;
-			cmd = strtok(buf, " \t");
-			if (!cmd || !strlen(cmd))
-				continue;
-
-			/* QUIT */
-			if (!strcasecmp(cmd, "Q") || !strcasecmp(cmd, "QUIT"))
-				break;
-
-			/* LOAD */
-			if (!strcasecmp(cmd, "L") || !strcasecmp(cmd, "LOAD")) {
-				char *filename;
-				filename = strtok(NULL, "");
-				if (mode != MODE_STOPPED) {
-					rd->close(rd);
-					mode = MODE_STOPPED;
+			
+			
+ 			if((len = read(STDIN_FILENO, buf, REMOTE_BUFFER_SIZE)) < 1)	break;
+			
+			for(counter = 0; counter < len; ++counter) {
+				if(buf[counter] == '\n') { /* line end is command end */
+					buf[counter] = 0;
+					if(counter < (len - 1)) coms[++cnum] = &buf[counter+1];
 				}
-				open_stream(filename, -1);
-				if (rd && rd->flags & READER_ID3TAG)
-					generic_sendinfoid3((char *)rd->id3buf);
-				else
-					generic_sendinfo(filename);
-				mode = MODE_PLAYING;
-				init = 1;
-				framecnt = 0;
-				read_frame_init();
-				continue;
 			}
-
-			/* STOP */
-			if (!strcasecmp(cmd, "S") || !strcasecmp(cmd, "STOP")) {
-				if (mode != MODE_STOPPED) {
-					rd->close(rd);
-					mode = MODE_STOPPED;
-					generic_sendmsg("P 0");
+			
+			if( !(cnum == 0) || !(strlen(coms[0]) == 0) )	{
+				
+				/* exit on error */
+				if (len < 0) {
+					exit(1);
 				}
-				continue;
-			}
 
-			/* PAUSE */
-			if (!strcasecmp(cmd, "P") || !strcasecmp(cmd, "PAUSE")) {
-				if (mode == MODE_STOPPED)
-					continue;
-				if (mode == MODE_PLAYING) {
-					mode = MODE_PAUSED;
-					if (param.usebuffer)
-						kill(buffer_pid, SIGSTOP);
-					generic_sendmsg("P 1");
-				} else {
-					mode = MODE_PLAYING;
-					if (param.usebuffer)
-						kill(buffer_pid, SIGCONT);
-					generic_sendmsg("P 2");
-				}
-				continue;
-			}
+				for(counter = 0; counter <= cnum; ++counter) {
+					comstr = coms[counter];
+					if(strlen(comstr) == 0) continue;
+					cmd = NULL;
+					arg = NULL;
 
-			/* JUMP */
-			if (!strcasecmp(cmd, "J") || !strcasecmp(cmd, "JUMP")) {
-				char *spos;
-				int pos, ok;
+					if(strlen(comstr)) {
 
-				spos = strtok(NULL, " \t");
-				if (!spos)
-					continue;
-				if (spos[0] == '-')
-					pos = framecnt + atoi(spos);
-				else if (spos[0] == '+')
-					pos = framecnt + atoi(spos+1);
-				else
-					pos = atoi(spos);
+						/* QUIT */
+						if (!strcasecmp(comstr, "Q") || !strcasecmp(comstr, "QUIT")) alive = FALSE;
+						else {
+							/* STOP */
+							if (!strcasecmp(comstr, "S") || !strcasecmp(comstr, "STOP")) {
+								if (mode != MODE_STOPPED) {
+									audio_flush(param.outmode, &ai);
+									rd->close(rd);
+									mode = MODE_STOPPED;
+									generic_sendmsg("P 0");
+								}
+							}
+							else {
+								/* PAUSE */
+								if (!strcasecmp(comstr, "P") || !strcasecmp(comstr, "PAUSE")) {
+									if (!(mode == MODE_STOPPED))
+									{	
+										if (mode == MODE_PLAYING) {
+											mode = MODE_PAUSED;
+											audio_flush(param.outmode, &ai);
+											if (param.usebuffer)
+												kill(buffer_pid, SIGSTOP);
+											generic_sendmsg("P 1");
+										} else {
+											mode = MODE_PLAYING;
+											if (param.usebuffer)
+												kill(buffer_pid, SIGCONT);
+											generic_sendmsg("P 2");
+										}
+									}
+								}	else {
+									if(!strcasecmp(comstr, "SILENCE")) {
+										/* fprintf(stderr, "going silent\n"); */
+										silent = 1;
+										generic_sendmsg("silence");
+									}	else {
+											
+										cmd = strtok(comstr," \t"); /* get the main command */
+										arg = strtok(NULL,""); /* get the args */
 
-				if (mode == MODE_STOPPED)
-					continue;
-				ok = 1;
-				if (pos < framecnt) {
-					rd->rewind(rd);
-					read_frame_init();
-					for (framecnt=0; ok && framecnt<pos; framecnt++) {
-						ok = read_frame(fr);
-						if (fr->lay == 3)
-							set_pointer(512);
-					}
-				} else {
-					for (; ok && framecnt<pos; framecnt++) {
-						ok = read_frame(fr);
-						if (fr->lay == 3)
-							set_pointer(512);
-					}
-				}
-				continue;
-			}
+										if (cmd && strlen(cmd)) {
+											/* combined SILENCE-LOAD-JUMP action, only definite jumps make sense */
+											if(!strcasecmp(cmd, "SLJ"))	{
+												char* filename;
+												int pos;
+												audio_flush(param.outmode, &ai);
+												pos = atoi(strtok(arg," \t"));
+												filename = strtok(NULL,"");
 
-			/* unknown command */
-			generic_sendmsg("E Unknown command '%s'", cmd);
+												/*SILENCE part*/
+												silent = 1;
 
-		}
-	}
+												/* LOAD part */	
+												if (mode != MODE_STOPPED) {
+													rd->close(rd);
+													mode = MODE_STOPPED;
+												}
+												open_stream(filename, -1);
+												if (rd && rd->flags & READER_ID3TAG) generic_sendinfoid3((char *)rd->id3buf);
+												else generic_sendinfo(filename);
+												mode = MODE_PLAYING;
+												init = 1;
+												framecnt = 0;
+												read_frame_init();
+												generic_sendmsg("P 2");
+
+												/* JUMP part*/
+												int ok;
+
+												if (mode == MODE_STOPPED)
+													continue;
+												ok = 1;
+												if (pos < framecnt) {
+													rd->rewind(rd);
+													read_frame_init();
+													for (framecnt=0; ok && framecnt<pos; framecnt++) {
+														ok = read_frame(fr);
+														if (fr->lay == 3)
+															set_pointer(512);
+													}
+												} else {
+													for (; ok && framecnt<pos; framecnt++) {
+														ok = read_frame(fr);
+														if (fr->lay == 3)
+															set_pointer(512);
+													}
+												}
+												generic_sendmsg("J %d", pos);
+													
+											}
+											else
+											{
+												/* Equalizer control :) (JMG) */
+												if (!strcasecmp(cmd, "E") || !strcasecmp(cmd, "EQ")) {
+													float e;
+													int c, v;
+													equalfile = TRUE;
+													/*generic_sendmsg("%s",updown);*/
+													sscanf(arg, "%i %i %f", &c, &v, &e);
+													equalizer[c][v] = e;
+													generic_sendmsg("%i : %i : %f", c, v, e);
+												}
+												else
+												{
+
+													/* LOAD - actually play*/
+													if (!strcasecmp(cmd, "L") || !strcasecmp(cmd, "LOAD")) {
+														audio_flush(param.outmode, &ai);
+														char *filename;
+														filename = arg;
+														if (mode != MODE_STOPPED) {
+															rd->close(rd);
+															mode = MODE_STOPPED;
+														}
+														open_stream(filename, -1);
+														if (rd && rd->flags & READER_ID3TAG)
+															generic_sendinfoid3((char *)rd->id3buf);
+														else
+															generic_sendinfo(filename);
+														mode = MODE_PLAYING;
+														init = 1;
+														framecnt = 0;
+														read_frame_init();
+														generic_sendmsg("P 2");
+													}
+													else
+													{
+
+														/* LOAD_PAUSED - this is probably broken*/
+														if (!strcasecmp(cmd, "LP") || !strcasecmp(cmd, "LOAD_PAUSED")) {
+															audio_flush(param.outmode, &ai);
+															char *filename;
+															filename = arg;
+															if (mode != MODE_STOPPED) {
+																rd->close(rd);
+																mode = MODE_STOPPED;
+															}
+															open_stream(filename, -1);
+															if (rd && rd->flags & READER_ID3TAG)
+																	generic_sendinfoid3((char *)rd->id3buf);
+															else
+																generic_sendinfo(filename);
+															mode = MODE_PAUSED;
+															init = 1;
+															framecnt = 0;
+															read_frame_init();
+															generic_sendmsg("P 1");
+														}
+														else
+														{		
+
+															/* JUMP */
+															if (!strcasecmp(cmd, "J") || !strcasecmp(cmd, "JUMP")) {
+																char *spos;
+																int pos, ok;
+
+																spos = arg;
+																if (!spos)
+																	continue;
+																if (spos[0] == '-')
+																	pos = framecnt + atoi(spos);
+																else if (spos[0] == '+')
+																	pos = framecnt + atoi(spos+1);
+																else
+																	pos = atoi(spos);
+
+																if (mode == MODE_STOPPED)
+																	continue;
+																ok = 1;
+																if (pos < framecnt) {
+																	rd->rewind(rd);
+																	read_frame_init();
+																	for (framecnt=0; ok && framecnt<pos; framecnt++) {
+																		ok = read_frame(fr);
+																		if (fr->lay == 3)
+																			set_pointer(512);
+																	}
+																} else {
+																	for (; ok && framecnt<pos; framecnt++) {
+																		ok = read_frame(fr);
+																		if (fr->lay == 3)
+																			set_pointer(512);
+																	}
+																}
+																generic_sendmsg("J %d", pos);
+															}
+															else
+															{
+																/* Simple EQ: SEQ <BASS> <MID> <TREBLE>  */
+																if (!strcasecmp(cmd, "S") || !strcasecmp(cmd, "SEQ")) {
+																	real b,m,t;
+																	int cn;
+																	equalfile = TRUE;
+																	sscanf(arg, "%f %f %f", &b, &m, &t);
+																	/* very raw line */
+																	if ((t >= 0) && (t <= 3))
+																	for(cn=0; cn < 1; ++cn)
+																	{
+																		equalizer[0][cn] = b;
+																		equalizer[1][cn] = b;
+																	}
+																	if ((m >= 0) && (m <= 3))
+																	for(cn=1; cn < 2; ++cn)
+																	{
+																		equalizer[0][cn] = m;
+																		equalizer[1][cn] = m;
+																	}
+																	if ((b >= 0) && (b <= 3))
+																	for(cn=2; cn < 32; ++cn)
+																	{
+																		equalizer[0][cn] = t;
+																		equalizer[1][cn] = t;
+																	}
+																	generic_sendmsg("bass: %f mid: %f treble: %f", b, m, t);
+																}
+																else generic_sendmsg("E Unknown command '%s'", cmd); /* unknown command */
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					} /*end multiple-command loop */
+
+					/* fprintf(stderr, "ende kommandobearbeitung\n"); */
+
+				} /* end else (nomem or no length) */
+
+				
+				/* fprintf(stderr, "freeing (cnum: %d)\n",cnum); */
+				free(coms);
+				/* is this needed? clearing of buffer */
+				for(counter = 0; counter < REMOTE_BUFFER_SIZE; ++counter) buf[counter] = 0;
+				
+			} /* end command action */
+		} /* end command loop */
+	} /* end main loop */
 
 	/* quit gracefully */
 	if (param.usebuffer) {

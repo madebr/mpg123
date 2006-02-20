@@ -21,7 +21,7 @@
 /
 / Stefan Bieschewski <stb@acm.org>
 /
-/ $Id: decode_i386.S,v 1.2 1997/07/22 10:12:20 stb Exp $
+/ $Id: decode_i586.s 1 2004-09-18 13:30:08Z thomas $
 /
 .bss
 	.comm	buffs,4352,4

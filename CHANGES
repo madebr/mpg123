@@ -1,3 +1,17 @@
+UNOFICIAL 0.59r-ThOr(remote-err,eq,flushing)
+-----
+-added audio_flush() calls to various places in control_generic.c to make sure there is nothing left in there that hurts later
+
+UNOFFICIAL 0.59r-realeq-remoteerr: (Thomas Orgis <thomas@orgis.org>)
+-----
+- applied patch from Cool Feet Audio project (nutcase@dtfm.org, see README.cfa) to use real-time equalizer in remote mode
+- applied patch from AMF (amf.sourceforge.net) by Steve Grundell for remote communication not polluting the STDOUT where the audio data is read from (instead using STDERR) ... and faster seeking, maybe
+  The patches go not cleanly together, but rejects are trivial. Thus, a combined patch with both would makes sense.
+- modified (IMHO improved) the control_generic command reading: now always making sure that the full command is read up to a mandatory \n; also reworked the application of the commands afterwards
+- added SEQ command: simple eq with only 3 bands
+- added SILENCE command: I don't want the playback messages when I don't read them (since my frontend is reading the STDOUT it knows what is going on)
+- added SLJ command: SILENCE-LOAD-JUMP... a hack for my hacked mixplayd... maybe one should remove that again.
+
 0.59r: (MH)
 -----
 - applied audio_alib changes from Ralf Hildebrandt <R.Hildebrandt@TU-BS.DE>

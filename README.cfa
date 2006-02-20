@@ -1,0 +1,33 @@
+Cold Feet Audio Patch for MPG123
+
+10.07.2002
+
+This is a dirty little hack to enable the equalizer in mpg123's
+generic_control interface.  It works like this, there are two
+different channels on the equalizer and 32 frequencys.
+
+The hack just enables mpg123's built in equalizer to run real-time.
+We haven't built in any capability to save the eq, you're frontend
+will have to handle that part, and init the eq on the startup of
+mpg123.
+
+K, it works like this:
+
+#./mpg123 -R -  <---- This command will start mpg123 in 'frontend' mode.
+
+If you want to send it some eq values you'd send it:
+eq X Y V[ENTER]
+
+X = The channel.  It can be either 0 or 1.  I haven't put any error checking
+    in, so it probably wouldn't be a good idea to go out of bounds. (integer)
+Y = This is the frequency, it can be 0 to 31.  0 being closer to treble and
+    31 being closer to bass. (integer)
+V = The raw value of your equalizer setting.  I've found that the values work 
+    best between 0.00 and 3.00.  When mpg123 starts up, all of them are set
+    to 1.00.
+
+OK, have fun!  If you have any questions or found some bugs, please contact
+nutcase@dtmf.org
+
+Thanks,
+nut

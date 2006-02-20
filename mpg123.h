@@ -21,6 +21,7 @@ typedef unsigned char byte;
 #endif
 
 #define MPG123_REMOTE
+#define REMOTE_BUFFER_SIZE 2048
 #ifdef HPUX
 #define random rand
 #define srandom srand
@@ -128,6 +129,7 @@ struct parameter {
   int aggressive; /* renice to max. priority */
   int shuffle;	/* shuffle/random play */
   int remote;	/* remote operation */
+  int remote_err;	/* remote operation to stderr */
   int outmode;	/* where to out the decoded sampels */
   int quiet;	/* shut up! */
   long usebuffer;	/* second level buffer size */
