@@ -1,0 +1,197 @@
+
+From jeremy@cnri.reston.va.us Thu Jan 28 14:59:02 1999
+Date: Tue, 19 Jan 1999 14:21:14 -0500
+From: Jeremy Hylton <jeremy@cnri.reston.va.us>
+To: MPG123@TU-CLAUSTHAL.DE
+Subject: Re: Frontend documentation?
+
+The tk3play frontend is basically ASCII commands over stdin/stdout
+already, isn't it?  The commands are just encoded using several
+integer constants, e.g. "3" is quit and "10 NN" is jump to frame NN.
+I wrote a small Python script that lets me drive mpg123m from a Python
+script or interactive session using the tk3play interface.
+
+The interface is straightforward: All commands are sent as a string
+with two numbers; they get parsed by calling scanf("%d %d"...).  The
+first number is a command and the second number is an argument to that
+command; not all commands use the argument slot but you always need to
+send it.  The player regularly prints output in the same format.
+
+Look at the routine tk3play_handlemsg to see the switch used to decode
+the message.  It's pretty close to documentation.
+
+You might also find the Python interface I wrote helpful; it's attached.
+
+Jeremy
+
+
+  [ Part 2: "mp3.py" ]
+
+"""(crude) Python interface to mpg123 via the tk3play control interface
+
+Message format is "%d %d" where the first number is one of the MSG_
+codes and the second command depdendent.
+"""
+
+import popen2
+import select
+import string
+import sys
+import threading
+import time
+
+# from enum on control_tk3play.h:
+MSG_CTRL = 0
+MSG_BUFFER = 1
+MSG_SONG = 2
+MSG_QUIT = 3
+MSG_NEXT = 4
+MSG_RESPONSE = 5
+MSG_FRAMES = 6
+MSG_INFO = 7
+MSG_TIME = 8
+MSG_SONGDONE = 9
+MSG_JUMPTO = 10
+MSG_HALF = 11
+MSG_DOUBLE = 12
+MSG_SCALE = 13
+
+# data elements for MSG_CTRL
+PLAY_STOP = 0
+PLAY_PAUSE = 1
+FORWARD_BEGIN = 2
+FORWARD_STEP = 3
+FORWARD_END = 4
+REWIND_BEGIN = 5
+REWIND_STEP = 6
+REWIND_END = 7
+
+# Decoder modes
+MODE_STOPPED = 0
+MODE_PLAYING_AND_DECODING = 1
+MODE_PLAYING_OLD_DECODING_NEW = 2
+MODE_PLAYING_NOT_DECODING = 3
+MODE_PLAYING_OLD_FINISHED_DECODING_NEW = 4
+MODE_PAUSED = 5
+
+class Status(threading.Thread):
+    def __init__(self, player):
+        threading.Thread.__init__(self)
+        self.setDaemon(1)
+        self.player = player
+
+    def run(self):
+        while 1:
+            try:
+                print self.player.time, self.player.frame
+            except AttributeError:
+                pass
+            time.sleep(1)
+
+class MP3Player(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+#        self.from_player, self.to_player = popen2.popen2("mpg123m -b 1024", 0)
+        self.from_player, self.to_player = popen2.popen2("mpg123m", 0)
+        self.resp_fileno_l = [self.from_player.fileno()]
+        self.running = 1
+        self.paused = 0
+        self.frame = None
+        self.dispatch = {}
+
+    def __del__(self):
+        if self.running:
+            self.quit()
+
+    def _send(self, type, data=0, extra=''):
+        self.to_player.write("%d %d\n%s" % (type, data, extra))
+
+    def quit(self):
+        self._send(MSG_QUIT)
+        buf = self.from_player.read()
+        # XXX should check that buffer returns "5 3.0000"
+        self.to_player.close()
+        self.from_player.close()
+        self.running = 0
+
+    def song(self, path):
+        self._send(MSG_SONG, extra="%s\n" % path)
+
+    # MSG_CTRL family
+    def stop(self):
+        self._send(MSG_CTRL, PLAY_STOP)
+
+    def pause(self):
+        self._send(MSG_CTRL, PLAY_PAUSE)
+        if self.paused:
+            self.paused = 0
+        else:
+            self.paused = 1
+
+    def jumpto(self, frameno):
+        self._send(MSG_JUMPTO, frameno)
+
+    # XXX not clear that half or double do anything
+    def half(self):
+        self._send(MSG_HALF)
+
+    def double(self):
+        self._send(MSG_DOUBLE)
+
+    def scale(self, scale):
+        self._send(MSG_SCALE, scale)
+
+    def run(self):
+        while 1:
+            try:
+                r, w, x = select.select(self.resp_fileno_l, [], [],
+                                        1.0)
+            except select.error:
+                print "player controller interrupted"
+                self.quit()
+                sys.exit(0)
+            if r:
+                self.handle_input(self.from_player.readline())
+
+    def handle_input(self, str):
+        if not str:
+            return
+        elts = string.split(str)
+        type = string.atoi(elts[0])
+        try:
+            self.dispatch[type](elts[1:])
+        except KeyError:
+            if type == MSG_INFO:
+                meth = self.dispatch[type] = self.handle_info
+            elif type == MSG_BUFFER:
+                meth = self.dispatch[type] = self.handle_buffer
+            elif type == MSG_FRAMES:
+                meth = self.dispatch[type] = self.handle_frames
+            elif type == MSG_TIME:
+                meth = self.dispatch[type] = self.handle_time
+            else:
+                print "unhandled type", type
+                return
+            meth(elts[1:])
+
+    def handle_info(self, elts):
+        self.bitrate, self.freq, self.stereo, self.type, self.sample \
+                      = map(string.atoi, elts)
+
+    def handle_buffer(self, elts):
+        self.mem_used = int(string.atof(elts[0]))
+
+    def handle_frames(self, elts):
+        self.frame = int(string.atof(elts[0]))
+
+    def handle_time(self, elts):
+        self.time = string.atof(elts[0])
+
+if __name__ == "__main__":
+    import sys
+
+    p = MP3Player()
+    p.start()
+    p.song(sys.argv[1])
+    s = Status(p)
+    s.start()

@@ -1,0 +1,35 @@
+From gt6161c@PRISM.GATECH.EDUFri Jan 30 17:00:10 1998
+Date: Wed, 28 Jan 1998 14:19:13 -0500
+From: Chris Sidi <gt6161c@PRISM.GATECH.EDU>
+Reply to: The mpg123 MPEG Audio Player <MPG123@TU-CLAUSTHAL.DE>,
+    Chris Sidi <gt6161c@PRISM.GATECH.EDU>
+To: MPG123@TU-CLAUSTHAL.DE
+Subject: Re: Microsoft Netshow Server
+
+I thought I was only one messing with Netshow - I'll soon be streaming our
+radio station in netshow and mp3.
+(http://www.gatech.edu/wrek/wreknet.html)
+
+I'm on the Netshow and ASF mailing lists. In both the current and beta
+release of Netshow, it uses ASF 1.0; ASF 2.0 is still in development.
+You won't find any documentation of ASF v1.0 and it's Object IDs.  MS said
+if I sign a license agreement they'll send me the code to WAV2ASF
+(WAV in this case is actually a mp3 with a 70 byte WAV header).
+
+However, by taking a mp3 WAV and comparing it to the resulting ASF file,
+you can tell that it's just the mp3 with a 500 bytish header at the
+beginning and headers occasionally in the file.
+
+I have a perl script that streams a ASF file via http from a MS Netshow
+server - I stole a spice girls ASF from audionet.com with it....sounds
+like you've got UDP or TCP but just in case:
+
+GET /live.asf HTTP/1.0
+Accept: */*
+User-Agent: NSPlayer/2.0
+Pragma:
+no-cache,rate=1.000000,stream-time=0,stream-offset=0:0,request-context=4
+
+The next message I send to the list will be a script to parse an ASF file.
+
+-Chris

@@ -1,0 +1,129 @@
+From gt6161c@PRISM.GATECH.EDUFri Jan 30 17:00:47 1998
+Date: Wed, 28 Jan 1998 15:06:18 -0500
+From: Chris Sidi <gt6161c@PRISM.GATECH.EDU>
+Reply to: The mpg123 MPEG Audio Player <MPG123@TU-CLAUSTHAL.DE>,
+    Chris Sidi <gt6161c@PRISM.GATECH.EDU>
+To: MPG123@TU-CLAUSTHAL.DE
+Subject: ASFv1 basic specs please... (fwd)
+
+asfCDtomp3
+==================
+#!/usr/bin/perl -w
+
+# asfCDtomp3 by Chris Sidi gt6161c@prism.gatech.edu
+#
+# Converts simple 128kbit mpeg layer 3 ASFs to plain mp3
+#
+# may not work if the file has index markers or wasn't created with
+# wavtoasf.
+#
+# To write this program, I made mp3 WAVs in Sound Recorder and Cool
+# Edit96, saving in ACM WAVeform mpeg layer 3. I them converted the
+# WAVs to ASF with the netshow dos utility wavtoasf.  Using uthe unix
+# utilities diff and bc I compared the ASFs to the original mp3 WAVs.
+# I found there is about a 300-500 bytes header at the beginning of the
+# ASF, followed by a mp3 header and mp3 data and then every 1000 bytes or
+# so there's a 31 byte ASF header that you need to strip out.  If you
+# have error correction turned on in wavtoasf then there's a little more
+# asf data to strip out every 7 asf headers or so.
+#
+#
+# If you use this code, please credit me and include this contact info:
+# Chris Sidi gt6161c@prism.gatech.edu
+# http://www.gatech.edu/wrek/wreknet.html
+#
+# If you improve this program (including getting it to work with other
+# bitrates), or find out more about the ASFv1 spec (I've begged to microsoft
+# for a description), please email me.  Also if you find out how to
+# UDP or TCP stream an ASF, as I only know how to http stream from
+# Netshow server (which isn't always supported).
+#
+#
+
+##############################################################################
+# Set to 1 if error correction is on.
+##############################################################################
+
+$asf_eccspan_flag = 0;
+
+$asf_file = shift(@ARGV);
+
+####################################################
+# Settings for a 128kb/s 44.1khz stereo ASF file
+####################################################
+
+$mp3_header = pack("CCCC", 255, 251, 144, 68);
+$mp3_frame_size = 416;
+$asf_packet_size = 1699;
+$asf_header_size =     (447 - $mp3_frame_size);
+$asf_ecc_header_size = (2146 - $mp3_frame_size);
+
+####################################################
+# Settings for a 24kb/s 22,050hz mono ASF file
+# uncomment this and comment the other settings to use.
+####################################################
+#
+# $mp3_header = pack("CCCC", 255, 243, 48, 196);
+# $mp3_frame_size = 77;
+# $asf_packet_size = 577;
+# $asf_header_size =     (108 - $mp3_frame_size);
+# $asf_ecc_header_size = (685 - $mp3_frame_size);
+
+##############################################################################
+
+$asf_wavespan = 7;
+$asf_packet_num_for_ecc = $asf_wavespan + 1;
+
+$asf_ecc_bytes = $asf_ecc_header_size - $asf_header_size;
+$asf_data_chunk_size = $asf_packet_size - $asf_header_size;
+
+$tmp = "";
+$buffer = "";
+
+open(FILE, "$asf_file") || die "Can't open $asf_file: $!\n";
+
+###############################################################################
+# Get past ~500ish byte ASF header and to first mp3 header
+# Print mp3 header
+###############################################################################
+
+while (1) {
+	if (read(FILE, $tmp, 1)) {
+		$buffer .= $tmp;
+
+		if ( index($buffer, $mp3_header) > 300) {
+			$first_mp3_header = index($buffer, $mp3_header);
+			print STDERR "Found header at $first_mp3_header\n";
+
+			read (FILE, $tmp, $asf_data_chunk_size - length($mp3_header));
+			print STDOUT $mp3_header;
+			print STDOUT $tmp;
+			last;
+		}
+	}
+	else {
+		die "Never got to first header: $!\n";
+	}
+}
+
+###############################################################################
+# Strip ASF Headers (and Error correction if there)
+# Print out mp3
+###############################################################################
+
+$asf_packet_num = 1;
+
+
+while (read(FILE, $buffer, $asf_header_size)) {
+
+	if ( $asf_eccspan_flag && (($asf_packet_num/$asf_packet_num_for_ecc) == int($asf_packet_num/$asf_packet_num_for_ecc)) ) {
+		read(FILE, $buffer, $asf_ecc_bytes);
+
+	}
+
+ 	read(FILE, $buffer, $asf_data_chunk_size);
+
+	print STDOUT $buffer;
+
+	$asf_packet_num++;
+}

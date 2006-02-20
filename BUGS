@@ -1,0 +1,23 @@
+Bug reports, patches:
+---------------------
+  Please always check the latest version from my home page
+  before reporting a bug. 
+    (http://www.sfs.nphil.uni-tuebingen.de/~hipp/mpg123.html)
+  If you send me a patch, please use the 'unified' version.
+  (diff -u ...)
+
+Of course, there are some known bugs:
+-------------------------------------
+
+- Using the buffermode, the switching from foreground to background operation 
+  results in ugly noise  (-> hopefully fixed)
+- win32 port: problems with option handling
+- auto-config depending on audio capabilities not fully (buggy) implemented
+
+- 0.59n/o is only tested on Solaris and Linux .. it should compile
+  on HPUX, too but I haven't tested the audio part for this system. 
+  It also compiles under Aix 3.x with the 'make generic' version
+  SGI completly untested
+  SUNOS 4.x completly untested
+
+

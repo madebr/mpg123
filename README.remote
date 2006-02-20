@@ -1,0 +1,96 @@
+
+Control interface to generic frontends
+written/copyrights 1997/99 by Andreas Neuhaus (and Michael Hipp)
+
+The generic remote interface allows frontends to easily control
+mpg123 by commands through stdin/stdout. To start the generic
+remote interface, start mpg123 with parameter -R.
+
+As an example it's used by IRMP3, a tool that allows you to
+control mpg123 with a standard infrared remote control. See
+http://www.fasta.fh-dortmund.de/users/andy/irmp3/ for more
+information.
+
+
+COMMAND CODES
+-------------
+
+Command codes may be abbreviated by its first character.
+
+QUIT
+			Stop playing and quit player
+
+LOAD <a>
+			Load and play a file/URL.
+
+STOP
+			Stop playing (without quitting the player)
+
+PAUSE
+			Pause/unpause playing
+
+JUMP [+|-]<a>
+			Skip <a> frames:
+			+32	forward 32 frames
+			-32	rewind 32 frames
+			0	jump to the beginning
+			1024	jump to frame 1024
+
+
+RESPONSE CODES
+--------------
+
+Note: mpg123 returns errors on stderr, so your frontend should
+      look not only at stdout but also at stderr for responses.
+
+@R MPG123
+			Startup version message
+
+@I ID3:<a><b><c>
+			Status message after loading a song (ID3 song info)
+			a = title (exactly 30 chars)
+			b = artist (exactly 30 chars)
+			c = album (exactly 30 chars)
+			d = year (exactly 4 chars)
+			e = comment (exactly 30 chars)
+			f = genre (string)
+
+@I <a>
+			Status message after loading a song (no ID3 song info)
+			a = filename without path and extension
+
+@S <a> <b> <c> <d> <e> <f> <g> <h> <i> <j> <k> <l>
+			Status message after loading a song (stream info)
+			a = mpeg type (string)
+			b = layer (int)
+			c = sampling frequency (int)
+			d = mode (string)
+			e = mode extension (int)
+			f = framesize (int)
+			g = stereo (int)
+			h = copyright (int)
+			i = error protection (int)
+			j = emphasis (int)
+			k = bitrate (int)
+			l = extension (int)
+
+@F <a> <b> <c> <d>
+			Status message during playing (frame info)
+			a = framecount (int)
+			b = frames left this song (int)
+			c = seconds (float)
+			d = seconds left (float)
+
+@P <a>
+			Playing status
+			a = 0: playing stopped
+			a = 1: playing paused
+			a = 2: playing unpaused
+
+@E <a>
+			An error occured
+			Errors may be also reported by mpg123 through
+			stderr (without @E)
+			a = error message (string)
+
+
