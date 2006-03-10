@@ -149,3 +149,7 @@ Failed to deliver to '<phil@mpik-tueb.mpg.de>' SMTP module(domain redhat.de) rep
 <squash@mb.kcom.ne.jp>: user unknown (in reply to RCPT TO command)
 <stehlik@cas3.zlin.vutbr.cz>: [cas3.zlin.vutbr.cz]: Name or service not known
 <swetland@uiuc.edu>: host relay8.cso.uiuc.edu[128.174.5.111] said: 550 5.1.1 ... User unknown (in reply to RCPT TO command)
+<oliver.fromme@heim3.tu-clausthal.de>: unknown user account (in reply to RCPT
+<djm@pix.net>... User unknown (in reply to RCPT TO command)
+<nbeisert@physik.tu-muenchen.de>: User unknown
+<Gilles.Zunino@hei.fupl.asso.fr>... User unknown
