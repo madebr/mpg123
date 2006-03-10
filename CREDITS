@@ -1,0 +1,151 @@
+The creator: Michael Hipp (email: hippm@informatik.uni-tuebingen.de)
+Current maintainer: Thomas Orgis <thomas@orgis.org>
+
+Contributions/ideas Thomas Orgis era:
+
+Cool Feet Audio project <nutcase@dtfm.org>: realtime equalizer control
+Steve Grundell <www@grundell.u-net.com>: clean stdout in control mode with stdout decoding
+
+
+Contributions/ideas Michael Hipp era:
+
+Oliver Fromme <oliver.fromme@heim3.tu-clausthal.de>
+MPEG Software Simulation Group: reference decoder package
+Tobias Bading: idea for DCT64 in subband synthesis from maplay package
+Jeff Tsay and Mikko Tommila: MDCT36 from maplay package
+Philipp Knirsch <phil@mpik-tueb.mpg.de>: DCT36/manual unroll idea
+Thomas Woerner: SGI Audio
+Damien Clermonte: HP-UX audio fixes
+Niclas Lindstrom <nil@wineasy.se>: OS2 port
+Stefan Bieschewski <stb@acm.org>: Pentium optimizations, decode_i586.s
+Martin Denn <mdenn@unix-ag.uni-kl.de>: NAS port
+Niklas Beisert <nbeisert@physik.tu-muenchen.de>: MPEG 2.5 tables
+<mycroft@NetBSD.ORG> and <augustss@cs.chalmers.se>: NetBSD
+Kevin Brintnall <kbrint@visi.com>: BSD patch
+Tony Million: win32 port
+Steven Tiger Lang: advanced shuffle
+Eric B. Mitchell: esd port
+Ryan R. Prosser <prosser@geocities.com>: esd port for Solaris
+Andreas Neuhaus: initial generic control interface
+
+(additionally fetched from changelog:)
+
+Ralf Hildebrandt <R.Hildebrandt@TU-BS.DE>: audio_alib changes
+<sms@moe.2bsd.com>: BSDOS 4.0 with gcc added to Makefile
+Bertrand Petit <elrond@phoe.netdev.net>: frontend changes
+Erik Mouw <J.A.K.Mouw@its.tudelft.nl>: SGI audio fix for non RAD machines
+Daniel O'Connor <darius@guppy.dons.net.au>: freebsd-esd make-entry
+D. Skarda <0rfelyus@atrey.karlin.mff.cuni.cz>: enhanced head_check
+Wilson, Jeff D <jeff.wilson@wilcom.com>: xterm-title
+Robert Bihlmeyer <robbe@orcus.priv.at>: esd changes
+Hannu Napari's <Hannu.Napari@hut.fi>: SGI audio patches
+<Juergen.Schoew@unix-ag.uni-siegen.de>: native AIX support
+<psst@euskalnet.net>: playlist patch
+Gilles Zunino <Gilles.Zunino@hei.fupl.asso.fr>: SGI audio patches
+Matthew Parslow <roy@alpha.alphalink.com.au>: esdserver patch
+<dlux@dlux.sch.bme.hu>: equalizer patch
+Ducroquet Erwan <ducroque@ufr-info-p7.ibp.fr>: HPUX/ALib support
+Shane Wegner <shane@CM.NU>: genrepatch
+Samuel Audet <guardia@cam.org>: wav-File patch
+"J. Dean Brederson" <jdb@cs.utah.edu>: SGI-RAD support
+Chou Ye-chi <is84002@cis.nctu.edu.tw>: sajberplay/FreeBSD patch
+Fabrice Bellard <bellard@email.enst.fr>: 486 optimizations
+A. Hermansen <ahermans@vf.telia.no> and J. Kysela <perex@jcu.cz>: ALSA output
+KIMURA Takuhiro <kim@hannah.ipc.miyakyo-u.ac.jp>: K6-3DNow
+Petr Stehlik <stehlik@cas3.zlin.vutbr.cz>: MINT
+Andy <andy@snoogie.demon.co.uk>: float2int speed up proposal
+Brian Foutz <foutz@anise.ee.cornell.edu>: TK3Play
+Thomas Niederreiter <tn@tarantel.rz.fh-muenchen.de>: RIFF header fix
+Stefan Gybas <cab@studbox.uni-stuttgart.de>: m68k patch 
+Grant Erickson <eric0139@tc.umn.edu>: Linux PPC patch
+Peter Berger <peterb@hoopoe.psc.edu>: BSDi patch 
+Henrik P Johnson <king@one.se>: HTTP auth
+<mycroft@NetBSD.ORG> and <augustss@cs.chalmers.se>: NetBSD patch(es)
+Steven Tiger Lang <tiger@tyger.org>: advanced shuffle
+"Brian J. Swetland" <swetland@uiuc.edu>: front-end (remote) patch
+<leo@zycad.com>
+Tillmann Steinbrecher <tst@gmx.de>: shuffle patch
+M.Stekelenburg <m.stekelenburg@student.utwente.nl>: i386-getbits
+Antti Andreimann <anttix@cyberix.edu.ee>: outburst patch
+Hur TaeSung <saturn@arari.snu.ac.kr>: 'http accept' patch 
+
+(from post-0.59 changes that yet have to go into new trunk:)
+
+Hans Schwengeler <schweng@astro.unibas.ch>: audio_dec additions
+Wojciech Barañski's Mp3Play (check the tools folder): Mp3Play frontend
+Daniel Koukola: audio_oss.c patch
+higway <higway@mednet.md>: MMX Patch
+<sumikawa@ebina.hitachi.co.jp>: IPv6
+TEMNOTA <temnota@kmv.ru>: HTTP,FTP patch/playlist fix
+Peter Surda <shurdeek@panorama.sth.ac.at>: VBR patch
+Ben <ben@blaukopf.com>: ARM startup time improvements 
+Dave MacKenzie <djm@pix.net>: init_output() patch
+pasky's <pasky@ju.cz>: close-on-stop patch
+
+
+Debian Daniel Kobras <kobras@debian.org> era:
+
+Steve Kemp <skx@debian.org>
+Dan Olson <theoddone33@icculus.org>
+Syuuhei Kashiyama <squash@mb.kcom.ne.jp>
+Rupert Levene <rupert.debian@hotpop.com>
+Andreas Dilger <adilger@turbolinux.com>
+Erik B. Andersen <andersee@debian.org>
+Chris Butler <chrisb@debian.org>
+Martin Sjogren <md9ms@mdstud.chalmers.se>
+Chet Hosey <chosey@budapress.com>
+Roland Rosenfeld <roland@spinnaker.de>
+
+
+Debian Colin Watson <cjwatson@debian.org> era:
+
+Helge Deller <deller@gmx.de>
+Chet Hosey <chosey@budapress.com>
+Christopher C. Chimelis <chris@debian.org>
+Roland Rosenfeld <roland@spinnaker.de>
+Marcelo E. Magallon <mmagallo@debian.org>
+
+
+Initial Debianers:
+
+Tommi Virtanen <tv@debian.org>
+Paul Haggart <phaggart@debian.org>
+
+
+--END_CREDITS
+
+#power of perl (in nedit)!
+perl -ne 'last if /^--END_CREDITS/; $l = $_; while($l =~ /^(.*)(<[^>]+>)(.*)/){ print $2,","; $l = $1.$3;}' < %
+
+
+
+failed emails so far:
+
+<adilger@turbolinux.com>... User unknown (in reply to RCPT TO
+<ahermans@vf.telia.no>: [vf.telia.no]: Name or service not known
+<andy@snoogie.demon.co.uk>: [snoogie.demon.co.uk]: Name or service not known
+<anttix@cyberix.edu.ee>: [cyberix.edu.ee]: Name or service not known
+<bellard@email.enst.fr>: Recipient address rejected: User unknown in local
+<cab@studbox.uni-stuttgart.de>: [studbox.uni-stuttgart.de]: Name or service not
+<chosey@budapress.com>: [budapress.com]: Name or service not known
+<ducroque@ufr-info-p7.ibp.fr>: [ufr-info-p7.ibp.fr]: Name or service not known
+<eric0139@tc.umn.edu>... User unknown (in reply to RCPT TO command)
+Failed to deliver to '<phil@mpik-tueb.mpg.de>' SMTP module(domain redhat.de) reports: host mx1.redhat.com says: 553 5.3.0 <philipp.knirsch@redhat.de>... No such user here
+<guardia@cam.org>: host mx1.cam.org[198.73.180.56] said: 550 Unrouteable
+<higway@mednet.md>: host mednet.md[195.138.124.75] said: 550 5.1.1 ... User unknown (in reply to RCPT TO command)
+<J.A.K.Mouw@its.tudelft.nl>: Recipient address rejected: User unknown in
+<jeff.wilson@wilcom.com>... Relaying denied (in reply to RCPT TO
+<kim@hannah.ipc.miyakyo-u.ac.jp>:
+<king@one.se>: Recipient address rejected: User unknown in local recipient
+<m.stekelenburg@student.utwente.nl>... No such student (in reply to
+<nil@wineasy.se>... User unknown
+<nutcase@dtfm.org>: host mx1.biz.mail.yahoo.com[4.79.181.18] said: 550 relaying
+<perex@jcu.cz>: User unknown (in reply to RCPT TO command)
+<peterb@hoopoe.psc.edu>: [hoopoe.psc.edu]: Name or service not known
+<prosser@geocities.com>: host mx1.mail.yahoo.com[67.28.113.11] said: 554
+<psst@euskalnet.net>: Recipient address rejected: 5.1.1 unknown or illegal
+<rupert.debian@hotpop.com>: Recipient address rejected: Account closed by
+<schweng@astro.unibas.ch>... User unknown
+<squash@mb.kcom.ne.jp>: user unknown (in reply to RCPT TO command)
+<stehlik@cas3.zlin.vutbr.cz>: [cas3.zlin.vutbr.cz]: Name or service not known
+<swetland@uiuc.edu>: host relay8.cso.uiuc.edu[128.174.5.111] said: 550 5.1.1 ... User unknown (in reply to RCPT TO command)
