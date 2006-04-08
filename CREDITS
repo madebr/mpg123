@@ -20,7 +20,7 @@ Niclas Lindstrom <nil@wineasy.se>: OS2 port
 Stefan Bieschewski <stb@acm.org>: Pentium optimizations, decode_i586.s
 Martin Denn <mdenn@unix-ag.uni-kl.de>: NAS port
 Niklas Beisert <nbeisert@physik.tu-muenchen.de>: MPEG 2.5 tables
-<mycroft@NetBSD.ORG> and <augustss@cs.chalmers.se>: NetBSD
+<mycroft@NetBSD.ORG> and <augustss@cs.chalmers.se>: NetBSD Patch(es)
 Kevin Brintnall <kbrint@visi.com>: BSD patch
 Tony Million: win32 port
 Steven Tiger Lang: advanced shuffle
@@ -60,7 +60,6 @@ Stefan Gybas <cab@studbox.uni-stuttgart.de>: m68k patch
 Grant Erickson <eric0139@tc.umn.edu>: Linux PPC patch
 Peter Berger <peterb@hoopoe.psc.edu>: BSDi patch 
 Henrik P Johnson <king@one.se>: HTTP auth
-<mycroft@NetBSD.ORG> and <augustss@cs.chalmers.se>: NetBSD patch(es)
 Steven Tiger Lang <tiger@tyger.org>: advanced shuffle
 "Brian J. Swetland" <swetland@uiuc.edu>: front-end (remote) patch
 <leo@zycad.com>
@@ -75,7 +74,7 @@ Hans Schwengeler <schweng@astro.unibas.ch>: audio_dec additions
 Wojciech Barañski's Mp3Play (check the tools folder): Mp3Play frontend
 Daniel Koukola: audio_oss.c patch
 higway <higway@mednet.md>: MMX Patch
-<sumikawa@ebina.hitachi.co.jp>: IPv6
+Munechika SUMIKAWA <sumikawa@ebina.hitachi.co.jp>: IPv6
 TEMNOTA <temnota@kmv.ru>: HTTP,FTP patch/playlist fix
 Peter Surda <shurdeek@panorama.sth.ac.at>: VBR patch
 Ben <ben@blaukopf.com>: ARM startup time improvements 
@@ -116,40 +115,3 @@ Paul Haggart <phaggart@debian.org>
 
 #power of perl (in nedit)!
 perl -ne 'last if /^--END_CREDITS/; $l = $_; while($l =~ /^(.*)(<[^>]+>)(.*)/){ print $2,","; $l = $1.$3;}' < %
-
-
-
-failed emails so far:
-
-<adilger@turbolinux.com>... User unknown (in reply to RCPT TO
-<ahermans@vf.telia.no>: [vf.telia.no]: Name or service not known
-<andy@snoogie.demon.co.uk>: [snoogie.demon.co.uk]: Name or service not known
-<anttix@cyberix.edu.ee>: [cyberix.edu.ee]: Name or service not known
-<bellard@email.enst.fr>: Recipient address rejected: User unknown in local
-<cab@studbox.uni-stuttgart.de>: [studbox.uni-stuttgart.de]: Name or service not
-<chosey@budapress.com>: [budapress.com]: Name or service not known
-<ducroque@ufr-info-p7.ibp.fr>: [ufr-info-p7.ibp.fr]: Name or service not known
-<eric0139@tc.umn.edu>... User unknown (in reply to RCPT TO command)
-Failed to deliver to '<phil@mpik-tueb.mpg.de>' SMTP module(domain redhat.de) reports: host mx1.redhat.com says: 553 5.3.0 <philipp.knirsch@redhat.de>... No such user here
-<guardia@cam.org>: host mx1.cam.org[198.73.180.56] said: 550 Unrouteable
-<higway@mednet.md>: host mednet.md[195.138.124.75] said: 550 5.1.1 ... User unknown (in reply to RCPT TO command)
-<J.A.K.Mouw@its.tudelft.nl>: Recipient address rejected: User unknown in
-<jeff.wilson@wilcom.com>... Relaying denied (in reply to RCPT TO
-<kim@hannah.ipc.miyakyo-u.ac.jp>:
-<king@one.se>: Recipient address rejected: User unknown in local recipient
-<m.stekelenburg@student.utwente.nl>... No such student (in reply to
-<nil@wineasy.se>... User unknown
-<nutcase@dtfm.org>: host mx1.biz.mail.yahoo.com[4.79.181.18] said: 550 relaying
-<perex@jcu.cz>: User unknown (in reply to RCPT TO command)
-<peterb@hoopoe.psc.edu>: [hoopoe.psc.edu]: Name or service not known
-<prosser@geocities.com>: host mx1.mail.yahoo.com[67.28.113.11] said: 554
-<psst@euskalnet.net>: Recipient address rejected: 5.1.1 unknown or illegal
-<rupert.debian@hotpop.com>: Recipient address rejected: Account closed by
-<schweng@astro.unibas.ch>... User unknown
-<squash@mb.kcom.ne.jp>: user unknown (in reply to RCPT TO command)
-<stehlik@cas3.zlin.vutbr.cz>: [cas3.zlin.vutbr.cz]: Name or service not known
-<swetland@uiuc.edu>: host relay8.cso.uiuc.edu[128.174.5.111] said: 550 5.1.1 ... User unknown (in reply to RCPT TO command)
-<oliver.fromme@heim3.tu-clausthal.de>: unknown user account (in reply to RCPT
-<djm@pix.net>... User unknown (in reply to RCPT TO command)
-<nbeisert@physik.tu-muenchen.de>: User unknown
-<Gilles.Zunino@hei.fupl.asso.fr>... User unknown
