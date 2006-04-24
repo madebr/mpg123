@@ -1,46 +1,3 @@
-Next round:
-===========
-
-
-aix driver (audio_aix.c):
-
-try also Juergen Schoew <juergen.schoew@unix-ag.org>; maybe that's a different mailbox.
-and add Tomas Oegren <stric@acc.umu.se>: code for audio_close delay
-
-get something from Oliver Fromme (Michael must have some means of contact)
-
-+++ ./audio_mint.c	2006-02-20 04:40:16.000000000 +0100
-@@ -0,0 +1,148 @@
-+/* derived from LINUX, VOXWARE and SUN for MiNT Audio Device by Petr Stehlik */
-
-+++ ./audio_os2.c	2006-02-20 04:41:48.000000000 +0100
-@@ -0,0 +1,634 @@
-+/* OS/2 RealTime DART Engine for mpg123 (C) 1998 Samuel Audet <guardia@cam.org> */
-...unable to contact him anyway...
-
-> generally drivers derived fom IBM/HP/sun/... code: can one make this stuff lgpl or do we need mpg123-engine and mpg123-drivers?
-
-want the 3DNow code from temnura! try new address
-Also I must find Syuuhei Kashiyama, who is important for asm code (found an address from around 1997 - will that work?)
-
-General: ask michael about the source of _any_ asm stuff, since rewriting is really hard for that (and ending up with a copy is rather guaranteed)!
-
-Stuff _after_0.59r
-------------------
-
-Fuck! The diff was wrong.... it made _everything_ new! Watch out... for better one... What the 
-
-another aix driver (audio_aixums.c): Christian Bauernfeind...
-
-alsa driver: haven't tried Ville Syrjala <syrjala@sci.fi> yet (alsa is LGPL?)
-
-
-
-(check if pre-0.59s works on Tru64 with good audio...)
-
-Contact attempts
-----------------
-
 Meaning of symbols:
 	! against lgp
 	? still to ask (ways possibly unknown)
@@ -48,6 +5,54 @@ Meaning of symbols:
 	% still waiting for reaction
 	x lgpl granted
 	# not relevant (anymore) or just addon can can have different license
+
+
+Next round:
+===========
+
+generally drivers derived fom IBM/HP/sun/... code: can one make this stuff lgpl or do we need mpg123-engine and mpg123-drivers?
+
+Also I must find Syuuhei Kashiyama, who is important for asm code (found an address from around 1997 - will that work?)
+
+General: ask michael about the source of _any_ asm stuff, since rewriting is really hard for that!
+
+List of important contributors from inventory.txt (excluding Michael, Debianers, who have already given OK and myself):
+
+Creators (of a whole file, driver...):
+
+@ Oliver Fromme new: <olli@fromme.com> old: <oliver.fromme@heim3.tu-clausthal.de>
+% Juergen Schoew <juergen.schoew@unix-ag.org> (wrote to @unix-ag.uni-siegen.de)
+@ Erwan Ducroquet <ducroque@ufr-info-p7.ibp.fr>
+@ Anders Semb Hermansen <ahermans@vf.telia.no>
+@ Petr Stehlik <stehlik@cas3.zlin.vutbr.cz>
+@ Samuel Audet <guardia@cam.org>
+? Andreas Neuhaus <?>
+@ Brian Foutz <foutz@anise.ee.cornell.edu>
+? Syuuhei Kashiyama <syukashi@bekkoame.or.jp>
+% KIMURA Takuhiro <kim@comtec.co.jp>
+@ Fabrice Bellard <bellard@email.enst.fr>
+? Christian Bauernfeind <?>
+@ Hans Schwengeler <schweng@astro.unibas.ch>
+% Oskar Enoksson <osken393@student.liu.se>
+? Petr Salinger <?>
+? Tony Million
+
+Modders:
+
+? Tomas Oegren <stric@acc.umu.se>
+? Niklas Edmundsson <nikke@ing.umu.se>
+@ Jaroslav Kysela <perex@jcu.cz>
+% Ville Syrjala <syrjala@sci.fi>
+% Martin Sjögren <md9ms@mdstud.chalmers.se>
+
+Write them another Mail to be sure.
+Also write to these with ? and address below since I'm not sure If I actually got the last mail out.
+
+Ask Michael about maplay code... should be ok afaisi.
+Be sure about mpegaudio package.
+
+General Contact attempts
+------------------------
 
 x The creator: Michael Hipp (email: hippm@informatik.uni-tuebingen.de)
 x Current maintainer: Thomas Orgis <thomas@orgis.org>
@@ -94,8 +99,8 @@ x Shane Wegner <shane@CM.NU>: genrepatch
 @ Fabrice Bellard <bellard@email.enst.fr>: 486 optimizations
 @ A. Hermansen <ahermans@vf.telia.no> (with J. Kysela and Ville Syrjala): ALSA output
 @ J. Kysela <perex@jcu.cz> (with A. Hermansen): ALSA output
-? Ville Syrjala <syrjala@sci.fi> (with A. Hermansen and J. Kysela): ALSA output
-? KIMURA Takuhiro <kim@comtec.co.jp> (was: <kim@hannah.ipc.miyakyo-u.ac.jp>): K6-3DNow
+% Ville Syrjala <syrjala@sci.fi> (with A. Hermansen and J. Kysela): ALSA output
+% KIMURA Takuhiro <kim@comtec.co.jp> (was: <kim@hannah.ipc.miyakyo-u.ac.jp>): K6-3DNow
 @ Petr Stehlik <stehlik@cas3.zlin.vutbr.cz>: MINT
 @ Andy <andy@snoogie.demon.co.uk>: float2int speed up proposal
 @ Brian Foutz <foutz@anise.ee.cornell.edu>: TK3Play
@@ -115,7 +120,7 @@ x Tillmann Steinbrecher <tst@gmx.de>: shuffle patch
 (from post-0.59 changes that yet have to go into new trunk:)
 
 @ Hans Schwengeler <schweng@astro.unibas.ch>: audio_dec additions
-? Written by Oskar Enoksson (osken393@student.liu.se): audio_dec
+% Written by Oskar Enoksson (osken393@student.liu.se): audio_dec
 # Wojciech Barañski's Mp3Play (check the tools folder): Mp3Play frontend
 ? Daniel Koukola: audio_oss.c patch
 @ higway <higway@mednet.md>: MMX Patch
@@ -126,7 +131,7 @@ x Munechika SUMIKAWA <sumikawa@ebina.hitachi.co.jp>: IPv6
 % Ben <ben@blaukopf.com>: ARM startup time improvements 
 @ Dave MacKenzie <djm@pix.net>: init_output() patch
 @ pasky's <pasky@ju.cz>: close-on-stop patch
-? patches from Andre Doherty <adoherty@hotmail.com>: open_stream with errorcode... well, this is kindof trivial and in debian patch IMHO
+% patches from Andre Doherty <adoherty@hotmail.com>: open_stream with errorcode... well, this is kindof trivial and in debian patch IMHO
 
 Stuff that went in either directly into mhipp tree or entered via the debian patches...
 (need that history)
