@@ -1,0 +1,84 @@
+Date: Tue, 11 Apr 2006 08:48:13 +0200
+From: Thomas Orgis <thomas@orgis.org>
+To: thomas@orgis.org
+Bcc: Ville Syrjala <syrjala@sci.fi>, KIMURA Takuhiro <kim@comtec.co.jp>,
+ Oskar Enoksson <osken393@student.liu.se>, Andre Doherty
+ <adoherty@hotmail.com>
+Subject: To all mpg123 contributors: upcoming release under LGPL.
+Message-ID: <20060411084813.23847b88@thorvas.local>
+X-Mailer: Sylpheed-Claws 1.0.4 (GTK+ 1.2.10; i686-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: multipart/signed;
+ boundary="Signature_Tue__11_Apr_2006_08_48_13_+0200_yVXwx08Iom=hcB_+";
+ protocol="application/pgp-signature"; micalg=pgp-sha1
+
+--Signature_Tue__11_Apr_2006_08_48_13_+0200_yVXwx08Iom=hcB_+
+Content-Type: multipart/mixed;
+ boundary=Multipart_Tue__11_Apr_2006_08_48_13_+0200_XUmtpUMVkYgO7xq3
+
+--Multipart_Tue__11_Apr_2006_08_48_13_+0200_XUmtpUMVkYgO7xq3
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+Greetings to you who have contributed to the mpg123 project in some way and=
+ who I was able to get the eMail address from!
+
+I, Thomas Orgis, am taking over active maintainership of the project from M=
+ichael Hipp.
+To successfully sustain this project outside the hands of the caring origin=
+al author, I feel urged to have a clear license statement.
+I also want to regain some "territory" like the free software section of a =
+distribution for mpg123 that it lost/never had because of it's freeness bei=
+ng unclear in certain terms.
+
+Michael already announced to release mpg123 under the GPL and the extracted=
+ mpglib under LPGL (what he then did).
+
+It is desirable to have _one_ license for all of mpg123 to make further dev=
+elopment and restructuring possible.
+Thus, meeting both the requirements of freeness and sustainability of curre=
+nt uses of mpglib the decision was made to use the GNU Lesser General Publi=
+c License, Version 2.1, for the whole package.
+
+I plan to release an updated version with the LGPL license statements in th=
+e following weeks and kindly ask everyone who has contributed code and is n=
+ot agreeing with this to contact me to settle the issue.
+
+Please contact me even when there are no issues to confirm that you agree w=
+ith the license change to lgpl.
+
+
+Sincerely yours,
+
+Thomas Orgis.
+
+
+--=20
+Thomas Orgis - GPG public key: http://thomas.orgis.org/public_key
+OrgisNetzOrganisation ---)=3D- http://orgis.org
+
+--Multipart_Tue__11_Apr_2006_08_48_13_+0200_XUmtpUMVkYgO7xq3
+Content-Type: application/pgp-signature; name=
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename=
+
+LS0tLS1CRUdJTiBQR1AgU0lHTkFUVVJFLS0tLS0KVmVyc2lvbjogR251UEcgdjEuMi4zIChHTlUv
+TGludXgpCgppRDhEQlFGRUVPbXVtMHhTdk5SRzFTUVJBcGUyQUtDQjc1dzFtSDBwdDlEOTJTZUor
+R3BqYkc3bXNBQ2NEaU9NCjd4N0t2cXNLL0tHb2xRS1l4ekllUVRBPQo9Rm1JbQotLS0tLUVORCBQ
+R1AgU0lHTkFUVVJFLS0tLS0K
+
+--Multipart_Tue__11_Apr_2006_08_48_13_+0200_XUmtpUMVkYgO7xq3--
+
+--Signature_Tue__11_Apr_2006_08_48_13_+0200_yVXwx08Iom=hcB_+
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQFEO1Etm0xSvNRG1SQRAuKLAJ9GGp56uElv7l42Y6VXuVdd2FUm6wCeI7xu
+yP1pj5ATyRNEFo2EOjUYBIk=
+=5+W+
+-----END PGP SIGNATURE-----
+
+--Signature_Tue__11_Apr_2006_08_48_13_+0200_yVXwx08Iom=hcB_+--

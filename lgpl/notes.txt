@@ -20,30 +20,33 @@ List of important contributors from inventory.txt (excluding Michael, Debianers,
 
 Creators (of a whole file, driver...):
 
-@ Oliver Fromme new: <olli@fromme.com> old: <oliver.fromme@heim3.tu-clausthal.de>
-% Juergen Schoew <juergen.schoew@unix-ag.org> (wrote to @unix-ag.uni-siegen.de)
-@ Erwan Ducroquet <ducroque@ufr-info-p7.ibp.fr>
-@ Anders Semb Hermansen <ahermans@vf.telia.no>
-@ Petr Stehlik <stehlik@cas3.zlin.vutbr.cz>
-@ Samuel Audet <guardia@cam.org>
-? Andreas Neuhaus <?>
-@ Brian Foutz <foutz@anise.ee.cornell.edu>
-? Syuuhei Kashiyama <syukashi@bekkoame.or.jp>
+%% Oliver Fromme new: <olli@fromme.com> old: <oliver.fromme@heim3.tu-clausthal.de>
+%% Juergen Schoew <juergen.schoew@unix-ag.org> (wrote to @unix-ag.uni-siegen.de, then also to first one)
+@% Erwan Ducroquet @<ducroque@ufr-info-p7.ibp.fr> <erwan.ducroquet@free.fr> (from freshmeat)
+@? Anders Semb Hermansen <ahermans@vf.telia.no> ...asked polarparty.no
+@% Petr Stehlik @<stehlik@cas3.zlin.vutbr.cz>, <joy@sophics.cz> atari webring...
+@% Samuel Audet <guardia@cam.org> <guardia@step.polymtl.ca> ...this guy is active! nice eq 'n stuff...
+?? Andreas Neuhaus <?> .. asked someone from irmp3 project...
+@% Brian Foutz @<foutz@anise.ee.cornell.edu>  <bef2@cornell.edu>
+% Syuuhei Kashiyama <syukashi@bekkoame.or.jp>
 % KIMURA Takuhiro <kim@comtec.co.jp>
-@ Fabrice Bellard <bellard@email.enst.fr>
-? Christian Bauernfeind <?>
-@ Hans Schwengeler <schweng@astro.unibas.ch>
-% Oskar Enoksson <osken393@student.liu.se>
-? Petr Salinger <?>
-? Tony Million
+@% Fabrice Bellard <bellard@email.enst.fr> <fabrice@bellard>
+% Christian Bauernfeind ??<chrisbfd@theorie3.physik.uni-erlangen.de> ist es der MENSA Mensch?
+@ Hans Schwengeler <schweng@astro.unibas.ch> ... verschwunden? uni basel ist die einzige verbindung
+%% Oskar Enoksson <osken393@student.liu.se> <enok@lysator.liu.se>
+% Petr Salinger <salinger@sun.felk.cvut.cz> (google)
+% Tony Million <k946611@atlas.king.ac.uk>
 
 Modders:
 
-? Tomas Oegren <stric@acc.umu.se>
-? Niklas Edmundsson <nikke@ing.umu.se>
-@ Jaroslav Kysela <perex@jcu.cz>
+% Tomas Oegren <stric@acc.umu.se>
+% Niklas Edmundsson <nikke@ing.umu.se>
+@% Jaroslav Kysela @<perex@jcu.cz> <perex@suse.cz>
 % Ville Syrjala <syrjala@sci.fi>
 % Martin Sjögren <md9ms@mdstud.chalmers.se>
+
+@ Cool Feet Audio project <nutcase@dtfm.org>: realtime equalizer control
+% Steve Grundell <www@grundell.u-net.com>: clean stdout in control mode with stdout decoding
 
 Write them another Mail to be sure.
 Also write to these with ? and address below since I'm not sure If I actually got the last mail out.

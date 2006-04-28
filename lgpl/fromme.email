@@ -1,0 +1,48 @@
+Date: Thu, 27 Apr 2006 18:36:32 +0200
+From: Thomas Orgis <thomas@orgis.org>
+To: olli@fromme.com
+Subject: mpg123 / LGPL
+Message-ID: <20060427183632.66cdab44@thorvas.local>
+X-Mailer: Sylpheed-Claws 1.0.4 (GTK+ 1.2.10; i686-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: multipart/signed;
+ boundary=Signature_Thu__27_Apr_2006_18_36_32_+0200_HEpckH9Oce13YUpl;
+ protocol="application/pgp-signature"; micalg=pgp-sha1
+
+--Signature_Thu__27_Apr_2006_18_36_32_+0200_HEpckH9Oce13YUpl
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+Hallo!
+
+Ich bin (noch immmer) dabei, die Betreuung von mpg123 von Michael Hipp zu =
+=FCbernehmen.
+Wichtig dabei ist neben der Pflege des Codes auch die Klarstellung bez=FCgl=
+ich der Lizenz - das (gef=FChlte) Fehlen dieser hat der Verbreitung des Pro=
+gramms nicht genutzt...
+Nun hatte Michael schon einen Anlauf in Richtung GPL unternommen; zusammen =
+mit der mpglib und ihrer bestehenden Nutzung bleibt aber als praktikable Va=
+riante die LPGL f=FCr das ganz Projekt.
+
+Meine Frage ist nun an Dich als eindeutig am Quelltext beteiligtem:
+
+	Habe ich die Erlaubnis, mpg123 inklusive Deiner Beitr=E4ge unter der LGPL =
+zu ver=F6ffentlichen?
+
+
+Gru=DF,
+
+Thomas Orgis.
+
+--Signature_Thu__27_Apr_2006_18_36_32_+0200_HEpckH9Oce13YUpl
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQFEUPMZm0xSvNRG1SQRAgWMAJwIXh9i+5A1kP8nAJV4Z5LxY5j97QCgiQLv
+1bt/b0fTf3YF8QYqI08SS9s=
+=8jpM
+-----END PGP SIGNATURE-----
+
+--Signature_Thu__27_Apr_2006_18_36_32_+0200_HEpckH9Oce13YUpl--
