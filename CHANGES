@@ -1,3 +1,8 @@
+UNOFFICIAL 0.59r-thor6 (Thomas Orgis <thomas@orgis.org>)
+-----
+
+- split nedbsd targets for realtime priority selection code; since one needs -lpthread with it. standard netbsd target doesn't use realtime code -- I won't recommend running mpg123 as root anyway!
+
 UNOFFICIAL 0.59r-thor5 (Thomas Orgis <thomas@orgis.org>)
 -----
 

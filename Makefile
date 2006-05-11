@@ -39,6 +39,9 @@ nothing-specified:
 	@echo "make aix-tk3play    IBM AIX"
 	@echo "make os2            IBM OS/2"
 	@echo "make netbsd         NetBSD"
+	@echo "make netbsd-x86    NetBSD with i486 optimization (untested!)"
+	@echo "make netbsd-rt         NetBSD with realtime priority code"
+	@echo "make netbsd-x86-rt    NetBSD with i486 optimization (untested!) and realtime priority code"
 	@echo "make bsdos          BSDI BSD/OS"
 	@echo "make bsdos4         BSDI BSD/OS 4.0"
 	@echo "make bsdos-nas      BSDI BSD/OS with NAS support"
@@ -526,16 +529,33 @@ netbsd:
 		OBJECTS='decode.o dct64.o audio_sun.o' \
 		CFLAGS='-Wall -ansi -pedantic -O3 -fomit-frame-pointer \
 			-funroll-all-loops -ffast-math \
+			-DREAL_IS_FLOAT -DUSE_MMAP -DNETBSD -DNO_RT' \
+		mpg123-make
+
+netbsd-x86:
+	$(MAKE) CC=cc LDFLAGS= \
+		OBJECTS='decode_i386.o dct64_i386.o audio_sun.o' \
+		CFLAGS='-Wall -ansi -pedantic -O4 -mcpu=i486 -fomit-frame-pointer \
+			-funroll-all-loops -ffast-math -DROT_I386 \
+			-DI386_ASSEM -DREAL_IS_FLOAT -DUSE_MMAP -DNETBSD -DNO_RT' \
+		mpg123-make
+
+netbsd-rt:
+	$(MAKE) CC=cc LDFLAGS=-lpthread \
+		OBJECTS='decode.o dct64.o audio_sun.o' \
+		CFLAGS='-Wall -ansi -pedantic -O3 -fomit-frame-pointer \
+			-funroll-all-loops -ffast-math \
 			-DREAL_IS_FLOAT -DUSE_MMAP -DNETBSD' \
 		mpg123-make
 
-netbsd-i386:
-	$(MAKE) CC=cc LDFLAGS= \
+netbsd-x86-rt:
+	$(MAKE) CC=cc LDFLAGS=-lpthread \
 		OBJECTS='decode_i386.o dct64_i386.o audio_sun.o' \
 		CFLAGS='-Wall -ansi -pedantic -O4 -mcpu=i486 -fomit-frame-pointer \
 			-funroll-all-loops -ffast-math -DROT_I386 \
 			-DI386_ASSEM -DREAL_IS_FLOAT -DUSE_MMAP -DNETBSD' \
 		mpg123-make
+
 
 bsdos:
 	$(MAKE) CC=shlicc2 LDFLAGS= \

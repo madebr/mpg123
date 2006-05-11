@@ -19,8 +19,8 @@
 #include <fcntl.h>
 #include <time.h>
 
-#if 1
-#define SET_RT 
+#ifndef NO_RT 
+#define SET_RT
 #endif
 
 
