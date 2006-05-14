@@ -1180,6 +1180,10 @@ tc_hack:
 	}
 #endif
         intflag = FALSE;
+
+#ifndef NOXFERMEM
+        if(param.usebuffer) buffer_resync();
+#endif
       }
     }
 #ifndef NOXFERMEM

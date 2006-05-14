@@ -1,3 +1,15 @@
+SEMI-OFFICIAL 0.59r-thor7 (well, I'm going to release a _really_ official mpg123 in future) (Thomas Orgis <thomas@orgis.org>)
+-----
+
+- applied relevant stuff from Debian's 22:
+	- fix for CVE-2006-1655 (buffer overflow in III_i_stereo())
+	- strict aliasing hack in WRITE_SAMPLE of decode_i386.c
+	- fixed http streaming through proxy by actually using the request url...
+	- buffer resync on Ctrl-C (cleaning, reducing pauses with multiple files)
+	- removed unused esdserver variable from mpg123.h
+	- did NOT apply the Debian Makefile/manpage changes (going to rewrite that stuff anyway)
+- made the netbsd-i386 targets visible as netbsd-x86
+
 UNOFFICIAL 0.59r-thor6 (Thomas Orgis <thomas@orgis.org>)
 -----
 

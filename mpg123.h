@@ -222,12 +222,6 @@ extern char *prgName, *prgVersion;
 extern void buffer_loop(struct audio_info_struct *ai,sigset_t *oldsigset);
 #endif
 
-/* ----- Declarations from "audio_esd.c"  ------ */
-extern char *esdserver;
-
-
-
-
 /* ------ Declarations from "httpget.c" ------ */
 
 extern char *proxyurl;

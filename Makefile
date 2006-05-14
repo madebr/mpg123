@@ -107,12 +107,32 @@ linux-profile:
 		-finline-functions -ffast-math' \
         mpg123-make
 
+linux-plain:
+	$(MAKE) CC=gcc LDFLAGS= \
+		OBJECTS='decode.o dct64.o \
+			audio_oss.o term.o' \
+		CFLAGS='-DREAL_IS_FLOAT -DLINUX \
+			-DOSS -DTERM_CONTROL\
+			-Wall' \
+		mpg123-make
+
 linux:
 	$(MAKE) CC=gcc LDFLAGS= \
 		OBJECTS='decode_i386.o dct64_i386.o decode_i586.o \
 			audio_oss.o term.o' \
 		CFLAGS='-DI386_ASSEM -DPENTIUM_OPT -DREAL_IS_FLOAT -DLINUX \
 			-DOSS -DTERM_CONTROL\
+			-Wall -g -O2 -mcpu=i486 \
+			-fomit-frame-pointer -funroll-all-loops \
+			-finline-functions -ffast-math' \
+		mpg123-make
+
+linux-mmap:
+	$(MAKE) CC=gcc LDFLAGS= \
+		OBJECTS='decode_i386.o dct64_i386.o decode_i586.o \
+			audio_oss.o term.o' \
+		CFLAGS='-DI386_ASSEM -DPENTIUM_OPT -DREAL_IS_FLOAT -DLINUX \
+			-DREAD_MMAP -DOSS -DTERM_CONTROL\
 			-Wall -g -O2 -mcpu=i486 \
 			-fomit-frame-pointer -funroll-all-loops \
 			-finline-functions -ffast-math' \
@@ -608,13 +628,13 @@ generic:
 ###########################################################################
 
 sajberplay-make:
-	@ $(MAKE) CFLAGS='$(CFLAGS)' BINNAME=sajberplay mpg123
+	@ $(MAKE) CFLAGS='$(EXT_CFLAGS) $(CFLAGS)' BINNAME=sajberplay mpg123
 
 mpg123m-make:
-	@ $(MAKE) CFLAGS='$(CFLAGS)' BINNAME=mpg123m mpg123
+	@ $(MAKE) CFLAGS='$(EXT_CFLAGS) $(CFLAGS)' BINNAME=mpg123m mpg123
 
 mpg123-make:
-	@ $(MAKE) CFLAGS='$(CFLAGS)' BINNAME=mpg123 mpg123
+	@ $(MAKE) CFLAGS='$(EXT_CFLAGS) $(CFLAGS)' BINNAME=mpg123 mpg123
 
 mpg123: mpg123.o common.o $(OBJECTS) decode_2to1.o decode_4to1.o \
 		tabinit.o audio.o layer1.o layer2.o layer3.o buffer.o \
