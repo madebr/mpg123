@@ -945,20 +945,16 @@ int main(int argc, char *argv[])
 	}
 
 	audio_capabilities(&ai);
-	/* JMG */
+	/* equalizer initialization regardless of equalfile */
 	for(j=0; j<32; j++) {
 		equalizer[0][j] = equalizer[1][j] = 1.0;
 		equalizer_sum[0][j] = equalizer_sum[1][j] = 0.0;
-	}		
+	}
 	if(equalfile != NULL) { /* tst; ThOr: not TRUE or FALSE: allocated or not... */
 		FILE *fe;
 		int i;
 
 		equalizer_cnt = 0;
-		for(i=0;i<32;i++) {
-			equalizer[0][i] = equalizer[1][i] = 1.0;
-			equalizer_sum[0][i] = equalizer_sum[1][i] = 0.0;
-		}
 
 		fe = fopen(equalfile,"r");
 		if(fe) {
