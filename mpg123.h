@@ -344,6 +344,11 @@ extern void make_decode_tables(long scale);
 extern void make_conv16to8_table(int);
 extern void dct64(real *,real *,real *);
 
+#ifdef USE_MMX
+extern void dct64_MMX(short *a,short *b,real *c);
+extern int synth_1to1_MMX(real *, int, short *, short *, int *);
+#endif
+
 extern void synth_ntom_set_step(long,long);
 
 extern void control_generic(struct frame *fr);
@@ -368,7 +373,9 @@ extern unsigned char *conv16to8;
 extern long freqs[9];
 extern real muls[27][64];
 extern real decwin[512+32];
+#ifndef USE_MMX
 extern real *pnts[5];
+#endif
 
 extern real equalizer[2][32];
 extern real equalizer_sum[2][32];

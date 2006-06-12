@@ -122,7 +122,18 @@ linux:
 			audio_oss.o term.o' \
 		CFLAGS="$(CFLAGS) $(CPPFLAGS) -DI386_ASSEM -DPENTIUM_OPT -DREAL_IS_FLOAT -DLINUX \
 			-DOSS -DTERM_CONTROL\
-			-Wall -g -O2 -mcpu=i486 \
+			-Wall -g -O2 \
+			-fomit-frame-pointer -funroll-all-loops \
+			-finline-functions -ffast-math" \
+		mpg123-make
+
+linux-mmx:
+	$(MAKE) CC=gcc \
+		OBJECTS='decode_i386.o dct64_MMX.o tabinit_MMX.o decode_MMX.o \
+			audio_oss.o term.o' \
+		CFLAGS=" $(CFLAGS) -DUSE_MMX -DI386_ASSEM -DPENTIUM_OPT -DREAL_IS_FLOAT \
+			-DLINUX -DOSS -DTERM_CONTROL\
+			-Wall -O2 \
 			-fomit-frame-pointer -funroll-all-loops \
 			-finline-functions -ffast-math" \
 		mpg123-make
@@ -133,7 +144,7 @@ linux-mmap:
 			audio_oss.o term.o' \
 		CFLAGS="$(CFLAGS) $(CPPFLAGS) -DI386_ASSEM -DPENTIUM_OPT -DREAL_IS_FLOAT -DLINUX \
 			-DREAD_MMAP -DOSS -DTERM_CONTROL\
-			-Wall -g -O2 -mcpu=i486 \
+			-Wall -g -O2 \
 			-fomit-frame-pointer -funroll-all-loops \
 			-finline-functions -ffast-math" \
 		mpg123-make
@@ -144,7 +155,7 @@ linux-static:
 			audio_oss.o term.o' \
 		CFLAGS="$(CFLAGS) $(CPPFLAGS) -DI386_ASSEM -DPENTIUM_OPT -DREAL_IS_FLOAT -DLINUX \
 			-DREAD_MMAP -DOSS -DTERM_CONTROL\
-			-Wall -O2 -march=i486 \
+			-Wall -O2 \
 			-fomit-frame-pointer -funroll-all-loops \
 			-finline-functions -ffast-math" \
 		mpg123-make
@@ -158,7 +169,7 @@ linux-3dnow:
 			equalizer_3dnow.o decode_i586.o audio_oss.o term.o' \
 		CFLAGS="$(CFLAGS) $(CPPFLAGS) -DI386_ASSEM -DREAL_IS_FLOAT -DPENTIUM_OPT -DLINUX \
 			-DUSE_3DNOW -DOSS -DTERM_CONTROL\
-			-Wall -O2 -mcpu=i486 \
+			-Wall -O2 \
 			-fomit-frame-pointer -funroll-all-loops \
 			-finline-functions -ffast-math" \
 		mpg123-make
@@ -169,7 +180,7 @@ linux-i486:
 			decode_i486.o dct64_i486.o audio_oss.o term.o' \
 		CFLAGS="$(CFLAGS) $(CPPFLAGS) -DI386_ASSEM -DREAL_IS_FLOAT -DI486_OPT -DLINUX \
 			-DOSS -DTERM_CONTROL\
-			-Wall -O2 -mcpu=i486 \
+			-Wall -O2 -march=i486 \
 			-fomit-frame-pointer -funroll-all-loops \
 			-finline-functions -ffast-math" \
 		mpg123-make

@@ -115,6 +115,11 @@ void init_layer3(int down_sample_sblimit)
   int i,j,k,l;
 
   for(i=-256;i<118+4;i++)
+#ifdef USE_MMX
+    if(!param.down_sample)
+      gainpow2[i+256] = 16384.0 * pow((double)2.0,-0.25 * (double) (i+210) );
+    else
+#endif
     gainpow2[i+256] = DOUBLE_TO_REAL(pow((double)2.0,-0.25 * (double) (i+210)));
 
   for(i=0;i<8207;i++)

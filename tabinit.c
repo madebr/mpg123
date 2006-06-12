@@ -1,15 +1,16 @@
-
 #include <stdlib.h>
 
 #include "mpg123.h"
 
+static unsigned char *conv16to8_buf = NULL;
+unsigned char *conv16to8;
+
+#ifndef USE_MMX
 real decwin[512+32];
 static real cos64[16],cos32[8],cos16[4],cos8[2],cos4[1];
 
 real *pnts[] = { cos64,cos32,cos16,cos8,cos4 };
 
-static unsigned char *conv16to8_buf = NULL;
-unsigned char *conv16to8;
 
 static long intwinbase[] = {
      0,    -1,    -1,    -1,    -1,    -1,    -1,    -2,    -2,    -2,
@@ -78,8 +79,8 @@ void make_decode_tables(long scaleval)
     if(i % 64 == 63)
       scaleval = - scaleval;
   }
-
 }
+#endif
 
 void make_conv16to8_table(int mode)
 {

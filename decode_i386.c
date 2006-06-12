@@ -26,9 +26,9 @@
  /* new WRITE_SAMPLE */
  /* keep in mind that we are on known little-endian i386 here and special tricks are allowed... */
 #define WRITE_SAMPLE(samples,sum,clip) { \
-  union { double d; int i; } temp; int v; /* sizeof(int) == 4 */ \
-  temp.d = ((((65536.0 * 65536.0 * 16)+(65536.0 * 0.5))* 65536.0)) + (sum);  \
-  v = (temp.i - 0x80000000); \
+  double dtemp; int v; /* sizeof(int) == 4 */ \
+  dtemp = ((((65536.0 * 65536.0 * 16)+(65536.0 * 0.5))* 65536.0)) + (sum);  \
+  v = ((*(int *)&dtemp) - 0x80000000); \
   if( v > 32767) { *(samples) = 0x7fff; (clip)++; } \
   else if( v < -32768) { *(samples) = -0x8000; (clip)++; } \
   else { *(samples) = v; }  \
@@ -236,6 +236,15 @@ int synth_1to1(real *bandPtr,int channel,unsigned char *out,int *pnt)
   *pnt += 128;
 
   return clip;
+#elif defined(USE_MMX)
+  {
+    static short buffs[2][2][0x110];
+    static int bo = 1;
+    short *samples = (short *) (out + *pnt);
+    synth_1to1_MMX(bandPtr, channel, samples, (short *) buffs, &bo); 
+    *pnt += 128;
+    return 0;
+  } 
 #else
   {
     int ret;
