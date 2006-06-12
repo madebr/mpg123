@@ -8,6 +8,8 @@ PREFIX=/usr/local
 BINDIR=$(PREFIX)/bin
 MANDIR=$(PREFIX)/man
 SECTION=1
+PENTIUM_DECODE=decode_i586
+#PENTIUM_DECODE=decode_i586_dither
 
 ###################################################
 ######                                       ######
@@ -23,9 +25,9 @@ nothing-specified:
 	@echo "make freebsd-help   FreeBSD more help"
 	@echo "make solaris        Solaris 2.x (tested: 2.5 and 2.5.1) using SparcWorks cc"
 	@echo "make solaris-gcc    Solaris 2.x using GNU cc (somewhat slower)"
-	@echo "make solaris-gcc-esd  Solaris 2.x using gnu cc and Esound as audio output"
+	@echo "make solaris-gcc-esd     Solaris 2.x using gnu cc and Esound as audio output"
 	@echo "make solaris-x86-gcc-oss Solaris with (commercial) OSS"
-	@echo "make solaris-gcc-nas Solaris with gcc and NAS"
+	@echo "make solaris-gcc-nas     Solaris with gcc and NAS"
 	@echo "make sunos          SunOS 4.x (tested: 4.1.4)"
 	@echo "make hpux           HP/UX 9/10, /7xx"
 	@echo "make hpux-gcc       HP/UX 9/10, /7xx using GCC cc"
@@ -39,9 +41,9 @@ nothing-specified:
 	@echo "make aix-tk3play    IBM AIX"
 	@echo "make os2            IBM OS/2"
 	@echo "make netbsd         NetBSD"
-	@echo "make netbsd-x86    NetBSD with i486 optimization (untested!)"
-	@echo "make netbsd-rt         NetBSD with realtime priority code"
-	@echo "make netbsd-x86-rt    NetBSD with i486 optimization (untested!) and realtime priority code"
+	@echo "make netbsd-x86     NetBSD with i486 optimization"
+	@echo "make netbsd-rt      NetBSD with realtime priority code"
+	@echo "make netbsd-x86-rt  NetBSD with i486 optimization and realtime priority code"
 	@echo "make bsdos          BSDI BSD/OS"
 	@echo "make bsdos4         BSDI BSD/OS 4.0"
 	@echo "make bsdos-nas      BSDI BSD/OS with NAS support"
@@ -55,11 +57,16 @@ linux-help:
 	@echo ""
 	@echo "There are several Linux flavours. Choose one:"
 	@echo ""
-	@echo "make linux          Linux (i386, Pentium or unlisted platform)"
-	@echo "make linux-i486     Linux (optimized for i486 ONLY)"
-	@echo "make linux-3dnow    Linux, output 3DNow!(TM) optimized code"
+	@echo "make linux          Linux (any supported architecture)
+	@echo "make linux-x86      Linux/x86 (i386, Pentium or unlisted platform)"
+	@echo "make linux-i486     Linux/x86 (optimized for i486 ONLY)"
+	@echo "make linux-3dnow    Linux/x86, output 3DNow!(TM) optimized code"
+	@echo "make linux-mmx      Linux/x86, output MMX optimized code"
 	@echo "                    (ie with 'as' from binutils-2.9.1.0.19a or later)"
 	@echo "make linux-alpha    make with minor changes for ALPHA-Linux"
+	@echo ""
+	@echo "The folowing targets need testing and some are likely (or even known) not to work atm!"
+	@echo ""
 	@echo "make linux-ppc      LinuxPPC or MkLinux for the PowerPC"
 	@echo "make linux-m68k     Linux/m68k (Amiga, Atari) using OSS"
 	@echo "make linux-arm      Linux on the StrongArm"
@@ -107,7 +114,7 @@ linux-profile:
 		-finline-functions -ffast-math" \
         mpg123-make
 
-linux-plain:
+linux:
 	$(MAKE) CC=gcc \
 		OBJECTS='decode.o dct64.o \
 			audio_oss.o term.o' \
@@ -116,9 +123,9 @@ linux-plain:
 			-Wall" \
 		mpg123-make
 
-linux:
+linux-x86:
 	$(MAKE) CC=gcc \
-		OBJECTS='decode_i386.o dct64_i386.o decode_i586.o \
+		OBJECTS='decode_i386.o dct64_i386.o $(PENTIUM_DECODE).o \
 			audio_oss.o term.o' \
 		CFLAGS="$(CFLAGS) $(CPPFLAGS) -DI386_ASSEM -DPENTIUM_OPT -DREAL_IS_FLOAT -DLINUX \
 			-DOSS -DTERM_CONTROL\
@@ -140,7 +147,7 @@ linux-mmx:
 
 linux-mmap:
 	$(MAKE) CC=gcc \
-		OBJECTS='decode_i386.o dct64_i386.o decode_i586.o \
+		OBJECTS='decode_i386.o dct64_i386.o $(PENTIUM_DECODE).o \
 			audio_oss.o term.o' \
 		CFLAGS="$(CFLAGS) $(CPPFLAGS) -DI386_ASSEM -DPENTIUM_OPT -DREAL_IS_FLOAT -DLINUX \
 			-DREAD_MMAP -DOSS -DTERM_CONTROL\
@@ -149,24 +156,11 @@ linux-mmap:
 			-finline-functions -ffast-math" \
 		mpg123-make
 
-linux-static:
-	$(MAKE) CC=gcc LDFLAGS="$(LDFLAGS) -static" \
-		OBJECTS='decode_i386.o dct64_i386.o decode_i586.o \
-			audio_oss.o term.o' \
-		CFLAGS="$(CFLAGS) $(CPPFLAGS) -DI386_ASSEM -DPENTIUM_OPT -DREAL_IS_FLOAT -DLINUX \
-			-DREAD_MMAP -DOSS -DTERM_CONTROL\
-			-Wall -O2 \
-			-fomit-frame-pointer -funroll-all-loops \
-			-finline-functions -ffast-math" \
-		mpg123-make
-		strip --strip-debug mpg123
-
-
 linux-3dnow:
 	$(MAKE) CC=gcc \
 		OBJECTS='decode_i386.o decode_3dnow.o dct64_3dnow.o \
 			dct64_i386.o dct36_3dnow.o getcpuflags.o \
-			equalizer_3dnow.o decode_i586.o audio_oss.o term.o' \
+			equalizer_3dnow.o $(PENTIUM_DECODE).o audio_oss.o term.o' \
 		CFLAGS="$(CFLAGS) $(CPPFLAGS) -DI386_ASSEM -DREAL_IS_FLOAT -DPENTIUM_OPT -DLINUX \
 			-DUSE_3DNOW -DOSS -DTERM_CONTROL\
 			-Wall -O2 \
@@ -176,7 +170,7 @@ linux-3dnow:
 
 linux-i486:
 	$(MAKE) CC=gcc \
-		OBJECTS='decode_i386.o dct64_i386.o decode_i586.o \
+		OBJECTS='decode_i386.o dct64_i386.o \
 			decode_i486.o dct64_i486.o audio_oss.o term.o' \
 		CFLAGS="$(CFLAGS) $(CPPFLAGS) -DI386_ASSEM -DREAL_IS_FLOAT -DI486_OPT -DLINUX \
 			-DOSS -DTERM_CONTROL\
@@ -188,7 +182,7 @@ linux-i486:
 linux-esd:
 	$(MAKE) CC=gcc \
 		AUDIO_LIB='-lesd -laudiofile' \
-		OBJECTS='decode_i386.o dct64_i386.o decode_i586.o \
+		OBJECTS='decode_i386.o dct64_i386.o $(PENTIUM_DECODE).o \
 			audio_esd.o term.o' \
 		CFLAGS="$(CFLAGS) $(CPPFLAGS) -DI386_ASSEM -DREAL_IS_FLOAT -DPENTIUM_OPT -DLINUX \
 			-DOSS -DUSE_ESD -DTERM_CONTROL\
@@ -200,7 +194,7 @@ linux-esd:
 linux-alsa:
 	$(MAKE) CC=gcc \
 		AUDIO_LIB='-lasound' \
-		OBJECTS='decode_i386.o dct64_i386.o decode_i586.o \
+		OBJECTS='decode_i386.o dct64_i386.o $(PENTIUM_DECODE).o \
 			audio_alsa.o term.o' \
 		CFLAGS="$(CFLAGS) $(CPPFLAGS) -DI386_ASSEM -DREAL_IS_FLOAT -DPENTIUM_OPT -DLINUX \
 			-DALSA -DTERM_CONTROL\
@@ -323,7 +317,7 @@ freebsd-tk3play:
 
 linux-frontend:
 	$(MAKE) CC=gcc \
-		OBJECTS='decode_i386.o dct64_i386.o decode_i586.o \
+		OBJECTS='decode_i386.o dct64_i386.o $(PENTIUM_DECODE).o \
 			control_sajber.o control_tk3play.o audio_oss.o' \
 		CFLAGS="$(CFLAGS) $(CPPFLAGS) -DFRONTEND -DOSS -DI386_ASSEM -DREAL_IS_FLOAT \
 			-DPENTIUM_OPT -DLINUX -Wall -O2 -mcpu=i486 \
@@ -436,7 +430,7 @@ solaris-gcc-esd:
 
 solaris-x86-gcc-oss:
 	$(MAKE) CC=gcc LDFLAGS="$(LDFLAGS) -lsocket -lnsl" \
-		OBJECTS='decode_i386.o dct64_i386.o decode_i586.o \
+		OBJECTS='decode_i386.o dct64_i386.o $(PENTIUM_DECODE).o \
 			audio_oss.o' \
 		CFLAGS="$(CFLAGS) $(CPPFLAGS) -DI386_ASSEM -DREAL_IS_FLOAT -DPENTIUM_OPT -DUSE_MMAP \
 			-DREAD_MMAP -DOSS \
@@ -624,7 +618,7 @@ mint:
 # maybe you need the additonal options LDFLAGS='-lnsl -lsocket' when linking (see solaris:)
 #		CFLAGS="$(CFLAGS) $(CPPFLAGS) -DGENERIC -DNOXFERMEM" \
 # the two flags don't compile (anymore)...
-# this makefile a victim to bitrot...
+# this makefile is a victim to bitrot...
 generic:
 	$(MAKE) LDFLAGS= OBJECTS='decode.o dct64.o audio_dummy.o' \
 	CFLAGS="$(CFLAGS) $(CPPFLAGS)" \
