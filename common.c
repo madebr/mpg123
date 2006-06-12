@@ -68,6 +68,37 @@ int playlimit;
 
 static int decode_header(struct frame *fr,unsigned long newhead);
 
+/*
+	* skips the ID3 header at the beginning
+	*
+	* returns:  0 = read-error
+	*          -1 = illegal ID3 header
+	*           >1 = skipping succeeded
+	*/
+static int skip_new_id3(struct reader *rds)
+{
+	unsigned char buf[6];
+
+	if(!rds->read_frame_body(rds,buf,6))       /* read more header information */
+	return 0;
+
+	if(buf[0] == 0xff) /* major version, will never be 0xff */
+	return -1;
+
+	/* 4 synchsafe integers == 28 bit number  */
+	if( (buf[2]|buf[3]|buf[4]|buf[5]) & 0x80) return -1;
+	unsigned long length =
+	  (((unsigned long) buf[2]) << 27)
+	| (((unsigned long) buf[3]) << 14)
+	| (((unsigned long) buf[4]) << 7)
+	| ((unsigned long) buf[5]);
+	if(!rds->skip_bytes(rds,length)) /* will not store data in backbuff! */
+	return 0;
+
+	return length+6;
+}
+
+
 void audio_flush(int outmode, struct audio_info_struct *ai)
 {
   if (pcm_point) {
@@ -119,18 +150,27 @@ void read_frame_init (void)
 
 int head_check(unsigned long head)
 {
-    if( (head & 0xffe00000) != 0xffe00000)
+	if
+	(
+		/* first 11 bits are set to 1 for frame sync */
+		((head & 0xffe00000) != 0xffe00000)
+		||
+		/* layer: 01,10,11 is 1,2,3; 00 is reserved */
+		(!((head>>17)&3))
+		||
+		/* 1111 means bad bitrate */
+		(((head>>12)&0xf) == 0xf)
+		||
+		/* sampling freq: 11 is reserved */
+		(((head>>10)&0x3) == 0x3 )
+		||
+		/* actually only 11 instead of 12 ones means mpeg 2.5; what I don't like atm */
+		/* TODO: check support for this (backport?) */
+		((head & 0xffff0000) == 0xfffe0000)
+	)
 	return FALSE;
-    if(!((head>>17)&3))
-	return FALSE;
-    if( ((head>>12)&0xf) == 0xf)
-	return FALSE;
-    if( ((head>>10)&0x3) == 0x3 )
-	return FALSE;
-    if ((head & 0xffff0000) == 0xfffe0000)
-      return FALSE;
-
-    return TRUE;
+	/* if no check failed, the header is valid (hopefully)*/
+	else return TRUE;
 }
 
 
@@ -140,6 +180,7 @@ int head_check(unsigned long head)
  */
 int read_frame(struct frame *fr)
 {
+	/* TODO: rework this thing */
   unsigned long newhead;
   static unsigned char ssave[34];
 
@@ -182,10 +223,17 @@ init_resync:
 	if(!firsthead && !head_check(newhead) ) {
 		int i;
 
-		fprintf(stderr,"Junk at the beginning %08lx\n",newhead);
-
+		if(!param.quiet) fprintf(stderr,"Note: Junk at the beginning (0x%08lx)\n",newhead);
+		/* check for id3v2; first three bytes (of 4) are "ID3" */
+		if((newhead & (unsigned long) 0xffffff00) == (unsigned long) 0x49443300)
+		{
+			if(!param.quiet) fprintf(stderr, "Note: Oh, it's just an ID3V2 tag...\n");
+			skip_new_id3(rd);
+			goto read_again;
+		}
 		/* I even saw RIFF headers at the beginning of MPEG streams ;( */
 		if(newhead == ('R'<<24)+('I'<<16)+('F'<<8)+'F') {
+			if(!param.quiet) fprintf(stderr, "Note: Looks like a RIFF header.\n");
 			if(!rd->head_read(rd,&newhead))
 				return 0;
 			while(newhead != ('d'<<24)+('a'<<16)+('t'<<8)+'a') {
@@ -194,24 +242,20 @@ init_resync:
 			}
 			if(!rd->head_read(rd,&newhead))
 				return 0;
-			fprintf(stderr,"Skipped RIFF header!\n");
+			if(!param.quiet) fprintf(stderr,"Note: Skipped RIFF header!\n");
 			goto read_again;
 		}
-		{
-			/* step in byte steps through next 64K */
-			for(i=0;i<65536;i++) {
-				if(!rd->head_shift(rd,&newhead))
-					return 0;
-				if(head_check(newhead))
-					break;
-#if 0
-fprintf(stderr,"%08lx ",newhead);
-#endif
-			}
-			if(i == 65536) {
-				fprintf(stderr,"Giving up searching valid MPEG header\n");
+		/* unhandled junk... just continue search for a header */
+		/* step in byte steps through next 64K */
+		for(i=0;i<65536;i++) {
+			if(!rd->head_shift(rd,&newhead))
 				return 0;
-			}
+			if(head_check(newhead))
+				break;
+		}
+		if(i == 65536) {
+			if(!param.quiet) fprintf(stderr,"Giving up searching valid MPEG header after 64K of junk.\n");
+			return 0;
 		}
 		/* 
 		 * should we additionaly check, whether a new frame starts at
@@ -233,6 +277,8 @@ fprintf(stderr,"%08lx ",newhead);
         fprintf(stderr,"Illegal Audio-MPEG-Header 0x%08lx at offset 0x%lx.\n",
               newhead,rd->tell(rd)-4);
       if (param.tryresync) {
+        /* TODO: make this more robust, I'd like to cat two mp3 fragments together (in a dirty way) and still have mpg123 beign able to decode all it somehow. */
+        if(!param.quiet) fprintf(stderr, "Trying to resync...\n");
         int try = 0;
             /* Read more bytes until we find something that looks
                reasonably like a valid header.  This is not a
