@@ -19,6 +19,7 @@
 #include "genre.h"
 #include "common.h"
 
+/* bitrates for [mpeg1/2][layer] */
 int tabsel_123[2][3][16] = {
    { {0,32,64,96,128,160,192,224,256,288,320,352,384,416,448,},
      {0,32,48,56, 64, 80, 96,112,128,160,192,224,256,320,384,},
@@ -40,6 +41,11 @@ static int bsnum=0;
 
 static unsigned long oldhead = 0;
 unsigned long firsthead=0;
+#define CBR 0
+#define VBR 1
+#define ABR 2
+int vbr = CBR; //variable bitrate flag
+int abr_rate = 0;
 
 unsigned char *pcm_sample;
 int pcm_point = 0;
@@ -129,7 +135,7 @@ void (*catchsignal(int signum, void(*handler)()))()
   struct sigaction old_sa;
 
 #ifdef DONT_CATCH_SIGNALS
-  printf ("Not catching any signals.\n");
+  fprintf (stderr, "Not catching any signals.\n");
   return ((void (*)()) -1);
 #endif
 
@@ -144,8 +150,10 @@ void (*catchsignal(int signum, void(*handler)()))()
 
 void read_frame_init (void)
 {
-    oldhead = 0;
-    firsthead = 0;
+	oldhead = 0;
+	firsthead = 0;
+	vbr = CBR;
+	abr_rate = 0;
 }
 
 int head_check(unsigned long head)
@@ -203,6 +211,7 @@ read_again:
   if(!rd->head_read(rd,&newhead))
     return FALSE;
 
+	/* this if wrap looks like dead code... */
   if(1 || oldhead != newhead || !oldhead)
   {
 
@@ -220,6 +229,7 @@ init_resync:
 
 
 #ifdef SKIP_JUNK
+	/* watch out for junk/tags on beginning of stream by invalid header */
 	if(!firsthead && !head_check(newhead) ) {
 		int i;
 
@@ -304,7 +314,6 @@ init_resync:
     if (!firsthead) {
       if(!decode_header(fr,newhead))
         goto read_again;
-      firsthead = newhead;
     }
     else
       if(!decode_header(fr,newhead))
@@ -318,11 +327,189 @@ init_resync:
   bsbufold = bsbuf;
   bsbuf = bsspace[bsnum]+512;
   bsnum = (bsnum + 1) & 1;
-
   /* read main data into memory */
+	/* 0 is error! */
   if(!rd->read_frame_body(rd,bsbuf,fr->framesize))
     return 0;
+	if(!firsthead)
+	{
+		firsthead = newhead; /* _now_ it's time to store it */
+		/*
+			going to look for Xing or Info at some position after the header
+			first check only with 32 bytes offset
+			for full implementation consider this table:
 
+			MPEG 1	MPEG 2/2.5 (LSF)	
+			Stereo, Joint Stereo, Dual Channel	32	17	
+			Mono	17	9
+
+			(but I'm not cocksure on this)
+			Also, how to avoid false positives? I guess I should interpret more of the header to rule that out(?).
+			I hope that ensuring all zeros until tag start os enough.
+		*/
+		/* this starts as offset, then turns into tag type switch */
+		size_t lame_offset = (fr->stereo == 2) ? (fr->lsf ? 17 : 32 ) : (fr->lsf ? 9 : 17);
+		if(fr->framesize >= 120+lame_offset) /* traditional Xing header is 120 bytes */
+		{
+			size_t i;
+			int lame_type = 0;
+			/* only search for tag when all zero before it (apart from checksum) */
+			for(i=2; i < lame_offset; ++i) if(bsbuf[i] != 0) break;
+			if(i == lame_offset)
+			{
+				if
+				(
+					     (bsbuf[lame_offset] == 'I')
+					&& (bsbuf[lame_offset+1] == 'n')
+					&& (bsbuf[lame_offset+2] == 'f')
+					&& (bsbuf[lame_offset+3] == 'o')
+				)
+				{
+					lame_type = 1; /* We still have to see what there is */
+				}
+				else if
+				(
+					     (bsbuf[lame_offset] == 'X')
+					&& (bsbuf[lame_offset+1] == 'i')
+					&& (bsbuf[lame_offset+2] == 'n')
+					&& (bsbuf[lame_offset+3] == 'g')
+				)
+				{
+					lame_type = 2;
+					vbr = VBR; /* Xing header means always VBR */
+				}
+				if(lame_type)
+				{
+					/* we have one of these headers... */
+					if(!param.quiet) fprintf(stderr, "Note: Xing/Lame/Info header detected\n");
+					/* now interpret the Xing part, I have 120 bytes total for sure */
+					/* there are 4 bytes for flags, but only the last byte contains known ones */
+					lame_offset += 4; /* now first byte after Xing/Name */
+					/* 4 bytes dword for flags */
+					#define make_long(a, o) ((((unsigned long) a[o]) << 24) | (((unsigned long) a[o+1]) << 16) | (((unsigned long) a[o+2]) << 8) | ((unsigned long) a[o+3]))
+					/* 16 bit */
+					#define make_short(a,o) ((((unsigned short) a[o]) << 8) | ((unsigned short) a[o+1]))
+					unsigned long xing_flags = make_long(bsbuf, lame_offset);
+					lame_offset += 4;
+					#ifdef DEBUG_INFOTAG
+					fprintf(stderr, "Xing: flags 0x%08lx\n", xing_flags);
+					#endif
+					if(xing_flags & 1) /* frames */
+					{
+						unsigned long frames = make_long(bsbuf, lame_offset);
+						lame_offset += 4;
+						#ifdef DEBUG_INFOTAG
+						fprintf(stderr, "Xing: %lu frames\n", frames);
+						#endif
+					}
+					if(xing_flags & 0x2) /* bytes */
+					{
+						unsigned long xing_bytes = make_long(bsbuf, lame_offset);
+						lame_offset += 4;
+						#ifdef DEBUG_INFOTAG
+						fprintf(stderr, "Xing: %lu bytes\n", xing_bytes);
+						#endif
+					}
+					if(xing_flags & 0x4) /* TOC */
+					{
+						lame_offset += 100; /* just skip */
+					}
+					if(xing_flags & 0x8) /* VBR quality */
+					{
+						unsigned long xing_quality = make_long(bsbuf, lame_offset);
+						lame_offset += 4;
+						#ifdef DEBUG_INFOTAG
+						fprintf(stderr, "Xing: quality = %lu\n", xing_quality);
+						#endif
+					}
+					/* I guess that either 0 or LAME extra data follows */
+					/* there may this crc16 be floating around... (?) */
+					if(bsbuf[lame_offset] != 0)
+					{
+						char nb[10];
+						memcpy(nb, bsbuf+lame_offset, 9);
+						nb[9] = 0;
+						#ifdef DEBUG_INFOTAG
+						fprintf(stderr, "Info: Encoder: %s\n", nb);
+						#endif
+						lame_offset += 9;
+						/* the 4 big bits are tag revision, the small bits vbr method */
+						unsigned char lame_rev = bsbuf[lame_offset] >> 4;
+						unsigned char lame_vbr = bsbuf[lame_offset] & 15;
+						#ifdef DEBUG_INFOTAG
+						fprintf(stderr, "Info: rev %u\nInfo: vbr mode %u\n", lame_rev, lame_vbr);
+						#endif
+						lame_offset += 1;
+						switch(lame_vbr)
+						{
+							/* from rev1 proposal... not sure if all good in practice */
+							case 1:
+							case 8: vbr = CBR; break;
+							case 2:
+							case 9: vbr = ABR; break;
+							default: vbr = VBR; /* 00==unknown is taken as VBR */
+						}
+						/* skipping: lowpass filter value */
+						lame_offset += 1;
+						/* replaygain */
+						/* 32bit int: peak amplitude */
+						unsigned long lame_peak = make_long(bsbuf,lame_offset);
+						#ifdef DEBUG_INFOTAG
+						fprintf(stderr, "Info: peak = %lu\n", lame_peak);
+						#endif
+						lame_offset += 4;
+						/* 16bit gain, 3 bits name, 3 bits originator, sign (1=-, 0=+), dB value*10 in 9 bits (fixed point) */
+						/* ignore the setting if name or originator == 000! */
+						/* radio 0 0 1 0 1 1 1 0 0 1 1 1 1 1 0 1 */
+						/* audiophile 0 1 0 0 1 0 0 0 0 0 0 1 0 1 0 0 */
+						float replay_gain[2] = {0,0};
+						for(i =0; i < 2; ++i)
+						{
+							unsigned char origin = (bsbuf[lame_offset] >> 2) & 0x7; /* the 3 bits after that... */
+							if(origin != 0)
+							{
+								unsigned char gt = bsbuf[lame_offset] >> 5; /* only first 3 bits */
+								if(gt == 1) gt = 0; /* radio */
+								else if(gt == 2) gt = 1; /* audiophile */
+								else continue;
+								/* get the 9 bits into a number, divide by 10, multiply sign... happy bit banging */
+								replay_gain[0] = ((bsbuf[lame_offset] & 0x2) ? -0.1 : 0.1) * (make_short(bsbuf, lame_offset) & 0x1f);
+							}
+							lame_offset += 2;
+						}
+						#ifdef DEBUG_INFOTAG
+						fprintf(stderr, "Info: Radio Gain = %03.1fdB\n", replay_gain[0]);
+						fprintf(stderr, "Info: Audiophile Gain = %03.1fdB\n", replay_gain[1]);
+						#endif
+						lame_offset += 1; /* skipping encoding flags byte */
+						if(vbr == ABR)
+						{
+							abr_rate = bsbuf[lame_offset];
+							#ifdef DEBUG_INFOTAG
+							fprintf(stderr, "Info: ABR rate = %u\n", abr_rate);
+							#endif
+						}
+						lame_offset += 1;
+						/*
+							now the important part: enc_delay and enc_padding 
+							I want to use this (together with known decoder delay) to eliminate unwanted silence.
+							For beginning silence this will work, fo
+						*/
+						/* two 12 bit values... lame does write them from int ...*/
+						int encoder_delay = (((int) bsbuf[lame_offset]) << 4) | (((int) bsbuf[lame_offset+1]) >> 4);
+						int encoder_padding = ((((int) bsbuf[lame_offset+1]) << 8) | (((int) bsbuf[lame_offset+2]))) & 0xfff;
+						#ifdef DEBUG_INFOTAG
+						fprintf(stderr,"Info: encoder delay = %i, padding = %i\n", encoder_delay, encoder_padding);
+						#endif
+					}
+					/* switch buffer back ... */
+					bsbuf = bsspace[bsnum]+512;
+					bsnum = (bsnum + 1) & 1;
+					goto read_again;
+				}
+			}
+		}
+	}
   bsi.bitindex = 0;
   bsi.wordpointer = (unsigned char *) bsbuf;
 
@@ -481,12 +668,13 @@ void print_rheader(struct frame *fr)
 	static char *layers[4] = { "Unknown" , "I", "II", "III" };
 	static char *mpeg_type[2] = { "1.0" , "2.0" };
 
-	/* version, layer, freq, mode, channels, bitrate, BPF */
-	fprintf(stderr,"@I %s %s %ld %s %d %d %d\n",
+	/* version, layer, freq, mode, channels, bitrate, BPF, VBR*/
+	fprintf(stderr,"@I %s %s %ld %s %d %d %d %i\n",
 			mpeg_type[fr->lsf],layers[fr->lay],freqs[fr->sampling_frequency],
 			modes[fr->mode],fr->stereo,
-			tabsel_123[fr->lsf][fr->lay-1][fr->bitrate_index],
-			fr->framesize+4);
+			vbr == ABR ? abr_rate : tabsel_123[fr->lsf][fr->lay-1][fr->bitrate_index],
+			fr->framesize+4,
+			vbr);
 }
 #endif
 
@@ -503,19 +691,33 @@ void print_header(struct frame *fr)
 		fr->stereo,fr->copyright?"Yes":"No",
 		fr->original?"Yes":"No",fr->error_protection?"Yes":"No",
 		fr->emphasis);
-	fprintf(stderr,"Bitrate: %d Kbits/s, Extension value: %d\n",
-		tabsel_123[fr->lsf][fr->lay-1][fr->bitrate_index],fr->extension);
+	fprintf(stderr,"Bitrate: ");
+	switch(vbr)
+	{
+		case CBR: fprintf(stderr, "%d kbits/s", tabsel_123[fr->lsf][fr->lay-1][fr->bitrate_index]); break;
+		case VBR: fprintf(stderr, "VBR"); break;
+		case ABR: fprintf(stderr, "%d kbit/s ABR", abr_rate); break;
+		default: fprintf(stderr, "???");
+	}
+	fprintf(stderr, " Extension value: %d\n",	fr->extension);
 }
 
 void print_header_compact(struct frame *fr)
 {
 	static char *modes[4] = { "stereo", "joint-stereo", "dual-channel", "mono" };
 	static char *layers[4] = { "Unknown" , "I", "II", "III" };
- 
-	fprintf(stderr,"MPEG %s layer %s, %d kbit/s, %ld Hz %s\n",
+	
+	fprintf(stderr,"MPEG %s layer %s, ",
 		fr->mpeg25 ? "2.5" : (fr->lsf ? "2.0" : "1.0"),
-		layers[fr->lay],
-		tabsel_123[fr->lsf][fr->lay-1][fr->bitrate_index],
+		layers[fr->lay]);
+	switch(vbr)
+	{
+		case CBR: fprintf(stderr, "%d kbits/s", tabsel_123[fr->lsf][fr->lay-1][fr->bitrate_index]); break;
+		case VBR: fprintf(stderr, "VBR"); break;
+		case ABR: fprintf(stderr, "%d kbit/s ABR", abr_rate); break;
+		default: fprintf(stderr, "???");
+	}
+	fprintf(stderr,", %ld Hz %s\n",
 		freqs[fr->sampling_frequency], modes[fr->mode]);
 }
 

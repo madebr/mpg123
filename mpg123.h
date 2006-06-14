@@ -133,12 +133,12 @@ struct frame {
 #ifdef USE_3DNOW
     void (*dct36)(real *,real *,real *,real *,real *);
 #endif
-    int stereo;
+    int stereo; /* I _think_ 1 for mono and 2 for stereo */
     int jsbound;
     int single;
     int II_sblimit;
     int down_sample_sblimit;
-    int lsf;
+    int lsf; /* 0: MPEG 1.0; 1: MPEG 2.0/2.5 -- both used as bool and array index! */
     int mpeg25;
     int down_sample;
     int header_change;
@@ -155,6 +155,7 @@ struct frame {
     int original;
     int emphasis;
     int framesize; /* computed framesize */
+    int vbr; /* 1 if variable bitrate was detected */
 };
 
 struct parameter {
