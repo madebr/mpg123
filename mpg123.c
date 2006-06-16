@@ -592,6 +592,7 @@ TRUE },
     {'w', "wav",         GLO_ARG | GLO_CHAR, set_wav, 0 , 0 },
     {0, "cdr",         GLO_ARG | GLO_CHAR, set_cdr, 0 , 0 },
     {0, "au",         GLO_ARG | GLO_CHAR, set_au, 0 , 0 },
+    {0,   "gapless",	 GLO_INT,   	             0, &param.gapless, 1},
     {'?', "help",       0,              usage, 0,           0 },
     {0 , "longhelp" ,    0,        long_usage, 0,           0 },
     {0, 0, 0, 0, 0, 0}

@@ -46,6 +46,8 @@ unsigned long firsthead=0;
 #define ABR 2
 int vbr = CBR; //variable bitrate flag
 int abr_rate = 0;
+int skipbegin = 0;
+int skipend = 0;
 
 unsigned char *pcm_sample;
 int pcm_point = 0;
@@ -107,25 +109,51 @@ static int skip_new_id3(struct reader *rds)
 
 void audio_flush(int outmode, struct audio_info_struct *ai)
 {
-  if (pcm_point) {
-    switch (outmode) {
-      case DECODE_FILE:
-        write (OutputDescriptor, pcm_sample, pcm_point);
-        break;
-      case DECODE_AUDIO:
-        audio_play_samples (ai, pcm_sample, pcm_point);
-        break;
-      case DECODE_BUFFER:
-        write (buffer_fd[1], pcm_sample, pcm_point);
-        break;
-      case DECODE_WAV:
-      case DECODE_CDR:
-      case DECODE_AU:
-        wav_write(pcm_sample, pcm_point);
-        break;
-    }
-    pcm_point = 0;
-  }
+	/* hacked to skip beginning, skipbegin < pcm_point!!!! */
+	char* pcmsam = pcm_sample;
+	int pcmpoi = pcm_point;
+	if(param.gapless)
+	{
+		/* humble heuristics: when buffer not full, it is the end of track */
+		if(skipend && (pcm_point < audiobufsize))
+		{
+			fprintf(stderr,"skipping %i bytes (%i samples) at end\n", (skipend*BYTES_PER_SAMPLE),skipend);
+			if(skipend <= pcmpoi) pcmpoi -= skipend*BYTES_PER_SAMPLE;
+			skipend = 0;
+		}
+		if(skipbegin)
+		{
+			fprintf(stderr,"skipping %i bytes (%i samples) at begin\n", (skipbegin*BYTES_PER_SAMPLE),skipbegin);
+			skipbegin = skipbegin*BYTES_PER_SAMPLE;
+			if(skipbegin <= pcm_point)
+			{
+				pcmsam += skipbegin;
+				pcmpoi -= skipbegin;
+			}
+			skipbegin = 0;
+		}
+	}
+	if(pcm_point)
+	{
+		switch(outmode)
+		{
+			case DECODE_FILE:
+				write (OutputDescriptor, pcmsam, pcmpoi);
+			break;
+			case DECODE_AUDIO:
+				audio_play_samples (ai, pcmsam, pcmpoi);
+			break;
+			case DECODE_BUFFER:
+				write (buffer_fd[1], pcmsam, pcmpoi);
+			break;
+			case DECODE_WAV:
+			case DECODE_CDR:
+			case DECODE_AU:
+				wav_write(pcmsam, pcmpoi);
+			break;
+		}
+		pcm_point = 0;
+	}
 }
 
 #if !defined(WIN32) && !defined(GENERIC)
@@ -154,6 +182,8 @@ void read_frame_init (void)
 	firsthead = 0;
 	vbr = CBR;
 	abr_rate = 0;
+	skipbegin = 0;
+	skipend = 0;
 }
 
 int head_check(unsigned long head)
@@ -394,9 +424,10 @@ init_resync:
 					#ifdef DEBUG_INFOTAG
 					fprintf(stderr, "Xing: flags 0x%08lx\n", xing_flags);
 					#endif
+					unsigned long frames;
 					if(xing_flags & 1) /* frames */
 					{
-						unsigned long frames = make_long(bsbuf, lame_offset);
+						frames = make_long(bsbuf, lame_offset);
 						lame_offset += 4;
 						#ifdef DEBUG_INFOTAG
 						fprintf(stderr, "Xing: %lu frames\n", frames);
@@ -490,14 +521,17 @@ init_resync:
 							#endif
 						}
 						lame_offset += 1;
-						/*
-							now the important part: enc_delay and enc_padding 
-							I want to use this (together with known decoder delay) to eliminate unwanted silence.
-							For beginning silence this will work, fo
-						*/
-						/* two 12 bit values... lame does write them from int ...*/
-						int encoder_delay = (((int) bsbuf[lame_offset]) << 4) | (((int) bsbuf[lame_offset+1]) >> 4);
-						int encoder_padding = ((((int) bsbuf[lame_offset+1]) << 8) | (((int) bsbuf[lame_offset+2]))) & 0xfff;
+						/* encoder delay and padding, two 12 bit values... lame does write them from int ...*/
+						if(param.gapless)
+						{
+							/*
+								Setting the values of skipping sampels on begin/end for the first hack.
+								Note: It only works without resampling and not yet with multiple file playback...
+								I need to have a hook on file change (hm, flush buffer in read_frame_init?)
+							*/
+							skipbegin = DECODER_DELAY + ((((int) bsbuf[lame_offset]) << 4) | (((int) bsbuf[lame_offset+1]) >> 4));
+							skipend = -DECODER_DELAY + (((((int) bsbuf[lame_offset+1]) << 8) | (((int) bsbuf[lame_offset+2]))) & 0xfff);
+						}
 						#ifdef DEBUG_INFOTAG
 						fprintf(stderr,"Info: encoder delay = %i, padding = %i\n", encoder_delay, encoder_padding);
 						#endif
