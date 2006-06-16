@@ -1,0 +1,144 @@
+* * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*   mpg123 - MPEG 1.0/2.0 audio player                *
+*   README for version 0.60, dated at 12.06.2006      *
+*                                                     *
+* ...still the fastest MPEG audio player for UNIX ;)  *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * *
+(This file has very long lines - die-hard terminal nostalgists can be satisfied by `fmt -s -w 75 < README | less`. I think it's better to let the reader's preference rule than to preformat the stuff to some arbitrary width.)
+
+
+0. Stuff
+
+For building/installation info see INSTALL.
+
+The mpg123 project was started by Michel Hipp and is now being maintained by Thomas Orgis and Nicholas J. Humfrey, who intitated the Sourceforge project.
+The source code contains contributions from quite a few people - see CREDITS for more info.
+It is Open Source software licensed mostly under the LGPL with some parts restricted to GPL. See COPYING for details.
+As for every mp3 player, some of mpg123's functionality may be covered by patents in a country where these are legal. See PATENTS for details.
+
+Project's official website URL is
+
+	http://mpg123.org
+
+(or http://mpg123.orgis.org as fallback address if there is a problem with the DNS forwarding).
+For the downloading of tarballs please use the sourceforge.net mirror service:
+
+	http://sourceforge.net/project/showfiles.php?group_id=135704
+
+
+1. Introduction
+
+This is a console based decoder/player for mono/stereo mpeg audio files, probably more familiar as MP3 or MP2 files.
+It's focus is speed. We still need some low-end benchmarks for the current version, but playback should be possible even on i486 CPUs. There is hand-optimized assembly code for i586, MMX and 3DNow! instructions, while generic code runs on a variety of different platforms and CPUs.
+It can play MPEG1.0/2.0 layer I, II, II (1, 2, 3;-) files (VBR files are fine, too) and produce output on a number of different ways: raw data to stdout and different sound systems depending on your platform (see INSTALL).
+Most tested is Linux with OSS (or raw) output on x86 and Alpha/AXP by myself (Thomas) and I am always happy to get user feedback for other platforms (*BSD, Solaris, ...).
+
+
+2. Contact
+
+short:
+
+	mpg123-devel@lists.sourceforge.net
+	mpg123-users@lists.sourceforge.net
+or 
+	maintainer@mpg123.org
+
+long: see CONTACT
+
+
+3. Interface/Usage
+
+3.1 Simple Console Usage
+
+Mpg123 is a console program - normally it just plays a list of files you specify on command line and that's it. See the included manpage or
+
+	mpg123 --help
+
+on command line syntax/options.
+
+In the simple "mpg123 file1.mp3 file2.mp3" mode, the only thing you can do to interact is to press Ctrl+C to skip to next track or end the whole playback if pressing it twice.
+
+3.2 Advanced Console Usage
+
+You can specify the option -C to enable a terminal control interface enabling to influence playback on current title/playlist by pressing some key:
+
+'b' to seek back to beginning of track
+'f' to skip to nest track
+'p' for pause (actually, looping current chunk)
+'s' to stop/restart playback (the usual "pause" function...)
+'q' to quit playback
+',' for rewind seek
+'.' for forward seek
+';' for fast rewind
+':' for fast forward
+'<' for fine rewind
+'>' for fine forward
+
+You can change these bindings to key to your liking by modifying term.h .
+
+Note: This interface needs not to be available on _every_ platform/build.
+
+3.3 Control Interface for Frontends
+
+There are actually several interfaces for frontends left over from that past, but only one of them will remain for the future:
+
+	The Generic Control Interface
+
+It contains of communication of textual messages via standard input to mpg123 and responses to standard output unless the -s switch for output of audio data on stdout is used - then the responses come via stderr.
+
+See README.control for usage.
+
+
+4. Speed
+
+Speed example on a Mobile PentiumII 366MHz:
+
+
+5. Accuracy
+
+	http://www.underbit.com/resources/mpeg/audio/compliance/
+
+states mpg123-0.59r as being fully ISO/IEC 11172-3 compilant. Meaning: It decodes as it should. While I didn't verify the test I can confirm that the sound of mpg123 is fine enough for my ears;-)
+
+I don't know which decoding routine they tested, I guess the pentium-optimized one. Depending on the chosen optimization, the output may vary slightly. At least the MMX assembler optimization is known to deviate in output by +/-1 (rarely +/-2).
+This means +/- for the 16-bit integer sample value ranging over ca. +/-32000. This deviation may turn into hearable distortion for very low-amplitude sound, as shown in example files on
+
+	http://dither123.dyndns.org
+
+
+7. History
+
+A looooong time ago, Michael Hipp wrote some initial mpg123. 
+
+Old Description:
+
+This isn't a new player. It's a fully rewritten version originally based 
+on the mpegaudio (FHG-version) package. The DCT algorithm in the
+synthesis filter is a rewritten version of the DCT first seen in the maplay
+package, which was written by Tobias Bading (bading@cs.tu-berlin.de). The 
+rewrite was neccassary, because the GPL may not allow this copyright mix.
+The mpegaudio package was written by various people from the MPEG/audio
+software simulation group. The maplay is under GPL .. You can find the
+original source code and the mpegaudio package on: ftp.tnt.uni-hannover.de.
+
+Especially layer3.c common.c and mpg123.h is based on the dist10 package.
+The code is fullly rewritten but I'm using sometimes the
+same variable names or similar function names as in the
+original package.
+
+In the current layer3.c I'm using a DCT36 first seen in Jeff Tsay's 
+(ctsay@pasteur.eecs.berkeley.edu) maplay 1.2+ package. His code is
+under GPL .. I also tried the enhancement from Mikko Tommila. His
+code is also in layer3.c (but it's disabled at the moment, because
+it was slightly slower than the unrolled 9 point DCT (at least on 
+_my_ system)). Theoretically it should be faster. You may try it on
+your system.
+
+
+
+
+8. End
+
+Have fun!
+____________
+Thomas Orgis
