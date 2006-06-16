@@ -364,182 +364,184 @@ init_resync:
 	if(!firsthead)
 	{
 		firsthead = newhead; /* _now_ it's time to store it */
-		/*
-			going to look for Xing or Info at some position after the header
-			first check only with 32 bytes offset
-			for full implementation consider this table:
-
-			MPEG 1	MPEG 2/2.5 (LSF)	
-			Stereo, Joint Stereo, Dual Channel	32	17	
-			Mono	17	9
-
-			(but I'm not cocksure on this)
-			Also, how to avoid false positives? I guess I should interpret more of the header to rule that out(?).
-			I hope that ensuring all zeros until tag start os enough.
-		*/
-		/* this starts as offset, then turns into tag type switch */
-		size_t lame_offset = (fr->stereo == 2) ? (fr->lsf ? 17 : 32 ) : (fr->lsf ? 9 : 17);
-		if(fr->framesize >= 120+lame_offset) /* traditional Xing header is 120 bytes */
+		/* following stuff is actually layer3 specific (in practice, not in theory) */
+		if(fr->lay == 3)
 		{
-			size_t i;
-			int lame_type = 0;
-			/* only search for tag when all zero before it (apart from checksum) */
-			for(i=2; i < lame_offset; ++i) if(bsbuf[i] != 0) break;
-			if(i == lame_offset)
+			/*
+				going to look for Xing or Info at some position after the header
+				                                    MPEG 1  MPEG 2/2.5 (LSF)
+				Stereo, Joint Stereo, Dual Channel  32      17
+				Mono                                17       9
+				
+				Also, how to avoid false positives? I guess I should interpret more of the header to rule that out(?).
+				I hope that ensuring all zeros until tag start is enough.
+			*/
+			size_t lame_offset = (fr->stereo == 2) ? (fr->lsf ? 17 : 32 ) : (fr->lsf ? 9 : 17);
+			if(fr->framesize >= 120+lame_offset) /* traditional Xing header is 120 bytes */
 			{
-				if
-				(
-					     (bsbuf[lame_offset] == 'I')
-					&& (bsbuf[lame_offset+1] == 'n')
-					&& (bsbuf[lame_offset+2] == 'f')
-					&& (bsbuf[lame_offset+3] == 'o')
-				)
+				size_t i;
+				int lame_type = 0;
+				/* only search for tag when all zero before it (apart from checksum) */
+				for(i=2; i < lame_offset; ++i) if(bsbuf[i] != 0) break;
+				if(i == lame_offset)
 				{
-					lame_type = 1; /* We still have to see what there is */
-				}
-				else if
-				(
-					     (bsbuf[lame_offset] == 'X')
-					&& (bsbuf[lame_offset+1] == 'i')
-					&& (bsbuf[lame_offset+2] == 'n')
-					&& (bsbuf[lame_offset+3] == 'g')
-				)
-				{
-					lame_type = 2;
-					vbr = VBR; /* Xing header means always VBR */
-				}
-				if(lame_type)
-				{
-					/* we have one of these headers... */
-					if(!param.quiet) fprintf(stderr, "Note: Xing/Lame/Info header detected\n");
-					/* now interpret the Xing part, I have 120 bytes total for sure */
-					/* there are 4 bytes for flags, but only the last byte contains known ones */
-					lame_offset += 4; /* now first byte after Xing/Name */
-					/* 4 bytes dword for flags */
-					#define make_long(a, o) ((((unsigned long) a[o]) << 24) | (((unsigned long) a[o+1]) << 16) | (((unsigned long) a[o+2]) << 8) | ((unsigned long) a[o+3]))
-					/* 16 bit */
-					#define make_short(a,o) ((((unsigned short) a[o]) << 8) | ((unsigned short) a[o+1]))
-					unsigned long xing_flags = make_long(bsbuf, lame_offset);
-					lame_offset += 4;
-					#ifdef DEBUG_INFOTAG
-					fprintf(stderr, "Xing: flags 0x%08lx\n", xing_flags);
-					#endif
-					unsigned long frames;
-					if(xing_flags & 1) /* frames */
+					if
+					(
+					       (bsbuf[lame_offset] == 'I')
+						&& (bsbuf[lame_offset+1] == 'n')
+						&& (bsbuf[lame_offset+2] == 'f')
+						&& (bsbuf[lame_offset+3] == 'o')
+					)
 					{
-						frames = make_long(bsbuf, lame_offset);
+						lame_type = 1; /* We still have to see what there is */
+					}
+					else if
+					(
+					       (bsbuf[lame_offset] == 'X')
+						&& (bsbuf[lame_offset+1] == 'i')
+						&& (bsbuf[lame_offset+2] == 'n')
+						&& (bsbuf[lame_offset+3] == 'g')
+					)
+					{
+						lame_type = 2;
+						vbr = VBR; /* Xing header means always VBR */
+					}
+					if(lame_type)
+					{
+						/* we have one of these headers... */
+						if(!param.quiet) fprintf(stderr, "Note: Xing/Lame/Info header detected\n");
+						/* now interpret the Xing part, I have 120 bytes total for sure */
+						/* there are 4 bytes for flags, but only the last byte contains known ones */
+						lame_offset += 4; /* now first byte after Xing/Name */
+						/* 4 bytes dword for flags */
+						#define make_long(a, o) ((((unsigned long) a[o]) << 24) | (((unsigned long) a[o+1]) << 16) | (((unsigned long) a[o+2]) << 8) | ((unsigned long) a[o+3]))
+						/* 16 bit */
+						#define make_short(a,o) ((((unsigned short) a[o]) << 8) | ((unsigned short) a[o+1]))
+						unsigned long xing_flags = make_long(bsbuf, lame_offset);
 						lame_offset += 4;
 						#ifdef DEBUG_INFOTAG
-						fprintf(stderr, "Xing: %lu frames\n", frames);
+						fprintf(stderr, "Xing: flags 0x%08lx\n", xing_flags);
 						#endif
-					}
-					if(xing_flags & 0x2) /* bytes */
-					{
-						unsigned long xing_bytes = make_long(bsbuf, lame_offset);
-						lame_offset += 4;
-						#ifdef DEBUG_INFOTAG
-						fprintf(stderr, "Xing: %lu bytes\n", xing_bytes);
-						#endif
-					}
-					if(xing_flags & 0x4) /* TOC */
-					{
-						lame_offset += 100; /* just skip */
-					}
-					if(xing_flags & 0x8) /* VBR quality */
-					{
-						unsigned long xing_quality = make_long(bsbuf, lame_offset);
-						lame_offset += 4;
-						#ifdef DEBUG_INFOTAG
-						fprintf(stderr, "Xing: quality = %lu\n", xing_quality);
-						#endif
-					}
-					/* I guess that either 0 or LAME extra data follows */
-					/* there may this crc16 be floating around... (?) */
-					if(bsbuf[lame_offset] != 0)
-					{
-						char nb[10];
-						memcpy(nb, bsbuf+lame_offset, 9);
-						nb[9] = 0;
-						#ifdef DEBUG_INFOTAG
-						fprintf(stderr, "Info: Encoder: %s\n", nb);
-						#endif
-						lame_offset += 9;
-						/* the 4 big bits are tag revision, the small bits vbr method */
-						unsigned char lame_rev = bsbuf[lame_offset] >> 4;
-						unsigned char lame_vbr = bsbuf[lame_offset] & 15;
-						#ifdef DEBUG_INFOTAG
-						fprintf(stderr, "Info: rev %u\nInfo: vbr mode %u\n", lame_rev, lame_vbr);
-						#endif
-						lame_offset += 1;
-						switch(lame_vbr)
+						unsigned long frames;
+						if(xing_flags & 1) /* frames */
 						{
-							/* from rev1 proposal... not sure if all good in practice */
-							case 1:
-							case 8: vbr = CBR; break;
-							case 2:
-							case 9: vbr = ABR; break;
-							default: vbr = VBR; /* 00==unknown is taken as VBR */
-						}
-						/* skipping: lowpass filter value */
-						lame_offset += 1;
-						/* replaygain */
-						/* 32bit int: peak amplitude */
-						unsigned long lame_peak = make_long(bsbuf,lame_offset);
-						#ifdef DEBUG_INFOTAG
-						fprintf(stderr, "Info: peak = %lu\n", lame_peak);
-						#endif
-						lame_offset += 4;
-						/* 16bit gain, 3 bits name, 3 bits originator, sign (1=-, 0=+), dB value*10 in 9 bits (fixed point) */
-						/* ignore the setting if name or originator == 000! */
-						/* radio 0 0 1 0 1 1 1 0 0 1 1 1 1 1 0 1 */
-						/* audiophile 0 1 0 0 1 0 0 0 0 0 0 1 0 1 0 0 */
-						float replay_gain[2] = {0,0};
-						for(i =0; i < 2; ++i)
-						{
-							unsigned char origin = (bsbuf[lame_offset] >> 2) & 0x7; /* the 3 bits after that... */
-							if(origin != 0)
-							{
-								unsigned char gt = bsbuf[lame_offset] >> 5; /* only first 3 bits */
-								if(gt == 1) gt = 0; /* radio */
-								else if(gt == 2) gt = 1; /* audiophile */
-								else continue;
-								/* get the 9 bits into a number, divide by 10, multiply sign... happy bit banging */
-								replay_gain[0] = ((bsbuf[lame_offset] & 0x2) ? -0.1 : 0.1) * (make_short(bsbuf, lame_offset) & 0x1f);
-							}
-							lame_offset += 2;
-						}
-						#ifdef DEBUG_INFOTAG
-						fprintf(stderr, "Info: Radio Gain = %03.1fdB\n", replay_gain[0]);
-						fprintf(stderr, "Info: Audiophile Gain = %03.1fdB\n", replay_gain[1]);
-						#endif
-						lame_offset += 1; /* skipping encoding flags byte */
-						if(vbr == ABR)
-						{
-							abr_rate = bsbuf[lame_offset];
+							frames = make_long(bsbuf, lame_offset);
+							lame_offset += 4;
 							#ifdef DEBUG_INFOTAG
-							fprintf(stderr, "Info: ABR rate = %u\n", abr_rate);
+							fprintf(stderr, "Xing: %lu frames\n", frames);
 							#endif
 						}
-						lame_offset += 1;
-						/* encoder delay and padding, two 12 bit values... lame does write them from int ...*/
-						if(param.gapless)
+						if(xing_flags & 0x2) /* bytes */
 						{
-							/*
-								Setting the values of skipping sampels on begin/end for the first hack.
-								Note: It only works without resampling and not yet with multiple file playback...
-								I need to have a hook on file change (hm, flush buffer in read_frame_init?)
-							*/
-							skipbegin = DECODER_DELAY + ((((int) bsbuf[lame_offset]) << 4) | (((int) bsbuf[lame_offset+1]) >> 4));
-							skipend = -DECODER_DELAY + (((((int) bsbuf[lame_offset+1]) << 8) | (((int) bsbuf[lame_offset+2]))) & 0xfff);
+							unsigned long xing_bytes = make_long(bsbuf, lame_offset);
+							lame_offset += 4;
+							#ifdef DEBUG_INFOTAG
+							fprintf(stderr, "Xing: %lu bytes\n", xing_bytes);
+							#endif
 						}
-						#ifdef DEBUG_INFOTAG
-						fprintf(stderr,"Info: encoder delay = %i, padding = %i\n", encoder_delay, encoder_padding);
-						#endif
+						if(xing_flags & 0x4) /* TOC */
+						{
+							lame_offset += 100; /* just skip */
+						}
+						if(xing_flags & 0x8) /* VBR quality */
+						{
+							unsigned long xing_quality = make_long(bsbuf, lame_offset);
+							lame_offset += 4;
+							#ifdef DEBUG_INFOTAG
+							fprintf(stderr, "Xing: quality = %lu\n", xing_quality);
+							#endif
+						}
+						/* I guess that either 0 or LAME extra data follows */
+						/* there may this crc16 be floating around... (?) */
+						if(bsbuf[lame_offset] != 0)
+						{
+							char nb[10];
+							memcpy(nb, bsbuf+lame_offset, 9);
+							nb[9] = 0;
+							#ifdef DEBUG_INFOTAG
+							fprintf(stderr, "Info: Encoder: %s\n", nb);
+							#endif
+							lame_offset += 9;
+							/* the 4 big bits are tag revision, the small bits vbr method */
+							unsigned char lame_rev = bsbuf[lame_offset] >> 4;
+							unsigned char lame_vbr = bsbuf[lame_offset] & 15;
+							#ifdef DEBUG_INFOTAG
+							fprintf(stderr, "Info: rev %u\nInfo: vbr mode %u\n", lame_rev, lame_vbr);
+							#endif
+							lame_offset += 1;
+							switch(lame_vbr)
+							{
+								/* from rev1 proposal... not sure if all good in practice */
+								case 1:
+								case 8: vbr = CBR; break;
+								case 2:
+								case 9: vbr = ABR; break;
+								default: vbr = VBR; /* 00==unknown is taken as VBR */
+							}
+							/* skipping: lowpass filter value */
+							lame_offset += 1;
+							/* replaygain */
+							/* 32bit int: peak amplitude */
+							unsigned long lame_peak = make_long(bsbuf,lame_offset);
+							#ifdef DEBUG_INFOTAG
+							fprintf(stderr, "Info: peak = %lu\n", lame_peak);
+							#endif
+							lame_offset += 4;
+							/*
+								ReplayGain values, not used atm, also lame only writes radio mode gain(?)
+								16bit gain, 3 bits name, 3 bits originator, sign (1=-, 0=+), dB value*10 in 9 bits (fixed point)
+								ignore the setting if name or originator == 000!
+								radio 0 0 1 0 1 1 1 0 0 1 1 1 1 1 0 1
+								audiophile 0 1 0 0 1 0 0 0 0 0 0 1 0 1 0 0
+							*/
+							float replay_gain[2] = {0,0};
+							for(i =0; i < 2; ++i)
+							{
+								unsigned char origin = (bsbuf[lame_offset] >> 2) & 0x7; /* the 3 bits after that... */
+								if(origin != 0)
+								{
+									unsigned char gt = bsbuf[lame_offset] >> 5; /* only first 3 bits */
+									if(gt == 1) gt = 0; /* radio */
+									else if(gt == 2) gt = 1; /* audiophile */
+									else continue;
+									/* get the 9 bits into a number, divide by 10, multiply sign... happy bit banging */
+									replay_gain[0] = ((bsbuf[lame_offset] & 0x2) ? -0.1 : 0.1) * (make_short(bsbuf, lame_offset) & 0x1f);
+								}
+								lame_offset += 2;
+							}
+							#ifdef DEBUG_INFOTAG
+							fprintf(stderr, "Info: Radio Gain = %03.1fdB\n", replay_gain[0]);
+							fprintf(stderr, "Info: Audiophile Gain = %03.1fdB\n", replay_gain[1]);
+							#endif
+							lame_offset += 1; /* skipping encoding flags byte */
+							if(vbr == ABR)
+							{
+								abr_rate = bsbuf[lame_offset];
+								#ifdef DEBUG_INFOTAG
+								fprintf(stderr, "Info: ABR rate = %u\n", abr_rate);
+								#endif
+							}
+							lame_offset += 1;
+							/* encoder delay and padding, two 12 bit values... lame does write them from int ...*/
+							if(param.gapless)
+							{
+								/*
+									Setting the values of skipping samples on begin/end for the first hack.
+									Note: It only works without resampling and not yet with multiple file playback...
+									I need to have a hook on file change (hm, flush buffer in read_frame_init?)
+								*/
+								skipbegin = DECODER_DELAY + ((((int) bsbuf[lame_offset]) << 4) | (((int) bsbuf[lame_offset+1]) >> 4));
+								skipend = -DECODER_DELAY + (((((int) bsbuf[lame_offset+1]) << 8) | (((int) bsbuf[lame_offset+2]))) & 0xfff);
+							}
+							#ifdef DEBUG_INFOTAG
+							fprintf(stderr,"Info: encoder delay = %i, padding = %i\n", encoder_delay, encoder_padding);
+							#endif
+						}
+						/* switch buffer back ... */
+						bsbuf = bsspace[bsnum]+512;
+						bsnum = (bsnum + 1) & 1;
+						goto read_again;
 					}
-					/* switch buffer back ... */
-					bsbuf = bsspace[bsnum]+512;
-					bsnum = (bsnum + 1) & 1;
-					goto read_again;
 				}
 			}
 		}
