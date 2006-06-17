@@ -20,8 +20,7 @@ struct bitstream_info {
 
 extern struct bitstream_info bsi;
 
-/* hack! additionally, only the begin part is implemented */
+/* well, I take that one for granted... at least layer3 */
 #define DECODER_DELAY 529
-#define BYTES_PER_SAMPLE 4 /* going to use proper calculation soon */
 extern int skipbegin;
 extern int skipend;

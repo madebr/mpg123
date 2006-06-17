@@ -109,6 +109,7 @@ static int skip_new_id3(struct reader *rds)
 }
 
 
+
 void audio_flush(int outmode, struct audio_info_struct *ai)
 {
 	if(pcm_point)
@@ -119,6 +120,7 @@ void audio_flush(int outmode, struct audio_info_struct *ai)
 		if(param.gapless && (track_state != undef))
 		/* if(param.gapless) */
 		{
+			#define	samples_to_bytes(s) ((((ai->format & AUDIO_FORMAT_MASK) == AUDIO_FORMAT_16) ? 2 : 1) * ai->channels * s)
 			/*
 				This is not safe! When track ends on audiobuf boundary, I'm screwed.
 				I need another buffer to make sure I have something to skip when the end message comes through.
@@ -127,24 +129,26 @@ void audio_flush(int outmode, struct audio_info_struct *ai)
 			if(skipend && (track_state == end) && (pcm_point < audiobufsize))
 			/* if(skipend && (pcm_point < audiobufsize)) */
 			{
-				fprintf(stderr,"skipping %i bytes (%i samples) at end\n", (skipend*BYTES_PER_SAMPLE),skipend);
-				if(skipend <= pcmpoi) pcmpoi -= skipend*BYTES_PER_SAMPLE;
+				int bytes = samples_to_bytes(skipend);
+				fprintf(stderr,"skipping %i bytes (%i samples) at end\n", bytes, skipend);
+				if(bytes <= pcmpoi) pcmpoi -= bytes;
 				skipend = 0;
 				track_state = undef;
 			}
 			else if(skipbegin) /* track_state = begin */
 			/* else if(skipbegin && track_state == begin) */
 			{
-				fprintf(stderr,"skipping %i bytes (%i samples) at begin\n", (skipbegin*BYTES_PER_SAMPLE),skipbegin);
-				skipbegin = skipbegin*BYTES_PER_SAMPLE;
-				if(skipbegin <= pcm_point)
+				int bytes = samples_to_bytes(skipbegin);
+				fprintf(stderr,"skipping %i bytes (%i samples) at begin\n", bytes, skipbegin);
+				if(bytes <= pcm_point)
 				{
-					pcmsam += skipbegin;
-					pcmpoi -= skipbegin;
+					pcmsam += bytes;
+					pcmpoi -= bytes;
 				}
 				skipbegin = 0;
 				track_state = undef;
 			}
+			#undef samples_to_bytes
 		}
 		#else
 		#define pcmsam pcm_sample

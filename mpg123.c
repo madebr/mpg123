@@ -70,6 +70,9 @@ struct parameter param = {
 #endif
   FALSE,  /* try to run process in 'realtime mode' */   
   { 0,},  /* wav,cdr,au Filename */
+#ifdef GAPLESS
+	0, /* gapless off per default - yet */
+#endif
 };
 
 char *listname = NULL;
@@ -845,6 +848,7 @@ void set_synth_functions(struct frame *fr)
 	fr->synth = funcs[p8][ds];
 	fr->synth_mono = funcs_mono[param.force_stereo?0:1][p8][ds];
 
+/* TODO: make autodetection for _all_ x86 optimizations (maybe just for i586+ and keep separate 486 build?) */
 #ifdef USE_3DNOW
 	/* check cpuflags bit 31 (3DNow!) and 23 (MMX) */
 	if((param.stat_3dnow < 2) && 
