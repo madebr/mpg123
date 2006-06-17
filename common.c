@@ -44,10 +44,11 @@ unsigned long firsthead=0;
 #define CBR 0
 #define VBR 1
 #define ABR 2
-int vbr = CBR; //variable bitrate flag
+int vbr = CBR; /* variable bitrate flag */
 int abr_rate = 0;
 int skipbegin = 0;
 int skipend = 0;
+#define GAPLESS /* switch for actually activating this */
 
 unsigned char *pcm_sample;
 int pcm_point = 0;
@@ -109,6 +110,7 @@ static int skip_new_id3(struct reader *rds)
 
 void audio_flush(int outmode, struct audio_info_struct *ai)
 {
+	#ifdef GAPLESS
 	/* hacked to skip beginning, skipbegin < pcm_point!!!! */
 	char* pcmsam = pcm_sample;
 	int pcmpoi = pcm_point;
@@ -133,6 +135,10 @@ void audio_flush(int outmode, struct audio_info_struct *ai)
 			skipbegin = 0;
 		}
 	}
+	#else
+	#define pcmsam pcm_sample
+	#define pcmpoi pcm_point
+	#endif
 	if(pcm_point)
 	{
 		switch(outmode)
@@ -154,6 +160,10 @@ void audio_flush(int outmode, struct audio_info_struct *ai)
 		}
 		pcm_point = 0;
 	}
+	#ifndef GAPLESS
+	#undef pcmpoi
+	#undef pcmsam
+	#endif
 }
 
 #if !defined(WIN32) && !defined(GENERIC)
