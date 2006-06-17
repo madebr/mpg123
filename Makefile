@@ -134,6 +134,18 @@ linux-x86:
 			-finline-functions -ffast-math" \
 		mpg123-make
 
+#just for development... gapless will be on for normal builds when stable
+linux-x86-gapless:
+	$(MAKE) CC=gcc \
+		OBJECTS='decode_i386.o dct64_i386.o $(PENTIUM_DECODE).o \
+			audio_oss.o term.o' \
+		CFLAGS="$(CFLAGS) $(CPPFLAGS) -DGAPLESS -DI386_ASSEM -DPENTIUM_OPT -DREAL_IS_FLOAT -DLINUX \
+			-DOSS -DTERM_CONTROL\
+			-Wall -g -O2 \
+			-fomit-frame-pointer -funroll-all-loops \
+			-finline-functions -ffast-math" \
+		mpg123-make
+
 linux-mmx:
 	$(MAKE) CC=gcc \
 		OBJECTS='decode_i386.o dct64_MMX.o tabinit_MMX.o decode_MMX.o \

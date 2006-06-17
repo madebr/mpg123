@@ -48,7 +48,8 @@ int vbr = CBR; /* variable bitrate flag */
 int abr_rate = 0;
 int skipbegin = 0;
 int skipend = 0;
-#define GAPLESS /* switch for actually activating this */
+/* I won't cover very short tracks that fit entirely into the decoder buffer. */
+enum { begin, end, undef } track_state = undef;
 
 unsigned char *pcm_sample;
 int pcm_point = 0;
@@ -110,37 +111,45 @@ static int skip_new_id3(struct reader *rds)
 
 void audio_flush(int outmode, struct audio_info_struct *ai)
 {
-	#ifdef GAPLESS
-	/* hacked to skip beginning, skipbegin < pcm_point!!!! */
-	char* pcmsam = pcm_sample;
-	int pcmpoi = pcm_point;
-	if(param.gapless)
-	{
-		/* humble heuristics: when buffer not full, it is the end of track */
-		if(skipend && (pcm_point < audiobufsize))
-		{
-			fprintf(stderr,"skipping %i bytes (%i samples) at end\n", (skipend*BYTES_PER_SAMPLE),skipend);
-			if(skipend <= pcmpoi) pcmpoi -= skipend*BYTES_PER_SAMPLE;
-			skipend = 0;
-		}
-		if(skipbegin)
-		{
-			fprintf(stderr,"skipping %i bytes (%i samples) at begin\n", (skipbegin*BYTES_PER_SAMPLE),skipbegin);
-			skipbegin = skipbegin*BYTES_PER_SAMPLE;
-			if(skipbegin <= pcm_point)
-			{
-				pcmsam += skipbegin;
-				pcmpoi -= skipbegin;
-			}
-			skipbegin = 0;
-		}
-	}
-	#else
-	#define pcmsam pcm_sample
-	#define pcmpoi pcm_point
-	#endif
 	if(pcm_point)
 	{
+		#ifdef GAPLESS
+		char* pcmsam = pcm_sample;
+		int pcmpoi = pcm_point;
+		if(param.gapless && (track_state != undef))
+		/* if(param.gapless) */
+		{
+			/*
+				This is not safe! When track ends on audiobuf boundary, I'm screwed.
+				I need another buffer to make sure I have something to skip when the end message comes through.
+			*/
+			fprintf(stderr, "pcm_point = %i\n", pcm_point);
+			if(skipend && (track_state == end) && (pcm_point < audiobufsize))
+			/* if(skipend && (pcm_point < audiobufsize)) */
+			{
+				fprintf(stderr,"skipping %i bytes (%i samples) at end\n", (skipend*BYTES_PER_SAMPLE),skipend);
+				if(skipend <= pcmpoi) pcmpoi -= skipend*BYTES_PER_SAMPLE;
+				skipend = 0;
+				track_state = undef;
+			}
+			else if(skipbegin) /* track_state = begin */
+			/* else if(skipbegin && track_state == begin) */
+			{
+				fprintf(stderr,"skipping %i bytes (%i samples) at begin\n", (skipbegin*BYTES_PER_SAMPLE),skipbegin);
+				skipbegin = skipbegin*BYTES_PER_SAMPLE;
+				if(skipbegin <= pcm_point)
+				{
+					pcmsam += skipbegin;
+					pcmpoi -= skipbegin;
+				}
+				skipbegin = 0;
+				track_state = undef;
+			}
+		}
+		#else
+		#define pcmsam pcm_sample
+		#define pcmpoi pcm_point
+		#endif
 		switch(outmode)
 		{
 			case DECODE_FILE:
@@ -159,11 +168,11 @@ void audio_flush(int outmode, struct audio_info_struct *ai)
 			break;
 		}
 		pcm_point = 0;
+		#ifndef GAPLESS
+		#undef pcmpoi
+		#undef pcmsam
+		#endif
 	}
-	#ifndef GAPLESS
-	#undef pcmpoi
-	#undef pcmsam
-	#endif
 }
 
 #if !defined(WIN32) && !defined(GENERIC)
@@ -194,6 +203,7 @@ void read_frame_init (void)
 	abr_rate = 0;
 	skipbegin = 0;
 	skipend = 0;
+	track_state = undef;
 }
 
 int head_check(unsigned long head)
@@ -248,8 +258,14 @@ int read_frame(struct frame *fr)
   }
 
 read_again:
-  if(!rd->head_read(rd,&newhead))
-    return FALSE;
+	if(!rd->head_read(rd,&newhead))
+	{
+#ifdef GAPLESS
+		fprintf(stderr, "debug: track ended (or some other prob...)\n");
+		if(param.gapless) track_state = end;
+#endif
+		return FALSE;
+	}
 
 	/* this if wrap looks like dead code... */
   if(1 || oldhead != newhead || !oldhead)
@@ -373,8 +389,8 @@ init_resync:
   bsnum = (bsnum + 1) & 1;
   /* read main data into memory */
 	/* 0 is error! */
-  if(!rd->read_frame_body(rd,bsbuf,fr->framesize))
-    return 0;
+	if(!rd->read_frame_body(rd,bsbuf,fr->framesize))
+		return 0;
 	if(!firsthead)
 	{
 		firsthead = newhead; /* _now_ it's time to store it */
@@ -542,10 +558,11 @@ init_resync:
 								/*
 									Setting the values of skipping samples on begin/end for the first hack.
 									Note: It only works without resampling and not yet with multiple file playback...
-									I need to have a hook on file change (hm, flush buffer in read_frame_init?)
+									I need to have a hook on file change (is the track_state solution good?)
 								*/
 								skipbegin = DECODER_DELAY + ((((int) bsbuf[lame_offset]) << 4) | (((int) bsbuf[lame_offset+1]) >> 4));
 								skipend = -DECODER_DELAY + (((((int) bsbuf[lame_offset+1]) << 8) | (((int) bsbuf[lame_offset+2]))) & 0xfff);
+								track_state = begin;
 							}
 							#ifdef DEBUG_INFOTAG
 							fprintf(stderr,"Info: encoder delay = %i, padding = %i\n", encoder_delay, encoder_padding);

@@ -592,7 +592,9 @@ TRUE },
     {'w', "wav",         GLO_ARG | GLO_CHAR, set_wav, 0 , 0 },
     {0, "cdr",         GLO_ARG | GLO_CHAR, set_cdr, 0 , 0 },
     {0, "au",         GLO_ARG | GLO_CHAR, set_au, 0 , 0 },
+#ifdef GAPLESS
     {0,   "gapless",	 GLO_INT,   	             0, &param.gapless, 1},
+#endif
     {'?', "help",       0,              usage, 0,           0 },
     {0 , "longhelp" ,    0,        long_usage, 0,           0 },
     {0, 0, 0, 0, 0, 0}
@@ -1097,7 +1099,11 @@ tc_hack:
 			}
 #endif
 
-      }
+		}
+		#ifdef GAPLESS
+		/* make sure that the correct padding is skipped */
+		audio_flush(param.outmode, &ai);
+		#endif
 
 #ifndef NOXFERMEM
 	if(param.usebuffer) {
@@ -1255,7 +1261,11 @@ static void usage(char *dummy)  /* print syntax & exit */
 #endif
    fprintf(stderr,"   -z    shuffle play (with wildcards)  -Z    random play\n");
    fprintf(stderr,"   -u a  HTTP authentication string     -E f  Equalizer, data from file\n");
+#ifdef GAPLESS
    fprintf(stderr,"   -C    enable control keys            --gapless ...for 16bit layer3\n");
+#else
+   fprintf(stderr,"   -C    enable control keys\n");
+#endif
    fprintf(stderr,"See the manpage %s(1) or call %s with --longhelp for more information.\n", prgName,prgName);
    exit(1);
 }
@@ -1306,7 +1316,9 @@ static void long_usage(char *d)
   fprintf(o," -z     --shuffle          Shuffle song-list before playing\n");
   fprintf(o," -Z     --random           full random play\n");
   fprintf(o,"        --equalizer        Exp.: scales freq. bands acrd. to 'equalizer.dat'\n");
+#ifdef GAPLESS
   fprintf(o,"        --gapless          remove padding/junk added by encoder/decoder\n");
+#endif
   fprintf(o,"                           (needs Lame tag, only layer3 16bit)\n");
   fprintf(o,"        --aggressive       Tries to get higher priority (nice)\n");
   fprintf(o," -u     --auth             Set auth values for HTTP access\n");
