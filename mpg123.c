@@ -684,7 +684,7 @@ void play_frame(int init,struct frame *fr)
 					fr->down_sample+=2;
 				else {
 					fr->down_sample = 3;
-					fprintf(stderr,"Warning, flexibel rate not heavily tested!\n");
+					fprintf(stderr,"Warning, flexible rate not heavily tested!\n");
 				}
 				if(fr->down_sample > 3)
 					fr->down_sample = 3;
