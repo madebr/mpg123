@@ -50,6 +50,8 @@ int skipbegin = 0;
 int skipend = 0;
 /* I won't cover very short tracks that fit entirely into the decoder buffer. */
 enum { begin, end, undef } track_state = undef;
+/* not nice to have that here again */
+long track_rate = 40000; /* just something not 0 */
 
 unsigned char *pcm_sample;
 int pcm_point = 0;
@@ -108,7 +110,17 @@ static int skip_new_id3(struct reader *rds)
 	return length+6;
 }
 
-
+/* take into account: channels, bytes per sample, resampling (integer samples!) */
+int samples_to_bytes(int s, struct audio_info_struct* ai)
+{
+	/* rounding positive number... */
+	double sammy = (1.0*s) * (1.0*ai->rate)/track_rate;
+	double samf = floor(sammy);
+	return
+		(((ai->format & AUDIO_FORMAT_MASK) == AUDIO_FORMAT_16) ? 2 : 1)
+		* ai->channels
+		* (int) (((sammy - samf) > 0.5) ? samf+1 : samf);
+}
 
 void audio_flush(int outmode, struct audio_info_struct *ai)
 {
@@ -120,17 +132,15 @@ void audio_flush(int outmode, struct audio_info_struct *ai)
 		if(param.gapless && (track_state != undef))
 		/* if(param.gapless) */
 		{
-			#define	samples_to_bytes(s) ((((ai->format & AUDIO_FORMAT_MASK) == AUDIO_FORMAT_16) ? 2 : 1) * ai->channels * s)
 			/*
 				This is not safe! When track ends on audiobuf boundary, I'm screwed.
 				I need another buffer to make sure I have something to skip when the end message comes through.
 			*/
-			fprintf(stderr, "pcm_point = %i\n", pcm_point);
 			if(skipend && (track_state == end) && (pcm_point < audiobufsize))
 			/* if(skipend && (pcm_point < audiobufsize)) */
 			{
-				int bytes = samples_to_bytes(skipend);
-				fprintf(stderr,"skipping %i bytes (%i samples) at end\n", bytes, skipend);
+				int bytes = samples_to_bytes(skipend, ai);
+				fprintf(stderr,"Note: skipping %i bytes (%i input samples) at end.\n", bytes, skipend);
 				if(bytes <= pcmpoi) pcmpoi -= bytes;
 				skipend = 0;
 				track_state = undef;
@@ -138,8 +148,8 @@ void audio_flush(int outmode, struct audio_info_struct *ai)
 			else if(skipbegin) /* track_state = begin */
 			/* else if(skipbegin && track_state == begin) */
 			{
-				int bytes = samples_to_bytes(skipbegin);
-				fprintf(stderr,"skipping %i bytes (%i samples) at begin\n", bytes, skipbegin);
+				int bytes = samples_to_bytes(skipbegin, ai);
+				fprintf(stderr,"skipping %i bytes (%i input samples) at begin.\n", bytes, skipbegin);
 				if(bytes <= pcm_point)
 				{
 					pcmsam += bytes;
@@ -208,6 +218,7 @@ void read_frame_init (void)
 	skipbegin = 0;
 	skipend = 0;
 	track_state = undef;
+	/* not initializing track_rate since that is set along with skips */
 }
 
 int head_check(unsigned long head)
@@ -397,7 +408,6 @@ init_resync:
 		return 0;
 	if(!firsthead)
 	{
-		firsthead = newhead; /* _now_ it's time to store it */
 		/* following stuff is actually layer3 specific (in practice, not in theory) */
 		if(fr->lay == 3)
 		{
@@ -456,22 +466,27 @@ init_resync:
 						#ifdef DEBUG_INFOTAG
 						fprintf(stderr, "Xing: flags 0x%08lx\n", xing_flags);
 						#endif
-						unsigned long frames;
 						if(xing_flags & 1) /* frames */
 						{
-							frames = make_long(bsbuf, lame_offset);
-							lame_offset += 4;
 							#ifdef DEBUG_INFOTAG
+							/*
+								In theory, one should use that value for skipping...
+								When I know the exact number of samples I could simply count in audio_flush,
+								but that's problematic with seeking and such.
+								I still miss the real solution for detecting the end.
+							*/
+							unsigned long frames = make_long(bsbuf, lame_offset);
 							fprintf(stderr, "Xing: %lu frames\n", frames);
 							#endif
+							lame_offset += 4;
 						}
 						if(xing_flags & 0x2) /* bytes */
 						{
-							unsigned long xing_bytes = make_long(bsbuf, lame_offset);
-							lame_offset += 4;
 							#ifdef DEBUG_INFOTAG
+							unsigned long xing_bytes = make_long(bsbuf, lame_offset);
 							fprintf(stderr, "Xing: %lu bytes\n", xing_bytes);
 							#endif
+							lame_offset += 4;
 						}
 						if(xing_flags & 0x4) /* TOC */
 						{
@@ -479,7 +494,7 @@ init_resync:
 						}
 						if(xing_flags & 0x8) /* VBR quality */
 						{
-							unsigned long xing_quality = make_long(bsbuf, lame_offset);
+							/* unsigned long xing_quality = make_long(bsbuf, lame_offset); */
 							lame_offset += 4;
 							#ifdef DEBUG_INFOTAG
 							fprintf(stderr, "Xing: quality = %lu\n", xing_quality);
@@ -497,9 +512,9 @@ init_resync:
 							#endif
 							lame_offset += 9;
 							/* the 4 big bits are tag revision, the small bits vbr method */
-							unsigned char lame_rev = bsbuf[lame_offset] >> 4;
 							unsigned char lame_vbr = bsbuf[lame_offset] & 15;
 							#ifdef DEBUG_INFOTAG
+							unsigned char lame_rev = bsbuf[lame_offset] >> 4;
 							fprintf(stderr, "Info: rev %u\nInfo: vbr mode %u\n", lame_rev, lame_vbr);
 							#endif
 							lame_offset += 1;
@@ -516,8 +531,8 @@ init_resync:
 							lame_offset += 1;
 							/* replaygain */
 							/* 32bit int: peak amplitude */
-							unsigned long lame_peak = make_long(bsbuf,lame_offset);
 							#ifdef DEBUG_INFOTAG
+							unsigned long lame_peak = make_long(bsbuf,lame_offset);
 							fprintf(stderr, "Info: peak = %lu\n", lame_peak);
 							#endif
 							lame_offset += 4;
@@ -580,6 +595,8 @@ init_resync:
 				}
 			}
 		}
+		firsthead = newhead; /* _now_ it's time to store it... the first real header */
+		track_rate = freqs[fr->sampling_frequency];
 	}
   bsi.bitindex = 0;
   bsi.wordpointer = (unsigned char *) bsbuf;
