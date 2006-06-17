@@ -676,7 +676,7 @@ void play_frame(int init,struct frame *fr)
 			fr->down_sample = param.down_sample;
 			audio_fit_capabilities(&ai,fr->stereo,newrate);
 
-			/* check, whether the fitter setted our proposed rate */
+			/* check, whether the fitter set our proposed rate */
 			if(ai.rate != newrate) {
 				if(ai.rate == (newrate>>1) )
 					fr->down_sample++;
