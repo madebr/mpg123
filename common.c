@@ -320,15 +320,19 @@ init_resync:
       if((newhead & 0xffffff00) == ('T'<<24)+('A'<<16)+('G'<<8)) {
            rd->skip_bytes(rd,124);
 	   if (!param.quiet)
-             fprintf(stderr,"Skipped ID3 Tag!\n");
+             fprintf(stderr,"Note: Skipped ID3 Tag!\n");
            goto read_again;
       }
       if (!param.quiet)
-        fprintf(stderr,"Illegal Audio-MPEG-Header 0x%08lx at offset 0x%lx.\n",
+      {
+        fprintf(stderr,"Note: Illegal Audio-MPEG-Header 0x%08lx at offset 0x%lx.\n",
               newhead,rd->tell(rd)-4);
+        if((newhead & 0xffffff00) == ('b'<<24)+('m'<<16)+('p'<<8))
+        fprintf(stderr,"Note: Could be a BMP album art.\n");
+      }
       if (param.tryresync) {
         /* TODO: make this more robust, I'd like to cat two mp3 fragments together (in a dirty way) and still have mpg123 beign able to decode all it somehow. */
-        if(!param.quiet) fprintf(stderr, "Trying to resync...\n");
+        if(!param.quiet) fprintf(stderr, "Note: Trying to resync...\n");
         int try = 0;
             /* Read more bytes until we find something that looks
                reasonably like a valid header.  This is not a
@@ -345,7 +349,7 @@ init_resync:
         } while ((newhead & HDRCMPMASK) != (oldhead & HDRCMPMASK)
               && (newhead & HDRCMPMASK) != (firsthead & HDRCMPMASK));
         if (!param.quiet)
-          fprintf (stderr, "Skipped %d bytes in input.\n", try);
+          fprintf (stderr, "Note: Skipped %d bytes in input.\n", try);
       }
       else
         return (0);
