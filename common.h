@@ -24,3 +24,7 @@ extern struct bitstream_info bsi;
 #define DECODER_DELAY 529
 extern int skipbegin;
 extern int skipend;
+
+/* for control_generic */
+extern const char* remote_header_help;
+void make_remote_header(struct frame* fr, char *target);

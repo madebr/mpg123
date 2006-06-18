@@ -19,6 +19,7 @@
 #include <sys/socket.h>
 
 #include "mpg123.h"
+#include "common.h"
 
 #define MODE_STOPPED 0
 #define MODE_PLAYING 1
@@ -30,7 +31,7 @@ extern int tabsel_123[2][3][16];
 
 FILE *outstream;
 
-void generic_sendmsg (char *fmt, ...)
+void generic_sendmsg (const char *fmt, ...)
 {
 	va_list ap;
 	fprintf(outstream, "@");
@@ -40,37 +41,6 @@ void generic_sendmsg (char *fmt, ...)
 	fprintf(outstream, "\n");
 }
 
-static double compute_bpf (struct frame *fr)
-{
-	double bpf;
-	switch(fr->lay) {
-		case 1:
-			bpf = tabsel_123[fr->lsf][0][fr->bitrate_index];
-			bpf *= 12000.0 * 4.0;
-			bpf /= freqs[fr->sampling_frequency] << (fr->lsf);
-			break;
-		case 2:
-		case 3:
-			bpf = tabsel_123[fr->lsf][fr->lay-1][fr->bitrate_index];
-			bpf *= 144000;
-			bpf /= freqs[fr->sampling_frequency] << (fr->lsf);
-			break;
-		default:
-			bpf = 1.0;
-	}
-	return bpf;
-}
-
-static double compute_tpf (struct frame *fr)
-{
-	static int bs[4] = { 0, 384, 1152, 1152 };
-	double tpf;
-
-	tpf = (double) bs[fr->lay];
-	tpf /= freqs[fr->sampling_frequency] << (fr->lsf);
-	return tpf;
-}
-
 void generic_sendstat (struct frame *fr, int no)
 {
 	long buffsize;
@@ -78,10 +48,7 @@ void generic_sendstat (struct frame *fr, int no)
 	double dt = 0;
 	int sno, rno;
 
-	/* this and the 2 above functions are taken from common.c.
-	/ maybe the compute_* functions shouldn't be static there
-	/ so that they can also used here (performance problems?).
-	/ isn't there an easier way to compute the time? */
+	/* this is taken from common.c... need to take it back */
 
 	buffsize = xfermem_get_usedspace(buffermem);
 	if (!rd || !fr)
@@ -155,7 +122,8 @@ void control_generic (struct frame *fr)
  		
  	setlinebuf(outstream);
 	/* the command behaviour is different, so is the ID */
-	fprintf(outstream, "@R MPG123 (ThOr)\n");
+	/* now also with version for command availability */
+	fprintf(outstream, "@R MPG123 (ThOr) v2\n");
 
 	while (alive) {
 		tv.tv_sec = 0;
@@ -176,22 +144,9 @@ void control_generic (struct frame *fr)
 				}
 				play_frame(init,fr);
 				if (init) {
-					 static char *modes[4] = {"Stereo", "Joint-Stereo", "Dual-Channel", "Single-Channel"};
-					/* JMG */
-					generic_sendmsg("S %s %d %ld %s %d %d %d %d %d %d %d %d",
-						fr->mpeg25 ? "2.5" : (fr->lsf ? "2.0" : "1.0"),
-						fr->lay,
-						freqs[fr->sampling_frequency],
-						modes[fr->mode],
-						fr->mode_ext,
-						fr->framesize+4,
-						fr->stereo,
-						fr->copyright ? 1 : 0,
-						fr->error_protection ? 1 : 0,
-						fr->emphasis,
-						tabsel_123[fr->lsf][fr->lay-1][fr->bitrate_index],
-						fr->extension);
-					generic_sendmsg("%f", equalizer[0][0]);
+					static char tmp[1000];
+					make_remote_header(fr, tmp);
+					generic_sendmsg(tmp);
 					init = 0;
 				}
 				++framecnt;
@@ -305,6 +260,22 @@ void control_generic (struct frame *fr)
 					alive = FALSE; continue;
 				}
 
+				/* some HELP */
+				if (!strcasecmp(comstr, "H") || !strcasecmp(comstr, "HELP")) {
+					generic_sendmsg("HELP/H: command listing (LONG/SHORT forms), command case insensitve");
+					generic_sendmsg("LOAD/L <trackname>: load and start playing resource <trackname>");
+					generic_sendmsg("LOADPAUSED/LP <trackname>: load and start playing resource <trackname>");
+					generic_sendmsg("PAUSE/P: pause playback");
+					generic_sendmsg("STOP/S: stop playback (closes file)");
+					generic_sendmsg("JUMP/J <frame>: jump to mpeg frame <frame>");
+					generic_sendmsg("EQ/E <channenl> <band> <value>: set equalizer value for frequency band on channel");
+					generic_sendmsg("SEQ <bass> <mid> <treble>: simple eq setting...");
+					generic_sendmsg("SILENCE: be silent during playback (meaning silence in text form)");
+					generic_sendmsg("meaning of the @S stream info:");
+					generic_sendmsg(remote_header_help);
+					continue;
+				}
+
 				/* commands with arguments */
 				cmd = NULL;
 				arg = NULL;
@@ -314,7 +285,7 @@ void control_generic (struct frame *fr)
 				if (cmd && strlen(cmd) && arg && strlen(arg))
 				{
 					/* Simple EQ: SEQ <BASS> <MID> <TREBLE>  */
-					if (!strcasecmp(cmd, "S") || !strcasecmp(cmd, "SEQ")) {
+					if (!strcasecmp(cmd, "SEQ")) {
 						real b,m,t;
 						int cn;
 						have_eq_settings = TRUE;
@@ -441,6 +412,31 @@ void control_generic (struct frame *fr)
 						generic_sendmsg("P 2");
 						continue;
 					}
+
+					/* LOADPAUSED */
+					if (!strcasecmp(cmd, "LP") || !strcasecmp(cmd, "LOADPAUSED")) {
+						audio_flush(param.outmode, &ai);
+						if (mode != MODE_STOPPED) {
+							rd->close(rd);
+							mode = MODE_STOPPED;
+						}
+						if( open_stream(arg, -1) < 0 ){
+							generic_sendmsg("E Error opening stream: %s", arg);
+							generic_sendmsg("P 0");
+							continue;
+						}
+						if (rd && rd->flags & READER_ID3TAG)
+							generic_sendinfoid3((char *)rd->id3buf);
+						else
+							generic_sendinfo(arg);
+						mode = MODE_PAUSED;
+						init = 1;
+						framecnt = 0;
+						read_frame_init();
+						generic_sendmsg("P 1");
+						continue;
+					}
+
 					/* no command matched */
 					generic_sendmsg("E Unknown command: %s", cmd); /* unknown command */
 				} /* end commands with arguments */

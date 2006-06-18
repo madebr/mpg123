@@ -749,6 +749,29 @@ static int decode_header(struct frame *fr,unsigned long newhead)
     return 1;
 }
 
+/* concurring to print_rheader... here for control_generic */
+const char* remote_header_help = "S <mpeg-version> <layer> <sampling freq> <mode(stereo/mono/...)> <mode_ext> <framesize> <stereo> <copyright> <error_protected> <emphasis> <bitrate> <extension> <vbr(0/1=yes/no)>";
+void make_remote_header(struct frame* fr, char *target)
+{
+	/* redundancy */
+	static char *modes[4] = {"Stereo", "Joint-Stereo", "Dual-Channel", "Single-Channel"};
+	snprintf(target, 1000, "S %s %d %ld %s %d %d %d %d %d %d %d %d %d",
+		fr->mpeg25 ? "2.5" : (fr->lsf ? "2.0" : "1.0"),
+		fr->lay,
+		freqs[fr->sampling_frequency],
+		modes[fr->mode],
+		fr->mode_ext,
+		fr->framesize+4,
+		fr->stereo,
+		fr->copyright ? 1 : 0,
+		fr->error_protection ? 1 : 0,
+		fr->emphasis,
+		tabsel_123[fr->lsf][fr->lay-1][fr->bitrate_index],
+		fr->extension,
+		vbr);
+}
+
+
 #ifdef MPG123_REMOTE
 void print_rheader(struct frame *fr)
 {
@@ -938,7 +961,8 @@ double compute_bpf(struct frame *fr)
                         break;
                 case 2:
                 case 3:
-                        bpf = tabsel_123[fr->lsf][fr->lay-1][fr->bitrate_index];                        bpf *= 144000;
+                        bpf = tabsel_123[fr->lsf][fr->lay-1][fr->bitrate_index];
+                        bpf *= 144000;
                         bpf /= freqs[fr->sampling_frequency] << (fr->lsf);
                         break;
                 default:
