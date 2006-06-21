@@ -7,6 +7,8 @@
 PREFIX=/usr/local
 BINDIR=$(PREFIX)/bin
 MANDIR=$(PREFIX)/man
+MAKEFILE=Makefile.legacy
+MAKE=make -f $(MAKEFILE)
 SECTION=1
 PENTIUM_DECODE=decode_i586
 #PENTIUM_DECODE=decode_i586_dither
@@ -652,7 +654,7 @@ mpg123-make:
 mpg123: mpg123.o common.o $(OBJECTS) decode_2to1.o decode_4to1.o \
 		tabinit.o audio.o layer1.o layer2.o layer3.o buffer.o \
 		getlopt.o httpget.o xfermem.o equalizer.o \
-		decode_ntom.o Makefile wav.o readers.o getbits.o \
+		decode_ntom.o $(MAKEFILE) wav.o readers.o getbits.o \
 		control_generic.o
 	$(CC) $(CFLAGS) $(LDFLAGS)  mpg123.o tabinit.o common.o layer1.o \
 		layer2.o layer3.o audio.o buffer.o decode_2to1.o equalizer.o \
@@ -662,7 +664,7 @@ mpg123: mpg123.o common.o $(OBJECTS) decode_2to1.o decode_4to1.o \
 
 mpg123.exe: mpg123.o common.o $(OBJECTS) decode_2to1.o decode_4to1.o \
 		tabinit.o audio.o layer1.o layer2.o layer3.o buffer.o \
-		getlopt.o httpget.o Makefile wav.o readers.o getbits.o
+		getlopt.o httpget.o $(MAKEFILE) wav.o readers.o getbits.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o mpg123.exe -lm $(LIBS)
 
 ###########################################################################
