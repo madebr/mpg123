@@ -732,14 +732,3 @@ install:	prepared-for-install
 	chmod 755 $(BINDIR)/mpg123
 	cp -f mpg123.1 $(MANDIR)/man$(SECTION)
 	chmod 644 $(MANDIR)/man$(SECTION)/mpg123.1
-
-dist:	clean
-	DISTNAME="`basename \`pwd\``" ; \
-	sed '/prgDate/s_".*"_"'`date +%Y/%m/%d`'"_' version.h > version.new; \
-	mv -f version.new version.h; \
-	cd .. ; \
-	rm -f "$$DISTNAME".tar.gz "$$DISTNAME".tar ; \
-	tar cvf "$$DISTNAME".tar "$$DISTNAME" ; \
-	gzip -9 "$$DISTNAME".tar
-
-

@@ -185,7 +185,7 @@ void nas_createFlow(struct audio_info_struct *ai)
     info.buf_size = buf_samples * ai->channels * AuSizeofFormat(format);
     info.buf = (char *) malloc(info.buf_size);
     if (info.buf == NULL) {
-        fprintf(stderr, "Unable to allocate input/output buffer of size %ld\n",
+        fprintf(stderr, "Unable to allocate input/output buffer of size %d\n",
              info.buf_size);
         exit(1);
     }

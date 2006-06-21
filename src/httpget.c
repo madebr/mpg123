@@ -6,8 +6,6 @@
  *
  */
 
-#undef ALSA
-
 #if !defined(WIN32) && !defined(GENERIC)
 
 #include <stdlib.h>
@@ -22,6 +20,10 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <ctype.h>
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include "mpg123.h"
 
@@ -268,13 +270,13 @@ int http_open (char *url)
 	}
 
 	/* "GET http://"		11
-	 * " HTTP/1.0\r\nUser-Agent: <prgName>/<prgVersion>\r\n"
-	 * 				26 + prgName + prgVersion
+	 * " HTTP/1.0\r\nUser-Agent: <PACKAGE_NAME>/<PACKAGE_VERSION>\r\n"
+	 * 				26 + PACKAGE_NAME + PACKAGE_VERSION
 	 * ACCEPT_HEAD               strlen(ACCEPT_HEAD)
 	 * "Authorization: Basic \r\n"	23
 	 * "\r\n"			 2
 	 */
-	linelengthbase = 62 + strlen(prgName) + strlen(prgVersion)
+	linelengthbase = 62 + strlen(PACKAGE_NAME) + strlen(PACKAGE_VERSION)
 	                 + strlen(ACCEPT_HEAD);
 
 	if(httpauth) {
@@ -386,7 +388,7 @@ int http_open (char *url)
 
 		sprintf (request + strlen(request),
 		         " HTTP/1.0\r\nUser-Agent: %s/%s\r\n",
-			 prgName, prgVersion);
+			 PACKAGE_NAME, PACKAGE_VERSION);
 		if (host) {
 			sprintf(request + strlen(request),
 			        "Host: %s:%u\r\n", host, myport);

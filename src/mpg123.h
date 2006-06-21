@@ -218,7 +218,6 @@ extern int have_eq_settings;
 extern int halfspeed;
 extern int buffer_fd[2];
 extern txfermem *buffermem;
-extern char *prgName, *prgVersion;
 
 #ifndef NOXFERMEM
 extern void buffer_loop(struct audio_info_struct *ai,sigset_t *oldsigset);

@@ -33,13 +33,10 @@
 #include "buffer.h"
 #include "term.h"
 
-#include "version.h"
-
 static void usage(char *dummy);
 static void long_usage(char *);
 static void print_title(void);
 
-int j;
 
 struct parameter param = { 
   FALSE , /* aggressiv */
@@ -75,6 +72,7 @@ struct parameter param = {
 #endif
 };
 
+char *prgName = NULL;
 char *listname = NULL;
 char *listnamedir = NULL;
 char *equalfile = NULL;
@@ -873,6 +871,7 @@ int main(int argc, char *argv[])
 	unsigned long secdiff;
 #endif	
 	int init;
+	int j;
 
 #ifdef OS2
         _wildcard(&argc,&argv);
@@ -1223,7 +1222,7 @@ tc_hack:
 static void print_title(void)
 {
     fprintf(stderr,"High Performance MPEG 1.0/2.0 Audio Player for Layer 1, 2 and 3.\n");
-    fprintf(stderr,"Version %s (%s). Initially written and copyrights by Michael Hipp.\n", prgVersion, prgDate);
+    fprintf(stderr,"Version %s. Initially written and copyright by Michael Hipp.\n", PACKAGE_VERSION);
     fprintf(stderr,"Uses code from various people. See 'README' for more!\n");
     fprintf(stderr,"THIS SOFTWARE COMES WITH ABSOLUTELY NO WARRANTY! USE AT YOUR OWN RISK!\n");
 }
