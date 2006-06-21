@@ -8,7 +8,7 @@ PREFIX=/usr/local
 BINDIR=$(PREFIX)/bin
 MANDIR=$(PREFIX)/man
 MAKEFILE=Makefile.legacy
-MAKE=$(MAKE) -f $(MAKEFILE)
+MAKE=make -f $(MAKEFILE)
 SECTION=1
 PENTIUM_DECODE=decode_i586
 #PENTIUM_DECODE=decode_i586_dither
@@ -59,7 +59,7 @@ linux-help:
 	@echo ""
 	@echo "There are several Linux flavours. Choose one:"
 	@echo ""
-	@echo "make linux          Linux (any supported architecture)
+	@echo "make linux          Linux (any supported architecture)"
 	@echo "make linux-x86      Linux/x86 (i386, Pentium or unlisted platform)"
 	@echo "make linux-i486     Linux/x86 (optimized for i486 ONLY)"
 	@echo "make linux-3dnow    Linux/x86, output 3DNow!(TM) optimized code"
