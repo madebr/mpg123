@@ -1,0 +1,95 @@
+
+AM_CFLAGS = @AUDIO_CFLAGS@
+AM_LDFLAGS = @AUDIO_LIBS@
+mpg123_LDADD = @AUDIO_OBJ@ @CPU_TYPE_LIB@
+mpg123_DEPENDENCIES = @AUDIO_OBJ@ @CPU_TYPE_LIB@
+
+
+bin_PROGRAMS = mpg123
+mpg123_SOURCES = \
+	audio.c \
+	buffer.c \
+	buffer.h \
+	common.c \
+	common.h \
+	control_generic.c \
+	decode_2to1.c \
+	decode_4to1.c \
+	decode_ntom.c \
+	equalizer.c \
+	getbits.c \
+	getbits.h \
+	getlopt.c \
+	getlopt.h \
+	httpget.c \
+	huffman.h \
+	l2tables.h \
+	layer1.c \
+	layer2.c \
+	layer3.c \
+	mpg123.c \
+	mpg123.h \
+	readers.c \
+	tabinit.c \
+	term.c \
+	term.h \
+	wav.c \
+	xfermem.c \
+	xfermem.h
+
+EXTRA_mpg123_SOURCES = \
+	audio_aix.c \
+	audio_alib.c \
+	audio_alsa.c \
+	audio_dummy.c \
+	audio_esd.c \
+	audio_hp.c \
+	audio_jack.c \
+	audio_macosx.c \
+	audio_libao.c \
+	audio_mint.c \
+	audio_nas.c \
+	audio_os2.c \
+	audio_oss.c \
+	audio_sgi.c \
+	audio_sun.c \
+	audio_win32.c
+
+
+
+# Processor dependent decoder code
+EXTRA_LIBRARIES = \
+	libcpu_generic.a \
+	libcpu_i386.a \
+	libcpu_i486.a \
+	libcpu_i586.a \
+	libcpu_3dnow.a
+
+libcpu_generic_a_SOURCES = \
+	decode.c \
+	dct64.c
+
+libcpu_i386_a_SOURCES = \
+	decode_i386.c \
+	dct64_i386.c
+
+libcpu_i486_a_SOURCES = \
+	decode_i386.c \
+	dct64_i386.c \
+	decode_x86.s
+
+libcpu_i586_a_SOURCES = \
+	decode_i386.c \
+	dct64_i386.c \
+	decode_x86.s
+
+libcpu_3dnow_a_SOURCES = \
+	decode_i386.c \
+	decode_3dnow.s \
+	decode_x86.s \
+	dct64_i386.c \
+	dct64_3dnow.s \
+	dct36_3dnow.s \
+	equalizer_3dnow.s \
+	getcpuflags.s
+

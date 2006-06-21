@@ -1,0 +1,16 @@
+
+AUTOMAKE_OPTIONS = foreign
+
+dist_man_MANS = mpg123.1
+
+SUBDIRS = src
+
+EXTRA_DIST = \
+	BENCHMARKING \
+	BUGS \
+	COPYING \
+	README.3DNOW \
+	README.WIN32 \
+	README.remote \
+	TODO
+	

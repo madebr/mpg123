@@ -169,7 +169,7 @@ struct parameter {
   long usebuffer;	/* second level buffer size */
   int tryresync;  /* resync stream after error */
   int verbose;    /* verbose level */
-#ifdef TERM_CONTROL
+#ifdef HAVE_TERMIOS
   int term_ctrl;
 #endif
   int force_mono;

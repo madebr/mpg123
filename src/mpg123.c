@@ -6,6 +6,11 @@
  *
  */
 
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdlib.h>
 #include <sys/types.h>
 #if !defined(WIN32) && !defined(GENERIC)
@@ -19,12 +24,7 @@
 #include <fcntl.h>
 #include <time.h>
 
-#ifndef NO_RT 
-#define SET_RT
-#endif
-
-
-#ifdef SET_RT
+#ifdef HAVE_SCHED_H
 #include <sched.h>
 #endif
 
@@ -52,7 +52,7 @@ struct parameter param = {
   0 ,     /* second level buffer size */
   TRUE ,  /* resync after stream error */
   0 ,     /* verbose level */
-#ifdef TERM_CONTROL
+#ifdef HAVE_TERMIOS
   FALSE , /* term control */
 #endif
   -1 ,     /* force mono */
@@ -187,7 +187,7 @@ void init_output(void)
     switch ((buffer_pid = fork())) {
       case -1: /* error */
         perror("fork()");
-#ifdef TERM_CONTROL
+#ifdef HAVE_TERMIOS
 	if(param.term_ctrl)
 		term_restore();
 #endif
@@ -210,7 +210,7 @@ void init_output(void)
 	/* + 1024 for NtoM rate converter */
     if (!(pcm_sample = (unsigned char *) malloc(audiobufsize * 2 + 1024))) {
       perror ("malloc()");
-#ifdef TERM_CONTROL
+#ifdef HAVE_TERMIOS
       if(param.term_ctrl)
       	term_restore();
 #endif
@@ -224,7 +224,7 @@ void init_output(void)
     case DECODE_AUDIO:
       if(audio_open(&ai) < 0) {
         perror("audio");
-#ifdef TERM_CONTROL
+#ifdef HAVE_TERMIOS
 	if(param.term_ctrl)
 		term_restore();
 #endif
@@ -309,7 +309,7 @@ char *find_next_file (int argc, char *argv[])
             }
             else if (!(listfile = fopen(listname, "rb"))) {
                 perror (listname);
-#ifdef TERM_CONTROL
+#ifdef HAVE_TERMIOS
 		if(param.term_ctrl)
 			term_restore();
 #endif
@@ -490,9 +490,9 @@ static void SetOutStdout1(char *Arg)
   OutputDescriptor=1;
 }
 
-void not_compiled(char *arg)
+void realtime_not_compiled(char *arg)
 {
-  fprintf(stderr,"Option '-T / --realtime' not compiled into this binary\n");
+  fprintf(stderr,"Option '-T / --realtime' not compiled into this binary.\n");
 }
 
 /* Please note: GLO_NUM expects point to LONG! */
@@ -552,9 +552,8 @@ FALSE},
     {'o', "output",      GLO_ARG | GLO_CHAR, set_output, 0,  0},
     {'f', "scale",       GLO_ARG | GLO_LONG, 0, &outscale,   0},
     {'n', "frames",      GLO_ARG | GLO_LONG, 0, &numframes,  0},
-#ifdef TERM_CONTROL
-    {'C', "control",	 GLO_INT,		     0, &param.term_ctrl, 
-TRUE},
+#ifdef HAVE_TERMIOS
+    {'C', "control",	 0,		     0, &param.term_ctrl, TRUE},
 #endif
     {'b', "buffer",      GLO_ARG | GLO_LONG, 0, &param.usebuffer,  0},
     {'R', "remote",      GLO_INT,                  0, &param.remote,     
@@ -571,27 +570,23 @@ TRUE},
     {'Z', "random",      GLO_INT,                  0, &param.shuffle,    
 2},
     {'E', "equalizer",	 GLO_ARG | GLO_CHAR, 0, &equalfile,1},
-    {0,   "aggressive",	 GLO_INT,   	             0, 
-&param.aggressive,2},
+#ifdef HAVE_SETPRIORITY
+    {0,   "aggressive",	 0,   	             0, &param.aggressive, 2},
+#endif
 #ifdef USE_3DNOW
-    {0,   "force-3dnow", GLO_INT,                  0, 
-&param.stat_3dnow,1},
-    {0,   "no-3dnow",    GLO_INT,                  0, 
-&param.stat_3dnow,2},
-    {0,   "test-3dnow",  GLO_INT,                  0, 
-&param.test_3dnow,TRUE},
+    {0,   "force-3dnow", 0,                  0, &param.stat_3dnow,1},
+    {0,   "no-3dnow",    0,                  0, &param.stat_3dnow,2},
+    {0,   "test-3dnow",  0,                  0, &param.test_3dnow,TRUE},
 #endif
 #if !defined(WIN32) && !defined(GENERIC)
     {'u', "auth",        GLO_ARG | GLO_CHAR, 0, &httpauth,   0},
 #endif
-#if defined(SET_RT)
-    {'T', "realtime",    GLO_LONG,                  0, &param.realtime, 
-TRUE },
+#ifdef HAVE_SCHED_SETSCHEDULER
+    {'T', "realtime",    0,                  0, &param.realtime, TRUE },
 #else
-    {'T', "realtime",    0,       not_compiled, 0,           0 },    
+    {'T', "realtime",    0,       realtime_not_compiled, 0,           0 },    
 #endif
-    {0, "title",         GLO_INT,                  0, &param.xterm_title, 
-TRUE },
+    {0, "title",         0,                  0, &param.xterm_title, TRUE },
     {'w', "wav",         GLO_ARG | GLO_CHAR, set_wav, 0 , 0 },
     {0, "cdr",         GLO_ARG | GLO_CHAR, set_cdr, 0 , 0 },
     {0, "au",         GLO_ARG | GLO_CHAR, set_au, 0 , 0 },
@@ -640,7 +635,7 @@ static void reset_audio(void)
 		audio_close (&ai);
 		if (audio_open(&ai) < 0) {
 			perror("audio");
-#ifdef TERM_CONTROL
+#ifdef HAVE_TERMIOS
 			if(param.term_ctrl)
 				term_restore();
 #endif
@@ -655,7 +650,6 @@ static void reset_audio(void)
  *
  * needs a major rewrite .. it's incredible ugly!
  */
- 
 void play_frame(int init,struct frame *fr)
 {
 	int clip;
@@ -983,14 +977,14 @@ int main(int argc, char *argv[])
 			fprintf(stderr,"Can't open equalizer file '%s'\n",equalfile);
 	}
 
-#if !defined(WIN32) && !defined(GENERIC) && !defined(MINT) && !defined(__EMX__) && !defined(OS2)
+#ifdef HAVE_SETPRIORITY
 	if(param.aggressive) { /* tst */
 		int mypid = getpid();
 		setpriority(PRIO_PROCESS,mypid,-20);
 	}
 #endif
 
-#ifdef SET_RT
+#ifdef HAVE_SCHED_SETSCHEDULER
 	if (param.realtime) {  /* Get real-time priority */
 	  struct sched_param sp;
 	  fprintf(stderr,"Getting real-time priority\n");
@@ -1049,7 +1043,7 @@ int main(int argc, char *argv[])
 		}
 
 #if !defined(WIN32) && !defined(GENERIC)
-#ifdef TERM_CONTROL
+#ifdef HAVE_TERMIOS
 		if(!param.term_ctrl)
 #endif
 			gettimeofday (&start_time, NULL);
@@ -1058,13 +1052,13 @@ int main(int argc, char *argv[])
 
 		init = 1;
 		newFrame = startFrame;
-#ifdef TERM_CONTROL
+#ifdef HAVE_TERMIOS
 		if(param.term_ctrl)
 			term_init();
 #endif
 		leftFrames = numframes;
 		for(frameNum=0;read_frame(&fr) && leftFrames && !intflag;frameNum++) {
-#ifdef TERM_CONTROL			
+#ifdef HAVE_TERMIOS			
 tc_hack:
 #endif
 			if(frameNum < startFrame || (param.doublespeed && (frameNum % param.doublespeed))) {
@@ -1088,7 +1082,7 @@ tc_hack:
 					print_stat(&fr,frameNum,0,&ai);
 #endif
 			}
-#ifdef TERM_CONTROL
+#ifdef HAVE_TERMIOS
 			if(!param.term_ctrl) {
 				continue;
 			} else {
@@ -1119,7 +1113,7 @@ tc_hack:
 			
 			if(param.verbose)
 				print_stat(&fr,frameNum,s,&ai);
-#ifdef TERM_CONTROL
+#ifdef HAVE_TERMIOS
 			if(param.term_ctrl) {
 				long offset;
 				if((offset=term_control(&fr))) {
@@ -1139,7 +1133,7 @@ tc_hack:
 #endif
 	if(param.verbose)
 		print_stat(&fr,frameNum,xfermem_get_usedspace(buffermem),&ai); 
-#ifdef TERM_CONTROL
+#ifdef HAVE_TERMIOS
 	if(param.term_ctrl)
 		term_restore();
 #endif
@@ -1167,12 +1161,12 @@ tc_hack:
       if (intflag) {
 
 /* 
- * When using TERM_CONTROL, there is 'q' to terminate a list of songs, so
+ * When HAVE_TERMIOS is defined, there is 'q' to terminate a list of songs, so
  * no pressing need to keep up this first second SIGINT hack that was too
  * often mistaken as a bug. [dk]
  */
 #if !defined(WIN32) && !defined(GENERIC)
-#ifdef TERM_CONTROL
+#ifdef HAVE_TERMIOS
 	if(!param.term_ctrl)
 #endif
         {
@@ -1258,7 +1252,7 @@ static void usage(char *dummy)  /* print syntax & exit */
    fprintf(stderr,"   -d n  play every n'th frame only     -h n  play every frame n times\n");
    fprintf(stderr,"   -0    decode channel 0 (left) only   -1    decode channel 1 (right) only\n");
    fprintf(stderr,"   -m    mix both channels (mono)       -p p  use HTTP proxy p [$HTTP_PROXY]\n");
-#ifdef SET_RT
+#ifdef HAVE_SCHED_SETSCHEDULER
    fprintf(stderr,"   -@ f  read filenames/URLs from f     -T get realtime priority\n");
 #else
    fprintf(stderr,"   -@ f  read filenames/URLs from f\n");
@@ -1306,7 +1300,7 @@ static void long_usage(char *d)
   fprintf(o," -f <n> --scale <n>        Scale output samples (soft gain)\n");
   fprintf(o," -n     --frames <n>       Play only <n> frames of every stream\n");
   fprintf(o," -b <n> --buffer <n>       Set play buffer (\"output cache\")\n");
-#ifdef TERM_CONTROL
+#ifdef HAVE_TERMIOS
   fprintf(o," -C     --control          Enable control keys\n");
 #endif
 #if 1
@@ -1324,9 +1318,11 @@ static void long_usage(char *d)
   fprintf(o,"        --gapless          remove padding/junk added by encoder/decoder\n");
   fprintf(o,"                           (experimental, needs Lame tag, layer 3 only)\n");
 #endif
+#ifdef HAVE_SETPRIORITY
   fprintf(o,"        --aggressive       Tries to get higher priority (nice)\n");
+#endif
   fprintf(o," -u     --auth             Set auth values for HTTP access\n");
-#if defined(SET_RT)
+#ifdef HAVE_SCHED_SETSCHEDULER
   fprintf(o," -T     --realtime         Tries to get realtime priority\n");
 #endif
   fprintf(o," -w <f> --wav <f>          Writes samples as WAV file in <f> (- is stdout)\n");

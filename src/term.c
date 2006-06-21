@@ -1,5 +1,9 @@
 
-#ifdef TERM_CONTROL
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef HAVE_TERMIOS
 
 #include <termios.h>
 #include <unistd.h>
