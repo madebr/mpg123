@@ -1,4 +1,4 @@
 #!/bin/sh
 
 cd src
-exec make -f Makefile $*
+exec make -f Makefile.legacy $*
