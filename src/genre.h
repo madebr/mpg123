@@ -1,3 +1,7 @@
+
+#ifndef _MPG123_GENRE_H_
+#define _MPG123_GENRE_H_
+
 char *genre_table[] =
 {
 	"Blues",
@@ -261,3 +265,5 @@ char *genre_table[] =
 };
 
 const int genre_count = ((int)(sizeof(genre_table)/sizeof(char*))-1);
+
+#endif

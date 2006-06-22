@@ -1,6 +1,10 @@
 
 #include "config.h"
 
+
+#ifndef _MPG123_TERM_H_
+#define _MPG123_TERM_H_
+
 #ifdef HAVE_TERMIOS
 
 #define LOOP_CYCLES	0.500000	/* Loop time in sec */
@@ -38,5 +42,7 @@
 void term_init(void);
 long term_control(struct frame *fr);
 void term_restore(void);
+
+#endif
 
 #endif

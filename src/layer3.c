@@ -1130,8 +1130,9 @@ maybe still wrong??? (copy 12 to 13?) */
       } 
       else { /* ((gr_info->block_type != 2)) */
         int sfb = gr_info->maxbandl;
+        int is_p,idx;
         if(sfb > 21) return; /* tightened fix for CVE-2006-1655 */
-        int is_p,idx = bi->longIdx[sfb];
+        idx = bi->longIdx[sfb];
         for ( ; sfb<21; sfb++) {
           int sb = bi->longDiff[sfb];
           is_p = scalefac[sfb]; /* scale: 0-15 */

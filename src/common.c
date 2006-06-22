@@ -90,7 +90,8 @@ static int decode_header(struct frame *fr,unsigned long newhead);
 static int skip_new_id3(struct reader *rds)
 {
 	unsigned char buf[6];
-
+	unsigned long length=0;
+	
 	if(!rds->read_frame_body(rds,buf,6))       /* read more header information */
 	return 0;
 
@@ -99,11 +100,10 @@ static int skip_new_id3(struct reader *rds)
 
 	/* 4 synchsafe integers == 28 bit number  */
 	if( (buf[2]|buf[3]|buf[4]|buf[5]) & 0x80) return -1;
-	unsigned long length =
-	  (((unsigned long) buf[2]) << 27)
-	| (((unsigned long) buf[3]) << 14)
-	| (((unsigned long) buf[4]) << 7)
-	| ((unsigned long) buf[5]);
+	length =  (((unsigned long) buf[2]) << 27)
+			| (((unsigned long) buf[3]) << 14)
+			| (((unsigned long) buf[4]) << 7)
+			| ((unsigned long) buf[5]);
 	if(!rds->skip_bytes(rds,length)) /* will not store data in backbuff! */
 	return 0;
 
@@ -362,9 +362,9 @@ init_resync:
         fprintf(stderr,"Note: Could be a BMP album art.\n");
       }
       if (param.tryresync) {
+        int try = 0;
         /* TODO: make this more robust, I'd like to cat two mp3 fragments together (in a dirty way) and still have mpg123 beign able to decode all it somehow. */
         if(!param.quiet) fprintf(stderr, "Note: Trying to resync...\n");
-        int try = 0;
             /* Read more bytes until we find something that looks
                reasonably like a valid header.  This is not a
                perfect strategy, but it should get us back on the
@@ -452,6 +452,8 @@ init_resync:
 					}
 					if(lame_type)
 					{
+						unsigned long xing_flags;
+						
 						/* we have one of these headers... */
 						if(!param.quiet) fprintf(stderr, "Note: Xing/Lame/Info header detected\n");
 						/* now interpret the Xing part, I have 120 bytes total for sure */
@@ -461,7 +463,7 @@ init_resync:
 						#define make_long(a, o) ((((unsigned long) a[o]) << 24) | (((unsigned long) a[o+1]) << 16) | (((unsigned long) a[o+2]) << 8) | ((unsigned long) a[o+3]))
 						/* 16 bit */
 						#define make_short(a,o) ((((unsigned short) a[o]) << 8) | ((unsigned short) a[o+1]))
-						unsigned long xing_flags = make_long(bsbuf, lame_offset);
+						xing_flags = make_long(bsbuf, lame_offset);
 						lame_offset += 4;
 						#ifdef DEBUG_INFOTAG
 						fprintf(stderr, "Xing: flags 0x%08lx\n", xing_flags);
@@ -504,6 +506,8 @@ init_resync:
 						/* there may this crc16 be floating around... (?) */
 						if(bsbuf[lame_offset] != 0)
 						{
+							unsigned char lame_vbr;
+							float replay_gain[2] = {0,0};
 							char nb[10];
 							memcpy(nb, bsbuf+lame_offset, 9);
 							nb[9] = 0;
@@ -512,10 +516,9 @@ init_resync:
 							#endif
 							lame_offset += 9;
 							/* the 4 big bits are tag revision, the small bits vbr method */
-							unsigned char lame_vbr = bsbuf[lame_offset] & 15;
+							lame_vbr = bsbuf[lame_offset] & 15;
 							#ifdef DEBUG_INFOTAG
-							unsigned char lame_rev = bsbuf[lame_offset] >> 4;
-							fprintf(stderr, "Info: rev %u\nInfo: vbr mode %u\n", lame_rev, lame_vbr);
+							fprintf(stderr, "Info: rev %u\nInfo: vbr mode %u\n", bsbuf[lame_offset] >> 4, lame_vbr);
 							#endif
 							lame_offset += 1;
 							switch(lame_vbr)
@@ -532,8 +535,7 @@ init_resync:
 							/* replaygain */
 							/* 32bit int: peak amplitude */
 							#ifdef DEBUG_INFOTAG
-							unsigned long lame_peak = make_long(bsbuf,lame_offset);
-							fprintf(stderr, "Info: peak = %lu\n", lame_peak);
+							fprintf(stderr, "Info: peak = %lu\n", make_long(bsbuf,lame_offset));
 							#endif
 							lame_offset += 4;
 							/*
@@ -543,7 +545,7 @@ init_resync:
 								radio 0 0 1 0 1 1 1 0 0 1 1 1 1 1 0 1
 								audiophile 0 1 0 0 1 0 0 0 0 0 0 1 0 1 0 0
 							*/
-							float replay_gain[2] = {0,0};
+							
 							for(i =0; i < 2; ++i)
 							{
 								unsigned char origin = (bsbuf[lame_offset] >> 2) & 0x7; /* the 3 bits after that... */

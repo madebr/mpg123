@@ -6,6 +6,10 @@
  * smaller tables are often the part of a bigger table
  */
 
+
+#ifndef _MPG123_HUFFMAN_H_
+#define _MPG123_HUFFMAN_H_
+
 struct newhuff 
 {
   unsigned int linbits;
@@ -330,3 +334,4 @@ static struct newhuff htc[] =
 };
 
 
+#endif

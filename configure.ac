@@ -124,7 +124,7 @@ PKG_CHECK_MODULES(ESOUND, esound, HAVE_ESOUND=yes, HAVE_ESOUND=no)
 dnl ############## Header Checks
 
 AC_HEADER_STDC
-AC_CHECK_HEADERS([stdlib.h string.h unistd.h sched.h])
+AC_CHECK_HEADERS([stdlib.h string.h unistd.h sched.h sys/ioctl.h])
 
 
 # NAS (Network Audio System)
@@ -132,6 +132,9 @@ AC_CHECK_HEADERS([audio/audiolib.h audio/soundlib.h], HAVE_NAS=yes, HAVE_NAS=no)
 
 # OSS Header files
 AC_CHECK_HEADERS([sys/soundcard.h linux/soundcard.h machine/soundcard.h])
+
+# Sun Audio headers
+AC_CHECK_HEADERS([sun/audioio.h sys/audioio.h asm/audioio.h sys/audio.h])
 
 # Mac OS X
 AC_CHECK_HEADERS([CoreAudio/CoreAudio.h], HAVE_COREAUDIO=yes, HAVE_COREAUDIO=no)
@@ -141,7 +144,8 @@ AC_CHECK_HEADERS([CoreAudio/CoreAudio.h], HAVE_COREAUDIO=yes, HAVE_COREAUDIO=no)
 
 dnl ############## Choose compiler flags and CPU
 
-CFLAGS="$CFLAGS -Wall -std=c99"
+CFLAGS="$CFLAGS -Wall"
+LIBS="$LIBS"
 
 # If debugging is enabled then make warnings errors
 if test "$debugging" = "enabled"; then
@@ -174,8 +178,13 @@ case $target in
     cpu_type="generic"
     CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
   ;;
+  *-sun-solaris*)
+    cpu_type="generic"
+    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
+    LIBS="$LIBS -lsocket -lnsl"
+  ;;
   *)
-  	AC_MSG_WARN("Unknown target operating system")
+  	AC_MSG_WARN([Unknown target operating system])
     cpu_type="generic"
     CFLAGS="$CFLAGS -DGENERIC"
   ;;
@@ -277,6 +286,9 @@ case $target in
   *-apple-darwin*)
     audio_system="macosx"
   ;;
+  *-sun-*)
+    audio_system="sun"
+  ;;
   *)
   	audio_system="dummy"
   ;;
@@ -347,11 +359,21 @@ case $audio_system in
 		AUDIO_CFLAGS=''
 		AUDIO_LIBS=''
 	else 
-		AC_MSG_ERROR( Can't find OSS header files )
+		AC_MSG_ERROR([Can't find OSS header files])
 	fi
   ;;
   sgi)  ;;
-  sun)  ;;
+  sun)
+    if test "x${ac_cv_header_sun_audioio_h}" = "xyes" \
+         -o "x${ac_cv_header_sys_audioio_h}" = "xyes" \
+         -o "x${ac_cv_header_asm_audioio_h}" = "xyes";
+    then
+		AUDIO_CFLAGS=''
+		AUDIO_LIBS=''
+	else 
+		AC_MSG_ERROR([Can't find Sun Audio header files])
+	fi
+  ;;
   *)
   	AC_MSG_ERROR([Unknown Audio sub-system '$audio_system'.])
   ;;
@@ -384,6 +406,7 @@ echo "
   
 if test "$debugging" = "enabled"; then
 	echo "CFLAGS='$CFLAGS'"
+	echo "LIBS='$LIBS'"
 	echo "AUDIO_CFLAGS='$AUDIO_CFLAGS'"
 	echo "AUDIO_LIBS='$AUDIO_LIBS'"
 else

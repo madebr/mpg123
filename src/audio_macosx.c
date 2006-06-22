@@ -154,7 +154,6 @@ int fillBuffer(aBuffer * b, short * source, long size)
 	
 	dest = b->buffer;
 	while(size--)
-		//*dest++ = ((*source++) + 32768) / 65536.0;
 		*dest++ = (*source++) / 32768.0;
 	
 	b->ptr = b->buffer;

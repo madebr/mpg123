@@ -2,6 +2,10 @@
  * Audio 'LIB' defines
  */
 
+
+#ifndef _MPG123_AUDIO_H_
+#define _MPG123_AUDIO_H_
+
 #define AUDIO_OUT_HEADPHONES       0x01
 #define AUDIO_OUT_INTERNAL_SPEAKER 0x02
 #define AUDIO_OUT_LINE_OUT         0x04
@@ -71,4 +75,6 @@ extern int audio_get_formats(struct audio_info_struct *);
 extern int audio_play_samples(struct audio_info_struct *, unsigned char *,int);
 extern void audio_queueflush(struct audio_info_struct *ai);
 extern int audio_close(struct audio_info_struct *);
+
+#endif
 

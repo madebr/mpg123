@@ -12,6 +12,11 @@
  *   processes through a socketpair.  See xftest.c for an example on
  *   how to use this module.
  */
+ 
+ 
+
+#ifndef _XFERMEM_H_
+#define _XFERMEM_H_
 
 #ifndef TRUE
 #define FALSE 0
@@ -57,4 +62,5 @@ void xfermem_done (txfermem *xf);
 #define xfermem_done_writer xfermem_init_reader
 #define xfermem_done_reader xfermem_init_writer
 
-/* EOF */
+
+#endif 

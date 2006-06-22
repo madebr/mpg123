@@ -5,9 +5,14 @@
  * 01/28/99 [dk]
  */
 
+#ifndef _MPG123_BUFFER_H_
+#define _MPG123_BUFFER_H_
+
 void buffer_ignore_lowmem(void);
 void buffer_end(void);
 void buffer_resync(void);
 void buffer_reset(void);
 void buffer_start(void);
 void buffer_stop(void);
+
+#endif

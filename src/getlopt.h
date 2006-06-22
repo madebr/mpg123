@@ -8,6 +8,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+
+#ifndef _MPG123_GETLOPT_H_
+#define _MPG123_GETLOPT_H_
+
 extern int loptind;	/* index in argv[] */
 extern int loptchr;	/* index in argv[loptind] */
 extern char *loptarg;	/* points to argument if present, else to option */
@@ -66,4 +70,5 @@ int getlopt (int argc, char *argv[], topt *opts);
  *	else - return value according to flags (see above)
  */
 
-/* EOF */
+
+#endif

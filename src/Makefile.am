@@ -10,6 +10,7 @@ EXTRA_DIST = Makefile.legacy
 bin_PROGRAMS = mpg123
 mpg123_SOURCES = \
 	audio.c \
+	audio.h \
 	buffer.c \
 	buffer.h \
 	common.c \
@@ -25,6 +26,7 @@ mpg123_SOURCES = \
 	getlopt.h \
 	httpget.c \
 	huffman.h \
+	genre.h \
 	l2tables.h \
 	layer1.c \
 	layer2.c \

@@ -14,6 +14,11 @@
 
 #include        <math.h>
 
+
+
+#ifndef _AUDIO_H_
+#define _AUDIO_H_
+
 typedef unsigned char byte;
 
 #ifdef OS2
@@ -397,4 +402,7 @@ extern int getcpuflags(void);
 extern void dct36(real *,real *,real *,real *,real *);
 extern void dct36_3dnow(real *,real *,real *,real *,real *);
 extern int synth_1to1_3dnow(real *,int,unsigned char *,int *);
+#endif
+
+
 #endif

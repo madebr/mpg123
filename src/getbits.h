@@ -1,4 +1,7 @@
 
+#ifndef _MPG123_GETBITS_H_
+#define _MPG123_GETBITS_H_
+
 /* that's the same file as getits.c but with defines to
   force inlining */
 
@@ -31,3 +34,5 @@ static unsigned char rval_uc;
   rval_uc = *bsi.wordpointer << bsi.bitindex, bsi.bitindex++, \
   bsi.wordpointer += (bsi.bitindex>>3), bsi.bitindex &= 7, rval_uc>>7 )
 
+
+#endif

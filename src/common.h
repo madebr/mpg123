@@ -2,6 +2,9 @@
  * common.h
  */
 
+#ifndef _MPG123_COMMON_H_
+#define _MPG123_COMMON_H_
+
 /* max = 1728 */
 #define MAXFRAMESIZE 3456
 #define HDRCMPMASK 0xfffffd00
@@ -28,3 +31,5 @@ extern int skipend;
 /* for control_generic */
 extern const char* remote_header_help;
 void make_remote_header(struct frame* fr, char *target);
+
+#endif
