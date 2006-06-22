@@ -40,14 +40,14 @@ fi
 dnl ############## Configurable Options
 
 AC_ARG_ENABLE(debug,
-              [--enable-debug=[no/yes] turn on debugging],
+              [  --enable-debug=[no/yes] turn on debugging],
               [ debugging="enabled" 
                 AC_DEFINE(DEBUG, 1, [ Define if debugging is enabled. ]) ],
               [ debugging="disabled" ]
 )
 
 AC_ARG_ENABLE(gapless,
-              [--enable-gapless=[no/yes] turn on gapless],
+              [  --enable-gapless=[no/yes] turn on gapless],
               [ gapless="enabled" 
                 AC_DEFINE(GAPLESS, 1, [ Define if gapless is enabled. ]) ],
               [ gapless="disabled" ]
@@ -79,6 +79,15 @@ AC_ARG_WITH([audio], [
   --with-audio=sgi        Use SGI audio output sub-system (IRIX)
   --with-audio=sun        Use Sun audio output sub-system (/dev/audio)
 ])
+
+AC_ARG_WITH([optimization], [
+  --with-optimization=0   No Optimization
+  --with-optimization=1   Limited Optimization (-O)
+  --with-optimization=2   Default Optimization (-O2)
+  --with-optimization=3   More Optimize than default (-O3)
+  --with-optimization=4   Optimize yet more (-O4)
+])
+
 
 dnl ############## Function Checks
 
@@ -134,7 +143,6 @@ dnl ############## Choose compiler flags and CPU
 
 CFLAGS="$CFLAGS -Wall -std=c99"
 
-
 # If debugging is enabled then make warnings errors
 if test "$debugging" = "enabled"; then
 	CFLAGS="$CFLAGS -g -Werror -pedantic"
@@ -188,7 +196,7 @@ case $cpu_type in
     CFLAGS="$CFLAGS -DUSE_MMX -DI386_ASSEM -DPENTIUM_OPT "
   ;;
   *)
-  	AC_MSG_ERROR("Unknown CPU type $(cpu_type)")
+  	AC_MSG_ERROR([Unknown CPU type '$cpu_type'])
   ;;
 esac
 
@@ -196,11 +204,44 @@ CPU_TYPE_LIB="libcpu_$cpu_type.a"
 AC_SUBST( CPU_TYPE_LIB )
 
 
-dnl **FIXME** do optimisations stuff here
-#CFLAGS="$CFLAGS -O4"
-CFLAGS="$CFLAGS -O2"
-CFLAGS="$CFLAGS -fomit-frame-pointer -funroll-all-loops"
-CFLAGS="$CFLAGS -finline-functions -ffast-math"
+
+
+dnl ############## Compiler Optimizations
+
+# None chosen?
+if test "x$with_optimization" == "x"; then
+	with_optimization="2"
+fi
+
+case $with_optimization in
+  0)
+    # No Optimizations
+    CFLAGS="$CFLAGS"
+  ;;
+  1)
+    CFLAGS="$CFLAGS -O"
+  ;;
+  2)
+    CFLAGS="$CFLAGS -O2"
+    CFLAGS="$CFLAGS -fomit-frame-pointer -funroll-all-loops"
+    CFLAGS="$CFLAGS -finline-functions -ffast-math"
+  ;;
+  3)
+    CFLAGS="$CFLAGS -O3"
+    CFLAGS="$CFLAGS -fomit-frame-pointer -funroll-all-loops"
+    CFLAGS="$CFLAGS -finline-functions -ffast-math"
+  ;;
+  4)
+    CFLAGS="$CFLAGS -O4"
+    CFLAGS="$CFLAGS -fomit-frame-pointer -funroll-all-loops"
+    CFLAGS="$CFLAGS -finline-functions -ffast-math"
+  ;;
+  *)
+  	AC_MSG_ERROR([Unknown optimizations level '$with_optimization'])
+  ;;
+esac
+
+
 
 
 dnl ############## Audio Sub-system Settings
@@ -271,7 +312,7 @@ dnl #	fi
   sgi)  ;;
   sun)  ;;
   *)
-  	AC_MSG_ERROR("Unknown Audio sub-system $(audio_system)")
+  	AC_MSG_ERROR([Unknown Audio sub-system '$audio_system'.])
   ;;
 esac
 
@@ -294,9 +335,18 @@ echo "
 
   Install path ............ $prefix
   CPU Optimisation......... $cpu_type
+  Compiler Optimization ... $with_optimization
   Audio output ............ $audio_system
   Gapless Support ......... $gapless
   Debugging ............... $debugging
+"
   
-Next type 'make' and then 'make install'."
+if test "$debugging" = "enabled"; then
+	echo "CFLAGS='$CFLAGS'"
+	echo "AUDIO_CFLAGS='$AUDIO_CFLAGS'"
+	echo "AUDIO_LIBS='$AUDIO_LIBS'"
+else
+    echo "Next type 'make' and then 'make install'."
+fi
+
 
