@@ -77,17 +77,17 @@ libcpu_i386_a_SOURCES = \
 libcpu_i486_a_SOURCES = \
 	decode_i386.c \
 	dct64_i386.c \
-	decode_x86.s
+	decode_i586.s
 
 libcpu_i586_a_SOURCES = \
 	decode_i386.c \
 	dct64_i386.c \
-	decode_x86.s
+	decode_i586.s
 
 libcpu_3dnow_a_SOURCES = \
 	decode_i386.c \
 	decode_3dnow.s \
-	decode_x86.s \
+	decode_i586.s \
 	dct64_i386.c \
 	dct64_3dnow.s \
 	dct36_3dnow.s \
@@ -98,5 +98,5 @@ libcpu_MMX_a_SOURCES = \
 	decode_i386.c \
 	dct64_MMX.s \
 	tabinit_MMX.s \
-	decode_MMX.c
+	decode_MMX.s
 
