@@ -128,10 +128,10 @@ AC_CHECK_HEADERS([stdlib.h string.h unistd.h sched.h])
 
 
 # NAS (Network Audio System)
-AC_CHECK_HEADERS([audio/audiolib.h audio/soundlib.h])
+AC_CHECK_HEADERS([audio/audiolib.h audio/soundlib.h], HAVE_NAS=yes, HAVE_NAS=no)
 
 # OSS Header files
-AC_CHECK_HEADERS([sys/soundcard.h machine/soundcard.h sys/soundcard.h])
+AC_CHECK_HEADERS([sys/soundcard.h linux/soundcard.h machine/soundcard.h])
 
 # Mac OS X
 AC_CHECK_HEADERS([CoreAudio/CoreAudio.h], HAVE_COREAUDIO=yes, HAVE_COREAUDIO=no)
@@ -150,19 +150,32 @@ fi
 
 
 case $target in
+  i386-*-linux*)
+    cpu_type="i586"
+    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
+  ;;
+  i486-*-linux*)
+    cpu_type="i586"
+    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
+  ;;
+  i586-*-linux*)
+    cpu_type="i586"
+    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
+  ;;
+  i686-*-linux*)
+    cpu_type="MMX"
+    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
+  ;;
   powerpc-apple-darwin*)
-    audio_system="macosx"
     cpu_type="generic"
     CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
   ;;
   *-*-freebsd*)
-    audio_system="oss"
     cpu_type="generic"
     CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
   ;;
   *)
   	AC_MSG_WARN("Unknown target operating system")
-  	audio_system="dummy"
     cpu_type="generic"
     CFLAGS="$CFLAGS -DGENERIC"
   ;;
@@ -210,7 +223,11 @@ dnl ############## Compiler Optimizations
 
 # None chosen?
 if test "x$with_optimization" == "x"; then
-	with_optimization="2"
+	if test "$debugging" = "enabled"; then
+		with_optimization="0"
+	else
+		with_optimization="2"
+	fi
 fi
 
 case $with_optimization in
@@ -245,6 +262,25 @@ esac
 
 
 dnl ############## Audio Sub-system Settings
+
+case $target in
+  *-*-linux*)
+  	if test "$HAVE_ALSA" = "yes" ; then
+  		audio_system="alsa"
+  	else
+  		audio_system="oss"
+  	fi
+  ;;
+  *-*-freebsd*)
+    audio_system="oss"
+  ;;
+  *-apple-darwin*)
+    audio_system="macosx"
+  ;;
+  *)
+  	audio_system="dummy"
+  ;;
+esac
 
 
 # Did user choose other audio type ?
@@ -304,10 +340,15 @@ case $audio_system in
   nas) ;;
   os2) ;;
   oss)
-dnl #  	if test "${ac_cv_header_sys_soundcard_h}" = "yes"; then
-dnl #	fi  
-    AUDIO_CFLAGS=''
-    AUDIO_LIBS=''
+    if test "x${ac_cv_header_sys_soundcard_h}" = "xyes" \
+         -o "x${ac_cv_header_linux_soundcard_h}" = "xyes" \
+         -o "x${ac_cv_header_machine_soundcard_h}" = "xyes";
+    then
+		AUDIO_CFLAGS=''
+		AUDIO_LIBS=''
+	else 
+		AC_MSG_ERROR( Can't find OSS header files )
+	fi
   ;;
   sgi)  ;;
   sun)  ;;
