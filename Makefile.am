@@ -9,6 +9,7 @@ EXTRA_DIST = \
 	BENCHMARKING \
 	BUGS \
 	COPYING \
+	MakeLegacy.sh \
 	README.3DNOW \
 	README.WIN32 \
 	README.remote \
