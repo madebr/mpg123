@@ -7,6 +7,10 @@
  *   See xfermem.h for documentation/description.
  */
 
+#ifdef HAVE_CONFIG
+#include "config.h"
+#endif
+
 #ifndef NOXFERMEM
 
 #include <stdio.h>
@@ -27,12 +31,12 @@
 
 #include "mpg123.h"
 
-#ifndef USE_MMAP
+#ifndef HAVE_MMAP
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #endif
 
-#if defined (USE_MMAP) && defined(MAP_ANONYMOUS) && !defined(MAP_ANON)
+#if defined (HAVE_MMAP) && defined(MAP_ANONYMOUS) && !defined(MAP_ANON)
 #define MAP_ANON MAP_ANONYMOUS
 #endif
 
@@ -40,7 +44,7 @@ void xfermem_init (txfermem **xf, int bufsize, int msize, int skipbuf)
 {
 	int regsize = bufsize + msize + skipbuf + sizeof(txfermem);
 
-#ifdef USE_MMAP
+#ifdef HAVE_MMAP
 #  ifdef MAP_ANON
 	if ((*xf = (txfermem *) mmap(0, regsize, PROT_READ | PROT_WRITE,
 			MAP_ANON | MAP_SHARED, -1, 0)) == (txfermem *) -1) {
@@ -95,7 +99,7 @@ void xfermem_done (txfermem *xf)
 {
 	if(!xf)
 		return;
-#ifdef USE_MMAP
+#ifdef HAVE_MMAP
 	munmap ((caddr_t) xf, xf->size + xf->metasize + sizeof(txfermem));
 #else
 	if (shmdt((void *) xf) == -1) {

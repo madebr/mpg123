@@ -8,6 +8,65 @@
 
 #include <sys/audio.h>
 
+
+
+static int audio_set_rate(struct audio_info_struct *ai)
+{
+  if(ai->rate >= 0)
+    return ioctl(ai->fn,AUDIO_SET_SAMPLE_RATE,ai->rate);
+  return 0;
+}
+
+static int audio_set_channels(struct audio_info_struct *ai)
+{
+  if(ai->channels<0)
+    return 0;
+  return ioctl(ai->fn,AUDIO_SET_CHANNELS,ai->channels);
+}
+
+static int audio_set_format(struct audio_info_struct *ai)
+{
+  int fmt;
+
+  switch(ai->format) {
+    case -1:
+    case AUDIO_FORMAT_SIGNED_16:
+    default: 
+      fmt = AUDIO_FORMAT_LINEAR16BIT;
+      break;
+    case AUDIO_FORMAT_UNSIGNED_8:
+      fprintf(stderr,"unsigned 8 bit linear not supported\n");
+      return -1;
+    case AUDIO_FORMAT_SIGNED_8:
+      fprintf(stderr,"signed 8 bit linear not supported\n");
+      return -1;
+    case AUDIO_FORMAT_ALAW_8:
+      fmt = AUDIO_FORMAT_ALAW;
+      break;
+    case AUDIO_FORMAT_ULAW_8:
+      fmt = AUDIO_FORMAT_ULAW;
+      break;
+  }
+  return ioctl(ai->fn,AUDIO_SET_DATA_FORMAT,fmt);
+}
+
+static int audio_get_formats(struct audio_info_struct *ai)
+{
+  return AUDIO_FORMAT_SIGNED_16;
+}
+
+static int audio_reset_parameters(struct audio_info_struct *ai)
+{
+  int ret;
+  ret = audio_set_format(ai);
+  if(ret >= 0)
+    ret = audio_set_channels(ai);
+  if(ret >= 0)
+    ret = audio_set_rate(ai);
+  return ret;
+}
+
+
 int audio_open(struct audio_info_struct *ai)
 {
   struct audio_describe ades;
@@ -72,66 +131,6 @@ int audio_open(struct audio_info_struct *ai)
   return ai->fn;
 }
 
-int audio_reset_parameters(struct audio_info_struct *ai)
-{
-  int ret;
-  ret = audio_set_format(ai);
-  if(ret >= 0)
-    ret = audio_set_channels(ai);
-  if(ret >= 0)
-    ret = audio_set_rate(ai);
-  return ret;
-}
-
-int audio_rate_best_match(struct audio_info_struct *ai)
-{
-  return 0;
-}
-
-int audio_set_rate(struct audio_info_struct *ai)
-{
-  if(ai->rate >= 0)
-    return ioctl(ai->fn,AUDIO_SET_SAMPLE_RATE,ai->rate);
-  return 0;
-}
-
-int audio_set_channels(struct audio_info_struct *ai)
-{
-  if(ai->channels<0)
-    return 0;
-  return ioctl(ai->fn,AUDIO_SET_CHANNELS,ai->channels);
-}
-
-int audio_set_format(struct audio_info_struct *ai)
-{
-  int fmt;
-
-  switch(ai->format) {
-    case -1:
-    case AUDIO_FORMAT_SIGNED_16:
-    default: 
-      fmt = AUDIO_FORMAT_LINEAR16BIT;
-      break;
-    case AUDIO_FORMAT_UNSIGNED_8:
-      fprintf(stderr,"unsigned 8 bit linear not supported\n");
-      return -1;
-    case AUDIO_FORMAT_SIGNED_8:
-      fprintf(stderr,"signed 8 bit linear not supported\n");
-      return -1;
-    case AUDIO_FORMAT_ALAW_8:
-      fmt = AUDIO_FORMAT_ALAW;
-      break;
-    case AUDIO_FORMAT_ULAW_8:
-      fmt = AUDIO_FORMAT_ULAW;
-      break;
-  }
-  return ioctl(ai->fn,AUDIO_SET_DATA_FORMAT,fmt);
-}
-
-int audio_get_formats(struct audio_info_struct *ai)
-{
-  return AUDIO_FORMAT_SIGNED_16;
-}
 
 
 int audio_play_samples(struct audio_info_struct *ai,unsigned char *buf,int len)
@@ -144,3 +143,8 @@ int audio_close(struct audio_info_struct *ai)
   close (ai->fn);
   return 0;
 }
+
+void audio_queueflush(struct audio_info_struct *ai)
+{
+}
+

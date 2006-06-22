@@ -34,6 +34,124 @@
 
 extern int outburst;
 
+
+static int audio_rate_best_match(struct audio_info_struct *ai)
+{
+  int ret,dsp_rate;
+
+  if(!ai || ai->fn < 0 || ai->rate < 0)
+    return -1;
+  dsp_rate = ai->rate;
+  ret = ioctl(ai->fn, SNDCTL_DSP_SPEED,&dsp_rate);
+  if(ret < 0)
+    return ret;
+  ai->rate = dsp_rate;
+  return 0;
+}
+
+static int audio_set_rate(struct audio_info_struct *ai)
+{
+  int dsp_rate;
+  int ret = 0;
+
+  if(ai->rate >= 0) {
+    dsp_rate = ai->rate;
+    ret = ioctl(ai->fn, SNDCTL_DSP_SPEED,&dsp_rate);
+  }
+  return ret;
+}
+
+static int audio_set_channels(struct audio_info_struct *ai)
+{
+  int chan = ai->channels - 1;
+  int ret;
+
+  if(ai->channels < 0)
+    return 0;
+
+  ret = ioctl(ai->fn, SNDCTL_DSP_STEREO, &chan);
+  if(chan != (ai->channels-1)) {
+    return -1;
+  }
+  return ret;
+}
+
+static int audio_set_format(struct audio_info_struct *ai)
+{
+  int sample_size,fmts;
+  int sf,ret;
+
+  if(ai->format == -1)
+    return 0;
+
+  switch(ai->format) {
+    case AUDIO_FORMAT_SIGNED_16:
+    default:
+      fmts = AFMT_S16_NE;
+      sample_size = 16;
+      break;
+    case AUDIO_FORMAT_UNSIGNED_8:
+      fmts = AFMT_U8;
+      sample_size = 8;
+      break;
+    case AUDIO_FORMAT_SIGNED_8:
+      fmts = AFMT_S8;
+      sample_size = 8;
+      break;
+    case AUDIO_FORMAT_ULAW_8:
+      fmts = AFMT_MU_LAW;
+      sample_size = 8;
+      break;
+    case AUDIO_FORMAT_ALAW_8:
+      fmts = AFMT_A_LAW;
+      sample_size = 8;
+      break;
+    case AUDIO_FORMAT_UNSIGNED_16:
+      fmts = AFMT_U16_NE;
+      break;
+  }
+#if 0
+  if(ioctl(ai->fn, SNDCTL_DSP_SAMPLESIZE,&sample_size) < 0)
+    return -1;
+#endif
+  sf = fmts;
+  ret = ioctl(ai->fn, SNDCTL_DSP_SETFMT, &fmts);
+  if(sf != fmts) {
+    return -1;
+  }
+  return ret;
+}
+
+
+static int audio_reset_parameters(struct audio_info_struct *ai)
+{
+  int ret;
+  ret = ioctl(ai->fn, SNDCTL_DSP_RESET, NULL);
+  if(ret < 0)
+    fprintf(stderr,"Can't reset audio!\n");
+  ret = audio_set_format(ai);
+  if (ret == -1)
+    goto err;
+  ret = audio_set_channels(ai);
+  if (ret == -1)
+    goto err;
+  ret = audio_set_rate(ai);
+  if (ret == -1)
+    goto err;
+
+  /* Careful here.  As per OSS v1.1, the next ioctl() commits the format
+   * set above, so we must issue SNDCTL_DSP_RESET before we're allowed to
+   * change it again. [dk]
+   */
+  if (ioctl(ai->fn, SNDCTL_DSP_GETBLKSIZE, &outburst) == -1 ||
+      outburst > MAXOUTBURST)
+    outburst = MAXOUTBURST;
+
+err:
+  return ret;
+}
+
+
 int audio_open(struct audio_info_struct *ai)
 {
   char usingdefdev = 0;
@@ -90,141 +208,7 @@ int audio_open(struct audio_info_struct *ai)
   return ai->fn;
 }
 
-int audio_reset_parameters(struct audio_info_struct *ai)
-{
-  int ret;
-  ret = ioctl(ai->fn, SNDCTL_DSP_RESET, NULL);
-  if(ret < 0)
-    fprintf(stderr,"Can't reset audio!\n");
-  ret = audio_set_format(ai);
-  if (ret == -1)
-    goto err;
-  ret = audio_set_channels(ai);
-  if (ret == -1)
-    goto err;
-  ret = audio_set_rate(ai);
-  if (ret == -1)
-    goto err;
 
-  /* Careful here.  As per OSS v1.1, the next ioctl() commits the format
-   * set above, so we must issue SNDCTL_DSP_RESET before we're allowed to
-   * change it again. [dk]
-   */
-  if (ioctl(ai->fn, SNDCTL_DSP_GETBLKSIZE, &outburst) == -1 ||
-      outburst > MAXOUTBURST)
-    outburst = MAXOUTBURST;
-
-err:
-  return ret;
-}
-
-static int audio_get_parameters(struct audio_info_struct *ai)
-{
-	int c=-1;
-	int r=-1;
-	int f=-1;
-
-	if(ioctl(ai->fn,SNDCTL_DSP_SPEED,&r) < 0)
-		return -1;
-	if(ioctl(ai->fn,SNDCTL_DSP_STEREO,&c) < 0)
-		return -1;
-	if(ioctl(ai->fn,SNDCTL_DSP_SETFMT,&f) < 0)
-		return -1;
-
-	ai->rate = r;
-	ai->channels = c + 1;
-	ai->format = f;
-
-	return 0;
-}
-
-
-int audio_rate_best_match(struct audio_info_struct *ai)
-{
-  int ret,dsp_rate;
-
-  if(!ai || ai->fn < 0 || ai->rate < 0)
-    return -1;
-  dsp_rate = ai->rate;
-  ret = ioctl(ai->fn, SNDCTL_DSP_SPEED,&dsp_rate);
-  if(ret < 0)
-    return ret;
-  ai->rate = dsp_rate;
-  return 0;
-}
-
-int audio_set_rate(struct audio_info_struct *ai)
-{
-  int dsp_rate;
-  int ret = 0;
-
-  if(ai->rate >= 0) {
-    dsp_rate = ai->rate;
-    ret = ioctl(ai->fn, SNDCTL_DSP_SPEED,&dsp_rate);
-  }
-  return ret;
-}
-
-int audio_set_channels(struct audio_info_struct *ai)
-{
-  int chan = ai->channels - 1;
-  int ret;
-
-  if(ai->channels < 0)
-    return 0;
-
-  ret = ioctl(ai->fn, SNDCTL_DSP_STEREO, &chan);
-  if(chan != (ai->channels-1)) {
-    return -1;
-  }
-  return ret;
-}
-
-int audio_set_format(struct audio_info_struct *ai)
-{
-  int sample_size,fmts;
-  int sf,ret;
-
-  if(ai->format == -1)
-    return 0;
-
-  switch(ai->format) {
-    case AUDIO_FORMAT_SIGNED_16:
-    default:
-      fmts = AFMT_S16_NE;
-      sample_size = 16;
-      break;
-    case AUDIO_FORMAT_UNSIGNED_8:
-      fmts = AFMT_U8;
-      sample_size = 8;
-      break;
-    case AUDIO_FORMAT_SIGNED_8:
-      fmts = AFMT_S8;
-      sample_size = 8;
-      break;
-    case AUDIO_FORMAT_ULAW_8:
-      fmts = AFMT_MU_LAW;
-      sample_size = 8;
-      break;
-    case AUDIO_FORMAT_ALAW_8:
-      fmts = AFMT_A_LAW;
-      sample_size = 8;
-      break;
-    case AUDIO_FORMAT_UNSIGNED_16:
-      fmts = AFMT_U16_NE;
-      break;
-  }
-#if 0
-  if(ioctl(ai->fn, SNDCTL_DSP_SAMPLESIZE,&sample_size) < 0)
-    return -1;
-#endif
-  sf = fmts;
-  ret = ioctl(ai->fn, SNDCTL_DSP_SETFMT, &fmts);
-  if(sf != fmts) {
-    return -1;
-  }
-  return ret;
-}
 
 /*
  * get formats for specific channel/rate parameters
@@ -288,7 +272,7 @@ fprintf(stderr,"No");
 
 int audio_play_samples(struct audio_info_struct *ai,unsigned char *buf,int len)
 {
-#ifdef PPC_ENDIAN
+#ifdef WORDS_BIGENDIAN
 #define BYTE0(n) ((unsigned char)(n) & (0xFF))
 #define BYTE1(n) BYTE0((unsigned int)(n) >> 8)
 #define BYTE2(n) BYTE0((unsigned int)(n) >> 16)
@@ -311,7 +295,7 @@ int audio_play_samples(struct audio_info_struct *ai,unsigned char *buf,int len)
          intPtr++;
        }
     }
-#endif /* PPC_ENDIAN */
+#endif /* WORDS_BIGENDIAN */
 
   return write(ai->fn,buf,len);
 }
@@ -320,4 +304,8 @@ int audio_close(struct audio_info_struct *ai)
 {
   close (ai->fn);
   return 0;
+}
+
+void audio_queueflush(struct audio_info_struct *ai)
+{
 }

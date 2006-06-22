@@ -175,21 +175,13 @@ inline int audio_play_samples(struct audio_info_struct *ai,unsigned char *buf,in
 
 /**************************************************************************/
 
-/* unused */
-int audio_set_rate(struct audio_info_struct *ai) {
-  return 0;
-}
-
-/**************************************************************************/
-
-/* unused */
-int audio_set_channels(struct audio_info_struct *ai) {
- return 0;
-}
-
 int audio_get_formats(struct audio_info_struct *ai)
 {
   return AUDIO_FORMAT_SIGNED_16;
+}
+
+void audio_queueflush(struct audio_info_struct *ai)
+{
 }
 
 

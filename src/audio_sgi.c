@@ -4,6 +4,9 @@
 #include <fcntl.h>
 #include <stdlib.h>
 
+/* #include <audio.h> */
+#include <dmedia/audio.h>
+
 #include "mpg123.h"
 
 
@@ -11,27 +14,75 @@
 static const char analog_output_res_name[] = ".AnalogOut";
 
 
+static int audio_set_rate(struct audio_info_struct *ai, ALconfig config)
+{
+  int dev = alGetDevice(config);
+  ALpv params[1];
+  
+  /* Make sure the device is OK */
+  if (dev < 0)
+    {
+      fprintf(stderr,"audio_set_rate : %s\n",alGetErrorString(oserror()));
+      return 1;      
+    }
+
+  params[0].param = AL_OUTPUT_RATE;
+  params[0].value.ll = alDoubleToFixed(ai->rate);
+  
+  if (alSetParams(dev, params,1) < 0)
+    fprintf(stderr,"audio_set_rate : %s\n",alGetErrorString(oserror()));
+  
+  return 0;
+}
+
+static int audio_set_channels(struct audio_info_struct *ai, ALconfig config)
+{
+  int ret;
+  
+  if(ai->channels == 2)
+    ret = alSetChannels(config, AL_STEREO);
+  else
+    ret = alSetChannels(config, AL_MONO);
+
+  if (ret < 0)
+    fprintf(stderr,"audio_set_channels : %s\n",alGetErrorString(oserror()));
+  
+  return 0;
+}
+
+static int audio_set_format(struct audio_info_struct *ai, ALconfig config)
+{
+  if (alSetSampFmt(config,AL_SAMPFMT_TWOSCOMP) < 0)
+    fprintf(stderr,"audio_set_format : %s\n",alGetErrorString(oserror()));
+  
+  if (alSetWidth(config,AL_SAMPLE_16) < 0)
+    fprintf(stderr,"audio_set_format : %s\n",alGetErrorString(oserror()));
+  
+  return 0;
+}
+
+
 int audio_open(struct audio_info_struct *ai)
 {
   int dev = AL_DEFAULT_OUTPUT;
-
-  ai->config = alNewConfig();
-
+  ALconfig config = alNewConfig();
+  ALport port = NULL;
+  
   /* Test for correct completion */
-  if (ai->config == 0) {
+  if (config == 0) {
     fprintf(stderr,"audio_open : %s\n",alGetErrorString(oserror()));
     exit(-1);
   }
   
   /* Set port parameters */
   if(ai->channels == 2)
-    alSetChannels(ai->config, AL_STEREO);
+    alSetChannels(config, AL_STEREO);
   else
-    alSetChannels(ai->config, AL_MONO);
+    alSetChannels(config, AL_MONO);
 
-  alSetWidth(ai->config, AL_SAMPLE_16);
-  alSetSampFmt(ai->config,AL_SAMPFMT_TWOSCOMP);
-  alSetQueueSize(ai->config, 131069);
+  alSetWidth(config, AL_SAMPLE_16);
+  alSetSampFmt(config,AL_SAMPFMT_TWOSCOMP);
+  alSetQueueSize(config, 131069);
 
   /* Setup output device to specified module. If there is no module
      specified in ai structure, use the default four output */
@@ -59,90 +110,33 @@ int audio_open(struct audio_info_struct *ai)
   }
   
   /* Set the device */
-  if (alSetDevice(ai->config,dev) < 0)
+  if (alSetDevice(config,dev) < 0)
     {
       fprintf(stderr,"audio_open : %s\n",alGetErrorString(oserror()));
       exit(-1);
     }
   
   /* Open the audio port */
-  ai->port = alOpenPort("mpg123-VSC", "w", ai->config);
-  if(ai->port == NULL) {
+  port = alOpenPort("mpg123-VSC", "w", config);
+  if(port == NULL) {
     fprintf(stderr, "Unable to open audio channel: %s\n",
           alGetErrorString(oserror()));
     exit(-1);
   }
   
-  audio_reset_parameters(ai);
+  ai->handle = (void*)port;
+  
+  
+  audio_set_format(ai, config);
+  audio_set_channels(ai, config);
+  audio_set_rate(ai, config);
     
+
+  alFreeConfig(config);
+ 
   return 1;
 }
 
-int audio_reset_parameters(struct audio_info_struct *ai)
-{
-  int ret;
-  ret = audio_set_format(ai);
-  if(ret >= 0)
-    ret = audio_set_channels(ai);
-  if(ret >= 0)
-    ret = audio_set_rate(ai);
-
-/* todo: Set new parameters here */
-
-  return ret;
-}
-
-int audio_rate_best_match(struct audio_info_struct *ai)
-{
-  return 0;
-}
-
-int audio_set_rate(struct audio_info_struct *ai)
-{
-  int dev = alGetDevice(ai->config);
-  ALpv params[1];
-  
-  /* Make sure the device is OK */
-  if (dev < 0)
-    {
-      fprintf(stderr,"audio_set_rate : %s\n",alGetErrorString(oserror()));
-      return 1;      
-    }
-
-  params[0].param = AL_OUTPUT_RATE;
-  params[0].value.ll = alDoubleToFixed(ai->rate);
-  
-  if (alSetParams(dev, params,1) < 0)
-    fprintf(stderr,"audio_set_rate : %s\n",alGetErrorString(oserror()));
-  
-  return 0;
-}
-
-int audio_set_channels(struct audio_info_struct *ai)
-{
-  int ret;
-  
-  if(ai->channels == 2)
-    ret = alSetChannels(ai->config, AL_STEREO);
-  else
-    ret = alSetChannels(ai->config, AL_MONO);
-
-  if (ret < 0)
-    fprintf(stderr,"audio_set_channels : %s\n",alGetErrorString(oserror()));
-  
-  return 0;
-}
-
-int audio_set_format(struct audio_info_struct *ai)
-{
-  if (alSetSampFmt(ai->config,AL_SAMPFMT_TWOSCOMP) < 0)
-    fprintf(stderr,"audio_set_format : %s\n",alGetErrorString(oserror()));
-  
-  if (alSetWidth(ai->config,AL_SAMPLE_16) < 0)
-    fprintf(stderr,"audio_set_format : %s\n",alGetErrorString(oserror()));
-  
-  return 0;
-}
 
 int audio_get_formats(struct audio_info_struct *ai)
 {
@@ -152,22 +146,30 @@ int audio_get_formats(struct audio_info_struct *ai)
 
 int audio_play_samples(struct audio_info_struct *ai,unsigned char *buf,int len)
 {
+  ALport port = (ALport)ai->handle;
+
   if(ai->format == AUDIO_FORMAT_SIGNED_8)
-    alWriteFrames(ai->port, buf, len>>1);
+    alWriteFrames(port, buf, len>>1);
   else
-    alWriteFrames(ai->port, buf, len>>2);
+    alWriteFrames(port, buf, len>>2);
 
   return len;
 }
 
 int audio_close(struct audio_info_struct *ai)
 {
-  if (ai->port) {
-    while(alGetFilled(ai->port) > 0)
+  ALport port = (ALport)ai->handle;
+
+  if (port) {
+    while(alGetFilled(port) > 0)
       sginap(1);  
-    alClosePort(ai->port);
-    alFreeConfig(ai->config);
+    alClosePort(port);
+    ai->handle=NULL;
   }
   
   return 0;
+}
+
+void audio_queueflush(struct audio_info_struct *ai)
+{
 }

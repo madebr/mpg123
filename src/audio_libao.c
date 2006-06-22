@@ -123,7 +123,7 @@ int audio_play_samples(struct audio_info_struct *ai,unsigned char *buf,int len)
 	int res = 0;
 	ao_device *device = (ao_device*)ai->handle;
 	
-	res = ao_play(device, buf, len);
+	res = ao_play(device, (char*)buf, len);
 	if (res==0) {
 		fprintf(stderr, "audio_play_samples(): error playing samples\n");
 		return -1;

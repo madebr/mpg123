@@ -76,36 +76,8 @@ int audio_open(struct audio_info_struct *ai)
   else if (ai->rate > esd_rate)
     return -1;
 
-  ai->fn = esd_play_stream_fallback(format, ai->rate, esdserver, "mpg123");
+  ai->fn = esd_play_stream_fallback(format, ai->rate, ai->device, "mpg123");
   return (ai->fn);
-}
-
-int audio_reset_parameters(struct audio_info_struct *ai)
-{
-  return 0;
-}
-
-int audio_rate_best_match(struct audio_info_struct *ai)
-{
-  return 0;
-}
-
-int audio_set_rate(struct audio_info_struct *ai)
-{
-  audio_close(ai);
-  return audio_open(ai);
-}
-
-int audio_set_channels(struct audio_info_struct *ai)
-{
-  audio_close(ai);
-  return audio_open(ai);
-}
-
-int audio_set_format(struct audio_info_struct *ai)
-{
-  audio_close(ai);
-  return audio_open(ai);
 }
 
 int audio_get_formats(struct audio_info_struct *ai)

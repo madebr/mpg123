@@ -223,7 +223,7 @@ void start(int n)
 
 int audio_open(struct audio_info_struct *ai)
 {
-	long size;
+	UInt32 size;
 	AudioStreamBasicDescription format;
 	#if MOSX_USES_SEM
 	char s[10];

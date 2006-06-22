@@ -575,11 +575,6 @@ int audio_get_formats(struct audio_info_struct *ai)
    return fmts;
 }
 
-int audio_rate_best_match(struct audio_info_struct *ai)
-{
-   return 0;
-}
-
 int audio_get_devices(char *info, int deviceid)
 {
    char buffer[128];
@@ -632,3 +627,6 @@ int audio_get_devices(char *info, int deviceid)
    }
 }
 
+void audio_queueflush(struct audio_info_struct *ai)
+{
+}

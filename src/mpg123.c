@@ -7,9 +7,7 @@
  */
 
 
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 
 #include <stdlib.h>
 #include <sys/types.h>
@@ -1221,10 +1219,11 @@ tc_hack:
 
 static void print_title(void)
 {
-    fprintf(stderr,"High Performance MPEG 1.0/2.0 Audio Player for Layer 1, 2 and 3.\n");
+    fprintf(stderr,"High Performance MPEG 1.0/2.0 Audio Player for Layers 1, 2 and 3.\n");
     fprintf(stderr,"Version %s. Initially written and copyright by Michael Hipp.\n", PACKAGE_VERSION);
-    fprintf(stderr,"Uses code from various people. See 'README' for more!\n");
-    fprintf(stderr,"THIS SOFTWARE COMES WITH ABSOLUTELY NO WARRANTY! USE AT YOUR OWN RISK!\n");
+    fprintf(stderr,"Uses code from various people, see 'AUTHORS' for full list.\n");
+	fprintf(stderr,"This software comes with ABSOLUTELY NO WARRANTY. For details, see \n");
+	fprintf(stderr,"the enclosed file COPYING for license information (GPL).\n");
 }
 
 static void usage(char *dummy)  /* print syntax & exit */

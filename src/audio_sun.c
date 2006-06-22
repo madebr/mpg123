@@ -29,8 +29,114 @@
 #include <sys/ioctl.h>
 #endif
 
-static void audio_set_format_helper(struct audio_info_struct *ai,audio_info_t *ainfo);
 
+static int audio_reset_parameters(struct audio_info_struct *ai)
+{
+  audio_info_t ainfo;
+
+  AUDIO_INITINFO(&ainfo);
+
+  if(ai->rate != -1)
+    ainfo.play.sample_rate = ai->rate;
+  if(ai->channels >= 0)
+    ainfo.play.channels = ai->channels;
+  audio_set_format_helper(ai,&ainfo);
+
+  if(ioctl(ai->fn, AUDIO_SETINFO, &ainfo) == -1)
+    return -1;
+  return 0;
+}
+
+static int audio_rate_best_match(struct audio_info_struct *ai)
+{
+  audio_info_t ainfo;
+  AUDIO_INITINFO(&ainfo);
+ 
+  ainfo.play.sample_rate = ai->rate;
+  if(ioctl(ai->fn, AUDIO_SETINFO, &ainfo) < 0) {
+    ai->rate = 0;
+    return 0;
+  }
+  if(ioctl(ai->fn, AUDIO_GETINFO, &ainfo) < 0) {
+    return -1;
+  }
+  ai->rate = ainfo.play.sample_rate;
+  return 0;
+}
+
+static int audio_set_rate(struct audio_info_struct *ai)
+{
+  audio_info_t ainfo;
+
+  if(ai->rate != -1) {
+    AUDIO_INITINFO(&ainfo);
+    ainfo.play.sample_rate = ai->rate;
+    if(ioctl(ai->fn, AUDIO_SETINFO, &ainfo) == -1)
+      return -1;
+    return 0;
+  }
+  return -1;
+}
+
+static int audio_set_channels(struct audio_info_struct *ai)
+{
+  audio_info_t ainfo;
+
+  AUDIO_INITINFO(&ainfo);
+  ainfo.play.channels = ai->channels;
+  if(ioctl(ai->fn, AUDIO_SETINFO, &ainfo) == -1)
+    return -1;
+  return 0;
+}
+
+static void audio_set_format_helper(struct audio_info_struct *ai,audio_info_t *ainfo)
+{
+
+
+  switch(ai->format) {
+    case -1:
+    case AUDIO_FORMAT_SIGNED_16:
+    default:
+      ainfo->play.encoding = AUDIO_ENCODING_LINEAR;
+      ainfo->play.precision = 16;
+      break;
+    case AUDIO_FORMAT_UNSIGNED_8:
+#if defined(SOLARIS) || defined(SPARCLINUX)
+      ainfo->play.encoding = AUDIO_ENCODING_LINEAR8;
+      ainfo->play.precision = 8;
+      break;
+#endif
+#ifdef NETBSD
+      ainfo->play.encoding = AUDIO_ENCODING_LINEAR;
+      ainfo->play.precision = 8;
+      break;
+#endif
+    case AUDIO_FORMAT_SIGNED_8:
+      fprintf(stderr,"Linear signed 8 bit not supported!\n");
+      return;
+    case AUDIO_FORMAT_ULAW_8:
+      ainfo->play.encoding = AUDIO_ENCODING_ULAW;
+      ainfo->play.precision = 8;
+      break;
+    case AUDIO_FORMAT_ALAW_8:
+      ainfo->play.encoding = AUDIO_ENCODING_ALAW;
+      ainfo->play.precision = 8;
+      break;
+  }
+}
+
+
+static int audio_set_format(struct audio_info_struct *ai)
+{
+  audio_info_t ainfo;
+
+  AUDIO_INITINFO(&ainfo);
+  audio_set_format_helper(ai,&ainfo);
+  if(ioctl(ai->fn, AUDIO_SETINFO, &ainfo) == -1)
+    return -1;
+
+  return 0;
+}
 
 int audio_open(struct audio_info_struct *ai)
 {
@@ -100,112 +206,8 @@ int audio_open(struct audio_info_struct *ai)
   return ai->fn;
 }
 
-int audio_reset_parameters(struct audio_info_struct *ai)
-{
-  audio_info_t ainfo;
-
-  AUDIO_INITINFO(&ainfo);
-
-  if(ai->rate != -1)
-    ainfo.play.sample_rate = ai->rate;
-  if(ai->channels >= 0)
-    ainfo.play.channels = ai->channels;
-  audio_set_format_helper(ai,&ainfo);
-
-  if(ioctl(ai->fn, AUDIO_SETINFO, &ainfo) == -1)
-    return -1;
-  return 0;
-}
-
-int audio_rate_best_match(struct audio_info_struct *ai)
-{
-  audio_info_t ainfo;
-  AUDIO_INITINFO(&ainfo);
- 
-  ainfo.play.sample_rate = ai->rate;
-  if(ioctl(ai->fn, AUDIO_SETINFO, &ainfo) < 0) {
-    ai->rate = 0;
-    return 0;
-  }
-  if(ioctl(ai->fn, AUDIO_GETINFO, &ainfo) < 0) {
-    return -1;
-  }
-  ai->rate = ainfo.play.sample_rate;
-  return 0;
-}
-
-int audio_set_rate(struct audio_info_struct *ai)
-{
-  audio_info_t ainfo;
-
-  if(ai->rate != -1) {
-    AUDIO_INITINFO(&ainfo);
-    ainfo.play.sample_rate = ai->rate;
-    if(ioctl(ai->fn, AUDIO_SETINFO, &ainfo) == -1)
-      return -1;
-    return 0;
-  }
-  return -1;
-}
-
-int audio_set_channels(struct audio_info_struct *ai)
-{
-  audio_info_t ainfo;
-
-  AUDIO_INITINFO(&ainfo);
-  ainfo.play.channels = ai->channels;
-  if(ioctl(ai->fn, AUDIO_SETINFO, &ainfo) == -1)
-    return -1;
-  return 0;
-}
-
-static void audio_set_format_helper(struct audio_info_struct *ai,audio_info_t *ainfo)
-{
 
 
-  switch(ai->format) {
-    case -1:
-    case AUDIO_FORMAT_SIGNED_16:
-    default:
-      ainfo->play.encoding = AUDIO_ENCODING_LINEAR;
-      ainfo->play.precision = 16;
-      break;
-    case AUDIO_FORMAT_UNSIGNED_8:
-#if defined(SOLARIS) || defined(SPARCLINUX)
-      ainfo->play.encoding = AUDIO_ENCODING_LINEAR8;
-      ainfo->play.precision = 8;
-      break;
-#endif
-#ifdef NETBSD
-      ainfo->play.encoding = AUDIO_ENCODING_LINEAR;
-      ainfo->play.precision = 8;
-      break;
-#endif
-    case AUDIO_FORMAT_SIGNED_8:
-      fprintf(stderr,"Linear signed 8 bit not supported!\n");
-      return;
-    case AUDIO_FORMAT_ULAW_8:
-      ainfo->play.encoding = AUDIO_ENCODING_ULAW;
-      ainfo->play.precision = 8;
-      break;
-    case AUDIO_FORMAT_ALAW_8:
-      ainfo->play.encoding = AUDIO_ENCODING_ALAW;
-      ainfo->play.precision = 8;
-      break;
-  }
-}
-
-int audio_set_format(struct audio_info_struct *ai)
-{
-  audio_info_t ainfo;
-
-  AUDIO_INITINFO(&ainfo);
-  audio_set_format_helper(ai,&ainfo);
-  if(ioctl(ai->fn, AUDIO_SETINFO, &ainfo) == -1)
-    return -1;
-
-  return 0;
-}
 
 int audio_get_formats(struct audio_info_struct *ai)
 {

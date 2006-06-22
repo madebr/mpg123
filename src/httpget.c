@@ -21,10 +21,7 @@
 #include <errno.h>
 #include <ctype.h>
 
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
-
 #include "mpg123.h"
 
 #ifndef INADDR_NONE

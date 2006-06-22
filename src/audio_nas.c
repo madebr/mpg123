@@ -185,7 +185,7 @@ void nas_createFlow(struct audio_info_struct *ai)
     info.buf_size = buf_samples * ai->channels * AuSizeofFormat(format);
     info.buf = (char *) malloc(info.buf_size);
     if (info.buf == NULL) {
-        fprintf(stderr, "Unable to allocate input/output buffer of size %d\n",
+        fprintf(stderr, "Unable to allocate input/output buffer of size %ld\n",
              info.buf_size);
         exit(1);
     }
@@ -230,43 +230,7 @@ int audio_open(struct audio_info_struct *ai)
     return 0;
 }
     
-int audio_reset_parameters(struct audio_info_struct *ai)
-{
-    int ret;
 
-    ret = audio_close(ai);
-    if (ret >= 0)
-        ret = audio_open(ai);
-    return ret;
-}
-
-extern int audio_rate_best_match(struct audio_info_struct *ai)
-{
-    int maxRate, minRate;
-
-    if(!ai || ai->rate < 0)
-        return -1;
-    maxRate =  AuServerMaxSampleRate(info.aud);
-    minRate =  AuServerMinSampleRate(info.aud);
-    if (ai->rate > maxRate) ai->rate = maxRate;
-    if (ai->rate < minRate) ai->rate = minRate;
-    return 0;
-}
-
-int audio_set_rate(struct audio_info_struct *ai)
-{
-    return 0;
-}
-
-int audio_set_channels(struct audio_info_struct *ai)
-{
-    return 0;
-}
-
-int audio_set_format(struct audio_info_struct *ai)
-{
-    return 0;
-}
 
 int audio_get_formats(struct audio_info_struct *ai)
 {
@@ -336,4 +300,8 @@ int audio_close(struct audio_info_struct *ai)
     free(info.buf);
     
     return 0;
+}
+
+void audio_queueflush(struct audio_info_struct *ai)
+{
 }

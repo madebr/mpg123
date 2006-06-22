@@ -124,7 +124,7 @@ AC_CHECK_HEADERS([CoreAudio/CoreAudio.h], HAVE_COREAUDIO=yes, HAVE_COREAUDIO=no)
 
 dnl ############## Choose compiler flags and CPU
 
-CFLAGS="$CFLAGS -DHAVE_CONFIG_H -Wall -std=c99"
+CFLAGS="$CFLAGS -Wall -std=c99"
 
 
 # If debugging is enabled then make warnings errors

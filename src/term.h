@@ -1,10 +1,7 @@
 
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 
 #ifdef HAVE_TERMIOS
-
 
 #define LOOP_CYCLES	0.500000	/* Loop time in sec */
 

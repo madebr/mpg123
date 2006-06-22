@@ -8,45 +8,9 @@ extern int outburst;
 
 int real_rate_printed = 0;
 
-int audio_open(struct audio_info_struct *ai)
-{
-  if(!ai)
-    return -1;
 
-  if(!ai->device)
-    ai->device = "/dev/audio";
 
-  ai->fn = open(ai->device,O_WRONLY);  
-
-  if(ai->fn < 0)
-  {
-    fprintf(stderr,"Can't open %s!\n",ai->device);
-    exit(1);
-  }
-  ioctl(ai->fn, AIOCGBLKSIZE, &outburst);
-  if(outburst > MAXOUTBURST)
-    outburst = MAXOUTBURST;
-  if(audio_reset_parameters(ai) < 0) {
-    close(ai->fn);
-    return -1;
-  }
-  return ai->fn;
-}
-
-int audio_reset_parameters(struct audio_info_struct *ai)
-{
-  int ret;
-  ret = ioctl(ai->fn,AIOCRESET,NULL);
-  if(ret >= 0)
-    ret = audio_set_format(ai);
-  if(ret >= 0)
-    ret = audio_set_channels(ai);
-  if(ret >= 0)
-    ret = audio_set_rate(ai);
-  return ret;
-}
-
-int audio_rate_best_match(struct audio_info_struct *ai)
+static int audio_rate_best_match(struct audio_info_struct *ai)
 {
   int ret,dsp_rate;
 
@@ -61,7 +25,7 @@ int audio_rate_best_match(struct audio_info_struct *ai)
   return 0;
 }
 
-int audio_set_rate(struct audio_info_struct *ai)
+static int audio_set_rate(struct audio_info_struct *ai)
 {
   int dsp_rate = ai->rate;
 
@@ -81,7 +45,7 @@ int audio_set_rate(struct audio_info_struct *ai)
   return 0;
 }
 
-int audio_set_channels(struct audio_info_struct *ai)
+static int audio_set_channels(struct audio_info_struct *ai)
 {
   int chan = ai->channels;
 
@@ -91,7 +55,7 @@ int audio_set_channels(struct audio_info_struct *ai)
   return ioctl(ai->fn, AIOCSCHAN, (void *)chan);
 }
 
-int audio_set_format(struct audio_info_struct *ai)
+static int audio_set_format(struct audio_info_struct *ai)
 {
   int fmts;
 
@@ -116,6 +80,45 @@ int audio_set_format(struct audio_info_struct *ai)
   return ioctl(ai->fn, AIOCSFMT, (void *)fmts);
 }
 
+static int audio_reset_parameters(struct audio_info_struct *ai)
+{
+  int ret;
+  ret = ioctl(ai->fn,AIOCRESET,NULL);
+  if(ret >= 0)
+    ret = audio_set_format(ai);
+  if(ret >= 0)
+    ret = audio_set_channels(ai);
+  if(ret >= 0)
+    ret = audio_set_rate(ai);
+  return ret;
+}
+
+
+
+int audio_open(struct audio_info_struct *ai)
+{
+  if(!ai)
+    return -1;
+
+  if(!ai->device)
+    ai->device = "/dev/audio";
+
+  ai->fn = open(ai->device,O_WRONLY);  
+
+  if(ai->fn < 0)
+  {
+    fprintf(stderr,"Can't open %s!\n",ai->device);
+    exit(1);
+  }
+  ioctl(ai->fn, AIOCGBLKSIZE, &outburst);
+  if(outburst > MAXOUTBURST)
+    outburst = MAXOUTBURST;
+  if(audio_reset_parameters(ai) < 0) {
+    close(ai->fn);
+    return -1;
+  }
+  return ai->fn;
+}
 int audio_get_formats(struct audio_info_struct *ai)
 {
   int ret = 0;
@@ -146,3 +149,8 @@ int audio_close(struct audio_info_struct *ai)
   close (ai->fn);
   return 0;
 }
+
+void audio_queueflush(struct audio_info_struct *ai)
+{
+}
+

@@ -30,6 +30,30 @@
 /* #define AUDIO_BSIZE AUDIO_IGNORE */
 #define AUDIO_BSIZE 200
 
+int audio_rate_best_match(struct audio_info_struct *ai)
+{
+  static long valid [ ] = {  5510,  6620,  8000,  9600, 11025, 16000, 18900,
+                            22050, 27420, 32000, 33075, 37800, 44100, 48000, 0 };
+  int  i = 0;
+  long best = 8000;
+
+  if(!ai || ai->fn < 0 || ai->rate < 0) {
+    return -1;
+  } 
+
+  while (valid [i])
+  {
+    if (abs(valid[i] - ai->rate) < abs(best - ai->rate))
+    {
+      best = valid [i];
+    }
+    i = i + 1;
+  }
+
+  ai->rate = best;
+  return best;
+}
+
 
 int audio_open(struct audio_info_struct *ai)
 {
@@ -182,45 +206,6 @@ int audio_reset_parameters(struct audio_info_struct *ai)
   return 0;
 }
 
-int audio_rate_best_match(struct audio_info_struct *ai)
-{
-  static long valid [ ] = {  5510,  6620,  8000,  9600, 11025, 16000, 18900,
-                            22050, 27420, 32000, 33075, 37800, 44100, 48000, 0 };
-  int  i = 0;
-  long best = 8000;
-
-  if(!ai || ai->fn < 0 || ai->rate < 0) {
-    return -1;
-  } 
-
-  while (valid [i])
-  {
-    if (abs(valid[i] - ai->rate) < abs(best - ai->rate))
-    {
-      best = valid [i];
-    }
-    i = i + 1;
-  }
-
-  ai->rate = best;
-  return best;
-}
-
-int audio_set_rate(struct audio_info_struct *ai)
-{
-  return audio_reset_parameters(ai);
-}
-
-int audio_set_channels(struct audio_info_struct *ai)
-{
-  return audio_reset_parameters(ai);
-}
-
-int audio_set_format(struct audio_info_struct *ai)
-{
-  return audio_reset_parameters(ai);
-}
-
 int audio_get_formats(struct audio_info_struct *ai)
 {
 /* ULTIMEDIA DOCUMENTATION SAYS:
@@ -285,3 +270,8 @@ int audio_close(struct audio_info_struct *ai)
 
     return 0;
 }
+
+void audio_queueflush(struct audio_info_struct *ai)
+{
+}
+

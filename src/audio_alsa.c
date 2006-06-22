@@ -30,6 +30,9 @@
 #define SND_PCM_FMT_U16_NE SND_PCM_FMT_U16_BE
 #endif
 
+
+
+
 int audio_open(struct audio_info_struct *ai)
 {
 	int err;
@@ -38,6 +41,7 @@ int audio_open(struct audio_info_struct *ai)
 
 	if(!ai)
 		return -1;
+		
 	if(ai->device) {	/* parse ALSA device name */
 		if(strchr(ai->device,':')) {	/* card with device */
 			strncpy(scard, ai->device, sizeof(scard)-1);
@@ -60,20 +64,61 @@ int audio_open(struct audio_info_struct *ai)
 		}
 	}
 
+	// Open the ALSA device
 	if((err=snd_pcm_open(&ai->handle, card, device, SND_PCM_OPEN_PLAYBACK)) < 0 )
 	{
 		fprintf(stderr, "open failed: %s\n", snd_strerror(err));
 		exit(1);
 	}
 
-	if(audio_reset_parameters(ai) < 0)
-	{
-		audio_close(ai);
-		return -1;
-	}
+
+	// Now configure the device
+	audio_set_playback_format( ai )
+	audio_set_playback_params( ai );
+
 
 	return 0;
 }
+
+
+static void audio_set_playback_format(struct audio_info_struct *ai)
+{
+	snd_pcm_format_t alsa_format;
+	int err;
+	
+	alsa_format.rat = ai->rate;
+	alsa_format.channels = ai->channels;
+
+	switch(ai->format)
+	{
+		case AUDIO_FORMAT_SIGNED_16:
+		default:
+			ai->alsa_format.format=SND_PCM_SFMT_S16_NE;
+			break;
+		case AUDIO_FORMAT_UNSIGNED_8:
+			ai->alsa_format.format=SND_PCM_SFMT_U8;
+			break;
+		case AUDIO_FORMAT_SIGNED_8:
+			ai->alsa_format.format=SND_PCM_SFMT_S8;
+			break;
+		case AUDIO_FORMAT_ULAW_8:
+			ai->alsa_format.format=SND_PCM_SFMT_MU_LAW;
+			break;
+		case AUDIO_FORMAT_ALAW_8:
+			ai->alsa_format.format=SND_PCM_SFMT_A_LAW;
+			break;
+		case AUDIO_FORMAT_UNSIGNED_16:
+			ai->alsa_format.format=SND_PCM_SFMT_U16_NE;
+			break;
+	}
+
+	if((err=snd_pcm_playback_format(ai->handle, &alsa_format)) < 0 )
+	{
+		fprintf(stderr, "snd_pcm_playback_format failed: %s\n", snd_strerror(err));
+		exit(1);
+	}
+}
+
 
 static void audio_set_playback_params(struct audio_info_struct *ai)
 {
@@ -101,91 +146,8 @@ static void audio_set_playback_params(struct audio_info_struct *ai)
 	}
 }
 
-int audio_reset_parameters(struct audio_info_struct *ai)
-{
-	audio_set_format(ai);
-	audio_set_channels(ai);
-	audio_set_rate(ai);
 
-	return 0;
-}
 
-int audio_rate_best_match(struct audio_info_struct *ai)
-{
-	return 0;
-}
-
-int audio_set_rate(struct audio_info_struct *ai)
-{
-	int ret;
-
-	if(!ai || ai->rate < 0)
-		return -1;
-
-	ai->alsa_format.rate=ai->rate;
-
-	if((ret=snd_pcm_playback_format(ai->handle, &ai->alsa_format)) < 0 )
-		return -1;
-
-	audio_set_playback_params(ai);
-
-	return 0;
-}
-
-int audio_set_channels(struct audio_info_struct *ai)
-{
-	int ret;
-
-	if(ai->alsa_format.channels < 0)
-		return 0;
-
-	ai->alsa_format.channels = ai->channels;
-
-	if((ret=snd_pcm_playback_format(ai->handle, &ai->alsa_format)) < 0 )
-		return -1;
-
-	audio_set_playback_params(ai);
-
-	return 0;
-}
-
-int audio_set_format(struct audio_info_struct *ai)
-{
-	int ret;
-
-	if(ai->format == -1)
-		return 0;
-
-	switch(ai->format)
-	{
-		case AUDIO_FORMAT_SIGNED_16:
-		default:
-			ai->alsa_format.format=SND_PCM_SFMT_S16_NE;
-			break;
-		case AUDIO_FORMAT_UNSIGNED_8:
-			ai->alsa_format.format=SND_PCM_SFMT_U8;
-			break;
-		case AUDIO_FORMAT_SIGNED_8:
-			ai->alsa_format.format=SND_PCM_SFMT_S8;
-			break;
-		case AUDIO_FORMAT_ULAW_8:
-			ai->alsa_format.format=SND_PCM_SFMT_MU_LAW;
-			break;
-		case AUDIO_FORMAT_ALAW_8:
-			ai->alsa_format.format=SND_PCM_SFMT_A_LAW;
-			break;
-		case AUDIO_FORMAT_UNSIGNED_16:
-			ai->alsa_format.format=SND_PCM_SFMT_U16_NE;
-			break;
-	}
-
-	if((ret=snd_pcm_playback_format(ai->handle, &ai->alsa_format)) < 0 )
-		return -1;
-
-	audio_set_playback_params(ai);
-
-	return 0;
-}
 
 int audio_get_formats(struct audio_info_struct *ai)
 {
@@ -236,3 +198,8 @@ int audio_close(struct audio_info_struct *ai)
 	ret = snd_pcm_close(ai->handle);
 	return ret;
 }
+
+void audio_queueflush(struct audio_info_struct *ai)
+{
+}
+

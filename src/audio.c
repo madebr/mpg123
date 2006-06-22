@@ -3,20 +3,12 @@
 
 void audio_info_struct_init(struct audio_info_struct *ai)
 {
-#ifdef AUDIO_USES_FD
   ai->fn = -1;
-#endif
-#ifdef SGI
-#if 0
-  ALconfig config;
-  ALport port;
-#endif
-#endif
   ai->rate = -1;
   ai->gain = -1;
   ai->output = -1;
-#ifdef ALSA
   ai->handle = NULL;
+#ifdef ALSA
   ai->alsa_format.format = -1;
   ai->alsa_format.rate = -1;
   ai->alsa_format.channels = -1;
@@ -25,6 +17,20 @@ void audio_info_struct_init(struct audio_info_struct *ai)
   ai->channels = -1;
   ai->format = -1;
 }
+
+
+void audio_info_struct_dump(struct audio_info_struct *ai)
+{
+	fprintf(stderr, "ai->fn=%d\n", ai->fn);
+	fprintf(stderr, "ai->handle=%p\n", ai->handle);
+	fprintf(stderr, "ai->rate=%ld\n", ai->rate);
+	fprintf(stderr, "ai->gain=%ld\n", ai->gain);
+	fprintf(stderr, "ai->output=%d\n", ai->output);
+	fprintf(stderr, "ai->device='%s'\n", ai->device);
+	fprintf(stderr, "ai->channels=%d\n", ai->channels);
+	fprintf(stderr, "ai->format=%d\n", ai->format);
+}
+
 
 #define NUM_CHANNELS 2
 #define NUM_ENCODINGS 6

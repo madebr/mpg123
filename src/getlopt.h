@@ -41,6 +41,7 @@ for .... no flag) */
  *		else
  *			loptarg = &arg
  *			return ((value != 0) ? value : sname)
+ *
  *	bit 1 = 1 - var is a pointer to a char (or string),
  *			and value is interpreted as char
  *	bit 2 = 1 - var is a pointer to int

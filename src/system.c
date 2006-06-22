@@ -100,7 +100,6 @@ static int system_raw_read_head(int f,unsigned long *head)
 static int system_raw_read_word(int f,int *word)
 {
         unsigned char buf[2];
-	int ret;
 
         if(my_read(f,buf,2) != 2) {
 		perror("read_word");
@@ -488,5 +487,6 @@ void main(void)
 	filept = 0;
 	ret = system_init(&rd1);
 	fprintf(stderr,"ret: %d\n",ret);
+	return ret;
 }
 
