@@ -46,12 +46,20 @@ AC_ARG_ENABLE(debug,
               [ debugging="disabled" ]
 )
 
+AC_ARG_ENABLE(gapless,
+              [--enable-gapless=[no/yes] turn on gapless],
+              [ gapless="enabled" 
+                AC_DEFINE(GAPLESS, 1, [ Define if gapless is enabled. ]) ],
+              [ gapless="disabled" ]
+)
+
 AC_ARG_WITH([cpu], [
   --with-cpu=generic      Use generic processor code
   --with-cpu=i386         Use code optimized for i386 processors
   --with-cpu=i486         Use code optimized for i486 processors
   --with-cpu=i586         Use code optimized for i586 processors
   --with-cpu=3dnow        Use code optimized for 3dnow processors
+  --with-cpu=MMX          Use code optimized for MMX processors
 ]) 
 
 AC_ARG_WITH([audio], [
@@ -128,8 +136,8 @@ CFLAGS="$CFLAGS -Wall -std=c99"
 
 
 # If debugging is enabled then make warnings errors
-if test "$Debugging" = "enabled"; then
-	CFLAGS="$CFLAGS -g -Werror"
+if test "$debugging" = "enabled"; then
+	CFLAGS="$CFLAGS -g -Werror -pedantic"
 fi
 
 
@@ -137,29 +145,62 @@ case $target in
   powerpc-apple-darwin*)
     audio_system="macosx"
     cpu_type="generic"
-    CFLAGS="$CFLAGS -O2 -DREAL_IS_FLOAT"
+    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
   ;;
   *-*-freebsd*)
     audio_system="oss"
     cpu_type="generic"
-    CFLAGS="$CFLAGS -O4 -funroll-all-loops -ffast-math -DREAL_IS_FLOAT"
+    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
   ;;
   *)
-  	AC_MSG_WARN("Unknown target operating system; using dummy audio output")
+  	AC_MSG_WARN("Unknown target operating system")
   	audio_system="dummy"
     cpu_type="generic"
-    CFLAGS="$CFLAGS -O -DGENERIC"
+    CFLAGS="$CFLAGS -DGENERIC"
   ;;
 esac
 
 
-# Did user choose other CPU type ?
+dnl Did user choose other CPU type ?
 if test "x$with_cpu" != "x"; then
 	cpu_type=$with_cpu
 fi
+
+
+dnl CPU specific compiler flags
+case $cpu_type in
+  generic)
+    CFLAGS="$CFLAGS"
+  ;;
+  i386) 
+    CFLAGS="$CFLAGS -march=i386 -DI386_ASSEM "
+  ;;
+  i486) 
+    CFLAGS="$CFLAGS -march=i486 -DI386_ASSEM -DI486_OPT "
+  ;;
+  i586) 
+    CFLAGS="$CFLAGS -DI386_ASSEM -DPENTIUM_OPT "
+  ;;
+  3dnow) 
+    CFLAGS="$CFLAGS -DUSE_3DNOW -DI386_ASSEM -DPENTIUM_OPT "
+  ;;
+  MMX) 
+    CFLAGS="$CFLAGS -DUSE_MMX -DI386_ASSEM -DPENTIUM_OPT "
+  ;;
+  *)
+  	AC_MSG_ERROR("Unknown CPU type $(cpu_type)")
+  ;;
+esac
+
 CPU_TYPE_LIB="libcpu_$cpu_type.a"
 AC_SUBST( CPU_TYPE_LIB )
 
+
+dnl **FIXME** do optimisations stuff here
+#CFLAGS="$CFLAGS -O4"
+CFLAGS="$CFLAGS -O2"
+CFLAGS="$CFLAGS -fomit-frame-pointer -funroll-all-loops"
+CFLAGS="$CFLAGS -finline-functions -ffast-math"
 
 
 dnl ############## Audio Sub-system Settings
@@ -184,7 +225,9 @@ case $audio_system in
     AUDIO_CFLAGS=$ALSA_CFLAGS
     AUDIO_LIBS=$ALSA_LIBS
   ;;
-  dummy) ;;
+  dummy) 
+  	 AC_MSG_WARN( Using dummy audio output. )
+  ;;
   esd)
   	if test "$HAVE_ESD" = "no" ; then
   		AC_MSG_ERROR( ESounD is not available for audio output subsystem. )
@@ -252,6 +295,7 @@ echo "
   Install path ............ $prefix
   CPU Optimisation......... $cpu_type
   Audio output ............ $audio_system
+  Gapless Support ......... $gapless
   Debugging ............... $debugging
   
 Next type 'make' and then 'make install'."
