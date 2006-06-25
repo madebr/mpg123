@@ -32,9 +32,6 @@ typedef unsigned char byte;
 #define srandom srand
 #endif
 
-#define FRONTEND_SAJBER 1
-#define FRONTEND_TK3PLAY 2
-
 #define SKIP_JUNK 1
 
 #ifdef _WIN32	/* Win32 Additions By Tony Million */
@@ -358,8 +355,6 @@ extern int synth_1to1_MMX(real *, int, short *, short *, int *);
 extern void synth_ntom_set_step(long,long);
 
 extern void control_generic(struct frame *fr);
-extern void control_sajber(struct frame *fr);
-extern void control_tk3play(struct frame *fr);
 
 extern int cdr_open(struct audio_info_struct *ai, char *ame);
 extern int au_open(struct audio_info_struct *ai, char *name);

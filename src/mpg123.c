@@ -79,7 +79,6 @@ int have_eq_settings = FALSE;
 long outscale  = 32768;
 long numframes = -1;
 long startFrame= 0;
-int frontend_type = 0;
 int buffer_fd[2];
 int buffer_pid;
 
@@ -109,42 +108,6 @@ txfermem *buffermem = NULL;
 #define FRAMEBUFUNIT (18 * 64 * 4)
 
 void set_synth_functions(struct frame *fr);
-
-char *handle_remote(void)
-{
-	switch(frontend_type) {
-		case FRONTEND_SAJBER:
-#if defined(FRONTEND) && !defined(NOSAJBER)
-			control_sajber(&fr);
-#endif
-			break;
-		case FRONTEND_TK3PLAY:
-#ifdef FRONTEND
-			control_tk3play(&fr);
-#endif
-			break;
-		default:
-#if 0
-			fgets(remote_buffer,1024,stdin);
-			remote_buffer[strlen(remote_buffer)-1]=0;
-  
-			switch(remote_buffer[0]) {
-				case 'P':
-					return remote_buffer+1;        
-			}
-
-#if !defined(WIN32) && !defined(GENERIC)
-			if(param.usebuffer) 
-				buffer_resync();	
-#endif
-#else
-			control_generic(&fr);
-#endif
-			break;
-	}
-
-	return NULL;    
-}
 
 void init_output(void)
 {
@@ -885,15 +848,7 @@ int main(int argc, char *argv[])
 
 	(prgName = strrchr(argv[0], '/')) ? prgName++ : (prgName = argv[0]);
 
-#ifndef NOSAJBER
-	if(!strcmp("sajberplay",prgName))
-		frontend_type = FRONTEND_SAJBER;
-#endif
-	if(!strcmp("mpg123m",prgName))
-		frontend_type = FRONTEND_TK3PLAY;
-
 	audio_info_struct_init(&ai);
-
 
 	while ((result = getlopt(argc, argv, opts)))
 	switch (result) {
@@ -920,7 +875,7 @@ int main(int argc, char *argv[])
 	}
 #endif
 
-	if (loptind >= argc && !listname && !frontend_type && !param.remote)
+	if (loptind >= argc && !listname && !param.remote)
 		usage(NULL);
 
 #if !defined(WIN32) && !defined(GENERIC)
@@ -1003,8 +958,8 @@ int main(int argc, char *argv[])
 #if !defined(WIN32) && !defined(GENERIC)
 	catchsignal (SIGINT, catch_interrupt);
 
-	if(frontend_type || param.remote) {
-		handle_remote();
+	if(param.remote) {
+		control_generic(&fr);
 		exit(0);
 	}
 #endif
@@ -1223,7 +1178,7 @@ static void print_title(void)
     fprintf(stderr,"Version %s. Initially written and copyright by Michael Hipp.\n", PACKAGE_VERSION);
     fprintf(stderr,"Uses code from various people, see 'AUTHORS' for full list.\n");
 	fprintf(stderr,"This software comes with ABSOLUTELY NO WARRANTY. For details, see \n");
-	fprintf(stderr,"the enclosed file COPYING for license information (GPL).\n");
+	fprintf(stderr,"the enclosed file COPYING for license information (LGPL/GPL).\n");
 }
 
 static void usage(char *dummy)  /* print syntax & exit */

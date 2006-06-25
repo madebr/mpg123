@@ -40,7 +40,6 @@ nothing-specified:
 	@echo "make ultrix         DEC Ultrix (tested: 4.4)"
 	@echo "make aix-gcc        IBM AIX using gcc (tested: 4.2)"
 	@echo "make aix-xlc        IBM AIX using xlc (tested: 4.3)"
-	@echo "make aix-tk3play    IBM AIX"
 	@echo "make os2            IBM OS/2"
 	@echo "make netbsd         NetBSD"
 	@echo "make netbsd-x86     NetBSD with i486 optimization"
@@ -75,7 +74,6 @@ linux-help:
 	@echo "make linux-hppa     Linux/hppa HP-PARISC using OSS"
 	@echo "make linux-nas      Linux, output to Network Audio System"
 	@echo "make linux-sparc    Linux/Sparc"
-	@echo "make linux-sajber   Linux, build binary for Sajber Jukebox frontend"
 	@echo "make linux-alsa     Linux with ALSA sound driver"
 	@echo "make linux-mips-alsa Linux/MIPS with ALSA sound driver"
 	@echo ""
@@ -93,8 +91,6 @@ freebsd-help:
 	@echo "There are several FreeBSD flavours. Choose one:"
 	@echo ""
 	@echo "make freebsd         FreeBSD"
-	@echo "make freebsd-sajber  FreeBSD, build binary for Sajber Jukebox frontend"
-	@echo "make freebsd-tk3play FreeBSD, build binary for tk3play frontend"
 	@echo "make freebsd-esd     FreeBSD, output to EsounD"
 	@echo ""
 	@echo "Please read the file INSTALL for additional information."
@@ -317,28 +313,6 @@ linux-arm:
 			-finline-functions -ffast-math" \
 		mpg123-make
 
-linux-sajber:
-	@ $(MAKE) FRONTEND=sajberplay-make linux-frontend
-
-linux-tk3play:
-	@ $(MAKE) FRONTEND=mpg123m-make linux-frontend
-
-freebsd-sajber:
-	@ $(MAKE) FRONTEND=sajberplay-make freebsd-frontend
-
-freebsd-tk3play:
-	@ $(MAKE) FRONTEND=mpg123m-make freebsd-frontend
-
-linux-frontend:
-	$(MAKE) CC=gcc \
-		OBJECTS='decode_i386.o dct64_i386.o $(PENTIUM_DECODE).o \
-			control_sajber.o control_tk3play.o audio_oss.o' \
-		CFLAGS="$(CFLAGS) $(CPPFLAGS) -DFRONTEND -DOSS -DI386_ASSEM -DREAL_IS_FLOAT \
-			-DPENTIUM_OPT -DLINUX -Wall -O2 -mcpu=i486 \
-			-fomit-frame-pointer -funroll-all-loops \
-			-finline-functions -ffast-math" \
-		$(FRONTEND)
-
 linux-nas:
 	$(MAKE) CC=gcc LDFLAGS="$(LDFLAGS) -L/usr/X11R6/lib" \
 		AUDIO_LIB='-laudio -lXau -lXt' \
@@ -376,17 +350,6 @@ freebsd-esd:
 			-DI386_ASSEM -DREAL_IS_FLOAT -DHAVE_MMAP -DOSS \
 			-I/usr/local/include -L/usr/local/lib" \
 		mpg123-make
-
-freebsd-frontend:
-	$(MAKE) CC=cc LDFLAGS= \
-		OBJECTS='decode_i386.o dct64_i386.o audio_oss.o \
-			control_sajber.o control_tk3play.o' \
-		CFLAGS="$(CFLAGS) $(CPPFLAGS) -Wall -ansi -pedantic -O4 -mcpu=i486 -fomit-frame-pointer \
-			-funroll-all-loops -ffast-math -DROT_I386 \
-			-DFRONTEND \
-			-DI386_ASSEM -DREAL_IS_FLOAT -DHAVE_MMAP -DOSS" \
-		$(FRONTEND)
- 
 
 # -mno-epilogue
 # -mflat -mv8 -mcpu=ultrasparc
@@ -537,17 +500,6 @@ aix-xlc:
 			-DREAD_MMAP" \
 		mpg123-make
 
-aix-tk3play:
-	@ $(MAKE) FRONTEND=mpg123m-make aix-frontend
-
-aix-frontend:
-	$(MAKE) OBJECTS='decode.o dct64.o audio_aix.o \
-			control_sajber.o control_tk3play.o' \
-		CFLAGS="$(CFLAGS) $(CPPFLAGS) -DAIX -Wall -O6 -DHAVE_MMAP -DFRONTEND \
-			-fomit-frame-pointer -funroll-all-loops \
-			-finline-functions -ffast-math" \
-		$(FRONTEND)
-
 os2:
 	$(MAKE) CC=gcc \
 		OBJECTS='decode_i386.o dct64_i386.o audio_os2.o' \
@@ -642,12 +594,6 @@ generic:
 ###########################################################################
 ###########################################################################
 
-sajberplay-make:
-	@ $(MAKE) BINNAME=sajberplay mpg123
-
-mpg123m-make:
-	@ $(MAKE) BINNAME=mpg123m mpg123
-
 mpg123-make:
 	@ $(MAKE) BINNAME=mpg123 mpg123
 
@@ -699,7 +645,6 @@ dct64.o:	mpg123.h
 dct64_i386.o:	mpg123.h
 xfermem.o:	xfermem.h
 equalizer.o:	mpg123.h
-control_sajber.o:	jukebox/controldata.h mpg123.h
 wav.o:		mpg123.h
 readers.o:	mpg123.h buffer.h common.h
 term.o:		mpg123.h buffer.h term.h common.h
@@ -709,7 +654,7 @@ term.o:		mpg123.h buffer.h term.h common.h
 ###########################################################################
 
 clean:
-	rm -f *.o *core *~ mpg123 gmon.out sajberplay system mpg123m
+	rm -f *.o *core *~ mpg123 gmon.out system
 
 prepared-for-install:
 	@if [ ! -x mpg123 ]; then \
