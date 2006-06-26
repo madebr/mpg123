@@ -9,6 +9,7 @@
  *   Fri Dec 23, 2005
  */
 
+#include <stdio.h>
 #include "config.h"
 #include "debug.h"
 #include "getlopt.h"
@@ -48,6 +49,11 @@ topt *findopt (int islong, char *opt, topt *opts)
 int performoption (int argc, char *argv[], topt *opt)
 {
 	int result = GLO_CONTINUE;
+	#define prog_error() \
+	{ \
+		fprintf(stderr, __FILE__ ":%i Option without type flag! This is a programming error! Developer: fix this ASAP to regain your honor.\n", __LINE__); \
+		exit(1); \
+	}
 
 	if (!(opt->flags & GLO_ARG)) { /* doesn't take argument */
 		if (opt->var) {
@@ -66,7 +72,7 @@ int performoption (int argc, char *argv[], topt *opt)
 				debug1("int at %p", opt->var);
 				*( (int *) opt->var ) = (int) opt->value;
 			}
-			else debug("Option without type flag! This is a programming error!");
+			else prog_error();
 								
 			debug("casting assignment done");
 		}
@@ -85,7 +91,7 @@ int performoption (int argc, char *argv[], topt *opt)
 				*((long *) opt->var) = atol(loptarg);
 			else if(opt->flags & GLO_INT)
 				*((int *) opt->var) = atoi(loptarg);
-			else debug("Option without type flag! This is a programming error!");
+			else prog_error();
 		}
 		else
 			result = opt->value ? opt->value : opt->sname;

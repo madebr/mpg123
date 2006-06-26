@@ -510,22 +510,23 @@ topt opts[] = {
 	{'Z', "random",      GLO_INT,  0, &param.shuffle, 2},
 	{'E', "equalizer",	 GLO_ARG | GLO_CHAR, 0, &equalfile,1},
 	#ifdef HAVE_SETPRIORITY
-	{0,   "aggressive",	 0,  0, &param.aggressive, 2},
+	{0,   "aggressive",	 GLO_INT,  0, &param.aggressive, 2},
 	#endif
 	#ifdef USE_3DNOW
-	{0,   "force-3dnow", 0,  0, &param.stat_3dnow,1},
-	{0,   "no-3dnow",    0,  0, &param.stat_3dnow,2},
-	{0,   "test-3dnow",  0,  0, &param.test_3dnow,TRUE},
+	{0,   "force-3dnow", GLO_INT,  0, &param.stat_3dnow, 1},
+	{0,   "no-3dnow",    GLO_INT,  0, &param.stat_3dnow, 2},
+	{0,   "test-3dnow",  GLO_INT,  0, &param.test_3dnow, TRUE},
 	#endif
 	#if !defined(WIN32) && !defined(GENERIC)
 	{'u', "auth",        GLO_ARG | GLO_CHAR, 0, &httpauth,   0},
 	#endif
 	#ifdef HAVE_SCHED_SETSCHEDULER
-	{'T', "realtime",    0,  0, &param.realtime, TRUE },
+	/* check why this should be a long variable instead of int! */
+	{'T', "realtime",    GLO_LONG,  0, &param.realtime, TRUE },
 	#else
 	{'T', "realtime",    0,  realtime_not_compiled, 0,           0 },    
 	#endif
-	{0, "title",         0,  0, &param.xterm_title, TRUE },
+	{0, "title",         GLO_INT,  0, &param.xterm_title, TRUE },
 	{'w', "wav",         GLO_ARG | GLO_CHAR, set_wav, 0 , 0 },
 	{0, "cdr",           GLO_ARG | GLO_CHAR, set_cdr, 0 , 0 },
 	{0, "au",            GLO_ARG | GLO_CHAR, set_au, 0 , 0 },
