@@ -23,6 +23,7 @@
 #include <sys/stat.h>
 #include <sys/param.h>
 
+#include "config.h"
 #include "mpg123.h"
 
 /* use AUDIO_BSIZE to set the msec for audio buffering in Ultimedia library

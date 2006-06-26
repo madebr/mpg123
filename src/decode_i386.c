@@ -14,6 +14,7 @@
 #include <math.h>
 #include <string.h>
 
+#include "config.h"
 #include "mpg123.h"
 
 #if 0

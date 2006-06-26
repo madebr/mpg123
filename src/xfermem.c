@@ -7,9 +7,7 @@
  *   See xfermem.h for documentation/description.
  */
 
-#ifdef HAVE_CONFIG
 #include "config.h"
-#endif
 
 #ifndef NOXFERMEM
 

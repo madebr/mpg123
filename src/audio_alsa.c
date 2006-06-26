@@ -12,6 +12,7 @@
  * This file comes under GPL license. 
  */
 
+#include "config.h"
 #include "mpg123.h"
 
 #include <stdlib.h>

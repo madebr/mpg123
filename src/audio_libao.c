@@ -24,6 +24,7 @@
 #include <math.h>
 #include <ao/ao.h>
 
+#include "config.h"
 #include "mpg123.h"
 
 

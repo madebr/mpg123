@@ -18,6 +18,7 @@
 
 #include <sys/socket.h>
 
+#include "config.h"
 #include "mpg123.h"
 #include "common.h"
 

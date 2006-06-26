@@ -8,6 +8,8 @@
 
 #include <fcntl.h>
 
+#include "config.h"
+
 #ifdef READ_MMAP
 #include <sys/mman.h>
 #ifndef MAP_FAILED

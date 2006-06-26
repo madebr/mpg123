@@ -8,6 +8,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include "config.h"
 #include "mpg123.h"
 
 struct

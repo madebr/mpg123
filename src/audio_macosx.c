@@ -57,6 +57,7 @@
 #define MOSX_SEM_V2 1
 #endif
 
+#include "config.h"
 #include "mpg123.h"
 #include <CoreAudio/AudioHardware.h>
 #include <stdio.h>

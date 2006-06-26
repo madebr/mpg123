@@ -26,6 +26,7 @@
 #include <jack/jack.h>
 #include <jack/ringbuffer.h>
 
+#include "config.h"
 #include "mpg123.h"
 
 

@@ -11,6 +11,7 @@
 #include <audio/audiolib.h>
 #include <audio/soundlib.h>
 
+#include "config.h"
 #include "mpg123.h"
 
 typedef struct

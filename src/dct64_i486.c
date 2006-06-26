@@ -10,6 +10,7 @@
  * (c) 1998 Fabrice Bellard.  
  */
 
+#include "config.h"
 #include "mpg123.h"
 
 #define COS_0_0 16403

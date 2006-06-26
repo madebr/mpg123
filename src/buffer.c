@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <errno.h>
 
+#include "config.h"
 #include "mpg123.h"
 
 int outburst = MAXOUTBURST;

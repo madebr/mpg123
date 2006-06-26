@@ -1,4 +1,5 @@
 
+#include "config.h"
 #include "mpg123.h"
 
 real equalizer[2][32];

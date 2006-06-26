@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <assert.h>
 
+#include "config.h"
 #include "mpg123.h"
 
 #ifdef SOLARIS

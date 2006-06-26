@@ -9,6 +9,7 @@
  */ 
 
 #include <stdlib.h>
+#include "config.h"
 #include "mpg123.h"
 #include "huffman.h"
 

@@ -8,6 +8,7 @@
  *
  */
 
+#include "config.h"
 #include "mpg123.h"
 
 void I_step_one(unsigned int balloc[], unsigned int scale_index[2][SBLIMIT],struct frame *fr)

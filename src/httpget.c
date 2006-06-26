@@ -6,6 +6,7 @@
  *
  */
 
+#include "config.h"
 #if !defined(WIN32) && !defined(GENERIC)
 
 #include <stdlib.h>

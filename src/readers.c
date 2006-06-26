@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include "config.h"
 #include "mpg123.h"
 #include "buffer.h"
 #include "common.h"

@@ -1,3 +1,4 @@
+#include "config.h"
 #include "mpg123.h"
 #include "common.h"
 
