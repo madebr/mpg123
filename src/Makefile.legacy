@@ -115,8 +115,8 @@ linux-profile:
 linux:
 	$(MAKE) CC=gcc \
 		OBJECTS="decode.o dct64.o audio_oss.o term.o" \
-		CFLAGS="$(CFLAGS) $(CPPFLAGS) -DREAL_IS_FLOAT -DLINUX \
-			-DOSS -DHAVE_TERMIOS\
+		CFLAGS="$(CFLAGS) $(CPPFLAGS) -DREAL_IS_FLOAT -DLINUX -O2 -funroll-all-loops \
+			-DOSS -DHAVE_TERMIOS \
 			-Wall" \
 		mpg123-make
 
