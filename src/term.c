@@ -1,6 +1,5 @@
 
 #include "config.h"
-
 #ifdef HAVE_TERMIOS
 
 #include <termios.h>
@@ -9,6 +8,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 
+#include "debug.h"
 #include "mpg123.h"
 #include "buffer.h"
 #include "term.h"
@@ -23,6 +23,7 @@ static struct termios old_tio;
 void term_init(void)
 {
   struct termios tio;
+  debug("term_init");
 
   term_enable = 0;
 

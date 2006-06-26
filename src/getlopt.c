@@ -9,13 +9,9 @@
  *   Fri Dec 23, 2005
  */
 
+#include "config.h"
+#include "debug.h"
 #include "getlopt.h"
-
-/* #define GLO_DEBUG */
-
-#ifdef GLO_DEBUG
-#include <stdio.h>
-#endif
 
 int loptind = 1;	/* index in argv[] */
 int loptchr = 0;	/* index in argv[loptind] */
@@ -57,30 +53,22 @@ int performoption (int argc, char *argv[], topt *opt)
 		if (opt->var) {
 			if (opt->flags & GLO_CHAR) /* var is *char */
 			{
-				#ifdef GLO_DEBUG
-				fprintf(stderr, "[char at %ld]\n", opt->var);
-				#endif
+				debug1("char at %p", opt->var);
 				*((char *) opt->var) = (char) opt->value;\
 			}
 			else if(opt->flags & GLO_LONG)
 			{
-				#ifdef GLO_DEBUG
-				fprintf(stderr, "[long at %ld]\n", opt->var);
-				#endif
+				debug1("long at %p", opt->var);
 				*( (long *) opt->var ) = opt->value;
 			}
 			else if(opt->flags & GLO_INT)
 			{
-				#ifdef GLO_DEBUG
-				fprintf(stderr, "[int at %ld]\n", opt->var);
-				#endif
+				debug1("int at %p", opt->var);
 				*( (int *) opt->var ) = (int) opt->value;
 			}
-			#ifdef GLO_DEBUG
-			else fprintf(stderr, "[Option without type flag! This is a programming error!]\n");
+			else debug("Option without type flag! This is a programming error!");
 								
-			fprintf(stderr,"[dubious assignment done]\n");
-			#endif
+			debug("casting assignment done");
 		}
 		else
 			result = opt->value ? opt->value : opt->sname;
@@ -97,9 +85,7 @@ int performoption (int argc, char *argv[], topt *opt)
 				*((long *) opt->var) = atol(loptarg);
 			else if(opt->flags & GLO_INT)
 				*((int *) opt->var) = atoi(loptarg);
-			#ifdef GLO_DEBUG
-			else fprintf(stderr, "[Option without type flag! This is a programming error!]\n");
-			#endif
+			else debug("Option without type flag! This is a programming error!");
 		}
 		else
 			result = opt->value ? opt->value : opt->sname;
@@ -118,9 +104,7 @@ int getsingleopt (int argc, char *argv[], topt *opts)
 	if (loptind >= argc)
 		return (GLO_END);
 	thisopt = argv[loptind];
-	#ifdef GLO_DEBUG
-	fprintf(stderr,"[getsingleopt: %s]\n", thisopt);
-	#endif
+	debug1("getsingleopt: %s", thisopt);
 	if (!loptchr) { /* start new option string */
 		if (thisopt[0] != '-' || !thisopt[1]) /* no more options */
 			return (GLO_END);
