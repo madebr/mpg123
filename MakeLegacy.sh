@@ -1,4 +1,4 @@
-	#!/bin/sh
+#!/bin/sh
 
 # Check that configure.ac exists
 if test ! -f configure.ac; then
@@ -15,18 +15,13 @@ cd src
 
 # Write out our own very basic config.h
 echo "Creating basic config.h to reproduce pre-autoconf days."
+cp config.h.legacy config.h &&
 {
-	echo "// Created by MakeLegacy.sh" 
-	echo "#ifdef LINUX"
-	echo "#define HAVE_LINUX_SOUNDCARD_H"
-	echo "#elif defined(__bsdi__)"
-	echo "#define HAVE_SYS_SOUNDCARD_H"
-	echo "#else"
-	echo "#define HAVE_MACHINE_SOUNDCARD_H"
-	echo "#endif"
+	echo "// added by MakeLegacy.sh"
 	echo "#define PACKAGE_NAME \"$PACKAGE_NAME\"" 
 	echo "#define PACKAGE_VERSION \"$PACKAGE_VERSION\""
 	echo "#define PACKAGE_BUGREPORT \"$PACKAGE_BUGREPORT\""
-} > config.h
+} >> config.h &&
 
-exec make -f Makefile.legacy $*
+exec make -f Makefile.legacy $* ||
+echo "some error!?"

@@ -1,0 +1,17 @@
+// basic config.h to reproduce pre-autoconf days
+
+/* little automagic on its own for OSS header */
+#ifdef LINUX
+	#define HAVE_LINUX_SOUNDCARD_H
+#elif defined(__bsdi__)
+	#define HAVE_SYS_SOUNDCARD_H
+#else
+	#define HAVE_MACHINE_SOUNDCARD_H
+#endif
+
+/* aggresive and realtime options were enabled per default */
+#define HAVE_SETPRIORITY
+#ifndef NO_RT
+	#define HAVE_SCHED_H
+	#define HAVE_SCHED_SETSCHEDULER
+#endif
