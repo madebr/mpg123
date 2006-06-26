@@ -8,6 +8,8 @@
 
 
 #include "config.h"
+#include "debug.h"
+#define ME "main"
 
 #include <stdlib.h>
 #include <sys/types.h>
@@ -512,7 +514,7 @@ FALSE},
     {'f', "scale",       GLO_ARG | GLO_LONG, 0, &outscale,   0},
     {'n', "frames",      GLO_ARG | GLO_LONG, 0, &numframes,  0},
 #ifdef HAVE_TERMIOS
-    {'C', "control",	 0,		     0, &param.term_ctrl, TRUE},
+    {'C', "control",	 GLO_INT,		     0, &param.term_ctrl, TRUE},
 #endif
     {'b', "buffer",      GLO_ARG | GLO_LONG, 0, &param.usebuffer,  0},
     {'R', "remote",      GLO_INT,                  0, &param.remote,     
@@ -1005,6 +1007,7 @@ int main(int argc, char *argv[])
 		init = 1;
 		newFrame = startFrame;
 #ifdef HAVE_TERMIOS
+		debug1("param.term_ctrl: %i", param.term_ctrl);
 		if(param.term_ctrl)
 			term_init();
 #endif
