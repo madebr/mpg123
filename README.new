@@ -19,20 +19,22 @@ As for every mp3 player, some of mpg123's functionality may be covered by patent
 Project's official website URL is
 
 	http://mpg123.org
+(or http://mpg123.orgis.org as fallback address if there is a problem with the DNS forwarding)
 
-(or http://mpg123.orgis.org as fallback address if there is a problem with the DNS forwarding).
-For the downloading of tarballs please use the sourceforge.net mirror service:
+for the traditional hope page and
 
-	http://sourceforge.net/project/showfiles.php?group_id=135704
+	http://sourceforge.net/projects/mpg123
 
+for sourceforge.net based services like download mirrors and mailing list.
+Please use the sourceforge download mirrors when possible to minimize load on the mpg123.org server.
 
 1. Introduction
 
 This is a console based decoder/player for mono/stereo mpeg audio files, probably more familiar as MP3 or MP2 files.
 It's focus is speed. We still need some low-end benchmarks for the current version, but playback should be possible even on i486 CPUs. There is hand-optimized assembly code for i586, MMX and 3DNow! instructions, while generic code runs on a variety of different platforms and CPUs.
 It can play MPEG1.0/2.0 layer I, II, II (1, 2, 3;-) files (VBR files are fine, too) and produce output on a number of different ways: raw data to stdout and different sound systems depending on your platform (see INSTALL).
-Most tested is Linux with OSS (or raw) output on x86 and Alpha/AXP by myself (Thomas) and I am always happy to get user feedback for other platforms (*BSD, Solaris, ...).
-
+Most tested are Linux on x86 and Alpha/AXP and MacOSX on ppc as the environments the current developers work in.
+We are always thankful for user reports on success (and failure) on any platform!
 
 2. Contact
 
@@ -80,7 +82,7 @@ Note: This interface needs not to be available on _every_ platform/build.
 
 3.3 Control Interface for Frontends
 
-There are actually several interfaces for frontends left over from that past, but only one of them will remain for the future:
+There used to be several interfaces for frontends left over from that past, but only one of them remains for the present and future:
 
 	The Generic Control Interface
 
