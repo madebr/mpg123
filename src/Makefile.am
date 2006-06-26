@@ -67,6 +67,7 @@ EXTRA_LIBRARIES = \
 	libcpu_i386.a \
 	libcpu_i486.a \
 	libcpu_i586.a \
+	libcpu_i586_dither.a \
 	libcpu_3dnow.a \
 	libcpu_MMX.a
 
@@ -87,6 +88,11 @@ libcpu_i586_a_SOURCES = \
 	decode_i386.c \
 	dct64_i386.c \
 	decode_i586.s
+
+libcpu_i586_dither_a_SOURCES = \
+	decode_i386.c \
+	dct64_i386.c \
+	decode_i586_dither.s
 
 libcpu_3dnow_a_SOURCES = \
 	decode_i386.c \

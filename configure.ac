@@ -58,6 +58,7 @@ AC_ARG_WITH([cpu], [
   --with-cpu=i386         Use code optimized for i386 processors
   --with-cpu=i486         Use code optimized for i486 processors
   --with-cpu=i586         Use code optimized for i586 processors
+  --with-cpu=i586_dither  Use code optimized for i586 processors with dithering (noise shaping)
   --with-cpu=3dnow        Use code optimized for 3dnow processors
   --with-cpu=MMX          Use code optimized for MMX processors
 ]) 
@@ -210,6 +211,9 @@ case $cpu_type in
   ;;
   i586) 
     CFLAGS="$CFLAGS -DI386_ASSEM -DPENTIUM_OPT "
+  ;;
+  i586_dither) 
+    CFLAGS="$CFLAGS -DI386_ASSEM -DPENTIUM_OPT"
   ;;
   3dnow) 
     CFLAGS="$CFLAGS -DUSE_3DNOW -DI386_ASSEM -DPENTIUM_OPT "
