@@ -465,98 +465,76 @@ passed.
  *  GLO_NUM no longer exists.
  */
 topt opts[] = {
-    {'k', "skip",        GLO_ARG | GLO_LONG, 0, &startFrame, 0},
-    {'a', "audiodevice", GLO_ARG | GLO_CHAR, 0, &ai.device,  0},
-    {'2', "2to1",        GLO_INT,                  0, &param.down_sample, 
-1},
-    {'4', "4to1",        GLO_INT,                  0, &param.down_sample, 
-2},
-    {'t', "test",        GLO_INT,                  0, &param.outmode, 
-DECODE_TEST},
-    {'s', "stdout",      GLO_INT,       SetOutStdout, &param.outmode, 
-DECODE_FILE},
-    {'S', "STDOUT",      GLO_INT,       SetOutStdout1, &param.outmode, 
-DECODE_AUDIOFILE},
-    {'O', "outfile",     GLO_ARG | GLO_CHAR, SetOutFile, NULL, 0},
-    {'c', "check",       GLO_INT,                  0, &param.checkrange, 
-TRUE},
-    {'v', "verbose",     0,        set_verbose, 0,           0},
-    {'q', "quiet",       GLO_INT,                  0, &param.quiet,      
-TRUE},
-    {'y', "resync",      GLO_INT,                  0, &param.tryresync,  
-FALSE},
-    {'0', "single0",     GLO_INT,                  0, &param.force_mono, 
-0},
-    {0,   "left",        GLO_INT,                  0, &param.force_mono, 
-0},
-    {'1', "single1",     GLO_INT,                  0, &param.force_mono, 
-1},
-    {0,   "right",       GLO_INT,                  0, &param.force_mono, 
-1},
-    {'m', "singlemix",   GLO_INT,                  0, &param.force_mono, 
-3},
-    {0,   "mix",         GLO_INT,                  0, &param.force_mono, 
-3},
-    {0,   "mono",        GLO_INT,                  0, &param.force_mono, 
-3},
-    {0,   "stereo",      GLO_INT,                  0, &param.force_stereo, 
-1},
-    {0,   "reopen",      GLO_INT,                  0, &param.force_reopen, 
-1},
-    {'g', "gain",        GLO_ARG | GLO_LONG, 0, &ai.gain,    0},
-    {'r', "rate",        GLO_ARG | GLO_LONG, 0, &param.force_rate,  0},
-    {0,   "8bit",        GLO_INT,                  0, &param.force_8bit, 
-1},
-    {0,   "headphones",  0,                  set_output_h, 0,0},
-    {0,   "speaker",     0,                  set_output_s, 0,0},
-    {0,   "lineout",     0,                  set_output_l, 0,0},
-    {'o', "output",      GLO_ARG | GLO_CHAR, set_output, 0,  0},
-    {'f', "scale",       GLO_ARG | GLO_LONG, 0, &outscale,   0},
-    {'n', "frames",      GLO_ARG | GLO_LONG, 0, &numframes,  0},
-#ifdef HAVE_TERMIOS
-    {'C', "control",	 GLO_INT,		     0, &param.term_ctrl, TRUE},
-#endif
-    {'b', "buffer",      GLO_ARG | GLO_LONG, 0, &param.usebuffer,  0},
-    {'R', "remote",      GLO_INT,                  0, &param.remote,     
-TRUE},
-    {0,   "remote-err",  GLO_INT,                  0, &param.remote_err, 
-TRUE},
-    {'d', "doublespeed", GLO_ARG | GLO_LONG, 0, &param.doublespeed,0},
-    {'h', "halfspeed",   GLO_ARG | GLO_LONG, 0, &param.halfspeed,  0},
-    {'p', "proxy",       GLO_ARG | GLO_CHAR, 0, &proxyurl,   0},
-    {'@', "list",        GLO_ARG | GLO_CHAR, 0, &listname,   0},
+	{'k', "skip",        GLO_ARG | GLO_LONG, 0, &startFrame, 0},
+	{'a', "audiodevice", GLO_ARG | GLO_CHAR, 0, &ai.device,  0},
+	{'2', "2to1",        GLO_INT,  0, &param.down_sample, 1},
+	{'4', "4to1",        GLO_INT,  0, &param.down_sample, 2},
+	{'t', "test",        GLO_INT,  0, &param.outmode, DECODE_TEST},
+	{'s', "stdout",      GLO_INT,  SetOutStdout, &param.outmode, DECODE_FILE},
+	{'S', "STDOUT",      GLO_INT,  SetOutStdout1, &param.outmode,DECODE_AUDIOFILE},
+	{'O', "outfile",     GLO_ARG | GLO_CHAR, SetOutFile, NULL, 0},
+	{'c', "check",       GLO_INT,  0, &param.checkrange, TRUE},
+	{'v', "verbose",     0,        set_verbose, 0,           0},
+	{'q', "quiet",       GLO_INT,  0, &param.quiet, TRUE},
+	{'y', "resync",      GLO_INT,  0, &param.tryresync, FALSE},
+	{'0', "single0",     GLO_INT,  0, &param.force_mono, 0},
+	{0,   "left",        GLO_INT,  0, &param.force_mono, 0},
+	{'1', "single1",     GLO_INT,  0, &param.force_mono, 1},
+	{0,   "right",       GLO_INT,  0, &param.force_mono, 1},
+	{'m', "singlemix",   GLO_INT,  0, &param.force_mono, 3},
+	{0,   "mix",         GLO_INT,  0, &param.force_mono, 3},
+	{0,   "mono",        GLO_INT,  0, &param.force_mono, 3},
+	{0,   "stereo",      GLO_INT,  0, &param.force_stereo, 1},
+	{0,   "reopen",      GLO_INT,  0, &param.force_reopen, 1},
+	{'g', "gain",        GLO_ARG | GLO_LONG, 0, &ai.gain,    0},
+	{'r', "rate",        GLO_ARG | GLO_LONG, 0, &param.force_rate,  0},
+	{0,   "8bit",        GLO_INT,  0, &param.force_8bit, 1},
+	{0,   "headphones",  0,                  set_output_h, 0,0},
+	{0,   "speaker",     0,                  set_output_s, 0,0},
+	{0,   "lineout",     0,                  set_output_l, 0,0},
+	{'o', "output",      GLO_ARG | GLO_CHAR, set_output, 0,  0},
+	{'f', "scale",       GLO_ARG | GLO_LONG, 0, &outscale,   0},
+	{'n', "frames",      GLO_ARG | GLO_LONG, 0, &numframes,  0},
+	#ifdef HAVE_TERMIOS
+	{'C', "control",     GLO_INT,  0, &param.term_ctrl, TRUE},
+	#endif
+	{'b', "buffer",      GLO_ARG | GLO_LONG, 0, &param.usebuffer,  0},
+	{'R', "remote",      GLO_INT,  0, &param.remote, TRUE},
+	{0,   "remote-err",  GLO_INT,  0, &param.remote_err, TRUE},
+	{'d', "doublespeed", GLO_ARG | GLO_LONG, 0, &param.doublespeed,0},
+	{'h', "halfspeed",   GLO_ARG | GLO_LONG, 0, &param.halfspeed,  0},
+	{'p', "proxy",       GLO_ARG | GLO_CHAR, 0, &proxyurl,   0},
+	{'@', "list",        GLO_ARG | GLO_CHAR, 0, &listname,   0},
 	/* 'z' comes from the the german word 'zufall' (eng: random) */
-    {'z', "shuffle",     GLO_INT,                  0, &param.shuffle,    
-1},
-    {'Z', "random",      GLO_INT,                  0, &param.shuffle,    
-2},
-    {'E', "equalizer",	 GLO_ARG | GLO_CHAR, 0, &equalfile,1},
-#ifdef HAVE_SETPRIORITY
-    {0,   "aggressive",	 0,   	             0, &param.aggressive, 2},
-#endif
-#ifdef USE_3DNOW
-    {0,   "force-3dnow", 0,                  0, &param.stat_3dnow,1},
-    {0,   "no-3dnow",    0,                  0, &param.stat_3dnow,2},
-    {0,   "test-3dnow",  0,                  0, &param.test_3dnow,TRUE},
-#endif
-#if !defined(WIN32) && !defined(GENERIC)
-    {'u', "auth",        GLO_ARG | GLO_CHAR, 0, &httpauth,   0},
-#endif
-#ifdef HAVE_SCHED_SETSCHEDULER
-    {'T', "realtime",    0,                  0, &param.realtime, TRUE },
-#else
-    {'T', "realtime",    0,       realtime_not_compiled, 0,           0 },    
-#endif
-    {0, "title",         0,                  0, &param.xterm_title, TRUE },
-    {'w', "wav",         GLO_ARG | GLO_CHAR, set_wav, 0 , 0 },
-    {0, "cdr",         GLO_ARG | GLO_CHAR, set_cdr, 0 , 0 },
-    {0, "au",         GLO_ARG | GLO_CHAR, set_au, 0 , 0 },
-#ifdef GAPLESS
-    {0,   "gapless",	 GLO_INT,   	             0, &param.gapless, 1},
-#endif
-    {'?', "help",       0,              usage, 0,           0 },
-    {0 , "longhelp" ,    0,        long_usage, 0,           0 },
-    {0, 0, 0, 0, 0, 0}
+	{'z', "shuffle",     GLO_INT,  0, &param.shuffle, 1},
+	{'Z', "random",      GLO_INT,  0, &param.shuffle, 2},
+	{'E', "equalizer",	 GLO_ARG | GLO_CHAR, 0, &equalfile,1},
+	#ifdef HAVE_SETPRIORITY
+	{0,   "aggressive",	 0,  0, &param.aggressive, 2},
+	#endif
+	#ifdef USE_3DNOW
+	{0,   "force-3dnow", 0,  0, &param.stat_3dnow,1},
+	{0,   "no-3dnow",    0,  0, &param.stat_3dnow,2},
+	{0,   "test-3dnow",  0,  0, &param.test_3dnow,TRUE},
+	#endif
+	#if !defined(WIN32) && !defined(GENERIC)
+	{'u', "auth",        GLO_ARG | GLO_CHAR, 0, &httpauth,   0},
+	#endif
+	#ifdef HAVE_SCHED_SETSCHEDULER
+	{'T', "realtime",    0,  0, &param.realtime, TRUE },
+	#else
+	{'T', "realtime",    0,  realtime_not_compiled, 0,           0 },    
+	#endif
+	{0, "title",         0,  0, &param.xterm_title, TRUE },
+	{'w', "wav",         GLO_ARG | GLO_CHAR, set_wav, 0 , 0 },
+	{0, "cdr",           GLO_ARG | GLO_CHAR, set_cdr, 0 , 0 },
+	{0, "au",            GLO_ARG | GLO_CHAR, set_au, 0 , 0 },
+	#ifdef GAPLESS
+	{0,   "gapless",	 GLO_INT,  0, &param.gapless, 1},
+	#endif
+	{'?', "help",            0,  usage, 0,           0 },
+	{0 , "longhelp" ,        0,  long_usage, 0,           0 },
+	{0, 0, 0, 0, 0, 0}
 };
 
 /*
