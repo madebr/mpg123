@@ -1,8 +1,11 @@
-The creator: Michael Hipp (email: hippm@informatik.uni-tuebingen.de)
-Current maintainer: Thomas Orgis <thomas@orgis.org>
+The creator: Michael Hipp (email: hippm@informatik.uni-tuebingen.de - please bother maintainers first)
+Current maintainers:
+	Thomas Orgis <thomas@orgis.org>
+	Nicholas J Humfrey <njh@ecs.soton.ac.uk>
 
 Contributions/ideas Thomas Orgis era:
 
+Adrian Bacon <adrian.bacon@xs4all.nl>: patched decode_i586_dither (noise shaped float/int rounding)
 Cool Feet Audio project <nutcase@dtfm.org>: realtime equalizer control
 Steve Grundell <www@grundell.u-net.com>: clean stdout in control mode with stdout decoding
 
