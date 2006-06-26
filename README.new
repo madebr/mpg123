@@ -62,6 +62,8 @@ on command line syntax/options.
 
 In the simple "mpg123 file1.mp3 file2.mp3" mode, the only thing you can do to interact is to press Ctrl+C to skip to next track or end the whole playback if pressing it twice.
 
+Note that this Ctrl+C behaviour is special to this mode; when any of the following is activated, Ctrl+C will just kill the program like you would expect normally (this changed from earlier versions).
+
 3.2 Advanced Console Usage
 
 You can specify the option -C to enable a terminal control interface enabling to influence playback on current title/playlist by pressing some key:
