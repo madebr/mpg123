@@ -184,6 +184,10 @@ case $target in
     CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
     LIBS="$LIBS -lsocket -lnsl"
   ;;
+	*-linux*)
+    cpu_type="generic"
+    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
+	;;
   *)
   	AC_MSG_WARN([Unknown target operating system])
     cpu_type="generic"
