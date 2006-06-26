@@ -937,6 +937,14 @@ int main(int argc, char *argv[])
 	init_layer3(fr.down_sample);
 
 #if !defined(WIN32) && !defined(GENERIC)
+	/* This ctrl+c for title skip only when not in some control mode */
+	if
+	(
+		!param.remote 
+		#ifdef HAVE_TERMIOS
+		&& !param.term_ctrl
+		#endif
+	)
 	catchsignal (SIGINT, catch_interrupt);
 
 	if(param.remote) {
@@ -1098,6 +1106,7 @@ tc_hack:
  * When HAVE_TERMIOS is defined, there is 'q' to terminate a list of songs, so
  * no pressing need to keep up this first second SIGINT hack that was too
  * often mistaken as a bug. [dk]
+ * ThOr: Yep, I deactivated the Ctrl+C hack for active control modes.
  */
 #if !defined(WIN32) && !defined(GENERIC)
 #ifdef HAVE_TERMIOS
