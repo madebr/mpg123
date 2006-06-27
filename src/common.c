@@ -579,9 +579,8 @@ init_resync:
 							if(param.gapless)
 							{
 								/*
-									Setting the values of skipping samples on begin/end for the first hack.
-									Note: It only works without resampling and not yet with multiple file playback...
-									I need to have a hook on file change (is the track_state solution good?)
+									Temporary hack that doesn't work with seeking and also is not waterproof but works most of the time;
+									in future the lame delay/padding and frame number info should be passed to layer3.c and the junk samples avoided at the source.
 								*/
 								skipbegin = DECODER_DELAY + ((((int) bsbuf[lame_offset]) << 4) | (((int) bsbuf[lame_offset+1]) >> 4));
 								skipend = -DECODER_DELAY + (((((int) bsbuf[lame_offset+1]) << 8) | (((int) bsbuf[lame_offset+2]))) & 0xfff);
