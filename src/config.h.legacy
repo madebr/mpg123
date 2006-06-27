@@ -1,4 +1,4 @@
-// basic config.h to reproduce pre-autoconf days
+/* basic config.h to reproduce pre-autoconf days */
 
 /* little automagic on its own for OSS header */
 #ifdef LINUX
