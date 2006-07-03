@@ -64,6 +64,7 @@ EXTRA_mpg123_SOURCES = \
 # Processor dependent decoder code
 EXTRA_LIBRARIES = \
 	libcpu_generic.a \
+	libcpu_altivec.a \
 	libcpu_i386.a \
 	libcpu_i486.a \
 	libcpu_i586.a \
@@ -74,6 +75,10 @@ EXTRA_LIBRARIES = \
 libcpu_generic_a_SOURCES = \
 	decode.c \
 	dct64.c
+
+libcpu_altivec_a_SOURCES = \
+	decode.c \
+	dct64_altivec.c
 
 libcpu_i386_a_SOURCES = \
 	decode_i386.c \

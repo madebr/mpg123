@@ -207,6 +207,9 @@ case $cpu_type in
   generic)
     CFLAGS="$CFLAGS"
   ;;
+  altivec)
+    CFLAGS="$CFLAGS -maltivec"
+  ;;
   i386) 
     CFLAGS="$CFLAGS -march=i386 -DI386_ASSEM "
   ;;
