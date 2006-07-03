@@ -6,6 +6,8 @@
  *
  * Optimize-TODO: put short bands into the band-field without the stride of 3 reals
  * Length-optimze: unify long and short band code where it is possible
+ * 
+ * The int-vs-pointer situation has to be cleaned up.
  */ 
 
 #include <stdlib.h>
@@ -14,6 +16,7 @@
 #include "huffman.h"
 
 #include "common.h"
+#include "debug.h"
 
 #include "getbits.h"
 
@@ -107,6 +110,47 @@ static unsigned int i_slen2[256]; /* MPEG 2.0 slen for intensity stereo */
 
 static real tan1_1[16],tan2_1[16],tan1_2[16],tan2_2[16];
 static real pow1_1[2][16],pow2_1[2][16],pow1_2[2][16],pow2_2[2][16];
+
+#ifdef GAPLESS
+/* still a dirty hack, places in bytes (zero-based)... */
+static unsigned long position; /* position in raw decoder bytestream */
+static unsigned long begin; /* first byte to play == number to skip */
+static unsigned long end; /* last byte to play */
+static int bytified;
+
+/* input in bytes already */
+void layer3_gapless_init(unsigned long b, unsigned long e)
+{
+	bytified = 0;
+	position = 0;
+	begin = b;
+	end = e;
+	debug2("layer3_gapless_init: from %lu to %lu samples", begin, end);
+}
+
+/* decrease position */
+void layer3_gapless_rewind(unsigned long frames, struct frame* fr, struct audio_info_struct *ai)
+{
+	unsigned long bytes = samples_to_bytes(frames*spf(fr), fr, ai);
+	if(bytes < position) position -= bytes;
+	else position = 0;
+	debug1("rewind; position now %lu", position);
+}
+
+/* increase position */
+void layer3_gapless_forward(unsigned long frames, struct frame* fr, struct audio_info_struct *ai)
+{
+	position += samples_to_bytes(frames*spf(fr), fr, ai);
+	debug1("forward; position now %lu", position);
+}
+
+void layer3_gapless_set_position(unsigned long frames, struct frame* fr, struct audio_info_struct *ai)
+{
+	position = samples_to_bytes(frames*spf(fr), fr, ai);
+	debug1("set; position now %lu", position);
+}
+
+#endif
 
 /* 
  * init tables for layer-3 
@@ -1856,6 +1900,10 @@ int do_layer3(struct frame *fr,int outmode,struct audio_info_struct *ai)
     if (fr->synth != synth_1to1 || single >= 0) {
 #endif
     for(ss=0;ss<SSLIMIT;ss++) {
+			#ifdef GAPLESS
+			int old_point = pcm_point;
+			unsigned long old_pos = position;
+			#endif
       if(single >= 0) {
         clip += (fr->synth_mono)(hybridOut[0][ss],pcm_sample,&pcm_point);
       }
@@ -1873,13 +1921,49 @@ int do_layer3(struct frame *fr,int outmode,struct audio_info_struct *ai)
       else
         playlimit -= 128;
 #endif
-
+			#ifdef GAPLESS
+			position += (pcm_point - old_point);
+			/* sub-optimal... */
+			if(!bytified)
+			{
+				begin = samples_to_bytes(begin, fr, ai);
+				end = samples_to_bytes(end, fr, ai);
+				bytified = 1;
+				debug2("bytified: begin=%lu; end=%5lu", begin, end);
+			}
+			if(begin && (old_pos < begin))
+			{
+				debug5("position %lu (old: %lu), begin %lu, pcm_point %i (old: %i)", position, old_pos, begin, pcm_point, old_point);
+				if(position < begin) pcm_point = 0; /* full of padding/delay */
+				else
+				{
+					/* we need to shift the memory to the left... */
+					debug3("old pcm_point: %i, begin %lu; good bytes: %i", pcm_point, begin, (int)(begin-old_pos));
+					pcm_point -= begin-old_pos;
+					debug3("shifting %i bytes from %p to %p", pcm_point, pcm_sample+(int)(begin-old_pos), pcm_sample);
+					memmove(pcm_sample, pcm_sample+(int)(begin-old_pos), pcm_point);
+				}
+			}
+			/* I don't cover the case with both end and begin in chunk! */
+			else if(end && (position > end))
+			{
+				/* either end in current chunk or chunk totally out */
+				debug2("ending at position %lu / point %i", position, pcm_point);
+				if(old_pos < end)	pcm_point -= position-end;
+				else pcm_point = old_point;
+				debug1("set pcm_point to %i", pcm_point);
+			}
+			#endif
       if(pcm_point >= audiobufsize)
         audio_flush(outmode,ai);
     }
 #ifdef I486_OPT
     } else {
       /* Only stereo, 16 bits benefit from the 486 optimization. */
+#ifdef GAPLESS
+			int old_point = pcm_point;
+			unsigned long old_pos = position;
+#endif
       ss=0;
       while (ss < SSLIMIT) {
         int n;
@@ -1890,6 +1974,40 @@ int do_layer3(struct frame *fr,int outmode,struct audio_info_struct *ai)
         synth_1to1_486(hybridOut[1][ss],1,pcm_sample+pcm_point,n);
         ss+=n;
         pcm_point+=(2*2*32)*n;
+
+				#ifdef GAPLESS
+				position += (pcm_point - old_point);
+				/* sub-optimal... */
+				if(!bytified)
+				{
+					begin = samples_to_bytes(begin, fr, ai);
+					end = samples_to_bytes(end, fr, ai);
+					bytified = 1;
+					debug2("bytified: begin=%lu; end=%5lu", begin, end);
+				}
+				if(begin && (old_pos < begin))
+				{
+					debug5("position %lu (old: %lu), begin %lu, pcm_point %i (old: %i)", position, old_pos, begin, pcm_point, old_point);
+					if(position < begin) pcm_point = 0; /* full of padding/delay */
+					else
+					{
+						/* we need to shift the memory to the left... */
+						debug3("old pcm_point: %i, begin %lu; good bytes: %i", pcm_point, begin, (int)(begin-old_pos));
+						pcm_point -= begin-old_pos;
+						debug3("shifting %i bytes from %p to %p", pcm_point, pcm_sample+(int)(begin-old_pos), pcm_sample);
+						memmove(pcm_sample, pcm_sample+(int)(begin-old_pos), pcm_point);
+					}
+				}
+				/* I don't cover the case with both end and begin in chunk! */
+				else if(end && (position > end))
+				{
+					/* either end in current chunk or chunk totally out */
+					debug2("ending at position %lu / point %i", position, pcm_point);
+					if(old_pos < end)	pcm_point -= position-end;
+					else pcm_point = old_point;
+					debug1("set pcm_point to %i", pcm_point);
+				}
+				#endif
         
         if(pcm_point >= audiobufsize)
           audio_flush(outmode,ai);

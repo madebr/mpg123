@@ -32,7 +32,9 @@
 #include "getlopt.h"
 #include "buffer.h"
 #include "term.h"
-
+#ifdef GAPLESS
+#include "layer3.h"
+#endif
 static void usage(char *dummy);
 static void long_usage(char *);
 static void print_title(void);
@@ -105,7 +107,7 @@ static void catch_interrupt(void)
 #endif
 
 static struct frame fr;
-struct audio_info_struct ai;
+struct audio_info_struct ai,pre_ai;
 txfermem *buffermem = NULL;
 #define FRAMEBUFUNIT (18 * 64 * 4)
 
@@ -540,6 +542,7 @@ topt opts[] = {
 
 /*
  *   Change the playback sample rate.
+ *   Consider that changing it after starting playback is not covered by gapless code!
  */
 static void reset_audio(void)
 {
@@ -584,6 +587,18 @@ static void reset_audio(void)
 	}
 }
 
+
+/*
+	precog the audio rate that will be set before output begins
+	this is needed to give gapless code a chance to keep track for firstframe != 0
+*/
+void prepare_audioinfo(struct frame *fr, struct audio_info_struct *nai)
+{
+	long newrate = freqs[fr->sampling_frequency]>>(param.down_sample);
+	fr->down_sample = param.down_sample;
+	audio_fit_capabilities(nai,fr->stereo,newrate);
+}
+
 /*
  * play a frame read by read_frame();
  * (re)initialize audio if necessary.
@@ -611,10 +626,8 @@ void play_frame(int init,struct frame *fr)
 			old_channels = ai.channels;
 
 			newrate = freqs[fr->sampling_frequency]>>(param.down_sample);
-
-			fr->down_sample = param.down_sample;
-			audio_fit_capabilities(&ai,fr->stereo,newrate);
-
+			prepare_audioinfo(fr, &ai);
+			
 			/* check, whether the fitter set our proposed rate */
 			if(ai.rate != newrate) {
 				if(ai.rate == (newrate>>1) )
@@ -813,6 +826,9 @@ int main(int argc, char *argv[])
 	unsigned long secdiff;
 #endif	
 	int init;
+	#ifdef GAPLESS
+	int pre_init;
+	#endif
 	int j;
 
 #ifdef OS2
@@ -992,7 +1008,11 @@ int main(int argc, char *argv[])
 		read_frame_init();
 
 		init = 1;
+		#ifdef GAPLESS
+		pre_init = 1;
+		#endif
 		newFrame = startFrame;
+		
 #ifdef HAVE_TERMIOS
 		debug1("param.term_ctrl: %i", param.term_ctrl);
 		if(param.term_ctrl)
@@ -1005,7 +1025,21 @@ tc_hack:
 #endif
 			if(frameNum < startFrame || (param.doublespeed && (frameNum % param.doublespeed))) {
 				if(fr.lay == 3)
+				{
 					set_pointer(512);
+					#ifdef GAPLESS
+					if(param.gapless)
+					{
+						if(pre_init)
+						{
+							prepare_audioinfo(&fr, &pre_ai);
+							pre_init = 0;
+						}
+						/* step one frame forward to keep track... */
+						layer3_gapless_forward(1, &fr, &pre_ai);
+					}
+					#endif
+				}
 				continue;
 			}
 			if(leftFrames > 0)
@@ -1031,19 +1065,19 @@ tc_hack:
 				long offset;
 				if((offset=term_control(&fr))) {
 					if(!rd->back_frame(rd, &fr, -offset)) {
-						frameNum+=offset;
-						if (frameNum < 0)
-							frameNum = 0;
+						/* frameNum is unsigned!!! */
+						/*if((offset < 0) && (frameNum < -offset)) frameNum = 0;
+						else */ frameNum+=offset;
+						#ifdef GAPLESS
+						if(param.gapless && (fr.lay == 3))
+						layer3_gapless_set_position(frameNum, &fr, &ai);
+						#endif
 					}
 				}
 			}
 #endif
 
 		}
-		#ifdef GAPLESS
-		/* make sure that the correct padding is skipped */
-		audio_flush(param.outmode, &ai);
-		#endif
 
 #ifndef NOXFERMEM
 	if(param.usebuffer) {
@@ -1060,10 +1094,15 @@ tc_hack:
 				long offset;
 				if((offset=term_control(&fr))) {
 					if((!rd->back_frame(rd, &fr, -offset)) 
-						&& read_frame(&fr)) {
-						frameNum+=offset;
-						if (frameNum < 0)
-							frameNum = 0;
+						&& read_frame(&fr))
+					{
+						/* frameNum is unsigned!!! */
+						/*if((offset < 0) && (frameNum < -offset)) frameNum = 0;
+						else */ frameNum+=offset;
+						#ifdef GAPLESS
+						if(param.gapless && (fr.lay == 3))
+						layer3_gapless_set_position(frameNum, &fr, &ai);
+						#endif
 						goto tc_hack;	/* Doh! Gag me with a spoon! */
 					}
 				}

@@ -624,7 +624,7 @@ decode_2to1.o:	mpg123.h
 decode_4to1.o:	mpg123.h
 decode_ntom.o:	mpg123.h
 decode_i386.o:	mpg123.h
-common.o:	mpg123.h common.h
+common.o:	mpg123.h common.h layer3.h
 mpg123.o:	mpg123.c mpg123.h getlopt.h xfermem.h buffer.h term.h
 mpg123.h:	audio.h
 audio.o:	mpg123.h

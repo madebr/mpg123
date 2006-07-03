@@ -21,12 +21,16 @@
 #include "config.h"
 #include "mpg123.h"
 #include "common.h"
-
+#include "debug.h"
+#ifdef GAPLESS
+#include "layer3.h"
+#endif
 #define MODE_STOPPED 0
 #define MODE_PLAYING 1
 #define MODE_PAUSED 2
 
 extern struct audio_info_struct ai;
+struct audio_info_struct pre_ai;
 extern int buffer_pid;
 extern int tabsel_123[2][3][16];
 
@@ -355,6 +359,7 @@ void control_generic (struct frame *fr)
 
 					/* JUMP */
 					if (!strcasecmp(cmd, "J") || !strcasecmp(cmd, "JUMP")) {
+						audio_flush(param.outmode, &ai);
 						char *spos;
 						int pos, ok;
 
@@ -370,9 +375,9 @@ void control_generic (struct frame *fr)
 
 						if (mode == MODE_STOPPED)
 							continue;
+						debug("non-stopped jump");
 						ok = 1;
 						if (pos < framecnt) {
-							rd->rewind(rd);
 							read_frame_init();
 							for (framecnt=0; ok && framecnt<pos; framecnt++) {
 								ok = read_frame(fr);
@@ -386,6 +391,14 @@ void control_generic (struct frame *fr)
 									set_pointer(512);
 							}
 						}
+						#ifdef GAPLESS
+						if(param.gapless && (fr->lay == 3))
+						{
+							prepare_audioinfo(fr, &pre_ai);
+							layer3_gapless_set_position(pos, fr, &pre_ai);
+						}
+						#endif
+
 						generic_sendmsg("J %d", framecnt);
 						continue;
 					}

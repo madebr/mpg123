@@ -296,6 +296,8 @@ struct III_sideinfo
 extern int open_stream(char *,int fd);
 extern void read_frame_init (void);
 extern int read_frame(struct frame *fr);
+/* why extern? */
+void prepare_audioinfo(struct frame *fr, struct audio_info_struct *nai);
 extern void play_frame(int init,struct frame *fr);
 extern int do_layer3(struct frame *fr,int,struct audio_info_struct *);
 extern int do_layer2(struct frame *fr,int,struct audio_info_struct *);
@@ -338,7 +340,7 @@ extern int  hsstell(void);
 extern void set_pointer(long);
 extern void huffman_decoder(int ,int *);
 extern void huffman_count1(int,int *);
-extern void print_stat(struct frame *fr,int no,long buffsize,struct audio_info_struct *ai);
+extern void print_stat(struct frame *fr,unsigned long no,long buffsize,struct audio_info_struct *ai);
 extern int get_songlen(struct frame *fr,int no);
 
 extern void init_layer3(int);

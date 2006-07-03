@@ -20,6 +20,7 @@
 #include "mpg123.h"
 #include "genre.h"
 #include "common.h"
+#include "debug.h"
 
 /* bitrates for [mpeg1/2][layer] */
 int tabsel_123[2][3][16] = {
@@ -48,12 +49,12 @@ unsigned long firsthead=0;
 #define ABR 2
 int vbr = CBR; /* variable bitrate flag */
 int abr_rate = 0;
-int skipbegin = 0;
-int skipend = 0;
-/* I won't cover very short tracks that fit entirely into the decoder buffer. */
-enum { begin, end, undef } track_state = undef;
-/* not nice to have that here again */
-long track_rate = 40000; /* just something not 0 */
+#ifdef GAPLESS
+#include "layer3.h"
+/* a limit for number of frames in a track; beyond that unsigned long may not be enough to hold byte addresses */
+#endif
+unsigned long track_frames = 0;
+#define TRACK_MAX_FRAMES (unsigned long)932066
 
 unsigned char *pcm_sample;
 int pcm_point = 0;
@@ -112,82 +113,43 @@ static int skip_new_id3(struct reader *rds)
 	return length+6;
 }
 
+#ifdef GAPLESS
 /* take into account: channels, bytes per sample, resampling (integer samples!) */
-int samples_to_bytes(int s, struct audio_info_struct* ai)
+unsigned long samples_to_bytes(unsigned long s, struct frame *fr , struct audio_info_struct* ai)
 {
 	/* rounding positive number... */
-	double sammy = (1.0*s) * (1.0*ai->rate)/track_rate;
+	double sammy = (1.0*s) * (1.0*ai->rate)/freqs[fr->sampling_frequency];
+	debug4("%lu samples to bytes with freq %li (ai.rate %li); sammy %f", s, freqs[fr->sampling_frequency], ai->rate, sammy);
 	double samf = floor(sammy);
-	return
+	return (unsigned long)
 		(((ai->format & AUDIO_FORMAT_MASK) == AUDIO_FORMAT_16) ? 2 : 1)
 		* ai->channels
-		* (int) (((sammy - samf) > 0.5) ? samf+1 : samf);
+		* (int) (((sammy - samf) < 0.5) ? samf : ( sammy-samf > 0.5 ? samf+1 : ((unsigned long) samf % 2 == 0 ? samf : samf + 1)));
 }
+#endif
 
 void audio_flush(int outmode, struct audio_info_struct *ai)
 {
 	if(pcm_point)
 	{
-		#ifdef GAPLESS
-		char* pcmsam = pcm_sample;
-		int pcmpoi = pcm_point;
-		if(param.gapless && (track_state != undef))
-		/* if(param.gapless) */
-		{
-			/*
-				This is not safe! When track ends on audiobuf boundary, I'm screwed.
-				I need another buffer to make sure I have something to skip when the end message comes through.
-			*/
-			if(skipend && (track_state == end) && (pcm_point < audiobufsize))
-			/* if(skipend && (pcm_point < audiobufsize)) */
-			{
-				int bytes = samples_to_bytes(skipend, ai);
-				fprintf(stderr,"Note: skipping %i bytes (%i input samples) at end.\n", bytes, skipend);
-				if(bytes <= pcmpoi) pcmpoi -= bytes;
-				skipend = 0;
-				track_state = undef;
-			}
-			else if(skipbegin) /* track_state = begin */
-			/* else if(skipbegin && track_state == begin) */
-			{
-				int bytes = samples_to_bytes(skipbegin, ai);
-				fprintf(stderr,"skipping %i bytes (%i input samples) at begin.\n", bytes, skipbegin);
-				if(bytes <= pcm_point)
-				{
-					pcmsam += bytes;
-					pcmpoi -= bytes;
-				}
-				skipbegin = 0;
-				track_state = undef;
-			}
-			#undef samples_to_bytes
-		}
-		#else
-		#define pcmsam pcm_sample
-		#define pcmpoi pcm_point
-		#endif
 		switch(outmode)
 		{
 			case DECODE_FILE:
-				write (OutputDescriptor, pcmsam, pcmpoi);
+				write (OutputDescriptor, pcm_sample, pcm_point);
 			break;
 			case DECODE_AUDIO:
-				audio_play_samples (ai, pcmsam, pcmpoi);
+				audio_play_samples (ai, pcm_sample, pcm_point);
 			break;
 			case DECODE_BUFFER:
-				write (buffer_fd[1], pcmsam, pcmpoi);
+				write (buffer_fd[1], pcm_sample, pcm_point);
 			break;
 			case DECODE_WAV:
 			case DECODE_CDR:
 			case DECODE_AU:
-				wav_write(pcmsam, pcmpoi);
+				wav_write(pcm_sample, pcm_point);
 			break;
 		}
 		pcm_point = 0;
-		#ifndef GAPLESS
-		#undef pcmpoi
-		#undef pcmsam
-		#endif
 	}
 }
 
@@ -217,10 +179,10 @@ void read_frame_init (void)
 	firsthead = 0;
 	vbr = CBR;
 	abr_rate = 0;
-	skipbegin = 0;
-	skipend = 0;
-	track_state = undef;
-	/* not initializing track_rate since that is set along with skips */
+	track_frames = 0;
+	#ifdef GAPLESS
+	if(param.gapless) layer3_gapless_init(0, 0);
+	#endif
 }
 
 int head_check(unsigned long head)
@@ -277,10 +239,6 @@ int read_frame(struct frame *fr)
 read_again:
 	if(!rd->head_read(rd,&newhead))
 	{
-#ifdef GAPLESS
-		fprintf(stderr, "debug: track ended (or some other prob...)\n");
-		if(param.gapless) track_state = end;
-#endif
 		return FALSE;
 	}
 
@@ -472,16 +430,15 @@ init_resync:
 						#endif
 						if(xing_flags & 1) /* frames */
 						{
-							#ifdef DEBUG_INFOTAG
 							/*
 								In theory, one should use that value for skipping...
 								When I know the exact number of samples I could simply count in audio_flush,
 								but that's problematic with seeking and such.
 								I still miss the real solution for detecting the end.
 							*/
-							unsigned long frames = make_long(bsbuf, lame_offset);
-							fprintf(stderr, "Xing: %lu frames\n", frames);
-							#endif
+							track_frames = make_long(bsbuf, lame_offset);
+							if(track_frames > TRACK_MAX_FRAMES) track_frames = 0; /* endless stream? */
+							debug1("Xing: %lu frames", track_frames);
 							lame_offset += 4;
 						}
 						if(xing_flags & 0x2) /* bytes */
@@ -576,18 +533,20 @@ init_resync:
 							}
 							lame_offset += 1;
 							/* encoder delay and padding, two 12 bit values... lame does write them from int ...*/
+							#ifdef GAPLESS
 							if(param.gapless)
 							{
 								/*
 									Temporary hack that doesn't work with seeking and also is not waterproof but works most of the time;
 									in future the lame delay/padding and frame number info should be passed to layer3.c and the junk samples avoided at the source.
 								*/
-								skipbegin = DECODER_DELAY + ((((int) bsbuf[lame_offset]) << 4) | (((int) bsbuf[lame_offset+1]) >> 4));
-								skipend = -DECODER_DELAY + (((((int) bsbuf[lame_offset+1]) << 8) | (((int) bsbuf[lame_offset+2]))) & 0xfff);
-								track_state = begin;
+								unsigned long length = track_frames * spf(fr);
+								unsigned long skipbegin = DECODER_DELAY + ((((int) bsbuf[lame_offset]) << 4) | (((int) bsbuf[lame_offset+1]) >> 4));
+								unsigned long skipend = -DECODER_DELAY + (((((int) bsbuf[lame_offset+1]) << 8) | (((int) bsbuf[lame_offset+2]))) & 0xfff);
+								debug3("preparing gapless mode for layer3: length %lu, skipbegin %lu, skipend %lu", length, skipbegin, skipend);
+								if(length > 1)
+								layer3_gapless_init(skipbegin+GAP_SHIFT, (skipend < length) ? length-skipend+GAP_SHIFT : length+GAP_SHIFT);
 							}
-							#ifdef DEBUG_INFOTAG
-							fprintf(stderr,"Info: encoder delay = %i, padding = %i\n", encoder_delay, encoder_padding);
 							#endif
 						}
 						/* switch buffer back ... */
@@ -599,7 +558,6 @@ init_resync:
 			}
 		}
 		firsthead = newhead; /* _now_ it's time to store it... the first real header */
-		track_rate = freqs[fr->sampling_frequency];
 	}
   bsi.bitindex = 0;
   bsi.wordpointer = (unsigned char *) bsbuf;
@@ -1013,16 +971,19 @@ long compute_buffer_offset(struct frame *fr)
 		return bufsize;
 }
 
-void print_stat(struct frame *fr,int no,long buffsize,struct audio_info_struct *ai)
+void print_stat(struct frame *fr,unsigned long no,long buffsize,struct audio_info_struct *ai)
 {
 	double bpf,tpf,tim1,tim2;
 	double dt = 0.0;
-	int sno,rno;
+	unsigned long sno,rno;
+	/* that's not funny... overflows waving */
 	char outbuf[256];
 
-	if(!rd || !fr) 
+	if(!rd || !fr)
+	{
+		debug("reader troubles!");
 		return;
-
+	}
 	outbuf[0] = 0;
 
 #ifndef GENERIC
@@ -1052,14 +1013,19 @@ void print_stat(struct frame *fr,int no,long buffsize,struct audio_info_struct *
 
         rno = 0;
         sno = no;
-	if(rd->filelen >= 0) {
-          long t = rd->tell(rd);
-	  rno = (int)((double)(rd->filelen-t)/bpf);
-          sno = (int)((double)t/bpf);
-        }
 
-	sprintf(outbuf+strlen(outbuf),"\rFrame# %5d [%5d], ",sno,rno);
+	if((track_frames != 0) && (track_frames >= sno)) rno = track_frames - sno;
+	else
+	if(rd->filelen >= 0)
+	{
+		long t = rd->tell(rd);
+		rno = (unsigned long)((double)(rd->filelen-t)/bpf);
+		/* I totally don't understand why we should re-estimate the given correct(?) value */
+		/* sno = (unsigned long)((double)t/bpf); */
+	}
 
+	/* beginning with 0 or 1?*/
+	sprintf(outbuf+strlen(outbuf),"\rFrame# %5lu [%5lu], ",sno,rno);
 	tim1 = sno*tpf-dt;
 	tim2 = rno*tpf+dt;
 #if 0
@@ -1067,8 +1033,8 @@ void print_stat(struct frame *fr,int no,long buffsize,struct audio_info_struct *
 #endif
 	tim2 = tim2 < 0 ? 0.0 : tim2;
 
-	sprintf(outbuf+strlen(outbuf),"Time: %02u:%02u.%02u [%02u:%02u.%02u], ",
-			(unsigned int)tim1/60,
+	sprintf(outbuf+strlen(outbuf),"Time: %02lu:%02u.%02u [%02u:%02u.%02u], ",
+			(unsigned long) tim1/60,
 			(unsigned int)tim1%60,
 			(unsigned int)(tim1*100)%100,
 			(unsigned int)tim2/60,
