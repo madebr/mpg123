@@ -8,7 +8,7 @@ Contributions/ideas Thomas Orgis era:
 Adrian Bacon <adrian.bacon@xs4all.nl>: patched decode_i586_dither (noise shaped float/int rounding)
 Cool Feet Audio project <nutcase@dtfm.org>: realtime equalizer control
 Steve Grundell <www@grundell.u-net.com>: clean stdout in control mode with stdout decoding
-
+Romain Dolbeau <romain@dolbeau.org>: Altivec support (taken from mplayer)
 
 Contributions/ideas Michael Hipp era:
 
