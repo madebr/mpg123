@@ -1,4 +1,10 @@
+We badly need:
+ - header reorganization (lots of stuff don't belong to mpg123.h)
+ - integer type safety
+ - sprintf -> snprintf (maybe with switch to support ancient libc; or replacement by us)
 
+
+From Michael (some time after/around pre-0.59s):
 
 - add CRC check.
 - add 'free format stream' support.
@@ -6,7 +12,7 @@
    step_two: fraction as pointer .. 
    process first channel 0 than channel 1
    copy channel 0 to channel 1 for: i >= jsbound
-- better frame reader .. especially for layer 3 
+- better frame reader .. especially for layer 3 - DONE by a good deal by Thomas
 - MPEG system stream decoder
 - check again layer1 !! (Layer-1 support not heavily tested ..)
   Problems with Layer1 fl7 reference stream
