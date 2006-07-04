@@ -130,6 +130,9 @@ unsigned long samples_to_bytes(unsigned long s, struct frame *fr , struct audio_
 
 void audio_flush(int outmode, struct audio_info_struct *ai)
 {
+	#ifdef GAPLESS
+	if(param.gapless) layer3_gapless_buffercheck();
+	#endif
 	if(pcm_point)
 	{
 		switch(outmode)
@@ -181,7 +184,8 @@ void read_frame_init (void)
 	abr_rate = 0;
 	track_frames = 0;
 	#ifdef GAPLESS
-	if(param.gapless) layer3_gapless_init(0, 0);
+	/* one can at least skip the delay at beginning - though not add it at end since end is unknown */
+	if(param.gapless) layer3_gapless_init(DECODER_DELAY+GAP_SHIFT, 0);
 	#endif
 }
 
@@ -438,6 +442,15 @@ init_resync:
 							*/
 							track_frames = make_long(bsbuf, lame_offset);
 							if(track_frames > TRACK_MAX_FRAMES) track_frames = 0; /* endless stream? */
+							#ifdef GAPLESS
+							/* if no further info there, remove/add at least the decoder delay */
+							if(param.gapless)
+							{
+								unsigned long length = track_frames * spf(fr);
+								if(length > 1)
+								layer3_gapless_init(DECODER_DELAY+GAP_SHIFT, length+DECODER_DELAY+GAP_SHIFT);
+							}
+							#endif
 							debug1("Xing: %lu frames", track_frames);
 							lame_offset += 4;
 						}

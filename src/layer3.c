@@ -128,28 +128,55 @@ void layer3_gapless_init(unsigned long b, unsigned long e)
 	debug2("layer3_gapless_init: from %lu to %lu samples", begin, end);
 }
 
-/* decrease position */
-void layer3_gapless_rewind(unsigned long frames, struct frame* fr, struct audio_info_struct *ai)
-{
-	unsigned long bytes = samples_to_bytes(frames*spf(fr), fr, ai);
-	if(bytes < position) position -= bytes;
-	else position = 0;
-	debug1("rewind; position now %lu", position);
-}
-
-/* increase position */
-void layer3_gapless_forward(unsigned long frames, struct frame* fr, struct audio_info_struct *ai)
-{
-	position += samples_to_bytes(frames*spf(fr), fr, ai);
-	debug1("forward; position now %lu", position);
-}
-
 void layer3_gapless_set_position(unsigned long frames, struct frame* fr, struct audio_info_struct *ai)
 {
 	position = samples_to_bytes(frames*spf(fr), fr, ai);
 	debug1("set; position now %lu", position);
 }
 
+void layer3_gapless_bytify(struct frame *fr, struct audio_info_struct *ai)
+{
+	if(!bytified)
+	{
+		begin = samples_to_bytes(begin, fr, ai);
+		end = samples_to_bytes(end, fr, ai);
+		bytified = 1;
+		debug2("bytified: begin=%lu; end=%5lu", begin, end);
+	}
+}
+
+/*
+	take the (partially or fully) filled and remove stuff for gapless mode if needed
+	pcm_point may then be smaller than before...
+*/
+void layer3_gapless_buffercheck()
+{
+	/* pcm_point bytes added since last position... */
+	unsigned long new_pos = position + pcm_point;
+	if(begin && (position < begin))
+	{
+		debug5("new_pos %lu (old: %lu), begin %lu, pcm_point %i (old: %i)", new_pos, old_pos, begin, pcm_point, old_point);
+		if(new_pos < begin) pcm_point = 0; /* full of padding/delay */
+		else
+		{
+			/* we need to shift the memory to the left... */
+			debug3("old pcm_point: %i, begin %lu; good bytes: %i", pcm_point, begin, (int)(begin-position));
+			pcm_point -= begin-position;
+			debug3("shifting %i bytes from %p to %p", pcm_point, pcm_sample+(int)(begin-position), pcm_sample);
+			memmove(pcm_sample, pcm_sample+(int)(begin-position), pcm_point);
+		}
+	}
+	/* I don't cover the case with both end and begin in chunk! */
+	else if(end && (new_pos > end))
+	{
+		/* either end in current chunk or chunk totally out */
+		debug2("ending at position %lu / point %i", new_pos, pcm_point);
+		if(position < end)	pcm_point -= new_pos-end;
+		else pcm_point = 0;
+		debug1("set pcm_point to %i", pcm_point);
+	}
+	position = new_pos;
+}
 #endif
 
 /* 
@@ -1773,6 +1800,7 @@ static void III_hybrid(real fsIn[SBLIMIT][SSLIMIT],real tsOut[SSLIMIT][SBLIMIT],
    }
 }
 
+
 /*
  * main layer3 handler
  */
@@ -1900,10 +1928,6 @@ int do_layer3(struct frame *fr,int outmode,struct audio_info_struct *ai)
     if (fr->synth != synth_1to1 || single >= 0) {
 #endif
     for(ss=0;ss<SSLIMIT;ss++) {
-			#ifdef GAPLESS
-			int old_point = pcm_point;
-			unsigned long old_pos = position;
-			#endif
       if(single >= 0) {
         clip += (fr->synth_mono)(hybridOut[0][ss],pcm_sample,&pcm_point);
       }
@@ -1921,49 +1945,11 @@ int do_layer3(struct frame *fr,int outmode,struct audio_info_struct *ai)
       else
         playlimit -= 128;
 #endif
-			#ifdef GAPLESS
-			position += (pcm_point - old_point);
-			/* sub-optimal... */
-			if(!bytified)
-			{
-				begin = samples_to_bytes(begin, fr, ai);
-				end = samples_to_bytes(end, fr, ai);
-				bytified = 1;
-				debug2("bytified: begin=%lu; end=%5lu", begin, end);
-			}
-			if(begin && (old_pos < begin))
-			{
-				debug5("position %lu (old: %lu), begin %lu, pcm_point %i (old: %i)", position, old_pos, begin, pcm_point, old_point);
-				if(position < begin) pcm_point = 0; /* full of padding/delay */
-				else
-				{
-					/* we need to shift the memory to the left... */
-					debug3("old pcm_point: %i, begin %lu; good bytes: %i", pcm_point, begin, (int)(begin-old_pos));
-					pcm_point -= begin-old_pos;
-					debug3("shifting %i bytes from %p to %p", pcm_point, pcm_sample+(int)(begin-old_pos), pcm_sample);
-					memmove(pcm_sample, pcm_sample+(int)(begin-old_pos), pcm_point);
-				}
-			}
-			/* I don't cover the case with both end and begin in chunk! */
-			else if(end && (position > end))
-			{
-				/* either end in current chunk or chunk totally out */
-				debug2("ending at position %lu / point %i", position, pcm_point);
-				if(old_pos < end)	pcm_point -= position-end;
-				else pcm_point = old_point;
-				debug1("set pcm_point to %i", pcm_point);
-			}
-			#endif
-      if(pcm_point >= audiobufsize)
-        audio_flush(outmode,ai);
+      if(pcm_point >= audiobufsize) audio_flush(outmode,ai);
     }
 #ifdef I486_OPT
     } else {
       /* Only stereo, 16 bits benefit from the 486 optimization. */
-#ifdef GAPLESS
-			int old_point = pcm_point;
-			unsigned long old_pos = position;
-#endif
       ss=0;
       while (ss < SSLIMIT) {
         int n;
@@ -1974,43 +1960,8 @@ int do_layer3(struct frame *fr,int outmode,struct audio_info_struct *ai)
         synth_1to1_486(hybridOut[1][ss],1,pcm_sample+pcm_point,n);
         ss+=n;
         pcm_point+=(2*2*32)*n;
-
-				#ifdef GAPLESS
-				position += (pcm_point - old_point);
-				/* sub-optimal... */
-				if(!bytified)
-				{
-					begin = samples_to_bytes(begin, fr, ai);
-					end = samples_to_bytes(end, fr, ai);
-					bytified = 1;
-					debug2("bytified: begin=%lu; end=%5lu", begin, end);
-				}
-				if(begin && (old_pos < begin))
-				{
-					debug5("position %lu (old: %lu), begin %lu, pcm_point %i (old: %i)", position, old_pos, begin, pcm_point, old_point);
-					if(position < begin) pcm_point = 0; /* full of padding/delay */
-					else
-					{
-						/* we need to shift the memory to the left... */
-						debug3("old pcm_point: %i, begin %lu; good bytes: %i", pcm_point, begin, (int)(begin-old_pos));
-						pcm_point -= begin-old_pos;
-						debug3("shifting %i bytes from %p to %p", pcm_point, pcm_sample+(int)(begin-old_pos), pcm_sample);
-						memmove(pcm_sample, pcm_sample+(int)(begin-old_pos), pcm_point);
-					}
-				}
-				/* I don't cover the case with both end and begin in chunk! */
-				else if(end && (position > end))
-				{
-					/* either end in current chunk or chunk totally out */
-					debug2("ending at position %lu / point %i", position, pcm_point);
-					if(old_pos < end)	pcm_point -= position-end;
-					else pcm_point = old_point;
-					debug1("set pcm_point to %i", pcm_point);
-				}
-				#endif
         
-        if(pcm_point >= audiobufsize)
-          audio_flush(outmode,ai);
+        if(pcm_point >= audiobufsize) audio_flush(outmode,ai);
       }
     }
 #endif

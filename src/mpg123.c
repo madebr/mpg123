@@ -627,6 +627,9 @@ void play_frame(int init,struct frame *fr)
 
 			newrate = freqs[fr->sampling_frequency]>>(param.down_sample);
 			prepare_audioinfo(fr, &ai);
+			#ifdef GAPLESS
+			if(param.gapless && (fr->lay == 3)) layer3_gapless_bytify(fr, &ai);
+			#endif
 			
 			/* check, whether the fitter set our proposed rate */
 			if(ai.rate != newrate) {
@@ -1035,8 +1038,8 @@ tc_hack:
 							prepare_audioinfo(&fr, &pre_ai);
 							pre_init = 0;
 						}
-						/* step one frame forward to keep track... */
-						layer3_gapless_forward(1, &fr, &pre_ai);
+						/* keep track... */
+						layer3_gapless_set_position(frameNum, &fr, &pre_ai);
 					}
 					#endif
 				}
@@ -1078,6 +1081,10 @@ tc_hack:
 #endif
 
 		}
+		#ifdef GAPLESS
+		/* make sure that the correct padding is skipped after track ended */
+		if(param.gapless) audio_flush(param.outmode, &ai);
+		#endif
 
 #ifndef NOXFERMEM
 	if(param.usebuffer) {
