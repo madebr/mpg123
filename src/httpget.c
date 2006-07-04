@@ -196,7 +196,9 @@ char *httpauth1 = NULL;
 
 int http_open (char *url)
 {
+	/* TODO: make sure ulong vs. size_t is really clear! */
 	char *purl, *host, *request, *sptr;
+	size_t purl_size;
 	size_t linelength, linelengthbase, tmp;
 	unsigned long myip;
 	unsigned int myport;
@@ -226,23 +228,27 @@ int http_open (char *url)
 	}
 	
 	/* The length of purl is upper bound by 3*strlen(url) + 1 if
-	 * everything in it is a space */
-	if (strlen(url) >= ULONG_MAX/3) {
+	 * everything in it is a space (%20) - or any encoded character */
+	if (strlen(url) >= SIZE_MAX/3) {
 		fprintf (stderr, "URL too long. Skipping...\n");
 		sock = -1;
 		goto exit;
 	}
-	purl = (char *)malloc(strlen(url)*3 + 1);
+	purl_size = strlen(url)*3 + 1;
+	purl = (char *)malloc(purl_size);
 	if (!purl) {
 		fprintf (stderr, "malloc() failed, out of memory.\n");
 		exit (1);
 	}
-
+	/* make _sure_ that it is null-terminated */
+	purl[purl_size-1] = 0;
+	
 	/*
 	 * 2000-10-21:
 	 * We would like spaces to be automatically converted to %20's when
 	 * fetching via HTTP.
 	 * -- Martin Sjögren <md9ms@mdstud.chalmers.se>
+	 * Hm, why only spaces? Maybe one should do this http stuff more properly...
 	 */
 	if ((sptr = strchr(url, ' ')) == NULL) {
 		strcpy (purl, url);
@@ -279,7 +285,7 @@ int http_open (char *url)
 
 	if(httpauth) {
 		tmp = (strlen(httpauth) + 1) * 4;
-		if (strlen(httpauth) >= ULONG_MAX/4 - 1 ||
+		if (strlen(httpauth) >= SIZE_MAX/4 - 1 ||
 		    linelengthbase + tmp < linelengthbase) {
 			fprintf(stderr, "HTTP authentication too long. Skipping...\n");
 			sock = -1;
@@ -472,7 +478,8 @@ int http_open (char *url)
 				goto exit;
 			}
 			if (!strncmp(request, "Location:", 9))
-				strncpy (purl, request+10, 1023);
+			/* strncpy is not safe when you don't ensure n is correct! */
+				strncpy (purl, request+10, purl_size-1);
 		} while (request[0] != '\r' && request[0] != '\n');
 	} while (relocate && purl[0] && numrelocs++ < 5);
 	if (relocate) {
