@@ -115,7 +115,7 @@ void encode64 (char *source,char *destination)
 }
 
 /* VERY  simple auth-from-URL grabber */
-int getauthfromURL(char *url,char *auth,unsigned long authlen)
+int getauthfromURL(char *url,char *auth, size_t authlen)
 {
   char *pos;
 
@@ -194,10 +194,12 @@ unsigned int proxyport;
 char *httpauth = NULL;
 char *httpauth1 = NULL;
 
+
 int http_open (char *url)
 {
 	/* TODO: make sure ulong vs. size_t is really clear! */
-	char *purl, *host, *request, *sptr;
+	/* TODO: change this whole thing until I stop disliking it */
+	char *purl, *host, *request, *response, *sptr;
 	size_t purl_size;
 	size_t linelength, linelengthbase, tmp;
 	unsigned long myip;
@@ -210,6 +212,7 @@ int http_open (char *url)
 	host = NULL;
 	purl = NULL;
 	request = NULL;
+	response = NULL;
 	if (!proxyip) {
 		if (!proxyurl)
 			if (!(proxyurl = getenv("MP3_HTTP_PROXY")))
@@ -296,7 +299,7 @@ int http_open (char *url)
 
 	if(httpauth1) {
 		tmp = (strlen(httpauth1) + 1) * 4;
-		if (strlen(httpauth1) >= ULONG_MAX/4 - 1 ||
+		if (strlen(httpauth1) >= SIZE_MAX/4 - 1 ||
 		    linelengthbase + tmp < linelengthbase) {
 			fprintf(stderr, "HTTP authentication too long. Skipping...\n");
 			sock = -1;
@@ -319,7 +322,7 @@ int http_open (char *url)
 
 			if(host) {
 				tmp = 9 + strlen(host) + 5;
-				if (strlen(host) >= ULONG_MAX - 14 ||
+				if (strlen(host) >= SIZE_MAX - 14 ||
 				    linelength + tmp < linelength) {
 					fprintf(stderr, "Hostname info too long. Skipping...\n");
 					sock = -1;
@@ -332,9 +335,13 @@ int http_open (char *url)
 			/* Buffer is reused for receiving later on, so ensure
 			 * minimum size. */
 			linelength = (linelength < 4096) ? 4096 : linelength;
+			/* ugly fix for an ugly memory leak */
+			if(request != NULL) free(request);
 			request = (char *)malloc((linelength + 1));
+			if(response != NULL) free(response);
+			response = (char *)malloc((linelength + 1));
 
-			if (!request) {
+			if ((request == NULL) || (response == NULL)) {
 				fprintf (stderr, "malloc() failed, out of memory.\n");
 				exit(1);
 			}
@@ -343,7 +350,9 @@ int http_open (char *url)
 			if (strncasecmp(url, "http://", 7) != 0)
 				strcat (request, "http://");
 			strcat(request, purl);
-		} else {
+		}
+		else
+		{
 			if (host) {
 				free (host);
 				host = NULL;
@@ -357,6 +366,8 @@ int http_open (char *url)
 				goto exit;
 			}
 
+			/* back hack: I want full url as request */
+			sptr = purl;
 			linelength = linelengthbase + strlen(sptr);
 			if (linelength < linelengthbase) {
 				fprintf(stderr, "URL too long. Skipping...\n");
@@ -366,7 +377,7 @@ int http_open (char *url)
 
 			if(host) {
 				tmp = 9 + strlen(host) + 5;
-				if (strlen(host) >= ULONG_MAX - 14 ||
+				if (strlen(host) >= SIZE_MAX - 14 ||
 				    linelength + tmp < linelength) {
 					fprintf(stderr, "Hostname info too long. Skipping...\n");
 					sock = -1;
@@ -375,21 +386,30 @@ int http_open (char *url)
 				/* "Host: <host>:<port>\r\n" */
 				linelength += tmp;
 			}
-
+			
 			/* Buffer is reused for receiving later on, so ensure
 			 * minimum size. */
 			linelength = (linelength < 4096) ? 4096 : linelength;
+			/* ugly fix for an ugly memory leak */
+			if(request != NULL) free(request);
 			request = (char *)malloc((linelength + 1));
+			if(response != NULL) free(response);
+			response = (char *)malloc((linelength + 1));
 
-			if (!request) {
+			if ((request == NULL) || (response == NULL)) {
 				fprintf (stderr, "malloc() failed, out of memory.\n");
 				exit(1);
 			}
-
+			
 			strcpy (request, "GET ");
 			strcat (request, sptr);
 		}
-
+		
+		/* hm, my test redirection had troubles with line break before HTTP/1.0 */
+		/* we should support HTTP/1.1, btw */
+		char* ttemp;
+		if((ttemp = strchr(request,'\r')) != NULL) *ttemp = 0;
+		if((ttemp = strchr(request,'\n')) != NULL) *ttemp = 0;
 		sprintf (request + strlen(request),
 		         " HTTP/1.0\r\nUser-Agent: %s/%s\r\n",
 			 PACKAGE_NAME, PACKAGE_VERSION);
@@ -437,7 +457,6 @@ int http_open (char *url)
 			free(buf);
 		}
 		strcat (request, "\r\n");
-
 		writestring (sock, request);
 		if (!(myfile = fdopen(sock, "rb"))) {
 			perror ("fdopen");
@@ -447,14 +466,14 @@ int http_open (char *url)
 		}
 		relocate = FALSE;
 		purl[0] = '\0';
-		if (readstring (request, linelength-1, myfile)
+		if (readstring (response, linelength-1, myfile)
 		    == linelength-1) {
 			fprintf(stderr, "Command exceeds max. length\n");
 			close(sock);
 			sock = -1;
 			goto exit;
 		}
-		if ((sptr = strchr(request, ' '))) {
+		if ((sptr = strchr(response, ' '))) {
 			switch (sptr[1]) {
 				case '3':
 					relocate = TRUE;
@@ -470,18 +489,70 @@ int http_open (char *url)
 			}
 		}
 		do {
-			if (readstring (request, linelength-1, myfile)
+			if (readstring (response, linelength-1, myfile)
 			    == linelength-1) {
 				fprintf(stderr, "URL exceeds max. length\n");
 				close(sock);
 				sock = -1;
 				goto exit;
 			}
-			if (!strncmp(request, "Location:", 9))
-			/* strncpy is not safe when you don't ensure n is correct! */
-				strncpy (purl, request+10, purl_size-1);
-		} while (request[0] != '\r' && request[0] != '\n');
-	} while (relocate && purl[0] && numrelocs++ < 5);
+			if (!strncmp(response, "Location: ", 10))
+			{
+				char* prefix = request+4; /* skip GET */
+				
+				if(strncmp(response, "Location: http://", 17))
+				{
+					/* though it's not RFC (?), accept relative URIs as wget does */
+					fprintf(stderr, "NOTE: non-absolute uri in redirect, constructing one\n");
+					/* not absolute uri, could still be server-absolute */
+					/* I prepend a part of the request... out of the request */
+					/* GET http://host/path/bla HTTP/1.0*/
+					/* the request MUST have this form! */
+					char* ptmp = NULL;
+					if(response[10] == '/')
+					{
+						/* only prepend http://server/ */
+						/* I null the / that comes just after http:// but before " HTTP/" */
+						if((ptmp = strchr(prefix+7,'/')) > strchr(prefix, ' '))
+						ptmp = strchr(prefix,' ');
+						ptmp[0] = 0;
+					}
+					else
+					{
+						/* prepend http://server/path/ */
+						/* now we want the last / before HTTP/1.0 */
+						ptmp = strchr(prefix,' ');
+						ptmp[0] = 0;
+						ptmp = strrchr(prefix, '/');
+						ptmp[1] = 0;
+					}
+				}
+				else prefix[0] = 0;
+
+				/* Isn't C string mangling just evil? ;-) */
+
+				/* we want to allow urls longer than purl */
+				/* eh, why *3 here? I don't see it that in this loop any x -> %yz conversion is done */
+				size_t needed_length = strlen(prefix) + strlen(response+10)*3+1;
+				if(purl_size < needed_length)
+				{
+					purl_size = needed_length;
+					purl = realloc(purl, purl_size);
+					if(purl == NULL)
+					{
+						close(sock);
+						sock = -1;
+						goto exit;
+					}
+					/* Why am I always so picky about the trailing zero, nobody else seems to care? */
+					purl[purl_size-1] = 0;
+				}
+				/* now that we ensured that purl is big enough, we can just hit it */
+				strcpy(purl, prefix);
+				strcat(purl, response+10);
+			}
+		} while (response[0] != '\r' && response[0] != '\n');
+	} while (relocate && purl[0] && numrelocs++ < 10);
 	if (relocate) {
 		fprintf (stderr, "Too many HTTP relocations.\n");
                close(sock);
@@ -491,6 +562,7 @@ exit:
 	free(host);
 	free(purl);
 	free(request);
+	free(response);
 
 	return sock;
 }

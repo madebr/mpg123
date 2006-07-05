@@ -2,7 +2,7 @@ We badly need:
  - header reorganization (lots of stuff don't belong to mpg123.h)
  - integer type safety
  - sprintf -> snprintf (maybe with switch to support ancient libc; or replacement by us)
-
+ - rewrite httpget.c; that thing has been a can of bugs for years and I understand why when I look at it
 
 From Michael (some time after/around pre-0.59s):
 
