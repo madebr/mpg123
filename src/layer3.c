@@ -384,7 +384,7 @@ void init_layer3(int down_sample_sblimit)
 /*
  * read additional side information (for MPEG 1 and MPEG 2)
  */
-static void III_get_side_info(struct III_sideinfo *si,int stereo,
+static int III_get_side_info(struct III_sideinfo *si,int stereo,
  int ms_stereo,long sfreq,int single,int lsf)
 {
    int ch, gr;
@@ -437,7 +437,8 @@ static void III_get_side_info(struct III_sideinfo *si,int stereo,
 
          if(gr_info->block_type == 0) {
            fprintf(stderr,"Blocktype == 0 and window-switching == 1 not allowed.\n");
-           exit(1);
+           /* exit(1); */
+           return 1;
          }
       
          /* region_count/start parameters are implicit in this case. */       
@@ -469,13 +470,14 @@ static void III_get_side_info(struct III_sideinfo *si,int stereo,
        gr_info->count1table_select = get1bit();
      }
    }
+   return 0;
 }
 
 #if 0
 /*
  * Side Info for MPEG 2.0 / LSF
  */
-static void III_get_side_info_2(struct III_sideinfo *si,int stereo,
+static int III_get_side_info_2(struct III_sideinfo *si,int stereo,
  int ms_stereo,long sfreq,int single)
 {
    int ch;
@@ -517,7 +519,8 @@ static void III_get_side_info_2(struct III_sideinfo *si,int stereo,
 
          if(gr_info->block_type == 0) {
            fprintf(stderr,"Blocktype == 0 and window-switching == 1 not allowed.\n");
-           exit(1);
+           /* exit(1); */
+           return 1;
          }
          /* region_count/start parameters are implicit in this case. */       
 /* check this again! */
@@ -545,6 +548,7 @@ static void III_get_side_info_2(struct III_sideinfo *si,int stereo,
        gr_info->scalefac_scale = get1bit();
        gr_info->count1table_select = get1bit();
    }
+   return 0;
 }
 #endif
 
@@ -715,7 +719,11 @@ static int III_dequantize_sample(real xr[SBLIMIT][SSLIMIT],int *scf,
     int bv       = gr_info->big_values;
     int region1  = gr_info->region1start;
     int region2  = gr_info->region2start;
-
+if(region1 > region2)
+{
+	fprintf(stderr, "You got some really nasty file there... region1>region2!\n");
+	return 1;
+}
     l3 = ((576>>1)-bv)>>1;   
 /*
  * we may lose the 'odd' bit here !! 
@@ -940,7 +948,6 @@ static int III_dequantize_sample(real xr[SBLIMIT][SSLIMIT],int *scf,
 
       for(;lp;lp--,mc--) {
         int x,y;
-
         if(!mc) {
           mc = *m++;
           cb = *m++;
@@ -1840,7 +1847,9 @@ int do_layer3(struct frame *fr,int outmode,struct audio_info_struct *ai)
   else {
     granules = 2;
   }
-  III_get_side_info(&sideinfo,stereo,ms_stereo,sfreq,single,fr->lsf);
+  /* quick hack to keep the music playing */
+  /* after having seen this nasty test file... */
+  if(III_get_side_info(&sideinfo,stereo,ms_stereo,sfreq,single,fr->lsf)) return clip;
 
   set_pointer(sideinfo.main_data_begin);
 

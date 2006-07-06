@@ -207,11 +207,16 @@ int head_check(unsigned long head)
 		||
 		/* actually only 11 instead of 12 ones means mpeg 2.5; what I don't like atm */
 		/* TODO: check support for this (backport?) */
-		((head & 0xffff0000) == 0xfffe0000)
+		((head & 0xfff00000) == 0xffe00000)
 	)
-	return FALSE;
+	{
+		return FALSE;
+	}
 	/* if no check failed, the header is valid (hopefully)*/
-	else return TRUE;
+	else
+	{
+		return TRUE;
+	}
 }
 
 
@@ -245,7 +250,6 @@ read_again:
 	{
 		return FALSE;
 	}
-
 	/* this if wrap looks like dead code... */
   if(1 || oldhead != newhead || !oldhead)
   {
@@ -261,7 +265,6 @@ init_resync:
 	  fr->header_change = 1;
       }
     }
-
 
 #ifdef SKIP_JUNK
 	/* watch out for junk/tags on beginning of stream by invalid header */
@@ -309,8 +312,9 @@ init_resync:
 		 */
 	}
 #endif
-
-    if( (newhead & 0xffe00000) != 0xffe00000) {
+    /* only accepting mpeg 1.0 and 2.0 for the moment */
+    /* if( (newhead & 0xffe00000) != 0xffe00000) { */
+    if( (newhead & 0xfff00000) != 0xfff00000) {
     /* and those ugly ID3 tags */
       if((newhead & 0xffffff00) == ('T'<<24)+('A'<<16)+('G'<<8)) {
            rd->skip_bytes(rd,124);
@@ -320,7 +324,7 @@ init_resync:
       }
       if (!param.quiet)
       {
-        fprintf(stderr,"Note: Illegal Audio-MPEG-Header 0x%08lx at offset 0x%lx.\n",
+        fprintf(stderr,"Note: Illegal or MPEG 2.5 (unsupported yet) Audio-MPEG-Header 0x%08lx at offset 0x%lx.\n",
               newhead,rd->tell(rd)-4);
         if((newhead & 0xffffff00) == ('b'<<24)+('m'<<16)+('p'<<8))
         fprintf(stderr,"Note: Could be a BMP album art.\n");
