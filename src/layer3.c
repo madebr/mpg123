@@ -711,6 +711,7 @@ static int III_dequantize_sample(real xr[SBLIMIT][SSLIMIT],int *scf,
   int part2remain = gr_info->part2_3_length - part2bits;
   int *me;
 
+  /* mhipp tree has this split up a bit... */
   int num=getbitoffset();
   long mask = (long) getbits(num)<<(BITSHIFT+8-num);
   part2remain -= num;
@@ -849,6 +850,10 @@ if(region1 > region2)
     }
 
     for(;l3 && (part2remain+num > 0);l3--) {
+      /* This is only a humble hack to prevent a special segfault. */
+      /* More insight into the real workings is still needed. */
+      if(!(xrpnt < &xr[SBLIMIT][0])) return 2;
+
       struct newhuff *h = htc+gr_info->count1table_select;
       register short *val = h->table,a;
 
