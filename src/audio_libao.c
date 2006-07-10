@@ -51,17 +51,19 @@ int audio_open(struct audio_info_struct *ai)
 {
 	ao_device *device = NULL;
 	ao_sample_format format;
-	int driver;
+	int driver = -1;
+	int err = 0;
+	char* filename = NULL;
 
 	if(!ai) return -1;
 
-	// Return if already open
+	/* Return if already open */
 	if (ai->handle) {
 		fprintf(stderr, "audio_open(): error, already open\n");
 		return -1;
 	}
 
-	// Work out the sample size	
+	/* Work out the sample size	 */
 	switch (ai->format) {
 		case AUDIO_FORMAT_SIGNED_16:
 			format.bits = 16;
@@ -71,8 +73,8 @@ int audio_open(struct audio_info_struct *ai)
 			format.bits = 8;
 		break;
 		
-		// For some reason we get called with format=-1 initially
-		// Just prentend that it didn't happen
+		/* For some reason we get called with format=-1 initially */
+		/* Just prentend that it didn't happen */
 		case -1:
 			return 0;
 		break;
@@ -84,36 +86,105 @@ int audio_open(struct audio_info_struct *ai)
 	}
 		
 
-	// Set the reset of the format
+	/* Set the reset of the format */
 	format.channels = ai->channels;
 	format.rate = ai->rate;
 	format.byte_format = AO_FMT_NATIVE;
 
-	// Initialize libao
+	/* Initialize libao */
 	audio_initialize();
 	
-	// Choose the driver to use
+	/* Choose the driver to use */
 	if (ai->device) {
-		driver = ao_driver_id( ai->device );
+		/* parse device:filename; remember to free stuff before bailing out */ 
+		char* search_ptr;
+		if( (search_ptr = strchr(ai->device, ':')) != NULL )
+		{
+			/* going to split up the info in new memory to preserve the original string */
+			size_t devlen = search_ptr-ai->device+1;
+			size_t filelen = strlen(ai->device)-devlen+1;
+			fprintf(stderr, "going to allocate %zu:%zu bytes\n", devlen, filelen);
+			char* devicename = malloc(devlen*sizeof(char));
+			devicename[devlen-1] = 0;
+			filename = malloc(filelen*sizeof(char));
+			filename[filelen-1] = 0;
+			if((devicename != NULL) && (filename != NULL))
+			{
+				strncpy(devicename, ai->device, devlen-1);
+				strncpy(filename, search_ptr+1, filelen-1);
+				if(filename[0] == 0){ free(filename); filename = NULL; }
+			}
+			else
+			{
+				if(filename != NULL) free(filename);
+				filename = NULL;
+				fprintf(stderr, "audio_open(): out of memory!\n");
+				err = -1;
+			}
+			driver = ao_driver_id( devicename );
+			if(devicename != NULL) free(devicename);
+		}
+		else driver = ao_driver_id( ai->device );
 	} else {
 		driver = ao_default_driver_id();
 	}
 
-	// Open driver
-	device = ao_open_live(driver, &format, NULL /* no options */);
-	if (device == NULL) {
-		fprintf(stderr, "audio_open(): error opening device.\n");
-		return 1;
-	} 
+	if(!err)
+	{
+		if(driver < 0)
+		{
+			fprintf(stderr, "audio_open(): bad driver, try one of these with the -a option:\n");
+			int count = 0;
+			ao_info** aolist = ao_driver_info_list(&count);
+			int c;
+			for(c=0; c < count; ++c)
+			fprintf(stderr, "%s%s\t(%s)\n",
+			        aolist[c]->short_name,
+			        aolist[c]->type == AO_TYPE_FILE ? ":<filename>" : "",
+			        aolist[c]->name);
+			fprintf(stderr, "\n");
+			err = -1;
+		}
+	}
 
-	// Store it for later
-	ai->handle = (void*)device;
-	
-	return(0);
+	if(!err)
+	{
+		ao_info* driverinfo = ao_driver_info(driver);
+		if(driverinfo != NULL)
+		{
+			/* Open driver, files are overwritten - the multiple audio_open calls force it... */
+			if(driverinfo->type == AO_TYPE_FILE)
+			{
+				if(filename != NULL) device = ao_open_file(driver, filename, 1, &format, NULL);
+				else fprintf(stderr, "audio_open(): please specify a filename via -a driver:file (even just - for stdout)\n");
+			}
+			else device = ao_open_live(driver, &format, NULL /* no options */);
+
+			if (device == NULL) {
+				fprintf(stderr, "audio_open(): error opening device.\n");
+				err = -1;
+			}
+
+		}
+		else
+		{
+			fprintf(stderr, "audio_open(): somehow I got an invalid driver id!\n");
+			err = -1;
+		}
+	}
+	if(!err)
+	{
+		/* Store it for later */
+		ai->handle = (void*)device;
+	}
+	/* always do this here! */
+	if(filename != NULL) free(filename);
+	/* _then_ return */
+	return err;
 }
 
 
-// The two formats we support
+/* The two formats we support */
 int audio_get_formats(struct audio_info_struct *ai)
 {
 	return AUDIO_FORMAT_SIGNED_16 | AUDIO_FORMAT_SIGNED_8;
@@ -137,7 +208,7 @@ int audio_close(struct audio_info_struct *ai)
 {
 	ao_device *device = (ao_device*)ai->handle;
 
-	// Close and shutdown
+	/* Close and shutdown */
 	if (device) {
 		ao_close(device);
 		ai->handle = NULL;
