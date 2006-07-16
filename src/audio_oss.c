@@ -284,6 +284,7 @@ int audio_play_samples(struct audio_info_struct *ai,unsigned char *buf,int len)
 #define BYTE2(n) BYTE0((unsigned int)(n) >> 16)
 #define BYTE3(n) BYTE0((unsigned int)(n) >> 24)
    {
+     /* that smells like int=32bit! */
      register int i;
      int swappedInt;
      int *intPtr;
