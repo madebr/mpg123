@@ -1,4 +1,7 @@
 #!/usr/bin/perl
+# debugdef.pl: avoid variadic debugging macros through automatic definitions
+
+# written by Thomas Orgis <thomas@orgis.org>, placed in the public domain
 
 my $num = shift(@ARGV);
 
