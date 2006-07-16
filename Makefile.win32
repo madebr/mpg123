@@ -1,3 +1,8 @@
+# old Win32 Makefile for mpg123
+# copyright by the mpg123 project - free software under the terms of the LGPL 2.1
+# see COPYING and AUTHORS files in distribution or http://mpg123.de
+# initially written by Michael Hipp / Tony Million
+
 LINKER=link
 CC=cl
 CFLAGS=-nologo -G4 -ML -W2 -GX -O2 -DNDEBUG -DWIN32 -DNOXFERMEM -D_CONSOLE -D_WIN32 -YX 
