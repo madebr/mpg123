@@ -71,12 +71,12 @@ AC_ARG_WITH([cpu], [
 AC_ARG_WITH([audio], [
   --with-audio=aix        Use AIX audio output sub-system
   --with-audio=alib       Use Alib audio output sub-system (for HPUX)
-  --with-audio=alsa       Use ALSA audio output sub-system
+dnl   --with-audio=alsa       Use ALSA audio output sub-system
   --with-audio=dummy      Use dummy audio (when no sound card is available)
   --with-audio=esd        Use ESoundD audio output sub-system
   --with-audio=hp         Use HP audio output sub-system
   --with-audio=jack       Use JACK low-latency audio server
-  --with-audio=libao      Use libao audio output sub-system (Audio Out)
+  --with-audio=libao      Use libao audio output sub-system (use that for Alsa support)
   --with-audio=macosx     Use Mac OS X audio output sub-system (CoreAudio)
   --with-audio=mint       Use MinT audio output sub-system (Atari)
   --with-audio=nas        Use NAS audio output (Network Audio System)
@@ -113,8 +113,10 @@ dnl ############## Library Checks
 AC_CHECK_LIB([m], [sqrt])
 AC_CHECK_LIB([mx], [powf])
 
-# Check for ALSA - Advanced Linux Sound Architecture
-PKG_CHECK_MODULES(ALSA, alsa, HAVE_ALSA=yes, HAVE_ALSA=no)
+dnl We don't support alsa directly but through libao.
+dnl Existing alsa driver is old (0.5 api)...
+dnl # Check for ALSA - Advanced Linux Sound Architecture
+dnl PKG_CHECK_MODULES(ALSA, alsa, HAVE_ALSA=yes, HAVE_ALSA=no)
 
 # Check for JACK
 PKG_CHECK_MODULES(JACK, jack, HAVE_JACK=yes, HAVE_JACK=no)
@@ -290,11 +292,11 @@ dnl ############## Audio Sub-system Settings
 
 case $target in
   *-*-linux*)
-  	if test "$HAVE_ALSA" = "yes" ; then
-  		audio_system="alsa"
-  	else
+dnl  	if test "$HAVE_ALSA" = "yes" ; then
+dnl  		audio_system="alsa"
+dnl  	else
   		audio_system="oss"
-  	fi
+dnl  	fi
   ;;
   *-*-freebsd*)
     audio_system="oss"
@@ -323,13 +325,13 @@ AUDIO_LIBS=''
 case $audio_system in
   aix)	;;
   alib) AUDIO_CFLAGS='-I/opt/audio/include' ;;
-  alsa)
-  	if test "$HAVE_ALSA" = "no" ; then
-  		AC_MSG_ERROR( $ALSA_PKG_ERRORS )
-  	fi
-    AUDIO_CFLAGS=$ALSA_CFLAGS
-    AUDIO_LIBS=$ALSA_LIBS
-  ;;
+dnl  alsa)
+dnl  	if test "$HAVE_ALSA" = "no" ; then
+dnl  		AC_MSG_ERROR( $ALSA_PKG_ERRORS )
+dnl  	fi
+dnl    AUDIO_CFLAGS=$ALSA_CFLAGS
+dnl    AUDIO_LIBS=$ALSA_LIBS
+dnl  ;;
   dummy) 
   	 AC_MSG_WARN( Using dummy audio output. )
   ;;

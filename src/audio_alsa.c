@@ -1,5 +1,6 @@
 /*
  *  Driver for Advanced Linux Sound Architecture, http://alsa.jcu.cz
+ *  old driver! needs update or replacement for alsa 0.9/1.x api
  * 
  *  Code by Anders Semb Hermansen <ahermans@vf.telia.no>
  *  Cleanups by Jaroslav Kysela <perex@jcu.cz>
@@ -9,7 +10,7 @@
  *  For example: mpg123 -a 1:0 aaa.mpg
  *               mpg123 -a guspnp:1 aaa.mpg
  *
- * This file comes under GPL license. 
+ * This file comes under GPL license, version 2. 
  */
 
 #include "config.h"
