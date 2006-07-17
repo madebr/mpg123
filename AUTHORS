@@ -1,4 +1,5 @@
 The creator: Michael Hipp (email: hippm@informatik.uni-tuebingen.de - please bother maintainers first)
+
 Current maintainers with all sorts of contributions:
 	Thomas Orgis <thomas@orgis.org>
 	Nicholas J Humfrey <njh@ecs.soton.ac.uk>
@@ -13,6 +14,7 @@ higway <higway@mednet.md>: MMX Patch
 
 Contributions/ideas Michael Hipp era:
 
+Mikko Tommila: DCT9
 Oliver Fromme <oliver.fromme@heim3.tu-clausthal.de>
 MPEG Software Simulation Group: reference decoder package
 Tobias Bading: idea for DCT64 in subband synthesis from maplay package
