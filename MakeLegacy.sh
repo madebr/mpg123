@@ -22,7 +22,7 @@ cd src
 echo "Creating basic config.h to reproduce pre-autoconf days."
 cp config.h.legacy config.h &&
 {
-	echo "// added by MakeLegacy.sh"
+	echo "/* added by MakeLegacy.sh */"
 	echo "#define PACKAGE_NAME \"$PACKAGE_NAME\"" 
 	echo "#define PACKAGE_VERSION \"$PACKAGE_VERSION\""
 	echo "#define PACKAGE_BUGREPORT \"$PACKAGE_BUGREPORT\""
