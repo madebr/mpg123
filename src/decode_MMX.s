@@ -1,11 +1,13 @@
 /	decode_MMX.s: MMX optimized synth
 
-/	copyright ?-2006 by the mpg123 project - free software under the terms of the GPL 2
+/	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
 /	see COPYING and AUTHORS files in distribution or http://mpg123.de
 /	initially written by the mysterious higway (apparently)
 
-/	one has to find out if this note is strictly GPL or if LGPL is OK, too
-/	this code comes under GPL
+/ Thomas' words about a note:
+/ Initially, I found the note "this code comes under GPL" in this file.
+/ After asking Michael about legal status of the MMX files, he said that he got them without any comment and thus I believe that the GPL comment was made by Michael, since he made mpg123 GPL at some time - and marked some files that way, but not all.
+/ Based on that thought, I now consider this file along with the other parts of higway's MMX optimization to be licensed under LGPL 2.1 by Michael's decision.
 
 .text
 
