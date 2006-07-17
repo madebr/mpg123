@@ -1,19 +1,21 @@
 /*
- *   xfermem.h
- *
- *   Oliver Fromme  <oliver.fromme@heim3.tu-clausthal.de>
- *   Sat Mar 29 04:41:34 MET 1997
- *
- *   This is a stand-alone module which implements a unidirectional,
- *   fast pipe using mmap().  Its primary use is to transfer large
- *   amounts of data from a parent process to its child process,
- *   with a buffer in between which decouples blocking conditions
- *   on both sides.  Control information is transferred between the
- *   processes through a socketpair.  See xftest.c for an example on
- *   how to use this module.
- */
- 
- 
+	xfermem: unidirectional fast pipe
+
+	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	initially written by Oliver Fromme
+	old timestamp: Sat Mar 29 04:41:34 MET 1997
+
+	This is a stand-alone module which implements a unidirectional,
+	fast pipe using mmap().  Its primary use is to transfer large
+	amounts of data from a parent process to its child process,
+	with a buffer in between which decouples blocking conditions
+	on both sides.  Control information is transferred between the
+	processes through a socketpair.  See xftest.c for an example on
+	how to use this module.
+
+	note: xftest not there anymore
+*/
 
 #ifndef _XFERMEM_H_
 #define _XFERMEM_H_

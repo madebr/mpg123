@@ -1,12 +1,12 @@
-/* 
- * Mpeg Layer-1 audio decoder 
- * --------------------------
- * copyright (c) 1995 by Michael Hipp, All rights reserved. See also 'README'
- * near unoptimzed ...
- *
- * may have a few bugs after last optimization ... 
- *
- */
+/*
+	layer1.c: the layer 1 decoder
+
+	copyright 1995-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	initially written by Michael Hipp
+
+	may have a few bugs after last optimization ... 
+*/
 
 #include "config.h"
 #include "mpg123.h"

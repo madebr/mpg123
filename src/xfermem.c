@@ -1,11 +1,13 @@
 /*
- *   xfermem.c
- *
- *   Oliver Fromme  <oliver.fromme@heim3.tu-clausthal.de>
- *   Sun Apr  6 02:26:26 MET DST 1997
- *
- *   See xfermem.h for documentation/description.
- */
+	xfermem: unidirectional fast pipe
+
+	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	initially written by Oliver Fromme
+	old timestamp: Sun Apr  6 02:26:26 MET DST 1997
+
+	See xfermem.h for documentation/description.
+*/
 
 #include "config.h"
 

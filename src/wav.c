@@ -1,10 +1,18 @@
-/* Geez, why are WAV RIFF headers are so secret?  I got something together,
-   but wow...  anyway, I hope someone will find this useful.
-   - Samuel Audet <guardia@cam.org> */
+/*
+	wav.c: write wav files
 
-/* minor simplifications and ugly AU/CDR format stuff by MH */
+	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	initially written by Samuel Audet
 
-/* It's not a very clean code ... Fix this! */
+	Geez, why are WAV RIFF headers are so secret?  I got something together,
+	but wow...  anyway, I hope someone will find this useful.
+	- Samuel Audet
+
+	minor simplifications and ugly AU/CDR format stuff by MH
+
+	It's not a very clean code ... Fix this!
+*/
 
 #include <stdlib.h>
 #include <stdio.h>

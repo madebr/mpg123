@@ -1,16 +1,18 @@
+/*
+	system.c: system stream decoder (standalone)
 
-/*******************************************************
- * System stream decoder ... 
- * grabs an audio stream inside a video/audio system stream
- * This Program outputs only the first audio stream to STDOUT
- * 
- * copyright (c) 1997/1998 by Michael Hipp
- *
- * currently this is an external program. You must pipe
- * your streams file to this program and the output to 
- * the mpg123 player.  e.g: 
- *     ./system < my_system_stream.mpg | mpg123 -
- */
+	copyright 1997-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	initially written by Michael Hipp
+
+	grabs an audio stream inside a video/audio system stream
+	This Program outputs only the first audio stream to STDOUT
+
+	currently this is an external program. You must pipe
+	your streams file to this program and the output to 
+	the mpg123 player.  e.g: 
+	./system < my_system_stream.mpg | mpg123 -
+*/
 
 #include <stdlib.h>
 #include <stdio.h>

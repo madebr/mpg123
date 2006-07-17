@@ -1,7 +1,13 @@
 /*
- * mpg123 defines 
- * used source: musicout.h from mpegaudio package
- */
+	mpg123: main code of the program (not of the decoder...)
+
+	copyright 1995-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	initially written by Michael Hipp
+
+	mpg123 defines 
+	used source: musicout.h from mpegaudio package
+*/
 
 #include        <stdio.h>
 #include        <string.h>
