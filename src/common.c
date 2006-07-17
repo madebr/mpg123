@@ -118,9 +118,10 @@ static int skip_new_id3(struct reader *rds)
 unsigned long samples_to_bytes(unsigned long s, struct frame *fr , struct audio_info_struct* ai)
 {
 	/* rounding positive number... */
-	double sammy = (1.0*s) * (1.0*ai->rate)/freqs[fr->sampling_frequency];
+	double sammy, samf;
+	sammy = (1.0*s) * (1.0*ai->rate)/freqs[fr->sampling_frequency];
 	debug4("%lu samples to bytes with freq %li (ai.rate %li); sammy %f", s, freqs[fr->sampling_frequency], ai->rate, sammy);
-	double samf = floor(sammy);
+	samf = floor(sammy);
 	return (unsigned long)
 		(((ai->format & AUDIO_FORMAT_MASK) == AUDIO_FORMAT_16) ? 2 : 1)
 		* ai->channels

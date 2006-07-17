@@ -155,12 +155,12 @@ void layer3_gapless_buffercheck()
 	unsigned long new_pos = position + pcm_point;
 	if(begin && (position < begin))
 	{
-		debug5("new_pos %lu (old: %lu), begin %lu, pcm_point %i (old: %i)", new_pos, old_pos, begin, pcm_point, old_point);
+		debug4("new_pos %lu (old: %lu), begin %lu, pcm_point %i", new_pos, position, begin, pcm_point);
 		if(new_pos < begin) pcm_point = 0; /* full of padding/delay */
 		else
 		{
 			/* we need to shift the memory to the left... */
-			debug3("old pcm_point: %i, begin %lu; good bytes: %i", pcm_point, begin, (int)(begin-position));
+			debug3("old pcm_point: %i, begin %lu; good bytes: %i", pcm_point, begin, (int)(new_pos-begin));
 			pcm_point -= begin-position;
 			debug3("shifting %i bytes from %p to %p", pcm_point, pcm_sample+(int)(begin-position), pcm_sample);
 			memmove(pcm_sample, pcm_sample+(int)(begin-position), pcm_point);
@@ -850,12 +850,16 @@ if(region1 > region2)
     }
 
     for(;l3 && (part2remain+num > 0);l3--) {
+      /* not mixing code and declarations to keep C89 happy */
+      struct newhuff* h;
+      register short* val;
+			register short a;
       /* This is only a humble hack to prevent a special segfault. */
       /* More insight into the real workings is still needed. */
       if(!(xrpnt < &xr[SBLIMIT][0])) return 2;
 
-      struct newhuff *h = htc+gr_info->count1table_select;
-      register short *val = h->table,a;
+      h = htc+gr_info->count1table_select;
+      val = h->table;
 
       REFRESH_MASK;
       while((a=*val++)<0) {

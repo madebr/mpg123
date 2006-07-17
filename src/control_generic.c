@@ -359,9 +359,9 @@ void control_generic (struct frame *fr)
 
 					/* JUMP */
 					if (!strcasecmp(cmd, "J") || !strcasecmp(cmd, "JUMP")) {
-						audio_flush(param.outmode, &ai);
 						char *spos;
 						int pos, ok;
+						audio_flush(param.outmode, &ai);
 
 						spos = arg;
 						if (!spos)

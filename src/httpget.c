@@ -309,6 +309,7 @@ int http_open (char *url)
 	}
 
 	do {
+		char* ttemp;
 		if (proxyip != INADDR_NONE) {
 			myport = proxyport;
 			myip = proxyip;
@@ -407,7 +408,6 @@ int http_open (char *url)
 		
 		/* hm, my test redirection had troubles with line break before HTTP/1.0 */
 		/* we should support HTTP/1.1, btw */
-		char* ttemp;
 		if((ttemp = strchr(request,'\r')) != NULL) *ttemp = 0;
 		if((ttemp = strchr(request,'\n')) != NULL) *ttemp = 0;
 		sprintf (request + strlen(request),
@@ -498,17 +498,18 @@ int http_open (char *url)
 			}
 			if (!strncmp(response, "Location: ", 10))
 			{
+				size_t needed_length;
 				char* prefix = request+4; /* skip GET */
 				
 				if(strncmp(response, "Location: http://", 17))
 				{
+					char* ptmp = NULL;
 					/* though it's not RFC (?), accept relative URIs as wget does */
 					fprintf(stderr, "NOTE: non-absolute uri in redirect, constructing one\n");
 					/* not absolute uri, could still be server-absolute */
 					/* I prepend a part of the request... out of the request */
 					/* GET http://host/path/bla HTTP/1.0*/
 					/* the request MUST have this form! */
-					char* ptmp = NULL;
 					if(response[10] == '/')
 					{
 						/* only prepend http://server/ */
@@ -533,7 +534,7 @@ int http_open (char *url)
 
 				/* we want to allow urls longer than purl */
 				/* eh, why *3 here? I don't see it that in this loop any x -> %yz conversion is done */
-				size_t needed_length = strlen(prefix) + strlen(response+10)*3+1;
+				needed_length = strlen(prefix) + strlen(response+10)*3+1;
 				if(purl_size < needed_length)
 				{
 					purl_size = needed_length;
