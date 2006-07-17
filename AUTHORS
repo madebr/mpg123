@@ -1,5 +1,5 @@
 The creator: Michael Hipp (email: hippm@informatik.uni-tuebingen.de - please bother maintainers first)
-Current maintainers:
+Current maintainers with all sorts of contributions:
 	Thomas Orgis <thomas@orgis.org>
 	Nicholas J Humfrey <njh@ecs.soton.ac.uk>
 
@@ -9,6 +9,7 @@ Adrian Bacon <adrian.bacon@xs4all.nl>: patched decode_i586_dither (noise shaped 
 Cool Feet Audio project <nutcase@dtfm.org>: realtime equalizer control
 Steve Grundell <www@grundell.u-net.com>: clean stdout in control mode with stdout decoding
 Romain Dolbeau <romain@dolbeau.org>: Altivec support (taken from mplayer)
+higway <higway@mednet.md>: MMX Patch
 
 Contributions/ideas Michael Hipp era:
 
@@ -76,7 +77,6 @@ Hur TaeSung <saturn@arari.snu.ac.kr>: 'http accept' patch
 Hans Schwengeler <schweng@astro.unibas.ch>: audio_dec additions
 Wojciech Barañski's Mp3Play (check the tools folder): Mp3Play frontend
 Daniel Koukola: audio_oss.c patch
-higway <higway@mednet.md>: MMX Patch
 Munechika SUMIKAWA <sumikawa@ebina.hitachi.co.jp>: IPv6
 TEMNOTA <temnota@kmv.ru>: HTTP,FTP patch/playlist fix
 Peter Surda <shurdeek@panorama.sth.ac.at>: VBR patch
