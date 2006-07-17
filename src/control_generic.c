@@ -273,8 +273,8 @@ void control_generic (struct frame *fr)
 					generic_sendmsg("LOADPAUSED/LP <trackname>: load and start playing resource <trackname>");
 					generic_sendmsg("PAUSE/P: pause playback");
 					generic_sendmsg("STOP/S: stop playback (closes file)");
-					generic_sendmsg("JUMP/J <frame>: jump to mpeg frame <frame>");
-					generic_sendmsg("EQ/E <channenl> <band> <value>: set equalizer value for frequency band on channel");
+					generic_sendmsg("JUMP/J <frame>|<+offset>|<-offset>: jump to mpeg frame <frame> or change position by offset");
+					generic_sendmsg("EQ/E <channel> <band> <value>: set equalizer value for frequency band on channel");
 					generic_sendmsg("SEQ <bass> <mid> <treble>: simple eq setting...");
 					generic_sendmsg("SILENCE: be silent during playback (meaning silence in text form)");
 					generic_sendmsg("meaning of the @S stream info:");

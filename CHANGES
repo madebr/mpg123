@@ -1,4 +1,15 @@
-SEMI-OFFICIAL 0.59r-thor7 (well, I'm going to release a _really_ official mpg123 in future) (Thomas Orgis <thomas@orgis.org>)
+0.60-beta1
+-----
+
+- new license: all LGPL except the old audio_alsa.c
+- merge with Nicholas' sourceforge package
+	- autooled configure/make system
+	- MacOSX, Jack, libao (alsa 0.9/1.x support through that)
+	- experimental gapless playback for layer 3
+- merged in MMX and AltiVec optimization
+- security bug fixes of GLSA 200607-01 and possible crashes found by fuzzing 
+
+UNDERGROUND 0.59r-thor7 (well, I'm going to release a _really_ official mpg123 in future) (Thomas Orgis <thomas@orgis.org>)
 -----
 
 - applied relevant stuff from Debian's 22:

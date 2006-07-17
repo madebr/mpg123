@@ -1,10 +1,8 @@
-Bug reports, patches:
----------------------
-  Please always check the latest version from my home page
-  before reporting a bug. 
-    (http://www.sfs.nphil.uni-tuebingen.de/~hipp/mpg123.html)
-  If you send me a patch, please use the 'unified' version.
-  (diff -u ...)
+If you find a bug, please check for and report it in the sourceforge bug tracking system:
+
+	http://sourceforge.net/tracker/?atid=733194&group_id=135704&func=browse
+
+Old list of known bugs from 0.59r:
 
 Of course, there are some known bugs:
 -------------------------------------
@@ -19,10 +17,4 @@ Of course, there are some known bugs:
   It also compiles under Aix 3.x with the 'make generic' version
   SGI completly untested
   SUNOS 4.x completly untested
-
-ThOr:
-
-- options parsing ist buggy on OSF1 5.1b... I get two unaligned accesses and the 
--s option gets interpreted differently depending on place in command line or if I 
-call mpg123 on a shell or with execlp(). getlopt.c needs some fixes there...
 

@@ -1,11 +1,12 @@
-
 Control interface to generic frontends
-written/copyrights 1997/99 by Andreas Neuhaus (and Michael Hipp)
 
 The generic remote interface allows frontends to easily control
 mpg123 by commands through stdin/stdout. To start the generic
 remote interface, start mpg123 with parameter -R.
 
+In case of a frontend that starts mpg123 with the -s option to read the audio from stdout, you may want to specify --remote-err to send responses to stderr so that stdout stays clean for audio.
+
+(Still the case?)
 As an example it's used by IRMP3, a tool that allows you to
 control mpg123 with a standard infrared remote control. See
 http://www.fasta.fh-dortmund.de/users/andy/irmp3/ for more
@@ -15,26 +16,26 @@ information.
 COMMAND CODES
 -------------
 
-Command codes may be abbreviated by its first character.
+You can get this info via the control command "help"
 
-QUIT
-			Stop playing and quit player
+HELP/H: command listing (LONG/SHORT forms), command case insensitve
 
-LOAD <a>
-			Load and play a file/URL.
+LOAD/L <trackname>: load and start playing resource <trackname>
 
-STOP
-			Stop playing (without quitting the player)
+LOADPAUSED/LP <trackname>: load and start playing resource <trackname>
 
-PAUSE
-			Pause/unpause playing
+PAUSE/P: pause playback
 
-JUMP [+|-]<a>
-			Skip <a> frames:
-			+32	forward 32 frames
-			-32	rewind 32 frames
-			0	jump to the beginning
-			1024	jump to frame 1024
+STOP/S: stop playback (closes file)
+
+JUMP/J <frame>|<+offset>|<-offset>: jump to mpeg frame <frame> or change position by offset
+
+EQ/E <channel> <band> <value>: set equalizer value for frequency band on channel
+
+SEQ <bass> <mid> <treble>: simple eq setting...
+
+SILENCE: be silent during playback (meaning silence in text form)
+
 
 
 RESPONSE CODES
@@ -58,6 +59,10 @@ Note: mpg123 returns errors on stderr, so your frontend should
 @I <a>
 			Status message after loading a song (no ID3 song info)
 			a = filename without path and extension
+
+@S <a> <b> ...
+			Stream info at beginning of playback, meaning
+			S <mpeg-version> <layer> <sampling freq> <mode(stereo/mono/...)> <mode_ext> <framesize> <stereo> <copyright> <error_protected> <emphasis> <bitrate> <extension> <vbr(0/1=yes/no)>
 
 @S <a> <b> <c> <d> <e> <f> <g> <h> <i> <j> <k> <l>
 			Status message after loading a song (stream info)
@@ -93,4 +98,40 @@ Note: mpg123 returns errors on stderr, so your frontend should
 			stderr (without @E)
 			a = error message (string)
 
+Info about the equalizer control:
 
+Cold Feet Audio Patch for MPG123
+
+10.07.2002
+
+This is a dirty little hack to enable the equalizer in mpg123's
+generic_control interface.  It works like this, there are two
+different channels on the equalizer and 32 frequencys.
+
+The hack just enables mpg123's built in equalizer to run real-time.
+We haven't built in any capability to save the eq, you're frontend
+will have to handle that part, and init the eq on the startup of
+mpg123.
+
+K, it works like this:
+
+#./mpg123 -R -  <---- This command will start mpg123 in 'frontend' mode.
+
+If you want to send it some eq values you'd send it:
+eq X Y V[ENTER]
+
+X = The channel.  It can be either 0 or 1.  I haven't put any error checking
+    in, so it probably wouldn't be a good idea to go out of bounds. (integer)
+Y = This is the frequency, it can be 0 to 31.  0 being closer to treble and
+    31 being closer to bass. (integer)
+V = The raw value of your equalizer setting.  I've found that the values work 
+    best between 0.00 and 3.00.  When mpg123 starts up, all of them are set
+    to 1.00.
+
+OK, have fun!  If you have any questions or found some bugs, please contact
+nutcase@dtmf.org
+
+Thanks,
+nut
+
+Note by Thomas Orgis: The contact appreas to be dead.

@@ -25,7 +25,7 @@ for the traditional hope page and
 
 	http://sourceforge.net/projects/mpg123
 
-for sourceforge.net based services like download mirrors and mailing list.
+for sourceforge.net based services like download mirrors, mailing lists and bug/feature trackers.
 Please use the sourceforge download mirrors when possible to minimize load on the mpg123.org server.
 
 
@@ -98,6 +98,8 @@ See README.control for usage.
 4. Speed
 
 mpg123 is fast. Any faster software player is probably based on some hacked mpg123;-)
+This is the case with current MPlayer, wich includes mpg123-based code in its mp3lib.
+There are some nice assembler optimizations (SSE, for example) that may make mplayer a faster mp3 decoder in cases where these are applicable - we are preparing to incorporate these into the mpg123 player to make it the fastest mp3 player under all circumstances.
 
 
 5. Accuracy
@@ -147,7 +149,7 @@ The main message is:
 
 Code is copyrighted by Michael Hipp, who made it free software under the terms of the LGPL 2.1.
 
-Please see COPYING and AUTHORS for details and on the (optional) parts that are not written by Michael and thus only GPL or, in rare cases, something different.
+Please see COPYING and AUTHORS for details and on the (optional) parts that are not written by Michael and possibly not LGPL (currently, ther is only one non-LGPL file that is GPL only).
 
 There has been quite some confusion about the licensing and "freeness" of mpg123 in the past.
 The initial "free for private use, ask me when you want to do something commercial" license caused some people to avoid mpg123 and even to write a replacement mimicking the interface but using a different decoding engine - what was not actively developed for too long but entered the "free" software sections.
