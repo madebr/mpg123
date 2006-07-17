@@ -1,24 +1,10 @@
 /*
-	mpg123 - Mpeg Audio Player
-	Copyright (C) 1995-2005  The Mpg123 Project, All rights reserved.
+	audio_libao.c: audio output via libao (now doing something like mpg321;-)
 
-	See the file 'AUTHORS' for a full list of contributors.
-	
-	This program is free software; you can redistribute it and/or
-	modify it under the terms of the GNU General Public License
-	as published by the Free Software Foundation; either version 2
-	of the License, or (at your option) any later version.
-	
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the Free Software
-	Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+	copyright 2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	initially written by Nicholas J. Humfrey
 */
-
 
 #include <stdio.h>
 #include <math.h>

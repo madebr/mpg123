@@ -1,11 +1,10 @@
-/* 
- * Mpeg Layer-1,2,3 audio decoder 
- * ------------------------------
- * copyright (c) 1995,1996,1997 by Michael Hipp, All rights reserved.
- * See also 'README'
- *
- * N->M down/up sampling. Not optimized for speed.
- */
+/*
+	decode_ntom.c: N->M down/up sampling. Not optimized for speed.
+
+	copyright 1995-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	initially written by Michael Hipp
+*/
 
 #include <stdlib.h>
 #include <math.h>

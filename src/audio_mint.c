@@ -1,3 +1,11 @@
+/*
+	audio_mint: audio output for MINT
+
+	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	initially written by Petr Stehlik
+*/
+
 /* derived from LINUX, VOXWARE and SUN for MiNT Audio Device by Petr Stehlik */
 #include <fcntl.h>
 #include "config.h"

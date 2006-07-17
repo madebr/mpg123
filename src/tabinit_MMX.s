@@ -1,3 +1,11 @@
+/	tabinit_MMX.s: ...
+
+/	copyright ?-2006 by the mpg123 project - free software under the terms of the GPL 2
+/	see COPYING and AUTHORS files in distribution or http://mpg123.de
+/	initially written by the mysterious higway (apparently)
+
+/	there is a note in decode_MMX.s hinting at GPL licensing, have to check if this excludes LGPL or not
+
 .bss
 	.align 32
     	.comm	decwin,2176,32

@@ -1,10 +1,11 @@
 /*
- * Control interface to generic front ends.
- * written/copyrights 1997/99 by Andreas Neuhaus (and Michael Hipp)
- *
- * command parsing/processing reworked and partially rewritten in 2004/5 by Thomas Orgis
- *
- */
+	control_generic.c: control interface for frontends and real console warriors
+
+	copyright 1997-99,2004-6 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	initially written by Andreas Neuhaus and Michael Hipp
+	reworked by Thomas Orgis - it was the entry point for eventually becoming maintainer...
+*/
 
 #include <stdio.h>
 #include <stdlib.h>

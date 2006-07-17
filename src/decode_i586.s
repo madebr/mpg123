@@ -1,3 +1,8 @@
+/ decode_i586.s: asm synth
+/
+/ copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+/ see COPYING and AUTHORS files in distribution or http://mpg123.de
+/ initially written by Stefan Bieschewski
 / 
 / synth_1to1 works the same way as the c version of this
 / file.  only two types of changes have been made:

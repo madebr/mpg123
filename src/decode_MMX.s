@@ -1,4 +1,11 @@
-# this code comes under GPL
+/	decode_MMX.s: MMX optimized synth
+
+/	copyright ?-2006 by the mpg123 project - free software under the terms of the GPL 2
+/	see COPYING and AUTHORS files in distribution or http://mpg123.de
+/	initially written by the mysterious higway (apparently)
+
+/	one has to find out if this note is strictly GPL or if LGPL is OK, too
+/	this code comes under GPL
 
 .text
 

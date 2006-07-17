@@ -1,3 +1,10 @@
+/*
+	dct64_i486.c: DCT64, a plain C variant for i486
+
+	copyright 1998-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	initially written by Fabrice Bellard
+*/
 
 /* Discrete Cosine Tansform (DCT) for subband synthesis.
  *

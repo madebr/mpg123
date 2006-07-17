@@ -1,4 +1,10 @@
-/* OS/2 RealTime DART Engine for mpg123 (C) 1998 Samuel Audet <guardia@cam.org> */
+/*
+	audio_os2: OS/2 RealTime DART Engine
+
+	copyright 1998-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	initially written by Samuel Audet
+*/
 
 #define INCL_OS2MM
 #define INCL_DOS

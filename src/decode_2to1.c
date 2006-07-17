@@ -1,11 +1,10 @@
 /*
- * Mpeg Layer-1,2,3 audio decoder
- * ------------------------------
- * copyright (c) 1995 by Michael Hipp, All rights reserved. See also 'README'
- * version for slower machines .. decodes only every second sample
- * sounds like 24000,22050 or 16000 kHz .. (depending on original sample freq.)
- *
- */
+	decode_2to1.c: ...with 2to1 downsampling
+
+	copyright 1995-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	initially written by Michael Hipp
+*/
 
 #include <stdlib.h>
 #include <math.h>

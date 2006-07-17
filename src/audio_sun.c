@@ -1,3 +1,10 @@
+/*
+	audio_sun.c: audio output for Sun systems
+
+	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	initially written by Michael Hipp
+*/
 
 #include <sys/types.h>
 #include <stdlib.h>

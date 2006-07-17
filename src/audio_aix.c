@@ -1,14 +1,10 @@
 /*
- *  Driver for IBM RS/6000 with AIX Ultimedia Services
- * 
- *  Code by Juergen Schoew <juergen.schoew@unix-ag.org>
- *
- *          Tomas Oegren   <stric@acc.umu.se>
- *                         (code for audio_close delay)
- *
- *  Cleanups and testing by Niklas Edmundsson <nikke@ing.umu.se>
- *
- */
+	audio_aix.c: Driver for IBM RS/6000 with AIX Ultimedia Services
+
+	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	initially written by Juergen Schoew and Tomas Oegren
+*/
 
 #include <stdio.h>
 #include <unistd.h>

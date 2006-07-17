@@ -1,3 +1,10 @@
+/*
+	audio_oss.c: audio output via Open Sound System
+
+	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	initially written by Michael Hipp
+*/
 
 #include <sys/types.h>
 #include <sys/ioctl.h>

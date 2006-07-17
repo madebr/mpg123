@@ -1,12 +1,13 @@
 /*
- * Mpeg Layer-1,2,3 audio decoder
- * ------------------------------
- * copyright (c) 1995,1996,1997 by Michael Hipp, All rights reserved.
- * See also 'README'
- * version for slower machines .. decodes only every fourth sample
- * dunno why it sounds THIS annoying (maybe we should adapt the window?)
- * absolutely not optimized for this operation
- */
+	decode_4to1.c: ...with 4to1 downsampling / decoding of every 4th sample
+
+	copyright 1995-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	initially written by Michael Hipp
+
+	dunno why it sounds THIS annoying (maybe we should adapt the window?)
+	absolutely not optimized for this operation
+*/
 
 #include <stdlib.h>
 #include <math.h>

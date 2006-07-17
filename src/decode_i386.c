@@ -1,14 +1,15 @@
-/* 
- * Mpeg Layer-1,2,3 audio decoder 
- * ------------------------------
- * copyright (c) 1995,1996,1997 by Michael Hipp, All rights reserved.
- * See also 'README'
- *
- * slighlty optimized for machines without autoincrement/decrement.
- * The performance is highly compiler dependend. Maybe
- * the decode.c version for 'normal' processor may be faster
- * even for Intel processors.
- */
+/*
+	decode_i386.c: decode for i386 (really faster?)
+
+	copyright 1995-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	initially written by Michael Hipp
+
+	slighlty optimized for machines without autoincrement/decrement.
+	The performance is highly compiler dependend. Maybe
+	the decode.c version for 'normal' processor may be faster
+	even for Intel processors.
+*/
 
 #include <stdlib.h>
 #include <math.h>

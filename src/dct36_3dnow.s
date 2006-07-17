@@ -1,6 +1,10 @@
-/
-/ dct36_3dnow.s - 3DNow! optimized dct36()
-/
+///
+/// dct64_3dnow.s: Replacement of dct36() with AMD's 3DNow! SIMD operations support
+/// 
+/// copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+/// see COPYING and AUTHORS files in distribution or http://mpg123.de
+/// initially written by Syuuhei Kashiyama
+
 / This code based 'dct36_3dnow.s' by Syuuhei Kashiyama
 / <squash@mb.kcom.ne.jp>,only two types of changes have been made:
 /
@@ -14,7 +18,7 @@
 / by KIMURA Takuhiro <kim@hannah.ipc.miyakyo-u.ac.jp> - until 31.Mar.1999
 /                    <kim@comtec.co.jp>               - after  1.Apr.1999
 /
-	
+
 ///
 /// Replacement of dct36() with AMD's 3DNow! SIMD operations support
 /// 

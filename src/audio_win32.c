@@ -1,3 +1,11 @@
+/*
+	audio_win32.c: audio output for Windows 32bit
+
+	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	initially written (as it seems) by Tony Million
+*/
+
 #include <sys/types.h>
 #include <stdio.h>
 #include <fcntl.h>
