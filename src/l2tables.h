@@ -1,9 +1,13 @@
 /*
- * Layer 2 Alloc tables .. 
- * most other tables are calculated on program start (which is (of course)
- * not ISO-conform) .. 
- * Layer-3 huffman table is in huffman.h
- */
+	l2tables.h: Layer 2 Alloc tables
+
+	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	initially written by Michael Hipp
+
+	most other tables are calculated on program start (which is (of course)	not ISO-conform)
+	Layer-3 huffman table is in huffman.h
+*/
 
 
 #ifndef _MPG123_L2TABLES_H_

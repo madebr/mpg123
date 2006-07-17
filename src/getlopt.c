@@ -1,13 +1,11 @@
 /*
- *   getlopt.c
- *
- *   Oliver Fromme  <oliver.fromme@heim3.tu-clausthal.de>
- *   Tue Apr  8 07:15:13 MET DST 1997
- *
- *   Clarification on int vs. long variable types (and the debug stuff):
- *   Thomas Orgis  <thomas@orgis.org>
- *   Fri Dec 23, 2005
- */
+	getlopt: command line option/parameter parsing
+
+	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	initially written Oliver Fromme
+	old timestamp: Tue Apr  8 07:15:13 MET DST 1997
+*/
 
 #include <stdio.h>
 #include "config.h"

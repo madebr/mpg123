@@ -1,10 +1,16 @@
 This is the file that contains the terms of use, copying, etc. for the mpg123 distribution package.
 
+Main message, applicable to the core functionality:
+
+Code is copyrighted by Michael Hipp, who made it free software under the terms of the LGPL 2.1.
+
+But that is not all of it.
 mpg123 is licensed under the GNU General Lesser Public License, version 2.1, and in parts under the GNU General Public License, version 2.
+That means that _all_ of mpg123 is licensed under GPL and the major part also under the LGPL.
+
 When the copyright marker in a source file says "the mpg123 project" that means that the file contains code copyrighted by contributors to mpg123, the "initially written by" naming the person(s) that created the file and thus may have the largest part of copyrights on it.
 I am explaining this here to emphasize that the copyright always actually lies by the individual member (i.e. contributor to) of the mpg123 project who wrote a specific section of code.
 Usage of a source code management system like Subversion should provide keeping track of individual copyright traces...
-
 
 All files in the distribution that don't carry a license note on their own are licensed under the terms of the LGPL 2.1; all files that do carry either a LGPL or GPL note are licensed respectively under the LGPL or GPL as follows:
 

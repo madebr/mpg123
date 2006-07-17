@@ -1,10 +1,13 @@
 /*
- * huffman tables ... recalcualted to work with my optimzed
- * decoder scheme (MH)
- * 
- * probably we could save a few bytes of memory, because the 
- * smaller tables are often the part of a bigger table
- */
+	huffman.h: huffman tables ... recalcualted to work with optimzed decoder scheme (MH)
+
+	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	initially written by Michael Hipp
+
+	probably we could save a few bytes of memory, because the 
+	smaller tables are often the part of a bigger table
+*/
 
 
 #ifndef _MPG123_HUFFMAN_H_

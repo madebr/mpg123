@@ -1,3 +1,11 @@
+/*
+	genre.h: id3 genre definition
+
+	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	initially written by Shane Wegner
+*/
+
 
 #ifndef _MPG123_GENRE_H_
 #define _MPG123_GENRE_H_

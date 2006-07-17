@@ -1,6 +1,8 @@
-// getcpuflags.s - get CPUFLAGS
-// KIMURA Takuhiro <kim@hannah.ipc.miyakyo-u.ac.jp> - until 31.Mar.1999
-//                 <kim@comtec.co.jp>               - after  1.Apr.1999
+// getcpuflags.s: get CPUFLAGS
+
+// copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+// see COPYING and AUTHORS files in distribution or http://mpg123.de
+// initially written by KIMURA Takuhiro
 
 // extern int getcpuid(void) 
 // -> 0x00000000 (CPUID instruction not supported)

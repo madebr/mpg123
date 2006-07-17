@@ -6,6 +6,7 @@ Current maintainers with all sorts of contributions:
 
 Contributions/ideas Thomas Orgis era (includes backports from mhipp trunk):
 
+mpdavig@users.sourceforge.net: linux-ppc-nas Makefile.legacy entry
 Adrian Bacon <adrian.bacon@xs4all.nl>: patched decode_i586_dither (noise shaped float/int rounding)
 Cool Feet Audio project <nutcase@dtfm.org>: realtime equalizer control
 Steve Grundell <www@grundell.u-net.com>: clean stdout in control mode with stdout decoding
@@ -49,7 +50,7 @@ Hannu Napari's <Hannu.Napari@hut.fi>: SGI audio patches
 <psst@euskalnet.net>: playlist patch
 Gilles Zunino <Gilles.Zunino@hei.fupl.asso.fr>: SGI audio patches
 Matthew Parslow <roy@alpha.alphalink.com.au>: esdserver patch
-<dlux@dlux.sch.bme.hu>: equalizer patch
+<dlux@dlux.sch.bme.hu>: equalizer patch (equalfile setting)
 Ducroquet Erwan <ducroque@ufr-info-p7.ibp.fr>: HPUX/ALib support
 Shane Wegner <shane@CM.NU>: genrepatch
 Samuel Audet <guardia@cam.org>: wav-File patch
