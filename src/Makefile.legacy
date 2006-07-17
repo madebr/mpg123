@@ -76,6 +76,7 @@ linux-help:
 	@echo "make linux-arm      Linux on the StrongArm"
 	@echo "make linux-hppa     Linux/hppa HP-PARISC using OSS"
 	@echo "make linux-nas      Linux, output to Network Audio System"
+	@echo "make linux-ppc-nas  Linux/PPC, output to Network Audio System"
 	@echo "make linux-sparc    Linux/Sparc"
 	@echo "make linux-alsa     Linux with ALSA sound driver"
 	@echo "make linux-mips-alsa Linux/MIPS with ALSA sound driver"
@@ -277,6 +278,16 @@ linux-ppc-esd:
 		OBJECTS="decode.o dct64.o audio_esd.o term.o" \
 		CFLAGS="$(CFLAGS) $(CPPFLAGS) -DREAL_IS_FLOAT -DLINUX -Wall -O2 -mcpu=powerpc \
 			-DOSS  -DHAVE_TERMIOS\
+			-fomit-frame-pointer -funroll-all-loops \
+			-finline-functions -ffast-math" \
+		mpg123-make
+
+linux-ppc-nas:
+	$(MAKE) CC=gcc LDFLAGS='-L/usr/X11R6/lib' \
+		AUDIO_LIB='-laudio -lXau -lXt' \
+		OBJECTS='decode.o dct64.o audio_nas.o term.o' \
+		CFLAGS="-I/usr/X11R6/include -DREAL_IS_FLOAT -DLINUX -DNAS -DTERM_CONTROL \
+			-Wall -O2 -mcpu=powerpc \
 			-fomit-frame-pointer -funroll-all-loops \
 			-finline-functions -ffast-math" \
 		mpg123-make
