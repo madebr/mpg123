@@ -1,5 +1,9 @@
 #!/bin/sh
-# Run this to set up the build system: configure, makefiles, etc.
+# autogen.sh: Run this to set up the build system: configure, makefiles, etc.
+
+# copyright by the mpg123 project - free software under the terms of the LGPL 2.1
+# see COPYING and AUTHORS files in distribution or http://mpg123.de
+# initially written by Nicholas J. Humfrey
 
 package="mpg123"
 
