@@ -1,22 +1,9 @@
 /*
-	mpg123 - Mpeg Audio Player
-	Copyright (C) 1995-2005  The Mpg123 Project, All rights reserved.
+	audio_jack.c: audio output via JACK
 
-	See the file 'AUTHORS' for a full list of contributors.
-	
-	This program is free software; you can redistribute it and/or
-	modify it under the terms of the GNU General Public License
-	as published by the Free Software Foundation; either version 2
-	of the License, or (at your option) any later version.
-	
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the Free Software
-	Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	initially written by Nicholas J. Humfrey
 */
 
 #include <stdlib.h>
@@ -52,7 +39,7 @@ static jack_handle_t* alloc_jack_handle()
 		exit(1);
 	}
 
-	// Initialise the handle, and store for later
+	/* Initialise the handle, and store for later*/
 	handle->rb[0] = NULL;
 	handle->rb[1] = NULL;
 	handle->ports[0] = NULL;
@@ -70,11 +57,11 @@ static void free_jack_handle( jack_handle_t* handle )
 	int i;
 	
 	for(i=0; i<MAX_CHANNELS; i++) {
-		// Close the port for channel
+		/* Close the port for channel*/
 		if ( handle->ports[i] )
 			jack_port_unregister( handle->client, handle->ports[i] );
 
-		// Free up the ring buffer for channel
+		/* Free up the ring buffer for channel*/
 		if ( handle->rb[i] )
 			jack_ringbuffer_free( handle->rb[i] );
 	}
@@ -97,22 +84,22 @@ process_callback( jack_nframes_t nframes, void *arg )
 	unsigned int c;
 	
 
-    // copy data to ringbuffer; one per channel
+    /* copy data to ringbuffer; one per channel*/
     for (c=0; c < handle->channels; c++)
     {	
 		char *buf = (char*)jack_port_get_buffer(handle->ports[c], nframes);
 		size_t len = jack_ringbuffer_read(handle->rb[c], buf, to_read);
 		
-		// If we don't have enough audio, fill it up with silence
-		// (this is to deal with pausing etc.)
+		/* If we don't have enough audio, fill it up with silence*/
+		/* (this is to deal with pausing etc.)*/
 		if (to_read > len)
 			bzero( buf+len, to_read - len );
 		
-		//if (len < to_read)
-		//	fprintf(stderr, "failed to read from ring buffer %d\n",c);
+		/*if (len < to_read)*/
+		/*	fprintf(stderr, "failed to read from ring buffer %d\n",c);*/
     }
 
-	// Success
+	/* Success*/
 	return 0;
 }
 
@@ -132,14 +119,14 @@ void autoconnect_jack_ports( jack_handle_t* handle )
 	unsigned int ch=0;
 	int err,i;
 
-	// Get a list of all the jack ports
+	/* Get a list of all the jack ports*/
 	all_ports = jack_get_ports (handle->client, NULL, NULL, JackPortIsInput);
 	if (!all_ports) {
 		fprintf(stderr, "connect_jack_ports(): jack_get_ports() returned NULL.");
 		exit(1);
 	}
 	
-	// Step through each port name
+	/* Step through each port name*/
 	for (i = 0; all_ports[i]; ++i) {
 
 		const char* in = jack_port_name( handle->ports[ch] );
@@ -152,7 +139,7 @@ void autoconnect_jack_ports( jack_handle_t* handle )
 			exit(1);
 		}
 	
-		// Found enough ports ?
+		/* Found enough ports ?*/
 		if (++ch >= handle->channels) break;
 	}
 	
@@ -181,25 +168,25 @@ int audio_open(struct audio_info_struct *ai)
 
 	if(!ai) return -1;
 
-	// Return if already open
+	/* Return if already open*/
 	if (ai->handle) {
 		fprintf(stderr, "audio_open(): error, already open\n");
 		return -1;
 	}
 
-	// For some reason we get called with format=-1 initially
-	// Just prentend that it didn't happen
+	/* For some reason we get called with format=-1 initially*/
+	/* Just prentend that it didn't happen*/
 	if (ai->format==-1) {
 		return 0;
 	}
 
 
 	
-	// Create some storage for ourselves
+	/* Create some storage for ourselves*/
 	handle = alloc_jack_handle();
 	ai->handle = (void*)handle;
 
-	// Register with Jack
+	/* Register with Jack*/
 	snprintf(client_name, 255, "mpg123-%d", getpid());
 	if ((handle->client = jack_client_new(client_name)) == 0) {
 		fprintf(stderr, "JACK server not running?\n");
@@ -208,14 +195,14 @@ int audio_open(struct audio_info_struct *ai)
 	printf("Registering as JACK client %s.\n", client_name);
 
 
-	// Check the sample rate is correct
+	/* Check the sample rate is correct*/
 	if (jack_get_sample_rate( handle->client ) != (jack_nframes_t)ai->rate) {
 		fprintf(stderr, "JACK Sample Rate is different to sample rate of file.\n");
 		exit(1);
 	}
 
 	
-	// Register ports with Jack
+	/* Register ports with Jack*/
 	handle->channels = ai->channels;
 	if (handle->channels == 1) {
 		if (!(handle->ports[0] = jack_port_register(handle->client, "mono", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0)))
@@ -239,22 +226,22 @@ int audio_open(struct audio_info_struct *ai)
 		exit(1);
 	}
 
-	// Create the ring buffers (one seconds audio)
+	/* Create the ring buffers (one seconds audio)*/
     handle->rb_size = jack_get_sample_rate(handle->client) * sizeof(jack_default_audio_sample_t);
     for(i=0;i<handle->channels;i++){
         handle->rb[i]=jack_ringbuffer_create(handle->rb_size);
     }
 
-	// Set the callbacks
+	/* Set the callbacks*/
 	jack_set_process_callback(handle->client, process_callback, (void*)handle);
 	jack_on_shutdown(handle->client, shutdown_callback, (void*)handle);
 	
-	// Activate client
+	/* Activate client*/
 	if (jack_activate(handle->client)) {
 		fprintf(stderr, "audio_open(): Can't activate client\n");
 	}
 
-	// Connect up the ports
+	/* Connect up the ports*/
 	connect_jack_ports( handle, ai->device );
 
 	return(0);
@@ -277,21 +264,21 @@ int audio_play_samples(struct audio_info_struct *ai, unsigned char *buf, int len
 	size_t tmp_size = samples * sizeof( jack_default_audio_sample_t );
 	
 	
-	// Sanity check that ring buffer is at least twice the size of the audio we just got
+	/* Sanity check that ring buffer is at least twice the size of the audio we just got*/
 	if (handle->rb_size/2 < len) {
 		fprintf(stderr, "audio_play_samples(): ring buffer is less than twice the size of audio given.\n");
 		exit(-1);
 	}
 	
 	
-	// Wait until there is space in the ring buffer
+	/* Wait until there is space in the ring buffer*/
 	while (jack_ringbuffer_write_space( handle->rb[0] ) < tmp_size) {
-		// Sleep for a quarter of the ring buffer size (1/4 second)
+		/* Sleep for a quarter of the ring buffer size (1/4 second)*/
 		usleep(250000);
 	}
 	
 	
-	// Ensure the temporary buffer is big enough
+	/* Ensure the temporary buffer is big enough*/
 	handle->tmp_buffer = (jack_default_audio_sample_t*)realloc( handle->tmp_buffer, tmp_size);
 	if (!handle->tmp_buffer) {
 		fprintf(stderr, "audio_play_samples(): failed to realloc temporary buffer.\n");
@@ -301,12 +288,12 @@ int audio_play_samples(struct audio_info_struct *ai, unsigned char *buf, int len
 	
 	for(c=0; c<handle->channels; c++) {
 	
-		// Convert samples from short to flat and put in temporary buffer
+		/* Convert samples from short to flat and put in temporary buffer*/
 		for(n=0; n<samples; n++) {
 			handle->tmp_buffer[n] = src[(n*handle->channels)+c] / 32768.0f;
 		}
 		
-		// Copy temporary buffer into ring buffer
+		/* Copy temporary buffer into ring buffer*/
 		size_t len = jack_ringbuffer_write(handle->rb[c], (char*)handle->tmp_buffer, tmp_size);
 		if (len < tmp_size)
         {
@@ -323,9 +310,9 @@ int audio_close(struct audio_info_struct *ai)
 {
 	jack_handle_t *handle = (jack_handle_t*)ai->handle;
 	
-	//fprintf(stderr, "audio_close().\n");
+	/*fprintf(stderr, "audio_close().\n");*/
 
-	// Close and shutdown
+	/* Close and shutdown*/
 	if (handle) {
 		free_jack_handle( handle );
 		ai->handle = NULL;
@@ -341,7 +328,7 @@ void audio_queueflush(struct audio_info_struct *ai)
 
 	fprintf(stderr, "audio_queueflush().\n");
 
-	// Reset the ring buffers
+	/* Reset the ring buffers*/
 	for(c=0; c<handle->channels; c++) {
 		jack_ringbuffer_reset(handle->rb[c]);
 	}
