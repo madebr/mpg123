@@ -1,16 +1,24 @@
 This is the file that contains the terms of use, copying, etc. for the mpg123 distribution package.
 
-Main message, applicable to the core functionality:
+Main message:
 
-Code is copyrighted by Michael Hipp, who made it free software under the terms of the LGPL 2.1.
+	Code is copyrighted by Michael Hipp, who made it free software under the terms of the LGPL 2.1.
 
 But that is not all of it.
 mpg123 is licensed under the GNU General Lesser Public License, version 2.1, and in parts under the GNU General Public License, version 2.
 That means that _all_ of mpg123 is licensed under GPL and the major part also under the LGPL.
 
+Currently, it looks like the old audio_alsa.c (audio output using the deprecated 0.5 Alsa API) is the only file that stands there with a GPL-only license.
+Considering the alsa support possible through libao and the possibility of a new alsa output for the current API by Thomas Orgis, this file is likely to be dropped from distribution some time.
+Then, the situation will be simply: mpg123 is under LGPL.
+
 When the copyright marker in a source file says "the mpg123 project" that means that the file contains code copyrighted by contributors to mpg123, the "initially written by" naming the person(s) that created the file and thus may have the largest part of copyrights on it.
 I am explaining this here to emphasize that the copyright always actually lies by the individual member (i.e. contributor to) of the mpg123 project who wrote a specific section of code.
 Usage of a source code management system like Subversion should provide keeping track of individual copyright traces...
+
+Please consider that any code that is contributed to the mpg123 project shall be licensed under LGPL 2.1 .
+If you want to contribute, but don't agree to that (i.e. you want to have your code GPL only) please say so - then, we either you convince is to include your code under GPL, we convince you to make it LGPL instead or, as a last resort, you'll have to do you own GPLed fork.
+But we should try to avoid the last option...
 
 All files in the distribution that don't carry a license note on their own are licensed under the terms of the LGPL 2.1; all files that do carry either a LGPL or GPL note are licensed respectively under the LGPL or GPL as follows:
 
