@@ -1,8 +1,15 @@
-The creator: Michael Hipp (email: hippm@informatik.uni-tuebingen.de - please bother maintainers first)
+This is an attempt to give credit to the people who contributed in some way to the mpg123 project.
+There are names and email addresses listed. Please use these addresses only to contact contributors with some question about their mpg123 contribution.
+You are explicitly not allowed to send them unwanted business offers or to question the quality of their sex life.
+--------------------
 
-Current maintainers with all sorts of contributions:
+Current maintainers with various sorts of contributions:
 	Thomas Orgis <thomas@orgis.org>
 	Nicholas J Humfrey <njh@ecs.soton.ac.uk>
+
+Generic address pointing to the current maintainer (hopefully still works in future in case maintainership will change again): <maintainer@mpg123.org>
+
+The creator: Michael Hipp (email: hippm@informatik.uni-tuebingen.de - please bother maintainers first)
 
 Contributions/ideas Thomas Orgis era (includes backports from mhipp trunk):
 
@@ -115,9 +122,3 @@ Initial Debianers:
 
 Tommi Virtanen <tv@debian.org>
 Paul Haggart <phaggart@debian.org>
-
-
---END_CREDITS
-
-#power of perl (in nedit)!
-perl -ne 'last if /^--END_CREDITS/; $l = $_; while($l =~ /^(.*)(<[^>]+>)(.*)/){ print $2,","; $l = $1.$3;}' < %
