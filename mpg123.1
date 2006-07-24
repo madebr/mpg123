@@ -18,12 +18,29 @@ and plays them on the audio device (default) or
 outputs them to stdout.
 .IR file\^ / URL
 is assumed to be an MPEG-1/2 audio bit stream.
+.SH OPERANDS
+The following operands are supported:
+.TP 8
+.IR file (s)
+The path name(s) of one or more input files.  They must be
+valid MPEG-1/2 audio layer-1, -2 or -3 bit streams.
+If a dash ``\-'' is specified, MPEG data will
+be read from the standard input.  Furthermore, any name
+starting with ``http://'' is recognized as
+.I URL
+(see next section).
 .SH OPTIONS
 .B mpg123
 options may be either the traditional POSIX one letter options,
 or the GNU style long options.  POSIX style options start with a
 single ``\-'', while GNU long options start with ``\-\^\-''.
 Option arguments (if needed) follow separated by whitespace (not ``='').
+.SH INPUT OPTIONS
+.TP
+\fB\-k \fInum\fR, \fB\-\^\-skip \fInum
+Skip first
+.I num
+frames.  By default the decoding starts at the first frame.
 .TP
 \fB\-n \fInum\fR, \fB\-\^\-frames \fInum
 Decode only
@@ -39,143 +56,6 @@ With this switch you can make it bail out on data errors
 (and perhaps spare your ears a bad time). Note that this switch may either disappear
 in future or its meaning be revised since it now does the opposite of what it
 suggests.
-
-
-
-
-
-.SH INPUT OPTIONS
-.TP
-\fB\-k \fInum\fR, \fB\-\^\-skip \fInum
-Skip first
-.I num
-frames.  By default the decoding starts at the first frame.
-
-
-
-
-
-
-.SH OUTPUT OPTIONS
-.TP
-\fB\-a \fIdev\fR, \fB\-\^\-audiodevice \fIdev
-Specify the audio device to use.  The default is
-system-dependent (usually /dev/audio or /dev/dsp).
-Use this option if you have multiple audio devices and
-the default is not what you want.
-.SH MISC OPTIONS
-.TP
-.BR \-2 ", " \-\^\-2to1 "; " \-4 ", " \-\^\-4to1
-Performs a downsampling of ratio 2:1 (22 kHz) or 4:1 (11 kHz) 
-on the output stream, respectively. Saves some CPU cycles, but 
-at least the 4:1 ratio sounds ugly.
-.TP
-.BR \-t ", " \-\^\-test
-Test mode.  The audio stream is decoded, but no output occurs.
-.TP
-.BR \-s ", " \-\^\-stdout
-The decoded audio samples are written to standard output,
-instead of playing them through the audio device.  This
-option must be used if your audio hardware is not supported
-by
-.BR mpg123 .
-The output format per default is raw (headerless) linear PCM audio data,
-16 bit, stereo, host byte order (you can force mono or 8bit).
-.TP
-.BR \-c ", " \-\^\-check
-Check for filter range violations (clipping), and report them for each frame
-if any occur.
-.TP
-.BR \-v ", " \-\^\-verbose
-Increase the verbosity level.  For example, displays the frame
-numbers during decoding.
-.TP
-.BR \-C ", " \-\^\-control
-Enable control keys. By default use 's' to stop, 'p' to
-pause, 'f' to jump forward to the next song, 'b' to jump back to the
-beginning of the song, ',' to rewind, '.' to fast forward, and 'q' to quit.
-.TP
-.BR \-q ", " \-\^\-quiet
-Quiet.  Suppress diagnostic messages.
-.TP
-.BR \-0 ", " \-\^\-single0 "; " \-1 ", " \-\^\-single1
-Decode only channel 0 (left) or channel 1 (right),
-respectively.  These options are available for
-stereo MPEG streams only.
-.TP
-.BR \-m ", " \-\^\-singlemix
-Mix both channels.  This option is available for
-stereo MPEG layer-3 streams only.  It takes less
-CPU time than full stereo decoding.
-.TP
-\fB\-b \fIsize\fR, \fB\-\^\-buffer \fIsize
-Use an audio output buffer of
-.I size
-Kbytes.  This is useful to bypass short periods of heavy
-system activity, which would normally cause the audio output 
-to be interrupted.  
-You should specify a buffer size of at least 1024 
-(i.e. 1 Mb, which equals about 6 seconds of audio data) or more; 
-less than about 300 does not make much sense.  The default is 0, 
-which turns buffering off.
-.TP
-\fB\-f \fIfactor\fR, \fB\-\^\-scale \fIfactor
-Change scale factor (default: 32768).
-.TP
-\fB\-r \fIrate\fR, \fB\-\^\-rate \fIrate
-Set sample rate (default: automatic).  You may want to
-change this if you need a constant bitrate independed of
-the mpeg stream rate. mpg123 automagically converts the
-rate. You should then combine this with \-\-stereo or \-\-mono.
-
-.TP
-\fB\-g \fIgain\fR, \fB\-\^\-gain \fIgain
-Set audio hardware output gain (default: don't change).
-.TP
-.BR "\-o s" ", " \-\^\-speaker
-Direct audio output to the speaker.
-.TP
-.BR "\-o h" ", " \-\^\-headphones
-Direct audio output to the headphone connector.
-.TP
-.BR "\-o l" ", " \-\^\-lineout
-Direct audio output to the line-out connector.
-.TP
-\fB\-d \fIn\fR, \fB\-\^\-doublespeed \fIn
-Only play every
-.IR n 'th
-frame.  This will cause the MPEG stream
-to be played
-.I n
-times faster, which can be used for special
-effects.  Can also be combined with the
-.B \-\^\-halfspeed
-option to play 3 out of 4 frames etc.  Don't expect great
-sound quality when using this option.
-.TP
-\fB\-h \fIn\fR, \fB\-\^\-halfspeed \fIn
-Play each frame
-.I n
-times.  This will cause the MPEG stream
-to be played at
-.IR 1 / n 'th
-speed (n times slower), which can be
-used for special effects. Can also be combined with the
-.B \-\^\-doublespeed
-option to double every third frame or things like that.
-Don't expect great sound quality when using this option.
-.TP
-\fB\-w \fIfile\fR, \fB\-\^\-wav
-Write output as WAV file. This will cause the MPEG stream to be decoded 
-and saved as file
-.I file
-, or standard output if
-.I -
-is used as file name. You can also use
-.I --au
-and
-.I --cdr
-for AU and CDR format, respectively.
 .TP
 \fB\-p \fIURL \fR| \fBnone\fR, \fB\-\^\-proxy \fIURL \fR| \fBnone
 The specified
@@ -207,6 +87,46 @@ one
 option can be used (if more than one is specified, only the
 last one will be recognized).
 .TP
+.BR \-z ", " \-\^\-shuffle
+Shuffle play.  Randomly shuffles the order of files specified on the command
+line, or in the list file.
+.TP
+.BR \-Z ", " \-\-random
+Continuous random play.  Keeps picking a random file from the command line
+or the play list.  Unlike shuffle play above, random play never ends, and
+plays individual songs more than once.
+
+
+
+.SH OUTPUT and PROCESSING OPTIONS
+.TP
+\fB\-a \fIdev\fR, \fB\-\^\-audiodevice \fIdev
+Specify the audio device to use.  The default is
+system-dependent (usually /dev/audio or /dev/dsp).
+Use this option if you have multiple audio devices and
+the default is not what you want.
+.TP
+.BR \-s ", " \-\^\-stdout
+The decoded audio samples are written to standard output,
+instead of playing them through the audio device.  This
+option must be used if your audio hardware is not supported
+by
+.BR mpg123 .
+The output format per default is raw (headerless) linear PCM audio data,
+16 bit, stereo, host byte order (you can force mono or 8bit).
+.TP
+\fB\-w \fIfile\fR, \fB\-\^\-wav
+Write output as WAV file. This will cause the MPEG stream to be decoded 
+and saved as file
+.I file
+, or standard output if
+.I -
+is used as file name. You can also use
+.I --au
+and
+.I --cdr
+for AU and CDR format, respectively.
+.TP
 \fB\-\^\-au \fIfile
 Does not play the MPEG file but writes it to
 .I file
@@ -219,23 +139,64 @@ Does not play the MPEG file but writes it to
 as a CDR file.  If \- is used as the filename, the CDR file is written
 to stdout.
 .TP
-.BR \-z ", " \-\^\-shuffle
-Shuffle play.  Randomly shuffles the order of files specified on the command
-line, or in the list file.
+.BR \-\-reopen
+Forces reopen of the audiodevice after ever song
 .TP
-.BR \-Z ", " \-\-random
-Continuous random play.  Keeps picking a random file from the command line
-or the play list.  Unlike shuffle play above, random play never ends, and
-plays individual songs more than once.
+\fB\-g \fIgain\fR, \fB\-\^\-gain \fIgain
+Set audio hardware output gain (default: don't change).
+.TP
+\fB\-f \fIfactor\fR, \fB\-\^\-scale \fIfactor
+Change scale factor (default: 32768).
+.TP
+.BR \-0 ", " \-\^\-single0 "; " \-1 ", " \-\^\-single1
+Decode only channel 0 (left) or channel 1 (right),
+respectively.  These options are available for
+stereo MPEG streams only.
+.TP
+.BR \-m ", " \-\^\-mono ", " \-\^\-mix ", " \-\^\-singlemix
+Mix both channels / decode mono. It takes less
+CPU time than full stereo decoding.
 .TP
 .BR \-\-stereo
 Force stereo output
 .TP
-.BR \-\-reopen
-Forces reopen of the audiodevice after ever song
+\fB\-r \fIrate\fR, \fB\-\^\-rate \fIrate
+Set sample rate (default: automatic).  You may want to
+change this if you need a constant bitrate independed of
+the mpeg stream rate. mpg123 automagically converts the
+rate. You should then combine this with \-\-stereo or \-\-mono.
+.TP
+.BR \-2 ", " \-\^\-2to1 "; " \-4 ", " \-\^\-4to1
+Performs a downsampling of ratio 2:1 (22 kHz) or 4:1 (11 kHz) 
+on the output stream, respectively. Saves some CPU cycles, but 
+at least the 4:1 ratio sounds ugly.
 .TP
 .BR \-\-8bit
 Forces 8bit output
+.TP
+\fB\-d \fIn\fR, \fB\-\^\-doublespeed \fIn
+Only play every
+.IR n 'th
+frame.  This will cause the MPEG stream
+to be played
+.I n
+times faster, which can be used for special
+effects.  Can also be combined with the
+.B \-\^\-halfspeed
+option to play 3 out of 4 frames etc.  Don't expect great
+sound quality when using this option.
+.TP
+\fB\-h \fIn\fR, \fB\-\^\-halfspeed \fIn
+Play each frame
+.I n
+times.  This will cause the MPEG stream
+to be played at
+.IR 1 / n 'th
+speed (n times slower), which can be
+used for special effects. Can also be combined with the
+.B \-\^\-doublespeed
+option to double every third frame or things like that.
+Don't expect great sound quality when using this option.
 .TP
 \fB\-E \fIfile\fR, \fB\-\^\-equalizer
 Enables equalization, taken from
@@ -247,32 +208,84 @@ Each data line consists of two floating-point entries, separated by
 whitespace.  They specify the multipliers for left and right channel of
 a certain frequency band, respectively.  The first line corresponds to the
 lowest, the 32nd to the highest frequency band.
+Note that you can control the equalizer interactively with the generic control interface.
+.TP
+.BR "\-o h" ", " \-\^\-headphones
+Direct audio output to the headphone connector (some hardware only; AIX, HP, SUN).
+.TP
+.BR "\-o s" ", " \-\^\-speaker
+Direct audio output to the speaker  (some hardware only; AIX, HP, SUN).
+.TP
+.BR "\-o l" ", " \-\^\-lineout
+Direct audio output to the line-out connector (some hardware only; AIX, HP, SUN).
+.TP
+\fB\-b \fIsize\fR, \fB\-\^\-buffer \fIsize
+Use an audio output buffer of
+.I size
+Kbytes.  This is useful to bypass short periods of heavy
+system activity, which would normally cause the audio output 
+to be interrupted.  
+You should specify a buffer size of at least 1024 
+(i.e. 1 Mb, which equals about 6 seconds of audio data) or more; 
+less than about 300 does not make much sense.  The default is 0, 
+which turns buffering off.
+
+.SH MISC OPTIONS
+
+.TP
+.BR \-t ", " \-\^\-test
+Test mode.  The audio stream is decoded, but no output occurs.
+.TP
+.BR \-c ", " \-\^\-check
+Check for filter range violations (clipping), and report them for each frame
+if any occur.
+.TP
+.BR \-v ", " \-\^\-verbose
+Increase the verbosity level.  For example, displays the frame
+numbers during decoding.
+.TP
+.BR \-q ", " \-\^\-quiet
+Quiet.  Suppress diagnostic messages.
+.TP
+.BR \-C ", " \-\^\-control
+Enable terminal control keys. By default use 's' to stop, 'p' to
+pause, 'f' to jump forward to the next song, 'b' to jump back to the
+beginning of the song, ',' to rewind, '.' to fast forward, and 'q' to quit.
+.TP
+\fB\-\^\-title
+In an xterm, or rxvt (compatible, TERM environment variable is examined), change the window's title to the name of song currently
+playing.
+.TP
+.BR \-R ", " \-\^\-remote
+Activate generic control interface.
+.B mpg123
+will then read and execute commands from stdin. Basic usage is ``load <filename> '' to play some file and the obvious ``pause'', ``command.
+``jump <frame>'' will jump/seek to a given point (MPEG frame number).
+Issue ``help'' to get a full list of commands and syntax.
+.TP
+.BR \-\^\-remote\-err
+Print responses for generic control mode to stderr, not stdout.
+That is extremely useful when you want to grab the audio via 
+.B -s
+... (in future, that may be automatically triggered when you specify
+.B -s
+)
+.TP
+\fB\-\^\-aggressive
+Tries to get higher priority
 .TP
 .BR \-T ", " \-\-realtime
 Tries to gain realtime priority.  This option usually requires root
 privileges to have any effect.
 .TP
-\fB\-\^\-aggressive
-Tries to get higher priority
+.BR \-? ", " \-\^\-help
+Shows short usage instructions.
 .TP
-\fB\-\^\-title
-In an xterm, or rxvt, change the window's title to the name of song currently
-playing.
+.BR \-\^\-longhelp
+Shows long usage instructions.
 .TP
-\fB\-\^\-help, \fB\-\^\-longhelp
-Shows usage instructions
-.TP
-.SH OPERANDS
-The following operands are supported:
-.TP 8
-.IR file (s)
-The path name(s) of one or more input files.  They must be
-valid MPEG-1/2 audio layer-1, -2 or -3 bit streams.
-If a dash ``\-'' is specified, MPEG data will
-be read from the standard input.  Furthermore, any name
-starting with ``http://'' is recognized as
-.I URL
-(see next section).
+.BR \-\^\-version
+Print the version string.
 .SH HTTP SUPPORT
 In addition to reading MPEG audio streams from ordinary
 files and from the standard input,
@@ -339,7 +352,7 @@ MPEG audio decoding requires a good deal of CPU performance,
 especially layer-3.  To decode it in realtime, you should
 have at least a Pentium, Alpha, SuperSparc or equivalent
 processor.  You can also use the
-.B -singlemix
+.B -m
 option to decode mono only, which reduces the CPU load
 somewhat for layer-3 streams.  See also the
 .BR \-2 " and " \-4
@@ -387,7 +400,7 @@ Nicholas J. Humfrey
 .TP
 Main author:
 .br
-Michael Hipp <hippm@informatik.uni-tuebingen.de>
+Michael Hipp
 .TP
 Uses code or ideas from various people, see the AUTHORS accompanying the source code.
 .SH WEBSITE
