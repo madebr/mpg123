@@ -1,3 +1,8 @@
+0.60-beta2 (Thomas Orgis)
+-----
+
+- fixed bug in terminal control mode that caused the f key to quit program isntead of advance to next file (introduced by the first attempt to restore "normal" Ctrl+C behaviour in terminal control mode)
+
 0.60-beta1 (Thomas Orgis & Nicholas Humfrey)
 -----
 
