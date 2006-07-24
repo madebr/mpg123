@@ -991,14 +991,13 @@ int main(int argc, char *argv[])
 
 #if !defined(GENERIC)
 {
-     const char *term_type;
-         term_type = getenv("TERM");
-	 if (term_type &&
-	     param.xterm_title &&
-	     (!strcmp(term_type,"xterm") || !strcmp(term_type,"rxvt")))
-	 {
-           fprintf(stderr, "\033]0;%s\007", filename);
-         }
+	const char *term_type;
+	term_type = getenv("TERM");
+	if (term_type && param.xterm_title &&
+	    (!strncmp(term_type,"xterm",5) || !strncmp(term_type,"rxvt",4)))
+	{
+		fprintf(stderr, "\033]0;%s\007", filename);
+	}
 }
 #endif
 
@@ -1333,7 +1332,10 @@ static void long_usage(int err)
 	fprintf(o," -v[*]  --verbose          increase verboselevel\n");
 	fprintf(o," -q     --quiet            quiet mode\n");
 	#ifdef HAVE_TERMIOS
-	fprintf(o," -C     --control          enable control keys\n");
+	fprintf(o," -C     --control          enable terminal control keys\n");
+	#endif
+	#ifndef GENERIG
+	fprintf(o,"        --title            set xterm/rxvt title to filename\n");
 	#endif
 	fprintf(o," -R     --remote           generic remote interface\n");
 	fprintf(o,"        --remote-err       use stderr for generic remote interface\n");
