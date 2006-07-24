@@ -1,5 +1,5 @@
 This is the README for the mpg123-thor package, which ceased to exist with the new mpg123.
-This file is still here for historic reference and parhaps for some info that is not yet in another proper place.
+This file is still here for historic reference and perhaps for some info that is not yet in another proper place.
 +++++++++++++++++++++++++++++++++++++++++++++++
 
 This is mpg123-0.59r with various patches from others and some work of me, Thomas Orgis (<thomas@orgis.org>).
