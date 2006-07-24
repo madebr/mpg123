@@ -1,18 +1,61 @@
+There are now two basic ways to get your mpg123 installation consisting of
 
-(1)  Read the README file.
-     (also read the JUKEBOX file if you wanna compile a player
-     for the sajber jukebox)
+	a) the mpg123 binary file
+	b) a man page
 
-(2)  Type "make" to see a list of supported hardware platforms
-     and operating systems, then type the make command that
-     best fits your system.
+(you may want to copy some of the documentation - README, etc - to /usr/share/doc/mpg123 or the like, too)
 
-(3)  If compilation was successful, type "make install" to
-     install the binary and the manual page in /usr/local.
 
-Have fun!
+1. New installation via GNU autotools
 
-Some additional remarks:
+The GNU 3-step procedure:
+
+	./configure
+	make
+	make install
+
+Run
+
+	./configure --help
+
+for a list of possible parameters you can specify. The obvious are --prefix and the normal GNU autotool bunch, but others include what audio subsystem to use and what CPU optimizations to build in.
+In future we may have a merged build for the i386 platform including MMX, SSE, 3DNow!, etc. optimizations and choosing at runtime, but for now that's a build time decision.
+
+
+2. The classic way via the provided Makefile
+
+This is basically the known mpg123 Makefile with some mods and additions.
+for coexistence with the autotools setup, a wrapper script for generating a fake config.h is needed.
+You may want to edit that one in src/config.h and run make -f src/Makefile.legacy yourself, but normally run
+
+	./MakeLegacy.sh
+
+to get a list of targets and simply
+
+	./MakeLegacy.sh <target>
+
+to build. You may want to have some CFLAGS defined; these are used now in the Makefile.
+
+	./MakeLegacy.sh install
+
+will install the binary and man page to the dirs specified by these make variables (with default values):
+
+PREFIX=/usr/local
+BINDIR=$(PREFIX)/bin
+MANDIR=$(PREFIX)/man
+
+So, if you want it in /usr; just run
+
+	./MakeLegacy.sh PREFIX=/usr install
+
+
+Please note that the Makefile does not contain any CFLAGS or explicit `strip` calls anymore; mpg123 will be built and installed with debugging symbols - so if you want to conserve some space, please specify the -s in CFLAGS or strip the binary yourself.
+
+
+3. Have fun!
+
+
+These are some remarks from Michael that are likely to be still valid in essence:
 
  - There is currently no direct audio hardware support for the
    "dec" and "generic" targets.  That means that you have to use
@@ -38,6 +81,3 @@ Some additional remarks:
 
  - IRIX: some people reported compile problems on IRIX 5.x (5.3)
          but 6.x seems to compile without problems
-
-
-***
