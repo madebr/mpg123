@@ -14,7 +14,7 @@ For building/installation info see INSTALL.
 The mpg123 project was started by Michel Hipp and is now being maintained by Thomas Orgis and Nicholas J. Humfrey, who intitated the Sourceforge project.
 The source code contains contributions from quite a few people - see AUTHORS for more info.
 It is Open Source software licensed mostly under the LGPL with some parts restricted to GPL. See COPYING for details.
-As for every mp3 player, some of mpg123's functionality may be covered by patents in a country where these are legal. See PATENTS for details.
+As for every mp3 player, some of mpg123's functionality may be covered by patents in a country where these are valid. See PATENTS for details.
 
 Project's official website URL is
 
@@ -149,7 +149,7 @@ The main message is:
 
 Code is copyrighted by Michael Hipp, who made it free software under the terms of the LGPL 2.1.
 
-Please see COPYING and AUTHORS for details and on the (optional) parts that are not written by Michael and possibly not LGPL (currently, ther is only one non-LGPL file that is GPL only).
+Please see ROAD_TO_LGPL, COPYING and AUTHORS for details and on the (optional) parts that are not written by Michael and possibly not LGPL (currently, ther is only one non-LGPL file that is GPL only).
 
 There has been quite some confusion about the licensing and "freeness" of mpg123 in the past.
 The initial "free for private use, ask me when you want to do something commercial" license caused some people to avoid mpg123 and even to write a replacement mimicking the interface but using a different decoding engine - what was not actively developed for too long but entered the "free" software sections.
