@@ -107,6 +107,12 @@ static void catch_interrupt(void)
 }
 #endif
 
+/* oh, what a mess... */
+void next_track(void)
+{
+	intflag = TRUE;
+}
+
 static struct frame fr;
 struct audio_info_struct ai,pre_ai;
 txfermem *buffermem = NULL;

@@ -407,5 +407,7 @@ extern void dct36_3dnow(real *,real *,real *,real *,real *);
 extern int synth_1to1_3dnow(real *,int,unsigned char *,int *);
 #endif
 
+/* avoid the SIGINT in terminal control */
+void next_track(void);
 
 #endif

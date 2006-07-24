@@ -140,7 +140,7 @@ static long term_handle_input(struct frame *fr, int do_delay)
           audio_queueflush(&ai);
 	  if (buffer_pid)
 		  kill(buffer_pid, SIGINT);
-	  kill(getpid(), SIGINT);
+	  next_track();
 	  break;
 	case QUIT_KEY:
 	  if (buffer_pid)
