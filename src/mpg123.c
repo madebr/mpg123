@@ -1217,10 +1217,11 @@ tc_hack:
 static void print_title(FILE *o)
 {
 	fprintf(o, "High Performance MPEG 1.0/2.0 Audio Player for Layers 1, 2 and 3.\n");
-	fprintf(o, "Version %s. Initially written and copyright by Michael Hipp.\n", PACKAGE_VERSION);
-	fprintf(o, "Uses code from various people, see 'AUTHORS' for full list.\n");
-	fprintf(o, "This software comes with ABSOLUTELY NO WARRANTY. For details, see \n");
-	fprintf(o, "the enclosed file COPYING for license information (LGPL/GPL).\n");
+	fprintf(o, "Version %s. Initially written and copyright by Michael Hipp,\n", PACKAGE_VERSION);
+	fprintf(o,"now maintained by Thomas Orgis and friends.\n");
+	fprintf(o, "Uses code from various people, see file AUTHORS for full list.\n");
+	fprintf(o, "This is free software (LGPL/GPL) without any warranty but with best wishes.\n");
+	fprintf(o, "See the enclosed file COPYING for legal details.\n");
 }
 
 static void usage(int err)  /* print syntax & exit */
@@ -1261,11 +1262,11 @@ static void usage(int err)  /* print syntax & exit */
 	fprintf(o,"   -z    shuffle play (with wildcards)  -Z    random play\n");
 	fprintf(o,"   -u a  HTTP authentication string     -E f  Equalizer, data from file\n");
 	#ifdef GAPLESS
-	fprintf(o,"   -C    enable control keys            --gapless\n");
+	fprintf(o,"   -C    enable control keys            --gapless  skip junk/padding in some mp3s\n");
 	#else
 	fprintf(o,"   -C    enable control keys\n");
 	#endif
-	fprintf(o,"   --version     give version info\n");
+	fprintf(o,"   -?    this help                      --version  print name + version\n");
 	fprintf(o,"See the manpage %s(1) or call %s with --longhelp for more information.\n", prgName,prgName);
 	exit(err);
 }
@@ -1285,63 +1286,70 @@ static void long_usage(int err)
 	}
 	print_title(o);
 	fprintf(o,"\nusage: %s [option(s)] [file(s) | URL(s) | -]\n", prgName);
-	fprintf(o,"supported options:\n\n");
+
+	fprintf(o,"\ninput options\n\n");
 	fprintf(o," -k <n> --skip <n>         skip n frames at beginning\n");
-	fprintf(o," -a <d> --audiodevice <d>  select audio device\n");
-	fprintf(o," -2     --2to1             2:1 Downsampling\n");
-	fprintf(o," -4     --4to1             4:1 Downsampling\n");
-	fprintf(o," -t     --test             only decode, no output (benchmark)\n");
-	fprintf(o," -s     --stdout           write raw audio to stdout\n");
-	fprintf(o," -S     --STDOUT           Play AND output stream (not implemented yet)\n");
-	fprintf(o," -c     --check            count and display clipped samples\n");
-	fprintf(o," -v[*]  --verbose          Increase verboselevel\n");
-	fprintf(o," -q     --quiet            Enables quiet mode\n");
+	fprintf(o," -n     --frames <n>       play only <n> frames of every stream\n");
 	fprintf(o," -y     --resync           DISABLES resync on error\n");
-	fprintf(o," -0     --left --single0   Play only left channel\n");
-	fprintf(o," -1     --right --single1  Play only right channel\n");
-	fprintf(o," -m     --mono --mix       Mix stereo to mono\n");
-	fprintf(o,"        --stereo           Duplicate mono channel\n");
-	fprintf(o,"        --reopen           Force close/open on audiodevice\n");
-	fprintf(o," -g     --gain             Set audio hardware output gain\n");
-	fprintf(o," -r     --rate             Force a specific audio output rate\n");
-	fprintf(o,"        --8bit             Force 8 bit output\n");
-	fprintf(o," -o h   --headphones       Output on headphones\n");
-	fprintf(o," -o s   --speaker          Output on speaker\n");
-	fprintf(o," -o l   --lineout          Output to lineout\n");
-	fprintf(o," -f <n> --scale <n>        Scale output samples (soft gain)\n");
-	fprintf(o," -n     --frames <n>       Play only <n> frames of every stream\n");
-	fprintf(o," -b <n> --buffer <n>       Set play buffer (\"output cache\")\n");
-	#ifdef HAVE_TERMIOS
-	fprintf(o," -C     --control          Enable control keys\n");
-	#endif
-	fprintf(o," -R     --remote           Generic remote interface\n");
-	fprintf(o,"        --remote-err       Use stderr for generic remote interface\n");
-	fprintf(o," -d     --doublespeed      Play only every second frame\n");
-	fprintf(o," -h     --halfspeed        Play every frame twice\n");
-	fprintf(o," -p <f> --proxy <f>        Set WWW proxy\n");
-	fprintf(o," -@ <f> --list <f>         Play songs in <f> file-list\n");
-	fprintf(o," -z     --shuffle          Shuffle song-list before playing\n");
+	fprintf(o," -p <f> --proxy <f>        set WWW proxy\n");
+	fprintf(o," -u     --auth             set auth values for HTTP access\n");
+	fprintf(o," -@ <f> --list <f>         play songs in <f> file-list\n");
+	fprintf(o," -z     --shuffle          shuffle song-list before playing\n");
 	fprintf(o," -Z     --random           full random play\n");
-	fprintf(o,"        --equalizer        Exp.: scales freq. bands acrd. to 'equalizer.dat'\n");
+
+	fprintf(o,"\noutput/processing options\n\n");
+	fprintf(o," -a <d> --audiodevice <d>  select audio device\n");
+	fprintf(o," -s     --stdout           write raw audio to stdout\n");
+	fprintf(o," -S     --STDOUT           play AND output stream (not implemented yet)\n");
+	fprintf(o," -w <f> --wav <f>          write samples as WAV file in <f> (- is stdout)\n");
+	fprintf(o,"        --au <f>           write samples as Sun AU file in <f> (- is stdout)\n");
+	fprintf(o,"        --cdr <f>          write samples as CDR file in <f> (- is stdout)\n");
+	fprintf(o,"        --reopen           force close/open on audiodevice\n");
+	fprintf(o," -g     --gain             set audio hardware output gain\n");
+	fprintf(o," -f <n> --scale <n>        scale output samples (soft gain, default=%li)\n", outscale);
+	fprintf(o," -0     --left --single0   play only left channel\n");
+	fprintf(o," -1     --right --single1  play only right channel\n");
+	fprintf(o," -m     --mono --mix       mix stereo to mono\n");
+	fprintf(o,"        --stereo           duplicate mono channel\n");
+	fprintf(o," -r     --rate             force a specific audio output rate\n");
+	fprintf(o," -2     --2to1             2:1 downsampling\n");
+	fprintf(o," -4     --4to1             4:1 downsampling\n");
+	fprintf(o,"        --8bit             force 8 bit output\n");
+	fprintf(o," -d     --doublespeed      play only every second frame\n");
+	fprintf(o," -h     --halfspeed        play every frame twice\n");
+	fprintf(o,"        --equalizer        exp.: scales freq. bands acrd. to 'equalizer.dat'\n");
 	#ifdef GAPLESS
 	fprintf(o,"        --gapless          remove padding/junk added by encoder/decoder\n");
+	#endif
 	fprintf(o,"                           (experimental, needs Lame tag, layer 3 only)\n");
+	fprintf(o," -o h   --headphones       (aix/hp/sun) output on headphones\n");
+	fprintf(o," -o s   --speaker          (aix/hp/sun) output on speaker\n");
+	fprintf(o," -o l   --lineout          (aix/hp/sun) output to lineout\n");
+	fprintf(o," -b <n> --buffer <n>       set play buffer (\"output cache\")\n");
+
+	fprintf(o,"\nmisc options\n\n");
+	fprintf(o," -t     --test             only decode, no output (benchmark)\n");
+	fprintf(o," -c     --check            count and display clipped samples\n");
+	fprintf(o," -v[*]  --verbose          increase verboselevel\n");
+	fprintf(o," -q     --quiet            quiet mode\n");
+	#ifdef HAVE_TERMIOS
+	fprintf(o," -C     --control          enable control keys\n");
 	#endif
+	fprintf(o," -R     --remote           generic remote interface\n");
+	fprintf(o,"        --remote-err       use stderr for generic remote interface\n");
 	#ifdef HAVE_SETPRIORITY
-	fprintf(o,"        --aggressive       Tries to get higher priority (nice)\n");
+	fprintf(o,"        --aggressive       tries to get higher priority (nice)\n");
 	#endif
-	fprintf(o," -u     --auth             Set auth values for HTTP access\n");
 	#ifdef HAVE_SCHED_SETSCHEDULER
-	fprintf(o," -T     --realtime         Tries to get realtime priority\n");
+	fprintf(o," -T     --realtime         tries to get realtime priority\n");
 	#endif
-	fprintf(o," -w <f> --wav <f>          Writes samples as WAV file in <f> (- is stdout)\n");
-	fprintf(o,"        --au <f>           Writes samples as Sun AU file in <f> (- is stdout)\n");
-	fprintf(o,"        --cdr <f>          Writes samples as CDR file in <f> (- is stdout)\n");
 	#ifdef USE_3DNOW
-	fprintf(o,"        --test-3dnow       Display result of 3DNow! autodetect and exit\n");
-	fprintf(o,"        --force-3dnow      Force use of 3DNow! optimized routine\n");
-	fprintf(o,"        --no-3dnow         Force use of floating-pointer routine\n");
+	fprintf(o,"        --test-3dnow       display result of 3DNow! autodetect and exit\n");
+	fprintf(o,"        --force-3dnow      force use of 3DNow! optimized routine\n");
+	fprintf(o,"        --no-3dnow         force use of floating-pointer routine\n");
 	#endif
+	fprintf(o," -?     --help             give compact help\n");
+	fprintf(o,"        --longhelp         give this long help listing\n");
 	fprintf(o,"        --version          give name / version string\n");
 
 	fprintf(o,"\nSee the manpage %s(1) for more information.\n", prgName);
@@ -1355,6 +1363,6 @@ static void want_long_usage(char* arg)
 
 static void give_version(char* arg)
 {
-	fprintf(stdout, PACKAGE_STRING"\n");
+	fprintf(stdout, PACKAGE_NAME" "PACKAGE_VERSION"\n");
 	exit(0);
 }
