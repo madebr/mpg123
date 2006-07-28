@@ -444,6 +444,7 @@ int http_open (char *url)
 				}
 				encode64(httpauth1,buf);
 				free(httpauth1);
+				httpauth1 = NULL;
 			} else {
 				buf=(char *)malloc((strlen(httpauth) + 1) * 4);
 				if(!buf) {
