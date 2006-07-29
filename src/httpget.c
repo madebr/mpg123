@@ -267,6 +267,8 @@ int http_open (char *url)
 		strcat (purl, urlptr);
 	}
 
+	/* some paranoia */
+	if(httpauth1 != NULL) free(httpauth1);
 	httpauth1 = (char *)malloc((strlen(purl) + 1));
 	if(!httpauth1) {
 		fprintf(stderr, "malloc() failed, out of memory.\n");
