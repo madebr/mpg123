@@ -249,7 +249,9 @@ void shuffle_files(int numfiles)
 #endif
 
 }
-
+#ifdef DEBUG
+int listlinenum = 0;
+#endif
 char *find_next_file (int argc, char *argv[])
 {
     static FILE *listfile = NULL;
@@ -261,6 +263,7 @@ char *find_next_file (int argc, char *argv[])
     /* Get playlist dirname to append it to the files in playlist */
     if (listname) {
         if ((slashpos=strrchr(listname, '/'))) {
+            /* memory gets lost here! */
             listnamedir=strdup (listname);
             listnamedir[1 + slashpos - listname] = 0;
         }
@@ -291,6 +294,7 @@ char *find_next_file (int argc, char *argv[])
         }
         while (listfile) {
             if (fgets(line, 1023, listfile)) {
+debug1("read line %i of listfile", ++listlinenum);
                 line[strcspn(line, "\t\n\r")] = '\0';
 #if !defined(WIN32)
                 /* MS-like directory format */
@@ -301,7 +305,8 @@ char *find_next_file (int argc, char *argv[])
                 if (line[0]=='\0' || line[0]=='#')
                     continue;
 		if ((listnamedir) && (line[0]!='/') && (line[0]!='\\')
-		     && strncmp(line, "http://", 7)) {
+		     && strncmp(line, "http://", 7))
+		{
 		    memset(linetmp,'\0',sizeof(linetmp));
 		    snprintf(linetmp, sizeof(linetmp)-1, "%s%s",
 		             listnamedir, line);
