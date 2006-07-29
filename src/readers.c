@@ -482,18 +482,27 @@ int open_stream(char *bs_filenam,int fd)
     int filept_opened = 1;
     int filept;
 
-    if (!bs_filenam) {
-		if(fd < 0) {
-			filept = 0;
-			filept_opened = 0;
+    if (!bs_filenam)
+		{
+			if(fd < 0)
+			{
+				filept = 0;
+				filept_opened = 0;
+			}
+			else filept = fd;
 		}
-		else
-			filept = fd;
-	}
-       else if (!strncmp(bs_filenam, "http://", 7))  {
-               if ((filept = http_open(bs_filenam)) < 0)
-                       return filept;
-       }
+		else if (!strncmp(bs_filenam, "http://", 7))
+		{
+			char* mime = NULL;
+			filept = http_open(bs_filenam, &mime);
+			if((filept >= 0) && (mime != NULL) && (strcmp(mime, "audio/mpeg")))
+			{
+				fprintf(stderr, "Error: unknown mpeg MIME type %s - is it perhaps a playlist (use -@)?\nError: If you know the stream is mpeg1/2 audio, then please report this as "PACKAGE_NAME" bug\n", mime == NULL ? "<nil>" : mime);
+				filept = -1;
+			}
+			if(mime != NULL) free(mime);
+			if(filept < 0) return filept;
+		}
 #ifndef O_BINARY
 #define O_BINARY (0)
 #endif

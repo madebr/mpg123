@@ -77,6 +77,8 @@ struct parameter param = {
 
 char *prgName = NULL;
 char *listname = NULL;
+enum playlist_type { UNKNOWN = 0, M3U, PLS, NO_LIST };
+enum playlist_type listtype = UNKNOWN;
 char *listnamedir = NULL;
 char *equalfile = NULL;
 /* ThOr: pointers are not TRUE or FALSE */
@@ -249,89 +251,190 @@ void shuffle_files(int numfiles)
 #endif
 
 }
-#ifdef DEBUG
-int listlinenum = 0;
-#endif
+
 char *find_next_file (int argc, char *argv[])
 {
-    static FILE *listfile = NULL;
-    static char line[1024];
-    char linetmp [1024];
-    char * slashpos;
-    int i;
+	/* static... */
+	static FILE *listfile = NULL;
+	static char line[1024];
+	char* in_line = NULL;
+	static int firstline = 1;
+	char linetmp [1024];
+	char * slashpos;
+	int i;
 
-    /* Get playlist dirname to append it to the files in playlist */
-    if (listname) {
-        if ((slashpos=strrchr(listname, '/'))) {
-            /* memory gets lost here! */
-            listnamedir=strdup (listname);
-            listnamedir[1 + slashpos - listname] = 0;
-        }
-    }
+	/* hack for url that has been detected as track, not playlist */
+	if(listtype == NO_LIST) return NULL;
 
-    if (listname || listfile) {
-        if (!listfile) {
-            if (!*listname || !strcmp(listname, "-")) {
-                listfile = stdin;
-                listname = NULL;
-            }
-            else if (!strncmp(listname, "http://", 7))  {
-							int fd;
-							fd = http_open(listname);
-							if(fd < 0)
-							{
-								listname = NULL;
-								listfile = NULL;
-								fprintf(stderr, "Error: invalid file descriptor from http_open()!\n");
-							}
-							else listfile = fdopen(fd,"r");
-
-            }
-            else if (!(listfile = fopen(listname, "rb"))) {
-                perror (listname);
-#ifdef HAVE_TERMIOS
-		if(param.term_ctrl)
-			term_restore();
-#endif
-                exit (1);
-            }
-            if (param.verbose && listfile)
-                fprintf (stderr, "Using playlist from %s ...\n",
-                        listname ? listname : "standard input");
-        }
-        while (listfile) {
-            if (fgets(line, 1023, listfile)) {
-debug1("read line %i of listfile", ++listlinenum);
-                line[strcspn(line, "\t\n\r")] = '\0';
-#if !defined(WIN32)
-                /* MS-like directory format */
-                for (i=0;line[i]!='\0';i++)
-                    if (line [i] == '\\')
-                        line [i] = '/';
-#endif
-                if (line[0]=='\0' || line[0]=='#')
-                    continue;
-		if ((listnamedir) && (line[0]!='/') && (line[0]!='\\')
-		     && strncmp(line, "http://", 7))
+	/* Get playlist dirname to append it to the files in playlist */
+	if (listname)
+	{
+		if ((slashpos=strrchr(listname, '/')))
 		{
-		    memset(linetmp,'\0',sizeof(linetmp));
-		    snprintf(linetmp, sizeof(linetmp)-1, "%s%s",
-		             listnamedir, line);
-		    strcpy (line, linetmp);
-                }
-                return (line);
-            }
-            else {
-                if (listname)
-                   fclose (listfile);
-                listname = NULL;
-                listfile = NULL;
-            }
-        } 
-    }
-    if (loptind < argc)
-    	return (argv[loptind++]);
-    return (NULL);
+			/* memory gets lost here! */
+			listnamedir=strdup (listname);
+			listnamedir[1 + slashpos - listname] = 0;
+		}
+	}
+
+	if (listname || listfile)
+	{
+		if (!listfile)
+		{
+			if (!*listname || !strcmp(listname, "-"))
+			{
+				listfile = stdin;
+				listname = NULL;
+			}
+			else if (!strncmp(listname, "http://", 7))
+			{
+				int fd;
+				char *listmime = NULL;
+				fd = http_open(listname, &listmime);
+				debug1("listmime: %p", (void*) listmime);
+				if(listmime != NULL)
+				{
+					debug1("listmime value: %s", listmime);
+					if(!strcmp("audio/x-mpegurl", listmime))	listtype = M3U;
+					else if(!strcmp("audio/x-scpls", listmime))	listtype = PLS;
+					else
+					{
+						if(fd >= 0) close(fd);
+						if(!strcmp("audio/mpeg", listmime))
+						{
+							listtype = NO_LIST;
+							fprintf(stderr, "Note: MIME type indicates that this is no playlist but an mpeg audio file... reopening as such.\n");
+							return listname;
+						}
+						fprintf(stderr, "Error: unknown playlist MIME type %s; maybe "PACKAGE_NAME" can support it in future if you report this to the maintainer.\n", listmime);
+						fd = -1;
+					}
+					free(listmime);
+				}
+				if(fd < 0)
+				{
+					listname = NULL;
+					listfile = NULL;
+					fprintf(stderr, "Error: invalid playlist from http_open()!\n");
+				}
+				else listfile = fdopen(fd,"r");
+			}
+			else if (!(listfile = fopen(listname, "rb")))
+			{
+				perror (listname);
+				#ifdef HAVE_TERMIOS
+				if(param.term_ctrl)
+				term_restore();
+				#endif
+				exit (1);
+			}
+			if (param.verbose && listfile) fprintf (stderr, "Using playlist from %s ...\n",	listname ? listname : "standard input");
+		}
+		while (listfile)
+		{
+			debug1("getting next title of list named %s", listname);
+			if (fgets(line, 1023, listfile))
+			{
+				line[strcspn(line, "\t\n\r")] = '\0';
+				/* a bit of fuzzyness */
+				if(firstline)
+				{
+					if(listtype == UNKNOWN)
+					{
+						if(!strcmp("[playlist]", line))
+						{
+							fprintf(stderr, "Note: detected Shoutcast/Winamp PLS playlist\n");
+							listtype = PLS;
+							continue;
+						}
+						else if
+						(
+							(!strncasecmp("#M3U", line ,4))
+							||
+							(!strncasecmp("#EXTM3U", line ,7))
+							||
+							((strrchr(listname, '.') != NULL ) && !strcasecmp(".m3u", strrchr(listname, '.')))
+						)
+						{
+							fprintf(stderr, "Note: detected M3U playlist type\n");
+							listtype = M3U;
+						}
+						else
+						{
+							fprintf(stderr, "Note: guessed M3U playlist type\n");
+							listtype = M3U;
+						}
+					}
+					else
+					{
+						fprintf(stderr, "Note: Interpreting as ");
+						switch(listtype)
+						{
+							case M3U: fprintf(stderr, "M3U"); break;
+							case PLS: fprintf(stderr, "PLS (Winamp/Shoutcast)"); break;
+							default: fprintf(stderr, "???");
+						}
+						fprintf(stderr, " playlist\n");
+					}
+					firstline = 0;
+				}
+				#if !defined(WIN32)
+				/* convert \ to / (from MS-like directory format) */
+				for (i=0;line[i]!='\0';i++)
+				if (line [i] == '\\')
+				line [i] = '/';
+				#endif
+				if (line[0]=='\0' || ((listtype == M3U) && (line[0]=='#')))	continue;
+
+				in_line = line;
+				/* extract path out of PLS */
+				if(listtype == PLS)
+				{
+					if(!strncasecmp("File", line, 4))
+					{
+						/* too lazy to reall check for file number... would have to change logic to support unordered file entries anyway */
+						if((in_line = strchr(line+4, '=')) != NULL)
+						{
+							if(in_line[0] != 0) ++in_line;
+							else
+							{
+								fprintf(stderr, "Warning: Invalid PLS line (empty filename) - corrupt playlist file?\n");
+								continue;
+							}
+						}
+						else
+						{
+							fprintf(stderr, "Warning: Invalid PLS line (no '=' after 'File') - corrupt playlist file?\n");
+							continue;
+						}
+					}
+					else continue;
+				}
+
+				/* make paths absolute */
+				/* Windows knows absolute paths with c: in front... should handle this if really supporting win32 again */
+				if ((listnamedir) && (in_line[0]!='/') && (in_line[0]!='\\')
+					 && strncmp(in_line, "http://", 7))
+				{
+					/* prepend path */
+					memset(linetmp,'\0',sizeof(linetmp));
+					snprintf(linetmp, sizeof(linetmp)-1, "%s%s",
+					listnamedir, in_line);
+					strcpy (in_line, linetmp);
+				}
+				return (in_line);
+			}
+			else
+			{
+				if (listname)
+				fclose (listfile);
+				listname = NULL;
+				listfile = NULL;
+			}
+		}	
+	}
+	if (loptind < argc) return (argv[loptind++]);
+	return (NULL);
 }
 
 void init_input (int argc, char *argv[])
@@ -1310,7 +1413,7 @@ static void long_usage(int err)
 	fprintf(o," -y     --resync           DISABLES resync on error\n");
 	fprintf(o," -p <f> --proxy <f>        set WWW proxy\n");
 	fprintf(o," -u     --auth             set auth values for HTTP access\n");
-	fprintf(o," -@ <f> --list <f>         play songs in <f> file-list\n");
+	fprintf(o," -@ <f> --list <f>         play songs in playlist <f> (plain list, m3u, pls (shoutcast))\n");
 	fprintf(o," -z     --shuffle          shuffle song-list before playing\n");
 	fprintf(o," -Z     --random           full random play\n");
 

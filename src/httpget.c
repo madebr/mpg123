@@ -5,6 +5,25 @@
 	see COPYING and AUTHORS files in distribution or http://mpg123.de
 	initially written Oliver Fromme
 	old timestamp: Wed Apr  9 20:57:47 MET DST 1997
+
+	Thomas' notes:
+	
+	I used to do 
+	GET http://server/path HTTP/1.0
+
+	But RFC 1945 says: The absoluteURI form is only allowed when the request is being made to a proxy.
+
+	so I should not do that. Since name based virtual hosts need the hostname in the request, I still need to provide that info.
+	Enter HTTP/1.1... there is a Host eader field to use (that mpg123 supposedly has used since some time anyway - but did it really work with my vhost test server)?
+	Now
+	GET /path/bla HTTP/1.1\r\nHost: host[:port]
+	Should work, but as a funny sidenote:
+	
+	RFC2616: To allow for transition to absoluteURIs in all requests in future versions of HTTP, all HTTP/1.1 servers MUST accept the absoluteURI form in requests, even though HTTP/1.1 clients will only generate them in requests to proxies.
+	
+	I was already full-on HTTP/1.1 as I recognized that mpg123 then would have to accept the chunked transfer encoding.
+	That is not desireable for its purpose... maybe when interleaving of shoutcasts with metadata chunks is supported, we can upgrade to 1.1.
+	Funny aspect there is that shoutcast servers do not do HTTP/1.1 chunked transfer but implement some different chunking themselves...
 */
 
 #include "config.h"
@@ -25,6 +44,7 @@
 
 #include "config.h"
 #include "mpg123.h"
+#include "debug.h"
 
 #ifndef INADDR_NONE
 #define INADDR_NONE 0xffffffff
@@ -191,20 +211,26 @@ char *proxyurl = NULL;
 unsigned long proxyip = 0;
 unsigned int proxyport;
 
-#define ACCEPT_HEAD "Accept: audio/mpeg, audio/x-mpegurl, */*\r\n"
+/* That is not real ... I should really check the type of what I get! */
+#define ACCEPT_HEAD "Accept: audio/mpeg, audio/x-mpegurl, audio/x-scpls, */*\r\n"
+/* needed for HTTP/1.1 non-pipelining mode */
+/* #define CONN_HEAD "Connection: close\r\n" */
+#define CONN_HEAD ""
+
 char *httpauth = NULL;
 char *httpauth1 = NULL;
 
-
-int http_open (char *url)
+int http_open (char* url, char** content_type)
 {
 	/* TODO: make sure ulong vs. size_t is really clear! */
 	/* TODO: change this whole thing until I stop disliking it */
 	char *purl, *host, *request, *response, *sptr;
+	char* request_url = NULL;
+	size_t request_url_size = 0;
 	size_t purl_size;
 	size_t linelength, linelengthbase, tmp;
-	unsigned long myip;
-	unsigned int myport;
+	unsigned long myip = 0;
+	unsigned int myport = 0;
 	int sock;
 	int relocate, numrelocs = 0;
 	struct sockaddr_in server;
@@ -238,7 +264,8 @@ int http_open (char *url)
 		sock = -1;
 		goto exit;
 	}
-	purl_size = strlen(url)*3 + 1;
+	/* +1 since we may want to add / if needed */
+	purl_size = strlen(url)*3 + 1 + 1;
 	purl = (char *)malloc(purl_size);
 	if (!purl) {
 		fprintf (stderr, "malloc() failed, out of memory.\n");
@@ -266,7 +293,9 @@ int http_open (char *url)
 		} while ((sptr = strchr (urlptr, ' ')) != NULL);
 		strcat (purl, urlptr);
 	}
-
+	/* now see if a terminating / may be needed */
+	if(strchr(purl+(strncmp("http://", purl, 7) ? 0 : 7), '/') == NULL) strcat(purl, "/");
+	
 	/* some paranoia */
 	if(httpauth1 != NULL) free(httpauth1);
 	httpauth1 = (char *)malloc((strlen(purl) + 1));
@@ -287,7 +316,7 @@ int http_open (char *url)
 	 * "\r\n"			 2
 	 */
 	linelengthbase = 62 + strlen(PACKAGE_NAME) + strlen(PACKAGE_VERSION)
-	                 + strlen(ACCEPT_HEAD);
+	                 + strlen(ACCEPT_HEAD) + strlen(CONN_HEAD);
 
 	if(httpauth) {
 		tmp = (strlen(httpauth) + 1) * 4;
@@ -312,6 +341,24 @@ int http_open (char *url)
 	}
 
 	do {
+		/* save a full, valid url for later */
+		if(request_url_size < (strlen(purl) + 8))
+		{
+			request_url_size = strlen(purl) + 8;
+			if(request_url != NULL) free(request_url);
+			request_url = (char*) malloc(request_url_size);
+			if(request_url != NULL)	request_url[request_url_size-1] = '\0';
+			else
+			{
+				fprintf(stderr, "malloc() failed, out of memory.\n");
+				exit(1);
+			}
+		}
+		/* used to be url here... seemed wrong to me (when loop advanced...) */
+		if (strncasecmp(purl, "http://", 7) != 0)	strcpy(request_url, "http://");
+		else request_url[0] = '\0';
+		strcat(request_url, purl);
+
 		char* ttemp;
 		if (proxyip != INADDR_NONE) {
 			myport = proxyport;
@@ -351,9 +398,7 @@ int http_open (char *url)
 			}
 
 			strcpy (request, "GET ");
-			if (strncasecmp(url, "http://", 7) != 0)
-				strcat (request, "http://");
-			strcat(request, purl);
+			strcat(request, request_url);
 		}
 		else
 		{
@@ -361,17 +406,14 @@ int http_open (char *url)
 				free (host);
 				host = NULL;
 			}
-
 			sptr = url2hostport(purl, &host, &myip, &myport);
-			if (!sptr) {
+			if (!sptr)
+			{
 				fprintf (stderr, "Unknown host \"%s\".\n",
-				         host ? host : "");
+				host ? host : "");
 				sock = -1;
 				goto exit;
 			}
-
-			/* back hack: I want full url as request */
-			sptr = purl;
 			linelength = linelengthbase + strlen(sptr);
 			if (linelength < linelengthbase) {
 				fprintf(stderr, "URL too long. Skipping...\n");
@@ -410,17 +452,22 @@ int http_open (char *url)
 		}
 		
 		/* hm, my test redirection had troubles with line break before HTTP/1.0 */
-		/* we should support HTTP/1.1, btw */
 		if((ttemp = strchr(request,'\r')) != NULL) *ttemp = 0;
 		if((ttemp = strchr(request,'\n')) != NULL) *ttemp = 0;
 		sprintf (request + strlen(request),
 		         " HTTP/1.0\r\nUser-Agent: %s/%s\r\n",
 			 PACKAGE_NAME, PACKAGE_VERSION);
 		if (host) {
+			debug2("Host: %s:%u", host, myport);
 			sprintf(request + strlen(request),
 			        "Host: %s:%u\r\n", host, myport);
 		}
+/*		else
+		{
+			fprintf(stderr, "Error: No host! This must be an error! My HTTP/1.1 request is invalid.");
+		} */
 		strcat (request, ACCEPT_HEAD);
+		strcat (request, CONN_HEAD);
 		server.sin_family = AF_INET;
 		server.sin_port = htons(myport);
 		server.sin_addr.s_addr = myip;
@@ -461,6 +508,8 @@ int http_open (char *url)
 			free(buf);
 		}
 		strcat (request, "\r\n");
+		
+		debug1("<request>\n%s</request>",request);
 		writestring (sock, request);
 		if (!(myfile = fdopen(sock, "rb"))) {
 			perror ("fdopen");
@@ -477,6 +526,7 @@ int http_open (char *url)
 			sock = -1;
 			goto exit;
 		}
+		debug1("<response>\n%s</response>",response);
 		if ((sptr = strchr(response, ' '))) {
 			switch (sptr[1]) {
 				case '3':
@@ -503,36 +553,33 @@ int http_open (char *url)
 			if (!strncmp(response, "Location: ", 10))
 			{
 				size_t needed_length;
-				char* prefix = request+4; /* skip GET */
+				debug1("request_url:%s", request_url);
+				/* initialized with full old url */
+				char* prefix = request_url;
 				
 				if(strncmp(response, "Location: http://", 17))
 				{
 					char* ptmp = NULL;
 					/* though it's not RFC (?), accept relative URIs as wget does */
-					fprintf(stderr, "NOTE: non-absolute uri in redirect, constructing one\n");
+					fprintf(stderr, "NOTE: no complete URL in redirect, constructing one\n");
 					/* not absolute uri, could still be server-absolute */
 					/* I prepend a part of the request... out of the request */
-					/* GET http://host/path/bla HTTP/1.0*/
-					/* the request MUST have this form! */
 					if(response[10] == '/')
 					{
 						/* only prepend http://server/ */
-						/* I null the / that comes just after http:// but before " HTTP/" */
-						if((ptmp = strchr(prefix+7,'/')) > strchr(prefix, ' '))
-						ptmp = strchr(prefix,' ');
-						ptmp[0] = 0;
+						/* I null the first / after http:// */
+						if((ptmp = strchr(prefix+7,'/')) != NULL)	ptmp[0] = 0;
 					}
 					else
 					{
 						/* prepend http://server/path/ */
-						/* now we want the last / before HTTP/1.0 */
-						ptmp = strchr(prefix,' ');
-						ptmp[0] = 0;
-						ptmp = strrchr(prefix, '/');
-						ptmp[1] = 0;
+						/* now we want the last / */
+						ptmp = strrchr(prefix+7, '/');
+						if(ptmp != NULL) ptmp[1] = 0;
 					}
 				}
 				else prefix[0] = 0;
+				debug1("prefix=%s", prefix);
 
 				/* Isn't C string mangling just evil? ;-) */
 
@@ -556,6 +603,39 @@ int http_open (char *url)
 				strcpy(purl, prefix);
 				strcat(purl, response+10);
 			}
+			else
+			{
+				/* watch out for content type */
+				debug1("searching for content-type... %s", response);
+				if(!strncasecmp("content-type:", response, 13))
+				{
+					if(content_type != NULL)
+					{
+						char *tmp = NULL;
+						if((tmp = strchr(response, '\r')) != NULL ) tmp[0] = 0;
+						if((tmp = strchr(response, '\n')) != NULL ) tmp[0] = 0;
+						size_t len = strlen(response)-13;
+						tmp = response+13;
+						while(len && ((tmp[0] == ' ') || (tmp[0] == '\t')))
+						{
+							++tmp;
+							--len;
+						}
+						if(len)
+						{
+							if(*content_type != NULL) free(*content_type);
+							*content_type = (char*) malloc(len+1);
+							if(*content_type != NULL)
+							{
+								strncpy(*content_type, tmp, len);
+								(*content_type)[len] = 0;
+								debug1("got type %s", *content_type);
+							}
+							else fprintf(stderr, "Error: canno allocate memory for content type!\n");
+						}
+					}
+				}
+			}
 		} while (response[0] != '\r' && response[0] != '\n');
 	} while (relocate && purl[0] && numrelocs++ < 10);
 	if (relocate) {
@@ -564,11 +644,11 @@ int http_open (char *url)
                sock = -1;
 	}
 exit:
-	free(host);
-	free(purl);
-	free(request);
-	free(response);
-
+	if(host != NULL) free(host);
+	if(purl != NULL) free(purl);
+	if(request != NULL) free(request);
+	if(response != NULL) free(response);
+	if(request_url != NULL) free(request_url);
 	return sock;
 }
 
@@ -580,6 +660,8 @@ exit:
 extern int errno;
 
 #include "mpg123.h"
+
+/* stubs for Win32 */
 
 void writestring (int fd, char *string)
 {
