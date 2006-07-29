@@ -1,3 +1,15 @@
+0.60-beta3 (Thomas Orgis)
+-----
+
+- fixed bug with segfault in http code on stream from live365.com - bug id 1529266
+- made http request HTTP/1.0 compilant again (tested only without proxy) - bug id 1529319
+- now using http content-type header to check for correct types mpg123 can understand
+  -> you can now always use -@ for a single http resource (direct stream or playlist) since a stream will be reopened based on MIME type,
+  though omitting it will save you one http request to the server in the direct stream case...
+- now simple parsing of shoutcast pls playlists (how did you people use shoutcast before?)
+- playlist mode enhanced with selective playback of one entry in list (--listentry parameter)
+
+
 0.60-beta2 (Thomas Orgis)
 -----
 

@@ -1,4 +1,4 @@
-.TH mpg123 1 "24 Jul 2006"
+.TH mpg123 1 "29 Jul 2006"
 .SH NAME
 mpg123 \- play audio MPEG 1.0/2.0 file (layers 1, 2 and 3)
 .SH SYNOPSIS
@@ -87,6 +87,11 @@ one
 option can be used (if more than one is specified, only the
 last one will be recognized).
 .TP
+\fB\-l \fIn\fR, \fB\-\^\-listentry \fIn
+Of the playlist, play specified entry only. 
+.I n
+is the number of entry starting at 1. A value of 0 is the default and means playling the whole list,  a negative value means showing of the list of titles with their numbers...
+.TP
 .BR \-z ", " \-\^\-shuffle
 Shuffle play.  Randomly shuffles the order of files specified on the command
 line, or in the list file.
@@ -95,8 +100,6 @@ line, or in the list file.
 Continuous random play.  Keeps picking a random file from the command line
 or the play list.  Unlike shuffle play above, random play never ends, and
 plays individual songs more than once.
-
-
 
 .SH OUTPUT and PROCESSING OPTIONS
 .TP

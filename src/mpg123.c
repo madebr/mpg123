@@ -73,6 +73,7 @@ struct parameter param = {
 #ifdef GAPLESS
 	0, /* gapless off per default - yet */
 #endif
+	0 /* default is to play all titles in playlist */
 };
 
 char *prgName = NULL;
@@ -262,6 +263,7 @@ char *find_next_file (int argc, char *argv[])
 	char linetmp [1024];
 	char * slashpos;
 	int i;
+	static long entry;
 
 	/* hack for url that has been detected as track, not playlist */
 	if(listtype == NO_LIST) return NULL;
@@ -285,6 +287,7 @@ char *find_next_file (int argc, char *argv[])
 			{
 				listfile = stdin;
 				listname = NULL;
+				entry = 0;
 			}
 			else if (!strncmp(listname, "http://", 7))
 			{
@@ -303,8 +306,16 @@ char *find_next_file (int argc, char *argv[])
 						if(!strcmp("audio/mpeg", listmime))
 						{
 							listtype = NO_LIST;
-							fprintf(stderr, "Note: MIME type indicates that this is no playlist but an mpeg audio file... reopening as such.\n");
-							return listname;
+							if(param.listentry < 0)
+							{
+								printf("#note you gave me a file url, no playlist, so...\n#entry 1\n%s\n", listname);
+								return NULL;
+							}
+							else
+							{
+								fprintf(stderr, "Note: MIME type indicates that this is no playlist but an mpeg audio file... reopening as such.\n");
+								return listname;
+							}
 						}
 						fprintf(stderr, "Error: unknown playlist MIME type %s; maybe "PACKAGE_NAME" can support it in future if you report this to the maintainer.\n", listmime);
 						fd = -1;
@@ -317,7 +328,11 @@ char *find_next_file (int argc, char *argv[])
 					listfile = NULL;
 					fprintf(stderr, "Error: invalid playlist from http_open()!\n");
 				}
-				else listfile = fdopen(fd,"r");
+				else
+				{
+					entry = 0;
+					listfile = fdopen(fd,"r");
+				}
 			}
 			else if (!(listfile = fopen(listname, "rb")))
 			{
@@ -328,11 +343,16 @@ char *find_next_file (int argc, char *argv[])
 				#endif
 				exit (1);
 			}
+			else
+			{
+				debug("opened ordinary list file");
+				entry = 0;
+			}
 			if (param.verbose && listfile) fprintf (stderr, "Using playlist from %s ...\n",	listname ? listname : "standard input");
 		}
+		debug1("going to get busy with listfile ... listentry=%li\n", param.listentry);
 		while (listfile)
 		{
-			debug1("getting next title of list named %s", listname);
 			if (fgets(line, 1023, listfile))
 			{
 				line[strcspn(line, "\t\n\r")] = '\0';
@@ -384,7 +404,12 @@ char *find_next_file (int argc, char *argv[])
 				if (line [i] == '\\')
 				line [i] = '/';
 				#endif
-				if (line[0]=='\0' || ((listtype == M3U) && (line[0]=='#')))	continue;
+				if (line[0]=='\0') continue;
+				if (((listtype == M3U) && (line[0]=='#')))
+				{
+					if(param.listentry < 0) printf("%s\n", line);
+					continue;
+				}
 
 				in_line = line;
 				/* extract path out of PLS */
@@ -408,7 +433,11 @@ char *find_next_file (int argc, char *argv[])
 							continue;
 						}
 					}
-					else continue;
+					else
+					{
+						if(param.listentry < 0) printf("#metainfo %s\n", line);
+						continue;
+					}
 				}
 
 				/* make paths absolute */
@@ -422,7 +451,9 @@ char *find_next_file (int argc, char *argv[])
 					listnamedir, in_line);
 					strcpy (in_line, linetmp);
 				}
-				return (in_line);
+				++entry;
+				if(param.listentry < 0) printf("#entry %li\n%s\n", entry,in_line);
+				else if((param.listentry == 0) || (param.listentry == entry)) return (in_line);
 			}
 			else
 			{
@@ -660,6 +691,7 @@ topt opts[] = {
 	{'?', "help",            0,  want_usage, 0,           0 },
 	{0 , "longhelp" ,        0,  want_long_usage, 0,      0 },
 	{0 , "version" ,         0,  give_version, 0,         0 },
+	{'l', "listentry",       GLO_ARG | GLO_LONG, 0, &param.listentry, 0 },
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -1008,7 +1040,7 @@ int main(int argc, char *argv[])
 	}
 #endif
 
-	if (!param.quiet)
+	if (!(param.listentry < 0) && !param.quiet)
 		print_title(stdout);
 
 	if(param.force_mono >= 0) {
@@ -1414,6 +1446,7 @@ static void long_usage(int err)
 	fprintf(o," -p <f> --proxy <f>        set WWW proxy\n");
 	fprintf(o," -u     --auth             set auth values for HTTP access\n");
 	fprintf(o," -@ <f> --list <f>         play songs in playlist <f> (plain list, m3u, pls (shoutcast))\n");
+	fprintf(o," -l <n> --listentry <n>    play nth title in playlist; show playlist for n < 0");
 	fprintf(o," -z     --shuffle          shuffle song-list before playing\n");
 	fprintf(o," -Z     --random           full random play\n");
 

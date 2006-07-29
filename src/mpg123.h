@@ -195,7 +195,10 @@ struct parameter {
 #endif
   long realtime;
   char filename[256];
+#ifdef GAPLESS	
   int gapless; /* (try to) remove silence padding/delay to enable gapless playback */
+#endif
+  long listentry; /* possibility to choose playback of one entry in playlist (0: off, > 0 : select, < 0; just show list*/
 };
 
 struct reader {
