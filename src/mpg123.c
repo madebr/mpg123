@@ -276,9 +276,16 @@ char *find_next_file (int argc, char *argv[])
                 listname = NULL;
             }
             else if (!strncmp(listname, "http://", 7))  {
-		int fd;
-                fd = http_open(listname);
-                listfile = fdopen(fd,"r");
+							int fd;
+							fd = http_open(listname);
+							if(fd < 0)
+							{
+								listname = NULL;
+								listfile = NULL;
+								fprintf(stderr, "Error: invalid file descriptor from http_open()!\n");
+							}
+							else listfile = fdopen(fd,"r");
+
             }
             else if (!(listfile = fopen(listname, "rb"))) {
                 perror (listname);
@@ -288,7 +295,7 @@ char *find_next_file (int argc, char *argv[])
 #endif
                 exit (1);
             }
-            if (param.verbose)
+            if (param.verbose && listfile)
                 fprintf (stderr, "Using playlist from %s ...\n",
                         listname ? listname : "standard input");
         }
