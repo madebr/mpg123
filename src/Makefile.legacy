@@ -149,7 +149,7 @@ linux-x86-gapless:
 
 linux-mmx:
 	$(MAKE) CC=gcc \
-		OBJECTS="decode_i386.o dct64_MMX.o tabinit_MMX.o decode_MMX.o \
+		OBJECTS="decode_i386.o dct64_mmx.o tabinit_mmx.o decode_mmx.o \
 			audio_oss.o term.o" \
 		CFLAGS=" $(CFLAGS) -DUSE_MMX -DI386_ASSEM -DPENTIUM_OPT -DREAL_IS_FLOAT \
 			-DLINUX -DOSS -DHAVE_TERMIOS\

@@ -75,7 +75,7 @@ EXTRA_LIBRARIES = \
 	libcpu_i586.a \
 	libcpu_i586_dither.a \
 	libcpu_3dnow.a \
-	libcpu_MMX.a
+	libcpu_mmx.a
 
 libcpu_generic_a_SOURCES = \
 	decode.c \
@@ -114,9 +114,9 @@ libcpu_3dnow_a_SOURCES = \
 	equalizer_3dnow.s \
 	getcpuflags.s
 
-libcpu_MMX_a_SOURCES = \
+libcpu_mmx_a_SOURCES = \
 	decode_i386.c \
-	dct64_MMX.s \
-	tabinit_MMX.s \
-	decode_MMX.s
+	dct64_mmx.s \
+	tabinit_mmx.s \
+	decode_mmx.s
 
