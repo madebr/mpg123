@@ -9,6 +9,11 @@ We badly need:
   RVA comment tags go with the next one
 - really parse ID3V2 tags instead of skipping
 
+From Nicholas: 
+ - Seperate out MPEG Audio decoder (only) into seperate library
+ - Allow choice of audio output at runtime, rather than compile time
+ - Choose processor optimization at runtime, rather than compile time?
+ 
 From Michael (some time after/around pre-0.59s):
 
 - add CRC check.
