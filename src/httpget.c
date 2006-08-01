@@ -341,6 +341,8 @@ int http_open (char* url, char** content_type)
 	}
 
 	do {
+		char* ttemp;
+
 		/* save a full, valid url for later */
 		if(request_url_size < (strlen(purl) + 8))
 		{
@@ -359,7 +361,6 @@ int http_open (char* url, char** content_type)
 		else request_url[0] = '\0';
 		strcat(request_url, purl);
 
-		char* ttemp;
 		if (proxyip != INADDR_NONE) {
 			myport = proxyport;
 			myip = proxyip;
@@ -553,9 +554,11 @@ int http_open (char* url, char** content_type)
 			if (!strncmp(response, "Location: ", 10))
 			{
 				size_t needed_length;
-				debug1("request_url:%s", request_url);
-				/* initialized with full old url */
 				char* prefix = request_url;
+				
+				debug1("request_url:%s", request_url);
+				
+				/* initialized with full old url */
 				
 				if(strncmp(response, "Location: http://", 17))
 				{
@@ -612,9 +615,11 @@ int http_open (char* url, char** content_type)
 					if(content_type != NULL)
 					{
 						char *tmp = NULL;
+						size_t len = 0;
+						
 						if((tmp = strchr(response, '\r')) != NULL ) tmp[0] = 0;
 						if((tmp = strchr(response, '\n')) != NULL ) tmp[0] = 0;
-						size_t len = strlen(response)-13;
+						len = strlen(response)-13;
 						tmp = response+13;
 						while(len && ((tmp[0] == ' ') || (tmp[0] == '\t')))
 						{
