@@ -1,6 +1,6 @@
 /*
  *  Driver for Advanced Linux Sound Architecture, http://alsa.jcu.cz
- *  old driver! needs update or replacement for alsa 0.9/1.x api
+ *  This driver is for the old (version 0.5-0.8) ALSA API
  * 
  *  Code by Anders Semb Hermansen <ahermans@vf.telia.no>
  *  Cleanups by Jaroslav Kysela <perex@jcu.cz>

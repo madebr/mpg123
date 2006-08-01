@@ -13,8 +13,10 @@ SUBDIRS = src
 EXTRA_DIST = \
 	BENCHMARKING \
 	BUGS \
+	CONTACT \
 	COPYING \
 	MakeLegacy.sh \
+	PATENTS \
 	README.3DNOW \
 	README.WIN32 \
 	README.remote \

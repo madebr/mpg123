@@ -65,23 +65,24 @@ AC_ARG_WITH([cpu], [
   --with-cpu=i586         Use code optimized for i586 processors
   --with-cpu=i586_dither  Use code optimized for i586 processors with dithering (noise shaping)
   --with-cpu=3dnow        Use code optimized for 3dnow processors
-  --with-cpu=MMX          Use code optimized for MMX processors
+  --with-cpu=mmx          Use code optimized for MMX processors
+  --with-cpu=altivec      Use code optimized for Altivec processors (PowerPC G4 and G5)
 ]) 
 
 AC_ARG_WITH([audio], [
   --with-audio=aix        Use AIX audio output sub-system
   --with-audio=alib       Use Alib audio output sub-system (for HPUX)
-dnl   --with-audio=alsa       Use ALSA audio output sub-system
+  --with-audio=alsa       Use ALSA audio output sub-system
   --with-audio=dummy      Use dummy audio (when no sound card is available)
   --with-audio=esd        Use ESoundD audio output sub-system
   --with-audio=hp         Use HP audio output sub-system
   --with-audio=jack       Use JACK low-latency audio server
-  --with-audio=libao      Use libao audio output sub-system (use that for Alsa support)
+  --with-audio=libao      Use libao audio output sub-system
   --with-audio=macosx     Use Mac OS X audio output sub-system (CoreAudio)
   --with-audio=mint       Use MinT audio output sub-system (Atari)
   --with-audio=nas        Use NAS audio output (Network Audio System)
   --with-audio=os2        Use OS2 audio output sub-system
-  --with-audio=oss        Use OSS audio output sub-system
+  --with-audio=oss        Use OSS audio output sub-system (/dev/dsp)
   --with-audio=sgi        Use SGI audio output sub-system (IRIX)
   --with-audio=sun        Use Sun audio output sub-system (/dev/audio)
 ])
@@ -113,11 +114,6 @@ dnl ############## Library Checks
 AC_CHECK_LIB([m], [sqrt])
 AC_CHECK_LIB([mx], [powf])
 
-dnl We don't support alsa directly but through libao.
-dnl Existing alsa driver is old (0.5 api)...
-dnl # Check for ALSA - Advanced Linux Sound Architecture
-dnl PKG_CHECK_MODULES(ALSA, alsa, HAVE_ALSA=yes, HAVE_ALSA=no)
-
 # Check for JACK
 PKG_CHECK_MODULES(JACK, jack, HAVE_JACK=yes, HAVE_JACK=no)
 
@@ -127,6 +123,25 @@ PKG_CHECK_MODULES(LIBAO, ao, HAVE_LIBAO=yes, HAVE_LIBAO=no)
 # Check for EsounD
 PKG_CHECK_MODULES(ESOUND, esound, HAVE_ESOUND=yes, HAVE_ESOUND=no)
 
+# Check for NAS
+AC_CHECK_LIB( [audio], [AuOpenServer],
+	[ AC_CHECK_HEADER( [audio/audiolib.h],
+		[ HAVE_NAS="yes"
+		  ALSA_CFLAGS="" 
+		  ALSA_LIBS="-lasound" ],
+		[ AC_MSG_WARN([Can't find audio/audiolib.h on your system]) ] ) ],
+	[ AC_MSG_WARN([Can't find NAS libaudio library on your system]) ]
+)
+
+# Check for ALSA
+AC_CHECK_LIB( [asound], [snd_pcm_open],
+	[ AC_CHECK_HEADER( [alsa/asoundlib.h],
+		[ HAVE_ALSA="yes"
+		  ALSA_CFLAGS="" 
+		  ALSA_LIBS="-lasound" ],
+		[ AC_MSG_WARN([Can't find alsa/asoundlib.h on your system]) ] ) ],
+	[ AC_MSG_WARN([Can't find ALSA asound library on your system]) ]
+)
 
 
 dnl ############## Header Checks
@@ -134,9 +149,6 @@ dnl ############## Header Checks
 AC_HEADER_STDC
 AC_CHECK_HEADERS([stdlib.h string.h unistd.h sched.h sys/ioctl.h])
 
-
-# NAS (Network Audio System)
-AC_CHECK_HEADERS([audio/audiolib.h audio/soundlib.h], HAVE_NAS=yes, HAVE_NAS=no)
 
 # OSS Header files
 AC_CHECK_HEADERS([sys/soundcard.h linux/soundcard.h machine/soundcard.h])
@@ -175,9 +187,13 @@ case $target in
     CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
   ;;
   i686-*-linux*)
-    cpu_type="MMX"
+    cpu_type="mmx"
     CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
   ;;
+  *-*-linux*)
+    cpu_type="generic"
+    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
+	;;
   powerpc-apple-darwin*)
     cpu_type="generic"
     CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
@@ -191,10 +207,6 @@ case $target in
     CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
     LIBS="$LIBS -lsocket -lnsl"
   ;;
-	*-linux*)
-    cpu_type="generic"
-    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
-	;;
   *)
   	AC_MSG_WARN([Unknown target operating system])
     cpu_type="generic"
@@ -232,7 +244,7 @@ case $cpu_type in
   3dnow) 
     CFLAGS="$CFLAGS -DUSE_3DNOW -DI386_ASSEM -DPENTIUM_OPT "
   ;;
-  MMX) 
+  mmx) 
     CFLAGS="$CFLAGS -DUSE_MMX -DI386_ASSEM -DPENTIUM_OPT "
   ;;
   *)
@@ -290,13 +302,14 @@ esac
 
 dnl ############## Audio Sub-system Settings
 
+# Choose audio subsystem based on Operating System
 case $target in
   *-*-linux*)
-dnl  	if test "$HAVE_ALSA" = "yes" ; then
-dnl  		audio_system="alsa"
-dnl  	else
-  		audio_system="oss"
-dnl  	fi
+    if test "x$HAVE_ALSA" = "xyes" ; then
+        audio_system="alsa"
+    else
+        audio_system="oss"
+    fi
   ;;
   *-*-freebsd*)
     audio_system="oss"
@@ -304,7 +317,7 @@ dnl  	fi
   *-apple-darwin*)
     audio_system="macosx"
   ;;
-  *-sun-*)
+  *-*-sun*)
     audio_system="sun"
   ;;
   *)
@@ -312,63 +325,80 @@ dnl  	fi
   ;;
 esac
 
-
 # Did user choose other audio type ?
 if test "x$with_audio" != "x"; then
 	audio_system=$with_audio
 fi
+
+
 
 AUDIO_OBJ="audio_$audio_system.\$(OBJEXT)"
 AUDIO_CFLAGS=''
 AUDIO_LIBS=''
 
 case $audio_system in
-  aix)	;;
-  alib) AUDIO_CFLAGS='-I/opt/audio/include' ;;
-dnl  alsa)
-dnl  	if test "$HAVE_ALSA" = "no" ; then
-dnl  		AC_MSG_ERROR( $ALSA_PKG_ERRORS )
-dnl  	fi
-dnl    AUDIO_CFLAGS=$ALSA_CFLAGS
-dnl    AUDIO_LIBS=$ALSA_LIBS
-dnl  ;;
+  aix)	
+    # Currently unsupported in the new build system
+  ;;
+  alib)
+    # Currently unsupported in the new build system
+    AUDIO_CFLAGS='-I/opt/audio/include'
+  ;;
+  alsa)
+    if test "x$HAVE_ALSA" != "xyes" ; then
+  		AC_MSG_ERROR( ALSA is not available for audio output subsystem. )
+    fi
+    AUDIO_CFLAGS=$ALSA_CFLAGS
+    AUDIO_LIBS=$ALSA_LIBS
+  ;;
   dummy) 
-  	 AC_MSG_WARN( Using dummy audio output. )
+    AC_MSG_WARN( Using dummy audio output. )
   ;;
   esd)
-  	if test "$HAVE_ESD" = "no" ; then
+  	if test "x$HAVE_ESD" != "xyes" ; then
   		AC_MSG_ERROR( ESounD is not available for audio output subsystem. )
   	fi
     AUDIO_CFLAGS=$ESOUND_CFLAGS
     AUDIO_LIBS=$ESOUND_LIBS
   ;;
   hp)
+    # Currently unsupported in the new build system
   	AUDIO_CFLAGS="-I/opt/audio/include"
   	AUDIO_LIBS="-L/opt/audio/lib -lAlib"
   ;;
   jack)
-  	if test "$HAVE_JACK" = "no" ; then
+  	if test "x$HAVE_JACK" != "xyes" ; then
   		AC_MSG_ERROR( JACK is not available for audio output subsystem. )
   	fi
     AUDIO_CFLAGS=$JACK_CFLAGS
     AUDIO_LIBS=$JACK_LIBS
   ;;
   libao)
-  	if test "$HAVE_LIBAO" = "no" ; then
+  	if test "x$HAVE_LIBAO" != "xyes" ; then
   		AC_MSG_ERROR( libao is not available for audio output subsystem. )
   	fi
     AUDIO_CFLAGS=$LIBAO_CFLAGS
     AUDIO_LIBS=$LIBAO_LIBS
   ;;
   macosx)
-  	if test "$HAVE_COREAUDIO" = "no" ; then
+  	if test "x$HAVE_COREAUDIO" != "xyes" ; then
   		AC_MSG_ERROR( Can't find Mac OS X's CoreAudio header files )
   	fi
   	AUDIO_LIBS='-framework CoreAudio'
   ;;
-  mint) ;;
-  nas) ;;
-  os2) ;;
+  mint)
+    # Currently unsupported in the new build system
+  ;;
+  nas)
+  	if test "x$HAVE_NAS" != "xyes" ; then
+  		AC_MSG_ERROR( NAS (Network Audio System) is not available. )
+  	fi
+    AUDIO_CFLAGS=''
+    AUDIO_LIBS='-laudio'
+  ;;
+  os2)
+    # Currently unsupported in the new build system
+  ;;
   oss)
     if test "x${ac_cv_header_sys_soundcard_h}" = "xyes" \
          -o "x${ac_cv_header_linux_soundcard_h}" = "xyes" \
@@ -380,7 +410,9 @@ dnl  ;;
 		AC_MSG_ERROR([Can't find OSS header files])
 	fi
   ;;
-  sgi)  ;;
+  sgi)
+    # Currently unsupported in the new build system
+  ;;
   sun)
     if test "x${ac_cv_header_sun_audioio_h}" = "xyes" \
          -o "x${ac_cv_header_sys_audioio_h}" = "xyes" \
