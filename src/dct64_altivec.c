@@ -6,13 +6,15 @@
 	initially written by Romain Dolbeau
 */
 
-#define real float
-
+#include "config.h"
 #include "mpg123.h"
 
-#ifndef SYS_DARWIN
+#ifdef HAVE_ALTIVEC_H
 #include <altivec.h>
 #endif
+
+#define real float
+
 
 // used to build registers permutation vectors (vcprm)
 // the 's' are for words in the _s_econd vector

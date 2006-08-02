@@ -173,6 +173,26 @@ if test "$debugging" = "enabled"; then
 fi
 
 
+# Check for Altivec
+ALTIVEC_CFLAGS="-maltivec -mabi=altivec"
+if test "$target_cpu" = "powerpc"; then
+	save_CFLAGS="$CFLAGS"
+	CFLAGS="$CFLAGS $ALTIVEC_CFLAGS"
+	AC_MSG_CHECKING([if <altivec.h> is needed])
+	AC_TRY_COMPILE([],
+		[typedef vector int t;
+		 vec_ld(0, (unsigned char *)0);],
+		[have_altivec=yes; AC_MSG_RESULT(no)],
+		[AC_TRY_COMPILE([#include <altivec.h>],
+		[typedef vector int t; vec_ld(0, (unsigned char *)0);],
+		[AC_DEFINE([HAVE_ALTIVEC_H],,
+			[Define to 1 if you have the <altivec.h> header.])
+		 have_altivec=yes; AC_MSG_RESULT(yes)],
+		[AC_MSG_RESULT(unsupported)])])
+	CFLAGS="$save_CFLAGS"
+fi
+
+
 case $target in
   i386-*-linux*)
     cpu_type="i586"
@@ -190,14 +210,18 @@ case $target in
     cpu_type="mmx"
     CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
   ;;
+  powerpc-*-*)
+    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
+    if test "$have_altivec" = "xyes"; then
+    	cpu_type="altivec"
+    else
+    	cpu_type="generic"
+    fi
+  ;;
   *-*-linux*)
     cpu_type="generic"
     CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
 	;;
-  powerpc-apple-darwin*)
-    cpu_type="generic"
-    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
-  ;;
   *-*-freebsd*)
     cpu_type="generic"
     CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
@@ -227,7 +251,7 @@ case $cpu_type in
     CFLAGS="$CFLAGS"
   ;;
   altivec)
-    CFLAGS="$CFLAGS -maltivec"
+    CFLAGS="$CFLAGS $ALTIVEC_CFLAGS"
   ;;
   i386) 
     CFLAGS="$CFLAGS -march=i386 -DI386_ASSEM "
