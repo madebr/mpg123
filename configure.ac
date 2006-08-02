@@ -84,6 +84,7 @@ AC_ARG_WITH([audio], [
   --with-audio=os2        Use OS2 audio output sub-system
   --with-audio=oss        Use OSS audio output sub-system (/dev/dsp)
   --with-audio=portaudio  Use PortAudio audio output sub-system
+  --with-audio=sdl        Use SDL audio output sub-system (Simple DirectMedia Layer)
   --with-audio=sgi        Use SGI audio output sub-system (IRIX)
   --with-audio=sun        Use Sun audio output sub-system (/dev/audio)
 ])
@@ -123,6 +124,9 @@ PKG_CHECK_MODULES(LIBAO, ao, HAVE_LIBAO=yes, HAVE_LIBAO=no)
 
 # Check for EsounD
 PKG_CHECK_MODULES(ESOUND, esound, HAVE_ESOUND=yes, HAVE_ESOUND=no)
+
+# Check for SDL
+PKG_CHECK_MODULES(SDL, sdl, HAVE_SDL=yes, HAVE_SDL=no)
 
 # Check for NAS
 AC_CHECK_LIB( [audio], [AuOpenServer],
@@ -421,6 +425,13 @@ case $audio_system in
   	fi
     AUDIO_CFLAGS=""
     AUDIO_LIBS="-lportaudio"
+  ;;
+  sdl)
+  	if test "x$HAVE_SDL" != "xyes" ; then
+  		AC_MSG_ERROR( SDL is not available for audio output subsystem. )
+  	fi
+    AUDIO_CFLAGS=$SDL_CFLAGS
+    AUDIO_LIBS=$SDL_LIBS
   ;;
   sgi)
     # Currently unsupported in the new build system

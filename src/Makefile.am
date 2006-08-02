@@ -63,6 +63,7 @@ EXTRA_mpg123_SOURCES = \
 	audio_os2.c \
 	audio_oss.c \
 	audio_portaudio.c \
+	audio_sdl.c \
 	audio_sgi.c \
 	audio_sun.c \
 	audio_win32.c

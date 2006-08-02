@@ -79,6 +79,7 @@ int sfifo_write(sfifo_t *f, const void *buf, int len);
 int sfifo_read(sfifo_t *f, void *buf, int len);
 #define sfifo_used(x)	(((x)->writepos - (x)->readpos) & SFIFO_SIZEMASK(x))
 #define sfifo_space(x)	((x)->size - 1 - sfifo_used(x))
+#define sfifo_size(x)	((x)->size - 1)
 
 
 #ifdef __cplusplus

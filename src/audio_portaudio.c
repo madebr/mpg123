@@ -94,7 +94,7 @@ int audio_open(struct audio_info_struct *ai)
 
 int audio_get_formats(struct audio_info_struct *ai)
 {
-	// Only implemented Signed 16-bit audio for now
+	/* Only implemented Signed 16-bit audio for now */
 	return AUDIO_FORMAT_SIGNED_16;
 }
 
@@ -104,15 +104,15 @@ int audio_play_samples(struct audio_info_struct *ai, unsigned char *buf, int len
 	PaError err;
 	int written;
 	
-	// Sleep for half the length of the FIFO
+	/* Sleep for half the length of the FIFO */
 	while (sfifo_space( &fifo ) < len ) {
 		usleep( (FIFO_DURATION/2) * 1000000 );
 	}
 	
-	// Write the audio to the ring buffer
+	/* Write the audio to the ring buffer */
 	written = sfifo_write( &fifo, buf, len );
 
-	// Start stream if not ative
+	/* Start stream if not ative */
 	err = Pa_StreamActive( pa_stream );
 	if (err == 0) {
 		err = Pa_StartStream( pa_stream );
