@@ -9,15 +9,15 @@
 #include "config.h"
 #include "mpg123.h"
 
-#ifdef HAVE_ALTIVEC_H
+#ifdef SYS_DARWIN
 #include <altivec.h>
 #endif
 
 #define real float
 
 
-// used to build registers permutation vectors (vcprm)
-// the 's' are for words in the _s_econd vector
+/* used to build registers permutation vectors (vcprm)
+ the 's' are for words in the _s_econd vector */
 #define WORD_0 0x00,0x01,0x02,0x03
 #define WORD_1 0x04,0x05,0x06,0x07
 #define WORD_2 0x08,0x09,0x0a,0x0b
@@ -33,13 +33,13 @@
 #define vcprm(a,b,c,d) (const vector unsigned char){WORD_ ## a, WORD_ ## b, WORD_ ## c, WORD_ ## d}
 #endif
 
-// vcprmle is used to keep the same index as in the SSE version.
-// it's the same as vcprm, with the index inversed
-// ('le' is Little Endian)
+/* vcprmle is used to keep the same index as in the SSE version.
+ it's the same as vcprm, with the index inversed
+ ('le' is Little Endian) */
 #define vcprmle(a,b,c,d) vcprm(d,c,b,a)
 
-// used to build inverse/identity vectors (vcii)
-// n is _n_egative, p is _p_ositive
+/* used to build inverse/identity vectors (vcii)
+ n is _n_egative, p is _p_ositive */
 #define FLOAT_n -1.
 #define FLOAT_p 1.
 
@@ -73,7 +73,8 @@ void dct64(real *a,real *b,real *c)
     
   {
     printf("MISALIGNED:\t%p\t%p\t%p\t%p\t%p\n",
-           b1, b2, a, b, samples);
+           (void*)b1, (void*)b2,
+           (void*)a, (void*)b, (void*)samples);
   }
 
 
@@ -193,13 +194,14 @@ void dct64(real *a,real *b,real *c)
 
 #else /* ALTIVEC_USE_REFERENCE_C_CODE */
 
-  // How does it work ?
-  // the first three passes are reproducted in the three block below
-  // all computations are done on a 4 elements vector
-  // 'reverse' is a special perumtation vector used to reverse
-  // the order of the elements inside a vector.
-  // note that all loads/stores to b1 (b2) between passes 1 and 2 (2 and 3)
-  // have been removed, all elements are stored inside b1vX (b2vX)
+  /* How does it work ?
+   the first three passes are reproducted in the three block below
+   all computations are done on a 4 elements vector
+   'reverse' is a special perumtation vector used to reverse
+   the order of the elements inside a vector.
+   note that all loads/stores to b1 (b2) between passes 1 and 2 (2 and 3)
+   have been removed, all elements are stored inside b1vX (b2vX)
+  */
   {
     register vector float
       b1v0, b1v1, b1v2, b1v3,
@@ -238,19 +240,15 @@ void dct64(real *a,real *b,real *c)
 
       temp1 = vec_add(samplesv1,
                       vec_perm(samplesv8, samplesv8, reverse));
-      //vec_st(temp1, 0, b1);
       b1v0 = temp1;
       temp1 = vec_add(samplesv2,
                       vec_perm(samplesv7, samplesv7, reverse));
-      //vec_st(temp1, 16, b1);
       b1v1 = temp1;
       temp1 = vec_add(samplesv3,
                       vec_perm(samplesv6, samplesv6, reverse));
-      //vec_st(temp1, 32, b1);
       b1v2 = temp1;
       temp1 = vec_add(samplesv4,
                       vec_perm(samplesv5, samplesv5, reverse));
-      //vec_st(temp1, 48, b1);
       b1v3 = temp1;
 
       costabv1 = vec_ld(0, costab);
@@ -268,7 +266,6 @@ void dct64(real *a,real *b,real *c)
       temp2 = vec_madd(temp1,
                        vec_perm(costabv4, costabv4, reverse),
                        vczero);
-      //vec_st(temp2, 64, b1);
       b1v4 = temp2;
     
       temp1 = vec_sub(vec_perm(samplesv3, samplesv3, reverse),
@@ -276,14 +273,12 @@ void dct64(real *a,real *b,real *c)
       temp2 = vec_madd(temp1,
                        vec_perm(costabv3, costabv3, reverse),
                        vczero);
-      //vec_st(temp2, 80, b1);
       b1v5 = temp2;
       temp1 = vec_sub(vec_perm(samplesv2, samplesv2, reverse),
                       samplesv7);
       temp2 = vec_madd(temp1,
                        vec_perm(costabv2, costabv2, reverse),
                        vczero);
-      //vec_st(temp2, 96, b1);
       b1v6 = temp2;
     
       temp1 = vec_sub(vec_perm(samplesv1, samplesv1, reverse),
@@ -291,7 +286,6 @@ void dct64(real *a,real *b,real *c)
       temp2 = vec_madd(temp1,
                        vec_perm(costabv1, costabv1, reverse),
                        vczero);
-      //vec_st(temp2, 112, b1);
       b1v7 = temp2;
 
     }
@@ -314,32 +308,24 @@ void dct64(real *a,real *b,real *c)
         costabv2r = vec_perm(costabv2, costabv2, reverse);
     
         temp1 = vec_add(b1v0, vec_perm(b1v3, b1v3, reverse));
-        //vec_st(temp1, 0, b2);
         b2v0 = temp1;
         temp1 = vec_add(b1v1, vec_perm(b1v2, b1v2, reverse));
-        //vec_st(temp1, 16, b2);
         b2v1 = temp1;
         temp2 = vec_sub(vec_perm(b1v1, b1v1, reverse), b1v2);
         temp1 = vec_madd(temp2, costabv2r, vczero);
-        //vec_st(temp1, 32, b2);
         b2v2 = temp1;
         temp2 = vec_sub(vec_perm(b1v0, b1v0, reverse), b1v3);
         temp1 = vec_madd(temp2, costabv1r, vczero);
-        //vec_st(temp1, 48, b2);
         b2v3 = temp1;
         temp1 = vec_add(b1v4, vec_perm(b1v7, b1v7, reverse));
-        //vec_st(temp1, 64, b2);
         b2v4 = temp1;
         temp1 = vec_add(b1v5, vec_perm(b1v6, b1v6, reverse));
-        //vec_st(temp1, 80, b2);
         b2v5 = temp1;
         temp2 = vec_sub(b1v6, vec_perm(b1v5, b1v5, reverse));
         temp1 = vec_madd(temp2, costabv2r, vczero);
-        //vec_st(temp1, 96, b2);
         b2v6 = temp1;
         temp2 = vec_sub(b1v7, vec_perm(b1v4, b1v4, reverse));
         temp1 = vec_madd(temp2, costabv1r, vczero);
-        //vec_st(temp1, 112, b2);
         b2v7 = temp1;
       }
 

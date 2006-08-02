@@ -83,6 +83,7 @@ AC_ARG_WITH([audio], [
   --with-audio=nas        Use NAS audio output (Network Audio System)
   --with-audio=os2        Use OS2 audio output sub-system
   --with-audio=oss        Use OSS audio output sub-system (/dev/dsp)
+  --with-audio=portaudio  Use PortAudio audio output sub-system
   --with-audio=sgi        Use SGI audio output sub-system (IRIX)
   --with-audio=sun        Use Sun audio output sub-system (/dev/audio)
 ])
@@ -126,21 +127,25 @@ PKG_CHECK_MODULES(ESOUND, esound, HAVE_ESOUND=yes, HAVE_ESOUND=no)
 # Check for NAS
 AC_CHECK_LIB( [audio], [AuOpenServer],
 	[ AC_CHECK_HEADER( [audio/audiolib.h],
-		[ HAVE_NAS="yes"
-		  ALSA_CFLAGS="" 
-		  ALSA_LIBS="-lasound" ],
-		[ AC_MSG_WARN([Can't find audio/audiolib.h on your system]) ] ) ],
-	[ AC_MSG_WARN([Can't find NAS libaudio library on your system]) ]
+		[ HAVE_NAS="yes" ],
+		[ AC_MSG_WARN([Found ALSA library but NOT header files on your system]) ] )
+	]
+)
+
+# Check for PortAudio
+AC_CHECK_LIB( [portaudio], [Pa_Initialize],
+	[ AC_CHECK_HEADER( [portaudio.h],
+		[ HAVE_PORTAUDIO="yes" ],
+		[ AC_MSG_WARN([Found PortAudio library but NOT header files on your system]) ] )
+	]
 )
 
 # Check for ALSA
 AC_CHECK_LIB( [asound], [snd_pcm_open],
 	[ AC_CHECK_HEADER( [alsa/asoundlib.h],
-		[ HAVE_ALSA="yes"
-		  ALSA_CFLAGS="" 
-		  ALSA_LIBS="-lasound" ],
-		[ AC_MSG_WARN([Can't find alsa/asoundlib.h on your system]) ] ) ],
-	[ AC_MSG_WARN([Can't find ALSA asound library on your system]) ]
+		[ HAVE_ALSA="yes" ],
+		[ AC_MSG_WARN([Found ALSA library but NOT header files on your system]) ] )
+	]
 )
 
 
@@ -173,26 +178,6 @@ if test "$debugging" = "enabled"; then
 fi
 
 
-# Check for Altivec
-ALTIVEC_CFLAGS="-maltivec -mabi=altivec"
-if test "$target_cpu" = "powerpc"; then
-	save_CFLAGS="$CFLAGS"
-	CFLAGS="$CFLAGS $ALTIVEC_CFLAGS"
-	AC_MSG_CHECKING([if <altivec.h> is needed])
-	AC_TRY_COMPILE([],
-		[typedef vector int t;
-		 vec_ld(0, (unsigned char *)0);],
-		[have_altivec=yes; AC_MSG_RESULT(no)],
-		[AC_TRY_COMPILE([#include <altivec.h>],
-		[typedef vector int t; vec_ld(0, (unsigned char *)0);],
-		[AC_DEFINE([HAVE_ALTIVEC_H],,
-			[Define to 1 if you have the <altivec.h> header.])
-		 have_altivec=yes; AC_MSG_RESULT(yes)],
-		[AC_MSG_RESULT(unsupported)])])
-	CFLAGS="$save_CFLAGS"
-fi
-
-
 case $target in
   i386-*-linux*)
     cpu_type="i586"
@@ -210,18 +195,14 @@ case $target in
     cpu_type="mmx"
     CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
   ;;
-  powerpc-*-*)
-    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
-    if test "$have_altivec" = "xyes"; then
-    	cpu_type="altivec"
-    else
-    	cpu_type="generic"
-    fi
-  ;;
   *-*-linux*)
     cpu_type="generic"
     CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
-	;;
+  ;;
+  *-apple-darwin*)
+    cpu_type="generic"
+    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
+  ;;
   *-*-freebsd*)
     cpu_type="generic"
     CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
@@ -251,7 +232,7 @@ case $cpu_type in
     CFLAGS="$CFLAGS"
   ;;
   altivec)
-    CFLAGS="$CFLAGS $ALTIVEC_CFLAGS"
+    CFLAGS="$CFLAGS -maltivec"
   ;;
   i386) 
     CFLAGS="$CFLAGS -march=i386 -DI386_ASSEM "
@@ -357,8 +338,8 @@ fi
 
 
 AUDIO_OBJ="audio_$audio_system.\$(OBJEXT)"
-AUDIO_CFLAGS=''
-AUDIO_LIBS=''
+AUDIO_CFLAGS=""
+AUDIO_LIBS=""
 
 case $audio_system in
   aix)	
@@ -366,14 +347,14 @@ case $audio_system in
   ;;
   alib)
     # Currently unsupported in the new build system
-    AUDIO_CFLAGS='-I/opt/audio/include'
+    AUDIO_CFLAGS="-I/opt/audio/include"
   ;;
   alsa)
     if test "x$HAVE_ALSA" != "xyes" ; then
   		AC_MSG_ERROR( ALSA is not available for audio output subsystem. )
     fi
-    AUDIO_CFLAGS=$ALSA_CFLAGS
-    AUDIO_LIBS=$ALSA_LIBS
+    AUDIO_CFLAGS="-lasound"
+    AUDIO_LIBS=""
   ;;
   dummy) 
     AC_MSG_WARN( Using dummy audio output. )
@@ -408,7 +389,7 @@ case $audio_system in
   	if test "x$HAVE_COREAUDIO" != "xyes" ; then
   		AC_MSG_ERROR( Can't find Mac OS X's CoreAudio header files )
   	fi
-  	AUDIO_LIBS='-framework CoreAudio'
+  	AUDIO_LIBS="-framework CoreAudio"
   ;;
   mint)
     # Currently unsupported in the new build system
@@ -417,8 +398,8 @@ case $audio_system in
   	if test "x$HAVE_NAS" != "xyes" ; then
   		AC_MSG_ERROR( NAS (Network Audio System) is not available. )
   	fi
-    AUDIO_CFLAGS=''
-    AUDIO_LIBS='-laudio'
+    AUDIO_CFLAGS=""
+    AUDIO_LIBS="-laudio"
   ;;
   os2)
     # Currently unsupported in the new build system
@@ -428,11 +409,18 @@ case $audio_system in
          -o "x${ac_cv_header_linux_soundcard_h}" = "xyes" \
          -o "x${ac_cv_header_machine_soundcard_h}" = "xyes";
     then
-		AUDIO_CFLAGS=''
-		AUDIO_LIBS=''
+		AUDIO_CFLAGS=""
+		AUDIO_LIBS=""
 	else 
 		AC_MSG_ERROR([Can't find OSS header files])
 	fi
+  ;;
+  portaudio)
+  	if test "x$HAVE_PORTAUDIO" != "xyes" ; then
+  		AC_MSG_ERROR( PortAudio is not available. )
+  	fi
+    AUDIO_CFLAGS=""
+    AUDIO_LIBS="-lportaudio"
   ;;
   sgi)
     # Currently unsupported in the new build system
@@ -442,8 +430,8 @@ case $audio_system in
          -o "x${ac_cv_header_sys_audioio_h}" = "xyes" \
          -o "x${ac_cv_header_asm_audioio_h}" = "xyes";
     then
-		AUDIO_CFLAGS=''
-		AUDIO_LIBS=''
+		AUDIO_CFLAGS=""
+		AUDIO_LIBS=""
 	else 
 		AC_MSG_ERROR([Can't find Sun Audio header files])
 	fi
