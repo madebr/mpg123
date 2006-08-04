@@ -2,7 +2,7 @@
 -----
 
 - Removed libao support (as it is GPL and we aren't)
-- Added preliminary ALSA 0.9/1.0 support
+- Added ALSA 0.9/1.0 support by Clemens Ladisch
 - Added PortAudio audio-output support
 - Added SDL audio-output support
 - Fixed NAS audio-output support

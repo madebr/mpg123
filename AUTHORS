@@ -19,6 +19,7 @@ Cool Feet Audio project <nutcase@dtfm.org>: realtime equalizer control
 Steve Grundell <www@grundell.u-net.com>: clean stdout in control mode with stdout decoding
 Romain Dolbeau <romain@dolbeau.org>: Altivec support (taken from mplayer)
 higway <higway@mednet.md>: MMX Patch
+Clemens Ladisch <clemens@ladisch.de>: ALSA 0.9/1.0 support
 
 Contributions/ideas Michael Hipp era:
 
