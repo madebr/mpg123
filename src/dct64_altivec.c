@@ -9,7 +9,7 @@
 #include "config.h"
 #include "mpg123.h"
 
-#ifdef SYS_DARWIN
+#ifndef SYS_DARWIN
 #include <altivec.h>
 #endif
 
