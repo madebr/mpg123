@@ -10,7 +10,7 @@ AC_PREREQ(2.57)
 
 dnl ############# Initialisation
 
-AC_INIT([mpg123], [0.60-beta3], [mpg123-devel@lists.sourceforge.net])
+AC_INIT([mpg123], [0.60-beta4], [mpg123-devel@lists.sourceforge.net])
 
 AC_CONFIG_SRCDIR(src/mpg123.c)
 AC_CONFIG_AUX_DIR(build)
@@ -77,7 +77,6 @@ AC_ARG_WITH([audio], [
   --with-audio=esd        Use ESoundD audio output sub-system
   --with-audio=hp         Use HP audio output sub-system
   --with-audio=jack       Use JACK low-latency audio server
-  --with-audio=libao      Use libao audio output sub-system
   --with-audio=macosx     Use Mac OS X audio output sub-system (CoreAudio)
   --with-audio=mint       Use MinT audio output sub-system (Atari)
   --with-audio=nas        Use NAS audio output (Network Audio System)
@@ -118,9 +117,6 @@ AC_CHECK_LIB([mx], [powf])
 
 # Check for JACK
 PKG_CHECK_MODULES(JACK, jack, HAVE_JACK=yes, HAVE_JACK=no)
-
-# Check for libao (Audio Out)
-PKG_CHECK_MODULES(LIBAO, ao, HAVE_LIBAO=yes, HAVE_LIBAO=no)
 
 # Check for EsounD
 PKG_CHECK_MODULES(ESOUND, esound, HAVE_ESOUND=yes, HAVE_ESOUND=no)
@@ -381,13 +377,6 @@ case $audio_system in
   	fi
     AUDIO_CFLAGS=$JACK_CFLAGS
     AUDIO_LIBS=$JACK_LIBS
-  ;;
-  libao)
-  	if test "x$HAVE_LIBAO" != "xyes" ; then
-  		AC_MSG_ERROR( libao is not available for audio output subsystem. )
-  	fi
-    AUDIO_CFLAGS=$LIBAO_CFLAGS
-    AUDIO_LIBS=$LIBAO_LIBS
   ;;
   macosx)
   	if test "x$HAVE_COREAUDIO" != "xyes" ; then

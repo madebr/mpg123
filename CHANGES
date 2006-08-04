@@ -1,3 +1,13 @@
+0.60-beta4 (Nicholas Humfrey)
+-----
+
+- Removed libao support (as it is GPL and we aren't)
+- Added preliminary ALSA 0.9/1.0 support
+- Added PortAudio audio-output support
+- Added SDL audio-output support
+- Fixed NAS audio-output support
+
+
 0.60-beta3 (Thomas Orgis)
 -----
 
