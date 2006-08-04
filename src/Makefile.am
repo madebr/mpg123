@@ -21,6 +21,7 @@ mpg123_SOURCES = \
 	common.c \
 	common.h \
 	control_generic.c \
+	debug.h \
 	decode_2to1.c \
 	decode_4to1.c \
 	decode_ntom.c \
@@ -57,7 +58,6 @@ EXTRA_mpg123_SOURCES = \
 	audio_hp.c \
 	audio_jack.c \
 	audio_macosx.c \
-	audio_libao.c \
 	audio_mint.c \
 	audio_nas.c \
 	audio_os2.c \
