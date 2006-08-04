@@ -1368,12 +1368,9 @@ tc_hack:
 
 static void print_title(FILE *o)
 {
-	fprintf(o, "High Performance MPEG 1.0/2.0 Audio Player for Layers 1, 2 and 3.\n");
-	fprintf(o, "Version %s. Initially written and copyright by Michael Hipp,\n", PACKAGE_VERSION);
-	fprintf(o,"now maintained by Thomas Orgis and friends.\n");
-	fprintf(o, "Uses code from various people, see file AUTHORS for full list.\n");
-	fprintf(o, "This is free software (LGPL/GPL) without any warranty but with best wishes.\n");
-	fprintf(o, "See the enclosed file COPYING for legal details.\n");
+	fprintf(o, "High Performance MPEG 1.0/2.0 Audio Player for Layers 1, 2 and 3\n");
+	fprintf(o, "\tversion %s; written and copyright by Michael Hipp and others\n", PACKAGE_VERSION);
+	fprintf(o, "\tfree software (LGPL/GPL) without any warranty but with best wishes\n");
 }
 
 static void usage(int err)  /* print syntax & exit */
