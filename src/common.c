@@ -442,9 +442,7 @@ init_resync:
 						#define make_short(a,o) ((((unsigned short) a[o]) << 8) | ((unsigned short) a[o+1]))
 						xing_flags = make_long(bsbuf, lame_offset);
 						lame_offset += 4;
-						#ifdef DEBUG_INFOTAG
-						fprintf(stderr, "Xing: flags 0x%08lx\n", xing_flags);
-						#endif
+						debug1("Xing: flags 0x%08lx", xing_flags);
 						if(xing_flags & 1) /* frames */
 						{
 							/*
@@ -469,9 +467,9 @@ init_resync:
 						}
 						if(xing_flags & 0x2) /* bytes */
 						{
-							#ifdef DEBUG_INFOTAG
+							#ifdef DEBUG
 							unsigned long xing_bytes = make_long(bsbuf, lame_offset);
-							fprintf(stderr, "Xing: %lu bytes\n", xing_bytes);
+							debug1("Xing: %lu bytes", xing_bytes);
 							#endif
 							lame_offset += 4;
 						}
@@ -481,11 +479,11 @@ init_resync:
 						}
 						if(xing_flags & 0x8) /* VBR quality */
 						{
-							/* unsigned long xing_quality = make_long(bsbuf, lame_offset); */
-							lame_offset += 4;
-							#ifdef DEBUG_INFOTAG
-							fprintf(stderr, "Xing: quality = %lu\n", xing_quality);
+							#ifdef DEBUG
+							unsigned long xing_quality = make_long(bsbuf, lame_offset);
+							debug1("Xing: quality = %lu", xing_quality);
 							#endif
+							lame_offset += 4;
 						}
 						/* I guess that either 0 or LAME extra data follows */
 						/* there may this crc16 be floating around... (?) */
@@ -496,15 +494,12 @@ init_resync:
 							char nb[10];
 							memcpy(nb, bsbuf+lame_offset, 9);
 							nb[9] = 0;
-							#ifdef DEBUG_INFOTAG
-							fprintf(stderr, "Info: Encoder: %s\n", nb);
-							#endif
+							debug1("Info: Encoder: %s", nb);
 							lame_offset += 9;
 							/* the 4 big bits are tag revision, the small bits vbr method */
 							lame_vbr = bsbuf[lame_offset] & 15;
-							#ifdef DEBUG_INFOTAG
-							fprintf(stderr, "Info: rev %u\nInfo: vbr mode %u\n", bsbuf[lame_offset] >> 4, lame_vbr);
-							#endif
+							debug1("Info: rev %u", bsbuf[lame_offset] >> 4);
+							debug1("Info: vbr mode %u", lame_vbr);
 							lame_offset += 1;
 							switch(lame_vbr)
 							{
@@ -519,9 +514,7 @@ init_resync:
 							lame_offset += 1;
 							/* replaygain */
 							/* 32bit int: peak amplitude */
-							#ifdef DEBUG_INFOTAG
-							fprintf(stderr, "Info: peak = %lu\n", make_long(bsbuf,lame_offset));
-							#endif
+							debug1("Info: peak = %lu", make_long(bsbuf,lame_offset));
 							lame_offset += 4;
 							/*
 								ReplayGain values, not used atm, also lame only writes radio mode gain(?)
@@ -545,17 +538,13 @@ init_resync:
 								}
 								lame_offset += 2;
 							}
-							#ifdef DEBUG_INFOTAG
-							fprintf(stderr, "Info: Radio Gain = %03.1fdB\n", replay_gain[0]);
-							fprintf(stderr, "Info: Audiophile Gain = %03.1fdB\n", replay_gain[1]);
-							#endif
+							debug1("Info: Radio Gain = %03.1fdB", replay_gain[0]);
+							debug1("Info: Audiophile Gain = %03.1fdB", replay_gain[1]);
 							lame_offset += 1; /* skipping encoding flags byte */
 							if(vbr == ABR)
 							{
 								abr_rate = bsbuf[lame_offset];
-								#ifdef DEBUG_INFOTAG
-								fprintf(stderr, "Info: ABR rate = %u\n", abr_rate);
-								#endif
+								debug1("Info: ABR rate = %u", abr_rate);
 							}
 							lame_offset += 1;
 							/* encoder delay and padding, two 12 bit values... lame does write them from int ...*/
