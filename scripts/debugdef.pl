@@ -38,18 +38,27 @@ print "#else\n";
 printdefs(0);
 print "#endif\n";
 
+for('warning', 'error')
+{
+	print "\n/* $_ macros also here... */\n";
+	printdefs(1, $_);
+}
+
 sub printdefs
 {
 	my $forreal = shift;
+	my $type = shift;
+	$type = 'debug' unless defined $type;
 	my $i;
 	while(++$i <= $num+1)
 	{
 		my @args, my $j;
 		while(++$j < $i){ push(@args, chr(ord('a')+$j-1)); }
 		unshift(@args, '') if(@args);
-		print '	#define debug'.($i > 1 ? ($i-1) : '').'(s';
+		print '	#define '.$type.($i > 1 ? ($i-1) : '').'(s';
 		print join(', ', @args).') ';
-		if($forreal){ print 'fprintf(stderr, "[" __FILE__ ":%i] " s "\n", __LINE__'.join(', ', @args).")\n"; }
+		if($forreal){ print 'fprintf(stderr, "[" __FILE__ ":%i] '.$type.': " s "\n", __LINE__'.join(', ', @args).")\n"; }
 		else{ print "{}\n"; } 
 	}
 }
+
