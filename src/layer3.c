@@ -1863,7 +1863,11 @@ int do_layer3(struct frame *fr,int outmode,struct audio_info_struct *ai)
   }
   /* quick hack to keep the music playing */
   /* after having seen this nasty test file... */
-  if(III_get_side_info(&sideinfo,stereo,ms_stereo,sfreq,single,fr->lsf)) return clip;
+  if(III_get_side_info(&sideinfo,stereo,ms_stereo,sfreq,single,fr->lsf))
+  {
+    error("bad frame - unable to get valid sideinfo");
+    return clip;
+  }
 
   set_pointer(sideinfo.main_data_begin);
 
