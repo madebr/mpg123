@@ -857,8 +857,12 @@ if(region1 > region2)
 			register short a;
       /* This is only a humble hack to prevent a special segfault. */
       /* More insight into the real workings is still needed. */
-      if(!(xrpnt < &xr[SBLIMIT][0])) return 2;
-
+      /* especially why there are (valid?) files that make xrpnt exceed the array with 4 bytes without segfaulting, more seems to be really bad, though. */
+      if(!(xrpnt < &xr[SBLIMIT][0]+5))
+      {
+        error2("attempted xrpnt overflow (%p !< %p)", (void*) xrpnt, (void*) &xr[SBLIMIT][0]);
+        return 2;
+      }
       h = htc+gr_info->count1table_select;
       val = h->table;
 
