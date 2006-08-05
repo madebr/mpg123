@@ -630,37 +630,37 @@ mpg123.exe: mpg123.o common.o $(OBJECTS) decode_2to1.o decode_4to1.o \
 ###########################################################################
 ###########################################################################
 
-layer1.o:	mpg123.h
-layer2.o:	mpg123.h l2tables.h
-layer3.o:	mpg123.h huffman.h common.h getbits.h
-decode.o:	mpg123.h
-decode_2to1.o:	mpg123.h
-decode_4to1.o:	mpg123.h
-decode_ntom.o:	mpg123.h
-decode_i386.o:	mpg123.h
-common.o:	mpg123.h common.h layer3.h
-mpg123.o:	mpg123.c mpg123.h getlopt.h xfermem.h buffer.h term.h
-mpg123.h:	audio.h
-audio.o:	mpg123.h
-audio_oss.o:	mpg123.h
-audio_sun.o:	mpg123.h
-audio_sgi.o:	mpg123.h
-audio_hp.o:	mpg123.h
-audio_nas.o:	mpg123.h
-audio_os2.o:	mpg123.h
-audio_dummy.o:	mpg123.h
-buffer.o:	mpg123.h xfermem.h buffer.h
-getbits.o:	common.h mpg123.h
-tabinit.o:	mpg123.h audio.h
-getlopt.o:	getlopt.h
-httpget.o:	mpg123.h
-dct64.o:	mpg123.h
-dct64_i386.o:	mpg123.h
-xfermem.o:	xfermem.h
-equalizer.o:	mpg123.h
-wav.o:		mpg123.h
-readers.o:	mpg123.h buffer.h common.h
-term.o:		mpg123.h buffer.h term.h common.h
+layer1.o:	mpg123.h debug.h
+layer2.o:	mpg123.h l2tables.h debug.h
+layer3.o:	mpg123.h huffman.h common.h getbits.h debug.h
+decode.o:	mpg123.h debug.h
+decode_2to1.o:	mpg123.h debug.h
+decode_4to1.o:	mpg123.h debug.h
+decode_ntom.o:	mpg123.h debug.h
+decode_i386.o:	mpg123.h debug.h
+common.o:	mpg123.h common.h layer3.h debug.h
+mpg123.o:	mpg123.c mpg123.h getlopt.h xfermem.h buffer.h term.h debug.h
+mpg123.h:	audio.h debug.h
+audio.o:	mpg123.h debug.h
+audio_oss.o:	mpg123.h debug.h
+audio_sun.o:	mpg123.h debug.h
+audio_sgi.o:	mpg123.h debug.h
+audio_hp.o:	mpg123.h debug.h
+audio_nas.o:	mpg123.h debug.h
+audio_os2.o:	mpg123.h debug.h
+audio_dummy.o:	mpg123.h debug.h
+buffer.o:	mpg123.h xfermem.h buffer.h debug.h
+getbits.o:	common.h mpg123.h debug.h
+tabinit.o:	mpg123.h audio.h debug.h
+getlopt.o:	getlopt.h debug.h
+httpget.o:	mpg123.h debug.h
+dct64.o:	mpg123.h debug.h
+dct64_i386.o:	mpg123.h debug.h
+xfermem.o:	xfermem.h debug.h
+equalizer.o:	mpg123.h debug.h
+wav.o:		mpg123.h debug.h
+readers.o:	mpg123.h buffer.h common.h debug.h
+term.o:		mpg123.h buffer.h term.h common.h debug.h
 
 ###########################################################################
 ###########################################################################
