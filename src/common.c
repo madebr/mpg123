@@ -360,17 +360,25 @@ init_resync:
           fprintf (stderr, "Note: Skipped %d bytes in input.\n", try);
       }
       else
+      {
+        error("not attempting to resync...");
         return (0);
+      }
     }
 
     if (!firsthead) {
       if(!decode_header(fr,newhead))
+      {
+        error("decode header failed before first valid one, going to read again");
         goto read_again;
+      }
     }
     else
       if(!decode_header(fr,newhead))
+      {
+        error("decode header failed");
         return 0;
-
+      }
   }
   else
     fr->header_change = 0;
