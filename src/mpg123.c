@@ -73,7 +73,8 @@ struct parameter param = {
 #ifdef GAPLESS
 	0, /* gapless off per default - yet */
 #endif
-	0 /* default is to play all titles in playlist */
+	0, /* default is to play all titles in playlist */
+	-1, /* do not use rva per default */
 };
 
 char *prgName = NULL;
@@ -84,7 +85,7 @@ char *listnamedir = NULL;
 char *equalfile = NULL;
 /* ThOr: pointers are not TRUE or FALSE */
 int have_eq_settings = FALSE;
-long outscale  = 32768;
+long outscale  = MAXOUTBURST;
 long numframes = -1;
 long startFrame= 0;
 int buffer_fd[2];
@@ -692,6 +693,10 @@ topt opts[] = {
 	{0 , "longhelp" ,        0,  want_long_usage, 0,      0 },
 	{0 , "version" ,         0,  give_version, 0,         0 },
 	{'l', "listentry",       GLO_ARG | GLO_LONG, 0, &param.listentry, 0 },
+	{0, "rva-mix",         GLO_INT,  0, &param.rva, 0 },
+	{0, "rva-radio",         GLO_INT,  0, &param.rva, 0 },
+	{0, "rva-album",         GLO_INT,  0, &param.rva, 1 },
+	{0, "rva-audiophile",         GLO_INT,  0, &param.rva, 1 },
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -1416,7 +1421,7 @@ static void usage(int err)  /* print syntax & exit */
 	fprintf(o,"   -C    enable control keys\n");
 	#endif
 	fprintf(o,"   -?    this help                      --version  print name + version\n");
-	fprintf(o,"See the manpage %s(1) or call %s with --longhelp for more information.\n", prgName,prgName);
+	fprintf(o,"See the manpage %s(1) or call %s with --longhelp for more parameters and information.\n", prgName,prgName);
 	exit(err);
 }
 
@@ -1457,6 +1462,11 @@ static void long_usage(int err)
 	fprintf(o,"        --reopen           force close/open on audiodevice\n");
 	fprintf(o," -g     --gain             set audio hardware output gain\n");
 	fprintf(o," -f <n> --scale <n>        scale output samples (soft gain, default=%li)\n", outscale);
+	fprintf(o,"        --rva-mix,\n");
+	fprintf(o,"        --rva-radio        use RVA2/ReplayGain values for mix/radio mode\n");
+	fprintf(o,"        --rva-album,\n");
+	fprintf(o,"        --rva-audiophile   use RVA2/ReplayGain values for album/audiophile mode\n");
+	fprintf(o,"        --reopen           force close/open on audiodevice\n");
 	fprintf(o," -0     --left --single0   play only left channel\n");
 	fprintf(o," -1     --right --single1  play only right channel\n");
 	fprintf(o," -m     --mono --mix       mix stereo to mono\n");

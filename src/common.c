@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <math.h>
 
 #include <fcntl.h>
 
@@ -70,6 +71,11 @@ unsigned long track_frames = 0;
 #define ULONG_MAX ((unsigned long)-1)
 #endif
 #define TRACK_MAX_FRAMES ULONG_MAX/4/1152
+
+/* last rv-adjusted outscale */
+long lastscale = -1;
+/* if rva has been made already (for conflicting tags in same file) */
+int have_rva = 0;
 
 unsigned char *pcm_sample;
 int pcm_point = 0;
@@ -199,6 +205,7 @@ void read_frame_init (void)
 	vbr = CBR;
 	abr_rate = 0;
 	track_frames = 0;
+	have_rva = 0;
 	#ifdef GAPLESS
 	/* one can at least skip the delay at beginning - though not add it at end since end is unknown */
 	if(param.gapless) layer3_gapless_init(DECODER_DELAY+GAP_SHIFT, 0);
@@ -238,6 +245,27 @@ int head_check(unsigned long head)
 	}
 }
 
+static void do_rva(float db, float peak)
+{
+	if(!have_rva)
+	{
+		long newscale = outscale*pow(10,db/20);
+		have_rva = 1;
+		/* if peak is unknown (== 0) this check won't hurt */
+		if((peak*newscale) > MAXOUTBURST)
+		{
+			newscale = (long) ((float) MAXOUTBURST/peak);
+			warning2("limiting scale value to %li to prevent clipping with indicated peak factor of %f", newscale, peak);
+		}
+		if(lastscale < 0) lastscale = outscale;
+		if(newscale != lastscale)
+		{
+			debug3("changing scale value from %li to %li (peak estimated to %li)", lastscale, newscale, (long) (newscale*peak));
+			make_decode_tables(newscale);
+			lastscale = newscale;
+		}
+	}
+}
 
 
 /*****************************************************************
@@ -418,6 +446,8 @@ init_resync:
 		return 0;
 	if(!firsthead)
 	{
+		/* default rva of zero */
+		double newrva = 0;
 		/* following stuff is actually layer3 specific (in practice, not in theory) */
 		if(fr->lay == 3)
 		{
@@ -525,6 +555,7 @@ init_resync:
 							unsigned char lame_vbr;
 							float replay_gain[2] = {0,0};
 							char nb[10];
+							float peak = 0;
 							memcpy(nb, bsbuf+lame_offset, 9);
 							nb[9] = 0;
 							debug1("Info: Encoder: %s", nb);
@@ -546,11 +577,21 @@ init_resync:
 							/* skipping: lowpass filter value */
 							lame_offset += 1;
 							/* replaygain */
-							/* 32bit int: peak amplitude */
-							debug1("Info: peak = %lu", make_long(bsbuf,lame_offset));
+							/* 32bit float: peak amplitude -- why did I parse it as int before??*/
+							if
+							(
+								   (bsbuf[lame_offset] != 0)
+								|| (bsbuf[lame_offset+1] != 0)
+								|| (bsbuf[lame_offset+2] != 0)
+								|| (bsbuf[lame_offset+3] != 0)
+							)
+							{
+								peak = *(float*) (bsbuf+lame_offset);
+							}
+							debug1("Info: peak = %f", peak);
 							lame_offset += 4;
 							/*
-								ReplayGain values, not used atm, also lame only writes radio mode gain(?)
+								ReplayGain values - lame only writes radio mode gain...
 								16bit gain, 3 bits name, 3 bits originator, sign (1=-, 0=+), dB value*10 in 9 bits (fixed point)
 								ignore the setting if name or originator == 000!
 								radio 0 0 1 0 1 1 1 0 0 1 1 1 1 1 0 1
@@ -573,6 +614,7 @@ init_resync:
 							}
 							debug1("Info: Radio Gain = %03.1fdB", replay_gain[0]);
 							debug1("Info: Audiophile Gain = %03.1fdB", replay_gain[1]);
+							if((param.rva >= 0) && (param.rva < 2))	do_rva(replay_gain[param.rva], peak);
 							lame_offset += 1; /* skipping encoding flags byte */
 							if(vbr == ABR)
 							{
@@ -604,8 +646,10 @@ init_resync:
 					}
 				}
 			}
-		}
+		} /* end block for Xing/Lame/Info tag */
 		firsthead = newhead; /* _now_ it's time to store it... the first real header */
+		/* now adjust volume if necessary - I suppose that any real RVA settings have been done already if present */
+		do_rva(newrva,0);
 	}
   bsi.bitindex = 0;
   bsi.wordpointer = (unsigned char *) bsbuf;

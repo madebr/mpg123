@@ -151,6 +151,14 @@ Set audio hardware output gain (default: don't change).
 \fB\-f \fIfactor\fR, \fB\-\^\-scale \fIfactor
 Change scale factor (default: 32768).
 .TP
+.BR \-\-rva-mix, \-\-rva-radio
+Enable RVA (relative volume adjustment) using the values stored for ReplayGain radio mode / mix mode with all tracks roughly equal loudness.
+The first valid information found in ID3V2 Tags (Comment named RVA or the RVA2 frame) or ReplayGain header in Lame/Info Tag is used.
+.TP
+.BR \-\-rva-album, \-\-rva-audiophile
+Enable RVA (relative volume adjustment) using the values stored for ReplayGain audiophile mode / album mode with usually the effect of adjusting album loudness but keeping relative loudness inside album.
+The first valid information found in ID3V2 Tags (Comment named RVA_ALBUM or the RVA2 frame) or ReplayGain header in Lame/Info Tag is used.
+.TP
 .BR \-0 ", " \-\^\-single0 "; " \-1 ", " \-\^\-single1
 Decode only channel 0 (left) or channel 1 (right),
 respectively.  These options are available for
