@@ -1,0 +1,40 @@
+Thomas Orgis on RVA, Gain and Pain
+
+
+Ok, so I'm going to add RVA/ReplayGain support... the problem there is not to read these valus from ID3 or Lame, not even to do the adjustment itself.
+The problem is more to figure out how to interpret the dB values one gets there.
+
+Main players in the field of relative volume adjustment / soft gain:
+
+http://www1.cs.columbia.edu/~cvaill/normalize/
+	...writing RVA2 ID3v2tags for dB offset to user target amplitude, default being -12dB(FS)
+http://www.replaygain.org/
+	...store the difference to reference of 83dB(SPL) in Lame/Info tag (effectively for mp3s, there are other places...)
+
+Both calculate some running RMS and do statistics with this - the main difference is the potentially different target level.
+Also both know two basic types of adjustment: Per track to make all tracks sound at the same sevel (track / radio) and the one with default meaning to keep the loudness relations over albums (batch / audiophile).
+
+dB can mean many things and also the raw value of a PCM sample doesn't equal directly to loudness (power of a wave != amplitude).
+
+So that says the ReplayGain about applying the adjustment:
+
+	scale=10.^(replay_gain/20);
+
+luckily, this is the same that I worked out on my own for the normalize RVA values in my mixplayer script:
+
+	return 10**($s/20);
+
+I'll take that interpretaion of dB -> linear scale factor for samples for granted, then.
+
+The replay_gain value is meant in the standard to represent the offset to 83dB(SPL - depending on your amplifier...), having in mind that actual most wanted average playback level should be 83dB(SPL) (defined by movie ppl as the loudness of a -20dB(FS) signal, leaving room for louder stuff).
+But then there is the proposal to add 6dB preamp for pop music - am I judging music types with mpg123??
+These 6dB are in fact the real world since lots of programs use 89dB(SPL...) as reference.
+Thus, lame since 3.95.1 (according to MADplay's Rob Leslie who discussed with Lame ppl, verified in 3.96 source) stores the adjustment to 89dB.
+To make that all sound the same, one should add 6bB to lame <3.95.1 ReplayGain values and use later ones verbatim - achieving 89dB everytime, whatever that may mean in reality out of my speakers (my Marantz' volume knob doesn't have a scale at all - be it dB or percent;-).
+
+As for normalize... the desired playback level is essentially undefined. Ignoring that and realizing that mpg123 has no way to determine real world sound power anyway, one has to just take the provided dB values and apply with the formula above.
+The user is responsible for providing files with his desired settings... for that reason I also won't follow the ReplayGain demand/suggestion that a player should apply an average of gains of previous tracks if the current one lacks a setting.
+
+So, well. Considering that ReplayGain (at least the radio one) being stored by current lame on encoding, I suppose that if there are RVA2 values in ID3v2 tags, these were added by a conscious user act and are overriding the ReplayGain ones.
+
+I already read ReplayGain entries in Lame tag... should add ID3v2 parsing.
