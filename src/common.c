@@ -319,7 +319,7 @@ init_resync:
 				break;
 		}
 		if(i == 65536) {
-			if(!param.quiet) fprintf(stderr,"Giving up searching valid MPEG header after 64K of junk.\n");
+			if(!param.quiet) error("Giving up searching valid MPEG header after 64K of junk.");
 			return 0;
 		}
 		/* 
@@ -676,7 +676,7 @@ static int decode_header(struct frame *fr,unsigned long newhead)
 	     have changed. */
       fr->lay = 4-((newhead>>17)&3);
       if( ((newhead>>10)&0x3) == 0x3) {
-        fprintf(stderr,"Stream error\n");
+        error("Stream error");
         exit(1);
       }
       if(fr->mpeg25) {
@@ -701,7 +701,7 @@ static int decode_header(struct frame *fr,unsigned long newhead)
     oldhead = newhead;
 
     if(!fr->bitrate_index) {
-      fprintf(stderr,"Free format not supported: (head %08lx)\n",newhead);
+      error1("encountered free format header %08lx in decode_header - not supported yet",newhead);
       return (0);
     }
 
@@ -710,7 +710,7 @@ static int decode_header(struct frame *fr,unsigned long newhead)
 	fr->do_layer = do_layer1;
 #ifdef VARMODESUPPORT
         if (varmode) {
-          fprintf(stderr,"Sorry, layer-1 not supported in varmode.\n"); 
+          error("Sorry, layer-1 not supported in varmode."); 
           return (0);
         }
 #endif
@@ -722,7 +722,7 @@ static int decode_header(struct frame *fr,unsigned long newhead)
 	fr->do_layer = do_layer2;
 #ifdef VARMODESUPPORT
         if (varmode) {
-          fprintf(stderr,"Sorry, layer-2 not supported in varmode.\n"); 
+          error("Sorry, layer-2 not supported in varmode."); 
           return (0);
         }
 #endif
@@ -743,11 +743,11 @@ static int decode_header(struct frame *fr,unsigned long newhead)
         fr->framesize = fr->framesize + fr->padding - 4;
         break; 
       default:
-        fprintf(stderr,"Sorry, unknown layer type.\n"); 
+        error("unknown layer type (!!)"); 
         return (0);
     }
     if (fr->framesize > MAXFRAMESIZE) {
-      fprintf(stderr,"Frame size too big: %d\n", fr->framesize+4-fr->padding);
+      error1("Frame size too big: %d", fr->framesize+4-fr->padding);
       return (0);
     }
     return 1;

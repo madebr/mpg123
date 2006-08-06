@@ -415,7 +415,7 @@ static int III_get_side_info(struct III_sideinfo *si,int stereo,
        gr_info->part2_3_length = getbits(12);
        gr_info->big_values = getbits(9);
        if(gr_info->big_values > 288) {
-          fprintf(stderr,"big_values too large!\n");
+          error("big_values too large!");
           gr_info->big_values = 288;
        }
        gr_info->pow2gain = gainpow2+256 - getbits_fast(8) + powdiff;
@@ -438,7 +438,7 @@ static int III_get_side_info(struct III_sideinfo *si,int stereo,
            gr_info->full_gain[i] = gr_info->pow2gain + (getbits_fast(3)<<3);
 
          if(gr_info->block_type == 0) {
-           fprintf(stderr,"Blocktype == 0 and window-switching == 1 not allowed.\n");
+           error("Blocktype == 0 and window-switching == 1 not allowed.");
            /* exit(1); */
            return 1;
          }
@@ -645,7 +645,7 @@ static int III_dequantize_sample(real xr[SBLIMIT][SSLIMIT],int *scf,
     int region2  = gr_info->region2start;
 if(region1 > region2)
 {
-	fprintf(stderr, "You got some really nasty file there... region1>region2!\n");
+	error("You got some really nasty file there... region1>region2!");
 	return 1;
 }
     l3 = ((576>>1)-bv)>>1;   
@@ -1022,7 +1022,7 @@ if(region1 > region2)
   if(part2remain > 0)
     getbits(part2remain);
   else if(part2remain < 0) {
-    fprintf(stderr,"mpg123: Can't rewind stream by %d bits!\n",-part2remain);
+    error1("Can't rewind stream by %d bits!",-part2remain);
     return 1; /* -> error */
   }
   return 0;
