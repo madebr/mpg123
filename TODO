@@ -1,13 +1,10 @@
 We badly need:
  - header reorganization (lots of stuff don't belong to mpg123.h)
- - integer type safety
+ - integer type safety - STOP using ints where size_t or at least long would be appropriate (expecially stream readers)
  - sprintf -> snprintf (maybe with switch to support ancient libc; or replacement by us)
  - rewrite httpget.c; that thing has been a can of bugs for years and I understand why when I look at it (way too many cooks)
-- RVA/ReplayGain support:
-  We just need to make_decode_tables(scaleval) after reading the adjustment (?);
-  ReplayGain header in Info Tag is there already.
-  RVA comment tags go with the next one
-- really parse ID3V2 tags instead of skipping
+ - check RVA/ReplayGain support, there is support via info/lame tag but also confusion about that to get from there
+ - really parse ID3V2 tags instead of skipping
 
 From Nicholas: 
  - Seperate out MPEG Audio decoder (only) into seperate library
