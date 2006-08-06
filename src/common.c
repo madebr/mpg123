@@ -111,16 +111,19 @@ static int decode_header(struct frame *fr,unsigned long newhead);
 	*          -1 = illegal ID3 header
 	*           >1 = skipping succeeded
 	*/
-static int parse_new_id3(struct reader *rds)
+static int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 {
 	unsigned char buf[6];
 	unsigned long length=0;
 	
+	unsigned char major = first4bytes & 0xff;
+	debug1("ID3v2 major tag version: %i", major);
 	if(!rds->read_frame_body(rds,buf,6))       /* read more header information */
 	return 0;
 
 	if(buf[0] == 0xff) /* major version, will never be 0xff */
 	return -1;
+	debug1("ID3v2 revision  %i", buf[0]);
 
 	/* 4 synchsafe integers == 28 bit number  */
 	if( (buf[2]|buf[3]|buf[4]|buf[5]) & 0x80) return -1;
@@ -328,9 +331,8 @@ init_resync:
 		if((newhead & (unsigned long) 0xffffff00) == (unsigned long) 0x49443300)
 		{
 			int id3length = 0;
-			if(!param.quiet) fprintf(stderr, "Note: Oh, it's just an ID3V2 tag...");
-			id3length = parse_new_id3(rd);
-			if(!param.quiet) fprintf(stderr, " of %i bytes length\n", id3length);
+			if(!param.quiet) fprintf(stderr, "Note: Oh, it's just an ID3V2 tag...\n");
+			id3length = parse_new_id3(newhead, rd);
 			goto read_again;
 		}
 		/* I even saw RIFF headers at the beginning of MPEG streams ;( */

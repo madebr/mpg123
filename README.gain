@@ -95,6 +95,7 @@ Together with the gain values read from tags:
 
 So, the difference of 6dB shows in the values lame prints on the command line... but the lame tags only have 0.4dB difference and are much lower anyway - do I parse them correctly?
 
+Opinion of normalize of these files: -2dB. Great. I guess the -1 is what lame really meant, then... 
 
 
 Storage places
