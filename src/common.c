@@ -198,6 +198,9 @@ void read_frame_init (void)
 	#endif
 }
 
+#define free_format_header(head) ( ((head & 0xffe00000) == 0xffe00000) && ((head>>17)&3) && (((head>>12)&0xf) == 0x0) && (((head>>10)&0x3) != 0x3 ))
+
+/* compiler is smart enought to inline this one or should I really do it as macro...? */
 int head_check(unsigned long head)
 {
 	if
@@ -211,12 +214,12 @@ int head_check(unsigned long head)
 		/* 1111 means bad bitrate */
 		(((head>>12)&0xf) == 0xf)
 		||
+		/* 0000 means free format... */
+		(((head>>12)&0xf) == 0x0)
+		||
 		/* sampling freq: 11 is reserved */
 		(((head>>10)&0x3) == 0x3 )
-		||
-		/* actually only 11 instead of 12 ones means mpeg 2.5; what I don't like atm */
-		/* TODO: check support for this (backport?) */
-		((head & 0xfff00000) == 0xffe00000)
+		/* here used to be a mpeg 2.5 check... re-enabled 2.5 decoding due to lack of evidence that it is really not good */
 	)
 	{
 		return FALSE;
@@ -278,6 +281,11 @@ init_resync:
 #ifdef SKIP_JUNK
 	/* watch out for junk/tags on beginning of stream by invalid header */
 	if(!firsthead && !head_check(newhead) ) {
+		if(free_format_header(newhead))
+		{
+			error1("Header 0x%08lx seems to indicate a free format stream; I do not handle that yet", newhead);
+			return 0;
+		}
 		int i;
 
 		if(!param.quiet) fprintf(stderr,"Note: Junk at the beginning (0x%08lx)\n",newhead);
@@ -321,9 +329,14 @@ init_resync:
 		 */
 	}
 #endif
-    /* only accepting mpeg 1.0 and 2.0 for the moment */
-    /* if( (newhead & 0xffe00000) != 0xffe00000) { */
-    if( (newhead & 0xfff00000) != 0xfff00000) {
+    /* why has this head check been avoided here before? */
+    if(!head_check(newhead))
+    {
+      if(!firsthead && free_format_header(newhead))
+      {
+        error1("Header 0x%08lx seems to indicate a free format stream; I do not handle that yet", newhead);
+        return 0;
+      }
     /* and those ugly ID3 tags */
       if((newhead & 0xffffff00) == ('T'<<24)+('A'<<16)+('G'<<8)) {
            rd->skip_bytes(rd,124);
@@ -333,7 +346,7 @@ init_resync:
       }
       if (!param.quiet)
       {
-        fprintf(stderr,"Note: Illegal or MPEG 2.5 (unsupported yet) Audio-MPEG-Header 0x%08lx at offset 0x%lx.\n",
+        fprintf(stderr,"Note: Illegal Audio-MPEG-Header 0x%08lx at offset 0x%lx.\n",
               newhead,rd->tell(rd)-4);
         if((newhead & 0xffffff00) == ('b'<<24)+('m'<<16)+('p'<<8))
         fprintf(stderr,"Note: Could be a BMP album art.\n");
@@ -351,8 +364,12 @@ init_resync:
           try++;
           if(!rd->head_shift(rd,&newhead))
 		return 0;
+          debug2("resync try %i, got newhead 0x%08lx", try, newhead);
           if (!oldhead)
+          {
+            debug("going to init_resync...");
             goto init_resync;       /* "considered harmful", eh? */
+          }
 
         } while ((newhead & HDRCMPMASK) != (oldhead & HDRCMPMASK)
               && (newhead & HDRCMPMASK) != (firsthead & HDRCMPMASK));
@@ -369,15 +386,16 @@ init_resync:
     if (!firsthead) {
       if(!decode_header(fr,newhead))
       {
-        error("decode header failed before first valid one, going to read again");
-        goto read_again;
+         error("decode header failed before first valid one, going to read again");
+         goto read_again;
       }
     }
     else
       if(!decode_header(fr,newhead))
       {
-        error("decode header failed");
-        return 0;
+        error("decode header failed - goto resync");
+        /* return 0; */
+        goto init_resync;
       }
   }
   else
@@ -637,8 +655,10 @@ int back_frame(struct reader *rds,struct frame *fr,int num)
 static int decode_header(struct frame *fr,unsigned long newhead)
 {
     if(!head_check(newhead))
+    {
+      error("tried to decode obviously invalid header");
       return 0;
-
+    }
     if( newhead & (1<<20) ) {
       fr->lsf = (newhead & (1<<19)) ? 0x0 : 0x1;
       fr->mpeg25 = 0;
