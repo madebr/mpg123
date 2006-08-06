@@ -32,7 +32,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <limits.h>
+
+/* for SIZE_MAX */
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#endif
+#ifndef SIZE_MAX
+/* hm, is this portable across preprocessors? */
+#define SIZE_MAX ((size_t)-1)
+#endif
+
 #include <netdb.h>
 #include <sys/param.h>
 #include <sys/types.h>

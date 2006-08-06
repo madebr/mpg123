@@ -413,5 +413,6 @@ extern int synth_1to1_3dnow(real *,int,unsigned char *,int *);
 
 /* avoid the SIGINT in terminal control */
 void next_track(void);
+extern long outscale;
 
 #endif

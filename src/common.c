@@ -59,10 +59,17 @@ int vbr = CBR; /* variable bitrate flag */
 int abr_rate = 0;
 #ifdef GAPLESS
 #include "layer3.h"
-/* a limit for number of frames in a track; beyond that unsigned long may not be enough to hold byte addresses */
 #endif
 unsigned long track_frames = 0;
-#define TRACK_MAX_FRAMES (unsigned long)932066
+/* a limit for number of frames in a track; beyond that unsigned long may not be enough to hold byte addresses */
+#ifdef HAVE_LIMITS_H
+#include <limits.h>
+#endif
+#ifndef ULONG_MAX
+/* hm, is this portable across preprocessors? */
+#define ULONG_MAX ((unsigned long)-1)
+#endif
+#define TRACK_MAX_FRAMES ULONG_MAX/4/1152
 
 unsigned char *pcm_sample;
 int pcm_point = 0;
@@ -281,12 +288,12 @@ init_resync:
 #ifdef SKIP_JUNK
 	/* watch out for junk/tags on beginning of stream by invalid header */
 	if(!firsthead && !head_check(newhead) ) {
+		int i;
 		if(free_format_header(newhead))
 		{
 			error1("Header 0x%08lx seems to indicate a free format stream; I do not handle that yet", newhead);
 			return 0;
 		}
-		int i;
 
 		if(!param.quiet) fprintf(stderr,"Note: Junk at the beginning (0x%08lx)\n",newhead);
 		/* check for id3v2; first three bytes (of 4) are "ID3" */

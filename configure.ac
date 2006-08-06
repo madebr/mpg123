@@ -152,7 +152,8 @@ AC_CHECK_LIB( [asound], [snd_pcm_open],
 dnl ############## Header Checks
 
 AC_HEADER_STDC
-AC_CHECK_HEADERS([stdlib.h string.h unistd.h sched.h sys/ioctl.h])
+dnl Is it too paranoid to specifically check for stdint.h and limits.h?
+AC_CHECK_HEADERS([stdlib.h string.h unistd.h sched.h sys/ioctl.h stdint.h limits.h])
 
 
 # OSS Header files
