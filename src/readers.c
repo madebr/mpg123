@@ -29,6 +29,7 @@ static int get_fileinfo(struct reader *,char *buf);
 
 /*******************************************************************
  * stream based operation
+ * Oh... that count should be size_t or at least long...
  */
 static int fullread(struct reader *rds,unsigned char *buf,int count)
 {
