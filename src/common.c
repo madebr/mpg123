@@ -111,7 +111,7 @@ static int decode_header(struct frame *fr,unsigned long newhead);
 	*          -1 = illegal ID3 header
 	*           >1 = skipping succeeded
 	*/
-static int skip_new_id3(struct reader *rds)
+static int parse_new_id3(struct reader *rds)
 {
 	unsigned char buf[6];
 	unsigned long length=0;
@@ -327,8 +327,10 @@ init_resync:
 		/* check for id3v2; first three bytes (of 4) are "ID3" */
 		if((newhead & (unsigned long) 0xffffff00) == (unsigned long) 0x49443300)
 		{
-			if(!param.quiet) fprintf(stderr, "Note: Oh, it's just an ID3V2 tag...\n");
-			skip_new_id3(rd);
+			int id3length = 0;
+			if(!param.quiet) fprintf(stderr, "Note: Oh, it's just an ID3V2 tag...");
+			id3length = parse_new_id3(rd);
+			if(!param.quiet) fprintf(stderr, " of %i bytes length\n", id3length);
 			goto read_again;
 		}
 		/* I even saw RIFF headers at the beginning of MPEG streams ;( */
@@ -554,11 +556,17 @@ init_resync:
 						{
 							unsigned char lame_vbr;
 							float replay_gain[2] = {0,0};
+							float gain_offset = 0; /* going to be +6 for old lame that used 83dB */
 							char nb[10];
 							float peak = 0;
 							memcpy(nb, bsbuf+lame_offset, 9);
 							nb[9] = 0;
 							debug1("Info: Encoder: %s", nb);
+							if(!strncmp("LAME", nb, 4))
+							{
+								gain_offset = 6;
+								debug("TODO: finish lame detetcion...");
+							}
 							lame_offset += 9;
 							/* the 4 big bits are tag revision, the small bits vbr method */
 							lame_vbr = bsbuf[lame_offset] & 15;
@@ -578,6 +586,7 @@ init_resync:
 							lame_offset += 1;
 							/* replaygain */
 							/* 32bit float: peak amplitude -- why did I parse it as int before??*/
+							/* Ah, yes, lame seems to store it as int since some day in 2003; I've only seen zeros anyway until now, bah! */
 							if
 							(
 								   (bsbuf[lame_offset] != 0)
@@ -586,9 +595,11 @@ init_resync:
 								|| (bsbuf[lame_offset+3] != 0)
 							)
 							{
+								debug("Wow! Is there _really_ a non-zero peak value? Now is it stored as float or int - how should I know?");
 								peak = *(float*) (bsbuf+lame_offset);
 							}
-							debug1("Info: peak = %f", peak);
+							debug1("Info: peak = %f (I won't use this)", peak);
+							peak = 0; /* until better times arrived */
 							lame_offset += 4;
 							/*
 								ReplayGain values - lame only writes radio mode gain...
