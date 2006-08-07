@@ -105,36 +105,221 @@ int playlimit;
 static int decode_header(struct frame *fr,unsigned long newhead);
 
 /*
-	* skips the ID3 header at the beginning
+	* trying to parse ID3v2.3 and ID3v2.4 tags... actually, for a start only v2.4 RVA2 frames
 	*
 	* returns:  0 = read-error
-	*          -1 = illegal ID3 header
-	*           >1 = skipping succeeded
+	*          -1 = illegal ID3 header; maybe extended to mean unparseable (to new) header in future
+	*           1 = somehow ok...
 	*/
 static int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 {
+	#define UNSYNC_FLAG 128
+	#define EXTHEAD_FLAG 64
+	#define EXP_FLAG 32
+	#define FOOTER_FLAG 16
+	#define UNKNOWN_FLAGS 15 /* 00001111*/
 	unsigned char buf[6];
 	unsigned long length=0;
-	
+	unsigned char flags = 0;
+	int ret = 1;
+	unsigned char* tagdata = NULL;
 	unsigned char major = first4bytes & 0xff;
-	debug1("ID3v2 major tag version: %i", major);
+	debug1("ID3v2: major tag version: %i", major);
+	if(major == 0xff) return -1;
 	if(!rds->read_frame_body(rds,buf,6))       /* read more header information */
 	return 0;
 
 	if(buf[0] == 0xff) /* major version, will never be 0xff */
 	return -1;
-	debug1("ID3v2 revision  %i", buf[0]);
+	debug1("ID3v2: revision %i", buf[0]);
+	/* second new byte are some nice flags, if these are invalid skip the whole thing */
+	flags = buf[1];
+	debug1("ID3v2: flags 0x%08x", flags);
+	/* use 4 bytes from buf to construct 28bit uint value and return 1; return 0 if bytes are not syncsafe */
+	#define syncsafe_to_long(buf,res) \
+	( \
+		(((buf)[0]|(buf)[1]|(buf)[2]|(buf)[3]) & 0x80) ? 0 : \
+		(res =  (((unsigned long) (buf)[0]) << 27) \
+		     | (((unsigned long) (buf)[1]) << 14) \
+		     | (((unsigned long) (buf)[2]) << 7) \
+		     |  ((unsigned long) (buf)[3]) \
+		,1) \
+	)
+	/* length-10 or length-20 (footer present); 4 synchsafe integers == 28 bit number  */
+	/* we have already read 10 bytes, so left are length or length+10 bytes belonging to tag */
+	if(!syncsafe_to_long(buf+2,length)) return -1;
 
-	/* 4 synchsafe integers == 28 bit number  */
-	if( (buf[2]|buf[3]|buf[4]|buf[5]) & 0x80) return -1;
-	length =  (((unsigned long) buf[2]) << 27)
-			| (((unsigned long) buf[3]) << 14)
-			| (((unsigned long) buf[4]) << 7)
-			| ((unsigned long) buf[5]);
-	if(!rds->skip_bytes(rds,length)) /* will not store data in backbuff! */
-	return 0;
-
-	return length+6;
+	/* skip if unknown version/scary flags, parse otherwise */
+	if((flags & UNKNOWN_FLAGS) || (major > 4))
+	{
+		/* going to skip because there are unknown flags set */
+		warning2("ID3v2: Won't parse the ID3v2 tag with major version %u and flags 0x%xu - some extra code may be needed", major, flags);
+		if(!rds->skip_bytes(rds,length)) /* will not store data in backbuff! */
+		ret = 0;
+	}
+	else
+	{
+		/* float rva[2] = {0,0}; */ /* mix, album */
+		/* float peak[2] = {0,0}; */
+		/* try to interpret that beast */
+		if((tagdata = (unsigned char*) malloc(length+1)) != NULL)
+		{
+			debug("ID3v2: analysing frames...");
+			if(rds->read_frame_body(rds,tagdata,length))
+			{
+				unsigned long tagpos = 0;
+				/* going to apply strlen for strings inside frames, make sure that it doesn't overflow! */
+				tagdata[length] = 0;
+				if(flags & EXTHEAD_FLAG)
+				{
+					debug("ID3v2: skipping extended header");
+					if(!syncsafe_to_long(tagdata, tagpos)) ret = -1;
+				}
+				if(ret >= 0)
+				{
+					char id[5];
+					unsigned long framesize;
+					unsigned long fflags; /* need 16 bits, actually */
+					id[4] = 0;
+					/* pos now advanced after ext head, now a frame has to follow */
+					while(tagpos < length-10) /* I want to read at least a full header */
+					{
+						int tt = -1;
+						/* int level[2] = {-1, -1}; *//* significance level of already found rva values (mix,album) */
+						int i = 0;
+						unsigned long pos = tagpos;
+						const char rva_type[3][5] = { "COMM", "TXXX", "RVA2" }; /* ordered with ascending significance */
+						/* we may have entered the padding zone or any other strangeness: check if we have valid frame id characters */
+						for(; i< 4; ++i) if( !( ((tagdata[tagpos+i] > 47) && (tagdata[tagpos+i] < 58))
+						                     || ((tagdata[tagpos+i] > 64) && (tagdata[tagpos+i] < 91)) ) )
+						{
+							debug("ID3v2: I guess the tag ended...");
+							ret = -1;
+							break;
+						}
+						if(ret >= 0)
+						{
+							/* 4 bytes id */
+							strncpy(id, tagdata+pos, 4);
+							pos += 4;
+							/* size as 32 syncsafe bits */
+							if(!syncsafe_to_long(tagdata+pos, framesize))
+							{
+								ret = -1;
+								error("ID3v2: non-syncsafe frame size, aborting");
+								break;
+							}
+							tagpos += 10 + framesize; /* the important advancement in whole tag */
+							pos += 4;
+							fflags = (((unsigned long) tagdata[pos]) << 8) | ((unsigned long) tagdata[pos+1]);
+							pos += 2;
+							/* for sanity, after full parsing tagpos should be == pos */
+							debug4("ID3v2: found %s frame, size %lu (as bytes: 0x%08lx), flags 0x%016lx", id, framesize, framesize, fflags);
+							/* %0abc0000 %0h00kmnp */
+							#define BAD_FFLAGS (unsigned long) 36784
+							#define PRES_TAG_FFLAG 16384
+							#define PRES_FILE_FFLAG 8192
+							#define READ_ONLY_FFLAG 4096
+							#define GROUP_FFLAG 64
+							#define COMPR_FFLAG 8
+							#define ENCR_FFLAG 4
+							#define UNSYNC_FFLAG 2
+							#define DATLEN_FFLAG 1
+							/* shall not or want not handle these */
+							if(fflags & (BAD_FFLAGS | COMPR_FFLAG | ENCR_FFLAG)) continue;
+							
+							for(i = 0; i < 4; ++i)
+							if(!strncmp(rva_type[i], id, 4)){ tt = i; break; }
+							{
+								unsigned long realsize = framesize;
+								unsigned char* realdata = tagdata+pos;
+								if((flags & UNSYNC_FLAG) || (fflags & UNSYNC_FFLAG))
+								{
+									unsigned long ipos = 0;
+									unsigned long opos = 0;
+									debug("Id3v2: going to de-unsync the frame data");
+									/* de-unsync: FF00 -> FF; real FF00 is simply represented as FF0000 ... */
+									/* damn, that means I have to delete bytes from withing the data block... thus need temporal storage */
+									/* standard mandates that de-unsync should always be safe if flag is set */
+									realdata = (unsigned char*) malloc(framesize); /* will need <= bytes */
+									if(realdata == NULL)
+									{
+										error("ID3v2: unable to allocate working buffer for de-unsync");
+										continue;
+									}
+									/* now going byte per byte through the data... */
+									realdata[0] = tagdata[pos];
+									opos = 1;
+									for(ipos = pos+1; ipos < pos+framesize; ++ipos)
+									{
+										if(!((tagdata[ipos] == 0) && (tagdata[ipos-1] == 0xff)))
+										{
+											realdata[opos++] = tagdata[ipos];
+										}
+									}
+									realsize = opos;
+									debug2("ID3v2: de-unsync made %lu out of %lu bytes", realsize, framesize);
+								}
+							
+							if(tt >= 0)
+							{
+								debug1("ID3v2: found something that could give me RVA info: a %s frame", rva_type[tt]);
+								switch(tt)
+								{
+									case 0: /* a comment that perhaps is a RVA / RVA_ALBUM/AUDIOPHILE / RVA_MIX/RADIO one */
+										
+									break;
+									case 1: /* perhaps foobar2000's work */
+									break;
+									case 2: /* "the" RVA tag */
+									{
+										/* starts with null-terminated identification */
+										debug1("ID3v2: RVA2 identification \"%s\"", tagdata+pos);
+										pos += strlen((char*) tagdata+pos) + 1;
+										debug1("ID2v2: channel type %i", tagdata[pos]);
+									}
+									break;
+									default: error1("ID3v2: unknown rva_type %i", tt);
+								}
+							}
+							if((flags & UNSYNC_FLAG) || (fflags & UNSYNC_FFLAG)) free(realdata);
+							}
+							#undef BAD_FFLAGS
+							#undef PRES_TAG_FFLAG
+							#undef PRES_FILE_FFLAG
+							#undef READ_ONLY_FFLAG
+							#undef GROUP_FFLAG
+							#undef COMPR_FFLAG
+							#undef ENCR_FFLAG
+							#undef UNSYNC_FFLAG
+							#undef DATLEN_FFLAG
+						}
+						else break;
+					}
+				}
+			}
+			else
+			{
+				error("ID3v2: Duh, not able to read ID3v2 tag data.");
+				ret = 0;
+			}
+			free(tagdata);
+		}
+		else
+		{
+			error1("ID3v2Arrg! Unable to allocate %lu bytes for interpreting ID3v2 data - trying to skip instead.", length);
+			if(!rds->skip_bytes(rds,length)) /* will not store data in backbuff! */
+			ret = 0;
+		}
+	}
+	/* skip footer if present */
+	if((flags & FOOTER_FLAG) && (!rds->skip_bytes(rds,length))) ret = 0;
+	return ret;
+	#undef UNSYNC_FLAG
+	#undef EXTHEAD_FLAG
+	#undef EXP_FLAG
+	#undef FOOTER_FLAG
+	#undef UNKOWN_FLAGS
 }
 
 #ifdef GAPLESS
