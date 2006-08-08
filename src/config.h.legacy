@@ -9,6 +9,9 @@
 	#define HAVE_MACHINE_SOUNDCARD_H
 #endif
 
+/* C99 integer types header... needed for ID3 parsing */
+#define HAVE_INTTYPES_H 1
+
 /* aggresive and realtime options were enabled per default */
 #define HAVE_SETPRIORITY
 #ifndef NO_RT

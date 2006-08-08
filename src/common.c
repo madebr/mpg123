@@ -14,6 +14,9 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <math.h>
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
 
 #include <fcntl.h>
 
@@ -72,10 +75,12 @@ unsigned long track_frames = 0;
 #endif
 #define TRACK_MAX_FRAMES ULONG_MAX/4/1152
 
-/* last rv-adjusted outscale */
-long lastscale = -1;
-/* if rva has been made already (for conflicting tags in same file) */
-int have_rva = 0;
+
+/* this could become a struct... */
+long lastscale = -1; /* last used scale */
+int rva_level[2] = {-1,-1}; /* significance level of stored rva */
+float rva_gain[2] = {0,0}; /* mix, album */
+float rva_peak[2] = {0,0};
 
 unsigned char *pcm_sample;
 int pcm_point = 0;
@@ -159,8 +164,6 @@ static int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 	}
 	else
 	{
-		/* float rva[2] = {0,0}; */ /* mix, album */
-		/* float peak[2] = {0,0}; */
 		/* try to interpret that beast */
 		if((tagdata = (unsigned char*) malloc(length+1)) != NULL)
 		{
@@ -185,9 +188,9 @@ static int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 					while(tagpos < length-10) /* I want to read at least a full header */
 					{
 						int tt = -1;
-						/* int level[2] = {-1, -1}; *//* significance level of already found rva values (mix,album) */
 						int i = 0;
 						unsigned long pos = tagpos;
+						/* level 1,2,3 - 0 is info from lame/info tag! */
 						const char rva_type[3][5] = { "COMM", "TXXX", "RVA2" }; /* ordered with ascending significance */
 						/* we may have entered the padding zone or any other strangeness: check if we have valid frame id characters */
 						for(; i< 4; ++i) if( !( ((tagdata[tagpos+i] > 47) && (tagdata[tagpos+i] < 58))
@@ -214,7 +217,7 @@ static int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 							fflags = (((unsigned long) tagdata[pos]) << 8) | ((unsigned long) tagdata[pos+1]);
 							pos += 2;
 							/* for sanity, after full parsing tagpos should be == pos */
-							debug4("ID3v2: found %s frame, size %lu (as bytes: 0x%08lx), flags 0x%016lx", id, framesize, framesize, fflags);
+							/* debug4("ID3v2: found %s frame, size %lu (as bytes: 0x%08lx), flags 0x%016lx", id, framesize, framesize, fflags); */
 							/* %0abc0000 %0h00kmnp */
 							#define BAD_FFLAGS (unsigned long) 36784
 							#define PRES_TAG_FFLAG 16384
@@ -229,8 +232,11 @@ static int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 							if(fflags & (BAD_FFLAGS | COMPR_FFLAG | ENCR_FFLAG)) continue;
 							
 							for(i = 0; i < 4; ++i)
-							if(!strncmp(rva_type[i], id, 4)){ tt = i; break; }
+							if(!strncmp(rva_type[i], id, 4)){ tt = i+1; break; }
+							
+							if(tt > 0) /* 1,2,3 */
 							{
+								int rva_mode = -1; /* mix / album */
 								unsigned long realsize = framesize;
 								unsigned char* realdata = tagdata+pos;
 								if((flags & UNSYNC_FLAG) || (fflags & UNSYNC_FFLAG))
@@ -260,29 +266,133 @@ static int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 									realsize = opos;
 									debug2("ID3v2: de-unsync made %lu out of %lu bytes", realsize, framesize);
 								}
-							
-							if(tt >= 0)
-							{
-								debug1("ID3v2: found something that could give me RVA info: a %s frame", rva_type[tt]);
+								pos = 0; /* now at the beginning again... */
+								debug1("ID3v2: found something that could give me RVA info: a %s frame", rva_type[tt-1]);
 								switch(tt)
 								{
-									case 0: /* a comment that perhaps is a RVA / RVA_ALBUM/AUDIOPHILE / RVA_MIX/RADIO one */
-										
-									break;
-									case 1: /* perhaps foobar2000's work */
-									break;
-									case 2: /* "the" RVA tag */
+									case 1: /* a comment that perhaps is a RVA / RVA_ALBUM/AUDIOPHILE / RVA_MIX/RADIO one */
 									{
+										/* Text encoding          $xx */
+										/* Language               $xx xx xx */
+										if(realdata[0] == 0) /* only latin1 / ascii */
+										{
+											/* don't care about language */
+											pos = 4;
+											if(   !strcasecmp((char*)realdata+pos, "rva")
+											   || !strcasecmp((char*)realdata+pos, "rva_mix")
+											   || !strcasecmp((char*)realdata+pos, "rva_radio"))
+											rva_mode = 0;
+											else if(   !strcasecmp((char*)realdata+pos, "rva_album")
+											        || !strcasecmp((char*)realdata+pos, "rva_audiophile")
+											        || !strcasecmp((char*)realdata+pos, "rva_user"))
+											rva_mode = 1;
+											if((rva_mode > -1) && (rva_level[rva_mode] <= tt))
+											{
+												char* comstr;
+												size_t comsize = realsize-4-(strlen((char*)realdata+pos)+1);
+												debug1("ID3v2: going to intepret/store content of %s comment as RVA info", realdata+pos);
+												if((comstr = (char*) malloc(comsize+1)) != NULL)
+												{
+													memcpy(comstr,realdata+realsize-comsize, comsize);
+													comstr[comsize] = 0;
+													rva_gain[rva_mode] = atof(comstr);
+													debug1("ID3v2: RVA value %fdB", rva_gain[rva_mode]);
+													rva_peak[rva_mode] = 0;
+													rva_level[rva_mode] = tt;
+													free(comstr);
+												}
+												else error("could not allocate memory for rva comment interpretation");
+											}
+										}
+									}
+									break;
+									case 2: /* perhaps foobar2000's work */
+									{
+										/* Text encoding          $xx */
+										if(realdata[0] == 0) /* only latin1 / ascii for now */
+										{
+											int is_peak = 0;
+											pos = 1;
+											
+											if(!strncasecmp((char*)realdata+pos, "replaygain_track_",17))
+											{
+												debug("ID3v2: track gain/peak");
+												rva_mode = 0;
+												if(!strcasecmp((char*)realdata+pos, "replaygain_track_peak")) is_peak = 1;
+												else if(strcasecmp((char*)realdata+pos, "replaygain_track_gain")) rva_mode = -1;
+											}
+											else
+											if(!strncasecmp((char*)realdata+pos, "replaygain_album_",17))
+											{
+												debug("ID3v2: album gain/peak");
+												rva_mode = 1;
+												if(!strcasecmp((char*)realdata+pos, "replaygain_album_peak")) is_peak = 1;
+												else if(strcasecmp((char*)realdata+pos, "replaygain_album_gain")) rva_mode = -1;
+											}
+											if((rva_mode > -1) && (rva_level[rva_mode] <= tt))
+											{
+												char* comstr;
+												size_t comsize = realsize-1-(strlen((char*)realdata+pos)+1);
+												debug1("ID3v2: going to intepret/store content of %s extra field as RVA info", realdata+pos);
+												if((comstr = (char*) malloc(comsize+1)) != NULL)
+												{
+													memcpy(comstr,realdata+realsize-comsize, comsize);
+													comstr[comsize] = 0;
+													if(is_peak)
+													{
+														rva_peak[rva_mode] = atof(comstr);
+														debug1("ID3v2: RVA peak %fdB", rva_peak[rva_mode]);
+													}
+													else
+													{
+														rva_gain[rva_mode] = atof(comstr);
+														debug1("ID3v2: RVA gain %fdB", rva_gain[rva_mode]);
+													}
+													rva_level[rva_mode] = tt;
+													free(comstr);
+												}
+												else error("could not allocate memory for rva comment interpretation");
+											}
+										}
+									}
+									break;
+									case 3: /* "the" RVA tag */
+									{
+										#ifdef HAVE_INTTYPES_H
 										/* starts with null-terminated identification */
-										debug1("ID3v2: RVA2 identification \"%s\"", tagdata+pos);
-										pos += strlen((char*) tagdata+pos) + 1;
-										debug1("ID2v2: channel type %i", tagdata[pos]);
+										debug1("ID3v2: RVA2 identification \"%s\"", realdata);
+										/* default: some individual value, mix mode */
+										rva_mode = 0;
+										if( !strncasecmp((char*)realdata, "album", 5)
+										    || !strncasecmp((char*)realdata, "audiophile", 10)
+										    || !strncasecmp((char*)realdata, "user", 4))
+										rva_mode = 1;
+										if(rva_level[rva_mode] <= tt)
+										{
+											pos += strlen((char*) realdata) + 1;
+											if(realdata[pos] == 1)
+											{
+												++pos;
+												/* only handle master channel */
+												debug("ID3v2: it is for the master channel");
+												/* two bytes adjustment, one byte for bits representing peak - n bytes for peak */
+												/* 16 bit signed integer = dB * 512 */
+												rva_gain[rva_mode] = (float) ((((int16_t) realdata[pos]) << 8) | ((int16_t) realdata[pos+1])) / 512;
+												pos += 2;
+												debug1("ID3v2: RVA value %fdB", rva_gain[rva_mode]);
+												/* heh, the peak value is represented by a number of bits - but in what manner? Skipping that part */
+												rva_peak[rva_mode] = 0;
+												rva_level[rva_mode] = tt;
+											}
+										}
+										#else
+										warning("ID3v2: Cannot parse RVA2 value because I don't have a guaranteed 16 bit signed integer type");
+										#endif
 									}
 									break;
 									default: error1("ID3v2: unknown rva_type %i", tt);
 								}
-							}
-							if((flags & UNSYNC_FLAG) || (fflags & UNSYNC_FFLAG)) free(realdata);
+								if((flags & UNSYNC_FLAG) || (fflags & UNSYNC_FFLAG)) free(realdata);
 							}
 							#undef BAD_FFLAGS
 							#undef PRES_TAG_FFLAG
@@ -393,7 +503,8 @@ void read_frame_init (void)
 	vbr = CBR;
 	abr_rate = 0;
 	track_frames = 0;
-	have_rva = 0;
+	rva_level[0] = -1;
+	rva_level[1] = -1;
 	#ifdef GAPLESS
 	/* one can at least skip the delay at beginning - though not add it at end since end is unknown */
 	if(param.gapless) layer3_gapless_init(DECODER_DELAY+GAP_SHIFT, 0);
@@ -433,30 +544,40 @@ int head_check(unsigned long head)
 	}
 }
 
-static void do_rva(float db, float peak)
+static void do_rva()
 {
-	if(!have_rva)
+	if(param.rva != -1)
 	{
-		long newscale = outscale*pow(10,db/20);
-		have_rva = 1;
-		/* if peak is unknown (== 0) this check won't hurt */
-		if((peak*newscale) > MAXOUTBURST)
+		int rt = 0;
+		if(param.rva == 1 && rva_level[1] != -1) rt = 1;
+		if(rva_level[rt] != -1)
 		{
-			newscale = (long) ((float) MAXOUTBURST/peak);
-			warning2("limiting scale value to %li to prevent clipping with indicated peak factor of %f", newscale, peak);
+			long newscale = outscale*pow(10,rva_gain[rt]/20);
+			debug1("doing RVA with gain %f", rva_gain[rt]);
+			/* if peak is unknown (== 0) this check won't hurt */
+			if((rva_peak[rt]*newscale) > MAXOUTBURST)
+			{
+				newscale = (long) ((float) MAXOUTBURST/rva_peak[rt]);
+				warning2("limiting scale value to %li to prevent clipping with indicated peak factor of %f", newscale, rva_peak[rt]);
+			}
+			if(lastscale < 0) lastscale = outscale;
+			if(newscale != lastscale)
+			{
+				debug3("changing scale value from %li to %li (peak estimated to %li)", lastscale, newscale, (long) (newscale*rva_peak[rt]));
+				make_decode_tables(newscale);
+				lastscale = newscale;
+			}
 		}
-		if(lastscale < 0) lastscale = outscale;
-		if(newscale != lastscale)
+		else
 		{
-			debug3("changing scale value from %li to %li (peak estimated to %li)", lastscale, newscale, (long) (newscale*peak));
-			make_decode_tables(newscale);
-			lastscale = newscale;
+			warning("no RVA value found");
 		}
 	}
 }
 
 
 /*****************************************************************
+
  * read next frame
  */
 int read_frame(struct frame *fr)
@@ -635,8 +756,6 @@ init_resync:
 		return 0;
 	if(!firsthead)
 	{
-		/* default rva of zero */
-		double newrva = 0;
 		/* following stuff is actually layer3 specific (in practice, not in theory) */
 		if(fr->lay == 3)
 		{
@@ -743,9 +862,9 @@ init_resync:
 						{
 							unsigned char lame_vbr;
 							float replay_gain[2] = {0,0};
+							float peak = 0;
 							float gain_offset = 0; /* going to be +6 for old lame that used 83dB */
 							char nb[10];
-							float peak = 0;
 							memcpy(nb, bsbuf+lame_offset, 9);
 							nb[9] = 0;
 							debug1("Info: Encoder: %s", nb);
@@ -812,7 +931,15 @@ init_resync:
 							}
 							debug1("Info: Radio Gain = %03.1fdB", replay_gain[0]);
 							debug1("Info: Audiophile Gain = %03.1fdB", replay_gain[1]);
-							if((param.rva >= 0) && (param.rva < 2))	do_rva(replay_gain[param.rva], peak);
+							for(i=0; i < 2; ++i)
+							{
+								if(rva_level[i] <= 0)
+								{
+									rva_peak[i] = 0; /* at some time the parsed peak should be used */
+									rva_gain[i] = replay_gain[i];
+									rva_level[i] = 0;
+								}
+							}
 							lame_offset += 1; /* skipping encoding flags byte */
 							if(vbr == ABR)
 							{
@@ -846,8 +973,8 @@ init_resync:
 			}
 		} /* end block for Xing/Lame/Info tag */
 		firsthead = newhead; /* _now_ it's time to store it... the first real header */
-		/* now adjust volume if necessary - I suppose that any real RVA settings have been done already if present */
-		do_rva(newrva,0);
+		/* now adjust volume */
+		do_rva();
 	}
   bsi.bitindex = 0;
   bsi.wordpointer = (unsigned char *) bsbuf;
