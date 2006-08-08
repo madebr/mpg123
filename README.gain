@@ -101,6 +101,8 @@ Opinion of normalize of these files: -2dB. Great. I guess the -1 is what lame re
 Storage places
 ==============
 
+Points 1, 2 and 4 implemented to some respect.
+
 
 1. Lame/Info tag
 
@@ -112,6 +114,7 @@ see http://gabriel.mp3-tech.org/mp3infotag.html
 
 Normalize does that. Rare is the software reading that.
 I've never seen those frames since id3v2 -l doesn't know them.
+
 
 3. APE tags
 
