@@ -31,7 +31,6 @@ static const struct {
 #define NUM_FORMATS (sizeof format_map / sizeof format_map[0])
 
 static int initialize_device(struct audio_info_struct *ai);
-static int initialized = 0; /* hack for avoiding drain assertion in pcm_close ... is there alsa API for checking it? */
 
 int audio_open(struct audio_info_struct *ai)
 {
@@ -156,7 +155,6 @@ static int initialize_device(struct audio_info_struct *ai)
 		fprintf(stderr, "initialize_device(): cannot set sw params\n");
 		return -1;
 	}
-	initialized = 1;
 	return 0;
 }
 
@@ -205,11 +203,7 @@ void audio_queueflush(struct audio_info_struct *ai)
 
 int audio_close(struct audio_info_struct *ai)
 {
-	/* this is called with uninitialized device before real playback... would trigger and assertion on my laptop -- ThOr */
-	if(initialized)
-	{
+	if (snd_pcm_state(ai->handle) == SND_PCM_STATE_RUNNING)
 		snd_pcm_drain(ai->handle);
-		initialized = 0;
-	}
 	return snd_pcm_close(ai->handle);
 }
