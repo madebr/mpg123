@@ -2,6 +2,12 @@ If you find a bug, please check for and report it in the sourceforge bug trackin
 
 	http://sourceforge.net/tracker/?atid=733194&group_id=135704&func=browse
 
+Issues in current development:
+
+- I managed to make raw output of the two spring tracks from RMB result in an odd number of bytes!
+  For sure that has to be fixed ASAP
+
+
 Old list of known bugs from 0.59r:
 
 Of course, there are some known bugs:
