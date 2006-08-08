@@ -3,8 +3,8 @@ We badly need:
  - integer type safety - STOP using ints where size_t or at least long would be appropriate (expecially stream readers)
  - sprintf -> snprintf (maybe with switch to support ancient libc; or replacement by us)
  - rewrite httpget.c; that thing has been a can of bugs for years and I understand why when I look at it (way too many cooks)
- - check RVA/ReplayGain support, there is support via info/lame tag but also confusion about that to get from there
- - really parse ID3V2 tags instead of skipping
+ - really parse ID3V2 tags instead of skipping; done for RVA values... using the string info (just?) needs some Unicode/Locale handling
+ - read playlists in in one go - at least for http I think the connection time to the server has limits
 
 From Nicholas: 
  - Seperate out MPEG Audio decoder (only) into seperate library
