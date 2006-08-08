@@ -354,8 +354,8 @@ case $audio_system in
     if test "x$HAVE_ALSA" != "xyes" ; then
   		AC_MSG_ERROR( ALSA is not available for audio output subsystem. )
     fi
-    AUDIO_CFLAGS="-lasound"
-    AUDIO_LIBS=""
+    AUDIO_CFLAGS=""
+    AUDIO_LIBS="-lasound"
   ;;
   dummy) 
     AC_MSG_WARN( Using dummy audio output. )
