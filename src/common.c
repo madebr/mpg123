@@ -153,7 +153,7 @@ static int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 	/* length-10 or length-20 (footer present); 4 synchsafe integers == 28 bit number  */
 	/* we have already read 10 bytes, so left are length or length+10 bytes belonging to tag */
 	if(!syncsafe_to_long(buf+2,length)) return -1;
-
+	debug1("ID3v2: tag data length %lu", length);
 	/* skip if unknown version/scary flags, parse otherwise */
 	if((flags & UNKNOWN_FLAGS) || (major > 4))
 	{
@@ -196,7 +196,7 @@ static int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 						for(; i< 4; ++i) if( !( ((tagdata[tagpos+i] > 47) && (tagdata[tagpos+i] < 58))
 						                     || ((tagdata[tagpos+i] > 64) && (tagdata[tagpos+i] < 91)) ) )
 						{
-							debug("ID3v2: I guess the tag ended...");
+							debug1("ID3v2: real tag data apparently ended after %lu bytes", tagpos);
 							ret = -1;
 							break;
 						}
@@ -212,6 +212,7 @@ static int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 								error("ID3v2: non-syncsafe frame size, aborting");
 								break;
 							}
+							debug2("ID3v2: %s frame of size %lu", id, framesize);
 							tagpos += 10 + framesize; /* the important advancement in whole tag */
 							pos += 4;
 							fflags = (((unsigned long) tagdata[pos]) << 8) | ((unsigned long) tagdata[pos+1]);
@@ -229,7 +230,11 @@ static int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 							#define UNSYNC_FFLAG 2
 							#define DATLEN_FFLAG 1
 							/* shall not or want not handle these */
-							if(fflags & (BAD_FFLAGS | COMPR_FFLAG | ENCR_FFLAG)) continue;
+							if(fflags & (BAD_FFLAGS | COMPR_FFLAG | ENCR_FFLAG))
+							{
+								warning("ID3v2: skipping invalid/unsupported frame");
+								continue;
+							}
 							
 							for(i = 0; i < 4; ++i)
 							if(!strncmp(rva_type[i], id, 4)){ tt = i+1; break; }
@@ -267,7 +272,6 @@ static int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 									debug2("ID3v2: de-unsync made %lu out of %lu bytes", realsize, framesize);
 								}
 								pos = 0; /* now at the beginning again... */
-								debug1("ID3v2: found something that could give me RVA info: a %s frame", rva_type[tt-1]);
 								switch(tt)
 								{
 									case 1: /* a comment that perhaps is a RVA / RVA_ALBUM/AUDIOPHILE / RVA_MIX/RADIO one */
@@ -290,7 +294,7 @@ static int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 											{
 												char* comstr;
 												size_t comsize = realsize-4-(strlen((char*)realdata+pos)+1);
-												debug1("ID3v2: going to intepret/store content of %s comment as RVA info", realdata+pos);
+												debug1("ID3v2: evaluating %s data for RVA", realdata+pos);
 												if((comstr = (char*) malloc(comsize+1)) != NULL)
 												{
 													memcpy(comstr,realdata+realsize-comsize, comsize);
@@ -333,7 +337,7 @@ static int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 											{
 												char* comstr;
 												size_t comsize = realsize-1-(strlen((char*)realdata+pos)+1);
-												debug1("ID3v2: going to intepret/store content of %s extra field as RVA info", realdata+pos);
+												debug1("ID3v2: evaluating %s data for RVA", realdata+pos);
 												if((comstr = (char*) malloc(comsize+1)) != NULL)
 												{
 													memcpy(comstr,realdata+realsize-comsize, comsize);
