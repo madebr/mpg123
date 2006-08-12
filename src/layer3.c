@@ -780,10 +780,12 @@ if(region1 > region2)
       /* This is only a humble hack to prevent a special segfault. */
       /* More insight into the real workings is still needed. */
       /* especially why there are (valid?) files that make xrpnt exceed the array with 4 bytes without segfaulting, more seems to be really bad, though. */
+      #ifdef DEBUG
       if(!(xrpnt < &xr[SBLIMIT][0]))
-			{
-				error2("attempted soft xrpnt overflow (%p !< %p)", (void*) xrpnt, (void*) &xr[SBLIMIT][0]);
-			}
+      {
+        error2("attempted soft xrpnt overflow (%p !< %p)", (void*) xrpnt, (void*) &xr[SBLIMIT][0]);
+      }
+      #endif
       if(!(xrpnt < &xr[SBLIMIT][0]+5))
       {
         error2("attempted xrpnt overflow (%p !< %p)", (void*) xrpnt, (void*) &xr[SBLIMIT][0]);
