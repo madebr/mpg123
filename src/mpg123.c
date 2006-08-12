@@ -1046,7 +1046,7 @@ int main(int argc, char *argv[])
 #endif
 
 	if (!(param.listentry < 0) && !param.quiet)
-		print_title(stdout);
+		print_title(stderr); /* do not pollute stdout! */
 
 	if(param.force_mono >= 0) {
 		fr.single = param.force_mono;
@@ -1367,9 +1367,6 @@ tc_hack:
    
     return 0;
 }
-
-/* help msg used to be put to stderr ... why? */
-#define HELP_OUT stdout
 
 static void print_title(FILE *o)
 {
