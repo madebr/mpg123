@@ -46,15 +46,29 @@ dnl ############## Configurable Options
 
 AC_ARG_ENABLE(debug,
               [  --enable-debug=[no/yes] turn on debugging],
-              [ debugging="enabled" 
-                AC_DEFINE(DEBUG, 1, [ Define if debugging is enabled. ]) ],
+              [
+                if test "x$enableval" = xyes
+                then
+                  debugging="enabled"
+                  AC_DEFINE(DEBUG, 1, [ Define if debugging is enabled. ])
+                else
+                  debugging="disabled"
+                fi
+              ],
               [ debugging="disabled" ]
 )
 
 AC_ARG_ENABLE(gapless,
               [  --enable-gapless=[no/yes] turn on gapless],
-              [ gapless="enabled" 
-                AC_DEFINE(GAPLESS, 1, [ Define if gapless is enabled. ]) ],
+              [
+                if test "x$enableval" = xyes
+                then
+                  gapless="enabled"
+                  AC_DEFINE(GAPLESS, 1, [ Define if gapless is enabled. ])
+                else
+                  gapless="disabled"
+                fi
+              ],
               [ gapless="disabled" ]
 )
 
