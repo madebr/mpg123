@@ -553,6 +553,7 @@ static void do_rva()
 	if(param.rva != -1)
 	{
 		int rt = 0;
+		/* Should one assume a zero RVA as no RVA? */
 		if(param.rva == 1 && rva_level[1] != -1) rt = 1;
 		if(rva_level[rt] != -1)
 		{
