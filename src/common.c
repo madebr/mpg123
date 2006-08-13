@@ -196,7 +196,7 @@ static int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 						for(; i< 4; ++i) if( !( ((tagdata[tagpos+i] > 47) && (tagdata[tagpos+i] < 58))
 						                     || ((tagdata[tagpos+i] > 64) && (tagdata[tagpos+i] < 91)) ) )
 						{
-							debug1("ID3v2: real tag data apparently ended after %lu bytes", tagpos);
+							debug5("ID3v2: real tag data apparently ended after %lu bytes with 0x%02x%02x%02x%02x", tagpos, tagdata[tagpos], tagdata[tagpos+1], tagdata[tagpos+2], tagdata[tagpos+3]);
 							ret = -1;
 							break;
 						}
@@ -698,6 +698,15 @@ init_resync:
       {
         fprintf(stderr,"Note: Illegal Audio-MPEG-Header 0x%08lx at offset 0x%lx.\n",
               newhead,rd->tell(rd)-4);
+        /* duplicated code from above! */
+        /* check for id3v2; first three bytes (of 4) are "ID3" */
+        if((newhead & (unsigned long) 0xffffff00) == (unsigned long) 0x49443300)
+        {
+          int id3length = 0;
+          if(!param.quiet) fprintf(stderr, "Note: Oh, it's just an ID3V2 tag...\n");
+          id3length = parse_new_id3(newhead, rd);
+          goto read_again;
+        }
         if((newhead & 0xffffff00) == ('b'<<24)+('m'<<16)+('p'<<8))
         fprintf(stderr,"Note: Could be a BMP album art.\n");
       }
