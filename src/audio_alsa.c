@@ -199,9 +199,13 @@ int audio_play_samples(struct audio_info_struct *ai, unsigned char *buf, int byt
 
 void audio_queueflush(struct audio_info_struct *ai)
 {
-	/* that one kills the buffer process?! */
-	if(!param.usebuffer) snd_pcm_drop(ai->handle);
-	else warning("alsa output together with buffer mode is buggy atm!");
+	/*
+		that one causes trouble (bug 1536513):
+		- buffer chokes on it in terminal control mode
+		- also without buffer output is ceased after seeking back in terminal control mode
+	*/
+	/* if(!param.usebuffer) snd_pcm_drop(ai->handle);
+	else warning("alsa output together with buffer mode is buggy atm!"); */
 }
 
 int audio_close(struct audio_info_struct *ai)
