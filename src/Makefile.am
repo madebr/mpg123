@@ -37,6 +37,7 @@ mpg123_SOURCES = \
 	layer1.c \
 	layer2.c \
 	layer3.c \
+	layer3.h \
 	mpg123.c \
 	mpg123.h \
 	readers.c \

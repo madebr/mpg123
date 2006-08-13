@@ -14,11 +14,17 @@ EXTRA_DIST = \
 	BENCHMARKING \
 	BUGS \
 	CONTACT \
+	CHANGES \
+	ChangeLog \
 	COPYING \
 	MakeLegacy.sh \
 	PATENTS \
 	README.3DNOW \
 	README.WIN32 \
 	README.remote \
-	TODO
-	
+	TODO \
+	LICENSE \
+	README.gain \
+	README.thor \
+	README.WIN32 \
+	ROAD_TO_LGPL

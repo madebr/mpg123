@@ -8,6 +8,7 @@
 - Fixed NAS audio-output support
 - re-enabled MPEG 2.5, code just seems to work
 - improved stream checking; being more willing in general (favor resync instead of bail out) but directly give up if free format stream is obvious
+- Whee! Initial Relative Volume Adjustment (buzz) support with reading of ReplayGain values in lame/info tag, the RVA2 frames in ID3v2.4, ID3v2 TXXX tags from foobar2000 (please test, someone!) and custom ID3v2.3 comments entitled RVA / RVA_ALBUM / RVA_AUDIOPHILE / RVA_RADIO / RVA_MIX
 
 0.60-beta3 (Thomas Orgis)
 -----
