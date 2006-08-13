@@ -1227,9 +1227,10 @@ tc_hack:
 				long offset;
 				if((offset=term_control(&fr))) {
 					if(!rd->back_frame(rd, &fr, -offset)) {
-						/* frameNum is unsigned!!! */
-						/*if((offset < 0) && (frameNum < -offset)) frameNum = 0;
-						else */ frameNum+=offset;
+						/* frameNum is unsigned... */
+						if((offset < 0) && (frameNum < -offset)) frameNum = 0;
+						else frameNum+=offset;
+						debug1("seeked to %lu", frameNum);
 						#ifdef GAPLESS
 						if(param.gapless && (fr.lay == 3))
 						layer3_gapless_set_position(frameNum, &fr, &ai);
@@ -1262,9 +1263,9 @@ tc_hack:
 					if((!rd->back_frame(rd, &fr, -offset)) 
 						&& read_frame(&fr))
 					{
-						/* frameNum is unsigned!!! */
-						/*if((offset < 0) && (frameNum < -offset)) frameNum = 0;
-						else */ frameNum+=offset;
+						/* frameNum is unsigned... */
+						if((offset < 0) && (frameNum < -offset)) frameNum = 0;
+						else frameNum+=offset;
 						#ifdef GAPLESS
 						if(param.gapless && (fr.lay == 3))
 						layer3_gapless_set_position(frameNum, &fr, &ai);
