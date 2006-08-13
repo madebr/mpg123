@@ -61,7 +61,7 @@ Matthew Parslow <roy@alpha.alphalink.com.au>: esdserver patch
 <dlux@dlux.sch.bme.hu>: equalizer patch (equalfile setting)
 Ducroquet Erwan <ducroque@ufr-info-p7.ibp.fr>: HPUX/ALib support
 Shane Wegner <shane@CM.NU>: genrepatch
-Samuel Audet <guardia@cam.org>: wav-File patch
+Samuel Audet <guardia@step.polymtl.ca>: wav-File patch
 "J. Dean Brederson" <jdb@cs.utah.edu>: SGI-RAD support
 Chou Ye-chi <is84002@cis.nctu.edu.tw>: sajberplay/FreeBSD patch
 Fabrice Bellard <bellard@email.enst.fr>: 486 optimizations
