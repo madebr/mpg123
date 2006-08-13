@@ -203,7 +203,7 @@ static int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 						if(ret >= 0)
 						{
 							/* 4 bytes id */
-							strncpy(id, (char) tagdata+pos, 4);
+							strncpy(id, (char*) tagdata+pos, 4);
 							pos += 4;
 							/* size as 32 syncsafe bits */
 							if(!syncsafe_to_long(tagdata+pos, framesize))
