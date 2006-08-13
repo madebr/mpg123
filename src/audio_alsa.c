@@ -9,6 +9,7 @@
 
 #include "config.h"
 #include "mpg123.h"
+#include "debug.h"
 #include <errno.h>
 
 /* make ALSA 0.9.x compatible to the 1.0.x API */
@@ -198,7 +199,9 @@ int audio_play_samples(struct audio_info_struct *ai, unsigned char *buf, int byt
 
 void audio_queueflush(struct audio_info_struct *ai)
 {
-	snd_pcm_drop(ai->handle);
+	/* that one kills the buffer process?! */
+	if(!param.usebuffer) snd_pcm_drop(ai->handle);
+	else warning("alsa output together with buffer mode is buggy atm!");
 }
 
 int audio_close(struct audio_info_struct *ai)
