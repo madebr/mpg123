@@ -13,6 +13,7 @@
 #include <SDL.h>
 
 #include "config.h"
+#include "debug.h"
 #include "audio.h"
 #include "sfifo.h"
 #include "mpg123.h"
@@ -39,7 +40,7 @@ audio_callback_sdl(void *udata, Uint8 *stream, int len)
 
 	/* Only play if we have data left */
 	if ( sfifo_used( &fifo ) < len ) {
-		fprintf(stderr, "Didn't have any audio data for SDL (buffer underflow)\n");
+		warning("Didn't have any audio data for SDL (buffer underflow)");
 		SDL_PauseAudio(1);
 		return;
 	}
@@ -48,7 +49,7 @@ audio_callback_sdl(void *udata, Uint8 *stream, int len)
 	read = sfifo_read( &fifo, stream, len );
 	
 	if (len!=read)
-		fprintf(stderr, "Error reading from the FIFO (wanted=%u, read=%u).\n", len, read);
+		warning2("Error reading from the FIFO (wanted=%u, read=%u).\n", len, read);
 
 } 
 
@@ -59,7 +60,7 @@ int audio_open(struct audio_info_struct *ai)
 	/* Initalise SDL */
 	if (!sdl_initialised)  {
 		if (SDL_Init( SDL_INIT_AUDIO ) ) {
-			fprintf(stderr, "Failed to initialise SDL: %s\n", SDL_GetError());
+			error1("Failed to initialise SDL: %s\n", SDL_GetError());
 			exit(2);
 		}
 		sdl_initialised=1;
@@ -70,6 +71,7 @@ int audio_open(struct audio_info_struct *ai)
 	/* Open an audio I/O stream. */
 	if (ai->rate > 0 && ai->channels >0 ) {
 		SDL_AudioSpec wanted;
+		size_t ringbuffer_len;
 	
 		/* L16 uncompressed audio data, using 16-bit signed representation in twos 
 		   complement notation - system endian-ness. */
@@ -82,12 +84,14 @@ int audio_open(struct audio_info_struct *ai)
 	
 		/* Open the audio device, forcing the desired format */
 		if ( SDL_OpenAudio(&wanted, NULL) ) {
-			fprintf(stderr, "Couldn't open SDL audio: %s\n", SDL_GetError());
+			error1("Couldn't open SDL audio: %s\n", SDL_GetError());
 			exit(2);
 		}
 	
 		/* Initialise FIFO */
-		sfifo_init( &fifo, ai->rate * FIFO_DURATION * SAMPLE_SIZE *ai->channels );
+		ringbuffer_len = ai->rate * FIFO_DURATION * SAMPLE_SIZE *ai->channels;
+		debug2( "Allocating %d byte ring-buffer (%f seconds)", ringbuffer_len, (float)FIFO_DURATION);
+		sfifo_init( &fifo, ringbuffer_len );
 									   
 	}
 	
@@ -128,6 +132,8 @@ int audio_play_samples(struct audio_info_struct *ai, unsigned char *buf, int len
 int audio_close(struct audio_info_struct *ai)
 {
 	SDL_CloseAudio();
+	
+	sfifo_close( &fifo );
 	
 	return 0;
 }
