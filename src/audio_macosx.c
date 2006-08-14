@@ -85,7 +85,7 @@ struct anEnv
 	aBuffer * to;
 };
 
-static struct anEnv env;
+static struct anEnv *env;
 
 #define ENV ((struct anEnv *)inClientData)
 #define NUMBER_BUFFERS 16	/* Tried with 3 buffers, but then any little window move is sufficient to stop the sound. Here we have 1.5 seconds music buffered */
@@ -95,8 +95,10 @@ void destroyBuffers()
 	aBuffer * ptr;
 	aBuffer * ptr2;
 	
-	ptr = env.to->next;
-	env.to->next = NULL;
+	if (!env) return;
+	
+	ptr = env->to->next;
+	env->to->next = NULL;
 	while(ptr)
 	{
 		ptr2 = ptr->next;
@@ -111,7 +113,9 @@ void initBuffers()
 	long m;
 	aBuffer ** ptrptr;
 	
-	ptrptr = &env.to;
+	if (!env) return;
+	
+	ptrptr = &env->to;
 	for(m = 0; m < NUMBER_BUFFERS; m++)
 	{
 		*ptrptr = malloc(sizeof(aBuffer));
@@ -120,10 +124,10 @@ void initBuffers()
 		(*ptrptr)->buffer = NULL;
 		ptrptr = &(*ptrptr)->next;
 		#if MOSX_USES_SEM
-		sem_post(env.semaphore);	/* This buffer is ready for filling (of course, it is empty!) */ 
+		sem_post(env->semaphore);	/* This buffer is ready for filling (of course, it is empty!) */ 
 		#endif
 	}
-	*ptrptr = env.from = env.to;
+	*ptrptr = env->from = env->to;
 }
 
 int fillBuffer(aBuffer * b, short * source, long size)
@@ -218,29 +222,21 @@ int audio_open(struct audio_info_struct *ai)
 	/*float vol;
 	OSStatus e;*/
 	
-	/* Where did that default audio output go? */
-	
-	size = sizeof(env.device);
-	if(AudioHardwareGetProperty(kAudioHardwarePropertyDefaultOutputDevice, &size, &env.device)) return(-1);
-		
-	/* Hmmm, let's choose PCM format */
-	
-	size = sizeof(format);
-	if(AudioDeviceGetProperty(env.device, 0, 0, kAudioDevicePropertyStreamFormat, &size, &format)) return(-1);
-	if(format.mFormatID != kAudioFormatLinearPCM) return(-1);
-	
-	/* Let's test volume, which doesn't seem to work (but this is only an alpha, remember?) */
-	
-	/*vol = 0.5;
-	size = sizeof(vol);
-	if(e = AudioDeviceSetProperty(env.device, NULL, 0, 0, 'volm', size, &vol)) { printf("Didn't your mother ever tell you not to hear music so loudly?\n"); return(-1); } */
-	
+	/* Allocate memory for data structure */
+	if (!env) {
+		env = (struct anEnv*)malloc( sizeof( struct anEnv ) );
+		if (!env) {
+			perror("failed to malloc memory for 'struct anEnv'");
+			exit(-1);
+		}
+	}
+
 	/* Let's init our environment */
-	
-	env.size = 0;
-	env.debut = NULL;
-	env.ptr = NULL;
-	env.play = 0;
+	env->device = 0;
+	env->size = 0;
+	env->debut = NULL;
+	env->ptr = NULL;
+	env->play = 0;
 	
 	#if MOSX_USES_SEM
 	strcpy(s, "/mpg123-0000");
@@ -251,24 +247,52 @@ int audio_open(struct audio_info_struct *ai)
 				break;
 			else
 				s[m] = '0';
-	} while( (env.semaphore = sem_open(s, O_CREAT | O_EXCL, 0644, 0)) == (sem_t *)SEM_FAILED);
+	} while( (env->semaphore = sem_open(s, O_CREAT | O_EXCL, 0644, 0)) == (sem_t *)SEM_FAILED);
 	#else
-	env.pid = getpid();
-	env.wait = 0;
+	env->pid = getpid();
+	env->wait = 0;
 	signal(SIGUSR2, start);
 	#endif
 	
 	initBuffers();
-		
-	/* And prepare audio launching */
 	
-	if(AudioDeviceAddIOProc(env.device, playProc, &env)) return(-1);
+	/* Where did that default audio output go? */
+	size = sizeof(env->device);
+	if(AudioHardwareGetProperty(kAudioHardwarePropertyDefaultOutputDevice, &size, &env->device)) {
+		fprintf(stderr, "AudioHardwareGetProperty(kAudioHardwarePropertyDefaultOutputDevice) failed in audio_open()");
+		return(-1);
+	}
+	
+	/* Hmmm, let's choose PCM format */
+	size = sizeof(format);
+	if(AudioDeviceGetProperty(env->device, 0, 0, kAudioDevicePropertyStreamFormat, &size, &format)) {
+		fprintf(stderr, "AudioDeviceGetProperty() failed in audio_open()");
+		return(-1);
+	}
+	if(format.mFormatID != kAudioFormatLinearPCM) {
+		fprintf(stderr, "format.mFormatID != kAudioFormatLinearPCM in audio_open()");
+		return(-1);
+	}
+	
+	/* Let's test volume, which doesn't seem to work (but this is only an alpha, remember?) */
+	
+	/*vol = 0.5;
+	size = sizeof(vol);
+	if(e = AudioDeviceSetProperty(env->device, NULL, 0, 0, 'volm', size, &vol)) { printf("Didn't your mother ever tell you not to hear music so loudly?\n"); return(-1); } */
+	
+		
+	/* Prepare audio launching */
+	if(AudioDeviceAddIOProc(env->device, playProc, env)) {
+		fprintf(stderr, "AudioDeviceAddIOProc failed in audio_open()");
+		return(-1);
+	}
 	
 	return(0);
 }
 
 int audio_get_formats(struct audio_info_struct *ai)
 {
+	/* Only support Signed 16-bit output */
 	return AUDIO_FORMAT_SIGNED_16;
 }
 
@@ -277,30 +301,32 @@ int audio_play_samples(struct audio_info_struct *ai,unsigned char *buf,int len)
 	/* We have to calm down mpg123, else he wouldn't hesitate to drop us another buffer (which would be the same, in fact) */
 	
 	#if MOSX_USES_SEM && MOSX_SEM_V2	/* Suddenly, I have some kind of doubt: HOW COULD IT WORK??? */
-	while(sem_wait(env.semaphore)){}	/* We just have to wait a buffer fill request */
-	fillBuffer(env.to, (short *)buf, len / sizeof(short));
+	while(sem_wait(env->semaphore)){}	/* We just have to wait a buffer fill request */
+	fillBuffer(env->to, (short *)buf, len / sizeof(short));
 	#else
-	while(fillBuffer(env.to, (short *)buf, len / sizeof(short)) < 0)	/* While the next buffer to write is not empty, we wait a bit... */
+	while(fillBuffer(env->to, (short *)buf, len / sizeof(short)) < 0)	/* While the next buffer to write is not empty, we wait a bit... */
 	{
 		#ifdef DEBUG_MOSX
 		printf("|"); fflush(stdout);
 		#endif
 		#if MOSX_USES_SEM
-		sem_wait(env.semaphore);	/* This is a bug. I should wait for the semaphore once per empty buffer (and not each time fillBuffers() returns -1). See MOSX_SEM_V2; this was a too quickly modified part when I implemented MOSX_USES_SEM. */
+		sem_wait(env->semaphore);	/* This is a bug. I should wait for the semaphore once per empty buffer (and not each time fillBuffers() returns -1). See MOSX_SEM_V2; this was a too quickly modified part when I implemented MOSX_USES_SEM. */
 		#else
-		env.wait = 1;
+		env->wait = 1;
 		sleep(3600);	/* This should be sufficient, shouldn't it? */
 		#endif
 	}
 	#endif
-	env.to = env.to->next;
+	env->to = env->to->next;
 	
 	/* And we lauch action if not already done */
-	
-	if(!env.play)
+	if(!env->play)
 	{
-		if(AudioDeviceStart(env.device, playProc)) return(-1);
-		env.play = 1;
+		if(AudioDeviceStart(env->device, playProc)) {
+			fprintf(stderr, "AudioDeviceStart failed in audio_play_samples()");
+			return(-1);
+		}
+		env->play = 1;
 	}
 	
 	return len;
@@ -308,12 +334,19 @@ int audio_play_samples(struct audio_info_struct *ai,unsigned char *buf,int len)
 
 int audio_close(struct audio_info_struct *ai)
 {
-	AudioDeviceStop(env.device, playProc);	/* No matter the error code, we want to close it (by brute force if necessary) */
-	AudioDeviceRemoveIOProc(env.device, playProc);
-	destroyBuffers();
-	#if MOSX_USES_SEM
-	sem_close(env.semaphore);
-	#endif
+	if (env) {
+		AudioDeviceStop(env->device, playProc);	/* No matter the error code, we want to close it (by brute force if necessary) */
+		AudioDeviceRemoveIOProc(env->device, playProc);
+		destroyBuffers();
+		#if MOSX_USES_SEM
+		sem_close(env->semaphore);
+		#endif
+		
+		/* Free environment data structure */
+		free(env);
+		env=NULL;
+	}
+	
 	return 0;
 }
 
