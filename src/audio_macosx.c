@@ -85,7 +85,7 @@ struct anEnv
 	aBuffer * to;
 };
 
-static struct anEnv *env;
+static struct anEnv *env=NULL;
 
 #define ENV ((struct anEnv *)inClientData)
 #define NUMBER_BUFFERS 16	/* Tried with 3 buffers, but then any little window move is sufficient to stop the sound. Here we have 1.5 seconds music buffered */
