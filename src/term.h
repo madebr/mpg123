@@ -21,6 +21,7 @@
  * own preferences.
  */
 
+#define HELP_KEY	'h'
 #define BACK_KEY	'b'
 #define NEXT_KEY	'f'
 #define PAUSE_KEY	'p'

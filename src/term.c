@@ -189,6 +189,10 @@ static long term_handle_input(struct frame *fr, int do_delay)
 	case FAST_FORWARD_KEY:
 	  offset+=50;
 	  break;
+	case HELP_KEY:
+	  fprintf(stderr,"\n\n -= terminal control keys =-\n[%c] or space bar\t interrupt/restart playback (i.e. 'pause')\n[%c]\t next track\n[%c]\t back to beginning of track\n[%c]\t pause while looping current sound chunk\n[%c]\t forward\n[%c]\t rewind\n[%c]\t fast forward\n[%c]\t fast rewind\n[%c]\t fine forward\n[%c]\t fine rewind\n[%c]\t this help\n[%c]\t quit\n\n",
+		        STOP_KEY, NEXT_KEY, BACK_KEY, PAUSE_KEY, FORWARD_KEY, REWIND_KEY, FAST_FORWARD_KEY, FAST_REWIND_KEY, FINE_FORWARD_KEY, FINE_REWIND_KEY, HELP_KEY, QUIT_KEY);
+	break;
 	default:
 	  ;
       }
