@@ -197,6 +197,7 @@ int audio_get_formats(struct audio_info_struct *ai)
 
 int audio_play_samples(struct audio_info_struct *ai, unsigned char *buf, int bytes)
 {
+	snd_pcm_sframes_t written;
 	if(!prepared)
 	{
 		if((prepared = snd_pcm_prepare(ai->handle)) < 0)
@@ -206,8 +207,7 @@ int audio_play_samples(struct audio_info_struct *ai, unsigned char *buf, int byt
 		}
 		else prepared = 1;
 	}
-	snd_pcm_uframes_t frames = snd_pcm_bytes_to_frames(ai->handle, bytes);
-	snd_pcm_sframes_t written = snd_pcm_writei(ai->handle, buf, frames);
+	written = snd_pcm_writei(ai->handle, buf, snd_pcm_bytes_to_frames(ai->handle, bytes));
 	if (written >= 0)
 		return snd_pcm_frames_to_bytes(ai->handle, written);
 	else
@@ -216,18 +216,11 @@ int audio_play_samples(struct audio_info_struct *ai, unsigned char *buf, int byt
 
 void audio_queueflush(struct audio_info_struct *ai)
 {
-	/*
-		that one causes trouble (bug 1536513):
-		- buffer chokes on it in terminal control mode
-		- also without buffer output is ceased after seeking back in terminal control mode
-	*/
-	/* if(!param.usebuffer)*/
 	if(prepared)
 	{
 		snd_pcm_drop(ai->handle);
 		prepared = 0;
 	}
-	/*else warning("alsa output together with buffer mode is buggy atm!"); */
 }
 
 int audio_close(struct audio_info_struct *ai)
