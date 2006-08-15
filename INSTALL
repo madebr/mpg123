@@ -6,6 +6,20 @@ There are now two basic ways to get your mpg123 installation consisting of
 (you may want to copy some of the documentation - README, etc - to /usr/share/doc/mpg123 or the like, too)
 
 
+0. Prerequesites
+
+You really need:
+
+- a C compiler; we try to keep the code ANSI C89 compatible
+  gcc from 2.95 on should work, others, too - please report any issues
+
+You want:
+
+- working assembler (recent GNU binutils) if using certain CPU optimizations
+
+- headers and lib for certain audio output drivers (alsalib for alsa, sdl for sld...)
+
+
 1. New installation via GNU autotools
 
 The GNU 3-step procedure:
