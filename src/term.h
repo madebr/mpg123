@@ -25,6 +25,7 @@
 #define NEXT_KEY	'f'
 #define PAUSE_KEY	'p'
 #define QUIT_KEY	'q'
+/* space bar is alias for that */
 #define STOP_KEY	's'
 #define REWIND_KEY	','
 #define FORWARD_KEY	'.'

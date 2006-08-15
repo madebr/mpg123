@@ -161,6 +161,7 @@ static long term_handle_input(struct frame *fr, int do_delay)
 	  fprintf(stderr, "%s", (paused) ? PAUSED_STRING : EMPTY_STRING);
 	  break;
 	case STOP_KEY:
+	case ' ':
 	  stopped=1-stopped;
 	  if(paused) {
 		  paused=0;
