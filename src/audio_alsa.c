@@ -31,6 +31,8 @@ static const struct {
 };
 #define NUM_FORMATS (sizeof format_map / sizeof format_map[0])
 
+static int prepared = 0;
+
 static int initialize_device(struct audio_info_struct *ai);
 
 int audio_open(struct audio_info_struct *ai)
@@ -152,10 +154,16 @@ static int initialize_device(struct audio_info_struct *ai)
 		fprintf(stderr, "initialize_device(): cannot set transfer alignment\n");
 		return -1;
 	}
+	/* play silence when there is an underrun */
+	if (snd_pcm_sw_params_set_silence_size(ai->handle, sw, boundary) < 0) {
+		fprintf(stderr, "initialize_device(): cannot set silence size\n");
+		return -1;
+	}
 	if (snd_pcm_sw_params(ai->handle, sw) < 0) {
 		fprintf(stderr, "initialize_device(): cannot set sw params\n");
 		return -1;
 	}
+	prepared = 1;
 	return 0;
 }
 
@@ -189,6 +197,15 @@ int audio_get_formats(struct audio_info_struct *ai)
 
 int audio_play_samples(struct audio_info_struct *ai, unsigned char *buf, int bytes)
 {
+	if(!prepared)
+	{
+		if((prepared = snd_pcm_prepare(ai->handle)) < 0)
+		{
+			error1("cannot prepared device: %s", snd_strerror(prepared));
+			prepared = 0;
+		}
+		else prepared = 1;
+	}
 	snd_pcm_uframes_t frames = snd_pcm_bytes_to_frames(ai->handle, bytes);
 	snd_pcm_sframes_t written = snd_pcm_writei(ai->handle, buf, frames);
 	if (written >= 0)
@@ -204,13 +221,18 @@ void audio_queueflush(struct audio_info_struct *ai)
 		- buffer chokes on it in terminal control mode
 		- also without buffer output is ceased after seeking back in terminal control mode
 	*/
-	/* if(!param.usebuffer) snd_pcm_drop(ai->handle);
-	else warning("alsa output together with buffer mode is buggy atm!"); */
+	/* if(!param.usebuffer)*/
+	if(prepared)
+	{
+		snd_pcm_drop(ai->handle);
+		prepared = 0;
+	}
+	/*else warning("alsa output together with buffer mode is buggy atm!"); */
 }
 
 int audio_close(struct audio_info_struct *ai)
 {
-	if (snd_pcm_state(ai->handle) == SND_PCM_STATE_RUNNING)
+	if (prepared && snd_pcm_state(ai->handle) == SND_PCM_STATE_RUNNING)
 		snd_pcm_drain(ai->handle);
 	return snd_pcm_close(ai->handle);
 }
