@@ -82,6 +82,9 @@ int rva_level[2] = {-1,-1}; /* significance level of stored rva */
 float rva_gain[2] = {0,0}; /* mix, album */
 float rva_peak[2] = {0,0};
 
+double mean_framesize;
+unsigned long mean_frames;
+
 unsigned char *pcm_sample;
 int pcm_point = 0;
 int audiobufsize = AUDIOBUFSIZE;
@@ -507,6 +510,8 @@ void read_frame_init (void)
 	vbr = CBR;
 	abr_rate = 0;
 	track_frames = 0;
+	mean_frames = 0;
+	mean_framesize = 0;
 	rva_level[0] = -1;
 	rva_level[1] = -1;
 	#ifdef GAPLESS
@@ -592,6 +597,7 @@ int read_frame(struct frame *fr)
   static unsigned char ssave[34];
 
   fsizeold=fr->framesize;       /* for Layer3 */
+debug("read_frame");
 
   if (param.halfspeed) {
     static int halfphase = 0;
@@ -996,6 +1002,11 @@ init_resync:
   if (param.halfspeed && fr->lay == 3)
     memcpy (ssave, bsbuf, ssize);
 
+	if(++mean_frames != 0)
+	{
+		mean_framesize = ((mean_frames-1)*mean_framesize+compute_bpf(fr)) / mean_frames ;
+	}
+	debug1("mean_framesize=%g\n", mean_framesize);
   return 1;
 
 }
@@ -1404,20 +1415,18 @@ long compute_buffer_offset(struct frame *fr)
 		return bufsize;
 }
 
-void print_stat(struct frame *fr,unsigned long no,long buffsize,struct audio_info_struct *ai)
+/* Way too many parameters - heck, this fr and ai is always the same! */
+int position_info(struct frame* fr, const unsigned long current_frame, long buffsize, struct audio_info_struct* ai,
+                   unsigned long* frames_left, double* current_seconds, double* seconds_left)
 {
-	double bpf,tpf,tim1,tim2;
+	double tpf;
 	double dt = 0.0;
-	unsigned long sno,rno;
-	/* that's not funny... overflows waving */
-	char outbuf[256];
 
 	if(!rd || !fr)
 	{
 		debug("reader troubles!");
-		return;
+		return -1;
 	}
-	outbuf[0] = 0;
 
 #ifndef GENERIC
 	{
@@ -1431,56 +1440,63 @@ void print_stat(struct frame *fr,unsigned long no,long buffsize,struct audio_inf
 		FD_SET(errfd,&serr);
 		n = select(errfd+1,NULL,&serr,NULL,&t);
 		if(n <= 0)
-			return;
+			return -2;
 	}
 #endif
 
-	bpf = compute_bpf(fr);
 	tpf = compute_tpf(fr);
-
+	debug1("tpf=%g", tpf);
 	if(buffsize > 0 && ai && ai->rate > 0 && ai->channels > 0) {
 		dt = (double) buffsize / ai->rate / ai->channels;
 		if( (ai->format & AUDIO_FORMAT_MASK) == AUDIO_FORMAT_16)
 			dt *= 0.5;
 	}
 
-        rno = 0;
-        sno = no;
+	(*frames_left) = 0;
 
-	if((track_frames != 0) && (track_frames >= sno)) rno = track_frames - sno;
+	if((track_frames != 0) && (track_frames >= current_frame)) (*frames_left) = track_frames - current_frame;
 	else
 	if(rd->filelen >= 0)
 	{
+		double bpf;
 		long t = rd->tell(rd);
-		rno = (unsigned long)((double)(rd->filelen-t)/bpf);
+		bpf = mean_framesize ? mean_framesize : compute_bpf(fr);
+		(*frames_left) = (unsigned long)((double)(rd->filelen-t)/bpf);
 		/* I totally don't understand why we should re-estimate the given correct(?) value */
-		/* sno = (unsigned long)((double)t/bpf); */
+		/* current_frame = (unsigned long)((double)t/bpf); */
 	}
 
 	/* beginning with 0 or 1?*/
-	sprintf(outbuf+strlen(outbuf),"\rFrame# %5lu [%5lu], ",sno,rno);
-	tim1 = sno*tpf-dt;
-	tim2 = rno*tpf+dt;
+	(*current_seconds) = (double) current_frame*tpf-dt;
+	(*seconds_left) = (double)(*frames_left)*tpf+dt;
 #if 0
-	tim1 = tim1 < 0 ? 0.0 : tim1;
+	(*current_seconds) = (*current_seconds) < 0 ? 0.0 : (*current_seconds);
 #endif
-	tim2 = tim2 < 0 ? 0.0 : tim2;
-
-	sprintf(outbuf+strlen(outbuf),"Time: %02lu:%02u.%02u [%02u:%02u.%02u], ",
-			(unsigned long) tim1/60,
-			(unsigned int)tim1%60,
-			(unsigned int)(tim1*100)%100,
-			(unsigned int)tim2/60,
-			(unsigned int)tim2%60,
-			(unsigned int)(tim2*100)%100);
-
-	if(param.usebuffer)
-		sprintf(outbuf+strlen(outbuf),"[%8ld] ",(long)buffsize);
-	write(fileno(stderr),outbuf,strlen(outbuf));
-#if 0
-	fflush(out); /* hmm not really nec. */
-#endif
+	if((*seconds_left) < 0)
+	{
+		warning("seconds_left < 0!");
+		(*seconds_left) = 0.0;
+	}
+	return 0;
 }
+
+
+void print_stat(struct frame *fr,unsigned long no,long buffsize,struct audio_info_struct *ai)
+{
+	double tim1,tim2;
+	unsigned long rno;
+	if(!position_info(fr, no, buffsize, ai, &rno, &tim1, &tim2))
+	{
+		/* All these sprintf... only to avoid two writes to stderr in case of using buffer?
+		   I guess we can drop that. */
+		fprintf(stderr, "\rFrame# %5lu [%5lu], Time: %02lu:%02u.%02u [%02u:%02u.%02u], ",
+		        no,rno,
+		        (unsigned long) tim1/60, (unsigned int)tim1%60, (unsigned int)(tim1*100)%100,
+		        (unsigned int)tim2/60, (unsigned int)tim2%60, (unsigned int)(tim2*100)%100 );
+		if(param.usebuffer) fprintf(stderr,"[%8ld] ",(long)buffsize);
+	}
+}
+
 
 int get_songlen(struct frame *fr,int no)
 {

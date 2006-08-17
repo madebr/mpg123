@@ -47,36 +47,12 @@ void generic_sendmsg (const char *fmt, ...)
 	fprintf(outstream, "\n");
 }
 
-void generic_sendstat (struct frame *fr, int no)
+void generic_sendstat (struct frame *fr, long current_frame)
 {
-	long buffsize;
-	double bpf, tpf, tim1, tim2;
-	double dt = 0;
-	int sno, rno;
-
-	/* this is taken from common.c... need to take it back */
-
-	buffsize = xfermem_get_usedspace(buffermem);
-	if (!rd || !fr)
-		return;
-	bpf = compute_bpf(fr);
-	tpf = compute_tpf(fr);
-	if (buffsize > 0 && ai.rate > 0 && ai.channels > 0) {
-		dt = (double) buffsize / ai.rate / ai.channels;
-		if ((ai.format & AUDIO_FORMAT_MASK) == AUDIO_FORMAT_16)
-			dt *= .5;
-	}
-	rno = 0;
-	sno = no;
-	if (rd->filelen >= 0) {
-		long t = rd->tell(rd);
-		rno = (int)((double)(rd->filelen-t)/bpf);
-		sno = (int)((double)t/bpf);
-	}
-	tim1 = sno * tpf - dt;
-	tim2 = rno * tpf + dt;
-
-	generic_sendmsg("F %d %d %3.2f %3.2f", sno, rno, tim1, tim2);
+	unsigned long frames_left;
+	double current_seconds, seconds_left;
+	if(!position_info(fr, (unsigned long) current_frame, xfermem_get_usedspace(buffermem), &ai, &frames_left, &current_seconds, &seconds_left))
+	generic_sendmsg("F %li %lu %3.2f %3.2f", current_frame, frames_left, current_seconds, seconds_left);
 }
 
 extern char *genre_table[];
