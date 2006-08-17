@@ -105,8 +105,6 @@ static int stream_back_bytes(struct reader *rds,int bytes)
 static int stream_back_frame(struct reader *rds,struct frame *fr,int num)
 {
 	long bytes;
-	unsigned char buf[4];
-	unsigned long newhead;
 
 	if(!firsthead)
 		return 0;
@@ -129,6 +127,10 @@ static int stream_back_frame(struct reader *rds,struct frame *fr,int num)
 		return -1;
 
 #if 0
+	{
+	unsigned char buf[4];
+	unsigned long newhead;
+
 	/* This is to find a new valid frame - read_frame can do that itself! */
 	/* Problem:
 	   Searching for a header identical to firsthead won't do it for files that vary that (ever heard of vbr?).
@@ -150,12 +152,12 @@ static int stream_back_frame(struct reader *rds,struct frame *fr,int num)
 
 	if( stream_lseek(rds,-4,SEEK_CUR) < 0)
 		return -1;
+	}
 #endif
 	
 /* why two times? */
 	read_frame_recover(fr);
 	read_frame_recover(fr);
-	fprintf(stderr,"stream_back_frame has read\n");
 
 	if(fr->lay == 3) {
 		set_pointer(512);

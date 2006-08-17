@@ -744,10 +744,11 @@ init_resync:
             debug("going to init_resync...");
             goto init_resync;       /* "considered harmful", eh? */
           }
-
-       /* } while ((newhead & HDRCMPMASK) != (oldhead & HDRCMPMASK)
-              && (newhead & HDRCMPMASK) != (firsthead & HDRCMPMASK)); */
-					}while (!head_check(newhead));
+         /* we should perhaps collect a list of valid headers that occured in file... there can be more */
+         } while ((newhead & HDRCMPMASK) != (oldhead & HDRCMPMASK)
+              && (newhead & HDRCMPMASK) != (firsthead & HDRCMPMASK));
+					/* too many false positives 
+					}while (!(head_check(newhead) && decode_header(fr, newhead))); */
         if (give_note)
           fprintf (stderr, "Note: Skipped %d bytes in input.\n", try);
       }
@@ -1016,7 +1017,6 @@ init_resync:
 	{
 		mean_framesize = ((mean_frames-1)*mean_framesize+compute_bpf(fr)) / mean_frames ;
 	}
-	if(do_recover) fprintf(stderr,"recovery normal end\n");
 	debug1("mean_framesize=%g\n", mean_framesize);
   return 1;
 
