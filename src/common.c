@@ -82,8 +82,9 @@ int rva_level[2] = {-1,-1}; /* significance level of stored rva */
 float rva_gain[2] = {0,0}; /* mix, album */
 float rva_peak[2] = {0,0};
 
-double mean_framesize;
-unsigned long mean_frames;
+static double mean_framesize;
+static unsigned long mean_frames;
+static int do_recover = 0;
 
 unsigned char *pcm_sample;
 int pcm_point = 0;
@@ -586,6 +587,15 @@ static void do_rva()
 }
 
 
+int read_frame_recover(struct frame* fr)
+{
+	int ret;
+	do_recover = 1;
+	ret = read_frame(fr);
+	do_recover = 0;
+	return ret;
+}
+
 /*****************************************************************
 
  * read next frame
@@ -595,7 +605,7 @@ int read_frame(struct frame *fr)
 	/* TODO: rework this thing */
   unsigned long newhead;
   static unsigned char ssave[34];
-
+  int give_note = param.quiet ? 0 : (do_recover ? 0 : 1 );
   fsizeold=fr->framesize;       /* for Layer3 */
 debug("read_frame");
 
@@ -700,26 +710,25 @@ init_resync:
              fprintf(stderr,"Note: Skipped ID3 Tag!\n");
            goto read_again;
       }
-      if (!param.quiet)
+      if (give_note)
       {
         fprintf(stderr,"Note: Illegal Audio-MPEG-Header 0x%08lx at offset 0x%lx.\n",
               newhead,rd->tell(rd)-4);
-        /* duplicated code from above! */
-        /* check for id3v2; first three bytes (of 4) are "ID3" */
-        if((newhead & (unsigned long) 0xffffff00) == (unsigned long) 0x49443300)
-        {
-          int id3length = 0;
-          if(!param.quiet) fprintf(stderr, "Note: Oh, it's just an ID3V2 tag...\n");
-          id3length = parse_new_id3(newhead, rd);
-          goto read_again;
-        }
-        if((newhead & 0xffffff00) == ('b'<<24)+('m'<<16)+('p'<<8))
-        fprintf(stderr,"Note: Could be a BMP album art.\n");
       }
-      if (param.tryresync) {
+      /* duplicated code from above! */
+      /* check for id3v2; first three bytes (of 4) are "ID3" */
+      if((newhead & (unsigned long) 0xffffff00) == (unsigned long) 0x49443300)
+      {
+        int id3length = 0;
+        if(give_note) fprintf(stderr, "Note: Oh, it's just an ID3V2 tag...\n");
+        id3length = parse_new_id3(newhead, rd);
+        goto read_again;
+      }
+      if(give_note && (newhead & 0xffffff00) == ('b'<<24)+('m'<<16)+('p'<<8)) fprintf(stderr,"Note: Could be a BMP album art.\n");
+      if (param.tryresync || do_recover) {
         int try = 0;
         /* TODO: make this more robust, I'd like to cat two mp3 fragments together (in a dirty way) and still have mpg123 beign able to decode all it somehow. */
-        if(!param.quiet) fprintf(stderr, "Note: Trying to resync...\n");
+        if(give_note) fprintf(stderr, "Note: Trying to resync...\n");
             /* Read more bytes until we find something that looks
                reasonably like a valid header.  This is not a
                perfect strategy, but it should get us back on the
@@ -736,9 +745,10 @@ init_resync:
             goto init_resync;       /* "considered harmful", eh? */
           }
 
-        } while ((newhead & HDRCMPMASK) != (oldhead & HDRCMPMASK)
-              && (newhead & HDRCMPMASK) != (firsthead & HDRCMPMASK));
-        if (!param.quiet)
+       /* } while ((newhead & HDRCMPMASK) != (oldhead & HDRCMPMASK)
+              && (newhead & HDRCMPMASK) != (firsthead & HDRCMPMASK)); */
+					}while (!head_check(newhead));
+        if (give_note)
           fprintf (stderr, "Note: Skipped %d bytes in input.\n", try);
       }
       else
@@ -1006,6 +1016,7 @@ init_resync:
 	{
 		mean_framesize = ((mean_frames-1)*mean_framesize+compute_bpf(fr)) / mean_frames ;
 	}
+	if(do_recover) fprintf(stderr,"recovery normal end\n");
 	debug1("mean_framesize=%g\n", mean_framesize);
   return 1;
 

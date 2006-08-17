@@ -128,12 +128,19 @@ static int stream_back_frame(struct reader *rds,struct frame *fr,int num)
 	if(stream_lseek(rds,-bytes,SEEK_CUR) < 0)
 		return -1;
 
+#if 0
+	/* This is to find a new valid frame - read_frame can do that itself! */
+	/* Problem:
+	   Searching for a header identical to firsthead won't do it for files that vary that (ever heard of vbr?).
+	   Just searching for a header that passed the check (in read_frame_recover) gives false positives.
+	*/
 	if(fullread(rds,buf,4) != 4)
 		return -1;
 
 	newhead = (buf[0]<<24) + (buf[1]<<16) + (buf[2]<<8) + buf[3];
 	
 	while( (newhead & HDRCMPMASK) != (firsthead & HDRCMPMASK) ) {
+		fprintf(stderr, "0x%08lx / 0x%08lx\n", newhead, firsthead);
 		if(fullread(rds,buf,1) != 1)
 			return -1;
 		newhead <<= 8;
@@ -143,9 +150,12 @@ static int stream_back_frame(struct reader *rds,struct frame *fr,int num)
 
 	if( stream_lseek(rds,-4,SEEK_CUR) < 0)
 		return -1;
+#endif
 	
-	read_frame(fr);
-	read_frame(fr);
+/* why two times? */
+	read_frame_recover(fr);
+	read_frame_recover(fr);
+	fprintf(stderr,"stream_back_frame has read\n");
 
 	if(fr->lay == 3) {
 		set_pointer(512);
