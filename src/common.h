@@ -58,7 +58,7 @@ MPEG 2.5
 extern const char* remote_header_help;
 void make_remote_header(struct frame* fr, char *target);
 
-int position_info(struct frame* fr, const unsigned long current_frame, long buffsize, struct audio_info_struct* ai,
+int position_info(struct frame* fr, long buffsize, struct audio_info_struct* ai,
                    unsigned long* frames_left, double* current_seconds, double* seconds_left);
 
 int read_frame_recover(struct frame* fr);

@@ -1509,7 +1509,7 @@ long compute_buffer_offset(struct frame *fr)
 }
 
 /* Way too many parameters - heck, this fr and ai is always the same! */
-int position_info(struct frame* fr, const unsigned long current_frame, long buffsize, struct audio_info_struct* ai,
+int position_info(struct frame* fr, long buffsize, struct audio_info_struct* ai,
                    unsigned long* frames_left, double* current_seconds, double* seconds_left)
 {
 	double tpf;
@@ -1546,7 +1546,7 @@ int position_info(struct frame* fr, const unsigned long current_frame, long buff
 
 	(*frames_left) = 0;
 
-	if((track_frames != 0) && (track_frames >= current_frame)) (*frames_left) = track_frames - current_frame;
+	if((track_frames != 0) && (track_frames >= fr->num)) (*frames_left) = track_frames - fr->num;
 	else
 	if(rd->filelen >= 0)
 	{
@@ -1555,11 +1555,11 @@ int position_info(struct frame* fr, const unsigned long current_frame, long buff
 		bpf = mean_framesize ? mean_framesize : compute_bpf(fr);
 		(*frames_left) = (unsigned long)((double)(rd->filelen-t)/bpf);
 		/* I totally don't understand why we should re-estimate the given correct(?) value */
-		/* current_frame = (unsigned long)((double)t/bpf); */
+		/* fr->num = (unsigned long)((double)t/bpf); */
 	}
 
 	/* beginning with 0 or 1?*/
-	(*current_seconds) = (double) current_frame*tpf-dt;
+	(*current_seconds) = (double) fr->num*tpf-dt;
 	(*seconds_left) = (double)(*frames_left)*tpf+dt;
 #if 0
 	(*current_seconds) = (*current_seconds) < 0 ? 0.0 : (*current_seconds);
@@ -1577,7 +1577,7 @@ void print_stat(struct frame *fr,unsigned long no,long buffsize,struct audio_inf
 {
 	double tim1,tim2;
 	unsigned long rno;
-	if(!position_info(fr, no, buffsize, ai, &rno, &tim1, &tim2))
+	if(!position_info(fr, buffsize, ai, &rno, &tim1, &tim2))
 	{
 		/* All these sprintf... only to avoid two writes to stderr in case of using buffer?
 		   I guess we can drop that. */

@@ -47,12 +47,12 @@ void generic_sendmsg (const char *fmt, ...)
 	fprintf(outstream, "\n");
 }
 
-void generic_sendstat (struct frame *fr, long current_frame)
+void generic_sendstat (struct frame *fr)
 {
 	unsigned long frames_left;
 	double current_seconds, seconds_left;
-	if(!position_info(fr, (unsigned long) current_frame, xfermem_get_usedspace(buffermem), &ai, &frames_left, &current_seconds, &seconds_left))
-	generic_sendmsg("F %li %lu %3.2f %3.2f", current_frame, frames_left, current_seconds, seconds_left);
+	if(!position_info(fr, xfermem_get_usedspace(buffermem), &ai, &frames_left, &current_seconds, &seconds_left))
+	generic_sendmsg("F %li %lu %3.2f %3.2f", fr->num, frames_left, current_seconds, seconds_left);
 }
 
 extern char *genre_table[];
@@ -90,7 +90,6 @@ void control_generic (struct frame *fr)
 	int n;
 	int mode = MODE_STOPPED;
 	int init = 0;
-	int framecnt = 0;
 
 	/* ThOr */
 	char alive = 1;
@@ -131,8 +130,7 @@ void control_generic (struct frame *fr)
 					generic_sendmsg(tmp);
 					init = 0;
 				}
-				++framecnt;
-				if(silent == 0) generic_sendstat(fr, framecnt);
+				if(silent == 0) generic_sendstat(fr);
 			}
 		}
 		else {
@@ -337,46 +335,38 @@ void control_generic (struct frame *fr)
 					/* JUMP */
 					if (!strcasecmp(cmd, "J") || !strcasecmp(cmd, "JUMP")) {
 						char *spos;
-						int pos, ok;
+						long offset;
 						audio_flush(param.outmode, &ai);
 
 						spos = arg;
 						if (!spos)
 							continue;
-						if (spos[0] == '-')
-							pos = framecnt + atoi(spos);
-						else if (spos[0] == '+')
-							pos = framecnt + atoi(spos+1);
-						else
-							pos = atoi(spos);
-
 						if (mode == MODE_STOPPED)
 							continue;
-						debug("non-stopped jump");
-						ok = 1;
-						if (pos < framecnt) {
-							read_frame_init(fr);
-							for (framecnt=0; ok && framecnt<pos; framecnt++) {
-								ok = read_frame(fr);
-								if (fr->lay == 3)
-									set_pointer(512);
-							}
-						} else {
-							for (; ok && framecnt<pos; framecnt++) {
-								ok = read_frame(fr);
-								if (fr->lay == 3)
-									set_pointer(512);
-							}
+
+						/* totally replaced that stuff - it never fully worked
+						   a bit usure about why +pos -> spos+1 earlier... */
+						if (spos[0] == '-' || spos[0] == '+')
+							offset = atol(spos);
+						else
+							offset = atol(spos) - fr->num;
+						
+						if(rd->back_frame(rd, fr, -offset))
+						{
+							generic_sendmsg("E Error while seeking");
+							rd->rewind(rd);
+							fr->num = 0;
 						}
+
 						#ifdef GAPLESS
 						if(param.gapless && (fr->lay == 3))
 						{
 							prepare_audioinfo(fr, &pre_ai);
-							layer3_gapless_set_position(pos, fr, &pre_ai);
+							layer3_gapless_set_position(fr->num, fr, &pre_ai);
 						}
 						#endif
 
-						generic_sendmsg("J %d", framecnt);
+						generic_sendmsg("J %d", fr->num);
 						continue;
 					}
 
@@ -398,7 +388,6 @@ void control_generic (struct frame *fr)
 							generic_sendinfo(arg);
 						mode = MODE_PLAYING;
 						init = 1;
-						framecnt = 0;
 						read_frame_init(fr);
 						generic_sendmsg("P 2");
 						continue;
@@ -422,7 +411,6 @@ void control_generic (struct frame *fr)
 							generic_sendinfo(arg);
 						mode = MODE_PAUSED;
 						init = 1;
-						framecnt = 0;
 						read_frame_init(fr);
 						generic_sendmsg("P 1");
 						continue;
