@@ -192,7 +192,7 @@ LIBS="$LIBS"
 
 # If debugging is enabled then make warnings errors
 if test "$debugging" = "enabled"; then
-	CFLAGS="$CFLAGS -g -Werror -pedantic -DDEBUG"
+	CFLAGS="$CFLAGS -g -Werror -pedantic"
 fi
 
 

@@ -95,10 +95,10 @@ libcpu_i386_a_SOURCES = \
 	dct64_i386.c
 
 libcpu_i486_a_SOURCES = \
-	decode_i386.o \
-	dct64_i386.o \
-	decode_i486.o \
-	dct64_i486.o
+	decode_i386.c \
+	dct64_i386.c \
+	decode_i486.c \
+	dct64_i486.c
 
 libcpu_i586_a_SOURCES = \
 	decode_i386.c \
