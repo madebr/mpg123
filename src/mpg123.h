@@ -219,7 +219,7 @@ struct reader {
   off_t  (*skip_bytes)(struct reader *,off_t len);
   int  (*read_frame_body)(struct reader *,unsigned char *,int size);
   int  (*back_bytes)(struct reader *,off_t bytes);
-  int  (*back_frame)(struct reader *,struct frame *,int num);
+  int  (*back_frame)(struct reader *,struct frame *,long num);
   off_t (*tell)(struct reader *);
   void (*rewind)(struct reader *);
   off_t filelen;

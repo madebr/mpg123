@@ -110,7 +110,7 @@ static int stream_back_bytes(struct reader *rds, off_t bytes)
 /* this function strangely is define to seek num frames _back_ (and is called with -offset - duh!) */
 /* also... let that int be a long in future! */
 #ifdef VBR_SEEK
-static int stream_back_frame(struct reader *rds,struct frame *fr,int num)
+static int stream_back_frame(struct reader *rds,struct frame *fr,long num)
 {
 	if(rds->flags & READER_SEEKABLE)
 	{
@@ -161,7 +161,7 @@ static int stream_back_frame(struct reader *rds,struct frame *fr,int num)
 	
 #else
 /* There's something bogus about the return value... 0 is success when looking at usage, but here... */
-static int stream_back_frame(struct reader *rds,struct frame *fr,int num)
+static int stream_back_frame(struct reader *rds,struct frame *fr,long num)
 {
 	long bytes;
 
@@ -448,7 +448,7 @@ static int mapped_back_bytes(struct reader *rds,int bytes)
     return 0;
 }
 
-static int mapped_back_frame(struct reader *rds,struct frame *fr,int num)
+static int mapped_back_frame(struct reader *rds,struct frame *fr,long num)
 {
     long bytes;
     unsigned long newhead;
