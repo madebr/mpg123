@@ -116,7 +116,7 @@ static long term_handle_input(struct frame *fr, int do_delay)
 
       switch(tolower(val)) {
 	case BACK_KEY:
-        audio_queueflush(&ai);
+        if(!param.usebuffer) audio_queueflush(&ai);
 
 	  /*
 	   * NOTE: rd->rewind() calls buffer_resync() that blocks until
@@ -137,7 +137,7 @@ static long term_handle_input(struct frame *fr, int do_delay)
           rd->rewind(rd);
           break;
 	case NEXT_KEY:
-          audio_queueflush(&ai);
+		if(!param.usebuffer) audio_queueflush(&ai);
 	  if (buffer_pid)
 		  kill(buffer_pid, SIGINT);
 	  next_track();

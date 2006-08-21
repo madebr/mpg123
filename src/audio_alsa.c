@@ -18,6 +18,8 @@
 
 #include <alsa/asoundlib.h>
 
+#define BUFFER_LENGTH 0.5	/* in seconds */
+
 static const struct {
 	snd_pcm_format_t alsa;
 	int mpg123;
@@ -30,8 +32,6 @@ static const struct {
 	{ SND_PCM_FORMAT_MU_LAW, AUDIO_FORMAT_ULAW_8      },
 };
 #define NUM_FORMATS (sizeof format_map / sizeof format_map[0])
-
-static int prepared = 0;
 
 static int initialize_device(struct audio_info_struct *ai);
 
@@ -110,7 +110,7 @@ static int initialize_device(struct audio_info_struct *ai)
 		fprintf(stderr, "initialize_device(): rate %ld not available, using %u\n", ai->rate, rate);
 		/* return -1; */
 	}
-	buffer_size = rate; /* one second */
+	buffer_size = rate * BUFFER_LENGTH;
 	if (snd_pcm_hw_params_set_buffer_size_near(ai->handle, hw, &buffer_size) < 0) {
 		fprintf(stderr, "initialize_device(): cannot set buffer size\n");
 		return -1;
@@ -163,7 +163,6 @@ static int initialize_device(struct audio_info_struct *ai)
 		fprintf(stderr, "initialize_device(): cannot set sw params\n");
 		return -1;
 	}
-	prepared = 1;
 	return 0;
 }
 
@@ -197,17 +196,17 @@ int audio_get_formats(struct audio_info_struct *ai)
 
 int audio_play_samples(struct audio_info_struct *ai, unsigned char *buf, int bytes)
 {
+	snd_pcm_uframes_t frames;
 	snd_pcm_sframes_t written;
-	if(!prepared)
-	{
-		if((prepared = snd_pcm_prepare(ai->handle)) < 0)
-		{
-			error1("cannot prepared device: %s", snd_strerror(prepared));
-			prepared = 0;
-		}
-		else prepared = 1;
-	}
-	written = snd_pcm_writei(ai->handle, buf, snd_pcm_bytes_to_frames(ai->handle, bytes));
+
+#if SND_LIB_VERSION >= 0x000901
+	snd_pcm_sframes_t delay;
+	if (snd_pcm_delay(ai->handle, &delay) >= 0 && delay < 0)
+		/* underrun - move the application pointer forward to catch up */
+		snd_pcm_forward(ai->handle, -delay);
+#endif
+	frames = snd_pcm_bytes_to_frames(ai->handle, bytes);
+	written = snd_pcm_writei(ai->handle, buf, frames);
 	if (written >= 0)
 		return snd_pcm_frames_to_bytes(ai->handle, written);
 	else
@@ -216,16 +215,14 @@ int audio_play_samples(struct audio_info_struct *ai, unsigned char *buf, int byt
 
 void audio_queueflush(struct audio_info_struct *ai)
 {
-	if(prepared)
-	{
-		snd_pcm_drop(ai->handle);
-		prepared = 0;
-	}
+	/* is this the optimal solution? - we should figure out what we really whant from this function */
+	snd_pcm_drop(ai->handle);
+	snd_pcm_prepare(ai->handle);
 }
 
 int audio_close(struct audio_info_struct *ai)
 {
-	if (prepared && snd_pcm_state(ai->handle) == SND_PCM_STATE_RUNNING)
+	if (snd_pcm_state(ai->handle) == SND_PCM_STATE_RUNNING)
 		snd_pcm_drain(ai->handle);
 	return snd_pcm_close(ai->handle);
 }
