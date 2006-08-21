@@ -134,6 +134,7 @@ static long term_handle_input(struct frame *fr, int do_delay)
 	  if(paused)
 		  pause_cycle=(int)(LOOP_CYCLES/compute_tpf(fr));
           rd->rewind(rd);
+          fr->num=0;
           break;
 	case NEXT_KEY:
 		if(!param.usebuffer) audio_queueflush(&ai);
