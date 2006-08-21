@@ -222,7 +222,11 @@ void audio_queueflush(struct audio_info_struct *ai)
 
 int audio_close(struct audio_info_struct *ai)
 {
-	if (snd_pcm_state(ai->handle) == SND_PCM_STATE_RUNNING)
-		snd_pcm_drain(ai->handle);
-	return snd_pcm_close(ai->handle);
+	if(ai->handle != NULL) /* be really generous for being called without any device opening */
+	{
+		if (snd_pcm_state(ai->handle) == SND_PCM_STATE_RUNNING)
+			snd_pcm_drain(ai->handle);
+		return snd_pcm_close(ai->handle);
+	}
+	else return 0;
 }
