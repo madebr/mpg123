@@ -1447,7 +1447,7 @@ static void long_usage(int err)
 
 	fprintf(o,"\noutput/processing options\n\n");
 	fprintf(o," -a <d> --audiodevice <d>  select audio device\n");
-	fprintf(o," -s     --stdout           write raw audio to stdout\n");
+	fprintf(o," -s     --stdout           write raw audio to stdout (host native format)\n");
 	fprintf(o," -S     --STDOUT           play AND output stream (not implemented yet)\n");
 	fprintf(o," -w <f> --wav <f>          write samples as WAV file in <f> (- is stdout)\n");
 	fprintf(o,"        --au <f>           write samples as Sun AU file in <f> (- is stdout)\n");
