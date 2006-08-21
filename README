@@ -47,7 +47,7 @@ short:
 or 
 	maintainer@mpg123.org
 
-long: see CONTACT
+long: see doc/CONTACT
 
 
 3. Interface/Usage
@@ -79,6 +79,7 @@ You can specify the option -C to enable a terminal control interface enabling to
 ':' for fast forward
 '<' for fine rewind
 '>' for fine forward
+'h' for printout of current key bindings
 
 You can change these bindings to key to your liking by modifying term.h .
 
@@ -92,7 +93,7 @@ There used to be several interfaces for frontends left over from that past, but 
 
 It contains of communication of textual messages via standard input to mpg123 and responses to standard output unless the -s switch for output of audio data on stdout is used - then the responses come via stderr.
 
-See README.control for usage.
+See doc/README.control for usage.
 
 
 4. Speed
@@ -149,7 +150,7 @@ The main message is:
 
 Code is copyrighted by Michael Hipp, who made it free software under the terms of the LGPL 2.1.
 
-Please see ROAD_TO_LGPL, COPYING and AUTHORS for details and on the (optional) parts that are not written by Michael and possibly not LGPL (currently, ther is only one non-LGPL file that is GPL only).
+Please see doc/ROAD_TO_LGPL, COPYING and AUTHORS for details and on the (optional) parts that are not written by Michael and possibly not LGPL (currently, ther is only one non-LGPL file that is GPL only).
 
 There has been quite some confusion about the licensing and "freeness" of mpg123 in the past.
 The initial "free for private use, ask me when you want to do something commercial" license caused some people to avoid mpg123 and even to write a replacement mimicking the interface but using a different decoding engine - what was not actively developed for too long but entered the "free" software sections.

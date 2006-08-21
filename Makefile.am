@@ -10,13 +10,13 @@ SUBDIRS = src
 
 EXTRA_DIST = \
 	MakeLegacy.sh \
-	BENCHMARKING \
-	BUGS \
-	CONTACT \
-	PATENTS \
-	README.3DNOW \
-	README.WIN32 \
-	README.gain \
-	README.remote \
-	ROAD_TO_LGPL \
-	TODO
+	doc/BENCHMARKING \
+	doc/BUGS \
+	doc/CONTACT \
+	doc/PATENTS \
+	doc/README.3DNOW \
+	doc/README.WIN32 \
+	doc/README.gain \
+	doc/README.remote \
+	doc/ROAD_TO_LGPL \
+	doc/TODO
