@@ -355,7 +355,7 @@ void control_generic (struct frame *fr)
 						debug("non-stopped jump");
 						ok = 1;
 						if (pos < framecnt) {
-							read_frame_init();
+							read_frame_init(fr);
 							for (framecnt=0; ok && framecnt<pos; framecnt++) {
 								ok = read_frame(fr);
 								if (fr->lay == 3)
@@ -399,7 +399,7 @@ void control_generic (struct frame *fr)
 						mode = MODE_PLAYING;
 						init = 1;
 						framecnt = 0;
-						read_frame_init();
+						read_frame_init(fr);
 						generic_sendmsg("P 2");
 						continue;
 					}
@@ -423,7 +423,7 @@ void control_generic (struct frame *fr)
 						mode = MODE_PAUSED;
 						init = 1;
 						framecnt = 0;
-						read_frame_init();
+						read_frame_init(fr);
 						generic_sendmsg("P 1");
 						continue;
 					}

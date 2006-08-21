@@ -982,7 +982,6 @@ void set_synth_functions(struct frame *fr)
 int main(int argc, char *argv[])
 {
 	int result;
-	unsigned long frameNum = 0;
 	char *fname;
 #if !defined(WIN32) && !defined(GENERIC)
 	struct timeval start_time, now;
@@ -1167,7 +1166,7 @@ int main(int argc, char *argv[])
 #endif
 			gettimeofday (&start_time, NULL);
 #endif
-		read_frame_init();
+		read_frame_init(&fr);
 
 		init = 1;
 		#ifdef GAPLESS
@@ -1181,11 +1180,12 @@ int main(int argc, char *argv[])
 			term_init();
 #endif
 		leftFrames = numframes;
-		for(frameNum=0;read_frame(&fr) && leftFrames && !intflag;frameNum++) {
+		/* read_frame is counting the frames! */
+		for(;read_frame(&fr) && leftFrames && !intflag;) {
 #ifdef HAVE_TERMIOS			
 tc_hack:
 #endif
-			if(frameNum < startFrame || (param.doublespeed && (frameNum % param.doublespeed))) {
+			if(fr.num < startFrame || (param.doublespeed && (fr.num % param.doublespeed))) {
 				if(fr.lay == 3)
 				{
 					set_pointer(512);
@@ -1198,7 +1198,7 @@ tc_hack:
 							pre_init = 0;
 						}
 						/* keep track... */
-						layer3_gapless_set_position(frameNum, &fr, &pre_ai);
+						layer3_gapless_set_position(fr.num, &fr, &pre_ai);
 					}
 					#endif
 				}
@@ -1211,13 +1211,13 @@ tc_hack:
 
 			if(param.verbose) {
 #ifndef NOXFERMEM
-				if (param.verbose > 1 || !(frameNum & 0x7))
-					print_stat(&fr,frameNum,xfermem_get_usedspace(buffermem),&ai); 
+				if (param.verbose > 1 || !(fr.num & 0x7))
+					print_stat(&fr,fr.num,xfermem_get_usedspace(buffermem),&ai); 
 				if(param.verbose > 2 && param.usebuffer)
 					fprintf(stderr,"[%08x %08x]",buffermem->readindex,buffermem->freeindex);
 #else
-				if (param.verbose > 1 || !(frameNum & 0x7))
-					print_stat(&fr,frameNum,0,&ai);
+				if (param.verbose > 1 || !(fr.num & 0x7))
+					print_stat(&fr,fr.num,0,&ai);
 #endif
 			}
 #ifdef HAVE_TERMIOS
@@ -1227,15 +1227,17 @@ tc_hack:
 				long offset;
 				if((offset=term_control(&fr))) {
 					if(!rd->back_frame(rd, &fr, -offset)) {
-						/* frameNum is unsigned... */
-						if((offset < 0) && (frameNum < -offset)) frameNum = 0;
-						else frameNum+=offset;
-						debug1("seeked to %lu", frameNum);
+						#ifndef VBR_SEEK
+						/* fr.num is unsigned... */
+						if((offset < 0) && (fr.num < -offset)) fr.num = 0;
+						else fr.num+=offset;
+						#endif
+						debug1("seeked to %lu", fr.num);
 						#ifdef GAPLESS
 						if(param.gapless && (fr.lay == 3))
-						layer3_gapless_set_position(frameNum, &fr, &ai);
+						layer3_gapless_set_position(fr.num, &fr, &ai);
 						#endif
-					}
+					} else { error("seek failed!"); }
 				}
 			}
 #endif
@@ -1255,7 +1257,7 @@ tc_hack:
 			buffer_ignore_lowmem();
 			
 			if(param.verbose)
-				print_stat(&fr,frameNum,s,&ai);
+				print_stat(&fr,fr.num,s,&ai);
 #ifdef HAVE_TERMIOS
 			if(param.term_ctrl) {
 				long offset;
@@ -1263,15 +1265,18 @@ tc_hack:
 					if((!rd->back_frame(rd, &fr, -offset)) 
 						&& read_frame(&fr))
 					{
-						/* frameNum is unsigned... */
-						if((offset < 0) && (frameNum < -offset)) frameNum = 0;
-						else frameNum+=offset;
+						#ifndef VBR_SEEK
+						/* fr.num is unsigned... */
+						if((offset < 0) && (fr.num < -offset)) fr.num = 0;
+						else fr.num+=offset;
+						#endif
+						debug1("seeked to %lu", fr.num);
 						#ifdef GAPLESS
 						if(param.gapless && (fr.lay == 3))
-						layer3_gapless_set_position(frameNum, &fr, &ai);
+						layer3_gapless_set_position(fr.num, &fr, &ai);
 						#endif
 						goto tc_hack;	/* Doh! Gag me with a spoon! */
-					}
+					} else { error("seek failed!"); }
 				}
 			}
 #endif
@@ -1280,7 +1285,7 @@ tc_hack:
 	}
 #endif
 	if(param.verbose)
-		print_stat(&fr,frameNum,xfermem_get_usedspace(buffermem),&ai); 
+		print_stat(&fr,fr.num,xfermem_get_usedspace(buffermem),&ai); 
 #ifdef HAVE_TERMIOS
 	if(param.term_ctrl)
 		term_restore();
@@ -1291,7 +1296,7 @@ tc_hack:
 		 * This formula seems to work at least for
 		 * MPEG 1.0/2.0 layer 3 streams.
 		 */
-		int secs = get_songlen(&fr,frameNum);
+		int secs = get_songlen(&fr,fr.num);
 		fprintf(stderr,"\n[%d:%02d] Decoding of %s finished.\n", secs / 60,
 			secs % 60, filename);
 	}

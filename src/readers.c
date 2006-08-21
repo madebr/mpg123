@@ -14,6 +14,7 @@
 
 #include "config.h"
 #include "mpg123.h"
+#include "debug.h"
 #include "buffer.h"
 #include "common.h"
 
@@ -24,16 +25,16 @@
 #endif
 #endif
 
-static int get_fileinfo(struct reader *,char *buf);
+static off_t get_fileinfo(struct reader *,char *buf);
 
 
 /*******************************************************************
  * stream based operation
  * Oh... that count should be size_t or at least long...
  */
-static int fullread(struct reader *rds,unsigned char *buf,int count)
+static ssize_t fullread(struct reader *rds,unsigned char *buf, ssize_t count)
 {
-  int ret,cnt=0;
+  ssize_t ret,cnt=0;
 
   /*
    * We check against READER_ID3TAG instead of rds->filelen >= 0 because
@@ -73,13 +74,15 @@ static int default_init(struct reader *rds)
 
   rds->filelen = get_fileinfo(rds,buf);
   rds->filepos = 0;
-  
+	
   if(rds->filelen >= 0) {
+	  rds->flags |= READER_SEEKABLE;
     if(!strncmp(buf,"TAG",3)) {
       rds->flags |= READER_ID3TAG;
       memcpy(rds->id3buf,buf,128);
     }
   }
+
   return 0;
 }
 
@@ -92,8 +95,9 @@ void stream_close(struct reader *rds)
 /**************************************** 
  * HACK,HACK,HACK: step back <num> frames 
  * can only work if the 'stream' isn't a real stream but a file
+ * returns 0 on success; 
  */
-static int stream_back_bytes(struct reader *rds,int bytes)
+static int stream_back_bytes(struct reader *rds, off_t bytes)
 {
   if(stream_lseek(rds,-bytes,SEEK_CUR) < 0)
     return -1;
@@ -102,6 +106,61 @@ static int stream_back_bytes(struct reader *rds,int bytes)
   return 0;
 }
 
+
+/* this function strangely is define to seek num frames _back_ (and is called with -offset - duh!) */
+/* also... let that int be a long in future! */
+#ifdef VBR_SEEK
+static int stream_back_frame(struct reader *rds,struct frame *fr,int num)
+{
+	if(rds->flags & READER_SEEKABLE)
+	{
+		unsigned long newframe, preframe;
+		if(num > 0) /* back! */
+		{
+			if(num > fr->num) newframe = 0;
+			else newframe = fr->num-num;
+		}
+		else newframe = fr->num-num;
+		
+		/* two leading frames? hm, doesn't seem to be really needed... */
+		/*if(newframe > 1) newframe -= 2;
+		else newframe = 0;*/
+		
+		/* now seek to nearest leading index position and read from there until newframe is reached */
+		if(stream_lseek(rds,frame_index_find(newframe, &preframe),SEEK_SET) < 0)
+		return -1;
+		
+		debug2("going to %lu; just got %lu", newframe, preframe);
+		
+		fr->num = preframe;
+		
+		while(fr->num < newframe)
+		{
+			/* try to be non-fatal now... frameNum only gets advanced on success anyway */
+			if(!read_frame(fr)) break;
+		}
+
+		/* this is not needed at last? */
+		/*read_frame(fr);
+		read_frame(fr);*/
+
+		if(fr->lay == 3) {
+			set_pointer(512);
+		}
+
+		debug1("arrived at %lu", fr->num);
+
+		if(param.usebuffer)
+			buffer_resync();
+
+		return 0;
+
+	}
+	else return -1; /* invalid, no seek happened */
+}
+	
+#else
+/* There's something bogus about the return value... 0 is success when looking at usage, but here... */
 static int stream_back_frame(struct reader *rds,struct frame *fr,int num)
 {
 	long bytes;
@@ -109,6 +168,7 @@ static int stream_back_frame(struct reader *rds,struct frame *fr,int num)
 	if(!firsthead)
 		return 0;
 
+	/* why +8? header = 4 bytes ... + data */
 	bytes = (fr->framesize+8)*(num+2);
 
 	/* Skipping back/forth requires a bit more work in buffered mode. 
@@ -155,9 +215,10 @@ static int stream_back_frame(struct reader *rds,struct frame *fr,int num)
 	}
 #endif
 	
-/* why two times? */
-	read_frame_recover(fr);
-	read_frame_recover(fr);
+	/* why two times? */
+	/* to retain old behaviour: decrease frameNum on success (read_frame increased it) since main wants to set that */
+	if(read_frame_recover(fr)) --fr->num;
+	if(read_frame_recover(fr)) --fr->num;
 
 	if(fr->lay == 3) {
 		set_pointer(512);
@@ -168,6 +229,7 @@ static int stream_back_frame(struct reader *rds,struct frame *fr,int num)
 	
 	return 0;
 }
+#endif
 
 static int stream_head_read(struct reader *rds,unsigned long *newhead)
 {
@@ -196,18 +258,19 @@ static int stream_head_shift(struct reader *rds,unsigned long *head)
   return 1;
 }
 
-static int stream_skip_bytes(struct reader *rds,int len)
+/* returns reached position... negative ones are bad */
+static off_t stream_skip_bytes(struct reader *rds,off_t len)
 {
   if (rds->filelen >= 0) {
-    int ret = stream_lseek(rds, len, SEEK_CUR);
+    off_t ret = stream_lseek(rds, len, SEEK_CUR);
     if (param.usebuffer)
       buffer_resync();
     return ret;
   } else if (len >= 0) {
     unsigned char buf[1024]; /* ThOr: Compaq cxx complained and it makes sense to me... or should one do a cast? What for? */
-    int ret;
+    off_t ret;
     while (len > 0) {
-      int num = len < sizeof(buf) ? len : sizeof(buf);
+      off_t num = len < sizeof(buf) ? len : sizeof(buf);
       ret = fullread(rds, buf, num);
       if (ret < 0)
 	return ret;
@@ -233,7 +296,7 @@ static int stream_read_frame_body(struct reader *rds,unsigned char *buf,
   return 1;
 }
 
-static long stream_tell(struct reader *rds)
+static off_t stream_tell(struct reader *rds)
 {
   return rds->filepos;
 }
@@ -248,10 +311,11 @@ static void stream_rewind(struct reader *rds)
 /*
  * returns length of a file (if filept points to a file)
  * reads the last 128 bytes information into buffer
+ * ... that is not totally safe...
  */
-static int get_fileinfo(struct reader *rds,char *buf)
+static off_t get_fileinfo(struct reader *rds,char *buf)
 {
-	int len;
+	off_t len;
 
         if((len=lseek(rds->filept,0,SEEK_END)) < 0) {
                 return -1;
@@ -287,6 +351,7 @@ static int mapped_init(struct reader *rds)
 	char buf[128];
 
 	len = get_fileinfo(rds,buf);
+	rds->flags |= READER_SEEKABLE;
 	if(len < 0)
 		return -1;
 
@@ -294,7 +359,6 @@ static int mapped_init(struct reader *rds)
 	  rds->flags |= READER_ID3TAG;
 	  memcpy(rds->id3buf,buf,128);
 	}
-
         mappnt = mapbuf = (unsigned char *)
 		mmap(NULL, len, PROT_READ, MAP_SHARED , rds->filept, 0);
 	if(!mapbuf || mapbuf == MAP_FAILED)

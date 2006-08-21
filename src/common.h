@@ -63,4 +63,9 @@ int position_info(struct frame* fr, const unsigned long current_frame, long buff
 
 int read_frame_recover(struct frame* fr);
 
+#ifdef VBR_SEEK
+off_t frame_index_find(unsigned long want_frame, unsigned long* get_frame);
+void print_frame_index(FILE* out);
+#endif
+
 #endif

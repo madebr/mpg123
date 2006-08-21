@@ -85,6 +85,16 @@ float rva_peak[2] = {0,0};
 static double mean_framesize;
 static unsigned long mean_frames;
 static int do_recover = 0;
+#ifdef VBR_SEEK
+/* user could define this big enough to always seek exactly... but always divisable by 2! */
+#define INDEX_SIZE 	100
+struct 
+{
+	off_t data[INDEX_SIZE];
+	size_t fill;
+	unsigned long step;
+} frame_index;
+#endif
 
 unsigned char *pcm_sample;
 int pcm_point = 0;
@@ -504,8 +514,9 @@ void (*catchsignal(int signum, void(*handler)()))()
 }
 #endif
 
-void read_frame_init (void)
+void read_frame_init (struct frame* fr)
 {
+	fr->num = 0;
 	oldhead = 0;
 	firsthead = 0;
 	vbr = CBR;
@@ -518,6 +529,10 @@ void read_frame_init (void)
 	#ifdef GAPLESS
 	/* one can at least skip the delay at beginning - though not add it at end since end is unknown */
 	if(param.gapless) layer3_gapless_init(DECODER_DELAY+GAP_SHIFT, 0);
+	#endif
+	#ifdef VBR_SEEK
+	frame_index.fill = 0;
+	frame_index.step = 1;
 	#endif
 }
 
@@ -605,9 +620,11 @@ int read_frame(struct frame *fr)
 	/* TODO: rework this thing */
   unsigned long newhead;
   static unsigned char ssave[34];
+	#ifdef VBR_SEEK
+	off_t framepos;
+	#endif
   int give_note = param.quiet ? 0 : (do_recover ? 0 : 1 );
   fsizeold=fr->framesize;       /* for Layer3 */
-debug("read_frame");
 
   if (param.halfspeed) {
     static int halfphase = 0;
@@ -623,6 +640,7 @@ debug("read_frame");
   }
 
 read_again:
+	
 	if(!rd->head_read(rd,&newhead))
 	{
 		return FALSE;
@@ -781,6 +799,10 @@ init_resync:
   bsbufold = bsbuf;
   bsbuf = bsspace[bsnum]+512;
   bsnum = (bsnum + 1) & 1;
+	#ifdef VBR_SEEK
+	/* if filepos is invalid, so is framepos */
+	framepos = rd->filepos - 4;
+	#endif
   /* read main data into memory */
 	/* 0 is error! */
 	if(!rd->read_frame_body(rd,bsbuf,fr->framesize))
@@ -1017,11 +1039,71 @@ init_resync:
 	{
 		mean_framesize = ((mean_frames-1)*mean_framesize+compute_bpf(fr)) / mean_frames ;
 	}
-	debug1("mean_framesize=%g\n", mean_framesize);
+	#ifdef VBR_SEEK
+	/* index the position */
+	if(fr->num == frame_index.fill*frame_index.step)
+	{
+		if(frame_index.fill == INDEX_SIZE)
+		{
+			size_t c;
+			/* increase step, reduce fill */
+			frame_index.step *= 2;
+			frame_index.fill /= 2; /* divisable by 2! */
+			for(c = 0; c < frame_index.fill; ++c)
+			{
+				frame_index.data[c] = frame_index.data[2*c];
+			}
+		}
+		if(fr->num == frame_index.fill*frame_index.step)
+		{
+			frame_index.data[frame_index.fill] = framepos;
+			++frame_index.fill;
+		}
+	}
+	#endif
+	++fr->num;
   return 1;
 
 }
 
+#ifdef VBR_SEEK
+void print_frame_index(FILE* out)
+{
+	size_t c;
+	for(c=0; c < frame_index.fill;++c) fprintf(out, "[%zi] %lu: %lli (+%lli)\n", c, c*frame_index.step, (long long)frame_index.data[c], (long long) (c ? frame_index.data[c]-frame_index.data[c-1] : 0));
+}
+#endif
+
+/*
+	find the best frame in index just before the wanted one, seek to there
+	then step to just before wanted one with read_frame
+	do not care tabout the stuff that was in buffer but not played back
+	everything that left the decoder is counted as played
+	
+	Decide if you want low latency reaction and accurate timing info or stable long-time playback with buffer!
+*/
+
+#ifdef VBR_SEEK
+off_t frame_index_find(unsigned long want_frame, unsigned long* get_frame)
+{
+	/* default is file start if no index position */
+	off_t gopos = 0;
+	*get_frame = 0;
+	if(frame_index.fill)
+	{
+		/* find in index */
+		size_t fi;
+		/* at index fi there is frame step*fi... */
+		fi = want_frame/frame_index.step;
+		if(fi >= frame_index.fill) fi = frame_index.fill - 1;
+		*get_frame = fi*frame_index.step;
+		gopos = frame_index.data[fi];
+	}
+	return gopos;
+}
+#endif
+
+/* dead code?  -  see readers.c */
 /****************************************
  * HACK,HACK,HACK: step back <num> frames
  * can only work if the 'stream' isn't a real stream but a file
@@ -1456,7 +1538,6 @@ int position_info(struct frame* fr, const unsigned long current_frame, long buff
 #endif
 
 	tpf = compute_tpf(fr);
-	debug1("tpf=%g", tpf);
 	if(buffsize > 0 && ai && ai->rate > 0 && ai->channels > 0) {
 		dt = (double) buffsize / ai->rate / ai->channels;
 		if( (ai->format & AUDIO_FORMAT_MASK) == AUDIO_FORMAT_16)

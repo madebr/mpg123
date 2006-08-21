@@ -17,7 +17,13 @@
 #include        <sys/signal.h>
 #include        <unistd.h>
 #endif
-
+/* want to suport large files in future */
+#ifdef HAVE_SYS_TYPES_H
+	#include <sys/types.h>
+#endif
+#ifndef off_t
+	#define off_t long
+#endif
 #include        <math.h>
 
 
@@ -165,6 +171,7 @@ struct frame {
     int emphasis;
     int framesize; /* computed framesize */
     int vbr; /* 1 if variable bitrate was detected */
+		unsigned long num; /* the nth frame in some stream... */
 };
 
 struct parameter {
@@ -203,25 +210,27 @@ struct parameter {
   int rva; /* (which) rva to do: <0: nothing, 0: radio/mix/track 1: album/audiophile */
 };
 
+/* start to use off_t to properly do LFS in future ... used to be long */
 struct reader {
   int  (*init)(struct reader *);
   void (*close)(struct reader *);
   int  (*head_read)(struct reader *,unsigned long *newhead);
   int  (*head_shift)(struct reader *,unsigned long *head);
-  int  (*skip_bytes)(struct reader *,int len);
+  off_t  (*skip_bytes)(struct reader *,off_t len);
   int  (*read_frame_body)(struct reader *,unsigned char *,int size);
-  int  (*back_bytes)(struct reader *,int bytes);
+  int  (*back_bytes)(struct reader *,off_t bytes);
   int  (*back_frame)(struct reader *,struct frame *,int num);
-  long (*tell)(struct reader *);
+  off_t (*tell)(struct reader *);
   void (*rewind)(struct reader *);
-  long filelen;
-  long filepos;
+  off_t filelen;
+  off_t filepos;
   int  filept;
   int  flags;
   unsigned char id3buf[128];
 };
 #define READER_FD_OPENED 0x1
 #define READER_ID3TAG    0x2
+#define READER_SEEKABLE  0x4
 
 extern struct reader *rd,readers[];
 extern char *equalfile;
@@ -306,7 +315,7 @@ struct III_sideinfo
 };
 
 extern int open_stream(char *,int fd);
-extern void read_frame_init (void);
+extern void read_frame_init (struct frame* fr);
 extern int read_frame(struct frame *fr);
 /* why extern? */
 void prepare_audioinfo(struct frame *fr, struct audio_info_struct *nai);
