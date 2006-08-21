@@ -3,7 +3,7 @@ This file is still here for historic reference and perhaps for some info that is
 +++++++++++++++++++++++++++++++++++++++++++++++
 
 This is mpg123-0.59r with various patches from others and some work of me, Thomas Orgis (<thomas@orgis.org>).
-Please see the file CHANGES for what I did and whose patches I used.
+Please see the file NEWS for what I did and whose patches I used.
 
 The intend of my work on mpg123 was another project of mine: DerMixD, a tcp-controlled audio playing demon similar to and inspired by mixplayd (http://mixplayd.sf.net), but multi-threaded and written in C++ with classes that make extension more easy. This daemon includes a decoder backend for mp3s using mpg123 in remote mode. Thus, it is a "generic" front-end for mpg123.
 
@@ -20,7 +20,7 @@ but
 
 so that DerMixD (or who else) can see if there is a mpg123 that will work as expected.
 
-I did not limit the functionality on the package in any way (I hope). Plus, I included bug fixes from Debian (see CHANGES). 
+I did not limit the functionality on the package in any way (I hope). Plus, I included bug fixes from Debian (see NEWS). 
 
 So, there is no reason to not consider this package for general (not only for DerMixD backend) use. One exception may be a frontend that relies too heavily on the exact behaviour of the control_generic interface.
 

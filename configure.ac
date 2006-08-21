@@ -221,6 +221,10 @@ case $target in
     cpu_type="generic"
     CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
   ;;
+  i386-*-freebsd*)
+    cpu_type="i386"
+    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
+  ;;
   *-*-freebsd*)
     cpu_type="generic"
     CFLAGS="$CFLAGS -DREAL_IS_FLOAT"

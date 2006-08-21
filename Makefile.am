@@ -4,27 +4,19 @@
 ## see COPYING and AUTHORS files in distribution or http://mpg123.de
 ## initially written by Nicholas J. Humfrey
 
-AUTOMAKE_OPTIONS = foreign
-
 dist_man_MANS = mpg123.1
 
 SUBDIRS = src
 
 EXTRA_DIST = \
+	MakeLegacy.sh \
 	BENCHMARKING \
 	BUGS \
 	CONTACT \
-	CHANGES \
-	ChangeLog \
-	COPYING \
-	MakeLegacy.sh \
 	PATENTS \
 	README.3DNOW \
 	README.WIN32 \
-	README.remote \
-	TODO \
-	LICENSE \
 	README.gain \
-	README.thor \
-	README.WIN32 \
-	ROAD_TO_LGPL
+	README.remote \
+	ROAD_TO_LGPL \
+	TODO
