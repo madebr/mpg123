@@ -18,3 +18,5 @@
 	#define HAVE_SCHED_H
 	#define HAVE_SCHED_SETSCHEDULER
 #endif
+
+#define INDEX_SIZE 1000

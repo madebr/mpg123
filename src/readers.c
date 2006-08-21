@@ -18,10 +18,12 @@
 #include "buffer.h"
 #include "common.h"
 
+#if 0
 #ifdef READ_MMAP
 #include <sys/mman.h>
 #ifndef MAP_FAILED
 #define MAP_FAILED ( (void *) -1 )
+#endif
 #endif
 #endif
 
@@ -109,7 +111,6 @@ static int stream_back_bytes(struct reader *rds, off_t bytes)
 
 /* this function strangely is define to seek num frames _back_ (and is called with -offset - duh!) */
 /* also... let that int be a long in future! */
-#ifdef VBR_SEEK
 static int stream_back_frame(struct reader *rds,struct frame *fr,long num)
 {
 	if(rds->flags & READER_SEEKABLE)
@@ -158,78 +159,6 @@ static int stream_back_frame(struct reader *rds,struct frame *fr,long num)
 	}
 	else return -1; /* invalid, no seek happened */
 }
-	
-#else
-/* There's something bogus about the return value... 0 is success when looking at usage, but here... */
-static int stream_back_frame(struct reader *rds,struct frame *fr,long num)
-{
-	long bytes;
-
-	if(!firsthead)
-		return 0;
-
-	/* why +8? header = 4 bytes ... + data */
-	bytes = (fr->framesize+8)*(num+2);
-
-	/* Skipping back/forth requires a bit more work in buffered mode. 
-	 * See mapped_back_frame(). 
-	 */
-	if(param.usebuffer)
-		bytes += (long)(xfermem_get_usedspace(buffermem) /
-			(buffermem->buf[0] * buffermem->buf[1]
-				* (buffermem->buf[2] & AUDIO_FORMAT_MASK ?
-					16.0 : 8.0 ))
-				* (tabsel_123[fr->lsf][fr->lay-1][fr->bitrate_index] << 10));
-/*
-		bytes += (long)(compute_buffer_offset(fr)*compute_bpf(fr));
-*/	
-	if(stream_lseek(rds,-bytes,SEEK_CUR) < 0)
-		return -1;
-
-#if 0
-	{
-	unsigned char buf[4];
-	unsigned long newhead;
-
-	/* This is to find a new valid frame - read_frame can do that itself! */
-	/* Problem:
-	   Searching for a header identical to firsthead won't do it for files that vary that (ever heard of vbr?).
-	   Just searching for a header that passed the check (in read_frame_recover) gives false positives.
-	*/
-	if(fullread(rds,buf,4) != 4)
-		return -1;
-
-	newhead = (buf[0]<<24) + (buf[1]<<16) + (buf[2]<<8) + buf[3];
-	
-	while( (newhead & HDRCMPMASK) != (firsthead & HDRCMPMASK) ) {
-		fprintf(stderr, "0x%08lx / 0x%08lx\n", newhead, firsthead);
-		if(fullread(rds,buf,1) != 1)
-			return -1;
-		newhead <<= 8;
-		newhead |= buf[0];
-		newhead &= 0xffffffff;
-	}
-
-	if( stream_lseek(rds,-4,SEEK_CUR) < 0)
-		return -1;
-	}
-#endif
-	
-	/* why two times? */
-	/* to retain old behaviour: decrease frameNum on success (read_frame increased it) since main wants to set that */
-	if(read_frame_recover(fr)) --fr->num;
-	if(read_frame_recover(fr)) --fr->num;
-
-	if(fr->lay == 3) {
-		set_pointer(512);
-	}
-
-	if(param.usebuffer)
-		buffer_resync();
-	
-	return 0;
-}
-#endif
 
 static int stream_head_read(struct reader *rds,unsigned long *newhead)
 {
@@ -336,6 +265,12 @@ static off_t get_fileinfo(struct reader *rds,char *buf)
 }
 
 
+/*
+	disabled that code so that always the new vbr stream seeking routine will be used
+	Also: does anyone really want that operation? I looks like waste of memory for something you can do outside of mpg123 (ramdisk...)
+	Is this needed for some really slow box? Does this slow box have the memory to spare?
+	*/
+#if 0
 #ifdef READ_MMAP
 /*********************************************************+
  * memory mapped operation 
@@ -507,6 +442,7 @@ static long mapped_tell(struct reader *rds)
 }
 
 #endif
+#endif
 
 /*****************************************************************
  * read frame helper
@@ -525,6 +461,7 @@ struct reader readers[] = {
    NULL,
    NULL } ,
 #endif
+#if 0
 #ifdef READ_MMAP
  { mapped_init,
    mapped_close,
@@ -537,6 +474,7 @@ struct reader readers[] = {
    mapped_tell,
    mapped_rewind } , 
 #endif 
+#endif
  { default_init,
    stream_close,
    stream_head_read,

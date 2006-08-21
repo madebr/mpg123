@@ -110,6 +110,9 @@ AC_ARG_WITH([optimization], [
   --with-optimization=4   Optimize yet more (-O4)
 ])
 
+AC_ARG_WITH([seektable], [
+  --with-seektable=<size> choose size of seek index table (0 disables it), default 1000
+])
 
 dnl ############## Function Checks
 
@@ -317,8 +320,15 @@ case $with_optimization in
   ;;
 esac
 
+dnl ############## Seektable size
 
+if test "x$with_seektable" == "x"; then
+	seektable=1000
+else
+	seektable=$with_seektable
+fi
 
+AC_DEFINE_UNQUOTED(INDEX_SIZE, $seektable, [size of the frame index seek table])
 
 dnl ############## Audio Sub-system Settings
 
@@ -479,6 +489,7 @@ echo "
   Audio output ............ $audio_system
   Gapless Support ......... $gapless
   Debugging ............... $debugging
+  Seek table size ......... $seektable
 "
   
 if test "$debugging" = "enabled"; then

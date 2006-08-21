@@ -44,9 +44,8 @@
 /* #define FINE_REWIND_KEY ';' */
 /* #define FINE_FORWARD_KEY ':' */
 
-#ifdef VBR_SEEK
+/* this counts as "undocumented" and can disappear */
 #define FRAME_INDEX_KEY 'i'
-#endif
 
 #define PAUSED_STRING	"Paused. \b\b\b\b\b\b\b\b"
 #define STOPPED_STRING	"Stopped.\b\b\b\b\b\b\b\b"
