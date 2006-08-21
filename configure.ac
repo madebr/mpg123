@@ -198,11 +198,11 @@ fi
 
 case $target in
   i386-*-linux*)
-    cpu_type="i586"
+    cpu_type="i386"
     CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
   ;;
   i486-*-linux*)
-    cpu_type="i586"
+    cpu_type="i486"
     CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
   ;;
   i586-*-linux*)
