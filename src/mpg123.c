@@ -1227,11 +1227,6 @@ tc_hack:
 				long offset;
 				if((offset=term_control(&fr))) {
 					if(!rd->back_frame(rd, &fr, -offset)) {
-						#ifndef VBR_SEEK
-						/* fr.num is unsigned... */
-						if((offset < 0) && (fr.num < -offset)) fr.num = 0;
-						else fr.num+=offset;
-						#endif
 						debug1("seeked to %lu", fr.num);
 						#ifdef GAPLESS
 						if(param.gapless && (fr.lay == 3))
@@ -1265,11 +1260,6 @@ tc_hack:
 					if((!rd->back_frame(rd, &fr, -offset)) 
 						&& read_frame(&fr))
 					{
-						#ifndef VBR_SEEK
-						/* fr.num is unsigned... */
-						if((offset < 0) && (fr.num < -offset)) fr.num = 0;
-						else fr.num+=offset;
-						#endif
 						debug1("seeked to %lu", fr.num);
 						#ifdef GAPLESS
 						if(param.gapless && (fr.lay == 3))
