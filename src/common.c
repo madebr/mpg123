@@ -1061,7 +1061,7 @@ init_resync:
 void print_frame_index(FILE* out)
 {
 	size_t c;
-	for(c=0; c < frame_index.fill;++c) fprintf(out, "[%zi] %lu: %lli (+%lli)\n", c, c*frame_index.step, (long long)frame_index.data[c], (long long) (c ? frame_index.data[c]-frame_index.data[c-1] : 0));
+	for(c=0; c < frame_index.fill;++c) fprintf(out, "[%zi] %lu: %li (+%li)\n", c, c*frame_index.step, (long)frame_index.data[c], (long) (c ? frame_index.data[c]-frame_index.data[c-1] : 0));
 }
 
 /*
