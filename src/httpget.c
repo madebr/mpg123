@@ -42,6 +42,8 @@
 #define SIZE_MAX ((size_t)-1)
 #endif
 
+#define HTTP_MAX_RELOCATIONS 20
+
 #include <netdb.h>
 #include <sys/param.h>
 #include <sys/types.h>
@@ -244,7 +246,13 @@ int http_open (char* url, char** content_type)
 	int relocate, numrelocs = 0;
 	struct sockaddr_in server;
 	FILE *myfile;
-
+	/*
+		workaround for http://www.global24music.com/rautemusik/files/extreme/isdn.pls
+		this site's apache gives me a relocation to the same place when I give the port in Host request field
+		for the record: Apache/2.0.51 (Fedora)
+	*/
+	int try_without_port = 0;
+	
 	host = NULL;
 	purl = NULL;
 	request = NULL;
@@ -469,8 +477,12 @@ int http_open (char* url, char** content_type)
 			 PACKAGE_NAME, PACKAGE_VERSION);
 		if (host) {
 			debug2("Host: %s:%u", host, myport);
-			sprintf(request + strlen(request),
-			        "Host: %s:%u\r\n", host, myport);
+			if(!try_without_port) sprintf(request + strlen(request), "Host: %s:%u\r\n", host, myport);
+			else
+			{
+				sprintf(request + strlen(request), "Host: %s\r\n", host);
+				try_without_port = 0;
+			}
 		}
 /*		else
 		{
@@ -563,7 +575,9 @@ int http_open (char* url, char** content_type)
 			if (!strncmp(response, "Location: ", 10))
 			{
 				size_t needed_length;
-				char* prefix = request_url;
+				char* prefix = (char*) malloc(strlen(request_url)+1);
+				if(prefix == NULL){ error("out of memory here... cannot handle that gracefully (yet)"); exit(1); }
+				strcpy(prefix, request_url); /* fits and is terminated! */
 				
 				debug1("request_url:%s", request_url);
 				
@@ -614,6 +628,14 @@ int http_open (char* url, char** content_type)
 				/* now that we ensured that purl is big enough, we can just hit it */
 				strcpy(purl, prefix);
 				strcat(purl, response+10);
+				debug1("           purl: %s",purl);
+				debug1("old request_url: %s", request_url);
+				if(!strcmp(purl, request_url))
+				{
+					warning("relocated to very same place! trying request again without host port");
+					try_without_port = 1;
+				}
+				free(prefix);
 			}
 			else
 			{
@@ -651,7 +673,7 @@ int http_open (char* url, char** content_type)
 				}
 			}
 		} while (response[0] != '\r' && response[0] != '\n');
-	} while (relocate && purl[0] && numrelocs++ < 10);
+	} while (relocate && purl[0] && numrelocs++ < HTTP_MAX_RELOCATIONS);
 	if (relocate) {
 		fprintf (stderr, "Too many HTTP relocations.\n");
                close(sock);
