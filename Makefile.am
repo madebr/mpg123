@@ -19,4 +19,5 @@ EXTRA_DIST = \
 	doc/README.gain \
 	doc/README.remote \
 	doc/ROAD_TO_LGPL \
-	doc/TODO
+	doc/TODO \
+	doc/LICENSE

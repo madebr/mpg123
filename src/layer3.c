@@ -1028,7 +1028,7 @@ if(region1 > region2)
   if(part2remain > 0)
     getbits(part2remain);
   else if(part2remain < 0) {
-    error1("Can't rewind stream by %d bits!",-part2remain);
+    debug1("Can't rewind stream by %d bits!",-part2remain);
     return 1; /* -> error */
   }
   return 0;

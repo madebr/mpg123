@@ -575,7 +575,7 @@ static void do_rva()
 		if(rva_level[rt] != -1)
 		{
 			long newscale = outscale*pow(10,rva_gain[rt]/20);
-			debug1("doing RVA with gain %f", rva_gain[rt]);
+			fprintf(stderr, "Note: doing RVA with gain %f", rva_gain[rt]);
 			/* if peak is unknown (== 0) this check won't hurt */
 			if((rva_peak[rt]*newscale) > MAXOUTBURST)
 			{
@@ -665,15 +665,15 @@ init_resync:
 			return 0;
 		}
 
-		if(!param.quiet) fprintf(stderr,"Note: Junk at the beginning (0x%08lx)\n",newhead);
 		/* check for id3v2; first three bytes (of 4) are "ID3" */
 		if((newhead & (unsigned long) 0xffffff00) == (unsigned long) 0x49443300)
 		{
 			int id3length = 0;
-			if(!param.quiet) fprintf(stderr, "Note: Oh, it's just an ID3V2 tag...\n");
 			id3length = parse_new_id3(newhead, rd);
 			goto read_again;
 		}
+		else if(!param.quiet) fprintf(stderr,"Note: Junk at the beginning (0x%08lx)\n",newhead);
+
 		/* I even saw RIFF headers at the beginning of MPEG streams ;( */
 		if(newhead == ('R'<<24)+('I'<<16)+('F'<<8)+'F') {
 			if(!param.quiet) fprintf(stderr, "Note: Looks like a RIFF header.\n");
@@ -722,20 +722,19 @@ init_resync:
              fprintf(stderr,"Note: Skipped ID3 Tag!\n");
            goto read_again;
       }
-      if (give_note)
-      {
-        fprintf(stderr,"Note: Illegal Audio-MPEG-Header 0x%08lx at offset 0x%lx.\n",
-              newhead,rd->tell(rd)-4);
-      }
       /* duplicated code from above! */
       /* check for id3v2; first three bytes (of 4) are "ID3" */
       if((newhead & (unsigned long) 0xffffff00) == (unsigned long) 0x49443300)
       {
         int id3length = 0;
-        if(give_note) fprintf(stderr, "Note: Oh, it's just an ID3V2 tag...\n");
         id3length = parse_new_id3(newhead, rd);
         goto read_again;
       }
+      else if (give_note)
+      {
+        fprintf(stderr,"Note: Illegal Audio-MPEG-Header 0x%08lx at offset 0x%lx.\n", newhead,rd->tell(rd)-4);
+      }
+
       if(give_note && (newhead & 0xffffff00) == ('b'<<24)+('m'<<16)+('p'<<8)) fprintf(stderr,"Note: Could be a BMP album art.\n");
       if (param.tryresync || do_recover) {
         int try = 0;
