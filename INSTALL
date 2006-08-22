@@ -35,6 +35,7 @@ Run
 for a list of possible parameters you can specify. The obvious are --prefix and the normal GNU autotool bunch, but others include what audio subsystem to use and what CPU optimizations to build in.
 In future we may have a merged build for the i386 platform including MMX, SSE, 3DNow!, etc. optimizations and choosing at runtime, but for now that's a build time decision.
 
+Other important choices include --enable-gapless for enabling mpg123 to skip encoder/decoder padding for seamless transition between tracks and --with-seektable=<number> for setting the size for the table of stored frame addresses to make seeking faster. When you want a minimal memory footprint, you can set number to 0. Seeking will always start from the beginning, then - being accurate, but rather slow, what doesn't matter if you don't use interactive seeking forth and back.
 
 2. The classic way via the provided Makefile
 

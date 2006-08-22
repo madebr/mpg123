@@ -8,9 +8,7 @@ But that is not all of it.
 mpg123 is licensed under the GNU General Lesser Public License, version 2.1, and in parts under the GNU General Public License, version 2.
 That means that _all_ of mpg123 is licensed under GPL and the major part also under the LGPL.
 
-Currently, it looks like the old audio_alsa.c (audio output using the deprecated 0.5 Alsa API) is the only file that stands there with a GPL-only license.
-Considering the alsa support possible through libao and the possibility of a new alsa output for the current API by Thomas Orgis, this file is likely to be dropped from distribution some time.
-Then, the situation will be simply: mpg123 is under LGPL.
+Actually, the "major part" currently is the whole distributed package of mpg123. There are some files (old alsa output, libao output) that you get from our svn repository and that do not fall under LGPL.
 
 When the copyright marker in a source file says "the mpg123 project" that means that the file contains code copyrighted by contributors to mpg123, the "initially written by" naming the person(s) that created the file and thus may have the largest part of copyrights on it.
 I am explaining this here to emphasize that the copyright always actually lies by the individual member (i.e. contributor to) of the mpg123 project who wrote a specific section of code.

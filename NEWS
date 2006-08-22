@@ -5,7 +5,7 @@
 - real two-way seeking in remote control mode at all
 - better estimates of remaining frames (on vbr files), exact if Xing header is found
 - Removed libao support (as it is GPL and we aren't - and we don't need it with native Alsa)
-- Added ALSA 0.9/1.0 support by Clemens Ladisch
+- Added ALSA 0.9/1.0 support by Clemens Ladisch (old alsa is in audio_alsa05.c but will most likely vanish soon)
 - Added PortAudio audio-output support
 - Added SDL audio-output support
 - Fixed NAS audio-output support
