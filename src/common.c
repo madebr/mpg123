@@ -575,7 +575,7 @@ static void do_rva()
 		if(rva_level[rt] != -1)
 		{
 			long newscale = outscale*pow(10,rva_gain[rt]/20);
-			fprintf(stderr, "Note: doing RVA with gain %f", rva_gain[rt]);
+			fprintf(stderr, "Note: doing RVA with gain %f\n", rva_gain[rt]);
 			/* if peak is unknown (== 0) this check won't hurt */
 			if((rva_peak[rt]*newscale) > MAXOUTBURST)
 			{
