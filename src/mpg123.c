@@ -787,6 +787,7 @@ void play_frame(int init,struct frame *fr)
 
 			newrate = freqs[fr->sampling_frequency]>>(param.down_sample);
 			prepare_audioinfo(fr, &ai);
+			if(param.verbose > 1) fprintf(stderr, "Note: audio output rate = %li\n", ai.rate);
 			#ifdef GAPLESS
 			if(param.gapless && (fr->lay == 3)) layer3_gapless_bytify(fr, &ai);
 			#endif
