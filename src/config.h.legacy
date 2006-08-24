@@ -1,5 +1,7 @@
 /* basic config.h to reproduce pre-autoconf days */
 
+#define HAVE_SYS_TYPES_H 1
+
 /* little automagic on its own for OSS header */
 #ifdef LINUX
 	#define HAVE_LINUX_SOUNDCARD_H
