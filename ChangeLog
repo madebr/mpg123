@@ -1,0 +1,4 @@
+This is a dummy file to be replaced by the real ChangeLog before doing 'make dist'.
+Normally, this means running
+
+svn2cl.sh && make dist && svn revert ChangeLog
