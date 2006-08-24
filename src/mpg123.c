@@ -34,6 +34,8 @@
 #ifdef GAPLESS
 #include "layer3.h"
 #endif
+#include "playlist.h"
+
 static void usage(int err);
 static void want_usage(char* arg);
 static void long_usage(int err);
@@ -75,13 +77,10 @@ struct parameter param = {
 #endif
 	0, /* default is to play all titles in playlist */
 	-1, /* do not use rva per default */
+	NULL /* no playlist per default */
 };
 
 char *prgName = NULL;
-char *listname = NULL;
-enum playlist_type { UNKNOWN = 0, M3U, PLS, NO_LIST };
-enum playlist_type listtype = UNKNOWN;
-char *listnamedir = NULL;
 char *equalfile = NULL;
 /* ThOr: pointers are not TRUE or FALSE */
 int have_eq_settings = FALSE;
@@ -90,10 +89,6 @@ long numframes = -1;
 long startFrame= 0;
 int buffer_fd[2];
 int buffer_pid;
-
-char **shufflist= NULL;
-int *shuffleord= NULL;
-int shuffle_listsize = 0;
 
 static int intflag = FALSE;
 
@@ -215,319 +210,6 @@ void init_output(void)
       cdr_open(&ai,param.filename);
       break;
   }
-}
-
-void shuffle_files(int numfiles)
-{
-    int loop, rannum;
-
-    srand(time(NULL));
-    if(shuffleord)
-      free(shuffleord);
-    shuffleord = (int *) malloc((numfiles + 1) * sizeof(int));
-    if (!shuffleord) {
-	perror("malloc");
-	exit(1);
-    }
-    /* write songs in 'correct' order */
-    for (loop = 0; loop < numfiles; loop++) {
-	shuffleord[loop] = loop;
-    }
-
-    /* now shuffle them */
-    if(numfiles >= 2) {
-      for (loop = 0; loop < numfiles; loop++) {
-	rannum = (rand() % (numfiles * 4 - 4)) / 4;
-        rannum += (rannum >= loop);
-	shuffleord[loop] ^= shuffleord[rannum];
-	shuffleord[rannum] ^= shuffleord[loop];
-	shuffleord[loop] ^= shuffleord[rannum];
-      }
-    }
-
-#if 0
-    /* print them */
-    for (loop = 0; loop < numfiles; loop++) {
-	fprintf(stderr, "%d ", shuffleord[loop]);
-    }
-#endif
-
-}
-
-char *find_next_file (int argc, char *argv[])
-{
-	/* static... */
-	static FILE *listfile = NULL;
-	static char line[1024];
-	char* in_line = NULL;
-	static int firstline = 1;
-	char linetmp [1024];
-	char * slashpos;
-	int i;
-	static long entry;
-
-	/* hack for url that has been detected as track, not playlist */
-	if(listtype == NO_LIST) return NULL;
-
-	/* Get playlist dirname to append it to the files in playlist */
-	if (listname)
-	{
-		if ((slashpos=strrchr(listname, '/')))
-		{
-			/* memory gets lost here! */
-			listnamedir=strdup (listname);
-			listnamedir[1 + slashpos - listname] = 0;
-		}
-	}
-
-	if (listname || listfile)
-	{
-		if (!listfile)
-		{
-			if (!*listname || !strcmp(listname, "-"))
-			{
-				listfile = stdin;
-				listname = NULL;
-				entry = 0;
-			}
-			else if (!strncmp(listname, "http://", 7))
-			{
-				int fd;
-				char *listmime = NULL;
-				fd = http_open(listname, &listmime);
-				debug1("listmime: %p", (void*) listmime);
-				if(listmime != NULL)
-				{
-					debug1("listmime value: %s", listmime);
-					if(!strcmp("audio/x-mpegurl", listmime))	listtype = M3U;
-					else if(!strcmp("audio/x-scpls", listmime))	listtype = PLS;
-					else
-					{
-						if(fd >= 0) close(fd);
-						if(!strcmp("audio/mpeg", listmime))
-						{
-							listtype = NO_LIST;
-							if(param.listentry < 0)
-							{
-								printf("#note you gave me a file url, no playlist, so...\n#entry 1\n%s\n", listname);
-								return NULL;
-							}
-							else
-							{
-								fprintf(stderr, "Note: MIME type indicates that this is no playlist but an mpeg audio file... reopening as such.\n");
-								return listname;
-							}
-						}
-						fprintf(stderr, "Error: unknown playlist MIME type %s; maybe "PACKAGE_NAME" can support it in future if you report this to the maintainer.\n", listmime);
-						fd = -1;
-					}
-					free(listmime);
-				}
-				if(fd < 0)
-				{
-					listname = NULL;
-					listfile = NULL;
-					fprintf(stderr, "Error: invalid playlist from http_open()!\n");
-				}
-				else
-				{
-					entry = 0;
-					listfile = fdopen(fd,"r");
-				}
-			}
-			else if (!(listfile = fopen(listname, "rb")))
-			{
-				perror (listname);
-				#ifdef HAVE_TERMIOS
-				if(param.term_ctrl)
-				term_restore();
-				#endif
-				exit (1);
-			}
-			else
-			{
-				debug("opened ordinary list file");
-				entry = 0;
-			}
-			if (param.verbose && listfile) fprintf (stderr, "Using playlist from %s ...\n",	listname ? listname : "standard input");
-		}
-		debug1("going to get busy with listfile ... listentry=%li\n", param.listentry);
-		while (listfile)
-		{
-			if (fgets(line, 1023, listfile))
-			{
-				line[strcspn(line, "\t\n\r")] = '\0';
-				/* a bit of fuzzyness */
-				if(firstline)
-				{
-					if(listtype == UNKNOWN)
-					{
-						if(!strcmp("[playlist]", line))
-						{
-							fprintf(stderr, "Note: detected Shoutcast/Winamp PLS playlist\n");
-							listtype = PLS;
-							continue;
-						}
-						else if
-						(
-							(!strncasecmp("#M3U", line ,4))
-							||
-							(!strncasecmp("#EXTM3U", line ,7))
-							||
-							(listname != NULL && (strrchr(listname, '.')) != NULL && !strcasecmp(".m3u", strrchr(listname, '.')))
-						)
-						{
-							fprintf(stderr, "Note: detected M3U playlist type\n");
-							listtype = M3U;
-						}
-						else
-						{
-							fprintf(stderr, "Note: guessed M3U playlist type\n");
-							listtype = M3U;
-						}
-					}
-					else
-					{
-						fprintf(stderr, "Note: Interpreting as ");
-						switch(listtype)
-						{
-							case M3U: fprintf(stderr, "M3U"); break;
-							case PLS: fprintf(stderr, "PLS (Winamp/Shoutcast)"); break;
-							default: fprintf(stderr, "???");
-						}
-						fprintf(stderr, " playlist\n");
-					}
-					firstline = 0;
-				}
-				#if !defined(WIN32)
-				/* convert \ to / (from MS-like directory format) */
-				for (i=0;line[i]!='\0';i++)
-				if (line [i] == '\\')
-				line [i] = '/';
-				#endif
-				if (line[0]=='\0') continue;
-				if (((listtype == M3U) && (line[0]=='#')))
-				{
-					if(param.listentry < 0) printf("%s\n", line);
-					continue;
-				}
-
-				in_line = line;
-				/* extract path out of PLS */
-				if(listtype == PLS)
-				{
-					if(!strncasecmp("File", line, 4))
-					{
-						/* too lazy to reall check for file number... would have to change logic to support unordered file entries anyway */
-						if((in_line = strchr(line+4, '=')) != NULL)
-						{
-							if(in_line[0] != 0) ++in_line;
-							else
-							{
-								fprintf(stderr, "Warning: Invalid PLS line (empty filename) - corrupt playlist file?\n");
-								continue;
-							}
-						}
-						else
-						{
-							fprintf(stderr, "Warning: Invalid PLS line (no '=' after 'File') - corrupt playlist file?\n");
-							continue;
-						}
-					}
-					else
-					{
-						if(param.listentry < 0) printf("#metainfo %s\n", line);
-						continue;
-					}
-				}
-
-				/* make paths absolute */
-				/* Windows knows absolute paths with c: in front... should handle this if really supporting win32 again */
-				if ((listnamedir) && (in_line[0]!='/') && (in_line[0]!='\\')
-					 && strncmp(in_line, "http://", 7))
-				{
-					/* prepend path */
-					memset(linetmp,'\0',sizeof(linetmp));
-					snprintf(linetmp, sizeof(linetmp)-1, "%s%s",
-					listnamedir, in_line);
-					strcpy (in_line, linetmp);
-				}
-				++entry;
-				if(param.listentry < 0) printf("#entry %li\n%s\n", entry,in_line);
-				else if((param.listentry == 0) || (param.listentry == entry)) return (in_line);
-			}
-			else
-			{
-				if (listname)
-				fclose (listfile);
-				listname = NULL;
-				listfile = NULL;
-			}
-		}	
-	}
-	if (loptind < argc) return (argv[loptind++]);
-	return (NULL);
-}
-
-void init_input (int argc, char *argv[])
-{
-    int mallocsize = 0;
-    char *tempstr;
-
-    shuffle_listsize = 0;
-
-    if (!param.shuffle || param.remote) 
-      return;
-
-    while ((tempstr = find_next_file(argc, argv))) {
-	if (shuffle_listsize + 2 > mallocsize) {
-	    mallocsize += 8;
-	    shufflist = (char **) realloc(shufflist, mallocsize * sizeof(char *));
-	    if (!shufflist) {
-		perror("realloc");
-		exit(1);
-	    }
-	}
-	if (!(shufflist[shuffle_listsize] = (char *) malloc(strlen(tempstr) + 1))) {
-	    perror("malloc");
-	    exit(1);
-	}
-	strcpy(shufflist[shuffle_listsize], tempstr);
-	shuffle_listsize++;
-    }
-    if (shuffle_listsize) {
-	if (shuffle_listsize + 1 < mallocsize) {
-	    shufflist = (char **) realloc(shufflist, (shuffle_listsize + 1) * sizeof(char *));
-	}
-	shufflist[shuffle_listsize] = NULL;
-    }
-    shuffle_files(shuffle_listsize);
-}
-
-char *get_next_file(int argc, char **argv)
-{
-    static int curfile = 0;
-    char *newfile;
-
-    if (!param.shuffle) {
-	return find_next_file(argc, argv);
-    }
-    if (!shufflist || !shufflist[curfile]) {
-	return NULL;
-    }
-    if(param.shuffle == 1) {
-        if (shuffleord) {
-   	    newfile = shufflist[shuffleord[curfile]];
-        } else {
-  	    newfile = shufflist[curfile];
-        }
-        curfile++;
-    }
-    else {
-       newfile = shufflist[ rand() % shuffle_listsize ];
-    }
-
-    return newfile;
 }
 
 static void set_output_h(char *a)
@@ -660,7 +342,7 @@ topt opts[] = {
 	{'d', "doublespeed", GLO_ARG | GLO_LONG, 0, &param.doublespeed,0},
 	{'h', "halfspeed",   GLO_ARG | GLO_LONG, 0, &param.halfspeed,  0},
 	{'p', "proxy",       GLO_ARG | GLO_CHAR, 0, &proxyurl,   0},
-	{'@', "list",        GLO_ARG | GLO_CHAR, 0, &listname,   0},
+	{'@', "list",        GLO_ARG | GLO_CHAR, 0, &param.listname,   0},
 	/* 'z' comes from the the german word 'zufall' (eng: random) */
 	{'z', "shuffle",     GLO_INT,  0, &param.shuffle, 1},
 	{'Z', "random",      GLO_INT,  0, &param.shuffle, 2},
@@ -1035,7 +717,7 @@ int main(int argc, char *argv[])
 	}
 #endif
 
-	if (loptind >= argc && !listname && !param.remote)
+	if (loptind >= argc && !param.listname && !param.remote)
 		usage(1);
 
 #if !defined(WIN32) && !defined(GENERIC)
@@ -1109,7 +791,7 @@ int main(int argc, char *argv[])
 
 	set_synth_functions(&fr);
 
-	init_input(argc, argv);
+	if(!param.remote) prepare_playlist(argc, argv);
 
 	make_decode_tables(outscale);
 	init_layer2(); /* inits also shared tables with layer1 */
@@ -1132,7 +814,7 @@ int main(int argc, char *argv[])
 	}
 #endif
 
-	while ((fname = get_next_file(argc, argv))) {
+	while ((fname = get_next_file())) {
 		char *dirname, *filename;
 		long leftFrames,newFrame;
 
@@ -1331,7 +1013,7 @@ tc_hack:
         if(param.usebuffer) buffer_resync();
 #endif
       }
-    }
+    } /* end of loop over input files */
 #ifndef NOXFERMEM
     if (param.usebuffer) {
       buffer_end();
@@ -1361,7 +1043,7 @@ tc_hack:
         cdr_close();
         break;
     }
-   
+   	if(!param.remote) free_playlist();
     return 0;
 }
 

@@ -40,6 +40,8 @@ mpg123_SOURCES = \
 	layer3.h \
 	mpg123.c \
 	mpg123.h \
+	playlist.c \
+	playlist.h \
 	readers.c \
 	tabinit.c \
 	sfifo.c \

@@ -610,18 +610,18 @@ generic:
 mpg123-make:
 	@ $(MAKE) BINNAME=mpg123 mpg123
 
-mpg123: mpg123.o common.o $(OBJECTS) decode_2to1.o decode_4to1.o \
+mpg123: mpg123.o playlist.o common.o $(OBJECTS) decode_2to1.o decode_4to1.o \
 		tabinit.o audio.o layer1.o layer2.o layer3.o buffer.o \
 		getlopt.o httpget.o xfermem.o equalizer.o \
 		decode_ntom.o $(MAKEFILE) wav.o readers.o getbits.o \
 		control_generic.o
-	$(CC) $(CFLAGS) $(LDFLAGS)  mpg123.o tabinit.o common.o layer1.o \
+	$(CC) $(CFLAGS) $(LDFLAGS)  mpg123.o playlist.o tabinit.o common.o layer1.o \
 		layer2.o layer3.o audio.o buffer.o decode_2to1.o equalizer.o \
 		decode_4to1.o getlopt.o httpget.o xfermem.o decode_ntom.o \
 		wav.o readers.o getbits.o control_generic.o \
 		$(OBJECTS) -o $(BINNAME) -lm $(AUDIO_LIB)
 
-mpg123.exe: mpg123.o common.o $(OBJECTS) decode_2to1.o decode_4to1.o \
+mpg123.exe: mpg123.o playlist.o common.o $(OBJECTS) decode_2to1.o decode_4to1.o \
 		tabinit.o audio.o layer1.o layer2.o layer3.o buffer.o \
 		getlopt.o httpget.o $(MAKEFILE) wav.o readers.o getbits.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o mpg123.exe -lm $(LIBS)
@@ -630,37 +630,38 @@ mpg123.exe: mpg123.o common.o $(OBJECTS) decode_2to1.o decode_4to1.o \
 ###########################################################################
 ###########################################################################
 
-layer1.o:	mpg123.h debug.h
-layer2.o:	mpg123.h l2tables.h debug.h
-layer3.o:	mpg123.h huffman.h common.h getbits.h debug.h
-decode.o:	mpg123.h debug.h
-decode_2to1.o:	mpg123.h debug.h
-decode_4to1.o:	mpg123.h debug.h
-decode_ntom.o:	mpg123.h debug.h
-decode_i386.o:	mpg123.h debug.h
-common.o:	mpg123.h common.h layer3.h debug.h
-mpg123.o:	mpg123.c mpg123.h getlopt.h xfermem.h buffer.h term.h debug.h
-mpg123.h:	audio.h debug.h
-audio.o:	mpg123.h debug.h
-audio_oss.o:	mpg123.h debug.h
-audio_sun.o:	mpg123.h debug.h
-audio_sgi.o:	mpg123.h debug.h
-audio_hp.o:	mpg123.h debug.h
-audio_nas.o:	mpg123.h debug.h
-audio_os2.o:	mpg123.h debug.h
-audio_dummy.o:	mpg123.h debug.h
-buffer.o:	mpg123.h xfermem.h buffer.h debug.h
-getbits.o:	common.h mpg123.h debug.h
-tabinit.o:	mpg123.h audio.h debug.h
-getlopt.o:	getlopt.h debug.h
-httpget.o:	mpg123.h debug.h
-dct64.o:	mpg123.h debug.h
-dct64_i386.o:	mpg123.h debug.h
-xfermem.o:	xfermem.h debug.h
-equalizer.o:	mpg123.h debug.h
-wav.o:		mpg123.h debug.h
-readers.o:	mpg123.h buffer.h common.h debug.h
-term.o:		mpg123.h buffer.h term.h common.h debug.h
+layer1.o:	mpg123.h debug.h config.h
+layer2.o:	mpg123.h l2tables.h debug.h config.h
+layer3.o:	mpg123.h huffman.h common.h getbits.h debug.h config.h
+decode.o:	mpg123.h debug.h config.h
+decode_2to1.o:	mpg123.h debug.h config.h
+decode_4to1.o:	mpg123.h debug.h config.h
+decode_ntom.o:	mpg123.h debug.h config.h
+decode_i386.o:	mpg123.h debug.h config.h
+common.o:	mpg123.h common.h layer3.h debug.h config.h
+mpg123.o:	mpg123.c mpg123.h getlopt.h xfermem.h buffer.h term.h debug.h config.h
+mpg123.h:	audio.h debug.h config.h
+audio.o:	mpg123.h debug.h config.h
+audio_oss.o:	mpg123.h debug.h config.h
+audio_sun.o:	mpg123.h debug.h config.h
+audio_sgi.o:	mpg123.h debug.h config.h
+audio_hp.o:	mpg123.h debug.h config.h
+audio_nas.o:	mpg123.h debug.h config.h
+audio_os2.o:	mpg123.h debug.h config.h
+audio_dummy.o:	mpg123.h debug.h config.h
+buffer.o:	mpg123.h xfermem.h buffer.h debug.h config.h
+getbits.o:	common.h mpg123.h debug.h config.h
+tabinit.o:	mpg123.h audio.h debug.h config.h
+getlopt.o:	getlopt.h debug.h config.h
+httpget.o:	mpg123.h debug.h config.h
+dct64.o:	mpg123.h debug.h config.h
+dct64_i386.o:	mpg123.h debug.h config.h
+xfermem.o:	xfermem.h debug.h config.h
+equalizer.o:	mpg123.h debug.h config.h
+wav.o:		mpg123.h debug.h config.h
+readers.o:	mpg123.h buffer.h common.h debug.h config.h
+term.o:		mpg123.h buffer.h term.h common.h debug.h config.h
+playlist.o: mpg123.h term.h getlopt.h debug.h config.h
 
 ###########################################################################
 ###########################################################################
