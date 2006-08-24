@@ -374,7 +374,7 @@ char *find_next_file (int argc, char *argv[])
 							||
 							(!strncasecmp("#EXTM3U", line ,7))
 							||
-							((strrchr(listname, '.') != NULL ) && !strcasecmp(".m3u", strrchr(listname, '.')))
+							(listname != NULL && (strrchr(listname, '.')) != NULL && !strcasecmp(".m3u", strrchr(listname, '.')))
 						)
 						{
 							fprintf(stderr, "Note: detected M3U playlist type\n");
