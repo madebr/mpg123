@@ -1,3 +1,12 @@
+0.60-beta5 (Thomas Orgis)
+-----
+
+- more robust playlist support:
+  -> path/url length not limited to 1023 characters anymore
+  -> reading in of whole playlist at program start (old operation was not really safe with playlist from http)
+  -> fixed bug where reading of playlist form stdin caused segfault (introduced with the pls format support)
+- smaller cleanups, screen output cosmetics
+
 0.60-beta4 (Nicholas Humfrey & Thomas Orgis)
 -----
 
