@@ -827,7 +827,7 @@ int main(int argc, char *argv[])
 			if (split_dir_file(fname ? fname : "standard input",
 				&dirname, &filename))
 				fprintf(stderr, "\nDirectory: %s", dirname);
-			fprintf(stderr, "\nPlaying MPEG stream %zu of %zu: %s ...\n", pl.pos, pl.fill, filename);
+			fprintf(stderr, "\nPlaying MPEG stream %lu of %lu: %s ...\n", (unsigned long)pl.pos, (unsigned long)pl.fill, filename);
 
 #if !defined(GENERIC)
 {

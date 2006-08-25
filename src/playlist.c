@@ -92,7 +92,7 @@ void free_playlist()
 		while(pl.fill)
 		{
 			--pl.fill;
-			debug1("free()ing entry %zu", pl.fill);
+			debug1("free()ing entry %lu", (unsigned long)pl.fill);
 			if(pl.list[pl.fill].freeit) free(pl.list[pl.fill].url);
 		}
 		free(pl.list);
@@ -264,7 +264,7 @@ int add_next_file (int argc, char *argv[])
 				if(fgets(pl.linebuf.p+have, pl.linebuf.size-have, pl.file))
 				{
 					have += strlen(pl.linebuf.p+have);
-					debug2("have read %zi characters into linebuf: [%s]", have, pl.linebuf.p);
+					debug2("have read %lu characters into linebuf: [%s]", (unsigned long)have, pl.linebuf.p);
 				}
 				else
 				{
@@ -403,7 +403,7 @@ int add_next_file (int argc, char *argv[])
 					line_offset = 0;
 				}
 				++pl.entry;
-				if(param.listentry < 0) printf("#entry %zu\n%s\n", pl.entry,pl.linebuf.p+line_offset);
+				if(param.listentry < 0) printf("#entry %lu\n%s\n", (unsigned long)pl.entry,pl.linebuf.p+line_offset);
 				else if((param.listentry == 0) || (param.listentry == pl.entry))
 				{
 					add_copy_to_playlist(pl.linebuf.p+line_offset);

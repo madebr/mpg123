@@ -89,7 +89,7 @@ int audio_open(struct audio_info_struct *ai)
 			/* going to split up the info in new memory to preserve the original string */
 			size_t devlen = search_ptr-ai->device+1;
 			size_t filelen = strlen(ai->device)-devlen+1;
-			fprintf(stderr, "going to allocate %zu:%zu bytes\n", devlen, filelen);
+			debug("going to allocate %lu:%lu bytes", (unsigned long)devlen, (unsigned long)filelen);
 			char* devicename = malloc(devlen*sizeof(char));
 			devicename[devlen-1] = 0;
 			filename = malloc(filelen*sizeof(char));
