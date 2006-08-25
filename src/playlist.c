@@ -4,6 +4,8 @@
 	copyright 1995-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.de
 	initially written by Michael Hipp, outsourced/reorganized by Thomas Orgis
+
+	If we officially support Windows again, we should have this reworked to really cope with Windows paths, too.
 */
 
 #include "config.h"
@@ -15,30 +17,10 @@
 
 #include <time.h>
 
-enum playlist_type { UNKNOWN = 0, M3U, PLS, NO_LIST };
-enum playlist_type listtype = UNKNOWN;
-static char *listnamedir = NULL;
-static FILE *listfile = NULL;
-static char line[1024];
-static long entry;
-static int firstline = 1;
+/* increase linebuf in blocks of ... bytes */
+#define LINEBUF_STEP 100
 
-typedef struct listitem
-{
-	char* url; /* the filename */
-	char freeit; /* if it was allocated and should be free()d here */
-} listitem;
-
-typedef struct playlist_struct
-{
-	size_t size;
-	size_t fill;
-	size_t pos;
-	size_t alloc_step;
-	struct listitem* list;
-} playlist_struct;
-
-/* one file-global instance... add a pointer to this to every function definition and you have OO-style... */
+/* one global instance... add a pointer to this to every function definition and you have OO-style... */
 playlist_struct pl;
 
 /*
@@ -57,6 +39,7 @@ void print_playlist();
 void init_playlist();
 int add_copy_to_playlist(char* new_entry);
 int add_to_playlist(char* new_entry, char freeit);
+void free_stringbuf();
 
 /* used to be init_input */
 void prepare_playlist(int argc, char** argv)
@@ -75,6 +58,9 @@ void prepare_playlist(int argc, char** argv)
 		fprintf(stderr, "\n");
 	}
 	if(param.shuffle == 1) shuffle_playlist();
+	/* Don't need these anymore, we have copies! */
+	free_stringbuf(&pl.linebuf);
+	free_stringbuf(&pl.dir);
 }
 
 char *get_next_file()
@@ -102,7 +88,7 @@ void free_playlist()
 {
 	if(pl.list != NULL)
 	{
-		debug("going free() the playlist");
+		debug("going to free() the playlist");
 		while(pl.fill)
 		{
 			--pl.fill;
@@ -110,19 +96,30 @@ void free_playlist()
 			if(pl.list[pl.fill].freeit) free(pl.list[pl.fill].url);
 		}
 		free(pl.list);
+		pl.list = NULL;
+		pl.size = 0;
 		debug("free()d the playlist");
 	}
+	free_stringbuf(&pl.linebuf);
+	free_stringbuf(&pl.dir);
 }
 
 /* the constructor... */
 void init_playlist()
 {
 	srand(time(NULL));
+	pl.file = NULL;
+	pl.entry = 0;
 	pl.size = 0;
 	pl.fill = 0;
 	pl.pos = 0;
 	pl.list = NULL;
 	pl.alloc_step = 10;
+	pl.linebuf.p = NULL;
+	pl.linebuf.size = 0;
+	pl.dir.p = NULL;
+	pl.dir.size = 0;
+	pl.type = UNKNOWN;
 }
 
 /*
@@ -132,35 +129,46 @@ void init_playlist()
 */
 int add_next_file (int argc, char *argv[])
 {
-	/* static... */
-	char* in_line = NULL;
-	char linetmp [1024];
-	char * slashpos;
-	int i;
+	int firstline = 0;
 
 	/* hack for url that has been detected as track, not playlist */
-	if(listtype == NO_LIST) return 0;
+	if(pl.type == NO_LIST) return 0;
 
 	/* Get playlist dirname to append it to the files in playlist */
 	if (param.listname)
 	{
+		char* slashpos;
+		/* Oh, right... that doesn't look good for Windows... */
 		if ((slashpos=strrchr(param.listname, '/')))
 		{
-			/* memory gets lost here! */
-			listnamedir=strdup (param.listname);
-			listnamedir[1 + slashpos - param.listname] = 0;
+			/* up to and including /, with space for \0 */
+			pl.dir.size = 2 + slashpos - param.listname;
+			if(pl.dir.p != NULL) free(pl.dir.p);
+			pl.dir.p = (char*) malloc(sizeof(char)*pl.dir.size);
+			if(pl.dir.p != NULL)
+			{
+				memcpy(pl.dir.p, param.listname, pl.dir.size-1);
+				pl.dir.p[pl.dir.size-1] = 0;
+			}
+			else
+			{
+				error("cannot allocate memory for list directory!");
+				pl.dir.size = 0;
+			}
 		}
 	}
 
-	if (param.listname || listfile)
+	if (param.listname || pl.file)
 	{
-		if (!listfile)
+		size_t line_offset = 0;
+		if (!pl.file)
 		{
+			/* empty or "-" */
 			if (!*param.listname || !strcmp(param.listname, "-"))
 			{
-				listfile = stdin;
+				pl.file = stdin;
 				param.listname = NULL;
-				entry = 0;
+				pl.entry = 0;
 			}
 			else if (!strncmp(param.listname, "http://", 7))
 			{
@@ -171,14 +179,14 @@ int add_next_file (int argc, char *argv[])
 				if(listmime != NULL)
 				{
 					debug1("listmime value: %s", listmime);
-					if(!strcmp("audio/x-mpegurl", listmime))	listtype = M3U;
-					else if(!strcmp("audio/x-scpls", listmime))	listtype = PLS;
+					if(!strcmp("audio/x-mpegurl", listmime))	pl.type = M3U;
+					else if(!strcmp("audio/x-scpls", listmime))	pl.type = PLS;
 					else
 					{
 						if(fd >= 0) close(fd);
 						if(!strcmp("audio/mpeg", listmime))
 						{
-							listtype = NO_LIST;
+							pl.type = NO_LIST;
 							if(param.listentry < 0)
 							{
 								printf("#note you gave me a file url, no playlist, so...\n#entry 1\n%s\n", param.listname);
@@ -199,16 +207,16 @@ int add_next_file (int argc, char *argv[])
 				if(fd < 0)
 				{
 					param.listname = NULL;
-					listfile = NULL;
+					pl.file = NULL;
 					fprintf(stderr, "Error: invalid playlist from http_open()!\n");
 				}
 				else
 				{
-					entry = 0;
-					listfile = fdopen(fd,"r");
+					pl.entry = 0;
+					pl.file = fdopen(fd,"r");
 				}
 			}
-			else if (!(listfile = fopen(param.listname, "rb")))
+			else if (!(pl.file = fopen(param.listname, "rb")))
 			{
 				perror (param.listname);
 				#ifdef HAVE_TERMIOS
@@ -220,82 +228,131 @@ int add_next_file (int argc, char *argv[])
 			else
 			{
 				debug("opened ordinary list file");
-				entry = 0;
+				pl.entry = 0;
 			}
-			if (param.verbose && listfile) fprintf (stderr, "Using playlist from %s ...\n",	param.listname ? param.listname : "standard input");
+			if (param.verbose && pl.file) fprintf (stderr, "Using playlist from %s ...\n",	param.listname ? param.listname : "standard input");
+			firstline = 1; /* just opened */
 		}
-		debug1("going to get busy with listfile ... listentry=%li\n", param.listentry);
-		/* read the whole listfile in */
-		while (listfile)
+		/* reading the file line by line */
+		while (pl.file)
 		{
-			if (fgets(line, 1023, listfile))
+			/*
+				now read a string of arbitrary size...
+				read a chunk, see if lineend, realloc, read another chunk
+				
+				fgets reads at most size-1 bytes and always appends the \0 
+			*/
+			size_t have = 0;
+			do
 			{
-				line[strcspn(line, "\t\n\r")] = '\0';
+				/* have is the length of the string read, without the closing \0 */
+				if(pl.linebuf.size <= have+1)
+				{
+					char* t = realloc(pl.linebuf.p, pl.linebuf.size+LINEBUF_STEP);
+					if(t != NULL)
+					{
+						pl.linebuf.p = t;
+						pl.linebuf.size += LINEBUF_STEP;
+					}
+					else
+					{
+						error("cannot increase line buffer");
+						break;
+					}
+				}
+				/* I rely on fgets writing the \0 at the end! */
+				if(fgets(pl.linebuf.p+have, pl.linebuf.size-have, pl.file))
+				{
+					have += strlen(pl.linebuf.p+have);
+					debug2("have read %zi characters into linebuf: [%s]", have, pl.linebuf.p);
+				}
+				else
+				{
+					debug("fgets failed to deliver something... file ended?");
+					break;
+				}
+			} while(have && pl.linebuf.p[have-1] != '\r' && pl.linebuf.p[have-1] != '\n');
+			if(have)
+			{
+				size_t i;
+				pl.linebuf.p[strcspn(pl.linebuf.p, "\t\n\r")] = '\0';
 				/* a bit of fuzzyness */
 				if(firstline)
 				{
-					if(listtype == UNKNOWN)
+					if(pl.type == UNKNOWN)
 					{
-						if(!strcmp("[playlist]", line))
+						if(!strcmp("[playlist]", pl.linebuf.p))
 						{
 							fprintf(stderr, "Note: detected Shoutcast/Winamp PLS playlist\n");
-							listtype = PLS;
+							pl.type = PLS;
 							continue;
 						}
 						else if
 						(
-							(!strncasecmp("#M3U", line ,4))
+							(!strncasecmp("#M3U", pl.linebuf.p ,4))
 							||
-							(!strncasecmp("#EXTM3U", line ,7))
+							(!strncasecmp("#EXTM3U", pl.linebuf.p ,7))
 							||
 							(param.listname != NULL && (strrchr(param.listname, '.')) != NULL && !strcasecmp(".m3u", strrchr(param.listname, '.')))
 						)
 						{
-							fprintf(stderr, "Note: detected M3U playlist type\n");
-							listtype = M3U;
+							if(param.verbose) fprintf(stderr, "Note: detected M3U playlist type\n");
+							pl.type = M3U;
 						}
 						else
 						{
-							fprintf(stderr, "Note: guessed M3U playlist type\n");
-							listtype = M3U;
+							if(param.verbose) fprintf(stderr, "Note: guessed M3U playlist type\n");
+							pl.type = M3U;
 						}
 					}
 					else
 					{
-						fprintf(stderr, "Note: Interpreting as ");
-						switch(listtype)
+						if(param.verbose)
 						{
-							case M3U: fprintf(stderr, "M3U"); break;
-							case PLS: fprintf(stderr, "PLS (Winamp/Shoutcast)"); break;
-							default: fprintf(stderr, "???");
+							fprintf(stderr, "Note: Interpreting as ");
+							switch(pl.type)
+							{
+								case M3U: fprintf(stderr, "M3U"); break;
+								case PLS: fprintf(stderr, "PLS (Winamp/Shoutcast)"); break;
+								default: fprintf(stderr, "???");
+							}
+							fprintf(stderr, " playlist\n");
 						}
-						fprintf(stderr, " playlist\n");
 					}
 					firstline = 0;
 				}
 				#if !defined(WIN32)
 				/* convert \ to / (from MS-like directory format) */
-				for (i=0;line[i]!='\0';i++)
-				if (line [i] == '\\')
-				line [i] = '/';
-				#endif
-				if (line[0]=='\0') continue;
-				if (((listtype == M3U) && (line[0]=='#')))
+				for (i=0;pl.linebuf.p[i]!='\0';i++)
 				{
-					if(param.listentry < 0) printf("%s\n", line);
+					if (pl.linebuf.p[i] == '\\')	pl.linebuf.p[i] = '/';
+				}
+				#endif
+				if (pl.linebuf.p[0]=='\0') continue; /* skip empty lines... */
+				if (((pl.type == M3U) && (pl.linebuf.p[0]=='#')))
+				{
+					/* a comment line in m3u file */
+					if(param.listentry < 0) printf("%s\n", pl.linebuf.p);
 					continue;
 				}
 
-				in_line = line;
+				/* real filename may start at an offset */
+				line_offset = 0;
 				/* extract path out of PLS */
-				if(listtype == PLS)
+				if(pl.type == PLS)
 				{
-					if(!strncasecmp("File", line, 4))
+					if(!strncasecmp("File", pl.linebuf.p, 4))
 					{
-						/* too lazy to reall check for file number... would have to change logic to support unordered file entries anyway */
-						if((in_line = strchr(line+4, '=')) != NULL)
+						/* too lazy to really check for file number... would have to change logic to support unordered file entries anyway */
+						char* in_line;
+						if((in_line = strchr(pl.linebuf.p+4, '=')) != NULL)
 						{
-							if(in_line[0] != 0) ++in_line;
+							/* FileN=? */
+							if(in_line[1] != 0)
+							{
+								++in_line;
+								line_offset = (size_t) (in_line-pl.linebuf.p);
+							}
 							else
 							{
 								fprintf(stderr, "Warning: Invalid PLS line (empty filename) - corrupt playlist file?\n");
@@ -310,36 +367,55 @@ int add_next_file (int argc, char *argv[])
 					}
 					else
 					{
-						if(param.listentry < 0) printf("#metainfo %s\n", line);
+						if(param.listentry < 0) printf("#metainfo %s\n", pl.linebuf.p);
 						continue;
 					}
 				}
 
 				/* make paths absolute */
 				/* Windows knows absolute paths with c: in front... should handle this if really supporting win32 again */
-				if ((listnamedir) && (in_line[0]!='/') && (in_line[0]!='\\')
-					 && strncmp(in_line, "http://", 7))
+				if
+				(
+					(pl.dir.p != NULL)
+					&& (pl.linebuf.p[line_offset]!='/')
+					&& (pl.linebuf.p[line_offset]!='\\')
+					&& strncmp(pl.linebuf.p+line_offset, "http://", 7)
+				)
 				{
+					size_t need;
+					need = pl.dir.size + strlen(pl.linebuf.p+line_offset);
+					if(pl.linebuf.size < need)
+					{
+						char* t;
+						
+						if((t=realloc(pl.linebuf.p, need)) == NULL)
+						{
+							error("unable to enlarge linebuf for appending path! skipping");
+							continue;
+						}
+						pl.linebuf.p = t;
+						pl.linebuf.size = need;
+					}
+					/* move to have the space at beginning */
+					memmove(pl.linebuf.p+pl.dir.size-1, pl.linebuf.p+line_offset, strlen(pl.linebuf.p+line_offset)+1);
 					/* prepend path */
-					memset(linetmp,'\0',sizeof(linetmp));
-					snprintf(linetmp, sizeof(linetmp)-1, "%s%s",
-					listnamedir, in_line);
-					strcpy (in_line, linetmp);
+					memcpy(pl.linebuf.p, pl.dir.p, pl.dir.size-1);
+					line_offset = 0;
 				}
-				++entry;
-				if(param.listentry < 0) printf("#entry %li\n%s\n", entry,in_line);
-				else if((param.listentry == 0) || (param.listentry == entry))
+				++pl.entry;
+				if(param.listentry < 0) printf("#entry %zu\n%s\n", pl.entry,pl.linebuf.p+line_offset);
+				else if((param.listentry == 0) || (param.listentry == pl.entry))
 				{
-					add_copy_to_playlist(in_line);
+					add_copy_to_playlist(pl.linebuf.p+line_offset);
 					return 1;
 				}
 			}
 			else
 			{
 				if (param.listname)
-				fclose (listfile);
+				fclose (pl.file);
 				param.listname = NULL;
-				listfile = NULL;
+				pl.file = NULL;
 			}
 		}
 	}
@@ -455,4 +531,14 @@ int add_to_playlist(char* new_entry, char freeit)
 		return 0;
 	}
 	return 1;
+}
+
+void free_stringbuf(struct stringbuf* b)
+{
+	if(b->p != NULL)
+	{
+		free(b->p);
+		b->p = NULL;
+		b->size = 0;
+	}
 }
