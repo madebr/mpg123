@@ -4,7 +4,7 @@ We badly need:
  - sprintf -> snprintf (maybe with switch to support ancient libc; or replacement by us)
  - rewrite httpget.c; that thing has been a can of bugs for years and I understand why when I look at it (way too many cooks)
  - really parse ID3V2 tags instead of skipping; done for RVA values... using the string info (just?) needs some Unicode/Locale handling
- - read playlists in in one go - at least for http I think the connection time to the server has limits
+ - check support for fixed point arithmentic; generic_nofpu seems wo work generally, but resampling does not sound nice
 
 From Nicholas: 
  - Seperate out MPEG Audio decoder (only) into seperate library

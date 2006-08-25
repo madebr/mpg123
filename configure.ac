@@ -59,7 +59,7 @@ AC_ARG_ENABLE(debug,
 )
 
 AC_ARG_ENABLE(gapless,
-              [  --enable-gapless=[no/yes] turn on gapless],
+              [  --enable-gapless=[no/yes] turn on gapless (enabled per default)],
               [
                 if test "x$enableval" = xyes
                 then
@@ -69,12 +69,17 @@ AC_ARG_ENABLE(gapless,
                   gapless="disabled"
                 fi
               ],
-              [ gapless="disabled" ]
+              [
+                gapless="enabled"
+                AC_DEFINE(GAPLESS, 1, [ Define if gapless is enabled. ])
+              ]
 )
 
 AC_ARG_WITH([cpu], [
-  --with-cpu=generic      Use generic processor code
-  --with-cpu=i386         Use code optimized for i386 processors
+  --with-cpu=generic[_fpu]      Use generic processor code with floating point arithmetic
+  --with-cpu=generic_nofpu      Use generic processor code with fixed point arithmetic (p.ex. ARM, experimental)
+  --with-cpu=i386[_fpu]         Use code optimized for i386 processors with floating point arithmetic
+  --with-cpu=i386_nofpu         Use code optimized for i386 processors with fixed point arithmetic (experimental)
   --with-cpu=i486         Use code optimized for i486 processors
   --with-cpu=i586         Use code optimized for i586 processors
   --with-cpu=i586_dither  Use code optimized for i586 processors with dithering (noise shaping)
@@ -197,46 +202,40 @@ fi
 
 
 case $target in
+  arm-*-linux*)
+    cpu_type="generic_nofpu"
+  ;;
   i386-*-linux*)
-    cpu_type="i386"
-    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
+    cpu_type="i386_fpu"
   ;;
   i486-*-linux*)
     cpu_type="i486"
-    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
   ;;
   i586-*-linux*)
     cpu_type="i586"
-    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
   ;;
   i686-*-linux*)
     cpu_type="mmx"
-    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
   ;;
   *-*-linux*)
-    cpu_type="generic"
-    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
+    cpu_type="generic_fpu"
   ;;
   *-apple-darwin*)
-    cpu_type="generic"
-    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
+    cpu_type="generic_fpu"
   ;;
   i386-*-freebsd*)
-    cpu_type="i386"
-    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
+    cpu_type="i386_fpu"
   ;;
   *-*-freebsd*)
-    cpu_type="generic"
-    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
+    cpu_type="generic_fpu"
   ;;
   *-sun-solaris*)
-    cpu_type="generic"
-    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
+    cpu_type="generic_fpu"
     LIBS="$LIBS -lsocket -lnsl"
   ;;
   *)
   	AC_MSG_WARN([Unknown target operating system])
-    cpu_type="generic"
+    cpu_type="generic_fpu"
     CFLAGS="$CFLAGS -DGENERIC"
   ;;
 esac
@@ -251,28 +250,40 @@ fi
 dnl CPU specific compiler flags
 case $cpu_type in
   generic)
-    CFLAGS="$CFLAGS"
+    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
+  ;;
+  generic_fpu)
+    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
+  ;;
+  generic_nofpu)
+    CFLAGS="$CFLAGS -DREAL_IS_FIXED"
   ;;
   altivec)
-    CFLAGS="$CFLAGS -maltivec"
+    CFLAGS="$CFLAGS -maltivec -DREAL_IS_FLOAT"
   ;;
   i386) 
-    CFLAGS="$CFLAGS -march=i386 -DI386_ASSEM "
+    CFLAGS="$CFLAGS -march=i386 -DI386_ASSEM -DREAL_IS_FLOAT"
+  ;;
+  i386_fpu) 
+    CFLAGS="$CFLAGS -march=i386 -DI386_ASSEM -DREAL_IS_FLOAT"
+  ;;
+  i386_nofpu) 
+    CFLAGS="$CFLAGS -march=i386 -DI386_ASSEM -DREAL_IS_FIXED"
   ;;
   i486) 
-    CFLAGS="$CFLAGS -march=i486 -DI386_ASSEM -DI486_OPT "
+    CFLAGS="$CFLAGS -march=i486 -DI386_ASSEM -DI486_OPT -DREAL_IS_FLOAT"
   ;;
   i586) 
-    CFLAGS="$CFLAGS -DI386_ASSEM -DPENTIUM_OPT "
+    CFLAGS="$CFLAGS -DI386_ASSEM -DPENTIUM_OPT -DREAL_IS_FLOAT"
   ;;
   i586_dither) 
-    CFLAGS="$CFLAGS -DI386_ASSEM -DPENTIUM_OPT"
+    CFLAGS="$CFLAGS -DI386_ASSEM -DPENTIUM_OPT -DREAL_IS_FLOAT"
   ;;
   3dnow) 
-    CFLAGS="$CFLAGS -DUSE_3DNOW -DI386_ASSEM -DPENTIUM_OPT "
+    CFLAGS="$CFLAGS -DUSE_3DNOW -DI386_ASSEM -DPENTIUM_OPT -DREAL_IS_FLOAT"
   ;;
   mmx) 
-    CFLAGS="$CFLAGS -DUSE_MMX -DI386_ASSEM -DPENTIUM_OPT "
+    CFLAGS="$CFLAGS -DUSE_MMX -DI386_ASSEM -DPENTIUM_OPT -DREAL_IS_FLOAT"
   ;;
   *)
   	AC_MSG_ERROR([Unknown CPU type '$cpu_type'])
