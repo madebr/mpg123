@@ -84,7 +84,7 @@ int performoption (int argc, char *argv[], topt *opt)
 		loptchr = 0;
 		if (opt->var) {
 			if (opt->flags & GLO_CHAR) /* var is *char */
-				*((char **) opt->var) = strdup(loptarg);
+				*((char **) opt->var) = strdup(loptarg); /* valgrind claims lost memory here */
 			else if(opt->flags & GLO_LONG)
 				*((long *) opt->var) = atol(loptarg);
 			else if(opt->flags & GLO_INT)
