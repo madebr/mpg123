@@ -179,7 +179,7 @@ static int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 		/* try to interpret that beast */
 		if((tagdata = (unsigned char*) malloc(length+1)) != NULL)
 		{
-			debug("ID3v2: analysing frames...");
+			if(param.verbose > 1) fprintf(stderr, "ID3v2: analysing frames...\n");
 			if(rds->read_frame_body(rds,tagdata,length))
 			{
 				unsigned long tagpos = 0;
@@ -187,7 +187,7 @@ static int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 				tagdata[length] = 0;
 				if(flags & EXTHEAD_FLAG)
 				{
-					debug("ID3v2: skipping extended header");
+					if(param.verbose > 1) fprintf(stderr, "ID3v2: skipping extended header\n");
 					if(!syncsafe_to_long(tagdata, tagpos)) ret = -1;
 				}
 				if(ret >= 0)
@@ -224,7 +224,7 @@ static int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 								error("ID3v2: non-syncsafe frame size, aborting");
 								break;
 							}
-							debug2("ID3v2: %s frame of size %lu", id, framesize);
+							if(param.verbose > 1) fprintf(stderr, "ID3v2: %s frame of size %lu\n", id, framesize);
 							tagpos += 10 + framesize; /* the important advancement in whole tag */
 							pos += 4;
 							fflags = (((unsigned long) tagdata[pos]) << 8) | ((unsigned long) tagdata[pos+1]);
@@ -306,13 +306,13 @@ static int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 											{
 												char* comstr;
 												size_t comsize = realsize-4-(strlen((char*)realdata+pos)+1);
-												debug1("ID3v2: evaluating %s data for RVA", realdata+pos);
+												if(param.verbose > 1) fprintf(stderr, "ID3v2: evaluating %s data for RVA\n", realdata+pos);
 												if((comstr = (char*) malloc(comsize+1)) != NULL)
 												{
 													memcpy(comstr,realdata+realsize-comsize, comsize);
 													comstr[comsize] = 0;
 													rva_gain[rva_mode] = atof(comstr);
-													debug1("ID3v2: RVA value %fdB", rva_gain[rva_mode]);
+													if(param.verbose > 1) fprintf(stderr, "ID3v2: RVA value %fdB\n", rva_gain[rva_mode]);
 													rva_peak[rva_mode] = 0;
 													rva_level[rva_mode] = tt;
 													free(comstr);
@@ -332,7 +332,7 @@ static int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 											
 											if(!strncasecmp((char*)realdata+pos, "replaygain_track_",17))
 											{
-												debug("ID3v2: track gain/peak");
+												if(param.verbose > 1) fprintf(stderr, "ID3v2: track gain/peak\n");
 												rva_mode = 0;
 												if(!strcasecmp((char*)realdata+pos, "replaygain_track_peak")) is_peak = 1;
 												else if(strcasecmp((char*)realdata+pos, "replaygain_track_gain")) rva_mode = -1;
@@ -340,7 +340,7 @@ static int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 											else
 											if(!strncasecmp((char*)realdata+pos, "replaygain_album_",17))
 											{
-												debug("ID3v2: album gain/peak");
+												if(param.verbose > 1) fprintf(stderr, "ID3v2: album gain/peak\n");
 												rva_mode = 1;
 												if(!strcasecmp((char*)realdata+pos, "replaygain_album_peak")) is_peak = 1;
 												else if(strcasecmp((char*)realdata+pos, "replaygain_album_gain")) rva_mode = -1;
@@ -349,7 +349,7 @@ static int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 											{
 												char* comstr;
 												size_t comsize = realsize-1-(strlen((char*)realdata+pos)+1);
-												debug1("ID3v2: evaluating %s data for RVA", realdata+pos);
+												if(param.verbose > 1) fprintf(stderr, "ID3v2: evaluating %s data for RVA\n", realdata+pos);
 												if((comstr = (char*) malloc(comsize+1)) != NULL)
 												{
 													memcpy(comstr,realdata+realsize-comsize, comsize);
@@ -357,12 +357,12 @@ static int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 													if(is_peak)
 													{
 														rva_peak[rva_mode] = atof(comstr);
-														debug1("ID3v2: RVA peak %fdB", rva_peak[rva_mode]);
+														if(param.verbose > 1) fprintf(stderr, "ID3v2: RVA peak %fdB\n", rva_peak[rva_mode]);
 													}
 													else
 													{
 														rva_gain[rva_mode] = atof(comstr);
-														debug1("ID3v2: RVA gain %fdB", rva_gain[rva_mode]);
+														if(param.verbose > 1) fprintf(stderr, "ID3v2: RVA gain %fdB\n", rva_gain[rva_mode]);
 													}
 													rva_level[rva_mode] = tt;
 													free(comstr);
@@ -376,7 +376,7 @@ static int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 									{
 										#ifdef HAVE_INTTYPES_H
 										/* starts with null-terminated identification */
-										debug1("ID3v2: RVA2 identification \"%s\"", realdata);
+										if(param.verbose > 1) fprintf(stderr, "ID3v2: RVA2 identification \"%s\"\n", realdata);
 										/* default: some individual value, mix mode */
 										rva_mode = 0;
 										if( !strncasecmp((char*)realdata, "album", 5)
@@ -390,12 +390,12 @@ static int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 											{
 												++pos;
 												/* only handle master channel */
-												debug("ID3v2: it is for the master channel");
+												if(param.verbose > 1) fprintf(stderr, "ID3v2: it is for the master channel\n");
 												/* two bytes adjustment, one byte for bits representing peak - n bytes for peak */
 												/* 16 bit signed integer = dB * 512 */
 												rva_gain[rva_mode] = (float) ((((int16_t) realdata[pos]) << 8) | ((int16_t) realdata[pos+1])) / 512;
 												pos += 2;
-												debug1("ID3v2: RVA value %fdB", rva_gain[rva_mode]);
+												if(param.verbose > 1) fprintf(stderr, "ID3v2: RVA value %fdB\n", rva_gain[rva_mode]);
 												/* heh, the peak value is represented by a number of bits - but in what manner? Skipping that part */
 												rva_peak[rva_mode] = 0;
 												rva_level[rva_mode] = tt;
