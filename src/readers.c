@@ -543,9 +543,6 @@ int open_stream(char *bs_filenam,int fd)
       }
     }
 
-    if(rd && rd->flags & READER_ID3TAG) {
-      print_id3_tag(rd->id3buf);
-    }
-
+    /* id3tag printing moved to read_frame */
     return filept;
 }

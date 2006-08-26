@@ -1019,6 +1019,11 @@ init_resync:
 		firsthead = newhead; /* _now_ it's time to store it... the first real header */
 		/* now adjust volume */
 		do_rva();
+		/* and print id3 info */
+		if(rd->flags & READER_ID3TAG)
+		{
+			print_id3_tag(rd->id3buf);
+		}
 	}
   bsi.bitindex = 0;
   bsi.wordpointer = (unsigned char *) bsbuf;
