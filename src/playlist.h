@@ -8,6 +8,8 @@
 #ifndef MPG123_PLAYLIST_H
 #define MPG123_PLAYLIST_H
 
+#include "stringbuf.h"
+
 enum playlist_type { UNKNOWN = 0, M3U, PLS, NO_LIST };
 
 typedef struct listitem
@@ -15,12 +17,6 @@ typedef struct listitem
 	char* url; /* the filename */
 	char freeit; /* if it was allocated and should be free()d here */
 } listitem;
-
-typedef struct stringbuf
-{
-	char* p;
-	size_t size;
-} stringbuf;
 
 typedef struct playlist_struct
 {

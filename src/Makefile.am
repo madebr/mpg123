@@ -46,6 +46,8 @@ mpg123_SOURCES = \
 	tabinit.c \
 	sfifo.c \
 	sfifo.h \
+	stringbuf.c \
+	stringbuf.h \
 	term.c \
 	term.h \
 	wav.c \

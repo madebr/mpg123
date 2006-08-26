@@ -39,7 +39,6 @@ void print_playlist();
 void init_playlist();
 int add_copy_to_playlist(char* new_entry);
 int add_to_playlist(char* new_entry, char freeit);
-void free_stringbuf();
 
 /* used to be init_input */
 void prepare_playlist(int argc, char** argv)
@@ -115,10 +114,8 @@ void init_playlist()
 	pl.pos = 0;
 	pl.list = NULL;
 	pl.alloc_step = 10;
-	pl.linebuf.p = NULL;
-	pl.linebuf.size = 0;
-	pl.dir.p = NULL;
-	pl.dir.size = 0;
+	init_stringbuf(&pl.dir);
+	init_stringbuf(&pl.linebuf);
 	pl.type = UNKNOWN;
 }
 
@@ -142,10 +139,7 @@ int add_next_file (int argc, char *argv[])
 		if ((slashpos=strrchr(param.listname, '/')))
 		{
 			/* up to and including /, with space for \0 */
-			pl.dir.size = 2 + slashpos - param.listname;
-			if(pl.dir.p != NULL) free(pl.dir.p);
-			pl.dir.p = (char*) malloc(sizeof(char)*pl.dir.size);
-			if(pl.dir.p != NULL)
+			if(resize_stringbuf(&pl.dir, 2 + slashpos - param.listname))
 			{
 				memcpy(pl.dir.p, param.listname, pl.dir.size-1);
 				pl.dir.p[pl.dir.size-1] = 0;
@@ -248,13 +242,7 @@ int add_next_file (int argc, char *argv[])
 				/* have is the length of the string read, without the closing \0 */
 				if(pl.linebuf.size <= have+1)
 				{
-					char* t = realloc(pl.linebuf.p, pl.linebuf.size+LINEBUF_STEP);
-					if(t != NULL)
-					{
-						pl.linebuf.p = t;
-						pl.linebuf.size += LINEBUF_STEP;
-					}
-					else
+					if(!resize_stringbuf(&pl.linebuf, pl.linebuf.size+LINEBUF_STEP))
 					{
 						error("cannot increase line buffer");
 						break;
@@ -386,15 +374,11 @@ int add_next_file (int argc, char *argv[])
 					need = pl.dir.size + strlen(pl.linebuf.p+line_offset);
 					if(pl.linebuf.size < need)
 					{
-						char* t;
-						
-						if((t=realloc(pl.linebuf.p, need)) == NULL)
+						if(!resize_stringbuf(&pl.linebuf, need))
 						{
 							error("unable to enlarge linebuf for appending path! skipping");
 							continue;
 						}
-						pl.linebuf.p = t;
-						pl.linebuf.size = need;
 					}
 					/* move to have the space at beginning */
 					memmove(pl.linebuf.p+pl.dir.size-1, pl.linebuf.p+line_offset, strlen(pl.linebuf.p+line_offset)+1);
@@ -533,12 +517,3 @@ int add_to_playlist(char* new_entry, char freeit)
 	return 1;
 }
 
-void free_stringbuf(struct stringbuf* b)
-{
-	if(b->p != NULL)
-	{
-		free(b->p);
-		b->p = NULL;
-		b->size = 0;
-	}
-}
