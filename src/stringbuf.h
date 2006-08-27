@@ -10,14 +10,18 @@
 
 #include <string.h>
 
-typedef struct stringbuf
+struct stringbuf
 {
 	char* p;
 	size_t size;
-} stringbuf;
+	size_t fill;
+};
 
 void init_stringbuf(struct stringbuf* sb);
 void free_stringbuf(struct stringbuf* sb);
+/* returning 0 on error, 1 on success */
 int resize_stringbuf(struct stringbuf* sb, size_t new);
+int copy_stringbuf(struct stringbuf* from, struct stringbuf* to);
+int add_to_stringbuf(struct stringbuf* sb, char* stuff);
 
 #endif

@@ -378,7 +378,7 @@ extern int synth_1to1_MMX(real *, int, short *, short *, int *);
 
 extern void synth_ntom_set_step(long,long);
 
-extern void control_generic(struct frame *fr);
+extern int control_generic(struct frame *fr);
 
 extern int cdr_open(struct audio_info_struct *ai, char *ame);
 extern int au_open(struct audio_info_struct *ai, char *name);

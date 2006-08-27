@@ -35,6 +35,7 @@
 #include "layer3.h"
 #endif
 #include "playlist.h"
+#include "id3.h"
 
 static void usage(int err);
 static void want_usage(char* arg);
@@ -809,11 +810,15 @@ int main(int argc, char *argv[])
 	catchsignal (SIGINT, catch_interrupt);
 
 	if(param.remote) {
-		control_generic(&fr);
-		exit(0);
+		int ret;
+		init_id3();
+		ret = control_generic(&fr);
+		exit_id3();
+		exit(ret);
 	}
 #endif
 
+	init_id3(); /* prepare id3 memory */
 	while ((fname = get_next_file())) {
 		char *dirname, *filename;
 		long leftFrames,newFrame;
@@ -1014,6 +1019,7 @@ tc_hack:
 #endif
       }
     } /* end of loop over input files */
+    exit_id3(); /* free id3 memory */
 #ifndef NOXFERMEM
     if (param.usebuffer) {
       buffer_end();

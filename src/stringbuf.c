@@ -7,6 +7,7 @@
 */
 
 #include "config.h"
+#include "debug.h"
 #include "stringbuf.h"
 #include <stdlib.h>
 
@@ -14,6 +15,7 @@ void init_stringbuf(struct stringbuf* sb)
 {
 	sb->p = NULL;
 	sb->size = 0;
+	sb->fill = 0;
 }
 
 void free_stringbuf(struct stringbuf* sb)
@@ -21,8 +23,7 @@ void free_stringbuf(struct stringbuf* sb)
 	if(sb->p != NULL)
 	{
 		free(sb->p);
-		sb->p = NULL;
-		sb->size = 0;
+		init_stringbuf(sb);
 	}
 }
 
@@ -40,4 +41,40 @@ int resize_stringbuf(struct stringbuf* sb, size_t new)
 		else return 0;
 	}
 	else return 1; /* success */
+}
+
+int copy_stringbuf(struct stringbuf* from, struct stringbuf* to)
+{
+	if(resize_stringbuf(to, from->fill))
+	{
+		memcpy(to->p, from->p, to->size);
+		to->fill = to->size;
+		return 1;
+	}
+	else return 0;
+}
+
+int add_to_stringbuf(struct stringbuf* sb, char* stuff)
+{
+	size_t addl = strlen(stuff)+1;
+	debug1("adding %s", stuff);
+	if(sb->fill)
+	{
+		if(sb->size >= sb->fill-1+addl || resize_stringbuf(sb, sb->fill-1+addl))
+		{
+			memcpy(sb->p+sb->fill-1, stuff, addl);
+			sb->fill += addl-1;
+		}
+		else return 0;
+	}
+	else
+	{
+		if(resize_stringbuf(sb, addl))
+		{
+			memcpy(sb->p, stuff, addl);
+			sb->fill = addl;
+		}
+		else return 0;
+	}
+	return 1;
 }

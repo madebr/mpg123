@@ -32,7 +32,7 @@
 #endif
 
 #include "mpg123.h"
-#include "genre.h"
+#include "id3.h"
 #include "common.h"
 #include "debug.h"
 
@@ -77,7 +77,6 @@ unsigned long track_frames = 0;
 #endif
 #define TRACK_MAX_FRAMES ULONG_MAX/4/1152
 
-
 /* this could become a struct... */
 long lastscale = -1; /* last used scale */
 int rva_level[2] = {-1,-1}; /* significance level of stored rva */
@@ -97,6 +96,8 @@ struct
 unsigned char *pcm_sample;
 int pcm_point = 0;
 int audiobufsize = AUDIOBUFSIZE;
+
+#define RESYNC_LIMIT 1024
 
 #ifdef VARMODESUPPORT
 	/*
@@ -120,333 +121,6 @@ int playlimit;
 #endif
 
 static int decode_header(struct frame *fr,unsigned long newhead);
-
-/*
-	* trying to parse ID3v2.3 and ID3v2.4 tags... actually, for a start only v2.4 RVA2 frames
-	*
-	* returns:  0 = read-error
-	*          -1 = illegal ID3 header; maybe extended to mean unparseable (to new) header in future
-	*           1 = somehow ok...
-	*/
-static int parse_new_id3(unsigned long first4bytes, struct reader *rds)
-{
-	#define UNSYNC_FLAG 128
-	#define EXTHEAD_FLAG 64
-	#define EXP_FLAG 32
-	#define FOOTER_FLAG 16
-	#define UNKNOWN_FLAGS 15 /* 00001111*/
-	unsigned char buf[6];
-	unsigned long length=0;
-	unsigned char flags = 0;
-	int ret = 1;
-	unsigned char* tagdata = NULL;
-	unsigned char major = first4bytes & 0xff;
-	debug1("ID3v2: major tag version: %i", major);
-	if(major == 0xff) return -1;
-	if(!rds->read_frame_body(rds,buf,6))       /* read more header information */
-	return 0;
-
-	if(buf[0] == 0xff) /* major version, will never be 0xff */
-	return -1;
-	debug1("ID3v2: revision %i", buf[0]);
-	/* second new byte are some nice flags, if these are invalid skip the whole thing */
-	flags = buf[1];
-	debug1("ID3v2: flags 0x%08x", flags);
-	/* use 4 bytes from buf to construct 28bit uint value and return 1; return 0 if bytes are not syncsafe */
-	#define syncsafe_to_long(buf,res) \
-	( \
-		(((buf)[0]|(buf)[1]|(buf)[2]|(buf)[3]) & 0x80) ? 0 : \
-		(res =  (((unsigned long) (buf)[0]) << 27) \
-		     | (((unsigned long) (buf)[1]) << 14) \
-		     | (((unsigned long) (buf)[2]) << 7) \
-		     |  ((unsigned long) (buf)[3]) \
-		,1) \
-	)
-	/* length-10 or length-20 (footer present); 4 synchsafe integers == 28 bit number  */
-	/* we have already read 10 bytes, so left are length or length+10 bytes belonging to tag */
-	if(!syncsafe_to_long(buf+2,length)) return -1;
-	debug1("ID3v2: tag data length %lu", length);
-	/* skip if unknown version/scary flags, parse otherwise */
-	if((flags & UNKNOWN_FLAGS) || (major > 4))
-	{
-		/* going to skip because there are unknown flags set */
-		warning2("ID3v2: Won't parse the ID3v2 tag with major version %u and flags 0x%xu - some extra code may be needed", major, flags);
-		if(!rds->skip_bytes(rds,length)) /* will not store data in backbuff! */
-		ret = 0;
-	}
-	else
-	{
-		/* try to interpret that beast */
-		if((tagdata = (unsigned char*) malloc(length+1)) != NULL)
-		{
-			if(param.verbose > 1) fprintf(stderr, "ID3v2: analysing frames...\n");
-			if(rds->read_frame_body(rds,tagdata,length))
-			{
-				unsigned long tagpos = 0;
-				/* going to apply strlen for strings inside frames, make sure that it doesn't overflow! */
-				tagdata[length] = 0;
-				if(flags & EXTHEAD_FLAG)
-				{
-					if(param.verbose > 1) fprintf(stderr, "ID3v2: skipping extended header\n");
-					if(!syncsafe_to_long(tagdata, tagpos)) ret = -1;
-				}
-				if(ret >= 0)
-				{
-					char id[5];
-					unsigned long framesize;
-					unsigned long fflags; /* need 16 bits, actually */
-					id[4] = 0;
-					/* pos now advanced after ext head, now a frame has to follow */
-					while(tagpos < length-10) /* I want to read at least a full header */
-					{
-						int tt = -1;
-						int i = 0;
-						unsigned long pos = tagpos;
-						/* level 1,2,3 - 0 is info from lame/info tag! */
-						const char rva_type[3][5] = { "COMM", "TXXX", "RVA2" }; /* ordered with ascending significance */
-						/* we may have entered the padding zone or any other strangeness: check if we have valid frame id characters */
-						for(; i< 4; ++i) if( !( ((tagdata[tagpos+i] > 47) && (tagdata[tagpos+i] < 58))
-						                     || ((tagdata[tagpos+i] > 64) && (tagdata[tagpos+i] < 91)) ) )
-						{
-							debug5("ID3v2: real tag data apparently ended after %lu bytes with 0x%02x%02x%02x%02x", tagpos, tagdata[tagpos], tagdata[tagpos+1], tagdata[tagpos+2], tagdata[tagpos+3]);
-							ret = -1;
-							break;
-						}
-						if(ret >= 0)
-						{
-							/* 4 bytes id */
-							strncpy(id, (char*) tagdata+pos, 4);
-							pos += 4;
-							/* size as 32 syncsafe bits */
-							if(!syncsafe_to_long(tagdata+pos, framesize))
-							{
-								ret = -1;
-								error("ID3v2: non-syncsafe frame size, aborting");
-								break;
-							}
-							if(param.verbose > 1) fprintf(stderr, "ID3v2: %s frame of size %lu\n", id, framesize);
-							tagpos += 10 + framesize; /* the important advancement in whole tag */
-							pos += 4;
-							fflags = (((unsigned long) tagdata[pos]) << 8) | ((unsigned long) tagdata[pos+1]);
-							pos += 2;
-							/* for sanity, after full parsing tagpos should be == pos */
-							/* debug4("ID3v2: found %s frame, size %lu (as bytes: 0x%08lx), flags 0x%016lx", id, framesize, framesize, fflags); */
-							/* %0abc0000 %0h00kmnp */
-							#define BAD_FFLAGS (unsigned long) 36784
-							#define PRES_TAG_FFLAG 16384
-							#define PRES_FILE_FFLAG 8192
-							#define READ_ONLY_FFLAG 4096
-							#define GROUP_FFLAG 64
-							#define COMPR_FFLAG 8
-							#define ENCR_FFLAG 4
-							#define UNSYNC_FFLAG 2
-							#define DATLEN_FFLAG 1
-							/* shall not or want not handle these */
-							if(fflags & (BAD_FFLAGS | COMPR_FFLAG | ENCR_FFLAG))
-							{
-								warning("ID3v2: skipping invalid/unsupported frame");
-								continue;
-							}
-							
-							for(i = 0; i < 4; ++i)
-							if(!strncmp(rva_type[i], id, 4)){ tt = i+1; break; }
-							
-							if(tt > 0) /* 1,2,3 */
-							{
-								int rva_mode = -1; /* mix / album */
-								unsigned long realsize = framesize;
-								unsigned char* realdata = tagdata+pos;
-								if((flags & UNSYNC_FLAG) || (fflags & UNSYNC_FFLAG))
-								{
-									unsigned long ipos = 0;
-									unsigned long opos = 0;
-									debug("Id3v2: going to de-unsync the frame data");
-									/* de-unsync: FF00 -> FF; real FF00 is simply represented as FF0000 ... */
-									/* damn, that means I have to delete bytes from withing the data block... thus need temporal storage */
-									/* standard mandates that de-unsync should always be safe if flag is set */
-									realdata = (unsigned char*) malloc(framesize); /* will need <= bytes */
-									if(realdata == NULL)
-									{
-										error("ID3v2: unable to allocate working buffer for de-unsync");
-										continue;
-									}
-									/* now going byte per byte through the data... */
-									realdata[0] = tagdata[pos];
-									opos = 1;
-									for(ipos = pos+1; ipos < pos+framesize; ++ipos)
-									{
-										if(!((tagdata[ipos] == 0) && (tagdata[ipos-1] == 0xff)))
-										{
-											realdata[opos++] = tagdata[ipos];
-										}
-									}
-									realsize = opos;
-									debug2("ID3v2: de-unsync made %lu out of %lu bytes", realsize, framesize);
-								}
-								pos = 0; /* now at the beginning again... */
-								switch(tt)
-								{
-									case 1: /* a comment that perhaps is a RVA / RVA_ALBUM/AUDIOPHILE / RVA_MIX/RADIO one */
-									{
-										/* Text encoding          $xx */
-										/* Language               $xx xx xx */
-										if(realdata[0] == 0) /* only latin1 / ascii */
-										{
-											/* don't care about language */
-											pos = 4;
-											if(   !strcasecmp((char*)realdata+pos, "rva")
-											   || !strcasecmp((char*)realdata+pos, "rva_mix")
-											   || !strcasecmp((char*)realdata+pos, "rva_radio"))
-											rva_mode = 0;
-											else if(   !strcasecmp((char*)realdata+pos, "rva_album")
-											        || !strcasecmp((char*)realdata+pos, "rva_audiophile")
-											        || !strcasecmp((char*)realdata+pos, "rva_user"))
-											rva_mode = 1;
-											if((rva_mode > -1) && (rva_level[rva_mode] <= tt))
-											{
-												char* comstr;
-												size_t comsize = realsize-4-(strlen((char*)realdata+pos)+1);
-												if(param.verbose > 1) fprintf(stderr, "ID3v2: evaluating %s data for RVA\n", realdata+pos);
-												if((comstr = (char*) malloc(comsize+1)) != NULL)
-												{
-													memcpy(comstr,realdata+realsize-comsize, comsize);
-													comstr[comsize] = 0;
-													rva_gain[rva_mode] = atof(comstr);
-													if(param.verbose > 1) fprintf(stderr, "ID3v2: RVA value %fdB\n", rva_gain[rva_mode]);
-													rva_peak[rva_mode] = 0;
-													rva_level[rva_mode] = tt;
-													free(comstr);
-												}
-												else error("could not allocate memory for rva comment interpretation");
-											}
-										}
-									}
-									break;
-									case 2: /* perhaps foobar2000's work */
-									{
-										/* Text encoding          $xx */
-										if(realdata[0] == 0) /* only latin1 / ascii for now */
-										{
-											int is_peak = 0;
-											pos = 1;
-											
-											if(!strncasecmp((char*)realdata+pos, "replaygain_track_",17))
-											{
-												if(param.verbose > 1) fprintf(stderr, "ID3v2: track gain/peak\n");
-												rva_mode = 0;
-												if(!strcasecmp((char*)realdata+pos, "replaygain_track_peak")) is_peak = 1;
-												else if(strcasecmp((char*)realdata+pos, "replaygain_track_gain")) rva_mode = -1;
-											}
-											else
-											if(!strncasecmp((char*)realdata+pos, "replaygain_album_",17))
-											{
-												if(param.verbose > 1) fprintf(stderr, "ID3v2: album gain/peak\n");
-												rva_mode = 1;
-												if(!strcasecmp((char*)realdata+pos, "replaygain_album_peak")) is_peak = 1;
-												else if(strcasecmp((char*)realdata+pos, "replaygain_album_gain")) rva_mode = -1;
-											}
-											if((rva_mode > -1) && (rva_level[rva_mode] <= tt))
-											{
-												char* comstr;
-												size_t comsize = realsize-1-(strlen((char*)realdata+pos)+1);
-												if(param.verbose > 1) fprintf(stderr, "ID3v2: evaluating %s data for RVA\n", realdata+pos);
-												if((comstr = (char*) malloc(comsize+1)) != NULL)
-												{
-													memcpy(comstr,realdata+realsize-comsize, comsize);
-													comstr[comsize] = 0;
-													if(is_peak)
-													{
-														rva_peak[rva_mode] = atof(comstr);
-														if(param.verbose > 1) fprintf(stderr, "ID3v2: RVA peak %fdB\n", rva_peak[rva_mode]);
-													}
-													else
-													{
-														rva_gain[rva_mode] = atof(comstr);
-														if(param.verbose > 1) fprintf(stderr, "ID3v2: RVA gain %fdB\n", rva_gain[rva_mode]);
-													}
-													rva_level[rva_mode] = tt;
-													free(comstr);
-												}
-												else error("could not allocate memory for rva comment interpretation");
-											}
-										}
-									}
-									break;
-									case 3: /* "the" RVA tag */
-									{
-										#ifdef HAVE_INTTYPES_H
-										/* starts with null-terminated identification */
-										if(param.verbose > 1) fprintf(stderr, "ID3v2: RVA2 identification \"%s\"\n", realdata);
-										/* default: some individual value, mix mode */
-										rva_mode = 0;
-										if( !strncasecmp((char*)realdata, "album", 5)
-										    || !strncasecmp((char*)realdata, "audiophile", 10)
-										    || !strncasecmp((char*)realdata, "user", 4))
-										rva_mode = 1;
-										if(rva_level[rva_mode] <= tt)
-										{
-											pos += strlen((char*) realdata) + 1;
-											if(realdata[pos] == 1)
-											{
-												++pos;
-												/* only handle master channel */
-												if(param.verbose > 1) fprintf(stderr, "ID3v2: it is for the master channel\n");
-												/* two bytes adjustment, one byte for bits representing peak - n bytes for peak */
-												/* 16 bit signed integer = dB * 512 */
-												rva_gain[rva_mode] = (float) ((((int16_t) realdata[pos]) << 8) | ((int16_t) realdata[pos+1])) / 512;
-												pos += 2;
-												if(param.verbose > 1) fprintf(stderr, "ID3v2: RVA value %fdB\n", rva_gain[rva_mode]);
-												/* heh, the peak value is represented by a number of bits - but in what manner? Skipping that part */
-												rva_peak[rva_mode] = 0;
-												rva_level[rva_mode] = tt;
-											}
-										}
-										#else
-										warning("ID3v2: Cannot parse RVA2 value because I don't have a guaranteed 16 bit signed integer type");
-										#endif
-									}
-									break;
-									default: error1("ID3v2: unknown rva_type %i", tt);
-								}
-								if((flags & UNSYNC_FLAG) || (fflags & UNSYNC_FFLAG)) free(realdata);
-							}
-							#undef BAD_FFLAGS
-							#undef PRES_TAG_FFLAG
-							#undef PRES_FILE_FFLAG
-							#undef READ_ONLY_FFLAG
-							#undef GROUP_FFLAG
-							#undef COMPR_FFLAG
-							#undef ENCR_FFLAG
-							#undef UNSYNC_FFLAG
-							#undef DATLEN_FFLAG
-						}
-						else break;
-					}
-				}
-			}
-			else
-			{
-				error("ID3v2: Duh, not able to read ID3v2 tag data.");
-				ret = 0;
-			}
-			free(tagdata);
-		}
-		else
-		{
-			error1("ID3v2Arrg! Unable to allocate %lu bytes for interpreting ID3v2 data - trying to skip instead.", length);
-			if(!rds->skip_bytes(rds,length)) /* will not store data in backbuff! */
-			ret = 0;
-		}
-	}
-	/* skip footer if present */
-	if((flags & FOOTER_FLAG) && (!rds->skip_bytes(rds,length))) ret = 0;
-	return ret;
-	#undef UNSYNC_FLAG
-	#undef EXTHEAD_FLAG
-	#undef EXP_FLAG
-	#undef FOOTER_FLAG
-	#undef UNKOWN_FLAGS
-}
 
 #ifdef GAPLESS
 /* take into account: channels, bytes per sample, resampling (integer samples!) */
@@ -530,6 +204,7 @@ void read_frame_init (struct frame* fr)
 	#endif
 	frame_index.fill = 0;
 	frame_index.step = 1;
+	reset_id3();
 }
 
 #define free_format_header(head) ( ((head & 0xffe00000) == 0xffe00000) && ((head>>17)&3) && (((head>>12)&0xf) == 0x0) && (((head>>10)&0x3) != 0x3 ))
@@ -639,6 +314,7 @@ read_again:
 	{
 		return FALSE;
 	}
+
 	/* this if wrap looks like dead code... */
   if(1 || oldhead != newhead || !oldhead)
   {
@@ -693,8 +369,9 @@ init_resync:
 		for(i=0;i<65536;i++) {
 			if(!rd->head_shift(rd,&newhead))
 				return 0;
-			if(head_check(newhead))
-				break;
+			/* if(head_check(newhead)) */
+			if(head_check(newhead) && decode_header(fr, newhead))
+			break;
 		}
 		if(i == 65536) {
 			if(!param.quiet) error("Giving up searching valid MPEG header after 64K of junk.");
@@ -746,7 +423,6 @@ init_resync:
                track within a short time (and hopefully without
                too much distortion in the audio output).  */
         do {
-          try++;
           if(!rd->head_shift(rd,&newhead))
 		return 0;
           debug2("resync try %i, got newhead 0x%08lx", try, newhead);
@@ -756,10 +432,20 @@ init_resync:
             goto init_resync;       /* "considered harmful", eh? */
           }
          /* we should perhaps collect a list of valid headers that occured in file... there can be more */
-         } while ((newhead & HDRCMPMASK) != (oldhead & HDRCMPMASK)
-              && (newhead & HDRCMPMASK) != (firsthead & HDRCMPMASK));
-					/* too many false positives 
-					}while (!(head_check(newhead) && decode_header(fr, newhead))); */
+         /* Michael's new resync routine seems to work better with the one frame readahead (and some input buffering?) */
+         } while
+         (
+           ++try < RESYNC_LIMIT
+           && (newhead & HDRCMPMASK) != (oldhead & HDRCMPMASK)
+           && (newhead & HDRCMPMASK) != (firsthead & HDRCMPMASK)
+         );
+         /* too many false positives 
+         }while (!(head_check(newhead) && decode_header(fr, newhead))); */
+         if(try == RESYNC_LIMIT)
+         {
+           error("giving up resync - your stream is not nice... perhaps an improved routine could catch up");
+           return 0;
+         }
         if (give_note)
           fprintf (stderr, "Note: Skipped %d bytes in input.\n", try);
       }
@@ -1020,10 +706,7 @@ init_resync:
 		/* now adjust volume */
 		do_rva();
 		/* and print id3 info */
-		if(rd->flags & READER_ID3TAG)
-		{
-			print_id3_tag(rd->id3buf);
-		}
+		if(!param.quiet) print_id3_tag(rd->flags & READER_ID3TAG ? rd->id3buf : NULL);
 	}
   bsi.bitindex = 0;
   bsi.wordpointer = (unsigned char *) bsbuf;
@@ -1320,45 +1003,6 @@ void print_header_compact(struct frame *fr)
 	}
 	fprintf(stderr,", %ld Hz %s\n",
 		freqs[fr->sampling_frequency], modes[fr->mode]);
-}
-
-void print_id3_tag(unsigned char *buf)
-{
-	struct id3tag {
-		char tag[3];
-		char title[30];
-		char artist[30];
-		char album[30];
-		char year[4];
-		char comment[30];
-		unsigned char genre;
-	};
-	struct id3tag *tag = (struct id3tag *) buf;
-	char title[31]={0,};
-	char artist[31]={0,};
-	char album[31]={0,};
-	char year[5]={0,};
-	char comment[31]={0,};
-	char genre[31]={0,};
-
-	if(param.quiet)
-		return;
-
-	strncpy(title,tag->title,30);
-	strncpy(artist,tag->artist,30);
-	strncpy(album,tag->album,30);
-	strncpy(year,tag->year,4);
-	strncpy(comment,tag->comment,30);
-
-	if (tag->genre <= genre_count) {
-		strncpy(genre, genre_table[tag->genre], 30);
-	} else {
-		strncpy(genre,"Unknown",30);
-	}
-	
-	fprintf(stderr,"Title  : %-30s  Artist: %s\n",title,artist);
-	fprintf(stderr,"Album  : %-30s  Year  : %4s\n",album,year);
-	fprintf(stderr,"Comment: %-30s  Genre : %s\n",comment,genre);
 }
 
 #if 0

@@ -83,7 +83,7 @@ void generic_sendinfo (char *filename)
 	generic_sendmsg("I %s", s);
 }
 
-void control_generic (struct frame *fr)
+int control_generic (struct frame *fr)
 {
 	struct timeval tv;
 	fd_set fds;
@@ -142,10 +142,10 @@ void control_generic (struct frame *fr)
 			}
 		}
 
-		/* exit on error */
+		/*  on error */
 		if (n < 0) {
 			fprintf(stderr, "Error waiting for command: %s\n", strerror(errno));
-			exit(1);
+			return 1;
 		}
 
 		/* process command */
@@ -443,7 +443,7 @@ void control_generic (struct frame *fr)
 		audio_close(&ai);
 	if (param.outmode == DECODE_WAV)
 		wav_close();
-	exit(0);
+	return 0;
 }
 
 /* EOF */

@@ -32,6 +32,8 @@ mpg123_SOURCES = \
 	getlopt.h \
 	httpget.c \
 	huffman.h \
+	id3.c \
+	id3.h \
 	genre.h \
 	l2tables.h \
 	layer1.c \
