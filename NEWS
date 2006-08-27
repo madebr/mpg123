@@ -1,3 +1,8 @@
+0.60-beta6 (Thomas Orgis)
+-----
+
+- more use of ID3v2 tags, mpg123 now displays both (merged) info from ID3v2 and ID3v1; trying to support both ID3v2.3 and ID3v2.4, but ignoring encoding (UTF8 should still work if your terminal supports it, straight unicode should work except for parsing genre numbers and multiline strings)
+
 0.60-beta5 (Thomas Orgis)
 -----
 
