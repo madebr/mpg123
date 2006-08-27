@@ -20,4 +20,5 @@ EXTRA_DIST = \
 	doc/README.remote \
 	doc/ROAD_TO_LGPL \
 	doc/TODO \
-	doc/LICENSE
+	doc/LICENSE \
+	doc/THANKS
