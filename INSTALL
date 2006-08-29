@@ -17,7 +17,7 @@ You want:
 
 - working assembler (recent GNU binutils) if using certain CPU optimizations
 
-- headers and lib for certain audio output drivers (alsalib for alsa, sdl for sld...)
+- headers and lib for certain audio output drivers (libasound for alsa, sdl for sdl...)
 
 
 1. New installation via GNU autotools
