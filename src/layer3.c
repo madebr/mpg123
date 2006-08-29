@@ -783,7 +783,7 @@ if(region1 > region2)
       #ifdef DEBUG
       if(!(xrpnt < &xr[SBLIMIT][0]))
       {
-        debug2("attempted soft xrpnt overflow (%p !< %p) ?", (void*) xrpnt, (void*) &xr[SBLIMIT][0]);
+        if(param.verbose) debug2("attempted soft xrpnt overflow (%p !< %p) ?", (void*) xrpnt, (void*) &xr[SBLIMIT][0]);
       }
       #endif
       if(!(xrpnt < &xr[SBLIMIT][0]+5))
