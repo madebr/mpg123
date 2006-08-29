@@ -150,7 +150,7 @@ PKG_CHECK_MODULES(SDL, sdl, HAVE_SDL=yes, HAVE_SDL=no)
 AC_CHECK_LIB( [audio], [AuOpenServer],
 	[ AC_CHECK_HEADER( [audio/audiolib.h],
 		[ HAVE_NAS="yes" ],
-		[ AC_MSG_WARN([Found ALSA library but NOT header files on your system]) ] )
+		[ AC_MSG_WARN([Found NAS library but NOT header files on your system]) ] )
 	]
 )
 
