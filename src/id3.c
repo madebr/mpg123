@@ -300,7 +300,7 @@ int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 												{
 													/* only add general comments */
 													realdata[pos] = realdata[pos-4]; /* the encoding field copied */
-													store_id3_text(&id3.comment, realdata+pos, realsize-4);
+													store_id3_text(&id3.comment, (char*)realdata+pos, realsize-4);
 												}
 											}
 										}
