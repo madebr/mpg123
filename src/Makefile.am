@@ -9,7 +9,7 @@ AM_LDFLAGS = @AUDIO_LIBS@
 mpg123_LDADD = @AUDIO_OBJ@ @CPU_TYPE_LIB@
 mpg123_DEPENDENCIES = @AUDIO_OBJ@ @CPU_TYPE_LIB@
 
-EXTRA_DIST = Makefile.legacy
+EXTRA_DIST = Makefile.legacy config.h.legacy
 
 
 bin_PROGRAMS = mpg123
