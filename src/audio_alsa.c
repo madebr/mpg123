@@ -140,6 +140,13 @@ static int initialize_device(struct audio_info_struct *ai)
 		fprintf(stderr, "initialize_device(): cannot get boundary\n");
 		return -1;
 	}
+	#ifdef DEBUG
+	{
+		snd_pcm_uframes_t hw_buffer_size;
+		snd_pcm_hw_params_get_buffer_size(hw, &hw_buffer_size);
+		debug2("Alsa buffer_size %lu vs. boundary %lu", (unsigned long) hw_buffer_size, (unsigned long) boundary);
+	}
+	#endif
 	/* never stop on underruns */
 	if (snd_pcm_sw_params_set_stop_threshold(ai->handle, sw, boundary) < 0) {
 		fprintf(stderr, "initialize_device(): cannot set stop threshold\n");
