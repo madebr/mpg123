@@ -233,6 +233,21 @@ case $target in
     cpu_type="generic_fpu"
     LIBS="$LIBS -lsocket -lnsl"
   ;;
+  i686-pc-cygwin*)
+    cpu_type="mmx"
+  ;;
+  i586-pc-cygwin*)
+    cpu_type="i586"
+  ;;
+  i486-pc-cygwin*)
+    cpu_type="i486"
+  ;;
+  i386-pc-cygwin*)
+    cpu_type="i386"
+  ;;
+  *-pc-cygwin*)
+    cpu_type="generic_fpu"
+  ;;
   *)
   	AC_MSG_WARN([Unknown target operating system])
     cpu_type="generic_fpu"
@@ -365,6 +380,9 @@ case $target in
   *-*-sun*)
     audio_system="sun"
   ;;
+  *-*-cygwin*)
+    audio_system="esd"
+  ;;
   *)
   	audio_system="dummy"
   ;;
@@ -400,7 +418,7 @@ case $audio_system in
     AC_MSG_WARN( Using dummy audio output. )
   ;;
   esd)
-  	if test "x$HAVE_ESD" != "xyes" ; then
+  	if test "x$HAVE_ESOUND" != "xyes" ; then
   		AC_MSG_ERROR( ESounD is not available for audio output subsystem. )
   	fi
     AUDIO_CFLAGS=$ESOUND_CFLAGS

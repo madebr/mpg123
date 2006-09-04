@@ -114,12 +114,16 @@ void audio_queueflush (struct audio_info_struct *ai)
 {
         ioctl (ai->fn, I_FLUSH, FLUSHRW);
 }
-#endif
-
+#else
 #ifdef NETBSD
 void audio_queueflush (struct audio_info_struct *ai)
 {
         ioctl (ai->fn, AUDIO_FLUSH, 0);
 }
+#else
+/* Dunno what to do on Linux and Cygwin, but the func must be at least defined! */
+void audio_queueflush (struct audio_info_struct *ai)
+{
+}
 #endif
-
+#endif
