@@ -10,7 +10,7 @@ AC_PREREQ(2.57)
 
 dnl ############# Initialisation
 
-AC_INIT([mpg123], [0.60], [mpg123-devel@lists.sourceforge.net])
+AC_INIT([mpg123], [0.61], [mpg123-devel@lists.sourceforge.net])
 
 AC_CONFIG_SRCDIR(src/mpg123.c)
 AC_CONFIG_AUX_DIR(build)
