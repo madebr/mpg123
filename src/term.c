@@ -162,6 +162,8 @@ static long term_handle_input(struct frame *fr, int do_delay)
 	  break;
 	case STOP_KEY:
 	case ' ':
+		/* when seeking while stopped and then resuming, I want to prevent the chirp from the past */
+		if(!param.usebuffer) audio_queueflush(&ai);
 	  stopped=1-stopped;
 	  if(paused) {
 		  paused=0;
