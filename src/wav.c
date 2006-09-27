@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include "config.h"
 #include "mpg123.h"
+#include "debug.h"
 
 struct
 {
@@ -103,8 +104,8 @@ static int testEndian(void)
   if(a == b)
       ret = 1;
   else if(a != c) {
-      fprintf(stderr,"Strange endianess?? %08lx %08lx %08lx\n",a,b,c);
-      exit(1);
+      error3("Strange endianess?? %08lx %08lx %08lx\n",a,b,c);
+      ret = -1;
   }
   return ret;
 }
@@ -132,8 +133,12 @@ int au_open(struct audio_info_struct *ai, char *aufilename)
 
   switch(ai->format) {
     case AUDIO_FORMAT_SIGNED_16:
-      flipendian = !testEndian(); /* big end */
-      long2bigendian(3,auhead.encoding,sizeof(auhead.encoding));
+      {
+        int endiantest = testEndian();
+        if(endiantest == -1) return -1;
+        flipendian = !endiantest; /* big end */
+        long2bigendian(3,auhead.encoding,sizeof(auhead.encoding));
+      }
       break;
     case AUDIO_FORMAT_UNSIGNED_8:
       ai->format = AUDIO_FORMAT_ULAW_8; 
@@ -141,8 +146,8 @@ int au_open(struct audio_info_struct *ai, char *aufilename)
       long2bigendian(1,auhead.encoding,sizeof(auhead.encoding));
       break;
     default:
-      fprintf(stderr,"AU output is only a hack. This audio mode isn't supported yet.\n");
-      exit(1);
+      error("AU output is only a hack. This audio mode isn't supported yet.");
+      return -1;
   }
 
   long2bigendian(0xffffffff,auhead.datalen,sizeof(auhead.datalen));
@@ -196,7 +201,7 @@ int wav_open(struct audio_info_struct *ai, char *wavfilename)
       long2littleendian(bps=8,RIFF.WAVE.fmt.BitsPerSample,sizeof(RIFF.WAVE.fmt.BitsPerSample));
    else
    {
-      fprintf(stderr,"Format not supported.");
+      error("Format not supported.");
       return -1;
    }
 
@@ -231,8 +236,8 @@ int wav_write(unsigned char *buf,int len)
   
    if(flipendian) {
      if(len & 1) {
-       fprintf(stderr,"Odd number of bytes!\n");
-       exit(1);
+       error("Odd number of bytes!");
+       return 0;
      }
      for(i=0;i<len;i+=2) {
        unsigned char tmp;
@@ -262,7 +267,7 @@ int wav_close(void)
      fwrite(&RIFF, sizeof(RIFF),1,wavfp);
    }
    else {
-     fprintf(stderr,"Warning can't rewind WAV file. File-format isn't fully conform now.\n");
+     warning("Cannot rewind WAV file. File-format isn't fully conform now.");
    }
 
    return 0;
