@@ -12,5 +12,6 @@ void layer3_gapless_init(unsigned long b, unsigned long e);
 void layer3_gapless_bytify(struct frame *fr, struct audio_info_struct *ai);
 /* after some seeking action to a new frame, the decoder needs to know which one is coming next */
 void layer3_gapless_set_position(unsigned long frames, struct frame* fr, struct audio_info_struct *ai);
+ void layer3_gapless_set_ignore(unsigned long frames, struct frame* fr, struct audio_info_struct *ai);
 /* removing the gaps from buffer */
 void layer3_gapless_buffercheck();

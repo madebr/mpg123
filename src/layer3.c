@@ -118,6 +118,7 @@ static real pow1_1[2][16],pow2_1[2][16],pow1_2[2][16],pow2_2[2][16];
 static unsigned long position; /* position in raw decoder bytestream */
 static unsigned long begin; /* first byte to play == number to skip */
 static unsigned long end; /* last byte to play */
+static unsigned long ignore; /* forcedly ignore stuff in between */
 static int bytified;
 
 /* input in bytes already */
@@ -125,6 +126,7 @@ void layer3_gapless_init(unsigned long b, unsigned long e)
 {
 	bytified = 0;
 	position = 0;
+	ignore = 0;
 	begin = b;
 	end = e;
 	debug2("layer3_gapless_init: from %lu to %lu samples", begin, end);
@@ -147,6 +149,12 @@ void layer3_gapless_bytify(struct frame *fr, struct audio_info_struct *ai)
 	}
 }
 
+/* I need initialized fr here! */
+void layer3_gapless_set_ignore(unsigned long frames, struct frame *fr, struct audio_info_struct *ai)
+{
+	ignore = samples_to_bytes(frames*spf(fr), fr, ai);
+}
+
 /*
 	take the (partially or fully) filled and remove stuff for gapless mode if needed
 	pcm_point may then be smaller than before...
@@ -158,12 +166,20 @@ void layer3_gapless_buffercheck()
 	if(begin && (position < begin))
 	{
 		debug4("new_pos %lu (old: %lu), begin %lu, pcm_point %i", new_pos, position, begin, pcm_point);
-		if(new_pos < begin) pcm_point = 0; /* full of padding/delay */
+		if(new_pos < begin)
+		{
+			if(ignore > pcm_point) ignore -= pcm_point;
+			else ignore = 0;
+			pcm_point = 0; /* full of padding/delay */
+		}
 		else
 		{
+			unsigned long ignored = begin-position;
 			/* we need to shift the memory to the left... */
 			debug3("old pcm_point: %i, begin %lu; good bytes: %i", pcm_point, begin, (int)(new_pos-begin));
-			pcm_point -= begin-position;
+			if(ignore > ignored) ignore -= ignored;
+			else ignore = 0;
+			pcm_point -= ignored;
 			debug3("shifting %i bytes from %p to %p", pcm_point, pcm_sample+(int)(begin-position), pcm_sample);
 			memmove(pcm_sample, pcm_sample+(int)(begin-position), pcm_point);
 		}
@@ -171,11 +187,30 @@ void layer3_gapless_buffercheck()
 	/* I don't cover the case with both end and begin in chunk! */
 	else if(end && (new_pos > end))
 	{
+		ignore = 0;
 		/* either end in current chunk or chunk totally out */
 		debug2("ending at position %lu / point %i", new_pos, pcm_point);
 		if(position < end)	pcm_point -= new_pos-end;
 		else pcm_point = 0;
 		debug1("set pcm_point to %i", pcm_point);
+	}
+	else if(ignore)
+	{
+		if(pcm_point < ignore)
+		{
+			ignore -= pcm_point;
+			debug2("ignored %i bytes; pcm_point = 0; %lu bytes left", pcm_point, ignore);
+			pcm_point = 0;
+		}
+		else
+		{
+			/* we need to shift the memory to the left... */
+			debug3("old pcm_point: %i, to ignore: %lu; good bytes: %i", pcm_point, ignore, pcm_point-(int)ignore);
+			pcm_point -= ignore;
+			debug3("shifting %i bytes from %p to %p", pcm_point, pcm_sample+ignore, pcm_sample);
+			memmove(pcm_sample, pcm_sample+ignore, pcm_point);
+			ignore = 0;
+		}
 	}
 	position = new_pos;
 }

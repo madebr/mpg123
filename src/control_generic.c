@@ -94,7 +94,8 @@ int control_generic (struct frame *fr)
 	/* ThOr */
 	char alive = 1;
 	char silent = 0;
-	
+	unsigned long frame_before = 0;
+
 	/* responses to stderr for frontends needing audio data from stdout */
 	if (param.remote_err)
  		outstream = stderr;
@@ -130,7 +131,8 @@ int control_generic (struct frame *fr)
 					generic_sendmsg(tmp);
 					init = 0;
 				}
-				if(silent == 0) generic_sendstat(fr);
+				if(!frame_before && (silent == 0)) generic_sendstat(fr);
+				if(frame_before) --frame_before;
 			}
 		}
 		else {
@@ -347,10 +349,27 @@ int control_generic (struct frame *fr)
 						/* totally replaced that stuff - it never fully worked
 						   a bit usure about why +pos -> spos+1 earlier... */
 						if (spos[0] == '-' || spos[0] == '+')
-							offset = atol(spos);
+							offset = atol(spos) + frame_before;
 						else
 							offset = atol(spos) - fr->num;
 						
+						/* ah, this offset stuff is twisted - I want absolute numbers */
+						#ifdef GAPLESS
+						if(param.gapless && (fr->lay == 3) && (mode == MODE_PAUSED))
+						{
+							if(fr->num+offset > 0)
+							{
+								--offset;
+								frame_before = 1;
+								if(fr->num+offset > 0)
+								{
+									--offset;
+									++frame_before;
+								}
+							}
+							else frame_before = 0;
+						}
+						#endif
 						if(rd->back_frame(rd, fr, -offset))
 						{
 							generic_sendmsg("E Error while seeking");
@@ -363,16 +382,19 @@ int control_generic (struct frame *fr)
 						{
 							prepare_audioinfo(fr, &pre_ai);
 							layer3_gapless_set_position(fr->num, fr, &pre_ai);
+							layer3_gapless_set_ignore(frame_before, fr, &pre_ai);
 						}
 						#endif
 
-						generic_sendmsg("J %d", fr->num);
+						generic_sendmsg("J %d", fr->num+frame_before);
 						continue;
 					}
 
 					/* LOAD - actually play */
 					if (!strcasecmp(cmd, "L") || !strcasecmp(cmd, "LOAD")) {
-						audio_flush(param.outmode, &ai);
+						#ifdef GAPLESS
+						frame_before = 0;
+						#endif
 						if (mode != MODE_STOPPED) {
 							rd->close(rd);
 							mode = MODE_STOPPED;
@@ -395,7 +417,9 @@ int control_generic (struct frame *fr)
 
 					/* LOADPAUSED */
 					if (!strcasecmp(cmd, "LP") || !strcasecmp(cmd, "LOADPAUSED")) {
-						audio_flush(param.outmode, &ai);
+						#ifdef GAPLESS
+						frame_before = 0;
+						#endif
 						if (mode != MODE_STOPPED) {
 							rd->close(rd);
 							mode = MODE_STOPPED;
