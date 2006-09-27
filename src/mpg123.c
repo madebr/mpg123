@@ -913,7 +913,7 @@ tc_hack:
 				continue;
 			} else {
 				long offset;
-				if((offset=term_control(&fr))) {
+				if((offset=term_control(&fr,&ai))) {
 					if(!rd->back_frame(rd, &fr, -offset)) {
 						debug1("seeked to %lu", fr.num);
 						#ifdef GAPLESS
@@ -944,7 +944,7 @@ tc_hack:
 #ifdef HAVE_TERMIOS
 			if(param.term_ctrl) {
 				long offset;
-				if((offset=term_control(&fr))) {
+				if((offset=term_control(&fr,&ai))) {
 					if((!rd->back_frame(rd, &fr, -offset)) 
 						&& read_frame(&fr))
 					{

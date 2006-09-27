@@ -51,7 +51,7 @@ void generic_sendstat (struct frame *fr)
 {
 	unsigned long frames_left;
 	double current_seconds, seconds_left;
-	if(!position_info(fr, xfermem_get_usedspace(buffermem), &ai, &frames_left, &current_seconds, &seconds_left))
+	if(!position_info(fr, fr->num, xfermem_get_usedspace(buffermem), &ai, &frames_left, &current_seconds, &seconds_left))
 	generic_sendmsg("F %li %lu %3.2f %3.2f", fr->num, frames_left, current_seconds, seconds_left);
 }
 

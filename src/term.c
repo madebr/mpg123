@@ -58,39 +58,39 @@ static int stopped = 0;
 static int paused = 0;
 static int pause_cycle;
 
-long term_control(struct frame *fr)
+long term_control(struct frame *fr, struct audio_info_struct *ai)
 {
- 
-  long offset = 0;
-	
-  if(!term_enable)
-    return 0;
+	long offset = 0;
 
-  if(paused) {
-  	if(!--pause_cycle) {
-		pause_cycle=(int)(LOOP_CYCLES/compute_tpf(fr));
-		offset-=pause_cycle;
-		
-		if(param.usebuffer) {
+	if(!term_enable) return 0;
 
-			while(paused && xfermem_get_usedspace(buffermem)) {
-				
-				buffer_ignore_lowmem();
-				offset += term_handle_input(fr, TRUE);
+	if(paused)
+	{
+		if(!--pause_cycle)
+		{
+			pause_cycle=(int)(LOOP_CYCLES/compute_tpf(fr));
+			offset-=pause_cycle;
+			if(param.usebuffer)
+			{
+				while(paused && xfermem_get_usedspace(buffermem))
+				{
+					buffer_ignore_lowmem();
+					offset += term_handle_input(fr, TRUE);
+				}
+				if(!paused)	offset += pause_cycle;
 			}
-			if(!paused)
-				offset += pause_cycle;
 		}
 	}
-  }
-  
-  do {
-	  offset += term_handle_input(fr, stopped);
-	  
-  } while (stopped);
- 
-  return offset;
-  
+
+	do
+	{
+		offset += term_handle_input(fr, stopped);
+		if((offset < 0) && (-offset > fr->num)) offset = - fr->num;
+		if(param.verbose && offset != 0)
+		print_stat(fr,fr->num+offset,0,ai);
+	} while (stopped);
+
+	return offset;
 }
 
 static long term_handle_input(struct frame *fr, int do_delay)
