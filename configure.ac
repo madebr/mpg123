@@ -229,7 +229,7 @@ case $target in
   *-*-freebsd*)
     cpu_type="generic_fpu"
   ;;
-  *-sun-solaris*)
+  *-*-solaris*)
     cpu_type="generic_fpu"
     LIBS="$LIBS -lsocket -lnsl"
   ;;
@@ -377,7 +377,7 @@ case $target in
   *-apple-darwin*)
     audio_system="macosx"
   ;;
-  *-*-sun*)
+  *-*-solaris*)
     audio_system="sun"
   ;;
   *-*-cygwin*)
