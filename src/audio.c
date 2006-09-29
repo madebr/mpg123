@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include "config.h"
 #include "mpg123.h"
+#include "debug.h"
 
 void audio_info_struct_init(struct audio_info_struct *ai)
 {
@@ -96,26 +97,27 @@ void audio_capabilities(struct audio_info_struct *ai)
 		k1 = NUM_RATES;
 	}
 
+	/* if audio_open fails, the device is just not capable of anything... */
 	if(audio_open(&ai1) < 0) {
 		perror("audio");
-		exit(1);
 	}
-
-	for(i=0;i<NUM_CHANNELS;i++) {
-		for(j=0;j<NUM_RATES;j++) {
-			ai1.channels = channels[i];
-			ai1.rate = rates[j];
-			fmts = audio_get_formats(&ai1);
-			if(fmts < 0)
-				continue;
-			for(k=0;k<NUM_ENCODINGS;k++) {
-				if((fmts & encodings[k]) == encodings[k])
-					capabilities[i][k][j] = 1;
+	else
+	{
+		for(i=0;i<NUM_CHANNELS;i++) {
+			for(j=0;j<NUM_RATES;j++) {
+				ai1.channels = channels[i];
+				ai1.rate = rates[j];
+				fmts = audio_get_formats(&ai1);
+				if(fmts < 0)
+					continue;
+				for(k=0;k<NUM_ENCODINGS;k++) {
+					if((fmts & encodings[k]) == encodings[k])
+						capabilities[i][k][j] = 1;
+				}
 			}
 		}
+		audio_close(&ai1);
 	}
-
-	audio_close(&ai1);
 
 	if(param.verbose > 1) {
 		fprintf(stderr,"\nAudio capabilities:\n        |");
@@ -174,8 +176,9 @@ static int audio_fit_cap_helper(struct audio_info_struct *ai,int rn,int f0,int f
 /*
  * c=num of channels of stream
  * r=rate of stream
+ * return 0 on error
  */
-void audio_fit_capabilities(struct audio_info_struct *ai,int c,int r)
+int audio_fit_capabilities(struct audio_info_struct *ai,int c,int r)
 {
 	int rn;
 	int f0=0;
@@ -194,9 +197,9 @@ void audio_fit_capabilities(struct audio_info_struct *ai,int c,int r)
 	if(param.force_rate) {
 		rn = rate2num(param.force_rate);
 		if(audio_fit_cap_helper(ai,rn,f0,2,c))
-			return;
+			return 1;
 		if(audio_fit_cap_helper(ai,rn,2,NUM_ENCODINGS,c))
-			return;
+			return 1;
 
 		if(c == 1 && !param.force_stereo)
 			c = 0;
@@ -204,33 +207,33 @@ void audio_fit_capabilities(struct audio_info_struct *ai,int c,int r)
 			c = 1;
 
 		if(audio_fit_cap_helper(ai,rn,f0,2,c))
-			return;
+			return 1;
 		if(audio_fit_cap_helper(ai,rn,2,NUM_ENCODINGS,c))
-			return;
+			return 1;
 
-		fprintf(stderr,"No supported rate found!\n");
-		exit(1);
+		error("No supported rate found!");
+		return 0;
 	}
 
 	rn = rate2num(r>>0);
 	if(audio_fit_cap_helper(ai,rn,f0,2,c))
-		return;
+		return 1;
 	rn = rate2num(r>>1);
 	if(audio_fit_cap_helper(ai,rn,f0,2,c))
-		return;
+		return 1;
 	rn = rate2num(r>>2);
 	if(audio_fit_cap_helper(ai,rn,f0,2,c))
-		return;
+		return 1;
 
 	rn = rate2num(r>>0);
 	if(audio_fit_cap_helper(ai,rn,2,NUM_ENCODINGS,c))
-		return;
+		return 1;
 	rn = rate2num(r>>1);
 	if(audio_fit_cap_helper(ai,rn,2,NUM_ENCODINGS,c))
-		return;
+		return 1;
 	rn = rate2num(r>>2);
 	if(audio_fit_cap_helper(ai,rn,2,NUM_ENCODINGS,c))
-		return;
+		return 1;
 
 
         if(c == 1 && !param.force_stereo)
@@ -240,26 +243,26 @@ void audio_fit_capabilities(struct audio_info_struct *ai,int c,int r)
 
         rn = rate2num(r>>0);
         if(audio_fit_cap_helper(ai,rn,f0,2,c))
-                return;
+                return 1;
         rn = rate2num(r>>1);
         if(audio_fit_cap_helper(ai,rn,f0,2,c))
-                return;
+                return 1;
         rn = rate2num(r>>2);
         if(audio_fit_cap_helper(ai,rn,f0,2,c))
-                return;
+                return 1;
 
         rn = rate2num(r>>0);
         if(audio_fit_cap_helper(ai,rn,2,NUM_ENCODINGS,c))
-                return;
+                return 1;
         rn = rate2num(r>>1);
         if(audio_fit_cap_helper(ai,rn,2,NUM_ENCODINGS,c))
-                return;
+                return 1;
         rn = rate2num(r>>2);
         if(audio_fit_cap_helper(ai,rn,2,NUM_ENCODINGS,c))
-                return;
+                return 1;
 
-	fprintf(stderr,"No supported rate found!\n");
-	exit(1);
+	error("No supported rate found!");
+	return 0;
 }
 
 char *audio_encoding_name(int format)

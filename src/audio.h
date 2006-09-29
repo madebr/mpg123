@@ -72,7 +72,7 @@ struct audio_name {
 extern void audio_info_struct_init(struct audio_info_struct *);
 extern void audio_info_struct_dump(struct audio_info_struct *ai);
 extern void audio_capabilities(struct audio_info_struct *);
-extern void audio_fit_capabilities(struct audio_info_struct *ai,int c,int r);
+extern int audio_fit_capabilities(struct audio_info_struct *ai,int c,int r);
 extern char *audio_encoding_name(int format);
 
 

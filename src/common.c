@@ -846,7 +846,7 @@ static int decode_header(struct frame *fr,unsigned long newhead)
       fr->lay = 4-((newhead>>17)&3);
       if( ((newhead>>10)&0x3) == 0x3) {
         error("Stream error");
-        exit(1);
+        return 0; /* exit() here really is too much, isn't it? */
       }
       if(fr->mpeg25) {
         fr->sampling_frequency = 6 + ((newhead>>10)&0x3);
@@ -1043,8 +1043,8 @@ int split_dir_file (const char *path, char **dname, char **fname)
 		*fname = slashpos + 1;
 		*dname = strdup(path); /* , 1 + slashpos - path); */
 		if(!(*dname)) {
-			perror("memory");
-			exit(1);
+			perror("failed to allocate memory for dir name");
+			return 0;
 		}
 		(*dname)[1 + slashpos - path] = 0;
 		if (lastdir && !strcmp(lastdir, *dname)) {

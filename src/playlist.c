@@ -213,11 +213,7 @@ int add_next_file (int argc, char *argv[])
 			else if (!(pl.file = fopen(param.listname, "rb")))
 			{
 				perror (param.listname);
-				#ifdef HAVE_TERMIOS
-				if(param.term_ctrl)
-				term_restore();
-				#endif
-				exit (1);
+				return 0;
 			}
 			else
 			{

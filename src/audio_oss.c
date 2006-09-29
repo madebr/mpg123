@@ -15,7 +15,7 @@
 
 #include "config.h"
 #include "mpg123.h"
-
+#include "debug.h"
 
 #ifdef HAVE_LINUX_SOUNDCARD_H
 #include <linux/soundcard.h>
@@ -141,7 +141,7 @@ static int audio_reset_parameters(struct audio_info_struct *ai)
   int ret;
   ret = ioctl(ai->fn, SNDCTL_DSP_RESET, NULL);
   if(ret < 0)
-    fprintf(stderr,"Can't reset audio!\n");
+    error("Can't reset audio!");
   ret = audio_set_format(ai);
   if (ret == -1)
     goto err;
@@ -185,12 +185,12 @@ int audio_open(struct audio_info_struct *ai)
       ai->device = "/dev/sound/dsp";
       ai->fn = open(ai->device,O_WRONLY);
       if(ai->fn < 0) {
-	fprintf(stderr,"Can't open default sound device!\n");
-	exit(1);
+      error("Can't open default sound device!");
+      return -1;
       }
     } else {
-      fprintf(stderr,"Can't open %s!\n",ai->device);
-      exit(1);
+      error1("Can't open %s!",ai->device);
+      return -1;
     }
   }
 
@@ -203,14 +203,14 @@ int audio_open(struct audio_info_struct *ai)
     int e,mask;
     e = ioctl(ai->fn , SOUND_MIXER_READ_DEVMASK ,&mask);
     if(e < 0) {
-      fprintf(stderr,"audio/gain: Can't get audio device features list.\n");
+      error("audio/gain: Can't get audio device features list.");
     }
     else if(mask & SOUND_MASK_PCM) {
       int gain = (ai->gain<<8)|(ai->gain);
       e = ioctl(ai->fn, SOUND_MIXER_WRITE_PCM , &gain);
     }
     else if(!(mask & SOUND_MASK_VOLUME)) {
-      fprintf(stderr,"audio/gain: setable Volume/PCM-Level not supported by your audio device: %#04x\n",mask);
+      error1("audio/gain: setable Volume/PCM-Level not supported by your audio device: %#04x",mask);
     }
     else { 
       int gain = (ai->gain<<8)|(ai->gain);

@@ -80,8 +80,8 @@ int audio_open(struct audio_info_struct *ai)
 	if (!env) {
 		env = (struct anEnv*)malloc( sizeof( struct anEnv ) );
 		if (!env) {
-			perror("failed to malloc memory for 'struct anEnv'");
-			exit(-1);
+			error("failed to malloc memory for 'struct anEnv'");
+			return -1;
 		}
 	}
 
@@ -103,7 +103,7 @@ int audio_open(struct audio_info_struct *ai)
 	/* Ensure that the device supports PCM */
 	size = sizeof(format);
 	if(AudioDeviceGetProperty(env->device, 0, 0, kAudioDevicePropertyStreamFormat, &size, &format)) {
-		fprintf(stderr, "AudioDeviceGetProperty(kAudioDevicePropertyStreamFormat) failed");
+		error("AudioDeviceGetProperty(kAudioDevicePropertyStreamFormat) failed");
 		return(-1);
 	}
 	if(format.mFormatID != kAudioFormatLinearPCM) {
@@ -114,7 +114,7 @@ int audio_open(struct audio_info_struct *ai)
 	/* Get the nominal sample rate of the device */
 	size = sizeof(devicerate);
 	if(AudioDeviceGetProperty(env->device, 0, 0, kAudioDevicePropertyNominalSampleRate, &size, &devicerate)) {
-		fprintf(stderr, "AudioDeviceGetProperty(kAudioDevicePropertyNominalSampleRate) failed");
+		error("AudioDeviceGetProperty(kAudioDevicePropertyNominalSampleRate) failed");
 		return(-1);
 	}
 		

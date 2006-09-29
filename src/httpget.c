@@ -61,30 +61,27 @@
 #define INADDR_NONE 0xffffffff
 #endif
 
-void writestring (int fd, char *string)
+int writestring (int fd, char *string)
 {
 	int result, bytes = strlen(string);
 
 	while (bytes) {
 		if ((result = write(fd, string, bytes)) < 0 && errno != EINTR) {
-			perror ("write");
-			exit (1);
+			perror ("writing http string");
+			return 0;
 		}
 		else if (result == 0) {
-			fprintf (stderr, "write: %s\n",
-				"socket closed unexpectedly");
-			exit (1);
+			error("write: socket closed unexpectedly");
+			return 0;
 		}
 		string += result;
 		bytes -= result;
 	}
+	return 1;
 }
 
 int readstring (char *string, int maxlen, FILE *f)
 {
-#if 0
-	char *result;
-#endif
 	int pos = 0;
 
 	while(pos < maxlen) {
@@ -95,25 +92,15 @@ int readstring (char *string, int maxlen, FILE *f)
 			}
 		}
 		else if(errno != EINTR) {
-			fprintf (stderr, "Error reading from socket or unexpected EOF.\n");
-			exit(1);
+			error("Error reading from socket or unexpected EOF.");
+			/* simply invalidate on error */
+			pos=0;
 		}
 	}
 
 	string[pos] = 0;
 
 	return pos;
-
-#if 0
-	do {
-		result = fgets(string, maxlen, f);
-	} while (!result  && errno == EINTR);
-	if (!result) {
-		fprintf (stderr, "Error reading from socket or unexpected EOF.\n");
-		exit (1);
-	}
-#endif
-
 }
 
 void encode64 (char *source,char *destination)
@@ -286,7 +273,8 @@ int http_open (char* url, char** content_type)
 	purl = (char *)malloc(purl_size);
 	if (!purl) {
 		fprintf (stderr, "malloc() failed, out of memory.\n");
-		exit (1);
+		sock = -1;
+		goto exit;
 	}
 	/* make _sure_ that it is null-terminated */
 	purl[purl_size-1] = 0;
@@ -317,8 +305,9 @@ int http_open (char* url, char** content_type)
 	if(httpauth1 != NULL) free(httpauth1);
 	httpauth1 = (char *)malloc((strlen(purl) + 1));
 	if(!httpauth1) {
-		fprintf(stderr, "malloc() failed, out of memory.\n");
-		exit(1);
+		error("malloc() failed, out of memory.");
+		sock = -1;
+		goto exit;
 	}
         if (getauthfromURL(purl,httpauth1,strlen(purl)) < 0) {
 		sock = -1;
@@ -369,8 +358,9 @@ int http_open (char* url, char** content_type)
 			if(request_url != NULL)	request_url[request_url_size-1] = '\0';
 			else
 			{
-				fprintf(stderr, "malloc() failed, out of memory.\n");
-				exit(1);
+				error("malloc() failed, out of memory.");
+				sock = -1;
+				goto exit;
 			}
 		}
 		/* used to be url here... seemed wrong to me (when loop advanced...) */
@@ -411,8 +401,9 @@ int http_open (char* url, char** content_type)
 			response = (char *)malloc((linelength + 1));
 
 			if ((request == NULL) || (response == NULL)) {
-				fprintf (stderr, "malloc() failed, out of memory.\n");
-				exit(1);
+				error("malloc() failed, out of memory.");
+				sock = -1;
+				goto exit;
 			}
 
 			strcpy (request, "GET ");
@@ -461,8 +452,9 @@ int http_open (char* url, char** content_type)
 			response = (char *)malloc((linelength + 1));
 
 			if ((request == NULL) || (response == NULL)) {
-				fprintf (stderr, "malloc() failed, out of memory.\n");
-				exit(1);
+				error("malloc() failed, out of memory.");
+				sock = -1;
+				goto exit;
 			}
 			
 			strcpy (request, "GET ");
@@ -493,25 +485,24 @@ int http_open (char* url, char** content_type)
 		server.sin_family = AF_INET;
 		server.sin_port = htons(myport);
 		server.sin_addr.s_addr = myip;
+#define http_failure close(sock); sock=-1; goto exit;
 		if ((sock = socket(PF_INET, SOCK_STREAM, 6)) < 0) {
 			perror ("socket");
-                       goto exit;
+			sock=-1;
+			goto exit;
 		}
 		if (connect(sock, (struct sockaddr *)&server, sizeof(server))) {
 			perror ("connect");
-                       close(sock);
-                       sock = -1;
-                       goto exit;
+			http_failure;
 		}
-
 		if (httpauth1 || httpauth) {
 			char *buf;
 			strcat (request,"Authorization: Basic ");
 			if(httpauth1) {
 				buf=(char *)malloc((strlen(httpauth1) + 1) * 4);
 				if(!buf) {
-					fprintf(stderr, "Error allocating sufficient memory for http authentication.  Exiting.");
-					exit(1);
+					error("malloc() failed for http auth, out of memory.");
+					http_failure;
 				}
 				encode64(httpauth1,buf);
 				free(httpauth1);
@@ -519,8 +510,8 @@ int http_open (char* url, char** content_type)
 			} else {
 				buf=(char *)malloc((strlen(httpauth) + 1) * 4);
 				if(!buf) {
-					fprintf(stderr, "Error allocating sufficient memory for http authentication.  Exiting.");
-					exit(1);
+					error("malloc() for http auth failed, out of memory.");
+					http_failure;
 				}
 				encode64(httpauth,buf);
 			}
@@ -532,21 +523,17 @@ int http_open (char* url, char** content_type)
 		strcat (request, "\r\n");
 		
 		debug1("<request>\n%s</request>",request);
-		writestring (sock, request);
+		if(!writestring (sock, request)){ sock = -1; goto exit; }
 		if (!(myfile = fdopen(sock, "rb"))) {
 			perror ("fdopen");
-                       close(sock);
-                       sock = -1;
-                       goto exit;
+			http_failure;
 		}
 		relocate = FALSE;
 		purl[0] = '\0';
 		if (readstring (response, linelength-1, myfile)
 		    == linelength-1) {
 			fprintf(stderr, "Command exceeds max. length\n");
-			close(sock);
-			sock = -1;
-			goto exit;
+			http_failure;
 		}
 		debug1("<response>\n%s</response>",response);
 		if ((sptr = strchr(response, ' '))) {
@@ -556,27 +543,25 @@ int http_open (char* url, char** content_type)
 				case '2':
 					break;
 				default:
-                                       fprintf (stderr,
-                                                "HTTP request failed: %s",
-                                                sptr+1); /* '\n' is included */
-                                       close(sock);
-                                       sock = -1;
-                                       goto exit;
+					fprintf (stderr, "HTTP request failed: %s", sptr+1); /* '\n' is included */
+					http_failure;
 			}
 		}
 		do {
 			if (readstring (response, linelength-1, myfile)
 			    == linelength-1) {
 				fprintf(stderr, "URL exceeds max. length\n");
-				close(sock);
-				sock = -1;
-				goto exit;
+				http_failure;
 			}
 			if (!strncmp(response, "Location: ", 10))
 			{
 				size_t needed_length;
 				char* prefix = (char*) malloc(strlen(request_url)+1);
-				if(prefix == NULL){ error("out of memory here... cannot handle that gracefully (yet)"); exit(1); }
+				if(prefix == NULL)
+				{
+					error("malloc() failed, out of memory.");
+					http_failure;
+				}
 				strcpy(prefix, request_url); /* fits and is terminated! */
 				
 				debug1("request_url:%s", request_url);
@@ -618,9 +603,7 @@ int http_open (char* url, char** content_type)
 					purl = realloc(purl, purl_size);
 					if(purl == NULL)
 					{
-						close(sock);
-						sock = -1;
-						goto exit;
+						http_failure;
 					}
 					/* Why am I always so picky about the trailing zero, nobody else seems to care? */
 					purl[purl_size-1] = 0;
@@ -676,8 +659,7 @@ int http_open (char* url, char** content_type)
 	} while (relocate && purl[0] && numrelocs++ < HTTP_MAX_RELOCATIONS);
 	if (relocate) {
 		fprintf (stderr, "Too many HTTP relocations.\n");
-               close(sock);
-               sock = -1;
+		http_failure;
 	}
 exit:
 	if(host != NULL) free(host);
@@ -699,8 +681,9 @@ extern int errno;
 
 /* stubs for Win32 */
 
-void writestring (int fd, char *string)
+int writestring (int fd, char *string)
 {
+	return 1;
 }
 
 int readstring (char *string, int maxlen, FILE *f)

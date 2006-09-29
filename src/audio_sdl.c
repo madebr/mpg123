@@ -61,7 +61,7 @@ int audio_open(struct audio_info_struct *ai)
 	if (!sdl_initialised)  {
 		if (SDL_Init( SDL_INIT_AUDIO ) ) {
 			error1("Failed to initialise SDL: %s\n", SDL_GetError());
-			exit(2);
+			return -1;
 		}
 		sdl_initialised=1;
 	}
@@ -85,7 +85,7 @@ int audio_open(struct audio_info_struct *ai)
 		/* Open the audio device, forcing the desired format */
 		if ( SDL_OpenAudio(&wanted, NULL) ) {
 			error1("Couldn't open SDL audio: %s\n", SDL_GetError());
-			exit(2);
+			return -1;
 		}
 	
 		/* Initialise FIFO */

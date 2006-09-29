@@ -47,6 +47,7 @@ topt *findopt (int islong, char *opt, topt *opts)
 int performoption (int argc, char *argv[], topt *opt)
 {
 	int result = GLO_CONTINUE;
+	/* this really is not supposed to happen, so the exit may be justified to create asap ficing pressure */
 	#define prog_error() \
 	{ \
 		fprintf(stderr, __FILE__ ":%i Option without type flag! This is a programming error! Developer: fix this ASAP to regain your honor.\n", __LINE__); \

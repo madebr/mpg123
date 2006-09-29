@@ -320,7 +320,7 @@ extern void read_frame_init (struct frame* fr);
 extern int read_frame(struct frame *fr);
 /* why extern? */
 void prepare_audioinfo(struct frame *fr, struct audio_info_struct *nai);
-extern void play_frame(int init,struct frame *fr);
+extern int play_frame(int init,struct frame *fr);
 extern int do_layer3(struct frame *fr,int,struct audio_info_struct *);
 extern int do_layer2(struct frame *fr,int,struct audio_info_struct *);
 extern int do_layer1(struct frame *fr,int,struct audio_info_struct *);
@@ -368,7 +368,7 @@ extern int get_songlen(struct frame *fr,int no);
 extern void init_layer3(int);
 extern void init_layer2(void);
 extern void make_decode_tables(long scale);
-extern void make_conv16to8_table(int);
+extern int make_conv16to8_table(int);
 extern void dct64(real *,real *,real *);
 
 #ifdef USE_MMX
@@ -376,7 +376,7 @@ extern void dct64_MMX(short *a,short *b,real *c);
 extern int synth_1to1_MMX(real *, int, short *, short *, int *);
 #endif
 
-extern void synth_ntom_set_step(long,long);
+extern int synth_ntom_set_step(long,long);
 
 extern int control_generic(struct frame *fr);
 

@@ -15,7 +15,7 @@
 
 #include "config.h"
 #include "mpg123.h"
-
+#include "debug.h"
 
 #define MAX_CHANNELS	(2)
 
@@ -35,8 +35,8 @@ static jack_handle_t* alloc_jack_handle()
 
 	handle = malloc(sizeof(jack_handle_t));
 	if (!handle) {
-		fprintf(stderr, "audio_open(): Failled to allocate memory for our handle.\n");
-		exit(1);
+		error("audio_open(): Failed to allocate memory for our handle.");
+		return NULL;
 	}
 
 	/* Initialise the handle, and store for later*/
@@ -113,7 +113,8 @@ shutdown_callback( void *arg )
 }
 
 /* crude way of automatically connecting up jack ports */
-void autoconnect_jack_ports( jack_handle_t* handle )
+/* 0 on error */
+int autoconnect_jack_ports( jack_handle_t* handle )
 {
 	const char **all_ports;
 	unsigned int ch=0;
@@ -122,8 +123,8 @@ void autoconnect_jack_ports( jack_handle_t* handle )
 	/* Get a list of all the jack ports*/
 	all_ports = jack_get_ports (handle->client, NULL, NULL, JackPortIsInput);
 	if (!all_ports) {
-		fprintf(stderr, "connect_jack_ports(): jack_get_ports() returned NULL.");
-		exit(1);
+		error("connect_jack_ports(): jack_get_ports() returned NULL.");
+		return 0;
 	}
 	
 	/* Step through each port name*/
@@ -135,8 +136,8 @@ void autoconnect_jack_ports( jack_handle_t* handle )
 		fprintf(stderr, "Connecting %s to %s\n", in, out);
 		
 		if ((err = jack_connect(handle->client, in, out)) != 0) {
-			fprintf(stderr, "connect_jack_ports(): failed to jack_connect() ports: %d\n",err);
-			exit(1);
+			error1("connect_jack_ports(): failed to jack_connect() ports: %d",err);
+			return 0;
 		}
 	
 		/* Found enough ports ?*/
@@ -144,19 +145,20 @@ void autoconnect_jack_ports( jack_handle_t* handle )
 	}
 	
 	free( all_ports );
+	return 1;
 }
 
 
-void connect_jack_ports( jack_handle_t* handle, const char *dev ) 
+int connect_jack_ports( jack_handle_t* handle, const char *dev ) 
 {
 	if (dev==NULL || strcmp(dev, "auto")==0) {
-		autoconnect_jack_ports( handle );
+		return autoconnect_jack_ports( handle );
 	} else if (strcmp(dev, "none")==0) {
 		fprintf(stderr, "Not connecting up jack ports as requested.\n");
 	} else {
 		fprintf(stderr, "Sorry I don't know how to connect up ports yet.\n");
 	}
-
+	return 1;
 }
 
 
@@ -183,22 +185,25 @@ int audio_open(struct audio_info_struct *ai)
 
 	
 	/* Create some storage for ourselves*/
-	handle = alloc_jack_handle();
+	if((handle = alloc_jack_handle()) == NULL) return -1;
+
 	ai->handle = (void*)handle;
 
 	/* Register with Jack*/
 	snprintf(client_name, 255, "mpg123-%d", getpid());
 	if ((handle->client = jack_client_new(client_name)) == 0) {
-		fprintf(stderr, "JACK server not running?\n");
-		exit(1);
+		error("JACK server not running?");
+		audio_close(ai);
+		return -1;
 	}
 	printf("Registering as JACK client %s.\n", client_name);
 
 
 	/* Check the sample rate is correct*/
 	if (jack_get_sample_rate( handle->client ) != (jack_nframes_t)ai->rate) {
-		fprintf(stderr, "JACK Sample Rate is different to sample rate of file.\n");
-		exit(1);
+		error("JACK Sample Rate is different to sample rate of file.");
+		audio_close(ai);
+		return -1;
 	}
 
 	
@@ -207,23 +212,27 @@ int audio_open(struct audio_info_struct *ai)
 	if (handle->channels == 1) {
 		if (!(handle->ports[0] = jack_port_register(handle->client, "mono", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0)))
 		{
-			fprintf(stderr, "Cannot register JACK output port 'mono'.\n");
-			exit(1);
+			error("Cannot register JACK output port 'mono'.");
+			audio_close(ai);
+			return -1;
 		}
 	} else if (handle->channels == 2) {
 		if (!(handle->ports[0] = jack_port_register(handle->client, "left", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0)))
 		{
-			fprintf(stderr, "Cannot register JACK output port 'left'.\n");
-			exit(1);
+			error("Cannot register JACK output port 'left'.");
+			audio_close(ai);
+			return -1;
 		}
 		if (!(handle->ports[1] = jack_port_register(handle->client, "right", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0)))
 		{
-			fprintf(stderr, "Cannot register JACK output port 'right'.\n");
-			exit(1);
+			error("Cannot register JACK output port 'right'.");
+			audio_close(ai);
+			return -1;
 		}
 	} else {
-		fprintf(stderr, "audio_open(): invalid number of channels (%d).\n", handle->channels);
-		exit(1);
+		error1("audio_open(): invalid number of channels (%d).", handle->channels);
+		audio_close(ai);
+		return -1;
 	}
 
 	/* Create the ring buffers (one seconds audio)*/
@@ -241,14 +250,19 @@ int audio_open(struct audio_info_struct *ai)
 		fprintf(stderr, "audio_open(): Can't activate client\n");
 	}
 
-	/* Connect up the ports*/
-	connect_jack_ports( handle, ai->device );
+	/* Connect up the portsm, return */
+	if(!connect_jack_ports( handle, ai->device ))
+	{
+		/* deregistering of ports will not work but should just fail, then, and let the rest clean up */
+		audio_close(ai);
+		return -1;
+	}
 
-	return(0);
+	return 0;
 }
 
 
-// Jack is in fact 32-bit floats only
+/* Jack is in fact 32-bit floats only */
 int audio_get_formats(struct audio_info_struct *ai)
 {
 	return AUDIO_FORMAT_SIGNED_16;
@@ -266,8 +280,8 @@ int audio_play_samples(struct audio_info_struct *ai, unsigned char *buf, int len
 	
 	/* Sanity check that ring buffer is at least twice the size of the audio we just got*/
 	if (handle->rb_size/2 < len) {
-		fprintf(stderr, "audio_play_samples(): ring buffer is less than twice the size of audio given.\n");
-		exit(-1);
+		error("audio_play_samples(): ring buffer is less than twice the size of audio given.");
+		return -1;
 	}
 	
 	
@@ -281,8 +295,8 @@ int audio_play_samples(struct audio_info_struct *ai, unsigned char *buf, int len
 	/* Ensure the temporary buffer is big enough*/
 	handle->tmp_buffer = (jack_default_audio_sample_t*)realloc( handle->tmp_buffer, tmp_size);
 	if (!handle->tmp_buffer) {
-		fprintf(stderr, "audio_play_samples(): failed to realloc temporary buffer.\n");
-		exit(-1);
+		error("audio_play_samples(): failed to realloc temporary buffer.");
+		return -1;
 	}
 	
 	
@@ -297,8 +311,8 @@ int audio_play_samples(struct audio_info_struct *ai, unsigned char *buf, int len
 		size_t len = jack_ringbuffer_write(handle->rb[c], (char*)handle->tmp_buffer, tmp_size);
 		if (len < tmp_size)
         {
-			fprintf(stderr, "audio_play_samples(): failed to write to ring ruffer.\n");
-			exit(-1);
+			error("audio_play_samples(): failed to write to ring ruffer.");
+			return -1;
 		}
 	}
 	

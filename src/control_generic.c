@@ -124,7 +124,14 @@ int control_generic (struct frame *fr)
 					generic_sendmsg("P 0");
 					continue;
 				}
-				play_frame(init,fr);
+				if(!play_frame(init,fr))
+				{
+					generic_sendmsg("E play_frame failed");
+					audio_flush(param.outmode, &ai);
+					rd->close(rd);
+					mode = MODE_STOPPED;
+					generic_sendmsg("P 0");
+				}
 				if (init) {
 					static char tmp[1000];
 					make_remote_header(fr, tmp);

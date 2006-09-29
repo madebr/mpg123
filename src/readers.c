@@ -534,8 +534,8 @@ int open_stream(char *bs_filenam,int fd)
       if(filept_opened)
         readers[i].flags |= READER_FD_OPENED;
       if(!readers[i].init) {
-	fprintf(stderr,"Fatal error!\n");
-	exit(1);
+        error("Fatal error!");
+        return -1;
       }
       if(readers[i].init(readers+i) >= 0) {
         rd = &readers[i];

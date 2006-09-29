@@ -49,6 +49,7 @@
 
 #include "config.h"
 #include "mpg123.h"
+#include "debug.h"
 
 #include "Alib.h"		/* /opt/audio/include */
 #include "CUlib.h"		/* /opt/audio/include */
@@ -85,7 +86,9 @@ static void printAudioError(Audio *audio,char *message,int errorCode) {
 }
 static long myHandler(Audio *audio,AErrorEvent *err_event) {
   printAudioError( audio, "Audio error", err_event->error_code ); 
-  exit(1);
+  /* we cannot just do random exists, that messes terminal up
+     need proper error propagation in that case for future, setting intflag or such */
+  /* exit(1); */
 }
 
 /**************************************************************************/
@@ -96,6 +99,7 @@ static long myHandler(Audio *audio,AErrorEvent *err_event) {
  * Doesn't set any volume
  */
 
+/* return on error leaves stuff dirty here... */
 int audio_open(struct audio_info_struct *ai) {
   AudioAttributes Attribs;
   AudioAttrMask   AttribsMask;
@@ -108,18 +112,18 @@ int audio_open(struct audio_info_struct *ai) {
   long            status;
 
   if(audioServer)
-    {fprintf(stderr,"openAudio: audio already open\n");exit(1);}
+    {error("openAudio: audio already open"); return -1; }
 
   prevHandler = ASetErrorHandler(myHandler);
 
   server[0] = '\0';
   audioServer = AOpenAudio( server, NULL );
   if(audioServer==NULL)
-    {fprintf(stderr,"Error: could not open audio\n");exit(1);}
+    {error("Error: could not open audio\n"); return -1; }
 
   ai->fn = socket( AF_INET, SOCK_STREAM, 0 );
   if(ai->fn<0)
-    {fprintf(stderr,"Socket creation failed");exit(1);}
+    {error("Socket creation failed"); return -1; }
 
   Attribs.type = ATSampled;
   Attribs.attr.sampled_attr.sampling_rate = ai->rate;
@@ -144,7 +148,7 @@ int audio_open(struct audio_info_struct *ai) {
   status=connect(ai->fn,
 		 (struct sockaddr *) &audioStream.tcp_sockaddr,
 		 sizeof(struct sockaddr_in) );
-  if(status<0){fprintf(stderr,"Connect failed");exit(1);}
+  if(status<0){error("Connect failed"); return -1;}
 
   i=-1;
   tcpProtocolEntry=getprotobyname("tcp");

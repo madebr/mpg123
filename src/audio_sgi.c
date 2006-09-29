@@ -82,7 +82,7 @@ int audio_open(struct audio_info_struct *ai)
   /* Test for correct completion */
   if (config == 0) {
     fprintf(stderr,"audio_open : %s\n",alGetErrorString(oserror()));
-    exit(-1);
+    return -1;
   }
   
   /* Set port parameters */
@@ -116,7 +116,7 @@ int audio_open(struct audio_info_struct *ai)
     if (!dev) {
       fprintf(stderr,"Invalid audio resource: %s (%s)\n",dev_name,
             alGetErrorString(oserror()));
-      exit(-1);
+      return -1;
     }
   }
   
@@ -124,7 +124,7 @@ int audio_open(struct audio_info_struct *ai)
   if (alSetDevice(config,dev) < 0)
     {
       fprintf(stderr,"audio_open : %s\n",alGetErrorString(oserror()));
-      exit(-1);
+      return -1;
     }
   
   /* Open the audio port */
@@ -132,7 +132,7 @@ int audio_open(struct audio_info_struct *ai)
   if(port == NULL) {
     fprintf(stderr, "Unable to open audio channel: %s\n",
           alGetErrorString(oserror()));
-    exit(-1);
+    return -1;
   }
   
   ai->handle = (void*)port;

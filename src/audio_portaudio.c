@@ -16,6 +16,7 @@
 #include "audio.h"
 #include "sfifo.h"
 #include "mpg123.h"
+#include "debug.h"
 
 
 #define SAMPLE_SIZE			(2)
@@ -38,7 +39,7 @@ static int paCallback( void *inputBuffer, void *outputBuffer,
 	unsigned long bytes = framesPerBuffer * SAMPLE_SIZE * ai->channels;
 	
 	if (sfifo_used(&fifo)<bytes) {
-		fprintf(stderr, "Error: ringbuffer for PortAudio is empty.\n");
+		error("ringbuffer for PortAudio is empty");
 		return 1;
 	} else {
 		sfifo_read( &fifo, outputBuffer, bytes );
@@ -55,7 +56,7 @@ int audio_open(struct audio_info_struct *ai)
 	if (!pa_initialised)  {
 		err = Pa_Initialize();
 		if( err != paNoError ) {
-			fprintf(stderr, "Failed to initialise PortAudio: %s", Pa_GetErrorText( err ));
+			error1("Failed to initialise PortAudio: %s", Pa_GetErrorText( err ));
 			return -1;
 		} else {
 			pa_initialised=1;
@@ -79,7 +80,7 @@ int audio_open(struct audio_info_struct *ai)
 					ai );
 			
 		if( err != paNoError ) {
-			fprintf(stderr, "Failed to open PortAudio default stream: %s", Pa_GetErrorText( err ));
+			error1("Failed to open PortAudio default stream: %s", Pa_GetErrorText( err ));
 			return -1;
 		}
 		
@@ -117,12 +118,12 @@ int audio_play_samples(struct audio_info_struct *ai, unsigned char *buf, int len
 	if (err == 0) {
 		err = Pa_StartStream( pa_stream );
 		if( err != paNoError ) {
- 			fprintf(stderr, "Failed to start PortAudio stream: %s", Pa_GetErrorText( err ));
-			return -1;
+			error1("Failed to start PortAudio stream: %s", Pa_GetErrorText( err ));
+			return -1; /* triggering exit here is not good, better handle that somehow... */
 		}
 	} else if (err < 0) {
-		fprintf(stderr, "Failed to check state of PortAudio stream: %s", Pa_GetErrorText( err ));
-		exit(-1);
+		error1("Failed to check state of PortAudio stream: %s", Pa_GetErrorText( err ));
+		return -1;
 	}
 	
 	return written;

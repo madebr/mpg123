@@ -10,6 +10,7 @@
 
 #include "config.h"
 #include "mpg123.h"
+#include "debug.h"
 
 static unsigned char *conv16to8_buf = NULL;
 unsigned char *conv16to8;
@@ -91,7 +92,7 @@ void make_decode_tables(long scaleval)
 }
 #endif
 
-void make_conv16to8_table(int mode)
+int make_conv16to8_table(int mode)
 {
   int i;
 
@@ -103,8 +104,8 @@ void make_conv16to8_table(int mode)
   if(!conv16to8_buf) {
     conv16to8_buf = (unsigned char *) malloc(8192);
     if(!conv16to8_buf) {
-      fprintf(stderr,"Can't allocate 16 to 8 converter table!\n");
-      exit(1);
+      error("Can't allocate 16 to 8 converter table!");
+      return -1;
     }
     conv16to8 = conv16to8_buf + 4096;
   }
@@ -141,5 +142,6 @@ void make_conv16to8_table(int mode)
       conv16to8[i] = 0;
     }
   }
+	return 0;
 }
 

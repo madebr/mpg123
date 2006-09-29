@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include "config.h"
 #include "mpg123.h"
+#include "debug.h"
 #include <ioctl.h>
 #include <audios.h>
 
@@ -116,8 +117,8 @@ int audio_open(struct audio_info_struct *ai)
 
   if(ai->fn < 0)
   {
-    fprintf(stderr,"Can't open %s!\n",ai->device);
-    exit(1);
+    error1("Can't open %s!",ai->device);
+    return -1;
   }
   ioctl(ai->fn, AIOCGBLKSIZE, &outburst);
   if(outburst > MAXOUTBURST)

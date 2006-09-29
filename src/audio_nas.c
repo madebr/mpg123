@@ -16,6 +16,7 @@
 
 #include "config.h"
 #include "mpg123.h"
+#include "debug.h"
 
 typedef struct
 {
@@ -90,7 +91,8 @@ nas_eventHandler(AuServer *aud, AuEvent *ev, AuEventHandlerRec *handler)
     return AuTrue;
 }
 
-void nas_createFlow(struct audio_info_struct *ai)
+/* 0 on error */
+int nas_createFlow(struct audio_info_struct *ai)
 {
     AuDeviceID      device = AuNone;
     AuElement       elements[2];
@@ -127,10 +129,8 @@ void nas_createFlow(struct audio_info_struct *ai)
             break;
        }
     if (device == AuNone) {
-       fprintf(stderr,
-                "Couldn't find an output device providing %d channels\n",
-                ai->channels);
-        exit(1);
+       error1("Couldn't find an output device providing %d channels.", ai->channels);
+       return 0;
     }
 
     /* set gain */
@@ -142,12 +142,12 @@ void nas_createFlow(struct audio_info_struct *ai)
                                   AuCompDeviceGainMask, info.da, NULL);
         }
         else
-            fprintf(stderr,"audio/gain: setable Volume/PCM-Level not supported");
+            error("audio/gain: setable Volume/PCM-Level not supported");
     }
     
     if (!(info.flow = AuCreateFlow(info.aud, NULL))) {
-        fprintf(stderr, "Couldn't create flow\n");
-        exit(1);
+        error("Couldn't create flow");
+        return 0;
     }
 
     buf_samples = ai->rate * NAS_SOUND_PORT_DURATION;
@@ -189,9 +189,9 @@ void nas_createFlow(struct audio_info_struct *ai)
     info.buf_size = buf_samples * ai->channels * AuSizeofFormat(format);
     info.buf = (char *) malloc(info.buf_size);
     if (info.buf == NULL) {
-        fprintf(stderr, "Unable to allocate input/output buffer of size %ld\n",
+        error("Unable to allocate input/output buffer of size %ld",
              info.buf_size);
-        exit(1);
+        return 0;
     }
     info.buf_cnt = 0;
     info.data_sent = AuFalse;
@@ -200,6 +200,7 @@ void nas_createFlow(struct audio_info_struct *ai)
     AuStartFlow(info.aud,                          /* Au server */
                 info.flow,                         /* id */
                 NULL);                             /* status */
+    return 1; /* success */
 }
 
 
@@ -216,6 +217,7 @@ void nas_flush()
 
 /* required functions */
 
+/* returning -1 on error, 0 on success... */
 int audio_open(struct audio_info_struct *ai)
 {
     if(!ai)
@@ -223,17 +225,15 @@ int audio_open(struct audio_info_struct *ai)
 
     if (!(info.aud = AuOpenServer(ai->device, 0, NULL, 0, NULL, NULL))) {
         if (ai->device==NULL)
-            fprintf(stderr,"could not open default NAS server\n");
+            error("could not open default NAS server");
         else
-            fprintf(stderr,"could not open NAS server %s\n",
-                    ai->device);
-        exit(1);
+            error1("could not open NAS server %s\n", ai->device);
+        return -1;
     }
     info.buf_size = 0;
         
     return 0;
 }
-    
 
 
 int audio_get_formats(struct audio_info_struct *ai)
@@ -267,7 +267,8 @@ int audio_play_samples(struct audio_info_struct *ai,unsigned char *buf,int len)
 {
     int buf_cnt = 0;
 
-    if (info.buf_size == 0) nas_createFlow(ai);
+    if (info.buf_size == 0)
+    if(!nas_createFlow(ai)) return -1;
     
     while ((info.buf_cnt + (len - buf_cnt)) >  info.buf_size) {
         memcpy(info.buf + info.buf_cnt,
