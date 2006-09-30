@@ -11,7 +11,35 @@
 
 /* max = 1728 */
 #define MAXFRAMESIZE 3456
-#define HDRCMPMASK 0xfffffd00
+/*
+	AAAAAAAA AAABBCCD EEEEFFGH IIJJKLMM
+	A: sync
+	B: mpeg version
+	C: layer
+	D: CRC
+	E: bitrate
+	F:sampling rate
+	G: padding
+	H: private
+	I: channel mode
+	J: mode ext
+	K: copyright
+	L: original
+	M: emphasis
+
+	old compare mask 0xfffffd00:
+	11111111 11111111 11111101 00000000
+
+	means: everything must match excluding padding and channel mode, ext mode, ...
+	But a vbr stream's headers will differ in bitrate!
+	We are already strict in allowing only frames of same type in stream, we should at least watch out for VBR while being strict.
+
+	So a better mask is:
+	11111111 11111111 00001101 00000000
+
+	(still unsure about this private bit)
+*/
+#define HDRCMPMASK 0xffff0d00
 
 extern unsigned long firsthead;
 extern int tabsel_123[2][3][16];

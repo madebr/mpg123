@@ -103,6 +103,7 @@ static int stream_back_bytes(struct reader *rds, off_t bytes)
 {
   if(stream_lseek(rds,-bytes,SEEK_CUR) < 0)
     return -1;
+	/* you sure you want the buffer to resync here? */
   if(param.usebuffer)
 	  buffer_resync();
   return 0;
