@@ -205,19 +205,19 @@ case $target in
   arm-*-linux*)
     cpu_type="generic_nofpu"
   ;;
-  i386-*-linux*)
+  i386-*-linux*|i386-*-kfreebsd*-gnu)
     cpu_type="i386_fpu"
   ;;
-  i486-*-linux*)
+  i486-*-linux*|i386-*-kfreebsd*-gnu)
     cpu_type="i486"
   ;;
-  i586-*-linux*)
+  i586-*-linux*|i386-*-kfreebsd*-gnu)
     cpu_type="i586"
   ;;
-  i686-*-linux*)
+  i686-*-linux*|i386-*-kfreebsd*-gnu)
     cpu_type="mmx"
   ;;
-  *-*-linux*)
+  *-*-linux*|*-*-kfreebsd*-gnu)
     cpu_type="generic_fpu"
   ;;
   *-apple-darwin*)
@@ -233,14 +233,15 @@ case $target in
     cpu_type="generic_fpu"
     LIBS="$LIBS -lsocket -lnsl"
   ;;
+# assembler troubles on cygwin...
   i686-pc-cygwin*)
-    cpu_type="mmx"
+    cpu_type="i386"
   ;;
   i586-pc-cygwin*)
-    cpu_type="i586"
+    cpu_type="i386"
   ;;
   i486-pc-cygwin*)
-    cpu_type="i486"
+    cpu_type="i386"
   ;;
   i386-pc-cygwin*)
     cpu_type="i386"
@@ -374,6 +375,9 @@ case $target in
   *-*-freebsd*)
     audio_system="oss"
   ;;
+  *-*-kfreebsd*)
+    audio_system="oss"
+  ;;
   *-apple-darwin*)
     audio_system="macosx"
   ;;
@@ -381,7 +385,7 @@ case $target in
     audio_system="sun"
   ;;
   *-*-cygwin*)
-    audio_system="esd"
+    audio_system="oss"
   ;;
   *)
   	audio_system="dummy"
