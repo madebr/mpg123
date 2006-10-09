@@ -284,15 +284,8 @@ int control_generic (struct frame *fr)
 							
 							Also, I' not sure _how_ standard these conversion specifiers and their flags are... I have them from a glibc man page.
 						*/
-						#ifdef REAL_IS_FLOAT
-						if(sscanf(arg, "%f %f %f", &b, &m, &t) == 3){
-						#elif defined(REAL_IS_LONG_DOUBLE)
-						if(sscanf(arg, "%Lf %Lf %Lf", &b, &m, &t) == 3){
-						#elif defined(REAL_IS_FIXED)
-						if(sscanf(arg, "%ld %ld %ld", &b, &m, &t) == 3){
-						#else
-						if(sscanf(arg, "%lf %lf %lf", &b, &m, &t) == 3){
-						#endif
+						if(sscanf(arg, REAL_SCANF" "REAL_SCANF" "REAL_SCANF, &b, &m, &t) == 3)
+						{
 							/* very raw line */
 							if ((t >= 0) && (t <= 3))
 							for(cn=0; cn < 1; ++cn)
@@ -324,18 +317,10 @@ int control_generic (struct frame *fr)
 						int c, v;
 						have_eq_settings = TRUE;
 						/*generic_sendmsg("%s",updown);*/
-						/* ThOr: This must be done in the header alongside the definition of real somehow! */
-						#ifdef REAL_IS_FLOAT
-						if(sscanf(arg, "%i %i %f", &c, &v, &e) == 3){
-						#elif defined(REAL_IS_LONG_DOUBLE)
-						if(sscanf(arg, "%i %i %Lf", &c, &v, &e) == 3){
-						#elif defined(REAL_IS_FIXED)
-						if(sscanf(arg, "%i %i %ld", &c, &v, &e) == 3){
-						#else
-						if(sscanf(arg, "%i %i %lf", &c, &v, &e) == 3){
-						#endif
+						if(sscanf(arg, "%i %i "REAL_SCANF, &c, &v, &e) == 3)
+						{
 							equalizer[c][v] = e;
-							generic_sendmsg("%i : %i : %f", c, v, e);
+							generic_sendmsg("%i : %i : "REAL_PRINTF, c, v, e);
 						}
 						else generic_sendmsg("E invalid arguments for EQ: %s", arg);
 						continue;

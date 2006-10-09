@@ -69,8 +69,12 @@ typedef unsigned char byte;
 
 #ifdef REAL_IS_FLOAT
 #  define real float
+#  define REAL_SCANF "%f"
+#  define REAL_PRINTF "%f"
 #elif defined(REAL_IS_LONG_DOUBLE)
 #  define real long double
+#  define REAL_SCANF "%Lf"
+#  define REAL_PRINTF "%Lf"
 #elif defined(REAL_IS_FIXED)
 # define real long
 
@@ -83,9 +87,13 @@ typedef unsigned char byte;
 # define DOUBLE_TO_REAL(x)     ((int)((x) * REAL_FACTOR))
 # define REAL_TO_SHORT(x)      ((x) >> REAL_RADIX)
 # define REAL_MUL(x, y)                (((long long)(x) * (long long)(y)) >> REAL_RADIX)
+#  define REAL_SCANF "%ld"
+#  define REAL_PRINTF "%ld"
 
 #else
 #  define real double
+#  define REAL_SCANF "%lf"
+#  define REAL_PRINTF "%f"
 #endif
 
 #ifndef DOUBLE_TO_REAL
