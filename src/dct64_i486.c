@@ -53,13 +53,17 @@
 #define COS_4_0 23170         
 
 #define SETOUT(out,n,expr) out[FIR_BUFFER_SIZE*(n)]=(expr)
-#define MUL(a,b) (((a)*(b)) >> 15)
 #define MULL(a,b) (((long long)(a)*(long long)(b)) >> 15)
-#ifdef REAL_IS_FIXED
-#define TOINT(a) ((a) * 32768 / (int)REAL_FACTOR)
-#else
-#define TOINT(a) ((int)((a)*32768.0))
-#endif
+#define MUL(a,b) \
+(\
+       ((!(b & 0x3F)) ? (((a)*(b >> 6)) >> 9) :\
+       ((!(b & 0x1F)) ? (((a)*(b >> 5)) >> 10) :\
+       ((!(b & 0x0F)) ? (((a)*(b >> 4)) >> 11) :\
+       ((!(b & 0x07)) ? (((a)*(b >> 3)) >> 12) :\
+       ((!(b & 0x03)) ? (((a)*(b >> 2)) >> 13) :\
+       ((!(b & 0x01)) ? (((a)*(b >> 1)) >> 14) :\
+                        (((a)*(b   )) >> 15))))))))
+
 
 void dct64_1_486(int *out0,int *out1,int *b1,int *b2)
 {
@@ -319,10 +323,21 @@ void dct64_486(int *a,int *b,real *samples)
   int bufs[64];
   int i;
 
+#ifdef REAL_IS_FIXED  
+#define TOINT(a) ((a) * 32768 / (int)REAL_FACTOR)
+
   for(i=0;i<32;i++) {
-    bufs[i+32]=TOINT(samples[i]);
+    bufs[i]=TOINT(samples[i]);
   }
+#else      
+  int *p = bufs;
+  register double const scale = ((65536.0 * 32) + 1) * 65536.0;
   
-  dct64_1_486(a,b,bufs,bufs+0x20);
+  for(i=0;i<32;i++) {
+    *((double *) (p++)) = scale + *samples++; /* beware on bufs overrun: 8B store from x87 */
+  }
+#endif
+  
+  dct64_1_486(a,b,bufs+32,bufs);
 }
 
