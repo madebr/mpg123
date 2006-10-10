@@ -208,13 +208,13 @@ case $target in
   i386-*-linux*|i386-*-kfreebsd*-gnu)
     cpu_type="i386_fpu"
   ;;
-  i486-*-linux*|i386-*-kfreebsd*-gnu)
+  i486-*-linux*|i486-*-kfreebsd*-gnu)
     cpu_type="i486"
   ;;
-  i586-*-linux*|i386-*-kfreebsd*-gnu)
+  i586-*-linux*|i586-*-kfreebsd*-gnu)
     cpu_type="i586"
   ;;
-  i686-*-linux*|i386-*-kfreebsd*-gnu)
+  i686-*-linux*|i686-*-kfreebsd*-gnu)
     cpu_type="mmx"
   ;;
   *-*-linux*|*-*-kfreebsd*-gnu)
