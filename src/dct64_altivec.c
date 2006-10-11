@@ -1,527 +1,326 @@
 /*
 	dct64_altivec.c: Discrete Cosine Tansform (DCT) for Altivec
 
-	copyright 2004-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.de
-	initially written by Romain Dolbeau
+	initially written by Michael Hipp
+	altivec optimization by tmkk
 */
+
+/*
+ * Discrete Cosine Tansform (DCT) for subband synthesis
+ *
+ * -funroll-loops (for gcc) will remove the loops for better performance
+ * using loops in the source-code enhances readabillity
+ *
+ *
+ * TODO: write an optimized version for the down-sampling modes
+ *       (in these modes the bands 16-31 (2:1) or 8-31 (4:1) are zero 
+ */
 
 #include "config.h"
 #include "mpg123.h"
 
-#ifndef SYS_DARWIN
+#ifndef __APPLE__
 #include <altivec.h>
 #endif
 
-#define real float
-
-
-/* used to build registers permutation vectors (vcprm)
- the 's' are for words in the _s_econd vector */
-#define WORD_0 0x00,0x01,0x02,0x03
-#define WORD_1 0x04,0x05,0x06,0x07
-#define WORD_2 0x08,0x09,0x0a,0x0b
-#define WORD_3 0x0c,0x0d,0x0e,0x0f
-#define WORD_s0 0x10,0x11,0x12,0x13
-#define WORD_s1 0x14,0x15,0x16,0x17
-#define WORD_s2 0x18,0x19,0x1a,0x1b
-#define WORD_s3 0x1c,0x1d,0x1e,0x1f
-
-#ifdef SYS_DARWIN
-#define vcprm(a,b,c,d) (const vector unsigned char)(WORD_ ## a, WORD_ ## b, WORD_ ## c, WORD_ ## d)
-#else
-#define vcprm(a,b,c,d) (const vector unsigned char){WORD_ ## a, WORD_ ## b, WORD_ ## c, WORD_ ## d}
-#endif
-
-/* vcprmle is used to keep the same index as in the SSE version.
- it's the same as vcprm, with the index inversed
- ('le' is Little Endian) */
-#define vcprmle(a,b,c,d) vcprm(d,c,b,a)
-
-/* used to build inverse/identity vectors (vcii)
- n is _n_egative, p is _p_ositive */
-#define FLOAT_n -1.
-#define FLOAT_p 1.
-
-#ifdef SYS_DARWIN
-#define vcii(a,b,c,d) (const vector float)(FLOAT_ ## a, FLOAT_ ## b, FLOAT_ ## c, FLOAT_ ## d)
-#else
-#define vcii(a,b,c,d) (const vector float){FLOAT_ ## a, FLOAT_ ## b, FLOAT_ ## c, FLOAT_ ## d}
-#endif
-
-#ifdef SYS_DARWIN
-#define FOUROF(a) (a)
-#else
-#define FOUROF(a) {a,a,a,a}
-#endif
-
-void dct64(real *a,real *b,real *c)
+void dct64(real *out0,real *out1,real *samples)
 {
-  real __attribute__ ((aligned(16))) b1[0x20];
-  real __attribute__ ((aligned(16))) b2[0x20];
-  
-  real *out0 = a;
-  real *out1 = b;
-  real *samples = c;
+  real __attribute__ ((aligned (16))) bufs[64];
 
-  const vector float vczero = (const vector float)FOUROF(0.);
-  const vector unsigned char reverse = (const vector unsigned char)vcprm(3,2,1,0);
+	{
+		register real *b1,*costab;
+		
+		vector unsigned char vinvert,vperm1,vperm2,vperm3,vperm4;
+		vector float v1,v2,v3,v4,v5,v6,v7,v8;
+		vector float vbs1,vbs2,vbs3,vbs4,vbs5,vbs6,vbs7,vbs8;
+		vector float vbs9,vbs10,vbs11,vbs12,vbs13,vbs14,vbs15,vbs16;
+		vector float vzero;
+		b1 = samples;
+		costab = pnts[0];
+		
+		vzero = vec_xor(vzero,vzero);
+#ifdef __APPLE__
+		vinvert = (vector unsigned char)(12,13,14,15,8,9,10,11,4,5,6,7,0,1,2,3);
+#else
+		vinvert = (vector unsigned char){12,13,14,15,8,9,10,11,4,5,6,7,0,1,2,3};
+#endif
+		vperm1 = vec_lvsl(0,b1);
+		vperm2 = vec_perm(vperm1,vperm1,vinvert);
+		
+		v1 = vec_ld(0,b1);
+		v2 = vec_ld(16,b1);
+		v3 = vec_ld(112,b1);
+		v4 = vec_ld(127,b1);
+		v5 = vec_perm(v1,v2,vperm1); /* b1[0,1,2,3] */
+		v6 = vec_perm(v3,v4,vperm2); /* b1[31,30,29,28] */
+		
+		vbs1 = vec_add(v5,v6);
+		vbs8 = vec_sub(v5,v6);
+		
+		v1 = vec_ld(32,b1);
+		v4 = vec_ld(96,b1);
+		v5 = vec_perm(v2,v1,vperm1); /* b1[4,5,6,7] */
+		v6 = vec_perm(v4,v3,vperm2); /* b1[27,26,25,24] */
+		
+		vbs2 = vec_add(v5,v6);
+		vbs7 = vec_sub(v5,v6);
+		
+		v2 = vec_ld(48,b1);
+		v3 = vec_ld(80,b1);
+		v5 = vec_perm(v1,v2,vperm1); /* b1[8,9,10,11] */
+		v6 = vec_perm(v3,v4,vperm2); /* b1[23,22,21,20] */
+		
+		vbs3 = vec_add(v5,v6);
+		vbs6 = vec_sub(v5,v6);
+		
+		v1 = vec_ld(64,b1);
+		v5 = vec_perm(v2,v1,vperm1); /* b1[12,13,14,15] */
+		v6 = vec_perm(v1,v3,vperm2); /* b1[19,18,17,16] */
+		
+		vbs4 = vec_add(v5,v6);
+		vbs5 = vec_sub(v5,v6);
+		
+		v1 = vec_ld(0,costab);
+		vbs8 = vec_madd(vbs8,v1,vzero);
+		v2 = vec_ld(16,costab);
+		vbs7 = vec_madd(vbs7,v2,vzero);
+		v3 = vec_ld(32,costab);
+		vbs6 = vec_madd(vbs6,v3,vzero);
+		v4 = vec_ld(48,costab);
+		vbs5 = vec_madd(vbs5,v4,vzero);
+		vbs6 = vec_perm(vbs6,vbs6,vinvert);
+		vbs5 = vec_perm(vbs5,vbs5,vinvert);
+		
+		
+		costab = pnts[1];
+		
+		v1 = vec_perm(vbs4,vbs4,vinvert);
+		vbs9 = vec_add(vbs1,v1);
+		v3 = vec_sub(vbs1,v1);
+		v5 = vec_ld(0,costab);
+		v2 = vec_perm(vbs3,vbs3,vinvert);
+		vbs10 = vec_add(vbs2,v2);
+		v4 = vec_sub(vbs2,v2);
+		v6 = vec_ld(16,costab);
+		vbs12 = vec_madd(v3,v5,vzero);
+		vbs11 = vec_madd(v4,v6,vzero);
+		
+		v7 = vec_sub(vbs7,vbs6);
+		v8 = vec_sub(vbs8,vbs5);
+		vbs13 = vec_add(vbs5,vbs8);
+		vbs14 = vec_add(vbs6,vbs7);
+		vbs15 = vec_madd(v7,v6,vzero);
+		vbs16 = vec_madd(v8,v5,vzero);
+		
+		
+		costab = pnts[2];
+		
+		v1 = vec_perm(vbs10,vbs10,vinvert);
+		v5 = vec_perm(vbs14,vbs14,vinvert);
+		vbs1 = vec_add(v1,vbs9);
+		vbs5 = vec_add(v5,vbs13);
+		v2 = vec_sub(vbs9,v1);
+		v6 = vec_sub(vbs13,v5);
+		v3 = vec_ld(0,costab);
+		vbs11 = vec_perm(vbs11,vbs11,vinvert);
+		vbs15 = vec_perm(vbs15,vbs15,vinvert);
+		vbs3 = vec_add(vbs11,vbs12);
+		vbs7 = vec_add(vbs15,vbs16);
+		v4 = vec_sub(vbs12,vbs11);
+		v7 = vec_sub(vbs16,vbs15);
+		vbs2 = vec_madd(v2,v3,vzero);
+		vbs4 = vec_madd(v4,v3,vzero);
+		vbs6 = vec_madd(v6,v3,vzero);
+		vbs8 = vec_madd(v7,v3,vzero);
+		
+		vbs2 = vec_perm(vbs2,vbs2,vinvert);
+		vbs4 = vec_perm(vbs4,vbs4,vinvert);
+		vbs6 = vec_perm(vbs6,vbs6,vinvert);
+		vbs8 = vec_perm(vbs8,vbs8,vinvert);
+		
+		
+		costab = pnts[3];
+		
+#ifdef __APPLE__
+		vperm1 = (vector unsigned char)(0,1,2,3,4,5,6,7,16,17,18,19,20,21,22,23);
+		vperm2 = (vector unsigned char)(12,13,14,15,8,9,10,11,28,29,30,31,24,25,26,27);
+		vperm3 = (vector unsigned char)(0,1,2,3,4,5,6,7,20,21,22,23,16,17,18,19);
+#else
+		vperm1 = (vector unsigned char){0,1,2,3,4,5,6,7,16,17,18,19,20,21,22,23};
+		vperm2 = (vector unsigned char){12,13,14,15,8,9,10,11,28,29,30,31,24,25,26,27};
+		vperm3 = (vector unsigned char){0,1,2,3,4,5,6,7,20,21,22,23,16,17,18,19};
+#endif
+		vperm4 = vec_add(vperm3,vec_splat_u8(8));
+		
+		v1 = vec_ld(0,costab);
+		v2 = vec_splat(v1,0);
+		v3 = vec_splat(v1,1);
+		v1 = vec_mergeh(v2,v3);
+		
+		v2 = vec_perm(vbs1,vbs3,vperm1);
+		v3 = vec_perm(vbs2,vbs4,vperm1);
+		v4 = vec_perm(vbs1,vbs3,vperm2);
+		v5 = vec_perm(vbs2,vbs4,vperm2);
+		v6 = vec_sub(v2,v4);
+		v7 = vec_sub(v3,v5);
+		v2 = vec_add(v2,v4);
+		v3 = vec_add(v3,v5);
+		v4 = vec_madd(v6,v1,vzero);
+		v5 = vec_nmsub(v7,v1,vzero);
+		vbs9 = vec_perm(v2,v4,vperm3);
+		vbs11 = vec_perm(v2,v4,vperm4);
+		vbs10 = vec_perm(v3,v5,vperm3);
+		vbs12 = vec_perm(v3,v5,vperm4);
+		
+		v2 = vec_perm(vbs5,vbs7,vperm1);
+		v3 = vec_perm(vbs6,vbs8,vperm1);
+		v4 = vec_perm(vbs5,vbs7,vperm2);
+		v5 = vec_perm(vbs6,vbs8,vperm2);
+		v6 = vec_sub(v2,v4);
+		v7 = vec_sub(v3,v5);
+		v2 = vec_add(v2,v4);
+		v3 = vec_add(v3,v5);
+		v4 = vec_madd(v6,v1,vzero);
+		v5 = vec_nmsub(v7,v1,vzero);
+		vbs13 = vec_perm(v2,v4,vperm3);
+		vbs15 = vec_perm(v2,v4,vperm4);
+		vbs14 = vec_perm(v3,v5,vperm3);
+		vbs16 = vec_perm(v3,v5,vperm4);
+		
+		
+		costab = pnts[4];
+		
+		v1 = vec_lde(0,costab);
+#ifdef __APPLE__
+		v2 = (vector float)(1.0f,-1.0f,1.0f,-1.0f);
+#else
+		v2 = (vector float){1.0f,-1.0f,1.0f,-1.0f};
+#endif
+		v3 = vec_splat(v1,0);
+		v1 = vec_madd(v2,v3,vzero);
+		
+		v2 = vec_mergeh(vbs9,vbs10);
+		v3 = vec_mergel(vbs9,vbs10);
+		v4 = vec_mergeh(vbs11,vbs12);
+		v5 = vec_mergel(vbs11,vbs12);
+		v6 = vec_mergeh(v2,v3);
+		v7 = vec_mergel(v2,v3);
+		v2 = vec_mergeh(v4,v5);
+		v3 = vec_mergel(v4,v5); 
+		v4 = vec_sub(v6,v7);
+		v5 = vec_sub(v2,v3);
+		v6 = vec_add(v6,v7);
+		v7 = vec_add(v2,v3);
+		v2 = vec_madd(v4,v1,vzero);
+		v3 = vec_madd(v5,v1,vzero);
+		vbs1 = vec_mergeh(v6,v2);
+		vbs2 = vec_mergel(v6,v2);
+		vbs3 = vec_mergeh(v7,v3);
+		vbs4 = vec_mergel(v7,v3);
+		
+		v2 = vec_mergeh(vbs13,vbs14);
+		v3 = vec_mergel(vbs13,vbs14);
+		v4 = vec_mergeh(vbs15,vbs16);
+		v5 = vec_mergel(vbs15,vbs16);
+		v6 = vec_mergeh(v2,v3);
+		v7 = vec_mergel(v2,v3);
+		v2 = vec_mergeh(v4,v5);
+		v3 = vec_mergel(v4,v5); 
+		v4 = vec_sub(v6,v7);
+		v5 = vec_sub(v2,v3);
+		v6 = vec_add(v6,v7);
+		v7 = vec_add(v2,v3);
+		v2 = vec_madd(v4,v1,vzero);
+		v3 = vec_madd(v5,v1,vzero);
+		vbs5 = vec_mergeh(v6,v2);
+		vbs6 = vec_mergel(v6,v2);
+		vbs7 = vec_mergeh(v7,v3);
+		vbs8 = vec_mergel(v7,v3);
+		
+		vec_st(vbs1,0,bufs);
+		vec_st(vbs2,16,bufs);
+		vec_st(vbs3,32,bufs);
+		vec_st(vbs4,48,bufs);
+		vec_st(vbs5,64,bufs);
+		vec_st(vbs6,80,bufs);
+		vec_st(vbs7,96,bufs);
+		vec_st(vbs8,112,bufs);
+		vec_st(vbs9,128,bufs);
+		vec_st(vbs10,144,bufs);
+		vec_st(vbs11,160,bufs);
+		vec_st(vbs12,176,bufs);
+		vec_st(vbs13,192,bufs);
+		vec_st(vbs14,208,bufs);
+		vec_st(vbs15,224,bufs);
+		vec_st(vbs16,240,bufs);
+		
+		
+	}
 
+ {
+  register real *b1;
+  register int i;
 
-  if (((unsigned long)b1 & 0x0000000F) ||
-      ((unsigned long)b2 & 0x0000000F))
-    
+  for(b1=bufs,i=8;i;i--,b1+=4)
+    b1[2] += b1[3];
+
+  for(b1=bufs,i=4;i;i--,b1+=8)
   {
-    printf("MISALIGNED:\t%p\t%p\t%p\t%p\t%p\n",
-           (void*)b1, (void*)b2,
-           (void*)a, (void*)b, (void*)samples);
+    b1[4] += b1[6];
+    b1[6] += b1[5];
+    b1[5] += b1[7];
   }
 
-
-#ifdef ALTIVEC_USE_REFERENCE_C_CODE
-  
+  for(b1=bufs,i=2;i;i--,b1+=16)
   {
-    register real *costab = pnts[0];
-
-    b1[0x00] = samples[0x00] + samples[0x1F];
-    b1[0x01] = samples[0x01] + samples[0x1E];
-    b1[0x02] = samples[0x02] + samples[0x1D];
-    b1[0x03] = samples[0x03] + samples[0x1C];
-    b1[0x04] = samples[0x04] + samples[0x1B];
-    b1[0x05] = samples[0x05] + samples[0x1A];
-    b1[0x06] = samples[0x06] + samples[0x19];
-    b1[0x07] = samples[0x07] + samples[0x18];
-    b1[0x08] = samples[0x08] + samples[0x17];
-    b1[0x09] = samples[0x09] + samples[0x16];
-    b1[0x0A] = samples[0x0A] + samples[0x15];
-    b1[0x0B] = samples[0x0B] + samples[0x14];
-    b1[0x0C] = samples[0x0C] + samples[0x13];
-    b1[0x0D] = samples[0x0D] + samples[0x12];
-    b1[0x0E] = samples[0x0E] + samples[0x11];
-    b1[0x0F] = samples[0x0F] + samples[0x10];
-    b1[0x10] = (samples[0x0F] - samples[0x10]) * costab[0xF];
-    b1[0x11] = (samples[0x0E] - samples[0x11]) * costab[0xE];
-    b1[0x12] = (samples[0x0D] - samples[0x12]) * costab[0xD];
-    b1[0x13] = (samples[0x0C] - samples[0x13]) * costab[0xC];
-    b1[0x14] = (samples[0x0B] - samples[0x14]) * costab[0xB];
-    b1[0x15] = (samples[0x0A] - samples[0x15]) * costab[0xA];
-    b1[0x16] = (samples[0x09] - samples[0x16]) * costab[0x9];
-    b1[0x17] = (samples[0x08] - samples[0x17]) * costab[0x8];
-    b1[0x18] = (samples[0x07] - samples[0x18]) * costab[0x7];
-    b1[0x19] = (samples[0x06] - samples[0x19]) * costab[0x6];
-    b1[0x1A] = (samples[0x05] - samples[0x1A]) * costab[0x5];
-    b1[0x1B] = (samples[0x04] - samples[0x1B]) * costab[0x4];
-    b1[0x1C] = (samples[0x03] - samples[0x1C]) * costab[0x3];
-    b1[0x1D] = (samples[0x02] - samples[0x1D]) * costab[0x2];
-    b1[0x1E] = (samples[0x01] - samples[0x1E]) * costab[0x1];
-    b1[0x1F] = (samples[0x00] - samples[0x1F]) * costab[0x0];
-
+    b1[8]  += b1[12];
+    b1[12] += b1[10];
+    b1[10] += b1[14];
+    b1[14] += b1[9];
+    b1[9]  += b1[13];
+    b1[13] += b1[11];
+    b1[11] += b1[15];
   }
-  {
-    register real *costab = pnts[1];
+ }
 
-    b2[0x00] = b1[0x00] + b1[0x0F];
-    b2[0x01] = b1[0x01] + b1[0x0E];
-    b2[0x02] = b1[0x02] + b1[0x0D];
-    b2[0x03] = b1[0x03] + b1[0x0C];
-    b2[0x04] = b1[0x04] + b1[0x0B];
-    b2[0x05] = b1[0x05] + b1[0x0A];
-    b2[0x06] = b1[0x06] + b1[0x09];
-    b2[0x07] = b1[0x07] + b1[0x08];
-    b2[0x08] = (b1[0x07] - b1[0x08]) * costab[7];
-    b2[0x09] = (b1[0x06] - b1[0x09]) * costab[6];
-    b2[0x0A] = (b1[0x05] - b1[0x0A]) * costab[5];
-    b2[0x0B] = (b1[0x04] - b1[0x0B]) * costab[4];
-    b2[0x0C] = (b1[0x03] - b1[0x0C]) * costab[3];
-    b2[0x0D] = (b1[0x02] - b1[0x0D]) * costab[2];
-    b2[0x0E] = (b1[0x01] - b1[0x0E]) * costab[1];
-    b2[0x0F] = (b1[0x00] - b1[0x0F]) * costab[0];
-    b2[0x10] = b1[0x10] + b1[0x1F];
-    b2[0x11] = b1[0x11] + b1[0x1E];
-    b2[0x12] = b1[0x12] + b1[0x1D];
-    b2[0x13] = b1[0x13] + b1[0x1C];
-    b2[0x14] = b1[0x14] + b1[0x1B];
-    b2[0x15] = b1[0x15] + b1[0x1A];
-    b2[0x16] = b1[0x16] + b1[0x19];
-    b2[0x17] = b1[0x17] + b1[0x18];
-    b2[0x18] = (b1[0x18] - b1[0x17]) * costab[7];
-    b2[0x19] = (b1[0x19] - b1[0x16]) * costab[6];
-    b2[0x1A] = (b1[0x1A] - b1[0x15]) * costab[5];
-    b2[0x1B] = (b1[0x1B] - b1[0x14]) * costab[4];
-    b2[0x1C] = (b1[0x1C] - b1[0x13]) * costab[3];
-    b2[0x1D] = (b1[0x1D] - b1[0x12]) * costab[2];
-    b2[0x1E] = (b1[0x1E] - b1[0x11]) * costab[1];
-    b2[0x1F] = (b1[0x1F] - b1[0x10]) * costab[0];
 
-  }
+  out0[0x10*16] = bufs[0];
+  out0[0x10*15] = bufs[16+0]  + bufs[16+8];
+  out0[0x10*14] = bufs[8];
+  out0[0x10*13] = bufs[16+8]  + bufs[16+4];
+  out0[0x10*12] = bufs[4];
+  out0[0x10*11] = bufs[16+4]  + bufs[16+12];
+  out0[0x10*10] = bufs[12];
+  out0[0x10* 9] = bufs[16+12] + bufs[16+2];
+  out0[0x10* 8] = bufs[2];
+  out0[0x10* 7] = bufs[16+2]  + bufs[16+10];
+  out0[0x10* 6] = bufs[10];
+  out0[0x10* 5] = bufs[16+10] + bufs[16+6];
+  out0[0x10* 4] = bufs[6];
+  out0[0x10* 3] = bufs[16+6]  + bufs[16+14];
+  out0[0x10* 2] = bufs[14];
+  out0[0x10* 1] = bufs[16+14] + bufs[16+1];
+  out0[0x10* 0] = bufs[1];
 
-  {
-    register real *costab = pnts[2];
+  out1[0x10* 0] = bufs[1];
+  out1[0x10* 1] = bufs[16+1]  + bufs[16+9];
+  out1[0x10* 2] = bufs[9];
+  out1[0x10* 3] = bufs[16+9]  + bufs[16+5];
+  out1[0x10* 4] = bufs[5];
+  out1[0x10* 5] = bufs[16+5]  + bufs[16+13];
+  out1[0x10* 6] = bufs[13];
+  out1[0x10* 7] = bufs[16+13] + bufs[16+3];
+  out1[0x10* 8] = bufs[3];
+  out1[0x10* 9] = bufs[16+3]  + bufs[16+11];
+  out1[0x10*10] = bufs[11];
+  out1[0x10*11] = bufs[16+11] + bufs[16+7];
+  out1[0x10*12] = bufs[7];
+  out1[0x10*13] = bufs[16+7]  + bufs[16+15];
+  out1[0x10*14] = bufs[15];
+  out1[0x10*15] = bufs[16+15];
 
-    b1[0x00] = b2[0x00] + b2[0x07];
-    b1[0x01] = b2[0x01] + b2[0x06];
-    b1[0x02] = b2[0x02] + b2[0x05];
-    b1[0x03] = b2[0x03] + b2[0x04];
-    b1[0x04] = (b2[0x03] - b2[0x04]) * costab[3];
-    b1[0x05] = (b2[0x02] - b2[0x05]) * costab[2];
-    b1[0x06] = (b2[0x01] - b2[0x06]) * costab[1];
-    b1[0x07] = (b2[0x00] - b2[0x07]) * costab[0];
-    b1[0x08] = b2[0x08] + b2[0x0F];
-    b1[0x09] = b2[0x09] + b2[0x0E];
-    b1[0x0A] = b2[0x0A] + b2[0x0D];
-    b1[0x0B] = b2[0x0B] + b2[0x0C];
-    b1[0x0C] = (b2[0x0C] - b2[0x0B]) * costab[3];
-    b1[0x0D] = (b2[0x0D] - b2[0x0A]) * costab[2];
-    b1[0x0E] = (b2[0x0E] - b2[0x09]) * costab[1];
-    b1[0x0F] = (b2[0x0F] - b2[0x08]) * costab[0];
-    b1[0x10] = b2[0x10] + b2[0x17];
-    b1[0x11] = b2[0x11] + b2[0x16];
-    b1[0x12] = b2[0x12] + b2[0x15];
-    b1[0x13] = b2[0x13] + b2[0x14];
-    b1[0x14] = (b2[0x13] - b2[0x14]) * costab[3];
-    b1[0x15] = (b2[0x12] - b2[0x15]) * costab[2];
-    b1[0x16] = (b2[0x11] - b2[0x16]) * costab[1];
-    b1[0x17] = (b2[0x10] - b2[0x17]) * costab[0];
-    b1[0x18] = b2[0x18] + b2[0x1F];
-    b1[0x19] = b2[0x19] + b2[0x1E];
-    b1[0x1A] = b2[0x1A] + b2[0x1D];
-    b1[0x1B] = b2[0x1B] + b2[0x1C];
-    b1[0x1C] = (b2[0x1C] - b2[0x1B]) * costab[3];
-    b1[0x1D] = (b2[0x1D] - b2[0x1A]) * costab[2];
-    b1[0x1E] = (b2[0x1E] - b2[0x19]) * costab[1];
-    b1[0x1F] = (b2[0x1F] - b2[0x18]) * costab[0];
-  }
-
-#else /* ALTIVEC_USE_REFERENCE_C_CODE */
-
-  /* How does it work ?
-   the first three passes are reproducted in the three block below
-   all computations are done on a 4 elements vector
-   'reverse' is a special perumtation vector used to reverse
-   the order of the elements inside a vector.
-   note that all loads/stores to b1 (b2) between passes 1 and 2 (2 and 3)
-   have been removed, all elements are stored inside b1vX (b2vX)
-  */
-  {
-    register vector float
-      b1v0, b1v1, b1v2, b1v3,
-      b1v4, b1v5, b1v6, b1v7;
-    register vector float
-      temp1, temp2;
-
-    {
-      register real *costab = pnts[0];
-
-      register vector float
-        samplesv1, samplesv2, samplesv3, samplesv4,
-        samplesv5, samplesv6, samplesv7, samplesv8,
-        samplesv9;
-      register vector unsigned char samples_perm = vec_lvsl(0, samples);
-      register vector float costabv1, costabv2, costabv3, costabv4, costabv5;
-      register vector unsigned char costab_perm = vec_lvsl(0, costab);
-
-      samplesv1 = vec_ld(0, samples);
-      samplesv2 = vec_ld(16, samples);
-      samplesv1 = vec_perm(samplesv1, samplesv2, samples_perm);
-      samplesv3 = vec_ld(32, samples);
-      samplesv2 = vec_perm(samplesv2, samplesv3, samples_perm);
-      samplesv4 = vec_ld(48, samples);
-      samplesv3 = vec_perm(samplesv3, samplesv4, samples_perm);
-      samplesv5 = vec_ld(64, samples);
-      samplesv4 = vec_perm(samplesv4, samplesv5, samples_perm);
-      samplesv6 = vec_ld(80, samples);
-      samplesv5 = vec_perm(samplesv5, samplesv6, samples_perm);
-      samplesv7 = vec_ld(96, samples);
-      samplesv6 = vec_perm(samplesv6, samplesv7, samples_perm);
-      samplesv8 = vec_ld(112, samples);
-      samplesv7 = vec_perm(samplesv7, samplesv8, samples_perm);
-      samplesv9 = vec_ld(128, samples);
-      samplesv8 = vec_perm(samplesv8, samplesv9, samples_perm);
-
-      temp1 = vec_add(samplesv1,
-                      vec_perm(samplesv8, samplesv8, reverse));
-      b1v0 = temp1;
-      temp1 = vec_add(samplesv2,
-                      vec_perm(samplesv7, samplesv7, reverse));
-      b1v1 = temp1;
-      temp1 = vec_add(samplesv3,
-                      vec_perm(samplesv6, samplesv6, reverse));
-      b1v2 = temp1;
-      temp1 = vec_add(samplesv4,
-                      vec_perm(samplesv5, samplesv5, reverse));
-      b1v3 = temp1;
-
-      costabv1 = vec_ld(0, costab);
-      costabv2 = vec_ld(16, costab);
-      costabv1 = vec_perm(costabv1, costabv2, costab_perm);
-      costabv3 = vec_ld(32, costab);
-      costabv2 = vec_perm(costabv2, costabv3, costab_perm);
-      costabv4 = vec_ld(48, costab);
-      costabv3 = vec_perm(costabv3, costabv4, costab_perm);
-      costabv5 = vec_ld(64, costab);
-      costabv4 = vec_perm(costabv4, costabv5, costab_perm);
-    
-      temp1 = vec_sub(vec_perm(samplesv4, samplesv4, reverse),
-                      samplesv5);
-      temp2 = vec_madd(temp1,
-                       vec_perm(costabv4, costabv4, reverse),
-                       vczero);
-      b1v4 = temp2;
-    
-      temp1 = vec_sub(vec_perm(samplesv3, samplesv3, reverse),
-                      samplesv6);
-      temp2 = vec_madd(temp1,
-                       vec_perm(costabv3, costabv3, reverse),
-                       vczero);
-      b1v5 = temp2;
-      temp1 = vec_sub(vec_perm(samplesv2, samplesv2, reverse),
-                      samplesv7);
-      temp2 = vec_madd(temp1,
-                       vec_perm(costabv2, costabv2, reverse),
-                       vczero);
-      b1v6 = temp2;
-    
-      temp1 = vec_sub(vec_perm(samplesv1, samplesv1, reverse),
-                      samplesv8);
-      temp2 = vec_madd(temp1,
-                       vec_perm(costabv1, costabv1, reverse),
-                       vczero);
-      b1v7 = temp2;
-
-    }
-
-    {
-      register vector float
-        b2v0, b2v1, b2v2, b2v3,
-        b2v4, b2v5, b2v6, b2v7;
-      {
-        register real *costab = pnts[1];
-        register vector float costabv1r, costabv2r, costabv1, costabv2, costabv3;
-        register vector unsigned char costab_perm = vec_lvsl(0, costab);
-
-        costabv1 = vec_ld(0, costab);
-        costabv2 = vec_ld(16, costab);
-        costabv1 = vec_perm(costabv1, costabv2, costab_perm);
-        costabv3  = vec_ld(32, costab);
-        costabv2 = vec_perm(costabv2, costabv3 , costab_perm);
-        costabv1r = vec_perm(costabv1, costabv1, reverse);
-        costabv2r = vec_perm(costabv2, costabv2, reverse);
-    
-        temp1 = vec_add(b1v0, vec_perm(b1v3, b1v3, reverse));
-        b2v0 = temp1;
-        temp1 = vec_add(b1v1, vec_perm(b1v2, b1v2, reverse));
-        b2v1 = temp1;
-        temp2 = vec_sub(vec_perm(b1v1, b1v1, reverse), b1v2);
-        temp1 = vec_madd(temp2, costabv2r, vczero);
-        b2v2 = temp1;
-        temp2 = vec_sub(vec_perm(b1v0, b1v0, reverse), b1v3);
-        temp1 = vec_madd(temp2, costabv1r, vczero);
-        b2v3 = temp1;
-        temp1 = vec_add(b1v4, vec_perm(b1v7, b1v7, reverse));
-        b2v4 = temp1;
-        temp1 = vec_add(b1v5, vec_perm(b1v6, b1v6, reverse));
-        b2v5 = temp1;
-        temp2 = vec_sub(b1v6, vec_perm(b1v5, b1v5, reverse));
-        temp1 = vec_madd(temp2, costabv2r, vczero);
-        b2v6 = temp1;
-        temp2 = vec_sub(b1v7, vec_perm(b1v4, b1v4, reverse));
-        temp1 = vec_madd(temp2, costabv1r, vczero);
-        b2v7 = temp1;
-      }
-
-      {
-        register real *costab = pnts[2];
-
-    
-        vector float costabv1r, costabv1, costabv2;
-        vector unsigned char costab_perm = vec_lvsl(0, costab);
-
-        costabv1 = vec_ld(0, costab);
-        costabv2 = vec_ld(16, costab);
-        costabv1 = vec_perm(costabv1, costabv2, costab_perm);
-        costabv1r = vec_perm(costabv1, costabv1, reverse);
-    
-        temp1 = vec_add(b2v0, vec_perm(b2v1, b2v1, reverse));
-        vec_st(temp1, 0, b1);
-        temp2 = vec_sub(vec_perm(b2v0, b2v0, reverse), b2v1);
-        temp1 = vec_madd(temp2, costabv1r, vczero);
-        vec_st(temp1, 16, b1);
-    
-        temp1 = vec_add(b2v2, vec_perm(b2v3, b2v3, reverse));
-        vec_st(temp1, 32, b1);
-        temp2 = vec_sub(b2v3, vec_perm(b2v2, b2v2, reverse));
-        temp1 = vec_madd(temp2, costabv1r, vczero);
-        vec_st(temp1, 48, b1);
-
-        temp1 = vec_add(b2v4, vec_perm(b2v5, b2v5, reverse));
-        vec_st(temp1, 64, b1);
-        temp2 = vec_sub(vec_perm(b2v4, b2v4, reverse), b2v5);
-        temp1 = vec_madd(temp2, costabv1r, vczero);
-        vec_st(temp1, 80, b1);
-
-        temp1 = vec_add(b2v6, vec_perm(b2v7, b2v7, reverse));
-        vec_st(temp1, 96, b1);
-        temp2 = vec_sub(b2v7, vec_perm(b2v6, b2v6, reverse));
-        temp1 = vec_madd(temp2, costabv1r, vczero);
-        vec_st(temp1, 112, b1);
-    
-      }
-    }
-  }
-
-#endif /* ALTIVEC_USE_REFERENCE_C_CODE */
-
-  {
-    register real const cos0 = pnts[3][0];
-    register real const cos1 = pnts[3][1];
-
-    b2[0x00] = b1[0x00] + b1[0x03];
-    b2[0x01] = b1[0x01] + b1[0x02];
-    b2[0x02] = (b1[0x01] - b1[0x02]) * cos1;
-    b2[0x03] = (b1[0x00] - b1[0x03]) * cos0;
-    b2[0x04] = b1[0x04] + b1[0x07];
-    b2[0x05] = b1[0x05] + b1[0x06];
-    b2[0x06] = (b1[0x06] - b1[0x05]) * cos1;
-    b2[0x07] = (b1[0x07] - b1[0x04]) * cos0;
-    b2[0x08] = b1[0x08] + b1[0x0B];
-    b2[0x09] = b1[0x09] + b1[0x0A];
-    b2[0x0A] = (b1[0x09] - b1[0x0A]) * cos1;
-    b2[0x0B] = (b1[0x08] - b1[0x0B]) * cos0;
-    b2[0x0C] = b1[0x0C] + b1[0x0F];
-    b2[0x0D] = b1[0x0D] + b1[0x0E];
-    b2[0x0E] = (b1[0x0E] - b1[0x0D]) * cos1;
-    b2[0x0F] = (b1[0x0F] - b1[0x0C]) * cos0;
-    b2[0x10] = b1[0x10] + b1[0x13];
-    b2[0x11] = b1[0x11] + b1[0x12];
-    b2[0x12] = (b1[0x11] - b1[0x12]) * cos1;
-    b2[0x13] = (b1[0x10] - b1[0x13]) * cos0;
-    b2[0x14] = b1[0x14] + b1[0x17];
-    b2[0x15] = b1[0x15] + b1[0x16];
-    b2[0x16] = (b1[0x16] - b1[0x15]) * cos1;
-    b2[0x17] = (b1[0x17] - b1[0x14]) * cos0;
-    b2[0x18] = b1[0x18] + b1[0x1B];
-    b2[0x19] = b1[0x19] + b1[0x1A];
-    b2[0x1A] = (b1[0x19] - b1[0x1A]) * cos1;
-    b2[0x1B] = (b1[0x18] - b1[0x1B]) * cos0;
-    b2[0x1C] = b1[0x1C] + b1[0x1F];
-    b2[0x1D] = b1[0x1D] + b1[0x1E];
-    b2[0x1E] = (b1[0x1E] - b1[0x1D]) * cos1;
-    b2[0x1F] = (b1[0x1F] - b1[0x1C]) * cos0;
-  }
-
-  {
-    register real const cos0 = pnts[4][0];
-
-    b1[0x00] = b2[0x00] + b2[0x01];
-    b1[0x01] = (b2[0x00] - b2[0x01]) * cos0;
-    b1[0x02] = b2[0x02] + b2[0x03];
-    b1[0x03] = (b2[0x03] - b2[0x02]) * cos0;
-    b1[0x02] += b1[0x03];
-
-    b1[0x04] = b2[0x04] + b2[0x05];
-    b1[0x05] = (b2[0x04] - b2[0x05]) * cos0;
-    b1[0x06] = b2[0x06] + b2[0x07];
-    b1[0x07] = (b2[0x07] - b2[0x06]) * cos0;
-    b1[0x06] += b1[0x07];
-    b1[0x04] += b1[0x06];
-    b1[0x06] += b1[0x05];
-    b1[0x05] += b1[0x07];
-
-    b1[0x08] = b2[0x08] + b2[0x09];
-    b1[0x09] = (b2[0x08] - b2[0x09]) * cos0;
-    b1[0x0A] = b2[0x0A] + b2[0x0B];
-    b1[0x0B] = (b2[0x0B] - b2[0x0A]) * cos0;
-    b1[0x0A] += b1[0x0B];
-
-    b1[0x0C] = b2[0x0C] + b2[0x0D];
-    b1[0x0D] = (b2[0x0C] - b2[0x0D]) * cos0;
-    b1[0x0E] = b2[0x0E] + b2[0x0F];
-    b1[0x0F] = (b2[0x0F] - b2[0x0E]) * cos0;
-    b1[0x0E] += b1[0x0F];
-    b1[0x0C] += b1[0x0E];
-    b1[0x0E] += b1[0x0D];
-    b1[0x0D] += b1[0x0F];
-
-    b1[0x10] = b2[0x10] + b2[0x11];
-    b1[0x11] = (b2[0x10] - b2[0x11]) * cos0;
-    b1[0x12] = b2[0x12] + b2[0x13];
-    b1[0x13] = (b2[0x13] - b2[0x12]) * cos0;
-    b1[0x12] += b1[0x13];
-
-    b1[0x14] = b2[0x14] + b2[0x15];
-    b1[0x15] = (b2[0x14] - b2[0x15]) * cos0;
-    b1[0x16] = b2[0x16] + b2[0x17];
-    b1[0x17] = (b2[0x17] - b2[0x16]) * cos0;
-    b1[0x16] += b1[0x17];
-    b1[0x14] += b1[0x16];
-    b1[0x16] += b1[0x15];
-    b1[0x15] += b1[0x17];
-
-    b1[0x18] = b2[0x18] + b2[0x19];
-    b1[0x19] = (b2[0x18] - b2[0x19]) * cos0;
-    b1[0x1A] = b2[0x1A] + b2[0x1B];
-    b1[0x1B] = (b2[0x1B] - b2[0x1A]) * cos0;
-    b1[0x1A] += b1[0x1B];
-
-    b1[0x1C] = b2[0x1C] + b2[0x1D];
-    b1[0x1D] = (b2[0x1C] - b2[0x1D]) * cos0;
-    b1[0x1E] = b2[0x1E] + b2[0x1F];
-    b1[0x1F] = (b2[0x1F] - b2[0x1E]) * cos0;
-    b1[0x1E] += b1[0x1F];
-    b1[0x1C] += b1[0x1E];
-    b1[0x1E] += b1[0x1D];
-    b1[0x1D] += b1[0x1F];
-  }
-
-  out0[0x10*16] = b1[0x00];
-  out0[0x10*12] = b1[0x04];
-  out0[0x10* 8] = b1[0x02];
-  out0[0x10* 4] = b1[0x06];
-  out0[0x10* 0] = b1[0x01];
-  out1[0x10* 0] = b1[0x01];
-  out1[0x10* 4] = b1[0x05];
-  out1[0x10* 8] = b1[0x03];
-  out1[0x10*12] = b1[0x07];
-
-  b1[0x08] += b1[0x0C];
-  out0[0x10*14] = b1[0x08];
-  b1[0x0C] += b1[0x0a];
-  out0[0x10*10] = b1[0x0C];
-  b1[0x0A] += b1[0x0E];
-  out0[0x10* 6] = b1[0x0A];
-  b1[0x0E] += b1[0x09];
-  out0[0x10* 2] = b1[0x0E];
-  b1[0x09] += b1[0x0D];
-  out1[0x10* 2] = b1[0x09];
-  b1[0x0D] += b1[0x0B];
-  out1[0x10* 6] = b1[0x0D];
-  b1[0x0B] += b1[0x0F];
-  out1[0x10*10] = b1[0x0B];
-  out1[0x10*14] = b1[0x0F];
-
-  b1[0x18] += b1[0x1C];
-  out0[0x10*15] = b1[0x10] + b1[0x18];
-  out0[0x10*13] = b1[0x18] + b1[0x14];
-  b1[0x1C] += b1[0x1a];
-  out0[0x10*11] = b1[0x14] + b1[0x1C];
-  out0[0x10* 9] = b1[0x1C] + b1[0x12];
-  b1[0x1A] += b1[0x1E];
-  out0[0x10* 7] = b1[0x12] + b1[0x1A];
-  out0[0x10* 5] = b1[0x1A] + b1[0x16];
-  b1[0x1E] += b1[0x19];
-  out0[0x10* 3] = b1[0x16] + b1[0x1E];
-  out0[0x10* 1] = b1[0x1E] + b1[0x11];
-  b1[0x19] += b1[0x1D];
-  out1[0x10* 1] = b1[0x11] + b1[0x19];
-  out1[0x10* 3] = b1[0x19] + b1[0x15];
-  b1[0x1D] += b1[0x1B];
-  out1[0x10* 5] = b1[0x15] + b1[0x1D];
-  out1[0x10* 7] = b1[0x1D] + b1[0x13];
-  b1[0x1B] += b1[0x1F];
-  out1[0x10* 9] = b1[0x13] + b1[0x1B];
-  out1[0x10*11] = b1[0x1B] + b1[0x17];
-  out1[0x10*13] = b1[0x17] + b1[0x1F];
-  out1[0x10*15] = b1[0x1F];
 }
 
 

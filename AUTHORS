@@ -18,6 +18,7 @@ Adrian Bacon <adrian.bacon@xs4all.nl>: patched decode_i586_dither (noise shaped 
 Cool Feet Audio project <nutcase@dtfm.org>: realtime equalizer control
 Steve Grundell <www@grundell.u-net.com>: clean stdout in control mode with stdout decoding
 Romain Dolbeau <romain@dolbeau.org>: Altivec support (taken from mplayer)
+Taihei Monma <tmkk@mac.com>: Altivec improvements
 higway <higway@mednet.md>: MMX Patch
 Clemens Ladisch <clemens@ladisch.de>: ALSA 0.9/1.0 support
 

@@ -17,7 +17,15 @@ unsigned char *conv16to8;
 
 #ifndef USE_MMX
 real decwin[512+32];
+#ifdef USE_ALTIVEC
+static real __attribute__ ((aligned (16))) cos64[16];
+static real __attribute__ ((aligned (16))) cos32[8];
+static real __attribute__ ((aligned (16))) cos16[4];
+static real __attribute__ ((aligned (16))) cos8[2];
+static real __attribute__ ((aligned (16))) cos4[1];
+#else
 static real cos64[16],cos32[8],cos16[4],cos8[2],cos4[1];
+#endif
 
 real *pnts[] = { cos64,cos32,cos16,cos8,cos4 };
 

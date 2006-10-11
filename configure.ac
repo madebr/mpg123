@@ -221,7 +221,17 @@ case $target in
     cpu_type="generic_fpu"
   ;;
   *-apple-darwin*)
-    cpu_type="generic_fpu"
+    AC_MSG_CHECKING([if CPU type supports AltiVec])
+    case `machine` in
+      ppc7400 | ppc7450 | ppc970)
+        AC_MSG_RESULT([yes])
+        cpu_type="altivec"
+      ;;
+      *)
+        AC_MSG_RESULT([no])
+        cpu_type="generic_fpu"
+      ;;
+    esac
   ;;
   i386-*-freebsd*)
     cpu_type="i386_fpu"
@@ -275,7 +285,7 @@ case $cpu_type in
     CFLAGS="$CFLAGS -DREAL_IS_FIXED"
   ;;
   altivec)
-    CFLAGS="$CFLAGS -maltivec -DREAL_IS_FLOAT"
+    CFLAGS="$CFLAGS -maltivec -faltivec -DREAL_IS_FLOAT -DUSE_ALTIVEC"
   ;;
   i386) 
     CFLAGS="$CFLAGS -march=i386 -DI386_ASSEM -DREAL_IS_FLOAT"
