@@ -325,7 +325,7 @@ AC_SUBST( CPU_TYPE_LIB )
 dnl ############## Compiler Optimizations
 
 # None chosen?
-if test "x$with_optimization" == "x"; then
+if test "x$with_optimization" = "x"; then
 	if test "$debugging" = "enabled"; then
 		with_optimization="0"
 	else
@@ -363,7 +363,7 @@ esac
 
 dnl ############## Seektable size
 
-if test "x$with_seektable" == "x"; then
+if test "x$with_seektable" = "x"; then
 	seektable=1000
 else
 	seektable=$with_seektable
