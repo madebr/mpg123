@@ -162,7 +162,9 @@ void init_output(void)
     sigemptyset (&newsigset);
     sigaddset (&newsigset, SIGUSR1);
     sigprocmask (SIG_BLOCK, &newsigset, &oldsigset);
+    #if !defined(WIN32) && !defined(GENERIC)
     catchsignal (SIGCHLD, catch_child);
+	 #endif
     switch ((buffer_pid = fork())) {
       case -1: /* error */
         perror("fork()");
