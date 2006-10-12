@@ -700,7 +700,7 @@ unsigned int proxyport;
 
 #define ACCEPT_HEAD "Accept: audio/mpeg, audio/x-mpegurl, */*\r\n"
 
-int http_open (char *url)
+int http_open (char* url, char** content_type)
 {
 }
 #endif
