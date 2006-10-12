@@ -378,7 +378,8 @@ int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 												if(param.verbose > 1) fprintf(stderr, "ID3v2: it is for the master channel\n");
 												/* two bytes adjustment, one byte for bits representing peak - n bytes for peak */
 												/* 16 bit signed integer = dB * 512 */
-												rva_gain[rva_mode] = (float) ((((int16_t) realdata[pos]) << 8) | ((int16_t) realdata[pos+1])) / 512;
+												/* we already assume short being 16 bit */
+												rva_gain[rva_mode] = (float) ((((short) realdata[pos]) << 8) | ((short) realdata[pos+1])) / 512;
 												pos += 2;
 												if(param.verbose > 1) fprintf(stderr, "ID3v2: RVA value %fdB\n", rva_gain[rva_mode]);
 												/* heh, the peak value is represented by a number of bits - but in what manner? Skipping that part */
