@@ -1,4 +1,4 @@
-dnl configure.ac: source for the configure script
+ dnl configure.ac: source for the configure script
 
 dnl copyright by the mpg123 project - free software under the terms of the LGPL 2.1
 dnl see COPYING and AUTHORS files in distribution or http://mpg123.de
@@ -394,6 +394,8 @@ case $target in
   *-*-solaris*)
     audio_system="sun"
   ;;
+  # esd has been assumed to be the one for cygwin, but plain OSS does it
+  # can even make mpg123 run "natively" with a cygwin.dll
   *-*-cygwin*)
     audio_system="oss"
   ;;
