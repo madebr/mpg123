@@ -1,6 +1,6 @@
 * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *   mpg123 - MPEG 1.0/2.0/2.5 audio player            *
-*   README for version 0.60, dated at 22.08.2006      *
+*   README for version 0.61, dated at 20.10.2006      *
 *                                                     *
 * ...still the fastest MPEG audio player for UNIX ;)  *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -52,6 +52,8 @@ long: see doc/CONTACT
 
 3. Interface/Usage
 
+Please consult the manpage mpg123(1). Some starter info follows.
+
 3.1 Simple Console Usage
 
 Mpg123 is a console program - normally it just plays a list of files you specify on command line and that's it. See the included manpage or
@@ -72,6 +74,7 @@ You can specify the option -C to enable a terminal control interface enabling to
 'f' to skip to nest track
 'p' for pause (actually, looping current chunk)
 's' to stop/restart playback (the usual "pause" function...)
+(space bar for the same)
 'q' to quit playback
 ',' for rewind seek
 '.' for forward seek

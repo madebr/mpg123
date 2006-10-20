@@ -1,3 +1,19 @@
+0.61
+-----
+
+- improved AltiVec code from Taihei Monma
+- an i486 optimization by Petr Salinger
+- improving interactive experience (terminal, frontends)
+  -> prevent/lessen bad effect after seeking while paused
+  -> show targeted position while seeking in terminal mode while paused
+  -> not messing up terminal on unexpected errors
+- decoder robustness - better file sync (weird junk at beginning, some vbr frames)
+- build system improvements:
+  -> fixing configure isses on some platforms
+  -> adding cygwin, kfreebsd
+- extended fix for CVE-2006-1655
+- generic code should compiling again...
+
 0.60 final (The Team!)
 -----
 

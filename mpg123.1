@@ -1,6 +1,6 @@
-.TH mpg123 1 "12 Aug 2006"
+.TH mpg123 1 "20 Oct 2006"
 .SH NAME
-mpg123 \- play audio MPEG 1.0/2.0/2.5 file (layers 1, 2 and 3)
+mpg123 \- play audio MPEG 1.0/2.0/2.5 stream (layers 1, 2 and 3)
 .SH SYNOPSIS
 .B mpg123
 [
@@ -17,13 +17,13 @@ reads one or more
 and plays them on the audio device (default) or
 outputs them to stdout.
 .IR file\^ / URL
-is assumed to be an MPEG-1/2 audio bit stream.
+is assumed to be an MPEG audio bit stream.
 .SH OPERANDS
 The following operands are supported:
 .TP 8
 .IR file (s)
 The path name(s) of one or more input files.  They must be
-valid MPEG-1/2 audio layer-1, -2 or -3 bit streams.
+valid MPEG-1.0/2.0/2.5 audio layer 1, 2 or 3 bit streams.
 If a dash ``\-'' is specified, MPEG data will
 be read from the standard input.  Furthermore, any name
 starting with ``http://'' is recognized as
@@ -51,7 +51,7 @@ frames.  By default the complete stream is decoded.
 Do NOT try to resync and continuing decoding if an error occurs in
 the input file. Normally, 
 .B mpg123
-tries top keep the playback alive at all costs, including skipping invalid material and searching new header when something goes wrong.
+tries to keep the playback alive at all costs, including skipping invalid material and searching new header when something goes wrong.
 With this switch you can make it bail out on data errors
 (and perhaps spare your ears a bad time). Note that this switch may either disappear
 in future or its meaning be revised since it now does the opposite of what it
@@ -301,7 +301,7 @@ Print the version string.
 In addition to reading MPEG audio streams from ordinary
 files and from the standard input,
 .B mpg123
-supports retrieval of MPEG audio files via the HTTP protocol, 
+supports retrieval of MPEG audio files or playlists via the HTTP protocol, 
 which is used in the World Wide Web (WWW).  Such files are
 specified using a so-called URL, which starts with ``http://''.  When a file with
 that prefix is encountered,
@@ -388,7 +388,7 @@ the
 option to use a buffer of reasonable size (at least 1000 Kbytes).
 .SH BUGS
 .P
-Mostly MPEG-1 layer 2 and 3 are tested in real life, other variants may be buggy.
+Mostly MPEG-1 layer 2 and 3 are tested in real life.
 Please report any issues and provide test files to help fixing them.
 .P
 Free format streams are not supported, but they could be (there is some code).
@@ -415,7 +415,7 @@ Uses code or ideas from various people, see the AUTHORS file accompanying the so
 .SH LICENSE
 The majority of
 .B mpg123
-is licensed under the GNU Lesser/Library General Public License, LGPL, version 2.1 . There is in fact only one source code file being exclusivly under GPL version 2, not LGPL: the old alsa output driver that most likely is not even compiled into your binary.
+is licensed under the GNU Lesser/Library General Public License, LGPL, version 2.1 .
 .SH WEBSITE
 http://www.mpg123.org
 .br

@@ -13,6 +13,7 @@ The creator: Michael Hipp (email: hippm@informatik.uni-tuebingen.de - please bot
 
 Contributions/ideas Thomas Orgis era (includes backports from mhipp trunk):
 
+Petr Salinger <Petr.Salinger@seznam.cz>: i486 enhancement
 mpdavig@users.sourceforge.net: linux-ppc-nas Makefile.legacy entry
 Adrian Bacon <adrian.bacon@xs4all.nl>: patched decode_i586_dither (noise shaped float/int rounding)
 Cool Feet Audio project <nutcase@dtfm.org>: realtime equalizer control
