@@ -26,30 +26,50 @@ extern int buffer_pid;
 static int term_enable = 0;
 static struct termios old_tio;
 
-/* initialze terminal */
-void term_init(void)
+void term_sigcont(int sig);
+
+/* This must call only functions safe inside a signal handler. */
+int term_setup(struct termios *pattern)
 {
-  struct termios tio;
-  debug("term_init");
+  struct termios tio = *pattern;
 
-  term_enable = 0;
+  signal(SIGCONT, term_sigcont);
 
-  if(tcgetattr(0,&tio) < 0) {
-    fprintf(stderr,"Can't get terminal attributes\n");
-    return;
-  }
-  old_tio=tio;
   tio.c_lflag &= ~(ICANON|ECHO); 
   tio.c_cc[VMIN] = 1;
   tio.c_cc[VTIME] = 0;
+  return tcsetattr(0,TCSANOW,&tio);
+}
 
-  if(tcsetattr(0,TCSANOW,&tio) < 0) {
+void term_sigcont(int sig)
+{
+  term_enable = 0;
+
+  if (term_setup(&old_tio) < 0) {
     fprintf(stderr,"Can't set terminal attributes\n");
     return;
   }
 
   term_enable = 1;
- 
+}
+
+/* initialze terminal */
+void term_init(void)
+{
+  debug("term_init");
+
+  term_enable = 0;
+
+  if(tcgetattr(0,&old_tio) < 0) {
+    fprintf(stderr,"Can't get terminal attributes\n");
+    return;
+  }
+  if(term_setup(&old_tio) < 0) {
+    fprintf(stderr,"Can't set terminal attributes\n");
+    return;
+  }
+
+  term_enable = 1;
 }
 
 static long term_handle_input(struct frame *,int);
