@@ -5,6 +5,7 @@
 	see COPYING and AUTHORS files in distribution or http://mpg123.de
 	initially written by Guillaume Outters
 	modified by Nicholas J Humfrey to use SFIFO code
+	modified by Taihei Monma to use AudioUnit and AudioConverter APIs
 */
 
 
@@ -13,7 +14,9 @@
 #include "sfifo.h"
 #include "mpg123.h"
 
-#include <CoreAudio/AudioHardware.h>
+#include <CoreServices/CoreServices.h>
+#include <AudioUnit/AudioUnit.h>
+#include <AudioToolbox/AudioToolbox.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -23,11 +26,16 @@
 
 struct anEnv
 {
-	AudioDeviceID device;
+	AudioConverterRef converter;
+	AudioUnit outputUnit;
 	char play;
+	int channels;
+	int last_buffer;
+	int play_done;
+	int decode_done;
 	
 	/* Convertion buffer */
-	float * buffer;
+	unsigned char * buffer;
 	size_t buffer_size;
 	
 	/* Ring buffer */
@@ -38,23 +46,39 @@ static struct anEnv *env=NULL;
 
 
 
-static OSStatus playProc(AudioDeviceID inDevice, const AudioTimeStamp * inNow,
-						 const AudioBufferList * inInputData, const AudioTimeStamp * inInputTime,
-                         AudioBufferList * outOutputData, const AudioTimeStamp * inOutputTime, void * inClientData)
+static OSStatus playProc(AudioConverterRef inAudioConverter,
+						 UInt32 *ioNumberDataPackets,
+                         AudioBufferList *outOutputData,
+                         AudioStreamPacketDescription **outDataPacketDescription,
+                         void* inClientData)
 {
-	
 	long n;
+	
+	if(env->last_buffer) {
+		env->play_done = 1;
+		return noErr;
+	}
 	
 	for(n = 0; n < outOutputData->mNumberBuffers; n++)
 	{
-		unsigned int wanted = outOutputData->mBuffers[n].mDataByteSize;
-		unsigned char *dest = outOutputData->mBuffers[n].mData;
+		unsigned int wanted = *ioNumberDataPackets * env->channels * 2;
+		unsigned char *dest;
 		unsigned int read;
+		if(env->buffer_size < wanted) {
+			debug1("Allocating %d byte sample conversion buffer", wanted);
+			env->buffer = realloc( env->buffer, wanted);
+			env->buffer_size = wanted;
+		}
+		dest = env->buffer;
 		
 		/* Only play if we have data left */
 		if ( sfifo_used( &env->fifo ) < wanted ) {
-			warning("Didn't have any audio data in callback (buffer underflow)");
-			return -1;
+			if(!env->decode_done) {
+				warning("Didn't have any audio data in callback (buffer underflow)");
+				return -1;
+			}
+			wanted = sfifo_used( &env->fifo );
+			env->last_buffer = 1;
 		}
 		
 		/* Read audio from FIFO to SDL's buffer */
@@ -63,18 +87,36 @@ static OSStatus playProc(AudioDeviceID inDevice, const AudioTimeStamp * inNow,
 		if (wanted!=read)
 			warning2("Error reading from the ring buffer (wanted=%u, read=%u).\n", wanted, read);
 		
+		outOutputData->mBuffers[n].mDataByteSize = read;
+		outOutputData->mBuffers[n].mData = dest;
 	}
 	
-	return (0); 
+	return noErr; 
 }
 
+static OSStatus convertProc(void *inRefCon, AudioUnitRenderActionFlags *inActionFlags,
+                            const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber,
+                            UInt32 inNumFrames, AudioBufferList *ioData)
+{
+	OSStatus err= noErr;
+	void *inInputDataProcUserData=NULL;
+	AudioStreamPacketDescription* outPacketDescription =NULL;
+	
+	err = AudioConverterFillComplexBuffer(env->converter, playProc, inInputDataProcUserData, &inNumFrames, ioData, outPacketDescription);
+	
+	return err;
+}
 
 
 int audio_open(struct audio_info_struct *ai)
 {
-	AudioStreamBasicDescription format;
-	Float64 devicerate;
 	UInt32 size;
+	ComponentDescription desc;
+	Component comp;
+	AudioStreamBasicDescription inFormat;
+	AudioStreamBasicDescription outFormat;
+	AURenderCallbackStruct  renderCallback;
+	Boolean outWritable;
 	
 	/* Allocate memory for data structure */
 	if (!env) {
@@ -86,57 +128,92 @@ int audio_open(struct audio_info_struct *ai)
 	}
 
 	/* Initialize our environment */
-	env->device = 0;
 	env->play = 0;
 	env->buffer = NULL;
 	env->buffer_size = 0;
-	
+	env->last_buffer = 0;
+	env->play_done = 0;
+	env->decode_done = 0;
 
 	
-	/* Get the default audio output device */
-	size = sizeof(env->device);
-	if(AudioHardwareGetProperty(kAudioHardwarePropertyDefaultOutputDevice, &size, &env->device)) {
-		error("AudioHardwareGetProperty(kAudioHardwarePropertyDefaultOutputDevice) failed");
+	/* Get the default audio output unit */
+	desc.componentType = kAudioUnitType_Output; 
+	desc.componentSubType = kAudioUnitSubType_DefaultOutput;
+	desc.componentManufacturer = kAudioUnitManufacturer_Apple;
+	desc.componentFlags = 0;
+	desc.componentFlagsMask = 0;
+	comp = FindNextComponent(NULL, &desc);
+	if(comp == NULL) {
+		error("FindNextComponent failed");
 		return(-1);
 	}
 	
-	/* Ensure that the device supports PCM */
-	size = sizeof(format);
-	if(AudioDeviceGetProperty(env->device, 0, 0, kAudioDevicePropertyStreamFormat, &size, &format)) {
-		error("AudioDeviceGetProperty(kAudioDevicePropertyStreamFormat) failed");
-		return(-1);
-	}
-	if(format.mFormatID != kAudioFormatLinearPCM) {
-		error("format.mFormatID != kAudioFormatLinearPCM");
-		return(-1);
+	if(OpenAComponent(comp, &(env->outputUnit)))  {
+		error("OpenAComponent failed");
+		return (-1);
 	}
 	
-	/* Get the nominal sample rate of the device */
-	size = sizeof(devicerate);
-	if(AudioDeviceGetProperty(env->device, 0, 0, kAudioDevicePropertyNominalSampleRate, &size, &devicerate)) {
-		error("AudioDeviceGetProperty(kAudioDevicePropertyNominalSampleRate) failed");
-		return(-1);
+	if(AudioUnitInitialize(env->outputUnit)) {
+		error("AudioUnitInitialize failed");
+		return (-1);
 	}
+	
+	/* Specify the output PCM format */
+	AudioUnitGetPropertyInfo(env->outputUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &size, &outWritable);
+	if(AudioUnitGetProperty(env->outputUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &outFormat, &size)) {
+		error("AudioUnitGetProperty(kAudioUnitProperty_StreamFormat) failed");
+		return (-1);
+	}
+	
+	if(AudioUnitSetProperty(env->outputUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &outFormat, size)) {
+		error("AudioUnitSetProperty(kAudioUnitProperty_StreamFormat) failed");
+		return (-1);
+	}
+	
+	/* Specify the input PCM format */
+	env->channels = ai->channels;
+	inFormat.mSampleRate = ai->rate;
+	inFormat.mChannelsPerFrame = ai->channels;
+	inFormat.mBitsPerChannel = 16;
+	inFormat.mBytesPerPacket = 2*inFormat.mChannelsPerFrame;
+	inFormat.mFramesPerPacket = 1;
+	inFormat.mBytesPerFrame = 2*inFormat.mChannelsPerFrame;
+	inFormat.mFormatID = kAudioFormatLinearPCM;
+#ifdef _BIG_ENDIAN
+	inFormat.mFormatFlags = kLinearPCMFormatFlagIsSignedInteger | kLinearPCMFormatFlagIsPacked | kLinearPCMFormatFlagIsBigEndian;
+#else
+	inFormat.mFormatFlags = kLinearPCMFormatFlagIsSignedInteger | kLinearPCMFormatFlagIsPacked;
+#endif
+	
 		
 	/* Add our callback - but don't start it yet */
-	if(AudioDeviceAddIOProc(env->device, playProc, env)) {
-		error("AudioDeviceAddIOProc failed");
+	memset(&renderCallback, 0, sizeof(AURenderCallbackStruct));
+	renderCallback.inputProc = convertProc;
+	renderCallback.inputProcRefCon = 0;
+	if(AudioUnitSetProperty(env->outputUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &renderCallback, sizeof(AURenderCallbackStruct))) {
+		error("AudioUnitSetProperty(kAudioUnitProperty_SetRenderCallback) failed");
 		return(-1);
 	}
 	
 	
-	/* Open an audio I/O stream. */
+	/* Open an audio I/O stream and create converter */
 	if (ai->rate > 0 && ai->channels >0 ) {
 		int ringbuffer_len;
-		
-		/* Check sample rate */
-		if (devicerate != ai->rate) {
-			error2("Error: sample rate of device doesn't match playback rate (%d != %d)", (int)devicerate, (int)ai->rate);
+
+		if(AudioConverterNew(&inFormat, &outFormat, &(env->converter))) {
+			error("AudioConverterNew failed");
 			return(-1);
+		}
+		if(ai->channels == 1) {
+			SInt32 channelMap[2] = { 0, 0 };
+			if(AudioConverterSetProperty(env->converter, kAudioConverterChannelMap, sizeof(channelMap), channelMap)) {
+				error("AudioConverterSetProperty(kAudioConverterChannelMap) failed");
+				return(-1);
+			}
 		}
 		
 		/* Initialise FIFO */
-		ringbuffer_len = ai->rate * FIFO_DURATION * sizeof(float) *ai->channels;
+		ringbuffer_len = ai->rate * FIFO_DURATION * sizeof(short) *ai->channels;
 		debug2( "Allocating %d byte ring-buffer (%f seconds)", ringbuffer_len, (float)FIFO_DURATION);
 		sfifo_init( &env->fifo, ringbuffer_len );
 									   
@@ -155,31 +232,16 @@ int audio_get_formats(struct audio_info_struct *ai)
 
 int audio_play_samples(struct audio_info_struct *ai, unsigned char *buf, int len)
 {
-	short *src = (short *)buf;
-	int samples = len/sizeof(short);
-	int flen = samples*sizeof(float);
-	int written, n;
+	int written;
 
 	/* If there is no room, then sleep for half the length of the FIFO */
-	while (sfifo_space( &env->fifo ) < flen ) {
+	while (sfifo_space( &env->fifo ) < len ) {
 		usleep( (FIFO_DURATION/2) * 1000000 );
-	}
-
-	/* Ensure conversion buffer is big enough */
-	if (env->buffer_size < flen) {
-		debug1("Allocating %d byte sample conversion buffer", flen);
-		env->buffer = realloc( env->buffer, flen);
-		env->buffer_size = flen;
-	}
-	
-	/* Convert audio samples to 32-bit float */
-	for( n=0; n<samples; n++) {
-		env->buffer[n] = src[n] / 32768.0f;
 	}
 	
 	/* Store converted audio in ring buffer */
-	written = sfifo_write( &env->fifo, (char*)env->buffer, flen);
-	if (written != flen) {
+	written = sfifo_write( &env->fifo, (char*)buf, len);
+	if (written != len) {
 		warning( "Failed to write audio to ring buffer" );
 		return -1;
 	}
@@ -187,8 +249,8 @@ int audio_play_samples(struct audio_info_struct *ai, unsigned char *buf, int len
 	/* Start playback now that we have something to play */
 	if(!env->play)
 	{
-		if(AudioDeviceStart(env->device, playProc)) {
-			error("AudioDeviceStart failed");
+		if(AudioOutputUnitStart(env->outputUnit)) {
+			error("AudioOutputUnitStart failed");
 			return(-1);
 		}
 		env->play = 1;
@@ -199,11 +261,15 @@ int audio_play_samples(struct audio_info_struct *ai, unsigned char *buf, int len
 
 int audio_close(struct audio_info_struct *ai)
 {
-
 	if (env) {
+		env->decode_done = 1;
+		while(!env->play_done && env->play) usleep(10000);
+		
 		/* No matter the error code, we want to close it (by brute force if necessary) */
-		AudioDeviceStop(env->device, playProc);
-		AudioDeviceRemoveIOProc(env->device, playProc);
+		AudioConverterDispose(env->converter);
+		AudioOutputUnitStop(env->outputUnit);
+		AudioUnitUninitialize(env->outputUnit);
+		CloseComponent(env->outputUnit);
 	
 	    /* Free the ring buffer */
 		sfifo_close( &env->fifo );
@@ -223,8 +289,8 @@ void audio_queueflush(struct audio_info_struct *ai)
 {
 
 	/* Stop playback */
-	if(AudioDeviceStop(env->device, playProc)) {
-		error("AudioDeviceStop failed");
+	if(AudioOutputUnitStop(env->outputUnit)) {
+		error("AudioOutputUnitStop failed");
 	}
 	env->play=0;
 	

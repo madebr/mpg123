@@ -185,7 +185,8 @@ AC_CHECK_HEADERS([sys/soundcard.h linux/soundcard.h machine/soundcard.h])
 AC_CHECK_HEADERS([sun/audioio.h sys/audioio.h asm/audioio.h sys/audio.h])
 
 # Mac OS X
-AC_CHECK_HEADERS([CoreAudio/CoreAudio.h], HAVE_COREAUDIO=yes, HAVE_COREAUDIO=no)
+AC_CHECK_HEADERS([AudioUnit/AudioUnit.h CoreServices/CoreServices.h AudioToolbox/AudioToolbox.h],
+					HAVE_MACOSXAUDIO=yes, HAVE_MACOSXAUDIO=no)
 
 
 
@@ -453,10 +454,10 @@ case $audio_system in
     AUDIO_LIBS=$JACK_LIBS
   ;;
   macosx)
-  	if test "x$HAVE_COREAUDIO" != "xyes" ; then
-  		AC_MSG_ERROR( Can't find Mac OS X's CoreAudio header files )
+  	if test "x$HAVE_MACOSXAUDIO" != "xyes" ; then
+  		AC_MSG_ERROR( Can't find Mac OS X's audio header files )
   	fi
-  	AUDIO_LIBS="-framework CoreAudio"
+  	AUDIO_LIBS="-framework AudioToolbox -framework AudioUnit -framework CoreServices"
   ;;
   mint)
     # Currently unsupported in the new build system
