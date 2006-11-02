@@ -147,7 +147,6 @@ int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 
 	if(buf[0] == 0xff) /* major version, will never be 0xff */
 	return -1;
-	debug1("ID3v2: revision %i", buf[0]);
 	/* second new byte are some nice flags, if these are invalid skip the whole thing */
 	flags = buf[1];
 	debug1("ID3v2: flags 0x%08x", flags);
@@ -165,6 +164,7 @@ int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 	/* we have already read 10 bytes, so left are length or length+10 bytes belonging to tag */
 	if(!syncsafe_to_long(buf+2,length)) return -1;
 	debug1("ID3v2: tag data length %lu", length);
+	if(param.verbose > 1) fprintf(stderr,"Note: ID3v2.%i rev %i tag of %lu bytes\n", major, buf[0], length);
 	/* skip if unknown version/scary flags, parse otherwise */
 	if((flags & UNKNOWN_FLAGS) || (major > 4))
 	{
@@ -179,7 +179,7 @@ int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 		/* try to interpret that beast */
 		if((tagdata = (unsigned char*) malloc(length+1)) != NULL)
 		{
-			if(param.verbose > 1) fprintf(stderr, "ID3v2: analysing frames...\n");
+			debug("ID3v2: analysing frames...");
 			if(rds->read_frame_body(rds,tagdata,length))
 			{
 				unsigned long tagpos = 0;
@@ -188,7 +188,7 @@ int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 				tagdata[length] = 0;
 				if(flags & EXTHEAD_FLAG)
 				{
-					if(param.verbose > 1) fprintf(stderr, "ID3v2: skipping extended header\n");
+					debug("ID3v2: skipping extended header");
 					if(!syncsafe_to_long(tagdata, tagpos)) ret = -1;
 				}
 				if(ret >= 0)
@@ -227,7 +227,7 @@ int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 								error("ID3v2: non-syncsafe frame size, aborting");
 								break;
 							}
-							if(param.verbose > 1) fprintf(stderr, "ID3v2: %s frame of size %lu\n", id, framesize);
+							if(param.verbose > 2) fprintf(stderr, "Note: ID3v2 %s frame of size %lu\n", id, framesize);
 							tagpos += 10 + framesize; /* the important advancement in whole tag */
 							pos += 4;
 							fflags = (((unsigned long) tagdata[pos]) << 8) | ((unsigned long) tagdata[pos+1]);
@@ -310,14 +310,14 @@ int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 											{
 												char* comstr;
 												size_t comsize = realsize-4-(strlen((char*)realdata+pos)+1);
-												if(param.verbose > 1) fprintf(stderr, "ID3v2: evaluating %s data for RVA\n", realdata+pos);
+												if(param.verbose > 2) fprintf(stderr, "Note: evaluating %s data for RVA\n", realdata+pos);
 												if((comstr = (char*) malloc(comsize+1)) != NULL)
 												{
 													memcpy(comstr,realdata+realsize-comsize, comsize);
 													comstr[comsize] = 0;
 													/* hm, what about utf16 here? */
 													rva_gain[rva_mode] = atof(comstr);
-													if(param.verbose > 1) fprintf(stderr, "ID3v2: RVA value %fdB\n", rva_gain[rva_mode]);
+													if(param.verbose > 2) fprintf(stderr, "Note: RVA value %fdB\n", rva_gain[rva_mode]);
 													rva_peak[rva_mode] = 0;
 													rva_level[rva_mode] = tt+1;
 													free(comstr);
@@ -347,7 +347,7 @@ int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 											
 											if(!strncasecmp((char*)realdata+pos, "replaygain_track_",17))
 											{
-												if(param.verbose > 1) fprintf(stderr, "ID3v2: track gain/peak\n");
+												debug("ID3v2: track gain/peak");
 												rva_mode = 0;
 												if(!strcasecmp((char*)realdata+pos, "replaygain_track_peak")) is_peak = 1;
 												else if(strcasecmp((char*)realdata+pos, "replaygain_track_gain")) rva_mode = -1;
@@ -355,7 +355,7 @@ int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 											else
 											if(!strncasecmp((char*)realdata+pos, "replaygain_album_",17))
 											{
-												if(param.verbose > 1) fprintf(stderr, "ID3v2: album gain/peak\n");
+												debug("ID3v2: album gain/peak");
 												rva_mode = 1;
 												if(!strcasecmp((char*)realdata+pos, "replaygain_album_peak")) is_peak = 1;
 												else if(strcasecmp((char*)realdata+pos, "replaygain_album_gain")) rva_mode = -1;
@@ -364,7 +364,7 @@ int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 											{
 												char* comstr;
 												size_t comsize = realsize-1-(strlen((char*)realdata+pos)+1);
-												if(param.verbose > 1) fprintf(stderr, "ID3v2: evaluating %s data for RVA\n", realdata+pos);
+												if(param.verbose > 2) fprintf(stderr, "Note: evaluating %s data for RVA\n", realdata+pos);
 												if((comstr = (char*) malloc(comsize+1)) != NULL)
 												{
 													memcpy(comstr,realdata+realsize-comsize, comsize);
@@ -372,12 +372,12 @@ int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 													if(is_peak)
 													{
 														rva_peak[rva_mode] = atof(comstr);
-														if(param.verbose > 1) fprintf(stderr, "ID3v2: RVA peak %fdB\n", rva_peak[rva_mode]);
+														if(param.verbose > 2) fprintf(stderr, "Note: RVA peak %fdB\n", rva_peak[rva_mode]);
 													}
 													else
 													{
 														rva_gain[rva_mode] = atof(comstr);
-														if(param.verbose > 1) fprintf(stderr, "ID3v2: RVA gain %fdB\n", rva_gain[rva_mode]);
+														if(param.verbose > 2) fprintf(stderr, "Note: RVA gain %fdB\n", rva_gain[rva_mode]);
 													}
 													rva_level[rva_mode] = tt+1;
 													free(comstr);
@@ -391,7 +391,7 @@ int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 									{
 										#ifdef HAVE_INTTYPES_H
 										/* starts with null-terminated identification */
-										if(param.verbose > 1) fprintf(stderr, "ID3v2: RVA2 identification \"%s\"\n", realdata);
+										if(param.verbose > 2) fprintf(stderr, "Note: RVA2 identification \"%s\"\n", realdata);
 										/* default: some individual value, mix mode */
 										rva_mode = 0;
 										if( !strncasecmp((char*)realdata, "album", 5)
@@ -405,13 +405,13 @@ int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 											{
 												++pos;
 												/* only handle master channel */
-												if(param.verbose > 1) fprintf(stderr, "ID3v2: it is for the master channel\n");
+												debug("ID3v2: it is for the master channel");
 												/* two bytes adjustment, one byte for bits representing peak - n bytes for peak */
 												/* 16 bit signed integer = dB * 512 */
 												/* we already assume short being 16 bit */
 												rva_gain[rva_mode] = (float) ((((short) realdata[pos]) << 8) | ((short) realdata[pos+1])) / 512;
 												pos += 2;
-												if(param.verbose > 1) fprintf(stderr, "ID3v2: RVA value %fdB\n", rva_gain[rva_mode]);
+												if(param.verbose > 2) fprintf(stderr, "Note: RVA value %fdB\n", rva_gain[rva_mode]);
 												/* heh, the peak value is represented by a number of bits - but in what manner? Skipping that part */
 												rva_peak[rva_mode] = 0;
 												rva_level[rva_mode] = tt+1;

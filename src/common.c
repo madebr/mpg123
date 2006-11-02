@@ -250,7 +250,7 @@ static void do_rva()
 		if(rva_level[rt] != -1)
 		{
 			long newscale = outscale*pow(10,rva_gain[rt]/20);
-			fprintf(stderr, "Note: doing RVA with gain %f\n", rva_gain[rt]);
+			if(param.verbose > 1) fprintf(stderr, "Note: doing RVA with gain %f\n", rva_gain[rt]);
 			/* if peak is unknown (== 0) this check won't hurt */
 			if((rva_peak[rt]*newscale) > MAXOUTBURST)
 			{
@@ -292,7 +292,7 @@ int read_frame(struct frame *fr)
   unsigned long newhead;
   static unsigned char ssave[34];
 	off_t framepos;
-  int give_note = param.quiet ? 0 : (do_recover ? 0 : 1 );
+  int give_note = param.verbose > 1 ? 1 : (do_recover ? 0 : 1 );
   fsizeold=fr->framesize;       /* for Layer3 */
 
   if (param.halfspeed) {
@@ -343,11 +343,11 @@ init_resync:
 			id3length = parse_new_id3(newhead, rd);
 			goto read_again;
 		}
-		else if(!param.quiet) fprintf(stderr,"Note: Junk at the beginning (0x%08lx)\n",newhead);
+		else if(param.verbose > 1) fprintf(stderr,"Note: Junk at the beginning (0x%08lx)\n",newhead);
 
 		/* I even saw RIFF headers at the beginning of MPEG streams ;( */
 		if(newhead == ('R'<<24)+('I'<<16)+('F'<<8)+'F') {
-			if(!param.quiet) fprintf(stderr, "Note: Looks like a RIFF header.\n");
+			if(param.verbose > 1) fprintf(stderr, "Note: Looks like a RIFF header.\n");
 			if(!rd->head_read(rd,&newhead))
 				return 0;
 			while(newhead != ('d'<<24)+('a'<<16)+('t'<<8)+'a') {
@@ -356,7 +356,7 @@ init_resync:
 			}
 			if(!rd->head_read(rd,&newhead))
 				return 0;
-			if(!param.quiet) fprintf(stderr,"Note: Skipped RIFF header!\n");
+			if(param.verbose > 1) fprintf(stderr,"Note: Skipped RIFF header!\n");
 			goto read_again;
 		}
 		/* unhandled junk... just continue search for a header */
@@ -434,8 +434,7 @@ init_resync:
     /* and those ugly ID3 tags */
       if((newhead & 0xffffff00) == ('T'<<24)+('A'<<16)+('G'<<8)) {
            rd->skip_bytes(rd,124);
-	   if (!param.quiet)
-             fprintf(stderr,"Note: Skipped ID3 Tag!\n");
+	   if (param.verbose > 1) fprintf(stderr,"Note: Skipped ID3 Tag!\n");
            goto read_again;
       }
       /* duplicated code from above! */
@@ -573,7 +572,7 @@ init_resync:
 						unsigned long xing_flags;
 						
 						/* we have one of these headers... */
-						if(!param.quiet) fprintf(stderr, "Note: Xing/Lame/Info header detected\n");
+						if(param.verbose > 1) fprintf(stderr, "Note: Xing/Lame/Info header detected\n");
 						/* now interpret the Xing part, I have 120 bytes total for sure */
 						/* there are 4 bytes for flags, but only the last byte contains known ones */
 						lame_offset += 4; /* now first byte after Xing/Name */
