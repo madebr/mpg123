@@ -488,6 +488,7 @@ int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 
 void print_id3_tag(unsigned char *id3v1buf)
 {
+	if(!(id3.version || id3v1buf)) return;
 	char genre_from_v1 = 0;
 	if(id3v1buf != NULL)
 	{
@@ -677,7 +678,7 @@ void print_id3_tag(unsigned char *id3v1buf)
 		free_stringbuf(&tmp);
 	}
 
-	if(id3.version > 1)
+	if(param.long_id3)
 	{
 		fprintf(stderr,"\n");
 		/* print id3v2 */
@@ -690,11 +691,42 @@ void print_id3_tag(unsigned char *id3v1buf)
 		fprintf(stderr,"\tComment: %s\n", id3.comment.fill ? id3.comment.p : "");
 		fprintf(stderr,"\n");
 	}
-	else if(id3v1buf != NULL)
+	else
 	{
-		fprintf(stderr,"Title  : %-30s  Artist: %s\n",id3.title.p,id3.artist.p);
-		fprintf(stderr,"Album  : %-30s  Year  : %4s\n",id3.album.p,id3.year.p);
-		fprintf(stderr,"Comment: %-30s  Genre : %s\n",id3.comment.p,id3.genre.p);
+		/* We are trying to be smart here and conserve vertical space.
+		   So we will skip tags not set, and try to show them in two parallel columns if they are short, which is by far the	most common case. */
+		/* one _could_ circumvent the strlen calls... */
+		if(id3.title.fill && id3.artist.fill && strlen(id3.title.p) <= 30 && strlen(id3.title.p) <= 30)
+		{
+			fprintf(stderr,"Title:   %-30s  Artist: %s\n",id3.title.p,id3.artist.p);
+		}
+		else
+		{
+			if(id3.title.fill) fprintf(stderr,"Title:   %s\n", id3.title.p);
+			if(id3.artist.fill) fprintf(stderr,"Artist:  %s\n", id3.artist.p);
+		}
+		if (id3.comment.fill && id3.album.fill && strlen(id3.comment.p) <= 30 && strlen(id3.album.p) <= 30)
+		{
+			fprintf(stderr,"Comment: %-30s  Album:  %s\n",id3.comment.p,id3.album.p);
+		}
+		else
+		{
+			if (id3.comment.fill)
+				fprintf(stderr,"Comment: %s\n", id3.comment.p);
+			if (id3.album.fill)
+				fprintf(stderr,"Album:   %s\n", id3.album.p);
+		}
+		if (id3.year.fill && id3.genre.fill && strlen(id3.year.p) <= 30 && strlen(id3.genre.p) <= 30)
+		{
+			fprintf(stderr,"Year:    %-30s  Genre:  %s\n",id3.year.p,id3.genre.p);
+		}
+		else
+		{
+			if (id3.year.fill)
+				fprintf(stderr,"Year:    %s\n", id3.year.p);
+			if (id3.genre.fill)
+				fprintf(stderr,"Genre:   %s\n", id3.genre.p);
+		}
 	}
 }
 

@@ -78,7 +78,8 @@ struct parameter param = {
 #endif
 	0, /* default is to play all titles in playlist */
 	-1, /* do not use rva per default */
-	NULL /* no playlist per default */
+	NULL, /* no playlist per default */
+	0 /* condensed id3 per default */
 };
 
 char *prgName = NULL;
@@ -379,6 +380,7 @@ topt opts[] = {
 	{0, "rva-radio",         GLO_INT,  0, &param.rva, 0 },
 	{0, "rva-album",         GLO_INT,  0, &param.rva, 1 },
 	{0, "rva-audiophile",         GLO_INT,  0, &param.rva, 1 },
+	{0, "long-tag",         GLO_INT,  0, &param.long_id3, 1 },
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -1184,6 +1186,7 @@ static void long_usage(int err)
 	#ifndef GENERIG
 	fprintf(o,"        --title            set xterm/rxvt title to filename\n");
 	#endif
+	fprintf(o,"        --long-tag         spacy id3 display with every item on a separate line\n");
 	fprintf(o," -R     --remote           generic remote interface\n");
 	fprintf(o,"        --remote-err       use stderr for generic remote interface\n");
 	#ifdef HAVE_SETPRIORITY

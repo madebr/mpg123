@@ -217,6 +217,7 @@ struct parameter {
   long listentry; /* possibility to choose playback of one entry in playlist (0: off, > 0 : select, < 0; just show list*/
   int rva; /* (which) rva to do: <0: nothing, 0: radio/mix/track 1: album/audiophile */
   char* listname; /* name of playlist */
+  int long_id3;
 };
 
 /* start to use off_t to properly do LFS in future ... used to be long */
