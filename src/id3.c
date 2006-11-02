@@ -20,6 +20,29 @@ struct taginfo
 
 struct taginfo id3;
 
+/* UTF support definitions */
+
+typedef int (*text_decoder)(char* dest, unsigned char* source, size_t len);
+
+static int decode_il1(char* dest, unsigned char* source, size_t len);
+static int decode_utf16(char* dest, unsigned char* source, size_t len, int str_be);
+static int decode_utf16bom(char* dest, unsigned char* source, size_t len);
+static int decode_utf16be(char* dest, unsigned char* source, size_t len);
+static int decode_utf8(char* dest, unsigned char* source, size_t len);
+int wide_bytelen(int width, char* string, size_t string_size);
+
+static text_decoder text_decoders[4] =
+{
+	decode_il1,
+	decode_utf16bom,
+	decode_utf16be,
+	decode_utf8
+};
+
+const int encoding_widths[4] = { 1, 2, 2, 1 };
+
+/* the code starts here... */
+
 void init_id3()
 {
 	id3.version = 0; /* nothing there */
@@ -55,10 +78,22 @@ void reset_id3()
 void store_id3_text(struct stringbuf* sb, char* source, size_t source_size)
 {
 	size_t pos = 1; /* skipping the encoding */
+	int encoding;
+	int bwidth;
 	if(! source_size) return;
-	if(!(source[0] == 0 || source[0] == 3))
+	encoding = source[0];
+	debug1("encoding: %i\n", encoding);
+	if(encoding > 3)
 	{
-		warning("Not ISO8859-1 or UTF8 encoding of text - I will probably screw a bit up!");
+		warning1("Unknown text encoding %d, assuming ISO8859-1 - I will probably screw a bit up!", encoding);
+		encoding = 0;
+	}
+	bwidth = encoding_widths[encoding];
+	if((source_size-1) % bwidth)
+	{
+		/* Uh. (BTW, the -1 is for the encoding byte.) */
+		warning2("Weird tag size %d for encoding %d - I will probably trim too early or something but I think the MP3 is broken.", source_size, encoding);
+		source_size -= (source_size-1) % bwidth;
 	}
 	/*
 		first byte: Text encoding          $xx
@@ -68,36 +103,30 @@ void store_id3_text(struct stringbuf* sb, char* source, size_t source_size)
 	*/
 	while(pos < source_size)
 	{
-		/* determine length of string, 0 will be stored, too */
-		size_t l = strlen(source+pos)+1;
-		if(pos+l > source_size) l = source_size - pos + 1; /* not null-terminated... */
-		if((sb->size >= sb->fill+l) || resize_stringbuf(sb, sb->fill+l))
+		size_t l = wide_bytelen(bwidth, source+pos, source_size-pos);
+		debug2("wide bytelen of %lu: %lu", (unsigned long)(source_size-pos), (unsigned long)l);
+		/* we need space for the stuff plus the closing zero */
+		if((sb->size > sb->fill+l) || resize_stringbuf(sb, sb->fill+l+1))
 		{
-			/* append with line break */
+			/* append with line break - sb is in latin1 mode! */
 			if(sb->fill) sb->p[sb->fill-1] = '\n';
-			/* do not copy the ending 0 since it may not be there */
-			memcpy(sb->p+sb->fill, source+pos, l-1);
-			sb->fill += l;
-			sb->p[sb->fill-1] = 0;
+			/* do not include the ending 0 in the conversion */
+			sb->fill += text_decoders[encoding](sb->p+sb->fill, (unsigned char *) source+pos, l-(source_size==pos+l ? 0 : bwidth));
+			sb->p[sb->fill++] = 0;
 			/* advance to beginning of next string */
 			pos += l;
-			while(pos < source_size && source[pos] == 0)
-			{
-				/* an additonal null could mean that we are dealing with unicode... */
-				++pos;
-			}
 		}
 		else break;
 	}
 }
 
 /*
-	* trying to parse ID3v2.3 and ID3v2.4 tags... actually, for a start only v2.4 RVA2 frames
-	*
-	* returns:  0 = read-error
-	*          -1 = illegal ID3 header; maybe extended to mean unparseable (to new) header in future
-	*           1 = somehow ok...
-	*/
+	trying to parse ID3v2.3 and ID3v2.4 tags...
+
+	returns:  0 = read-error
+	         -1 = illegal ID3 header; maybe extended to mean unparseable (to new) header in future
+	          1 = somehow ok...
+*/
 int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 {
 	#define UNSYNC_FLAG 128
@@ -286,6 +315,7 @@ int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 												{
 													memcpy(comstr,realdata+realsize-comsize, comsize);
 													comstr[comsize] = 0;
+													/* hm, what about utf16 here? */
 													rva_gain[rva_mode] = atof(comstr);
 													if(param.verbose > 1) fprintf(stderr, "ID3v2: RVA value %fdB\n", rva_gain[rva_mode]);
 													rva_peak[rva_mode] = 0;
@@ -666,4 +696,88 @@ void print_id3_tag(unsigned char *id3v1buf)
 		fprintf(stderr,"Album  : %-30s  Year  : %4s\n",id3.album.p,id3.year.p);
 		fprintf(stderr,"Comment: %-30s  Genre : %s\n",id3.comment.p,id3.genre.p);
 	}
+}
+
+/*
+	Preliminary UTF support routines
+
+	Text decoder decodes the ID3 text content from whatever encoding to ISO-8859-1 or ASCII, substituting unconvertable characters with '*' and returning the final length of decoded string.
+	TODO: iconv() to whatever locale. But we will want to keep this code anyway for systems w/o iconv(). But we currently assume that it is enough to allocate @len bytes in dest. That might not be true when converting to Unicode encodings.
+*/
+
+static int decode_il1(char* dest, unsigned char* source, size_t len)
+{
+	memcpy(dest, source, len);
+	return len;
+}
+
+static int decode_utf16(char* dest, unsigned char* source, size_t len, int str_be)
+{
+	int spos = 0;
+	int dlen = 0;
+
+	len -= len % 2;
+	/* Just ASCII, we take it easy. */
+	for (; spos < len; spos += 2)
+	{
+		unsigned short word;
+		if(str_be) word = source[spos] << 8 | source[spos+1];
+		else word = source[spos] | source[spos+1] << 8;
+		/* utf16 continuation byte */
+		if(word & 0xdc00) continue;
+		/* utf16 out-of-range codepoint */
+		else if(word > 255) dest[dlen++] = '*';
+		/* an old-school character */
+		else dest[dlen++] = word; /* would a cast be good here? */
+	}
+	return dlen;
+}
+
+static int decode_utf16bom(char* dest, unsigned char* source, size_t len)
+{
+	if(len < 2) return 0;
+	if(source[0] == 0xFF && source[1] == 0xFE) /* Little-endian */
+	return decode_utf16(dest, source + 2, len - 2, 0);
+	else /* Big-endian */
+	return decode_utf16(dest, source + 2, len - 2, 1);
+}
+
+static int decode_utf16be(char* dest, unsigned char* source, size_t len)
+{
+	return decode_utf16(dest, source, len, 1);
+}
+
+static int decode_utf8(char* dest, unsigned char* source, size_t len)
+{
+	int spos = 0;
+	int dlen = 0;
+	/* Just ASCII, we take it easy. */
+	for(; spos < len; spos++)
+	{
+		/* utf8 continuation byte bo, lead!*/
+		if(source[spos] & 0xc0) continue;
+		/* utf8 lead byte, no, cont! */
+		else if(source[spos] & 0x80) dest[dlen++] = '*';
+		else dest[dlen++] = source[spos];
+	}
+	return dlen;
+}
+
+/* determine byte length of string with characters wide @width;
+   terminating 0 will be included, too, if there is any */
+int wide_bytelen(int width, char* string, size_t string_size)
+{
+	size_t l = 0;
+	while(l < string_size)
+	{
+		int b;
+		for(b = 0; b < width; b++)
+		if(string[l + b])
+		break;
+
+		l += width;
+		if(b == width) /* terminating zero */
+		return l;
+	}
+	return l;
 }

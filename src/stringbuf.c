@@ -29,9 +29,13 @@ void free_stringbuf(struct stringbuf* sb)
 
 int resize_stringbuf(struct stringbuf* sb, size_t new)
 {
+	debug3("resizing string pointer %p from %lu to %lu", (void*) sb->p, (unsigned long)sb->size, (unsigned long)new);
 	if(sb->size != new)
 	{
-		char* t = (char*) realloc(sb->p, new*sizeof(char));
+		char* t;
+		debug("really!");
+		t = (char*) realloc(sb->p, new*sizeof(char));
+		debug1("realloc returned %p", (void*) t); 
 		if(t != NULL)
 		{
 			sb->p = t;
