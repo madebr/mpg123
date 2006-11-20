@@ -285,32 +285,6 @@ fprintf(stderr,"No");
 
 int audio_play_samples(struct audio_info_struct *ai,unsigned char *buf,int len)
 {
-#ifdef WORDS_BIGENDIAN
-#define BYTE0(n) ((unsigned char)(n) & (0xFF))
-#define BYTE1(n) BYTE0((unsigned int)(n) >> 8)
-#define BYTE2(n) BYTE0((unsigned int)(n) >> 16)
-#define BYTE3(n) BYTE0((unsigned int)(n) >> 24)
-   {
-     /* that smells like int=32bit! */
-     register int i;
-     int swappedInt;
-     int *intPtr;
-
-     intPtr = (int *)buf;
-
-     for (i = 0; i < len / sizeof(int); i++)
-       {
-         swappedInt = (BYTE0(*intPtr) << 24 |
-                       BYTE1(*intPtr) << 16 |
-                       BYTE2(*intPtr) <<  8 |
-                       BYTE3(*intPtr)         );
-
-         *intPtr = swappedInt;
-         intPtr++;
-       }
-    }
-#endif /* WORDS_BIGENDIAN */
-
   return write(ai->fn,buf,len);
 }
 
