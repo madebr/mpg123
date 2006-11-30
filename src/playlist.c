@@ -174,11 +174,11 @@ int add_next_file (int argc, char *argv[])
 				{
 					debug1("listmime value: %s", listmime);
 					if(!strcmp("audio/x-mpegurl", listmime))	pl.type = M3U;
-					else if(!strcmp("audio/x-scpls", listmime))	pl.type = PLS;
+					else if(!strcmp("audio/x-scpls", listmime) || !strcmp("application/pls", listmime))	pl.type = PLS;
 					else
 					{
 						if(fd >= 0) close(fd);
-						if(!strcmp("audio/mpeg", listmime))
+						if(!strcmp("audio/mpeg", listmime) || !strcmp("audio/x-mpeg", listmime))
 						{
 							pl.type = NO_LIST;
 							if(param.listentry < 0)

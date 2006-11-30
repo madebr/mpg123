@@ -511,7 +511,7 @@ int open_stream(char *bs_filenam,int fd)
 		{
 			char* mime = NULL;
 			filept = http_open(bs_filenam, &mime);
-			if((filept >= 0) && (mime != NULL) && (strcmp(mime, "audio/mpeg")))
+			if((filept >= 0) && (mime != NULL) && strcmp(mime, "audio/mpeg") && strcmp(mime, "audio/x-mpeg"))
 			{
 				fprintf(stderr, "Error: unknown mpeg MIME type %s - is it perhaps a playlist (use -@)?\nError: If you know the stream is mpeg1/2 audio, then please report this as "PACKAGE_NAME" bug\n", mime == NULL ? "<nil>" : mime);
 				filept = -1;

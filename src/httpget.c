@@ -27,6 +27,8 @@
 */
 
 #include "config.h"
+/* That is not real ... I should really check the type of what I get! */
+#define ACCEPT_HEAD "Accept: audio/mpeg, audio/x-mpeg, audio/x-mpegurl, audio/x-scpls, application/pls, */*\r\n"
 #if !defined(WIN32) && !defined(GENERIC)
 
 #include <stdlib.h>
@@ -209,8 +211,6 @@ char *proxyurl = NULL;
 unsigned long proxyip = 0;
 unsigned int proxyport;
 
-/* That is not real ... I should really check the type of what I get! */
-#define ACCEPT_HEAD "Accept: audio/mpeg, audio/x-mpegurl, audio/x-scpls, */*\r\n"
 /* needed for HTTP/1.1 non-pipelining mode */
 /* #define CONN_HEAD "Connection: close\r\n" */
 #define CONN_HEAD ""
@@ -698,7 +698,7 @@ char *proxyurl = NULL;
 unsigned long proxyip = 0;
 unsigned int proxyport;
 
-#define ACCEPT_HEAD "Accept: audio/mpeg, audio/x-mpegurl, */*\r\n"
+/* #define ACCEPT_HEAD "Accept: audio/mpeg, audio/x-mpegurl, */*\r\n" */
 
 int http_open (char* url, char** content_type)
 {
