@@ -257,6 +257,8 @@ int control_generic (struct frame *fr)
 					generic_sendmsg("PAUSE/P: pause playback");
 					generic_sendmsg("STOP/S: stop playback (closes file)");
 					generic_sendmsg("JUMP/J <frame>|<+offset>|<-offset>: jump to mpeg frame <frame> or change position by offset");
+					generic_sendmsg("VOLUME/V <percent>: set volume in % (0..100...); float value");
+					generic_sendmsg("RVA off|(mix|radio)|(album|audiophile): set rva mode");
 					generic_sendmsg("EQ/E <channel> <band> <value>: set equalizer value for frequency band on channel");
 					generic_sendmsg("SEQ <bass> <mid> <treble>: simple eq setting...");
 					generic_sendmsg("SILENCE: be silent during playback (meaning silence in text form)");
@@ -379,6 +381,33 @@ int control_generic (struct frame *fr)
 						#endif
 
 						generic_sendmsg("J %d", fr->num+frame_before);
+						continue;
+					}
+
+					/* VOLUME in percent */
+					if(!strcasecmp(cmd, "V") || !strcasecmp(cmd, "VOLUME"))
+					{
+						/* this is not supposed to happen too often, thus using optimized real type should not matter */
+						double factor = atof(arg)/100;
+						if(factor >= 0)
+						{
+							/* change the output scaling and apply with rva */
+							outscale = (double) MAXOUTBURST * factor;
+							do_rva();
+						}
+						generic_sendmsg("V %f%%", outscale / (double) MAXOUTBURST * 100);
+						continue;
+					}
+
+					/* RVA mode */
+					if(!strcasecmp(cmd, "RVA"))
+					{
+						const char* rva_name[3] = { "off", "mix", "album" };
+						if(!strcasecmp(arg, "off")) param.rva = 0;
+						else if(!strcasecmp(arg, "mix") || !strcasecmp(arg, "radio")) param.rva = 1;
+						else if(!strcasecmp(arg, "album") || !strcasecmp(arg, "audiophile")) param.rva = 2;
+						do_rva();
+						generic_sendmsg("RVA %s", rva_name[param.rva]);
 						continue;
 					}
 

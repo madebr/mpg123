@@ -93,10 +93,13 @@ int read_frame_recover(struct frame* fr);
 off_t frame_index_find(unsigned long want_frame, unsigned long* get_frame);
 void print_frame_index(FILE* out);
 
-/* this could become a struct... */
+#endif
+
+/* rva data, used in common.c, set in id3.c */
 extern long lastscale;
 extern int rva_level[2];
 extern float rva_gain[2];
 extern float rva_peak[2];
 
-#endif
+/* adjust volume to current outscale and rva values if wanted */
+void do_rva();

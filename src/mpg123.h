@@ -215,7 +215,7 @@ struct parameter {
   int gapless; /* (try to) remove silence padding/delay to enable gapless playback */
 #endif
   long listentry; /* possibility to choose playback of one entry in playlist (0: off, > 0 : select, < 0; just show list*/
-  int rva; /* (which) rva to do: <0: nothing, 0: radio/mix/track 1: album/audiophile */
+  int rva; /* (which) rva to do: 0: nothing, 1: radio/mix/track 2: album/audiophile */
   char* listname; /* name of playlist */
   int long_id3;
 };

@@ -488,8 +488,8 @@ int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 
 void print_id3_tag(unsigned char *id3v1buf)
 {
-	if(!(id3.version || id3v1buf)) return;
 	char genre_from_v1 = 0;
+	if(!(id3.version || id3v1buf)) return;
 	if(id3v1buf != NULL)
 	{
 		/* fill gaps in id3v2 info with id3v1 info */

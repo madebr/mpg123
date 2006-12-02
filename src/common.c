@@ -240,35 +240,43 @@ int head_check(unsigned long head)
 	}
 }
 
-static void do_rva()
+/* adjust the volume, taking both outscale and rva values into account */
+void do_rva()
 {
-	if(param.rva != -1)
+	float rvafact = 1;
+	float peak = 0;
+	long newscale;
+	if(param.rva)
 	{
 		int rt = 0;
 		/* Should one assume a zero RVA as no RVA? */
-		if(param.rva == 1 && rva_level[1] != -1) rt = 1;
+		if(param.rva == 2 && rva_level[1] != -1) rt = 1;
 		if(rva_level[rt] != -1)
 		{
-			long newscale = outscale*pow(10,rva_gain[rt]/20);
+			rvafact = pow(10,rva_gain[rt]/20);
+			peak = rva_peak[rt];
 			if(param.verbose > 1) fprintf(stderr, "Note: doing RVA with gain %f\n", rva_gain[rt]);
-			/* if peak is unknown (== 0) this check won't hurt */
-			if((rva_peak[rt]*newscale) > MAXOUTBURST)
-			{
-				newscale = (long) ((float) MAXOUTBURST/rva_peak[rt]);
-				warning2("limiting scale value to %li to prevent clipping with indicated peak factor of %f", newscale, rva_peak[rt]);
-			}
-			if(lastscale < 0) lastscale = outscale;
-			if(newscale != lastscale)
-			{
-				debug3("changing scale value from %li to %li (peak estimated to %li)", lastscale, newscale, (long) (newscale*rva_peak[rt]));
-				make_decode_tables(newscale);
-				lastscale = newscale;
-			}
 		}
 		else
 		{
 			warning("no RVA value found");
 		}
+	}
+
+	newscale = outscale*rvafact;
+
+	/* if peak is unknown (== 0) this check won't hurt */
+	if((peak*newscale) > MAXOUTBURST)
+	{
+		newscale = (long) ((float) MAXOUTBURST/peak);
+		warning2("limiting scale value to %li to prevent clipping with indicated peak factor of %f", newscale, peak);
+	}
+	/* first rva setting is forced with lastscale < 0 */
+	if(newscale != lastscale)
+	{
+		debug3("changing scale value from %li to %li (peak estimated to %li)", lastscale != -1 ? lastscale : outscale, newscale, (long) (newscale*peak));
+		make_decode_tables(newscale); /* the actual work */
+		lastscale = newscale;
 	}
 }
 

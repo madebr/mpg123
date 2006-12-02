@@ -77,7 +77,7 @@ struct parameter param = {
 	0, /* gapless off per default - yet */
 #endif
 	0, /* default is to play all titles in playlist */
-	-1, /* do not use rva per default */
+	0, /* do not use rva per default */
 	NULL, /* no playlist per default */
 	0 /* condensed id3 per default */
 };
@@ -376,10 +376,10 @@ topt opts[] = {
 	{0 , "longhelp" ,        0,  want_long_usage, 0,      0 },
 	{0 , "version" ,         0,  give_version, 0,         0 },
 	{'l', "listentry",       GLO_ARG | GLO_LONG, 0, &param.listentry, 0 },
-	{0, "rva-mix",         GLO_INT,  0, &param.rva, 0 },
-	{0, "rva-radio",         GLO_INT,  0, &param.rva, 0 },
-	{0, "rva-album",         GLO_INT,  0, &param.rva, 1 },
-	{0, "rva-audiophile",         GLO_INT,  0, &param.rva, 1 },
+	{0, "rva-mix",         GLO_INT,  0, &param.rva, 1 },
+	{0, "rva-radio",         GLO_INT,  0, &param.rva, 1 },
+	{0, "rva-album",         GLO_INT,  0, &param.rva, 2 },
+	{0, "rva-audiophile",         GLO_INT,  0, &param.rva, 2 },
 	{0, "long-tag",         GLO_INT,  0, &param.long_id3, 1 },
 	{0, 0, 0, 0, 0, 0}
 };
