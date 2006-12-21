@@ -20,69 +20,56 @@
 
 static off_t get_fileinfo(struct reader *,char *buf);
 
-
-/*******************************************************************
- * stream based operation
- * Oh... that count should be size_t or at least long...
- */
+/* stream based operation */
 static ssize_t fullread(struct reader *rds,unsigned char *buf, ssize_t count)
 {
-  ssize_t ret,cnt=0;
+	ssize_t ret,cnt=0;
 
-  /*
-   * We check against READER_ID3TAG instead of rds->filelen >= 0 because
-   * if we got the ID3 TAG we know we have the end of the file.  If we
-   * don't have an ID3 TAG, then it is possible the file has grown since
-   * we started playing, so we want to keep reading from it if possible.
-   */
-  if ((rds->flags & READER_ID3TAG) && rds->filepos + count > rds->filelen)
-    count = rds->filelen - rds->filepos;
-  while(cnt < count) {
-    ret = read(rds->filept,buf+cnt,count-cnt);
-    if(ret < 0)
-      return ret;
-    if(ret == 0)
-      break;
-    rds->filepos += ret;
-    cnt += ret;
-  } 
-
-  return cnt;
+	/*
+		We check against READER_ID3TAG instead of rds->filelen >= 0 because if we got the ID3 TAG we know we have the end of the file.
+		If we don't have an ID3 TAG, then it is possible the file has grown since we started playing, so we want to keep reading from it if possible.
+	*/
+	if((rds->flags & READER_ID3TAG) && rds->filepos + count > rds->filelen) count = rds->filelen - rds->filepos;
+	while(cnt < count)
+	{
+		ret = read(rds->filept,buf+cnt,count-cnt);
+		if(ret < 0) return ret;
+		if(ret == 0) break;
+		rds->filepos += ret;
+		cnt += ret;
+	}
+	return cnt;
 }
 
 static off_t stream_lseek(struct reader *rds, off_t pos, int whence)
 {
-  off_t ret;
+	off_t ret;
+	ret = lseek(rds->filept, pos, whence);
+	if (ret >= 0)	rds->filepos = ret;
 
-  ret = lseek(rds->filept, pos, whence);
-  if (ret >= 0)
-    rds->filepos = ret;
-
-  return ret;
+	return ret;
 }
 
 static int default_init(struct reader *rds)
 {
-  char buf[128];
-
-  rds->filelen = get_fileinfo(rds,buf);
-  rds->filepos = 0;
-	
-  if(rds->filelen >= 0) {
-	  rds->flags |= READER_SEEKABLE;
-    if(!strncmp(buf,"TAG",3)) {
-      rds->flags |= READER_ID3TAG;
-      memcpy(rds->id3buf,buf,128);
-    }
-  }
-
-  return 0;
+	char buf[128];
+	rds->filelen = get_fileinfo(rds,buf);
+	rds->filepos = 0;
+	if(rds->filelen >= 0)
+	{
+		rds->flags |= READER_SEEKABLE;
+		if(!strncmp(buf,"TAG",3))
+		{
+			rds->flags |= READER_ID3TAG;
+			memcpy(rds->id3buf,buf,128);
+		}
+	}
+	return 0;
 }
 
 void stream_close(struct reader *rds)
 {
-    if (rds->flags & READER_FD_OPENED)
-        close(rds->filept);
+	if (rds->flags & READER_FD_OPENED) close(rds->filept);
 }
 
 /**************************************** 
@@ -92,16 +79,14 @@ void stream_close(struct reader *rds)
  */
 static int stream_back_bytes(struct reader *rds, off_t bytes)
 {
-  if(stream_lseek(rds,-bytes,SEEK_CUR) < 0)
-    return -1;
+	if(stream_lseek(rds,-bytes,SEEK_CUR) < 0) return -1;
 	/* you sure you want the buffer to resync here? */
-  if(param.usebuffer)
-	  buffer_resync();
-  return 0;
+	if(param.usebuffer)	buffer_resync();
+
+	return 0;
 }
 
-
-/* this function strangely is define to seek num frames _back_ (and is called with -offset - duh!) */
+/* this function strangely is defined to seek num frames _back_ (and is called with -offset - duh!) */
 /* also... let that int be a long in future! */
 static int stream_back_frame(struct reader *rds,struct frame *fr,long num)
 {
@@ -114,119 +99,111 @@ static int stream_back_frame(struct reader *rds,struct frame *fr,long num)
 			else newframe = fr->num-num;
 		}
 		else newframe = fr->num-num;
-		
+
 		/* two leading frames? hm, doesn't seem to be really needed... */
 		/*if(newframe > 1) newframe -= 2;
 		else newframe = 0;*/
-		
+
 		/* now seek to nearest leading index position and read from there until newframe is reached */
 		if(stream_lseek(rds,frame_index_find(newframe, &preframe),SEEK_SET) < 0)
 		return -1;
-		
 		debug2("going to %lu; just got %lu", newframe, preframe);
-		
 		fr->num = preframe;
-		
 		while(fr->num < newframe)
 		{
 			/* try to be non-fatal now... frameNum only gets advanced on success anyway */
 			if(!read_frame(fr)) break;
 		}
-
 		/* this is not needed at last? */
 		/*read_frame(fr);
 		read_frame(fr);*/
 
-		if(fr->lay == 3) {
-			set_pointer(512);
-		}
+		if(fr->lay == 3) set_pointer(512);
 
 		debug1("arrived at %lu", fr->num);
 
-		if(param.usebuffer)
-			buffer_resync();
+		if(param.usebuffer) buffer_resync();
 
 		return 0;
-
 	}
 	else return -1; /* invalid, no seek happened */
 }
 
 static int stream_head_read(struct reader *rds,unsigned long *newhead)
 {
-  unsigned char hbuf[4];
+	unsigned char hbuf[4];
 
-  if(fullread(rds,hbuf,4) != 4)
-    return FALSE;
-  
-  *newhead = ((unsigned long) hbuf[0] << 24) |
-    ((unsigned long) hbuf[1] << 16) |
-    ((unsigned long) hbuf[2] << 8)  |
-    (unsigned long) hbuf[3];
-  
-  return TRUE;
+	if(fullread(rds,hbuf,4) != 4) return FALSE;
+
+	*newhead = ((unsigned long) hbuf[0] << 24) |
+	           ((unsigned long) hbuf[1] << 16) |
+	           ((unsigned long) hbuf[2] << 8)  |
+	            (unsigned long) hbuf[3];
+
+	return TRUE;
 }
 
 static int stream_head_shift(struct reader *rds,unsigned long *head)
 {
-  unsigned char hbuf;
+	unsigned char hbuf;
 
-  if(fullread(rds,&hbuf,1) != 1)
-    return 0;
-  *head <<= 8;
-  *head |= hbuf;
-  *head &= 0xffffffff;
-  return 1;
+	if(fullread(rds,&hbuf,1) != 1) return 0;
+
+	*head <<= 8;
+	*head |= hbuf;
+	*head &= 0xffffffff;
+	return 1;
 }
 
 /* returns reached position... negative ones are bad */
 static off_t stream_skip_bytes(struct reader *rds,off_t len)
 {
-  if (rds->filelen >= 0) {
-    off_t ret = stream_lseek(rds, len, SEEK_CUR);
-    if (param.usebuffer)
-      buffer_resync();
-    return ret;
-  } else if (len >= 0) {
-    unsigned char buf[1024]; /* ThOr: Compaq cxx complained and it makes sense to me... or should one do a cast? What for? */
-    off_t ret;
-    while (len > 0) {
-      off_t num = len < sizeof(buf) ? len : sizeof(buf);
-      ret = fullread(rds, buf, num);
-      if (ret < 0)
-	return ret;
-      len -= ret;
-    }
-    return rds->filepos;
-  } else
-    return -1;
+	if (rds->filelen >= 0)
+	{
+		off_t ret = stream_lseek(rds, len, SEEK_CUR);
+		if(param.usebuffer) buffer_resync();
+
+		return ret;
+	}
+	else if(len >= 0)
+	{
+		unsigned char buf[1024]; /* ThOr: Compaq cxx complained and it makes sense to me... or should one do a cast? What for? */
+		off_t ret;
+		while (len > 0)
+		{
+			off_t num = len < sizeof(buf) ? len : sizeof(buf);
+			ret = fullread(rds, buf, num);
+			if (ret < 0) return ret;
+			len -= ret;
+		}
+		return rds->filepos;
+	}
+	else return -1;
 }
 
-static int stream_read_frame_body(struct reader *rds,unsigned char *buf,
-				  int size)
+static int stream_read_frame_body(struct reader *rds,unsigned char *buf, int size)
 {
-  long l;
+	long l;
 
-  if( (l=fullread(rds,buf,size)) != size)
-  {
-    if(l <= 0)
-      return 0;
-    memset(buf+l,0,size-l);
-  }
+	if( (l=fullread(rds,buf,size)) != size)
+	{
+		if(l <= 0) return 0;
 
-  return 1;
+		memset(buf+l,0,size-l);
+	}
+
+	return 1;
 }
 
 static off_t stream_tell(struct reader *rds)
 {
-  return rds->filepos;
+	return rds->filepos;
 }
 
 static void stream_rewind(struct reader *rds)
 {
-  stream_lseek(rds,0,SEEK_SET);
-  if(param.usebuffer) 
-	  buffer_resync();
+	stream_lseek(rds,0,SEEK_SET);
+	if(param.usebuffer) buffer_resync();
 }
 
 /*
@@ -238,21 +215,18 @@ static off_t get_fileinfo(struct reader *rds,char *buf)
 {
 	off_t len;
 
-        if((len=lseek(rds->filept,0,SEEK_END)) < 0) {
-                return -1;
-        }
-        if(lseek(rds->filept,-128,SEEK_END) < 0)
-                return -1;
-        if(fullread(rds,(unsigned char *)buf,128) != 128) {
-                return -1;
-        }
-        if(!strncmp(buf,"TAG",3)) {
-                len -= 128;
-        }
-        if(lseek(rds->filept,0,SEEK_SET) < 0)
-                return -1;
-        if(len <= 0)
-                return -1;
+	if((len=lseek(rds->filept,0,SEEK_END)) < 0)	return -1;
+
+	if(lseek(rds->filept,-128,SEEK_END) < 0) return -1;
+
+	if(fullread(rds,(unsigned char *)buf,128) != 128)	return -1;
+
+	if(!strncmp(buf,"TAG",3))	len -= 128;
+
+	if(lseek(rds->filept,0,SEEK_SET) < 0)	return -1;
+
+	if(len <= 0)	return -1;
+
 	return len;
 }
 
@@ -261,34 +235,40 @@ static off_t get_fileinfo(struct reader *rds,char *buf)
  */
 
 struct reader *rd;
-struct reader readers[] = {
+struct reader readers[] =
+{
 #ifdef READ_SYSTEM
- { system_init,
-   NULL,	/* filled in by system_init() */
-   NULL,
-   NULL,
-   NULL,
-   NULL,
-   NULL,
-   NULL,
-   NULL } ,
+	{
+		system_init,
+		NULL,	/* filled in by system_init() */
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL
+	} ,
 #endif
- { default_init,
-   stream_close,
-   stream_head_read,
-   stream_head_shift,
-   stream_skip_bytes,
-   stream_read_frame_body,
-   stream_back_bytes,
-   stream_back_frame,
-   stream_tell,
-   stream_rewind } ,
- { NULL, }
+	{
+		default_init,
+		stream_close,
+		stream_head_read,
+		stream_head_shift,
+		stream_skip_bytes,
+		stream_read_frame_body,
+		stream_back_bytes,
+		stream_back_frame,
+		stream_tell,
+		stream_rewind
+	} ,
+	{
+		NULL
+	}
 };
 
 
 /* open the device to read the bit stream from it */
-
 int open_stream(char *bs_filenam,int fd)
 {
 	int i;
