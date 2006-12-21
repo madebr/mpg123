@@ -494,56 +494,63 @@ struct reader readers[] = {
 
 int open_stream(char *bs_filenam,int fd)
 {
-    int i;
-    int filept_opened = 1;
-    int filept;
+	int i;
+	int filept_opened = 1;
+	int filept; /* descriptor of opened file/stream */
 
-    if (!bs_filenam)
+	if(!bs_filenam) /* no file to open, got a descriptor (stdin) */
+	{
+		if(fd < 0) /* special: read from stdin */
 		{
-			if(fd < 0)
-			{
-				filept = 0;
-				filept_opened = 0;
-			}
-			else filept = fd;
+			filept = 0;
+			filept_opened = 0; /* and don't try to close it... */
 		}
-		else if (!strncmp(bs_filenam, "http://", 7))
+		else filept = fd;
+	}
+	else if (!strncmp(bs_filenam, "http://", 7)) /* http stream */
+	{
+		char* mime = NULL;
+		filept = http_open(bs_filenam, &mime);
+		/* now check if we got sth. and if we got sth. good */
+		if((filept >= 0) && (mime != NULL) && strcmp(mime, "audio/mpeg") && strcmp(mime, "audio/x-mpeg"))
 		{
-			char* mime = NULL;
-			filept = http_open(bs_filenam, &mime);
-			if((filept >= 0) && (mime != NULL) && strcmp(mime, "audio/mpeg") && strcmp(mime, "audio/x-mpeg"))
-			{
-				fprintf(stderr, "Error: unknown mpeg MIME type %s - is it perhaps a playlist (use -@)?\nError: If you know the stream is mpeg1/2 audio, then please report this as "PACKAGE_NAME" bug\n", mime == NULL ? "<nil>" : mime);
-				filept = -1;
-			}
-			if(mime != NULL) free(mime);
-			if(filept < 0) return filept;
+			fprintf(stderr, "Error: unknown mpeg MIME type %s - is it perhaps a playlist (use -@)?\nError: If you know the stream is mpeg1/2 audio, then please report this as "PACKAGE_NAME" bug\n", mime == NULL ? "<nil>" : mime);
+			filept = -1;
 		}
-#ifndef O_BINARY
-#define O_BINARY (0)
-#endif
-	else if ( (filept = open(bs_filenam, O_RDONLY|O_BINARY)) < 0) {
-		perror (bs_filenam);
-               return filept;
+		if(mime != NULL) free(mime);
+		if(filept < 0) return filept; /* error... */
+	}
+	#ifndef O_BINARY
+	#define O_BINARY (0)
+	#endif
+	else if((filept = open(bs_filenam, O_RDONLY|O_BINARY)) < 0) /* a plain old file to open... */
+	{
+		perror(bs_filenam);
+		return filept; /* error... */
 	}
 
-    rd = NULL;
-    for(i=0;;i++) {
-      readers[i].filelen = -1;
-      readers[i].filept  = filept;
-      readers[i].flags = 0;
-      if(filept_opened)
-        readers[i].flags |= READER_FD_OPENED;
-      if(!readers[i].init) {
-        error("Fatal error!");
-        return -1;
-      }
-      if(readers[i].init(readers+i) >= 0) {
-        rd = &readers[i];
-        break;
-      }
-    }
+	/* now we have something behind filept and can init the reader */
+	rd = NULL;
+	/* strongly considering removal of that loop...*/
+	for(i=0;;i++)
+	{
+		readers[i].filelen = -1;
+		readers[i].filept  = filept;
+		readers[i].flags = 0;
+		if(filept_opened)	readers[i].flags |= READER_FD_OPENED;
+		if(!readers[i].init)
+		{
+			error1("no init for reader %i!", i);
+			return -1;
+		}
+		/* now use this reader if it successfully inits */
+		if(readers[i].init(readers+i) >= 0)
+		{
+			rd = &readers[i];
+			break;
+		}
+	}
 
-    /* id3tag printing moved to read_frame */
-    return filept;
+	/* id3tag printing moved to read_frame */
+	return filept;
 }
