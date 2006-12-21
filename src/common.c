@@ -21,16 +21,6 @@
 #include <fcntl.h>
 
 #include "config.h"
-
-#if 0
-#ifdef READ_MMAP
-#include <sys/mman.h>
-#ifndef MAP_FAILED
-#define MAP_FAILED ( (void *) -1 )
-#endif
-#endif
-#endif
-
 #include "mpg123.h"
 #include "id3.h"
 #include "common.h"
