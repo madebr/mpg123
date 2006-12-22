@@ -2,11 +2,9 @@ If you find a bug, please check for and report it in the sourceforge bug trackin
 
 	http://sourceforge.net/tracker/?atid=733194&group_id=135704&func=browse
 
-Issues in current development:
 
-- I managed to make raw output of the two spring tracks from RMB result in an odd number of bytes!
-  For sure that has to be fixed ASAP
-
+- Oh... I am sure I'll find this quickly, but I am too sleepy now... I wonder if it is _wanted_ that playback of internet radio makes mpg123 daemonize.
+It detaches from console.
 
 Old list of known bugs from 0.59r:
 
