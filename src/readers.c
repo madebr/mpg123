@@ -17,11 +17,87 @@
 #include "debug.h"
 #include "buffer.h"
 #include "common.h"
+#include "icy.h"
 
 static off_t get_fileinfo(struct reader *,char *buf);
 
+static ssize_t icy_fullread(struct reader *rds,unsigned char *buf, ssize_t count);
+static ssize_t plain_fullread(struct reader *rds,unsigned char *buf, ssize_t count);
+ssize_t (*fullread)(struct reader *,unsigned char *, ssize_t) = plain_fullread;
+
+/* stream based operation  with icy meta data*/
+static ssize_t icy_fullread(struct reader *rds,unsigned char *buf, ssize_t count)
+{
+	ssize_t ret,cnt;
+	cnt = 0;
+
+	/*
+		We check against READER_ID3TAG instead of rds->filelen >= 0 because if we got the ID3 TAG we know we have the end of the file.
+		If we don't have an ID3 TAG, then it is possible the file has grown since we started playing, so we want to keep reading from it if possible.
+	*/
+	if((rds->flags & READER_ID3TAG) && rds->filepos + count > rds->filelen) count = rds->filelen - rds->filepos;
+
+	while(cnt < count)
+	{
+		/* all icy code is inside this if block, everything else is the plain fullread we know */
+		if(icy.interval && (rds->filepos+count > icy.next))
+		{
+			char temp_buff;
+			int meta_size;
+			ssize_t cut_pos;
+
+			/* we are near icy-metaint boundary, read up to the boundary */
+			cut_pos = icy.next-rds->filepos;
+			ret = read(rds->filept,buf,cut_pos);
+			if(ret < 0) return ret;
+
+			rds->filepos += ret;
+			cnt += ret;
+
+			/* now off to read icy data */
+
+			/* one byte icy-meta size (must be multiplied by 16 to get icy-meta length) */
+			ret = read(rds->filept,&temp_buff,1);
+			if(ret < 0) return ret;
+			if(ret == 0) break;
+
+			rds->filepos += ret; /* 1... */
+
+			if((meta_size = (unsigned int) temp_buff * 16))
+			{
+				/* we have got some metadata */
+				char *meta_buff;
+				meta_buff = (char*) malloc(meta_size+1);
+				meta_buff[meta_size] = 0; /* string paranoia */
+				if(meta_buff != NULL)
+				{
+					ret = read(rds->filept,meta_buff,meta_size);
+					if(ret < 0) return ret;
+
+					rds->filepos += ret;
+
+					if(icy.data) free(icy.data);
+					icy.data = meta_buff;
+					icy.changed = 1;
+					debug2("icy-meta: %s size: %d bytes", icy.data, meta_size);
+				}
+				else error("cannot allocate memory for meta_buff!");
+			}
+			icy.next = rds->filepos+icy.interval;
+		}
+
+		ret = read(rds->filept,buf+cnt,count-cnt);
+		if(ret < 0) return ret;
+		if(ret == 0) break;
+
+		rds->filepos += ret;
+		cnt += ret;
+	}
+	return cnt;
+}
+
 /* stream based operation */
-static ssize_t fullread(struct reader *rds,unsigned char *buf, ssize_t count)
+static ssize_t plain_fullread(struct reader *rds,unsigned char *buf, ssize_t count)
 {
 	ssize_t ret,cnt=0;
 
@@ -275,6 +351,7 @@ int open_stream(char *bs_filenam,int fd)
 	int filept_opened = 1;
 	int filept; /* descriptor of opened file/stream */
 
+	clear_icy();
 	if(!bs_filenam) /* no file to open, got a descriptor (stdin) */
 	{
 		if(fd < 0) /* special: read from stdin */
@@ -328,6 +405,8 @@ int open_stream(char *bs_filenam,int fd)
 		}
 	}
 
+	if(icy.interval) fullread = icy_fullread;
+fullread = icy_fullread;
 	/* id3tag printing moved to read_frame */
 	return filept;
 }

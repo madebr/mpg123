@@ -610,12 +610,12 @@ generic:
 mpg123-make:
 	@ $(MAKE) BINNAME=mpg123 mpg123
 
-mpg123: mpg123.o playlist.o stringbuf.o common.o id3.o $(OBJECTS) decode_2to1.o decode_4to1.o \
+mpg123: mpg123.o playlist.o stringbuf.o common.o id3.o icy.o $(OBJECTS) decode_2to1.o decode_4to1.o \
 		tabinit.o audio.o layer1.o layer2.o layer3.o buffer.o \
 		getlopt.o httpget.o xfermem.o equalizer.o \
 		decode_ntom.o $(MAKEFILE) wav.o readers.o getbits.o \
 		control_generic.o
-	$(CC) $(CFLAGS) $(LDFLAGS)  mpg123.o playlist.o stringbuf.o tabinit.o common.o id3.o layer1.o \
+	$(CC) $(CFLAGS) $(LDFLAGS)  mpg123.o playlist.o stringbuf.o tabinit.o common.o id3.o icy.o layer1.o \
 		layer2.o layer3.o audio.o buffer.o decode_2to1.o equalizer.o \
 		decode_4to1.o getlopt.o httpget.o xfermem.o decode_ntom.o \
 		wav.o readers.o getbits.o control_generic.o \
@@ -653,7 +653,7 @@ buffer.o:	mpg123.h xfermem.h buffer.h debug.h config.h
 getbits.o:	common.h mpg123.h debug.h config.h
 tabinit.o:	mpg123.h audio.h debug.h config.h
 getlopt.o:	getlopt.h debug.h config.h
-httpget.o:	mpg123.h debug.h config.h
+httpget.o:	mpg123.h debug.h config.h icy.h stringbuf.h
 dct64.o:	mpg123.h debug.h config.h
 dct64_i386.o:	mpg123.h debug.h config.h
 xfermem.o:	xfermem.h debug.h config.h
@@ -664,6 +664,7 @@ term.o:		mpg123.h buffer.h term.h common.h debug.h config.h
 playlist.o:	mpg123.h term.h getlopt.h debug.h config.h stringbuf.h
 stringbuf.o:	stringbuf.h config.h debug.h
 id3.o: config.h mpg123.h stringbuf.h genre.h id3.h debug.h common.h
+icy.o: icy.h stringbuf.h
 control_generic.o: config.h mpg123.h common.h debug.h layer3.h
 
 

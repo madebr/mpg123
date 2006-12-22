@@ -23,5 +23,6 @@ void free_stringbuf(struct stringbuf* sb);
 int resize_stringbuf(struct stringbuf* sb, size_t new);
 int copy_stringbuf(struct stringbuf* from, struct stringbuf* to);
 int add_to_stringbuf(struct stringbuf* sb, char* stuff);
+int set_stringbuf(struct stringbuf* sb, char* stuff);
 
 #endif

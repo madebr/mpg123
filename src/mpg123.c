@@ -36,6 +36,7 @@
 #endif
 #include "playlist.h"
 #include "id3.h"
+#include "icy.h"
 
 static void usage(int err);
 static void want_usage(char* arg);
@@ -814,12 +815,15 @@ int main(int argc, char *argv[])
 	if(param.remote) {
 		int ret;
 		init_id3();
+		init_icy();
 		ret = control_generic(&fr);
+		clear_icy();
 		exit_id3();
 		safe_exit(ret);
 	}
 #endif
 
+	init_icy();
 	init_id3(); /* prepare id3 memory */
 	while ((fname = get_next_file())) {
 		char *dirname, *filename;
@@ -1025,6 +1029,7 @@ tc_hack:
 #endif
       }
     } /* end of loop over input files */
+    clear_icy();
     exit_id3(); /* free id3 memory */
 #ifndef NOXFERMEM
     if (param.usebuffer) {

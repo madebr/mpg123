@@ -82,3 +82,9 @@ int add_to_stringbuf(struct stringbuf* sb, char* stuff)
 	}
 	return 1;
 }
+
+int set_stringbuf(struct stringbuf* sb, char* stuff)
+{
+	sb->fill = 0;
+	return add_to_stringbuf(sb, stuff);
+}

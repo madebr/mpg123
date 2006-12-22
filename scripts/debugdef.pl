@@ -57,7 +57,7 @@ sub printdefs
 		unshift(@args, '') if(@args);
 		print '	#define '.$type.($i > 1 ? ($i-1) : '').'(s';
 		print join(', ', @args).') ';
-		if($forreal){ print 'fprintf(stderr, "[" __FILE__ ":%i] '.$type.': " s "\n", __LINE__'.join(', ', @args).")\n"; }
+		if($forreal){ print 'fprintf(stderr, "[" __FILE__ ":%i] '.$type.': " s "\n", __LINE__'.join(', ', @args).");\n"; }
 		else{ print "{}\n"; } 
 	}
 }
