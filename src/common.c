@@ -23,6 +23,7 @@
 #include "config.h"
 #include "mpg123.h"
 #include "id3.h"
+#include "icy.h"
 #include "common.h"
 #include "debug.h"
 
@@ -743,8 +744,13 @@ init_resync:
 		debug1("firsthead: %08lx", firsthead);
 		/* now adjust volume */
 		do_rva();
-		/* and print id3 info */
-		if(!param.quiet) print_id3_tag(rd->flags & READER_ID3TAG ? rd->id3buf : NULL);
+		/* and print id3/stream info */
+		if(!param.quiet)
+		{
+			print_id3_tag(rd->flags & READER_ID3TAG ? rd->id3buf : NULL);
+			if(icy.name.fill) fprintf(stderr, "ICY-NAME: %s\n", icy.name.p);
+			if(icy.url.fill) fprintf(stderr, "ICY-URL: %s\n", icy.url.p);
+		}
 	}
   bsi.bitindex = 0;
   bsi.wordpointer = (unsigned char *) bsbuf;
@@ -1271,6 +1277,11 @@ void print_stat(struct frame *fr,unsigned long no,long buffsize,struct audio_inf
 		        (unsigned long) tim1/60, (unsigned int)tim1%60, (unsigned int)(tim1*100)%100,
 		        (unsigned int)tim2/60, (unsigned int)tim2%60, (unsigned int)(tim2*100)%100 );
 		if(param.usebuffer) fprintf(stderr,"[%8ld] ",(long)buffsize);
+	}
+	if(icy.changed && icy.data)
+	{
+		fprintf(stderr, "\nICY-META: %s\n", icy.data);
+		icy.changed = 0;
 	}
 }
 

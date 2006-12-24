@@ -22,6 +22,7 @@
 #include "config.h"
 #include "mpg123.h"
 #include "common.h"
+#include "icy.h"
 #include "debug.h"
 #ifdef GAPLESS
 #include "layer3.h"
@@ -138,7 +139,15 @@ int control_generic (struct frame *fr)
 					generic_sendmsg(tmp);
 					init = 0;
 				}
-				if(!frame_before && (silent == 0)) generic_sendstat(fr);
+				if(!frame_before && (silent == 0))
+				{
+					generic_sendstat(fr);
+					if (icy.changed && icy.data)
+					{
+						generic_sendmsg("I ICY-META: %s", icy.data);
+						icy.changed = 0;
+					}
+				}
 				if(frame_before) --frame_before;
 			}
 		}
@@ -429,6 +438,9 @@ int control_generic (struct frame *fr)
 							generic_sendinfoid3((char *)rd->id3buf);
 						else
 							generic_sendinfo(arg);
+
+						if (icy.name.fill) generic_sendmsg("I ICY-NAME: %s", icy.name.p);
+						if (icy.url.fill) generic_sendmsg("I ICY-URL: %s", icy.url.p);
 						mode = MODE_PLAYING;
 						init = 1;
 						read_frame_init(fr);

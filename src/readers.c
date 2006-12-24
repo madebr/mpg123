@@ -40,10 +40,11 @@ static ssize_t icy_fullread(struct reader *rds,unsigned char *buf, ssize_t count
 	while(cnt < count)
 	{
 		/* all icy code is inside this if block, everything else is the plain fullread we know */
+		/* debug1("read: %li left", (long) count-cnt); */
 		if(icy.interval && (rds->filepos+count > icy.next))
 		{
-			char temp_buff;
-			int meta_size;
+			unsigned char temp_buff;
+			size_t meta_size;
 			ssize_t cut_pos;
 
 			/* we are near icy-metaint boundary, read up to the boundary */
@@ -61,17 +62,18 @@ static ssize_t icy_fullread(struct reader *rds,unsigned char *buf, ssize_t count
 			if(ret < 0) return ret;
 			if(ret == 0) break;
 
+			debug2("got meta-size byte: %u, at filepos %li", temp_buff, (long)rds->filepos );
 			rds->filepos += ret; /* 1... */
 
-			if((meta_size = (unsigned int) temp_buff * 16))
+			if((meta_size = ((size_t) temp_buff) * 16))
 			{
 				/* we have got some metadata */
 				char *meta_buff;
 				meta_buff = (char*) malloc(meta_size+1);
-				meta_buff[meta_size] = 0; /* string paranoia */
 				if(meta_buff != NULL)
 				{
 					ret = read(rds->filept,meta_buff,meta_size);
+					meta_buff[meta_size] = 0; /* string paranoia */
 					if(ret < 0) return ret;
 
 					rds->filepos += ret;
@@ -81,7 +83,11 @@ static ssize_t icy_fullread(struct reader *rds,unsigned char *buf, ssize_t count
 					icy.changed = 1;
 					debug2("icy-meta: %s size: %d bytes", icy.data, meta_size);
 				}
-				else error("cannot allocate memory for meta_buff!");
+				else
+				{
+					error1("cannot allocate memory for meta_buff (%lu bytes) ... trying to skip the metadata!", (unsigned long)meta_size);
+					rds->skip_bytes(rds, meta_size);
+				}
 			}
 			icy.next = rds->filepos+icy.interval;
 		}
@@ -93,6 +99,7 @@ static ssize_t icy_fullread(struct reader *rds,unsigned char *buf, ssize_t count
 		rds->filepos += ret;
 		cnt += ret;
 	}
+	/* debug1("done reading, got %li", (long)cnt); */
 	return cnt;
 }
 
@@ -405,8 +412,16 @@ int open_stream(char *bs_filenam,int fd)
 		}
 	}
 
-	if(icy.interval) fullread = icy_fullread;
-fullread = icy_fullread;
+	if(icy.interval)
+	{
+		fullread = icy_fullread;
+		icy.next = icy.interval;
+	}
+	else
+	{
+		fullread = plain_fullread;
+	}
+
 	/* id3tag printing moved to read_frame */
 	return filept;
 }

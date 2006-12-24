@@ -638,7 +638,7 @@ decode_2to1.o:	mpg123.h debug.h config.h
 decode_4to1.o:	mpg123.h debug.h config.h
 decode_ntom.o:	mpg123.h debug.h config.h
 decode_i386.o:	mpg123.h debug.h config.h
-common.o:	mpg123.h common.h layer3.h debug.h config.h
+common.o:	mpg123.h common.h layer3.h debug.h config.h id3.h icy.h
 mpg123.o:	mpg123.c mpg123.h getlopt.h xfermem.h buffer.h term.h debug.h id3.h config.h
 mpg123.h:	audio.h debug.h config.h
 audio.o:	mpg123.h debug.h config.h
@@ -659,13 +659,13 @@ dct64_i386.o:	mpg123.h debug.h config.h
 xfermem.o:	xfermem.h debug.h config.h
 equalizer.o:	mpg123.h debug.h config.h
 wav.o:		mpg123.h debug.h config.h
-readers.o:	mpg123.h buffer.h common.h debug.h config.h
+readers.o:	mpg123.h buffer.h common.h debug.h config.h icy.h
 term.o:		mpg123.h buffer.h term.h common.h debug.h config.h
 playlist.o:	mpg123.h term.h getlopt.h debug.h config.h stringbuf.h
 stringbuf.o:	stringbuf.h config.h debug.h
 id3.o: config.h mpg123.h stringbuf.h genre.h id3.h debug.h common.h
 icy.o: icy.h stringbuf.h
-control_generic.o: config.h mpg123.h common.h debug.h layer3.h
+control_generic.o: config.h mpg123.h common.h debug.h layer3.h id3.h icy.h
 
 
 ###########################################################################

@@ -241,7 +241,7 @@ unsigned int proxyport;
 #define CONN_HEAD ""
 
 /* shoutcsast meta data: 1=on, 0=off */
-#define ACCEPT_ICY_META "Icy-MetaData: 0\r\n"
+#define ACCEPT_ICY_META "Icy-MetaData: 1\r\n"
 
 char *httpauth = NULL;
 char *httpauth1 = NULL;
