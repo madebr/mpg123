@@ -1263,6 +1263,10 @@ int position_info(struct frame* fr, unsigned long no, long buffsize, struct audi
 	return 0;
 }
 
+long time_to_frame(struct frame *fr, double seconds)
+{
+	return (long) (seconds/compute_tpf(fr));
+}
 
 void print_stat(struct frame *fr,unsigned long no,long buffsize,struct audio_info_struct *ai)
 {

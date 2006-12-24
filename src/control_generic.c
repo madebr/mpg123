@@ -265,7 +265,7 @@ int control_generic (struct frame *fr)
 					generic_sendmsg("LOADPAUSED/LP <trackname>: load and start playing resource <trackname>");
 					generic_sendmsg("PAUSE/P: pause playback");
 					generic_sendmsg("STOP/S: stop playback (closes file)");
-					generic_sendmsg("JUMP/J <frame>|<+offset>|<-offset>: jump to mpeg frame <frame> or change position by offset");
+					generic_sendmsg("JUMP/J <frame>|<+offset>|<-offset>|<[+|-]seconds>s: jump to mpeg frame <frame> or change position by offset, same in seconds if number followed by \"s\"");
 					generic_sendmsg("VOLUME/V <percent>: set volume in % (0..100...); float value");
 					generic_sendmsg("RVA off|(mix|radio)|(album|audiophile): set rva mode");
 					generic_sendmsg("EQ/E <channel> <band> <value>: set equalizer value for frequency band on channel");
@@ -341,6 +341,7 @@ int control_generic (struct frame *fr)
 					if (!strcasecmp(cmd, "J") || !strcasecmp(cmd, "JUMP")) {
 						char *spos;
 						long offset;
+						double secs;
 						audio_flush(param.outmode, &ai);
 
 						spos = arg;
@@ -349,12 +350,14 @@ int control_generic (struct frame *fr)
 						if (mode == MODE_STOPPED)
 							continue;
 
+						if(spos[strlen(spos)-1] == 's' && sscanf(arg, "%lf", &secs) == 1) offset = time_to_frame(fr, secs);
+						else offset = atol(spos);
 						/* totally replaced that stuff - it never fully worked
 						   a bit usure about why +pos -> spos+1 earlier... */
 						if (spos[0] == '-' || spos[0] == '+')
-							offset = atol(spos) + frame_before;
+							offset += frame_before;
 						else
-							offset = atol(spos) - fr->num;
+							offset -= fr->num;
 						
 						/* ah, this offset stuff is twisted - I want absolute numbers */
 						#ifdef GAPLESS

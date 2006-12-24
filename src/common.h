@@ -103,3 +103,7 @@ extern float rva_peak[2];
 
 /* adjust volume to current outscale and rva values if wanted */
 void do_rva();
+
+/* positive and negative for offsets... I guess I'll drop the unsigned frame position type anyway */
+long time_to_frame(struct frame *fr, double seconds);
+
