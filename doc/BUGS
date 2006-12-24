@@ -5,6 +5,9 @@ If you find a bug, please check for and report it in the sourceforge bug trackin
 
 - Oh... I am sure I'll find this quickly, but I am too sleepy now... I wonder if it is _wanted_ that playback of internet radio makes mpg123 daemonize.
 It detaches from console.
+  Actually, the second look puzzles me - this backgrounding is only happening for (pls) http playlists and is there since the beginning of pls support.
+  I suspect that ppl didn't notice that, so, is it an effect limited to SourceMage systems?
+  I have to investigate... and open bug tracker item on sf.net...
 
 Old list of known bugs from 0.59r:
 
