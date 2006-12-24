@@ -1,3 +1,15 @@
+0.62
+----
+
+ - JUMP command in generic frontend accepts offsets/positions in seconds (JUMP 4s vs. JUMP 4)
+ - initial support for ICY meta data in SHOUTcast streams
+ - a bit of fixing with rva code, added rva and general volume control to generic frontend
+ - accepting more MIME types for http streaming (application/pls and audio/x-mpeg)
+ - ID3v2 info output taking less space per default - more resembling the old ID3v1 view for short tags, full view with always one line per item via extra --long-tag switch
+ - generally less verbosity (i.e. noise on console) per default
+ - ID3v2 now having some kind of support for unicode; trying to print what's latin1-compatible and prevent messing up of terminal with unknown bytes
+ - several bug fixes and small improvements
+
 0.61
 -----
 

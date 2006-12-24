@@ -1,6 +1,6 @@
 * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *   mpg123 - MPEG 1.0/2.0/2.5 audio player            *
-*   README for version 0.61, dated at 20.10.2006      *
+*   README for version 0.62, dated at 24.12.2006      *
 *                                                     *
 * ...still the fastest MPEG audio player for UNIX ;)  *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -96,7 +96,7 @@ There used to be several interfaces for frontends left over from that past, but 
 
 It contains of communication of textual messages via standard input to mpg123 and responses to standard output unless the -s switch for output of audio data on stdout is used - then the responses come via stderr.
 
-See doc/README.control for usage.
+See doc/README.remote for usage.
 
 
 4. Speed

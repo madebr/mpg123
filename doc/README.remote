@@ -28,14 +28,17 @@ PAUSE/P: pause playback
 
 STOP/S: stop playback (closes file)
 
-JUMP/J <frame>|<+offset>|<-offset>: jump to mpeg frame <frame> or change position by offset
+JUMP/J <frame>|<+offset>|<-offset>|<[+|-]seconds>s: jump to mpeg frame <frame> or change position by offset, same in seconds if number followed by "s"
+
+VOLUME/V <percent>: set volume in % (0..100...); float value
+
+RVA off|(mix|radio)|(album|audiophile): set rva mode
 
 EQ/E <channel> <band> <value>: set equalizer value for frequency band on channel
 
 SEQ <bass> <mid> <treble>: simple eq setting...
 
 SILENCE: be silent during playback (meaning silence in text form)
-
 
 
 RESPONSE CODES
