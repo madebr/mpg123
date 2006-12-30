@@ -595,12 +595,9 @@ mint:
 		mpg123-make
 
 # maybe you need the additonal options LDFLAGS='-lnsl -lsocket' when linking (see solaris:)
-#		CFLAGS="$(CFLAGS) $(CPPFLAGS) -DGENERIC -DNOXFERMEM" \
-# the two flags don't compile (anymore)...
-# this makefile is a victim to bitrot...
 generic:
 	$(MAKE) LDFLAGS= OBJECTS="decode.o dct64.o audio_dummy.o" \
-	CFLAGS="$(CFLAGS) $(CPPFLAGS)" \
+	CFLAGS="$(CFLAGS) $(CPPFLAGS) -DGENERIC -DNOXFERMEM" \
 	mpg123-make
 
 ###########################################################################

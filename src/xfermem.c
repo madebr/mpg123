@@ -224,33 +224,22 @@ int xfermem_block (int readwrite, txfermem *xf)
 	return ((result <= 0) ? -1 : result);
 }
 
-#elif defined(WIN32)
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <fcntl.h>
+#else /* stubs for generic / win32 */
 
+#include "mpg123.h"
 #include "xfermem.h"
-
-extern int errno;
 
 void xfermem_init (txfermem **xf, int bufsize, int msize, int skipbuf)
 {
-  return 0;
 }
 void xfermem_done (txfermem *xf)
 {
-  return 0;
 }
 void xfermem_init_writer (txfermem *xf)
 {
-  return 0;
 }
 void xfermem_init_reader (txfermem *xf)
 {
-  return 0;
 }
 int xfermem_get_freespace (txfermem *xf)
 {

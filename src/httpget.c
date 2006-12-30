@@ -27,11 +27,13 @@
 */
 
 #include "config.h"
-/* That is not real ... I should really check the type of what I get! */
+#include <stdlib.h>
+/* That _is_ real now */
 #define ACCEPT_HEAD "Accept: audio/mpeg, audio/x-mpeg, audio/x-mpegurl, audio/x-scpls, application/pls, */*\r\n"
+char *proxyurl = NULL;
+
 #if !defined(WIN32) && !defined(GENERIC)
 
-#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -232,7 +234,6 @@ char* get_header_val(const char *hname, char* response, size_t *length)
 	return tmp;
 }
 
-char *proxyurl = NULL;
 unsigned long proxyip = 0;
 unsigned int proxyport;
 
@@ -709,37 +710,11 @@ exit:
 }
 
 #else /* defined(WIN32) || defined(GENERIC) */
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 
-extern int errno;
-
-#include "mpg123.h"
-
-/* stubs for Win32 */
-
-int writestring (int fd, char *string)
-{
-	return 1;
-}
-
-int readstring (char *string, int maxlen, FILE *f)
-{
-}
-
-char *url2hostport (char *url, char **hname, unsigned long *hip, unsigned int *port)
-{
-}
-
-char *proxyurl = NULL;
-unsigned long proxyip = 0;
-unsigned int proxyport;
-
-/* #define ACCEPT_HEAD "Accept: audio/mpeg, audio/x-mpegurl, */*\r\n" */
-
+/* stub */
 int http_open (char* url, char** content_type)
 {
+	return -1;
 }
 #endif
 
