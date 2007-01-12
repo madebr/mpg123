@@ -92,7 +92,7 @@ void store_id3_text(struct stringbuf* sb, char* source, size_t source_size)
 	if((source_size-1) % bwidth)
 	{
 		/* Uh. (BTW, the -1 is for the encoding byte.) */
-		warning2("Weird tag size %d for encoding %d - I will probably trim too early or something but I think the MP3 is broken.", source_size, encoding);
+		warning2("Weird tag size %d for encoding %d - I will probably trim too early or something but I think the MP3 is broken.", (int)source_size, encoding);
 		source_size -= (source_size-1) % bwidth;
 	}
 	/*

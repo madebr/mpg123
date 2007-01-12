@@ -81,7 +81,7 @@ static ssize_t icy_fullread(struct reader *rds,unsigned char *buf, ssize_t count
 					if(icy.data) free(icy.data);
 					icy.data = meta_buff;
 					icy.changed = 1;
-					debug2("icy-meta: %s size: %d bytes", icy.data, meta_size);
+					debug2("icy-meta: %s size: %d bytes", icy.data, (int)meta_size);
 				}
 				else
 				{
