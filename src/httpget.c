@@ -99,8 +99,9 @@ int readstring (char *string, int maxlen, FILE *f)
 		}
 		else if(errno != EINTR) {
 			error("Error reading from socket or unexpected EOF.");
-			/* simply invalidate on error */
-			pos=0;
+			string[pos] = 0;
+			/* bail out to prevent endless loop */
+			return -1;
 		}
 	}
 
@@ -260,6 +261,7 @@ int http_open (char* url, char** content_type)
 	unsigned int myport = 0;
 	int sock;
 	int relocate, numrelocs = 0;
+	int ret = 0; /* return value from readstring */
 	struct sockaddr_in server;
 	FILE *myfile;
 	/*
@@ -561,11 +563,19 @@ int http_open (char* url, char** content_type)
 		}
 		relocate = FALSE;
 		purl[0] = '\0';
-		if (readstring (response, linelength-1, myfile)
-		    == linelength-1) {
-			fprintf(stderr, "Command exceeds max. length\n");
-			http_failure;
+		#define safe_readstring \
+		ret = readstring(response, linelength-1, myfile); \
+		if(ret == linelength-1) \
+		{ \
+			error("HTTP response line exceeds max. length"); \
+			http_failure; \
+		} \
+		else if(ret < 0) \
+		{ \
+			error("readstring failed"); \
+			http_failure; \
 		}
+		safe_readstring;
 		debug1("<response>\n%s</response>",response);
 		if ((sptr = strchr(response, ' '))) {
 			switch (sptr[1]) {
@@ -579,11 +589,7 @@ int http_open (char* url, char** content_type)
 			}
 		}
 		do {
-			if (readstring (response, linelength-1, myfile)
-			    == linelength-1) {
-				fprintf(stderr, "URL exceeds max. length\n");
-				http_failure;
-			}
+			safe_readstring;
 			if (!strncmp(response, "Location: ", 10))
 			{
 				size_t needed_length;
