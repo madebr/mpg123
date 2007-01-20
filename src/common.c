@@ -360,17 +360,19 @@ init_resync:
 		}
 		/* unhandled junk... just continue search for a header */
 		/* step in byte steps through next 64K */
+		debug("searching for header...");
 		for(i=0;i<65536;i++) {
 			if(!rd->head_shift(rd,&newhead))
 				return 0;
 			/* if(head_check(newhead)) */
 			if(head_check(newhead) && decode_header(fr, newhead))
-			break;
+				break;
 		}
 		if(i == 65536) {
 			if(!param.quiet) error("Giving up searching valid MPEG header after 64K of junk.");
 			return 0;
 		}
+		else debug("hopefully found one...");
 		/* 
 		 * should we additionaly check, whether a new frame starts at
 		 * the next expected position? (some kind of read ahead)
@@ -410,6 +412,7 @@ init_resync:
 			if(!head_check(nexthead) || (nexthead & HDRCMPMASK) != (newhead & HDRCMPMASK))
 			{
 				debug("No, the header was not valid, start from beginning...");
+				oldhead = 0; /* start over */
 				/* try next byte for valid header */
 				if(rd->back_bytes(rd, 3))
 				{
@@ -758,6 +761,7 @@ init_resync:
   if (param.halfspeed && fr->lay == 3)
     memcpy (ssave, bsbuf, ssize);
 
+	debug2("N %08lx %i", newhead, fr->framesize);
 	if(++mean_frames != 0)
 	{
 		mean_framesize = ((mean_frames-1)*mean_framesize+compute_bpf(fr)) / mean_frames ;
@@ -898,6 +902,7 @@ static int decode_header(struct frame *fr,unsigned long newhead)
       else
         fr->sampling_frequency = ((newhead>>10)&0x3) + (fr->lsf*3);
       fr->error_protection = ((newhead>>16)&0x1)^0x1;
+debug1("set error protection bit to %d", fr->error_protection);
     }
 
     fr->bitrate_index = ((newhead>>12)&0xf);

@@ -76,7 +76,7 @@ fprintf(stderr,"g%d",number_of_bits);
   }
 
 #ifdef DEBUG_GETBITS
-fprintf(stderr,":%x ",rval);
+fprintf(stderr,":%lx ",rval);
 #endif
 
   return rval;
