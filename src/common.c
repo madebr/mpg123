@@ -544,10 +544,12 @@ init_resync:
 			{
 				size_t i;
 				int lame_type = 0;
+				debug("do we have lame tag?");
 				/* only search for tag when all zero before it (apart from checksum) */
 				for(i=2; i < lame_offset; ++i) if(bsbuf[i] != 0) break;
 				if(i == lame_offset)
 				{
+					debug("possibly...");
 					if
 					(
 					       (bsbuf[lame_offset] == 'I')
@@ -901,10 +903,9 @@ static int decode_header(struct frame *fr,unsigned long newhead)
       }
       else
         fr->sampling_frequency = ((newhead>>10)&0x3) + (fr->lsf*3);
-      fr->error_protection = ((newhead>>16)&0x1)^0x1;
-debug1("set error protection bit to %d", fr->error_protection);
     }
 
+    fr->error_protection = ((newhead>>16)&0x1)^0x1; /* seen a file where this varies (old lame tag without crc, track with crc) */
     fr->bitrate_index = ((newhead>>12)&0xf);
     fr->padding   = ((newhead>>9)&0x1);
     fr->extension = ((newhead>>8)&0x1);

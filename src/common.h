@@ -37,9 +37,12 @@
 	So a better mask is:
 	11111111 11111111 00001101 00000000
 
+	Even more, I'll allow varying crc bit.
+	11111111 11111110 00001101 00000000
+
 	(still unsure about this private bit)
 */
-#define HDRCMPMASK 0xffff0d00
+#define HDRCMPMASK 0xfffe0d00
 
 extern unsigned long firsthead;
 extern int tabsel_123[2][3][16];
