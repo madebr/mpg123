@@ -166,7 +166,7 @@ int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 	debug1("ID3v2: tag data length %lu", length);
 	if(param.verbose > 1) fprintf(stderr,"Note: ID3v2.%i rev %i tag of %lu bytes\n", major, buf[0], length);
 	/* skip if unknown version/scary flags, parse otherwise */
-	if((flags & UNKNOWN_FLAGS) || (major > 4))
+	if((flags & UNKNOWN_FLAGS) || (major > 4) || (major < 3))
 	{
 		/* going to skip because there are unknown flags set */
 		warning2("ID3v2: Won't parse the ID3v2 tag with major version %u and flags 0x%xu - some extra code may be needed", major, flags);
@@ -224,7 +224,7 @@ int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 							if(!syncsafe_to_long(tagdata+pos, framesize))
 							{
 								ret = -1;
-								error("ID3v2: non-syncsafe frame size, aborting");
+								error1("ID3v2: non-syncsafe size of %s frame, skipping the remainder of tag", id);
 								break;
 							}
 							if(param.verbose > 2) fprintf(stderr, "Note: ID3v2 %s frame of size %lu\n", id, framesize);
