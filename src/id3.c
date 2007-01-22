@@ -150,19 +150,29 @@ int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 	/* second new byte are some nice flags, if these are invalid skip the whole thing */
 	flags = buf[1];
 	debug1("ID3v2: flags 0x%08x", flags);
-	/* use 4 bytes from buf to construct 28bit uint value and return 1; return 0 if bytes are not syncsafe */
-	#define syncsafe_to_long(buf,res) \
+	/* use 4 bytes from buf to construct 28bit uint value and return 1; return 0 if bytes are not synchsafe */
+	#define synchsafe_to_long(buf,res) \
 	( \
 		(((buf)[0]|(buf)[1]|(buf)[2]|(buf)[3]) & 0x80) ? 0 : \
-		(res =  (((unsigned long) (buf)[0]) << 27) \
+		(res =  (((unsigned long) (buf)[0]) << 21) \
 		     | (((unsigned long) (buf)[1]) << 14) \
 		     | (((unsigned long) (buf)[2]) << 7) \
 		     |  ((unsigned long) (buf)[3]) \
 		,1) \
 	)
+	/* id3v2.3 does not store synchsafe frame sizes, but synchsafe tag size - doh! */
+	#define bytes_to_long(buf,res) \
+	( \
+		major == 3 ? \
+		(res =  (((unsigned long) (buf)[0]) << 24) \
+		     | (((unsigned long) (buf)[1]) << 16) \
+		     | (((unsigned long) (buf)[2]) << 8) \
+		     |  ((unsigned long) (buf)[3]) \
+		,1) : synchsafe_to_long(buf,res) \
+	)
 	/* length-10 or length-20 (footer present); 4 synchsafe integers == 28 bit number  */
 	/* we have already read 10 bytes, so left are length or length+10 bytes belonging to tag */
-	if(!syncsafe_to_long(buf+2,length)) return -1;
+	if(!synchsafe_to_long(buf+2,length)) return -1;
 	debug1("ID3v2: tag data length %lu", length);
 	if(param.verbose > 1) fprintf(stderr,"Note: ID3v2.%i rev %i tag of %lu bytes\n", major, buf[0], length);
 	/* skip if unknown version/scary flags, parse otherwise */
@@ -189,7 +199,7 @@ int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 				if(flags & EXTHEAD_FLAG)
 				{
 					debug("ID3v2: skipping extended header");
-					if(!syncsafe_to_long(tagdata, tagpos)) ret = -1;
+					if(!bytes_to_long(tagdata, tagpos)) ret = -1;
 				}
 				if(ret >= 0)
 				{
@@ -220,8 +230,8 @@ int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 							/* 4 bytes id */
 							strncpy(id, (char*) tagdata+pos, 4);
 							pos += 4;
-							/* size as 32 syncsafe bits */
-							if(!syncsafe_to_long(tagdata+pos, framesize))
+							/* size as 32 bits */
+							if(!bytes_to_long(tagdata+pos, framesize))
 							{
 								ret = -1;
 								error1("ID3v2: non-syncsafe size of %s frame, skipping the remainder of tag", id);
