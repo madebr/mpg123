@@ -193,12 +193,14 @@ AC_CHECK_HEADERS([AudioUnit/AudioUnit.h CoreServices/CoreServices.h AudioToolbox
 
 dnl ############## Choose compiler flags and CPU
 
-CFLAGS="$CFLAGS -Wall"
+# do not assume gcc here, so no flags by default
+CFLAGS="$CFLAGS"
 LIBS="$LIBS"
 
 # If debugging is enabled then make warnings errors
+# gcc specific...
 if test "$debugging" = "enabled"; then
-	CFLAGS="$CFLAGS -g -Werror -pedantic"
+	CFLAGS="$CFLAGS -g -Wall -Werror -pedantic"
 fi
 
 
