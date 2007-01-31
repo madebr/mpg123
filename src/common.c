@@ -465,7 +465,7 @@ init_resync:
         do {
           if(!rd->head_shift(rd,&newhead))
 		return 0;
-          /* debug2("resync try %i, got newhead 0x%08lx", try, newhead); */
+          debug2("resync try %i, got newhead 0x%08lx", try, newhead);
           if (!oldhead)
           {
             debug("going to init_resync...");
@@ -905,6 +905,9 @@ static int decode_header(struct frame *fr,unsigned long newhead)
         fr->sampling_frequency = ((newhead>>10)&0x3) + (fr->lsf*3);
     }
 
+    #ifdef DEBUG
+    if((((newhead>>16)&0x1)^0x1) != fr->error_protection) debug("changed crc bit!");
+    #endif
     fr->error_protection = ((newhead>>16)&0x1)^0x1; /* seen a file where this varies (old lame tag without crc, track with crc) */
     fr->bitrate_index = ((newhead>>12)&0xf);
     fr->padding   = ((newhead>>9)&0x1);
