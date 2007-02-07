@@ -1,3 +1,12 @@
+0.65
+----
+
+ - now allow crc bit to vary over stream (fixes files with bad lame tag and some internet streams)
+ - do not try to parse id3v2.2 (as opposed to 2.3 and 2.4)
+ - correct id3v2.3 parsing for not expecting syncsafe integers for framesize, 2.4 introduced that
+ - omit gcc specific compiler flags when gcc is not there
+ - initital attempt to support sgi/irix with configure (please test)
+
 0.64
 ----
 
