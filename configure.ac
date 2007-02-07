@@ -109,10 +109,10 @@ AC_ARG_WITH([audio], [
 
 AC_ARG_WITH([optimization], [
   --with-optimization=0   No Optimization
-  --with-optimization=1   Limited Optimization (-O)
-  --with-optimization=2   Default Optimization (-O2)
-  --with-optimization=3   More Optimize than default (-O3)
-  --with-optimization=4   Optimize yet more (-O4)
+  --with-optimization=1   Limited Optimization (-O) (for gcc)
+  --with-optimization=2   Default Optimization (-O2 ...) (for gcc)
+  --with-optimization=3   More Optimize than default (-O3 ...) (for gcc)
+  --with-optimization=4   Optimize yet more (-O4 ...) (for gcc)
 ])
 
 AC_ARG_WITH([seektable], [
@@ -198,9 +198,12 @@ CFLAGS="$CFLAGS"
 LIBS="$LIBS"
 
 # If debugging is enabled then make warnings errors
-# gcc specific...
 if test "$debugging" = "enabled"; then
-	CFLAGS="$CFLAGS -g -Wall -Werror -pedantic"
+	CFLAGS="$CFLAGS -g"
+	# gcc specific...
+	if test "$GCC" = "yes"; then
+		CFLAGS="$CFLAGS -Wall -Werror -pedantic"
+	fi
 fi
 
 
@@ -332,7 +335,8 @@ if test "x$with_optimization" = "x"; then
 	if test "$debugging" = "enabled"; then
 		with_optimization="0"
 	else
-		with_optimization="2"
+		# enable (gcc specific) default opts only with gcc
+		test "$GCC" = yes && with_optimization="2"
 	fi
 fi
 
@@ -500,7 +504,9 @@ case $audio_system in
     AUDIO_LIBS=$SDL_LIBS
   ;;
   sgi)
-    # Currently unsupported in the new build system
+  # experimenting
+    AUDIO_CFLAGS=-DSGI
+    AUDIO_LIBS=-laudio
   ;;
   sun)
     if test "x${ac_cv_header_sun_audioio_h}" = "xyes" \
