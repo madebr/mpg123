@@ -680,6 +680,9 @@ static int III_dequantize_sample(real xr[SBLIMIT][SSLIMIT],int *scf,
     int region2  = gr_info->region2start;
 if(region1 > region2)
 {
+	/* That's not optimal: it fixes a segfault with fuzzed data, but also apparently triggers where it shouldn't, see bug 1641196.
+	   The benefit of not crashing / having this security risk is bigger than these few frames of a lame-3.70 file that aren't audible anyway
+	   But still, I want to know if indeed this check or the old lame is at fault. */
 	error("You got some really nasty file there... region1>region2!");
 	return 1;
 }
