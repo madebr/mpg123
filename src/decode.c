@@ -152,7 +152,7 @@ int synth_1to1(real *bandPtr,int channel,unsigned char *out,int *pnt)
 
   {
     register int j;
-    real *window = decwin + 16 - bo1;
+    real *window = opt_decwin + 16 - bo1;
  
     for (j=16;j;j--,window+=0x10,samples+=step)
     {

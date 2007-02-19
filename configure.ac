@@ -10,7 +10,7 @@ AC_PREREQ(2.57)
 
 dnl ############# Initialisation
 
-AC_INIT([mpg123], [0.65], [mpg123-devel@lists.sourceforge.net])
+AC_INIT([mpg123], [0.66], [mpg123-devel@lists.sourceforge.net])
 
 AC_CONFIG_SRCDIR(src/mpg123.c)
 AC_CONFIG_AUX_DIR(build)
@@ -282,40 +282,40 @@ fi
 dnl CPU specific compiler flags
 case $cpu_type in
   generic)
-    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
+    CFLAGS="$CFLAGS -DOPT_GENERIC -DREAL_IS_FLOAT"
   ;;
   generic_fpu)
-    CFLAGS="$CFLAGS -DREAL_IS_FLOAT"
+    CFLAGS="$CFLAGS -DOPT_GENERIC -DREAL_IS_FLOAT"
   ;;
   generic_nofpu)
-    CFLAGS="$CFLAGS -DREAL_IS_FIXED"
+    CFLAGS="$CFLAGS -DOPT_GENERIC -DREAL_IS_FIXED"
   ;;
   altivec)
-    CFLAGS="$CFLAGS -maltivec -faltivec -DREAL_IS_FLOAT -DUSE_ALTIVEC"
+    CFLAGS="$CFLAGS -maltivec -faltivec -DREAL_IS_FLOAT -DOPT_ALTIVEC"
   ;;
   i386) 
-    CFLAGS="$CFLAGS -march=i386 -DI386_ASSEM -DREAL_IS_FLOAT"
+    CFLAGS="$CFLAGS -DOPT_I386 -DREAL_IS_FLOAT"
   ;;
   i386_fpu) 
-    CFLAGS="$CFLAGS -march=i386 -DI386_ASSEM -DREAL_IS_FLOAT"
+    CFLAGS="$CFLAGS -DOPT_I386 -DREAL_IS_FLOAT"
   ;;
   i386_nofpu) 
-    CFLAGS="$CFLAGS -march=i386 -DI386_ASSEM -DREAL_IS_FIXED"
+    CFLAGS="$CFLAGS -DOPT_I386 -DREAL_IS_FIXED"
   ;;
   i486) 
-    CFLAGS="$CFLAGS -march=i486 -DI386_ASSEM -DI486_OPT -DREAL_IS_FLOAT"
+    CFLAGS="$CFLAGS -DOPT_I486 -DREAL_IS_FLOAT"
   ;;
   i586) 
-    CFLAGS="$CFLAGS -DI386_ASSEM -DPENTIUM_OPT -DREAL_IS_FLOAT"
+    CFLAGS="$CFLAGS -DOPT_I586 -DREAL_IS_FLOAT"
   ;;
   i586_dither) 
-    CFLAGS="$CFLAGS -DI386_ASSEM -DPENTIUM_OPT -DREAL_IS_FLOAT"
+    CFLAGS="$CFLAGS -DOPT_I586_DITHER -DREAL_IS_FLOAT"
   ;;
   3dnow) 
-    CFLAGS="$CFLAGS -DUSE_3DNOW -DI386_ASSEM -DPENTIUM_OPT -DREAL_IS_FLOAT"
+    CFLAGS="$CFLAGS -DOPT_3DNOW -DREAL_IS_FLOAT"
   ;;
   mmx) 
-    CFLAGS="$CFLAGS -DUSE_MMX -DI386_ASSEM -DPENTIUM_OPT -DREAL_IS_FLOAT"
+    CFLAGS="$CFLAGS -DOPT_MMX -DREAL_IS_FLOAT"
   ;;
   *)
   	AC_MSG_ERROR([Unknown CPU type '$cpu_type'])

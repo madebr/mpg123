@@ -174,18 +174,18 @@ int synth_ntom(real *bandPtr,int channel,unsigned char *out,int *pnt)
   if(bo & 0x1) {
     b0 = buf[0];
     bo1 = bo;
-    dct64(buf[1]+((bo+1)&0xf),buf[0]+bo,bandPtr);
+    opt_dct64(buf[1]+((bo+1)&0xf),buf[0]+bo,bandPtr);
   }
   else {
     b0 = buf[1];
     bo1 = bo+1;
-    dct64(buf[0]+bo,buf[1]+bo+1,bandPtr);
+    opt_dct64(buf[0]+bo,buf[1]+bo+1,bandPtr);
   }
 
 
   {
     register int j;
-    real *window = decwin + 16 - bo1;
+    real *window = opt_decwin + 16 - bo1;
  
     for (j=16;j;j--,window+=0x10)
     {

@@ -15,9 +15,11 @@
 static unsigned char *conv16to8_buf = NULL;
 unsigned char *conv16to8;
 
-#ifndef USE_MMX
-real decwin[512+32];
-#ifdef USE_ALTIVEC
+/* All optimizations share this code - with the exception of MMX */
+#ifndef OPT_MMX_ONLY
+real decwin[512+32]; /* MMX has another one */
+/* that altivec alignment part here should not hurt generic code, I hope */
+#ifdef OPT_ALTIVEC
 static real __attribute__ ((aligned (16))) cos64[16];
 static real __attribute__ ((aligned (16))) cos32[8];
 static real __attribute__ ((aligned (16))) cos16[4];

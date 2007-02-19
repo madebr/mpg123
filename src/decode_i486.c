@@ -147,9 +147,9 @@ int synth_1to1_486(real *bandPtr,int channel,unsigned char *out,int nb_blocks)
     }
     
     if(b & 1) {
-      dct64_486(buf[1]+b,buf[0]+b,bandPtr);
+      dct64_i486(buf[1]+b,buf[0]+b,bandPtr);
     } else {
-      dct64_486(buf[0]+b,buf[1]+b,bandPtr);
+      dct64_i486(buf[0]+b,buf[1]+b,bandPtr);
     }
     bandPtr+=32;
   }

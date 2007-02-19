@@ -318,7 +318,7 @@ void dct64_1_486(int *out0,int *out1,int *b1,int *b2)
  * the call via dct64 is a trick to force GCC to use
  * (new) registers for the b1,b2 pointer to the bufs[xx] field
  */
-void dct64_486(int *a,int *b,real *samples)
+void dct64_i486(int *a,int *b,real *samples)
 {
   int bufs[64];
   int i;

@@ -1,4 +1,4 @@
-/	tabinit_MMX.s: ...
+/	tabinit_mmx.s: make_decode_tables_mmx
 
 /	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
 /	see COPYING and AUTHORS files in distribution or http://mpg123.de
@@ -6,7 +6,7 @@
 
 .bss
 	.align 32
-    	.comm	decwin,2176,32
+    	.comm	decwin_mmx,2176,32
 	.align 32
 	.comm	decwins,2176,32
 
@@ -51,9 +51,9 @@ intwindiv:
 	.long 0x47800000			# 65536.0
 .text
 	.align 32
-.globl make_decode_tables
+.globl make_decode_tables_mmx
 
-make_decode_tables:
+make_decode_tables_mmx:
 	pushl %edi
 	pushl %esi
 	pushl %ebx
@@ -77,8 +77,8 @@ make_decode_tables:
 	fdivs intwindiv
 	fimull 24(%esp)
 	popl %eax
-	fsts  decwin(,%ecx,4)
-	fstps decwin+64(,%ecx,4)
+	fsts  decwin_mmx(,%ecx,4)
+	fstps decwin_mmx+64(,%ecx,4)
 .L02:
 	leal -1(%esi),%edx
 	and %ebx,%edx

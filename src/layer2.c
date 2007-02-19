@@ -53,20 +53,34 @@ void init_layer2(void)
 
   for(k=0;k<27;k++)
   {
-    double m=mulmul[k];
-    table = muls[k];
-#ifdef USE_MMX
-    if(!param.down_sample) 
-        for(j=3,i=0;i<63;i++,j--)
-    *table++ = 16384 * m * pow(2.0,(double) j / 3.0);
-    else
-#endif
-    for(j=3,i=0;i<63;i++,j--)
-      *table++ = m * pow(2.0,(double) j / 3.0);
+    table = opt_init_layer2_table(muls[k], mulmul[k]);
     *table++ = 0.0;
   }
 }
 
+real* init_layer2_table(real *table, double m)
+{
+	int i,j;
+	for(j=3,i=0;i<63;i++,j--)
+	*table++ = m * pow(2.0,(double) j / 3.0);
+
+	return table;
+}
+
+#ifdef OPT_MMX
+real* init_layer2_table_mmx(real *table, double m)
+{
+	int i,j;
+	if(!param.down_sample) 
+	for(j=3,i=0;i<63;i++,j--)
+	*table++ = 16384 * m * pow(2.0,(double) j / 3.0);
+	else
+	for(j=3,i=0;i<63;i++,j--)
+	*table++ = m * pow(2.0,(double) j / 3.0);
+
+	return table;
+}
+#endif
 
 void II_step_one(unsigned int *bit_alloc,int *scale,struct frame *fr)
 {

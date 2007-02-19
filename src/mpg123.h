@@ -151,11 +151,9 @@ struct al_table
 
 struct frame {
     struct al_table *alloc;
+    /* could use types from optimize.h */
     int (*synth)(real *,int,unsigned char *,int *);
     int (*synth_mono)(real *,unsigned char *,int *);
-#ifdef USE_3DNOW
-    void (*dct36)(real *,real *,real *,real *,real *);
-#endif
     int stereo; /* I _think_ 1 for mono and 2 for stereo */
     int jsbound;
     int single;
@@ -205,9 +203,11 @@ struct parameter {
   long doublespeed;
   long halfspeed;
   int force_reopen;
-#ifdef USE_3DNOW
+#ifdef OPT_MULTI
+#ifdef OPT_3DNOW
   int stat_3dnow; /* automatic/force/force-off 3DNow! optimized code */
   int test_3dnow;
+#endif
 #endif
   long realtime;
   char filename[256];
@@ -218,6 +218,9 @@ struct parameter {
   int rva; /* (which) rva to do: 0: nothing, 1: radio/mix/track 2: album/audiophile */
   char* listname; /* name of playlist */
   int long_id3;
+  #ifdef OPT_MULTI
+  char* cpu; /* chosen optimization, can be NULL/""/"auto"*/
+  #endif
 };
 
 /* start to use off_t to properly do LFS in future ... used to be long */
@@ -335,15 +338,7 @@ extern int do_layer2(struct frame *fr,int,struct audio_info_struct *);
 extern int do_layer1(struct frame *fr,int,struct audio_info_struct *);
 extern void do_equalizer(real *bandPtr,int channel);
 
-#ifdef PENTIUM_OPT
-extern int synth_1to1_pent (real *,int,unsigned char *);
-#endif
-extern int synth_1to1 (real *,int,unsigned char *,int *);
-extern int synth_1to1_8bit (real *,int,unsigned char *,int *);
-extern int synth_1to1_mono (real *,unsigned char *,int *);
-extern int synth_1to1_mono2stereo (real *,unsigned char *,int *);
-extern int synth_1to1_8bit_mono (real *,unsigned char *,int *);
-extern int synth_1to1_8bit_mono2stereo (real *,unsigned char *,int *);
+/* synth_1to1 in optimize.h, one should also use opts for these here... */
 
 extern int synth_2to1 (real *,int,unsigned char *,int *);
 extern int synth_2to1_8bit (real *,int,unsigned char *,int *);
@@ -376,14 +371,7 @@ extern int get_songlen(struct frame *fr,int no);
 
 extern void init_layer3(int);
 extern void init_layer2(void);
-extern void make_decode_tables(long scale);
 extern int make_conv16to8_table(int);
-extern void dct64(real *,real *,real *);
-
-#ifdef USE_MMX
-extern void dct64_MMX(short *a,short *b,real *c);
-extern int synth_1to1_MMX(real *, int, short *, short *, int *);
-#endif
 
 extern int synth_ntom_set_step(long,long);
 
@@ -406,10 +394,6 @@ extern int cdr_close(void);
 extern unsigned char *conv16to8;
 extern long freqs[9];
 extern real muls[27][64];
-extern real decwin[512+32];
-#ifndef USE_MMX
-extern real *pnts[5];
-#endif
 
 extern real equalizer[2][32];
 extern real equalizer_sum[2][32];
@@ -419,21 +403,10 @@ extern struct audio_name audio_val2name[];
 
 extern struct parameter param;
 
-/* 486 optimizations */
-#define FIR_BUFFER_SIZE  128
-extern void dct64_486(int *a,int *b,real *c);
-extern int synth_1to1_486(real *bandPtr,int channel,unsigned char *out,int nb_blocks);
-
-/* 3DNow! optimizations */
-#ifdef USE_3DNOW
-extern int getcpuflags(void);
-extern void dct36(real *,real *,real *,real *,real *);
-extern void dct36_3dnow(real *,real *,real *,real *,real *);
-extern int synth_1to1_3dnow(real *,int,unsigned char *,int *);
-#endif
-
 /* avoid the SIGINT in terminal control */
 void next_track(void);
 extern long outscale;
+
+#include "optimize.h"
 
 #endif

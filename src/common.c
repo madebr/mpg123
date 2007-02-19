@@ -266,7 +266,7 @@ void do_rva()
 	if(newscale != lastscale)
 	{
 		debug3("changing scale value from %li to %li (peak estimated to %li)", lastscale != -1 ? lastscale : outscale, newscale, (long) (newscale*peak));
-		make_decode_tables(newscale); /* the actual work */
+		opt_make_decode_tables(newscale); /* the actual work */
 		lastscale = newscale;
 	}
 }

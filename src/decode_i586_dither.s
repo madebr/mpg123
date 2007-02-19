@@ -65585,8 +65585,8 @@ dither.0:
 	.long 0x0,0xc0e00000
 	.align 8
 .text
-.globl synth_1to1_pent
-synth_1to1_pent:
+.globl synth_1to1_i586_asm_dither
+synth_1to1_i586_asm_dither:
 	subl $12,%esp
 	pushl %ebp
 	pushl %edi
@@ -65638,7 +65638,7 @@ synth_1to1_pent:
 	leal (%ecx,%ebp,4),%eax
 .L74:
 	pushl %eax
-	call dct64
+	call dct64_i386
 	addl $12,%esp
 	movl 16(%esp),%edx
 	leal 0(,%edx,4),%edx

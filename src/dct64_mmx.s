@@ -1,4 +1,4 @@
-/	dct64_MMX.s: MMX optimized DCT64
+/	dct64_mmx.s: MMX optimized DCT64
 
 /	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
 /	see COPYING and AUTHORS files in distribution or http://mpg123.de
@@ -42,8 +42,8 @@ costab:
 .text
 
 	.align 32
-.globl dct64
-dct64:
+.globl dct64_mmx
+dct64_mmx:
 
 	xorl %ecx,%ecx
 .globl dct64_MMX

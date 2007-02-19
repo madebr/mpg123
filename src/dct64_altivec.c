@@ -25,7 +25,7 @@
 #include <altivec.h>
 #endif
 
-void dct64(real *out0,real *out1,real *samples)
+void dct64_altivec(real *out0,real *out1,real *samples)
 {
   real __attribute__ ((aligned (16))) bufs[64];
 
