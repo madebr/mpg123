@@ -10,6 +10,7 @@
 
 #include "config.h"
 #include "mpg123.h" /* includes optimize.h */
+#ifdef OPT_MULTI
 
 struct_opts opts;
 
@@ -152,3 +153,4 @@ int set_optmization()
 	}
 	else return 1;
 }
+#endif
