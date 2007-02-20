@@ -247,7 +247,8 @@ int synth_1to1_i586(real *bandPtr,int channel,unsigned char *out,int *pnt)
 	if(have_eq_settings) do_equalizer(bandPtr,channel);
 
 	/* this is in asm, can be dither or not */
-	ret = opt_synth_1to1_i586_asm(bandPtr,channel,out+*pnt);
+	/* uh, is this return from pointer correct? */ 
+	ret = (int) opt_synth_1to1_i586_asm(bandPtr,channel,out+*pnt);
 	*pnt += 128;
 	return ret;
 }

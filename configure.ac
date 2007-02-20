@@ -86,6 +86,7 @@ AC_ARG_WITH([cpu], [
   --with-cpu=3dnow        Use code optimized for 3dnow processors
   --with-cpu=mmx          Use code optimized for MMX processors
   --with-cpu=sse          Use code optimized for SSE processors
+  --with-cpu=x86          Pack all x86 opts into one binary (excluding i486)
   --with-cpu=altivec      Use code optimized for Altivec processors (PowerPC G4 and G5)
 ]) 
 
@@ -320,6 +321,9 @@ case $cpu_type in
   ;;
   sse) 
     CFLAGS="$CFLAGS -DOPT_SSE -DREAL_IS_FLOAT"
+  ;;
+  x86) 
+    CFLAGS="$CFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_I386 -DOPT_I586 -DOPT_I586_DITHER -DOPT_MMX -DOPT_3DNOW -DOPT_SSE -DREAL_IS_FLOAT"
   ;;
   *)
   	AC_MSG_ERROR([Unknown CPU type '$cpu_type'])

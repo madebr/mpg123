@@ -220,6 +220,7 @@ struct parameter {
   int long_id3;
   #ifdef OPT_MULTI
   char* cpu; /* chosen optimization, can be NULL/""/"auto"*/
+  int list_cpu;
   #endif
 };
 

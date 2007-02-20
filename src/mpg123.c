@@ -85,6 +85,7 @@ struct parameter param = {
 	0 /* condensed id3 per default */
 	#ifdef OPT_MULTI
 	,NULL /* choose optimization */
+	,0
 	#endif
 };
 
@@ -364,6 +365,7 @@ topt opts[] = {
 	{0,   "test-3dnow",  GLO_INT,  0, &param.test_3dnow, TRUE},
 	#endif
 	{0, "cpu", GLO_ARG | GLO_CHAR, 0, &param.cpu,  0},
+	{0, "list-cpu", GLO_INT,  0, &param.list_cpu , 1},
 	#endif
 	#if !defined(WIN32) && !defined(GENERIC)
 	{'u', "auth",        GLO_ARG | GLO_CHAR, 0, &httpauth,   0},
@@ -599,34 +601,41 @@ void set_synth_functions(struct frame *fr)
 	int ds = fr->down_sample;
 	int p8=0;
 	static func_synth funcs[2][4] = { 
-		{ opt_synth_1to1,
+		{ NULL,
 		  synth_2to1,
 		  synth_4to1,
 		  synth_ntom } ,
-		{ opt_synth_1to1_8bit,
+		{ NULL,
 		  synth_2to1_8bit,
 		  synth_4to1_8bit,
 		  synth_ntom_8bit } 
 	};
-
 	static func_synth_mono funcs_mono[2][2][4] = {    
-		{ { opt_synth_1to1_mono2stereo ,
+		{ { NULL ,
 		    synth_2to1_mono2stereo ,
 		    synth_4to1_mono2stereo ,
 		    synth_ntom_mono2stereo } ,
-		  { opt_synth_1to1_8bit_mono2stereo ,
+		  { NULL ,
 		    synth_2to1_8bit_mono2stereo ,
 		    synth_4to1_8bit_mono2stereo ,
 		    synth_ntom_8bit_mono2stereo } } ,
-		{ { opt_synth_1to1_mono ,
+		{ { NULL ,
 		    synth_2to1_mono ,
 		    synth_4to1_mono ,
 		    synth_ntom_mono } ,
-		  { opt_synth_1to1_8bit_mono ,
+		  { NULL ,
 		    synth_2to1_8bit_mono ,
 		    synth_4to1_8bit_mono ,
 		    synth_ntom_8bit_mono } }
 	};
+
+	/* possibly non-constand entries filled here */
+	funcs[0][0] = opt_synth_1to1;
+	funcs[1][0] = opt_synth_1to1_8bit;
+	funcs_mono[0][0][0] = opt_synth_1to1_mono2stereo;
+	funcs_mono[0][1][0] = opt_synth_1to1_8bit_mono2stereo;
+	funcs_mono[1][0][0] = opt_synth_1to1_mono;
+	funcs_mono[1][1][0] = opt_synth_1to1_8bit_mono;
 
 	if((ai.format & AUDIO_FORMAT_MASK) == AUDIO_FORMAT_8)
 		p8 = 1;
@@ -696,6 +705,15 @@ int main(int argc, char *argv[])
 		safe_exit(0);
 	}
 #endif
+
+	#ifdef OPT_MULTI
+	if(param.list_cpu)
+	{
+		list_cpu_opt();
+		safe_exit(0);
+	}
+	if(!set_cpu_opt()) safe_exit(1);
+	#endif
 
 	if (loptind >= argc && !param.listname && !param.remote)
 		usage(1);
@@ -1177,9 +1195,8 @@ static void long_usage(int err)
 	fprintf(o," -T     --realtime         tries to get realtime priority\n");
 	#endif
 	#ifdef OPT_MULTI
-	fprintf(o,"        --opt <string>    set cpu optimization\n");
-	fprintf(o,"        --list-opt        list builtin optimizations and exit\n");
-	fprintf(o,"        --test-opt        display result of optmization autodetect and exit\n");
+	fprintf(o,"        --cpu <string>    set cpu optimization\n");
+	fprintf(o,"        --list-cpu        list builtin optimizations and exit\n");
 	#ifdef OPT_3DNOW
 	fprintf(o,"        --test-3dnow       display result of 3DNow! autodetect and exit\n");
 	fprintf(o,"        --force-3dnow      force use of 3DNow! optimized routine\n");

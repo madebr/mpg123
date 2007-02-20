@@ -37,6 +37,7 @@ real* init_layer2_table(real *table, double m);
 void make_decode_tables(long scale);
 
 /* only 3dnow replaces that one, it's internal to layer3.c otherwise */
+void dct36(real *,real *,real *,real *,real *);
 #define opt_dct36 dct36
 /* only mmx replaces those */
 #define opt_make_decode_tables make_decode_tables
@@ -147,13 +148,13 @@ void make_decode_tables(long scale);
 	real* init_layer2_table_mmx(real *table, double m);
 	/* I think one can optimize storage here with the normal decwin */
 	extern real decwin_mmx[512+32];
-	void dct64_sse(real *,real *,real *);
+	void dct64_mmx(real *,real *,real *);
 	int synth_1to1_sse(real *bandPtr,int channel,unsigned char *out,int *pnt);
 	void make_decode_tables_mmx(long scaleval); /* tabinit_mmx.s */
 	#ifndef OPT_MULTI
 	#undef opt_decwin
 	#define opt_decwin decwin_mmx
-	#define opt_dct64 dct64_sse
+	#define opt_dct64 dct64_mmx /* dct64_sse is silent in downsampling modes */
 	#define opt_synth_1to1 synth_1to1_sse
 	#undef opt_make_decode_tables
 	#define opt_make_decode_tables make_decode_tables_mmx
@@ -226,16 +227,17 @@ extern real decwin[512+32];
 		
 
 #ifdef OPT_MULTI
-	void set_optmizations();
+	void list_cpu_opt();
+	int set_cpu_opt();
 	/* a simple global struct to hold the decoding function pointers, could be localized later if really wanted */
 	typedef struct
 	{
 		func_synth synth_1to1;
-		func_synth synth_1to1_mono;
-		func_synth synth_1to1_mono2stereo;
+		func_synth_mono synth_1to1_mono;
+		func_synth_mono synth_1to1_mono2stereo;
 		func_synth synth_1to1_8bit;
-		func_synth synth_1to1_8bit_mono;
-		func_synth synth_1to1_8bit_mono2stereo;
+		func_synth_mono synth_1to1_8bit_mono;
+		func_synth_mono synth_1to1_8bit_mono2stereo;
 		#ifdef OPT_PENTIUM
 		func_synth_pent synth_1to1_i586_asm;
 		#endif
@@ -250,29 +252,30 @@ extern real decwin[512+32];
 		#endif
 		func_dct64 dct64;
 	} struct_opts;
-	extern struct_opts opts;
+	extern struct_opts cpu_opts;
 
-	#define opt_synth_1to1 (opts.synth_1to1)
-	#define opt_synth_1to1_mono (opts.synth_1to1_mono)
-	#define opt_synth_1to1_mono2stereo (opts.synth_1to1_mono2stereo)
-	#define opt_synth_1to1_8bit (opts.synth_1to1_8bit)
-	#define opt_synth_1to1_8bit_mono (opts.synth_1to1_8bit_mono)
-	#define opt_synth_1to1_8bit_mono2stereo (opts.synth_1to1_8bit_mono2stereo)
+	#define opt_synth_1to1 (cpu_opts.synth_1to1)
+	#define opt_synth_1to1_mono (cpu_opts.synth_1to1_mono)
+	#define opt_synth_1to1_mono2stereo (cpu_opts.synth_1to1_mono2stereo)
+	#define opt_synth_1to1_8bit (cpu_opts.synth_1to1_8bit)
+	#define opt_synth_1to1_8bit_mono (cpu_opts.synth_1to1_8bit_mono)
+	#define opt_synth_1to1_8bit_mono2stereo (cpu_opts.synth_1to1_8bit_mono2stereo)
 	#ifdef OPT_PENTIUM
-	#define opt_synth_1to1_i586_asm (opts.synth_1to1_i586_asm);
+	#define opt_synth_1to1_i586_asm (cpu_opts.synth_1to1_i586_asm);
 	#endif
 	#ifdef OPT_MMXORSSE
-	#undef
-	#define opt_make_decode_tables (opts.make_decode_tables);
+	#undef opt_make_decode_tables
+	#define opt_make_decode_tables (cpu_opts.make_decode_tables);
 	#undef opt_decwin
-	#define opt_decwin opts.decwin
+	#define opt_decwin cpu_opts.decwin
 	#undef opt_init_layer3_gainpow2
-	#define opt_init_layer3_gainpow2 (opts.init_layer3_gainpow2)
+	#define opt_init_layer3_gainpow2 (cpu_opts.init_layer3_gainpow2)
 	#undef opt_init_layer2_table
-	#define opt_init_layer2_table (opts.init_layer2_table)
+	#define opt_init_layer2_table (cpu_opts.init_layer2_table)
 	#endif
 	#ifdef OPT_3DNOW
-	#define opt_dct36 (opts.dct36)
+	#undef opt_dct36
+	#define opt_dct36 (cpu_opts.dct36)
 	#endif
-	#define opt_dct64 (opts.dct64)	
+	#define opt_dct64 (cpu_opts.dct64)	
 #endif
