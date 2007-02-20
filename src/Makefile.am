@@ -42,6 +42,7 @@ mpg123_SOURCES = \
 	layer2.c \
 	layer3.c \
 	layer3.h \
+	mangle.h \
 	mpg123.c \
 	mpg123.h \
 	optimize.h \
@@ -94,7 +95,8 @@ EXTRA_LIBRARIES = \
 	libcpu_i586.a \
 	libcpu_i586_dither.a \
 	libcpu_3dnow.a \
-	libcpu_mmx.a
+	libcpu_mmx.a \
+	libcpu_sse.a
 
 libcpu_generic_a_SOURCES = \
 	decode.c \
@@ -156,3 +158,8 @@ libcpu_mmx_a_SOURCES = \
 	tabinit_mmx.s \
 	decode_mmx.s
 
+libcpu_sse_a_SOURCES = \
+	decode_i386.c \
+	dct64_sse.c \
+	tabinit_mmx.s \
+	decode_mmxsse.c

@@ -67,7 +67,7 @@ real* init_layer2_table(real *table, double m)
 	return table;
 }
 
-#ifdef OPT_MMX
+#ifdef OPT_MMXORSSE
 real* init_layer2_table_mmx(real *table, double m)
 {
 	int i,j;

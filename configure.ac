@@ -85,6 +85,7 @@ AC_ARG_WITH([cpu], [
   --with-cpu=i586_dither  Use code optimized for i586 processors with dithering (noise shaping)
   --with-cpu=3dnow        Use code optimized for 3dnow processors
   --with-cpu=mmx          Use code optimized for MMX processors
+  --with-cpu=sse          Use code optimized for SSE processors
   --with-cpu=altivec      Use code optimized for Altivec processors (PowerPC G4 and G5)
 ]) 
 
@@ -316,6 +317,9 @@ case $cpu_type in
   ;;
   mmx) 
     CFLAGS="$CFLAGS -DOPT_MMX -DREAL_IS_FLOAT"
+  ;;
+  sse) 
+    CFLAGS="$CFLAGS -DOPT_SSE -DREAL_IS_FLOAT"
   ;;
   *)
   	AC_MSG_ERROR([Unknown CPU type '$cpu_type'])

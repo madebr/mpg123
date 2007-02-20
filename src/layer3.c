@@ -210,7 +210,7 @@ void layer3_gapless_buffercheck()
 }
 #endif
 
-#ifdef OPT_MMX
+#ifdef OPT_MMXORSSE
 real init_layer3_gainpow2_mmx(int i)
 {
 	if(!param.down_sample) return 16384.0 * pow((double)2.0,-0.25 * (double) (i+210) );

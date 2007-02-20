@@ -47,6 +47,27 @@ int set_optmization()
 		done = 1;
 	}
 	#endif
+	#ifdef OPT_SSE
+	if(   !done && (auto_choose || !strcasecmp(param.cpu, "sse"))
+	   && (flags & FLAG_MMX) )
+	{
+		debug("decoder: SSE");
+		opts.synth_1to1 = synth_1to1_sse;
+		opts.dct64 = dct64_sse;
+		opts.decwin = decwin_mmx;
+		opts.make_decode_tables   = make_decode_tables_mmx;
+		opts.init_layer3_gainpow2 = init_layer3_gainpow2_mmx;
+		opts.init_layer2_table    = init_layer2_table_mmx;
+		done = 1;
+	}
+	else if(!done)
+	{
+		opts.decwin = decwin;
+		opts.make_decode_tables   = make_decode_tables;
+		opts.init_layer3_gainpow2 = init_layer3_gainpow2;
+		opts.init_layer2_table    = init_layer2_table;
+	}
+	#endif
 	#ifdef OPT_MMX
 	if(   !done && (auto_choose || !strcasecmp(param.cpu, "mmx"))
 	   && (flags & FLAG_MMX) )
@@ -60,8 +81,8 @@ int set_optmization()
 		opts.init_layer2_table    = init_layer2_table_mmx;
 		done = 1;
 	}
-	else
-	{
+	else if(!done)
+	{	
 		opts.decwin = decwin;
 		opts.make_decode_tables   = make_decode_tables;
 		opts.init_layer3_gainpow2 = init_layer3_gainpow2;

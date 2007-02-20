@@ -111,6 +111,7 @@ void make_decode_tables(long scale);
 
 /* That one has by far the most ugly hacks to make it cooperative. */
 #ifdef OPT_MMX
+	#define MMXORSSE
 	#ifndef OPT_X86
 	#define OPT_X86
 	#endif
@@ -133,6 +134,34 @@ void make_decode_tables(long scale);
 	#undef opt_init_layer2_table
 	#define opt_init_layer2_table init_layer2_table_mmx
 	#define OPT_MMX_ONLY
+	#endif
+#endif
+
+/* first crude hack into our source */
+#ifdef OPT_SSE
+	#define OPT_MMXORSSE
+	#ifndef OPT_X86
+	#define OPT_X86
+	#endif
+	real init_layer3_gainpow2_mmx(int i);
+	real* init_layer2_table_mmx(real *table, double m);
+	/* I think one can optimize storage here with the normal decwin */
+	extern real decwin_mmx[512+32];
+	void dct64_sse(real *,real *,real *);
+	int synth_1to1_sse(real *bandPtr,int channel,unsigned char *out,int *pnt);
+	void make_decode_tables_mmx(long scaleval); /* tabinit_mmx.s */
+	#ifndef OPT_MULTI
+	#undef opt_decwin
+	#define opt_decwin decwin_mmx
+	#define opt_dct64 dct64_sse
+	#define opt_synth_1to1 synth_1to1_sse
+	#undef opt_make_decode_tables
+	#define opt_make_decode_tables make_decode_tables_mmx
+	#undef opt_init_layer3_gainpow2
+	#define opt_init_layer3_gainpow2 init_layer3_gainpow2_mmx
+	#undef opt_init_layer2_table
+	#define opt_init_layer2_table init_layer2_table_mmx
+	#define OPT_MMX_ONLY /* watch out! */
 	#endif
 #endif
 
@@ -210,7 +239,7 @@ extern real decwin[512+32];
 		#ifdef OPT_PENTIUM
 		func_synth_pent synth_1to1_i586_asm;
 		#endif
-		#ifdef OPT_MMX
+		#ifdef OPT_MMXORSSE
 		real *decwin; /* ugly... needed to get mmx together with folks*/
 		func_make_decode_tables   make_decode_tables;
 		func_init_layer3_gainpow2 init_layer3_gainpow2;
@@ -232,7 +261,7 @@ extern real decwin[512+32];
 	#ifdef OPT_PENTIUM
 	#define opt_synth_1to1_i586_asm (opts.synth_1to1_i586_asm);
 	#endif
-	#ifdef OPT_MMX
+	#ifdef OPT_MMXORSSE
 	#undef
 	#define opt_make_decode_tables (opts.make_decode_tables);
 	#undef opt_decwin

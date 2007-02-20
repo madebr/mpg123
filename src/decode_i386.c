@@ -272,3 +272,17 @@ int synth_1to1_mmx(real *bandPtr,int channel,unsigned char *out,int *pnt)
 }
 #endif
 
+#ifdef OPT_SSE
+void synth_1to1_sse_s(real *bandPtr, int channel, short *samples, short *buffs, int *bo);
+int synth_1to1_sse(real *bandPtr,int channel,unsigned char *out,int *pnt)
+{
+	static short buffs[2][2][0x110];
+	static int bo = 1;
+	short *samples = (short *) (out + *pnt);
+	if(have_eq_settings) do_equalizer(bandPtr,channel);
+
+	synth_1to1_sse_s(bandPtr, channel, samples, (short *) buffs, &bo); 
+	*pnt += 128;
+	return 0;
+}
+#endif
