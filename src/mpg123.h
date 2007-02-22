@@ -206,8 +206,8 @@ struct parameter {
 #ifdef OPT_MULTI
 #ifdef OPT_3DNOW
   int stat_3dnow; /* automatic/force/force-off 3DNow! optimized code */
-  int test_3dnow;
 #endif
+  int test_cpu;
 #endif
   long realtime;
   char filename[256];

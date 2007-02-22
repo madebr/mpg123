@@ -362,9 +362,10 @@ topt opts[] = {
 	#ifdef OPT_3DNOW
 	{0,   "force-3dnow", GLO_INT,  0, &param.stat_3dnow, 1},
 	{0,   "no-3dnow",    GLO_INT,  0, &param.stat_3dnow, 2},
-	{0,   "test-3dnow",  GLO_INT,  0, &param.test_3dnow, TRUE},
+	{0,   "test-3dnow",  GLO_INT,  0, &param.test_cpu, TRUE},
 	#endif
 	{0, "cpu", GLO_ARG | GLO_CHAR, 0, &param.cpu,  0},
+	{0, "test-cpu",  GLO_INT,  0, &param.test_cpu, TRUE},
 	{0, "list-cpu", GLO_INT,  0, &param.list_cpu , 1},
 	#endif
 	#if !defined(WIN32) && !defined(GENERIC)
@@ -692,8 +693,22 @@ int main(int argc, char *argv[])
 				prgName, loptarg);
 			usage(1);
 	}
-#ifdef OPT_3DNOW
-	if (param.test_3dnow) {
+
+	#ifdef OPT_MULTI
+	if(param.list_cpu)
+	{
+		list_cpu_opt();
+		safe_exit(0);
+	}
+	if (param.test_cpu)
+	{
+		test_cpu_flags();
+		safe_exit(0);
+	}
+	if(!set_cpu_opt()) safe_exit(1);
+	#else
+	#ifdef OPT_3DNOW
+	if (param.test_cpu) {
 		unsigned int cpuflags = getextcpuflags();
 		fprintf(stderr,"CPUFLAGS = %08x\n",cpuflags);
 		if ((cpuflags & 0x00800000) == 0x00800000) {
@@ -704,15 +719,7 @@ int main(int argc, char *argv[])
 		}
 		safe_exit(0);
 	}
-#endif
-
-	#ifdef OPT_MULTI
-	if(param.list_cpu)
-	{
-		list_cpu_opt();
-		safe_exit(0);
-	}
-	if(!set_cpu_opt()) safe_exit(1);
+	#endif
 	#endif
 
 	if (loptind >= argc && !param.listname && !param.remote)

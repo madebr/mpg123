@@ -174,8 +174,12 @@ extern real decwin[512+32];
 #endif
 
 #ifdef OPT_X86
+	/* these have to be merged back into one! */
+	unsigned int getcpuid();
 	unsigned int getextcpuflags();
 	unsigned int getstdcpuflags();
+	unsigned int getstd2cpuflags();
+
 	void dct64_i386(real *,real *,real *);
 	int synth_1to1_mono_i386(real *,unsigned char *,int *);
 	int synth_1to1_mono2stereo_i386(real *,unsigned char *,int *);
@@ -215,6 +219,7 @@ extern real decwin[512+32];
 		
 
 #ifdef OPT_MULTI
+	void test_cpu_flags();
 	void list_cpu_opt();
 	int set_cpu_opt();
 	/* a simple global struct to hold the decoding function pointers, could be localized later if really wanted */
