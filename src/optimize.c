@@ -116,14 +116,39 @@ int set_cpu_opt()
 	cpu_opts.init_layer3_gainpow2 = init_layer3_gainpow2;
 	cpu_opts.init_layer2_table    = init_layer2_table;
 	#endif
+	#ifdef OPT_3DNOW
+	cpu_opts.dct36 = dct36;
+	#endif
+	#ifdef OPT_3DNOWEXT
+	cpu_opts.dct36 = dct36;
+	#endif
 
 	if(is_i586())
 	{
 		std2flags = getstd2cpuflags();
 		extflags = getextcpuflags();
 		debug2("standard flags: 0x%08lx\textended flags: 0x%08lx\n", stdflags, extflags);
+		#ifdef OPT_3DNOWEXT
+		if(   !done && (auto_choose || !strcasecmp(param.cpu, "3dnowext"))
+		   && (extflags & XFLAG_3DNOW)
+		   && (extflags & XFLAG_3DNOWEXT)
+		   && (extflags & XFLAG_MMX) )
+		{
+			fprintf(stderr, "decoder: 3DNowExt\n");
+			cpu_opts.dct36 = dct36_3dnowext;
+			cpu_opts.synth_1to1 = synth_1to1_sse;
+			cpu_opts.dct64 = dct64_mmx; /* only use the sse version in the synth_1to1_sse */
+			cpu_opts.decwin = decwin_mmx;
+			cpu_opts.make_decode_tables   = make_decode_tables_mmx;
+			cpu_opts.init_layer3_gainpow2 = init_layer3_gainpow2_mmx;
+			cpu_opts.init_layer2_table    = init_layer2_table_mmx;
+			cpu_opts.mpl_dct64 = dct64_3dnowext;
+			done = 1;
+		}
+		#endif
 		#ifdef OPT_SSE
-		if(!done && ((auto_choose && (std2flags & FLAG2_SSE) && (std2flags & FLAG2_MMX))|| !strcasecmp(param.cpu, "sse")) )
+		if(   !done && (auto_choose || !strcasecmp(param.cpu, "sse"))
+		   && (std2flags & FLAG2_SSE) && (std2flags & FLAG2_MMX) )
 		{
 			fprintf(stderr, "decoder: SSE\n");
 			cpu_opts.synth_1to1 = synth_1to1_sse;
@@ -132,6 +157,7 @@ int set_cpu_opt()
 			cpu_opts.make_decode_tables   = make_decode_tables_mmx;
 			cpu_opts.init_layer3_gainpow2 = init_layer3_gainpow2_mmx;
 			cpu_opts.init_layer2_table    = init_layer2_table_mmx;
+			cpu_opts.mpl_dct64 = dct64_sse;
 			done = 1;
 		}
 		#endif
@@ -143,7 +169,7 @@ int set_cpu_opt()
 	  	 && (param.stat_3dnow < 2)
 	  	 && ((param.stat_3dnow == 1) || ((extflags & XFLAG_3DNOW) && (extflags & XFLAG_MMX))))
 		{
-			fprintf(stderr, "decoder: 3DNow! ... I hope it works with replacing the synth_1to1 in the *_i386 functions\n");
+			fprintf(stderr, "decoder: 3DNow\n");
 			cpu_opts.dct36 = dct36_3dnow; /* 3DNow! optimized dct36() */
 			cpu_opts.synth_1to1 = synth_1to1_3dnow;
 			cpu_opts.dct64 = dct64_i386; /* use the 3dnow one? */
@@ -151,7 +177,8 @@ int set_cpu_opt()
 		}
 		#endif
 		#ifdef OPT_MMX
-		if(!done && ((auto_choose && (std2flags & FLAG2_MMX))|| !strcasecmp(param.cpu, "mmx")))
+		if(   !done && (auto_choose || !strcasecmp(param.cpu, "mmx"))
+		   && (std2flags & FLAG2_MMX) )
 		{
 			fprintf(stderr, "decoder: MMX\n");
 			cpu_opts.synth_1to1 = synth_1to1_mmx;

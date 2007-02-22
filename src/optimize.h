@@ -132,15 +132,20 @@ void dct36(real *,real *,real *,real *,real *);
 /* first crude hack into our source */
 #ifdef OPT_SSE
 	#define OPT_MMXORSSE
+	#define MPLAYER
 	#define OPT_X86
 	real init_layer3_gainpow2_mmx(int i);
 	real* init_layer2_table_mmx(real *table, double m);
 	/* I think one can optimize storage here with the normal decwin */
 	extern real decwin_mmx[512+32];
 	void dct64_mmx(real *,real *,real *);
+	void dct64_sse(real *,real *,real *);
 	int synth_1to1_sse(real *bandPtr,int channel,unsigned char *out,int *pnt);
 	void make_decode_tables_mmx(long scaleval); /* tabinit_mmx.s */
+	/* ugly! */
+	extern func_dct64 mpl_dct64;
 	#ifndef OPT_MULTI
+	#define opt_mpl_dct64 dct64_sse
 	#undef opt_decwin
 	#define opt_decwin decwin_mmx
 	#define opt_dct64 dct64_mmx /* dct64_sse is silent in downsampling modes */
@@ -154,6 +159,41 @@ void dct36(real *,real *,real *,real *,real *);
 	#define OPT_MMX_ONLY /* watch out! */
 	#endif
 #endif
+
+/* first crude hack into our source */
+#ifdef OPT_3DNOWEXT
+	#define OPT_MMXORSSE
+	#define OPT_MPLAYER
+	#define OPT_X86
+	real init_layer3_gainpow2_mmx(int i);
+	real* init_layer2_table_mmx(real *table, double m);
+	/* I think one can optimize storage here with the normal decwin */
+	extern real decwin_mmx[512+32];
+	void dct64_mmx(real *,real *,real *);
+	void dct64_3dnowext(real *,real *,real *);
+	void dct36_3dnowext(real *,real *,real *,real *,real *);
+	int synth_1to1_sse(real *bandPtr,int channel,unsigned char *out,int *pnt);
+	void make_decode_tables_mmx(long scaleval); /* tabinit_mmx.s */
+	/* ugly! */
+	extern func_dct64 mpl_dct64;
+	#ifndef OPT_MULTI
+	#define opt_mpl_dct64 dct64_3dnowext
+	#undef opt_dct36
+	#define opt_dct36 dct36_3dnowext
+	#undef opt_decwin
+	#define opt_decwin decwin_mmx
+	#define opt_dct64 dct64_mmx /* dct64_sse is silent in downsampling modes */
+	#define opt_synth_1to1 synth_1to1_sse
+	#undef opt_make_decode_tables
+	#define opt_make_decode_tables make_decode_tables_mmx
+	#undef opt_init_layer3_gainpow2
+	#define opt_init_layer3_gainpow2 init_layer3_gainpow2_mmx
+	#undef opt_init_layer2_table
+	#define opt_init_layer2_table init_layer2_table_mmx
+	#define OPT_MMX_ONLY /* watch out! */
+	#endif
+#endif
+
 
 #ifndef OPT_MMX_ONLY
 extern real *pnts[5];
@@ -244,6 +284,9 @@ extern real decwin[512+32];
 		func_dct36 dct36;
 		#endif
 		func_dct64 dct64;
+		#ifdef MPLAYER
+		func_dct64 mpl_dct64;
+		#endif
 	} struct_opts;
 	extern struct_opts cpu_opts;
 
@@ -270,5 +313,8 @@ extern real decwin[512+32];
 	#undef opt_dct36
 	#define opt_dct36 (cpu_opts.dct36)
 	#endif
-	#define opt_dct64 (cpu_opts.dct64)	
+	#define opt_dct64 (cpu_opts.dct64)
+	#ifdef MPLAYER
+	#define opt_mpl_dct64 (cpu_opts.mpl_dct64)
+	#endif
 #endif

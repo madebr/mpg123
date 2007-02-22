@@ -273,7 +273,7 @@ int synth_1to1_mmx(real *bandPtr,int channel,unsigned char *out,int *pnt)
 }
 #endif
 
-#ifdef OPT_SSE
+#ifdef OPT_MPLAYER
 void synth_1to1_sse_s(real *bandPtr, int channel, short *samples, short *buffs, int *bo);
 int synth_1to1_sse(real *bandPtr,int channel,unsigned char *out,int *pnt)
 {

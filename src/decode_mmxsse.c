@@ -64,7 +64,6 @@ static int temp; // buggy gcc 3.x fails if this is moved into the function :(
 void synth_1to1_sse_s(real *bandPtr, int channel, short *samples,
                       short *buffs, int *bo)
 {
-
 __asm __volatile(
         "movl %1,%%ecx\n\t"
         "movl %2,%%edi\n\t"
@@ -96,7 +95,7 @@ __asm __volatile(
         "pushl %0\n\t"
         "pushl %%edx\n\t"
         "pushl %%ecx\n\t"
-        "call "MANGLE(dct64_sse)"\n\t"
+        "call *"MANGLE(mpl_dct64)"\n\t"
 	"addl $12, %%esp\n\t"
 	"leal 1(%%ebx), %%ecx\n\t"
         "subl %5,%%ebx\n\t"

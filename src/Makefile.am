@@ -95,6 +95,7 @@ EXTRA_LIBRARIES = \
 	libcpu_i586.a \
 	libcpu_i586_dither.a \
 	libcpu_3dnow.a \
+	libcpu_3dnowext.a \
 	libcpu_mmx.a \
 	libcpu_sse.a \
 	libcpu_x86.a
@@ -166,6 +167,14 @@ libcpu_sse_a_SOURCES = \
 	tabinit_mmx.s \
 	decode_mmxsse.c
 
+libcpu_3dnowext_a_SOURCES = \
+	decode_i386.c \
+	dct64_3dnowext.c \
+	dct36_3dnowext.c \
+	dct64_mmx.s \
+	tabinit_mmx.s \
+	decode_mmxsse.c
+
 libcpu_x86_a_SOURCES = \
 	decode.c \
 	decode_i386.c \
@@ -180,6 +189,8 @@ libcpu_x86_a_SOURCES = \
 	dct64_mmx.s \
 	dct64_3dnow.s \
 	dct36_3dnow.s \
+	dct64_3dnowext.c \
+	dct36_3dnowext.c \
 	tabinit_mmx.s \
 	equalizer_3dnow.s \
 	getcpuflags.s

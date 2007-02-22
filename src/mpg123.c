@@ -38,6 +38,9 @@
 #include "id3.h"
 #include "icy.h"
 
+/* disappear! */
+func_dct64 mpl_dct64;
+
 static void usage(int err);
 static void want_usage(char* arg);
 static void long_usage(int err);
@@ -725,6 +728,7 @@ int main(int argc, char *argv[])
 	}
 	#endif
 	#endif
+	mpl_dct64 = opt_mpl_dct64;
 
 	if (loptind >= argc && !param.listname && !param.remote)
 		usage(1);
