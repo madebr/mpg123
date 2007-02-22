@@ -203,11 +203,16 @@ struct parameter {
   long doublespeed;
   long halfspeed;
   int force_reopen;
-#ifdef OPT_MULTI
+  /* the testing part shared between 3dnow and multi mode */
 #ifdef OPT_3DNOW
   int stat_3dnow; /* automatic/force/force-off 3DNow! optimized code */
 #endif
+#ifdef OPT_MULTI
   int test_cpu;
+#else
+  #ifdef OPT_3DNOW
+  int test_cpu;
+	#endif
 #endif
   long realtime;
   char filename[256];

@@ -68,12 +68,16 @@ struct parameter param = {
   0 ,	  /* doublespeed */
   0 ,	  /* halfspeed */
   0 ,	  /* force_reopen, always (re)opens audio device for next song */
-#ifdef OPT_MULTI
-#ifdef OPT_3DNOW
+  #ifdef OPT_3DNOW
   0 ,     /* autodetect from CPUFLAGS */
+  #endif
+  #ifdef OPT_MULTI
   FALSE , /* normal operation */
-#endif
-#endif
+  #else
+  #ifdef OPT_3DNOW
+  FALSE , /* normal operation */
+  #endif
+  #endif
   FALSE,  /* try to run process in 'realtime mode' */   
   { 0,},  /* wav,cdr,au Filename */
 #ifdef GAPLESS
@@ -358,12 +362,12 @@ topt opts[] = {
 	#ifdef HAVE_SETPRIORITY
 	{0,   "aggressive",	 GLO_INT,  0, &param.aggressive, 2},
 	#endif
-	#ifdef OPT_MULTI
 	#ifdef OPT_3DNOW
 	{0,   "force-3dnow", GLO_INT,  0, &param.stat_3dnow, 1},
 	{0,   "no-3dnow",    GLO_INT,  0, &param.stat_3dnow, 2},
 	{0,   "test-3dnow",  GLO_INT,  0, &param.test_cpu, TRUE},
 	#endif
+	#ifdef OPT_MULTI
 	{0, "cpu", GLO_ARG | GLO_CHAR, 0, &param.cpu,  0},
 	{0, "test-cpu",  GLO_INT,  0, &param.test_cpu, TRUE},
 	{0, "list-cpu", GLO_INT,  0, &param.list_cpu , 1},
@@ -1203,12 +1207,13 @@ static void long_usage(int err)
 	#endif
 	#ifdef OPT_MULTI
 	fprintf(o,"        --cpu <string>    set cpu optimization\n");
+	fprintf(o,"        --test-cpu        display result of CPU features autodetect and exit\n");
 	fprintf(o,"        --list-cpu        list builtin optimizations and exit\n");
+	#endif
 	#ifdef OPT_3DNOW
 	fprintf(o,"        --test-3dnow       display result of 3DNow! autodetect and exit\n");
 	fprintf(o,"        --force-3dnow      force use of 3DNow! optimized routine\n");
 	fprintf(o,"        --no-3dnow         force use of floating-pointer routine\n");
-	#endif
 	#endif
 	fprintf(o," -?     --help             give compact help\n");
 	fprintf(o,"        --longhelp         give this long help listing\n");
