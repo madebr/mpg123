@@ -61,12 +61,19 @@ int set_cpu_opt()
 	/* covers any i386+ cpu; they actually differ only in the synth_1to1 function... */
 	#ifdef OPT_X86
 	flags = getcpuflags();
+	/* that doesn't work generally yet -- checking only for 3dnow */
 	#define FLAG_MMX   0x00800000
 	#define FLAG_3DNOW 0x80000000
 
+	#ifdef OPT_MMXORSSE
+	cpu_opts.decwin = decwin;
+	cpu_opts.make_decode_tables   = make_decode_tables;
+	cpu_opts.init_layer3_gainpow2 = init_layer3_gainpow2;
+	cpu_opts.init_layer2_table    = init_layer2_table;
+	#endif
+
 	#ifdef OPT_SSE
-	if(   !done && (auto_choose || !strcasecmp(param.cpu, "sse"))
-	   && (flags & FLAG_MMX) )
+	if( !done && (auto_choose || !strcasecmp(param.cpu, "sse")) )
 	{
 		fprintf(stderr, "decoder: SSE\n");
 		cpu_opts.synth_1to1 = synth_1to1_sse;
@@ -76,13 +83,6 @@ int set_cpu_opt()
 		cpu_opts.init_layer3_gainpow2 = init_layer3_gainpow2_mmx;
 		cpu_opts.init_layer2_table    = init_layer2_table_mmx;
 		done = 1;
-	}
-	else if(!done)
-	{
-		cpu_opts.decwin = decwin;
-		cpu_opts.make_decode_tables   = make_decode_tables;
-		cpu_opts.init_layer3_gainpow2 = init_layer3_gainpow2;
-		cpu_opts.init_layer2_table    = init_layer2_table;
 	}
 	#endif
 	#ifdef OPT_3DNOW
@@ -101,8 +101,7 @@ int set_cpu_opt()
 	}
 	#endif
 	#ifdef OPT_MMX
-	if(   !done && (auto_choose || !strcasecmp(param.cpu, "mmx"))
-	   && (flags & FLAG_MMX) )
+	if(!done && (auto_choose || !strcasecmp(param.cpu, "mmx")))
 	{
 		fprintf(stderr, "decoder: MMX\n");
 		cpu_opts.synth_1to1 = synth_1to1_mmx;
@@ -112,13 +111,6 @@ int set_cpu_opt()
 		cpu_opts.init_layer3_gainpow2 = init_layer3_gainpow2_mmx;
 		cpu_opts.init_layer2_table    = init_layer2_table_mmx;
 		done = 1;
-	}
-	else if(!done)
-	{	
-		cpu_opts.decwin = decwin;
-		cpu_opts.make_decode_tables   = make_decode_tables;
-		cpu_opts.init_layer3_gainpow2 = init_layer3_gainpow2;
-		cpu_opts.init_layer2_table    = init_layer2_table;
 	}
 	#endif
 	#ifdef OPT_I586

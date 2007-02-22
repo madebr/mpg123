@@ -74,9 +74,7 @@ void dct36(real *,real *,real *,real *,real *);
 #endif
 
 #ifdef OPT_I386
-	#ifndef OPT_X86
 	#define OPT_X86
-	#endif
 	int synth_1to1_i386(real *bandPtr,int channel,unsigned char *out,int *pnt);
 	#ifndef OPT_MULTI
 	#define opt_synth_1to1 synth_1to1_i386
@@ -85,9 +83,7 @@ void dct36(real *,real *,real *,real *,real *);
 
 #ifdef OPT_I586
 	#define OPT_PENTIUM
-	#ifndef OPT_X86
 	#define OPT_X86
-	#endif
 	int synth_1to1_i586(real *bandPtr,int channel,unsigned char *out,int *pnt);
 	int synth_1to1_i586_asm(real *,int,unsigned char *);
 	#ifndef OPT_MULTI
@@ -97,11 +93,8 @@ void dct36(real *,real *,real *,real *,real *);
 #endif
 
 #ifdef OPT_I586_DITHER
-	#undef OPT_PENTIUM
 	#define OPT_PENTIUM
-	#ifndef OPT_X86
 	#define OPT_X86
-	#endif
 	int synth_1to1_i586(real *bandPtr,int channel,unsigned char *out,int *pnt);
 	int synth_1to1_i586_asm_dither(real *,int,unsigned char *);
 	#ifndef OPT_MULTI
@@ -113,9 +106,7 @@ void dct36(real *,real *,real *,real *,real *);
 /* That one has by far the most ugly hacks to make it cooperative. */
 #ifdef OPT_MMX
 	#define MMXORSSE
-	#ifndef OPT_X86
 	#define OPT_X86
-	#endif
 	real init_layer3_gainpow2_mmx(int i);
 	real* init_layer2_table_mmx(real *table, double m);
 	/* I think one can optimize storage here with the normal decwin */
@@ -141,9 +132,7 @@ void dct36(real *,real *,real *,real *,real *);
 /* first crude hack into our source */
 #ifdef OPT_SSE
 	#define OPT_MMXORSSE
-	#ifndef OPT_X86
 	#define OPT_X86
-	#endif
 	real init_layer3_gainpow2_mmx(int i);
 	real* init_layer2_table_mmx(real *table, double m);
 	/* I think one can optimize storage here with the normal decwin */
@@ -174,9 +163,7 @@ extern real decwin[512+32];
 /* 3dnow used to use synth_1to1_i586 for mono / 8bit conversion - was that intentional? */
 /* I'm trying to skip the pentium code here ... until I see that that is indeed a bad idea */
 #ifdef OPT_3DNOW
-	#ifndef OPT_X86
 	#define OPT_X86
-	#endif
 	void dct36_3dnow(real *,real *,real *,real *,real *);
 	int synth_1to1_3dnow(real *,int,unsigned char *,int *);
 	#ifndef OPT_MULTI
@@ -261,11 +248,11 @@ extern real decwin[512+32];
 	#define opt_synth_1to1_8bit_mono (cpu_opts.synth_1to1_8bit_mono)
 	#define opt_synth_1to1_8bit_mono2stereo (cpu_opts.synth_1to1_8bit_mono2stereo)
 	#ifdef OPT_PENTIUM
-	#define opt_synth_1to1_i586_asm (cpu_opts.synth_1to1_i586_asm);
+	#define opt_synth_1to1_i586_asm (cpu_opts.synth_1to1_i586_asm)
 	#endif
 	#ifdef OPT_MMXORSSE
 	#undef opt_make_decode_tables
-	#define opt_make_decode_tables (cpu_opts.make_decode_tables);
+	#define opt_make_decode_tables (cpu_opts.make_decode_tables)
 	#undef opt_decwin
 	#define opt_decwin cpu_opts.decwin
 	#undef opt_init_layer3_gainpow2
