@@ -50,7 +50,8 @@ void list_cpu_opt()
 
 int set_cpu_opt()
 {
-	long flags = 0;
+	unsigned int stdflags = 0;
+	unsigned int extflags = 0;
 	int auto_choose = 0;
 	int done = 0;
 	if(   (param.cpu == NULL)
@@ -60,7 +61,9 @@ int set_cpu_opt()
 
 	/* covers any i386+ cpu; they actually differ only in the synth_1to1 function... */
 	#ifdef OPT_X86
-	flags = getcpuflags();
+	stdflags = getstdcpuflags();
+	extflags = getextcpuflags();
+	fprintf(stderr, "stdflags: 0x%08lx\textflags: 0x%08lx\n", stdflags, extflags);
 	/* that doesn't work generally yet -- checking only for 3dnow */
 	#define FLAG_MMX   0x00800000
 	#define FLAG_3DNOW 0x80000000
@@ -91,7 +94,7 @@ int set_cpu_opt()
 	/* check cpuflags bit 31 (3DNow!) and 23 (MMX) */
 	if(   !done && (auto_choose || !strcasecmp(param.cpu, "3dnow"))
 	   && (param.stat_3dnow < 2)
-	   && ((param.stat_3dnow == 1) || ((flags & FLAG_3DNOW) && (flags & FLAG_MMX))))
+	   && ((param.stat_3dnow == 1) || ((extflags & FLAG_3DNOW) && (extflags & FLAG_MMX))))
 	{
 		fprintf(stderr, "decoder: 3DNow! ... I hope it works with replacing the synth_1to1 in the *_i386 functions\n");
 		cpu_opts.dct36 = dct36_3dnow; /* 3DNow! optimized dct36() */

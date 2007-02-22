@@ -694,7 +694,7 @@ int main(int argc, char *argv[])
 	}
 #ifdef OPT_3DNOW
 	if (param.test_3dnow) {
-		int cpuflags = getcpuflags();
+		unsigned int cpuflags = getextcpuflags();
 		fprintf(stderr,"CPUFLAGS = %08x\n",cpuflags);
 		if ((cpuflags & 0x00800000) == 0x00800000) {
 			fprintf(stderr,"MMX instructions are supported.\n");

@@ -174,7 +174,8 @@ extern real decwin[512+32];
 #endif
 
 #ifdef OPT_X86
-	int getcpuflags(void);
+	unsigned int getextcpuflags();
+	unsigned int getstdcpuflags();
 	void dct64_i386(real *,real *,real *);
 	int synth_1to1_mono_i386(real *,unsigned char *,int *);
 	int synth_1to1_mono2stereo_i386(real *,unsigned char *,int *);

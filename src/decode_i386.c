@@ -18,7 +18,7 @@
 #include "config.h"
 #include "mpg123.h"
 
-#if 0
+#if 1
  /* old WRITE_SAMPLE */
 #define WRITE_SAMPLE(samples,sum,clip) \
   if( (sum) > 32767.0) { *(samples) = 0x7fff; (clip)++; } \
