@@ -40,7 +40,7 @@ int is_i586()
 
 void list_cpu_opt()
 {
-	printf("decoder cpu options:");
+	printf("CPU options:");
 	#ifdef OPT_SSE
 	printf(" SSE");
 	#endif
@@ -82,12 +82,12 @@ void test_cpu_flags()
 		std2flags = getstd2cpuflags();
 		extflags = getextcpuflags();
 		printf("CPU supports: i586");
-		if(std2flags & FLAG2_MMX) printf(" MMX");
-		if(extflags & XFLAG_3DNOW) printf(" 3DNow!");
-		if(extflags & XFLAG_3DNOWEXT) printf(" 3DNow!Ext");
-		if(std2flags & FLAG2_SSE) printf(" SSE");
-		if(std2flags & FLAG2_SSE2) printf(" SSE2");
-		if(stdflags & FLAG_SSE3) printf(" SSE3");
+		if(std2flags & FLAG2_MMX) printf(" mmx");
+		if(extflags & XFLAG_3DNOW) printf(" 3dnow");
+		if(extflags & XFLAG_3DNOWEXT) printf(" 3dnowext");
+		if(std2flags & FLAG2_SSE) printf(" sse");
+		if(std2flags & FLAG2_SSE2) printf(" sse2");
+		if(stdflags & FLAG_SSE3) printf(" sse3");
 		printf("\n");
 	}
 	else
