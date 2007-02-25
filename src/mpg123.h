@@ -180,6 +180,8 @@ struct frame {
 		unsigned long num; /* the nth frame in some stream... */
 };
 
+#define VERBOSE_MAX 3
+
 struct parameter {
   int aggressive; /* renice to max. priority */
   int shuffle;	/* shuffle/random play */
@@ -372,7 +374,6 @@ extern int  hsstell(void);
 extern void set_pointer(long);
 extern void huffman_decoder(int ,int *);
 extern void huffman_count1(int,int *);
-extern void print_stat(struct frame *fr,unsigned long no,long buffsize,struct audio_info_struct *ai);
 extern int get_songlen(struct frame *fr,int no);
 
 extern void init_layer3(int);

@@ -26,15 +26,14 @@
 #include "debug.h"
 #ifdef GAPLESS
 #include "layer3.h"
+struct audio_info_struct pre_ai;
 #endif
 #define MODE_STOPPED 0
 #define MODE_PLAYING 1
 #define MODE_PAUSED 2
 
 extern struct audio_info_struct ai;
-struct audio_info_struct pre_ai;
 extern int buffer_pid;
-extern int tabsel_123[2][3][16];
 
 FILE *outstream;
 
@@ -289,12 +288,6 @@ int control_generic (struct frame *fr)
 						real b,m,t;
 						int cn;
 						have_eq_settings = TRUE;
-						/* ThOr: The type of real can vary greatly; on my XP1000 with OSF1 I got FPE on setting seq...
-							now using the same ifdefs as mpg123.h for the definition of real
-							I'd like to have the conversion specifier as constant.
-							
-							Also, I' not sure _how_ standard these conversion specifiers and their flags are... I have them from a glibc man page.
-						*/
 						if(sscanf(arg, REAL_SCANF" "REAL_SCANF" "REAL_SCANF, &b, &m, &t) == 3)
 						{
 							/* very raw line */
@@ -399,14 +392,7 @@ int control_generic (struct frame *fr)
 					/* VOLUME in percent */
 					if(!strcasecmp(cmd, "V") || !strcasecmp(cmd, "VOLUME"))
 					{
-						/* this is not supposed to happen too often, thus using optimized real type should not matter */
-						double factor = atof(arg)/100;
-						if(factor >= 0)
-						{
-							/* change the output scaling and apply with rva */
-							outscale = (double) MAXOUTBURST * factor;
-							do_rva();
-						}
+						do_volume(atof(arg)/100);
 						generic_sendmsg("V %f%%", outscale / (double) MAXOUTBURST * 100);
 						continue;
 					}
@@ -414,10 +400,9 @@ int control_generic (struct frame *fr)
 					/* RVA mode */
 					if(!strcasecmp(cmd, "RVA"))
 					{
-						const char* rva_name[3] = { "off", "mix", "album" };
-						if(!strcasecmp(arg, "off")) param.rva = 0;
-						else if(!strcasecmp(arg, "mix") || !strcasecmp(arg, "radio")) param.rva = 1;
-						else if(!strcasecmp(arg, "album") || !strcasecmp(arg, "audiophile")) param.rva = 2;
+						if(!strcasecmp(arg, "off")) param.rva = RVA_OFF;
+						else if(!strcasecmp(arg, "mix") || !strcasecmp(arg, "radio")) param.rva = RVA_MIX;
+						else if(!strcasecmp(arg, "album") || !strcasecmp(arg, "audiophile")) param.rva = RVA_ALBUM;
 						do_rva();
 						generic_sendmsg("RVA %s", rva_name[param.rva]);
 						continue;

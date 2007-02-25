@@ -98,6 +98,9 @@ void print_frame_index(FILE* out);
 
 #endif
 
+void print_stat(struct frame *fr,unsigned long no,long buffsize,struct audio_info_struct *ai);
+void clear_stat();
+
 /* rva data, used in common.c, set in id3.c */
 extern long lastscale;
 extern int rva_level[2];
@@ -105,7 +108,14 @@ extern float rva_gain[2];
 extern float rva_peak[2];
 
 /* adjust volume to current outscale and rva values if wanted */
+#define RVA_OFF 0
+#define RVA_MIX 1
+#define RVA_ALBUM 2
+#define RVA_MAX RVA_ALBUM
+extern const char* rva_name[3];
 void do_rva();
+/* wrap over do_rva that prepares outscale */
+void do_volume(double factor);
 
 /* positive and negative for offsets... I guess I'll drop the unsigned frame position type anyway */
 long time_to_frame(struct frame *fr, double seconds);

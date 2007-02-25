@@ -70,23 +70,30 @@ Note that this Ctrl+C behaviour is special to this mode; when any of the followi
 
 You can specify the option -C to enable a terminal control interface enabling to influence playback on current title/playlist by pressing some key:
 
-'b' to seek back to beginning of track
-'f' to skip to nest track
-'p' for pause (actually, looping current chunk)
-'s' to stop/restart playback (the usual "pause" function...)
-(space bar for the same)
-'q' to quit playback
-',' for rewind seek
-'.' for forward seek
-';' for fast rewind
-':' for fast forward
-'<' for fine rewind
-'>' for fine forward
-'h' for printout of current key bindings
+ -= terminal control keys =-
+[s] or space bar	 interrupt/restart playback (i.e. 'pause')
+[f]	 next track
+[b]	 back to beginning of track
+[p]	 pause while looping current sound chunk
+[.]	 forward
+[,]	 rewind
+[:]	 fast forward
+[;]	 fast rewind
+[>]	 fine forward
+[<]	 fine rewind
+[+]	 volume up
+[-]	 volume down
+[r]	 RVA switch
+[v]	 verbose switch
+[h]	 this help
+[q]	 quit
 
 You can change these bindings to key to your liking by modifying term.h .
 
 Note: This interface needs not to be available on _every_ platform/build.
+
+Another note: The volume up and down is performed by changing the scale factor (like the -f parameter) ... so the audio is scaled digitally in the given range of the output format (usually 16bits). That means the lowering the volume will decrease the dynamic range and possibly lessen the quality while increasing volume can in fact increase the dynamic range and thus make it better, if you deal with a silent source and no clipping is necessary.
+It is a good idea to use RVA values stored in the file for adjusting low volume files, though - mpg123 handles that in addition to your volume setting.
 
 3.3 Control Interface for Frontends
 
@@ -102,8 +109,7 @@ See doc/README.remote for usage.
 4. Speed
 
 mpg123 is fast. Any faster software player is probably based on some hacked mpg123;-)
-This is the case with current MPlayer, wich includes mpg123-based code in its mp3lib.
-There are some nice assembler optimizations (SSE, for example) that may make mplayer a faster mp3 decoder in cases where these are applicable - we are preparing to incorporate these into the mpg123 player to make it the fastest mp3 player under all circumstances.
+MPlayer included mpg123 source code in it's mp3lib and we have to be thankful for the MPlayer folks adding SSE, 3DNowExt and AltiVec optimizations over the years, which we were able to backport.
 
 
 5. Accuracy

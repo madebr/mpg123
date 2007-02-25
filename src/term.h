@@ -44,6 +44,11 @@
 /* #define FINE_REWIND_KEY ';' */
 /* #define FINE_FORWARD_KEY ':' */
 
+#define VOL_UP_KEY '+'
+#define VOL_DOWN_KEY '-'
+#define VERBOSE_KEY 'v'
+#define RVA_KEY 'r'
+
 /* this counts as "undocumented" and can disappear */
 #define FRAME_INDEX_KEY 'i'
 

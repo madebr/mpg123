@@ -73,6 +73,7 @@ long lastscale = -1; /* last used scale */
 int rva_level[2] = {-1,-1}; /* significance level of stored rva */
 float rva_gain[2] = {0,0}; /* mix, album */
 float rva_peak[2] = {0,0};
+const char* rva_name[3] = { "off", "mix", "album" };
 
 static double mean_framesize;
 static unsigned long mean_frames;
@@ -229,6 +230,14 @@ int head_check(unsigned long head)
 	{
 		return TRUE;
 	}
+}
+
+void do_volume(double factor)
+{
+	if(factor < 0) factor = 0;
+	/* change the output scaling and apply with rva */
+	outscale = (double) MAXOUTBURST * factor;
+	do_rva();
 }
 
 /* adjust the volume, taking both outscale and rva values into account */
@@ -1277,6 +1286,12 @@ long time_to_frame(struct frame *fr, double seconds)
 	return (long) (seconds/compute_tpf(fr));
 }
 
+unsigned int roundui(double val)
+{
+	double base = floor(val);
+	return (unsigned int) ((val-base) < 0.5 ? base : base + 1 );
+}
+
 void print_stat(struct frame *fr,unsigned long no,long buffsize,struct audio_info_struct *ai)
 {
 	double tim1,tim2;
@@ -1285,11 +1300,12 @@ void print_stat(struct frame *fr,unsigned long no,long buffsize,struct audio_inf
 	{
 		/* All these sprintf... only to avoid two writes to stderr in case of using buffer?
 		   I guess we can drop that. */
-		fprintf(stderr, "\rFrame# %5lu [%5lu], Time: %02lu:%02u.%02u [%02u:%02u.%02u], ",
+		fprintf(stderr, "\rFrame# %5lu [%5lu], Time: %02lu:%02u.%02u [%02u:%02u.%02u], RVA:%6s, Vol: %3u(%3u)",
 		        no,rno,
 		        (unsigned long) tim1/60, (unsigned int)tim1%60, (unsigned int)(tim1*100)%100,
-		        (unsigned int)tim2/60, (unsigned int)tim2%60, (unsigned int)(tim2*100)%100 );
-		if(param.usebuffer) fprintf(stderr,"[%8ld] ",(long)buffsize);
+		        (unsigned int)tim2/60, (unsigned int)tim2%60, (unsigned int)(tim2*100)%100,
+		        rva_name[param.rva], roundui((double)outscale/MAXOUTBURST*100), roundui((double)lastscale/MAXOUTBURST*100) );
+		if(param.usebuffer) fprintf(stderr,", [%8ld] ",(long)buffsize);
 	}
 	if(icy.changed && icy.data)
 	{
@@ -1298,6 +1314,10 @@ void print_stat(struct frame *fr,unsigned long no,long buffsize,struct audio_inf
 	}
 }
 
+void clear_stat()
+{
+	fprintf(stderr, "\r                                                                                       \r");
+}
 
 int get_songlen(struct frame *fr,int no)
 {
