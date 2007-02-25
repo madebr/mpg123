@@ -38,8 +38,10 @@
 #include "id3.h"
 #include "icy.h"
 
+#ifdef MPLAYER
 /* disappear! */
 func_dct64 mpl_dct64;
+#endif
 
 static void usage(int err);
 static void want_usage(char* arg);
@@ -728,7 +730,9 @@ int main(int argc, char *argv[])
 	}
 	#endif
 	#endif
+	#ifdef MPLAYER
 	mpl_dct64 = opt_mpl_dct64;
+	#endif
 
 	if (loptind >= argc && !param.listname && !param.remote)
 		usage(1);
