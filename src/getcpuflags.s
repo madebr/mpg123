@@ -33,6 +33,7 @@ getextcpuflags:
 	popl %eax
 	popfl
 	cmpl %ebx,%eax
+	je .L0
 	/ for detect 3DNow! support (bit 31)
 	movl $0x80000001,%eax
 	cpuid
@@ -74,6 +75,7 @@ getcpuid:
 	popl %eax
 	popfl
 	cmpl %ebx,%eax
+	je .L0i
 	/ standard level
 	movl $0x00000001,%eax
 	cpuid
@@ -113,6 +115,7 @@ getstdcpuflags:
 	popl %eax
 	popfl
 	cmpl %ebx,%eax
+	je .L0s
 	/ standard level
 	movl $0x00000001,%eax
 	cpuid
@@ -153,6 +156,7 @@ getstd2cpuflags:
 	popl %eax
 	popfl
 	cmpl %ebx,%eax
+	je .L0t
 	/ standard level
 	movl $0x00000001,%eax
 	cpuid
