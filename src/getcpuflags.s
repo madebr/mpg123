@@ -1,173 +1,72 @@
-// getcpucpuflags.s: get CPUcpuflags
+# getcpucpuflags: get cpuflags for ia32
 
-// copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
-// see COPYING and AUTHORS files in distribution or http://mpg123.de
-// initially written by KIMURA Takuhiro
-// I have to learn assembler to turn these three into one function again
+# copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+# see COPYING and AUTHORS files in distribution or http:#mpg123.de
+# initially written by KIMURA Takuhiro (for 3DNow!)
+# extended for general use by Thomas Orgis
 
-// extern int getcpuid(void) 
-// -> 0x00000000 (CPUID instruction not supported)
-// or CPUcpuflags
+#  extern int getcpuid(struct cpuflags*)
+# or just 
+#  extern int getcpuid(unsigned int*)
+# where there is memory for 4 ints
+#  -> the first set of idflags (basic cpu family info)
+#     and the idflags, stdflags, std2flags, extflags written to the parameter
+#  -> 0x00000000 (CPUID instruction not supported)
 
 .text
 	.align 4
-.globl getextcpuflags
-	.type	 getextcpuflags,@function
-getextcpuflags:
+
+.globl getcpuflags
+	.type getcpuflags,@function
+getcpuflags:
 	pushl %ebp
 	movl %esp,%ebp
-	subl $4,%esp
 	pushl %edx
 	pushl %ecx
 	pushl %ebx
-	movl $0x80000000,%eax 
-	
+	pushl %esi
+# get the int pointer for storing the flags
+	movl 8(%ebp), %esi
+# does that one make sense?
+	movl $0x80000000,%eax
+# now save the flags and do a check for cpuid availability
 	pushfl
 	pushfl
 	popl %eax
 	movl %eax,%ebx
+# set that bit...
 	xorl $0x00200000,%eax
 	pushl %eax
 	popfl
+# ...and read back the flags to see if it is understood
 	pushfl
 	popl %eax
 	popfl
 	cmpl %ebx,%eax
-	je .L0
-	/ for detect 3DNow! support (bit 31)
+	je .Lnocpuid
+# now get the info, first extended
 	movl $0x80000001,%eax
 	cpuid
-	movl %edx,%eax
-	jmp .L1
-	.align 4
-.L0:	
-	movl $0,%eax
-	.align 4
-.L1:
-	movl %eax,-4(%esp)
-	popl %ebx
-	popl %ecx
-	popl %edx
-	movl %ebp,%esp
-	popl %ebp
-	ret
-
-/ the basic model/family bits
-.globl getcpuid
-	.type	 getcpuid,@function
-getcpuid:
-	pushl %ebp
-	movl %esp,%ebp
-	subl $4,%esp
-	pushl %edx
-	pushl %ecx
-	pushl %ebx
-	movl $0x80000000,%eax 
-	
-	pushfl
-	pushfl
-	popl %eax
-	movl %eax,%ebx
-	xorl $0x00200000,%eax
-	pushl %eax
-	popfl
-	pushfl
-	popl %eax
-	popfl
-	cmpl %ebx,%eax
-	je .L0i
-	/ standard level
+	movl %edx,12(%esi)
+# then the other ones, called last to get the id flags in %eax for ret
 	movl $0x00000001,%eax
 	cpuid
-	jmp .L1i
+	movl %eax, (%esi)
+	movl %ecx, 4(%esi)
+	movl %edx, 8(%esi)
+	jmp .Lend
 	.align 4
-.L0i:	
-	movl $0,%eax
+.Lnocpuid:
+# error: set everything to zero
+	movl $0, %eax
+	movl $0, (%esi)
+	movl $0, 4(%esi)
+	movl $0, 8(%esi)
+	movl $0, 12(%esi)
 	.align 4
-.L1i:
-	movl %eax,-4(%esp)
-	popl %ebx
-	popl %ecx
-	popl %edx
-	movl %ebp,%esp
-	popl %ebp
-	ret
-
-.globl getstdcpuflags
-	.type	 getstdcpuflags,@function
-getstdcpuflags:
-	pushl %ebp
-	movl %esp,%ebp
-	subl $4,%esp
-	pushl %edx
-	pushl %ecx
-	pushl %ebx
-	movl $0x80000000,%eax 
-	
-	pushfl
-	pushfl
-	popl %eax
-	movl %eax,%ebx
-	xorl $0x00200000,%eax
-	pushl %eax
-	popfl
-	pushfl
-	popl %eax
-	popfl
-	cmpl %ebx,%eax
-	je .L0s
-	/ standard level
-	movl $0x00000001,%eax
-	cpuid
-	movl %ecx,%eax
-	jmp .L1s
-	.align 4
-.L0s:	
-	movl $0,%eax
-	.align 4
-.L1s:
-	movl %eax,-4(%esp)
-	popl %ebx
-	popl %ecx
-	popl %edx
-	movl %ebp,%esp
-	popl %ebp
-	ret
-
-.globl getstd2cpuflags
-	.type	 getstd2cpuflags,@function
-getstd2cpuflags:
-	pushl %ebp
-	movl %esp,%ebp
-	subl $4,%esp
-	pushl %edx
-	pushl %ecx
-	pushl %ebx
-	movl $0x80000000,%eax 
-	
-	pushfl
-	pushfl
-	popl %eax
-	movl %eax,%ebx
-	xorl $0x00200000,%eax
-	pushl %eax
-	popfl
-	pushfl
-	popl %eax
-	popfl
-	cmpl %ebx,%eax
-	je .L0t
-	/ standard level
-	movl $0x00000001,%eax
-	cpuid
-	movl %edx,%eax
-	jmp .L1t
-	.align 4
-.L0t:	
-	movl $0,%eax
-	.align 4
-.L1t:
-	movl %eax,-4(%esp)
+.Lend:
+# return value are the id flags, still stored in %eax
+	popl %esi
 	popl %ebx
 	popl %ecx
 	popl %edx

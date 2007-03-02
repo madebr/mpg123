@@ -13,30 +13,9 @@
 #include "debug.h"
 #ifdef OPT_MULTI
 
+#include "getcpuflags.h"
+
 struct_opts cpu_opts;
-
-/* standard level flags part 1 */
-#define FLAG_SSE3      0x00000001
-/* standard level flags part 2 */
-#define FLAG2_MMX       0x00800000
-#define FLAG2_SSE       0x02000000
-#define FLAG2_SSE2      0x04000000
-#define FLAG2_FPU       0x00000001
-/* cpuid extended level 1 (AMD) */
-#define XFLAG_MMX      0x00800000
-#define XFLAG_3DNOW    0x80000000
-#define XFLAG_3DNOWEXT 0x40000000
-
-/* identify pentium-class cpus by family, just excluding the few 486 */
-/* bits 11...8, so the value is ((id) & 0xf00)>>8 */
-int is_i586()
-{
-	int family = getcpuid();
-	if(!family) return 0; /* no flags at all - cpuid not supported? */
-	family = (family & 0xf00)>>8;
-	/* fprintf(stderr, "family: %i\n", family); */
-	return (family > 4 || family == 0);
-}
 
 void list_cpu_opt()
 {
@@ -73,33 +52,34 @@ void list_cpu_opt()
 
 void test_cpu_flags()
 {
-	if(is_i586())
+	#ifdef OPT_X86
+	struct cpuflags cf;
+	getcpuflags(&cf);
+	if(cpu_i586(cf))
 	{
-		unsigned int stdflags = 0;
-		unsigned int std2flags = 0;
-		unsigned int extflags = 0;
-		stdflags = getstdcpuflags();
-		std2flags = getstd2cpuflags();
-		extflags = getextcpuflags();
 		printf("CPU supports: i586");
-		if(std2flags & FLAG2_MMX) printf(" mmx");
-		if(extflags & XFLAG_3DNOW) printf(" 3dnow");
-		if(extflags & XFLAG_3DNOWEXT) printf(" 3dnowext");
-		if(std2flags & FLAG2_SSE) printf(" sse");
-		if(std2flags & FLAG2_SSE2) printf(" sse2");
-		if(stdflags & FLAG_SSE3) printf(" sse3");
+		if(cpu_mmx(cf)) printf(" mmx");
+		if(cpu_3dnow(cf)) printf(" 3dnow");
+		if(cpu_3dnowext(cf)) printf(" 3dnowext");
+		if(cpu_sse(cf)) printf(" sse");
+		if(cpu_sse2(cf)) printf(" sse2");
+		if(cpu_sse3(cf)) printf(" sse3");
 		printf("\n");
 	}
 	else
 	{
 		printf("You have an i386 or i486... or perhaps a non-x86-32bit CPU?\n");
 	}
+	#else
+	printf("I only know x86 cpus...\n");
+	#endif
 }
 
 int set_cpu_opt()
 {
-	unsigned int std2flags = 0;
-	unsigned int extflags = 0;
+	#ifdef OPT_X86
+	struct cpuflags cf;
+	#endif
 	int auto_choose = 0;
 	int done = 0;
 	if(   (param.cpu == NULL)
@@ -123,16 +103,14 @@ int set_cpu_opt()
 	cpu_opts.dct36 = dct36;
 	#endif
 
-	if(is_i586())
+	if(getcpuflags(&cf) && cpu_i586(cf))
 	{
-		std2flags = getstd2cpuflags();
-		extflags = getextcpuflags();
 		debug2("standard flags: 0x%08lx\textended flags: 0x%08lx\n", stdflags, extflags);
 		#ifdef OPT_3DNOWEXT
 		if(   !done && (auto_choose || !strcasecmp(param.cpu, "3dnowext"))
-		   && (extflags & XFLAG_3DNOW)
-		   && (extflags & XFLAG_3DNOWEXT)
-		   && (extflags & XFLAG_MMX) )
+		   && cpu_3dnow(cf)
+		   && cpu_3dnowext(cf)
+		   && cpu_mmx(cf) )
 		{
 			fprintf(stderr, "decoder: 3DNowExt\n");
 			cpu_opts.dct36 = dct36_3dnowext;
@@ -148,7 +126,7 @@ int set_cpu_opt()
 		#endif
 		#ifdef OPT_SSE
 		if(   !done && (auto_choose || !strcasecmp(param.cpu, "sse"))
-		   && (std2flags & FLAG2_SSE) && (std2flags & FLAG2_MMX) )
+		   && cpu_sse(cf) && cpu_mmx(cf) )
 		{
 			fprintf(stderr, "decoder: SSE\n");
 			cpu_opts.synth_1to1 = synth_1to1_sse;
@@ -167,7 +145,7 @@ int set_cpu_opt()
 		/* check cpuflags bit 31 (3DNow!) and 23 (MMX) */
 		if(   !done && (auto_choose || !strcasecmp(param.cpu, "3dnow"))
 	  	 && (param.stat_3dnow < 2)
-	  	 && ((param.stat_3dnow == 1) || ((extflags & XFLAG_3DNOW) && (extflags & XFLAG_MMX))))
+	  	 && ((param.stat_3dnow == 1) || (cpu_3dnow(cf) && cpu_mmx(cf))))
 		{
 			fprintf(stderr, "decoder: 3DNow\n");
 			cpu_opts.dct36 = dct36_3dnow; /* 3DNow! optimized dct36() */
@@ -178,7 +156,7 @@ int set_cpu_opt()
 		#endif
 		#ifdef OPT_MMX
 		if(   !done && (auto_choose || !strcasecmp(param.cpu, "mmx"))
-		   && (std2flags & FLAG2_MMX) )
+		   && cpu_mmx(cf) )
 		{
 			fprintf(stderr, "decoder: MMX\n");
 			cpu_opts.synth_1to1 = synth_1to1_mmx;

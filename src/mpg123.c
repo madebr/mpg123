@@ -42,7 +42,9 @@
 /* disappear! */
 func_dct64 mpl_dct64;
 #endif
-
+#ifdef OPT_3DNOW
+#include "getcpuflags.h"
+#endif
 static void usage(int err);
 static void want_usage(char* arg);
 static void long_usage(int err);
@@ -718,12 +720,13 @@ int main(int argc, char *argv[])
 	#else
 	#ifdef OPT_3DNOW
 	if (param.test_cpu) {
-		unsigned int cpuflags = getextcpuflags();
-		fprintf(stderr,"CPUFLAGS = %08x\n",cpuflags);
-		if ((cpuflags & 0x00800000) == 0x00800000) {
+		struct cpuflags cf;
+		getcpuflags(&cf);
+		fprintf(stderr,"CPUFLAGS = %08x\n",cf.ext);
+		if ((cf.ext & 0x00800000) == 0x00800000) {
 			fprintf(stderr,"MMX instructions are supported.\n");
 		}
-		if ((cpuflags & 0x80000000) == 0x80000000) {
+		if ((cf.ext & 0x80000000) == 0x80000000) {
 			fprintf(stderr,"3DNow! instructions are supported.\n");
 		}
 		safe_exit(0);
