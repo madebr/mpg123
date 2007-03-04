@@ -257,10 +257,11 @@ extern real decwin[512+32];
 	#endif
 #endif
 		
+/* used for multi opt mode and the single 3dnow mode to have the old 3dnow test flag still working */
+void test_cpu_flags();
+void list_cpu_opt();
 
 #ifdef OPT_MULTI
-	void test_cpu_flags();
-	void list_cpu_opt();
 	int set_cpu_opt();
 	/* a simple global struct to hold the decoding function pointers, could be localized later if really wanted */
 	typedef struct

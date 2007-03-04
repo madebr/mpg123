@@ -152,7 +152,7 @@ libcpu_3dnow_a_SOURCES = \
 	dct64_3dnow.s \
 	dct36_3dnow.s \
 	equalizer_3dnow.s \
-	getcpuflags.s
+	getcpuflags.S
 
 libcpu_mmx_a_SOURCES = \
 	decode_i386.c \
@@ -193,4 +193,4 @@ libcpu_x86_a_SOURCES = \
 	dct36_3dnowext.c \
 	tabinit_mmx.s \
 	equalizer_3dnow.s \
-	getcpuflags.s
+	getcpuflags.S

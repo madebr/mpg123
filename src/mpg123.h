@@ -211,10 +211,6 @@ struct parameter {
 #endif
 #ifdef OPT_MULTI
   int test_cpu;
-#else
-  #ifdef OPT_3DNOW
-  int test_cpu;
-	#endif
 #endif
   long realtime;
   char filename[256];

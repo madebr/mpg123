@@ -176,9 +176,9 @@ linux-3dnow:
 	$(MAKE) CC=gcc \
 		OBJECTS="decode_i386.o decode_3dnow.o dct64_3dnow.o \
 			dct64_i386.o dct36_3dnow.o getcpuflags.o \
-			equalizer_3dnow.o decode_i586.o audio_oss.o term.o" \
-		CFLAGS="$(CFLAGS) $(CPPFLAGS) -DOPT_3DNOW -DREAL_IS_FLOAT -DLINUX \
-			-DUSE_3DNOW -DOSS -DHAVE_TERMIOS\
+			equalizer_3dnow.o decode_i586.o audio_oss.o term.o optimize.o" \
+		CFLAGS="$(CFLAGS) $(CPPFLAGS) -DOPT_MULTI -DOPT_I586 -DOPT_3DNOW -DREAL_IS_FLOAT -DLINUX \
+			-DOSS -DHAVE_TERMIOS\
 			-Wall -O2 \
 			-fomit-frame-pointer -funroll-all-loops \
 			-finline-functions -ffast-math" \

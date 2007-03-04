@@ -187,8 +187,8 @@ int set_cpu_opt()
 			cpu_opts.synth_1to1_i586_asm = synth_1to1_i586_asm_dither;
 			done = 1;
 		}
+		#endif
 	}
-	#endif
 	#ifdef OPT_I486 /* that won't cooperate nicely in multi opt mode - forcing i486 in layer3.c */
 	if(!done && (auto_choose || !strcasecmp(param.cpu, "i486")))
 	{
@@ -207,6 +207,7 @@ int set_cpu_opt()
 		done = 1;
 	}
 	#endif
+
 	if(done) /* set common x86 functions */
 	{
 		cpu_opts.synth_1to1_mono = synth_1to1_mono_i386;

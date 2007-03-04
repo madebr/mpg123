@@ -42,9 +42,12 @@
 /* disappear! */
 func_dct64 mpl_dct64;
 #endif
+#ifndef OPT_MULTI
 #ifdef OPT_3DNOW
 #include "getcpuflags.h"
 #endif
+#endif
+
 static void usage(int err);
 static void want_usage(char* arg);
 static void long_usage(int err);
@@ -78,6 +81,7 @@ struct parameter param = {
   #ifdef OPT_3DNOW
   0 ,     /* autodetect from CPUFLAGS */
   #endif
+  /* test_cpu flag is valid for multi and 3dnow.. even if 3dnow is built alone; ensure it appears only once */
   #ifdef OPT_MULTI
   FALSE , /* normal operation */
   #else
@@ -1217,9 +1221,9 @@ static void long_usage(int err)
 	fprintf(o," -T     --realtime         tries to get realtime priority\n");
 	#endif
 	#ifdef OPT_MULTI
-	fprintf(o,"        --cpu <string>    set cpu optimization\n");
-	fprintf(o,"        --test-cpu        display result of CPU features autodetect and exit\n");
-	fprintf(o,"        --list-cpu        list builtin optimizations and exit\n");
+	fprintf(o,"        --cpu <string>     set cpu optimization\n");
+	fprintf(o,"        --test-cpu         display result of CPU features autodetect and exit\n");
+	fprintf(o,"        --list-cpu         list builtin optimizations and exit\n");
 	#endif
 	#ifdef OPT_3DNOW
 	fprintf(o,"        --test-3dnow       display result of 3DNow! autodetect and exit\n");

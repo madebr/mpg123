@@ -4,6 +4,8 @@
  * File licensed under the GPL, see http://www.fsf.org/ for more info.
  */
 
+/* ThOr: added the plain ASM_NAME */
+
 #ifndef __MANGLE_H
 #define __MANGLE_H
 
@@ -11,8 +13,10 @@
 #if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__OS2__) || \
    (defined(__OpenBSD__) && !defined(__ELF__)) || defined(__APPLE__)
 #define MANGLE(a) "_" #a
+#define ASM_NAME(a) _##a
 #else
 #define MANGLE(a) #a
+#define ASM_NAME(a) a
 #endif
 
 #endif /* !__MANGLE_H */
