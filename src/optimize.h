@@ -105,7 +105,7 @@ void dct36(real *,real *,real *,real *,real *);
 
 /* That one has by far the most ugly hacks to make it cooperative. */
 #ifdef OPT_MMX
-	#define MMXORSSE
+	#define OPT_MMXORSSE
 	#define OPT_X86
 	real init_layer3_gainpow2_mmx(int i);
 	real* init_layer2_table_mmx(real *table, double m);

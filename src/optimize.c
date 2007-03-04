@@ -12,9 +12,10 @@
 #include "mpg123.h" /* includes optimize.h */
 #include "debug.h"
 
-#include "getcpuflags.h"
-
+#ifdef OPT_MULTI
 struct_opts cpu_opts;
+
+#include "getcpuflags.h"
 
 void list_cpu_opt()
 {
@@ -74,7 +75,6 @@ void test_cpu_flags()
 	#endif
 }
 
-#ifdef OPT_MULTI
 int set_cpu_opt()
 {
 	#ifdef OPT_X86
