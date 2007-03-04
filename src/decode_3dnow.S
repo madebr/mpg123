@@ -33,17 +33,21 @@
 
 #include "mangle.h"
 
+	#ifdef __CYGWIN__
+	.comm	buffs.40,4352
+	#else
 	.local	buffs.40
 	.comm	buffs.40,4352,32
+	#endif
 .data
 	.align 4
-	.type	 bo.42,@object
-	.size	 bo.42,4
+/*	.type	 bo.42,@object */
+/*	.size	 bo.42,4 */
 bo.42:
 	.long 1
 .text
 .globl ASM_NAME(synth_1to1_3dnow)
-	.type	 ASM_NAME(synth_1to1_3dnow),@function
+/*	.type	 ASM_NAME(synth_1to1_3dnow),@function */
 ASM_NAME(synth_1to1_3dnow):
 	subl $24,%esp
 	pushl %ebp

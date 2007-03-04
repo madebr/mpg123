@@ -137,17 +137,17 @@ libcpu_i486_a_SOURCES = \
 libcpu_i586_a_SOURCES = \
 	decode_i386.c \
 	dct64_i386.c \
-	decode_i586.s
+	decode_i586.S
 
 libcpu_i586_dither_a_SOURCES = \
 	decode_i386.c \
 	dct64_i386.c \
-	decode_i586_dither.s
+	decode_i586_dither.S
 
 libcpu_3dnow_a_SOURCES = \
 	decode_i386.c \
 	decode_3dnow.S \
-	decode_i586.s \
+	decode_i586.S \
 	dct64_i386.c \
 	dct64_3dnow.S \
 	dct36_3dnow.S \
@@ -156,41 +156,41 @@ libcpu_3dnow_a_SOURCES = \
 
 libcpu_mmx_a_SOURCES = \
 	decode_i386.c \
-	dct64_mmx.s \
-	tabinit_mmx.s \
-	decode_mmx.s
+	dct64_mmx.S \
+	tabinit_mmx.S \
+	decode_mmx.S
 
 libcpu_sse_a_SOURCES = \
 	decode_i386.c \
 	dct64_sse.c \
-	dct64_mmx.s \
-	tabinit_mmx.s \
+	dct64_mmx.S \
+	tabinit_mmx.S \
 	decode_mmxsse.c
 
 libcpu_3dnowext_a_SOURCES = \
 	decode_i386.c \
 	dct64_3dnowext.c \
 	dct36_3dnowext.c \
-	dct64_mmx.s \
-	tabinit_mmx.s \
+	dct64_mmx.S \
+	tabinit_mmx.S \
 	decode_mmxsse.c
 
 libcpu_x86_a_SOURCES = \
 	decode.c \
 	decode_i386.c \
-	decode_i586.s \
-	decode_i586_dither.s \
+	decode_i586.S \
+	decode_i586_dither.S \
 	decode_3dnow.S \
-	decode_mmx.s \
+	decode_mmx.S \
 	decode_mmxsse.c \
 	dct64.c \
 	dct64_i386.c \
 	dct64_sse.c \
-	dct64_mmx.s \
+	dct64_mmx.S \
 	dct64_3dnow.S \
 	dct36_3dnow.S \
 	dct64_3dnowext.c \
 	dct36_3dnowext.c \
-	tabinit_mmx.s \
+	tabinit_mmx.S \
 	equalizer_3dnow.S \
 	getcpuflags.S

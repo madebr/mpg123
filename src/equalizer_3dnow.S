@@ -11,7 +11,7 @@
 .text
         .align 4
 .globl ASM_NAME(do_equalizer_3dnow)
-	.type	 ASM_NAME(do_equalizer_3dnow),@function
+/*	.type	 ASM_NAME(do_equalizer_3dnow),@function */
 ASM_NAME(do_equalizer_3dnow):
 	pushl %esi
 	pushl %ebx

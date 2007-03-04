@@ -1,35 +1,43 @@
-/ decode_i586.s: asm synth
-/
-/ copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
-/ see COPYING and AUTHORS files in distribution or http://mpg123.de
-/ initially written by Stefan Bieschewski
-/ 
-/ synth_1to1 works the same way as the c version of this
-/ file.  only two types of changes have been made:
-/ - reordered floating point instructions to
-/   prevent pipline stalls
-/ - made WRITE_SAMPLE use integer instead of
-/   (slower) floating point
-/ all kinds of x86 processors should benefit from these
-/ modifications.
-/
-/ useful sources of information on optimizing x86 code include:
-/
-/     Intel Architecture Optimization Manual
-/     http://www.intel.com/design/pentium/manuals/242816.htm
-/
-/     Cyrix 6x86 Instruction Set Summary
-/     ftp://ftp.cyrix.com/6x86/6x-dbch6.pdf
-/
-/     AMD-K5 Processor Software Development
-/     http://www.amd.com/products/cpg/techdocs/appnotes/20007e.pdf
-/
-/ Stefan Bieschewski <stb@acm.org>
-/
-/ $Id: decode_i586.s 1 2004-09-18 13:30:08Z thomas $
-/
+/*
+ decode_i586: asm synth
+
+ copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+ see COPYING and AUTHORS files in distribution or http://mpg123.de
+ initially written by Stefan Bieschewski
+ 
+ synth_1to1 works the same way as the c version of this
+ file.  only two types of changes have been made:
+ - reordered floating point instructions to
+   prevent pipline stalls
+ - made WRITE_SAMPLE use integer instead of
+   (slower) floating point
+ all kinds of x86 processors should benefit from these
+ modifications.
+
+ useful sources of information on optimizing x86 code include:
+
+     Intel Architecture Optimization Manual
+     http://www.intel.com/design/pentium/manuals/242816.htm
+
+     Cyrix 6x86 Instruction Set Summary
+     ftp://ftp.cyrix.com/6x86/6x-dbch6.pdf
+
+     AMD-K5 Processor Software Development
+     http://www.amd.com/products/cpg/techdocs/appnotes/20007e.pdf
+
+ Stefan Bieschewski <stb@acm.org>
+
+ $Id: decode_i586.s 1 2004-09-18 13:30:08Z thomas $
+*/
+
+#include "mangle.h"
+
 .bss
+	#ifdef __CYGWIN__
+	.comm	buffs,4352
+	#else
 	.comm	buffs,4352,4
+	#endif
 .data
 	.align 4
 bo:
@@ -43,8 +51,8 @@ bo:
 	.long 0x0,0xc0e00000
 	.align 8
 .text
-.globl synth_1to1_i586_asm
-synth_1to1_i586_asm:
+.globl ASM_NAME(synth_1to1_i586_asm)
+ASM_NAME(synth_1to1_i586_asm):
 	subl $12,%esp
 	pushl %ebp
 	pushl %edi
@@ -89,11 +97,11 @@ synth_1to1_i586_asm:
 	leal (%ecx,%ebp,4),%eax
 .L74:
 	pushl %eax
-	call dct64_i386
+	call ASM_NAME(dct64_i386)
 	addl $12,%esp
 	movl 16(%esp),%edx
 	leal 0(,%edx,4),%edx
-	movl $decwin+64,%eax
+	movl $ASM_NAME(decwin)+64,%eax
 	movl %eax,%ecx
 	subl %edx,%ecx
 	movl $16,%ebp

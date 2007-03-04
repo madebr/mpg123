@@ -21,7 +21,7 @@
 	.align 4
 
 .globl ASM_NAME(getcpuflags)
-	.type ASM_NAME(getcpuflags),@function
+/*	.type ASM_NAME(getcpuflags),@function */
 ASM_NAME(getcpuflags):
 	pushl %ebp
 	movl %esp,%ebp

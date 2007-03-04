@@ -1,12 +1,16 @@
-/	dct64_mmx.s: MMX optimized DCT64
+/*
+	dct64_mmx.s: MMX optimized DCT64
 
-/	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
-/	see COPYING and AUTHORS files in distribution or http://mpg123.de
-/	initially written by the mysterious higway (apparently)
+	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	initially written by the mysterious higway (apparently)
+*/
+
+#include "mangle.h"
 
 .data
 	.align 32
-costab:
+ASM_NAME(costab):
 	.long 1056974725
 	.long 1057056395
 	.long 1057223771
@@ -42,12 +46,12 @@ costab:
 .text
 
 	.align 32
-.globl dct64_mmx
-dct64_mmx:
+.globl ASM_NAME(dct64_mmx)
+ASM_NAME(dct64_mmx):
 
 	xorl %ecx,%ecx
-.globl dct64_MMX
-dct64_MMX:
+.globl ASM_NAME(dct64_MMX)
+ASM_NAME(dct64_MMX):
 	pushl %ebx
 	pushl %esi
 	pushl %edi
@@ -60,7 +64,7 @@ dct64_MMX:
 	fstps    (%edx)
 	movl 276(%esp),%edi
 	flds    4(%eax)
-	movl $costab,%ebx
+	movl $ASM_NAME(costab),%ebx
 	fadds 120(%eax)
 	orl %ecx,%ecx
 	fstps   4(%edx)
