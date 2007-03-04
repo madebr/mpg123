@@ -28,6 +28,7 @@
 #endif
 
 #include "mpg123.h"
+#include "common.h"
 #include "getlopt.h"
 #include "buffer.h"
 #include "term.h"
