@@ -42,11 +42,6 @@
 /* disappear! */
 func_dct64 mpl_dct64;
 #endif
-#ifndef OPT_MULTI
-#ifdef OPT_3DNOW
-#include "getcpuflags.h"
-#endif
-#endif
 
 static void usage(int err);
 static void want_usage(char* arg);

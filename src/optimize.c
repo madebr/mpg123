@@ -11,7 +11,6 @@
 #include "config.h"
 #include "mpg123.h" /* includes optimize.h */
 #include "debug.h"
-#ifdef OPT_MULTI
 
 #include "getcpuflags.h"
 
@@ -75,6 +74,7 @@ void test_cpu_flags()
 	#endif
 }
 
+#ifdef OPT_MULTI
 int set_cpu_opt()
 {
 	#ifdef OPT_X86
