@@ -1,38 +1,38 @@
-///
-/// dct64_3dnow.s: Replacement of dct36() with AMD's 3DNow! SIMD operations support
-/// 
-/// copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
-/// see COPYING and AUTHORS files in distribution or http://mpg123.de
-/// initially written by Syuuhei Kashiyama
+/*
+	dct64_3dnow.s: Replacement of dct36() with AMD's 3DNow! SIMD operations support
 
-/ This code based 'dct36_3dnow.s' by Syuuhei Kashiyama
-/ <squash@mb.kcom.ne.jp>,only two types of changes have been made:
-/
-/ - remove PREFETCH instruction for speedup
-/ - change function name for support 3DNow! automatic detect
-/
-/ You can find Kashiyama's original 3dnow! support patch
-/ (for mpg123-0.59o) at
-/ http://user.ecc.u-tokyo.ac.jp/~g810370/linux-simd/ (Japanese).
-/
-/ by KIMURA Takuhiro <kim@hannah.ipc.miyakyo-u.ac.jp> - until 31.Mar.1999
-/                    <kim@comtec.co.jp>               - after  1.Apr.1999
-/
+	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	initially written by Syuuhei Kashiyama
 
-///
-/// Replacement of dct36() with AMD's 3DNow! SIMD operations support
-/// 
-/// Syuuhei Kashiyama <squash@mb.kcom.ne.jp>
-/// 
-/// The author of this program disclaim whole expressed or implied
-/// warranties with regard to this program, and in no event shall the
-/// author of this program liable to whatever resulted from the use of
-/// this program. Use it at your own risk.
-/// 
+	This code based 'dct36_3dnow.s' by Syuuhei Kashiyama
+	<squash@mb.kcom.ne.jp>,only two types of changes have been made:
 
-	.globl dct36_3dnow
-	.type	 dct36_3dnow,@function
-dct36_3dnow:
+	- remove PREFETCH instruction for speedup
+	- change function name for support 3DNow! automatic detect
+
+	You can find Kashiyama's original 3dnow! support patch
+	(for mpg123-0.59o) at
+	http://user.ecc.u-tokyo.ac.jp/~g810370/linux-simd/ (Japanese).
+
+	by KIMURA Takuhiro <kim@hannah.ipc.miyakyo-u.ac.jp> - until 31.Mar.1999
+	                   <kim@comtec.co.jp>               - after  1.Apr.1999
+
+	Replacement of dct36() with AMD's 3DNow! SIMD operations support
+
+	Syuuhei Kashiyama <squash@mb.kcom.ne.jp>
+
+	The author of this program disclaim whole expressed or implied
+	warranties with regard to this program, and in no event shall the
+	author of this program liable to whatever resulted from the use of
+	this program. Use it at your own risk.
+*/
+
+#include "mangle.h"
+
+	.globl ASM_NAME(dct36_3dnow)
+	.type	 ASM_NAME(dct36_3dnow),@function
+ASM_NAME(dct36_3dnow):
 	pushl %ebp
 	movl %esp,%ebp
 	subl $120,%esp

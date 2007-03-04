@@ -1,25 +1,28 @@
-/
-/	dct64_3dnow.s: 3DNow! optimized do_equalizer()
-/
-/	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
-/	see COPYING and AUTHORS files in distribution or http://mpg123.de
-/	initially written by KIMURA Takuhiro
-	
+/*
+	equalizer_3dnow: 3DNow! optimized do_equalizer()
+
+	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	initially written by KIMURA Takuhiro
+*/
+
+#include "mangle.h"
+
 .text
         .align 4
-.globl do_equalizer_3dnow
-	.type	 do_equalizer_3dnow,@function
-do_equalizer_3dnow:
+.globl ASM_NAME(do_equalizer_3dnow)
+	.type	 ASM_NAME(do_equalizer_3dnow),@function
+ASM_NAME(do_equalizer_3dnow):
 	pushl %esi
 	pushl %ebx
-	/ bandPtr
+	/* bandPtr */
 	movl 12(%esp),%ebx
-	cmpl $0,equalfile
+	cmpl $0,ASM_NAME(equalfile)
 	je .L5
-	/ channel
+	/* channel */
 	movl 16(%esp),%ecx
 	xorl %edx,%edx
-	movl $equalizer,%esi
+	movl $ASM_NAME(equalizer),%esi
 	sall $7,%ecx
         .align 4
 .L9:

@@ -314,8 +314,9 @@ case $cpu_type in
   i586_dither) 
     CFLAGS="$CFLAGS -DOPT_I586_DITHER -DREAL_IS_FLOAT"
   ;;
-  3dnow) 
-    CFLAGS="$CFLAGS -DOPT_3DNOW -DREAL_IS_FLOAT"
+  3dnow)
+    # legacy 3dnow had the 3dnow optional... keeping that
+    CFLAGS="$CFLAGS -DOPT_MULTI -DOPT_I586 -DOPT_3DNOW -DREAL_IS_FLOAT"
   ;;
   3dnowext) 
     CFLAGS="$CFLAGS -DOPT_3DNOWEXT -DREAL_IS_FLOAT"
