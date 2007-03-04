@@ -78,8 +78,8 @@ EXTRA_mpg123_SOURCES = \
 	audio_sdl.c \
 	audio_sgi.c \
 	audio_sun.c \
-	audio_win32.c
-
+	audio_win32.c \
+	getcpuflags.h
 
 
 # Processor dependent decoder code
