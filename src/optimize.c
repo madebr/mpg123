@@ -105,7 +105,7 @@ int set_cpu_opt()
 
 	if(getcpuflags(&cf) && cpu_i586(cf))
 	{
-		debug2("standard flags: 0x%08lx\textended flags: 0x%08lx\n", stdflags, extflags);
+		debug2("standard flags: 0x%08x\textended flags: 0x%08x\n", cf.std, cf.ext);
 		#ifdef OPT_3DNOWEXT
 		if(   !done && (auto_choose || !strcasecmp(param.cpu, "3dnowext"))
 		   && cpu_3dnow(cf)
