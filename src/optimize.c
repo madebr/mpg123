@@ -80,6 +80,7 @@ int set_cpu_opt()
 	#ifdef OPT_X86
 	struct cpuflags cf;
 	#endif
+	char* chosen = ""; /* the chosed decoder opt as string */
 	int auto_choose = 0;
 	int done = 0;
 	if(   (param.cpu == NULL)
@@ -112,7 +113,7 @@ int set_cpu_opt()
 		   && cpu_3dnowext(cf)
 		   && cpu_mmx(cf) )
 		{
-			fprintf(stderr, "decoder: 3DNowExt\n");
+			chosen = "3DNowExt";
 			cpu_opts.dct36 = dct36_3dnowext;
 			cpu_opts.synth_1to1 = synth_1to1_sse;
 			cpu_opts.dct64 = dct64_mmx; /* only use the sse version in the synth_1to1_sse */
@@ -128,7 +129,7 @@ int set_cpu_opt()
 		if(   !done && (auto_choose || !strcasecmp(param.cpu, "sse"))
 		   && cpu_sse(cf) && cpu_mmx(cf) )
 		{
-			fprintf(stderr, "decoder: SSE\n");
+			chosen = "SSE";
 			cpu_opts.synth_1to1 = synth_1to1_sse;
 			cpu_opts.dct64 = dct64_mmx; /* only use the sse version in the synth_1to1_sse */
 			cpu_opts.decwin = decwin_mmx;
@@ -147,7 +148,7 @@ int set_cpu_opt()
 	  	 && (param.stat_3dnow < 2)
 	  	 && ((param.stat_3dnow == 1) || (cpu_3dnow(cf) && cpu_mmx(cf))))
 		{
-			fprintf(stderr, "decoder: 3DNow\n");
+			chosen = "3DNow";
 			cpu_opts.dct36 = dct36_3dnow; /* 3DNow! optimized dct36() */
 			cpu_opts.synth_1to1 = synth_1to1_3dnow;
 			cpu_opts.dct64 = dct64_i386; /* use the 3dnow one? */
@@ -158,7 +159,7 @@ int set_cpu_opt()
 		if(   !done && (auto_choose || !strcasecmp(param.cpu, "mmx"))
 		   && cpu_mmx(cf) )
 		{
-			fprintf(stderr, "decoder: MMX\n");
+			chosen = "MMX";
 			cpu_opts.synth_1to1 = synth_1to1_mmx;
 			cpu_opts.dct64 = dct64_mmx;
 			cpu_opts.decwin = decwin_mmx;
@@ -171,7 +172,7 @@ int set_cpu_opt()
 		#ifdef OPT_I586
 		if(!done && (auto_choose || !strcasecmp(param.cpu, "i586")))
 		{
-			fprintf(stderr, "decoder: i586/pentium\n");
+			chosen = "i586/pentium";
 			cpu_opts.synth_1to1 = synth_1to1_i586;
 			cpu_opts.synth_1to1_i586_asm = synth_1to1_i586_asm;
 			cpu_opts.dct64 = dct64_i386;
@@ -181,7 +182,7 @@ int set_cpu_opt()
 		#ifdef OPT_I586_DITHER
 		if(!done && (auto_choose || !strcasecmp(param.cpu, "i586_dither")))
 		{
-			fprintf(stderr, "decoder: dithered i586/pentium\n");
+			chosen = "dithered i586/pentium";
 			cpu_opts.synth_1to1 = synth_1to1_i586;
 			cpu_opts.dct64 = dct64_i386;
 			cpu_opts.synth_1to1_i586_asm = synth_1to1_i586_asm_dither;
@@ -192,7 +193,7 @@ int set_cpu_opt()
 	#ifdef OPT_I486 /* that won't cooperate nicely in multi opt mode - forcing i486 in layer3.c */
 	if(!done && (auto_choose || !strcasecmp(param.cpu, "i486")))
 	{
-		fprintf(stderr, "decoder: i486\n");
+		chosen = "i486";
 		cpu_opts.synth_1to1 = synth_1to1_i386; /* i486 function is special */
 		cpu_opts.dct64 = dct64_i386;
 		done = 1;
@@ -201,7 +202,7 @@ int set_cpu_opt()
 	#ifdef OPT_I386
 	if(!done && (auto_choose || !strcasecmp(param.cpu, "i386")))
 	{
-		fprintf(stderr, "decoder: i386\n");
+		chosen = "i386";
 		cpu_opts.synth_1to1 = synth_1to1_i386;
 		cpu_opts.dct64 = dct64_i386;
 		done = 1;
@@ -221,7 +222,7 @@ int set_cpu_opt()
 	#ifdef OPT_ALTIVEC
 	if(!done && (auto_choose || !strcasecmp(param.cpu, "altivec")))
 	{
-		fprintf(stderr, "decoder: AltiVec\n");
+		chosen = "AltiVec";
 		cpu_opts.dct64 = dct64_altivec;
 		cpu_opts.synth_1to1 = synth_1to1_altivec;
 		cpu_opts.synth_1to1_mono = synth_1to1_mono_altivec;
@@ -236,7 +237,7 @@ int set_cpu_opt()
 	#ifdef OPT_GENERIC
 	if(!done && (auto_choose || !strcasecmp(param.cpu, "generic")))
 	{
-		fprintf(stderr, "decoder: generic\n");
+		chosen = "generic";
 		cpu_opts.dct64 = dct64;
 		cpu_opts.synth_1to1 = synth_1to1;
 		cpu_opts.synth_1to1_mono = synth_1to1_mono;
@@ -248,11 +249,15 @@ int set_cpu_opt()
 	}
 	#endif
 
-	if(!done)
+	if(done)
+	{
+		if(!param.remote && !param.quiet) fprintf(stderr, "decoder: %s\n", chosen);
+		return 1;
+	}
+	else
 	{
 		error("Could not set optimization!");
 		return 0;
 	}
-	else return 1;
 }
 #endif
