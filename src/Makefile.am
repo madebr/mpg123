@@ -13,6 +13,12 @@ EXTRA_DIST = Makefile.legacy config.h.legacy
 
 
 bin_PROGRAMS = mpg123
+EXTRA_PROGRAMS = testcpu
+
+testcpu_SOURCES = \
+	testcpu.c \
+	getcpuflags.S
+	
 mpg123_SOURCES = \
 	audio.c \
 	audio.h \
