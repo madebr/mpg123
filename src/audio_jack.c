@@ -106,7 +106,7 @@ process_callback( jack_nframes_t nframes, void *arg )
 static void
 shutdown_callback( void *arg )
 {
-//	jack_handle_t* handle = (jack_handle_t*)arg;
+/*	jack_handle_t* handle = (jack_handle_t*)arg; */
 
 	fprintf(stderr, "shutdown_callback()\n");
 
@@ -301,14 +301,15 @@ int audio_play_samples(struct audio_info_struct *ai, unsigned char *buf, int len
 	
 	
 	for(c=0; c<handle->channels; c++) {
-	
+		size_t len = 0;
+		
 		/* Convert samples from short to flat and put in temporary buffer*/
 		for(n=0; n<samples; n++) {
 			handle->tmp_buffer[n] = src[(n*handle->channels)+c] / 32768.0f;
 		}
 		
 		/* Copy temporary buffer into ring buffer*/
-		size_t len = jack_ringbuffer_write(handle->rb[c], (char*)handle->tmp_buffer, tmp_size);
+		len = jack_ringbuffer_write(handle->rb[c], (char*)handle->tmp_buffer, tmp_size);
 		if (len < tmp_size)
         {
 			error("audio_play_samples(): failed to write to ring ruffer.");
