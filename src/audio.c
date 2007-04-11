@@ -18,11 +18,6 @@ void audio_info_struct_init(struct audio_info_struct *ai)
   ai->gain = -1;
   ai->output = -1;
   ai->handle = NULL;
-#ifdef ALSA
-  ai->alsa_format.format = -1;
-  ai->alsa_format.rate = -1;
-  ai->alsa_format.channels = -1;
-#endif
   ai->device = NULL;
   ai->channels = -1;
   ai->format = -1;
