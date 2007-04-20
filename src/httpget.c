@@ -684,14 +684,14 @@ int http_open (char* url, char** content_type)
 				/* watch out for icy-name */
 				else if((tmp = get_header_val("icy-name", response, &len)))
 				{
-					if(set_stringbuf(&icy.name, tmp)) debug1("got icy-name %s", icy.name.p)
-					else error1("unable to set icy name to %s!", tmp)
+					if(set_stringbuf(&icy.name, tmp)) debug1("got icy-name %s", icy.name.p);
+					else error1("unable to set icy name to %s!", tmp);
 				}
 				/* watch out for icy-url */
 				else if((tmp = get_header_val("icy-url", response, &len)))
 				{
-					if(set_stringbuf(&icy.url, tmp)) debug1("got icy-url %s", icy.name.p)
-					else error1("unable to set icy url to %s!", tmp)
+					if(set_stringbuf(&icy.url, tmp)) debug1("got icy-url %s", icy.name.p);
+					else error1("unable to set icy url to %s!", tmp);
 				}
 				/* watch out for icy-metaint */
 				else if((tmp = get_header_val("icy-metaint", response, &len)))

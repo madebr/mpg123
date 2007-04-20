@@ -22,8 +22,8 @@ print <<EOT;
 
 /*
 	I could do that with variadic macros available:
-	#define sdebug(me, s) fprintf(stderr, "[" me "] " s "\n")
-	#define debug(me, s, ...) fprintf(stderr, "[" me "] " s "\n", __VA_ARGS__)
+	#define sdebug(me, s) fprintf(stderr, "[location] " s "\\n")
+	#define debug(me, s, ...) fprintf(stderr, "[location] " s "\}n", __VA_ARGS__)
 
 	Variadic macros are a C99 feature...
 	Now just predefining stuff non-variadic for up to $num arguments.
@@ -31,7 +31,7 @@ print <<EOT;
 */
 
 #ifdef DEBUG
-	#include <stdio.h>
+#include <stdio.h>
 EOT
 printdefs(1);
 print "#else\n";
@@ -55,10 +55,11 @@ sub printdefs
 		my @args, my $j;
 		while(++$j < $i){ push(@args, chr(ord('a')+$j-1)); }
 		unshift(@args, '') if(@args);
-		print '	#define '.$type.($i > 1 ? ($i-1) : '').'(s';
+		print '#define '.$type.($i > 1 ? ($i-1) : '').'(s';
 		print join(', ', @args).') ';
-		if($forreal){ print 'fprintf(stderr, "[" __FILE__ ":%i] '.$type.': " s "\n", __LINE__'.join(', ', @args).");\n"; }
-		else{ print "{}\n"; } 
+		if($forreal){ print 'fprintf(stderr, "[" __FILE__ ":%i] '.$type.': " s "\n", __LINE__'.join(', ', @args).")\n"; }
+		#else{ print "do {} while(0)\n"; } 
+		else{ print "\n"; }
 	}
 }
 
