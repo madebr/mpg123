@@ -46,6 +46,7 @@ void dct36(real *,real *,real *,real *,real *);
 #define opt_init_layer2_table init_layer2_table
 
 #ifdef OPT_GENERIC
+	#define PENTIUM_FALLBACK
 	void dct64(real *,real *,real *);
 	int synth_1to1(real *bandPtr,int channel,unsigned char *out,int *pnt);
 	int synth_1to1 (real *,int,unsigned char *,int *);
@@ -74,6 +75,7 @@ void dct36(real *,real *,real *,real *,real *);
 #endif
 
 #ifdef OPT_I386
+	#define PENTIUM_FALLBACK
 	#define OPT_X86
 	int synth_1to1_i386(real *bandPtr,int channel,unsigned char *out,int *pnt);
 	#ifndef OPT_MULTI
@@ -82,6 +84,7 @@ void dct36(real *,real *,real *,real *,real *);
 #endif
 
 #ifdef OPT_I586
+	#define PENTIUM_FALLBACK
 	#define OPT_PENTIUM
 	#define OPT_X86
 	int synth_1to1_i586(real *bandPtr,int channel,unsigned char *out,int *pnt);
@@ -93,6 +96,7 @@ void dct36(real *,real *,real *,real *,real *);
 #endif
 
 #ifdef OPT_I586_DITHER
+	#define PENTIUM_FALLBACK
 	#define OPT_PENTIUM
 	#define OPT_X86
 	int synth_1to1_i586(real *bandPtr,int channel,unsigned char *out,int *pnt);

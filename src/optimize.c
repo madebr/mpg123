@@ -129,6 +129,18 @@ int set_cpu_opt()
 		if(   !done && (auto_choose || !strcasecmp(param.cpu, "sse"))
 		   && cpu_sse(cf) && cpu_mmx(cf) )
 		{
+			int go = 1;
+			if(param.force_rate)
+			{
+				#ifdef PENTIUM_FALLBACK
+				if(param.verbose) fprintf(stderr, "Note: Not choosing SSE because flexible rate not supported.\n");
+
+				go = 0;
+				#else
+				error("You will hear some awful sound because of flexible rate being chosen with SSE decoder!");
+				#endif
+			}
+			if(go){ /* temporary hack for flexible rate bug, not going indent this - fix it instead! */
 			chosen = "SSE";
 			cpu_opts.synth_1to1 = synth_1to1_sse;
 			cpu_opts.dct64 = dct64_mmx; /* only use the sse version in the synth_1to1_sse */
@@ -138,6 +150,7 @@ int set_cpu_opt()
 			cpu_opts.init_layer2_table    = init_layer2_table_mmx;
 			cpu_opts.mpl_dct64 = dct64_sse;
 			done = 1;
+			}
 		}
 		#endif
 		#ifdef OPT_3DNOW
@@ -159,6 +172,18 @@ int set_cpu_opt()
 		if(   !done && (auto_choose || !strcasecmp(param.cpu, "mmx"))
 		   && cpu_mmx(cf) )
 		{
+			int go = 1;
+			if(param.force_rate)
+			{
+				#ifdef PENTIUM_FALLBACK
+				if(param.verbose) fprintf(stderr, "Note: Not choosing MMX because flexible rate not supported.\n");
+
+				go = 0;
+				#else
+				error("You will hear some awful sound because of flexible rate being chosen with MMX decoder!");
+				#endif
+			}
+			if(go){ /* temporary hack for flexible rate bug, not going indent this - fix it instead! */
 			chosen = "MMX";
 			cpu_opts.synth_1to1 = synth_1to1_mmx;
 			cpu_opts.dct64 = dct64_mmx;
@@ -167,6 +192,7 @@ int set_cpu_opt()
 			cpu_opts.init_layer3_gainpow2 = init_layer3_gainpow2_mmx;
 			cpu_opts.init_layer2_table    = init_layer2_table_mmx;
 			done = 1;
+			}
 		}
 		#endif
 		#ifdef OPT_I586
