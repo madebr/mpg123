@@ -451,6 +451,8 @@ elif test "x$HAVE_SDL" = "xyes"; then
 	audio_system="sdl"
 elif test "x$HAVE_ESOUND" = "xyes"; then
 	audio_system="esd"
+else
+	audio_system="dummy"
 fi
 
 
