@@ -221,13 +221,17 @@ int control_generic (struct frame *fr)
 						if (mode == MODE_PLAYING) {
 							mode = MODE_PAUSED;
 							audio_flush(param.outmode, &ai);
+#ifndef NOXFERMEM
 							if (param.usebuffer)
 								kill(buffer_pid, SIGSTOP);
+#endif
 							generic_sendmsg("P 1");
 						} else {
 							mode = MODE_PLAYING;
+#ifndef NOXFERMEM
 							if (param.usebuffer)
 								kill(buffer_pid, SIGCONT);
+#endif
 							generic_sendmsg("P 2");
 						}
 					}
@@ -475,15 +479,19 @@ int control_generic (struct frame *fr)
 	} /* end main (alive) loop */
 
 	/* quit gracefully */
+#ifndef NOXFERMEM
 	if (param.usebuffer) {
 		kill(buffer_pid, SIGINT);
 		xfermem_done_writer(buffermem);
 		waitpid(buffer_pid, NULL, 0);
 		xfermem_done(buffermem);
 	} else {
+#endif
 		audio_flush(param.outmode, &ai);
 		free(pcm_sample);
+#ifndef NOXFERMEM
 	}
+#endif
 	if (param.outmode == DECODE_AUDIO)
 		audio_close(&ai);
 	if (param.outmode == DECODE_WAV)
