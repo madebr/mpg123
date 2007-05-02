@@ -10,17 +10,17 @@
 
 .bss
 	.align 32
-	#ifdef __CYGWIN__
+#if defined(__CYGWIN__) || defined(__MINGW32__)
 	.comm	ASM_NAME(decwin_mmx),2176
-	#else
+#else
 	.comm	ASM_NAME(decwin_mmx),2176,32
-	#endif
+#endif
 	.align 32
-	#ifdef __CYGWIN__
+#if defined(__CYGWIN__) || defined(__MINGW32__)
 	.comm	ASM_NAME(decwins),2176
-	#else
+#else
 	.comm	ASM_NAME(decwins),2176,32
-	#endif
+#endif
 
 .data
 	.align 32

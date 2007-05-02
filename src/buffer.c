@@ -10,6 +10,8 @@
 	- dammed night coders;-)
 */
 
+#ifndef NOXFERMEM
+
 #include <stdlib.h>
 #include <errno.h>
 
@@ -35,41 +37,42 @@ static void catch_usr1 (void)
 
 extern void buffer_sig(int signal, int block);
 
-void buffer_ignore_lowmem(void)
+void real_buffer_ignore_lowmem(void)
 {
-#ifndef NOXFERMEM
 	if (!buffermem)
 		return;
 	if(buffermem->wakeme[XF_READER])
 		xfermem_putcmd(buffermem->fd[XF_WRITER], XF_CMD_WAKEUP);
-#endif
 }
 
-void buffer_end(void)
+void real_buffer_end(void)
 {
-#ifndef NOXFERMEM
 	if (!buffermem)
 		return;
 	xfermem_putcmd(buffermem->fd[XF_WRITER], XF_CMD_TERMINATE);
-#endif
 }
 
-void buffer_resync(void)
+void real_buffer_resync(void)
 {
 	buffer_sig(SIGINT, TRUE);
 }
 
-void buffer_reset(void)
+void real_plain_buffer_resync(void)
+{
+	buffer_sig(SIGINT, FALSE);
+}
+
+void real_buffer_reset(void)
 {
 	buffer_sig(SIGUSR1, TRUE);
 }
 
-void buffer_start(void)
+void real_buffer_start(void)
 {
 	buffer_sig(SIGCONT, FALSE);
 }
 
-void buffer_stop(void)
+void real_buffer_stop(void)
 {
 	buffer_sig(SIGSTOP, FALSE);
 }
@@ -78,8 +81,6 @@ extern int buffer_pid;
 
 void buffer_sig(int signal, int block)
 {
-	
-#ifndef NOXFERMEM
 	if (!buffermem)
 		return;
 
@@ -90,12 +91,8 @@ void buffer_sig(int signal, int block)
 
 	if(xfermem_block(XF_WRITER, buffermem) != XF_CMD_WAKEUP) 
 		perror("Could not resync/reset buffers");
-#endif
-	
 	return;
 }
-
-#ifndef NOXFERMEM
 
 void buffer_loop(struct audio_info_struct *ai, sigset_t *oldsigset)
 {

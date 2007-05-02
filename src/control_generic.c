@@ -12,16 +12,21 @@
 #include <stdarg.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#ifndef WIN32
 #include <sys/wait.h>
+#include <sys/socket.h>
+#else
+#include <winsock.h>
+#endif
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
 
-#include <sys/socket.h>
 
 #include "config.h"
 #include "mpg123.h"
 #include "common.h"
+#include "buffer.h"
 #include "icy.h"
 #include "debug.h"
 #ifdef GAPLESS
@@ -102,7 +107,11 @@ int control_generic (struct frame *fr)
  	else
  		outstream = stdout;
  		
+#ifndef WIN32
  	setlinebuf(outstream);
+#else /* perhaps just use setvbuf as it's C89 */
+	setvbuf(outstream, (char*)NULL, _IOLBF, 0);
+#endif
 	/* the command behaviour is different, so is the ID */
 	/* now also with version for command availability */
 	fprintf(outstream, "@R MPG123 (ThOr) v2\n");
@@ -221,17 +230,11 @@ int control_generic (struct frame *fr)
 						if (mode == MODE_PLAYING) {
 							mode = MODE_PAUSED;
 							audio_flush(param.outmode, &ai);
-#ifndef NOXFERMEM
-							if (param.usebuffer)
-								kill(buffer_pid, SIGSTOP);
-#endif
+							buffer_stop();
 							generic_sendmsg("P 1");
 						} else {
 							mode = MODE_PLAYING;
-#ifndef NOXFERMEM
-							if (param.usebuffer)
-								kill(buffer_pid, SIGCONT);
-#endif
+							buffer_start();
 							generic_sendmsg("P 2");
 						}
 					}

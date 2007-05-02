@@ -158,12 +158,29 @@ AC_CHECK_LIB( [audio], [AuOpenServer],
 )
 
 # Check for PortAudio
-AC_CHECK_LIB( [portaudio], [Pa_Initialize],
-	[ AC_CHECK_HEADER( [portaudio.h],
-		[ HAVE_PORTAUDIO="yes" ],
-		[ AC_MSG_WARN([Found PortAudio library but NOT header files on your system]) ] )
-	]
-)
+case $target in
+	*-*-mingw32)
+		# We tested portaudio with MME
+		if test "x$HAVE_PORTAUDIO" != "xyes"; then
+			AC_CHECK_LIB( [portaudio], [Pa_Initialize],
+				[ AC_CHECK_HEADER( [portaudio.h],
+					[ HAVE_PORTAUDIO_WINMM="yes" && HAVE_PORTAUDIO="yes" ],
+					[ AC_MSG_WARN([Found PortAudio library but NOT header files on your system]) ] )
+				],
+				[ HAVE_PORTAUDIO="no" ],
+				[ -lwinmm ]
+			)
+		fi
+	;;
+	*)
+		AC_CHECK_LIB( [portaudio], [Pa_Initialize],
+			[ AC_CHECK_HEADER( [portaudio.h],
+				[ HAVE_PORTAUDIO="yes" ],
+				[ AC_MSG_WARN([Found PortAudio library but NOT header files on your system]) ] )
+			]
+		)
+	;;
+esac
 
 # Check for ALSA
 AC_CHECK_LIB( [asound], [snd_pcm_open],
@@ -182,10 +199,10 @@ AC_CHECK_HEADERS([stdlib.h string.h unistd.h sched.h sys/ioctl.h stdint.h limits
 
 
 # OSS Header files
-AC_CHECK_HEADERS([sys/soundcard.h linux/soundcard.h machine/soundcard.h])
+AC_CHECK_HEADERS([sys/soundcard.h linux/soundcard.h machine/soundcard.h], HAVE_OSS=yes, HAVE_OSS=no)
 
 # Sun Audio headers
-AC_CHECK_HEADERS([sun/audioio.h sys/audioio.h asm/audioio.h sys/audio.h])
+AC_CHECK_HEADERS([sun/audioio.h sys/audioio.h asm/audioio.h sys/audio.h], HAVE_SUNAUDIO=yes, HAVE_SUNAUDIO=no)
 
 # Mac OS X
 AC_CHECK_HEADERS([AudioUnit/AudioUnit.h CoreServices/CoreServices.h AudioToolbox/AudioToolbox.h],
@@ -205,7 +222,8 @@ if test "$debugging" = "enabled"; then
 	CFLAGS="$CFLAGS -g"
 	# gcc specific...
 	if test "$GCC" = "yes"; then
-		CFLAGS="$CFLAGS -Wall -Werror -pedantic -fno-strict-aliasing"
+		# no -Werror until I fixed that SSE long-long stuff...
+		CFLAGS="$CFLAGS -Wall -pedantic -fno-strict-aliasing"
 	fi
 fi
 
@@ -268,10 +286,30 @@ case $target in
   *-pc-cygwin*)
     cpu_type="generic_fpu"
   ;;
+  *-*-mingw32)
+    LIBS="-lwsock32 $LIBS"
+    CPPFLAGS="-DNOXFERMEM $CPPFLAGS"
+    cpu_type="x86"
+  ;;
+	i386-*)
+		AC_MSG_WARN([Unknown target operating system])
+		cpu_type="i386"
+		CFLAGS="-DGENERIC $CFLAGS"
+	;;
+	i486-*)
+		AC_MSG_WARN([Unknown target operating system])
+		cpu_type="i486"
+		CFLAGS="-DGENERIC $CFLAGS"
+	;;
+	i586-*)
+		AC_MSG_WARN([Unknown target operating system])
+		cpu_type="i586"
+		CFLAGS="-DGENERIC $CFLAGS"
+	;;
   *)
   	AC_MSG_WARN([Unknown target operating system])
     cpu_type="generic_fpu"
-    CFLAGS="$CFLAGS -DGENERIC"
+    CFLAGS="-DGENERIC $CFLAGS"
   ;;
 esac
 
@@ -393,42 +431,33 @@ AC_DEFINE_UNQUOTED(INDEX_SIZE, $seektable, [size of the frame index seek table])
 
 dnl ############## Audio Sub-system Settings
 
-# Choose audio subsystem based on Operating System
-case $target in
-  *-*-linux*)
-    if test "x$HAVE_ALSA" = "xyes" ; then
-        audio_system="alsa"
-    else
-        audio_system="oss"
-    fi
-  ;;
-  *-*-freebsd*)
-    audio_system="oss"
-  ;;
-  *-*-kfreebsd*)
-    audio_system="oss"
-  ;;
-  *-apple-darwin*)
-    audio_system="macosx"
-  ;;
-  *-*-solaris*)
-    audio_system="sun"
-  ;;
-  # esd has been assumed to be the one for cygwin, but plain OSS does it
-  # can even make mpg123 run "natively" with a cygwin.dll
-  *-*-cygwin*)
-    audio_system="oss"
-  ;;
-  *)
-  	audio_system="dummy"
-  ;;
-esac
+# Choose audio subsystem based on what we have.
+
+if   test "x$HAVE_ALSA" = "xyes"; then
+	audio_system="alsa"
+elif test "x$HAVE_OSS" = "xyes"; then
+	audio_system="oss"
+elif test "x$HAVE_MACOSXAUDIO" = "xyes"; then
+	audio_system="macosx"
+elif test "x$HAVE_SUNAUDIO" = "xyes"; then
+	audio_system="sun"
+elif test "x$HAVE_JACK" = "xyes"; then
+	audio_system="jack"
+elif test "x$HAVE_PORTAUDIO" = "xyes"; then
+	audio_system="portaudio"
+elif test "x$HAVE_NAS" = "xyes"; then
+	audio_system="nas"
+elif test "x$HAVE_SDL" = "xyes"; then
+	audio_system="sdl"
+elif test "x$HAVE_ESOUND" = "xyes"; then
+	audio_system="esd"
+fi
+
 
 # Did user choose other audio type ?
 if test "x$with_audio" != "x"; then
 	audio_system=$with_audio
 fi
-
 
 
 AUDIO_OBJ="audio_$audio_system.\$(OBJEXT)"
@@ -455,7 +484,7 @@ case $audio_system in
   ;;
   esd)
   	if test "x$HAVE_ESOUND" != "xyes" ; then
-  		AC_MSG_ERROR( ESounD is not available for audio output subsystem. )
+  		AC_MSG_WARN( ESounD is not available for audio output subsystem. )
   	fi
     AUDIO_CFLAGS=$ESOUND_CFLAGS
     AUDIO_LIBS=$ESOUND_LIBS
@@ -508,10 +537,13 @@ case $audio_system in
   	fi
     AUDIO_CFLAGS=""
     AUDIO_LIBS="-lportaudio"
+		if test "x$HAVE_PORTAUDIO_WINMM" = "xyes"; then
+			AUDIO_LIBS="$AUDIO_LIBS -lwinmm"
+		fi
   ;;
   sdl)
   	if test "x$HAVE_SDL" != "xyes" ; then
-  		AC_MSG_ERROR( SDL is not available for audio output subsystem. )
+  		AC_MSG_WARN( SDL not found via pkgconfig. )
   	fi
     AUDIO_CFLAGS=$SDL_CFLAGS
     AUDIO_LIBS=$SDL_LIBS

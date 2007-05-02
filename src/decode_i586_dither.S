@@ -30,14 +30,14 @@
 #include "mangle.h"
 
 .bss
-	#ifdef __CYGWIN__
+#if defined(__CYGWIN__) || defined(__MINGW32__)
 	.comm	buffs,4352
 	.comm	ditherindex.1,4
-	#else
+#else
 	.comm	buffs,4352,4
 	.local	ditherindex.1
 	.comm	ditherindex.1,4,4
-	#endif
+#endif
 .data
 	.align 4
 bo:

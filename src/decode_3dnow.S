@@ -33,12 +33,12 @@
 
 #include "mangle.h"
 
-	#ifdef __CYGWIN__
+#if defined(__CYGWIN__) || defined(__MINGW32__)
 	.comm	buffs.40,4352
-	#else
+#else
 	.local	buffs.40
 	.comm	buffs.40,4352,32
-	#endif
+#endif
 .data
 	.align 4
 /*	.type	 bo.42,@object */

@@ -158,8 +158,7 @@ static long term_handle_input(struct frame *fr, int do_delay)
           break;
 	case NEXT_KEY:
 		if(!param.usebuffer) audio_queueflush(&ai);
-	  if (buffer_pid)
-		  kill(buffer_pid, SIGINT);
+		plain_buffer_resync();
 	  next_track();
 	  break;
 	case QUIT_KEY:
@@ -175,8 +174,7 @@ static long term_handle_input(struct frame *fr, int do_delay)
 	  }
 	  if(stopped) {
 		stopped=0;
-		if(param.usebuffer)
-			buffer_start();
+		buffer_start();
 	  }
 	  fprintf(stderr, "%s", (paused) ? PAUSED_STRING : EMPTY_STRING);
 	  break;
@@ -189,8 +187,7 @@ static long term_handle_input(struct frame *fr, int do_delay)
 		  paused=0;
 		  offset -= pause_cycle;
 	  }
-	  if(param.usebuffer) 
-		  (stopped) ? buffer_stop() : buffer_start();
+	  if(stopped) buffer_stop(); else buffer_start();
 	  fprintf(stderr, "%s", (stopped) ? STOPPED_STRING : EMPTY_STRING);
 	  break;
 	case FINE_REWIND_KEY:

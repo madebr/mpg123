@@ -5,8 +5,8 @@
 ## initially written by Nicholas J. Humfrey
 
 AM_CFLAGS = @AUDIO_CFLAGS@
-AM_LDFLAGS = @AUDIO_LIBS@
-mpg123_LDADD = @AUDIO_OBJ@ @CPU_TYPE_LIB@
+#AM_LDFLAGS = 
+mpg123_LDADD = @AUDIO_OBJ@ @CPU_TYPE_LIB@ @AUDIO_LIBS@
 mpg123_DEPENDENCIES = @AUDIO_OBJ@ @CPU_TYPE_LIB@
 
 EXTRA_DIST = Makefile.legacy config.h.legacy
@@ -200,3 +200,8 @@ libcpu_x86_a_SOURCES = \
 	tabinit_mmx.S \
 	equalizer_3dnow.S \
 	getcpuflags.S
+
+# explicit preprocessing since mingw32 does not honor the big .S
+.S.o:
+	$(CPP) $(CPPFLAGS) $< > $<.s
+	$(CCAS) -c -o $@ $<.s && rm $<.s

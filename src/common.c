@@ -27,6 +27,10 @@
 #include "common.h"
 #include "debug.h"
 
+#ifdef WIN32
+#include <winsock.h>
+#endif
+
 /* bitrates for [mpeg1/2][layer] */
 int tabsel_123[2][3][16] = {
    { {0,32,64,96,128,160,192,224,256,288,320,352,384,416,448,},

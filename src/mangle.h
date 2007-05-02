@@ -14,9 +14,11 @@
    (defined(__OpenBSD__) && !defined(__ELF__)) || defined(__APPLE__)
 #define MANGLE(a) "_" #a
 #define ASM_NAME(a) _##a
+#define ASM_VALUE(a) $_##a
 #else
 #define MANGLE(a) #a
 #define ASM_NAME(a) a
+#define ASM_VALUE(a) "$" #a
 #endif
 
 #endif /* !__MANGLE_H */
