@@ -75,7 +75,7 @@ EXTRA_mpg123_SOURCES = \
 	audio_esd.c \
 	audio_hp.c \
 	audio_jack.c \
-	audio_macosx.c \
+	audio_coreaudio.c \
 	audio_mint.c \
 	audio_nas.c \
 	audio_os2.c \

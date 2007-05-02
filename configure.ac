@@ -438,7 +438,7 @@ if   test "x$HAVE_ALSA" = "xyes"; then
 elif test "x$HAVE_OSS" = "xyes"; then
 	audio_system="oss"
 elif test "x$HAVE_MACOSXAUDIO" = "xyes"; then
-	audio_system="macosx"
+	audio_system="coreaudio"
 elif test "x$HAVE_SUNAUDIO" = "xyes"; then
 	audio_system="sun"
 elif test "x$HAVE_JACK" = "xyes"; then
@@ -467,7 +467,7 @@ AUDIO_CFLAGS=""
 AUDIO_LIBS=""
 
 case $audio_system in
-  aix)	
+  aix)
     # Currently unsupported in the new build system
   ;;
   alib)
@@ -503,7 +503,7 @@ case $audio_system in
     AUDIO_CFLAGS=$JACK_CFLAGS
     AUDIO_LIBS=$JACK_LIBS
   ;;
-  macosx)
+  coreaudio|macosx)
   	if test "x$HAVE_MACOSXAUDIO" != "xyes" ; then
   		AC_MSG_ERROR( Can't find Mac OS X's audio header files )
   	fi
