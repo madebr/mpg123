@@ -115,7 +115,7 @@ void audio_capabilities(struct audio_info_struct *ai)
 	}
 
 	if(param.verbose > 1) {
-		fprintf(stderr,"\nAudio capabilities:\n        |");
+		fprintf(stderr,"\nAudio device: %s\nAudio capabilities:\n        |", ai->device != NULL ? ai->device : "<none>");
 		for(j=0;j<NUM_ENCODINGS;j++) {
 			fprintf(stderr," %5s |",audio_val2name[j].sname);
 		}
