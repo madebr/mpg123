@@ -39,7 +39,12 @@ struct audio_info_struct pre_ai;
 
 extern struct audio_info_struct ai;
 extern int buffer_pid;
-
+#ifdef FIFO
+#include <sys/stat.h>
+int control_file = STDIN_FILENO;
+#else
+#define control_file STDIN_FILENO
+#endif
 FILE *outstream;
 
 void generic_sendmsg (const char *fmt, ...)
@@ -112,16 +117,35 @@ int control_generic (struct frame *fr)
 #else /* perhaps just use setvbuf as it's C89 */
 	setvbuf(outstream, (char*)NULL, _IOLBF, 0);
 #endif
+#ifdef FIFO
+	if(param.fifo)
+	{
+		if(param.fifo[0] == 0)
+		{
+			error("You wanted an empty FIFO name??");
+			return 1;
+		}
+		unlink(param.fifo);
+		if(mknod(param.fifo, S_IFIFO|0666, 0) == -1)
+		{
+			error2("Failed to create FIFO at %s (%s)", param.fifo, strerror(errno));
+			return 1;
+		}
+		debug("going to open named pipe ... blocking until someone gives command");
+		control_file = open(param.fifo,O_RDONLY);
+		debug("opened");
+	}
+#endif
 	/* the command behaviour is different, so is the ID */
 	/* now also with version for command availability */
 	fprintf(outstream, "@R MPG123 (ThOr) v2\n");
 
-	while (alive) {
+	while (alive)
+	{
 		tv.tv_sec = 0;
 		tv.tv_usec = 0;
 		FD_ZERO(&fds);
-		FD_SET(STDIN_FILENO, &fds);
-
+		FD_SET(control_file, &fds);
 		/* play frame if no command needs to be processed */
 		if (mode == MODE_PLAYING) {
 			n = select(32, &fds, NULL, NULL, &tv);
@@ -174,53 +198,52 @@ int control_generic (struct frame *fr)
 			return 1;
 		}
 
-		/* process command */
-		if (n > 0) {
+		/* read & process commands */
+		if (n > 0)
+		{
 			short int len = 1; /* length of buffer */
-			short int cnum = 0; /* number of commands */ 
-			short int cind = 0; /* index for commands */
 			char *cmd, *comstr, *arg; /* variables for parsing, */
 			char buf[REMOTE_BUFFER_SIZE];
-			char **coms; /* list of commands */
 			short int counter;
-			coms = malloc(sizeof(*coms)); /* malloc magic */
-			coms[0] = &buf[0]; /* first command string */
-			
+			char *next_comstr = buf; /* have it initialized for first command */
+
 			/* read as much as possible, maybe multiple commands */
 			/* When there is nothing to read (EOF) or even an error, it is the end */
-			if((len = read(STDIN_FILENO, buf, REMOTE_BUFFER_SIZE)) < 1)	break;
-			
-			/* one command on a line - separation by \n -> C strings in a row */
-			for(counter = 0; counter < len; ++counter) {
-				/* line end is command end */
-				if( (buf[counter] == '\n') || (buf[counter] == '\r') ) { 
-					buf[counter] = 0; /* now it's a properly ending C string */
-					/* next "real" char is first of next command */
-					if( (counter < (len - 1)) && ((buf[counter+1] == '\n') || (buf[counter+1] == '\r')) )
-						++counter; /* skip the additional line ender */
-					if(counter < (len - 1)) coms[++cind] = &buf[counter+1];
+			if((len = read(control_file, buf, REMOTE_BUFFER_SIZE)) < 1)
+			{
+#ifdef FIFO
+				if(len == 0 && param.fifo)
+				{
+					debug("fifo ended... reopening");
+					close(control_file);
+					control_file = open(param.fifo,O_RDONLY|O_NONBLOCK);
+					if(control_file < 0){ error1("open of fifo failed... %s", strerror(errno)); break; }
+					continue;
 				}
+#endif
+				if(len < 0) error1("command read error: %s", strerror(errno));
+				break;
 			}
-			cnum = cind+1;
 
-			/*
-			   when last command had no \n... should I discard it?
-			   Ideally, I should remember the part and wait for next
-				 read() to get the rest up to a \n. But that can go
-				 to infinity. Too long commands too quickly are just
-				 bad. Cannot/Won't change that. So, discard the unfinished
-				 command and have fingers crossed that the rest of this
-				 unfinished one qualifies as "unknown". 
-			*/
-			if(buf[len-1] != 0){
-				char lasti = buf[len-1];
-				buf[len-1] = 0;
-				generic_sendmsg("E Unfinished command: %s%c", coms[cind], lasti);
-				--cnum;
-			}
-			
-			for(cind = 0; cind < cnum; ++cind) {
-				comstr = coms[cind];
+			debug1("read %i bytes of commands", len);
+			/* one command on a line - separation by \n -> C strings in a row */
+			for(counter = 0; counter < len; ++counter)
+			{
+				/* line end is command end */
+				if( (buf[counter] == '\n') || (buf[counter] == '\r') )
+				{
+					debug1("line end at counter=%i", counter);
+					buf[counter] = 0; /* now it's a properly ending C string */
+					comstr = next_comstr;
+
+					/* skip the additional line ender of \r\n or \n\r */
+					if( (counter < (len - 1)) && ((buf[counter+1] == '\n') || (buf[counter+1] == '\r')) ) buf[++counter] = 0;
+
+					/* next "real" char is first of next command */
+					next_comstr = buf + counter+1;
+
+					/* directly process the command now */
+					debug1("interpreting command: %s", comstr);
 				if(strlen(comstr) == 0) continue;
 
 				/* PAUSE */
@@ -473,12 +496,25 @@ int control_generic (struct frame *fr)
 				} /* end commands with arguments */
 				else generic_sendmsg("E Unknown command or no arguments: %s", comstr); /* unknown command */
 
-			} /*end command processing loop */
+				} /* end of single command processing */
+			} /* end of scanning the command buffer */
 
-			free(coms); /* release memory of command string (pointer) array */
-				
+			/*
+			   when last command had no \n... should I discard it?
+			   Ideally, I should remember the part and wait for next
+				 read() to get the rest up to a \n. But that can go
+				 to infinity. Too long commands too quickly are just
+				 bad. Cannot/Won't change that. So, discard the unfinished
+				 command and have fingers crossed that the rest of this
+				 unfinished one qualifies as "unknown". 
+			*/
+			if(buf[len-1] != 0)
+			{
+				char lasti = buf[len-1];
+				buf[len-1] = 0;
+				generic_sendmsg("E Unfinished command: %s%c", comstr, lasti);
+			}
 		} /* end command reading & processing */
-
 	} /* end main (alive) loop */
 
 	/* quit gracefully */
@@ -499,6 +535,11 @@ int control_generic (struct frame *fr)
 		audio_close(&ai);
 	if (param.outmode == DECODE_WAV)
 		wav_close();
+
+#ifdef FIFO
+	close(control_file); /* be it FIFO or STDIN */
+	if(param.fifo) unlink(param.fifo);
+#endif
 	return 0;
 }
 

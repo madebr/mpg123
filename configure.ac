@@ -75,6 +75,22 @@ AC_ARG_ENABLE(gapless,
               ]
 )
 
+AC_ARG_ENABLE(fifo,
+              [  --enable-fifo=[no/yes] FIFO support for control interface (auto-enabled on linux) ],
+              [
+                if test "x$enableval" = xyes
+                then
+                  fifo="enabled"
+                  AC_DEFINE(FIFO, 1, [ Define if FIFO support is enabled. ])
+                else
+                  fifo="disabled"
+                fi
+              ],
+              [
+                fifo="auto"
+              ]
+)
+
 AC_ARG_WITH([cpu], [
   --with-cpu=generic[_fpu]      Use generic processor code with floating point arithmetic
   --with-cpu=generic_nofpu      Use generic processor code with fixed point arithmetic (p.ex. ARM, experimental)
@@ -190,6 +206,14 @@ AC_CHECK_LIB( [asound], [snd_pcm_open],
 	]
 )
 
+if test "x$fifo" = "xauto"; then
+case $target in
+	*-linux*)
+		AC_DEFINE(FIFO, 1, [ Define if FIFO support is enabled. ])
+		fifo=enabled
+	;;
+esac
+fi
 
 dnl ############## Header Checks
 
@@ -226,7 +250,6 @@ if test "$debugging" = "enabled"; then
 		CFLAGS="$CFLAGS -Wall -pedantic -fno-strict-aliasing"
 	fi
 fi
-
 
 case $target in
   arm-*-linux*)
@@ -595,6 +618,7 @@ echo "
   Gapless Support ......... $gapless
   Debugging ............... $debugging
   Seek table size ......... $seektable
+  FIFO support ............ $fifo
 "
   
 if test "$debugging" = "enabled"; then

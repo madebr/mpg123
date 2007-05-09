@@ -98,6 +98,9 @@ struct parameter param = {
 	,NULL /* choose optimization */
 	,0
 	#endif
+#ifdef FIFO
+	,NULL
+#endif
 };
 
 char *prgName = NULL;
@@ -404,6 +407,9 @@ topt opts[] = {
 	{0, "rva-album",         GLO_INT,  0, &param.rva, 2 },
 	{0, "rva-audiophile",         GLO_INT,  0, &param.rva, 2 },
 	{0, "long-tag",         GLO_INT,  0, &param.long_id3, 1 },
+#ifdef FIFO
+	{0, "fifo", GLO_ARG | GLO_CHAR, 0, &param.fifo,  0},
+#endif
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -1210,6 +1216,9 @@ static void long_usage(int err)
 	fprintf(o,"        --long-tag         spacy id3 display with every item on a separate line\n");
 	fprintf(o," -R     --remote           generic remote interface\n");
 	fprintf(o,"        --remote-err       use stderr for generic remote interface\n");
+#ifdef FIFO
+	fprintf(o,"        --fifo <path>      open a FIFO at <path> for commands instead of STDIN\n");
+#endif
 	#ifdef HAVE_SETPRIORITY
 	fprintf(o,"        --aggressive       tries to get higher priority (nice)\n");
 	#endif

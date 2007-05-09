@@ -225,6 +225,9 @@ struct parameter {
   char* cpu; /* chosen optimization, can be NULL/""/"auto"*/
   int list_cpu;
   #endif
+#ifdef FIFO
+	char* fifo;
+#endif
 };
 
 /* start to use off_t to properly do LFS in future ... used to be long */
