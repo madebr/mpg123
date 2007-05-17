@@ -71,7 +71,6 @@ static int initialize_device(struct audio_info_struct *ai)
 	snd_pcm_uframes_t buffer_size;
 	snd_pcm_uframes_t period_size;
 	snd_pcm_sw_params_t *sw;
-	snd_pcm_uframes_t boundary;
 
 	snd_pcm_hw_params_alloca(&hw);
 	if (snd_pcm_hw_params_any(ai->handle, hw) < 0) {
@@ -136,22 +135,6 @@ static int initialize_device(struct audio_info_struct *ai)
 		fprintf(stderr, "initialize_device(): cannot set start threshold\n");
 		return -1;
 	}
-	if (snd_pcm_sw_params_get_boundary(sw, &boundary) < 0) {
-		fprintf(stderr, "initialize_device(): cannot get boundary\n");
-		return -1;
-	}
-	#ifdef DEBUG
-	{
-		snd_pcm_uframes_t hw_buffer_size;
-		snd_pcm_hw_params_get_buffer_size(hw, &hw_buffer_size);
-		debug2("Alsa buffer_size %lu vs. boundary %lu", (unsigned long) hw_buffer_size, (unsigned long) boundary);
-	}
-	#endif
-	/* never stop on underruns */
-	if (snd_pcm_sw_params_set_stop_threshold(ai->handle, sw, boundary) < 0) {
-		fprintf(stderr, "initialize_device(): cannot set stop threshold\n");
-		return -1;
-	}
 	/* wake up on every interrupt */
 	if (snd_pcm_sw_params_set_avail_min(ai->handle, sw, 1) < 0) {
 		fprintf(stderr, "initialize_device(): cannot set min avail\n");
@@ -160,11 +143,6 @@ static int initialize_device(struct audio_info_struct *ai)
 	/* always write as many frames as possible */
 	if (snd_pcm_sw_params_set_xfer_align(ai->handle, sw, 1) < 0) {
 		fprintf(stderr, "initialize_device(): cannot set transfer alignment\n");
-		return -1;
-	}
-	/* play silence when there is an underrun */
-	if (snd_pcm_sw_params_set_silence_size(ai->handle, sw, boundary) < 0) {
-		fprintf(stderr, "initialize_device(): cannot set silence size\n");
 		return -1;
 	}
 	if (snd_pcm_sw_params(ai->handle, sw) < 0) {
@@ -207,14 +185,14 @@ int audio_play_samples(struct audio_info_struct *ai, unsigned char *buf, int byt
 	snd_pcm_uframes_t frames;
 	snd_pcm_sframes_t written;
 
-#if SND_LIB_VERSION >= 0x000901
-	snd_pcm_sframes_t delay;
-	if (snd_pcm_delay(ai->handle, &delay) >= 0 && delay < 0)
-		/* underrun - move the application pointer forward to catch up */
-		snd_pcm_forward(ai->handle, -delay);
-#endif
 	frames = snd_pcm_bytes_to_frames(ai->handle, bytes);
 	written = snd_pcm_writei(ai->handle, buf, frames);
+	if (written == -EINTR) /* interrupted system call */
+		written = 0;
+	else if (written == -EPIPE) { /* underrun */
+		if (snd_pcm_prepare(ai->handle) >= 0)
+			written = snd_pcm_writei(ai->handle, buf, frames);
+	}
 	if (written >= 0)
 		return snd_pcm_frames_to_bytes(ai->handle, written);
 	else
