@@ -222,8 +222,14 @@ dnl Is it too paranoid to specifically check for stdint.h and limits.h?
 AC_CHECK_HEADERS([stdlib.h string.h unistd.h sched.h sys/ioctl.h stdint.h limits.h])
 
 
-# OSS Header files
-AC_CHECK_HEADERS([sys/soundcard.h linux/soundcard.h machine/soundcard.h], HAVE_OSS=yes, HAVE_OSS=no)
+# OSS Header files: One of them is enough.
+AC_CHECK_HEADERS(sys/soundcard.h)
+AC_CHECK_HEADERS(linux/soundcard.h)
+AC_CHECK_HEADERS(machine/soundcard.h)
+AM_CONDITIONAL(HAVE_OSS,
+	test "${ac_cv_header_sys_soundcard_h}" = "yes" ||
+	test "${ac_cv_header_linux_soundcard_h}" = "yes" ||
+	test "${ac_cv_header_machine_soundcard_h}" = "yes"  )
 
 # Sun Audio headers
 AC_CHECK_HEADERS([sun/audioio.h sys/audioio.h asm/audioio.h sys/audio.h], HAVE_SUNAUDIO=yes, HAVE_SUNAUDIO=no)
@@ -608,13 +614,23 @@ AC_OUTPUT([Makefile src/Makefile])
 
 dnl ############## Display Message
 
-echo "
+echo -n "
   $PACKAGE $VERSION
 
   Install path ............ $prefix
   CPU Optimisation......... $cpu_type
   Compiler Optimization ... $with_optimization
-  Audio output ............ $audio_system
+  Audio output ............ $audio_system (detected:"
+test "x$HAVE_ALSA"        = "xyes" && echo -n " alsa"
+test "x$HAVE_OSS"         = "xyes" && echo -n " oss"
+test "x$HAVE_MACOSXAUDIO" = "xyes" && echo -n " coreaudio"
+test "x$HAVE_SUNAUDIO"    = "xyes" && echo -n " sun"
+test "x$HAVE_JACK"        = "xyes" && echo -n " jack"
+test "x$HAVE_PORTAUDIO"   = "xyes" && echo -n " portaudio"
+test "x$HAVE_NAS"         = "xyes" && echo -n " nas"
+test "x$HAVE_SDL"         = "xyes" && echo -n " sdl"
+test "x$HAVE_ESOUND"      = "xyes" && echo -n " esd"
+echo ")
   Gapless Support ......... $gapless
   Debugging ............... $debugging
   Seek table size ......... $seektable
