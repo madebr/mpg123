@@ -226,10 +226,13 @@ AC_CHECK_HEADERS([stdlib.h string.h unistd.h sched.h sys/ioctl.h stdint.h limits
 AC_CHECK_HEADERS(sys/soundcard.h)
 AC_CHECK_HEADERS(linux/soundcard.h)
 AC_CHECK_HEADERS(machine/soundcard.h)
-AM_CONDITIONAL(HAVE_OSS,
-	test "${ac_cv_header_sys_soundcard_h}" = "yes" ||
-	test "${ac_cv_header_linux_soundcard_h}" = "yes" ||
-	test "${ac_cv_header_machine_soundcard_h}" = "yes"  )
+if test "x${ac_cv_header_sys_soundcard_h}" = "xyes" ||
+        "x${ac_cv_header_linux_soundcard_h}" = "xyes" ||
+        "x${ac_cv_header_machine_soundcard_h}" = "xyes"; then
+	HAVE_OSS=yes
+else
+	HAVE_OSS=no
+fi
 
 # Sun Audio headers
 AC_CHECK_HEADERS([sun/audioio.h sys/audioio.h asm/audioio.h sys/audio.h], HAVE_SUNAUDIO=yes, HAVE_SUNAUDIO=no)
@@ -552,9 +555,7 @@ case $audio_system in
     # Currently unsupported in the new build system
   ;;
   oss)
-    if test "x${ac_cv_header_sys_soundcard_h}" = "xyes" \
-         -o "x${ac_cv_header_linux_soundcard_h}" = "xyes" \
-         -o "x${ac_cv_header_machine_soundcard_h}" = "xyes";
+    if test "x$HAVE_OSS" = "xyes"
     then
 		AUDIO_CFLAGS=""
 		AUDIO_LIBS=""
