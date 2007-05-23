@@ -227,8 +227,8 @@ AC_CHECK_HEADERS(sys/soundcard.h)
 AC_CHECK_HEADERS(linux/soundcard.h)
 AC_CHECK_HEADERS(machine/soundcard.h)
 if test "x${ac_cv_header_sys_soundcard_h}" = "xyes" ||
-        "x${ac_cv_header_linux_soundcard_h}" = "xyes" ||
-        "x${ac_cv_header_machine_soundcard_h}" = "xyes"; then
+   test "x${ac_cv_header_linux_soundcard_h}" = "xyes" ||
+   test "x${ac_cv_header_machine_soundcard_h}" = "xyes"; then
 	HAVE_OSS=yes
 else
 	HAVE_OSS=no
