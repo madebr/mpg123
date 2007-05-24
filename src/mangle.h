@@ -21,5 +21,11 @@
 #define ASM_VALUE(a) "$" #a
 #endif
 
+#if defined(__CYGWIN__) || defined(__MINGW32__)
+#define COMM(a,b,c) .comm a,b
+#else
+#define COMM(a,b,c) .comm a,b,c
+#endif
+
 #endif /* !__MANGLE_H */
 

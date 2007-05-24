@@ -33,11 +33,7 @@
 #include "mangle.h"
 
 .bss
-#if defined(__CYGWIN__) || defined(__MINGW32__)
-	.comm	buffs,4352
-#else
-	.comm	buffs,4352,4
-#endif
+	COMM(buffs,4352,4)
 .data
 	.align 4
 bo:

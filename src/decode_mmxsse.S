@@ -1,36 +1,12 @@
-/*
-	decode_mmxsse: MMX/SSE optimized synth
-
-	copyright 2006-2007 by Zuxy Meng/the mpg123 project - free software under the terms of the LGPL 2.1
-	see COPYING and AUTHORS files in distribution or http://mpg123.de
-	initially written by the mysterious higway for MMX (apparently)
-	then developed into SSE opt by Zuxy Meng, also building on Romain Dolbeau's AltiVec
-	Both have agreed to distribution under LGPL 2.1 .
-
-	This is a rehash of the mplayer inline asm back to plain stand-alone asm.
-	This is what all other asm opts are and hopefully enables strict C89 mode again (no long long).
-
-	Original comment from MPlayer source follows:
-*/
-
-/*
- * this code comes under GPL
- * This code was taken from http://www.mpg123.org
- * See ChangeLog of mpg123-0.59s-pre.1 for detail
- * Applied to mplayer by Nick Kurshev <nickols_k@mail.ru>
- *
- * Local ChangeLog:
- * - Partial loops unrolling and removing MOVW insn from loops
-*/
+/* gcc -S -DHAVE_CONFIG_H -I.  -march=pentium -O3 -Wall -pedantic -fno-strict-aliasing -DREAL_IS_FLOAT -c -o decode_mmxsse.{S,c} */
 
 #include "mangle.h"
 
-	.data
-/* aligned costab ... we should just hardcode it for normal MMX, too? */
 .globl ASM_NAME(costab_mmxsse)
+	.data
 	.align 16
-	.type	ASM_NAME(costab_mmxsse), @object
-	.size	ASM_NAME(costab_mmxsse), 124
+	/* .type	ASM_NAME(costab_mmxsse), @object
+	   .size	ASM_NAME(costab_mmxsse), 124 */
 ASM_NAME(costab_mmxsse):
 	.long	1056974725
 	.long	1057056395
@@ -63,37 +39,31 @@ ASM_NAME(costab_mmxsse):
 	.long	1057655764
 	.long	1067924853
 	.long	1060439283
-/* only locally used..., thus no mangling */
-/* aligned constant for where we cannot use a real constant */
 	.align 8
-	.type	one_null, @object
-	.size	one_null, 8
+	/* .type	one_null, @object
+	   .size	one_null, 8 */
 one_null:
 	.long	-65536
 	.long	-65536
-/* again... */
 	.align 8
-	.type	null_one, @object
-	.size	null_one, 8
+	/* .type	null_one, @object
+	.size	null_one, 8 */
 null_one:
 	.long	65535
 	.long	65535
-/* That's the static int temp */
-	.local	temp
-	.comm	temp,4,4
-
+	/* .local	temp */
+	COMM(temp,4,4)
 
 	.text
 	.p2align 4,,15
 .globl ASM_NAME(synth_1to1_sse_s)
-	.type	ASM_NAME(synth_1to1_sse_s), @function
+	/* .type	ASM_NAME(synth_1to1_sse_s), @function */
 ASM_NAME(synth_1to1_sse_s):
 	pushl	%ebp
 	movl	%esp, %ebp
-	subl	$12, %esp
-	movl	%ebx, (%esp)
-	movl	%esi, 4(%esp)
-	movl	%edi, 8(%esp)
+	pushl	%edi
+	pushl	%esi
+	pushl	%ebx
 #APP
 	movl 12(%ebp),%ecx
 	movl 16(%ebp),%edi
@@ -130,7 +100,7 @@ ASM_NAME(synth_1to1_sse_s):
 	leal 1(%ebx), %ecx
 	subl temp,%ebx
 	pushl %ecx
-	leal decwins(%ebx,%ebx,1), %edx
+	leal ASM_NAME(decwins)(%ebx,%ebx,1), %edx
 	shrl $1, %ecx
 	.balign 16
 	.L03:
@@ -276,11 +246,9 @@ ASM_NAME(synth_1to1_sse_s):
 	emms
 	
 #NO_APP
-	movl	(%esp), %ebx
-	movl	4(%esp), %esi
-	movl	8(%esp), %edi
-	movl	%ebp, %esp
+	popl	%ebx
+	popl	%esi
+	popl	%edi
 	popl	%ebp
 	ret
-/* Do I need that?? */
-/*	.size	synth_1to1_sse_s, .-synth_1to1_sse_s */
+	/* .size	ASM_NAME(synth_1to1_sse_s), .-ASM_NAME(synth_1to1_sse_s) */
