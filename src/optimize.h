@@ -136,7 +136,7 @@ void dct36(real *,real *,real *,real *,real *);
 /* first crude hack into our source */
 #ifdef OPT_SSE
 	#define OPT_MMXORSSE
-	#define MPLAYER
+	#define OPT_MPLAYER
 	#define OPT_X86
 	real init_layer3_gainpow2_mmx(int i);
 	real* init_layer2_table_mmx(real *table, double m);
@@ -289,7 +289,7 @@ void list_cpu_opt();
 		func_dct36 dct36;
 		#endif
 		func_dct64 dct64;
-		#ifdef MPLAYER
+		#ifdef OPT_MPLAYER
 		func_dct64 mpl_dct64;
 		#endif
 	} struct_opts;
@@ -319,7 +319,7 @@ void list_cpu_opt();
 	#define opt_dct36 (cpu_opts.dct36)
 	#endif
 	#define opt_dct64 (cpu_opts.dct64)
-	#ifdef MPLAYER
+	#ifdef OPT_MPLAYER
 	#define opt_mpl_dct64 (cpu_opts.mpl_dct64)
 	#endif
 #endif

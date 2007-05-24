@@ -39,7 +39,7 @@
 #include "id3.h"
 #include "icy.h"
 
-#ifdef MPLAYER
+#ifdef OPT_MPLAYER
 /* disappear! */
 func_dct64 mpl_dct64;
 #endif
@@ -739,7 +739,7 @@ int main(int argc, char *argv[])
 	}
 	#endif
 	#endif
-	#ifdef MPLAYER
+	#ifdef OPT_MPLAYER
 	mpl_dct64 = opt_mpl_dct64;
 	#endif
 

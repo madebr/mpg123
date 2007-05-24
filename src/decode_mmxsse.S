@@ -1,5 +1,5 @@
 /*
-	decode_mmxsse: MMX/SSE optimized synth
+	decode_mmxsse: Synth for SSE and extended 3DNow (yeah, the name is a relic)
 
 	copyright 2006-2007 by Zuxy Meng/the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
