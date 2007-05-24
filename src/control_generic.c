@@ -202,7 +202,8 @@ int control_generic (struct frame *fr)
 		if (n > 0)
 		{
 			short int len = 1; /* length of buffer */
-			char *cmd, *comstr, *arg; /* variables for parsing, */
+			char *cmd, *arg; /* variables for parsing, */
+			char *comstr = NULL; /* gcc thinks that this could be used uninitialited... */ 
 			char buf[REMOTE_BUFFER_SIZE];
 			short int counter;
 			char *next_comstr = buf; /* have it initialized for first command */
