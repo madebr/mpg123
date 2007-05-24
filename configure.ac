@@ -124,6 +124,7 @@ AC_ARG_WITH([audio], [
   --with-audio=sdl        Use SDL audio output sub-system (Simple DirectMedia Layer)
   --with-audio=sgi        Use SGI audio output sub-system (IRIX)
   --with-audio=sun        Use Sun audio output sub-system (/dev/audio)
+  --with-audio=win32      Use Windows audio output (WinMM)
 ])
 
 AC_ARG_WITH([optimization], [
@@ -197,6 +198,9 @@ case $target in
 		)
 	;;
 esac
+
+# Check for plain win32 audio (WinMM)
+AC_CHECK_LIB( [winmm], [main] )
 
 # Check for ALSA
 AC_CHECK_LIB( [asound], [snd_pcm_open],
@@ -473,6 +477,8 @@ elif test "x$HAVE_MACOSXAUDIO" = "xyes"; then
 	audio_system="coreaudio"
 elif test "x$HAVE_SUNAUDIO" = "xyes"; then
 	audio_system="sun"
+elif test "x$HAVE_WINMM" = "xyes"; then
+	audio_system="win32"
 elif test "x$HAVE_JACK" = "xyes"; then
 	audio_system="jack"
 elif test "x$HAVE_PORTAUDIO" = "xyes"; then
@@ -574,11 +580,11 @@ case $audio_system in
 		fi
   ;;
   sdl)
-  	if test "x$HAVE_SDL" != "xyes" ; then
-  		AC_MSG_WARN( SDL not found via pkgconfig. )
-  	fi
-    AUDIO_CFLAGS=$SDL_CFLAGS
-    AUDIO_LIBS=$SDL_LIBS
+		if test "x$HAVE_SDL" != "xyes" ; then
+			AC_MSG_WARN( SDL not found via pkgconfig. Make sure you add some CPP/CFLAGS and LDFLAGS. )
+		fi
+		AUDIO_CFLAGS=$SDL_CFLAGS
+		AUDIO_LIBS=$SDL_LIBS
   ;;
   sgi)
   # experimenting
@@ -596,6 +602,10 @@ case $audio_system in
 		AC_MSG_ERROR([Can't find Sun Audio header files])
 	fi
   ;;
+	win32)
+		AUDIO_LIBS=-lwinmm
+		AUDIO_CFLAGS=
+	;;
   *)
   	AC_MSG_ERROR([Unknown Audio sub-system '$audio_system'.])
   ;;

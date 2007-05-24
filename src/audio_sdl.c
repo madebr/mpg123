@@ -110,9 +110,12 @@ int audio_play_samples(struct audio_info_struct *ai, unsigned char *buf, int len
 {
 
 	/* Sleep for half the length of the FIFO */
-	while (sfifo_space( &fifo ) < len ) {
+	while (sfifo_space( &fifo ) < len )
+#ifdef WIN32
+		Sleep( (FIFO_DURATION/2) * 1000);
+#else
 		usleep( (FIFO_DURATION/2) * 1000000 );
-	}
+#endif
 	
 	/* Bung decoded audio into the FIFO 
 		 SDL Audio locking probably isn't actually needed

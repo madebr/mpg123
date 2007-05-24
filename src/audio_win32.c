@@ -1,7 +1,7 @@
 /*
 	audio_win32.c: audio output for Windows 32bit
 
-	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2007 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.de
 	initially written (as it seems) by Tony Million
 */
@@ -22,7 +22,7 @@ static HWAVEOUT dev    = NULL;
 static int nBlocks             = 0;
 static int MAX_BLOCKS  = 6;
 
-static _inline void wait(void)
+static void wait(void)
 {
    while(nBlocks)
        Sleep(77);
@@ -41,17 +41,17 @@ static void CALLBACK wave_callback(HWAVE hWave, UINT uMsg, DWORD dwInstance, DWO
 
        waveOutUnprepareHeader(dev, wh, sizeof (WAVEHDR));
 
-       //Deallocate the buffer memory
+       /* Deallocate the buffer memory */
        hg = GlobalHandle(wh->lpData);
        GlobalUnlock(hg);
        GlobalFree(hg);
 
-       //Deallocate the header memory
+       /* Deallocate the header memory */
        hg = GlobalHandle(wh);
        GlobalUnlock(hg);
        GlobalFree(hg);
 
-       // decrease the number of USED blocks
+       /* decrease the number of USED blocks */
        nBlocks--;
 
        LeaveCriticalSection( &cs );
@@ -128,15 +128,11 @@ int audio_play_samples(struct audio_info_struct *ai,unsigned char *buf,int len)
    MMRESULT res;
    void *b;
 
-   ///////////////////////////////////////////////////////
-   //  Wait for a few FREE blocks...
-   ///////////////////////////////////////////////////////
+   /*  Wait for a few FREE blocks... */
    while(nBlocks > MAX_BLOCKS)
        Sleep(77);
 
-   ////////////////////////////////////////////////////////
-   // FIRST allocate some memory for a copy of the buffer!
-   ////////////////////////////////////////////////////////
+   /* FIRST allocate some memory for a copy of the buffer! */
    hg2 = GlobalAlloc(GMEM_MOVEABLE, len);
    if(!hg2)
    {
@@ -146,14 +142,10 @@ int audio_play_samples(struct audio_info_struct *ai,unsigned char *buf,int len)
    b = GlobalLock(hg2);
 
 
-   //////////////////////////////////////////////////////////
-   // Here we can call any modification output functions we want....
-   ///////////////////////////////////////////////////////////
+   /* Here we can call any modification output functions we want.... */
    CopyMemory(b, buf, len);
 
-   ///////////////////////////////////////////////////////////
-   // now make a header and WRITE IT!
-   ///////////////////////////////////////////////////////////
+   /* now make a header and WRITE IT! */
    hg = GlobalAlloc (GMEM_MOVEABLE | GMEM_ZEROINIT, sizeof (WAVEHDR));
    if(!hg)
    {
@@ -197,8 +189,8 @@ int audio_close(struct audio_info_struct *ai)
    {
        wait();
 
-       waveOutReset(dev);      //reset the device
-       waveOutClose(dev);      //close the device
+       waveOutReset(dev);
+       waveOutClose(dev);
        dev=NULL;
    }
 
