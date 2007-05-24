@@ -168,18 +168,18 @@ libcpu_mmx_a_SOURCES = \
 
 libcpu_sse_a_SOURCES = \
 	decode_i386.c \
-	dct64_sse.c \
+	dct64_sse.S \
 	dct64_mmx.S \
 	tabinit_mmx.S \
-	decode_mmxsse.c
+	decode_mmxsse.S
 
 libcpu_3dnowext_a_SOURCES = \
 	decode_i386.c \
-	dct64_3dnowext.c \
-	dct36_3dnowext.c \
+	dct64_3dnowext.S \
+	dct36_3dnowext.S \
 	dct64_mmx.S \
 	tabinit_mmx.S \
-	decode_mmxsse.c
+	decode_mmxsse.S
 
 libcpu_x86_a_SOURCES = \
 	decode.c \
@@ -191,12 +191,12 @@ libcpu_x86_a_SOURCES = \
 	decode_mmxsse.c \
 	dct64.c \
 	dct64_i386.c \
-	dct64_sse.c \
+	dct64_sse.S \
 	dct64_mmx.S \
 	dct64_3dnow.S \
 	dct36_3dnow.S \
-	dct64_3dnowext.c \
-	dct36_3dnowext.c \
+	dct64_3dnowext.S \
+	dct36_3dnowext.S \
 	tabinit_mmx.S \
 	equalizer_3dnow.S \
 	getcpuflags.S
@@ -204,4 +204,4 @@ libcpu_x86_a_SOURCES = \
 # explicit preprocessing since mingw32 does not honor the big .S
 .S.o:
 	$(CPP) $(CPPFLAGS) $< > $<.s
-	$(CCAS) -c -o $@ $<.s && rm $<.s
+	$(CCAS) $(CCASFLAGS) -c -o $@ $<.s && rm $<.s

@@ -1,4 +1,27 @@
-/* gcc -S -DHAVE_CONFIG_H -I.  -march=pentium -O3 -Wall -pedantic -fno-strict-aliasing -DREAL_IS_FLOAT -c -o decode_mmxsse.{S,c} */
+/*
+	decode_mmxsse: MMX/SSE optimized synth
+
+	copyright 2006-2007 by Zuxy Meng/the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.org
+	initially written by the mysterious higway for MMX (apparently)
+	then developed into SSE opt by Zuxy Meng, also building on Romain Dolbeau's AltiVec
+	Both have agreed to distribution under LGPL 2.1 .
+
+	Transformed back into standalone asm, with help of
+	gcc -S -DHAVE_CONFIG_H -I.  -march=pentium -O3 -Wall -pedantic -fno-strict-aliasing -DREAL_IS_FLOAT -c -o decode_mmxsse.{S,c}
+
+	Original comment from MPlayer source follows:
+*/
+
+/*
+ * this code comes under GPL
+ * This code was taken from http://www.mpg123.org
+ * See ChangeLog of mpg123-0.59s-pre.1 for detail
+ * Applied to mplayer by Nick Kurshev <nickols_k@mail.ru>
+ *
+ * Local ChangeLog:
+ * - Partial loops unrolling and removing MOVW insn from loops
+*/
 
 #include "mangle.h"
 
@@ -56,6 +79,7 @@ null_one:
 
 	.text
 	.p2align 4,,15
+	/* void synth_1to1_sse_s(real *bandPtr, int channel, short *samples, short *buffs, int *bo) */
 .globl ASM_NAME(synth_1to1_sse_s)
 	/* .type	ASM_NAME(synth_1to1_sse_s), @function */
 ASM_NAME(synth_1to1_sse_s):

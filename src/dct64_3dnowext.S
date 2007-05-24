@@ -1,4 +1,24 @@
-/* gcc -S -DHAVE_CONFIG_H -I.  -march=k6-3 -O3 -Wall -pedantic -fno-strict-aliasing  -DREAL_IS_FLOAT -c -o dct64_3dnowext.{S,c} */
+/*
+	dct64_3dnowext: extended 3DNow optimized DCT64
+
+	copyright ?-2007 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.org
+
+	Transformed back into standalone asm, with help of
+	gcc -S -DHAVE_CONFIG_H -I.  -march=k6-3 -O3 -Wall -pedantic -fno-strict-aliasing  -DREAL_IS_FLOAT -c -o dct64_3dnowext.{S,c} */
+
+	MPlayer comment follows.
+*/
+
+/*
+* This code was taken from http://www.mpg123.org
+* See ChangeLog of mpg123-0.59s-pre.1 for detail
+* Applied to mplayer by Nick Kurshev <nickols_k@mail.ru>
+* Partial 3dnowex-DSP! optimization by Nick Kurshev
+*
+* TODO: optimize scalar 3dnow! code
+* Warning: Phases 7 & 8 are not tested
+*/
 
 #include "mangle.h"
 

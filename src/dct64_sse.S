@@ -1,4 +1,35 @@
-/* gcc -S -DHAVE_CONFIG_H -I.  -march=pentium3 -O3 -Wall -pedantic -fno-strict-aliasing -DREAL_IS_FLOAT -c -o dct64_sse.{S,c} */
+/*
+	dct64_sse: MMX/SSE optimized dct64
+
+	copyright 2006-2007 by Zuxy Meng <zuxy.meng@gmail.com> / the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.org
+	initially written by the mysterious higway for MMX (apparently)
+	then developed into SSE opt by Zuxy Meng, also building on Romain Dolbeau's AltiVec
+	Both have agreed to distribution under LGPL 2.1 .
+
+	Transformed back into standalone asm, with help of
+	gcc -S -DHAVE_CONFIG_H -I.  -march=pentium3 -O3 -Wall -pedantic -fno-strict-aliasing -DREAL_IS_FLOAT -c -o dct64_sse.{S,c}
+
+	Original comment from MPlayer source follows:
+*/
+
+/*
+ * Discrete Cosine Tansform (DCT) for SSE
+ * based upon code from mp3lib/dct64.c, mp3lib/dct64_altivec.c
+ * and mp3lib/dct64_MMX.c
+ */
+
+/* NOTE: The following code is suboptimal! It can be improved (at least) by
+
+   1. Replace all movups by movaps. (Can Parameter c be always aligned on 
+      a 16-byte boundary?)
+
+   2. Rewritten using intrinsics. (GCC generally optimizes intrinsics
+      better. However, when __m128 locals are involved, GCC may
+      produce bad code that uses movaps to access a stack not aligned
+      on a 16-byte boundary, which leads to run-time crashes.)
+
+*/
 
 #include "mangle.h"
 

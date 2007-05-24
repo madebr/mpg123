@@ -1,4 +1,43 @@
-/* gcc -S -DHAVE_CONFIG_H -I.  -march=k6-3 -O3 -Wall -pedantic -fno-strict-aliasing  -DREAL_IS_FLOAT -c -o dct36_3dnowext.{S,c} */
+/*
+	dct36_3dnowext: extended 3DNow optimized DCT36
+
+	copyright ?-2007 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.org
+
+	Transformed back into standalone asm, with help of
+	gcc -S -DHAVE_CONFIG_H -I.  -march=k6-3 -O3 -Wall -pedantic -fno-strict-aliasing  -DREAL_IS_FLOAT -c -o dct36_3dnowext.{S,c} */
+
+	MPlayer comment follows.
+*/
+
+/*
+ * dct36_3dnow.c - 3DNow! optimized dct36()
+ *
+ * This code based 'dct36_3dnow.s' by Syuuhei Kashiyama
+ * <squash@mb.kcom.ne.jp>, only two types of changes have been made:
+ *
+ * - removed PREFETCH instruction for speedup
+ * - changed function name for support 3DNow! automatic detection
+ *
+ * You can find Kashiyama's original 3dnow! support patch
+ * (for mpg123-0.59o) at
+ * http://user.ecc.u-tokyo.ac.jp/~g810370/linux-simd/ (Japanese).
+ *
+ * by KIMURA Takuhiro <kim@hannah.ipc.miyakyo-u.ac.jp> - until 31.Mar.1999
+ *                    <kim@comtec.co.jp>               - after  1.Apr.1999
+ *
+ * Modified for use with MPlayer, for details see the changelog at
+ * http://svn.mplayerhq.hu/mplayer/trunk/
+ * $Id: dct36_3dnow.c 18786 2006-06-22 13:34:00Z diego $
+ *
+ * Original disclaimer:
+ *  The author of this program disclaim whole expressed or implied
+ *  warranties with regard to this program, and in no event shall the
+ *  author of this program liable to whatever resulted from the use of
+ *  this program. Use it at your own risk.
+ *
+ * 2003/06/21: Moved to GCC inline assembly - Alex Beregszaszi
+ */
 
 #include "mangle.h"
 
