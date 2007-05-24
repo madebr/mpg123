@@ -1,6 +1,6 @@
 * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *   mpg123 - MPEG 1.0/2.0/2.5 audio player            *
-*   README for version 0.6x, dated at 14.01.2007      *
+*   README for version 0.6x, dated at 24.05.2007      *
 *                                                     *
 * ...still the fastest MPEG audio player for UNIX ;)  *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -110,6 +110,12 @@ See doc/README.remote for usage.
 
 mpg123 is fast. Any faster software player is probably based on some hacked mpg123;-)
 MPlayer included mpg123 source code in it's mp3lib and we have to be thankful for the MPlayer folks adding SSE, 3DNowExt and AltiVec optimizations over the years, which we were able to backport.
+
+mpg123 includes the AltiVec optimization since version 0.61 and the SSE and 3DNowExt optimizations since 0.66 .
+Also, version 0.66 adds the merged x86 optimization build, which includes every applicable optimization for x86 cpus except the one for i486, wich is a bit special.
+
+Now mpg123 catched up with MPlayer's mp3lib concerning decoding speed on my Pentium M (which supports SSE):
+Decoding a certain album (Queensryche's Rage for Order) to /dev/null took 22.4s user time with mpg123-0.66 compared to 24.7s with MPlayer-1.0rc1 .
 
 
 5. Accuracy
