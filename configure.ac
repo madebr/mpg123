@@ -199,8 +199,10 @@ case $target in
 	;;
 esac
 
-# Check for plain win32 audio (WinMM)
-AC_CHECK_LIB( [winmm], [main] )
+# Check for windows ... and win32 audio
+# Does not work... instead just check for header
+# AC_CHECK_LIB( [winmm], [waveOutOpen] )
+AC_CHECK_HEADERS([windows.h], HAVE_WINMM=yes, HAVE_WINMM=no)
 
 # Check for ALSA
 AC_CHECK_LIB( [asound], [snd_pcm_open],
@@ -641,6 +643,7 @@ test "x$HAVE_PORTAUDIO"   = "xyes" && echo -n " portaudio"
 test "x$HAVE_NAS"         = "xyes" && echo -n " nas"
 test "x$HAVE_SDL"         = "xyes" && echo -n " sdl"
 test "x$HAVE_ESOUND"      = "xyes" && echo -n " esd"
+test "x$HAVE_WINMM"       = "xyes" && echo -n " win32"
 echo ")
   Gapless Support ......... $gapless
   Debugging ............... $debugging
