@@ -188,7 +188,7 @@ libcpu_x86_a_SOURCES = \
 	decode_i586_dither.S \
 	decode_3dnow.S \
 	decode_mmx.S \
-	decode_mmxsse.c \
+	decode_mmxsse.S \
 	dct64.c \
 	dct64_i386.c \
 	dct64_sse.S \
