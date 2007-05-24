@@ -52,7 +52,9 @@ typedef unsigned char byte;
 
 # define M_PI       3.14159265358979323846
 # define M_SQRT2	1.41421356237309504880
-# define REAL_IS_FLOAT
+# ifndef REAL_IS_FLOAT
+#  define REAL_IS_FLOAT
+# endif
 # define NEW_DCT9
 
 # define random rand
