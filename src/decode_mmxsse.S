@@ -95,7 +95,7 @@ ASM_NAME(synth_1to1_sse_s):
 	pushl 8(%ebp)
 	pushl %edx
 	pushl %ecx
-	call *mpl_dct64
+	call *ASM_NAME(mpl_dct64)
 	addl $12, %esp
 	leal 1(%ebx), %ecx
 	subl temp,%ebx
