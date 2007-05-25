@@ -1,0 +1,34 @@
+We got a bit into a mess here... Bryan Henderson pointed out that playback of mono files on stereo-only hardware does not work due to some misuse of the param.force_mono and param.force_stereo parameters.
+
+So, let's reacap their meaning:
+
+default:
+  -1 ,     /* force mono */
+  0 ,     /* force stereo */
+command line:
+	{'0', "single0",     GLO_INT,  0, &param.force_mono, 0},
+	{0,   "left",        GLO_INT,  0, &param.force_mono, 0},
+	{'1', "single1",     GLO_INT,  0, &param.force_mono, 1},
+	{0,   "right",       GLO_INT,  0, &param.force_mono, 1},
+	{'m', "singlemix",   GLO_INT,  0, &param.force_mono, 3},
+	{0,   "mix",         GLO_INT,  0, &param.force_mono, 3},
+	{0,   "mono",        GLO_INT,  0, &param.force_mono, 3},
+	{0,   "stereo",      GLO_INT,  0, &param.force_stereo, 1},
+
+force_stereo: 0=do not force, 1=force output channels to 2 (possibly by duplicating mono channel)
+force_mono:
+	-1=no force
+	0=force ch0 (left)
+	1=force ch1 (right)
+	3=force mixing
+
+We have a set of states for force_mono. It's a bit unfortunate that -1 stands for "no mono force" instead of 0.
+What makes sense  here is 0 for nothing and 1, 2, 4 flags for the different modes.
+This flag is still used in the decoder for the fr->single field, which is used in array indices some times.
+I'll better be careful with that one, but one can make the global force_mono field sensible without much hassle.
+Just increase it by 1 and decrease it when assigning to fr->single.
+
+This frame struct has to be reorganized anyway.
+
+OK, did it. Let's see how it works out.
+

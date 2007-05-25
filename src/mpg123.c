@@ -65,7 +65,7 @@ struct parameter param = {
 #ifdef HAVE_TERMIOS
   FALSE , /* term control */
 #endif
-  -1 ,     /* force mono */
+  0 ,     /* force mono */
   0 ,     /* force stereo */
   0 ,     /* force 8bit */
   0 ,     /* force rate */
@@ -337,13 +337,13 @@ topt opts[] = {
 	{'v', "verbose",     0,        set_verbose, 0,           0},
 	{'q', "quiet",       GLO_INT,  0, &param.quiet, TRUE},
 	{'y', "resync",      GLO_INT,  0, &param.tryresync, FALSE},
-	{'0', "single0",     GLO_INT,  0, &param.force_mono, 0},
-	{0,   "left",        GLO_INT,  0, &param.force_mono, 0},
-	{'1', "single1",     GLO_INT,  0, &param.force_mono, 1},
-	{0,   "right",       GLO_INT,  0, &param.force_mono, 1},
-	{'m', "singlemix",   GLO_INT,  0, &param.force_mono, 3},
-	{0,   "mix",         GLO_INT,  0, &param.force_mono, 3},
-	{0,   "mono",        GLO_INT,  0, &param.force_mono, 3},
+	{'0', "single0",     GLO_INT,  0, &param.force_mono, MONO_LEFT},
+	{0,   "left",        GLO_INT,  0, &param.force_mono, MONO_LEFT},
+	{'1', "single1",     GLO_INT,  0, &param.force_mono, MONO_RIGHT},
+	{0,   "right",       GLO_INT,  0, &param.force_mono, MONO_RIGHT},
+	{'m', "singlemix",   GLO_INT,  0, &param.force_mono, MONO_MIX},
+	{0,   "mix",         GLO_INT,  0, &param.force_mono, MONO_MIX},
+	{0,   "mono",        GLO_INT,  0, &param.force_mono, MONO_MIX},
 	{0,   "stereo",      GLO_INT,  0, &param.force_stereo, 1},
 	{0,   "reopen",      GLO_INT,  0, &param.force_reopen, 1},
 	{'g', "gain",        GLO_ARG | GLO_LONG, 0, &ai.gain,    0},
@@ -542,14 +542,14 @@ int play_frame(int init,struct frame *fr)
 			init_output();
 			if(ai.rate != old_rate || ai.channels != old_channels ||
 			   ai.format != old_format || param.force_reopen) {
-				if(param.force_mono < 0) {
+				if(!param.force_mono) {
 					if(ai.channels == 1)
 						fr->single = 3;
 					else
 						fr->single = -1;
 				}
 				else
-					fr->single = param.force_mono;
+					fr->single = param.force_mono-1;
 
 				param.force_stereo &= ~0x2;
 				if(fr->single >= 0 && ai.channels == 2) {
@@ -658,7 +658,7 @@ void set_synth_functions(struct frame *fr)
 	if((ai.format & AUDIO_FORMAT_MASK) == AUDIO_FORMAT_8)
 		p8 = 1;
 	fr->synth = funcs[p8][ds];
-	fr->synth_mono = funcs_mono[param.force_stereo?0:1][p8][ds];
+	fr->synth_mono = funcs_mono[ai.channels==2 ? 0 : 1][p8][ds];
 
 	if(p8) {
 		if(make_conv16to8_table(ai.format) != 0)
@@ -756,8 +756,8 @@ int main(int argc, char *argv[])
 	if (!(param.listentry < 0) && !param.quiet)
 		print_title(stderr); /* do not pollute stdout! */
 
-	if(param.force_mono >= 0) {
-		fr.single = param.force_mono;
+	if(param.force_mono) {
+		fr.single = param.force_mono-1;
 	}
 
 	if(param.force_rate && param.down_sample) {

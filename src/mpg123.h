@@ -184,6 +184,10 @@ struct frame {
 
 #define VERBOSE_MAX 3
 
+#define MONO_LEFT 1
+#define MONO_RIGHT 2
+#define MONO_MIX 4
+
 struct parameter {
   int aggressive; /* renice to max. priority */
   int shuffle;	/* shuffle/random play */
