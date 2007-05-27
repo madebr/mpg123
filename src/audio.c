@@ -82,7 +82,7 @@ void print_capabilities(struct audio_info_struct *ai)
 		rates[NUM_RATES-1] = param.force_rate;
 		k1 = NUM_RATES;
 	}
-	fprintf(stderr,"\nAudio device: %s\nAudio capabilities:\n        |", ai->device != NULL ? ai->device : "<none>");
+	fprintf(stderr,"\nAudio device: %s\nAudio capabilities:\n(matrix of [S]tereo or [M]ono support for sample format and rate in Hz)\n        |", ai->device != NULL ? ai->device : "<none>");
 	for(j=0;j<NUM_ENCODINGS;j++) {
 		fprintf(stderr," %5s |",audio_val2name[j].sname);
 	}
@@ -211,7 +211,7 @@ int audio_fit_capabilities(struct audio_info_struct *ai,int c,int r)
 		/* 8bit encodings */
 		if(audio_fit_cap_helper(ai,rn,2,NUM_ENCODINGS,c)) return 1;
 
-		error3("Unable to set up %ibit output format with forced rate %li%s!",
+		error3("Unable to set up device for %ibit output format with forced rate %li%s!",
 		       (param.force_8bit ? 8 : 16),
 		       param.force_rate,
 		       (param.force_stereo ? " (you forced stereo)" :
@@ -262,7 +262,7 @@ int audio_fit_capabilities(struct audio_info_struct *ai,int c,int r)
 	rn = rate2num(r>>2);
 	if(audio_fit_cap_helper(ai,rn,2,NUM_ENCODINGS,c)) return 1;
 
-	error2("Unable to set up %ibit output format with any known rate%s!",
+	error2("Unable to set up device for %ibit output format with any known rate%s!",
 	       (param.force_8bit ? 8 : 16),
 	       (param.force_stereo ? " (you forced stereo)" :
 	        (param.force_mono ? " (you forced mono)" : "")));
