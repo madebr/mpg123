@@ -215,7 +215,7 @@ int audio_fit_capabilities(struct audio_info_struct *ai,int c,int r)
 		       (param.force_8bit ? 8 : 16),
 		       param.force_rate,
 		       (param.force_stereo ? " (you forced stereo)" :
-		        (param.force_stereo ? " (you forced mono)" : "")));
+		        (param.force_mono ? " (you forced mono)" : "")));
 		if(param.verbose <= 1) print_capabilities(ai);
 		return 0;
 	}
@@ -265,7 +265,7 @@ int audio_fit_capabilities(struct audio_info_struct *ai,int c,int r)
 	error2("Unable to set up %ibit output format with any known rate%s!",
 	       (param.force_8bit ? 8 : 16),
 	       (param.force_stereo ? " (you forced stereo)" :
-	        (param.force_stereo ? " (you forced mono)" : "")));
+	        (param.force_mono ? " (you forced mono)" : "")));
 	if(param.verbose <= 1) print_capabilities(ai);
 	return 0;
 }
