@@ -218,6 +218,9 @@ case $target in
 		AC_DEFINE(FIFO, 1, [ Define if FIFO support is enabled. ])
 		fifo=enabled
 	;;
+	*)
+		fifo=disabled
+	;;
 esac
 fi
 
