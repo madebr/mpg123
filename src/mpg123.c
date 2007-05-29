@@ -9,6 +9,7 @@
 #include "config.h"
 #include "debug.h"
 #define ME "main"
+#include "mpg123.h"
 
 #include <stdlib.h>
 #include <sys/types.h>
@@ -27,7 +28,6 @@
 #include <sched.h>
 #endif
 
-#include "mpg123.h"
 #include "common.h"
 #include "getlopt.h"
 #include "buffer.h"
@@ -293,22 +293,33 @@ void set_au(char *arg)
 }
 static void SetOutFile(char *Arg)
 {
-  param.outmode=DECODE_FILE;
-  OutputDescriptor=open(Arg,O_WRONLY,0);
-  if(OutputDescriptor==-1) {
-    error2("Can't open %s for writing (%s).\n",Arg,strerror(errno));
-    safe_exit(1);
-  }
+	param.outmode=DECODE_FILE;
+	#ifdef WIN32
+	OutputDescriptor=_open(Arg,_O_CREAT|_O_WRONLY|_O_BINARY,0);
+	#else
+	OutputDescriptor=open(Arg,O_CREAT|O_WRONLY,0);
+	#endif
+	if(OutputDescriptor==-1)
+	{
+		error2("Can't open %s for writing (%s).\n",Arg,strerror(errno));
+		safe_exit(1);
+	}
 }
 static void SetOutStdout(char *Arg)
 {
-  param.outmode=DECODE_FILE;
-  OutputDescriptor=1;
+	param.outmode=DECODE_FILE;
+	OutputDescriptor=STDOUT_FILENO;
+	#ifdef WIN32
+	_setmode(STDOUT_FILENO, _O_BINARY);
+	#endif
 }
 static void SetOutStdout1(char *Arg)
 {
   param.outmode=DECODE_AUDIOFILE;
-  OutputDescriptor=1;
+  OutputDescriptor=STDOUT_FILENO;
+	#ifdef WIN32
+	_setmode(STDOUT_FILENO, _O_BINARY);
+	#endif
 }
 
 void realtime_not_compiled(char *arg)

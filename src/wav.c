@@ -119,7 +119,7 @@ static int open_file(char *filename)
       wavfp = stdout;
    }
    else {
-     wavfp = fopen(filename,"w");
+     wavfp = fopen(filename,"wb");
      if(!wavfp)
        return -1;
    }
