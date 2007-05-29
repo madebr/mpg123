@@ -211,11 +211,11 @@ int audio_fit_capabilities(struct audio_info_struct *ai,int c,int r)
 		/* 8bit encodings */
 		if(audio_fit_cap_helper(ai,rn,2,NUM_ENCODINGS,c)) return 1;
 
-		error3("Unable to set up device for %ibit%s output format with forced rate %liHz!",
-		       (param.force_8bit ? 8 : 16),
-		       (param.force_stereo ? " stereo)" :
-		        (param.force_mono ? " mono" : "")),
-		       param.force_rate);
+		error3("Unable to set up output device! Constraints: %s%s%liHz.",
+		      (param.force_stereo ? "stereo, " :
+		       (param.force_mono ? "mono, " : "")),
+		      (param.force_8bit ? "8bit, " : ""),
+		      param.force_rate);
 		if(param.verbose <= 1) print_capabilities(ai);
 		return 0;
 	}
@@ -262,10 +262,11 @@ int audio_fit_capabilities(struct audio_info_struct *ai,int c,int r)
 	rn = rate2num(r>>2);
 	if(audio_fit_cap_helper(ai,rn,2,NUM_ENCODINGS,c)) return 1;
 
-	error2("Unable to set up device for %ibit%s output format with any known rate!",
-	       (param.force_8bit ? 8 : 16),
-	       (param.force_stereo ? " stereo)" :
-	        (param.force_mono ? " mono" : "")));
+	error5("Unable to set up output device! Constraints: %s%s%li, %li or %liHz.",
+	      (param.force_stereo ? "stereo, " :
+	       (param.force_mono ? "mono, " : "")),
+	      (param.force_8bit ? "8bit, " : ""),
+	      r, r>>1, r>>2);
 	if(param.verbose <= 1) print_capabilities(ai);
 	return 0;
 }
