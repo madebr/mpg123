@@ -262,7 +262,7 @@ int audio_fit_capabilities(struct audio_info_struct *ai,int c,int r)
 	rn = rate2num(r>>2);
 	if(audio_fit_cap_helper(ai,rn,2,NUM_ENCODINGS,c)) return 1;
 
-	error5("Unable to set up output device! Constraints: %s%s%li, %li or %liHz.",
+	error5("Unable to set up output device! Constraints: %s%s%i, %i or %iHz.",
 	      (param.force_stereo ? "stereo, " :
 	       (param.force_mono ? "mono, " : "")),
 	      (param.force_8bit ? "8bit, " : ""),
