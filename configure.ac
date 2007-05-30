@@ -347,6 +347,11 @@ case $target in
 		cpu_type="i586"
 		CFLAGS="-DGENERIC $CFLAGS"
 	;;
+	i686-*)
+		AC_MSG_WARN([Unknown target operating system])
+		cpu_type="x86"
+		CFLAGS="-DGENERIC $CFLAGS"
+	;;
   *)
   	AC_MSG_WARN([Unknown target operating system])
     cpu_type="generic_fpu"
