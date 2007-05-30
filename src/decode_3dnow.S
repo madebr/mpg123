@@ -40,7 +40,7 @@
 	.comm	buffs.40,4352,32
 #endif
 .data
-	.align 4
+	ALIGN4
 /*	.type	 bo.42,@object */
 /*	.size	 bo.42,4 */
 bo.42:
@@ -125,7 +125,7 @@ ASM_NAME(synth_1to1_3dnow):
 
 	movq (%edx),%mm0
 	movq (%ebx),%mm1
-	.align 32
+	ALIGN32
 .L33:
 	movq 8(%edx),%mm3
         pfmul %mm1,%mm0
@@ -212,7 +212,7 @@ ASM_NAME(synth_1to1_3dnow):
 	movd -4(%edx),%mm1
 	punpckldq 4(%ebx),%mm0
 	punpckldq -8(%edx),%mm1
-	.align 32
+	ALIGN32
 .L46:						
 	movd 8(%ebx),%mm3
 	movd -12(%edx),%mm4

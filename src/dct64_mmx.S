@@ -9,7 +9,7 @@
 #include "mangle.h"
 
 .data
-	.align 32
+	ALIGN32
 ASM_NAME(costab):
 	.long 1056974725
 	.long 1057056395
@@ -45,7 +45,7 @@ ASM_NAME(costab):
 
 .text
 
-	.align 32
+	ALIGN32
 .globl ASM_NAME(dct64_mmx)
 ASM_NAME(dct64_mmx):
 

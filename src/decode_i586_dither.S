@@ -29,16 +29,16 @@
 
 #include "mangle.h"
 
-.bss
+BSS
 	COMM(buffs,4352,4)
 	COMM(ditherindex.1,4,4)
 .data
-	.align 4
+	ALIGN4
 bo:
 	.long 1
 
 
-	.align 32
+	ALIGN32
 /*	.type	 dither.0,@object */
 /*	.size	 dither.0,262144 */
 dither.0:
@@ -65578,15 +65578,16 @@ dither.0:
 	.float 0.052274
 	.float 0.205602
 	.float -0.160244
-
+#ifndef __APPLE__
 		.section	.rodata
-	.align 8
+#endif
+	ALIGN8
 .LC0:
 	.long 0x0,0x40dfffc0
-	.align 8
+	ALIGN8
 .LC1:
 	.long 0x0,0xc0e00000
-	.align 8
+	ALIGN8
 .text
 .globl ASM_NAME(synth_1to1_i586_asm_dither)
 ASM_NAME(synth_1to1_i586_asm_dither):

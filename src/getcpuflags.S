@@ -18,7 +18,7 @@
 #include "mangle.h"
 
 .text
-	.align 4
+	ALIGN4
 
 .globl ASM_NAME(getcpuflags)
 /*	.type ASM_NAME(getcpuflags),@function */
@@ -59,7 +59,7 @@ ASM_NAME(getcpuflags):
 	movl %ecx, 4(%esi)
 	movl %edx, 8(%esi)
 	jmp .Lend
-	.align 4
+	ALIGN4
 .Lnocpuid:
 /* error: set everything to zero */
 	movl $0, %eax
@@ -67,7 +67,7 @@ ASM_NAME(getcpuflags):
 	movl $0, 4(%esi)
 	movl $0, 8(%esi)
 	movl $0, 12(%esi)
-	.align 4
+	ALIGN4
 .Lend:
 /* return value are the id flags, still stored in %eax */
 	popl %esi

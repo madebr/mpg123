@@ -139,6 +139,27 @@ AC_ARG_WITH([seektable], [
   --with-seektable=<size> choose size of seek index table (0 disables it), default 1000
 ])
 
+dnl ############## Assembler properties
+
+# based on posting from John Dalgliesh <johnd@defyne.org> on ffmpeg (LGPL) mailing list
+# find if .align arg is power-of-two or not
+asmalign_exp="unknown"
+if test $asmalign_exp = "unknown"; then
+	AC_MSG_CHECKING([if .align takes 2-exponent])
+	asmalign_exp="no"
+	echo '.align 3' > conftest.s
+	if $CCAS -o conftest.o conftest.s; then
+		asmalign_exp="yes"
+		AC_MSG_RESULT([yes])
+	else
+		AC_MSG_RESULT([no])
+	fi
+	rm -f conftest.o conftest.s
+fi
+if test $asmalign_exp = "yes"; then
+	AC_DEFINE(ASMALIGN_EXP, 1, [ Define if .align takes 3 for alignment of 2^3=8 bytes instead of 8. ])
+fi
+
 dnl ############## Function Checks
 
 AC_FUNC_MMAP

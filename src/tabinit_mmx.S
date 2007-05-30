@@ -8,14 +8,14 @@
 
 #include "mangle.h"
 
-.bss
-	.align 32
+BSS
+	ALIGN32
 	COMM(ASM_NAME(decwin_mmx),2176,32)
-	.align 32
+	ALIGN32
 	COMM(ASM_NAME(decwins),2176,32)
 
 .data
-	.align 32
+	ALIGN32
 intwinbase:
 	.value      0,    -1,    -1,    -1,    -1,    -1,    -1,    -2
 	.value     -2,    -2,    -2,    -3,    -3,    -4,    -4,    -5
@@ -54,7 +54,7 @@ intwinbase:
 intwindiv:
 	.long 0x47800000			# 65536.0
 .text
-	.align 32
+	ALIGN32
 .globl ASM_NAME(make_decode_tables_mmx)
 ASM_NAME(make_decode_tables_mmx):
 	pushl %edi

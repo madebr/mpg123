@@ -42,7 +42,7 @@
 #include "mangle.h"
 
 	.text
-	.p2align 5,,31
+	ALIGN32,,31
 .globl ASM_NAME(dct36_3dnowext)
 	/* .type	ASM_NAME(dct36_3dnowext), @function */
 ASM_NAME(dct36_3dnowext):

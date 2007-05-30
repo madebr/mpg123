@@ -23,12 +23,12 @@
 #include "mangle.h"
 
 	.data
-	.align 4
+	ALIGN4
 	/* .type	plus_1f, @object
 	   .size	plus_1f, 4  */
 plus_1f:
 	.long	1065353216
-	.align 8
+	ALIGN8
 	/* .type	x_plus_minus_3dnow, @object
 	   .size	x_plus_minus_3dnow, 8 */
 x_plus_minus_3dnow:
@@ -36,7 +36,7 @@ x_plus_minus_3dnow:
 	.long	-2147483648
 
 	.text
-	.p2align 5,,31
+	ALIGN32,,31
 .globl ASM_NAME(dct64_3dnowext)
 	/* .type	ASM_NAME(dct64_3dnowext), @function */
 ASM_NAME(dct64_3dnowext):

@@ -27,7 +27,7 @@
 
 .globl ASM_NAME(costab_mmxsse)
 	.data
-	.align 16
+	ALIGN16
 	/* .type	ASM_NAME(costab_mmxsse), @object
 	   .size	ASM_NAME(costab_mmxsse), 124 */
 ASM_NAME(costab_mmxsse):
@@ -62,13 +62,13 @@ ASM_NAME(costab_mmxsse):
 	.long	1057655764
 	.long	1067924853
 	.long	1060439283
-	.align 8
+	ALIGN8
 	/* .type	one_null, @object
 	   .size	one_null, 8 */
 one_null:
 	.long	-65536
 	.long	-65536
-	.align 8
+	ALIGN8
 	/* .type	null_one, @object
 	.size	null_one, 8 */
 null_one:
@@ -78,7 +78,7 @@ null_one:
 	COMM(temp,4,4)
 
 	.text
-	.p2align 4,,15
+	ALIGN16,,15
 	/* void synth_1to1_sse_s(real *bandPtr, int channel, short *samples, short *buffs, int *bo) */
 .globl ASM_NAME(synth_1to1_sse_s)
 	/* .type	ASM_NAME(synth_1to1_sse_s), @function */
@@ -126,7 +126,7 @@ ASM_NAME(synth_1to1_sse_s):
 	pushl %ecx
 	leal ASM_NAME(decwins)(%ebx,%ebx,1), %edx
 	shrl $1, %ecx
-	.balign 16
+	ALIGN16
 	.L03:
 	movq  (%edx),%mm0
 	movq  64(%edx),%mm4
@@ -198,7 +198,7 @@ ASM_NAME(synth_1to1_sse_s):
 	.next_loop:
 	subl $64,%esi
 	movl $7,%ecx
-	.balign 16
+	ALIGN16
 	.L04:
 	movq  (%edx),%mm0
 	movq  64(%edx),%mm4

@@ -9,7 +9,7 @@
 #include "mangle.h"
 
 .text
-        .align 4
+	ALIGN4
 .globl ASM_NAME(do_equalizer_3dnow)
 /*	.type	 ASM_NAME(do_equalizer_3dnow),@function */
 ASM_NAME(do_equalizer_3dnow):
@@ -24,7 +24,7 @@ ASM_NAME(do_equalizer_3dnow):
 	xorl %edx,%edx
 	movl $ASM_NAME(equalizer),%esi
 	sall $7,%ecx
-        .align 4
+	ALIGN4
 .L9:
 	movq (%ebx,%edx),%mm0
 	pfmul (%esi,%ecx),%mm0
@@ -62,7 +62,7 @@ ASM_NAME(do_equalizer_3dnow):
 	addl $32,%ecx
 	cmpl $124,%edx
 	jle .L9
-	.align 4
+	ALIGN4
 .L5:
 	popl %ebx
 	popl %esi

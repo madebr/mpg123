@@ -38,7 +38,7 @@
 #else
 	.data
 #endif
-	.align 16
+	ALIGN16
 	/* .type	nnnn, @object
 	   .size	nnnn, 16 */
 nnnn:
@@ -46,7 +46,7 @@ nnnn:
 	.long	-2147483648
 	.long	-2147483648
 	.long	-2147483648
-	.align 16
+	ALIGN16
 	/* .type	ppnn, @object
 	   .size	ppnn, 16 */
 ppnn:
@@ -54,7 +54,7 @@ ppnn:
 	.long	0
 	.long	-2147483648
 	.long	-2147483648
-	.align 16
+	ALIGN16
 	/* .type	pnpn, @object
 	   .size	pnpn, 16 */
 pnpn:
@@ -62,7 +62,7 @@ pnpn:
 	.long	-2147483648
 	.long	0
 	.long	-2147483648
-	.align 4
+	ALIGN4
 	/* .type	one.4748, @object
 	   .size	one.4748, 4 */
 one.4748:
@@ -75,7 +75,7 @@ one.4748:
 	COMM(b1.4746,128,16)
 
 	.text
-	.p2align 4,,15
+	ALIGN16,,15
 .globl ASM_NAME(dct64_sse)
 	/* .type	ASM_NAME(dct64_sse), @function */
 ASM_NAME(dct64_sse):

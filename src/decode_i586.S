@@ -35,19 +35,19 @@
 BSS
 	COMM(buffs,4352,4)
 .data
-	.align 4
+	ALIGN4
 bo:
 	.long 1
 #ifndef __APPLE__
 .section .rodata
 #endif
-	.align 8
+	ALIGN8
 .LC0:
 	.long 0x0,0x40dfffc0
-	.align 8
+	ALIGN8
 .LC1:
 	.long 0x0,0xc0e00000
-	.align 8
+	ALIGN8
 .text
 .globl ASM_NAME(synth_1to1_i586_asm)
 ASM_NAME(synth_1to1_i586_asm):
