@@ -33,7 +33,11 @@
 
 #include "mangle.h"
 
+#ifndef __APPLE__
 	.section	.rodata
+#else
+	.data
+#endif
 	.align 16
 	/* .type	nnnn, @object
 	   .size	nnnn, 16 */

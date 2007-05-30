@@ -33,7 +33,7 @@
 
 #include "mangle.h"
 
-#if defined(__CYGWIN__) || defined(__MINGW32__)
+#if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__APPLE__)
 	.comm	buffs.40,4352
 #else
 	.local	buffs.40

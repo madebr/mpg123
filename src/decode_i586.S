@@ -32,13 +32,15 @@
 
 #include "mangle.h"
 
-.bss
+BSS
 	COMM(buffs,4352,4)
 .data
 	.align 4
 bo:
 	.long 1
+#ifndef __APPLE__
 .section .rodata
+#endif
 	.align 8
 .LC0:
 	.long 0x0,0x40dfffc0

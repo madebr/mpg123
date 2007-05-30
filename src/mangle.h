@@ -21,11 +21,16 @@
 #define ASM_VALUE(a) "$" #a
 #endif
 
-#if defined(__CYGWIN__) || defined(__MINGW32__)
+#if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__APPLE__)
 #define COMM(a,b,c) .comm a,b
 #else
 #define COMM(a,b,c) .comm a,b,c
 #endif
-
+/* more hacks for macosx; no .bss ... */
+#ifdef __APPLE__
+#define BSS .data
+#else
+#define BSS .bss
+#endif
 #endif /* !__MANGLE_H */
 
