@@ -60,13 +60,33 @@ void test_cpu_flags()
 	getcpuflags(&cf);
 	if(cpu_i586(cf))
 	{
-		printf("CPU supports: i586");
-		if(cpu_mmx(cf)) printf(" mmx");
-		if(cpu_3dnow(cf)) printf(" 3dnow");
-		if(cpu_3dnowext(cf)) printf(" 3dnowext");
-		if(cpu_sse(cf)) printf(" sse");
-		/* not yet: if(cpu_sse2(cf)) printf(" sse2");
-		if(cpu_sse3(cf)) printf(" sse3"); */
+		printf("Supported decoders:");
+		/* not yet: if(cpu_sse2(cf)) printf(" SSE2");
+		if(cpu_sse3(cf)) printf(" SSE3"); */
+#ifdef OPT_SSE
+		if(cpu_sse(cf)) printf(" SSE");
+#endif
+#ifdef OPT_3DNOWEXT
+		if(cpu_3dnowext(cf)) printf(" 3DNowExt");
+#endif
+#ifdef OPT_3DNOW
+		if(cpu_3dnow(cf)) printf(" 3DNow");
+#endif
+#ifdef OPT_MMX
+		if(cpu_mmx(cf)) printf(" MMX");
+#endif
+#ifdef OPT_I586
+		printf(" i586");
+#endif
+#ifdef OPT_I586_DITHER
+		printf(" i586_dither");
+#endif
+#ifdef OPT_I386
+		printf(" i386");
+#endif
+#ifdef OPT_GENERIC
+		printf(" generic");
+#endif
 		printf("\n");
 	}
 	else
