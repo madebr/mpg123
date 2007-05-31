@@ -98,12 +98,13 @@ AC_ARG_WITH([cpu], [
   --with-cpu=i386_nofpu         Use code optimized for i386 processors with fixed point arithmetic (experimental)
   --with-cpu=i486         Use code optimized for i486 processors
   --with-cpu=i586         Use code optimized for i586 processors
-  --with-cpu=i586_dither  Use code optimized for i586 processors with dithering (noise shaping)
+  --with-cpu=i586_dither  Use code optimized for i586 processors with dithering (noise shaping), adds 256K to binary size
   --with-cpu=3dnow        Use code optimized for 3DNow processors
   --with-cpu=3dnowext     Use code optimized for 3DNowExt processors (K6-3+, Athlon)
   --with-cpu=mmx          Use code optimized for MMX processors
   --with-cpu=sse          Use code optimized for SSE processors
-  --with-cpu=x86          Pack all x86 opts into one binary (excluding i486)
+  --with-cpu=x86          Pack all x86 opts into one binary (excluding i486 and dithered i586)
+  --with-cpu=x86_dither   Pack all x86 opts into one binary (excluding i486, including dither)
   --with-cpu=altivec      Use code optimized for Altivec processors (PowerPC G4 and G5)
 ]) 
 
@@ -433,6 +434,9 @@ case $cpu_type in
     CFLAGS="$CFLAGS -DOPT_SSE -DREAL_IS_FLOAT"
   ;;
   x86) 
+    CFLAGS="$CFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_I386 -DOPT_I586 -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOWEXT -DOPT_SSE -DREAL_IS_FLOAT"
+  ;;
+  x86_dither) 
     CFLAGS="$CFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_I386 -DOPT_I586 -DOPT_I586_DITHER -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOWEXT -DOPT_SSE -DREAL_IS_FLOAT"
   ;;
   *)
