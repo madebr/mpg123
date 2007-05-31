@@ -73,7 +73,7 @@ unsigned long track_frames = 0;
 #define TRACK_MAX_FRAMES ULONG_MAX/4/1152
 
 /* this could become a struct... */
-long lastscale = -1; /* last used scale */
+scale_t lastscale = -1; /* last used scale */
 int rva_level[2] = {-1,-1}; /* significance level of stored rva */
 float rva_gain[2] = {0,0}; /* mix, album */
 float rva_peak[2] = {0,0};
@@ -129,6 +129,9 @@ unsigned long samples_to_bytes(unsigned long s, struct frame *fr , struct audio_
 	samf = floor(sammy);
 	return (unsigned long)
 		(((ai->format & AUDIO_FORMAT_MASK) == AUDIO_FORMAT_16) ? 2 : 1)
+#ifdef FLOATOUT
+		* 2
+#endif
 		* ai->channels
 		* (int) (((sammy - samf) < 0.5) ? samf : ( sammy-samf > 0.5 ? samf+1 : ((unsigned long) samf % 2 == 0 ? samf : samf + 1)));
 }
@@ -247,9 +250,10 @@ void do_volume(double factor)
 /* adjust the volume, taking both outscale and rva values into account */
 void do_rva()
 {
-	float rvafact = 1;
+	double rvafact = 1;
 	float peak = 0;
-	long newscale;
+	scale_t newscale;
+
 	if(param.rva)
 	{
 		int rt = 0;
@@ -272,7 +276,7 @@ void do_rva()
 	/* if peak is unknown (== 0) this check won't hurt */
 	if((peak*newscale) > MAXOUTBURST)
 	{
-		newscale = (long) ((float) MAXOUTBURST/peak);
+		newscale = (scale_t) ((double) MAXOUTBURST/peak);
 		warning2("limiting scale value to %li to prevent clipping with indicated peak factor of %f", newscale, peak);
 	}
 	/* first rva setting is forced with lastscale < 0 */

@@ -60,7 +60,7 @@ static long intwinbase[] = {
  64019, 65290, 66494, 67629, 68692, 69679, 70590, 71420, 72169, 72835,
  73415, 73908, 74313, 74630, 74856, 74992, 75038 };
 
-void make_decode_tables(long scaleval)
+void make_decode_tables(scale_t scaleval)
 {
   int i,j,k,kr,divv;
   real *costab;

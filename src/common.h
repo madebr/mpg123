@@ -102,7 +102,7 @@ void print_stat(struct frame *fr,unsigned long no,long buffsize,struct audio_inf
 void clear_stat();
 
 /* rva data, used in common.c, set in id3.c */
-extern long lastscale;
+extern scale_t lastscale;
 extern int rva_level[2];
 extern float rva_gain[2];
 extern float rva_peak[2];

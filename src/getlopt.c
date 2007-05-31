@@ -71,6 +71,7 @@ int performoption (int argc, char *argv[], topt *opt)
 				debug1("int at %p", opt->var);
 				*( (int *) opt->var ) = (int) opt->value;
 			}
+			/* GLO_DOUBLE is not supported here */
 			else prog_error();
 								
 			debug("casting assignment done");
@@ -90,6 +91,8 @@ int performoption (int argc, char *argv[], topt *opt)
 				*((long *) opt->var) = atol(loptarg);
 			else if(opt->flags & GLO_INT)
 				*((int *) opt->var) = atoi(loptarg);
+			else if(opt->flags & GLO_DOUBLE)
+				*((double *) opt->var) = atof(loptarg);
 			else prog_error();
 		}
 		else

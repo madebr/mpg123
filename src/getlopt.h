@@ -33,6 +33,7 @@ for .... no flag) */
 #define GLO_CHAR 2
 #define GLO_INT  4
 #define GLO_LONG 8
+#define GLO_DOUBLE 16
 
 /* flags:
  *	bit 0 = 0 - no argument

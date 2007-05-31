@@ -34,7 +34,7 @@ typedef int (*func_synth_pent)(real *,int,unsigned char *);
 /* last headaches about getting mmx hardcode out */
 real init_layer3_gainpow2(int i);
 real* init_layer2_table(real *table, double m);
-void make_decode_tables(long scale);
+void make_decode_tables(scale_t scaleval);
 
 /* only 3dnow replaces that one, it's internal to layer3.c otherwise */
 void dct36(real *,real *,real *,real *,real *);

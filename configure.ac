@@ -93,6 +93,7 @@ AC_ARG_ENABLE(fifo,
 
 AC_ARG_WITH([cpu], [
   --with-cpu=generic[_fpu]      Use generic processor code with floating point arithmetic
+  --with-cpu=generic_float      A special build with generic fpu code that produces 32bit float output
   --with-cpu=generic_nofpu      Use generic processor code with fixed point arithmetic (p.ex. ARM, experimental)
   --with-cpu=i386[_fpu]         Use code optimized for i386 processors with floating point arithmetic
   --with-cpu=i386_nofpu         Use code optimized for i386 processors with fixed point arithmetic (experimental)
@@ -393,6 +394,9 @@ case $cpu_type in
   generic)
     CFLAGS="$CFLAGS -DOPT_GENERIC -DREAL_IS_FLOAT"
   ;;
+  generic_float)
+    CFLAGS="$CFLAGS -DOPT_GENERIC -DFLOATOUT -DNOXFERMEM -DREAL_IS_FLOAT"
+  ;;
   generic_fpu)
     CFLAGS="$CFLAGS -DOPT_GENERIC -DREAL_IS_FLOAT"
   ;;
@@ -444,7 +448,11 @@ case $cpu_type in
   ;;
 esac
 
-CPU_TYPE_LIB="libcpu_$cpu_type.a"
+if test $cpu_type = "generic_float"; then
+	CPU_TYPE_LIB="libcpu_generic.a"
+else
+	CPU_TYPE_LIB="libcpu_$cpu_type.a"
+fi
 AC_SUBST( CPU_TYPE_LIB )
 
 
@@ -503,8 +511,10 @@ AC_DEFINE_UNQUOTED(INDEX_SIZE, $seektable, [size of the frame index seek table])
 dnl ############## Audio Sub-system Settings
 
 # Choose audio subsystem based on what we have.
-
-if   test "x$HAVE_ALSA" = "xyes"; then
+if test $cpu_type = "generic_float"; then
+	audio_system="dummy"
+	AC_MSG_WARN( Defaulting to dummy output with float samples, as the audio device system cannot handle floats. )
+elif   test "x$HAVE_ALSA" = "xyes"; then
 	audio_system="alsa"
 elif test "x$HAVE_OSS" = "xyes"; then
 	audio_system="oss"
@@ -683,7 +693,12 @@ echo ")
   Seek table size ......... $seektable
   FIFO support ............ $fifo
 "
-  
+if test $cpu_type = "generic_float"; then
+	echo "You chose the generic build with 32bit float output.
+That means output via -s, -O or -w to a file/pipe and no buffer.
+"
+fi
+
 if test "$debugging" = "enabled"; then
 	echo "CFLAGS='$CFLAGS'"
 	echo "LIBS='$LIBS'"

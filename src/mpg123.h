@@ -138,8 +138,15 @@ typedef unsigned char byte;
 #define         MPG_MD_DUAL_CHANNEL     2
 #define         MPG_MD_MONO             3
 
+/* float output only for generic decoder! */
+#ifdef FLOATOUT
+#define MAXOUTBURST 1.0
+#define scale_t double
+#else
 /* I suspect that 32767 would be a better idea here, but Michael put this in... */
 #define MAXOUTBURST 32768
+#define scale_t long
+#endif
 
 /* Pre Shift fo 16 to 8 bit converter table */
 #define AUSHIFT (3)
@@ -417,7 +424,7 @@ extern struct parameter param;
 
 /* avoid the SIGINT in terminal control */
 void next_track(void);
-extern long outscale;
+extern scale_t outscale;
 
 #include "optimize.h"
 
