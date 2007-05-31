@@ -286,8 +286,7 @@ if test "$debugging" = "enabled"; then
 	CFLAGS="$CFLAGS -g"
 	# gcc specific...
 	if test "$GCC" = "yes"; then
-		# no -Werror until I fixed that SSE long-long stuff...
-		CFLAGS="$CFLAGS -Wall -pedantic -fno-strict-aliasing"
+		CFLAGS="$CFLAGS -Wall -Werror -pedantic -fno-strict-aliasing"
 	fi
 fi
 
