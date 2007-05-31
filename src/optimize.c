@@ -23,6 +23,9 @@ void list_cpu_opt()
 	#ifdef OPT_SSE
 	printf(" SSE");
 	#endif
+	#ifdef OPT_3DNOWEXT
+	printf(" 3DNowExt");
+	#endif
 	#ifdef OPT_3DNOW
 	printf(" 3DNow");
 	#endif
