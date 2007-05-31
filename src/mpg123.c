@@ -295,9 +295,9 @@ static void SetOutFile(char *Arg)
 {
 	param.outmode=DECODE_FILE;
 	#ifdef WIN32
-	OutputDescriptor=_open(Arg,_O_CREAT|_O_WRONLY|_O_BINARY,0);
+	OutputDescriptor=_open(Arg,_O_CREAT|_O_WRONLY|_O_BINARY|_O_TRUNC,0666);
 	#else
-	OutputDescriptor=open(Arg,O_CREAT|O_WRONLY,0);
+	OutputDescriptor=open(Arg,O_CREAT|O_WRONLY|O_TRUNC,0666);
 	#endif
 	if(OutputDescriptor==-1)
 	{
