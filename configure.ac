@@ -150,7 +150,7 @@ if test $asmalign_exp = "unknown"; then
 	AC_MSG_CHECKING([if .align takes 2-exponent])
 	asmalign_exp="no"
 	echo '.align 3' > conftest.s
-	if $CCAS -o conftest.o conftest.s; then
+	if $CCAS -c -o conftest.o conftest.s; then
 		asmalign_exp="yes"
 		AC_MSG_RESULT([yes])
 	else

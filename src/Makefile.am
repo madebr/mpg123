@@ -182,11 +182,30 @@ libcpu_3dnowext_a_SOURCES = \
 	tabinit_mmx.S \
 	decode_mmxsse.S
 
-libcpu_x86_a_SOURCES = \
+libcpu_x86_dither_a_SOURCES = \
 	decode.c \
 	decode_i386.c \
 	decode_i586.S \
 	decode_i586_dither.S \
+	decode_3dnow.S \
+	decode_mmx.S \
+	decode_mmxsse.S \
+	dct64.c \
+	dct64_i386.c \
+	dct64_sse.S \
+	dct64_mmx.S \
+	dct64_3dnow.S \
+	dct36_3dnow.S \
+	dct64_3dnowext.S \
+	dct36_3dnowext.S \
+	tabinit_mmx.S \
+	equalizer_3dnow.S \
+	getcpuflags.S
+
+libcpu_x86_a_SOURCES = \
+	decode.c \
+	decode_i386.c \
+	decode_i586.S \
 	decode_3dnow.S \
 	decode_mmx.S \
 	decode_mmxsse.S \
