@@ -172,7 +172,18 @@ AC_CHECK_FUNCS( sched_setscheduler )
 # Check for setpriority
 AC_CHECK_FUNCS( setpriority )
 
+AC_CHECK_FUNCS( mkfifo, [ have_mkfifo=yes ], [ have_mkfifo=no ] )
 
+if test $fifo = "auto"; then
+	if test $have_mkfifo = "yes"; then
+		fifo=yes
+	else
+		fifo=no
+	fi
+fi
+if test $fifo = "yes" && test $have_mkfifo = "no"; then
+	AC_MSG_WARN( [ You forced FIFO code while I think there is no mkfifo() available! ] )
+fi
 
 dnl ############## Library Checks
 
@@ -234,18 +245,6 @@ AC_CHECK_LIB( [asound], [snd_pcm_open],
 		[ AC_MSG_WARN([Found ALSA library but NOT header files on your system]) ] )
 	]
 )
-
-if test "x$fifo" = "xauto"; then
-case $target in
-	*-linux*)
-		AC_DEFINE(FIFO, 1, [ Define if FIFO support is enabled. ])
-		fifo=enabled
-	;;
-	*)
-		fifo=disabled
-	;;
-esac
-fi
 
 dnl ############## Header Checks
 

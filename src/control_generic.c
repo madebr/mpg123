@@ -126,7 +126,7 @@ int control_generic (struct frame *fr)
 			return 1;
 		}
 		unlink(param.fifo);
-		if(mknod(param.fifo, S_IFIFO|0666, 0) == -1)
+		if(mkfifo(param.fifo, 0666) == -1)
 		{
 			error2("Failed to create FIFO at %s (%s)", param.fifo, strerror(errno));
 			return 1;
