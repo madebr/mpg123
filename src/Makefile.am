@@ -105,7 +105,8 @@ EXTRA_LIBRARIES = \
 	libcpu_3dnowext.a \
 	libcpu_mmx.a \
 	libcpu_sse.a \
-	libcpu_x86.a
+	libcpu_x86.a \
+	libcpu_x86_dither.a
 
 libcpu_generic_a_SOURCES = \
 	decode.c \
