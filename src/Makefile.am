@@ -28,6 +28,7 @@ mpg123_SOURCES = \
 	common.h \
 	control_generic.c \
 	debug.h \
+	decode.h \
 	decode_2to1.c \
 	decode_4to1.c \
 	decode_ntom.c \
