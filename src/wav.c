@@ -125,6 +125,7 @@ static void long2bigendian(long inval,byte *outval,int b)
   }
 }
 
+#ifdef FLOATOUT
 static long from_little(byte *inval, int b)
 {
 	long ret = 0;
@@ -133,6 +134,7 @@ static long from_little(byte *inval, int b)
 
 	return ret;
 }
+#endif
 
 static int testEndian(void) 
 {
