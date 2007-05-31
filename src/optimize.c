@@ -65,8 +65,8 @@ void test_cpu_flags()
 		if(cpu_3dnow(cf)) printf(" 3dnow");
 		if(cpu_3dnowext(cf)) printf(" 3dnowext");
 		if(cpu_sse(cf)) printf(" sse");
-		if(cpu_sse2(cf)) printf(" sse2");
-		if(cpu_sse3(cf)) printf(" sse3");
+		/* not yet: if(cpu_sse2(cf)) printf(" sse2");
+		if(cpu_sse3(cf)) printf(" sse3"); */
 		printf("\n");
 	}
 	else
