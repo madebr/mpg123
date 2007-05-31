@@ -1,4 +1,4 @@
-.TH mpg123 1 "20 Oct 2006"
+.TH mpg123 1 "31 May 2007"
 .SH NAME
 mpg123 \- play audio MPEG 1.0/2.0/2.5 stream (layers 1, 2 and 3)
 .SH SYNOPSIS
@@ -35,6 +35,7 @@ options may be either the traditional POSIX one letter options,
 or the GNU style long options.  POSIX style options start with a
 single ``\-'', while GNU long options start with ``\-\^\-''.
 Option arguments (if needed) follow separated by whitespace (not ``='').
+Note that some options can be absent from your installation when disabled in the build process.
 .SH INPUT OPTIONS
 .TP
 \fB\-k \fInum\fR, \fB\-\^\-skip \fInum
@@ -118,6 +119,9 @@ by
 The output format per default is raw (headerless) linear PCM audio data,
 16 bit, stereo, host byte order (you can force mono or 8bit).
 .TP
+\fB\-O \fIfile\fR, \fB\-\^\-outfile
+Write raw output into a file (instead of simply redirecting standard output to a file with the shell).
+.TP
 \fB\-w \fIfile\fR, \fB\-\^\-wav
 Write output as WAV file. This will cause the MPEG stream to be decoded 
 and saved as file
@@ -144,6 +148,17 @@ to stdout.
 .TP
 .BR \-\-reopen
 Forces reopen of the audiodevice after ever song
+.TP
+.BR \-\-cpu \fIdecoder\-type
+Selects a certain decoder (optimized for specific CPU), for example i586 or MMX.
+The list of available decoders can vary; depending on the build and what your CPU supports.
+This options is only availabe when the build actually includes several optimized decoders
+.TP
+.BR \-\-test\-cpu
+Tests your CPU and prints a list of possible choices for \-\-cpu.
+.TP
+.BR \-\-list\-cpu
+Lists all available decoder choices, regardless of support by your CPU.
 .TP
 \fB\-g \fIgain\fR, \fB\-\^\-gain \fIgain
 Set audio hardware output gain (default: don't change).
@@ -220,6 +235,10 @@ whitespace.  They specify the multipliers for left and right channel of
 a certain frequency band, respectively.  The first line corresponds to the
 lowest, the 32nd to the highest frequency band.
 Note that you can control the equalizer interactively with the generic control interface.
+.TP
+\fB\-\^\-gapless
+Enable code that cuts (junk) samples at beginning and end of tracks, enabling gapless transitions between MPEG files when encoder padding and codec delays would prevent it.
+This will be enabled per default in some future.
 .TP
 .BR "\-o h" ", " \-\^\-headphones
 Direct audio output to the headphone connector (some hardware only; AIX, HP, SUN).
@@ -364,7 +383,7 @@ than one or two seconds.
 .SH NOTES
 MPEG audio decoding requires a good deal of CPU performance,
 especially layer-3.  To decode it in realtime, you should
-have at least a Pentium, Alpha, SuperSparc or equivalent
+have at least an i486DX4, Pentium, Alpha, SuperSparc or equivalent
 processor.  You can also use the
 .B -m
 option to decode mono only, which reduces the CPU load

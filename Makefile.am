@@ -4,7 +4,7 @@
 ## see COPYING and AUTHORS files in distribution or http://mpg123.de
 ## initially written by Nicholas J. Humfrey
 
-dist_man_MANS = mpg123.1
+dist_man_MANS = man1/mpg123.1
 
 SUBDIRS = src
 

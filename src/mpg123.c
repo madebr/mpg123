@@ -1190,13 +1190,22 @@ static void long_usage(int err)
 	fprintf(o,"        --au <f>           write samples as Sun AU file in <f> (- is stdout)\n");
 	fprintf(o,"        --cdr <f>          write samples as CDR file in <f> (- is stdout)\n");
 	fprintf(o,"        --reopen           force close/open on audiodevice\n");
+	#ifdef OPT_MULTI
+	fprintf(o,"        --cpu <string>     set cpu optimization\n");
+	fprintf(o,"        --test-cpu         display result of CPU features autodetect and exit\n");
+	fprintf(o,"        --list-cpu         list builtin optimizations and exit\n");
+	#endif
+	#ifdef OPT_3DNOW
+	fprintf(o,"        --test-3dnow       display result of 3DNow! autodetect and exit (obsoleted by --cpu)\n");
+	fprintf(o,"        --force-3dnow      force use of 3DNow! optimized routine (obsoleted by --test-cpu)\n");
+	fprintf(o,"        --no-3dnow         force use of floating-pointer routine (obsoleted by --cpu)\n");
+	#endif
 	fprintf(o," -g     --gain             set audio hardware output gain\n");
 	fprintf(o," -f <n> --scale <n>        scale output samples (soft gain, default=%g)\n", (double)outscale);
 	fprintf(o,"        --rva-mix,\n");
 	fprintf(o,"        --rva-radio        use RVA2/ReplayGain values for mix/radio mode\n");
 	fprintf(o,"        --rva-album,\n");
 	fprintf(o,"        --rva-audiophile   use RVA2/ReplayGain values for album/audiophile mode\n");
-	fprintf(o,"        --reopen           force close/open on audiodevice\n");
 	fprintf(o," -0     --left --single0   play only left channel\n");
 	fprintf(o," -1     --right --single1  play only right channel\n");
 	fprintf(o," -m     --mono --mix       mix stereo to mono\n");
@@ -1239,16 +1248,6 @@ static void long_usage(int err)
 	#endif
 	#ifdef HAVE_SCHED_SETSCHEDULER
 	fprintf(o," -T     --realtime         tries to get realtime priority\n");
-	#endif
-	#ifdef OPT_MULTI
-	fprintf(o,"        --cpu <string>     set cpu optimization\n");
-	fprintf(o,"        --test-cpu         display result of CPU features autodetect and exit\n");
-	fprintf(o,"        --list-cpu         list builtin optimizations and exit\n");
-	#endif
-	#ifdef OPT_3DNOW
-	fprintf(o,"        --test-3dnow       display result of 3DNow! autodetect and exit\n");
-	fprintf(o,"        --force-3dnow      force use of 3DNow! optimized routine\n");
-	fprintf(o,"        --no-3dnow         force use of floating-pointer routine\n");
 	#endif
 	fprintf(o," -?     --help             give compact help\n");
 	fprintf(o,"        --longhelp         give this long help listing\n");
