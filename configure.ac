@@ -312,6 +312,9 @@ case $target in
   *-*-linux*|*-*-kfreebsd*-gnu)
     cpu_type="generic_fpu"
   ;;
+  i686-apple-darwin*)
+    cpu_type="x86"
+  ;;
   *-apple-darwin*)
     AC_MSG_CHECKING([if CPU type supports AltiVec])
     case `machine` in
