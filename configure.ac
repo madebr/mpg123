@@ -250,8 +250,17 @@ dnl ############## Header Checks
 
 AC_HEADER_STDC
 dnl Is it too paranoid to specifically check for stdint.h and limits.h?
-AC_CHECK_HEADERS([stdlib.h string.h unistd.h sched.h sys/ioctl.h stdint.h limits.h sys/time.h sys/wait.h sys/resource.h])
+AC_CHECK_HEADERS([stdlib.h string.h unistd.h sched.h sys/ioctl.h stdint.h limits.h sys/time.h sys/wait.h sys/resource.h signal.h])
 
+# attempt to make the signal stuff work... also with GENERIC - later
+#if test $ac_cv_header_sys_signal_h = yes; then
+#	AC_CHECK_FUNCS( sigemptyset sigaddset sigprocmask sigaction )
+#	if test $ac_cv_func_sigemptyset = yes &&
+#	   test $ac_cv_func_sigaddset = yes &&
+#	   test $ac_cv_func_sigprocmask = yes &&
+#	   test $ac_cv_func_sigaction = yes; then
+#	AC_DEFINE( 
+#fi
 
 # OSS Header files: One of them is enough.
 AC_CHECK_HEADERS(sys/soundcard.h)
@@ -359,27 +368,27 @@ case $target in
 	i386-*)
 		AC_MSG_WARN([Unknown target operating system])
 		cpu_type="i386"
-		CFLAGS="-DGENERIC $CFLAGS"
+		CFLAGS="-DGENERIC -DNOXFERMEM $CFLAGS"
 	;;
 	i486-*)
 		AC_MSG_WARN([Unknown target operating system])
 		cpu_type="i486"
-		CFLAGS="-DGENERIC $CFLAGS"
+		CFLAGS="-DGENERIC -DNOXFERMEM $CFLAGS"
 	;;
 	i586-*)
 		AC_MSG_WARN([Unknown target operating system])
 		cpu_type="i586"
-		CFLAGS="-DGENERIC $CFLAGS"
+		CFLAGS="-DGENERIC -DNOXFERMEM $CFLAGS"
 	;;
 	i686-*)
 		AC_MSG_WARN([Unknown target operating system])
 		cpu_type="x86"
-		CFLAGS="-DGENERIC $CFLAGS"
+		CFLAGS="-DGENERIC -DNOXFERMEM $CFLAGS"
 	;;
   *)
   	AC_MSG_WARN([Unknown target operating system])
     cpu_type="generic_fpu"
-    CFLAGS="-DGENERIC $CFLAGS"
+    CFLAGS="-DGENERIC -DNOXFERMEM $CFLAGS"
   ;;
 esac
 
