@@ -345,6 +345,9 @@ case $target in
     cpu_type="generic_fpu"
     LIBS="$LIBS -lsocket -lnsl"
   ;;
+  *-dec-osf*)
+    cpu_type="generic_fpu"
+  ;;
   i686-pc-cygwin*)
     cpu_type="x86"
   ;;
