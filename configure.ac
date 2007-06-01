@@ -177,6 +177,7 @@ AC_CHECK_FUNCS( mkfifo, [ have_mkfifo=yes ], [ have_mkfifo=no ] )
 if test $fifo = "auto"; then
 	if test $have_mkfifo = "yes"; then
 		fifo=yes
+		AC_DEFINE(FIFO, 1, [ Define if FIFO support is enabled. ])
 	else
 		fifo=no
 	fi

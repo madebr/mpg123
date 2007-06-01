@@ -4,13 +4,17 @@ The generic remote interface allows frontends to easily control
 mpg123 by commands through stdin/stdout. To start the generic
 remote interface, start mpg123 with parameter -R.
 
-In case of a frontend that starts mpg123 with the -s option to read the audio from stdout, you may want to specify --remote-err to send responses to stderr so that stdout stays clean for audio.
+In case of a frontend that starts mpg123 with the -s option to read the audio from stdout, the --remote-err option is automatically activated to send responses to stderr so that stdout stays clean for audio.
 
 (Still the case?)
 As an example it's used by IRMP3, a tool that allows you to
 control mpg123 with a standard infrared remote control. See
 http://www.fasta.fh-dortmund.de/users/andy/irmp3/ for more
 information.
+
+You can also specify --fifo <path> to create a named pipe at <path> and listen on that for commands instead stdin.
+That way, you can deliberately control mpg123 by echoing into the named pipe from any terminal / program.
+The command respones are still sent to standard out or standard error (depending on -s or --remote-err switches).
 
 
 COMMAND CODES
@@ -100,6 +104,22 @@ Note: mpg123 returns errors on stderr, so your frontend should
 			Errors may be also reported by mpg123 through
 			stderr (without @E)
 			a = error message (string)
+
+@J <n>
+			Jumped to frame n.
+
+@RVA <mode>
+			Switched to specified RVA mode.
+
+@V <volume>%
+			Set volume to specified value (float, percent).
+
+@<x> : <y> : <z>
+			Set equalizer value z for band y of channel x.
+
+@bass: <b> mid: <m> treble: <t>
+			Set simple equalizer control for bass, mid, treble.
+
 
 Info about the equalizer control:
 

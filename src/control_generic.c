@@ -117,6 +117,9 @@ int control_generic (struct frame *fr)
 #else /* perhaps just use setvbuf as it's C89 */
 	setvbuf(outstream, (char*)NULL, _IOLBF, 0);
 #endif
+	/* the command behaviour is different, so is the ID */
+	/* now also with version for command availability */
+	fprintf(outstream, "@R MPG123 (ThOr) v2\n");
 #ifdef FIFO
 	if(param.fifo)
 	{
@@ -136,9 +139,6 @@ int control_generic (struct frame *fr)
 		debug("opened");
 	}
 #endif
-	/* the command behaviour is different, so is the ID */
-	/* now also with version for command availability */
-	fprintf(outstream, "@R MPG123 (ThOr) v2\n");
 
 	while (alive)
 	{
