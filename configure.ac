@@ -467,7 +467,11 @@ if test "x$with_optimization" = "x"; then
 		with_optimization="0"
 	else
 		# enable (gcc specific) default opts only with gcc
-		test "$GCC" = yes && with_optimization="2"
+		if test "$GCC" = yes; then
+			with_optimization="2"
+		else
+			with_optimization="0"
+		fi
 	fi
 fi
 
@@ -699,7 +703,10 @@ if test $cpu_type = "generic_float"; then
 That means output via -s, -O or -w to a file/pipe and no buffer.
 "
 fi
-
+if test $with_optimization = "0"; then
+	echo "No optimization flags chosen, make sure you have something basic in your CFLAGS at least...
+"
+fi
 if test "$debugging" = "enabled"; then
 	echo "CFLAGS='$CFLAGS'"
 	echo "LIBS='$LIBS'"
