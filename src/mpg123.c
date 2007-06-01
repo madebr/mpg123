@@ -12,10 +12,13 @@
 #include "mpg123.h"
 
 #include <stdlib.h>
-#include <sys/types.h>
-#if !defined(WIN32) && !defined(GENERIC)
+#ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
+#endif
+#ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
+#endif
+#ifdef HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
 #endif
 
@@ -26,6 +29,11 @@
 
 #ifdef HAVE_SCHED_H
 #include <sched.h>
+#endif
+
+/* be paranoid about setpriority support */
+#ifndef PRIO_PROCESS
+#undef HAVE_SETPRIORIT
 #endif
 
 #include "common.h"
