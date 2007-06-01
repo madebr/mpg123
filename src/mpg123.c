@@ -316,6 +316,7 @@ static void SetOutFile(char *Arg)
 static void SetOutStdout(char *Arg)
 {
 	param.outmode=DECODE_FILE;
+	param.remote_err=TRUE;
 	OutputDescriptor=STDOUT_FILENO;
 	#ifdef WIN32
 	_setmode(STDOUT_FILENO, _O_BINARY);
@@ -324,6 +325,7 @@ static void SetOutStdout(char *Arg)
 static void SetOutStdout1(char *Arg)
 {
   param.outmode=DECODE_AUDIOFILE;
+	param.remote_err=TRUE;
   OutputDescriptor=STDOUT_FILENO;
 	#ifdef WIN32
 	_setmode(STDOUT_FILENO, _O_BINARY);
@@ -1200,7 +1202,7 @@ static void long_usage(int err)
 	fprintf(o,"        --reopen           force close/open on audiodevice\n");
 	#ifdef OPT_MULTI
 	fprintf(o,"        --cpu <string>     set cpu optimization\n");
-	fprintf(o,"        --test-cpu         display result of CPU features autodetect and exit\n");
+	fprintf(o,"        --test-cpu         list optmizations possible with cpu and exit\n");
 	fprintf(o,"        --list-cpu         list builtin optimizations and exit\n");
 	#endif
 	#ifdef OPT_3DNOW
@@ -1247,9 +1249,9 @@ static void long_usage(int err)
 	#endif
 	fprintf(o,"        --long-tag         spacy id3 display with every item on a separate line\n");
 	fprintf(o," -R     --remote           generic remote interface\n");
-	fprintf(o,"        --remote-err       use stderr for generic remote interface\n");
+	fprintf(o,"        --remote-err       force use of stderr for generic remote interface\n");
 #ifdef FIFO
-	fprintf(o,"        --fifo <path>      open a FIFO at <path> for commands instead of STDIN\n");
+	fprintf(o,"        --fifo <path>      open a FIFO at <path> for commands instead of stdin\n");
 #endif
 	#ifdef HAVE_SETPRIORITY
 	fprintf(o,"        --aggressive       tries to get higher priority (nice)\n");

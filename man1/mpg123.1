@@ -1,4 +1,4 @@
-.TH mpg123 1 "31 May 2007"
+.TH mpg123 1 "1 Jan 2007"
 .SH NAME
 mpg123 \- play audio MPEG 1.0/2.0/2.5 stream (layers 1, 2 and 3)
 .SH SYNOPSIS
@@ -149,10 +149,10 @@ to stdout.
 .BR \-\-reopen
 Forces reopen of the audiodevice after ever song
 .TP
-.BR \-\-cpu \fIdecoder\-type
+.BR \-\-cpu\ \fIdecoder\-type
 Selects a certain decoder (optimized for specific CPU), for example i586 or MMX.
 The list of available decoders can vary; depending on the build and what your CPU supports.
-This options is only availabe when the build actually includes several optimized decoders
+This options is only availabe when the build actually includes several optimized decoders.
 .TP
 .BR \-\-test\-cpu
 Tests your CPU and prints a list of possible choices for \-\-cpu.
@@ -166,11 +166,11 @@ Set audio hardware output gain (default: don't change).
 \fB\-f \fIfactor\fR, \fB\-\^\-scale \fIfactor
 Change scale factor (default: 32768).
 .TP
-.BR \-\-rva-mix, \-\-rva-radio
+.BR \-\-rva-mix,\ \-\-rva-radio
 Enable RVA (relative volume adjustment) using the values stored for ReplayGain radio mode / mix mode with all tracks roughly equal loudness.
 The first valid information found in ID3V2 Tags (Comment named RVA or the RVA2 frame) or ReplayGain header in Lame/Info Tag is used.
 .TP
-.BR \-\-rva-album, \-\-rva-audiophile
+.BR \-\-rva-album,\ \-\-rva-audiophile
 Enable RVA (relative volume adjustment) using the values stored for ReplayGain audiophile mode / album mode with usually the effect of adjusting album loudness but keeping relative loudness inside album.
 The first valid information found in ID3V2 Tags (Comment named RVA_ALBUM or the RVA2 frame) or ReplayGain header in Lame/Info Tag is used.
 .TP
@@ -298,12 +298,10 @@ will then read and execute commands from stdin. Basic usage is ``load <filename>
 Issue ``help'' to get a full list of commands and syntax.
 .TP
 .BR \-\^\-remote\-err
-Print responses for generic control mode to stderr, not stdout.
-That is extremely useful when you want to grab the audio via 
+Print responses for generic control mode to standard error, not standard out.
+This is automatically triggered when using 
 .B -s
-... (in future, that may be automatically triggered when you specify
-.B -s
-)
+\fN.
 .TP
 \fB\-\-fifo \fIpath
 Create a fifo / named pipe on the given path and use that for reading commands instead of standard input.
@@ -439,7 +437,6 @@ Michael Hipp
 .TP
 Uses code or ideas from various people, see the AUTHORS file accompanying the source code.
 .SH LICENSE
-The majority of
 .B mpg123
 is licensed under the GNU Lesser/Library General Public License, LGPL, version 2.1 .
 .SH WEBSITE
