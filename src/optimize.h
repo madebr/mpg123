@@ -2,7 +2,7 @@
 	optimize: get a grip on the different optimizations
 
 	copyright 2006 by the mpg123 project - free software under the terms of the LGPL 2.1
-	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis, taking from mpg123.[hc]
 
 	for building mpg123 with one optimization only, you have to choose exclusively between

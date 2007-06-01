@@ -2,7 +2,7 @@
 	layer2.c: the layer 2 decoder, root of mpg123
 
 	copyright 1994-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
-	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp
 
 	mpg123 started as mp2 decoder a long time ago...

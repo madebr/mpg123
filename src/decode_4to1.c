@@ -2,7 +2,7 @@
 	decode_4to1.c: ...with 4to1 downsampling / decoding of every 4th sample
 
 	copyright 1995-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
-	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp
 
 	dunno why it sounds THIS annoying (maybe we should adapt the window?)

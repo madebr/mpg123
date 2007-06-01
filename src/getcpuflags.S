@@ -2,7 +2,7 @@
 	getcpucpuflags: get cpuflags for ia32
 
 	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
-	see COPYING and AUTHORS files in distribution or http:#mpg123.de
+	see COPYING and AUTHORS files in distribution or http:#mpg123.org
 	initially written by KIMURA Takuhiro (for 3DNow!)
 	extended for general use by Thomas Orgis
 

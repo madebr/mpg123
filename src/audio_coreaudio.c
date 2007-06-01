@@ -2,7 +2,7 @@
 	audio_macosx: audio output on MacOS X
 
 	copyright ?-2006 by the mpg123 project - free software under the terms of the GPL 2
-	see COPYING and AUTHORS files in distribution or http://mpg123.de
+	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Guillaume Outters
 	modified by Nicholas J Humfrey to use SFIFO code
 	modified by Taihei Monma to use AudioUnit and AudioConverter APIs
