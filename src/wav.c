@@ -158,7 +158,7 @@ static int testEndian(void)
 
 static int open_file(char *filename)
 {
-#if !defined(GENERIC) && !defined(__WIN32__)
+#if defined(HAVE_SETUID) && defined(HAVE_GETUID)
    setuid(getuid()); /* dunno whether this helps. I'm not a security expert */
 #endif
    if(!strcmp("-",filename))  {

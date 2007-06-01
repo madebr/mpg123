@@ -167,7 +167,7 @@ dnl ############## Function Checks
 AC_FUNC_MMAP
 
 # Check for sched_setscheduler
-AC_CHECK_FUNCS( sched_setscheduler )
+AC_CHECK_FUNCS( sched_setscheduler setuid getuid)
 
 # Check for setpriority
 AC_CHECK_FUNCS( setpriority )
