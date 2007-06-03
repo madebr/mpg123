@@ -136,6 +136,19 @@ int set_cpu_opt()
 		   && cpu_3dnowext(cf)
 		   && cpu_mmx(cf) )
 		{
+			int go = 1;
+			if(param.force_rate)
+			{
+				#ifdef PENTIUM_FALLBACK
+				if(!auto_choose) error("I refuse to choose 3DNowExt as this will screw up with forced rate!");
+				else if(param.verbose) fprintf(stderr, "Note: Not choosing 3DNowExt because flexible rate not supported.\n");
+
+				go = 0;
+				#else
+				error("You will hear some awful sound because of flexible rate being chosen with SSE decoder!");
+				#endif
+			}
+			if(go){ /* temporary hack for flexible rate bug, not going indent this - fix it instead! */
 			chosen = "3DNowExt";
 			cpu_opts.dct36 = dct36_3dnowext;
 			cpu_opts.synth_1to1 = synth_1to1_sse;
@@ -146,6 +159,7 @@ int set_cpu_opt()
 			cpu_opts.init_layer2_table    = init_layer2_table_mmx;
 			cpu_opts.mpl_dct64 = dct64_3dnowext;
 			done = 1;
+			}
 		}
 		#endif
 		#ifdef OPT_SSE
@@ -156,7 +170,8 @@ int set_cpu_opt()
 			if(param.force_rate)
 			{
 				#ifdef PENTIUM_FALLBACK
-				if(param.verbose) fprintf(stderr, "Note: Not choosing SSE because flexible rate not supported.\n");
+				if(!auto_choose) error("I refuse to choose SSE as this will screw up with forced rate!");
+				else if(param.verbose) fprintf(stderr, "Note: Not choosing SSE because flexible rate not supported.\n");
 
 				go = 0;
 				#else
@@ -181,8 +196,8 @@ int set_cpu_opt()
 		/* TODO: make autodetection for _all_ x86 optimizations (maybe just for i586+ and keep separate 486 build?) */
 		/* check cpuflags bit 31 (3DNow!) and 23 (MMX) */
 		if(   !done && (auto_choose || !strcasecmp(param.cpu, "3dnow"))
-	  	 && (param.stat_3dnow < 2)
-	  	 && ((param.stat_3dnow == 1) || (cpu_3dnow(cf) && cpu_mmx(cf))))
+			 && (param.stat_3dnow < 2)
+			 && ((param.stat_3dnow == 1) || (cpu_3dnow(cf) && cpu_mmx(cf))))
 		{
 			chosen = "3DNow";
 			cpu_opts.dct36 = dct36_3dnow; /* 3DNow! optimized dct36() */
@@ -199,7 +214,8 @@ int set_cpu_opt()
 			if(param.force_rate)
 			{
 				#ifdef PENTIUM_FALLBACK
-				if(param.verbose) fprintf(stderr, "Note: Not choosing MMX because flexible rate not supported.\n");
+				if(!auto_choose) error("I refuse to choose MMX as this will screw up with forced rate!");
+				else if(param.verbose) fprintf(stderr, "Note: Not choosing MMX because flexible rate not supported.\n");
 
 				go = 0;
 				#else
