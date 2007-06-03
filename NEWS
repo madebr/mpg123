@@ -1,7 +1,27 @@
-to-be 0.66
+0.66
 ----
 
- - merged optimization build
+- support for a combined build of x86 optimizations and runtime selection among these
+  The (supposedly) "highest" CPU-supported optimization is chosen by default,
+  --cpu, --list-cpu and --test-cpu parameters are there for you to take control.
+- default build for x86 systems is combined "x86" with generic, i386, i586, MMX, 3DNow, SSE, 3DNowExt;
+  "x86_dither" also includes the dithering i586 decoder
+- no automatic -march compiler flags anymore;
+  the --with-cpu configure option selects specific assembler code but special CFLAGS are up to you
+- extended 3DNow and SSE optmizations from MPlayer's mp3lib
+- x86 assembler optimizations adapted for MacOS X/Intel
+- straight support for Windows using MinGW32, reactivated the native WinMM output
+  Core functionality including assembler optmimizations and WAV writing is there.
+- assembler optimizations also for cygwin
+- set remote-err automatically when putting audio to stdout
+- a bit more general portability in the new build system
+- fix file creation mode for -O
+- experimental decoding to 32bit float (raw and WAV file): ./configure --with-cpu=generic_float
+- generic control interface (-R) can create and read from a named pipe, parameter --fifo <path>
+- audio bugfix: playback of mono file on stereo-only hardware, better error reporting there
+- ALSA output handling underruns
+- MMX, SSE and 3DNowExt fallback to i586 and below or 3Dnow for forced sample rate
+- more terminal control: volume, RVA and verbosity controls
 
 0.65
 ----
