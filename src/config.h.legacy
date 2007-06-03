@@ -1,6 +1,9 @@
 /* basic config.h to reproduce pre-autoconf days */
 
 #define HAVE_SYS_TYPES_H 1
+#define HAVE_SYS_WAIT_H
+#define HAVE_SYS_TIME_H
+#define HAVE_SYS_RESOURCE_H
 
 /* little automagic on its own for OSS header */
 #ifdef LINUX
