@@ -1,6 +1,6 @@
 * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *   mpg123 - MPEG 1.0/2.0/2.5 audio player            *
-*   README for version 0.6x, dated at 24.05.2007      *
+*   README for version 0.6x, dated at 03.06.2007      *
 *                                                     *
 * ...still the fastest MPEG audio player for UNIX ;)  *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -21,7 +21,7 @@ Project's official website URL is
 	http://mpg123.org
 (or http://mpg123.orgis.org as fallback address if there is a problem with the DNS forwarding)
 
-for the traditional hope page and
+for the traditional home page and
 
 	http://sourceforge.net/projects/mpg123
 
@@ -167,12 +167,12 @@ Code is copyrighted by Michael Hipp, who made it free software under the terms o
 
 Please see doc/ROAD_TO_LGPL, COPYING and AUTHORS for details on that. Note that the only notable legacy non-LGPL file was the old alsa output that didn't work with alsa 0.9/1.0 anymore.
 Also, there has been a libao output in the betas 0.60 for a short period. Libao being generally problematic for us because of its GPL license, this output is not distributed anymore in the release packages. There is now a new, LGPLed alsa output that made both the old alsa and libao obsolete for our purposes.
-So, the distributed mpg123 releases actually only contains LGPL code, but you get the other files from our subversion repository if you checkout the trunk / version tags.
+So, the distributed mpg123 releases actually only contain LGPL code, but you get the other files from our subversion repository if you checkout the trunk / version tags.
 
 There has been quite some confusion about the licensing and "freeness" of mpg123 in the past.
 The initial "free for private use, ask me when you want to do something commercial" license caused some people to avoid mpg123 and even to write a replacement mimicking the interface but using a different decoding engine - what was not actively developed for too long but entered the "free" software sections.
 
-The Debian (non-free section) and Gentoo distributions cared about the last stable and the last development release of mpg123 over the years with mainly  applying security fixes. Thanks go to the distribution maintainers for not letting it alone to bitrot over the years.
+The Debian (non-free section) and Gentoo distributions cared about the last stable and the last development release of mpg123 over the years with mainly applying security fixes. Thanks go to the distribution maintainers for not letting it alone to bitrot over the years.
 
 Thomas Orgis started to hack on mpg123 in 2004 while working on his personal audio experience with mixplayd and later DerMixD, utilizing the generic control interface. In Feb 2005, he crammed control interface improvements together with Debian's r19 fixes and released the personal fork/patch named mpg123-thor.
 Little later that year, Nicholas J. Humphrey independently created the sourceforge project and released an autotooled 0.59r under official GPL flag with Debian and MacOSX fixes.
