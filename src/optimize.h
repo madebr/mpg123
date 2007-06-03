@@ -207,6 +207,7 @@ extern real decwin[512+32];
 /* 3dnow used to use synth_1to1_i586 for mono / 8bit conversion - was that intentional? */
 /* I'm trying to skip the pentium code here ... until I see that that is indeed a bad idea */
 #ifdef OPT_3DNOW
+	#define K6_FALLBACK /* a fallback for 3DNowExt */
 	#define OPT_X86
 	void dct36_3dnow(real *,real *,real *,real *,real *);
 	int synth_1to1_3dnow(real *,int,unsigned char *,int *);

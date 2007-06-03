@@ -139,7 +139,7 @@ int set_cpu_opt()
 			int go = 1;
 			if(param.force_rate)
 			{
-				#ifdef PENTIUM_FALLBACK
+				#if defined(K6_FALLBACK) || defined(PENTIUM_FALLBACK)
 				if(!auto_choose) error("I refuse to choose 3DNowExt as this will screw up with forced rate!");
 				else if(param.verbose) fprintf(stderr, "Note: Not choosing 3DNowExt because flexible rate not supported.\n");
 
