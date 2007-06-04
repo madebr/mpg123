@@ -13,9 +13,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 
-#include "config.h"
 #include "mpg123.h"
-#include "debug.h"
 
 #ifdef HAVE_LINUX_SOUNDCARD_H
 #include <linux/soundcard.h>

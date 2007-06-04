@@ -23,12 +23,10 @@
 #include <errno.h>
 
 
-#include "config.h"
 #include "mpg123.h"
 #include "common.h"
 #include "buffer.h"
 #include "icy.h"
-#include "debug.h"
 #ifdef GAPLESS
 #include "layer3.h"
 struct audio_info_struct pre_ai;

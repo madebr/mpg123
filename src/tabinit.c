@@ -8,9 +8,7 @@
 
 #include <stdlib.h>
 
-#include "config.h"
 #include "mpg123.h"
-#include "debug.h"
 
 static unsigned char *conv16to8_buf = NULL;
 unsigned char *conv16to8;

@@ -12,8 +12,6 @@
 
 #include <SDL.h>
 
-#include "config.h"
-#include "debug.h"
 #include "audio.h"
 #include "sfifo.h"
 #include "mpg123.h"

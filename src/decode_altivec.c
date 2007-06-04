@@ -11,7 +11,6 @@
 #include <math.h>
 #include <string.h>
 
-#include "config.h"
 #include "mpg123.h"
 
 #ifndef __APPLE__

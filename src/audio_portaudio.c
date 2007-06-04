@@ -12,11 +12,9 @@
 
 #include <portaudio.h>
 
-#include "config.h"
 #include "audio.h"
 #include "sfifo.h"
 #include "mpg123.h"
-#include "debug.h"
 
 #ifdef WIN32
 #include <windows.h>

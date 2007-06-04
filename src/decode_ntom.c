@@ -10,9 +10,7 @@
 #include <math.h>
 #include <string.h>
 
-#include "config.h"
 #include "mpg123.h"
-#include "debug.h"
 #include "decode.h"
 
 #define NTOM_MUL (32768)

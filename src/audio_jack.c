@@ -13,9 +13,7 @@
 #include <jack/jack.h>
 #include <jack/ringbuffer.h>
 
-#include "config.h"
 #include "mpg123.h"
-#include "debug.h"
 
 #define MAX_CHANNELS	(2)
 

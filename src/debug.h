@@ -10,8 +10,6 @@
 	trivially written by Thomas Orgis <thomas@orgis.org>
 */
 
-#include "config.h"
-
 /*
 	I could do that with variadic macros available:
 	#define sdebug(me, s) fprintf(stderr, "[location] " s "\n")

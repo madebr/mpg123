@@ -6,8 +6,6 @@
 	initially written by Michael Hipp
 */
 
-#include "config.h"
-#include "debug.h"
 #define ME "main"
 #include "mpg123.h"
 
@@ -126,10 +124,12 @@ static int intflag = FALSE;
 int OutputDescriptor;
 
 #if !defined(WIN32) && !defined(GENERIC)
+#ifndef NOXFERMEM
 static void catch_child(void)
 {
   while (waitpid(-1, NULL, WNOHANG) > 0);
 }
+#endif
 
 static void catch_interrupt(void)
 {

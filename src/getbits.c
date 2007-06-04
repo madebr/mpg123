@@ -6,7 +6,6 @@
 	initially written by Michael Hipp
 */
 
-#include "config.h"
 #include "mpg123.h"
 #include "common.h"
 

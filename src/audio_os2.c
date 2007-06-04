@@ -17,7 +17,6 @@
 
 /* I guess this #ifndef could be removed now... */
 #ifndef MPG123_INCLUDED
-#include "config.h"
 #include "mpg123.h"
 #endif
 

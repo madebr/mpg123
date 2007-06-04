@@ -9,7 +9,6 @@
 */
 
 
-#include "config.h"
 #include "mpg123.h"
 #include "l2tables.h"
 

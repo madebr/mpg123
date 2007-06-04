@@ -8,10 +8,8 @@
 	If we officially support Windows again, we should have this reworked to really cope with Windows paths, too.
 */
 
-#include "config.h"
 #include "mpg123.h"
 #include "getlopt.h" /* for loptind */
-#include "debug.h"
 #include "term.h" /* for term_restore */
 #include "playlist.h"
 

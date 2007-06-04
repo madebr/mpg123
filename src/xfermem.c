@@ -9,7 +9,6 @@
 	See xfermem.h for documentation/description.
 */
 
-#include "config.h"
 
 #ifndef NOXFERMEM
 

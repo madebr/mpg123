@@ -6,7 +6,8 @@
 	initially written by Michael Hipp
 */
 
-#include "config.h"
+#include "mpg123.h"
+
 #ifdef HAVE_TERMIOS
 
 #include <termios.h>
@@ -15,8 +16,6 @@
 #include <sys/time.h>
 #include <sys/types.h>
 
-#include "debug.h"
-#include "mpg123.h"
 #include "buffer.h"
 #include "term.h"
 #include "common.h"

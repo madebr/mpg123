@@ -20,12 +20,10 @@
 
 #include <fcntl.h>
 
-#include "config.h"
 #include "mpg123.h"
 #include "id3.h"
 #include "icy.h"
 #include "common.h"
-#include "debug.h"
 
 #ifdef WIN32
 #include <winsock.h>

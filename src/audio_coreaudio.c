@@ -9,8 +9,6 @@
 */
 
 
-#include "config.h"
-#include "debug.h"
 #include "sfifo.h"
 #include "mpg123.h"
 

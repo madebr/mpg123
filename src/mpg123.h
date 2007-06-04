@@ -9,6 +9,10 @@
 	used source: musicout.h from mpegaudio package
 */
 
+/* everyone needs it */
+#include "config.h"
+#include "debug.h"
+
 #include        <stdio.h>
 #include        <string.h>
 #include        <signal.h>

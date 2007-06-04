@@ -1,6 +1,4 @@
 #include <stdlib.h>
-#include "config.h"
-#include "debug.h"
 #include "mpg123.h"
 #include "common.h"
 #include "stringbuf.h"

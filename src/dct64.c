@@ -17,7 +17,6 @@
  *       (in these modes the bands 16-31 (2:1) or 8-31 (4:1) are zero 
  */
 
-#include "config.h"
 #include "mpg123.h"
 
 void dct64(real *out0,real *out1,real *samples)
