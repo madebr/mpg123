@@ -21,11 +21,11 @@ die "test MP3 file does not exist" unless (-e $TEST_FILE);
 $|=1;
 
 # Check the CPUs available
-my $cpulist = `$MPG123_CMD --list-cpu`;
+my $cpulist = `$MPG123_CMD --test-cpu`;
 chomp( $cpulist );
-die "Failed to get list of available CPU optimisations" unless ($cpulist =~ /^CPU options: /);
+die "Failed to get list of available CPU optimisations" unless ($cpulist =~ s/^Supported decoders: //);
 
-my @cpus = split( / /, substr( $cpulist, 13 ) );
+my @cpus = split( / /, $cpulist );
 printf("Found %d CPU optimisations to test...\n\n", scalar(@cpus) );
 
 foreach my $cpu (@cpus) {
