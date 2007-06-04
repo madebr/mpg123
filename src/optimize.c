@@ -20,11 +20,11 @@ struct_opts cpu_opts;
 void list_cpu_opt()
 {
 	printf("CPU options:");
-	#ifdef OPT_SSE
-	printf(" SSE");
-	#endif
 	#ifdef OPT_3DNOWEXT
 	printf(" 3DNowExt");
+	#endif
+	#ifdef OPT_SSE
+	printf(" SSE");
 	#endif
 	#ifdef OPT_3DNOW
 	printf(" 3DNow");
@@ -63,11 +63,11 @@ void test_cpu_flags()
 		printf("Supported decoders:");
 		/* not yet: if(cpu_sse2(cf)) printf(" SSE2");
 		if(cpu_sse3(cf)) printf(" SSE3"); */
-#ifdef OPT_SSE
-		if(cpu_sse(cf)) printf(" SSE");
-#endif
 #ifdef OPT_3DNOWEXT
 		if(cpu_3dnowext(cf)) printf(" 3DNowExt");
+#endif
+#ifdef OPT_SSE
+		if(cpu_sse(cf)) printf(" SSE");
 #endif
 #ifdef OPT_3DNOW
 		if(cpu_3dnow(cf)) printf(" 3DNow");
