@@ -12,6 +12,12 @@
 
 #include "config.h"
 
+#ifdef CCALIGN
+#define MOVUAPS movaps
+#else
+#define MOVUAPS movups
+#endif
+
 #ifdef ASMALIGN_EXP
 #define ALIGN4  .align 2
 #define ALIGN8  .align 3

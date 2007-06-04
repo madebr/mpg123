@@ -141,7 +141,7 @@ AC_ARG_WITH([seektable], [
   --with-seektable=<size> choose size of seek index table (0 disables it), default 1000
 ])
 
-dnl ############## Assembler properties
+dnl ############## Assembler, compiler properties
 
 # based on posting from John Dalgliesh <johnd@defyne.org> on ffmpeg (LGPL) mailing list
 # find if .align arg is power-of-two or not
@@ -160,6 +160,23 @@ if test $asmalign_exp = "unknown"; then
 fi
 if test $asmalign_exp = "yes"; then
 	AC_DEFINE(ASMALIGN_EXP, 1, [ Define if .align takes 3 for alignment of 2^3=8 bytes instead of 8. ])
+fi
+
+ccalign="unknown"
+if test $ccalign = "unknown"; then
+	AC_MSG_CHECKING([__attribute__((aligned(16)))])
+	ccalign="no"
+	echo '__attribute__((aligned(16))) float var;' > conftest.c
+	if $CC -c -o conftest.o conftest.c; then
+		ccalign="yes"
+		AC_MSG_RESULT([yes])
+	else
+		AC_MSG_RESULT([no])
+	fi
+	rm -f conftest.o conftest.c
+fi
+if test $ccalign = "yes"; then
+	AC_DEFINE(CCALIGN, 1, [ Define if __attribute__((aligned(16))) works ])
 fi
 
 dnl ############## Function Checks

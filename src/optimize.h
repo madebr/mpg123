@@ -20,6 +20,13 @@
 	I still have to examine the dynamics of this here together with REAL_IS_FIXED.
 */
 
+/* this is included in mpg123.h, which includes config.h */
+#ifdef CCALIGN
+#define aligned(a) __attribute__((aligned(a)))
+#else
+#define aligned(a)
+#endif
+
 /* the optimizations only cover the synth1to1 mode and the dct36 function */
 /* the first two types are needed in set_synth_functions regardless of optimizations */
 typedef int (*func_synth)(real *,int,unsigned char *,int *);

@@ -121,7 +121,7 @@ int do_layer1(struct frame *fr,int outmode,struct audio_info_struct *ai)
   int i,stereo = fr->stereo;
   unsigned int balloc[2*SBLIMIT];
   unsigned int scale_index[2][SBLIMIT];
-  real fraction[2][SBLIMIT];
+  real aligned(16) fraction[2][SBLIMIT];
   int single = fr->single;
 
   fr->jsbound = (fr->mode == MPG_MD_JOINT_STEREO) ? (fr->mode_ext<<2)+4 : 32;
