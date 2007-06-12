@@ -31,7 +31,7 @@
 
 /* be paranoid about setpriority support */
 #ifndef PRIO_PROCESS
-#undef HAVE_SETPRIORIT
+#undef HAVE_SETPRIORITY
 #endif
 
 #include "common.h"
