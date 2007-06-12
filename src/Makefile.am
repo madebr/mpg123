@@ -226,5 +226,5 @@ libcpu_x86_a_SOURCES = \
 
 # explicit preprocessing since mingw32 does not honor the big .S
 .S.o:
-	$(CPP) $(CPPFLAGS) $< > $<.s
+	$(CPP) $(AM_CPPFLAGS) $(DEFAULT_INCLUDES) $(CPPFLAGS) $< > $<.s
 	$(CCAS) $(CCASFLAGS) -c -o $@ $<.s && rm $<.s
