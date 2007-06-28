@@ -69,9 +69,18 @@ char *get_next_file()
 	/* normal order, just pick next thing */
 	if(param.shuffle < 2)
 	{
-		if(pl.pos < pl.fill) newfile = pl.list[pl.pos].url;
-		else newfile = NULL;
-		++pl.pos;
+		do
+		{
+			if(pl.pos < pl.fill) newfile = pl.list[pl.pos].url;
+			else newfile = NULL;
+			/* if we have rounds left, decrease loop, else reinit loop because it's a new track */
+			if(pl.loop > 0) --pl.loop; /* loop for current track... */
+			if(pl.loop == 0)
+			{
+				pl.loop = param.loop;
+				++pl.pos;
+			}
+		} while(pl.loop == 0 && newfile != NULL);
 	}
 	/* randomly select files, with repeating */
 	else newfile = pl.list[ (size_t) rand() % pl.fill ].url;
@@ -115,6 +124,7 @@ void init_playlist()
 	init_stringbuf(&pl.dir);
 	init_stringbuf(&pl.linebuf);
 	pl.type = UNKNOWN;
+	pl.loop = param.loop;
 }
 
 /*

@@ -107,6 +107,8 @@ struct parameter param = {
 #ifdef FIFO
 	,NULL
 #endif
+	,0
+	,1
 };
 
 char *prgName = NULL;
@@ -436,6 +438,7 @@ topt opts[] = {
 	{0, "fifo", GLO_ARG | GLO_CHAR, 0, &param.fifo,  0},
 #endif
 	{0, "timeout", GLO_ARG | GLO_LONG, 0, &param.timeout, 0},
+	{0, "loop", GLO_ARG | GLO_LONG, 0, &param.loop, 0},
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -1190,6 +1193,7 @@ static void long_usage(int err)
 	fprintf(o," -u     --auth             set auth values for HTTP access\n");
 	fprintf(o," -@ <f> --list <f>         play songs in playlist <f> (plain list, m3u, pls (shoutcast))\n");
 	fprintf(o," -l <n> --listentry <n>    play nth title in playlist; show whole playlist for n < 0\n");
+	fprintf(o,"        --loop <n>         loop track(s) <n> times, < 0 means infinite loop (not with --random!\n");
 	fprintf(o,"        --timeout <n>      Timeout in seconds before declaring a stream dead (if <= 0, wait forever)\n");
 	fprintf(o," -z     --shuffle          shuffle song-list before playing\n");
 	fprintf(o," -Z     --random           full random play\n");

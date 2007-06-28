@@ -246,6 +246,7 @@ struct parameter {
 	char* fifo;
 #endif
 	long timeout; /* timeout for reading in seconds */
+	long loop;    /* looping of tracks */
 };
 
 /* start to use off_t to properly do LFS in future ... used to be long */
