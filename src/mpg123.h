@@ -245,6 +245,7 @@ struct parameter {
 #ifdef FIFO
 	char* fifo;
 #endif
+	long timeout; /* timeout for reading in seconds */
 };
 
 /* start to use off_t to properly do LFS in future ... used to be long */
@@ -263,11 +264,13 @@ struct reader {
   off_t filepos;
   int  filept;
   int  flags;
+  long timeout_sec;
   unsigned char id3buf[128];
 };
 #define READER_FD_OPENED 0x1
 #define READER_ID3TAG    0x2
 #define READER_SEEKABLE  0x4
+#define READER_NONBLOCK  0x8
 
 extern struct reader *rd,readers[];
 extern char *equalfile;

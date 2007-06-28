@@ -22,6 +22,32 @@ static off_t get_fileinfo(struct reader *,char *buf);
 static ssize_t icy_fullread(struct reader *rds,unsigned char *buf, ssize_t count);
 static ssize_t plain_fullread(struct reader *rds,unsigned char *buf, ssize_t count);
 ssize_t (*fullread)(struct reader *,unsigned char *, ssize_t) = plain_fullread;
+static ssize_t timeout_read(struct reader *rds, void *buf, size_t count);
+static ssize_t plain_read(struct reader *rds, void *buf, size_t count);
+ssize_t (*fdread)(struct reader *rds, void *buf, size_t count) = plain_read;
+
+static ssize_t plain_read(struct reader *rds, void *buf, size_t count){ return read(rds->filept, buf, count); }
+
+/* Wait for data becoming available, allowing soft-broken network connection to die
+   This is needed for Shoutcast servers that have forgotten about us while connection was temporarily down. */
+static ssize_t timeout_read(struct reader *rds, void *buf, size_t count)
+{
+	struct timeval tv;
+	ssize_t ret = 0;
+	fd_set fds;
+	tv.tv_sec = rds->timeout_sec;
+	tv.tv_usec = 0;
+	FD_ZERO(&fds);
+	FD_SET(rds->filept, &fds);
+	ret = select(rds->filept+1, &fds, NULL, NULL, &tv);
+	if(ret > 0) ret = read(rds->filept, buf, count);
+	else
+	{
+		ret=-1; /* no activity is the error */
+		error("stream timed out");
+	}
+	return ret;
+}
 
 /* stream based operation  with icy meta data*/
 static ssize_t icy_fullread(struct reader *rds,unsigned char *buf, ssize_t count)
@@ -47,7 +73,7 @@ static ssize_t icy_fullread(struct reader *rds,unsigned char *buf, ssize_t count
 
 			/* we are near icy-metaint boundary, read up to the boundary */
 			cut_pos = icy.next-rds->filepos;
-			ret = read(rds->filept,buf,cut_pos);
+			ret = fdread(rds,buf,cut_pos);
 			if(ret < 0) return ret;
 
 			rds->filepos += ret;
@@ -56,7 +82,7 @@ static ssize_t icy_fullread(struct reader *rds,unsigned char *buf, ssize_t count
 			/* now off to read icy data */
 
 			/* one byte icy-meta size (must be multiplied by 16 to get icy-meta length) */
-			ret = read(rds->filept,&temp_buff,1);
+			ret = fdread(rds,&temp_buff,1);
 			if(ret < 0) return ret;
 			if(ret == 0) break;
 
@@ -70,7 +96,7 @@ static ssize_t icy_fullread(struct reader *rds,unsigned char *buf, ssize_t count
 				meta_buff = (char*) malloc(meta_size+1);
 				if(meta_buff != NULL)
 				{
-					ret = read(rds->filept,meta_buff,meta_size);
+					ret = fdread(rds,meta_buff,meta_size);
 					meta_buff[meta_size] = 0; /* string paranoia */
 					if(ret < 0) return ret;
 
@@ -90,7 +116,7 @@ static ssize_t icy_fullread(struct reader *rds,unsigned char *buf, ssize_t count
 			icy.next = rds->filepos+icy.interval;
 		}
 
-		ret = read(rds->filept,buf+cnt,count-cnt);
+		ret = fdread(rds,buf+cnt,count-cnt);
 		if(ret < 0) return ret;
 		if(ret == 0) break;
 
@@ -113,7 +139,7 @@ static ssize_t plain_fullread(struct reader *rds,unsigned char *buf, ssize_t cou
 	if((rds->flags & READER_ID3TAG) && rds->filepos + count > rds->filelen) count = rds->filelen - rds->filepos;
 	while(cnt < count)
 	{
-		ret = read(rds->filept,buf+cnt,count-cnt);
+		ret = fdread(rds,buf+cnt,count-cnt);
 		if(ret < 0) return ret;
 		if(ret == 0) break;
 		rds->filepos += ret;
@@ -134,6 +160,15 @@ static off_t stream_lseek(struct reader *rds, off_t pos, int whence)
 static int default_init(struct reader *rds)
 {
 	char buf[128];
+	if(param.timeout > 0)
+	{
+		fcntl(rds->filept, F_SETFL, O_NONBLOCK);
+		fdread = timeout_read;
+		rds->timeout_sec = param.timeout;
+		rds->flags |= READER_NONBLOCK;
+	}
+	else fdread = plain_read;
+
 	rds->filelen = get_fileinfo(rds,buf);
 	rds->filepos = 0;
 	if(rds->filelen >= 0)
