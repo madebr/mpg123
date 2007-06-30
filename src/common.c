@@ -137,6 +137,7 @@ unsigned long samples_to_bytes(unsigned long s, struct frame *fr , struct audio_
 
 void audio_flush(int outmode, struct audio_info_struct *ai)
 {
+	/* the gapless code is not in effect for buffered mode... as then condition for audio_flush is never met */
 	#ifdef GAPLESS
 	if(param.gapless) layer3_gapless_buffercheck();
 	#endif
@@ -151,6 +152,7 @@ void audio_flush(int outmode, struct audio_info_struct *ai)
 				audio_play_samples (ai, pcm_sample, pcm_point);
 			break;
 			case DECODE_BUFFER:
+				error("The buffer doesn't work like that... I shouldn't ever be getting here.");
 				write (buffer_fd[1], pcm_sample, pcm_point);
 			break;
 			case DECODE_WAV:
