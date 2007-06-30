@@ -185,7 +185,7 @@ void (*catchsignal(int signum, void(*handler)()))()
 
 void read_frame_init (struct frame* fr)
 {
-	fr->num = 0;
+	fr->num = -1;
 	oldhead = 0;
 	firsthead = 0;
 	vbr = CBR;
@@ -783,6 +783,7 @@ init_resync:
 	{
 		mean_framesize = ((mean_frames-1)*mean_framesize+compute_bpf(fr)) / mean_frames ;
 	}
+	++fr->num; /* 0 for the first! */
 	/* index the position */
 	if(INDEX_SIZE > 0) /* any sane compiler should make a no-brainer out of this */
 	{
@@ -806,7 +807,6 @@ init_resync:
 			}
 		}
 	}
-	++fr->num;
   return 1;
 }
 
