@@ -741,7 +741,7 @@ void print_id3_tag(unsigned char *id3v1buf)
 /*
 	Preliminary UTF support routines
 
-	Text decoder decodes the ID3 text content from whatever encoding to ISO-8859-1 or ASCII, substituting unconvertable characters with '*' and returning the final length of decoded string.
+	Text decoder decodes the ID3 text content from whatever encoding to plain ASCII, substituting unconvertable characters with '*' and returning the final length of decoded string.
 	TODO: iconv() to whatever locale. But we will want to keep this code anyway for systems w/o iconv(). But we currently assume that it is enough to allocate @len bytes in dest. That might not be true when converting to Unicode encodings.
 */
 
@@ -795,7 +795,7 @@ static int decode_utf8(char* dest, unsigned char* source, size_t len)
 	for(; spos < len; spos++)
 	{
 		/* utf8 continuation byte bo, lead!*/
-		if(source[spos] & 0xc0) continue;
+		if((source[spos] & 0xc0) == 0x80) continue;
 		/* utf8 lead byte, no, cont! */
 		else if(source[spos] & 0x80) dest[dlen++] = '*';
 		else dest[dlen++] = source[spos];
