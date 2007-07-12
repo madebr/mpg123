@@ -194,6 +194,7 @@ int audio_fit_capabilities(struct audio_info_struct *ai,int c,int r)
 	if(param.force_stereo) c = 1;
 
 	if(param.force_rate) {
+		rates[NUM_RATES-1] = param.force_rate; /* To make STDOUT decoding work. */
 		rn = rate2num(param.force_rate);
 		/* 16bit encodings */
 		if(audio_fit_cap_helper(ai,rn,f0,2,c)) return 1;
