@@ -29,7 +29,7 @@
 #include "icy.h"
 #ifdef GAPLESS
 #include "layer3.h"
-struct audio_info_struct pre_ai;
+extern struct audio_info_struct pre_ai;
 #endif
 #define MODE_STOPPED 0
 #define MODE_PLAYING 1
