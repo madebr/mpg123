@@ -11,6 +11,7 @@ mpg123_DEPENDENCIES = @AUDIO_OBJ@ @CPU_TYPE_LIB@
 
 EXTRA_DIST = Makefile.legacy config.h.legacy
 
+CLEANFILES = *.a
 
 bin_PROGRAMS = mpg123
 EXTRA_PROGRAMS = testcpu
