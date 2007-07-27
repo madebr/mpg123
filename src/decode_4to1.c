@@ -9,7 +9,6 @@
 	absolutely not optimized for this operation
 */
 
-#include <stdlib.h>
 #include <math.h>
 #include <string.h>
 

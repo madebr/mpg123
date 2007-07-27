@@ -20,8 +20,6 @@
  * (c) 1998 Fabrice Bellard 
  */
 
-#include <stdlib.h>
-
 #include "mpg123.h"
 
 #define FIR_SIZE 16

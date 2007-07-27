@@ -36,9 +36,8 @@
 
 /**************************************************************************/
 
-#include <sys/types.h>
-#include <stdio.h>
-#include <unistd.h>
+#include "mpg123.h"
+
 #include <fcntl.h>
 
 #include <sys/socket.h>
@@ -47,7 +46,6 @@
 #include <netinet/tcp.h>
 #include <errno.h>
 
-#include "mpg123.h"
 
 #include "Alib.h"		/* /opt/audio/include */
 #include "CUlib.h"		/* /opt/audio/include */

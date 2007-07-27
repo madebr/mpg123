@@ -7,18 +7,14 @@
 	reworked by Thomas Orgis - it was the entry point for eventually becoming maintainer...
 */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <stdarg.h>
 #include <sys/time.h>
-#include <sys/types.h>
 #ifndef WIN32
 #include <sys/wait.h>
 #include <sys/socket.h>
 #else
 #include <winsock.h>
 #endif
-#include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
 
@@ -164,9 +160,7 @@ int control_generic (struct frame *fr)
 					generic_sendmsg("P 0");
 				}
 				if (init) {
-					static char tmp[1000];
-					make_remote_header(fr, tmp);
-					generic_sendmsg(tmp);
+					print_remote_header(fr);
 					init = 0;
 				}
 				if(!frame_before && (silent == 0))

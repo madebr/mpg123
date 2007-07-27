@@ -30,7 +30,6 @@ AC_PROG_INSTALL
 AC_PROG_RANLIB
 
 AC_C_CONST
-AC_C_BIGENDIAN
 AC_INLINE
 
 # Check if system supports termios
@@ -178,6 +177,12 @@ fi
 if test $ccalign = "yes"; then
 	AC_DEFINE(CCALIGN, 1, [ Define if __attribute__((aligned(16))) works ])
 fi
+
+dnl ############## Types
+
+AC_TYPE_SIZE_T()
+AC_TYPE_SSIZE_T()
+AC_TYPE_OFF_T()
 
 dnl ############## Function Checks
 

@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include "mpg123.h"
 #include "common.h"
 #include "stringbuf.h"

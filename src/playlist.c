@@ -493,7 +493,7 @@ int add_to_playlist(char* new_entry, char freeit)
 	{
 		struct listitem* tmp = NULL;
 		/* enlarge the list */
-		tmp = (struct listitem*) realloc(pl.list, (pl.size + pl.alloc_step) * sizeof(struct listitem));
+		tmp = (struct listitem*) safe_realloc(pl.list, (pl.size + pl.alloc_step) * sizeof(struct listitem));
 		if(!tmp)
 		{
 			error("unable to allocate more memory for playlist");

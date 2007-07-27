@@ -6,7 +6,6 @@
 	initially written by Michael Hipp
 */
 
-#include <stdlib.h>
 #include "mpg123.h"
 
 void audio_info_struct_init(struct audio_info_struct *ai)

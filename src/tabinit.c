@@ -6,8 +6,6 @@
 	initially written by Michael Hipp
 */
 
-#include <stdlib.h>
-
 #include "mpg123.h"
 
 static unsigned char *conv16to8_buf = NULL;

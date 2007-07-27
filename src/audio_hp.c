@@ -6,17 +6,9 @@
 	initially written by Michael Hipp
 */
 
-#include <sys/types.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <stdlib.h>
-
 #include "mpg123.h"
-
+#include <fcntl.h>
 #include <sys/audio.h>
-
-
 
 static int audio_set_rate(struct audio_info_struct *ai)
 {

@@ -15,7 +15,6 @@
 
 #include "mpg123.h"
 
-#include <stdlib.h>
 #include <ctype.h>
 #include <sys/asoundlib.h>
 

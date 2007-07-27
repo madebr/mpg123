@@ -86,7 +86,8 @@ MPEG 2.5
 
 /* for control_generic */
 extern const char* remote_header_help;
-void make_remote_header(struct frame* fr, char *target);
+void print_remote_header(struct frame* fr);
+void generic_sendmsg (const char *fmt, ...);
 
 int position_info(struct frame* fr, unsigned long no, long buffsize, struct audio_info_struct* ai,
                    unsigned long* frames_left, double* current_seconds, double* seconds_left);

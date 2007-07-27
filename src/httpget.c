@@ -26,37 +26,26 @@
 	Funny aspect there is that shoutcast servers do not do HTTP/1.1 chunked transfer but implement some different chunking themselves...
 */
 
-#include <stdlib.h>
+#include "mpg123.h"
+
 /* That _is_ real now */
 #define ACCEPT_HEAD "Accept: audio/mpeg, audio/x-mpeg, audio/x-mpegurl, audio/x-scpls, application/pls, */*\r\n"
 char *proxyurl = NULL;
 
 #if !defined(WIN32) && !defined(GENERIC)
 
-#include <stdio.h>
 #include <string.h>
-
-/* for SIZE_MAX */
-#ifdef HAVE_STDINT_H
-#include <stdint.h>
-#endif
-#ifndef SIZE_MAX
-/* hm, is this portable across preprocessors? */
-#define SIZE_MAX ((size_t)-1)
-#endif
 
 #define HTTP_MAX_RELOCATIONS 20
 
 #include <netdb.h>
 #include <sys/param.h>
-#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <errno.h>
 #include <ctype.h>
 
-#include "mpg123.h"
 #include "stringbuf.h"
 #include "icy.h"
 
@@ -634,7 +623,7 @@ int http_open (char* url, char** content_type)
 				if(purl_size < needed_length)
 				{
 					purl_size = needed_length;
-					purl = realloc(purl, purl_size);
+					purl = safe_realloc(purl, purl_size);
 					if(purl == NULL)
 					{
 						http_failure;

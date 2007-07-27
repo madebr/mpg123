@@ -6,13 +6,7 @@
 	initially written (as it seems) by Thomas Woerner
 */
 
-
-
-#include <sys/types.h>
-#include <stdio.h>
-#include <unistd.h>
 #include <fcntl.h>
-#include <stdlib.h>
 
 /* #include <audio.h> */
 #include <dmedia/audio.h>

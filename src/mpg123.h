@@ -9,13 +9,18 @@
 	used source: musicout.h from mpegaudio package
 */
 
+#ifndef _MPG123_H_
+#define _MPG123_H_
+
 /* everyone needs it */
 #include "config.h"
 #include "debug.h"
 
+#include        <stdlib.h>
 #include        <stdio.h>
 #include        <string.h>
 #include        <signal.h>
+#include        <math.h>
 
 #ifndef WIN32
 #include        <sys/signal.h>
@@ -23,17 +28,21 @@
 #endif
 /* want to suport large files in future */
 #ifdef HAVE_SYS_TYPES_H
-	#include <sys/types.h>
+#include <sys/types.h>
 #endif
-#ifndef off_t
-	#define off_t long
+
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h>
 #endif
-#include        <math.h>
+/* for SIZE_MAX */
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#endif
 
-
-
-#ifndef _AUDIO_H_
-#define _AUDIO_H_
+#ifndef SIZE_MAX
+/* hm, is this portable across preprocessors? */
+#define SIZE_MAX ((size_t)-1)
+#endif
 
 typedef unsigned char byte;
 
@@ -435,5 +444,7 @@ void next_track(void);
 extern scale_t outscale;
 
 #include "optimize.h"
+
+void *safe_realloc(void *ptr, size_t size);
 
 #endif

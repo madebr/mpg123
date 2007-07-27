@@ -9,7 +9,6 @@
 #define ME "main"
 #include "mpg123.h"
 
-#include <stdlib.h>
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
 #endif
@@ -124,6 +123,13 @@ int buffer_pid;
 static int intflag = FALSE;
 
 int OutputDescriptor;
+
+/* A safe realloc also for very old systems where realloc(NULL, size) returns NULL. */
+void *safe_realloc(void *ptr, size_t size)
+{
+	if(ptr == NULL) return malloc(size);
+	else return realloc(ptr, size);
+}
 
 #if !defined(WIN32) && !defined(GENERIC)
 #ifndef NOXFERMEM

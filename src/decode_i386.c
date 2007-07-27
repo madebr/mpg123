@@ -11,7 +11,6 @@
 	even for Intel processors.
 */
 
-#include <stdlib.h>
 #include <math.h>
 #include <string.h>
 

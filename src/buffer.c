@@ -14,7 +14,6 @@
 
 #ifndef NOXFERMEM
 
-#include <stdlib.h>
 #include <errno.h>
 
 int outburst = MAXOUTBURST;

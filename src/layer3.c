@@ -11,7 +11,6 @@
 	The int-vs-pointer situation has to be cleaned up.
 */
 
-#include <stdlib.h>
 #include "mpg123.h"
 #include "huffman.h"
 

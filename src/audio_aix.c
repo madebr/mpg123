@@ -6,15 +6,10 @@
 	initially written by Juergen Schoew and Tomas Oegren
 */
 
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/audio.h>
 #include <stropts.h>
-#include <sys/types.h>
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <sys/param.h>

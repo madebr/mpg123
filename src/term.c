@@ -11,10 +11,8 @@
 #ifdef HAVE_TERMIOS
 
 #include <termios.h>
-#include <unistd.h>
 #include <ctype.h>
 #include <sys/time.h>
-#include <sys/types.h>
 
 #include "buffer.h"
 #include "term.h"

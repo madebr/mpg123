@@ -6,13 +6,10 @@
 	initially written by Michael Hipp
 */
 
-#include <stdlib.h>
-
-#include <sys/types.h>
+#include "mpg123.h"
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include "mpg123.h"
 #include "buffer.h"
 #include "common.h"
 #include "icy.h"

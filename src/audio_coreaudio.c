@@ -15,8 +15,6 @@
 #include <CoreServices/CoreServices.h>
 #include <AudioUnit/AudioUnit.h>
 #include <AudioToolbox/AudioToolbox.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <errno.h>
 
 #define FIFO_DURATION		(0.5f)

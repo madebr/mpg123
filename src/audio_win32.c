@@ -6,10 +6,7 @@
 	initially written (as it seems) by Tony Million
 */
 
-#include <sys/types.h>
-#include <stdio.h>
 #include <fcntl.h>
-#include <stdlib.h>
 
 #include "mpg123.h"
 

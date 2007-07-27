@@ -12,12 +12,9 @@
 
 #ifndef NOXFERMEM
 
-#include <stdio.h>
-#include <stdlib.h>
+#include "mpg123.h"
 #include <string.h>
-#include <unistd.h>
 #include <errno.h>
-#include <sys/types.h>
 #include <sys/time.h>
 #include <sys/uio.h>
 #include <sys/mman.h>
@@ -28,7 +25,6 @@
 #include <sys/select.h>
 #endif
 
-#include "mpg123.h"
 
 #ifndef HAVE_MMAP
 #include <sys/ipc.h>

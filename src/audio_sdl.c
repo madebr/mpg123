@@ -6,8 +6,6 @@
 	initially written by Nicholas J. Humfrey
 */
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <math.h>
 
 #include <SDL.h>

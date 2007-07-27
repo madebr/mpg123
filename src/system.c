@@ -14,7 +14,6 @@
 	./system < my_system_stream.mpg | mpg123 -
 */
 
-#include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
 

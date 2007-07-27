@@ -6,7 +6,6 @@
 	initially written by Michael Hipp
 */
 
-#include <stdlib.h>
 #include <math.h>
 #include <string.h>
 

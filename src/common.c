@@ -7,16 +7,9 @@
 */
 
 #include <ctype.h>
-#include <stdlib.h>
-#include <signal.h>
-
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <math.h>
-#ifdef HAVE_INTTYPES_H
-#include <inttypes.h>
-#endif
 
 #include <fcntl.h>
 
@@ -995,11 +988,10 @@ debug2("bitrate index: %i (%i)", fr->bitrate_index, tabsel_123[fr->lsf][1][fr->b
 
 /* concurring to print_rheader... here for control_generic */
 const char* remote_header_help = "S <mpeg-version> <layer> <sampling freq> <mode(stereo/mono/...)> <mode_ext> <framesize> <stereo> <copyright> <error_protected> <emphasis> <bitrate> <extension> <vbr(0/1=yes/no)>";
-void make_remote_header(struct frame* fr, char *target)
+void print_remote_header(struct frame* fr)
 {
-	/* redundancy */
 	static char *modes[4] = {"Stereo", "Joint-Stereo", "Dual-Channel", "Single-Channel"};
-	snprintf(target, 1000, "S %s %d %ld %s %d %d %d %d %d %d %d %d %d",
+	generic_sendmsg("S %s %d %ld %s %d %d %d %d %d %d %d %d %d",
 		fr->mpeg25 ? "2.5" : (fr->lsf ? "2.0" : "1.0"),
 		fr->lay,
 		freqs[fr->sampling_frequency],
@@ -1014,24 +1006,6 @@ void make_remote_header(struct frame* fr, char *target)
 		fr->extension,
 		vbr);
 }
-
-
-#ifdef MPG123_REMOTE
-void print_rheader(struct frame *fr)
-{
-	static char *modes[4] = { "Stereo", "Joint-Stereo", "Dual-Channel", "Single-Channel" };
-	static char *layers[4] = { "Unknown" , "I", "II", "III" };
-	static char *mpeg_type[2] = { "1.0" , "2.0" };
-
-	/* version, layer, freq, mode, channels, bitrate, BPF, VBR*/
-	fprintf(stderr,"@I %s %s %ld %s %d %d %d %i\n",
-			mpeg_type[fr->lsf],layers[fr->lay],freqs[fr->sampling_frequency],
-			modes[fr->mode],fr->stereo,
-			vbr == ABR ? abr_rate : tabsel_123[fr->lsf][fr->lay-1][fr->bitrate_index],
-			fr->framesize+4,
-			vbr);
-}
-#endif
 
 void print_header(struct frame *fr)
 {

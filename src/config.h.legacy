@@ -27,3 +27,12 @@
 #endif
 
 #define INDEX_SIZE 1000
+
+/* Define to `long int' if <sys/types.h> does not define. */
+/* #undef off_t */
+
+/* Define to `unsigned int' if <sys/types.h> does not define. */
+/* #undef size_t */
+
+/* Define to `int' if <sys/types.h> does not define. */
+/* #undef ssize_t */

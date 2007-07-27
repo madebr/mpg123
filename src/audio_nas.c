@@ -6,15 +6,10 @@
 	initially written by Martin Denn
 */
 
-#include <sys/types.h>
-#include <stdio.h>
-#include <unistd.h>
+#include "mpg123.h"
 #include <fcntl.h>
-#include <stdlib.h>
 #include <audio/audiolib.h>
 #include <audio/soundlib.h>
-
-#include "mpg123.h"
 
 typedef struct
 {

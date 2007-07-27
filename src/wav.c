@@ -14,8 +14,6 @@
 	It's not a very clean code ... Fix this!
 */
 
-#include <stdlib.h>
-#include <stdio.h>
 #include "mpg123.h"
 
 #ifdef FLOATOUT

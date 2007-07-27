@@ -455,7 +455,7 @@ solaris-gcc-nas:
 sunos:
 	$(MAKE) CC=gcc \
 		OBJECTS="decode.o dct64.o audio_sun.o" \
-		CFLAGS="$(CFLAGS) $(CPPFLAGS) -O2 -DOPT_GENERIC  -DSUNOS -DREAL_IS_FLOAT -DHAVE_MMAP \
+		CFLAGS="$(CFLAGS) $(CPPFLAGS) -O2 -DOPT_GENERIC -DSUNOS -DREAL_IS_FLOAT -DHAVE_MMAP -DHAVE_SYS_IOCTL_H -DHAVE_SUN_AUDIOIO_H \
 			-funroll-loops" \
 		mpg123-make
 
