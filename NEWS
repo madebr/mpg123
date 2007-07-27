@@ -1,3 +1,20 @@
+0.67
+----
+
+Thanks go out to the ROM 106.5FM team (http://www.rom.lu/) for supporting this release with a donation on sf.net and a bottle of finest Gewuerztraminer wine from Luxembourg!
+
+- verified that it builds on SGI IRIX 6.5 for MIPS32 and MIPS64
+- enable flexible rate for stdout decoding, too
+- UTF8 filtering to ASCII finally works thanks to Mika Tiainen, see bug 1745847
+- corrected frame offset; -k was off by one
+	This means now that -k disagrees with mpg123 0.59r on many files because the old version does play a frame of silence when encountering LAME tag instead of dropping it for audio.
+- added --timeout <n>: Possibility to end playback on a stream that doesn't give data for <n> seconds.
+- added --loop <n>: for ... well... looping playback of a track; motivation was persistent internet streaming with unreliable connection (together with --timeout)
+- build fixes
+- use movap instruction in SSE assembly when compiler supports the needed alignment (idea from MPlayer)
+- show decoder options in their priority order in --list-cpu/--test-cpu
+- added Perl script to benchmark each of mpg123's CPU optimisations
+
 0.66
 ----
 
