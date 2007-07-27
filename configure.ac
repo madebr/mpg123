@@ -194,6 +194,8 @@ AC_CHECK_FUNCS( sched_setscheduler setuid getuid)
 # Check for setpriority
 AC_CHECK_FUNCS( setpriority )
 
+AC_CHECK_FUNCS( strerror )
+
 AC_CHECK_FUNCS( mkfifo, [ have_mkfifo=yes ], [ have_mkfifo=no ] )
 
 if test $fifo = "auto"; then

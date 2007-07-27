@@ -36,3 +36,7 @@
 
 /* Define to `int' if <sys/types.h> does not define. */
 /* #undef ssize_t */
+
+#ifndef HAVE_NO_STRERROR
+#define HAVE_STRERROR 1
+#endif

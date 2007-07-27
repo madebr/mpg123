@@ -131,6 +131,16 @@ void *safe_realloc(void *ptr, size_t size)
 	else return realloc(ptr, size);
 }
 
+#ifndef HAVE_STRERROR
+const char *strerror(int errnum)
+{
+  extern int sys_nerr;
+  extern char *sys_errlist[];
+
+  return (errnum < sys_nerr) ?  sys_errlist[errnum]  :  "";
+}
+#endif
+
 #if !defined(WIN32) && !defined(GENERIC)
 #ifndef NOXFERMEM
 static void catch_child(void)
