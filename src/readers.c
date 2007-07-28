@@ -8,6 +8,7 @@
 
 #include "mpg123.h"
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <fcntl.h>
 
 #include "buffer.h"
