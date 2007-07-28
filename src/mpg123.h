@@ -254,7 +254,9 @@ struct parameter {
 #ifdef FIFO
 	char* fifo;
 #endif
+#ifndef WIN32
 	long timeout; /* timeout for reading in seconds */
+#endif
 	long loop;    /* looping of tracks */
 };
 

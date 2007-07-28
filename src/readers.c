@@ -25,6 +25,7 @@ ssize_t (*fdread)(struct reader *rds, void *buf, size_t count) = plain_read;
 
 static ssize_t plain_read(struct reader *rds, void *buf, size_t count){ return read(rds->filept, buf, count); }
 
+#ifndef WIN32
 /* Wait for data becoming available, allowing soft-broken network connection to die
    This is needed for Shoutcast servers that have forgotten about us while connection was temporarily down. */
 static ssize_t timeout_read(struct reader *rds, void *buf, size_t count)
@@ -45,6 +46,7 @@ static ssize_t timeout_read(struct reader *rds, void *buf, size_t count)
 	}
 	return ret;
 }
+#endif
 
 /* stream based operation  with icy meta data*/
 static ssize_t icy_fullread(struct reader *rds,unsigned char *buf, ssize_t count)
@@ -157,6 +159,7 @@ static off_t stream_lseek(struct reader *rds, off_t pos, int whence)
 static int default_init(struct reader *rds)
 {
 	char buf[128];
+#ifndef WIN32
 	if(param.timeout > 0)
 	{
 		fcntl(rds->filept, F_SETFL, O_NONBLOCK);
@@ -164,7 +167,9 @@ static int default_init(struct reader *rds)
 		rds->timeout_sec = param.timeout;
 		rds->flags |= READER_NONBLOCK;
 	}
-	else fdread = plain_read;
+	else
+#endif
+fdread = plain_read;
 
 	rds->filelen = get_fileinfo(rds,buf);
 	rds->filepos = 0;
