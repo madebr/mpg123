@@ -882,6 +882,7 @@ int main(int argc, char *argv[])
 		#endif
 	)
 	catchsignal (SIGINT, catch_interrupt);
+#endif
 
 	if(param.remote) {
 		int ret;
@@ -892,7 +893,6 @@ int main(int argc, char *argv[])
 		exit_id3();
 		safe_exit(ret);
 	}
-#endif
 
 	init_icy();
 	init_id3(); /* prepare id3 memory */

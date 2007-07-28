@@ -109,6 +109,8 @@ int control_generic (struct frame *fr)
 #ifndef WIN32
  	setlinebuf(outstream);
 #else /* perhaps just use setvbuf as it's C89 */
+	fprintf(outstream, "You are on Win32 and want to use the control interface... tough luck: We need a replacement for select on STDIN first.\n");
+	return 0;
 	setvbuf(outstream, (char*)NULL, _IOLBF, 0);
 #endif
 	/* the command behaviour is different, so is the ID */
