@@ -16,11 +16,11 @@ unsigned char *conv16to8;
 real decwin[512+32]; /* MMX has another one */
 /* that altivec alignment part here should not hurt generic code, I hope */
 #ifdef OPT_ALTIVEC
-static ALIGN(16) real cos64[16];
-static ALIGN(16) real cos32[8];
-static ALIGN(16) real cos16[4];
-static ALIGN(16) real cos8[2];
-static ALIGN(16) real cos4[1];
+static ALIGNED(16) real cos64[16];
+static ALIGNED(16) real cos32[8];
+static ALIGNED(16) real cos16[4];
+static ALIGNED(16) real cos8[2];
+static ALIGNED(16) real cos4[1];
 #else
 static real cos64[16],cos32[8],cos16[4],cos8[2],cos4[1];
 #endif

@@ -26,7 +26,7 @@
 
 void dct64_altivec(real *out0,real *out1,real *samples)
 {
-  ALIGN(16) real bufs[64];
+  ALIGNED(16) real bufs[64];
 
 	{
 		register real *b1,*costab;

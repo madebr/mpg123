@@ -119,7 +119,7 @@ int synth_1to1_mono2stereo_altivec(real *bandPtr,unsigned char *samples,int *pnt
 
 int synth_1to1_altivec(real *bandPtr,int channel,unsigned char *out,int *pnt)
 {
-  static ALIGN(16) real buffs[4][4][0x110];
+  static ALIGNED(16) real buffs[4][4][0x110];
   static const int step = 2;
   static int bo = 1;
   short *samples = (short *) (out+*pnt);
@@ -157,7 +157,7 @@ int synth_1to1_altivec(real *bandPtr,int channel,unsigned char *out,int *pnt)
     register int j;
     real *window = decwin + 16 - bo1;
 		
-		ALIGN(16) int clip_tmp[4];
+		ALIGNED(16) int clip_tmp[4];
 		vector float v1,v2,v3,v4,v5,v6,v7,v8,v9;
 		vector unsigned char vperm1,vperm2,vperm3,vperm4,vperm5;
 		vector float vsum,vsum2,vsum3,vsum4,vmin,vmax;

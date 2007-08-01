@@ -1820,8 +1820,8 @@ int do_layer3(struct frame *fr,int outmode,struct audio_info_struct *ai)
   set_pointer(sideinfo.main_data_begin);
 
   for (gr=0;gr<granules;gr++) {
-    ALIGN(16) real hybridIn[2][SBLIMIT][SSLIMIT];
-    ALIGN(16) real hybridOut[2][SSLIMIT][SBLIMIT];
+    ALIGNED(16) real hybridIn[2][SBLIMIT][SSLIMIT];
+    ALIGNED(16) real hybridOut[2][SSLIMIT][SBLIMIT];
 
     {
       struct gr_info_s *gr_info = &(sideinfo.ch[0].gr[gr]);
