@@ -396,7 +396,6 @@ int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 									break;
 									case rva2: /* "the" RVA tag */
 									{
-										#ifdef HAVE_INTTYPES_H
 										/* starts with null-terminated identification */
 										if(param.verbose > 2) fprintf(stderr, "Note: RVA2 identification \"%s\"\n", realdata);
 										/* default: some individual value, mix mode */
@@ -424,9 +423,6 @@ int parse_new_id3(unsigned long first4bytes, struct reader *rds)
 												rva_level[rva_mode] = tt+1;
 											}
 										}
-										#else
-										warning("ID3v2: Cannot parse RVA2 value because I don't have a guaranteed 16 bit signed integer type");
-										#endif
 									}
 									break;
 									/* non-rva metainfo, simply store... */
