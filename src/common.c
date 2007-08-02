@@ -6,14 +6,15 @@
 	initially written by Michael Hipp
 */
 
-#include <ctype.h>
+#include "mpg123.h"
+
+/* #include <ctype.h> */
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <math.h>
 
 #include <fcntl.h>
 
-#include "mpg123.h"
 #include "id3.h"
 #include "icy.h"
 #include "common.h"
@@ -54,13 +55,6 @@ int abr_rate = 0;
 #endif
 unsigned long track_frames = 0;
 /* a limit for number of frames in a track; beyond that unsigned long may not be enough to hold byte addresses */
-#ifdef HAVE_LIMITS_H
-#include <limits.h>
-#endif
-#ifndef ULONG_MAX
-/* hm, is this portable across preprocessors? */
-#define ULONG_MAX ((unsigned long)-1)
-#endif
 #define TRACK_MAX_FRAMES ULONG_MAX/4/1152
 
 /* this could become a struct... */

@@ -275,7 +275,7 @@ dnl ############## Header Checks
 
 AC_HEADER_STDC
 dnl Is it too paranoid to specifically check for stdint.h and limits.h?
-AC_CHECK_HEADERS([stdlib.h string.h unistd.h sched.h sys/ioctl.h stdint.h limits.h sys/time.h sys/wait.h sys/resource.h signal.h])
+AC_CHECK_HEADERS([stdlib.h string.h unistd.h sched.h sys/ioctl.h stdint.h limits.h inttypes.h sys/time.h sys/wait.h sys/resource.h signal.h])
 
 # attempt to make the signal stuff work... also with GENERIC - later
 #if test $ac_cv_header_sys_signal_h = yes; then

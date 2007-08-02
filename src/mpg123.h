@@ -31,17 +31,22 @@
 #include <sys/types.h>
 #endif
 
+/* More integer stuff, just take what we can get... */
 #ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
-/* for SIZE_MAX */
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #endif
+#ifdef HAVE_LIMITS_H
+#include <limits.h>
+#endif
 
 #ifndef SIZE_MAX
-/* hm, is this portable across preprocessors? */
 #define SIZE_MAX ((size_t)-1)
+#endif
+#ifndef ULONG_MAX
+#define ULONG_MAX ((unsigned long)-1)
 #endif
 
 typedef unsigned char byte;
