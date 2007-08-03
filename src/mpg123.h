@@ -55,31 +55,17 @@ typedef unsigned char byte;
 #include <float.h>
 #endif
 
-#define MPG123_REMOTE
 #define REMOTE_BUFFER_SIZE 2048
-#ifdef HPUX
-#define random rand
-#define srandom srand
-#endif
 
 #define SKIP_JUNK 1
 
-#ifdef _WIN32	/* Win32 Additions By Tony Million */
-# undef WIN32
-# define WIN32
-
+#ifndef M_PI
 # define M_PI       3.14159265358979323846
-# define M_SQRT2	1.41421356237309504880
-# ifndef REAL_IS_FLOAT
-#  define REAL_IS_FLOAT
-# endif
-# define NEW_DCT9
-
-# define random rand
-# define srandom srand
-
-# undef MPG123_REMOTE           /* Get rid of this stuff for Win32 */
 #endif
+#ifndef M_SQRT2
+# define M_SQRT2	1.41421356237309504880
+#endif
+
 
 #include "xfermem.h"
 
@@ -130,12 +116,6 @@ typedef unsigned char byte;
 #endif
 #ifndef REAL_MUL
 # define REAL_MUL(x, y)                ((x) * (y))
-#endif
-
-#ifdef __GNUC__
-#define INLINE inline
-#else
-#define INLINE
 #endif
 
 #include "audio.h"
