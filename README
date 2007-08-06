@@ -60,6 +60,10 @@ Mpg123 is a console program - normally it just plays a list of files you specify
 
 	mpg123 --help
 
+or, for the full story,
+
+	mpg123 --longhelp
+
 on command line syntax/options. I encourage you to check out the --gapless and --rva-album/--rva-mix options:-)
 
 In the simple "mpg123 file1.mp3 file2.mp3" mode, the only thing you can do to interact is to press Ctrl+C to skip to next track or end the whole playback if pressing it twice.

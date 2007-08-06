@@ -1,4 +1,4 @@
-.TH mpg123 1 "4 Jun 2007"
+.TH mpg123 1 "7 Aug 2007"
 .SH NAME
 mpg123 \- play audio MPEG 1.0/2.0/2.5 stream (layers 1, 2 and 3)
 .SH SYNOPSIS
@@ -92,6 +92,12 @@ last one will be recognized).
 Of the playlist, play specified entry only. 
 .I n
 is the number of entry starting at 1. A value of 0 is the default and means playling the whole list,  a negative value means showing of the list of titles with their numbers...
+.TP
+\fB\-\-loop \fItimes\fR
+for looping track(s) a certain number of times, < 0 means infinite loop (not with --random!).
+.TP
+\fB\-\-timeout \fIseconds\fR
+Timeout in (integer) seconds before declaring a stream dead (if <= 0, wait forever).
 .TP
 .BR \-z ", " \-\^\-shuffle
 Shuffle play.  Randomly shuffles the order of files specified on the command
