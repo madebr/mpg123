@@ -1,3 +1,8 @@
+mpg123 install hints
+--------------------
+
+(This file has very long lines - die-hard terminal nostalgists can be satisfied by `fmt -s -w 75 < INSTALL | less`. I think it's better to let the reader's preference rule than to preformat the stuff to some arbitrary width.)
+
 There are now two basic ways to get your mpg123 installation consisting of
 
 	a) the mpg123 binary file
@@ -10,8 +15,11 @@ There are now two basic ways to get your mpg123 installation consisting of
 
 You really need:
 
-- a C compiler; we try to keep the code ANSI C89 compatible
+- a C compiler; we try to keep the code ANSI C89/ISO C90 compatible
   gcc from 2.95 on should work, others, too - please report any issues
+  Actually, we have a confirmed working build (svn trunk leading to release 0.67) on SunOS 4.1.4 with gcc-2.7.0 .
+
+- an (UNIX-like) operating system with standard tools; MinGW32 and Cygwin are working for Microsoft Windows, too.
 
 You want:
 
@@ -33,23 +41,30 @@ Run
 	./configure --help
 
 for a list of possible parameters you can specify. The obvious are --prefix and the normal GNU autotool bunch, but others include what audio subsystem to use and what CPU optimizations to build in.
-In future we may have a merged build for the i386 platform including MMX, SSE, 3DNow!, etc. optimizations and choosing at runtime, but for now that's a build time decision.
+For the optimizations (decoder choice), the default on 32bit x86 systems since version 0.66 is a build that combines all possible optimizations and chooses one at runtime (see --cpu, --list-cpu and --test-cpu parameters).
 
 Other important choices include --enable-gapless for enabling mpg123 to skip encoder/decoder padding for seamless transition between tracks and --with-seektable=<number> for setting the size for the table of stored frame addresses to make seeking faster. When you want a minimal memory footprint, you can set number to 0. Seeking will always start from the beginning, then - being accurate, but rather slow, what doesn't matter if you don't use interactive seeking forth and back.
 
 2. The classic way via the provided Makefile
 
 This is basically the known mpg123 Makefile with some mods and additions.
-for coexistence with the autotools setup, a wrapper script for generating a fake config.h is needed.
-You may want to edit that one in src/config.h and run make -f src/Makefile.legacy yourself, but normally run
+For coexistence with the autotools setup, a wrapper script for generating a fake config.h is needed. Run
 
 	./MakeLegacy.sh
 
-to get a list of targets and simply
+to create a default src/config.h and print a list of Make targets. Examine src/config.h and change any incorrect settings.
+Compiler flags (CFLAGS) are defined in Makefile, your shell variables for CFLAGS and CPPFLAGS are also used.
+Next, run
 
-	./MakeLegacy.sh <target>
+	./MakeLegacy.sh TARGET
 
-to build. You may want to have some CFLAGS defined; these are used now in the Makefile.
+or, if you prefer,
+
+	cd src
+	make -f Makefile.legacy TARGET
+	cd ..
+
+to build.  Finally,
 
 	./MakeLegacy.sh install
 
@@ -64,7 +79,7 @@ So, if you want it in /usr; just run
 	./MakeLegacy.sh PREFIX=/usr install
 
 
-Please note that the Makefile does not contain any CFLAGS or explicit `strip` calls anymore; mpg123 will be built and installed with debugging symbols - so if you want to conserve some space, please specify the -s in CFLAGS or strip the binary yourself.
+Please note that the Makefile itself does not contain any x86 cpu specific CFLAGS (except for i486) or explicit `strip` calls anymore; mpg123 will be built and installed with debugging symbols - so if you want to conserve some space, please specify the -s in CFLAGS or strip the binary yourself.
 
 
 3. Have fun!
