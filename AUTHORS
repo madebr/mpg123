@@ -27,6 +27,35 @@ Taihei Monma <tmkk@mac.com>: Altivec improvements
 higway <higway@mednet.md>: MMX Patch
 Clemens Ladisch <clemens@ladisch.de>: ALSA 0.9/1.0 support
 
+Debian Daniel Kobras <kobras@debian.org> era:
+
+Steve Kemp <skx@debian.org>
+Dan Olson <theoddone33@icculus.org>
+Syuuhei Kashiyama <squash@mb.kcom.ne.jp>
+Rupert Levene <rupert.debian@hotpop.com>
+Andreas Dilger <adilger@turbolinux.com>
+Erik B. Andersen <andersee@debian.org>
+Chris Butler <chrisb@debian.org>
+Martin Sjogren <md9ms@mdstud.chalmers.se>
+Chet Hosey <chosey@budapress.com>
+Roland Rosenfeld <roland@spinnaker.de>
+
+
+Debian Colin Watson <cjwatson@debian.org> era:
+
+Helge Deller <deller@gmx.de>
+Chet Hosey <chosey@budapress.com>
+Christopher C. Chimelis <chris@debian.org>
+Roland Rosenfeld <roland@spinnaker.de>
+Marcelo E. Magallon <mmagallo@debian.org>
+
+
+Initial Debianers:
+
+Tommi Virtanen <tv@debian.org>
+Paul Haggart <phaggart@debian.org>
+
+
 Contributions/ideas Michael Hipp era:
 
 Mikko Tommila: DCT9
@@ -100,32 +129,3 @@ Peter Surda <shurdeek@panorama.sth.ac.at>: VBR patch
 Ben <ben@blaukopf.com>: ARM startup time improvements 
 Dave MacKenzie <djm@pix.net>: init_output() patch
 pasky's <pasky@ju.cz>: close-on-stop patch
-
-
-Debian Daniel Kobras <kobras@debian.org> era:
-
-Steve Kemp <skx@debian.org>
-Dan Olson <theoddone33@icculus.org>
-Syuuhei Kashiyama <squash@mb.kcom.ne.jp>
-Rupert Levene <rupert.debian@hotpop.com>
-Andreas Dilger <adilger@turbolinux.com>
-Erik B. Andersen <andersee@debian.org>
-Chris Butler <chrisb@debian.org>
-Martin Sjogren <md9ms@mdstud.chalmers.se>
-Chet Hosey <chosey@budapress.com>
-Roland Rosenfeld <roland@spinnaker.de>
-
-
-Debian Colin Watson <cjwatson@debian.org> era:
-
-Helge Deller <deller@gmx.de>
-Chet Hosey <chosey@budapress.com>
-Christopher C. Chimelis <chris@debian.org>
-Roland Rosenfeld <roland@spinnaker.de>
-Marcelo E. Magallon <mmagallo@debian.org>
-
-
-Initial Debianers:
-
-Tommi Virtanen <tv@debian.org>
-Paul Haggart <phaggart@debian.org>
