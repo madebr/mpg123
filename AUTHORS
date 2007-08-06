@@ -13,6 +13,8 @@ The creator: Michael Hipp (email: hippm@informatik.uni-tuebingen.de - please bot
 
 Contributions/ideas Thomas Orgis era (includes backports from mhipp trunk):
 
+Winston: SunOS-4.1.4/gcc-2.7.0 testing and suggestions for fixes (legacy Makefile, integer type headers)
+Mika Tiainen: pointing out the fix for the UTF to ASCII filtering of tags to actually work
 Nick Kurshev <nickols_k@mail.ru>: extended 3dnow (from mplayer)
 Zuxy Meng <zuxy.meng@gmail.com>: SSE (from mplayer)
 Honza <cundrak@quick.cz>: idea and prototype patch for ICY meta data support
