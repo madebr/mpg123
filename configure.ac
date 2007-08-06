@@ -101,8 +101,11 @@ AC_ARG_WITH([cpu], [
   --with-cpu=i586_dither  Use code optimized for i586 processors with dithering (noise shaping), adds 256K to binary size
   --with-cpu=3dnow        Use code optimized for 3DNow processors
   --with-cpu=3dnowext     Use code optimized for 3DNowExt processors (K6-3+, Athlon)
+  --with-cpu=3dnowext_alone     Really only 3DNowExt decoder, without 3DNow fallback for flexible rate
   --with-cpu=mmx          Use code optimized for MMX processors
+  --with-cpu=mmx_alone          Really only MMX decoder, without i586 fallback for flexible rate
   --with-cpu=sse          Use code optimized for SSE processors
+  --with-cpu=mmx_alone          Really only SSE decoder, without i586 fallback for flexible rate
   --with-cpu=x86          Pack all x86 opts into one binary (excluding i486 and dithered i586)
   --with-cpu=x86_dither   Pack all x86 opts into one binary (excluding i486, including dither)
   --with-cpu=altivec      Use code optimized for Altivec processors (PowerPC G4 and G5)
@@ -466,13 +469,25 @@ case $cpu_type in
     # legacy 3dnow had the 3dnow optional... keeping that
     CFLAGS="$CFLAGS -DOPT_MULTI -DOPT_I586 -DOPT_3DNOW -DREAL_IS_FLOAT"
   ;;
-  3dnowext) 
+  3dnowext_alone) 
     CFLAGS="$CFLAGS -DOPT_3DNOWEXT -DREAL_IS_FLOAT"
   ;;
-  mmx) 
+  3dnowext) 
+    AC_MSG_WARN([Combining 3DNowExt decoder with 3DNow for flexible rate, use 3dnowext_alone if you do not want this.])
+    CFLAGS="$CFLAGS -DOPT_MULTI -DOPT_3DNOW -DOPT_3DNOWEXT -DREAL_IS_FLOAT"
+  ;;
+  mmx_alone) 
     CFLAGS="$CFLAGS -DOPT_MMX -DREAL_IS_FLOAT"
   ;;
+  mmx)
+    AC_MSG_WARN([Combining MMX decoder with i586 for flexible rate, use mmx_alone if you do not want this.])
+    CFLAGS="$CFLAGS -DOPT_MULTI -DOPT_I586 -DOPT_MMX -DREAL_IS_FLOAT"
+  ;;
   sse) 
+    AC_MSG_WARN([Combining SSE decoder with i586 for flexible rate, use sse_alone if you do not want this.])
+    CFLAGS="$CFLAGS -DOPT_MULTI -DOPT_I586 -DOPT_SSE -DREAL_IS_FLOAT"
+  ;;
+  sse_alone) 
     CFLAGS="$CFLAGS -DOPT_SSE -DREAL_IS_FLOAT"
   ;;
   x86) 
