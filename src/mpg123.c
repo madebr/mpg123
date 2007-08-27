@@ -41,6 +41,7 @@
 #include "layer3.h"
 #endif
 #include "playlist.h"
+#include "httpget.h"
 #include "id3.h"
 #include "icy.h"
 

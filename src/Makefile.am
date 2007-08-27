@@ -39,6 +39,7 @@ mpg123_SOURCES = \
 	getlopt.c \
 	getlopt.h \
 	httpget.c \
+	httpget.h \
 	huffman.h \
 	icy.c \
 	icy.h \

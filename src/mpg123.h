@@ -282,14 +282,6 @@ extern txfermem *buffermem;
 extern void buffer_loop(struct audio_info_struct *ai,sigset_t *oldsigset);
 #endif
 
-/* ------ Declarations from "httpget.c" ------ */
-
-extern char *proxyurl;
-extern unsigned long proxyip;
-/* takes url and content type string address, opens resource, returns fd for data, allocates and sets content type */
-extern int http_open (char* url, char** content_type);
-extern char *httpauth;
-
 /* ------ Declarations from "common.c" ------ */
 
 extern void audio_flush(int, struct audio_info_struct *);

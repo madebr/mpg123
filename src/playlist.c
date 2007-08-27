@@ -12,6 +12,7 @@
 #include "getlopt.h" /* for loptind */
 #include "term.h" /* for term_restore */
 #include "playlist.h"
+#include "httpget.h"
 
 #include <time.h>
 
@@ -180,13 +181,16 @@ int add_next_file (int argc, char *argv[])
 				debug1("listmime: %p", (void*) listmime);
 				if(listmime != NULL)
 				{
+					int mimi;
 					debug1("listmime value: %s", listmime);
-					if(!strcmp("audio/x-mpegurl", listmime))	pl.type = M3U;
-					else if(!strcmp("audio/x-scpls", listmime) || !strcmp("application/pls", listmime))	pl.type = PLS;
+					mimi = debunk_mime(listmime);
+
+					if(mimi & IS_M3U) pl.type = M3U;
+					else if(mimi & IS_PLS)	pl.type = PLS;
 					else
 					{
 						if(fd >= 0) close(fd);
-						if(!strcmp("audio/mpeg", listmime) || !strcmp("audio/x-mpeg", listmime))
+						if(mimi & IS_FILE)
 						{
 							pl.type = NO_LIST;
 							if(param.listentry < 0)

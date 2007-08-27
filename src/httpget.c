@@ -27,9 +27,8 @@
 */
 
 #include "mpg123.h"
+#include "httpget.h"
 
-/* That _is_ real now */
-#define ACCEPT_HEAD "Accept: audio/mpeg, audio/x-mpeg, audio/x-mpegurl, audio/x-scpls, application/pls, */*\r\n"
 char *proxyurl = NULL;
 
 #if !defined(WIN32) && !defined(GENERIC)
@@ -52,6 +51,44 @@ char *proxyurl = NULL;
 #ifndef INADDR_NONE
 #define INADDR_NONE 0xffffffff
 #endif
+
+/* mime type classes */
+#define M_FILE 0
+#define M_M3U  1
+#define M_PLS  2
+static const char* mime_file[] =
+{
+	"audio/mpeg",  "audio/x-mpeg",
+	"audio/mp3",   "audio/x-mp3", 
+	"audio/mpeg3", "audio/x-mpeg3",
+	"audio/mpg",   "audio/x-mpg",
+	"audio/x-mpegaudio", NULL
+};
+static const char* mime_m3u[] = { "audio/mpeg-url", "audio/x-mpegurl", NULL };
+static const char* mime_pls[]	= { "audio/x-scpls", "audio/scpls", "application/pls", NULL };
+static const char** mimes[] = { mime_file, mime_m3u, mime_pls, NULL };
+
+int debunk_mime(const char* mime)
+{
+	int i,j;
+	int r = 0;
+	for(i=0; mimes[i]    != NULL; ++i)
+	for(j=0; mimes[i][j] != NULL; ++j)
+	if(!strcmp(mimes[i][j], mime)) goto debunk_result;
+
+debunk_result:
+	if(mimes[i] != NULL)
+	{
+		switch(i)
+		{
+			case M_FILE: r = IS_FILE;        break;
+			case M_M3U:  r = IS_LIST|IS_M3U; break;
+			case M_PLS:  r = IS_LIST|IS_PLS; break;
+			default: error("unexpected MIME debunk result -- coding error?!");
+		}
+	}
+	return r;
+}
 
 int writestring (int fd, char *string)
 {
@@ -234,6 +271,28 @@ unsigned int proxyport;
 char *httpauth = NULL;
 char *httpauth1 = NULL;
 
+static void append_accept(char *s)
+{
+	int i,j;
+	strcat(s, "Accept: ");
+	for(i=0; mimes[i]    != NULL; ++i)
+	for(j=0; mimes[i][j] != NULL; ++j){ strcat(s, mimes[i][j]); strcat(s, ", "); }
+	strcat(s, "*/*\r\n");
+}
+
+static size_t accept_length(void)
+{
+	int i,j;
+	static size_t l = 0;
+	if(l) return l;
+	l += strlen("Accept: ");
+	for(i=0; mimes[i]    != NULL; ++i)
+	for(j=0; mimes[i][j] != NULL; ++j){ l += strlen(mimes[i][j]) + strlen(", "); }
+	l += strlen("*/*\r\n");
+	debug1("initial computation of accept header length: %lu", (unsigned long)l);
+	return l;
+}
+
 int http_open (char* url, char** content_type)
 {
 	/* TODO: make sure ulong vs. size_t is really clear! */
@@ -334,13 +393,13 @@ int http_open (char* url, char** content_type)
 	/* "GET http://"		11
 	 * " HTTP/1.0\r\nUser-Agent: <PACKAGE_NAME>/<PACKAGE_VERSION>\r\n"
 	 * 				26 + PACKAGE_NAME + PACKAGE_VERSION
-	 * ACCEPT_HEAD               strlen(ACCEPT_HEAD)
+	 * accept header            + accept_length()
 	 * "Authorization: Basic \r\n"	23
 	 * "\r\n"			 2
 	 * ... plus the other predefined header lines
 	 */
 	linelengthbase = 62 + strlen(PACKAGE_NAME) + strlen(PACKAGE_VERSION)
-	                 + strlen(ACCEPT_HEAD) + strlen(CONN_HEAD) + strlen(ACCEPT_ICY_META);
+	                 + accept_length() + strlen(CONN_HEAD) + strlen(ACCEPT_ICY_META);
 
 	if(httpauth) {
 		tmp = (strlen(httpauth) + 1) * 4;
@@ -498,7 +557,7 @@ int http_open (char* url, char** content_type)
 		{
 			fprintf(stderr, "Error: No host! This must be an error! My HTTP/1.1 request is invalid.");
 		} */
-		strcat (request, ACCEPT_HEAD);
+		append_accept(request);
 		strcat (request, CONN_HEAD);
 		strcat (request, ACCEPT_ICY_META);
 		server.sin_family = AF_INET;
