@@ -6,14 +6,7 @@
 	initially written by Nicholas J Humfrey
 */
 
-#include <sys/types.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
-#include "config.h"
-#include "debug.h"
-#include "module.h"
+#include "mpg123.h"
 
 
 /* A single module is staticly compiled in for each type */

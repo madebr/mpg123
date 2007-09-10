@@ -6,16 +6,11 @@
 	initially written by Nicholas J Humfrey
 */
 
-#include <sys/types.h>
 #include <dirent.h>
-#include <stdlib.h>
-#include <string.h>
 #include <errno.h>
-#include <ctype.h>
+#include <ltdl.h>
 
-#include "config.h"
-#include "debug.h"
-#include "module.h"
+#include "mpg123.h"
 
 #ifndef HAVE_LTDL
 #error Cannot build without LTDL library support
