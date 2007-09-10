@@ -33,7 +33,7 @@
 
 
 
-int audio_open(struct audio_info_struct *ai)
+int audio_open(audio_output_t *ao)
 {
 	int err;
 	int card=0,device=0;
@@ -42,9 +42,9 @@ int audio_open(struct audio_info_struct *ai)
 	if(!ai)
 		return -1;
 		
-	if(ai->device) {	/* parse ALSA device name */
-		if(strchr(ai->device,':')) {	/* card with device */
-			strncpy(scard, ai->device, sizeof(scard)-1);
+	if(ao->device) {	/* parse ALSA device name */
+		if(strchr(ao->device,':')) {	/* card with device */
+			strncpy(scard, ao->device, sizeof(scard)-1);
 			scard[sizeof(scard)-1] = '\0';
 			if (strchr(scard,':')) *strchr(scard,':') = '\0';
 			card = snd_card_name(scard);
@@ -52,9 +52,9 @@ int audio_open(struct audio_info_struct *ai)
 				fprintf(stderr, "wrong soundcard number: %s\n", scard);
 				exit(1);
 			}
-			strncpy(sdevice, strchr(ai->device, ':') + 1, sizeof(sdevice)-1);
+			strncpy(sdevice, strchr(ao->device, ':') + 1, sizeof(sdevice)-1);
 		} else {
-			strncpy(sdevice, ai->device, sizeof(sdevice)-1);
+			strncpy(sdevice, ao->device, sizeof(sdevice)-1);
 		}
 		sdevice[sizeof(sdevice)-1] = '\0';
 		device = atoi(sdevice);
@@ -65,7 +65,7 @@ int audio_open(struct audio_info_struct *ai)
 	}
 
 	// Open the ALSA device
-	if((err=snd_pcm_open(&ai->handle, card, device, SND_PCM_OPEN_PLAYBACK)) < 0 )
+	if((err=snd_pcm_open(&ao->handle, card, device, SND_PCM_OPEN_PLAYBACK)) < 0 )
 	{
 		fprintf(stderr, "open failed: %s\n", snd_strerror(err));
 		exit(1);
@@ -81,38 +81,38 @@ int audio_open(struct audio_info_struct *ai)
 }
 
 
-static void audio_set_playback_format(struct audio_info_struct *ai)
+static void audio_set_playback_format(audio_output_t *ao)
 {
 	snd_pcm_format_t alsa_format;
 	int err;
 	
-	alsa_format.rat = ai->rate;
-	alsa_format.channels = ai->channels;
+	alsa_format.rat = ao->rate;
+	alsa_format.channels = ao->channels;
 
-	switch(ai->format)
+	switch(ao->format)
 	{
 		case AUDIO_FORMAT_SIGNED_16:
 		default:
-			ai->alsa_format.format=SND_PCM_SFMT_S16_NE;
+			ao->alsa_format.format=SND_PCM_SFMT_S16_NE;
 			break;
 		case AUDIO_FORMAT_UNSIGNED_8:
-			ai->alsa_format.format=SND_PCM_SFMT_U8;
+			ao->alsa_format.format=SND_PCM_SFMT_U8;
 			break;
 		case AUDIO_FORMAT_SIGNED_8:
-			ai->alsa_format.format=SND_PCM_SFMT_S8;
+			ao->alsa_format.format=SND_PCM_SFMT_S8;
 			break;
 		case AUDIO_FORMAT_ULAW_8:
-			ai->alsa_format.format=SND_PCM_SFMT_MU_LAW;
+			ao->alsa_format.format=SND_PCM_SFMT_MU_LAW;
 			break;
 		case AUDIO_FORMAT_ALAW_8:
-			ai->alsa_format.format=SND_PCM_SFMT_A_LAW;
+			ao->alsa_format.format=SND_PCM_SFMT_A_LAW;
 			break;
 		case AUDIO_FORMAT_UNSIGNED_16:
-			ai->alsa_format.format=SND_PCM_SFMT_U16_NE;
+			ao->alsa_format.format=SND_PCM_SFMT_U16_NE;
 			break;
 	}
 
-	if((err=snd_pcm_playback_format(ai->handle, &alsa_format)) < 0 )
+	if((err=snd_pcm_playback_format(ao->handle, &alsa_format)) < 0 )
 	{
 		fprintf(stderr, "snd_pcm_playback_format failed: %s\n", snd_strerror(err));
 		exit(1);
@@ -120,13 +120,13 @@ static void audio_set_playback_format(struct audio_info_struct *ai)
 }
 
 
-static void audio_set_playback_params(struct audio_info_struct *ai)
+static void audio_set_playback_params(audio_output_t *ao)
 {
 	int err;
 	snd_pcm_playback_info_t pi;
 	snd_pcm_playback_params_t pp;
 
-	if((err=snd_pcm_playback_info(ai->handle, &pi)) < 0 )
+	if((err=snd_pcm_playback_info(ao->handle, &pi)) < 0 )
 	{
 		fprintf(stderr, "playback info failed: %s\n", snd_strerror(err));
 		return;	/* not fatal error */
@@ -139,7 +139,7 @@ static void audio_set_playback_params(struct audio_info_struct *ai)
 	pp.fragments_max = -1;
 	pp.fragments_room = 1;
 
-	if((err=snd_pcm_playback_params(ai->handle, &pp)) < 0 )
+	if((err=snd_pcm_playback_params(ao->handle, &pp)) < 0 )
 	{
 		fprintf(stderr, "playback params failed: %s\n", snd_strerror(err));
 		return; /* not fatal error */
@@ -149,7 +149,7 @@ static void audio_set_playback_params(struct audio_info_struct *ai)
 
 
 
-int audio_get_formats(struct audio_info_struct *ai)
+int audio_get_formats(audio_output_t *ao)
 {
 	int i, err;
 	int fmt = -1;
@@ -166,7 +166,7 @@ int audio_get_formats(struct audio_info_struct *ai)
 		SND_PCM_FMT_MU_LAW, SND_PCM_FMT_A_LAW
 	};
 
-	if((err=snd_pcm_playback_info(ai->handle, &pi)) < 0 )
+	if((err=snd_pcm_playback_info(ao->handle, &pi)) < 0 )
 	{
 		fprintf(stderr, "playback info failed: %s\n", snd_strerror(err));
 		return -1;
@@ -183,23 +183,23 @@ int audio_get_formats(struct audio_info_struct *ai)
 	return fmt;
 }
 
-int audio_play_samples(struct audio_info_struct *ai,unsigned char *buf,int len)
+int audio_play_samples(audio_output_t *ao,unsigned char *buf,int len)
 {
 	ssize_t ret;
 
-	ret=snd_pcm_write(ai->handle, buf, len);
+	ret=snd_pcm_write(ao->handle, buf, len);
 
 	return ret;
 }
 
-int audio_close(struct audio_info_struct *ai)
+int audio_close(audio_output_t *ao)
 {
 	int ret;
-	ret = snd_pcm_close(ai->handle);
+	ret = snd_pcm_close(ao->handle);
 	return ret;
 }
 
-void audio_queueflush(struct audio_info_struct *ai)
+void audio_queueflush(audio_output_t *ao)
 {
 }
 

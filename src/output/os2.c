@@ -1,5 +1,5 @@
 /*
-	audio_os2: OS/2 RealTime DART Engine
+	os2: OS/2 RealTime DART Engine
 
 	copyright 1998-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
@@ -137,7 +137,7 @@ static void MciError(ULONG ulError)
    fprintf(stderr,"%s",mmerror);
 }
 
-int audio_set_volume(struct audio_info_struct *ai, USHORT setvolume)
+int audio_set_volume(audio_output_t *ao, USHORT setvolume)
 {
    if(setvolume > 100) setvolume = 100;
    volume = setvolume; /* useful when device is closed and reopened */
@@ -154,7 +154,7 @@ int audio_set_volume(struct audio_info_struct *ai, USHORT setvolume)
    return setvolume;
 }
 
-int audio_pause(struct audio_info_struct *ai, int pause)
+int audio_pause(audio_output_t *ao, int pause)
 {
    if(maop.usDeviceID)
    {
@@ -170,7 +170,7 @@ int audio_pause(struct audio_info_struct *ai, int pause)
    return pause;
 }
 
-int audio_open(struct audio_info_struct *ai)
+int audio_open(audio_output_t *ao)
 {
    ULONG rc,i;
    char *temp;
@@ -182,22 +182,22 @@ int audio_open(struct audio_info_struct *ai)
 
    if(!ai) return -1;
 
-   if(!ai->device) ai->device = "0";
+   if(!ao->device) ao->device = "0";
 
-   if(ai->rate < 0) ai->rate = 44100;
-   if(ai->channels < 0) ai->channels = 2;
-   if(ai->format < 0) ai->format = AUDIO_FORMAT_SIGNED_16;
+   if(ao->rate < 0) ao->rate = 44100;
+   if(ao->channels < 0) ao->channels = 2;
+   if(ao->format < 0) ao->format = AUDIO_FORMAT_SIGNED_16;
 
-   if(ai->format == AUDIO_FORMAT_SIGNED_16)
+   if(ao->format == AUDIO_FORMAT_SIGNED_16)
       bits = 16;
-   else if(ai->format == AUDIO_FORMAT_UNSIGNED_8)
+   else if(ao->format == AUDIO_FORMAT_UNSIGNED_8)
       bits = 8;
    else return -1;
 
    /* open the mixer device */
    memset (&maop, 0, sizeof(maop));
    maop.usDeviceID = 0;
-   maop.pszDeviceType = (PSZ) MAKEULONG(MCI_DEVTYPE_AUDIO_AMPMIX, atoi(ai->device));
+   maop.pszDeviceType = (PSZ) MAKEULONG(MCI_DEVTYPE_AUDIO_AMPMIX, atoi(ao->device));
 
    openflags = MCI_WAIT | MCI_OPEN_TYPE_ID;
    if(!lockdevice) openflags |= MCI_OPEN_SHAREABLE;
@@ -215,7 +215,7 @@ int audio_open(struct audio_info_struct *ai)
       return(-1);
    }
 
-   /* volume in ai->gain ?? */
+   /* volume in ao->gain ?? */
 
    /* Set the MCI_MIXSETUP_PARMS data structure to match the audio stream. */
 
@@ -223,8 +223,8 @@ int audio_open(struct audio_info_struct *ai)
 
    mmp.ulBitsPerSample = bits;
    mmp.ulFormatTag = MCI_WAVE_FORMAT_PCM;
-   mmp.ulSamplesPerSec = ai->rate;
-   mmp.ulChannels = ai->channels;
+   mmp.ulSamplesPerSec = ao->rate;
+   mmp.ulChannels = ao->channels;
 
    /* Setup the mixer for playback of wave data */
    mmp.ulFormatMode = MCI_PLAY;
@@ -345,7 +345,7 @@ int audio_open(struct audio_info_struct *ai)
    return maop.usDeviceID;
 }
 
-int audio_play_samples(struct audio_info_struct *ai,unsigned char *buf,int len)
+int audio_play_samples(audio_output_t *ao,unsigned char *buf,int len)
 {
    /* if we're too quick, let's wait */
    if(nobuffermode)
@@ -390,18 +390,18 @@ int audio_play_samples(struct audio_info_struct *ai,unsigned char *buf,int len)
    return len;
 }
 
-int audio_playing_samples(struct audio_info_struct *ai,unsigned char *buf,int len)
+int audio_playing_samples(audio_output_t *ao,unsigned char *buf,int len)
 {
    if(len > audiobufsize || !playingbuffer) return -1;
 
    if(mmp.ulBitsPerSample == 16)
-      ai->format = AUDIO_FORMAT_SIGNED_16;
+      ao->format = AUDIO_FORMAT_SIGNED_16;
    else if(mmp.ulBitsPerSample == 8)
-      ai->format = AUDIO_FORMAT_UNSIGNED_8;
+      ao->format = AUDIO_FORMAT_UNSIGNED_8;
    else return -1;
 
-   ai->rate = mmp.ulSamplesPerSec;
-   ai->channels = mmp.ulChannels;
+   ao->rate = mmp.ulSamplesPerSec;
+   ao->channels = mmp.ulChannels;
 
    if(buf && len)
    {
@@ -445,13 +445,13 @@ int audio_playing_samples(struct audio_info_struct *ai,unsigned char *buf,int le
    return 0;
 }
 
-int audio_nobuffermode(struct audio_info_struct *ai, int setnobuffermode)
+int audio_nobuffermode(audio_output_t *ao, int setnobuffermode)
 {
    nobuffermode = setnobuffermode;
    return TRUE;
 }
 
-int audio_trash_buffers(struct audio_info_struct *ai)
+int audio_trash_buffers(audio_output_t *ao)
 {
    int i;
 
@@ -467,7 +467,7 @@ int audio_trash_buffers(struct audio_info_struct *ai)
    return TRUE;
 }
 
-int audio_close(struct audio_info_struct *ai)
+int audio_close(audio_output_t *ao)
 {
    ULONG rc;
 
@@ -526,7 +526,7 @@ int audio_close(struct audio_info_struct *ai)
 /*
  * get formats for specific channel/rate parameters
  */
-int audio_get_formats(struct audio_info_struct *ai)
+int audio_get_formats(audio_output_t *ao)
 {
    int fmts = 0;
    ULONG rc;
@@ -536,8 +536,8 @@ int audio_get_formats(struct audio_info_struct *ai)
    mmp.pmixEvent    = DARTEvent;
 
    mmptemp.ulFormatMode = MCI_PLAY;
-   mmptemp.ulSamplesPerSec = ai->rate;
-   mmptemp.ulChannels = ai->channels;
+   mmptemp.ulSamplesPerSec = ao->rate;
+   mmptemp.ulChannels = ao->channels;
 
    mmptemp.ulFormatTag = MCI_WAVE_FORMAT_PCM;
    mmptemp.ulBitsPerSample = 16;
@@ -634,6 +634,6 @@ int audio_get_devices(char *info, int deviceid)
    }
 }
 
-void audio_queueflush(struct audio_info_struct *ai)
+void audio_queueflush(audio_output_t *ao)
 {
 }

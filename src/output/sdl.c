@@ -1,5 +1,5 @@
 /*
-	audio_portaudio.c: audio output via PortAudio cross-platform audio API
+	sdl: audio output via SDL cross-platform API
 
 	copyright 2006 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
@@ -19,7 +19,6 @@
 #define FRAMES_PER_BUFFER	(256)
 #define FIFO_DURATION		(0.5f)
 
-static int sdl_initialised=0;
 static sfifo_t fifo;
 
 
@@ -28,10 +27,9 @@ static sfifo_t fifo;
        stream:  A pointer to the audio buffer to be filled
        len:     The length (in bytes) of the audio buffer
 */
-static void
-audio_callback_sdl(void *udata, Uint8 *stream, int len)
+static void audio_callback_sdl(void *udata, Uint8 *stream, int len)
 {
-	/* struct audio_info_struct *ai = udata; */
+	/* audio_output_t *ao = udata; */
 	int read;
 
 	/* Only play if we have data left */
@@ -49,23 +47,11 @@ audio_callback_sdl(void *udata, Uint8 *stream, int len)
 
 } 
 
-
-int audio_open(struct audio_info_struct *ai)
+static int open_sdl(audio_output_t *ao)
 {
 	
-	/* Initalise SDL */
-	if (!sdl_initialised)  {
-		if (SDL_Init( SDL_INIT_AUDIO ) ) {
-			error1("Failed to initialise SDL: %s\n", SDL_GetError());
-			return -1;
-		}
-		sdl_initialised=1;
-	}
-	
-	
-
 	/* Open an audio I/O stream. */
-	if (ai->rate > 0 && ai->channels >0 ) {
+	if (ao->rate > 0 && ao->channels >0 ) {
 		SDL_AudioSpec wanted;
 		size_t ringbuffer_len;
 	
@@ -74,9 +60,9 @@ int audio_open(struct audio_info_struct *ai)
 		wanted.format = AUDIO_S16SYS;
 		wanted.samples = 1024;  /* Good low-latency value for callback */ 
 		wanted.callback = audio_callback_sdl; 
-		wanted.userdata = ai; 
-		wanted.channels = ai->channels; 
-		wanted.freq = ai->rate; 
+		wanted.userdata = ao; 
+		wanted.channels = ao->channels; 
+		wanted.freq = ao->rate; 
 	
 		/* Open the audio device, forcing the desired format */
 		if ( SDL_OpenAudio(&wanted, NULL) ) {
@@ -85,8 +71,8 @@ int audio_open(struct audio_info_struct *ai)
 		}
 	
 		/* Initialise FIFO */
-		ringbuffer_len = ai->rate * FIFO_DURATION * SAMPLE_SIZE *ai->channels;
-		debug2( "Allocating %d byte ring-buffer (%f seconds)", ringbuffer_len, (float)FIFO_DURATION);
+		ringbuffer_len = ao->rate * FIFO_DURATION * SAMPLE_SIZE *ao->channels;
+		debug2( "Allocating %d byte ring-buffer (%f seconds)", (int)ringbuffer_len, (float)FIFO_DURATION);
 		sfifo_init( &fifo, ringbuffer_len );
 									   
 	}
@@ -95,14 +81,14 @@ int audio_open(struct audio_info_struct *ai)
 }
 
 
-int audio_get_formats(struct audio_info_struct *ai)
+static int get_formats_sdl(audio_output_t *ao)
 {
 	/* Only implemented Signed 16-bit audio for now */
 	return AUDIO_FORMAT_SIGNED_16;
 }
 
 
-int audio_play_samples(struct audio_info_struct *ai, unsigned char *buf, int len)
+static int write_sdl(audio_output_t *ao, unsigned char *buf, int len)
 {
 
 	/* Sleep for half the length of the FIFO */
@@ -128,7 +114,7 @@ int audio_play_samples(struct audio_info_struct *ai, unsigned char *buf, int len
 	return len;
 }
 
-int audio_close(struct audio_info_struct *ai)
+static int close_sdl(audio_output_t *ao)
 {
 	SDL_CloseAudio();
 	
@@ -137,10 +123,46 @@ int audio_close(struct audio_info_struct *ai)
 	return 0;
 }
 
-void audio_queueflush(struct audio_info_struct *ai)
+static void flush_sdl(audio_output_t *ao)
 {
 	SDL_PauseAudio(1);
 	
 	sfifo_flush( &fifo );	
 }
 
+
+static int init_sdl(audio_output_t* ao)
+{
+	if (ao==NULL) return -1;
+
+	/* Initialise SDL */
+	if (SDL_Init( SDL_INIT_AUDIO ) ) {
+		error1("Failed to initialise SDL: %s\n", SDL_GetError());
+		return -1;
+	}
+	
+	/* Set callbacks */
+	ao->open = open_sdl;
+	ao->flush = flush_sdl;
+	ao->write = write_sdl;
+	ao->get_formats = get_formats_sdl;
+	ao->close = close_sdl;
+
+	/* Success */
+	return 0;
+}
+
+
+
+/* 
+	Module information data structure
+*/
+mpg123_module_t mpg123_output_module_info = {
+	/* api_version */	MPG123_MODULE_API_VERSION,
+	/* name */			"sdl",
+	/* description */	"Output audio using SDL (Simple DirectMedia Layer).",
+	/* revision */		"$Rev:$",
+	/* handle */		NULL,
+	
+	/* init_output */	init_sdl,
+};

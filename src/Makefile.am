@@ -4,11 +4,12 @@
 ## see COPYING and AUTHORS files in distribution or http://mpg123.org
 ## initially written by Nicholas J. Humfrey
 
-AM_CFLAGS = @AUDIO_CFLAGS@
-#AM_LDFLAGS = 
-mpg123_LDADD = @AUDIO_OBJ@ @CPU_TYPE_LIB@ @AUDIO_LIBS@
-mpg123_DEPENDENCIES = @AUDIO_OBJ@ @CPU_TYPE_LIB@
+mpg123_LDADD = @LIBLTDL@ @CPU_TYPE_LIB@
+mpg123_LDFLAGS = -export-dynamic
+mpg123_INCLUDES = @LTDLINCL@
+mpg123_DEPENDENCIES = @LIBLTDL@ @CPU_TYPE_LIB@
 
+SUBDIRS = output
 EXTRA_DIST = Makefile.legacy config.h.legacy
 
 CLEANFILES = *.a
@@ -19,7 +20,7 @@ EXTRA_PROGRAMS = testcpu
 testcpu_SOURCES = \
 	testcpu.c \
 	getcpuflags.S
-	
+
 mpg123_SOURCES = \
 	audio.c \
 	audio.h \
@@ -52,6 +53,8 @@ mpg123_SOURCES = \
 	layer3.c \
 	layer3.h \
 	mangle.h \
+	module.c \
+	module.h \
 	mpg123.c \
 	mpg123.h \
 	optimize.h \
@@ -70,25 +73,8 @@ mpg123_SOURCES = \
 	xfermem.c \
 	xfermem.h
 
-EXTRA_mpg123_SOURCES = \
-	audio_aix.c \
-	audio_alib.c \
-	audio_alsa.c \
-	audio_dummy.c \
-	audio_esd.c \
-	audio_hp.c \
-	audio_jack.c \
-	audio_coreaudio.c \
-	audio_mint.c \
-	audio_nas.c \
-	audio_os2.c \
-	audio_oss.c \
-	audio_portaudio.c \
-	audio_sdl.c \
-	audio_sgi.c \
-	audio_sun.c \
-	audio_win32.c \
-	getcpuflags.h
+
+EXTRA_mpg123_SOURCES = getcpuflags.h
 
 
 # Processor dependent decoder code

@@ -1,15 +1,20 @@
 /*
-	audio_aix.c: Driver for IBM RS/6000 with AIX Ultimedia Services
+	aix: Driver for IBM RS/6000 with AIX Ultimedia Services
 
 	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Juergen Schoew and Tomas Oegren
 */
 
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/audio.h>
 #include <stropts.h>
+#include <sys/types.h>
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <sys/param.h>
@@ -21,56 +26,56 @@
 /* #define AUDIO_BSIZE AUDIO_IGNORE */
 #define AUDIO_BSIZE 200
 
-int audio_rate_best_match(struct audio_info_struct *ai)
+int audio_rate_best_match(audio_output_t *ao)
 {
   static long valid [ ] = {  5510,  6620,  8000,  9600, 11025, 16000, 18900,
                             22050, 27420, 32000, 33075, 37800, 44100, 48000, 0 };
   int  i = 0;
   long best = 8000;
 
-  if(!ai || ai->fn < 0 || ai->rate < 0) {
+  if(!ai || ao->fn < 0 || ao->rate < 0) {
     return -1;
   } 
 
   while (valid [i])
   {
-    if (abs(valid[i] - ai->rate) < abs(best - ai->rate))
+    if (abs(valid[i] - ao->rate) < abs(best - ao->rate))
     {
       best = valid [i];
     }
     i = i + 1;
   }
 
-  ai->rate = best;
+  ao->rate = best;
   return best;
 }
 
 
-int audio_open(struct audio_info_struct *ai)
+int audio_open(audio_output_t *ao)
 {
   audio_init ainit;
   int ret;
 
-  if(!ai->device) {
+  if(!ao->device) {
     if(getenv("AUDIODEV")) {
       if(param.verbose > 1) 
          fprintf(stderr,"Using audio-device value from AUDIODEV environmentvariable!\n");
-      ai->device = getenv("AUDIODEV");
-      ai->fn = open(ai->device,O_WRONLY);
+      ao->device = getenv("AUDIODEV");
+      ao->fn = open(ao->device,O_WRONLY);
     }
     else {
-      ai->device = "/dev/paud0/1";                   /* paud0 for PCI */
-      ai->fn = open(ai->device,O_WRONLY);
-      if ((ai->fn == -1) & (errno == ENOENT)) {
-        ai->device = "/dev/baud0/1";                 /* baud0 for MCA */
-        ai->fn = open(ai->device,O_WRONLY);
+      ao->device = "/dev/paud0/1";                   /* paud0 for PCI */
+      ao->fn = open(ao->device,O_WRONLY);
+      if ((ao->fn == -1) & (errno == ENOENT)) {
+        ao->device = "/dev/baud0/1";                 /* baud0 for MCA */
+        ao->fn = open(ao->device,O_WRONLY);
       }   
     }
-  } else ai->fn = open(ai->device,O_WRONLY);
+  } else ao->fn = open(ao->device,O_WRONLY);
 
-  if(ai->fn < 0){
+  if(ao->fn < 0){
      fprintf(stderr,"Can't open audio device!\n");
-     return ai->fn;
+     return ao->fn;
   }
 
   /* Init to default values */
@@ -83,14 +88,14 @@ int audio_open(struct audio_info_struct *ai)
   ainit.operation        = PLAY;
   ainit.bsize            = AUDIO_BSIZE;
  
-  ret = ioctl (ai->fn, AUDIO_INIT, & ainit);
+  ret = ioctl (ao->fn, AUDIO_INIT, & ainit);
   if (ret < 0)
      return ret;
   audio_reset_parameters(ai);
-  return ai->fn;
+  return ao->fn;
 }
 
-int audio_reset_parameters(struct audio_info_struct *ai)
+int audio_reset_parameters(audio_output_t *ao)
 {
   audio_control  acontrol;
   audio_change   achange;
@@ -105,16 +110,16 @@ int audio_reset_parameters(struct audio_info_struct *ai)
   achange.volume         = (long) (0x7fff << 16);
   achange.volume_delay   = 0;
   achange.input          = AUDIO_IGNORE;
-  if (ai->output == -1) achange.output = INTERNAL_SPEAKER;
+  if (ao->output == -1) achange.output = INTERNAL_SPEAKER;
   else
   achange.output      = 0;
-  if(ai->output & AUDIO_OUT_INTERNAL_SPEAKER)
+  if(ao->output & AUDIO_OUT_INTERNAL_SPEAKER)
      achange.output     |= INTERNAL_SPEAKER;
-  if(ai->output & AUDIO_OUT_HEADPHONES)
+  if(ao->output & AUDIO_OUT_HEADPHONES)
      achange.output     |= EXTERNAL_SPEAKER;
-  if(ai->output & AUDIO_OUT_LINE_OUT)
+  if(ao->output & AUDIO_OUT_LINE_OUT)
      achange.output     |= OUTPUT_1;
-  if(ai->output == 0)
+  if(ao->output == 0)
      achange.output      = AUDIO_IGNORE;
   achange.treble         = AUDIO_IGNORE;
   achange.bass          = AUDIO_IGNORE;
@@ -126,19 +131,19 @@ int audio_reset_parameters(struct audio_info_struct *ai)
   acontrol.position      = 0;
   acontrol.request_info  = (char *) & achange;
 
-  ret = ioctl (ai->fn, AUDIO_CONTROL, & acontrol);
+  ret = ioctl (ao->fn, AUDIO_CONTROL, & acontrol);
   if (ret < 0)
     return ret;
 
   /* Init Device for new values */
-  if (ai->rate >0) {
+  if (ao->rate >0) {
     memset ( & ainit, '\0', sizeof (ainit));
     ainit.srate                 = audio_rate_best_match(ai);
-    if (ai->channels > 0)
-       ainit.channels          = ai->channels;
+    if (ao->channels > 0)
+       ainit.channels          = ao->channels;
     else
       ainit.channels           = 1;
-    switch (ai->format) {
+    switch (ao->format) {
       default :
         ainit.mode             = PCM;
         ainit.bits_per_sample  = 8;
@@ -178,7 +183,7 @@ int audio_reset_parameters(struct audio_info_struct *ai)
     ainit.operation            = PLAY;
     ainit.bsize                = AUDIO_BSIZE;
  
-    ret = ioctl (ai->fn, AUDIO_INIT, & ainit);
+    ret = ioctl (ao->fn, AUDIO_INIT, & ainit);
     if (ret < 0) {
       fprintf(stderr,"Can't set new audio parameters!\n");
       return ret;
@@ -189,7 +194,7 @@ int audio_reset_parameters(struct audio_info_struct *ai)
   acontrol.request_info    = NULL;
   acontrol.position        = 0;
 
-  ret = ioctl (ai->fn, AUDIO_CONTROL, & acontrol);
+  ret = ioctl (ao->fn, AUDIO_CONTROL, & acontrol);
   if (ret < 0) {
     fprintf(stderr,"Can't reset audio!\n");
     return ret;
@@ -197,7 +202,7 @@ int audio_reset_parameters(struct audio_info_struct *ai)
   return 0;
 }
 
-int audio_get_formats(struct audio_info_struct *ai)
+int audio_get_formats(audio_output_t *ao)
 {
 /* ULTIMEDIA DOCUMENTATION SAYS:
    The Ultimedia Audio Adapter supports fourteen sample rates you can use to
@@ -209,9 +214,9 @@ int audio_get_formats(struct audio_info_struct *ai)
 
   long rate;
   
-  rate = ai->rate;
+  rate = ao->rate;
   audio_rate_best_match(ai);
-  if (ai->rate == rate)
+  if (ao->rate == rate)
      return (AUDIO_FORMAT_SIGNED_16|AUDIO_FORMAT_UNSIGNED_16|
              AUDIO_FORMAT_UNSIGNED_8|AUDIO_FORMAT_SIGNED_8|
              AUDIO_FORMAT_ULAW_8|AUDIO_FORMAT_ALAW_8);
@@ -219,12 +224,12 @@ int audio_get_formats(struct audio_info_struct *ai)
     return 0;
 }
 
-int audio_play_samples(struct audio_info_struct *ai,unsigned char *buf,int len)
+int audio_play_samples(audio_output_t *ao,unsigned char *buf,int len)
 {
-    return write(ai->fn,buf,len);
+    return write(ao->fn,buf,len);
 }
 
-int audio_close(struct audio_info_struct *ai)
+int audio_close(audio_output_t *ao)
 {
     audio_control acontrol;
     audio_buffer  abuffer;
@@ -236,7 +241,7 @@ int audio_close(struct audio_info_struct *ai)
     acontrol.position = 0;
     i=50;   /* Don't do this forever on a bad day :-) */
     while (i-- > 0) {
-            if ((ioctl(ai->fn, AUDIO_BUFFER, &acontrol))< 0) {
+            if ((ioctl(ao->fn, AUDIO_BUFFER, &acontrol))< 0) {
                     fprintf(stderr, "buffer read failed: %d\n", errno);
                     break;
             } else {
@@ -251,18 +256,18 @@ int audio_close(struct audio_info_struct *ai)
     acontrol.request_info  = NULL;
     acontrol.position      = 0;
 
-    ret = ioctl ( ai->fn, AUDIO_CONTROL, & acontrol );
+    ret = ioctl ( ao->fn, AUDIO_CONTROL, & acontrol );
     if (ret < 0)
        fprintf(stderr,"Can't close audio!\n");
 
-    ret = close (ai->fn);
+    ret = close (ao->fn);
     if (ret < 0)
       fprintf(stderr,"Can't close audio!\n");
 
     return 0;
 }
 
-void audio_queueflush(struct audio_info_struct *ai)
+void audio_queueflush(audio_output_t *ao)
 {
 }
 

@@ -169,7 +169,7 @@ static int open_file(char *filename)
 }
 
 
-int au_open(struct audio_info_struct *ai, char *aufilename)
+int au_open(audio_output_t *ao, char *aufilename)
 {
 #ifdef FLOATOUT
 	error("AU file support for float values not there yet");
@@ -177,7 +177,7 @@ int au_open(struct audio_info_struct *ai, char *aufilename)
 #else
   flipendian = 0;
 
-  switch(ai->format) {
+  switch(ao->format) {
     case AUDIO_FORMAT_SIGNED_16:
       {
         int endiantest = testEndian();
@@ -187,7 +187,7 @@ int au_open(struct audio_info_struct *ai, char *aufilename)
       }
       break;
     case AUDIO_FORMAT_UNSIGNED_8:
-      ai->format = AUDIO_FORMAT_ULAW_8; 
+      ao->format = AUDIO_FORMAT_ULAW_8; 
     case AUDIO_FORMAT_ULAW_8:
       long2bigendian(1,auhead.encoding,sizeof(auhead.encoding));
       break;
@@ -197,8 +197,8 @@ int au_open(struct audio_info_struct *ai, char *aufilename)
   }
 
   long2bigendian(0xffffffff,auhead.datalen,sizeof(auhead.datalen));
-  long2bigendian(ai->rate,auhead.rate,sizeof(auhead.rate));
-  long2bigendian(ai->channels,auhead.channels,sizeof(auhead.channels));
+  long2bigendian(ao->rate,auhead.rate,sizeof(auhead.rate));
+  long2bigendian(ao->channels,auhead.channels,sizeof(auhead.channels));
 
   if(open_file(aufilename) < 0)
     return -1;
@@ -210,18 +210,18 @@ int au_open(struct audio_info_struct *ai, char *aufilename)
 #endif
 }
 
-int cdr_open(struct audio_info_struct *ai, char *cdrfilename)
+int cdr_open(audio_output_t *ao, char *cdrfilename)
 {
 #ifdef FLOATOUT
 	error("refusing to produce cdr file with float values");
 	return -1;
 #else
   param.force_stereo = 0;
-  ai->format = AUDIO_FORMAT_SIGNED_16;
-  ai->rate = 44100;
-  ai->channels = 2;
+  ao->format = AUDIO_FORMAT_SIGNED_16;
+  ao->rate = 44100;
+  ao->channels = 2;
 /*
-  if(ai->format != AUDIO_FORMAT_SIGNED_16 || ai->rate != 44100 || ai->channels != 2) {
+  if(ao->format != AUDIO_FORMAT_SIGNED_16 || ao->rate != 44100 || ao->channels != 2) {
     fprintf(stderr,"Oops .. not forced to 16 bit, 44kHz?, stereo\n");
     exit(1);
   }
@@ -236,7 +236,7 @@ int cdr_open(struct audio_info_struct *ai, char *cdrfilename)
 #endif
 }
 
-int wav_open(struct audio_info_struct *ai, char *wavfilename)
+int wav_open(audio_output_t *ao, char *wavfilename)
 {
    int bps;
    
@@ -248,11 +248,11 @@ int wav_open(struct audio_info_struct *ai, char *wavfilename)
    long2littleendian(bps=32,RIFF.WAVE.fmt.BitsPerSample,sizeof(RIFF.WAVE.fmt.BitsPerSample));
    flipendian = testEndian();
 #else
-   if(ai->format == AUDIO_FORMAT_SIGNED_16) {
+   if(ao->format == AUDIO_FORMAT_SIGNED_16) {
       long2littleendian(bps=16,RIFF.WAVE.fmt.BitsPerSample,sizeof(RIFF.WAVE.fmt.BitsPerSample));
       flipendian = testEndian();
    }
-   else if(ai->format == AUDIO_FORMAT_UNSIGNED_8)
+   else if(ao->format == AUDIO_FORMAT_UNSIGNED_8)
       long2littleendian(bps=8,RIFF.WAVE.fmt.BitsPerSample,sizeof(RIFF.WAVE.fmt.BitsPerSample));
    else
    {
@@ -261,13 +261,13 @@ int wav_open(struct audio_info_struct *ai, char *wavfilename)
    }
 #endif
 
-   if(ai->rate < 0) ai->rate = 44100;
+   if(ao->rate < 0) ao->rate = 44100;
 
-   long2littleendian(ai->channels,RIFF.WAVE.fmt.Channels,sizeof(RIFF.WAVE.fmt.Channels));
-    long2littleendian(ai->rate,RIFF.WAVE.fmt.SamplesPerSec,sizeof(RIFF.WAVE.fmt.SamplesPerSec));
-   long2littleendian((int)(ai->channels * ai->rate * bps)>>3,
+   long2littleendian(ao->channels,RIFF.WAVE.fmt.Channels,sizeof(RIFF.WAVE.fmt.Channels));
+    long2littleendian(ao->rate,RIFF.WAVE.fmt.SamplesPerSec,sizeof(RIFF.WAVE.fmt.SamplesPerSec));
+   long2littleendian((int)(ao->channels * ao->rate * bps)>>3,
          RIFF.WAVE.fmt.AvgBytesPerSec,sizeof(RIFF.WAVE.fmt.AvgBytesPerSec));
-   long2littleendian((int)(ai->channels * bps)>>3,
+   long2littleendian((int)(ao->channels * bps)>>3,
          RIFF.WAVE.fmt.BlockAlign,sizeof(RIFF.WAVE.fmt.BlockAlign));
 
    if(open_file(wavfilename) < 0)

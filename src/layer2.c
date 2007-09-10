@@ -275,7 +275,7 @@ static void II_select_table(struct frame *fr)
 }
 
 
-int do_layer2(struct frame *fr,int outmode,struct audio_info_struct *ai)
+int do_layer2(struct frame *fr,int outmode,audio_output_t *ao)
 {
   int clip=0;
   int i,j;
@@ -315,7 +315,7 @@ int do_layer2(struct frame *fr,int outmode,struct audio_info_struct *ai)
       }
 
       if(pcm_point >= audiobufsize)
-        audio_flush(outmode,ai);
+        audio_flush(outmode,ao);
     }
   }
 

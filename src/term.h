@@ -57,7 +57,7 @@
 #define EMPTY_STRING	"        \b\b\b\b\b\b\b\b"
 
 void term_init(void);
-long term_control(struct frame *fr, struct audio_info_struct *ai);
+long term_control(struct frame *fr, audio_output_t *ao);
 void term_restore(void);
 
 #endif

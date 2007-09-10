@@ -115,7 +115,7 @@ void I_step_two(real fraction[2][SBLIMIT],unsigned int balloc[2*SBLIMIT],
   }
 }
 
-int do_layer1(struct frame *fr,int outmode,struct audio_info_struct *ai)
+int do_layer1(struct frame *fr,int outmode,audio_output_t *ao)
 {
   int clip=0;
   int i,stereo = fr->stereo;
@@ -146,7 +146,7 @@ int do_layer1(struct frame *fr,int outmode,struct audio_info_struct *ai)
     }
 
     if(pcm_point >= audiobufsize)
-      audio_flush(outmode,ai);
+      audio_flush(outmode,ao);
   }
 
   return clip;

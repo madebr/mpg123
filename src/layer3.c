@@ -123,27 +123,27 @@ void layer3_gapless_init(unsigned long b, unsigned long e)
 	debug2("layer3_gapless_init: from %lu to %lu samples", begin, end);
 }
 
-void layer3_gapless_set_position(unsigned long frames, struct frame* fr, struct audio_info_struct *ai)
+void layer3_gapless_set_position(unsigned long frames, struct frame* fr, audio_output_t *ao)
 {
-	position = samples_to_bytes(frames*spf(fr), fr, ai);
+	position = samples_to_bytes(frames*spf(fr), fr, ao);
 	debug1("set; position now %lu", position);
 }
 
-void layer3_gapless_bytify(struct frame *fr, struct audio_info_struct *ai)
+void layer3_gapless_bytify(struct frame *fr, audio_output_t *ao)
 {
 	if(!bytified)
 	{
-		begin = samples_to_bytes(begin, fr, ai);
-		end = samples_to_bytes(end, fr, ai);
+		begin = samples_to_bytes(begin, fr, ao);
+		end = samples_to_bytes(end, fr, ao);
 		bytified = 1;
 		debug2("bytified: begin=%lu; end=%5lu", begin, end);
 	}
 }
 
 /* I need initialized fr here! */
-void layer3_gapless_set_ignore(unsigned long frames, struct frame *fr, struct audio_info_struct *ai)
+void layer3_gapless_set_ignore(unsigned long frames, struct frame *fr, audio_output_t *ao)
 {
-	ignore = samples_to_bytes(frames*spf(fr), fr, ai);
+	ignore = samples_to_bytes(frames*spf(fr), fr, ao);
 }
 
 /*
@@ -1773,7 +1773,7 @@ static void III_hybrid(real fsIn[SBLIMIT][SSLIMIT], real tsOut[SSLIMIT][SBLIMIT]
 /*
  * main layer3 handler
  */
-int do_layer3(struct frame *fr,int outmode,struct audio_info_struct *ai)
+int do_layer3(struct frame *fr,int outmode,audio_output_t *ao)
 {
   int gr, ch, ss,clip=0;
   int scalefacs[2][39]; /* max 39 for short[13][3] mode, mixed: 38, long: 22 */
@@ -1916,7 +1916,7 @@ int do_layer3(struct frame *fr,int outmode,struct audio_info_struct *ai)
       else
         playlimit -= 128;
 #endif
-      if(pcm_point >= audiobufsize) audio_flush(outmode,ai);
+      if(pcm_point >= audiobufsize) audio_flush(outmode,ao);
     }
 #ifdef OPT_I486
     } else {
@@ -1932,7 +1932,7 @@ int do_layer3(struct frame *fr,int outmode,struct audio_info_struct *ai)
         ss+=n;
         pcm_point+=(2*2*32)*n;
         
-        if(pcm_point >= audiobufsize) audio_flush(outmode,ai);
+        if(pcm_point >= audiobufsize) audio_flush(outmode,ao);
       }
     }
 #endif

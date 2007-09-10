@@ -10,7 +10,7 @@ AC_PREREQ(2.57)
 
 dnl ############# Initialisation
 
-AC_INIT([mpg123], [0.67], [mpg123-devel@lists.sourceforge.net])
+AC_INIT([mpg123], [1.0pre1], [mpg123-devel@lists.sourceforge.net])
 
 AC_CONFIG_SRCDIR(src/mpg123.c)
 AC_CONFIG_AUX_DIR(build)
@@ -32,12 +32,27 @@ AC_PROG_RANLIB
 AC_C_CONST
 AC_INLINE
 
-# Check if system supports termios
-AC_SYS_POSIX_TERMIOS
-if test "x$ac_cv_sys_posix_termios" = "xyes"; then
-  AC_DEFINE_UNQUOTED([HAVE_TERMIOS], 1, 
-  [Define this if you have the POSIX termios library])
-fi
+
+dnl ############# Use Libtool for dynamic module loading
+
+dnl Enable building of the libltdl library
+AC_LIBLTDL_INSTALLABLE
+AC_SUBST(LTDLINCL)
+AC_SUBST(LIBLTDL)
+AC_DEFINE(HAVE_LTDL, 1, [ Define if LTDL library is available. ])
+
+dnl Check for dlopen support
+AC_LIBTOOL_DLOPEN
+
+dnl We only want shared libraries by default
+AC_DISABLE_STATIC
+AC_ENABLE_SHARED
+
+dnl Configure libtool
+AM_PROG_LIBTOOL
+
+dnl Configure libltdl
+AC_CONFIG_SUBDIRS(libltdl)
 
 
 
@@ -112,23 +127,23 @@ AC_ARG_WITH([cpu], [
 ]) 
 
 AC_ARG_WITH([audio], [
-  --with-audio=aix        Use AIX audio output sub-system
-  --with-audio=alib       Use Alib audio output sub-system (for HPUX)
-  --with-audio=alsa       Use ALSA audio output sub-system
-  --with-audio=dummy      Use dummy audio (when no sound card is available)
-  --with-audio=esd        Use ESoundD audio output sub-system
-  --with-audio=hp         Use HP audio output sub-system
-  --with-audio=jack       Use JACK low-latency audio server
-  --with-audio=macosx     Use Mac OS X audio output sub-system (CoreAudio)
-  --with-audio=mint       Use MinT audio output sub-system (Atari)
-  --with-audio=nas        Use NAS audio output (Network Audio System)
-  --with-audio=os2        Use OS2 audio output sub-system
-  --with-audio=oss        Use OSS audio output sub-system (/dev/dsp)
-  --with-audio=portaudio  Use PortAudio audio output sub-system
-  --with-audio=sdl        Use SDL audio output sub-system (Simple DirectMedia Layer)
-  --with-audio=sgi        Use SGI audio output sub-system (IRIX)
-  --with-audio=sun        Use Sun audio output sub-system (/dev/audio)
-  --with-audio=win32      Use Windows audio output (WinMM)
+  --with-default-audio=aix        Use AIX as default audio output sub-system
+  --with-default-audio=alib       Use Alib as default audio output sub-system (for HPUX)
+  --with-default-audio=alsa       Use ALSA as default audio output sub-system
+  --with-default-audio=dummy      Use dummy as default audio (when no sound card is available)
+  --with-default-audio=esd        Use ESoundD as default audio output sub-system
+  --with-default-audio=hp         Use HP as default audio output sub-system
+  --with-default-audio=jack       Use JACK as default low-latency audio server
+  --with-default-audio=macosx     Use Mac OS X as default audio output sub-system (CoreAudio)
+  --with-default-audio=mint       Use MinT as default audio output sub-system (Atari)
+  --with-default-audio=nas        Use NAS as default audio output (Network Audio System)
+  --with-default-audio=os2        Use OS2 as default audio output sub-system
+  --with-default-audio=oss        Use OSS as default audio output sub-system (/dev/dsp)
+  --with-default-audio=portaudio  Use PortAudio as default audio output sub-system
+  --with-default-audio=pulse      Use Pulse audio server as default audio output sub-system
+  --with-default-audio=sdl        Use SDL as default audio output sub-system (Simple DirectMedia Layer)
+  --with-default-audio=sgi        Use SGI as default audio output sub-system (IRIX)
+  --with-default-audio=sun        Use Sun as default audio output sub-system (/dev/audio)
 ])
 
 AC_ARG_WITH([optimization], [
@@ -142,6 +157,27 @@ AC_ARG_WITH([optimization], [
 AC_ARG_WITH([seektable], [
   --with-seektable=<size> choose size of seek index table (0 disables it), default 1000
 ])
+
+
+dnl ############## Modules
+
+# Dummy audio output module is alway supported
+output_modules="dummy"
+
+# Location that modules are installed to
+if test x$libdir = 'x${exec_prefix}/lib'; then
+    if test x$prefix = xNONE; then
+        pkglibdir="$ac_default_prefix/lib/$PACKAGE_NAME"
+    else
+        pkglibdir="$prefix/lib/$PACKAGE_NAME"
+    fi
+else
+    pkglibdir="$libdir/$PACKAGE_NAME"
+fi
+AC_DEFINE_UNQUOTED([PKGLIBDIR], "$pkglibdir", [Path to installed modules] ) 
+AC_SUBST([pkglibdir])
+
+
 
 dnl ############## Assembler, compiler properties
 
@@ -191,6 +227,14 @@ dnl ############## Function Checks
 
 AC_FUNC_MMAP
 
+# Check if system supports termios
+AC_SYS_POSIX_TERMIOS
+if test "x$ac_cv_sys_posix_termios" = "xyes"; then
+  AC_DEFINE_UNQUOTED([HAVE_TERMIOS], 1, 
+  [Define this if you have the POSIX termios library])
+fi
+
+
 # Check for sched_setscheduler
 AC_CHECK_FUNCS( sched_setscheduler setuid getuid)
 
@@ -213,28 +257,41 @@ if test $fifo = "yes" && test $have_mkfifo = "no"; then
 	AC_MSG_WARN( [ You forced FIFO code while I think there is no mkfifo() available! ] )
 fi
 
-dnl ############## Library Checks
 
-# Checks for libraries.
+
+dnl ############## Header and Library Checks
+
+AC_HEADER_STDC
+dnl Is it too paranoid to specifically check for stdint.h and limits.h?
+AC_CHECK_HEADERS([stdlib.h string.h unistd.h sched.h sys/ioctl.h stdint.h limits.h inttypes.h sys/time.h sys/wait.h sys/resource.h signal.h])
+
+
+# Checks for maths libraries.
 AC_CHECK_LIB([m], [sqrt])
 AC_CHECK_LIB([mx], [powf])
 
+
 # Check for JACK
-PKG_CHECK_MODULES(JACK, jack, HAVE_JACK=yes, HAVE_JACK=no)
+PKG_CHECK_MODULES(JACK, jack, output_modules="jack $output_modules" HAVE_JACK="yes", HAVE_JACK="no")
+AC_SUBST( JACK_CFLAGS )
+AC_SUBST( JACK_LDFLAGS )
+AC_SUBST( JACK_LIBS )
+AM_CONDITIONAL( [HAVE_JACK], [test "x$HAVE_JACK" = xyes] )
+
+# Check for Simple Pulse Audio API
+PKG_CHECK_MODULES(PULSE, libpulse-simple, output_modules="pulse $output_modules" HAVE_PULSE="yes", HAVE_PULSE="no")
+AC_SUBST( PULSE_CFLAGS )
+AC_SUBST( PULSE_LDFLAGS )
+AC_SUBST( PULSE_LIBS )
+AM_CONDITIONAL( [HAVE_PULSE], [test "x$HAVE_PULSE" = xyes] )
 
 # Check for EsounD
-PKG_CHECK_MODULES(ESOUND, esound, HAVE_ESOUND=yes, HAVE_ESOUND=no)
+PKG_CHECK_MODULES(ESOUND, esound, output_modules="esound $output_modules" HAVE_ESOUND="yes", HAVE_ESOUND="no")
+AC_SUBST( ESOUND_CFLAGS )
+AC_SUBST( ESOUND_LDFLAGS )
+AC_SUBST( ESOUND_LIBS )
+AM_CONDITIONAL( [HAVE_ESOUND], [test "x$HAVE_ESOUND" = xyes] )
 
-# Check for SDL
-PKG_CHECK_MODULES(SDL, sdl, HAVE_SDL=yes, HAVE_SDL=no)
-
-# Check for NAS
-AC_CHECK_LIB( [audio], [AuOpenServer],
-	[ AC_CHECK_HEADER( [audio/audiolib.h],
-		[ HAVE_NAS="yes" ],
-		[ AC_MSG_WARN([Found NAS library but NOT header files on your system]) ] )
-	]
-)
 
 # Check for PortAudio
 case $target in
@@ -243,7 +300,7 @@ case $target in
 		if test "x$HAVE_PORTAUDIO" != "xyes"; then
 			AC_CHECK_LIB( [portaudio], [Pa_Initialize],
 				[ AC_CHECK_HEADER( [portaudio.h],
-					[ HAVE_PORTAUDIO_WINMM="yes" && HAVE_PORTAUDIO="yes" ],
+					[ output_modules="portaudio $output_modules" HAVE_PORTAUDIO_WINMM="yes" HAVE_PORTAUDIO="yes" ],
 					[ AC_MSG_WARN([Found PortAudio library but NOT header files on your system]) ] )
 				],
 				[ HAVE_PORTAUDIO="no" ],
@@ -254,31 +311,78 @@ case $target in
 	*)
 		AC_CHECK_LIB( [portaudio], [Pa_Initialize],
 			[ AC_CHECK_HEADER( [portaudio.h],
-				[ HAVE_PORTAUDIO="yes" ],
+				[ output_modules="portaudio $output_modules" HAVE_PORTAUDIO="yes" ],
 				[ AC_MSG_WARN([Found PortAudio library but NOT header files on your system]) ] )
 			]
 		)
 	;;
 esac
+AM_CONDITIONAL( [HAVE_PORTAUDIO], [test "x$HAVE_PORTAUDIO" = xyes] )
+
+# Check for SDL
+PKG_CHECK_MODULES(SDL, sdl, output_modules="sdl $output_modules" HAVE_SDL="yes", HAVE_SDL="no")
+AC_SUBST( SDL_CFLAGS )
+AC_SUBST( SDL_LDFLAGS )
+AC_SUBST( SDL_LIBS )
+AM_CONDITIONAL( [HAVE_SDL], [test "x$HAVE_SDL" = xyes] )
+
+# Check for NAS
+AC_CHECK_LIB( [audio], [AuOpenServer],
+	[ AC_CHECK_HEADER( [audio/audiolib.h],
+		[ output_modules="nas $output_modules" HAVE_NAS="yes"],
+		[ AC_MSG_WARN([Found NAS library but NOT header files on your system]) ] )
+	]
+)
+AM_CONDITIONAL( [HAVE_NAS], [test "x$HAVE_NAS" = xyes] )
 
 # Check for windows ... and win32 audio
 # Does not work... instead just check for header
 # AC_CHECK_LIB( [winmm], [waveOutOpen] )
 AC_CHECK_HEADERS([windows.h], HAVE_WINMM=yes, HAVE_WINMM=no)
 
+# Sun Audio headers
+AC_CHECK_HEADERS([sun/audioio.h sys/audioio.h asm/audioio.h sys/audio.h])
+if test "x${ac_cv_header_sun_audioio_h}" = "xyes" \
+	 -o "x${ac_cv_header_sys_audioio_h}" = "xyes" \
+	 -o "x${ac_cv_header_asm_audioio_h}" = "xyes";
+then
+	output_modules="sun $output_modules"
+	HAVE_SUN="yes"
+fi
+AM_CONDITIONAL( [HAVE_SUN], [test "x$HAVE_SUN" = xyes] )
+
+# OSS Header files
+AC_CHECK_HEADERS([sys/soundcard.h linux/soundcard.h machine/soundcard.h])
+if test "x${ac_cv_header_sys_soundcard_h}" = "xyes" \
+	 -o "x${ac_cv_header_linux_soundcard_h}" = "xyes" \
+	 -o "x${ac_cv_header_machine_soundcard_h}" = "xyes";
+then
+	output_modules="oss $output_modules"
+	HAVE_OSS="yes"
+fi
+AM_CONDITIONAL( [HAVE_OSS], [test "x$HAVE_OSS" = xyes] )
+
 # Check for ALSA
 AC_CHECK_LIB( [asound], [snd_pcm_open],
 	[ AC_CHECK_HEADER( [alsa/asoundlib.h],
-		[ HAVE_ALSA="yes" ],
+		[ output_modules="alsa $output_modules" HAVE_ALSA="yes"],
 		[ AC_MSG_WARN([Found ALSA library but NOT header files on your system]) ] )
 	]
 )
+AM_CONDITIONAL( [HAVE_ALSA], [test "x$HAVE_ALSA" = xyes] )
 
-dnl ############## Header Checks
 
-AC_HEADER_STDC
-dnl Is it too paranoid to specifically check for stdint.h and limits.h?
-AC_CHECK_HEADERS([stdlib.h string.h unistd.h sched.h sys/ioctl.h stdint.h limits.h inttypes.h sys/time.h sys/wait.h sys/resource.h signal.h])
+# Mac OS X CoreAudio
+AC_CHECK_HEADERS([AudioUnit/AudioUnit.h CoreServices/CoreServices.h AudioToolbox/AudioToolbox.h])
+if test "x${ac_cv_header_AudioUnit_AudioUnit_h}" = "xyes" \
+	 -a "x${ac_cv_header_CoreServices_CoreServices_h}" = "xyes" \
+	 -a "x${ac_cv_header_AudioToolbox_AudioToolbox_h}" = "xyes";
+then
+	output_modules="coreaudio $output_modules"
+	HAVE_COREAUDIO="yes"
+fi
+AM_CONDITIONAL( [HAVE_COREAUDIO], [test "x$HAVE_COREAUDIO" = xyes] )
+
 
 # attempt to make the signal stuff work... also with GENERIC - later
 #if test $ac_cv_header_sys_signal_h = yes; then
@@ -289,26 +393,6 @@ AC_CHECK_HEADERS([stdlib.h string.h unistd.h sched.h sys/ioctl.h stdint.h limits
 #	   test $ac_cv_func_sigaction = yes; then
 #	AC_DEFINE( 
 #fi
-
-# OSS Header files: One of them is enough.
-AC_CHECK_HEADERS(sys/soundcard.h)
-AC_CHECK_HEADERS(linux/soundcard.h)
-AC_CHECK_HEADERS(machine/soundcard.h)
-if test "x${ac_cv_header_sys_soundcard_h}" = "xyes" ||
-   test "x${ac_cv_header_linux_soundcard_h}" = "xyes" ||
-   test "x${ac_cv_header_machine_soundcard_h}" = "xyes"; then
-	HAVE_OSS=yes
-else
-	HAVE_OSS=no
-fi
-
-# Sun Audio headers
-AC_CHECK_HEADERS([sun/audioio.h sys/audioio.h asm/audioio.h sys/audio.h], HAVE_SUNAUDIO=yes, HAVE_SUNAUDIO=no)
-
-# Mac OS X
-AC_CHECK_HEADERS([AudioUnit/AudioUnit.h CoreServices/CoreServices.h AudioToolbox/AudioToolbox.h],
-					HAVE_MACOSXAUDIO=yes, HAVE_MACOSXAUDIO=no)
-
 
 
 
@@ -508,6 +592,19 @@ else
 fi
 AC_SUBST( CPU_TYPE_LIB )
 
+
+dnl ############## Create list of modules to build
+
+# Enable module support in source code
+AC_DEFINE( USE_MODULES, 1, [Define if modules are enabled] )
+
+# Did user choose default audio subsystem ?
+if test "x$with_default_audio" != "x"; then
+	default_output_module=$with_default_audio
+else 
+	default_output_module=`echo "$output_modules" | $AWK '{ print $1 }'`
+fi
+AC_DEFINE_UNQUOTED( DEFAULT_OUTPUT_MODULE, "$default_output_module", [The default audio output module to use] )
 
 
 
@@ -721,34 +818,32 @@ AC_SUBST(AUDIO_LIBS)
 
 dnl ############## Final Output
 
-AC_OUTPUT([Makefile src/Makefile])
+AC_CONFIG_FILES([
+	Makefile
+	src/Makefile
+	src/output/Makefile
+])
+
+AC_OUTPUT
 
 
 
 dnl ############## Display Message
 
-echo -n "
-  $PACKAGE $VERSION
+echo "
+  $PACKAGE_NAME $PACKAGE_VERSION
 
   Install path ............ $prefix
   CPU Optimisation......... $cpu_type
   Compiler Optimization ... $with_optimization
-  Audio output ............ $audio_system (detected:"
-test "x$HAVE_ALSA"        = "xyes" && echo -n " alsa"
-test "x$HAVE_OSS"         = "xyes" && echo -n " oss"
-test "x$HAVE_MACOSXAUDIO" = "xyes" && echo -n " coreaudio"
-test "x$HAVE_SUNAUDIO"    = "xyes" && echo -n " sun"
-test "x$HAVE_JACK"        = "xyes" && echo -n " jack"
-test "x$HAVE_PORTAUDIO"   = "xyes" && echo -n " portaudio"
-test "x$HAVE_NAS"         = "xyes" && echo -n " nas"
-test "x$HAVE_SDL"         = "xyes" && echo -n " sdl"
-test "x$HAVE_ESOUND"      = "xyes" && echo -n " esd"
-test "x$HAVE_WINMM"       = "xyes" && echo -n " win32"
-echo ")
   Gapless Support ......... $gapless
   Debugging ............... $debugging
   Seek table size ......... $seektable
   FIFO support ............ $fifo
+
+  Modules Directory ....... $pkglibdir
+  Audio output modules .... $output_modules
+  Default output module ... $default_output_module
 "
 if test $cpu_type = "generic_float"; then
 	echo "You chose the generic build with 32bit float output.
@@ -762,8 +857,6 @@ fi
 if test "$debugging" = "enabled"; then
 	echo "CFLAGS='$CFLAGS'"
 	echo "LIBS='$LIBS'"
-	echo "AUDIO_CFLAGS='$AUDIO_CFLAGS'"
-	echo "AUDIO_LIBS='$AUDIO_LIBS'"
 else
     echo "Next type 'make' and then 'make install'."
 fi

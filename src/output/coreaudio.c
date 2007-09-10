@@ -1,5 +1,5 @@
 /*
-	audio_macosx: audio output on MacOS X
+	coreaudio: audio output on MacOS X
 
 	copyright ?-2006 by the mpg123 project - free software under the terms of the GPL 2
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
@@ -17,7 +17,7 @@
 #include <AudioToolbox/AudioToolbox.h>
 #include <errno.h>
 
-#define FIFO_DURATION		(0.5f)
+#define FIFO_DURATION		(0.5f)		/* Duration of the ring buffer in seconds */
 
 
 struct anEnv
@@ -38,8 +38,6 @@ struct anEnv
 	sfifo_t fifo;
 };
 
-static struct anEnv *env=NULL;
-
 
 
 static OSStatus playProc(AudioConverterRef inAudioConverter,
@@ -48,7 +46,9 @@ static OSStatus playProc(AudioConverterRef inAudioConverter,
                          AudioStreamPacketDescription **outDataPacketDescription,
                          void* inClientData)
 {
+	struct anEnv *env = (struct anEnv *)inClientData;
 	long n;
+	
 	
 	if(env->last_buffer) {
 		env->play_done = 1;
@@ -94,18 +94,18 @@ static OSStatus convertProc(void *inRefCon, AudioUnitRenderActionFlags *inAction
                             const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber,
                             UInt32 inNumFrames, AudioBufferList *ioData)
 {
+	AudioStreamPacketDescription* outPacketDescription = NULL;
+	struct anEnv *env = (struct anEnv *)inRefCon;
 	OSStatus err= noErr;
-	void *inInputDataProcUserData=NULL;
-	AudioStreamPacketDescription* outPacketDescription =NULL;
 	
-	err = AudioConverterFillComplexBuffer(env->converter, playProc, inInputDataProcUserData, &inNumFrames, ioData, outPacketDescription);
+	err = AudioConverterFillComplexBuffer(env->converter, playProc, inRefCon, &inNumFrames, ioData, outPacketDescription);
 	
 	return err;
 }
 
-
-int audio_open(struct audio_info_struct *ai)
+static int open_coreaudio(audio_output_t *ao)
 {
+	struct anEnv *env = NULL;
 	UInt32 size;
 	ComponentDescription desc;
 	Component comp;
@@ -115,15 +115,16 @@ int audio_open(struct audio_info_struct *ai)
 	Boolean outWritable;
 	
 	/* Allocate memory for data structure */
-	if (!env) {
-		env = (struct anEnv*)malloc( sizeof( struct anEnv ) );
-		if (!env) {
+	if (!ao->userptr) {
+		ao->userptr = malloc( sizeof( struct anEnv ) );
+		if (!ao->userptr) {
 			error("failed to malloc memory for 'struct anEnv'");
 			return -1;
 		}
 	}
 
 	/* Initialize our environment */
+	env = (struct anEnv *)ao->userptr;
 	env->play = 0;
 	env->buffer = NULL;
 	env->buffer_size = 0;
@@ -167,9 +168,9 @@ int audio_open(struct audio_info_struct *ai)
 	}
 	
 	/* Specify the input PCM format */
-	env->channels = ai->channels;
-	inFormat.mSampleRate = ai->rate;
-	inFormat.mChannelsPerFrame = ai->channels;
+	env->channels = ao->channels;
+	inFormat.mSampleRate = ao->rate;
+	inFormat.mChannelsPerFrame = ao->channels;
 	inFormat.mBitsPerChannel = 16;
 	inFormat.mBytesPerPacket = 2*inFormat.mChannelsPerFrame;
 	inFormat.mFramesPerPacket = 1;
@@ -185,7 +186,7 @@ int audio_open(struct audio_info_struct *ai)
 	/* Add our callback - but don't start it yet */
 	memset(&renderCallback, 0, sizeof(AURenderCallbackStruct));
 	renderCallback.inputProc = convertProc;
-	renderCallback.inputProcRefCon = 0;
+	renderCallback.inputProcRefCon = ao->userptr;
 	if(AudioUnitSetProperty(env->outputUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &renderCallback, sizeof(AURenderCallbackStruct))) {
 		error("AudioUnitSetProperty(kAudioUnitProperty_SetRenderCallback) failed");
 		return(-1);
@@ -193,14 +194,14 @@ int audio_open(struct audio_info_struct *ai)
 	
 	
 	/* Open an audio I/O stream and create converter */
-	if (ai->rate > 0 && ai->channels >0 ) {
+	if (ao->rate > 0 && ao->channels >0 ) {
 		int ringbuffer_len;
 
 		if(AudioConverterNew(&inFormat, &outFormat, &(env->converter))) {
 			error("AudioConverterNew failed");
 			return(-1);
 		}
-		if(ai->channels == 1) {
+		if(ao->channels == 1) {
 			SInt32 channelMap[2] = { 0, 0 };
 			if(AudioConverterSetProperty(env->converter, kAudioConverterChannelMap, sizeof(channelMap), channelMap)) {
 				error("AudioConverterSetProperty(kAudioConverterChannelMap) failed");
@@ -209,7 +210,7 @@ int audio_open(struct audio_info_struct *ai)
 		}
 		
 		/* Initialise FIFO */
-		ringbuffer_len = ai->rate * FIFO_DURATION * sizeof(short) *ai->channels;
+		ringbuffer_len = ao->rate * FIFO_DURATION * sizeof(short) *ao->channels;
 		debug2( "Allocating %d byte ring-buffer (%f seconds)", ringbuffer_len, (float)FIFO_DURATION);
 		sfifo_init( &env->fifo, ringbuffer_len );
 									   
@@ -218,16 +219,15 @@ int audio_open(struct audio_info_struct *ai)
 	return(0);
 }
 
-
-int audio_get_formats(struct audio_info_struct *ai)
+static int get_formats_coreaudio(audio_output_t *ao)
 {
 	/* Only support Signed 16-bit output */
 	return AUDIO_FORMAT_SIGNED_16;
 }
 
-
-int audio_play_samples(struct audio_info_struct *ai, unsigned char *buf, int len)
+static int write_coreaudio(audio_output_t *ao, unsigned char *buf, int len)
 {
+	struct anEnv *env = (struct anEnv *)ao->userptr;
 	int written;
 
 	/* If there is no room, then sleep for half the length of the FIFO */
@@ -255,8 +255,10 @@ int audio_play_samples(struct audio_info_struct *ai, unsigned char *buf, int len
 	return len;
 }
 
-int audio_close(struct audio_info_struct *ai)
+static int close_coreaudio(audio_output_t *ao)
 {
+	struct anEnv *env = (struct anEnv *)ao->userptr;
+
 	if (env) {
 		env->decode_done = 1;
 		while(!env->play_done && env->play) usleep(10000);
@@ -275,14 +277,15 @@ int audio_close(struct audio_info_struct *ai)
 		
 		/* Free environment data structure */
 		free(env);
-		env=NULL;
+		ao->userptr=NULL;
 	}
 	
 	return 0;
 }
 
-void audio_queueflush(struct audio_info_struct *ai)
+static void flush_coreaudio(audio_output_t *ao)
 {
+	struct anEnv *env = (struct anEnv *)ao->userptr;
 
 	/* Stop playback */
 	if(AudioOutputUnitStop(env->outputUnit)) {
@@ -293,3 +296,36 @@ void audio_queueflush(struct audio_info_struct *ai)
 	/* Empty out the ring buffer */
 	sfifo_flush( &env->fifo );	
 }
+
+
+static int init_coreaudio(audio_output_t* ao)
+{
+	if (ao==NULL) return -1;
+
+	/* Set callbacks */
+	ao->open = open_coreaudio;
+	ao->flush = flush_coreaudio;
+	ao->write = write_coreaudio;
+	ao->get_formats = get_formats_coreaudio;
+	ao->close = close_coreaudio;
+
+	/* Success */
+	return 0;
+}
+
+
+
+/* 
+	Module information data structure
+*/
+mpg123_module_t mpg123_output_module_info = {
+	/* api_version */	MPG123_MODULE_API_VERSION,
+	/* name */			"coreaudio",						
+	/* description */	"Output audio using Mac OS X's CoreAudio.",
+	/* revision */		"$Rev:$",
+	/* handle */		NULL,
+	
+	/* init_output */	init_coreaudio,						
+};
+
+

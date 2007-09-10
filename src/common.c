@@ -104,24 +104,24 @@ static int decode_header(struct frame *fr,unsigned long newhead);
 
 #ifdef GAPLESS
 /* take into account: channels, bytes per sample, resampling (integer samples!) */
-unsigned long samples_to_bytes(unsigned long s, struct frame *fr , struct audio_info_struct* ai)
+unsigned long samples_to_bytes(unsigned long s, struct frame *fr , audio_output_t *ao)
 {
 	/* rounding positive number... */
 	double sammy, samf;
-	sammy = (1.0*s) * (1.0*ai->rate)/freqs[fr->sampling_frequency];
-	debug4("%lu samples to bytes with freq %li (ai.rate %li); sammy %f", s, freqs[fr->sampling_frequency], ai->rate, sammy);
+	sammy = (1.0*s) * (1.0*ao->rate)/freqs[fr->sampling_frequency];
+	debug4("%lu samples to bytes with freq %li (ai.rate %li); sammy %f", s, freqs[fr->sampling_frequency], ao->rate, sammy);
 	samf = floor(sammy);
 	return (unsigned long)
-		(((ai->format & AUDIO_FORMAT_MASK) == AUDIO_FORMAT_16) ? 2 : 1)
+		(((ao->format & AUDIO_FORMAT_MASK) == AUDIO_FORMAT_16) ? 2 : 1)
 #ifdef FLOATOUT
 		* 2
 #endif
-		* ai->channels
+		* ao->channels
 		* (int) (((sammy - samf) < 0.5) ? samf : ( sammy-samf > 0.5 ? samf+1 : ((unsigned long) samf % 2 == 0 ? samf : samf + 1)));
 }
 #endif
 
-void audio_flush(int outmode, struct audio_info_struct *ai)
+void audio_flush(int outmode, audio_output_t *ao)
 {
 	/* the gapless code is not in effect for buffered mode... as then condition for audio_flush is never met */
 	#ifdef GAPLESS
@@ -135,7 +135,7 @@ void audio_flush(int outmode, struct audio_info_struct *ai)
 				write (OutputDescriptor, pcm_sample, pcm_point);
 			break;
 			case DECODE_AUDIO:
-				audio_play_samples (ai, pcm_sample, pcm_point);
+				ao->write(ao, pcm_sample, pcm_point);
 			break;
 			case DECODE_BUFFER:
 				error("The buffer doesn't work like that... I shouldn't ever be getting here.");
@@ -452,7 +452,8 @@ init_resync:
       }
       else if (give_note)
       {
-        fprintf(stderr,"Note: Illegal Audio-MPEG-Header 0x%08lx at offset 0x%lx.\n", newhead,rd->tell(rd)-4);
+        fprintf(stderr,"Note: Illegal Audio-MPEG-Header 0x%08lx at offset 0x%lx.\n",
+        newhead, (long unsigned int)rd->tell(rd)-4);
       }
 
       if(give_note && (newhead & 0xffffff00) == ('b'<<24)+('m'<<16)+('p'<<8)) fprintf(stderr,"Note: Could be a BMP album art.\n");
@@ -1183,7 +1184,7 @@ long compute_buffer_offset(struct frame *fr)
 }
 
 /* Way too many parameters - heck, this fr and ai is always the same! */
-int position_info(struct frame* fr, unsigned long no, long buffsize, struct audio_info_struct* ai,
+int position_info(struct frame* fr, unsigned long no, long buffsize, audio_output_t *ao,
                    unsigned long* frames_left, double* current_seconds, double* seconds_left)
 {
 	double tpf;
@@ -1212,9 +1213,9 @@ int position_info(struct frame* fr, unsigned long no, long buffsize, struct audi
 #endif
 
 	tpf = compute_tpf(fr);
-	if(buffsize > 0 && ai && ai->rate > 0 && ai->channels > 0) {
-		dt = (double) buffsize / ai->rate / ai->channels;
-		if( (ai->format & AUDIO_FORMAT_MASK) == AUDIO_FORMAT_16)
+	if(buffsize > 0 && ao && ao->rate > 0 && ao->channels > 0) {
+		dt = (double) buffsize / ao->rate / ao->channels;
+		if( (ao->format & AUDIO_FORMAT_MASK) == AUDIO_FORMAT_16)
 			dt *= 0.5;
 	}
 
@@ -1267,11 +1268,11 @@ unsigned int roundui(double val)
 	return (unsigned int) ((val-base) < 0.5 ? base : base + 1 );
 }
 
-void print_stat(struct frame *fr,unsigned long no,long buffsize,struct audio_info_struct *ai)
+void print_stat(struct frame *fr, unsigned long no, long buffsize, audio_output_t *ao)
 {
 	double tim1,tim2;
 	unsigned long rno;
-	if(!position_info(fr, no, buffsize, ai, &rno, &tim1, &tim2))
+	if(!position_info(fr, no, buffsize, ao, &rno, &tim1, &tim2))
 	{
 		/* All these sprintf... only to avoid two writes to stderr in case of using buffer?
 		   I guess we can drop that. */

@@ -68,6 +68,8 @@ struct parameter param = {
   0 ,     /* second level buffer size */
   TRUE ,  /* resync after stream error */
   0 ,     /* verbose level */
+  DEFAULT_OUTPUT_MODULE,	/* output module */
+  NULL,   					/* output device */
 #ifdef HAVE_TERMIOS
   FALSE , /* term control */
 #endif
@@ -124,7 +126,6 @@ int buffer_fd[2];
 int buffer_pid;
 
 static int intflag = FALSE;
-
 int OutputDescriptor;
 
 /* A safe realloc also for very old systems where realloc(NULL, size) returns NULL. */
@@ -145,16 +146,9 @@ const char *strerror(int errnum)
 #endif
 
 #if !defined(WIN32) && !defined(GENERIC)
-#ifndef NOXFERMEM
-static void catch_child(void)
-{
-  while (waitpid(-1, NULL, WNOHANG) > 0);
-}
-#endif
-
 static void catch_interrupt(void)
 {
-  intflag = TRUE;
+	intflag = TRUE;
 }
 #endif
 
@@ -173,116 +167,37 @@ void safe_exit(int code)
 	exit(code);
 }
 
+audio_output_t *ao = NULL;
+audio_output_t pre_ao;
 static struct frame fr;
-struct audio_info_struct ai,pre_ai;
 txfermem *buffermem = NULL;
-#define FRAMEBUFUNIT (18 * 64 * 4)
+
 
 void set_synth_functions(struct frame *fr);
 
-void init_output(void)
-{
-  static int init_done = FALSE;
-
-  if (init_done)
-    return;
-  init_done = TRUE;
-#ifndef NOXFERMEM
-  /*
-   * Only DECODE_AUDIO and DECODE_FILE are sanely handled by the
-   * buffer process. For now, we just ignore the request
-   * to buffer the output. [dk]
-   */
-  if (param.usebuffer && (param.outmode != DECODE_AUDIO) &&
-      (param.outmode != DECODE_FILE)) {
-    fprintf(stderr, "Sorry, won't buffer output unless writing plain audio.\n");
-    param.usebuffer = 0;
-  } 
-  
-  if (param.usebuffer) {
-    unsigned int bufferbytes;
-    sigset_t newsigset, oldsigset;
-    if (param.usebuffer < 32)
-      param.usebuffer = 32; /* minimum is 32 Kbytes! */
-    bufferbytes = (param.usebuffer * 1024);
-    bufferbytes -= bufferbytes % FRAMEBUFUNIT;
-	/* +1024 for NtoM rounding problems */
-    xfermem_init (&buffermem, bufferbytes ,0,1024);
-    pcm_sample = (unsigned char *) buffermem->data;
-    pcm_point = 0;
-    sigemptyset (&newsigset);
-    sigaddset (&newsigset, SIGUSR1);
-    sigprocmask (SIG_BLOCK, &newsigset, &oldsigset);
-    #if !defined(WIN32) && !defined(GENERIC)
-    catchsignal (SIGCHLD, catch_child);
-	 #endif
-    switch ((buffer_pid = fork())) {
-      case -1: /* error */
-        perror("fork()");
-        safe_exit(1);
-      case 0: /* child */
-        if(rd)
-          rd->close(rd); /* child doesn't need the input stream */
-        xfermem_init_reader (buffermem);
-        buffer_loop (&ai, &oldsigset);
-        xfermem_done_reader (buffermem);
-        xfermem_done (buffermem);
-        exit(0);
-      default: /* parent */
-        xfermem_init_writer (buffermem);
-        param.outmode = DECODE_BUFFER;
-    }
-  }
-  else {
-#endif
-	/* + 1024 for NtoM rate converter */
-    if (!(pcm_sample = (unsigned char *) malloc(audiobufsize * 2 + 1024))) {
-      perror ("malloc()");
-      safe_exit (1);
-#ifndef NOXFERMEM
-    }
-#endif
-  }
-
-  switch(param.outmode) {
-    case DECODE_AUDIO:
-      if(audio_open(&ai) < 0) {
-        perror("audio");
-        safe_exit(1);
-      }
-      break;
-    case DECODE_WAV:
-      wav_open(&ai,param.filename);
-      break;
-    case DECODE_AU:
-      au_open(&ai,param.filename);
-      break;
-    case DECODE_CDR:
-      cdr_open(&ai,param.filename);
-      break;
-  }
-}
 
 static void set_output_h(char *a)
 {
-  if(ai.output <= 0)
-    ai.output = AUDIO_OUT_HEADPHONES;
+  if(ao->output <= 0)
+    ao->output = AUDIO_OUT_HEADPHONES;
   else
-    ai.output |= AUDIO_OUT_HEADPHONES;
+    ao->output |= AUDIO_OUT_HEADPHONES;
 }
+
 static void set_output_s(char *a)
 {
-  if(ai.output <= 0)
-    ai.output = AUDIO_OUT_INTERNAL_SPEAKER;
+  if(ao->output <= 0)
+    ao->output = AUDIO_OUT_INTERNAL_SPEAKER;
   else
-    ai.output |= AUDIO_OUT_INTERNAL_SPEAKER;
+    ao->output |= AUDIO_OUT_INTERNAL_SPEAKER;
 }
+
 static void set_output_l(char *a)
 {
-  if(ai.output <= 0)
-    ai.output = AUDIO_OUT_LINE_OUT;
+  if(ao->output <= 0)
+    ao->output = AUDIO_OUT_LINE_OUT;
   else
-    ai.output |= AUDIO_OUT_LINE_OUT;
+    ao->output |= AUDIO_OUT_LINE_OUT;
 }
 
 static void set_output (char *arg)
@@ -302,39 +217,44 @@ void set_verbose (char *arg)
 {
     param.verbose++;
 }
-void set_wav(char *arg)
+
+static void set_out_wav(char *arg)
 {
-  param.outmode = DECODE_WAV;
-  strncpy(param.filename,arg,255);
-  param.filename[255] = 0;
+	param.outmode = DECODE_WAV;
+	strncpy(param.filename,arg,255);
+	param.filename[255] = 0;
 }
-void set_cdr(char *arg)
+
+static void set_out_cdr(char *arg)
 {
-  param.outmode = DECODE_CDR;
-  strncpy(param.filename,arg,255);
-  param.filename[255] = 0;
+	param.outmode = DECODE_CDR;
+	strncpy(param.filename,arg,255);
+	param.filename[255] = 0;
 }
-void set_au(char *arg)
+
+static void set_out_au(char *arg)
 {
-  param.outmode = DECODE_AU;
-  strncpy(param.filename,arg,255);
-  param.filename[255] = 0;
+	param.outmode = DECODE_AU;
+	strncpy(param.filename,arg,255);
+	param.filename[255] = 0;
 }
-static void SetOutFile(char *Arg)
+
+static void set_out_file(char *arg)
 {
 	param.outmode=DECODE_FILE;
 	#ifdef WIN32
-	OutputDescriptor=_open(Arg,_O_CREAT|_O_WRONLY|_O_BINARY|_O_TRUNC,0666);
+	OutputDescriptor=_open(arg,_O_CREAT|_O_WRONLY|_O_BINARY|_O_TRUNC,0666);
 	#else
-	OutputDescriptor=open(Arg,O_CREAT|O_WRONLY|O_TRUNC,0666);
+	OutputDescriptor=open(arg,O_CREAT|O_WRONLY|O_TRUNC,0666);
 	#endif
 	if(OutputDescriptor==-1)
 	{
-		error2("Can't open %s for writing (%s).\n",Arg,strerror(errno));
+		error2("Can't open %s for writing (%s).\n",arg,strerror(errno));
 		safe_exit(1);
 	}
 }
-static void SetOutStdout(char *Arg)
+
+static void set_out_stdout(char *arg)
 {
 	param.outmode=DECODE_FILE;
 	param.remote_err=TRUE;
@@ -343,11 +263,12 @@ static void SetOutStdout(char *Arg)
 	_setmode(STDOUT_FILENO, _O_BINARY);
 	#endif
 }
-static void SetOutStdout1(char *Arg)
+
+static void set_out_stdout1(char *arg)
 {
-  param.outmode=DECODE_AUDIOFILE;
+	param.outmode=DECODE_AUDIOFILE;
 	param.remote_err=TRUE;
-  OutputDescriptor=STDOUT_FILENO;
+	OutputDescriptor=STDOUT_FILENO;
 	#ifdef WIN32
 	_setmode(STDOUT_FILENO, _O_BINARY);
 	#endif
@@ -355,40 +276,43 @@ static void SetOutStdout1(char *Arg)
 
 void realtime_not_compiled(char *arg)
 {
-  fprintf(stderr,"Option '-T / --realtime' not compiled into this binary.\n");
+	fprintf(stderr,"Option '-T / --realtime' not compiled into this binary.\n");
 }
+
+
 
 /* Please note: GLO_NUM expects point to LONG! */
 /* ThOr:
- *  Yeah, and despite that numerous addresses to int variables were 
-passed.
+ *  Yeah, and despite that numerous addresses to int variables were passed.
  *  That's not good on my Alpha machine with int=32bit and long=64bit!
  *  Introduced GLO_INT and GLO_LONG as different bits to make that clear.
  *  GLO_NUM no longer exists.
  */
 topt opts[] = {
 	{'k', "skip",        GLO_ARG | GLO_LONG, 0, &startFrame, 0},
-	{'a', "audiodevice", GLO_ARG | GLO_CHAR, 0, &ai.device,  0},
+	{'o', "output",      GLO_ARG | GLO_CHAR, set_output, NULL,  0},
+	{0,   "list-modules",0,        list_modules, NULL,  0}, 
+	{'a', "audiodevice", GLO_ARG | GLO_CHAR, 0, &param.output_device,  0},
 	{'2', "2to1",        GLO_INT,  0, &param.down_sample, 1},
 	{'4', "4to1",        GLO_INT,  0, &param.down_sample, 2},
 	{'t', "test",        GLO_INT,  0, &param.outmode, DECODE_TEST},
-	{'s', "stdout",      GLO_INT,  SetOutStdout, &param.outmode, DECODE_FILE},
-	{'S', "STDOUT",      GLO_INT,  SetOutStdout1, &param.outmode,DECODE_AUDIOFILE},
-	{'O', "outfile",     GLO_ARG | GLO_CHAR, SetOutFile, NULL, 0},
+	{'s', "stdout",      GLO_INT,  set_out_stdout, &param.outmode, DECODE_FILE},
+	{'S', "STDOUT",      GLO_INT,  set_out_stdout1, &param.outmode,DECODE_AUDIOFILE},
+	{'O', "outfile",     GLO_ARG | GLO_CHAR, set_out_file, NULL, 0},
 	{'c', "check",       GLO_INT,  0, &param.checkrange, TRUE},
 	{'v', "verbose",     0,        set_verbose, 0,           0},
 	{'q', "quiet",       GLO_INT,  0, &param.quiet, TRUE},
 	{'y', "resync",      GLO_INT,  0, &param.tryresync, FALSE},
-	{'0', "single0",     GLO_INT,  0, &param.force_mono, MONO_LEFT},
-	{0,   "left",        GLO_INT,  0, &param.force_mono, MONO_LEFT},
-	{'1', "single1",     GLO_INT,  0, &param.force_mono, MONO_RIGHT},
-	{0,   "right",       GLO_INT,  0, &param.force_mono, MONO_RIGHT},
-	{'m', "singlemix",   GLO_INT,  0, &param.force_mono, MONO_MIX},
-	{0,   "mix",         GLO_INT,  0, &param.force_mono, MONO_MIX},
-	{0,   "mono",        GLO_INT,  0, &param.force_mono, MONO_MIX},
+	{'0', "single0",     GLO_INT,  0, &param.force_mono, 0},
+	{0,   "left",        GLO_INT,  0, &param.force_mono, 0},
+	{'1', "single1",     GLO_INT,  0, &param.force_mono, 1},
+	{0,   "right",       GLO_INT,  0, &param.force_mono, 1},
+	{'m', "singlemix",   GLO_INT,  0, &param.force_mono, 3},
+	{0,   "mix",         GLO_INT,  0, &param.force_mono, 3},
+	{0,   "mono",        GLO_INT,  0, &param.force_mono, 3},
 	{0,   "stereo",      GLO_INT,  0, &param.force_stereo, 1},
 	{0,   "reopen",      GLO_INT,  0, &param.force_reopen, 1},
-	{'g', "gain",        GLO_ARG | GLO_LONG, 0, &ai.gain,    0},
+/*	{'g', "gain",        GLO_ARG | GLO_LONG, 0, &ao.gain,    0}, FIXME */
 	{'r', "rate",        GLO_ARG | GLO_LONG, 0, &param.force_rate,  0},
 	{0,   "8bit",        GLO_INT,  0, &param.force_8bit, 1},
 	{0,   "headphones",  0,                  set_output_h, 0,0},
@@ -438,9 +362,9 @@ topt opts[] = {
 	{'T', "realtime",    0,  realtime_not_compiled, 0,           0 },    
 	#endif
 	{0, "title",         GLO_INT,  0, &param.xterm_title, TRUE },
-	{'w', "wav",         GLO_ARG | GLO_CHAR, set_wav, 0 , 0 },
-	{0, "cdr",           GLO_ARG | GLO_CHAR, set_cdr, 0 , 0 },
-	{0, "au",            GLO_ARG | GLO_CHAR, set_au, 0 , 0 },
+	{'w', "wav",         GLO_ARG | GLO_CHAR, set_out_wav, 0, 0 },
+	{0, "cdr",           GLO_ARG | GLO_CHAR, set_out_cdr, 0, 0 },
+	{0, "au",            GLO_ARG | GLO_CHAR, set_out_au, 0, 0 },
 	#ifdef GAPLESS
 	{0,   "gapless",	 GLO_INT,  0, &param.gapless, 1},
 	#endif
@@ -485,22 +409,22 @@ static void reset_audio(void)
 		buffermem->freeindex = 0;
 		if (intflag)
 			return;
-		buffermem->buf[0] = ai.rate; 
-		buffermem->buf[1] = ai.channels; 
-		buffermem->buf[2] = ai.format;
+		buffermem->buf[0] = ao->rate; 
+		buffermem->buf[1] = ao->channels; 
+		buffermem->buf[2] = ao->format;
 		buffer_reset();
 	}
 	else 
 #endif
 	if (param.outmode == DECODE_AUDIO) {
-		/* audio_reset_parameters(&ai); */
+		/* audio_reset_parameters(ao); */
 		/*   close and re-open in order to flush
 		 *   the device's internal buffer before
 		 *   changing the sample rate.   [OF]
 		 */
-		audio_close (&ai);
-		if (audio_open(&ai) < 0) {
-			perror("audio");
+		ao->close(ao);
+		if (ao->open(ao) < 0) {
+			error("failed to open audio device");
 			safe_exit(1);
 		}
 	}
@@ -511,11 +435,11 @@ static void reset_audio(void)
 	precog the audio rate that will be set before output begins
 	this is needed to give gapless code a chance to keep track for firstframe != 0
 */
-void prepare_audioinfo(struct frame *fr, struct audio_info_struct *nai)
+void prepare_audioinfo(struct frame *fr, audio_output_t *ao)
 {
 	long newrate = freqs[fr->sampling_frequency]>>(param.down_sample);
 	fr->down_sample = param.down_sample;
-	if(!audio_fit_capabilities(nai,fr->stereo,newrate)) safe_exit(1);
+	if(!audio_fit_capabilities(ao,fr->stereo,newrate)) safe_exit(1);
 }
 
 /*
@@ -540,22 +464,22 @@ int play_frame(int init,struct frame *fr)
 		}
 
 		if(fr->header_change > 1 || init) {
-			old_rate = ai.rate;
-			old_format = ai.format;
-			old_channels = ai.channels;
+			old_rate = ao->rate;
+			old_format = ao->format;
+			old_channels = ao->channels;
 
 			newrate = freqs[fr->sampling_frequency]>>(param.down_sample);
-			prepare_audioinfo(fr, &ai);
-			if(param.verbose > 1) fprintf(stderr, "Note: audio output rate = %li\n", ai.rate);
+			prepare_audioinfo(fr, ao);
+			if(param.verbose > 1) fprintf(stderr, "Note: audio output rate = %li\n", ao->rate);
 			#ifdef GAPLESS
-			if(param.gapless && (fr->lay == 3)) layer3_gapless_bytify(fr, &ai);
+			if(param.gapless && (fr->lay == 3)) layer3_gapless_bytify(fr, ao);
 			#endif
 			
 			/* check, whether the fitter set our proposed rate */
-			if(ai.rate != newrate) {
-				if(ai.rate == (newrate>>1) )
+			if(ao->rate != newrate) {
+				if(ao->rate == (newrate>>1) )
 					fr->down_sample++;
-				else if(ai.rate == (newrate>>2) )
+				else if(ao->rate == (newrate>>2) )
 					fr->down_sample+=2;
 				else {
 					fr->down_sample = 3;
@@ -574,7 +498,7 @@ int play_frame(int init,struct frame *fr)
 				case 3:
 					{
 						long n = freqs[fr->sampling_frequency];
-                                                long m = ai.rate;
+                                                long m = ao->rate;
 
 						if(!synth_ntom_set_step(n,m)) return 0;
 
@@ -589,11 +513,14 @@ int play_frame(int init,struct frame *fr)
 					break;
 			}
 
-			init_output();
-			if(ai.rate != old_rate || ai.channels != old_channels ||
-			   ai.format != old_format || param.force_reopen) {
-				if(!param.force_mono) {
-					if(ai.channels == 1)
+			if (init_output( ao )) {
+				safe_exit(-1);
+			}
+			
+			if(ao->rate != old_rate || ao->channels != old_channels ||
+			   ao->format != old_format || param.force_reopen) {
+				if(param.force_mono < 0) {
+					if(ao->channels == 1)
 						fr->single = 3;
 					else
 						fr->single = -1;
@@ -602,7 +529,7 @@ int play_frame(int init,struct frame *fr)
 					fr->single = param.force_mono-1;
 
 				param.force_stereo &= ~0x2;
-				if(fr->single >= 0 && ai.channels == 2) {
+				if(fr->single >= 0 && ao->channels == 2) {
 					param.force_stereo |= 0x2;
 				}
 
@@ -612,7 +539,7 @@ int play_frame(int init,struct frame *fr)
 				if(param.verbose) {
 					if(fr->down_sample == 3) {
 						long n = freqs[fr->sampling_frequency];
-						long m = ai.rate;
+						long m = ao->rate;
 						if(n > m) {
 							fprintf(stderr,"Audio: %2.4f:1 conversion,",(float)n/(float)m);
 						}
@@ -623,7 +550,7 @@ int play_frame(int init,struct frame *fr)
 					else {
 						fprintf(stderr,"Audio: %ld:1 conversion,",(long)pow(2.0,fr->down_sample));
 					}
- 					fprintf(stderr," rate: %ld, encoding: %s, channels: %d\n",ai.rate,audio_encoding_name(ai.format),ai.channels);
+ 					fprintf(stderr," rate: %ld, encoding: %s, channels: %d\n",ao->rate,audio_encoding_name(ao->format),ao->channels);
 				}
 			}
 			if (intflag)
@@ -636,7 +563,7 @@ int play_frame(int init,struct frame *fr)
 	}
 
 	/* do the decoding */
-	clip = (fr->do_layer)(fr,param.outmode,&ai);
+	clip = (fr->do_layer)(fr,param.outmode,ao);
 
 #ifndef NOXFERMEM
 	if (param.usebuffer) {
@@ -705,13 +632,13 @@ void set_synth_functions(struct frame *fr)
 	funcs_mono[1][0][0] = opt_synth_1to1_mono;
 	funcs_mono[1][1][0] = opt_synth_1to1_8bit_mono;
 
-	if((ai.format & AUDIO_FORMAT_MASK) == AUDIO_FORMAT_8)
+	if((ao->format & AUDIO_FORMAT_MASK) == AUDIO_FORMAT_8)
 		p8 = 1;
 	fr->synth = funcs[p8][ds];
-	fr->synth_mono = funcs_mono[ai.channels==2 ? 0 : 1][p8][ds];
+	fr->synth_mono = funcs_mono[param.force_stereo?0:1][p8][ds];
 
 	if(p8) {
-		if(make_conv16to8_table(ai.format) != 0)
+		if(make_conv16to8_table(ao->format) != 0)
 		{
 			/* it's a bit more work to get proper error propagation up */
 			safe_exit(1);
@@ -747,7 +674,6 @@ int main(int argc, char *argv[])
 
 	(prgName = strrchr(argv[0], '/')) ? prgName++ : (prgName = argv[0]);
 
-	audio_info_struct_init(&ai);
 
 	while ((result = getlopt(argc, argv, opts)))
 	switch (result) {
@@ -811,11 +737,21 @@ int main(int argc, char *argv[])
 	}
 
 	if(param.force_rate && param.down_sample) {
-		fprintf(stderr,"Down sampling and fixed rate options not allowed together!\n");
+		error("Down sampling and fixed rate options not allowed together!");
 		safe_exit(1);
 	}
 
-	audio_capabilities(&ai);
+	/* Open audio output module */
+	ao = open_output_module( param.output_module );
+	if (!ao) {
+		error("Failed to open audio output module.");
+		safe_exit(1);
+	}
+
+	audio_capabilities(ao);
+
+
+
 	/* equalizer initialization regardless of equalfile */
 	for(j=0; j<32; j++) {
 		equalizer[0][j] = equalizer[1][j] = 1.0;
@@ -960,11 +896,11 @@ tc_hack:
 					{
 						if(pre_init)
 						{
-							prepare_audioinfo(&fr, &pre_ai);
+							prepare_audioinfo(&fr, &pre_ao);
 							pre_init = 0;
 						}
 						/* keep track... */
-						layer3_gapless_set_position(fr.num, &fr, &pre_ai);
+						layer3_gapless_set_position(fr.num, &fr, &pre_ao);
 					}
 					#endif
 				}
@@ -982,12 +918,12 @@ tc_hack:
 			if(param.verbose) {
 #ifndef NOXFERMEM
 				if (param.verbose > 1 || !(fr.num & 0x7))
-					print_stat(&fr,fr.num,xfermem_get_usedspace(buffermem),&ai); 
+					print_stat(&fr,fr.num,xfermem_get_usedspace(buffermem),ao); 
 				if(param.verbose > 2 && param.usebuffer)
 					fprintf(stderr,"[%08x %08x]",buffermem->readindex,buffermem->freeindex);
 #else
 				if (param.verbose > 1 || !(fr.num & 0x7))
-					print_stat(&fr,fr.num,0,&ai);
+					print_stat(&fr,fr.num,0,ao);
 #endif
 			}
 #ifdef HAVE_TERMIOS
@@ -995,12 +931,12 @@ tc_hack:
 				continue;
 			} else {
 				long offset;
-				if((offset=term_control(&fr,&ai))) {
+				if((offset=term_control(&fr,ao))) {
 					if(!rd->back_frame(rd, &fr, -offset)) {
 						debug1("seeked to %lu", fr.num);
 						#ifdef GAPLESS
 						if(param.gapless && (fr.lay == 3))
-						layer3_gapless_set_position(fr.num, &fr, &ai);
+						layer3_gapless_set_position(fr.num, &fr, ao);
 						#endif
 					} else { error("seek failed!"); }
 				}
@@ -1010,7 +946,7 @@ tc_hack:
 		}
 		#ifdef GAPLESS
 		/* make sure that the correct padding is skipped after track ended */
-		if(param.gapless) audio_flush(param.outmode, &ai);
+		if(param.gapless) audio_flush(param.outmode, ao);
 		#endif
 
 #ifndef NOXFERMEM
@@ -1022,18 +958,18 @@ tc_hack:
 			buffer_ignore_lowmem();
 			
 			if(param.verbose)
-				print_stat(&fr,fr.num,s,&ai);
+				print_stat(&fr,fr.num,s,ao);
 #ifdef HAVE_TERMIOS
 			if(param.term_ctrl) {
 				long offset;
-				if((offset=term_control(&fr,&ai))) {
+				if((offset=term_control(&fr,ao))) {
 					if((!rd->back_frame(rd, &fr, -offset)) 
 						&& read_frame(&fr))
 					{
 						debug1("seeked to %lu", fr.num);
 						#ifdef GAPLESS
 						if(param.gapless && (fr.lay == 3))
-						layer3_gapless_set_position(fr.num, &fr, &ai);
+						layer3_gapless_set_position(fr.num, &fr, ao);
 						#endif
 						goto tc_hack;	/* Doh! Gag me with a spoon! */
 					} else { error("seek failed!"); }
@@ -1045,7 +981,7 @@ tc_hack:
 	}
 #endif
 	if(param.verbose)
-		print_stat(&fr,fr.num,xfermem_get_usedspace(buffermem),&ai); 
+		print_stat(&fr,fr.num,xfermem_get_usedspace(buffermem),ao); 
 #ifdef HAVE_TERMIOS
 	if(param.term_ctrl)
 		term_restore();
@@ -1112,7 +1048,7 @@ tc_hack:
     }
     else {
 #endif
-      audio_flush(param.outmode, &ai);
+      audio_flush(param.outmode, ao);
       free (pcm_sample);
 #ifndef NOXFERMEM
     }
@@ -1120,7 +1056,7 @@ tc_hack:
 
     switch(param.outmode) {
       case DECODE_AUDIO:
-        audio_close(&ai);
+        ao->close(ao);
         break;
       case DECODE_WAV:
         wav_close();
@@ -1222,6 +1158,8 @@ static void long_usage(int err)
 	fprintf(o," -Z     --random           full random play\n");
 
 	fprintf(o,"\noutput/processing options\n\n");
+	fprintf(o," -o <o> --output <o>       select audio output module\n");
+	fprintf(o,"        --list-modules     list the available modules\n");
 	fprintf(o," -a <d> --audiodevice <d>  select audio device\n");
 	fprintf(o," -s     --stdout           write raw audio to stdout (host native format)\n");
 	fprintf(o," -S     --STDOUT           play AND output stream (not implemented yet)\n");

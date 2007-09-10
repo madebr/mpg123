@@ -1,13 +1,18 @@
 /*
-	audio_sun.c: audio output for Sun systems
+	sun: audio output for Sun systems
 
 	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp
 */
 
+#include <sys/types.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
 #include <fcntl.h>
 
+#include "config.h"
 #include "mpg123.h"
 
 #ifdef HAVE_SYS_IOCTL_H
@@ -34,10 +39,10 @@
 
 
 
-static void audio_set_format_helper(struct audio_info_struct *ai, audio_info_t *ainfo)
+static void audio_set_format_helper(audio_output_t *ao, audio_info_t *ainfo)
 {
 
-  switch(ai->format) {
+  switch(ao->format) {
     case -1:
     case AUDIO_FORMAT_SIGNED_16:
     default:
@@ -69,99 +74,99 @@ static void audio_set_format_helper(struct audio_info_struct *ai, audio_info_t *
 }
 
 
-static int audio_reset_parameters(struct audio_info_struct *ai)
+static int audio_reset_parameters(audio_output_t *ao)
 {
   audio_info_t ainfo;
 
   AUDIO_INITINFO(&ainfo);
 
-  if(ai->rate != -1)
-    ainfo.play.sample_rate = ai->rate;
-  if(ai->channels >= 0)
-    ainfo.play.channels = ai->channels;
+  if(ao->rate != -1)
+    ainfo.play.sample_rate = ao->rate;
+  if(ao->channels >= 0)
+    ainfo.play.channels = ao->channels;
   audio_set_format_helper(ai,&ainfo);
 
-  if(ioctl(ai->fn, AUDIO_SETINFO, &ainfo) == -1)
+  if(ioctl(ao->fn, AUDIO_SETINFO, &ainfo) == -1)
     return -1;
   return 0;
 }
 
-static int audio_rate_best_match(struct audio_info_struct *ai)
+static int audio_rate_best_match(audio_output_t *ao)
 {
   audio_info_t ainfo;
   AUDIO_INITINFO(&ainfo);
  
-  ainfo.play.sample_rate = ai->rate;
-  if(ioctl(ai->fn, AUDIO_SETINFO, &ainfo) < 0) {
-    ai->rate = 0;
+  ainfo.play.sample_rate = ao->rate;
+  if(ioctl(ao->fn, AUDIO_SETINFO, &ainfo) < 0) {
+    ao->rate = 0;
     return 0;
   }
-  if(ioctl(ai->fn, AUDIO_GETINFO, &ainfo) < 0) {
+  if(ioctl(ao->fn, AUDIO_GETINFO, &ainfo) < 0) {
     return -1;
   }
-  ai->rate = ainfo.play.sample_rate;
+  ao->rate = ainfo.play.sample_rate;
   return 0;
 }
 
-static int audio_set_rate(struct audio_info_struct *ai)
+static int audio_set_rate(audio_output_t *ao)
 {
   audio_info_t ainfo;
 
-  if(ai->rate != -1) {
+  if(ao->rate != -1) {
     AUDIO_INITINFO(&ainfo);
-    ainfo.play.sample_rate = ai->rate;
-    if(ioctl(ai->fn, AUDIO_SETINFO, &ainfo) == -1)
+    ainfo.play.sample_rate = ao->rate;
+    if(ioctl(ao->fn, AUDIO_SETINFO, &ainfo) == -1)
       return -1;
     return 0;
   }
   return -1;
 }
 
-static int audio_set_channels(struct audio_info_struct *ai)
+static int audio_set_channels(audio_output_t *ao)
 {
   audio_info_t ainfo;
 
   AUDIO_INITINFO(&ainfo);
-  ainfo.play.channels = ai->channels;
-  if(ioctl(ai->fn, AUDIO_SETINFO, &ainfo) == -1)
+  ainfo.play.channels = ao->channels;
+  if(ioctl(ao->fn, AUDIO_SETINFO, &ainfo) == -1)
     return -1;
   return 0;
 }
 
-static int audio_set_format(struct audio_info_struct *ai)
+static int audio_set_format(audio_output_t *ao)
 {
   audio_info_t ainfo;
 
   AUDIO_INITINFO(&ainfo);
   audio_set_format_helper(ai,&ainfo);
-  if(ioctl(ai->fn, AUDIO_SETINFO, &ainfo) == -1)
+  if(ioctl(ao->fn, AUDIO_SETINFO, &ainfo) == -1)
     return -1;
 
   return 0;
 }
 
-int audio_open(struct audio_info_struct *ai)
+int audio_open(audio_output_t *ao)
 {
   audio_info_t ainfo;
 
-  if(!ai->device) {
+  if(!ao->device) {
     if(getenv("AUDIODEV")) {
       if(param.verbose > 1) 
          fprintf(stderr,"Using audio-device value from AUDIODEV environment variable!\n");
-      ai->device = getenv("AUDIODEV");
+      ao->device = getenv("AUDIODEV");
     }
     else 
-      ai->device = "/dev/audio";
+      ao->device = "/dev/audio";
   }
 
-  ai->fn = open(ai->device,O_WRONLY);
-  if(ai->fn < 0)
-     return ai->fn;
+  ao->fn = open(ao->device,O_WRONLY);
+  if(ao->fn < 0)
+     return ao->fn;
 
 #if defined(SUNOS)  &&  defined(AUDIO_GETDEV)
   {
     int type;
-    if(ioctl(ai->fn, AUDIO_GETDEV, &type) == -1)
+    if(ioctl(ao->fn, AUDIO_GETDEV, &type) == -1)
       return -1;
     if(type == AUDIO_DEV_UNKNOWN || type == AUDIO_DEV_AMD)
       return -1;
@@ -170,7 +175,7 @@ int audio_open(struct audio_info_struct *ai)
 #if defined(SOLARIS) || defined(SPARCLINUX)
   {
     struct audio_device ad;
-    if(ioctl(ai->fn, AUDIO_GETDEV, &ad) == -1)
+    if(ioctl(ao->fn, AUDIO_GETDEV, &ad) == -1)
       return -1;
     if(param.verbose > 1)
       fprintf(stderr,"Audio device type: %s\n",ad.name);
@@ -180,36 +185,36 @@ int audio_open(struct audio_info_struct *ai)
 #endif
 #endif
 
-  if(audio_reset_parameters(ai) < 0) {
+  if(audio_reset_parameters(ao) < 0) {
     return -1;
   }
 
   AUDIO_INITINFO(&ainfo);
 
-  if(ai->output > 0)
+  if(ao->output > 0)
     ainfo.play.port = 0;
-  if(ai->output & AUDIO_OUT_INTERNAL_SPEAKER)
+  if(ao->output & AUDIO_OUT_INTERNAL_SPEAKER)
     ainfo.play.port |= AUDIO_SPEAKER;
-  if(ai->output & AUDIO_OUT_HEADPHONES)
+  if(ao->output & AUDIO_OUT_HEADPHONES)
     ainfo.play.port |= AUDIO_HEADPHONE;
 #ifdef AUDIO_LINE_OUT
-  if(ai->output & AUDIO_OUT_LINE_OUT)
+  if(ao->output & AUDIO_OUT_LINE_OUT)
     ainfo.play.port |= AUDIO_LINE_OUT;
 #endif
 
-  if(ai->gain != -1)
-    ainfo.play.gain = ai->gain;
+  if(ao->gain != -1)
+    ainfo.play.gain = ao->gain;
 
-  if(ioctl(ai->fn, AUDIO_SETINFO, &ainfo) == -1)
+  if(ioctl(ao->fn, AUDIO_SETINFO, &ainfo) == -1)
     return -1;
 
-  return ai->fn;
+  return ao->fn;
 }
 
 
 
 
-int audio_get_formats(struct audio_info_struct *ai)
+int audio_get_formats(audio_output_t *ao)
 {
   static int tab[][3] = {
     { AUDIO_ENCODING_ULAW , 8,  AUDIO_FORMAT_ULAW_8 } ,
@@ -223,33 +228,33 @@ int audio_get_formats(struct audio_info_struct *ai)
   audio_info_t ainfo;
   int i,fmts=0;
 
-  for(i=0;i<sizeof(tab)/sizeof(tab[0]);i++) {
+  for(i=0;i<4;i++) {
     AUDIO_INITINFO(&ainfo);
     ainfo.play.encoding = tab[i][0];
     ainfo.play.precision = tab[i][1];
 #if 1
-    ainfo.play.sample_rate = ai->rate;
-    ainfo.play.channels = ai->channels;
+    ainfo.play.sample_rate = ao->rate;
+    ainfo.play.channels = ao->channels;
 #endif
-    if(ioctl(ai->fn, AUDIO_SETINFO, &ainfo) >= 0) {
+    if(ioctl(ao->fn, AUDIO_SETINFO, &ainfo) >= 0) {
       fmts |= tab[i][2];
     }
   }
   return fmts;
 }
 
-int audio_play_samples(struct audio_info_struct *ai,unsigned char *buf,int len)
+int audio_play_samples(audio_output_t *ao,unsigned char *buf,int len)
 {
-  return write(ai->fn,buf,len);
+  return write(ao->fn,buf,len);
 }
 
-int audio_close(struct audio_info_struct *ai)
+int audio_close(audio_output_t *ao)
 {
-  close (ai->fn);
+  close (ao->fn);
   return 0;
 }
 
-void audio_queueflush (struct audio_info_struct *ai)
+void audio_queueflush (audio_output_t *ao)
 {
-	/*ioctl (ai->fn, I_FLUSH, FLUSHRW);*/
+	/*ioctl (ao->fn, I_FLUSH, FLUSHRW);*/
 }

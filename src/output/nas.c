@@ -1,5 +1,5 @@
 /*
-	audio_nas: audio output via NAS
+	nas: audio output via NAS
 
 	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
@@ -28,12 +28,13 @@ typedef struct
 #define NAS_SOUND_LOW_WATER_MARK 25 /* percent */
 #define NAS_MAX_FORMAT 10 /* currently, there are 7 supported formats */
 
+
+/* FIXME: stick this inside userptr inside audio_output_t instead */
 static InfoRec info;
 
 /* NAS specific routines */
 
-static void
-nas_sendData(AuServer *aud, InfoPtr i, AuUint32 numBytes)
+static void nas_sendData(AuServer *aud, InfoPtr i, AuUint32 numBytes)
 {
     if (numBytes < i->buf_cnt) {
         AuWriteElement(aud, i->flow, 0, numBytes, i->buf, AuFalse, NULL);
@@ -48,8 +49,7 @@ nas_sendData(AuServer *aud, InfoPtr i, AuUint32 numBytes)
     i->data_sent = AuTrue;
 }
 
-static AuBool
-nas_eventHandler(AuServer *aud, AuEvent *ev, AuEventHandlerRec *handler)
+static AuBool nas_eventHandler(AuServer *aud, AuEvent *ev, AuEventHandlerRec *handler)
 {
     InfoPtr         i = (InfoPtr) handler->data;
 
@@ -85,7 +85,7 @@ nas_eventHandler(AuServer *aud, AuEvent *ev, AuEventHandlerRec *handler)
 }
 
 /* 0 on error */
-int nas_createFlow(struct audio_info_struct *ai)
+static int nas_createFlow(audio_output_t *ao)
 {
     AuDeviceID      device = AuNone;
     AuElement       elements[2];
@@ -94,7 +94,7 @@ int nas_createFlow(struct audio_info_struct *ai)
     int             i;
  
 
-    switch(ai->format) {
+    switch(ao->format) {
     case AUDIO_FORMAT_SIGNED_16:
     default:
 		if (((char) *(short *)"x")=='x') /* ugly, but painless */
@@ -117,20 +117,20 @@ int nas_createFlow(struct audio_info_struct *ai)
        if (((AuDeviceKind(AuServerDevice(info.aud, i)) ==
               AuComponentKindPhysicalOutput) &&
              AuDeviceNumTracks(AuServerDevice(info.aud, i))
-             ==  ai->channels )) {
+             ==  ao->channels )) {
             device = AuDeviceIdentifier(AuServerDevice(info.aud, i));
             break;
        }
     if (device == AuNone) {
-       error1("Couldn't find an output device providing %d channels.", ai->channels);
+       error1("Couldn't find an output device providing %d channels.", ao->channels);
        return 0;
     }
 
     /* set gain */
-    if(ai->gain >= 0) {
+    if(ao->gain >= 0) {
         info.da = AuGetDeviceAttributes(info.aud, device, NULL);
         if ((info.da)!=NULL) {
-            AuDeviceGain(info.da) = AuFixedPointFromSum(ai->gain, 0);
+            AuDeviceGain(info.da) = AuFixedPointFromSum(ao->gain, 0);
             AuSetDeviceAttributes(info.aud, AuDeviceIdentifier(info.da),
                                   AuCompDeviceGainMask, info.da, NULL);
         }
@@ -143,13 +143,13 @@ int nas_createFlow(struct audio_info_struct *ai)
         return 0;
     }
 
-    buf_samples = ai->rate * NAS_SOUND_PORT_DURATION;
+    buf_samples = ao->rate * NAS_SOUND_PORT_DURATION;
 
     AuMakeElementImportClient(&elements[0],        /* element */
-                              (unsigned short) ai->rate,
+                              (unsigned short) ao->rate,
                                                    /* rate */
                               format,              /* format */
-                              ai->channels,        /* channels */
+                              ao->channels,        /* channels */
                               AuTrue,              /* ??? */
                               buf_samples,         /* max samples */
                               (AuUint32) (buf_samples / 100
@@ -160,7 +160,7 @@ int nas_createFlow(struct audio_info_struct *ai)
     AuMakeElementExportDevice(&elements[1],        /* element */
                               0,                   /* input */
                               device,              /* device */
-                              (unsigned short) ai->rate,
+                              (unsigned short) ao->rate,
                                                    /* rate */
                               AuUnlimitedSamples,  /* num samples */
                               0,                   /* num actions */
@@ -179,7 +179,7 @@ int nas_createFlow(struct audio_info_struct *ai)
                            nas_eventHandler,       /* callback */
                            (AuPointer) &info);     /* data */
 
-    info.buf_size = buf_samples * ai->channels * AuSizeofFormat(format);
+    info.buf_size = buf_samples * ao->channels * AuSizeofFormat(format);
     info.buf = (char *) malloc(info.buf_size);
     if (info.buf == NULL) {
         error1("Unable to allocate input/output buffer of size %ld",
@@ -197,7 +197,7 @@ int nas_createFlow(struct audio_info_struct *ai)
 }
 
 
-void nas_flush()
+static void flush_nas(audio_output_t *ao)
 {
     AuEvent         ev;
     
@@ -208,19 +208,18 @@ void nas_flush()
     info.data_sent = AuFalse;
 }
 
-/* required functions */
 
 /* returning -1 on error, 0 on success... */
-int audio_open(struct audio_info_struct *ai)
+static int open_nas(audio_output_t *ao)
 {
-    if(!ai)
-        return -1;
+	if(!ao) return -1;
 
-    if (!(info.aud = AuOpenServer(ai->device, 0, NULL, 0, NULL, NULL))) {
-        if (ai->device==NULL)
+    if (!(info.aud = AuOpenServer(ao->device, 0, NULL, 0, NULL, NULL))) {
+		if (ao->device==NULL) {
             error("could not open default NAS server");
-        else
-            error1("could not open NAS server %s\n", ai->device);
+		} else {
+			error1("could not open NAS server %s\n", ao->device);
+		}
         return -1;
     }
     info.buf_size = 0;
@@ -229,7 +228,7 @@ int audio_open(struct audio_info_struct *ai)
 }
 
 
-int audio_get_formats(struct audio_info_struct *ai)
+static int get_formats_nas(audio_output_t *ao)
 {
     int i, j, k, ret;
 
@@ -256,12 +255,12 @@ int audio_get_formats(struct audio_info_struct *ai)
     return ret;
 }
 
-int audio_play_samples(struct audio_info_struct *ai,unsigned char *buf,int len)
+static int write_nas(audio_output_t *ao,unsigned char *buf,int len)
 {
     int buf_cnt = 0;
 
     if (info.buf_size == 0)
-    if(!nas_createFlow(ai)) return -1;
+    if(!nas_createFlow(ao)) return -1;
     
     while ((info.buf_cnt + (len - buf_cnt)) >  info.buf_size) {
         memcpy(info.buf + info.buf_cnt,
@@ -269,7 +268,7 @@ int audio_play_samples(struct audio_info_struct *ai,unsigned char *buf,int len)
                (info.buf_size - info.buf_cnt));
         buf_cnt += (info.buf_size - info.buf_cnt);
         info.buf_cnt += (info.buf_size - info.buf_cnt);
-        nas_flush();
+		flush_nas(ao);
     }
     memcpy(info.buf + info.buf_cnt,
            buf + buf_cnt,
@@ -279,7 +278,7 @@ int audio_play_samples(struct audio_info_struct *ai,unsigned char *buf,int len)
     return len;
 }
 
-int audio_close(struct audio_info_struct *ai)
+static int close_nas(audio_output_t *ao)
 {
     if (info.aud == NULL) {
         return 0;
@@ -292,7 +291,7 @@ int audio_close(struct audio_info_struct *ai)
     }
         
     while (!info.finished) {
-        nas_flush();
+        flush_nas(ao);
     }
     AuCloseServer(info.aud);
     free(info.buf);
@@ -300,6 +299,38 @@ int audio_close(struct audio_info_struct *ai)
     return 0;
 }
 
-void audio_queueflush(struct audio_info_struct *ai)
+
+
+
+
+static int init_nas(audio_output_t* ao)
 {
+	if (ao==NULL) return -1;
+
+	/* Set callbacks */
+	ao->open = open_nas;
+	ao->flush = flush_nas;
+	ao->write = write_nas;
+	ao->get_formats = get_formats_nas;
+	ao->close = close_nas;
+	
+	/* Success */
+	return 0;
 }
+
+
+
+/* 
+	Module information data structure
+*/
+mpg123_module_t mpg123_output_module_info = {
+	/* api_version */	MPG123_MODULE_API_VERSION,
+	/* name */			"nas",						
+	/* description */	"Output audio using NAS (Network Audio System)",
+	/* revision */		"$Rev:$",						
+	/* handle */		NULL,
+	
+	/* init_output */	init_nas,						
+};
+
+

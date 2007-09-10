@@ -1,5 +1,5 @@
 /*
-	audio_mint: audio output for MINT
+	mint: audio output for MINT
 
 	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
@@ -18,30 +18,30 @@ int real_rate_printed = 0;
 
 
 
-static int audio_rate_best_match(struct audio_info_struct *ai)
+static int audio_rate_best_match(audio_output_t *ao)
 {
   int ret,dsp_rate;
 
-  if(!ai || ai->fn < 0 || ai->rate < 0)
+  if(!ai || ao->fn < 0 || ao->rate < 0)
     return -1;
-  dsp_rate = ai->rate;
-  ret = ioctl(ai->fn,AIOCSSPEED, (void *)dsp_rate);
-  ret = ioctl(ai->fn,AIOCGSPEED,&dsp_rate);
+  dsp_rate = ao->rate;
+  ret = ioctl(ao->fn,AIOCSSPEED, (void *)dsp_rate);
+  ret = ioctl(ao->fn,AIOCGSPEED,&dsp_rate);
   if(ret < 0)
     return ret;
-  ai->rate = dsp_rate;
+  ao->rate = dsp_rate;
   return 0;
 }
 
-static int audio_set_rate(struct audio_info_struct *ai)
+static int audio_set_rate(audio_output_t *ao)
 {
-  int dsp_rate = ai->rate;
+  int dsp_rate = ao->rate;
 
-  if(ai->rate >= 0) {
+  if(ao->rate >= 0) {
     int ret, real_rate;
-    ret = ioctl(ai->fn, AIOCSSPEED, (void *)dsp_rate);
+    ret = ioctl(ao->fn, AIOCSSPEED, (void *)dsp_rate);
     if (ret >= 0 && !real_rate_printed) {
-      ioctl(ai->fn,AIOCGSPEED,&real_rate);
+      ioctl(ao->fn,AIOCGSPEED,&real_rate);
       if (real_rate != dsp_rate) {
         fprintf(stderr, "Replay rate: %d Hz\n", real_rate);
         real_rate_printed = 1;
@@ -53,24 +53,24 @@ static int audio_set_rate(struct audio_info_struct *ai)
   return 0;
 }
 
-static int audio_set_channels(struct audio_info_struct *ai)
+static int audio_set_channels(audio_output_t *ao)
 {
-  int chan = ai->channels;
+  int chan = ao->channels;
 
-  if(ai->channels < 1)
+  if(ao->channels < 1)
     return 0;
 
-  return ioctl(ai->fn, AIOCSCHAN, (void *)chan);
+  return ioctl(ao->fn, AIOCSCHAN, (void *)chan);
 }
 
-static int audio_set_format(struct audio_info_struct *ai)
+static int audio_set_format(audio_output_t *ao)
 {
   int fmts;
 
-  if(ai->format == -1)
+  if(ao->format == -1)
     return 0;
 
-  switch(ai->format) {
+  switch(ao->format) {
     case AUDIO_FORMAT_SIGNED_16:
     default:
       fmts = AFMT_S16;
@@ -85,13 +85,13 @@ static int audio_set_format(struct audio_info_struct *ai)
       fmts = AFMT_ULAW;
       break;
   }
-  return ioctl(ai->fn, AIOCSFMT, (void *)fmts);
+  return ioctl(ao->fn, AIOCSFMT, (void *)fmts);
 }
 
-static int audio_reset_parameters(struct audio_info_struct *ai)
+static int audio_reset_parameters(audio_output_t *ao)
 {
   int ret;
-  ret = ioctl(ai->fn,AIOCRESET,NULL);
+  ret = ioctl(ao->fn,AIOCRESET,NULL);
   if(ret >= 0)
     ret = audio_set_format(ai);
   if(ret >= 0)
@@ -103,36 +103,36 @@ static int audio_reset_parameters(struct audio_info_struct *ai)
 
 
 
-int audio_open(struct audio_info_struct *ai)
+int audio_open(audio_output_t *ao)
 {
   if(!ai)
     return -1;
 
-  if(!ai->device)
-    ai->device = "/dev/audio";
+  if(!ao->device)
+    ao->device = "/dev/audio";
 
-  ai->fn = open(ai->device,O_WRONLY);  
+  ao->fn = open(ao->device,O_WRONLY);  
 
-  if(ai->fn < 0)
+  if(ao->fn < 0)
   {
-    error1("Can't open %s!",ai->device);
+    error1("Can't open %s!",ao->device);
     return -1;
   }
-  ioctl(ai->fn, AIOCGBLKSIZE, &outburst);
+  ioctl(ao->fn, AIOCGBLKSIZE, &outburst);
   if(outburst > MAXOUTBURST)
     outburst = MAXOUTBURST;
   if(audio_reset_parameters(ai) < 0) {
-    close(ai->fn);
+    close(ao->fn);
     return -1;
   }
-  return ai->fn;
+  return ao->fn;
 }
-int audio_get_formats(struct audio_info_struct *ai)
+int audio_get_formats(audio_output_t *ao)
 {
   int ret = 0;
   int fmts;
 
-  if(ioctl(ai->fn,AIOCGFMTS,&fmts) < 0)
+  if(ioctl(ao->fn,AIOCGFMTS,&fmts) < 0)
     return -1;
 
   if(fmts & AFMT_ULAW)
@@ -147,18 +147,18 @@ int audio_get_formats(struct audio_info_struct *ai)
   return ret;
 }
 
-int audio_play_samples(struct audio_info_struct *ai,unsigned char *buf,int len)
+int audio_play_samples(audio_output_t *ao,unsigned char *buf,int len)
 {
-  return write(ai->fn,buf,len);
+  return write(ao->fn,buf,len);
 }
 
-int audio_close(struct audio_info_struct *ai)
+int audio_close(audio_output_t *ao)
 {
-  close (ai->fn);
+  close (ao->fn);
   return 0;
 }
 
-void audio_queueflush(struct audio_info_struct *ai)
+void audio_queueflush(audio_output_t *ao)
 {
 }
 

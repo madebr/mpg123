@@ -1,5 +1,5 @@
 /*
-	audio_sgi.c: audio output on sgi boxen
+	sgi: audio output on SGI boxen
 
 	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
@@ -18,7 +18,7 @@
 static const char analog_output_res_name[] = ".AnalogOut";
 
 
-static int audio_set_rate(struct audio_info_struct *ai, ALconfig config)
+static int audio_set_rate(audio_output_t *ao, ALconfig config)
 {
   int dev = alGetDevice(config);
   ALpv params[1];
@@ -31,7 +31,7 @@ static int audio_set_rate(struct audio_info_struct *ai, ALconfig config)
     }
 
   params[0].param = AL_OUTPUT_RATE;
-  params[0].value.ll = alDoubleToFixed(ai->rate);
+  params[0].value.ll = alDoubleToFixed(ao->rate);
   
   if (alSetParams(dev, params,1) < 0)
     fprintf(stderr,"audio_set_rate : %s\n",alGetErrorString(oserror()));
@@ -39,11 +39,11 @@ static int audio_set_rate(struct audio_info_struct *ai, ALconfig config)
   return 0;
 }
 
-static int audio_set_channels(struct audio_info_struct *ai, ALconfig config)
+static int audio_set_channels(audio_output_t *ao, ALconfig config)
 {
   int ret;
   
-  if(ai->channels == 2)
+  if(ao->channels == 2)
     ret = alSetChannels(config, AL_STEREO);
   else
     ret = alSetChannels(config, AL_MONO);
@@ -54,7 +54,7 @@ static int audio_set_channels(struct audio_info_struct *ai, ALconfig config)
   return 0;
 }
 
-static int audio_set_format(struct audio_info_struct *ai, ALconfig config)
+static int audio_set_format(audio_output_t *ao, ALconfig config)
 {
   if (alSetSampFmt(config,AL_SAMPFMT_TWOSCOMP) < 0)
     fprintf(stderr,"audio_set_format : %s\n",alGetErrorString(oserror()));
@@ -66,7 +66,7 @@ static int audio_set_format(struct audio_info_struct *ai, ALconfig config)
 }
 
 
-int audio_open(struct audio_info_struct *ai)
+int audio_open(audio_output_t *ao)
 {
   int dev = AL_DEFAULT_OUTPUT;
   ALconfig config = alNewConfig();
@@ -79,7 +79,7 @@ int audio_open(struct audio_info_struct *ai)
   }
   
   /* Set port parameters */
-  if(ai->channels == 2)
+  if(ao->channels == 2)
     alSetChannels(config, AL_STEREO);
   else
     alSetChannels(config, AL_MONO);
@@ -90,14 +90,14 @@ int audio_open(struct audio_info_struct *ai)
 
   /* Setup output device to specified module. If there is no module
      specified in ai structure, use the default four output */
-  if ((ai->device) != NULL) {
+  if ((ao->device) != NULL) {
     
     char *dev_name;
     
-    dev_name=malloc((strlen(ai->device) + strlen(analog_output_res_name) + 1) *
+    dev_name=malloc((strlen(ao->device) + strlen(analog_output_res_name) + 1) *
                   sizeof(char));
     
-    strcpy(dev_name,ai->device);
+    strcpy(dev_name,ao->device);
     strcat(dev_name,analog_output_res_name);
     
     /* Find the asked device resource */
@@ -128,7 +128,7 @@ int audio_open(struct audio_info_struct *ai)
     return -1;
   }
   
-  ai->handle = (void*)port;
+  ao->handle = (void*)port;
   
   
   audio_set_format(ai, config);
@@ -142,17 +142,17 @@ int audio_open(struct audio_info_struct *ai)
 }
 
 
-int audio_get_formats(struct audio_info_struct *ai)
+int audio_get_formats(audio_output_t *ao)
 {
   return AUDIO_FORMAT_SIGNED_16;
 }
 
 
-int audio_play_samples(struct audio_info_struct *ai,unsigned char *buf,int len)
+int audio_play_samples(audio_output_t *ao,unsigned char *buf,int len)
 {
-  ALport port = (ALport)ai->handle;
+  ALport port = (ALport)ao->handle;
 
-  if(ai->format == AUDIO_FORMAT_SIGNED_8)
+  if(ao->format == AUDIO_FORMAT_SIGNED_8)
     alWriteFrames(port, buf, len>>1);
   else
     alWriteFrames(port, buf, len>>2);
@@ -160,20 +160,20 @@ int audio_play_samples(struct audio_info_struct *ai,unsigned char *buf,int len)
   return len;
 }
 
-int audio_close(struct audio_info_struct *ai)
+int audio_close(audio_output_t *ao)
 {
-  ALport port = (ALport)ai->handle;
+  ALport port = (ALport)ao->handle;
 
   if (port) {
     while(alGetFilled(port) > 0)
       sginap(1);  
     alClosePort(port);
-    ai->handle=NULL;
+    ao->handle=NULL;
   }
   
   return 0;
 }
 
-void audio_queueflush(struct audio_info_struct *ai)
+void audio_queueflush(audio_output_t *ao)
 {
 }
