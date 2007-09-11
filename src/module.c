@@ -84,6 +84,17 @@ open_module( const char* type, const char* name )
 		return NULL;
 	}
 	free( module_symbol );
+	
+	/* Check the API version */
+	if (MPG123_MODULE_API_VERSION > module->api_version) {
+		error( "API version of module is too old" );
+		lt_dlclose( handle );
+		return NULL;
+	} else if (MPG123_MODULE_API_VERSION > module->api_version) {
+		error( "API version of module is too new" );
+		lt_dlclose( handle );
+		return NULL;
+	}
 
 	/* Store handle in the data structure */
 	module->handle = handle;
