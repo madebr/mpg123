@@ -2,7 +2,7 @@
 	legacy_module.c: dummy interface to modular code loader for legacy build system
 
 	copyright 2007 by the mpg123 project - free software under the terms of the LGPL 2.1
-	see COPYING and AUTHORS files in distribution or http://www.mpg123.org
+	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Nicholas J Humfrey
 */
 
@@ -62,6 +62,13 @@ void close_module( mpg123_module_t* module )
 void list_modules()
 {
 	debug("list_modules()" );
+
+	printf("\nmpg123 has been built in legacy mode - dynamic modules are not available.\n");
+	
+	printf("Available modules\n");
+	printf("-----------------\n");
+	printf("%-15s%s  %s\n", mpg123_output_module_info.name, "output", mpg123_output_module_info.description );
+
 }
 
 
