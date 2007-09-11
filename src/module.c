@@ -8,6 +8,7 @@
 
 #include <dirent.h>
 #include <errno.h>
+#include <ctype.h>
 #include <ltdl.h>
 
 #include "mpg123.h"

@@ -8,6 +8,11 @@
 
 #include "mpg123.h"
 
+#ifdef HAVE_SYS_WAIT_H
+#include <sys/wait.h>
+#endif
+
+
 /* Open an audio output module */
 audio_output_t* open_output_module( const char* name )
 {
