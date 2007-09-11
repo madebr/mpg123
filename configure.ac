@@ -27,7 +27,6 @@ dnl ############# Compiler and tools Checks
 AM_PROG_AS
 AC_PROG_CC
 AC_PROG_INSTALL
-AC_PROG_RANLIB
 
 AC_C_CONST
 AC_INLINE
