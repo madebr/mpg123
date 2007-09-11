@@ -175,7 +175,6 @@ txfermem *buffermem = NULL;
 
 void set_synth_functions(struct frame *fr);
 
-
 static void set_output_h(char *a)
 {
   if(ao->output <= 0)
@@ -213,7 +212,27 @@ static void set_output (char *arg)
     }
 }
 
-void set_verbose (char *arg)
+static void set_output_module( char *arg )
+{
+	int i;
+		
+	/* Search for a colon and set the device if found */
+	for(i=0; i< strlen( arg ); i++) {
+		if (arg[i] == ':') {
+			arg[i] = 0;
+			param.output_device = &arg[i+1];
+			debug1("Setting output device: %s", param.output_device);
+			break;
+		}	
+	}
+
+	/* Set the output module */
+	param.output_module = arg;
+	debug1("Setting output module: %s", param.output_module );
+
+}
+
+static void set_verbose (char *arg)
 {
     param.verbose++;
 }
@@ -290,9 +309,6 @@ void realtime_not_compiled(char *arg)
  */
 topt opts[] = {
 	{'k', "skip",        GLO_ARG | GLO_LONG, 0, &startFrame, 0},
-	{'o', "output",      GLO_ARG | GLO_CHAR, set_output, NULL,  0},
-	{0,   "list-modules",0,        list_modules, NULL,  0}, 
-	{'a', "audiodevice", GLO_ARG | GLO_CHAR, 0, &param.output_device,  0},
 	{'2', "2to1",        GLO_INT,  0, &param.down_sample, 1},
 	{'4', "4to1",        GLO_INT,  0, &param.down_sample, 2},
 	{'t', "test",        GLO_INT,  0, &param.outmode, DECODE_TEST},
@@ -319,6 +335,9 @@ topt opts[] = {
 	{0,   "speaker",     0,                  set_output_s, 0,0},
 	{0,   "lineout",     0,                  set_output_l, 0,0},
 	{'o', "output",      GLO_ARG | GLO_CHAR, set_output, 0,  0},
+	{0,   "output-module",      GLO_ARG | GLO_CHAR, set_output_module, 0,  0},
+	{0,   "list-modules",0,        list_modules, NULL,  0}, 
+	{'a', "audiodevice", GLO_ARG | GLO_CHAR, 0, &param.output_device,  0},
 #ifdef FLOATOUT
 	{'f', "scale",       GLO_ARG | GLO_DOUBLE, 0, &outscale,   0},
 #else
