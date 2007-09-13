@@ -148,7 +148,7 @@ int control_generic (struct frame *fr)
 			if (n == 0) {
 				if (!read_frame(fr)) {
 					mode = MODE_STOPPED;
-					audio_flush(param.outmode, &ao);
+					flush_output(param.outmode, &ao);
 					rd->close(rd);
 					generic_sendmsg("P 0");
 					continue;
@@ -156,7 +156,7 @@ int control_generic (struct frame *fr)
 				if(!play_frame(init,fr))
 				{
 					generic_sendmsg("E play_frame failed");
-					audio_flush(param.outmode, &ao);
+					flush_output(param.outmode, &ao);
 					rd->close(rd);
 					mode = MODE_STOPPED;
 					generic_sendmsg("P 0");
@@ -247,7 +247,7 @@ int control_generic (struct frame *fr)
 					{	
 						if (mode == MODE_PLAYING) {
 							mode = MODE_PAUSED;
-							audio_flush(param.outmode, &ao);
+							flush_output(param.outmode, &ao);
 							buffer_stop();
 							generic_sendmsg("P 1");
 						} else {
@@ -262,7 +262,7 @@ int control_generic (struct frame *fr)
 				/* STOP */
 				if (!strcasecmp(comstr, "S") || !strcasecmp(comstr, "STOP")) {
 					if (mode != MODE_STOPPED) {
-						audio_flush(param.outmode, &ao);
+						flush_output(param.outmode, &ao);
 						rd->close(rd);
 						mode = MODE_STOPPED;
 						generic_sendmsg("P 0");
@@ -360,7 +360,7 @@ int control_generic (struct frame *fr)
 						char *spos;
 						long offset;
 						double secs;
-						audio_flush(param.outmode, &ao);
+						flush_output(param.outmode, &ao);
 
 						spos = arg;
 						if (!spos)
@@ -521,7 +521,7 @@ int control_generic (struct frame *fr)
 		xfermem_done(buffermem);
 	} else {
 #endif
-		audio_flush(param.outmode, &ao);
+		flush_output(param.outmode, &ao);
 		free(pcm_sample);
 #ifndef NOXFERMEM
 	}

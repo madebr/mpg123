@@ -315,7 +315,7 @@ int do_layer2(struct frame *fr,int outmode,audio_output_t *ao)
       }
 
       if(pcm_point >= audiobufsize)
-        audio_flush(outmode,ao);
+        flush_output(outmode,ao);
     }
   }
 

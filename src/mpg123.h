@@ -290,7 +290,6 @@ extern void buffer_loop(audio_output_t *ao,sigset_t *oldsigset);
 
 /* ------ Declarations from "common.c" ------ */
 
-extern void audio_flush(int, audio_output_t *);
 extern void (*catchsignal(int signum, void(*handler)()))();
 
 extern void print_header(struct frame *);

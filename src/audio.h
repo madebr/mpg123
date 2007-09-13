@@ -83,14 +83,15 @@ struct audio_format_name {
 /* ------ Declarations from "audio.c" ------ */
 
 extern audio_output_t* open_output_module( const char* name );
+extern void close_output_module( audio_output_t* ao );
 extern audio_output_t* alloc_audio_output();
-extern void deinit_audio_output( audio_output_t* ao );
-extern void audio_output_dump(audio_output_t *ao);
 extern void audio_capabilities(audio_output_t *ao);
 extern int audio_fit_capabilities(audio_output_t *ao,int c,int r);
 extern char *audio_encoding_name(int format);
 
 extern int init_output( audio_output_t *ao );
+extern void flush_output(int mod, audio_output_t *ao );
+extern void close_output(int mod, audio_output_t *ao );
 
 
 #endif

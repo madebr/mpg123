@@ -121,35 +121,6 @@ unsigned long samples_to_bytes(unsigned long s, struct frame *fr , audio_output_
 }
 #endif
 
-void audio_flush(int outmode, audio_output_t *ao)
-{
-	/* the gapless code is not in effect for buffered mode... as then condition for audio_flush is never met */
-	#ifdef GAPLESS
-	if(param.gapless) layer3_gapless_buffercheck();
-	#endif
-	if(pcm_point)
-	{
-		switch(outmode)
-		{
-			case DECODE_FILE:
-				write (OutputDescriptor, pcm_sample, pcm_point);
-			break;
-			case DECODE_AUDIO:
-				ao->write(ao, pcm_sample, pcm_point);
-			break;
-			case DECODE_BUFFER:
-				error("The buffer doesn't work like that... I shouldn't ever be getting here.");
-				write (buffer_fd[1], pcm_sample, pcm_point);
-			break;
-			case DECODE_WAV:
-			case DECODE_CDR:
-			case DECODE_AU:
-				wav_write(pcm_sample, pcm_point);
-			break;
-		}
-		pcm_point = 0;
-	}
-}
 
 #if !defined(WIN32) && !defined(GENERIC)
 void (*catchsignal(int signum, void(*handler)()))()
@@ -595,7 +566,7 @@ init_resync:
 						{
 							/*
 								In theory, one should use that value for skipping...
-								When I know the exact number of samples I could simply count in audio_flush,
+								When I know the exact number of samples I could simply count in flush_output,
 								but that's problematic with seeking and such.
 								I still miss the real solution for detecting the end.
 							*/

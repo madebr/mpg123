@@ -1916,7 +1916,7 @@ int do_layer3(struct frame *fr,int outmode,audio_output_t *ao)
       else
         playlimit -= 128;
 #endif
-      if(pcm_point >= audiobufsize) audio_flush(outmode,ao);
+      if(pcm_point >= audiobufsize) flush_output(outmode,ao);
     }
 #ifdef OPT_I486
     } else {
@@ -1932,7 +1932,7 @@ int do_layer3(struct frame *fr,int outmode,audio_output_t *ao)
         ss+=n;
         pcm_point+=(2*2*32)*n;
         
-        if(pcm_point >= audiobufsize) audio_flush(outmode,ao);
+        if(pcm_point >= audiobufsize) flush_output(outmode,ao);
       }
     }
 #endif

@@ -965,7 +965,7 @@ tc_hack:
 		}
 		#ifdef GAPLESS
 		/* make sure that the correct padding is skipped after track ended */
-		if(param.gapless) audio_flush(param.outmode, ao);
+		if(param.gapless) flush_output(param.outmode, ao);
 		#endif
 
 #ifndef NOXFERMEM
@@ -1067,27 +1067,21 @@ tc_hack:
     }
     else {
 #endif
-      audio_flush(param.outmode, ao);
+      flush_output(param.outmode, ao);
       free (pcm_sample);
 #ifndef NOXFERMEM
     }
 #endif
 
-    switch(param.outmode) {
-      case DECODE_AUDIO:
-        ao->close(ao);
-        break;
-      case DECODE_WAV:
-        wav_close();
-        break;
-      case DECODE_AU:
-        au_close();
-        break;
-      case DECODE_CDR:
-        cdr_close();
-        break;
-    }
+	/* Close the output */
+	close_output(param.outmode, ao);
+    
+    /* Close the audio output module */
+    close_output_module( ao );
+
+	/* Free up memory used by playlist */    
    	if(!param.remote) free_playlist();
+
     return 0;
 }
 

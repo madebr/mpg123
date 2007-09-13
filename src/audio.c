@@ -7,6 +7,7 @@
 */
 
 #include "mpg123.h"
+#include "layer3.h"
 
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
@@ -54,10 +55,12 @@ audio_output_t* open_output_module( const char* name )
 
 
 
-/* FIXME: this is called anywhere */
+/* Close the audio output and close the module */
 void close_output_module( audio_output_t* ao ) 
 {
 	if (!ao) return;
+	
+	debug("closing output module");
 
 	/* Close the audio output */
 	if (ao->close) ao->close( ao );
@@ -102,8 +105,8 @@ audio_output_t* alloc_audio_output()
 	return ao;
 }
 
-
-void audio_output_dump(audio_output_t *ao)
+/*
+static void audio_output_dump(audio_output_t *ao)
 {
 	fprintf(stderr, "ao->fn=%d\n", ao->fn);
 	fprintf(stderr, "ao->userptr=%p\n", ao->userptr);
@@ -113,6 +116,7 @@ void audio_output_dump(audio_output_t *ao)
 	fprintf(stderr, "ao->channels=%d\n", ao->channels);
 	fprintf(stderr, "ao->format=%d\n", ao->format);
 }
+*/
 
 
 #define NUM_CHANNELS 2
@@ -373,6 +377,10 @@ static void catch_child(void)
 #endif
 
 
+
+
+
+
 /* FIXME: Old output initialization code that needs updating */
 
 int init_output( audio_output_t *ao )
@@ -462,3 +470,54 @@ int init_output( audio_output_t *ao )
 	return 0;
 }
 
+
+void flush_output(int outmode, audio_output_t *ao)
+{
+	/* the gapless code is not in effect for buffered mode... as then condition for flush_output is never met */
+	#ifdef GAPLESS
+	if(param.gapless) layer3_gapless_buffercheck();
+	#endif
+	
+	if(pcm_point)
+	{
+		switch(outmode)
+		{
+			case DECODE_FILE:
+				write (OutputDescriptor, pcm_sample, pcm_point);
+			break;
+			case DECODE_AUDIO:
+				ao->write(ao, pcm_sample, pcm_point);
+			break;
+			case DECODE_BUFFER:
+				error("The buffer doesn't work like that... I shouldn't ever be getting here.");
+				write (buffer_fd[1], pcm_sample, pcm_point);
+			break;
+			case DECODE_WAV:
+			case DECODE_CDR:
+			case DECODE_AU:
+				wav_write(pcm_sample, pcm_point);
+			break;
+		}
+		pcm_point = 0;
+	}
+}
+
+void close_output(int outmode, audio_output_t *ao)
+{
+
+    switch(outmode) {
+      case DECODE_AUDIO:
+        ao->close(ao);
+        break;
+      case DECODE_WAV:
+        wav_close();
+        break;
+      case DECODE_AU:
+        au_close();
+        break;
+      case DECODE_CDR:
+        cdr_close();
+        break;
+    }
+
+}
