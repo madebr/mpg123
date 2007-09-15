@@ -65,6 +65,7 @@ typedef struct audio_output_struct
 	mpg123_module_t *module;
 	
 	char *device;	/* device name */
+	int   flags;	/* some bits; namely headphone/speaker/line */
 	long rate;		/* sample rate */
 	long gain;		/* output gain */
 	int channels;	/* number of channels */

@@ -40,6 +40,8 @@ audio_output_t* open_output_module( const char* name )
 	}
 	
 	/* Call the init function */
+	ao->device = param.output_device;
+	ao->flags  = param.output_flags;
 	result = module->init_output(ao);
 	if (result) {
 		error1( "Module's init function failed: %d", result );
@@ -91,6 +93,7 @@ audio_output_t* alloc_audio_output()
 	ao->device = NULL;
 	ao->channels = -1;
 	ao->format = -1;
+	ao->flags = 0;
 	
 	/*ao->module = NULL;*/
 

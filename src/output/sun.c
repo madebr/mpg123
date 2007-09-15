@@ -184,14 +184,14 @@ int audio_open(audio_output_t *ao)
 
   AUDIO_INITINFO(&ainfo);
 
-  if(param.output_flags > 0)
+  if(ao->flags > 0)
     ainfo.play.port = 0;
-  if(param.output_flags & AUDIO_OUT_INTERNAL_SPEAKER)
+  if(ao->flags & AUDIO_OUT_INTERNAL_SPEAKER)
     ainfo.play.port |= AUDIO_SPEAKER;
-  if(param.output_flags & AUDIO_OUT_HEADPHONES)
+  if(ao->flags & AUDIO_OUT_HEADPHONES)
     ainfo.play.port |= AUDIO_HEADPHONE;
 #ifdef AUDIO_LINE_OUT
-  if(param.output_flags & AUDIO_OUT_LINE_OUT)
+  if(ao->flags & AUDIO_OUT_LINE_OUT)
     ainfo.play.port |= AUDIO_LINE_OUT;
 #endif
 

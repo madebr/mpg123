@@ -110,16 +110,16 @@ int audio_reset_parameters(audio_output_t *ao)
   achange.volume         = (long) (0x7fff << 16);
   achange.volume_delay   = 0;
   achange.input          = AUDIO_IGNORE;
-  if (param.output_flags == -1) achange.output = INTERNAL_SPEAKER;
+  if (ao->flags == -1) achange.output = INTERNAL_SPEAKER;
   else
   achange.output      = 0;
-  if(param.output_flags & AUDIO_OUT_INTERNAL_SPEAKER)
+  if(ao->flags & AUDIO_OUT_INTERNAL_SPEAKER)
      achange.output     |= INTERNAL_SPEAKER;
-  if(param.output_flags & AUDIO_OUT_HEADPHONES)
+  if(ao->flags & AUDIO_OUT_HEADPHONES)
      achange.output     |= EXTERNAL_SPEAKER;
-  if(param.output_flags & AUDIO_OUT_LINE_OUT)
+  if(ao->flags & AUDIO_OUT_LINE_OUT)
      achange.output     |= OUTPUT_1;
-  if(param.output_flags == 0)
+  if(ao->flags == 0)
      achange.output      = AUDIO_IGNORE;
   achange.treble         = AUDIO_IGNORE;
   achange.bass          = AUDIO_IGNORE;
