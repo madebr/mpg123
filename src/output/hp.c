@@ -104,13 +104,13 @@ int audio_open(audio_output_t *ao)
 		ioctl(ao->fn,AUDIO_SET_GAINS,&again);
 	}
 	
-	if(ao->output != -1)
+	if(param.output_flags != -1)
 	{
-		if(ao->output & AUDIO_OUT_INTERNAL_SPEAKER)
+		if(param.output_flags & AUDIO_OUT_INTERNAL_SPEAKER)
 			ioctl(ao->fn,AUDIO_SET_OUTPUT,AUDIO_OUT_SPEAKER);
-		else if(ao->output & AUDIO_OUT_HEADPHONES)
+		else if(param.output_flags & AUDIO_OUT_HEADPHONES)
 			ioctl(ao->fn,AUDIO_SET_OUTPUT,AUDIO_OUT_HEADPHONE);
-		else if(ao->output & AUDIO_OUT_LINE_OUT)
+		else if(param.output_flags & AUDIO_OUT_LINE_OUT)
 			ioctl(ao->fn,AUDIO_SET_OUTPUT,AUDIO_OUT_LINE);
 	}
 	

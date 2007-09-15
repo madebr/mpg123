@@ -69,8 +69,6 @@ typedef struct audio_output_struct
 	long gain;		/* output gain */
 	int channels;	/* number of channels */
 	int format;		/* format flags */
-	int output;		/* headphone/speaker/lineout */
-	
 } audio_output_t;
 
 struct audio_format_name {

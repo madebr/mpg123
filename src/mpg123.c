@@ -69,7 +69,8 @@ struct parameter param = {
   TRUE ,  /* resync after stream error */
   0 ,     /* verbose level */
   DEFAULT_OUTPUT_MODULE,	/* output module */
-  NULL,   					/* output device */
+  NULL,   /* output device */
+  0,      /* destination (headphones, ...) */
 #ifdef HAVE_TERMIOS
   FALSE , /* term control */
 #endif
@@ -175,43 +176,6 @@ txfermem *buffermem = NULL;
 
 void set_synth_functions(struct frame *fr);
 
-static void set_output_h(char *a)
-{
-  if(ao->output <= 0)
-    ao->output = AUDIO_OUT_HEADPHONES;
-  else
-    ao->output |= AUDIO_OUT_HEADPHONES;
-}
-
-static void set_output_s(char *a)
-{
-  if(ao->output <= 0)
-    ao->output = AUDIO_OUT_INTERNAL_SPEAKER;
-  else
-    ao->output |= AUDIO_OUT_INTERNAL_SPEAKER;
-}
-
-static void set_output_l(char *a)
-{
-  if(ao->output <= 0)
-    ao->output = AUDIO_OUT_LINE_OUT;
-  else
-    ao->output |= AUDIO_OUT_LINE_OUT;
-}
-
-static void set_output (char *arg)
-{
-    switch (*arg) {
-        case 'h': set_output_h(arg); break;
-        case 's': set_output_s(arg); break;
-        case 'l': set_output_l(arg); break;
-        default:
-            error3("%s: Unknown argument \"%s\" to option \"%s\".\n",
-                prgName, arg, loptarg);
-            safe_exit(1);
-    }
-}
-
 static void set_output_module( char *arg )
 {
 	int i;
@@ -229,8 +193,45 @@ static void set_output_module( char *arg )
 	/* Set the output module */
 	param.output_module = arg;
 	debug1("Setting output module: %s", param.output_module );
-
 }
+
+static void set_output_flag(int flag)
+{
+  if(param.output_flags <= 0) param.output_flags = flag;
+  else param.output_flags |= flag;
+}
+
+static void set_output_h(char *a)
+{
+	set_output_flag(AUDIO_OUT_HEADPHONES);
+}
+
+static void set_output_s(char *a)
+{
+	set_output_flag(AUDIO_OUT_INTERNAL_SPEAKER);
+}
+
+static void set_output_l(char *a)
+{
+	set_output_flag(AUDIO_OUT_LINE_OUT);
+}
+
+static void set_output(char *arg)
+{
+	/* If single letter, it's the legacy output switch for AIX/HP/Sun.
+	   If longer, it's module[:device] . If zero length, it's rubbish. */
+	if(strlen(arg) <= 1) switch(arg[0])
+	{
+		case 'h': set_output_h(arg); break;
+		case 's': set_output_s(arg); break;
+		case 'l': set_output_l(arg); break;
+		default:
+			error1("\"%s\" is no valid output", arg);
+			safe_exit(1);
+	}
+	else set_output_module(arg);
+}
+
 
 static void set_verbose (char *arg)
 {
@@ -335,7 +336,6 @@ topt opts[] = {
 	{0,   "speaker",     0,                  set_output_s, 0,0},
 	{0,   "lineout",     0,                  set_output_l, 0,0},
 	{'o', "output",      GLO_ARG | GLO_CHAR, set_output, 0,  0},
-	{0,   "output-module",      GLO_ARG | GLO_CHAR, set_output_module, 0,  0},
 	{0,   "list-modules",0,        list_modules, NULL,  0}, 
 	{'a', "audiodevice", GLO_ARG | GLO_CHAR, 0, &param.output_device,  0},
 #ifdef FLOATOUT

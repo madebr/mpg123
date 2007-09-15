@@ -210,6 +210,7 @@ struct parameter {
   int verbose;    /* verbose level */
   char* output_module;	/* audio output module to use */
   char* output_device;	/* audio output device to use */
+  int   output_flags;	/* legacy output destination for AIX/HP/Sun */
 #ifdef HAVE_TERMIOS
   int term_ctrl;
 #endif
