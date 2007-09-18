@@ -23,9 +23,10 @@
 #define FIFO_DURATION		(0.5f)
 
 
-static PaStream *pa_stream=NULL;
-static sfifo_t fifo;
-
+typedef struct {
+	PaStream *stream;
+	sfifo_t fifo;
+} mpg123_portaudio_t;
 
 
 
@@ -34,13 +35,14 @@ static int paCallback( void *inputBuffer, void *outputBuffer,
 			 PaTimestamp outTime, void *userData )
 {
 	audio_output_t *ao = userData;
+	mpg123_portaudio_t *pa = (mpg123_portaudio_t*)ao->userptr;
 	unsigned long bytes = framesPerBuffer * SAMPLE_SIZE * ao->channels;
 	
-	if (sfifo_used(&fifo)<bytes) {
+	if (sfifo_used(&pa->fifo)<bytes) {
 		error("ringbuffer for PortAudio is empty");
 		return 1;
 	} else {
-		sfifo_read( &fifo, outputBuffer, bytes );
+		sfifo_read( &pa->fifo, outputBuffer, bytes );
 		return 0;
 	}
 }
@@ -48,13 +50,14 @@ static int paCallback( void *inputBuffer, void *outputBuffer,
 
 static int open_portaudio(audio_output_t *ao)
 {
+	mpg123_portaudio_t *pa = (mpg123_portaudio_t*)ao->userptr;
 	PaError err;
 	
 	/* Open an audio I/O stream. */
 	if (ao->rate > 0 && ao->channels >0 ) {
 	
 		err = Pa_OpenDefaultStream(
-					&pa_stream,
+					&pa->stream,
 					0,          	/* no input channels */
 					ao->channels,	/* number of output channels */
 					paInt16,		/* signed 16-bit samples */
@@ -70,7 +73,7 @@ static int open_portaudio(audio_output_t *ao)
 		}
 		
 		/* Initialise FIFO */
-		sfifo_init( &fifo, ao->rate * FIFO_DURATION * SAMPLE_SIZE *ao->channels );
+		sfifo_init( &pa->fifo, ao->rate * FIFO_DURATION * SAMPLE_SIZE *ao->channels );
 									   
 	}
 	
@@ -87,11 +90,12 @@ static int get_formats_portaudio(audio_output_t *ao)
 
 static int write_portaudio(audio_output_t *ao, unsigned char *buf, int len)
 {
+	mpg123_portaudio_t *pa = (mpg123_portaudio_t*)ao->userptr;
 	PaError err;
 	int written;
 	
 	/* Sleep for half the length of the FIFO */
-	while (sfifo_space( &fifo ) < len ) {
+	while (sfifo_space( &pa->fifo ) < len ) {
 #ifdef WIN32
 		Sleep( (FIFO_DURATION/2) * 1000);
 #else
@@ -100,12 +104,12 @@ static int write_portaudio(audio_output_t *ao, unsigned char *buf, int len)
 	}
 	
 	/* Write the audio to the ring buffer */
-	written = sfifo_write( &fifo, buf, len );
+	written = sfifo_write( &pa->fifo, buf, len );
 
 	/* Start stream if not ative */
-	err = Pa_StreamActive( pa_stream );
+	err = Pa_StreamActive( pa->stream );
 	if (err == 0) {
-		err = Pa_StartStream( pa_stream );
+		err = Pa_StartStream( pa->stream );
 		if( err != paNoError ) {
 			error1("Failed to start PortAudio stream: %s", Pa_GetErrorText( err ));
 			return -1; /* triggering exit here is not good, better handle that somehow... */
@@ -118,14 +122,16 @@ static int write_portaudio(audio_output_t *ao, unsigned char *buf, int len)
 	return written;
 }
 
+
 static int close_portaudio(audio_output_t *ao)
 {
+	mpg123_portaudio_t *pa = (mpg123_portaudio_t*)ao->userptr;
 	PaError err;
 	
-	if (pa_stream) {
+	if (pa->stream) {
 		/* stop the stream if it is active */
-		if (Pa_StreamActive( pa_stream ) == 1) {
-			err = Pa_StopStream( pa_stream );
+		if (Pa_StreamActive( pa->stream ) == 1) {
+			err = Pa_StopStream( pa->stream );
 			if( err != paNoError ) {
 				error1("Failed to stop PortAudio stream: %s", Pa_GetErrorText( err ));
 				return -1;
@@ -133,31 +139,49 @@ static int close_portaudio(audio_output_t *ao)
 		}
 	
 		/* and then close the stream */
-		err = Pa_CloseStream( pa_stream );
+		err = Pa_CloseStream( pa->stream );
 		if( err != paNoError ) {
 			error1("Failed to close PortAudio stream: %s", Pa_GetErrorText( err ));
 			return -1;
 		}
 		
-		pa_stream = NULL;
+		pa->stream = NULL;
 	}
 	
 	/* and free memory used by fifo */
-	sfifo_close( &fifo );
+	sfifo_close( &pa->fifo );
     
 	return 0;
 }
 
+
 static void flush_portaudio(audio_output_t *ao)
 {
+	mpg123_portaudio_t *pa = (mpg123_portaudio_t*)ao->userptr;
 	PaError err;
 	
 	/* throw away contents of FIFO */
-	sfifo_flush( &fifo );
+	sfifo_flush( &pa->fifo );
 	
 	/* and empty out PortAudio buffers */
-	err = Pa_AbortStream( pa_stream );
+	err = Pa_AbortStream( pa->stream );
 	
+}
+
+
+static int deinit_portaudio(audio_output_t* ao)
+{
+	/* Free up memory */
+	if (ao->userptr) {
+		free( ao->userptr );
+		ao->userptr = NULL;
+	}
+
+	/* Shut down PortAudio */
+	Pa_Terminate();
+
+	/* Success */
+	return 0;
 }
 
 
@@ -180,6 +204,12 @@ static int init_portaudio(audio_output_t* ao)
 	ao->write = write_portaudio;
 	ao->get_formats = get_formats_portaudio;
 	ao->close = close_portaudio;
+	ao->deinit = deinit_portaudio;
+
+	/* Allocate memory for handle */
+	ao->userptr = malloc( sizeof(mpg123_portaudio_t) );
+	if (ao->userptr==NULL) error( "Failed to allocated memory for driver structure" );
+	memset( ao->userptr, 0, sizeof(mpg123_portaudio_t) );
 
 	/* Success */
 	return 0;

@@ -19,7 +19,6 @@
 #define FRAMES_PER_BUFFER	(256)
 #define FIFO_DURATION		(0.5f)
 
-static sfifo_t fifo;
 
 
 
@@ -29,31 +28,33 @@ static sfifo_t fifo;
 */
 static void audio_callback_sdl(void *udata, Uint8 *stream, int len)
 {
-	/* audio_output_t *ao = udata; */
-	int read;
+	audio_output_t *ao = (audio_output_t*)udata;
+	sfifo_t *fifo = (sfifo_t*)ao->userptr;
+	int bytes_read;
 
 	/* Only play if we have data left */
-	if ( sfifo_used( &fifo ) < len ) {
+	if ( sfifo_used( fifo ) < len ) {
 		warning("Didn't have any audio data for SDL (buffer underflow)");
 		SDL_PauseAudio(1);
 		return;
 	}
 
 	/* Read audio from FIFO to SDL's buffer */
-	read = sfifo_read( &fifo, stream, len );
+	bytes_read = sfifo_read( fifo, stream, len );
 	
-	if (len!=read)
-		warning2("Error reading from the FIFO (wanted=%u, read=%u).\n", len, read);
+	if (len!=bytes_read)
+		warning2("Error reading from the FIFO (wanted=%u, bytes_read=%u).\n", len, bytes_read);
 
 } 
 
 static int open_sdl(audio_output_t *ao)
 {
+	sfifo_t *fifo = (sfifo_t*)ao->userptr;
 	
 	/* Open an audio I/O stream. */
 	if (ao->rate > 0 && ao->channels >0 ) {
-		SDL_AudioSpec wanted;
 		size_t ringbuffer_len;
+		SDL_AudioSpec wanted;
 	
 		/* L16 uncompressed audio data, using 16-bit signed representation in twos 
 		   complement notation - system endian-ness. */
@@ -69,12 +70,11 @@ static int open_sdl(audio_output_t *ao)
 			error1("Couldn't open SDL audio: %s\n", SDL_GetError());
 			return -1;
 		}
-	
+		
 		/* Initialise FIFO */
 		ringbuffer_len = ao->rate * FIFO_DURATION * SAMPLE_SIZE *ao->channels;
 		debug2( "Allocating %d byte ring-buffer (%f seconds)", (int)ringbuffer_len, (float)FIFO_DURATION);
-		sfifo_init( &fifo, ringbuffer_len );
-									   
+		if (sfifo_init( fifo, ringbuffer_len )) error1( "Failed to initialise FIFO of size %d bytes", (int)ringbuffer_len );
 	}
 	
 	return(0);
@@ -90,9 +90,10 @@ static int get_formats_sdl(audio_output_t *ao)
 
 static int write_sdl(audio_output_t *ao, unsigned char *buf, int len)
 {
+	sfifo_t *fifo = (sfifo_t*)ao->userptr;
 
 	/* Sleep for half the length of the FIFO */
-	while (sfifo_space( &fifo ) < len )
+	while (sfifo_space( fifo ) < len )
 #ifdef WIN32
 		Sleep( (FIFO_DURATION/2) * 1000);
 #else
@@ -104,30 +105,51 @@ static int write_sdl(audio_output_t *ao, unsigned char *buf, int len)
 		 as SFIFO claims to be thread safe...
 	*/
 	SDL_LockAudio();
-	sfifo_write( &fifo, buf, len);
+	sfifo_write( fifo, buf, len);
 	SDL_UnlockAudio();
 	
 	
 	/* Unpause once the buffer is 50% full */
-	if (sfifo_used(&fifo) > (sfifo_size(&fifo)*0.5) ) SDL_PauseAudio(0);
+	if (sfifo_used(fifo) > (sfifo_size(fifo)*0.5) ) SDL_PauseAudio(0);
 
 	return len;
 }
 
 static int close_sdl(audio_output_t *ao)
 {
+	sfifo_t *fifo = (sfifo_t*)ao->userptr;
+
 	SDL_CloseAudio();
 	
-	sfifo_close( &fifo );
+	/* Free up the memory used by the FIFO */
+	sfifo_close( fifo );
 	
 	return 0;
 }
 
 static void flush_sdl(audio_output_t *ao)
 {
+	sfifo_t *fifo = (sfifo_t*)ao->userptr;
+
 	SDL_PauseAudio(1);
 	
-	sfifo_flush( &fifo );	
+	sfifo_flush( fifo );	
+}
+
+
+static int deinit_sdl(audio_output_t* ao)
+{
+	/* Free up memory */
+	if (ao->userptr) {
+		free( ao->userptr );
+		ao->userptr = NULL;
+	}
+
+	/* Shut down SDL */
+	SDL_Quit();
+
+	/* Success */
+	return 0;
 }
 
 
@@ -147,11 +169,16 @@ static int init_sdl(audio_output_t* ao)
 	ao->write = write_sdl;
 	ao->get_formats = get_formats_sdl;
 	ao->close = close_sdl;
+	ao->deinit = deinit_sdl;
+	
+	/* Allocate memory */
+	ao->userptr = malloc( sizeof(sfifo_t) );
+	if (ao->userptr==NULL) error( "Failed to allocated memory for FIFO structure" );
+	memset( ao->userptr, 0, sizeof(sfifo_t) );
 
 	/* Success */
 	return 0;
 }
-
 
 
 /* 
