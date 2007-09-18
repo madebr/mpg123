@@ -60,8 +60,10 @@ int sfifo_init(sfifo_t *f, int size)
  */
 void sfifo_close(sfifo_t *f)
 {
-	if(f->buffer)
+	if(f->buffer) {
 		free(f->buffer, f->size);
+		f->buffer = NULL;	/* Prevent double free */
+	}
 }
 
 /*
