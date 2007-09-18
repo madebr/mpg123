@@ -183,7 +183,7 @@ static int nas_createFlow(audio_output_t *ao)
     info.buf = (char *) malloc(info.buf_size);
     if (info.buf == NULL) {
         error1("Unable to allocate input/output buffer of size %ld",
-             info.buf_size);
+             (long)info.buf_size);
         return 0;
     }
     info.buf_cnt = 0;
