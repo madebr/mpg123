@@ -163,8 +163,8 @@ static void print_capabilities(audio_output_t *ao)
 		rates[NUM_RATES-1] = param.force_rate;
 		k1 = NUM_RATES;
 	}
-	fprintf(stderr,"\nAudio device: %s\nAudio capabilities:\n(matrix of [S]tereo or [M]ono support for sample format and rate in Hz)\n        |",
-			ao->device != NULL ? ao->device : "<none>");
+	fprintf(stderr,"\nAudio driver: %s\nAudio device: %s\nAudio capabilities:\n(matrix of [S]tereo or [M]ono support for sample format and rate in Hz)\n        |",
+	        ao->module->name, ao->device != NULL ? ao->device : "<none>");
 	for(j=0;j<NUM_ENCODINGS;j++) {
 		fprintf(stderr," %5s |",audio_val2name[j].sname);
 	}
