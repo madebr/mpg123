@@ -12,153 +12,185 @@
 #include <ioctl.h>
 #include <audios.h>
 
+/* Globals */
 extern int outburst;
-
 int real_rate_printed = 0;
 
 
 
-static int audio_rate_best_match(audio_output_t *ao)
+static int rate_best_match(audio_output_t *ao)
 {
-  int ret,dsp_rate;
-
-  if(!ai || ao->fn < 0 || ao->rate < 0)
-    return -1;
-  dsp_rate = ao->rate;
-  ret = ioctl(ao->fn,AIOCSSPEED, (void *)dsp_rate);
-  ret = ioctl(ao->fn,AIOCGSPEED,&dsp_rate);
-  if(ret < 0)
-    return ret;
-  ao->rate = dsp_rate;
-  return 0;
+	int ret,dsp_rate;
+	
+	if(!ai || ao->fn < 0 || ao->rate < 0)
+		return -1;
+	
+	dsp_rate = ao->rate;
+	ret = ioctl(ao->fn,AIOCSSPEED, (void *)dsp_rate);
+	ret = ioctl(ao->fn,AIOCGSPEED,&dsp_rate);
+	if(ret < 0) return ret;
+	ao->rate = dsp_rate;
+	return 0;
 }
 
-static int audio_set_rate(audio_output_t *ao)
+static int set_rate(audio_output_t *ao)
 {
-  int dsp_rate = ao->rate;
-
-  if(ao->rate >= 0) {
-    int ret, real_rate;
-    ret = ioctl(ao->fn, AIOCSSPEED, (void *)dsp_rate);
-    if (ret >= 0 && !real_rate_printed) {
-      ioctl(ao->fn,AIOCGSPEED,&real_rate);
-      if (real_rate != dsp_rate) {
-        fprintf(stderr, "Replay rate: %d Hz\n", real_rate);
-        real_rate_printed = 1;
-      }
-    }
-    return ret;
-  }
-
-  return 0;
+	int dsp_rate = ao->rate;
+	
+	if(ao->rate >= 0) {
+		int ret, real_rate;
+		ret = ioctl(ao->fn, AIOCSSPEED, (void *)dsp_rate);
+		if (ret >= 0 && !real_rate_printed) {
+			ioctl(ao->fn,AIOCGSPEED,&real_rate);
+			if (real_rate != dsp_rate) {
+				fprintf(stderr, "Replay rate: %d Hz\n", real_rate);
+				real_rate_printed = 1;
+			}
+		}
+		return ret;
+	}
+	
+	return 0;
 }
 
-static int audio_set_channels(audio_output_t *ao)
+static int set_channels(audio_output_t *ao)
 {
-  int chan = ao->channels;
-
-  if(ao->channels < 1)
-    return 0;
-
-  return ioctl(ao->fn, AIOCSCHAN, (void *)chan);
+	int chan = ao->channels;
+	
+	if(ao->channels < 1) return 0;
+	
+	return ioctl(ao->fn, AIOCSCHAN, (void *)chan);
 }
 
-static int audio_set_format(audio_output_t *ao)
+static int set_format(audio_output_t *ao)
 {
-  int fmts;
-
-  if(ao->format == -1)
-    return 0;
-
-  switch(ao->format) {
-    case AUDIO_FORMAT_SIGNED_16:
-    default:
-      fmts = AFMT_S16;
-      break;
-    case AUDIO_FORMAT_UNSIGNED_8:
-      fmts = AFMT_U8;
-      break;
-    case AUDIO_FORMAT_SIGNED_8:
-      fmts = AFMT_S8;
-      break;
-    case AUDIO_FORMAT_ULAW_8:
-      fmts = AFMT_ULAW;
-      break;
-  }
-  return ioctl(ao->fn, AIOCSFMT, (void *)fmts);
+	int fmts;
+	
+	if(ao->format == -1)
+		return 0;
+	
+	switch(ao->format) {
+		case AUDIO_FORMAT_SIGNED_16:
+		default:
+			fmts = AFMT_S16;
+		break;
+		case AUDIO_FORMAT_UNSIGNED_8:
+			fmts = AFMT_U8;
+		break;
+		case AUDIO_FORMAT_SIGNED_8:
+			fmts = AFMT_S8;
+		break;
+		case AUDIO_FORMAT_ULAW_8:
+			fmts = AFMT_ULAW;
+		break;
+	}
+	
+	return ioctl(ao->fn, AIOCSFMT, (void *)fmts);
 }
 
-static int audio_reset_parameters(audio_output_t *ao)
+static int reset_parameters(audio_output_t *ao)
 {
-  int ret;
-  ret = ioctl(ao->fn,AIOCRESET,NULL);
-  if(ret >= 0)
-    ret = audio_set_format(ai);
-  if(ret >= 0)
-    ret = audio_set_channels(ai);
-  if(ret >= 0)
-    ret = audio_set_rate(ai);
-  return ret;
+	int ret;
+	ret = ioctl(ao->fn,AIOCRESET,NULL);
+	if(ret >= 0) ret = set_format(ai);
+	if(ret >= 0) ret = set_channels(ai);
+	if(ret >= 0) ret = set_rate(ai);
+	return ret;
 }
 
 
 
-int audio_open(audio_output_t *ao)
+static int open_mint(audio_output_t *ao)
 {
-  if(!ai)
-    return -1;
+	if(!ai) return -1;
 
-  if(!ao->device)
-    ao->device = "/dev/audio";
-
-  ao->fn = open(ao->device,O_WRONLY);  
-
-  if(ao->fn < 0)
-  {
-    error1("Can't open %s!",ao->device);
-    return -1;
-  }
-  ioctl(ao->fn, AIOCGBLKSIZE, &outburst);
-  if(outburst > MAXOUTBURST)
-    outburst = MAXOUTBURST;
-  if(audio_reset_parameters(ai) < 0) {
-    close(ao->fn);
-    return -1;
-  }
-  return ao->fn;
-}
-int audio_get_formats(audio_output_t *ao)
-{
-  int ret = 0;
-  int fmts;
-
-  if(ioctl(ao->fn,AIOCGFMTS,&fmts) < 0)
-    return -1;
-
-  if(fmts & AFMT_ULAW)
-    ret |= AUDIO_FORMAT_ULAW_8;
-  if(fmts & AFMT_S16)
-    ret |= AUDIO_FORMAT_SIGNED_16;
-  if(fmts & AFMT_U8)
-    ret |= AUDIO_FORMAT_UNSIGNED_8;
-  if(fmts & AFMT_S8)
-    ret |= AUDIO_FORMAT_SIGNED_8;
-
-  return ret;
+	if(!ao->device)
+		ao->device = "/dev/audio";
+	
+	ao->fn = open(ao->device,O_WRONLY);  
+	
+	if(ao->fn < 0)
+	{
+		error1("Can't open %s!",ao->device);
+		return -1;
+	}
+	ioctl(ao->fn, AIOCGBLKSIZE, &outburst);
+	if(outburst > MAXOUTBURST)
+		outburst = MAXOUTBURST;
+	if(audio_reset_parameters(ai) < 0) {
+		close(ao->fn);
+		return -1;
+	}
+	
+	return ao->fn;
 }
 
-int audio_play_samples(audio_output_t *ao,unsigned char *buf,int len)
+static int get_formats_mint(audio_output_t *ao)
 {
-  return write(ao->fn,buf,len);
+	int ret = 0;
+	int fmts;
+	
+	if(ioctl(ao->fn,AIOCGFMTS,&fmts) < 0)
+		return -1;
+	
+	if(fmts & AFMT_ULAW)
+		ret |= AUDIO_FORMAT_ULAW_8;
+	if(fmts & AFMT_S16)
+		ret |= AUDIO_FORMAT_SIGNED_16;
+	if(fmts & AFMT_U8)
+		ret |= AUDIO_FORMAT_UNSIGNED_8;
+	if(fmts & AFMT_S8)
+		ret |= AUDIO_FORMAT_SIGNED_8;
+	
+	return ret;
 }
 
-int audio_close(audio_output_t *ao)
+static int write_mint(audio_output_t *ao,unsigned char *buf,int len)
 {
-  close (ao->fn);
-  return 0;
+	return write(ao->fn,buf,len);
 }
 
-void audio_queueflush(audio_output_t *ao)
+static int close_mint(audio_output_t *ao)
+{
+	close (ao->fn);
+	return 0;
+}
+
+static void flush_mint(audio_output_t *ao)
 {
 }
+
+
+static int init_mint(audio_output_t* ao)
+{
+	if (ao==NULL) return -1;
+
+	/* Set callbacks */
+	ao->open = open_mint;
+	ao->flush = flush_mint;
+	ao->write = write_mint;
+	ao->get_formats = get_formats_mint;
+	ao->close = close_mint;
+
+	/* Success */
+	return 0;
+}
+
+
+
+
+
+/* 
+	Module information data structure
+*/
+mpg123_module_t mpg123_output_module_info = {
+	/* api_version */	MPG123_MODULE_API_VERSION,
+	/* name */			"mint",						
+	/* description */	"Audio output for MINT.",
+	/* revision */		"$Rev:$",						
+	/* handle */		NULL,
+	
+	/* init_output */	init_mint,						
+};
+
 

@@ -156,12 +156,6 @@ static int deinit_sdl(audio_output_t* ao)
 static int init_sdl(audio_output_t* ao)
 {
 	if (ao==NULL) return -1;
-
-	/* Initialise SDL */
-	if (SDL_Init( SDL_INIT_AUDIO ) ) {
-		error1("Failed to initialise SDL: %s\n", SDL_GetError());
-		return -1;
-	}
 	
 	/* Set callbacks */
 	ao->open = open_sdl;
@@ -173,8 +167,17 @@ static int init_sdl(audio_output_t* ao)
 	
 	/* Allocate memory */
 	ao->userptr = malloc( sizeof(sfifo_t) );
-	if (ao->userptr==NULL) error( "Failed to allocated memory for FIFO structure" );
+	if (ao->userptr==NULL) {
+		error( "Failed to allocated memory for FIFO structure" );
+		return -1;
+	}
 	memset( ao->userptr, 0, sizeof(sfifo_t) );
+
+	/* Initialise SDL */
+	if (SDL_Init( SDL_INIT_AUDIO ) ) {
+		error1("Failed to initialise SDL: %s\n", SDL_GetError());
+		return -1;
+	}
 
 	/* Success */
 	return 0;

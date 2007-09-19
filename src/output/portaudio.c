@@ -190,13 +190,6 @@ static int init_portaudio(audio_output_t* ao)
 	int err = paNoError;
 	
 	if (ao==NULL) return -1;
-
-	/* Initialise PortAudio */
-	err = Pa_Initialize();
-	if( err != paNoError ) {
-		error1("Failed to initialise PortAudio: %s", Pa_GetErrorText( err ));
-		return -1;
-	}
 	
 	/* Set callbacks */
 	ao->open = open_portaudio;
@@ -208,8 +201,18 @@ static int init_portaudio(audio_output_t* ao)
 
 	/* Allocate memory for handle */
 	ao->userptr = malloc( sizeof(mpg123_portaudio_t) );
-	if (ao->userptr==NULL) error( "Failed to allocated memory for driver structure" );
+	if (ao->userptr==NULL) {
+		error( "Failed to allocated memory for driver structure" );
+		return -1;
+	}
 	memset( ao->userptr, 0, sizeof(mpg123_portaudio_t) );
+
+	/* Initialise PortAudio */
+	err = Pa_Initialize();
+	if( err != paNoError ) {
+		error1("Failed to initialise PortAudio: %s", Pa_GetErrorText( err ));
+		return -1;
+	}
 
 	/* Success */
 	return 0;

@@ -7,21 +7,23 @@
 */
 
 #include <fcntl.h>
+#include <windows.h>
 
 #include "mpg123.h"
 
-#include <windows.h>
 
+/* FIXME: these should be in a structure, not globals */
 static CRITICAL_SECTION cs;
-
 static HWAVEOUT dev   = NULL;
 static int nBlocks    = 0;
 static int MAX_BLOCKS = 6;
+
 
 static void wait(void)
 {
 	while(nBlocks) Sleep(77);
 }
+
 
 static void CALLBACK wave_callback(HWAVE hWave, UINT uMsg, DWORD dwInstance, DWORD dwParam1, DWORD dwParam2)
 {
@@ -57,7 +59,7 @@ static void CALLBACK wave_callback(HWAVE hWave, UINT uMsg, DWORD dwInstance, DWO
 	else debug1("got message %u != WOM_DONE", uMsg);
 }
 
-int audio_open(struct audio_info_struct *ai)
+static int open_win32(struct audio_info_struct *ai)
 {
 	MMRESULT res;
 	WAVEFORMATEX outFormatex;
@@ -114,12 +116,12 @@ int audio_open(struct audio_info_struct *ai)
 	return 0;
 }
 
-int audio_get_formats(struct audio_info_struct *ai)
+static int get_formats_win32(struct audio_info_struct *ai)
 {
 	return AUDIO_FORMAT_SIGNED_16;
 }
 
-int audio_play_samples(struct audio_info_struct *ai,unsigned char *buf,int len)
+static int write_win32(struct audio_info_struct *ai,unsigned char *buf,int len)
 {
 	HGLOBAL hg, hg2;
 	LPWAVEHDR wh;
@@ -187,7 +189,7 @@ int audio_play_samples(struct audio_info_struct *ai,unsigned char *buf,int len)
 	return len;
 }
 
-int audio_close(struct audio_info_struct *ai)
+static int close_win32(struct audio_info_struct *ai)
 {
 	if(dev)
 	{
@@ -201,6 +203,41 @@ int audio_close(struct audio_info_struct *ai)
 	return 0;
 }
 
-void audio_queueflush(struct audio_info_struct *ai)
+static void flush_win32(struct audio_info_struct *ai)
 {
 }
+
+
+static int init_win32(audio_output_t* ao)
+{
+	if (ao==NULL) return -1;
+
+	/* Set callbacks */
+	ao->open = open_win32;
+	ao->flush = flush_win32;
+	ao->write = write_win32;
+	ao->get_formats = get_formats_win32;
+	ao->close = close_win32;
+
+	/* Success */
+	return 0;
+}
+
+
+
+
+
+/* 
+	Module information data structure
+*/
+mpg123_module_t mpg123_output_module_info = {
+	/* api_version */	MPG123_MODULE_API_VERSION,
+	/* name */			"win32",						
+	/* description */	"Audio output for Windows.",
+	/* revision */		"$Rev:$",						
+	/* handle */		NULL,
+	
+	/* init_output */	init_win32,						
+};
+
+

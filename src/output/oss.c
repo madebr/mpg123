@@ -137,10 +137,10 @@ static int reset_parameters_oss(audio_output_t *ao)
 	ret = set_rate_oss(ao);
 	if (ret == -1) goto err;
 
-  /* Careful here.  As per OSS v1.1, the next ioctl() commits the format
-   * set above, so we must issue SNDCTL_DSP_RESET before we're allowed to
-   * change it again. [dk]
-   */
+	/* Careful here.  As per OSS v1.1, the next ioctl() commits the format
+	 * set above, so we must issue SNDCTL_DSP_RESET before we're allowed to
+	 * change it again. [dk]
+	 */
    
 /*  FIXME: this needs re-enabled (but not using global variables this time):
 	if (ioctl(ao->fn, SNDCTL_DSP_GETBLKSIZE, &outburst) == -1 ||
@@ -250,7 +250,7 @@ static int get_formats_oss(audio_output_t *ao)
 
 #if 0
 	if(ioctl(ao->fn,SNDCTL_DSP_GETFMTS,&fmts) < 0) {
-		fprintf(stderr,"No");
+		error("Failed to get SNDCTL_DSP_GETFMTS");
 		return -1;
 	}
 
@@ -278,7 +278,7 @@ static int write_oss(audio_output_t *ao,unsigned char *buf,int len)
 
 static int close_oss(audio_output_t *ao)
 {
-	close (ao->fn);
+	close(ao->fn);
 	return 0;
 }
 

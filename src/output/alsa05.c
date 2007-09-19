@@ -33,55 +33,7 @@
 
 
 
-int audio_open(audio_output_t *ao)
-{
-	int err;
-	int card=0,device=0;
-	char scard[128], sdevice[128];
-
-	if(!ai)
-		return -1;
-		
-	if(ao->device) {	/* parse ALSA device name */
-		if(strchr(ao->device,':')) {	/* card with device */
-			strncpy(scard, ao->device, sizeof(scard)-1);
-			scard[sizeof(scard)-1] = '\0';
-			if (strchr(scard,':')) *strchr(scard,':') = '\0';
-			card = snd_card_name(scard);
-			if (card < 0) {
-				fprintf(stderr, "wrong soundcard number: %s\n", scard);
-				exit(1);
-			}
-			strncpy(sdevice, strchr(ao->device, ':') + 1, sizeof(sdevice)-1);
-		} else {
-			strncpy(sdevice, ao->device, sizeof(sdevice)-1);
-		}
-		sdevice[sizeof(sdevice)-1] = '\0';
-		device = atoi(sdevice);
-		if (!isdigit(sdevice[0]) || device < 0 || device > 31) {
-			fprintf(stderr, "wrong device number: %s\n", sdevice);
-			exit(1);
-		}
-	}
-
-	// Open the ALSA device
-	if((err=snd_pcm_open(&ao->handle, card, device, SND_PCM_OPEN_PLAYBACK)) < 0 )
-	{
-		fprintf(stderr, "open failed: %s\n", snd_strerror(err));
-		exit(1);
-	}
-
-
-	// Now configure the device
-	audio_set_playback_format( ai )
-	audio_set_playback_params( ai );
-
-
-	return 0;
-}
-
-
-static void audio_set_playback_format(audio_output_t *ao)
+static void set_playback_format(audio_output_t *ao)
 {
 	snd_pcm_format_t alsa_format;
 	int err;
@@ -114,7 +66,7 @@ static void audio_set_playback_format(audio_output_t *ao)
 
 	if((err=snd_pcm_playback_format(ao->handle, &alsa_format)) < 0 )
 	{
-		fprintf(stderr, "snd_pcm_playback_format failed: %s\n", snd_strerror(err));
+		error1("snd_pcm_playback_format failed: %s", snd_strerror(err));
 		exit(1);
 	}
 }
@@ -128,7 +80,7 @@ static void audio_set_playback_params(audio_output_t *ao)
 
 	if((err=snd_pcm_playback_info(ao->handle, &pi)) < 0 )
 	{
-		fprintf(stderr, "playback info failed: %s\n", snd_strerror(err));
+		error1("playback info failed: %s", snd_strerror(err));
 		return;	/* not fatal error */
 	}
 
@@ -141,15 +93,64 @@ static void audio_set_playback_params(audio_output_t *ao)
 
 	if((err=snd_pcm_playback_params(ao->handle, &pp)) < 0 )
 	{
-		fprintf(stderr, "playback params failed: %s\n", snd_strerror(err));
+		erorr1("playback params failed: %s", snd_strerror(err));
 		return; /* not fatal error */
 	}
 }
 
 
+static int open_alsa05(audio_output_t *ao)
+{
+	int err;
+	int card=0,device=0;
+	char scard[128], sdevice[128];
+
+	if(!ai)
+		return -1;
+		
+	if(ao->device) {	/* parse ALSA device name */
+		if(strchr(ao->device,':')) {	/* card with device */
+			strncpy(scard, ao->device, sizeof(scard)-1);
+			scard[sizeof(scard)-1] = '\0';
+			if (strchr(scard,':')) *strchr(scard,':') = '\0';
+			card = snd_card_name(scard);
+			if (card < 0) {
+				error1("wrong soundcard number: %s", scard);
+				exit(1);
+			}
+			strncpy(sdevice, strchr(ao->device, ':') + 1, sizeof(sdevice)-1);
+		} else {
+			strncpy(sdevice, ao->device, sizeof(sdevice)-1);
+		}
+		sdevice[sizeof(sdevice)-1] = '\0';
+		device = atoi(sdevice);
+		if (!isdigit(sdevice[0]) || device < 0 || device > 31) {
+			error1("wrong device number: %s", sdevice);
+			exit(1);
+		}
+	}
+
+	// Open the ALSA device
+	if((err=snd_pcm_open(&ao->handle, card, device, SND_PCM_OPEN_PLAYBACK)) < 0 )
+	{
+		error1("open failed: %s", snd_strerror(err));
+		exit(1);
+	}
 
 
-int audio_get_formats(audio_output_t *ao)
+	// Now configure the device
+	set_playback_format( ai )
+	set_playback_params( ai );
+
+
+	return 0;
+}
+
+
+
+
+
+static int get_formats_alsa05(audio_output_t *ao)
 {
 	int i, err;
 	int fmt = -1;
@@ -168,7 +169,7 @@ int audio_get_formats(audio_output_t *ao)
 
 	if((err=snd_pcm_playback_info(ao->handle, &pi)) < 0 )
 	{
-		fprintf(stderr, "playback info failed: %s\n", snd_strerror(err));
+		error1("playback info failed: %s", snd_strerror(err));
 		return -1;
 	}
 
@@ -183,7 +184,7 @@ int audio_get_formats(audio_output_t *ao)
 	return fmt;
 }
 
-int audio_play_samples(audio_output_t *ao,unsigned char *buf,int len)
+static int write_alsa05(audio_output_t *ao,unsigned char *buf,int len)
 {
 	ssize_t ret;
 
@@ -192,14 +193,47 @@ int audio_play_samples(audio_output_t *ao,unsigned char *buf,int len)
 	return ret;
 }
 
-int audio_close(audio_output_t *ao)
+static int close_alsa05(audio_output_t *ao)
 {
 	int ret;
 	ret = snd_pcm_close(ao->handle);
 	return ret;
 }
 
-void audio_queueflush(audio_output_t *ao)
+static void flush_alsa05(audio_output_t *ao)
 {
 }
+
+
+static int init_alsa05(audio_output_t* ao)
+{
+	if (ao==NULL) return -1;
+
+	/* Set callbacks */
+	ao->open = open_alsa05;
+	ao->flush = flush_alsa05;
+	ao->write = write_alsa05;
+	ao->get_formats = get_formats_alsa05;
+	ao->close = close_alsa05;
+
+	/* Allocate memory for data structure */
+	/* Success */
+	return 0;
+}
+
+
+
+/* 
+	Module information data structure
+*/
+mpg123_module_t mpg123_output_module_info = {
+	/* api_version */	MPG123_MODULE_API_VERSION,
+	/* name */			"alsa05",						
+	/* description */	"Output audio using old (version 0.5-0.8) ALSA API.",
+	/* revision */		"$Rev:$",
+	/* handle */		NULL,
+	
+	/* init_output */	init_alsa05,						
+};
+
 

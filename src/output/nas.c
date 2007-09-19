@@ -13,15 +13,15 @@
 
 typedef struct
 {
-    AuServer            *aud;
-    AuFlowID            flow;
-    AuDeviceAttributes  *da;
-    int                 numDevices;
-    char                *buf;
-    AuUint32            buf_size;
-    AuUint32            buf_cnt;
-    AuBool              data_sent;
-    AuBool              finished;
+	AuServer            *aud;
+	AuFlowID            flow;
+	AuDeviceAttributes  *da;
+	int                 numDevices;
+	char                *buf;
+	AuUint32            buf_size;
+	AuUint32            buf_cnt;
+	AuBool              data_sent;
+	AuBool              finished;
 } InfoRec, *InfoPtr;
 
 #define NAS_SOUND_PORT_DURATION 5 /* seconds */
@@ -298,8 +298,6 @@ static int close_nas(audio_output_t *ao)
     
     return 0;
 }
-
-
 
 
 

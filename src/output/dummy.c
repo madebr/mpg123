@@ -37,10 +37,17 @@ static int close_dummy(audio_output_t *ao)
 	return 0;
 }
 
+static int deinit_dummy(audio_output_t *ao)
+{
+	debug("deinit_dummy()");
+	return 0;
+}
+
 
 static int init_dummy(audio_output_t* ao)
 {
 	if (ao==NULL) return -1;
+	debug("init_dummy()");
 	
 	/* Set callbacks */
 	ao->open = open_dummy;
@@ -48,6 +55,7 @@ static int init_dummy(audio_output_t* ao)
 	ao->write = write_dummy;
 	ao->get_formats = get_formats_dummy;
 	ao->close = close_dummy;
+	ao->deinit = deinit_dummy;
 
 	/* Success */
 	return 0;

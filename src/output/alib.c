@@ -20,12 +20,6 @@
  *  mpg123
  */
 
-/*
- * Rem:
- * I don't use the "set_rate" and "set_channels" functions
- * these are set directly in the "audio_open" function
- * 
- */
 
 /*
  * For the user :
@@ -50,41 +44,25 @@
 #include "Alib.h"		/* /opt/audio/include */
 #include "CUlib.h"		/* /opt/audio/include */
 
-/*
- * 
- * used :
- * 
- * int audio_open(audio_output_t *ao);
- * int audio_play_samples(audio_output_t *ao,unsigned char *buf,int len);
- * int audio_close(audio_output_t *ao);
- * 
- * unused :
- * 
- * int audio_set_rate(audio_output_t *ao);
- * int audio_set_channels(audio_output_t *ao);
- * 
- */
 
 /**************************************************************************/
 
-/*
- * Some things used only for HP Audio
- */
 
+/* FIXME: These globals should be moved into a structure */
 static Audio *audioServer = (Audio *) NULL;
 static struct protoent *tcpProtocolEntry;
 static ATransID xid;
 
 static void printAudioError(Audio *audio,char *message,int errorCode) {
-    char    errorbuff[132];
-    AGetErrorText(audio, errorCode, errorbuff, 131);
-    fprintf ( stderr, "%s: %s\n", message, errorbuff);
+	char    errorbuff[132];
+	AGetErrorText(audio, errorCode, errorbuff, 131);
+	error2("%s: %s", message, errorbuff);
 }
 static long myHandler(Audio *audio,AErrorEvent *err_event) {
-  printAudioError( audio, "Audio error", err_event->error_code ); 
-  /* we cannot just do random exists, that messes terminal up
-     need proper error propagation in that case for future, setting intflag or such */
-  /* exit(1); */
+	printAudioError( audio, "Audio error", err_event->error_code ); 
+	/* we cannot just do random exists, that messes terminal up
+	 need proper error propagation in that case for future, setting intflag or such */
+	/* exit(1); */
 }
 
 /**************************************************************************/
@@ -96,72 +74,82 @@ static long myHandler(Audio *audio,AErrorEvent *err_event) {
  */
 
 /* return on error leaves stuff dirty here... */
-int audio_open(audio_output_t *ao) {
-  AudioAttributes Attribs;
-  AudioAttrMask   AttribsMask;
-  AGainEntry      gainEntry[4];
-  SSPlayParams    playParams;
-  SStream	  audioStream;
-  AErrorHandler   prevHandler;
-  char		  server[1];
-  int		  i;
-  long            status;
-
-  if(audioServer)
-    {error("openAudio: audio already open"); return -1; }
-
-  prevHandler = ASetErrorHandler(myHandler);
-
-  server[0] = '\0';
-  audioServer = AOpenAudio( server, NULL );
-  if(audioServer==NULL)
-    {error("Error: could not open audio\n"); return -1; }
-
-  ao->fn = socket( AF_INET, SOCK_STREAM, 0 );
-  if(ao->fn<0)
-    {error("Socket creation failed"); return -1; }
-
-  Attribs.type = ATSampled;
-  Attribs.attr.sampled_attr.sampling_rate = ao->rate;
-  Attribs.attr.sampled_attr.channels	  = ao->channels;
-  Attribs.attr.sampled_attr.data_format	  = ADFLin16;
-  AttribsMask = ASSamplingRateMask | ASChannelsMask  | ASDataFormatMask;
-
-  gainEntry[0].gain = AUnityGain;
-  gainEntry[0].u.o.out_ch  = AOCTMono;
-  gainEntry[0].u.o.out_dst = AODTDefaultOutput;
-
-  playParams.gain_matrix.type = AGMTOutput;  /* gain matrix */
-  playParams.gain_matrix.num_entries = 1;
-  playParams.gain_matrix.gain_entries = gainEntry;
-  playParams.play_volume = AUnityGain;       /* play volume */
-  playParams.priority = APriorityNormal;     /* normal priority */
-  playParams.event_mask = 0;                 /* don't solicit any events */
-
-  xid=APlaySStream(audioServer,AttribsMask,&Attribs,
-		   &playParams,&audioStream,NULL);
-
-  status=connect(ao->fn,
-		 (struct sockaddr *) &audioStream.tcp_sockaddr,
-		 sizeof(struct sockaddr_in) );
-  if(status<0){error("Connect failed"); return -1;}
-
-  i=-1;
-  tcpProtocolEntry=getprotobyname("tcp");
-  setsockopt(ao->fn,tcpProtocolEntry->p_proto,TCP_NODELAY,&i,sizeof(i));
-
-  return ao->fn;
+static int open_alib(audio_output_t *ao)
+{
+	AudioAttributes Attribs;
+	AudioAttrMask   AttribsMask;
+	AGainEntry      gainEntry[4];
+	SSPlayParams    playParams;
+	SStream	  audioStream;
+	AErrorHandler   prevHandler;
+	char		  server[1];
+	int		  i;
+	long            status;
+	
+	if (audioServer) {
+		error("openAudio: audio already open");
+		return -1;
+	}
+	
+	prevHandler = ASetErrorHandler(myHandler);
+	
+	server[0] = '\0';
+	audioServer = AOpenAudio( server, NULL );
+	if (audioServer==NULL) {
+		error("Error: could not open audio\n");
+		return -1;
+	}
+	
+	ao->fn = socket( AF_INET, SOCK_STREAM, 0 );
+	if(ao->fn<0) {
+		error("Socket creation failed");
+		return -1;
+	}
+	
+	Attribs.type = ATSampled;
+	Attribs.attr.sampled_attr.sampling_rate = ao->rate;
+	Attribs.attr.sampled_attr.channels	  = ao->channels;
+	Attribs.attr.sampled_attr.data_format	  = ADFLin16;
+	AttribsMask = ASSamplingRateMask | ASChannelsMask  | ASDataFormatMask;
+	
+	gainEntry[0].gain = AUnityGain;
+	gainEntry[0].u.o.out_ch  = AOCTMono;
+	gainEntry[0].u.o.out_dst = AODTDefaultOutput;
+	
+	playParams.gain_matrix.type = AGMTOutput;  /* gain matrix */
+	playParams.gain_matrix.num_entries = 1;
+	playParams.gain_matrix.gain_entries = gainEntry;
+	playParams.play_volume = AUnityGain;       /* play volume */
+	playParams.priority = APriorityNormal;     /* normal priority */
+	playParams.event_mask = 0;                 /* don't solicit any events */
+	
+	xid=APlaySStream(audioServer,AttribsMask,&Attribs,
+	&playParams,&audioStream,NULL);
+	
+	status=connect(ao->fn,
+	(struct sockaddr *) &audioStream.tcp_sockaddr,
+	sizeof(struct sockaddr_in) );
+	if (status<0) {
+		error("Connect failed");
+		return -1;
+	}
+	
+	i=-1;
+	tcpProtocolEntry=getprotobyname("tcp");
+	setsockopt(ao->fn,tcpProtocolEntry->p_proto,TCP_NODELAY,&i,sizeof(i));
+	
+	return ao->fn;
 }
 
 /**************************************************************************/
 
-int audio_close(audio_output_t *ao)
+static int close_alib(audio_output_t *ao)
 {
-  close(ao->fn);
-  ASetCloseDownMode( audioServer, AKeepTransactions, NULL );
-  ACloseAudio( audioServer, NULL );
-  audioServer = (Audio *) NULL;
-  return 0;
+	close(ao->fn);
+	ASetCloseDownMode( audioServer, AKeepTransactions, NULL );
+	ACloseAudio( audioServer, NULL );
+	audioServer = (Audio *) NULL;
+	return 0;
 }
 
 /**************************************************************************/
@@ -171,23 +159,50 @@ int audio_close(audio_output_t *ao)
  * deserv to be inline
  */
 
-inline int audio_play_samples(audio_output_t *ao,unsigned char *buf,int len)
+static int write_alib(audio_output_t *ao,unsigned char *buf,int len)
 {
-  return write(ao->fn,buf,len*2);
+	return write(ao->fn,buf,len*2);
 }
 
 /**************************************************************************/
 
-int audio_get_formats(audio_output_t *ao)
+static int get_formats_alib(audio_output_t *ao)
 {
-  return AUDIO_FORMAT_SIGNED_16;
+	return AUDIO_FORMAT_SIGNED_16;
 }
 
-void audio_queueflush(audio_output_t *ao)
+static void flush_alib(audio_output_t *ao)
 {
 }
 
 
-/**************************************************************************
- * T H A T ' S    A L L   F O L K S
- **************************************************************************/
+static int init_alib(audio_output_t* ao)
+{
+	if (ao==NULL) return -1;
+
+	/* Set callbacks */
+	ao->open = open_alib;
+	ao->flush = flush_alib;
+	ao->write = write_alib;
+	ao->get_formats = get_formats_alib;
+	ao->close = close_alib;
+
+	/* Success */
+	return 0;
+}
+
+
+
+/* 
+	Module information data structure
+*/
+mpg123_module_t mpg123_output_module_info = {
+	/* api_version */	MPG123_MODULE_API_VERSION,
+	/* name */			"alib",						
+	/* description */	"Output audio HP-UX using alib.",
+	/* revision */		"$Rev:$",						
+	/* handle */		NULL,
+	
+	/* init_output */	init_alib,						
+};
+

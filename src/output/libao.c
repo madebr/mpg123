@@ -13,7 +13,7 @@
 #include "mpg123.h"
 
 
-int audio_open(struct audio_info_struct *ai)
+static int open_libao(audio_output_t *ao)
 {
 	ao_device *device = NULL;
 	ao_sample_format format;
@@ -25,7 +25,7 @@ int audio_open(struct audio_info_struct *ai)
 
 	/* Return if already open */
 	if (ao->handle) {
-		fprintf(stderr, "audio_open(): error, already open\n");
+		error("open_libao(): error, already open");
 		return -1;
 	}
 
@@ -46,7 +46,7 @@ int audio_open(struct audio_info_struct *ai)
 		break;
 		
 		default:
-			fprintf(stderr, "audio_open(): Unsupported Audio Format: %d\n", ao->format);
+			error("open_libao(): Unsupported Audio Format: %d", ao->format);
 			return -1;
 		break;
 	}
@@ -84,7 +84,7 @@ int audio_open(struct audio_info_struct *ai)
 			{
 				if(filename != NULL) free(filename);
 				filename = NULL;
-				fprintf(stderr, "audio_open(): out of memory!\n");
+				error("open_libao(): out of memory!");
 				err = -1;
 			}
 			driver = ao_driver_id( devicename );
@@ -99,7 +99,7 @@ int audio_open(struct audio_info_struct *ai)
 	{
 		if(driver < 0)
 		{
-			fprintf(stderr, "audio_open(): bad driver, try one of these with the -a option:\n");
+			error("open_libao(): bad driver, try one of these with the -a option:");
 			int count = 0;
 			ao_info** aolist = ao_driver_info_list(&count);
 			int c;
@@ -122,19 +122,19 @@ int audio_open(struct audio_info_struct *ai)
 			if(driverinfo->type == AO_TYPE_FILE)
 			{
 				if(filename != NULL) device = ao_open_file(driver, filename, 1, &format, NULL);
-				else fprintf(stderr, "audio_open(): please specify a filename via -a driver:file (even just - for stdout)\n");
+				else error("open_libao(): please specify a filename via -a driver:file (even just - for stdout)");
 			}
 			else device = ao_open_live(driver, &format, NULL /* no options */);
 
 			if (device == NULL) {
-				fprintf(stderr, "audio_open(): error opening device.\n");
+				error("open_libao(): error opening device.");
 				err = -1;
 			}
 
 		}
 		else
 		{
-			fprintf(stderr, "audio_open(): somehow I got an invalid driver id!\n");
+			error("open_libao(): somehow I got an invalid driver id!");
 			err = -1;
 		}
 	}
@@ -151,26 +151,26 @@ int audio_open(struct audio_info_struct *ai)
 
 
 /* The two formats we support */
-int audio_get_formats(audio_output_t *ao)
+static int get_formats_libao(audio_output_t *ao)
 {
 	return AUDIO_FORMAT_SIGNED_16 | AUDIO_FORMAT_SIGNED_8;
 }
 
-int audio_play_samples(audio_output_t *ao,unsigned char *buf,int len)
+static int write_libao(audio_output_t *ao,unsigned char *buf,int len)
 {
 	int res = 0;
 	ao_device *device = (ao_device*)ao->handle;
 	
 	res = ao_play(device, (char*)buf, len);
 	if (res==0) {
-		fprintf(stderr, "audio_play_samples(): error playing samples\n");
+		error("write_libao(): error playing samples");
 		return -1;
 	} 
 	
 	return len;
 }
 
-int audio_close(audio_output_t *ao)
+static int close_libao(audio_output_t *ao)
 {
 	ao_device *device = (ao_device*)ao->handle;
 
@@ -185,11 +185,11 @@ int audio_close(audio_output_t *ao)
 	return 0;
 }
 
-void audio_queueflush(audio_output_t *ao)
+static void flush_libao(audio_output_t *ao)
 {
 }
 
-static int deinit_libao(audio_output_t* ao)
+static static int deinit_libao(audio_output_t* ao)
 {
 	ao_shutdown();
 }

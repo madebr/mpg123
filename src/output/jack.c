@@ -210,7 +210,7 @@ static int open_jack(audio_output_t *ao)
 	}
 	
 	/* Display the unique client name allocated to us */
-	printf("Registered as JACK client %s.\n",
+	fprintf(stderr,"Registered as JACK client %s.\n",
 		jack_get_client_name( handle->client ) );
 
 

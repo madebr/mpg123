@@ -11,8 +11,7 @@
 #include <sys/audio.h>
 
 
-
-static int audio_set_rate(audio_output_t *ao)
+static int set_rate(audio_output_t *ao)
 {
 	if(ao->rate >= 0) {
 		return ioctl(ao->fn,AUDIO_SET_SAMPLE_RATE,ao->rate);
@@ -21,13 +20,13 @@ static int audio_set_rate(audio_output_t *ao)
 	}
 }
 
-static int audio_set_channels(audio_output_t *ao)
+static int set_channels(audio_output_t *ao)
 {
 	if(ao->channels<0) return 0;
 	return ioctl(ao->fn,AUDIO_SET_CHANNELS,ao->channels);
 }
 
-static int audio_set_format(audio_output_t *ao)
+static int set_format(audio_output_t *ao)
 {
 	int fmt;
 	
@@ -38,10 +37,10 @@ static int audio_set_format(audio_output_t *ao)
 			fmt = AUDIO_FORMAT_LINEAR16BIT;
 		break;
 		case AUDIO_FORMAT_UNSIGNED_8:
-			fprintf(stderr,"unsigned 8 bit linear not supported\n");
+			error("unsigned 8 bit linear not supported");
 			return -1;
 		case AUDIO_FORMAT_SIGNED_8:
-			fprintf(stderr,"signed 8 bit linear not supported\n");
+			error("signed 8 bit linear not supported");
 			return -1;
 		case AUDIO_FORMAT_ALAW_8:
 			fmt = AUDIO_FORMAT_ALAW;
@@ -53,24 +52,24 @@ static int audio_set_format(audio_output_t *ao)
 	return ioctl(ao->fn,AUDIO_SET_DATA_FORMAT,fmt);
 }
 
-static int audio_get_formats(audio_output_t *ao)
+static int get_formats(audio_output_t *ao)
 {
 	return AUDIO_FORMAT_SIGNED_16;
 }
 
-static int audio_reset_parameters(audio_output_t *ao)
+static int reset_parameters(audio_output_t *ao)
 {
 	int ret;
-		ret = audio_set_format(ai);
+		ret = set_format(ai);
 	if(ret >= 0)
-		ret = audio_set_channels(ai);
+		ret = set_channels_hp(ai);
 	if(ret >= 0)
-		ret = audio_set_rate(ai);
+		ret = set_rate_hp(ai);
 	return ret;
 }
 
 
-int audio_open(audio_output_t *ao)
+static int open_hp(audio_output_t *ao)
 {
 	struct audio_describe ades;
 	struct audio_gain again;
@@ -88,12 +87,12 @@ int audio_open(audio_output_t *ao)
 	{
 		if(ao->gain > ades.max_transmit_gain)
 		{
-			fprintf(stderr,"your gainvalue was to high -> set to maximum.\n");
+			error("your gainvalue was to high -> set to maximum.");
 			ao->gain = ades.max_transmit_gain;
 		}
 		if(ao->gain < ades.min_transmit_gain)
 		{
-			fprintf(stderr,"your gainvalue was to low -> set to minimum.\n");
+			error("your gainvalue was to low -> set to minimum.");
 			ao->gain = ades.min_transmit_gain;
 		}
 		again.channel_mask = AUDIO_CHANNEL_0 | AUDIO_CHANNEL_1;
@@ -124,11 +123,11 @@ int audio_open(audio_output_t *ao)
 	}
 	if(i == ades.nrates)
 	{
-		fprintf(stderr,"Can't set sample-rate to %ld.\n",ao->rate);
+		error1("Can't set sample-rate to %ld.\n",ao->rate);
 		i = 0;
 	}
 	
-	if(audio_reset_parameters(ai) < 0)
+	if(reset_parameters(ai) < 0)
 		return -1;
 	
 	return ao->fn;
@@ -136,18 +135,49 @@ int audio_open(audio_output_t *ao)
 
 
 
-int audio_play_samples(audio_output_t *ao,unsigned char *buf,int len)
+static int write_hp(audio_output_t *ao,unsigned char *buf,int len)
 {
 	return write(ao->fn,buf,len);
 }
 
-int audio_close(audio_output_t *ao)
+static int close_hp(audio_output_t *ao)
 {
 	close (ao->fn);
 	return 0;
 }
 
-void audio_queueflush(audio_output_t *ao)
+static void flush_hp(audio_output_t *ao)
 {
 }
 
+
+
+static int init_hp(audio_output_t* ao)
+{
+	if (ao==NULL) return -1;
+
+	/* Set callbacks */
+	ao->open = open_hp;
+	ao->flush = flush_hp;
+	ao->write = write_hp;
+	ao->get_formats = get_formats_hp;
+	ao->close = close_hp;
+
+	/* Success */
+	return 0;
+}
+
+
+
+/* 
+	Module information data structure
+*/
+mpg123_module_t mpg123_output_module_info = {
+	/* api_version */	MPG123_MODULE_API_VERSION,
+	/* name */			"hp",						
+	/* description */	"Output audio HP-UX",
+	/* revision */		"$Rev:$",						
+	/* handle */		NULL,
+	
+	/* init_output */	init_hp,						
+};
