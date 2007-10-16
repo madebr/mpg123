@@ -182,7 +182,7 @@ static int system_raw_read_packet_data(int fd,struct packet_info *pi)
          break;
     }
     if(i == 16) {
-       fprintf(stderr,"Ouch ... too much stuffing bytes!\n");
+       fprintf(stderr,"Ouch ... too many stuffing bytes!\n");
        return -1;
     }
     
