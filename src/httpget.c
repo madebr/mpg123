@@ -48,26 +48,6 @@ void httpdata_reset(struct httpdata *e)
 	/* the other stuff shall persist */
 }
 
-#if !defined(WIN32) && !defined(GENERIC)
-
-#include <string.h>
-
-#define HTTP_MAX_RELOCATIONS 20
-
-#include <netdb.h>
-#include <sys/param.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <errno.h>
-#include <ctype.h>
-
-#include "true.h"
-
-#ifndef INADDR_NONE
-#define INADDR_NONE 0xffffffff
-#endif
-
 /* mime type classes */
 #define M_FILE 0
 #define M_M3U  1
@@ -105,6 +85,27 @@ debunk_result:
 	}
 	return r;
 }
+
+
+#if !defined(WIN32) && !defined(GENERIC)
+
+#include <string.h>
+
+#define HTTP_MAX_RELOCATIONS 20
+
+#include <netdb.h>
+#include <sys/param.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <errno.h>
+#include <ctype.h>
+
+#include "true.h"
+
+#ifndef INADDR_NONE
+#define INADDR_NONE 0xffffffff
+#endif
 
 int writestring (int fd, char *string)
 {
