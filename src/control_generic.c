@@ -404,20 +404,7 @@ int control_generic (mpg123_handle *fr)
 						}
 						if(param.usebuffer)	buffer_resync();
 
-<<<<<<< .working
-						#ifdef GAPLESS
-						if(param.gapless && (fr->lay == 3))
-						{
-							prepare_audioinfo(fr, &pre_ao);
-							layer3_gapless_set_position(fr->num, fr, &pre_ao);
-							layer3_gapless_set_ignore(frame_before, fr, &pre_ao);
-						}
-						#endif
-
-						generic_sendmsg("J %d", fr->num+frame_before);
-=======
 						generic_sendmsg("J %d", framenum);
->>>>>>> .merge-right.r998
 						continue;
 					}
 
