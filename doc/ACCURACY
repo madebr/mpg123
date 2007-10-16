@@ -1,0 +1,4 @@
+I'll add some more notes on accuracy and compilance here later.
+For now, I just want to have it noted that indeed (as one may suspect) CFLAGS change the decoder output.
+The generic decoder in debugging mode has samples deviating from the usual optimized build by +-1.
+Well, that's not too surprising... when you do float calculations and convert to integer, that happens...
