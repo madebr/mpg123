@@ -10,7 +10,9 @@ AC_PREREQ(2.57)
 
 dnl ############# Initialisation
 
-AC_INIT([mpg123], [1.0pre1], [mpg123-devel@lists.sourceforge.net])
+AC_INIT([mpg123], [1.0pre2], [mpg123-devel@lists.sourceforge.net])
+LIBMPG123_VERSION=0:0:0
+AC_SUBST( LIBMPG123_VERSION )
 
 AC_CONFIG_SRCDIR(src/mpg123.c)
 AC_CONFIG_AUX_DIR(build)
@@ -48,6 +50,7 @@ AC_DISABLE_STATIC
 AC_ENABLE_SHARED
 
 dnl Configure libtool
+AC_LIBTOOL_WIN32_DLL
 AM_PROG_LIBTOOL
 
 dnl Configure libltdl
@@ -513,83 +516,117 @@ if test "x$with_cpu" != "x"; then
 fi
 
 
-dnl CPU specific compiler flags
+s_gen="decode dct64"
+s_altivec="decode_altivec dct64_altivec"
+s_i386="decode_i386 dct64_i386"
+s_i486="$s_i386 decode_i486 dct64_i486"
+s_i586="$s_i386 decode_i586"
+s_i586d="$s_i386 decode_i586_dither dnoise"
+s_3dnow="$s_i386 decode_3dnow dct64_3dnow dct36_3dnow equalizer_3dnow"
+s_3dnowext="decode_i386 dct64_3dnowext dct36_3dnowext dct64_mmx tabinit_mmx decode_3dnowext"
+s_mmx="decode_i386 dct64_mmx tabinit_mmx decode_mmx"  # doesn't need dct64_i386
+s_sse="decode_i386 dct64_mmx tabinit_mmx dct64_sse decode_sse"
+s_multi="getcpuflags"
+
+dnl CPU specific compiler flags and sources
 case $cpu_type in
   generic)
     CFLAGS="$CFLAGS -DOPT_GENERIC -DREAL_IS_FLOAT"
+    more_sources="$s_gen"
   ;;
   generic_float)
     CFLAGS="$CFLAGS -DOPT_GENERIC -DFLOATOUT -DNOXFERMEM -DREAL_IS_FLOAT"
+    more_sources="$s_gen"
   ;;
   generic_fpu)
     CFLAGS="$CFLAGS -DOPT_GENERIC -DREAL_IS_FLOAT"
+    more_sources="$s_gen"
   ;;
   generic_nofpu)
     CFLAGS="$CFLAGS -DOPT_GENERIC -DREAL_IS_FIXED"
+    more_sources="$s_gen"
   ;;
   altivec)
     CFLAGS="$CFLAGS -maltivec -faltivec -DREAL_IS_FLOAT -DOPT_ALTIVEC"
+    more_sources="$s_altivec"
   ;;
   i386) 
     CFLAGS="$CFLAGS -DOPT_I386 -DREAL_IS_FLOAT"
+    more_sources="$s_i386"
   ;;
   i386_fpu) 
     CFLAGS="$CFLAGS -DOPT_I386 -DREAL_IS_FLOAT"
+    more_sources="$s_i386"
   ;;
   i386_nofpu) 
     CFLAGS="$CFLAGS -DOPT_I386 -DREAL_IS_FIXED"
+    more_sources="$s_i386"
   ;;
   i486) 
     CFLAGS="$CFLAGS -DOPT_I486 -DREAL_IS_FLOAT"
+    more_sources="$s_i486"
   ;;
   i586) 
     CFLAGS="$CFLAGS -DOPT_I586 -DREAL_IS_FLOAT"
+    more_sources="$s_i586"
   ;;
   i586_dither) 
     CFLAGS="$CFLAGS -DOPT_I586_DITHER -DREAL_IS_FLOAT"
+    more_sources="$s_i586d"
   ;;
   3dnow)
     # legacy 3dnow had the 3dnow optional... keeping that
     CFLAGS="$CFLAGS -DOPT_MULTI -DOPT_I586 -DOPT_3DNOW -DREAL_IS_FLOAT"
+    more_sources="$s_i586 $s_3dnow $s_multi "
   ;;
   3dnowext_alone) 
     CFLAGS="$CFLAGS -DOPT_3DNOWEXT -DREAL_IS_FLOAT"
+    more_sources="$s_3dnowext"
   ;;
   3dnowext) 
     AC_MSG_WARN([Combining 3DNowExt decoder with 3DNow for flexible rate, use 3dnowext_alone if you do not want this.])
     CFLAGS="$CFLAGS -DOPT_MULTI -DOPT_3DNOW -DOPT_3DNOWEXT -DREAL_IS_FLOAT"
+    more_sources="$s_3dnowext $s_3dnow $s_multi"
   ;;
   mmx_alone) 
     CFLAGS="$CFLAGS -DOPT_MMX -DREAL_IS_FLOAT"
+    more_sources="$s_mmx"
   ;;
   mmx)
     AC_MSG_WARN([Combining MMX decoder with i586 for flexible rate, use mmx_alone if you do not want this.])
     CFLAGS="$CFLAGS -DOPT_MULTI -DOPT_I586 -DOPT_MMX -DREAL_IS_FLOAT"
+    more_sources="$s_mmx $s_i586 $s_multi"
   ;;
   sse) 
     AC_MSG_WARN([Combining SSE decoder with i586 for flexible rate, use sse_alone if you do not want this.])
     CFLAGS="$CFLAGS -DOPT_MULTI -DOPT_I586 -DOPT_SSE -DREAL_IS_FLOAT"
+    more_sources="$s_sse $s_i586 $s_multi"
   ;;
   sse_alone) 
     CFLAGS="$CFLAGS -DOPT_SSE -DREAL_IS_FLOAT"
+    more_sources="$s_sse"
   ;;
   x86) 
     CFLAGS="$CFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_I386 -DOPT_I586 -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOWEXT -DOPT_SSE -DREAL_IS_FLOAT"
-  ;;
+    more_sources="$s_gen $s_i386 $s_i586 $s_mmx $s_3dnow $s_3dnowext $s_sse $s_multi"
+ ;;
   x86_dither) 
     CFLAGS="$CFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_I386 -DOPT_I586 -DOPT_I586_DITHER -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOWEXT -DOPT_SSE -DREAL_IS_FLOAT"
+    more_sources="$s_gen $s_i386 $s_i586 $s_i586d $s_mmx $s_3dnow $s_3dnowext $s_sse $s_multi"
   ;;
   *)
   	AC_MSG_ERROR([Unknown CPU type '$cpu_type'])
   ;;
 esac
 
-if test $cpu_type = "generic_float"; then
-	CPU_TYPE_LIB="libcpu_generic.a"
-else
-	CPU_TYPE_LIB="libcpu_$cpu_type.a"
-fi
-AC_SUBST( CPU_TYPE_LIB )
+for i in $more_sources
+do
+	DECODER_OBJ="$DECODER_OBJ $i.\$(OBJEXT)"
+	echo $DECODER_LOBJ | grep -q $i.lo || DECODER_LOBJ="$DECODER_LOBJ $i.lo"
+done
+
+AC_SUBST( DECODER_OBJ )
+AC_SUBST( DECODER_LOBJ )
 
 
 dnl ############## Create list of modules to build
@@ -821,6 +858,7 @@ AC_CONFIG_FILES([
 	Makefile
 	src/Makefile
 	src/output/Makefile
+	src/libmpg123/Makefile
 ])
 
 AC_OUTPUT
