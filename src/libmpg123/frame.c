@@ -20,7 +20,9 @@ void frame_default_pars(mpg123_pars *mp)
 	mp->doublespeed = 0;
 	mp->verbose = 0;
 	mp->icy_interval = 0;
+#ifndef WIN32
 	mp->timeout = 0;
+#endif
 }
 
 void frame_init(mpg123_handle *fr)
