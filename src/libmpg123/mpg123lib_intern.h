@@ -4,6 +4,7 @@
 #include "mpg123.h"
 #include "config.h"
 #include "debug.h"
+#include "compat.h"
 
 /* Seek code relies on GAPLESS, at least for now. */
 #ifndef GAPLESS
