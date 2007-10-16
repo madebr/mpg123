@@ -843,7 +843,7 @@ tc_hack:
 			else
 			{
 				off_t offset;
-				if((offset=term_control(mh,ao)))
+				if((offset=term_control(mh)))
 				{
 					if((offset = mpg123_seek_frame(mh, offset, SEEK_CUR)) >= 0)
 					{
@@ -867,7 +867,7 @@ tc_hack:
 			if(param.term_ctrl)
 			{
 				off_t offset;
-				if((offset=term_control(mh,ao)))
+				if((offset=term_control(mh)))
 				{
 					if((offset = mpg123_seek_frame(mh, offset, SEEK_CUR)) >= 0)
 					/*	&& read_frame(&fr) == 1 */

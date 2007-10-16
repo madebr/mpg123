@@ -19,7 +19,7 @@
 #include "common.h"
 
 extern int buffer_pid;
-extern audio_output_t ao;
+extern audio_output_t *ao;
 
 static int term_enable = 0;
 static struct termios old_tio;
@@ -76,7 +76,7 @@ static int stopped = 0;
 static int paused = 0;
 static int pause_cycle;
 
-off_t term_control(mpg123_handle *fr, audio_output_t *ao)
+off_t term_control(mpg123_handle *fr)
 {
 	off_t offset = 0;
 
@@ -133,7 +133,7 @@ static long term_handle_input(mpg123_handle *fr, int do_delay)
 
       switch(tolower(val)) {
 	case BACK_KEY:
-        if(!param.usebuffer) ao.flush(&ao);
+        if(!param.usebuffer) ao->flush(ao);
 	  /*
 	   * NOTE: rd->rewind() calls buffer_resync() that blocks until
 	   * buffer process returns ACK. If buffer process is stopped, we
@@ -156,7 +156,7 @@ static long term_handle_input(mpg123_handle *fr, int do_delay)
 		framenum=0;
 		break;
 	case NEXT_KEY:
-		if(!param.usebuffer) ao.flush(&ao);
+		if(!param.usebuffer) ao->flush(ao);
 		else buffer_resync(); /* was: plain_buffer_resync */
 	  next_track();
 	  break;
@@ -180,7 +180,7 @@ static long term_handle_input(mpg123_handle *fr, int do_delay)
 	case STOP_KEY:
 	case ' ':
 		/* when seeking while stopped and then resuming, I want to prevent the chirp from the past */
-		if(!param.usebuffer) ao.flush(&ao);
+		if(!param.usebuffer) ao->flush(ao);
 	  stopped=1-stopped;
 	  if(paused) {
 		  paused=0;
