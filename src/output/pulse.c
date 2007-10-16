@@ -14,7 +14,7 @@
 #include <pulse/error.h>
 
 #include "config.h"
-#include "mpg123.h"
+#include "mpg123app.h"
 #include "audio.h"
 #include "module.h"
 #include "debug.h"
@@ -42,20 +42,20 @@ static int open_pulse(audio_output_t *ao)
 		ss.rate = ao->rate;
 		
 		switch(ao->format) {
-			case AUDIO_FORMAT_SIGNED_16:
+			case MPG123_ENC_SIGNED_16:
 #ifdef WORDS_BIGENDIAN
 				ss.format=PA_SAMPLE_S16BE;
 #else
 				ss.format=PA_SAMPLE_S16LE;
 #endif
 			break;
-			case AUDIO_FORMAT_ALAW_8:
+			case MPG123_ENC_ALAW_8:
 				ss.format=PA_SAMPLE_ALAW;
 			break;
-			case AUDIO_FORMAT_ULAW_8:
+			case MPG123_ENC_ULAW_8:
 				ss.format=PA_SAMPLE_ULAW;
 			break;
-			case AUDIO_FORMAT_UNSIGNED_8:
+			case MPG123_ENC_UNSIGNED_8:
 				ss.format=PA_SAMPLE_U8;
 			break;
 			default:
@@ -94,7 +94,7 @@ static int open_pulse(audio_output_t *ao)
 static int get_formats_pulse(audio_output_t *ao)
 {
 	/* Only implemented Signed 16-bit audio for now */
-	return AUDIO_FORMAT_SIGNED_16;
+	return MPG123_ENC_SIGNED_16;
 }
 
 

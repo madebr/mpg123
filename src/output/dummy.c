@@ -5,7 +5,7 @@
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 */
 
-#include "mpg123.h"
+#include "mpg123app.h"
 
 static int open_dummy(audio_output_t *ao)
 {
@@ -17,7 +17,7 @@ static int open_dummy(audio_output_t *ao)
 static int get_formats_dummy(audio_output_t *ao)
 {
 	debug("get_formats_dummy()");
-	return AUDIO_FORMAT_SIGNED_16;
+	return MPG123_ENC_SIGNED_16;
 }
 
 static int write_dummy(audio_output_t *ao,unsigned char *buf,int len)

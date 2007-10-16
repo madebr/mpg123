@@ -30,7 +30,7 @@
 
 /**************************************************************************/
 
-#include "mpg123.h"
+#include "mpg123app.h"
 
 #include <fcntl.h>
 
@@ -168,7 +168,7 @@ static int write_alib(audio_output_t *ao,unsigned char *buf,int len)
 
 static int get_formats_alib(audio_output_t *ao)
 {
-	return AUDIO_FORMAT_SIGNED_16;
+	return MPG123_ENC_SIGNED_16;
 }
 
 static void flush_alib(audio_output_t *ao)

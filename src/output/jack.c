@@ -11,7 +11,7 @@
 #include <jack/jack.h>
 #include <jack/ringbuffer.h>
 
-#include "mpg123.h"
+#include "mpg123app.h"
 
 #define MAX_CHANNELS	(2)
 
@@ -280,7 +280,7 @@ static int open_jack(audio_output_t *ao)
 /* Jack is in fact 32-bit floats only */
 static int get_formats_jack(audio_output_t *ao)
 {
-	return AUDIO_FORMAT_SIGNED_16;
+	return MPG123_ENC_SIGNED_16;
 }
 
 

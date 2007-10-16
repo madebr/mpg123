@@ -19,7 +19,7 @@
 #include <sys/stat.h>
 #include <sys/param.h>
 
-#include "mpg123.h"
+#include "mpg123app.h"
 
 /* use AUDIO_BSIZE to set the msec for audio buffering in Ultimedia library
  */
@@ -104,32 +104,32 @@ static int reset_parameters(audio_output_t *ao)
 				ainit.bits_per_sample  = 8;
 				ainit.flags            = BIG_ENDIAN | TWOS_COMPLEMENT;
 			break;
-			case AUDIO_FORMAT_SIGNED_16:
+			case MPG123_ENC_SIGNED_16:
 				ainit.mode             = PCM;
 				ainit.bits_per_sample  = 16;
 				ainit.flags            = BIG_ENDIAN | TWOS_COMPLEMENT;
 			break;
-			case AUDIO_FORMAT_SIGNED_8:
+			case MPG123_ENC_SIGNED_8:
 				ainit.mode             = PCM;
 				ainit.bits_per_sample  = 8;
 				ainit.flags            = BIG_ENDIAN | TWOS_COMPLEMENT;
 			break;
-			case AUDIO_FORMAT_UNSIGNED_16:
+			case MPG123_ENC_UNSIGNED_16:
 				ainit.mode             = PCM;
 				ainit.bits_per_sample  = 16;
 				ainit.flags            = BIG_ENDIAN | TWOS_COMPLEMENT | SIGNED;
 			break;
-			case AUDIO_FORMAT_UNSIGNED_8:
+			case MPG123_ENC_UNSIGNED_8:
 				ainit.mode             = PCM;
 				ainit.bits_per_sample  = 8;
 				ainit.flags            = BIG_ENDIAN | TWOS_COMPLEMENT | SIGNED;
 			break;
-			case AUDIO_FORMAT_ULAW_8:
+			case MPG123_ENC_ULAW_8:
 				ainit.mode             = MU_LAW;
 				ainit.bits_per_sample  = 8;
 				ainit.flags            = BIG_ENDIAN | TWOS_COMPLEMENT;
 			break;
-			case AUDIO_FORMAT_ALAW_8:
+			case MPG123_ENC_ALAW_8:
 				ainit.mode             = A_LAW;
 				ainit.bits_per_sample  = 8;
 				ainit.flags            = BIG_ENDIAN | TWOS_COMPLEMENT;
@@ -217,9 +217,9 @@ static int get_formats_aix(audio_output_t *ao)
 	rate = ao->rate;
 	rate_best_match(ai);
 	if (ao->rate == rate)
-		return (AUDIO_FORMAT_SIGNED_16|AUDIO_FORMAT_UNSIGNED_16|
-			AUDIO_FORMAT_UNSIGNED_8|AUDIO_FORMAT_SIGNED_8|
-			AUDIO_FORMAT_ULAW_8|AUDIO_FORMAT_ALAW_8);
+		return (MPG123_ENC_SIGNED_16|MPG123_ENC_UNSIGNED_16|
+			MPG123_ENC_UNSIGNED_8|MPG123_ENC_SIGNED_8|
+			MPG123_ENC_ULAW_8|MPG123_ENC_ALAW_8);
 	else
 		return 0;
 }

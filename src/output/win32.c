@@ -9,7 +9,7 @@
 #include <fcntl.h>
 #include <windows.h>
 
-#include "mpg123.h"
+#include "mpg123app.h"
 
 
 /* FIXME: these should be in a structure, not globals */
@@ -118,7 +118,7 @@ static int open_win32(struct audio_info_struct *ai)
 
 static int get_formats_win32(struct audio_info_struct *ai)
 {
-	return AUDIO_FORMAT_SIGNED_16;
+	return MPG123_ENC_SIGNED_16;
 }
 
 static int write_win32(struct audio_info_struct *ai,unsigned char *buf,int len)

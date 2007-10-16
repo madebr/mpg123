@@ -11,7 +11,7 @@
 /* #include <audio.h> */
 #include <dmedia/audio.h>
 
-#include "mpg123.h"
+#include "mpg123app.h"
 
 
 /* Analog output constant */
@@ -142,7 +142,7 @@ static int open_sgi(audio_output_t *ao)
 
 static int get_formats_sgi(output_t *ao)
 {
-	return AUDIO_FORMAT_SIGNED_16;
+	return MPG123_ENC_SIGNED_16;
 }
 
 
@@ -150,7 +150,7 @@ static int write_sgi(audio_output_t *ao,unsigned char *buf,int len)
 {
 	ALport port = (ALport)ao->handle;
 	
-	if(ao->format == AUDIO_FORMAT_SIGNED_8)
+	if(ao->format == MPG123_ENC_SIGNED_8)
 		alWriteFrames(port, buf, len>>1);
 	else
 		alWriteFrames(port, buf, len>>2);

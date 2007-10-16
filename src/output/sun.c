@@ -6,7 +6,7 @@
 	initially written by Michael Hipp
 */
 
-#include "mpg123.h"
+#include "mpg123app.h"
 
 #ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
@@ -37,7 +37,7 @@ static void set_format_helper(audio_output_t *ao, audio_info_t *ainfo)
 	
 	switch(ao->format) {
 		case -1:
-		case AUDIO_FORMAT_SIGNED_16:
+		case MPG123_ENC_SIGNED_16:
 		default:
 #ifndef AUDIO_ENCODING_LINEAR	/* not supported */
 #define AUDIO_ENCODING_LINEAR 3
@@ -45,20 +45,20 @@ static void set_format_helper(audio_output_t *ao, audio_info_t *ainfo)
 			ainfo->play.encoding = AUDIO_ENCODING_LINEAR;
 			ainfo->play.precision = 16;
 		break;
-		case AUDIO_FORMAT_UNSIGNED_8:
+		case MPG123_ENC_UNSIGNED_8:
 #if defined(SOLARIS) || defined(SPARCLINUX)
 			ainfo->play.encoding = AUDIO_ENCODING_LINEAR8;
 			ainfo->play.precision = 8;
 		break;
 #endif
-		case AUDIO_FORMAT_SIGNED_8:
+		case MPG123_ENC_SIGNED_8:
 			error("Linear signed 8 bit not supported!");
 		return;
-		case AUDIO_FORMAT_ULAW_8:
+		case MPG123_ENC_ULAW_8:
 			ainfo->play.encoding = AUDIO_ENCODING_ULAW;
 			ainfo->play.precision = 8;
 		break;
-		case AUDIO_FORMAT_ALAW_8:
+		case MPG123_ENC_ALAW_8:
 			ainfo->play.encoding = AUDIO_ENCODING_ALAW;
 			ainfo->play.precision = 8;
 		break;
@@ -212,11 +212,11 @@ static int open_sun(audio_output_t *ao)
 static int get_formats_sun(audio_output_t *ao)
 {
 	static int tab[][3] = {
-		{ AUDIO_ENCODING_ULAW , 8,  AUDIO_FORMAT_ULAW_8 } ,
-		{ AUDIO_ENCODING_ALAW , 8,  AUDIO_FORMAT_ALAW_8 } ,
-		{ AUDIO_ENCODING_LINEAR , 16,  AUDIO_FORMAT_SIGNED_16 } ,
+		{ AUDIO_ENCODING_ULAW , 8,  MPG123_ENC_ULAW_8 } ,
+		{ AUDIO_ENCODING_ALAW , 8,  MPG123_ENC_ALAW_8 } ,
+		{ AUDIO_ENCODING_LINEAR , 16,  MPG123_ENC_SIGNED_16 } ,
 #if defined(SOLARIS) || defined(SPARCLINUX)
-		{ AUDIO_ENCODING_LINEAR8 , 8,  AUDIO_FORMAT_UNSIGNED_8 } ,
+		{ AUDIO_ENCODING_LINEAR8 , 8,  MPG123_ENC_UNSIGNED_8 } ,
 #endif
 	};
 
@@ -281,7 +281,7 @@ mpg123_module_t mpg123_output_module_info = {
 	/* api_version */	MPG123_MODULE_API_VERSION,
 	/* name */			"sun",						
 	/* description */	"Audio output for Sun Audio.",
-	/* revision */		"$Rev:$",						
+	/* revision */		"$Rev$",						
 	/* handle */		NULL,
 	
 	/* init_output */	init_sun,						

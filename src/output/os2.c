@@ -17,7 +17,7 @@
 
 /* I guess this #ifndef could be removed now... */
 #ifndef MPG123_INCLUDED
-#include "mpg123.h"
+#include "mpg123app.h"
 #endif
 
 /* complementary audio parameters */
@@ -169,11 +169,11 @@ int open_os2(audio_output_t *ao)
 	
 	if(ao->rate < 0) ao->rate = 44100;
 	if(ao->channels < 0) ao->channels = 2;
-	if(ao->format < 0) ao->format = AUDIO_FORMAT_SIGNED_16;
+	if(ao->format < 0) ao->format = MPG123_ENC_SIGNED_16;
 	
-	if(ao->format == AUDIO_FORMAT_SIGNED_16)
+	if(ao->format == MPG123_ENC_SIGNED_16)
 		bits = 16;
-	else if(ao->format == AUDIO_FORMAT_UNSIGNED_8)
+	else if(ao->format == MPG123_ENC_UNSIGNED_8)
 		bits = 8;
 	else return -1;
 	
@@ -376,9 +376,9 @@ static int write_os2(audio_output_t *ao,unsigned char *buf,int len)
 	if(len > audiobufsize || !playingbuffer) return -1;
 	
 	if(mmp.ulBitsPerSample == 16)
-		ao->format = AUDIO_FORMAT_SIGNED_16;
+		ao->format = MPG123_ENC_SIGNED_16;
 	else if(mmp.ulBitsPerSample == 8)
-		ao->format = AUDIO_FORMAT_UNSIGNED_8;
+		ao->format = MPG123_ENC_UNSIGNED_8;
 	else return -1;
 	
 	ao->rate = mmp.ulSamplesPerSec;
@@ -532,7 +532,7 @@ int get_formats_os2(audio_output_t *ao)
 			0 );
 
 	if((ULONG_LOWD(rc) == MCIERR_SUCCESS) && (rc != 0x4000)) /* undocumented */
-	fmts = fmts | AUDIO_FORMAT_SIGNED_16;
+	fmts = fmts | MPG123_ENC_SIGNED_16;
 	
 	mmptemp.ulFormatTag = MCI_WAVE_FORMAT_PCM;
 	mmptemp.ulBitsPerSample = 8;
@@ -543,7 +543,7 @@ int get_formats_os2(audio_output_t *ao)
 			0 );
 
 	if((ULONG_LOWD(rc) == MCIERR_SUCCESS) && (rc != 0x4000)) /* undocumented */
-		fmts = fmts | AUDIO_FORMAT_UNSIGNED_8;
+		fmts = fmts | MPG123_ENC_UNSIGNED_8;
 	
 	mmptemp.ulFormatTag = MCI_WAVE_FORMAT_ALAW;
 	mmptemp.ulBitsPerSample = 8;
@@ -554,7 +554,7 @@ int get_formats_os2(audio_output_t *ao)
 			0 );
 
 	if((ULONG_LOWD(rc) == MCIERR_SUCCESS) && (rc != 0x4000)) /* undocumented */
-		fmts = fmts | AUDIO_FORMAT_ALAW_8;
+		fmts = fmts | MPG123_ENC_ALAW_8;
 	
 	mmptemp.ulFormatTag = MCI_WAVE_FORMAT_MULAW;
 	mmptemp.ulBitsPerSample = 8;
@@ -565,7 +565,7 @@ int get_formats_os2(audio_output_t *ao)
 			0 );
 
 	if((ULONG_LOWD(rc) == MCIERR_SUCCESS) && (rc != 0x4000)) /* undocumented */
-		fmts = fmts | AUDIO_FORMAT_ULAW_8;
+		fmts = fmts | MPG123_ENC_ULAW_8;
 	
 	return fmts;
 }

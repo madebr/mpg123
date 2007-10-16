@@ -31,22 +31,8 @@ enum {
 	DECODE_AUDIOFILE
 };
 
-
-#define AUDIO_FORMAT_MASK			0x100
-#define AUDIO_FORMAT_16				0x100
-#define AUDIO_FORMAT_8				0x000
-
-#define AUDIO_FORMAT_SIGNED_16		0x110
-#define AUDIO_FORMAT_UNSIGNED_16	0x120
-#define AUDIO_FORMAT_UNSIGNED_8		0x1
-#define AUDIO_FORMAT_SIGNED_8		0x2
-#define AUDIO_FORMAT_ULAW_8			0x4
-#define AUDIO_FORMAT_ALAW_8			0x8
-
 /* 3% rate tolerance */
 #define AUDIO_RATE_TOLERANCE	  3
-
-
 
 typedef struct audio_output_struct
 {

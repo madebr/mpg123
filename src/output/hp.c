@@ -6,7 +6,7 @@
 	initially written by Michael Hipp
 */
 
-#include "mpg123.h"
+#include "mpg123app.h"
 #include <fcntl.h>
 #include <sys/audio.h>
 
@@ -32,21 +32,21 @@ static int set_format(audio_output_t *ao)
 	
 	switch(ao->format) {
 		case -1:
-		case AUDIO_FORMAT_SIGNED_16:
+		case MPG123_ENC_SIGNED_16:
 		default: 
-			fmt = AUDIO_FORMAT_LINEAR16BIT;
+			fmt = MPG123_ENC_LINEAR16BIT;
 		break;
-		case AUDIO_FORMAT_UNSIGNED_8:
+		case MPG123_ENC_UNSIGNED_8:
 			error("unsigned 8 bit linear not supported");
 			return -1;
-		case AUDIO_FORMAT_SIGNED_8:
+		case MPG123_ENC_SIGNED_8:
 			error("signed 8 bit linear not supported");
 			return -1;
-		case AUDIO_FORMAT_ALAW_8:
-			fmt = AUDIO_FORMAT_ALAW;
+		case MPG123_ENC_ALAW_8:
+			fmt = MPG123_ENC_ALAW;
 		break;
-		case AUDIO_FORMAT_ULAW_8:
-			fmt = AUDIO_FORMAT_ULAW;
+		case MPG123_ENC_ULAW_8:
+			fmt = MPG123_ENC_ULAW;
 		break;
 	}
 	return ioctl(ao->fn,AUDIO_SET_DATA_FORMAT,fmt);
@@ -54,7 +54,7 @@ static int set_format(audio_output_t *ao)
 
 static int get_formats(audio_output_t *ao)
 {
-	return AUDIO_FORMAT_SIGNED_16;
+	return MPG123_ENC_SIGNED_16;
 }
 
 static int reset_parameters(audio_output_t *ao)

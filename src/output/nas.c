@@ -6,7 +6,7 @@
 	initially written by Martin Denn
 */
 
-#include "mpg123.h"
+#include "mpg123app.h"
 #include <fcntl.h>
 #include <audio/audiolib.h>
 #include <audio/soundlib.h>
@@ -95,20 +95,20 @@ static int nas_createFlow(audio_output_t *ao)
  
 
     switch(ao->format) {
-    case AUDIO_FORMAT_SIGNED_16:
+    case MPG123_ENC_SIGNED_16:
     default:
 		if (((char) *(short *)"x")=='x') /* ugly, but painless */
 			format = AuFormatLinearSigned16LSB; /* little endian */
 		else
 		format = AuFormatLinearSigned16MSB; /* big endian */
         break;
-    case AUDIO_FORMAT_UNSIGNED_8:
+    case MPG123_ENC_UNSIGNED_8:
         format = AuFormatLinearUnsigned8;
         break;
-    case AUDIO_FORMAT_SIGNED_8:
+    case MPG123_ENC_SIGNED_8:
         format = AuFormatLinearSigned8;
         break;
-    case AUDIO_FORMAT_ULAW_8:
+    case MPG123_ENC_ULAW_8:
         format = AuFormatULAW8;
         break;
     }
@@ -239,16 +239,16 @@ static int get_formats_nas(audio_output_t *ao)
         switch (k)
         {
         case AuFormatULAW8:
-            ret |= AUDIO_FORMAT_ULAW_8;
+            ret |= MPG123_ENC_ULAW_8;
             break;
         case AuFormatLinearUnsigned8:
-            ret |= AUDIO_FORMAT_UNSIGNED_8;
+            ret |= MPG123_ENC_UNSIGNED_8;
             break;
         case AuFormatLinearSigned8:
-            ret |= AUDIO_FORMAT_SIGNED_8;
+            ret |= MPG123_ENC_SIGNED_8;
             break;
         case AuFormatLinearSigned16LSB:
-            ret |= AUDIO_FORMAT_SIGNED_16;
+            ret |= MPG123_ENC_SIGNED_16;
             break;
         }
     }

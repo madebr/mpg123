@@ -10,7 +10,7 @@
 
 
 #include "sfifo.h"
-#include "mpg123.h"
+#include "mpg123app.h"
 
 #include <CoreServices/CoreServices.h>
 #include <AudioUnit/AudioUnit.h>
@@ -214,7 +214,7 @@ static int open_coreaudio(audio_output_t *ao)
 static int get_formats_coreaudio(audio_output_t *ao)
 {
 	/* Only support Signed 16-bit output */
-	return AUDIO_FORMAT_SIGNED_16;
+	return MPG123_ENC_SIGNED_16;
 }
 
 static int write_coreaudio(audio_output_t *ao, unsigned char *buf, int len)

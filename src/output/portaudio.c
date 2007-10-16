@@ -12,7 +12,7 @@
 
 #include "audio.h"
 #include "sfifo.h"
-#include "mpg123.h"
+#include "mpg123app.h"
 
 #ifdef WIN32
 #include <windows.h>
@@ -84,7 +84,7 @@ static int open_portaudio(audio_output_t *ao)
 static int get_formats_portaudio(audio_output_t *ao)
 {
 	/* Only implemented Signed 16-bit audio for now */
-	return AUDIO_FORMAT_SIGNED_16;
+	return MPG123_ENC_SIGNED_16;
 }
 
 

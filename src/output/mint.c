@@ -8,7 +8,7 @@
 
 /* derived from LINUX, VOXWARE and SUN for MiNT Audio Device by Petr Stehlik */
 #include <fcntl.h>
-#include "mpg123.h"
+#include "mpg123app.h"
 #include <ioctl.h>
 #include <audios.h>
 
@@ -70,17 +70,17 @@ static int set_format(audio_output_t *ao)
 		return 0;
 	
 	switch(ao->format) {
-		case AUDIO_FORMAT_SIGNED_16:
+		case MPG123_ENC_SIGNED_16:
 		default:
 			fmts = AFMT_S16;
 		break;
-		case AUDIO_FORMAT_UNSIGNED_8:
+		case MPG123_ENC_UNSIGNED_8:
 			fmts = AFMT_U8;
 		break;
-		case AUDIO_FORMAT_SIGNED_8:
+		case MPG123_ENC_SIGNED_8:
 			fmts = AFMT_S8;
 		break;
-		case AUDIO_FORMAT_ULAW_8:
+		case MPG123_ENC_ULAW_8:
 			fmts = AFMT_ULAW;
 		break;
 	}
@@ -134,13 +134,13 @@ static int get_formats_mint(audio_output_t *ao)
 		return -1;
 	
 	if(fmts & AFMT_ULAW)
-		ret |= AUDIO_FORMAT_ULAW_8;
+		ret |= MPG123_ENC_ULAW_8;
 	if(fmts & AFMT_S16)
-		ret |= AUDIO_FORMAT_SIGNED_16;
+		ret |= MPG123_ENC_SIGNED_16;
 	if(fmts & AFMT_U8)
-		ret |= AUDIO_FORMAT_UNSIGNED_8;
+		ret |= MPG123_ENC_UNSIGNED_8;
 	if(fmts & AFMT_S8)
-		ret |= AUDIO_FORMAT_SIGNED_8;
+		ret |= MPG123_ENC_SIGNED_8;
 	
 	return ret;
 }

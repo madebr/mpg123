@@ -7,7 +7,7 @@
 	written by Clemens Ladisch <clemens@ladisch.de>
 */
 
-#include "mpg123.h"
+#include "mpg123app.h"
 #include "audio.h"
 #include "module.h"
 #include <errno.h>
@@ -25,12 +25,12 @@ static const struct {
 	snd_pcm_format_t alsa;
 	int mpg123;
 } format_map[] = {
-	{ SND_PCM_FORMAT_S16,    AUDIO_FORMAT_SIGNED_16   },
-	{ SND_PCM_FORMAT_U16,    AUDIO_FORMAT_UNSIGNED_16 },
-	{ SND_PCM_FORMAT_U8,     AUDIO_FORMAT_UNSIGNED_8  },
-	{ SND_PCM_FORMAT_S8,     AUDIO_FORMAT_SIGNED_8    },
-	{ SND_PCM_FORMAT_A_LAW,  AUDIO_FORMAT_ALAW_8      },
-	{ SND_PCM_FORMAT_MU_LAW, AUDIO_FORMAT_ULAW_8      },
+	{ SND_PCM_FORMAT_S16,    MPG123_ENC_SIGNED_16   },
+	{ SND_PCM_FORMAT_U16,    MPG123_ENC_UNSIGNED_16 },
+	{ SND_PCM_FORMAT_U8,     MPG123_ENC_UNSIGNED_8  },
+	{ SND_PCM_FORMAT_S8,     MPG123_ENC_SIGNED_8    },
+	{ SND_PCM_FORMAT_A_LAW,  MPG123_ENC_ALAW_8      },
+	{ SND_PCM_FORMAT_MU_LAW, MPG123_ENC_ULAW_8      },
 };
 #define NUM_FORMATS (sizeof format_map / sizeof format_map[0])
 

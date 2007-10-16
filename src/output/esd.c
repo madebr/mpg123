@@ -10,7 +10,7 @@
 #include <errno.h>
 #include <assert.h>
 
-#include "mpg123.h"
+#include "mpg123app.h"
 
 #ifdef SOLARIS
 #include <stropts.h>
@@ -43,10 +43,10 @@ static int open_esound(audio_output_t *ao)
 			esd_rate = esd_audio_rate;
 			fmt = esd_audio_format;
 		}
-		esd_format = AUDIO_FORMAT_UNSIGNED_8;
+		esd_format = MPG123_ENC_UNSIGNED_8;
 		
 		if ((fmt & ESD_MASK_BITS) == ESD_BITS16)
-			esd_format |= AUDIO_FORMAT_SIGNED_16;
+			esd_format |= MPG123_ENC_SIGNED_16;
 		esd_channels = fmt & ESD_MASK_CHAN;
 	}
 	
@@ -60,9 +60,9 @@ static int open_esound(audio_output_t *ao)
 	}
 	
 	
-	if (ao->format & AUDIO_FORMAT_SIGNED_16)
+	if (ao->format & MPG123_ENC_SIGNED_16)
 		format |= ESD_BITS16;
-	else if (ao->format & AUDIO_FORMAT_UNSIGNED_8)
+	else if (ao->format & MPG123_ENC_UNSIGNED_8)
 		format |= ESD_BITS8;
 	else assert(0);
 	

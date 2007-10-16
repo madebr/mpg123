@@ -10,7 +10,7 @@
 #include <math.h>
 #include <ao/ao.h>
 
-#include "mpg123.h"
+#include "mpg123app.h"
 
 
 static int open_libao(audio_output_t *ao)
@@ -31,11 +31,11 @@ static int open_libao(audio_output_t *ao)
 
 	/* Work out the sample size	 */
 	switch (ao->format) {
-		case AUDIO_FORMAT_SIGNED_16:
+		case MPG123_ENC_SIGNED_16:
 			format.bits = 16;
 		break;
 		
-		case AUDIO_FORMAT_SIGNED_8:
+		case MPG123_ENC_SIGNED_8:
 			format.bits = 8;
 		break;
 		
@@ -153,7 +153,7 @@ static int open_libao(audio_output_t *ao)
 /* The two formats we support */
 static int get_formats_libao(audio_output_t *ao)
 {
-	return AUDIO_FORMAT_SIGNED_16 | AUDIO_FORMAT_SIGNED_8;
+	return MPG123_ENC_SIGNED_16 | MPG123_ENC_SIGNED_8;
 }
 
 static int write_libao(audio_output_t *ao,unsigned char *buf,int len)
