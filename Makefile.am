@@ -21,4 +21,9 @@ EXTRA_DIST = \
 	doc/ROAD_TO_LGPL \
 	doc/TODO \
 	doc/LICENSE \
-	doc/THANKS
+	doc/THANKS \
+	doc/ACCURACY \
+	doc/libmpg123_speed.txt \
+	xmms2-plugin/README \
+	xmms2-plugin/mpg123/mpg123.c \
+	xmms2-plugin/mpg123/wscript
