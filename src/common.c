@@ -46,7 +46,7 @@ void (*catchsignal(int signum, void(*handler)()))()
 
 /* concurring to print_rheader... here for control_generic */
 const char* remote_header_help = "S <mpeg-version> <layer> <sampling freq> <mode(stereo/mono/...)> <mode_ext> <framesize> <stereo> <copyright> <error_protected> <emphasis> <bitrate> <extension> <vbr(0/1=yes/no)>";
-void print_remote_header(struct frame* fr)
+void print_remote_header(mpg123_handle *mh)
 {
 	struct mpg123_frameinfo i;
 	mpg123_info(mh, &i);

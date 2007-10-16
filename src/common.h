@@ -19,7 +19,7 @@ void print_stat(mpg123_handle *fr, long offset, long buffsize);
 void clear_stat();
 /* for control_generic */
 extern const char* remote_header_help;
-void print_remote_header(struct frame* fr);
+void print_remote_header(mpg123_handle *mh);
 void generic_sendmsg (const char *fmt, ...);
 
 int split_dir_file(const char *path, char **dname, char **fname);
