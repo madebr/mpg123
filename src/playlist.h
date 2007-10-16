@@ -1,14 +1,14 @@
 /*
 	playlist: playlist logic
 
-	copyright 1995-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1995-2007 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp, outsourced/reorganized by Thomas Orgis
 */
 #ifndef MPG123_PLAYLIST_H
 #define MPG123_PLAYLIST_H
 
-#include "stringbuf.h"
+#include "mpg123.h"
 
 enum playlist_type { UNKNOWN = 0, M3U, PLS, NO_LIST };
 
@@ -28,8 +28,8 @@ typedef struct playlist_struct
 	size_t pos;
 	size_t alloc_step;
 	struct listitem* list;
-	struct stringbuf linebuf;
-	struct stringbuf dir;
+	mpg123_string linebuf;
+	mpg123_string dir;
 	enum playlist_type type;
 } playlist_struct;
 

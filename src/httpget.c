@@ -26,10 +26,28 @@
 	Funny aspect there is that shoutcast servers do not do HTTP/1.1 chunked transfer but implement some different chunking themselves...
 */
 
-#include "mpg123.h"
+#include "mpg123app.h"
 #include "httpget.h"
+#include "mpg123.h"
 
-char *proxyurl = NULL;
+void httpdata_init(struct httpdata *e)
+{
+	mpg123_init_string(&e->content_type);
+	mpg123_init_string(&e->icy_url);
+	mpg123_init_string(&e->icy_name);
+	e->icy_interval = 0;
+	e->proxyurl = NULL;
+	e->proxyip = 0;
+}
+
+void httpdata_reset(struct httpdata *e)
+{
+	mpg123_free_string(&e->content_type);
+	mpg123_free_string(&e->icy_url);
+	mpg123_free_string(&e->icy_name);
+	e->icy_interval = 0;
+	/* the other stuff shall persist */
+}
 
 #if !defined(WIN32) && !defined(GENERIC)
 
@@ -45,8 +63,7 @@ char *proxyurl = NULL;
 #include <errno.h>
 #include <ctype.h>
 
-#include "stringbuf.h"
-#include "icy.h"
+#include "true.h"
 
 #ifndef INADDR_NONE
 #define INADDR_NONE 0xffffffff
@@ -258,7 +275,6 @@ char* get_header_val(const char *hname, char* response, size_t *length)
 	return tmp;
 }
 
-unsigned long proxyip = 0;
 unsigned int proxyport;
 
 /* needed for HTTP/1.1 non-pipelining mode */
@@ -266,7 +282,8 @@ unsigned int proxyport;
 #define CONN_HEAD ""
 
 /* shoutcsast meta data: 1=on, 0=off */
-#define ACCEPT_ICY_META "Icy-MetaData: 1\r\n"
+const char *icy_yes = "Icy-MetaData: 1\r\n";
+const char *icy_no  = "Icy-MetaData: 0\r\n";
 
 char *httpauth = NULL;
 char *httpauth1 = NULL;
@@ -293,12 +310,13 @@ static size_t accept_length(void)
 	return l;
 }
 
-int http_open (char* url, char** content_type)
+int http_open(char* url, struct httpdata *hd)
 {
 	/* TODO: make sure ulong vs. size_t is really clear! */
 	/* TODO: change this whole thing until I stop disliking it */
 	char *purl, *host, *request, *response, *sptr;
 	char* request_url = NULL;
+	const char *icy = param.talk_icy ? icy_yes : icy_no;
 	size_t request_url_size = 0;
 	size_t purl_size;
 	size_t linelength, linelengthbase, tmp;
@@ -320,13 +338,13 @@ int http_open (char* url, char** content_type)
 	purl = NULL;
 	request = NULL;
 	response = NULL;
-	if (!proxyip) {
-		if (!proxyurl)
-			if (!(proxyurl = getenv("MP3_HTTP_PROXY")))
-				if (!(proxyurl = getenv("http_proxy")))
-					proxyurl = getenv("HTTP_PROXY");
-		if (proxyurl && proxyurl[0] && strcmp(proxyurl, "none")) {
-			if (!(url2hostport(proxyurl, &host, &proxyip, &proxyport))) {
+	if (!hd->proxyip) {
+		if (!hd->proxyurl)
+			if (!(hd->proxyurl = getenv("MP3_HTTP_PROXY")))
+				if (!(hd->proxyurl = getenv("http_proxy")))
+					hd->proxyurl = getenv("HTTP_PROXY");
+		if (hd->proxyurl && hd->proxyurl[0] && strcmp(hd->proxyurl, "none")) {
+			if (!(url2hostport(hd->proxyurl, &host, &hd->proxyip, &proxyport))) {
 				fprintf (stderr, "Unknown proxy host \"%s\".\n",
 					host ? host : "");
 				sock = -1;
@@ -334,7 +352,7 @@ int http_open (char* url, char** content_type)
 			}
 		}
 		else
-			proxyip = INADDR_NONE;
+			hd->proxyip = INADDR_NONE;
 	}
 	
 	/* The length of purl is upper bound by 3*strlen(url) + 1 if
@@ -399,7 +417,7 @@ int http_open (char* url, char** content_type)
 	 * ... plus the other predefined header lines
 	 */
 	linelengthbase = 62 + strlen(PACKAGE_NAME) + strlen(PACKAGE_VERSION)
-	                 + accept_length() + strlen(CONN_HEAD) + strlen(ACCEPT_ICY_META);
+	                 + accept_length() + strlen(CONN_HEAD) + strlen(icy);
 
 	if(httpauth) {
 		tmp = (strlen(httpauth) + 1) * 4;
@@ -445,9 +463,9 @@ int http_open (char* url, char** content_type)
 		else request_url[0] = '\0';
 		strcat(request_url, purl);
 
-		if (proxyip != INADDR_NONE) {
+		if (hd->proxyip != INADDR_NONE) {
 			myport = proxyport;
-			myip = proxyip;
+			myip = hd->proxyip;
 
 			linelength = linelengthbase + strlen(purl);
 			if (linelength < linelengthbase) {
@@ -559,7 +577,7 @@ int http_open (char* url, char** content_type)
 		} */
 		append_accept(request);
 		strcat (request, CONN_HEAD);
-		strcat (request, ACCEPT_ICY_META);
+		strcat (request, icy);
 		server.sin_family = AF_INET;
 		server.sin_port = htons(myport);
 		server.sin_addr.s_addr = myip;
@@ -706,43 +724,30 @@ int http_open (char* url, char** content_type)
 			{
 				char *tmp;
 				size_t len;
-				/* watch out for content type */
 				debug1("searching for header values... %s", response);
+				/* watch out for content type */
 				if((tmp = get_header_val("content-type", response, &len)))
 				{
-					if(content_type != NULL)
-					{
-						if(len)
-						{
-							if(*content_type != NULL) free(*content_type);
-							*content_type = (char*) malloc(len+1);
-							if(*content_type != NULL)
-							{
-								strncpy(*content_type, tmp, len);
-								(*content_type)[len] = 0;
-								debug1("got type %s", *content_type);
-							}
-							else error("cannot allocate memory for content type!");
-						}
-					}
+					if(mpg123_set_string(&hd->content_type, tmp)) debug1("got content-type %s", hd->content_type.p);
+					else error1("unable to set content type to %s!", tmp);
 				}
 				/* watch out for icy-name */
-				else if((tmp = get_header_val("icy-name", response, &len)))
+				if((tmp = get_header_val("icy-name", response, &len)))
 				{
-					if(set_stringbuf(&icy.name, tmp)) debug1("got icy-name %s", icy.name.p);
+					if(mpg123_set_string(&hd->icy_name, tmp)) debug1("got icy-name %s", hd->icy_name.p);
 					else error1("unable to set icy name to %s!", tmp);
 				}
 				/* watch out for icy-url */
 				else if((tmp = get_header_val("icy-url", response, &len)))
 				{
-					if(set_stringbuf(&icy.url, tmp)) debug1("got icy-url %s", icy.name.p);
+					if(mpg123_set_string(&hd->icy_url, tmp)) debug1("got icy-url %s", hd->icy_name.p);
 					else error1("unable to set icy url to %s!", tmp);
 				}
 				/* watch out for icy-metaint */
 				else if((tmp = get_header_val("icy-metaint", response, &len)))
 				{
-					icy.interval = atoi(tmp);
-					debug1("got icy-metaint %li", (long int)icy.interval);
+					hd->icy_interval = (off_t) atol(tmp);
+					debug1("got icy-metaint %li", (long int)hd->icy_interval);
 				}
 			}
 		} while (response[0] != '\r' && response[0] != '\n');
@@ -763,7 +768,7 @@ exit:
 #else /* defined(WIN32) || defined(GENERIC) */
 
 /* stub */
-int http_open (char* url, char** content_type)
+int http_open (char* url, struct httpdata *hd)
 {
 	return -1;
 }

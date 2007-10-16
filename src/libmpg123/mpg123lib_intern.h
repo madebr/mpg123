@@ -16,17 +16,11 @@
 
 #define SKIP_JUNK 1
 
-/* should these really be here? */
-#ifdef _WIN32	/* Win32 Additions By Tony Million */
-# undef MPG123_WIN32
-# define MPG122_WIN32
-
+#ifndef M_PI
 # define M_PI       3.14159265358979323846
+#endif
+#ifndef M_SQRT2
 # define M_SQRT2	1.41421356237309504880
-# ifndef REAL_IS_FLOAT
-#  define REAL_IS_FLOAT
-# endif
-# define NEW_DCT9
 #endif
 
 #ifdef SUNOS
@@ -113,19 +107,33 @@
 #include        <stdio.h>
 #include        <string.h>
 #include        <signal.h>
+#include        <math.h>
 
 #ifndef WIN32
 #include        <sys/signal.h>
 #include        <unistd.h>
 #endif
-/* want to suport large files in future */
+
+/* Types, types, types. */
 #ifdef HAVE_SYS_TYPES_H
-	#include <sys/types.h>
+#include <sys/types.h>
 #endif
-#ifndef off_t
-	#define off_t long
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h>
 #endif
-#include        <math.h>
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#endif
+#ifdef HAVE_LIMITS_H
+#include <limits.h>
+#endif
+ 
+#ifndef SIZE_MAX
+#define SIZE_MAX ((size_t)-1)
+#endif
+#ifndef ULONG_MAX
+#define ULONG_MAX ((unsigned long)-1)
+#endif
 
 typedef unsigned char byte;
 

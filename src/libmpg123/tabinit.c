@@ -6,8 +6,6 @@
 	initially written by Michael Hipp
 */
 
-#include <stdlib.h>
-
 #include "mpg123lib_intern.h"
 
 #ifdef OPT_MMXORSSE
@@ -28,11 +26,11 @@ const int aligned(32) costab_mmxsse[] =
 #ifndef OPT_MMX_ONLY
 /* that altivec alignment part here should not hurt generic code, I hope */
 #ifdef OPT_ALTIVEC
-static real __attribute__ ((aligned (16))) cos64[16];
-static real __attribute__ ((aligned (16))) cos32[8];
-static real __attribute__ ((aligned (16))) cos16[4];
-static real __attribute__ ((aligned (16))) cos8[2];
-static real __attribute__ ((aligned (16))) cos4[1];
+static ALIGNED(16) real cos64[16];
+static ALIGNED(16) real cos32[8];
+static ALIGNED(16) real cos16[4];
+static ALIGNED(16) real cos8[2];
+static ALIGNED(16) real cos4[1];
 #else
 static real cos64[16],cos32[8],cos16[4],cos8[2],cos4[1];
 #endif

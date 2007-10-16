@@ -17,6 +17,8 @@ struct reader_data
 	off_t filepos; /* position in file or position in buffer chain */
 	int   filept;
 	int   flags;
+	long timeout_sec;
+	ssize_t (*fdread)(mpg123_handle *, unsigned char *, size_t);
 	/* variables specific to feed reader */
 	off_t firstpos; /* the point of return on non-forget() */
 	struct buffy *buf;  /* first in buffer chain */
@@ -54,6 +56,7 @@ off_t feed_set_pos(mpg123_handle *fr, off_t pos); /* Set position (inside availa
 #define READER_SEEKABLE  0x4
 #define READER_BUFFERED  0x8
 #define READER_MICROSEEK 0x10
+#define READER_NONBLOCK  0x20
 
 #define READER_STREAM 0
 #define READER_ICY_STREAM 1

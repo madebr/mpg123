@@ -10,11 +10,38 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <fcntl.h>
 
 #include "mpg123lib_intern.h"
 
 static off_t get_fileinfo(mpg123_handle *);
+
+/* A normal read and a read with timeout. */
+static ssize_t plain_read(mpg123_handle *fr, unsigned char *buf, size_t count){ return read(fr->rdat.filept, buf, count); }
+#ifndef WIN32			
+
+/* Wait for data becoming available, allowing soft-broken network connection to die
+   This is needed for Shoutcast servers that have forgotten about us while connection was temporarily down. */
+static ssize_t timeout_read(mpg123_handle *fr, unsigned char *buf, size_t count)
+{
+	struct timeval tv;
+	ssize_t ret = 0;
+	fd_set fds;
+	tv.tv_sec = rds->timeout_sec;
+	tv.tv_usec = 0;
+	FD_ZERO(&fds);
+	FD_SET(fr->rdat.filept, &fds);
+	ret = select(fr->rdat.filept+1, &fds, NULL, NULL, &tv);
+	if(ret > 0) ret = read(fr->rdat.filept, buf, count);
+	else
+	{
+		ret=-1; /* no activity is the error */
+		if(NOQUIET) error("stream timed out");
+	}
+	return ret;
+}
+#endif
 
 /* stream based operation  with icy meta data*/
 static ssize_t icy_fullread(mpg123_handle *fr, unsigned char *buf, ssize_t count)
@@ -40,7 +67,7 @@ static ssize_t icy_fullread(mpg123_handle *fr, unsigned char *buf, ssize_t count
 
 			/* we are near icy-metaint boundary, read up to the boundary */
 			cut_pos = fr->icy.next - fr->rdat.filepos;
-			ret = read(fr->rdat.filept,buf,cut_pos);
+			ret = fr->rdat.fdread(fr,buf,cut_pos);
 			if(ret < 0) return READER_ERROR;
 
 			fr->rdat.filepos += ret;
@@ -49,7 +76,7 @@ static ssize_t icy_fullread(mpg123_handle *fr, unsigned char *buf, ssize_t count
 			/* now off to read icy data */
 
 			/* one byte icy-meta size (must be multiplied by 16 to get icy-meta length) */
-			ret = read(fr->rdat.filept,&temp_buff,1);
+			ret = fr->rdat.fdread(fr,&temp_buff,1);
 			if(ret < 0) return READER_ERROR;
 			if(ret == 0) break;
 
@@ -63,7 +90,7 @@ static ssize_t icy_fullread(mpg123_handle *fr, unsigned char *buf, ssize_t count
 				meta_buff = (char*) malloc(meta_size+1);
 				if(meta_buff != NULL)
 				{
-					ret = read(fr->rdat.filept,meta_buff,meta_size);
+					ret = fr->rdat.fdread(fr,meta_buff,meta_size);
 					meta_buff[meta_size] = 0; /* string paranoia */
 					if(ret < 0) return READER_ERROR;
 
@@ -83,7 +110,7 @@ static ssize_t icy_fullread(mpg123_handle *fr, unsigned char *buf, ssize_t count
 			fr->icy.next = fr->rdat.filepos+fr->icy.interval;
 		}
 
-		ret = read(fr->rdat.filept,buf+cnt,count-cnt);
+		ret = fr->rdat.fdread(fr,buf+cnt,count-cnt);
 		if(ret < 0) return READER_ERROR;
 		if(ret == 0) break;
 
@@ -106,7 +133,7 @@ static ssize_t plain_fullread(mpg123_handle *fr,unsigned char *buf, ssize_t coun
 	if((fr->rdat.flags & READER_ID3TAG) && fr->rdat.filepos + count > fr->rdat.filelen) count = fr->rdat.filelen - fr->rdat.filepos;
 	while(cnt < count)
 	{
-		ret = read(fr->rdat.filept,buf+cnt,count-cnt);
+		ret = fr->rdat.fdread(fr,buf+cnt,count-cnt);
 		if(ret < 0) return READER_ERROR;
 		if(ret == 0) break;
 		fr->rdat.filepos += ret;
@@ -126,6 +153,18 @@ static off_t stream_lseek(struct reader_data *rds, off_t pos, int whence)
 
 static int default_init(mpg123_handle *fr)
 {
+#ifndef WIN32
+	if(param.timeout > 0)
+	{
+		fcntl(fr->rdat.filept, F_SETFL, O_NONBLOCK);
+		fr->rdat.fdread = timeout_read;
+		fr->rdat.timeout_sec = param.timeout;
+		fr->rdat.flags |= READER_NONBLOCK;
+	}
+	else
+#endif
+	fr->rdat.fdread = plain_read;
+
 	fr->rdat.filelen = get_fileinfo(fr);
 	fr->rdat.filepos = 0;
 	if(fr->rdat.filelen >= 0)

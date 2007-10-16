@@ -133,6 +133,10 @@ int synth_1to1_mono2stereo_altivec(real *bandPtr, mpg123_handle *fr)
 
 int synth_1to1_altivec(real *bandPtr, int channel, mpg123_handle *fr, int final)
 {
+<<<<<<< .working
+=======
+  static ALIGNED(16) real buffs[4][4][0x110];
+>>>>>>> .merge-right.r998
   static const int step = 2;
   short *samples = (short *) (fr->buffer.data + fr->buffer.fill);
 
@@ -168,7 +172,7 @@ int synth_1to1_altivec(real *bandPtr, int channel, mpg123_handle *fr, int final)
     register int j;
     real *window = decwin + 16 - bo1;
 		
-		int __attribute__ ((aligned (16))) clip_tmp[4];
+		ALIGNED(16) int clip_tmp[4];
 		vector float v1,v2,v3,v4,v5,v6,v7,v8,v9;
 		vector unsigned char vperm1,vperm2,vperm3,vperm4,vperm5;
 		vector float vsum,vsum2,vsum3,vsum4,vmin,vmax;

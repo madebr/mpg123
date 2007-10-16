@@ -22,9 +22,9 @@
 
 /* this is included in mpg123.h, which includes config.h */
 #ifdef CCALIGN
-#define aligned(a) __attribute__((aligned(a)))
+#define ALIGNED(a) __attribute__((aligned(a)))
 #else
-#define aligned(a)
+#define ALIGNED(a)
 #endif
 
 /* the optimizations only cover the synth1to1 mode and the dct36 function */

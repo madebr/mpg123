@@ -6,31 +6,17 @@
 	initially written by Michael Hipp & Thomas Orgis
 */
 
-#include <ctype.h>
-#include <stdlib.h>
-#include <signal.h>
+#include "mpg123lib_intern.h"
 
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-#include <math.h>
-#ifdef HAVE_INTTYPES_H
-#include <inttypes.h>
-#endif
-
 #include <fcntl.h>
 
-#include "mpg123lib_intern.h"
 #include "getbits.h"
 
 #ifdef WIN32
 #include <winsock.h>
 #endif
-
-/* fr is a mpg123_handle* by convention here... */
-#define NOQUIET  (!(fr->p.flags & MPG123_QUIET))
-#define VERBOSE  (NOQUIET && fr->p.verbose)
-#define VERBOSE2 (NOQUIET && fr->p.verbose > 1)
 
 #define bsbufid(fr) (fr)->bsbuf==(fr)->bsspace[0] ? 0 : ((fr)->bsbuf==fr->bsspace[1] ? 1 : ( (fr)->bsbuf==(fr)->bsspace[0]+512 ? 2 : ((fr)->bsbuf==fr->bsspace[1]+512 ? 3 : -1) ) )
 
@@ -242,7 +228,7 @@ static int check_lame_tag(mpg123_handle *fr)
 				{
 					/*
 						In theory, one should use that value for skipping...
-						When I know the exact number of samples I could simply count in audio_flush,
+						When I know the exact number of samples I could simply count in flush_output,
 						but that's problematic with seeking and such.
 						I still miss the real solution for detecting the end.
 					*/
@@ -594,7 +580,8 @@ init_resync:
       }
       else if (give_note)
       {
-        fprintf(stderr,"Note: Illegal Audio-MPEG-Header 0x%08lx at offset 0x%lx.\n", newhead,fr->rd->tell(fr)-4);
+        fprintf(stderr,"Note: Illegal Audio-MPEG-Header 0x%08lx at offset 0x%lx.\n",
+                newhead, (long unsigned int)fr->rd->tell(fr)-4);
       }
 
       if(give_note && (newhead & 0xffffff00) == ('b'<<24)+('m'<<16)+('p'<<8)) fprintf(stderr,"Note: Could be a BMP album art.\n");

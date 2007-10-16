@@ -14,7 +14,7 @@
 	It's not a very clean code ... Fix this!
 */
 
-#include "mpg123.h"
+#include "mpg123app.h"
 
 #ifdef FLOATOUT
 #define WAVE_FORMAT 3
@@ -178,7 +178,7 @@ int au_open(audio_output_t *ao, char *aufilename)
   flipendian = 0;
 
   switch(ao->format) {
-    case AUDIO_FORMAT_SIGNED_16:
+    case MPG123_ENC_SIGNED_16:
       {
         int endiantest = testEndian();
         if(endiantest == -1) return -1;
@@ -186,9 +186,9 @@ int au_open(audio_output_t *ao, char *aufilename)
         long2bigendian(3,auhead.encoding,sizeof(auhead.encoding));
       }
       break;
-    case AUDIO_FORMAT_UNSIGNED_8:
-      ao->format = AUDIO_FORMAT_ULAW_8; 
-    case AUDIO_FORMAT_ULAW_8:
+    case MPG123_ENC_UNSIGNED_8:
+      ao->format = MPG123_ENC_ULAW_8; 
+    case MPG123_ENC_ULAW_8:
       long2bigendian(1,auhead.encoding,sizeof(auhead.encoding));
       break;
     default:
@@ -217,11 +217,11 @@ int cdr_open(audio_output_t *ao, char *cdrfilename)
 	return -1;
 #else
   param.force_stereo = 0;
-  ao->format = AUDIO_FORMAT_SIGNED_16;
+  ao->format = MPG123_ENC_SIGNED_16;
   ao->rate = 44100;
   ao->channels = 2;
 /*
-  if(ao->format != AUDIO_FORMAT_SIGNED_16 || ao->rate != 44100 || ao->channels != 2) {
+  if(ao->format != MPG123_ENC_SIGNED_16 || ao->rate != 44100 || ao->channels != 2) {
     fprintf(stderr,"Oops .. not forced to 16 bit, 44kHz?, stereo\n");
     exit(1);
   }
@@ -248,11 +248,11 @@ int wav_open(audio_output_t *ao, char *wavfilename)
    long2littleendian(bps=32,RIFF.WAVE.fmt.BitsPerSample,sizeof(RIFF.WAVE.fmt.BitsPerSample));
    flipendian = testEndian();
 #else
-   if(ao->format == AUDIO_FORMAT_SIGNED_16) {
+   if(ao->format == MPG123_ENC_SIGNED_16) {
       long2littleendian(bps=16,RIFF.WAVE.fmt.BitsPerSample,sizeof(RIFF.WAVE.fmt.BitsPerSample));
       flipendian = testEndian();
    }
-   else if(ao->format == AUDIO_FORMAT_UNSIGNED_8)
+   else if(ao->format == MPG123_ENC_UNSIGNED_8)
       long2littleendian(bps=8,RIFF.WAVE.fmt.BitsPerSample,sizeof(RIFF.WAVE.fmt.BitsPerSample));
    else
    {

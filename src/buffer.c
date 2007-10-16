@@ -10,13 +10,14 @@
 	- dammed night coders;-)
 */
 
-#include "mpg123.h"
+#include "mpg123app.h"
 
 #ifndef NOXFERMEM
 
+#include "common.h"
 #include <errno.h>
 
-int outburst = MAXOUTBURST;
+int outburst = 32768;
 
 static int intflag = FALSE;
 static int usr1flag = FALSE;

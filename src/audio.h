@@ -89,7 +89,7 @@ extern int audio_fit_capabilities(audio_output_t *ao,int c,int r);
 extern char *audio_encoding_name(int format);
 
 extern int init_output( audio_output_t *ao );
-extern void flush_output(int mod, audio_output_t *ao );
+void flush_output(int outmode, audio_output_t *ao, unsigned char *bytes, size_t count)
 extern void close_output(int mod, audio_output_t *ao );
 
 

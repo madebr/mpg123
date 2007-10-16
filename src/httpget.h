@@ -13,6 +13,21 @@
 #ifndef _HTTPGET_H_
 #define _HTPPGET_H_
 
+#include "mpg123.h"
+
+struct httpdata
+{
+	mpg123_string content_type;
+	mpg123_string icy_name;
+	mpg123_string icy_url;
+	off_t icy_interval;
+	char *proxyurl;
+	unsigned long proxyip;
+};
+
+void httpdata_init(struct httpdata *e);
+void httpdata_reset(struct httpdata *e);
+
 /* There is a whole lot of MIME types for the same thing.
    the function will reduce it to a combination of these flags */
 #define IS_FILE 1
@@ -24,7 +39,7 @@ int debunk_mime(const char* mime);
 extern char *proxyurl;
 extern unsigned long proxyip;
 /* takes url and content type string address, opens resource, returns fd for data, allocates and sets content type */
-extern int http_open (char* url, char** content_type);
+extern int http_open (char* url, struct httpdata *hd);
 extern char *httpauth;
 
 #endif
