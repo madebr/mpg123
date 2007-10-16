@@ -157,7 +157,7 @@ static long term_handle_input(mpg123_handle *fr, int do_delay)
 		break;
 	case NEXT_KEY:
 		if(!param.usebuffer) ao.flush(&ao);
-		plain_buffer_resync();
+		else buffer_resync(); /* was: plain_buffer_resync */
 	  next_track();
 	  break;
 	case QUIT_KEY:
