@@ -11,7 +11,7 @@
 */
 
 #ifndef _HTTPGET_H_
-#define _HTPPGET_H_
+#define _HTTPGET_H_
 
 #include "mpg123.h"
 
