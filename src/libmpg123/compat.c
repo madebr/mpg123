@@ -1,5 +1,6 @@
 /* Some compatibility functions. */
 
+#include "config.h"
 #include "compat.h"
 
 /* A safe realloc also for very old systems where realloc(NULL, size) returns NULL. */

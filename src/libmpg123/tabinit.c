@@ -10,7 +10,7 @@
 
 #ifdef OPT_MMXORSSE
 /* 32 bit integer; i.e. "long" on x86, but int on x86_64... */
-const int aligned(32) costab_mmxsse[] =
+const int ALIGNED(32) costab_mmxsse[] =
 {
 	1056974725, 1057056395, 1057223771, 1057485416, 1057855544,
 	1058356026, 1059019886, 1059897405, 1061067246, 1062657950,

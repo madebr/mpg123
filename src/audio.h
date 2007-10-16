@@ -14,6 +14,7 @@
 #ifndef _MPG123_AUDIO_H_
 #define _MPG123_AUDIO_H_
 
+#include "mpg123.h"
 #include "module.h"
 
 #define AUDIO_OUT_HEADPHONES       0x01
@@ -67,16 +68,16 @@ struct audio_format_name {
 
 /* ------ Declarations from "audio.c" ------ */
 
-extern audio_output_t* open_output_module( const char* name );
-extern void close_output_module( audio_output_t* ao );
-extern audio_output_t* alloc_audio_output();
-extern void audio_capabilities(audio_output_t *ao);
-extern int audio_fit_capabilities(audio_output_t *ao,int c,int r);
-extern char *audio_encoding_name(int format);
+audio_output_t* open_output_module( const char* name );
+void close_output_module( audio_output_t* ao );
+audio_output_t* alloc_audio_output();
+void audio_capabilities(audio_output_t *ao, mpg123_handle *mh);
+int audio_fit_capabilities(audio_output_t *ao,int c,int r);
+const char* audio_encoding_name(const int encoding, const int longer);
 
-extern int init_output( audio_output_t *ao );
-void flush_output(int outmode, audio_output_t *ao, unsigned char *bytes, size_t count)
-extern void close_output(int mod, audio_output_t *ao );
+int init_output(audio_output_t *ao, mpg123_handle *mh);
+void flush_output(int outmode, audio_output_t *ao, unsigned char *bytes, size_t count);
+void close_output(int mod, audio_output_t *ao );
 
 
 #endif

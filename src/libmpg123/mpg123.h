@@ -54,7 +54,7 @@ enum mpg123_errors
 	MPG123_OUT_OF_MEM, MPG123_NOT_INITIALIZED, MPG123_BAD_DECODER, MPG123_BAD_HANDLE,
 	MPG123_NO_BUFFERS, MPG123_BAD_RVA, MPG123_NO_GAPLESS, MPG123_NO_SPACE,
 	MPG123_BAD_TYPES, MPG123_BAD_BAND, MPG123_ERR_NULL, MPG123_ERR_READER,
-	MPG123_NO_SEEK_FROM_END, MPG123_BAD_WHENCE
+	MPG123_NO_SEEK_FROM_END, MPG123_BAD_WHENCE, MPG123_NO_TIMEOUT
 };
 /* Give string describing that error errcode means. */
 EXPORT const char* mpg123_plain_strerror(int errcode);
@@ -137,7 +137,8 @@ enum mpg123_parms
 	MPG123_START_FRAME,    /* start with this frame (skip frames before that) */ 
 	MPG123_DECODE_FRAMES,  /* decode only this number of frames */
 	MPG123_ICY_INTERVAL,   /* stream contains ICY metadata with this interval */
-	MPG123_OUTSCALE        /* the scale for output samples (amplitude) */
+	MPG123_OUTSCALE,       /* the scale for output samples (amplitude) */
+	MPG123_TIMEOUT         /* timeout for reading from a stream (not supported on win32) */
 };
 /* This sets, for a specific handle, a specific parameter (key chosen from the above list), to the specified value.
    TODO: Assess the possibilities and troubles of changing parameters during playback. */

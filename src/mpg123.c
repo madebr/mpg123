@@ -52,28 +52,6 @@ static void want_long_usage(char* arg);
 static void print_title(FILE* o);
 static void give_version(char* arg);
 
-struct parameter
-{
-#ifndef WIN32
-	long timeout; /* timeout for reading in seconds */
-#endif
-	long loop;    /* looping of tracks */
-	/* parameters for mpg123 handle */
-	int down_sample;
-	long rva; /* (which) rva to do: 0: nothing, 1: radio/mix/track 2: album/audiophile */
-	long halfspeed;
-	long doublespeed;
-	long start_frame;  /* frame offset to begin with */
-	long frame_number; /* number of frames to decode */
-#ifdef FLOATOUT
-	double outscale;
-#else
-	long outscale;
-#endif
-	int flags;
-	long force_rate;
-	int talk_icy;
-};
 struct parameter param = { 
   FALSE , /* aggressiv */
   FALSE , /* shuffle */
@@ -536,7 +514,7 @@ int play_frame(void)
 		else
 #endif
 		/* Normal flushing of data. */
-		flush_output(param.outmode, ao, audio, bytes)
+		flush_output(param.outmode, ao, audio, bytes);
 		if(param.checkrange)
 		{
 			long clip = mpg123_clip(mh);
@@ -558,14 +536,21 @@ int play_frame(void)
 		}
 		if(mc == MPG123_NEW_FORMAT)
 		{
+			int ret = 0;
 			mpg123_getformat(mh, &ao->rate, &ao->channels, &ao->format);
 			/* from mpg123lib branch: if(init_output()) reset_audio(); */
 			/* does the newtrunk stuff fit here? */
-			if(init_output(ao))
+			ret = init_output(ao, mh);
+			if(ret == 1)
 			{
 				warning("I am not sure if my code is ready to switch audio format during playback!");
 				reset_audio();
 				/* safe_exit(-1); */
+			}
+			if(ret < 0)
+			{
+				error1("init_output() returned %i!", ret);
+				safe_exit(1);
 			}
 		}
 	}
@@ -670,6 +655,7 @@ int main(int argc, char *argv[])
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_DOWNSPEED, param.halfspeed, 0))
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_UPSPEED, param.doublespeed, 0))
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_ICY_INTERVAL, 0, 0))
+	    && MPG123_OK == (result = mpg123_par(mp, MPG123_TIMEOUT, param.timeout, 0))
 #ifdef FLOATOUT
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_OUTSCALE, 0, param.outscale))
 #else
@@ -858,7 +844,7 @@ tc_hack:
 			else
 			{
 				off_t offset;
-				if((offset=term_control(mh,&ai)))
+				if((offset=term_control(mh,ao)))
 				{
 					if((offset = mpg123_seek_frame(mh, offset, SEEK_CUR)) >= 0)
 					{
@@ -882,7 +868,7 @@ tc_hack:
 			if(param.term_ctrl)
 			{
 				off_t offset;
-				if((offset=term_control(mh,&ai)))
+				if((offset=term_control(mh,ao)))
 				{
 					if((offset = mpg123_seek_frame(mh, offset, SEEK_CUR)) >= 0)
 					/*	&& read_frame(&fr) == 1 */

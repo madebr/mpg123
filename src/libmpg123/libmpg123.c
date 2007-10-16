@@ -211,6 +211,13 @@ int mpg123_par(mpg123_pars *mp, int key, long val, double fval)
 			mp->outscale = val;
 #endif
 		break;
+		case MPG123_TIMEOUT:
+#ifndef WIN32
+			mp->timeout = val >= 0 ? val : 0;
+#else
+			ret = MPG123_NO_TIMEOUT;
+#endif
+		break;
 		default:
 			ret = MPG123_BAD_PARAM;
 	}
@@ -818,7 +825,8 @@ static const char *mpg123_error[] =
 	"Null pointer given where valid storage address needed. (code 17)",
 	"Some problem reading the stream. (code 18)",
 	"Cannot seek from end (end is not known). (code 19)",
-	"Invalid \"whence\" for seek function. (code 20)"
+	"Invalid \"whence\" for seek function. (code 20)",
+	"Build does not support stream timeouts. (code 21)"
 };
 
 const char* mpg123_plain_strerror(int errcode)

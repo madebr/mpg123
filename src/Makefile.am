@@ -4,9 +4,10 @@
 ## see COPYING and AUTHORS files in distribution or http://mpg123.org
 ## initially written by Nicholas J. Humfrey
 
+AM_CPPFLAGS = -I$(top_srcdir)/src/libmpg123
 mpg123_LDADD = @LIBLTDL@ libmpg123/libmpg123.la
 mpg123_LDFLAGS = -export-dynamic
-mpg123_INCLUDES = -Ilibmpg123 @LTDLINCL@
+mpg123_INCLUDES = @LTDLINCL@
 mpg123_DEPENDENCIES = @LIBLTDL@ libmpg123/libmpg123.la
 
 SUBDIRS = output libmpg123
@@ -30,6 +31,8 @@ mpg123_SOURCES = \
 	buffer.h \
 	common.c \
 	common.h \
+	libmpg123/compat.c \
+	libmpg123/compat.h \
 	control_generic.c \
 	getlopt.c \
 	getlopt.h \

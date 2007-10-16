@@ -107,6 +107,9 @@ struct mpg123_pars_struct
 	int rva; /* (which) rva to do: 0: nothing, 1: radio/mix/track 2: album/audiophile */
 	long halfspeed;
 	long doublespeed;
+#ifndef WIN32
+	long timeout;
+#endif
 #define NUM_CHANNELS 2
 	char audio_caps[NUM_CHANNELS][MPG123_RATES+1][MPG123_ENCODINGS];
 /*	long start_frame; */ /* frame offset to begin with */

@@ -24,6 +24,8 @@ libmpg123_la_LIBADD = @DECODER_LOBJ@
 libmpg123_la_DEPENDENCIES = @DECODER_LOBJ@
 
 libmpg123_la_SOURCES = \
+	compat.c \
+	compat.h \
 	parse.c \
 	parse.h \
 	frame.c \

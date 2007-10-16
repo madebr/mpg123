@@ -28,7 +28,6 @@
 
 #include "mpg123app.h"
 #include "httpget.h"
-#include "mpg123.h"
 
 void httpdata_init(struct httpdata *e)
 {

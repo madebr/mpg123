@@ -4,6 +4,7 @@
 ## see COPYING and AUTHORS files in distribution or http://www.mpg123.org
 ## initially written by Nicholas J. Humfrey
 
+AM_CPPFLAGS = -I$(top_srcdir)/src/libmpg123
 
 pkglib_LTLIBRARIES = output_dummy.la
 output_dummy_la_SOURCES = dummy.c

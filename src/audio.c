@@ -7,6 +7,7 @@
 */
 
 #include "mpg123app.h"
+#include "common.h"
 
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
@@ -141,23 +142,6 @@ const char* audio_encoding_name(const int encoding, const int longer)
 	return name;
 }
 
-static int channels[NUM_CHANNELS] = { 1 , 2 };
-static int rates[NUM_RATES] = { 
-	8000, 11025, 12000, 
-	16000, 22050, 24000,
-	32000, 44100, 48000,
-	8000	/* 8000 = dummy for user forced */
-};
-
-static int encodings[NUM_ENCODINGS] = {
-	MPG123_ENC_SIGNED_16, 
-	MPG123_ENC_UNSIGNED_16,
-	MPG123_ENC_UNSIGNED_8,
-	MPG123_ENC_SIGNED_8,
-	MPG123_ENC_ULAW_8,
-	MPG123_ENC_ALAW_8
-};
-
 static void capline(mpg123_handle *mh, int ratei)
 {
 	int enci;
@@ -189,7 +173,7 @@ void print_capabilities(audio_output_t *ao, mpg123_handle *mh)
 	fprintf(stderr,"\n");
 }
 
-LIB: void audio_capabilities(struct audio_info_struct *ai, mpg123_handle *mh)
+void audio_capabilities(audio_output_t *ao, mpg123_handle *mh)
 {
 	int fmts;
 	int ri;
@@ -239,7 +223,7 @@ static void catch_child(void)
 
 /* FIXME: Old output initialization code that needs updating */
 
-int init_output(audio_output_t *ao)
+int init_output(audio_output_t *ao, mpg123_handle *mh)
 {
 	static int init_done = FALSE;
 	
@@ -281,8 +265,8 @@ int init_output(audio_output_t *ao)
 		switch ((buffer_pid = fork()))
 		{
 			case -1: /* error */
-			perror("fork()");
-			safe_exit(1);
+			error("cannot fork!");
+			return -1;
 			case 0: /* child */
 			/* oh, is that trouble here? well, buffer should actually be opened before loading tracks IMHO */
 			mpg123_close(mh); /* child doesn't need the input stream */

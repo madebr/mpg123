@@ -18,17 +18,17 @@
 static off_t get_fileinfo(mpg123_handle *);
 
 /* A normal read and a read with timeout. */
-static ssize_t plain_read(mpg123_handle *fr, unsigned char *buf, size_t count){ return read(fr->rdat.filept, buf, count); }
+static ssize_t plain_read(mpg123_handle *fr, void *buf, size_t count){ return read(fr->rdat.filept, buf, count); }
 #ifndef WIN32			
 
 /* Wait for data becoming available, allowing soft-broken network connection to die
    This is needed for Shoutcast servers that have forgotten about us while connection was temporarily down. */
-static ssize_t timeout_read(mpg123_handle *fr, unsigned char *buf, size_t count)
+static ssize_t timeout_read(mpg123_handle *fr, void *buf, size_t count)
 {
 	struct timeval tv;
 	ssize_t ret = 0;
 	fd_set fds;
-	tv.tv_sec = rds->timeout_sec;
+	tv.tv_sec = fr->rdat.timeout_sec;
 	tv.tv_usec = 0;
 	FD_ZERO(&fds);
 	FD_SET(fr->rdat.filept, &fds);
@@ -87,7 +87,7 @@ static ssize_t icy_fullread(mpg123_handle *fr, unsigned char *buf, ssize_t count
 			{
 				/* we have got some metadata */
 				char *meta_buff;
-				meta_buff = (char*) malloc(meta_size+1);
+				meta_buff = malloc(meta_size+1);
 				if(meta_buff != NULL)
 				{
 					ret = fr->rdat.fdread(fr,meta_buff,meta_size);
@@ -154,11 +154,11 @@ static off_t stream_lseek(struct reader_data *rds, off_t pos, int whence)
 static int default_init(mpg123_handle *fr)
 {
 #ifndef WIN32
-	if(param.timeout > 0)
+	if(fr->p.timeout > 0)
 	{
 		fcntl(fr->rdat.filept, F_SETFL, O_NONBLOCK);
 		fr->rdat.fdread = timeout_read;
-		fr->rdat.timeout_sec = param.timeout;
+		fr->rdat.timeout_sec = fr->p.timeout;
 		fr->rdat.flags |= READER_NONBLOCK;
 	}
 	else

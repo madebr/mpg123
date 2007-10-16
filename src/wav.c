@@ -216,7 +216,7 @@ int cdr_open(audio_output_t *ao, char *cdrfilename)
 	error("refusing to produce cdr file with float values");
 	return -1;
 #else
-  param.force_stereo = 0;
+  /* param.force_stereo = 0; */
   ao->format = MPG123_ENC_SIGNED_16;
   ao->rate = 44100;
   ao->channels = 2;
