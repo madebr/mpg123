@@ -41,8 +41,8 @@
 #include <errno.h>
 
 
-#include "Alib.h"		/* /opt/audio/include */
-#include "CUlib.h"		/* /opt/audio/include */
+#include <Alib.h>   /* /opt/audio/include */
+#include <CUlib.h>  /* /opt/audio/include */
 
 
 /**************************************************************************/
