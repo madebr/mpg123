@@ -1,0 +1,5 @@
+1. install libmpg123.so.0 to somewhere (./configure && make && make install will do)
+2. put the mpg123 dir into $XMMS2_SOURCE/src/plugins/ and build xmms2
+3. remove the MAD (or other mp3) plugin to activate the mpg123 plugin
+4. Have fun!
+
