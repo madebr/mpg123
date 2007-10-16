@@ -6,7 +6,7 @@
 	initially written by Nicholas J Humfrey
 */
 
-#include "mpg123.h"
+#include "mpg123app.h"
 
 
 /* A single module is staticly compiled in for each type */
