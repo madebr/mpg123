@@ -121,9 +121,13 @@ int frame_output_format(mpg123_handle *fr)
 end: /* Here is the _good_ end. */
 	/* we had a successful match, now see if there's a change */
 	if(nf.rate == fr->af.rate && nf.channels == fr->af.channels && nf.encoding == fr->af.encoding)
-	return 0; /* the same format as before */
+	{
+		debug("Old format!");
+		return 0; /* the same format as before */
+	}
 	else /* a new format */
 	{
+		debug("New format!");
 		fr->af.rate = nf.rate;
 		fr->af.channels = nf.channels;
 		fr->af.encoding = nf.encoding;

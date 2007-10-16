@@ -770,6 +770,7 @@ int main(int argc, char *argv[])
 		if(framenum < 0)
 		{
 			error1("Initial seek failed: %s", mpg123_strerror(mh));
+			mpg123_close(mh);
 			continue;
 		}
 

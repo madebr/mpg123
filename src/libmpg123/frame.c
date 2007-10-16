@@ -262,6 +262,8 @@ int frame_reset(mpg123_handle* fr)
 {
 	frame_buffers_reset(fr);
 	frame_icy_reset(fr);
+	fr->to_decode = 0;
+	fr->to_ignore = 0;
 	fr->metaflags = 0;
 	fr->outblock = mpg123_safe_buffer();
 	fr->num = -1;
