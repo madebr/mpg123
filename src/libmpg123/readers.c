@@ -6,12 +6,11 @@
 	initially written by Michael Hipp
 */
 
-#include <stdlib.h>
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #include "mpg123lib_intern.h"
 
@@ -576,7 +575,8 @@ int open_stream(mpg123_handle *fr, char *bs_filenam, int fd)
 	#endif
 	else if((filept = open(bs_filenam, O_RDONLY|O_BINARY)) < 0) /* a plain old file to open... */
 	{
-		perror(bs_filenam);
+		if(NOQUIET) error2("Cannot file %s: %s", bs_filenam, strerror(errno));
+		fr->err = MPG123_BAD_FILE;
 		return filept; /* error... */
 	}
 

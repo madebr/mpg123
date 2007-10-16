@@ -818,7 +818,7 @@ static const char *mpg123_error[] =
 	"Invalid mpg123 handle. (code 10)",
 	"Unable to initialize frame buffers (out of memory?)! (code 11)",
 	"Invalid RVA mode. (code 12)",
-	"This build doesn't support gapless decoding. (code 13)"
+	"This build doesn't support gapless decoding. (code 13)",
 	"Not enough buffer space. (code 14)",
 	"Incompatible numeric data types. (code 15)",
 	"Bad equalizer band. (code 16)",
@@ -826,7 +826,8 @@ static const char *mpg123_error[] =
 	"Some problem reading the stream. (code 18)",
 	"Cannot seek from end (end is not known). (code 19)",
 	"Invalid \"whence\" for seek function. (code 20)",
-	"Build does not support stream timeouts. (code 21)"
+	"Build does not support stream timeouts. (code 21)",
+	"File access error. (code 22)"
 };
 
 const char* mpg123_plain_strerror(int errcode)
