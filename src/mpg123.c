@@ -105,9 +105,10 @@ off_t frames_left;
 audio_output_t *ao = NULL;
 txfermem *buffermem = NULL;
 char *prgName = NULL;
-char *equalfile = NULL;
 /* ThOr: pointers are not TRUE or FALSE */
+char *equalfile = NULL;
 struct httpdata htd;
+int fresh = TRUE;
 
 int buffer_fd[2];
 int buffer_pid;
@@ -465,6 +466,7 @@ int open_track(char *fname)
 		return 0;
 	}
 	debug("Track successfully opened.");
+	fresh = TRUE;
 	return 1;
 }
 
@@ -485,8 +487,9 @@ int play_frame(void)
 	if(bytes)
 	{
 		if(param.frame_number > -1) --frames_left;
-		if(framenum == param.start_frame && !param.quiet)
+		if(fresh && framenum == param.start_frame && !param.quiet)
 		{
+			fresh = FALSE;
 			if(param.verbose) print_header(mh);
 			else print_header_compact(mh);
 		}
@@ -827,7 +830,7 @@ tc_hack:
 					fprintf(stderr, "\nICY-META: %s\n", icy);
 				}
 			}
-			if(param.verbose)
+			if(!fresh && param.verbose)
 			{
 #ifndef NOXFERMEM
 				if (param.verbose > 1 || !(framenum & 0x7))
