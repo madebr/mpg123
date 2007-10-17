@@ -53,6 +53,8 @@ int  feed_more(mpg123_handle *fr, unsigned char *in, long count);
 void feed_forget(mpg123_handle *fr);  /* forget the data that has been read (free some buffers) */
 off_t feed_set_pos(mpg123_handle *fr, off_t pos); /* Set position (inside available data if possible), return wanted byte offset of next feed. */
 
+void open_bad(mpg123_handle *);
+
 #define READER_FD_OPENED 0x1
 #define READER_ID3TAG    0x2
 #define READER_SEEKABLE  0x4
@@ -71,7 +73,7 @@ off_t feed_set_pos(mpg123_handle *fr, off_t pos); /* Set position (inside availa
 #define READERS 3
 #endif
 
-#define READER_ERROR -1
+#define READER_ERROR MPG123_ERR
 #define READER_MORE  MPG123_NEED_MORE
 
 #endif
