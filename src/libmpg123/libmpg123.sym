@@ -56,3 +56,5 @@ mpg123_id3
 mpg123_icy
 mpg123_tell
 mpg123_feedseek
+mpg123_scan
+mpg123_length

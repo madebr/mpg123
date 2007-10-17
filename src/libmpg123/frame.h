@@ -257,6 +257,7 @@ struct mpg123_handle_struct
 
 	/* input data */
 	off_t track_frames;
+	off_t track_samples;
 	double mean_framesize;
 	off_t mean_frames;
 	int fsizeold;

@@ -16,10 +16,19 @@ EXTRA_DIST = Makefile.legacy config.h.legacy
 CLEANFILES = *.a
 
 bin_PROGRAMS = mpg123
-EXTRA_PROGRAMS = mpglib
+EXTRA_PROGRAMS = mpglib scan
+
+# Dammit, how do I cross-directory dependencies so that they actually _work_?
+# Putting all rules in one makefile doesn't work with libtool as long as I got the sources organized in subdirs.
+# That SUCKS.
 
 mpglib_LDADD = libmpg123/libmpg123.la
 mpglib_DEPENDENCIES = libmpg123/libmpg123.la
+
+scan_LDADD = libmpg123/libmpg123.la
+scan_DEPENDENCIES = libmpg123/libmpg123.la
+scan_SOURCES = scan.c
+
 
 mpglib_SOURCES = \
 	mpglib.c

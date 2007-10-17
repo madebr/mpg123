@@ -67,6 +67,7 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 	mpg123_format_all(fr);
 	if(mp == NULL) frame_default_pars(&fr->p);
 	else memcpy(&fr->p, mp, sizeof(struct mpg123_pars_struct));
+	frame_reset(fr); /* One should ensure that... ? */
 }
 
 mpg123_pars *mpg123_new_pars(int *error)
@@ -264,6 +265,7 @@ int frame_reset(mpg123_handle* fr)
 {
 	frame_buffers_reset(fr);
 	frame_icy_reset(fr);
+	open_bad(fr);
 	fr->to_decode = 0;
 	fr->to_ignore = 0;
 	fr->metaflags = 0;
@@ -275,6 +277,7 @@ int frame_reset(mpg123_handle* fr)
 	fr->vbr = MPG123_CBR;
 	fr->abr_rate = 0;
 	fr->track_frames = 0;
+	fr->track_samples = -1;
 	fr->mean_frames = 0;
 	fr->mean_framesize = 0;
 	fr->lastscale = -1;

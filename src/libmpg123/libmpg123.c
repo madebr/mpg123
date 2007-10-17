@@ -576,6 +576,17 @@ long mpg123_clip(mpg123_handle *mh)
 	return ret;
 }
 
+static int init_track(mpg123_handle *mh)
+{
+	if(!mh->to_decode && mh->fresh)
+	{
+		/* Fresh track, need first frame for basic info. */
+		int b = get_next_frame(mh);
+		if(b < 0) return b;
+	}
+	return 0;
+}
+
 /*
 	Now, where are we? We need to know the last decoded frame... and what's left of it in buffer.
 	The current frame number can mean the last decoded frame or the to-be-decoded frame.
@@ -586,13 +597,10 @@ long mpg123_clip(mpg123_handle *mh)
 */
 off_t mpg123_tell(mpg123_handle *mh)
 {
+	int b;
 	if(mh == NULL) return MPG123_ERR;
-	if(!mh->to_decode && mh->fresh)
-	{
-		/* Fresh track, need first frame for basic info. */
-		int b = get_next_frame(mh);
-		if(b < 0) return b;
-	}
+	b = init_track(mh);
+	if(b<0) return b;
 	/* Now we have all the info at hand. */
 	debug5("tell: %li/%i first %li firstoff %li buffer %lu", (long)mh->num, mh->to_decode, (long)mh->firstframe, (long)mh->firstoff, (unsigned long)mh->buffer.fill);
 	if((mh->num < mh->firstframe) || (mh->num == mh->firstframe && mh->to_decode)) return SAMPLE_ADJUST(frame_tell_seek(mh));
@@ -709,7 +717,6 @@ feedseekend:
 	return mpg123_tell(mh);
 }
 
-
 off_t mpg123_seek_frame(mpg123_handle *mh, off_t offset, int whence)
 {
 	off_t pos = 0;
@@ -747,6 +754,64 @@ off_t mpg123_seek_frame(mpg123_handle *mh, off_t offset, int whence)
 	if(pos < 0) return pos;
 
 	return mpg123_tellframe(mh);
+}
+
+off_t mpg123_length(mpg123_handle *mh)
+{
+	int b;
+	off_t length;
+	if(mh == NULL) return MPG123_ERR;
+	b = init_track(mh);
+	if(b<0) return b;
+	if(mh->track_samples > -1) length = mh->track_samples;
+	else if(mh->track_frames > 0) length = mh->track_frames*spf(mh);
+	else
+	{
+		/* A bad estimate. Ignoring tags 'n stuff. */
+		double bpf = mh->mean_framesize ? mh->mean_framesize : compute_bpf(mh);
+		length = (off_t)((double)(mh->rdat.filelen)/bpf*spf(mh));
+	}
+	length = frame_ins2outs(mh, length);
+#ifdef GAPLESS
+	if(mh->end_os > 0 && length > mh->end_os) length = mh->end_os;
+	length -= mh->begin_os;
+#endif
+	return length;
+}
+
+int mpg123_scan(mpg123_handle *mh)
+{
+	int b;
+	off_t backframe;
+	int to_decode, to_ignore;
+	if(mh == NULL) return MPG123_ERR;
+	if(!(mh->rdat.flags & READER_SEEKABLE)){ mh->err = MPG123_NO_SEEK; return MPG123_ERR; }
+	/* Scan through the _whole_ file, since the current position is no count but computed assuming constant samples per frame. */
+	/* Also, we can just keep the current buffer and seek settings. Just operate on input frames here. */
+	b = init_track(mh); /* mh->num >= 0 !! */
+	if(b<0)
+	{
+		if(b == MPG123_DONE) return MPG123_OK;
+		else return MPG123_ERR; /* Must be error here, NEED_MORE is not for seekable streams. */
+	}
+	backframe = mh->num;
+	to_decode = mh->to_decode;
+	to_ignore = mh->to_ignore;
+	b = mh->rd->seek_frame(mh, 0);
+	if(b<0 || mh->num != 0) return MPG123_ERR;
+	/* One frame must be there now. */
+	mh->track_frames = 1;
+	mh->track_samples = spf(mh); /* Internal samples. */
+	while(read_frame(mh) == 1)
+	{
+		++mh->track_frames;
+		mh->track_samples += spf(mh);
+	}
+	b = mh->rd->seek_frame(mh, backframe);
+	if(b<0 || mh->num != backframe) return MPG123_ERR;
+	mh->to_decode = to_decode;
+	mh->to_ignore = to_ignore;
+	return MPG123_OK;
 }
 
 int mpg123_meta_check(mpg123_handle *mh)
@@ -827,7 +892,9 @@ static const char *mpg123_error[] =
 	"Cannot seek from end (end is not known). (code 19)",
 	"Invalid \"whence\" for seek function. (code 20)",
 	"Build does not support stream timeouts. (code 21)",
-	"File access error. (code 22)"
+	"File access error. (code 22)",
+	"Seek not supported by stream. (code 23)",
+	"No stream opened. (code 24)"
 };
 
 const char* mpg123_plain_strerror(int errcode)

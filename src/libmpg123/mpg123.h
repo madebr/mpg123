@@ -54,7 +54,8 @@ enum mpg123_errors
 	MPG123_OUT_OF_MEM, MPG123_NOT_INITIALIZED, MPG123_BAD_DECODER, MPG123_BAD_HANDLE,
 	MPG123_NO_BUFFERS, MPG123_BAD_RVA, MPG123_NO_GAPLESS, MPG123_NO_SPACE,
 	MPG123_BAD_TYPES, MPG123_BAD_BAND, MPG123_ERR_NULL, MPG123_ERR_READER,
-	MPG123_NO_SEEK_FROM_END, MPG123_BAD_WHENCE, MPG123_NO_TIMEOUT, MPG123_BAD_FILE
+	MPG123_NO_SEEK_FROM_END, MPG123_BAD_WHENCE, MPG123_NO_TIMEOUT, MPG123_BAD_FILE,
+	MPG123_NO_SEEK, MPG123_NO_READER
 };
 /* Give string describing that error errcode means. */
 EXPORT const char* mpg123_plain_strerror(int errcode);
@@ -172,6 +173,10 @@ EXPORT off_t mpg123_tell(mpg123_handle *mh);
 EXPORT off_t mpg123_tellframe(mpg123_handle *mh);
 /* If possible, tell the full (expected) length of current track in samples. */
 EXPORT off_t mpg123_length(mpg123_handle *mh);
+/* Make a full parsing scan through the file, return MPG123_OK or MPG123_ERR.
+   An accurate length value is stored. Seek index will be filled.
+   A seek back to current position is performed. At all, this function refuses work when stream is not seekable. */
+EXPORT int mpg123_scan(mpg123_handle *mh);
 /* Info about current and remaining frames/seconds.
    You provide an offset (in frames) from now and a number of output bytes served by mpg123 but not yet played.
    You get the projected current frame and seconds, as well as the remaining frames/seconds.
@@ -254,9 +259,6 @@ struct mpg123_frameinfo
 };
 
 EXPORT int mpg123_info(mpg123_handle *mh, struct mpg123_frameinfo *mi);
-/* Scan through file (if seekable) or just the first frame (without decoding, for non-seekable) and return various information.
-   That could include format, length, padding, ID3, ... */
-/* int mpg123_scan(mpg123_handle *mh, struct mpg123_info *mi); */
 
 EXPORT size_t mpg123_safe_buffer(); /* Get the safe output buffer size for all cases (when you want to replace the internal buffer) */
 EXPORT size_t mpg123_outblock(mpg123_handle *mh); /* The max size of one frame's decoded output with current settings. */
