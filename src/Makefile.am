@@ -11,7 +11,7 @@ mpg123_INCLUDES = @LTDLINCL@
 mpg123_DEPENDENCIES = @LIBLTDL@ libmpg123/libmpg123.la
 
 SUBDIRS = output libmpg123
-EXTRA_DIST = Makefile.legacy config.h.legacy
+EXTRA_DIST = Makefile.legacy config.h.legacy legacy_module.c
 
 CLEANFILES = *.a
 
