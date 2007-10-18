@@ -577,7 +577,7 @@ int set_synth_functions(mpg123_handle *fr)
 	funcs_mono[1][0][0] = (func_synth_mono) opt_synth_1to1_mono(fr);
 	funcs_mono[1][1][0] = (func_synth_mono) opt_synth_1to1_8bit_mono(fr);
 
-	if(MPG123_ENC_8(fr->af.encoding)) p8 = 1;
+	if(fr->af.encoding & MPG123_ENC_8) p8 = 1;
 	fr->synth = funcs[p8][ds];
 	fr->synth_mono = funcs_mono[fr->af.channels==2 ? 0 : 1][p8][ds];
 

@@ -70,7 +70,7 @@ EXPORT int         mpg123_errcode(mpg123_handle *mh);
 /* 16 or 8 bits, signed or unsigned... all flags fit into 8 bits, float/double are not yet standard and special anyway */
 #define MPG123_ENC_16     0x40 /* 0100 0000 */
 #define MPG123_ENC_SIGNED 0x80 /* 1000 0000 */
-#define MPG123_ENC_8(f)   (!((f) & MPG123_ENC_16)) /* it's 8bit encoding of not 16bit, this changes in case float output will be integrated in the normal library */
+#define MPG123_ENC_8      0x0f /* 0000 1111 */ 
 
 #define MPG123_ENC_SIGNED_16    (MPG123_ENC_16|MPG123_ENC_SIGNED|0x10) /* 1101 0000 */
 #define MPG123_ENC_UNSIGNED_16  (MPG123_ENC_16|0x20)                   /* 0110 0000 */
@@ -200,7 +200,7 @@ EXPORT int mpg123_open_fd  (mpg123_handle *mh, int fd);    /* use an already ope
 #define MPG123_NEW_FORMAT -11 /* Output format will be different on next call. */
 #define MPG123_DONE       -12 /* Track ended. */
 /* Read from stream and decode up to outmemsize bytes. Returns a code from above and the number of decoded bytes in *done. */
-EXPORT ssize_t mpg123_read(mpg123_handle *mh, unsigned char *outmemory, size_t outmemsize, size_t *done);
+EXPORT int mpg123_read(mpg123_handle *mh, unsigned char *outmemory, size_t outmemsize, size_t *done);
 /* Same as above but with feeding input data (when inmemory != NULL).
    This is very close to a drop-in replacement for old mpglib.
    When you give zero-sized output buffer the input will be parsed until decoded data is available.

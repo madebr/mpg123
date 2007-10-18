@@ -496,7 +496,7 @@ int mpg123_decode_frame(mpg123_handle *mh, off_t *num, unsigned char **audio, si
 	return MPG123_ERR;
 }
 
-ssize_t mpg123_read(mpg123_handle *mh, unsigned char *out, size_t size, size_t *done)
+int mpg123_read(mpg123_handle *mh, unsigned char *out, size_t size, size_t *done)
 {
 	return mpg123_decode(mh, NULL, 0, out, size, done);
 }
