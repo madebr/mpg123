@@ -8,20 +8,6 @@
 
 #include "mpg123lib_intern.h"
 
-#ifdef OPT_MMXORSSE
-/* 32 bit integer; i.e. "long" on x86, but int on x86_64... */
-const int ALIGNED(32) costab_mmxsse[] =
-{
-	1056974725, 1057056395, 1057223771, 1057485416, 1057855544,
-	1058356026, 1059019886, 1059897405, 1061067246, 1062657950,
-	1064892987, 1066774581, 1069414683, 1073984175, 1079645762,
-	1092815430, 1057005197, 1057342072, 1058087743, 1059427869,
-	1061799040, 1065862217, 1071413542, 1084439708, 1057128951,
-	1058664893, 1063675095, 1076102863, 1057655764, 1067924853,
-	1060439283
-};
-#endif
-
 /* All optimizations share this code - with the exception of MMX */
 #ifndef OPT_MMX_ONLY
 /* that altivec alignment part here should not hurt generic code, I hope */
