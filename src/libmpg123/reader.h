@@ -20,7 +20,13 @@ struct reader_data
 #ifndef WIN32
 	long timeout_sec;
 #endif
-	ssize_t (*fdread)(mpg123_handle *, void *, size_t);
+	ssize_t (*fdread) (mpg123_handle *, void *, size_t);
+	/* User can replace the read and lseek functions. The r_* are the stored replacement functions or NULL,
+	   The second two pointers are the actual workers (default map to POSIX read/lseek). */
+	ssize_t (*r_read) (int fd, void *buf, size_t count);
+	off_t   (*r_lseek)(int fd, off_t offset, int whence);
+	ssize_t (*read) (int fd, void *buf, size_t count);
+	off_t   (*lseek)(int fd, off_t offset, int whence);
 	/* variables specific to feed reader */
 	off_t firstpos; /* the point of return on non-forget() */
 	struct buffy *buf;  /* first in buffer chain */

@@ -192,6 +192,12 @@ EXPORT double mpg123_tpf(mpg123_handle *mh);
 EXPORT int mpg123_open     (mpg123_handle *mh, char *url); /* a file or http url */
 EXPORT int mpg123_open_feed(mpg123_handle *mh);            /* prepare for direct feeding */
 EXPORT int mpg123_open_fd  (mpg123_handle *mh, int fd);    /* use an already opened file descriptor */
+/* Replace low-level stream access functions; read and lseek as known in POSIX.
+   You can use this to make any fancy file opening/closing yourself, using open_fd to set the file descriptor for your read/lseek.
+   Setting a function to NULL means that the default internal read is used (active from next mpg123_open call). */
+EXPORT int mpg123_replace_reader( mpg123_handle *mh,
+                                  ssize_t (*r_read) (int, void *, size_t),
+                                  off_t   (*r_lseek)(int, off_t, int) );
 /* reading samples / triggering decoding, possible return values: */
 /* MPG123_OK on success */
 #define MPG123_ERR -1 /* in general, functions return that on error */

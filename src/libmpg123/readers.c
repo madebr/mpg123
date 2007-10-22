@@ -15,9 +15,11 @@
 #include "mpg123lib_intern.h"
 
 static off_t get_fileinfo(mpg123_handle *);
+static ssize_t posix_read(int fd, void *buf, size_t count){ return read(fd, buf, count); }
+static off_t   posix_lseek(int fd, off_t offset, int whence){ return lseek(fd, offset, whence); }
 
 /* A normal read and a read with timeout. */
-static ssize_t plain_read(mpg123_handle *fr, void *buf, size_t count){ return read(fr->rdat.filept, buf, count); }
+static ssize_t plain_read(mpg123_handle *fr, void *buf, size_t count){ return fr->rdat.read(fr->rdat.filept, buf, count); }
 #ifndef WIN32			
 
 /* Wait for data becoming available, allowing soft-broken network connection to die
@@ -32,6 +34,7 @@ static ssize_t timeout_read(mpg123_handle *fr, void *buf, size_t count)
 	FD_ZERO(&fds);
 	FD_SET(fr->rdat.filept, &fds);
 	ret = select(fr->rdat.filept+1, &fds, NULL, NULL, &tv);
+	/* This works only with "my" read function. Not user-replaced. */
 	if(ret > 0) ret = read(fr->rdat.filept, buf, count);
 	else
 	{
@@ -141,11 +144,11 @@ static ssize_t plain_fullread(mpg123_handle *fr,unsigned char *buf, ssize_t coun
 	return cnt;
 }
 
-static off_t stream_lseek(struct reader_data *rds, off_t pos, int whence)
+static off_t stream_lseek(mpg123_handle *fr, off_t pos, int whence)
 {
 	off_t ret;
-	ret = lseek(rds->filept, pos, whence);
-	if (ret >= 0)	rds->filepos = ret;
+	ret = fr->rdat.lseek(fr->rdat.filept, pos, whence);
+	if (ret >= 0)	fr->rdat.filepos = ret;
 	else ret = READER_ERROR; /* not the original value */
 	return ret;
 }
@@ -164,6 +167,8 @@ static int default_init(mpg123_handle *fr)
 #endif
 	fr->rdat.fdread = plain_read;
 
+	fr->rdat.read  = fr->rdat.r_read  != NULL ? fr->rdat.r_read  : posix_read;
+	fr->rdat.lseek = fr->rdat.r_lseek != NULL ? fr->rdat.r_lseek : posix_lseek;
 	fr->rdat.filelen = get_fileinfo(fr);
 	fr->rdat.filepos = 0;
 	if(fr->rdat.filelen >= 0)
@@ -190,7 +195,7 @@ void stream_close(mpg123_handle *fr)
  */
 static int stream_back_bytes(mpg123_handle *fr, off_t bytes)
 {
-	if(stream_lseek(&fr->rdat,-bytes,SEEK_CUR) < 0) return READER_ERROR;
+	if(stream_lseek(fr,-bytes,SEEK_CUR) < 0) return READER_ERROR;
 
 	return 0;
 }
@@ -206,7 +211,7 @@ static int stream_seek_frame(mpg123_handle *fr, off_t newframe)
 		else newframe = 0;*/
 
 		/* now seek to nearest leading index position and read from there until newframe is reached */
-		if(stream_lseek(&fr->rdat,frame_index_find(fr, newframe, &preframe),SEEK_SET) < 0)
+		if(stream_lseek(fr,frame_index_find(fr, newframe, &preframe),SEEK_SET) < 0)
 		return READER_ERROR;
 		debug2("going to %lu; just got %lu", newframe, preframe);
 		fr->num = preframe-1; /* Watch out! I am going to read preframe... fr->num should indicate the frame before! */
@@ -262,7 +267,7 @@ static off_t stream_skip_bytes(mpg123_handle *fr,off_t len)
 {
 	if((fr->rdat.flags & READER_SEEKABLE) && (fr->rdat.filelen >= 0))
 	{
-		off_t ret = stream_lseek(&fr->rdat, len, SEEK_CUR);
+		off_t ret = stream_lseek(fr, len, SEEK_CUR);
 
 		return ret<0 ? READER_ERROR : ret;
 	}
@@ -302,7 +307,7 @@ static off_t generic_tell(mpg123_handle *fr){ return fr->rdat.filepos; }
 
 static void stream_rewind(mpg123_handle *fr)
 {
-	stream_lseek(&fr->rdat,0,SEEK_SET);
+	stream_lseek(fr,0,SEEK_SET);
 }
 
 /*
@@ -314,15 +319,15 @@ static off_t get_fileinfo(mpg123_handle *fr)
 {
 	off_t len;
 
-	if((len=lseek(fr->rdat.filept,0,SEEK_END)) < 0)	return -1;
+	if((len=fr->rdat.lseek(fr->rdat.filept,0,SEEK_END)) < 0)	return -1;
 
-	if(lseek(fr->rdat.filept,-128,SEEK_END) < 0) return -1;
+	if(fr->rdat.lseek(fr->rdat.filept,-128,SEEK_END) < 0) return -1;
 
 	if(fr->rd->fullread(fr,(unsigned char *)fr->id3buf,128) != 128)	return -1;
 
 	if(!strncmp((char*)fr->id3buf,"TAG",3))	len -= 128;
 
-	if(lseek(fr->rdat.filept,0,SEEK_SET) < 0)	return -1;
+	if(fr->rdat.lseek(fr->rdat.filept,0,SEEK_SET) < 0)	return -1;
 
 	if(len <= 0)	return -1;
 

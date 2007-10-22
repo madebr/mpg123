@@ -318,6 +318,17 @@ int mpg123_open_feed(mpg123_handle *mh)
 	return open_feed(mh);
 }
 
+int mpg123_replace_reader( mpg123_handle *mh,
+                           ssize_t (*r_read) (int, void *, size_t),
+                           off_t   (*r_lseek)(int, off_t, int) )
+{
+	if(mh == NULL) return MPG123_ERR;
+	mh->rdat.r_read = r_read;
+	mh->rdat.r_lseek = r_lseek;
+	return MPG123_OK;
+}
+
+
 int decode_update(mpg123_handle *mh)
 {
 	long native_rate = frame_freq(mh);

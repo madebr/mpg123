@@ -58,3 +58,4 @@ mpg123_tell
 mpg123_feedseek
 mpg123_scan
 mpg123_length
+mpg123_replace_reader
