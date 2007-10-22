@@ -529,10 +529,11 @@ int mpg123_read(mpg123_handle *mh, unsigned char *out, size_t size, size_t *done
 int mpg123_decode(mpg123_handle *mh,unsigned char *inmemory, size_t inmemsize, unsigned char *outmemory, size_t outmemsize, size_t *done)
 {
 	int ret = MPG123_OK;
-	*done = 0;
+	size_t mdone = 0;
 	if(mh == NULL) return MPG123_ERR;
 	if(inmemsize > 0)
-	if(feed_more(mh, inmemory, inmemsize) == -1) return MPG123_ERR;
+	if(feed_more(mh, inmemory, inmemsize) == -1){ ret = MPG123_ERR; goto decodeend; }
+
 	while(ret == MPG123_OK)
 	{
 		debug3("decode loop, fill %i (%li vs. %li)", mh->buffer.fill, (long)mh->num, (long)mh->firstframe);
@@ -545,7 +546,11 @@ int mpg123_decode(mpg123_handle *mh,unsigned char *inmemory, size_t inmemsize, u
 				mh->new_format = 0;
 				return MPG123_NEW_FORMAT;
 			}
-			if(mh->buffer.size - mh->buffer.fill < mh->outblock) return MPG123_NO_SPACE;
+			if(mh->buffer.size - mh->buffer.fill < mh->outblock)
+			{
+				ret = MPG123_NO_SPACE;
+				goto decodeend;
+			}
 			mh->clip += (mh->do_layer)(mh);
 			mh->to_decode = mh->to_ignore = FALSE;
 			mh->buffer.p = mh->buffer.data;
@@ -557,22 +562,24 @@ int mpg123_decode(mpg123_handle *mh,unsigned char *inmemory, size_t inmemsize, u
 		if(mh->buffer.fill) /* Copy (part of) the decoded data to the caller's buffer. */
 		{
 			/* get what is needed - or just what is there */
-			int a = mh->buffer.fill > (outmemsize - *done) ? outmemsize - *done : mh->buffer.fill;
+			int a = mh->buffer.fill > (outmemsize - mdone) ? outmemsize - mdone : mh->buffer.fill;
 			debug4("buffer fill: %i; copying %i (%i - %i)", mh->buffer.fill, a, outmemsize, *done);
 			memcpy(outmemory, mh->buffer.p, a);
 			/* less data in frame buffer, less needed, output pointer increase, more data given... */
 			mh->buffer.fill -= a;
 			outmemory  += a;
-			*done += a;
+			mdone += a;
 			mh->buffer.p += a;
-			if(!(outmemsize > *done)) return ret;
+			if(!(outmemsize > mdone)) goto decodeend;
 		}
 		else /* If we didn't have data, get a new frame. */
 		{
 			int b = get_next_frame(mh);
-			if(b < 0) return b;
+			if(b < 0){ ret = b; goto decodeend; }
 		}
 	}
+decodeend:
+	if(done != NULL) *done = mdone;
 	return ret;
 }
 
