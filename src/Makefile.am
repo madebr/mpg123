@@ -4,11 +4,12 @@
 ## see COPYING and AUTHORS files in distribution or http://mpg123.org
 ## initially written by Nicholas J. Humfrey
 
-AM_CPPFLAGS = -I$(top_srcdir)/src/libmpg123
-mpg123_LDADD = @LIBLTDL@ libmpg123/libmpg123.la
+# AM_CPPFLAGS =
+mpg123_LDADD = $(LIBLTDL) libmpg123/libmpg123.la
 mpg123_LDFLAGS = -export-dynamic
-mpg123_INCLUDES = @LTDLINCL@
-mpg123_DEPENDENCIES = @LIBLTDL@ libmpg123/libmpg123.la
+# Just mpg123_INCLUDES has no effect on build! Trying that before reverting to AM_CPPFLAGS.
+INCLUDES = $(LTDLINCL) -I$(top_srcdir)/src/libmpg123
+mpg123_DEPENDENCIES = $(LIBLTDL) libmpg123/libmpg123.la
 
 SUBDIRS = output libmpg123
 EXTRA_DIST = Makefile.legacy config.h.legacy legacy_module.c

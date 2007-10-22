@@ -4,8 +4,8 @@ The library seems to work, xmms2 plugin works with it, too.
 The library may need some tuning for optimal performance, but it is not much slower than old mpg123 - actually, I have to check on a number of systems if it isn't even faster on some.
 
 The outputs need work to fix various targets - p.ex. Solaris does not work at all at the moment.
-Then, we need to hack the configure to support the one-static-module build like in Makefile.legacy; for offering the choice to people and, more importantly, support systems without libltdl.
-The dependecy on that libtool loader broke many systems with the autoconf setup.
+Then, we need to hack the configure to support the one-static-module build like in Makefile.legacy; for offering the choice to people without sacrificing the easy build configuration.
+Currently, many output systems are just broken...
 
 Specific bugs:
 

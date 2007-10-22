@@ -80,5 +80,7 @@ run_cmd libtoolize --force --copy --ltdl
 run_cmd automake --add-missing --copy
 run_cmd autoconf
 
+echo "Fixing that darned libltdl Makefile.in... it wants to blow on make dist because it's directory has been precreated!!!!"
+perl -pi -e 's/mkdir \$\(distdir\)/\$(mkdir_p) \$(distdir)/' libltdl/Makefile.in
 
 $srcdir/configure --enable-debug && echo
