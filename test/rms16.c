@@ -32,7 +32,7 @@ int main(int argc, char** argv)
 		if(diff < 0) diff *= -1;
 		if(diff > max) max = diff;
 		if(diff) ++diffcount;
-		if(diff > 10) fprintf(stderr, "diff %i at %li\n", diff, count);
+		/* if(diff > 10) fprintf(stderr, "diff %i at %li\n", diff, count); */
 		++count;
 		rms += pow((double)av/32768-(double)bv/32768,2);
 		}
