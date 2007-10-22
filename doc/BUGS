@@ -1,20 +1,3 @@
 If you find a bug, please check for and report it in the sourceforge bug tracking system:
 
 	http://sourceforge.net/tracker/?atid=733194&group_id=135704&func=browse
-
-Old list of known bugs from 0.59r:
-
-Of course, there are some known bugs:
--------------------------------------
-
-- Using the buffermode, the switching from foreground to background operation 
-  results in ugly noise  (-> hopefully fixed)
-- win32 port: problems with option handling
-- auto-config depending on audio capabilities not fully (buggy) implemented
-
-- 0.59n/o is only tested on Solaris and Linux .. it should compile
-  on HPUX, too but I haven't tested the audio part for this system. 
-  It also compiles under Aix 3.x with the 'make generic' version
-  SGI completly untested
-  SUNOS 4.x completly untested
-
