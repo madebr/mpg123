@@ -26,4 +26,5 @@ EXTRA_DIST = \
 	doc/libmpg123_speed.txt \
 	xmms2-plugin/README \
 	xmms2-plugin/mpg123/mpg123.c \
-	xmms2-plugin/mpg123/wscript
+	xmms2-plugin/mpg123/wscript \
+	test/rms16.c
