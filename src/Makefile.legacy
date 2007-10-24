@@ -18,7 +18,7 @@ PENTIUM_DECODE=decode_i586
 #PENTIUM_OPT=-DOPT_I586_DITHER
 #PENTIUM_DECODE=decode_i586_dither
 
-CPPFLAGS:= -DGAPLESS -Ilibmpg123 -I. 
+CPPFLAGS:= -DGAPLESS -Ilibmpg123 -I. $(CPPFLAGS)
 
 ###################################################
 ######                                       ######
