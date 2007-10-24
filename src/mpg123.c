@@ -419,9 +419,9 @@ static void reset_audio(void)
 		 *   the device's internal buffer before
 		 *   changing the sample rate.   [OF]
 		 */
-		ao->close(ao);
-		if (ao->open(ao) < 0) {
-			error("failed to open audio device");
+		if(reset_output(ao) < 0)
+		{
+			error1("failed to reset audio device: %s", strerror(errno));
 			safe_exit(1);
 		}
 	}

@@ -141,15 +141,12 @@ void buffer_loop(audio_output_t *ao, sigset_t *oldsigset)
 			 */
 			if (xf->wakeme[XF_WRITER])
 				xfermem_putcmd(my_fd, XF_CMD_WAKEUP);
-			if (param.outmode == DECODE_AUDIO) {
-				ao->close(ao);
-				ao->rate = xf->buf[0]; 
-				ao->channels = xf->buf[1]; 
-				ao->format = xf->buf[2];
-				if (ao->open(ao) < 0) {
-					perror("audio");
-					exit(1);
-				}
+			ao->rate = xf->buf[0]; 
+			ao->channels = xf->buf[1]; 
+			ao->format = xf->buf[2];
+			if (reset_output(ao) < 0) {
+				error1("failed to reset audio: %s", strerror(errno));
+				exit(1);
 			}
 		}
 		if ( (bytes = xfermem_get_usedspace(xf)) < outburst ) {

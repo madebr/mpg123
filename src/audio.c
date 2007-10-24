@@ -329,12 +329,16 @@ void flush_output(int outmode, audio_output_t *ao, unsigned char *bytes, size_t 
 	}
 }
 
+/* is this used? */
 void close_output(int outmode, audio_output_t *ao)
 {
 
     switch(outmode) {
       case DECODE_AUDIO:
         ao->close(ao);
+        /* Module frees and closes its resources, but may not reset them. */
+        ao->userptr = NULL;
+        ao->fn = -1;
         break;
       case DECODE_WAV:
         wav_close();
@@ -347,4 +351,15 @@ void close_output(int outmode, audio_output_t *ao)
         break;
     }
 
+}
+
+/* Also for WAV decoding? */
+int reset_output(audio_output_t *ao)
+{
+	if(param.outmode == DECODE_AUDIO)
+	{
+		close_output(param.outmode, ao);
+		return ao->open(ao);
+	}
+	else return 0;
 }

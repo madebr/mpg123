@@ -78,7 +78,7 @@ const char* audio_encoding_name(const int encoding, const int longer);
 int init_output(audio_output_t *ao, mpg123_handle *mh);
 void flush_output(int outmode, audio_output_t *ao, unsigned char *bytes, size_t count);
 void close_output(int mod, audio_output_t *ao );
-
+int reset_output(audio_output_t *ao);
 
 #endif
 

@@ -137,6 +137,7 @@ static int open_alsa(audio_output_t *ao)
 {
 	const char *pcm_name;
 	snd_pcm_t *pcm=NULL;
+	debug1("open_alsa with %p", ao->userptr);
 
 	pcm_name = ao->device ? ao->device : "default";
 	if (snd_pcm_open(&pcm, pcm_name, SND_PCM_STREAM_PLAYBACK, 0) < 0) {
@@ -215,11 +216,12 @@ static void flush_alsa(audio_output_t *ao)
 static int close_alsa(audio_output_t *ao)
 {
 	snd_pcm_t *pcm=(snd_pcm_t*)ao->userptr;
-
+	debug1("close_alsa with %p", ao->userptr);
 	if(pcm != NULL) /* be really generous for being called without any device opening */
 	{
 		if (snd_pcm_state(pcm) == SND_PCM_STATE_RUNNING)
 			snd_pcm_drain(pcm);
+		ao->userptr = NULL; /* Should alsa do this or the module wrapper? */
 		return snd_pcm_close(pcm);
 	}
 	else return 0;

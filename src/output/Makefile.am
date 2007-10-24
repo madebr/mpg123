@@ -21,6 +21,7 @@ output_dummy_la_LDFLAGS = -module -avoid-version
 #pkglib_LTLIBRARIES += output_alib.la
 #output_alib_la_SOURCES = alib.c
 #output_alib_la_LDFLAGS = -module -avoid-version
+#output_alib_la_CFLAGS= -I/opt/audio/include
 #endif
 
 if HAVE_ALSA
@@ -90,7 +91,7 @@ if HAVE_PORTAUDIO
 pkglib_LTLIBRARIES += output_portaudio.la
 output_portaudio_la_SOURCES = portaudio.c
 output_portaudio_la_LDFLAGS = -module -avoid-version
-output_portaudio_la_LIBADD  = -lportaudio
+output_portaudio_la_LIBADD  = -lportaudio @PORTAUDIO_EXTRA_LIB@
 endif
 
 if HAVE_PULSE
@@ -109,11 +110,12 @@ output_sdl_la_LDFLAGS = -module -avoid-version @SDL_LDFLAGS@
 output_sdl_la_LIBADD = @SDL_LIBS@
 endif
 
-#if HAVE_SGI
-#pkglib_LTLIBRARIES += output_sgi.la
-#output_sgi_la_SOURCES = sgi.c
-#output_sgi_la_LDFLAGS = -module -avoid-version
-#endif
+if HAVE_SGI
+pkglib_LTLIBRARIES += output_sgi.la
+output_sgi_la_SOURCES = sgi.c
+output_sgi_la_LDFLAGS = -module -avoid-version
+output_sgi_la_LIBADD = -laudio
+endif
 
 if HAVE_SUN
 pkglib_LTLIBRARIES += output_sun.la
@@ -121,8 +123,9 @@ output_sun_la_SOURCES = sun.c
 output_sun_la_LDFLAGS = -module -avoid-version
 endif
 
-#if HAVE_WIN32
-#pkglib_LTLIBRARIES += output_win32.la
-#output_win32_la_SOURCES = win32.c
-#output_win32_la_LDFLAGS = -module -avoid-version
-#endif
+if HAVE_WIN32
+pkglib_LTLIBRARIES += output_win32.la
+output_win32_la_SOURCES = win32.c
+output_win32_la_LDFLAGS = -module -avoid-version
+output_win32_la_LIBADD= -lwinmm
+endif
