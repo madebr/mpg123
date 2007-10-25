@@ -5,14 +5,14 @@
 ## initially written by Nicholas J. Humfrey
 
 # AM_CPPFLAGS =
-mpg123_LDADD = $(LIBLTDL) libmpg123/libmpg123.la
-mpg123_LDFLAGS = -export-dynamic
+mpg123_LDADD = $(LIBLTDL) libmpg123/libmpg123.la @MODULE_OBJ@ @OUTPUT_OBJ@ @OUTPUT_LIBS@
+mpg123_LDFLAGS = @LT_LDFLAGS@ @OUTPUT_LDFLAGS@
 # Just mpg123_INCLUDES has no effect on build! Trying that before reverting to AM_CPPFLAGS.
 INCLUDES = $(LTDLINCL) -I$(top_srcdir)/src/libmpg123
-mpg123_DEPENDENCIES = $(LIBLTDL) libmpg123/libmpg123.la
+mpg123_DEPENDENCIES = $(LIBLTDL) @MODULE_OBJ@ libmpg123/libmpg123.la
 
 SUBDIRS = output libmpg123
-EXTRA_DIST = Makefile.legacy config.h.legacy legacy_module.c
+EXTRA_DIST = Makefile.legacy config.h.legacy legacy_module.c module.c
 
 CLEANFILES = *.a
 
@@ -50,7 +50,6 @@ mpg123_SOURCES = \
 	httpget.h \
 	genre.h \
 	genre.c \
-	module.c \
 	module.h \
 	mpg123.c \
 	mpg123app.h \
