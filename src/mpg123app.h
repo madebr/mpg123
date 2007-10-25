@@ -130,7 +130,7 @@ struct parameter
 };
 
 extern char *equalfile;
-extern long framenum;
+extern off_t framenum;
 extern struct httpdata htd;
 
 extern int buffer_fd[2];
