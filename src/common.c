@@ -24,7 +24,7 @@ static const char *smodes[5] = { "stereo", "joint-stereo", "dual-channel", "mono
 static const char *layers[4] = { "Unknown" , "I", "II", "III" };
 static const char *versions[4] = {"1.0", "2.0", "2.5", "x.x" };
 
-#if !defined(WIN32) && !defined(GENERIC)
+#if !defined(WIN32) && defined(HAVE_SIGNAL_H)
 void (*catchsignal(int signum, void(*handler)()))()
 {
   struct sigaction new_sa;
