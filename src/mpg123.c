@@ -116,6 +116,7 @@ size_t bufferblock = 0;
 
 static int intflag = FALSE;
 int OutputDescriptor;
+static int filept = -1;
 
 #if !defined(WIN32) && !defined(GENERIC)
 static void catch_interrupt(void)
@@ -430,10 +431,10 @@ static void reset_audio(void)
 /* 1 on success, 0 on failure */
 int open_track(char *fname)
 {
-	int filept = -1;
+	filept=-1;
 	if(MPG123_OK != mpg123_param(mh, MPG123_ICY_INTERVAL, 0, 0))
 	error1("Cannot (re)set ICY interval: %s", mpg123_strerror(mh));
-	if(!fname) filept = STDIN_FILENO;
+	if(!strcmp(fname, "-")) filept = STDIN_FILENO;
 	else if (!strncmp(fname, "http://", 7)) /* http stream */
 	{
 		httpdata_reset(&htd);
@@ -474,6 +475,8 @@ int open_track(char *fname)
 void close_track(void)
 {
 	mpg123_close(mh);
+	if(filept > -1) close(filept);
+	filept = -1;
 }
 
 /* return 1 on success, 0 on failure */
@@ -763,7 +766,7 @@ int main(int argc, char *argv[])
 	{
 		char *dirname, *filename;
 		frames_left = param.frame_number;
-		debug1("Going to play %s", fname != NULL ? fname : "standard input");
+		debug1("Going to play %s", strcmp(fname, "-") ? fname : "standard input");
 
 		if(!open_track(fname)) continue;
 
