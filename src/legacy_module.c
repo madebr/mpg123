@@ -39,7 +39,7 @@ open_module( const char* type, const char* name )
 		return NULL;
 	}
 	
-	// Debugging info
+	/* Debugging info */
 	debug1("Details of static module type '%s':", type);
 	debug1("  api_version=%d", mod->api_version);
 	debug1("  name=%s", mod->name);
