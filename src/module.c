@@ -7,6 +7,8 @@
 */
 
 #include <dirent.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <errno.h>
 #include <ctype.h>
 #include <ltdl.h>
@@ -112,12 +114,26 @@ void close_module( mpg123_module_t* module )
 
 }
 
+#define PATH_STEP 50
+static char *get_the_cwd()
+{
+	size_t bs = PATH_STEP;
+	char *buf = malloc(bs);
+	while((buf != NULL) && getcwd(buf, bs) == NULL)
+	{
+		char *buf2;
+		buf2 = realloc(buf, bs+=PATH_STEP);
+		if(buf2 == NULL){ free(buf); buf = NULL; }
+		else debug1("pwd: increased buffer to %lu", (unsigned long)bs);
+	}
+	return buf;
+}
 
 void list_modules()
 {
 	DIR* dir = NULL;
 	struct dirent *dp = NULL;
-
+	char *workdir = NULL;
 	
 	/* Open the module directory */
 	dir = opendir( PKGLIBDIR );
@@ -126,6 +142,13 @@ void list_modules()
 		exit(-1);
 	}
 	
+	workdir = get_the_cwd();
+	if(chdir(PKGLIBDIR) != 0)
+	{
+		error2("Failed to enter module directory (%s): %s\n", PKGLIBDIR, strerror(errno));
+		free(workdir);
+		exit(-1); /* Hm, reintroduce the habit of random exit()s scattered around the code? */
+	}
 	/* Display the program title */
 	/* print_title(stderr); */
 
@@ -135,7 +158,10 @@ void list_modules()
 	printf("-----------------\n");
 	
 	while( (dp = readdir(dir)) != NULL ) {
-		if (dp->d_type == DT_REG) {
+		struct stat fst;
+		if(stat(dp->d_name, &fst) != 0) continue;
+		if(S_ISREG(fst.st_mode)) /* Allow links? */
+		{
 			char* ext = dp->d_name + strlen( dp->d_name ) - strlen( MODULE_FILE_SUFFIX );
 			if (strcmp(ext, MODULE_FILE_SUFFIX) == 0)
 			{
@@ -169,6 +195,8 @@ void list_modules()
 		}
 	}
 
+	chdir(workdir);
+	free(workdir);
 	closedir( dir );
 	
 	exit(0);
