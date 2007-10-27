@@ -28,9 +28,7 @@
 #include <asm/audioio.h>
 #endif
 
-
-
-
+#include <fcntl.h>
 
 static void set_format_helper(audio_output_t *ao, audio_info_t *ainfo)
 {
@@ -67,7 +65,7 @@ static void set_format_helper(audio_output_t *ao, audio_info_t *ainfo)
 }
 
 
-static int reset_parameters(audio_output_t *ao)
+static int reset_parameters_sun(audio_output_t *ao)
 {
 	audio_info_t ainfo;
 	
@@ -78,7 +76,7 @@ static int reset_parameters(audio_output_t *ao)
 
 	if(ao->channels >= 0)
 		ainfo.play.channels = ao->channels;
-		audio_set_format_helper(ai,&ainfo);
+		set_format_helper(ao,&ainfo);
 	
 	if(ioctl(ao->fn, AUDIO_SETINFO, &ainfo) == -1)
 		return -1;
@@ -135,7 +133,7 @@ static int set_format(audio_output_t *ao)
 	audio_info_t ainfo;
 	
 	AUDIO_INITINFO(&ainfo);
-	audio_set_format_helper(ai,&ainfo);
+	set_format_helper(ao,&ainfo);
 	if(ioctl(ao->fn, AUDIO_SETINFO, &ainfo) == -1)
 		return -1;
 	
@@ -180,9 +178,9 @@ static int open_sun(audio_output_t *ao)
 #endif
 #endif
 	
-	if(audio_reset_parameters(ao) < 0) {
+/*	if(audio_reset_parameters(ao) < 0) {
 		return -1;
-	}
+	} */
 	
 	AUDIO_INITINFO(&ainfo);
 	
