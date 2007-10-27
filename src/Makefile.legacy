@@ -11,7 +11,7 @@ PREFIX=/usr/local
 BINDIR=$(PREFIX)/bin
 MANDIR=$(PREFIX)/man
 MAKEFILE=Makefile.legacy
-MAKE=make -f $(MAKEFILE)
+MAKELINE=$(MAKE) -f $(MAKEFILE)
 SECTION=1
 PENTIUM_OPT=-DOPT_I586
 PENTIUM_DECODE=decode_i586
@@ -130,7 +130,7 @@ freebsd-help:
 	@echo ""
 
 linux-devel:
-	$(MAKE) OBJECTS="libmpg123/decode_i386.o libmpg123/dct64_i386.o" \
+	$(MAKELINE) OBJECTS="libmpg123/decode_i386.o libmpg123/dct64_i386.o" \
 		OUTPUT_MODULE=oss \
 		CC=gcc \
 		CFLAGS="$(CFLAGS)  -IOPT_I386 -DREAL_IS_FLOAT -DLINUX -Wall -g \
@@ -139,7 +139,7 @@ linux-devel:
 		mpg123-make
 
 linux-profile:
-	$(MAKE) OBJECTS="libmpg123/decode_i386.o libmpg123/dct64_i386.o" \
+	$(MAKELINE) OBJECTS="libmpg123/decode_i386.o libmpg123/dct64_i386.o" \
 		OUTPUT_MODULE=oss \
 		CC=gcc LDFLAGS="$(LDFLAGS) -pg" \
 		CFLAGS="$(CFLAGS)  -DOPT_I386 -DREAL_IS_FLOAT -DLINUX -Wall -pg \
@@ -148,7 +148,7 @@ linux-profile:
 		mpg123-make
 
 linux:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		OBJECTS="libmpg123/decode.o libmpg123/dct64.o term.o" \
 		OUTPUT_MODULE=oss \
 		CFLAGS="$(CFLAGS)  -DOPT_GENERIC -DREAL_IS_FLOAT -DLINUX -O2 -funroll-all-loops \
@@ -157,7 +157,7 @@ linux:
 		mpg123-make
 
 linux-alsa:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		AUDIO_LIB="-lasound" \
 		OBJECTS="libmpg123/decode.o libmpg123/dct64.o term.o" \
 		OUTPUT_MODULE=alsa \
@@ -167,7 +167,7 @@ linux-alsa:
 		mpg123-make
 
 linux-i586:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		OBJECTS="libmpg123/decode_i386.o libmpg123/dct64_i386.o libmpg123/decode_i586.o \
 			term.o" \
 		OUTPUT_MODULE=oss \
@@ -179,7 +179,7 @@ linux-i586:
 		mpg123-make
 
 linux-i586-dither:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		OBJECTS="libmpg123/decode_i386.o libmpg123/dct64_i386.o libmpg123/decode_i586_dither.o libmpg123/dnoise.o \
 			term.o" \
 		OUTPUT_MODULE=oss \
@@ -191,7 +191,7 @@ linux-i586-dither:
 		mpg123-make
 
 linux-mmx:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		OBJECTS="libmpg123/decode_i386.o libmpg123/dct64_mmx.o libmpg123/tabinit_mmx.o libmpg123/decode_mmx.o \
 			term.o" \
 		OUTPUT_MODULE=oss \
@@ -203,7 +203,7 @@ linux-mmx:
 		mpg123-make
 
 linux-mmap:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		OBJECTS="libmpg123/decode_i386.o libmpg123/dct64_i386.o $(PENTIUM_DECODE).o \
 			term.o" \
 		OUTPUT_MODULE=oss \
@@ -215,7 +215,7 @@ linux-mmap:
 		mpg123-make
 
 linux-3dnow:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		OBJECTS="libmpg123/dct64.o libmpg123/decode_i386.o libmpg123/decode_3dnow.o libmpg123/dct64_3dnow.o \
 		libmpg123/dct64_i386.o libmpg123/dct36_3dnow.o libmpg123/getcpuflags.o \
 		libmpg123/equalizer_3dnow.o libmpg123/decode_i586.o  term.o" \
@@ -228,7 +228,7 @@ linux-3dnow:
 		mpg123-make
 
 linux-i486:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		OBJECTS="libmpg123/decode_i386.o libmpg123/dct64_i386.o\
 			decode_i486.o dct64_i486.o  term.o" \
 		OUTPUT_MODULE=oss \
@@ -240,7 +240,7 @@ linux-i486:
 		mpg123-make
 
 linux-i386:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		OBJECTS="libmpg123/decode_i386.o libmpg123/dct64_i386.o \
 			term.o" \
 		OUTPUT_MODULE=oss \
@@ -252,7 +252,7 @@ linux-i386:
 		mpg123-make
 
 linux-esd:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		AUDIO_LIB="-lesd -laudiofile" \
 		OBJECTS="libmpg123/decode_i386.o libmpg123/dct64_i386.o $(PENTIUM_DECODE).o \
 			term.o" \
@@ -265,7 +265,7 @@ linux-esd:
 		mpg123-make
 
 linux-x86:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		AUDIO_LIB="" \
 		OBJECTS="libmpg123/decode_i386.o libmpg123/dct64_i386.o \
 			libmpg123/decode.o libmpg123/dct64.o \
@@ -284,7 +284,7 @@ linux-x86:
 		mpg123-make
 
 linux-x86-alsa:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		AUDIO_LIB="-lasound" \
 		OBJECTS="libmpg123/decode_i386.o libmpg123/dct64_i386.o \
 			libmpg123/decode.o libmpg123/dct64.o \
@@ -303,7 +303,7 @@ linux-x86-alsa:
 		mpg123-make
 
 linux-x86-dither:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		AUDIO_LIB="" \
 		OBJECTS="libmpg123/decode_i386.o libmpg123/dct64_i386.o \
 			libmpg123/decode.o libmpg123/dct64.o \
@@ -323,7 +323,7 @@ linux-x86-dither:
 
 
 linux-x86-dither-alsa:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		AUDIO_LIB="-lasound" \
 		OBJECTS="libmpg123/decode_i386.o libmpg123/dct64_i386.o \
 			libmpg123/decode.o libmpg123/dct64.o \
@@ -342,7 +342,7 @@ linux-x86-dither-alsa:
 		mpg123-make
 
 linux-mips-alsa:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		AUDIO_LIB="-lasound" \
 		OBJECTS="libmpg132/decode.o libmpg123/dct64.o  term.o" \
 		OUTPUT_MODULE=alsa \
@@ -353,7 +353,7 @@ linux-mips-alsa:
 		mpg123-make
 
 linux-alpha:
-	$(MAKE) CC=gcc OBJECTS="libmpg123/decode.o libmpg123/dct64.o  term.o" \
+	$(MAKELINE) CC=gcc OBJECTS="libmpg123/decode.o libmpg123/dct64.o  term.o" \
 		OUTPUT_MODULE=oss \
 		CFLAGS="$(CFLAGS)  -DOPT_GENERIC -DLINUX -DOSS -DHAVE_TERMIOS -Wall -O2 \
 			-fomit-frame-pointer -funroll-all-loops \
@@ -362,7 +362,7 @@ linux-alpha:
 		mpg123-make
 
 linux-alpha-esd:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		AUDIO_LIB="-lesd -laudiofile" \
 		OUTPUT_MODULE=esd \
 		OBJECTS="libmpg123/decode.o libmpg123/dct64.o term.o" \
@@ -373,7 +373,7 @@ linux-alpha-esd:
 		mpg123-make
 
 linux-ppc:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		OBJECTS="libmpg123/decode.o libmpg123/dct64.o term.o" \
 		OUTPUT_MODULE=oss \
 		CFLAGS="$(CFLAGS)  -DOPT_GENERIC -DREAL_IS_FLOAT -DLINUX -Wall -O2 -mcpu=powerpc \
@@ -383,7 +383,7 @@ linux-ppc:
 		mpg123-make
 
 linux-ppc-esd:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		AUDIO_LIB="-lesd -laudiofile" \
 		OUTPUT_MODULE=esd \
 		OBJECTS="libmpg123/decode.o libmpg123/dct64.o term.o" \
@@ -394,7 +394,7 @@ linux-ppc-esd:
 		mpg123-make
 
 linux-ppc-nas:
-	$(MAKE) CC=gcc LDFLAGS='-L/usr/X11R6/lib' \
+	$(MAKELINE) CC=gcc LDFLAGS='-L/usr/X11R6/lib' \
 		AUDIO_LIB='-laudio -lXau -lXt' \
 		OUTPUT_MODULE=nas \
 		OBJECTS='libmpg123/decode.o libmpg123/dct64.o term.o' \
@@ -406,7 +406,7 @@ linux-ppc-nas:
 
 # Hm, not also OSS audio? But generic linux-alsa should do it, also.
 linux-sparc:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		OBJECTS="libmpg123/decode.o libmpg123/dct64.o term.o" \
 		OUTPUT_MODULE=sun \
 		CFLAGS="$(CFLAGS)  -DOPT_GENERIC -DREAL_IS_FLOAT -DHAVE_MMAP -DSPARCLINUX -Wall -O2 \
@@ -416,7 +416,7 @@ linux-sparc:
 		mpg123-make
 
 linux-hppa:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		OBJECTS="libmpg123/decode.o libmpg123/dct64.o  term.o" \
 		OUTPUT_MODULE=oss \
 		CFLAGS="$(CFLAGS)  -DOPT_GENERIC -DREAL_IS_FLOAT -DLINUX -Wall -O2 \
@@ -426,7 +426,7 @@ linux-hppa:
 		mpg123-make
 
 linux-m68k:
-	$(MAKE) CC=gcc OBJECTS="libmpg123/decode.o libmpg123/dct64.o  term.o" \
+	$(MAKELINE) CC=gcc OBJECTS="libmpg123/decode.o libmpg123/dct64.o  term.o" \
 		OUTPUT_MODULE=oss \
 		CFLAGS="$(CFLAGS)  -DOPT_GENERIC -DREAL_IS_FLOAT -DLINUX -DHAVE_TERMIOS \
 			-DOSS -DOSS_BIG_ENDIAN -Wall -O2 -m68040 \
@@ -435,7 +435,7 @@ linux-m68k:
 		mpg123-make
 
 linux-arm:
-	$(MAKE) CC=gcc OBJECTS="libmpg123/decode.o libmpg123/dct64.o  term.o" \
+	$(MAKELINE) CC=gcc OBJECTS="libmpg123/decode.o libmpg123/dct64.o  term.o" \
 		OUTPUT_MODULE=oss \
 		CFLAGS="$(CFLAGS)  -DOPT_GENERIC -DREAL_IS_FIXED -DLINUX -DHAVE_TERMIOS \
 			-DOSS -Wall -O6 -mtune=xscale \
@@ -444,7 +444,7 @@ linux-arm:
 		mpg123-make
 
 linux-nas:
-	$(MAKE) CC=gcc LDFLAGS="$(LDFLAGS) -L/usr/X11R6/lib" \
+	$(MAKELINE) CC=gcc LDFLAGS="$(LDFLAGS) -L/usr/X11R6/lib" \
 		OUTPUT_MODULE=nas \
 		AUDIO_LIB="-laudio -lXau -lXt" \
 		OBJECTS="decode_i386.o libmpg123/dct64_i386.o  term.o" \
@@ -457,7 +457,7 @@ linux-nas:
 		mpg123-make
 
 freebsd:
-	$(MAKE) CC=cc \
+	$(MAKELINE) CC=cc \
 		OUTPUT_MODULE=oss \
 		OBJECTS="decode_i386.o libmpg123/dct64_i386.o " \
 		CFLAGS="$(CFLAGS)  -DOPT_I386 -Wall -ansi -pedantic -O4 -fomit-frame-pointer \
@@ -467,7 +467,7 @@ freebsd:
 		mpg123-make
 
 freebsd-esd:
-	$(MAKE) CC=cc \
+	$(MAKELINE) CC=cc \
 		OUTPUT_MODULE=esd \
 		AUDIO_LIB="-lesd -laudiofile" \
 		OBJECTS="decode_i386.o libmpg123/dct64_i386.o $(GETBITS) " \
@@ -483,7 +483,7 @@ freebsd-esd:
 
 # these are MY EXPERIMENTAL compile entries
 solaris-pure:
-	$(MAKE) CC="purify -cache-dir=/tmp cc" \
+	$(MAKELINE) CC="purify -cache-dir=/tmp cc" \
 		OUTPUT_MODULE=sun \
 		LDFLAGS="$(LDFLAGS) -lsocket -lnsl" \
 		OBJECTS="libmpg123/decode.o libmpg123/dct64.o  term.o" \
@@ -492,7 +492,7 @@ solaris-pure:
 		mpg123-make
 
 solaris-ccscc:
-	$(MAKE) CC=/usr/ccs/bin/ucbcc LDFLAGS="$(LDFLAGS) -lsocket -lnsl" \
+	$(MAKELINE) CC=/usr/ccs/bin/ucbcc LDFLAGS="$(LDFLAGS) -lsocket -lnsl" \
 		OUTPUT_MODULE=sun \
 		OBJECTS="libmpg123/decode.o libmpg123/dct64.o  term.o" \
 		CFLAGS="$(CFLAGS)  -fast -native -xO4 -DSOLARIS \
@@ -500,16 +500,17 @@ solaris-ccscc:
 		mpg123-make
 
 # common solaris compile entries
+SOLARIS_DEFINES=-DHAVE_SYS_AUDIO_H -DHAVE_SYS_AUDIOIO_H -DHAVE_SIGNAL_H
 solaris:
-	$(MAKE) CC=cc LDFLAGS="$(LDFLAGS) -lsocket -lnsl" \
+	$(MAKELINE) CC=cc LDFLAGS="$(LDFLAGS) -lsocket -lnsl -lrt" \
 		OUTPUT_MODULE=sun \
 		OBJECTS="libmpg123/decode.o libmpg123/dct64.o  term.o" \
-		CFLAGS="$(CFLAGS)-fast -DOPT_GENERIC -native -xO4 -DSOLARIS \
+		CFLAGS="$(CFLAGS)-fast -DOPT_GENERIC -native -xO4 -DSOLARIS $(SOLARIS_DEFINES) \
 			-DHAVE_MMAP -DHAVE_TERMIOS" \
 		mpg123-make
 
 solaris-gcc-profile:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		OUTPUT_MODULE=sun \
 		LDFLAGS="$(LDFLAGS) -lsocket -lnsl -pg" \
 		OBJECTS="libmpg123/decode.o libmpg123/dct64.o " \
@@ -519,7 +520,7 @@ solaris-gcc-profile:
 		mpg123-make
 
 solaris-gcc:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		OUTPUT_MODULE=sun \
 		LDFLAGS="$(LDFLAGS) -lsocket -lnsl" \
 		OBJECTS="libmpg123/decode.o libmpg123/dct64.o  term.o" \
@@ -529,7 +530,7 @@ solaris-gcc:
 		mpg123-make
 
 solaris-gcc-esd:
-	$(MAKE) CC=gcc LDFLAGS="$(LDFLAGS) -lsocket -lnsl" \
+	$(MAKELINE) CC=gcc LDFLAGS="$(LDFLAGS) -lsocket -lnsl" \
 		OUTPUT_MODULE=esd \
 		AUDIO_LIB="-lesd -lresolv" \
 		OBJECTS="libmpg123/decode.o libmpg123/dct64.o " \
@@ -539,7 +540,7 @@ solaris-gcc-esd:
 		mpg123-make
 
 solaris-x86-gcc-oss:
-	$(MAKE) CC=gcc LDFLAGS="$(LDFLAGS) -lsocket -lnsl" \
+	$(MAKELINE) CC=gcc LDFLAGS="$(LDFLAGS) -lsocket -lnsl" \
 		OUTPUT_MODULE=oss \
 		OBJECTS="decode_i386.o libmpg123/dct64_i386.o $(PENTIUM_DECODE).o \
 			" \
@@ -550,7 +551,7 @@ solaris-x86-gcc-oss:
 		mpg123-make
 
 solaris-gcc-nas:
-	$(MAKE) CC=gcc LDFLAGS="$(LDFLAGS) -lsocket -lnsl" \
+	$(MAKELINE) CC=gcc LDFLAGS="$(LDFLAGS) -lsocket -lnsl" \
 		AUDIO_LIB="-L/usr/openwin/lib -laudio -lXau"\
 		OUTPUT_MODULE=nas \
 		OBJECTS="libmpg123/decode.o libmpg123/dct64.o " \
@@ -561,7 +562,7 @@ solaris-gcc-nas:
 		mpg123-make
 
 sunos:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		OUTPUT_MODULE=sun \
 		OBJECTS="libmpg123/decode.o libmpg123/dct64.o " \
 		CFLAGS="$(CFLAGS)  -O2 -DOPT_GENERIC  -DSUNOS -DREAL_IS_FLOAT -DHAVE_MMAP \
@@ -570,14 +571,14 @@ sunos:
 
 #		CFLAGS='-DREAL_IS_FLOAT -Aa +O3 -D_HPUX_SOURCE -DHPUX'
 hpux:
-	$(MAKE) CC=cc \
+	$(MAKELINE) CC=cc \
 		OUTPUT_MODULE=hp \
 		OBJECTS="libmpg123/decode.o libmpg123/dct64.o " \
 		CFLAGS="$(CFLAGS)  -DOPT_GENERIC -DREAL_IS_FLOAT -Ae +O3 -D_HPUX_SOURCE -DHPUX" \
 		mpg123-make
 
 hpux-alib:
-	$(MAKE) CC=cc LDFLAGS="$(LDFLAGS) -L/opt/audio/lib" \
+	$(MAKELINE) CC=cc LDFLAGS="$(LDFLAGS) -L/opt/audio/lib" \
 		OBJECTS="libmpg123/decode.o libmpg123/dct64.o " \
 		OUTPUT_MODULE=alib \
 		AUDIO_LIB=-lAlib \
@@ -586,19 +587,19 @@ hpux-alib:
 		mpg123-make
 
 hpux-gcc:
-	$(MAKE) CC=gcc OBJECTS="libmpg123/decode.o libmpg123/dct64.o " \
+	$(MAKELINE) CC=gcc OBJECTS="libmpg123/decode.o libmpg123/dct64.o " \
 		OUTPUT_MODULE=hp \
 		CFLAGS="$(CFLAGS)  -DOPT_GENERIC -DREAL_IS_FLOAT -O3 -D_HPUX_SOURCE -DHPUX" \
 		mpg123-make
 sgi:
-	$(MAKE) CC=cc \
+	$(MAKELINE) CC=cc \
 		OUTPUT_MODULE=sgi \
 		OBJECTS="libmpg123/decode.o libmpg123/dct64.o " AUDIO_LIB=-laudio \
 		CFLAGS="$(CFLAGS)  -DOPT_GENERIC -O2 -DSGI -DREAL_IS_FLOAT -DHAVE_MMAP" \
 		mpg123-make
 
 sgi-gcc:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		OUTPUT_MODULE=sgi \
 		OBJECTS="libmpg123/decode.o libmpg123/dct64.o " AUDIO_LIB=-laudio \
 		CFLAGS="$(CFLAGS)  -DOPT_GENERIC -O2 -DSGI -DREAL_IS_FLOAT -DHAVE_MMAP" \
@@ -606,21 +607,21 @@ sgi-gcc:
 
 dec:
 	@echo You might want to try OSS on DEC Unix/Tru64/OSF1.
-	$(MAKE) CC=cc OBJECTS="libmpg123/decode.o libmpg123/dct64.o " \
+	$(MAKELINE) CC=cc OBJECTS="libmpg123/decode.o libmpg123/dct64.o " \
 		OUTPUT_MODULE=dummy \
 		CFLAGS="$(CFLAGS)  -DOPT_GENERIC -std1 -warnprotos -O4 -DHAVE_MMAP" \
 		LDFLAGS="$(LDFLAGS) -lrt" \
 		mpg123-make
 
 dec-debug:
-	$(MAKE) CC=cc OBJECTS="libmpg123/decode.o libmpg123/dct64.o " \
+	$(MAKELINE) CC=cc OBJECTS="libmpg123/decode.o libmpg123/dct64.o " \
 		OUTPUT_MODULE=dummy \
 		CFLAGS="$(CFLAGS)  -DOPT_GENERIC -g3 -std1 -warnprotos -O4 -DHAVE_MMAP" \
 		LDFLAGS="$(LDFLAGS) -lrt" \
 		mpg123-make
 
 dec-nas:
-	$(MAKE) CC=cc LDFLAGS="$(LDFLAGS) -L/usr/X11R6/lib" \
+	$(MAKELINE) CC=cc LDFLAGS="$(LDFLAGS) -L/usr/X11R6/lib" \
 		AUDIO_LIB="-laudio -lXau -ldnet_stub"\
 		OUTPUT_MODULE=nas \
 		OBJECTS="libmpg123/decode.o libmpg123/dct64.o " \
@@ -628,13 +629,13 @@ dec-nas:
 		mpg123-make
 
 ultrix:
-	$(MAKE) CC=cc OBJECTS="libmpg123/decode.o libmpg123/dct64.o " \
+	$(MAKELINE) CC=cc OBJECTS="libmpg123/decode.o libmpg123/dct64.o " \
 		OUTPUT_MODULE=dummy \
 		CFLAGS="$(CFLAGS)  -DOPT_GENERIC -std1 -O2 -DULTRIX" \
 		mpg123-make
 
 aix-gcc:
-	$(MAKE) CC=gcc OBJECTS="libmpg123/decode.o libmpg123/dct64.o " \
+	$(MAKELINE) CC=gcc OBJECTS="libmpg123/decode.o libmpg123/dct64.o " \
 		OUTPUT_MODULE=aix \
 		CFLAGS="$(CFLAGS)  -DOPT_GENERIC -DAIX -Wall -O6 -DHAVE_MMAP -DREAD_MMAP -DREAL_IS_FLOAT \
 			-fomit-frame-pointer -funroll-all-loops \
@@ -642,14 +643,14 @@ aix-gcc:
 		mpg123-make
 
 aix-xlc:
-	$(MAKE) OBJECTS="libmpg123/decode.o libmpg123/dct64.o " \
+	$(MAKELINE) OBJECTS="libmpg123/decode.o libmpg123/dct64.o " \
 		OUTPUT_MODULE=aix \
 		CFLAGS="$(CFLAGS)  -DOPT_GENERIC -O3 -qstrict -qcpluscmt -DAIX -DHAVE_MMAP \
 			-DREAD_MMAP" \
 		mpg123-make
 
 os2:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		OUTPUT_MODULE=os2 \
 		OBJECTS="decode_i386.o libmpg123/dct64_i386.o " \
 		CFLAGS="$(CFLAGS)  -DOPT_I386 DREAL_IS_FLOAT -DNOXFERMEM -DOS2 -Wall -O2 -mcpu=i486 \
@@ -659,7 +660,7 @@ os2:
 		mpg123.exe
 
 netbsd:
-	$(MAKE) CC=cc \
+	$(MAKELINE) CC=cc \
 		OUTPUT_MODULE=sun \
 		OBJECTS="libmpg123/decode.o libmpg123/dct64.o " \
 		CFLAGS="$(CFLAGS)  -DOPT_GENERIC -Wall -ansi -pedantic -O3 -fomit-frame-pointer \
@@ -668,7 +669,7 @@ netbsd:
 		mpg123-make
 
 netbsd-x86:
-	$(MAKE) CC=cc \
+	$(MAKELINE) CC=cc \
 		OUTPUT_MODULE=sun \
 		OBJECTS="decode_i386.o libmpg123/dct64_i386.o " \
 		CFLAGS="$(CFLAGS)  -DOPT_I386 -Wall -ansi -pedantic -O4 -mcpu=i486 -fomit-frame-pointer \
@@ -677,7 +678,7 @@ netbsd-x86:
 		mpg123-make
 
 netbsd-rt:
-	$(MAKE) CC=cc LDFLAGS="$(LDFLAGS) -lpthread" \
+	$(MAKELINE) CC=cc LDFLAGS="$(LDFLAGS) -lpthread" \
 		OUTPUT_MODULE=sun \
 		OBJECTS=" libmpg123/dct64.o " \
 		CFLAGS="$(CFLAGS)  -DOPT_GENERIC -Wall -ansi -pedantic -O3 -fomit-frame-pointer \
@@ -686,7 +687,7 @@ netbsd-rt:
 		mpg123-make
 
 netbsd-x86-rt:
-	$(MAKE) CC=cc LDFLAGS="$(LDFLAGS) -lpthread" \
+	$(MAKELINE) CC=cc LDFLAGS="$(LDFLAGS) -lpthread" \
 		OUTPUT_MODULE=sun \
 		OBJECTS="decode_i386.o libmpg123/dct64_i386.o " \
 		CFLAGS="$(CFLAGS)  -DOPT_I386 -Wall -ansi -pedantic -O4 -mcpu=i486 -fomit-frame-pointer \
@@ -695,7 +696,7 @@ netbsd-x86-rt:
 		mpg123-make
 
 bsdos:
-	$(MAKE) CC=shlicc2 \
+	$(MAKELINE) CC=shlicc2 \
 		OBJECTS="decode_i386.o libmpg123/dct64_i386.o" \
 		OUTPUT_MODULE=oss \
 		CFLAGS="$(CFLAGS)  -Wall -O4 -mcpu=i486 -fomit-frame-pointer \
@@ -705,7 +706,7 @@ bsdos:
 		mpg123-make
 
 bsdos4:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		OUTPUT_MODULE=oss \
 		OBJECTS="decode_i386.o libmpg123/dct64_i386.o " \
 		CFLAGS="$(CFLAGS)  -Wall -O4 -mcpu=i486 -fomit-frame-pointer \
@@ -715,7 +716,7 @@ bsdos4:
 		mpg123-make
 
 bsdos-nas:
-	$(MAKE) CC=shlicc2 \
+	$(MAKELINE) CC=shlicc2 \
 		OUTPUT_MODULE=nas \
 		AUDIO_LIB="-laudio -lXau -L/usr/X11R6/lib" \
 		OBJECTS="decode_i386.o libmpg123/dct64_i386.o\
@@ -727,7 +728,7 @@ bsdos-nas:
 		mpg123-make
 
 mint:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		OUTPUT_MODULE=mint \
 		OBJECTS="libmpg123/decode.o libmpg123/dct64.o " \
 		CFLAGS="$(CFLAGS)  -DOPT_GENERIC  -Wall -O2 -m68020-40 -m68881 \
@@ -738,7 +739,7 @@ mint:
 		mpg123-make
 
 macosx:
-	$(MAKE) CC=gcc \
+	$(MAKELINE) CC=gcc \
 		OBJECTS="decode.o dct64.o sfifo.o term.o" \
 		OUTPUT_MODULE=coreaudio \
 		CFLAGS="$(CFLAGS)  \
@@ -750,7 +751,7 @@ macosx:
 
 # maybe you need the additonal options LDFLAGS='-lnsl -lsocket' when linking (see solaris:)
 generic:
-	$(MAKE) LDFLAGS= OBJECTS="libmpg123/decode.o libmpg123/dct64.o " \
+	$(MAKELINE) LDFLAGS= OBJECTS="libmpg123/decode.o libmpg123/dct64.o " \
 		OUTPUT_MODULE=dummy \
 		CFLAGS="$(CFLAGS)  -DOPT_GENERIC -DGENERIC -DNOXFERMEM" \
 		mpg123-make
@@ -760,7 +761,7 @@ generic:
 ###########################################################################
 
 mpg123-make:
-	@ $(MAKE) BINNAME=mpg123 mpg123
+	@ $(MAKELINE) BINNAME=mpg123 mpg123
 
 LIBOBJECTS= \
 libmpg123/parse.o libmpg123/frame.o libmpg123/format.o libmpg123/decode_2to1.o \
