@@ -410,18 +410,6 @@ static int III_get_side_info(mpg123_handle *fr, struct III_sideinfo *si,int ster
          }
       
          /* region_count/start parameters are implicit in this case. */       
-#if 0
-         if(!fr->lsf || gr_info->block_type == 2)
-           gr_info->region1start = 36>>1;
-         else {
-/* check this again for 2.5 and sfreq=8 */
-           if(sfreq == 8)
-             gr_info->region1start = 108>>1;
-           else
-             gr_info->region1start = 54>>1;
-         }
-         gr_info->region2start = 576>>1;
-#endif
          if( !fr->lsf || (gr_info->block_type == 2) && !fr->mpeg25)
          {
            gr_info->region1start = 36>>1;
