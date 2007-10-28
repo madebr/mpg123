@@ -410,6 +410,7 @@ static int III_get_side_info(mpg123_handle *fr, struct III_sideinfo *si,int ster
          }
       
          /* region_count/start parameters are implicit in this case. */       
+#if 0
          if(!fr->lsf || gr_info->block_type == 2)
            gr_info->region1start = 36>>1;
          else {
@@ -420,6 +421,29 @@ static int III_get_side_info(mpg123_handle *fr, struct III_sideinfo *si,int ster
              gr_info->region1start = 54>>1;
          }
          gr_info->region2start = 576>>1;
+#endif
+         if( !fr->lsf || (gr_info->block_type == 2) && !fr->mpeg25)
+         {
+           gr_info->region1start = 36>>1;
+           gr_info->region2start = 576>>1;
+         }
+         else {
+           if(fr->mpeg25) { 
+             int r0c,r1c;
+             if((gr_info->block_type == 2) && (!gr_info->mixed_block_flag) ) 
+               r0c = 5;
+             else 
+               r0c = 7;
+             r1c = 20 - r0c;
+             gr_info->region1start = bandInfo[sfreq].longIdx[r0c+1] >> 1 ;
+             gr_info->region2start = bandInfo[sfreq].longIdx[r0c+1+r1c+1] >> 1; 
+           }
+           else {
+             gr_info->region1start = 54>>1;
+             gr_info->region2start = 576>>1; 
+           } 
+         }
+
        }
        else {
          int i,r0c,r1c;
