@@ -68,19 +68,15 @@ static void set_format_helper(audio_output_t *ao, audio_info_t *ainfo)
 static int reset_parameters_sun(audio_output_t *ao)
 {
 	audio_info_t ainfo;
-	
-	AUDIO_INITINFO(&ainfo);
-	
-	if(ao->rate != -1)
-		ainfo.play.sample_rate = ao->rate;
 
-	if(ao->channels >= 0)
-		ainfo.play.channels = ao->channels;
-		set_format_helper(ao,&ainfo);
-	
-	if(ioctl(ao->fn, AUDIO_SETINFO, &ainfo) == -1)
-		return -1;
-	
+	AUDIO_INITINFO(&ainfo);
+	if(ao->rate != -1) ainfo.play.sample_rate = ao->rate;
+
+	if(ao->channels >= 0) ainfo.play.channels = ao->channels;
+
+	set_format_helper(ao,&ainfo);
+	if(ioctl(ao->fn, AUDIO_SETINFO, &ainfo) == -1) return -1;
+
 	return 0;
 }
 
@@ -178,9 +174,7 @@ static int open_sun(audio_output_t *ao)
 #endif
 #endif
 	
-/*	if(audio_reset_parameters(ao) < 0) {
-		return -1;
-	} */
+	if(reset_parameters_sun(ao) < 0) return -1;
 	
 	AUDIO_INITINFO(&ainfo);
 	
