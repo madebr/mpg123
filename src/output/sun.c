@@ -207,15 +207,17 @@ static int get_formats_sun(audio_output_t *ao)
 		{ AUDIO_ENCODING_ULAW , 8,  MPG123_ENC_ULAW_8 } ,
 		{ AUDIO_ENCODING_ALAW , 8,  MPG123_ENC_ALAW_8 } ,
 		{ AUDIO_ENCODING_LINEAR , 16,  MPG123_ENC_SIGNED_16 } ,
+#if 0
 #if defined(SOLARIS) || defined(SPARCLINUX)
 		{ AUDIO_ENCODING_LINEAR8 , 8,  MPG123_ENC_UNSIGNED_8 } ,
+#endif
 #endif
 	};
 
 	audio_info_t ainfo;
 	int i,fmts=0;
 
-	for(i=0;i<4;i++) {
+	for(i=0;i<sizeof(tab)/sizeof(tab[0]);i++) {
 		AUDIO_INITINFO(&ainfo);
 		ainfo.play.encoding = tab[i][0];
 		ainfo.play.precision = tab[i][1];
