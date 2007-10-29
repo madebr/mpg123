@@ -180,7 +180,7 @@ int mpg123_format(mpg123_handle *mh, int ratei, int channels, int encodings)
 	for(ic = 0; ic < 2; ++ic)
 	{
 		for(ie = 0; ie < MPG123_ENCODINGS; ++ie)
-		if(mpg123_encodings[ie] & encodings) mh->p.audio_caps[ch[ic]][ratei][ie] = 1;
+		if((mpg123_encodings[ie] & encodings) == mpg123_encodings[ie]) mh->p.audio_caps[ch[ic]][ratei][ie] = 1;
 
 		if(ch[0] == ch[1]) break; /* no need to do it again */
 	}
