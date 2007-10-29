@@ -9,7 +9,8 @@ mpg123_LDADD = $(LIBLTDL) libmpg123/libmpg123.la @MODULE_OBJ@ @OUTPUT_OBJ@ @OUTP
 mpg123_LDFLAGS = @LT_LDFLAGS@ @OUTPUT_LDFLAGS@
 # Just mpg123_INCLUDES has no effect on build! Trying that before reverting to AM_CPPFLAGS.
 INCLUDES = $(LTDLINCL) -I$(top_srcdir)/src/libmpg123
-mpg123_DEPENDENCIES = $(LIBLTDL) @MODULE_OBJ@ libmpg123/libmpg123.la
+# libltdl is not mentioned here... it's not that trivial
+mpg123_DEPENDENCIES = @MODULE_OBJ@ libmpg123/libmpg123.la
 
 SUBDIRS = output libmpg123
 EXTRA_DIST = Makefile.legacy config.h.legacy legacy_module.c module.c
