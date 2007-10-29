@@ -505,7 +505,7 @@ solaris:
 	$(MAKELINE) CC=cc LDFLAGS="$(LDFLAGS) -lsocket -lnsl -lrt" \
 		OUTPUT_MODULE=sun \
 		OBJECTS="libmpg123/decode.o libmpg123/dct64.o  term.o" \
-		CFLAGS="$(CFLAGS)-fast -DOPT_GENERIC -native -xO4 -DSOLARIS $(SOLARIS_DEFINES) \
+		CFLAGS="$(CFLAGS) -fast -DOPT_GENERIC -native -xO4 -DSOLARIS $(SOLARIS_DEFINES) \
 			-DHAVE_MMAP -DHAVE_TERMIOS" \
 		mpg123-make
 
