@@ -6,6 +6,7 @@
 
 #AM_CFLAGS = @AUDIO_CFLAGS@
 #AM_LDFLAGS = 
+INCLUDES = $(LTDLINCL) -I$(top_srcdir)/src -I$(top_srcdir)/src/libmpg123
 
 EXTRA_DIST =
 
