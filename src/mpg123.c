@@ -133,6 +133,7 @@ void next_track(void)
 
 void safe_exit(int code)
 {
+	char *dummy, *dammy;
 #ifdef HAVE_TERMIOS
 	if(param.term_ctrl)
 		term_restore();
@@ -140,6 +141,8 @@ void safe_exit(int code)
 	if(mh != NULL) mpg123_delete(mh);
 	mpg123_exit();
 	httpdata_reset(&htd);
+	/* It's ugly... but let's just fix this still-reachable memory chunk of static char*. */
+	split_dir_file("", &dummy, &dammy);
 	exit(code);
 }
 
@@ -949,9 +952,7 @@ tc_hack:
 
 	/* Free up memory used by playlist */    
 	if(!param.remote) free_playlist();
-	mpg123_delete(mh);
-	mpg123_exit();
-	httpdata_reset(&htd);
+	safe_exit(0);
 	return 0;
 }
 
