@@ -16,6 +16,14 @@
 
 #include <time.h>
 
+#ifdef HAVE_RANDOM
+#define RAND random
+#define SRAND srandom
+#else
+#define RAND rand
+#define SRAND srand
+#endif
+
 /* increase linebuf in blocks of ... bytes */
 #define LINEBUF_STEP 100
 
@@ -62,12 +70,12 @@ void prepare_playlist(int argc, char** argv)
 }
 
 /* Return a random number >= 0 and < n */
-static size_t rando(int n)
+static size_t rando(size_t n)
 {
-	int ran;
-	int limit = RAND_MAX - (RAND_MAX % n);
+	long ran;
+	long limit = RAND_MAX - (RAND_MAX % (long)n);
 	if(n<2) return 0; /* Better settle that here than in an endless loop... */
-	do{ ran = rand(); }while( ran >= limit );
+	do{ ran = RAND(); }while( ran >= limit );
 	return (size_t)(ran%n);
 }
 
@@ -124,7 +132,7 @@ void free_playlist()
 /* the constructor... */
 void init_playlist()
 {
-	srand(time(NULL));
+	SRAND(time(NULL));
 	pl.file = NULL;
 	pl.entry = 0;
 	pl.size = 0;

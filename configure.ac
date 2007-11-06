@@ -311,6 +311,7 @@ if test "x$ac_cv_sys_posix_termios" = "xyes"; then
   [Define this if you have the POSIX termios library])
 fi
 
+AC_CHECK_FUNCS( random )
 
 # Check for sched_setscheduler
 AC_CHECK_FUNCS( sched_setscheduler setuid getuid)
