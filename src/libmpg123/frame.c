@@ -55,6 +55,8 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 	fr->af.encoding = 0;
 	fr->af.rate = 0;
 	fr->af.channels = 0;
+	fr->rdat.r_read = NULL;
+	fr->rdat.r_lseek = NULL;
 	fr->decoder_change = 1;
 	fr->err = MPG123_OK;
 	mpg123_format_all(fr);
