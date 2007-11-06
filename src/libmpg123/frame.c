@@ -3,6 +3,8 @@
 
 #define IGNORESHIFT 2
 
+static void frame_fixed_reset(mpg123_handle *fr);
+
 /* that's doubled in decode_ntom.c */
 #define NTOM_MUL (32768)
 #define aligned_pointer(p,type,alignment) \
@@ -32,8 +34,6 @@ void frame_init(mpg123_handle *fr)
 
 void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 {
-	fr->fresh = 1;
-	fr->new_format = 0;
 	fr->own_buffer = FALSE;
 	fr->buffer.data = NULL;
 	fr->rawbuffs = NULL;
@@ -46,9 +46,7 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 	fr->ntom_val[1] = NTOM_MUL>>1;
 	fr->ntom_step = NTOM_MUL;
 	/* unnecessary: fr->buffer.size = fr->buffer.fill = 0; */
-	fr->lastscale = -1;
 	mpg123_reset_eq(fr);
-	fr->rd = NULL;
 	init_icy(&fr->icy);
 	init_id3(fr);
 	/* frame_outbuffer is missing... */
@@ -57,17 +55,12 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 	fr->af.encoding = 0;
 	fr->af.rate = 0;
 	fr->af.channels = 0;
-	fr->icy.data = NULL;
-	fr->icy.interval = 0;
-	fr->icy.next = 0;
-	fr->to_decode = FALSE;
-	fr->to_ignore = FALSE;
 	fr->decoder_change = 1;
 	fr->err = MPG123_OK;
 	mpg123_format_all(fr);
 	if(mp == NULL) frame_default_pars(&fr->p);
 	else memcpy(&fr->p, mp, sizeof(struct mpg123_pars_struct));
-	frame_reset(fr); /* One should ensure that... ? */
+	frame_fixed_reset(fr); /* Reset only the fixed data, dynamic buffers are not there yet! */
 }
 
 mpg123_pars *mpg123_new_pars(int *error)
@@ -260,14 +253,21 @@ void frame_icy_reset(mpg123_handle* fr)
 }
 
 /* Prepare the handle for a new track.
-   That includes (re)allocation or reuse of the output buffer */
+   Reset variables, buffers... */
 int frame_reset(mpg123_handle* fr)
 {
 	frame_buffers_reset(fr);
+	frame_fixed_reset(fr);
+	return 0;
+}
+
+/* Reset everythign except dynamic memory. */
+static void frame_fixed_reset(mpg123_handle *fr)
+{
 	frame_icy_reset(fr);
 	open_bad(fr);
-	fr->to_decode = 0;
-	fr->to_ignore = 0;
+	fr->to_decode = FALSE;
+	fr->to_ignore = FALSE;
 	fr->metaflags = 0;
 	fr->outblock = mpg123_safe_buffer();
 	fr->num = -1;
@@ -308,9 +308,10 @@ int frame_reset(mpg123_handle* fr)
 #endif
 	reset_id3(fr);
 	reset_icy(&fr->icy);
+	/* ICY stuff should go into icy.c, eh? */
+	fr->icy.interval = 0;
+	fr->icy.next = 0;
 	fr->halfphase = 0; /* here or indeed only on first-time init? */
-	fr->to_decode = FALSE;
-	return 0;
 }
 
 void frame_free_buffers(mpg123_handle *fr)
