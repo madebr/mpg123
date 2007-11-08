@@ -691,6 +691,7 @@ int  frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		}
 	}
 #else
+	fr->cpu_opts.type = nodec;
 	/* covers any i386+ cpu; they actually differ only in the synth_1to1 function... */
 	#ifdef OPT_X86
 
@@ -916,7 +917,7 @@ int  frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 
 enum optdec dectype(const char* decoder)
 {
-	if(decoder == NULL) return nodec;
+	if(decoder == NULL) return autodec;
 	if(!strcasecmp(decoder, "3dnowext"))    return dreidnowext;
 	if(!strcasecmp(decoder, "3dnow"))       return dreidnow;
 	if(!strcasecmp(decoder, "sse"))         return sse;

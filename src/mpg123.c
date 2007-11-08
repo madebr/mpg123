@@ -659,6 +659,7 @@ int main(int argc, char *argv[])
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_FLAGS, param.flags, 0))
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_DOWN_SAMPLE, param.down_sample, 0))
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_RVA, param.rva, 0))
+	    && MPG123_OK == (result = mpg123_par(mp, MPG123_FORCE_RATE, param.force_rate, 0))
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_DOWNSPEED, param.halfspeed, 0))
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_UPSPEED, param.doublespeed, 0))
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_ICY_INTERVAL, 0, 0))
@@ -682,18 +683,13 @@ int main(int argc, char *argv[])
 	}
 
 	/* Now actually get an mpg123_handle. */
-	mh = mpg123_parnew(mp, NULL, &result);
+	mh = mpg123_parnew(mp, param.cpu, &result);
 	if(mh == NULL)
 	{
 		error1("Crap! Cannot get a mpg123 handle: %s", mpg123_plain_strerror(result));
 		safe_exit(77);
 	}
 	mpg123_delete_pars(mp); /* Don't need the parameters anymore ,they're in the handle now. */
-	if(param.cpu != NULL && (MPG123_OK != mpg123_decoder(mh, param.cpu)))
-	{
-		error1("Unable to set decoder: %s", mpg123_strerror(mh));
-		safe_exit(46);
-	}
 
 	/* Open audio output module */
 	ao = open_output_module( param.output_module );

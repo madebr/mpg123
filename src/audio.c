@@ -179,12 +179,6 @@ void audio_capabilities(audio_output_t *ao, mpg123_handle *mh)
 	int ri;
 	audio_output_t ao1 = *ao; /* a copy */
 
-	if(mpg123_param(mh, MPG123_FORCE_RATE, param.force_rate, 0) != MPG123_OK)
-	{
-		error1("Cannot set forced rate (%s)!", mpg123_strerror(mh));
-		mpg123_format_none(mh);
-		return;
-	}
 	if(param.outmode != DECODE_AUDIO)
 	{ /* File/stdout writers can take anything. */
 		mpg123_format_all(mh);
