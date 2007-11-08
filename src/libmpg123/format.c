@@ -158,9 +158,9 @@ int mpg123_format_all(mpg123_handle *mh)
 	return MPG123_OK;
 }
 
-int mpg123_format(mpg123_handle *mh, int ratei, int channels, int encodings)
+int mpg123_format(mpg123_handle *mh, long rate, int channels, int encodings)
 {
-	int ie, ic;
+	int ie, ic, ratei;
 	int ch[2] = {0, 1};
 	if(!(channels & (MPG123_MONO|MPG123_STEREO)))
 	{
@@ -169,12 +169,12 @@ int mpg123_format(mpg123_handle *mh, int ratei, int channels, int encodings)
 	}
 	if(!(channels & MPG123_STEREO)) ch[1] = 0;     /* {0,0} */
 	else if(!(channels & MPG123_MONO)) ch[0] = 1; /* {1,1} */
-	if(ratei >= MPG123_RATES)
+	ratei = rate2num(mh, rate);
+	if(ratei < 0)
 	{
 		mh->err = MPG123_BAD_RATE;
 		return MPG123_ERR;
 	}
-	if(ratei < 0) ratei = MPG123_RATES; /* the special one */
 
 	/* now match the encodings */
 	for(ic = 0; ic < 2; ++ic)

@@ -203,7 +203,7 @@ void audio_capabilities(audio_output_t *ao, mpg123_handle *mh)
 			ao1.rate = ri >= 0 ? mpg123_rates[ri] : param.force_rate;
 			fmts = ao1.get_formats(&ao1);
 			if(fmts < 0) continue;
-			else mpg123_format(mh, ri, ao1.channels, fmts);
+			else mpg123_format(mh, ao1.rate, ao1.channels, fmts);
 		}
 		ao1.close(&ao1);
 	}

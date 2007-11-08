@@ -98,12 +98,12 @@ EXPORT int mpg123_format_none(mpg123_handle *mh);
 EXPORT int mpg123_format_all(mpg123_handle *mh);
 /*
 	Setting audio format support in detail:
-	rateindex: Index in rates list...
+	rate: The sample rate...
 	Negative rate index chooses the custom one.
 	channels: combination of MPG123_STEREO and MPG123_MONO
 	encodings: combination of accepted encodings for rate and channels, p.ex MPG123_ENC_SIGNED16|MPG123_ENC_ULAW_8
 */
-EXPORT int mpg123_format(mpg123_handle *mh, int rateindex, int channels, int encodings); /* 0 is good, -1 is error */
+EXPORT int mpg123_format(mpg123_handle *mh, long rate, int channels, int encodings); /* 0 is good, -1 is error */
 /* Check if a specific format at a specific rate is supported.
    Returns 0 for no support (includes invalid parameters), MPG123_STEREO, MPG123_MONO or MPG123_STEREO|MPG123_MONO. */
 EXPORT int mpg123_format_support(mpg123_handle *mh, int ratei, int enci); /* Indices of rate and encoding! */
