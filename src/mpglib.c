@@ -22,9 +22,9 @@ int main(int argc, char **argv)
 		fprintf(stderr,"Unable to create mpg123 handle: %s\n", mpg123_plain_strerror(ret));
 		return -1;
 	}
-	/* mpg123_param(m, MPG123_VERBOSE, 2); */
-	/* mpg123_param(m, MPG123_ADD_FLAGS, MPG123_GAPLESS); */
-	/* mpg123_param(m, MPG123_START_FRAME, 2300); */
+	mpg123_param(m, MPG123_VERBOSE, 2, 0);
+	/* mpg123_param(m, MPG123_ADD_FLAGS, MPG123_GAPLESS, 0); */
+	/* mpg123_param(m, MPG123_START_FRAME, 2300, 0); */
 	mpg123_open_feed(m);
 	if(m == NULL) return -1;
 	while(1) {
@@ -37,6 +37,13 @@ int main(int argc, char **argv)
 		in += len;
 		/*fprintf(stderr, ">> %lu KiB in\n", (unsigned long)in>>10);*/
 		ret = mpg123_decode(m,buf,len,out,8192,&size);
+		if(ret == MPG123_NEW_FORMAT)
+		{
+			long rate;
+			int channels, enc;
+			mpg123_getformat(m, &rate, &channels, &enc);
+			fprintf(stderr, "New format: %li Hz, %i channels, encoding value %i\n", rate, channels, enc);
+		}
 		write(1,out,size);
 		outc += size;
 		/*fprintf(stderr, "<< %lu KiB out, ret=%i\n", (unsigned long)outc>>10, ret);*/
@@ -48,7 +55,7 @@ int main(int argc, char **argv)
 		}
 		if(ret == MPG123_ERR){ fprintf(stderr, "some error: %s", mpg123_strerror(m)); break; }
 	}
-	fprintf(stderr, "%lu bytes in, %lu bytes out", (unsigned long)in, (unsigned long)outc);
+	fprintf(stderr, "%lu bytes in, %lu bytes out\n", (unsigned long)in, (unsigned long)outc);
 	mpg123_delete(m);
 	mpg123_exit();
 	return 0;
