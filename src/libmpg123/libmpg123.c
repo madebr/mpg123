@@ -470,6 +470,7 @@ static int get_next_frame(mpg123_handle *mh)
 */
 int mpg123_decode_frame(mpg123_handle *mh, off_t *num, unsigned char **audio, size_t *bytes)
 {
+	if(bytes != NULL) *bytes = 0;
 	if(mh == NULL) return MPG123_ERR;
 	if(mh->buffer.size < mh->outblock) return MPG123_NO_SPACE;
 	mh->buffer.fill = 0; /* always start fresh */
@@ -530,6 +531,7 @@ int mpg123_decode(mpg123_handle *mh,unsigned char *inmemory, size_t inmemsize, u
 {
 	int ret = MPG123_OK;
 	size_t mdone = 0;
+	if(done != NULL) *done = 0;
 	if(mh == NULL) return MPG123_ERR;
 	if(inmemsize > 0)
 	if(feed_more(mh, inmemory, inmemsize) == -1){ ret = MPG123_ERR; goto decodeend; }
