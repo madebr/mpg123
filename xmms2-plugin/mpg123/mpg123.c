@@ -164,7 +164,7 @@ static gboolean xmms_mpg123_init(xmms_xform_t *xform)
 	}
 	for(i=0; i<MPG123_RATES; ++i) {
 		if(MPG123_OK !=
-		   mpg123_format(data->decoder, i, MPG123_MONO|MPG123_STEREO, MPG123_ENC_SIGNED_16)) {
+		   mpg123_format(data->decoder, mpg123_rates[i], MPG123_MONO|MPG123_STEREO, MPG123_ENC_SIGNED_16)) {
 			goto mpg123_bad;
 		}
 	}
