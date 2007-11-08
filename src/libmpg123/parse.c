@@ -56,7 +56,7 @@
 #define HDRSAMPMASK 0xc00 /* 1100 00000000, FF bits (sample rate) */
 
 /* bitrates for [mpeg1/2][layer] */
-const int tabsel_123[2][3][16] = {
+static const int tabsel_123[2][3][16] = {
    { {0,32,64,96,128,160,192,224,256,288,320,352,384,416,448,},
      {0,32,48,56, 64, 80, 96,112,128,160,192,224,256,320,384,},
      {0,32,40,48, 56, 64, 80, 96,112,128,160,192,224,256,320,} },
@@ -136,9 +136,9 @@ int head_check(unsigned long head)
 		||
 		/* 1111 means bad bitrate */
 		(((head>>12)&0xf) == 0xf)
-		||
+/*		|| */
 		/* 0000 means free format... */
-		(((head>>12)&0xf) == 0x0)
+/*		(((head>>12)&0xf) == 0x0) */
 		||
 		/* sampling freq: 11 is reserved */
 		(((head>>10)&0x3) == 0x3 )

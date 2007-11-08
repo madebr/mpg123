@@ -282,6 +282,7 @@ static void frame_fixed_reset(mpg123_handle *fr)
 	fr->track_samples = -1;
 	fr->mean_frames = 0;
 	fr->mean_framesize = 0;
+	fr->freesize = 0;
 	fr->lastscale = -1;
 	fr->rva.level[0] = -1;
 	fr->rva.level[1] = -1;

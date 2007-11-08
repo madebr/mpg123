@@ -233,6 +233,7 @@ struct mpg123_handle_struct
 	int original;
 	int emphasis;
 	int framesize; /* computed framesize */
+	int freesize;  /* free format frame size */
 	enum mpg123_vbr vbr; /* 1 if variable bitrate was detected */
 	off_t num; /* frame offset ... */
 
