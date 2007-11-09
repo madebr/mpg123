@@ -72,14 +72,14 @@ linux-help:
 	@echo ""
 	@echo "There are several Linux flavours. Choose one:"
 	@echo ""
-	@echo "make linux          Linux (any supported architecture, OSS audio,
+	@echo "make linux          Linux (any supported architecture, OSS audio,"
 	@echo "                    use that for x86-64 in 64bit mode)"
 	@echo "make linux-alsa     as above with ALSA output"
 	@echo ""
-	@echo "The x86 targets include multiple optimized decoders among which you
+	@echo "The x86 targets include multiple optimized decoders among which you"
 	@echo "can choose at runtime (more than in separate targets listed here!)."
-	@ecoh ""
-	@echo "make linux-x86      Linux x86 and OSS output
+	@echo ""
+	@echo "make linux-x86      Linux x86 and OSS output"
 	@echo "make linux-x86-alsa Linux x86 and ALSA output"
 	@echo "make linux-x86-dither      Like above plus dithered decoder (+quality, ++size), OSS."
 	@echo "make linux-x86-dither-alsa Like above, ALSA."
