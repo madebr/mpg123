@@ -1022,7 +1022,6 @@ libmpg123/decode_i586_dither.o: libmpg123/decode_i586_dither.S libmpg123/mangle.
   config.h
 libmpg123/decode_i586.o: libmpg123/decode_i586.S libmpg123/mangle.h config.h
 libmpg123/decode_mmx.o: libmpg123/decode_mmx.S libmpg123/mangle.h config.h
-libmpg123/decode_mmxsse.o: libmpg123/decode_mmxsse.S libmpg123/mangle.h config.h
 libmpg123/decode_sse.o: libmpg123/decode_sse.S libmpg123/mangle.h config.h \
   libmpg123/decode_sse3d.h
 libmpg123/equalizer_3dnow.o: libmpg123/equalizer_3dnow.S libmpg123/mangle.h \
