@@ -25,6 +25,7 @@ void frame_default_pars(mpg123_pars *mp)
 #ifndef WIN32
 	mp->timeout = 0;
 #endif
+	mpg123_fmt_all(mp);
 }
 
 void frame_init(mpg123_handle *fr)
@@ -59,7 +60,6 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 	fr->rdat.r_lseek = NULL;
 	fr->decoder_change = 1;
 	fr->err = MPG123_OK;
-	mpg123_format_all(fr);
 	if(mp == NULL) frame_default_pars(&fr->p);
 	else memcpy(&fr->p, mp, sizeof(struct mpg123_pars_struct));
 	frame_fixed_reset(fr); /* Reset only the fixed data, dynamic buffers are not there yet! */

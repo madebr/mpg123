@@ -41,6 +41,15 @@ EXPORT mpg123_handle *mpg123_parnew(mpg123_pars *mp, const char* decoder, int *e
 /* Delete handle, mh is either a valid mpg123 handle or NULL. */
 EXPORT void mpg123_delete(mpg123_handle *mh);
 
+/*
+	Direct access to a parameter set without full handle around it.
+	Possible uses: - Influence behaviour of library _during_ initialization of handle (MPG123_VERBOSE).
+	               - Use one set of parameters for multiple handles.
+	The functions for handling mpg123_pars (mpg123_par() and mpg123_fmt() family) directly return a fully qualified mpg123 error code, the ones operating on full handles normally MPG123_OK or MPG123_ERR, storing the specific error code itseld inside the handle.
+*/
+EXPORT mpg123_pars *mpg123_new_pars(int *error);
+EXPORT void         mpg123_delete_pars(mpg123_pars* mp);
+
 /* Return NULL-terminated array of generally available decoder names... */
 EXPORT char **mpg123_decoders();
 /* ...or just the actually supported (by CPU) decoders. */
@@ -55,7 +64,7 @@ enum mpg123_errors
 	MPG123_NO_BUFFERS, MPG123_BAD_RVA, MPG123_NO_GAPLESS, MPG123_NO_SPACE,
 	MPG123_BAD_TYPES, MPG123_BAD_BAND, MPG123_ERR_NULL, MPG123_ERR_READER,
 	MPG123_NO_SEEK_FROM_END, MPG123_BAD_WHENCE, MPG123_NO_TIMEOUT, MPG123_BAD_FILE,
-	MPG123_NO_SEEK, MPG123_NO_READER
+	MPG123_NO_SEEK, MPG123_NO_READER, MPG123_BAD_PARS
 };
 /* Give string describing that error errcode means. */
 EXPORT const char* mpg123_plain_strerror(int errcode);
@@ -94,8 +103,10 @@ EXPORT extern const int  mpg123_encodings[MPG123_ENCODINGS];
 
 /* Accept no output format at all, use before specifying supported formats with mpg123_format */
 EXPORT int mpg123_format_none(mpg123_handle *mh);
+EXPORT int mpg123_fmt_none(mpg123_pars *mp);
 /* Accept all formats (also any custom rate you may set) -- this is default. */
 EXPORT int mpg123_format_all(mpg123_handle *mh);
+EXPORT int mpg123_fmt_all(mpg123_pars *mp);
 /*
 	Setting audio format support in detail:
 	rate: The sample rate...
@@ -104,9 +115,11 @@ EXPORT int mpg123_format_all(mpg123_handle *mh);
 	encodings: combination of accepted encodings for rate and channels, p.ex MPG123_ENC_SIGNED16|MPG123_ENC_ULAW_8
 */
 EXPORT int mpg123_format(mpg123_handle *mh, long rate, int channels, int encodings); /* 0 is good, -1 is error */
+EXPORT int mpg123_fmt   (mpg123_pars *mh, long rate, int channels, int encodings); /* 0 is good, -1 is error */
 /* Check if a specific format at a specific rate is supported.
    Returns 0 for no support (includes invalid parameters), MPG123_STEREO, MPG123_MONO or MPG123_STEREO|MPG123_MONO. */
 EXPORT int mpg123_format_support(mpg123_handle *mh, int ratei, int enci); /* Indices of rate and encoding! */
+EXPORT int mpg123_fmt_support   (mpg123_pars *mh, int ratei, int enci); /* Indices of rate and encoding! */
 /* Get the current output format. */
 EXPORT int mpg123_getformat(mpg123_handle *mh, long *rate, int *channels, int *encoding);
 
@@ -145,9 +158,6 @@ enum mpg123_parms
    TODO: Assess the possibilities and troubles of changing parameters during playback. */
 EXPORT int mpg123_param   (mpg123_handle *mh, int key, long value, double fvalue);
 EXPORT int mpg123_getparam(mpg123_handle *mh, int key, long *val,  double *fval);
-/* Direct access to a parameter set without full handle around it. */
-EXPORT mpg123_pars *mpg123_new_pars(int *error);
-EXPORT void         mpg123_delete_pars(mpg123_pars* mp);
 EXPORT int mpg123_par   (mpg123_pars *mp, int key, long value, double fvalue);
 EXPORT int mpg123_getpar(mpg123_pars *mp, int key, long *val, double *fval);
 

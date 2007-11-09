@@ -167,6 +167,7 @@ int mpg123_param(mpg123_handle *mh, int key, long val, double fval)
 int mpg123_par(mpg123_pars *mp, int key, long val, double fval)
 {
 	int ret = MPG123_OK;
+	if(mp == NULL) return MPG123_BAD_PARS;
 	switch(key)
 	{
 		case MPG123_VERBOSE:
@@ -332,7 +333,7 @@ int mpg123_replace_reader( mpg123_handle *mh,
 int decode_update(mpg123_handle *mh)
 {
 	long native_rate = frame_freq(mh);
-	debug("updating decoder structure");
+	debug2("updating decoder structure with native rate %li and af.rate %li", native_rate, mh->af.rate);
 	if(mh->af.rate == native_rate) mh->down_sample = 0;
 	else if(mh->af.rate == native_rate>>1) mh->down_sample = 1;
 	else if(mh->af.rate == native_rate>>2) mh->down_sample = 2;
@@ -373,6 +374,7 @@ int decode_update(mpg123_handle *mh)
 	init_layer3_stuff(mh);
 	init_layer2_stuff(mh);
 	do_rva(mh);
+	debug3("done updating decoder structure with native rate %li and af.rate %li and down_sample %i", frame_freq(mh), mh->af.rate, mh->down_sample);
 
 	return 0;
 }
@@ -444,6 +446,7 @@ static int get_next_frame(mpg123_handle *mh)
 		{
 			b=0;
 			/* Prepare offsets for gapless decoding. */
+			debug1("preparing gapless stuff with native rate %li", frame_freq(mh));
 			frame_gapless_realinit(mh);
 			frame_set_frameseek(mh, mh->num);
 			mh->fresh = 0;
@@ -914,7 +917,8 @@ static const char *mpg123_error[] =
 	"Build does not support stream timeouts. (code 21)",
 	"File access error. (code 22)",
 	"Seek not supported by stream. (code 23)",
-	"No stream opened. (code 24)"
+	"No stream opened. (code 24)",
+	"Bad parameter handle. (code 25)"
 };
 
 const char* mpg123_plain_strerror(int errcode)

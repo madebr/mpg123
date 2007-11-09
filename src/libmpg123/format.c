@@ -19,11 +19,11 @@ const int mpg123_encodings[MPG123_ENCODINGS] =
 
 /*	char audio_caps[NUM_CHANNELS][MPG123_RATES+1][MPG123_ENCODINGS]; */
 
-static int rate2num(mpg123_handle *fr, long r)
+static int rate2num(mpg123_pars *mp, long r)
 {
 	int i;
 	for(i=0;i<MPG123_RATES;i++) if(mpg123_rates[i] == r) return i;
-	if(fr->p.force_rate != 0 && fr->p.force_rate == r) return MPG123_RATES;
+	if(mp->force_rate != 0 && mp->force_rate == r) return MPG123_RATES;
 
 	return -1;
 }
@@ -32,7 +32,7 @@ static int cap_fit(mpg123_handle *fr, struct audioformat *nf, int f0, int f2)
 {
 	int i;
 	int c  = nf->channels-1;
-	int rn = rate2num(fr, nf->rate);
+	int rn = rate2num(&fr->p, nf->rate);
 	if(rn >= 0)	for(i=f0;i<f2;i++)
 	{
 		if(fr->p.audio_caps[c][rn][i])
@@ -146,41 +146,69 @@ int mpg123_getformat(mpg123_handle *mh, long *rate, int *channels, int *encoding
 
 int mpg123_format_none(mpg123_handle *mh)
 {
+	int r;
 	if(mh == NULL) return MPG123_ERR;
-	memset(mh->p.audio_caps,0,sizeof(mh->p.audio_caps));
+
+	r = mpg123_fmt_none(&mh->p);
+	if(r != MPG123_OK){ mh->err = r; r = MPG123_ERR; }
+
+	return r;
+}
+
+int mpg123_fmt_none(mpg123_pars *mp)
+{
+	if(mp == NULL) return MPG123_BAD_PARS;
+
+	memset(mp->audio_caps,0,sizeof(mp->audio_caps));
 	return MPG123_OK;
 }
 
 int mpg123_format_all(mpg123_handle *mh)
 {
+	int r;
 	if(mh == NULL) return MPG123_ERR;
-	memset(mh->p.audio_caps,1,sizeof(mh->p.audio_caps));
+
+	r = mpg123_fmt_all(&mh->p);
+	if(r != MPG123_OK){ mh->err = r; r = MPG123_ERR; }
+
+	return r;
+}
+
+int mpg123_fmt_all(mpg123_pars *mp)
+{
+	if(mp == NULL) return MPG123_BAD_PARS;
+
+	memset(mp->audio_caps,1,sizeof(mp->audio_caps));
 	return MPG123_OK;
 }
 
 int mpg123_format(mpg123_handle *mh, long rate, int channels, int encodings)
 {
+	int r;
+	if(mh == NULL) return MPG123_ERR;
+	r = mpg123_fmt(&mh->p, rate, channels, encodings);
+	if(r != MPG123_OK){ mh->err = r; r = MPG123_ERR; }
+
+	return r;
+}
+
+int mpg123_fmt(mpg123_pars *mp, long rate, int channels, int encodings)
+{
 	int ie, ic, ratei;
 	int ch[2] = {0, 1};
-	if(!(channels & (MPG123_MONO|MPG123_STEREO)))
-	{
-		mh->err = MPG123_BAD_CHANNEL;
-		return MPG123_ERR;
-	}
+	if(mp == NULL) return MPG123_BAD_PARS;
+	if(!(channels & (MPG123_MONO|MPG123_STEREO))) return MPG123_BAD_CHANNEL;
+
 	if(!(channels & MPG123_STEREO)) ch[1] = 0;     /* {0,0} */
 	else if(!(channels & MPG123_MONO)) ch[0] = 1; /* {1,1} */
-	ratei = rate2num(mh, rate);
-	if(ratei < 0)
-	{
-		mh->err = MPG123_BAD_RATE;
-		return MPG123_ERR;
-	}
+	ratei = rate2num(mp, rate);
+	if(ratei < 0) return MPG123_BAD_RATE;
 
 	/* now match the encodings */
 	for(ic = 0; ic < 2; ++ic)
 	{
 		for(ie = 0; ie < MPG123_ENCODINGS; ++ie)
-		if((mpg123_encodings[ie] & encodings) == mpg123_encodings[ie]) mh->p.audio_caps[ch[ic]][ratei][ie] = 1;
+		if((mpg123_encodings[ie] & encodings) == mpg123_encodings[ie]) mp->audio_caps[ch[ic]][ratei][ie] = 1;
 
 		if(ch[0] == ch[1]) break; /* no need to do it again */
 	}
@@ -190,10 +218,16 @@ int mpg123_format(mpg123_handle *mh, long rate, int channels, int encodings)
 
 int mpg123_format_support(mpg123_handle *mh, int ratei, int enci)
 {
+	if(mh == NULL) return 0;
+	else return mpg123_fmt_support(&mh->p, ratei, enci);
+}
+
+int mpg123_fmt_support(mpg123_pars *mp, int ratei, int enci)
+{
 	int ch = 0;
-	if(mh == NULL || ratei >= MPG123_RATES || enci < 0 || enci >= MPG123_ENCODINGS) return 0;
+	if(mp == NULL || ratei >= MPG123_RATES || enci < 0 || enci >= MPG123_ENCODINGS) return 0;
 	if(ratei < 0) ratei = MPG123_RATES; /* the special one */
-	if(mh->p.audio_caps[0][ratei][enci]) ch |= MPG123_MONO;
-	if(mh->p.audio_caps[1][ratei][enci]) ch |= MPG123_STEREO;
+	if(mp->audio_caps[0][ratei][enci]) ch |= MPG123_MONO;
+	if(mp->audio_caps[1][ratei][enci]) ch |= MPG123_STEREO;
 	return ch;
 }
