@@ -237,6 +237,7 @@ int mpg123_getparam(mpg123_handle *mh, int key, long *val, double *fval)
 int mpg123_getpar(mpg123_pars *mp, int key, long *val, double *fval)
 {
 	int ret = 0;
+	if(mp == NULL) return MPG123_BAD_PARS;
 	switch(key)
 	{
 		case MPG123_VERBOSE:
@@ -300,6 +301,8 @@ int mpg123_eq(mpg123_handle *mh, int channel, int band, double val)
 /* plain file access, no http! */
 int mpg123_open(mpg123_handle *mh, char *path)
 {
+	if(mh == NULL) return MPG123_ERR;
+
 	mpg123_close(mh);
 	frame_reset(mh);
 	return open_stream(mh, path, -1);
@@ -307,6 +310,8 @@ int mpg123_open(mpg123_handle *mh, char *path)
 
 int mpg123_open_fd(mpg123_handle *mh, int fd)
 {
+	if(mh == NULL) return MPG123_ERR;
+
 	mpg123_close(mh);
 	frame_reset(mh);
 	return open_stream(mh, NULL, fd);
@@ -314,6 +319,8 @@ int mpg123_open_fd(mpg123_handle *mh, int fd)
 
 int mpg123_open_feed(mpg123_handle *mh)
 {
+	if(mh == NULL) return MPG123_ERR;
+
 	mpg123_close(mh);
 	frame_reset(mh);
 	return open_feed(mh);
