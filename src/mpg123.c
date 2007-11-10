@@ -99,6 +99,7 @@ struct parameter param = {
 	,1 /* ICY */
 };
 
+int utf8env = 0;
 mpg123_handle *mh = NULL;
 off_t framenum;
 off_t frames_left;
@@ -574,6 +575,10 @@ int main(int argc, char *argv[])
 	struct timeval start_time, now;
 	unsigned long secdiff;
 #endif
+	{
+		char *lang = getenv("LANG");
+		if(lang && strstr(lang, "UTF-8")) utf8env = 1;
+	}
 	httpdata_init(&htd);
 	result = mpg123_init();
 	if(result != MPG123_OK)

@@ -3,6 +3,11 @@
 #include "genre.h"
 
 static void utf8_ascii(mpg123_string *dest, mpg123_string *source);
+static void transform(mpg123_string *dest, mpg123_string *source)
+{
+	if(utf8env) mpg123_copy_string(source, dest);
+	else utf8_ascii(dest, source);
+}
 
 /* print tags... limiting the UTF-8 to ASCII */
 void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
@@ -20,12 +25,12 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 	if(v1 == NULL && v2 == NULL) return;
 	if(v2 != NULL) /* fill from ID3v2 data */
 	{
-		utf8_ascii(&tag[TITLE],   &v2->title);
-		utf8_ascii(&tag[ARTIST],  &v2->artist);
-		utf8_ascii(&tag[ALBUM],   &v2->album);
-		utf8_ascii(&tag[COMMENT], &v2->comment);
-		utf8_ascii(&tag[YEAR],    &v2->year);
-		utf8_ascii(&tag[GENRE],   &v2->genre);
+		transform(&tag[TITLE],   &v2->title);
+		transform(&tag[ARTIST],  &v2->artist);
+		transform(&tag[ALBUM],   &v2->album);
+		transform(&tag[COMMENT], &v2->comment);
+		transform(&tag[YEAR],    &v2->year);
+		transform(&tag[GENRE],   &v2->genre);
 	}
 	if(v1 != NULL) /* fill gaps with ID3v1 data */
 	{
@@ -273,12 +278,13 @@ static void utf8_ascii(mpg123_string *dest, mpg123_string *source)
 	p = dest->p;
 	for(spos=0; spos < source->fill; ++spos)
 	{
-		*p++ = source->p[spos]; continue;
-		/* utf8 continuation byte bo, lead!*/
+		/* UTF-8 continuation byte 0x10?????? */
 		if((source->p[spos] & 0xc0) == 0x80) continue;
-		/* utf8 lead byte, no, cont! */
+		/* UTF-8 lead byte 0x11?????? */
 		else if(source->p[spos] & 0x80) *p = '*';
+		/* just ASCII, 0x0??????? */
 		else *p = source->p[spos];
+
 		++p; /* next output char */
 	}
 	if(dest->size) dest->p[dest->size-1] = 0;

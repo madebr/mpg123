@@ -78,6 +78,8 @@ extern size_t bufferblock;
 
 #define VERBOSE_MAX 3
 
+extern int utf8env; /* if we should print out UTF-8 or ASCII */
+
 struct parameter
 {
   int aggressive; /* renice to max. priority */
