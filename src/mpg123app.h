@@ -114,6 +114,7 @@ struct parameter
 	long timeout; /* timeout for reading in seconds */
 #endif
 	long loop;    /* looping of tracks */
+	int index;    /* index / scan through files before playback */
 	/* parameters for mpg123 handle */
 	int down_sample;
 	long rva; /* (which) rva to do: 0: nothing, 1: radio/mix/track 2: album/audiophile */

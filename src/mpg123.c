@@ -86,6 +86,7 @@ struct parameter param = {
 	,0 /* timeout */
 #endif
 	,1 /* loop */
+	,0 /* index */
 	/* Parameters for mpg123 handle, defaults are queried from library! */
 	,0 /* down_sample */
 	,0 /* rva */
@@ -386,6 +387,7 @@ topt opts[] = {
 	{0, "timeout", GLO_ARG | GLO_LONG, 0, &param.timeout, 0},
 #endif
 	{0, "loop", GLO_ARG | GLO_LONG, 0, &param.loop, 0},
+	{'i', "index", GLO_INT, 0, &param.index, 1},
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -774,6 +776,12 @@ int main(int argc, char *argv[])
 
 		if(!open_track(fname)) continue;
 
+		if(!param.quiet) fprintf(stderr, "\n");
+		if(param.index)
+		{
+			if(param.verbose) fprintf(stderr, "indexing...\r");
+			mpg123_scan(mh);
+		}
 		framenum = mpg123_seek_frame(mh, param.start_frame, SEEK_SET);
 		if(framenum < 0)
 		{
@@ -785,8 +793,8 @@ int main(int argc, char *argv[])
 		if (!param.quiet) {
 			if (split_dir_file(fname ? fname : "standard input",
 				&dirname, &filename))
-				fprintf(stderr, "\nDirectory: %s", dirname);
-			fprintf(stderr, "\nPlaying MPEG stream %lu of %lu: %s ...\n", (unsigned long)pl.pos, (unsigned long)pl.fill, filename);
+				fprintf(stderr, "Directory: %s\n", dirname);
+			fprintf(stderr, "Playing MPEG stream %lu of %lu: %s ...\n", (unsigned long)pl.pos, (unsigned long)pl.fill, filename);
 
 #if !defined(GENERIC)
 {
@@ -1042,6 +1050,7 @@ static void long_usage(int err)
 	fprintf(o," -z     --shuffle          shuffle song-list before playing\n");
 	fprintf(o," -Z     --random           full random play\n");
 	fprintf(o,"        --no-icy-meta      Do not accept ICY meta data\n");
+	fprintf(o," -i     --index            index / scan through the track before playback\n");
 	fprintf(o,"\noutput/processing options\n\n");
 	fprintf(o," -o <o> --output <o>       select audio output module\n");
 	fprintf(o,"        --list-modules     list the available modules\n");
