@@ -91,3 +91,6 @@ EXTRA_libmpg123_la_SOURCES = \
 .S.o:
 	$(CPP) $(AM_CPPFLAGS) $(DEFAULT_INCLUDES) $(CPPFLAGS) $< > $<.s
 	$(CCAS) $(CCASFLAGS) -c -o $@ $<.s && rm $<.s
+
+.S.lo:
+	$(LTCPPASCOMPILE) $(DEFAULT_INCLUDES) -c -o $@ $<
