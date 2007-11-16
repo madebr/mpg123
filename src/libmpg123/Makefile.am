@@ -93,4 +93,4 @@ EXTRA_libmpg123_la_SOURCES = \
 	$(CCAS) $(CCASFLAGS) -c -o $@ $<.s && rm $<.s
 
 .S.lo:
-	$(LTCPPASCOMPILE) $(DEFAULT_INCLUDES) -c -o $@ $<
+	$(LTCCASCOMPILE) $(DEFAULT_INCLUDES) -c -o $@ $<
