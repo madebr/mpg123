@@ -705,7 +705,7 @@ do
 			# Does not work... instead just check for header
 			# AC_CHECK_LIB( [winmm], [waveOutOpen] )
 			WIN32_LIBS=-lwinmm
-			AC_CHECK_HEADERS([windows.h], output_modules="$output_modules win32" HAVE_WINMM=yes, HAVE_WINMM=no check_failed=yes)
+			AC_CHECK_HEADERS([windows.h], output_modules="$output_modules win32" HAVE_WIN32=yes, HAVE_WIN32=no check_failed=yes)
 		;;
 		sun)
 			AC_CHECK_HEADERS([sun/audioio.h sys/audioio.h asm/audioio.h sys/audio.h])

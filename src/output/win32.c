@@ -3,210 +3,180 @@
 
 	copyright ?-2007 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
+
 	initially written (as it seems) by Tony Million
+	rewrite of basic functionality for callback-less and properly ringbuffered operation by "ravenexp" 
 */
 
-#include <fcntl.h>
+#include "mpg123app.h"
 #include <windows.h>
 
-#include "mpg123app.h"
+/* Number of buffers in the playback ring */
+#define NUM_BUFFERS 64 /* about 1 sec of 44100 sampled stream */
 
-
-/* FIXME: these should be in a structure, not globals */
-static CRITICAL_SECTION cs;
-static HWAVEOUT dev   = NULL;
-static int nBlocks    = 0;
-static int MAX_BLOCKS = 6;
-
-
-static void wait(void)
+/* Buffer ring queue state */
+struct queue_state
 {
-	while(nBlocks) Sleep(77);
-}
+	WAVEHDR buffer_headers[NUM_BUFFERS];
+	/* The next buffer to be filled and put in playback */
+	int next_buffer;
+	/* Buffer playback completion event */
+	HANDLE play_done_event;
+};
 
-
-static void CALLBACK wave_callback(HWAVE hWave, UINT uMsg, DWORD dwInstance, DWORD dwParam1, DWORD dwParam2)
+int open_win32(struct audio_output_struct *ao)
 {
-	WAVEHDR *wh;
-	HGLOBAL hg;
-
-	if(uMsg == WOM_DONE)
-	{
-		debug("one block done");
-		EnterCriticalSection(&cs);
-		debug("in critical section");
-
-		wh = (WAVEHDR *)dwParam1;
-
-		waveOutUnprepareHeader(dev, wh, sizeof (WAVEHDR));
-
-		/* Deallocate the buffer memory */
-		hg = GlobalHandle(wh->lpData);
-		GlobalUnlock(hg);
-		GlobalFree(hg);
-
-		/* Deallocate the header memory */
-		hg = GlobalHandle(wh);
-		GlobalUnlock(hg);
-		GlobalFree(hg);
-
-		/* decrease the number of USED blocks */
-		nBlocks--;
-
-		LeaveCriticalSection(&cs);
-		debug1("down to %i blocks", nBlocks);
-	}
-	else debug1("got message %u != WOM_DONE", uMsg);
-}
-
-static int open_win32(struct audio_info_struct *ai)
-{
+	struct queue_state* state;
 	MMRESULT res;
-	WAVEFORMATEX outFormatex;
+	WAVEFORMATEX out_fmt;
+	UINT dev_id;
 
-	if(ai->rate == -1)
-	return 0;
+	if(!ao) return -1;
 
-	if(!waveOutGetNumDevs())
+	if(ao->rate == -1) return 0;
+
+	/* Allocate queue state struct for this device */
+	state = calloc(1, sizeof(struct queue_state));
+	if(!state) return -1;
+
+	ao->userptr = state;
+	state->play_done_event = CreateEvent(0,FALSE,FALSE,0);
+	if(state->play_done_event == INVALID_HANDLE_VALUE) return -1;
+
+	/* FIXME: real device enumeration by capabilities? */
+	dev_id = WAVE_MAPPER;	/* probably does the same thing */
+	ao->device = "WaveMapper";
+	/* FIXME: support for smth besides MPG123_ENC_SIGNED_16? */
+	out_fmt.wFormatTag = WAVE_FORMAT_PCM;
+	out_fmt.wBitsPerSample = 16;
+	out_fmt.nChannels = 2;
+	out_fmt.nSamplesPerSec = ao->rate;
+	out_fmt.nBlockAlign = out_fmt.nChannels*out_fmt.wBitsPerSample/8;
+	out_fmt.nAvgBytesPerSec = out_fmt.nBlockAlign*out_fmt.nSamplesPerSec;
+	out_fmt.cbSize = 0;
+
+	res = waveOutOpen((HWAVEOUT*)&ao->fn, dev_id, &out_fmt,
+	                  (DWORD)state->play_done_event, 0, CALLBACK_EVENT);
+
+	switch(res)
 	{
-		MessageBox(NULL, "No audio devices present!", "Error...", MB_OK);
-		return -1;
+		case MMSYSERR_NOERROR:
+			break;
+		case MMSYSERR_ALLOCATED:
+			error("Audio output device is already allocated.");
+			return -1;
+		case MMSYSERR_NODRIVER:
+			error("No device driver is present.");
+			return -1;
+		case MMSYSERR_NOMEM:
+			error("Unable to allocate or lock memory.");
+			return -1;
+		case WAVERR_BADFORMAT:
+			error("Unsupported waveform-audio format.");
+			return -1;
+		default:
+			error("Unable to open wave output device.");
+			return -1;
 	}
-
-	outFormatex.wFormatTag      = WAVE_FORMAT_PCM;
-	outFormatex.wBitsPerSample  = 16;
-	outFormatex.nChannels       = 2;
-	outFormatex.nSamplesPerSec  = ai->rate;
-	outFormatex.nAvgBytesPerSec = outFormatex.nSamplesPerSec * outFormatex.nChannels * outFormatex.wBitsPerSample/8;
-	outFormatex.nBlockAlign     = outFormatex.nChannels * outFormatex.wBitsPerSample/8;
-
-	res = waveOutOpen(&dev, (UINT)ai->device, &outFormatex, (DWORD)wave_callback, 0, CALLBACK_FUNCTION);
-	if(res != MMSYSERR_NOERROR)
-	{
-		switch(res)
-		{
-			case MMSYSERR_ALLOCATED:
-				MessageBox(NULL, "Device Is Already Open", "Error...", MB_OK);
-			break;
-			case MMSYSERR_BADDEVICEID:
-				MessageBox(NULL, "The Specified Device Is out of range", "Error...", MB_OK);
-			break;
-			case MMSYSERR_NODRIVER:
-				MessageBox(NULL, "There is no audio driver in this system.", "Error...", MB_OK);
-			break;
-			case MMSYSERR_NOMEM:
-				MessageBox(NULL, "Unable to allocate sound memory.", "Error...", MB_OK);
-			break;
-			case WAVERR_BADFORMAT:
-				MessageBox(NULL, "This audio format is not supported.", "Error...", MB_OK);
-			break;
-			case WAVERR_SYNC:
-				MessageBox(NULL, "The device is synchronous.", "Error...", MB_OK);
-			break;
-			default:
-				MessageBox(NULL, "Unknown Media Error", "Error...", MB_OK);
-			break;
-		}
-		return -1;
-	}
-
-	waveOutReset(dev);
-	InitializeCriticalSection(&cs);
-
+	/* Reset event from the "device open" message */
+	ResetEvent(state->play_done_event);
+	waveOutReset((HWAVEOUT)ao->fn);
+	/* Playback starts when the full queue is prebuffered */
+	waveOutPause((HWAVEOUT)ao->fn);
 	return 0;
 }
 
-static int get_formats_win32(struct audio_info_struct *ai)
+int get_formats_win32(struct audio_output_struct *ao)
 {
+	/* FIXME: support for smth besides MPG123_ENC_SIGNED_16? */
 	return MPG123_ENC_SIGNED_16;
 }
 
-static int write_win32(struct audio_info_struct *ai,unsigned char *buf,int len)
+int write_win32(struct audio_output_struct *ao, unsigned char *buffer, int len)
 {
-	HGLOBAL hg, hg2;
-	LPWAVEHDR wh;
+	struct queue_state* state;
 	MMRESULT res;
-	void *b;
+	WAVEHDR* hdr;
 
-	/*  Wait for a few FREE blocks... */
-	while(nBlocks > MAX_BLOCKS)
+	if(!ao || !ao->userptr) return -1;
+	if(!buffer || len <= 0) return 0;
+
+	state = (struct queue_state*)ao->userptr;
+	/* The last recently used buffer in the play ring */
+	hdr = &state->buffer_headers[state->next_buffer];
+	/* Check buffer header and wait if it's being played */
+	while(hdr->dwFlags & WHDR_INQUEUE)
 	{
-		debug2("waiting for free blocks... %i > %i", nBlocks, MAX_BLOCKS);
-		Sleep(77);
+		/* Looks like queue is full now, can start playing */
+		waveOutRestart((HWAVEOUT)ao->fn);
+		WaitForSingleObject(state->play_done_event, INFINITE);
+		/* BUG: Sometimes event is signaled for some other reason. */
+		if(!(hdr->dwFlags & WHDR_DONE))	debug("Audio output device signals something...");
 	}
-	/* FIRST allocate some memory for a copy of the buffer! */
-	/* Isn't that blatantly inefficient to allocate and free memory all the time??
-	   We should make a fixed ringbuffer set here. */
-	hg2 = GlobalAlloc(GMEM_MOVEABLE, len);
-	if(!hg2)
+	/* Cleanup */
+	if(hdr->dwFlags & WHDR_DONE) waveOutUnprepareHeader((HWAVEOUT)ao->fn, hdr, sizeof(WAVEHDR));
+
+	/* Now have the wave buffer prepared and shove the data in. */
+	hdr->dwFlags = 0;	
+	/* (Re)allocate buffer only if required.
+	   hdr->dwUser = allocated length */
+	if(!hdr->lpData || hdr->dwUser < len)
 	{
-		MessageBox(NULL, "GlobalAlloc failed!", "Error...",  MB_OK);
-		return(-1);
+		hdr->lpData = realloc(hdr->lpData, len);
+		if(!hdr->lpData){	error("Out of memory for playback buffers.");	return -1; }
+
+		hdr->dwUser = len;
 	}
-	b = GlobalLock(hg2);
+	hdr->dwBufferLength = len;
+	memcpy(hdr->lpData, buffer, len);
+	res = waveOutPrepareHeader((HWAVEOUT)ao->fn, hdr, sizeof(WAVEHDR));
+	if(res != MMSYSERR_NOERROR){ error("Can't write to audio output device (prepare)."); return -1; }
 
-	/* Here we can call any modification output functions we want.... */
-	CopyMemory(b, buf, len);
+	res = waveOutWrite((HWAVEOUT)ao->fn, hdr, sizeof(WAVEHDR));
+	if(res != MMSYSERR_NOERROR){ error("Can't write to audio output device."); return -1; }
 
-	/* now make a header and WRITE IT! */
-	hg = GlobalAlloc (GMEM_MOVEABLE | GMEM_ZEROINIT, sizeof(WAVEHDR));
-	if(!hg) return -1;
-
-	wh = GlobalLock(hg);
-	wh->dwBufferLength = len;
-	wh->lpData = b;
-
-	debug("going to push prepared block");
-
-	res = waveOutPrepareHeader(dev, wh, sizeof(WAVEHDR));
-	if(res)
-	{
-		error("could not prepare header");
-		GlobalUnlock(hg);
-		GlobalFree(hg);
-		/* LeaveCriticalSection(&cs); */
-		return -1;
-	}
-	debug("prepared header");
-	/* Hm, this causes deadlock when in critical section... I guess it handles locking in itself */
-	res = waveOutWrite(dev, wh, sizeof(WAVEHDR));
-	if(res)
-	{
-		error("could not write");
-		GlobalUnlock(hg);
-		GlobalFree(hg);
-		/* LeaveCriticalSection(&cs); */
-		return -1;
-	}
-	debug("wrote block");
-	EnterCriticalSection(&cs);
-	debug("in critical section");
-	nBlocks++; /* we need lock around _that_ */
-
-	LeaveCriticalSection(&cs);
-	debug("done");
-
+	/* Cycle to the next buffer in the ring queue. */
+	state->next_buffer = (state->next_buffer + 1) % NUM_BUFFERS;
 	return len;
 }
 
-static int close_win32(struct audio_info_struct *ai)
+void flush_win32(struct audio_output_struct *ao)
 {
-	if(dev)
+	int i;
+	struct queue_state* state;
+
+	if(!ao || !ao->userptr) return;
+
+	state = (struct queue_state*)ao->userptr;
+	waveOutReset((HWAVEOUT)ao->fn);
+	ResetEvent(state->play_done_event);
+	for(i = 0; i < NUM_BUFFERS; i++)
 	{
-		wait();
-		waveOutReset(dev);
-		waveOutClose(dev);
-		dev=NULL;
+		if(state->buffer_headers[i].dwFlags & WHDR_DONE)
+		waveOutUnprepareHeader((HWAVEOUT)ao->fn, &state->buffer_headers[i], sizeof(WAVEHDR));
+
+		state->buffer_headers[i].dwFlags = 0;	
 	}
-	DeleteCriticalSection(&cs);
-	nBlocks = 0;
+	waveOutPause((HWAVEOUT)ao->fn);
+}
+
+int close_win32(struct audio_output_struct *ao)
+{
+	int i;
+	struct queue_state* state;
+
+	if(!ao || !ao->userptr) return -1;
+
+	state = (struct queue_state*)ao->userptr;
+	flush_win32(ao);
+	waveOutClose((HWAVEOUT)ao->fn);
+	CloseHandle(state->play_done_event);
+	for(i = 0; i < NUM_BUFFERS; i++) free(state->buffer_headers[i].lpData);
+
+	free(state);
+	ao->userptr = 0;
 	return 0;
 }
-
-static void flush_win32(struct audio_info_struct *ai)
-{
-}
-
 
 static int init_win32(audio_output_t* ao)
 {
@@ -233,7 +203,7 @@ static int init_win32(audio_output_t* ao)
 mpg123_module_t mpg123_output_module_info = {
 	/* api_version */	MPG123_MODULE_API_VERSION,
 	/* name */			"win32",						
-	/* description */	"Audio output for Windows.",
+	/* description */	"Audio output for Windows (winmm).",
 	/* revision */		"$Rev:$",						
 	/* handle */		NULL,
 	
