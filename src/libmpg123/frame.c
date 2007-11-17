@@ -151,6 +151,7 @@ int frame_buffers(mpg123_handle *fr)
 
 	if(2*2*0x110*sizeof(real) > buffssize)
 	buffssize = 2*2*0x110*sizeof(real);
+	buffssize += 15; /* For 16-byte alignment (SSE likes that). */
 
 	if(fr->rawbuffs != NULL && fr->rawbuffss != buffssize)
 	{
@@ -161,11 +162,11 @@ int frame_buffers(mpg123_handle *fr)
 	if(fr->rawbuffs == NULL) fr->rawbuffs = (unsigned char*) malloc(buffssize);
 	if(fr->rawbuffs == NULL) return -1;
 	fr->rawbuffss = buffssize;
-	fr->short_buffs[0][0] = (short*) fr->rawbuffs;
+	fr->short_buffs[0][0] = aligned_pointer(fr->rawbuffs,short,16);
 	fr->short_buffs[0][1] = fr->short_buffs[0][0] + 0x110;
 	fr->short_buffs[1][0] = fr->short_buffs[0][1] + 0x110;
 	fr->short_buffs[1][1] = fr->short_buffs[1][0] + 0x110;
-	fr->real_buffs[0][0] = (real*) fr->rawbuffs;
+	fr->real_buffs[0][0] = aligned_pointer(fr->rawbuffs,real,16);
 	fr->real_buffs[0][1] = fr->real_buffs[0][0] + 0x110;
 	fr->real_buffs[1][0] = fr->real_buffs[0][1] + 0x110;
 	fr->real_buffs[1][1] = fr->real_buffs[1][0] + 0x110;
@@ -199,7 +200,7 @@ int frame_buffers(mpg123_handle *fr)
 #endif
 			/* decwin_mmx will share, decwins will be appended ... sizeof(float)==4 */
 			if(decwin_size < (512+32)*4) decwin_size = (512+32)*4;
-			decwin_size += (512+32)*4 + 32; /* the second window + alignment zone */
+			decwin_size += (512+32)*4 + 31; /* the second window + alignment zone */
 			/* (512+32)*4/32 == 2176/32 == 68, so one decwin block retains alignment */
 #ifdef OPT_MULTI
 		}
