@@ -119,6 +119,7 @@ size_t bufferblock = 0;
 static int intflag = FALSE;
 int OutputDescriptor;
 static int filept = -1;
+char *binpath; /* Path to myself. */
 
 #if !defined(WIN32) && !defined(GENERIC)
 static void catch_interrupt(void)
@@ -580,6 +581,17 @@ int main(int argc, char *argv[])
 	{
 		char *lang = getenv("LANG");
 		if(lang && strstr(lang, "UTF-8")) utf8env = 1;
+	}
+	{
+		/* Hack the path of the binary... needed for relative module search. */
+		int i;
+		binpath = argv[0];
+		for(i=strlen(binpath)-1; i>-1; --i)
+		if(binpath[i] == '/' || binpath[i] == '\\')
+		{
+			binpath[i] = 0;
+			break;
+		}
 	}
 	httpdata_init(&htd);
 	result = mpg123_init();

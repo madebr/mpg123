@@ -996,6 +996,12 @@ fi
 if test "$modules" = disabled; then
 echo "The _single_ active output module is being statically linked in.
 "
+else
+	if test "$HAVE_WIN32" = yes; then
+	echo "WARNING: The output modules won't work under plain Windows (MinGW32)... You might want to rerun with --disable-modules."
+	echo "Alternatively, you can try to hack our libtool stuff into making it happen -- and share your knowledge with the mpg123 team."
+	echo
+	fi
 fi
 if test $with_optimization = "0"; then
 	echo "No optimization flags chosen, make sure you have something basic in your CFLAGS at least...

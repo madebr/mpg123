@@ -23,6 +23,40 @@
 #define MODULE_SYMBOL_PREFIX 	"mpg123_"
 #define MODULE_SYMBOL_SUFFIX 	"_module_info"
 
+/* It's nasty to hardcode that here...
+   also it does need hacking around libtool's hardcoded .la paths:
+   When the .la file is in the same dir as .so file, you need libdir='.' in there.
+   Also, all this crap doesn't actually work on Win32 (for what I initially intended it). */
+#ifdef WIN32
+#define RELMOD "\\..\\lib\\mpg123" /* I suspect that win32api would accept "/", too */
+#else
+#define RELMOD "/../lib/mpg123"
+#endif
+
+static char *get_the_cwd(); /* further down... */
+static char *get_module_dir()
+{
+	/* Either PKGLIBDIR is accessible right away or we assume ../lib/mpg123 from binpath. */
+	DIR* dir = NULL;
+	char *moddir = NULL;
+	dir = opendir(PKGLIBDIR);
+	if(dir != NULL)
+	{
+		size_t l = strlen(PKGLIBDIR);
+		moddir = malloc(l+1);
+		strcpy(moddir, PKGLIBDIR);
+		moddir[l] = 0;
+		closedir(dir);
+	}
+	else
+	{
+		size_t l = strlen(binpath) + strlen(RELMOD);
+		moddir = malloc(l+1);
+		snprintf(moddir, l+1, "%s%s", binpath, RELMOD);
+		moddir[l] = 0;
+	}
+	return moddir;
+}
 
 /* Open a module */
 mpg123_module_t*
@@ -30,77 +64,75 @@ open_module( const char* type, const char* name )
 {
 	lt_dlhandle handle = NULL;
 	mpg123_module_t *module = NULL;
-	char* module_name = strdup( name );
 	char* module_path = NULL;
-	int module_path_len = 0;
+	size_t module_path_len = 0;
 	char* module_symbol = NULL;
-	int module_symbol_len = 0;
-	int i;
+	size_t module_symbol_len = 0;
+	char *workdir = NULL;
+	char *moddir  = NULL;
+	workdir = get_the_cwd();
+	moddir  = get_module_dir();
 
 	/* Initialize libltdl */
 	if (lt_dlinit()) error( "Failed to initialise libltdl" );
-	
-	/* Clean up the module name to prevent loading random files */
-	for(i=0; i<strlen(module_name); i++) {
-		if (!isalnum(module_name[i])) module_name[i] = '_';
-	}
 
+	chdir(moddir);
 	/* Work out the path of the module to open */
-	module_path_len = strlen( PKGLIBDIR ) + 1 + 
-					  strlen( type ) + 1 + strlen( module_name ) +
-					  strlen( MODULE_FILE_SUFFIX ) + 1;
+	module_path_len = strlen(type) + 1 + strlen(name) + strlen(MODULE_FILE_SUFFIX) + 1;
 	module_path = malloc( module_path_len );
 	if (module_path == NULL) {
 		error1( "Failed to allocate memory for module name: %s", strerror(errno) );
-		return NULL;
+		goto om_bad;
 	}
-	snprintf( module_path, module_path_len, "%s/%s_%s%s", PKGLIBDIR, type, module_name, MODULE_FILE_SUFFIX );
-	
-	
+	snprintf( module_path, module_path_len, "%s_%s%s", type, name, MODULE_FILE_SUFFIX );
 	/* Display the path of the module created */
 	debug1( "Module path: %s", module_path );
-
 
 	/* Open the module */
 	handle = lt_dlopen( module_path );
 	free( module_path );
-	free( module_name );
 	if (handle==NULL) {
 		error1( "Failed to open module: %s", lt_dlerror() );
-		return NULL;
+		goto om_bad;
 	}
 	
 	/* Work out the symbol name */
 	module_symbol_len = strlen( MODULE_SYMBOL_PREFIX ) +
 						strlen( type )  +
 						strlen( MODULE_SYMBOL_SUFFIX ) + 1;
-	module_symbol = malloc( module_path_len );
+	module_symbol = malloc(module_symbol_len);
 	snprintf( module_symbol, module_symbol_len, "%s%s%s", MODULE_SYMBOL_PREFIX, type, MODULE_SYMBOL_SUFFIX );
 	debug1( "Module symbol: %s", module_symbol );
 	
 	/* Get the information structure from the module */
 	module = (mpg123_module_t*)lt_dlsym(handle, module_symbol );
+	free( module_symbol );
 	if (module==NULL) {
 		error1( "Failed to get module symbol: %s", lt_dlerror() );
-		lt_dlclose( handle );
-		return NULL;
+		goto om_latebad;
 	}
-	free( module_symbol );
 	
 	/* Check the API version */
 	if (MPG123_MODULE_API_VERSION > module->api_version) {
 		error( "API version of module is too old" );
-		lt_dlclose( handle );
-		return NULL;
+		goto om_latebad;
 	} else if (MPG123_MODULE_API_VERSION > module->api_version) {
 		error( "API version of module is too new" );
-		lt_dlclose( handle );
-		return NULL;
+		goto om_latebad;
 	}
 
 	/* Store handle in the data structure */
 	module->handle = handle;
 
+	goto om_end;
+om_latebad:
+	lt_dlclose( handle );
+om_bad:
+	module = NULL;
+om_end:
+	chdir(workdir);
+	free(moddir);
+	free(workdir);
 	return module;
 }
 
@@ -134,20 +166,25 @@ void list_modules()
 	DIR* dir = NULL;
 	struct dirent *dp = NULL;
 	char *workdir = NULL;
-	
+	char *moddir  = NULL;
+
+	moddir = get_module_dir();
 	/* Open the module directory */
-	dir = opendir( PKGLIBDIR );
+	dir = opendir(moddir);
 	if (dir==NULL) {
 		error2("Failed to open the module directory (%s): %s\n", PKGLIBDIR, strerror(errno));
+		free(moddir);
 		exit(-1);
 	}
 	
 	workdir = get_the_cwd();
-	if(chdir(PKGLIBDIR) != 0)
+	if(chdir(moddir) != 0)
 	{
 		error2("Failed to enter module directory (%s): %s\n", PKGLIBDIR, strerror(errno));
+		closedir( dir );
 		free(workdir);
-		exit(-1); /* Hm, reintroduce the habit of random exit()s scattered around the code? */
+		free(moddir);
+		exit(-1);
 	}
 	/* Display the program title */
 	/* print_title(stderr); */
@@ -198,7 +235,7 @@ void list_modules()
 	chdir(workdir);
 	free(workdir);
 	closedir( dir );
-	
+	free(moddir);
 	exit(0);
 }
 
