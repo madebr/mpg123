@@ -39,6 +39,11 @@
 # endif
 #endif
 
+struct oss_stuff
+{
+	int fragment; /* size of one fragment */
+	int nfrag;    /* number of fragments  */
+};
 
 static int rate_best_match_oss(audio_output_t *ao)
 {

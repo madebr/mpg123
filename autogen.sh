@@ -74,13 +74,15 @@ run_cmd() {
 }
 
 
-run_cmd aclocal
+# Automake 1.10 borks up with LTCCASCOMPILE... defines LTCPPCOMPILE instead ... what is correct??
+run_cmd aclocal-1.9
 run_cmd autoheader
 run_cmd libtoolize --force --copy --ltdl
-run_cmd automake --add-missing --copy
+run_cmd automake-1.9 --add-missing --copy
 run_cmd autoconf
 
 echo "Fixing that darned libltdl Makefile.in... it wants to blow on make dist because it's directory has been precreated!!!!"
+echo "This may just apply to libtool-1.5.22 ... libtool-1.5.24 breaks in different ways, but also for make dist (mkinstalldirs target)"
 perl -pi -e 's/mkdir \$\(distdir\)/\$(mkdir_p) \$(distdir)/' libltdl/Makefile.in
 
 $srcdir/configure --enable-debug && echo
