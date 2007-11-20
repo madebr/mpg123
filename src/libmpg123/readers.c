@@ -213,7 +213,7 @@ static int stream_seek_frame(mpg123_handle *fr, off_t newframe)
 		/* now seek to nearest leading index position and read from there until newframe is reached */
 		if(stream_lseek(fr,frame_index_find(fr, newframe, &preframe),SEEK_SET) < 0)
 		return READER_ERROR;
-		debug2("going to %lu; just got %lu", newframe, preframe);
+		debug2("going to %lu; just got %lu", (long unsigned)newframe, (long unsigned)preframe);
 		fr->num = preframe-1; /* Watch out! I am going to read preframe... fr->num should indicate the frame before! */
 		while(fr->num < newframe)
 		{
@@ -225,7 +225,7 @@ static int stream_seek_frame(mpg123_handle *fr, off_t newframe)
 		/* I think, I don't want this...
 		if(fr->lay == 3) set_pointer(fr, 512); */
 
-		debug1("arrived at %lu", fr->num);
+		debug1("arrived at %lu", (long unsigned)fr->num);
 
 		return MPG123_OK;
 	}

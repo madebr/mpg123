@@ -51,7 +51,7 @@ void generic_sendmsg (const char *fmt, ...)
 
 void generic_sendstat (mpg123_handle *fr)
 {
-	long current_frame, frames_left;
+	off_t current_frame, frames_left;
 	double current_seconds, seconds_left;
 	if(!mpg123_position(fr, 0, xfermem_get_usedspace(buffermem), &current_frame, &frames_left, &current_seconds, &seconds_left))
 	generic_sendmsg("F %li %li %3.2f %3.2f", current_frame, frames_left, current_seconds, seconds_left);

@@ -341,7 +341,12 @@ int mpg123_print_index(mpg123_handle *fr, FILE* out)
 {
 	size_t c;
 	if(fr == NULL) return MPG123_ERR;
-	for(c=0; c < fr->index.fill;++c) fprintf(out, "[%lu] %lu: %li (+%li)\n", (unsigned long) c, (unsigned long) c*fr->index.step, (long)fr->index.data[c], (long) (c ? fr->index.data[c]-fr->index.data[c-1] : 0));
+	for(c=0; c < fr->index.fill;++c) 
+		fprintf(out, "[%lu] %lu: %li (+%li)\n",
+		(unsigned long) c,
+		(unsigned long) (c*fr->index.step), 
+		(long) fr->index.data[c], 
+		(long) (c ? fr->index.data[c]-fr->index.data[c-1] : 0));
 	return MPG123_OK;
 }
 
@@ -457,14 +462,14 @@ void frame_gapless_init(mpg123_handle *fr, off_t b, off_t e)
 	/* These will get proper values later, from above plus resampling info. */
 	fr->begin_os = 0;
 	fr->end_os = 0;
-	debug2("frame_gapless_init: from %lu to %lu samples", fr->begin_s, fr->end_s);
+	debug2("frame_gapless_init: from %lu to %lu samples", (long unsigned)fr->begin_s, (long unsigned)fr->end_s);
 }
 
 void frame_gapless_realinit(mpg123_handle *fr)
 {
 	fr->begin_os = frame_ins2outs(fr, fr->begin_s);
 	fr->end_os   = frame_ins2outs(fr, fr->end_s);
-	debug2("frame_gapless_realinit: from %lu to %lu samples", fr->begin_os, fr->end_os);
+	debug2("frame_gapless_realinit: from %lu to %lu samples", (long unsigned)fr->begin_os, (long unsigned)fr->end_os);
 }
 #endif
 

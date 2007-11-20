@@ -243,14 +243,14 @@ static int check_lame_tag(mpg123_handle *fr)
 						frame_gapless_init(fr, DECODER_DELAY+GAP_SHIFT, length+DECODER_DELAY+GAP_SHIFT);
 					}
 					#endif
-					debug1("Xing: %lu frames", fr->track_frames);
+					debug1("Xing: %lu frames", (long unsigned)fr->track_frames);
 					lame_offset += 4;
 				}
 				if(xing_flags & 0x2) /* bytes */
 				{
 					#ifdef DEBUG
 					unsigned long xing_bytes = make_long(fr->bsbuf, lame_offset);
-					debug1("Xing: %lu bytes", xing_bytes);
+					debug1("Xing: %lu bytes", (long unsigned)xing_bytes);
 					#endif
 					lame_offset += 4;
 				}
@@ -262,7 +262,7 @@ static int check_lame_tag(mpg123_handle *fr)
 				{
 					#ifdef DEBUG
 					unsigned long xing_quality = make_long(fr->bsbuf, lame_offset);
-					debug1("Xing: quality = %lu", xing_quality);
+					debug1("Xing: quality = %lu", (long unsigned)xing_quality);
 					#endif
 					lame_offset += 4;
 				}
@@ -368,7 +368,8 @@ static int check_lame_tag(mpg123_handle *fr)
 						off_t length = fr->track_frames * spf(fr);
 						off_t skipbegin = DECODER_DELAY + ((((int) fr->bsbuf[lame_offset]) << 4) | (((int) fr->bsbuf[lame_offset+1]) >> 4));
 						off_t skipend = -DECODER_DELAY + (((((int) fr->bsbuf[lame_offset+1]) << 8) | (((int) fr->bsbuf[lame_offset+2]))) & 0xfff);
-						debug3("preparing gapless mode for layer3: length %lu, skipbegin %lu, skipend %lu", length, skipbegin, skipend);
+						debug3("preparing gapless mode for layer3: length %lu, skipbegin %lu, skipend %lu", 
+								(long unsigned)length, (long unsigned)skipbegin, (long unsigned)skipend);
 						if(length > 1)
 						frame_gapless_init(fr, skipbegin+GAP_SHIFT, (skipend < length) ? length-skipend+GAP_SHIFT : length+GAP_SHIFT);
 					}
@@ -692,7 +693,8 @@ init_resync:
 		fr->mean_framesize = ((fr->mean_frames-1)*fr->mean_framesize+compute_bpf(fr)) / fr->mean_frames ;
 	}
 	++fr->num; /* 0 for first frame! */
-	debug4("Frame %li %08lx %i, next filepos=0x%lx", fr->num, newhead, fr->framesize, fr->rd->tell(fr));
+	debug4("Frame %li %08lx %i, next filepos=0x%lx", 
+	(long)fr->num, newhead, fr->framesize, (long unsigned)fr->rd->tell(fr));
 	/* save for repetition */
 	if(fr->p.halfspeed && fr->lay == 3)
 	{

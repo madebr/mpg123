@@ -190,7 +190,7 @@ unsigned int roundui(double val)
 void print_stat(mpg123_handle *fr, long offset, long buffsize)
 {
 	double tim1,tim2;
-	long rno, no;
+	off_t rno, no;
 	double basevol, realvol;
 	char *icy;
 #ifndef GENERIC
@@ -212,7 +212,7 @@ void print_stat(mpg123_handle *fr, long offset, long buffsize)
 	    && MPG123_OK == mpg123_getvolume(fr, &basevol, &realvol, NULL) )
 	{
 		fprintf(stderr, "\rFrame# %5li [%5li], Time: %02lu:%02u.%02u [%02u:%02u.%02u], RVA:%6s, Vol: %3u(%3u)",
-		        no,rno,
+		        (long)no, (long)rno,
 		        (unsigned long) tim1/60, (unsigned int)tim1%60, (unsigned int)(tim1*100)%100,
 		        (unsigned int)tim2/60, (unsigned int)tim2%60, (unsigned int)(tim2*100)%100,
 		        rva_name[param.rva], roundui(basevol*100), roundui(realvol*100) );

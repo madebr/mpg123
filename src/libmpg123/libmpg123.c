@@ -415,7 +415,7 @@ static int get_next_frame(mpg123_handle *mh)
 		debug("read frame");
 		mh->to_decode = FALSE;
 		b = read_frame(mh); /* That sets to_decode only if a full frame was read. */
-		debug3("read of frame %li returned %i (to_decode=%i)", mh->num, b, mh->to_decode);
+		debug3("read of frame %li returned %i (to_decode=%i)", (long)mh->num, b, mh->to_decode);
 		if(b == MPG123_NEED_MORE) return MPG123_NEED_MORE; /* need another call with data */
 		else if(b <= 0)
 		{
@@ -548,7 +548,7 @@ int mpg123_decode(mpg123_handle *mh,unsigned char *inmemory, size_t inmemsize, u
 
 	while(ret == MPG123_OK)
 	{
-		debug3("decode loop, fill %i (%li vs. %li)", mh->buffer.fill, (long)mh->num, (long)mh->firstframe);
+		debug3("decode loop, fill %i (%li vs. %li)", (int)mh->buffer.fill, (long)mh->num, (long)mh->firstframe);
 		/* Decode a frame that has been read before.
 		   This only happens when buffer is empty! */
 		if(mh->to_decode)
@@ -566,7 +566,7 @@ int mpg123_decode(mpg123_handle *mh,unsigned char *inmemory, size_t inmemsize, u
 			mh->clip += (mh->do_layer)(mh);
 			mh->to_decode = mh->to_ignore = FALSE;
 			mh->buffer.p = mh->buffer.data;
-			debug2("decoded frame %li, got %li samples in buffer", mh->num, mh->buffer.fill / (samples_to_bytes(mh, 1)));
+			debug2("decoded frame %li, got %li samples in buffer", (long)mh->num, (long)(mh->buffer.fill / (samples_to_bytes(mh, 1))));
 #ifdef GAPLESS
 			frame_buffercheck(mh); /* Seek & gapless. */
 #endif
@@ -575,7 +575,7 @@ int mpg123_decode(mpg123_handle *mh,unsigned char *inmemory, size_t inmemsize, u
 		{
 			/* get what is needed - or just what is there */
 			int a = mh->buffer.fill > (outmemsize - mdone) ? outmemsize - mdone : mh->buffer.fill;
-			debug4("buffer fill: %i; copying %i (%i - %i)", mh->buffer.fill, a, outmemsize, *done);
+			debug4("buffer fill: %i; copying %i (%i - %li)", (int)mh->buffer.fill, a, (int)outmemsize, *done);
 			memcpy(outmemory, mh->buffer.p, a);
 			/* less data in frame buffer, less needed, output pointer increase, more data given... */
 			mh->buffer.fill -= a;

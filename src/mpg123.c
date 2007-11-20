@@ -865,7 +865,7 @@ tc_hack:
 				if (param.verbose > 1 || !(framenum & 0x7))
 					print_stat(mh,0,xfermem_get_usedspace(buffermem)); 
 				if(param.verbose > 2 && param.usebuffer)
-					fprintf(stderr,"[%08x %08x]",buffermem->readindex,buffermem->freeindex);
+					fprintf(stderr,"[%08x %08x]", (unsigned int)buffermem->readindex, (unsigned int)buffermem->freeindex);
 #else
 				if(param.verbose > 1 || !(framenum & 0x7))	print_stat(mh,0,0);
 #endif
@@ -880,7 +880,7 @@ tc_hack:
 					if((offset = mpg123_seek_frame(mh, offset, SEEK_CUR)) >= 0)
 					{
 						if(param.usebuffer)	buffer_resync();
-						debug1("seeked to %li", offset);
+						debug1("seeked to %li", (long)offset);
 					} else error1("seek failed: %s!", mpg123_strerror(mh));
 				}
 			}
@@ -905,7 +905,7 @@ tc_hack:
 					/*	&& read_frame(&fr) == 1 */
 					{
 						if(param.usebuffer)	buffer_resync();
-						debug1("seeked to %li", offset);
+						debug1("seeked to %li", (long)offset);
 						goto tc_hack;	/* Doh! Gag me with a spoon! */
 					} else error1("seek failed: %s!", mpg123_strerror(mh));
 				}
