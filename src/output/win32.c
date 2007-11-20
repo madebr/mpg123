@@ -123,7 +123,7 @@ int write_win32(struct audio_output_struct *ao, unsigned char *buffer, int len)
 	}
 
 	if(len + hdr->dwBufferLength > BUFFER_SIZE)
-	ereturn2(-1, "Frame too large to fit playback buffer: %i > %i", len, BUFFER_SIZE)
+	ereturn2(-1, "Frame too large to fit playback buffer: %i > %i", len, BUFFER_SIZE);
 
 	/* Squeeze frames together in a large playback buffer */
 	memcpy(hdr->lpData + hdr->dwBufferLength, buffer, len);
