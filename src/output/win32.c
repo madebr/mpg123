@@ -5,14 +5,20 @@
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 
 	initially written (as it seems) by Tony Million
-	rewrite of basic functionality for callback-less and properly ringbuffered operation by "ravenexp" 
+	rewrite of basic functionality for callback-less and properly ringbuffered operation by ravenexp
 */
 
 #include "mpg123app.h"
 #include <windows.h>
 
-/* Number of buffers in the playback ring */
-#define NUM_BUFFERS 64 /* about 1 sec of 44100 sampled stream */
+/*
+	Buffer size and number of buffers in the playback ring
+	NOTE: This particular num/size combination performs best under heavy
+	loads for my system, however this may not be true for any hardware/OS out there.
+	Generally, BUFFER_SIZE < 8k || NUM_BUFFERS > 16 || NUM_BUFFERS < 4 are not recommended.
+*/
+#define BUFFER_SIZE 0x10000
+#define NUM_BUFFERS 8  /* total 512k roughly 2.5 sec of CD quality sound */
 
 /* Buffer ring queue state */
 struct queue_state
@@ -27,12 +33,12 @@ struct queue_state
 int open_win32(struct audio_output_struct *ao)
 {
 	struct queue_state* state;
+	int i;
 	MMRESULT res;
 	WAVEFORMATEX out_fmt;
 	UINT dev_id;
 
 	if(!ao) return -1;
-
 	if(ao->rate == -1) return 0;
 
 	/* Allocate queue state struct for this device */
@@ -40,6 +46,11 @@ int open_win32(struct audio_output_struct *ao)
 	if(!state) return -1;
 
 	ao->userptr = state;
+	/* Allocate playback buffers */
+	for(i = 0; i < NUM_BUFFERS; i++)
+	if(!(state->buffer_headers[i].lpData = malloc(BUFFER_SIZE)))
+	ereturn(-1, "Out of memory for playback buffers.");
+
 	state->play_done_event = CreateEvent(0,FALSE,FALSE,0);
 	if(state->play_done_event == INVALID_HANDLE_VALUE) return -1;
 
@@ -63,26 +74,18 @@ int open_win32(struct audio_output_struct *ao)
 		case MMSYSERR_NOERROR:
 			break;
 		case MMSYSERR_ALLOCATED:
-			error("Audio output device is already allocated.");
-			return -1;
+			ereturn(-1, "Audio output device is already allocated.");
 		case MMSYSERR_NODRIVER:
-			error("No device driver is present.");
-			return -1;
+			ereturn(-1, "No device driver is present.");
 		case MMSYSERR_NOMEM:
-			error("Unable to allocate or lock memory.");
-			return -1;
+			ereturn(-1, "Unable to allocate or lock memory.");
 		case WAVERR_BADFORMAT:
-			error("Unsupported waveform-audio format.");
-			return -1;
+			ereturn(-1, "Unsupported waveform-audio format.");
 		default:
-			error("Unable to open wave output device.");
-			return -1;
+			ereturn(-1, "Unable to open wave output device.");
 	}
 	/* Reset event from the "device open" message */
 	ResetEvent(state->play_done_event);
-	waveOutReset((HWAVEOUT)ao->fn);
-	/* Playback starts when the full queue is prebuffered */
-	waveOutPause((HWAVEOUT)ao->fn);
 	return 0;
 }
 
@@ -104,38 +107,51 @@ int write_win32(struct audio_output_struct *ao, unsigned char *buffer, int len)
 	state = (struct queue_state*)ao->userptr;
 	/* The last recently used buffer in the play ring */
 	hdr = &state->buffer_headers[state->next_buffer];
-	/* Check buffer header and wait if it's being played */
-	while(hdr->dwFlags & WHDR_INQUEUE)
-	{
-		/* Looks like queue is full now, can start playing */
-		waveOutRestart((HWAVEOUT)ao->fn);
-		WaitForSingleObject(state->play_done_event, INFINITE);
-		/* BUG: Sometimes event is signaled for some other reason. */
-		if(!(hdr->dwFlags & WHDR_DONE))	debug("Audio output device signals something...");
-	}
+
+	/* Check buffer header and wait if it's being played.
+	   hdr->dwUser is set if the buffer was prepared for playback. */
+	while(hdr->dwUser && !(hdr->dwFlags & WHDR_DONE))
+	WaitForSingleObject(state->play_done_event, INFINITE);
+
 	/* Cleanup */
-	if(hdr->dwFlags & WHDR_DONE) waveOutUnprepareHeader((HWAVEOUT)ao->fn, hdr, sizeof(WAVEHDR));
-
-	/* Now have the wave buffer prepared and shove the data in. */
-	hdr->dwFlags = 0;	
-	/* (Re)allocate buffer only if required.
-	   hdr->dwUser = allocated length */
-	if(!hdr->lpData || hdr->dwUser < len)
+	if(hdr->dwFlags & WHDR_DONE)
 	{
-		hdr->lpData = realloc(hdr->lpData, len);
-		if(!hdr->lpData){	error("Out of memory for playback buffers.");	return -1; }
-
-		hdr->dwUser = len;
+		waveOutUnprepareHeader((HWAVEOUT)ao->fn, hdr, sizeof(WAVEHDR));
+		hdr->dwFlags = 0;
+		hdr->dwBufferLength = 0;
+		hdr->dwUser = 0; /* Reset buffer state to "clean" */
 	}
-	hdr->dwBufferLength = len;
-	memcpy(hdr->lpData, buffer, len);
+
+	if(len + hdr->dwBufferLength > BUFFER_SIZE)
+	ereturn2(-1, "Frame too large to fit playback buffer: %i > %i", len, BUFFER_SIZE)
+
+	/* Squeeze frames together in a large playback buffer */
+	memcpy(hdr->lpData + hdr->dwBufferLength, buffer, len);
+	hdr->dwBufferLength += len;
+
+/*	debug3("appending %i bytes to buffer %i total size %i",
+	       len, state->next_buffer, (int)hdr->dwBufferLength);*/
+
+	/* HEURISTICS: leave enough room for a frame twice as long as current one for the next ao->write call
+	   This should allow for variable frame sizes, maybe... */
+	if(hdr->dwBufferLength + 2*len < BUFFER_SIZE)	return len; /* Real action later. */
+
+	/* The buffer is almost full now, enqueuing for playback */
+
+/*	debug2("enqueuing buffer %i length %i",
+	       state->next_buffer, (int)hdr->dwBufferLength);
+*/
+
+	/* Mark the buffer as processed and ready */ 
+	hdr->dwUser = 1;
+
 	res = waveOutPrepareHeader((HWAVEOUT)ao->fn, hdr, sizeof(WAVEHDR));
-	if(res != MMSYSERR_NOERROR){ error("Can't write to audio output device (prepare)."); return -1; }
+	if(res != MMSYSERR_NOERROR) ereturn(-1, "Can't write to audio output device (prepare).");
 
 	res = waveOutWrite((HWAVEOUT)ao->fn, hdr, sizeof(WAVEHDR));
-	if(res != MMSYSERR_NOERROR){ error("Can't write to audio output device."); return -1; }
+	if(res != MMSYSERR_NOERROR) ereturn(-1, "Can't write to audio output device.");
 
-	/* Cycle to the next buffer in the ring queue. */
+	/* Cycle to the next buffer in the ring queue */
 	state->next_buffer = (state->next_buffer + 1) % NUM_BUFFERS;
 	return len;
 }
@@ -150,14 +166,16 @@ void flush_win32(struct audio_output_struct *ao)
 	state = (struct queue_state*)ao->userptr;
 	waveOutReset((HWAVEOUT)ao->fn);
 	ResetEvent(state->play_done_event);
+
 	for(i = 0; i < NUM_BUFFERS; i++)
 	{
 		if(state->buffer_headers[i].dwFlags & WHDR_DONE)
 		waveOutUnprepareHeader((HWAVEOUT)ao->fn, &state->buffer_headers[i], sizeof(WAVEHDR));
 
-		state->buffer_headers[i].dwFlags = 0;	
+		state->buffer_headers[i].dwFlags = 0;
+		state->buffer_headers[i].dwUser = 0;
+		state->buffer_headers[i].dwBufferLength = 0;
 	}
-	waveOutPause((HWAVEOUT)ao->fn);
 }
 
 int close_win32(struct audio_output_struct *ao)
@@ -171,16 +189,17 @@ int close_win32(struct audio_output_struct *ao)
 	flush_win32(ao);
 	waveOutClose((HWAVEOUT)ao->fn);
 	CloseHandle(state->play_done_event);
+
 	for(i = 0; i < NUM_BUFFERS; i++) free(state->buffer_headers[i].lpData);
 
-	free(state);
+	free(ao->userptr);
 	ao->userptr = 0;
 	return 0;
 }
 
 static int init_win32(audio_output_t* ao)
 {
-	if (ao==NULL) return -1;
+	if(!ao) return -1;
 
 	/* Set callbacks */
 	ao->open = open_win32;
@@ -192,10 +211,6 @@ static int init_win32(audio_output_t* ao)
 	/* Success */
 	return 0;
 }
-
-
-
-
 
 /* 
 	Module information data structure
@@ -209,5 +224,3 @@ mpg123_module_t mpg123_output_module_info = {
 	
 	/* init_output */	init_win32,						
 };
-
-
