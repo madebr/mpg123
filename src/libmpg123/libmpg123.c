@@ -575,7 +575,7 @@ int mpg123_decode(mpg123_handle *mh,unsigned char *inmemory, size_t inmemsize, u
 		{
 			/* get what is needed - or just what is there */
 			int a = mh->buffer.fill > (outmemsize - mdone) ? outmemsize - mdone : mh->buffer.fill;
-			debug4("buffer fill: %i; copying %i (%i - %li)", (int)mh->buffer.fill, a, (int)outmemsize, *done);
+			debug4("buffer fill: %i; copying %i (%i - %li)", (int)mh->buffer.fill, a, (int)outmemsize, (long)*done);
 			memcpy(outmemory, mh->buffer.p, a);
 			/* less data in frame buffer, less needed, output pointer increase, more data given... */
 			mh->buffer.fill -= a;
