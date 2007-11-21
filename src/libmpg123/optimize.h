@@ -276,12 +276,12 @@ extern const int costab_mmxsse[];
 
 #ifdef OPT_ALTIVEC
 	void dct64_altivec(real *out0,real *out1,real *samples);
-	int synth_1to1_altivec(real *,int,unsigned char *,int *);
-	int synth_1to1_mono_altivec(real *,unsigned char *,int *);
-	int synth_1to1_mono2stereo_altivec(real *,unsigned char *,int *);
-	int synth_1to1_8bit_altivec(real *,int,unsigned char *,int *);
-	int synth_1to1_8bit_mono_altivec(real *,unsigned char *,int *);
-	int synth_1to1_8bit_mono2stereo_altivec(real *,unsigned char *,int *);
+	int synth_1to1_altivec(real *,int,mpg123_handle *, int);
+	int synth_1to1_mono_altivec(real *,mpg123_handle *);
+	int synth_1to1_mono2stereo_altivec(real *, mpg123_handle *);
+	int synth_1to1_8bit_altivec(real *,int,mpg123_handle *,int);
+	int synth_1to1_8bit_mono_altivec(real *,mpg123_handle *);
+	int synth_1to1_8bit_mono2stereo_altivec(real *,mpg123_handle *);
 	#ifndef OPT_MULTI
 	#define defopt altivec
 	#define opt_dct64(fr) dct64_altivec
