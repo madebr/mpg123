@@ -959,6 +959,7 @@ dnl ############## Final Output
 
 AC_CONFIG_FILES([
 	Makefile
+	libmpg123.pc
 	src/Makefile
 	src/output/Makefile
 	src/libmpg123/Makefile

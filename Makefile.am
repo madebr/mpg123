@@ -11,8 +11,13 @@ dist_man_MANS = man1/mpg123.1
 SUBDIRS = @LTDLDIR@ src
 DIST_SUBDIRS = libltdl src
 
+# pkg-config file for the mpg123 library
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = libmpg123.pc
+
 EXTRA_DIST = \
 	MakeLegacy.sh \
+	libmpg123.pc.in \
 	doc/BENCHMARKING \
 	doc/BUGS \
 	doc/CONTACT \
