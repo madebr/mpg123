@@ -84,6 +84,7 @@ int open_win32(struct audio_output_struct *ao)
 		default:
 			ereturn(-1, "Unable to open wave output device.");
 	}
+
 	/* Reset event from the "device open" message */
 	ResetEvent(state->play_done_event);
 	return 0;
@@ -95,65 +96,62 @@ int get_formats_win32(struct audio_output_struct *ao)
 	return MPG123_ENC_SIGNED_16;
 }
 
-int write_win32(struct audio_output_struct *ao, unsigned char *buffer, int len)
+/* Stores audio data to the fixed size buffers and pushes them into the playback queue.
+   I have one grief with that: The last piece of a track may not reach the output,
+   only full buffers sent... But we don't get smooth audio otherwise. */
+int write_win32(struct audio_output_struct *ao, unsigned char *buf, int len)
 {
 	struct queue_state* state;
 	MMRESULT res;
 	WAVEHDR* hdr;
 
+	int rest_len; /* Input data bytes left for next recursion. */
+	int bufill;   /* Bytes we stuff into buffer now. */
+
 	if(!ao || !ao->userptr) return -1;
-	if(!buffer || len <= 0) return 0;
+	if(!buf || len <= 0) return 0;
 
 	state = (struct queue_state*)ao->userptr;
-	/* The last recently used buffer in the play ring */
 	hdr = &state->buffer_headers[state->next_buffer];
 
 	/* Check buffer header and wait if it's being played.
-	   hdr->dwUser is set if the buffer was prepared for playback. */
-	while(hdr->dwUser && !(hdr->dwFlags & WHDR_DONE))
-	WaitForSingleObject(state->play_done_event, INFINITE);
+	   Skip waiting if the buffer is not full yet */
+	while(hdr->dwBufferLength == BUFFER_SIZE && !(hdr->dwFlags & WHDR_DONE))
+	{
+		/* debug1("waiting for buffer %i...", state->next_buffer); */
+		WaitForSingleObject(state->play_done_event, INFINITE);
+	}
 
-	/* Cleanup */
+	/* If it was a full buffer being played, clean up. */
 	if(hdr->dwFlags & WHDR_DONE)
 	{
 		waveOutUnprepareHeader((HWAVEOUT)ao->fn, hdr, sizeof(WAVEHDR));
 		hdr->dwFlags = 0;
 		hdr->dwBufferLength = 0;
-		hdr->dwUser = 0; /* Reset buffer state to "clean" */
 	}
 
-	if(len + hdr->dwBufferLength > BUFFER_SIZE)
-	ereturn2(-1, "Frame too large to fit playback buffer: %i > %i", len, BUFFER_SIZE);
+	/* Now see how much we want to stuff in and then stuff it in. */
+	bufill = BUFFER_SIZE - hdr->dwBufferLength;
+	if(len < bufill) bufill = len;
 
-	/* Squeeze frames together in a large playback buffer */
-	memcpy(hdr->lpData + hdr->dwBufferLength, buffer, len);
-	hdr->dwBufferLength += len;
+	rest_len = len - bufill;
+	memcpy(hdr->lpData + hdr->dwBufferLength, buf, bufill);
+	hdr->dwBufferLength += bufill;
+	if(hdr->dwBufferLength == BUFFER_SIZE)
+	{ /* Send the buffer out when it's full. */
+		res = waveOutPrepareHeader((HWAVEOUT)ao->fn, hdr, sizeof(WAVEHDR));
+		if(res != MMSYSERR_NOERROR) ereturn(-1, "Can't write to audio output device (prepare).");
 
-/*	debug3("appending %i bytes to buffer %i total size %i",
-	       len, state->next_buffer, (int)hdr->dwBufferLength);*/
+		res = waveOutWrite((HWAVEOUT)ao->fn, hdr, sizeof(WAVEHDR));
+		if(res != MMSYSERR_NOERROR) ereturn(-1, "Can't write to audio output device.");
 
-	/* HEURISTICS: leave enough room for a frame twice as long as current one for the next ao->write call
-	   This should allow for variable frame sizes, maybe... */
-	if(hdr->dwBufferLength + 2*len < BUFFER_SIZE)	return len; /* Real action later. */
-
-	/* The buffer is almost full now, enqueuing for playback */
-
-/*	debug2("enqueuing buffer %i length %i",
-	       state->next_buffer, (int)hdr->dwBufferLength);
-*/
-
-	/* Mark the buffer as processed and ready */ 
-	hdr->dwUser = 1;
-
-	res = waveOutPrepareHeader((HWAVEOUT)ao->fn, hdr, sizeof(WAVEHDR));
-	if(res != MMSYSERR_NOERROR) ereturn(-1, "Can't write to audio output device (prepare).");
-
-	res = waveOutWrite((HWAVEOUT)ao->fn, hdr, sizeof(WAVEHDR));
-	if(res != MMSYSERR_NOERROR) ereturn(-1, "Can't write to audio output device.");
-
-	/* Cycle to the next buffer in the ring queue */
-	state->next_buffer = (state->next_buffer + 1) % NUM_BUFFERS;
-	return len;
+		/* Cycle to the next buffer in the ring queue */
+		state->next_buffer = (state->next_buffer + 1) % NUM_BUFFERS;
+	}
+	/* I'd like to propagate error codes or something... but there are no catchable surprises left.
+	   Anyhow: Here is the recursion that makes ravenexp happy;-) */
+	if(rest_len) write_win32(ao, buf + bufill, rest_len); /* Write the rest. */
+	else return len;
 }
 
 void flush_win32(struct audio_output_struct *ao)
@@ -173,7 +171,6 @@ void flush_win32(struct audio_output_struct *ao)
 		waveOutUnprepareHeader((HWAVEOUT)ao->fn, &state->buffer_headers[i], sizeof(WAVEHDR));
 
 		state->buffer_headers[i].dwFlags = 0;
-		state->buffer_headers[i].dwUser = 0;
 		state->buffer_headers[i].dwBufferLength = 0;
 	}
 }
@@ -184,8 +181,8 @@ int close_win32(struct audio_output_struct *ao)
 	struct queue_state* state;
 
 	if(!ao || !ao->userptr) return -1;
-
 	state = (struct queue_state*)ao->userptr;
+
 	flush_win32(ao);
 	waveOutClose((HWAVEOUT)ao->fn);
 	CloseHandle(state->play_done_event);
