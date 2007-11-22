@@ -149,9 +149,9 @@ EXPORT int mpg123_fmt_all(mpg123_pars *mp);
 EXPORT int mpg123_format(mpg123_handle *mh, long rate, int channels, int encodings); /* 0 is good, -1 is error */
 EXPORT int mpg123_fmt   (mpg123_pars *mh, long rate, int channels, int encodings); /* 0 is good, -1 is error */
 /* Check if a specific format at a specific rate is supported.
-   Returns 0 for no support (includes invalid parameters), MPG123_STEREO, MPG123_MONO or MPG123_STEREO|MPG123_MONO. */
-EXPORT int mpg123_format_support(mpg123_handle *mh, int ratei, int enci); /* Indices of rate and encoding! */
-EXPORT int mpg123_fmt_support   (mpg123_pars *mh, int ratei, int enci); /* Indices of rate and encoding! */
+   Returns 0 for no support (that includes invalid parameters), MPG123_STEREO, MPG123_MONO or MPG123_STEREO|MPG123_MONO. */
+EXPORT int mpg123_format_support(mpg123_handle *mh, long rate, int encoding);
+EXPORT int mpg123_fmt_support   (mpg123_pars *mh,   long rate, int encoding);
 /* Get the current output format. */
 EXPORT int mpg123_getformat(mpg123_handle *mh, long *rate, int *channels, int *encoding);
 

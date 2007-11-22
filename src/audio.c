@@ -142,13 +142,13 @@ const char* audio_encoding_name(const int encoding, const int longer)
 	return name;
 }
 
-static void capline(mpg123_handle *mh, int ratei)
+static void capline(mpg123_handle *mh, long rate)
 {
 	int enci;
-	fprintf(stderr," %5ld  |", ratei >= 0 ? mpg123_rates[ratei] : param.force_rate);
+	fprintf(stderr," %5ld  |", rate);
 	for(enci=0; enci<MPG123_ENCODINGS; ++enci)
 	{
-		switch(mpg123_format_support(mh, ratei, enci))
+		switch(mpg123_format_support(mh, rate, mpg123_encodings[enci]))
 		{
 			case MPG123_MONO:               fprintf(stderr, "   M   |"); break;
 			case MPG123_STEREO:             fprintf(stderr, "   S   |"); break;
@@ -166,9 +166,9 @@ void print_capabilities(audio_output_t *ao, mpg123_handle *mh)
 	        ao->module->name, ao->device != NULL ? ao->device : "<none>");
 	for(e=0;e<MPG123_ENCODINGS;e++) fprintf(stderr," %5s |",audio_encoding_name(mpg123_encodings[e], 0));
 	fprintf(stderr,"\n --------------------------------------------------------\n");
-	for(r=0; r<MPG123_RATES; ++r) capline(mh, r);
+	for(r=0; r<MPG123_RATES; ++r) capline(mh, mpg123_rates[r]);
 
-	if(param.force_rate) capline(mh, -1);
+	if(param.force_rate) capline(mh, param.force_rate);
 
 	fprintf(stderr,"\n");
 }

@@ -23,7 +23,16 @@ static int rate2num(mpg123_pars *mp, long r)
 {
 	int i;
 	for(i=0;i<MPG123_RATES;i++) if(mpg123_rates[i] == r) return i;
-	if(mp->force_rate != 0 && mp->force_rate == r) return MPG123_RATES;
+	if(mp && mp->force_rate != 0 && mp->force_rate == r) return MPG123_RATES;
+
+	return -1;
+}
+
+static int enc2num(int encoding)
+{
+	int i;
+	for(i=0;i<MPG123_ENCODINGS;++i)
+	if(mpg123_encodings[i] == encoding) return i;
 
 	return -1;
 }
@@ -216,17 +225,19 @@ int mpg123_fmt(mpg123_pars *mp, long rate, int channels, int encodings)
 	return MPG123_OK;
 }
 
-int mpg123_format_support(mpg123_handle *mh, int ratei, int enci)
+int mpg123_format_support(mpg123_handle *mh, long rate, int encoding)
 {
 	if(mh == NULL) return 0;
-	else return mpg123_fmt_support(&mh->p, ratei, enci);
+	else return mpg123_fmt_support(&mh->p, rate, encoding);
 }
 
-int mpg123_fmt_support(mpg123_pars *mp, int ratei, int enci)
+int mpg123_fmt_support(mpg123_pars *mp, long rate, int encoding)
 {
 	int ch = 0;
-	if(mp == NULL || ratei >= MPG123_RATES || enci < 0 || enci >= MPG123_ENCODINGS) return 0;
-	if(ratei < 0) ratei = MPG123_RATES; /* the special one */
+	int ratei, enci;
+	ratei = rate2num(mp, rate);
+	enci  = enc2num(encoding);
+	if(mp == NULL || ratei < 0 || enci < 0) return 0;
 	if(mp->audio_caps[0][ratei][enci]) ch |= MPG123_MONO;
 	if(mp->audio_caps[1][ratei][enci]) ch |= MPG123_STEREO;
 	return ch;
