@@ -8,8 +8,8 @@ dist_man_MANS = man1/mpg123.1
 
 # libltdl first as this recursive make mess cannot resolve interdependencies
 # Why is recursive make the standard procedure when MAKE DOES NOT WORK THAT WAY??!
-SUBDIRS = @LTDLDIR@ src
-DIST_SUBDIRS = libltdl src
+SUBDIRS = @LTDLDIR@ src doc
+DIST_SUBDIRS = libltdl src doc
 
 # pkg-config file for the mpg123 library
 pkgconfigdir = $(libdir)/pkgconfig
@@ -18,20 +18,6 @@ pkgconfig_DATA = libmpg123.pc
 EXTRA_DIST = \
 	MakeLegacy.sh \
 	libmpg123.pc.in \
-	doc/BENCHMARKING \
-	doc/BUGS \
-	doc/CONTACT \
-	doc/PATENTS \
-	doc/README.3DNOW \
-	doc/README.WIN32 \
-	doc/README.gain \
-	doc/README.remote \
-	doc/ROAD_TO_LGPL \
-	doc/TODO \
-	doc/LICENSE \
-	doc/THANKS \
-	doc/ACCURACY \
-	doc/libmpg123_speed.txt \
 	xmms2-plugin/README \
 	xmms2-plugin/mpg123/mpg123.c \
 	xmms2-plugin/mpg123/wscript \

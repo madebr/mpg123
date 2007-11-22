@@ -1,5 +1,15 @@
+/*
+	libmpg123: MPEG Audio Decoder library
+
+	copyright 1995-2007 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.org
+
+*/
+
 #ifndef MPG123_LIB_H
 #define MPG123_LIB_H
+
+/** \file mpg123.h */
 
 /* These aren't actually in use... seems to work without using libtool. */
 #ifdef BUILD_MPG123_DLL
@@ -17,25 +27,47 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* not decided... how anonymous should the handle be? */
+
+/** Opaque structure for the libmpg123 decoder handle. */
 struct mpg123_handle_struct;
+
+/** Opaque structure for the libmpg123 decoder parametes. */
 struct mpg123_pars_struct;
+
+/** Opaque structure for the libmpg123 decoder handle. */
 typedef struct mpg123_handle_struct mpg123_handle;
+
+/** Opaque structure for the libmpg123 decoder parametes. */
 typedef struct mpg123_pars_struct   mpg123_pars;
 
-/* non-threadsafe init/exit, call _once_ */
+
+/** Function to initialise the mpg123 library. 
+ *	This function is not thread-safe. Please only call it once.
+ *
+ *	\return MPG123_OK if successful, otherwise an error number.
+ */
 EXPORT int  mpg123_init(void);
+
+
+/** Function to close down the mpg123 library. 
+ *	This function is not thread-safe. Please only call it once.
+ */
 EXPORT void mpg123_exit(void);
+
+
 /* Create a handle with optional choice of decoder (named by a string).
    and optional retrieval of an error code to feed to mpg123_plain_strerror().
    Optional means: Any of or both the parameters may be NULL.
    The handle creation is successful when a non-NULL pointer is returned. */
 EXPORT mpg123_handle *mpg123_new(const char* decoder, int *error);
+
 /* Create a handle with preset parameters. */
 EXPORT mpg123_handle *mpg123_parnew(mpg123_pars *mp, const char* decoder, int *error);
 /* Delete handle, mh is either a valid mpg123 handle or NULL. */
