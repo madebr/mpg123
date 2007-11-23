@@ -172,4 +172,8 @@ AM_CFLAGS=@OUTPUT_CFLAGS@
 
 all: @OUTPUT_MOD@.$(OBJEXT)
 
+# No installation happening from here
+install: all
+
+
 endif
