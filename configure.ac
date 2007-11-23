@@ -83,6 +83,10 @@ AC_ARG_ENABLE(modules,
 	fi
 ])
 
+dnl We only want shared libraries by default
+AC_DISABLE_STATIC
+AC_ENABLE_SHARED
+
 if test "$enable_shared" = no; then
 	modules=disabled
 	LT_LDFLAGS=
@@ -99,9 +103,6 @@ AC_DEFINE(HAVE_LTDL, 1, [ Define if LTDL library is available. ])
 dnl Check for dlopen support
 AC_LIBTOOL_DLOPEN
 
-dnl We only want shared libraries by default
-AC_DISABLE_STATIC
-AC_ENABLE_SHARED
 # Enable module support in source code
 AC_DEFINE( USE_MODULES, 1, [Define if modules are enabled] )
 fi
