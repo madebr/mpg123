@@ -81,9 +81,16 @@ void store_id3_text(mpg123_string *sb, char *source, size_t source_size)
 		encoding = 0;
 	}
 	bwidth = encoding_widths[encoding];
+	/* Hack! I've seen a stray zero byte before BOM. Is that supposed to happen? */
+	while(source_size > bwidth && source[0] == 0)
+	{
+		--source_size;
+		++source;
+		debug("skipped leading zero");
+	}
 	if(source_size % bwidth)
 	{
-		/* Uh. (BTW, the -1 is for the encoding byte.) */
+		/* When we need two bytes for a character, it's strange to have an uneven bytestream length. */
 		warning2("Weird tag size %d for encoding %d - I will probably trim too early or something but I think the MP3 is broken.", (int)source_size, encoding);
 		source_size -= source_size % bwidth;
 	}
@@ -314,6 +321,7 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 												{
 													/* only add general comments */
 													realdata[pos] = realdata[pos-4]; /* the encoding field copied */
+													debug("storing a comment");
 													store_id3_text(&fr->id3v2.comment, (char*)realdata+pos, realsize-4);
 												}
 											}
@@ -475,7 +483,7 @@ static void convert_latin1(mpg123_string *sb, unsigned char* s, size_t l)
 	size_t length = l;
 	size_t i;
 	unsigned char *p;
-	/* determine real length, a latin1 character can at most take 2 bytes in UTF8 */
+	/* determine real length, a latin1 character can at most take 2  in UTF8 */
 	for(i=0; i<l; ++i)
 	if(s[i] >= 0x80) ++length;
 
@@ -508,6 +516,7 @@ static void convert_utf16(mpg123_string *sb, unsigned char* s, size_t l, int str
 	/* Determine real length... extreme case can be more than utf-16 length. */
 	size_t high = 0;
 	size_t low  = 1;
+	debug1("convert_utf16 with length %lu", (unsigned long)l);
 	if(!str_be) /* little-endian */
 	{
 		high = 1; /* The second byte is the high byte. */
@@ -528,12 +537,15 @@ static void convert_utf16(mpg123_string *sb, unsigned char* s, size_t l, int str
 			}
 			else /* if no valid pair, break here */
 			{
+				debug1("Invalid UTF16 surrogate pair at %li.", (unsigned long)i);
 				l = i; /* Forget the half pair, END! */
 				break;
 			}
 		}
 		else length += UTF8LEN(point); /* 1,2 or 3 bytes */
 	}
+
+	if(l < 1){ mpg123_set_string(sb, ""); return; }
 
 	if(!mpg123_resize_string(sb, length+1)){ mpg123_free_string(sb); return ; }
 
