@@ -47,7 +47,6 @@ typedef struct mpg123_handle_struct mpg123_handle;
 /** Opaque structure for the libmpg123 decoder parametes. */
 typedef struct mpg123_pars_struct   mpg123_pars;
 
-
 /** Function to initialise the mpg123 library. 
  *	This function is not thread-safe. Please only call it once.
  *
@@ -55,12 +54,10 @@ typedef struct mpg123_pars_struct   mpg123_pars;
  */
 EXPORT int  mpg123_init(void);
 
-
 /** Function to close down the mpg123 library. 
  *	This function is not thread-safe. Please only call it once.
  */
 EXPORT void mpg123_exit(void);
-
 
 /* Create a handle with optional choice of decoder (named by a string).
    and optional retrieval of an error code to feed to mpg123_plain_strerror().

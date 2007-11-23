@@ -8,7 +8,7 @@ dist_man_MANS = man1/mpg123.1
 
 # libltdl first as this recursive make mess cannot resolve interdependencies
 # Why is recursive make the standard procedure when MAKE DOES NOT WORK THAT WAY??!
-SUBDIRS = @LTDLDIR@ src doc
+SUBDIRS = @LTDLDIR@ src
 DIST_SUBDIRS = libltdl src doc
 
 # pkg-config file for the mpg123 library
