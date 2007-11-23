@@ -65,3 +65,8 @@ mpg123_SOURCES = \
 	wav.c \
 	xfermem.c \
 	xfermem.h
+
+# That is not nice... but it is how I manage to get the dependency on output/alsa.o without error about .deps/output/alsa.Tpo .
+# Did I mention that recursive make sucks?
+output/%.$(OBJEXT): output/%.c audio.h module.h
+	cd output && $(MAKE)
