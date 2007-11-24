@@ -10,6 +10,12 @@ INCLUDES = $(LTDLINCL) -I$(top_srcdir)/src -I$(top_srcdir)/src/libmpg123
 
 EXTRA_DIST =
 
+EXTRA_PROGRAMS = testcpu
+testcpu_dependencies = getcpuflags.$(OBJEXT)
+testcpu_sources = testcpu.c
+testcpu_LDADD = getcpuflags.$(OBJEXT)
+
+
 CLEANFILES = *.a
 
 
