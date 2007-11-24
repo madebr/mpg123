@@ -1,3 +1,11 @@
+/*
+	mpglib: test program for libmpg123, in the style of the legacy mpglib test program
+
+	copyright 2007 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.org
+	initially written by Thomas Orgis
+*/
+
 #include "mpg123.h"
 #include <unistd.h>
 #include <stdio.h>

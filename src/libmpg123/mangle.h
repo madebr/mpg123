@@ -1,11 +1,11 @@
-/* mangle.h - This file has some CPP macros to deal with different symbol
- * mangling across binary formats.
- * (c)2002 by Felix Buenemann <atmosfear at users.sourceforge.net>
- * File licensed under the GPL, see http://www.fsf.org/ for more info.
- */
+/*
+	mangle: support defines for preprocessed assembler
 
-/* ThOr: added the plain ASM_NAME
-   Also this is getting more generic with the align stuff. */
+	copyright 1995-2007 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.org
+
+	This once started out as mangle.h from MPlayer, but you can't really call it derived work... the small part that in principle stems from MPlayer also being not very special (once you decided to use such a header at all, it's quite obvious material).
+*/
 
 #ifndef __MANGLE_H
 #define __MANGLE_H

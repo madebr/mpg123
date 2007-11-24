@@ -3,7 +3,6 @@
 
 	copyright 1995-2007 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
-
 */
 
 #ifndef MPG123_LIB_H
@@ -25,6 +24,7 @@
 #endif
 #endif
 
+/* These need to be included based on config.h -- also for intstall! */
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/types.h>

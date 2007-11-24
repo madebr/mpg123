@@ -1,3 +1,12 @@
+/*
+	mpg123lib_intern: Common non-public stuff for libmpg123
+
+	copyright 1995-2007 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.org
+
+	derived from the old mpg123.h
+*/
+
 #ifndef MPG123_H_INTERN
 #define MPG123_H_INTERN
 
