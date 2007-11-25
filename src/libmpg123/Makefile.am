@@ -8,7 +8,7 @@
 #AM_LDFLAGS = 
 INCLUDES = $(LTDLINCL) -I$(top_srcdir)/src -I$(top_srcdir)/src/libmpg123
 
-EXTRA_DIST =
+EXTRA_DIST = mpg123.h.in
 
 EXTRA_PROGRAMS = testcpu
 testcpu_dependencies = getcpuflags.$(OBJEXT)
@@ -21,7 +21,7 @@ CLEANFILES = *.a
 
 #lib_LIBRARIES = libmpg123.a
 lib_LTLIBRARIES = libmpg123.la
-include_HEADERS = mpg123.h
+nodist_include_HEADERS = mpg123.h
 
 #libmpg123_a_LIBADD = @DECODER_OBJ@
 #libmpg123_a_DEPENDENCIES = @DECODER_OBJ@
@@ -62,7 +62,6 @@ libmpg123_la_SOURCES = \
 	tabinit.c \
 	stringbuf.c \
 	libmpg123.c \
-	mpg123.h \
 	mpg123lib_intern.h \
 	mangle.h \
 	getcpuflags.h \

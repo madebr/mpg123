@@ -1,5 +1,5 @@
 /*
-	libmpg123: MPEG Audio Decoder library
+	libmpg123: MPEG Audio Decoder library (version @PACKAGE_VERSION@)
 
 	copyright 1995-2007 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
@@ -24,10 +24,10 @@
 #endif
 #endif
 
-/* These need to be included based on config.h -- also for intstall! */
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/types.h>
+@INCLUDE_STDIO_H@
+@INCLUDE_STDLIB_H@
+@INCLUDE_SYS_TYPE_H@
+
 
 #ifdef __cplusplus
 extern "C" {
