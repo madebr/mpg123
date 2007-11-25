@@ -1,3 +1,4 @@
+/* This is broken/outdated code for quite some time; we should drop it or integrate into libmpg123. */
 /*
 	system.c: system stream decoder (standalone)
 
