@@ -286,7 +286,7 @@ int mpg123_getpar(mpg123_pars *mp, int key, long *val, double *fval)
 	return ret;
 }
 
-int mpg123_eq(mpg123_handle *mh, int channel, int band, double val)
+int mpg123_eq(mpg123_handle *mh, enum mpg123_channels channel, int band, double val)
 {
 	if(mh == NULL) return MPG123_ERR;
 	if(band < 0 || band > 31){ mh->err = MPG123_BAD_BAND; return MPG123_ERR; }
@@ -915,7 +915,7 @@ static const char *mpg123_error[] =
 	"Unable to allocate memory for 16 to 8 converter table! (code 4)",
 	"Bad parameter id! (code 5)",
 	"Bad buffer given -- invalid pointer or too small size. (code 6)",
-	"Out of memory -- some malloc() failed, (code 7)",
+	"Out of memory -- some malloc() failed. (code 7)",
 	"You didn't initialize the library! (code 8)",
 	"Invalid decoder choice. (code 9)",
 	"Invalid mpg123 handle. (code 10)",
@@ -926,9 +926,9 @@ static const char *mpg123_error[] =
 	"Incompatible numeric data types. (code 15)",
 	"Bad equalizer band. (code 16)",
 	"Null pointer given where valid storage address needed. (code 17)",
-	"Some problem reading the stream. (code 18)",
+	"Error reading the stream. (code 18)",
 	"Cannot seek from end (end is not known). (code 19)",
-	"Invalid \"whence\" for seek function. (code 20)",
+	"Invalid 'whence' for seek function. (code 20)",
 	"Build does not support stream timeouts. (code 21)",
 	"File access error. (code 22)",
 	"Seek not supported by stream. (code 23)",
