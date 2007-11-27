@@ -20,10 +20,6 @@
 #define GAPLESS
 #endif
 
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-
 #define SKIP_JUNK 1
 
 #ifndef M_PI
@@ -125,15 +121,14 @@
 #endif
 
 /* Types, types, types. */
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
+/* Do we actually need these two in addition to sys/types.h? As replacement? */
 #ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #endif
+/* We want SIZE_MAX, etc. */
 #ifdef HAVE_LIMITS_H
 #include <limits.h>
 #endif
