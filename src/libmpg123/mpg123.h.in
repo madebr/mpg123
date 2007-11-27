@@ -188,17 +188,17 @@ EXPORT int mpg123_format_all(mpg123_handle *mh);
 EXPORT int mpg123_fmt_all(mpg123_pars *mp);
 
 /** Set the audio format support of a mpg123_handle in detail:
-	\param rate The the index of the sample rate. A negative rate index chooses the custom one.
-	\param channels A combination of MPG123_STEREO and MPG123_MONO
-	\param encodings A combination of accepted encodings for rate and channels, p.ex MPG123_ENC_SIGNED16|MPG123_ENC_ULAW_8
+	\param rate The sample rate value (in Hertz).
+	\param channels A combination of MPG123_STEREO and MPG123_MONO.
+	\param encodings A combination of accepted encodings for rate and channels, p.ex MPG123_ENC_SIGNED16|MPG123_ENC_ULAW_8 (or 0 for no support).
 	\return MPG123_OK on success, MPG123_ERR if there was an error. /
 */
 EXPORT int mpg123_format(mpg123_handle *mh, long rate, int channels, int encodings);
 
 /** Set the audio format support of a mpg123_pars in detail:
-	\param rate The the index of the sample rate. A negative rate index chooses the custom one.
-	\param channels A combination of MPG123_STEREO and MPG123_MONO
-	\param encodings A combination of accepted encodings for rate and channels, p.ex MPG123_ENC_SIGNED16|MPG123_ENC_ULAW_8
+	\param rate The sample rate value (in Hertz).
+	\param channels A combination of MPG123_STEREO and MPG123_MONO.
+	\param encodings A combination of accepted encodings for rate and channels, p.ex MPG123_ENC_SIGNED16|MPG123_ENC_ULAW_8 (or 0 for no support).
 	\return 0 on success, -1 if there was an error. /
 */
 EXPORT int mpg123_fmt(mpg123_pars *mh, long rate, int channels, int encodings); /* 0 is good, -1 is error */
@@ -215,7 +215,7 @@ EXPORT int mpg123_format_support(mpg123_handle *mh, long rate, int encoding);
  *          MPG123_MONO or MPG123_STEREO|MPG123_MONO. */
 EXPORT int mpg123_fmt_support(mpg123_pars *mh,   long rate, int encoding);
 
-/** Get the current output format. */
+/** Get the current output format written to the addresses givenr. */
 EXPORT int mpg123_getformat(mpg123_handle *mh, long *rate, int *channels, int *encoding);
 
 /* various flags */
