@@ -7,7 +7,6 @@
 */
 
 #include "icy.h"
-#include <stdlib.h>
 
 void init_icy(struct icy_meta *icy)
 {

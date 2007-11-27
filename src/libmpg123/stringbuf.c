@@ -10,7 +10,6 @@
 #include "debug.h"
 #include "mpg123.h"
 #include "compat.h"
-#include <stdlib.h>
 #include <string.h>
 
 void mpg123_init_string(mpg123_string* sb)

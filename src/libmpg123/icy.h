@@ -8,7 +8,6 @@
 #ifndef MPG123_ICY_H
 #define MPG123_ICY_H
 
-#include <sys/types.h>
 #include "mpg123.h"
 
 struct icy_meta
