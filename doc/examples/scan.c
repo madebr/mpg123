@@ -10,8 +10,8 @@
    While it would be nicer to inform the user about troubles, libmpg123 is designed _not_ to bite you on operations with invalid handles , etc.
   You just jet invalid results on invalid operations... */
 
-#include <stdio.h>
 #include "mpg123.h"
+#include <stdio.h>
 
 int main(int argc, char **argv)
 {
