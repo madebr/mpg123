@@ -58,7 +58,7 @@ EXPORT int  mpg123_init(void);
  *	This function is not thread-safe. Call it exactly once after any work with the library. */
 EXPORT void mpg123_exit(void);
 
-/** Create a handle with optional choice of decoder (named by a string).
+/** Create a handle with optional choice of decoder (named by a string, see mpg123_decoders() or mpg123_supported_decoders()).
  *  and optional retrieval of an error code to feed to mpg123_plain_strerror().
  *  Optional means: Any of or both the parameters may be NULL.
  *
@@ -167,7 +167,7 @@ EXPORT int mpg123_decoder(mpg123_handle *mh, const char* decoder_name);
 #define MPG123_ENC_ALAW_8       0x08                                   /* 0000 1000 */
 #define MPG123_ENC_ANY ( MPG123_ENC_SIGNED_16  | MPG123_ENC_UNSIGNED_16 | \
                          MPG123_ENC_UNSIGNED_8 | MPG123_ENC_SIGNED_8    | \
-                         MPG123_ENC_ULAW_8 | MPG123_ENC_ALAW_8 | MPG123_ENC_ANY )
+                         MPG123_ENC_ULAW_8     | MPG123_ENC_ALAW_8 )
 
 /* They can be combined into one number to indicate mono and stereo... */
 #define MPG123_MONO   1
