@@ -201,8 +201,7 @@ EXPORT int mpg123_format_all(mpg123_handle *mh);
  *  \param rate The sample rate value (in Hertz).
  *  \param channels A combination of MPG123_STEREO and MPG123_MONO.
  *  \param encodings A combination of accepted encodings for rate and channels, p.ex MPG123_ENC_SIGNED16 | MPG123_ENC_ULAW_8 (or 0 for no support).
- *  \return MPG123_OK on success, MPG123_ERR if there was an error. /
-*/
+ *  \return MPG123_OK on success, MPG123_ERR if there was an error. */
 EXPORT int mpg123_format(mpg123_handle *mh, long rate, int channels, int encodings);
 
 /** Check to see if a specific format at a specific rate is supported 
