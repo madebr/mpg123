@@ -4,7 +4,7 @@ if test -e Makefile; then
 fi
 options="$@"
 echo "using options: $options"
-CFLAGS="-march=i686" ./configure --with-cpu=x86_dither $options &&
+CFLAGS="-march=i686" ./configure --disable-modules --with-cpu=x86_dither $options &&
 cd src/libmpg123 &&
 make &&
 cp .libs/libmpg123-0.dll ../../ &&
