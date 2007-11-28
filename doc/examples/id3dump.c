@@ -101,8 +101,15 @@ int main(int argc, char **argv)
 {
 	int i;
 	mpg123_handle* m;
+	if(argc < 2)
+	{
+		fprintf(stderr, "\nI will print some ID3 tag fields of MPEG audio files.\n");
+		fprintf(stderr, "\nUsage: %s <mpeg audio file list>\n\n", argv[0]);
+		return -1;
+	}
 	mpg123_init();
 	m = mpg123_new(NULL, NULL);
+	
 	for(i=1; i < argc; ++i)
 	{
 		mpg123_id3v1 *v1;

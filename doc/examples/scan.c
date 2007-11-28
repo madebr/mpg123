@@ -19,8 +19,8 @@ int main(int argc, char **argv)
 	int i;
 	if(argc < 2)
 	{
-		fprintf(stderr, "I will give you the estimated and exact sample lengths of MPEG audio files.\n");
-		fprintf(stderr, "\nUsage: %s <mpeg audio file list>\n", argv[0]);
+		fprintf(stderr, "\nI will give you the estimated and exact sample lengths of MPEG audio files.\n");
+		fprintf(stderr, "\nUsage: %s <mpeg audio file list>\n\n", argv[0]);
 		return -1;
 	}
 	mpg123_init();

@@ -35,6 +35,7 @@ int main(int argc, char **argv)
 	/* mpg123_param(m, MPG123_START_FRAME, 2300, 0); */
 	mpg123_open_feed(m);
 	if(m == NULL) return -1;
+	fprintf(stderr, "Feed me some MPEG audio to stdin, I will decode to stdout.\n");
 	while(1) {
 		len = read(0,buf,INBUFF);
 		if(len <= 0)
