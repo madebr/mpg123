@@ -14,6 +14,8 @@ BUG:
 	Nope, it just segfaulted for me just with -C -b 4096 -v ... so it's either console, the buffer or decoding as such. I strongly suggest the buffer communication. 
 	The sound on Solaris is also disturbed from time to time... it's the buffer or the Infrastructure (networked terminal, doesn't necessarily have the audio performance of a workstation).
 	But also, this could be an effect of the troubling buffer.
+	Hm... on my Linux/i386 laptop I ran through the whole New Order list with buffer and -s > /dev/null; no problem.
+	Possibly an issue showing with multiple CPUs only?
 
 	Parallel build is broken... still need to get dependencies straight?
 
