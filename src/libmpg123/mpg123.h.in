@@ -350,8 +350,7 @@ EXPORT off_t mpg123_feedseek(mpg123_handle *mh, off_t sampleoff, int whence, off
 EXPORT off_t mpg123_seek_frame(mpg123_handle *mh, off_t frameoff, int whence);
 
 
-/* The seek stuff needs more thought; it's going to be sample-accurate and I need a way for feeding.
-   So: SEEK STUFF WILL CHANGE! */
+/** 
 EXPORT off_t mpg123_timeframe(mpg123_handle *mh, double sec);
 EXPORT int mpg123_print_index(mpg123_handle *fr, FILE* out);
 
@@ -392,6 +391,8 @@ EXPORT int mpg123_volume_change(mpg123_handle *mh, double change);
  *  format. The volume values are linear factors / amplitudes (not percent) 
  *  and the RVA value is in decibels. */
 EXPORT int mpg123_getvolume(mpg123_handle *mh, double *base, double *really, double *rva_db);
+
+/* TODO: set some preamp in addition / to replace internal RVA handling? */
 
 /*@}*/
 
@@ -648,11 +649,6 @@ EXPORT int mpg123_par(mpg123_pars *mp, enum mpg123_parms type, long value, doubl
 EXPORT int mpg123_getpar(mpg123_pars *mp, enum mpg123_parms type, long *val, double *fval);
 
 /* @} */
-
-
-/** \todo missing various functions to change properties: RVA, equalizer */
-/** \todo functions to access properties: RVA, equalizer... */
-
 
 #ifdef __cplusplus
 }
