@@ -24,7 +24,6 @@
 #endif
 #endif
 
-@INCLUDE_STDIO_H@
 @INCLUDE_STDLIB_H@
 @INCLUDE_SYS_TYPE_H@
 
