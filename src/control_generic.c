@@ -27,7 +27,6 @@
 #define MODE_PLAYING 1
 #define MODE_PAUSED 2
 
-extern audio_output_t ao;
 extern int buffer_pid;
 #ifdef FIFO
 #include <sys/stat.h>
@@ -460,7 +459,7 @@ int control_generic (mpg123_handle *fr)
 			}
 		} /* end command reading & processing */
 	} /* end main (alive) loop */
-
+	debug("going to end");
 	/* quit gracefully */
 #ifndef NOXFERMEM
 	if (param.usebuffer) {
@@ -470,15 +469,12 @@ int control_generic (mpg123_handle *fr)
 		xfermem_done(buffermem);
 	}
 #endif
-	if (param.outmode == DECODE_AUDIO)
-		ao.close(&ao);
-	if (param.outmode == DECODE_WAV)
-		wav_close();
-
+	debug("closing control");
 #ifdef FIFO
 	close(control_file); /* be it FIFO or STDIN */
 	if(param.fifo) unlink(param.fifo);
 #endif
+	debug("control_generic returning");
 	return 0;
 }
 

@@ -781,6 +781,8 @@ int main(int argc, char *argv[])
 	if(param.remote) {
 		int ret;
 		ret = control_generic(mh);
+		close_output(param.outmode, ao);
+		close_output_module(ao);
 		safe_exit(ret);
 	}
 
