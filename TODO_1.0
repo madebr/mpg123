@@ -15,6 +15,8 @@ BUG:
 	The sound on Solaris is also disturbed from time to time... it's the buffer or the Infrastructure (networked terminal, doesn't necessarily have the audio performance of a workstation).
 	But also, this could be an effect of the troubling buffer.
 
+	Parallel build is broken... still need to get dependencies straight?
+
 Possible:
 	Work out the buffer stuff with audio handling? Make only _one_ process access audio stuff... (even if that may not help MacOSX).
 
