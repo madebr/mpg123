@@ -16,6 +16,7 @@ AC_SUBST( LIBMPG123_VERSION )
 
 AC_CONFIG_SRCDIR(src/mpg123.c)
 AC_CONFIG_AUX_DIR(build)
+AC_CONFIG_SRCDIR(doc)
 AC_CANONICAL_TARGET
 
 dnl Version 1.7 of automake is recommended
@@ -984,6 +985,7 @@ dnl ############## Final Output
 AC_CONFIG_FILES([
 	Makefile
 	libmpg123.pc
+	doc/Makefile
 	src/Makefile
 	src/output/Makefile
 	src/libmpg123/Makefile

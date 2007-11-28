@@ -19,4 +19,9 @@ EXTRA_DIST = \
 	LICENSE \
 	THANKS \
 	ACCURACY \
-	libmpg123_speed.txt 
+	libmpg123_speed.txt \
+	examples/mpg123_to_wav.c \
+	examples/scan.c \
+	examples/mpglib.c \
+	examples/id3dump.c \
+	examples/Makefile
