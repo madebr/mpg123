@@ -22,7 +22,11 @@ static void frame_fixed_reset(mpg123_handle *fr);
 void frame_default_pars(mpg123_pars *mp)
 {
 	mp->outscale = MAXOUTBURST;
+#ifdef GAPLESS
+	mp->flags = MPG123_GAPLESS;
+#else
 	mp->flags = 0;
+#endif
 	mp->force_rate = 0;
 	mp->down_sample = 0;
 	mp->rva = 0;

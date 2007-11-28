@@ -280,7 +280,10 @@ static void set_frameflag(char *arg)
 	if(frameflag & MPG123_FORCE_MONO) param.flags &= ~MPG123_FORCE_MONO;
 	param.flags |= frameflag;
 }
-
+static void unset_frameflag(char *arg)
+{
+	param.flags &= ~frameflag;
+}
 /* Please note: GLO_NUM expects point to LONG! */
 /* ThOr:
  *  Yeah, and despite that numerous addresses to int variables were 
@@ -368,9 +371,8 @@ topt opts[] = {
 	{'w', "wav",         GLO_ARG | GLO_CHAR, set_out_wav, 0, 0 },
 	{0, "cdr",           GLO_ARG | GLO_CHAR, set_out_cdr, 0, 0 },
 	{0, "au",            GLO_ARG | GLO_CHAR, set_out_au, 0, 0 },
-	#ifdef GAPLESS
 	{0,   "gapless",	 GLO_INT,  set_frameflag, &frameflag, MPG123_GAPLESS},
-	#endif
+	{0,   "no-gapless", GLO_INT, unset_frameflag, &frameflag, MPG123_GAPLESS},
 	{'?', "help",            0,  want_usage, 0,           0 },
 	{0 , "longhelp" ,        0,  want_long_usage, 0,      0 },
 	{0 , "version" ,         0,  give_version, 0,         0 },
@@ -1023,11 +1025,7 @@ static void usage(int err)  /* print syntax & exit */
 	#endif
 	fprintf(o,"   -z    shuffle play (with wildcards)  -Z    random play\n");
 	fprintf(o,"   -u a  HTTP authentication string     -E f  Equalizer, data from file\n");
-	#ifdef GAPLESS
-	fprintf(o,"   -C    enable control keys            --gapless  skip junk/padding in some mp3s\n");
-	#else
-	fprintf(o,"   -C    enable control keys\n");
-	#endif
+	fprintf(o,"   -C    enable control keys            --no-gapless  not skip junk/padding in mp3s\n");
 	fprintf(o,"   -?    this help                      --version  print name + version\n");
 	fprintf(o,"See the manpage %s(1) or call %s with --longhelp for more parameters and information.\n", prgName,prgName);
 	safe_exit(err);
@@ -1102,10 +1100,9 @@ static void long_usage(int err)
 	fprintf(o," -d n   --doublespeed n    play only every nth frame\n");
 	fprintf(o," -h n   --halfspeed   n    play every frame n times\n");
 	fprintf(o,"        --equalizer        exp.: scales freq. bands acrd. to 'equalizer.dat'\n");
-	#ifdef GAPLESS
-	fprintf(o,"        --gapless          remove padding/junk added by encoder/decoder\n");
-	#endif
-	fprintf(o,"                           (experimental, needs Lame tag, layer 3 only)\n");
+	fprintf(o,"        --gapless          remove padding/junk on mp3s (best with Lame tag)\n");
+	fprintf(o,"                           This is on by default when libmpg123 supports it.\n");
+	fprintf(o,"        --no-gapless       disable gapless mode, not remove padding/junk\n");
 	fprintf(o," -o h   --headphones       (aix/hp/sun) output on headphones\n");
 	fprintf(o," -o s   --speaker          (aix/hp/sun) output on speaker\n");
 	fprintf(o," -o l   --lineout          (aix/hp/sun) output to lineout\n");

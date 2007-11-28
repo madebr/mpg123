@@ -190,7 +190,17 @@ int mpg123_par(mpg123_pars *mp, enum mpg123_parms key, long val, double fval)
 			debug1("set flags to 0x%lx", (unsigned long) mp->flags);
 		break;
 		case MPG123_ADD_FLAGS:
+#ifndef GAPLESS
+			/* Enabling of gapless mode doesn't work when it's not there, but disabling (below) is no problem. */
+			if(val & MPG123_GAPLESS) ret = MPG123_NO_GAPLESS;
+			else
+#endif
 			mp->flags |= val;
+			debug1("set flags to 0x%lx", (unsigned long) mp->flags);
+		break;
+		case MPG123_REMOVE_FLAGS:
+			mp->flags &= ~val;
+			debug1("set flags to 0x%lx", (unsigned long) mp->flags);
 		break;
 		case MPG123_FORCE_RATE: /* should this trigger something? */
 			if(val > 96000) ret = MPG123_BAD_RATE;

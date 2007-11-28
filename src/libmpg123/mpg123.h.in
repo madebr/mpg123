@@ -246,7 +246,8 @@ enum mpg123_parms
 	MPG123_DECODE_FRAMES,  /**< decode only this number of frames */
 	MPG123_ICY_INTERVAL,   /**< stream contains ICY metadata with this interval */
 	MPG123_OUTSCALE,       /**< the scale for output samples (amplitude) */
-	MPG123_TIMEOUT         /**< timeout for reading from a stream (not supported on win32) */
+	MPG123_TIMEOUT,        /**< timeout for reading from a stream (not supported on win32) */
+	MPG123_REMOVE_FLAGS    /**< remove some flags (inverse of MPG123_ADD_FLAGS) */
 };
 
 /** /todo Assess the possibilities and troubles of changing parameters during playback. */
