@@ -898,6 +898,16 @@ int mpg123_icy(mpg123_handle *mh, char **icy_meta)
 	return MPG123_OK;
 }
 
+int mpg123_index(mpg123_handle *mh, off_t **offsets, off_t *step, size_t *fill)
+{
+	if(mh == NULL) return MPG123_ERR;
+	if(offsets == NULL || step == NULL || fill == NULL) return MPG123_BAD_INDEX_PAR;
+
+	*offsets = mh->index.data;
+	*step    = mh->index.step;
+	*fill    = mh->index.fill;
+}
+
 int mpg123_close(mpg123_handle *mh)
 {
 	if(mh == NULL) return MPG123_ERR;
@@ -943,7 +953,8 @@ static const char *mpg123_error[] =
 	"File access error. (code 22)",
 	"Seek not supported by stream. (code 23)",
 	"No stream opened. (code 24)",
-	"Bad parameter handle. (code 25)"
+	"Bad parameter handle. (code 25)",
+	"Invalid parameter addresses for index retrieval. (code 26)"
 };
 
 const char* mpg123_plain_strerror(int errcode)

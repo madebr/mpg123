@@ -76,6 +76,28 @@ static int stopped = 0;
 static int paused = 0;
 static int pause_cycle;
 
+static int print_index(mpg123_handle *mh)
+{
+	int err;
+	size_t c, fill;
+	off_t *index;
+	off_t  step;
+	err = mpg123_index(mh, &index, &step, &fill);
+	if(err == MPG123_ERR)
+	{
+		fprintf(stderr, "Error accessing frame index: %s\n", mpg123_strerror(mh));
+		return err;
+	}
+	for(c=0; c < fill;++c) 
+		fprintf(stderr, "[%lu] %lu: %li (+%li)\n",
+		(unsigned long) c,
+		(unsigned long) (c*step), 
+		(long) index[c], 
+		(long) (c ? index[c]-index[c-1] : 0));
+	return MPG123_OK;
+}
+
+
 off_t term_control(mpg123_handle *fr)
 {
 	off_t offset = 0;
@@ -231,7 +253,7 @@ static long term_handle_input(mpg123_handle *fr, int do_delay)
 		        STOP_KEY, NEXT_KEY, BACK_KEY, PAUSE_KEY, FORWARD_KEY, REWIND_KEY, FAST_FORWARD_KEY, FAST_REWIND_KEY, FINE_FORWARD_KEY, FINE_REWIND_KEY, VOL_UP_KEY, VOL_DOWN_KEY, RVA_KEY, VERBOSE_KEY, HELP_KEY, QUIT_KEY);
 	break;
 	case FRAME_INDEX_KEY:
-		mpg123_print_index(fr, stderr);
+		print_index(fr);
 	break;
 	default:
 	  ;

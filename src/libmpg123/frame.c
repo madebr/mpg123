@@ -349,19 +349,6 @@ void frame_exit(mpg123_handle *fr)
 	clear_icy(&fr->icy);
 }
 
-int mpg123_print_index(mpg123_handle *fr, FILE* out)
-{
-	size_t c;
-	if(fr == NULL) return MPG123_ERR;
-	for(c=0; c < fr->index.fill;++c) 
-		fprintf(out, "[%lu] %lu: %li (+%li)\n",
-		(unsigned long) c,
-		(unsigned long) (c*fr->index.step), 
-		(long) fr->index.data[c], 
-		(long) (c ? fr->index.data[c]-fr->index.data[c-1] : 0));
-	return MPG123_OK;
-}
-
 int mpg123_info(mpg123_handle *mh, struct mpg123_frameinfo *mi)
 {
 	if(mh == NULL) return MPG123_ERR;
