@@ -108,7 +108,7 @@ enum mpg123_errors
 	MPG123_BAD_FILE,		/**< File access error. */
 	MPG123_NO_SEEK,			/**< Seek not supported by stream. */
 	MPG123_NO_READER,		/**< No stream opened. */
-	MPG123_BAD_PARS,		/**< Bad parameter handle. */
+	MPG123_BAD_PARS		/**< Bad parameter handle. */
 };
 
 /** Return a string describing that error errcode means. */
@@ -269,7 +269,7 @@ enum mpg123_read_status
 	MPG123_ERR=-1,			/**< Generic Error */
 	MPG123_NEED_MORE=-10,	/**< For feed reader: "Feed me more!" */
 	MPG123_NEW_FORMAT=-11,	/**< Output format will be different on next call. */
-	MPG123_DONE=-12,		/**< Track ended. */
+	MPG123_DONE=-12		/**< Track ended. */
 };
 
 
@@ -433,7 +433,7 @@ enum mpg123_flags {
 	MPG123_CRC=0x1,			/**< The bitstream is error protected using 16-bit CRC. */
 	MPG123_COPYRIGHT=0x2,	/**< The bitstream is copyrighted. */
 	MPG123_PRIVATE=0x4,		/**< The private bit has been set. */
-	MPG123_ORIGINAL=0x8,	/**< The bitstream is an original, not a copy. */
+	MPG123_ORIGINAL=0x8	/**< The bitstream is an original, not a copy. */
 };
 
 /** Data structure for storing information about a frame of MPEG Audio */

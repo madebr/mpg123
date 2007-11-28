@@ -163,7 +163,7 @@ int mpg123_decoder(mpg123_handle *mh, const char* decoder)
 	return MPG123_OK;
 }
 
-int mpg123_param(mpg123_handle *mh, int key, long val, double fval)
+int mpg123_param(mpg123_handle *mh, enum mpg123_parms key, long val, double fval)
 {
 	int r;
 	if(mh == NULL) return MPG123_ERR;
@@ -172,7 +172,7 @@ int mpg123_param(mpg123_handle *mh, int key, long val, double fval)
 	return r;
 }
 
-int mpg123_par(mpg123_pars *mp, int key, long val, double fval)
+int mpg123_par(mpg123_pars *mp, enum mpg123_parms key, long val, double fval)
 {
 	int ret = MPG123_OK;
 	if(mp == NULL) return MPG123_BAD_PARS;
@@ -233,7 +233,7 @@ int mpg123_par(mpg123_pars *mp, int key, long val, double fval)
 	return ret;
 }
 
-int mpg123_getparam(mpg123_handle *mh, int key, long *val, double *fval)
+int mpg123_getparam(mpg123_handle *mh, enum mpg123_parms key, long *val, double *fval)
 {
 	int r;
 	if(mh == NULL) return MPG123_ERR;
@@ -242,7 +242,7 @@ int mpg123_getparam(mpg123_handle *mh, int key, long *val, double *fval)
 	return r;
 }
 
-int mpg123_getpar(mpg123_pars *mp, int key, long *val, double *fval)
+int mpg123_getpar(mpg123_pars *mp, enum mpg123_parms key, long *val, double *fval)
 {
 	int ret = 0;
 	if(mp == NULL) return MPG123_BAD_PARS;
