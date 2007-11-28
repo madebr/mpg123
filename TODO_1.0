@@ -9,3 +9,7 @@ Currently, some (many?) output systems are just broken...
 BUG:
 	Seeking with remote control is fishy... aftet a loadpaused, the first seek does not seek?
 	Also, do I really want to use mpg123_timeframe there? What with sample accuracy?
+
+Possible:
+	Work out the buffer stuff with audio handling? Make only _one_ process access audio stuff... (even if that may not help MacOSX).
+
