@@ -18,25 +18,6 @@ EXTRA_DIST = Makefile.legacy config.h.legacy legacy_module.c module.c
 CLEANFILES = *.a
 
 bin_PROGRAMS = mpg123
-EXTRA_PROGRAMS = mpglib scan id3dump
-
-# Dammit, how do I cross-directory dependencies so that they actually _work_?
-# Putting all rules in one makefile doesn't work with libtool as long as I got the sources organized in subdirs.
-# That SUCKS.
-
-mpglib_LDADD = libmpg123/libmpg123.la
-mpglib_DEPENDENCIES = libmpg123/libmpg123.la
-
-scan_LDADD = libmpg123/libmpg123.la
-scan_DEPENDENCIES = libmpg123/libmpg123.la
-scan_SOURCES = scan.c
-
-id3dump_LDADD = libmpg123/libmpg123.la
-id3dump_DEPENDENCIES = libmpg123/libmpg123.la
-id3dump_SOURCES = id3dump.c
-
-mpglib_SOURCES = \
-	mpglib.c
 
 mpg123_SOURCES = \
 	audio.c \
