@@ -356,9 +356,8 @@ MPEG 2.5
 
 #ifdef GAPLESS
 /* well, I take that one for granted... at least layer3 */
-#define DECODER_DELAY 529
+#define GAPLESS_DELAY 529
 /* still fine-tuning the "real music" window... see read_frame */
-#define GAP_SHIFT 0
 void frame_gapless_init(mpg123_handle *fr, off_t b, off_t e);
 void frame_gapless_realinit(mpg123_handle *fr);
 /*void frame_gapless_position(mpg123_handle* fr);
@@ -384,5 +383,4 @@ off_t frame_tell_seek(mpg123_handle *fr);
 
 /* adjust volume to current outscale and rva values if wanted */
 void do_rva(mpg123_handle *fr);
-
 #endif

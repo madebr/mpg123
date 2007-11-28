@@ -176,7 +176,10 @@ static int check_lame_tag(mpg123_handle *fr)
 	*/
 	size_t lame_offset = (fr->stereo == 2) ? (fr->lsf ? 17 : 32 ) : (fr->lsf ? 9 : 17);
 	/* At least skip the decoder delay. */
-	if(fr->begin_s == 0) frame_gapless_init(fr, DECODER_DELAY+GAP_SHIFT, 0);
+#ifdef GAPLESS
+	if(fr->begin_s == 0) frame_gapless_init(fr, GAPLESS_DELAY, 0);
+#endif
+
 	if(fr->framesize >= 120+lame_offset) /* traditional Xing header is 120 bytes */
 	{
 		size_t i;
@@ -240,7 +243,7 @@ static int check_lame_tag(mpg123_handle *fr)
 					{
 						off_t length = fr->track_frames * spf(fr);
 						if(length > 1)
-						frame_gapless_init(fr, DECODER_DELAY+GAP_SHIFT, length+DECODER_DELAY+GAP_SHIFT);
+						frame_gapless_init(fr, GAPLESS_DELAY, length+GAPLESS_DELAY);
 					}
 					#endif
 					debug1("Xing: %lu frames", (long unsigned)fr->track_frames);
@@ -366,12 +369,12 @@ static int check_lame_tag(mpg123_handle *fr)
 							in future the lame delay/padding and frame number info should be passed to layer3.c and the junk samples avoided at the source.
 						*/
 						off_t length = fr->track_frames * spf(fr);
-						off_t skipbegin = DECODER_DELAY + ((((int) fr->bsbuf[lame_offset]) << 4) | (((int) fr->bsbuf[lame_offset+1]) >> 4));
-						off_t skipend = -DECODER_DELAY + (((((int) fr->bsbuf[lame_offset+1]) << 8) | (((int) fr->bsbuf[lame_offset+2]))) & 0xfff);
+						off_t skipbegin = GAPLESS_DELAY + ((((int) fr->bsbuf[lame_offset]) << 4) | (((int) fr->bsbuf[lame_offset+1]) >> 4));
+						off_t skipend = -GAPLESS_DELAY + (((((int) fr->bsbuf[lame_offset+1]) << 8) | (((int) fr->bsbuf[lame_offset+2]))) & 0xfff);
 						debug3("preparing gapless mode for layer3: length %lu, skipbegin %lu, skipend %lu", 
 								(long unsigned)length, (long unsigned)skipbegin, (long unsigned)skipend);
 						if(length > 1)
-						frame_gapless_init(fr, skipbegin+GAP_SHIFT, (skipend < length) ? length-skipend+GAP_SHIFT : length+GAP_SHIFT);
+						frame_gapless_init(fr, skipbegin, (skipend < length) ? length-skipend : length);
 					}
 					#endif
 				}

@@ -15,11 +15,6 @@
 #include "debug.h"
 #include "compat.h"
 
-/* Seek code relies on GAPLESS, at least for now. */
-#ifndef GAPLESS
-#define GAPLESS
-#endif
-
 #define SKIP_JUNK 1
 
 #ifndef M_PI

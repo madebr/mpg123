@@ -650,7 +650,7 @@ off_t mpg123_tell(mpg123_handle *mh)
 	b = init_track(mh);
 	if(b<0) return b;
 	/* Now we have all the info at hand. */
-	debug5("tell: %li/%i first %li firstoff %li buffer %lu", (long)mh->num, mh->to_decode, (long)mh->firstframe, (long)mh->firstoff, (unsigned long)mh->buffer.fill);
+	debug4("tell: %li/%i first %li buffer %lu", (long)mh->num, mh->to_decode, (long)mh->firstframe, (unsigned long)mh->buffer.fill);
 	if((mh->num < mh->firstframe) || (mh->num == mh->firstframe && mh->to_decode)) return SAMPLE_ADJUST(frame_tell_seek(mh));
 	else if(mh->to_decode) return SAMPLE_ADJUST(frame_outs(mh, mh->num) - mh->buffer.fill);
 	else return SAMPLE_ADJUST(frame_outs(mh, mh->num+1) - mh->buffer.fill);
