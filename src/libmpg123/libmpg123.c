@@ -906,6 +906,8 @@ int mpg123_index(mpg123_handle *mh, off_t **offsets, off_t *step, size_t *fill)
 	*offsets = mh->index.data;
 	*step    = mh->index.step;
 	*fill    = mh->index.fill;
+
+	return MPG123_OK;
 }
 
 int mpg123_close(mpg123_handle *mh)
