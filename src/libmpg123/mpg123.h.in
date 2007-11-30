@@ -32,7 +32,6 @@
 extern "C" {
 #endif
 
-
 /** \defgroup mpg123_init mpg123 library and handle setup
  *
  * Functions to initialise and shutdown the mpg123 library and handles.
