@@ -56,6 +56,8 @@ size_t xfermem_get_usedspace (txfermem *xf);
 int xfermem_getcmd (int fd, int block);
 int xfermem_putcmd (int fd, byte cmd);
 int xfermem_block (int fd, txfermem *xf);
+/* returns TRUE for being interrupted */
+int xfermem_write(txfermem *xf, byte *buffer, size_t bytes);
 
 void xfermem_done (txfermem *xf);
 #define xfermem_done_writer xfermem_init_reader

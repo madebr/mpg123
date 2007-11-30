@@ -218,6 +218,35 @@ int xfermem_block (int readwrite, txfermem *xf)
 	return ((result <= 0) ? -1 : result);
 }
 
+int xfermem_write(txfermem *xf, byte *buffer, size_t bytes)
+{
+	if(buffer == NULL || bytes < 1) return FALSE;
+
+	/* You weren't so braindead to have not allocated enough space at all, right? */
+	while (xfermem_get_freespace(xf) < bytes)
+	{
+		if (xfermem_block(XF_WRITER, xf) == XF_CMD_TERMINATE)
+		return TRUE;
+	}
+	/* Now we have enough space. copy the memory, possibly with the wrap. */
+	if(xf->size - xf->freeindex >= bytes)
+	{	/* one block of free memory */
+		memcpy(xf->data+xf->freeindex, buffer, bytes);
+	}
+	else
+	{ /* two blocks */
+		size_t endblock = xf->size - xf->freeindex;
+		memcpy(xf->data+xf->freeindex, buffer, endblock);
+		memcpy(xf->data, buffer + endblock, bytes-endblock);
+	}
+	/* Advance the free space pointer, including the wrap. */
+	xf->freeindex = (xf->freeindex + bytes) % xf->size;
+	/* Wake up the buffer process if necessary. */
+	if(xf->wakeme[XF_READER]) xfermem_putcmd(xf->fd[XF_WRITER], XF_CMD_WAKEUP_INFO);
+
+	return FALSE;
+}
+
 #else /* stubs for generic / win32 */
 
 #include "mpg123app.h"
@@ -242,6 +271,10 @@ size_t xfermem_get_freespace (txfermem *xf)
 size_t xfermem_get_usedspace (txfermem *xf)
 {
   return 0;
+}
+int xfermem_write(txfermem *xf, byte *buffer, size_t bytes)
+{
+	return FALSE;
 }
 int xfermem_getcmd (int fd, int block)
 {

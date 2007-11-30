@@ -507,22 +507,9 @@ int play_frame(void)
 		}
 #ifndef NOXFERMEM
 		if(param.usebuffer)
-		{ /* We decoded directly into the buffer's buffer. */
-			if(!intflag)
-			{
-				buffermem->freeindex =
-					(buffermem->freeindex + bytes) % buffermem->size;
-				if (buffermem->wakeme[XF_READER])
-					xfermem_putcmd(buffermem->fd[XF_WRITER], XF_CMD_WAKEUP_INFO);
-			}
-			mpg123_replace_buffer(mh, (unsigned char *) (buffermem->data + buffermem->freeindex), bufferblock);
-			while (xfermem_get_freespace(buffermem) < bufferblock)
-				if (xfermem_block(XF_WRITER, buffermem) == XF_CMD_TERMINATE)
-				{
-					intflag = TRUE;
-					break;
-				}
-			if(intflag) return 1;
+		{ /* Instead of directly decoding to buffer, we copy explicitly here and handle the wrapping!
+			   Just giving libmpg123 the buffermem is no good idea since it doesn't know about the ringbuffer. */
+			if(xfermem_write(buffermem, audio, bytes)) return 1;
 		}
 		else
 #endif
