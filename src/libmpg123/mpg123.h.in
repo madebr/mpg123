@@ -368,24 +368,24 @@ EXPORT off_t mpg123_tellframe(mpg123_handle *mh);
 
 /** Seek to a desired sample offset. 
  *  Set whence to SEEK_SET, SEEK_CUR or SEEK_END.
- *  \return The resulting offset >= 0 or MPG123_ERR (-1) */
+ *  \return The resulting offset >= 0 or error/message code */
 EXPORT off_t mpg123_seek(mpg123_handle *mh, off_t sampleoff, int whence);
 
 /** Seek to a desired sample offset in data feeding mode. 
  *  This just prepares things to be right only if you ensure that the next chunk of input data will be from input_offset byte position.
  *  \param input_offset The position it expects to be at the 
  *                      next time data is fed to mpg123_decode().
- *  \return The resulting offset >= 0 or MPG123_ERR (-1) */
+ *  \return The resulting offset >= 0 or error/message code */
 EXPORT off_t mpg123_feedseek(mpg123_handle *mh, off_t sampleoff, int whence, off_t *input_offset);
 
 /** Seek to a desired MPEG frame index.
  *  Set whence to SEEK_SET, SEEK_CUR or SEEK_END.
- *  \return The resulting offset >= 0 or MPG123_ERR (-1) */
+ *  \return The resulting offset >= 0 or error/message code */
 EXPORT off_t mpg123_seek_frame(mpg123_handle *mh, off_t frameoff, int whence);
 
 /** Return a MPEG frame offset corresponding to an offset in seconds.
  *  This assumes that the samples per frame do not change in the file/stream, which is a good assumption for any sane file/stream only.
- *  \return frame offset >= 0 or MPG123_ERR (-1) */
+ *  \return frame offset >= 0 or error/message code */
 EXPORT off_t mpg123_timeframe(mpg123_handle *mh, double sec);
 
 /** Give access to the frame index table that is managed for seeking.
