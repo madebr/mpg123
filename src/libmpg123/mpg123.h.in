@@ -442,7 +442,7 @@ EXPORT int mpg123_volume_change(mpg123_handle *mh, double change);
  *  and the RVA value is in decibels. */
 EXPORT int mpg123_getvolume(mpg123_handle *mh, double *base, double *really, double *rva_db);
 
-/* TODO: set some preamp in addition / to replace internal RVA handling? */
+/** /todo Set some preamp in addition / to replace internal RVA handling? */
 
 /*@}*/
 
