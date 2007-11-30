@@ -353,7 +353,7 @@ EXPORT int mpg123_decode_frame(mpg123_handle *mh, off_t *num, unsigned char **au
  * - SEEK_CUR: change position by offset from now
  * - SEEK_END: set position to offset from end
  *
- * Note that sample-afccurate seek only works when gapless support was enabled at compile time; seek is frame-accurate otherwise.
+ * Note that sample-afccurate seek only works when gapless support has been enabled at compile time; seek is frame-accurate otherwise.
  * Also, seeking is not guaranteed to work for all streams (underlying stream may not support it).
  *
  * @{
