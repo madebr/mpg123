@@ -113,7 +113,7 @@ enum mpg123_param_rva
 	,MPG123_RVA_MAX   = MPG123_RVA_ALBUM /**< The maximum RVA code, may increase in future. */
 };
 
-/** /todo Assess the possibilities and troubles of changing parameters during playback. */
+/* TODO: Assess the possibilities and troubles of changing parameters during playback. */
 
 /** Set a specific parameter, for a specific mpg123_handle, using a parameter 
  *  type key chosen from the mpg123_parms enumeration, to the specified value. */
@@ -442,7 +442,7 @@ EXPORT int mpg123_volume_change(mpg123_handle *mh, double change);
  *  and the RVA value is in decibels. */
 EXPORT int mpg123_getvolume(mpg123_handle *mh, double *base, double *really, double *rva_db);
 
-/** /todo Set some preamp in addition / to replace internal RVA handling? */
+/* TODO: Set some preamp in addition / to replace internal RVA handling? */
 
 /*@}*/
 
