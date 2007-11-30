@@ -7,19 +7,7 @@ The outputs need work to fix various targets.
 Currently, some (many?) output systems are just broken...
 
 BUG:
-	Seeking with remote control is fishy... aftet a loadpaused, the first seek does not seek?
-	Also, do I really want to use mpg123_timeframe there? What with sample accuracy?
-
-	I had segfaulting on Solaris while using -Z ... with -b, too, but I think I should look into -Z, as without it playback is stable.
-	Nope, it just segfaulted for me just with -C -b 4096 -v ... so it's either console, the buffer or decoding as such. I strongly suggest the buffer communication. 
-	The sound on Solaris is also disturbed from time to time... it's the buffer or the Infrastructure (networked terminal, doesn't necessarily have the audio performance of a workstation).
-	But also, this could be an effect of the troubling buffer.
-	Hm... on my Linux/i386 laptop I ran through the whole New Order list with buffer and -s > /dev/null; no problem.
-	Possibly an issue showing with multiple CPUs only?
-
-	Parallel build is broken... still need to get dependencies straight?
+	Parallel build is broken? I had one occasion on a solaris 4 cpu box where it failed with -j5... still need to get dependencies straight?
 
 Possible:
 	Work out the buffer stuff with audio handling? Make only _one_ process access audio stuff... (even if that may not help MacOSX).
-
-	Make `make distcheck` work... VPATH can be tricky. Especially with fucked up recursive make.
