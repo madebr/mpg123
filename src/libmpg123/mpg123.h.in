@@ -685,7 +685,7 @@ EXPORT int mpg123_getpar(mpg123_pars *mp, enum mpg123_parms type, long *val, dou
   *
   * @{ */
 
-/** Replace default internal buffer with user-supplied buffer
+/** Replace default internal buffer with user-supplied buffer.
   * Instead of working on it's own private buffer, mpg123 will directly use the one you provide for storing decoded audio. */
 EXPORT int mpg123_replace_buffer(mpg123_handle *mh, unsigned char *data, size_t size);
 
