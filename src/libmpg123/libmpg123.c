@@ -963,7 +963,19 @@ const char* mpg123_plain_strerror(int errcode)
 {
 	if(errcode >= 0 && errcode < sizeof(mpg123_error)/sizeof(char*))
 	return mpg123_error[errcode];
-	else return "I have no idea - an unknown error code!";
+	else switch(errcode)
+	{
+		case MPG123_ERR:
+			return "A generic mpg123 error.";
+		case MPG123_DONE:
+			return "Message: I am done with this track.";
+		case MPG123_NEED_MORE:
+			return "Message: Feed me more input data!";
+		case MPG123_NEW_FORMAT:
+			return "Message: Prepare for a changed audio format!";
+		default:
+			return "I have no idea - an unknown error code!";
+	}
 }
 
 int mpg123_errcode(mpg123_handle *mh)
