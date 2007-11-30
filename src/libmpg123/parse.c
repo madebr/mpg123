@@ -957,11 +957,6 @@ int mpg123_position(mpg123_handle *fr, off_t no, off_t buffsize,
 	return MPG123_OK;
 }
 
-off_t mpg123_timeframe(mpg123_handle *fr, double seconds)
-{
-	return (off_t)(seconds/mpg123_tpf(fr));
-}
-
 int get_songlen(mpg123_handle *fr,int no)
 {
 	double tpf;

@@ -624,15 +624,25 @@ long mpg123_clip(mpg123_handle *mh)
 	return ret;
 }
 
+#define track_need_init(mh) (!(mh)->to_decode && (mh)->fresh)
+
 static int init_track(mpg123_handle *mh)
 {
-	if(!mh->to_decode && mh->fresh)
+	if(track_need_init(mh))
 	{
 		/* Fresh track, need first frame for basic info. */
 		int b = get_next_frame(mh);
 		if(b < 0) return b;
 	}
 	return 0;
+}
+
+off_t mpg123_timeframe(mpg123_handle *mh, double seconds)
+{
+	if(mh == NULL) return MPG123_ERR;
+	off_t b = init_track(mh);
+	if(b<0) return b;
+	return (off_t)(seconds/mpg123_tpf(mh));
 }
 
 /*
@@ -645,10 +655,8 @@ static int init_track(mpg123_handle *mh)
 */
 off_t mpg123_tell(mpg123_handle *mh)
 {
-	int b;
 	if(mh == NULL) return MPG123_ERR;
-	b = init_track(mh);
-	if(b<0) return b;
+	if(track_need_init(mh)) return 0;
 	/* Now we have all the info at hand. */
 	debug4("tell: %li/%i first %li buffer %lu", (long)mh->num, mh->to_decode, (long)mh->firstframe, (unsigned long)mh->buffer.fill);
 	if((mh->num < mh->firstframe) || (mh->num == mh->firstframe && mh->to_decode)) return SAMPLE_ADJUST(frame_tell_seek(mh));
