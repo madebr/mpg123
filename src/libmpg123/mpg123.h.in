@@ -681,7 +681,9 @@ EXPORT int mpg123_getpar(mpg123_pars *mp, enum mpg123_parms type, long *val, dou
 /* @} */
 
 /** \defgroup mpg123_lowio mpg123 low level I/O
-  * You may want to do tricky stuff with I/O that does not work with mpg123's default file access or you want to make it decode into your own pocket... */
+  * You may want to do tricky stuff with I/O that does not work with mpg123's default file access or you want to make it decode into your own pocket...
+  *
+  * @{ */
 
 /** Replace default internal buffer with user-supplied buffer
   * Instead of working on it's own private buffer, mpg123 will directly use the one you provide for storing decoded audio. */
