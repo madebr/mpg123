@@ -12,8 +12,6 @@
 #include "stdio.h"
 #include "sys/types.h"
 
-/* The "nice" printing functions need loop limits. */
-#define V1FIELDS 6
 #define V2FIELDS 6
 
 void safe_print(char* name, char *data, size_t size)
@@ -92,7 +90,6 @@ void print_v2(mpg123_id3v2 *v2)
 	sources[3] = v2->year;
 	sources[4] = v2->comment;
 	sources[5] = v2->genre;
-	printf("title = %p\n", (void*)v2->title);
 	for(i=0; i<V1FIELDS; ++i)
 	{
 		print_lines(names[i], sources[i]);
