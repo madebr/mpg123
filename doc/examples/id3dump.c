@@ -90,7 +90,7 @@ void print_v2(mpg123_id3v2 *v2)
 	sources[3] = v2->year;
 	sources[4] = v2->comment;
 	sources[5] = v2->genre;
-	for(i=0; i<V1FIELDS; ++i)
+	for(i=0; i<V2FIELDS; ++i)
 	{
 		print_lines(names[i], sources[i]);
 	}
