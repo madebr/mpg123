@@ -20,6 +20,7 @@ void usage()
 
 void cleanup(mpg123_handle *mh)
 {
+	/* It's really to late for error checks here;-) */
 	mpg123_close(mh);
 	mpg123_delete(mh);
 	mpg123_exit();
@@ -97,7 +98,6 @@ int main(int argc, char *argv[])
 
 	samples /= channels;
 	printf("%li samples written.\n", (long)samples);
-	/* It's really to late for error checks here;-) */
 	cleanup(mh);
 	return 0;
 }
