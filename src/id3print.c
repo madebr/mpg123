@@ -36,7 +36,7 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 		transform(&tag[TITLE],   &v2->title);
 		transform(&tag[ARTIST],  &v2->artist);
 		transform(&tag[ALBUM],   &v2->album);
-		transform(&tag[COMMENT], &v2->comment);
+		transform(&tag[COMMENT],  v2->generic_comment);
 		transform(&tag[YEAR],    &v2->year);
 		transform(&tag[GENRE],   &v2->genre);
 	}

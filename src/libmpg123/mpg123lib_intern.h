@@ -151,6 +151,7 @@ typedef unsigned char byte;
 #define VERBOSE  (NOQUIET && fr->p.verbose)
 #define VERBOSE2 (NOQUIET && fr->p.verbose > 1)
 #define VERBOSE3 (NOQUIET && fr->p.verbose > 2)
+#define VERBOSE4 (NOQUIET && fr->p.verbose > 3)
 
 int decode_update(mpg123_handle *mh);
 

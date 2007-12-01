@@ -42,14 +42,16 @@ void print_lines(const char* prefix, mpg123_string *inlines)
 {
 	size_t i;
 	int hadcr = 0, hadlf = 0;
-	char *lines = "";
-	char *line;
-	size_t len = 1;
-	if(inlines->fill)
+	char *lines = NULL;
+	char *line  = NULL;
+	size_t len = 0;
+	if(inlines != NULL && inlines->fill)
 	{
 		lines = inlines->p;
 		len   = inlines->fill;
 	}
+	else return;
+
 	line = lines;
 	for(i=0; i<len; ++i)
 	{
@@ -89,7 +91,7 @@ void print_v2(mpg123_id3v2 *v2)
 	sources[1] = &v2->artist;
 	sources[2] = &v2->album;
 	sources[3] = &v2->year;
-	sources[4] = &v2->comment;
+	sources[4] =  v2->generic_comment;
 	sources[5] = &v2->genre;
 	for(i=0; i<V1FIELDS; ++i)
 	{
@@ -109,6 +111,7 @@ int main(int argc, char **argv)
 	}
 	mpg123_init();
 	m = mpg123_new(NULL, NULL);
+mpg123_param(m, MPG123_VERBOSE, 4, 0);
 	
 	for(i=1; i < argc; ++i)
 	{

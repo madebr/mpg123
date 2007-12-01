@@ -566,6 +566,13 @@ EXPORT int  mpg123_add_string(mpg123_string* sb, char* stuff);
  *  \return 0 on error, 1 on success */
 EXPORT int  mpg123_set_string(mpg123_string* sb, char* stuff);
 
+/** Sub data structure for ID3v2, for storing comments. */
+typedef struct
+{
+	char lang[4]; /**< Three-letter language code (null-terminated). */
+	mpg123_string description; /**< Empty for the generic comment... */
+	mpg123_string text;        /**< ... */
+} mpg123_comment;
 
 /** Data structure for storing IDV3v2 tags.
  *  This structure is not a direct binary mapping with the file contents.
@@ -579,8 +586,10 @@ typedef struct
 	mpg123_string artist;  /**< Artist string. */
 	mpg123_string album;   /**< Album string. */
 	mpg123_string year;    /**< The year as a string. */
-	mpg123_string comment; /**< Comment string. */
 	mpg123_string genre;   /**< Genre String. The genre string(s) may very well need postprocessing, esp. for ID3v2.3. */
+	size_t comments;         /**< Number of comments. */
+	mpg123_comment *comment; /**< Array of comments. */
+	mpg123_string *generic_comment; /**< Pointer to last encountered comment text with empty description. */
 } mpg123_id3v2;
 
 /** Data structure for ID3v1 tags (the last 128 bytes of a file).

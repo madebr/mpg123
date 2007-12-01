@@ -8,7 +8,7 @@ SND_CFLAGS     := $(shell pkg-config --cflags sndfile)
 SND_LDFLAGS    := $(shell pkg-config --libs   sndfile)
 
 # Oder of libs not that important here...
-compile = $(CC) $(CFLAGS) $(LDFLAGS) $(MPG123_CFLAGS) $(MPG123_LDFLAGS)
+compile = $(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $(MPG123_CFLAGS) $(MPG123_LDFLAGS)
 
 mpg123_to_wav: mpg123_to_wav.c
 	$(compile) $(SND_CFLAGS) $(SND_LDFLAGS)-o mpg123_to_wav mpg123_to_wav.c

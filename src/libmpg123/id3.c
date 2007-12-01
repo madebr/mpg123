@@ -38,8 +38,55 @@ void init_id3(mpg123_handle *fr)
 	mpg123_init_string(&fr->id3v2.artist);
 	mpg123_init_string(&fr->id3v2.album);
 	mpg123_init_string(&fr->id3v2.year);
-	mpg123_init_string(&fr->id3v2.comment);
 	mpg123_init_string(&fr->id3v2.genre);
+	fr->id3v2.comments = 0;
+	fr->id3v2.comment  = NULL;
+	fr->id3v2.generic_comment = NULL;
+}
+
+static void free_comment(mpg123_handle *mh)
+{
+	size_t i;
+	mpg123_id3v2 *id = &mh->id3v2;
+	for(i=0; i<id->comments; ++i)
+	{
+		mpg123_free_string(&id->comment[i].description);
+		mpg123_free_string(&id->comment[i].text);
+	}
+	free(id->comment);
+	id->comment  = NULL;
+	id->comments = 0;
+	id->generic_comment = NULL;
+}
+
+static mpg123_comment *add_comment(mpg123_handle *mh)
+{
+	mpg123_id3v2 *id = &mh->id3v2;
+	mpg123_comment *x = safe_realloc(id->comment, sizeof(mpg123_comment)*(id->comments+1));
+	if(x == NULL) return NULL; /* bad */
+
+	id->comment   = x;
+	id->comments += 1;
+	id->comment[id->comments-1].lang[0] = 0; /* empty... */
+	mpg123_init_string(&id->comment[id->comments-1].description);
+	mpg123_init_string(&id->comment[id->comments-1].text);
+	return &id->comment[id->comments-1]; /* Return pointer to the added comment. */
+}
+
+static void pop_comment(mpg123_handle *mh)
+{
+	mpg123_comment *x;
+	mpg123_id3v2 *id = &mh->id3v2;
+	if(id->comments < 1) return;
+
+	mpg123_free_string(&id->comment[id->comments-1].description);
+	mpg123_free_string(&id->comment[id->comments-1].text);
+	x = safe_realloc(id->comment, sizeof(mpg123_comment)*(id->comments-1));
+	if(x != NULL)
+	{
+		id->comment   = x;
+		id->comments -= 1;
+	}
 }
 
 void exit_id3(mpg123_handle *fr)
@@ -48,8 +95,8 @@ void exit_id3(mpg123_handle *fr)
 	mpg123_free_string(&fr->id3v2.artist);
 	mpg123_free_string(&fr->id3v2.album);
 	mpg123_free_string(&fr->id3v2.year);
-	mpg123_free_string(&fr->id3v2.comment);
 	mpg123_free_string(&fr->id3v2.genre);
+	free_comment(fr);
 }
 
 void reset_id3(mpg123_handle *fr)
@@ -59,8 +106,8 @@ void reset_id3(mpg123_handle *fr)
 	fr->id3v2.artist.fill = 0;
 	fr->id3v2.album.fill = 0;
 	fr->id3v2.year.fill = 0;
-	fr->id3v2.comment.fill = 0;
 	fr->id3v2.genre.fill = 0;
+	free_comment(fr);
 }
 
 /*
@@ -105,6 +152,157 @@ void store_id3_text(mpg123_string *sb, char *source, size_t source_size)
 	text_converters[encoding](sb, (unsigned char*)source, source_size);
 	if(sb->size) debug1("UTF-8 string (the first one): %s", sb->p);
 	else error("unable to convert string to UTF-8 (out of memory, junk input?)!");
+}
+
+char *next_text(char* prev, int encoding, size_t limit)
+{
+	char *text = prev;
+	unsigned long neednull = encoding_widths[encoding];
+	/* So I go lengths to find zero or double zero... */
+	while(text-prev < limit)
+	{
+		if(text[0] == 0)
+		{
+			if(neednull <= limit-(text-prev))
+			{
+				unsigned long i = 1;
+				for(; i<neednull; ++i) if(text[i] != 0) break;
+
+				if(i == neednull) /* found a null wide enough! */
+				{
+					text += neednull;
+					break;
+				}
+			}
+			else{ text = NULL; break; }
+		}
+		++text;
+	}
+	if(text-prev == limit) text = NULL;
+
+	return text;
+}
+
+/* Store a new comment that perhaps is a RVA / RVA_ALBUM/AUDIOPHILE / RVA_MIX/RADIO one */
+static void process_comment(mpg123_handle *fr, char *realdata, size_t realsize, int tt)
+{
+	/* Text encoding          $xx */
+	/* Language               $xx xx xx */
+	/* Short description (encoded!)      <text> $00 (00) */
+	/* Then the comment text (encoded) ... */
+	char  encoding = realdata[0];
+	char *lang    = realdata+1; /* I'll only use the 3 bytes! */
+	char *descr   = realdata+4;
+	char *text;
+	mpg123_comment *xcom = add_comment(fr);
+	if(xcom == NULL)
+	{
+		if(NOQUIET) error("Unable to attach new comment!");
+		return;
+	}
+	memcpy(xcom->lang, lang, 3);
+	xcom->lang[3] = 0;
+	/* Now I can abuse a byte from lang for the encoding. */
+	descr[-1] = encoding;
+	/* Be careful with finding the end of description, I have to honor encoding here. */
+	text = next_text(descr, encoding, realsize-(descr-realdata));
+	if(text == NULL)
+	{
+		if(NOQUIET) error("No comment text / valid description?");
+		pop_comment(fr);
+		return;
+	}
+	store_id3_text(&xcom->description, descr-1, text-descr+1);
+	text[-1] = encoding;
+	store_id3_text(&xcom->text, text-1, realsize-(text-realdata)+1);
+
+	if(VERBOSE4)
+	{
+		fprintf(stderr, "Note: ID3 comment desc: %s\n", xcom->description.fill > 0 ? xcom->description.p : "");
+		fprintf(stderr, "Note: ID3 comment text: %s\n", xcom->text.fill > 0 ? xcom->text.p : "");
+	}
+	if(xcom->description.fill > 0 && xcom->text.fill > 0)
+	{
+		int rva_mode = -1; /* mix / album */
+		if(   !strcasecmp(xcom->description.p, "rva")
+			 || !strcasecmp(xcom->description.p, "rva_mix")
+			 || !strcasecmp(xcom->description.p, "rva_track")
+			 || !strcasecmp(xcom->description.p, "rva_radio"))
+		rva_mode = 0;
+		else if(   !strcasecmp(xcom->description.p, "rva_album")
+						|| !strcasecmp(xcom->description.p, "rva_audiophile")
+						|| !strcasecmp(xcom->description.p, "rva_user"))
+		rva_mode = 1;
+		if((rva_mode > -1) && (fr->rva.level[rva_mode] <= tt+1))
+		{
+			fr->rva.gain[rva_mode] = atof(xcom->text.p);
+			if(VERBOSE3) fprintf(stderr, "Note: RVA value %fdB\n", fr->rva.gain[rva_mode]);
+			fr->rva.peak[rva_mode] = 0;
+			fr->rva.level[rva_mode] = tt+1;
+		}
+	}
+	/* Mark the last found generic comment. */
+	if(xcom->description.fill == 0 || xcom->description.p[0] == 0)
+	fr->id3v2.generic_comment = &xcom->text;
+}
+
+void process_extra(mpg123_handle *fr, char* realdata, size_t realsize, int tt)
+{
+	/* Text encoding          $xx */
+	/* Description        ... $00 (00) */
+	/* Text ... */
+	mpg123_string work;
+	char encoding = realdata[0];
+	char *descr  = realdata+1; /* remember, the encoding is descr[-1] */
+	char *text   = next_text(descr, encoding, realsize-(descr-realdata));
+	if(text == NULL)
+	{
+		if(NOQUIET) error("No extra frame text / valid description?");
+		return;
+	}
+	mpg123_init_string(&work);
+	store_id3_text(&work, descr-1, text-descr+1);
+	if(work.fill > 0)
+	{
+		int is_peak = 0;
+		int rva_mode = -1; /* mix / album */
+
+		if(!strncasecmp(work.p, "replaygain_track_",17))
+		{
+			debug("ID3v2: track gain/peak");
+			rva_mode = 0;
+			if(!strcasecmp(work.p, "replaygain_track_peak")) is_peak = 1;
+			else if(strcasecmp(work.p, "replaygain_track_gain")) rva_mode = -1;
+		}
+		else
+		if(!strncasecmp(work.p, "replaygain_album_",17))
+		{
+			debug("ID3v2: album gain/peak");
+			rva_mode = 1;
+			if(!strcasecmp(work.p, "replaygain_album_peak")) is_peak = 1;
+			else if(strcasecmp(work.p, "replaygain_album_gain")) rva_mode = -1;
+		}
+		if((rva_mode > -1) && (fr->rva.level[rva_mode] <= tt+1))
+		{
+			text[-1] = encoding;
+			store_id3_text(&work, text-1, realsize-(text-realdata)+1);
+			if(work.fill > 0)
+			{
+				if(is_peak)
+				{
+					fr->rva.peak[rva_mode] = atof(work.p);
+					if(VERBOSE3) fprintf(stderr, "Note: RVA peak %fdB\n", fr->rva.peak[rva_mode]);
+				}
+				else
+				{
+					fr->rva.gain[rva_mode] = atof(work.p);
+					if(VERBOSE3) fprintf(stderr, "Note: RVA gain %fdB\n", fr->rva.gain[rva_mode]);
+				}
+				fr->rva.level[rva_mode] = tt+1;
+			}
+		}
+	}
+	mpg123_free_string(&work);
 }
 
 /*
@@ -288,104 +486,11 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 								pos = 0; /* now at the beginning again... */
 								switch(tt)
 								{
-									case comment: /* a comment that perhaps is a RVA / fr->rva.ALBUM/AUDIOPHILE / fr->rva.MIX/RADIO one */
-									{
-										/* Text encoding          $xx */
-										/* Language               $xx xx xx */
-										/* policy about encodings: do not care for now here */
-										/* if(realdata[0] == 0)  */
-										{
-											/* don't care about language */
-											pos = 4;
-											if(   !strcasecmp((char*)realdata+pos, "rva")
-											   || !strcasecmp((char*)realdata+pos, "fr->rva.mix")
-											   || !strcasecmp((char*)realdata+pos, "fr->rva.radio"))
-											rva_mode = 0;
-											else if(   !strcasecmp((char*)realdata+pos, "fr->rva.album")
-											        || !strcasecmp((char*)realdata+pos, "fr->rva.audiophile")
-											        || !strcasecmp((char*)realdata+pos, "fr->rva.user"))
-											rva_mode = 1;
-											if((rva_mode > -1) && (fr->rva.level[rva_mode] <= tt+1))
-											{
-												char* comstr;
-												size_t comsize = realsize-4-(strlen((char*)realdata+pos)+1);
-												if(VERBOSE3) fprintf(stderr, "Note: evaluating %s data for RVA\n", realdata+pos);
-												if((comstr = (char*) malloc(comsize+1)) != NULL)
-												{
-													memcpy(comstr,realdata+realsize-comsize, comsize);
-													comstr[comsize] = 0;
-													/* hm, what about utf16 here? */
-													fr->rva.gain[rva_mode] = atof(comstr);
-													if(VERBOSE3) fprintf(stderr, "Note: RVA value %fdB\n", fr->rva.gain[rva_mode]);
-													fr->rva.peak[rva_mode] = 0;
-													fr->rva.level[rva_mode] = tt+1;
-													free(comstr);
-												}
-												else error("could not allocate memory for rva comment interpretation");
-											}
-											else
-											{
-												if(!strcasecmp((char*)realdata+pos, ""))
-												{
-													/* only add general comments */
-													realdata[pos] = realdata[pos-4]; /* the encoding field copied */
-													debug("storing a comment");
-													store_id3_text(&fr->id3v2.comment, (char*)realdata+pos, realsize-4);
-												}
-											}
-										}
-									}
+									case comment:
+										process_comment(fr, (char*)realdata, realsize, tt);
 									break;
 									case extra: /* perhaps foobar2000's work */
-									{
-										/* Text encoding          $xx */
-										/* unicode would hurt in string comparison... */
-										if(realdata[0] == 0)
-										{
-											int is_peak = 0;
-											pos = 1;
-											
-											if(!strncasecmp((char*)realdata+pos, "replaygain_track_",17))
-											{
-												debug("ID3v2: track gain/peak");
-												rva_mode = 0;
-												if(!strcasecmp((char*)realdata+pos, "replaygain_track_peak")) is_peak = 1;
-												else if(strcasecmp((char*)realdata+pos, "replaygain_track_gain")) rva_mode = -1;
-											}
-											else
-											if(!strncasecmp((char*)realdata+pos, "replaygain_album_",17))
-											{
-												debug("ID3v2: album gain/peak");
-												rva_mode = 1;
-												if(!strcasecmp((char*)realdata+pos, "replaygain_album_peak")) is_peak = 1;
-												else if(strcasecmp((char*)realdata+pos, "replaygain_album_gain")) rva_mode = -1;
-											}
-											if((rva_mode > -1) && (fr->rva.level[rva_mode] <= tt+1))
-											{
-												char* comstr;
-												size_t comsize = realsize-1-(strlen((char*)realdata+pos)+1);
-												if(VERBOSE3) fprintf(stderr, "Note: evaluating %s data for RVA\n", realdata+pos);
-												if((comstr = (char*) malloc(comsize+1)) != NULL)
-												{
-													memcpy(comstr,realdata+realsize-comsize, comsize);
-													comstr[comsize] = 0;
-													if(is_peak)
-													{
-														fr->rva.peak[rva_mode] = atof(comstr);
-														if(VERBOSE3) fprintf(stderr, "Note: RVA peak %fdB\n", fr->rva.peak[rva_mode]);
-													}
-													else
-													{
-														fr->rva.gain[rva_mode] = atof(comstr);
-														if(VERBOSE3) fprintf(stderr, "Note: RVA gain %fdB\n", fr->rva.gain[rva_mode]);
-													}
-													fr->rva.level[rva_mode] = tt+1;
-													free(comstr);
-												}
-												else error("could not allocate memory for rva comment interpretation");
-											}
-										}
-									}
+										process_extra(fr, (char*)realdata, realsize, tt);
 									break;
 									case rva2: /* "the" RVA tag */
 									{
