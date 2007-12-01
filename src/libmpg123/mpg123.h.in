@@ -566,13 +566,17 @@ EXPORT int  mpg123_add_string(mpg123_string* sb, char* stuff);
  *  \return 0 on error, 1 on success */
 EXPORT int  mpg123_set_string(mpg123_string* sb, char* stuff);
 
-/** Sub data structure for ID3v2, for storing comments. */
+/** Sub data structure for ID3v2, for storing various text fields (including comments).
+ *  This is for ID3v2 COMM, TXXX and all the other text fields.
+ *  Only COMM and TXXX have a description, only COMM has a language.
+ *  You should consult the ID3v2 specification for the use of the various text fields ("frames" in ID3v2 documentation, I use "fields" here to separate from MPEG frames). */
 typedef struct
 {
-	char lang[4]; /**< Three-letter language code (null-terminated). */
+	char lang[3]; /**< Three-letter language code (not terminated). */
+	char id[4];   /**< The ID3v2 text field id, like TALB, TPE2, ... (4 characters, no string termination). */
 	mpg123_string description; /**< Empty for the generic comment... */
 	mpg123_string text;        /**< ... */
-} mpg123_comment;
+} mpg123_text;
 
 /** Data structure for storing IDV3v2 tags.
  *  This structure is not a direct binary mapping with the file contents.
@@ -582,14 +586,20 @@ typedef struct
 typedef struct
 {
 	unsigned char version; /**< 3 or 4 for ID3v2.3 or ID3v2.4. */
-	mpg123_string title;   /**< Title string. */
-	mpg123_string artist;  /**< Artist string. */
-	mpg123_string album;   /**< Album string. */
-	mpg123_string year;    /**< The year as a string. */
-	mpg123_string genre;   /**< Genre String. The genre string(s) may very well need postprocessing, esp. for ID3v2.3. */
-	size_t comments;         /**< Number of comments. */
-	mpg123_comment *comment; /**< Array of comments. */
-	mpg123_string *generic_comment; /**< Pointer to last encountered comment text with empty description. */
+	mpg123_string *title;   /**< Title string (pointer into text_list). */
+	mpg123_string *artist;  /**< Artist string (pointer into text_list). */
+	mpg123_string *album;   /**< Album string (pointer into text_list). */
+	mpg123_string *year;    /**< The year as a string (pointer into text_list). */
+	mpg123_string *genre;   /**< Genre String (pointer into text_list). The genre string(s) may very well need postprocessing, esp. for ID3v2.3. */
+	mpg123_string *comment; /**< Pointer to last encountered comment text with empty description. */
+	/* Encountered ID3v2 fields are appended to these lists.
+	   There can be multiple occurences, the pointers above always point to the last encountered data. */
+	mpg123_text    *comment_list; /**< Array of comments. */
+	size_t          comments;     /**< Number of comments. */
+	mpg123_text    *text;         /**< Array of ID3v2 text fields */
+	size_t          texts;        /**< Numer of text fields. */
+	mpg123_text    *extra;        /**< The array of extra (TXXX) fields. */
+	size_t          extras;       /**< Number of extra text (TXXX) fields. */
 } mpg123_id3v2;
 
 /** Data structure for ID3v1 tags (the last 128 bytes of a file).

@@ -87,15 +87,53 @@ void print_v2(mpg123_id3v2 *v2)
 	int i;
 	const char *names[] = { "Title", "Artist", "Album", "Year", "Comment", "Genre" };
 	mpg123_string *sources[sizeof(names)/sizeof(char*)];
-	sources[0] = &v2->title;
-	sources[1] = &v2->artist;
-	sources[2] = &v2->album;
-	sources[3] = &v2->year;
-	sources[4] =  v2->generic_comment;
-	sources[5] = &v2->genre;
+	sources[0] = v2->title;
+	sources[1] = v2->artist;
+	sources[2] = v2->album;
+	sources[3] = v2->year;
+	sources[4] = v2->comment;
+	sources[5] = v2->genre;
+	printf("title = %p\n", (void*)v2->title);
 	for(i=0; i<V1FIELDS; ++i)
 	{
 		print_lines(names[i], sources[i]);
+	}
+}
+
+void print_raw_v2(mpg123_id3v2 *v2)
+{
+	size_t i;
+	for(i=0; i<v2->texts; ++i)
+	{
+		char id[5];
+		memcpy(id, v2->text[i].id, 4);
+		id[4] = 0;
+		printf("%p %s\n", (void*)(&v2->text[i].text), id);
+		print_lines("", &v2->text[i].text);
+	}
+	for(i=0; i<v2->extras; ++i)
+	{
+		char id[5];
+		memcpy(id, v2->extra[i].id, 4);
+		id[4] = 0;
+		printf( "%s description(%s)\n",
+		        id,
+		        v2->extra[i].description.fill ? v2->extra[i].description.p : "" );
+		print_lines("", &v2->extra[i].text);
+	}
+	for(i=0; i<v2->comments; ++i)
+	{
+		char id[5];
+		char lang[3];
+		memcpy(id, v2->comment_list[i].id, 4);
+		id[4] = 0;
+		memcpy(lang, v2->comment_list[i].lang, 3);
+		lang[3] = 0;
+		printf( "%s description(%s) language(%s): \n",
+		        id,
+		        v2->comment_list[i].description.fill ? v2->comment_list[i].description.p : "",
+		        lang );
+		print_lines("", &v2->comment_list[i].text);
 	}
 }
 
@@ -112,7 +150,7 @@ int main(int argc, char **argv)
 	mpg123_init();
 	m = mpg123_new(NULL, NULL);
 mpg123_param(m, MPG123_VERBOSE, 4, 0);
-	
+
 	for(i=1; i < argc; ++i)
 	{
 		mpg123_id3v1 *v1;
@@ -128,11 +166,14 @@ mpg123_param(m, MPG123_VERBOSE, 4, 0);
 		if(meta & MPG123_ID3 && mpg123_id3(m, &v1, &v2) == MPG123_OK)
 		{
 			printf("Tag data on %s:\n", argv[i]);
-			printf("\n==== ID3v1 ====\n");
+			printf("\n====      ID3v1       ====\n");
 			if(v1 != NULL) print_v1(v1);
 
-			printf("\n==== ID3v2 ====\n");
+			printf("\n====      ID3v2       ====\n");
 			if(v2 != NULL) print_v2(v2);
+
+			printf("\n==== ID3v2 Raw frames ====\n");
+			if(v2 != NULL) print_raw_v2(v2);
 		}
 		else printf("Nothing found for %s.\n", argv[i]);
 

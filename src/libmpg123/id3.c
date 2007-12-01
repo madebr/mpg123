@@ -34,80 +34,131 @@ const int encoding_widths[4] = { 1, 2, 2, 1 };
 void init_id3(mpg123_handle *fr)
 {
 	fr->id3v2.version = 0; /* nothing there */
-	mpg123_init_string(&fr->id3v2.title);
-	mpg123_init_string(&fr->id3v2.artist);
-	mpg123_init_string(&fr->id3v2.album);
-	mpg123_init_string(&fr->id3v2.year);
-	mpg123_init_string(&fr->id3v2.genre);
-	fr->id3v2.comments = 0;
-	fr->id3v2.comment  = NULL;
-	fr->id3v2.generic_comment = NULL;
+	fr->id3v2.title  = NULL;
+	fr->id3v2.artist = NULL;
+	fr->id3v2.album  = NULL;
+	fr->id3v2.year   = NULL;
+	fr->id3v2.genre  = NULL;
+	fr->id3v2.comments     = 0;
+	fr->id3v2.comment_list = NULL;
+	fr->id3v2.texts    = 0;
+	fr->id3v2.text     = NULL;
+	fr->id3v2.extras   = 0;
+	fr->id3v2.extra    = NULL;
 }
 
-static void free_comment(mpg123_handle *mh)
+/* Managing of the text, comment and extra lists. */
+
+/* Initialize one element. */
+static void init_mpg123_text(mpg123_text *txt)
+{
+	mpg123_init_string(&txt->text);
+	mpg123_init_string(&txt->description);
+	txt->id[0] = 0;
+	txt->id[1] = 0;
+	txt->id[2] = 0;
+	txt->id[3] = 0;
+	txt->lang[0] = 0;
+	txt->lang[1] = 0;
+	txt->lang[2] = 0;
+}
+
+/* Free memory of one element. */
+static void free_mpg123_text(mpg123_text *txt)
+{
+	mpg123_free_string(&txt->text);
+	mpg123_init_string(&txt->description);
+}
+
+/* Free memory of whole list. */
+#define free_comment(mh) free_id3_text(&((mh)->id3v2.comment_list), &((mh)->id3v2.comments))
+#define free_text(mh)    free_id3_text(&((mh)->id3v2.text),         &((mh)->id3v2.texts))
+#define free_extra(mh)   free_id3_text(&((mh)->id3v2.extra),        &((mh)->id3v2.extras))
+static void free_id3_text(mpg123_text **list, size_t *size)
 {
 	size_t i;
-	mpg123_id3v2 *id = &mh->id3v2;
-	for(i=0; i<id->comments; ++i)
-	{
-		mpg123_free_string(&id->comment[i].description);
-		mpg123_free_string(&id->comment[i].text);
-	}
-	free(id->comment);
-	id->comment  = NULL;
-	id->comments = 0;
-	id->generic_comment = NULL;
+	for(i=0; i<*size; ++i) free_mpg123_text(&((*list)[i]));
+
+	free(*list);
+	*list = NULL;
+	*size = 0;
 }
 
-static mpg123_comment *add_comment(mpg123_handle *mh)
+/* Add items to the list. */
+#define add_comment(mh) add_id3_text(&((mh)->id3v2.comment_list), &((mh)->id3v2.comments))
+#define add_text(mh)    add_id3_text(&((mh)->id3v2.text),         &((mh)->id3v2.texts))
+#define add_extra(mh)   add_id3_text(&((mh)->id3v2.extra),        &((mh)->id3v2.extras))
+static mpg123_text *add_id3_text(mpg123_text **list, size_t *size)
 {
-	mpg123_id3v2 *id = &mh->id3v2;
-	mpg123_comment *x = safe_realloc(id->comment, sizeof(mpg123_comment)*(id->comments+1));
+	mpg123_text *x = safe_realloc(*list, sizeof(mpg123_text)*(*size+1));
 	if(x == NULL) return NULL; /* bad */
 
-	id->comment   = x;
-	id->comments += 1;
-	id->comment[id->comments-1].lang[0] = 0; /* empty... */
-	mpg123_init_string(&id->comment[id->comments-1].description);
-	mpg123_init_string(&id->comment[id->comments-1].text);
-	return &id->comment[id->comments-1]; /* Return pointer to the added comment. */
+	*list  = x;
+	*size += 1;
+	init_mpg123_text(&((*list)[*size-1]));
+
+	return &((*list)[*size-1]); /* Return pointer to the added text. */
 }
 
-static void pop_comment(mpg123_handle *mh)
+/* Remove the last item. */
+#define pop_comment(mh) pop_id3_text(&((mh)->id3v2.comment_list), &((mh)->id3v2.comments))
+#define pop_text(mh)    pop_id3_text(&((mh)->id3v2.text),         &((mh)->id3v2.texts))
+#define pop_extra(mh)   pop_id3_text(&((mh)->id3v2.extra),        &((mh)->id3v2.extras))
+static void pop_id3_text(mpg123_text **list, size_t *size)
 {
-	mpg123_comment *x;
-	mpg123_id3v2 *id = &mh->id3v2;
-	if(id->comments < 1) return;
+	mpg123_text *x;
+	if(*size < 1) return;
 
-	mpg123_free_string(&id->comment[id->comments-1].description);
-	mpg123_free_string(&id->comment[id->comments-1].text);
-	x = safe_realloc(id->comment, sizeof(mpg123_comment)*(id->comments-1));
-	if(x != NULL)
+	free_mpg123_text(&((*list)[*size-1]));
+	if(*size > 1)
 	{
-		id->comment   = x;
-		id->comments -= 1;
+		x = safe_realloc(*list, sizeof(mpg123_text)*(*size-1));
+		if(x != NULL){ *list  = x; *size -= 1; }
+	}
+	else
+	{
+		free(*list);
+		*list = NULL;
+		*size = 0;
 	}
 }
+
+/* OK, back t the higher level functions. */
 
 void exit_id3(mpg123_handle *fr)
 {
-	mpg123_free_string(&fr->id3v2.title);
-	mpg123_free_string(&fr->id3v2.artist);
-	mpg123_free_string(&fr->id3v2.album);
-	mpg123_free_string(&fr->id3v2.year);
-	mpg123_free_string(&fr->id3v2.genre);
 	free_comment(fr);
+	free_extra(fr);
+	free_text(fr);
 }
 
 void reset_id3(mpg123_handle *fr)
 {
-	fr->id3v2.version = 0;
-	fr->id3v2.title.fill = 0;
-	fr->id3v2.artist.fill = 0;
-	fr->id3v2.album.fill = 0;
-	fr->id3v2.year.fill = 0;
-	fr->id3v2.genre.fill = 0;
-	free_comment(fr);
+	exit_id3(fr);
+	init_id3(fr);
+}
+
+/* Set the id3v2.artist id3v2.title ... links to elements of the array. */
+void id3_link(mpg123_handle *fr)
+{
+	size_t i;
+	mpg123_id3v2 *v2 = &fr->id3v2;
+	for(i=0; i<v2->texts; ++i)
+	{
+		mpg123_text *entry = &v2->text[i];
+		fprintf(stderr, "entry %i id %c%c%c%c at %p\n", i, entry->id[0], entry->id[1], entry->id[2], entry->id[3], &entry->text);
+		if     (!strncmp("TIT2", entry->id, 4)) v2->title  = &entry->text;
+		else if(!strncmp("TALB", entry->id, 4)) v2->album  = &entry->text;
+		else if(!strncmp("TPE1", entry->id, 4)) v2->artist = &entry->text;
+		else if(!strncmp("TYER", entry->id, 4)) v2->year   = &entry->text;
+		else if(!strncmp("TCON", entry->id, 4)) v2->genre  = &entry->text;
+	}
+	for(i=0; i<v2->comments; ++i)
+	{
+		mpg123_text *entry = &v2->comment_list[i];
+		if(entry->description.fill == 0 || entry->description.p[0] == 0)
+		v2->comment = &entry->text;
+	}
 }
 
 /*
@@ -183,8 +234,23 @@ char *next_text(char* prev, int encoding, size_t limit)
 	return text;
 }
 
+static void process_text(mpg123_handle *fr, char *realdata, size_t realsize, char *id)
+{
+	/* Text encoding          $xx */
+	/* The text (encoded) ... */
+	mpg123_text *t = add_text(fr);
+	if(t == NULL)
+	{
+		if(NOQUIET) error("Unable to attach new text!");
+		return;
+	}
+	memcpy(t->id, id, 4);
+	store_id3_text(&t->text, realdata, realsize);
+	if(VERBOSE4) fprintf(stderr, "Note: ID3v2 %c%c%c%c text frame: %s\n", id[0], id[1], id[2], id[3], t->text.p);
+}
+
 /* Store a new comment that perhaps is a RVA / RVA_ALBUM/AUDIOPHILE / RVA_MIX/RADIO one */
-static void process_comment(mpg123_handle *fr, char *realdata, size_t realsize, int tt)
+static void process_comment(mpg123_handle *fr, char *realdata, size_t realsize, int rva_level, char *id)
 {
 	/* Text encoding          $xx */
 	/* Language               $xx xx xx */
@@ -194,13 +260,14 @@ static void process_comment(mpg123_handle *fr, char *realdata, size_t realsize, 
 	char *lang    = realdata+1; /* I'll only use the 3 bytes! */
 	char *descr   = realdata+4;
 	char *text;
-	mpg123_comment *xcom = add_comment(fr);
+	mpg123_text *xcom = add_comment(fr);
 	if(xcom == NULL)
 	{
 		if(NOQUIET) error("Unable to attach new comment!");
 		return;
 	}
 	memcpy(xcom->lang, lang, 3);
+	memcpy(xcom->id, id, 4);
 	xcom->lang[3] = 0;
 	/* Now I can abuse a byte from lang for the encoding. */
 	descr[-1] = encoding;
@@ -233,76 +300,79 @@ static void process_comment(mpg123_handle *fr, char *realdata, size_t realsize, 
 						|| !strcasecmp(xcom->description.p, "rva_audiophile")
 						|| !strcasecmp(xcom->description.p, "rva_user"))
 		rva_mode = 1;
-		if((rva_mode > -1) && (fr->rva.level[rva_mode] <= tt+1))
+		if((rva_mode > -1) && (fr->rva.level[rva_mode] <= rva_level))
 		{
 			fr->rva.gain[rva_mode] = atof(xcom->text.p);
 			if(VERBOSE3) fprintf(stderr, "Note: RVA value %fdB\n", fr->rva.gain[rva_mode]);
 			fr->rva.peak[rva_mode] = 0;
-			fr->rva.level[rva_mode] = tt+1;
+			fr->rva.level[rva_mode] = rva_level;
 		}
 	}
-	/* Mark the last found generic comment. */
-	if(xcom->description.fill == 0 || xcom->description.p[0] == 0)
-	fr->id3v2.generic_comment = &xcom->text;
 }
 
-void process_extra(mpg123_handle *fr, char* realdata, size_t realsize, int tt)
+void process_extra(mpg123_handle *fr, char* realdata, size_t realsize, int rva_level, char *id)
 {
 	/* Text encoding          $xx */
 	/* Description        ... $00 (00) */
 	/* Text ... */
-	mpg123_string work;
 	char encoding = realdata[0];
 	char *descr  = realdata+1; /* remember, the encoding is descr[-1] */
-	char *text   = next_text(descr, encoding, realsize-(descr-realdata));
+	char *text;
+	mpg123_text *xex;
+	text = next_text(descr, encoding, realsize-(descr-realdata));
 	if(text == NULL)
 	{
 		if(NOQUIET) error("No extra frame text / valid description?");
 		return;
 	}
-	mpg123_init_string(&work);
-	store_id3_text(&work, descr-1, text-descr+1);
-	if(work.fill > 0)
+	xex = add_extra(fr);
+	if(xex == NULL)
+	{
+		if(NOQUIET) error("Unable to attach new extra text!");
+		return;
+	}
+	memcpy(xex->id, id, 4);
+	store_id3_text(&xex->description, descr-1, text-descr+1);
+	text[-1] = encoding;
+	store_id3_text(&xex->text, text-1, realsize-(text-realdata)+1);
+	if(xex->description.fill > 0)
 	{
 		int is_peak = 0;
 		int rva_mode = -1; /* mix / album */
 
-		if(!strncasecmp(work.p, "replaygain_track_",17))
+		if(!strncasecmp(xex->description.p, "replaygain_track_",17))
 		{
 			debug("ID3v2: track gain/peak");
 			rva_mode = 0;
-			if(!strcasecmp(work.p, "replaygain_track_peak")) is_peak = 1;
-			else if(strcasecmp(work.p, "replaygain_track_gain")) rva_mode = -1;
+			if(!strcasecmp(xex->description.p, "replaygain_track_peak")) is_peak = 1;
+			else if(strcasecmp(xex->description.p, "replaygain_track_gain")) rva_mode = -1;
 		}
 		else
-		if(!strncasecmp(work.p, "replaygain_album_",17))
+		if(!strncasecmp(xex->description.p, "replaygain_album_",17))
 		{
 			debug("ID3v2: album gain/peak");
 			rva_mode = 1;
-			if(!strcasecmp(work.p, "replaygain_album_peak")) is_peak = 1;
-			else if(strcasecmp(work.p, "replaygain_album_gain")) rva_mode = -1;
+			if(!strcasecmp(xex->description.p, "replaygain_album_peak")) is_peak = 1;
+			else if(strcasecmp(xex->description.p, "replaygain_album_gain")) rva_mode = -1;
 		}
-		if((rva_mode > -1) && (fr->rva.level[rva_mode] <= tt+1))
+		if((rva_mode > -1) && (fr->rva.level[rva_mode] <= rva_level))
 		{
-			text[-1] = encoding;
-			store_id3_text(&work, text-1, realsize-(text-realdata)+1);
-			if(work.fill > 0)
+			if(xex->text.fill > 0)
 			{
 				if(is_peak)
 				{
-					fr->rva.peak[rva_mode] = atof(work.p);
+					fr->rva.peak[rva_mode] = atof(xex->text.p);
 					if(VERBOSE3) fprintf(stderr, "Note: RVA peak %fdB\n", fr->rva.peak[rva_mode]);
 				}
 				else
 				{
-					fr->rva.gain[rva_mode] = atof(work.p);
+					fr->rva.gain[rva_mode] = atof(xex->text.p);
 					if(VERBOSE3) fprintf(stderr, "Note: RVA gain %fdB\n", fr->rva.gain[rva_mode]);
 				}
-				fr->rva.level[rva_mode] = tt+1;
+				fr->rva.level[rva_mode] = rva_level;
 			}
 		}
 	}
-	mpg123_free_string(&work);
 }
 
 /*
@@ -401,9 +471,9 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 						unsigned long pos = tagpos;
 						/* level 1,2,3 - 0 is info from lame/info tag! */
 						/* rva tags with ascending significance, then general frames */
-						#define KNOWN_FRAMES 8
-						const char frame_type[KNOWN_FRAMES][5] = { "COMM", "TXXX", "RVA2", "TPE1", "TALB", "TIT2", "TYER", "TCON" };
-						enum { egal = -1, comment, extra, rva2, artist, album, title, year, genre } tt = egal;
+						#define KNOWN_FRAMES 3
+						const char frame_type[KNOWN_FRAMES][5] = { "COMM", "TXXX", "RVA2" }; /* plus all text frames... */
+						enum { unknown = -2, text = -1, comment, extra, rva2 } tt = unknown;
 						/* we may have entered the padding zone or any other strangeness: check if we have valid frame id characters */
 						for(; i< 4; ++i) if( !( ((tagdata[tagpos+i] > 47) && (tagdata[tagpos+i] < 58))
 						                     || ((tagdata[tagpos+i] > 64) && (tagdata[tagpos+i] < 91)) ) )
@@ -450,8 +520,10 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 							
 							for(i = 0; i < KNOWN_FRAMES; ++i)
 							if(!strncmp(frame_type[i], id, 4)){ tt = i; break; }
-							
-							if(tt != egal)
+
+							if(id[0] == 'T' && tt != extra) tt = text;
+
+							if(tt != unknown)
 							{
 								int rva_mode = -1; /* mix / album */
 								unsigned long realsize = framesize;
@@ -487,10 +559,10 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 								switch(tt)
 								{
 									case comment:
-										process_comment(fr, (char*)realdata, realsize, tt);
+										process_comment(fr, (char*)realdata, realsize, comment+1, id);
 									break;
 									case extra: /* perhaps foobar2000's work */
-										process_extra(fr, (char*)realdata, realsize, tt);
+										process_extra(fr, (char*)realdata, realsize, extra+1, id);
 									break;
 									case rva2: /* "the" RVA tag */
 									{
@@ -503,7 +575,7 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 										    || !strncasecmp((char*)realdata, "audiophile", 10)
 										    || !strncasecmp((char*)realdata, "user", 4))
 										rva_mode = 1;
-										if(fr->rva.level[rva_mode] <= tt+1)
+										if(fr->rva.level[rva_mode] <= rva2+1)
 										{
 											pos += strlen((char*) realdata) + 1;
 											if(realdata[pos] == 1)
@@ -519,7 +591,7 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 												if(VERBOSE3) fprintf(stderr, "Note: RVA value %fdB\n", fr->rva.gain[rva_mode]);
 												/* heh, the peak value is represented by a number of bits - but in what manner? Skipping that part */
 												fr->rva.peak[rva_mode] = 0;
-												fr->rva.level[rva_mode] = tt+1;
+												fr->rva.level[rva_mode] = rva2+1;
 											}
 										}
 										#else
@@ -528,25 +600,8 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 									}
 									break;
 									/* non-rva metainfo, simply store... */
-									case artist:
-										debug("ID3v2: parsing artist info");
-										store_id3_text(&fr->id3v2.artist, (char*) realdata, realsize);
-									break;
-									case album:
-										debug("ID3v2: parsing album info");
-										store_id3_text(&fr->id3v2.album, (char*) realdata, realsize);
-									break;
-									case title:
-										debug("ID3v2: parsing title info");
-										store_id3_text(&fr->id3v2.title, (char*) realdata, realsize);
-									break;
-									case year:
-										debug("ID3v2: parsing year info");
-										store_id3_text(&fr->id3v2.year, (char*) realdata, realsize);
-									break;
-									case genre:
-										debug("ID3v2: parsing genre info");
-										store_id3_text(&fr->id3v2.genre, (char*) realdata, realsize);
+									case text:
+										process_text(fr, (char*)realdata, realsize, id);
 									break;
 									default: error1("ID3v2: unknown frame type %i", tt);
 								}

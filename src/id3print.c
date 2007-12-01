@@ -33,12 +33,12 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 	if(v1 == NULL && v2 == NULL) return;
 	if(v2 != NULL) /* fill from ID3v2 data */
 	{
-		transform(&tag[TITLE],   &v2->title);
-		transform(&tag[ARTIST],  &v2->artist);
-		transform(&tag[ALBUM],   &v2->album);
-		transform(&tag[COMMENT],  v2->generic_comment);
-		transform(&tag[YEAR],    &v2->year);
-		transform(&tag[GENRE],   &v2->genre);
+		transform(&tag[TITLE],   v2->title);
+		transform(&tag[ARTIST],  v2->artist);
+		transform(&tag[ALBUM],   v2->album);
+		transform(&tag[COMMENT], v2->comment);
+		transform(&tag[YEAR],    v2->year);
+		transform(&tag[GENRE],   v2->genre);
 	}
 	if(v1 != NULL) /* fill gaps with ID3v1 data */
 	{

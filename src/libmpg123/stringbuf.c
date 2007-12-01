@@ -53,14 +53,25 @@ int mpg123_resize_string(mpg123_string* sb, size_t new)
 
 int mpg123_copy_string(mpg123_string* from, mpg123_string* to)
 {
+	size_t fill;
+	char  *text;
 	if(to == NULL) return -1;
 
-	if(from == NULL) return mpg123_set_string(to, "");
-
-	if(mpg123_resize_string(to, from->fill))
+	if(from == NULL)
 	{
-		memcpy(to->p, from->p, to->size);
-		to->fill = to->size;
+		fill = 0;
+		text = NULL;
+	}
+	else
+	{
+		fill = from->fill;
+		text = from->p;
+	}
+
+	if(mpg123_resize_string(to, fill))
+	{
+		memcpy(to->p, text, fill);
+		to->fill = fill;
 		return 1;
 	}
 	else return 0;
