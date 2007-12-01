@@ -12,29 +12,28 @@
 #include "stdio.h"
 #include "sys/types.h"
 
-/* This looping code poses the question if one shouldn't store the tags in something loopable to begin with. */
+/* The "nice" printing functions need loop limits. */
 #define V1FIELDS 6
 #define V2FIELDS 6
+
+void safe_print(char* name, char *data, size_t size)
+{
+	char safe[31];
+	if(size>30) return;
+
+	memcpy(safe, data, size);
+	safe[size] = 0;
+	printf("%s: %s\n", name, safe);
+}
 
 void print_v1(mpg123_id3v1 *v1)
 {
 	int i;
-	const char *names[] = { "TAG", "Title", "Artist", "Album", "Year", "Comment" };
-	char *sources[sizeof(names)/sizeof(char*)];
-	size_t sizes[sizeof(names)/sizeof(char*)];
-	sources[0] = v1->tag;     sizes[0] = sizeof(v1->tag);
-	sources[1] = v1->title;   sizes[1] = sizeof(v1->title);
-	sources[2] = v1->artist;  sizes[2] = sizeof(v1->artist);
-	sources[3] = v1->album;   sizes[3] = sizeof(v1->album);
-	sources[4] = v1->year;    sizes[4] = sizeof(v1->year);
-	sources[5] = v1->comment; sizes[5] = sizeof(v1->comment);
-	for(i=1; i<V1FIELDS; ++i)
-	{
-		char safe[31];
-		memcpy(safe, sources[i], sizes[i]);
-		safe[sizes[i]] = 0;
-		printf("%s: %s\n", names[i], safe);
-	}
+	safe_print("Title",   v1->title,   sizeof(v1->title));
+	safe_print("Artist",  v1->artist,  sizeof(v1->artist));
+	safe_print("Album",   v1->album,   sizeof(v1->album));
+	safe_print("Year",    v1->year,    sizeof(v1->year));
+	safe_print("Comment", v1->comment, sizeof(v1->comment));
 	printf("Genre: %i", v1->genre);
 }
 
@@ -149,7 +148,6 @@ int main(int argc, char **argv)
 	}
 	mpg123_init();
 	m = mpg123_new(NULL, NULL);
-mpg123_param(m, MPG123_VERBOSE, 4, 0);
 
 	for(i=1; i < argc; ++i)
 	{
