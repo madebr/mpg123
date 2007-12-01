@@ -563,6 +563,7 @@ int mpg123_decode(mpg123_handle *mh,unsigned char *inmemory, size_t inmemsize, u
 	if(mh == NULL) return MPG123_ERR;
 	if(inmemsize > 0)
 	if(feed_more(mh, inmemory, inmemsize) == -1){ ret = MPG123_ERR; goto decodeend; }
+	if(outmemory == NULL) outmemsize = 0; /* Not just give error, give chance to get a status message. */
 
 	while(ret == MPG123_OK)
 	{
@@ -635,6 +636,18 @@ static int init_track(mpg123_handle *mh)
 		if(b < 0) return b;
 	}
 	return 0;
+}
+
+int mpg123_getformat(mpg123_handle *mh, long *rate, int *channels, int *encoding)
+{
+	if(mh == NULL) return MPG123_ERR;
+	if(init_track(mh) == MPG123_ERR) return MPG123_ERR;
+
+	*rate = mh->af.rate;
+	*channels = mh->af.channels;
+	*encoding = mh->af.encoding;
+	mh->new_format = 0;
+	return MPG123_OK;
 }
 
 off_t mpg123_timeframe(mpg123_handle *mh, double seconds)

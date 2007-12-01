@@ -152,15 +152,6 @@ end: /* Here is the _good_ end. */
 	}
 }
 
-int mpg123_getformat(mpg123_handle *mh, long *rate, int *channels, int *encoding)
-{
-	if(mh == NULL) return MPG123_ERR;
-	*rate = mh->af.rate;
-	*channels = mh->af.channels;
-	*encoding = mh->af.encoding;
-	return MPG123_OK;
-}
-
 int mpg123_format_none(mpg123_handle *mh)
 {
 	int r;
