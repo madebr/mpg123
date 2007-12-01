@@ -8,11 +8,8 @@
 
 #include "mpg123.h"
 #include <string.h>
-/* mpg123.h does include these, but this example program shall demonstrate not to depend on that. */
 #include "stdio.h"
 #include "sys/types.h"
-
-#define V2FIELDS 6
 
 void safe_print(char* name, char *data, size_t size)
 {
@@ -26,7 +23,6 @@ void safe_print(char* name, char *data, size_t size)
 
 void print_v1(mpg123_id3v1 *v1)
 {
-	int i;
 	safe_print("Title",   v1->title,   sizeof(v1->title));
 	safe_print("Artist",  v1->artist,  sizeof(v1->artist));
 	safe_print("Album",   v1->album,   sizeof(v1->album));
@@ -35,6 +31,8 @@ void print_v1(mpg123_id3v1 *v1)
 	printf("Genre: %i", v1->genre);
 }
 
+/* Split up a number of lines separated by \n, \r, both or just zero byte
+   and print out each line with specified prefix. */
 void print_lines(const char* prefix, mpg123_string *inlines)
 {
 	size_t i;
@@ -42,6 +40,7 @@ void print_lines(const char* prefix, mpg123_string *inlines)
 	char *lines = NULL;
 	char *line  = NULL;
 	size_t len = 0;
+
 	if(inlines != NULL && inlines->fill)
 	{
 		lines = inlines->p;
@@ -52,24 +51,15 @@ void print_lines(const char* prefix, mpg123_string *inlines)
 	line = lines;
 	for(i=0; i<len; ++i)
 	{
-		#define HAD_CR 1
-		#define HAD_LF 2
 		if(lines[i] == '\n' || lines[i] == '\r' || lines[i] == 0)
 		{
 			if(lines[i] == '\n') ++hadlf;
 			if(lines[i] == '\r') ++hadcr;
 
-			if((hadcr || hadlf) && hadlf % 2 == 0 && hadcr % 2 == 0)
-			{
-				line = "";
-			}
+			if((hadcr || hadlf) && hadlf % 2 == 0 && hadcr % 2 == 0) line = "";
 
 			lines[i] = 0;
-			if(line)
-			{
-				printf("%s: %s\n", prefix, line);
-				line = NULL;
-			}
+			if(line){ printf("%s%s\n", prefix, line);	line = NULL; }
 		}
 		else
 		{
@@ -81,19 +71,12 @@ void print_lines(const char* prefix, mpg123_string *inlines)
 
 void print_v2(mpg123_id3v2 *v2)
 {
-	int i;
-	const char *names[] = { "Title", "Artist", "Album", "Year", "Comment", "Genre" };
-	mpg123_string *sources[sizeof(names)/sizeof(char*)];
-	sources[0] = v2->title;
-	sources[1] = v2->artist;
-	sources[2] = v2->album;
-	sources[3] = v2->year;
-	sources[4] = v2->comment;
-	sources[5] = v2->genre;
-	for(i=0; i<V2FIELDS; ++i)
-	{
-		print_lines(names[i], sources[i]);
-	}
+	print_lines("Title: ",   v2->title);
+	print_lines("Artist: ",  v2->artist);
+	print_lines("Album: ",   v2->album);
+	print_lines("Year: ",    v2->year);
+	print_lines("Comment: ", v2->comment);
+	print_lines("Genre: ",   v2->genre);
 }
 
 void print_raw_v2(mpg123_id3v2 *v2)
@@ -104,8 +87,8 @@ void print_raw_v2(mpg123_id3v2 *v2)
 		char id[5];
 		memcpy(id, v2->text[i].id, 4);
 		id[4] = 0;
-		printf("%p %s\n", (void*)(&v2->text[i].text), id);
-		print_lines("", &v2->text[i].text);
+		printf("%s\n", id);
+		print_lines(" ", &v2->text[i].text);
 	}
 	for(i=0; i<v2->extras; ++i)
 	{
@@ -115,12 +98,12 @@ void print_raw_v2(mpg123_id3v2 *v2)
 		printf( "%s description(%s)\n",
 		        id,
 		        v2->extra[i].description.fill ? v2->extra[i].description.p : "" );
-		print_lines("", &v2->extra[i].text);
+		print_lines(" ", &v2->extra[i].text);
 	}
 	for(i=0; i<v2->comments; ++i)
 	{
 		char id[5];
-		char lang[3];
+		char lang[4];
 		memcpy(id, v2->comment_list[i].id, 4);
 		id[4] = 0;
 		memcpy(lang, v2->comment_list[i].lang, 3);
@@ -129,7 +112,7 @@ void print_raw_v2(mpg123_id3v2 *v2)
 		        id,
 		        v2->comment_list[i].description.fill ? v2->comment_list[i].description.p : "",
 		        lang );
-		print_lines("", &v2->comment_list[i].text);
+		print_lines(" ", &v2->comment_list[i].text);
 	}
 }
 
