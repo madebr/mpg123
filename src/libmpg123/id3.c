@@ -464,10 +464,9 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 	/* for id3v2.2 only */
 	#define threebytes_to_long(buf,res) \
 	( \
-		res =  (((unsigned long) (buf)[0]) << 24) \
-		     | (((unsigned long) (buf)[1]) << 16) \
-		     | (((unsigned long) (buf)[2]) << 8) \
-		     |  ((unsigned long) (buf)[3]) \
+		res =  (((unsigned long) (buf)[0]) << 16) \
+		     | (((unsigned long) (buf)[1]) << 8) \
+		     |  ((unsigned long) (buf)[2]) \
 		,1 \
 	)
 
