@@ -140,13 +140,30 @@ AC_ARG_ENABLE(debug,
                 if test "x$enableval" = xyes
                 then
                   debugging="enabled"
-                  AC_DEFINE(DEBUG, 1, [ Define if debugging is enabled. ])
                 else
                   debugging="disabled"
                 fi
               ],
               [ debugging="disabled" ]
 )
+
+AC_ARG_ENABLE(nagging,
+              [  --enable-nagging=[no/yes] turn on GCC's pedantic nagging with error on warnings, also enables debugging ],
+              [
+                if test "x$enableval" = xyes
+                then
+                  nagging="enabled"
+                  debugging="enabled"
+               else
+                  nagging="disabled"
+                fi
+              ],
+              [ nagging="disabled" ]
+)
+
+if test "$debugging" = enabled; then
+	AC_DEFINE(DEBUG, 1, [ Define if debugging is enabled. ])
+fi
 
 AC_ARG_ENABLE(gapless,
               [  --enable-gapless=[no/yes] turn on gapless (enabled per default)],
@@ -394,7 +411,10 @@ if test "$debugging" = "enabled"; then
 	CFLAGS="$CFLAGS -g"
 	# gcc specific...
 	if test "$GCC" = "yes"; then
-		CFLAGS="$CFLAGS -Wall -Werror -pedantic -fno-strict-aliasing"
+		CFLAGS="$CFLAGS -Wall -fno-strict-aliasing"
+		if test "$nagging" = "enabled"; then
+			CFLAGS="$CFLAGS -Werror -pedantic"
+		fi
 	fi
 fi
 
