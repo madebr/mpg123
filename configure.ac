@@ -24,6 +24,20 @@ AM_INIT_AUTOMAKE( 1.7 )
 AM_CONFIG_HEADER(src/config.h)
 
 
+# You get strange symptoms like jack module build failing because the AC_C_CONST failed to detect the working const support.
+# In that case, the test failed because -Werror, not because no const there...
+# After looking again, there are possibly more tests being obscured by false failures.
+AC_MSG_CHECKING([for -Werror in CFLAGS (It breaks tests)])
+if echo "$CFLAGS" | grep Werror; then
+	AC_MSG_RESULT([yes])
+	AC_MSG_ERROR([I refuse to run with -Werror in CFLAGS. That breaks tests and makes this configure bogus.
+If you want paranoid compilation, use --enable-nagging option, which adds -Werror for gcc.
+Also note that you shall not run make distcheck after configuring with --enable-nagging.
+distcheck uses the generated CFLAGS...])
+else
+	AC_MSG_RESULT([no])
+fi
+
 
 dnl ############# Compiler and tools Checks
 
@@ -403,17 +417,18 @@ AC_CHECK_LIB([mx], [powf])
 dnl ############## Choose compiler flags and CPU
 
 # do not assume gcc here, so no flags by default
-CFLAGS="$CFLAGS"
+ADD_CFLAGS=""
+ADD_CPPFLAGS=""
 LIBS="$LIBS"
 
 # If debugging is enabled then make warnings errors
 if test "$debugging" = "enabled"; then
-	CFLAGS="$CFLAGS -g"
+	ADD_CFLAGS="-g"
 	# gcc specific...
 	if test "$GCC" = "yes"; then
-		CFLAGS="$CFLAGS -Wall -fno-strict-aliasing"
+		ADD_CFLAGS="$ADD_CFLAGS -Wall -fno-strict-aliasing"
 		if test "$nagging" = "enabled"; then
-			CFLAGS="$CFLAGS -Werror -pedantic"
+			ADD_CFLAGS="$ADD_CFLAGS -Werror -pedantic"
 		fi
 	fi
 fi
@@ -484,33 +499,33 @@ case $target in
   ;;
   *-*-mingw32)
     LIBS="-lwsock32 $LIBS"
-    CPPFLAGS="-DNOXFERMEM $CPPFLAGS"
+    ADD_CPPFLAGS="-DNOXFERMEM $ADD_CPPFLAGS"
     cpu_type="x86"
   ;;
 	i386-*)
 		AC_MSG_WARN([Unknown target operating system])
 		cpu_type="i386"
-		CFLAGS="-DGENERIC -DNOXFERMEM $CFLAGS"
+		ADD_CPPFLAGS="-DGENERIC -DNOXFERMEM $ADD_CPPFLAGS"
 	;;
 	i486-*)
 		AC_MSG_WARN([Unknown target operating system])
 		cpu_type="i486"
-		CFLAGS="-DGENERIC -DNOXFERMEM $CFLAGS"
+		ADD_CPPFLAGS="-DGENERIC -DNOXFERMEM $ADD_CPPFLAGS"
 	;;
 	i586-*)
 		AC_MSG_WARN([Unknown target operating system])
 		cpu_type="i586"
-		CFLAGS="-DGENERIC -DNOXFERMEM $CFLAGS"
+		ADD_CPPFLAGS="-DGENERIC -DNOXFERMEM $ADD_CPPFLAGS"
 	;;
 	i686-*)
 		AC_MSG_WARN([Unknown target operating system])
 		cpu_type="x86"
-		CFLAGS="-DGENERIC -DNOXFERMEM $CFLAGS"
+		ADD_CPPFLAGS="-DGENERIC -DNOXFERMEM $ADD_CPPFLAGS"
 	;;
   *)
   	AC_MSG_WARN([Unknown target operating system])
     cpu_type="generic_fpu"
-    CFLAGS="-DGENERIC -DNOXFERMEM $CFLAGS"
+    ADD_CPPFLAGS="-DGENERIC -DNOXFERMEM $ADD_CPPFLAGS"
   ;;
 esac
 
@@ -536,87 +551,88 @@ s_multi="getcpuflags"
 dnl CPU specific compiler flags and sources
 case $cpu_type in
   generic)
-    CFLAGS="$CFLAGS -DOPT_GENERIC -DREAL_IS_FLOAT"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC -DREAL_IS_FLOAT"
     more_sources="$s_gen"
   ;;
   generic_float)
-    CFLAGS="$CFLAGS -DOPT_GENERIC -DFLOATOUT -DNOXFERMEM -DREAL_IS_FLOAT"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC -DFLOATOUT -DNOXFERMEM -DREAL_IS_FLOAT"
     more_sources="$s_gen"
   ;;
   generic_fpu)
-    CFLAGS="$CFLAGS -DOPT_GENERIC -DREAL_IS_FLOAT"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC -DREAL_IS_FLOAT"
     more_sources="$s_gen"
   ;;
   generic_nofpu)
-    CFLAGS="$CFLAGS -DOPT_GENERIC -DREAL_IS_FIXED"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC -DREAL_IS_FIXED"
     more_sources="$s_gen"
   ;;
   altivec)
-    CFLAGS="$CFLAGS -maltivec -faltivec -DREAL_IS_FLOAT -DOPT_ALTIVEC"
+    ADD_CFLAGS="$ADD_CFLAGS -maltivec -faltivec"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DREAL_IS_FLOAT -DOPT_ALTIVEC"
     more_sources="$s_altivec"
   ;;
   i386) 
-    CFLAGS="$CFLAGS -DOPT_I386 -DREAL_IS_FLOAT"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_I386 -DREAL_IS_FLOAT"
     more_sources="$s_i386"
   ;;
   i386_fpu) 
-    CFLAGS="$CFLAGS -DOPT_I386 -DREAL_IS_FLOAT"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_I386 -DREAL_IS_FLOAT"
     more_sources="$s_i386"
   ;;
   i386_nofpu) 
-    CFLAGS="$CFLAGS -DOPT_I386 -DREAL_IS_FIXED"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_I386 -DREAL_IS_FIXED"
     more_sources="$s_i386"
   ;;
   i486) 
-    CFLAGS="$CFLAGS -DOPT_I486 -DREAL_IS_FLOAT"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_I486 -DREAL_IS_FLOAT"
     more_sources="$s_i486"
   ;;
   i586) 
-    CFLAGS="$CFLAGS -DOPT_I586 -DREAL_IS_FLOAT"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_I586 -DREAL_IS_FLOAT"
     more_sources="$s_i586"
   ;;
   i586_dither) 
-    CFLAGS="$CFLAGS -DOPT_I586_DITHER -DREAL_IS_FLOAT"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_I586_DITHER -DREAL_IS_FLOAT"
     more_sources="$s_i586d"
   ;;
   3dnow)
     # legacy 3dnow had the 3dnow optional... keeping that
-    CFLAGS="$CFLAGS -DOPT_MULTI -DOPT_I586 -DOPT_3DNOW -DREAL_IS_FLOAT"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_I586 -DOPT_3DNOW -DREAL_IS_FLOAT"
     more_sources="$s_i586 $s_3dnow $s_multi "
   ;;
   3dnowext_alone) 
-    CFLAGS="$CFLAGS -DOPT_3DNOWEXT -DREAL_IS_FLOAT"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_3DNOWEXT -DREAL_IS_FLOAT"
     more_sources="$s_3dnowext"
   ;;
   3dnowext) 
     AC_MSG_WARN([Combining 3DNowExt decoder with 3DNow for flexible rate, use 3dnowext_alone if you do not want this.])
-    CFLAGS="$CFLAGS -DOPT_MULTI -DOPT_3DNOW -DOPT_3DNOWEXT -DREAL_IS_FLOAT"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_3DNOW -DOPT_3DNOWEXT -DREAL_IS_FLOAT"
     more_sources="$s_3dnowext $s_3dnow $s_multi"
   ;;
   mmx_alone) 
-    CFLAGS="$CFLAGS -DOPT_MMX -DREAL_IS_FLOAT"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MMX -DREAL_IS_FLOAT"
     more_sources="$s_mmx"
   ;;
   mmx)
     AC_MSG_WARN([Combining MMX decoder with i586 for flexible rate, use mmx_alone if you do not want this.])
-    CFLAGS="$CFLAGS -DOPT_MULTI -DOPT_I586 -DOPT_MMX -DREAL_IS_FLOAT"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_I586 -DOPT_MMX -DREAL_IS_FLOAT"
     more_sources="$s_mmx $s_i586 $s_multi"
   ;;
   sse) 
     AC_MSG_WARN([Combining SSE decoder with i586 for flexible rate, use sse_alone if you do not want this.])
-    CFLAGS="$CFLAGS -DOPT_MULTI -DOPT_I586 -DOPT_SSE -DREAL_IS_FLOAT"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_I586 -DOPT_SSE -DREAL_IS_FLOAT"
     more_sources="$s_sse $s_i586 $s_multi"
   ;;
   sse_alone) 
-    CFLAGS="$CFLAGS -DOPT_SSE -DREAL_IS_FLOAT"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_SSE -DREAL_IS_FLOAT"
     more_sources="$s_sse"
   ;;
   x86) 
-    CFLAGS="$CFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_I386 -DOPT_I586 -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOWEXT -DOPT_SSE -DREAL_IS_FLOAT"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_I386 -DOPT_I586 -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOWEXT -DOPT_SSE -DREAL_IS_FLOAT"
     more_sources="$s_gen $s_i386 $s_i586 $s_mmx $s_3dnow $s_3dnowext $s_sse $s_multi"
  ;;
   x86_dither) 
-    CFLAGS="$CFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_I386 -DOPT_I586 -DOPT_I586_DITHER -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOWEXT -DOPT_SSE -DREAL_IS_FLOAT"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_I386 -DOPT_I586 -DOPT_I586_DITHER -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOWEXT -DOPT_SSE -DREAL_IS_FLOAT"
     more_sources="$s_gen $s_i386 $s_i586 $s_i586d $s_mmx $s_3dnow $s_3dnowext $s_sse $s_multi"
   ;;
   *)
@@ -946,6 +962,9 @@ AC_SUBST( OUTPUT_LIBS )
 AC_SUBST( OUTPUT_LDFLAGS )
 
 dnl ############## Compiler Optimizations
+
+CFLAGS="$CFLAGS $ADD_CFLAGS"
+CPPFLAGS="$CPPFLAGS $ADD_CPPFLAGS"
 
 # None chosen?
 if test "x$with_optimization" = "x"; then
