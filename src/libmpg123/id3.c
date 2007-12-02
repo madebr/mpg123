@@ -146,7 +146,6 @@ void id3_link(mpg123_handle *fr)
 	for(i=0; i<v2->texts; ++i)
 	{
 		mpg123_text *entry = &v2->text[i];
-		fprintf(stderr, "entry %i id %c%c%c%c at %p\n", i, entry->id[0], entry->id[1], entry->id[2], entry->id[3], &entry->text);
 		if     (!strncmp("TIT2", entry->id, 4)) v2->title  = &entry->text;
 		else if(!strncmp("TALB", entry->id, 4)) v2->album  = &entry->text;
 		else if(!strncmp("TPE1", entry->id, 4)) v2->artist = &entry->text;
