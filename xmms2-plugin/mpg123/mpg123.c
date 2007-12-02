@@ -7,8 +7,13 @@
  *  Configurable goodies of libmpg123 are missing:
  *   - user decoder choice
  *   - equalizer (_fast!_)
- *   - forced mono, resampling (including efficient half/quartersampling)
- *  Also, the metadata is ignored, though libmpg123 parses it already.
+ *   - forced mono, resampling
+ *  Some basic metadata is read and set in the strem properties.
+ *  With libmpg123 you can get at least all text and comment ID3v2 (version 2.2, 2.3, 2.4)
+ *  frames as well as the usual id3v1 info (when you get to the end of the file...).
+ *  The decoder also likes to read ID3 tags for getting RVA-related info that players like
+ *  foobar2000 store there... Now the problem is: Usually, the id3 xform reads and cuts the id3 data,
+ *  Killing the info for mpg123...
  */
 
 #include "xmms/xmms_xformplugin.h"
@@ -98,23 +103,24 @@ static void xmms_mpg123_metacheck(xmms_xform_t *xform)
 		XMMS_DBG("got new ID3v2 data");
 		mpg123_id3v2 *tag;
 		mpg123_id3(data->decoder, NULL, &tag);
-		if(tag->title.fill > 0) {
-			xmms_xform_metadata_set_str(xform, XMMS_MEDIALIB_ENTRY_PROPERTY_TITLE, tag->title.p);
+		if(tag->title != NULL && tag->title->fill > 0) {
+			xmms_xform_metadata_set_str(xform, XMMS_MEDIALIB_ENTRY_PROPERTY_TITLE, tag->title->p);
 		}
-		if(tag->artist.fill > 0) {
-			xmms_xform_metadata_set_str(xform, XMMS_MEDIALIB_ENTRY_PROPERTY_ARTIST, tag->artist.p);
+		if(tag->artist != NULL && tag->artist->fill > 0) {
+			xmms_xform_metadata_set_str(xform, XMMS_MEDIALIB_ENTRY_PROPERTY_ARTIST, tag->artist->p);
 		}
-		if(tag->album.fill > 0) {
-			xmms_xform_metadata_set_str(xform, XMMS_MEDIALIB_ENTRY_PROPERTY_ALBUM, tag->album.p);
+		if(tag->album != NULL && tag->album->fill > 0) {
+			xmms_xform_metadata_set_str(xform, XMMS_MEDIALIB_ENTRY_PROPERTY_ALBUM, tag->album->p);
 		}
-		if(tag->year.fill > 0) {
-			xmms_xform_metadata_set_str(xform, XMMS_MEDIALIB_ENTRY_PROPERTY_YEAR, tag->year.p);
+		if(tag->year != NULL && tag->year->fill > 0) {
+			xmms_xform_metadata_set_str(xform, XMMS_MEDIALIB_ENTRY_PROPERTY_YEAR, tag->year->p);
 		}
-		if(tag->comment.fill > 0) {
-			xmms_xform_metadata_set_str(xform, XMMS_MEDIALIB_ENTRY_PROPERTY_COMMENT, tag->comment.p);
+		if(tag->comment != NULL && tag->comment->fill > 0) {
+			xmms_xform_metadata_set_str(xform, XMMS_MEDIALIB_ENTRY_PROPERTY_COMMENT, tag->comment->p);
 		}
-		if(tag->genre.fill > 0) {
-			xmms_xform_metadata_set_str(xform, XMMS_MEDIALIB_ENTRY_PROPERTY_GENRE, tag->genre.p);
+		/* Well... genre needs postprocessing... numbers from id3 table perhaps. */
+		if(tag->genre != NULL && tag->genre->fill > 0) {
+			xmms_xform_metadata_set_str(xform, XMMS_MEDIALIB_ENTRY_PROPERTY_GENRE, tag->genre->p);
 		}
 	}
 }
