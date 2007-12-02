@@ -603,7 +603,9 @@ typedef struct
 } mpg123_id3v2;
 
 /** Data structure for ID3v1 tags (the last 128 bytes of a file).
- *  Don't take anything for granted (like string termination)! */
+ *  Don't take anything for granted (like string termination)!
+ *  Also note the change ID3v1.1 did: comment[28] = 0; comment[19] = track_number
+ *  It is your task to support ID3v1 only or ID3v1.1 ...*/
 typedef struct
 {
 	char tag[3];         /**< Always the string "TAG", the classic intro. */
