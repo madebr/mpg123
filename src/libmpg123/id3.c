@@ -375,6 +375,40 @@ void process_extra(mpg123_handle *fr, char* realdata, size_t realsize, int rva_l
 	}
 }
 
+/* Make a ID3v2.3+ 4-byte ID from a ID3v2.2 3-byte ID
+   Note that not all frames survived to 2.4; the mapping goes to 2.3 .
+   A notable miss is the old RVA frame, which is very unspecific anyway.
+   This function returns -1 when a not known 3 char ID was encountered, 0 otherwise. */
+int promote_framename(mpg123_handle *fr, char *id) /* fr because of VERBOSE macros */
+{
+	size_t i;
+	char *old[] =
+	{
+		"COM",  "TAL",  "TBP",  "TCM",  "TCO",  "TCR",  "TDA",  "TDY",  "TEN",  "TFT",
+		"TIM",  "TKE",  "TLA",  "TLE",  "TMT",  "TOA",  "TOF",  "TOL",  "TOR",  "TOT",
+		"TP1",  "TP2",  "TP3",  "TP4",  "TPA",  "TPB",  "TRC",  "TDA",  "TRK",  "TSI",
+		"TSS",  "TT1",  "TT2",  "TT3",  "TXT",  "TXX",  "TYE"
+	};
+	char *new[] =
+	{
+		"COMM", "TALB", "TBPM", "TCOM", "TCON", "TCOP", "TDAT", "TDLY", "TENC", "TFLT",
+		"TIME", "TKEY", "TLAN", "TLEN", "TMED", "TOPE", "TOFN", "TOLY", "TORY", "TOAL",
+		"TPE1", "TPE2", "TPE3", "TPE4", "TPOS", "TPUB", "TSRC", "TRDA", "TRCK", "TSIZ",
+		"TSSE", "TIT1", "TIT2", "TIT3", "TEXT", "TXXX", "TYER"
+	};
+	for(i=0; i<sizeof(old)/sizeof(char*); ++i)
+	{
+		if(!strncmp(id, old[i], 3))
+		{
+			memcpy(id, new[i], 4);
+			if(VERBOSE3) fprintf(stderr, "Translated ID3v2.2 frame %s to %s\n", old[i], new[i]);
+			return 0;
+		}
+	}
+	if(VERBOSE3) fprintf(stderr, "Ignoring untranslated ID3v2.2 frame %c%c%c\n", id[0], id[1], id[2]);
+	return -1;
+}
+
 /*
 	trying to parse ID3v2.3 and ID3v2.4 tags...
 
@@ -427,13 +461,23 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 		     |  ((unsigned long) (buf)[3]) \
 		,1) : synchsafe_to_long(buf,res) \
 	)
+	/* for id3v2.2 only */
+	#define threebytes_to_long(buf,res) \
+	( \
+		res =  (((unsigned long) (buf)[0]) << 24) \
+		     | (((unsigned long) (buf)[1]) << 16) \
+		     | (((unsigned long) (buf)[2]) << 8) \
+		     |  ((unsigned long) (buf)[3]) \
+		,1 \
+	)
+
 	/* length-10 or length-20 (footer present); 4 synchsafe integers == 28 bit number  */
 	/* we have already read 10 bytes, so left are length or length+10 bytes belonging to tag */
 	if(!synchsafe_to_long(buf+2,length)) return -1;
 	debug1("ID3v2: tag data length %lu", length);
 	if(VERBOSE2) fprintf(stderr,"Note: ID3v2.%i rev %i tag of %lu bytes\n", major, buf[0], length);
 	/* skip if unknown version/scary flags, parse otherwise */
-	if((flags & UNKNOWN_FLAGS) || (major > 4) || (major < 3))
+	if((flags & UNKNOWN_FLAGS) || (major > 4) || (major < 2))
 	{
 		/* going to skip because there are unknown flags set */
 		warning2("ID3v2: Won't parse the ID3v2 tag with major version %u and flags 0x%xu - some extra code may be needed", major, flags);
@@ -469,14 +513,16 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 					{
 						int i = 0;
 						unsigned long pos = tagpos;
+						int head_part = fr->id3v2.version == 2 ? 3 : 4; /* bytes of frame title and of framesize value */
 						/* level 1,2,3 - 0 is info from lame/info tag! */
 						/* rva tags with ascending significance, then general frames */
 						#define KNOWN_FRAMES 3
 						const char frame_type[KNOWN_FRAMES][5] = { "COMM", "TXXX", "RVA2" }; /* plus all text frames... */
 						enum { unknown = -2, text = -1, comment, extra, rva2 } tt = unknown;
 						/* we may have entered the padding zone or any other strangeness: check if we have valid frame id characters */
-						for(; i< 4; ++i) if( !( ((tagdata[tagpos+i] > 47) && (tagdata[tagpos+i] < 58))
-						                     || ((tagdata[tagpos+i] > 64) && (tagdata[tagpos+i] < 91)) ) )
+						for(i=0; i< head_part; ++i)
+						if( !( ((tagdata[tagpos+i] > 47) && (tagdata[tagpos+i] < 58))
+						    || ((tagdata[tagpos+i] > 64) && (tagdata[tagpos+i] < 91)) ) )
 						{
 							debug5("ID3v2: real tag data apparently ended after %lu bytes with 0x%02x%02x%02x%02x", tagpos, tagdata[tagpos], tagdata[tagpos+1], tagdata[tagpos+2], tagdata[tagpos+3]);
 							ret = 0; /* used to be -1 */
@@ -484,10 +530,13 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 						}
 						if(ret > 0)
 						{
-							/* 4 bytes id */
-							strncpy(id, (char*) tagdata+pos, 4);
-							pos += 4;
-							/* size as 32 bits */
+							/* 4 or 3 bytes id */
+							strncpy(id, (char*) tagdata+pos, head_part);
+							pos += head_part;
+							tagpos += head_part;
+							/* size as 32 bits or 28 bits */
+							if(fr->id3v2.version == 2) threebytes_to_long(tagdata+pos, framesize);
+							else
 							if(!bytes_to_long(tagdata+pos, framesize))
 							{
 								ret = -1;
@@ -495,10 +544,15 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 								break;
 							}
 							if(VERBOSE3) fprintf(stderr, "Note: ID3v2 %s frame of size %lu\n", id, framesize);
-							tagpos += 10 + framesize; /* the important advancement in whole tag */
-							pos += 4;
-							fflags = (((unsigned long) tagdata[pos]) << 8) | ((unsigned long) tagdata[pos+1]);
-							pos += 2;
+							tagpos += head_part + framesize; /* the important advancement in whole tag */
+							pos += head_part;
+							if(fr->id3v2.version > 2)
+							{
+								fflags  = (((unsigned long) tagdata[pos]) << 8) | ((unsigned long) tagdata[pos+1]);
+								pos    += 2;
+								tagpos += 2;
+							}
+							else fflags = 0;
 							/* for sanity, after full parsing tagpos should be == pos */
 							/* debug4("ID3v2: found %s frame, size %lu (as bytes: 0x%08lx), flags 0x%016lx", id, framesize, framesize, fflags); */
 							/* %0abc0000 %0h00kmnp */
@@ -511,6 +565,8 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 							#define ENCR_FFLAG 4
 							#define UNSYNC_FFLAG 2
 							#define DATLEN_FFLAG 1
+							if(head_part < 4 && promote_framename(fr, id) != 0) continue;
+
 							/* shall not or want not handle these */
 							if(fflags & (BAD_FFLAGS | COMPR_FFLAG | ENCR_FFLAG))
 							{
