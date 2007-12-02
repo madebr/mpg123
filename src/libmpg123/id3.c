@@ -158,6 +158,9 @@ void id3_link(mpg123_handle *fr)
 		if(entry->description.fill == 0 || entry->description.p[0] == 0)
 		v2->comment = &entry->text;
 	}
+	/* When no generic comment found, use the last non-generic one. */
+	if(v2->comment == NULL && v2->comments > 0)
+	v2->comment = &v2->comment_list[v2->comments-1].text;
 }
 
 /*
