@@ -75,7 +75,7 @@ run_cmd() {
 
 
 # Automake 1.10 borks up with LTCCASCOMPILE... defines LTCPPCOMPILE instead ... what is correct??
-run_cmd aclocal-1.9
+run_cmd aclocal-1.9 -I m4
 run_cmd autoheader
 run_cmd libtoolize --force --copy --ltdl
 run_cmd automake-1.9 --add-missing --copy
