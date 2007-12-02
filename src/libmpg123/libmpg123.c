@@ -652,8 +652,9 @@ int mpg123_getformat(mpg123_handle *mh, long *rate, int *channels, int *encoding
 
 off_t mpg123_timeframe(mpg123_handle *mh, double seconds)
 {
+	off_t b;
 	if(mh == NULL) return MPG123_ERR;
-	off_t b = init_track(mh);
+	b = init_track(mh);
 	if(b<0) return b;
 	return (off_t)(seconds/mpg123_tpf(mh));
 }
