@@ -55,13 +55,18 @@ void print_lines(const char* prefix, mpg123_string *inlines)
 	{
 		if(lines[i] == '\n' || lines[i] == '\r' || lines[i] == 0)
 		{
-			if(lines[i] == '\n') ++hadlf;
-			if(lines[i] == '\r') ++hadcr;
-
+			char save = lines[i]; /* saving, changing, restoring a byte in the data */
+			if(save == '\n') ++hadlf;
+			if(save == '\r') ++hadcr;
 			if((hadcr || hadlf) && hadlf % 2 == 0 && hadcr % 2 == 0) line = "";
 
-			lines[i] = 0;
-			if(line){ printf("%s%s\n", prefix, line);	line = NULL; }
+			if(line)
+			{
+				lines[i] = 0;
+				printf("%s%s\n", prefix, line);
+				line = NULL;
+				lines[i] = save;
+			}
 		}
 		else
 		{
