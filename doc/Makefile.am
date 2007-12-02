@@ -20,6 +20,9 @@ EXTRA_DIST = \
 	THANKS \
 	ACCURACY \
 	libmpg123_speed.txt \
+	doxyhead.xhtml \
+	doxy_examples.c \
+	doxygen.conf \
 	examples/mpg123_to_wav.c \
 	examples/scan.c \
 	examples/mpglib.c \
