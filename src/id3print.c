@@ -276,6 +276,11 @@ static void utf8_ascii(mpg123_string *dest, mpg123_string *source)
 	size_t spos = 0;
 	size_t dlen = 0;
 	char *p;
+	if(source == NULL)
+	{
+		mpg123_set_string(dest, "");
+		return;
+	}
 	/* Find length, continuation bytes don't count. */
 	for(spos=0; spos < source->fill; ++spos)
 	if((source->p[spos] & 0xc0) == 0x80) continue;
