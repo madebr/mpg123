@@ -1,3 +1,21 @@
+1.0rc1
+----
+
+- In one word: LOTS!
+- Many small things that happened while migrating to the new setup.
+- The decoder is now a library (libmpg123) which can be installed also for other programs to use.
+  This finally provides a heavily improved replacement for the aged mpglib. We have doxygen API doc, example codes.
+  You can still choose to compile the decoder statically into the mpg123 binary, though.
+- We have a plugin system for audio output! This should be relieving to package maintainers for binary distributions, drastically reducing the number of builds they have to provide.
+  Here, too, you can choose to build one audio output into the binary like before; you can have your old-school one-piece mpg123 or the hip I-am-legion shared-lib-and-plugin flexible mpg123;-)
+  One exception: For now, you have to compile without modules in MinGW32/MSYS.
+- ID3v2 support has been enhanced and, in the case of specific comments (those with a description), fixed.
+  The ID3 parsing is part of libmpg123, offering support for virtually all textual information in ID3v2.2, ID3v2.3 and ID3v2.4 tags (along with the usual 128 bytes of ID3v1 or ID3v1.1 in a block).
+  All tag texts are converted to UTF-8, allowing mpg123 to properly display special chars in an Unicode terminal without fuzz (for non-UTF locales, there is still the ASCII reduction).
+- Gapless decoding (of layer 3 streams) is now considered to be a standard feature and is enabled per default both at build- and runtime.
+- ...
+
+
 0.68
 ----
 

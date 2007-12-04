@@ -1,6 +1,6 @@
 * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *   mpg123 - MPEG 1.0/2.0/2.5 audio player            *
-*   README for version 0.6x, dated at 03.06.2007      *
+*   README for version 1.x.y, dated at 04.12.2007     *
 *                                                     *
 * ...still the fastest MPEG audio player for UNIX ;)  *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -32,8 +32,8 @@ Please use the sourceforge download mirrors when possible to minimize load on th
 1. Introduction
 
 This is a console based decoder/player for mono/stereo mpeg audio files, probably more familiar as MP3 or MP2 files.
-It's focus is speed. We still need some low-end benchmarks for the current version, but playback should be possible even on i486 CPUs. There is hand-optimized assembly code for i586, MMX and 3DNow! instructions, while generic code runs on a variety of different platforms and CPUs.
-It can play MPEG1.0/2.0 layer I, II, II (1, 2, 3;-) files (VBR files are fine, too) and produce output on a number of different ways: raw data to stdout and different sound systems depending on your platform (see INSTALL).
+It's focus is speed. We still need some low-end benchmarks for the current version, but playback should be possible even on i486 CPUs. There is hand-optimized assembly code for i586, MMX, 3DNow, SEE and 3DNowExt instructions, while generic code runs on a variety of different platforms and CPUs.
+It can play MPEG1.0/2.0/2.5 layer I, II, II (1, 2, 3;-) files (VBR files are fine, too) and produce output on a number of different ways: raw data to stdout and different sound systems depending on your platform (see INSTALL).
 Most tested are Linux on x86 and Alpha/AXP and MacOSX on ppc as the environments the current developers work in.
 We are always thankful for user reports on success (and failure) on any platform!
 
@@ -120,6 +120,9 @@ Also, version 0.66 adds the merged x86 optimization build, which includes every 
 
 Now mpg123 catched up with MPlayer's mp3lib concerning decoding speed on my Pentium M (which supports SSE):
 Decoding a certain album (Queensryche's Rage for Order) to /dev/null took 22.4s user time with mpg123-0.66 compared to 24.7s with MPlayer-1.0rc1 .
+
+The mp3lib in MPlayer still has the advantage of SSE on AMD64 platforms, which has been added recently.
+We hope to have that ported back into mpg123, too - and have a happy marriage of MPlayer with libmpg123 in the future;-)
 
 
 5. Accuracy

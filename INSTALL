@@ -6,6 +6,8 @@ mpg123 install hints
 There are now two basic ways to get your mpg123 installation consisting of
 
 	a) the mpg123 binary file
+	    - with libmpg123 as shared library or statically linked (shared lib only with autotools)
+	    - with audio output plugins, or one statically linked (plugins only with autotools)
 	b) a man page
 
 (you may want to copy some of the documentation - README, etc - to /usr/share/doc/mpg123 or the like, too)
@@ -42,10 +44,17 @@ Run
 
 for a list of possible parameters you can specify. The obvious are --prefix and the normal GNU autotool bunch, but others include what audio subsystem to use and what CPU optimizations to build in.
 For the optimizations (decoder choice), the default on 32bit x86 systems since version 0.66 is a build that combines all possible optimizations and chooses one at runtime (see --cpu, --list-cpu and --test-cpu parameters).
+Update: x86 build includes all but i586_dither, which is a bit bigger due to the dither noise; use x86_dither to get it into the bunch, too.
 
-Other important choices include --enable-gapless for enabling mpg123 to skip encoder/decoder padding for seamless transition between tracks and --with-seektable=<number> for setting the size for the table of stored frame addresses to make seeking faster. When you want a minimal memory footprint, you can set number to 0. Seeking will always start from the beginning, then - being accurate, but rather slow, what doesn't matter if you don't use interactive seeking forth and back.
+Another posibly important choice is --with-seektable=<number> for setting the size for the table of stored frame addresses to make seeking faster. When you want a minimal memory footprint, you can set number to 0. Seeking will always start from the beginning, then - being accurate, but rather slow, what doesn't matter if you don't use interactive seeking forth and back.
+
 
 2. The classic way via the provided Makefile
+
+WARNING: The autotool build is the default and most tested one.
+We try to keep the legacy Makefile workable, but be prepared to add some missing bits like defines in config.h.legacy .
+We are thankful for your input on occuring problems... we perhaps just didn't notice.
+Also, the legacy build results always in one mpg123 binary with one audio output linked in (no libmpg123, no plugins).
 
 This is basically the known mpg123 Makefile with some mods and additions.
 For coexistence with the autotools setup, a wrapper script for generating a fake config.h is needed. Run
@@ -85,7 +94,7 @@ Please note that the Makefile itself does not contain any x86 cpu specific CFLAG
 3. Have fun!
 
 
-These are some remarks from Michael that are likely to be still valid in essence:
+These are some remarks from Michael that could still bear some relevance:
 
  - There is currently no direct audio hardware support for the
    "dec" and "generic" targets.  That means that you have to use
