@@ -150,8 +150,10 @@ int write_win32(struct audio_output_struct *ao, unsigned char *buf, int len)
 	}
 	/* I'd like to propagate error codes or something... but there are no catchable surprises left.
 	   Anyhow: Here is the recursion that makes ravenexp happy;-) */
-	if(rest_len) write_win32(ao, buf + bufill, rest_len); /* Write the rest. */
-	else return len;
+	if(rest_len && write_win32(ao, buf + bufill, rest_len) < 0) /* Write the rest. */
+	return -1;
+	else    
+	return len;
 }
 
 void flush_win32(struct audio_output_struct *ao)
