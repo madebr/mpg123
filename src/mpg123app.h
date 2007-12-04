@@ -28,11 +28,15 @@
 
 #include        <stdio.h>
 #include        <string.h>
+#ifdef HAVE_SIGNAL_H
 #include        <signal.h>
+#endif
 #include        <math.h>
 
 #ifndef WIN32
 #include        <sys/signal.h>
+#endif
+#ifdef HAVE_UNISTD_H
 #include        <unistd.h>
 #endif
 /* want to suport large files in future */
