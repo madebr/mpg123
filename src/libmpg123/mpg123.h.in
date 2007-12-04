@@ -238,19 +238,18 @@ enum mpg123_channelcount
 	,MPG123_STEREO = 2
 };
 
-/** The number of supported sample rates.
- *  A future library version may not have less! */
-#define MPG123_RATES 9 
+/** An array of supported standard sample rates
+ *  These are possible native sample rates of MPEG audio files.
+ *  You can still force mpg123 to resample to a different one, but by default you will only get audio in one of these samplings.
+ *  \param list Store a pointer to the sample rates array there.
+ *  \param number Store the number of sample rates there. */
+EXPORT void mpg123_rates(const long **list, size_t *number);
 
-/** An array of supported sample rates */
-EXPORT extern const long mpg123_rates[MPG123_RATES];
-
-/** The number of supported audio encodings.
- *  A future library version may not have less! */
-#define MPG123_ENCODINGS 6
-
-/** An array of supported audio encodings */
-EXPORT extern const int  mpg123_encodings[MPG123_ENCODINGS];
+/** An array of supported audio encodings.
+ *  An audio encoding is a logic OR of members of mpg123_enc_enum.
+ *  \param list Store a pointer to the encodings array there.
+ *  \param number Store the number of encodings there. */
+EXPORT void mpg123_encodings(const int **list, size_t *number);
 
 /** Configure a mpg123 handle to accept no output format at all, 
  *  use before specifying supported formats with mpg123_format */

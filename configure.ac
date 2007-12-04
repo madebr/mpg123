@@ -105,6 +105,8 @@ AC_ENABLE_SHARED
 if test "$enable_shared" = no; then
 	modules=disabled
 	LT_LDFLAGS=
+else
+	AC_DEFINE(DYNAMIC_BUILD, 1, [ Define if building with dynamcally linked libmpg123])
 fi
 
 if test $modules = disabled
@@ -123,6 +125,11 @@ AC_DEFINE( USE_MODULES, 1, [Define if modules are enabled] )
 fi
 
 dnl Configure libtool
+
+dnl Hacks for libtool 1.5 to avoid unnecessary checks, check for removal on newer libtool that is smarter
+m4_defun([_LT_AC_LANG_CXX_CONFIG], [:])
+m4_defun([_LT_AC_LANG_F77_CONFIG], [:])
+
 AC_LIBTOOL_WIN32_DLL
 AM_PROG_LIBTOOL
 

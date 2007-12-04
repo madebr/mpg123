@@ -16,6 +16,10 @@
 #include "config.h"
 #include "debug.h"
 #include "httpget.h"
+/* import DLL symbols on windows */
+#if defined(WIN32) && defined(DYNAMIC_BUILD)
+#define LINK_MPG123_DLL
+#endif
 #include "mpg123.h"
 #include "compat.h"
 #define MPG123_REMOTE

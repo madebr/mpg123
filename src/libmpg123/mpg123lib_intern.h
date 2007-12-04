@@ -10,6 +10,13 @@
 #ifndef MPG123_H_INTERN
 #define MPG123_H_INTERN
 
+#define MPG123_RATES 9
+#define MPG123_ENCODINGS 6
+
+/* export DLL symbols */
+#if defined(WIN32) && defined(DYNAMIC_BUILD)
+#define BUILD_MPG123_DLL
+#endif
 #include "mpg123.h"
 #include "config.h"
 #include "debug.h"
@@ -152,6 +159,7 @@ typedef unsigned char byte;
 #define VERBOSE2 (NOQUIET && fr->p.verbose > 1)
 #define VERBOSE3 (NOQUIET && fr->p.verbose > 2)
 #define VERBOSE4 (NOQUIET && fr->p.verbose > 3)
+#define PVERB(mp, level) (!((mp)->flags & MPG123_QUIET) && (mp)->verbose >= (level))
 
 int decode_update(mpg123_handle *mh);
 

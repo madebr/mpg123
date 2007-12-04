@@ -145,10 +145,13 @@ const char* audio_encoding_name(const int encoding, const int longer)
 static void capline(mpg123_handle *mh, long rate)
 {
 	int enci;
+	const int  *encs;
+	size_t      num_encs;
+	mpg123_encodings(&encs, &num_encs);
 	fprintf(stderr," %5ld  |", rate);
-	for(enci=0; enci<MPG123_ENCODINGS; ++enci)
+	for(enci=0; enci<num_encs; ++enci)
 	{
-		switch(mpg123_format_support(mh, rate, mpg123_encodings[enci]))
+		switch(mpg123_format_support(mh, rate, encs[enci]))
 		{
 			case MPG123_MONO:               fprintf(stderr, "   M   |"); break;
 			case MPG123_STEREO:             fprintf(stderr, "   S   |"); break;
@@ -162,11 +165,18 @@ static void capline(mpg123_handle *mh, long rate)
 void print_capabilities(audio_output_t *ao, mpg123_handle *mh)
 {
 	int r,e;
+	const long *rates;
+	size_t      num_rates;
+	const int  *encs;
+	size_t      num_encs;
+	mpg123_rates(&rates, &num_rates);
+	mpg123_encodings(&encs, &num_encs);
+fprintf(stderr,"encs=%p rates=%p", (void*)encs, (void*)rates);
 	fprintf(stderr,"\nAudio driver: %s\nAudio device: %s\nAudio capabilities:\n(matrix of [S]tereo or [M]ono support for sample format and rate in Hz)\n        |",
 	        ao->module->name, ao->device != NULL ? ao->device : "<none>");
-	for(e=0;e<MPG123_ENCODINGS;e++) fprintf(stderr," %5s |",audio_encoding_name(mpg123_encodings[e], 0));
+	for(e=0;e<num_encs;e++) fprintf(stderr," %5s |",audio_encoding_name(encs[e], 0));
 	fprintf(stderr,"\n --------------------------------------------------------\n");
-	for(r=0; r<MPG123_RATES; ++r) capline(mh, mpg123_rates[r]);
+	for(r=0; r<num_rates; ++r) capline(mh, rates[r]);
 
 	if(param.force_rate) capline(mh, param.force_rate);
 
@@ -178,6 +188,9 @@ void audio_capabilities(audio_output_t *ao, mpg123_handle *mh)
 	int fmts;
 	int ri;
 	audio_output_t ao1 = *ao; /* a copy */
+	const long *rates;
+	size_t      num_rates;
+	mpg123_rates(&rates, &num_rates);
 
 	if(param.outmode != DECODE_AUDIO)
 	{ /* File/stdout writers can take anything. */
@@ -192,9 +205,9 @@ void audio_capabilities(audio_output_t *ao, mpg123_handle *mh)
 	else
 	{
 		for(ao1.channels=1; ao1.channels<=2; ao1.channels++)
-		for(ri=-1;ri<MPG123_RATES;ri++)
+		for(ri = param.force_rate>0 ? -1 : 0;ri<num_rates;ri++)
 		{
-			ao1.rate = ri >= 0 ? mpg123_rates[ri] : param.force_rate;
+			ao1.rate = ri >= 0 ? rates[ri] : param.force_rate;
 			fmts = ao1.get_formats(&ao1);
 			if(fmts < 0) continue;
 			else mpg123_format(mh, ao1.rate, ao1.channels, fmts);

@@ -9,13 +9,13 @@
 #include "mpg123lib_intern.h"
 
 /* static int chans[NUM_CHANNELS] = { 1 , 2 }; */
-const long mpg123_rates[MPG123_RATES] = /* only the standard rates */
+static const long my_rates[MPG123_RATES] = /* only the standard rates */
 {
 	 8000, 11025, 12000, 
 	16000, 22050, 24000,
 	32000, 44100, 48000,
 };
-const int mpg123_encodings[MPG123_ENCODINGS] =
+static const int my_encodings[MPG123_ENCODINGS] =
 {
 	MPG123_ENC_SIGNED_16, 
 	MPG123_ENC_UNSIGNED_16,
@@ -25,12 +25,24 @@ const int mpg123_encodings[MPG123_ENCODINGS] =
 	MPG123_ENC_ALAW_8
 };
 
+void mpg123_rates(const long **list, size_t *number)
+{
+	if(list   != NULL) *list   = my_rates;
+	if(number != NULL) *number = sizeof(my_rates)/sizeof(long);
+}
+
+void mpg123_encodings(const int **list, size_t *number)
+{
+	if(list   != NULL) *list   = my_encodings;
+	if(number != NULL) *number = sizeof(my_encodings)/sizeof(int);
+}
+
 /*	char audio_caps[NUM_CHANNELS][MPG123_RATES+1][MPG123_ENCODINGS]; */
 
 static int rate2num(mpg123_pars *mp, long r)
 {
 	int i;
-	for(i=0;i<MPG123_RATES;i++) if(mpg123_rates[i] == r) return i;
+	for(i=0;i<MPG123_RATES;i++) if(my_rates[i] == r) return i;
 	if(mp && mp->force_rate != 0 && mp->force_rate == r) return MPG123_RATES;
 
 	return -1;
@@ -40,7 +52,7 @@ static int enc2num(int encoding)
 {
 	int i;
 	for(i=0;i<MPG123_ENCODINGS;++i)
-	if(mpg123_encodings[i] == encoding) return i;
+	if(my_encodings[i] == encoding) return i;
 
 	return -1;
 }
@@ -54,7 +66,7 @@ static int cap_fit(mpg123_handle *fr, struct audioformat *nf, int f0, int f2)
 	{
 		if(fr->p.audio_caps[c][rn][i])
 		{
-			nf->encoding = mpg123_encodings[i];
+			nf->encoding = my_encodings[i];
 			return 1;
 		}
 	}
@@ -167,6 +179,8 @@ int mpg123_fmt_none(mpg123_pars *mp)
 {
 	if(mp == NULL) return MPG123_BAD_PARS;
 
+	if(PVERB(mp,3)) fprintf(stderr, "Note: Disabling all formats.\n");
+
 	memset(mp->audio_caps,0,sizeof(mp->audio_caps));
 	return MPG123_OK;
 }
@@ -185,6 +199,8 @@ int mpg123_format_all(mpg123_handle *mh)
 int mpg123_fmt_all(mpg123_pars *mp)
 {
 	if(mp == NULL) return MPG123_BAD_PARS;
+
+	if(PVERB(mp,3)) fprintf(stderr, "Note: Enabling all formats.\n");
 
 	memset(mp->audio_caps,1,sizeof(mp->audio_caps));
 	return MPG123_OK;
@@ -207,6 +223,8 @@ int mpg123_fmt(mpg123_pars *mp, long rate, int channels, int encodings)
 	if(mp == NULL) return MPG123_BAD_PARS;
 	if(!(channels & (MPG123_MONO|MPG123_STEREO))) return MPG123_BAD_CHANNEL;
 
+	if(PVERB(mp,3)) fprintf(stderr, "Note: Want to enable format %li/%i for encodings 0x%x.\n", rate, channels, encodings);
+
 	if(!(channels & MPG123_STEREO)) ch[1] = 0;     /* {0,0} */
 	else if(!(channels & MPG123_MONO)) ch[0] = 1; /* {1,1} */
 	ratei = rate2num(mp, rate);
@@ -216,7 +234,7 @@ int mpg123_fmt(mpg123_pars *mp, long rate, int channels, int encodings)
 	for(ic = 0; ic < 2; ++ic)
 	{
 		for(ie = 0; ie < MPG123_ENCODINGS; ++ie)
-		if((mpg123_encodings[ie] & encodings) == mpg123_encodings[ie]) mp->audio_caps[ch[ic]][ratei][ie] = 1;
+		if((my_encodings[ie] & encodings) == my_encodings[ie]) mp->audio_caps[ch[ic]][ratei][ie] = 1;
 
 		if(ch[0] == ch[1]) break; /* no need to do it again */
 	}
