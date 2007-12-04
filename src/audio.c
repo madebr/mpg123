@@ -171,7 +171,6 @@ void print_capabilities(audio_output_t *ao, mpg123_handle *mh)
 	size_t      num_encs;
 	mpg123_rates(&rates, &num_rates);
 	mpg123_encodings(&encs, &num_encs);
-fprintf(stderr,"encs=%p rates=%p", (void*)encs, (void*)rates);
 	fprintf(stderr,"\nAudio driver: %s\nAudio device: %s\nAudio capabilities:\n(matrix of [S]tereo or [M]ono support for sample format and rate in Hz)\n        |",
 	        ao->module->name, ao->device != NULL ? ao->device : "<none>");
 	for(e=0;e<num_encs;e++) fprintf(stderr," %5s |",audio_encoding_name(encs[e], 0));
