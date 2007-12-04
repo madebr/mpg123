@@ -289,7 +289,6 @@ int add_next_file (int argc, char *argv[])
 			} while(have && pl.linebuf.p[have-1] != '\r' && pl.linebuf.p[have-1] != '\n');
 			if(have)
 			{
-				size_t i;
 				pl.linebuf.p[strcspn(pl.linebuf.p, "\t\n\r")] = '\0';
 				/* a bit of fuzzyness */
 				if(firstline)
@@ -337,10 +336,13 @@ int add_next_file (int argc, char *argv[])
 					firstline = 0;
 				}
 				#if !defined(WIN32)
+				{
+				size_t i;
 				/* convert \ to / (from MS-like directory format) */
 				for (i=0;pl.linebuf.p[i]!='\0';i++)
 				{
 					if (pl.linebuf.p[i] == '\\')	pl.linebuf.p[i] = '/';
+				}
 				}
 				#endif
 				if (pl.linebuf.p[0]=='\0') continue; /* skip empty lines... */
