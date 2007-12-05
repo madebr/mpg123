@@ -12,50 +12,10 @@ if HAVE_MODULES
 
 pkglib_LTLIBRARIES =
 
-# Work to do:
-
-#if HAVE_AIX
-#pkglib_LTLIBRARIES += output_aix.la
-#output_aix_la_SOURCES = aix.c
-#output_aix_la_LDFLAGS = -module -avoid-version
-#endif
-
-#if HAVE_ALIB
-#pkglib_LTLIBRARIES += output_alib.la
-#output_alib_la_SOURCES = alib.c
-#output_alib_la_LDFLAGS = -module -avoid-version
-#output_alib_la_CFLAGS= -I/opt/audio/include
-#endif
-
-#if HAVE_HP
-#pkglib_LTLIBRARIES += output_hp.la
-#output_hp_la_SOURCES = hp.c
-#output_hp_la_LDFLAGS = -module -avoid-version
-#endif
-
-#if HAVE_SGI
-#pkglib_LTLIBRARIES += output_sgi.la
-#output_sgi_la_SOURCES = sgi.c
-#output_sgi_la_LDFLAGS = -module -avoid-version
-#output_sgi_la_LIBADD = -laudio
-#endif
-
-#if HAVE_MINT
-#pkglib_LTLIBRARIES += output_mint.la
-#output_mint_la_SOURCES = mint.c
-#output_mint_la_LDFLAGS = -module -avoid-version
-#endif
-
-#if HAVE_OS2
-#pkglib_LTLIBRARIES += output_os2.la
-#output_os2_la_SOURCES = os2.c
-#output_os2_la_LDFLAGS = -module -avoid-version
-#endif
-
-# Working stuff:
+# These are not tested and _very_ likely need work: aix alib hp os2 sgi mint
 
 # Use that sh/perl script to generate the module entries:
-#for i in alsa coreaudio esound jack nas oss portaudio pulse sdl sun win32 dummy; do echo $i; done |
+#for i in alsa coreaudio esd jack nas oss portaudio pulse sdl sun win32 aix alib hp os2 sgi mint dummy; do echo $i; done |
 #perl -ne 'chomp; $big = uc($_); print <<EOT;
 #
 #if HAVE_$big
@@ -84,12 +44,12 @@ output_coreaudio_la_CFLAGS  = @COREAUDIO_CFLAGS@
 output_coreaudio_la_LIBADD  = @COREAUDIO_LIBS@ 
 endif
 
-if HAVE_ESOUND
-pkglib_LTLIBRARIES += output_esound.la
-output_esound_la_SOURCES = esound.c
-output_esound_la_LDFLAGS = -module -avoid-version -export-dynamic @ESOUND_LDFLAGS@
-output_esound_la_CFLAGS  = @ESOUND_CFLAGS@
-output_esound_la_LIBADD  = @ESOUND_LIBS@ 
+if HAVE_ESD
+pkglib_LTLIBRARIES += output_esd.la
+output_esd_la_SOURCES = esd.c
+output_esd_la_LDFLAGS = -module -avoid-version -export-dynamic @ESD_LDFLAGS@
+output_esd_la_CFLAGS  = @ESD_CFLAGS@
+output_esd_la_LIBADD  = @ESD_LIBS@ 
 endif
 
 if HAVE_JACK
@@ -154,6 +114,54 @@ output_win32_la_SOURCES = win32.c
 output_win32_la_LDFLAGS = -module -avoid-version -export-dynamic @WIN32_LDFLAGS@
 output_win32_la_CFLAGS  = @WIN32_CFLAGS@
 output_win32_la_LIBADD  = @WIN32_LIBS@ 
+endif
+
+if HAVE_AIX
+pkglib_LTLIBRARIES += output_aix.la
+output_aix_la_SOURCES = aix.c
+output_aix_la_LDFLAGS = -module -avoid-version -export-dynamic @AIX_LDFLAGS@
+output_aix_la_CFLAGS  = @AIX_CFLAGS@
+output_aix_la_LIBADD  = @AIX_LIBS@ 
+endif
+
+if HAVE_ALIB
+pkglib_LTLIBRARIES += output_alib.la
+output_alib_la_SOURCES = alib.c
+output_alib_la_LDFLAGS = -module -avoid-version -export-dynamic @ALIB_LDFLAGS@
+output_alib_la_CFLAGS  = @ALIB_CFLAGS@
+output_alib_la_LIBADD  = @ALIB_LIBS@ 
+endif
+
+if HAVE_HP
+pkglib_LTLIBRARIES += output_hp.la
+output_hp_la_SOURCES = hp.c
+output_hp_la_LDFLAGS = -module -avoid-version -export-dynamic @HP_LDFLAGS@
+output_hp_la_CFLAGS  = @HP_CFLAGS@
+output_hp_la_LIBADD  = @HP_LIBS@ 
+endif
+
+if HAVE_OS2
+pkglib_LTLIBRARIES += output_os2.la
+output_os2_la_SOURCES = os2.c
+output_os2_la_LDFLAGS = -module -avoid-version -export-dynamic @OS2_LDFLAGS@
+output_os2_la_CFLAGS  = @OS2_CFLAGS@
+output_os2_la_LIBADD  = @OS2_LIBS@ 
+endif
+
+if HAVE_SGI
+pkglib_LTLIBRARIES += output_sgi.la
+output_sgi_la_SOURCES = sgi.c
+output_sgi_la_LDFLAGS = -module -avoid-version -export-dynamic @SGI_LDFLAGS@
+output_sgi_la_CFLAGS  = @SGI_CFLAGS@
+output_sgi_la_LIBADD  = @SGI_LIBS@ 
+endif
+
+if HAVE_MINT
+pkglib_LTLIBRARIES += output_mint.la
+output_mint_la_SOURCES = mint.c
+output_mint_la_LDFLAGS = -module -avoid-version -export-dynamic @MINT_LDFLAGS@
+output_mint_la_CFLAGS  = @MINT_CFLAGS@
+output_mint_la_LIBADD  = @MINT_LIBS@ 
 endif
 
 if HAVE_DUMMY

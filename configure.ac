@@ -428,6 +428,8 @@ ADD_CFLAGS=""
 ADD_CPPFLAGS=""
 LIBS="$LIBS"
 
+AC_CHECK_HEADER([os2.h], [ADD_CPPFLAGS="$ADD_CPPFLAGS -DOS2"])
+
 # If debugging is enabled then make warnings errors
 if test "$debugging" = "enabled"; then
 	ADD_CFLAGS="-g"
@@ -660,7 +662,7 @@ AC_SUBST( DECODER_LOBJ )
 dnl ############## Output module choice
 
 # The full list of supported modules to check, first come, first serve.
-check_modules="alsa oss coreaudio sun win32 esound jack portaudio pulse sdl nas dummy"
+check_modules="alsa oss coreaudio sun win32 esd jack portaudio pulse sdl nas dummy"
 # The final list.
 output_modules=
 
@@ -718,8 +720,8 @@ do
 		pulse)
 			PKG_CHECK_MODULES(PULSE, libpulse-simple, output_modules="$output_modules pulse" HAVE_PULSE="yes", HAVE_PULSE="no" check_failed=yes)
 		;;
-		esound)
-			PKG_CHECK_MODULES(ESOUND, esound, output_modules="$output_modules esound" HAVE_ESOUND="yes", HAVE_ESOUND="no" check_failed=yes)
+		esd)
+			PKG_CHECK_MODULES(ESD, esound, output_modules="$output_modules esd" HAVE_ESD="yes", HAVE_ESD="no" check_failed=yes)
 		;;
 		portaudio)
 			# Remember: This looks only insane because you chose an insane tab width!
@@ -800,18 +802,72 @@ do
 				check_failed=yes
 			fi
 		;;
+# from here on only forced tests, untested code
+		hp)
+			# What's the deal with that and alib?
+			UNSUPPORTED_AUDIO=yes
+			AC_CHECK_HEADER([sys/audio.h], [output_modules="$output_modules hp" HAVE_HP=yes], [check_failed=yes])
+		;;
+		alib)
+			UNSUPPORTED_AUDIO=yes
+			# ALIB_CFLAGS="-I/opt/audio/include"
+			ALIB_LIBS=-lAlib
+			# These headers may not be all about audio but they are used.
+			AC_CHECK_HEADERS([ Alib.h CUlib.h netdb.h netinet/in.h netinet/tcp.h])
+			if test "x${ac_cv_header_Alib_h}" = xyes \
+			   -a   "x${ac_cv_header_CUlib_h}" = xyes \
+			   -a   "x${ac_cv_header_netdb_h}" = xyes \
+			   -a   "x${ac_cv_header_netinet_in_h}" = xyes \
+			   -a   "x${ac_cv_header_netinet_tcp_h}" = xyes
+			then
+				output_modules="$output_modules alib"
+				HAVE_ALIB=yes
+			else
+				check_failed=yes
+			fi
+		;;
+		mint)
+			UNSUPPORTED_AUDIO=yes
+			AC_CHECK_HEADERS([audios.h], [output_modules="$output_modules mint" HAVE_MINT=yes], [check_failes=yes])
+		;;
+		aix)
+			UNSUPPORTED_AUDIO=yes
+			AC_CHECK_HEADERS([sys/audio.h], [output_modules="$output_modules aix" HAVE_AIX=yes], [check_failed=yes])
+		;;
+		os2)
+			UNSUPPORTED_AUDIO=yes
+			OS2_LIBS="-los2me -lsocket"
+			AC_CHECK_HEADERS([os2.h os2me.h])
+			if test "x${ac_cv_header_os2_h}" = xyes \
+			   -a   "x${ac_cv_header_os2me_h}" = xyes
+			then
+				output_modules="$output_modules os2"
+				HAVE_OS2=yes
+			else
+				check_failed=yes
+			fi
+		;;
+		sgi)
+			UNSUPPORTED_AUDIO=yes
+			SGI_LIBS=-laudio
+			AC_CHECK_HEADER([dmedia/audio.h], [output_modules="$output_modules sgi" HAVE_SGI=yes], [check_failed=yes])
+		;;
 		*)
-			AC_MSG_ERROR([Unsupported output '$m' demanded!])
+			AC_MSG_ERROR([Unsupported/-known output '$m' demanded!])
 		;;
 	esac
 done
+
+if test "x$check_forced" = xyes -a "x$UNSUPPORTED_AUDIO" = xyes; then
+	AC_MSG_WARN([You requested bulding of an unsupported audio module. Be prepared for happy hacking and please tell us about your experience!])
+fi
 
 if test "x$check_forced" = xyes -a "x$check_failed" = "xyes"; then
 	AC_MSG_ERROR([One/some of your requested audio modules failed the test!])
 fi
 
 # When you extend check_modules, you should extend this:
-#for i in alsa oss coreaudio sun win32 esound jack portaudio pulse sdl nas dummy; do echo $i; done |
+#for i in alsa oss coreaudio sun win32 esd jack portaudio pulse sdl nas aix alib hp os2 sgi mint dummy; do echo $i; done |
 #perl -ne 'chomp; $big = uc($_); print <<EOT;
 #AC_SUBST(${big}_LIBS)
 #AC_SUBST(${big}_LDFLAGS)
@@ -819,7 +875,6 @@ fi
 #AM_CONDITIONAL( [HAVE_$big], [test "x\$HAVE_$big" = xyes] )
 #EOT
 #'
-
 AC_SUBST(ALSA_LIBS)
 AC_SUBST(ALSA_LDFLAGS)
 AC_SUBST(ALSA_CFLAGS)
@@ -840,10 +895,10 @@ AC_SUBST(WIN32_LIBS)
 AC_SUBST(WIN32_LDFLAGS)
 AC_SUBST(WIN32_CFLAGS)
 AM_CONDITIONAL( [HAVE_WIN32], [test "x$HAVE_WIN32" = xyes] )
-AC_SUBST(ESOUND_LIBS)
-AC_SUBST(ESOUND_LDFLAGS)
-AC_SUBST(ESOUND_CFLAGS)
-AM_CONDITIONAL( [HAVE_ESOUND], [test "x$HAVE_ESOUND" = xyes] )
+AC_SUBST(ESD_LIBS)
+AC_SUBST(ESD_LDFLAGS)
+AC_SUBST(ESD_CFLAGS)
+AM_CONDITIONAL( [HAVE_ESD], [test "x$HAVE_ESD" = xyes] )
 AC_SUBST(JACK_LIBS)
 AC_SUBST(JACK_LDFLAGS)
 AC_SUBST(JACK_CFLAGS)
@@ -864,11 +919,34 @@ AC_SUBST(NAS_LIBS)
 AC_SUBST(NAS_LDFLAGS)
 AC_SUBST(NAS_CFLAGS)
 AM_CONDITIONAL( [HAVE_NAS], [test "x$HAVE_NAS" = xyes] )
+AC_SUBST(AIX_LIBS)
+AC_SUBST(AIX_LDFLAGS)
+AC_SUBST(AIX_CFLAGS)
+AM_CONDITIONAL( [HAVE_AIX], [test "x$HAVE_AIX" = xyes] )
+AC_SUBST(ALIB_LIBS)
+AC_SUBST(ALIB_LDFLAGS)
+AC_SUBST(ALIB_CFLAGS)
+AM_CONDITIONAL( [HAVE_ALIB], [test "x$HAVE_ALIB" = xyes] )
+AC_SUBST(HP_LIBS)
+AC_SUBST(HP_LDFLAGS)
+AC_SUBST(HP_CFLAGS)
+AM_CONDITIONAL( [HAVE_HP], [test "x$HAVE_HP" = xyes] )
+AC_SUBST(OS2_LIBS)
+AC_SUBST(OS2_LDFLAGS)
+AC_SUBST(OS2_CFLAGS)
+AM_CONDITIONAL( [HAVE_OS2], [test "x$HAVE_OS2" = xyes] )
+AC_SUBST(SGI_LIBS)
+AC_SUBST(SGI_LDFLAGS)
+AC_SUBST(SGI_CFLAGS)
+AM_CONDITIONAL( [HAVE_SGI], [test "x$HAVE_SGI" = xyes] )
+AC_SUBST(MINT_LIBS)
+AC_SUBST(MINT_LDFLAGS)
+AC_SUBST(MINT_CFLAGS)
+AM_CONDITIONAL( [HAVE_MINT], [test "x$HAVE_MINT" = xyes] )
 AC_SUBST(DUMMY_LIBS)
 AC_SUBST(DUMMY_LDFLAGS)
 AC_SUBST(DUMMY_CFLAGS)
 AM_CONDITIONAL( [HAVE_DUMMY], [test "x$HAVE_DUMMY" = xyes] )
-
 
 # Did user choose default audio subsystem ?
 if test "x$with_default_audio" != "x"; then
@@ -895,7 +973,7 @@ then
 	# That feels stupid... what about hashed arrays?
 	case $OUTPUT_MOD in
 	# Here's a script for that tedious list, perhaps to be outsourced together with the one in src/output/Makefile.am
-#for i in alsa coreaudio esound jack nas oss portaudio pulse sdl sun win32; do echo $i; done |
+#for i in alsa coreaudio esd jack nas oss portaudio pulse sdl sun win32 aix alib hp os2 sgi mint; do echo $i; done |
 #perl -ne 'chomp; $big = uc($_); print <<EOT;
 #		$_)
 #			OUTPUT_LIBS="\$${big}_LIBS"
@@ -914,10 +992,10 @@ then
 			OUTPUT_LDFLAGS="$COREAUDIO_LDFLAGS"
 			OUTPUT_CFLAGS="$COREAUDIO_CFLAGS"
 		;;
-		esound)
-			OUTPUT_LIBS="$ESOUND_LIBS"
-			OUTPUT_LDFLAGS="$ESOUND_LDFLAGS"
-			OUTPUT_CFLAGS="$ESOUND_CFLAGS"
+		esd)
+			OUTPUT_LIBS="$ESD_LIBS"
+			OUTPUT_LDFLAGS="$ESD_LDFLAGS"
+			OUTPUT_CFLAGS="$ESD_CFLAGS"
 		;;
 		jack)
 			OUTPUT_LIBS="$JACK_LIBS"
@@ -959,8 +1037,39 @@ then
 			OUTPUT_LDFLAGS="$WIN32_LDFLAGS"
 			OUTPUT_CFLAGS="$WIN32_CFLAGS"
 		;;
+		aix)
+			OUTPUT_LIBS="$AIX_LIBS"
+			OUTPUT_LDFLAGS="$AIX_LDFLAGS"
+			OUTPUT_CFLAGS="$AIX_CFLAGS"
+		;;
+		alib)
+			OUTPUT_LIBS="$ALIB_LIBS"
+			OUTPUT_LDFLAGS="$ALIB_LDFLAGS"
+			OUTPUT_CFLAGS="$ALIB_CFLAGS"
+		;;
+		hp)
+			OUTPUT_LIBS="$HP_LIBS"
+			OUTPUT_LDFLAGS="$HP_LDFLAGS"
+			OUTPUT_CFLAGS="$HP_CFLAGS"
+		;;
+		os2)
+			OUTPUT_LIBS="$OS2_LIBS"
+			OUTPUT_LDFLAGS="$OS2_LDFLAGS"
+			OUTPUT_CFLAGS="$OS2_CFLAGS"
+		;;
+		sgi)
+			OUTPUT_LIBS="$SGI_LIBS"
+			OUTPUT_LDFLAGS="$SGI_LDFLAGS"
+			OUTPUT_CFLAGS="$SGI_CFLAGS"
+		;;
+		mint)
+			OUTPUT_LIBS="$MINT_LIBS"
+			OUTPUT_LDFLAGS="$MINT_LDFLAGS"
+			OUTPUT_CFLAGS="$MINT_CFLAGS"
+		;;
 	esac
 fi
+
 
 AC_SUBST( OUTPUT_OBJ )
 AC_SUBST( OUTPUT_MOD )
