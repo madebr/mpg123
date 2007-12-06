@@ -28,11 +28,14 @@ typedef struct {
 	sfifo_t fifo;
 } mpg123_portaudio_t;
 
+#ifdef PORTAUDIO18
+#define PaTime PaTimestamp
+#endif
 
 
 static int paCallback( void *inputBuffer, void *outputBuffer,
 			 unsigned long framesPerBuffer,
-			 PaTimestamp outTime, void *userData )
+			 PaTime outTime, void *userData )
 {
 	audio_output_t *ao = userData;
 	mpg123_portaudio_t *pa = (mpg123_portaudio_t*)ao->userptr;
@@ -63,7 +66,9 @@ static int open_portaudio(audio_output_t *ao)
 					paInt16,		/* signed 16-bit samples */
 					ao->rate,		/* sample rate */
 					FRAMES_PER_BUFFER,	/* frames per buffer */
+#ifdef PORTAUDIO18
 					0,				/* number of buffers, if zero then use default minimum */
+#endif
 					paCallback,		/* no callback - use blocking IO */
 					ao );
 			

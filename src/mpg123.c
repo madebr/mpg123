@@ -86,6 +86,7 @@ struct parameter param = {
 	,0 /* timeout */
 #endif
 	,1 /* loop */
+	,0 /* delay */
 	,0 /* index */
 	/* Parameters for mpg123 handle, defaults are queried from library! */
 	,0 /* down_sample */
@@ -391,6 +392,7 @@ topt opts[] = {
 #endif
 	{0, "loop", GLO_ARG | GLO_LONG, 0, &param.loop, 0},
 	{'i', "index", GLO_INT, 0, &param.index, 1},
+	{'D', "delay", GLO_ARG | GLO_INT, 0, &param.delay, 0},
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -538,9 +540,7 @@ int play_frame(void)
 		{
 			int ret = 0;
 			mpg123_getformat(mh, &ao->rate, &ao->channels, &ao->format);
-			/* from mpg123lib branch: if(init_output()) reset_audio(); */
-			/* does the newtrunk stuff fit here? */
-			ret = init_output(ao, mh);
+			ret = init_output(ao, mh); /* This has to become an abstraction to defer the action to the buffer process if there! */
 			if(ret == 1)
 			{
 				warning("I am not sure if my code is ready to switch audio format during playback!");
@@ -1092,6 +1092,7 @@ static void long_usage(int err)
 	fprintf(o,"        --gapless          remove padding/junk on mp3s (best with Lame tag)\n");
 	fprintf(o,"                           This is on by default when libmpg123 supports it.\n");
 	fprintf(o,"        --no-gapless       disable gapless mode, not remove padding/junk\n");
+	fprintf(o," -D n   --delay n          insert a delay of n seconds before each track\n");
 	fprintf(o," -o h   --headphones       (aix/hp/sun) output on headphones\n");
 	fprintf(o," -o s   --speaker          (aix/hp/sun) output on speaker\n");
 	fprintf(o," -o l   --lineout          (aix/hp/sun) output to lineout\n");

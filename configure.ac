@@ -10,7 +10,7 @@ AC_PREREQ(2.57)
 
 dnl ############# Initialisation
 
-AC_INIT([mpg123], [1.0rc1], [mpg123-devel@lists.sourceforge.net])
+AC_INIT([mpg123], [1.0rc2-dev], [mpg123-devel@lists.sourceforge.net])
 LIBMPG123_VERSION=0:0:0
 AC_SUBST( LIBMPG123_VERSION )
 
@@ -753,6 +753,9 @@ do
 			esac
 			if test "x$HAVE_PORTAUDIO" != xyes; then
 				check_failed=yes
+			else
+				# See if we have v19 or v18
+				AC_CHECK_LIB( [portaudio], [Pa_GetVersion], [:], [AC_DEFINE( [PORTAUDIO18], 1, [Define if portaudio v18 API is wanted.]) ], [$PORTAUDIO_LIBS] )
 			fi
 		;;
 		sdl)
