@@ -65,7 +65,7 @@ void close_output_module( audio_output_t* ao )
 	debug("closing output module");
 
 	/* Close the audio output */
-	if (ao->close) ao->close( ao );
+	/* No: we do that before, twice hurts. if (ao->close) ao->close( ao );*/
 
 	/* Deinitialise the audio output */
 	if (ao->deinit) ao->deinit( ao );
@@ -257,7 +257,6 @@ int init_output(audio_output_t *ao, mpg123_handle *mh)
 		bufferbytes -= bufferbytes % bufferblock;
 		/* No +1024 for NtoM rounding problems anymore! */
 		xfermem_init (&buffermem, bufferbytes ,0,0);
-		mpg123_replace_buffer(mh, (unsigned char *) buffermem->data, bufferblock);
 		sigemptyset (&newsigset);
 		sigaddset (&newsigset, SIGUSR1);
 		sigprocmask (SIG_BLOCK, &newsigset, &oldsigset);
