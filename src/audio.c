@@ -122,10 +122,6 @@ static void audio_output_dump(audio_output_t *ao)
 */
 
 
-#define NUM_CHANNELS 2
-#define NUM_ENCODINGS 6
-#define NUM_RATES 10
-
 /* Safer as function... */
 const char* audio_encoding_name(const int encoding, const int longer)
 {
@@ -338,7 +334,7 @@ void flush_output(int outmode, audio_output_t *ao, unsigned char *bytes, size_t 
 /* is this used? */
 void close_output(int outmode, audio_output_t *ao)
 {
-
+	debug("closing output");
     switch(outmode) {
       case DECODE_AUDIO:
         ao->close(ao);
