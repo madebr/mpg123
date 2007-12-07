@@ -30,12 +30,22 @@ typedef struct {
 
 #ifdef PORTAUDIO18
 #define PaTime PaTimestamp
+#define Ps_IsStreamActive Pa_StreamActive
 #endif
 
 
+#ifdef PORTAUDIO18
 static int paCallback( void *inputBuffer, void *outputBuffer,
 			 unsigned long framesPerBuffer,
 			 PaTime outTime, void *userData )
+#else
+static int paCallback(
+    const void *inputBuffer, void *outputBuffer,
+    unsigned long framesPerBuffer,
+    const PaStreamCallbackTimeInfo* timeInfo,
+    PaStreamCallbackFlags statusFlags,
+    void *userData )
+#endif
 {
 	audio_output_t *ao = userData;
 	mpg123_portaudio_t *pa = (mpg123_portaudio_t*)ao->userptr;
@@ -112,7 +122,7 @@ static int write_portaudio(audio_output_t *ao, unsigned char *buf, int len)
 	written = sfifo_write( &pa->fifo, buf, len );
 
 	/* Start stream if not ative */
-	err = Pa_StreamActive( pa->stream );
+	err = Pa_IsStreamActive( pa->stream );
 	if (err == 0) {
 		err = Pa_StartStream( pa->stream );
 		if( err != paNoError ) {
@@ -135,7 +145,7 @@ static int close_portaudio(audio_output_t *ao)
 	
 	if (pa->stream) {
 		/* stop the stream if it is active */
-		if (Pa_StreamActive( pa->stream ) == 1) {
+		if (Pa_IsStreamActive( pa->stream ) == 1) {
 			err = Pa_StopStream( pa->stream );
 			if( err != paNoError ) {
 				error1("Failed to stop PortAudio stream: %s", Pa_GetErrorText( err ));
