@@ -39,6 +39,7 @@ void init_id3(mpg123_handle *fr)
 	fr->id3v2.album  = NULL;
 	fr->id3v2.year   = NULL;
 	fr->id3v2.genre  = NULL;
+	fr->id3v2.comment = NULL;
 	fr->id3v2.comments     = 0;
 	fr->id3v2.comment_list = NULL;
 	fr->id3v2.texts    = 0;
@@ -143,6 +144,7 @@ void id3_link(mpg123_handle *fr)
 {
 	size_t i;
 	mpg123_id3v2 *v2 = &fr->id3v2;
+	debug("linking ID3v2");
 	for(i=0; i<v2->texts; ++i)
 	{
 		mpg123_text *entry = &v2->text[i];
