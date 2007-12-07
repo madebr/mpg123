@@ -400,7 +400,7 @@ topt opts[] = {
  *   Change the playback sample rate.
  *   Consider that changing it after starting playback is not covered by gapless code!
  */
-static void reset_audio(void)
+static void reset_audio(long rate, int channels, int format)
 {
 #ifndef NOXFERMEM
 	if (param.usebuffer) {
@@ -418,9 +418,9 @@ static void reset_audio(void)
 		buffermem->freeindex = 0;
 		if (intflag)
 			return;
-		buffermem->buf[0] = ao->rate; 
-		buffermem->buf[1] = ao->channels; 
-		buffermem->buf[2] = ao->format;
+		buffermem->rate     = rate; 
+		buffermem->channels = channels; 
+		buffermem->format   = format;
 		buffer_reset();
 	}
 	else 
@@ -431,6 +431,14 @@ static void reset_audio(void)
 		 *   the device's internal buffer before
 		 *   changing the sample rate.   [OF]
 		 */
+		if(ao == NULL)
+		{
+			error("Audio handle should not be NULL here!");
+			safe_exit(98);
+		}
+		ao->rate     = rate; 
+		ao->channels = channels; 
+		ao->format   = format;
 		if(reset_output(ao) < 0)
 		{
 			error1("failed to reset audio device: %s", strerror(errno));
@@ -507,16 +515,8 @@ int play_frame(void)
 			if(param.verbose) print_header(mh);
 			else print_header_compact(mh);
 		}
-#ifndef NOXFERMEM
-		if(param.usebuffer)
-		{ /* Instead of directly decoding to buffer, we copy explicitly here and handle the wrapping!
-			   Just giving libmpg123 the buffermem is no good idea since it doesn't know about the ringbuffer. */
-			if(xfermem_write(buffermem, audio, bytes)) return 1;
-		}
-		else
-#endif
-		/* Normal flushing of data. */
-		flush_output(param.outmode, ao, audio, bytes);
+		/* Normal flushing of data, includes buffer decoding. */
+		flush_output(ao, audio, bytes);
 		if(param.checkrange)
 		{
 			long clip = mpg123_clip(mh);
@@ -538,20 +538,12 @@ int play_frame(void)
 		}
 		if(mc == MPG123_NEW_FORMAT)
 		{
-			int ret = 0;
-			mpg123_getformat(mh, &ao->rate, &ao->channels, &ao->format);
-			ret = init_output(ao, mh); /* This has to become an abstraction to defer the action to the buffer process if there! */
-			if(ret == 1)
-			{
-				warning("I am not sure if my code is ready to switch audio format during playback!");
-				reset_audio();
-				/* safe_exit(-1); */
-			}
-			if(ret < 0)
-			{
-				error1("init_output() returned %i!", ret);
-				safe_exit(1);
-			}
+			long rate;
+			int channels, format;
+			mpg123_getformat(mh, &rate, &channels, &format);
+			if(param.verbose > 2) fprintf(stderr, "Note: New output format %liHz %ich, format %i\n", rate, channels, format);
+
+			reset_audio(rate, channels, format);
 		}
 	}
 	return 1;
@@ -582,14 +574,16 @@ int main(int argc, char *argv[])
 			break;
 		}
 	}
-	httpdata_init(&htd);
+
+	/* Need to initialize mpg123 lib here for default parameter values. */
+
 	result = mpg123_init();
 	if(result != MPG123_OK)
 	{
 		error1("Cannot initialize mpg123 library: %s", mpg123_plain_strerror(result));
-		safe_exit(77);
+		exit(77);
 	}
-	mp = mpg123_new_pars(&result);
+	mp = mpg123_new_pars(&result); /* This may get leaked on premature exit(), which is mainly a cosmetic issue... */
 	if(mp == NULL)
 	{
 		error1("Crap! Cannot get mpg123 parameters: %s", mpg123_plain_strerror(result));
@@ -609,7 +603,6 @@ int main(int argc, char *argv[])
 #endif
 	mpg123_getpar(mp, MPG123_FLAGS, &parr, NULL);
 	param.flags = (int) parr;
-	bufferblock = mpg123_safe_buffer();
 
 #ifdef OS2
         _wildcard(&argc,&argv);
@@ -628,6 +621,23 @@ int main(int argc, char *argv[])
 				prgName, loptarg);
 			usage(1);
 	}
+
+	/* Init audio as early as possible.
+	   If there is the buffer process to be spawned, it shouldn't carry the mpg123_handle with it. */
+	bufferblock = mpg123_safe_buffer(); /* Can call that before mpg123_init(), it's stateless. */
+	if(init_output(&ao) < 0)
+	{
+		error("Failed to initialize output, goodbye.");
+		mpg123_delete_pars(mp);
+		exit(99); /* It's safe here... nothing nasty happened yet. */
+	}
+
+	/* ========================================================================================================= */
+	/* Enterning the leaking zone... we start messing with stuff here that should be taken care of when leaving. */
+	/* Don't just exit() or return out...                                                                        */
+	/* ========================================================================================================= */
+
+	httpdata_init(&htd);
 
 	if(param.list_cpu)
 	{
@@ -701,14 +711,8 @@ int main(int argc, char *argv[])
 	}
 	mpg123_delete_pars(mp); /* Don't need the parameters anymore ,they're in the handle now. */
 
-	/* Open audio output module */
-	ao = open_output_module( param.output_module );
-	if (!ao) {
-		error("Failed to open audio output module.");
-		safe_exit(1);
-	}
-
-	audio_capabilities(ao, mh); /* Query audio output parameters, store in mpg123 handle. */
+	/* Now either check caps myself or query buffer for that. */
+	audio_capabilities(ao, mh);
 
 	if(equalfile != NULL)
 	{ /* tst; ThOr: not TRUE or FALSE: allocated or not... */
@@ -768,7 +772,7 @@ int main(int argc, char *argv[])
 	if(param.remote) {
 		int ret;
 		ret = control_generic(mh);
-		close_output(param.outmode, ao);
+		close_output(ao);
 		close_output_module(ao);
 		safe_exit(ret);
 	}
@@ -855,8 +859,6 @@ tc_hack:
 #ifndef NOXFERMEM
 				if (param.verbose > 1 || !(framenum & 0x7))
 					print_stat(mh,0,xfermem_get_usedspace(buffermem)); 
-				if(param.verbose > 2 && param.usebuffer)
-					fprintf(stderr,"[%08x %08x]", (unsigned int)buffermem->readindex, (unsigned int)buffermem->freeindex);
 #else
 				if(param.verbose > 1 || !(framenum & 0x7))	print_stat(mh,0,0);
 #endif
@@ -958,12 +960,9 @@ tc_hack:
       xfermem_done (buffermem);
     }
 #endif
-	/* Close the output */
-	close_output(param.outmode, ao);
-    
-    /* Close the audio output module */
-    close_output_module( ao );
-
+	/* Close the output... doesn't matter if buffer handled it, that's taken care of. */
+	close_output(ao);
+	close_output_module(ao);
 	/* Free up memory used by playlist */    
 	if(!param.remote) free_playlist();
 	safe_exit(0);

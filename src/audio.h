@@ -57,6 +57,7 @@ typedef struct audio_output_struct
 	long gain;		/* output gain */
 	int channels;	/* number of channels */
 	int format;		/* format flags */
+	int is_open;	/* something opened? */
 } audio_output_t;
 
 struct audio_format_name {
@@ -75,9 +76,10 @@ void audio_capabilities(audio_output_t *ao, mpg123_handle *mh);
 int audio_fit_capabilities(audio_output_t *ao,int c,int r);
 const char* audio_encoding_name(const int encoding, const int longer);
 
-int init_output(audio_output_t *ao, mpg123_handle *mh);
-void flush_output(int outmode, audio_output_t *ao, unsigned char *bytes, size_t count);
-void close_output(int mod, audio_output_t *ao );
+int init_output(audio_output_t **ao);
+void flush_output(audio_output_t *ao, unsigned char *bytes, size_t count);
+int open_output(audio_output_t *ao);
+void close_output(audio_output_t *ao );
 int reset_output(audio_output_t *ao);
 
 #endif

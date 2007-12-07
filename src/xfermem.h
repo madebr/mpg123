@@ -34,7 +34,9 @@ typedef struct {
 	byte *metadata;
 	size_t size;
 	size_t metasize;
-	int buf[3];
+	long rate;
+	int  channels;
+	int  format;
 } txfermem;
 /*
  *   [W] -- May be written to by the writing process only!
@@ -51,6 +53,7 @@ size_t xfermem_get_usedspace (txfermem *xf);
 #define XF_CMD_WAKEUP_INFO  0x04
 #define XF_CMD_WAKEUP    0x02
 #define XF_CMD_TERMINATE 0x03
+#define XF_CMD_AUDIOCAP  0x05
 #define XF_WRITER 0
 #define XF_READER 1
 int xfermem_getcmd (int fd, int block);

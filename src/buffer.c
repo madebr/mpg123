@@ -104,10 +104,34 @@ void buffer_loop(audio_output_t *ao, sigset_t *oldsigset)
 	catchsignal (SIGINT, catch_interrupt);
 	catchsignal (SIGUSR1, catch_usr1);
 	sigprocmask (SIG_SETMASK, oldsigset, NULL);
-	if (param.outmode == DECODE_AUDIO) {
-		if (ao->open(ao) < 0) {
-			perror("audio");
-			exit(1);
+
+	if(param.outmode == DECODE_AUDIO)
+	{
+		debug("audio output: waiting for cap requests");
+		/* wait for audio setup queries */
+		while(1)
+		{
+			int cmd;
+			cmd = xfermem_block(XF_READER, xf);
+			if(cmd == XF_CMD_AUDIOCAP)
+			{
+				ao->rate     = xf->rate;
+				ao->channels = xf->channels;
+				ao->format   = ao->get_formats(ao);
+				debug3("formats for %liHz/%ich: 0x%x", ao->rate, ao->channels, ao->format);
+				xf->format = ao->format;
+				xfermem_putcmd(my_fd, XF_CMD_AUDIOCAP);
+			}
+			else if(cmd == XF_CMD_WAKEUP)
+			{
+				debug("got wakeup... leaving config mode");
+				break;
+			}
+			else
+			{
+				error1("unexpected command %i", cmd);
+				return;
+			}
 		}
 	}
 
@@ -141,9 +165,9 @@ void buffer_loop(audio_output_t *ao, sigset_t *oldsigset)
 			 */
 			if (xf->wakeme[XF_WRITER])
 				xfermem_putcmd(my_fd, XF_CMD_WAKEUP);
-			ao->rate = xf->buf[0]; 
-			ao->channels = xf->buf[1]; 
-			ao->format = xf->buf[2];
+			ao->rate = xf->rate; 
+			ao->channels = xf->channels; 
+			ao->format = xf->format;
 			if (reset_output(ao) < 0) {
 				error1("failed to reset audio: %s", strerror(errno));
 				exit(1);
@@ -188,10 +212,10 @@ void buffer_loop(audio_output_t *ao, sigset_t *oldsigset)
 						done=TRUE;
 						break;
 					case -1:
-						if(errno==EINTR)
+						if(errno==EINTR) /* Got signal, handle it at top of loop... */
 							continue;
 						if(errno)
-							perror("Yuck! Error in buffer handling...");
+							perror("Yuck! Error in buffer handling... or somewhere unexpected.");
 						done = TRUE;
 						xf->readindex = xf->freeindex;
 						xfermem_putcmd(xf->fd[XF_READER], XF_CMD_TERMINATE);
@@ -213,6 +237,7 @@ void buffer_loop(audio_output_t *ao, sigset_t *oldsigset)
 		if (bytes > outburst)
 			bytes = outburst;
 
+		/* Could change that to use flush_output.... need to capture return value, then. */
 		if (param.outmode == DECODE_FILE)
 			bytes = write(OutputDescriptor, xf->data + xf->readindex, bytes);
 		else if (param.outmode == DECODE_AUDIO)
@@ -242,9 +267,6 @@ void buffer_loop(audio_output_t *ao, sigset_t *oldsigset)
 		if (xf->wakeme[XF_WRITER])
 			xfermem_putcmd(my_fd, XF_CMD_WAKEUP);
 	}
-
-	if (param.outmode == DECODE_AUDIO)
-		ao->close(ao);
 }
 
 #endif
