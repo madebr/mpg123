@@ -31,15 +31,20 @@ const int encoding_widths[4] = { 1, 2, 2, 1 };
 
 /* the code starts here... */
 
-void init_id3(mpg123_handle *fr)
+static void null_id3_links(mpg123_handle *fr)
 {
-	fr->id3v2.version = 0; /* nothing there */
 	fr->id3v2.title  = NULL;
 	fr->id3v2.artist = NULL;
 	fr->id3v2.album  = NULL;
 	fr->id3v2.year   = NULL;
 	fr->id3v2.genre  = NULL;
 	fr->id3v2.comment = NULL;
+}
+
+void init_id3(mpg123_handle *fr)
+{
+	fr->id3v2.version = 0; /* nothing there */
+	null_id3_links(fr);
 	fr->id3v2.comments     = 0;
 	fr->id3v2.comment_list = NULL;
 	fr->id3v2.texts    = 0;
@@ -145,6 +150,7 @@ void id3_link(mpg123_handle *fr)
 	size_t i;
 	mpg123_id3v2 *v2 = &fr->id3v2;
 	debug("linking ID3v2");
+	null_id3_links(fr);
 	for(i=0; i<v2->texts; ++i)
 	{
 		mpg123_text *entry = &v2->text[i];
