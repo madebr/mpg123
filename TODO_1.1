@@ -1,8 +1,6 @@
 For mpg123-1.1:
 
-We need to rework the buffer.
-The minimum is to get the audio handling straight: The main mpg123 should not touch anything with audio (not even accessing the plugin) when the buffer is used.
-We need some communication added for handling libmpg123 format setup, that shouldn't be a big issue.
-
-Perhaps we can make the buffer work again on MacOSX when the audio module is accessed _after_ the fork().
-Then, there's no need to think about pthreads or something.
+Buffer rework goes into 1.0 ... we can still make it pretty for 1.1;-)
+Something remaining is the interaction of terminal control and buffer.
+I think one should drop the SIGSTOP/SIGCONT for something more controlled (using putcmd/getcmd).
+Then also the skipping/seeking in stopped mode should work... extreme event would be the seeking inside/together with buffer, of course, instead of against it.
