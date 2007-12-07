@@ -139,6 +139,9 @@ This means +/- for the 16-bit integer sample value ranging over ca. +/-32000. Th
 7. History
 
 A looooong time ago (mid-90s), Michael Hipp wrote some initial mpg123 and made it _the_ Unix console mp3 player in the following years.
+The exact date of birth is fuzzy in human memory, but according to the master himself (Michael) mpg123 started in 1994 as an MP2 player which a year later, 1995, gained MP3 ability.
+The core decoder files have mostly 1995 as their birth year listed, so one can say that mpg123 as the layer1,2,3 player was born in 1995.
+In any case, that is a looooong time ago for a media player - especially for one that is still alive!
 
 This is the historic description:
 
