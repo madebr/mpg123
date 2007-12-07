@@ -30,7 +30,7 @@ typedef struct {
 
 #ifdef PORTAUDIO18
 #define PaTime PaTimestamp
-#define Ps_IsStreamActive Pa_StreamActive
+#define Pa_IsStreamActive Pa_StreamActive
 #endif
 
 
@@ -117,7 +117,7 @@ static int write_portaudio(audio_output_t *ao, unsigned char *buf, int len)
 		usleep( (FIFO_DURATION/2) * 1000000 );
 #endif
 	}
-	
+
 	/* Write the audio to the ring buffer */
 	written = sfifo_write( &pa->fifo, buf, len );
 
