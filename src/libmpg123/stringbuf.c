@@ -57,7 +57,7 @@ int mpg123_copy_string(mpg123_string* from, mpg123_string* to)
 	char  *text;
 	if(to == NULL) return -1;
 
-	debug2("called copy_string with %p -> %p", from, to);
+	debug2("called copy_string with %p -> %p", (void*)from, (void*)to);
 	if(from == NULL)
 	{
 		fill = 0;
