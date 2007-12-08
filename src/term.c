@@ -1,3 +1,4 @@
+#define DEBUG
 /*
 	term: terminal control
 
@@ -23,6 +24,7 @@ extern audio_output_t *ao;
 
 static int term_enable = 0;
 static struct termios old_tio;
+int seeking = FALSE;
 
 void term_sigcont(int sig);
 
@@ -70,7 +72,7 @@ void term_init(void)
   term_enable = 1;
 }
 
-static long term_handle_input(mpg123_handle *,int);
+static void term_handle_input(mpg123_handle *,int);
 
 static int stopped = 0;
 static int paused = 0;
@@ -97,10 +99,11 @@ static int print_index(mpg123_handle *mh)
 	return MPG123_OK;
 }
 
+static off_t offset = 0;
 
 off_t term_control(mpg123_handle *fr)
 {
-	off_t offset = 0;
+	offset = 0;
 
 	if(!term_enable) return 0;
 
@@ -115,7 +118,7 @@ off_t term_control(mpg123_handle *fr)
 				while(paused && xfermem_get_usedspace(buffermem))
 				{
 					buffer_ignore_lowmem();
-					offset += term_handle_input(fr, TRUE);
+					term_handle_input(fr, TRUE);
 				}
 				if(!paused)	offset += pause_cycle;
 			}
@@ -124,19 +127,40 @@ off_t term_control(mpg123_handle *fr)
 
 	do
 	{
-		offset += term_handle_input(fr, stopped);
+		term_handle_input(fr, stopped|seeking);
 		if((offset < 0) && (-offset > framenum)) offset = - framenum;
 		if(param.verbose && offset != 0)
 		print_stat(fr,offset,0);
 	} while (stopped);
 
-	return offset;
+	/* Make the seeking experience with buffer less annoying.
+	   No sound during seek, but at least it is possible to go backwards. */
+	if(offset)
+	{
+		if((offset = mpg123_seek_frame(fr, offset, SEEK_CUR)) >= 0)
+		debug1("seeked to %li", (long)offset);
+		else error1("seek failed: %s!", mpg123_strerror(fr));
+		/* Buffer resync already happened on un-stop? */
+		/* if(param.usebuffer) buffer_resync();*/
+	}
+	return 0;
 }
 
-static long term_handle_input(mpg123_handle *fr, int do_delay)
+/* Stop playback while seeking if buffer is involved. */
+static void seekmode(void)
+{
+	if(param.usebuffer && !stopped)
+	{
+		stopped = TRUE;
+		buffer_stop();
+		fprintf(stderr, "%s", STOPPED_STRING);
+	}
+}
+
+static void term_handle_input(mpg123_handle *fr, int do_delay)
 {
   int n = 1;
-  long offset = 0;
+  /* long offset = 0; */
   
   while(n > 0) {
     fd_set r;
@@ -144,7 +168,7 @@ static long term_handle_input(mpg123_handle *fr, int do_delay)
     char val;
 
     t.tv_sec=0;
-    t.tv_usec=(do_delay) ? 1000 : 0;
+    t.tv_usec=(do_delay) ? 10*1000 : 0;
     
     FD_ZERO(&r);
     FD_SET(0,&r);
@@ -181,11 +205,15 @@ static long term_handle_input(mpg123_handle *fr, int do_delay)
 			}
 		}
 		set_intflag();
-		return 0;
+		offset = 0;
 	  break;
 	case PAUSE_KEY:
   	  paused=1-paused;
 	  if(paused) {
+			/* Not really sure if that is what is wanted
+			   This jumps in audio output, but has direct reaction to pausing loop. */
+			if(param.usebuffer) buffer_resync();
+
 		  pause_cycle=(int)(LOOP_CYCLES/mpg123_tpf(fr));
 		  offset -= pause_cycle;
 	  }
@@ -208,26 +236,42 @@ static long term_handle_input(mpg123_handle *fr, int do_delay)
 		if(param.usebuffer)
 		{
 			if(stopped) buffer_stop();
-			else buffer_start();
+			else
+			{
+				debug("un-stop");
+				/* When we stopped buffer for seeking, we must resync. */
+				if(offset)
+				{
+					debug("un-stop resync!");
+					buffer_resync();
+				}
+				buffer_start();
+			}
 		}
 	  fprintf(stderr, "%s", (stopped) ? STOPPED_STRING : EMPTY_STRING);
 	  break;
 	case FINE_REWIND_KEY:
+	  if(param.usebuffer) seekmode();
 	  offset--;
 	  break;
 	case FINE_FORWARD_KEY:
+	  seekmode();
 	  offset++;
 	  break;
 	case REWIND_KEY:
+	  seekmode();
   	  offset-=10;
 	  break;
 	case FORWARD_KEY:
+	  seekmode();
 	  offset+=10;
 	  break;
 	case FAST_REWIND_KEY:
+	  seekmode();
 	  offset-=50;
 	  break;
 	case FAST_FORWARD_KEY:
+	  seekmode();
 	  offset+=50;
 	  break;
 	case VOL_UP_KEY:
@@ -261,7 +305,6 @@ static long term_handle_input(mpg123_handle *fr, int do_delay)
       }
     }
   }
-  return offset;
 }
 
 void term_restore(void)

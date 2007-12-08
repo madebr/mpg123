@@ -513,6 +513,7 @@ int play_frame(void)
 	unsigned char *audio;
 	size_t bytes;
 	/* The first call will not decode anything but return MPG123_NEW_FORMAT! */
+	debug("play_frame");
 	int mc = mpg123_decode_frame(mh, &framenum, &audio, &bytes);
 	/* Play what is there to play (starting with second decode_frame call!) */
 	if(bytes)
@@ -877,18 +878,7 @@ tc_hack:
 			}
 #ifdef HAVE_TERMIOS
 			if(!param.term_ctrl) continue;
-			else
-			{
-				off_t offset;
-				if((offset=term_control(mh)))
-				{
-					if((offset = mpg123_seek_frame(mh, offset, SEEK_CUR)) >= 0)
-					{
-						if(param.usebuffer)	buffer_resync();
-						debug1("seeked to %li", (long)offset);
-					} else error1("seek failed: %s!", mpg123_strerror(mh));
-				}
-			}
+			else term_control(mh);
 #endif
 		}
 
@@ -902,20 +892,7 @@ tc_hack:
 			buffer_ignore_lowmem();
 			if(param.verbose) print_stat(mh,0,s);
 #ifdef HAVE_TERMIOS
-			if(param.term_ctrl)
-			{
-				off_t offset;
-				if((offset=term_control(mh)))
-				{
-					if((offset = mpg123_seek_frame(mh, offset, SEEK_CUR)) >= 0)
-					/*	&& read_frame(&fr) == 1 */
-					{
-						if(param.usebuffer)	buffer_resync();
-						debug1("seeked to %li", (long)offset);
-						goto tc_hack;	/* Doh! Gag me with a spoon! */
-					} else error1("seek failed: %s!", mpg123_strerror(mh));
-				}
-			}
+			if(param.term_ctrl) term_control(mh);
 #endif
 			select(0, NULL, NULL, NULL, &wait170);
 		}
