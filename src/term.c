@@ -237,13 +237,9 @@ static void term_handle_input(mpg123_handle *fr, int do_delay)
 			if(stopped) buffer_stop();
 			else
 			{
-				debug("un-stop");
 				/* When we stopped buffer for seeking, we must resync. */
-				if(offset)
-				{
-					debug("un-stop resync!");
-					buffer_resync();
-				}
+				if(offset) buffer_resync();
+
 				buffer_start();
 			}
 		}
