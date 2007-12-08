@@ -193,11 +193,11 @@ void print_capabilities(audio_output_t *ao, mpg123_handle *mh)
 void audio_capabilities(audio_output_t *ao, mpg123_handle *mh)
 {
 	int fmts;
-	int ri;
+	size_t ri;
 	long rate;
 	int channels;
 	const long *rates;
-	size_t      num_rates;
+	size_t      num_rates, rlimit;
 	debug("audio_capabilities");
 	mpg123_rates(&rates, &num_rates);
 
@@ -209,10 +209,13 @@ void audio_capabilities(audio_output_t *ao, mpg123_handle *mh)
 
 	mpg123_format_none(mh); /* Start with nothing. */
 
+	rlimit = param.force_rate > 0 ? num_rates+1 : num_rates;
 	for(channels=1; channels<=2; channels++)
-	for(ri = param.force_rate>0 ? -1 : 0;ri<num_rates;ri++)
+	for(ri = 0;ri<rlimit;ri++)
 	{
-		rate = ri >= 0 ? rates[ri] : param.force_rate;
+		fprintf(stderr, "LOOP\n");
+		rate = ri < num_rates ? rates[ri] : param.force_rate;
+		if(param.verbose > 2) fprintf(stderr, "Note: checking support for %liHz/%ich.\n", rate, channels);
 #ifndef NOXFERMEM
 		if(param.usebuffer)
 		{ /* Ask the buffer process. It is waiting for this. */
@@ -231,7 +234,7 @@ void audio_capabilities(audio_output_t *ao, mpg123_handle *mh)
 			ao->channels = channels;
 			fmts = ao->get_formats(ao);
 		}
-		debug1("got formats: 0x%x", fmts);
+		if(param.verbose > 2) fprintf(stderr, "Note: result 0x%x", fmts);
 
 		if(fmts < 0) continue;
 		else mpg123_format(mh, rate, channels, fmts);
