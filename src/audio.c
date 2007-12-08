@@ -213,7 +213,6 @@ void audio_capabilities(audio_output_t *ao, mpg123_handle *mh)
 	for(channels=1; channels<=2; channels++)
 	for(ri = 0;ri<rlimit;ri++)
 	{
-		fprintf(stderr, "LOOP\n");
 		rate = ri < num_rates ? rates[ri] : param.force_rate;
 		if(param.verbose > 2) fprintf(stderr, "Note: checking support for %liHz/%ich.\n", rate, channels);
 #ifndef NOXFERMEM
