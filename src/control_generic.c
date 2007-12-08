@@ -149,7 +149,8 @@ void generic_sendalltag(mpg123_handle *mh)
 	if(MPG123_OK != mpg123_id3(mh, &v1, &v2))
 	{
 		error1("Cannot get ID3 data: %s", mpg123_strerror(mh));
-		v2 == NULL;
+		v2 = NULL;
+		v1 = NULL;
 	}
 	if(v1 != NULL) generic_sendv1(v1, "T");
 

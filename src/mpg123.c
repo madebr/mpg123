@@ -511,10 +511,11 @@ void close_track(void)
 int play_frame(void)
 {
 	unsigned char *audio;
+	int mc;
 	size_t bytes;
-	/* The first call will not decode anything but return MPG123_NEW_FORMAT! */
 	debug("play_frame");
-	int mc = mpg123_decode_frame(mh, &framenum, &audio, &bytes);
+	/* The first call will not decode anything but return MPG123_NEW_FORMAT! */
+	mc = mpg123_decode_frame(mh, &framenum, &audio, &bytes);
 	/* Play what is there to play (starting with second decode_frame call!) */
 	if(bytes)
 	{
@@ -854,9 +855,6 @@ int main(int argc, char *argv[])
 		debug1("param.term_ctrl: %i", param.term_ctrl);
 		if(param.term_ctrl)
 			term_init();
-#endif
-#ifdef HAVE_TERMIOS /* I am not sure if this is right here anymore!... what with intflag? */
-tc_hack:
 #endif
 		while(!intflag)
 		{
