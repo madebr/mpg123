@@ -117,6 +117,7 @@ void buffer_loop(audio_output_t *ao, sigset_t *oldsigset)
 	catchsignal (SIGUSR1, catch_usr1);
 	sigprocmask (SIG_SETMASK, oldsigset, NULL);
 
+	xfermem_putcmd(my_fd, XF_CMD_WAKEUP);
 	if(param.outmode == DECODE_AUDIO)
 	{
 		debug("audio output: waiting for cap requests");

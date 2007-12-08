@@ -346,6 +346,15 @@ int init_output(audio_output_t **ao)
 		}
 	}
 	else *ao = NULL; /* That ensures we won't try to free it later... */
+	if(param.usebuffer)
+	{ /* Check if buffer is alive. */
+		int res = xfermem_getcmd(buffermem->fd[XF_WRITER], TRUE);
+		if(res < 0)
+		{
+			error("Buffer process didn't initialize!");
+			return -1;
+		}
+	}
 	/* This has internal protection for buffer mode. */
 	if(open_output(*ao) < 0) return -1;
 
