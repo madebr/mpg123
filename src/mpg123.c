@@ -631,6 +631,26 @@ int main(int argc, char *argv[])
 			usage(1);
 	}
 
+	if(param.list_cpu)
+	{
+		char **all_dec = mpg123_decoders();
+		printf("Builtin decoders:");
+		while(*all_dec != NULL){ printf(" %s", *all_dec); ++all_dec; }
+		printf("\n");
+		mpg123_delete_pars(mp);
+		return 0;
+	}
+	if(param.test_cpu)
+	{
+		char **all_dec = mpg123_supported_decoders();
+		printf("Supported decoders:");
+		while(*all_dec != NULL){ printf(" %s", *all_dec); ++all_dec; }
+		printf("\n");
+		mpg123_delete_pars(mp);
+		return 0;
+	}
+
+	if (loptind >= argc && !param.listname && !param.remote) usage(1);
 	/* Init audio as early as possible.
 	   If there is the buffer process to be spawned, it shouldn't carry the mpg123_handle with it. */
 	bufferblock = mpg123_safe_buffer(); /* Can call that before mpg123_init(), it's stateless. */
@@ -638,7 +658,7 @@ int main(int argc, char *argv[])
 	{
 		error("Failed to initialize output, goodbye.");
 		mpg123_delete_pars(mp);
-		exit(99); /* It's safe here... nothing nasty happened yet. */
+		return 99; /* It's safe here... nothing nasty happened yet. */
 	}
 
 	/* ========================================================================================================= */
@@ -647,25 +667,6 @@ int main(int argc, char *argv[])
 	/* ========================================================================================================= */
 
 	httpdata_init(&htd);
-
-	if(param.list_cpu)
-	{
-		char **all_dec = mpg123_decoders();
-		printf("Builtin decoders:");
-		while(*all_dec != NULL){ printf(" %s", *all_dec); ++all_dec; }
-		printf("\n");
-		safe_exit(0);
-	}
-	if(param.test_cpu)
-	{
-		char **all_dec = mpg123_supported_decoders();
-		printf("Supported decoders:");
-		while(*all_dec != NULL){ printf(" %s", *all_dec); ++all_dec; }
-		printf("\n");
-		safe_exit(0);
-	}
-
-	if (loptind >= argc && !param.listname && !param.remote) usage(1);
 
 #if !defined(WIN32) && !defined(GENERIC)
 	if (param.remote)
