@@ -48,6 +48,49 @@ void generic_sendmsg (const char *fmt, ...)
 	fprintf(outstream, "\n");
 }
 
+/* Split up a number of lines separated by \n, \r, both or just zero byte
+   and print out each line with specified prefix. */
+static void generic_send_lines(const char* fmt, mpg123_string *inlines)
+{
+	size_t i;
+	int hadcr = 0, hadlf = 0;
+	char *lines = NULL;
+	char *line  = NULL;
+	size_t len = 0;
+
+	if(inlines != NULL && inlines->fill)
+	{
+		lines = inlines->p;
+		len   = inlines->fill;
+	}
+	else return;
+
+	line = lines;
+	for(i=0; i<len; ++i)
+	{
+		if(lines[i] == '\n' || lines[i] == '\r' || lines[i] == 0)
+		{
+			char save = lines[i]; /* saving, changing, restoring a byte in the data */
+			if(save == '\n') ++hadlf;
+			if(save == '\r') ++hadcr;
+			if((hadcr || hadlf) && hadlf % 2 == 0 && hadcr % 2 == 0) line = "";
+
+			if(line)
+			{
+				lines[i] = 0;
+				generic_sendmsg(fmt, line);
+				line = NULL;
+				lines[i] = save;
+			}
+		}
+		else
+		{
+			hadlf = hadcr = 0;
+			if(line == NULL) line = lines+i;
+		}
+	}
+}
+
 void generic_sendstat (mpg123_handle *fr)
 {
 	off_t current_frame, frames_left;
@@ -58,7 +101,6 @@ void generic_sendstat (mpg123_handle *fr)
 
 void generic_sendinfoid3(mpg123_handle *mh)
 {
-	char info[125] = "";
 	int i;
 	mpg123_id3v1 *v1;
 	mpg123_id3v2 *v2;
@@ -67,15 +109,32 @@ void generic_sendinfoid3(mpg123_handle *mh)
 		error1("Cannot get ID3 data: %s", mpg123_strerror(mh));
 		return;
 	}
-	if(v1 == NULL) return;
-	memcpy(info,    v1->title,   	30);
-	memcpy(info+30, v1->artist,  30);
-	memcpy(info+60, v1->album,   30);
-	memcpy(info+90, v1->year,     4);
-	memcpy(info+94, v1->comment, 30);
-	for(i=0;i<124; ++i) if(info[i] == 0) info[i] = ' ';
-	info[i] = 0;
-	generic_sendmsg("I ID3:%s%s", info, (v1->genre<=genre_count) ? genre_table[v1->genre] : "Unknown");
+	if(v1 != NULL)
+	{
+		int track = 0;
+		char info[125] = "";
+		memcpy(info,    v1->title,   	30);
+		memcpy(info+30, v1->artist,  30);
+		memcpy(info+60, v1->album,   30);
+		memcpy(info+90, v1->year,     4);
+		memcpy(info+94, v1->comment, 30);
+
+		for(i=0;i<124; ++i) if(info[i] == 0) info[i] = ' ';
+		info[i] = 0;
+		generic_sendmsg("I ID3:%s%s", info, (v1->genre<=genre_count) ? genre_table[v1->genre] : "Unknown");
+		generic_sendmsg("I ID3.genre:%i", v1->genre);
+		if(v1->comment[28] == 0 && v1->comment[29] != 0)
+		generic_sendmsg("I ID3.track:%i", (unsigned char)v1->comment[29]);
+	}
+	if(v2 != NULL)
+	{
+		generic_send_lines("I ID3v2.title:%s",   v2->title);
+		generic_send_lines("I ID3v2.artist:%s",  v2->artist);
+		generic_send_lines("I ID3v2.album:%s",   v2->album);
+		generic_send_lines("I ID3v2.year:%s",    v2->year);
+		generic_send_lines("I ID3v2.comment:%s", v2->comment);
+		generic_send_lines("I ID3v2.genre:%s",   v2->genre);
+	}
 }
 
 void generic_sendinfo (char *filename)
@@ -110,6 +169,7 @@ static void generic_load(mpg123_handle *fr, char *arg, int state)
 		generic_sendmsg("P 0");
 		return;
 	}
+	mpg123_seek(fr, 0, SEEK_SET); /* This finds ID3v2 at beginning. */
 	if(mpg123_meta_check(fr) & MPG123_NEW_ID3) generic_sendinfoid3(fr);
 	else generic_sendinfo(arg);
 
