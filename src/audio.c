@@ -385,7 +385,6 @@ int open_output(audio_output_t *ao)
 				error("ao should not be NULL here!");
 				exit(110);
 			}
-			debug3("ao=%p, ao->is_open=%i, ao->open=%p", ao, ao->is_open, ao->open);
 			ao->is_open = ao->open(ao) < 0 ? FALSE : TRUE;
 			if(!ao->is_open)
 			{

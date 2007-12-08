@@ -118,9 +118,17 @@ int buffer_pid;
 size_t bufferblock = 0;
 
 static int intflag = FALSE;
+static int skip_tracks = 0;
 int OutputDescriptor;
 static int filept = -1;
 char *binpath; /* Path to myself. */
+
+void set_intflag()
+{
+	debug("set_intflag TRUE");
+	intflag = TRUE;
+	skip_tracks = 0;
+}
 
 #if !defined(WIN32) && !defined(GENERIC)
 static void catch_interrupt(void)
@@ -133,6 +141,7 @@ static void catch_interrupt(void)
 void next_track(void)
 {
 	intflag = TRUE;
+	++skip_tracks;
 }
 
 void safe_exit(int code)
@@ -758,15 +767,10 @@ int main(int argc, char *argv[])
 	if(!param.remote) prepare_playlist(argc, argv);
 
 #if !defined(WIN32) && !defined(GENERIC)
-	/* This ctrl+c for title skip only when not in some control mode */
-	if
-	(
-		!param.remote 
-		#ifdef HAVE_TERMIOS
-		&& !param.term_ctrl
-		#endif
-	)
-	catchsignal (SIGINT, catch_interrupt);
+	/* Remote mode is special... but normal console and terminal-controlled operation needs to catch the SIGINT.
+	   For one it serves for track skip when not in terminal control mode.
+	   The more important use being a graceful exit, including telling the buffer process what's going on. */
+	if(!param.remote) catchsignal (SIGINT, catch_interrupt);
 #endif
 
 	if(param.remote) {
@@ -780,6 +784,13 @@ int main(int argc, char *argv[])
 	while ((fname = get_next_file()))
 	{
 		char *dirname, *filename;
+		/* skip_tracks includes the previous one. */
+		if(skip_tracks) --skip_tracks;
+		if(skip_tracks)
+		{
+			debug("Skipping this track.");
+			continue;
+		}
 		frames_left = param.frame_number;
 		debug1("Going to play %s", strcmp(fname, "-") ? fname : "standard input");
 
@@ -886,6 +897,7 @@ tc_hack:
 		while ((s = xfermem_get_usedspace(buffermem)))
 		{
 			struct timeval wait170 = {0, 170000};
+			if(intflag) break;
 			buffer_ignore_lowmem();
 			if(param.verbose) print_stat(mh,0,s);
 #ifdef HAVE_TERMIOS
@@ -929,6 +941,7 @@ tc_hack:
  * no pressing need to keep up this first second SIGINT hack that was too
  * often mistaken as a bug. [dk]
  * ThOr: Yep, I deactivated the Ctrl+C hack for active control modes.
+ *       Though, some sort of hack remains, still using intflag for track skip.
  */
 #if !defined(WIN32) && !defined(GENERIC)
 #ifdef HAVE_TERMIOS
@@ -942,8 +955,23 @@ tc_hack:
         	else
           		secdiff -= (start_time.tv_usec - now.tv_usec) / 1000;
         	if (secdiff < 1000)
+					{
+						debug("got the second interrupt: out of here!");
           		break;
+					}
+					else
+					{
+						debug("It's a track advancement message.");
+						++skip_tracks;
+					}
 	}
+#ifdef HAVE_TERMIOS
+	else if(skip_tracks == 0)
+	{
+		debug("breaking up");
+		break;
+	}
+#endif
 #endif
         intflag = FALSE;
 
@@ -954,12 +982,15 @@ tc_hack:
     } /* end of loop over input files */
 #ifndef NOXFERMEM
     if (param.usebuffer) {
-      buffer_end();
+      debug("ending buffer");
+      buffer_stop(); /* Puts buffer into waiting-for-command mode. */
+      buffer_end(intflag);  /* Gives command to end operation. */
       xfermem_done_writer (buffermem);
       waitpid (buffer_pid, NULL, 0);
       xfermem_done (buffermem);
     }
 #endif
+	debug("close output");
 	/* Close the output... doesn't matter if buffer handled it, that's taken care of. */
 	close_output(ao);
 	close_output_module(ao);

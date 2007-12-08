@@ -18,7 +18,7 @@
 
 #ifndef NOXFERMEM
 void real_buffer_ignore_lowmem(void);
-void real_buffer_end(void);
+void real_buffer_end(int rude);
 void real_buffer_resync(void);
 void real_plain_buffer_resync(void);
 void real_buffer_reset(void);
@@ -30,7 +30,7 @@ void real_buffer_stop(void);
 #define buffer_reset()         (param.usebuffer ? real_buffer_reset(),0         : 0)
 #define buffer_resync()        (param.usebuffer ? real_buffer_resync(),0        : 0)
 #define plain_buffer_resync()  (param.usebuffer ? real_plain_buffer_resync(),0  : 0)
-#define buffer_end()           (param.usebuffer ? real_buffer_end(),0           : 0)
+#define buffer_end(a)          (param.usebuffer ? real_buffer_end(a),0           : 0)
 #define buffer_ignore_lowmem() (param.usebuffer ? real_buffer_ignore_lowmem(),0 : 0)
 #else
 #define buffer_start()

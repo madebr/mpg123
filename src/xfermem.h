@@ -37,6 +37,7 @@ typedef struct {
 	long rate;
 	int  channels;
 	int  format;
+	int justwait;
 } txfermem;
 /*
  *   [W] -- May be written to by the writing process only!
@@ -54,6 +55,8 @@ size_t xfermem_get_usedspace (txfermem *xf);
 #define XF_CMD_WAKEUP    0x02
 #define XF_CMD_TERMINATE 0x03
 #define XF_CMD_AUDIOCAP  0x05
+#define XF_CMD_RESYNC    0x06
+#define XF_CMD_ABORT     0x07
 #define XF_WRITER 0
 #define XF_READER 1
 int xfermem_getcmd (int fd, int block);

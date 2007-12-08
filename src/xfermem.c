@@ -87,6 +87,7 @@ void xfermem_init (txfermem **xf, size_t bufsize, size_t msize, size_t skipbuf)
 	(*xf)->metadata = ((byte *) *xf) + sizeof(txfermem);
 	(*xf)->size = bufsize;
 	(*xf)->metasize = msize + skipbuf;
+	(*xf)->justwait = 0;
 }
 
 void xfermem_done (txfermem *xf)
@@ -242,6 +243,7 @@ int xfermem_write(txfermem *xf, byte *buffer, size_t bytes)
 	/* Advance the free space pointer, including the wrap. */
 	xf->freeindex = (xf->freeindex + bytes) % xf->size;
 	/* Wake up the buffer process if necessary. */
+	debug("write waking");
 	if(xf->wakeme[XF_READER]) xfermem_putcmd(xf->fd[XF_WRITER], XF_CMD_WAKEUP_INFO);
 
 	return FALSE;

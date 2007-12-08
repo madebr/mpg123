@@ -94,6 +94,11 @@ void generic_sendinfo (char *filename)
 
 static void generic_load(mpg123_handle *fr, char *arg, int state)
 {
+	if(param.usebuffer)
+	{
+		buffer_resync();
+		if(mode == MODE_PAUSED && state != MODE_PAUSED) buffer_start();
+	}
 	if(mode != MODE_STOPPED)
 	{
 		close_track();
@@ -110,6 +115,7 @@ static void generic_load(mpg123_handle *fr, char *arg, int state)
 
 	if(htd.icy_name.fill) generic_sendmsg("I ICY-NAME: %s", htd.icy_name.p);
 	if(htd.icy_url.fill)  generic_sendmsg("I ICY-URL: %s", htd.icy_url.p);
+
 	mode = state;
 	init = 1;
 	generic_sendmsg(mode == MODE_PAUSED ? "P 1" : "P 2");
@@ -264,11 +270,11 @@ int control_generic (mpg123_handle *fr)
 					{	
 						if (mode == MODE_PLAYING) {
 							mode = MODE_PAUSED;
-							buffer_stop();
+							if(param.usebuffer) buffer_stop();
 							generic_sendmsg("P 1");
 						} else {
 							mode = MODE_PLAYING;
-							buffer_start();
+							if(param.usebuffer) buffer_start();
 							generic_sendmsg("P 2");
 						}
 					}
@@ -278,6 +284,11 @@ int control_generic (mpg123_handle *fr)
 				/* STOP */
 				if (!strcasecmp(comstr, "S") || !strcasecmp(comstr, "STOP")) {
 					if (mode != MODE_STOPPED) {
+						if(param.usebuffer)
+						{
+							buffer_stop();
+							buffer_resync();
+						}
 						close_track();
 						mode = MODE_STOPPED;
 						generic_sendmsg("P 0");
@@ -375,6 +386,8 @@ int control_generic (mpg123_handle *fr)
 							generic_sendmsg("E Error while seeking: %s", mpg123_strerror(fr));
 							mpg123_seek(fr, 0, SEEK_SET);
 						}
+						if(param.usebuffer) buffer_resync();
+
 						generic_sendmsg("K %li", (long)mpg123_tell(fr));
 						continue;
 					}

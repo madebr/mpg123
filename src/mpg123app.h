@@ -188,4 +188,5 @@ extern struct parameter param;
 void next_track(void);
 int  open_track(char *fname);
 void close_track(void);
+void set_intflag(void);
 #endif 

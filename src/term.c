@@ -156,24 +156,11 @@ static long term_handle_input(mpg123_handle *fr, int do_delay)
       switch(tolower(val)) {
 	case BACK_KEY:
         if(!param.usebuffer) ao->flush(ao);
-	  /*
-	   * NOTE: rd->rewind() calls buffer_resync() that blocks until
-	   * buffer process returns ACK. If buffer process is stopped, we
-	   * end up in a deadlock. The only acceptable workaround was to
-	   * resume playing as soon as BACK_KEY is pressed. This is not
-	   * necessary when running non-buffered but I chose to remain
-	   * compatible. [dk] -- now the resync is explicitly here... [ThOr]
-	   */
-	  if(stopped) {
-		  stopped = 0;
-		  if(param.usebuffer)
-		  	buffer_start();
-		  fprintf(stderr, "%s", EMPTY_STRING);
-		}
+				else buffer_resync();
 		if(paused) pause_cycle=(int)(LOOP_CYCLES/mpg123_tpf(fr));
 
-		mpg123_seek_frame(fr, 0, SEEK_SET);
-		if(param.usebuffer)	buffer_resync();
+		if(mpg123_seek_frame(fr, 0, SEEK_SET) < 0)
+		error1("Seek to begin failed: %s", mpg123_strerror(fr));
 
 		framenum=0;
 		break;
@@ -183,9 +170,18 @@ static long term_handle_input(mpg123_handle *fr, int do_delay)
 	  next_track();
 	  break;
 	case QUIT_KEY:
-	  if (buffer_pid)
-		  kill(buffer_pid, SIGTERM);
-	  kill(getpid(), SIGTERM);
+		debug("QUIT");
+		if(stopped)
+		{
+			stopped = 0;
+			if(param.usebuffer)
+			{
+				buffer_resync();
+				buffer_start();
+			}
+		}
+		set_intflag();
+		return 0;
 	  break;
 	case PAUSE_KEY:
   	  paused=1-paused;
@@ -193,10 +189,11 @@ static long term_handle_input(mpg123_handle *fr, int do_delay)
 		  pause_cycle=(int)(LOOP_CYCLES/mpg123_tpf(fr));
 		  offset -= pause_cycle;
 	  }
-	  if(stopped) {
-		stopped=0;
-		buffer_start();
-	  }
+		if(stopped)
+		{
+			stopped=0;
+			if(param.usebuffer) buffer_start();
+		}
 	  fprintf(stderr, "%s", (paused) ? PAUSED_STRING : EMPTY_STRING);
 	  break;
 	case STOP_KEY:
@@ -208,7 +205,11 @@ static long term_handle_input(mpg123_handle *fr, int do_delay)
 		  paused=0;
 		  offset -= pause_cycle;
 	  }
-	  if(stopped) buffer_stop(); else buffer_start();
+		if(param.usebuffer)
+		{
+			if(stopped) buffer_stop();
+			else buffer_start();
+		}
 	  fprintf(stderr, "%s", (stopped) ? STOPPED_STRING : EMPTY_STRING);
 	  break;
 	case FINE_REWIND_KEY:
