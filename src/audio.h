@@ -81,6 +81,8 @@ void flush_output(audio_output_t *ao, unsigned char *bytes, size_t count);
 int open_output(audio_output_t *ao);
 void close_output(audio_output_t *ao );
 int reset_output(audio_output_t *ao);
+void output_pause(audio_output_t *ao);  /* Prepare output for inactivity. */
+void output_unpause(audio_output_t *ao); /* Reactivate output (buffer process). */
 
 #endif
 

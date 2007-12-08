@@ -8,6 +8,7 @@
 
 #include "mpg123app.h"
 #include "common.h"
+#include "buffer.h"
 
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
@@ -347,6 +348,17 @@ int init_output(audio_output_t **ao)
 	if(open_output(*ao) < 0) return -1;
 
 	return 0;
+}
+
+void output_pause(audio_output_t *ao)
+{
+	if(param.usebuffer) buffer_stop();
+	else ao->flush(ao);
+}
+
+void output_unpause(audio_output_t *ao)
+{
+	if(param.usebuffer) buffer_start();
 }
 
 void flush_output(audio_output_t *ao, unsigned char *bytes, size_t count)

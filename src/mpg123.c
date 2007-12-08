@@ -793,6 +793,17 @@ int main(int argc, char *argv[])
 			debug("Skipping this track.");
 			continue;
 		}
+		if(param.delay > 0)
+		{
+			if(param.verbose > 2) fprintf(stderr, "Note: pausing %i seconds before next track.\n", param.delay);
+			output_pause(ao);
+#ifdef WIN32
+			Sleep(param.delay*1000);
+#else
+			sleep(param.delay);
+#endif
+			output_unpause(ao);
+		}
 		frames_left = param.frame_number;
 		debug1("Going to play %s", strcmp(fname, "-") ? fname : "standard input");
 
