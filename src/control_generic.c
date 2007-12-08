@@ -99,9 +99,26 @@ void generic_sendstat (mpg123_handle *fr)
 	generic_sendmsg("F %li %li %3.2f %3.2f", current_frame, frames_left, current_seconds, seconds_left);
 }
 
-void generic_sendinfoid3(mpg123_handle *mh)
+static void generic_sendv1(mpg123_id3v1 *v1, const char *prefix)
 {
 	int i;
+	char info[125] = "";
+	memcpy(info,    v1->title,   30);
+	memcpy(info+30, v1->artist,  30);
+	memcpy(info+60, v1->album,   30);
+	memcpy(info+90, v1->year,     4);
+	memcpy(info+94, v1->comment, 30);
+
+	for(i=0;i<124; ++i) if(info[i] == 0) info[i] = ' ';
+	info[i] = 0;
+	generic_sendmsg("%s ID3:%s%s", prefix, info, (v1->genre<=genre_count) ? genre_table[v1->genre] : "Unknown");
+	generic_sendmsg("%s ID3.genre:%i", prefix, v1->genre);
+	if(v1->comment[28] == 0 && v1->comment[29] != 0)
+	generic_sendmsg("%s ID3.track:%i", prefix, (unsigned char)v1->comment[29]);
+}
+
+static void generic_sendinfoid3(mpg123_handle *mh)
+{
 	mpg123_id3v1 *v1;
 	mpg123_id3v2 *v2;
 	if(MPG123_OK != mpg123_id3(mh, &v1, &v2))
@@ -111,20 +128,7 @@ void generic_sendinfoid3(mpg123_handle *mh)
 	}
 	if(v1 != NULL)
 	{
-		int track = 0;
-		char info[125] = "";
-		memcpy(info,    v1->title,   	30);
-		memcpy(info+30, v1->artist,  30);
-		memcpy(info+60, v1->album,   30);
-		memcpy(info+90, v1->year,     4);
-		memcpy(info+94, v1->comment, 30);
-
-		for(i=0;i<124; ++i) if(info[i] == 0) info[i] = ' ';
-		info[i] = 0;
-		generic_sendmsg("I ID3:%s%s", info, (v1->genre<=genre_count) ? genre_table[v1->genre] : "Unknown");
-		generic_sendmsg("I ID3.genre:%i", v1->genre);
-		if(v1->comment[28] == 0 && v1->comment[29] != 0)
-		generic_sendmsg("I ID3.track:%i", (unsigned char)v1->comment[29]);
+		generic_sendv1(v1, "I");
 	}
 	if(v2 != NULL)
 	{
@@ -135,6 +139,56 @@ void generic_sendinfoid3(mpg123_handle *mh)
 		generic_send_lines("I ID3v2.comment:%s", v2->comment);
 		generic_send_lines("I ID3v2.genre:%s",   v2->genre);
 	}
+}
+
+void generic_sendalltag(mpg123_handle *mh)
+{
+	mpg123_id3v1 *v1;
+	mpg123_id3v2 *v2;
+	generic_sendmsg("T {");
+	if(MPG123_OK != mpg123_id3(mh, &v1, &v2))
+	{
+		error1("Cannot get ID3 data: %s", mpg123_strerror(mh));
+		v2 == NULL;
+	}
+	if(v1 != NULL) generic_sendv1(v1, "T");
+
+	if(v2 != NULL)
+	{
+		size_t i;
+		for(i=0; i<v2->texts; ++i)
+		{
+			char id[5];
+			memcpy(id, v2->text[i].id, 4);
+			id[4] = 0;
+			generic_sendmsg("T ID3v2.%s:", id);
+			generic_send_lines("T =%s", &v2->text[i].text);
+		}
+		for(i=0; i<v2->extras; ++i)
+		{
+			char id[5];
+			memcpy(id, v2->extra[i].id, 4);
+			id[4] = 0;
+			generic_sendmsg("T ID3v2.%s desc(%s):",
+			        id,
+			        v2->extra[i].description.fill ? v2->extra[i].description.p : "" );
+			generic_send_lines("T =%s", &v2->extra[i].text);
+		}
+		for(i=0; i<v2->comments; ++i)
+		{
+			char id[5];
+			char lang[4];
+			memcpy(id, v2->comment_list[i].id, 4);
+			id[4] = 0;
+			memcpy(lang, v2->comment_list[i].lang, 3);
+			lang[3] = 0;
+			generic_sendmsg("T ID3v2.%s lang(%s) desc(%s):",
+			                id, lang,
+			                v2->comment_list[i].description.fill ? v2->comment_list[i].description.p : "");
+			generic_send_lines("T =%s", &v2->comment_list[i].text);
+		}
+	}
+	generic_sendmsg("T }");
 }
 
 void generic_sendinfo (char *filename)
@@ -363,6 +417,11 @@ int control_generic (mpg123_handle *fr)
 					continue;
 				}
 
+				if(!strcasecmp(comstr, "T") || !strcasecmp(comstr, "TAG")) {
+					generic_sendalltag(fr);
+					continue;
+				}
+
 				/* QUIT */
 				if (!strcasecmp(comstr, "Q") || !strcasecmp(comstr, "QUIT")){
 					alive = FALSE; continue;
@@ -370,20 +429,36 @@ int control_generic (mpg123_handle *fr)
 
 				/* some HELP */
 				if (!strcasecmp(comstr, "H") || !strcasecmp(comstr, "HELP")) {
-					generic_sendmsg("HELP/H: command listing (LONG/SHORT forms), command case insensitve");
-					generic_sendmsg("LOAD/L <trackname>: load and start playing resource <trackname>");
-					generic_sendmsg("LOADPAUSED/LP <trackname>: load and start playing resource <trackname>");
-					generic_sendmsg("PAUSE/P: pause playback");
-					generic_sendmsg("STOP/S: stop playback (closes file)");
-					generic_sendmsg("JUMP/J <frame>|<+offset>|<-offset>|<[+|-]seconds>s: jump to mpeg frame <frame> or change position by offset, same in seconds if number followed by \"s\"");
-					generic_sendmsg("VOLUME/V <percent>: set volume in % (0..100...); float value");
-					generic_sendmsg("RVA off|(mix|radio)|(album|audiophile): set rva mode");
-					generic_sendmsg("EQ/E <channel> <band> <value>: set equalizer value for frequency band on channel");
-					generic_sendmsg("SEEK/K <sample>|<+offset>|<-offset>: jump to output sample position <samples> or change position by offset");
-					generic_sendmsg("SEQ <bass> <mid> <treble>: simple eq setting...");
-					generic_sendmsg("SILENCE: be silent during playback (meaning silence in text form)");
-					generic_sendmsg("meaning of the @S stream info:");
-					generic_sendmsg(remote_header_help);
+					generic_sendmsg("H {");
+					generic_sendmsg("H HELP/H: command listing (LONG/SHORT forms), command case insensitve");
+					generic_sendmsg("H LOAD/L <trackname>: load and start playing resource <trackname>");
+					generic_sendmsg("H LOADPAUSED/LP <trackname>: load and start playing resource <trackname>");
+					generic_sendmsg("H PAUSE/P: pause playback");
+					generic_sendmsg("H STOP/S: stop playback (closes file)");
+					generic_sendmsg("H JUMP/J <frame>|<+offset>|<-offset>|<[+|-]seconds>s: jump to mpeg frame <frame> or change position by offset, same in seconds if number followed by \"s\"");
+					generic_sendmsg("H VOLUME/V <percent>: set volume in % (0..100...); float value");
+					generic_sendmsg("H RVA off|(mix|radio)|(album|audiophile): set rva mode");
+					generic_sendmsg("H EQ/E <channel> <band> <value>: set equalizer value for frequency band on channel");
+					generic_sendmsg("H SEEK/K <sample>|<+offset>|<-offset>: jump to output sample position <samples> or change position by offset");
+					generic_sendmsg("H SEQ <bass> <mid> <treble>: simple eq setting...");
+					generic_sendmsg("H SILENCE: be silent during playback (meaning silence in text form)");
+					generic_sendmsg("H TAG/T: Print all available (ID3) tag info, for ID3v2 that gives output of all collected text fields, using the ID3v2.3/4 4-character names.");
+					generic_sendmsg("H    The output is multiple lines, begin marked by \"@T {\", end by \"@T }\".");
+					generic_sendmsg("H    ID3v1 data is like in the @I info lines (see below), just with \"@T\" in front.");
+					generic_sendmsg("H    An ID3v2 data field is introduced via ([ ... ] means optional):");
+					generic_sendmsg("H     @T ID3v2.<NAME>[ [lang(<LANG>)] desc(<description>)]:");
+					generic_sendmsg("H    The lines of data follow with \"=\" prefixed:");
+					generic_sendmsg("H     @T =<one line of content in UTF-8 encoding>");
+					generic_sendmsg("H meaning of the @S stream info:");
+					generic_sendmsg("H %s", remote_header_help);
+					generic_sendmsg("H The @I lines after loading a track give some ID3 info, the format:");
+					generic_sendmsg("H      @I ID3:artist  album  year  comment genretext");
+					generic_sendmsg("H     where artist,album and comment are exactly 30 characters each, year is 4 characters, genre text unspecified.");
+					generic_sendmsg("H     You will encounter \"@I ID3.genre:<number>\" and \"@I ID3.track:<number>\".");
+					generic_sendmsg("H     Then, there is an excerpt of ID3v2 info in the structure");
+					generic_sendmsg("H      @I ID3v2.title:Blabla bla Bla");
+					generic_sendmsg("H     for every line of the \"title\" data field. Likewise for other fields (author, album, etc).");
+					generic_sendmsg("H }");
 					continue;
 				}
 
