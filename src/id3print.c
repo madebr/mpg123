@@ -14,11 +14,8 @@ static void utf8_ascii(mpg123_string *dest, mpg123_string *source);
 static void transform(mpg123_string *dest, mpg123_string *source)
 {
 	debug("transform!");
-	if(source == NULL)
-	{
-		mpg123_set_string(dest, "");
-		return;
-	}
+	if(source == NULL) return;
+
 	if(utf8env) mpg123_copy_string(source, dest);
 	else utf8_ascii(dest, source);
 }
