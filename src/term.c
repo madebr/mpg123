@@ -1,4 +1,3 @@
-#define DEBUG
 /*
 	term: terminal control
 
