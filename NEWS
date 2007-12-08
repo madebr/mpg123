@@ -1,5 +1,6 @@
 1.0rc2
 ----
+
 - Fixed some bugs, the ID3v2 interface of libmpg123 is safer now (there were possibly stale pointers in there).
 - Buffer mode got vital improvements (yeah, that is sort of feature creep during release process, but worth it)
   The improved communication makes it possible to skip tracks in terminal control mode without the hack to immediately restart playback.
@@ -12,6 +13,8 @@
   --delay parameter to issue a pause before each track (does not make sense for file writing outputs, though).
 - Even more feature creep: remote control can now give ID3v2 data, also in more raw form via new "tag" command.
   This sort of qualifies as bugfix, actually, since it's item 1786430 on the tracker;-)
+- Make flexible rate computations more safe (especially on 32bit platforms) by switching to the looping code instead of direct multiplication/division (which blows up with integers). A possible effect was premature track ending with a forced rate.
+- Flexible rate mode works _at_all_ again with fixed output support detection code (comparison of -1 with a size_t ended a loop all too early).
 
 1.0rc1
 ----
