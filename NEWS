@@ -10,6 +10,8 @@
   There is hope that this fixes buffered output on MacOSX.
 - More feature creep, this time because of something like that was already included in the Debian mpg123:
   --delay parameter to issue a pause before each track (does not make sense for file writing outputs, though).
+- Even more feature creep: remote control can now give ID3v2 data, also in more raw form via new "tag" command.
+  This sort of qualifies as bugfix, actually, since it's item 1786430 on the tracker;-)
 
 1.0rc1
 ----
