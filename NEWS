@@ -1,3 +1,16 @@
+1.0rc2
+----
+- Fixed some bugs, the ID3v2 interface of libmpg123 is safer now (there were possibly stale pointers in there).
+- Buffer mode got vital improvements (yeah, that is sort of feature creep during release process, but worth it)
+  The improved communication makes it possible to skip tracks in terminal control mode without the hack to immediately restart playback.
+  To be able to do seeking in terminal mode with buffer properly, buffered playback stops on seek keys. You restart playback after you are done with seeking.
+- Support either portaudio v18 or v19 API (v18 works for me, v19 works according to user report).
+- Audio output handling got safer and more clean, a byproduct of implementing the above. I stumbled over some things and had to fix it (yeah, feature creep in parts again, but still: Worth it!;-)
+  Any audio access is now restricted to either that standalone mpg123 process or the buffer process, the output being opened _after_ the fork().
+  There is hope that this fixes buffered output on MacOSX.
+- More feature creep, this time because of something like that was already included in the Debian mpg123:
+  --delay parameter to issue a pause before each track (does not make sense for file writing outputs, though).
+
 1.0rc1
 ----
 
