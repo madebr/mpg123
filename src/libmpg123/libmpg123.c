@@ -709,9 +709,12 @@ static int do_the_seek(mpg123_handle *mh)
 
 off_t mpg123_seek(mpg123_handle *mh, off_t sampleoff, int whence)
 {
+	int b;
 	off_t pos = mpg123_tell(mh); /* adjusted samples */
 debug1("pos=%li", (long)pos);
 	if(pos < 0) return pos; /* mh == NULL is covered in mpg123_tell() */
+	if((b=init_track(mh)) < 0) return b;
+
 	switch(whence)
 	{
 		case SEEK_CUR: pos += sampleoff; break;
@@ -747,9 +750,12 @@ debug1("pos=%li", (long)pos);
 */
 off_t mpg123_feedseek(mpg123_handle *mh, off_t sampleoff, int whence, off_t *input_offset)
 {
+	int b;
 	off_t pos = mpg123_tell(mh); /* adjusted samples */
 	debug3("seek from %li to %li (whence=%i)", (long)pos, (long)sampleoff, whence);
 	if(pos < 0) return pos; /* mh == NULL is covered in mpg123_tell() */
+	if((b=init_track(mh)) < 0) return b; /* May need more to do anything at all. */
+
 	switch(whence)
 	{
 		case SEEK_CUR: pos += sampleoff; break;
@@ -789,14 +795,11 @@ feedseekend:
 
 off_t mpg123_seek_frame(mpg123_handle *mh, off_t offset, int whence)
 {
+	int b;
 	off_t pos = 0;
 	if(mh == NULL) return MPG123_ERR;
-	if(!mh->to_decode && mh->fresh)
-	{
-		/* Fresh track, need first frame for basic info. */
-		int b = get_next_frame(mh);
-		if(b < 0) return b;
-	}
+	if((b=init_track(mh)) < 0) return b;
+
 	/* Could play games here with to_decode... */
 	pos = mh->num;
 	switch(whence)
