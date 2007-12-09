@@ -94,7 +94,8 @@ AC_ARG_ENABLE(modules,
 	if test "x$be_static" = "xyes"; then
 		modules=disabled
 	else
-		modules=enabled
+		# Per default no modules in Windows...
+		AC_CHECK_HEADERS([windows.h], modules=disabled, modules=enabled)
 	fi
 ])
 
@@ -1184,8 +1185,8 @@ echo "The _single_ active output module is being statically linked in.
 "
 else
 	if test "$HAVE_WIN32" = yes; then
-	echo "WARNING: The output modules won't work under plain Windows (MinGW32)... You might want to rerun with --disable-modules."
-	echo "Alternatively, you can try to hack our libtool stuff into making it happen -- and share your knowledge with the mpg123 team."
+	echo "WARNING: The output modules most likely won't work for you under Windows (MinGW32)..."
+	echo "You can try to hack our libtool stuff into making it happen -- and share your knowledge with the mpg123 team."
 	echo
 	fi
 fi
