@@ -226,8 +226,12 @@ int xfermem_write(txfermem *xf, byte *buffer, size_t bytes)
 	/* You weren't so braindead to have not allocated enough space at all, right? */
 	while (xfermem_get_freespace(xf) < bytes)
 	{
-		if (xfermem_block(XF_WRITER, xf) == XF_CMD_TERMINATE)
-		return TRUE;
+		int cmd =  xfermem_block(XF_WRITER, xf);
+		if (cmd == XF_CMD_TERMINATE || cmd < 0)
+		{
+			error("failed to wait for free space");
+			return TRUE; /* Failure. */
+		}
 	}
 	/* Now we have enough space. copy the memory, possibly with the wrap. */
 	if(xf->size - xf->freeindex >= bytes)
@@ -244,7 +248,8 @@ int xfermem_write(txfermem *xf, byte *buffer, size_t bytes)
 	xf->freeindex = (xf->freeindex + bytes) % xf->size;
 	/* Wake up the buffer process if necessary. */
 	debug("write waking");
-	if(xf->wakeme[XF_READER]) xfermem_putcmd(xf->fd[XF_WRITER], XF_CMD_WAKEUP_INFO);
+	if(xf->wakeme[XF_READER])
+	return xfermem_putcmd(xf->fd[XF_WRITER], XF_CMD_WAKEUP_INFO) < 0 ? TRUE : FALSE;
 
 	return FALSE;
 }

@@ -378,14 +378,11 @@ int init_output(audio_output_t **ao)
 				audio_output_t *bao = NULL; /* To be clear: That's the buffer's pointer. */
 				param.usebuffer = 0; /* The buffer doesn't use the buffer. */
 				/* Open audio output module */
-				if(param.outmode == DECODE_AUDIO)
+				bao = open_output_module(param.output_module);
+				if(!bao)
 				{
-					bao = open_output_module(param.output_module);
-					if(!bao)
-					{
-						error("Failed to open audio output module.");
-						exit(1); /* communicate failure? */
-					}
+					error("Failed to open audio output module.");
+					exit(1); /* communicate failure? */
 				}
 				if(open_output(bao) < 0)
 				{
@@ -439,6 +436,25 @@ int init_output(audio_output_t **ao)
 	return 0;
 }
 
+void exit_output(audio_output_t *ao, int rude)
+{
+	debug("exit output");
+#ifndef NOXFERMEM
+	if (param.usebuffer)
+	{
+		debug("ending buffer");
+		buffer_stop(); /* Puts buffer into waiting-for-command mode. */
+		buffer_end(rude);  /* Gives command to end operation. */
+		xfermem_done_writer(buffermem);
+		waitpid (buffer_pid, NULL, 0);
+		xfermem_done (buffermem);
+	}
+#endif
+	/* Close the output... doesn't matter if buffer handled it, that's taken care of. */
+	close_output(ao);
+	close_output_module(ao);
+}
+
 void output_pause(audio_output_t *ao)
 {
 	if(param.usebuffer) buffer_stop();
@@ -450,17 +466,19 @@ void output_unpause(audio_output_t *ao)
 	if(param.usebuffer) buffer_start();
 }
 
-void flush_output(audio_output_t *ao, unsigned char *bytes, size_t count)
+int flush_output(audio_output_t *ao, unsigned char *bytes, size_t count)
 {
 	if(count)
 	{
 		/* Error checks? */
 #ifndef NOXFERMEM
-		if(param.usebuffer) xfermem_write(buffermem, bytes, count);
+		if(param.usebuffer){ if(xfermem_write(buffermem, bytes, count)) return -1; }
 		else
 #endif
-		if(param.outmode != DECODE_TEST) ao->write(ao, bytes, count);
+		if(param.outmode != DECODE_TEST)
+		return ao->write(ao, bytes, (int)count);
 	}
+	return (int)count; /* That is for DECODE_TEST */
 }
 
 int open_output(audio_output_t *ao)

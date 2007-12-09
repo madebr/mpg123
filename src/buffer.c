@@ -107,7 +107,7 @@ void buffer_sig(int signal, int block)
 
 void buffer_loop(audio_output_t *ao, sigset_t *oldsigset)
 {
-	int bytes;
+	int bytes, outbytes;
 	int my_fd = buffermem->fd[XF_READER];
 	txfermem *xf = buffermem;
 	int done = FALSE;
@@ -118,33 +118,31 @@ void buffer_loop(audio_output_t *ao, sigset_t *oldsigset)
 	sigprocmask (SIG_SETMASK, oldsigset, NULL);
 
 	xfermem_putcmd(my_fd, XF_CMD_WAKEUP);
-	if(param.outmode == DECODE_AUDIO)
+
+	debug("audio output: waiting for cap requests");
+	/* wait for audio setup queries */
+	while(1)
 	{
-		debug("audio output: waiting for cap requests");
-		/* wait for audio setup queries */
-		while(1)
+		int cmd;
+		cmd = xfermem_block(XF_READER, xf);
+		if(cmd == XF_CMD_AUDIOCAP)
 		{
-			int cmd;
-			cmd = xfermem_block(XF_READER, xf);
-			if(cmd == XF_CMD_AUDIOCAP)
-			{
-				ao->rate     = xf->rate;
-				ao->channels = xf->channels;
-				ao->format   = ao->get_formats(ao);
-				debug3("formats for %liHz/%ich: 0x%x", ao->rate, ao->channels, ao->format);
-				xf->format = ao->format;
-				xfermem_putcmd(my_fd, XF_CMD_AUDIOCAP);
-			}
-			else if(cmd == XF_CMD_WAKEUP)
-			{
-				debug("got wakeup... leaving config mode");
-				break;
-			}
-			else
-			{
-				error1("unexpected command %i", cmd);
-				return;
-			}
+			ao->rate     = xf->rate;
+			ao->channels = xf->channels;
+			ao->format   = ao->get_formats(ao);
+			debug3("formats for %liHz/%ich: 0x%x", ao->rate, ao->channels, ao->format);
+			xf->format = ao->format;
+			xfermem_putcmd(my_fd, XF_CMD_AUDIOCAP);
+		}
+		else if(cmd == XF_CMD_WAKEUP)
+		{
+			debug("got wakeup... leaving config mode");
+			break;
+		}
+		else
+		{
+			error1("unexpected command %i", cmd);
+			return;
 		}
 	}
 
@@ -272,18 +270,14 @@ void buffer_loop(audio_output_t *ao, sigset_t *oldsigset)
 		if (bytes > outburst)
 			bytes = outburst;
 
-		/* Could change that to use flush_output.... need to capture return value, then. */
-debug("write");
-		if (param.outmode == DECODE_FILE)
-			bytes = write(OutputDescriptor, xf->data + xf->readindex, bytes);
-		else if (param.outmode == DECODE_AUDIO)
-			bytes = ao->write(ao,
-				(unsigned char *) (xf->data + xf->readindex), bytes);
+		debug("write");
+		outbytes = flush_output(ao, (unsigned char*) xf->data + xf->readindex, bytes);
 
-		if(bytes < 0) {
-			bytes = 0;
+		if(outbytes < bytes)
+		{
+			if(outbytes < 0) outbytes = 0;
 			if(!intflag && !usr1flag) {
-				perror("Ouch ... error while writing audio data: ");
+				error1("Ouch ... error while writing audio data: %s", strerror(errno));
 				/*
 				 * done==TRUE tells writer process to stop
 				 * sending data. There might be some latency
@@ -299,6 +293,7 @@ debug("write");
 			}
 			else debug("buffer interrupted");
 		}
+		bytes = outbytes;
 
 		xf->readindex = (xf->readindex + bytes) % xf->size;
 		if (xf->wakeme[XF_WRITER])

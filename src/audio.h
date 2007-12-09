@@ -77,7 +77,8 @@ int audio_fit_capabilities(audio_output_t *ao,int c,int r);
 const char* audio_encoding_name(const int encoding, const int longer);
 
 int init_output(audio_output_t **ao);
-void flush_output(audio_output_t *ao, unsigned char *bytes, size_t count);
+void exit_output(audio_output_t *ao, int rude);
+int flush_output(audio_output_t *ao, unsigned char *bytes, size_t count);
 int open_output(audio_output_t *ao);
 void close_output(audio_output_t *ao );
 int reset_output(audio_output_t *ao);

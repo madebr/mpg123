@@ -15,6 +15,7 @@
   This sort of qualifies as bugfix, actually, since it's item 1786430 on the tracker;-)
 - Make flexible rate computations more safe (especially on 32bit platforms) by switching to the looping code instead of direct multiplication/division (which blows up with integers). A possible effect was premature track ending with a forced rate.
 - Flexible rate mode works _at_all_ again with fixed output support detection code (comparison of -1 with a size_t ended a loop all too early).
+- check for error in flushing output (this ends mpg123 for a broken pipe, for example)
 
 1.0rc1
 ----

@@ -21,4 +21,5 @@ EXTRA_DIST = \
 	xmms2-plugin/mpg123/mpg123.c \
 	xmms2-plugin/mpg123/wscript \
 	makedll.sh \
+	test/forkfaint.c \
 	test/rms16.c

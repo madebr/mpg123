@@ -115,6 +115,7 @@ char *prgName = NULL;
 char *equalfile = NULL;
 struct httpdata htd;
 int fresh = TRUE;
+int have_output = FALSE; /* If we are past the output init step. */
 
 int buffer_fd[2];
 int buffer_pid;
@@ -154,7 +155,10 @@ void safe_exit(int code)
 	if(param.term_ctrl)
 		term_restore();
 #endif
+	if(have_output) exit_output(ao, intflag);
+
 	if(mh != NULL) mpg123_delete(mh);
+
 	mpg123_exit();
 	httpdata_reset(&htd);
 	/* It's ugly... but let's just fix this still-reachable memory chunk of static char*. */
@@ -524,7 +528,11 @@ int play_frame(void)
 			else print_header_compact(mh);
 		}
 		/* Normal flushing of data, includes buffer decoding. */
-		flush_output(ao, audio, bytes);
+		if(flush_output(ao, audio, bytes) < (int)bytes)
+		{
+			error("Deep trouble! Cannot flush to my output anymore!");
+			safe_exit(133);
+		}
 		if(param.checkrange)
 		{
 			long clip = mpg123_clip(mh);
@@ -659,6 +667,7 @@ int main(int argc, char *argv[])
 		mpg123_delete_pars(mp);
 		return 99; /* It's safe here... nothing nasty happened yet. */
 	}
+	have_output = TRUE;
 
 	/* ========================================================================================================= */
 	/* Enterning the leaking zone... we start messing with stuff here that should be taken care of when leaving. */
@@ -776,8 +785,6 @@ int main(int argc, char *argv[])
 	if(param.remote) {
 		int ret;
 		ret = control_generic(mh);
-		close_output(ao);
-		close_output_module(ao);
 		safe_exit(ret);
 	}
 
@@ -964,23 +971,9 @@ int main(int argc, char *argv[])
 #endif
       }
     } /* end of loop over input files */
-#ifndef NOXFERMEM
-    if (param.usebuffer) {
-      debug("ending buffer");
-      buffer_stop(); /* Puts buffer into waiting-for-command mode. */
-      buffer_end(intflag);  /* Gives command to end operation. */
-      xfermem_done_writer (buffermem);
-      waitpid (buffer_pid, NULL, 0);
-      xfermem_done (buffermem);
-    }
-#endif
-	debug("close output");
-	/* Close the output... doesn't matter if buffer handled it, that's taken care of. */
-	close_output(ao);
-	close_output_module(ao);
 	/* Free up memory used by playlist */    
 	if(!param.remote) free_playlist();
-	safe_exit(0);
+	safe_exit(0); /* That closes output, too. */
 	return 0;
 }
 
