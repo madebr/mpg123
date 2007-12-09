@@ -73,7 +73,7 @@ struct parameter param = {
   /* test_cpu flag is valid for multi and 3dnow.. even if 3dnow is built alone; ensure it appears only once */
   FALSE , /* normal operation */
   FALSE,  /* try to run process in 'realtime mode' */   
-  { 0,},  /* wav,cdr,au Filename */
+  NULL,  /* wav,cdr,au Filename */
 	0, /* default is to play all titles in playlist */
 	NULL, /* no playlist per default */
 	0 /* condensed id3 per default */
@@ -223,22 +223,19 @@ static void set_verbose (char *arg)
 static void set_out_wav(char *arg)
 {
 	param.outmode = DECODE_WAV;
-	strncpy(param.filename,arg,255);
-	param.filename[255] = 0;
+	param.filename = arg;
 }
 
 void set_out_cdr(char *arg)
 {
 	param.outmode = DECODE_CDR;
-	strncpy(param.filename,arg,255);
-	param.filename[255] = 0;
+	param.filename = arg;
 }
 
 void set_out_au(char *arg)
 {
   param.outmode = DECODE_AU;
-  strncpy(param.filename,arg,255);
-  param.filename[255] = 0;
+  param.filename = arg;
 }
 
 static void set_out_file(char *arg)
@@ -434,12 +431,6 @@ static void reset_audio(long rate, int channels, int format)
 	}
 	else 
 #endif
-	if (param.outmode == DECODE_AUDIO) {
-		/* audio_reset_parameters(ao); */
-		/*   close and re-open in order to flush
-		 *   the device's internal buffer before
-		 *   changing the sample rate.   [OF]
-		 */
 		if(ao == NULL)
 		{
 			error("Audio handle should not be NULL here!");
@@ -453,7 +444,6 @@ static void reset_audio(long rate, int channels, int format)
 			error1("failed to reset audio device: %s", strerror(errno));
 			safe_exit(1);
 		}
-	}
 }
 
 /* 1 on success, 0 on failure */

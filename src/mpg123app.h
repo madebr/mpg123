@@ -110,7 +110,7 @@ struct parameter
   int force_reopen;
   int test_cpu;
   long realtime;
-  char filename[256];
+  char *filename;
   long listentry; /* possibility to choose playback of one entry in playlist (0: off, > 0 : select, < 0; just show list*/
   char* listname; /* name of playlist */
   int long_id3;
@@ -168,19 +168,13 @@ extern int play_frame(void);
 extern int control_generic(mpg123_handle *fr);
 
 /* Eh... I see duplicated definitions. Clean up after merge! */
-extern int cdr_open(audio_output_t *, char *ame);
-extern int au_open(audio_output_t *, char *name);
-extern int wav_open(audio_output_t *, char *wavfilename);
+extern int cdr_open(audio_output_t *);
+extern int au_open(audio_output_t *);
+extern int wav_open(audio_output_t *);
 extern int wav_write(unsigned char *buf,int len);
 extern int cdr_close(void);
 extern int au_close(void);
 extern int wav_close(void);
-
-extern int au_open(audio_output_t *, char *aufilename);
-extern int au_close(void);
-
-extern int cdr_open(audio_output_t *, char *cdrfilename);
-extern int cdr_close(void);
 
 extern struct parameter param;
 

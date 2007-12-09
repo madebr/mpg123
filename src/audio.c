@@ -14,6 +14,82 @@
 #include <sys/wait.h>
 #endif
 
+static int file_write(struct audio_output_struct* ao, unsigned char *bytes, int count)
+{
+	return (int)write(ao->fn, bytes, count);
+}
+static int wave_write(struct audio_output_struct* ao, unsigned char *bytes, int count)
+{
+	return wav_write(bytes, count);
+}
+static int builtin_get_formats(struct audio_output_struct *ao)
+{
+	if(param.outmode == DECODE_CDR)
+	{
+		if(ao->rate == 44100 && ao->channels == 2)
+		return MPG123_ENC_SIGNED_16;
+		else
+		return 0;
+	}
+	else if(param.outmode == DECODE_AU) return MPG123_ENC_SIGNED_16|MPG123_ENC_UNSIGNED_8|MPG123_ENC_ULAW_8;
+	else return MPG123_ENC_ANY;
+}
+static int builtin_close(struct audio_output_struct *ao)
+{
+	switch(param.outmode)
+	{
+		case DECODE_WAV:
+		wav_close();
+		break;
+		case DECODE_AU:
+		au_close();
+		break;
+		case DECODE_CDR:
+		cdr_close();
+		break;
+	}
+	return 0;
+}
+static int  builtin_nothingint(struct audio_output_struct *ao){ return 0; }
+static void builtin_nothing(struct audio_output_struct *ao){}
+
+audio_output_t* open_fake_module(void)
+{
+	audio_output_t *ao = NULL;
+	ao = alloc_audio_output();
+	if(ao == NULL)
+	{
+		error("Cannot allocate memory for audio output data.");
+		return NULL;
+	}
+	ao->module = NULL;
+	ao->open   = builtin_nothingint;
+	ao->flush  = builtin_nothing;
+	ao->get_formats = builtin_get_formats;
+	ao->write  = wave_write;
+	ao->close  = builtin_close;
+	ao->device = param.filename;
+	switch(param.outmode)
+	{
+		case DECODE_FILE:
+			ao->fn    = OutputDescriptor;
+			ao->write = file_write;
+		break;
+		case DECODE_WAV:
+			ao->open  = wav_open;
+		break;
+		case DECODE_CDR:
+			ao->open  = cdr_open;
+		break;
+		case DECODE_AU:
+			ao->open  = au_open;
+		break;
+		case DECODE_TEST:
+		break;
+	}
+
+	return ao;
+}
 
 /* Open an audio output module */
 audio_output_t* open_output_module( const char* name )
@@ -22,7 +98,10 @@ audio_output_t* open_output_module( const char* name )
 	audio_output_t *ao = NULL;
 	int result = 0;
 
-	if(param.usebuffer || param.outmode != DECODE_AUDIO) return NULL;
+	if(param.usebuffer) return NULL;
+
+	/* Use internal code. */
+	if(param.outmode != DECODE_AUDIO) return open_fake_module();
 
 	/* Open the module */
 	module = open_module( "output", name );
@@ -67,7 +146,6 @@ void close_output_module( audio_output_t* ao )
 	if (!ao) return; /* That covers buffer mode, too (ao == NULL there). */
 	
 	debug("closing output module");
-
 	/* Close the audio output */
 	if(ao->is_open && ao->close != NULL) ao->close(ao);
 
@@ -173,7 +251,7 @@ void print_capabilities(audio_output_t *ao, mpg123_handle *mh)
 	const char *dev  = "<none>";
 	if(!param.usebuffer)
 	{
-		name = ao->module->name;
+		name = ao->module ? ao->module->name : "file/raw/test";
 		if(ao->device != NULL) dev = ao->device;
 	}
 	mpg123_rates(&rates, &num_rates);
@@ -200,15 +278,7 @@ void audio_capabilities(audio_output_t *ao, mpg123_handle *mh)
 	size_t      num_rates, rlimit;
 	debug("audio_capabilities");
 	mpg123_rates(&rates, &num_rates);
-
-	if(param.outmode != DECODE_AUDIO)
-	{ /* File/stdout writers can take anything. */
-		mpg123_format_all(mh);
-		return;
-	}
-
 	mpg123_format_none(mh); /* Start with nothing. */
-
 	rlimit = param.force_rate > 0 ? num_rates+1 : num_rates;
 	for(channels=1; channels<=2; channels++)
 	for(ri = 0;ri<rlimit;ri++)
@@ -336,7 +406,7 @@ int init_output(audio_output_t **ao)
 		}
 	}
 #endif
-	if(param.outmode == DECODE_AUDIO && !param.usebuffer)
+	if(!param.usebuffer)
 	{ /* Only if I handle audio device output: Get that module. */
 		*ao = open_output_module(param.output_module);
 		if(!ao)
@@ -378,21 +448,7 @@ void flush_output(audio_output_t *ao, unsigned char *bytes, size_t count)
 	{
 		/* Error checks? */
 		if(param.usebuffer) xfermem_write(buffermem, bytes, count);
-		else
-		switch(param.outmode)
-		{
-			case DECODE_AUDIO:
-				ao->write(ao, bytes, count);
-			break;
-			case DECODE_FILE:
-				write(OutputDescriptor, bytes, count);
-			break;
-			case DECODE_WAV:
-			case DECODE_CDR:
-			case DECODE_AU:
-				wav_write(bytes, count);
-			break;
-		}
+		else if(param.outmode != DECODE_TEST) ao->write(ao, bytes, count);
 	}
 }
 
@@ -400,14 +456,20 @@ int open_output(audio_output_t *ao)
 {
 	if(param.usebuffer) return 0;
 
+	if(ao == NULL)
+	{
+		error("ao should not be NULL here!");
+		exit(110);
+	}
+
 	switch(param.outmode)
 	{
 		case DECODE_AUDIO:
-			if(ao == NULL)
-			{
-				error("ao should not be NULL here!");
-				exit(110);
-			}
+		case DECODE_WAV:
+		case DECODE_AU:
+		case DECODE_CDR:
+		case DECODE_FILE:
+			debug("opening normal audio/file");
 			ao->is_open = ao->open(ao) < 0 ? FALSE : TRUE;
 			if(!ao->is_open)
 			{
@@ -416,16 +478,12 @@ int open_output(audio_output_t *ao)
 			}
 			else return 0;
 		break;
-		case DECODE_WAV:
-			return wav_open(ao,param.filename);
-		break;
-		case DECODE_AU:
-			return au_open(ao,param.filename);
-		break;
-		case DECODE_CDR:
-			return cdr_open(ao,param.filename);
+		case DECODE_TEST:
+			debug("decoding to nowhere");
+			return 0;
 		break;
 	}
+	debug("nothing");
 	return -1; /* That's an error ... unknown outmode? */
 }
 
@@ -438,6 +496,9 @@ void close_output(audio_output_t *ao)
 	switch(param.outmode)
 	{
 		case DECODE_AUDIO:
+		case DECODE_WAV:
+		case DECODE_AU:
+		case DECODE_CDR:
 		/* Guard that close call; could be nasty. */
 		if(ao->is_open)
 		{
@@ -445,23 +506,13 @@ void close_output(audio_output_t *ao)
 			if(ao->close != NULL) ao->close(ao);
 		}
 		break;
-		/* These are safe to be called too often. */
-		case DECODE_WAV:
-		wav_close();
-		break;
-		case DECODE_AU:
-		au_close();
-		break;
-		case DECODE_CDR:
-		cdr_close();
-		break;
 	}
 }
 
 /* Also for WAV decoding? */
 int reset_output(audio_output_t *ao)
 {
-	if(param.outmode == DECODE_AUDIO)
+	if(!param.usebuffer)
 	{
 		close_output(ao);
 		return open_output(ao);
