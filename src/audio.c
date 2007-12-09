@@ -405,6 +405,12 @@ int init_output(audio_output_t **ao)
 			xfermem_init_writer (buffermem);
 		}
 	}
+#else
+	if(param.usebuffer)
+	{
+		error("Buffer not available in this build!");
+		return -1;
+	}
 #endif
 	if(!param.usebuffer)
 	{ /* Only if I handle audio device output: Get that module. */
@@ -416,6 +422,7 @@ int init_output(audio_output_t **ao)
 		}
 	}
 	else *ao = NULL; /* That ensures we won't try to free it later... */
+#ifndef NOXFERMEM
 	if(param.usebuffer)
 	{ /* Check if buffer is alive. */
 		int res = xfermem_getcmd(buffermem->fd[XF_WRITER], TRUE);
@@ -425,6 +432,7 @@ int init_output(audio_output_t **ao)
 			return -1;
 		}
 	}
+#endif
 	/* This has internal protection for buffer mode. */
 	if(open_output(*ao) < 0) return -1;
 
@@ -447,8 +455,11 @@ void flush_output(audio_output_t *ao, unsigned char *bytes, size_t count)
 	if(count)
 	{
 		/* Error checks? */
+#ifndef NOXFERMEM
 		if(param.usebuffer) xfermem_write(buffermem, bytes, count);
-		else if(param.outmode != DECODE_TEST) ao->write(ao, bytes, count);
+		else
+#endif
+		if(param.outmode != DECODE_TEST) ao->write(ao, bytes, count);
 	}
 }
 
