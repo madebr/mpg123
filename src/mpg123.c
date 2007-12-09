@@ -19,6 +19,9 @@
 #ifdef HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
 #endif
+#ifdef WIN32
+#include <windows.h>
+#endif
 
 #include <errno.h>
 #include <string.h>
