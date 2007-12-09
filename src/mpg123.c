@@ -433,6 +433,7 @@ static void reset_audio(long rate, int channels, int format)
 		buffer_reset();
 	}
 	else 
+	{
 #endif
 		if(ao == NULL)
 		{
@@ -447,6 +448,9 @@ static void reset_audio(long rate, int channels, int format)
 			error1("failed to reset audio device: %s", strerror(errno));
 			safe_exit(1);
 		}
+#ifndef NOXFERMEM
+	}
+#endif
 }
 
 /* 1 on success, 0 on failure */
