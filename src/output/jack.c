@@ -180,6 +180,7 @@ static int open_jack(audio_output_t *ao)
 	jack_status_t jstat = 0;
 	unsigned int i;
 
+	debug("jack open");
 	if(!ao) return -1;
 
 	/* Return if already open*/
@@ -188,14 +189,6 @@ static int open_jack(audio_output_t *ao)
 		return -1;
 	}
 
-	/* For some reason we get called with format=-1 initially*/
-	/* Just prentend that it didn't happen*/
-	if (ao->format==-1) {
-		return 0;
-	}
-
-
-	
 	/* Create some storage for ourselves*/
 	if((handle = alloc_jack_handle()) == NULL) return -1;
 
@@ -213,6 +206,13 @@ static int open_jack(audio_output_t *ao)
 	fprintf(stderr,"Registered as JACK client %s.\n",
 		jack_get_client_name( handle->client ) );
 
+	/* The initial open lets me choose the settings. */
+	if (ao->format==-1)
+	{
+		ao->format = MPG123_ENC_16;
+		ao->rate   = jack_get_sample_rate(handle->client);
+		ao->channels = 2;
+	}
 
 	/* Check the sample rate is correct*/
 	if (jack_get_sample_rate( handle->client ) != (jack_nframes_t)ao->rate) {
@@ -221,7 +221,6 @@ static int open_jack(audio_output_t *ao)
 		return -1;
 	}
 
-	
 	/* Register ports with Jack*/
 	handle->channels = ao->channels;
 	if (handle->channels == 1) {
@@ -273,14 +272,16 @@ static int open_jack(audio_output_t *ao)
 		return -1;
 	}
 
+	debug("Jack open successful.\n");
 	return 0;
 }
 
 
-/* Jack is in fact 32-bit floats only */
+/* Jack could be set to 32bits float, actually */
 static int get_formats_jack(audio_output_t *ao)
 {
-	return MPG123_ENC_SIGNED_16;
+	if(jack_get_sample_rate( ((jack_handle_t*)(ao->userptr))->client ) != (jack_nframes_t)ao->rate) return 0;
+	else return MPG123_ENC_SIGNED_16;
 }
 
 
