@@ -38,6 +38,7 @@ else
 	AC_MSG_RESULT([no])
 fi
 
+buffer=enabled # try to build with buffer by default
 
 dnl ############# Compiler and tools Checks
 
@@ -509,33 +510,38 @@ case $target in
   ;;
   *-*-mingw32)
     LIBS="-lwsock32 $LIBS"
-    ADD_CPPFLAGS="-DNOXFERMEM $ADD_CPPFLAGS"
+    buffer=disabled
     cpu_type="x86"
   ;;
 	i386-*)
 		AC_MSG_WARN([Unknown target operating system])
 		cpu_type="i386"
-		ADD_CPPFLAGS="-DGENERIC -DNOXFERMEM $ADD_CPPFLAGS"
+		buffer=disabled
+		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
 	;;
 	i486-*)
 		AC_MSG_WARN([Unknown target operating system])
 		cpu_type="i486"
-		ADD_CPPFLAGS="-DGENERIC -DNOXFERMEM $ADD_CPPFLAGS"
+		buffer=disabled
+		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
 	;;
 	i586-*)
 		AC_MSG_WARN([Unknown target operating system])
 		cpu_type="i586"
-		ADD_CPPFLAGS="-DGENERIC -DNOXFERMEM $ADD_CPPFLAGS"
+		buffer=disabled
+		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
 	;;
 	i686-*)
 		AC_MSG_WARN([Unknown target operating system])
 		cpu_type="x86"
-		ADD_CPPFLAGS="-DGENERIC -DNOXFERMEM $ADD_CPPFLAGS"
+		buffer=disabled
+		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
 	;;
   *)
   	AC_MSG_WARN([Unknown target operating system])
     cpu_type="generic_fpu"
-    ADD_CPPFLAGS="-DGENERIC -DNOXFERMEM $ADD_CPPFLAGS"
+    buffer=disabled
+    ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
   ;;
 esac
 
@@ -565,7 +571,8 @@ case $cpu_type in
     more_sources="$s_gen"
   ;;
   generic_float)
-    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC -DFLOATOUT -DNOXFERMEM -DREAL_IS_FLOAT"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC -DFLOATOUT -DREAL_IS_FLOAT"
+    buffer=disabled
     more_sources="$s_gen"
   ;;
   generic_fpu)
@@ -800,6 +807,10 @@ do
 				 -a "x${ac_cv_header_CoreServices_CoreServices_h}" = "xyes" \
 				 -a "x${ac_cv_header_AudioToolbox_AudioToolbox_h}" = "xyes";
 			then
+				if test $modules = disabled; then
+					AC_MSG_WARN([Disabling buffer because of directly linked CoreAudio! Use the module if you need the buffer.])
+					buffer=disabled
+				fi
 				output_modules="$output_modules coreaudio"
 				HAVE_COREAUDIO="yes"
 			else
@@ -1084,6 +1095,9 @@ AC_SUBST( OUTPUT_LDFLAGS )
 dnl ############## Compiler Optimizations
 
 CFLAGS="$CFLAGS $ADD_CFLAGS"
+if test $buffer = no; then
+	ADD_CPPFLAGS="$ADD_CPPFLAGS -DNOXFERMEM"
+fi
 CPPFLAGS="$CPPFLAGS $ADD_CPPFLAGS"
 
 # None chosen?
@@ -1167,6 +1181,7 @@ echo "
   Debugging ............... $debugging
   Seek table size ......... $seektable
   FIFO support ............ $fifo
+  Buffer................... $buffer
 "
 if test "$modules" = enabled; then
 	echo "  Modules Directory ....... $pkglibdir"
