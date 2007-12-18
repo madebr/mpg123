@@ -582,17 +582,17 @@ init_resync:
 				fr->metaflags  |= MPG123_NEW_ID3|MPG123_ID3;
         goto read_again;
       }
-      else if (give_note)
+      else if (give_note && NOQUIET)
       {
         fprintf(stderr,"Note: Illegal Audio-MPEG-Header 0x%08lx at offset 0x%lx.\n",
                 newhead, (long unsigned int)fr->rd->tell(fr)-4);
       }
 
-      if(give_note && (newhead & 0xffffff00) == ('b'<<24)+('m'<<16)+('p'<<8)) fprintf(stderr,"Note: Could be a BMP album art.\n");
+      if(give_note && NOQUIET && (newhead & 0xffffff00) == ('b'<<24)+('m'<<16)+('p'<<8)) fprintf(stderr,"Note: Could be a BMP album art.\n");
       if (!(fr->p.flags & MPG123_NO_RESYNC) || fr->do_recover) {
         int try = 0;
         /* TODO: make this more robust, I'd like to cat two mp3 fragments together (in a dirty way) and still have mpg123 beign able to decode all it somehow. */
-        if(give_note) fprintf(stderr, "Note: Trying to resync...\n");
+        if(give_note && NOQUIET) fprintf(stderr, "Note: Trying to resync...\n");
             /* Read more bytes until we find something that looks
                reasonably like a valid header.  This is not a
                perfect strategy, but it should get us back on the
@@ -622,8 +622,7 @@ init_resync:
            return 0;
          }
 
-        if (give_note)
-          fprintf (stderr, "Note: Skipped %d bytes in input.\n", try);
+        if(give_note && NOQUIET) fprintf (stderr, "Note: Skipped %d bytes in input.\n", try);
       }
       else
       {
@@ -680,14 +679,6 @@ init_resync:
 		debug1("fr->firsthead: %08lx", fr->firsthead);
 		/* now adjust volume */
 		do_rva(fr);
-		/* and print id3/stream info */
-/*		if(NOQUIET)
-		{
-			fprintf(stderr, "This code has to move!\n");
-			print_id3_tag(fr,1);
-			if(fr->icy.name.fill) fprintf(stderr, "ICY-NAME: %s\n", fr->icy.name.p);
-			if(fr->icy.url.fill) fprintf(stderr, "ICY-URL: %s\n", fr->icy.url.p);
-		} */
 	}
   fr->bitindex = 0;
   fr->wordpointer = (unsigned char *) fr->bsbuf;

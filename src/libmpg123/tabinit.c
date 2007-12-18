@@ -138,8 +138,8 @@ int make_conv16to8_table(mpg123_handle *fr)
         c1 = 127 - (int) (log( 1.0 - 255.0 * (double) i*mul / 32768.0 ) * m);
       else
         c1 = 255 - (int) (log( 1.0 + 255.0 * (double) i*mul / 32768.0 ) * m);
-      if(c1 < 0 || c1 > 255) 
-	fprintf(stderr,"Converror %d %d\n",i,c1);
+      if((c1 < 0 || c1 > 255) && NOQUIET) error2("Converror %d %d",i,c1);
+
       if(c1 == 0)
         c1 = 2;
       fr->conv16to8[i] = (unsigned char) c1;
