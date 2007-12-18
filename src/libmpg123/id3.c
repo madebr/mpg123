@@ -244,11 +244,24 @@ char *next_text(char* prev, int encoding, size_t limit)
 	return text;
 }
 
+static const char *enc_name(int enc)
+{
+	switch(enc)
+	{
+		case 0:  return "Latin 1";
+		case 1:  return "UTF-16 BOM";
+		case 2:  return "UTF-16 BE";
+		case 3:  return "UTF-8";
+		default: return "unknown!";
+	}
+}
+
 static void process_text(mpg123_handle *fr, char *realdata, size_t realsize, char *id)
 {
 	/* Text encoding          $xx */
 	/* The text (encoded) ... */
 	mpg123_text *t = add_text(fr);
+	if(VERBOSE4) fprintf(stderr, "Note: Storing text from %s encoding\n", enc_name(realdata[0]));
 	if(t == NULL)
 	{
 		if(NOQUIET) error("Unable to attach new text!");
@@ -271,6 +284,7 @@ static void process_comment(mpg123_handle *fr, char *realdata, size_t realsize, 
 	char *descr   = realdata+4;
 	char *text;
 	mpg123_text *xcom = add_comment(fr);
+	if(VERBOSE4) fprintf(stderr, "Note: Storing comment from %s encoding\n", enc_name(realdata[0]));
 	if(xcom == NULL)
 	{
 		if(NOQUIET) error("Unable to attach new comment!");
@@ -330,6 +344,7 @@ void process_extra(mpg123_handle *fr, char* realdata, size_t realsize, int rva_l
 	char *text;
 	mpg123_text *xex;
 	text = next_text(descr, encoding, realsize-(descr-realdata));
+	if(VERBOSE4) fprintf(stderr, "Note: Storing extra from %s encoding\n", enc_name(realdata[0]));
 	if(text == NULL)
 	{
 		if(NOQUIET) error("No extra frame text / valid description?");
