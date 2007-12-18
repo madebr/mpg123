@@ -1,3 +1,12 @@
+1.0rc3
+----
+
+- Fixed JACK output.
+- Disable buffer when statically building CoreAudio in (MacOSX); with CoreAudio module the buffer works, with static output it doesn't.
+  This is the situation because of fork() discrimination by Apple Inc. .
+- Added verbosity to tell about ID3v2 text encodings (level 4).
+- minor cleanup
+
 1.0rc2
 ----
 
