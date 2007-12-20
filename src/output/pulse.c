@@ -105,7 +105,7 @@ static int write_pulse(audio_output_t *ao, unsigned char *buf, int len)
 	int ret, err;
 	/* Doesn't return number of bytes but just success or not. */
 	ret = pa_simple_write( pas, buf, len, &err );
-	if(ret<0) error1("Failed to write audio: %s", pa_strerror(err));
+	if(ret<0){ error1("Failed to write audio: %s", pa_strerror(err)); return -1; }
 
 	return len; /* If successful, everything has been written. */
 }
