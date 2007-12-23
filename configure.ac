@@ -92,7 +92,7 @@ AC_ARG_ENABLE(modules,
 	fi
 ],
 [
-	if test "x$be_static" = "xyes"; then
+	if test "x$be_static" = "xyes" -o "x$with_cpu" = "xgeneric_float"; then
 		modules=disabled
 	else
 		# Per default no modules in Windows...
@@ -223,7 +223,7 @@ AC_ARG_ENABLE(fifo,
 
 AC_ARG_WITH([cpu], [
   --with-cpu=generic[_fpu]      Use generic processor code with floating point arithmetic
-  --with-cpu=generic_float      A special build with generic fpu code that produces 32bit float output
+  --with-cpu=generic_float      A special build with generic fpu code that produces 32bit float output (experimental)
   --with-cpu=generic_nofpu      Use generic processor code with fixed point arithmetic (p.ex. ARM, experimental)
   --with-cpu=i386[_fpu]         Use code optimized for i386 processors with floating point arithmetic
   --with-cpu=i386_nofpu         Use code optimized for i386 processors with fixed point arithmetic (experimental)
