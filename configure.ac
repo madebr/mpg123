@@ -10,7 +10,7 @@ AC_PREREQ(2.57)
 
 dnl ############# Initialisation
 
-AC_INIT([mpg123], [1.0.0], [mpg123-devel@lists.sourceforge.net])
+AC_INIT([mpg123], [1.0.0+x], [mpg123-devel@lists.sourceforge.net])
 LIBMPG123_VERSION=0:0:0
 AC_SUBST( LIBMPG123_VERSION )
 
@@ -263,6 +263,7 @@ AC_ARG_WITH([default-audio], [
   --with-default-audio=sdl        Use SDL as default audio output sub-system (Simple DirectMedia Layer)
   --with-default-audio=sgi        Use SGI as default audio output sub-system (IRIX)
   --with-default-audio=sun        Use Sun as default audio output sub-system (/dev/audio)
+  --with-default-audio=arts       Use aRts as default audio output sub-system (KDE sound server)
 ])
 
 AC_ARG_WITH([optimization], [
@@ -670,7 +671,7 @@ AC_SUBST( DECODER_LOBJ )
 dnl ############## Output module choice
 
 # The full list of supported modules to check, first come, first serve.
-check_modules="alsa oss coreaudio sun win32 esd jack portaudio pulse sdl nas dummy"
+check_modules="alsa oss coreaudio sun win32 esd jack portaudio pulse sdl nas arts dummy"
 # The final list.
 output_modules=
 
@@ -819,6 +820,19 @@ do
 				check_failed=yes
 			fi
 		;;
+		arts)
+			AC_MSG_CHECKING([for artsc])
+			if artsc-config; then
+				AC_MSG_RESULT([yes])
+				output_modules="$output_modules arts"
+				HAVE_ARTS=yes
+				ARTS_LIBS=`artsc-config --libs`
+				ARTS_CFLAGS=`artsc-config --cflags`
+			else
+				AC_MSG_RESULT([no])
+				check_failed=yes
+			fi
+		;;
 # from here on only forced tests, untested code
 		hp)
 			# What's the deal with that and alib?
@@ -884,7 +898,7 @@ if test "x$check_forced" = xyes -a "x$check_failed" = "xyes"; then
 fi
 
 # When you extend check_modules, you should extend this:
-#for i in alsa oss coreaudio sun win32 esd jack portaudio pulse sdl nas aix alib hp os2 sgi mint dummy; do echo $i; done |
+#for i in alsa oss coreaudio sun win32 esd jack portaudio pulse sdl nas aix alib arts hp os2 sgi mint dummy; do echo $i; done |
 #perl -ne 'chomp; $big = uc($_); print <<EOT;
 #AC_SUBST(${big}_LIBS)
 #AC_SUBST(${big}_LDFLAGS)
@@ -944,6 +958,10 @@ AC_SUBST(ALIB_LIBS)
 AC_SUBST(ALIB_LDFLAGS)
 AC_SUBST(ALIB_CFLAGS)
 AM_CONDITIONAL( [HAVE_ALIB], [test "x$HAVE_ALIB" = xyes] )
+AC_SUBST(ARTS_LIBS)
+AC_SUBST(ARTS_LDFLAGS)
+AC_SUBST(ARTS_CFLAGS)
+AM_CONDITIONAL( [HAVE_ARTS], [test "x$HAVE_ARTS" = xyes] )
 AC_SUBST(HP_LIBS)
 AC_SUBST(HP_LDFLAGS)
 AC_SUBST(HP_CFLAGS)
@@ -990,7 +1008,7 @@ then
 	# That feels stupid... what about hashed arrays?
 	case $OUTPUT_MOD in
 	# Here's a script for that tedious list, perhaps to be outsourced together with the one in src/output/Makefile.am
-#for i in alsa coreaudio esd jack nas oss portaudio pulse sdl sun win32 aix alib hp os2 sgi mint; do echo $i; done |
+#for i in alsa coreaudio esd jack nas oss portaudio pulse sdl sun win32 aix alib arts hp os2 sgi mint; do echo $i; done |
 #perl -ne 'chomp; $big = uc($_); print <<EOT;
 #		$_)
 #			OUTPUT_LIBS="\$${big}_LIBS"
@@ -1063,6 +1081,11 @@ then
 			OUTPUT_LIBS="$ALIB_LIBS"
 			OUTPUT_LDFLAGS="$ALIB_LDFLAGS"
 			OUTPUT_CFLAGS="$ALIB_CFLAGS"
+		;;
+		arts)
+			OUTPUT_LIBS="$ARTS_LIBS"
+			OUTPUT_LDFLAGS="$ARTS_LDFLAGS"
+			OUTPUT_CFLAGS="$ARTS_CFLAGS"
 		;;
 		hp)
 			OUTPUT_LIBS="$HP_LIBS"
