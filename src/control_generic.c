@@ -261,7 +261,7 @@ int control_generic (mpg123_handle *fr)
 #endif
 	/* the command behaviour is different, so is the ID */
 	/* now also with version for command availability */
-	fprintf(outstream, "@R MPG123 (ThOr) v2\n");
+	fprintf(outstream, "@R MPG123 (ThOr) v3\n");
 #ifdef FIFO
 	if(param.fifo)
 	{
