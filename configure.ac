@@ -687,6 +687,8 @@ if test $cpu_type = "generic_float"; then
 	AC_MSG_WARN( [Forcing dummy output (decoding to wav/stdout only) with float samples, as the audio device system cannot handle floats.] )
 fi
 
+PKG_PROG_PKG_CONFIG([])
+
 # Now go through the modules to check and do the chores.
 for m in $check_modules
 do
