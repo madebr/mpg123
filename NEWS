@@ -5,6 +5,7 @@
 - Cleaned up configure.
 - Pushed remote control version to v3.
 - Updated documentation.
+- Fix VPATH build for generated mpg123.h .
 
 1.0rc3
 ----
