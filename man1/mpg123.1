@@ -1,4 +1,4 @@
-.TH mpg123 1 "7 Aug 2007"
+.TH mpg123 1 "23 Dec 2007"
 .SH NAME
 mpg123 \- play audio MPEG 1.0/2.0/2.5 stream (layers 1, 2 and 3)
 .SH SYNOPSIS
@@ -49,7 +49,7 @@ Decode only
 frames.  By default the complete stream is decoded.
 .TP
 .BR \-y ", " \-\^\-resync
-Do NOT try to resync and continuing decoding if an error occurs in
+Do NOT try to resync and continue decoding if an error occurs in
 the input file. Normally, 
 .B mpg123
 tries to keep the playback alive at all costs, including skipping invalid material and searching new header when something goes wrong.
@@ -107,8 +107,21 @@ line, or in the list file.
 Continuous random play.  Keeps picking a random file from the command line
 or the play list.  Unlike shuffle play above, random play never ends, and
 plays individual songs more than once.
+.TP
+\fB\-\^\-no\-icy\-meta
+Do not accept ICY meta data.
+.TP
+\fB\-i, \-\^-\index
+Index / scan through the track before playback.
+This fills the index table for seeking (if enabled in libmpg123) and may make the operating system cache the file contents for smoother operating on playback.
 
 .SH OUTPUT and PROCESSING OPTIONS
+.TP
+\fB\-o \fImodule\fR, \-\^\-output \fImodule\fR
+Select audio output module.
+.TP
+\fB\-\^\-list\-modules
+List the available modules.
 .TP
 \fB\-a \fIdev\fR, \fB\-\^\-audiodevice \fIdev
 Specify the audio device to use.  The default is
