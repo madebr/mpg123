@@ -236,7 +236,7 @@ AC_ARG_WITH([cpu], [
   --with-cpu=mmx          Use code optimized for MMX processors
   --with-cpu=mmx_alone          Really only MMX decoder, without i586 fallback for flexible rate
   --with-cpu=sse          Use code optimized for SSE processors
-  --with-cpu=mmx_alone          Really only SSE decoder, without i586 fallback for flexible rate
+  --with-cpu=sse_alone          Really only SSE decoder, without i586 fallback for flexible rate
   --with-cpu=x86          Pack all x86 opts into one binary (excluding i486 and dithered i586)
   --with-cpu=x86_dither   Pack all x86 opts into one binary (excluding i486, including dither)
   --with-cpu=altivec      Use code optimized for Altivec processors (PowerPC G4 and G5)
