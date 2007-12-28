@@ -157,6 +157,8 @@ static char *get_the_cwd()
 		buf2 = realloc(buf, bs+=PATH_STEP);
 		if(buf2 == NULL){ free(buf); buf = NULL; }
 		else debug1("pwd: increased buffer to %lu", (unsigned long)bs);
+
+		buf = buf2;
 	}
 	return buf;
 }
