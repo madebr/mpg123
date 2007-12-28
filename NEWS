@@ -1,3 +1,8 @@
+1.0.1
+----
+
+- Fix module loader to prevent crash in working paths with more than 49 characters length (bug 1859413).
+
 1.0.0
 ----
 

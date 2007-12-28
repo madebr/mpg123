@@ -39,21 +39,28 @@ static char *get_module_dir()
 	/* Either PKGLIBDIR is accessible right away or we assume ../lib/mpg123 from binpath. */
 	DIR* dir = NULL;
 	char *moddir = NULL;
+
 	dir = opendir(PKGLIBDIR);
 	if(dir != NULL)
 	{
 		size_t l = strlen(PKGLIBDIR);
 		moddir = malloc(l+1);
-		strcpy(moddir, PKGLIBDIR);
-		moddir[l] = 0;
+		if(moddir != NULL)
+		{
+			strcpy(moddir, PKGLIBDIR);
+			moddir[l] = 0;
+		}
 		closedir(dir);
 	}
 	else
 	{
 		size_t l = strlen(binpath) + strlen(RELMOD);
 		moddir = malloc(l+1);
-		snprintf(moddir, l+1, "%s%s", binpath, RELMOD);
-		moddir[l] = 0;
+		if(moddir != NULL)
+		{
+			snprintf(moddir, l+1, "%s%s", binpath, RELMOD);
+			moddir[l] = 0;
+		}
 	}
 	return moddir;
 }
@@ -72,6 +79,13 @@ open_module( const char* type, const char* name )
 	char *moddir  = NULL;
 	workdir = get_the_cwd();
 	moddir  = get_module_dir();
+	if(workdir == NULL || moddir == NULL)
+	{
+		error("Failure getting workdir or moddir!");
+		if(workdir != NULL) free(workdir);
+		if(moddir  != NULL) free(moddir);
+		return NULL;
+	}
 
 	/* Initialize libltdl */
 	if (lt_dlinit()) error( "Failed to initialise libltdl" );

@@ -412,7 +412,7 @@ int init_output(audio_output_t **ao)
 	if(!param.usebuffer)
 	{ /* Only if I handle audio device output: Get that module. */
 		*ao = open_output_module(param.output_module);
-		if(!ao)
+		if(!(*ao))
 		{
 			error("Failed to open audio output module");
 			return -1;
