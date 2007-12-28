@@ -246,15 +246,16 @@ static int check_lame_tag(mpg123_handle *fr)
 						frame_gapless_init(fr, GAPLESS_DELAY, length+GAPLESS_DELAY);
 					}
 					#endif
-					debug1("Xing: %lu frames", (long unsigned)fr->track_frames);
+					if(VERBOSE3) fprintf(stderr, "Note: Xing: %lu frames\n", (long unsigned)fr->track_frames);
 					lame_offset += 4;
 				}
 				if(xing_flags & 0x2) /* bytes */
 				{
-					#ifdef DEBUG
-					unsigned long xing_bytes = make_long(fr->bsbuf, lame_offset);
-					debug1("Xing: %lu bytes", (long unsigned)xing_bytes);
-					#endif
+					if(VERBOSE3)
+					{
+						unsigned long xing_bytes = make_long(fr->bsbuf, lame_offset);
+						fprintf(stderr, "Note: Xing: %lu bytes\n", (long unsigned)xing_bytes);
+					}
 					lame_offset += 4;
 				}
 				if(xing_flags & 0x4) /* TOC */
@@ -263,10 +264,11 @@ static int check_lame_tag(mpg123_handle *fr)
 				}
 				if(xing_flags & 0x8) /* VBR quality */
 				{
-					#ifdef DEBUG
-					unsigned long xing_quality = make_long(fr->bsbuf, lame_offset);
-					debug1("Xing: quality = %lu", (long unsigned)xing_quality);
-					#endif
+					if(VERBOSE3)
+					{
+						unsigned long xing_quality = make_long(fr->bsbuf, lame_offset);
+						fprintf(stderr, "Note: Xing: quality = %lu\n", (long unsigned)xing_quality);
+					}
 					lame_offset += 4;
 				}
 				/* I guess that either 0 or LAME extra data follows */
@@ -280,7 +282,7 @@ static int check_lame_tag(mpg123_handle *fr)
 					char nb[10];
 					memcpy(nb, fr->bsbuf+lame_offset, 9);
 					nb[9] = 0;
-					debug1("Info: Encoder: %s", nb);
+					if(VERBOSE3) fprintf(stderr, "Note: Info: Encoder: %s\n", nb);
 					if(!strncmp("LAME", nb, 4))
 					{
 						gain_offset = 6;
@@ -289,8 +291,11 @@ static int check_lame_tag(mpg123_handle *fr)
 					lame_offset += 9;
 					/* the 4 big bits are tag revision, the small bits vbr method */
 					lame_vbr = fr->bsbuf[lame_offset] & 15;
-					debug1("Info: rev %u", fr->bsbuf[lame_offset] >> 4);
-					debug1("Info: vbr mode %u", lame_vbr);
+					if(VERBOSE3)
+					{
+						fprintf(stderr, "Note: Info: rev %u\n", fr->bsbuf[lame_offset] >> 4);
+						fprintf(stderr, "Note: Info: vbr mode %u\n", lame_vbr);
+					}
 					lame_offset += 1;
 					switch(lame_vbr)
 					{
@@ -317,7 +322,7 @@ static int check_lame_tag(mpg123_handle *fr)
 						debug("Wow! Is there _really_ a non-zero peak value? Now is it stored as float or int - how should I know?");
 						peak = *(float*) (fr->bsbuf+lame_offset);
 					}
-					debug1("Info: peak = %f (I won't use this)", peak);
+					if(VERBOSE3) fprintf(stderr, "Note: Info: peak = %f (I won't use this)\n", peak);
 					peak = 0; /* until better times arrived */
 					lame_offset += 4;
 					/*
@@ -342,8 +347,11 @@ static int check_lame_tag(mpg123_handle *fr)
 						}
 						lame_offset += 2;
 					}
-					debug1("Info: Radio Gain = %03.1fdB", replay_gain[0]);
-					debug1("Info: Audiophile Gain = %03.1fdB", replay_gain[1]);
+					if(VERBOSE3) 
+					{
+						fprintf(stderr, "Note: Info: Radio Gain = %03.1fdB\n", replay_gain[0]);
+						fprintf(stderr, "Note: Info: Audiophile Gain = %03.1fdB\n", replay_gain[1]);
+					}
 					for(i=0; i < 2; ++i)
 					{
 						if(fr->rva.level[i] <= 0)
@@ -357,17 +365,17 @@ static int check_lame_tag(mpg123_handle *fr)
 					if(fr->vbr == MPG123_ABR)
 					{
 						fr->abr_rate = fr->bsbuf[lame_offset];
-						debug1("Info: ABR rate = %u", fr->abr_rate);
+						if(VERBOSE3) fprintf(stderr, "Note: Info: ABR rate = %u\n", fr->abr_rate);
 					}
 					lame_offset += 1;
 					/* encoder delay and padding, two 12 bit values... lame does write them from int ...*/
+					if(VERBOSE3)
+					fprintf(stderr, "Note: Encoder delay = %i; padding = %i\n",
+					        ((((int) fr->bsbuf[lame_offset]) << 4) | (((int) fr->bsbuf[lame_offset+1]) >> 4)),
+					        (((((int) fr->bsbuf[lame_offset+1]) << 8) | (((int) fr->bsbuf[lame_offset+2]))) & 0xfff) );
 					#ifdef GAPLESS
 					if(fr->p.flags & MPG123_GAPLESS)
 					{
-						/*
-							Temporary hack that doesn't work with seeking and also is not waterproof but works most of the time;
-							in future the lame delay/padding and frame number info should be passed to layer3.c and the junk samples avoided at the source.
-						*/
 						off_t length = fr->track_frames * spf(fr);
 						off_t skipbegin = GAPLESS_DELAY + ((((int) fr->bsbuf[lame_offset]) << 4) | (((int) fr->bsbuf[lame_offset+1]) >> 4));
 						off_t skipend = -GAPLESS_DELAY + (((((int) fr->bsbuf[lame_offset+1]) << 8) | (((int) fr->bsbuf[lame_offset+2]))) & 0xfff);
