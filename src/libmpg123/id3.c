@@ -176,7 +176,7 @@ void id3_link(mpg123_handle *fr)
 	ID3v2 standard says that there should be one text frame of specific type per tag, and subsequent tags overwrite old values.
 	So, I always replace the text that may be stored already (perhaps with a list of zero-separated strings, though).
 */
-void store_id3_text(mpg123_string *sb, char *source, size_t source_size)
+void store_id3_text(mpg123_string *sb, char *source, size_t source_size, const int noquiet)
 {
 	int encoding;
 	int bwidth;
@@ -193,7 +193,7 @@ void store_id3_text(mpg123_string *sb, char *source, size_t source_size)
 	   UTF-16 uses a reserved/private range in UCS-2 to add the magic, so we just always treat it as UTF. */
 	if(encoding > 3)
 	{
-		warning1("Unknown text encoding %d, assuming ISO8859-1 - I will probably screw a bit up!", encoding);
+		if(noquiet) warning1("Unknown text encoding %d, assuming ISO8859-1 - I will probably screw a bit up!", encoding);
 		encoding = 0;
 	}
 	bwidth = encoding_widths[encoding];
@@ -207,12 +207,12 @@ void store_id3_text(mpg123_string *sb, char *source, size_t source_size)
 	if(source_size % bwidth)
 	{
 		/* When we need two bytes for a character, it's strange to have an uneven bytestream length. */
-		warning2("Weird tag size %d for encoding %d - I will probably trim too early or something but I think the MP3 is broken.", (int)source_size, encoding);
+		if(noquiet) warning2("Weird tag size %d for encoding %d - I will probably trim too early or something but I think the MP3 is broken.", (int)source_size, encoding);
 		source_size -= source_size % bwidth;
 	}
 	text_converters[encoding](sb, (unsigned char*)source, source_size);
 	if(sb->size) debug1("UTF-8 string (the first one): %s", sb->p);
-	else error("unable to convert string to UTF-8 (out of memory, junk input?)!");
+	else if(noquiet) error("unable to convert string to UTF-8 (out of memory, junk input?)!");
 }
 
 char *next_text(char* prev, int encoding, size_t limit)
@@ -268,7 +268,7 @@ static void process_text(mpg123_handle *fr, char *realdata, size_t realsize, cha
 		return;
 	}
 	memcpy(t->id, id, 4);
-	store_id3_text(&t->text, realdata, realsize);
+	store_id3_text(&t->text, realdata, realsize, NOQUIET);
 	if(VERBOSE4) fprintf(stderr, "Note: ID3v2 %c%c%c%c text frame: %s\n", id[0], id[1], id[2], id[3], t->text.p);
 }
 
@@ -303,9 +303,9 @@ static void process_comment(mpg123_handle *fr, char *realdata, size_t realsize, 
 		pop_comment(fr);
 		return;
 	}
-	store_id3_text(&xcom->description, descr-1, text-descr+1);
+	store_id3_text(&xcom->description, descr-1, text-descr+1, NOQUIET);
 	text[-1] = encoding;
-	store_id3_text(&xcom->text, text-1, realsize-(text-realdata)+1);
+	store_id3_text(&xcom->text, text-1, realsize-(text-realdata)+1, NOQUIET);
 
 	if(VERBOSE4)
 	{
@@ -357,9 +357,9 @@ void process_extra(mpg123_handle *fr, char* realdata, size_t realsize, int rva_l
 		return;
 	}
 	memcpy(xex->id, id, 4);
-	store_id3_text(&xex->description, descr-1, text-descr+1);
+	store_id3_text(&xex->description, descr-1, text-descr+1, NOQUIET);
 	text[-1] = encoding;
-	store_id3_text(&xex->text, text-1, realsize-(text-realdata)+1);
+	store_id3_text(&xex->text, text-1, realsize-(text-realdata)+1, NOQUIET);
 	if(xex->description.fill > 0)
 	{
 		int is_peak = 0;
@@ -498,7 +498,7 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 	/* we have already read 10 bytes, so left are length or length+10 bytes belonging to tag */
 	if(!synchsafe_to_long(buf+2,length))
 	{
-		error4("Bad tag length (not synchsafe): 0x%02x%02x%02x%02x; You got a bad ID3 tag here.", buf[2],buf[3],buf[4],buf[5]);
+		if(NOQUIET) error4("Bad tag length (not synchsafe): 0x%02x%02x%02x%02x; You got a bad ID3 tag here.", buf[2],buf[3],buf[4],buf[5]);
 		return 0;
 	}
 	debug1("ID3v2: tag data length %lu", length);
@@ -507,7 +507,7 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 	if((flags & UNKNOWN_FLAGS) || (major > 4) || (major < 2))
 	{
 		/* going to skip because there are unknown flags set */
-		warning2("ID3v2: Won't parse the ID3v2 tag with major version %u and flags 0x%xu - some extra code may be needed", major, flags);
+		if(NOQUIET) warning2("ID3v2: Won't parse the ID3v2 tag with major version %u and flags 0x%xu - some extra code may be needed", major, flags);
 		if((ret2 = fr->rd->skip_bytes(fr,length)) < 0) /* will not store data in backbuff! */
 		ret = ret2;
 	}
@@ -567,7 +567,7 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 							if(!bytes_to_long(tagdata+pos, framesize))
 							{
 								/* Just assume that up to now there was some good data. */
-								error1("ID3v2: non-syncsafe size of %s frame, skipping the remainder of tag", id);
+								if(NOQUIET) error1("ID3v2: non-syncsafe size of %s frame, skipping the remainder of tag", id);
 								break;
 							}
 							if(VERBOSE3) fprintf(stderr, "Note: ID3v2 %s frame of size %lu\n", id, framesize);
@@ -597,7 +597,7 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 							/* shall not or want not handle these */
 							if(fflags & (BAD_FFLAGS | COMPR_FFLAG | ENCR_FFLAG))
 							{
-								warning("ID3v2: skipping invalid/unsupported frame");
+								if(NOQUIET) warning("ID3v2: skipping invalid/unsupported frame");
 								continue;
 							}
 							
@@ -622,7 +622,7 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 									realdata = (unsigned char*) malloc(framesize); /* will need <= bytes */
 									if(realdata == NULL)
 									{
-										error("ID3v2: unable to allocate working buffer for de-unsync");
+										if(NOQUIET) error("ID3v2: unable to allocate working buffer for de-unsync");
 										continue;
 									}
 									/* now going byte per byte through the data... */
@@ -678,7 +678,7 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 											}
 										}
 										#else
-										warning("ID3v2: Cannot parse RVA2 value because I don't have a guaranteed 16 bit signed integer type");
+										if(NOQUIET) warning("ID3v2: Cannot parse RVA2 value because I don't have a guaranteed 16 bit signed integer type");
 										#endif
 									}
 									break;
@@ -686,7 +686,7 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 									case text:
 										process_text(fr, (char*)realdata, realsize, id);
 									break;
-									default: error1("ID3v2: unknown frame type %i", tt);
+									default: if(NOQUIET) error1("ID3v2: unknown frame type %i", tt);
 								}
 								if((flags & UNSYNC_FLAG) || (fflags & UNSYNC_FFLAG)) free(realdata);
 							}
@@ -707,14 +707,14 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 			}
 			else
 			{
-				error("ID3v2: Duh, not able to read ID3v2 tag data.");
+				if(NOQUIET) error("ID3v2: Duh, not able to read ID3v2 tag data.");
 				ret = ret2;
 			}
 			free(tagdata);
 		}
 		else
 		{
-			error1("ID3v2Arrg! Unable to allocate %lu bytes for interpreting ID3v2 data - trying to skip instead.", length);
+			if(NOQUIET) error1("ID3v2: Arrg! Unable to allocate %lu bytes for interpreting ID3v2 data - trying to skip instead.", length);
 			if((ret2 = fr->rd->skip_bytes(fr,length)) < 0) ret = ret2; /* will not store data in backbuff! */
 			else ret = 0;
 		}
