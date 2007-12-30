@@ -437,10 +437,9 @@ int promote_framename(mpg123_handle *fr, char *id) /* fr because of VERBOSE macr
 /*
 	trying to parse ID3v2.3 and ID3v2.4 tags...
 
-	returns:  0 = read-error... or so... soft issue... ok... somehow...
-	         ... = illegal ID3 header; maybe extended to mean unparseable (to new) header in future
-	          1 = somehow ok...
-	         ...or READER_MORE...
+	returns:  0: bad or just unparseable tag
+	          1: good, new tag info
+	         <0: reader error (may need more data feed, try again)
 */
 int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 {
@@ -457,12 +456,12 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 	unsigned char* tagdata = NULL;
 	unsigned char major = first4bytes & 0xff;
 	debug1("ID3v2: major tag version: %i", major);
-	if(major == 0xff) return 0; /* used to be -1 */
+	if(major == 0xff) return 0; /* Invalid... */
 	if((ret2 = fr->rd->read_frame_body(fr, buf, 6)) < 0) /* read more header information */
 	return ret2;
 
-	if(buf[0] == 0xff) /* major version, will never be 0xff */
-	return 0; /* used to be -1 */
+	if(buf[0] == 0xff) return 0; /* Revision, will never be 0xff. */
+
 	/* second new byte are some nice flags, if these are invalid skip the whole thing */
 	flags = buf[1];
 	debug1("ID3v2: flags 0x%08x", flags);
@@ -497,7 +496,11 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 
 	/* length-10 or length-20 (footer present); 4 synchsafe integers == 28 bit number  */
 	/* we have already read 10 bytes, so left are length or length+10 bytes belonging to tag */
-	if(!synchsafe_to_long(buf+2,length)) return -1;
+	if(!synchsafe_to_long(buf+2,length))
+	{
+		error4("Bad tag length (not synchsafe): 0x%02x%02x%02x%02x; You got a bad ID3 tag here.", buf[2],buf[3],buf[4],buf[5]);
+		return 0;
+	}
 	debug1("ID3v2: tag data length %lu", length);
 	if(VERBOSE2) fprintf(stderr,"Note: ID3v2.%i rev %i tag of %lu bytes\n", major, buf[0], length);
 	/* skip if unknown version/scary flags, parse otherwise */
@@ -549,7 +552,7 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 						    || ((tagdata[tagpos+i] > 64) && (tagdata[tagpos+i] < 91)) ) )
 						{
 							debug5("ID3v2: real tag data apparently ended after %lu bytes with 0x%02x%02x%02x%02x", tagpos, tagdata[tagpos], tagdata[tagpos+1], tagdata[tagpos+2], tagdata[tagpos+3]);
-							ret = 0; /* used to be -1 */
+							ret = 1; /* This is no hard error... let's just hope that we got something meaningful already. */
 							break;
 						}
 						if(ret > 0)
@@ -563,7 +566,7 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 							else
 							if(!bytes_to_long(tagdata+pos, framesize))
 							{
-								ret = -1;
+								/* Just assume that up to now there was some good data. */
 								error1("ID3v2: non-syncsafe size of %s frame, skipping the remainder of tag", id);
 								break;
 							}
@@ -718,6 +721,7 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 	}
 	/* skip footer if present */
 	if((ret > 0) && (flags & FOOTER_FLAG) && ((ret2 = fr->rd->skip_bytes(fr,length)) < 0)) ret = ret2;
+
 	return ret;
 	#undef UNSYNC_FLAG
 	#undef EXTHEAD_FLAG
