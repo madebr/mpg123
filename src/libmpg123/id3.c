@@ -527,7 +527,11 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 				if(flags & EXTHEAD_FLAG)
 				{
 					debug("ID3v2: skipping extended header");
-					if(!bytes_to_long(tagdata, tagpos)) ret = -1;
+					if(!bytes_to_long(tagdata, tagpos))
+					{
+						ret = 0;
+						if(NOQUIET) error4("Bad (non-synchsafe) tag offset: 0x%02x%02x%02x%02x", tagdata[0], tagdata[1], tagdata[2], tagdata[3]);
+					}
 				}
 				if(ret > 0)
 				{
@@ -552,8 +556,8 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 						    || ((tagdata[tagpos+i] > 64) && (tagdata[tagpos+i] < 91)) ) )
 						{
 							debug5("ID3v2: real tag data apparently ended after %lu bytes with 0x%02x%02x%02x%02x", tagpos, tagdata[tagpos], tagdata[tagpos+1], tagdata[tagpos+2], tagdata[tagpos+3]);
-							ret = 1; /* This is no hard error... let's just hope that we got something meaningful already. */
-							break;
+							/* This is no hard error... let's just hope that we got something meaningful already (ret==1 in that case). */
+							goto tagparse_cleanup; /* Need to escape two loops here. */
 						}
 						if(ret > 0)
 						{
@@ -710,6 +714,7 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 				if(NOQUIET) error("ID3v2: Duh, not able to read ID3v2 tag data.");
 				ret = ret2;
 			}
+tagparse_cleanup:
 			free(tagdata);
 		}
 		else
