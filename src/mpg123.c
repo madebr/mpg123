@@ -148,6 +148,14 @@ void next_track(void)
 	++skip_tracks;
 }
 
+void prev_track(void)
+{
+	if(pl.pos > 2) pl.pos -= 2;
+	else pl.pos = 0;
+
+	next_track();
+}
+
 void safe_exit(int code)
 {
 	char *dummy, *dammy;

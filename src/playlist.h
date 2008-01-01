@@ -41,5 +41,7 @@ void prepare_playlist(int argc, char** argv);
 char *get_next_file();
 /* frees memory that got allocated in prepare_playlist */
 void free_playlist();
+/* Print out the playlist, with optional position indicator. */
+void print_playlist(FILE* out, int showpos);
 
 #endif

@@ -17,6 +17,7 @@
 #include "buffer.h"
 #include "term.h"
 #include "common.h"
+#include "playlist.h"
 
 extern int buffer_pid;
 extern audio_output_t *ao;
@@ -24,6 +25,31 @@ extern audio_output_t *ao;
 static int term_enable = 0;
 static struct termios old_tio;
 int seeking = FALSE;
+
+/* Hm, next step would be some system in this, plus configurability...
+   Two keys for everything? It's just stop/pause for now... */
+struct keydef { const char key; const char key2; const char* desc; };
+struct keydef term_help[] =
+{
+	 { STOP_KEY,  ' ', "interrupt/restart playback (i.e. 'pause')" }
+	,{ NEXT_KEY,    0, "next track" }
+	,{ PREV_KEY,    0, "previous track" }
+	,{ BACK_KEY,    0, "back to beginning of track" }
+	,{ PAUSE_KEY,   0, "pause while looping current sound chunk" }
+	,{ FORWARD_KEY, 0, "forward" }
+	,{ REWIND_KEY,  0, "rewind" }
+	,{ FAST_FORWARD_KEY, 0, "fast forward" }
+	,{ FAST_REWIND_KEY,  0, "fast rewind" }
+	,{ FINE_FORWARD_KEY, 0, "fine forward" }
+	,{ FINE_REWIND_KEY,  0, "fine rewind" }
+	,{ VOL_UP_KEY,   0, "volume up" }
+	,{ VOL_DOWN_KEY, 0, "volume down" }
+	,{ RVA_KEY,      0, "RVA switch" }
+	,{ VERBOSE_KEY,  0, "verbose switch" }
+	,{ PLAYLIST_KEY, 0, "list current playlist, indicating current track there" }
+	,{ HELP_KEY,     0, "this help" }
+	,{ QUIT_KEY,     0, "quit" }
+};
 
 void term_sigcont(int sig);
 
@@ -288,9 +314,30 @@ static void term_handle_input(mpg123_handle *fr, int do_delay)
 		mpg123_param(fr, MPG123_RVA, param.rva, 0);
 		mpg123_volume(fr, -1);
 	break;
+	case PREV_KEY:
+		if(!param.usebuffer) ao->flush(ao);
+		else buffer_resync(); /* was: plain_buffer_resync */
+
+		prev_track();
+	break;
+	case PLAYLIST_KEY:
+		fprintf(stderr, "\n\nPlaylist (\">\" indicates current track):\n");
+		print_playlist(stderr, 1);
+		fprintf(stderr, "\n");
+	break;
 	case HELP_KEY:
-	  fprintf(stderr,"\n\n -= terminal control keys =-\n[%c] or space bar\t interrupt/restart playback (i.e. 'pause')\n[%c]\t next track\n[%c]\t back to beginning of track\n[%c]\t pause while looping current sound chunk\n[%c]\t forward\n[%c]\t rewind\n[%c]\t fast forward\n[%c]\t fast rewind\n[%c]\t fine forward\n[%c]\t fine rewind\n[%c]\t volume up\n[%c]\t volume down\n[%c]\t RVA switch\n[%c]\t verbose switch\n[%c]\t this help\n[%c]\t quit\n\n",
-		        STOP_KEY, NEXT_KEY, BACK_KEY, PAUSE_KEY, FORWARD_KEY, REWIND_KEY, FAST_FORWARD_KEY, FAST_REWIND_KEY, FINE_FORWARD_KEY, FINE_REWIND_KEY, VOL_UP_KEY, VOL_DOWN_KEY, RVA_KEY, VERBOSE_KEY, HELP_KEY, QUIT_KEY);
+	{ /* This is more than the one-liner before, but it's less spaghetti. */
+		int i;
+		fprintf(stderr,"\n\n -= terminal control keys =-\n");
+		for(i=0; i<(sizeof(term_help)/sizeof(struct keydef)); ++i)
+		{
+			if(term_help[i].key2) fprintf(stderr, "[%c] or [%c]", term_help[i].key, term_help[i].key2);
+			else fprintf(stderr, "[%c]", term_help[i].key);
+
+			fprintf(stderr, "\t%s\n", term_help[i].desc);
+		}
+		fprintf(stderr, "\n");
+	}
 	break;
 	case FRAME_INDEX_KEY:
 		print_index(fr);

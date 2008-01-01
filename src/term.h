@@ -48,7 +48,8 @@
 #define VOL_DOWN_KEY '-'
 #define VERBOSE_KEY 'v'
 #define RVA_KEY 'r'
-
+#define PLAYLIST_KEY 'l'
+#define PREV_KEY 'd'
 /* this counts as "undocumented" and can disappear */
 #define FRAME_INDEX_KEY 'i'
 

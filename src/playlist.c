@@ -42,7 +42,6 @@ playlist_struct pl;
 
 int add_next_file (int argc, char *argv[]);
 void shuffle_playlist();
-void print_playlist();
 void init_playlist();
 int add_copy_to_playlist(char* new_entry);
 int add_to_playlist(char* new_entry, char freeit);
@@ -60,7 +59,7 @@ void prepare_playlist(int argc, char** argv)
 	if(param.verbose > 1)
 	{
 		fprintf(stderr, "\nplaylist in normal order:\n");
-		print_playlist();
+		print_playlist(stderr, 0);
 		fprintf(stderr, "\n");
 	}
 	if(param.shuffle == 1) shuffle_playlist();
@@ -101,8 +100,11 @@ char *get_next_file()
 			}
 		} while(pl.loop == 0 && newfile != NULL);
 	}
-	/* randomly select files, with repeating */
-	else newfile = pl.list[ rando(pl.fill) ].url;
+	else
+	{	/* Randomly select files, with repeating... but keep track of current track for playlist printing. */
+		pl.pos = rando(pl.fill)+1;
+		newfile = pl.list[ pl.pos-1 ].url;
+	}
 
 	return newfile; /* "-" is STDOUT, "" is dumb, NULL is nothing */
 }
@@ -474,17 +476,24 @@ void shuffle_playlist()
 	{
 		/* print them */
 		fprintf(stderr, "\nshuffled playlist:\n");
-		print_playlist();
+		print_playlist(stderr, 0);
 		fprintf(stderr, "\n");
 	}
 }
 
-void print_playlist()
+void print_playlist(FILE* out, int showpos)
 {
 	size_t loop;
 	for (loop = 0; loop < pl.fill; loop++)
-	fprintf(stderr, "%s\n", pl.list[loop].url);
+	{
+		char *pre = "";
+		if(showpos)
+		pre = (pl.pos>0 && loop==pl.pos-1) ? "> " : "  ";
+
+		fprintf(out, "%s%s\n", pre, pl.list[loop].url);
+	}
 }
+
 
 int add_copy_to_playlist(char* new_entry)
 {
