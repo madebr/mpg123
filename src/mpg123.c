@@ -529,11 +529,14 @@ int play_frame(void)
 	if(bytes)
 	{
 		if(param.frame_number > -1) --frames_left;
-		if(fresh && framenum == param.start_frame && !param.quiet)
+		if(fresh && framenum == param.start_frame)
 		{
 			fresh = FALSE;
-			if(param.verbose) print_header(mh);
-			else print_header_compact(mh);
+			if(!param.quiet)
+			{
+				if(param.verbose) print_header(mh);
+				else print_header_compact(mh);
+			}
 		}
 		/* Normal flushing of data, includes buffer decoding. */
 		if(flush_output(ao, audio, bytes) < (int)bytes)
@@ -645,6 +648,8 @@ int main(int argc, char *argv[])
 				prgName, loptarg);
 			usage(1);
 	}
+	/* param.verbose still may be increased by terminal control later. */
+	if(param.quiet) param.verbose = 0;
 
 	if(param.list_cpu)
 	{
@@ -930,6 +935,7 @@ int main(int argc, char *argv[])
 		mpg123_position(mh, 0, 0, NULL, NULL, &secs, NULL);
 		fprintf(stderr,"\n[%d:%02d] Decoding of %s finished.\n", (int)(secs / 60), ((int)secs) % 60, filename);
 	}
+	else if(param.verbose) fprintf(stderr, "\n");
 
 	mpg123_close(mh);
 
