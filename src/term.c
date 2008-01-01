@@ -47,6 +47,8 @@ struct keydef term_help[] =
 	,{ RVA_KEY,      0, "RVA switch" }
 	,{ VERBOSE_KEY,  0, "verbose switch" }
 	,{ PLAYLIST_KEY, 0, "list current playlist, indicating current track there" }
+	,{ TAG_KEY,      0, "display tag info (again)" }
+	,{ MPEG_KEY,     0, "print MPEG header info (again)" }
 	,{ HELP_KEY,     0, "this help" }
 	,{ QUIT_KEY,     0, "quit" }
 };
@@ -321,8 +323,19 @@ static void term_handle_input(mpg123_handle *fr, int do_delay)
 		prev_track();
 	break;
 	case PLAYLIST_KEY:
-		fprintf(stderr, "\n\nPlaylist (\">\" indicates current track):\n");
+		fprintf(stderr, "%s\nPlaylist (\">\" indicates current track):\n", param.verbose ? "\n" : "");
 		print_playlist(stderr, 1);
+		fprintf(stderr, "\n");
+	break;
+	case TAG_KEY:
+		fprintf(stderr, "%s\n", param.verbose ? "\n" : "");
+		print_id3_tag(fr, param.long_id3, stderr);
+		fprintf(stderr, "\n");
+	break;
+	case MPEG_KEY:
+		if(param.verbose) print_stat(fr,0,0); /* Make sure that we are talking about the correct frame. */
+		fprintf(stderr, "\n");
+		print_header(fr);
 		fprintf(stderr, "\n");
 	break;
 	case HELP_KEY:

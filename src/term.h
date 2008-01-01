@@ -50,6 +50,8 @@
 #define RVA_KEY 'r'
 #define PLAYLIST_KEY 'l'
 #define PREV_KEY 'd'
+#define MPEG_KEY 'm'
+#define TAG_KEY  't'
 /* this counts as "undocumented" and can disappear */
 #define FRAME_INDEX_KEY 'i'
 
