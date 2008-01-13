@@ -235,6 +235,12 @@ static void set_verbose (char *arg)
     param.verbose++;
 }
 
+static void set_quiet (char *arg)
+{
+	param.verbose=0;
+	param.quiet=TRUE;
+}
+
 static void set_out_wav(char *arg)
 {
 	param.outmode = DECODE_WAV;
@@ -327,7 +333,7 @@ topt opts[] = {
 	{'O', "outfile",     GLO_ARG | GLO_CHAR, set_out_file, NULL, 0},
 	{'c', "check",       GLO_INT,  0, &param.checkrange, TRUE},
 	{'v', "verbose",     0,        set_verbose, 0,           0},
-	{'q', "quiet",       GLO_INT,  0, &param.quiet, TRUE},
+	{'q', "quiet",       0,        set_quiet,   0,           0},
 	{'y', "resync",      GLO_INT,  set_frameflag, &frameflag, MPG123_NO_RESYNC},
 	{'0', "single0",     GLO_INT,  set_frameflag, &frameflag, MPG123_MONO_LEFT},
 	{0,   "left",        GLO_INT,  set_frameflag, &frameflag, MPG123_MONO_LEFT},
@@ -648,8 +654,6 @@ int main(int argc, char *argv[])
 				prgName, loptarg);
 			usage(1);
 	}
-	/* param.verbose still may be increased by terminal control later. */
-	if(param.quiet) param.verbose = 0;
 
 	if(param.list_cpu)
 	{
