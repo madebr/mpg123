@@ -1,6 +1,6 @@
 * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *   mpg123 - MPEG 1.0/2.0/2.5 audio player            *
-*   README for version 1.x.y, dated at 04.12.2007     *
+*   README for version 1.x.y, dated at 15.01.2008     *
 *                                                     *
 * ...still the fastest MPEG audio player for UNIX ;)  *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -75,22 +75,26 @@ Note that this Ctrl+C behaviour is special to this mode; when any of the followi
 You can specify the option -C to enable a terminal control interface enabling to influence playback on current title/playlist by pressing some key:
 
  -= terminal control keys =-
-[s] or space bar	 interrupt/restart playback (i.e. 'pause')
-[f]	 next track
-[b]	 back to beginning of track
-[p]	 pause while looping current sound chunk
-[.]	 forward
-[,]	 rewind
-[:]	 fast forward
-[;]	 fast rewind
-[>]	 fine forward
-[<]	 fine rewind
-[+]	 volume up
-[-]	 volume down
-[r]	 RVA switch
-[v]	 verbose switch
-[h]	 this help
-[q]	 quit
+[s] or [ ]	interrupt/restart playback (i.e. 'pause')
+[f]	next track
+[d]	previous track
+[b]	back to beginning of track
+[p]	pause while looping current sound chunk
+[.]	forward
+[,]	rewind
+[:]	fast forward
+[;]	fast rewind
+[>]	fine forward
+[<]	fine rewind
+[+]	volume up
+[-]	volume down
+[r]	RVA switch
+[v]	verbose switch
+[l]	list current playlist, indicating current track there
+[t]	display tag info (again)
+[m]	print MPEG header info (again)
+[h]	this help
+[q]	quit
 
 You can change these bindings to key to your liking by modifying term.h .
 
@@ -135,6 +139,8 @@ I don't know which decoding routine they tested, I guess the pentium-optimized o
 This means +/- for the 16-bit integer sample value ranging over ca. +/-32000. This deviation may turn into hearable distortion for very low-amplitude sound, as shown in example files on
 
 	http://dither123.dyndns.org
+
+(The dithered decoder patch is included nowadays and available via --cpu i586_dither.)
 
 7. History
 

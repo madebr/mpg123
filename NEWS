@@ -3,6 +3,15 @@
 
 - Added arts output.
 - More verbosity on lame/xing/info tags (on demand) instead of compile-time debugging switch.
+- XMMS2 plugin cleanup (submitted to XMMS2 for inclusion)
+- Improved ID3v2 robustness (let bad tags not affect playback of the important part).
+- Terminal control:
+  - Key for going to previous track ([d], because it's left of [f] usually... no config file yet for that).
+  - Key for printing current playlist, [l].
+  - Now possible to switch on verbosity also for mpg123 -q -C
+  - Key for (re)printing ID3 tag info ([t]).
+  - Key for (re)printing MPEG frame header info ([m]).
+- Soften the -q option: Now you are able to increase verbosity after -q again, like mpg123 -q -v (this fixes cplay's progress display).
 
 1.0.1
 ----
