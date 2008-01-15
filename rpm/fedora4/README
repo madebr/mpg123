@@ -1,0 +1,3 @@
+These are some rpm specs Michael <mclroy@gmail.com> used for mpg123.
+There is an unsettled issue with pkglibdir that can be fixed by patching Makefile.in's, but these are auto-generated....
+
