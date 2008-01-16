@@ -243,7 +243,7 @@ AC_ARG_WITH([cpu], [
 ]) 
 
 AC_ARG_WITH([audio], [
-  --with-audio=<list of modules>  Select a list (or only one) of audio output modules.
+  --with-audio=<list of modules>  Select a list (or only one) of audio output modules (comma or space separated list).
 ])
 AC_ARG_WITH([default-audio], [
   --with-default-audio=aix        Use AIX as default audio output sub-system
@@ -663,7 +663,7 @@ output_modules=
 check_forced=no
 check_failed=no
 if test "x$with_audio" != "x"; then
-	check_modules="$with_audio dummy"
+	check_modules="`echo $with_audio|tr , ' '` dummy"
 	echo "Limiting outputs to build according to your preference: $check_modules"
 	check_forced=yes
 fi
