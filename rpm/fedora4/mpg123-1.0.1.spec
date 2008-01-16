@@ -1,7 +1,7 @@
 Summary:	The fast console mpeg audio decoder/player.
 Name:		mpg123
 Version:	1.0.1
-Release:	2
+Release:	3
 URL:		http://www.mpg123.org/
 License:	GPL
 Group:		Applications/Multimedia
@@ -18,6 +18,14 @@ It can play MPEG1.0/2.0/2.5 layer I, II, II (1, 2, 3;-) files
 (VBR files are fine, too) and produce output on a number of different ways:
 raw data to stdout and different sound systems depending on your platform.
 
+%package output
+Summary:	The set of audio output modules for mpg123
+Group:		Applications/Multimedia
+
+%description output
+The set of audio output modules for mpg123.
+The full list is "alsa oss coreaudio sun win32 esd jack portaudio pulse sdl nas dummy".
+
 %prep
 %setup -q -n %name-%version
 %patch0 -p1
@@ -30,6 +38,9 @@ make
 %{__rm} -rf %{buildroot}
 %makeinstall
 
+%clean
+%{__rm} -rf %{buildroot}
+
 %files
 %defattr(755,root,root)
 %{_bindir}/*
@@ -40,12 +51,12 @@ make
 %{_libdir}/libmpg123.so*
 %{_libdir}/libltdl.*a*
 %{_libdir}/libltdl.so*
-%{_libdir}/mpg123/output_*.*a*
-%{_libdir}/mpg123/output_*.so*
 %{_includedir}/*.h
 
-%clean
-%{__rm} -rf %{buildroot}
+%files output
+%defattr(644,root,root)
+%{_libdir}/mpg123/output_*.*a*
+%{_libdir}/mpg123/output_*.so*
 
 %changelog
 * Tue Jan  1 2008 Michael Ryzhykh <mclroy@gmail.com>
