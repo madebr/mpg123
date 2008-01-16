@@ -281,23 +281,8 @@ AC_ARG_WITH([seektable], [
 
 dnl ############## Modules
 
-# Dummy audio output module is alway supported
+# Dummy audio output module is always supported
 output_modules="dummy"
-
-# Location that modules are installed to
-if test x$libdir = 'x${exec_prefix}/lib'; then
-    if test x$prefix = xNONE; then
-        pkglibdir="$ac_default_prefix/lib/$PACKAGE_NAME"
-    else
-        pkglibdir="$prefix/lib/$PACKAGE_NAME"
-    fi
-else
-    pkglibdir="$libdir/$PACKAGE_NAME"
-fi
-AC_DEFINE_UNQUOTED([PKGLIBDIR], "$pkglibdir", [Path to installed modules] ) 
-AC_SUBST([pkglibdir])
-
-
 
 dnl ############## Assembler, compiler properties
 
