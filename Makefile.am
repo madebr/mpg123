@@ -23,7 +23,5 @@ EXTRA_DIST = \
 	makedll.sh \
 	test/forkfaint.c \
 	test/rms16.c \
-	rpm/fedora4/mpg123-1.0.1-2.spec \
-	rpm/fedora4/mpg123-1.0.1-3.spec \
 	rpm/fedora4/mpg123-1.0.1.spec \
 	rpm/fedora4/README
