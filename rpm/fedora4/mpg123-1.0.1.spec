@@ -1,7 +1,7 @@
 Summary:	The fast console mpeg audio decoder/player.
 Name:		mpg123
 Version:	1.0.1
-Release:	1
+Release:	2
 URL:		http://www.mpg123.org/
 License:	GPL
 Group:		Applications/Multimedia
@@ -23,7 +23,7 @@ raw data to stdout and different sound systems depending on your platform.
 %patch0 -p1
 
 %build
-%configure --with-cpu=sse_alone --with-default-audio=alsa --enable-modules=no --with-gnu-ld --with-audio="alsa" --enable-ltdl-install=no
+%configure --with-cpu=x86 --with-default-audio=alsa --enable-ltdl-install=yes
 make
 
 %install
@@ -35,11 +35,19 @@ make
 %{_bindir}/*
 %defattr(644,root,root)
 %doc %{_mandir}/*/*
+%{_libdir}/pkgconfig/libmpg123.*
 %{_libdir}/libmpg123.*a*
 %{_libdir}/libmpg123.so*
-%{_libdir}/pkgconfig/libmpg123.*
+%{_libdir}/libltdl.*a*
+%{_libdir}/libltdl.so*
+%{_libdir}/mpg123/output_*.*a*
+%{_libdir}/mpg123/output_*.so*
 %{_includedir}/*.h
 
 %clean
 %{__rm} -rf %{buildroot}
+
+%changelog
+* Tue Jan  1 2008 Michael Ryzhykh <mclroy@gmail.com>
+- Initial Version.
 
