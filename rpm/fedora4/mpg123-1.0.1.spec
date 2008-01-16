@@ -1,7 +1,7 @@
 Summary:	The fast console mpeg audio decoder/player.
 Name:		mpg123
 Version:	1.0.1
-Release:	3
+Release:	4
 URL:		http://www.mpg123.org/
 License:	GPL
 Group:		Applications/Multimedia
@@ -35,7 +35,6 @@ The full list is "alsa oss coreaudio sun win32 esd jack portaudio pulse sdl nas 
 make
 
 %install
-%{__rm} -rf %{buildroot}
 %makeinstall
 
 %clean
