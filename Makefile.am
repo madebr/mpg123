@@ -24,4 +24,5 @@ EXTRA_DIST = \
 	test/forkfaint.c \
 	test/rms16.c \
 	rpm/fedora4/mpg123-1.0.1.spec \
-	rpm/fedora4/README
+	rpm/fedora4/README \
+	autogen.sh
