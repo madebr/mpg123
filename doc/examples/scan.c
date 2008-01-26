@@ -25,6 +25,7 @@ int main(int argc, char **argv)
 	}
 	mpg123_init();
 	m = mpg123_new(NULL, NULL);
+	mpg123_param(m, MPG123_RESYNC_LIMIT, -1, 0); /* New in library version 0.0.1 . */
 	for(i = 1; i < argc; ++i)
 	{
 		off_t a, b;

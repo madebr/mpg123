@@ -102,6 +102,7 @@ struct parameter param = {
 	,0 /* flags */
 	,0 /* force_rate */
 	,1 /* ICY */
+	,1024 /* resync_limit */
 };
 
 int utf8env = 0;
@@ -420,6 +421,7 @@ topt opts[] = {
 	{0, "loop", GLO_ARG | GLO_LONG, 0, &param.loop, 0},
 	{'i', "index", GLO_INT, 0, &param.index, 1},
 	{'D', "delay", GLO_ARG | GLO_INT, 0, &param.delay, 0},
+	{0, "resync-limit", GLO_ARG | GLO_LONG, 0, &param.resync_limit, 0},
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -636,6 +638,7 @@ int main(int argc, char *argv[])
 #endif
 	mpg123_getpar(mp, MPG123_FLAGS, &parr, NULL);
 	param.flags = (int) parr;
+	mpg123_getpar(mp, MPG123_RESYNC_LIMIT, &param.resync_limit, NULL);
 
 #ifdef OS2
         _wildcard(&argc,&argv);
@@ -716,6 +719,7 @@ int main(int argc, char *argv[])
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_DOWNSPEED, param.halfspeed, 0))
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_UPSPEED, param.doublespeed, 0))
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_ICY_INTERVAL, 0, 0))
+	    && MPG123_OK == (result = mpg123_par(mp, MPG123_RESYNC_LIMIT, param.resync_limit, 0))
 #ifndef WIN32
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_TIMEOUT, param.timeout, 0))
 #endif
@@ -1077,6 +1081,7 @@ static void long_usage(int err)
 	fprintf(o," -Z     --random           full random play\n");
 	fprintf(o,"        --no-icy-meta      Do not accept ICY meta data\n");
 	fprintf(o," -i     --index            index / scan through the track before playback\n");
+	fprintf(o,"        --resync-limit <n> Set number of bytes to search for valid MPEG data; <0 means search whole stream.\n");
 	fprintf(o,"\noutput/processing options\n\n");
 	fprintf(o," -o <o> --output <o>       select audio output module\n");
 	fprintf(o,"        --list-modules     list the available modules\n");

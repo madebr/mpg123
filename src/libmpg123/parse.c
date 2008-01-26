@@ -78,8 +78,6 @@ const long freqs[9] = { 44100, 48000, 32000, 22050, 24000, 16000 , 11025 , 12000
 #endif
 #define TRACK_MAX_FRAMES ULONG_MAX/4/1152
 
-#define RESYNC_LIMIT 1024
-
 #ifdef VARMODESUPPORT
 	/*
 	 *   This is a dirty hack!  It might burn your PC and kill your cat!
@@ -600,7 +598,8 @@ init_resync:
 
       if(give_note && NOQUIET && (newhead & 0xffffff00) == ('b'<<24)+('m'<<16)+('p'<<8)) fprintf(stderr,"Note: Could be a BMP album art.\n");
       if (!(fr->p.flags & MPG123_NO_RESYNC) || fr->do_recover) {
-        int try = 0;
+        long try = 0;
+        long limit = fr->p.resync_limit;
         /* TODO: make this more robust, I'd like to cat two mp3 fragments together (in a dirty way) and still have mpg123 beign able to decode all it somehow. */
         if(give_note && NOQUIET) fprintf(stderr, "Note: Trying to resync...\n");
             /* Read more bytes until we find something that looks
@@ -609,7 +608,14 @@ init_resync:
                track within a short time (and hopefully without
                too much distortion in the audio output).  */
         do {
-          if((ret=fr->rd->head_shift(fr,&newhead)) <= 0){ debug("need more?"); goto read_frame_bad; }
+          ++try;
+          if(limit >= 0 && try >= limit) break;
+          if((ret=fr->rd->head_shift(fr,&newhead)) <= 0)
+          {
+            debug("need more?");
+            if(give_note && NOQUIET) fprintf (stderr, "Note: Hit end of (available) data during resync.\n");
+            goto read_frame_bad;
+          }
           debug3("resync try %i at 0x%lx, got newhead 0x%08lx", try, (unsigned long)fr->rd->tell(fr),  newhead);
           if (!fr->oldhead)
           {
@@ -620,24 +626,25 @@ init_resync:
          /* Michael's new resync routine seems to work better with the one frame readahead (and some input buffering?) */
          } while
          (
-           ++try < RESYNC_LIMIT
-           && (newhead & HDRCMPMASK) != (fr->oldhead & HDRCMPMASK)
+              (newhead & HDRCMPMASK) != (fr->oldhead & HDRCMPMASK)
            && (newhead & HDRCMPMASK) != (fr->firsthead & HDRCMPMASK)
          );
          /* too many false positives 
          }while (!(head_check(newhead) && decode_header(fr, newhead))); */
-         if(try == RESYNC_LIMIT)
+         if(limit >= 0 && try >= limit)
          {
-           if(NOQUIET) error("giving up resync - your stream is not nice... perhaps an improved routine could catch up");
-           return 0;
+           if(NOQUIET) error1("Giving up resync after %li bytes - your stream is not nice... (maybe increasing resync limit could help).", try);
+           fr->err = MPG123_RESYNC_FAIL;
+           return READER_ERROR;
          }
 
-        if(give_note && NOQUIET) fprintf (stderr, "Note: Skipped %d bytes in input.\n", try);
+        if(give_note && NOQUIET) fprintf (stderr, "Note: Skipped %li bytes in input.\n", try);
       }
       else
       {
         if(NOQUIET) error("not attempting to resync...");
-        return (0);
+        fr->err = MPG123_OUT_OF_SYNC;
+        return READER_ERROR;
       }
     }
 

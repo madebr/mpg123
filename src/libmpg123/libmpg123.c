@@ -237,6 +237,9 @@ int mpg123_par(mpg123_pars *mp, enum mpg123_parms key, long val, double fval)
 			ret = MPG123_NO_TIMEOUT;
 #endif
 		break;
+		case MPG123_RESYNC_LIMIT:
+			mp->resync_limit = val;
+		break;
 		default:
 			ret = MPG123_BAD_PARAM;
 	}
@@ -289,6 +292,9 @@ int mpg123_getpar(mpg123_pars *mp, enum mpg123_parms key, long *val, double *fva
 #else
 			if(val) *val = mp->outscale;
 #endif
+		break;
+		case MPG123_RESYNC_LIMIT:
+			if(val) *val = mp->resync_limit;
 		break;
 		default:
 			ret = MPG123_BAD_PARAM;
@@ -982,7 +988,9 @@ static const char *mpg123_error[] =
 	"Seek not supported by stream. (code 23)",
 	"No stream opened. (code 24)",
 	"Bad parameter handle. (code 25)",
-	"Invalid parameter addresses for index retrieval. (code 26)"
+	"Invalid parameter addresses for index retrieval. (code 26)",
+	"Lost track in the bytestream and did not attempt resync. (code 27)",
+	"Failed to find valid MPEG data within limit on resync. (code 28)"
 };
 
 const char* mpg123_plain_strerror(int errcode)

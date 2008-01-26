@@ -37,6 +37,7 @@ void frame_default_pars(mpg123_pars *mp)
 #ifndef WIN32
 	mp->timeout = 0;
 #endif
+	mp->resync_limit = 1024;
 	mpg123_fmt_all(mp);
 }
 
@@ -293,6 +294,7 @@ static void frame_fixed_reset(mpg123_handle *fr)
 	fr->abr_rate = 0;
 	fr->track_frames = 0;
 	fr->track_samples = -1;
+	fr->framesize=0; 
 	fr->mean_frames = 0;
 	fr->mean_framesize = 0;
 	fr->freesize = 0;

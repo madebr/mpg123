@@ -87,7 +87,8 @@ enum mpg123_parms
 	MPG123_ICY_INTERVAL,   /**< stream contains ICY metadata with this interval */
 	MPG123_OUTSCALE,       /**< the scale for output samples (amplitude) */
 	MPG123_TIMEOUT,        /**< timeout for reading from a stream (not supported on win32) */
-	MPG123_REMOVE_FLAGS    /**< remove some flags (inverse of MPG123_ADD_FLAGS) */
+	MPG123_REMOVE_FLAGS,   /**< remove some flags (inverse of MPG123_ADD_FLAGS) */
+	MPG123_RESYNC_LIMIT    /**< Try resync on frame parsing for that many bytes or until end of stream (<0). */
 };
 
 /** Flag bits for MPG123_FLAGS, use the usual binary or to combine. */
@@ -171,7 +172,9 @@ enum mpg123_errors
 	MPG123_NO_SEEK,			/**< Seek not supported by stream. */
 	MPG123_NO_READER,		/**< No stream opened. */
 	MPG123_BAD_PARS,		/**< Bad parameter handle. */
-	MPG123_BAD_INDEX_PAR	/** Bad parameters to mpg123_index() */
+	MPG123_BAD_INDEX_PAR,	/**< Bad parameters to mpg123_index() */
+	MPG123_OUT_OF_SYNC,	/**< Lost track in bytestream and did not try to resync. */
+	MPG123_RESYNC_FAIL	/**< Resync failed to find valid MPEG data. */
 };
 
 /** Return a string describing that error errcode means. */

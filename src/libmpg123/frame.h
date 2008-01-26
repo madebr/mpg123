@@ -124,6 +124,7 @@ struct mpg123_pars_struct
 /*	long frame_number;*/ /* number of frames to decode */
 	long icy_interval;
 	scale_t outscale;
+	long resync_limit;
 };
 
 /* There is a lot to condense here... many ints can be merged as flags; though the main space is still consumed by buffers. */
