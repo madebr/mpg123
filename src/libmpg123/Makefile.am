@@ -75,6 +75,7 @@ EXTRA_libmpg123_la_SOURCES = \
 	dct64_altivec.c \
 	dct64.c \
 	dct64_i386.c \
+	dct64_i486.c \
 	dct64_mmx.S \
 	dct64_sse.S \
 	decode_3dnowext.S \
@@ -82,6 +83,7 @@ EXTRA_libmpg123_la_SOURCES = \
 	decode_altivec.c \
 	decode.c \
 	decode_i386.c \
+	decode_i486.c \
 	decode_i586_dither.S \
 	decode_i586.S \
 	decode_mmx.S \
