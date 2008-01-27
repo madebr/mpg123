@@ -547,7 +547,7 @@ int play_frame(void)
 			}
 		}
 		/* Normal flushing of data, includes buffer decoding. */
-		if(flush_output(ao, audio, bytes) < (int)bytes)
+		if(flush_output(ao, audio, bytes) < (int)bytes && !intflag)
 		{
 			error("Deep trouble! Cannot flush to my output anymore!");
 			safe_exit(133);
