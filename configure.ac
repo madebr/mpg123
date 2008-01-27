@@ -10,7 +10,7 @@ AC_PREREQ(2.57)
 
 dnl ############# Initialisation
 
-AC_INIT([mpg123], [1.1.0], [mpg123-devel@lists.sourceforge.net])
+AC_INIT([mpg123], [1.1.0+dev], [mpg123-devel@lists.sourceforge.net])
 LIBMPG123_VERSION=1:0:1
 AC_SUBST( LIBMPG123_VERSION )
 
@@ -324,9 +324,10 @@ fi
 
 dnl ############## Types
 
-AC_TYPE_SIZE_T()
-AC_TYPE_SSIZE_T()
-AC_TYPE_OFF_T()
+# Using the lower level macros instead of AC_TYPE_* for compatibility with not freshest autoconf.
+AC_CHECK_TYPE(size_t, unsigned int)
+AC_CHECK_TYPE(ssize_t, int)
+AC_CHECK_TYPE(off_t,  long int)
 
 dnl ############## Function Checks
 
