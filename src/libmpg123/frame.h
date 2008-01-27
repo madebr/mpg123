@@ -9,70 +9,15 @@
 #ifndef MPG123_FRAME_H
 #define MPG123_FRAME_H
 
+#include <stdio.h>
 #include "mpg123.h"
 #include "id3.h"
 #include "icy.h"
 #include "reader.h"
-#include <stdio.h>
+#include "optimize.h"
 
 /* max = 1728 */
 #define MAXFRAMESIZE 3456
-
-/* need the definite optimization flags here */
-/* Unite that with optimize.h! */
-#ifdef OPT_I486
-#define OPT_X86
-#define FIR_BUFFER_SIZE  128
-#define FIR_SIZE 16
-#endif
-
-#ifdef OPT_I386
-#define PENTIUM_FALLBACK
-#define OPT_X86
-#endif
-
-#ifdef OPT_I586
-#define PENTIUM_FALLBACK
-#define OPT_PENTIUM
-#define OPT_X86
-#endif
-
-#ifdef OPT_I586_DITHER
-#define PENTIUM_FALLBACK
-#define OPT_PENTIUM
-#define OPT_X86
-#endif
-
-#ifdef OPT_MMX
-#define OPT_MMXORSSE
-#define OPT_X86
-#ifndef OPT_MULTI
-#define OPT_MMX_ONLY
-#endif
-#endif
-
-#ifdef OPT_SSE
-#define OPT_MMXORSSE
-#define OPT_MPLAYER
-#define OPT_X86
-#ifndef OPT_MULTI
-#define OPT_MMX_ONLY
-#endif
-#endif
-
-#ifdef OPT_3DNOWEXT
-#define OPT_MMXORSSE
-#define OPT_MPLAYER
-#define OPT_X86
-#ifndef OPT_MULTI
-#define OPT_MMX_ONLY
-#endif
-#endif
-
-#ifdef OPT_3DNOW
-#define K6_FALLBACK
-#define OPT_X86
-#endif
 
 struct al_table
 {

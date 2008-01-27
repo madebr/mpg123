@@ -1,3 +1,5 @@
+#ifndef MPG123_H_OPTIMIZE
+#define MPG123_H_OPTIMIZE
 /*
 	optimize: get a grip on the different optimizations
 
@@ -343,3 +345,6 @@ void check_decoders(void);
 	#define opt_mpl_dct64(fr) ((fr)->cpu_opts.mpl_dct64)
 	#endif
 #endif
+
+#endif /* MPG123_H_OPTIMIZE */
+
