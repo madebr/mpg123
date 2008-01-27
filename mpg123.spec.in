@@ -1,3 +1,7 @@
+# This is a generic spec file that should "just work" with rpmbuild on any distro.
+# Make sure you have appropriate -devel packes installed:
+# - the package providing libltdl.so and .la (libtool or libtool-devel)
+# - devel packages for alsa, sdl, etc... to build the respective output modules.
 Summary:	The fast console mpeg audio decoder/player.
 Name:		@PACKAGE_NAME@
 Version:	@PACKAGE_VERSION@
@@ -9,7 +13,8 @@ Packager:	Michael Ryzhykh <mclroy@gmail.com>
 Source:		http://www.mpg123.org/download/mpg123-%{version}.tar.bz2
 BuildRoot:	%_tmppath/%name-%version
 Prefix: 	/usr
-BuildPrereq:	libtool-ltdl-devel
+# That is specific to fedora 4 already.
+#BuildPrereq:	libtool-ltdl-devel
 
 %description
 This is a console based decoder/player for mono/stereo mpeg audio files,
@@ -29,7 +34,7 @@ Libraries and header files for development with mpg123.
 %setup -q -n %name-%version
 
 %build
-%configure --with-cpu=x86_dither --with-default-audio=alsa --enable-shared --enable-static --disable-ltdl-install
+%configure --with-cpu=x86_dither --enable-shared --enable-static --disable-ltdl-install
 make
 
 %install
