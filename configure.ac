@@ -227,7 +227,7 @@ AC_ARG_WITH([cpu], [
   --with-cpu=generic_nofpu      Use generic processor code with fixed point arithmetic (p.ex. ARM, experimental)
   --with-cpu=i386[_fpu]         Use code optimized for i386 processors with floating point arithmetic
   --with-cpu=i386_nofpu         Use code optimized for i386 processors with fixed point arithmetic (experimental)
-  --with-cpu=i486         Use code optimized for i486 processors
+  --with-cpu=i486         Use code optimized for i486 processors (only usable alone!)
   --with-cpu=i586         Use code optimized for i586 processors
   --with-cpu=i586_dither  Use code optimized for i586 processors with dithering (noise shaping), adds 256K to binary size
   --with-cpu=3dnow        Use code optimized for 3DNow processors

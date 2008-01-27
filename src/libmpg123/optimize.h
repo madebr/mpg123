@@ -74,24 +74,35 @@ void dct36(real *,real *,real *,real *,real *);
 	#endif
 #endif
 
-/* i486 is special */
+/* i486 is special... always alone! */
 #ifdef OPT_I486
-#define OPT_I386
+#define OPT_X86
+#define OPT_I386_SYNTH
 #define defopt ivier
 	int synth_1to1_486(real *bandPtr, int channel, mpg123_handle *fr, int nb_blocks);
+#ifdef OPT_MULTI
+#error "i486 can only work alone!"
+#endif
+#define opt_synth_1to1(fr) synth_1to1_i386
+#define FIR_BUFFER_SIZE  128
+#define FIR_SIZE 16
 	void dct64_i486(int *a,int *b,real *c); /* not used generally */
 #endif
 
 #ifdef OPT_I386
 	#define PENTIUM_FALLBACK
 	#define OPT_X86
-	int synth_1to1_i386(real *bandPtr, int channel, mpg123_handle *fr, int final);
+	#define OPT_I386_SYNTH
 	#ifndef OPT_MULTI
 #ifndef defopt
 	#define defopt idrei
 #endif
 	#define opt_synth_1to1(fr) synth_1to1_i386
 	#endif
+#endif
+
+#ifdef OPT_I386_SYNTH
+	int synth_1to1_i386(real *bandPtr, int channel, mpg123_handle *fr, int final);
 #endif
 
 #ifdef OPT_I586

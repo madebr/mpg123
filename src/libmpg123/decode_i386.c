@@ -126,7 +126,7 @@ int synth_1to1_mono2stereo_i386(real *bandPtr, mpg123_handle *fr)
 }
 
 /* needed for i386, i486 */
-#ifdef OPT_I386
+#ifdef OPT_I386_SYNTH
 int synth_1to1_i386(real *bandPtr,int channel, mpg123_handle *fr, int final)
 {
   static const int step = 2;

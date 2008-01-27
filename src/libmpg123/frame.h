@@ -19,9 +19,9 @@
 #define MAXFRAMESIZE 3456
 
 /* need the definite optimization flags here */
-
+/* Unite that with optimize.h! */
 #ifdef OPT_I486
-#define OPT_I386
+#define OPT_X86
 #define FIR_BUFFER_SIZE  128
 #define FIR_SIZE 16
 #endif
