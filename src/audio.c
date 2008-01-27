@@ -69,6 +69,7 @@ audio_output_t* open_fake_module(void)
 	ao->write  = wave_write;
 	ao->close  = builtin_close;
 	ao->device = param.filename;
+	ao->is_open = FALSE;
 	switch(param.outmode)
 	{
 		case DECODE_FILE:
