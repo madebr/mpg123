@@ -1,6 +1,7 @@
-Changes in libmpg123 interface versions...
+Changes in libmpg123 libtool interface versions...
 
 1.0.1
 	- Added MPG123_RESYNC_LIMIT parameter.
 	- Added MPG123_OUT_OF_SYNC and MPG123_RESYNC_FAIL error codes.
+	- Fix for uninitialized framesize value in handle.
 

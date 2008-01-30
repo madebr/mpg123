@@ -1,4 +1,4 @@
-.TH mpg123 1 "23 Dec 2007"
+.TH mpg123 1 "31 Jan 2008"
 .SH NAME
 mpg123 \- play audio MPEG 1.0/2.0/2.5 stream (layers 1, 2 and 3)
 .SH SYNOPSIS
@@ -57,6 +57,10 @@ With this switch you can make it bail out on data errors
 (and perhaps spare your ears a bad time). Note that this switch may either disappear
 in future or its meaning be revised since it now does the opposite of what it
 suggests.
+.TP
+\fB\-\^-resync\-limit \fIbytes\fR
+Set number of bytes to search for valid MPEG data; <0 means search whole stream.
+If you know there are huge chunks of invalid data in your files... here is your hammer.
 .TP
 \fB\-p \fIURL \fR| \fBnone\fR, \fB\-\^\-proxy \fIURL \fR| \fBnone
 The specified

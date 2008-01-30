@@ -13,6 +13,7 @@ The creator: Michael Hipp (email: hippm@informatik.uni-tuebingen.de - please bot
 
 Contributions/ideas Thomas Orgis era (includes backports from mhipp trunk):
 
+Michael <mclroy@gmail.com>: mpg123.spec.in
 Stefan Lenselink <Stefan@lenselink.org>: initial aRts output
 Sergej Kvachonok <ravenexp@gmail.com>: win32 audio rewrite
 Winston: SunOS-4.1.4/gcc-2.7.0 testing and suggestions for fixes (legacy Makefile, integer type headers)

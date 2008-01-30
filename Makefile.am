@@ -25,4 +25,5 @@ EXTRA_DIST = \
 	makedll.sh \
 	test/forkfaint.c \
 	test/rms16.c \
+	NEWS.libmpg123 \
 	autogen.sh

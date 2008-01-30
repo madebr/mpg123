@@ -1,3 +1,17 @@
+1.2.0
+----
+
+- libmpg123 libtool-version 1.0.1
+  - See NEWS.libmpg123 for details.
+  - This adds --resync-limit parameter to mpg123.
+- Some build system work, including:
+  - It is now possible to build a mpg123 rpm from the source tarball via rpmbuild -tb .
+  - configure: Accept --with-audio=foo,bar,bla (comma-separated list) in addition to --with-audio="foo bar bla".
+  - autogen.sh included in distribution.
+  - Include the forgotten i486 files in the distribution (now that's embarrasing...).
+    Also a little fix for wrong --list-cpu on i486 build.
+  - Fix build with MinGW32.
+
 1.1.0
 ----
 
