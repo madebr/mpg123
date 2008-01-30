@@ -589,6 +589,7 @@ int main(int argc, char *argv[])
 	int result;
 	long parr;
 	char *fname;
+	int libpar = 0;
 	mpg123_pars *mp;
 #if !defined(WIN32) && !defined(GENERIC)
 	struct timeval start_time, now;
@@ -712,25 +713,36 @@ int main(int argc, char *argv[])
 #endif
 	if(param.cpu != NULL && (!strcmp(param.cpu, "auto") || !strcmp(param.cpu, ""))) param.cpu = NULL;
 	if(!(  MPG123_OK == (result = mpg123_par(mp, MPG123_VERBOSE, param.verbose, 0))
+	    && ++libpar
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_FLAGS, param.flags, 0))
+	    && ++libpar
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_DOWN_SAMPLE, param.down_sample, 0))
+	    && ++libpar
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_RVA, param.rva, 0))
+	    && ++libpar
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_FORCE_RATE, param.force_rate, 0))
+	    && ++libpar
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_DOWNSPEED, param.halfspeed, 0))
+	    && ++libpar
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_UPSPEED, param.doublespeed, 0))
+	    && ++libpar
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_ICY_INTERVAL, 0, 0))
+	    && ++libpar
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_RESYNC_LIMIT, param.resync_limit, 0))
 #ifndef WIN32
+	    && ++libpar
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_TIMEOUT, param.timeout, 0))
 #endif
 #ifdef FLOATOUT
+	    && ++libpar
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_OUTSCALE, 0, param.outscale))
 #else
+	    && ++libpar
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_OUTSCALE, param.outscale, 0))
 #endif
 			))
 	{
-		error1("Cannot set library parameters: %s", mpg123_plain_strerror(result));
+		error2("Cannot set library parameter %i: %s", libpar, mpg123_plain_strerror(result));
 		safe_exit(45);
 	}
 	if (!(param.listentry < 0) && !param.quiet) print_title(stderr); /* do not pollute stdout! */
