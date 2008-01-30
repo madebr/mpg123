@@ -93,4 +93,9 @@ echo "Fixing that darned libltdl Makefile.in... it wants to blow on make dist be
 echo "This may just apply to libtool-1.5.22 ... libtool-1.5.24 breaks in different ways, but also for make dist (mkinstalldirs target)"
 perl -pi -e 's/mkdir \$\(distdir\)/\$(mkdir_p) \$(distdir)/' libltdl/Makefile.in
 
+# Create mpg123.spec here... so that configure doesn't recreate it all the time.
+NAME=`perl -ne    'if(/^AC_INIT\(\[([^,]*)\]/)         { print $1; exit; }' < configure.ac`
+VERSION=`perl -ne 'if(/^AC_INIT\([^,]*,\s*\[([^,]*)\]/){ print $1; exit; }' < configure.ac`
+perl -pe 's/\@PACKAGE_NAME\@/'$NAME'/; s/\@PACKAGE_VERSION\@/'$VERSION'/;' < mpg123.spec.in > mpg123.spec
+
 $srcdir/configure --enable-debug && echo

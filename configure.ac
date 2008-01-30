@@ -10,7 +10,7 @@ AC_PREREQ(2.57)
 
 dnl ############# Initialisation
 
-AC_INIT([mpg123], [1.1.0+dev], [mpg123-devel@lists.sourceforge.net])
+AC_INIT([mpg123], [1.2.0], [mpg123-devel@lists.sourceforge.net])
 LIBMPG123_VERSION=1:0:1
 AC_SUBST( LIBMPG123_VERSION )
 
@@ -1106,7 +1106,7 @@ AC_SUBST( OUTPUT_LDFLAGS )
 dnl ############## Compiler Optimizations
 
 CFLAGS="$CFLAGS $ADD_CFLAGS"
-if test $buffer = no; then
+if test $buffer = disabled; then
 	ADD_CPPFLAGS="$ADD_CPPFLAGS -DNOXFERMEM"
 fi
 CPPFLAGS="$CPPFLAGS $ADD_CPPFLAGS"
@@ -1169,7 +1169,6 @@ dnl ############## Final Output
 AC_CONFIG_FILES([
 	Makefile
 	libmpg123.pc
-	mpg123.spec
 	doc/Makefile
 	src/Makefile
 	src/output/Makefile
