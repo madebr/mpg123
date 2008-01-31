@@ -11,6 +11,7 @@
   - Include the forgotten i486 files in the distribution (now that's embarrasing...).
     Also a little fix for wrong --list-cpu on i486 build.
   - Fix build with MinGW32.
+- Fix -v stat output (time display) for MinGW32 build.
 
 1.1.0
 ----

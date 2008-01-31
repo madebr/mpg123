@@ -193,6 +193,7 @@ void print_stat(mpg123_handle *fr, long offset, long buffsize)
 	off_t rno, no;
 	double basevol, realvol;
 	char *icy;
+#ifndef WIN32
 #ifndef GENERIC
 /* Only generate new stat line when stderr is ready... don't overfill... */
 	{
@@ -207,6 +208,7 @@ void print_stat(mpg123_handle *fr, long offset, long buffsize)
 		n = select(errfd+1,NULL,&serr,NULL,&t);
 		if(n <= 0) return;
 	}
+#endif
 #endif
 	if(    MPG123_OK == mpg123_position(fr, offset, buffsize, &no, &rno, &tim1, &tim2)
 	    && MPG123_OK == mpg123_getvolume(fr, &basevol, &realvol, NULL) )
