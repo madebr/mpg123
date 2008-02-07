@@ -134,9 +134,9 @@ int head_check(unsigned long head)
 		||
 		/* 1111 means bad bitrate */
 		(((head>>12)&0xf) == 0xf)
-/*		|| */
-		/* 0000 means free format... */
-/*		(((head>>12)&0xf) == 0x0) */
+		||
+		/* 0000 means free format... which should be supported in future. */
+		(((head>>12)&0xf) == 0x0)
 		||
 		/* sampling freq: 11 is reserved */
 		(((head>>10)&0x3) == 0x3 )
@@ -616,7 +616,7 @@ init_resync:
             if(give_note && NOQUIET) fprintf (stderr, "Note: Hit end of (available) data during resync.\n");
             goto read_frame_bad;
           }
-          debug3("resync try %i at 0x%lx, got newhead 0x%08lx", try, (unsigned long)fr->rd->tell(fr),  newhead);
+          debug3("resync try %li at 0x%lx, got newhead 0x%08lx", try, (unsigned long)fr->rd->tell(fr),  newhead);
           if (!fr->oldhead)
           {
             debug("going to init_resync...");
