@@ -626,19 +626,25 @@ init_resync:
          /* Michael's new resync routine seems to work better with the one frame readahead (and some input buffering?) */
          } while
          (
-              (newhead & HDRCMPMASK) != (fr->oldhead & HDRCMPMASK)
-           && (newhead & HDRCMPMASK) != (fr->firsthead & HDRCMPMASK)
+           !head_check(newhead) /* Simply check for any valid header... we have the readahead to get it straight now(?) */
+           /*   (newhead & HDRCMPMASK) != (fr->oldhead & HDRCMPMASK)
+           && (newhead & HDRCMPMASK) != (fr->firsthead & HDRCMPMASK)*/
          );
          /* too many false positives 
          }while (!(head_check(newhead) && decode_header(fr, newhead))); */
+        if(give_note && NOQUIET) fprintf (stderr, "Note: Skipped %li bytes in input.\n", try);
          if(limit >= 0 && try >= limit)
          {
            if(NOQUIET) error1("Giving up resync after %li bytes - your stream is not nice... (maybe increasing resync limit could help).", try);
            fr->err = MPG123_RESYNC_FAIL;
            return READER_ERROR;
          }
-
-        if(give_note && NOQUIET) fprintf (stderr, "Note: Skipped %li bytes in input.\n", try);
+         else
+         {
+           debug1("Found valid header 0x%lx... unsetting firsthead to reinit stream.", newhead);
+           fr->firsthead = 0;
+           goto init_resync;
+         }
       }
       else
       {
