@@ -6,6 +6,7 @@
 	initially written by Michael Hipp
 */
 
+#include <errno.h>
 #include "mpg123app.h"
 #include "common.h"
 #include "buffer.h"
@@ -477,7 +478,17 @@ int flush_output(audio_output_t *ao, unsigned char *bytes, size_t count)
 		else
 #endif
 		if(param.outmode != DECODE_TEST)
-		return ao->write(ao, bytes, (int)count);
+		{
+			int sum = 0;
+			int written;
+			do
+			{ /* Be in a loop for SIGSTOP/CONT */
+				written = ao->write(ao, bytes, (int)count);
+				if(written >= 0){ sum+=written; count -= written; }
+				else error1("Error in writing audio (%s?)!", strerror(errno));
+			}	while(count>0 && written>=0);
+			return sum;
+		}
 	}
 	return (int)count; /* That is for DECODE_TEST */
 }
