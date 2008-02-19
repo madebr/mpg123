@@ -1,9 +1,11 @@
 1.2.1
 ----
 
-- libmpg123 libtool-version 1.1.1
-  Earlier check for free format headers to prevent them from screwing up resync (free format still not supported)
-
+- libmpg123 libtool-version 1.2.1 (coincidence!)
+  - Earlier check for free format headers to prevent them from screwing up resync (free format still not supported)
+  - bug 1889051: more flexible resync, not insisting on the format of the first frame (which could have been bogus)
+- Add an output write loop to handle SIGSTOP/CONT operation (bug 1890563).
+- Fixed a bug where playback status for some http streams was not shown.
 
 1.2.0
 ----
