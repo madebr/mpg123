@@ -537,7 +537,7 @@ int play_frame(void)
 	if(bytes)
 	{
 		if(param.frame_number > -1) --frames_left;
-		if(fresh && framenum == param.start_frame)
+		if(fresh && framenum >= param.start_frame)
 		{
 			fresh = FALSE;
 			if(!param.quiet)
