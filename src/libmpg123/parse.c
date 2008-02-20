@@ -597,7 +597,10 @@ init_resync:
       }
 
       if(give_note && NOQUIET && (newhead & 0xffffff00) == ('b'<<24)+('m'<<16)+('p'<<8)) fprintf(stderr,"Note: Could be a BMP album art.\n");
-      if (!(fr->p.flags & MPG123_NO_RESYNC) || fr->do_recover) {
+      /* Do resync if forced from outside or not forbidden by flag.
+          Also, don't try to resync on ICY streams - that won't work! */
+      if( (!(fr->p.flags & MPG123_NO_RESYNC)|| fr->do_recover)
+           && fr->p.icy_interval == 0 )
         long try = 0;
         long limit = fr->p.resync_limit;
         /* TODO: make this more robust, I'd like to cat two mp3 fragments together (in a dirty way) and still have mpg123 beign able to decode all it somehow. */
