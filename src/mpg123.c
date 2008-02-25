@@ -477,12 +477,12 @@ static void reset_audio(long rate, int channels, int format)
 int open_track(char *fname)
 {
 	filept=-1;
+	httpdata_reset(&htd);
 	if(MPG123_OK != mpg123_param(mh, MPG123_ICY_INTERVAL, 0, 0))
 	error1("Cannot (re)set ICY interval: %s", mpg123_strerror(mh));
 	if(!strcmp(fname, "-")) filept = STDIN_FILENO;
 	else if (!strncmp(fname, "http://", 7)) /* http stream */
 	{
-		httpdata_reset(&htd);
 		filept = http_open(fname, &htd);
 		/* now check if we got sth. and if we got sth. good */
 		if(    (filept >= 0) && (htd.content_type.p != NULL)
@@ -861,11 +861,15 @@ int main(int argc, char *argv[])
 			continue;
 		}
 
-		if (!param.quiet) {
+		if (!param.quiet)
+		{
 			if (split_dir_file(fname ? fname : "standard input",
 				&dirname, &filename))
 				fprintf(stderr, "Directory: %s\n", dirname);
+
 			fprintf(stderr, "Playing MPEG stream %lu of %lu: %s ...\n", (unsigned long)pl.pos, (unsigned long)pl.fill, filename);
+			if(htd.icy_name.fill) fprintf(stderr, "ICY-NAME: %s\n", htd.icy_name.p);
+			if(htd.icy_url.fill)  fprintf(stderr, "ICY-URL: %s\n",  htd.icy_url.p);
 
 #if !defined(GENERIC)
 {
