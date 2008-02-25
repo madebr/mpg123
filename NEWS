@@ -1,3 +1,10 @@
+1.2.2
+---
+- libmpg123 libtool-version 1.3.1
+  - Do not try to resync on streams with ICY metadata, that won't work.
+- Consequently, if there's unreliable network, use --loop -1 to make mpg123 reconnect to the server on errors.
+- Print ICY-NAME and ICY-URL again, as mpg123-0.6x did.
+
 1.2.1
 ----
 
