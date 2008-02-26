@@ -288,6 +288,9 @@ You should specify a buffer size of at least 1024
 (i.e. 1 Mb, which equals about 6 seconds of audio data) or more; 
 less than about 300 does not make much sense.  The default is 0, 
 which turns buffering off.
+.TP
+\fB\-\^\-smooth
+Keep buffer over track boundaries -- meaning, do not empty the buffer between tracks for possibly some added smoothness.
 
 .SH MISC OPTIONS
 

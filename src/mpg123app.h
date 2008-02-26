@@ -141,6 +141,7 @@ struct parameter
 	long force_rate;
 	int talk_icy;
 	long resync_limit;
+	int smooth;
 };
 
 extern char *equalfile;

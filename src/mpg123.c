@@ -103,6 +103,7 @@ struct parameter param = {
 	,0 /* force_rate */
 	,1 /* ICY */
 	,1024 /* resync_limit */
+	,0 /* smooth */
 };
 
 int utf8env = 0;
@@ -363,7 +364,10 @@ topt opts[] = {
 	#ifdef HAVE_TERMIOS
 	{'C', "control",     GLO_INT,  0, &param.term_ctrl, TRUE},
 	#endif
+#ifndef NOXFERMEM
 	{'b', "buffer",      GLO_ARG | GLO_LONG, 0, &param.usebuffer,  0},
+	{0,  "smooth",      GLO_INT,  0, &param.smooth, 1},
+#endif
 	{'R', "remote",      GLO_INT,  0, &param.remote, TRUE},
 	{0,   "remote-err",  GLO_INT,  0, &param.remote_err, TRUE},
 	{'d', "doublespeed", GLO_ARG | GLO_LONG, 0, &param.doublespeed, 0},
@@ -582,6 +586,24 @@ int play_frame(void)
 		}
 	}
 	return 1;
+}
+
+void buffer_drain(void)
+{
+#ifndef NOXFERMEM
+	int s;
+	while ((s = xfermem_get_usedspace(buffermem)))
+	{
+		struct timeval wait170 = {0, 170000};
+		if(intflag) break;
+		buffer_ignore_lowmem();
+		if(param.verbose) print_stat(mh,0,s);
+	#ifdef HAVE_TERMIOS
+		if(param.term_ctrl) term_control(mh);
+	#endif
+		select(0, NULL, NULL, NULL, &wait170);
+	}
+#endif
 }
 
 int main(int argc, char *argv[])
@@ -932,22 +954,7 @@ int main(int argc, char *argv[])
 #endif
 		}
 
-#ifndef NOXFERMEM
-	if(param.usebuffer) {
-		int s;
-		while ((s = xfermem_get_usedspace(buffermem)))
-		{
-			struct timeval wait170 = {0, 170000};
-			if(intflag) break;
-			buffer_ignore_lowmem();
-			if(param.verbose) print_stat(mh,0,s);
-#ifdef HAVE_TERMIOS
-			if(param.term_ctrl) term_control(mh);
-#endif
-			select(0, NULL, NULL, NULL, &wait170);
-		}
-	}
-#endif
+	if(!param.smooth && param.usebuffer) buffer_drain();
 	if(param.verbose) print_stat(mh,0,xfermem_get_usedspace(buffermem)); 
 #ifdef HAVE_TERMIOS
 	if(param.term_ctrl) term_restore();
@@ -1005,10 +1012,16 @@ int main(int argc, char *argv[])
         intflag = FALSE;
 
 #ifndef NOXFERMEM
-        if(param.usebuffer) buffer_resync();
+        if(!param.smooth && param.usebuffer) buffer_resync();
 #endif
       }
     } /* end of loop over input files */
+	/* Ensure we played everything. */
+	if(param.smooth && param.usebuffer)
+	{
+		buffer_drain();
+		buffer_resync();
+	}
 	/* Free up memory used by playlist */    
 	if(!param.remote) free_playlist();
 	safe_exit(0); /* That closes output, too. */
@@ -1142,7 +1155,10 @@ static void long_usage(int err)
 	fprintf(o," -o h   --headphones       (aix/hp/sun) output on headphones\n");
 	fprintf(o," -o s   --speaker          (aix/hp/sun) output on speaker\n");
 	fprintf(o," -o l   --lineout          (aix/hp/sun) output to lineout\n");
+#ifndef NOXFERMEM
 	fprintf(o," -b <n> --buffer <n>       set play buffer (\"output cache\")\n");
+	fprintf(o,"        --smooth           keep buffer over track boundaries\n");
+#endif
 
 	fprintf(o,"\nmisc options\n\n");
 	fprintf(o," -t     --test             only decode, no output (benchmark)\n");
