@@ -283,6 +283,11 @@ static void process_comment(mpg123_handle *fr, char *realdata, size_t realsize, 
 	char *lang    = realdata+1; /* I'll only use the 3 bytes! */
 	char *descr   = realdata+4;
 	char *text;
+	if(realsize < descr-realdata)
+	{
+		if(NOQUIET) error1("Invalid frame size of %lu (too small for anything).", (unsigned long)realsize);
+		return;
+	}
 	mpg123_text *xcom = add_comment(fr);
 	if(VERBOSE4) fprintf(stderr, "Note: Storing comment from %s encoding\n", enc_name(realdata[0]));
 	if(xcom == NULL)
@@ -305,7 +310,7 @@ static void process_comment(mpg123_handle *fr, char *realdata, size_t realsize, 
 	}
 	store_id3_text(&xcom->description, descr-1, text-descr+1, NOQUIET);
 	text[-1] = encoding;
-	store_id3_text(&xcom->text, text-1, realsize-(text-realdata)+1, NOQUIET);
+	store_id3_text(&xcom->text, text-1, realsize+1-(text-realdata), NOQUIET);
 
 	if(VERBOSE4)
 	{
@@ -343,6 +348,11 @@ void process_extra(mpg123_handle *fr, char* realdata, size_t realsize, int rva_l
 	char *descr  = realdata+1; /* remember, the encoding is descr[-1] */
 	char *text;
 	mpg123_text *xex;
+	if(realsize < descr-realdata)
+	{
+		if(NOQUIET) error1("Invalid frame size of %lu (too small for anything).", (unsigned long)realsize);
+		return;
+	}
 	text = next_text(descr, encoding, realsize-(descr-realdata));
 	if(VERBOSE4) fprintf(stderr, "Note: Storing extra from %s encoding\n", enc_name(realdata[0]));
 	if(text == NULL)
