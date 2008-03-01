@@ -618,7 +618,10 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 
   /* mhipp tree has this split up a bit... */
   int num=getbitoffset(fr);
-  long mask = (long) getbits(fr, num)<<(BITSHIFT+8-num);
+  long mask;
+  /* We must split this, because for num==0 the shift is undefined if you do it in one step. */
+  mask  = ((unsigned long) getbits(fr, num))<<BITSHIFT;
+  mask <<= 8-num;
   part2remain -= num;
 
   {
