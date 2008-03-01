@@ -448,7 +448,7 @@ int promote_framename(mpg123_handle *fr, char *id) /* fr because of VERBOSE macr
 	trying to parse ID3v2.3 and ID3v2.4 tags...
 
 	returns:  0: bad or just unparseable tag
-	          1: good, new tag info
+	          1: good, (possibly) new tag info
 	         <0: reader error (may need more data feed, try again)
 */
 int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
@@ -586,6 +586,11 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 							}
 							if(VERBOSE3) fprintf(stderr, "Note: ID3v2 %s frame of size %lu\n", id, framesize);
 							tagpos += head_part + framesize; /* the important advancement in whole tag */
+							if(tagpos > length)
+							{
+								if(NOQUIET) error("Whoa! ID3v2 frame claims to be larger than the whole rest of the tag.");
+								break;
+							}
 							pos += head_part;
 							if(fr->id3v2.version > 2)
 							{
