@@ -441,6 +441,10 @@ static int III_get_side_info(mpg123_handle *fr, struct III_sideinfo *si,int ster
          r1c = getbits_fast(fr, 3);
          gr_info->region1start = bandInfo[sfreq].longIdx[r0c+1] >> 1 ;
          gr_info->region2start = bandInfo[sfreq].longIdx[r0c+1+r1c+1] >> 1;
+         if(r0c + r1c + 2 > 22)
+           gr_info->region2start = 576>>1;
+         else
+           gr_info->region2start = bandInfo[sfreq].longIdx[r0c+1+r1c+1] >> 1;
          gr_info->block_type = 0;
          gr_info->mixed_block_flag = 0;
        }
