@@ -282,13 +282,14 @@ static void process_comment(mpg123_handle *fr, char *realdata, size_t realsize, 
 	char  encoding = realdata[0];
 	char *lang    = realdata+1; /* I'll only use the 3 bytes! */
 	char *descr   = realdata+4;
-	char *text;
+	char *text = NULL;
+	mpg123_text *xcom = NULL;
 	if(realsize < descr-realdata)
 	{
 		if(NOQUIET) error1("Invalid frame size of %lu (too small for anything).", (unsigned long)realsize);
 		return;
 	}
-	mpg123_text *xcom = add_comment(fr);
+	xcom = add_comment(fr);
 	if(VERBOSE4) fprintf(stderr, "Note: Storing comment from %s encoding\n", enc_name(realdata[0]));
 	if(xcom == NULL)
 	{
