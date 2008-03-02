@@ -677,7 +677,7 @@ init_resync:
     fr->header_change = 0;
 
 	/* if filepos is invalid, so is framepos */
-	framepos = fr->rdat.filepos - 4;
+	framepos = fr->rd->tell(fr) - 4;
 	/* flip/init buffer for Layer 3 */
 	{
 		unsigned char *newbuf = fr->bsspace[fr->bsnum]+512;

@@ -15,8 +15,20 @@
 struct buffy
 {
 	unsigned char *data;
-	off_t size;
+	ssize_t size;
 	struct buffy *next;
+};
+
+struct bufferchain
+{
+	struct buffy* first; /* The beginning of the chain. */
+	struct buffy* last;  /* The end...    of the chain. */
+	ssize_t size;        /* Aggregated size of all buffies. */
+	/* These positions are relative to buffer chain beginning. */
+	ssize_t pos;         /* Position in whole chain. */
+	ssize_t firstpos;    /* The point of return on non-forget() */
+	/* The "real" filepos is fileoff + pos. */
+	off_t fileoff;       /* Beginning of chain is at this file offset. */
 };
 
 struct reader_data
@@ -36,8 +48,7 @@ struct reader_data
 	ssize_t (*read) (int fd, void *buf, size_t count);
 	off_t   (*lseek)(int fd, off_t offset, int whence);
 	/* variables specific to feed reader */
-	off_t firstpos; /* the point of return on non-forget() */
-	struct buffy *buf;  /* first in buffer chain */
+	struct bufferchain buffer; /* Not dynamically allocated, these few struct bytes aren't worth the trouble. */
 };
 
 /* start to use off_t to properly do LFS in future ... used to be long */

@@ -786,7 +786,7 @@ off_t mpg123_feedseek(mpg123_handle *mh, off_t sampleoff, int whence, off_t *inp
 	mh->buffer.fill = 0;
 
 	/* Shortcuts without modifying input stream. */
-	*input_offset = mh->rdat.firstpos + mh->rdat.filelen;
+	*input_offset = mh->rdat.buffer.fileoff + mh->rdat.buffer.size;
 	if(mh->num < mh->firstframe) mh->to_decode = FALSE;
 	if(mh->num == pos && mh->to_decode) goto feedseekend;
 	if(mh->num == pos-1) goto feedseekend;

@@ -302,7 +302,13 @@ static int generic_read_frame_body(mpg123_handle *fr,unsigned char *buf, int siz
 	return l;
 }
 
-static off_t generic_tell(mpg123_handle *fr){ return fr->rdat.filepos; }
+static off_t generic_tell(mpg123_handle *fr)
+{
+	if(fr->rdat.buffer.first == NULL)
+	return fr->rdat.filepos;
+	else
+	return fr->rdat.buffer.fileoff+fr->rdat.buffer.pos;
+}
 
 static void stream_rewind(mpg123_handle *fr)
 {
@@ -333,22 +339,22 @@ static off_t get_fileinfo(mpg123_handle *fr)
 	return len;
 }
 
-/* reader for input via manually provided buffers */
+/* Methods for the buffer chain, mainly used for feed reader, but not just that. */
 
-static int feed_init(mpg123_handle *fr)
+static void bc_init(struct bufferchain *bc)
 {
-	fr->rdat.buf = NULL;
-	fr->rdat.filelen = 0;
-	fr->rdat.filepos = 0;
-	fr->rdat.firstpos = 0;
-	fr->rdat.flags |= READER_BUFFERED | READER_MICROSEEK;
-	return 0;
+	bc->first = NULL;
+	bc->last  = bc->first;
+	bc->size  = 0;
+	bc->pos   = 0;
+	bc->firstpos = 0;
+	bc->fileoff  = 0;
 }
 
-static void feed_close(mpg123_handle *fr)
+static void bc_reset(struct bufferchain *bc)
 {
 	/* free the buffer chain */
-	struct buffy *b = fr->rdat.buf;
+	struct buffy *b = bc->first;
 	while(b != NULL)
 	{
 		struct buffy *n = b->next;
@@ -356,132 +362,223 @@ static void feed_close(mpg123_handle *fr)
 		free(b);
 		b = n;
 	}
-	feed_init(fr);
+	bc_init(bc);
 }
 
-/* externally called function, returns 0 on success, -1 on error */
-int feed_more(mpg123_handle *fr, unsigned char *in, long count)
+/* Create a new buffy at the end to be filled. */
+static int bc_append(struct bufferchain *bc, ssize_t size)
 {
-	/* the pointer to the pointer for the buffy after the end... */
-	struct buffy **b = &fr->rdat.buf;
-	debug("feed_more");
-	while(*b != NULL){ b = &(*b)->next; }
-	*b = (struct buffy*)malloc(sizeof(struct buffy));
-	if(*b == NULL) return -1;
-	(*b)->data = (unsigned char*)malloc(count);
-	if((*b)->data == NULL){ free(*b); *b = NULL; return -1; }
-	memcpy((*b)->data, in, count);
-	(*b)->size = count;
-	(*b)->next = NULL; /* Hurray, the new last buffer! */
-	fr->rdat.filelen += count;
-	debug3("feed_more: %p %luB filelen=%lu", (*b)->data, (unsigned long)(*b)->size, (unsigned long)fr->rdat.filelen);
+	struct buffy *newbuf;
+	if(size < 1) return -1;
+	newbuf = malloc(sizeof(struct buffy));
+	if(newbuf == NULL) return -2;
+	newbuf->data = malloc(size);
+	if(newbuf->data == NULL)
+	{
+		free(newbuf);
+		return -3;
+	}
+	newbuf->size = size;
+	newbuf->next = NULL;
+	if(bc->last != NULL)  bc->last->next = newbuf;
+	else if(bc->first == NULL) bc->first = newbuf;
+
+	bc->last  = newbuf;
+	bc->size += size;
 	return 0;
 }
 
-static ssize_t feed_read(mpg123_handle *fr, unsigned char *out, ssize_t count)
+#if 0
+/* Drop the last one (again).
+   This is not optimal but should happen on error situations only, anyway. */
+static void bc_drop(struct bufferchain *bc)
 {
-	struct buffy *b = fr->rdat.buf;
+	struct buffy *cur = bc->first;
+	if(bc->first == NULL || bc->last == NULL) return;
+	/* Special case: only one buffer there. */
+	if(cur->next == NULL)
+	{
+		free(cur->data);
+		free(cur);
+		bc->first = bc->last = NULL;
+		bc->size  = 0;
+		return;
+	}
+	/* Find the pre-last buffy. If chain is consistent, this _will_ succeed. */
+	while(cur->next != bc->last){ cur = cur->next; }
+
+	bc->size -= bc->last->size;
+	free(bc->last->data);
+	free(bc->last);
+	cur->next = NULL;
+	bc->last  = cur;
+}
+#endif
+
+/* Append a new buffer and copy content to it. */
+static int bc_add(struct bufferchain *bc, unsigned char *data, ssize_t size)
+{
+	if(bc_append(bc, size) != 0) return -1;
+
+	memcpy(bc->last->data, data, size);
+	return 0;
+}
+
+/* Give some data, advancing position but not forgetting yet. */
+static ssize_t bc_give(struct bufferchain *bc, unsigned char *out, size_t size)
+{
+	struct buffy *b = bc->first;
 	ssize_t gotcount = 0;
 	ssize_t offset = 0;
-	if(fr->rdat.filelen - fr->rdat.filepos < count)
+	if(bc->size - bc->pos < size)
 	{
-		debug3("hit end, back to beginning (%li - %li < %li)", (long)fr->rdat.filelen, (long)fr->rdat.filepos, (long)count);
+		debug3("hit end, back to beginning (%li - %li < %li)", (long)bc->size, (long)bc->pos, (long)size);
 		/* go back to firstpos, undo the previous reads */
-		fr->rdat.filepos = fr->rdat.firstpos;
-		return MPG123_NEED_MORE;
+		bc->pos = bc->firstpos;
+		return READER_MORE;
 	}
 	/* find the current buffer */
-	while(b != NULL && (offset + b->size) <= fr->rdat.filepos)
+	while(b != NULL && (offset + b->size) <= bc->pos)
 	{
 		offset += b->size;
 		b = b->next;
 	}
 	/* now start copying from there */
-	while(gotcount < count && (b != NULL))
+	while(gotcount < size && (b != NULL))
 	{
-		ssize_t loff = fr->rdat.filepos - offset;
-		ssize_t chunk = count - gotcount; /* amount of bytes to get from here... */
+		ssize_t loff = bc->pos - offset;
+		ssize_t chunk = size - gotcount; /* amount of bytes to get from here... */
 		if(chunk > b->size - loff) chunk = b->size - loff;
 		debug3("copying %liB from %p+%li",(long)chunk, b->data, (long)loff);
 		memcpy(out+gotcount, b->data+loff, chunk);
 		gotcount += chunk;
-		fr->rdat.filepos += chunk;
+		bc->pos  += chunk;
 		offset += b->size;
 		b = b->next;
 	}
-	debug2("got %li bytes, pos advanced to %li", (long)gotcount, (long)fr->rdat.filepos);
-	if(gotcount != count) return -1; /* That must be an error. */
+	debug2("got %li bytes, pos advanced to %li", (long)gotcount, (long)bc->pos);
+
 	return gotcount;
+}
+
+/* Skip some bytes and return the new position.
+   The buffers are still there, just the read pointer is moved! */
+static ssize_t bc_skip(struct bufferchain *bc, ssize_t count)
+{
+	if(count >= 0)
+	{
+		if(bc->size - bc->pos < count) return READER_MORE;
+		else return bc->pos += count;
+	}
+	else return READER_ERROR;
+}
+
+static ssize_t bc_seekback(struct bufferchain *bc, ssize_t count)
+{
+	if(count >= 0 && count <= bc->pos) return bc->pos -= count;
+	else return READER_ERROR;
+}
+
+/* Throw away buffies that we passed. */
+static void bc_forget(struct bufferchain *bc)
+{
+	struct buffy *b = bc->first;
+	/* free all buffers that are def'n'tly outdated */
+	/* we have buffers until filepos... delete all buffers fully below it */
+	if(b) debug2("feed_forget: block %lu pos %lu", (unsigned long)b->size, (unsigned long)bc->pos);
+	else debug("forget with nothing there!");
+	while(b != NULL && bc->pos >= b->size)
+	{
+		struct buffy *n = b->next; /* != NULL or this is indeed the end and the last cycle anyway */
+		if(n == NULL) bc->last = NULL; /* Going to delete the last buffy... */
+		bc->fileoff += b->size;
+		bc->pos  -= b->size;
+		bc->size -= b->size;
+		debug5("feed_forget: forgot %p with %lu, pos=%li, size=%li, fileoff=%li", (void*)b->data, (long)b->size, (long)bc->pos,  (long)bc->size, (long)bc->fileoff);
+		free(b->data);
+		free(b);
+		b = n;
+	}
+	bc->first = b;
+	bc->firstpos = bc->pos;
+}
+
+/* reader for input via manually provided buffers */
+
+static int feed_init(mpg123_handle *fr)
+{
+	bc_init(&fr->rdat.buffer);
+	fr->rdat.filelen = 0;
+	fr->rdat.filepos = 0;
+	fr->rdat.flags |= READER_BUFFERED | READER_MICROSEEK;
+	return 0;
+}
+
+static void feed_close(mpg123_handle *fr)
+{
+	bc_reset(&fr->rdat.buffer);
+}
+
+/* externally called function, returns 0 on success, -1 on error */
+int feed_more(mpg123_handle *fr, unsigned char *in, long count)
+{
+	debug("feed_more");
+	if(bc_add(&fr->rdat.buffer, in, count) != 0) return -1;
+	/* Not talking about filelen... that stays at 0. */
+	debug3("feed_more: %p %luB bufsize=%lu", fr->rdat.buffer.last->data,
+		(unsigned long)fr->rdat.buffer.last->size, (unsigned long)fr->rdat.buffer.size);
+	return 0;
+}
+
+static ssize_t feed_read(mpg123_handle *fr, unsigned char *out, ssize_t count)
+{
+	ssize_t gotcount = bc_give(&fr->rdat.buffer, out, count);
+	if(gotcount >= 0 && gotcount != count) return READER_ERROR;
+	else return gotcount;
 }
 
 /* returns reached position... negative ones are bad... */
 static off_t feed_skip_bytes(mpg123_handle *fr,off_t len)
 {
-	if(len >= 0)
-	{
-		if(fr->rdat.filelen - fr->rdat.filepos < len) return READER_MORE;
-		else return fr->rdat.filepos += len;
-	}
-	else return READER_ERROR;
+	return fr->rdat.buffer.fileoff+bc_skip(&fr->rdat.buffer, (ssize_t)len);
 }
 
 static int feed_back_bytes(mpg123_handle *fr, off_t bytes)
 {
 	if(bytes >=0)
-	{
-		if(bytes <= fr->rdat.filepos) fr->rdat.filepos -= bytes;
-		else return READER_ERROR;
-	}
+	return bc_seekback(&fr->rdat.buffer, (ssize_t)bytes) >= 0 ? 0 : READER_ERROR;
 	else
-	{
-		off_t ret = feed_skip_bytes(fr, -bytes);
-		if(ret > 0) ret = 0;
-		return ret; /* could be 0, could be error code */
-	}
-	return 0;
+	return feed_skip_bytes(fr, -bytes) >= 0 ? 0 : READER_ERROR;
 }
 
 static int feed_seek_frame(mpg123_handle *fr, off_t num){ return READER_ERROR; }
 
 void feed_rewind(mpg123_handle *fr)
 {
-	fr->rdat.filepos  = 0;
-	fr->rdat.firstpos = 0;
+	fr->rdat.buffer.pos  = 0;
+	fr->rdat.buffer.firstpos = 0;
+	fr->rdat.filepos = fr->rdat.buffer.fileoff;
 }
 
 void feed_forget(mpg123_handle *fr)
 {
-	struct buffy *b = fr->rdat.buf;
-	/* free all buffers that are def'n'tly outdated */
-	/* we have buffers until filepos... delete all buffers fully below it */
-	if(b) debug2("feed_forget: block %lu pos %lu", (unsigned long)b->size, (unsigned long)fr->rdat.filepos);
-	else debug("forget with nothing there!");
-	while(b != NULL && fr->rdat.filepos >= b->size)
-	{
-		struct buffy *n = b->next; /* != NULL or this is indeed the end and the last cycle anyway */
-		fr->rdat.filepos -= b->size;
-		fr->rdat.filelen -= b->size;
-		debug4("feed_forget: forgot %p with %lu, filepos=%lu, filelen=%lu", b->data, (unsigned long)b->size, (unsigned long)fr->rdat.filepos,  (unsigned long)fr->rdat.filelen);
-		free(b->data);
-		free(b);
-		b = n;
-	}
-	fr->rdat.buf = b;
-	fr->rdat.firstpos = fr->rdat.filepos;
+	bc_forget(&fr->rdat.buffer);
+	fr->rdat.filepos = fr->rdat.buffer.fileoff + fr->rdat.buffer.pos;
 }
 
 off_t feed_set_pos(mpg123_handle *fr, off_t pos)
 {
-	if(pos >= fr->rdat.firstpos && pos < fr->rdat.firstpos + fr->rdat.filelen)
+	struct bufferchain *bc = &fr->rdat.buffer;
+	if(pos >= bc->fileoff && pos-bc->fileoff < bc->size)
 	{ /* We have the position! */
-		fr->rdat.filepos = pos - fr->rdat.firstpos;
-		return fr->rdat.firstpos + fr->rdat.filelen;
+		bc->pos = (ssize_t)(pos - bc->fileoff);
+		return pos+bc->size; /* Next input after end of buffer... */
 	}
 	else
 	{ /* I expect to get the specific position on next feed. Forget what I have now. */
-		feed_close(fr);
-		fr->rdat.firstpos = fr->rdat.filepos = pos;
-		return pos;
+		bc_reset(bc);
+		bc->fileoff = pos;
+		return pos; /* Next input from exactly that position. */
 	}
 	return READER_ERROR;
 }
@@ -589,6 +686,7 @@ void open_bad(mpg123_handle *mh)
 	clear_icy(&mh->icy);
 	mh->rd = &bad_reader;
 	mh->rdat.flags = 0;
+	bc_init(&mh->rdat.buffer);
 }
 
 int open_feed(mpg123_handle *fr)
