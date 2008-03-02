@@ -1,0 +1,14 @@
+Hi
+
+Makefile.psp belongs into the directory src/libmpg123.
+In that directory readers.c you have to add to includes, looks like the 
+PSP includes are little different. The diff output is in 
+readers.c.patch. Its a diff against the readers.c from mpg123-1.1.0.
+
+Config.h belongs into the directory src/. I am not sure whats the best 
+settings for the PSP. Of course, not needed if PSP build is somehow 
+integrated into configure. But crosscompiling via autotools is beyond 
+me, thereforce I use that handmade Makefile.
+
+Regards
+Bastian

@@ -1,0 +1,9 @@
+This directory contains some (contributed) works covering usage and/or building of mpg123/libmpg123 from different programming environments.
+
+- Delphi: mpg123_.pas
+  Unit for linking against libmpg123 (Win32, DLL).
+  ...by Arthur Pires <arthurprs@gmail.com>
+- Sony PSP: Sony_PSP/; building libmpg123 for the PSP (used for the MODO player).
+  ...by Bastian Pflieger <wb@illogical.de>
+- Win32/MSVC++: MSVC++/; project for building libmpg123 with interface class.
+  ...by "Gates Fan" <gatesfan@gmail.com>

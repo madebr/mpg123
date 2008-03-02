@@ -91,7 +91,12 @@ So, if you want it in /usr; just run
 Please note that the Makefile itself does not contain any x86 cpu specific CFLAGS (except for i486) or explicit `strip` calls anymore; mpg123 will be built and installed with debugging symbols - so if you want to conserve some space, please specify the -s in CFLAGS or strip the binary yourself.
 
 
-3. Have fun!
+3. Do something different on a special platform/compiler/...
+
+Look into the ports/ directory for some traces of "porting" mpg123 or usually libmpg123 alone to different systems and compilers.
+
+
+4. Have fun!
 
 
 These are some remarks from Michael that could still bear some relevance:
@@ -120,3 +125,4 @@ These are some remarks from Michael that could still bear some relevance:
 
  - IRIX: some people reported compile problems on IRIX 5.x (5.3)
          but 6.x seems to compile without problems
+

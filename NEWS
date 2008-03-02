@@ -15,6 +15,7 @@ Much more usable than earlier mpg123 1.x versions.
   - Oh, and fixed a steady memory leak in ID3 handling. Should mention that;-)
 - Print ICY-NAME and ICY-URL again, as mpg123-0.6x did.
 - Added --smooth option for not flusing buffer between tracks but at program end only.
+- Included some contributed ports/bindings of libmpg123 under ports/ .
 
 1.2.1
 ----

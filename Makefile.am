@@ -26,4 +26,25 @@ EXTRA_DIST = \
 	test/forkfaint.c \
 	test/rms16.c \
 	NEWS.libmpg123 \
-	autogen.sh
+	autogen.sh \
+	ports/MSVC++/libMPG123 \
+	ports/MSVC++/libMPG123/libMPG123.vcproj \
+	ports/MSVC++/libMPG123/PLACE_LIBMPG123_SOURCES_HERE \
+	ports/MSVC++/README \
+	ports/MSVC++/SOURCE \
+	ports/MSVC++/SOURCE/CORE_Log.CPP \
+	ports/MSVC++/SOURCE/CORE_FileIn.CPP \
+	ports/MSVC++/SOURCE/SourceFilter_MP3Stream.CPP \
+	ports/MSVC++/SOURCE/CORE_Mutex.CPP \
+	ports/MSVC++/INCLUDE \
+	ports/MSVC++/INCLUDE/CORE \
+	ports/MSVC++/INCLUDE/CORE/CORE_FileIn.H \
+	ports/MSVC++/INCLUDE/CORE/SourceFilter_MP3.H \
+	ports/MSVC++/INCLUDE/IIEP_FileIn.H \
+	ports/MSVC++/INCLUDE/IIEP_Def.H \
+	ports/README \
+	ports/Sony_PSP/config.h \
+	ports/Sony_PSP/README \
+	ports/Sony_PSP/Makefile.psp \
+	ports/Sony_PSP/readers.c.patch \
+	ports/mpg123_.pas
