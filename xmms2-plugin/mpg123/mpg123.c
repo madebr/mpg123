@@ -80,7 +80,12 @@ static gboolean xmms_mpg123_plugin_setup(xmms_xform_plugin_t *xfp)
 	xmms_magic_extension_add("audio/mpeg", "*.mp2");
 	xmms_magic_extension_add("audio/mpeg", "*.mp1");
 
-	/* Not so sure about magic numbers for metadata-infested mpeg audio... */
+	/* That's copied from the mad xform. */
+	xmms_magic_add ("mpeg header", "audio/mpeg",
+	                "0 beshort&0xfff6 0xfff6",
+	                "0 beshort&0xfff6 0xfff4",
+	                "0 beshort&0xffe6 0xffe2",
+	                NULL);
 
 	return TRUE;
 }
