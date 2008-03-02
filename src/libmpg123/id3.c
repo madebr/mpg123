@@ -73,7 +73,7 @@ static void init_mpg123_text(mpg123_text *txt)
 static void free_mpg123_text(mpg123_text *txt)
 {
 	mpg123_free_string(&txt->text);
-	mpg123_init_string(&txt->description);
+	mpg123_free_string(&txt->description);
 }
 
 /* Free memory of whole list. */
