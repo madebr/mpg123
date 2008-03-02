@@ -750,6 +750,7 @@ init_resync:
 	if(fr->error_protection) fr->crc = getbits(fr, 16); /* skip crc */
 	return 1;
 read_frame_bad:
+	if(fr->err == MPG123_OK) fr->err = MPG123_ERR_READER;
 	fr->framesize = oldsize;
 	fr->halfphase = oldphase;
 	return ret;
@@ -963,9 +964,9 @@ int mpg123_position(mpg123_handle *fr, off_t no, off_t buffsize,
 #if 0
 	curs = curs < 0 ? 0.0 : curs;
 #endif
-	if(lefts < 0)
-	{
-		if(NOQUIET) warning("seconds_left < 0!");
+	if(left < 0 || lefts < 0)
+	{ /* That is the case for non-seekable streams. */
+		left  = 0;
 		lefts = 0.0;
 	}
 	if(current_frame != NULL) *current_frame = cur;
