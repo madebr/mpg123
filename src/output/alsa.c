@@ -120,11 +120,14 @@ static int initialize_device(audio_output_t *ao)
 		error("initialize_device(): cannot set min available");
 		return -1;
 	}
+	/* Just disabling for now, as this call is deprecated and I dunno if we really need a replacement. */
+#ifdef ALSA_XFER_ALIGN
 	/* always write as many frames as possible */
 	if (snd_pcm_sw_params_set_xfer_align(pcm, sw, 1) < 0) {
 		error("initialize_device(): cannot set transfer alignment");
 		return -1;
 	}
+#endif
 	if (snd_pcm_sw_params(pcm, sw) < 0) {
 		error("initialize_device(): cannot set sw params");
 		return -1;
