@@ -47,7 +47,8 @@ struct reader_data
 	off_t   (*r_lseek)(int fd, off_t offset, int whence);
 	ssize_t (*read) (int fd, void *buf, size_t count);
 	off_t   (*lseek)(int fd, off_t offset, int whence);
-	/* variables specific to feed reader */
+	/* Buffered readers want that abstracted, set internally. */
+	ssize_t (*fullread)(mpg123_handle *, unsigned char *, ssize_t);
 	struct bufferchain buffer; /* Not dynamically allocated, these few struct bytes aren't worth the trouble. */
 };
 
@@ -84,18 +85,20 @@ void open_bad(mpg123_handle *);
 #define READER_ID3TAG    0x2
 #define READER_SEEKABLE  0x4
 #define READER_BUFFERED  0x8
-#define READER_MICROSEEK 0x10
 #define READER_NONBLOCK  0x20
 
 #define READER_STREAM 0
 #define READER_ICY_STREAM 1
 #define READER_FEED       2
+/* These two add a little buffering to enable small seeks for peek ahead. */
+#define READER_BUF_STREAM 3
+#define READER_BUF_ICY_STREAM 4
 
 #ifdef READ_SYSTEM
-#define READER_SYSTEM 3
-#define READERS 4
+#define READER_SYSTEM 5
+#define READERS 6
 #else
-#define READERS 3
+#define READERS 5
 #endif
 
 #define READER_ERROR MPG123_ERR

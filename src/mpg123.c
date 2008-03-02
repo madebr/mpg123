@@ -730,6 +730,8 @@ int main(int argc, char *argv[])
 
 	/* Set the frame parameters from command line options */
 	if(param.quiet) param.flags |= MPG123_QUIET;
+
+	param.flags |= MPG123_SEEKBUFFER; /* For HTTP streams. */
 #ifdef OPT_3DNOW
 	if(dnow != 0) param.cpu = (dnow == SET_3DNOW) ? "3dnow" : "i586";
 #endif
