@@ -1,3 +1,6 @@
+FIX that memory leak before 1.3.0!
+Valgrind tells me about a small amount of bytes being lost with every track in mpg123_resize_string ... some string(s) are not cleared there... must be in the id3v2 data structures.
+
 Another attempt to postpone new features/improvements to _after_ the 1.0 release.
 
 1. The sample rate matching could be extended to detect the need for flexible resampling like that:
