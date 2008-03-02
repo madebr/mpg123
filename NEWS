@@ -1,9 +1,17 @@
-1.2.2
+1.3.0
 ---
-- libmpg123 libtool-version 1.3.1
+
+This is a _major_ fix release for http streaming!
+Much more usable than earlier mpg123 1.x versions.
+
+- libmpg123 libtool-version 2.0.2
+  - Fix nasty bug in ICY reader that failed to account for partial reads from slower network.
+  - Now non-seekable streams can get peek-ahead for MPEG sync, too, triggered by the MPG123_SEEKBUFFER flag.
   - Do not try to resync on streams with ICY metadata, that won't work.
-- Consequently, if there's unreliable network, use --loop -1 to make mpg123 reconnect to the server on errors.
+    Consequently, if there's unreliable network, use --loop -1 to make mpg123 reconnect to the server on errors.
+  - Applying a few layer 3 decoder fixes from old mhipp CVS (hail to the creator;-)
 - Print ICY-NAME and ICY-URL again, as mpg123-0.6x did.
+- Added --smooth option for not flusing buffer between tracks but at program end only.
 
 1.2.1
 ----
