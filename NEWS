@@ -1,3 +1,8 @@
+1.3.1
+---
+- Enable snd_pcm_sw_params_set_xfer_align() for alsa-lib < 1.0.16 (bug 1908603).
+- libmpg123 2.1.2 (no-op change)
+
 1.3.0
 ---
 
