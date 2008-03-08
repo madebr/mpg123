@@ -1,10 +1,10 @@
 /*
 	alsa: sound output with Advanced Linux Sound Architecture 1.x API
 
-	copyright 2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2006-8 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 
-	written by Clemens Ladisch <clemens@ladisch.de>
+	initially written by Clemens Ladisch <clemens@ladisch.de>
 */
 
 #include "mpg123app.h"
@@ -52,7 +52,7 @@ static int initialize_device(audio_output_t *ao)
 	unsigned int rate;
 	int i;
 
-	snd_pcm_hw_params_alloca(&hw);
+	snd_pcm_hw_params_alloca(&hw); /* Ignore GCC warning here... alsa-lib>=1.0.16 doesn't trigger that anymore, too. */
 	if (snd_pcm_hw_params_any(pcm, hw) < 0) {
 		error("initialize_device(): no configuration available");
 		return -1;
@@ -120,9 +120,8 @@ static int initialize_device(audio_output_t *ao)
 		error("initialize_device(): cannot set min available");
 		return -1;
 	}
-	/* Just disabling for now, as this call is deprecated and I dunno if we really need a replacement. */
-#ifdef ALSA_XFER_ALIGN
-	/* always write as many frames as possible */
+#if SND_LIB_VERSION < ((1<<16)|16)
+	/* Always write as many frames as possible (deprecated since alsa-lib 1.0.16) */
 	if (snd_pcm_sw_params_set_xfer_align(pcm, sw, 1) < 0) {
 		error("initialize_device(): cannot set transfer alignment");
 		return -1;
