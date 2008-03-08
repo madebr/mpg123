@@ -311,6 +311,7 @@ static void term_handle_input(mpg123_handle *fr, int do_delay)
 			param.verbose = 0;
 			clear_stat();
 		}
+		mpg123_param(fr, MPG123_VERBOSE, param.verbose, 0);
 	break;
 	case RVA_KEY:
 		if(++param.rva > MPG123_RVA_MAX) param.rva = 0;
