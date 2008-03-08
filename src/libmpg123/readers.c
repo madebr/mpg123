@@ -74,7 +74,6 @@ static ssize_t icy_fullread(mpg123_handle *fr, unsigned char *buf, ssize_t count
 		error("mpg123 programmer error: I don't do ICY on seekable streams.");
 		return -1;
 	}
-debug2("need %li bytes (next=%li)", count, fr->icy.next);
 	/*
 		We check against READER_ID3TAG instead of rds->filelen >= 0 because if we got the ID3 TAG we know we have the end of the file.
 		If we don't have an ID3 TAG, then it is possible the file has grown since we started playing, so we want to keep reading from it if possible.
