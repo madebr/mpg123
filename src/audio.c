@@ -228,7 +228,7 @@ static void capline(mpg123_handle *mh, long rate)
 	const int  *encs;
 	size_t      num_encs;
 	mpg123_encodings(&encs, &num_encs);
-	fprintf(stderr," %5ld  |", rate);
+	fprintf(stderr," %5ld  |", pitch_rate(rate));
 	for(enci=0; enci<num_encs; ++enci)
 	{
 		switch(mpg123_format_support(mh, rate, encs[enci]))
@@ -274,7 +274,8 @@ void audio_capabilities(audio_output_t *ao, mpg123_handle *mh)
 {
 	int fmts;
 	size_t ri;
-	long rate;
+	/* Pitching introduces a difference between decoder rate and playback rate. */
+	long rate, decode_rate;
 	int channels;
 	const long *rates;
 	size_t      num_rates, rlimit;
@@ -285,7 +286,8 @@ void audio_capabilities(audio_output_t *ao, mpg123_handle *mh)
 	for(channels=1; channels<=2; channels++)
 	for(ri = 0;ri<rlimit;ri++)
 	{
-		rate = ri < num_rates ? rates[ri] : param.force_rate;
+		decode_rate = ri < num_rates ? rates[ri] : param.force_rate;
+		rate = pitch_rate(decode_rate);
 		if(param.verbose > 2) fprintf(stderr, "Note: checking support for %liHz/%ich.\n", rate, channels);
 #ifndef NOXFERMEM
 		if(param.usebuffer)
@@ -308,7 +310,7 @@ void audio_capabilities(audio_output_t *ao, mpg123_handle *mh)
 		if(param.verbose > 2) fprintf(stderr, "Note: result 0x%x", fmts);
 
 		if(fmts < 0) continue;
-		else mpg123_format(mh, rate, channels, fmts);
+		else mpg123_format(mh, decode_rate, channels, fmts);
 	}
 
 #ifndef NOXFERMEM

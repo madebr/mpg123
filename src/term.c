@@ -52,6 +52,9 @@ struct keydef term_help[] =
 	,{ MPEG_KEY,     0, "print MPEG header info (again)" }
 	,{ HELP_KEY,     0, "this help" }
 	,{ QUIT_KEY,     0, "quit" }
+	,{ PITCH_UP_KEY, PITCH_BUP_KEY, "pitch up (small step, big step)" }
+	,{ PITCH_DOWN_KEY, PITCH_BDOWN_KEY, "pitch down (small step, big step)" }
+	,{ PITCH_ZERO_KEY, 0, "reset pitch to zero" }
 };
 
 void term_sigcont(int sig);
@@ -100,7 +103,7 @@ void term_init(void)
   term_enable = 1;
 }
 
-static void term_handle_input(mpg123_handle *,int);
+static void term_handle_input(mpg123_handle *, audio_output_t *, int);
 
 static int stopped = 0;
 static int paused = 0;
@@ -129,7 +132,7 @@ static int print_index(mpg123_handle *mh)
 
 static off_t offset = 0;
 
-off_t term_control(mpg123_handle *fr)
+off_t term_control(mpg123_handle *fr, audio_output_t *ao)
 {
 	offset = 0;
 
@@ -146,7 +149,7 @@ off_t term_control(mpg123_handle *fr)
 				while(paused && xfermem_get_usedspace(buffermem))
 				{
 					buffer_ignore_lowmem();
-					term_handle_input(fr, TRUE);
+					term_handle_input(fr, ao, TRUE);
 				}
 				if(!paused)	offset += pause_cycle;
 			}
@@ -155,7 +158,7 @@ off_t term_control(mpg123_handle *fr)
 
 	do
 	{
-		term_handle_input(fr, stopped|seeking);
+		term_handle_input(fr, ao, stopped|seeking);
 		if((offset < 0) && (-offset > framenum)) offset = - framenum;
 		if(param.verbose && offset != 0)
 		print_stat(fr,offset,0);
@@ -185,7 +188,7 @@ static void seekmode(void)
 	}
 }
 
-static void term_handle_input(mpg123_handle *fr, int do_delay)
+static void term_handle_input(mpg123_handle *fr, audio_output_t *ao, int do_delay)
 {
   int n = 1;
   /* long offset = 0; */
@@ -303,6 +306,51 @@ static void term_handle_input(mpg123_handle *fr, int do_delay)
 	break;
 	case VOL_DOWN_KEY:
 		mpg123_volume_change(fr, -0.02);
+	break;
+	case PITCH_UP_KEY:
+	case PITCH_BUP_KEY:
+	case PITCH_DOWN_KEY:
+	case PITCH_BDOWN_KEY:
+	case PITCH_ZERO_KEY:
+	{
+		double old_pitch = param.pitch;
+		long rate;
+		int channels, format;
+		int smode = 0;
+		if(param.usebuffer)
+		{
+			error("No runtime pitch change with output buffer, sorry.");
+			break;
+		}
+		switch(val) /* Not tolower here! */
+		{
+			case PITCH_UP_KEY:    param.pitch += PITCH_VAL;  break;
+			case PITCH_BUP_KEY:   param.pitch += PITCH_BVAL; break;
+			case PITCH_DOWN_KEY:  param.pitch -= PITCH_VAL;  break;
+			case PITCH_BDOWN_KEY: param.pitch -= PITCH_BVAL; break;
+			case PITCH_ZERO_KEY:  param.pitch = 0.0; break;
+		}
+		if(param.pitch < -0.99) param.pitch = -0.99;
+		/* Be safe, check support. */
+		mpg123_getformat(fr, &rate, &channels, &format);
+		if(channels == 1) smode = MPG123_MONO;
+		if(channels == 2) smode = MPG123_STEREO;
+
+		output_pause(ao);
+		audio_capabilities(ao, fr);
+		if(!(mpg123_format_support(fr, rate, format) & smode))
+		{
+			error("Reached a hardware limit there with pitch!");
+			param.pitch = old_pitch;
+			audio_capabilities(ao, fr);
+		}
+		ao->format   = format;
+		ao->channels = channels;
+		ao->rate     = pitch_rate(rate); 
+		reset_output(ao);
+		output_unpause(ao);
+		fprintf(stderr, "New pitch: %f\n", param.pitch);
+	}
 	break;
 	case VERBOSE_KEY:
 		param.verbose++;
