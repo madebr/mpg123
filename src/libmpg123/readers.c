@@ -8,6 +8,20 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
+/* For select(), I need select.h according to POSIX 2001, else: sys/time.h sys/types.h unistd.h */
+/* Including these here although it works without on my Linux install... curious about _why_. */
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#endif
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 #include "mpg123lib_intern.h"
 
