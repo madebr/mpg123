@@ -15,15 +15,10 @@
 #include "mpg123app.h"
 #include <string.h>
 #include <errno.h>
-#include <sys/time.h>
 #include <sys/uio.h>
 #include <sys/mman.h>
 #include <sys/socket.h>
 #include <fcntl.h>
-
-#ifdef AIX
-#include <sys/select.h>
-#endif
 
 #ifndef HAVE_MMAP
 #include <sys/ipc.h>

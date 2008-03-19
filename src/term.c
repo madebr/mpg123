@@ -12,7 +12,6 @@
 
 #include <termios.h>
 #include <ctype.h>
-#include <sys/time.h>
 
 #include "buffer.h"
 #include "term.h"

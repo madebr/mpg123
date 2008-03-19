@@ -40,8 +40,15 @@
 #ifndef WIN32
 #include        <sys/signal.h>
 #endif
+/* For select(), I need select.h according to POSIX 2001, else: sys/time.h sys/types.h unistd.h */
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#endif
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
 #ifdef HAVE_UNISTD_H
-#include        <unistd.h>
+#include <unistd.h>
 #endif
 /* want to suport large files in future */
 #ifdef HAVE_SYS_TYPES_H

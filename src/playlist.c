@@ -14,8 +14,6 @@
 #include "playlist.h"
 #include "httpget.h"
 
-#include <time.h>
-
 #ifdef HAVE_RANDOM
 #define RAND random
 #define SRAND srandom

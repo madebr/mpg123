@@ -8,7 +8,6 @@
 */
 
 #include <stdarg.h>
-#include <sys/time.h>
 #ifndef WIN32
 #include <sys/wait.h>
 #include <sys/socket.h>
