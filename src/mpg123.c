@@ -45,6 +45,8 @@
 #include "httpget.h"
 #include "getcpuflags.h"
 
+#include "debug.h"
+
 static void usage(int err);
 static void want_usage(char* arg);
 static void long_usage(int err);

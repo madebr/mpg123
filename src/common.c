@@ -8,14 +8,14 @@
 
 #include "mpg123app.h"
 #include <sys/stat.h>
-
 #include <fcntl.h>
-
 #include "common.h"
 
 #ifdef WIN32
 #include <winsock.h>
 #endif
+
+#include "debug.h"
 
 const char* rva_name[3] = { "off", "mix", "album" };
 static const char *modes[5] = {"Stereo", "Joint-Stereo", "Dual-Channel", "Single-Channel", "Invalid" };

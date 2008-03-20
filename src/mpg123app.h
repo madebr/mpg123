@@ -14,7 +14,6 @@
 
 /* everyone needs it */
 #include "config.h"
-#include "debug.h"
 #include "httpget.h"
 /* import DLL symbols on windows */
 #if defined(WIN32) && defined(DYNAMIC_BUILD)

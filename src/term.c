@@ -18,6 +18,7 @@
 #include "common.h"
 #include "playlist.h"
 #include "id3print.h"
+#include "debug.h"
 
 extern int buffer_pid;
 extern audio_output_t *ao;

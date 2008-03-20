@@ -9,6 +9,7 @@
 #include "mpg123.h"
 #include "mpg123app.h"
 #include "genre.h"
+#include "debug.h"
 
 static void utf8_ascii(mpg123_string *dest, mpg123_string *source);
 static void transform(mpg123_string *dest, mpg123_string *source)

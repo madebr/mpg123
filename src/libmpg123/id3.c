@@ -8,6 +8,7 @@
 
 #include "mpg123lib_intern.h"
 #include "id3.h"
+#include "debug.h"
 
 /* UTF support definitions */
 

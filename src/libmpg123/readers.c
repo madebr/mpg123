@@ -24,6 +24,7 @@
 #endif
 
 #include "mpg123lib_intern.h"
+#include "debug.h"
 
 static int default_init(mpg123_handle *fr);
 static off_t get_fileinfo(mpg123_handle *);

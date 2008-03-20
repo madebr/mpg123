@@ -16,6 +16,7 @@
 
 #include "common.h"
 #include <errno.h>
+#include "debug.h"
 
 int outburst = 32768;
 

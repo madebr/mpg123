@@ -8,6 +8,7 @@
 
 #define SAFE_NTOM /* Do not depend on off_t*off_t with big values still being in the range... */
 #include "mpg123lib_intern.h"
+#include "debug.h"
 
 int synth_ntom_set_step(mpg123_handle *fr)
 {

@@ -37,6 +37,8 @@ FILE *outstream;
 static int mode = MODE_STOPPED;
 static int init = 0;
 
+#include "debug.h"
+
 void generic_sendmsg (const char *fmt, ...)
 {
 	va_list ap;

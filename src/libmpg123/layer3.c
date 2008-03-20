@@ -13,8 +13,8 @@
 
 #include "mpg123lib_intern.h"
 #include "huffman.h"
-
 #include "getbits.h"
+#include "debug.h"
 
 /* static one-time calculated tables... or so */
 static real ispow[8207];

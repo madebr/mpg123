@@ -16,6 +16,7 @@
 
 #include "mpg123app.h"
 #include <errno.h>
+#include "debug.h"
 
 #ifdef FLOATOUT
 #define WAVE_FORMAT 3

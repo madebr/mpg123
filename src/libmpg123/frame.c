@@ -8,6 +8,7 @@
 
 #include "mpg123lib_intern.h"
 #include "getcpuflags.h"
+#include "debug.h"
 
 #define IGNORESHIFT 2
 

@@ -17,6 +17,18 @@
 #include <winsock.h>
 #endif
 
+/* a limit for number of frames in a track; beyond that unsigned long may not be enough to hold byte addresses */
+#ifdef HAVE_LIMITS_H
+#include <limits.h>
+#endif
+#ifndef ULONG_MAX
+/* hm, is this portable across preprocessors? */
+#define ULONG_MAX ((unsigned long)-1)
+#endif
+#define TRACK_MAX_FRAMES ULONG_MAX/4/1152
+
+#include "debug.h"
+
 #define bsbufid(fr) (fr)->bsbuf==(fr)->bsspace[0] ? 0 : ((fr)->bsbuf==fr->bsspace[1] ? 1 : ( (fr)->bsbuf==(fr)->bsspace[0]+512 ? 2 : ((fr)->bsbuf==fr->bsspace[1]+512 ? 3 : -1) ) )
 
 /*
@@ -67,15 +79,6 @@ static const int tabsel_123[2][3][16] = {
 
 const long freqs[9] = { 44100, 48000, 32000, 22050, 24000, 16000 , 11025 , 12000 , 8000 };
 
-/* a limit for number of frames in a track; beyond that unsigned long may not be enough to hold byte addresses */
-#ifdef HAVE_LIMITS_H
-#include <limits.h>
-#endif
-#ifndef ULONG_MAX
-/* hm, is this portable across preprocessors? */
-#define ULONG_MAX ((unsigned long)-1)
-#endif
-#define TRACK_MAX_FRAMES ULONG_MAX/4/1152
 
 #ifdef VARMODESUPPORT
 	/*

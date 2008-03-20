@@ -9,8 +9,8 @@
 
 #include <stdio.h>
 #include "config.h"
-#include "debug.h"
 #include "getlopt.h"
+#include "debug.h"
 
 int loptind = 1;	/* index in argv[] */
 int loptchr = 0;	/* index in argv[loptind] */

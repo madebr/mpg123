@@ -7,6 +7,7 @@
 */
 
 #include "mpg123lib_intern.h"
+#include "debug.h"
 
 /* All optimizations share this code - with the exception of MMX */
 #ifndef OPT_MMX_ONLY

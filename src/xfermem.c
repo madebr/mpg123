@@ -25,6 +25,8 @@
 #include <sys/shm.h>
 #endif
 
+#include "debug.h"
+
 #if defined (HAVE_MMAP) && defined(MAP_ANONYMOUS) && !defined(MAP_ANON)
 #define MAP_ANON MAP_ANONYMOUS
 #endif

@@ -14,6 +14,7 @@
 #include <ltdl.h>
 
 #include "mpg123app.h"
+#include "debug.h"
 
 #ifndef HAVE_LTDL
 #error Cannot build without LTDL library support

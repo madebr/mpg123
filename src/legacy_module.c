@@ -7,7 +7,7 @@
 */
 
 #include "mpg123app.h"
-
+#include "debug.h"
 
 /* A single module is staticly compiled in for each type */
 extern mpg123_module_t mpg123_output_module_info;

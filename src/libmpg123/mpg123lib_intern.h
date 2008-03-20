@@ -19,7 +19,6 @@
 #endif
 #include "mpg123.h"
 #include "config.h"
-#include "debug.h"
 #include "compat.h"
 
 #define SKIP_JUNK 1

@@ -15,6 +15,8 @@
 #include <sys/wait.h>
 #endif
 
+#include "debug.h"
+
 static int file_write(struct audio_output_struct* ao, unsigned char *bytes, int count)
 {
 	return (int)write(ao->fn, bytes, count);

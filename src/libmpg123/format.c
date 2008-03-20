@@ -7,6 +7,7 @@
 */
 
 #include "mpg123lib_intern.h"
+#include "debug.h"
 
 /* static int chans[NUM_CHANNELS] = { 1 , 2 }; */
 static const long my_rates[MPG123_RATES] = /* only the standard rates */

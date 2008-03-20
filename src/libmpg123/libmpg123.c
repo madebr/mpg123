@@ -8,6 +8,7 @@
 
 #include "mpg123lib_intern.h"
 #include "getbits.h"
+#include "debug.h"
 
 #ifdef GAPLESS
 #define SAMPLE_ADJUST(x)   ((x) - ((mh->p.flags & MPG123_GAPLESS) ? mh->begin_os : 0))
