@@ -1,7 +1,7 @@
 /*
 	getlopt: command line option/parameter parsing
 
-	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2008 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written Oliver Fromme
 	old timestamp: Tue Apr  8 07:15:13 MET DST 1997
