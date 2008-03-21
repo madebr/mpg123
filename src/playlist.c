@@ -13,6 +13,7 @@
 #include "term.h" /* for term_restore */
 #include "playlist.h"
 #include "httpget.h"
+#include <time.h> /* For srand(). */
 #include "debug.h"
 
 #ifdef HAVE_RANDOM
