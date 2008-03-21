@@ -39,6 +39,8 @@
 # endif
 #endif
 
+#include "debug.h"
+
 struct oss_stuff
 {
 	int fragment; /* size of one fragment */
