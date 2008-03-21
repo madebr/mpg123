@@ -11,6 +11,7 @@
 #include <ao/ao.h>
 
 #include "mpg123app.h"
+#include "debug.h"
 
 
 static int open_libao(audio_output_t *ao)

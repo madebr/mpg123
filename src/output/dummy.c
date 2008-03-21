@@ -6,6 +6,7 @@
 */
 
 #include "mpg123app.h"
+#include "debug.h"
 
 static int open_dummy(audio_output_t *ao)
 {

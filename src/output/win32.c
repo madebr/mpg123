@@ -10,6 +10,7 @@
 
 #include "mpg123app.h"
 #include <windows.h>
+#include "debug.h"
 
 /*
 	Buffer size and number of buffers in the playback ring

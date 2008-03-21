@@ -12,6 +12,7 @@
 #include <dmedia/audio.h>
 
 #include "mpg123app.h"
+#include "debug.h"
 
 
 /* Analog output constant */

@@ -9,6 +9,7 @@
 #include "mpg123app.h"
 #include <fcntl.h>
 #include <sys/audio.h>
+#include "debug.h"
 
 
 static int set_rate(audio_output_t *ao)

@@ -44,6 +44,7 @@
 #include <Alib.h>   /* /opt/audio/include */
 #include <CUlib.h>  /* /opt/audio/include */
 
+#include "debug.h"
 
 /**************************************************************************/
 

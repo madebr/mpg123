@@ -17,6 +17,7 @@
 
 #include <ctype.h>
 #include <sys/asoundlib.h>
+#include "debug.h"
 
 #ifdef SND_LITTLE_ENDIAN
 #define SND_PCM_SFMT_S16_NE SND_PCM_SFMT_S16_LE

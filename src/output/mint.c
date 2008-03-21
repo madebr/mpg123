@@ -11,6 +11,7 @@
 #include "mpg123app.h"
 #include <ioctl.h>
 #include <audios.h>
+#include "debug.h"
 
 /* Globals */
 extern int outburst;

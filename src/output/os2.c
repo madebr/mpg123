@@ -19,6 +19,7 @@
 #ifndef MPG123_INCLUDED
 #include "mpg123app.h"
 #endif
+#include "debug.h"
 
 /* complementary audio parameters */
 int numbuffers = 32;     /* total audio buffers, _bare_ minimum = 4 (cuz of prio boost check) */

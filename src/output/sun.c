@@ -29,6 +29,7 @@
 #endif
 
 #include <fcntl.h>
+#include "debug.h"
 
 static void set_format_helper(audio_output_t *ao, audio_info_t *ainfo)
 {

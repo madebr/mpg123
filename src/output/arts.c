@@ -10,6 +10,7 @@
 
 #include "mpg123app.h"
 #include <artsc.h>
+#include "debug.h"
 
 static int open_arts(audio_output_t *ao)
 {

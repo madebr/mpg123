@@ -17,6 +17,7 @@
 #ifdef WIN32
 #include <windows.h>
 #endif
+#include "debug.h"
 
 #define SAMPLE_SIZE			(2)
 #define FRAMES_PER_BUFFER	(256)

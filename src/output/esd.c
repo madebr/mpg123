@@ -16,6 +16,7 @@
 #include <stropts.h>
 #include <sys/conf.h>
 #endif
+#include "debug.h"
 
 static unsigned esd_rate = 0, esd_format = 0, esd_channels = 0;
 

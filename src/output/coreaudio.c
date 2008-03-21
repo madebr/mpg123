@@ -16,6 +16,7 @@
 #include <AudioUnit/AudioUnit.h>
 #include <AudioToolbox/AudioToolbox.h>
 #include <errno.h>
+#include "debug.h"
 
 #define FIFO_DURATION		(0.5f)		/* Duration of the ring buffer in seconds */
 
