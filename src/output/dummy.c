@@ -10,7 +10,6 @@
 static int open_dummy(audio_output_t *ao)
 {
 	debug("open_dummy()");
-	warning("Using the dummy audio output module.");
 	return 0;
 }
 
