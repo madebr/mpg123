@@ -107,7 +107,7 @@ open_module( const char* type, const char* name )
 	handle = lt_dlopen( module_path );
 	free( module_path );
 	if (handle==NULL) {
-		error1( "Failed to open module: %s", lt_dlerror() );
+		error2( "Failed to open module %s: %s", name, lt_dlerror() );
 		goto om_bad;
 	}
 	
