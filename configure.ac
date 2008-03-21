@@ -10,7 +10,7 @@ AC_PREREQ(2.57)
 
 dnl ############# Initialisation
 
-AC_INIT([mpg123], [1.3.1], [mpg123-devel@lists.sourceforge.net])
+AC_INIT([mpg123], [1.4.0], [mpg123-devel@lists.sourceforge.net])
 LIBMPG123_VERSION=2:1:2
 AC_SUBST( LIBMPG123_VERSION )
 
@@ -975,7 +975,9 @@ if test "x$with_default_audio" != "x"; then
 else 
 	default_output_module=`echo "$output_modules" | $AWK '{ print $1 }'`
 fi
-AC_DEFINE_UNQUOTED( DEFAULT_OUTPUT_MODULE, "$default_output_module", [The default audio output module to use] )
+
+# That's (beginning of) the list for mpg123's internal default.
+default_output_modules=$default_output_module
 
 OUTPUT_OBJ=
 OUTPUT_MOD=
@@ -1094,7 +1096,17 @@ then
 			OUTPUT_CFLAGS="$MINT_CFLAGS"
 		;;
 	esac
+else
+	# Now make a comma-separated list again... eliminating the possible duplicate and dummy.
+	for i in $output_modules
+	do
+		if test $i != $default_output_module && test $i != dummy; then
+			default_output_modules=$default_output_modules,$i
+		fi
+	done
 fi
+
+AC_DEFINE_UNQUOTED( DEFAULT_OUTPUT_MODULE, "$default_output_modules", [The default audio output module(s) to use] )
 
 
 AC_SUBST( OUTPUT_OBJ )
