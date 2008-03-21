@@ -95,49 +95,79 @@ audio_output_t* open_fake_module(void)
 	return ao;
 }
 
-/* Open an audio output module */
-audio_output_t* open_output_module( const char* name )
+/* Open an audio output module, trying modules in list (comma-separated). */
+audio_output_t* open_output_module( const char* names )
 {
 	mpg123_module_t *module = NULL;
 	audio_output_t *ao = NULL;
 	int result = 0;
+	char *curname, *modnames;
 
-	if(param.usebuffer) return NULL;
+	if(param.usebuffer || names==NULL) return NULL;
 
 	/* Use internal code. */
 	if(param.outmode != DECODE_AUDIO) return open_fake_module();
 
-	/* Open the module */
-	module = open_module( "output", name );
-	if (module == NULL) return NULL;
+	modnames = strdup(names);
+	if(modnames == NULL)
+	{
+		error("Error allocating memory for module names.");
+		return NULL;
+	}
+	/* Now loop over the list of possible modules to find one that works. */
+	curname = strtok(modnames, ",");
+	while(curname != NULL)
+	{
+		char* name = curname;
+		curname = strtok(NULL, ",");
+		if(param.verbose > 1) fprintf(stderr, "Trying output module %s.\n", name);
+		/* Open the module, initial check for availability+libraries. */
+		module = open_module( "output", name );
+		if(module == NULL) continue;
+		/* Check if module supports output */
+		if(module->init_output == NULL)
+		{
+			error1("Module '%s' does not support audio output.", name);
+			close_module(module);
+			continue; /* Try next one. */
+		}
+		/* Allocation+initialization of memory for audio output type. */
+		ao = alloc_audio_output();
+		if(ao==NULL)
+		{
+			error("Failed to allocate audio output structure.");
+			close_module(module);
+			break; /* This is fatal. */
+		}
 
-	/* Check module supports output */
-	if (module->init_output == NULL) {
-		error1("Module '%s' does not support audio output.", name);
-		close_module( module );
-		return NULL;
+		/* Call the init function */
+		ao->device = param.output_device;
+		ao->flags  = param.output_flags;
+		ao->is_open = FALSE;
+		ao->module = module; /* Need that to close module later. */
+		result = module->init_output(ao);
+		if(result == 0)
+		{ /* Try to open the device. I'm only interested in actually working modules. */
+			result = open_output(ao);
+			close_output(ao);
+		}
+		else error2("Module '%s' init failed: %i", name, result);
+
+		if(result!=0)
+		{ /* Try next one... */
+			close_module(module);
+			free(ao);
+		}
+		else 
+		{ /* All good, leave the loop. */
+			if(param.verbose > 1) fprintf(stderr, "Output module '%s' chosen.\n", name);
+
+			break;
+		}
 	}
-	
-	/* Allocation memory for audio output type */
-	ao = alloc_audio_output();
-	if (ao==NULL) {
-		error( "Failed to allocate audio output structure." );
-		return NULL;
-	}
-	
-	/* Call the init function */
-	ao->device = param.output_device;
-	ao->flags  = param.output_flags;
-	ao->is_open = FALSE;
-	result = module->init_output(ao);
-	if (result) {
-		error1( "Module's init function failed: %d", result );
-		close_module( module );
-		return NULL;
-	}
-	
-	/* Store the pointer to the module (so we can close it later) */
-	ao->module = module;
+
+	free(modnames);
+	if(ao==NULL) error("Unable to find a working output module!");
 
 	return ao;
 }
