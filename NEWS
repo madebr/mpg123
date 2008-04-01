@@ -1,3 +1,14 @@
+1.4.0
+---
+
+- Enable runtime check for available and working output modules.
+  Now mpg123 tries all built modules (or a list specified in mpg123 -o moda,modb,modc) in turn to find a working output.
+  This minimizes the situation of having to specify a device when default output doesn't work for some reason.
+  See bug 1910500.
+- Code cleanups and some nitty detail with EOF handling in buffered streams.
+  This makes libmpg123 2.2.2 .
+- This time with correct RPM spec (hopefully... sorry, Michael!).
+
 1.3.1
 ---
 - Enable snd_pcm_sw_params_set_xfer_align() for alsa-lib < 1.0.16 (bug 1908603).
