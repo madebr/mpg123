@@ -50,7 +50,7 @@ static void bc_forget(struct bufferchain *bc);
 static ssize_t plain_read(mpg123_handle *fr, void *buf, size_t count)
 {
 	ssize_t ret = fr->rdat.read(fr->rdat.filept, buf, count);
-	debug2("read %li bytes of %li)", (long)ret, (long)count);
+	debug2("read %li bytes of %li", (long)ret, (long)count);
 	return ret;
 }
 #ifndef WIN32
@@ -85,7 +85,7 @@ static ssize_t icy_fullread(mpg123_handle *fr, unsigned char *buf, ssize_t count
 	cnt = 0;
 	if(fr->rdat.flags & READER_SEEKABLE)
 	{
-		error("mpg123 programmer error: I don't do ICY on seekable streams.");
+		if(NOQUIET) error("mpg123 programmer error: I don't do ICY on seekable streams.");
 		return -1;
 	}
 	/*
@@ -107,7 +107,7 @@ static ssize_t icy_fullread(mpg123_handle *fr, unsigned char *buf, ssize_t count
 			/* we are near icy-metaint boundary, read up to the boundary */
 			cut_pos = fr->icy.next;
 			ret = fr->rdat.fdread(fr,buf,cut_pos);
-			if(ret < 0) return READER_ERROR;
+			if(ret < 0){ if(NOQUIET) error("icy boundary read"); return READER_ERROR; }
 
 			fr->rdat.filepos += ret;
 			cnt += ret;
@@ -122,7 +122,7 @@ static ssize_t icy_fullread(mpg123_handle *fr, unsigned char *buf, ssize_t count
 			/* one byte icy-meta size (must be multiplied by 16 to get icy-meta length) */
 			
 			ret = fr->rdat.fdread(fr,&temp_buff,1); /* Getting one single byte hast to suceed. */
-			if(ret < 0){ error("reading icy size"); return READER_ERROR; }
+			if(ret < 0){ if(NOQUIET) error("reading icy size"); return READER_ERROR; }
 			if(ret == 0) break;
 
 			debug2("got meta-size byte: %u, at filepos %li", temp_buff, (long)fr->rdat.filepos );
@@ -140,7 +140,7 @@ static ssize_t icy_fullread(mpg123_handle *fr, unsigned char *buf, ssize_t count
 					{
 						ret = fr->rdat.fdread(fr,meta_buff+meta_size-left,left);
 						/* 0 is error here, too... there _must_ be the ICY data, the server promised! */
-						if(ret < 1){ error("reading icy-meta"); return READER_ERROR; }
+						if(ret < 1){ if(NOQUIET) error("reading icy-meta"); return READER_ERROR; }
 						left -= ret;
 					}
 					meta_buff[meta_size] = 0; /* string paranoia */
@@ -153,7 +153,7 @@ static ssize_t icy_fullread(mpg123_handle *fr, unsigned char *buf, ssize_t count
 				}
 				else
 				{
-					error1("cannot allocate memory for meta_buff (%lu bytes) ... trying to skip the metadata!", (unsigned long)meta_size);
+					if(NOQUIET) error1("cannot allocate memory for meta_buff (%lu bytes) ... trying to skip the metadata!", (unsigned long)meta_size);
 					fr->rd->skip_bytes(fr, meta_size);
 				}
 			}
@@ -161,7 +161,7 @@ static ssize_t icy_fullread(mpg123_handle *fr, unsigned char *buf, ssize_t count
 		}
 
 		ret = plain_fullread(fr, buf+cnt, count-cnt);
-		if(ret < 0){ error1("reading the rest of %li", (long)(count-cnt)); return READER_ERROR; }
+		if(ret < 0){ if(NOQUIET) error1("reading the rest of %li", (long)(count-cnt)); return READER_ERROR; }
 		if(ret == 0) break;
 
 		cnt += ret;
@@ -406,8 +406,10 @@ static int bc_append(struct bufferchain *bc, ssize_t size)
 {
 	struct buffy *newbuf;
 	if(size < 1) return -1;
+
 	newbuf = malloc(sizeof(struct buffy));
 	if(newbuf == NULL) return -2;
+
 	newbuf->data = malloc(size);
 	if(newbuf->data == NULL)
 	{
@@ -454,10 +456,11 @@ static void bc_drop(struct bufferchain *bc)
 /* Append a new buffer and copy content to it. */
 static int bc_add(struct bufferchain *bc, unsigned char *data, ssize_t size)
 {
-	if(bc_append(bc, size) != 0) return -1;
-
+	int ret = 0;
+	if((ret = bc_append(bc, size)) == 0)
 	memcpy(bc->last->data, data, size);
-	return 0;
+
+	return ret;
 }
 
 /* Give some data, advancing position but not forgetting yet. */
@@ -553,12 +556,17 @@ static int feed_init(mpg123_handle *fr)
 /* externally called function, returns 0 on success, -1 on error */
 int feed_more(mpg123_handle *fr, unsigned char *in, long count)
 {
+	int ret = 0;
 	debug("feed_more");
-	if(bc_add(&fr->rdat.buffer, in, count) != 0) return -1;
-	/* Not talking about filelen... that stays at 0. */
+	if((ret = bc_add(&fr->rdat.buffer, in, count)) != 0)
+	{
+		ret = READER_ERROR;
+		if(NOQUIET) error1("Failed to add buffer, return: %i", ret);
+	}
+	else /* Not talking about filelen... that stays at 0. */
 	debug3("feed_more: %p %luB bufsize=%lu", fr->rdat.buffer.last->data,
 		(unsigned long)fr->rdat.buffer.last->size, (unsigned long)fr->rdat.buffer.size);
-	return 0;
+	return ret;
 }
 
 static ssize_t feed_read(mpg123_handle *fr, unsigned char *out, ssize_t count)
@@ -605,7 +613,6 @@ off_t feed_set_pos(mpg123_handle *fr, off_t pos)
 		bc->fileoff = pos;
 		return pos; /* Next input from exactly that position. */
 	}
-	return READER_ERROR;
 }
 
 /* The specific stuff for buffered stream reader. */
@@ -622,21 +629,34 @@ static ssize_t buffered_fullread(mpg123_handle *fr, unsigned char *out, ssize_t 
 		ssize_t need = count - (bc->size-bc->pos);
 		while(need>0)
 		{
+			int ret;
 			ssize_t got = fr->rdat.fullread(fr, readbuf, BUFFBLOCK);
-			if(got < 0) return READER_ERROR;
+			if(got < 0)
+			{
+				if(NOQUIET) error("buffer reading");
+				return READER_ERROR;
+			}
 
-			debug1("buffered_fullread: buffering %li bytes from stream", (long)got);
-			if(bc_add(bc, readbuf, got) != 0) return READER_ERROR;
+			debug1("buffered_fullread: buffering %li bytes from stream (if > 0)", (long)got);
+			if(got > 0 && (ret=bc_add(bc, readbuf, got)) != 0)
+			{
+				if(NOQUIET) error1("unable to add to chain, return: %i", ret);
+				return READER_ERROR;
+			}
 
 			need -= got; /* May underflow here... */
-			if(got < BUFFBLOCK) break; /* End. */
+			if(got < BUFFBLOCK)
+			{
+				if(VERBOSE3) fprintf(stderr, "Note: Input data end.\n");
+				break; /* End. */
+			}
 		}
 		if(bc->size - bc->pos < count)
 		count = bc->size - bc->pos; /* We want only what we got. */
 	}
 	gotcount = bc_give(bc, out, count);
-debug2("wanted %li, got %li", (long)count, (long)gotcount);
-	if(gotcount != count) return READER_ERROR;
+	debug2("wanted %li, got %li", (long)count, (long)gotcount);
+	if(gotcount != count){ if(NOQUIET) error("gotcount != count"); return READER_ERROR; }
 	else return gotcount;
 }
 
@@ -813,7 +833,7 @@ static int default_init(mpg123_handle *fr)
 		}
 		else
 		{
-			error("mpg123 Programmer's fault: invalid reader");
+			if(NOQUIET) error("mpg123 Programmer's fault: invalid reader");
 			return -1;
 		}
 		bc_init(&fr->rdat.buffer);
