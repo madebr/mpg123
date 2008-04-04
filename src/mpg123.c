@@ -607,6 +607,51 @@ void buffer_drain(void)
 #endif
 }
 
+/* Return TRUE if we should continue (second interrupt happens quickly), skipping tracks, or FALSE if we should die. */
+int skip_or_die(struct timeval *start_time)
+{
+/* 
+ * When HAVE_TERMIOS is defined, there is 'q' to terminate a list of songs, so
+ * no pressing need to keep up this first second SIGINT hack that was too
+ * often mistaken as a bug. [dk]
+ * ThOr: Yep, I deactivated the Ctrl+C hack for active control modes.
+ *       Though, some sort of hack remains, still using intflag for track skip.
+ */
+#if !defined(WIN32) && !defined(GENERIC)
+#ifdef HAVE_TERMIOS
+	if(!param.term_ctrl)
+#endif
+	{
+		struct timeval now;
+		unsigned long secdiff;
+		gettimeofday (&now, NULL);
+		secdiff = (now.tv_sec - start_time->tv_sec) * 1000;
+		if(now.tv_usec >= start_time->tv_usec)
+		secdiff += (now.tv_usec - start_time->tv_usec) / 1000;
+		else
+		secdiff -= (start_time->tv_usec - now.tv_usec) / 1000;
+		if (secdiff < 1000)
+		{
+			debug("got the second interrupt: out of here!");
+			return FALSE;
+		}
+		else
+		{
+			debug("It's a track advancement message.");
+			++skip_tracks;
+		}
+	}
+#ifdef HAVE_TERMIOS
+	else if(skip_tracks == 0)
+	{
+		debug("breaking up");
+		return FALSE;
+	}
+#endif
+#endif
+	return TRUE; /* Track advancement... no instant kill on generic/windows... */
+}
+
 int main(int argc, char *argv[])
 {
 	int result;
@@ -615,8 +660,7 @@ int main(int argc, char *argv[])
 	int libpar = 0;
 	mpg123_pars *mp;
 #if !defined(WIN32) && !defined(GENERIC)
-	struct timeval start_time, now;
-	unsigned long secdiff;
+	struct timeval start_time;
 #endif
 	{
 		char *lang = getenv("LANG");
@@ -845,7 +889,11 @@ int main(int argc, char *argv[])
 		ret = control_generic(mh);
 		safe_exit(ret);
 	}
-
+#ifdef HAVE_TERMIOS
+		debug1("param.term_ctrl: %i", param.term_ctrl);
+		if(param.term_ctrl)
+			term_init();
+#endif
 	while ((fname = get_next_file()))
 	{
 		char *dirname, *filename;
@@ -858,6 +906,7 @@ int main(int argc, char *argv[])
 		}
 		if(param.delay > 0)
 		{
+			/* One should enable terminal control during that sleeping phase! */
 			if(param.verbose > 2) fprintf(stderr, "Note: pausing %i seconds before next track.\n", param.delay);
 			output_pause(ao);
 #ifdef WIN32
@@ -870,7 +919,17 @@ int main(int argc, char *argv[])
 		frames_left = param.frame_number;
 		debug1("Going to play %s", strcmp(fname, "-") ? fname : "standard input");
 
-		if(!open_track(fname)) continue;
+		if(intflag || !open_track(fname))
+		{
+#ifdef HAVE_TERMIOS
+			/* We need the opportunity to cancel in case of --loop -1 . */
+			if(param.term_ctrl) term_control(mh, ao);
+#endif
+			/* No wait for a second interrupt before we started playing. */
+			if(intflag) break;
+
+			continue;
+		}
 
 		if(!param.quiet) fprintf(stderr, "\n");
 		if(param.index)
@@ -909,7 +968,7 @@ int main(int argc, char *argv[])
 #endif
 
 		}
-
+/* Rethink that SIGINT logic... */
 #if !defined(WIN32) && !defined(GENERIC)
 #ifdef HAVE_TERMIOS
 		if(!param.term_ctrl)
@@ -917,11 +976,6 @@ int main(int argc, char *argv[])
 			gettimeofday (&start_time, NULL);
 #endif
 
-#ifdef HAVE_TERMIOS
-		debug1("param.term_ctrl: %i", param.term_ctrl);
-		if(param.term_ctrl)
-			term_init();
-#endif
 		while(!intflag)
 		{
 			int meta;
@@ -975,43 +1029,8 @@ int main(int argc, char *argv[])
 
 	if (intflag)
 	{
-/* 
- * When HAVE_TERMIOS is defined, there is 'q' to terminate a list of songs, so
- * no pressing need to keep up this first second SIGINT hack that was too
- * often mistaken as a bug. [dk]
- * ThOr: Yep, I deactivated the Ctrl+C hack for active control modes.
- *       Though, some sort of hack remains, still using intflag for track skip.
- */
-#if !defined(WIN32) && !defined(GENERIC)
-#ifdef HAVE_TERMIOS
-	if(!param.term_ctrl)
-#endif
-        {
-		gettimeofday (&now, NULL);
-        	secdiff = (now.tv_sec - start_time.tv_sec) * 1000;
-        	if (now.tv_usec >= start_time.tv_usec)
-          		secdiff += (now.tv_usec - start_time.tv_usec) / 1000;
-        	else
-          		secdiff -= (start_time.tv_usec - now.tv_usec) / 1000;
-        	if (secdiff < 1000)
-					{
-						debug("got the second interrupt: out of here!");
-          		break;
-					}
-					else
-					{
-						debug("It's a track advancement message.");
-						++skip_tracks;
-					}
-	}
-#ifdef HAVE_TERMIOS
-	else if(skip_tracks == 0)
-	{
-		debug("breaking up");
-		break;
-	}
-#endif
-#endif
+		if(!skip_or_die(&start_time)) break;
+
         intflag = FALSE;
 
 #ifndef NOXFERMEM
@@ -1027,7 +1046,8 @@ int main(int argc, char *argv[])
 	}
 	/* Free up memory used by playlist */    
 	if(!param.remote) free_playlist();
-	safe_exit(0); /* That closes output, too. */
+
+	safe_exit(0); /* That closes output and restores terminal, too. */
 	return 0;
 }
 
