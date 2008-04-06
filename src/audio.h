@@ -58,7 +58,12 @@ typedef struct audio_output_struct
 	int channels;	/* number of channels */
 	int format;		/* format flags */
 	int is_open;	/* something opened? */
+#define MPG123_OUT_QUIET 1
+	int auxflags; /* For now just one: quiet mode (for probing). */
 } audio_output_t;
+
+/* Lazy. */
+#define AOQUIET (ao->auxflags & MPG123_OUT_QUIET)
 
 struct audio_format_name {
 	int  val;

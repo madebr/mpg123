@@ -143,6 +143,13 @@ audio_output_t* open_output_module( const char* names )
 		/* Call the init function */
 		ao->device = param.output_device;
 		ao->flags  = param.output_flags;
+		/* Should I do funny stuff with stderr file descriptor instead? */
+		if(curname == NULL)
+		{
+			if(param.verbose > 1)
+			fprintf(stderr, "Note: %s is the last output option... showing you any error messages now.\n");
+		}
+		else ao->auxflags |= MPG123_OUT_QUIET; /* Probing, so don't spill stderr with errors. */
 		ao->is_open = FALSE;
 		ao->module = module; /* Need that to close module later. */
 		result = module->init_output(ao);
@@ -157,6 +164,7 @@ audio_output_t* open_output_module( const char* names )
 		{ /* Try next one... */
 			close_module(module);
 			free(ao);
+			ao = NULL;
 		}
 		else 
 		{ /* All good, leave the loop. */
@@ -210,7 +218,8 @@ audio_output_t* alloc_audio_output()
 	ao->channels = -1;
 	ao->format = -1;
 	ao->flags = 0;
-	
+	ao->auxflags = 0;
+
 	/*ao->module = NULL;*/
 
 	/* Set the callbacks to NULL */
@@ -548,7 +557,7 @@ int open_output(audio_output_t *ao)
 			ao->is_open = ao->open(ao) < 0 ? FALSE : TRUE;
 			if(!ao->is_open)
 			{
-				error("failed to open audio device");
+				if(!AOQUIET) error("failed to open audio device");
 				return -1;
 			}
 			else return 0;
