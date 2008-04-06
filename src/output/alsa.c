@@ -136,6 +136,10 @@ static int initialize_device(audio_output_t *ao)
 	return 0;
 }
 
+void error_ignorer(const char *file, int line, const char *function, int err, const char *fmt,...)
+{
+	/* I can make ALSA silent. */
+}
 
 static int open_alsa(audio_output_t *ao)
 {
@@ -143,6 +147,7 @@ static int open_alsa(audio_output_t *ao)
 	snd_pcm_t *pcm=NULL;
 	debug1("open_alsa with %p", ao->userptr);
 
+	snd_lib_error_set_handler(AOQUIET ? error_ignorer : NULL);
 	pcm_name = ao->device ? ao->device : "default";
 	if (snd_pcm_open(&pcm, pcm_name, SND_PCM_STREAM_PLAYBACK, 0) < 0) {
 		if(!AOQUIET) error1("cannot open device %s", pcm_name);
