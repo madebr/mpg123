@@ -5,8 +5,10 @@
   Now mpg123 tries all built modules (or a list specified in mpg123 -o moda,modb,modc) in turn to find a working output.
   This minimizes the situation of having to specify a device when default output doesn't work for some reason.
   See bug 1910500.
-- Code cleanups and some nitty detail with EOF handling in buffered streams.
-  This makes libmpg123 2.2.2 .
+- libmpg123 2.2.2
+  - Fixing an endless loop for ICY streams that suddenly end without error (just EOF).
+  - Further fixes around EOF handling in (buffered/ICY) streams.
+- Enable user to interrupt mpg123 when stuck in a loop of failing to open a track (with --loop).
 - This time with correct RPM spec (hopefully... sorry, Michael!).
 
 1.3.1
