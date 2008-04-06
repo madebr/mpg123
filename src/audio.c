@@ -170,6 +170,7 @@ audio_output_t* open_output_module( const char* names )
 		{ /* All good, leave the loop. */
 			if(param.verbose > 1) fprintf(stderr, "Output module '%s' chosen.\n", name);
 
+			ao->auxflags &= ~MPG123_OUT_QUIET;
 			break;
 		}
 	}
