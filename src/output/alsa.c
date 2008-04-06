@@ -56,11 +56,11 @@ static int initialize_device(audio_output_t *ao)
 
 	snd_pcm_hw_params_alloca(&hw); /* Ignore GCC warning here... alsa-lib>=1.0.16 doesn't trigger that anymore, too. */
 	if (snd_pcm_hw_params_any(pcm, hw) < 0) {
-		error("initialize_device(): no configuration available");
+		if(!AOQUIET) error("initialize_device(): no configuration available");
 		return -1;
 	}
 	if (snd_pcm_hw_params_set_access(pcm, hw, SND_PCM_ACCESS_RW_INTERLEAVED) < 0) {
-		error("initialize_device(): device does not support interleaved access");
+		if(!AOQUIET) error("initialize_device(): device does not support interleaved access");
 		return -1;
 	}
 	format = SND_PCM_FORMAT_UNKNOWN;
@@ -71,66 +71,66 @@ static int initialize_device(audio_output_t *ao)
 		}
 	}
 	if (format == SND_PCM_FORMAT_UNKNOWN) {
-		error1("initialize_device(): invalid sample format %d", ao->format);
+		if(!AOQUIET) error1("initialize_device(): invalid sample format %d", ao->format);
 		errno = EINVAL;
 		return -1;
 	}
 	if (snd_pcm_hw_params_set_format(pcm, hw, format) < 0) {
-		error1("initialize_device(): cannot set format %s", snd_pcm_format_name(format));
+		if(!AOQUIET) error1("initialize_device(): cannot set format %s", snd_pcm_format_name(format));
 		return -1;
 	}
 	if (snd_pcm_hw_params_set_channels(pcm, hw, ao->channels) < 0) {
-		error1("initialize_device(): cannot set %d channels", ao->channels);
+		if(!AOQUIET) error1("initialize_device(): cannot set %d channels", ao->channels);
 		return -1;
 	}
 	rate = ao->rate;
 	if (snd_pcm_hw_params_set_rate_near(pcm, hw, &rate, NULL) < 0) {
-		error1("initialize_device(): cannot set rate %u", rate);
+		if(!AOQUIET) error1("initialize_device(): cannot set rate %u", rate);
 		return -1;
 	}
 	if (!rates_match(ao->rate, rate)) {
-		error2("initialize_device(): rate %ld not available, using %u", ao->rate, rate);
+		if(!AOQUIET) error2("initialize_device(): rate %ld not available, using %u", ao->rate, rate);
 		/* return -1; */
 	}
 	buffer_size = rate * BUFFER_LENGTH;
 	if (snd_pcm_hw_params_set_buffer_size_near(pcm, hw, &buffer_size) < 0) {
-		error("initialize_device(): cannot set buffer size");
+		if(!AOQUIET) error("initialize_device(): cannot set buffer size");
 		return -1;
 	}
 	period_size = buffer_size / 4;
 	if (snd_pcm_hw_params_set_period_size_near(pcm, hw, &period_size, NULL) < 0) {
-		error("initialize_device(): cannot set period size");
+		if(!AOQUIET) error("initialize_device(): cannot set period size");
 		return -1;
 	}
 	if (snd_pcm_hw_params(pcm, hw) < 0) {
-		error("initialize_device(): cannot set hw params");
+		if(!AOQUIET) error("initialize_device(): cannot set hw params");
 		return -1;
 	}
 
 	snd_pcm_sw_params_alloca(&sw);
 	if (snd_pcm_sw_params_current(pcm, sw) < 0) {
-		error("initialize_device(): cannot get sw params");
+		if(!AOQUIET) error("initialize_device(): cannot get sw params");
 		return -1;
 	}
 	/* start playing after the first write */
 	if (snd_pcm_sw_params_set_start_threshold(pcm, sw, 1) < 0) {
-		error("initialize_device(): cannot set start threshold");
+		if(!AOQUIET) error("initialize_device(): cannot set start threshold");
 		return -1;
 	}
 	/* wake up on every interrupt */
 	if (snd_pcm_sw_params_set_avail_min(pcm, sw, 1) < 0) {
-		error("initialize_device(): cannot set min available");
+		if(!AOQUIET) error("initialize_device(): cannot set min available");
 		return -1;
 	}
 #if SND_LIB_VERSION < ((1<<16)|16)
 	/* Always write as many frames as possible (deprecated since alsa-lib 1.0.16) */
 	if (snd_pcm_sw_params_set_xfer_align(pcm, sw, 1) < 0) {
-		error("initialize_device(): cannot set transfer alignment");
+		if(!AOQUIET) error("initialize_device(): cannot set transfer alignment");
 		return -1;
 	}
 #endif
 	if (snd_pcm_sw_params(pcm, sw) < 0) {
-		error("initialize_device(): cannot set sw params");
+		if(!AOQUIET) error("initialize_device(): cannot set sw params");
 		return -1;
 	}
 	return 0;
@@ -145,7 +145,7 @@ static int open_alsa(audio_output_t *ao)
 
 	pcm_name = ao->device ? ao->device : "default";
 	if (snd_pcm_open(&pcm, pcm_name, SND_PCM_STREAM_PLAYBACK, 0) < 0) {
-		error1("cannot open device %s", pcm_name);
+		if(!AOQUIET) error1("cannot open device %s", pcm_name);
 		return -1;
 	}
 	ao->userptr = pcm;
@@ -168,7 +168,7 @@ static int get_formats_alsa(audio_output_t *ao)
 
 	snd_pcm_hw_params_alloca(&hw);
 	if (snd_pcm_hw_params_any(pcm, hw) < 0) {
-		error("get_formats_alsa(): no configuration available");
+		if(!AOQUIET) error("get_formats_alsa(): no configuration available");
 		return -1;
 	}
 	if (snd_pcm_hw_params_set_access(pcm, hw, SND_PCM_ACCESS_RW_INTERLEAVED) < 0)

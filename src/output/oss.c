@@ -136,7 +136,7 @@ static int reset_parameters_oss(audio_output_t *ao)
 {
 	int ret;
 	ret = ioctl(ao->fn, SNDCTL_DSP_RESET, NULL);
-	if(ret < 0) error("Can't reset audio!");
+	if(ret < 0 && !AOQUIET) error("Can't reset audio!");
 	ret = set_format_oss(ao);
 	if (ret == -1) goto err;
 	ret = set_channels_oss(ao);
@@ -179,11 +179,11 @@ static int open_oss(audio_output_t *ao)
 			ao->device = "/dev/sound/dsp";
 			ao->fn = open(ao->device,O_WRONLY);
 			if(ao->fn < 0) {
-				error("Can't open default sound device!");
+				if(!AOQUIET) error("Can't open default sound device!");
 				return -1;
 			}
 		} else {
-			error1("Can't open %s!",ao->device);
+			if(!AOQUIET) error1("Can't open %s!",ao->device);
 			return -1;
 		}
 	}
@@ -197,14 +197,14 @@ static int open_oss(audio_output_t *ao)
 		int e,mask;
 		e = ioctl(ao->fn , SOUND_MIXER_READ_DEVMASK ,&mask);
 		if(e < 0) {
-			error("audio/gain: Can't get audio device features list.");
+			if(!AOQUIET) error("audio/gain: Can't get audio device features list.");
 		}
 		else if(mask & SOUND_MASK_PCM) {
 			int gain = (ao->gain<<8)|(ao->gain);
 			e = ioctl(ao->fn, SOUND_MIXER_WRITE_PCM , &gain);
 		}
 		else if(!(mask & SOUND_MASK_VOLUME)) {
-			error1("audio/gain: setable Volume/PCM-Level not supported by your audio device: %#04x",mask);
+			if(!AOQUIET) error1("audio/gain: setable Volume/PCM-Level not supported by your audio device: %#04x",mask);
 		}
 		else { 
 			int gain = (ao->gain<<8)|(ao->gain);
@@ -257,7 +257,7 @@ static int get_formats_oss(audio_output_t *ao)
 
 #if 0
 	if(ioctl(ao->fn,SNDCTL_DSP_GETFMTS,&fmts) < 0) {
-		error("Failed to get SNDCTL_DSP_GETFMTS");
+		if(!AOQUIET) error("Failed to get SNDCTL_DSP_GETFMTS");
 		return -1;
 	}
 
