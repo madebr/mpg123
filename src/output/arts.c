@@ -1,7 +1,7 @@
 /*
 	arts: audio output via aRts Sound Daemon
 
-	copyright 2007 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2007-8 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 
 	initially written by Stefan Lenselink (Stefan@lenselink.org)
@@ -32,7 +32,8 @@ static int open_arts(audio_output_t *ao)
 	arts_init();
 	/* Open a stream to the aRts server */
 	ao->fn = (int)arts_play_stream( ao->rate, bits, ao->channels, "mpg123" );
-	return ao->fn < 0 ? ao->fn : 0;
+	/* Postive numbers, please. */
+	return ao->fn < 0 ? ao->fn : ao->fn < 1 ? -1 : 0;
 }
 
 static int get_formats_arts(audio_output_t *ao)
