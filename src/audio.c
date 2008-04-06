@@ -176,7 +176,7 @@ audio_output_t* open_output_module( const char* names )
 	}
 
 	free(modnames);
-	if(ao==NULL) error("Unable to find a working output module!");
+	if(ao==NULL) error1("Unable to find a working output module in this list: %s", names);
 
 	return ao;
 }
