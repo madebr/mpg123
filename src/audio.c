@@ -147,7 +147,7 @@ audio_output_t* open_output_module( const char* names )
 		if(curname == NULL)
 		{
 			if(param.verbose > 1)
-			fprintf(stderr, "Note: %s is the last output option... showing you any error messages now.\n");
+			fprintf(stderr, "Note: %s is the last output option... showing you any error messages now.\n", name);
 		}
 		else ao->auxflags |= MPG123_OUT_QUIET; /* Probing, so don't spill stderr with errors. */
 		ao->is_open = FALSE;
