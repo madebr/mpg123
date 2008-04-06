@@ -115,6 +115,7 @@ static ssize_t icy_fullread(mpg123_handle *fr, unsigned char *buf, ssize_t count
 				{
 					if(ret == 0) break; /* Just EOF. */
 					if(NOQUIET) error("icy boundary read");
+
 					return READER_ERROR;
 				}
 				fr->rdat.filepos += ret;
@@ -296,6 +297,7 @@ static off_t stream_skip_bytes(mpg123_handle *fr,off_t len)
 			ssize_t num = len < (off_t)sizeof(buf) ? (ssize_t)len : (ssize_t)sizeof(buf);
 			ret = fr->rd->fullread(fr, buf, num);
 			if (ret < 0) return ret;
+			else if(ret == 0) break; /* EOF... an error? interface defined to tell the actual position... */
 			len -= ret;
 		}
 		return fr->rd->tell(fr);
@@ -654,7 +656,7 @@ static ssize_t buffered_fullread(mpg123_handle *fr, unsigned char *out, ssize_t 
 			}
 
 			need -= got; /* May underflow here... */
-			if(got < BUFFBLOCK)
+			if(got < BUFFBLOCK) /* That naturally catches got == 0, too. */
 			{
 				if(VERBOSE3) fprintf(stderr, "Note: Input data end.\n");
 				break; /* End. */
