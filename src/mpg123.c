@@ -1013,9 +1013,6 @@ int main(int argc, char *argv[])
 
 	if(!param.smooth && param.usebuffer) buffer_drain();
 	if(param.verbose) print_stat(mh,0,xfermem_get_usedspace(buffermem)); 
-#ifdef HAVE_TERMIOS
-	if(param.term_ctrl) term_restore();
-#endif
 
 	if(!param.quiet)
 	{
