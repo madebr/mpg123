@@ -1,3 +1,8 @@
+1.4.1
+---
+
+- Fix a serious regression of terminal control mode (forgot to remove a term_restore(), bug 1936548).
+
 1.4.0
 ---
 
