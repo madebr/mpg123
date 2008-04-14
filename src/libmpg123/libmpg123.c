@@ -994,8 +994,7 @@ static const char *mpg123_error[] =
 	"Invalid parameter addresses for index retrieval. (code 26)",
 	"Lost track in the bytestream and did not attempt resync. (code 27)",
 	"Failed to find valid MPEG data within limit on resync. (code 28)",
-	"No 8bit encoding possible. (code 29)",
-	"Bad encoding value/bitmask (for this library build, at least). (code 30)"
+	"No 8bit encoding possible. (code 29)"
 };
 
 const char* mpg123_plain_strerror(int errcode)

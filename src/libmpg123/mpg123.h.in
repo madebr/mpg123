@@ -176,8 +176,7 @@ enum mpg123_errors
 	MPG123_BAD_INDEX_PAR,	/**< Bad parameters to mpg123_index() */
 	MPG123_OUT_OF_SYNC,	/**< Lost track in bytestream and did not try to resync. */
 	MPG123_RESYNC_FAIL,	/**< Resync failed to find valid MPEG data. */
-	MPG123_NO_8BIT,	/**< No 8bit encoding possible. */
-	MPG123_BAD_ENCODING /**< Bad encoding value/bitmask (for this library build, at least). */
+	MPG123_NO_8BIT	/**< No 8bit encoding possible. */
 };
 
 /** Return a string describing that error errcode means. */
@@ -278,7 +277,7 @@ EXPORT int mpg123_format_all(mpg123_handle *mh);
  *  \param mh audio decoder handle
  *  \param rate The sample rate value (in Hertz).
  *  \param channels A combination of MPG123_STEREO and MPG123_MONO.
- *  \param encodings A combination of accepted encodings for rate and channels, p.ex MPG123_ENC_SIGNED16 | MPG123_ENC_ULAW_8 (or 0 for no support).
+ *  \param encodings A combination of accepted encodings for rate and channels, p.ex MPG123_ENC_SIGNED16 | MPG123_ENC_ULAW_8 (or 0 for no support). Please note that some encodings may not be supported in the library build and thus will be ignored here.
  *  \return MPG123_OK on success, MPG123_ERR if there was an error. */
 EXPORT int mpg123_format(mpg123_handle *mh, long rate, int channels, int encodings);
 
