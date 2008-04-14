@@ -221,7 +221,7 @@ EXPORT int mpg123_decoder(mpg123_handle *mh, const char* decoder_name);
  * @{
  */
 
-/** 16 or 8 bits, signed or unsigned... all flags fit into 15 bits and are designed to have meaningful binary & . 
+/** 16 or 8 bits, signed or unsigned... all flags fit into 15 bits and are designed to have meaningful binary AND/OR.
  * Adding float and 32bit int definitions for experimental fun. Only 32bit (and possibly 64bit) float is
  * somewhat there with a dedicated library build. */
 enum mpg123_enc_enum
@@ -261,7 +261,7 @@ enum mpg123_channelcount
 EXPORT void mpg123_rates(const long **list, size_t *number);
 
 /** An array of supported audio encodings.
- *  An audio encoding is a logic OR of members of mpg123_enc_enum.
+ *  An audio encoding is one of the fully qualified members of mpg123_enc_enum (MPG123_ENC_SIGNED_16, not MPG123_SIGNED).
  *  \param list Store a pointer to the encodings array there.
  *  \param number Store the number of encodings there. */
 EXPORT void mpg123_encodings(const int **list, size_t *number);
