@@ -222,7 +222,8 @@ EXPORT int mpg123_decoder(mpg123_handle *mh, const char* decoder_name);
  */
 
 /** 16 or 8 bits, signed or unsigned... all flags fit into 15 bits and are designed to have meaningful binary & . 
- * Adding float and 32bit int definitions for experimental fun. NOT TESTED YET. */
+ * Adding float and 32bit int definitions for experimental fun. Only 32bit (and possibly 64bit) float is
+ * somewhat there with a dedicated library build. */
 enum mpg123_enc_enum
 {
 	 MPG123_ENC_8      = 0x00f  /**< 0000 0000 1111 Some 8 bit  integer encoding. */ 
