@@ -23,8 +23,30 @@ static const int my_encodings[MPG123_ENCODINGS] =
 	MPG123_ENC_UNSIGNED_8,
 	MPG123_ENC_SIGNED_8,
 	MPG123_ENC_ULAW_8,
-	MPG123_ENC_ALAW_8
+	MPG123_ENC_ALAW_8,
+	MPG123_ENC_SIGNED_32,
+	MPG123_ENC_UNSIGNED_32,
+	MPG123_ENC_FLOAT_32,
+	MPG123_ENC_FLOAT_64
 };
+
+/* Check if encoding (mask) is a valid one in this build. */
+static int good_enc(int enc)
+{
+	if(!(enc & MPG123_ENC_ANY)) return FALSE;
+#ifdef FLOATOUT
+#ifdef REAL_IS_FLOAT /* we know only 32bit*/
+	if(enc != MPG123_ENC_FLOAT_32) return FALSE;
+#else
+	if(enc != MPG123_ENC_FLOAT_64) return FALSE;
+#endif
+#else
+	if(enc & MPG123_ENC_FLOAT) return FALSE;
+#endif
+	if(enc & MPG123_ENC_32) return FALSE; /* Not supported yet. */
+
+	return TRUE;
+}
 
 void mpg123_rates(const long **list, size_t *number)
 {
@@ -32,10 +54,21 @@ void mpg123_rates(const long **list, size_t *number)
 	if(number != NULL) *number = sizeof(my_rates)/sizeof(long);
 }
 
+/* Now that's a bit tricky... One build of the library knows only a subset of the encodings. */
 void mpg123_encodings(const int **list, size_t *number)
 {
-	if(list   != NULL) *list   = my_encodings;
-	if(number != NULL) *number = sizeof(my_encodings)/sizeof(int);
+	size_t offset = 0;
+	size_t n = sizeof(my_encodings)/sizeof(int)-4; /* The last 4 are special. */
+#ifdef FLOATOUT /* Skip integer encodings. */
+	n = 1;
+#ifdef REAL_IS_FLOAT /* we know only 32bit*/
+	offset = 8; /* Only 32bit float */
+#else
+	offset = 9; /* Only 64bit float */
+#endif
+#endif /* There should be a branch for 32bit integer; but that's not anywhere now. */
+	if(list   != NULL) *list   = my_encodings+offset;
+	if(number != NULL) *number = n;
 }
 
 /*	char audio_caps[NUM_CHANNELS][MPG123_RATES+1][MPG123_ENCODINGS]; */
@@ -91,11 +124,21 @@ int frame_output_format(mpg123_handle *fr)
 {
 	struct audioformat nf;
 	int f0=0;
+	int f2=MPG123_ENCODINGS-4; /* Omit the 32bit and float encodings. */
 	mpg123_pars *p = &fr->p;
 	/* initialize new format, encoding comes later */
 	nf.channels = fr->stereo;
 
+#ifdef FLOATOUT /* Skip integer encodings. */
+#ifdef REAL_IS_FLOAT /* we know only 32bit*/
+	f0 = 8; /* Only 32bit float */
+#else
+	f0 = 9; /* Only 64bit float */
+#endif
+	f2 = f0+1; /* Only one encoding to try... */
+#else
 	if(p->flags & MPG123_FORCE_8BIT) f0 = 2; /* skip the 16bit encodings */
+#endif /* There should be a branch for 32bit integer; but that's not anywhere now. */
 
 	/* force stereo is stronger */
 	if(p->flags & MPG123_FORCE_MONO)   nf.channels = 1;
@@ -105,14 +148,14 @@ int frame_output_format(mpg123_handle *fr)
 	{
 		nf.rate = p->force_rate;
 		if(cap_fit(fr,&nf,f0,2)) goto end;            /* 16bit encodings */
-		if(cap_fit(fr,&nf,2,MPG123_ENCODINGS)) goto end; /*  8bit encodings */
+		if(cap_fit(fr,&nf,2,f2)) goto end; /*  8bit encodings */
 
 		/* try again with different stereoness */
 		if(nf.channels == 2 && !(p->flags & MPG123_FORCE_STEREO)) nf.channels = 1;
 		else if(nf.channels == 1 && !(p->flags & MPG123_FORCE_MONO)) nf.channels = 2;
 
 		if(cap_fit(fr,&nf,f0,2)) goto end;            /* 16bit encodings */
-		if(cap_fit(fr,&nf,2,MPG123_ENCODINGS)) goto end; /*  8bit encodings */
+		if(cap_fit(fr,&nf,2,f2)) goto end; /*  8bit encodings */
 
 		if(NOQUIET)
 		error3( "Unable to set up output format! Constraints: %s%s%liHz.",
@@ -127,14 +170,14 @@ int frame_output_format(mpg123_handle *fr)
 	}
 
 	if(freq_fit(fr, &nf, f0, 2)) goto end; /* try rates with 16bit */
-	if(freq_fit(fr, &nf,  2, MPG123_ENCODINGS)) goto end; /* ... 8bit */
+	if(freq_fit(fr, &nf,  2, f2)) goto end; /* ... 8bit */
 
 	/* try again with different stereoness */
 	if(nf.channels == 2 && !(p->flags & MPG123_FORCE_STEREO)) nf.channels = 1;
 	else if(nf.channels == 1 && !(p->flags & MPG123_FORCE_MONO)) nf.channels = 2;
 
 	if(freq_fit(fr, &nf, f0, 2)) goto end; /* try rates with 16bit */
-	if(freq_fit(fr, &nf,  2, MPG123_ENCODINGS)) goto end; /* ... 8bit */
+	if(freq_fit(fr, &nf,  2, f2)) goto end; /* ... 8bit */
 
 	/* Here is the _bad_ end. */
 	if(NOQUIET)
@@ -199,11 +242,16 @@ int mpg123_format_all(mpg123_handle *mh)
 
 int mpg123_fmt_all(mpg123_pars *mp)
 {
+	size_t rate, ch, enc;
 	if(mp == NULL) return MPG123_BAD_PARS;
 
 	if(PVERB(mp,3)) fprintf(stderr, "Note: Enabling all formats.\n");
 
-	memset(mp->audio_caps,1,sizeof(mp->audio_caps));
+	for(ch=0;   ch   < NUM_CHANNELS;     ++ch)
+	for(rate=0; rate < MPG123_RATES+1;   ++rate)
+	for(enc=0;  enc  < MPG123_ENCODINGS; ++enc)
+	mp->audio_caps[ch][rate][enc] = good_enc(my_encodings[enc]) ? 1 : 0;
+
 	return MPG123_OK;
 }
 
@@ -223,6 +271,7 @@ int mpg123_fmt(mpg123_pars *mp, long rate, int channels, int encodings)
 	int ch[2] = {0, 1};
 	if(mp == NULL) return MPG123_BAD_PARS;
 	if(!(channels & (MPG123_MONO|MPG123_STEREO))) return MPG123_BAD_CHANNEL;
+	if(!good_enc(encodings)) return MPG123_BAD_ENCODING;
 
 	if(PVERB(mp,3)) fprintf(stderr, "Note: Want to enable format %li/%i for encodings 0x%x.\n", rate, channels, encodings);
 

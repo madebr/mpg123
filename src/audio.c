@@ -260,6 +260,7 @@ const char* audio_encoding_name(const int encoding, const int longer)
 		case MPG123_ENC_SIGNED_8:    name = longer ? "signed 8 bit"    : "s8  ";   break;
 		case MPG123_ENC_ULAW_8:      name = longer ? "mu-law (8 bit)"  : "ulaw "; break;
 		case MPG123_ENC_ALAW_8:      name = longer ? "a-law (8 bit)"   : "alaw "; break;
+		case MPG123_ENC_FLOAT_32:    name = longer ? "float (32 bit)"  : "f32";   break;
 	}
 	return name;
 }

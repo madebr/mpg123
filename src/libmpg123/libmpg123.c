@@ -185,9 +185,11 @@ int mpg123_par(mpg123_pars *mp, enum mpg123_parms key, long val, double fval)
 		case MPG123_FLAGS:
 #ifndef GAPLESS
 			if(val & MPG123_GAPLESS) ret = MPG123_NO_GAPLESS;
-			else
 #endif
-			mp->flags = val;
+#ifdef FLOATOUT
+			if(val & MPG123_FORCE_8BIT) ret = MPG123_NO_8BIT;
+#endif
+			if(ret == MPG123_OK) mp->flags = val;
 			debug1("set flags to 0x%lx", (unsigned long) mp->flags);
 		break;
 		case MPG123_ADD_FLAGS:
@@ -991,7 +993,9 @@ static const char *mpg123_error[] =
 	"Bad parameter handle. (code 25)",
 	"Invalid parameter addresses for index retrieval. (code 26)",
 	"Lost track in the bytestream and did not attempt resync. (code 27)",
-	"Failed to find valid MPEG data within limit on resync. (code 28)"
+	"Failed to find valid MPEG data within limit on resync. (code 28)",
+	"No 8bit encoding possible. (code 29)",
+	"Bad encoding value/bitmask (for this library build, at least). (code 30)"
 };
 
 const char* mpg123_plain_strerror(int errcode)

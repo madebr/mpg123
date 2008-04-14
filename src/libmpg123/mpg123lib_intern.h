@@ -11,7 +11,7 @@
 #define MPG123_H_INTERN
 
 #define MPG123_RATES 9
-#define MPG123_ENCODINGS 6
+#define MPG123_ENCODINGS 10
 
 /* export DLL symbols */
 #if defined(WIN32) && defined(DYNAMIC_BUILD)

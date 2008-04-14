@@ -175,7 +175,9 @@ enum mpg123_errors
 	MPG123_BAD_PARS,		/**< Bad parameter handle. */
 	MPG123_BAD_INDEX_PAR,	/**< Bad parameters to mpg123_index() */
 	MPG123_OUT_OF_SYNC,	/**< Lost track in bytestream and did not try to resync. */
-	MPG123_RESYNC_FAIL	/**< Resync failed to find valid MPEG data. */
+	MPG123_RESYNC_FAIL,	/**< Resync failed to find valid MPEG data. */
+	MPG123_NO_8BIT,	/**< No 8bit encoding possible. */
+	MPG123_BAD_ENCODING /**< Bad encoding value/bitmask (for this library build, at least). */
 };
 
 /** Return a string describing that error errcode means. */
@@ -220,19 +222,28 @@ EXPORT int mpg123_decoder(mpg123_handle *mh, const char* decoder_name);
  * @{
  */
 
-/** 16 or 8 bits, signed or unsigned... all flags fit into 8 bits, float/double are not yet standard and special anyway */
+/** 16 or 8 bits, signed or unsigned... all flags fit into 15 bits and are designed to have meaningful binary & . 
+ * Adding float and 32bit int definitions for experimental fun. NOT TESTED YET. */
 enum mpg123_enc_enum
 {
-	 MPG123_ENC_16     = 0x40 /**< 0100 0000 Some 16 bit encoding... */
-	,MPG123_ENC_SIGNED = 0x80 /**< 1000 0000 Some signed encoding... */
-	,MPG123_ENC_8      = 0x0f /**< 0000 1111 Some 8 bit encoding...  */ 
-	,MPG123_ENC_SIGNED_16   = (MPG123_ENC_16|MPG123_ENC_SIGNED|0x10) /**< 1101 0000 signed 16 bit */
-	,MPG123_ENC_UNSIGNED_16 = (MPG123_ENC_16|0x20)                   /**< 0110 0000 unsigned 16 bit*/
-	,MPG123_ENC_UNSIGNED_8  = 0x01                                   /**< 0000 0001 unsigned 8 bit*/
-	,MPG123_ENC_SIGNED_8    = (MPG123_ENC_SIGNED|0x02)               /**< 1000 0010 signed 8 bit*/
-	,MPG123_ENC_ULAW_8      = 0x04                                   /**< 0000 0100 ulaw 8 bit*/
-	,MPG123_ENC_ALAW_8      = 0x08                                   /**< 0000 1000 alaw 8 bit */
-	,MPG123_ENC_ANY = ( MPG123_ENC_SIGNED_16  | MPG123_ENC_UNSIGNED_16 | MPG123_ENC_UNSIGNED_8 | MPG123_ENC_SIGNED_8 | MPG123_ENC_ULAW_8     | MPG123_ENC_ALAW_8 ) /**< any encoding */
+	 MPG123_ENC_8      = 0x00f  /**< 0000 0000 1111 Some 8 bit  integer encoding. */ 
+	,MPG123_ENC_16     = 0x040  /**< 0000 0100 0000 Some 16 bit integer encoding. */
+	,MPG123_ENC_32     = 0x100  /**< 0001 0000 0000 Some 32 bit integer encoding. */
+	,MPG123_ENC_SIGNED = 0x080  /**< 0000 1000 0000 Some signed integer encoding. */
+	,MPG123_ENC_FLOAT  = 0x800  /**< 1110 0000 0000 Some float encoding. */
+	,MPG123_ENC_SIGNED_16   = (MPG123_ENC_16|MPG123_ENC_SIGNED|0x10) /**< 0000 1101 0000 signed 16 bit */
+	,MPG123_ENC_UNSIGNED_16 = (MPG123_ENC_16|0x20)                   /**< 0000 0110 0000 unsigned 16 bit*/
+	,MPG123_ENC_UNSIGNED_8  = 0x01                                   /**< 0000 0000 0001 unsigned 8 bit*/
+	,MPG123_ENC_SIGNED_8    = (MPG123_ENC_SIGNED|0x02)               /**< 0000 1000 0010 signed 8 bit*/
+	,MPG123_ENC_ULAW_8      = 0x04                                   /**< 0000 0000 0100 ulaw 8 bit*/
+	,MPG123_ENC_ALAW_8      = 0x08                                   /**< 0000 0000 1000 alaw 8 bit */
+	,MPG123_ENC_SIGNED_32   = MPG123_ENC_32|MPG123_ENC_SIGNED|0x10   /**< 0001 1001 0000 signed 32 bit */
+	,MPG123_ENC_UNSIGNED_32 = MPG123_ENC_32|0x20                     /**< 0001 0010 0000 unsigned 32 bit */
+	,MPG123_ENC_FLOAT_32    = 0x200                                  /**< 0010 0000 0000 32bit float */
+	,MPG123_ENC_FLOAT_64    = 0x400                                  /**< 0100 0000 0000 64bit float */
+	,MPG123_ENC_ANY = ( MPG123_ENC_SIGNED_16  | MPG123_ENC_UNSIGNED_16 | MPG123_ENC_UNSIGNED_8 
+	                  | MPG123_ENC_SIGNED_8   | MPG123_ENC_ULAW_8      | MPG123_ENC_ALAW_8
+	                  | MPG123_ENC_FLOAT_32   | MPG123_ENC_FLOAT_64 ) /**< any encoding */
 };
 
 /** They can be combined into one number (3) to indicate mono and stereo... */
