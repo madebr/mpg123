@@ -659,12 +659,20 @@ void do_rva(mpg123_handle *fr)
 	if((peak*newscale) > MAXOUTBURST)
 	{
 		newscale = (scale_t) ((double) MAXOUTBURST/peak);
+#ifdef FLOATOUT
+		warning2("limiting scale value to %f to prevent clipping with indicated peak factor of %f", newscale, peak);
+#else
 		warning2("limiting scale value to %li to prevent clipping with indicated peak factor of %f", newscale, peak);
+#endif
 	}
 	/* first rva setting is forced with fr->lastscale < 0 */
 	if(newscale != fr->lastscale)
 	{
+#ifdef FLOATOUT
+		debug3("changing scale value from %f to %f (peak estimated to %f)", fr->lastscale != -1 ? fr->lastscale : fr->p.outscale, newscale, (double) (newscale*peak));
+#else
 		debug3("changing scale value from %li to %li (peak estimated to %li)", fr->lastscale != -1 ? fr->lastscale : fr->p.outscale, newscale, (long) (newscale*peak));
+#endif
 		fr->lastscale = newscale;
 		opt_make_decode_tables(fr); /* the actual work */
 	}
