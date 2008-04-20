@@ -608,6 +608,7 @@ void buffer_drain(void)
 }
 
 /* Return TRUE if we should continue (second interrupt happens quickly), skipping tracks, or FALSE if we should die. */
+#if !defined(WIN32) && !defined(GENERIC)
 int skip_or_die(struct timeval *start_time)
 {
 /* 
@@ -617,7 +618,6 @@ int skip_or_die(struct timeval *start_time)
  * ThOr: Yep, I deactivated the Ctrl+C hack for active control modes.
  *       Though, some sort of hack remains, still using intflag for track skip.
  */
-#if !defined(WIN32) && !defined(GENERIC)
 #ifdef HAVE_TERMIOS
 	if(!param.term_ctrl)
 #endif
@@ -648,9 +648,12 @@ int skip_or_die(struct timeval *start_time)
 		return FALSE;
 	}
 #endif
-#endif
 	return TRUE; /* Track advancement... no instant kill on generic/windows... */
 }
+#else
+/* On generic systems and win32, there is no decision here... just TRUE. */
+#define skip_or_die(a) TRUE
+#endif
 
 int main(int argc, char *argv[])
 {

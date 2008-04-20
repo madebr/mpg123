@@ -124,7 +124,7 @@ static ssize_t icy_fullread(mpg123_handle *fr, unsigned char *buf, ssize_t count
 				fr->icy.next -= ret;
 				if(fr->icy.next > 0)
 				{
-					debug1("another try... still %li left", fr->icy.next);
+					debug1("another try... still %li left", (long)fr->icy.next);
 					continue;
 				}
 			}
