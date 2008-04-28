@@ -48,10 +48,20 @@ ASM_NAME(getcpuflags):
 	popfl
 	cmpl %ebx,%eax
 	je .Lnocpuid
+/* In principle, I would have to check the CPU's identify first to be sure how to interpret the extended flags. */
 /* now get the info, first extended */
+	movl $0x0, 12(%esi) /* clear value */
+/* only if supported... */
+	movl $0x80000000, %eax
+	cpuid
+/* IDT CPUs should not change EAX, generally I hope that non-3DNow cpus do not set a bogus support level here. */
+	cmpl $0x80000001, %eax
+	jb .Lnoextended /* Skip ext check without minimal support level. */
+/* is supported, get flags value */
 	movl $0x80000001,%eax
 	cpuid
 	movl %edx,12(%esi)
+.Lnoextended:
 /* then the other ones, called last to get the id flags in %eax for ret */
 	movl $0x00000001,%eax
 	cpuid

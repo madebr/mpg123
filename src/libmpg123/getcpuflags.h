@@ -10,9 +10,10 @@
 #ifndef MPG123_H_GETCPUFLAGS
 #define MPG123_H_GETCPUFLAGS
 
-/* standard level flags part 1 */
+/* standard level flags part 1 (ECX)*/
 #define FLAG_SSE3      0x00000001
-/* standard level flags part 2 */
+
+/* standard level flags part 2 (EDX) */
 #define FLAG2_MMX       0x00800000
 #define FLAG2_SSE       0x02000000
 #define FLAG2_SSE2      0x04000000
