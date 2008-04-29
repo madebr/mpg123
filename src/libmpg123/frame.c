@@ -529,16 +529,6 @@ void frame_set_seek(mpg123_handle *fr, off_t sp)
 #endif
 }
 
-/* Unadjusted! */
-off_t frame_tell_seek(mpg123_handle *fr)
-{
-	off_t pos = frame_outs(fr, fr->firstframe);
-#ifdef GAPLESS
-	pos += fr->firstoff;
-#endif
-	return pos;
-}
-
 /* to vanish */
 void frame_outformat(mpg123_handle *fr, int format, int channels, long rate)
 {
