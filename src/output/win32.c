@@ -61,7 +61,7 @@ int open_win32(struct audio_output_struct *ao)
 	/* FIXME: support for smth besides MPG123_ENC_SIGNED_16? */
 	out_fmt.wFormatTag = WAVE_FORMAT_PCM;
 	out_fmt.wBitsPerSample = 16;
-	out_fmt.nChannels = 2;
+	out_fmt.nChannels = ao->channels;
 	out_fmt.nSamplesPerSec = ao->rate;
 	out_fmt.nBlockAlign = out_fmt.nChannels*out_fmt.wBitsPerSample/8;
 	out_fmt.nAvgBytesPerSec = out_fmt.nBlockAlign*out_fmt.nSamplesPerSec;
