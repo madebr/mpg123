@@ -379,7 +379,8 @@ void process_extra(mpg123_handle *fr, char* realdata, size_t realsize, int rva_l
 
 		if(!strncasecmp(xex->description.p, "replaygain_track_",17))
 		{
-			debug("ID3v2: track gain/peak");
+			if(VERBOSE3) fprintf(stderr, "Note: RVA ReplayGain track gain/peak\n");
+
 			rva_mode = 0;
 			if(!strcasecmp(xex->description.p, "replaygain_track_peak")) is_peak = 1;
 			else if(strcasecmp(xex->description.p, "replaygain_track_gain")) rva_mode = -1;
@@ -387,7 +388,8 @@ void process_extra(mpg123_handle *fr, char* realdata, size_t realsize, int rva_l
 		else
 		if(!strncasecmp(xex->description.p, "replaygain_album_",17))
 		{
-			debug("ID3v2: album gain/peak");
+			if(VERBOSE3) fprintf(stderr, "Note: RVA ReplayGain album gain/peak\n");
+
 			rva_mode = 1;
 			if(!strcasecmp(xex->description.p, "replaygain_album_peak")) is_peak = 1;
 			else if(strcasecmp(xex->description.p, "replaygain_album_gain")) rva_mode = -1;
@@ -399,7 +401,7 @@ void process_extra(mpg123_handle *fr, char* realdata, size_t realsize, int rva_l
 				if(is_peak)
 				{
 					fr->rva.peak[rva_mode] = atof(xex->text.p);
-					if(VERBOSE3) fprintf(stderr, "Note: RVA peak %fdB\n", fr->rva.peak[rva_mode]);
+					if(VERBOSE3) fprintf(stderr, "Note: RVA peak %f\n", fr->rva.peak[rva_mode]);
 				}
 				else
 				{
