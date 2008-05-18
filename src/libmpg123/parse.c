@@ -901,7 +901,7 @@ double compute_bpf(mpg123_handle *fr)
 	return bpf;
 }
 
-double mpg123_tpf(mpg123_handle *fr)
+double attribute_align_arg mpg123_tpf(mpg123_handle *fr)
 {
 	static int bs[4] = { 0,384,1152,1152 };
 	double tpf;
@@ -912,7 +912,7 @@ double mpg123_tpf(mpg123_handle *fr)
 	return tpf;
 }
 
-int mpg123_position(mpg123_handle *fr, off_t no, off_t buffsize,
+int attribute_align_arg mpg123_position(mpg123_handle *fr, off_t no, off_t buffsize,
                     off_t  *current_frame,   off_t  *frames_left,
                     double *current_seconds, double *seconds_left)
 {

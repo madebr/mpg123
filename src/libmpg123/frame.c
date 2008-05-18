@@ -79,7 +79,7 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 	frame_fixed_reset(fr); /* Reset only the fixed data, dynamic buffers are not there yet! */
 }
 
-mpg123_pars *mpg123_new_pars(int *error)
+mpg123_pars attribute_align_arg *mpg123_new_pars(int *error)
 {
 	mpg123_pars *mp = malloc(sizeof(struct mpg123_pars_struct));
 	if(mp != NULL){ frame_default_pars(mp); if(error != NULL) *error = MPG123_OK; }
@@ -87,12 +87,12 @@ mpg123_pars *mpg123_new_pars(int *error)
 	return mp;
 }
 
-void mpg123_delete_pars(mpg123_pars* mp)
+void attribute_align_arg mpg123_delete_pars(mpg123_pars* mp)
 {
 	if(mp != NULL) free(mp);
 }
 
-int mpg123_reset_eq(mpg123_handle *mh)
+int attribute_align_arg mpg123_reset_eq(mpg123_handle *mh)
 {
 	int i;
 	mh->have_eq_settings = 0;
@@ -122,7 +122,7 @@ int frame_outbuffer(mpg123_handle *fr)
 	return 0;
 }
 
-int mpg123_replace_buffer(mpg123_handle *mh, unsigned char *data, size_t size)
+int attribute_align_arg mpg123_replace_buffer(mpg123_handle *mh, unsigned char *data, size_t size)
 {
 	if(data == NULL || size < mpg123_safe_buffer())
 	{
@@ -352,7 +352,7 @@ void frame_exit(mpg123_handle *fr)
 	clear_icy(&fr->icy);
 }
 
-int mpg123_info(mpg123_handle *mh, struct mpg123_frameinfo *mi)
+int attribute_align_arg mpg123_info(mpg123_handle *mh, struct mpg123_frameinfo *mi)
 {
 	if(mh == NULL) return MPG123_ERR;
 	if(mi == NULL)
@@ -594,13 +594,13 @@ int set_synth_functions(mpg123_handle *fr)
 	return 0;
 }
 
-int mpg123_volume_change(mpg123_handle *mh, double change)
+int attribute_align_arg mpg123_volume_change(mpg123_handle *mh, double change)
 {
 	if(mh == NULL) return MPG123_ERR;
 	return mpg123_volume(mh, change + (double) mh->p.outscale / MAXOUTBURST);
 }
 
-int mpg123_volume(mpg123_handle *mh, double vol)
+int attribute_align_arg mpg123_volume(mpg123_handle *mh, double vol)
 {
 	if(mh == NULL) return MPG123_ERR;
 	if(vol >= 0) mh->p.outscale = (double) MAXOUTBURST * vol;
@@ -668,7 +668,7 @@ void do_rva(mpg123_handle *fr)
 	}
 }
 
-int mpg123_getvolume(mpg123_handle *mh, double *base, double *really, double *rva_db)
+int attribute_align_arg mpg123_getvolume(mpg123_handle *mh, double *base, double *really, double *rva_db)
 {
 	if(mh == NULL) return MPG123_ERR;
 	if(base)   *base   = (double)mh->p.outscale/MAXOUTBURST;

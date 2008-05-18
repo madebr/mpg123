@@ -13,6 +13,17 @@
 #define MPG123_RATES 9
 #define MPG123_ENCODINGS 10
 
+/* ABI conformance for other compilers.
+   mpg123 needs 16byte-aligned stack for SSE and friends.
+   gcc provides that, but others don't necessarily. */
+#ifndef attribute_align_arg
+#if defined(__GNUC__) && (__GNUC__ > 4 || __GNUC__ == 4 && __GNUC_MINOR__>1)
+#    define attribute_align_arg __attribute__((force_align_arg_pointer))
+#else
+#    define attribute_align_arg
+#endif
+#endif
+
 /* export DLL symbols */
 #if defined(WIN32) && defined(DYNAMIC_BUILD)
 #define BUILD_MPG123_DLL

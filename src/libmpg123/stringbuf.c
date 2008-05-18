@@ -6,26 +6,27 @@
 	initially written by Thomas Orgis
 */
 
+#include "mpg123lib_intern.h"
 #include "config.h"
 #include "mpg123.h"
 #include "compat.h"
 #include <string.h>
 #include "debug.h"
 
-void mpg123_init_string(mpg123_string* sb)
+void attribute_align_arg mpg123_init_string(mpg123_string* sb)
 {
 	sb->p = NULL;
 	sb->size = 0;
 	sb->fill = 0;
 }
 
-void mpg123_free_string(mpg123_string* sb)
+void attribute_align_arg mpg123_free_string(mpg123_string* sb)
 {
 	if(sb->p != NULL) free(sb->p);
 	mpg123_init_string(sb);
 }
 
-int mpg123_resize_string(mpg123_string* sb, size_t new)
+int attribute_align_arg mpg123_resize_string(mpg123_string* sb, size_t new)
 {
 	debug3("resizing string pointer %p from %lu to %lu", (void*) sb->p, (unsigned long)sb->size, (unsigned long)new);
 	if(new == 0)
@@ -51,7 +52,7 @@ int mpg123_resize_string(mpg123_string* sb, size_t new)
 	else return 1; /* success */
 }
 
-int mpg123_copy_string(mpg123_string* from, mpg123_string* to)
+int attribute_align_arg mpg123_copy_string(mpg123_string* from, mpg123_string* to)
 {
 	size_t fill;
 	char  *text;
@@ -78,7 +79,7 @@ int mpg123_copy_string(mpg123_string* from, mpg123_string* to)
 	else return 0;
 }
 
-int mpg123_add_string(mpg123_string* sb, char* stuff)
+int attribute_align_arg mpg123_add_string(mpg123_string* sb, char* stuff)
 {
 	size_t addl = strlen(stuff)+1;
 	debug1("adding %s", stuff);
@@ -103,7 +104,7 @@ int mpg123_add_string(mpg123_string* sb, char* stuff)
 	return 1;
 }
 
-int mpg123_set_string(mpg123_string* sb, char* stuff)
+int attribute_align_arg mpg123_set_string(mpg123_string* sb, char* stuff)
 {
 	sb->fill = 0;
 	return mpg123_add_string(sb, stuff);

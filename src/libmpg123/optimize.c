@@ -133,8 +133,8 @@ void check_decoders(void )
 #endif /* ndef OPT_MULTI */
 }
 
-char **mpg123_decoders(){ return mpg123_decoder_list; }
-char **mpg123_supported_decoders()
+char attribute_align_arg **mpg123_decoders(){ return mpg123_decoder_list; }
+char attribute_align_arg **mpg123_supported_decoders()
 {
 #ifdef OPT_MULTI
 	return mpg123_supported_decoder_list;
