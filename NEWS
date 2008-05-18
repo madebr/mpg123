@@ -1,3 +1,9 @@
+1.4.3
+---
+
+- Fix mpg123_tell() and mpg123_seek() return values with respect to the samples in decoding buffer (bug 1947373).
+- Fix (bogus) 3DNow detection on IDT C6 (bug 1947982).
+
 1.4.2
 ---
 
