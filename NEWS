@@ -3,6 +3,8 @@
 
 - Fix mpg123_tell() and mpg123_seek() return values with respect to the samples in decoding buffer (bug 1947373).
 - Fix (bogus) 3DNow detection on IDT C6 (bug 1947982).
+- Fix mono playback of win32 output (bug 1955157).
+- Fix ABI compatibility with compilers that don't align the stack like gcc does (fixing SSE crashes on win32).
 
 1.4.2
 ---
