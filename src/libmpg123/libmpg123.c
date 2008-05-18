@@ -507,6 +507,17 @@ static int get_next_frame(mpg123_handle *mh)
 */
 int attribute_align_arg mpg123_decode_frame(mpg123_handle *mh, off_t *num, unsigned char **audio, size_t *bytes)
 {
+#ifdef DEBUG
+#ifdef CCALIGN
+	double ALIGNED(16) altest[4];
+	if(((size_t)altest) % 16 != 0)
+	{
+		error("Stack variable is not aligned! Your combination of compiler/library is dangerous!");
+		if(mh != NULL) mh->err = MPG123_BAD_ALIGN;
+		return MPG123_ERR;
+	}
+#endif
+#endif
 	if(bytes != NULL) *bytes = 0;
 	if(mh == NULL) return MPG123_ERR;
 	if(mh->buffer.size < mh->outblock) return MPG123_NO_SPACE;
@@ -568,6 +579,17 @@ int attribute_align_arg mpg123_decode(mpg123_handle *mh,unsigned char *inmemory,
 {
 	int ret = MPG123_OK;
 	size_t mdone = 0;
+#ifdef DEBUG
+#ifdef CCALIGN
+	double ALIGNED(16) altest[4];
+	if((size_t)altest % 16 != 0)
+	{
+		error("Stack variable is not aligned! Your combination of compiler/library is dangerous!");
+		if(mh != NULL) mh->err = MPG123_BAD_ALIGN;
+		return MPG123_ERR;
+	}
+#endif
+#endif
 	if(done != NULL) *done = 0;
 	if(mh == NULL) return MPG123_ERR;
 	if(inmemsize > 0)
@@ -1008,7 +1030,8 @@ static const char *mpg123_error[] =
 	"Invalid parameter addresses for index retrieval. (code 26)",
 	"Lost track in the bytestream and did not attempt resync. (code 27)",
 	"Failed to find valid MPEG data within limit on resync. (code 28)",
-	"No 8bit encoding possible. (code 29)"
+	"No 8bit encoding possible. (code 29)",
+	"Stack alignment is not good. (code 30)"
 };
 
 const char* attribute_align_arg mpg123_plain_strerror(int errcode)
