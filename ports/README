@@ -7,3 +7,4 @@ This directory contains some (contributed) works covering usage and/or building 
   ...by Bastian Pflieger <wb@illogical.de>
 - Win32/MSVC++: MSVC++/; project for building libmpg123 with interface class.
   ...by "Gates Fan" <gatesfan@gmail.com>
+- mpg123_msvc.h: A little wrapper header over mpg123.h to use in MSVC++ projects that link to libmpg123.

@@ -44,3 +44,4 @@ EXTRA_DIST = \
 	ports/Sony_PSP/Makefile.psp \
 	ports/Sony_PSP/readers.c.patch \
 	ports/mpg123_.pas
+	ports/mpg123_msvc.h
