@@ -944,6 +944,12 @@ int main(int argc, char *argv[])
 		if(framenum < 0)
 		{
 			error1("Initial seek failed: %s", mpg123_strerror(mh));
+			if(mpg123_errcode(mh) == MPG123_BAD_OUTFORMAT)
+			{
+				fprintf(stderr, "%s", "So, you have trouble getting an output format... this is the matrix of currently possible formats:\n");
+				print_capabilities(ao, mh);
+				fprintf(stderr, "%s", "Somehow the input data and your choices don't allow one of these.\nTried enabling resampling with a forced rate (only 2to1 and 4to1 downsampling is tried automatically)?\nTried allowing mono/stereo?\n");
+			}
 			mpg123_close(mh);
 			continue;
 		}
@@ -1142,7 +1148,7 @@ static void long_usage(int err)
 	fprintf(o," -S     --STDOUT           play AND output stream (not implemented yet)\n");
 	fprintf(o," -w <f> --wav <f>          write samples as WAV file in <f> (- is stdout)\n");
 	fprintf(o,"        --au <f>           write samples as Sun AU file in <f> (- is stdout)\n");
-	fprintf(o,"        --cdr <f>          write samples as CDR file in <f> (- is stdout)\n");
+	fprintf(o,"        --cdr <f>          write samples as raw CD audio file in <f> (- is stdout)\n");
 	fprintf(o,"        --reopen           force close/open on audiodevice\n");
 	#ifdef OPT_MULTI
 	fprintf(o,"        --cpu <string>     set cpu optimization\n");
