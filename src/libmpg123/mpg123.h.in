@@ -575,11 +575,11 @@ EXPORT int  mpg123_copy_string(mpg123_string* from, mpg123_string* to);
 
 /** Append a C-String to an mpg123_string
  *  \return 0 on error, 1 on success */
-EXPORT int  mpg123_add_string(mpg123_string* sb, char* stuff);
+EXPORT int  mpg123_add_string(mpg123_string* sb, const char* stuff);
 
 /** Set the conents of a mpg123_string to a C-String
  *  \return 0 on error, 1 on success */
-EXPORT int  mpg123_set_string(mpg123_string* sb, char* stuff);
+EXPORT int  mpg123_set_string(mpg123_string* sb, const char* stuff);
 
 /** Sub data structure for ID3v2, for storing various text fields (including comments).
  *  This is for ID3v2 COMM, TXXX and all the other text fields.

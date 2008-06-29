@@ -79,7 +79,7 @@ int attribute_align_arg mpg123_copy_string(mpg123_string* from, mpg123_string* t
 	else return 0;
 }
 
-int attribute_align_arg mpg123_add_string(mpg123_string* sb, char* stuff)
+int attribute_align_arg mpg123_add_string(mpg123_string* sb, const char* stuff)
 {
 	size_t addl = strlen(stuff)+1;
 	debug1("adding %s", stuff);
@@ -104,7 +104,7 @@ int attribute_align_arg mpg123_add_string(mpg123_string* sb, char* stuff)
 	return 1;
 }
 
-int attribute_align_arg mpg123_set_string(mpg123_string* sb, char* stuff)
+int attribute_align_arg mpg123_set_string(mpg123_string* sb, const char* stuff)
 {
 	sb->fill = 0;
 	return mpg123_add_string(sb, stuff);
