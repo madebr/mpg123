@@ -497,6 +497,11 @@ int open_track(char *fname)
 			error("If you know the stream is mpeg1/2 audio, then please report this as "PACKAGE_NAME" bug");
 			return 0;
 		}
+		if(filept < 0)
+		{
+			error1("Access to http resource %s failed.", fname);
+			return 0;
+		}
 		if(MPG123_OK != mpg123_param(mh, MPG123_ICY_INTERVAL, htd.icy_interval, 0))
 		error1("Cannot set ICY interval: %s", mpg123_strerror(mh));
 		if(param.verbose > 1) fprintf(stderr, "Info: ICY interval %li\n", (long)htd.icy_interval);
