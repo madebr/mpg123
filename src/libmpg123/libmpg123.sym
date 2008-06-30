@@ -47,9 +47,12 @@ mpg123_clip
 mpg123_init_string
 mpg123_free_string
 mpg123_resize_string
+mpg123_grow_string
 mpg123_copy_string
 mpg123_add_string
 mpg123_set_string
+mpg123_add_substring
+mpg123_set_substring
 mpg123_meta_check
 mpg123_id3
 mpg123_icy

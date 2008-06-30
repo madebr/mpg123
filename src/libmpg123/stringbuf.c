@@ -26,6 +26,12 @@ void attribute_align_arg mpg123_free_string(mpg123_string* sb)
 	mpg123_init_string(sb);
 }
 
+int attribute_align_arg mpg123_grow_string(mpg123_string* sb, size_t new)
+{
+	if(sb->size < new) return mpg123_resize_string(sb, new);
+	else return 1;
+}
+
 int attribute_align_arg mpg123_resize_string(mpg123_string* sb, size_t new)
 {
 	debug3("resizing string pointer %p from %lu to %lu", (void*) sb->p, (unsigned long)sb->size, (unsigned long)new);
@@ -81,27 +87,41 @@ int attribute_align_arg mpg123_copy_string(mpg123_string* from, mpg123_string* t
 
 int attribute_align_arg mpg123_add_string(mpg123_string* sb, const char* stuff)
 {
-	size_t addl = strlen(stuff)+1;
 	debug1("adding %s", stuff);
-	if(sb->fill)
+	return mpg123_add_substring(sb, stuff, 0, strlen(stuff));
+}
+
+int attribute_align_arg mpg123_add_substring(mpg123_string *sb, const char *stuff, size_t from, size_t count)
+{
+	debug("adding a substring");
+	if(sb->fill) /* includes zero byte... */
 	{
-		if(sb->size >= sb->fill-1+addl || mpg123_resize_string(sb, sb->fill-1+addl))
+		if( (SIZE_MAX - sb->fill >= count) /* Avoid overflow. */
+		    && (sb->size >= sb->fill+count || mpg123_grow_string(sb, sb->fill+count)) )
 		{
-			memcpy(sb->p+sb->fill-1, stuff, addl);
-			sb->fill += addl-1;
+			memcpy(sb->p+sb->fill-1, stuff+from, count);
+			sb->fill += count;
+			sb->p[sb->fill-1] = 0; /* Terminate! */
 		}
 		else return 0;
 	}
 	else
 	{
-		if(mpg123_resize_string(sb, addl))
+		if( count < SIZE_MAX && mpg123_grow_string(sb, count+1) )
 		{
-			memcpy(sb->p, stuff, addl);
-			sb->fill = addl;
+			memcpy(sb->p, stuff+from, count);
+			sb->fill = count+1;
+			sb->p[sb->fill-1] = 0; /* Terminate! */
 		}
 		else return 0;
 	}
 	return 1;
+}
+
+int attribute_align_arg mpg123_set_substring(mpg123_string* sb, const char* stuff, size_t from, size_t count)
+{
+	sb->fill = 0;
+	return mpg123_add_substring(sb, stuff, from, count);
 }
 
 int attribute_align_arg mpg123_set_string(mpg123_string* sb, const char* stuff)

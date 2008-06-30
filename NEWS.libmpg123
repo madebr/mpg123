@@ -1,5 +1,11 @@
 Changes in libmpg123 libtool interface versions...
 
+4.0.4
+	- extended mpg123_string api (mpg123_add_substring, mpg123_grow_string)
+
+3.0.3
+	- Initial floating point support as compile-time option.
+
 2.0.2
 	- New flag MPG123_SEEKBUFFER.
 
