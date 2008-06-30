@@ -1,3 +1,13 @@
+1.5.0
+---
+
+- libmpg123 4.0.4
+  - Floating point decoding (build time choice for now).
+  - More robust string handling; extended string API.
+  - fixed an (so far) unnoticed ID3 bug that may have obscured comment fields
+- More elaborate (helpful?) error message for output format problems.
+- Reworked HTTP code; IPv6?
+
 1.4.3
 ---
 
