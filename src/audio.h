@@ -81,6 +81,7 @@ audio_output_t* alloc_audio_output();
 void audio_capabilities(audio_output_t *ao, mpg123_handle *mh);
 int audio_fit_capabilities(audio_output_t *ao,int c,int r);
 const char* audio_encoding_name(const int encoding, const int longer);
+void print_capabilities(audio_output_t *ao, mpg123_handle *mh);
 
 int init_output(audio_output_t **ao);
 void exit_output(audio_output_t *ao, int rude);
