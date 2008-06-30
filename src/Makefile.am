@@ -33,6 +33,8 @@ mpg123_SOURCES = \
 	getlopt.h \
 	httpget.c \
 	httpget.h \
+	resolver.c \
+	resolver.h \
 	genre.h \
 	genre.c \
 	module.h \

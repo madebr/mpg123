@@ -30,19 +30,11 @@
 #include "httpget.h"
 
 #if !defined(WIN32) && !defined(GENERIC)
-#include <string.h>
+#include "resolver.h"
+
 #define HTTP_MAX_RELOCATIONS 20
-#include <netdb.h>
-#include <sys/param.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <errno.h>
-#include <ctype.h>
 #include "true.h"
-#ifndef INADDR_NONE
-#define INADDR_NONE 0xffffffff
-#endif
 #endif
 
 #include "debug.h"
@@ -54,7 +46,9 @@ void httpdata_init(struct httpdata *e)
 	mpg123_init_string(&e->icy_name);
 	e->icy_interval = 0;
 	e->proxyurl = NULL;
-	e->proxyip = 0;
+	e->proxystate = PROXY_UNKNOWN;
+	mpg123_init_string(&e->proxyhost);
+	mpg123_init_string(&e->proxyport);
 }
 
 void httpdata_reset(struct httpdata *e)
@@ -62,6 +56,8 @@ void httpdata_reset(struct httpdata *e)
 	mpg123_free_string(&e->content_type);
 	mpg123_free_string(&e->icy_url);
 	mpg123_free_string(&e->icy_name);
+	mpg123_free_string(&e->proxyhost);
+	mpg123_free_string(&e->proxyport);
 	e->icy_interval = 0;
 	/* the other stuff shall persist */
 }
@@ -107,47 +103,67 @@ debunk_result:
 
 #if !defined(WIN32) && !defined(GENERIC)
 
-int writestring (int fd, char *string)
+int writestring (int fd, mpg123_string *string)
 {
-	int result, bytes = strlen(string);
+	size_t result, bytes;
+	char *ptr = string->p;
+	bytes = string->fill ? string->fill-1 : 0;
 
-	while (bytes) {
-		if ((result = write(fd, string, bytes)) < 0 && errno != EINTR) {
+	while(bytes)
+	{
+		if((result = write(fd, ptr, bytes)) < 0 && errno != EINTR)
+		{
 			perror ("writing http string");
-			return 0;
+			return FALSE;
 		}
-		else if (result == 0) {
+		else if(result == 0)
+		{
 			error("write: socket closed unexpectedly");
-			return 0;
+			return FALSE;
 		}
-		string += result;
+		ptr   += result;
 		bytes -= result;
 	}
-	return 1;
+	return TRUE;
 }
 
-int readstring (char *string, int maxlen, FILE *f)
+size_t readstring (mpg123_string *string, size_t maxlen, FILE *f)
 {
-	int pos = 0;
-
-	while(pos < maxlen) {
-		if( read(fileno(f),string+pos,1) == 1) {
-			pos++;
-			if(string[pos-1] == '\n') {
-				break;
-			}
+	string->fill = 0;
+	while(maxlen == 0 || string->fill < maxlen)
+	{
+		if(string->size-string->fill < 1)
+		if(!mpg123_grow_string(string, string->fill+4096))
+		{
+			error("Cannot allocate memory for reading.");
+			string->fill = 0;
+			return 0;
 		}
-		else if(errno != EINTR) {
+		/* Whoa... reading one byte at a time... one could ensure the line break in another way, but more work. */
+		if( read(fileno(f),string->p+string->fill,1) == 1)
+		{
+			string->fill++;
+			if(string->p[string->fill-1] == '\n') break;
+		}
+		else if(errno != EINTR)
+		{
 			error("Error reading from socket or unexpected EOF.");
-			string[pos] = 0;
+			string->fill = 0;
 			/* bail out to prevent endless loop */
-			return -1;
+			return 0;
 		}
 	}
 
-	string[pos] = 0;
-
-	return pos;
+	if(!mpg123_grow_string(string, string->fill+1))
+	{
+		string->fill=0;
+	}
+	else
+	{
+		string->p[string->fill] = 0;
+		string->fill++;
+	}
+	return string->fill;
 }
 
 void encode64 (char *source,char *destination)
@@ -180,122 +196,48 @@ void encode64 (char *source,char *destination)
   destination[n++] = 0;
 }
 
-/* VERY  simple auth-from-URL grabber */
-int getauthfromURL(char *url,char *auth, size_t authlen)
-{
-  char *pos;
-
-  *auth = 0;
-
-  if (!(strncmp(url, "http://", 7)))
-    url += 7;
-
-  if( (pos = strchr(url,'@')) ) {
-    int i;
-    for(i=0;i<pos-url;i++) {
-      if( url[i] == '/' )
-         return 0;
-    }
-    if (pos-url >= authlen) {
-      fprintf (stderr, "Error: authentication data exceeds max. length.\n");
-      return -1;
-    }
-    strncpy(auth,url,pos-url);
-    auth[pos-url] = 0;
-    memmove(url,pos+1,strlen(pos+1)+1);
-    return 1;
-  }
-  return 0;
-}
-
-char *url2hostport (char *url, char **hname, unsigned long *hip, unsigned int *port)
-{
-	char *cptr;
-	struct hostent *myhostent;
-	struct in_addr myaddr;
-	int isip = 1;
-
-	if (!(strncmp(url, "http://", 7)))
-		url += 7;
-	cptr = url;
-	while (*cptr && *cptr != ':' && *cptr != '/') {
-		if ((*cptr < '0' || *cptr > '9') && *cptr != '.')
-			isip = 0;
-		cptr++;
-	}
-	*hname = strdup(url); /* removed the strndup for better portability */
-	if (!(*hname)) {
-		*hname = NULL;
-		return (NULL);
-	}
-	(*hname)[cptr - url] = 0;
-	if (!isip) {
-		if (!(myhostent = gethostbyname(*hname)))
-			return (NULL);
-		memcpy (&myaddr, myhostent->h_addr, sizeof(myaddr));
-		*hip = myaddr.s_addr;
-	}
-	else
-		if ((*hip = inet_addr(*hname)) == INADDR_NONE)
-			return (NULL);
-	if (!*cptr || *cptr == '/') {
-		*port = 80;
-		return (cptr);
-	}
-	*port = atoi(++cptr);
-	if (*port > 65535) {
-		/* Illegal port number. Ignore and use default. */
-		*port = 80;
-	}
-	while (*cptr && *cptr != '/')
-		cptr++;
-	return (cptr);
-}
-
-char* get_header_val(const char *hname, char* response, size_t *length)
+/* Look out for HTTP header field to parse, construct C string with the value.
+   Attention: Modifies argument, since it's so convenient... */
+char *get_header_val(const char *hname, mpg123_string *response)
 {
 	char *tmp = NULL;
-	size_t len = 0;
 	size_t prelen = strlen(hname);
 	/* if header name found, next char is at least something, so just check for : */
-	if(!strncasecmp(hname, response, prelen) && (response[prelen] == ':'))
+	if(!strncasecmp(hname, response->p, prelen) && (response->p[prelen] == ':'))
 	{
 		++prelen;
-		if((tmp = strchr(response, '\r')) != NULL ) tmp[0] = 0;
-		if((tmp = strchr(response, '\n')) != NULL ) tmp[0] = 0;
-		len = strlen(response)-prelen;
-		tmp = response+prelen;
-		while(len && ((tmp[0] == ' ') || (tmp[0] == '\t')))
+		if((tmp = strchr(response->p, '\r')) != NULL ) tmp[0] = 0;
+		if((tmp = strchr(response->p, '\n')) != NULL ) tmp[0] = 0;
+		tmp = response->p+prelen;
+		/* I _know_ that there is a terminating zero, so this loop is safe. */
+		while((tmp[0] == ' ') || (tmp[0] == '\t'))
 		{
 			++tmp;
-			--len;
 		}
 	}
-	*length = len;
 	return tmp;
 }
 
-unsigned int proxyport;
+/* Iterate over header field names and storage locations, to possibly get those values. */
+void get_header_string(mpg123_string *response, const char *fieldname, mpg123_string *store)
+{
+	char *tmp;
+	if((tmp = get_header_val(fieldname, response)))
+	{
+		if(mpg123_set_string(store, tmp)){ debug2("got %s %s", fieldname, store->p); return; }
+		else{ error2("unable to set %s to %s!", fieldname, tmp); }
+	}
+}
 
 /* needed for HTTP/1.1 non-pipelining mode */
 /* #define CONN_HEAD "Connection: close\r\n" */
 #define CONN_HEAD ""
 
 /* shoutcsast meta data: 1=on, 0=off */
-const char *icy_yes = "Icy-MetaData: 1\r\n";
-const char *icy_no  = "Icy-MetaData: 0\r\n";
+static const char *icy_yes = "Icy-MetaData: 1\r\n";
+static const char *icy_no  = "Icy-MetaData: 0\r\n";
 
 char *httpauth = NULL;
-char *httpauth1 = NULL;
-
-static void append_accept(char *s)
-{
-	int i,j;
-	strcat(s, "Accept: ");
-	for(i=0; mimes[i]    != NULL; ++i)
-	for(j=0; mimes[i][j] != NULL; ++j){ strcat(s, mimes[i][j]); strcat(s, ", "); }
-	strcat(s, "*/*\r\n");
-}
 
 static size_t accept_length(void)
 {
@@ -310,69 +252,79 @@ static size_t accept_length(void)
 	return l;
 }
 
-int http_open(char* url, struct httpdata *hd)
+/* Returns TRUE or FALSE for success. */
+static int proxy_init(struct httpdata *hd)
 {
-	/* TODO: make sure ulong vs. size_t is really clear! */
-	/* TODO: change this whole thing until I stop disliking it */
-	char *purl, *host, *request, *response, *sptr;
-	char* request_url = NULL;
-	const char *icy = param.talk_icy ? icy_yes : icy_no;
-	size_t request_url_size = 0;
-	size_t purl_size;
-	size_t linelength, linelengthbase, tmp;
-	unsigned long myip = 0;
-	unsigned int myport = 0;
-	int sock;
-	int relocate, numrelocs = 0;
-	int ret = 0; /* return value from readstring */
-	struct sockaddr_in server;
-	FILE *myfile;
-	/*
-		workaround for http://www.global24music.com/rautemusik/files/extreme/isdn.pls
-		this site's apache gives me a relocation to the same place when I give the port in Host request field
-		for the record: Apache/2.0.51 (Fedora)
-	*/
-	int try_without_port = 0;
-	
-	host = NULL;
-	purl = NULL;
-	request = NULL;
-	response = NULL;
-	if (!hd->proxyip) {
-		if (!hd->proxyurl)
-			if (!(hd->proxyurl = getenv("MP3_HTTP_PROXY")))
-				if (!(hd->proxyurl = getenv("http_proxy")))
-					hd->proxyurl = getenv("HTTP_PROXY");
-		if (hd->proxyurl && hd->proxyurl[0] && strcmp(hd->proxyurl, "none")) {
-			if (!(url2hostport(hd->proxyurl, &host, &hd->proxyip, &proxyport))) {
-				fprintf (stderr, "Unknown proxy host \"%s\".\n",
-					host ? host : "");
-				sock = -1;
-				goto exit;
-			}
+	int ret = TRUE;
+	/* If we don't have explicit proxy given, probe the environment. */
+	if (!hd->proxyurl)
+		if (!(hd->proxyurl = getenv("MP3_HTTP_PROXY")))
+			if (!(hd->proxyurl = getenv("http_proxy")))
+				hd->proxyurl = getenv("HTTP_PROXY");
+	/* Now continue if we have something. */
+	if (hd->proxyurl && hd->proxyurl[0] && strcmp(hd->proxyurl, "none"))
+	{
+		mpg123_string proxyurl;
+		mpg123_init_string(&proxyurl);
+		if(   !mpg123_set_string(&proxyurl, hd->proxyurl)
+		   || !split_url(&proxyurl, NULL, &hd->proxyhost, &hd->proxyport, NULL))
+		{
+			error("splitting proxy URL");
+			ret = FALSE;
 		}
-		else
-			hd->proxyip = INADDR_NONE;
+#if 0 /* not yet there */
+		if(!try_host_lookup(proxyhost))
+		{
+			error("Unknown proxy host \"%s\".\n", proxyhost.p);
+			ret = FALSE;
+		}
+#endif
+		mpg123_free_string(&proxyurl);
+		if(ret) hd->proxystate = PROXY_HOST; /* We got hostname and port settled. */
+		else hd->proxystate = PROXY_NONE;
 	}
-	
+	else hd->proxystate = PROXY_NONE;
+
+	return ret;
+}
+
+static int append_accept(mpg123_string *s)
+{
+	size_t i,j;
+	if(!mpg123_add_string(s, "Accept: ")) return FALSE;
+
+	/* We prefer what we know. */
+	for(i=0; mimes[i]    != NULL; ++i)
+	for(j=0; mimes[i][j] != NULL; ++j)
+	{
+		if(   !mpg123_add_string(s, mimes[i][j])
+			 || !mpg123_add_string(s, ", ") )
+		return FALSE;
+	}
+	/* Well... in the end, we accept everything, trying to make sense with reality. */
+	if(!mpg123_add_string(s, "*/*\r\n")) return FALSE;
+
+	return TRUE;
+}
+
+
+/*
+	Converts spaces to "%20" ... actually, I have to ask myself why.
+	What about converting them to "+" instead? Would make things a lot easier.
+	Or, on the other hand... what about avoiding HTML encoding at all?
+*/
+static int translate_url(const char *url, mpg123_string *purl)
+{
+	const char *sptr;
 	/* The length of purl is upper bound by 3*strlen(url) + 1 if
 	 * everything in it is a space (%20) - or any encoded character */
-	if (strlen(url) >= SIZE_MAX/3) {
-		fprintf (stderr, "URL too long. Skipping...\n");
-		sock = -1;
-		goto exit;
+	if (strlen(url) >= SIZE_MAX/3)
+	{
+		error("URL too long. Skipping...");
+		return FALSE;
 	}
-	/* +1 since we may want to add / if needed */
-	purl_size = strlen(url)*3 + 1 + 1;
-	purl = (char *)malloc(purl_size);
-	if (!purl) {
-		fprintf (stderr, "malloc() failed, out of memory.\n");
-		sock = -1;
-		goto exit;
-	}
-	/* make _sure_ that it is null-terminated */
-	purl[purl_size-1] = 0;
-	
+	/* Prepare purl in one chunk, to minimize mallocs. */
+	if(!mpg123_resize_string(purl, strlen(url) + 31)) return FALSE;
 	/*
 	 * 2000-10-21:
 	 * We would like spaces to be automatically converted to %20's when
@@ -380,33 +332,175 @@ int http_open(char* url, struct httpdata *hd)
 	 * -- Martin Sjögren <md9ms@mdstud.chalmers.se>
 	 * Hm, why only spaces? Maybe one should do this http stuff more properly...
 	 */
-	if ((sptr = strchr(url, ' ')) == NULL) {
-		strcpy (purl, url);
-	} else {
-		char *urlptr = url;
-		purl[0] = '\0';
+	if ((sptr = strchr(url, ' ')) == NULL)
+	mpg123_set_string(purl, url);
+	else
+	{ /* Note that sptr is set from the if to this else... */
+		const char *urlptr = url;
+		mpg123_set_string(purl, "");
 		do {
-			strncat (purl, urlptr, sptr-urlptr);
-			strcat (purl, "%20");
+			if(! ( mpg123_add_substring(purl, urlptr, 0, sptr-urlptr)
+			       && mpg123_add_string(purl, "%20") ) )
+			return FALSE;
 			urlptr = sptr + 1;
 		} while ((sptr = strchr (urlptr, ' ')) != NULL);
-		strcat (purl, urlptr);
+		if(!mpg123_add_string(purl, urlptr)) return FALSE;
 	}
 	/* now see if a terminating / may be needed */
-	if(strchr(purl+(strncmp("http://", purl, 7) ? 0 : 7), '/') == NULL) strcat(purl, "/");
-	
-	/* some paranoia */
-	if(httpauth1 != NULL) free(httpauth1);
-	httpauth1 = (char *)malloc((strlen(purl) + 1));
-	if(!httpauth1) {
-		error("malloc() failed, out of memory.");
-		sock = -1;
-		goto exit;
+	if(strchr(purl->p+(strncmp("http://", purl->p, 7) ? 0 : 7), '/') == NULL
+	    && !mpg123_add_string(purl, "/"))
+	return FALSE;
+
+	return TRUE;
+}
+
+static int fill_request(mpg123_string *request, mpg123_string *host, mpg123_string *port, mpg123_string *httpauth1, int *try_without_port)
+{
+	char* ttemp;
+	int ret = TRUE;
+	const char *icy = param.talk_icy ? icy_yes : icy_no;
+
+	/* hm, my test redirection had troubles with line break before HTTP/1.0 */
+	if((ttemp = strchr(request->p,'\r')) != NULL){ *ttemp = 0; request->fill = ttemp-request->p+1; }
+
+	if((ttemp = strchr(request->p,'\n')) != NULL){ *ttemp = 0; request->fill = ttemp-request->p+1; }
+
+	/* Fill out the request further... */
+	if(   !mpg123_add_string(request, " HTTP/1.0\r\nUser-Agent: ")
+		 || !mpg123_add_string(request, PACKAGE_NAME)
+		 || !mpg123_add_string(request, "/")
+		 || !mpg123_add_string(request, PACKAGE_VERSION)
+		 || !mpg123_add_string(request, "\r\n") )
+	return FALSE;
+
+	if(host->fill)
+	{ /* Give virtual hosting a chance... adding the "Host: ... " line. */
+		debug2("Host: %s:%s", host->p, port->p);
+		if(    mpg123_add_string(request, "Host: ")
+			  && mpg123_add_string(request, host->p)
+			  && ( *try_without_port || (
+			         mpg123_add_string(request, ":")
+			      && mpg123_add_string(request, port->p) ))
+			  && mpg123_add_string(request, "\r\n") )
+		{
+			if(*try_without_port) *try_without_port = 0;
+		}
+		else return FALSE;
 	}
-        if (getauthfromURL(purl,httpauth1,strlen(purl)) < 0) {
-		sock = -1;
-		goto exit;
+
+	/* Acceptance, stream setup. */
+	if(   !append_accept(request)
+		 || !mpg123_add_string(request, CONN_HEAD)
+		 || !mpg123_add_string(request, icy) )
+	return FALSE;
+
+	/* Authorization. */
+	if (httpauth1->fill || httpauth) {
+		char *buf;
+		if(!mpg123_add_string(request,"Authorization: Basic ")) return FALSE;
+		if(httpauth1->fill) {
+			if(httpauth1->fill > SIZE_MAX / 4) return FALSE;
+
+			buf=(char *)malloc(httpauth1->fill * 4);
+			if(!buf)
+			{
+				error("malloc() failed for http auth, out of memory.");
+				return FALSE;
+			}
+			encode64(httpauth1->p,buf);
+		} else {
+			if(strlen(httpauth) > SIZE_MAX / 4 - 4 ) return FALSE;
+
+			buf=(char *)malloc((strlen(httpauth) + 1) * 4);
+			if(!buf)
+			{
+				error("malloc() for http auth failed, out of memory.");
+				return FALSE;
+			}
+			encode64(httpauth,buf);
+		}
+
+		if( !mpg123_add_string(request, buf) || !mpg123_add_string(request, "\r\n"))
+		ret = FALSE;
+
+		free(buf); /* Watch out for leaking if you introduce returns before this line. */
 	}
+	if(ret) ret = mpg123_add_string(request, "\r\n");
+
+	return ret;
+}
+
+static int resolve_redirect(mpg123_string *response, mpg123_string *request_url, mpg123_string *purl)
+{
+	debug1("request_url:%s", request_url->p);
+	/* initialized with full old url */
+	if(!mpg123_copy_string(request_url, purl)) return FALSE;
+
+	/* We may strip it down to a prefix ot totally. */
+	if(strncmp(response->p, "Location: http://", 17))
+	{ /* OK, only partial strip, need prefix for relative path. */
+		char* ptmp = NULL;
+		/* though it's not RFC (?), accept relative URIs as wget does */
+		fprintf(stderr, "NOTE: no complete URL in redirect, constructing one\n");
+		/* not absolute uri, could still be server-absolute */
+		/* I prepend a part of the request... out of the request */
+		if(response->p[10] == '/')
+		{
+			/* only prepend http://server/ */
+			/* I null the first / after http:// */
+			ptmp = strchr(purl->p+7,'/');
+			if(ptmp != NULL){ purl->fill = ptmp-purl->p+1; purl->p[purl->fill-1] = 0; }
+		}
+		else
+		{
+			/* prepend http://server/path/ */
+			/* now we want the last / */
+			ptmp = strrchr(purl->p+7, '/');
+			if(ptmp != NULL){ purl->fill = ptmp-purl->p+2; purl->p[purl->fill-1] = 0; }
+		}
+	}
+	else purl->fill = 0;
+
+	debug1("prefix=%s", purl->fill ? purl->p : "");
+	if(!mpg123_add_string(purl, response->p+10)) return FALSE;
+
+	debug1("           purl: %s", purl->p);
+	debug1("old request_url: %s", request_url->p);
+
+	return TRUE;
+}
+
+int http_open(char* url, struct httpdata *hd)
+{
+	mpg123_string purl, host, port, path;
+	mpg123_string request, response, request_url;
+	mpg123_string httpauth1;
+	int sock = -1;
+	int oom  = 0;
+	int relocate, numrelocs = 0;
+	FILE *myfile;
+	/*
+		workaround for http://www.global24music.com/rautemusik/files/extreme/isdn.pls
+		this site's apache gives me a relocation to the same place when I give the port in Host request field
+		for the record: Apache/2.0.51 (Fedora)
+	*/
+	int try_without_port = 0;
+	mpg123_init_string(&purl);
+	mpg123_init_string(&host);
+	mpg123_init_string(&port);
+	mpg123_init_string(&path);
+	mpg123_init_string(&request);
+	mpg123_init_string(&response);
+	mpg123_init_string(&request_url);
+	mpg123_init_string(&httpauth1);
+
+	/* Get initial info for proxy server. Once. */
+	if(hd->proxystate == PROXY_UNKNOWN && !proxy_init(hd)) goto exit;
+
+	if(!translate_url(url, &purl)){ oom=1; goto exit; }
+
+	/* Don't confuse the different auth strings... */
+	if(!split_url(&purl, &httpauth1, NULL, NULL, NULL) ){ oom=1; goto exit; }
 
 	/* "GET http://"		11
 	 * " HTTP/1.0\r\nUser-Agent: <PACKAGE_NAME>/<PACKAGE_VERSION>\r\n"
@@ -416,352 +510,150 @@ int http_open(char* url, struct httpdata *hd)
 	 * "\r\n"			 2
 	 * ... plus the other predefined header lines
 	 */
-	linelengthbase = 62 + strlen(PACKAGE_NAME) + strlen(PACKAGE_VERSION)
-	                 + accept_length() + strlen(CONN_HEAD) + strlen(icy);
-
-	if(httpauth) {
-		tmp = (strlen(httpauth) + 1) * 4;
-		if (strlen(httpauth) >= SIZE_MAX/4 - 1 ||
-		    linelengthbase + tmp < linelengthbase) {
-			fprintf(stderr, "HTTP authentication too long. Skipping...\n");
-			sock = -1;
-			goto exit;
-		}
-		linelengthbase += tmp;
-	}
-
-	if(httpauth1) {
-		tmp = (strlen(httpauth1) + 1) * 4;
-		if (strlen(httpauth1) >= SIZE_MAX/4 - 1 ||
-		    linelengthbase + tmp < linelengthbase) {
-			fprintf(stderr, "HTTP authentication too long. Skipping...\n");
-			sock = -1;
-			goto exit;
-		}
-		linelengthbase += tmp;
-	}
-
-	do {
-		char* ttemp;
-
-		/* save a full, valid url for later */
-		if(request_url_size < (strlen(purl) + 8))
+	/* Just use this estimate as first guess to reduce malloc calls in string library. */
+	{
+		size_t length_estimate = 62 + strlen(PACKAGE_NAME) + strlen(PACKAGE_VERSION) 
+		                       + accept_length() + strlen(CONN_HEAD) + strlen(icy_yes) + purl.fill;
+		if(    !mpg123_grow_string(&request, length_estimate)
+		    || !mpg123_grow_string(&response,4096) )
 		{
-			request_url_size = strlen(purl) + 8;
-			if(request_url != NULL) free(request_url);
-			request_url = (char*) malloc(request_url_size);
-			if(request_url != NULL)	request_url[request_url_size-1] = '\0';
-			else
-			{
-				error("malloc() failed, out of memory.");
-				sock = -1;
-				goto exit;
-			}
+			oom=1; goto exit;
 		}
+	}
+
+	do
+	{
+		/* Storing the request url, with http:// prepended if needed. */
 		/* used to be url here... seemed wrong to me (when loop advanced...) */
-		if (strncasecmp(purl, "http://", 7) != 0)	strcpy(request_url, "http://");
-		else request_url[0] = '\0';
-		strcat(request_url, purl);
+		if(strncasecmp(purl.p, "http://", 7) != 0) mpg123_set_string(&request_url, "http://");
+		else mpg123_set_string(&request_url, "");
 
-		if (hd->proxyip != INADDR_NONE) {
-			myport = proxyport;
-			myip = hd->proxyip;
+		mpg123_add_string(&request_url, purl.p);
 
-			linelength = linelengthbase + strlen(purl);
-			if (linelength < linelengthbase) {
-				fprintf(stderr, "URL too long. Skipping...\n");
-				sock = -1;
-				goto exit;
+		if (hd->proxystate >= PROXY_HOST)
+		{
+			/* We will connect to proxy, full URL goes into the request. */
+			if(    !mpg123_copy_string(&hd->proxyhost, &host)
+			    || !mpg123_copy_string(&hd->proxyport, &port)
+			    || !mpg123_set_string(&request, "GET ")
+			    || !mpg123_add_string(&request, request_url.p) )
+			{
+				oom=1; goto exit;
 			}
-
-			if(host) {
-				tmp = 9 + strlen(host) + 5;
-				if (strlen(host) >= SIZE_MAX - 14 ||
-				    linelength + tmp < linelength) {
-					fprintf(stderr, "Hostname info too long. Skipping...\n");
-					sock = -1;
-					goto exit;
-				}
-				/* "Host: <host>:<port>\r\n" */
-				linelength += tmp;
-			}
-
-			/* Buffer is reused for receiving later on, so ensure
-			 * minimum size. */
-			linelength = (linelength < 4096) ? 4096 : linelength;
-			/* ugly fix for an ugly memory leak */
-			if(request != NULL) free(request);
-			request = (char *)malloc((linelength + 1));
-			if(response != NULL) free(response);
-			response = (char *)malloc((linelength + 1));
-
-			if ((request == NULL) || (response == NULL)) {
-				error("malloc() failed, out of memory.");
-				sock = -1;
-				goto exit;
-			}
-
-			strcpy (request, "GET ");
-			strcat(request, request_url);
 		}
 		else
 		{
-			if (host) {
-				free (host);
-				host = NULL;
-			}
-			sptr = url2hostport(purl, &host, &myip, &myport);
-			if (!sptr)
+			/* We will connect to the host from the URL and only the path goes into the request. */
+			if(!split_url(&purl, NULL, &host, &port, &path)){ oom=1; goto exit; }
+			if(    !mpg123_set_string(&request, "GET ")
+			    || !mpg123_add_string(&request, path.p) )
 			{
-				fprintf (stderr, "Unknown host \"%s\".\n",
-				host ? host : "");
-				sock = -1;
-				goto exit;
-			}
-			linelength = linelengthbase + strlen(sptr);
-			if (linelength < linelengthbase) {
-				fprintf(stderr, "URL too long. Skipping...\n");
-				sock = -1;
-				goto exit;
-			}
-
-			if(host) {
-				tmp = 9 + strlen(host) + 5;
-				if (strlen(host) >= SIZE_MAX - 14 ||
-				    linelength + tmp < linelength) {
-					fprintf(stderr, "Hostname info too long. Skipping...\n");
-					sock = -1;
-					goto exit;
-				}
-				/* "Host: <host>:<port>\r\n" */
-				linelength += tmp;
-			}
-			
-			/* Buffer is reused for receiving later on, so ensure
-			 * minimum size. */
-			linelength = (linelength < 4096) ? 4096 : linelength;
-			/* ugly fix for an ugly memory leak */
-			if(request != NULL) free(request);
-			request = (char *)malloc((linelength + 1));
-			if(response != NULL) free(response);
-			response = (char *)malloc((linelength + 1));
-
-			if ((request == NULL) || (response == NULL)) {
-				error("malloc() failed, out of memory.");
-				sock = -1;
-				goto exit;
-			}
-			
-			strcpy (request, "GET ");
-			strcat (request, sptr);
-		}
-		
-		/* hm, my test redirection had troubles with line break before HTTP/1.0 */
-		if((ttemp = strchr(request,'\r')) != NULL) *ttemp = 0;
-		if((ttemp = strchr(request,'\n')) != NULL) *ttemp = 0;
-		sprintf (request + strlen(request),
-		         " HTTP/1.0\r\nUser-Agent: %s/%s\r\n",
-			 PACKAGE_NAME, PACKAGE_VERSION);
-		if (host) {
-			debug2("Host: %s:%u", host, myport);
-			if(!try_without_port) sprintf(request + strlen(request), "Host: %s:%u\r\n", host, myport);
-			else
-			{
-				sprintf(request + strlen(request), "Host: %s\r\n", host);
-				try_without_port = 0;
+				oom=1; goto exit;
 			}
 		}
-/*		else
+
+		if(!fill_request(&request, &host, &port, &httpauth1, &try_without_port)){ oom=1; goto exit; }
+
+		httpauth1.fill = 0; /* We use the auth data from the URL only once. */
+
+		if((sock = open_connection(&host, &port)) < 0)
 		{
-			fprintf(stderr, "Error: No host! This must be an error! My HTTP/1.1 request is invalid.");
-		} */
-		append_accept(request);
-		strcat (request, CONN_HEAD);
-		strcat (request, icy);
-		server.sin_family = AF_INET;
-		server.sin_port = htons(myport);
-		server.sin_addr.s_addr = myip;
-#define http_failure close(sock); sock=-1; goto exit;
-		if ((sock = socket(PF_INET, SOCK_STREAM, 6)) < 0) {
-			perror ("socket");
-			sock=-1;
+			error1("Unable to establish connection to %s", host.fill ? host.p : "");
 			goto exit;
 		}
-		if (connect(sock, (struct sockaddr *)&server, sizeof(server))) {
-			perror ("connect");
-			http_failure;
-		}
-		if (httpauth1 || httpauth) {
-			char *buf;
-			strcat (request,"Authorization: Basic ");
-			if(httpauth1) {
-				buf=(char *)malloc((strlen(httpauth1) + 1) * 4);
-				if(!buf) {
-					error("malloc() failed for http auth, out of memory.");
-					http_failure;
-				}
-				encode64(httpauth1,buf);
-				free(httpauth1);
-				httpauth1 = NULL;
-			} else {
-				buf=(char *)malloc((strlen(httpauth) + 1) * 4);
-				if(!buf) {
-					error("malloc() for http auth failed, out of memory.");
-					http_failure;
-				}
-				encode64(httpauth,buf);
-			}
 
-			strcat (request, buf);
-			strcat (request,"\r\n");
-			free(buf);
-		}
-		strcat (request, "\r\n");
+#define http_failure close(sock); sock=-1; goto exit;
 		
-		debug1("<request>\n%s</request>",request);
-		if(!writestring (sock, request)){ sock = -1; goto exit; }
-		if (!(myfile = fdopen(sock, "rb"))) {
-			perror ("fdopen");
+		debug1("<request>\n%s</request>",request.p);
+		if(!writestring(sock, &request)){ http_failure; }
+		if (!(myfile = fdopen(sock, "rb")))
+		{
+			error1("fdopen: %s", strerror(errno));
 			http_failure;
 		}
 		relocate = FALSE;
-		purl[0] = '\0';
-		#define safe_readstring \
-		ret = readstring(response, linelength-1, myfile); \
-		if(ret == linelength-1) \
+		/* Arbitrary length limit here... */
+#define safe_readstring \
+		readstring(&response, SIZE_MAX/16, myfile); \
+		if(response.fill > SIZE_MAX/16) /* > because of appended zero. */ \
 		{ \
 			error("HTTP response line exceeds max. length"); \
 			http_failure; \
 		} \
-		else if(ret < 0) \
+		else if(response.fill == 0) \
 		{ \
 			error("readstring failed"); \
 			http_failure; \
 		}
 		safe_readstring;
-		debug1("<response>\n%s</response>",response);
-		if ((sptr = strchr(response, ' '))) {
-			switch (sptr[1]) {
-				case '3':
-					relocate = TRUE;
-				case '2':
-					break;
-				default:
-					fprintf (stderr, "HTTP request failed: %s", sptr+1); /* '\n' is included */
-					http_failure;
+		debug1("<response>\n%s</response>",response.p);
+		{
+			char *sptr;
+			if((sptr = strchr(response.p, ' ')))
+			{
+				if(response.fill > sptr-response.p+2)
+				switch (sptr[1])
+				{
+					case '3':
+						relocate = TRUE;
+					case '2':
+						break;
+					default:
+						fprintf (stderr, "HTTP request failed: %s", sptr+1); /* '\n' is included */
+						http_failure;
+				}
+				else{ error("Too short response,"); http_failure; }
 			}
 		}
-		do {
-			safe_readstring;
-			if (!strncmp(response, "Location: ", 10))
-			{
-				size_t needed_length;
-				char* prefix = (char*) malloc(strlen(request_url)+1);
-				if(prefix == NULL)
-				{
-					error("malloc() failed, out of memory.");
-					http_failure;
-				}
-				strcpy(prefix, request_url); /* fits and is terminated! */
-				
-				debug1("request_url:%s", request_url);
-				
-				/* initialized with full old url */
-				
-				if(strncmp(response, "Location: http://", 17))
-				{
-					char* ptmp = NULL;
-					/* though it's not RFC (?), accept relative URIs as wget does */
-					fprintf(stderr, "NOTE: no complete URL in redirect, constructing one\n");
-					/* not absolute uri, could still be server-absolute */
-					/* I prepend a part of the request... out of the request */
-					if(response[10] == '/')
-					{
-						/* only prepend http://server/ */
-						/* I null the first / after http:// */
-						if((ptmp = strchr(prefix+7,'/')) != NULL)	ptmp[0] = 0;
-					}
-					else
-					{
-						/* prepend http://server/path/ */
-						/* now we want the last / */
-						ptmp = strrchr(prefix+7, '/');
-						if(ptmp != NULL) ptmp[1] = 0;
-					}
-				}
-				else prefix[0] = 0;
-				debug1("prefix=%s", prefix);
 
-				/* Isn't C string mangling just evil? ;-) */
+		do
+		{
+			safe_readstring; /* Think about that: Should we really error out when we get nothing? Could be that the server forgot the trailing empty line... */
+			if (!strncmp(response.p, "Location: ", 10))
+			{ /* It is a redirection! */
+				if(!resolve_redirect(&response, &request_url, &purl)){ oom=1, http_failure; }
 
-				/* we want to allow urls longer than purl */
-				/* eh, why *3 here? I don't see it that in this loop any x -> %yz conversion is done */
-				needed_length = strlen(prefix) + strlen(response+10)*3+1;
-				if(purl_size < needed_length)
-				{
-					purl_size = needed_length;
-					purl = safe_realloc(purl, purl_size);
-					if(purl == NULL)
-					{
-						http_failure;
-					}
-					/* Why am I always so picky about the trailing zero, nobody else seems to care? */
-					purl[purl_size-1] = 0;
-				}
-				/* now that we ensured that purl is big enough, we can just hit it */
-				strcpy(purl, prefix);
-				strcat(purl, response+10);
-				debug1("           purl: %s",purl);
-				debug1("old request_url: %s", request_url);
-				if(!strcmp(purl, request_url))
+				if(!strcmp(purl.p, request_url.p))
 				{
 					warning("relocated to very same place! trying request again without host port");
 					try_without_port = 1;
 				}
-				free(prefix);
 			}
 			else
-			{
+			{ /* We got a header line (or the closing empty line). */
 				char *tmp;
-				size_t len;
-				debug1("searching for header values... %s", response);
-				/* watch out for content type */
-				if((tmp = get_header_val("content-type", response, &len)))
-				{
-					if(mpg123_set_string(&hd->content_type, tmp)) debug1("got content-type %s", hd->content_type.p);
-					else error1("unable to set content type to %s!", tmp);
-				}
-				/* watch out for icy-name */
-				if((tmp = get_header_val("icy-name", response, &len)))
-				{
-					if(mpg123_set_string(&hd->icy_name, tmp)) debug1("got icy-name %s", hd->icy_name.p);
-					else error1("unable to set icy name to %s!", tmp);
-				}
-				/* watch out for icy-url */
-				else if((tmp = get_header_val("icy-url", response, &len)))
-				{
-					if(mpg123_set_string(&hd->icy_url, tmp)) debug1("got icy-url %s", hd->icy_name.p);
-					else error1("unable to set icy url to %s!", tmp);
-				}
+				debug1("searching for header values... %s", response.p);
+				/* Not sure if I want to bail out on error here. */
+				get_header_string(&response, "content-type", &hd->content_type);
+				get_header_string(&response, "icy-name",     &hd->icy_name);
+				get_header_string(&response, "icy-url",      &hd->icy_url);
+
 				/* watch out for icy-metaint */
-				else if((tmp = get_header_val("icy-metaint", response, &len)))
+				if((tmp = get_header_val("icy-metaint", &response)))
 				{
-					hd->icy_interval = (off_t) atol(tmp);
+					hd->icy_interval = (off_t) atol(tmp); /* atoll ? */
 					debug1("got icy-metaint %li", (long int)hd->icy_interval);
 				}
 			}
-		} while (response[0] != '\r' && response[0] != '\n');
-	} while (relocate && purl[0] && numrelocs++ < HTTP_MAX_RELOCATIONS);
-	if (relocate) {
+		} while(response.p[0] != '\r' && response.p[0] != '\n');
+	} while(relocate && purl.fill && numrelocs++ < HTTP_MAX_RELOCATIONS);
+	if(relocate)
+	{
 		fprintf (stderr, "Too many HTTP relocations.\n");
 		http_failure;
 	}
-exit:
-	if(host != NULL) free(host);
-	if(purl != NULL) free(purl);
-	if(request != NULL) free(request);
-	if(response != NULL) free(response);
-	if(request_url != NULL) free(request_url);
+
+exit: /* The end as well as the exception handling point... */
+	if(oom) error("Apparently, I ran out of memory, or nearly so...");
+
+	mpg123_free_string(&purl);
+	mpg123_free_string(&host);
+	mpg123_free_string(&port);
+	mpg123_free_string(&path);
+	mpg123_free_string(&request);
+	mpg123_free_string(&response);
+	mpg123_free_string(&request_url);
+	mpg123_free_string(&httpauth1);
 	return sock;
 }
 

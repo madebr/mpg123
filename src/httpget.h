@@ -22,7 +22,10 @@ struct httpdata
 	mpg123_string icy_url;
 	off_t icy_interval;
 	char *proxyurl;
-	unsigned long proxyip;
+	mpg123_string proxyhost;
+	mpg123_string proxyport;
+	/* Partly dummy for now... later proxy host resolution will be cached (PROXY_ADDR). */
+	enum { PROXY_UNKNOWN=0, PROXY_NONE, PROXY_HOST, PROXY_ADDR } proxystate;
 };
 
 void httpdata_init(struct httpdata *e);
