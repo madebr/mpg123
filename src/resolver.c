@@ -69,7 +69,19 @@ int split_url(mpg123_string *url, mpg123_string *auth, mpg123_string *host, mpg1
 		}
 	}
 	
-	/* Extract host name or IP. This is IPv4 only, atm.*/
+	/* Extract host name or IP. */
+#ifdef IPV6
+	if(url->p[pos] == '[')
+	{ /* It's possibly an IPv6 url in [ ] */
+		++pos;
+		if( (part = strchr(url->p+pos,']')) != NULL)
+		{
+			pos2 = part-url->p;
+		}
+		else { error("Malformed IPv6 URL!"); return FALSE; }
+	}
+	else
+#endif
 	for(pos2=pos; pos2 < url->fill-1; ++pos2)
 	{
 		char a = url->p[pos2];
@@ -159,8 +171,40 @@ int open_connection(mpg123_string *host, mpg123_string *port)
 		error1("Cannot connect to server: %s", strerror(errno));
 		return -1;
 	}
-#else
-#error "IPv6 support to come."
+#else /* Host lookup and connection in a protocol independent manner. */
+	struct addrinfo hints;
+	struct addrinfo *addr, *addrlist;
+	int addrcount, sock = -1;
+
+	memset(&hints, 0, sizeof(struct addrinfo));
+	hints.ai_family   = AF_UNSPEC; /* We accept both IPv4 and IPv6 ... and perhaps IPv8;-) */
+	hints.ai_socktype = SOCK_STREAM;
+
+	addrcount = getaddrinfo(host->p, port->p, &hints, &addrlist);
+
+	if(addrcount <0)
+	{
+		error3("Resolving %s:%s: %s", host->p, port->p, gai_strerror(addrcount));
+		return -1;
+	}
+
+	addr = addrlist;
+	while(addr != NULL)
+	{
+		sock = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
+		if(sock >= 0)
+		{
+			if(connect(sock, addr->ai_addr, addr->ai_addrlen) == 0)
+			break;
+
+			close(sock);
+			sock=-1;
+		}
+		addr=addr->ai_next;
+	}
+	if(sock < 0) error2("Cannot resolve %s:%s!", host->p, port->p);
+
+	freeaddrinfo(addrlist);
 #endif
 	return sock; /* Hopefully, that's an open socket to talk with. */
 }

@@ -221,6 +221,22 @@ AC_ARG_ENABLE(fifo,
               ]
 )
 
+AC_ARG_ENABLE(ipv6,
+              [  --enable-ipv6=[no/yes] IPv6 support (actually any protocol your libc does with getaddrinfo) ],
+              [
+                if test "x$enableval" = xyes
+                then
+                  ipv6="enabled"
+                  AC_DEFINE(IPV6, 1, [ Define if IPv6 support is enabled. ])
+                else
+                  ipv6="disabled"
+                fi
+              ],
+              [
+                ipv6="auto"
+              ]
+)
+
 AC_ARG_WITH([cpu], [
   --with-cpu=generic[_fpu]      Use generic processor code with floating point arithmetic
   --with-cpu=generic_float      A special build with generic fpu code that produces 32bit float output (experimental)
@@ -364,7 +380,18 @@ if test $fifo = "yes" && test $have_mkfifo = "no"; then
 	AC_MSG_WARN( [ You forced FIFO code while I think there is no mkfifo() available! ] )
 fi
 
-
+AC_CHECK_FUNCS( getaddrinfo, [ have_ipv6=yes ], [ have_ipv6=no ] )
+if test $ipv6 = "auto"; then
+	if test $have_ipv6 = "yes"; then
+		ipv6=yes
+		AC_DEFINE(IPV6, 1, [ Define if IPV6 support is enabled. ])
+	else
+		ipv6=no
+	fi
+fi
+if test $ipv6 = "yes" && test $have_ipv6 = "no"; then
+	AC_MSG_WARN( [ You forced IPv6 code while I think there is no getaddrinfo() available! ] )
+fi
 
 dnl ############## Header and Library Checks
 
@@ -1205,6 +1232,7 @@ echo "
   Seek table size ......... $seektable
   FIFO support ............ $fifo
   Buffer................... $buffer
+  IPv6 (getaddrinfo) ...... $ipv6
 "
 if test "$modules" = enabled; then
 	echo "  Modules Directory ....... $pkglibdir"
