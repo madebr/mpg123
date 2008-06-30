@@ -266,7 +266,6 @@ static int proxy_init(struct httpdata *hd)
 			if (!(param.proxyurl = getenv("http_proxy")))
 				param.proxyurl = getenv("HTTP_PROXY");
 	/* Now continue if we have something. */
-fprintf(stderr, "proxyurl: %s\n", param.proxyurl ? param.proxyurl : "<nil>");
 	if (param.proxyurl && param.proxyurl[0] && strcmp(param.proxyurl, "none"))
 	{
 		mpg123_string proxyurl;
