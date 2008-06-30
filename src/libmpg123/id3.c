@@ -299,7 +299,6 @@ static void process_comment(mpg123_handle *fr, char *realdata, size_t realsize, 
 	}
 	memcpy(xcom->lang, lang, 3);
 	memcpy(xcom->id, id, 4);
-	xcom->lang[3] = 0;
 	/* Now I can abuse a byte from lang for the encoding. */
 	descr[-1] = encoding;
 	/* Be careful with finding the end of description, I have to honor encoding here. */
