@@ -378,7 +378,7 @@ static int fill_request(mpg123_string *request, mpg123_string *host, mpg123_stri
 		 || !mpg123_add_string(request, "\r\n") )
 	return FALSE;
 
-	if(0 && host->fill)
+	if(host->fill)
 	{ /* Give virtual hosting a chance... adding the "Host: ... " line. */
 		debug2("Host: %s:%s", host->p, port->p);
 		if(    mpg123_add_string(request, "Host: ")
@@ -569,7 +569,7 @@ int http_open(char* url, struct httpdata *hd)
 
 #define http_failure close(sock); sock=-1; goto exit;
 		
-		debug1("<request>\n%s</request>",request.p);
+		if(param.verbose > 2) fprintf(stderr, "HTTP request:\n%s\n",request.p);
 		if(!writestring(sock, &request)){ http_failure; }
 		if (!(myfile = fdopen(sock, "rb")))
 		{
@@ -591,7 +591,8 @@ int http_open(char* url, struct httpdata *hd)
 			http_failure; \
 		}
 		safe_readstring;
-		debug1("<response>\n%s</response>",response.p);
+		if(param.verbose > 2)	fprintf(stderr, "HTTP response: %s",response.p);
+
 		{
 			char *sptr;
 			if((sptr = strchr(response.p, ' ')))
@@ -649,7 +650,7 @@ int http_open(char* url, struct httpdata *hd)
 	}
 
 exit: /* The end as well as the exception handling point... */
-	if(oom) error("Apparently, I ran out of memory, or nearly so...");
+	if(oom) error("Apparently, I ran out of memory or had some bad input data...");
 
 	mpg123_free_string(&purl);
 	mpg123_free_string(&host);
