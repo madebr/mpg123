@@ -7,6 +7,7 @@
   - fixed an (so far) unnoticed ID3 bug that may have obscured comment fields
 - More elaborate (helpful?) error message for output format problems.
 - Reworked HTTP code; IPv6?
+- fix the --proxy parameter (has been accidentally ignored before)
 
 1.4.3
 ---

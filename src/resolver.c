@@ -124,6 +124,7 @@ int open_connection(mpg123_string *host, mpg123_string *port)
 	int isip = 1;
 	char *cptr = host->p;
 	int sock = -1;
+	if(param.verbose>1) fprintf(stderr, "Note: Attempting connection to %s\n", host->p);
 	/* Resolve to IP; parse port number. */
 	while(*cptr) /* Iterate over characters of hostname, check if it's an IP or name. */
 	{

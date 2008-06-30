@@ -149,6 +149,7 @@ struct parameter
 	long resync_limit;
 	int smooth;
 	double pitch; /* <0 or >0, 0.05 for 5% speedup. */
+	char *proxyurl;
 };
 
 extern char *equalfile;

@@ -45,7 +45,6 @@ void httpdata_init(struct httpdata *e)
 	mpg123_init_string(&e->icy_url);
 	mpg123_init_string(&e->icy_name);
 	e->icy_interval = 0;
-	e->proxyurl = NULL;
 	e->proxystate = PROXY_UNKNOWN;
 	mpg123_init_string(&e->proxyhost);
 	mpg123_init_string(&e->proxyport);
@@ -56,10 +55,15 @@ void httpdata_reset(struct httpdata *e)
 	mpg123_free_string(&e->content_type);
 	mpg123_free_string(&e->icy_url);
 	mpg123_free_string(&e->icy_name);
-	mpg123_free_string(&e->proxyhost);
-	mpg123_free_string(&e->proxyport);
 	e->icy_interval = 0;
 	/* the other stuff shall persist */
+}
+
+void httpdata_free(struct httpdata *e)
+{
+	httpdata_reset(e);
+	mpg123_free_string(&e->proxyhost);
+	mpg123_free_string(&e->proxyport);
 }
 
 /* mime type classes */
@@ -257,21 +261,23 @@ static int proxy_init(struct httpdata *hd)
 {
 	int ret = TRUE;
 	/* If we don't have explicit proxy given, probe the environment. */
-	if (!hd->proxyurl)
-		if (!(hd->proxyurl = getenv("MP3_HTTP_PROXY")))
-			if (!(hd->proxyurl = getenv("http_proxy")))
-				hd->proxyurl = getenv("HTTP_PROXY");
+	if (!param.proxyurl)
+		if (!(param.proxyurl = getenv("MP3_HTTP_PROXY")))
+			if (!(param.proxyurl = getenv("http_proxy")))
+				param.proxyurl = getenv("HTTP_PROXY");
 	/* Now continue if we have something. */
-	if (hd->proxyurl && hd->proxyurl[0] && strcmp(hd->proxyurl, "none"))
+fprintf(stderr, "proxyurl: %s\n", param.proxyurl ? param.proxyurl : "<nil>");
+	if (param.proxyurl && param.proxyurl[0] && strcmp(param.proxyurl, "none"))
 	{
 		mpg123_string proxyurl;
 		mpg123_init_string(&proxyurl);
-		if(   !mpg123_set_string(&proxyurl, hd->proxyurl)
+		if(   !mpg123_set_string(&proxyurl, param.proxyurl)
 		   || !split_url(&proxyurl, NULL, &hd->proxyhost, &hd->proxyport, NULL))
 		{
 			error("splitting proxy URL");
 			ret = FALSE;
 		}
+		else if(param.verbose > 1) fprintf(stderr, "Note: Using proxy %s\n", hd->proxyhost.p);
 #if 0 /* not yet there */
 		if(!try_host_lookup(proxyhost))
 		{
@@ -373,7 +379,7 @@ static int fill_request(mpg123_string *request, mpg123_string *host, mpg123_stri
 		 || !mpg123_add_string(request, "\r\n") )
 	return FALSE;
 
-	if(host->fill)
+	if(0 && host->fill)
 	{ /* Give virtual hosting a chance... adding the "Host: ... " line. */
 		debug2("Host: %s:%s", host->p, port->p);
 		if(    mpg123_add_string(request, "Host: ")

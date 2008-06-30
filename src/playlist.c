@@ -229,7 +229,7 @@ int add_next_file (int argc, char *argv[])
 						fprintf(stderr, "Error: unknown playlist MIME type %s; maybe "PACKAGE_NAME" can support it in future if you report this to the maintainer.\n", htd.content_type.p);
 						fd = -1;
 					}
-					httpdata_reset(&htd);
+					httpdata_free(&htd);
 				}
 				if(fd < 0)
 				{

@@ -21,7 +21,6 @@ struct httpdata
 	mpg123_string icy_name;
 	mpg123_string icy_url;
 	off_t icy_interval;
-	char *proxyurl;
 	mpg123_string proxyhost;
 	mpg123_string proxyport;
 	/* Partly dummy for now... later proxy host resolution will be cached (PROXY_ADDR). */
@@ -30,6 +29,7 @@ struct httpdata
 
 void httpdata_init(struct httpdata *e);
 void httpdata_reset(struct httpdata *e);
+void httpdata_free(struct httpdata *e);
 
 /* There is a whole lot of MIME types for the same thing.
    the function will reduce it to a combination of these flags */

@@ -104,6 +104,7 @@ struct parameter param = {
 	,1024 /* resync_limit */
 	,0 /* smooth */
 	,0.0 /* pitch */
+	,NULL /* proxyurl */
 };
 
 int utf8env = 0;
@@ -170,7 +171,7 @@ void safe_exit(int code)
 	if(mh != NULL) mpg123_delete(mh);
 
 	mpg123_exit();
-	httpdata_reset(&htd);
+	httpdata_free(&htd);
 	/* It's ugly... but let's just fix this still-reachable memory chunk of static char*. */
 	split_dir_file("", &dummy, &dammy);
 	exit(code);
@@ -372,7 +373,7 @@ topt opts[] = {
 	{0,   "remote-err",  GLO_INT,  0, &param.remote_err, TRUE},
 	{'d', "doublespeed", GLO_ARG | GLO_LONG, 0, &param.doublespeed, 0},
 	{'h', "halfspeed",   GLO_ARG | GLO_LONG, 0, &param.halfspeed, 0},
-	{'p', "proxy",       GLO_ARG | GLO_CHAR, 0, &htd.proxyurl,   0},
+	{'p', "proxy",       GLO_ARG | GLO_CHAR, 0, &param.proxyurl,   0},
 	{'@', "list",        GLO_ARG | GLO_CHAR, 0, &param.listname,   0},
 	/* 'z' comes from the the german word 'zufall' (eng: random) */
 	{'z', "shuffle",     GLO_INT,  0, &param.shuffle, 1},
