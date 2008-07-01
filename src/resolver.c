@@ -136,7 +136,7 @@ int open_connection(mpg123_string *host, mpg123_string *port)
 	int isip = 1;
 	char *cptr = host->p;
 	int sock = -1;
-	if(param.verbose>1) fprintf(stderr, "Note: Attempting connection to %s\n", host->p);
+	if(param.verbose>1) fprintf(stderr, "Note: Attempting old-style connection to %s\n", host->p);
 	/* Resolve to IP; parse port number. */
 	while(*cptr) /* Iterate over characters of hostname, check if it's an IP or name. */
 	{
@@ -176,6 +176,7 @@ int open_connection(mpg123_string *host, mpg123_string *port)
 	struct addrinfo *addr, *addrlist;
 	int addrcount, sock = -1;
 
+	if(param.verbose>1) fprintf(stderr, "Note: Attempting new-style connection to %s\n", host->p);
 	memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_family   = AF_UNSPEC; /* We accept both IPv4 and IPv6 ... and perhaps IPv8;-) */
 	hints.ai_socktype = SOCK_STREAM;
