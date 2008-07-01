@@ -78,7 +78,7 @@ static const char* mime_file[] =
 	"audio/mpg",   "audio/x-mpg",
 	"audio/x-mpegaudio", NULL
 };
-static const char* mime_m3u[] = { "audio/mpeg-url", "audio/x-mpegurl", NULL };
+static const char* mime_m3u[] = { "audio/mpegurl", "audio/mpeg-url", "audio/x-mpegurl", NULL };
 static const char* mime_pls[]	= { "audio/x-scpls", "audio/scpls", "application/pls", NULL };
 static const char** mimes[] = { mime_file, mime_m3u, mime_pls, NULL };
 
