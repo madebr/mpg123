@@ -208,8 +208,6 @@ struct mpg123_handle_struct
 		float peak[2];
 	} rva;
 
-	int do_recover;
-
 	/* input data */
 	off_t track_frames;
 	off_t track_samples;

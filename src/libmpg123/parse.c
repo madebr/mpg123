@@ -154,15 +154,6 @@ int head_check(unsigned long head)
 	}
 }
 
-int read_frame_recover(mpg123_handle* fr)
-{
-	int ret;
-	fr->do_recover = 1;
-	ret = read_frame(fr);
-	fr->do_recover = 0;
-	return ret;
-}
-
 static int check_lame_tag(mpg123_handle *fr)
 {
 	/*
@@ -407,7 +398,6 @@ int read_frame(mpg123_handle *fr)
   unsigned long newhead;
 	off_t framepos;
 	int ret;
-  int give_note = VERBOSE2 ? 1 : (fr->do_recover ? 0 : 1 );
 	/* stuff that needs resetting if complete frame reading fails */
 	int oldsize  = fr->framesize;
 	int oldphase = fr->halfphase;
@@ -592,22 +582,23 @@ init_resync:
 				fr->metaflags  |= MPG123_NEW_ID3|MPG123_ID3;
         goto read_again;
       }
-      else if (give_note && NOQUIET)
+      else if (NOQUIET)
       {
         fprintf(stderr,"Note: Illegal Audio-MPEG-Header 0x%08lx at offset 0x%lx.\n",
                 newhead, (long unsigned int)fr->rd->tell(fr)-4);
       }
 
-      if(give_note && NOQUIET && (newhead & 0xffffff00) == ('b'<<24)+('m'<<16)+('p'<<8)) fprintf(stderr,"Note: Could be a BMP album art.\n");
+      if(NOQUIET && (newhead & 0xffffff00) == ('b'<<24)+('m'<<16)+('p'<<8)) fprintf(stderr,"Note: Could be a BMP album art.\n");
       /* Do resync if forced from outside or not forbidden by flag.
-          Also, don't try to resync on ICY streams - that won't work! */
-      if( (!(fr->p.flags & MPG123_NO_RESYNC)|| fr->do_recover)
-           && fr->p.icy_interval == 0 )
+          Also, don't normally try to resync on ICY streams - that won't work!
+          Actually, I'm not sure anymore about that. Wasn't that ICY resync trouble just a bug of my reader? */
+      if(    !(fr->p.flags & MPG123_NO_RESYNC)
+          && (fr->p.icy_interval == 0 || fr->p.flags & MPG123_FORCE_RESYNC) )
       {
         long try = 0;
         long limit = fr->p.resync_limit;
         /* TODO: make this more robust, I'd like to cat two mp3 fragments together (in a dirty way) and still have mpg123 beign able to decode all it somehow. */
-        if(give_note && NOQUIET) fprintf(stderr, "Note: Trying to resync...\n");
+        if(NOQUIET) fprintf(stderr, "Note: Trying to resync...\n");
             /* Read more bytes until we find something that looks
                reasonably like a valid header.  This is not a
                perfect strategy, but it should get us back on the
@@ -619,7 +610,7 @@ init_resync:
           if((ret=fr->rd->head_shift(fr,&newhead)) <= 0)
           {
             debug("need more?");
-            if(give_note && NOQUIET) fprintf (stderr, "Note: Hit end of (available) data during resync.\n");
+            if(NOQUIET) fprintf (stderr, "Note: Hit end of (available) data during resync.\n");
             goto read_frame_bad;
           }
           debug3("resync try %li at 0x%lx, got newhead 0x%08lx", try, (unsigned long)fr->rd->tell(fr),  newhead);
@@ -638,7 +629,7 @@ init_resync:
          );
          /* too many false positives 
          }while (!(head_check(newhead) && decode_header(fr, newhead))); */
-        if(give_note && NOQUIET) fprintf (stderr, "Note: Skipped %li bytes in input.\n", try);
+        if(NOQUIET) fprintf (stderr, "Note: Skipped %li bytes in input.\n", try);
          if(limit >= 0 && try >= limit)
          {
            if(NOQUIET) error1("Giving up resync after %li bytes - your stream is not nice... (maybe increasing resync limit could help).", try);

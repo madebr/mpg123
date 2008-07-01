@@ -309,7 +309,6 @@ static void frame_fixed_reset(mpg123_handle *fr)
 	fr->index.fill = 0;
 	fr->index.step = 1;
 	fr->fsizeold = 0;
-	fr->do_recover = 0;
 	fr->firstframe = 0;
 	fr->ignoreframe = fr->firstframe-IGNORESHIFT;
 	fr->lastframe = -1;
