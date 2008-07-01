@@ -105,7 +105,7 @@ debunk_result:
 }
 
 
-#if !defined(WIN32) && !defined(GENERIC)
+#ifdef NETWORK
 
 int writestring (int fd, mpg123_string *string)
 {

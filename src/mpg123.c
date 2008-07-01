@@ -392,7 +392,7 @@ topt opts[] = {
 	{0, "cpu", GLO_ARG | GLO_CHAR, 0, &param.cpu,  0},
 	{0, "test-cpu",  GLO_INT,  0, &param.test_cpu, TRUE},
 	{0, "list-cpu", GLO_INT,  0, &param.list_cpu , 1},
-	#if !defined(WIN32) && !defined(GENERIC)
+	#ifdef NETWORK
 	{'u', "auth",        GLO_ARG | GLO_CHAR, 0, &httpauth,   0},
 	#endif
 	#ifdef HAVE_SCHED_SETSCHEDULER
