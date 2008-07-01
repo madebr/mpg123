@@ -237,6 +237,22 @@ AC_ARG_ENABLE(ipv6,
               ]
 )
 
+AC_ARG_ENABLE(network,
+              [  --enable-network=[no/yes] network support (http streams / webradio) ],
+              [
+                if test "x$enableval" = xyes
+                then
+                  network="enabled"
+                  AC_DEFINE(network, 1, [ Define if network support is enabled. ])
+                else
+                  network="disabled"
+                fi
+              ],
+              [
+                network="auto"
+              ]
+)
+
 AC_ARG_WITH([cpu], [
   --with-cpu=generic[_fpu]      Use generic processor code with floating point arithmetic
   --with-cpu=generic_float      A special build with generic fpu code that produces 32bit float output (experimental)
@@ -398,6 +414,29 @@ dnl ############## Header and Library Checks
 AC_HEADER_STDC
 dnl Is it too paranoid to specifically check for stdint.h and limits.h?
 AC_CHECK_HEADERS([stdio.h stdlib.h string.h unistd.h sched.h sys/ioctl.h stdint.h limits.h inttypes.h sys/time.h sys/wait.h sys/resource.h signal.h])
+# Headers for network (http) stuff
+AC_CHECK_HEADERS([netdb.h sys/param.h sys/socket.h netinet/in.h arpa/inet.h])
+if test "x$ac_cv_header_netdb_h" = "xyes"      &&
+   test "x$ac_cv_header_sys_param_h" = "xyes"  &&
+   test "x$ac_cv_header_sys_socket_h" = "xyes" &&
+   test "x$ac_cv_header_netinet_in_h" = "xyes" &&
+   test "x$ac_cv_header_arpa_inet_h"  = "xyes"; then
+  have_network=yes
+else
+  have_network=no
+fi
+
+if test $network = "auto"; then
+	if test $have_network = "yes"; then
+		network=yes
+		AC_DEFINE(NETWORK, 1, [ Define if network support is enabled. ])
+	else
+		network=no
+	fi
+fi
+if test $network = "yes" && test $have_network = "no"; then
+	AC_MSG_WARN( [ You forced network code while I think there is support missing! ] )
+fi
 
 
 # Substitutions for the installable mpg123.h header
@@ -1231,7 +1270,8 @@ echo "
   Debugging ............... $debugging
   Seek table size ......... $seektable
   FIFO support ............ $fifo
-  Buffer................... $buffer
+  Buffer .................. $buffer
+  Network (http streams) .. $network
   IPv6 (getaddrinfo) ...... $ipv6
 "
 if test "$modules" = enabled; then

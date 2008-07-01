@@ -12,7 +12,7 @@
 
 #include "mpg123app.h"
 
-#if !defined(WIN32) && !defined(GENERIC)
+#ifdef NETWORK
 #include "true.h"
 #include "resolver.h"
 #include <netdb.h>
@@ -209,7 +209,7 @@ int open_connection(mpg123_string *host, mpg123_string *port)
 	return sock; /* Hopefully, that's an open socket to talk with. */
 }
 
-#else /* win32, generic */
+#else /* NETWORK */
 
 void resolver_dummy_without_sense()
 {

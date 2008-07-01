@@ -29,7 +29,7 @@
 #include "mpg123app.h"
 #include "httpget.h"
 
-#if !defined(WIN32) && !defined(GENERIC)
+#ifdef NETWORK
 #include "resolver.h"
 
 #define HTTP_MAX_RELOCATIONS 20
@@ -663,7 +663,7 @@ exit: /* The end as well as the exception handling point... */
 	return sock;
 }
 
-#else /* defined(WIN32) || defined(GENERIC) */
+#else /* NETWORK */
 
 /* stub */
 int http_open (char* url, struct httpdata *hd)
