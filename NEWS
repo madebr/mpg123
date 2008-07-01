@@ -7,7 +7,8 @@
   - fixed an (so far) unnoticed ID3 bug that may have obscured comment fields
 - More elaborate (helpful?) error message for output format problems.
 - Reworked HTTP code... and added IPv6 support!
-- fix the --proxy parameter (has been accidentally ignored before)
+- Fix the --proxy parameter (has been accidentally ignored before).
+- Added --ignore-mime to work with web streams with funny playlist MIME types like "audio/megurl".
 
 1.4.3
 ---

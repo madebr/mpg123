@@ -104,6 +104,7 @@ struct parameter param = {
 	,1024 /* resync_limit */
 	,0 /* smooth */
 	,0.0 /* pitch */
+	,0 /* ignore_mime */
 	,NULL /* proxyurl */
 };
 
@@ -427,7 +428,8 @@ topt opts[] = {
 	{'i', "index", GLO_INT, 0, &param.index, 1},
 	{'D', "delay", GLO_ARG | GLO_INT, 0, &param.delay, 0},
 	{0, "resync-limit", GLO_ARG | GLO_LONG, 0, &param.resync_limit, 0},
-  {0, "pitch", GLO_ARG|GLO_DOUBLE, 0, &param.pitch, 0},
+	{0, "pitch", GLO_ARG|GLO_DOUBLE, 0, &param.pitch, 0},
+	{0, "ignore-mime", GLO_INT,  0, &param.ignore_mime, 1 },
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -492,7 +494,7 @@ int open_track(char *fname)
 		filept = http_open(fname, &htd);
 		/* now check if we got sth. and if we got sth. good */
 		if(    (filept >= 0) && (htd.content_type.p != NULL)
-			  && strcmp(htd.content_type.p, "audio/mpeg") && strcmp(htd.content_type.p, "audio/x-mpeg") )
+			  && !param.ignore_mime && strcmp(htd.content_type.p, "audio/mpeg") && strcmp(htd.content_type.p, "audio/x-mpeg") )
 		{
 			error1("Unknown mpeg MIME type %s - is it perhaps a playlist (use -@)?", htd.content_type.p == NULL ? "<nil>" : htd.content_type.p);
 			error("If you know the stream is mpeg1/2 audio, then please report this as "PACKAGE_NAME" bug");
@@ -1135,6 +1137,7 @@ static void long_usage(int err)
 	fprintf(o," -y     --resync           DISABLES resync on error\n");
 	fprintf(o," -p <f> --proxy <f>        set WWW proxy\n");
 	fprintf(o," -u     --auth             set auth values for HTTP access\n");
+	fprintf(o,"        --ignore-mime      ignore HTTP MIME types (content-type)\n");
 	fprintf(o," -@ <f> --list <f>         play songs in playlist <f> (plain list, m3u, pls (shoutcast))\n");
 	fprintf(o," -l <n> --listentry <n>    play nth title in playlist; show whole playlist for n < 0\n");
 	fprintf(o,"        --loop <n>         loop track(s) <n> times, < 0 means infinite loop (not with --random!)\n");

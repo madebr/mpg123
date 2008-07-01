@@ -200,7 +200,7 @@ int add_next_file (int argc, char *argv[])
 				httpdata_init(&htd);
 				fd = http_open(param.listname, &htd);
 				debug1("htd.content_type.p: %p", (void*) htd.content_type.p);
-				if(htd.content_type.p != NULL)
+				if(!param.ignore_mime && htd.content_type.p != NULL)
 				{
 					int mimi;
 					debug1("htd.content_type.p value: %s", htd.content_type.p);
@@ -211,6 +211,8 @@ int add_next_file (int argc, char *argv[])
 					else
 					{
 						if(fd >= 0) close(fd);
+
+						fd = -1;
 						if(mimi & IS_FILE)
 						{
 							pl.type = NO_LIST;
@@ -226,8 +228,7 @@ int add_next_file (int argc, char *argv[])
 								return 1;
 							}
 						}
-						fprintf(stderr, "Error: unknown playlist MIME type %s; maybe "PACKAGE_NAME" can support it in future if you report this to the maintainer.\n", htd.content_type.p);
-						fd = -1;
+						error1("Unknown playlist MIME type %s; maybe "PACKAGE_NAME" can support it in future if you report this to the maintainer.", htd.content_type.p);
 					}
 					httpdata_free(&htd);
 				}
@@ -235,7 +236,7 @@ int add_next_file (int argc, char *argv[])
 				{
 					param.listname = NULL;
 					pl.file = NULL;
-					fprintf(stderr, "Error: invalid playlist from http_open()!\n");
+					error("Invalid playlist from http_open()!\n");
 				}
 				else
 				{
