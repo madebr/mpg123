@@ -178,7 +178,8 @@ enum mpg123_errors
 	MPG123_OUT_OF_SYNC,	/**< Lost track in bytestream and did not try to resync. */
 	MPG123_RESYNC_FAIL,	/**< Resync failed to find valid MPEG data. */
 	MPG123_NO_8BIT,	/**< No 8bit encoding possible. */
-	MPG123_BAD_ALIGN	/**< Stack aligmnent error */
+	MPG123_BAD_ALIGN,	/**< Stack aligmnent error */
+	MPG123_NULL_BUFFER	/**< NULL input buffer with non-zero size... */
 };
 
 /** Return a string describing that error errcode means. */
@@ -332,11 +333,20 @@ EXPORT int mpg123_close(mpg123_handle *mh);
  *  \return error/message code (watch out for MPG123_DONE and friends!) */
 EXPORT int mpg123_read(mpg123_handle *mh, unsigned char *outmemory, size_t outmemsize, size_t *done);
 
+/** Feed data for a stream that has been opened with mpg123_open_feed().
+ *  It's give and take: You provide the bytestream, mpg123 gives you the decoded samples.
+ *  \param in input buffer
+ *  \param size number of input bytes
+ *  \return error/message code. */
+EXPORT int mpg123_feed(mpg123_handle *mh, const unsigned char *in, size_t size);
+
 /** Decode MPEG Audio from inmemory to outmemory. 
  *  This is very close to a drop-in replacement for old mpglib.
  *  When you give zero-sized output buffer the input will be parsed until 
  *  decoded data is available. This enables you to get MPG123_NEW_FORMAT (and query it) 
  *  without taking decoded data.
+ *  Think of this function being the union of mpg123_read() and mpg123_feed() (which it actually is, sort of;-).
+ *  You can actually always decide if you want those specialized functions in separate steps or one call this one here.
  *  \param inmemory input buffer
  *  \param inmemsize number of input bytes
  *  \param outmemory output buffer
@@ -344,7 +354,7 @@ EXPORT int mpg123_read(mpg123_handle *mh, unsigned char *outmemory, size_t outme
  *  \param done address to store the number of actually decoded bytes to
  *  \return error/message code (watch out especially for MPG123_NEED_MORE)
  */
-EXPORT int mpg123_decode(mpg123_handle *mh, unsigned char *inmemory, size_t inmemsize,
+EXPORT int mpg123_decode(mpg123_handle *mh, const unsigned char *inmemory, size_t inmemsize,
                          unsigned char *outmemory, size_t outmemsize, size_t *done);
 
 /** Decode next MPEG frame to internal buffer

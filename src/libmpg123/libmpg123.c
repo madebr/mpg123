@@ -601,6 +601,25 @@ int attribute_align_arg mpg123_read(mpg123_handle *mh, unsigned char *out, size_
 	return mpg123_decode(mh, NULL, 0, out, size, done);
 }
 
+int attribute_align_arg mpg123_feed(mpg123_handle *mh, const unsigned char *in, size_t size)
+{
+	if(mh == NULL) return MPG123_ERR;
+	if(size > 0)
+	{
+		if(in != NULL)
+		{
+			if(feed_more(mh, in, size) != 0) return MPG123_ERR;
+			else return MPG123_OK;
+		}
+		else
+		{
+			mh->err = MPG123_NULL_BUFFER;
+			return MPG123_ERR;
+		}
+	}
+	return MPG123_OK;
+}
+
 /*
 	The old picture:
 	while(1) {
@@ -615,15 +634,18 @@ int attribute_align_arg mpg123_read(mpg123_handle *mh, unsigned char *out, size_
 	}
 */
 
-int attribute_align_arg mpg123_decode(mpg123_handle *mh,unsigned char *inmemory, size_t inmemsize, unsigned char *outmemory, size_t outmemsize, size_t *done)
+int attribute_align_arg mpg123_decode(mpg123_handle *mh, const unsigned char *inmemory, size_t inmemsize, unsigned char *outmemory, size_t outmemsize, size_t *done)
 {
 	int ret = MPG123_OK;
 	size_t mdone = 0;
 	ALIGNCHECK(mh);
 	if(done != NULL) *done = 0;
 	if(mh == NULL) return MPG123_ERR;
-	if(inmemsize > 0)
-	if(feed_more(mh, inmemory, inmemsize) == -1){ ret = MPG123_ERR; goto decodeend; }
+	if(inmemsize > 0 && mpg123_feed(mh, inmemory, inmemsize) != MPG123_OK)
+	{
+		ret = MPG123_ERR;
+		goto decodeend;
+	}
 	if(outmemory == NULL) outmemsize = 0; /* Not just give error, give chance to get a status message. */
 
 	while(ret == MPG123_OK)
@@ -1077,7 +1099,8 @@ static const char *mpg123_error[] =
 	"Lost track in the bytestream and did not attempt resync. (code 27)",
 	"Failed to find valid MPEG data within limit on resync. (code 28)",
 	"No 8bit encoding possible. (code 29)",
-	"Stack alignment is not good. (code 30)"
+	"Stack alignment is not good. (code 30)",
+	"You gave me a NULL buffer? (code 31)"
 };
 
 const char* attribute_align_arg mpg123_plain_strerror(int errcode)

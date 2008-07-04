@@ -1,5 +1,9 @@
 Changes in libmpg123 libtool interface versions...
 
+5.0.5
+	- added mpg123_feed
+	- input buffers now const
+
 4.0.4
 	- extended mpg123_string api (mpg123_add_substring, mpg123_grow_string)
 

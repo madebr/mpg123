@@ -1,10 +1,11 @@
 1.5.0
 ---
 
-- libmpg123 4.0.4
+- libmpg123 5.0.5
   - Floating point decoding (build time choice for now).
   - More robust string handling; extended string API.
   - fixed an (so far) unnoticed ID3 bug that may have obscured comment fields
+  - added mpg123_feed() as shortcut; using const input buffer now
 - More elaborate (helpful?) error message for output format problems.
 - Reworked HTTP code... and added IPv6 support!
 - Fix the --proxy parameter (has been accidentally ignored before).
