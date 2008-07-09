@@ -1183,11 +1183,11 @@ AC_SUBST( OUTPUT_LDFLAGS )
 
 dnl ############## Compiler Optimizations
 
-CFLAGS="$CFLAGS $ADD_CFLAGS"
+CFLAGS="$ADD_CFLAGS $CFLAGS"
 if test $buffer = disabled; then
 	ADD_CPPFLAGS="$ADD_CPPFLAGS -DNOXFERMEM"
 fi
-CPPFLAGS="$CPPFLAGS $ADD_CPPFLAGS"
+CPPFLAGS="$ADD_CPPFLAGS $CPPFLAGS"
 
 # None chosen?
 if test "x$with_optimization" = "x"; then
@@ -1209,22 +1209,16 @@ case $with_optimization in
     CFLAGS="$CFLAGS"
   ;;
   1)
-    CFLAGS="$CFLAGS -O"
+    CFLAGS="-O $CFLAGS"
   ;;
   2)
-    CFLAGS="$CFLAGS -O2"
-    CFLAGS="$CFLAGS -fomit-frame-pointer -funroll-all-loops"
-    CFLAGS="$CFLAGS -finline-functions -ffast-math"
+    CFLAGS="-O2 -fomit-frame-pointer -funroll-all-loops -finline-functions -ffast-math $CFLAGS"
   ;;
   3)
-    CFLAGS="$CFLAGS -O3"
-    CFLAGS="$CFLAGS -fomit-frame-pointer -funroll-all-loops"
-    CFLAGS="$CFLAGS -finline-functions -ffast-math"
+    CFLAGS="-O3 -fomit-frame-pointer -funroll-all-loops -finline-functions -ffast-math $CFLAGS"
   ;;
   4)
-    CFLAGS="$CFLAGS -O4"
-    CFLAGS="$CFLAGS -fomit-frame-pointer -funroll-all-loops"
-    CFLAGS="$CFLAGS -finline-functions -ffast-math"
+    CFLAGS="-O4 -fomit-frame-pointer -funroll-all-loops -finline-functions -ffast-math $CFLAGS"
   ;;
   *)
   	AC_MSG_ERROR([Unknown optimizations level '$with_optimization'])
