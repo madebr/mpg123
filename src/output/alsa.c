@@ -210,7 +210,19 @@ static int write_alsa(audio_output_t *ao, unsigned char *buf, int bytes)
 	if (written >= 0)
 		return snd_pcm_frames_to_bytes(pcm, written);
 	else
-		return written;
+	{
+		if(snd_pcm_state(pcm) == SND_PCM_STATE_SUSPENDED)
+		{
+			/* Iamnothappyabouthisnothappyreallynot. */
+			snd_pcm_resume(pcm);
+			if(snd_pcm_state(pcm) == SND_PCM_STATE_SUSPENDED)
+			{
+				error("device still suspended after resume hackery... giving up");
+				return -1;
+			}
+		}
+		return 0;
+	}
 }
 
 static void flush_alsa(audio_output_t *ao)

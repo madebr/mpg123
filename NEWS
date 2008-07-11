@@ -10,6 +10,7 @@
 - Reworked HTTP code... and added IPv6 support!
 - Fix the --proxy parameter (has been accidentally ignored before).
 - Added --ignore-mime to work with web streams with funny playlist MIME types like "audio/megurl".
+- Now trying to resume ALSA device after suspend.
 
 1.4.3
 ---
