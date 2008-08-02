@@ -106,7 +106,6 @@ struct parameter param = {
 	,0.0 /* pitch */
 	,0 /* ignore_mime */
 	,NULL /* proxyurl */
-	,0 /* force resync */
 };
 
 int utf8env = 0;
@@ -340,7 +339,6 @@ topt opts[] = {
 	{'v', "verbose",     0,        set_verbose, 0,           0},
 	{'q', "quiet",       0,        set_quiet,   0,           0},
 	{'y', "resync",      GLO_INT,  set_frameflag, &frameflag, MPG123_NO_RESYNC},
-	{0,   "force-resync",GLO_INT,  set_frameflag, &frameflag, MPG123_FORCE_RESYNC},
 	{'0', "single0",     GLO_INT,  set_frameflag, &frameflag, MPG123_MONO_LEFT},
 	{0,   "left",        GLO_INT,  set_frameflag, &frameflag, MPG123_MONO_LEFT},
 	{'1', "single1",     GLO_INT,  set_frameflag, &frameflag, MPG123_MONO_RIGHT},
@@ -1149,9 +1147,6 @@ static void long_usage(int err)
 	fprintf(o," -z     --shuffle          shuffle song-list before playing\n");
 	fprintf(o," -Z     --random           full random play\n");
 	fprintf(o,"        --no-icy-meta      Do not accept ICY meta data\n");
-	fprintf(o,"        --force-resync     Attempt resync even when in doubt about possible success (with ICY)\n");
-	fprintf(o,"                           This is an EXPERIMENTAL flag that may become an internal default in future, even.\n");
-	fprintf(o,"                           Making ICY streams with funny junk inbetween suddenly work again...\n");
 	fprintf(o," -i     --index            index / scan through the track before playback\n");
 	fprintf(o,"        --resync-limit <n> Set number of bytes to search for valid MPEG data; <0 means search whole stream.\n");
 	fprintf(o,"\noutput/processing options\n\n");

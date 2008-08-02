@@ -589,11 +589,9 @@ init_resync:
       }
 
       if(NOQUIET && (newhead & 0xffffff00) == ('b'<<24)+('m'<<16)+('p'<<8)) fprintf(stderr,"Note: Could be a BMP album art.\n");
-      /* Do resync if forced from outside or not forbidden by flag.
-          Also, don't normally try to resync on ICY streams - that won't work!
-          Actually, I'm not sure anymore about that. Wasn't that ICY resync trouble just a bug of my reader? */
-      if(    !(fr->p.flags & MPG123_NO_RESYNC)
-          && (fr->p.icy_interval == 0 || fr->p.flags & MPG123_FORCE_RESYNC) )
+      /* Do resync if not forbidden by flag.
+         I used to have a check for not-icy-meta here, but concluded that the desync issues came from a reader bug, not the stream. */
+      if( !(fr->p.flags & MPG123_NO_RESYNC) )
       {
         long try = 0;
         long limit = fr->p.resync_limit;

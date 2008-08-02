@@ -151,7 +151,6 @@ struct parameter
 	double pitch; /* <0 or >0, 0.05 for 5% speedup. */
 	int ignore_mime; /* An mpg123 app flag field in future? */
 	char *proxyurl;
-	int force_resync;
 };
 
 extern char *equalfile;
