@@ -67,39 +67,21 @@
 #define HDRSAMPMASK 0xc00 /* 1100 00000000, FF bits (sample rate) */
 
 /* bitrates for [mpeg1/2][layer] */
-static const int tabsel_123[2][3][16] = {
-   { {0,32,64,96,128,160,192,224,256,288,320,352,384,416,448,},
-     {0,32,48,56, 64, 80, 96,112,128,160,192,224,256,320,384,},
-     {0,32,40,48, 56, 64, 80, 96,112,128,160,192,224,256,320,} },
-
-   { {0,32,48,56,64,80,96,112,128,144,160,176,192,224,256,},
-     {0,8,16,24,32,40,48,56,64,80,96,112,128,144,160,},
-     {0,8,16,24,32,40,48,56,64,80,96,112,128,144,160,} }
+static const int tabsel_123[2][3][16] =
+{
+	{
+		{0,32,64,96,128,160,192,224,256,288,320,352,384,416,448,},
+		{0,32,48,56, 64, 80, 96,112,128,160,192,224,256,320,384,},
+		{0,32,40,48, 56, 64, 80, 96,112,128,160,192,224,256,320,}
+	},
+	{
+		{0,32,48,56,64,80,96,112,128,144,160,176,192,224,256,},
+		{0,8,16,24,32,40,48,56,64,80,96,112,128,144,160,},
+		{0,8,16,24,32,40,48,56,64,80,96,112,128,144,160,}
+	}
 };
 
 const long freqs[9] = { 44100, 48000, 32000, 22050, 24000, 16000 , 11025 , 12000 , 8000 };
-
-
-#ifdef VARMODESUPPORT
-	/*
-	 *   This is a dirty hack!  It might burn your PC and kill your cat!
-	 *   When in "varmode", specially formatted layer-3 mpeg files are
-	 *   expected as input -- it will NOT work with standard mpeg files.
-	 *   The reason for this:
-	 *   Varmode mpeg files enable my own GUI player to perform fast
-	 *   forward and backward functions, and to jump to an arbitrary
-	 *   timestamp position within the file.  This would be possible
-	 *   with standard mpeg files, too, but it would be a lot harder to
-	 *   implement.
-	 *   A filter for converting standard mpeg to varmode mpeg is
-	 *   available on request, but it's really not useful on its own.
-	 *
-	 *   Oliver Fromme  <oliver.fromme@heim3.tu-clausthal.de>
-	 *   Mon Mar 24 00:04:24 MET 1997
-	 */
-int varmode = FALSE;
-int playlimit;
-#endif
 
 static int decode_header(mpg123_handle *fr,unsigned long newhead);
 
@@ -158,7 +140,7 @@ static int check_lame_tag(mpg123_handle *fr)
 {
 	/*
 		going to look for Xing or Info at some position after the header
-				                                MPEG 1  MPEG 2/2.5 (LSF)
+		                                   MPEG 1  MPEG 2/2.5 (LSF)
 		Stereo, Joint Stereo, Dual Channel  32      17
 		Mono                                17       9
 
@@ -398,7 +380,7 @@ static int check_lame_tag(mpg123_handle *fr)
 int read_frame(mpg123_handle *fr)
 {
 	/* TODO: rework this thing */
-  unsigned long newhead;
+	unsigned long newhead;
 	off_t framepos;
 	int ret;
 	/* stuff that needs resetting if complete frame reading fails */
@@ -407,7 +389,7 @@ int read_frame(mpg123_handle *fr)
 	fr->fsizeold=fr->framesize;       /* for Layer3 */
 
 	/* Hm, I never tested this...*/
-  if (fr->p.halfspeed) 
+	if (fr->p.halfspeed) 
 	{
 		if(fr->halfphase) /* repeat last frame */
 		{
@@ -429,9 +411,6 @@ int read_frame(mpg123_handle *fr)
 read_again:
 	debug2("trying to get frame %li at 0x%lx", (long)fr->num+1, (unsigned long)fr->rd->tell(fr));
 	if((ret = fr->rd->head_read(fr,&newhead)) <= 0){ debug("need more?"); goto read_frame_bad;}
-	/* this if wrap looks like dead code... */
-  if(1 || fr->oldhead != newhead || !fr->oldhead)
-  {
 
 init_resync:
 
@@ -439,7 +418,7 @@ init_resync:
 	if(fr->oldhead)        /* check a following header for change */
 	{
 		/* If they have the same sample rate. Note that only is _not_ the case for the first header, as we enforce sample rate match for following frames.
-		   So, during one stream, only change of stereoness is possible and indicated by header_change == 2. */
+			 So, during one stream, only change of stereoness is possible and indicated by header_change == 2. */
 		if((fr->oldhead & HDRSAMPMASK) == (newhead & HDRSAMPMASK))
 		{
 			/* Now if both channel modes are mono... */
@@ -553,16 +532,17 @@ init_resync:
 		}
 	}
 
-    /* why has this head check been avoided here before? */
-    if(!head_check(newhead))
-    {
-      if(!fr->firsthead && free_format_header(newhead))
-      {
-        if(NOQUIET) error1("Header 0x%08lx seems to indicate a free format stream; I do not handle that yet", newhead);
-        goto read_again;
-        return 0;
-      }
-    /* and those ugly ID3 tags */
+	/* why has this head check been avoided here before? */
+	if(!head_check(newhead))
+	{
+		if(!fr->firsthead && free_format_header(newhead))
+		{
+			if(NOQUIET) error1("Header 0x%08lx seems to indicate a free format stream; I do not handle that yet", newhead);
+
+			goto read_again;
+			return 0;
+		}
+		/* and those ugly ID3 tags */
 		if((newhead & 0xffffff00) == ('T'<<24)+('A'<<16)+('G'<<8))
 		{
 			fr->id3buf[0] = (unsigned char) ((newhead >> 24) & 0xff);
@@ -575,100 +555,107 @@ init_resync:
 			if (VERBOSE2) fprintf(stderr,"Note: Skipped ID3 Tag!\n");
 			goto read_again;
 		}
-      /* duplicated code from above! */
-      /* check for id3v2; first three bytes (of 4) are "ID3" */
-      if((newhead & (unsigned long) 0xffffff00) == (unsigned long) 0x49443300)
-      {
-        int id3length = 0;
-        id3length = parse_new_id3(fr, newhead);
-        if(id3length < 0){ debug("need more?"); ret = id3length; goto read_frame_bad; }
-				fr->metaflags  |= MPG123_NEW_ID3|MPG123_ID3;
-        goto read_again;
-      }
-      else if (NOQUIET)
-      {
-        fprintf(stderr,"Note: Illegal Audio-MPEG-Header 0x%08lx at offset 0x%lx.\n",
-                newhead, (long unsigned int)fr->rd->tell(fr)-4);
-      }
+		/* duplicated code from above! */
+		/* check for id3v2; first three bytes (of 4) are "ID3" */
+		if((newhead & (unsigned long) 0xffffff00) == (unsigned long) 0x49443300)
+		{
+			int id3length = 0;
+			id3length = parse_new_id3(fr, newhead);
+			if(id3length < 0){ debug("need more?"); ret = id3length; goto read_frame_bad; }
 
-      if(NOQUIET && (newhead & 0xffffff00) == ('b'<<24)+('m'<<16)+('p'<<8)) fprintf(stderr,"Note: Could be a BMP album art.\n");
-      /* Do resync if not forbidden by flag.
-         I used to have a check for not-icy-meta here, but concluded that the desync issues came from a reader bug, not the stream. */
-      if( !(fr->p.flags & MPG123_NO_RESYNC) )
-      {
-        long try = 0;
-        long limit = fr->p.resync_limit;
-        /* TODO: make this more robust, I'd like to cat two mp3 fragments together (in a dirty way) and still have mpg123 beign able to decode all it somehow. */
-        if(NOQUIET) fprintf(stderr, "Note: Trying to resync...\n");
-            /* Read more bytes until we find something that looks
-               reasonably like a valid header.  This is not a
-               perfect strategy, but it should get us back on the
-               track within a short time (and hopefully without
-               too much distortion in the audio output).  */
-        do {
-          ++try;
-          if(limit >= 0 && try >= limit) break;
-          if((ret=fr->rd->head_shift(fr,&newhead)) <= 0)
-          {
-            debug("need more?");
-            if(NOQUIET) fprintf (stderr, "Note: Hit end of (available) data during resync.\n");
-            goto read_frame_bad;
-          }
-          debug3("resync try %li at 0x%lx, got newhead 0x%08lx", try, (unsigned long)fr->rd->tell(fr),  newhead);
-          if (!fr->oldhead)
-          {
-            debug("going to init_resync...");
-            goto init_resync;       /* "considered harmful", eh? */
-          }
-         /* we should perhaps collect a list of valid headers that occured in file... there can be more */
-         /* Michael's new resync routine seems to work better with the one frame readahead (and some input buffering?) */
-         } while
-         (
-           !head_check(newhead) /* Simply check for any valid header... we have the readahead to get it straight now(?) */
-           /*   (newhead & HDRCMPMASK) != (fr->oldhead & HDRCMPMASK)
-           && (newhead & HDRCMPMASK) != (fr->firsthead & HDRCMPMASK)*/
-         );
-         /* too many false positives 
-         }while (!(head_check(newhead) && decode_header(fr, newhead))); */
-        if(NOQUIET) fprintf (stderr, "Note: Skipped %li bytes in input.\n", try);
-         if(limit >= 0 && try >= limit)
-         {
-           if(NOQUIET) error1("Giving up resync after %li bytes - your stream is not nice... (maybe increasing resync limit could help).", try);
-           fr->err = MPG123_RESYNC_FAIL;
-           return READER_ERROR;
-         }
-         else
-         {
-           debug1("Found valid header 0x%lx... unsetting firsthead to reinit stream.", newhead);
-           fr->firsthead = 0;
-           goto init_resync;
-         }
-      }
-      else
-      {
-        if(NOQUIET) error("not attempting to resync...");
-        fr->err = MPG123_OUT_OF_SYNC;
-        return READER_ERROR;
-      }
-    }
+			fr->metaflags  |= MPG123_NEW_ID3|MPG123_ID3;
+			goto read_again;
+		}
+		else if(NOQUIET)
+		{
+			fprintf(stderr,"Note: Illegal Audio-MPEG-Header 0x%08lx at offset 0x%lx.\n",
+				newhead, (long unsigned int)fr->rd->tell(fr)-4);
+		}
 
-    if (!fr->firsthead) {
-      if(!decode_header(fr,newhead))
-      {
-         if(NOQUIET) error("decode header failed before first valid one, going to read again");
-         goto read_again;
-      }
-    }
-    else
-      if(!decode_header(fr,newhead))
-      {
-        if(NOQUIET) error("decode header failed - goto resync");
-        /* return 0; */
-        goto init_resync;
-      }
-  }
-  else
-    fr->header_change = 0;
+		if(NOQUIET && (newhead & 0xffffff00) == ('b'<<24)+('m'<<16)+('p'<<8)) fprintf(stderr,"Note: Could be a BMP album art.\n");
+		/* Do resync if not forbidden by flag.
+		I used to have a check for not-icy-meta here, but concluded that the desync issues came from a reader bug, not the stream. */
+		if( !(fr->p.flags & MPG123_NO_RESYNC) )
+		{
+			long try = 0;
+			long limit = fr->p.resync_limit;
+			/* TODO: make this more robust, I'd like to cat two mp3 fragments together (in a dirty way) and still have mpg123 beign able to decode all it somehow. */
+			if(NOQUIET) fprintf(stderr, "Note: Trying to resync...\n");
+			/* Read more bytes until we find something that looks
+			 reasonably like a valid header.  This is not a
+			 perfect strategy, but it should get us back on the
+			 track within a short time (and hopefully without
+			 too much distortion in the audio output).  */
+			do
+			{
+				++try;
+				if(limit >= 0 && try >= limit) break;
+
+				if((ret=fr->rd->head_shift(fr,&newhead)) <= 0)
+				{
+					debug("need more?");
+					if(NOQUIET) fprintf (stderr, "Note: Hit end of (available) data during resync.\n");
+
+				goto read_frame_bad;
+				}
+				debug3("resync try %li at 0x%lx, got newhead 0x%08lx", try, (unsigned long)fr->rd->tell(fr),  newhead);
+				if(!fr->oldhead)
+				{
+					debug("going to init_resync...");
+					goto init_resync;       /* "considered harmful", eh? */
+				}
+				/* we should perhaps collect a list of valid headers that occured in file... there can be more */
+				/* Michael's new resync routine seems to work better with the one frame readahead (and some input buffering?) */
+			} while
+			(
+				!head_check(newhead) /* Simply check for any valid header... we have the readahead to get it straight now(?) */
+				/*   (newhead & HDRCMPMASK) != (fr->oldhead & HDRCMPMASK)
+				&& (newhead & HDRCMPMASK) != (fr->firsthead & HDRCMPMASK)*/
+			);
+			/* too many false positives 
+			}while (!(head_check(newhead) && decode_header(fr, newhead))); */
+			if(NOQUIET) fprintf (stderr, "Note: Skipped %li bytes in input.\n", try);
+
+			if(limit >= 0 && try >= limit)
+			{
+				if(NOQUIET)
+				error1("Giving up resync after %li bytes - your stream is not nice... (maybe increasing resync limit could help).", try);
+
+				fr->err = MPG123_RESYNC_FAIL;
+				return READER_ERROR;
+			}
+			else
+			{
+				debug1("Found valid header 0x%lx... unsetting firsthead to reinit stream.", newhead);
+				fr->firsthead = 0;
+				goto init_resync;
+			}
+		}
+		else
+		{
+			if(NOQUIET) error("not attempting to resync...");
+
+			fr->err = MPG123_OUT_OF_SYNC;
+			return READER_ERROR;
+		}
+	}
+
+	if (!fr->firsthead)
+	{
+		if(!decode_header(fr,newhead))
+		{
+			if(NOQUIET) error("decode header failed before first valid one, going to read again");
+
+			goto read_again;
+		}
+	}
+	else
+	if(!decode_header(fr,newhead))
+	{
+		if(NOQUIET) error("decode header failed - goto resync");
+		/* return 0; */
+		goto init_resync;
+	}
 
 	/* if filepos is invalid, so is framepos */
 	framepos = fr->rd->tell(fr) - 4;
@@ -757,115 +744,117 @@ read_frame_bad:
  */
 static int decode_header(mpg123_handle *fr,unsigned long newhead)
 {
-    if(!head_check(newhead))
-    {
-      if(NOQUIET) error("tried to decode obviously invalid header");
-      return 0;
-    }
-    if( newhead & (1<<20) ) {
-      fr->lsf = (newhead & (1<<19)) ? 0x0 : 0x1;
-      fr->mpeg25 = 0;
-    }
-    else {
-      fr->lsf = 1;
-      fr->mpeg25 = 1;
-    }
-    
-    if ((fr->p.flags & MPG123_NO_RESYNC) || !fr->oldhead ||
-        (((fr->oldhead>>19)&0x3) ^ ((newhead>>19)&0x3))) {
-          /* If "tryresync" is false, assume that certain
-             parameters do not change within the stream!
-	     Force an update if lsf or mpeg25 settings
-	     have changed. */
-      fr->lay = 4-((newhead>>17)&3);
-      if( ((newhead>>10)&0x3) == 0x3) {
-        if(NOQUIET) error("Stream error");
-        return 0; /* exit() here really is too much, isn't it? */
-      }
-      if(fr->mpeg25) {
-        fr->sampling_frequency = 6 + ((newhead>>10)&0x3);
-      }
-      else
-        fr->sampling_frequency = ((newhead>>10)&0x3) + (fr->lsf*3);
-    }
+	if(!head_check(newhead))
+	{
+		if(NOQUIET) error("tried to decode obviously invalid header");
 
-    #ifdef DEBUG
-    if((((newhead>>16)&0x1)^0x1) != fr->error_protection) debug("changed crc bit!");
-    #endif
-    fr->error_protection = ((newhead>>16)&0x1)^0x1; /* seen a file where this varies (old lame tag without crc, track with crc) */
-    fr->bitrate_index = ((newhead>>12)&0xf);
-    fr->padding   = ((newhead>>9)&0x1);
-    fr->extension = ((newhead>>8)&0x1);
-    fr->mode      = ((newhead>>6)&0x3);
-    fr->mode_ext  = ((newhead>>4)&0x3);
-    fr->copyright = ((newhead>>3)&0x1);
-    fr->original  = ((newhead>>2)&0x1);
-    fr->emphasis  = newhead & 0x3;
+		return 0;
+	}
+	if( newhead & (1<<20) )
+	{
+		fr->lsf = (newhead & (1<<19)) ? 0x0 : 0x1;
+		fr->mpeg25 = 0;
+	}
+	else
+	{
+		fr->lsf = 1;
+		fr->mpeg25 = 1;
+	}
 
-    fr->stereo    = (fr->mode == MPG_MD_MONO) ? 1 : 2;
+	if(   (fr->p.flags & MPG123_NO_RESYNC) || !fr->oldhead
+	   || (((fr->oldhead>>19)&0x3) ^ ((newhead>>19)&0x3))  )
+	{
+		/* If "tryresync" is false, assume that certain
+		parameters do not change within the stream!
+		Force an update if lsf or mpeg25 settings
+		have changed. */
+		fr->lay = 4-((newhead>>17)&3);
+		if( ((newhead>>10)&0x3) == 0x3)
+		{
+			if(NOQUIET) error("Stream error");
 
-    fr->oldhead = newhead;
+			return 0; /* exit() here really is too much, isn't it? */
+		}
+		if(fr->mpeg25)
+		fr->sampling_frequency = 6 + ((newhead>>10)&0x3);
+		else
+		fr->sampling_frequency = ((newhead>>10)&0x3) + (fr->lsf*3);
+	}
 
-    if(!fr->bitrate_index) {
-      if(NOQUIET) error1("encountered free format header %08lx in decode_header - not supported yet",newhead);
-      return (0);
-    }
+	#ifdef DEBUG
+	if((((newhead>>16)&0x1)^0x1) != fr->error_protection) debug("changed crc bit!");
+	#endif
+	fr->error_protection = ((newhead>>16)&0x1)^0x1; /* seen a file where this varies (old lame tag without crc, track with crc) */
+	fr->bitrate_index = ((newhead>>12)&0xf);
+	fr->padding   = ((newhead>>9)&0x1);
+	fr->extension = ((newhead>>8)&0x1);
+	fr->mode      = ((newhead>>6)&0x3);
+	fr->mode_ext  = ((newhead>>4)&0x3);
+	fr->copyright = ((newhead>>3)&0x1);
+	fr->original  = ((newhead>>2)&0x1);
+	fr->emphasis  = newhead & 0x3;
 
-    switch(fr->lay) {
-      case 1:
-	fr->do_layer = do_layer1;
-#ifdef VARMODESUPPORT
-        if (varmode) {
-          if(NOQUIET) error("Sorry, layer-1 not supported in varmode."); 
-          return (0);
-        }
-#endif
-        fr->framesize  = (long) tabsel_123[fr->lsf][0][fr->bitrate_index] * 12000;
-        fr->framesize /= freqs[fr->sampling_frequency];
-        fr->framesize  = ((fr->framesize+fr->padding)<<2)-4;
-        break;
-      case 2:
-	fr->do_layer = do_layer2;
-#ifdef VARMODESUPPORT
-        if (varmode) {
-          if(NOQUIET) error("Sorry, layer-2 not supported in varmode."); 
-          return (0);
-        }
-#endif
-debug2("bitrate index: %i (%i)", fr->bitrate_index, tabsel_123[fr->lsf][1][fr->bitrate_index] );
-        fr->framesize = (long) tabsel_123[fr->lsf][1][fr->bitrate_index] * 144000;
-        fr->framesize /= freqs[fr->sampling_frequency];
-        fr->framesize += fr->padding - 4;
-        break;
-      case 3:
-        fr->do_layer = do_layer3;
-        if(fr->lsf)
-          fr->ssize = (fr->stereo == 1) ? 9 : 17;
-        else
-          fr->ssize = (fr->stereo == 1) ? 17 : 32;
-        if(fr->error_protection)
-          fr->ssize += 2;
-        fr->framesize  = (long) tabsel_123[fr->lsf][2][fr->bitrate_index] * 144000;
-        fr->framesize /= freqs[fr->sampling_frequency]<<(fr->lsf);
-        fr->framesize = fr->framesize + fr->padding - 4;
-        break; 
-      default:
-        if(NOQUIET) error("unknown layer type (!!)"); 
-        return (0);
-    }
-    if (fr->framesize > MAXFRAMESIZE) {
-      if(NOQUIET) error1("Frame size too big: %d", fr->framesize+4-fr->padding);
-      return (0);
-    }
-    return 1;
+	fr->stereo    = (fr->mode == MPG_MD_MONO) ? 1 : 2;
+
+	fr->oldhead = newhead;
+
+	if(!fr->bitrate_index)
+	{
+		if(NOQUIET) error1("encountered free format header %08lx in decode_header - not supported yet",newhead);
+
+		return 0;
+	}
+
+	switch(fr->lay)
+	{
+		case 1:
+			fr->do_layer = do_layer1;
+			fr->framesize  = (long) tabsel_123[fr->lsf][0][fr->bitrate_index] * 12000;
+			fr->framesize /= freqs[fr->sampling_frequency];
+			fr->framesize  = ((fr->framesize+fr->padding)<<2)-4;
+		break;
+		case 2:
+			fr->do_layer = do_layer2;
+			debug2("bitrate index: %i (%i)", fr->bitrate_index, tabsel_123[fr->lsf][1][fr->bitrate_index] );
+			fr->framesize = (long) tabsel_123[fr->lsf][1][fr->bitrate_index] * 144000;
+			fr->framesize /= freqs[fr->sampling_frequency];
+			fr->framesize += fr->padding - 4;
+		break;
+		case 3:
+			fr->do_layer = do_layer3;
+			if(fr->lsf)
+			fr->ssize = (fr->stereo == 1) ? 9 : 17;
+			else
+			fr->ssize = (fr->stereo == 1) ? 17 : 32;
+
+			if(fr->error_protection)
+			fr->ssize += 2;
+
+			fr->framesize  = (long) tabsel_123[fr->lsf][2][fr->bitrate_index] * 144000;
+			fr->framesize /= freqs[fr->sampling_frequency]<<(fr->lsf);
+			fr->framesize = fr->framesize + fr->padding - 4;
+		break; 
+		default:
+			if(NOQUIET) error("unknown layer type (!!)"); 
+
+			return 0;
+	}
+	if (fr->framesize > MAXFRAMESIZE)
+	{
+		if(NOQUIET) error1("Frame size too big: %d", fr->framesize+4-fr->padding);
+
+		return (0);
+	}
+	return 1;
 }
 
 void set_pointer(mpg123_handle *fr, long backstep)
 {
-  fr->wordpointer = fr->bsbuf + fr->ssize - backstep;
-  if (backstep)
-    memcpy(fr->wordpointer,fr->bsbufold+fr->fsizeold-backstep,backstep);
-  fr->bitindex = 0; 
+	fr->wordpointer = fr->bsbuf + fr->ssize - backstep;
+	if (backstep)
+	memcpy(fr->wordpointer,fr->bsbufold+fr->fsizeold-backstep,backstep);
+
+	fr->bitindex = 0; 
 }
 
 /********************************/
@@ -874,21 +863,22 @@ double compute_bpf(mpg123_handle *fr)
 {
 	double bpf;
 
-        switch(fr->lay) {
-                case 1:
-                        bpf = tabsel_123[fr->lsf][0][fr->bitrate_index];
-                        bpf *= 12000.0 * 4.0;
-                        bpf /= freqs[fr->sampling_frequency] <<(fr->lsf);
-                        break;
-                case 2:
-                case 3:
-                        bpf = tabsel_123[fr->lsf][fr->lay-1][fr->bitrate_index];
-                        bpf *= 144000;
-                        bpf /= freqs[fr->sampling_frequency] << (fr->lsf);
-                        break;
-                default:
-                        bpf = 1.0;
-        }
+	switch(fr->lay) 
+	{
+		case 1:
+			bpf = tabsel_123[fr->lsf][0][fr->bitrate_index];
+			bpf *= 12000.0 * 4.0;
+			bpf /= freqs[fr->sampling_frequency] <<(fr->lsf);
+		break;
+		case 2:
+		case 3:
+			bpf = tabsel_123[fr->lsf][fr->lay-1][fr->bitrate_index];
+			bpf *= 144000;
+			bpf /= freqs[fr->sampling_frequency] << (fr->lsf);
+		break;
+		default:
+			bpf = 1.0;
+	}
 
 	return bpf;
 }
@@ -905,8 +895,8 @@ double attribute_align_arg mpg123_tpf(mpg123_handle *fr)
 }
 
 int attribute_align_arg mpg123_position(mpg123_handle *fr, off_t no, off_t buffsize,
-                    off_t  *current_frame,   off_t  *frames_left,
-                    double *current_seconds, double *seconds_left)
+	off_t  *current_frame,   off_t  *frames_left,
+	double *current_seconds, double *seconds_left)
 {
 	double tpf;
 	double dt = 0.0;

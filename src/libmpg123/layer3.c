@@ -1856,14 +1856,6 @@ int do_layer3(mpg123_handle *fr)
         clip += (fr->synth)(hybridOut[1][ss], 1, fr, 1);
       }
 
-#ifdef VARMODESUPPORT
-      if (playlimit < 128) {
-        fr->buffer.fill -= playlimit >> 1;
-        playlimit = 0;
-      }
-      else
-        playlimit -= 128;
-#endif
     }
 #ifdef OPT_I486
     } else {
