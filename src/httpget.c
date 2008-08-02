@@ -630,6 +630,7 @@ int http_open(char* url, struct httpdata *hd)
 				char *tmp;
 				debug1("searching for header values... %s", response.p);
 				/* Not sure if I want to bail out on error here. */
+				/* Also: What text encoding are these strings in? Doesn't need to be plain ASCII... */
 				get_header_string(&response, "content-type", &hd->content_type);
 				get_header_string(&response, "icy-name",     &hd->icy_name);
 				get_header_string(&response, "icy-url",      &hd->icy_url);

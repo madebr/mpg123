@@ -274,6 +274,31 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 	for(ti=0; ti<FIELDS; ++ti) mpg123_free_string(&tag[ti]);
 }
 
+void print_icy(mpg123_handle *mh, FILE *out)
+{
+	char* icy;
+	if(MPG123_OK == mpg123_icy(mh, &icy))
+	{
+		char *icy_decoded = mpg123_icy2utf8(icy);
+		if(icy_decoded != NULL)
+		{
+			mpg123_string in;
+			mpg123_init_string(&in);
+			if(mpg123_set_string(&in, icy_decoded))
+			{
+				mpg123_string out;
+				mpg123_init_string(&out);
+
+				transform(&out, &in);
+				if(out.fill)
+				fprintf(stderr, "\nICY-META: %s\n", out.p);
+
+				mpg123_free_string(&out);
+			}
+			mpg123_free_string(&in);
+		}
+	}
+}
 
 static void utf8_ascii(mpg123_string *dest, mpg123_string *source)
 {

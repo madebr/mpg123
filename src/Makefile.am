@@ -40,8 +40,8 @@ mpg123_SOURCES = \
 	module.h \
 	mpg123.c \
 	mpg123app.h \
-	id3print.c \
-	id3print.h \
+	metaprint.c \
+	metaprint.h \
 	playlist.c \
 	playlist.h \
 	sfifo.c \

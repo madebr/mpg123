@@ -7,6 +7,7 @@
 */
 
 #include "mpg123lib_intern.h"
+#include "icy2utf8.h"
 #include "getbits.h"
 #include "debug.h"
 
@@ -1034,6 +1035,12 @@ int attribute_align_arg mpg123_icy(mpg123_handle *mh, char **icy_meta)
 	}
 	return MPG123_OK;
 }
+
+char* attribute_align_arg mpg123_icy2utf8(const char* icy_text)
+{
+	return icy2utf8(icy_text);
+}
+
 
 int attribute_align_arg mpg123_index(mpg123_handle *mh, off_t **offsets, off_t *step, size_t *fill)
 {

@@ -40,7 +40,7 @@
 #include "term.h"
 #include "playlist.h"
 #include "httpget.h"
-#include "id3print.h"
+#include "metaprint.h"
 #include "getbits.h"
 #include "httpget.h"
 #include "getcpuflags.h"
@@ -1007,10 +1007,8 @@ int main(int argc, char *argv[])
 				meta = mpg123_meta_check(mh);
 				if(meta & (MPG123_NEW_ID3|MPG123_NEW_ICY))
 				{
-					char *icy;
 					if(meta & MPG123_NEW_ID3) print_id3_tag(mh, param.long_id3, stderr);
-					if(meta & MPG123_NEW_ICY && MPG123_OK == mpg123_icy(mh, &icy))
-					fprintf(stderr, "\nICY-META: %s\n", icy);
+					if(meta & MPG123_NEW_ICY) print_icy(mh, stderr);
 				}
 			}
 			if(!fresh && param.verbose)

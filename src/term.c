@@ -17,7 +17,7 @@
 #include "term.h"
 #include "common.h"
 #include "playlist.h"
-#include "id3print.h"
+#include "metaprint.h"
 #include "debug.h"
 
 extern int buffer_pid;

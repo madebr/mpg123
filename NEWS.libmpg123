@@ -1,5 +1,8 @@
 Changes in libmpg123 libtool interface versions...
 
+6.0.6
+	- added mpg123_icy2utf8
+
 5.0.5
 	- added mpg123_feed
 	- input buffers now const

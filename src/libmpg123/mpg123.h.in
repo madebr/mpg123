@@ -679,6 +679,12 @@ EXPORT int mpg123_id3(mpg123_handle *mh, mpg123_id3v1 **v1, mpg123_id3v2 **v2);
  *  \return Return value is MPG123_OK or MPG123_ERR,  */
 EXPORT int mpg123_icy(mpg123_handle *mh, char **icy_meta); /* same for ICY meta string */
 
+/** Decode from windows-1252 (the encoding ICY metainfo used) to UTF-8.
+ *  \param icy_text The input data in ICY encoding
+ *  \return pointer to newly allocated buffer with UTF-8 data (You free() it!) */
+EXPORT char* mpg123_icy2utf8(const char* icy_text);
+
+
 /* @} */
 
 

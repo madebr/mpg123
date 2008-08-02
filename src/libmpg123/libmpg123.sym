@@ -56,6 +56,7 @@ mpg123_set_substring
 mpg123_meta_check
 mpg123_id3
 mpg123_icy
+mpg123_icy2utf8
 mpg123_parnew
 mpg123_new_pars
 mpg123_delete_pars
