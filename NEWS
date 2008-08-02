@@ -8,11 +8,13 @@
   - added mpg123_feed() as shortcut; using const input buffer now
   - resync is enabled again for ICY streams (the trouble in the past was due to a reader bug, not the streams)
   - decode ICY text data to UTF-8 (thanks, Thorsten)
+  - preserve file flags for timeout mode
 - More elaborate (helpful?) error message for output format problems.
 - Reworked HTTP code... and added IPv6 support!
 - Fix the --proxy parameter (has been accidentally ignored before).
 - Added --ignore-mime to work with web streams with funny playlist MIME types like "audio/megurl".
 - Know MIME audio/mpegurl.
+- --timeout is now also used for the connection itself (not just reading).
 - Now trying to resume ALSA device after suspend.
 - subtle build changes (your CFLAGS rule now)
 
