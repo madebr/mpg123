@@ -21,6 +21,18 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <errno.h>
+#include <fcntl.h>
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#endif
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#include <unistd.h>
+#define DEBUG
 #include "debug.h"
 
 int split_url(mpg123_string *url, mpg123_string *auth, mpg123_string *host, mpg123_string *port, mpg123_string *path)
@@ -123,6 +135,92 @@ debug4("hostname between %lu and %lu, %lu chars of %s", (unsigned long)pos, (uns
 	return ret;
 }
 
+/* Switch between blocking and non-blocking mode. */
+static void nonblock(int sock)
+{
+	int flags = fcntl(sock, F_GETFL);
+	flags |= O_NONBLOCK;
+	fcntl(sock, F_SETFL, flags);
+}
+
+static void block(int sock)
+{
+	int flags = fcntl(sock, F_GETFL);
+	flags &= ~O_NONBLOCK;
+	fcntl(sock, F_SETFL, flags);
+}
+
+/* If we want a timeout, connect non-blocking and wait for that long... */
+static int timeout_connect(int sockfd, const struct sockaddr *serv_addr, socklen_t addrlen)
+{
+	if(param.timeout > 0)
+	{
+		int err;
+		time_t then;
+		nonblock(sockfd);
+		err = connect(sockfd, serv_addr, addrlen);
+		if(err == 0)
+		{
+			debug("immediately successful");
+			block(sockfd);
+			return 0;
+		}
+		else if(errno == EINPROGRESS)
+		{
+			struct timeval tv;
+			fd_set fds;
+			tv.tv_sec = param.timeout;
+			tv.tv_usec = 0;
+
+			debug("in progress, waiting...");
+
+			FD_ZERO(&fds);
+			FD_SET(sockfd, &fds);
+			err = select(sockfd+1, NULL, &fds, NULL, &tv);
+			if(err > 0)
+			{
+				socklen_t len = sizeof(err);
+				if(   (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &err, &len) == 0)
+				   && (err == 0) )
+				{
+					debug("non-blocking connect has been successful");
+					block(sockfd);
+					return 0;
+				}
+				else
+				{
+					error1("connection error: %s", strerror(err));
+					return -1;
+				}
+			}
+			else if(err == 0)
+			{
+				error("connection timed out");
+				return -1;
+			}
+			else
+			{
+				error1("error from select(): %s", strerror(errno));
+				return -1;
+			}
+		}
+		else
+		{
+			error1("connection failed: %s", strerror(errno));
+			return err;
+		}
+	}
+	else
+	{
+		if(connect(sockfd, serv_addr, addrlen))
+		{
+			error1("connecton failed: %s", strerror(errno));
+			return -1;
+		}
+		else return 0; /* _good_ */
+	}
+}
+
 /* So, this then is the only routine that should know about IPv4 or v6 in future. */
 int open_connection(mpg123_string *host, mpg123_string *port)
 {
@@ -166,11 +264,8 @@ int open_connection(mpg123_string *host, mpg123_string *port)
 		error1("Cannot create socket: %s", strerror(errno));
 		return -1;
 	}
-	if(connect(sock, (struct sockaddr *)&server, sizeof(server)))
-	{
-		error1("Cannot connect to server: %s", strerror(errno));
-		return -1;
-	}
+	if(timeout_connect(sock, (struct sockaddr *)&server, sizeof(server)))
+	return -1;
 #else /* Host lookup and connection in a protocol independent manner. */
 	struct addrinfo hints;
 	struct addrinfo *addr, *addrlist;
@@ -195,7 +290,7 @@ int open_connection(mpg123_string *host, mpg123_string *port)
 		sock = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
 		if(sock >= 0)
 		{
-			if(connect(sock, addr->ai_addr, addr->ai_addrlen) == 0)
+			if(timeout_connect(sock, addr->ai_addr, addr->ai_addrlen) == 0)
 			break;
 
 			close(sock);
@@ -203,7 +298,7 @@ int open_connection(mpg123_string *host, mpg123_string *port)
 		}
 		addr=addr->ai_next;
 	}
-	if(sock < 0) error2("Cannot resolve %s:%s!", host->p, port->p);
+	if(sock < 0) error2("Cannot resolve/connect to %s:%s!", host->p, port->p);
 
 	freeaddrinfo(addrlist);
 #endif
