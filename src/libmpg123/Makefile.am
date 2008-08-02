@@ -49,6 +49,7 @@ libmpg123_la_SOURCES = \
 	icy.c \
 	icy.h \
 	icy2utf8.c \
+	icy2utf8.h \
 	id3.c \
 	id3.h \
 	true.h \
