@@ -75,7 +75,7 @@ int open_stream(mpg123_handle *, char *path, int fd);
 /* feed based operation has some specials */
 int open_feed(mpg123_handle *);
 /* externally called function, returns 0 on success, -1 on error */
-int  feed_more(mpg123_handle *fr, unsigned char *in, long count);
+int  feed_more(mpg123_handle *fr, const unsigned char *in, long count);
 void feed_forget(mpg123_handle *fr);  /* forget the data that has been read (free some buffers) */
 off_t feed_set_pos(mpg123_handle *fr, off_t pos); /* Set position (inside available data if possible), return wanted byte offset of next feed. */
 

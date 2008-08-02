@@ -43,7 +43,7 @@ static int bc_append(struct bufferchain *bc, ssize_t size);
 #if 0
 static void bc_drop(struct bufferchain *bc);
 #endif
-static int bc_add(struct bufferchain *bc, unsigned char *data, ssize_t size);
+static int bc_add(struct bufferchain *bc, const unsigned char *data, ssize_t size);
 static ssize_t bc_give(struct bufferchain *bc, unsigned char *out, size_t size);
 static ssize_t bc_skip(struct bufferchain *bc, ssize_t count);
 static ssize_t bc_seekback(struct bufferchain *bc, ssize_t count);
@@ -466,7 +466,7 @@ static void bc_drop(struct bufferchain *bc)
 #endif
 
 /* Append a new buffer and copy content to it. */
-static int bc_add(struct bufferchain *bc, unsigned char *data, ssize_t size)
+static int bc_add(struct bufferchain *bc, const unsigned char *data, ssize_t size)
 {
 	int ret = 0;
 	if((ret = bc_append(bc, size)) == 0)
@@ -566,7 +566,7 @@ static int feed_init(mpg123_handle *fr)
 }
 
 /* externally called function, returns 0 on success, -1 on error */
-int feed_more(mpg123_handle *fr, unsigned char *in, long count)
+int feed_more(mpg123_handle *fr, const unsigned char *in, long count)
 {
 	int ret = 0;
 	debug("feed_more");
