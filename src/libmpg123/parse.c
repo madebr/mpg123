@@ -311,7 +311,10 @@ static int check_lame_tag(mpg123_handle *fr)
 					)
 					{
 						debug("Wow! Is there _really_ a non-zero peak value? Now is it stored as float or int - how should I know?");
-						peak = *(float*) (fr->bsbuf+lame_offset);
+						/* byte*peak_bytes = (byte*) &peak;
+						... endianess ... just copy bytes to avoid floating point operation on unaligned memory?
+						peak_bytes[0] = ...
+						peak = *(float*) (fr->bsbuf+lame_offset); */
 					}
 					if(VERBOSE3) fprintf(stderr, "Note: Info: peak = %f (I won't use this)\n", peak);
 					peak = 0; /* until better times arrived */
