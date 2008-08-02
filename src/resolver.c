@@ -32,7 +32,6 @@
 #include <sys/types.h>
 #endif
 #include <unistd.h>
-#define DEBUG
 #include "debug.h"
 
 int split_url(mpg123_string *url, mpg123_string *auth, mpg123_string *host, mpg123_string *port, mpg123_string *path)
