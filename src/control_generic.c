@@ -434,7 +434,7 @@ int control_generic (mpg123_handle *fr)
 					generic_sendmsg("H {");
 					generic_sendmsg("H HELP/H: command listing (LONG/SHORT forms), command case insensitve");
 					generic_sendmsg("H LOAD/L <trackname>: load and start playing resource <trackname>");
-					generic_sendmsg("H LOADPAUSED/LP <trackname>: load and start playing resource <trackname>");
+					generic_sendmsg("H LOADPAUSED/LP <trackname>: load but do not start playing resource <trackname>");
 					generic_sendmsg("H PAUSE/P: pause playback");
 					generic_sendmsg("H STOP/S: stop playback (closes file)");
 					generic_sendmsg("H JUMP/J <frame>|<+offset>|<-offset>|<[+|-]seconds>s: jump to mpeg frame <frame> or change position by offset, same in seconds if number followed by \"s\"");
