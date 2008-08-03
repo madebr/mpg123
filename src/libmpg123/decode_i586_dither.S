@@ -366,3 +366,7 @@ ASM_NAME(synth_1to1_i586_asm_dither):
 /* The stack must be now: 0=back 4=bandptr 8=channel 12=out 16=buffs 20=bo */
 	ret
 
+/* Mark non-executable stack. */
+#if defined(__linux__) && defined(__ELF__)
+.section .note.GNU-stack,"",%progbits
+#endif

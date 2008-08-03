@@ -278,3 +278,8 @@ ASM_NAME(synth_1to1_3dnow_asm):
 	popl %ebp
 	addl $24,%esp
 	ret
+
+/* Mark non-executable stack. */
+#if defined(__linux__) && defined(__ELF__)
+.section .note.GNU-stack,"",%progbits
+#endif

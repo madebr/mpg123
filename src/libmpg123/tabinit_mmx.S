@@ -207,3 +207,7 @@ ASM_NAME(make_decode_tables_mmx_asm):
 	popl %edi
 	ret
 
+/* Mark non-executable stack. */
+#if defined(__linux__) && defined(__ELF__)
+.section .note.GNU-stack,"",%progbits
+#endif

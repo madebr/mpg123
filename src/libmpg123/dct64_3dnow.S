@@ -709,3 +709,7 @@ ASM_NAME(dct64_3dnow):
 	
         ret
 
+/* Mark non-executable stack. */
+#if defined(__linux__) && defined(__ELF__)
+.section .note.GNU-stack,"",%progbits
+#endif

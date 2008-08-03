@@ -555,3 +555,8 @@ ASM_NAME(dct64_sse):
 	popl	%ebp
 	ret
 	/* .size	ASM_NAME(dct64_sse), .-ASM_NAME(dct64_sse) */
+
+/* Mark non-executable stack. */
+#if defined(__linux__) && defined(__ELF__)
+.section .note.GNU-stack,"",%progbits
+#endif
