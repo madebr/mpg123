@@ -48,15 +48,14 @@ Decode only
 .I num
 frames.  By default the complete stream is decoded.
 .TP
-.BR \-y ", " \-\^\-resync
+.BR \-y ", " \-\^\-no\-resync
 Do NOT try to resync and continue decoding if an error occurs in
 the input file. Normally, 
 .B mpg123
 tries to keep the playback alive at all costs, including skipping invalid material and searching new header when something goes wrong.
 With this switch you can make it bail out on data errors
-(and perhaps spare your ears a bad time). Note that this switch may either disappear
-in future or its meaning be revised since it now does the opposite of what it
-suggests.
+(and perhaps spare your ears a bad time). Note that this switch has been renamed from \-\-resync.
+The old name still works, but is not advertised or recommened to use (subject to removal in future).
 .TP
 \fB\-\^-resync\-limit \fIbytes\fR
 Set number of bytes to search for valid MPEG data; <0 means search whole stream.
