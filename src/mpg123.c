@@ -338,7 +338,9 @@ topt opts[] = {
 	{'c', "check",       GLO_INT,  0, &param.checkrange, TRUE},
 	{'v', "verbose",     0,        set_verbose, 0,           0},
 	{'q', "quiet",       0,        set_quiet,   0,           0},
-	{'y', "resync",      GLO_INT,  set_frameflag, &frameflag, MPG123_NO_RESYNC},
+	{'y', "no-resync",      GLO_INT,  set_frameflag, &frameflag, MPG123_NO_RESYNC},
+	/* compatibility, no-resync is to be used nowadays */
+	{0, "resync",      GLO_INT,  set_frameflag, &frameflag, MPG123_NO_RESYNC},
 	{'0', "single0",     GLO_INT,  set_frameflag, &frameflag, MPG123_MONO_LEFT},
 	{0,   "left",        GLO_INT,  set_frameflag, &frameflag, MPG123_MONO_LEFT},
 	{'1', "single1",     GLO_INT,  set_frameflag, &frameflag, MPG123_MONO_RIGHT},
@@ -1132,7 +1134,7 @@ static void long_usage(int err)
 	fprintf(o,"\ninput options\n\n");
 	fprintf(o," -k <n> --skip <n>         skip n frames at beginning\n");
 	fprintf(o," -n     --frames <n>       play only <n> frames of every stream\n");
-	fprintf(o," -y     --resync           DISABLES resync on error\n");
+	fprintf(o," -y     --no-resync        DISABLES resync on error (--resync is deprecated)\n");
 	fprintf(o," -p <f> --proxy <f>        set WWW proxy\n");
 	fprintf(o," -u     --auth             set auth values for HTTP access\n");
 	fprintf(o,"        --ignore-mime      ignore HTTP MIME types (content-type)\n");
