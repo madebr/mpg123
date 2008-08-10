@@ -100,6 +100,7 @@ struct auhead {
 
 
 static FILE *wavfp;
+static int header_written = 0; /* prevent writing multiple headers to stdout */
 static long datalen = 0;
 static int flipendian=0;
 
@@ -170,6 +171,25 @@ static int open_file(char *filename)
   return 0;
 }
 
+static void close_file(void)
+{
+	if(wavfp != NULL && wavfp != stdout)
+	fclose(wavfp);
+
+	wavfp = NULL;
+}
+
+/* Wrapper over header writing; ensure that stdout doesn't get multiple headers. */
+static size_t write_header(const void*ptr, size_t size)
+{
+	if(wavfp == stdout)
+	{
+		if(header_written) return 1;
+
+		header_written = 1;
+	}
+	return fwrite(ptr, size, 1, wavfp);
+}
 
 int au_open(audio_output_t *ao)
 {
@@ -209,7 +229,7 @@ int au_open(audio_output_t *ao)
   if(open_file(ao->device) < 0)
     return -1;
 
-  fwrite(&auhead, sizeof(auhead),1,wavfp);
+	write_header(&auhead, sizeof(auhead));
   datalen = 0;
 
   return 0;
@@ -286,11 +306,10 @@ int wav_open(audio_output_t *ao)
 
    long2littleendian(datalen,RIFF.WAVE.data.datalen,sizeof(RIFF.WAVE.data.datalen));
    long2littleendian(datalen+sizeof(RIFF.WAVE),RIFF.WAVElen,sizeof(RIFF.WAVElen));
-   if(fwrite(&RIFF, sizeof(RIFF),1,wavfp) != 1)
+   if(write_header(&RIFF, sizeof(RIFF)) != 1)
    {
 			error1("cannot write header: %s", strerror(errno));
-			fclose(wavfp);
-			wavfp = NULL;
+			close_file();
 			return -1;
    }
 
@@ -348,7 +367,6 @@ int wav_close(void)
 {
    if(!wavfp) 
       return 0;
-
    if(fseek(wavfp, 0L, SEEK_SET) >= 0) {
      long2littleendian(datalen,RIFF.WAVE.data.datalen,sizeof(RIFF.WAVE.data.datalen));
      long2littleendian(datalen+sizeof(RIFF.WAVE),RIFF.WAVElen,sizeof(RIFF.WAVElen));
@@ -356,13 +374,13 @@ int wav_close(void)
      long2littleendian(datalen/(from_little(RIFF.WAVE.fmt.Channels,2)*from_little(RIFF.WAVE.fmt.BitsPerSample,2)/8),
                        RIFF.WAVE.fact.samplelen,sizeof(RIFF.WAVE.fact.samplelen));
 #endif
+     /* Always (over)writing the header here; also for stdout, when fseek worked, this overwrite works. */
      fwrite(&RIFF, sizeof(RIFF),1,wavfp);
    }
    else {
      warning("Cannot rewind WAV file. File-format isn't fully conform now.");
    }
-	fclose(wavfp);
-	wavfp = NULL;
+	close_file();
    return 0;
 }
 
@@ -373,10 +391,13 @@ int au_close(void)
 
    if(fseek(wavfp, 0L, SEEK_SET) >= 0) {
      long2bigendian(datalen,auhead.datalen,sizeof(auhead.datalen));
+     /* Always (over)writing the header here; also for stdout, when fseek worked, this overwrite works. */
      fwrite(&auhead, sizeof(auhead),1,wavfp); 
    }
-	fclose(wavfp);
-	wavfp = NULL;
+   else
+   warning("Cannot rewind AU file. File-format isn't fully conform now.");
+
+	close_file();
 
   return 0;
 }
@@ -385,8 +406,7 @@ int cdr_close(void)
 {
 	if(!wavfp) return 0;
 
-	fclose(wavfp);
-	wavfp = NULL;
+	close_file();
 	return 0;
 }
 
