@@ -50,14 +50,14 @@ struct mpg123_handle_struct;
 typedef struct mpg123_handle_struct mpg123_handle;
 
 /** Function to initialise the mpg123 library. 
- *	This function is not thread-safe. Call it exactly once before any other work with the library.
+ *	This function is not thread-safe. Call it exactly once per process, before any other (possibly threaded) work with the library.
  *
  *	\return MPG123_OK if successful, otherwise an error number.
  */
 EXPORT int  mpg123_init(void);
 
 /** Function to close down the mpg123 library. 
- *	This function is not thread-safe. Call it exactly once after any work with the library. */
+ *	This function is not thread-safe. Call it exactly once per process, before any other (possibly threaded) work with the library. */
 EXPORT void mpg123_exit(void);
 
 /** Create a handle with optional choice of decoder (named by a string, see mpg123_decoders() or mpg123_supported_decoders()).
