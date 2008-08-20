@@ -56,14 +56,6 @@ pnpn:
 one.4748:
 	.long	1065353216
 
-	/* no .data ? */
-	/* .local	b2.4747 */
-	ALIGN16
-	COMM(b2.4747,128,16)
-	/* .local	b1.4746 */
-	ALIGN16
-	COMM(b1.4746,128,16)
-
 	.text
 	ALIGN16,,15
 .globl ASM_NAME(dct64_sse)
@@ -71,9 +63,19 @@ one.4748:
 ASM_NAME(dct64_sse):
 	pushl	%ebp
 	movl	%esp, %ebp
-	movl	16(%ebp), %eax
+	/* stack from ebp: 0=ebp 4=back 8=arg0 12=arg1 16=arg2 */
+#define ARG(n) (8+n*4)(%ebp)
+	andl	$-16, %esp /* align the stack at 16 bytes */
+	subl	$256, %esp /* reserve space for local b1 and b2 */
 	pushl	%ebx
-	movl	8(%ebp), %ecx
+/* stack from esp: 0=ebx 4...131=b2 132...259=b1 */
+#define B1OFF 132
+#define B2OFF 4
+#define B1(n) (B1OFF+n)(%esp)
+#define B2(n) (B2OFF+n)(%esp)
+
+	movl	ARG(2), %eax
+	movl	ARG(0), %ecx
 #APP
 /* for (i = 0; i < 0x20 / 2; i += 4) cycle 1 */
 	movaps    ASM_NAME(costab_mmxsse), %xmm3
@@ -85,13 +87,13 @@ ASM_NAME(dct64_sse):
 	movaps    %xmm2, %xmm0
 	shufps    $27, %xmm0, %xmm0
 	addps     %xmm0, %xmm1
-	movaps    %xmm1, b1.4746
+	movaps    %xmm1, B1(0)
 	subps     %xmm2, %xmm4
 	mulps     %xmm3, %xmm4
-	movaps    %xmm4, b1.4746+112
+	movaps    %xmm4, B1(112)
 	
 #NO_APP
-	movl	12(%ebp), %ebx
+	movl	ARG(1), %ebx
 #APP
 /* for (i = 0; i < 0x20 / 2; i += 4) cycle 2 */
 	movaps    ASM_NAME(costab_mmxsse)+16, %xmm3
@@ -103,10 +105,10 @@ ASM_NAME(dct64_sse):
 	movaps    %xmm2, %xmm0
 	shufps    $27, %xmm0, %xmm0
 	addps     %xmm0, %xmm1
-	movaps    %xmm1, b1.4746+16
+	movaps    %xmm1, B1(16)
 	subps     %xmm2, %xmm4
 	mulps     %xmm3, %xmm4
-	movaps    %xmm4, b1.4746+96
+	movaps    %xmm4, B1(96)
 	
 /* for (i = 0; i < 0x20 / 2; i += 4) cycle 3 */
 	movaps    ASM_NAME(costab_mmxsse)+32, %xmm3
@@ -118,10 +120,10 @@ ASM_NAME(dct64_sse):
 	movaps    %xmm2, %xmm0
 	shufps    $27, %xmm0, %xmm0
 	addps     %xmm0, %xmm1
-	movaps    %xmm1, b1.4746+32
+	movaps    %xmm1, B1(32)
 	subps     %xmm2, %xmm4
 	mulps     %xmm3, %xmm4
-	movaps    %xmm4, b1.4746+80
+	movaps    %xmm4, B1(80)
 	
 /* for (i = 0; i < 0x20 / 2; i += 4) cycle 4 */
 	movaps    ASM_NAME(costab_mmxsse)+48, %xmm3
@@ -133,15 +135,15 @@ ASM_NAME(dct64_sse):
 	movaps    %xmm2, %xmm0
 	shufps    $27, %xmm0, %xmm0
 	addps     %xmm0, %xmm1
-	movaps    %xmm1, b1.4746+48
+	movaps    %xmm1, B1(48)
 	subps     %xmm2, %xmm4
 	mulps     %xmm3, %xmm4
-	movaps    %xmm4, b1.4746+64
+	movaps    %xmm4, B1(64)
 	
-	movaps    b1.4746, %xmm1
-	movaps    b1.4746+16, %xmm3
-	movaps    b1.4746+32, %xmm4
-	movaps    b1.4746+48, %xmm6
+	movaps    B1(0), %xmm1
+	movaps    B1(16), %xmm3
+	movaps    B1(32), %xmm4
+	movaps    B1(48), %xmm6
 	movaps    %xmm1, %xmm7
 	shufps    $27, %xmm7, %xmm7
 	movaps    %xmm3, %xmm5
@@ -151,18 +153,18 @@ ASM_NAME(dct64_sse):
 	movaps    %xmm6, %xmm0
 	shufps    $27, %xmm0, %xmm0
 	addps     %xmm0, %xmm1
-	movaps    %xmm1, b2.4747
+	movaps    %xmm1, B2(0)
 	addps     %xmm2, %xmm3
-	movaps    %xmm3, b2.4747+16
+	movaps    %xmm3, B2(16)
 	subps     %xmm4, %xmm5
-	movaps    %xmm5, b2.4747+32
+	movaps    %xmm5, B2(32)
 	subps     %xmm6, %xmm7
-	movaps    %xmm7, b2.4747+48
+	movaps    %xmm7, B2(48)
 	
-	movaps    b1.4746+64, %xmm1
-	movaps    b1.4746+80, %xmm3
-	movaps    b1.4746+96, %xmm4
-	movaps    b1.4746+112, %xmm6
+	movaps    B1(64), %xmm1
+	movaps    B1(80), %xmm3
+	movaps    B1(96), %xmm4
+	movaps    B1(112), %xmm6
 	movaps    %xmm1, %xmm7
 	shufps    $27, %xmm7, %xmm7
 	movaps    %xmm3, %xmm5
@@ -172,16 +174,16 @@ ASM_NAME(dct64_sse):
 	movaps    %xmm6, %xmm0
 	shufps    $27, %xmm0, %xmm0
 	addps     %xmm0, %xmm1
-	movaps    %xmm1, b2.4747+64
+	movaps    %xmm1, B2(64)
 	addps     %xmm2, %xmm3
-	movaps    %xmm3, b2.4747+80
+	movaps    %xmm3, B2(80)
 	subps     %xmm4, %xmm5
-	movaps    %xmm5, b2.4747+96
+	movaps    %xmm5, B2(96)
 	subps     %xmm6, %xmm7
-	movaps    %xmm7, b2.4747+112
+	movaps    %xmm7, B2(112)
 	
-	movaps    b2.4747+32, %xmm0
-	movaps    b2.4747+48, %xmm1
+	movaps    B2(32), %xmm0
+	movaps    B2(48), %xmm1
 	movaps    ASM_NAME(costab_mmxsse)+64, %xmm4
 	xorps     %xmm6, %xmm6
 	shufps    $27, %xmm4, %xmm4
@@ -190,77 +192,77 @@ ASM_NAME(dct64_sse):
 	xorps     %xmm7, %xmm7
 	shufps    $27, %xmm2, %xmm2
 	mulps     %xmm2, %xmm0
-	movaps    %xmm0, b2.4747+32
-	movaps    %xmm1, b2.4747+48
-	movaps    b2.4747+96, %xmm3
+	movaps    %xmm0, B2(32)
+	movaps    %xmm1, B2(48)
+	movaps    B2(96), %xmm3
 	mulps     %xmm2, %xmm3
 	subps     %xmm3, %xmm6
-	movaps    %xmm6, b2.4747+96
-	movaps    b2.4747+112, %xmm5
+	movaps    %xmm6, B2(96)
+	movaps    B2(112), %xmm5
 	mulps     %xmm4, %xmm5
 	subps     %xmm5, %xmm7
-	movaps    %xmm7, b2.4747+112
+	movaps    %xmm7, B2(112)
 	
 	movaps    ASM_NAME(costab_mmxsse)+96, %xmm0
 	shufps    $27, %xmm0, %xmm0
 	movaps    nnnn, %xmm5
 	movaps    %xmm5, %xmm6
 	
-	movaps    b2.4747, %xmm2
-	movaps    b2.4747+16, %xmm3
+	movaps    B2(0), %xmm2
+	movaps    B2(16), %xmm3
 	movaps    %xmm2, %xmm4
 	xorps     %xmm5, %xmm6
 	shufps    $27, %xmm4, %xmm4
 	movaps    %xmm3, %xmm1
 	shufps    $27, %xmm1, %xmm1
 	addps     %xmm1, %xmm2
-	movaps    %xmm2, b1.4746
+	movaps    %xmm2, B1(0)
 	subps     %xmm3, %xmm4
 	xorps     %xmm6, %xmm4
 	mulps     %xmm0, %xmm4
-	movaps    %xmm4, b1.4746+16
+	movaps    %xmm4, B1(16)
 	
-	movaps    b2.4747+32, %xmm2
-	movaps    b2.4747+48, %xmm3
+	movaps    B2(32), %xmm2
+	movaps    B2(48), %xmm3
 	movaps    %xmm2, %xmm4
 	xorps     %xmm5, %xmm6
 	shufps    $27, %xmm4, %xmm4
 	movaps    %xmm3, %xmm1
 	shufps    $27, %xmm1, %xmm1
 	addps     %xmm1, %xmm2
-	movaps    %xmm2, b1.4746+32
+	movaps    %xmm2, B1(32)
 	subps     %xmm3, %xmm4
 	xorps     %xmm6, %xmm4
 	mulps     %xmm0, %xmm4
-	movaps    %xmm4, b1.4746+48
+	movaps    %xmm4, B1(48)
 	
-	movaps    b2.4747+64, %xmm2
-	movaps    b2.4747+80, %xmm3
+	movaps    B2(64), %xmm2
+	movaps    B2(80), %xmm3
 	movaps    %xmm2, %xmm4
 	xorps     %xmm5, %xmm6
 	shufps    $27, %xmm4, %xmm4
 	movaps    %xmm3, %xmm1
 	shufps    $27, %xmm1, %xmm1
 	addps     %xmm1, %xmm2
-	movaps    %xmm2, b1.4746+64
+	movaps    %xmm2, B1(64)
 	subps     %xmm3, %xmm4
 	xorps     %xmm6, %xmm4
 	mulps     %xmm0, %xmm4
-	movaps    %xmm4, b1.4746+80
+	movaps    %xmm4, B1(80)
 	
-	movaps    b2.4747+96, %xmm2
-	movaps    b2.4747+112, %xmm3
+	movaps    B2(96), %xmm2
+	movaps    B2(112), %xmm3
 	movaps    %xmm2, %xmm4
 	xorps     %xmm5, %xmm6
 	shufps    $27, %xmm4, %xmm4
 	movaps    %xmm3, %xmm1
 	shufps    $27, %xmm1, %xmm1
 	addps     %xmm1, %xmm2
-	movaps    %xmm2, b1.4746+96
+	movaps    %xmm2, B1(96)
 	subps     %xmm3, %xmm4
 	xorps     %xmm6, %xmm4
 	mulps     %xmm0, %xmm4
-	movaps    %xmm4, b1.4746+112
+	movaps    %xmm4, B1(112)
 	
 	movss     one.4748, %xmm1
 	movss     ASM_NAME(costab_mmxsse)+112, %xmm0
@@ -272,69 +274,69 @@ ASM_NAME(dct64_sse):
 	unpcklps  %xmm3, %xmm0
 	movaps    ppnn, %xmm2
 	
-	movaps    b1.4746, %xmm3
+	movaps    B1(0), %xmm3
 	movaps    %xmm3, %xmm4
 	shufps    $20, %xmm4, %xmm4
 	shufps    $235, %xmm3, %xmm3
 	xorps     %xmm2, %xmm3
 	addps     %xmm3, %xmm4
 	mulps     %xmm0, %xmm4
-	movaps    %xmm4, b2.4747
-	movaps    b1.4746+16, %xmm6
+	movaps    %xmm4, B2(0)
+	movaps    B1(16), %xmm6
 	movaps    %xmm6, %xmm5
 	shufps    $27, %xmm5, %xmm5
 	xorps     %xmm2, %xmm5
 	addps     %xmm5, %xmm6
 	mulps     %xmm0, %xmm6
-	movaps    %xmm6, b2.4747+16
+	movaps    %xmm6, B2(16)
 	
-	movaps    b1.4746+32, %xmm3
+	movaps    B1(32), %xmm3
 	movaps    %xmm3, %xmm4
 	shufps    $20, %xmm4, %xmm4
 	shufps    $235, %xmm3, %xmm3
 	xorps     %xmm2, %xmm3
 	addps     %xmm3, %xmm4
 	mulps     %xmm0, %xmm4
-	movaps    %xmm4, b2.4747+32
-	movaps    b1.4746+48, %xmm6
+	movaps    %xmm4, B2(32)
+	movaps    B1(48), %xmm6
 	movaps    %xmm6, %xmm5
 	shufps    $27, %xmm5, %xmm5
 	xorps     %xmm2, %xmm5
 	addps     %xmm5, %xmm6
 	mulps     %xmm0, %xmm6
-	movaps    %xmm6, b2.4747+48
+	movaps    %xmm6, B2(48)
 	
-	movaps    b1.4746+64, %xmm3
+	movaps    B1(64), %xmm3
 	movaps    %xmm3, %xmm4
 	shufps    $20, %xmm4, %xmm4
 	shufps    $235, %xmm3, %xmm3
 	xorps     %xmm2, %xmm3
 	addps     %xmm3, %xmm4
 	mulps     %xmm0, %xmm4
-	movaps    %xmm4, b2.4747+64
-	movaps    b1.4746+80, %xmm6
+	movaps    %xmm4, B2(64)
+	movaps    B1(80), %xmm6
 	movaps    %xmm6, %xmm5
 	shufps    $27, %xmm5, %xmm5
 	xorps     %xmm2, %xmm5
 	addps     %xmm5, %xmm6
 	mulps     %xmm0, %xmm6
-	movaps    %xmm6, b2.4747+80
+	movaps    %xmm6, B2(80)
 	
-	movaps    b1.4746+96, %xmm3
+	movaps    B1(96), %xmm3
 	movaps    %xmm3, %xmm4
 	shufps    $20, %xmm4, %xmm4
 	shufps    $235, %xmm3, %xmm3
 	xorps     %xmm2, %xmm3
 	addps     %xmm3, %xmm4
 	mulps     %xmm0, %xmm4
-	movaps    %xmm4, b2.4747+96
-	movaps    b1.4746+112, %xmm6
+	movaps    %xmm4, B2(96)
+	movaps    B1(112), %xmm6
 	movaps    %xmm6, %xmm5
 	shufps    $27, %xmm5, %xmm5
 	xorps     %xmm2, %xmm5
 	addps     %xmm5, %xmm6
 	mulps     %xmm0, %xmm6
-	movaps    %xmm6, b2.4747+112
+	movaps    %xmm6, B2(112)
 	
 	movss     ASM_NAME(costab_mmxsse)+120, %xmm0
 	movaps    %xmm1, %xmm2
@@ -344,99 +346,101 @@ ASM_NAME(dct64_sse):
 	movaps    pnpn, %xmm0
 	unpcklps  %xmm7, %xmm2
 	
-	movaps    b2.4747+32, %xmm1
+	movaps    B2(32), %xmm1
 	movaps    %xmm1, %xmm3
 	shufps    $224, %xmm3, %xmm3
 	shufps    $181, %xmm1, %xmm1
 	xorps     %xmm0, %xmm1
 	addps     %xmm1, %xmm3
 	mulps     %xmm2, %xmm3
-	movaps    %xmm3, b1.4746+32
-	movaps    b2.4747+48, %xmm4
+	movaps    %xmm3, B1(32)
+	movaps    B2(48), %xmm4
 	movaps    %xmm4, %xmm5
 	shufps    $224, %xmm5, %xmm5
 	shufps    $181, %xmm4, %xmm4
 	xorps     %xmm0, %xmm4
 	addps     %xmm4, %xmm5
 	mulps     %xmm2, %xmm5
-	movaps    %xmm5, b1.4746+48
+	movaps    %xmm5, B1(48)
 	
-	movaps    b2.4747+64, %xmm1
+	movaps    B2(64), %xmm1
 	movaps    %xmm1, %xmm3
 	shufps    $224, %xmm3, %xmm3
 	shufps    $181, %xmm1, %xmm1
 	xorps     %xmm0, %xmm1
 	addps     %xmm1, %xmm3
 	mulps     %xmm2, %xmm3
-	movaps    %xmm3, b1.4746+64
-	movaps    b2.4747+80, %xmm4
+	movaps    %xmm3, B1(64)
+	movaps    B2(80), %xmm4
 	movaps    %xmm4, %xmm5
 	shufps    $224, %xmm5, %xmm5
 	shufps    $181, %xmm4, %xmm4
 	xorps     %xmm0, %xmm4
 	addps     %xmm4, %xmm5
 	mulps     %xmm2, %xmm5
-	movaps    %xmm5, b1.4746+80
+	movaps    %xmm5, B1(80)
 	
-	movaps    b2.4747+96, %xmm1
+	movaps    B2(96), %xmm1
 	movaps    %xmm1, %xmm3
 	shufps    $224, %xmm3, %xmm3
 	shufps    $181, %xmm1, %xmm1
 	xorps     %xmm0, %xmm1
 	addps     %xmm1, %xmm3
 	mulps     %xmm2, %xmm3
-	movaps    %xmm3, b1.4746+96
-	movaps    b2.4747+112, %xmm4
+	movaps    %xmm3, B1(96)
+	movaps    B2(112), %xmm4
 	movaps    %xmm4, %xmm5
 	shufps    $224, %xmm5, %xmm5
 	shufps    $181, %xmm4, %xmm4
 	xorps     %xmm0, %xmm4
 	addps     %xmm4, %xmm5
 	mulps     %xmm2, %xmm5
-	movaps    %xmm5, b1.4746+112
+	movaps    %xmm5, B1(112)
 	
 #NO_APP
-	flds	b1.4746+40
-	movl	$b1.4746, %edx
-	movl	$b2.4747, %eax
-	fadds	b1.4746+44
-	fstps	b1.4746+40
-	flds	b1.4746+56
-	fadds	b1.4746+60
-	flds	b1.4746+48
+	flds	B1(40)
+	movl	%esp, %edx
+	addl	$B1OFF, %edx
+	movl	%esp, %eax
+	addl	$B2OFF, %eax
+	fadds	B1(44)
+	fstps	B1(40)
+	flds	B1(56)
+	fadds	B1(60)
+	flds	B1(48)
 	fadd	%st(1), %st
-	fstps	b1.4746+48
-	fadds	b1.4746+52
-	fstps	b1.4746+56
-	flds	b1.4746+52
-	fadds	b1.4746+60
-	fstps	b1.4746+52
-	flds	b1.4746+72
-	fadds	b1.4746+76
-	fstps	b1.4746+72
-	flds	b1.4746+88
-	fadds	b1.4746+92
-	flds	b1.4746+80
+	fstps	B1(48)
+	fadds	B1(52)
+	fstps	B1(56)
+	flds	B1(52)
+	fadds	B1(60)
+	fstps	B1(52)
+	flds	B1(72)
+	fadds	B1(76)
+	fstps	B1(72)
+	flds	B1(88)
+	fadds	B1(92)
+	flds	B1(80)
 	fadd	%st(1), %st
-	fstps	b1.4746+80
-	fadds	b1.4746+84
-	fstps	b1.4746+88
-	flds	b1.4746+84
-	fadds	b1.4746+92
-	fstps	b1.4746+84
-	flds	b1.4746+104
-	fadds	b1.4746+108
-	fstps	b1.4746+104
-	flds	b1.4746+120
-	fadds	b1.4746+124
-	flds	b1.4746+112
+	fstps	B1(80)
+	fadds	B1(84)
+	fstps	B1(88)
+	flds	B1(84)
+	fadds	B1(92)
+	fstps	B1(84)
+	flds	B1(104)
+	fadds	B1(108)
+	fstps	B1(104)
+	flds	B1(120)
+	fadds	B1(124)
+	flds	B1(112)
 	fadd	%st(1), %st
-	fstps	b1.4746+112
-	fadds	b1.4746+116
-	fstps	b1.4746+120
-	flds	b1.4746+116
-	fadds	b1.4746+124
-	fstps	b1.4746+116
+	fstps	B1(112)
+	fadds	B1(116)
+	fstps	B1(120)
+	flds	B1(116)
+	fadds	B1(124)
+	fstps	B1(116)
 #APP
 	flds       ASM_NAME(costab_mmxsse)+120
 	flds     (%eax)
@@ -552,6 +556,7 @@ ASM_NAME(dct64_sse):
 	movzwl	(%ecx), %eax
 	movw	%ax, (%ebx)
 	popl	%ebx
+	movl	%ebp, %esp
 	popl	%ebp
 	ret
 	/* .size	ASM_NAME(dct64_sse), .-ASM_NAME(dct64_sse) */
