@@ -3,7 +3,9 @@
 
 - fix wav/au/cdr writing to stdout (bug #2044423)
 - add more sensible --no-resync to replace --resync (bug #2044404)
-- fix thread safety of SSE decoder (bug #2053181)
+- libmpg123 7.0.7
+  - fix thread safety of SSE decoder (bug #2053181)
+  - fix robustness of length handling, added mpg123_set_filesize() (bug #2064322) 
 
 1.5.0
 ---

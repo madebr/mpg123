@@ -1,5 +1,8 @@
 Changes in libmpg123 libtool interface versions...
 
+7.0.7
+	- added mpg123_set_filesize
+
 6.0.6
 	- added mpg123_icy2utf8
 

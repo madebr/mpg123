@@ -540,8 +540,14 @@ EXPORT size_t mpg123_safe_buffer();
  */
 EXPORT int mpg123_scan(mpg123_handle *mh);
 
-/** Return, if possible, the full (expected) length of current track in samples. */
+/** Return, if possible, the full (expected) length of current track in samples.
+  * \return length >= 0 or MPG123_ERR if there is no length guess possible. */
 EXPORT off_t mpg123_length(mpg123_handle *mh);
+
+/** Override the value for file size in bytes.
+  * Useful for getting sensible track length values in feed mode or for HTTP streams.
+  * \return MPG123_OK or MPG123_ERR */
+EXPORT int mpg123_set_filesize(mpg123_handle *mh, off_t size);
 
 /** Returns the time (seconds) per frame; <0 is error. */
 EXPORT double mpg123_tpf(mpg123_handle *mh);
