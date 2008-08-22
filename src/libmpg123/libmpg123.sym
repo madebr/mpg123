@@ -69,3 +69,4 @@ mpg123_fmt_support
 mpg123_par
 mpg123_getpar
 mpg123_feed
+mpg123_set_filesize
