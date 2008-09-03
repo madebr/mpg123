@@ -729,9 +729,9 @@ int attribute_align_arg mpg123_getformat(mpg123_handle *mh, long *rate, int *cha
 	if(mh == NULL) return MPG123_ERR;
 	if(init_track(mh) == MPG123_ERR) return MPG123_ERR;
 
-	*rate = mh->af.rate;
-	*channels = mh->af.channels;
-	*encoding = mh->af.encoding;
+	if(rate != NULL) *rate = mh->af.rate;
+	if(channels != NULL) *channels = mh->af.channels;
+	if(encoding != NULL) *encoding = mh->af.encoding;
 	mh->new_format = 0;
 	return MPG123_OK;
 }
