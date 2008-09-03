@@ -310,7 +310,7 @@ EXPORT int mpg123_getformat(mpg123_handle *mh, long *rate, int *channels, int *e
  *  This does not open HTTP urls; libmpg123 contains no networking code.
  *  If you want to decode internet streams, use mpg123_open_fd() or mpg123_open_feed().
  */
-EXPORT int mpg123_open(mpg123_handle *mh, char *path);
+EXPORT int mpg123_open(mpg123_handle *mh, const char *path);
 
 /** Use an already opened file descriptor as the bitstream input
  *  mpg123_close() will _not_ close the file descriptor.

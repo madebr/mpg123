@@ -371,7 +371,7 @@ int attribute_align_arg mpg123_eq(mpg123_handle *mh, enum mpg123_channels channe
 
 
 /* plain file access, no http! */
-int attribute_align_arg mpg123_open(mpg123_handle *mh, char *path)
+int attribute_align_arg mpg123_open(mpg123_handle *mh, const char *path)
 {
 	ALIGNCHECK(mh);
 	if(mh == NULL) return MPG123_ERR;
