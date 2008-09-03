@@ -441,8 +441,9 @@ EXPORT int mpg123_position( mpg123_handle *mh, off_t frame_offset,
 
 enum mpg123_channels
 {
-	MPG123_LEFT=0x1,	/**< The Left Channel. */
-	MPG123_RIGHT=0x2	/**< The Right Channel. */
+	 MPG123_LEFT=0x1	/**< The Left Channel. */
+	,MPG123_RIGHT=0x2	/**< The Right Channel. */
+	,MPG123_LR=0x3	/**< Both left and right channel; same as MPG123_LEFT|MPG123_RIGHT */
 };
 
 /** Set the 32 Band Audio Equalizer settings.
