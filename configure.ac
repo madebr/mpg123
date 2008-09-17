@@ -12,7 +12,7 @@ dnl ############# Initialisation
 
 AC_INIT([mpg123], [1.5.2], [mpg123-devel@lists.sourceforge.net])
 LIBMPG123_VERSION=7:2:7
-AC_SUBST( LIBMPG123_VERSION )
+AC_SUBST(LIBMPG123_VERSION)
 
 AC_CONFIG_SRCDIR(src/mpg123.c)
 AC_CONFIG_AUX_DIR(build)
@@ -20,7 +20,7 @@ AC_CONFIG_SRCDIR(doc)
 AC_CANONICAL_TARGET
 
 dnl Version 1.7 of automake is recommended
-AM_INIT_AUTOMAKE( 1.7 )
+AM_INIT_AUTOMAKE(1.7)
 AM_CONFIG_HEADER(src/config.h)
 
 
@@ -716,8 +716,8 @@ do
 	echo $DECODER_LOBJ | grep -q $i.lo || DECODER_LOBJ="$DECODER_LOBJ $i.lo"
 done
 
-AC_SUBST( DECODER_OBJ )
-AC_SUBST( DECODER_LOBJ )
+AC_SUBST(DECODER_OBJ)
+AC_SUBST(DECODER_LOBJ)
 
 
 dnl ############## Output module choice
@@ -1175,11 +1175,11 @@ fi
 AC_DEFINE_UNQUOTED( DEFAULT_OUTPUT_MODULE, "$default_output_modules", [The default audio output module(s) to use] )
 
 
-AC_SUBST( OUTPUT_OBJ )
-AC_SUBST( OUTPUT_MOD )
-AC_SUBST( OUTPUT_CFLAGS )
-AC_SUBST( OUTPUT_LIBS )
-AC_SUBST( OUTPUT_LDFLAGS )
+AC_SUBST(OUTPUT_OBJ)
+AC_SUBST(OUTPUT_MOD)
+AC_SUBST(OUTPUT_CFLAGS)
+AC_SUBST(OUTPUT_LIBS)
+AC_SUBST(OUTPUT_LDFLAGS)
 
 dnl ############## Compiler Optimizations
 
