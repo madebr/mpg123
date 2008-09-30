@@ -295,9 +295,21 @@ int control_generic (mpg123_handle *fr)
 			if (n == 0) {
 				if (!play_frame())
 				{
-					mode = MODE_STOPPED;
-					close_track();
-					generic_sendmsg("P 0");
+					/* When the track ended, user may want to keep it open (to seek back),
+					   so there is a decision between stopping and pausing at the end. */
+					if(param.keep_open)
+					{
+						mode = MODE_PAUSED;
+						/* Hm, buffer should be stopped already, shouldn't it? */
+						if(param.usebuffer) buffer_stop();
+						generic_sendmsg("P 1");
+					}
+					else
+					{
+						mode = MODE_STOPPED;
+						close_track();
+						generic_sendmsg("P 0");
+					}
 					continue;
 				}
 				if (init) {
@@ -382,7 +394,7 @@ int control_generic (mpg123_handle *fr)
 
 				/* PAUSE */
 				if (!strcasecmp(comstr, "P") || !strcasecmp(comstr, "PAUSE")) {
-					if (!(mode == MODE_STOPPED))
+					if(mode != MODE_STOPPED)
 					{	
 						if (mode == MODE_PLAYING) {
 							mode = MODE_PAUSED;
@@ -393,7 +405,7 @@ int control_generic (mpg123_handle *fr)
 							if(param.usebuffer) buffer_start();
 							generic_sendmsg("P 2");
 						}
-					}
+					} else generic_sendmsg("P 0");
 					continue;
 				}
 
@@ -408,7 +420,7 @@ int control_generic (mpg123_handle *fr)
 						close_track();
 						mode = MODE_STOPPED;
 						generic_sendmsg("P 0");
-					}
+					} else generic_sendmsg("P 0");
 					continue;
 				}
 
@@ -421,6 +433,29 @@ int control_generic (mpg123_handle *fr)
 
 				if(!strcasecmp(comstr, "T") || !strcasecmp(comstr, "TAG")) {
 					generic_sendalltag(fr);
+					continue;
+				}
+
+				if(!strcasecmp(comstr, "SCAN"))
+				{
+					if(mode != MODE_STOPPED)
+					{
+						if(mpg123_scan(fr) == MPG123_OK)
+						generic_sendmsg("SCAN done");
+						else
+						generic_sendmsg("E %s", mpg123_strerror(fr));
+					}
+					else generic_sendmsg("E No track loaded!");
+
+					continue;
+				}
+
+				if(!strcasecmp(comstr, "SAMPLE"))
+				{
+					off_t pos = mpg123_tell(fr);
+					off_t len = mpg123_length(fr);
+					/* I need to have portable printf specifiers that do not truncate the type... more autoconf... */
+					generic_sendmsg("SAMPLE %li %li", (long)pos, (long)len);
 					continue;
 				}
 
@@ -442,6 +477,8 @@ int control_generic (mpg123_handle *fr)
 					generic_sendmsg("H RVA off|(mix|radio)|(album|audiophile): set rva mode");
 					generic_sendmsg("H EQ/E <channel> <band> <value>: set equalizer value for frequency band on channel");
 					generic_sendmsg("H SEEK/K <sample>|<+offset>|<-offset>: jump to output sample position <samples> or change position by offset");
+					generic_sendmsg("H SCAN: scan through the file, building seek index");
+					generic_sendmsg("H SAMPLE: print out the sample position and total number of samples");
 					generic_sendmsg("H SEQ <bass> <mid> <treble>: simple eq setting...");
 					generic_sendmsg("H SILENCE: be silent during playback (meaning silence in text form)");
 					generic_sendmsg("H TAG/T: Print all available (ID3) tag info, for ID3v2 that gives output of all collected text fields, using the ID3v2.3/4 4-character names.");
@@ -514,7 +551,11 @@ int control_generic (mpg123_handle *fr)
 						off_t soff;
 						char *spos = arg;
 						int whence = SEEK_SET;
-						if(!spos || (mode == MODE_STOPPED)) continue;
+						if(mode == MODE_STOPPED)
+						{
+							generic_sendmsg("E No track loaded!");
+							continue;
+						}
 
 						soff = atol(spos);
 						if(spos[0] == '-' || spos[0] == '+') whence = SEEK_CUR;
@@ -535,10 +576,11 @@ int control_generic (mpg123_handle *fr)
 						double secs;
 
 						spos = arg;
-						if (!spos)
+						if(mode == MODE_STOPPED)
+						{
+							generic_sendmsg("E No track loaded!");
 							continue;
-						if (mode == MODE_STOPPED)
-							continue;
+						}
 
 						if(spos[strlen(spos)-1] == 's' && sscanf(arg, "%lf", &secs) == 1) offset = mpg123_timeframe(fr, secs);
 						else offset = atol(spos);

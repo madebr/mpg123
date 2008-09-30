@@ -106,6 +106,7 @@ struct parameter param = {
 	,0.0 /* pitch */
 	,0 /* ignore_mime */
 	,NULL /* proxyurl */
+	,0 /* keep_open */
 };
 
 int utf8env = 0;
@@ -432,6 +433,7 @@ topt opts[] = {
 	{0, "resync-limit", GLO_ARG | GLO_LONG, 0, &param.resync_limit, 0},
 	{0, "pitch", GLO_ARG|GLO_DOUBLE, 0, &param.pitch, 0},
 	{0, "ignore-mime", GLO_INT,  0, &param.ignore_mime, 1 },
+	{0, "keep-open", GLO_INT, 0, &param.keep_open, 1},
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -1141,6 +1143,7 @@ static void long_usage(int err)
 	fprintf(o," -@ <f> --list <f>         play songs in playlist <f> (plain list, m3u, pls (shoutcast))\n");
 	fprintf(o," -l <n> --listentry <n>    play nth title in playlist; show whole playlist for n < 0\n");
 	fprintf(o,"        --loop <n>         loop track(s) <n> times, < 0 means infinite loop (not with --random!)\n");
+	fprintf(o,"        --keep-open        (--remote mode only) keep loaded file open after reaching end\n");
 #ifndef WIN32
 	fprintf(o,"        --timeout <n>      Timeout in seconds before declaring a stream dead (if <= 0, wait forever)\n");
 #endif

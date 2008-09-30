@@ -151,6 +151,7 @@ struct parameter
 	double pitch; /* <0 or >0, 0.05 for 5% speedup. */
 	int ignore_mime; /* An mpg123 app flag field in future? */
 	char *proxyurl;
+	int keep_open; /* Whether to keep files open after end reached, for remote control mode, perhaps terminal control, too. */
 };
 
 extern char *equalfile;
