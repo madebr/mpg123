@@ -493,7 +493,7 @@ static int get_next_frame(mpg123_handle *mh)
 		debug("read frame");
 		mh->to_decode = FALSE;
 		b = read_frame(mh); /* That sets to_decode only if a full frame was read. */
-		debug3("read of frame %li returned %i (to_decode=%i)", (long)mh->num, b, mh->to_decode);
+		debug4("read of frame %li returned %i (to_decode=%i) at sample %li", (long)mh->num, b, mh->to_decode, (long)mpg123_tell(mh));
 		if(b == MPG123_NEED_MORE) return MPG123_NEED_MORE; /* need another call with data */
 		else if(b <= 0)
 		{
@@ -545,6 +545,25 @@ static int get_next_frame(mpg123_handle *mh)
 }
 
 /*
+	Not part of the api. This just decodes the frame and fills missing bits with zeroes.
+	There can be frames that are broken and thus make do_layer() fail.
+*/
+void decode_the_frame(mpg123_handle *fr)
+{
+	size_t needed_bytes = samples_to_bytes(fr,spf(fr));
+	fr->clip += (fr->do_layer)(fr);
+	/* There could be less data than promised. */
+	if(fr->buffer.fill < needed_bytes)
+	{
+		if(NOQUIET) fprintf(stderr, "Note: broken frame %li, filling up with zeroes\n", (long)fr->num);
+
+		/* One could do a loop with individual samples instead... but zero is zero. */
+		memset(fr->buffer.data + fr->buffer.fill, 0, needed_bytes - fr->buffer.fill);
+		fr->buffer.fill = needed_bytes;
+	}
+}
+
+/*
 	Put _one_ decoded frame into the frame structure's buffer, accessible at the location stored in <audio>, with <bytes> bytes available.
 	The buffer contents will be lost on next call to mpg123_decode_frame.
 	MPG123_OK -- successfully decoded the frame, you get your output data
@@ -574,17 +593,20 @@ int attribute_align_arg mpg123_decode_frame(mpg123_handle *mh, off_t *num, unsig
 				mh->new_format = 0;
 				return MPG123_NEW_FORMAT;
 			}
-			*num = mh->num;
+			if(num != NULL) *num = mh->num;
 			debug("decoding");
-			mh->clip += (mh->do_layer)(mh);
+
+			decode_the_frame(mh);
+
 			mh->to_decode = mh->to_ignore = FALSE;
 			mh->buffer.p = mh->buffer.data;
 #ifdef GAPLESS
 			/* This checks for individual samples to skip, for gapless mode or sample-accurate seek. */
 			frame_buffercheck(mh);
 #endif
-			*audio = mh->buffer.p;
-			*bytes = mh->buffer.fill;
+			if(audio != NULL) *audio = mh->buffer.p;
+			if(bytes != NULL) *bytes = mh->buffer.fill;
+
 			return MPG123_OK;
 		}
 		else
@@ -666,7 +688,7 @@ int attribute_align_arg mpg123_decode(mpg123_handle *mh, const unsigned char *in
 				ret = MPG123_NO_SPACE;
 				goto decodeend;
 			}
-			mh->clip += (mh->do_layer)(mh);
+			decode_the_frame(mh);
 			mh->to_decode = mh->to_ignore = FALSE;
 			mh->buffer.p = mh->buffer.data;
 			debug2("decoded frame %li, got %li samples in buffer", (long)mh->num, (long)(mh->buffer.fill / (samples_to_bytes(mh, 1))));
@@ -762,21 +784,27 @@ off_t attribute_align_arg mpg123_tell(mpg123_handle *mh)
 	/* Now we have all the info at hand. */
 	debug5("tell: %li/%i first %li buffer %lu; frame_outs=%li", (long)mh->num, mh->to_decode, (long)mh->firstframe, (unsigned long)mh->buffer.fill, (long)frame_outs(mh, mh->num));
 
-	if((mh->num < mh->firstframe) || (mh->num == mh->firstframe && mh->to_decode))
-	{ /* We are at the beginning, expect output from firstframe on. */
-		off_t pos = frame_outs(mh, mh->firstframe);
+	{ /* Funny block to keep C89 happy. */
+		off_t pos = 0;
+		if((mh->num < mh->firstframe) || (mh->num == mh->firstframe && mh->to_decode))
+		{ /* We are at the beginning, expect output from firstframe on. */
+			pos = frame_outs(mh, mh->firstframe);
 #ifdef GAPLESS
-		pos += mh->firstoff;
+			pos += mh->firstoff;
 #endif
-		return SAMPLE_ADJUST(pos);
-	}
-	else if(mh->to_decode)
-	{ /* We start fresh with this frame. Buffer should be empty, but we make sure to count it in.  */
-		return SAMPLE_ADJUST(frame_outs(mh, mh->num) - bytes_to_samples(mh, mh->buffer.fill));
-	}
-	else
-	{ /* We serve what we have in buffer and then the beginning of next frame... */
-		return SAMPLE_ADJUST(frame_outs(mh, mh->num+1) - bytes_to_samples(mh, mh->buffer.fill));
+		}
+		else if(mh->to_decode)
+		{ /* We start fresh with this frame. Buffer should be empty, but we make sure to count it in.  */
+			pos = frame_outs(mh, mh->num) - bytes_to_samples(mh, mh->buffer.fill);
+		}
+		else
+		{ /* We serve what we have in buffer and then the beginning of next frame... */
+			pos = frame_outs(mh, mh->num+1) - bytes_to_samples(mh, mh->buffer.fill);
+		}
+		/* Substract padding and delay from the beginning. */
+		pos = SAMPLE_ADJUST(pos);
+		/* Negative sample offsets are not right, less than nothing is still nothing. */
+		return pos>0 ? pos : 0;
 	}
 }
 
@@ -802,7 +830,6 @@ static int do_the_seek(mpg123_handle *mh)
 		mh->to_decode = FALSE;
 		return MPG123_OK;
 	}
-	/*frame_buffers_reset(mh);*/
 	b = mh->rd->seek_frame(mh, fnum);
 	if(b<0) return b;
 	/* Only mh->to_ignore is TRUE. */
@@ -816,8 +843,13 @@ off_t attribute_align_arg mpg123_seek(mpg123_handle *mh, off_t sampleoff, int wh
 	off_t pos;
 	ALIGNCHECK(mh);
 	pos = mpg123_tell(mh); /* adjusted samples */
-debug1("pos=%li", (long)pos);
-	if(pos < 0) return pos; /* mh == NULL is covered in mpg123_tell() */
+	/* pos < 0 also can mean that simply a former seek failed at the lower levels.
+	  In that case, we only allow absolute seeks. */
+	if(pos < 0 && whence != SEEK_SET)
+	{ /* Unless we got the obvious error of NULL handle, this is a special seek failure. */
+		if(mh != NULL) mh->err = MPG123_NO_RELSEEK;
+		return MPG123_ERR;
+	}
 	if((b=init_track(mh)) < 0) return b;
 
 	switch(whence)
@@ -860,7 +892,9 @@ off_t attribute_align_arg mpg123_feedseek(mpg123_handle *mh, off_t sampleoff, in
 	ALIGNCHECK(mh);
 	pos = mpg123_tell(mh); /* adjusted samples */
 	debug3("seek from %li to %li (whence=%i)", (long)pos, (long)sampleoff, whence);
+	/* The special seek error handling does not apply here... there is no lowlevel I/O. */
 	if(pos < 0) return pos; /* mh == NULL is covered in mpg123_tell() */
+
 	if((b=init_track(mh)) < 0) return b; /* May need more to do anything at all. */
 
 	switch(whence)
@@ -1118,7 +1152,8 @@ static const char *mpg123_error[] =
 	"Failed to find valid MPEG data within limit on resync. (code 28)",
 	"No 8bit encoding possible. (code 29)",
 	"Stack alignment is not good. (code 30)",
-	"You gave me a NULL buffer? (code 31)"
+	"You gave me a NULL buffer? (code 31)",
+	"File position is screwed up, please do an absolute seek (code 32)"
 };
 
 const char* attribute_align_arg mpg123_plain_strerror(int errcode)
