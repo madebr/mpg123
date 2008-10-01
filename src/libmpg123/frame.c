@@ -408,6 +408,12 @@ off_t frame_index_find(mpg123_handle *fr, off_t want_frame, off_t* get_frame)
 		*get_frame = fi*fr->index.step;
 		gopos = fr->index.data[fi];
 	}
+	else
+	{
+		/* A bit hackish here... but we need to be fresh when looking for the first header again. */
+		fr->firsthead = 0;
+		fr->oldhead = 0;
+	}
 	debug2("index: 0x%lx for frame %li", (unsigned long)gopos, (long) *get_frame);
 	return gopos;
 }
