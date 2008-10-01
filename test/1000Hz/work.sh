@@ -6,7 +6,7 @@ fi
 # I need -x for little endian.
 lame -r -x --preset standard $SF lame.mp3
 $MPG123 --gapless -s lame.mp3 > gapless.raw_s16
-$MPG123 -s lame.mp3 > gappy.raw_s16
+$MPG123 --no-gapless -s lame.mp3 > gappy.raw_s16
 
 #overall
 buntstift --all-binary='format="%short%short"' -u='1,($1+65636),($1+2*65536)' -r='x,-100:6650,y,-36768:(-36768+3*65536)' -j -s=l,l,l $SF gapless.raw_s16 gappy.raw_s16
