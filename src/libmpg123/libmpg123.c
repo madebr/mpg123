@@ -571,7 +571,7 @@ static int get_next_frame(mpg123_handle *mh)
 */
 void decode_the_frame(mpg123_handle *fr)
 {
-	size_t needed_bytes = samples_to_bytes(fr,spf(fr));
+	size_t needed_bytes = samples_to_bytes(fr,frame_ins2outs(fr,spf(fr)));
 	fr->clip += (fr->do_layer)(fr);
 	/* There could be less data than promised. */
 	if(fr->buffer.fill < needed_bytes)
