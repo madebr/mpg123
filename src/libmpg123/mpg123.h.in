@@ -179,7 +179,8 @@ enum mpg123_errors
 	MPG123_NO_8BIT,	/**< No 8bit encoding possible. */
 	MPG123_BAD_ALIGN,	/**< Stack aligmnent error */
 	MPG123_NULL_BUFFER,	/**< NULL input buffer with non-zero size... */
-	MPG123_NO_RELSEEK	/**< Relative seek not possible (screwed up file offset) */
+	MPG123_NO_RELSEEK,	/**< Relative seek not possible (screwed up file offset) */
+	MPG123_NULL_POINTER /**< You gave a null pointer somewhere where you shouldn't have. */
 };
 
 /** Return a string describing that error errcode means. */

@@ -582,7 +582,6 @@ int attribute_align_arg mpg123_decode_frame(mpg123_handle *mh, off_t *num, unsig
 	if(mh == NULL) return MPG123_ERR;
 	if(mh->buffer.size < mh->outblock) return MPG123_NO_SPACE;
 	mh->buffer.fill = 0; /* always start fresh */
-	*bytes = 0;
 	while(TRUE)
 	{
 		/* decode if possible */
@@ -894,6 +893,11 @@ off_t attribute_align_arg mpg123_feedseek(mpg123_handle *mh, off_t sampleoff, in
 	debug3("seek from %li to %li (whence=%i)", (long)pos, (long)sampleoff, whence);
 	/* The special seek error handling does not apply here... there is no lowlevel I/O. */
 	if(pos < 0) return pos; /* mh == NULL is covered in mpg123_tell() */
+	if(input_offset == NULL)
+	{
+		mh->err = MPG123_NULL_POINTER;
+		return MPG123_ERR;
+	}
 
 	if((b=init_track(mh)) < 0) return b; /* May need more to do anything at all. */
 
@@ -1069,8 +1073,13 @@ int attribute_align_arg mpg123_id3(mpg123_handle *mh, mpg123_id3v1 **v1, mpg123_
 int attribute_align_arg mpg123_icy(mpg123_handle *mh, char **icy_meta)
 {
 	ALIGNCHECK(mh);
-	*icy_meta = NULL;
 	if(mh == NULL) return MPG123_ERR;
+	if(icy_meta == NULL)
+	{
+		mh->err = MPG123_NULL_POINTER;
+		return MPG123_ERR;
+	}
+	*icy_meta = NULL;
 
 	if(mh->metaflags & MPG123_ICY)
 	{
@@ -1161,7 +1170,8 @@ static const char *mpg123_error[] =
 	"No 8bit encoding possible. (code 29)",
 	"Stack alignment is not good. (code 30)",
 	"You gave me a NULL buffer? (code 31)",
-	"File position is screwed up, please do an absolute seek (code 32)"
+	"File position is screwed up, please do an absolute seek (code 32)",
+	"Inappropriate NULL-pointer provided."
 };
 
 const char* attribute_align_arg mpg123_plain_strerror(int errcode)
