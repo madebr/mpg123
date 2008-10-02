@@ -22,11 +22,12 @@ COMMAND CODES
 
 You can get this info via the control command "help".
 
+
 HELP/H: command listing (LONG/SHORT forms), command case insensitve
 
 LOAD/L <trackname>: load and start playing resource <trackname>
 
-LOADPAUSED/LP <trackname>: load and start playing resource <trackname>
+LOADPAUSED/LP <trackname>: load but do not start playing resource <trackname>
 
 PAUSE/P: pause playback
 
@@ -38,33 +39,40 @@ VOLUME/V <percent>: set volume in % (0..100...); float value
 
 RVA off|(mix|radio)|(album|audiophile): set rva mode
 
-EQ/E <channel> <band> <value>: set equalizer value for frequency band on channel
+EQ/E <channel> <band> <value>: set equalizer value for frequency band 0 to 31 on channel 1 (left) or 2 (right) or 3 (both)
+
+EQFILE <filename>: load EQ settings from a file
+
+SHOWEQ: show all equalizer settings (as <channel> <band> <value> lines in a SHOWEQ block (like TAG))
 
 SEEK/K <sample>|<+offset>|<-offset>: jump to output sample position <samples> or change position by offset
+
+SCAN: scan through the file, building seek index
+
+SAMPLE: print out the sample position and total number of samples
 
 SEQ <bass> <mid> <treble>: simple eq setting...
 
 SILENCE: be silent during playback (meaning silence in text form)
 
-TAG/T: Print all available (ID3) tag info, for ID3v2 that gives output of all collected text fields, using the ID3v2.3/4 4-character 
-names.
+TAG/T: Print all available (ID3) tag info, for ID3v2 that gives output of all collected text fields, using the ID3v2.3/4 4-character names.
+   The output is multiple lines, begin marked by "@T {", end by "@T }".
+   ID3v1 data is like in the @I info lines (see below), just with "@T" in front.
+   An ID3v2 data field is introduced via ([ ... ] means optional):
+    @T ID3v2.<NAME>[ [lang(<LANG>)] desc(<description>)]:
+   The lines of data follow with "=" prefixed:
+    @T =<one line of content in UTF-8 encoding>
 
-meaning of the @S stream info:
-S <mpeg-version> <layer> <sampling freq> <mode(stereo/mono/...)> <mode_ext> <framesize> <stereo> <copyright> <error_protected> <emphasis> <bitrate> <extension> <vbr(0/1=yes/no)>
-The @I lines after loading a track give some ID3 info, the format:
-     @I ID3:artist  album  year  comment genretext
-    where artist,album and comment are exactly 30 characters each, year is 4 characters, genre text unspecified.
-    You will encounter "@I ID3.genre:<number>" and "@I ID3.track:<number>".
-    Then, there is an excerpt of ID3v2 info in the structure
 
 RESPONSE CODES
 --------------
 
 Note: mpg123 returns errors on stderr, so your frontend should
       look not only at stdout but also at stderr for responses.
+      It is a good idea to use --remote-err and just look at stderr.
 
-@R MPG123 (ThOr) v3
-	Startup version message. Rverything after MPG123 is auxilliary information about behaviour and command support, ID3v2 tag support is new in v3.
+@R MPG123 (ThOr) v4
+	Startup version message. Everything after MPG123 is auxilliary information about behaviour and command support, ID3v2 tag support is new in v3.
 
 @I ID3:<a><b><c>
 	Status message after loading a song (ID3 song info)
@@ -148,7 +156,12 @@ Note: mpg123 returns errors on stderr, so your frontend should
 		@T =<one line of content in UTF-8 encoding>
 
 
-Info about the equalizer control:
+EQUALIZER CONTROL (History)
+---------------------------
+
+WARNING: The interpretation of the command arguments changed. The channel is either 1 or 2 or 3 (left, right, both).
+It used to be 0 or 1 for left or right but the change slipped through during libmpg123 work and now it is a fact.
+Sorry.
 
 Cold Feet Audio Patch for MPG123
 
@@ -184,4 +197,4 @@ nutcase@dtmf.org
 Thanks,
 nut
 
-Note by Thomas Orgis: The contact appreas to be dead.
+Note by Thomas Orgis: The contact appears to be dead.
