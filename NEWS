@@ -2,9 +2,15 @@
 1.6.0
 ---
 - small things inside that I forgot to mention
-- some new commands for remote control interface: SCAN and SAMPLE
+- some new commands for remote control interface:
+  - SCAN
+  - SAMPLE
+  - EQFILE
+  - SHOWEQ
 - added --keep-open command line flag (for remote control)
-- libmpg123 7.6.7:
+- fixed equalizer file parsing to really handle comment lines as example file suggests
+- libmpg123 8.0.8:
+  - added mpg123_geteq()
   - API cleanup (take const char* for mpg123_open())
   - calm down complainling (C++) compilers by completing the mpg123_channels enum
   - fixed several possible crashes when user provides NULLs where it isn't appropriate
