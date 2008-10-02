@@ -16,6 +16,8 @@
   - fixed several possible crashes when user provides NULLs where it isn't appropriate
   - workaround for frames that fail decoding (bad frame body, missing bit reservoir): fill up with silence
     That also fixes seeking issues related to bad frames since now the fixed relation between frame and sample offsets is restored.
+  - Finally realized what that the resampling code for integer math (generic_nofpu) was just incomplete!
+    Now it works, using the defined integer multiplication.
 
 1.5.1
 ---
