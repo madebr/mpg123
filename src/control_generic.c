@@ -262,7 +262,7 @@ int control_generic (mpg123_handle *fr)
 #endif
 	/* the command behaviour is different, so is the ID */
 	/* now also with version for command availability */
-	fprintf(outstream, "@R MPG123 (ThOr) v3\n");
+	fprintf(outstream, "@R MPG123 (ThOr) v4\n");
 #ifdef FIFO
 	if(param.fifo)
 	{
@@ -459,6 +459,19 @@ int control_generic (mpg123_handle *fr)
 					continue;
 				}
 
+				if(!strcasecmp(comstr, "SHOWEQ"))
+				{
+					int i;
+					generic_sendmsg("SHOWEQ {");
+					for(i=0; i<32; ++i)
+					{
+						generic_sendmsg("SHOWEQ %i : %i : %f", MPG123_LEFT, i, mpg123_geteq(fr, MPG123_LEFT, i));
+						generic_sendmsg("SHOWEQ %i : %i : %f", MPG123_RIGHT, i, mpg123_geteq(fr, MPG123_RIGHT, i));
+					}
+					generic_sendmsg("SHOWEQ }");
+					continue;
+				}
+
 				/* QUIT */
 				if (!strcasecmp(comstr, "Q") || !strcasecmp(comstr, "QUIT")){
 					alive = FALSE; continue;
@@ -475,7 +488,9 @@ int control_generic (mpg123_handle *fr)
 					generic_sendmsg("H JUMP/J <frame>|<+offset>|<-offset>|<[+|-]seconds>s: jump to mpeg frame <frame> or change position by offset, same in seconds if number followed by \"s\"");
 					generic_sendmsg("H VOLUME/V <percent>: set volume in % (0..100...); float value");
 					generic_sendmsg("H RVA off|(mix|radio)|(album|audiophile): set rva mode");
-					generic_sendmsg("H EQ/E <channel> <band> <value>: set equalizer value for frequency band on channel");
+					generic_sendmsg("H EQ/E <channel> <band> <value>: set equalizer value for frequency band 0 to 31 on channel %i (left) or %i (right) or %i (both)", MPG123_LEFT, MPG123_RIGHT, MPG123_LR);
+					 generic_sendmsg("H EQFILE <filename>: load EQ settings from a file");
+					generic_sendmsg("H SHOWEQ: show all equalizer settings (as <channel> <band> <value> lines in a SHOWEQ block (like TAG))");
 					generic_sendmsg("H SEEK/K <sample>|<+offset>|<-offset>: jump to output sample position <samples> or change position by offset");
 					generic_sendmsg("H SCAN: scan through the file, building seek index");
 					generic_sendmsg("H SAMPLE: print out the sample position and total number of samples");
@@ -538,10 +553,23 @@ int control_generic (mpg123_handle *fr)
 						/*generic_sendmsg("%s",updown);*/
 						if(sscanf(arg, "%i %i %lf", &c, &v, &e) == 3)
 						{
-							mpg123_eq(fr, c, v, e);
+							if(mpg123_eq(fr, c, v, e) == MPG123_OK)
 							generic_sendmsg("%i : %i : %f", c, v, e);
+							else
+							generic_sendmsg("E failed to set eq: %s", mpg123_strerror(fr));
 						}
 						else generic_sendmsg("E invalid arguments for EQ: %s", arg);
+						continue;
+					}
+
+					if(!strcasecmp(cmd, "EQFILE"))
+					{
+						equalfile = arg;
+						if(load_equalizer(fr) == 0)
+						generic_sendmsg("EQFILE done");
+						else
+						generic_sendmsg("E failed to parse given eq file");
+
 						continue;
 					}
 

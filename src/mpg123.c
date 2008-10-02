@@ -849,28 +849,7 @@ int main(int argc, char *argv[])
 	/* Now either check caps myself or query buffer for that. */
 	audio_capabilities(ao, mh);
 
-	if(equalfile != NULL)
-	{ /* tst; ThOr: not TRUE or FALSE: allocated or not... */
-		FILE *fe;
-		int i;
-		fe = fopen(equalfile,"r");
-		if(fe) {
-			char line[256];
-			for(i=0;i<32;i++) {
-				float e1,e0; /* %f -> float! */
-				line[0]=0;
-				fgets(line,255,fe);
-				if(line[0]=='#')
-					continue;
-				sscanf(line,"%f %f",&e0,&e1);
-				mpg123_eq(mh, MPG123_LEFT,  i, e0);
-				mpg123_eq(mh, MPG123_RIGHT, i, e1);
-			}
-			fclose(fe);
-		}
-		else
-			fprintf(stderr,"Can't open equalizer file '%s'\n",equalfile);
-	}
+	load_equalizer(mh);
 
 #ifdef HAVE_SETPRIORITY
 	if(param.aggressive) { /* tst */
