@@ -1233,8 +1233,10 @@ else
 	seektable=$with_seektable
 fi
 
-AC_DEFINE_UNQUOTED(INDEX_SIZE, $seektable, [size of the frame index seek table])
-
+if test "$seektable" -gt 0; then
+	AC_DEFINE(FRAME_INDEX, 1, [ Define if frame index should be used. ])
+	AC_DEFINE_UNQUOTED(INDEX_SIZE, $seektable, [size of the frame index seek table])
+fi
 
 dnl ############## Final Output
 
