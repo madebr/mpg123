@@ -454,6 +454,12 @@ enum mpg123_channels
  *  \param val The (linear) adjustment factor. */
 EXPORT int mpg123_eq(mpg123_handle *mh, enum mpg123_channels channel, int band, double val);
 
+/** Get the 32 Band Audio Equalizer settings.
+ *  \param channel Can be MPG123_LEFT, MPG123_RIGHT or MPG123_LEFT|MPG123_RIGHT for (arithmetic mean of) both.
+ *  \param band The equaliser band to change (from 0 to 31)
+ *  \return The (linear) adjustment factor. */
+EXPORT double mpg123_geteq(mpg123_handle *mh, enum mpg123_channels channel, int band);
+
 /** Reset the 32 Band Audio Equalizer settings to flat */
 EXPORT int mpg123_reset_eq(mpg123_handle *mh);
 
