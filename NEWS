@@ -1,9 +1,15 @@
-1.5.2
+
+1.6.0
 ---
-- libmpg123 7.2.7:
+- small things inside that I forgot to mention
+- some new commands for remote control interface: SCAN and SAMPLE
+- added --keep-open command line flag (for remote control)
+- libmpg123 7.6.7:
   - API cleanup (take const char* for mpg123_open())
   - calm down complainling (C++) compilers by completing the mpg123_channels enum
-  - fix possible crash in mpg123_getformat when user provides NULLs
+  - fixed several possible crashes when user provides NULLs where it isn't appropriate
+  - workaround for frames that fail decoding (bad frame body, missing bit reservoir): fill up with silence
+    That also fixes seeking issues related to bad frames since now the fixed relation between frame and sample offsets is restored.
 
 1.5.1
 ---
