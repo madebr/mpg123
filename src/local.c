@@ -16,6 +16,7 @@
 #include <langinfo.h>
 #endif
 #include "compat.h"
+#include "mpg123app.h"
 #include "debug.h"
 
 int utf8env = 0;
@@ -25,7 +26,8 @@ static int is_utf8(const char *lang);
 
 void check_locale(void)
 {
-	if(is_utf8(getenv("LANG"))) utf8env = 1;
+	if(param.force_utf8) utf8env = 1;
+	else if(is_utf8(getenv("LANG"))) utf8env = 1;
 #if defined(HAVE_SETLOCALE) && defined(LC_CTYPE)
 	/* To query, we need to set from environment... */
 	else if(is_utf8(setlocale(LC_CTYPE, ""))) utf8env = 1;

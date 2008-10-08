@@ -108,6 +108,7 @@ struct parameter param = {
 	,0 /* ignore_mime */
 	,NULL /* proxyurl */
 	,0 /* keep_open */
+	,0 /* force_utf8 */
 };
 
 mpg123_handle *mh = NULL;
@@ -434,6 +435,7 @@ topt opts[] = {
 	{0, "pitch", GLO_ARG|GLO_DOUBLE, 0, &param.pitch, 0},
 	{0, "ignore-mime", GLO_INT,  0, &param.ignore_mime, 1 },
 	{0, "keep-open", GLO_INT, 0, &param.keep_open, 1},
+	{0, "utf8", GLO_INT, 0, &param.force_utf8, 1},
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -677,7 +679,6 @@ int main(int argc, char *argv[])
 #if !defined(WIN32) && !defined(GENERIC)
 	struct timeval start_time;
 #endif
-	check_locale(); /* Check/set locale; store if it uses UTF-8. */
 
 	{
 		/* Hack the path of the binary... needed for relative module search. */
@@ -738,6 +739,8 @@ int main(int argc, char *argv[])
 				prgName, loptarg);
 			usage(1);
 	}
+	/* Do this _after_ parameter parsing. */
+	check_locale(); /* Check/set locale; store if it uses UTF-8. */
 
 	if(param.list_cpu)
 	{
@@ -1191,6 +1194,7 @@ static void long_usage(int err)
 	fprintf(o,"        --title            set xterm/rxvt title to filename\n");
 	#endif
 	fprintf(o,"        --long-tag         spacy id3 display with every item on a separate line\n");
+	fprintf(o,"        --utf8             Regardless of environment, print metadata in UTF-8.\n");
 	fprintf(o," -R     --remote           generic remote interface\n");
 	fprintf(o,"        --remote-err       force use of stderr for generic remote interface\n");
 #ifdef FIFO

@@ -9,7 +9,7 @@
   - SHOWEQ
 - added --keep-open command line flag (for remote control)
 - fixed equalizer file parsing to really handle comment lines as example file suggests
-- more elaborate detection of UTF-8 locale
+- more elaborate detection of UTF-8 locale, also --utf8 switch to force it
 - libmpg123 8.3.8:
   - added mpg123_geteq()
   - API cleanup (take const char* for mpg123_open())
