@@ -9,6 +9,7 @@
 #define ME "main"
 #include "mpg123app.h"
 #include "mpg123.h"
+#include "local.h"
 
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
@@ -109,7 +110,6 @@ struct parameter param = {
 	,0 /* keep_open */
 };
 
-int utf8env = 0;
 mpg123_handle *mh = NULL;
 off_t framenum;
 off_t frames_left;
@@ -677,10 +677,8 @@ int main(int argc, char *argv[])
 #if !defined(WIN32) && !defined(GENERIC)
 	struct timeval start_time;
 #endif
-	{
-		char *lang = getenv("LANG");
-		if(lang && strstr(lang, "UTF-8")) utf8env = 1;
-	}
+	check_locale(); /* Check/set locale; store if it uses UTF-8. */
+
 	{
 		/* Hack the path of the binary... needed for relative module search. */
 		int i;

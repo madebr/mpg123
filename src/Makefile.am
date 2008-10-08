@@ -43,6 +43,8 @@ mpg123_SOURCES = \
 	mpg123app.h \
 	metaprint.c \
 	metaprint.h \
+	local.h \
+	local.c \
 	playlist.c \
 	playlist.h \
 	sfifo.c \

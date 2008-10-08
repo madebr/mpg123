@@ -11,7 +11,7 @@ AC_PREREQ(2.57)
 dnl ############# Initialisation
 
 AC_INIT([mpg123], [1.6.0], [mpg123-devel@lists.sourceforge.net])
-LIBMPG123_VERSION=8:2:8
+LIBMPG123_VERSION=8:3:8
 AC_SUBST(LIBMPG123_VERSION)
 
 AC_CONFIG_SRCDIR(src/mpg123.c)
@@ -382,6 +382,8 @@ AC_CHECK_FUNCS( setpriority )
 
 AC_CHECK_FUNCS( strerror )
 
+AC_CHECK_FUNCS( setlocale nl_langinfo )
+
 AC_CHECK_FUNCS( strdup )
 
 AC_CHECK_FUNCS( mkfifo, [ have_mkfifo=yes ], [ have_mkfifo=no ] )
@@ -416,6 +418,8 @@ dnl ############## Header and Library Checks
 AC_HEADER_STDC
 dnl Is it too paranoid to specifically check for stdint.h and limits.h?
 AC_CHECK_HEADERS([stdio.h stdlib.h string.h unistd.h sched.h sys/ioctl.h stdint.h limits.h inttypes.h sys/time.h sys/wait.h sys/resource.h signal.h])
+# locale headers
+AC_CHECK_HEADERS([locale.h langinfo.h])
 # Headers for network (http) stuff
 AC_CHECK_HEADERS([netdb.h sys/param.h sys/socket.h netinet/in.h arpa/inet.h])
 if test "x$ac_cv_header_netdb_h" = "xyes"      &&

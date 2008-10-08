@@ -87,12 +87,12 @@ typedef unsigned char byte;
 
 #include "module.h"
 #include "audio.h"
+#include "local.h"
 
 extern size_t bufferblock;
 
 #define VERBOSE_MAX 3
 
-extern int utf8env; /* if we should print out UTF-8 or ASCII */
 extern char* binpath; /* argv[0], actually... */
 
 struct parameter
