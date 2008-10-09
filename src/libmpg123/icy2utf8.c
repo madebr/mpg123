@@ -338,7 +338,7 @@ is_utf8(const char* src)
 	const uint8_t* s = (const uint8_t*) src;
 
 	/* We make a loop over every character, until we find a null one.
-	   Remember: The string is supposed to end with a null, so ahead checks are safe. */
+	   Remember: The string is supposed to end with a NUL, so ahead checks are safe. */
 	while ((ch = *s++))	{
 		/* Ye olde 7bit ASCII chars 'rr fine for anything */
 		if(ch < 0x80) continue;
@@ -414,15 +414,24 @@ static const char intext[] = "\225 Gr\374\337e kosten 0,55 \200\205";
 int
 main(void)
 {
-	char *t;
+	char *t, *t2;
 
 	if ((t = icy2utf8(intext)) == NULL) {
 		fprintf(stderr, "out of memory\n");
 		return (1);
 	}
 
-	printf("Result is: \343\200\214%s\343\200\215\n", t);
+	/* make sure it won't be converted twice */
+	if ((t2 = icy2utf8(t)) == NULL) {
+		fprintf(stderr, "out of memory\n");
+		return (1);
+	}
+
+	printf("Result is:\t\343\200\214%s\343\200\215\n"
+		"\t\t\343\200\214%s\343\200\215\n", t, t2);
+
 	free(t);
+	free(t2);
 	return (0);
 }
 #endif
