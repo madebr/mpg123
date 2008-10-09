@@ -27,14 +27,24 @@ static int is_utf8(const char *lang);
 void check_locale(void)
 {
 	if(param.force_utf8) utf8env = 1;
-	else if(is_utf8(getenv("LANG"))) utf8env = 1;
+	else
+	{
+		const char *cp;
+
+		/* Check for env vars in proper oder. */
+		if((cp = getenv("LC_ALL")) == NULL && (cp = getenv("LC_CTYPE")) == NULL)
+		cp = getenv("LANG");
+
+		if(is_utf8(cp)) utf8env = 1;
+	}
+
 #if defined(HAVE_SETLOCALE) && defined(LC_CTYPE)
 	/* To query, we need to set from environment... */
-	else if(is_utf8(setlocale(LC_CTYPE, ""))) utf8env = 1;
+	if(!utf8env && is_utf8(setlocale(LC_CTYPE, ""))) utf8env = 1;
 #endif
 #if defined(HAVE_NL_LANGINFO) && defined(CODESET)
 	/* ...langinfo works after we set a locale, eh? So it makes sense after setlocale, if only. */
-	else if(is_utf8(nl_langinfo(CODESET))) utf8env = 1;
+	if(!utf8env && is_utf8(nl_langinfo(CODESET))) utf8env = 1;
 #endif
 
 	debug1("UTF-8 locale: %i", utf8env);
