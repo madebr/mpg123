@@ -10,7 +10,7 @@
 - added --keep-open command line flag (for remote control)
 - fixed equalizer file parsing to really handle comment lines as example file suggests
 - more elaborate detection of UTF-8 locale, also --utf8 switch to force it
-- libmpg123 8.3.8:
+- libmpg123 8.4.8:
   - added mpg123_geteq()
   - API cleanup (take const char* for mpg123_open())
   - calm down complainling (C++) compilers by completing the mpg123_channels enum
@@ -20,6 +20,9 @@
   - Finally realized what that the resampling code for integer math (generic_nofpu) was just incomplete!
     Now it works, using the defined integer multiplication.
   - Detect UTF-8 in ICY conversion (instead of just assuming CP-1252).
+  - Prevent ugly noise when the bit reservoir is not fully there (p.ex. ignorantly cut mp3 files).
+    Concerned frames are silenced, but reservoir for following frames is kept.
+    Thanks to Patrick Dehne for the investigation and patch!
 
 1.5.1
 ---
