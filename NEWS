@@ -10,7 +10,7 @@
 - added --keep-open command line flag (for remote control)
 - fixed equalizer file parsing to really handle comment lines as example file suggests
 - more elaborate detection of UTF-8 locale, also --utf8 switch to force it
-- libmpg123 8.4.8:
+- libmpg123 9.0.9:
   - added mpg123_geteq() and mpg123_tell_stream()
   - API cleanup (take const char* for mpg123_open())
   - calm down complainling (C++) compilers by completing the mpg123_channels enum
@@ -24,6 +24,7 @@
     Concerned frames are silenced, but reservoir for following frames is kept.
     Thanks to Patrick Dehne for the investigation and patch!
 - new project files to build/use libmpg123 with MSVC++ 2005 and 2008, provided by Patrick Dehne
+- fixed a regression that made the pause/loop mode in terminal control slowly go backwards
 
 1.5.1
 ---
