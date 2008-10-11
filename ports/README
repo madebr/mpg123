@@ -11,3 +11,5 @@ This directory contains some (contributed) works covering usage and/or building 
     ...by "Gates Fan" <gatesfan@gmail.com>
   - MSVC++/mpg123.h
     A wrapper header over mpg123.h.in (yes, the template file in ../src/libmpg123) to use in MSVC++ projects that link to libmpg123.
+  - MSVC++/2005 and MSVC++/2008 contain project files for building and using libmpg123 with the corresponding versions of Microsoft Visual C++.
+    To use it add the project to your solution. Then add a reference to libmpg123 from the project that wants to use it.

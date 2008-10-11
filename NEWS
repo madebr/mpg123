@@ -23,6 +23,7 @@
   - Prevent ugly noise when the bit reservoir is not fully there (p.ex. ignorantly cut mp3 files).
     Concerned frames are silenced, but reservoir for following frames is kept.
     Thanks to Patrick Dehne for the investigation and patch!
+- new project files to build/use libmpg123 with MSVC++ 2005 and 2008, provided by Patrick Dehne
 
 1.5.1
 ---
