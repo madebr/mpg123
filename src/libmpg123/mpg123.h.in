@@ -1,7 +1,7 @@
 /*
 	libmpg123: MPEG Audio Decoder library (version @PACKAGE_VERSION@)
 
-	copyright 1995-2007 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1995-2008 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 */
 
@@ -24,9 +24,10 @@
 #endif
 #endif
 
+#ifndef MPG123_NO_CONFIGURE /* Enable use of this file without configure. */
 @INCLUDE_STDLIB_H@
 @INCLUDE_SYS_TYPE_H@
-
+#endif
 
 #ifdef __cplusplus
 extern "C" {
