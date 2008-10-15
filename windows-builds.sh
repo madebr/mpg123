@@ -1,5 +1,7 @@
 #!/bin/sh
-version=$1
+
+# A dirty script to create some windows binaries (shared, static, debug, ...) using the MSYS environment.
+
 temp="$PWD/tmp"
 final="$PWD/releases"
 txt="README COPYING NEWS"
