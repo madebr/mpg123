@@ -97,6 +97,9 @@ Look into the ports/ directory for some traces of "porting" mpg123 or usually li
 
 3a. Preparing Win32 binary packages.
 
+Caution: You should make sure to use some gcc >= 4.2.0, even if it's still the experimental package for MinGW32.
+This helps preventing incompatibilities between generated DLL files and other compilers (it's about stack alignment).
+
 Get MinGW/MSYS installed, run the MSYS shell.
 Enter the mpg123 source directory.
 Execute sh ./windows-builds.sh .
