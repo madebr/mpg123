@@ -91,7 +91,7 @@ mpg123_build()
 	fi &&
 	for i in $txt
 	do
-		../unix2dos < "$i" > "$final/$name/$i"
+		./unix2dos < "$i" > "$final/$name/$i"
 	done
 }
 
