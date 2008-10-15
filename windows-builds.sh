@@ -91,7 +91,8 @@ mpg123_build()
 	fi &&
 	for i in $txt
 	do
-		./unix2dos < "$i" > "$final/$name/$i"
+		echo "text file $i -> $final/$name/$i.txt"
+		./unix2dos < "$i" > "$final/$name/$i.txt"
 	done
 }
 
