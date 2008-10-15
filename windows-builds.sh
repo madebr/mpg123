@@ -76,7 +76,7 @@ mpg123_build()
 	if test "$debug" = y; then
 		echo "Not stripping the debug build..."
 	else
-		strip --strip-unneeded "../$name/"*.exe
+		strip --strip-unneeded "$final/$name/"*.exe
 	fi &&
 	if test "$stat" = "y"; then
 		echo "No DLL there..."
