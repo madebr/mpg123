@@ -5,7 +5,7 @@
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 
 */
-#define DEBUG
+
 #include "mpg123lib_intern.h"
 #include "icy2utf8.h"
 #include "getbits.h"
@@ -626,7 +626,6 @@ int attribute_align_arg mpg123_decode_frame(mpg123_handle *mh, off_t *num, unsig
 #endif
 			if(audio != NULL) *audio = mh->buffer.p;
 			if(bytes != NULL) *bytes = mh->buffer.fill;
-debug1("decoded a frame, position now %li", (long)mpg123_tell(mh));
 
 			return MPG123_OK;
 		}
