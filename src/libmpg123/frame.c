@@ -289,6 +289,8 @@ static void frame_fixed_reset(mpg123_handle *fr)
 	fr->metaflags = 0;
 	fr->outblock = mpg123_safe_buffer();
 	fr->num = -1;
+	fr->accurate = TRUE;
+	fr->audio_start = 0;
 	fr->clip = 0;
 	fr->oldhead = 0;
 	fr->firsthead = 0;
@@ -387,6 +389,33 @@ int attribute_align_arg mpg123_info(mpg123_handle *mh, struct mpg123_frameinfo *
 	return MPG123_OK;
 }
 
+
+/*
+	Fuzzy frame offset searching (guessing).
+	When we don't have an accurate position, we may use an inaccurate one.
+	Possibilities:
+		- guess wildly from mean framesize and offset of first frame / beginning of file.
+		- use approximate positions from Xing TOC (not yet parsed)
+*/
+
+off_t frame_fuzzy_find(mpg123_handle *fr, off_t want_frame, off_t* get_frame)
+{
+fprintf(stderr, "FUZZY!... I will complain now about illegal frame header and such\n... gotta think over how silent the recovery from a fuzzy position should be...!!\n");
+	/* First implementation: Just guess with mean framesize. */
+	if(fr->mean_framesize > 0)
+	{
+		/* Query filelen here or not? */
+		fr->accurate = 0; /* Fuzzy! */
+		*get_frame = want_frame;
+		return fr->mean_framesize*want_frame;
+	}
+	else
+	{
+		*get_frame = 0;
+		return fr->audio_start;
+	}
+}
+
 /*
 	find the best frame in index just before the wanted one, seek to there
 	then step to just before wanted one with read_frame
@@ -402,19 +431,30 @@ off_t frame_index_find(mpg123_handle *fr, off_t want_frame, off_t* get_frame)
 	off_t gopos = 0;
 	*get_frame = 0;
 #ifdef FRAME_INDEX
+	/* Possibly use VBRI index, too? I'd need an example for this... */
 	if(fr->index.fill)
 	{
 		/* find in index */
 		size_t fi;
 		/* at index fi there is frame step*fi... */
 		fi = want_frame/fr->index.step;
-		if(fi >= fr->index.fill) fi = fr->index.fill - 1;
+		if(fi >= fr->index.fill) /* If we are beyond the end of frame index...*/
+		{
+			/* When fuzzy seek is allowed, we have some limited tolerance for the frames we want to read rather then jump over. */
+			if(fr->p.flags & MPG123_FUZZY && want_frame - (fr->index.fill-1)*fr->index.step > 10)
+			return frame_fuzzy_find(fr, want_frame, get_frame);
+			else /* Else, just use the last available position, slowly advancing from that one. */
+			fi = fr->index.fill - 1;
+		}
 		*get_frame = fi*fr->index.step;
 		gopos = fr->index.data[fi];
+		fr->accurate = 1; /* When using the frame index, we are accurate. */
 	}
 	else
 	{
 #endif
+		if(fr->p.flags & MPG123_FUZZY)
+		return frame_fuzzy_find(fr, want_frame, get_frame);
 		/* A bit hackish here... but we need to be fresh when looking for the first header again. */
 		fr->firsthead = 0;
 		fr->oldhead = 0;

@@ -105,6 +105,7 @@ enum mpg123_param_flags
 	,MPG123_GAPLESS      = 0x40 /**< 01000000 Enable gapless decoding (default on if libmpg123 has support). */
 	,MPG123_NO_RESYNC    = 0x80 /**< 10000000 Disable resync stream after error.                             */
 	,MPG123_SEEKBUFFER   = 0x100 /**< 000100000000 Enable small buffer on non-seekable streams to allow some peek-ahead (for better MPEG sync). */
+	,MPG123_FUZZY        = 0x200 /**< 001000000000 Enable fuzzy seeks (guessing byte offsets or using approximate seek points from Xing TOC) */
 };
 
 /** choices for MPG123_RVA */

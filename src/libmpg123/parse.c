@@ -684,6 +684,10 @@ init_resync:
 		}
 
 		fr->firsthead = newhead; /* _now_ it's time to store it... the first real header */
+		/* The first encountered first header is the beginning of audio data.
+		   ...only the first because we could loose track in a broken stream. */
+		if(fr->audio_start == 0) fr->audio_start = framepos;
+
 		debug1("fr->firsthead: %08lx", fr->firsthead);
 		/* now adjust volume */
 		do_rva(fr);
@@ -705,7 +709,10 @@ init_resync:
 	}
 	/* index the position */
 #ifdef FRAME_INDEX
-	if(INDEX_SIZE > 0 && fr->rdat.flags & READER_SEEKABLE) /* any sane compiler should make a no-brainer out of this */
+	/* Keep track of true frame positions in our frame index.
+	   but only do so when we are sure that the frame number is accurate...
+	   and seeking is possible at all. */
+	if(fr->accurate && INDEX_SIZE > 0 && fr->rdat.flags & READER_SEEKABLE)
 	{
 		if(fr->num == fr->index.fill*fr->index.step)
 		{

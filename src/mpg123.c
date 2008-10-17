@@ -436,6 +436,7 @@ topt opts[] = {
 	{0, "ignore-mime", GLO_INT,  0, &param.ignore_mime, 1 },
 	{0, "keep-open", GLO_INT, 0, &param.keep_open, 1},
 	{0, "utf8", GLO_INT, 0, &param.force_utf8, 1},
+	{0, "fuzzy", GLO_INT,  set_frameflag, &frameflag, MPG123_FUZZY},
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -1116,6 +1117,7 @@ static void long_usage(int err)
 	fprintf(o,"\ninput options\n\n");
 	fprintf(o," -k <n> --skip <n>         skip n frames at beginning\n");
 	fprintf(o," -n     --frames <n>       play only <n> frames of every stream\n");
+	fprintf(o,"        --fuzzy            Enable fuzzy seeks (guessing byte offsets or using approximate seek points from Xing TOC)\n");
 	fprintf(o," -y     --no-resync        DISABLES resync on error (--resync is deprecated)\n");
 	fprintf(o," -p <f> --proxy <f>        set WWW proxy\n");
 	fprintf(o," -u     --auth             set auth values for HTTP access\n");

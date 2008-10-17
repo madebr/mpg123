@@ -174,6 +174,7 @@ struct mpg123_handle_struct
 	int II_sblimit;
 	int down_sample_sblimit;
 	int lsf; /* 0: MPEG 1.0; 1: MPEG 2.0/2.5 -- both used as bool and array index! */
+	/* Many flags in disguise as integers... wasting bytes. */
 	int mpeg25;
 	int down_sample;
 	int header_change;
@@ -193,6 +194,8 @@ struct mpg123_handle_struct
 	int freesize;  /* free format frame size */
 	enum mpg123_vbr vbr; /* 1 if variable bitrate was detected */
 	off_t num; /* frame offset ... */
+	off_t audio_start; /* The byte offset in the file where audio data begins. */
+	int accurate; /* Flag to see if we trust the frame number. */
 
 	/* bitstream info; bsi */
 	int bitindex;
@@ -248,7 +251,7 @@ struct mpg123_handle_struct
 	off_t end_s;    /* overall end offset in samples */
 	off_t end_os;
 #endif
-	unsigned int crc;
+	unsigned int crc; /* Well, I need a safe 16bit type, actually. But wider doesn't hurt. */
 	struct reader *rd; /* pointer to the reading functions */
 	struct reader_data rdat; /* reader data and state info */
 	struct mpg123_pars_struct p;
