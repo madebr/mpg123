@@ -496,7 +496,7 @@ off_t frame_index_find(mpg123_handle *fr, off_t want_frame, off_t* get_frame)
 		}
 		*get_frame = fi*fr->index.step;
 		gopos = fr->index.data[fi];
-		fr->accurate = 1; /* When using the frame index, we are accurate. */
+		fr->accurate = TRUE; /* When using the frame index, we are accurate. */
 	}
 	else
 	{
