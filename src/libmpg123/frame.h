@@ -195,7 +195,9 @@ struct mpg123_handle_struct
 	enum mpg123_vbr vbr; /* 1 if variable bitrate was detected */
 	off_t num; /* frame offset ... */
 	off_t audio_start; /* The byte offset in the file where audio data begins. */
-	int accurate; /* Flag to see if we trust the frame number. */
+	char accurate; /* Flag to see if we trust the frame number. */
+	char silent_resync; /* Do not complain for the next n resyncs. */
+	unsigned char* xing_toc; /* The seek TOC from Xing header. */
 
 	/* bitstream info; bsi */
 	int bitindex;
@@ -332,6 +334,8 @@ off_t frame_offset(mpg123_handle *fr, off_t outs);
 void frame_set_frameseek(mpg123_handle *fr, off_t fe);
 void frame_set_seek(mpg123_handle *fr, off_t sp);
 off_t frame_tell_seek(mpg123_handle *fr);
+/* Take a copy of the Xing VBR TOC for fuzzy seeking. */
+int frame_fill_toc(mpg123_handle *fr, unsigned char* in);
 
 
 /* adjust volume to current outscale and rva values if wanted */

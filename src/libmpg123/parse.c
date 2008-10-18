@@ -233,6 +233,7 @@ static int check_lame_tag(mpg123_handle *fr)
 				}
 				if(xing_flags & 0x4) /* TOC */
 				{
+					frame_fill_toc(fr, fr->bsbuf+lame_offset);
 					lame_offset += 100; /* just skip */
 				}
 				if(xing_flags & 0x8) /* VBR quality */
@@ -447,18 +448,22 @@ init_resync:
 			fr->oldhead = 0;
 			goto read_again; /* Also in case of invalid ID3 tag (ret==0), try to get on track again. */
 		}
-		else if(VERBOSE2) fprintf(stderr,"Note: Junk at the beginning (0x%08lx)\n",newhead);
+		else if(VERBOSE2 && fr->silent_resync == 0) fprintf(stderr,"Note: Junk at the beginning (0x%08lx)\n",newhead);
 
 		/* I even saw RIFF headers at the beginning of MPEG streams ;( */
 		if(newhead == ('R'<<24)+('I'<<16)+('F'<<8)+'F') {
-			if(VERBOSE2) fprintf(stderr, "Note: Looks like a RIFF header.\n");
+			if(VERBOSE2 && fr->silent_resync == 0) fprintf(stderr, "Note: Looks like a RIFF header.\n");
+
 			if((ret=fr->rd->head_read(fr,&newhead))<=0){ debug("need more?"); goto read_frame_bad; }
+
 			while(newhead != ('d'<<24)+('a'<<16)+('t'<<8)+'a')
 			{
 				if((ret=fr->rd->head_shift(fr,&newhead))<=0){ debug("need more?"); goto read_frame_bad; }
 			}
 			if((ret=fr->rd->head_read(fr,&newhead))<=0){ debug("need more?"); goto read_frame_bad; }
-			if(VERBOSE2) fprintf(stderr,"Note: Skipped RIFF header!\n");
+
+			if(VERBOSE2 && fr->silent_resync == 0) fprintf(stderr,"Note: Skipped RIFF header!\n");
+
 			fr->oldhead = 0;
 			goto read_again;
 		}
@@ -566,7 +571,7 @@ init_resync:
 			fr->metaflags  |= MPG123_NEW_ID3|MPG123_ID3;
 			goto read_again;
 		}
-		else if(NOQUIET)
+		else if(NOQUIET && fr->silent_resync == 0)
 		{
 			fprintf(stderr,"Note: Illegal Audio-MPEG-Header 0x%08lx at offset 0x%lx.\n",
 				newhead, (long unsigned int)fr->rd->tell(fr)-4);
@@ -580,7 +585,7 @@ init_resync:
 			long try = 0;
 			long limit = fr->p.resync_limit;
 			/* TODO: make this more robust, I'd like to cat two mp3 fragments together (in a dirty way) and still have mpg123 beign able to decode all it somehow. */
-			if(NOQUIET) fprintf(stderr, "Note: Trying to resync...\n");
+			if(NOQUIET && fr->silent_resync == 0) fprintf(stderr, "Note: Trying to resync...\n");
 			/* Read more bytes until we find something that looks
 			 reasonably like a valid header.  This is not a
 			 perfect strategy, but it should get us back on the
@@ -614,7 +619,7 @@ init_resync:
 			);
 			/* too many false positives 
 			}while (!(head_check(newhead) && decode_header(fr, newhead))); */
-			if(NOQUIET) fprintf (stderr, "Note: Skipped %li bytes in input.\n", try);
+			if(NOQUIET && fr->silent_resync == 0) fprintf (stderr, "Note: Skipped %li bytes in input.\n", try);
 
 			if(limit >= 0 && try >= limit)
 			{
@@ -694,6 +699,8 @@ init_resync:
 	}
   fr->bitindex = 0;
   fr->wordpointer = (unsigned char *) fr->bsbuf;
+	/* Question: How bad does the floating point value get with repeated recomputation?
+	   Also, considering that we can play the file or parts of many times. */
 	if(++fr->mean_frames != 0)
 	{
 		fr->mean_framesize = ((fr->mean_frames-1)*fr->mean_framesize+compute_bpf(fr)) / fr->mean_frames ;
@@ -735,11 +742,16 @@ init_resync:
 		}
 	}
 #endif
+	if(fr->silent_resync > 0) --fr->silent_resync;
+
 	if(fr->rd->forget != NULL) fr->rd->forget(fr);
+
 	fr->to_decode = fr->to_ignore = TRUE;
 	if(fr->error_protection) fr->crc = getbits(fr, 16); /* skip crc */
+
 	return 1;
 read_frame_bad:
+	fr->silent_resync = 0;
 	if(fr->err == MPG123_OK) fr->err = MPG123_ERR_READER;
 	fr->framesize = oldsize;
 	fr->halfphase = oldphase;

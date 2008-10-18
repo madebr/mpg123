@@ -54,6 +54,7 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 	fr->rawbuffs = NULL;
 	fr->rawdecwin = NULL;
 	fr->conv16to8_buf = NULL;
+	fr->xing_toc = NULL;
 	fr->cpu_opts.type = defopt;
 	fr->cpu_opts.class = (defopt == mmx || defopt == sse || defopt == dreidnowext) ? mmxsse : normal;
 	/* these two look unnecessary, check guarantee for synth_ntom_set_step (in control_generic, even)! */
@@ -270,12 +271,39 @@ void frame_icy_reset(mpg123_handle* fr)
 	fr->icy.next = 0;
 }
 
+void frame_free_toc(mpg123_handle *fr)
+{
+	if(fr->xing_toc != NULL){ free(fr->xing_toc); fr->xing_toc = NULL; }
+}
+
+/* Just copy the Xing TOC over... */
+int frame_fill_toc(mpg123_handle *fr, unsigned char* in)
+{
+	if(fr->xing_toc == NULL) fr->xing_toc = malloc(100);
+	if(fr->xing_toc != NULL)
+	{
+		memcpy(fr->xing_toc, in, 100);
+#ifdef DEBUG
+		debug("Got a TOC! Showing the values...");
+		{
+			int i;
+			for(i=0; i<100; ++i)
+			debug2("entry %i = %i", i, fr->xing_toc[i]);
+		}
+#endif
+		return TRUE;
+	}
+	return FALSE;
+}
+
 /* Prepare the handle for a new track.
    Reset variables, buffers... */
 int frame_reset(mpg123_handle* fr)
 {
 	frame_buffers_reset(fr);
 	frame_fixed_reset(fr);
+	frame_free_toc(fr);
+
 	return 0;
 }
 
@@ -290,6 +318,7 @@ static void frame_fixed_reset(mpg123_handle *fr)
 	fr->outblock = mpg123_safe_buffer();
 	fr->num = -1;
 	fr->accurate = TRUE;
+	fr->silent_resync = 0;
 	fr->audio_start = 0;
 	fr->clip = 0;
 	fr->oldhead = 0;
@@ -352,6 +381,7 @@ void frame_exit(mpg123_handle *fr)
 	if(fr->own_buffer && fr->buffer.data != NULL) free(fr->buffer.data);
 	fr->buffer.data = NULL;
 	frame_free_buffers(fr);
+	frame_free_toc(fr);
 	exit_id3(fr);
 	clear_icy(&fr->icy);
 }
@@ -394,26 +424,44 @@ int attribute_align_arg mpg123_info(mpg123_handle *mh, struct mpg123_frameinfo *
 	Fuzzy frame offset searching (guessing).
 	When we don't have an accurate position, we may use an inaccurate one.
 	Possibilities:
-		- guess wildly from mean framesize and offset of first frame / beginning of file.
 		- use approximate positions from Xing TOC (not yet parsed)
+		- guess wildly from mean framesize and offset of first frame / beginning of file.
 */
 
 off_t frame_fuzzy_find(mpg123_handle *fr, off_t want_frame, off_t* get_frame)
 {
-fprintf(stderr, "FUZZY!... I will complain now about illegal frame header and such\n... gotta think over how silent the recovery from a fuzzy position should be...!!\n");
-	/* First implementation: Just guess with mean framesize. */
-	if(fr->mean_framesize > 0)
+	/* Default is to go to the beginning. */
+	off_t ret = fr->audio_start;
+	*get_frame = 0;
+
+	/* But we try to find something better. */
+	if(fr->xing_toc != NULL && fr->track_frames > 0)
 	{
+		/* One could round... */
+		int toc_entry = (int) ((double)want_frame*100./fr->track_frames);
+		/* It is an index in the 100-entry table. */
+		if(toc_entry < 0)  toc_entry = 0;
+		if(toc_entry > 99) toc_entry = 99;
+
+		/* Now estimate back what frame we get. */
+		*get_frame = (off_t) ((double)toc_entry/100. * fr->track_frames);
+		fr->accurate = FALSE;
+		fr->silent_resync = 1;
+		/* Question: Is the TOC for whole file size (with/without ID3) or the "real" audio data only?
+		   ID3v1 info could also matter. */
+		ret = (off_t) ((double)fr->xing_toc[toc_entry]/256.* (fr->rdat.filelen-fr->audio_start));
+	}
+	else if(fr->mean_framesize > 0)
+	{	/* Just guess with mean framesize (may be exact with CBR files). */
 		/* Query filelen here or not? */
-		fr->accurate = 0; /* Fuzzy! */
+		fr->accurate = FALSE; /* Fuzzy! */
+		fr->silent_resync = 1;
 		*get_frame = want_frame;
-		return fr->mean_framesize*want_frame;
+		ret = fr->audio_start+fr->mean_framesize*want_frame;
 	}
-	else
-	{
-		*get_frame = 0;
-		return fr->audio_start;
-	}
+	debug5("fuzzy: want %li of %li, get %li at %li B of %li B",
+		(long)want_frame, (long)fr->track_frames, (long)*get_frame, (long)ret, (long)(fr->rdat.filelen-fr->audio_start));
+	return ret;
 }
 
 /*
