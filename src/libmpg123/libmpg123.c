@@ -56,6 +56,9 @@ static int initialized = 0;
 */
 static void frame_buffercheck(mpg123_handle *fr)
 {
+	/* When we have no accurate position, gapless code does not make sense. */
+	if(!fr->accurate) return;
+
 	/* The first interesting frame: Skip some leading samples. */
 	if(fr->firstoff && fr->num == fr->firstframe)
 	{
