@@ -352,6 +352,30 @@ int attribute_align_arg mpg123_getpar(mpg123_pars *mp, enum mpg123_parms key, lo
 	return ret;
 }
 
+int attribute_align_arg mpg123_getstate(mpg123_handle *mh, enum mpg123_state key, long *val, double *fval)
+{
+	int ret = MPG123_OK;
+	long theval = 0;
+	double thefval = 0.;
+	ALIGNCHECK(mh);
+	if(mh == NULL) return MPG123_ERR;
+
+	switch(key)
+	{
+		case MPG123_ACCURATE:
+			theval = mh->accurate;
+		break;
+		default:
+			mh->err = MPG123_BAD_KEY;
+			ret = MPG123_ERR;
+	}
+
+	if(val  != NULL) *val  = theval;
+	if(fval != NULL) *fval = thefval;
+
+	return ret;
+}
+
 int attribute_align_arg mpg123_eq(mpg123_handle *mh, enum mpg123_channels channel, int band, double val)
 {
 	ALIGNCHECK(mh);
@@ -1203,7 +1227,8 @@ static const char *mpg123_error[] =
 	"Stack alignment is not good. (code 30)",
 	"You gave me a NULL buffer? (code 31)",
 	"File position is screwed up, please do an absolute seek (code 32)",
-	"Inappropriate NULL-pointer provided."
+	"Inappropriate NULL-pointer provided.",
+	"Bad key value given"
 };
 
 const char* attribute_align_arg mpg123_plain_strerror(int errcode)

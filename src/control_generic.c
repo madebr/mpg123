@@ -262,7 +262,7 @@ int control_generic (mpg123_handle *fr)
 #endif
 	/* the command behaviour is different, so is the ID */
 	/* now also with version for command availability */
-	fprintf(outstream, "@R MPG123 (ThOr) v4\n");
+	fprintf(outstream, "@R MPG123 (ThOr) v5\n");
 #ifdef FIFO
 	if(param.fifo)
 	{
@@ -472,6 +472,19 @@ int control_generic (mpg123_handle *fr)
 					continue;
 				}
 
+				if(!strcasecmp(comstr, "STATE"))
+				{
+					int i;
+					long val;
+					generic_sendmsg("STATE {");
+					/* Get some state information bits and display them. */
+					if(mpg123_getstate(fr, MPG123_ACCURATE, &val, NULL) == MPG123_OK)
+					generic_sendmsg("STATE accurate %li", val);
+
+					generic_sendmsg("STATE }");
+					continue;
+				}
+
 				/* QUIT */
 				if (!strcasecmp(comstr, "Q") || !strcasecmp(comstr, "QUIT")){
 					alive = FALSE; continue;
@@ -496,6 +509,7 @@ int control_generic (mpg123_handle *fr)
 					generic_sendmsg("H SAMPLE: print out the sample position and total number of samples");
 					generic_sendmsg("H SEQ <bass> <mid> <treble>: simple eq setting...");
 					generic_sendmsg("H SILENCE: be silent during playback (meaning silence in text form)");
+					generic_sendmsg("H STATE: Print auxilliary state info in several lines (just try it to see what info is there).");
 					generic_sendmsg("H TAG/T: Print all available (ID3) tag info, for ID3v2 that gives output of all collected text fields, using the ID3v2.3/4 4-character names.");
 					generic_sendmsg("H    The output is multiple lines, begin marked by \"@T {\", end by \"@T }\".");
 					generic_sendmsg("H    ID3v1 data is like in the @I info lines (see below), just with \"@T\" in front.");

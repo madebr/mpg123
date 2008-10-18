@@ -182,7 +182,8 @@ enum mpg123_errors
 	MPG123_BAD_ALIGN,	/**< Stack aligmnent error */
 	MPG123_NULL_BUFFER,	/**< NULL input buffer with non-zero size... */
 	MPG123_NO_RELSEEK,	/**< Relative seek not possible (screwed up file offset) */
-	MPG123_NULL_POINTER /**< You gave a null pointer somewhere where you shouldn't have. */
+	MPG123_NULL_POINTER, /**< You gave a null pointer somewhere where you shouldn't have. */
+	MPG123_BAD_KEY  /**< Bad key value given. */
 };
 
 /** Return a string describing that error errcode means. */
@@ -568,6 +569,21 @@ EXPORT double mpg123_tpf(mpg123_handle *mh);
 
 /** Get and reset the clip count. */
 EXPORT long mpg123_clip(mpg123_handle *mh);
+
+
+/** The key values for state information from mpg123_getstate(). */
+enum mpg123_state
+{
+	 MPG123_ACCURATE = 1 /**< Query if positons are currently accurate (integer value, 0 if false, 1 if true) */
+};
+
+/** Get various current decoder/stream state information.
+ *  \param key the key to identify the information to give.
+ *  \param val the address to return (long) integer values to
+ *  \param fval the address to return floating point values to
+ *  \return MPG123_OK or MPG123_ERR for success
+ */
+EXPORT int mpg123_getstate(mpg123_handle *mh, enum mpg123_state key, long *val, double *fval);
 
 /*@}*/
 

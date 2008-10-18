@@ -1,5 +1,8 @@
 Changes in libmpg123 libtool interface versions...
 
+11.0.11
+	- added mpg123_getstate
+
 10.0.10
 	- new flag MPG123_FUZZY (along with the fuzzy seek functionality)
 

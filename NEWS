@@ -11,8 +11,8 @@
 - fixed equalizer file parsing to really handle comment lines as example file suggests
 - more elaborate detection of UTF-8 locale, also --utf8 switch to force it
 - added --fuzzy to enable inexact seeking (see below)
-- libmpg123 10.1.10:
-  - added mpg123_geteq() and mpg123_tell_stream()
+- libmpg123 11.0.11:
+  - added mpg123_geteq(), mpg123_tell_stream() and mpg123_getstate()
   - API cleanup (take const char* for mpg123_open())
   - calm down complainling (C++) compilers by completing the mpg123_channels enum
   - fixed several possible crashes when user provides NULLs where it isn't appropriate
