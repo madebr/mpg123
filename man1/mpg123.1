@@ -48,6 +48,11 @@ Decode only
 .I num
 frames.  By default the complete stream is decoded.
 .TP
+.BR \-\-fuzzy
+Enable fuzzy seeks (guessing byte offsets or using approximate seek points from Xing TOC).
+Without that, seeks need a first scan through the file before they can jump at positions.
+You can decide here: sample-accurate operation with gapless features or faster (fuzzy) seeking.
+.TP
 .BR \-y ", " \-\^\-no\-resync
 Do NOT try to resync and continue decoding if an error occurs in
 the input file. Normally, 
@@ -98,6 +103,9 @@ is the number of entry starting at 1. A value of 0 is the default and means play
 .TP
 \fB\-\-loop \fItimes\fR
 for looping track(s) a certain number of times, < 0 means infinite loop (not with --random!).
+.TP
+.BR \-\-keep\-open
+For remote control mode: Keep loaded file open after reaching end.
 .TP
 \fB\-\-timeout \fIseconds\fR
 Timeout in (integer) seconds before declaring a stream dead (if <= 0, wait forever).
@@ -219,6 +227,9 @@ Performs a downsampling of ratio 2:1 (22 kHz) or 4:1 (11 kHz)
 on the output stream, respectively. Saves some CPU cycles, but 
 at least the 4:1 ratio sounds ugly.
 .TP
+.BR \-\-pitch \fIvalue
+Set hardware pitch (speedup/down, 0 is neutral; 0.05 is 5%). This changes the output sampling rate, so it only works in the range your audio system/hardware supports.
+.TP
 .BR \-\-8bit
 Forces 8bit output
 .TP
@@ -319,6 +330,9 @@ playing.
 .TP
 \fB\-\^\-long\-tag
 Display ID3 tag info always in long format with one line per item (artist, title, ...)
+.TP
+.BR \-\-utf8
+Regardless of environment, print metadata in UTF-8 (otherwise, when not using UTF-8 locale, you'll get ASCII stripdown).
 .TP
 .BR \-R ", " \-\^\-remote
 Activate generic control interface.
@@ -461,7 +475,7 @@ Thomas Orgis <maintainer@mpg123.org>, <thomas@orgis.org>
 .br
 Nicholas J. Humfrey
 .TP
-Main author:
+Creator:
 .br
 Michael Hipp
 .TP
