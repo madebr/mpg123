@@ -8,6 +8,7 @@
 
 #include "mpg123lib_intern.h"
 #include "getcpuflags.h"
+#define DEBUG
 #include "debug.h"
 
 #define IGNORESHIFT 2
@@ -435,7 +436,9 @@ off_t frame_fuzzy_find(mpg123_handle *fr, off_t want_frame, off_t* get_frame)
 	*get_frame = 0;
 
 	/* But we try to find something better. */
-	if(fr->xing_toc != NULL && fr->track_frames > 0)
+	/* Xing VBR TOC works with relative positions, both in terms of audio frames and stream bytes.
+	   Thus, it only works when whe know the length of things. */
+	if(fr->xing_toc != NULL && fr->track_frames > 0 && fr->rdat.filelen > fr->audio_start)
 	{
 		/* One could round... */
 		int toc_entry = (int) ((double)want_frame*100./fr->track_frames);
@@ -490,10 +493,15 @@ off_t frame_index_find(mpg123_handle *fr, off_t want_frame, off_t* get_frame)
 		{
 			/* When fuzzy seek is allowed, we have some limited tolerance for the frames we want to read rather then jump over. */
 			if(fr->p.flags & MPG123_FUZZY && want_frame - (fr->index.fill-1)*fr->index.step > 10)
-			return frame_fuzzy_find(fr, want_frame, get_frame);
-			else /* Else, just use the last available position, slowly advancing from that one. */
+			{
+				gopos = frame_fuzzy_find(fr, want_frame, get_frame);
+				if(gopos > fr->audio_start) return gopos; /* Only in that case, we have a useful guess. */
+				/* Else... just continue, fuzzyness didn't help. */
+			}
+			/* Use the last available position, slowly advancing from that one. */
 			fi = fr->index.fill - 1;
 		}
+		/* We have index position, that yields frame and byte offsets. */
 		*get_frame = fi*fr->index.step;
 		gopos = fr->index.data[fi];
 		fr->accurate = TRUE; /* When using the frame index, we are accurate. */
