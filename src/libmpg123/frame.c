@@ -8,7 +8,6 @@
 
 #include "mpg123lib_intern.h"
 #include "getcpuflags.h"
-#define DEBUG
 #include "debug.h"
 
 #define IGNORESHIFT 2
@@ -437,8 +436,9 @@ off_t frame_fuzzy_find(mpg123_handle *fr, off_t want_frame, off_t* get_frame)
 
 	/* But we try to find something better. */
 	/* Xing VBR TOC works with relative positions, both in terms of audio frames and stream bytes.
-	   Thus, it only works when whe know the length of things. */
-	if(fr->xing_toc != NULL && fr->track_frames > 0 && fr->rdat.filelen > fr->audio_start)
+	   Thus, it only works when whe know the length of things.
+	   Oh... I assume the offsets are relative to the _total_ file length. */
+	if(fr->xing_toc != NULL && fr->track_frames > 0 && fr->rdat.filelen > 0)
 	{
 		/* One could round... */
 		int toc_entry = (int) ((double)want_frame*100./fr->track_frames);
@@ -452,7 +452,7 @@ off_t frame_fuzzy_find(mpg123_handle *fr, off_t want_frame, off_t* get_frame)
 		fr->silent_resync = 1;
 		/* Question: Is the TOC for whole file size (with/without ID3) or the "real" audio data only?
 		   ID3v1 info could also matter. */
-		ret = (off_t) ((double)fr->xing_toc[toc_entry]/256.* (fr->rdat.filelen-fr->audio_start));
+		ret = (off_t) ((double)fr->xing_toc[toc_entry]/256.* fr->rdat.filelen);
 	}
 	else if(fr->mean_framesize > 0)
 	{	/* Just guess with mean framesize (may be exact with CBR files). */

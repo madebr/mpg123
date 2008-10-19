@@ -224,11 +224,28 @@ static int check_lame_tag(mpg123_handle *fr)
 				}
 				if(xing_flags & 0x2) /* bytes */
 				{
-					if(VERBOSE3)
+					unsigned long xing_bytes = make_long(fr->bsbuf, lame_offset);					/* We assume that this is the _total_ size of the file, including Xing frame ... and ID3 frames...
+					   It's not that clearly documented... */
+					if(fr->rdat.filelen < 1)
+					fr->rdat.filelen = (off_t) xing_bytes; /* One could start caring for overflow here. */
+					else
 					{
-						unsigned long xing_bytes = make_long(fr->bsbuf, lame_offset);
-						fprintf(stderr, "Note: Xing: %lu bytes\n", (long unsigned)xing_bytes);
+						if((off_t) xing_bytes != fr->rdat.filelen && NOQUIET)
+						{
+							double diff = 1.0/fr->rdat.filelen * (fr->rdat.filelen - (off_t)xing_bytes);
+							if(diff < 0.) diff = -diff;
+
+							if(VERBOSE3)
+							fprintf(stderr, "Note: Xing stream size %lu differs by %f%% from determined/given file size!\n", xing_bytes, diff);
+
+							if(diff > 1.)
+							fprintf(stderr, "Warning: Xing stream size off by more than 1%%, fuzzy seeking may be even more fuzzy than by design!\n");
+						}
 					}
+
+					if(VERBOSE3)
+					fprintf(stderr, "Note: Xing: %lu bytes\n", (long unsigned)xing_bytes);
+
 					lame_offset += 4;
 				}
 				if(xing_flags & 0x4) /* TOC */
