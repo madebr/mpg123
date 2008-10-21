@@ -734,9 +734,8 @@ init_resync:
 	/* index the position */
 #ifdef FRAME_INDEX
 	/* Keep track of true frame positions in our frame index.
-	   but only do so when we are sure that the frame number is accurate...
-	   and seeking is possible at all. */
-	if(fr->accurate && INDEX_SIZE > 0 && fr->rdat.flags & READER_SEEKABLE)
+	   but only do so when we are sure that the frame number is accurate... */
+	if(fr->accurate && INDEX_SIZE > 0)
 	{
 		if(fr->num == fr->index.fill*fr->index.step)
 		{
