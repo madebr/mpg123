@@ -109,6 +109,7 @@ struct parameter param = {
 	,NULL /* proxyurl */
 	,0 /* keep_open */
 	,0 /* force_utf8 */
+	,INDEX_SIZE
 };
 
 mpg123_handle *mh = NULL;
@@ -437,6 +438,7 @@ topt opts[] = {
 	{0, "keep-open", GLO_INT, 0, &param.keep_open, 1},
 	{0, "utf8", GLO_INT, 0, &param.force_utf8, 1},
 	{0, "fuzzy", GLO_INT,  set_frameflag, &frameflag, MPG123_FUZZY},
+	{0, "index-size", GLO_ARG|GLO_LONG, 0, &param.index_size, 0},
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -833,6 +835,9 @@ int main(int argc, char *argv[])
 	}
 	if (!(param.listentry < 0) && !param.quiet) print_title(stderr); /* do not pollute stdout! */
 
+	if( (result = mpg123_par(mp, MPG123_INDEX_SIZE, param.index_size, 0.)) != MPG123_OK )
+	error1("Setting of frame index size failed: %s", mpg123_plain_strerror(result));
+
 	if(param.force_rate && param.down_sample)
 	{
 		error("Down sampling and fixed rate options not allowed together!");
@@ -1133,6 +1138,7 @@ static void long_usage(int err)
 	fprintf(o," -Z     --random           full random play\n");
 	fprintf(o,"        --no-icy-meta      Do not accept ICY meta data\n");
 	fprintf(o," -i     --index            index / scan through the track before playback\n");
+	fprintf(o,"        --index-size       change size of frame index\n");
 	fprintf(o,"        --resync-limit <n> Set number of bytes to search for valid MPEG data; <0 means search whole stream.\n");
 	fprintf(o,"\noutput/processing options\n\n");
 	fprintf(o," -o <o> --output <o>       select audio output module\n");

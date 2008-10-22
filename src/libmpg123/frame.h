@@ -16,6 +16,9 @@
 #include "icy.h"
 #include "reader.h"
 #include "optimize.h"
+#ifdef FRAME_INDEX
+#include "index.h"
+#endif
 
 /* max = 1728 */
 #define MAXFRAMESIZE 3456
@@ -25,15 +28,6 @@ struct al_table
   short bits;
   short d;
 };
-
-#ifdef FRAME_INDEX
-struct frame_index
-{
-	off_t data[INDEX_SIZE];
-	size_t fill;
-	off_t step;
-};
-#endif
 
 /* the output buffer, used to be pcm_sample, pcm_point and audiobufsize */
 struct outbuffer
@@ -73,6 +67,7 @@ struct mpg123_pars_struct
 	long icy_interval;
 	scale_t outscale;
 	long resync_limit;
+	long index_size; /* Long, because: negative values have a meaning. */
 };
 
 /* There is a lot to condense here... many ints can be merged as flags; though the main space is still consumed by buffers. */
@@ -280,8 +275,14 @@ int frame_reset(mpg123_handle* fr);   /* reset for next track */
 int frame_buffers_reset(mpg123_handle *fr);
 void frame_exit(mpg123_handle *fr);   /* end, free all buffers */
 
+/* Index functions... */
+/* Well... print it... */
 int mpg123_print_index(mpg123_handle *fr, FILE* out);
+/* Find a seek position in index. */
 off_t frame_index_find(mpg123_handle *fr, off_t want_frame, off_t* get_frame);
+/* Apply index_size setting. */
+int frame_index_setup(mpg123_handle *fr);
+
 int frame_cpu_opt(mpg123_handle *fr, const char* cpu);
 enum optdec dectype(const char* decoder);
 

@@ -214,6 +214,16 @@ int attribute_align_arg mpg123_param(mpg123_handle *mh, enum mpg123_parms key, l
 	if(mh == NULL) return MPG123_ERR;
 	r = mpg123_par(&mh->p, key, val, fval);
 	if(r != MPG123_OK){ mh->err = r; r = MPG123_ERR; }
+	else
+	{ /* Special treatment for some settings. */
+#ifdef FRAME_INDEX
+		if(key == MPG123_INDEX_SIZE)
+		{ /* Apply frame index size and grow property on the fly. */
+			r = frame_index_setup(mh);
+			if(r != MPG123_OK) mh->err = MPG123_INDEX_FAIL;
+		}
+#endif
+	}
 	return r;
 }
 
@@ -287,6 +297,13 @@ int attribute_align_arg mpg123_par(mpg123_pars *mp, enum mpg123_parms key, long 
 		break;
 		case MPG123_RESYNC_LIMIT:
 			mp->resync_limit = val;
+		break;
+		case MPG123_INDEX_SIZE:
+#ifdef FRAME_INDEX
+			mp->index_size = val;
+#else
+			ret = MPG123_NO_INDEX;
+#endif
 		break;
 		default:
 			ret = MPG123_BAD_PARAM;
@@ -886,6 +903,7 @@ static int do_the_seek(mpg123_handle *mh)
 		return MPG123_OK;
 	}
 	b = mh->rd->seek_frame(mh, fnum);
+debug1("seek_frame returned: %i", b);
 	if(b<0) return b;
 	/* Only mh->to_ignore is TRUE. */
 	if(mh->num < mh->firstframe) mh->to_decode = FALSE;
@@ -1228,7 +1246,9 @@ static const char *mpg123_error[] =
 	"You gave me a NULL buffer? (code 31)",
 	"File position is screwed up, please do an absolute seek (code 32)",
 	"Inappropriate NULL-pointer provided.",
-	"Bad key value given"
+	"Bad key value given.",
+	"There is no frame index (disabled in this build).",
+	"Frame index operation failed."
 };
 
 const char* attribute_align_arg mpg123_plain_strerror(int errcode)

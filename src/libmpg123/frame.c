@@ -39,6 +39,9 @@ void frame_default_pars(mpg123_pars *mp)
 	mp->timeout = 0;
 #endif
 	mp->resync_limit = 1024;
+#ifdef FRAME_INDEX
+	mp->index_size = INDEX_SIZE;
+#endif
 	mpg123_fmt_all(mp);
 }
 
@@ -77,7 +80,12 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 	fr->err = MPG123_OK;
 	if(mp == NULL) frame_default_pars(&fr->p);
 	else memcpy(&fr->p, mp, sizeof(struct mpg123_pars_struct));
+
 	frame_fixed_reset(fr); /* Reset only the fixed data, dynamic buffers are not there yet! */
+#ifdef FRAME_INDEX
+	fi_init(&fr->index);
+	frame_index_setup(fr); /* Apply the size setting. */
+#endif
 }
 
 mpg123_pars attribute_align_arg *mpg123_new_pars(int *error)
@@ -137,6 +145,31 @@ int attribute_align_arg mpg123_replace_buffer(mpg123_handle *mh, unsigned char *
 	mh->buffer.fill = 0;
 	return MPG123_OK;
 }
+
+#ifdef FRAME_INDEX
+int frame_index_setup(mpg123_handle *fr)
+{
+	int ret = MPG123_ERR;
+	if(fr->p.index_size >= 0)
+	{ /* Simple fixed index. */
+		fr->index.grow_size = 0;
+		debug1("resizing index to %li", fr->p.index_size);
+		ret = fi_resize(&fr->index, (size_t)fr->p.index_size);
+		debug2("index resized... %lu at %p", (unsigned long)fr->index.size, (void*)fr->index.data);
+	}
+	else
+	{ /* A growing index. We give it a start, though. */
+		fr->index.grow_size = (size_t)(- fr->p.index_size);
+		if(fr->index.size < fr->index.grow_size)
+		ret = fi_resize(&fr->index, fr->index.grow_size);
+		else
+		ret = MPG123_OK; /* We have minimal size already... and since growing is OK... */
+	}
+	debug2("set up frame index of size %lu (ret=%i)", (unsigned long)fr->index.size, ret);
+
+	return ret;
+}
+#endif
 
 int frame_buffers(mpg123_handle *fr)
 {
@@ -303,6 +336,9 @@ int frame_reset(mpg123_handle* fr)
 	frame_buffers_reset(fr);
 	frame_fixed_reset(fr);
 	frame_free_toc(fr);
+#ifdef FRAME_INDEX
+	fi_reset(&fr->index);
+#endif
 
 	return 0;
 }
@@ -338,10 +374,6 @@ static void frame_fixed_reset(mpg123_handle *fr)
 	fr->rva.gain[1] = 0;
 	fr->rva.peak[0] = 0;
 	fr->rva.peak[1] = 0;
-#ifdef FRAME_INDEX
-	fr->index.fill = 0;
-	fr->index.step = 1;
-#endif
 	fr->fsizeold = 0;
 	fr->firstframe = 0;
 	fr->ignoreframe = fr->firstframe-IGNORESHIFT;
@@ -378,10 +410,17 @@ void frame_free_buffers(mpg123_handle *fr)
 
 void frame_exit(mpg123_handle *fr)
 {
-	if(fr->own_buffer && fr->buffer.data != NULL) free(fr->buffer.data);
+	if(fr->own_buffer && fr->buffer.data != NULL)
+	{
+		debug1("freeing buffer at %p", (void*)fr->buffer.data);
+		free(fr->buffer.data);
+	}
 	fr->buffer.data = NULL;
 	frame_free_buffers(fr);
 	frame_free_toc(fr);
+#ifdef FRAME_INDEX
+	fi_exit(&fr->index);
+#endif
 	exit_id3(fr);
 	clear_icy(&fr->icy);
 }

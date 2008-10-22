@@ -75,21 +75,22 @@ EXPORT void mpg123_delete(mpg123_handle *mh);
 /** Enumeration of the parameters types that it is possible to set/get. */
 enum mpg123_parms
 {
-	MPG123_VERBOSE,        /**< set verbosity value for enabling messages to stderr, >= 0 makes sense */
-	MPG123_FLAGS,          /**< set all flags, p.ex val = MPG123_GAPLESS|MPG123_MONO_MIX */
-	MPG123_ADD_FLAGS,      /**< add some flags */
-	MPG123_FORCE_RATE,     /**< when value > 0, force output rate to that value */
-	MPG123_DOWN_SAMPLE,    /**< 0=native rate, 1=half rate, 2=quarter rate */
-	MPG123_RVA,            /**< one of the RVA choices above */
-	MPG123_DOWNSPEED,      /**< play a frame N times */
-	MPG123_UPSPEED,        /**< play every Nth frame */
-	MPG123_START_FRAME,    /**< start with this frame (skip frames before that) */ 
-	MPG123_DECODE_FRAMES,  /**< decode only this number of frames */
-	MPG123_ICY_INTERVAL,   /**< stream contains ICY metadata with this interval */
-	MPG123_OUTSCALE,       /**< the scale for output samples (amplitude) */
-	MPG123_TIMEOUT,        /**< timeout for reading from a stream (not supported on win32) */
-	MPG123_REMOVE_FLAGS,   /**< remove some flags (inverse of MPG123_ADD_FLAGS) */
-	MPG123_RESYNC_LIMIT    /**< Try resync on frame parsing for that many bytes or until end of stream (<0). */
+	MPG123_VERBOSE,        /**< set verbosity value for enabling messages to stderr, >= 0 makes sense (integer) */
+	MPG123_FLAGS,          /**< set all flags, p.ex val = MPG123_GAPLESS|MPG123_MONO_MIX (integer) */
+	MPG123_ADD_FLAGS,      /**< add some flags (integer) */
+	MPG123_FORCE_RATE,     /**< when value > 0, force output rate to that value (integer) */
+	MPG123_DOWN_SAMPLE,    /**< 0=native rate, 1=half rate, 2=quarter rate (integer) */
+	MPG123_RVA,            /**< one of the RVA choices above (integer) */
+	MPG123_DOWNSPEED,      /**< play a frame N times (integer) */
+	MPG123_UPSPEED,        /**< play every Nth frame (integer) */
+	MPG123_START_FRAME,    /**< start with this frame (skip frames before that, integer) */ 
+	MPG123_DECODE_FRAMES,  /**< decode only this number of frames (integer) */
+	MPG123_ICY_INTERVAL,   /**< stream contains ICY metadata with this interval (integer) */
+	MPG123_OUTSCALE,       /**< the scale for output samples (amplitude - integer or float according to mpg123 output format, normally integer) */
+	MPG123_TIMEOUT,        /**< timeout for reading from a stream (not supported on win32, integer) */
+	MPG123_REMOVE_FLAGS,   /**< remove some flags (inverse of MPG123_ADD_FLAGS, integer) */
+	MPG123_RESYNC_LIMIT,   /**< Try resync on frame parsing for that many bytes or until end of stream (<0 ... integer). */
+	MPG123_INDEX_SIZE      /**< Set the frame index size (if supported). Values <0 mean that the index is allowed to grow dynamically in these steps (in positive direction, of course) -- Use this when you really want a full index with every individual frame. */
 };
 
 /** Flag bits for MPG123_FLAGS, use the usual binary or to combine. */
@@ -183,7 +184,9 @@ enum mpg123_errors
 	MPG123_NULL_BUFFER,	/**< NULL input buffer with non-zero size... */
 	MPG123_NO_RELSEEK,	/**< Relative seek not possible (screwed up file offset) */
 	MPG123_NULL_POINTER, /**< You gave a null pointer somewhere where you shouldn't have. */
-	MPG123_BAD_KEY  /**< Bad key value given. */
+	MPG123_BAD_KEY,	/**< Bad key value given. */
+	MPG123_NO_INDEX,	/**< No frame index in this build. */
+	MPG123_INDEX_FAIL	/**< Something with frame index went wrong. */
 };
 
 /** Return a string describing that error errcode means. */

@@ -618,9 +618,10 @@ init_resync:
 					debug("need more?");
 					if(NOQUIET) fprintf (stderr, "Note: Hit end of (available) data during resync.\n");
 
-				goto read_frame_bad;
+					goto read_frame_bad;
 				}
-				debug3("resync try %li at 0x%lx, got newhead 0x%08lx", try, (unsigned long)fr->rd->tell(fr),  newhead);
+				if(VERBOSE3) debug3("resync try %li at 0x%lx, got newhead 0x%08lx", try, (unsigned long)fr->rd->tell(fr),  newhead);
+
 				if(!fr->oldhead)
 				{
 					debug("going to init_resync...");
@@ -731,33 +732,15 @@ init_resync:
 		debug("halfspeed - reusing old bsbuf ");
 		memcpy (fr->ssave, fr->bsbuf, fr->ssize);
 	}
+
 	/* index the position */
 #ifdef FRAME_INDEX
 	/* Keep track of true frame positions in our frame index.
 	   but only do so when we are sure that the frame number is accurate... */
-	if(fr->accurate && INDEX_SIZE > 0)
-	{
-		if(fr->num == fr->index.fill*fr->index.step)
-		{
-			if(fr->index.fill == INDEX_SIZE)
-			{
-				size_t c;
-				/* increase step, reduce fill */
-				fr->index.step *= 2;
-				fr->index.fill /= 2; /* divisable by 2! */
-				for(c = 0; c < fr->index.fill; ++c)
-				{
-					fr->index.data[c] = fr->index.data[2*c];
-				}
-			}
-			if(fr->num == fr->index.fill*fr->index.step)
-			{
-				fr->index.data[fr->index.fill] = framepos;
-				++fr->index.fill;
-			}
-		}
-	}
+	if(fr->accurate && FI_NEXT(fr->index, fr->num))
+	fi_add(&fr->index, framepos);
 #endif
+
 	if(fr->silent_resync > 0) --fr->silent_resync;
 
 	if(fr->rd->forget != NULL) fr->rd->forget(fr);
