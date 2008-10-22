@@ -474,7 +474,6 @@ int control_generic (mpg123_handle *fr)
 
 				if(!strcasecmp(comstr, "STATE"))
 				{
-					int i;
 					long val;
 					generic_sendmsg("STATE {");
 					/* Get some state information bits and display them. */
