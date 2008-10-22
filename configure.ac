@@ -11,7 +11,7 @@ AC_PREREQ(2.57)
 dnl ############# Initialisation
 
 AC_INIT([mpg123], [1.6.0], [mpg123-devel@lists.sourceforge.net])
-LIBMPG123_VERSION=10:4:10
+LIBMPG123_VERSION=10:5:10
 AC_SUBST(LIBMPG123_VERSION)
 
 AC_CONFIG_SRCDIR(src/mpg123.c)
@@ -355,6 +355,8 @@ if test $ccalign = "yes"; then
 fi
 
 dnl ############## Types
+
+AC_SYS_LARGEFILE
 
 # Using the lower level macros instead of AC_TYPE_* for compatibility with not freshest autoconf.
 AC_CHECK_TYPE(size_t, unsigned int)
@@ -1241,8 +1243,9 @@ fi
 
 if test "$seektable" -gt 0; then
 	AC_DEFINE(FRAME_INDEX, 1, [ Define if frame index should be used. ])
-	AC_DEFINE_UNQUOTED(INDEX_SIZE, $seektable, [size of the frame index seek table])
 fi
+# Define that always... also without frame index enabled.
+AC_DEFINE_UNQUOTED(INDEX_SIZE, $seektable, [size of the frame index seek table])
 
 dnl ############## Final Output
 
