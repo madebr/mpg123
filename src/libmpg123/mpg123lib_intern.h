@@ -28,8 +28,8 @@
 #if defined(WIN32) && defined(DYNAMIC_BUILD)
 #define BUILD_MPG123_DLL
 #endif
+#include "config.h" /* Load this before mpg123.h, for example for largefile stuff. */
 #include "mpg123.h"
-#include "config.h"
 #include "compat.h"
 
 #define SKIP_JUNK 1
@@ -125,37 +125,6 @@
 
 /* Pre Shift fo 16 to 8 bit converter table */
 #define AUSHIFT (3)
-
-/* stuff that should be moved... */
-#include        <stdio.h>
-#include        <string.h>
-#include        <signal.h>
-#include        <math.h>
-
-#ifndef WIN32
-#include        <sys/signal.h>
-#include        <unistd.h>
-#endif
-
-/* Types, types, types. */
-/* Do we actually need these two in addition to sys/types.h? As replacement? */
-#ifdef HAVE_INTTYPES_H
-#include <inttypes.h>
-#endif
-#ifdef HAVE_STDINT_H
-#include <stdint.h>
-#endif
-/* We want SIZE_MAX, etc. */
-#ifdef HAVE_LIMITS_H
-#include <limits.h>
-#endif
- 
-#ifndef SIZE_MAX
-#define SIZE_MAX ((size_t)-1)
-#endif
-#ifndef ULONG_MAX
-#define ULONG_MAX ((unsigned long)-1)
-#endif
 
 typedef unsigned char byte;
 
