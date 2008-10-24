@@ -464,34 +464,6 @@
 					Name="VCCLCompilerTool"
 				/>
 			</FileConfiguration>
-			<FileConfiguration
-				Name="Release_i386|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release_i486|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Debug_i386|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Debug_i486|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
 		</File>
 		<File
 			RelativePath="..\..\..\..\src\libmpg123\dct64_i486.c"
@@ -531,13 +503,6 @@
 			<FileConfiguration
 				Name="Debug_i386|Win32"
 				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Debug_i486|Win32"
 				>
 				<Tool
 					Name="VCCLCompilerTool"
@@ -615,34 +580,6 @@
 					Name="VCCLCompilerTool"
 				/>
 			</FileConfiguration>
-			<FileConfiguration
-				Name="Release_i386|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release_i486|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Debug_i386|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Debug_i486|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
 		</File>
 		<File
 			RelativePath="..\..\..\..\src\libmpg123\decode_i486.c"
@@ -682,13 +619,6 @@
 			<FileConfiguration
 				Name="Debug_i386|Win32"
 				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Debug_i486|Win32"
 				>
 				<Tool
 					Name="VCCLCompilerTool"
@@ -745,6 +675,14 @@
 		</File>
 		<File
 			RelativePath="..\..\..\..\src\libmpg123\id3.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\index.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\index.h"
 			>
 		</File>
 		<File

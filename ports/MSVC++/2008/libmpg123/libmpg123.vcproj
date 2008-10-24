@@ -659,6 +659,14 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\..\..\src\libmpg123\index.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\index.h"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\src\libmpg123\l2tables.h"
 			>
 		</File>
