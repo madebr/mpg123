@@ -27,6 +27,7 @@ struct frame_index
 {
 	off_t *data; /* actual data, the frame positions */
 	off_t  step; /* advancement in frame number per index point */
+	off_t  next; /* frame offset supposed to come next into the index */
 	size_t size; /* total number of possible entries */
 	size_t fill; /* number of used entries */
 	size_t grow_size; /* if > 0: index allowed to grow on need with these steps, instead of lowering resolution */
@@ -34,7 +35,7 @@ struct frame_index
 
 /* The condition for a framenum to be appended to the index. 
   if(FI_NEXT(fr->index, fr->num)) fi_add(offset); */
-#define FI_NEXT(fi, framenum) ((fi).size && framenum == (off_t)(fi).fill*(fi).step)
+#define FI_NEXT(fi, framenum) ((fi).size && framenum == (fi).next)
 
 /* Initialize stuff, set things to zero and NULL... */
 void fi_init(struct frame_index *fi);

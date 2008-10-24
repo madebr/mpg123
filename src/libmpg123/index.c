@@ -9,6 +9,12 @@
 #include "index.h"
 #include "debug.h"
 
+/* The next expected frame offset, one step ahead. */
+static off_t fi_next(struct frame_index *fi)
+{
+	return (off_t)fi->fill*fi->step;
+}
+
 /* Shrink down the used index to the half.
    Be careful with size = 1 ... there's no shrinking possible there. */
 static void fi_shrink(struct frame_index *fi)
@@ -24,6 +30,8 @@ static void fi_shrink(struct frame_index *fi)
 		for(c = 0; c < fi->fill; ++c)
 		fi->data[c] = fi->data[2*c];
 	}
+
+	fi->next = fi_next(fi);
 }
 
 void fi_init(struct frame_index *fi)
@@ -33,6 +41,7 @@ void fi_init(struct frame_index *fi)
 	fi->fill = 0;
 	fi->size = 0;
 	fi->grow_size = 0;
+	fi->next = fi_next(fi);
 }
 
 void fi_exit(struct frame_index *fi)
@@ -60,6 +69,7 @@ int fi_resize(struct frame_index *fi, size_t newsize)
 		fi->size = newsize;
 		if(fi->fill > fi->size) fi->fill = fi->size;
 
+		fi->next = fi_next(fi);
 		debug2("new index of size %lu at %p", (unsigned long)fi->size, (void*)fi->data);
 		return 0;
 	}
@@ -82,7 +92,7 @@ void fi_add(struct frame_index *fi, off_t pos)
 		fi_shrink(fi);
 
 		/* Now check if we still want to add this frame (could be that not, because of changed step). */
-		if(fi->fill*fi->step != framenum) return;
+		if(fi->next != framenum) return;
 	}
 	/* When we are here, we want that frame. */
 	if(fi->fill < fi->size) /* safeguard for size=1, or just generally */
@@ -90,6 +100,7 @@ void fi_add(struct frame_index *fi, off_t pos)
 		debug1("adding to index at %p", (void*)(fi->data+fi->fill));
 		fi->data[fi->fill] = pos;
 		++fi->fill;
+		fi->next = fi_next(fi);
 		debug3("added pos %li to index with fill %lu and step %lu", (long) pos, (unsigned long)fi->fill, (unsigned long)fi->step);
 	}
 }
@@ -99,4 +110,5 @@ void fi_reset(struct frame_index *fi)
 	debug1("reset with size %zu", fi->size);
 	fi->fill = 0;
 	fi->step = 1;
+	fi->next = fi_next(fi);
 }
