@@ -22,13 +22,18 @@
 #endif
 
 #include        <stdio.h>
-#include        <string.h>
-#include        <signal.h>
 #include        <math.h>
 
-#ifndef WIN32
-#include        <sys/signal.h>
-#include        <unistd.h>
+#ifdef HAVE_SIGNAL_H
+#include <signal.h>
+#else
+#ifdef HAVE_SYS_SIGNAL_H
+#include <sys/signal.h>
+#endif
+#endif
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
 #endif
 
 /* Types, types, types. */
@@ -57,6 +62,20 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
+
+#ifdef OS2
+#include <float.h>
+#endif
+
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+/* For select(), I need select.h according to POSIX 2001, else: sys/time.h sys/types.h unistd.h */
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#endif
+
+typedef unsigned char byte;
 
 /* A safe realloc also for very old systems where realloc(NULL, size) returns NULL. */
 void *safe_realloc(void *ptr, size_t size);

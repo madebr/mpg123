@@ -29,8 +29,8 @@
 #define BUILD_MPG123_DLL
 #endif
 #include "config.h" /* Load this before mpg123.h, for example for largefile stuff. */
-#include "mpg123.h"
 #include "compat.h"
+#include "mpg123.h"
 
 #define SKIP_JUNK 1
 
@@ -125,12 +125,6 @@
 
 /* Pre Shift fo 16 to 8 bit converter table */
 #define AUSHIFT (3)
-
-typedef unsigned char byte;
-
-#ifdef OS2
-#include <float.h>
-#endif
 
 #include "decode.h"
 #include "parse.h"
