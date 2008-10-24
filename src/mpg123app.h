@@ -32,7 +32,6 @@
 #define INLINE
 #endif
 
-#include "module.h"
 #include "audio.h"
 #include "local.h"
 

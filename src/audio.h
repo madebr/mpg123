@@ -14,7 +14,9 @@
 #ifndef _MPG123_AUDIO_H_
 #define _MPG123_AUDIO_H_
 
-/* Pulled in by mpg123app.h! (after module.h) */
+#include "compat.h"
+#include "mpg123.h"
+#include "module.h"
 
 #define AUDIO_OUT_HEADPHONES       0x01
 #define AUDIO_OUT_INTERNAL_SPEAKER 0x02
