@@ -910,7 +910,7 @@ int open_stream(mpg123_handle *fr, const char *bs_filenam, int fd)
 	{
 		if(NOQUIET) error2("Cannot file %s: %s", bs_filenam, strerror(errno));
 		fr->err = MPG123_BAD_FILE;
-		return filept; /* error... */
+		return MPG123_ERR; /* error... */
 	}
 
 	/* now we have something behind filept and can init the reader */
