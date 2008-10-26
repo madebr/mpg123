@@ -115,6 +115,8 @@ static gboolean xmms_mpg123_init (xmms_xform_t *xform)
 	 */
 	mpg123_par (data->param, MPG123_ADD_FLAGS, MPG123_QUIET, 0);
 	mpg123_par (data->param, MPG123_ADD_FLAGS, MPG123_GAPLESS, 0);
+	/* Enable faster seeking by using estimated / approximate stream offsets. */
+	mpg123_par (data->param, MPG123_ADD_FLAGS, MPG123_FUZZY, 0);
 	/* choose: MPG123_RVA_OFF, MPG123_RVA_MIX, MPG123_RVA_ALBUM */
 	mpg123_par (data->param, MPG123_RVA, MPG123_RVA_ALBUM, 0);
 	/* You could choose a decoder from the list provided by
