@@ -908,7 +908,7 @@ int open_stream(mpg123_handle *fr, const char *bs_filenam, int fd)
 	#endif
 	else if((filept = open(bs_filenam, O_RDONLY|O_BINARY)) < 0) /* a plain old file to open... */
 	{
-		if(NOQUIET) error2("Cannot file %s: %s", bs_filenam, strerror(errno));
+		if(NOQUIET) error2("Cannot open file %s: %s", bs_filenam, strerror(errno));
 		fr->err = MPG123_BAD_FILE;
 		return MPG123_ERR; /* error... */
 	}
