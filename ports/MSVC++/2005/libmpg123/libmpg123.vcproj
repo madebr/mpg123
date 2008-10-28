@@ -714,6 +714,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\msvc.c"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\src\libmpg123\optimize.c"
 			>
 		</File>
