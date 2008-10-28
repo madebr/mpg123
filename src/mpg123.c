@@ -439,6 +439,7 @@ topt opts[] = {
 	{0, "utf8", GLO_INT, 0, &param.force_utf8, 1},
 	{0, "fuzzy", GLO_INT,  set_frameflag, &frameflag, MPG123_FUZZY},
 	{0, "index-size", GLO_ARG|GLO_LONG, 0, &param.index_size, 0},
+	{0, "no-seekbuffer", GLO_INT, unset_frameflag, &frameflag, MPG123_SEEKBUFFER},
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -723,6 +724,7 @@ int main(int argc, char *argv[])
 #endif
 	mpg123_getpar(mp, MPG123_FLAGS, &parr, NULL);
 	param.flags = (int) parr;
+	param.flags |= MPG123_SEEKBUFFER; /* Default on, for HTTP streams. */
 	mpg123_getpar(mp, MPG123_RESYNC_LIMIT, &param.resync_limit, NULL);
 
 #ifdef OS2
@@ -795,7 +797,6 @@ int main(int argc, char *argv[])
 	/* Set the frame parameters from command line options */
 	if(param.quiet) param.flags |= MPG123_QUIET;
 
-	param.flags |= MPG123_SEEKBUFFER; /* For HTTP streams. */
 #ifdef OPT_3DNOW
 	if(dnow != 0) param.cpu = (dnow == SET_3DNOW) ? "3dnow" : "i586";
 #endif
