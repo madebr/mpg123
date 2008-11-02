@@ -365,7 +365,7 @@ dnl Using the file_offset_bits variable here is fine for linux (possibly Solaris
 dnl Others... we'll have to see.
 dnl Note: I started writing this with with multiline replacements.
 dnl Does not work. Automake insists on putting these into Makefiles where they break things.
-if test "x$ac_cv_sys_file_offset_bits" == x || echo "$ac_cv_sys_file_offset_bits" | grep -q '[^0-9]'; then
+if test "x$ac_cv_sys_file_offset_bits" == x || echo "$ac_cv_sys_file_offset_bits" | grep -q '@<:@^0-9@:>@'; then
 	dnl if it has non-numeric chars or is empty... ignore...
 	LARGEFILE_BITS=
 	LARGEFILE_SUFFIX=
