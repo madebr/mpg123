@@ -75,6 +75,13 @@
 #include <sys/select.h>
 #endif
 
+/* To parse big numbers... */
+#ifdef HAVE_ATOLL
+#define atobigint atoll
+#else
+#define atobigint atol
+#endif
+
 typedef unsigned char byte;
 
 /* A safe realloc also for very old systems where realloc(NULL, size) returns NULL. */

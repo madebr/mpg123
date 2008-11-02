@@ -598,7 +598,7 @@ int control_generic (mpg123_handle *fr)
 							continue;
 						}
 
-						soff = atol(spos);
+						soff = (off_t) atobigint(spos);
 						if(spos[0] == '-' || spos[0] == '+') whence = SEEK_CUR;
 						if(0 > (soff = mpg123_seek(fr, soff, whence)))
 						{

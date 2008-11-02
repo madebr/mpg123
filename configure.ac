@@ -11,7 +11,7 @@ AC_PREREQ(2.57)
 dnl ############# Initialisation
 
 AC_INIT([mpg123], [1.6.0], [mpg123-devel@lists.sourceforge.net])
-LIBMPG123_VERSION=11:1:11
+LIBMPG123_VERSION=11:2:11
 AC_SUBST(LIBMPG123_VERSION)
 
 AC_CONFIG_SRCDIR(src/mpg123.c)
@@ -356,7 +356,31 @@ fi
 
 dnl ############## Types
 
+dnl The API functions that may be sensitive to largefile support.
+
+dnl Detect large file support, enable switches if needed.
 AC_SYS_LARGEFILE
+dnl If we do have a switch for large files, rename off_t-aware API calls.
+dnl Using the file_offset_bits variable here is fine for linux (possibly Solaris),
+dnl Others... we'll have to see.
+dnl Note: I started writing this with with multiline replacements.
+dnl Does not work. Automake insists on putting these into Makefiles where they break things.
+if test "x$ac_cv_sys_file_offset_bits" != x; then
+	LARGEFILE_BITS="$ac_cv_sys_file_offset_bits"
+	LARGEFILE_SUFFIX="_$ac_cv_sys_file_offset_bits"
+	LARGEFILE_SWITCH=1
+else
+	LARGEFILE_BITS=
+	LARGEFILE_SUFFIX=
+	LARGEFILE_SWITCH=0
+fi
+
+dnl Insert the function name redefinitions and export symbols as needed.
+dnl ...based on these two variables and manual work in src/libmpg123/mpg123.h.in
+dnl as well as src/libmpg123/libmpg123.sym.in .
+AC_SUBST(LARGEFILE_BITS)
+AC_SUBST(LARGEFILE_SUFFIX)
+AC_SUBST(LARGEFILE_SWITCH)
 
 # Using the lower level macros instead of AC_TYPE_* for compatibility with not freshest autoconf.
 AC_CHECK_TYPE(size_t, unsigned int)
@@ -387,6 +411,8 @@ AC_CHECK_FUNCS( strerror )
 AC_CHECK_FUNCS( setlocale nl_langinfo )
 
 AC_CHECK_FUNCS( strdup )
+
+AC_CHECK_FUNCS( atoll )
 
 AC_CHECK_FUNCS( mkfifo, [ have_mkfifo=yes ], [ have_mkfifo=no ] )
 
@@ -1257,6 +1283,7 @@ AC_CONFIG_FILES([
 	src/output/Makefile
 	src/libmpg123/Makefile
 	src/libmpg123/mpg123.h
+	src/libmpg123/libmpg123.sym
 ])
 
 AC_OUTPUT
@@ -1278,6 +1305,7 @@ echo "
   Buffer .................. $buffer
   Network (http streams) .. $network
   IPv6 (getaddrinfo) ...... $ipv6
+  File offset (if needed) . $ac_cv_sys_file_offset_bits
 "
 if test "$modules" = enabled; then
 	echo "  Modules Directory ....... $pkglibdir"
