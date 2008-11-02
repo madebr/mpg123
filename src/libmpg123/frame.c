@@ -569,7 +569,7 @@ off_t frame_ins2outs(mpg123_handle *fr, off_t ins)
 		case 1:
 		case 2: outs = ins>>fr->down_sample; break;
 		case 3: outs = ntom_ins2outs(fr, ins); break;
-		default: error("Bad down_sample ... should not be possible!!");
+		default: error1("Bad down_sample (%i) ... should not be possible!!", fr->down_sample);
 	}
 	return outs;
 }
