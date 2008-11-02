@@ -81,6 +81,7 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 	if(mp == NULL) frame_default_pars(&fr->p);
 	else memcpy(&fr->p, mp, sizeof(struct mpg123_pars_struct));
 
+	fr->down_sample = 0; /* Initialize to silence harmless errors when debugging. */
 	frame_fixed_reset(fr); /* Reset only the fixed data, dynamic buffers are not there yet! */
 #ifdef FRAME_INDEX
 	fi_init(&fr->index);
@@ -583,7 +584,7 @@ off_t frame_outs(mpg123_handle *fr, off_t num)
 		case 1:
 		case 2: outs = (spf(fr)>>fr->down_sample)*num; break;
 		case 3: outs = ntom_frmouts(fr, num); break;
-		default: error("Bad down_sample ... should not be possible!!");
+		default: error1("Bad down_sample (%i) ... should not be possible!!", fr->down_sample);
 	}
 	return outs;
 }
