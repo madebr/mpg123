@@ -696,25 +696,32 @@ init_resync:
 		fr->bsbuf = newbuf;
 	}
 	fr->bsnum = (fr->bsnum + 1) & 1;
+
 	if(!fr->firsthead)
 	{
-		/* In practice, Xing/LAME tags are layer 3 only. */
-		if(fr->lay == 3 && check_lame_tag(fr) == 1)
+		fr->firsthead = newhead; /* _now_ it's time to store it... the first real header */
+		/* This is the first header of our current stream segment.
+		   It is only the actual first header of the whole stream when fr->num is still below zero!
+		   Think of resyncs where firsthead has been reset for format flexibility. */
+		if(fr->num < 0)
 		{
-			if(fr->rd->forget != NULL) fr->rd->forget(fr);
-			fr->oldhead = 0;
-			goto read_again;
+			fr->audio_start = framepos;
+			/* Only check for LAME  tag at beginning of whole stream
+			   ... when there indeed is one in between, it's the user's problem. */
+			if(fr->lay == 3 && check_lame_tag(fr) == 1)
+			{ /* ...in practice, Xing/LAME tags are layer 3 only. */
+				if(fr->rd->forget != NULL) fr->rd->forget(fr);
+
+				fr->oldhead = 0;
+				goto read_again;
+			}
+			/* now adjust volume */
+			do_rva(fr);
 		}
 
-		fr->firsthead = newhead; /* _now_ it's time to store it... the first real header */
-		/* The first encountered first header is the beginning of audio data.
-		   ...only the first because we could loose track in a broken stream. */
-		if(fr->audio_start == 0) fr->audio_start = framepos;
-
-		debug1("fr->firsthead: %08lx", fr->firsthead);
-		/* now adjust volume */
-		do_rva(fr);
+		debug2("fr->firsthead: %08lx, audio_start: %li", fr->firsthead, (long int)fr->audio_start);
 	}
+
   fr->bitindex = 0;
   fr->wordpointer = (unsigned char *) fr->bsbuf;
 	/* Question: How bad does the floating point value get with repeated recomputation?
