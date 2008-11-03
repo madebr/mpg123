@@ -16,6 +16,10 @@
 #include <stropts.h>
 #include <sys/conf.h>
 #endif
+#ifdef NETBSD
+#include <sys/ioctl.h>
+#include <sys/audioio.h>
+#endif
 #include "debug.h"
 
 static unsigned esd_rate = 0, esd_format = 0, esd_channels = 0;
