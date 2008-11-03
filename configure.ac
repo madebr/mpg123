@@ -184,6 +184,23 @@ AC_ARG_ENABLE(nagging,
               [ nagging="disabled" ]
 )
 
+AC_ARG_ENABLE(aligncheck,
+              [  --enable-aligncheck=[no/yes] turn on checks for stack alignment in the API if compiler supports alignment attributes, default is enabled],
+              [
+                if test "x$enableval" = xyes
+                then
+                  aligncheck="enabled"
+                  AC_DEFINE(CHECK_ALIGN, 1, [ Define if checking of stack alignment is wanted. ])
+                else
+                  aligncheck="disabled"
+                fi
+              ],
+              [
+                aligncheck="enabled"
+                AC_DEFINE(CHECK_ALIGN, 1, [ Define if checking of stack alignment is wanted. ])
+              ]
+)
+
 if test "$debugging" = enabled; then
 	AC_DEFINE(DEBUG, 1, [ Define if debugging is enabled. ])
 fi
@@ -365,7 +382,7 @@ dnl Using the file_offset_bits variable here is fine for linux (possibly Solaris
 dnl Others... we'll have to see.
 dnl Note: I started writing this with with multiline replacements.
 dnl Does not work. Automake insists on putting these into Makefiles where they break things.
-if test "x$ac_cv_sys_file_offset_bits" == x || echo "$ac_cv_sys_file_offset_bits" | grep -q '@<:@^0-9@:>@'; then
+if test "x$ac_cv_sys_file_offset_bits" = x || echo "$ac_cv_sys_file_offset_bits" | grep -q '@<:@^0-9@:>@'; then
 	dnl if it has non-numeric chars or is empty... ignore...
 	LARGEFILE_BITS=
 	LARGEFILE_SUFFIX=
@@ -1307,7 +1324,11 @@ echo "
   Network (http streams) .. $network
   IPv6 (getaddrinfo) ...... $ipv6
   File offset (if needed) . $ac_cv_sys_file_offset_bits
+  Alignment checks ........ $aligncheck
 "
+if test $aligncheck = enabled && test $ccalign != yes; then
+echo "   (without effect because compiler does not support special alignment)"
+fi
 if test "$modules" = enabled; then
 	echo "  Modules Directory ....... $pkglibdir"
 fi

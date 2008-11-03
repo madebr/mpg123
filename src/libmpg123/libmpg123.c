@@ -25,12 +25,21 @@ static int initialized = 0;
 
 #define ALIGNCHECK(mh)
 #define ALIGNCHECKK
-#ifdef DEBUG
+#if (defined DEBUG) || (defined CHECK_ALIGN)
 #ifdef CCALIGN
+
+/* Common building block. */
+#define ALIGNMAINPART \
+	double ALIGNED(16) altest1[1]; \
+	double ALIGNED(16) altest2[1]; \
+	debug4("testing alignment, with %lu % 16 = %lu and %lu % 16 = %lu", \
+		(unsigned long)altest1, (unsigned long)((size_t)altest1 % 16), \
+		(unsigned long)altest2, (unsigned long)((size_t)altest2 % 16)); \
+	if((size_t)altest1 % 16 != 0 || (size_t)altest2 % 16 != 0)
+
 #undef ALIGNCHECK
 #define ALIGNCHECK(mh) \
-	double ALIGNED(16) altest[4]; \
-	if(((size_t)altest) % 16 != 0) \
+	ALIGNMAINPART \
 	{ \
 		error("Stack variable is not aligned! Your combination of compiler/library is dangerous!"); \
 		if(mh != NULL) mh->err = MPG123_BAD_ALIGN; \
@@ -39,12 +48,12 @@ static int initialized = 0;
 	}
 #undef ALIGNCHECKK
 #define ALIGNCHECKK \
-	double ALIGNED(16) altest[4]; \
-	if(((size_t)altest) % 16 != 0) \
+	ALIGNMAINPART \
 	{ \
 		error("Stack variable is not aligned! Your combination of compiler/library is dangerous!"); \
 		return MPG123_BAD_ALIGN; \
 	}
+
 #endif
 #endif
 
