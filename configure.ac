@@ -568,10 +568,10 @@ case $target in
       ;;
     esac
   ;;
-  i386-*-freebsd*)
-    cpu_type="i386_fpu"
+  i?86-*-dragonfly* | i?86-*-freebsd* | i?86-*-midnightbsd* | i?86-*-mirbsd* | i?86-*-netbsd* | i?86-*-openbsd*)
+    cpu_type="x86"
   ;;
-  *-*-freebsd*)
+  *-*-dragonfly* | *-*-freebsd* | *-*-midnightbsd* | *-*-mirbsd* | *-*-netbsd* | *-*-openbsd*)
     cpu_type="generic_fpu"
   ;;
   *-*-solaris*)
