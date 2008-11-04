@@ -104,14 +104,14 @@ dnl We only want shared libraries by default
 AC_DISABLE_STATIC
 AC_ENABLE_SHARED
 
-if test "$enable_shared" = no; then
+if test x"$enable_shared" = xno; then
 	modules=disabled
 	LT_LDFLAGS=
 else
 	AC_DEFINE(DYNAMIC_BUILD, 1, [ Define if building with dynamcally linked libmpg123])
 fi
 
-if test $modules = disabled
+if test x"$modules" = xdisabled
 then
 	echo "Modules disabled, not preparing libltdl"
 else
@@ -135,7 +135,7 @@ m4_defun([_LT_AC_LANG_F77_CONFIG], [:])
 AC_LIBTOOL_WIN32_DLL
 AM_PROG_LIBTOOL
 
-if test $modules = disabled
+if test x"$modules" = xdisabled
 then
 	echo "Modules still disabled..."
 	LIBLTDL=
@@ -201,7 +201,7 @@ AC_ARG_ENABLE(aligncheck,
               ]
 )
 
-if test "$debugging" = enabled; then
+if test x"$debugging" = xenabled; then
 	AC_DEFINE(DEBUG, 1, [ Define if debugging is enabled. ])
 fi
 
@@ -228,7 +228,6 @@ AC_ARG_ENABLE(fifo,
                 if test "x$enableval" = xyes
                 then
                   fifo="enabled"
-                  AC_DEFINE(FIFO, 1, [ Define if FIFO support is enabled. ])
                 else
                   fifo="disabled"
                 fi
@@ -336,7 +335,7 @@ dnl ############## Assembler, compiler properties
 # based on posting from John Dalgliesh <johnd@defyne.org> on ffmpeg (LGPL) mailing list
 # find if .align arg is power-of-two or not
 asmalign_exp="unknown"
-if test $asmalign_exp = "unknown"; then
+if test x"$asmalign_exp" = xunknown; then
 	AC_MSG_CHECKING([if .align takes 2-exponent])
 	asmalign_exp="no"
 	echo '.align 3' > conftest.s
@@ -348,12 +347,12 @@ if test $asmalign_exp = "unknown"; then
 	fi
 	rm -f conftest.o conftest.s
 fi
-if test $asmalign_exp = "yes"; then
+if test x"$asmalign_exp" = xyes; then
 	AC_DEFINE(ASMALIGN_EXP, 1, [ Define if .align takes 3 for alignment of 2^3=8 bytes instead of 8. ])
 fi
 
 ccalign="unknown"
-if test $ccalign = "unknown"; then
+if test x"$ccalign" = xunknown; then
 	AC_MSG_CHECKING([__attribute__((aligned(16)))])
 	ccalign="no"
 	echo '__attribute__((aligned(16))) float var;' > conftest.c
@@ -365,7 +364,7 @@ if test $ccalign = "unknown"; then
 	fi
 	rm -f conftest.o conftest.c
 fi
-if test $ccalign = "yes"; then
+if test x"$ccalign" = xyes; then
 	AC_DEFINE(CCALIGN, 1, [ Define if __attribute__((aligned(16))) works ])
 fi
 
@@ -430,21 +429,23 @@ AC_CHECK_FUNCS( atoll )
 
 AC_CHECK_FUNCS( mkfifo, [ have_mkfifo=yes ], [ have_mkfifo=no ] )
 
-if test $fifo = "auto"; then
-	if test $have_mkfifo = "yes"; then
+if test x"$fifo" = xauto; then
+	if test x"$have_mkfifo" = xyes; then
 		fifo=yes
-		AC_DEFINE(FIFO, 1, [ Define if FIFO support is enabled. ])
 	else
 		fifo=no
 	fi
 fi
-if test $fifo = "yes" && test $have_mkfifo = "no"; then
-	AC_MSG_WARN( [ You forced FIFO code while I think there is no mkfifo() available! ] )
+if test x"$fifo" = xenabled; then
+	AC_DEFINE(FIFO, 1, [ Define if FIFO support is enabled. ])
+	if test x"$have_mkfifo" = xno; then
+		AC_MSG_WARN( [ You forced FIFO code while I think there is no mkfifo() available! ] )
+	fi
 fi
 
 AC_CHECK_FUNCS( getaddrinfo, [ have_ipv6=yes ], [ have_ipv6=no ] )
-if test $ipv6 = "auto"; then
-	if test $have_ipv6 = "yes"; then
+if test x"$ipv6" = xautox; then
+	if test x"$have_ipv6" = xyes; then
 		ipv6=enabled
 	else
 		ipv6=disabled
@@ -476,8 +477,8 @@ else
   have_network=no
 fi
 
-if test $network = "auto"; then
-	if test $have_network = "yes"; then
+if test x"$network" = xauto; then
+	if test x"$have_network" = xyes; then
 		network=enabled
 	else
 		network=disabled
@@ -519,12 +520,12 @@ AC_CHECK_LIB([m], [sqrt])
 AC_CHECK_LIB([mx], [powf])
 
 # attempt to make the signal stuff work... also with GENERIC - later
-#if test $ac_cv_header_sys_signal_h = yes; then
+#if test x"$ac_cv_header_sys_signal_h" = xyes; then
 #	AC_CHECK_FUNCS( sigemptyset sigaddset sigprocmask sigaction )
-#	if test $ac_cv_func_sigemptyset = yes &&
-#	   test $ac_cv_func_sigaddset = yes &&
-#	   test $ac_cv_func_sigprocmask = yes &&
-#	   test $ac_cv_func_sigaction = yes; then
+#	if test x"$ac_cv_func_sigemptyset" = xyes &&
+#	   test x"$ac_cv_func_sigaddset" = xyes &&
+#	   test x"$ac_cv_func_sigprocmask" = xyes &&
+#	   test x"$ac_cv_func_sigaction" = xyes; then
 #	AC_DEFINE( 
 #fi
 
@@ -538,12 +539,12 @@ LIBS="$LIBS"
 AC_CHECK_HEADER([os2.h], [ADD_CPPFLAGS="$ADD_CPPFLAGS -DOS2"])
 
 # If debugging is enabled then make warnings errors
-if test "$debugging" = "enabled"; then
+if test x"$debugging" = xenabled; then
 	ADD_CFLAGS="-g"
 	# gcc specific...
-	if test "$GCC" = "yes"; then
+	if test x"$GCC" = xyes; then
 		ADD_CFLAGS="$ADD_CFLAGS -Wall -fno-strict-aliasing"
-		if test "$nagging" = "enabled"; then
+		if test x"$nagging" = xenabled; then
 			ADD_CFLAGS="$ADD_CFLAGS -Werror -pedantic"
 		fi
 	fi
@@ -787,7 +788,7 @@ if test "x$with_audio" != "x"; then
 	check_forced=yes
 fi
 
-if test $cpu_type = "generic_float"; then
+if test x"$cpu_type" = xgeneric_float; then
 	check_modules="dummy"
 	AC_MSG_WARN( [Forcing dummy output (decoding to wav/stdout only) with float samples, as the audio device system cannot handle floats.] )
 fi
@@ -914,7 +915,7 @@ do
 				 -a "x${ac_cv_header_CoreServices_CoreServices_h}" = "xyes" \
 				 -a "x${ac_cv_header_AudioToolbox_AudioToolbox_h}" = "xyes";
 			then
-				if test $modules = disabled; then
+				if test x"$modules" = xdisabled; then
 					AC_MSG_WARN([Disabling buffer because of directly linked CoreAudio! Use the module if you need the buffer.])
 					buffer=disabled
 				fi
@@ -1236,14 +1237,14 @@ AC_SUBST(OUTPUT_LDFLAGS)
 dnl ############## Compiler Optimizations
 
 CFLAGS="$ADD_CFLAGS $CFLAGS"
-if test $buffer = disabled; then
+if test x"$buffer" = xdisabled; then
 	ADD_CPPFLAGS="$ADD_CPPFLAGS -DNOXFERMEM"
 fi
 CPPFLAGS="$ADD_CPPFLAGS $CPPFLAGS"
 
 # None chosen?
 if test "x$with_optimization" = "x"; then
-	if test "$debugging" = "enabled"; then
+	if test x"$debugging" = xenabled; then
 		with_optimization="0"
 	else
 		# enable (gcc specific) default opts only with gcc
@@ -1336,11 +1337,11 @@ echo "
   IPv6 (getaddrinfo) ...... $ipv6
   File offset (if needed) . $ac_cv_sys_file_offset_bits
   Alignment checks ........ $aligncheck"
-if test $aligncheck = enabled; then
-	if test $ccalign != yes; then
+if test x"$aligncheck" = xenabled; then
+	if test x"$ccalign" != xyes; then
 		echo "   (without effect because compiler does not support special alignment)"
 	fi
-	if test "$GCC" = "yes"; then
+	if test x"$GCC" = xyes; then
 		echo "   (note that newer gcc 4.x versions do not use/need the align check)"
 	fi
 fi
@@ -1348,33 +1349,33 @@ fi
 # just an empty line
 echo
 
-if test "$modules" = enabled; then
+if test x"$modules" = xenabled; then
 	echo "  Modules Directory ....... $pkglibdir"
 fi
 echo "  Checked audio modules ... $check_modules
   Detected audio support .. $output_modules
   Default output module ... $default_output_module
 "
-if test $cpu_type = "generic_float"; then
+if test x"$cpu_type" = xgeneric_float; then
 	echo "You chose the generic build with 32bit float output.
 That means output via -s, -O or -w to a file/pipe and no buffer.
 "
 fi
-if test "$modules" = disabled; then
+if test x"$modules" = xdisabled; then
 echo "The _single_ active output module is being statically linked in.
 "
 else
-	if test "$HAVE_WIN32" = yes; then
+	if test x"$HAVE_WIN32" = xyes; then
 	echo "WARNING: The output modules most likely won't work for you under Windows (MinGW32)..."
 	echo "You can try to hack our libtool stuff into making it happen -- and share your knowledge with the mpg123 team."
 	echo
 	fi
 fi
-if test $with_optimization = "0"; then
+if test x"$with_optimization" = x0; then
 	echo "No optimization flags chosen, make sure you have something basic in your CFLAGS at least...
 "
 fi
-if test "$debugging" = "enabled"; then
+if test x"$debugging" = xenabled; then
 	echo "CFLAGS='$CFLAGS'"
 	echo "LIBS='$LIBS'"
 else
