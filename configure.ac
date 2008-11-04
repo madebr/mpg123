@@ -244,7 +244,6 @@ AC_ARG_ENABLE(ipv6,
                 if test "x$enableval" = xyes
                 then
                   ipv6="enabled"
-                  AC_DEFINE(IPV6, 1, [ Define if IPv6 support is enabled. ])
                 else
                   ipv6="disabled"
                 fi
@@ -260,7 +259,6 @@ AC_ARG_ENABLE(network,
                 if test "x$enableval" = xyes
                 then
                   network="enabled"
-                  AC_DEFINE(network, 1, [ Define if network support is enabled. ])
                 else
                   network="disabled"
                 fi
@@ -447,14 +445,16 @@ fi
 AC_CHECK_FUNCS( getaddrinfo, [ have_ipv6=yes ], [ have_ipv6=no ] )
 if test $ipv6 = "auto"; then
 	if test $have_ipv6 = "yes"; then
-		ipv6=yes
-		AC_DEFINE(IPV6, 1, [ Define if IPV6 support is enabled. ])
+		ipv6=enabled
 	else
-		ipv6=no
+		ipv6=disabled
 	fi
 fi
-if test $ipv6 = "yes" && test $have_ipv6 = "no"; then
-	AC_MSG_WARN( [ You forced IPv6 code while I think there is no getaddrinfo() available! ] )
+if test x"$ipv6" = xenabled; then
+	AC_DEFINE(IPV6, 1, [ Define if IPV6 support is enabled. ])
+	if test x"$have_ipv6" = xno; then
+		AC_MSG_WARN( [ You forced IPv6 code while I think there is no getaddrinfo() available! ] )
+	fi
 fi
 
 dnl ############## Header and Library Checks
@@ -478,14 +478,16 @@ fi
 
 if test $network = "auto"; then
 	if test $have_network = "yes"; then
-		network=yes
-		AC_DEFINE(NETWORK, 1, [ Define if network support is enabled. ])
+		network=enabled
 	else
-		network=no
+		network=disabled
 	fi
 fi
-if test $network = "yes" && test $have_network = "no"; then
-	AC_MSG_WARN( [ You forced network code while I think there is support missing! ] )
+if test x"$network = xenabled; then
+	AC_DEFINE(NETWORK, 1, [ Define if network support is enabled. ])
+	if test x"$have_network" = xno; then
+		AC_MSG_WARN( [ You forced network code while I think there is support missing! ] )
+	fi
 fi
 
 
