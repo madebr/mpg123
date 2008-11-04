@@ -484,7 +484,7 @@ if test x"$network" = xauto; then
 		network=disabled
 	fi
 fi
-if test x"$network = xenabled; then
+if test x"$network" = xenabled; then
 	AC_DEFINE(NETWORK, 1, [ Define if network support is enabled. ])
 	if test x"$have_network" = xno; then
 		AC_MSG_WARN( [ You forced network code while I think there is support missing! ] )
