@@ -342,7 +342,7 @@ if test $asmalign_exp = "unknown"; then
 	AC_MSG_CHECKING([if .align takes 2-exponent])
 	asmalign_exp="no"
 	echo '.align 3' > conftest.s
-	if $CCAS -c -o conftest.o conftest.s; then
+	if $CCAS -c -o conftest.o conftest.s &>/dev/null; then
 		asmalign_exp="yes"
 		AC_MSG_RESULT([yes])
 	else
@@ -359,7 +359,7 @@ if test $ccalign = "unknown"; then
 	AC_MSG_CHECKING([__attribute__((aligned(16)))])
 	ccalign="no"
 	echo '__attribute__((aligned(16))) float var;' > conftest.c
-	if $CC -c -o conftest.o conftest.c; then
+	if $CC -c -o conftest.o conftest.c &>/dev/null; then
 		ccalign="yes"
 		AC_MSG_RESULT([yes])
 	else
@@ -372,8 +372,6 @@ if test $ccalign = "yes"; then
 fi
 
 dnl ############## Types
-
-dnl The API functions that may be sensitive to largefile support.
 
 dnl Detect large file support, enable switches if needed.
 AC_SYS_LARGEFILE
@@ -1247,7 +1245,7 @@ if test "x$with_optimization" = "x"; then
 		with_optimization="0"
 	else
 		# enable (gcc specific) default opts only with gcc
-		if test "$GCC" = yes; then
+		if test "x$GCC" = xyes; then
 			with_optimization="2"
 		else
 			with_optimization="0"
@@ -1276,6 +1274,17 @@ case $with_optimization in
   	AC_MSG_ERROR([Unknown optimizations level '$with_optimization'])
   ;;
 esac
+
+dnl If using gcc, prevent a bad alignment option from breaking things.
+dnl Let's default to safe 16-byte alignment for any special x86 or altivec stuff.
+if test "x$GCC" = xyes && echo "$CFLAGS" | grep -q 'mpreferred-stack-boundary='; then
+	case $cpu_type in
+		x86 | i586* | mmx | sse | 3dnow* | altivec)
+			AC_MSG_WARN( [ You are trying to mess with stack alignment. I know better. ] )
+			CFLAGS="$CFLAGS -mpreferred-stack-boundary=4"
+		;;
+	esac
+fi
 
 dnl ############## Seektable size
 
@@ -1324,16 +1333,24 @@ echo "
   Network (http streams) .. $network
   IPv6 (getaddrinfo) ...... $ipv6
   File offset (if needed) . $ac_cv_sys_file_offset_bits
-  Alignment checks ........ $aligncheck
-"
-if test $aligncheck = enabled && test $ccalign != yes; then
-echo "   (without effect because compiler does not support special alignment)"
+  Alignment checks ........ $aligncheck"
+if test $aligncheck = enabled; then
+	if test $ccalign != yes; then
+		echo "   (without effect because compiler does not support special alignment)"
+	fi
+	if test "$GCC" = "yes"; then
+		echo "   (note that newer gcc 4.x versions do not use/need the align check)"
+	fi
 fi
+
+# just an empty line
+echo
+
 if test "$modules" = enabled; then
 	echo "  Modules Directory ....... $pkglibdir"
 fi
 echo "  Checked audio modules ... $check_modules
-  Detected audio support ..$output_modules
+  Detected audio support .. $output_modules
   Default output module ... $default_output_module
 "
 if test $cpu_type = "generic_float"; then
