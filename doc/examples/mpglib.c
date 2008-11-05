@@ -6,7 +6,7 @@
 	initially written by Thomas Orgis
 */
 
-#include "mpg123.h"
+#include <mpg123.h>
 #include <unistd.h>
 #include <stdio.h>
 
