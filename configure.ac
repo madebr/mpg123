@@ -399,6 +399,10 @@ AC_SUBST(LARGEFILE_SWITCH)
 AC_CHECK_TYPE(size_t, unsigned int)
 AC_CHECK_TYPE(ssize_t, int)
 AC_CHECK_TYPE(off_t,  long int)
+AC_CHECK_SIZEOF(size_t,4)
+AC_CHECK_SIZEOF(ssize_t,4)
+AC_CHECK_SIZEOF(off_t,4)
+AC_CHECK_SIZEOF(long,4)
 
 dnl ############## Function Checks
 

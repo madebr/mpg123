@@ -94,4 +94,31 @@ const char *strerror(int errnum);
 char *strdup(const char *s);
 #endif
 
+/* If we have the size checks enabled, try to derive some sane printfs.
+   Simple start: Use max integer type and format if long is not big enough.
+   I am hesitating to use %ll without making sure that it's there... */
+#if (defined SIZEOF_OFF_T) && (SIZEOF_OFF_T > SIZEOF_LONG) && (defined PRIiMAX)
+# define OFF_P PRIiMAX
+typedef intmax_t off_p;
+#else
+# define OFF_P "li"
+typedef long off_p;
+#endif
+
+#if (defined SIZEOF_SIZE_T) && (SIZEOF_SIZE_T > SIZEOF_LONG) && (defined PRIuMAX)
+# define SIZE_P PRIuMAX
+typedef uintmax_t size_p;
+#else
+# define SIZE_P "lu"
+typedef unsigned long size_p;
+#endif
+
+#if (defined SIZEOF_SSIZE_T) && (SIZEOF_SSIZE_T > SIZEOF_LONG) && (defined PRIiMAX)
+# define SSIZE_P PRIuMAX
+typedef intmax_t ssize_p;
+#else
+# define SSIZE_P "li"
+typedef long ssize_p;
+#endif
+
 #endif

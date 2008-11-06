@@ -97,7 +97,7 @@ void generic_sendstat (mpg123_handle *fr)
 	off_t current_frame, frames_left;
 	double current_seconds, seconds_left;
 	if(!mpg123_position(fr, 0, xfermem_get_usedspace(buffermem), &current_frame, &frames_left, &current_seconds, &seconds_left))
-	generic_sendmsg("F %li %li %3.2f %3.2f", current_frame, frames_left, current_seconds, seconds_left);
+	generic_sendmsg("F %"OFF_P" %"OFF_P" %3.2f %3.2f", (off_p)current_frame, (off_p)frames_left, current_seconds, seconds_left);
 }
 
 static void generic_sendv1(mpg123_id3v1 *v1, const char *prefix)

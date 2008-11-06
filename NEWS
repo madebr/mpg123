@@ -1,3 +1,7 @@
+1.6.1
+---
+
+- Fix printing of largefile offsets in remote control interface.
 
 1.6.0
 ---
