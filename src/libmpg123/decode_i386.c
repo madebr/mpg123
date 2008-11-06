@@ -183,7 +183,7 @@ int synth_1to1_i386(real *bandPtr,int channel, mpg123_handle *fr, int final)
       sum += window[0xE] * b0[0xE];
       sum -= window[0xF] * b0[0xF];
 
-      WRITE_SAMPLE(samples,sum,clip);
+      WRITE_SHORT_SAMPLE(samples,sum,clip);
     }
 
     {
@@ -196,7 +196,7 @@ int synth_1to1_i386(real *bandPtr,int channel, mpg123_handle *fr, int final)
       sum += window[0xA] * b0[0xA];
       sum += window[0xC] * b0[0xC];
       sum += window[0xE] * b0[0xE];
-      WRITE_SAMPLE(samples,sum,clip);
+      WRITE_SHORT_SAMPLE(samples,sum,clip);
       b0-=0x10,window-=0x20,samples+=step;
     }
     window += bo1<<1;
@@ -221,7 +221,7 @@ int synth_1to1_i386(real *bandPtr,int channel, mpg123_handle *fr, int final)
       sum -= window[-0xF] * b0[0xE];
       sum -= window[-0x0] * b0[0xF];
 
-      WRITE_SAMPLE(samples,sum,clip);
+      WRITE_SHORT_SAMPLE(samples,sum,clip);
     }
   }
   if(final) fr->buffer.fill += 128;

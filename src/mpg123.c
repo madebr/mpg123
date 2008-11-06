@@ -362,11 +362,7 @@ topt opts[] = {
 	{'o', "output",      GLO_ARG | GLO_CHAR, set_output, 0,  0},
 	{0,   "list-modules",0,        list_modules, NULL,  0}, 
 	{'a', "audiodevice", GLO_ARG | GLO_CHAR, 0, &param.output_device,  0},
-#ifdef FLOATOUT
-	{'f', "scale",       GLO_ARG | GLO_DOUBLE, 0, &param.outscale,   0},
-#else
 	{'f', "scale",       GLO_ARG | GLO_LONG, 0, &param.outscale,   0},
-#endif
 	{'n', "frames",      GLO_ARG | GLO_LONG, 0, &param.frame_number,  0},
 	#ifdef HAVE_TERMIOS
 	{'C', "control",     GLO_INT,  0, &param.term_ctrl, TRUE},
@@ -717,11 +713,7 @@ int main(int argc, char *argv[])
 	mpg123_getpar(mp, MPG123_RVA, &param.rva, NULL);
 	mpg123_getpar(mp, MPG123_DOWNSPEED, &param.halfspeed, NULL);
 	mpg123_getpar(mp, MPG123_UPSPEED, &param.doublespeed, NULL);
-#ifdef FLOATOUT
-	mpg123_getpar(mp, MPG123_OUTSCALE, NULL, &param.outscale);
-#else
 	mpg123_getpar(mp, MPG123_OUTSCALE, &param.outscale, NULL);
-#endif
 	mpg123_getpar(mp, MPG123_FLAGS, &parr, NULL);
 	param.flags = (int) parr;
 	param.flags |= MPG123_SEEKBUFFER; /* Default on, for HTTP streams. */
@@ -822,13 +814,8 @@ int main(int argc, char *argv[])
 	    && ++libpar
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_TIMEOUT, param.timeout, 0))
 #endif
-#ifdef FLOATOUT
-	    && ++libpar
-	    && MPG123_OK == (result = mpg123_par(mp, MPG123_OUTSCALE, 0, param.outscale))
-#else
 	    && ++libpar
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_OUTSCALE, param.outscale, 0))
-#endif
 			))
 	{
 		error2("Cannot set library parameter %i: %s", libpar, mpg123_plain_strerror(result));
@@ -1077,7 +1064,7 @@ static void usage(int err)  /* print syntax & exit */
 	fprintf(o,"   -w <filename> write Output as WAV file\n");
 	fprintf(o,"   -k n  skip first n frames [0]        -n n  decode only n frames [all]\n");
 	fprintf(o,"   -c    check range violations         -y    DISABLE resync on errors\n");
-	fprintf(o,"   -b n  output buffer: n Kbytes [0]    -f n  change scalefactor [%g]\n", (double)param.outscale);
+	fprintf(o,"   -b n  output buffer: n Kbytes [0]    -f n  change scalefactor [%li]\n", param.outscale);
 	fprintf(o,"   -r n  set/force samplerate [auto]    -g n  set audio hardware output gain\n");
 	fprintf(o,"   -os,-ol,-oh  output to built-in speaker,line-out connector,headphones\n");
 	#ifdef NAS
@@ -1162,7 +1149,7 @@ static void long_usage(int err)
 	fprintf(o,"        --no-3dnow         force use of floating-pointer routine (obsoleted by --cpu)\n");
 	#endif
 	fprintf(o," -g     --gain             set audio hardware output gain\n");
-	fprintf(o," -f <n> --scale <n>        scale output samples (soft gain, default=%g)\n", (double)param.outscale);
+	fprintf(o," -f <n> --scale <n>        scale output samples (soft gain - based on 32768), default=%li)\n", param.outscale);
 	fprintf(o,"        --rva-mix,\n");
 	fprintf(o,"        --rva-radio        use RVA2/ReplayGain values for mix/radio mode\n");
 	fprintf(o,"        --rva-album,\n");

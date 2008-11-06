@@ -76,6 +76,93 @@ void dct36(real *,real *,real *,real *,real *);
 	#endif
 #endif
 
+#ifdef OPT_GENERIC_FLOAT
+#ifdef REAL_IS_FIXED
+#error "No floating point output with fixed decoder!"
+#endif
+	/* The 8bit functions are not used. */
+	void dct64(real *,real *,real *);
+	int synth_1to1_real(real *bandPtr,int channel, mpg123_handle *fr, int final);
+	int synth_1to1_8bit(real *bandPtr,int channel, mpg123_handle *fr, int final);
+	int synth_1to1_mono_real (real *, mpg123_handle *fr);
+	int synth_1to1_mono2stereo_real (real *, mpg123_handle *fr);
+	int synth_1to1_8bit_mono (real *, mpg123_handle *fr);
+	int synth_1to1_8bit_mono2stereo (real *, mpg123_handle *fr);
+
+	int synth_2to1_real (real *,int, mpg123_handle*, int);
+	int synth_2to1_mono_real (real *, mpg123_handle *);
+	int synth_2to1_mono2stereo_real (real *, mpg123_handle *);
+
+	int synth_4to1_real (real *,int, mpg123_handle*, int);
+	int synth_4to1_mono_real (real *, mpg123_handle *);
+	int synth_4to1_mono2stereo_real (real *, mpg123_handle *);
+
+	int synth_ntom_real (real *,int, mpg123_handle*, int);
+	int synth_ntom_mono_real (real *, mpg123_handle *);
+	int synth_ntom_mono2stereo_real (real *, mpg123_handle *);
+
+#ifndef OPT_MULTI
+#define defopt generic_float
+#define opt_dct64(fr) dct64
+
+/* This one has special resampling routines, producing floating point samples. */
+#define opt_synth_1to1(fr) synth_1to1_real
+#define opt_synth_1to1_mono(fr) synth_1to1_mono_real
+#define opt_synth_1to1_mono2stereo(fr) synth_1to1_mono2stereo_real
+#define opt_synth_1to1_8bit(fr) NULL
+#define opt_synth_1to1_8bit_mono(fr) NULL
+#define opt_synth_1to1_8bit_mono2stereo(fr) NULL
+
+#define opt_synth_2to1(fr) synth_2to1_real
+#define opt_synth_2to1_mono(fr) synth_2to1_mono_real
+#define opt_synth_2to1_mono2stereo(fr) synth_2to1_mono2stereo_real
+#define opt_synth_2to1_8bit(fr) NULL
+#define opt_synth_2to1_8bit_mono(fr) NULL
+#define opt_synth_2to1_8bit_mono2stereo(fr) NULL
+
+#define opt_synth_4to1(fr) synth_4to1_real
+#define opt_synth_4to1_mono(fr) synth_4to1_mono_real
+#define opt_synth_4to1_mono2stereo(fr) synth_4to1_mono2stereo_real
+#define opt_synth_4to1_8bit(fr) NULL
+#define opt_synth_4to1_8bit_mono(fr) NULL
+#define opt_synth_4to1_8bit_mono2stereo(fr) NULL
+
+#define opt_synth_ntom(fr) synth_ntom_real
+#define opt_synth_ntom_mono(fr) synth_ntom_mono_real
+#define opt_synth_ntom_mono2stereo(fr) synth_ntom_mono2stereo_real
+#define opt_synth_ntom_8bit(fr) NULL
+#define opt_synth_ntom_8bit_mono(fr) NULL
+#define opt_synth_ntom_8bit_mono2stereo(fr) NULL
+
+#endif
+#else
+#ifndef OPT_MULTI
+/* All other decoders use the normal resampling routines... */
+	#define opt_synth_2to1(fr) synth_2to1
+	#define opt_synth_2to1_mono(fr) synth_2to1_mono
+	#define opt_synth_2to1_mono2stereo(fr) synth_2to1_mono2stereo
+	#define opt_synth_2to1_8bit(fr) synth_2to1_8bit
+	#define opt_synth_2to1_8bit_mono(fr) synth_2to1_8bit_mono
+	#define opt_synth_2to1_8bit_mono2stereo(fr) synth_2to1_8bit_mono2stereo
+
+	#define opt_synth_4to1(fr) synth_4to1
+	#define opt_synth_4to1_mono(fr) synth_4to1_mono
+	#define opt_synth_4to1_mono2stereo(fr) synth_4to1_mono2stereo
+	#define opt_synth_4to1_8bit(fr) synth_4to1_8bit
+	#define opt_synth_4to1_8bit_mono(fr) synth_4to1_8bit_mono
+	#define opt_synth_4to1_8bit_mono2stereo(fr) synth_4to1_8bit_mono2stereo
+
+	#define opt_synth_ntom(fr) synth_ntom
+	#define opt_synth_ntom_mono(fr) synth_ntom_mono
+	#define opt_synth_ntom_mono2stereo(fr) synth_ntom_mono2stereo
+	#define opt_synth_ntom_8bit(fr) synth_ntom_8bit
+	#define opt_synth_ntom_8bit_mono(fr) synth_ntom_8bit_mono
+	#define opt_synth_ntom_8bit_mono2stereo(fr) synth_ntom_8bit_mono2stereo
+#endif
+#endif
+
+
+
 /* i486 is special... always alone! */
 #ifdef OPT_I486
 #define OPT_X86
@@ -315,7 +402,6 @@ void check_decoders(void);
 	extern struct cpuflags cf;
 	#endif
 	#define defopt nodec
-	/* a simple global struct to hold the decoding function pointers, could be localized later if really wanted */
 
 	#define opt_synth_1to1(fr) ((fr)->cpu_opts.synth_1to1)
 	#define opt_synth_1to1_mono(fr) ((fr)->cpu_opts.synth_1to1_mono)
@@ -323,6 +409,28 @@ void check_decoders(void);
 	#define opt_synth_1to1_8bit(fr) ((fr)->cpu_opts.synth_1to1_8bit)
 	#define opt_synth_1to1_8bit_mono(fr) ((fr)->cpu_opts.synth_1to1_8bit_mono)
 	#define opt_synth_1to1_8bit_mono2stereo(fr) ((fr)->cpu_opts.synth_1to1_8bit_mono2stereo)
+
+	#define opt_synth_2to1(fr) ((fr)->cpu_opts.synth_2to1)
+	#define opt_synth_2to1_mono(fr) ((fr)->cpu_opts.synth_2to1_mono)
+	#define opt_synth_2to1_mono2stereo(fr) ((fr)->cpu_opts.synth_2to1_mono2stereo)
+	#define opt_synth_2to1_8bit(fr) ((fr)->cpu_opts.synth_2to1_8bit)
+	#define opt_synth_2to1_8bit_mono(fr) ((fr)->cpu_opts.synth_2to1_8bit_mono)
+	#define opt_synth_2to1_8bit_mono2stereo(fr) ((fr)->cpu_opts.synth_2to1_8bit_mono2stereo)
+
+	#define opt_synth_4to1(fr) ((fr)->cpu_opts.synth_4to1)
+	#define opt_synth_4to1_mono(fr) ((fr)->cpu_opts.synth_4to1_mono)
+	#define opt_synth_4to1_mono2stereo(fr) ((fr)->cpu_opts.synth_4to1_mono2stereo)
+	#define opt_synth_4to1_8bit(fr) ((fr)->cpu_opts.synth_4to1_8bit)
+	#define opt_synth_4to1_8bit_mono(fr) ((fr)->cpu_opts.synth_4to1_8bit_mono)
+	#define opt_synth_4to1_8bit_mono2stereo(fr) ((fr)->cpu_opts.synth_4to1_8bit_mono2stereo)
+
+	#define opt_synth_ntom(fr) ((fr)->cpu_opts.synth_ntom)
+	#define opt_synth_ntom_mono(fr) ((fr)->cpu_opts.synth_ntom_mono)
+	#define opt_synth_ntom_mono2stereo(fr) ((fr)->cpu_opts.synth_ntom_mono2stereo)
+	#define opt_synth_ntom_8bit(fr) ((fr)->cpu_opts.synth_ntom_8bit)
+	#define opt_synth_ntom_8bit_mono(fr) ((fr)->cpu_opts.synth_ntom_8bit_mono)
+	#define opt_synth_ntom_8bit_mono2stereo(fr) ((fr)->cpu_opts.synth_ntom_8bit_mono2stereo)
+
 	#ifdef OPT_PENTIUM
 	#define opt_synth_1to1_i586_asm(fr) ((fr)->cpu_opts.synth_1to1_i586_asm)
 	#endif

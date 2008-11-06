@@ -250,9 +250,6 @@ int attribute_align_arg mpg123_par(mpg123_pars *mp, enum mpg123_parms key, long 
 #ifndef GAPLESS
 			if(val & MPG123_GAPLESS) ret = MPG123_NO_GAPLESS;
 #endif
-#ifdef FLOATOUT
-			if(val & MPG123_FORCE_8BIT) ret = MPG123_NO_8BIT;
-#endif
 			if(ret == MPG123_OK) mp->flags = val;
 			debug1("set flags to 0x%lx", (unsigned long) mp->flags);
 		break;
@@ -291,11 +288,9 @@ int attribute_align_arg mpg123_par(mpg123_pars *mp, enum mpg123_parms key, long 
 			mp->icy_interval = val > 0 ? val : 0;
 		break;
 		case MPG123_OUTSCALE:
-#ifdef FLOATOUT
-			mp->outscale = fval;
-#else
-			mp->outscale = val;
-#endif
+			/* Choose the value that is non-zero, if any.
+			   Downscaling integers to 1.0 . */
+			mp->outscale = val == 0 ? fval : (double)val/SHORT_SCALE;
 		break;
 		case MPG123_TIMEOUT:
 #ifndef WIN32
@@ -363,11 +358,8 @@ int attribute_align_arg mpg123_getpar(mpg123_pars *mp, enum mpg123_parms key, lo
 			if(val) *val = (long)mp->icy_interval;
 		break;
 		case MPG123_OUTSCALE:
-#ifdef FLOATOUT
 			if(fval) *fval = mp->outscale;
-#else
-			if(val) *val = mp->outscale;
-#endif
+			if(val) *val = (long)(mp->outscale*SHORT_SCALE);
 		break;
 		case MPG123_RESYNC_LIMIT:
 			if(val) *val = mp->resync_limit;
@@ -504,7 +496,7 @@ int decode_update(mpg123_handle *mh)
 		case 2:
 			mh->down_sample_sblimit = SBLIMIT>>(mh->down_sample);
 			/* With downsampling I get less samples per frame */
-			mh->outblock = sizeof(sample_t)*mh->af.channels*(spf(mh)>>mh->down_sample);
+			mh->outblock = samples_to_bytes(mh, (spf(mh)>>mh->down_sample));
 		break;
 		case 3:
 		{
@@ -515,7 +507,7 @@ int decode_update(mpg123_handle *mh)
 				mh->down_sample_sblimit /= frame_freq(mh);
 			}
 			else mh->down_sample_sblimit = SBLIMIT;
-			mh->outblock = sizeof(sample_t) * mh->af.channels *
+			mh->outblock = bytes_per_sample(mh) * mh->af.channels *
 			               ( ( NTOM_MUL-1+spf(mh)
 			                   * (((size_t)NTOM_MUL*mh->af.rate)/frame_freq(mh))
 			                 )/NTOM_MUL );
@@ -540,7 +532,11 @@ int decode_update(mpg123_handle *mh)
 
 size_t attribute_align_arg mpg123_safe_buffer()
 {
-	return sizeof(sample_t)*2*1152*NTOM_MAX;
+#ifdef OPT_GENERIC_FLOAT
+	return sizeof(real)*2*1152*NTOM_MAX;
+#else
+	return sizeof(short)*2*1152*NTOM_MAX;
+#endif
 }
 
 size_t attribute_align_arg mpg123_outblock(mpg123_handle *mh)
@@ -597,7 +593,11 @@ static int get_next_frame(mpg123_handle *mh)
 	{
 		int b = frame_output_format(mh); /* Select the new output format based on given constraints. */
 		if(b < 0) return MPG123_ERR; /* not nice to fail here... perhaps once should add possibility to repeat this step */
-		if(decode_update(mh) < 0) return MPG123_ERR; /* dito... */
+		if(decode_update(mh) < 0)  /* dito... */
+		{
+			mh->err = MPG123_BAD_DECODER_SETUP;
+			return MPG123_ERR;
+		}
 		mh->decoder_change = 0;
 		if(b == 1) mh->new_format = 1; /* Store for later... */
 #ifdef GAPLESS
@@ -1257,7 +1257,8 @@ static const char *mpg123_error[] =
 	"Inappropriate NULL-pointer provided.",
 	"Bad key value given.",
 	"There is no frame index (disabled in this build).",
-	"Frame index operation failed."
+	"Frame index operation failed.",
+	"Decoder setup failed (invalid combination of settings?)"
 };
 
 const char* attribute_align_arg mpg123_plain_strerror(int errcode)

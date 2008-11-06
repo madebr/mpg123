@@ -10,7 +10,7 @@ AC_PREREQ(2.57)
 
 dnl ############# Initialisation
 
-AC_INIT([mpg123], [1.6.1], [mpg123-devel@lists.sourceforge.net])
+AC_INIT([mpg123], [1.7.0], [mpg123-devel@lists.sourceforge.net])
 LIBMPG123_VERSION=11:2:11
 AC_SUBST(LIBMPG123_VERSION)
 
@@ -659,6 +659,7 @@ fi
 
 
 s_gen="decode dct64"
+s_gen_float="decode decode_float dct64"
 s_altivec="decode_altivec dct64_altivec"
 s_i386="decode_i386 dct64_i386"
 s_i486="$s_i386 decode_i486 dct64_i486"
@@ -676,10 +677,10 @@ case $cpu_type in
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC -DREAL_IS_FLOAT"
     more_sources="$s_gen"
   ;;
+dnl Not disabling buffer for float mode... check that this is OK now!
   generic_float)
-    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC -DFLOATOUT -DREAL_IS_FLOAT"
-    buffer=disabled
-    more_sources="$s_gen"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC_FLOAT -DREAL_IS_FLOAT"
+    more_sources="$s_gen_float"
   ;;
   generic_fpu)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC -DREAL_IS_FLOAT"
@@ -751,12 +752,12 @@ case $cpu_type in
     more_sources="$s_sse"
   ;;
   x86) 
-    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_I386 -DOPT_I586 -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOWEXT -DOPT_SSE -DREAL_IS_FLOAT"
-    more_sources="$s_gen $s_i386 $s_i586 $s_mmx $s_3dnow $s_3dnowext $s_sse $s_multi"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_GENERIC_FLOAT -DOPT_I386 -DOPT_I586 -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOWEXT -DOPT_SSE -DREAL_IS_FLOAT"
+    more_sources="$s_gen_float $s_i386 $s_i586 $s_mmx $s_3dnow $s_3dnowext $s_sse $s_multi"
  ;;
   x86_dither) 
-    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_I386 -DOPT_I586 -DOPT_I586_DITHER -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOWEXT -DOPT_SSE -DREAL_IS_FLOAT"
-    more_sources="$s_gen $s_i386 $s_i586 $s_i586d $s_mmx $s_3dnow $s_3dnowext $s_sse $s_multi"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_GENERIC_FLOAT -DOPT_I386 -DOPT_I586 -DOPT_I586_DITHER -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOWEXT -DOPT_SSE -DREAL_IS_FLOAT"
+    more_sources="$s_gen_float $s_i386 $s_i586 $s_i586d $s_mmx $s_3dnow $s_3dnowext $s_sse $s_multi"
   ;;
   *)
   	AC_MSG_ERROR([Unknown CPU type '$cpu_type'])

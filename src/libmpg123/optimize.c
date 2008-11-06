@@ -45,6 +45,7 @@ static char *mpg123_supported_decoder_list[] =
 	NULL,
 	#endif
 	NULL, /* generic */
+	NULL, /* generic_float */
 	NULL
 };
 #endif
@@ -80,6 +81,9 @@ static char *mpg123_decoder_list[] =
 	#endif
 	#ifdef OPT_GENERIC
 	"generic",
+	#endif
+	#ifdef OPT_GENERIC_FLOAT
+	"generic_float",
 	#endif
 	NULL
 };
@@ -129,6 +133,9 @@ void check_decoders(void )
 #endif
 #ifdef OPT_GENERIC
 	*(d++) = "generic";
+#endif
+#ifdef OPT_GENERIC_FLOAT
+	*(d++) = "generic_float";
 #endif
 #endif /* ndef OPT_MULTI */
 }

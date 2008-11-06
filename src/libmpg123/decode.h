@@ -8,16 +8,10 @@
 #ifndef MPG123_DECODE_H
 #define MPG123_DECODE_H
 
-#ifdef FLOATOUT
-#define WRITE_SAMPLE(samples,sum,clip) *(samples) = sum
-#define sample_t float
-#else
-#define WRITE_SAMPLE(samples,sum,clip) \
+#define WRITE_SHORT_SAMPLE(samples,sum,clip) \
   if( (sum) > REAL_PLUS_32767) { *(samples) = 0x7fff; (clip)++; } \
   else if( (sum) < REAL_MINUS_32768) { *(samples) = -0x8000; (clip)++; } \
   else { *(samples) = REAL_TO_SHORT(sum); }
-#define sample_t short
-#endif
 
 #define NTOM_MAX 8          /* maximum allowed factor for upsampling */
 #define NTOM_MAX_FREQ 96000 /* maximum frequency to upsample to / downsample from */

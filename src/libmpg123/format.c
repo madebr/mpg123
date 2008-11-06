@@ -30,22 +30,48 @@ static const int my_encodings[MPG123_ENCODINGS] =
 	MPG123_ENC_FLOAT_64
 };
 
-/* Check if encoding (mask) is a valid one in this build. */
-static int good_enc(int enc)
+/* The list of actually possible encodings. */
+static const int good_encodings[] =
 {
-	if(!(enc & MPG123_ENC_ANY)) return FALSE;
-#ifdef FLOATOUT
-#ifdef REAL_IS_FLOAT /* we know only 32bit*/
-	if(enc != MPG123_ENC_FLOAT_32) return FALSE;
+/* If there is a float decoder, we have either only float or float in addition to the usuals. */
+#ifdef OPT_GENERIC_FLOAT
+/* Only one type of float is supported. */
+# ifdef REAL_IS_FLOAT
+#  define MPG123_FLOAT_ENC MPG123_ENC_FLOAT_32
+# else
+#  define MPG123_FLOAT_ENC MPG123_ENC_FLOAT_64
+# endif
+/* Now, if the others are also there... */
+# ifdef OPT_MULTI
+	MPG123_ENC_SIGNED_16, 
+	MPG123_ENC_UNSIGNED_16,
+	MPG123_ENC_UNSIGNED_8,
+	MPG123_ENC_SIGNED_8,
+	MPG123_ENC_ULAW_8,
+	MPG123_ENC_ALAW_8,
+# endif
+/* In any case, we have float. */
+	MPG123_FLOAT_ENC
 #else
-	if(enc != MPG123_ENC_FLOAT_64) return FALSE;
+/* ... or just the normal bunch without float. */
+	MPG123_ENC_SIGNED_16, 
+	MPG123_ENC_UNSIGNED_16,
+	MPG123_ENC_UNSIGNED_8,
+	MPG123_ENC_SIGNED_8,
+	MPG123_ENC_ULAW_8,
+	MPG123_ENC_ALAW_8,
 #endif
-#else
-	if(enc & MPG123_ENC_FLOAT) return FALSE;
-#endif
-	if(enc & MPG123_ENC_32) return FALSE; /* Not supported yet. */
+};
 
-	return TRUE;
+/* Check if encoding is a valid one in this build.
+   ...lazy programming: linear search. */
+static int good_enc(const int enc)
+{
+	size_t i;
+	for(i=0; i<sizeof(good_encodings)/sizeof(int); ++i)
+	if(enc == good_encodings[i]) return TRUE;
+
+	return FALSE;
 }
 
 void attribute_align_arg mpg123_rates(const long **list, size_t *number)
@@ -57,18 +83,8 @@ void attribute_align_arg mpg123_rates(const long **list, size_t *number)
 /* Now that's a bit tricky... One build of the library knows only a subset of the encodings. */
 void attribute_align_arg mpg123_encodings(const int **list, size_t *number)
 {
-	size_t offset = 0;
-	size_t n = sizeof(my_encodings)/sizeof(int)-4; /* The last 4 are special. */
-#ifdef FLOATOUT /* Skip integer encodings. */
-	n = 1;
-#ifdef REAL_IS_FLOAT /* we know only 32bit*/
-	offset = 8; /* Only 32bit float */
-#else
-	offset = 9; /* Only 64bit float */
-#endif
-#endif /* There should be a branch for 32bit integer; but that's not anywhere now. */
-	if(list   != NULL) *list   = my_encodings+offset;
-	if(number != NULL) *number = n;
+	if(list   != NULL) *list   = good_encodings;
+	if(number != NULL) *number = sizeof(good_encodings)/sizeof(int);
 }
 
 /*	char audio_caps[NUM_CHANNELS][MPG123_RATES+1][MPG123_ENCODINGS]; */
@@ -129,16 +145,19 @@ int frame_output_format(mpg123_handle *fr)
 	/* initialize new format, encoding comes later */
 	nf.channels = fr->stereo;
 
-#ifdef FLOATOUT /* Skip integer encodings. */
+	if(fr->cpu_opts.type == generic_float) /* Skip integer encodings. */
+	{
 #ifdef REAL_IS_FLOAT /* we know only 32bit*/
-	f0 = 8; /* Only 32bit float */
+		f0 = 8; /* Only 32bit float */
 #else
-	f0 = 9; /* Only 64bit float */
+		f0 = 9; /* Only 64bit float */
 #endif
-	f2 = f0+1; /* Only one encoding to try... */
-#else
+		f2 = f0+1; /* Only one encoding to try... */
+	}
+	else
 	if(p->flags & MPG123_FORCE_8BIT) f0 = 2; /* skip the 16bit encodings */
-#endif /* There should be a branch for 32bit integer; but that's not anywhere now. */
+
+	/* There should be a branch for 32bit integer; but that's not anywhere now. */
 
 	/* force stereo is stronger */
 	if(p->flags & MPG123_FORCE_MONO)   nf.channels = 1;
@@ -148,14 +167,14 @@ int frame_output_format(mpg123_handle *fr)
 	{
 		nf.rate = p->force_rate;
 		if(cap_fit(fr,&nf,f0,2)) goto end;            /* 16bit encodings */
-		if(cap_fit(fr,&nf,2,f2)) goto end; /*  8bit encodings */
+		if(cap_fit(fr,&nf,f0<=2 ? 2 : f0,f2)) goto end; /*  8bit encodings */
 
 		/* try again with different stereoness */
 		if(nf.channels == 2 && !(p->flags & MPG123_FORCE_STEREO)) nf.channels = 1;
 		else if(nf.channels == 1 && !(p->flags & MPG123_FORCE_MONO)) nf.channels = 2;
 
 		if(cap_fit(fr,&nf,f0,2)) goto end;            /* 16bit encodings */
-		if(cap_fit(fr,&nf,2,f2)) goto end; /*  8bit encodings */
+		if(cap_fit(fr,&nf,f0<=2 ? 2 : f0,f2)) goto end; /*  8bit encodings */
 
 		if(NOQUIET)
 		error3( "Unable to set up output format! Constraints: %s%s%liHz.",
@@ -170,22 +189,26 @@ int frame_output_format(mpg123_handle *fr)
 	}
 
 	if(freq_fit(fr, &nf, f0, 2)) goto end; /* try rates with 16bit */
-	if(freq_fit(fr, &nf,  2, f2)) goto end; /* ... 8bit */
+	if(freq_fit(fr, &nf, f0<=2 ? 2 : f0, f2)) goto end; /* ... 8bit */
 
 	/* try again with different stereoness */
 	if(nf.channels == 2 && !(p->flags & MPG123_FORCE_STEREO)) nf.channels = 1;
 	else if(nf.channels == 1 && !(p->flags & MPG123_FORCE_MONO)) nf.channels = 2;
 
 	if(freq_fit(fr, &nf, f0, 2)) goto end; /* try rates with 16bit */
-	if(freq_fit(fr, &nf,  2, f2)) goto end; /* ... 8bit */
+	if(freq_fit(fr, &nf,  f0<=2 ? 2 : f0, f2)) goto end; /* ... 8bit */
 
 	/* Here is the _bad_ end. */
 	if(NOQUIET)
-	error5( "Unable to set up output format! Constraints: %s%s%li, %li or %liHz.",
-	        ( p->flags & MPG123_FORCE_STEREO ? "stereo, " :
-	          (p->flags & MPG123_FORCE_MONO ? "mono, "  : "") ),
-	        (p->flags & MPG123_FORCE_8BIT  ? "8bit, " : ""),
-	        frame_freq(fr),  frame_freq(fr)>>1, frame_freq(fr)>>2 );
+	{
+		error5( "Unable to set up output format! Constraints: %s%s%li, %li or %liHz.",
+		        ( p->flags & MPG123_FORCE_STEREO ? "stereo, " :
+		          (p->flags & MPG123_FORCE_MONO ? "mono, "  : "") ),
+		        (p->flags & MPG123_FORCE_8BIT  ? "8bit, " : ""),
+		        frame_freq(fr),  frame_freq(fr)>>1, frame_freq(fr)>>2 );
+		if(fr->cpu_opts.type == generic_float)
+		error("Hint: The floating point decoder does only floating point formats...");
+	}
 /*	if(NOQUIET && p->verbose <= 1) print_capabilities(fr); */
 
 	fr->err = MPG123_BAD_OUTFORMAT;

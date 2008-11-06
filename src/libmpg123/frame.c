@@ -22,7 +22,7 @@ static void frame_fixed_reset(mpg123_handle *fr);
 	: (type*)(p)
 void frame_default_pars(mpg123_pars *mp)
 {
-	mp->outscale = MAXOUTBURST;
+	mp->outscale = 1.0;
 #ifdef GAPLESS
 	mp->flags = MPG123_GAPLESS;
 #else
@@ -719,15 +719,41 @@ int set_synth_functions(mpg123_handle *fr)
 		    synth_ntom_8bit_mono } }
 	};
 
-	/* possibly non-constand entries filled here */
+	/* possibly non-constand entries filled here
+	   ...actually, that's every entry now! */
 	funcs[0][0] = (func_synth) opt_synth_1to1(fr);
 	funcs[1][0] = (func_synth) opt_synth_1to1_8bit(fr);
+	funcs[0][1] = (func_synth) opt_synth_2to1(fr);
+	funcs[1][1] = (func_synth) opt_synth_2to1_8bit(fr);
+	funcs[0][2] = (func_synth) opt_synth_4to1(fr);
+	funcs[1][2] = (func_synth) opt_synth_4to1_8bit(fr);
+	funcs[0][3] = (func_synth) opt_synth_ntom(fr);
+	funcs[1][3] = (func_synth) opt_synth_ntom_8bit(fr);
 	funcs_mono[0][0][0] = (func_synth_mono) opt_synth_1to1_mono2stereo(fr);
+	funcs_mono[0][0][1] = (func_synth_mono) opt_synth_2to1_mono2stereo(fr);
+	funcs_mono[0][0][2] = (func_synth_mono) opt_synth_4to1_mono2stereo(fr);
+	funcs_mono[0][0][3] = (func_synth_mono) opt_synth_ntom_mono2stereo(fr);
 	funcs_mono[0][1][0] = (func_synth_mono) opt_synth_1to1_8bit_mono2stereo(fr);
+	funcs_mono[0][1][1] = (func_synth_mono) opt_synth_2to1_8bit_mono2stereo(fr);
+	funcs_mono[0][1][2] = (func_synth_mono) opt_synth_4to1_8bit_mono2stereo(fr);
+	funcs_mono[0][1][3] = (func_synth_mono) opt_synth_ntom_8bit_mono2stereo(fr);
 	funcs_mono[1][0][0] = (func_synth_mono) opt_synth_1to1_mono(fr);
+	funcs_mono[1][0][1] = (func_synth_mono) opt_synth_2to1_mono(fr);
+	funcs_mono[1][0][2] = (func_synth_mono) opt_synth_4to1_mono(fr);
+	funcs_mono[1][0][3] = (func_synth_mono) opt_synth_ntom_mono(fr);
 	funcs_mono[1][1][0] = (func_synth_mono) opt_synth_1to1_8bit_mono(fr);
+	funcs_mono[1][1][1] = (func_synth_mono) opt_synth_2to1_8bit_mono(fr);
+	funcs_mono[1][1][2] = (func_synth_mono) opt_synth_4to1_8bit_mono(fr);
+	funcs_mono[1][1][3] = (func_synth_mono) opt_synth_ntom_8bit_mono(fr);
 
 	if(fr->af.encoding & MPG123_ENC_8) p8 = 1;
+
+	if(p8 && fr->cpu_opts.type == generic_float)
+	{
+		if(NOQUIET) error1("Floating point decoder cannot do 8bit output (encoding: %i)!", fr->af.encoding);
+		return -1;
+	}
+
 	fr->synth = funcs[p8][ds];
 	fr->synth_mono = funcs_mono[fr->af.channels==2 ? 0 : 1][p8][ds];
 
@@ -745,13 +771,16 @@ int set_synth_functions(mpg123_handle *fr)
 int attribute_align_arg mpg123_volume_change(mpg123_handle *mh, double change)
 {
 	if(mh == NULL) return MPG123_ERR;
-	return mpg123_volume(mh, change + (double) mh->p.outscale / MAXOUTBURST);
+	return mpg123_volume(mh, change + (double) mh->p.outscale);
 }
 
 int attribute_align_arg mpg123_volume(mpg123_handle *mh, double vol)
 {
 	if(mh == NULL) return MPG123_ERR;
-	if(vol >= 0) mh->p.outscale = (double) MAXOUTBURST * vol;
+
+	if(vol >= 0) mh->p.outscale = vol;
+	else mh->p.outscale = 0.;
+
 	do_rva(mh);
 	return MPG123_OK;
 }
@@ -783,7 +812,7 @@ void do_rva(mpg123_handle *fr)
 {
 	double peak = 0;
 	double gain = 0;
-	scale_t newscale;
+	double newscale;
 	double rvafact = 1;
 	if(get_rva(fr, &peak, &gain))
 	{
@@ -794,40 +823,33 @@ void do_rva(mpg123_handle *fr)
 	newscale = fr->p.outscale*rvafact;
 
 	/* if peak is unknown (== 0) this check won't hurt */
-	if((peak*newscale) > MAXOUTBURST)
+	if((peak*newscale) > 1.0)
 	{
-		newscale = (scale_t) ((double) MAXOUTBURST/peak);
-#ifdef FLOATOUT
+		newscale = 1.0/peak;
 		warning2("limiting scale value to %f to prevent clipping with indicated peak factor of %f", newscale, peak);
-#else
-		warning2("limiting scale value to %li to prevent clipping with indicated peak factor of %f", newscale, peak);
-#endif
 	}
 	/* first rva setting is forced with fr->lastscale < 0 */
 	if(newscale != fr->lastscale)
 	{
-#ifdef FLOATOUT
 		debug3("changing scale value from %f to %f (peak estimated to %f)", fr->lastscale != -1 ? fr->lastscale : fr->p.outscale, newscale, (double) (newscale*peak));
-#else
-		debug3("changing scale value from %li to %li (peak estimated to %li)", fr->lastscale != -1 ? fr->lastscale : fr->p.outscale, newscale, (long) (newscale*peak));
-#endif
 		fr->lastscale = newscale;
 		opt_make_decode_tables(fr); /* the actual work */
 	}
 }
 
+
 int attribute_align_arg mpg123_getvolume(mpg123_handle *mh, double *base, double *really, double *rva_db)
 {
 	if(mh == NULL) return MPG123_ERR;
-	if(base)   *base   = (double)mh->p.outscale/MAXOUTBURST;
-	if(really) *really = (double)mh->lastscale/MAXOUTBURST;
+	if(base)   *base   = mh->p.outscale;
+	if(really) *really = mh->lastscale;
 	get_rva(mh, NULL, rva_db);
 	return MPG123_OK;
 }
 
 int  frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 {
-	char* chosen = ""; /* the chosed decoder opt as string */
+	char* chosen = ""; /* the chosen decoder opt as string */
 	int auto_choose = 0;
 	int done = 0;
 	if(   (cpu == NULL)
@@ -845,6 +867,32 @@ int  frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		}
 	}
 #else
+	/* Default for the resampling functions, for now common to all short-producing decoders. */
+	fr->cpu_opts.synth_1to1 = synth_1to1;
+	fr->cpu_opts.synth_1to1_mono = synth_1to1_mono;
+	fr->cpu_opts.synth_1to1_mono2stereo = synth_1to1_mono2stereo;
+	fr->cpu_opts.synth_1to1_8bit = synth_1to1;
+	fr->cpu_opts.synth_1to1_8bit_mono = synth_1to1_mono;
+	fr->cpu_opts.synth_1to1_8bit_mono2stereo = synth_1to1_mono2stereo;
+	fr->cpu_opts.synth_2to1 = synth_2to1;
+	fr->cpu_opts.synth_2to1_mono = synth_2to1_mono;
+	fr->cpu_opts.synth_2to1_mono2stereo = synth_2to1_mono2stereo;
+	fr->cpu_opts.synth_2to1_8bit = synth_2to1;
+	fr->cpu_opts.synth_2to1_8bit_mono = synth_2to1_mono;
+	fr->cpu_opts.synth_2to1_8bit_mono2stereo = synth_2to1_mono2stereo;
+	fr->cpu_opts.synth_4to1 = synth_4to1;
+	fr->cpu_opts.synth_4to1_mono = synth_4to1_mono;
+	fr->cpu_opts.synth_4to1_mono2stereo = synth_4to1_mono2stereo;
+	fr->cpu_opts.synth_4to1_8bit = synth_4to1;
+	fr->cpu_opts.synth_4to1_8bit_mono = synth_4to1_mono;
+	fr->cpu_opts.synth_4to1_8bit_mono2stereo = synth_4to1_mono2stereo;
+	fr->cpu_opts.synth_ntom = synth_ntom;
+	fr->cpu_opts.synth_ntom_mono = synth_ntom_mono;
+	fr->cpu_opts.synth_ntom_mono2stereo = synth_ntom_mono2stereo;
+	fr->cpu_opts.synth_ntom_8bit = synth_ntom;
+	fr->cpu_opts.synth_ntom_8bit_mono = synth_ntom_mono;
+	fr->cpu_opts.synth_ntom_8bit_mono2stereo = synth_ntom_mono2stereo;
+
 	fr->cpu_opts.type = nodec;
 	/* covers any i386+ cpu; they actually differ only in the synth_1to1 function... */
 	#ifdef OPT_X86
@@ -1056,6 +1104,40 @@ int  frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		done = 1;
 	}
 	#endif
+	#ifdef OPT_GENERIC_FLOAT
+	if(!done && (auto_choose || !strcasecmp(cpu, "generic_float")))
+	{
+		chosen = "generic";
+		fr->cpu_opts.type = generic_float;
+		fr->cpu_opts.dct64 = dct64;
+		/* The float decoder has its own set of synth routines... and does not allow 8bit decoding. */
+		fr->cpu_opts.synth_1to1 = synth_1to1_real;
+		fr->cpu_opts.synth_1to1_mono = synth_1to1_mono_real;
+		fr->cpu_opts.synth_1to1_mono2stereo = synth_1to1_mono2stereo_real;
+		fr->cpu_opts.synth_1to1_8bit = NULL;
+		fr->cpu_opts.synth_1to1_8bit_mono = NULL;
+		fr->cpu_opts.synth_1to1_8bit_mono2stereo = NULL;
+		fr->cpu_opts.synth_2to1 = synth_2to1_real;
+		fr->cpu_opts.synth_2to1_mono = synth_2to1_mono_real;
+		fr->cpu_opts.synth_2to1_mono2stereo = synth_2to1_mono2stereo_real;
+		fr->cpu_opts.synth_2to1_8bit = NULL;
+		fr->cpu_opts.synth_2to1_8bit_mono = NULL;
+		fr->cpu_opts.synth_2to1_8bit_mono2stereo = NULL;
+		fr->cpu_opts.synth_4to1 = synth_4to1_real;
+		fr->cpu_opts.synth_4to1_mono = synth_4to1_mono_real;
+		fr->cpu_opts.synth_4to1_mono2stereo = synth_4to1_mono2stereo_real;
+		fr->cpu_opts.synth_4to1_8bit = NULL;
+		fr->cpu_opts.synth_4to1_8bit_mono = NULL;
+		fr->cpu_opts.synth_4to1_8bit_mono2stereo = NULL;
+		fr->cpu_opts.synth_ntom = synth_ntom_real;
+		fr->cpu_opts.synth_ntom_mono = synth_ntom_mono_real;
+		fr->cpu_opts.synth_ntom_mono2stereo = synth_ntom_mono2stereo_real;
+		fr->cpu_opts.synth_ntom_8bit = NULL;
+		fr->cpu_opts.synth_ntom_8bit_mono = NULL;
+		fr->cpu_opts.synth_ntom_8bit_mono2stereo = NULL;
+		done = 1;
+	}
+	#endif
 #endif
 	if(done)
 	{
@@ -1077,6 +1159,7 @@ enum optdec dectype(const char* decoder)
 	if(!strcasecmp(decoder, "sse"))         return sse;
 	if(!strcasecmp(decoder, "mmx"))         return mmx;
 	if(!strcasecmp(decoder, "generic"))     return generic;
+	if(!strcasecmp(decoder, "generic_float"))     return generic_float;
 	if(!strcasecmp(decoder, "altivec"))     return altivec;
 	if(!strcasecmp(decoder, "i386"))        return idrei;
 	if(!strcasecmp(decoder, "i486"))        return ivier;

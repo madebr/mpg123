@@ -44,6 +44,11 @@ libmpg123_la_SOURCES = \
 	decode_2to1.c \
 	decode_4to1.c \
 	decode_ntom.c \
+	synth_1to1.h \
+	synth_2to1.h \
+	synth_4to1.h \
+	synth_ntom.h \
+	ntom.c \
 	equalizer.c \
 	huffman.h \
 	icy.c \
@@ -86,6 +91,7 @@ EXTRA_libmpg123_la_SOURCES = \
 	decode_3dnow.S \
 	decode_altivec.c \
 	decode.c \
+	decode_float.c \
 	decode_i386.c \
 	decode_i486.c \
 	decode_i586_dither.S \

@@ -45,7 +45,7 @@ struct audioformat
 	long rate;
 };
 
-enum optdec { autodec=-1, nodec=0, generic, idrei, ivier, ifuenf, ifuenf_dither, mmx, dreidnow, dreidnowext, altivec, sse };
+enum optdec { autodec=-1, nodec=0, generic, idrei, ivier, ifuenf, ifuenf_dither, mmx, dreidnow, dreidnowext, altivec, sse, generic_float };
 enum optcla { nocla=0, normal, mmxsse };
 
 struct mpg123_pars_struct
@@ -65,7 +65,7 @@ struct mpg123_pars_struct
 /*	long start_frame; */ /* frame offset to begin with */
 /*	long frame_number;*/ /* number of frames to decode */
 	long icy_interval;
-	scale_t outscale;
+	double outscale;
 	long resync_limit;
 	long index_size; /* Long, because: negative values have a meaning. */
 };
@@ -132,6 +132,27 @@ struct mpg123_handle_struct
 		int (*synth_1to1_8bit)(real *,int, mpg123_handle *,int );
 		int (*synth_1to1_8bit_mono)(real *, mpg123_handle *);
 		int (*synth_1to1_8bit_mono2stereo)(real *, mpg123_handle *);
+
+		int (*synth_2to1)(real *,int, mpg123_handle *,int );
+		int (*synth_2to1_mono)(real *, mpg123_handle *);
+		int (*synth_2to1_mono2stereo)(real *, mpg123_handle *);
+		int (*synth_2to1_8bit)(real *,int, mpg123_handle *,int );
+		int (*synth_2to1_8bit_mono)(real *, mpg123_handle *);
+		int (*synth_2to1_8bit_mono2stereo)(real *, mpg123_handle *);
+
+		int (*synth_4to1)(real *,int, mpg123_handle *,int );
+		int (*synth_4to1_mono)(real *, mpg123_handle *);
+		int (*synth_4to1_mono2stereo)(real *, mpg123_handle *);
+		int (*synth_4to1_8bit)(real *,int, mpg123_handle *,int );
+		int (*synth_4to1_8bit_mono)(real *, mpg123_handle *);
+		int (*synth_4to1_8bit_mono2stereo)(real *, mpg123_handle *);
+
+		int (*synth_ntom)(real *,int, mpg123_handle *,int );
+		int (*synth_ntom_mono)(real *, mpg123_handle *);
+		int (*synth_ntom_mono2stereo)(real *, mpg123_handle *);
+		int (*synth_ntom_8bit)(real *,int, mpg123_handle *,int );
+		int (*synth_ntom_8bit_mono)(real *, mpg123_handle *);
+		int (*synth_ntom_8bit_mono2stereo)(real *, mpg123_handle *);
 #ifdef OPT_PENTIUM
 		int (*synth_1to1_i586_asm)(real *,int,unsigned char *, unsigned char *, int *, real *decwin);
 #endif
@@ -202,8 +223,9 @@ struct mpg123_handle_struct
 	unsigned char uctmp;
 
 	/* rva data, used in common.c, set in id3.c */
-	
-	scale_t lastscale;
+
+	double maxoutburst; /* The maximum amplitude in current sample represenation. */
+	double lastscale;
 	struct
 	{
 		int level[2];

@@ -84,11 +84,7 @@ struct parameter
 	long doublespeed;
 	long start_frame;  /* frame offset to begin with */
 	long frame_number; /* number of frames to decode */
-#ifdef FLOATOUT
-	double outscale;
-#else
 	long outscale;
-#endif
 	int flags;
 	long force_rate;
 	int talk_icy;

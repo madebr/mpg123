@@ -52,6 +52,7 @@ mpg123_SOURCES = \
 	term.c \
 	term.h \
 	wav.c \
+	wavhead.h \
 	xfermem.c \
 	xfermem.h
 
