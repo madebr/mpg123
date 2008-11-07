@@ -364,9 +364,9 @@ if test x"$ccalign" = xunknown; then
 	fi
 	rm -f conftest.o conftest.c
 fi
-if test x"$ccalign" = xyes; then
-	AC_DEFINE(CCALIGN, 1, [ Define if __attribute__((aligned(16))) works ])
-fi
+
+dnl We apply alignment hints only to cpus that need it.
+dnl See further below for the definition of CCALIGN
 
 dnl ############## Types
 
@@ -481,6 +481,8 @@ else
   have_network=no
 fi
 
+echo networkcheck
+
 if test x"$network" = xauto; then
 	if test x"$have_network" = xyes; then
 		network=enabled
@@ -495,6 +497,7 @@ if test x"$network" = xenabled; then
 	fi
 fi
 
+echo networkcheckdone
 
 # Substitutions for the installable mpg123.h header
 if test "x$ac_cv_header_stdio_h" = "xyes"; then
@@ -680,19 +683,23 @@ case $cpu_type in
   generic)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC -DREAL_IS_FLOAT"
     more_sources="$s_gen"
+    ccalign=no
   ;;
 dnl Not disabling buffer for float mode... check that this is OK now!
   generic_float)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC_FLOAT -DREAL_IS_FLOAT"
     more_sources="$s_gen_float"
+    ccalign=no
   ;;
   generic_fpu)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC -DREAL_IS_FLOAT"
     more_sources="$s_gen"
+    ccalign=no
   ;;
   generic_nofpu)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC -DREAL_IS_FIXED"
     more_sources="$s_gen"
+    ccalign=no
   ;;
   altivec)
     ADD_CFLAGS="$ADD_CFLAGS -maltivec -faltivec"
@@ -702,18 +709,22 @@ dnl Not disabling buffer for float mode... check that this is OK now!
   i386) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_I386 -DREAL_IS_FLOAT"
     more_sources="$s_i386"
+    ccalign=no
   ;;
   i386_fpu) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_I386 -DREAL_IS_FLOAT"
     more_sources="$s_i386"
+    ccalign=no
   ;;
   i386_nofpu) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_I386 -DREAL_IS_FIXED"
     more_sources="$s_i386"
+    ccalign=no
   ;;
   i486) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_I486 -DREAL_IS_FLOAT"
     more_sources="$s_i486"
+    ccalign=no
   ;;
   i586) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_I586 -DREAL_IS_FLOAT"
@@ -776,6 +787,11 @@ done
 
 AC_SUBST(DECODER_OBJ)
 AC_SUBST(DECODER_LOBJ)
+
+dnl Finally insert the code switch for alignment, above cpu selection having possibly changed the setting.
+if test x"$ccalign" = xyes; then
+	AC_DEFINE(CCALIGN, 1, [ Define if __attribute__((aligned(16))) shall be used ])
+fi
 
 
 dnl ############## Output module choice
@@ -1344,7 +1360,7 @@ echo "
   Alignment checks ........ $aligncheck"
 if test x"$aligncheck" = xenabled; then
 	if test x"$ccalign" != xyes; then
-		echo "   (without effect because compiler does not support special alignment)"
+		echo "   (without effect since special alignment is not employed)"
 	fi
 	if test x"$GCC" = xyes; then
 		echo "   (note that newer gcc 4.x versions do not use/need the align check)"
