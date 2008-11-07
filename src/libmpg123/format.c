@@ -43,8 +43,8 @@ static const int good_encodings[] =
 # endif
 /* Now, if the others are also there... */
 # ifdef OPT_MULTI
-	MPG123_ENC_SIGNED_16, 
-	MPG123_ENC_UNSIGNED_16,
+	MPG123_ENC_SIGNED_16,
+	/* MPG123_ENC_UNSIGNED_16, You've seen code anywhere to actualy produce unsinged 16 ? It never worked. */
 	MPG123_ENC_UNSIGNED_8,
 	MPG123_ENC_SIGNED_8,
 	MPG123_ENC_ULAW_8,
@@ -54,8 +54,8 @@ static const int good_encodings[] =
 	MPG123_FLOAT_ENC
 #else
 /* ... or just the normal bunch without float. */
-	MPG123_ENC_SIGNED_16, 
-	MPG123_ENC_UNSIGNED_16,
+	MPG123_ENC_SIGNED_16,
+	/* MPG123_ENC_UNSIGNED_16, */
 	MPG123_ENC_UNSIGNED_8,
 	MPG123_ENC_SIGNED_8,
 	MPG123_ENC_ULAW_8,

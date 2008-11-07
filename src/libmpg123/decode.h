@@ -1,6 +1,9 @@
 /*
 	decode.h: common definitions for decode functions
 
+	This file is strongly tied with optimize.h concerning the synth functions.
+	Perhaps one should restructure that a bit.
+
 	copyright 2007 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis, taking WRITE_SAMPLE from decode.c
@@ -8,6 +11,8 @@
 #ifndef MPG123_DECODE_H
 #define MPG123_DECODE_H
 
+/* Macro to produce a short (signed 16bit) output sample from internal representation,
+   which may be float, double or indeed some integer for fixed point handling. */
 #define WRITE_SHORT_SAMPLE(samples,sum,clip) \
   if( (sum) > REAL_PLUS_32767) { *(samples) = 0x7fff; (clip)++; } \
   else if( (sum) < REAL_MINUS_32768) { *(samples) = -0x8000; (clip)++; } \
@@ -47,11 +52,17 @@ off_t ntom_frmouts(mpg123_handle *fr, off_t frame);
 off_t ntom_ins2outs(mpg123_handle *fr, off_t ins);
 off_t ntom_frameoff(mpg123_handle *fr, off_t soff);
 
+/* Initialization of any static data that may be needed at runtime.
+   Make sure you call these once before it is too late. */
 void init_layer3(void);
 void init_layer3_stuff(mpg123_handle *fr);
 void init_layer2(void);
 void init_layer2_stuff(mpg123_handle *fr);
 int make_conv16to8_table(mpg123_handle *fr);
+
+/* These are the actual workers.
+   They operate on the parsed frame data and handle decompression to audio samples.
+   The synth functions defined above are called from inside the layer handlers. */
 
 int do_layer3(mpg123_handle *fr);
 int do_layer2(mpg123_handle *fr);

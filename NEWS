@@ -1,7 +1,13 @@
+
 1.6.1
 ---
 
 - Fix printing of largefile offsets in remote control interface.
+- TODO: Make signed 16bit format actually work; has been a silent non-feature all the time.
+--> Either that or disable it.
+--> Idea ... add a postfilter that transforms signed_16 data to unsigned...
+...similar to the 8bit stuff but less redundant work.
+I think I'll disable it in that release and prepare the fix for 1.7.0 .
 
 1.6.0
 ---
