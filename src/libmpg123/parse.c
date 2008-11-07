@@ -562,7 +562,6 @@ init_resync:
 			if(NOQUIET) error1("Header 0x%08lx seems to indicate a free format stream; I do not handle that yet", newhead);
 
 			goto read_again;
-			return 0;
 		}
 		/* and those ugly ID3 tags */
 		if((newhead & 0xffffff00) == ('T'<<24)+('A'<<16)+('G'<<8))

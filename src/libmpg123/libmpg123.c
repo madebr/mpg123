@@ -689,7 +689,6 @@ int attribute_align_arg mpg123_decode_frame(mpg123_handle *mh, off_t *num, unsig
 			debug1("got next frame, %i", mh->to_decode);
 		}
 	}
-	return MPG123_ERR;
 }
 
 int attribute_align_arg mpg123_read(mpg123_handle *mh, unsigned char *out, size_t size, size_t *done)
