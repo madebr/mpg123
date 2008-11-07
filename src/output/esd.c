@@ -6,11 +6,13 @@
 	initially written by Eric B. Mitchell ("esd port" should be this file...)
 */
 
+/* First the common header, including config.h
+   ...this is important for stuff like _FILE_OFFSET_BITS */
+#include "mpg123app.h"
+
 #include <esd.h>
 #include <errno.h>
 #include <assert.h>
-
-#include "mpg123app.h"
 
 #ifdef SOLARIS
 #include <stropts.h>
