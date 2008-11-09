@@ -16,6 +16,7 @@ static const long my_rates[MPG123_RATES] = /* only the standard rates */
 	16000, 22050, 24000,
 	32000, 44100, 48000,
 };
+
 static const int my_encodings[MPG123_ENCODINGS] =
 {
 	MPG123_ENC_SIGNED_16, 
@@ -361,4 +362,15 @@ int attribute_align_arg mpg123_fmt_support(mpg123_pars *mp, long rate, int encod
 	if(mp->audio_caps[0][ratei][enci]) ch |= MPG123_MONO;
 	if(mp->audio_caps[1][ratei][enci]) ch |= MPG123_STEREO;
 	return ch;
+}
+
+/* take into account: channels, bytes per sample -- NOT resampling!*/
+off_t samples_to_bytes(mpg123_handle *fr , off_t s)
+{
+	return s * fr->af.encsize * fr->af.channels;
+}
+
+off_t bytes_to_samples(mpg123_handle *fr , off_t b)
+{
+	return b / fr->af.encsize / fr->af.channels;
 }

@@ -137,5 +137,8 @@
 #define PVERB(mp, level) (!((mp)->flags & MPG123_QUIET) && (mp)->verbose >= (level))
 
 int decode_update(mpg123_handle *mh);
+/* residing in format.c  */
+off_t samples_to_bytes(mpg123_handle *fr , off_t s);
+off_t bytes_to_samples(mpg123_handle *fr , off_t b);
 
 #endif

@@ -1002,14 +1002,3 @@ int get_songlen(mpg123_handle *fr,int no)
 	tpf = mpg123_tpf(fr);
 	return no*tpf;
 }
-
-/* take into account: channels, bytes per sample -- NOT resampling!*/
-off_t samples_to_bytes(mpg123_handle *fr , off_t s)
-{
-	return s * fr->af.encsize * fr->af.channels;
-}
-
-off_t bytes_to_samples(mpg123_handle *fr , off_t b)
-{
-	return b / fr->af.encsize / fr->af.channels;
-}
