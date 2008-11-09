@@ -1,4 +1,4 @@
-ö/*
+/*
 	optimize: get a grip on the different optimizations
 
 	copyright 2006 by the mpg123 project - free software under the terms of the LGPL 2.1
