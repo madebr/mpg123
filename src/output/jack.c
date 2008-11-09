@@ -44,7 +44,8 @@ static jack_handle_t* alloc_jack_handle()
 	handle->client = NULL;
 	handle->tmp_buffer = NULL;
 	handle->rb_size = 0;
-	
+
+
 	return handle;
 }
 
@@ -278,21 +279,26 @@ static int open_jack(audio_output_t *ao)
 }
 
 
-/* Jack could be set to 32bits float, actually */
+/* Jack prefers floats, I actually assume it does _only_ float/double (as it is nowadays)! */
 static int get_formats_jack(audio_output_t *ao)
 {
 	if(jack_get_sample_rate( ((jack_handle_t*)(ao->userptr))->client ) != (jack_nframes_t)ao->rate) return 0;
-	else return MPG123_ENC_SIGNED_16;
+	else return MPG123_ENC_FLOAT_32|MPG123_ENC_FLOAT_64|MPG123_ENC_SIGNED_16;
 }
 
 
 static int write_jack(audio_output_t *ao, unsigned char *buf, int len)
 {
 	int c,n = 0;
-	short* src = (short*)buf;
 	jack_handle_t *handle = (jack_handle_t*)ao->userptr;
-	jack_nframes_t samples = len / 2 / handle->channels;
-	size_t tmp_size = samples * sizeof( jack_default_audio_sample_t );
+	jack_nframes_t samples; 
+	size_t tmp_size;
+	/* Only float or double is used.
+	   Note: I still need the tmp buffer because of de-interleaving the channels. */
+	samples = len /
+		(ao->format == MPG123_ENC_FLOAT_64 ? 8 : (ao->format == MPG123_ENC_SIGNED_16 ? 2 : 4))
+		/ handle->channels;
+	tmp_size = samples * sizeof( jack_default_audio_sample_t );
 	
 	
 	/* Sanity check that ring buffer is at least twice the size of the audio we just got*/
@@ -320,11 +326,25 @@ static int write_jack(audio_output_t *ao, unsigned char *buf, int len)
 	for(c=0; c<handle->channels; c++) {
 		size_t len = 0;
 		
-		/* Convert samples from short to flat and put in temporary buffer*/
-		for(n=0; n<samples; n++) {
+		/* Hm, is that optimal? Anyhow, deinterleaving float or double ... or short. With/without conversion. */
+		if(ao->format == MPG123_ENC_SIGNED_16)
+		{
+			short* src = (short*)buf;
+			for(n=0; n<samples; n++)
 			handle->tmp_buffer[n] = src[(n*handle->channels)+c] / 32768.0f;
 		}
-		
+		else if(ao->format == MPG123_ENC_FLOAT_32)
+		{
+			float* src = (float*)buf;
+			for(n=0; n<samples; n++)
+			handle->tmp_buffer[n] = src[(n*handle->channels)+c];
+		}
+		else /* MPG123_ENC_FLOAT_64 */
+		{
+			double* src = (double*)buf;
+			for(n=0; n<samples; n++)
+			handle->tmp_buffer[n] = src[(n*handle->channels)+c];
+		}
 		/* Copy temporary buffer into ring buffer*/
 		len = jack_ringbuffer_write(handle->rb[c], (char*)handle->tmp_buffer, tmp_size);
 		if (len < tmp_size)
