@@ -46,7 +46,9 @@ static const int good_encodings[] =
 	MPG123_ENC_SIGNED_8,
 	MPG123_ENC_ULAW_8,
 	MPG123_ENC_ALAW_8,
+#ifndef REAL_IS_FIXED
 	MPG123_FLOAT_ENC
+#endif
 };
 
 /* Check if encoding is a valid one in this build.
