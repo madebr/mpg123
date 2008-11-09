@@ -107,7 +107,7 @@ void fi_add(struct frame_index *fi, off_t pos)
 
 void fi_reset(struct frame_index *fi)
 {
-	debug1("reset with size %zu", fi->size);
+	debug1("reset with size %"SIZE_P, (size_p)fi->size);
 	fi->fill = 0;
 	fi->step = 1;
 	fi->next = fi_next(fi);

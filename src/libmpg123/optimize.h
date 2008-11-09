@@ -10,17 +10,44 @@
 	for building mpg123 with one optimization only, you have to choose exclusively between
 	OPT_GENERIC (generic C code for everyone)
 	OPT_I386 (Intel i386)
-	OPT_I486 (...)
+	OPT_I486 (Somewhat special code for i486; does not work together with others.)
 	OPT_I586 (Intel Pentium)
 	OPT_I586_DITHER (Intel Pentium with dithering/noise shaping for enhanced quality)
 	OPT_MMX (Intel Pentium and compatibles with MMX, fast, but not the best accuracy)
 	OPT_3DNOW (AMD 3DNow!, K6-2/3, Athlon, compatibles...)
+	OPT_3DNOWEXT (AMD 3DNow! extended, generally Athlon, compatibles...)
 	OPT_ALTIVEC (Motorola/IBM PPC with AltiVec under MacOSX)
 
 	or you define OPT_MULTI and give a combination which makes sense (do not include i486, do not mix altivec and x86).
 
 	I still have to examine the dynamics of this here together with REAL_IS_FIXED.
+	Basic point is: Don't use REAL_IS_FIXED with something else than generic or i386.
 */
+
+
+/* Runtime optimization interface now here: */
+
+enum optdec
+{
+	autodec=0, nodec, generic, idrei,
+	ivier, ifuenf, ifuenf_dither, mmx,
+	dreidnow, dreidnowext, altivec, sse
+};
+enum optcla { nocla=0, normal, mmxsse };
+
+/*  - Set up the table of synth functions for current decoder choice. */
+int frame_cpu_opt(mpg123_handle *fr, const char* cpu);
+/*  - Choose, from the synth table, the synth functions to use for current output format/rate. */
+int set_synth_functions(mpg123_handle *fr);
+/*  - Parse decoder name and return numerical code. */
+enum optdec dectype(const char* decoder);
+/*  - Return the default decoder type. */
+enum optdec defdec(void);
+/*  - Return the class of a decoder type (mmxsse or normal). */
+enum optcla decclass(const enum optdec);
+
+/* Now comes a whole lot of definitions, for multi decoder mode and single decoder mode.
+   Because of the latter, it may look redundant at times. */
 
 /* this is included in mpg123.h, which includes config.h */
 #ifdef CCALIGN
@@ -29,305 +56,87 @@
 #define ALIGNED(a)
 #endif
 
-/* the optimizations only cover the synth1to1 mode and the dct36 function */
-/* the first two types are needed in set_synth_functions regardless of optimizations */
-typedef int (*func_synth)(real *,int, mpg123_handle *,int );
-typedef int (*func_synth_mono)(real *, mpg123_handle *);
-typedef void (*func_dct36)(real *,real *,real *,real *,real *);
-typedef	void (*func_dct64)(real *,real *,real *);
-typedef void (*func_make_decode_tables)(mpg123_handle*);
-typedef real (*func_init_layer3_gainpow2)(mpg123_handle*, int);
-typedef real* (*func_init_layer2_table)(mpg123_handle*, real*, double);
-typedef int (*func_synth_pent)(real *,int,unsigned char *);
-
-/* last headaches about getting mmx hardcode out */
-real init_layer3_gainpow2(mpg123_handle *fr, int i);
-real* init_layer2_table(mpg123_handle *fr, real *table, double m);
-void make_decode_tables(mpg123_handle *fr);
-void prepare_decode_tables(void); /* perhaps not best place here */
-
-/* only 3dnow replaces that one, it's internal to layer3.c otherwise */
-void dct36(real *,real *,real *,real *,real *);
-#define opt_dct36(fr) dct36
-/* only mmx replaces those */
-#define opt_make_decode_tables(fr) make_decode_tables(fr)
-#define opt_decwin(fr) (fr)->decwin
-#define opt_init_layer3_gainpow2(fr) init_layer3_gainpow2
-#define opt_init_layer2_table(fr) init_layer2_table
+/* Safety catch for invalid decoder choice. */
+#ifdef REAL_IS_FIXED
+#if (defined OPT_I486)  || (defined OPT_I586) || (defined OPT_I586_DITHER) \
+ || (defined OPT_MMX)   || (defined OPT_SSE)  || (defined_OPT_ALTIVEC) \
+ || (defined OPT_3DNOW) || (defined OPT_3DNOWEXT)
+#error "Bad decoder choice together with fixed point math!"
+#endif
+#endif
 
 #ifdef OPT_GENERIC
-	#define PENTIUM_FALLBACK
-	void dct64(real *,real *,real *);
-	int synth_1to1(real *bandPtr,int channel, mpg123_handle *fr, int final);
-	int synth_1to1_8bit(real *bandPtr,int channel, mpg123_handle *fr, int final);
-	int synth_1to1_mono(real *, mpg123_handle *fr);
-	int synth_1to1_mono2stereo (real *, mpg123_handle *fr);
-	int synth_1to1_8bit_mono (real *, mpg123_handle *fr);
-	int synth_1to1_8bit_mono2stereo (real *, mpg123_handle *fr);
-	#ifndef OPT_MULTI
-	#define defopt generic
-	#define opt_dct64(fr) dct64
-	#define opt_synth_1to1(fr) synth_1to1
-	#define opt_synth_1to1_mono(fr) synth_1to1_mono
-	#define opt_synth_1to1_mono2stereo(fr) synth_1to1_mono2stereo
-	#define opt_synth_1to1_8bit(fr) synth_1to1_8bit
-	#define opt_synth_1to1_8bit_mono(fr) synth_1to1_8bit_mono
-	#define opt_synth_1to1_8bit_mono2stereo(fr) synth_1to1_8bit_mono2stereo
-	#endif
-#endif
-
-#ifdef OPT_GENERIC_FLOAT
-#ifdef REAL_IS_FIXED
-#error "No floating point output with fixed decoder!"
-#endif
-	/* The 8bit functions are not used. */
-	void dct64(real *,real *,real *);
-	int synth_1to1_real(real *bandPtr,int channel, mpg123_handle *fr, int final);
-	int synth_1to1_8bit(real *bandPtr,int channel, mpg123_handle *fr, int final);
-	int synth_1to1_mono_real (real *, mpg123_handle *fr);
-	int synth_1to1_mono2stereo_real (real *, mpg123_handle *fr);
-	int synth_1to1_8bit_mono (real *, mpg123_handle *fr);
-	int synth_1to1_8bit_mono2stereo (real *, mpg123_handle *fr);
-
-	int synth_2to1_real (real *,int, mpg123_handle*, int);
-	int synth_2to1_mono_real (real *, mpg123_handle *);
-	int synth_2to1_mono2stereo_real (real *, mpg123_handle *);
-
-	int synth_4to1_real (real *,int, mpg123_handle*, int);
-	int synth_4to1_mono_real (real *, mpg123_handle *);
-	int synth_4to1_mono2stereo_real (real *, mpg123_handle *);
-
-	int synth_ntom_real (real *,int, mpg123_handle*, int);
-	int synth_ntom_mono_real (real *, mpg123_handle *);
-	int synth_ntom_mono2stereo_real (real *, mpg123_handle *);
-
 #ifndef OPT_MULTI
-#define defopt generic_float
-#define opt_dct64(fr) dct64
-
-/* This one has special resampling routines, producing floating point samples. */
-#define opt_synth_1to1(fr) synth_1to1_real
-#define opt_synth_1to1_mono(fr) synth_1to1_mono_real
-#define opt_synth_1to1_mono2stereo(fr) synth_1to1_mono2stereo_real
-#define opt_synth_1to1_8bit(fr) NULL
-#define opt_synth_1to1_8bit_mono(fr) NULL
-#define opt_synth_1to1_8bit_mono2stereo(fr) NULL
-
-#define opt_synth_2to1(fr) synth_2to1_real
-#define opt_synth_2to1_mono(fr) synth_2to1_mono_real
-#define opt_synth_2to1_mono2stereo(fr) synth_2to1_mono2stereo_real
-#define opt_synth_2to1_8bit(fr) NULL
-#define opt_synth_2to1_8bit_mono(fr) NULL
-#define opt_synth_2to1_8bit_mono2stereo(fr) NULL
-
-#define opt_synth_4to1(fr) synth_4to1_real
-#define opt_synth_4to1_mono(fr) synth_4to1_mono_real
-#define opt_synth_4to1_mono2stereo(fr) synth_4to1_mono2stereo_real
-#define opt_synth_4to1_8bit(fr) NULL
-#define opt_synth_4to1_8bit_mono(fr) NULL
-#define opt_synth_4to1_8bit_mono2stereo(fr) NULL
-
-#define opt_synth_ntom(fr) synth_ntom_real
-#define opt_synth_ntom_mono(fr) synth_ntom_mono_real
-#define opt_synth_ntom_mono2stereo(fr) synth_ntom_mono2stereo_real
-#define opt_synth_ntom_8bit(fr) NULL
-#define opt_synth_ntom_8bit_mono(fr) NULL
-#define opt_synth_ntom_8bit_mono2stereo(fr) NULL
-
-#endif
-#else
-#ifndef OPT_MULTI
-/* All other decoders use the normal resampling routines... */
-	#define opt_synth_2to1(fr) synth_2to1
-	#define opt_synth_2to1_mono(fr) synth_2to1_mono
-	#define opt_synth_2to1_mono2stereo(fr) synth_2to1_mono2stereo
-	#define opt_synth_2to1_8bit(fr) synth_2to1_8bit
-	#define opt_synth_2to1_8bit_mono(fr) synth_2to1_8bit_mono
-	#define opt_synth_2to1_8bit_mono2stereo(fr) synth_2to1_8bit_mono2stereo
-
-	#define opt_synth_4to1(fr) synth_4to1
-	#define opt_synth_4to1_mono(fr) synth_4to1_mono
-	#define opt_synth_4to1_mono2stereo(fr) synth_4to1_mono2stereo
-	#define opt_synth_4to1_8bit(fr) synth_4to1_8bit
-	#define opt_synth_4to1_8bit_mono(fr) synth_4to1_8bit_mono
-	#define opt_synth_4to1_8bit_mono2stereo(fr) synth_4to1_8bit_mono2stereo
-
-	#define opt_synth_ntom(fr) synth_ntom
-	#define opt_synth_ntom_mono(fr) synth_ntom_mono
-	#define opt_synth_ntom_mono2stereo(fr) synth_ntom_mono2stereo
-	#define opt_synth_ntom_8bit(fr) synth_ntom_8bit
-	#define opt_synth_ntom_8bit_mono(fr) synth_ntom_8bit_mono
-	#define opt_synth_ntom_8bit_mono2stereo(fr) synth_ntom_8bit_mono2stereo
+#	define defopt generic
 #endif
 #endif
-
-
 
 /* i486 is special... always alone! */
 #ifdef OPT_I486
 #define OPT_X86
-#define OPT_I386_SYNTH
 #define defopt ivier
-	int synth_1to1_486(real *bandPtr, int channel, mpg123_handle *fr, int nb_blocks);
 #ifdef OPT_MULTI
 #error "i486 can only work alone!"
 #endif
-#define opt_synth_1to1(fr) synth_1to1_i386
 #define FIR_BUFFER_SIZE  128
 #define FIR_SIZE 16
-	void dct64_i486(int *a,int *b,real *c); /* not used generally */
 #endif
 
 #ifdef OPT_I386
-	#define PENTIUM_FALLBACK
-	#define OPT_X86
-	#define OPT_I386_SYNTH
-	#ifndef OPT_MULTI
-#ifndef defopt
-	#define defopt idrei
+#define OPT_X86
+#ifndef OPT_MULTI
+#	define defopt idrei
 #endif
-	#define opt_synth_1to1(fr) synth_1to1_i386
-	#endif
-#endif
-
-#ifdef OPT_I386_SYNTH
-	int synth_1to1_i386(real *bandPtr, int channel, mpg123_handle *fr, int final);
 #endif
 
 #ifdef OPT_I586
-	#define PENTIUM_FALLBACK
-	#define OPT_PENTIUM
-	#define OPT_X86
-	int synth_1to1_i586(real *bandPtr, int channel, mpg123_handle *fr, int final);
-	int synth_1to1_i586_asm(real *bandPtr, int channel, unsigned char *out, unsigned char *buffs, int *bo, real *decwin);
-	#ifndef OPT_MULTI
-	#define defopt ifuenf
-	#define opt_synth_1to1(fr) synth_1to1_i586
-	#define opt_synth_1to1_i586_asm(fr) synth_1to1_i586_asm
-	#endif
+#define OPT_X86
+#ifndef OPT_MULTI
+#	define defopt ifuenf
+#	define opt_synth_1to1(fr) synth_1to1_i586
+#endif
 #endif
 
 #ifdef OPT_I586_DITHER
-	#define PENTIUM_FALLBACK
-	#define OPT_PENTIUM
-	#define OPT_X86
-	int synth_1to1_i586(real *bandPtr, int channel, mpg123_handle *fr, int final);
-	int synth_1to1_i586_asm_dither(real *bandPtr, int channel, unsigned char *out, unsigned char *buffs, int *bo, real *decwin);
-	#ifndef OPT_MULTI
-	#define defopt ifuenf_dither
-	#define opt_synth_1to1(fr) synth_1to1_i586
-	#define opt_synth_1to1_i586_asm(fr) synth_1to1_i586_asm_dither
-	#endif
+#define OPT_X86
+#ifndef OPT_MULTI
+#	define defopt ifuenf_dither
+#	define opt_synth_1to1(fr) synth_1to1_i586_dither
+#endif
 #endif
 
-/* That one has by far the most ugly hacks to make it cooperative. */
+/* We still have some special code around MMX tables. */
+
 #ifdef OPT_MMX
-	#define OPT_MMXORSSE
-	#define OPT_X86
-	real init_layer3_gainpow2_mmx(mpg123_handle *fr, int i);
-	real* init_layer2_table_mmx(mpg123_handle *fr, real *table, double m);
-	/* I think one can optimize storage here with the normal decwin */
-	extern real decwin_mmx[512+32];
-	void dct64_mmx(real *,real *,real *);
-	int synth_1to1_mmx(real *bandPtr, int channel, mpg123_handle *fr, int final);
-	void make_decode_tables_mmx(mpg123_handle *fr); /* tabinit_mmx.s */
-	void make_decode_tables_mmx_asm(long scaleval, float* decwin_mmx, float *decwins); /* tabinit_mmx.s */
-	/* these are in asm, dct64 called directly there */
-	void dct64_MMX(short *a,short *b,real *c);
-	int synth_1to1_MMX(real *bandPtr, int channel, short *out, short *buffs, int *bo, float *decwins);
-	#ifndef OPT_MULTI
-	#define defopt mmx
-/*	#undef opt_decwin
-	#define opt_decwin(fr) decwin_mmx */
-	#define opt_dct64(fr) dct64_mmx
-	#define opt_synth_1to1(fr) synth_1to1_mmx
-	#define opt_
-	#undef opt_make_decode_tables
-	#define opt_make_decode_tables(fr) make_decode_tables_mmx(fr)
-	#undef opt_init_layer3_gainpow2
-	#define opt_init_layer3_gainpow2(fr) init_layer3_gainpow2_mmx
-	#undef opt_init_layer2_table
-	#define opt_init_layer2_table(fr) init_layer2_table_mmx
-	#define OPT_MMX_ONLY
-	#endif
+#define OPT_MMXORSSE
+#define OPT_X86
+#ifndef OPT_MULTI
+#	define defopt mmx
+#	define opt_synth_1to1(fr) synth_1to1_mmx
+#endif
 #endif
 
-/* first crude hack into our source */
 #ifdef OPT_SSE
-	#define OPT_MMXORSSE
-	#define OPT_MPLAYER
-	#define OPT_X86
-	real init_layer3_gainpow2_mmx(mpg123_handle *fr, int i);
-	real* init_layer2_table_mmx(mpg123_handle *fr, real *table, double m);
-	/* I think one can optimize storage here with the normal decwin */
-	extern real decwin_mmx[512+32];
-	void dct64_mmx(real *,real *,real *);
-	void dct64_sse(real *,real *,real *);
-	int synth_1to1_sse(real *bandPtr, int channel, mpg123_handle *fr, int final);
-	void synth_1to1_sse_asm(real *bandPtr, int channel, short *samples, short *buffs, int *bo, real *decwin);
-	void make_decode_tables_mmx(mpg123_handle *fr); /* tabinit_mmx.s */
-	void make_decode_tables_mmx_asm(long scaleval, float* decwin_mmx, float *decwins); /* tabinit_mmx.s */
-	/* ugly! */
-	extern func_dct64 mpl_dct64;
-	#ifndef OPT_MULTI
-	#define defopt sse
-	#define opt_mpl_dct64(fr) dct64_sse
-/*	#undef opt_decwin
-	#define opt_decwin(fr) decwin_mmx */
-	#define opt_dct64(fr) dct64_mmx /* dct64_sse is silent in downsampling modes */
-	#define opt_synth_1to1(fr) synth_1to1_sse /* that will use dct64_sse */
-	#undef opt_make_decode_tables
-	#define opt_make_decode_tables(fr) make_decode_tables_mmx(fr)
-	#undef opt_init_layer3_gainpow2
-	#define opt_init_layer3_gainpow2(fr) init_layer3_gainpow2_mmx
-	#undef opt_init_layer2_table
-	#define opt_init_layer2_table(fr) init_layer2_table_mmx
-	#define OPT_MMX_ONLY /* watch out! */
-	#endif
+#define OPT_MMXORSSE
+#define OPT_MPLAYER
+#define OPT_X86
+#ifndef OPT_MULTI
+#	define defopt sse
+#	define opt_synth_1to1(fr) synth_1to1_sse
+#endif
 #endif
 
-/* first crude hack into our source */
 #ifdef OPT_3DNOWEXT
-	#define OPT_MMXORSSE
-	#define OPT_MPLAYER
-	#define OPT_X86
-	real init_layer3_gainpow2_mmx(mpg123_handle *fr, int i);
-	real* init_layer2_table_mmx(mpg123_handle *fr, real *table, double m);
-	/* I think one can optimize storage here with the normal decwin */
-	extern real decwin_mmx[512+32];
-	void dct64_mmx(real *,real *,real *);
-	void dct64_3dnowext(real *,real *,real *);
-	void dct36_3dnowext(real *,real *,real *,real *,real *);
-	int synth_1to1_3dnowext(real *bandPtr, int channel, mpg123_handle *fr, int final);
-	void synth_1to1_3dnowext_asm(real *bandPtr, int channel, short *samples, short *buffs, int *bo, real *decwin);
-	void make_decode_tables_mmx(mpg123_handle *fr); /* tabinit_mmx.s */
-	void make_decode_tables_mmx_asm(long scaleval, float* decwin_mmx, float *decwins); /* tabinit_mmx.s */
-	/* ugly! */
-	extern func_dct64 mpl_dct64;
-	#ifndef OPT_MULTI
-	#define defopt dreidnowext
-	#define opt_mpl_dct64(fr) dct64_3dnowext
-	#undef opt_dct36
-	#define opt_dct36(fr) dct36_3dnowext
-/*	#undef opt_decwin
-	#define opt_decwin(fr) decwin_mmx */
-	#define opt_dct64(fr) dct64_mmx /* dct64_sse is silent in downsampling modes */
-	#define opt_synth_1to1(fr) synth_1to1_3dnowext /* that will use dct64_3dnowext */
-	#undef opt_make_decode_tables
-	#define opt_make_decode_tables(fr) make_decode_tables_mmx(fr)
-	#undef opt_init_layer3_gainpow2
-	#define opt_init_layer3_gainpow2(fr) init_layer3_gainpow2_mmx
-	#undef opt_init_layer2_table
-	#define opt_init_layer2_table(fr) init_layer2_table_mmx
-	#define OPT_MMX_ONLY /* watch out! */
-	#endif
+#define OPT_MMXORSSE
+#define OPT_MPLAYER
+#define OPT_X86
+#ifndef OPT_MULTI
+#	define defopt dreidnowext
+#	define opt_dct36(fr) dct36_3dnowext
+#	define opt_synth_1to1(fr) synth_1to1_3dnowext
+#endif
 #endif
 
-
-#ifndef OPT_MMX_ONLY
-extern real *pnts[5];
-extern real decwin[512+32];
-#endif
 #ifdef OPT_MPLAYER
 extern const int costab_mmxsse[];
 #endif
@@ -335,124 +144,316 @@ extern const int costab_mmxsse[];
 /* 3dnow used to use synth_1to1_i586 for mono / 8bit conversion - was that intentional? */
 /* I'm trying to skip the pentium code here ... until I see that that is indeed a bad idea */
 #ifdef OPT_3DNOW
-	#define K6_FALLBACK /* a fallback for 3DNowExt */
-	#define OPT_X86
-	void dct36_3dnow(real *,real *,real *,real *,real *);
-	void do_equalizer_3dnow(real *bandPtr,int channel, real equalizer[2][32]);
-	int synth_1to1_3dnow(real *bandPtr, int channel, mpg123_handle *fr, int final);
-	int synth_1to1_3dnow_asm(real *bandPtr, int channel, unsigned char *out, unsigned char *buffs, int *bo, real *decwin);
-	#ifndef OPT_MULTI
-	#define defopt dreidnow
-	#undef opt_dct36
-	#define opt_dct36(fr) dct36_3dnow
-	#define opt_synth_1to1(fr) synth_1to1_3dnow
-	#endif
+#define OPT_X86
+#ifndef OPT_MULTI
+#	define defopt dreidnow
+#	define opt_dct36(fr) dct36_3dnow
+#	define opt_synth_1to1(fr) synth_1to1_3dnow
 #endif
-
-#ifdef OPT_X86
-	/* these have to be merged back into one! */
-	unsigned int getcpuid();
-	unsigned int getextcpuflags();
-	unsigned int getstdcpuflags();
-	unsigned int getstd2cpuflags();
-
-	void dct64_i386(real *,real *,real *);
-	int synth_1to1_mono_i386(real *, mpg123_handle *fr);
-	int synth_1to1_mono2stereo_i386(real *, mpg123_handle *fr);
-	int synth_1to1_8bit_i386(real *,int, mpg123_handle *fr, int final);
-	int synth_1to1_8bit_mono_i386(real *, mpg123_handle *fr);
-	int synth_1to1_8bit_mono2stereo_i386(real *, mpg123_handle *fr);
-	#ifndef OPT_MULTI
-	#ifndef opt_dct64
-	#define opt_dct64(fr) dct64_i386 /* default one even for 3dnow and i486 in decode_2to1, decode_ntom */
-	#endif
-	#define opt_synth_1to1_mono(fr) synth_1to1_mono_i386
-	#define opt_synth_1to1_mono2stereo(fr) synth_1to1_mono2stereo_i386
-	#define opt_synth_1to1_8bit(fr) synth_1to1_8bit_i386
-	#define opt_synth_1to1_8bit_mono(fr) synth_1to1_8bit_mono_i386
-	#define opt_synth_1to1_8bit_mono2stereo(fr) synth_1to1_8bit_mono2stereo_i386
-	#endif
 #endif
 
 #ifdef OPT_ALTIVEC
-	void dct64_altivec(real *out0,real *out1,real *samples);
-	int synth_1to1_altivec(real *,int,mpg123_handle *, int);
-	int synth_1to1_mono_altivec(real *,mpg123_handle *);
-	int synth_1to1_mono2stereo_altivec(real *, mpg123_handle *);
-	int synth_1to1_8bit_altivec(real *,int,mpg123_handle *,int);
-	int synth_1to1_8bit_mono_altivec(real *,mpg123_handle *);
-	int synth_1to1_8bit_mono2stereo_altivec(real *,mpg123_handle *);
-	#ifndef OPT_MULTI
-	#define defopt altivec
-	#define opt_dct64(fr) dct64_altivec
-	#define opt_synth_1to1(fr) synth_1to1_altivec
-	#define opt_synth_1to1_mono(fr) synth_1to1_mono_altivec
-	#define opt_synth_1to1_mono2stereo(fr) synth_1to1_mono2stereo_altivec
-	#define opt_synth_1to1_8bit(fr) synth_1to1_8bit_altivec
-	#define opt_synth_1to1_8bit_mono(fr) synth_1to1_8bit_mono_altivec
-	#define opt_synth_1to1_8bit_mono2stereo(fr) synth_1to1_8bit_mono2stereo_altivec
-	#endif
+#ifndef OPT_MULTI
+#	define defopt altivec
+#	define opt_synth_1to1(fr) synth_1to1_altivec
 #endif
-		
+#endif
+
 /* used for multi opt mode and the single 3dnow mode to have the old 3dnow test flag still working */
 void check_decoders(void);
 
+/*
+	Now come two blocks of standard definitions for multi-decoder mode and single-decoder mode.
+	Most stuff is so automatic that it's indeed generated by some inline shell script.
+	Remember to use these scripts when possible, instead of direct repetitive hacking.
+*/
+
 #ifdef OPT_MULTI
-	#ifdef OPT_X86
-	extern struct cpuflags cf;
-	#endif
-	#define defopt nodec
 
-	#define opt_synth_1to1(fr) ((fr)->cpu_opts.synth_1to1)
-	#define opt_synth_1to1_mono(fr) ((fr)->cpu_opts.synth_1to1_mono)
-	#define opt_synth_1to1_mono2stereo(fr) ((fr)->cpu_opts.synth_1to1_mono2stereo)
-	#define opt_synth_1to1_8bit(fr) ((fr)->cpu_opts.synth_1to1_8bit)
-	#define opt_synth_1to1_8bit_mono(fr) ((fr)->cpu_opts.synth_1to1_8bit_mono)
-	#define opt_synth_1to1_8bit_mono2stereo(fr) ((fr)->cpu_opts.synth_1to1_8bit_mono2stereo)
+#	define defopt nodec
 
-	#define opt_synth_2to1(fr) ((fr)->cpu_opts.synth_2to1)
-	#define opt_synth_2to1_mono(fr) ((fr)->cpu_opts.synth_2to1_mono)
-	#define opt_synth_2to1_mono2stereo(fr) ((fr)->cpu_opts.synth_2to1_mono2stereo)
-	#define opt_synth_2to1_8bit(fr) ((fr)->cpu_opts.synth_2to1_8bit)
-	#define opt_synth_2to1_8bit_mono(fr) ((fr)->cpu_opts.synth_2to1_8bit_mono)
-	#define opt_synth_2to1_8bit_mono2stereo(fr) ((fr)->cpu_opts.synth_2to1_8bit_mono2stereo)
+/*
+	## This is an inline bourne shell script for execution in nedit to generate the lines below.
+	## The ## is a quote for just #
+	star="*"; slash="/"; 
+	for i in 1to1 2to1 4to1 ntom;
+	do
+		echo
+		echo "$slash$star $i $star$slash"
+		for t in "" _8bit _real; do for f in "" _mono _mono2stereo;
+		do
+			echo "##	define opt_synth_${i}${t}${f}(fr) ((fr)->cpu_opts.synth_${i}${t}${f})"
+		done; done
+	done
+*/
 
-	#define opt_synth_4to1(fr) ((fr)->cpu_opts.synth_4to1)
-	#define opt_synth_4to1_mono(fr) ((fr)->cpu_opts.synth_4to1_mono)
-	#define opt_synth_4to1_mono2stereo(fr) ((fr)->cpu_opts.synth_4to1_mono2stereo)
-	#define opt_synth_4to1_8bit(fr) ((fr)->cpu_opts.synth_4to1_8bit)
-	#define opt_synth_4to1_8bit_mono(fr) ((fr)->cpu_opts.synth_4to1_8bit_mono)
-	#define opt_synth_4to1_8bit_mono2stereo(fr) ((fr)->cpu_opts.synth_4to1_8bit_mono2stereo)
+/* 1to1 */
+#	define opt_synth_1to1(fr) ((fr)->cpu_opts.synth_1to1)
+#	define opt_synth_1to1_mono(fr) ((fr)->cpu_opts.synth_1to1_mono)
+#	define opt_synth_1to1_mono2stereo(fr) ((fr)->cpu_opts.synth_1to1_mono2stereo)
+#	define opt_synth_1to1_8bit(fr) ((fr)->cpu_opts.synth_1to1_8bit)
+#	define opt_synth_1to1_8bit_mono(fr) ((fr)->cpu_opts.synth_1to1_8bit_mono)
+#	define opt_synth_1to1_8bit_mono2stereo(fr) ((fr)->cpu_opts.synth_1to1_8bit_mono2stereo)
+#	define opt_synth_1to1_real(fr) ((fr)->cpu_opts.synth_1to1_real)
+#	define opt_synth_1to1_real_mono(fr) ((fr)->cpu_opts.synth_1to1_real_mono)
+#	define opt_synth_1to1_real_mono2stereo(fr) ((fr)->cpu_opts.synth_1to1_real_mono2stereo)
 
-	#define opt_synth_ntom(fr) ((fr)->cpu_opts.synth_ntom)
-	#define opt_synth_ntom_mono(fr) ((fr)->cpu_opts.synth_ntom_mono)
-	#define opt_synth_ntom_mono2stereo(fr) ((fr)->cpu_opts.synth_ntom_mono2stereo)
-	#define opt_synth_ntom_8bit(fr) ((fr)->cpu_opts.synth_ntom_8bit)
-	#define opt_synth_ntom_8bit_mono(fr) ((fr)->cpu_opts.synth_ntom_8bit_mono)
-	#define opt_synth_ntom_8bit_mono2stereo(fr) ((fr)->cpu_opts.synth_ntom_8bit_mono2stereo)
+/* 2to1 */
+#	define opt_synth_2to1(fr) ((fr)->cpu_opts.synth_2to1)
+#	define opt_synth_2to1_mono(fr) ((fr)->cpu_opts.synth_2to1_mono)
+#	define opt_synth_2to1_mono2stereo(fr) ((fr)->cpu_opts.synth_2to1_mono2stereo)
+#	define opt_synth_2to1_8bit(fr) ((fr)->cpu_opts.synth_2to1_8bit)
+#	define opt_synth_2to1_8bit_mono(fr) ((fr)->cpu_opts.synth_2to1_8bit_mono)
+#	define opt_synth_2to1_8bit_mono2stereo(fr) ((fr)->cpu_opts.synth_2to1_8bit_mono2stereo)
+#	define opt_synth_2to1_real(fr) ((fr)->cpu_opts.synth_2to1_real)
+#	define opt_synth_2to1_real_mono(fr) ((fr)->cpu_opts.synth_2to1_real_mono)
+#	define opt_synth_2to1_real_mono2stereo(fr) ((fr)->cpu_opts.synth_2to1_real_mono2stereo)
 
-	#ifdef OPT_PENTIUM
-	#define opt_synth_1to1_i586_asm(fr) ((fr)->cpu_opts.synth_1to1_i586_asm)
-	#endif
-	#ifdef OPT_MMXORSSE
-	#undef opt_make_decode_tables
-	#define opt_make_decode_tables(fr) ((fr)->cpu_opts.make_decode_tables)(fr)
-/*	#undef opt_decwin
-	#define opt_decwin(fr) (fr)->cpu_opts.decwin */
-	#undef opt_init_layer3_gainpow2
-	#define opt_init_layer3_gainpow2(fr) ((fr)->cpu_opts.init_layer3_gainpow2)
-	#undef opt_init_layer2_table
-	#define opt_init_layer2_table(fr) ((fr)->cpu_opts.init_layer2_table)
-	#endif
-	#ifdef OPT_3DNOW
-	#undef opt_dct36
-	#define opt_dct36(fr) ((fr)->cpu_opts.dct36)
-	#endif
-	#define opt_dct64(fr) ((fr)->cpu_opts.dct64)
-	#ifdef OPT_MPLAYER
-	#define opt_mpl_dct64(fr) ((fr)->cpu_opts.mpl_dct64)
-	#endif
-#endif
+/* 4to1 */
+#	define opt_synth_4to1(fr) ((fr)->cpu_opts.synth_4to1)
+#	define opt_synth_4to1_mono(fr) ((fr)->cpu_opts.synth_4to1_mono)
+#	define opt_synth_4to1_mono2stereo(fr) ((fr)->cpu_opts.synth_4to1_mono2stereo)
+#	define opt_synth_4to1_8bit(fr) ((fr)->cpu_opts.synth_4to1_8bit)
+#	define opt_synth_4to1_8bit_mono(fr) ((fr)->cpu_opts.synth_4to1_8bit_mono)
+#	define opt_synth_4to1_8bit_mono2stereo(fr) ((fr)->cpu_opts.synth_4to1_8bit_mono2stereo)
+#	define opt_synth_4to1_real(fr) ((fr)->cpu_opts.synth_4to1_real)
+#	define opt_synth_4to1_real_mono(fr) ((fr)->cpu_opts.synth_4to1_real_mono)
+#	define opt_synth_4to1_real_mono2stereo(fr) ((fr)->cpu_opts.synth_4to1_real_mono2stereo)
+
+/* ntom */
+#	define opt_synth_ntom(fr) ((fr)->cpu_opts.synth_ntom)
+#	define opt_synth_ntom_mono(fr) ((fr)->cpu_opts.synth_ntom_mono)
+#	define opt_synth_ntom_mono2stereo(fr) ((fr)->cpu_opts.synth_ntom_mono2stereo)
+#	define opt_synth_ntom_8bit(fr) ((fr)->cpu_opts.synth_ntom_8bit)
+#	define opt_synth_ntom_8bit_mono(fr) ((fr)->cpu_opts.synth_ntom_8bit_mono)
+#	define opt_synth_ntom_8bit_mono2stereo(fr) ((fr)->cpu_opts.synth_ntom_8bit_mono2stereo)
+#	define opt_synth_ntom_real(fr) ((fr)->cpu_opts.synth_ntom_real)
+#	define opt_synth_ntom_real_mono(fr) ((fr)->cpu_opts.synth_ntom_real_mono)
+#	define opt_synth_ntom_real_mono2stereo(fr) ((fr)->cpu_opts.synth_ntom_real_mono2stereo)
+
+/* End of generated output. */
+
+#	ifdef OPT_3DNOW
+#		define opt_dct36(fr) ((fr)->cpu_opts.dct36)
+#	endif
+
+#else /* OPT_MULTI */
+
+/* Define missing opt functions, for generic or x86. */
+#	ifdef opt_synth_1to1
+/* If there is an optimized 1to1, we'll reuse it for 8bit stuff. */
+#		ifndef opt_synth_1to1_8bit
+#			define opt_synth_1to1_8bit(fr)               synth_1to1_8bit_wrap
+#		endif
+#		ifndef opt_synth_1to1_8bit_mono
+#				define opt_synth_1to1_8bit_mono(fr)        synth_1to1_8bit_wrap_mono
+#		endif
+#		ifndef opt_synth_1to1_8bit_mono2stereo
+#				define opt_synth_1to1_8bit_mono2stereo(fr) synth_1to1_8bit_wrap_mono2stereo
+#		endif
+#	endif
+
+/*
+	## This is an inline bourne shell script for execution in nedit to generate the lines below.
+	## The ## is a quote for just #
+	star="*"; slash="/"; 
+	for c in "ifdef OPT_X86" "else $slash$star generic code $star$slash"
+	do
+		if test "$c" = "ifdef OPT_X86"; then cpu=_i386; else cpu=; fi
+		echo "##	$c"
+		for i in 1to1 2to1 4to1 ntom;
+		do
+			if test $i = ntom; then cpu=; fi
+			echo "$slash$star $i $star$slash"
+			for t in "" _8bit _real; do
+				echo "##		ifndef opt_synth_${i}${t}"
+				echo "##			define opt_synth_${i}${t}(fr) synth_${i}${t}$cpu"
+				echo "##		endif"
+			done
+		done
+	done
+	echo "##	endif $slash$star x86 / generic $star$slash"
+*/
+#	ifdef OPT_X86
+/* 1to1 */
+#		ifndef opt_synth_1to1
+#			define opt_synth_1to1(fr) synth_1to1_i386
+#		endif
+#		ifndef opt_synth_1to1_8bit
+#			define opt_synth_1to1_8bit(fr) synth_1to1_8bit_i386
+#		endif
+#		ifndef opt_synth_1to1_real
+#			define opt_synth_1to1_real(fr) synth_1to1_real_i386
+#		endif
+/* 2to1 */
+#		ifndef opt_synth_2to1
+#			define opt_synth_2to1(fr) synth_2to1_i386
+#		endif
+#		ifndef opt_synth_2to1_8bit
+#			define opt_synth_2to1_8bit(fr) synth_2to1_8bit_i386
+#		endif
+#		ifndef opt_synth_2to1_real
+#			define opt_synth_2to1_real(fr) synth_2to1_real_i386
+#		endif
+/* 4to1 */
+#		ifndef opt_synth_4to1
+#			define opt_synth_4to1(fr) synth_4to1_i386
+#		endif
+#		ifndef opt_synth_4to1_8bit
+#			define opt_synth_4to1_8bit(fr) synth_4to1_8bit_i386
+#		endif
+#		ifndef opt_synth_4to1_real
+#			define opt_synth_4to1_real(fr) synth_4to1_real_i386
+#		endif
+/* ntom */
+#		ifndef opt_synth_ntom
+#			define opt_synth_ntom(fr) synth_ntom
+#		endif
+#		ifndef opt_synth_ntom_8bit
+#			define opt_synth_ntom_8bit(fr) synth_ntom_8bit
+#		endif
+#		ifndef opt_synth_ntom_real
+#			define opt_synth_ntom_real(fr) synth_ntom_real
+#		endif
+#	else /* generic code */
+/* 1to1 */
+#		ifndef opt_synth_1to1
+#			define opt_synth_1to1(fr) synth_1to1
+#		endif
+#		ifndef opt_synth_1to1_8bit
+#			define opt_synth_1to1_8bit(fr) synth_1to1_8bit
+#		endif
+#		ifndef opt_synth_1to1_real
+#			define opt_synth_1to1_real(fr) synth_1to1_real
+#		endif
+/* 2to1 */
+#		ifndef opt_synth_2to1
+#			define opt_synth_2to1(fr) synth_2to1
+#		endif
+#		ifndef opt_synth_2to1_8bit
+#			define opt_synth_2to1_8bit(fr) synth_2to1_8bit
+#		endif
+#		ifndef opt_synth_2to1_real
+#			define opt_synth_2to1_real(fr) synth_2to1_real
+#		endif
+/* 4to1 */
+#		ifndef opt_synth_4to1
+#			define opt_synth_4to1(fr) synth_4to1
+#		endif
+#		ifndef opt_synth_4to1_8bit
+#			define opt_synth_4to1_8bit(fr) synth_4to1_8bit
+#		endif
+#		ifndef opt_synth_4to1_real
+#			define opt_synth_4to1_real(fr) synth_4to1_real
+#		endif
+/* ntom */
+#		ifndef opt_synth_ntom
+#			define opt_synth_ntom(fr) synth_ntom
+#		endif
+#		ifndef opt_synth_ntom_8bit
+#			define opt_synth_ntom_8bit(fr) synth_ntom_8bit
+#		endif
+#		ifndef opt_synth_ntom_real
+#			define opt_synth_ntom_real(fr) synth_ntom_real
+#		endif
+#	endif /* x86 / generic */
+
+/* Common mono stuff, wrapping over possibly optimized basic synth. */
+/*
+	## This is an inline bourne shell script for execution in nedit to generate the lines below.
+	## The ## is a quote for just #
+	for i in 1to1 2to1 4to1 ntom; do
+	star="*"; slash="/"; echo "$slash$star $i mono $star$slash"
+	for t in "" _8bit _real; do for m in mono mono2stereo; do
+	echo "##	ifndef opt_synth_${i}${t}_${m}"
+	echo "##		define opt_synth_${i}${t}_${m}(fr) synth_${i}${t}_${m}"
+	echo "##	endif"
+	done; done; done
+*/
+/* 1to1 mono */
+#	ifndef opt_synth_1to1_mono
+#		define opt_synth_1to1_mono(fr) synth_1to1_mono
+#	endif
+#	ifndef opt_synth_1to1_mono2stereo
+#		define opt_synth_1to1_mono2stereo(fr) synth_1to1_mono2stereo
+#	endif
+#	ifndef opt_synth_1to1_8bit_mono
+#		define opt_synth_1to1_8bit_mono(fr) synth_1to1_8bit_mono
+#	endif
+#	ifndef opt_synth_1to1_8bit_mono2stereo
+#		define opt_synth_1to1_8bit_mono2stereo(fr) synth_1to1_8bit_mono2stereo
+#	endif
+#	ifndef opt_synth_1to1_real_mono
+#		define opt_synth_1to1_real_mono(fr) synth_1to1_real_mono
+#	endif
+#	ifndef opt_synth_1to1_real_mono2stereo
+#		define opt_synth_1to1_real_mono2stereo(fr) synth_1to1_real_mono2stereo
+#	endif
+/* 2to1 mono */
+#	ifndef opt_synth_2to1_mono
+#		define opt_synth_2to1_mono(fr) synth_2to1_mono
+#	endif
+#	ifndef opt_synth_2to1_mono2stereo
+#		define opt_synth_2to1_mono2stereo(fr) synth_2to1_mono2stereo
+#	endif
+#	ifndef opt_synth_2to1_8bit_mono
+#		define opt_synth_2to1_8bit_mono(fr) synth_2to1_8bit_mono
+#	endif
+#	ifndef opt_synth_2to1_8bit_mono2stereo
+#		define opt_synth_2to1_8bit_mono2stereo(fr) synth_2to1_8bit_mono2stereo
+#	endif
+#	ifndef opt_synth_2to1_real_mono
+#		define opt_synth_2to1_real_mono(fr) synth_2to1_real_mono
+#	endif
+#	ifndef opt_synth_2to1_real_mono2stereo
+#		define opt_synth_2to1_real_mono2stereo(fr) synth_2to1_real_mono2stereo
+#	endif
+/* 4to1 mono */
+#	ifndef opt_synth_4to1_mono
+#		define opt_synth_4to1_mono(fr) synth_4to1_mono
+#	endif
+#	ifndef opt_synth_4to1_mono2stereo
+#		define opt_synth_4to1_mono2stereo(fr) synth_4to1_mono2stereo
+#	endif
+#	ifndef opt_synth_4to1_8bit_mono
+#		define opt_synth_4to1_8bit_mono(fr) synth_4to1_8bit_mono
+#	endif
+#	ifndef opt_synth_4to1_8bit_mono2stereo
+#		define opt_synth_4to1_8bit_mono2stereo(fr) synth_4to1_8bit_mono2stereo
+#	endif
+#	ifndef opt_synth_4to1_real_mono
+#		define opt_synth_4to1_real_mono(fr) synth_4to1_real_mono
+#	endif
+#	ifndef opt_synth_4to1_real_mono2stereo
+#		define opt_synth_4to1_real_mono2stereo(fr) synth_4to1_real_mono2stereo
+#	endif
+/* ntom mono */
+#	ifndef opt_synth_ntom_mono
+#		define opt_synth_ntom_mono(fr) synth_ntom_mono
+#	endif
+#	ifndef opt_synth_ntom_mono2stereo
+#		define opt_synth_ntom_mono2stereo(fr) synth_ntom_mono2stereo
+#	endif
+#	ifndef opt_synth_ntom_8bit_mono
+#		define opt_synth_ntom_8bit_mono(fr) synth_ntom_8bit_mono
+#	endif
+#	ifndef opt_synth_ntom_8bit_mono2stereo
+#		define opt_synth_ntom_8bit_mono2stereo(fr) synth_ntom_8bit_mono2stereo
+#	endif
+#	ifndef opt_synth_ntom_real_mono
+#		define opt_synth_ntom_real_mono(fr) synth_ntom_real_mono
+#	endif
+#	ifndef opt_synth_ntom_real_mono2stereo
+#		define opt_synth_ntom_real_mono2stereo(fr) synth_ntom_real_mono2stereo
+#	endif
+
+/* End of generated output. */
+
+#	ifndef opt_dct36
+#		define opt_dct36(fr) dct36
+#	endif
+
+#endif /* OPT_MULTI else */
 
 #endif /* MPG123_H_OPTIMIZE */
 

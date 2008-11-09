@@ -13,127 +13,8 @@
 #include <altivec.h>
 #endif
 
-#define WRITE_SAMPLE(samples,sum,clip) \
-  if( (sum) > REAL_PLUS_32767) { *(samples) = 0x7fff; (clip)++; } \
-  else if( (sum) < REAL_MINUS_32768) { *(samples) = -0x8000; (clip)++; } \
-  else { *(samples) = REAL_TO_SHORT(sum); }
-
-int synth_1to1_8bit_altivec(real *bandPtr,int channel, mpg123_handle *fr, int final)
-{
-  short samples_tmp[64];
-  short *tmp1 = samples_tmp + channel;
-  int i,ret;
-
-  unsigned char *samples = fr->buffer.data;
-  int pnt = fr->buffer.fill;
-  fr->buffer.data = (unsigned char*) samples_tmp;
-  fr->buffer.fill = 0;
-  ret = synth_1to1_altivec(bandPtr, channel, fr, 0);
-  fr->buffer.data = samples;
-
-  samples += channel + pnt;
-  for(i=0;i<32;i++) {
-    *samples = fr->conv16to8[*tmp1>>AUSHIFT];
-    samples += 2;
-    tmp1 += 2;
-  }
-  fr->buffer.fill = pnt + (final ? 64 : 0 );
-
-  return ret;
-}
-
-int synth_1to1_8bit_mono_altivec(real *bandPtr, mpg123_handle *fr)
-{
-  short samples_tmp[64];
-  short *tmp1 = samples_tmp;
-  int i,ret;
-
-  /* save buffer stuff, trick samples_tmp into there, decode, restore */
-  unsigned char *samples = fr->buffer.data;
-  int pnt = fr->buffer.fill;
-  fr->buffer.data = (unsigned char*) samples_tmp;
-  fr->buffer.fill = 0;
-  ret = synth_1to1_altivec(bandPtr,0, fr, 0);
-  fr->buffer.data = samples; /* restore original value */
-
-  samples += pnt;
-  for(i=0;i<32;i++) {
-    *samples++ = fr->conv16to8[*tmp1>>AUSHIFT];
-    tmp1 += 2;
-  }
-  fr->buffer.fill = pnt + 32;
-  
-  return ret;
-}
-
-int synth_1to1_8bit_mono2stereo_altivec(real *bandPtr, mpg123_handle *fr)
-{
-  short samples_tmp[64];
-  short *tmp1 = samples_tmp;
-  int i,ret;
-
-  /* save buffer stuff, trick samples_tmp into there, decode, restore */
-  unsigned char *samples = fr->buffer.data;
-  int pnt = fr->buffer.fill;
-  fr->buffer.data = (unsigned char*) samples_tmp;
-  fr->buffer.fill = 0;
-  ret = synth_1to1_altivec(bandPtr, 0, fr, 0);
-  fr->buffer.data = samples; /* restore original value */
-
-  samples += pnt;
-  for(i=0;i<32;i++) {
-    *samples++ = fr->conv16to8[*tmp1>>AUSHIFT];
-    *samples++ = fr->conv16to8[*tmp1>>AUSHIFT];
-    tmp1 += 2;
-  }
-  fr->buffer.fill = pnt + 64;
-
-  return ret;
-}
-
-int synth_1to1_mono_altivec(real *bandPtr, mpg123_handle *fr)
-{
-  short samples_tmp[64];
-  short *tmp1 = samples_tmp;
-  int i,ret;
-
-  /* save buffer stuff, trick samples_tmp into there, decode, restore */
-  unsigned char *samples = fr->buffer.data;
-  int pnt = fr->buffer.fill;
-  fr->buffer.data = (unsigned char*) samples_tmp;
-  fr->buffer.fill = 0;
-  ret = synth_1to1_altivec(bandPtr, 0, fr, 0); /* decode into samples_tmp */
-  fr->buffer.data = samples; /* restore original value */
-
-  /* now append samples from samples_tmp */
-  samples += pnt; /* just the next mem in frame buffer */
-  for(i=0;i<32;i++){
-    *( (short *)samples) = *tmp1;
-    samples += sizeof(short);
-    tmp1 += 2;
-  }
-  fr->buffer.fill = pnt + 32*sizeof(short);
-
-  return ret;
-}
-
-
-int synth_1to1_mono2stereo_altivec(real *bandPtr, mpg123_handle *fr)
-{
-  int i,ret;
-  unsigned char *samples = fr->buffer.data;
-
-  ret = synth_1to1_altivec(bandPtr,0,fr,1);
-  samples += fr->buffer.fill - 64*sizeof(short);
-
-  for(i=0;i<32;i++) {
-    ((short *)samples)[1] = ((short *)samples)[0];
-    samples+=2*sizeof(short);
-  }
-
-  return ret;
-}
-
+/* No, you cannot switch the sample type, this here is only used once in between! */
+#define WRITE_SAMPLE(samples,sum,clip) WRITE_SHORT_SAMPLE(samples,sum,clip)
 
 int synth_1to1_altivec(real *bandPtr,int channel,mpg123_handle *fr, int final)
 {
@@ -170,7 +51,7 @@ int synth_1to1_altivec(real *bandPtr,int channel,mpg123_handle *fr, int final)
 
   {
     register int j;
-    real *window = opt_decwin(fr) + 16 - bo1;
+    real *window = fr->decwin + 16 - bo1;
 		
 		ALIGNED(16) int clip_tmp[4];
 		vector float v1,v2,v3,v4,v5,v6,v7,v8,v9;

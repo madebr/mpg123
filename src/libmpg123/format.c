@@ -30,37 +30,23 @@ static const int my_encodings[MPG123_ENCODINGS] =
 	MPG123_ENC_FLOAT_64
 };
 
-/* The list of actually possible encodings. */
-static const int good_encodings[] =
-{
-/* If there is a float decoder, we have either only float or float in addition to the usuals. */
-#ifdef OPT_GENERIC_FLOAT
 /* Only one type of float is supported. */
 # ifdef REAL_IS_FLOAT
 #  define MPG123_FLOAT_ENC MPG123_ENC_FLOAT_32
 # else
 #  define MPG123_FLOAT_ENC MPG123_ENC_FLOAT_64
 # endif
-/* Now, if the others are also there... */
-# ifdef OPT_MULTI
+
+/* The list of actually possible encodings. */
+static const int good_encodings[] =
+{
 	MPG123_ENC_SIGNED_16,
 	/* MPG123_ENC_UNSIGNED_16, You've seen code anywhere to actualy produce unsinged 16 ? It never worked. */
 	MPG123_ENC_UNSIGNED_8,
 	MPG123_ENC_SIGNED_8,
 	MPG123_ENC_ULAW_8,
 	MPG123_ENC_ALAW_8,
-# endif
-/* In any case, we have float. */
 	MPG123_FLOAT_ENC
-#else
-/* ... or just the normal bunch without float. */
-	MPG123_ENC_SIGNED_16,
-	/* MPG123_ENC_UNSIGNED_16, */
-	MPG123_ENC_UNSIGNED_8,
-	MPG123_ENC_SIGNED_8,
-	MPG123_ENC_ULAW_8,
-	MPG123_ENC_ALAW_8,
-#endif
 };
 
 /* Check if encoding is a valid one in this build.
@@ -131,6 +117,33 @@ static int freq_fit(mpg123_handle *fr, struct audioformat *nf, int f0, int f2)
 	if(cap_fit(fr,nf,f0,f2)) return 1;
 	nf->rate>>=1;
 	if(cap_fit(fr,nf,f0,f2)) return 1;
+	/* If nothing worked, try the other rates, only without constrains from user.
+	   In case you didn't guess: We enable flexible resampling if we find a working rate. */
+	if(!fr->p.force_rate && fr->p.down_sample == 0)
+	{
+		int i;
+		int c  = nf->channels-1;
+		int rn = rate2num(&fr->p, frame_freq(fr));
+		int rrn;
+		if(rn < 0) return 0;
+		/* Try higher rates first. */
+		for(i=f0;i<f2;i++) for(rrn=rn+1; rrn<MPG123_RATES; ++rrn)
+		if(fr->p.audio_caps[c][rrn][i])
+		{
+			nf->rate = my_rates[rrn];
+			nf->encoding = my_encodings[i];
+			return 1;
+		}
+		/* Then lower rates. */
+		for(i=f0;i<f2;i++) for(rrn=rn-1; rrn>=0; --rrn)
+		if(fr->p.audio_caps[c][rrn][i])
+		{
+			nf->rate = my_rates[rrn];
+			nf->encoding = my_encodings[i];
+			return 1;
+		}
+	}
+
 	return 0;
 }
 
@@ -140,22 +153,22 @@ int frame_output_format(mpg123_handle *fr)
 {
 	struct audioformat nf;
 	int f0=0;
-	int f2=MPG123_ENCODINGS-4; /* Omit the 32bit and float encodings. */
+	int f2=MPG123_ENCODINGS; /* Omit the 32bit and float encodings. */
 	mpg123_pars *p = &fr->p;
 	/* initialize new format, encoding comes later */
 	nf.channels = fr->stereo;
 
-	if(fr->cpu_opts.type == generic_float) /* Skip integer encodings. */
+	/* All this forcing should be removed in favour of the capabilities table... */
+	if(p->flags & MPG123_FORCE_8BIT)
 	{
-#ifdef REAL_IS_FLOAT /* we know only 32bit*/
-		f0 = 8; /* Only 32bit float */
-#else
-		f0 = 9; /* Only 64bit float */
-#endif
-		f2 = f0+1; /* Only one encoding to try... */
+		f0 = 2; /* Skip the 16bit encodings. */
+		f2 = 6; /* Stop before the 32bit encodings. */
 	}
-	else
-	if(p->flags & MPG123_FORCE_8BIT) f0 = 2; /* skip the 16bit encodings */
+	if(p->flags & MPG123_FORCE_FLOAT)
+	{
+		f0 = 8;  /* Start with 32bit float. */
+		f2 = 10; /* End with 64bit float. */
+	}
 
 	/* There should be a branch for 32bit integer; but that's not anywhere now. */
 
@@ -206,8 +219,6 @@ int frame_output_format(mpg123_handle *fr)
 		          (p->flags & MPG123_FORCE_MONO ? "mono, "  : "") ),
 		        (p->flags & MPG123_FORCE_8BIT  ? "8bit, " : ""),
 		        frame_freq(fr),  frame_freq(fr)>>1, frame_freq(fr)>>2 );
-		if(fr->cpu_opts.type == generic_float)
-		error("Hint: The floating point decoder does only floating point formats...");
 	}
 /*	if(NOQUIET && p->verbose <= 1) print_capabilities(fr); */
 
@@ -218,15 +229,32 @@ end: /* Here is the _good_ end. */
 	/* we had a successful match, now see if there's a change */
 	if(nf.rate == fr->af.rate && nf.channels == fr->af.channels && nf.encoding == fr->af.encoding)
 	{
-		debug("Old format!");
+		debug2("Old format with %i channels, and FORCE_MONO=%li", nf.channels, p->flags & MPG123_FORCE_MONO);
 		return 0; /* the same format as before */
 	}
 	else /* a new format */
 	{
-		debug("New format!");
+		debug1("New format with %i channels!", nf.channels);
+fprintf(stderr, "new format with rate %li, enc %i\n", nf.rate, nf.encoding);
 		fr->af.rate = nf.rate;
 		fr->af.channels = nf.channels;
 		fr->af.encoding = nf.encoding;
+		/* Cache the size of one sample in bytes, for ease of use. */
+		if(fr->af.encoding & MPG123_ENC_8)
+		fr->af.encsize = 1;
+		else if(fr->af.encoding & MPG123_ENC_16)
+		fr->af.encsize = 2;
+		else if(fr->af.encoding & MPG123_ENC_32 || fr->af.encoding == MPG123_ENC_FLOAT_32)
+		fr->af.encsize = 4;
+		else if(fr->af.encoding == MPG123_ENC_FLOAT_64)
+		fr->af.encsize = 8;
+		else
+		{
+			if(NOQUIET) error1("Some unknown encoding??? (%i)", fr->af.encoding);
+
+			fr->err = MPG123_BAD_OUTFORMAT;
+			return -1;
+		}
 		return 1;
 	}
 }

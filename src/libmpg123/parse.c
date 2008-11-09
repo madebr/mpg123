@@ -1003,21 +1003,13 @@ int get_songlen(mpg123_handle *fr,int no)
 	return no*tpf;
 }
 
-/* size of one mono sample */
-off_t bytes_per_sample(mpg123_handle *fr)
-{
-	return fr->cpu_opts.type == generic_float
-		? sizeof(real)
-		: ((fr->af.encoding & MPG123_ENC_16) ? 2 : 1);
-}
-
 /* take into account: channels, bytes per sample -- NOT resampling!*/
 off_t samples_to_bytes(mpg123_handle *fr , off_t s)
 {
-	return s * bytes_per_sample(fr) * fr->af.channels;
+	return s * fr->af.encsize * fr->af.channels;
 }
 
 off_t bytes_to_samples(mpg123_handle *fr , off_t b)
 {
-	return b / bytes_per_sample(fr) / fr->af.channels;
+	return b / fr->af.encsize / fr->af.channels;
 }

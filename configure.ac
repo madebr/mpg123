@@ -11,7 +11,7 @@ AC_PREREQ(2.57)
 dnl ############# Initialisation
 
 AC_INIT([mpg123], [1.7.0], [mpg123-devel@lists.sourceforge.net])
-LIBMPG123_VERSION=11:2:11
+LIBMPG123_VERSION=12:0:12
 AC_SUBST(LIBMPG123_VERSION)
 
 AC_CONFIG_SRCDIR(src/mpg123.c)
@@ -92,7 +92,7 @@ AC_ARG_ENABLE(modules,
 	fi
 ],
 [
-	if test "x$be_static" = "xyes" -o "x$with_cpu" = "xgeneric_float"; then
+	if test "x$be_static" = "xyes"; then
 		modules=disabled
 	else
 		# Per default no modules in Windows...
@@ -269,7 +269,7 @@ AC_ARG_ENABLE(network,
 
 AC_ARG_WITH([cpu], [
   --with-cpu=generic[_fpu]      Use generic processor code with floating point arithmetic
-  --with-cpu=generic_float      A special build with generic fpu code that produces 32bit float output (experimental)
+  --with-cpu=generic_float      Plain alias to generic_fpu now... float output is a normal runtime option!
   --with-cpu=generic_nofpu      Use generic processor code with fixed point arithmetic (p.ex. ARM, experimental)
   --with-cpu=i386[_fpu]         Use code optimized for i386 processors with floating point arithmetic
   --with-cpu=i386_nofpu         Use code optimized for i386 processors with fixed point arithmetic (experimental)
@@ -552,7 +552,7 @@ if test x"$debugging" = xenabled; then
 	if test x"$GCC" = xyes; then
 		ADD_CFLAGS="$ADD_CFLAGS -Wall -fno-strict-aliasing"
 		if test x"$nagging" = xenabled; then
-			ADD_CFLAGS="$ADD_CFLAGS -Werror -pedantic"
+			ADD_CFLAGS="$ADD_CFLAGS -Werror -pedantic -DPLAIN_C89"
 		fi
 	fi
 fi
@@ -665,18 +665,17 @@ if test "x$with_cpu" != "x"; then
 fi
 
 
-s_gen="decode dct64"
-s_gen_float="decode decode_float dct64"
-s_altivec="decode_altivec dct64_altivec"
-s_i386="decode_i386 dct64_i386"
-s_i486="$s_i386 decode_i486 dct64_i486"
+s_gen= # Everyone using the plain dct64 now to be safe, may be optimized away in future, again
+s_altivec="synth_altivec dct64_altivec"
+s_i386="dct64_i386"
+s_i486="$s_i386 synth_i486 dct64_i486"
 s_i586="$s_i386 decode_i586"
 s_i586d="$s_i386 decode_i586_dither dnoise"
 s_3dnow="$s_i386 decode_3dnow dct64_3dnow dct36_3dnow equalizer_3dnow"
-s_3dnowext="decode_i386 dct64_3dnowext dct36_3dnowext dct64_mmx tabinit_mmx decode_3dnowext"
-s_mmx="decode_i386 dct64_mmx tabinit_mmx decode_mmx"  # doesn't need dct64_i386
-s_sse="decode_i386 dct64_mmx tabinit_mmx dct64_sse decode_sse"
-s_multi="getcpuflags"
+s_3dnowext="$s_i386 dct64_3dnowext dct36_3dnowext dct64_mmx tabinit_mmx decode_3dnowext"
+s_mmx="$s_i386 dct64_mmx tabinit_mmx decode_mmx"
+s_sse="$s_i386 dct64_mmx tabinit_mmx dct64_sse decode_sse"
+s_x86multi="getcpuflags"
 
 dnl CPU specific compiler flags and sources
 case $cpu_type in
@@ -686,12 +685,7 @@ case $cpu_type in
     ccalign=no
   ;;
 dnl Not disabling buffer for float mode... check that this is OK now!
-  generic_float)
-    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC_FLOAT -DREAL_IS_FLOAT"
-    more_sources="$s_gen_float"
-    ccalign=no
-  ;;
-  generic_fpu)
+  generic_fpu | generic_float)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC -DREAL_IS_FLOAT"
     more_sources="$s_gen"
     ccalign=no
@@ -735,44 +729,37 @@ dnl Not disabling buffer for float mode... check that this is OK now!
     more_sources="$s_i586d"
   ;;
   3dnow)
-    # legacy 3dnow had the 3dnow optional... keeping that
+    # legacy 3dnow had the 3dnow paired with i586...
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_I586 -DOPT_3DNOW -DREAL_IS_FLOAT"
-    more_sources="$s_i586 $s_3dnow $s_multi "
+    more_sources="$s_i586 $s_3dnow $s_x86multi "
+  ;;
+  3dnow_alone)
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_3DNOW -DREAL_IS_FLOAT"
+    more_sources="$s_3dnow"
   ;;
   3dnowext_alone) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_3DNOWEXT -DREAL_IS_FLOAT"
     more_sources="$s_3dnowext"
   ;;
   3dnowext) 
-    AC_MSG_WARN([Combining 3DNowExt decoder with 3DNow for flexible rate, use 3dnowext_alone if you do not want this.])
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_3DNOW -DOPT_3DNOWEXT -DREAL_IS_FLOAT"
-    more_sources="$s_3dnowext $s_3dnow $s_multi"
+    more_sources="$s_3dnowext $s_3dnow $s_x86multi"
   ;;
-  mmx_alone) 
+  mmx_alone|mmx) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MMX -DREAL_IS_FLOAT"
     more_sources="$s_mmx"
   ;;
-  mmx)
-    AC_MSG_WARN([Combining MMX decoder with i586 for flexible rate, use mmx_alone if you do not want this.])
-    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_I586 -DOPT_MMX -DREAL_IS_FLOAT"
-    more_sources="$s_mmx $s_i586 $s_multi"
-  ;;
-  sse) 
-    AC_MSG_WARN([Combining SSE decoder with i586 for flexible rate, use sse_alone if you do not want this.])
-    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_I586 -DOPT_SSE -DREAL_IS_FLOAT"
-    more_sources="$s_sse $s_i586 $s_multi"
-  ;;
-  sse_alone) 
+  sse_alone|sse) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_SSE -DREAL_IS_FLOAT"
     more_sources="$s_sse"
   ;;
   x86) 
-    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_GENERIC_FLOAT -DOPT_I386 -DOPT_I586 -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOWEXT -DOPT_SSE -DREAL_IS_FLOAT"
-    more_sources="$s_gen_float $s_i386 $s_i586 $s_mmx $s_3dnow $s_3dnowext $s_sse $s_multi"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_I386 -DOPT_I586 -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOWEXT -DOPT_SSE -DREAL_IS_FLOAT"
+    more_sources="$s_gen $s_i386 $s_i586 $s_mmx $s_3dnow $s_3dnowext $s_sse $s_x86multi"
  ;;
   x86_dither) 
-    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_GENERIC_FLOAT -DOPT_I386 -DOPT_I586 -DOPT_I586_DITHER -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOWEXT -DOPT_SSE -DREAL_IS_FLOAT"
-    more_sources="$s_gen_float $s_i386 $s_i586 $s_i586d $s_mmx $s_3dnow $s_3dnowext $s_sse $s_multi"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_I386 -DOPT_I586 -DOPT_I586_DITHER -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOWEXT -DOPT_SSE -DREAL_IS_FLOAT"
+    more_sources="$s_gen $s_i386 $s_i586 $s_i586d $s_mmx $s_3dnow $s_3dnowext $s_sse $s_x86multi"
   ;;
   *)
   	AC_MSG_ERROR([Unknown CPU type '$cpu_type'])
@@ -807,11 +794,6 @@ if test "x$with_audio" != "x"; then
 	check_modules="`echo $with_audio|tr , ' '` dummy"
 	echo "Limiting outputs to build according to your preference: $check_modules"
 	check_forced=yes
-fi
-
-if test x"$cpu_type" = xgeneric_float; then
-	check_modules="dummy"
-	AC_MSG_WARN( [Forcing dummy output (decoding to wav/stdout only) with float samples, as the audio device system cannot handle floats.] )
 fi
 
 PKG_PROG_PKG_CONFIG([])
@@ -1377,11 +1359,6 @@ echo "  Checked audio modules ... $check_modules
   Detected audio support .. $output_modules
   Default output module ... $default_output_module
 "
-if test x"$cpu_type" = xgeneric_float; then
-	echo "You chose the generic build with 32bit float output.
-That means output via -s, -O or -w to a file/pipe and no buffer.
-"
-fi
 if test x"$modules" = xdisabled; then
 echo "The _single_ active output module is being statically linked in.
 "

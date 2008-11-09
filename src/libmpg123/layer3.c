@@ -350,11 +350,11 @@ void init_layer3(void)
 }
 
 
-void init_layer3_stuff(mpg123_handle *fr)
+void init_layer3_stuff(mpg123_handle *fr, real (*gainpow2)(mpg123_handle *fr, int i))
 {
 	int i,j;
 
-	for(i=-256;i<118+4;i++)	fr->gainpow2[i+256] = opt_init_layer3_gainpow2(fr)(fr,i);
+	for(i=-256;i<118+4;i++)	fr->gainpow2[i+256] = gainpow2(fr,i);
 
 	for(j=0;j<9;j++)
 	{
@@ -717,7 +717,8 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 		if(bv <= region1)
 		{
 			l[0] = bv;
-			l[1] = l[2] = 0;
+			l[1] = 0;
+			l[2] = 0;
 		}
 		else
 		{
@@ -865,7 +866,7 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 			#endif
 			if(!(xrpnt < &xr[SBLIMIT][0]+5))
 			{
-				error2("attempted xrpnt overflow (%p !< %p)", (void*) xrpnt, (void*) &xr[SBLIMIT][0]);
+				if(NOQUIET) error2("attempted xrpnt overflow (%p !< %p)", (void*) xrpnt, (void*) &xr[SBLIMIT][0]);
 				return 2;
 			}
 			h = htc+gr_info->count1table_select;
@@ -1881,7 +1882,7 @@ int do_layer3(mpg123_handle *fr)
 	/* after having seen this nasty test file... */
 	if(III_get_side_info(fr, &sideinfo,stereo,ms_stereo,sfreq,single))
 	{
-		error("bad frame - unable to get valid sideinfo");
+		if(NOQUIET) error("bad frame - unable to get valid sideinfo");
 		return clip;
 	}
 
@@ -1901,7 +1902,10 @@ int do_layer3(mpg123_handle *fr)
 			part2bits = III_get_scale_factors_1(fr, scalefacs[0],gr_info,0,gr);
 
 			if(III_dequantize_sample(fr, hybridIn[0], scalefacs[0],gr_info,sfreq,part2bits))
-			return clip;
+			{
+				if(NOQUIET) error("dequantization failed!");
+				return clip;
+			}
 		}
 
 		if(stereo == 2)
@@ -1914,7 +1918,10 @@ int do_layer3(mpg123_handle *fr)
 			part2bits = III_get_scale_factors_1(fr, scalefacs[1],gr_info,1,gr);
 
 			if(III_dequantize_sample(fr, hybridIn[1],scalefacs[1],gr_info,sfreq,part2bits))
-			return clip;
+			{
+				if(NOQUIET) error("dequantization failed!");
+				return clip;
+			}
 
 			if(ms_stereo)
 			{
@@ -1970,7 +1977,7 @@ int do_layer3(mpg123_handle *fr)
 		}
 
 #ifdef OPT_I486
-		if (fr->synth != opt_synth_1to1(fr) || single != SINGLE_STEREO)
+		if(single != SINGLE_STEREO || fr->af.encoding != MPG123_ENC_SIGNED_16)
 		{
 #endif
 		for(ss=0;ss<SSLIMIT;ss++)
@@ -1989,14 +1996,15 @@ int do_layer3(mpg123_handle *fr)
 		{
 			/* Only stereo, 16 bits benefit from the 486 optimization. */
 			ss=0;
-			while (ss < SSLIMIT)
+			while(ss < SSLIMIT)
 			{
 				int n;
 				n=(fr->buffer.size - fr->buffer.fill) / (2*2*32);
-				if (n > (SSLIMIT-ss)) n=SSLIMIT-ss;
+				if(n > (SSLIMIT-ss)) n=SSLIMIT-ss;
 
-				synth_1to1_486(hybridOut[0][ss], 0, fr, n);
-				synth_1to1_486(hybridOut[1][ss], 1, fr, n);
+				/* Clip counting makes no sense with this function. */
+				absynth_1to1_i486(hybridOut[0][ss], 0, fr, n);
+				absynth_1to1_i486(hybridOut[1][ss], 1, fr, n);
 				ss+=n;
 				fr->buffer.fill+=(2*2*32)*n;
 			}

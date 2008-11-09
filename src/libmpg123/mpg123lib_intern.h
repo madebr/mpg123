@@ -123,9 +123,9 @@
 /* Pre Shift fo 16 to 8 bit converter table */
 #define AUSHIFT (3)
 
+#include "optimize.h"
 #include "decode.h"
 #include "parse.h"
-#include "optimize.h"
 #include "frame.h"
 
 /* fr is a mpg123_handle* by convention here... */

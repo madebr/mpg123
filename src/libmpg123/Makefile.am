@@ -41,12 +41,10 @@ libmpg123_la_SOURCES = \
 	reader.h \
 	debug.h \
 	decode.h \
-	decode_2to1.c \
-	decode_4to1.c \
-	decode_ntom.c \
-	synth_1to1.h \
-	synth_2to1.h \
-	synth_4to1.h \
+	dct64.c \
+	synth.c \
+	synth.h \
+	synth_mono.h \
 	synth_ntom.h \
 	ntom.c \
 	equalizer.c \
@@ -82,18 +80,14 @@ EXTRA_libmpg123_la_SOURCES = \
 	dct64_3dnowext.S \
 	dct64_3dnow.S \
 	dct64_altivec.c \
-	dct64.c \
 	dct64_i386.c \
 	dct64_i486.c \
 	dct64_mmx.S \
 	dct64_sse.S \
 	decode_3dnowext.S \
 	decode_3dnow.S \
-	decode_altivec.c \
-	decode.c \
-	decode_float.c \
-	decode_i386.c \
-	decode_i486.c \
+	synth_altivec.c \
+	synth_i486.c \
 	decode_i586_dither.S \
 	decode_i586.S \
 	decode_mmx.S \

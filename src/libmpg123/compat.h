@@ -97,7 +97,7 @@ char *strdup(const char *s);
 /* If we have the size checks enabled, try to derive some sane printfs.
    Simple start: Use max integer type and format if long is not big enough.
    I am hesitating to use %ll without making sure that it's there... */
-#if (defined SIZEOF_OFF_T) && (SIZEOF_OFF_T > SIZEOF_LONG) && (defined PRIiMAX)
+#if !(defined PLAIN_C89) && (defined SIZEOF_OFF_T) && (SIZEOF_OFF_T > SIZEOF_LONG) && (defined PRIiMAX)
 # define OFF_P PRIiMAX
 typedef intmax_t off_p;
 #else
@@ -105,7 +105,7 @@ typedef intmax_t off_p;
 typedef long off_p;
 #endif
 
-#if (defined SIZEOF_SIZE_T) && (SIZEOF_SIZE_T > SIZEOF_LONG) && (defined PRIuMAX)
+#if !(defined PLAIN_C89) && (defined SIZEOF_SIZE_T) && (SIZEOF_SIZE_T > SIZEOF_LONG) && (defined PRIuMAX)
 # define SIZE_P PRIuMAX
 typedef uintmax_t size_p;
 #else
@@ -113,7 +113,7 @@ typedef uintmax_t size_p;
 typedef unsigned long size_p;
 #endif
 
-#if (defined SIZEOF_SSIZE_T) && (SIZEOF_SSIZE_T > SIZEOF_LONG) && (defined PRIiMAX)
+#if !(defined PLAIN_C89) && (defined SIZEOF_SSIZE_T) && (SIZEOF_SSIZE_T > SIZEOF_LONG) && (defined PRIiMAX)
 # define SSIZE_P PRIuMAX
 typedef intmax_t ssize_p;
 #else

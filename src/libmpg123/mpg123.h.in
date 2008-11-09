@@ -137,6 +137,7 @@ enum mpg123_param_flags
 	,MPG123_NO_RESYNC    = 0x80 /**< 10000000 Disable resync stream after error.                             */
 	,MPG123_SEEKBUFFER   = 0x100 /**< 000100000000 Enable small buffer on non-seekable streams to allow some peek-ahead (for better MPEG sync). */
 	,MPG123_FUZZY        = 0x200 /**< 001000000000 Enable fuzzy seeks (guessing byte offsets or using approximate seek points from Xing TOC) */
+	,MPG123_FORCE_FLOAT  = 0x400 /**< 010000000000 Force floating point output (32 or 64 bits depends on mpg123 internal precision). */
 };
 
 /** choices for MPG123_RVA */
@@ -217,7 +218,7 @@ enum mpg123_errors
 	MPG123_BAD_KEY,	/**< Bad key value given. */
 	MPG123_NO_INDEX,	/**< No frame index in this build. */
 	MPG123_INDEX_FAIL,	/**< Something with frame index went wrong. */
-	MPG123_BAD_DECODER_SETUP /**< Something prevents a proper decoder setup */
+	MPG123_BAD_DECODER_SETUP	/**< Something prevents a proper decoder setup */
 };
 
 /** Return a string describing that error errcode means. */
@@ -244,13 +245,18 @@ EXPORT int mpg123_errcode(mpg123_handle *mh);
  */
 
 /** Return a NULL-terminated array of generally available decoder names (plain 8bit ASCII). */
-EXPORT char **mpg123_decoders();
+EXPORT const char **mpg123_decoders();
 
 /** Return a NULL-terminated array of the decoders supported by the CPU (plain 8bit ASCII). */
-EXPORT char **mpg123_supported_decoders();
+EXPORT const char **mpg123_supported_decoders();
 
 /** Set the chosen decoder to 'decoder_name' */
 EXPORT int mpg123_decoder(mpg123_handle *mh, const char* decoder_name);
+
+/** Get the currently active decoder engine (index in the array you get from mpg123_decoders()).
+    The active decoder engine can vary depening on output constraints,
+    mostly non-resampling, integer output is accelerated via 3DNow & Co. */
+EXPORT int mpg123_current_decoder(mpg123_handle *mh);
 
 /*@}*/
 
@@ -271,7 +277,7 @@ enum mpg123_enc_enum
 	,MPG123_ENC_16     = 0x040  /**< 0000 0100 0000 Some 16 bit integer encoding. */
 	,MPG123_ENC_32     = 0x100  /**< 0001 0000 0000 Some 32 bit integer encoding. */
 	,MPG123_ENC_SIGNED = 0x080  /**< 0000 1000 0000 Some signed integer encoding. */
-	,MPG123_ENC_FLOAT  = 0x800  /**< 1110 0000 0000 Some float encoding. */
+	,MPG123_ENC_FLOAT  = 0xe00  /**< 1110 0000 0000 Some float encoding. */
 	,MPG123_ENC_SIGNED_16   = (MPG123_ENC_16|MPG123_ENC_SIGNED|0x10) /**< 0000 1101 0000 signed 16 bit */
 	,MPG123_ENC_UNSIGNED_16 = (MPG123_ENC_16|0x20)                   /**< 0000 0110 0000 unsigned 16 bit*/
 	,MPG123_ENC_UNSIGNED_8  = 0x01                                   /**< 0000 0000 0001 unsigned 8 bit*/

@@ -12,10 +12,10 @@
 #include <stdio.h>
 #include "config.h"
 #include "mpg123.h"
+#include "optimize.h"
 #include "id3.h"
 #include "icy.h"
 #include "reader.h"
-#include "optimize.h"
 #ifdef FRAME_INDEX
 #include "index.h"
 #endif
@@ -41,12 +41,10 @@ struct outbuffer
 struct audioformat
 {
 	int encoding;
+	int encsize; /* Size of one sample in bytes, plain int should be fine here... */
 	int channels;
 	long rate;
 };
-
-enum optdec { autodec=-1, nodec=0, generic, idrei, ivier, ifuenf, ifuenf_dither, mmx, dreidnow, dreidnowext, altivec, sse, generic_float };
-enum optcla { nocla=0, normal, mmxsse };
 
 struct mpg123_pars_struct
 {
@@ -69,6 +67,11 @@ struct mpg123_pars_struct
 	long resync_limit;
 	long index_size; /* Long, because: negative values have a meaning. */
 };
+
+/* The handle needs these types for selecting the decoding routine at runtime.
+   Not just for optimization, mainly for XtoY, mono/stereo. */
+typedef int (*func_synth)(real *,int, mpg123_handle *,int );
+typedef int (*func_synth_mono)(real *, mpg123_handle *);
 
 /* There is a lot to condense here... many ints can be merged as flags; though the main space is still consumed by buffers. */
 struct mpg123_handle_struct
@@ -153,20 +156,22 @@ struct mpg123_handle_struct
 		int (*synth_ntom_8bit)(real *,int, mpg123_handle *,int );
 		int (*synth_ntom_8bit_mono)(real *, mpg123_handle *);
 		int (*synth_ntom_8bit_mono2stereo)(real *, mpg123_handle *);
-#ifdef OPT_PENTIUM
-		int (*synth_1to1_i586_asm)(real *,int,unsigned char *, unsigned char *, int *, real *decwin);
-#endif
-#ifdef OPT_MMXORSSE
-		void (*make_decode_tables)(mpg123_handle *fr);
-		real (*init_layer3_gainpow2)(mpg123_handle*, int);
-		real* (*init_layer2_table)(mpg123_handle*, real*, double);
+#ifndef REAL_IS_FIXED
+		int (*synth_1to1_real)(real *,int, mpg123_handle *,int );
+		int (*synth_1to1_real_mono)(real *, mpg123_handle *);
+		int (*synth_1to1_real_mono2stereo)(real *, mpg123_handle *);
+		int (*synth_2to1_real)(real *,int, mpg123_handle *,int );
+		int (*synth_2to1_real_mono)(real *, mpg123_handle *);
+		int (*synth_2to1_real_mono2stereo)(real *, mpg123_handle *);
+		int (*synth_4to1_real)(real *,int, mpg123_handle *,int );
+		int (*synth_4to1_real_mono)(real *, mpg123_handle *);
+		int (*synth_4to1_real_mono2stereo)(real *, mpg123_handle *);
+		int (*synth_ntom_real)(real *,int, mpg123_handle *,int );
+		int (*synth_ntom_real_mono)(real *, mpg123_handle *);
+		int (*synth_ntom_real_mono2stereo)(real *, mpg123_handle *);
 #endif
 #ifdef OPT_3DNOW
 		void (*dct36)(real *,real *,real *,real *,real *);
-#endif
-		void (*dct64)(real *,real *,real *);
-#ifdef OPT_MPLAYER
-		void (*mpl_dct64)(real *,real *,real *);
 #endif
 #endif
 		enum optdec type;
@@ -175,11 +180,13 @@ struct mpg123_handle_struct
 
 	int verbose;    /* 0: nothing, 1: just print chosen decoder, 2: be verbose */
 
-	/* mpg123_handle */
 	const struct al_table *alloc;
-	/* could use types from optimize.h */
+	/* The runtime-chosen decoding, based on input and output format. */
 	int (*synth)(real *,int, mpg123_handle*, int);
 	int (*synth_mono)(real *, mpg123_handle*);
+	/* Yes, this function is runtime-switched, too. */
+	void (*make_decode_tables)(mpg123_handle *fr); /* That is the volume control. */
+
 	int stereo; /* I _think_ 1 for mono and 2 for stereo */
 	int jsbound;
 #define SINGLE_STEREO -1
@@ -304,11 +311,6 @@ int mpg123_print_index(mpg123_handle *fr, FILE* out);
 off_t frame_index_find(mpg123_handle *fr, off_t want_frame, off_t* get_frame);
 /* Apply index_size setting. */
 int frame_index_setup(mpg123_handle *fr);
-
-int frame_cpu_opt(mpg123_handle *fr, const char* cpu);
-enum optdec dectype(const char* decoder);
-
-int set_synth_functions(mpg123_handle *fr);
 
 void do_volume(mpg123_handle *fr, double factor);
 void do_rva(mpg123_handle *fr);

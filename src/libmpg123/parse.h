@@ -22,7 +22,6 @@ double compute_bpf(mpg123_handle *fr);
 long time_to_frame(mpg123_handle *fr, double seconds);
 int get_songlen(mpg123_handle *fr,int no);
 /* To be moved elsewhere... possibly format.c */
-off_t bytes_per_sample(mpg123_handle *fr);
 off_t samples_to_bytes(mpg123_handle *fr , off_t s);
 off_t bytes_to_samples(mpg123_handle *fr , off_t b);
 

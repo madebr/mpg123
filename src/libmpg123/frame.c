@@ -58,8 +58,8 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 	fr->rawdecwin = NULL;
 	fr->conv16to8_buf = NULL;
 	fr->xing_toc = NULL;
-	fr->cpu_opts.type = defopt;
-	fr->cpu_opts.class = (defopt == mmx || defopt == sse || defopt == dreidnowext) ? mmxsse : normal;
+	fr->cpu_opts.type = defdec();
+	fr->cpu_opts.class = decclass(fr->cpu_opts.type);
 	/* these two look unnecessary, check guarantee for synth_ntom_set_step (in control_generic, even)! */
 	fr->ntom_val[0] = NTOM_MUL>>1;
 	fr->ntom_val[1] = NTOM_MUL>>1;
@@ -83,6 +83,9 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 
 	fr->down_sample = 0; /* Initialize to silence harmless errors when debugging. */
 	frame_fixed_reset(fr); /* Reset only the fixed data, dynamic buffers are not there yet! */
+	fr->synth = NULL;
+	fr->synth_mono = NULL;
+	fr->make_decode_tables = NULL;
 #ifdef FRAME_INDEX
 	fi_init(&fr->index);
 	frame_index_setup(fr); /* Apply the size setting. */
@@ -171,6 +174,12 @@ int frame_index_setup(mpg123_handle *fr)
 	return ret;
 }
 #endif
+
+static void frame_decode_buffers_reset(mpg123_handle *fr)
+{
+	/* Not totally, but quite, sure that decwin(s) doesn't need cleaning. */
+	memset(fr->rawbuffs, 0, fr->rawbuffss);
+}
 
 int frame_buffers(mpg123_handle *fr)
 {
@@ -275,7 +284,9 @@ int frame_buffers(mpg123_handle *fr)
 #endif
 #endif
 	}
-	frame_buffers_reset(fr);
+	/* Only reset the buffers we created just now. */
+	frame_decode_buffers_reset(fr);
+
 	debug1("frame %p buffer done", (void*)fr);
 	return 0;
 }
@@ -288,12 +299,11 @@ int frame_buffers_reset(mpg123_handle *fr)
 	fr->bsbuf = fr->bsspace[1];
 	fr->bsbufold = fr->bsbuf;
 	fr->bitreservoir = 0; /* Not entirely sure if this is the right place for that counter. */
+	frame_decode_buffers_reset(fr);
 	memset(fr->bsspace, 0, 2*(MAXFRAMESIZE+512));
 	memset(fr->ssave, 0, 34);
-	memset(fr->rawbuffs, 0, fr->rawbuffss);
 	fr->hybrid_blc[0] = fr->hybrid_blc[1] = 0;
 	memset(fr->hybrid_block, 0, sizeof(real)*2*2*SBLIMIT*SSLIMIT);
-	/* Not totally, but quite, sure that decwin(s) doesn't need cleaning. */
 	return 0;
 }
 
@@ -677,97 +687,6 @@ void frame_set_seek(mpg123_handle *fr, off_t sp)
 #endif
 }
 
-/* to vanish */
-void frame_outformat(mpg123_handle *fr, int format, int channels, long rate)
-{
-	fr->af.encoding = format;
-	fr->af.rate = rate;
-	fr->af.channels = channels;
-}
-
-/* set synth functions for current frame, optimizations handled by opt_* macros */
-int set_synth_functions(mpg123_handle *fr)
-{
-	int ds = fr->down_sample;
-	int p8=0;
-	static func_synth funcs[2][4] = { 
-		{ NULL,
-		  synth_2to1,
-		  synth_4to1,
-		  synth_ntom } ,
-		{ NULL,
-		  synth_2to1_8bit,
-		  synth_4to1_8bit,
-		  synth_ntom_8bit } 
-	};
-	static func_synth_mono funcs_mono[2][2][4] = {    
-		{ { NULL ,
-		    synth_2to1_mono2stereo ,
-		    synth_4to1_mono2stereo ,
-		    synth_ntom_mono2stereo } ,
-		  { NULL ,
-		    synth_2to1_8bit_mono2stereo ,
-		    synth_4to1_8bit_mono2stereo ,
-		    synth_ntom_8bit_mono2stereo } } ,
-		{ { NULL ,
-		    synth_2to1_mono ,
-		    synth_4to1_mono ,
-		    synth_ntom_mono } ,
-		  { NULL ,
-		    synth_2to1_8bit_mono ,
-		    synth_4to1_8bit_mono ,
-		    synth_ntom_8bit_mono } }
-	};
-
-	/* possibly non-constand entries filled here
-	   ...actually, that's every entry now! */
-	funcs[0][0] = (func_synth) opt_synth_1to1(fr);
-	funcs[1][0] = (func_synth) opt_synth_1to1_8bit(fr);
-	funcs[0][1] = (func_synth) opt_synth_2to1(fr);
-	funcs[1][1] = (func_synth) opt_synth_2to1_8bit(fr);
-	funcs[0][2] = (func_synth) opt_synth_4to1(fr);
-	funcs[1][2] = (func_synth) opt_synth_4to1_8bit(fr);
-	funcs[0][3] = (func_synth) opt_synth_ntom(fr);
-	funcs[1][3] = (func_synth) opt_synth_ntom_8bit(fr);
-	funcs_mono[0][0][0] = (func_synth_mono) opt_synth_1to1_mono2stereo(fr);
-	funcs_mono[0][0][1] = (func_synth_mono) opt_synth_2to1_mono2stereo(fr);
-	funcs_mono[0][0][2] = (func_synth_mono) opt_synth_4to1_mono2stereo(fr);
-	funcs_mono[0][0][3] = (func_synth_mono) opt_synth_ntom_mono2stereo(fr);
-	funcs_mono[0][1][0] = (func_synth_mono) opt_synth_1to1_8bit_mono2stereo(fr);
-	funcs_mono[0][1][1] = (func_synth_mono) opt_synth_2to1_8bit_mono2stereo(fr);
-	funcs_mono[0][1][2] = (func_synth_mono) opt_synth_4to1_8bit_mono2stereo(fr);
-	funcs_mono[0][1][3] = (func_synth_mono) opt_synth_ntom_8bit_mono2stereo(fr);
-	funcs_mono[1][0][0] = (func_synth_mono) opt_synth_1to1_mono(fr);
-	funcs_mono[1][0][1] = (func_synth_mono) opt_synth_2to1_mono(fr);
-	funcs_mono[1][0][2] = (func_synth_mono) opt_synth_4to1_mono(fr);
-	funcs_mono[1][0][3] = (func_synth_mono) opt_synth_ntom_mono(fr);
-	funcs_mono[1][1][0] = (func_synth_mono) opt_synth_1to1_8bit_mono(fr);
-	funcs_mono[1][1][1] = (func_synth_mono) opt_synth_2to1_8bit_mono(fr);
-	funcs_mono[1][1][2] = (func_synth_mono) opt_synth_4to1_8bit_mono(fr);
-	funcs_mono[1][1][3] = (func_synth_mono) opt_synth_ntom_8bit_mono(fr);
-
-	if(fr->af.encoding & MPG123_ENC_8) p8 = 1;
-
-	if(p8 && fr->cpu_opts.type == generic_float)
-	{
-		if(NOQUIET) error1("Floating point decoder cannot do 8bit output (encoding: %i)!", fr->af.encoding);
-		return -1;
-	}
-
-	fr->synth = funcs[p8][ds];
-	fr->synth_mono = funcs_mono[fr->af.channels==2 ? 0 : 1][p8][ds];
-
-	if(p8)
-	{
-		if(make_conv16to8_table(fr) != 0)
-		{
-			/* it's a bit more work to get proper error propagation up */
-			return -1;
-		}
-	}
-	return 0;
-}
-
 int attribute_align_arg mpg123_volume_change(mpg123_handle *mh, double change)
 {
 	if(mh == NULL) return MPG123_ERR;
@@ -829,11 +748,12 @@ void do_rva(mpg123_handle *fr)
 		warning2("limiting scale value to %f to prevent clipping with indicated peak factor of %f", newscale, peak);
 	}
 	/* first rva setting is forced with fr->lastscale < 0 */
-	if(newscale != fr->lastscale)
+	if(newscale != fr->lastscale || fr->decoder_change)
 	{
 		debug3("changing scale value from %f to %f (peak estimated to %f)", fr->lastscale != -1 ? fr->lastscale : fr->p.outscale, newscale, (double) (newscale*peak));
 		fr->lastscale = newscale;
-		opt_make_decode_tables(fr); /* the actual work */
+		/* It may be too early, actually. */
+		if(fr->make_decode_tables != NULL) fr->make_decode_tables(fr); /* the actual work */
 	}
 }
 
@@ -845,326 +765,5 @@ int attribute_align_arg mpg123_getvolume(mpg123_handle *mh, double *base, double
 	if(really) *really = mh->lastscale;
 	get_rva(mh, NULL, rva_db);
 	return MPG123_OK;
-}
-
-int  frame_cpu_opt(mpg123_handle *fr, const char* cpu)
-{
-	char* chosen = ""; /* the chosen decoder opt as string */
-	int auto_choose = 0;
-	int done = 0;
-	if(   (cpu == NULL)
-	   || (cpu[0] == 0)
-	   || !strcasecmp(cpu, "auto") )
-	auto_choose = 1;
-#ifndef OPT_MULTI
-	{
-		char **sd = mpg123_decoders(); /* this contains _one_ decoder */
-		if(!auto_choose && strcasecmp(cpu, sd[0])) done = 0;
-		else
-		{
-			chosen = sd[0];
-			done = 1;
-		}
-	}
-#else
-	/* Default for the resampling functions, for now common to all short-producing decoders. */
-	fr->cpu_opts.synth_1to1 = synth_1to1;
-	fr->cpu_opts.synth_1to1_mono = synth_1to1_mono;
-	fr->cpu_opts.synth_1to1_mono2stereo = synth_1to1_mono2stereo;
-	fr->cpu_opts.synth_1to1_8bit = synth_1to1;
-	fr->cpu_opts.synth_1to1_8bit_mono = synth_1to1_mono;
-	fr->cpu_opts.synth_1to1_8bit_mono2stereo = synth_1to1_mono2stereo;
-	fr->cpu_opts.synth_2to1 = synth_2to1;
-	fr->cpu_opts.synth_2to1_mono = synth_2to1_mono;
-	fr->cpu_opts.synth_2to1_mono2stereo = synth_2to1_mono2stereo;
-	fr->cpu_opts.synth_2to1_8bit = synth_2to1;
-	fr->cpu_opts.synth_2to1_8bit_mono = synth_2to1_mono;
-	fr->cpu_opts.synth_2to1_8bit_mono2stereo = synth_2to1_mono2stereo;
-	fr->cpu_opts.synth_4to1 = synth_4to1;
-	fr->cpu_opts.synth_4to1_mono = synth_4to1_mono;
-	fr->cpu_opts.synth_4to1_mono2stereo = synth_4to1_mono2stereo;
-	fr->cpu_opts.synth_4to1_8bit = synth_4to1;
-	fr->cpu_opts.synth_4to1_8bit_mono = synth_4to1_mono;
-	fr->cpu_opts.synth_4to1_8bit_mono2stereo = synth_4to1_mono2stereo;
-	fr->cpu_opts.synth_ntom = synth_ntom;
-	fr->cpu_opts.synth_ntom_mono = synth_ntom_mono;
-	fr->cpu_opts.synth_ntom_mono2stereo = synth_ntom_mono2stereo;
-	fr->cpu_opts.synth_ntom_8bit = synth_ntom;
-	fr->cpu_opts.synth_ntom_8bit_mono = synth_ntom_mono;
-	fr->cpu_opts.synth_ntom_8bit_mono2stereo = synth_ntom_mono2stereo;
-
-	fr->cpu_opts.type = nodec;
-	/* covers any i386+ cpu; they actually differ only in the synth_1to1 function... */
-	#ifdef OPT_X86
-
-	#ifdef OPT_MMXORSSE
-	fr->cpu_opts.make_decode_tables   = make_decode_tables;
-	fr->cpu_opts.init_layer3_gainpow2 = init_layer3_gainpow2;
-	fr->cpu_opts.init_layer2_table    = init_layer2_table;
-	#endif
-	#ifdef OPT_3DNOW
-	fr->cpu_opts.dct36 = dct36;
-	#endif
-	#ifdef OPT_3DNOWEXT
-	fr->cpu_opts.dct36 = dct36;
-	#endif
-
-	if(cpu_i586(cpu_flags))
-	{
-		debug2("standard flags: 0x%08x\textended flags: 0x%08x", cpu_flags.std, cpu_flags.ext);
-		#ifdef OPT_3DNOWEXT
-		if(   !done && (auto_choose || !strcasecmp(cpu, "3dnowext"))
-		   && cpu_3dnow(cpu_flags)
-		   && cpu_3dnowext(cpu_flags)
-		   && cpu_mmx(cpu_flags) )
-		{
-			int go = 1;
-			if(fr->p.force_rate)
-			{
-				#if defined(K6_FALLBACK) || defined(PENTIUM_FALLBACK)
-				if(!auto_choose){ if(NOQUIET) error("I refuse to choose 3DNowExt as this will screw up with forced rate!"); }
-				else if(VERBOSE) fprintf(stderr, "Note: Not choosing 3DNowExt because flexible rate not supported.\n");
-
-				go = 0;
-				#else
-				if(NOQUIET) error("You will hear some awful sound because of flexible rate being chosen with 3DNowExt decoder!");
-				#endif
-			}
-			if(go){ /* temporary hack for flexible rate bug, not going indent this - fix it instead! */
-			chosen = "3DNowExt";
-			fr->cpu_opts.type = dreidnowext;
-			fr->cpu_opts.class = mmxsse;
-			fr->cpu_opts.dct36 = dct36_3dnowext;
-			fr->cpu_opts.synth_1to1 = synth_1to1_3dnowext;
-			fr->cpu_opts.dct64 = dct64_mmx; /* only use the 3dnow version in the synth_1to1_sse */
-			fr->cpu_opts.make_decode_tables   = make_decode_tables_mmx;
-			fr->cpu_opts.init_layer3_gainpow2 = init_layer3_gainpow2_mmx;
-			fr->cpu_opts.init_layer2_table    = init_layer2_table_mmx;
-			fr->cpu_opts.mpl_dct64 = dct64_3dnowext;
-			done = 1;
-			}
-		}
-		#endif
-		#ifdef OPT_SSE
-		if(   !done && (auto_choose || !strcasecmp(cpu, "sse"))
-		   && cpu_sse(cpu_flags) && cpu_mmx(cpu_flags) )
-		{
-			int go = 1;
-			if(fr->p.force_rate)
-			{
-				#ifdef PENTIUM_FALLBACK
-				if(!auto_choose){ if(NOQUIET) error("I refuse to choose SSE as this will screw up with forced rate!"); }
-				else if(VERBOSE) fprintf(stderr, "Note: Not choosing SSE because flexible rate not supported.\n");
-
-				go = 0;
-				#else
-				if(NOQUIET) error("You will hear some awful sound because of flexible rate being chosen with SSE decoder!");
-				#endif
-			}
-			if(go){ /* temporary hack for flexible rate bug, not going indent this - fix it instead! */
-			chosen = "SSE";
-			fr->cpu_opts.type = sse;
-			fr->cpu_opts.class = mmxsse;
-			fr->cpu_opts.synth_1to1 = synth_1to1_sse;
-			fr->cpu_opts.dct64 = dct64_mmx; /* only use the sse version in the synth_1to1_sse */
-			fr->cpu_opts.make_decode_tables   = make_decode_tables_mmx;
-			fr->cpu_opts.init_layer3_gainpow2 = init_layer3_gainpow2_mmx;
-			fr->cpu_opts.init_layer2_table    = init_layer2_table_mmx;
-			fr->cpu_opts.mpl_dct64 = dct64_sse;
-			done = 1;
-			}
-		}
-		#endif
-		#ifdef OPT_3DNOW
-		fr->cpu_opts.dct36 = dct36;
-		/* TODO: make autodetection for _all_ x86 optimizations (maybe just for i586+ and keep separate 486 build?) */
-		/* check cpuflags bit 31 (3DNow!) and 23 (MMX) */
-		if(    !done && (auto_choose || !strcasecmp(cpu, "3dnow"))
-		    && cpu_3dnow(cpu_flags) && cpu_mmx(cpu_flags) )
-		{
-			chosen = "3DNow";
-			fr->cpu_opts.type = dreidnow;
-			fr->cpu_opts.dct36 = dct36_3dnow; /* 3DNow! optimized dct36() */
-			fr->cpu_opts.synth_1to1 = synth_1to1_3dnow;
-			fr->cpu_opts.dct64 = dct64_i386; /* use the 3dnow one? */
-			done = 1;
-		}
-		#endif
-		#ifdef OPT_MMX
-		if(   !done && (auto_choose || !strcasecmp(cpu, "mmx"))
-		   && cpu_mmx(cpu_flags) )
-		{
-			int go = 1;
-			if(fr->p.force_rate)
-			{
-				#ifdef PENTIUM_FALLBACK
-				if(!auto_choose){ if(NOQUIET) error("I refuse to choose MMX as this will screw up with forced rate!"); }
-				else if(VERBOSE) fprintf(stderr, "Note: Not choosing MMX because flexible rate not supported.\n");
-
-				go = 0;
-				#else
-				error("You will hear some awful sound because of flexible rate being chosen with MMX decoder!");
-				#endif
-			}
-			if(go){ /* temporary hack for flexible rate bug, not going indent this - fix it instead! */
-			chosen = "MMX";
-			fr->cpu_opts.type = mmx;
-			fr->cpu_opts.class = mmxsse;
-			fr->cpu_opts.synth_1to1 = synth_1to1_mmx;
-			fr->cpu_opts.dct64 = dct64_mmx;
-			fr->cpu_opts.make_decode_tables   = make_decode_tables_mmx;
-			fr->cpu_opts.init_layer3_gainpow2 = init_layer3_gainpow2_mmx;
-			fr->cpu_opts.init_layer2_table    = init_layer2_table_mmx;
-			done = 1;
-			}
-		}
-		#endif
-		#ifdef OPT_I586
-		if(!done && (auto_choose || !strcasecmp(cpu, "i586")))
-		{
-			chosen = "i586/pentium";
-			fr->cpu_opts.type = ifuenf;
-			fr->cpu_opts.synth_1to1 = synth_1to1_i586;
-			fr->cpu_opts.synth_1to1_i586_asm = synth_1to1_i586_asm;
-			fr->cpu_opts.dct64 = dct64_i386;
-			done = 1;
-		}
-		#endif
-		#ifdef OPT_I586_DITHER
-		if(!done && (auto_choose || !strcasecmp(cpu, "i586_dither")))
-		{
-			chosen = "dithered i586/pentium";
-			fr->cpu_opts.type = ifuenf_dither;
-			fr->cpu_opts.synth_1to1 = synth_1to1_i586;
-			fr->cpu_opts.dct64 = dct64_i386;
-			fr->cpu_opts.synth_1to1_i586_asm = synth_1to1_i586_asm_dither;
-			done = 1;
-		}
-		#endif
-	}
-	#ifdef OPT_I486 /* that won't cooperate nicely in multi opt mode - forcing i486 in layer3.c */
-	if(!done && (auto_choose || !strcasecmp(cpu, "i486")))
-	{
-		chosen = "i486";
-		fr->cpu_opts.type = ivier;
-		fr->cpu_opts.synth_1to1 = synth_1to1_i386; /* i486 function is special */
-		fr->cpu_opts.dct64 = dct64_i386;
-		done = 1;
-	}
-	#endif
-	#ifdef OPT_I386
-	if(!done && (auto_choose || !strcasecmp(cpu, "i386")))
-	{
-		chosen = "i386";
-		fr->cpu_opts.type = idrei;
-		fr->cpu_opts.synth_1to1 = synth_1to1_i386;
-		fr->cpu_opts.dct64 = dct64_i386;
-		done = 1;
-	}
-	#endif
-
-	if(done) /* set common x86 functions */
-	{
-		fr->cpu_opts.synth_1to1_mono = synth_1to1_mono_i386;
-		fr->cpu_opts.synth_1to1_mono2stereo = synth_1to1_mono2stereo_i386;
-		fr->cpu_opts.synth_1to1_8bit = synth_1to1_8bit_i386;
-		fr->cpu_opts.synth_1to1_8bit_mono = synth_1to1_8bit_mono_i386;
-		fr->cpu_opts.synth_1to1_8bit_mono2stereo = synth_1to1_8bit_mono2stereo_i386;
-	}
-	#endif /* OPT_X86 */
-
-	#ifdef OPT_ALTIVEC
-	if(!done && (auto_choose || !strcasecmp(cpu, "altivec")))
-	{
-		chosen = "AltiVec";
-		fr->cpu_opts.type = altivec;
-		fr->cpu_opts.dct64 = dct64_altivec;
-		fr->cpu_opts.synth_1to1 = synth_1to1_altivec;
-		fr->cpu_opts.synth_1to1_mono = synth_1to1_mono_altivec;
-		fr->cpu_opts.synth_1to1_mono2stereo = synth_1to1_mono2stereo_altivec;
-		fr->cpu_opts.synth_1to1_8bit = synth_1to1_8bit_altivec;
-		fr->cpu_opts.synth_1to1_8bit_mono = synth_1to1_8bit_mono_altivec;
-		fr->cpu_opts.synth_1to1_8bit_mono2stereo = synth_1to1_8bit_mono2stereo_altivec;
-		done = 1;
-	}
-	#endif
-
-	#ifdef OPT_GENERIC
-	if(!done && (auto_choose || !strcasecmp(cpu, "generic")))
-	{
-		chosen = "generic";
-		fr->cpu_opts.type = generic;
-		fr->cpu_opts.dct64 = dct64;
-		fr->cpu_opts.synth_1to1 = synth_1to1;
-		fr->cpu_opts.synth_1to1_mono = synth_1to1_mono;
-		fr->cpu_opts.synth_1to1_mono2stereo = synth_1to1_mono2stereo;
-		fr->cpu_opts.synth_1to1_8bit = synth_1to1_8bit;
-		fr->cpu_opts.synth_1to1_8bit_mono = synth_1to1_8bit_mono;
-		fr->cpu_opts.synth_1to1_8bit_mono2stereo = synth_1to1_8bit_mono2stereo;
-		done = 1;
-	}
-	#endif
-	#ifdef OPT_GENERIC_FLOAT
-	if(!done && (auto_choose || !strcasecmp(cpu, "generic_float")))
-	{
-		chosen = "generic";
-		fr->cpu_opts.type = generic_float;
-		fr->cpu_opts.dct64 = dct64;
-		/* The float decoder has its own set of synth routines... and does not allow 8bit decoding. */
-		fr->cpu_opts.synth_1to1 = synth_1to1_real;
-		fr->cpu_opts.synth_1to1_mono = synth_1to1_mono_real;
-		fr->cpu_opts.synth_1to1_mono2stereo = synth_1to1_mono2stereo_real;
-		fr->cpu_opts.synth_1to1_8bit = NULL;
-		fr->cpu_opts.synth_1to1_8bit_mono = NULL;
-		fr->cpu_opts.synth_1to1_8bit_mono2stereo = NULL;
-		fr->cpu_opts.synth_2to1 = synth_2to1_real;
-		fr->cpu_opts.synth_2to1_mono = synth_2to1_mono_real;
-		fr->cpu_opts.synth_2to1_mono2stereo = synth_2to1_mono2stereo_real;
-		fr->cpu_opts.synth_2to1_8bit = NULL;
-		fr->cpu_opts.synth_2to1_8bit_mono = NULL;
-		fr->cpu_opts.synth_2to1_8bit_mono2stereo = NULL;
-		fr->cpu_opts.synth_4to1 = synth_4to1_real;
-		fr->cpu_opts.synth_4to1_mono = synth_4to1_mono_real;
-		fr->cpu_opts.synth_4to1_mono2stereo = synth_4to1_mono2stereo_real;
-		fr->cpu_opts.synth_4to1_8bit = NULL;
-		fr->cpu_opts.synth_4to1_8bit_mono = NULL;
-		fr->cpu_opts.synth_4to1_8bit_mono2stereo = NULL;
-		fr->cpu_opts.synth_ntom = synth_ntom_real;
-		fr->cpu_opts.synth_ntom_mono = synth_ntom_mono_real;
-		fr->cpu_opts.synth_ntom_mono2stereo = synth_ntom_mono2stereo_real;
-		fr->cpu_opts.synth_ntom_8bit = NULL;
-		fr->cpu_opts.synth_ntom_8bit_mono = NULL;
-		fr->cpu_opts.synth_ntom_8bit_mono2stereo = NULL;
-		done = 1;
-	}
-	#endif
-#endif
-	if(done)
-	{
-		if(VERBOSE) fprintf(stderr, "Decoder: %s\n", chosen);
-		return 1;
-	}
-	else
-	{
-		if(NOQUIET) error("Could not set optimization!");
-		return 0;
-	}
-}
-
-enum optdec dectype(const char* decoder)
-{
-	if(decoder == NULL) return autodec;
-	if(!strcasecmp(decoder, "3dnowext"))    return dreidnowext;
-	if(!strcasecmp(decoder, "3dnow"))       return dreidnow;
-	if(!strcasecmp(decoder, "sse"))         return sse;
-	if(!strcasecmp(decoder, "mmx"))         return mmx;
-	if(!strcasecmp(decoder, "generic"))     return generic;
-	if(!strcasecmp(decoder, "generic_float"))     return generic_float;
-	if(!strcasecmp(decoder, "altivec"))     return altivec;
-	if(!strcasecmp(decoder, "i386"))        return idrei;
-	if(!strcasecmp(decoder, "i486"))        return ivier;
-	if(!strcasecmp(decoder, "i586"))        return ifuenf;
-	if(!strcasecmp(decoder, "i586_dither")) return ifuenf_dither;
-	return nodec;
 }
 

@@ -9,9 +9,7 @@
 #include "mpg123lib_intern.h"
 #include "debug.h"
 
-/* All optimizations share this code - with the exception of MMX */
-#ifndef OPT_MMX_ONLY
-/* that altivec alignment part here should not hurt generic code, I hope */
+/* That altivec alignment part here should not hurt generic code, I hope */
 #ifdef OPT_ALTIVEC
 static ALIGNED(16) real cos64[16];
 static ALIGNED(16) real cos32[8];
@@ -66,9 +64,9 @@ void prepare_decode_tables()
       costab[k] = DOUBLE_TO_REAL(1.0 / (2.0 * cos(M_PI * ((double) k * 2.0 + 1.0) / (double) divv)));
   }
 }
-#endif
 
 #ifdef OPT_MMXORSSE
+void make_decode_tables_mmx_asm(long scaleval, float* decwin_mmx, float *decwins);
 void make_decode_tables_mmx(mpg123_handle *fr)
 {
 	debug("MMX decode tables");
@@ -78,7 +76,6 @@ void make_decode_tables_mmx(mpg123_handle *fr)
 }
 #endif
 
-#ifndef OPT_MMX_ONLY
 void make_decode_tables(mpg123_handle *fr)
 {
   int i,j;
@@ -109,7 +106,6 @@ void make_decode_tables(mpg123_handle *fr)
   }
   debug("decode tables done");
 }
-#endif
 
 int make_conv16to8_table(mpg123_handle *fr)
 {
