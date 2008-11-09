@@ -58,6 +58,7 @@
 #define PITCH_ZERO_KEY  'w'
 /* This counts as "undocumented" and can disappear */
 #define FRAME_INDEX_KEY 'i'
+#define VARIOUS_INFO_KEY 'I'
 /* The normal and big pitch adjustment done on key presses. */
 #define PITCH_VAL 0.001
 #define PITCH_BVAL 0.01
