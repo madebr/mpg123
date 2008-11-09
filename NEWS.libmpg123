@@ -1,5 +1,10 @@
 Changes in libmpg123 libtool interface versions...
 
+12.0.12
+	- added mpg123_current_decoder
+	- fixed value of MPG123_ENC_FLOAT
+	- float output now is a real runtime option
+
 11.0.11
 	- added mpg123_getstate
 	- run-time tunable frame index
