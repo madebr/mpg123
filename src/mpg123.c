@@ -356,6 +356,7 @@ topt opts[] = {
 /*	{'g', "gain",        GLO_ARG | GLO_LONG, 0, &ao.gain,    0}, FIXME */
 	{'r', "rate",        GLO_ARG | GLO_LONG, 0, &param.force_rate,  0},
 	{0,   "8bit",        GLO_INT,  set_frameflag, &frameflag, MPG123_FORCE_8BIT},
+	{0,   "float",       GLO_INT,  set_frameflag, &frameflag, MPG123_FORCE_FLOAT},
 	{0,   "headphones",  0,                  set_output_h, 0,0},
 	{0,   "speaker",     0,                  set_output_s, 0,0},
 	{0,   "lineout",     0,                  set_output_l, 0,0},
@@ -741,7 +742,7 @@ int main(int argc, char *argv[])
 
 	if(param.list_cpu)
 	{
-		char **all_dec = mpg123_decoders();
+		const char **all_dec = mpg123_decoders();
 		printf("Builtin decoders:");
 		while(*all_dec != NULL){ printf(" %s", *all_dec); ++all_dec; }
 		printf("\n");
@@ -750,7 +751,7 @@ int main(int argc, char *argv[])
 	}
 	if(param.test_cpu)
 	{
-		char **all_dec = mpg123_supported_decoders();
+		const char **all_dec = mpg123_supported_decoders();
 		printf("Supported decoders:");
 		while(*all_dec != NULL){ printf(" %s", *all_dec); ++all_dec; }
 		printf("\n");
