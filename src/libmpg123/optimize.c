@@ -1,4 +1,4 @@
-/*
+ö/*
 	optimize: get a grip on the different optimizations
 
 	copyright 2006 by the mpg123 project - free software under the terms of the LGPL 2.1
@@ -100,7 +100,7 @@ static int find_dectype(mpg123_handle *fr)
 #ifdef OPT_I486
 	/* i486 is special ... the specific code is in use for 16bit 1to1 stereo
 	   otherwise we have i386 active... but still, the distinction doesn't matter*/
-	type = ivier
+	type = ivier;
 #endif
 
 	if(type != nodec)
