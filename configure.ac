@@ -339,7 +339,7 @@ if test x"$asmalign_exp" = xunknown; then
 	AC_MSG_CHECKING([if .align takes 2-exponent])
 	asmalign_exp="no"
 	echo '.align 3' > conftest.s
-	if $CCAS -c -o conftest.o conftest.s &>/dev/null; then
+	if $CCAS -c -o conftest.o conftest.s 1>/dev/null 2>&1; then
 		asmalign_exp="yes"
 		AC_MSG_RESULT([yes])
 	else
@@ -356,7 +356,7 @@ if test x"$ccalign" = xunknown; then
 	AC_MSG_CHECKING([__attribute__((aligned(16)))])
 	ccalign="no"
 	echo '__attribute__((aligned(16))) float var;' > conftest.c
-	if $CC -c -o conftest.o conftest.c &>/dev/null; then
+	if $CC -c -o conftest.o conftest.c >/dev/null 2>&1; then
 		ccalign="yes"
 		AC_MSG_RESULT([yes])
 	else
