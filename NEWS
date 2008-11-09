@@ -1,3 +1,11 @@
+1.x.x
+
+What's about SINGLE_MIX?
+Check what is _really_ happening there, make some test file...
+
+You removed the opt_dct64(fr) ... it has been used in ntom ... but rarely worked.
+It may return, but only after actually testing which dct64 works (one candidate is plain 3dnow).
+First get the load of restructuring in!
 
 1.6.1
 ---
