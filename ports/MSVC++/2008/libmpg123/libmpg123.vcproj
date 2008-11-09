@@ -699,6 +699,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\..\..\src\libmpg123\ntom.c"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\src\libmpg123\optimize.c"
 			>
 		</File>
