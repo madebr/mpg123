@@ -244,7 +244,7 @@ int set_synth_functions(mpg123_handle *fr)
 
 int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 {
-	char* chosen = ""; /* the chosen decoder opt as string */
+	const char* chosen = ""; /* the chosen decoder opt as string */
 	enum optdec want_dec = nodec;
 	int done = 0;
 	int auto_choose = 0;
@@ -260,7 +260,7 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		}
 		else
 		{
-			char **sd = mpg123_decoders(); /* this contains _one_ decoder */
+			const char **sd = mpg123_decoders(); /* this contains _one_ decoder */
 			chosen = sd[0];
 			done = 1;
 		}
