@@ -7,15 +7,14 @@ You removed the opt_dct64(fr) ... it has been used in ntom ... but rarely worked
 It may return, but only after actually testing which dct64 works (one candidate is plain 3dnow).
 First get the load of restructuring in!
 
+Also, implement something for MPG123_ENC_UNISGNED_16 ... either another whole set of functions or some postprocessing.
+
+
 1.6.1
 ---
 
 - Fix printing of largefile offsets in remote control interface.
-- TODO: Make signed 16bit format actually work; has been a silent non-feature all the time.
---> Either that or disable it.
---> Idea ... add a postfilter that transforms signed_16 data to unsigned...
-...similar to the 8bit stuff but less redundant work.
-I think I'll disable it in that release and prepare the fix for 1.7.0 .
+- Some portability fixes (reduced compiler warnings on Solaris, p.ex.).
 
 1.6.0
 ---
