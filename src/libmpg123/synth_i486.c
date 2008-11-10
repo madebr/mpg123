@@ -105,7 +105,7 @@
   b0+=FIR_BUFFER_SIZE;\
 }
 
-int absynth_1to1_486(real *bandPtr, int channel, mpg123_handle *fr, int nb_blocks)
+int absynth_1to1_i486(real *bandPtr, int channel, mpg123_handle *fr, int nb_blocks)
 {
   short *samples = (short *) (fr->buffer.data+fr->buffer.fill);
   int *b0,**buf;
