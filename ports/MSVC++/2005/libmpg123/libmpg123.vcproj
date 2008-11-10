@@ -514,119 +514,7 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\..\..\src\libmpg123\decode.c"
-			>
-			<FileConfiguration
-				Name="Release_i386|Win32"
-				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release_i486|Win32"
-				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Debug_i386|Win32"
-				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Debug_i486|Win32"
-				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
-		</File>
-		<File
 			RelativePath="..\..\..\..\src\libmpg123\decode.h"
-			>
-		</File>
-		<File
-			RelativePath="..\..\..\..\src\libmpg123\decode_2to1.c"
-			>
-		</File>
-		<File
-			RelativePath="..\..\..\..\src\libmpg123\decode_4to1.c"
-			>
-		</File>
-		<File
-			RelativePath="..\..\..\..\src\libmpg123\decode_i386.c"
-			>
-			<FileConfiguration
-				Name="Debug_Generic|Win32"
-				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release_Generic|Win32"
-				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
-		</File>
-		<File
-			RelativePath="..\..\..\..\src\libmpg123\decode_i486.c"
-			>
-			<FileConfiguration
-				Name="Debug_Generic|Win32"
-				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release_Generic|Win32"
-				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release_i386|Win32"
-				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release_i486|Win32"
-				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Debug_i386|Win32"
-				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
-		</File>
-		<File
-			RelativePath="..\..\..\..\src\libmpg123\decode_ntom.c"
 			>
 		</File>
 		<File
@@ -718,6 +606,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\..\..\src\libmpg123\ntom.c"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\src\libmpg123\optimize.c"
 			>
 		</File>
@@ -744,6 +636,50 @@
 		<File
 			RelativePath="..\..\..\..\src\libmpg123\stringbuf.c"
 			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\synth.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\synth.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\synth_i486.c"
+			>
+			<FileConfiguration
+				Name="Debug_Generic|Win32"
+				ExcludedFromBuild="true"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release_Generic|Win32"
+				ExcludedFromBuild="true"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release_i386|Win32"
+				ExcludedFromBuild="true"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Debug_i386|Win32"
+				ExcludedFromBuild="true"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+				/>
+			</FileConfiguration>
 		</File>
 		<File
 			RelativePath="..\..\..\..\src\libmpg123\tabinit.c"
