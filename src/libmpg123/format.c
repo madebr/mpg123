@@ -238,7 +238,6 @@ end: /* Here is the _good_ end. */
 	else /* a new format */
 	{
 		debug1("New format with %i channels!", nf.channels);
-fprintf(stderr, "new format with rate %li, enc %i\n", nf.rate, nf.encoding);
 		fr->af.rate = nf.rate;
 		fr->af.channels = nf.channels;
 		fr->af.encoding = nf.encoding;
