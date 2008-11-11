@@ -9,6 +9,10 @@ First get the load of restructuring in!
 
 Also, implement something for MPG123_ENC_UNISGNED_16 ... either another whole set of functions or some postprocessing.
 
+1.6.2
+---
+
+- Fix default IPv6 detection in configure.ac (a typo has been introduced before).
 
 1.6.1
 ---

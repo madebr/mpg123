@@ -448,7 +448,7 @@ if test x"$fifo" = xenabled; then
 fi
 
 AC_CHECK_FUNCS( getaddrinfo, [ have_ipv6=yes ], [ have_ipv6=no ] )
-if test x"$ipv6" = xautox; then
+if test x"$ipv6" = xauto; then
 	if test x"$have_ipv6" = xyes; then
 		ipv6=enabled
 	else
