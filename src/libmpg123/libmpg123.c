@@ -156,7 +156,8 @@ mpg123_handle attribute_align_arg *mpg123_parnew(mpg123_pars *mp, const char* de
 	}
 	if(fr != NULL)
 	{
-		if(frame_outbuffer(fr) != 0)
+		/* Cleanup that mess! ... use mpg123_decoder / decode_update! */
+		if(frame_outbuffer(fr) != 0 || (frame_buffers(mh) != 0))
 		{
 			err = MPG123_NO_BUFFERS;
 			frame_exit(fr);
