@@ -24,6 +24,7 @@ EXTRA_DIST = \
 	xmms2-plugin/mpg123/wscript \
 	makedll.sh \
 	windows-builds.sh \
+	equalize.dat \
 	test/forkfaint.c \
 	test/rms16.c \
 	NEWS.libmpg123 \

@@ -9,6 +9,8 @@ First get the load of restructuring in!
 
 Also, implement something for MPG123_ENC_UNISGNED_16 ... either another whole set of functions or some postprocessing.
 
+- The example equalizer file is now in the distribution.
+
 1.6.2
 ---
 
