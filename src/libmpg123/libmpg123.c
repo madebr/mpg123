@@ -1082,12 +1082,13 @@ off_t attribute_align_arg mpg123_length(mpg123_handle *mh)
 	if(b<0) return b;
 	if(mh->track_samples > -1) length = mh->track_samples;
 	else if(mh->track_frames > 0) length = mh->track_frames*spf(mh);
-	else if(mh->rdat.filelen >= 0) /* Let the case of 0 length just fall through. */
+	else if(mh->rdat.filelen > 0) /* Let the case of 0 length just fall through. */
 	{
 		/* A bad estimate. Ignoring tags 'n stuff. */
 		double bpf = mh->mean_framesize ? mh->mean_framesize : compute_bpf(mh);
 		length = (off_t)((double)(mh->rdat.filelen)/bpf*spf(mh));
 	}
+	else if(mh->rdat.filelen == 0) return mpg123_tell(mh); /* we could be in feeder mode */
 	else return MPG123_ERR; /* No length info there! */
 
 	length = frame_ins2outs(mh, length);
