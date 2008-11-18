@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../..;../../../../src/libmpg123"
-				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;OPT_I486;_DEBUG"
+				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;OPT_I486;REAL_IS_FLOAT;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -105,7 +105,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="../..;../../../../src/libmpg123"
-				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;OPT_I486"
+				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;REAL_IS_FLOAT;OPT_I486"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				WarningLevel="3"
@@ -166,7 +166,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../..;../../../../src/libmpg123"
-				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;OPT_I386;_DEBUG"
+				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;OPT_I386;REAL_IS_FLOAT;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -228,7 +228,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../..;../../../../src/libmpg123"
-				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;OPT_GENERIC;_DEBUG"
+				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;OPT_GENERIC;REAL_IS_FLOAT;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -292,7 +292,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="../..;../../../../src/libmpg123"
-				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;OPT_I386"
+				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;REAL_IS_FLOAT;OPT_I386"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				WarningLevel="3"
@@ -355,7 +355,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="../..;../../../../src/libmpg123"
-				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;OPT_GENERIC"
+				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;REAL_IS_FLOAT;OPT_GENERIC"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				WarningLevel="3"
@@ -409,34 +409,6 @@
 		<File
 			RelativePath="..\..\..\..\src\libmpg123\dct64.c"
 			>
-			<FileConfiguration
-				Name="Debug_i486|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release_i486|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Debug_i386|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release_i386|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
 		</File>
 		<File
 			RelativePath="..\..\..\..\src\libmpg123\dct64_i386.c"
@@ -625,13 +597,6 @@
 		<File
 			RelativePath="..\..\..\..\src\libmpg123\synth.c"
 			>
-			<FileConfiguration
-				Name="Debug_i486|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
 		</File>
 		<File
 			RelativePath="..\..\..\..\src\libmpg123\synth.h"
