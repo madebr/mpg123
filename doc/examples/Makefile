@@ -1,4 +1,4 @@
-targets = mpg123_to_wav scan id3dump mpglib
+targets = feedseek mpg123_to_wav scan id3dump mpglib
 
 all: $(targets)
 
@@ -12,6 +12,9 @@ compile = $(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $(MPG123_CFLAGS) $(MPG123_LDFLA
 
 mpg123_to_wav: mpg123_to_wav.c
 	$(compile) $(SND_CFLAGS) $(SND_LDFLAGS)-o mpg123_to_wav mpg123_to_wav.c
+
+feedseek: feedseek.c
+	$(compile) -o feedseek feedseek.c
 
 scan: scan.c
 	$(compile) -o scan scan.c
