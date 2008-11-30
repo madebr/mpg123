@@ -99,7 +99,8 @@ int main(int argc, char **argv)
 	mpg123_handle *m;
 	int ret, state;
 	size_t inc, outc;
-	size_t len, num, bytes;
+	off_t len, num;
+	size_t bytes;
 	off_t inoffset;
 	inc = outc = 0;
 
