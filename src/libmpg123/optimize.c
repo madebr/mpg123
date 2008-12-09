@@ -14,7 +14,7 @@
 /* Must match the enum dectype! */
 const char* decname[] =
 {
-	"auto", "nodec", "generic", "i386",
+	"auto", "nodec", "generic", "generic_dither", "i386",
 	"i486", "i586", "i586_dither", "MMX",
 	"3DNow", "3DNowExt", "AltiVec", "SSE"
 };
@@ -94,6 +94,9 @@ static int find_dectype(mpg123_handle *fr)
 		|| basic_synth == synth_ntom_real
 #endif
 	) type = generic;
+#ifdef OPT_GENERIC_DITHER
+	else if(basic_synth == synth_1to1_dither) type = generic_dither;
+#endif
 #ifdef OPT_ALTIVEC
 	else if(basic_synth == synth_1to1_altivec) type = altivec;
 #endif
@@ -471,8 +474,19 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 
 #endif /* OPT_X86 */
 
+#ifdef OPT_GENERIC_DITHER
+	if(!done && (auto_choose || want_dec == generic_dither))
+	{
+		chosen = "dithered generic";
+		fr->cpu_opts.type = generic_dither;
+		fr->cpu_opts.synth_1to1 = synth_1to1_dither;
+		/* Wrapping 8bit functions don't make sense for dithering. */
+		done = 1;
+	}
+#endif
+
 	#ifdef OPT_ALTIVEC
-	if(!done && (auto_choose || want_dec = altivec))
+	if(!done && (auto_choose || want_dec == altivec))
 	{
 		chosen = "AltiVec";
 		fr->cpu_opts.type = altivec;
@@ -584,6 +598,7 @@ enum optdec dectype(const char* decoder)
 	if(!strcasecmp(decoder, "mmx"))         return mmx;
 	if(!strcasecmp(decoder, "generic"))     return generic;
 	if(!strcasecmp(decoder, "generic_float"))     return generic;
+	if(!strcasecmp(decoder, "generic_dither")) return generic_dither;
 	if(!strcasecmp(decoder, "altivec"))     return altivec;
 	if(!strcasecmp(decoder, "i386"))        return idrei;
 	if(!strcasecmp(decoder, "i486"))        return ivier;
@@ -624,6 +639,9 @@ static const char *mpg123_supported_decoder_list[] =
 	#ifdef OPT_ALTIVEC
 	NULL,
 	#endif
+	#ifdef OPT_GENERIC_FLOAT
+	NULL,
+	#endif
 	NULL, /* generic */
 	NULL
 };
@@ -660,6 +678,9 @@ static const char *mpg123_decoder_list[] =
 	#endif
 	#ifdef OPT_GENERIC
 	"generic",
+	#endif
+	#ifdef OPT_GENERIC
+	"generic_dither",
 	#endif
 	NULL
 };

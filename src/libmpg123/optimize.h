@@ -9,6 +9,7 @@
 
 	for building mpg123 with one optimization only, you have to choose exclusively between
 	OPT_GENERIC (generic C code for everyone)
+	OPT_GENERIC_DITHER (same with dithering for 1to1)
 	OPT_I386 (Intel i386)
 	OPT_I486 (Somewhat special code for i486; does not work together with others.)
 	OPT_I586 (Intel Pentium)
@@ -22,6 +23,10 @@
 
 	I still have to examine the dynamics of this here together with REAL_IS_FIXED.
 	Basic point is: Don't use REAL_IS_FIXED with something else than generic or i386.
+
+	Also, one should minimize code size by really ensuring that only functions that are really needed are included.
+	Currently, all generic functions will be always there (to be safe for fallbacks for advanced decoders).
+	Strictly, at least the synth_1to1 should not be necessary for single-decoder mode.
 */
 
 
@@ -29,7 +34,7 @@
 
 enum optdec
 {
-	autodec=0, nodec, generic, idrei,
+	autodec=0, nodec, generic, generic_dither, idrei,
 	ivier, ifuenf, ifuenf_dither, mmx,
 	dreidnow, dreidnowext, altivec, sse
 };
@@ -60,7 +65,7 @@ enum optcla decclass(const enum optdec);
 #ifdef REAL_IS_FIXED
 #if (defined OPT_I486)  || (defined OPT_I586) || (defined OPT_I586_DITHER) \
  || (defined OPT_MMX)   || (defined OPT_SSE)  || (defined_OPT_ALTIVEC) \
- || (defined OPT_3DNOW) || (defined OPT_3DNOWEXT)
+ || (defined OPT_3DNOW) || (defined OPT_3DNOWEXT) || (defined OPT_GENERIC_DITHER)
 #error "Bad decoder choice together with fixed point math!"
 #endif
 #endif
@@ -68,6 +73,13 @@ enum optcla decclass(const enum optdec);
 #ifdef OPT_GENERIC
 #ifndef OPT_MULTI
 #	define defopt generic
+#endif
+#endif
+
+#ifdef OPT_GENERIC_DITHER
+#ifndef OPT_MULTI
+#	define defopt generic_dither
+#	define opt_synth_1to1(fr) synth_1to1_dither
 #endif
 #endif
 
@@ -99,6 +111,7 @@ enum optcla decclass(const enum optdec);
 
 #ifdef OPT_I586_DITHER
 #define OPT_X86
+#define OPT_DITHER
 #ifndef OPT_MULTI
 #	define defopt ifuenf_dither
 #	define opt_synth_1to1(fr) synth_1to1_i586_dither
@@ -161,6 +174,12 @@ extern const int costab_mmxsse[];
 
 /* used for multi opt mode and the single 3dnow mode to have the old 3dnow test flag still working */
 void check_decoders(void);
+
+/* Announce the data in dnoise.c ... */
+#ifdef OPT_DITHER
+#define DITHERSIZE 65536
+extern float dithernoise[DITHERSIZE];
+#endif
 
 /*
 	Now come two blocks of standard definitions for multi-decoder mode and single-decoder mode.

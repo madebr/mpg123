@@ -36,9 +36,16 @@
 #undef MONO_NAME
 #undef MONO2STEREO_NAME
 
-
 /* Now we have possibly some special synth_1to1 ...
    ... they produce signed short; the mono functions defined above work on the special synths, too. */
+
+#ifdef OPT_GENERIC_DITHER
+#define SYNTH_NAME synth_1to1_dither
+#define USE_DITHER
+#include "synth.h"
+#undef USE_DITHER
+#undef SYNTH_NAME
+#endif
 
 #ifdef OPT_X86
 /* The i386-specific C code, here as short variant, later 8bit and float. */
@@ -61,7 +68,7 @@ int synth_1to1_i586(real *bandPtr, int channel, mpg123_handle *fr, int final)
 	int ret;
 	if(fr->have_eq_settings) do_equalizer(bandPtr,channel,fr->equalizer);
 
-	ret = synth_1to1_i586_asm(bandPtr, channel, fr->buffer.data+fr->buffer.fill, fr->rawbuffs, fr->bo, fr->decwin);
+	ret = synth_1to1_i586_asm(bandPtr, channel, fr->buffer.data+fr->buffer.fill, fr->rawbuffs, &fr->bo, fr->decwin);
 	if(final) fr->buffer.fill += 128;
 	return ret;
 }
@@ -69,14 +76,21 @@ int synth_1to1_i586(real *bandPtr, int channel, mpg123_handle *fr, int final)
 
 #ifdef OPT_I586_DITHER
 /* This is defined in assembler. */
-int synth_1to1_i586_asm_dither(real *bandPtr, int channel, unsigned char *out, unsigned char *buffs, int *bo, real *decwin);
+int synth_1to1_i586_asm_dither(real *bandPtr, int channel, unsigned char *out, unsigned char *buffs, int *bo, real *decwin, float *dithernoise);
 /* This is just a hull to use the mpg123 handle. */
 int synth_1to1_i586_dither(real *bandPtr, int channel, mpg123_handle *fr, int final)
 {
 	int ret;
+	int bo_dither[2]; /* Temporary workaround? Could expand the asm code. */
 	if(fr->have_eq_settings) do_equalizer(bandPtr,channel,fr->equalizer);
 
-	ret = synth_1to1_i586_asm_dither(bandPtr, channel, fr->buffer.data+fr->buffer.fill, fr->rawbuffs, fr->bo, fr->decwin);
+	/* Applying this hack, to change the asm only bit by bit (adding dithernoise pointer). */
+	bo_dither[0] = fr->bo;
+	bo_dither[1] = fr->ditherindex;
+	ret = synth_1to1_i586_asm_dither(bandPtr, channel, fr->buffer.data+fr->buffer.fill, fr->rawbuffs, bo_dither, fr->decwin, fr->dithernoise);
+	fr->bo          = bo_dither[0];
+	fr->ditherindex = bo_dither[1];
+
 	if(final) fr->buffer.fill += 128;
 	return ret;
 }
@@ -95,7 +109,7 @@ int synth_1to1_3dnow(real *bandPtr, int channel, mpg123_handle *fr, int final)
 
 	/* this is in asm, can be dither or not */
 	/* uh, is this return from pointer correct? */ 
-	ret = (int) synth_1to1_3dnow_asm(bandPtr, channel, fr->buffer.data+fr->buffer.fill, fr->rawbuffs, fr->bo, fr->decwin);
+	ret = (int) synth_1to1_3dnow_asm(bandPtr, channel, fr->buffer.data+fr->buffer.fill, fr->rawbuffs, &fr->bo, fr->decwin);
 	if(final) fr->buffer.fill += 128;
 	return ret;
 }
@@ -110,7 +124,7 @@ int synth_1to1_mmx(real *bandPtr, int channel, mpg123_handle *fr, int final)
 	if(fr->have_eq_settings) do_equalizer(bandPtr,channel,fr->equalizer);
 
 	/* in asm */
-	synth_1to1_MMX(bandPtr, channel, (short*) (fr->buffer.data+fr->buffer.fill), (short *) fr->rawbuffs, fr->bo, fr->decwins);
+	synth_1to1_MMX(bandPtr, channel, (short*) (fr->buffer.data+fr->buffer.fill), (short *) fr->rawbuffs, &fr->bo, fr->decwins);
 	if(final) fr->buffer.fill += 128;
 	return 0;
 }
@@ -124,7 +138,7 @@ int synth_1to1_sse(real *bandPtr, int channel, mpg123_handle *fr, int final)
 {
 	if(fr->have_eq_settings) do_equalizer(bandPtr,channel,fr->equalizer);
 
-	synth_1to1_sse_asm(bandPtr, channel, (short*) (fr->buffer.data+fr->buffer.fill), (short *) fr->rawbuffs, fr->bo, fr->decwins);
+	synth_1to1_sse_asm(bandPtr, channel, (short*) (fr->buffer.data+fr->buffer.fill), (short *) fr->rawbuffs, &fr->bo, fr->decwins);
 	if(final) fr->buffer.fill += 128;
 	return 0;
 }
@@ -138,7 +152,7 @@ int synth_1to1_3dnowext(real *bandPtr, int channel, mpg123_handle *fr, int final
 {
 	if(fr->have_eq_settings) do_equalizer(bandPtr,channel,fr->equalizer);
 
-	synth_1to1_3dnowext_asm(bandPtr, channel, (short*) (fr->buffer.data+fr->buffer.fill), (short *) fr->rawbuffs, fr->bo, fr->decwins);
+	synth_1to1_3dnowext_asm(bandPtr, channel, (short*) (fr->buffer.data+fr->buffer.fill), (short *) fr->rawbuffs, &fr->bo, fr->decwins);
 	if(final) fr->buffer.fill += 128;
 	return 0;
 }

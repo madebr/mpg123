@@ -90,6 +90,10 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 	fi_init(&fr->index);
 	frame_index_setup(fr); /* Apply the size setting. */
 #endif
+#ifdef OPT_DITHER
+	/* The idea is to read that at runtime in the future... to avoid bloating the binary. */
+	fr->dithernoise = dithernoise;
+#endif
 }
 
 mpg123_pars attribute_align_arg *mpg123_new_pars(int *error)
@@ -396,10 +400,13 @@ static void frame_fixed_reset(mpg123_handle *fr)
 	fr->lastoff = 0;
 	fr->firstoff = 0;
 #endif
-	fr->bo[0] = 1; /* the usual bo */
-	fr->bo[1] = 0; /* ditherindex */
 #ifdef OPT_I486
 	fr->bo[0] = fr->bo[1] = FIR_SIZE-1;
+#else
+	fr->bo = 1; /* the usual bo */
+#ifdef OPT_DITHER
+	fr->ditherindex = 0;
+#endif
 #endif
 	reset_id3(fr);
 	reset_icy(&fr->icy);

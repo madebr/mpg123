@@ -60,6 +60,7 @@
 /* The signed-16bit-producing variants. */
 
 int synth_1to1            (real*, int, mpg123_handle*, int);
+int synth_1to1_dither     (real*, int, mpg123_handle*, int);
 int synth_1to1_i386       (real*, int, mpg123_handle*, int);
 int synth_1to1_i586       (real*, int, mpg123_handle*, int);
 int synth_1to1_i586_dither(real*, int, mpg123_handle*, int);

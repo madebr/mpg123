@@ -85,7 +85,15 @@ struct mpg123_handle_struct
 	real *real_buffs[2][2];
 	unsigned char *rawbuffs;
 	int rawbuffss;
-	int bo[2]; /* i486 and dither need a second value */
+#ifdef OPT_I486
+	int bo[2];
+#else
+	int bo;
+#endif
+#ifdef OPT_DITHER
+	int ditherindex;
+	float *dithernoise;
+#endif
 	unsigned char* rawdecwin; /* the block with all decwins */
 	real *decwin; /* _the_ decode table */
 #ifdef OPT_MMXORSSE

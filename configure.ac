@@ -271,6 +271,7 @@ AC_ARG_WITH([cpu], [
   --with-cpu=generic[_fpu]      Use generic processor code with floating point arithmetic
   --with-cpu=generic_float      Plain alias to generic_fpu now... float output is a normal runtime option!
   --with-cpu=generic_nofpu      Use generic processor code with fixed point arithmetic (p.ex. ARM, experimental)
+  --with-cpu=generic_dither     Use generic processor code with floating point arithmetic and dithering for 1to1 16bit decoding.
   --with-cpu=i386[_fpu]         Use code optimized for i386 processors with floating point arithmetic
   --with-cpu=i386_nofpu         Use code optimized for i386 processors with fixed point arithmetic (experimental)
   --with-cpu=i486         Use code optimized for i486 processors (only usable alone!)
@@ -283,7 +284,7 @@ AC_ARG_WITH([cpu], [
   --with-cpu=mmx_alone          Really only MMX decoder, without i586 fallback for flexible rate
   --with-cpu=sse          Use code optimized for SSE processors
   --with-cpu=sse_alone          Really only SSE decoder, without i586 fallback for flexible rate
-  --with-cpu=x86          Pack all x86 opts into one binary (excluding i486 and dithered i586)
+  --with-cpu=x86          Pack all x86 opts into one binary (excluding i486 and dither)
   --with-cpu=x86_dither   Pack all x86 opts into one binary (excluding i486, including dither)
   --with-cpu=altivec      Use code optimized for Altivec processors (PowerPC G4 and G5)
 ]) 
@@ -670,7 +671,8 @@ s_altivec="synth_altivec dct64_altivec"
 s_i386="dct64_i386"
 s_i486="$s_i386 synth_i486 dct64_i486"
 s_i586="$s_i386 synth_i586"
-s_i586d="$s_i386 synth_i586_dither dnoise"
+s_i586d="$s_i386 synth_i586_dither"
+s_dither="dnoise"
 s_3dnow="$s_i386 synth_3dnow dct64_3dnow dct36_3dnow equalizer_3dnow"
 s_3dnowext="$s_i386 dct64_3dnowext dct36_3dnowext dct64_mmx tabinit_mmx synth_3dnowext"
 s_mmx="$s_i386 dct64_mmx tabinit_mmx synth_mmx"
@@ -682,6 +684,11 @@ case $cpu_type in
   generic)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC -DREAL_IS_FLOAT"
     more_sources="$s_gen"
+    ccalign=no
+  ;;
+  generic_dither)
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC_DITHER -DREAL_IS_FLOAT"
+    more_sources="$s_gen $s_dither"
     ccalign=no
   ;;
 dnl Not disabling buffer for float mode... check that this is OK now!
@@ -758,8 +765,8 @@ dnl Not disabling buffer for float mode... check that this is OK now!
     more_sources="$s_gen $s_i386 $s_i586 $s_mmx $s_3dnow $s_3dnowext $s_sse $s_x86multi"
  ;;
   x86_dither) 
-    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_I386 -DOPT_I586 -DOPT_I586_DITHER -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOWEXT -DOPT_SSE -DREAL_IS_FLOAT"
-    more_sources="$s_gen $s_i386 $s_i586 $s_i586d $s_mmx $s_3dnow $s_3dnowext $s_sse $s_x86multi"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_GENERIC_DITHER -DOPT_I386 -DOPT_I586 -DOPT_I586_DITHER -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOWEXT -DOPT_SSE -DREAL_IS_FLOAT"
+    more_sources="$s_gen $s_i386 $s_i586 $s_i586d $s_dither $s_mmx $s_3dnow $s_3dnowext $s_sse $s_x86multi"
   ;;
   *)
   	AC_MSG_ERROR([Unknown CPU type '$cpu_type'])

@@ -14,7 +14,9 @@ echo '/*
 	initially written by (in assembler) Adrian Bacon
 */
 
-float dithernoise[65536] =
+#include "mpg123lib_intern.h"
+
+float dithernoise[DITHERSIZE] =
 {'
 
 # If sed is there, use it.

@@ -41,27 +41,40 @@ int SYNTH_NAME(real *bandPtr, int channel, mpg123_handle *fr, int final)
 
 	if(!channel)
 	{
-		fr->bo[0]--;
-		fr->bo[0] &= 0xf;
+		fr->bo--;
+		fr->bo &= 0xf;
 		buf = fr->real_buffs[0];
 	}
 	else
 	{
+#ifdef USE_DITHER
+		fr->ditherindex -= BLOCK/2;
+#endif
 		samples++;
 		buf = fr->real_buffs[1];
 	}
 
-	if(fr->bo[0] & 0x1)
+#ifdef USE_DITHER
+	/* We check only once for the overflow of dither index here ...
+	   this wraps differently than the original i586 dither code, in theory (but when DITHERSIZE % BLOCK/2 == 0 it's the same). */
+	if(DITHERSIZE-fr->ditherindex < BLOCK/2) fr->ditherindex = 0;
+	/* And we define a macro for the dither action... */
+	#define ADD_DITHER(fr,sum) sum+=fr->dithernoise[fr->ditherindex]; ++fr->ditherindex;
+#else
+	#define ADD_DITHER(fr,sum)
+#endif
+
+	if(fr->bo & 0x1)
 	{
 		b0 = buf[0];
-		bo1 = fr->bo[0];
-		MY_DCT64(buf[1]+((fr->bo[0]+1)&0xf),buf[0]+fr->bo[0],bandPtr);
+		bo1 = fr->bo;
+		MY_DCT64(buf[1]+((fr->bo+1)&0xf),buf[0]+fr->bo,bandPtr);
 	}
 	else
 	{
 		b0 = buf[1];
-		bo1 = fr->bo[0]+1;
-		MY_DCT64(buf[0]+fr->bo[0],buf[1]+fr->bo[0]+1,bandPtr);
+		bo1 = fr->bo+1;
+		MY_DCT64(buf[0]+fr->bo,buf[1]+fr->bo+1,bandPtr);
 	}
 
 	{
@@ -107,6 +120,7 @@ int SYNTH_NAME(real *bandPtr, int channel, mpg123_handle *fr, int final)
 			sum -= REAL_MUL(window[0xF], b0[0xF]);
 #endif
 
+			ADD_DITHER(fr,sum)
 			WRITE_SAMPLE(samples,sum,clip);
 		}
 
@@ -121,6 +135,7 @@ int SYNTH_NAME(real *bandPtr, int channel, mpg123_handle *fr, int final)
 			sum += REAL_MUL(window[0xC], b0[0xC]);
 			sum += REAL_MUL(window[0xE], b0[0xE]);
 
+			ADD_DITHER(fr,sum)
 			WRITE_SAMPLE(samples,sum,clip);
 			samples += step;
 			b0-=0x400/BLOCK;
@@ -166,6 +181,7 @@ int SYNTH_NAME(real *bandPtr, int channel, mpg123_handle *fr, int final)
 			sum -= REAL_MUL(window[-0xF], b0[0xE]);
 			sum -= REAL_MUL(window[-0x0], b0[0xF]); /* Is that right? 0x0? Just wondering... */
 #endif
+			ADD_DITHER(fr,sum)
 			WRITE_SAMPLE(samples,sum,clip);
 		}
 	}
@@ -173,6 +189,7 @@ int SYNTH_NAME(real *bandPtr, int channel, mpg123_handle *fr, int final)
 	if(final) fr->buffer.fill += BLOCK*sizeof(SAMPLE_T);
 
 	return clip;
+#undef ADD_DITHER
 #undef BACKPEDAL
 #undef MY_DCT64
 }
