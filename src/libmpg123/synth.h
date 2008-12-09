@@ -48,18 +48,19 @@ int SYNTH_NAME(real *bandPtr, int channel, mpg123_handle *fr, int final)
 	else
 	{
 #ifdef USE_DITHER
-		fr->ditherindex -= BLOCK/2;
+		/* We always go forward 32 dither points (and back again for the second channel),
+		   (re)sampling the noise the same way as the original signal. */
+		fr->ditherindex -= 32;
 #endif
 		samples++;
 		buf = fr->real_buffs[1];
 	}
-
 #ifdef USE_DITHER
 	/* We check only once for the overflow of dither index here ...
 	   this wraps differently than the original i586 dither code, in theory (but when DITHERSIZE % BLOCK/2 == 0 it's the same). */
-	if(DITHERSIZE-fr->ditherindex < BLOCK/2) fr->ditherindex = 0;
+	if(DITHERSIZE-fr->ditherindex < 32) fr->ditherindex = 0;
 	/* And we define a macro for the dither action... */
-	#define ADD_DITHER(fr,sum) sum+=fr->dithernoise[fr->ditherindex]; ++fr->ditherindex;
+	#define ADD_DITHER(fr,sum) sum+=fr->dithernoise[fr->ditherindex]; fr->ditherindex += 64/BLOCK;
 #else
 	#define ADD_DITHER(fr,sum)
 #endif

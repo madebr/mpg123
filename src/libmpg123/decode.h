@@ -79,10 +79,12 @@ int synth_1to1_mono2stereo(real*, mpg123_handle*);
 
 /* Sample rate decimation comes in less flavours. */
 int synth_2to1            (real*, int, mpg123_handle*, int);
+int synth_2to1_dither     (real*, int, mpg123_handle*, int);
 int synth_2to1_i386       (real*, int, mpg123_handle*, int);
 int synth_2to1_mono       (real*, mpg123_handle*);
 int synth_2to1_mono2stereo(real*, mpg123_handle*);
 int synth_4to1            (real *,int, mpg123_handle*, int);
+int synth_4to1_dither     (real *,int, mpg123_handle*, int);
 int synth_4to1_i386       (real*, int, mpg123_handle*, int);
 int synth_4to1_mono       (real*, mpg123_handle*);
 int synth_4to1_mono2stereo(real*, mpg123_handle*);

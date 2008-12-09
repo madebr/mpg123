@@ -168,7 +168,15 @@ int synth_1to1_3dnowext(real *bandPtr, int channel, mpg123_handle *fr, int final
 #include "synth.h"
 #undef SYNTH_NAME
 
-#define SYNTH_NAME       opt_synth_2to1(fr) /* This is just for the _i386 one... gotta check if it is really useful... */
+#ifdef OPT_DITHER /* Used for generic_dither and as fallback for i586_dither. */
+#define SYNTH_NAME synth_2to1_dither
+#define USE_DITHER
+#include "synth.h"
+#undef USE_DITHER
+#undef SYNTH_NAME
+#endif
+
+#define SYNTH_NAME       opt_synth_2to1(fr)
 #define MONO_NAME        synth_2to1_mono
 #define MONO2STEREO_NAME synth_2to1_mono2stereo
 #include "synth_mono.h"
@@ -196,6 +204,14 @@ int synth_1to1_3dnowext(real *bandPtr, int channel, mpg123_handle *fr, int final
 #define SYNTH_NAME synth_4to1
 #include "synth.h"
 #undef SYNTH_NAME
+
+#ifdef OPT_DITHER
+#define SYNTH_NAME synth_4to1_dither
+#define USE_DITHER
+#include "synth.h"
+#undef USE_DITHER
+#undef SYNTH_NAME
+#endif
 
 #define SYNTH_NAME       opt_synth_4to1(fr) /* This is just for the _i386 one... gotta check if it is really useful... */
 #define MONO_NAME        synth_4to1_mono

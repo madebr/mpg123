@@ -77,9 +77,12 @@ enum optcla decclass(const enum optdec);
 #endif
 
 #ifdef OPT_GENERIC_DITHER
+#define OPT_DITHER
 #ifndef OPT_MULTI
 #	define defopt generic_dither
 #	define opt_synth_1to1(fr) synth_1to1_dither
+#	define opt_synth_2to1(fr) synth_2to1_dither
+#	define opt_synth_4to1(fr) synth_4to1_dither
 #endif
 #endif
 

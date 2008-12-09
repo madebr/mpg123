@@ -95,7 +95,12 @@ static int find_dectype(mpg123_handle *fr)
 #endif
 	) type = generic;
 #ifdef OPT_GENERIC_DITHER
-	else if(basic_synth == synth_1to1_dither) type = generic_dither;
+	else if
+	(
+		   basic_synth == synth_1to1_dither
+		|| basic_synth == synth_2to1_dither
+		|| basic_synth == synth_4to1_dither
+	) type = generic_dither;
 #endif
 #ifdef OPT_ALTIVEC
 	else if(basic_synth == synth_1to1_altivec) type = altivec;
@@ -401,6 +406,8 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 			chosen = "dithered i586/pentium";
 			fr->cpu_opts.type = ifuenf_dither;
 			fr->cpu_opts.synth_1to1 = synth_1to1_i586;
+			fr->cpu_opts.synth_2to1 = synth_2to1_dither;
+			fr->cpu_opts.synth_4to1 = synth_4to1_dither;
 			done = 1;
 		}
 		#endif
@@ -480,6 +487,8 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		chosen = "dithered generic";
 		fr->cpu_opts.type = generic_dither;
 		fr->cpu_opts.synth_1to1 = synth_1to1_dither;
+		fr->cpu_opts.synth_2to1 = synth_2to1_dither;
+		fr->cpu_opts.synth_4to1 = synth_4to1_dither;
 		/* Wrapping 8bit functions don't make sense for dithering. */
 		done = 1;
 	}
