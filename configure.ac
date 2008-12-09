@@ -733,7 +733,7 @@ dnl Not disabling buffer for float mode... check that this is OK now!
   ;;
   i586_dither) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_I586_DITHER -DREAL_IS_FLOAT"
-    more_sources="$s_i586d"
+    more_sources="$s_i586d $s_dither"
   ;;
   3dnow)
     # legacy 3dnow had the 3dnow paired with i586...

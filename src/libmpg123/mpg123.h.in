@@ -253,10 +253,12 @@ EXPORT const char **mpg123_supported_decoders();
 /** Set the chosen decoder to 'decoder_name' */
 EXPORT int mpg123_decoder(mpg123_handle *mh, const char* decoder_name);
 
-/** Get the currently active decoder engine (index in the array you get from mpg123_decoders()).
+/** Get the currently active decoder engine name.
     The active decoder engine can vary depening on output constraints,
-    mostly non-resampling, integer output is accelerated via 3DNow & Co. */
-EXPORT int mpg123_current_decoder(mpg123_handle *mh);
+    mostly non-resampling, integer output is accelerated via 3DNow & Co. but for other modes a fallback engine kicks in.
+    Note that this can return a decoder that is ony active in the hidden and not available as decoder choice from the outside.
+    \return The decoder name or NULL on error. */
+EXPORT const char* mpg123_current_decoder(mpg123_handle *mh);
 
 /*@}*/
 

@@ -438,10 +438,9 @@ static void term_handle_input(mpg123_handle *fr, audio_output_t *ao, int do_dela
 			case VARIOUS_INFO_KEY:
 			{
 				int idx;
-				const char** decoders = mpg123_decoders();
-				idx = mpg123_current_decoder(fr);
-				if(idx < 0) fprintf(stderr, "Cannot get decoder info!\n");
-				else fprintf(stderr, "Active decoder: %s\n", decoders[idx]);
+				const char* curdec = mpg123_current_decoder(fr);
+				if(curdec == NULL) fprintf(stderr, "Cannot get decoder info!\n");
+				else fprintf(stderr, "Active decoder: %s\n", curdec);
 			}
 		}
 	break;

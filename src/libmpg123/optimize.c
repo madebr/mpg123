@@ -9,14 +9,42 @@
 */
 
 #include "mpg123lib_intern.h" /* includes optimize.h */
+#define DEBUG
 #include "debug.h"
 
 /* Must match the enum dectype! */
-const char* decname[] =
+
+/*
+	It SUCKS having to define these names that way, but compile-time intialization of string arrays is a bitch.
+	GCC doesn't see constant stuff when it's wiggling in front of it!
+	Anyhow: Have a script for that:
+names="generic generic_dither i386 i486 i586 i586_dither MMX 3DNow 3DNowExt AltiVec SSE"
+for i in $names; do echo "##define dn_$i \"$i\""; done
+echo -n "static const char* decname[] =
 {
-	"auto", "nodec", "generic", "generic_dither", "i386",
-	"i486", "i586", "i586_dither", "MMX",
-	"3DNow", "3DNowExt", "AltiVec", "SSE"
+	\"auto\"
+	"
+for i in $names; do echo -n ", dn_$i"; done
+echo "
+	, \"nodec\"
+};"
+*/
+#define dn_generic "generic"
+#define dn_generic_dither "generic_dither"
+#define dn_i386 "i386"
+#define dn_i486 "i486"
+#define dn_i586 "i586"
+#define dn_i586_dither "i586_dither"
+#define dn_MMX "MMX"
+#define dn_3DNow "3DNow"
+#define dn_3DNowExt "3DNowExt"
+#define dn_AltiVec "AltiVec"
+#define dn_SSE "SSE"
+static const char* decname[] =
+{
+	"auto"
+	, dn_generic, dn_generic_dither, dn_i386, dn_i486, dn_i586, dn_i586_dither, dn_MMX, dn_3DNow, dn_3DNowExt, dn_AltiVec, dn_SSE
+	, "nodec"
 };
 
 #if (defined OPT_X86) && (defined OPT_MULTI)
@@ -95,10 +123,12 @@ static int find_dectype(mpg123_handle *fr)
 #endif
 	) type = generic;
 #ifdef OPT_GENERIC_DITHER
+	else if(basic_synth == synth_1to1_dither) type = generic_dither;
+#endif
+#ifdef OPT_DITHER /* either i586 or generic! */
 	else if
 	(
-		   basic_synth == synth_1to1_dither
-		|| basic_synth == synth_2to1_dither
+		   basic_synth == synth_2to1_dither
 		|| basic_synth == synth_4to1_dither
 	) type = generic_dither;
 #endif
@@ -405,7 +435,7 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		{
 			chosen = "dithered i586/pentium";
 			fr->cpu_opts.type = ifuenf_dither;
-			fr->cpu_opts.synth_1to1 = synth_1to1_i586;
+			fr->cpu_opts.synth_1to1 = synth_1to1_i586_dither;
 			fr->cpu_opts.synth_2to1 = synth_2to1_dither;
 			fr->cpu_opts.synth_4to1 = synth_4to1_dither;
 			done = 1;
@@ -596,24 +626,15 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 
 enum optdec dectype(const char* decoder)
 {
+	enum optdec dt;
 	if(   (decoder == NULL)
-	   || (decoder[0] == 0)
-	   || !strcasecmp(decoder, "auto") )
+	   || (decoder[0] == 0) )
 	return autodec;
 
-	if(!strcasecmp(decoder, "3dnowext"))    return dreidnowext;
-	if(!strcasecmp(decoder, "3dnow"))       return dreidnow;
-	if(!strcasecmp(decoder, "sse"))         return sse;
-	if(!strcasecmp(decoder, "mmx"))         return mmx;
-	if(!strcasecmp(decoder, "generic"))     return generic;
-	if(!strcasecmp(decoder, "generic_float"))     return generic;
-	if(!strcasecmp(decoder, "generic_dither")) return generic_dither;
-	if(!strcasecmp(decoder, "altivec"))     return altivec;
-	if(!strcasecmp(decoder, "i386"))        return idrei;
-	if(!strcasecmp(decoder, "i486"))        return ivier;
-	if(!strcasecmp(decoder, "i586"))        return ifuenf;
-	if(!strcasecmp(decoder, "i586_dither")) return ifuenf_dither;
-	return nodec;
+	for(dt=autodec; dt<nodec; ++dt)
+	if(!strcasecmp(decoder, decname[dt])) return dt;
+
+	return nodec; /* If we found nothing... */
 }
 
 #ifdef OPT_MULTI
@@ -651,7 +672,12 @@ static const char *mpg123_supported_decoder_list[] =
 	#ifdef OPT_GENERIC_FLOAT
 	NULL,
 	#endif
-	NULL, /* generic */
+#	ifdef OPT_GENERIC
+	NULL,
+#	endif
+#	ifdef OPT_GENERIC_DITHER
+	NULL,
+#	endif
 	NULL
 };
 #endif
@@ -659,37 +685,37 @@ static const char *mpg123_supported_decoder_list[] =
 static const char *mpg123_decoder_list[] =
 {
 	#ifdef OPT_3DNOWEXT
-	"3DNowExt",
+	dn_3DNowExt
 	#endif
 	#ifdef OPT_SSE
-	"SSE",
+	dn_SSE,
 	#endif
 	#ifdef OPT_3DNOW
-	"3DNow",
+	dn_3DNow,
 	#endif
 	#ifdef OPT_MMX
-	"MMX",
+	dn_MMX,
 	#endif
 	#ifdef OPT_I586
-	"i586",
+	dn_i586,
 	#endif
 	#ifdef OPT_I586_DITHER
-	"i586_dither",
+	dn_i586_dither,
 	#endif
 	#ifdef OPT_I486
-	"i486",
+	dn_i486,
 	#endif
 	#ifdef OPT_I386
-	"i386",
+	dn_i386,
 	#endif
 	#ifdef OPT_ALTIVEC
-	"AltiVec",
+	dn_altivec,
 	#endif
 	#ifdef OPT_GENERIC
-	"generic",
+	dn_generic],
 	#endif
-	#ifdef OPT_GENERIC
-	"generic_dither",
+	#ifdef OPT_GENERIC_DITHER
+	dn_generic_dither,
 	#endif
 	NULL
 };
@@ -697,6 +723,7 @@ static const char *mpg123_decoder_list[] =
 void check_decoders(void )
 {
 #ifndef OPT_MULTI
+	/* In non-multi mode, only the full list (one entry) is used. */
 	return;
 #else
 	const char **d = mpg123_supported_decoder_list;
@@ -707,62 +734,50 @@ void check_decoders(void )
 		/* not yet: if(cpu_sse2(cpu_flags)) printf(" SSE2");
 		if(cpu_sse3(cpu_flags)) printf(" SSE3"); */
 #ifdef OPT_3DNOWEXT
-		if(cpu_3dnowext(cpu_flags)) *(d++) = "3DNowExt";
+		if(cpu_3dnowext(cpu_flags)) *(d++) = decname[dreidnowext];
 #endif
 #ifdef OPT_SSE
-		if(cpu_sse(cpu_flags)) *(d++) = "SSE";
+		if(cpu_sse(cpu_flags)) *(d++) = decname[sse];
 #endif
 #ifdef OPT_3DNOW
-		if(cpu_3dnow(cpu_flags)) *(d++) = "3DNow";
+		if(cpu_3dnow(cpu_flags)) *(d++) = decname[dreidnow];
 #endif
 #ifdef OPT_MMX
-		if(cpu_mmx(cpu_flags)) *(d++) = "MMX";
+		if(cpu_mmx(cpu_flags)) *(d++) = decname[mmx];
 #endif
 #ifdef OPT_I586
-		*(d++) = "i586";
+		*(d++) = decname[ifuenf];
 #endif
 #ifdef OPT_I586_DITHER
-		*(d++) = "i586_dither";
+		*(d++) = decname[ifuenf_dither];
 #endif
 	}
 #endif
 /* just assume that the i486 built is run on a i486 cpu... */
 #ifdef OPT_I486
-	*(d++) = "i486";
+	*(d++) = decname[ivier];
 #endif
 #ifdef OPT_ALTIVEC
-	*(d++) = "AltiVec";
+	*(d++) = decname[altivec];
 #endif
 /* every supported x86 can do i386, any cpu can do generic */
 #ifdef OPT_I386
-	*(d++) = "i386";
+	*(d++) = decname[idrei];
 #endif
 #ifdef OPT_GENERIC
-	*(d++) = "generic";
+	*(d++) = decname[generic];
+#endif
+#ifdef OPT_GENERIC_DITHER
+	*(d++) = decname[generic_dither];
 #endif
 #endif /* ndef OPT_MULTI */
 }
 
-int attribute_align_arg mpg123_current_decoder(mpg123_handle *mh)
+const char* attribute_align_arg mpg123_current_decoder(mpg123_handle *mh)
 {
-	if(mh == NULL) return MPG123_ERR;
+	if(mh == NULL) return NULL;
 
-#ifdef OPT_MULTI
-	{
-		int idx = 0;
-		const char* dn = decname[mh->cpu_opts.type];
-		const char** cmp = mpg123_decoder_list;
-		while(*cmp != NULL && strcasecmp(dn, *cmp))
-		{
-			++cmp;
-			++idx;
-		}
-		if(*cmp == NULL) return -1;
-		else return idx;
-	}
-#endif
-
-	return 0;
+	return decname[mh->cpu_opts.type];
 }
 
 const char attribute_align_arg **mpg123_decoders(){ return mpg123_decoder_list; }

@@ -33,10 +33,11 @@
 /* Runtime optimization interface now here: */
 
 enum optdec
-{
-	autodec=0, nodec, generic, generic_dither, idrei,
+{ /* autodec needs to be =0 and the first, nodec needs to be the last -- for loops! */
+	autodec=0, generic, generic_dither, idrei,
 	ivier, ifuenf, ifuenf_dither, mmx,
-	dreidnow, dreidnowext, altivec, sse
+	dreidnow, dreidnowext, altivec, sse,
+	nodec
 };
 enum optcla { nocla=0, normal, mmxsse };
 
@@ -118,6 +119,8 @@ enum optcla decclass(const enum optdec);
 #ifndef OPT_MULTI
 #	define defopt ifuenf_dither
 #	define opt_synth_1to1(fr) synth_1to1_i586_dither
+#	define opt_synth_2to1(fr) synth_2to1_dither
+#	define opt_synth_4to1(fr) synth_4to1_dither
 #endif
 #endif
 
