@@ -46,6 +46,8 @@ struct audioformat
 	long rate;
 };
 
+void invalidate_format(struct audioformat *af);
+
 struct mpg123_pars_struct
 {
 	int verbose;    /* verbose level */

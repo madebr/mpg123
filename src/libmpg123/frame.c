@@ -71,9 +71,7 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 	/* frame_outbuffer is missing... */
 	/* frame_buffers is missing... that one needs cpu opt setting! */
 	/* after these... frame_reset is needed before starting full decode */
-	fr->af.encoding = 0;
-	fr->af.rate = 0;
-	fr->af.channels = 0;
+	invalidate_format(&fr->af);
 	fr->rdat.r_read = NULL;
 	fr->rdat.r_lseek = NULL;
 	fr->decoder_change = 1;

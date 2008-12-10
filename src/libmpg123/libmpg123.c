@@ -1212,6 +1212,12 @@ int attribute_align_arg mpg123_close(mpg123_handle *mh)
 	if(mh == NULL) return MPG123_ERR;
 	if(mh->rd != NULL && mh->rd->close != NULL) mh->rd->close(mh);
 	mh->rd = NULL;
+	if(mh->new_format)
+	{
+		debug("Hey, we are closing a track before the new format has been queried...");
+		invalidate_format(&mh->af);
+		mh->new_format = 0;
+	}
 	return MPG123_OK;
 }
 
