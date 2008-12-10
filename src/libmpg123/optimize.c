@@ -9,7 +9,6 @@
 */
 
 #include "mpg123lib_intern.h" /* includes optimize.h */
-#define DEBUG
 #include "debug.h"
 
 /* Must match the enum dectype! */
@@ -712,7 +711,7 @@ static const char *mpg123_decoder_list[] =
 	dn_altivec,
 	#endif
 	#ifdef OPT_GENERIC
-	dn_generic],
+	dn_generic,
 	#endif
 	#ifdef OPT_GENERIC_DITHER
 	dn_generic_dither,
