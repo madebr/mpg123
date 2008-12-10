@@ -10,6 +10,11 @@
 #include "id3.h"
 #include "debug.h"
 
+/* We know the usual text frames plus some specifics. */
+#define KNOWN_FRAMES 4
+static const char frame_type[KNOWN_FRAMES][5] = { "COMM", "TXXX", "RVA2", "USLT" };
+enum frame_types { unknown = -2, text = -1, comment, extra, rva2, uslt };
+
 /* UTF support definitions */
 
 typedef void (*text_converter)(mpg123_string *sb, unsigned char* source, size_t len);
@@ -273,8 +278,9 @@ static void process_text(mpg123_handle *fr, char *realdata, size_t realsize, cha
 	if(VERBOSE4) fprintf(stderr, "Note: ID3v2 %c%c%c%c text frame: %s\n", id[0], id[1], id[2], id[3], t->text.p);
 }
 
-/* Store a new comment that perhaps is a RVA / RVA_ALBUM/AUDIOPHILE / RVA_MIX/RADIO one */
-static void process_comment(mpg123_handle *fr, char *realdata, size_t realsize, int rva_level, char *id)
+/* Store a new comment that perhaps is a RVA / RVA_ALBUM/AUDIOPHILE / RVA_MIX/RADIO one
+   Special gimmik: It also stores USLT to the texts. Stucture is the same as for comments. */
+static void process_comment(mpg123_handle *fr, enum frame_types tt, char *realdata, size_t realsize, int rva_level, char *id)
 {
 	/* Text encoding          $xx */
 	/* Language               $xx xx xx */
@@ -290,7 +296,7 @@ static void process_comment(mpg123_handle *fr, char *realdata, size_t realsize, 
 		if(NOQUIET) error1("Invalid frame size of %lu (too small for anything).", (unsigned long)realsize);
 		return;
 	}
-	xcom = add_comment(fr);
+	xcom = (tt == uslt ? add_text(fr) : add_comment(fr));
 	if(VERBOSE4) fprintf(stderr, "Note: Storing comment from %s encoding\n", enc_name(realdata[0]));
 	if(xcom == NULL)
 	{
@@ -315,10 +321,11 @@ static void process_comment(mpg123_handle *fr, char *realdata, size_t realsize, 
 
 	if(VERBOSE4)
 	{
-		fprintf(stderr, "Note: ID3 comment desc: %s\n", xcom->description.fill > 0 ? xcom->description.p : "");
-		fprintf(stderr, "Note: ID3 comment text: %s\n", xcom->text.fill > 0 ? xcom->text.p : "");
+		fprintf(stderr, "Note: ID3 comm/uslt desc: %s\n", xcom->description.fill > 0 ? xcom->description.p : "");
+		fprintf(stderr, "Note: ID3 comm/uslt text: %s\n", xcom->text.fill > 0 ? xcom->text.p : "");
 	}
-	if(xcom->description.fill > 0 && xcom->text.fill > 0)
+	/* Look out for RVA info only when we really deal with a straight comment. */
+	if(tt == comment && xcom->description.fill > 0 && xcom->text.fill > 0)
 	{
 		int rva_mode = -1; /* mix / album */
 		if(   !strcasecmp(xcom->description.p, "rva")
@@ -560,9 +567,7 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 						int head_part = fr->id3v2.version == 2 ? 3 : 4; /* bytes of frame title and of framesize value */
 						/* level 1,2,3 - 0 is info from lame/info tag! */
 						/* rva tags with ascending significance, then general frames */
-						#define KNOWN_FRAMES 3
-						const char frame_type[KNOWN_FRAMES][5] = { "COMM", "TXXX", "RVA2" }; /* plus all text frames... */
-						enum { unknown = -2, text = -1, comment, extra, rva2 } tt = unknown;
+						enum frame_types tt = unknown;
 						/* we may have entered the padding zone or any other strangeness: check if we have valid frame id characters */
 						for(i=0; i< head_part; ++i)
 						if( !( ((tagdata[tagpos+i] > 47) && (tagdata[tagpos+i] < 58))
@@ -664,7 +669,8 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 								switch(tt)
 								{
 									case comment:
-										process_comment(fr, (char*)realdata, realsize, comment+1, id);
+									case uslt:
+										process_comment(fr, tt, (char*)realdata, realsize, comment+1, id);
 									break;
 									case extra: /* perhaps foobar2000's work */
 										process_extra(fr, (char*)realdata, realsize, extra+1, id);

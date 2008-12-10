@@ -690,7 +690,7 @@ EXPORT int  mpg123_set_substring(mpg123_string *sb, const char *stuff, size_t fr
 
 /** Sub data structure for ID3v2, for storing various text fields (including comments).
  *  This is for ID3v2 COMM, TXXX and all the other text fields.
- *  Only COMM and TXXX have a description, only COMM has a language.
+ *  Only COMM and TXXX have a description, only COMM and USLT have a language.
  *  You should consult the ID3v2 specification for the use of the various text fields ("frames" in ID3v2 documentation, I use "fields" here to separate from MPEG frames). */
 typedef struct
 {
@@ -718,7 +718,7 @@ typedef struct
 	   There can be multiple occurences, the pointers above always point to the last encountered data. */
 	mpg123_text    *comment_list; /**< Array of comments. */
 	size_t          comments;     /**< Number of comments. */
-	mpg123_text    *text;         /**< Array of ID3v2 text fields */
+	mpg123_text    *text;         /**< Array of ID3v2 text fields (including USLT) */
 	size_t          texts;        /**< Numer of text fields. */
 	mpg123_text    *extra;        /**< The array of extra (TXXX) fields. */
 	size_t          extras;       /**< Number of extra text (TXXX) fields. */
