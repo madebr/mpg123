@@ -13,9 +13,9 @@ int main(int argc, char** argv)
 	long count;
 
 	fprintf(stderr,"Computing RMS full scale for double float data (thus, full scale is 2).\n");
-	/* Reference values relative to full scale 2 (from -1 to +1) */
-	iso_rms_limit  = pow(2.,-15)/sqrt(12.)/2.;
-	iso_diff_limit = pow(2.,-14)/2.;
+	/* Reference values relative to full scale 2 (from -1 to +1). They are _defined_ relative to full scale. */
+	iso_rms_limit  = pow(2.,-15)/sqrt(12.);
+	iso_diff_limit = pow(2.,-14);
 	fprintf(stderr, "ISO limit values: RMS=%g maxdiff=%g\n", iso_rms_limit, iso_diff_limit);
 
 	rms = 0;
