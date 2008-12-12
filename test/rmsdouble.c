@@ -7,39 +7,44 @@
 
 int main(int argc, char** argv)
 {
-	long negmax = 8388608;
-	int a = open(argv[1], O_RDONLY);
-	int b = open(argv[2], O_RDONLY);
-	if(a < 0 || b < 0){ fprintf(stderr, "cannot open files\n");return 1; }
-	double av;
-	double bv;
-	double rms = 0;
-	double intrms = 0;
-	int32_t intmax = 0;
-	double max = 0;
-	long count = 0;
-	while( (read(a, &av, sizeof(double)) == sizeof(double))
-	   &&  (read(b, &bv, sizeof(double)) == sizeof(double)) )
+	int fda, fdb;
+	double iso_rms_limit, iso_diff_limit;
+	double av, bv, rms, maxdiff;
+	long count;
+
+	fprintf(stderr,"Computing RMS full scale for double float data (thus, full scale is 2).\n");
+	/* Reference values relative to full scale 2 (from -1 to +1) */
+	iso_rms_limit  = pow(2.,-15)/sqrt(12.)/2.;
+	iso_diff_limit = pow(2.,-14)/2.;
+	fprintf(stderr, "ISO limit values: RMS=%g maxdiff=%g\n", iso_rms_limit, iso_diff_limit);
+
+	rms = 0;
+	maxdiff = 0;
+	count = 0;
+
+	fda = open(argv[1], O_RDONLY);
+	fdb = open(argv[2], O_RDONLY);
+	if(fda < 0 || fdb < 0){ fprintf(stderr, "cannot open files\n");return 1; }
+
+	while( (read(fda, &av, sizeof(double)) == sizeof(double))
+	   &&  (read(fdb, &bv, sizeof(double)) == sizeof(double)) )
 	{
-		/* quantization to 24 bit... is that different ? */
-		int32_t ai = (int32_t) rint(bv*negmax);
-		int32_t bi = (int32_t) rint(av*negmax);
-		int32_t ad = ai-bi;
-		if(ad < 0) ad *= -1;
-		if(ad > intmax) intmax = ad;
-		if(ad > 1){ fprintf(stderr, "big diff at %li (%g vs. %g)\n", count, av*negmax, bv*negmax); break; }
-		else if(ad) fprintf(stderr, "diff at %li (%g vs. %g)\n", count, av*negmax, bv*negmax);
+		double vd = (double)av-(double)bv;
 		++count;
-		rms += pow((double)av-bv,2);
-		intrms += pow( (ai-bi), 2 );
-		double vd = av-bv;
+		rms += vd*vd;
 		if(vd < 0) vd *= -1;
-		if(vd > max) max = vd;
+		if(vd > maxdiff) maxdiff = vd;
 	}
+
+	close(fda);
+	close(fdb);
+
 	rms /= count;
-	intrms /= count;
-	printf("RMS=%g (max=%g); intRMS=%g (max=%i)\n", sqrt(rms), max, sqrt(intrms)/negmax, intmax);
-	close(a);
-	close(b);
+	rms  = sqrt(rms);
+	rms /= 2.; /* full scale... */
+	maxdiff /= 2.; /* full scale again */
+	printf("RMS=%g (%s) maxdiff=%g (%s)\n",
+		rms, rms<iso_rms_limit ? "PASS" : "FAIL",
+		maxdiff, maxdiff<iso_diff_limit ? "PASS" : "FAIL");
 	return 0;
 }
