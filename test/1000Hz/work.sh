@@ -4,7 +4,7 @@ if test -z "$MPG123"; then
 	MPG123=mpg123
 fi
 # I need -x for little endian.
-lame -r -x --preset standard $SF lame.mp3
+lame -r --signed --little-endian --bitwidth 16 --preset standard $SF lame.mp3
 $MPG123 --gapless -s lame.mp3 > gapless.raw_s16
 $MPG123 --no-gapless -s lame.mp3 > gappy.raw_s16
 
