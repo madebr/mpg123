@@ -101,6 +101,9 @@ static int find_dectype(mpg123_handle *fr)
 		|| basic_synth == synth_1to1_real_i386
 		|| basic_synth == synth_2to1_real_i386
 		|| basic_synth == synth_4to1_real_i386
+		|| basic_synth == synth_1to1_s32_i386
+		|| basic_synth == synth_2to1_s32_i386
+		|| basic_synth == synth_4to1_s32_i386
 #endif
 	) type = idrei;
 #endif
@@ -119,6 +122,10 @@ static int find_dectype(mpg123_handle *fr)
 		|| basic_synth == synth_2to1_real
 		|| basic_synth == synth_4to1_real
 		|| basic_synth == synth_ntom_real
+		|| basic_synth == synth_1to1_s32
+		|| basic_synth == synth_2to1_s32
+		|| basic_synth == synth_4to1_s32
+		|| basic_synth == synth_ntom_s32
 #endif
 	) type = generic;
 #ifdef OPT_GENERIC_DITHER
@@ -185,6 +192,10 @@ int set_synth_functions(mpg123_handle *fr)
 	funcs[OUT_REAL][1] = (func_synth) opt_synth_2to1_real(fr);
 	funcs[OUT_REAL][2] = (func_synth) opt_synth_4to1_real(fr);
 	funcs[OUT_REAL][3] = (func_synth) opt_synth_ntom_real(fr);
+	funcs[OUT_S32][0] = (func_synth) opt_synth_1to1_s32(fr);
+	funcs[OUT_S32][1] = (func_synth) opt_synth_2to1_s32(fr);
+	funcs[OUT_S32][2] = (func_synth) opt_synth_4to1_s32(fr);
+	funcs[OUT_S32][3] = (func_synth) opt_synth_ntom_s32(fr);
 #endif
 
 	funcs_mono[OUT_16][0] = (func_synth_mono) opt_synth_1to1_mono(fr);
@@ -200,6 +211,10 @@ int set_synth_functions(mpg123_handle *fr)
 	funcs_mono[OUT_REAL][1] = (func_synth_mono) opt_synth_2to1_real_mono(fr);
 	funcs_mono[OUT_REAL][2] = (func_synth_mono) opt_synth_4to1_real_mono(fr);
 	funcs_mono[OUT_REAL][3] = (func_synth_mono) opt_synth_ntom_real_mono(fr);
+	funcs_mono[OUT_S32][0] = (func_synth_mono) opt_synth_1to1_s32_mono(fr);
+	funcs_mono[OUT_S32][1] = (func_synth_mono) opt_synth_2to1_s32_mono(fr);
+	funcs_mono[OUT_S32][2] = (func_synth_mono) opt_synth_4to1_s32_mono(fr);
+	funcs_mono[OUT_S32][3] = (func_synth_mono) opt_synth_ntom_s32_mono(fr);
 #endif
 
 	funcs_mono2stereo[OUT_16][0] = (func_synth_mono) opt_synth_1to1_mono2stereo(fr);
@@ -215,8 +230,11 @@ int set_synth_functions(mpg123_handle *fr)
 	funcs_mono2stereo[OUT_REAL][1] = (func_synth_mono) opt_synth_2to1_real_mono2stereo(fr);
 	funcs_mono2stereo[OUT_REAL][2] = (func_synth_mono) opt_synth_4to1_real_mono2stereo(fr);
 	funcs_mono2stereo[OUT_REAL][3] = (func_synth_mono) opt_synth_ntom_real_mono2stereo(fr);
+	funcs_mono2stereo[OUT_S32][0] = (func_synth_mono) opt_synth_1to1_s32_mono2stereo(fr);
+	funcs_mono2stereo[OUT_S32][1] = (func_synth_mono) opt_synth_2to1_s32_mono2stereo(fr);
+	funcs_mono2stereo[OUT_S32][2] = (func_synth_mono) opt_synth_4to1_s32_mono2stereo(fr);
+	funcs_mono2stereo[OUT_S32][3] = (func_synth_mono) opt_synth_ntom_s32_mono2stereo(fr);
 #endif
-
 
 	/* Select the basic output format, different from 16bit: 8bit, real. */
 	if(fr->af.encoding & MPG123_ENC_8) basic_format = OUT_8;
@@ -224,6 +242,15 @@ int set_synth_functions(mpg123_handle *fr)
 	{
 #ifndef REAL_IS_FIXED
 		basic_format = OUT_REAL;
+#else
+		if(NOQUIET) error("set_synth_functions: Invalid output format, shouldn't have reached me!");
+		return -1;
+#endif
+	}
+	else if(fr->af.encoding & MPG123_ENC_32)
+	{
+#ifndef REAL_IS_FIXED
+		basic_format = OUT_S32;
 #else
 		if(NOQUIET) error("set_synth_functions: Invalid output format, shouldn't have reached me!");
 		return -1;
@@ -505,6 +532,9 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		if(fr->cpu_opts.synth_1to1_real == NULL) fr->cpu_opts.synth_1to1_real = synth_1to1_real_i386;
 		if(fr->cpu_opts.synth_2to1_real == NULL) fr->cpu_opts.synth_2to1_real = synth_2to1_real_i386;
 		if(fr->cpu_opts.synth_4to1_real == NULL) fr->cpu_opts.synth_4to1_real = synth_4to1_real_i386;
+		if(fr->cpu_opts.synth_1to1_s32 == NULL) fr->cpu_opts.synth_1to1_s32 = synth_1to1_s32_i386;
+		if(fr->cpu_opts.synth_2to1_s32 == NULL) fr->cpu_opts.synth_2to1_s32 = synth_2to1_s32_i386;
+		if(fr->cpu_opts.synth_4to1_s32 == NULL) fr->cpu_opts.synth_4to1_s32 = synth_4to1_s32_i386;
 #		endif
 	}
 
@@ -608,6 +638,18 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 	if(fr->cpu_opts.synth_ntom_real == NULL) fr->cpu_opts.synth_ntom_real = synth_ntom_real;
 	if(fr->cpu_opts.synth_ntom_real_mono == NULL) fr->cpu_opts.synth_ntom_real_mono = synth_ntom_real_mono;
 	if(fr->cpu_opts.synth_ntom_real_mono2stereo == NULL) fr->cpu_opts.synth_ntom_real_mono2stereo = synth_ntom_real_mono2stereo;
+	if(fr->cpu_opts.synth_1to1_s32 == NULL) fr->cpu_opts.synth_1to1_s32 = synth_1to1_s32;
+	if(fr->cpu_opts.synth_1to1_s32_mono == NULL) fr->cpu_opts.synth_1to1_s32_mono = synth_1to1_s32_mono;
+	if(fr->cpu_opts.synth_1to1_s32_mono2stereo == NULL) fr->cpu_opts.synth_1to1_s32_mono2stereo = synth_1to1_s32_mono2stereo;
+	if(fr->cpu_opts.synth_2to1_s32 == NULL) fr->cpu_opts.synth_2to1_s32 = synth_2to1_s32;
+	if(fr->cpu_opts.synth_2to1_s32_mono == NULL) fr->cpu_opts.synth_2to1_s32_mono = synth_2to1_s32_mono;
+	if(fr->cpu_opts.synth_2to1_s32_mono2stereo == NULL) fr->cpu_opts.synth_2to1_s32_mono2stereo = synth_2to1_s32_mono2stereo;
+	if(fr->cpu_opts.synth_4to1_s32 == NULL) fr->cpu_opts.synth_4to1_s32 = synth_4to1_s32;
+	if(fr->cpu_opts.synth_4to1_s32_mono == NULL) fr->cpu_opts.synth_4to1_s32_mono = synth_4to1_s32_mono;
+	if(fr->cpu_opts.synth_4to1_s32_mono2stereo == NULL) fr->cpu_opts.synth_4to1_s32_mono2stereo = synth_4to1_s32_mono2stereo;
+	if(fr->cpu_opts.synth_ntom_s32 == NULL) fr->cpu_opts.synth_ntom_s32 = synth_ntom_s32;
+	if(fr->cpu_opts.synth_ntom_s32_mono == NULL) fr->cpu_opts.synth_ntom_s32_mono = synth_ntom_s32_mono;
+	if(fr->cpu_opts.synth_ntom_s32_mono2stereo == NULL) fr->cpu_opts.synth_ntom_s32_mono2stereo = synth_ntom_s32_mono2stereo;
 #	endif
 
 #endif /* OPT_MULTI */

@@ -96,6 +96,7 @@ struct parameter
 	int keep_open; /* Whether to keep files open after end reached, for remote control mode, perhaps terminal control, too. */
 	int force_utf8; /* Regardless of environment, always print out verbatim UTF for metadata. */
 	long index_size; /* size of frame index */
+	char *force_encoding;
 };
 
 extern char *equalfile;

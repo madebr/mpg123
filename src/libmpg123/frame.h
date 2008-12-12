@@ -179,6 +179,18 @@ struct mpg123_handle_struct
 		int (*synth_ntom_real)(real *,int, mpg123_handle *,int );
 		int (*synth_ntom_real_mono)(real *, mpg123_handle *);
 		int (*synth_ntom_real_mono2stereo)(real *, mpg123_handle *);
+		int (*synth_1to1_s32)(real *,int, mpg123_handle *,int );
+		int (*synth_1to1_s32_mono)(real *, mpg123_handle *);
+		int (*synth_1to1_s32_mono2stereo)(real *, mpg123_handle *);
+		int (*synth_2to1_s32)(real *,int, mpg123_handle *,int );
+		int (*synth_2to1_s32_mono)(real *, mpg123_handle *);
+		int (*synth_2to1_s32_mono2stereo)(real *, mpg123_handle *);
+		int (*synth_4to1_s32)(real *,int, mpg123_handle *,int );
+		int (*synth_4to1_s32_mono)(real *, mpg123_handle *);
+		int (*synth_4to1_s32_mono2stereo)(real *, mpg123_handle *);
+		int (*synth_ntom_s32)(real *,int, mpg123_handle *,int );
+		int (*synth_ntom_s32_mono)(real *, mpg123_handle *);
+		int (*synth_ntom_s32_mono2stereo)(real *, mpg123_handle *);
 #endif
 #ifdef OPT_3DNOW
 		void (*dct36)(real *,real *,real *,real *,real *);

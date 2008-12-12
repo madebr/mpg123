@@ -79,6 +79,12 @@
 #  define REAL_PRINTF "%f"
 #endif
 
+#ifndef REAL_IS_FIXED
+# if (defined SIZEOF_INT32_T) && (SIZEOF_INT32_T != 4)
+#  error "Bad 32bit types!!!"
+# endif
+#endif
+
 #ifndef DOUBLE_TO_REAL
 # define DOUBLE_TO_REAL(x)     (x)
 #endif
@@ -93,6 +99,12 @@
 #endif
 #ifndef REAL_MINUS_32768
 # define REAL_MINUS_32768      -32768.0
+#endif
+#ifndef REAL_PLUS_S32
+# define REAL_PLUS_S32 2147483647.0
+#endif
+#ifndef REAL_MINUS_S32
+# define REAL_MINUS_S32 -2147483648.0
 #endif
 #ifndef REAL_MUL
 # define REAL_MUL(x, y)                ((x) * (y))
@@ -118,7 +130,9 @@
 /* We support short or float output samples...
    Short integer amplitude is scaled by this. */
 #define SHORT_SCALE 32768
-
+/* That scales a short-scaled value to a 32bit integer scaled one
+   value = 2**31/2**15 */
+#define S32_RESCALE 65536
 
 /* Pre Shift fo 16 to 8 bit converter table */
 #define AUSHIFT (3)

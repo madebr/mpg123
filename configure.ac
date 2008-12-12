@@ -400,9 +400,12 @@ AC_SUBST(LARGEFILE_SWITCH)
 AC_CHECK_TYPE(size_t, unsigned int)
 AC_CHECK_TYPE(ssize_t, int)
 AC_CHECK_TYPE(off_t,  long int)
+AC_CHECK_TYPE(int32_t, int)
+AC_CHECK_TYPE(uint32_t, unsigned int)
 AC_CHECK_SIZEOF(size_t,4)
 AC_CHECK_SIZEOF(ssize_t,4)
 AC_CHECK_SIZEOF(off_t,4)
+AC_CHECK_SIZEOF(int32_t)
 AC_CHECK_SIZEOF(long,4)
 
 dnl ############## Function Checks
@@ -665,8 +668,7 @@ if test "x$with_cpu" != "x"; then
 	cpu_type=$with_cpu
 fi
 
-
-s_gen= # Everyone using the plain dct64 now to be safe, may be optimized away in future, again
+s_fpu="synth_real synth_s32"
 s_altivec="synth_altivec dct64_altivec"
 s_i386="dct64_i386"
 s_i486="$s_i386 synth_i486 dct64_i486"
@@ -683,38 +685,38 @@ dnl CPU specific compiler flags and sources
 case $cpu_type in
   generic)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC -DREAL_IS_FLOAT"
-    more_sources="$s_gen"
+    more_sources="$s_fpu"
     ccalign=no
   ;;
   generic_dither)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC_DITHER -DREAL_IS_FLOAT"
-    more_sources="$s_gen $s_dither"
+    more_sources="$s_fpu $s_dither"
     ccalign=no
   ;;
 dnl Not disabling buffer for float mode... check that this is OK now!
   generic_fpu | generic_float)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC -DREAL_IS_FLOAT"
-    more_sources="$s_gen"
+    more_sources="$s_fpu"
     ccalign=no
   ;;
   generic_nofpu)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC -DREAL_IS_FIXED"
-    more_sources="$s_gen"
+    more_sources=
     ccalign=no
   ;;
   altivec)
     ADD_CFLAGS="$ADD_CFLAGS -maltivec -faltivec"
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DREAL_IS_FLOAT -DOPT_ALTIVEC"
-    more_sources="$s_altivec"
+    more_sources="$s_altivec $s_fpu"
   ;;
   i386) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_I386 -DREAL_IS_FLOAT"
-    more_sources="$s_i386"
+    more_sources="$s_fpu $s_i386"
     ccalign=no
   ;;
   i386_fpu) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_I386 -DREAL_IS_FLOAT"
-    more_sources="$s_i386"
+    more_sources="$s_fpu $s_i386"
     ccalign=no
   ;;
   i386_nofpu) 
@@ -724,49 +726,49 @@ dnl Not disabling buffer for float mode... check that this is OK now!
   ;;
   i486) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_I486 -DREAL_IS_FLOAT"
-    more_sources="$s_i486"
+    more_sources="$s_fpu $s_i486"
     ccalign=no
   ;;
   i586) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_I586 -DREAL_IS_FLOAT"
-    more_sources="$s_i586"
+    more_sources="$s_fpu $s_i586"
   ;;
   i586_dither) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_I586_DITHER -DREAL_IS_FLOAT"
-    more_sources="$s_i586d $s_dither"
+    more_sources="$s_fpu $s_i586d $s_dither"
   ;;
   3dnow)
     # legacy 3dnow had the 3dnow paired with i586...
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_I586 -DOPT_3DNOW -DREAL_IS_FLOAT"
-    more_sources="$s_i586 $s_3dnow $s_x86multi "
+    more_sources="$s_fpu $s_i586 $s_3dnow $s_x86multi "
   ;;
   3dnow_alone)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_3DNOW -DREAL_IS_FLOAT"
-    more_sources="$s_3dnow"
+    more_sources="$s_fpu $s_3dnow"
   ;;
   3dnowext_alone) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_3DNOWEXT -DREAL_IS_FLOAT"
-    more_sources="$s_3dnowext"
+    more_sources="$s_fpu $s_3dnowext"
   ;;
   3dnowext) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_3DNOW -DOPT_3DNOWEXT -DREAL_IS_FLOAT"
-    more_sources="$s_3dnowext $s_3dnow $s_x86multi"
+    more_sources="$s_fpu $s_3dnowext $s_3dnow $s_x86multi"
   ;;
   mmx_alone|mmx) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MMX -DREAL_IS_FLOAT"
-    more_sources="$s_mmx"
+    more_sources="$s_fpu $s_mmx"
   ;;
   sse_alone|sse) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_SSE -DREAL_IS_FLOAT"
-    more_sources="$s_sse"
+    more_sources="$s_fpu $s_sse"
   ;;
   x86) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_I386 -DOPT_I586 -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOWEXT -DOPT_SSE -DREAL_IS_FLOAT"
-    more_sources="$s_gen $s_i386 $s_i586 $s_mmx $s_3dnow $s_3dnowext $s_sse $s_x86multi"
+    more_sources="$s_fpu $s_i386 $s_i586 $s_mmx $s_3dnow $s_3dnowext $s_sse $s_x86multi"
  ;;
   x86_dither) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_GENERIC_DITHER -DOPT_I386 -DOPT_I586 -DOPT_I586_DITHER -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOWEXT -DOPT_SSE -DREAL_IS_FLOAT"
-    more_sources="$s_gen $s_i386 $s_i586 $s_i586d $s_dither $s_mmx $s_3dnow $s_3dnowext $s_sse $s_x86multi"
+    more_sources="$s_fpu $s_i386 $s_i586 $s_i586d $s_dither $s_mmx $s_3dnow $s_3dnowext $s_sse $s_x86multi"
   ;;
   *)
   	AC_MSG_ERROR([Unknown CPU type '$cpu_type'])

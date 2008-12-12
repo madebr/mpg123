@@ -27,6 +27,19 @@
 	else if( (sum) < REAL_MINUS_32768) { *(samples) = 0x0000; (clip)++; } \
 	else { *(samples) = REAL_TO_SHORT(sum)+32768; }
 
+/*
+	32bit signed 
+	We do clipping with the same old borders... but different conversion.
+	We see here that we need extra work for non-16bit output... we optimized for 16bit.
+*/
+#define WRITE_S32_SAMPLE(samples,sum,clip) \
+	{ \
+		real tmpsum = REAL_MUL((sum),S32_RESCALE); \
+		if( tmpsum > REAL_PLUS_S32 ){ *(samples) = 0x7fffffff; (clip)++; } \
+		else if( tmpsum < REAL_MINUS_S32 ) { *(samples) = -0x80000000; (clip)++; } \
+		else { *(samples) = (int32_t)tmpsum; } \
+	}
+
 /* Produce an 8bit sample, via 16bit intermediate. */
 #define WRITE_8BIT_SAMPLE(samples,sum,clip) \
 { \
@@ -43,8 +56,9 @@
 #ifndef REAL_IS_FIXED
 /* Write a floating point sample (that is, one matching the internal real type). */
 #define WRITE_REAL_SAMPLE(samples,sum,clip) *(samples) = ((real)1./SHORT_SCALE)*(sum)
-#define OUT_FORMATS 3 /* Basic output formats: 16bit, 8bit and real */
+#define OUT_FORMATS 4 /* Basic output formats: 16bit, 8bit, real and s32 */
 #define OUT_REAL 2
+#define OUT_S32 3
 #else
 #define OUT_FORMATS 2 /* Basic output formats: 16bit and 8bit */
 #endif
@@ -134,6 +148,23 @@ int synth_4to1_real_mono2stereo(real*, mpg123_handle*);
 int synth_ntom_real            (real*, int, mpg123_handle*, int);
 int synth_ntom_real_mono       (real*, mpg123_handle*);
 int synth_ntom_real_mono2stereo(real*, mpg123_handle*);
+
+/* 32bit integer */
+int synth_1to1_s32            (real*, int, mpg123_handle*, int);
+int synth_1to1_s32_i386       (real*, int, mpg123_handle*, int);
+int synth_1to1_s32_mono       (real*, mpg123_handle*);
+int synth_1to1_s32_mono2stereo(real*, mpg123_handle*);
+int synth_2to1_s32            (real*, int, mpg123_handle*, int);
+int synth_2to1_s32_i386       (real*, int, mpg123_handle*, int);
+int synth_2to1_s32_mono       (real*, mpg123_handle*);
+int synth_2to1_s32_mono2stereo(real*, mpg123_handle*);
+int synth_4to1_s32            (real*, int, mpg123_handle*, int);
+int synth_4to1_s32_i386       (real*, int, mpg123_handle*, int);
+int synth_4to1_s32_mono       (real*, mpg123_handle*);
+int synth_4to1_s32_mono2stereo(real*, mpg123_handle*);
+int synth_ntom_s32            (real*, int, mpg123_handle*, int);
+int synth_ntom_s32_mono       (real*, mpg123_handle*);
+int synth_ntom_s32_mono2stereo(real*, mpg123_handle*);
 #endif
 
 

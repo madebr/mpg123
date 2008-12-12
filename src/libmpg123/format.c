@@ -19,16 +19,16 @@ static const long my_rates[MPG123_RATES] = /* only the standard rates */
 
 static const int my_encodings[MPG123_ENCODINGS] =
 {
-	MPG123_ENC_SIGNED_16, 
+	MPG123_ENC_SIGNED_16,
 	MPG123_ENC_UNSIGNED_16,
-	MPG123_ENC_UNSIGNED_8,
-	MPG123_ENC_SIGNED_8,
-	MPG123_ENC_ULAW_8,
-	MPG123_ENC_ALAW_8,
 	MPG123_ENC_SIGNED_32,
 	MPG123_ENC_UNSIGNED_32,
 	MPG123_ENC_FLOAT_32,
-	MPG123_ENC_FLOAT_64
+	MPG123_ENC_FLOAT_64,
+	MPG123_ENC_SIGNED_8,
+	MPG123_ENC_UNSIGNED_8,
+	MPG123_ENC_ULAW_8,
+	MPG123_ENC_ALAW_8
 };
 
 /* Only one type of float is supported. */
@@ -42,14 +42,16 @@ static const int my_encodings[MPG123_ENCODINGS] =
 static const int good_encodings[] =
 {
 	MPG123_ENC_SIGNED_16,
-	/* MPG123_ENC_UNSIGNED_16, You've seen code anywhere to actualy produce unsinged 16 ? It never worked. */
-	MPG123_ENC_UNSIGNED_8,
-	MPG123_ENC_SIGNED_8,
-	MPG123_ENC_ULAW_8,
-	MPG123_ENC_ALAW_8,
+	MPG123_ENC_UNSIGNED_16,
 #ifndef REAL_IS_FIXED
-	MPG123_FLOAT_ENC
+	MPG123_ENC_SIGNED_32,
+	MPG123_ENC_UNSIGNED_32,
+	MPG123_FLOAT_ENC,
 #endif
+	MPG123_ENC_SIGNED_8,
+	MPG123_ENC_UNSIGNED_8,
+	MPG123_ENC_ULAW_8,
+	MPG123_ENC_ALAW_8
 };
 
 /* Check if encoding is a valid one in this build.
@@ -164,13 +166,13 @@ int frame_output_format(mpg123_handle *fr)
 	/* All this forcing should be removed in favour of the capabilities table... */
 	if(p->flags & MPG123_FORCE_8BIT)
 	{
-		f0 = 2; /* Skip the 16bit encodings. */
-		f2 = 6; /* Stop before the 32bit encodings. */
+		f0 = 6;
+		f2 = 10;
 	}
 	if(p->flags & MPG123_FORCE_FLOAT)
 	{
-		f0 = 8;  /* Start with 32bit float. */
-		f2 = 10; /* End with 64bit float. */
+		f0 = 4;
+		f2 = 6;
 	}
 
 	/* There should be a branch for 32bit integer; but that's not anywhere now. */

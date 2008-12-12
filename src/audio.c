@@ -247,21 +247,38 @@ static void audio_output_dump(audio_output_t *ao)
 }
 */
 
+struct enc_desc
+{
+	int code; /* MPG123_ENC_SOMETHING */
+	const char *longname; /* signed bla bla */
+	const char *name; /* sXX, short name */
+	const unsigned char nlen; /* significant characters in short name */
+};
+
+static const struct enc_desc encdesc[] =
+{
+	{ MPG123_ENC_SIGNED_16, "signed 16 bit", "s16 ", 3 },
+	{ MPG123_ENC_UNSIGNED_16, "unsigned 16 bit", "u16 ", 3 },
+	{ MPG123_ENC_UNSIGNED_8, "unsigned 8 bit", "u8  ", 3 },
+	{ MPG123_ENC_SIGNED_8, "signed 8 bit", "s8  ", 3 },
+	{ MPG123_ENC_ULAW_8, "mu-law (8 bit)", "ulaw ", 4 },
+	{ MPG123_ENC_ALAW_8, "a-law (8 bit)", "alaw ", 4 },
+	{ MPG123_ENC_FLOAT_32, "float (32 bit)", "f32 ", 3 },
+	{ MPG123_ENC_SIGNED_32, "signed 32 bit", "s32 ", 3 },
+	{ MPG123_ENC_UNSIGNED_32, "unsigned 32 bit", "u32 ", 3 }
+};
+#define KNOWN_ENCS (sizeof(encdesc)/sizeof(struct enc_desc))
+
 
 /* Safer as function... */
 const char* audio_encoding_name(const int encoding, const int longer)
 {
 	const char *name = longer ? "unknown" : "???";
-	switch(encoding)
-	{
-		case MPG123_ENC_SIGNED_16:   name = longer ? "signed 16 bit"   : "s16 ";  break;
-		case MPG123_ENC_UNSIGNED_16: name = longer ? "unsigned 16 bit" : "u16 ";  break;
-		case MPG123_ENC_UNSIGNED_8:  name = longer ? "unsigned 8 bit"  : "u8  ";   break;
-		case MPG123_ENC_SIGNED_8:    name = longer ? "signed 8 bit"    : "s8  ";   break;
-		case MPG123_ENC_ULAW_8:      name = longer ? "mu-law (8 bit)"  : "ulaw "; break;
-		case MPG123_ENC_ALAW_8:      name = longer ? "a-law (8 bit)"   : "alaw "; break;
-		case MPG123_ENC_FLOAT_32:    name = longer ? "float (32 bit)"  : "f32";   break;
-	}
+	int i;
+	for(i=0;i<KNOWN_ENCS;++i)
+	if(encdesc[i].code == encoding)
+	name = longer ? encdesc[i].longname : encdesc[i].name;
+
 	return name;
 }
 
@@ -271,7 +288,7 @@ static void capline(mpg123_handle *mh, long rate)
 	const int  *encs;
 	size_t      num_encs;
 	mpg123_encodings(&encs, &num_encs);
-	fprintf(stderr," %5ld  |", pitch_rate(rate));
+	fprintf(stderr," %5ld |", pitch_rate(rate));
 	for(enci=0; enci<num_encs; ++enci)
 	{
 		switch(mpg123_format_support(mh, rate, encs[enci]))
@@ -301,9 +318,13 @@ void print_capabilities(audio_output_t *ao, mpg123_handle *mh)
 	}
 	mpg123_rates(&rates, &num_rates);
 	mpg123_encodings(&encs, &num_encs);
-	fprintf(stderr,"\nAudio driver: %s\nAudio device: %s\nAudio capabilities:\n(matrix of [S]tereo or [M]ono support for sample format and rate in Hz)\n        |", name, dev);
+	fprintf(stderr,"\nAudio driver: %s\nAudio device: %s\nAudio capabilities:\n(matrix of [S]tereo or [M]ono support for sample format and rate in Hz)\n       |", name, dev);
 	for(e=0;e<num_encs;e++) fprintf(stderr," %5s |",audio_encoding_name(encs[e], 0));
-	fprintf(stderr,"\n --------------------------------------------------------\n");
+
+	fprintf(stderr,"\n ------|");
+	for(e=0;e<num_encs;e++) fprintf(stderr,"-------|");
+
+	fprintf(stderr, "\n");
 	for(r=0; r<num_rates; ++r) capline(mh, rates[r]);
 
 	if(param.force_rate) capline(mh, param.force_rate);
@@ -315,6 +336,7 @@ void print_capabilities(audio_output_t *ao, mpg123_handle *mh)
    In case of buffered playback, this works _once_ by querying the buffer for the caps before entering the main loop. */
 void audio_capabilities(audio_output_t *ao, mpg123_handle *mh)
 {
+	int force_fmt = 0;
 	int fmts;
 	size_t ri;
 	/* Pitching introduces a difference between decoder rate and playback rate. */
@@ -325,6 +347,25 @@ void audio_capabilities(audio_output_t *ao, mpg123_handle *mh)
 	debug("audio_capabilities");
 	mpg123_rates(&rates, &num_rates);
 	mpg123_format_none(mh); /* Start with nothing. */
+	if(param.force_encoding != NULL)
+	{
+		int i;
+		if(!param.quiet) fprintf(stderr, "Note: forcing output encoding %s\n", param.force_encoding);
+
+		for(i=0;i<KNOWN_ENCS;++i)
+		if(!strncasecmp(encdesc[i].name, param.force_encoding, encdesc[i].nlen))
+		{
+			force_fmt = encdesc[i].code;
+			break;
+		}
+
+		if(i==KNOWN_ENCS)
+		{
+			error1("Failed to find an encoding to match requested \"%s\"!\n", param.force_encoding);
+			return; /* No capabilities at all... */
+		}
+		else if(param.verbose > 2) fprintf(stderr, "Note: forcing encoding code 0x%x\n", force_fmt);
+	}
 	rlimit = param.force_rate > 0 ? num_rates+1 : num_rates;
 	for(channels=1; channels<=2; channels++)
 	for(ri = 0;ri<rlimit;ri++)
@@ -350,7 +391,14 @@ void audio_capabilities(audio_output_t *ao, mpg123_handle *mh)
 			ao->channels = channels;
 			fmts = ao->get_formats(ao);
 		}
-		if(param.verbose > 2) fprintf(stderr, "Note: result 0x%x", fmts);
+		if(param.verbose > 2) fprintf(stderr, "Note: result 0x%x\n", fmts);
+		if(force_fmt)
+		{ /* Filter for forced encoding. */
+			if((fmts & force_fmt) == force_fmt) fmts = force_fmt;
+			else fmts = 0; /* Nothing else! */
+
+			if(param.verbose > 2) fprintf(stderr, "Note: after forcing 0x%x\n", fmts);
+		}
 
 		if(fmts < 0) continue;
 		else mpg123_format(mh, decode_rate, channels, fmts);

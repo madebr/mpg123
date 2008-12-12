@@ -110,6 +110,7 @@ struct parameter param = {
 	,0 /* keep_open */
 	,0 /* force_utf8 */
 	,INDEX_SIZE
+	,NULL /* force_encoding */
 };
 
 mpg123_handle *mh = NULL;
@@ -437,6 +438,7 @@ topt opts[] = {
 	{0, "fuzzy", GLO_INT,  set_frameflag, &frameflag, MPG123_FUZZY},
 	{0, "index-size", GLO_ARG|GLO_LONG, 0, &param.index_size, 0},
 	{0, "no-seekbuffer", GLO_INT, unset_frameflag, &frameflag, MPG123_SEEKBUFFER},
+	{'e', "encoding", GLO_ARG|GLO_CHAR, 0, &param.force_encoding, 0},
 	{0, 0, 0, 0, 0, 0}
 };
 

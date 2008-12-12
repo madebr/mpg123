@@ -47,6 +47,7 @@ libmpg123_la_SOURCES = \
 	synth_mono.h \
 	synth_ntom.h \
 	synth_8bit.h \
+	synth_8bit.c \
 	ntom.c \
 	equalizer.c \
 	huffman.h \
@@ -94,6 +95,8 @@ EXTRA_libmpg123_la_SOURCES = \
 	synth_mmx.S \
 	synth_sse3d.h \
 	synth_sse.S \
+	synth_real.c \
+	synth_s32.c \
 	equalizer_3dnow.S \
 	tabinit_mmx.S \
 	getcpuflags.S

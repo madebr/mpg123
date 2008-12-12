@@ -205,7 +205,7 @@ extern float dithernoise[DITHERSIZE];
 	do
 		echo
 		echo "$slash$star $i $star$slash"
-		for t in "" _8bit _real; do for f in "" _mono _mono2stereo;
+		for t in "" _8bit _real _s32; do for f in "" _mono _mono2stereo;
 		do
 			echo "##	define opt_synth_${i}${t}${f}(fr) ((fr)->cpu_opts.synth_${i}${t}${f})"
 		done; done
@@ -222,6 +222,9 @@ extern float dithernoise[DITHERSIZE];
 #	define opt_synth_1to1_real(fr) ((fr)->cpu_opts.synth_1to1_real)
 #	define opt_synth_1to1_real_mono(fr) ((fr)->cpu_opts.synth_1to1_real_mono)
 #	define opt_synth_1to1_real_mono2stereo(fr) ((fr)->cpu_opts.synth_1to1_real_mono2stereo)
+#	define opt_synth_1to1_s32(fr) ((fr)->cpu_opts.synth_1to1_s32)
+#	define opt_synth_1to1_s32_mono(fr) ((fr)->cpu_opts.synth_1to1_s32_mono)
+#	define opt_synth_1to1_s32_mono2stereo(fr) ((fr)->cpu_opts.synth_1to1_s32_mono2stereo)
 
 /* 2to1 */
 #	define opt_synth_2to1(fr) ((fr)->cpu_opts.synth_2to1)
@@ -233,6 +236,9 @@ extern float dithernoise[DITHERSIZE];
 #	define opt_synth_2to1_real(fr) ((fr)->cpu_opts.synth_2to1_real)
 #	define opt_synth_2to1_real_mono(fr) ((fr)->cpu_opts.synth_2to1_real_mono)
 #	define opt_synth_2to1_real_mono2stereo(fr) ((fr)->cpu_opts.synth_2to1_real_mono2stereo)
+#	define opt_synth_2to1_s32(fr) ((fr)->cpu_opts.synth_2to1_s32)
+#	define opt_synth_2to1_s32_mono(fr) ((fr)->cpu_opts.synth_2to1_s32_mono)
+#	define opt_synth_2to1_s32_mono2stereo(fr) ((fr)->cpu_opts.synth_2to1_s32_mono2stereo)
 
 /* 4to1 */
 #	define opt_synth_4to1(fr) ((fr)->cpu_opts.synth_4to1)
@@ -244,6 +250,9 @@ extern float dithernoise[DITHERSIZE];
 #	define opt_synth_4to1_real(fr) ((fr)->cpu_opts.synth_4to1_real)
 #	define opt_synth_4to1_real_mono(fr) ((fr)->cpu_opts.synth_4to1_real_mono)
 #	define opt_synth_4to1_real_mono2stereo(fr) ((fr)->cpu_opts.synth_4to1_real_mono2stereo)
+#	define opt_synth_4to1_s32(fr) ((fr)->cpu_opts.synth_4to1_s32)
+#	define opt_synth_4to1_s32_mono(fr) ((fr)->cpu_opts.synth_4to1_s32_mono)
+#	define opt_synth_4to1_s32_mono2stereo(fr) ((fr)->cpu_opts.synth_4to1_s32_mono2stereo)
 
 /* ntom */
 #	define opt_synth_ntom(fr) ((fr)->cpu_opts.synth_ntom)
@@ -255,6 +264,9 @@ extern float dithernoise[DITHERSIZE];
 #	define opt_synth_ntom_real(fr) ((fr)->cpu_opts.synth_ntom_real)
 #	define opt_synth_ntom_real_mono(fr) ((fr)->cpu_opts.synth_ntom_real_mono)
 #	define opt_synth_ntom_real_mono2stereo(fr) ((fr)->cpu_opts.synth_ntom_real_mono2stereo)
+#	define opt_synth_ntom_s32(fr) ((fr)->cpu_opts.synth_ntom_s32)
+#	define opt_synth_ntom_s32_mono(fr) ((fr)->cpu_opts.synth_ntom_s32_mono)
+#	define opt_synth_ntom_s32_mono2stereo(fr) ((fr)->cpu_opts.synth_ntom_s32_mono2stereo)
 
 /* End of generated output. */
 
@@ -290,7 +302,7 @@ extern float dithernoise[DITHERSIZE];
 		do
 			if test $i = ntom; then cpu=; fi
 			echo "$slash$star $i $star$slash"
-			for t in "" _8bit _real; do
+			for t in "" _8bit _real _s32; do
 				echo "##		ifndef opt_synth_${i}${t}"
 				echo "##			define opt_synth_${i}${t}(fr) synth_${i}${t}$cpu"
 				echo "##		endif"
@@ -310,6 +322,9 @@ extern float dithernoise[DITHERSIZE];
 #		ifndef opt_synth_1to1_real
 #			define opt_synth_1to1_real(fr) synth_1to1_real_i386
 #		endif
+#		ifndef opt_synth_1to1_s32
+#			define opt_synth_1to1_s32(fr) synth_1to1_s32_i386
+#		endif
 /* 2to1 */
 #		ifndef opt_synth_2to1
 #			define opt_synth_2to1(fr) synth_2to1_i386
@@ -319,6 +334,9 @@ extern float dithernoise[DITHERSIZE];
 #		endif
 #		ifndef opt_synth_2to1_real
 #			define opt_synth_2to1_real(fr) synth_2to1_real_i386
+#		endif
+#		ifndef opt_synth_2to1_s32
+#			define opt_synth_2to1_s32(fr) synth_2to1_s32_i386
 #		endif
 /* 4to1 */
 #		ifndef opt_synth_4to1
@@ -330,6 +348,9 @@ extern float dithernoise[DITHERSIZE];
 #		ifndef opt_synth_4to1_real
 #			define opt_synth_4to1_real(fr) synth_4to1_real_i386
 #		endif
+#		ifndef opt_synth_4to1_s32
+#			define opt_synth_4to1_s32(fr) synth_4to1_s32_i386
+#		endif
 /* ntom */
 #		ifndef opt_synth_ntom
 #			define opt_synth_ntom(fr) synth_ntom
@@ -339,6 +360,9 @@ extern float dithernoise[DITHERSIZE];
 #		endif
 #		ifndef opt_synth_ntom_real
 #			define opt_synth_ntom_real(fr) synth_ntom_real
+#		endif
+#		ifndef opt_synth_ntom_s32
+#			define opt_synth_ntom_s32(fr) synth_ntom_s32
 #		endif
 #	else /* generic code */
 /* 1to1 */
@@ -351,6 +375,9 @@ extern float dithernoise[DITHERSIZE];
 #		ifndef opt_synth_1to1_real
 #			define opt_synth_1to1_real(fr) synth_1to1_real
 #		endif
+#		ifndef opt_synth_1to1_s32
+#			define opt_synth_1to1_s32(fr) synth_1to1_s32
+#		endif
 /* 2to1 */
 #		ifndef opt_synth_2to1
 #			define opt_synth_2to1(fr) synth_2to1
@@ -360,6 +387,9 @@ extern float dithernoise[DITHERSIZE];
 #		endif
 #		ifndef opt_synth_2to1_real
 #			define opt_synth_2to1_real(fr) synth_2to1_real
+#		endif
+#		ifndef opt_synth_2to1_s32
+#			define opt_synth_2to1_s32(fr) synth_2to1_s32
 #		endif
 /* 4to1 */
 #		ifndef opt_synth_4to1
@@ -371,6 +401,9 @@ extern float dithernoise[DITHERSIZE];
 #		ifndef opt_synth_4to1_real
 #			define opt_synth_4to1_real(fr) synth_4to1_real
 #		endif
+#		ifndef opt_synth_4to1_s32
+#			define opt_synth_4to1_s32(fr) synth_4to1_s32
+#		endif
 /* ntom */
 #		ifndef opt_synth_ntom
 #			define opt_synth_ntom(fr) synth_ntom
@@ -381,6 +414,9 @@ extern float dithernoise[DITHERSIZE];
 #		ifndef opt_synth_ntom_real
 #			define opt_synth_ntom_real(fr) synth_ntom_real
 #		endif
+#		ifndef opt_synth_ntom_s32
+#			define opt_synth_ntom_s32(fr) synth_ntom_s32
+#		endif
 #	endif /* x86 / generic */
 
 /* Common mono stuff, wrapping over possibly optimized basic synth. */
@@ -389,7 +425,7 @@ extern float dithernoise[DITHERSIZE];
 	## The ## is a quote for just #
 	for i in 1to1 2to1 4to1 ntom; do
 	star="*"; slash="/"; echo "$slash$star $i mono $star$slash"
-	for t in "" _8bit _real; do for m in mono mono2stereo; do
+	for t in "" _8bit _real _s32; do for m in mono mono2stereo; do
 	echo "##	ifndef opt_synth_${i}${t}_${m}"
 	echo "##		define opt_synth_${i}${t}_${m}(fr) synth_${i}${t}_${m}"
 	echo "##	endif"
@@ -414,6 +450,12 @@ extern float dithernoise[DITHERSIZE];
 #	ifndef opt_synth_1to1_real_mono2stereo
 #		define opt_synth_1to1_real_mono2stereo(fr) synth_1to1_real_mono2stereo
 #	endif
+#	ifndef opt_synth_1to1_s32_mono
+#		define opt_synth_1to1_s32_mono(fr) synth_1to1_s32_mono
+#	endif
+#	ifndef opt_synth_1to1_s32_mono2stereo
+#		define opt_synth_1to1_s32_mono2stereo(fr) synth_1to1_s32_mono2stereo
+#	endif
 /* 2to1 mono */
 #	ifndef opt_synth_2to1_mono
 #		define opt_synth_2to1_mono(fr) synth_2to1_mono
@@ -432,6 +474,12 @@ extern float dithernoise[DITHERSIZE];
 #	endif
 #	ifndef opt_synth_2to1_real_mono2stereo
 #		define opt_synth_2to1_real_mono2stereo(fr) synth_2to1_real_mono2stereo
+#	endif
+#	ifndef opt_synth_2to1_s32_mono
+#		define opt_synth_2to1_s32_mono(fr) synth_2to1_s32_mono
+#	endif
+#	ifndef opt_synth_2to1_s32_mono2stereo
+#		define opt_synth_2to1_s32_mono2stereo(fr) synth_2to1_s32_mono2stereo
 #	endif
 /* 4to1 mono */
 #	ifndef opt_synth_4to1_mono
@@ -452,6 +500,12 @@ extern float dithernoise[DITHERSIZE];
 #	ifndef opt_synth_4to1_real_mono2stereo
 #		define opt_synth_4to1_real_mono2stereo(fr) synth_4to1_real_mono2stereo
 #	endif
+#	ifndef opt_synth_4to1_s32_mono
+#		define opt_synth_4to1_s32_mono(fr) synth_4to1_s32_mono
+#	endif
+#	ifndef opt_synth_4to1_s32_mono2stereo
+#		define opt_synth_4to1_s32_mono2stereo(fr) synth_4to1_s32_mono2stereo
+#	endif
 /* ntom mono */
 #	ifndef opt_synth_ntom_mono
 #		define opt_synth_ntom_mono(fr) synth_ntom_mono
@@ -470,6 +524,12 @@ extern float dithernoise[DITHERSIZE];
 #	endif
 #	ifndef opt_synth_ntom_real_mono2stereo
 #		define opt_synth_ntom_real_mono2stereo(fr) synth_ntom_real_mono2stereo
+#	endif
+#	ifndef opt_synth_ntom_s32_mono
+#		define opt_synth_ntom_s32_mono(fr) synth_ntom_s32_mono
+#	endif
+#	ifndef opt_synth_ntom_s32_mono2stereo
+#		define opt_synth_ntom_s32_mono2stereo(fr) synth_ntom_s32_mono2stereo
 #	endif
 
 /* End of generated output. */
