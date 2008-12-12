@@ -24,6 +24,9 @@ clean:
 %.double: %.s16 s16_double.bin
 	./s16_double.bin < $< > $@
 
+%.double: %.s32 s32_double.bin
+	./s32_double.bin < $< > $@
+
 %.double: %.f32 f32_double.bin
 	./f32_double.bin < $< > $@
 
