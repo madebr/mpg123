@@ -259,8 +259,8 @@ static const struct enc_desc encdesc[] =
 {
 	{ MPG123_ENC_SIGNED_16, "signed 16 bit", "s16 ", 3 },
 	{ MPG123_ENC_UNSIGNED_16, "unsigned 16 bit", "u16 ", 3 },
-	{ MPG123_ENC_UNSIGNED_8, "unsigned 8 bit", "u8  ", 3 },
-	{ MPG123_ENC_SIGNED_8, "signed 8 bit", "s8  ", 3 },
+	{ MPG123_ENC_UNSIGNED_8, "unsigned 8 bit", "u8  ", 2 },
+	{ MPG123_ENC_SIGNED_8, "signed 8 bit", "s8  ", 2 },
 	{ MPG123_ENC_ULAW_8, "mu-law (8 bit)", "ulaw ", 4 },
 	{ MPG123_ENC_ALAW_8, "a-law (8 bit)", "alaw ", 4 },
 	{ MPG123_ENC_FLOAT_32, "float (32 bit)", "f32 ", 3 },
@@ -269,6 +269,27 @@ static const struct enc_desc encdesc[] =
 };
 #define KNOWN_ENCS (sizeof(encdesc)/sizeof(struct enc_desc))
 
+void audio_enclist(char** list)
+{
+	*list = NULL;
+	size_t length = 0;
+	int i;
+	for(i=0;i<KNOWN_ENCS;++i) length += encdesc[i].nlen;
+
+	length += KNOWN_ENCS-1; /* spaces between the encodings */
+	*list = malloc(length+1); /* plus zero */
+	if(*list != NULL)
+	{
+		size_t off = 0;
+		(*list)[length] = 0;
+		for(i=0;i<KNOWN_ENCS;++i)
+		{
+			if(i>0) (*list)[off++] = ' ';
+			memcpy(*list+off, encdesc[i].name, encdesc[i].nlen);
+			off += encdesc[i].nlen;
+		}
+	}
+}
 
 /* Safer as function... */
 const char* audio_encoding_name(const int encoding, const int longer)

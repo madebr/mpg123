@@ -1101,6 +1101,7 @@ static void want_usage(char* arg)
 
 static void long_usage(int err)
 {
+	char *enclist;
 	FILE* o = stdout;
 	if(err)
 	{
@@ -1166,6 +1167,9 @@ static void long_usage(int err)
 	fprintf(o," -4     --4to1             4:1 downsampling\n");
   fprintf(o,"        --pitch <value>    set hardware pitch (speedup/down, 0 is neutral; 0.05 is 5%%)\n");
 	fprintf(o,"        --8bit             force 8 bit output\n");
+	fprintf(o,"        --float            force floating point output (internal precision)\n");
+	audio_enclist(&enclist);
+	fprintf(o," -e <c> --encoding <c>     force a specific encoding c (%s)\n", enclist != NULL ? enclist : "OOM!");
 	fprintf(o," -d n   --doublespeed n    play only every nth frame\n");
 	fprintf(o," -h n   --halfspeed   n    play every frame n times\n");
 	fprintf(o,"        --equalizer        exp.: scales freq. bands acrd. to 'equalizer.dat'\n");

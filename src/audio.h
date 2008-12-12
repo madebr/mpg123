@@ -93,5 +93,7 @@ int reset_output(audio_output_t *ao);
 void output_pause(audio_output_t *ao);  /* Prepare output for inactivity. */
 void output_unpause(audio_output_t *ao); /* Reactivate output (buffer process). */
 
+void audio_enclist(char** list); /* Make a string of encoding names. */
+
 #endif
 
