@@ -126,6 +126,9 @@ output/alsa.$(OBJEXT): output/alsa.c audio.h module.h
 output/hp.$(OBJEXT): output/hp.c audio.h module.h
 	cd output && $(MAKE)
 
+output/sndio.$(OBJEXT): output/sndio.c audio.h module.h
+	cd output && $(MAKE)
+
 
 # Would have to mention _all_ source files... Dammit, that's what the libmpg123/Makefile.am does!
 # But again, the a make $something here needs that stupid rule... WHY???

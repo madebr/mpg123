@@ -309,6 +309,7 @@ AC_ARG_WITH([default-audio], [
   --with-default-audio=pulse      Use Pulse audio server as default audio output sub-system
   --with-default-audio=sdl        Use SDL as default audio output sub-system (Simple DirectMedia Layer)
   --with-default-audio=sgi        Use SGI as default audio output sub-system (IRIX)
+  --with-default-audio=sndio      Use OpenBSD's sndio as default audio output sub-system
   --with-default-audio=sun        Use Sun as default audio output sub-system (/dev/audio)
   --with-default-audio=arts       Use aRts as default audio output sub-system (KDE sound server)
 ])
@@ -793,7 +794,7 @@ fi
 dnl ############## Output module choice
 
 # The full list of supported modules to check, first come, first serve.
-check_modules="alsa oss coreaudio sun win32 esd jack portaudio pulse sdl nas arts dummy"
+check_modules="alsa oss coreaudio sndio sun win32 esd jack portaudio pulse sdl nas arts dummy"
 # The final list.
 output_modules=
 
@@ -908,6 +909,17 @@ do
 			WIN32_LIBS=-lwinmm
 			AC_CHECK_HEADERS([windows.h], output_modules="$output_modules win32" HAVE_WIN32=yes, HAVE_WIN32=no check_failed=yes)
 		;;
+		sndio)
+			SNDIO_LIBS=-lsndio
+			AC_CHECK_LIB([sndio], [sio_open],
+				[AC_CHECK_HEADERS([sndio.h],
+					[output_modules="$output_modules sndio" HAVE_SNDIO="yes"])
+				]
+			)
+			if test "x$HAVE_SNDIO" != xyes; then
+				check_failed=yes
+			fi
+		;;
 		sun)
 			AC_CHECK_HEADERS([sun/audioio.h sys/audioio.h asm/audioio.h sys/audio.h])
 			if test "x${ac_cv_header_sun_audioio_h}" = "xyes" \
@@ -1015,7 +1027,7 @@ if test "x$check_forced" = xyes -a "x$check_failed" = "xyes"; then
 fi
 
 # When you extend check_modules, you should extend this:
-#for i in alsa oss coreaudio sun win32 esd jack portaudio pulse sdl nas aix alib arts hp os2 sgi mint dummy; do echo $i; done |
+#for i in alsa oss coreaudio sndio sun win32 esd jack portaudio pulse sdl nas aix alib arts hp os2 sgi mint dummy; do echo $i; done |
 #perl -ne 'chomp; $big = uc($_); print <<EOT;
 #AC_SUBST(${big}_LIBS)
 #AC_SUBST(${big}_LDFLAGS)
@@ -1035,6 +1047,10 @@ AC_SUBST(COREAUDIO_LIBS)
 AC_SUBST(COREAUDIO_LDFLAGS)
 AC_SUBST(COREAUDIO_CFLAGS)
 AM_CONDITIONAL( [HAVE_COREAUDIO], [test "x$HAVE_COREAUDIO" = xyes] )
+AC_SUBST(SNDIO_LIBS)
+AC_SUBST(SNDIO_LDFLAGS)
+AC_SUBST(SNDIO_CFLAGS)
+AM_CONDITIONAL( [HAVE_SNDIO], [test "x$HAVE_SNDIO" = xyes] )
 AC_SUBST(SUN_LIBS)
 AC_SUBST(SUN_LDFLAGS)
 AC_SUBST(SUN_CFLAGS)
@@ -1127,7 +1143,7 @@ then
 	# That feels stupid... what about hashed arrays?
 	case $OUTPUT_MOD in
 	# Here's a script for that tedious list, perhaps to be outsourced together with the one in src/output/Makefile.am
-#for i in alsa coreaudio esd jack nas oss portaudio pulse sdl sun win32 aix alib arts hp os2 sgi mint; do echo $i; done |
+#for i in alsa coreaudio esd jack nas oss portaudio pulse sdl sndio sun win32 aix alib arts hp os2 sgi mint; do echo $i; done |
 #perl -ne 'chomp; $big = uc($_); print <<EOT;
 #		$_)
 #			OUTPUT_LIBS="\$${big}_LIBS"
@@ -1180,6 +1196,11 @@ then
 			OUTPUT_LIBS="$SDL_LIBS"
 			OUTPUT_LDFLAGS="$SDL_LDFLAGS"
 			OUTPUT_CFLAGS="$SDL_CFLAGS"
+		;;
+		sndio)
+			OUTPUT_LIBS="$SNDIO_LIBS"
+			OUTPUT_LDFLAGS="$SNDIO_LDFLAGS"
+			OUTPUT_CFLAGS="$SNDIO_CFLAGS"
 		;;
 		sun)
 			OUTPUT_LIBS="$SUN_LIBS"
