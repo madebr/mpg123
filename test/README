@@ -1,0 +1,7 @@
+This directory is supposed to grow a set of mpg123 sanity checks.
+Currently, there's something preliminary in the 1000Hz directory (used during gapless development) and some tools here that I use to compare mpg123 to the MPEG reference data:
+	- converters bewteen raw sample formats (including that 24bit hex ASCII from the reference)
+	- RMS error computation, including a verdict about conformity based on RMS and max error
+
+I am still wondering if it's OK to redistribute the offical reference data here...
+
