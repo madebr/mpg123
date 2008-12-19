@@ -237,7 +237,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../..;../../../../src/libmpg123"
-				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;OPT_GENERIC;REAL_IS_FLOAT;_DEBUG"
+				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;REAL_IS_FLOAT;OPT_GENERIC;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -630,6 +630,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\..\..\src\libmpg123\synth_8bit.c"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\src\libmpg123\synth_i486.c"
 			>
 			<FileConfiguration
@@ -664,6 +668,14 @@
 					Name="VCCLCompilerTool"
 				/>
 			</FileConfiguration>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\synth_real.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\synth_s32.c"
+			>
 		</File>
 		<File
 			RelativePath="..\..\..\..\src\libmpg123\tabinit.c"

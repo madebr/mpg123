@@ -12,6 +12,8 @@
 #include <sys/types.h>
 
 typedef long ssize_t;
+typedef __int32 int32_t;
+typedef unsigned __int32 uint32_t;
 
 #define MPG123_NO_CONFIGURE
 #include "mpg123.h.in" /* Yes, .h.in; we include the configure template! */
