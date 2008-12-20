@@ -440,9 +440,9 @@ AC_CHECK_FUNCS( mkfifo, [ have_mkfifo=yes ], [ have_mkfifo=no ] )
 
 if test x"$fifo" = xauto; then
 	if test x"$have_mkfifo" = xyes; then
-		fifo=yes
+		fifo=enabled
 	else
-		fifo=no
+		fifo=disabled
 	fi
 fi
 if test x"$fifo" = xenabled; then
