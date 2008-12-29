@@ -34,8 +34,8 @@ open_module( const char* type, const char* name )
 	
 	/* Check the module compiled in is the module requested */
 	if (strcmp(name, mod->name)!=0) {
-		error1("Unable to open requesed module '%s'.", name);
-		error1("The only available staticly compiled module is '%s'.", mod->name);
+		error1("Unable to open requested module '%s'.", name);
+		error1("The only available statically compiled module is '%s'.", mod->name);
 		return NULL;
 	}
 	
