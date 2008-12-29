@@ -11,7 +11,7 @@ AC_PREREQ(2.57)
 dnl ############# Initialisation
 
 AC_INIT([mpg123], [1.7.0], [mpg123-devel@lists.sourceforge.net])
-LIBMPG123_VERSION=12:0:12
+LIBMPG123_VERSION=13:0:13
 AC_SUBST(LIBMPG123_VERSION)
 
 AC_CONFIG_SRCDIR(src/mpg123.c)
@@ -267,6 +267,204 @@ AC_ARG_ENABLE(network,
               ]
 )
 
+dnl Optional objects list, depends on decoder choice and core feature selection.
+dnl Not just for specific decoders anymore...
+s_fpu=
+DECODER_OBJ=
+DECODER_LOBJ=
+
+dnl Core features that can be disabled to reduce binary size.
+
+id3v2=enabled
+AC_ARG_ENABLE(id3v2,
+              [  --disable-id3v2=[no/yes] no ID3v2 parsing ],
+              [
+                if test "x$enableval" = xno; then
+                  id3v2="disabled"
+                fi
+              ], [])
+
+# id3v2 depends on strings... so check that in between.
+string=enabled
+AC_ARG_ENABLE(string,
+              [  --disable-string=[no/yes] no string API (this will disable ID3v2; main mpg123 won't build anymore) ],
+              [
+                if test "x$enableval" = xno; then
+                  string="disabled"
+                fi
+              ], [])
+
+if test "x$string" = "xdisabled"; then
+  AC_DEFINE(NO_STRING, 1, [ Define to disable string functions. ])
+  id3v2=disabled
+ 	AC_MSG_WARN([ID3v2 support disabled because of string API being disabled.])
+else
+  DECODER_OBJ="$DECODER_OBJ stringbuf.\$(OBJEXT)"
+  DECODER_LOBJ="$DECODER_LOBJ stringbuf.lo"
+fi
+
+if test "x$id3v2" = "xdisabled"; then
+  AC_DEFINE(NO_ID3V2, 1, [ Define to disable ID3v2 parsing. ])
+fi
+
+icy=enabled
+AC_ARG_ENABLE(icy,
+              [  --disable-icy=[no/yes] no ICY metainfo parsing/conversion (main mpg123 won't build!) ],
+              [
+                if test "x$enableval" = xno; then
+                  icy="disabled"
+                fi
+              ], [])
+
+if test "x$icy" = "xdisabled"; then
+  AC_DEFINE(NO_ICY, 1, [ Define to disable ICY handling. ])
+else
+  DECODER_OBJ="$DECODER_OBJ icy.\$(OBJEXT) icy2utf8.\$(OBJEXT)"
+  DECODER_LOBJ="$DECODER_LOBJ icy.lo icy2utf8.lo"
+fi
+
+ntom=enabled
+AC_ARG_ENABLE(ntom,
+              [  --disable-ntom=[no/yes] no flexible resampling ],
+              [
+                if test "x$enableval" = xno; then
+                  ntom="disabled"
+                fi
+              ], [])
+
+if test "x$ntom" = "xdisabled"; then
+  AC_DEFINE(NO_NTOM, 1, [ Define to disable ntom resampling. ])
+else
+  DECODER_OBJ="$DECODER_OBJ ntom.\$(OBJEXT)"
+  DECODER_LOBJ="$DECODER_LOBJ ntom.lo"
+fi
+
+downsample=enabled
+AC_ARG_ENABLE(downsample,
+              [  --disable-downsample=[no/yes] no downsampled decoding ],
+              [
+                if test "x$enableval" = xno; then
+                  downsample="disabled"
+                fi
+              ], [])
+
+if test "x$downsample" = "xdisabled"; then
+  AC_DEFINE(NO_DOWNSAMPLE, 1, [ Define to disable downsampled decoding. ])
+fi
+
+int8=enabled
+AC_ARG_ENABLE(8bit,
+              [  --disable-8bit=[no/yes] no 8 bit integer output ],
+              [
+                if test "x$enableval" = xno; then
+                  int8="disabled"
+                fi
+              ], [])
+
+if test "x$int8" = "xdisabled"; then
+  AC_DEFINE(NO_8BIT, 1, [ Define to disable 8 bit integer output. ])
+else
+  DECODER_OBJ="$DECODER_OBJ synth_8bit.\$(OBJEXT)"
+  DECODER_LOBJ="$DECODER_LOBJ synth_8bit.lo"
+fi
+
+int16=enabled
+AC_ARG_ENABLE(16bit,
+              [  --disable-16bit=[no/yes] no 16 bit integer output ],
+              [
+                if test "x$enableval" = xno; then
+                  int16="disabled"
+                fi
+              ], [])
+
+if test "x$int16" = "xdisabled"; then
+  AC_DEFINE(NO_16BIT, 1, [ Define to disable 16 bit integer output. ])
+else
+  DECODER_OBJ="$DECODER_OBJ synth.\$(OBJEXT)"
+  DECODER_LOBJ="$DECODER_LOBJ synth.lo"
+fi
+int32=enabled
+AC_ARG_ENABLE(32bit,
+              [  --disable-32bit=[no/yes] no 32 bit integer output ],
+              [
+                if test "x$enableval" = xno; then
+                  int32="disabled"
+                fi
+              ], [])
+
+if test "x$int32" = "xdisabled"; then
+  AC_DEFINE(NO_32BIT, 1, [ Define to disable 32 bit integer output. ])
+else
+  s_fpu="$s_fpu synth_s32"
+fi
+
+real=enabled
+AC_ARG_ENABLE(real,
+              [  --disable-real=[no/yes] no real (floating point) output ],
+              [
+                if test "x$enableval" = xno; then
+                  real="disabled"
+                fi
+              ], [])
+
+if test "x$real" = "xdisabled"; then
+  AC_DEFINE(NO_REAL, 1, [ Define to disable real output. ])
+else
+  s_fpu="$s_fpu synth_real"
+fi
+
+layer1=enabled
+AC_ARG_ENABLE(layer1,
+              [  --disable-layer1=[no/yes] no layer I decoding ],
+              [
+                if test "x$enableval" = xno; then
+                  layer1="disabled"
+                fi
+              ], [])
+
+if test "x$layer1" = "xdisabled"; then
+  AC_DEFINE(NO_LAYER1, 1, [ Define to disable layer I. ])
+else
+  # layer1 needs code in layer2
+  DECODER_OBJ="$DECODER_OBJ layer1.\$(OBJEXT) layer2.\$(OBJEXT)"
+  DECODER_LOBJ="$DECODER_LOBJ layer1.lo layer2.lo"
+fi
+
+layer2=enabled
+AC_ARG_ENABLE(layer2,
+              [  --disable-layer2=[no/yes] no layer II decoding ],
+              [
+                if test "x$enableval" = xno; then
+                  layer2="disabled"
+                fi
+              ], [])
+
+if test "x$layer2" = "xdisabled"; then
+  AC_DEFINE(NO_LAYER2, 1, [ Define to disable layer II. ])
+else
+  # layer1 may have added the objects already
+  if test "x$layer1" = "xdisabled"; then
+    DECODER_OBJ="$DECODER_OBJ layer2.\$(OBJEXT)"
+    DECODER_LOBJ="$DECODER_LOBJ layer2.lo"
+  fi
+fi
+
+layer3=enabled
+AC_ARG_ENABLE(layer3,
+              [  --disable-layer3=[no/yes] no layer III decoding ],
+              [
+                if test "x$enableval" = xno; then
+                  layer3="disabled"
+                fi
+              ], [])
+
+if test "x$layer3" = "xdisabled"; then
+  AC_DEFINE(NO_LAYER3, 1, [ Define to disable layer III. ])
+else
+  DECODER_OBJ="$DECODER_OBJ layer3.\$(OBJEXT)"
+  DECODER_LOBJ="$DECODER_LOBJ layer3.lo"
+fi
+
 AC_ARG_WITH([cpu], [
   --with-cpu=generic[_fpu]      Use generic processor code with floating point arithmetic
   --with-cpu=generic_float      Plain alias to generic_fpu now... float output is a normal runtime option!
@@ -486,8 +684,6 @@ else
   have_network=no
 fi
 
-echo networkcheck
-
 if test x"$network" = xauto; then
 	if test x"$have_network" = xyes; then
 		network=enabled
@@ -501,8 +697,6 @@ if test x"$network" = xenabled; then
 		AC_MSG_WARN( [ You forced network code while I think there is support missing! ] )
 	fi
 fi
-
-echo networkcheckdone
 
 # Substitutions for the installable mpg123.h header
 if test "x$ac_cv_header_stdio_h" = "xyes"; then
@@ -669,15 +863,18 @@ if test "x$with_cpu" != "x"; then
 	cpu_type=$with_cpu
 fi
 
-s_fpu="synth_real synth_s32"
 s_altivec="synth_altivec dct64_altivec"
 s_i386="dct64_i386"
 s_i486="$s_i386 synth_i486 dct64_i486"
 s_i586="$s_i386 synth_i586"
 s_i586d="$s_i386 synth_i586_dither"
 s_dither="dnoise"
-s_3dnow="$s_i386 synth_3dnow dct64_3dnow dct36_3dnow equalizer_3dnow"
-s_3dnowext="$s_i386 dct64_3dnowext dct36_3dnowext dct64_mmx tabinit_mmx synth_3dnowext"
+s_3dnow="$s_i386 synth_3dnow dct64_3dnow equalizer_3dnow"
+s_3dnowext="$s_i386 dct64_3dnowext dct64_mmx tabinit_mmx synth_3dnowext"
+if test "x$layer3" = "xenabled"; then
+  s_3dnow="$s_3dnow dct36_3dnow"
+  s_3dnowext="$s_3dnowext dct36_3dnowext"
+fi
 s_mmx="$s_i386 dct64_mmx tabinit_mmx synth_mmx"
 s_sse="$s_i386 dct64_mmx tabinit_mmx dct64_sse synth_sse"
 s_x86multi="getcpuflags"
@@ -1378,7 +1575,25 @@ if test x"$aligncheck" = xenabled; then
 		echo "   (note that newer gcc 4.x versions do not use/need the align check)"
 	fi
 fi
-
+echo -n "
+  Core libmpg123 features:
+  Layer I ................. $layer1
+  Layer II ................ $layer2
+  Layer III ............... $layer3
+  NtoM resampling ......... $ntom
+  downsampled decoding .... $downsample
+  Posix file input ........ $fileio
+  Feeder input ............ $feeder
+  Callback input .......... $callback
+  ID3v2 parsing ........... $id3v2
+  String API .............. $string
+  ICY parsing/conversion .. $icy
+  Output formats (nofpu will disable all but 16 or 8 bit!):
+  8 bit integer ........... $int8
+  16 bit integer .......... $int16
+  32 bit integer .......... $int32
+  real (32 bit float) ..... $real
+"
 # just an empty line
 echo
 
@@ -1386,7 +1601,7 @@ if test x"$modules" = xenabled; then
 	echo "  Modules Directory ....... $pkglibdir"
 fi
 echo "  Checked audio modules ... $check_modules
-  Detected audio support .. $output_modules
+  Detected audio support ..$output_modules
   Default output module ... $default_output_module
 "
 if test x"$modules" = xdisabled; then
@@ -1409,5 +1624,3 @@ if test x"$debugging" = xenabled; then
 else
     echo "Next type 'make' and then 'make install'."
 fi
-
-

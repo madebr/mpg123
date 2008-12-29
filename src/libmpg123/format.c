@@ -41,17 +41,23 @@ static const int my_encodings[MPG123_ENCODINGS] =
 /* The list of actually possible encodings. */
 static const int good_encodings[] =
 {
+#ifndef NO_16BIT
 	MPG123_ENC_SIGNED_16,
 	MPG123_ENC_UNSIGNED_16,
-#ifndef REAL_IS_FIXED
+#endif
+#ifndef NO_32BIT
 	MPG123_ENC_SIGNED_32,
 	MPG123_ENC_UNSIGNED_32,
+#endif
+#ifndef NO_REAL
 	MPG123_FLOAT_ENC,
 #endif
+#ifndef NO_8BIT
 	MPG123_ENC_SIGNED_8,
 	MPG123_ENC_UNSIGNED_8,
 	MPG123_ENC_ULAW_8,
 	MPG123_ENC_ALAW_8
+#endif
 };
 
 /* Check if encoding is a valid one in this build.
@@ -84,7 +90,9 @@ static int rate2num(mpg123_pars *mp, long r)
 {
 	int i;
 	for(i=0;i<MPG123_RATES;i++) if(my_rates[i] == r) return i;
+#ifndef NO_NTOM
 	if(mp && mp->force_rate != 0 && mp->force_rate == r) return MPG123_RATES;
+#endif
 
 	return -1;
 }
@@ -124,7 +132,11 @@ static int freq_fit(mpg123_handle *fr, struct audioformat *nf, int f0, int f2)
 	if(cap_fit(fr,nf,f0,f2)) return 1;
 	/* If nothing worked, try the other rates, only without constrains from user.
 	   In case you didn't guess: We enable flexible resampling if we find a working rate. */
+#ifdef NO_NTOM
+	if(fr->p.down_sample == 0)
+#else
 	if(!fr->p.force_rate && fr->p.down_sample == 0)
+#endif
 	{
 		int i;
 		int c  = nf->channels-1;
@@ -181,6 +193,7 @@ int frame_output_format(mpg123_handle *fr)
 	if(p->flags & MPG123_FORCE_MONO)   nf.channels = 1;
 	if(p->flags & MPG123_FORCE_STEREO) nf.channels = 2;
 
+#ifndef NO_NTOM
 	if(p->force_rate)
 	{
 		nf.rate = p->force_rate;
@@ -205,6 +218,7 @@ int frame_output_format(mpg123_handle *fr)
 		fr->err = MPG123_BAD_OUTFORMAT;
 		return -1;
 	}
+#endif
 
 	if(freq_fit(fr, &nf, f0, 2)) goto end; /* try rates with 16bit */
 	if(freq_fit(fr, &nf, f0<=2 ? 2 : f0, f2)) goto end; /* ... 8bit */

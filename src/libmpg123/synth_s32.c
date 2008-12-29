@@ -20,7 +20,7 @@
 #define SAMPLE_T int32_t
 #define WRITE_SAMPLE(samples,sum,clip) WRITE_S32_SAMPLE(samples,sum,clip)
 
-/* Part 3a: All straight 1to1 decoding functions */
+/* Part 4a: All straight 1to1 decoding functions */
 #define BLOCK 0x40 /* One decoding block is 64 samples. */
 
 #define SYNTH_NAME synth_1to1_s32
@@ -47,8 +47,10 @@
 
 #undef BLOCK
 
+#ifndef NO_DOWNSAMPLE
+
 /*
-	Part 3b: 2to1 synth. Only generic and i386.
+	Part 4b: 2to1 synth. Only generic and i386.
 */
 #define BLOCK 0x20 /* One decoding block is 32 samples. */
 
@@ -77,7 +79,7 @@
 #undef BLOCK
 
 /*
-	Part 3c: 4to1 synth. Only generic and i386.
+	Part 4c: 4to1 synth. Only generic and i386.
 */
 #define BLOCK 0x10 /* One decoding block is 16 samples. */
 
@@ -105,8 +107,11 @@
 
 #undef BLOCK
 
+#endif /* NO_DOWNSAMPLE */
+
+#ifndef NO_NTOM
 /*
-	Part 3d: ntom synth.
+	Part 4d: ntom synth.
 	Same procedure as above... Just no extra play anymore, straight synth that may use an optimized dct64.
 */
 
@@ -118,6 +123,8 @@
 #undef SYNTH_NAME
 #undef MONO_NAME
 #undef MONO2STEREO_NAME
+
+#endif
 
 #undef SAMPLE_T
 #undef WRITE_SAMPLE

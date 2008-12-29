@@ -158,6 +158,8 @@ int synth_1to1_3dnowext(real *bandPtr, int channel, mpg123_handle *fr, int final
 }
 #endif
 
+#ifndef NO_DOWNSAMPLE
+
 /*
 	Part 1b: 2to1 synth.
 	Only generic and i386 functions this time.
@@ -232,6 +234,9 @@ int synth_1to1_3dnowext(real *bandPtr, int channel, mpg123_handle *fr, int final
 
 #undef BLOCK
 
+#endif /* NO_DOWNSAMPLE */
+
+#ifndef NO_NTOM
 /*
 	Part 1d: ntom synth.
 	Same procedure as above... Just no extra play anymore, straight synth that uses the plain dct64.
@@ -245,6 +250,8 @@ int synth_1to1_3dnowext(real *bandPtr, int channel, mpg123_handle *fr, int final
 #undef SYNTH_NAME
 #undef MONO_NAME
 #undef MONO2STEREO_NAME
+
+#endif
 
 /* Done with short output. */
 #undef SAMPLE_T

@@ -28,13 +28,17 @@ void frame_default_pars(mpg123_pars *mp)
 #else
 	mp->flags = 0;
 #endif
+#ifndef NO_NTOM
 	mp->force_rate = 0;
+#endif
 	mp->down_sample = 0;
 	mp->rva = 0;
 	mp->halfspeed = 0;
 	mp->doublespeed = 0;
 	mp->verbose = 0;
+#ifndef NO_ICY
 	mp->icy_interval = 0;
+#endif
 #ifndef WIN32
 	mp->timeout = 0;
 #endif
@@ -56,14 +60,18 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 	fr->buffer.data = NULL;
 	fr->rawbuffs = NULL;
 	fr->rawdecwin = NULL;
+#ifndef NO_8BIT
 	fr->conv16to8_buf = NULL;
+#endif
 	fr->xing_toc = NULL;
 	fr->cpu_opts.type = defdec();
 	fr->cpu_opts.class = decclass(fr->cpu_opts.type);
+#ifndef NO_NTOM
 	/* these two look unnecessary, check guarantee for synth_ntom_set_step (in control_generic, even)! */
 	fr->ntom_val[0] = NTOM_MUL>>1;
 	fr->ntom_val[1] = NTOM_MUL>>1;
 	fr->ntom_step = NTOM_MUL;
+#endif
 	/* unnecessary: fr->buffer.size = fr->buffer.fill = 0; */
 	mpg123_reset_eq(fr);
 	init_icy(&fr->icy);
@@ -311,10 +319,12 @@ int frame_buffers_reset(mpg123_handle *fr)
 
 void frame_icy_reset(mpg123_handle* fr)
 {
+#ifndef NO_ICY
 	if(fr->icy.data != NULL) free(fr->icy.data);
 	fr->icy.data = NULL;
 	fr->icy.interval = 0;
 	fr->icy.next = 0;
+#endif
 }
 
 void frame_free_toc(mpg123_handle *fr)
@@ -409,8 +419,10 @@ static void frame_fixed_reset(mpg123_handle *fr)
 	reset_id3(fr);
 	reset_icy(&fr->icy);
 	/* ICY stuff should go into icy.c, eh? */
+#ifndef NO_ICY
 	fr->icy.interval = 0;
 	fr->icy.next = 0;
+#endif
 	fr->halfphase = 0; /* here or indeed only on first-time init? */
 }
 
@@ -420,8 +432,10 @@ void frame_free_buffers(mpg123_handle *fr)
 	fr->rawbuffs = NULL;
 	if(fr->rawdecwin != NULL) free(fr->rawdecwin);
 	fr->rawdecwin = NULL;
+#ifndef NO_8BIT
 	if(fr->conv16to8_buf != NULL) free(fr->conv16to8_buf);
 	fr->conv16to8_buf = NULL;
+#endif
 }
 
 void frame_exit(mpg123_handle *fr)
@@ -582,9 +596,15 @@ off_t frame_ins2outs(mpg123_handle *fr, off_t ins)
 	switch(fr->down_sample)
 	{
 		case 0:
+#		ifndef NO_DOWNSAMPLE
 		case 1:
-		case 2: outs = ins>>fr->down_sample; break;
+		case 2:
+#		endif
+			outs = ins>>fr->down_sample;
+		break;
+#		ifndef NO_NTOM
 		case 3: outs = ntom_ins2outs(fr, ins); break;
+#		endif
 		default: error1("Bad down_sample (%i) ... should not be possible!!", fr->down_sample);
 	}
 	return outs;
@@ -596,9 +616,15 @@ off_t frame_outs(mpg123_handle *fr, off_t num)
 	switch(fr->down_sample)
 	{
 		case 0:
+#		ifndef NO_DOWNSAMPLE
 		case 1:
-		case 2: outs = (spf(fr)>>fr->down_sample)*num; break;
+		case 2:
+#		endif
+			outs = (spf(fr)>>fr->down_sample)*num;
+		break;
+#ifndef NO_NTOM
 		case 3: outs = ntom_frmouts(fr, num); break;
+#endif
 		default: error1("Bad down_sample (%i) ... should not be possible!!", fr->down_sample);
 	}
 	return outs;
@@ -610,9 +636,15 @@ off_t frame_offset(mpg123_handle *fr, off_t outs)
 	switch(fr->down_sample)
 	{
 		case 0:
+#		ifndef NO_DOWNSAMPLE
 		case 1:
-		case 2: num = outs/(spf(fr)>>fr->down_sample); break;
+		case 2:
+#		endif
+			num = outs/(spf(fr)>>fr->down_sample);
+		break;
+#ifndef NO_NTOM
 		case 3: num = ntom_frameoff(fr, outs); break;
+#endif
 		default: error("Bad down_sample ... should not be possible!!");
 	}
 	return num;
@@ -680,6 +712,9 @@ void frame_set_frameseek(mpg123_handle *fr, off_t fe)
 void frame_set_seek(mpg123_handle *fr, off_t sp)
 {
 	fr->firstframe = frame_offset(fr, sp);
+#ifndef NO_NTOM
+	if(fr->down_sample == 3) ntom_set_ntom(fr, fr->firstframe);
+#endif
 	fr->ignoreframe = fr->lay == 3 ? fr->firstframe-IGNORESHIFT : fr->firstframe;
 #ifdef GAPLESS /* The sample offset is used for non-gapless mode, too! */
 	fr->firstoff = sp - frame_outs(fr, fr->firstframe);

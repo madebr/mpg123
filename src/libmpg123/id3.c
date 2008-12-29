@@ -10,6 +10,8 @@
 #include "id3.h"
 #include "debug.h"
 
+#ifndef NO_ID3V2 /* Only the main parsing routine will always be there. */
+
 /* We know the usual text frames plus some specifics. */
 #define KNOWN_FRAMES 4
 static const char frame_type[KNOWN_FRAMES][5] = { "COMM", "TXXX", "RVA2", "USLT" };
@@ -454,6 +456,8 @@ int promote_framename(mpg123_handle *fr, char *id) /* fr because of VERBOSE macr
 	return -1;
 }
 
+#endif /* NO_ID3V2 */
+
 /*
 	trying to parse ID3v2.3 and ID3v2.4 tags...
 
@@ -522,14 +526,17 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 		return 0;
 	}
 	debug1("ID3v2: tag data length %lu", length);
+#ifndef NO_ID3V2
 	if(VERBOSE2) fprintf(stderr,"Note: ID3v2.%i rev %i tag of %lu bytes\n", major, buf[0], length);
 	/* skip if unknown version/scary flags, parse otherwise */
 	if((flags & UNKNOWN_FLAGS) || (major > 4) || (major < 2))
 	{
 		/* going to skip because there are unknown flags set */
 		if(NOQUIET) warning2("ID3v2: Won't parse the ID3v2 tag with major version %u and flags 0x%xu - some extra code may be needed", major, flags);
+#endif
 		if((ret2 = fr->rd->skip_bytes(fr,length)) < 0) /* will not store data in backbuff! */
 		ret = ret2;
+#ifndef NO_ID3V2
 	}
 	else
 	{
@@ -748,6 +755,7 @@ tagparse_cleanup:
 			else ret = 0;
 		}
 	}
+#endif /* NO_ID3V2 */
 	/* skip footer if present */
 	if((ret > 0) && (flags & FOOTER_FLAG) && ((ret2 = fr->rd->skip_bytes(fr,length)) < 0)) ret = ret2;
 
@@ -758,6 +766,8 @@ tagparse_cleanup:
 	#undef FOOTER_FLAG
 	#undef UNKOWN_FLAGS
 }
+
+#ifndef NO_ID3V2 /* Disabling all the rest... */
 
 static void convert_latin1(mpg123_string *sb, unsigned char* s, size_t l)
 {
@@ -892,3 +902,5 @@ static void convert_utf8(mpg123_string *sb, unsigned char* source, size_t len)
 	}
 	else mpg123_free_string(sb);
 }
+
+#endif

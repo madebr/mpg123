@@ -104,8 +104,12 @@ int attribute_align_arg mpg123_init(void)
 	ALIGNCHECKK
 	if((sizeof(short) != 2) || (sizeof(long) < 4)) return MPG123_BAD_TYPES;
 
-	init_layer2(); /* inits also shared tables with layer1 */
+#ifndef NO_LAYER12
+	init_layer12(); /* inits also shared tables with layer1 */
+#endif
+#ifndef NO_LAYER3
 	init_layer3();
+#endif
 	prepare_decode_tables();
 	check_decoders();
 	initialized = 1;
@@ -271,12 +275,21 @@ int attribute_align_arg mpg123_par(mpg123_pars *mp, enum mpg123_parms key, long 
 			debug1("set flags to 0x%lx", (unsigned long) mp->flags);
 		break;
 		case MPG123_FORCE_RATE: /* should this trigger something? */
+#ifdef NO_NTOM
+			if(val > 0)
+			ret = MPG123_BAD_RATE;
+#else
 			if(val > 96000) ret = MPG123_BAD_RATE;
 			else mp->force_rate = val < 0 ? 0 : val; /* >0 means enable, 0 disable */
+#endif
 		break;
 		case MPG123_DOWN_SAMPLE:
+#ifdef NO_DOWNSAMPLE
+			if(val != 0) ret = MPG123_BAD_RATE;
+#else
 			if(val < 0 || val > 2) ret = MPG123_BAD_RATE;
 			else mp->down_sample = (int)val;
+#endif
 		break;
 		case MPG123_RVA:
 			if(val < 0 || val > MPG123_RVA_MAX) ret = MPG123_BAD_RVA;
@@ -289,7 +302,11 @@ int attribute_align_arg mpg123_par(mpg123_pars *mp, enum mpg123_parms key, long 
 			mp->doublespeed = val < 0 ? 0 : val;
 		break;
 		case MPG123_ICY_INTERVAL:
+#ifndef NO_ICY
 			mp->icy_interval = val > 0 ? val : 0;
+#else
+			if(val > 0) ret = MPG123_BAD_PARAM;
+#endif
 		break;
 		case MPG123_OUTSCALE:
 			/* Choose the value that is non-zero, if any.
@@ -344,7 +361,12 @@ int attribute_align_arg mpg123_getpar(mpg123_pars *mp, enum mpg123_parms key, lo
 			if(val) *val = mp->flags;
 		break;
 		case MPG123_FORCE_RATE:
-			if(val) *val = mp->force_rate;
+			if(val) 
+#ifdef NO_NTOM
+			*val = 0;
+#else
+			*val = mp->force_rate;
+#endif
 		break;
 		case MPG123_DOWN_SAMPLE:
 			if(val) *val = mp->down_sample;
@@ -359,7 +381,11 @@ int attribute_align_arg mpg123_getpar(mpg123_pars *mp, enum mpg123_parms key, lo
 			if(val) *val = mp->doublespeed;
 		break;
 		case MPG123_ICY_INTERVAL:
+#ifndef NO_ICY
 			if(val) *val = (long)mp->icy_interval;
+#else
+			if(val) *val = 0;
+#endif
 		break;
 		case MPG123_OUTSCALE:
 			if(fval) *fval = mp->outscale;
@@ -509,6 +535,7 @@ int decode_update(mpg123_handle *mh)
 			/* With downsampling I get less samples per frame */
 			mh->outblock = samples_to_bytes(mh, (spf(mh)>>mh->down_sample));
 		break;
+#ifndef NO_NTOM
 		case 3:
 		{
 			if(synth_ntom_set_step(mh) != 0) return -1;
@@ -524,6 +551,7 @@ int decode_update(mpg123_handle *mh)
 			                 )/NTOM_MUL );
 		}
 		break;
+#endif
 	}
 
 	if(!(mh->p.flags & MPG123_FORCE_MONO))
@@ -640,51 +668,52 @@ void decode_the_frame(mpg123_handle *fr)
 		/* One could do a loop with individual samples instead... but zero is zero. */
 		memset(fr->buffer.data + fr->buffer.fill, 0, needed_bytes - fr->buffer.fill);
 		fr->buffer.fill = needed_bytes;
+#ifndef NO_NTOM
+		/* ntom_val will be wrong when the decoding wasn't carried out completely */
+		ntom_set_ntom(fr, fr->num+1);
+#endif
 	}
 	/* Handle unsigned output formats via reshifting after decode here. */
-#ifndef REAL_IS_FIXED
-	if(fr->af.encoding == MPG123_ENC_UNSIGNED_16 || fr->af.encoding == MPG123_ENC_UNSIGNED_32)
-#else
-	if(fr->af.encoding == MPG123_ENC_UNSIGNED_16)
-#endif
-	{
+#ifndef NO_32BIT
+	if(fr->af.encoding == MPG123_ENC_UNSIGNED_32)
+	{ /* 32bit signed -> unsigned */
 		size_t i;
-		debug("converting output to unsigned integer");
-#ifndef REAL_IS_FIXED
-		if(fr->af.encoding == MPG123_ENC_UNSIGNED_32)
-		{ /* 32bit signed -> unsigned */
-			int32_t *ssamples;
-			uint32_t *usamples;
-			ssamples = (int32_t*)fr->buffer.data;
-			usamples = (uint32_t*)fr->buffer.data;
-			for(i=0; i<fr->buffer.fill/sizeof(int32_t); ++i)
-			{
-				/* Different strategy since we don't have a larger type at hand.
-				   Also watch out for silly +-1 fun because integer constants are signed in C90! */
-				if(ssamples[i] >= 0)
-				usamples[i] = (uint32_t)ssamples[i] + 2147483647+1;
-				/* The smalles value goes zero. */
-				else if(ssamples[i] == ((int32_t)-2147483647-1))
-				usamples[i] = 0;
-				/* Now -value is in the positive range of signed int ... so it's a possible value at all. */
-				else
-				usamples[i] = (uint32_t)2147483647+1 - (uint32_t)(-ssamples[i]);
-			}
-		}
-		else
-#endif
+		int32_t *ssamples;
+		uint32_t *usamples;
+		ssamples = (int32_t*)fr->buffer.data;
+		usamples = (uint32_t*)fr->buffer.data;
+		debug("converting output to unsigned 32 bit integer");
+		for(i=0; i<fr->buffer.fill/sizeof(int32_t); ++i)
 		{
-			short *ssamples;
-			unsigned short *usamples;
-			ssamples = (short*)fr->buffer.data;
-			usamples = (unsigned short*)fr->buffer.data;
-			for(i=0; i<fr->buffer.fill/sizeof(short); ++i)
-			{
-				long tmp = (long)ssamples[i]+32768;
-				usamples[i] = (unsigned short)tmp;
-			}
+			/* Different strategy since we don't have a larger type at hand.
+				 Also watch out for silly +-1 fun because integer constants are signed in C90! */
+			if(ssamples[i] >= 0)
+			usamples[i] = (uint32_t)ssamples[i] + 2147483647+1;
+			/* The smalles value goes zero. */
+			else if(ssamples[i] == ((int32_t)-2147483647-1))
+			usamples[i] = 0;
+			/* Now -value is in the positive range of signed int ... so it's a possible value at all. */
+			else
+			usamples[i] = (uint32_t)2147483647+1 - (uint32_t)(-ssamples[i]);
 		}
 	}
+#endif
+#ifndef NO_16BIT
+	if(fr->af.encoding == MPG123_ENC_UNSIGNED_16)
+	{
+		size_t i;
+		short *ssamples;
+		unsigned short *usamples;
+		ssamples = (short*)fr->buffer.data;
+		usamples = (unsigned short*)fr->buffer.data;
+		debug("converting output to unsigned 16 bit integer");
+		for(i=0; i<fr->buffer.fill/sizeof(short); ++i)
+		{
+			long tmp = (long)ssamples[i]+32768;
+			usamples[i] = (unsigned short)tmp;
+		}
+	}
+#endif
 }
 
 /*
@@ -1196,7 +1225,13 @@ int attribute_align_arg mpg123_id3(mpg123_handle *mh, mpg123_id3v1 **v1, mpg123_
 	{
 		id3_link(mh);
 		if(v1 != NULL && mh->rdat.flags & READER_ID3TAG) *v1 = (mpg123_id3v1*) mh->id3buf;
-		if(v2 != NULL) *v2 = &mh->id3v2;
+		if(v2 != NULL)
+#ifdef NO_ID3V2
+		*v2 = NULL;
+#else
+		*v2 = &mh->id3v2;
+#endif
+
 		mh->metaflags |= MPG123_ID3;
 		mh->metaflags &= ~MPG123_NEW_ID3;
 	}
@@ -1207,6 +1242,7 @@ int attribute_align_arg mpg123_icy(mpg123_handle *mh, char **icy_meta)
 {
 	ALIGNCHECK(mh);
 	if(mh == NULL) return MPG123_ERR;
+#ifndef NO_ICY
 	if(icy_meta == NULL)
 	{
 		mh->err = MPG123_NULL_POINTER;
@@ -1221,11 +1257,19 @@ int attribute_align_arg mpg123_icy(mpg123_handle *mh, char **icy_meta)
 		mh->metaflags &= ~MPG123_NEW_ICY;
 	}
 	return MPG123_OK;
+#else
+	mh->err = MPG123_MISSING_FEATURE;
+	return MPG123_ERR;
+#endif
 }
 
 char* attribute_align_arg mpg123_icy2utf8(const char* icy_text)
 {
+#ifndef NO_ICY
 	return icy2utf8(icy_text);
+#else
+	return NULL;
+#endif
 }
 
 
@@ -1314,7 +1358,8 @@ static const char *mpg123_error[] =
 	"Bad key value given.",
 	"There is no frame index (disabled in this build).",
 	"Frame index operation failed.",
-	"Decoder setup failed (invalid combination of settings?)"
+	"Decoder setup failed (invalid combination of settings?)",
+	"Feature not in this build."
 };
 
 const char* attribute_align_arg mpg123_plain_strerror(int errcode)

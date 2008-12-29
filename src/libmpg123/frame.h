@@ -52,7 +52,9 @@ struct mpg123_pars_struct
 {
 	int verbose;    /* verbose level */
 	long flags; /* combination of above */
+#ifndef NO_NTOM
 	long force_rate;
+#endif
 	int down_sample;
 	int rva; /* (which) rva to do: 0: nothing, 1: radio/mix/track 2: album/audiophile */
 	long halfspeed;
@@ -64,7 +66,9 @@ struct mpg123_pars_struct
 	char audio_caps[NUM_CHANNELS][MPG123_RATES+1][MPG123_ENCODINGS];
 /*	long start_frame; */ /* frame offset to begin with */
 /*	long frame_number;*/ /* number of frames to decode */
+#ifndef NO_ICY
 	long icy_interval;
+#endif
 	double outscale;
 	long resync_limit;
 	long index_size; /* Long, because: negative values have a meaning. */
@@ -109,11 +113,11 @@ struct mpg123_handle_struct
 	/* for halfspeed mode */
 	unsigned char ssave[34];
 	int halfphase;
-
+#ifndef NO_8BIT
 	/* a raw buffer and a pointer into the middle for signed short conversion, only allocated on demand */
 	unsigned char *conv16to8_buf;
 	unsigned char *conv16to8;
-
+#endif
 	/* There's some possible memory saving for stuff that is not _really_ dynamic. */
 
 	/* layer3 */
@@ -124,10 +128,11 @@ struct mpg123_handle_struct
 	/* layer2 */
 	real muls[27][64];	/* also used by layer 1 */
 
+#ifndef NO_NTOM
 	/* decode_ntom */
 	unsigned long ntom_val[2];
 	unsigned long ntom_step;
-
+#endif
 	/* special i486 fun */
 #ifdef OPT_I486
 	int *int_buffs[2][2];
@@ -139,62 +144,91 @@ struct mpg123_handle_struct
 	struct
 	{
 #ifdef OPT_MULTI
+#ifndef NO_16BIT
 		int (*synth_1to1)(real *,int, mpg123_handle *,int );
 		int (*synth_1to1_mono)(real *, mpg123_handle *);
 		int (*synth_1to1_mono2stereo)(real *, mpg123_handle *);
+#endif
+#ifndef NO_8BIT
 		int (*synth_1to1_8bit)(real *,int, mpg123_handle *,int );
 		int (*synth_1to1_8bit_mono)(real *, mpg123_handle *);
 		int (*synth_1to1_8bit_mono2stereo)(real *, mpg123_handle *);
-
+#endif
+#ifndef NO_DOWNSAMPLE
+#ifndef NO_16BIT
 		int (*synth_2to1)(real *,int, mpg123_handle *,int );
 		int (*synth_2to1_mono)(real *, mpg123_handle *);
 		int (*synth_2to1_mono2stereo)(real *, mpg123_handle *);
-		int (*synth_2to1_8bit)(real *,int, mpg123_handle *,int );
-		int (*synth_2to1_8bit_mono)(real *, mpg123_handle *);
-		int (*synth_2to1_8bit_mono2stereo)(real *, mpg123_handle *);
-
 		int (*synth_4to1)(real *,int, mpg123_handle *,int );
 		int (*synth_4to1_mono)(real *, mpg123_handle *);
 		int (*synth_4to1_mono2stereo)(real *, mpg123_handle *);
+#endif
+#ifndef NO_8BIT
+		int (*synth_2to1_8bit)(real *,int, mpg123_handle *,int );
+		int (*synth_2to1_8bit_mono)(real *, mpg123_handle *);
+		int (*synth_2to1_8bit_mono2stereo)(real *, mpg123_handle *);
 		int (*synth_4to1_8bit)(real *,int, mpg123_handle *,int );
 		int (*synth_4to1_8bit_mono)(real *, mpg123_handle *);
 		int (*synth_4to1_8bit_mono2stereo)(real *, mpg123_handle *);
+#endif
+#endif
 
+#ifndef NO_NTOM
+#ifndef NO_16BIT
 		int (*synth_ntom)(real *,int, mpg123_handle *,int );
 		int (*synth_ntom_mono)(real *, mpg123_handle *);
 		int (*synth_ntom_mono2stereo)(real *, mpg123_handle *);
+#endif
+#ifndef NO_8BIT
 		int (*synth_ntom_8bit)(real *,int, mpg123_handle *,int );
 		int (*synth_ntom_8bit_mono)(real *, mpg123_handle *);
 		int (*synth_ntom_8bit_mono2stereo)(real *, mpg123_handle *);
+#endif
+#endif
+#ifndef NO_REAL
 #ifndef REAL_IS_FIXED
 		int (*synth_1to1_real)(real *,int, mpg123_handle *,int );
 		int (*synth_1to1_real_mono)(real *, mpg123_handle *);
 		int (*synth_1to1_real_mono2stereo)(real *, mpg123_handle *);
+#ifndef NO_DOWNSAMPLE
 		int (*synth_2to1_real)(real *,int, mpg123_handle *,int );
 		int (*synth_2to1_real_mono)(real *, mpg123_handle *);
 		int (*synth_2to1_real_mono2stereo)(real *, mpg123_handle *);
 		int (*synth_4to1_real)(real *,int, mpg123_handle *,int );
 		int (*synth_4to1_real_mono)(real *, mpg123_handle *);
 		int (*synth_4to1_real_mono2stereo)(real *, mpg123_handle *);
+#endif
+#ifndef NO_NTOM
 		int (*synth_ntom_real)(real *,int, mpg123_handle *,int );
 		int (*synth_ntom_real_mono)(real *, mpg123_handle *);
 		int (*synth_ntom_real_mono2stereo)(real *, mpg123_handle *);
+#endif
+#endif
+#ifndef NO_32BIT
 		int (*synth_1to1_s32)(real *,int, mpg123_handle *,int );
 		int (*synth_1to1_s32_mono)(real *, mpg123_handle *);
 		int (*synth_1to1_s32_mono2stereo)(real *, mpg123_handle *);
+#ifndef NO_DOWNSAMPLE
 		int (*synth_2to1_s32)(real *,int, mpg123_handle *,int );
 		int (*synth_2to1_s32_mono)(real *, mpg123_handle *);
 		int (*synth_2to1_s32_mono2stereo)(real *, mpg123_handle *);
 		int (*synth_4to1_s32)(real *,int, mpg123_handle *,int );
 		int (*synth_4to1_s32_mono)(real *, mpg123_handle *);
 		int (*synth_4to1_s32_mono2stereo)(real *, mpg123_handle *);
+#endif
+#ifndef NO_NTOM
 		int (*synth_ntom_s32)(real *,int, mpg123_handle *,int );
 		int (*synth_ntom_s32_mono)(real *, mpg123_handle *);
 		int (*synth_ntom_s32_mono2stereo)(real *, mpg123_handle *);
 #endif
-#ifdef OPT_3DNOW
+#endif
+#endif /* FIXED */
+#ifndef NO_LAYER3
+#if (defined OPT_3DNOW || defined OPT_3DNOWEXT)
 		void (*dct36)(real *,real *,real *,real *,real *);
 #endif
+#endif
+
 #endif
 		enum optdec type;
 		enum optcla class;
@@ -310,8 +344,12 @@ struct mpg123_handle_struct
 	/* the meta crap */
 	int metaflags;
 	unsigned char id3buf[128];
+#ifndef NO_ID3V2
 	mpg123_id3v2 id3v2;
+#endif
+#ifndef NO_ICY
 	struct icy_meta icy;
+#endif
 };
 
 /* generic init, does not include dynamic buffers */

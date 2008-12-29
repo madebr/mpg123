@@ -1,5 +1,9 @@
 Changes in libmpg123 libtool interface versions...
 
+13.0.13
+	- The whole set of output formats is generally available (8, 16 and 32 bit integer, signed/unsigned, float)
+	- Many features can be absent from libary as build decision (minimize binary size).
+
 12.0.12
 	- added mpg123_current_decoder
 	- fixed value of MPG123_ENC_FLOAT

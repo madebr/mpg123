@@ -66,10 +66,15 @@ static int find_dectype(mpg123_handle *fr)
 	/* Direct and indirect usage, 1to1 stereo decoding.
 	   Concentrating on the plain stereo synth should be fine, mono stuff is derived. */
 	func_synth basic_synth = fr->synth;
+#ifndef NO_8BIT
+#ifndef NO_16BIT
 	if(basic_synth == synth_1to1_8bit_wrap)
 	basic_synth = opt_synth_1to1(fr); /* That is what's really below the surface. */
+#endif
+#endif
 
 	if(FALSE) ; /* Just to initialize the else if ladder. */
+#ifndef NO_16BIT
 #ifdef OPT_3DNOWEXT
 	else if(basic_synth == synth_1to1_3dnowext) type = dreidnowext;
 #endif
@@ -88,59 +93,106 @@ static int find_dectype(mpg123_handle *fr)
 #ifdef OPT_I586
 	else if(basic_synth == synth_1to1_i586) type = ifuenf;
 #endif
+#endif /* 16bit */
 #ifdef OPT_I386
 	else if
-	(
-		   basic_synth == synth_1to1_i386
+	( FALSE /* just as a first value for the || chain */
+#ifndef NO_16BIT
+		|| basic_synth == synth_1to1_i386
+#endif
+#ifndef NO_8BIT
+		|| basic_synth == synth_1to1_8bit_i386
+#endif
+#ifndef NO_DOWNSAMPLE
+#ifndef NO_16BIT
 		|| basic_synth == synth_2to1_i386
 		|| basic_synth == synth_4to1_i386
-		|| basic_synth == synth_1to1_8bit_i386
+#endif
+#ifndef NO_8BIT
 		|| basic_synth == synth_2to1_8bit_i386
 		|| basic_synth == synth_4to1_8bit_i386
+#endif
+#endif
 #ifndef REAL_IS_FIXED
+#ifndef NO_REAL
 		|| basic_synth == synth_1to1_real_i386
+#endif
+#ifndef NO_32BIT
+		|| basic_synth == synth_1to1_s32_i386
+#endif
+#ifndef NO_DOWNSAMPLE
+#ifndef NO_REAL
 		|| basic_synth == synth_2to1_real_i386
 		|| basic_synth == synth_4to1_real_i386
-		|| basic_synth == synth_1to1_s32_i386
+#endif
+#ifndef NO_32BIT
 		|| basic_synth == synth_2to1_s32_i386
 		|| basic_synth == synth_4to1_s32_i386
+#endif
+#endif
 #endif
 	) type = idrei;
 #endif
 	else if
-	(
-		   basic_synth == synth_1to1
+	( FALSE
+#ifndef NO_16BIT
+		|| basic_synth == synth_1to1
+#ifndef NO_DOWNSAMPLE
 		|| basic_synth == synth_2to1
 		|| basic_synth == synth_4to1
+#endif
+#ifndef NO_NTOM
 		|| basic_synth == synth_ntom
+#endif
+#endif
+#ifndef NO_8BIT
 		|| basic_synth == synth_1to1_8bit
+#ifndef NO_DOWNSAMPLE
 		|| basic_synth == synth_2to1_8bit
 		|| basic_synth == synth_4to1_8bit
+#endif
+#ifndef NO_NTOM
 		|| basic_synth == synth_ntom_8bit
-#ifndef REAL_IS_FIXED
+#endif
+#endif
+#ifndef NO_REAL
 		|| basic_synth == synth_1to1_real
+#ifndef NO_DOWNSAMPLE
 		|| basic_synth == synth_2to1_real
 		|| basic_synth == synth_4to1_real
+#endif
+#ifndef NO_NTOM
 		|| basic_synth == synth_ntom_real
+#endif
+#endif
+#ifndef NO_32BIT
 		|| basic_synth == synth_1to1_s32
+#ifndef NO_DOWNSAMPLE
 		|| basic_synth == synth_2to1_s32
 		|| basic_synth == synth_4to1_s32
+#endif
+#ifndef NO_NTOM
 		|| basic_synth == synth_ntom_s32
 #endif
+#endif
 	) type = generic;
+#ifndef NO_16BIT
 #ifdef OPT_GENERIC_DITHER
 	else if(basic_synth == synth_1to1_dither) type = generic_dither;
 #endif
 #ifdef OPT_DITHER /* either i586 or generic! */
+#ifndef NO_DOWNSAMPLE
 	else if
 	(
 		   basic_synth == synth_2to1_dither
 		|| basic_synth == synth_4to1_dither
 	) type = generic_dither;
 #endif
+#endif
 #ifdef OPT_ALTIVEC
 	else if(basic_synth == synth_1to1_altivec) type = altivec;
 #endif
+#endif /* 16bit */
 #ifdef OPT_I486
 	/* i486 is special ... the specific code is in use for 16bit 1to1 stereo
 	   otherwise we have i386 active... but still, the distinction doesn't matter*/
@@ -179,82 +231,156 @@ int set_synth_functions(mpg123_handle *fr)
 	/* What a pyramid... but that's the host of synth function interfaces we cater.
 	   TODO: In future, the synth slots in the frame struct should have the same array structure.
 	   Actually... they shall _be_ _this_ struct. Will reduce quite some code. */
+#ifndef NO_16BIT
 	funcs[OUT_16][0] = (func_synth) opt_synth_1to1(fr);
+#ifndef NO_DOWNSAMPLE
 	funcs[OUT_16][1] = (func_synth) opt_synth_2to1(fr);
 	funcs[OUT_16][2] = (func_synth) opt_synth_4to1(fr);
+#endif
+#ifndef NO_NTOM
 	funcs[OUT_16][3] = (func_synth) opt_synth_ntom(fr);
+#endif
+#endif
+#ifndef NO_8BIT
 	funcs[OUT_8][0] = (func_synth) opt_synth_1to1_8bit(fr);
+#ifndef NO_DOWNSAMPLE
 	funcs[OUT_8][1] = (func_synth) opt_synth_2to1_8bit(fr);
 	funcs[OUT_8][2] = (func_synth) opt_synth_4to1_8bit(fr);
+#endif
+#ifndef NO_NTOM
 	funcs[OUT_8][3] = (func_synth) opt_synth_ntom_8bit(fr);
-#ifndef REAL_IS_FIXED
+#endif
+#endif
+#ifndef NO_REAL
 	funcs[OUT_REAL][0] = (func_synth) opt_synth_1to1_real(fr);
+#ifndef NO_DOWNSAMPLE
 	funcs[OUT_REAL][1] = (func_synth) opt_synth_2to1_real(fr);
 	funcs[OUT_REAL][2] = (func_synth) opt_synth_4to1_real(fr);
+#endif
+#ifndef NO_NTOM
 	funcs[OUT_REAL][3] = (func_synth) opt_synth_ntom_real(fr);
+#endif
+#endif
+#ifndef NO_32BIT
 	funcs[OUT_S32][0] = (func_synth) opt_synth_1to1_s32(fr);
+#ifndef NO_DOWNSAMPLE
 	funcs[OUT_S32][1] = (func_synth) opt_synth_2to1_s32(fr);
 	funcs[OUT_S32][2] = (func_synth) opt_synth_4to1_s32(fr);
+#endif
+#ifndef NO_NTOM
 	funcs[OUT_S32][3] = (func_synth) opt_synth_ntom_s32(fr);
 #endif
-
-	funcs_mono[OUT_16][0] = (func_synth_mono) opt_synth_1to1_mono(fr);
-	funcs_mono[OUT_16][1] = (func_synth_mono) opt_synth_2to1_mono(fr);
-	funcs_mono[OUT_16][2] = (func_synth_mono) opt_synth_4to1_mono(fr);
-	funcs_mono[OUT_16][3] = (func_synth_mono) opt_synth_ntom_mono(fr);
-	funcs_mono[OUT_8][0] = (func_synth_mono) opt_synth_1to1_8bit_mono(fr);
-	funcs_mono[OUT_8][1] = (func_synth_mono) opt_synth_2to1_8bit_mono(fr);
-	funcs_mono[OUT_8][2] = (func_synth_mono) opt_synth_4to1_8bit_mono(fr);
-	funcs_mono[OUT_8][3] = (func_synth_mono) opt_synth_ntom_8bit_mono(fr);
-#ifndef REAL_IS_FIXED
-	funcs_mono[OUT_REAL][0] = (func_synth_mono) opt_synth_1to1_real_mono(fr);
-	funcs_mono[OUT_REAL][1] = (func_synth_mono) opt_synth_2to1_real_mono(fr);
-	funcs_mono[OUT_REAL][2] = (func_synth_mono) opt_synth_4to1_real_mono(fr);
-	funcs_mono[OUT_REAL][3] = (func_synth_mono) opt_synth_ntom_real_mono(fr);
-	funcs_mono[OUT_S32][0] = (func_synth_mono) opt_synth_1to1_s32_mono(fr);
-	funcs_mono[OUT_S32][1] = (func_synth_mono) opt_synth_2to1_s32_mono(fr);
-	funcs_mono[OUT_S32][2] = (func_synth_mono) opt_synth_4to1_s32_mono(fr);
-	funcs_mono[OUT_S32][3] = (func_synth_mono) opt_synth_ntom_s32_mono(fr);
 #endif
 
+#ifndef NO_16BIT
+	funcs_mono[OUT_16][0] = (func_synth_mono) opt_synth_1to1_mono(fr);
+#ifndef NO_DOWNSAMPLE
+	funcs_mono[OUT_16][1] = (func_synth_mono) opt_synth_2to1_mono(fr);
+	funcs_mono[OUT_16][2] = (func_synth_mono) opt_synth_4to1_mono(fr);
+#endif
+#ifndef NO_NTOM
+	funcs_mono[OUT_16][3] = (func_synth_mono) opt_synth_ntom_mono(fr);
+#endif
+#endif
+#ifndef NO_8BIT
+	funcs_mono[OUT_8][0] = (func_synth_mono) opt_synth_1to1_8bit_mono(fr);
+#ifndef NO_DOWNSAMPLE
+	funcs_mono[OUT_8][1] = (func_synth_mono) opt_synth_2to1_8bit_mono(fr);
+	funcs_mono[OUT_8][2] = (func_synth_mono) opt_synth_4to1_8bit_mono(fr);
+#endif
+#ifndef NO_NTOM
+	funcs_mono[OUT_8][3] = (func_synth_mono) opt_synth_ntom_8bit_mono(fr);
+#endif
+#endif
+#ifndef NO_REAL
+	funcs_mono[OUT_REAL][0] = (func_synth_mono) opt_synth_1to1_real_mono(fr);
+#ifndef NO_DOWNSAMPLE
+	funcs_mono[OUT_REAL][1] = (func_synth_mono) opt_synth_2to1_real_mono(fr);
+	funcs_mono[OUT_REAL][2] = (func_synth_mono) opt_synth_4to1_real_mono(fr);
+#endif
+#ifndef NO_NTOM
+	funcs_mono[OUT_REAL][3] = (func_synth_mono) opt_synth_ntom_real_mono(fr);
+#endif
+#endif
+#ifndef NO_32BIT
+	funcs_mono[OUT_S32][0] = (func_synth_mono) opt_synth_1to1_s32_mono(fr);
+#ifndef NO_DOWNSAMPLE
+	funcs_mono[OUT_S32][1] = (func_synth_mono) opt_synth_2to1_s32_mono(fr);
+	funcs_mono[OUT_S32][2] = (func_synth_mono) opt_synth_4to1_s32_mono(fr);
+#endif
+#ifndef NO_NTOM
+	funcs_mono[OUT_S32][3] = (func_synth_mono) opt_synth_ntom_s32_mono(fr);
+#endif
+#endif
+
+#ifndef NO_16BIT
 	funcs_mono2stereo[OUT_16][0] = (func_synth_mono) opt_synth_1to1_mono2stereo(fr);
+#ifndef NO_DOWNSAMPLE
 	funcs_mono2stereo[OUT_16][1] = (func_synth_mono) opt_synth_2to1_mono2stereo(fr);
 	funcs_mono2stereo[OUT_16][2] = (func_synth_mono) opt_synth_4to1_mono2stereo(fr);
+#endif
+#ifndef NO_NTOM
 	funcs_mono2stereo[OUT_16][3] = (func_synth_mono) opt_synth_ntom_mono2stereo(fr);
+#endif
+#endif
+#ifndef NO_8BIT
 	funcs_mono2stereo[OUT_8][0] = (func_synth_mono) opt_synth_1to1_8bit_mono2stereo(fr);
+#ifndef NO_DOWNSAMPLE
 	funcs_mono2stereo[OUT_8][1] = (func_synth_mono) opt_synth_2to1_8bit_mono2stereo(fr);
 	funcs_mono2stereo[OUT_8][2] = (func_synth_mono) opt_synth_4to1_8bit_mono2stereo(fr);
+#endif
+#ifndef NO_NTOM
 	funcs_mono2stereo[OUT_8][3] = (func_synth_mono) opt_synth_ntom_8bit_mono2stereo(fr);
-#ifndef REAL_IS_FIXED
+#endif
+#endif
+#ifndef NO_REAL
 	funcs_mono2stereo[OUT_REAL][0] = (func_synth_mono) opt_synth_1to1_real_mono2stereo(fr);
+#ifndef NO_DOWNSAMPLE
 	funcs_mono2stereo[OUT_REAL][1] = (func_synth_mono) opt_synth_2to1_real_mono2stereo(fr);
 	funcs_mono2stereo[OUT_REAL][2] = (func_synth_mono) opt_synth_4to1_real_mono2stereo(fr);
+#endif
+#ifndef NO_NTOM
 	funcs_mono2stereo[OUT_REAL][3] = (func_synth_mono) opt_synth_ntom_real_mono2stereo(fr);
+#endif
+#endif
+#ifndef NO_32BIT
 	funcs_mono2stereo[OUT_S32][0] = (func_synth_mono) opt_synth_1to1_s32_mono2stereo(fr);
+#ifndef NO_DOWNSAMPLE
 	funcs_mono2stereo[OUT_S32][1] = (func_synth_mono) opt_synth_2to1_s32_mono2stereo(fr);
 	funcs_mono2stereo[OUT_S32][2] = (func_synth_mono) opt_synth_4to1_s32_mono2stereo(fr);
+#endif
+#ifndef NO_NTOM
 	funcs_mono2stereo[OUT_S32][3] = (func_synth_mono) opt_synth_ntom_s32_mono2stereo(fr);
+#endif
 #endif
 
 	/* Select the basic output format, different from 16bit: 8bit, real. */
-	if(fr->af.encoding & MPG123_ENC_8) basic_format = OUT_8;
+	if(fr->af.encoding & MPG123_ENC_8)
+	basic_format = OUT_8;
 	else if(fr->af.encoding & MPG123_ENC_FLOAT)
-	{
-#ifndef REAL_IS_FIXED
-		basic_format = OUT_REAL;
-#else
-		if(NOQUIET) error("set_synth_functions: Invalid output format, shouldn't have reached me!");
-		return -1;
-#endif
-	}
+	basic_format = OUT_REAL;
 	else if(fr->af.encoding & MPG123_ENC_32)
-	{
-#ifndef REAL_IS_FIXED
-		basic_format = OUT_S32;
-#else
-		if(NOQUIET) error("set_synth_functions: Invalid output format, shouldn't have reached me!");
-		return -1;
+	basic_format = OUT_S32;
+
+	if /* Make sure the chosen format is compiled into this lib. */
+	( FALSE
+#ifdef NO_8BIT
+		|| basic_format == OUT_8
 #endif
+#ifdef NO_16BIT
+		|| basic_format == OUT_16
+#endif
+#ifdef NO_32BIT
+		|| basic_format == OUT_S32
+#endif
+#ifdef NO_REAL
+		|| basic_format == OUT_REAL
+#endif
+	)
+	{
+		if(NOQUIET) error("set_synth_functions: This output format is disabled in this build!");
+
+		return -1;
 	}
 
 	/* Finally selecting the synth functions for stereo / mono. */
@@ -291,15 +417,23 @@ int set_synth_functions(mpg123_handle *fr)
 	/* Special treatment for MMX, SSE and 3DNowExt stuff. */
 	if(fr->cpu_opts.class == mmxsse)
 	{
+#ifndef NO_LAYER3
 		init_layer3_stuff(fr, init_layer3_gainpow2_mmx);
-		init_layer2_stuff(fr, init_layer2_table_mmx);
+#endif
+#ifndef NO_LAYER12
+		init_layer12_stuff(fr, init_layer12_table_mmx);
+#endif
 		fr->make_decode_tables = make_decode_tables_mmx;
 	}
 	else
 #endif
 	{
+#ifndef NO_LAYER3
 		init_layer3_stuff(fr, init_layer3_gainpow2);
-		init_layer2_stuff(fr, init_layer2_table);
+#endif
+#ifndef NO_LAYER12
+		init_layer12_stuff(fr, init_layer12_table);
+#endif
 		fr->make_decode_tables = make_decode_tables;
 	}
 
@@ -335,69 +469,118 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 
 	## This is an inline bourne shell script for execution in nedit to generate the lines below.
 	## The ## is a quote for just #
-	for t in "" _8bit _real
+	for t in "" _8bit _s32 _real
 	do
-		if test "$t" = _real; then
-			echo "##ifndef REAL_IS_FIXED"
+		test "$t" = _real   && echo "##ifndef NO_REAL"
+		test "$t" = ""      && echo "##ifndef NO_16BIT"
+		test "$t" = "_8bit" && echo "##ifndef NO_8BIT"
+		test "$t" = "_s32"  && echo "##ifndef NO_32BIT"
+
+		for i in 1to1 2to1 4to1 ntom;
+		do
+		if test "$i" = ntom; then
+			echo "##ifndef NO_NTOM"
 		fi
-		for i in 1to1 2to1 4to1 ntom; do for f in "" _mono _mono2stereo;
+		if test "$i" = 2to1; then
+			echo "##ifndef NO_DOWNSAMPLE"
+		fi
+		for f in "" _mono _mono2stereo;
 		do
 			echo "	fr->cpu_opts.synth_${i}${t}${f} = NULL;"
-		done;done
-		if test "$t" = _real; then
+		done
+		if test "$i" = ntom; then
 			echo "##endif"
 		fi
+		if test "$i" = 4to1; then
+			echo "##endif"
+		fi
+		done
+
+		echo "##endif"
 	done
 */
+#ifndef NO_16BIT
 	fr->cpu_opts.synth_1to1 = NULL;
 	fr->cpu_opts.synth_1to1_mono = NULL;
 	fr->cpu_opts.synth_1to1_mono2stereo = NULL;
+#ifndef NO_DOWNSAMPLE
 	fr->cpu_opts.synth_2to1 = NULL;
 	fr->cpu_opts.synth_2to1_mono = NULL;
 	fr->cpu_opts.synth_2to1_mono2stereo = NULL;
 	fr->cpu_opts.synth_4to1 = NULL;
 	fr->cpu_opts.synth_4to1_mono = NULL;
 	fr->cpu_opts.synth_4to1_mono2stereo = NULL;
+#endif
+#ifndef NO_NTOM
 	fr->cpu_opts.synth_ntom = NULL;
 	fr->cpu_opts.synth_ntom_mono = NULL;
 	fr->cpu_opts.synth_ntom_mono2stereo = NULL;
+#endif
+#endif
+#ifndef NO_8BIT
 	fr->cpu_opts.synth_1to1_8bit = NULL;
 	fr->cpu_opts.synth_1to1_8bit_mono = NULL;
 	fr->cpu_opts.synth_1to1_8bit_mono2stereo = NULL;
+#ifndef NO_DOWNSAMPLE
 	fr->cpu_opts.synth_2to1_8bit = NULL;
 	fr->cpu_opts.synth_2to1_8bit_mono = NULL;
 	fr->cpu_opts.synth_2to1_8bit_mono2stereo = NULL;
 	fr->cpu_opts.synth_4to1_8bit = NULL;
 	fr->cpu_opts.synth_4to1_8bit_mono = NULL;
 	fr->cpu_opts.synth_4to1_8bit_mono2stereo = NULL;
+#endif
+#ifndef NO_NTOM
 	fr->cpu_opts.synth_ntom_8bit = NULL;
 	fr->cpu_opts.synth_ntom_8bit_mono = NULL;
 	fr->cpu_opts.synth_ntom_8bit_mono2stereo = NULL;
-#ifndef REAL_IS_FIXED
+#endif
+#endif
+#ifndef NO_32BIT
+	fr->cpu_opts.synth_1to1_s32 = NULL;
+	fr->cpu_opts.synth_1to1_s32_mono = NULL;
+	fr->cpu_opts.synth_1to1_s32_mono2stereo = NULL;
+#ifndef NO_DOWNSAMPLE
+	fr->cpu_opts.synth_2to1_s32 = NULL;
+	fr->cpu_opts.synth_2to1_s32_mono = NULL;
+	fr->cpu_opts.synth_2to1_s32_mono2stereo = NULL;
+	fr->cpu_opts.synth_4to1_s32 = NULL;
+	fr->cpu_opts.synth_4to1_s32_mono = NULL;
+	fr->cpu_opts.synth_4to1_s32_mono2stereo = NULL;
+#endif
+#ifndef NO_NTOM
+	fr->cpu_opts.synth_ntom_s32 = NULL;
+	fr->cpu_opts.synth_ntom_s32_mono = NULL;
+	fr->cpu_opts.synth_ntom_s32_mono2stereo = NULL;
+#endif
+#endif
+#ifndef NO_REAL
 	fr->cpu_opts.synth_1to1_real = NULL;
 	fr->cpu_opts.synth_1to1_real_mono = NULL;
 	fr->cpu_opts.synth_1to1_real_mono2stereo = NULL;
+#ifndef NO_DOWNSAMPLE
 	fr->cpu_opts.synth_2to1_real = NULL;
 	fr->cpu_opts.synth_2to1_real_mono = NULL;
 	fr->cpu_opts.synth_2to1_real_mono2stereo = NULL;
 	fr->cpu_opts.synth_4to1_real = NULL;
 	fr->cpu_opts.synth_4to1_real_mono = NULL;
 	fr->cpu_opts.synth_4to1_real_mono2stereo = NULL;
+#endif
+#ifndef NO_NTOM
 	fr->cpu_opts.synth_ntom_real = NULL;
 	fr->cpu_opts.synth_ntom_real_mono = NULL;
 	fr->cpu_opts.synth_ntom_real_mono2stereo = NULL;
+#endif
 #endif
 
 	fr->cpu_opts.type = nodec;
 	/* covers any i386+ cpu; they actually differ only in the synth_1to1 function... */
 #ifdef OPT_X86
 
-	#ifdef OPT_3DNOW
+#ifndef NO_LAYER3
+#if (defined OPT_3DNOW || defined OPT_3DNOWEXT)
 	fr->cpu_opts.dct36 = dct36;
-	#endif
-	#ifdef OPT_3DNOWEXT
-	fr->cpu_opts.dct36 = dct36;
-	#endif
+#endif
+#endif
 
 	if(cpu_i586(cpu_flags))
 	{
@@ -410,8 +593,12 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		{
 			chosen = "3DNowExt";
 			fr->cpu_opts.type = dreidnowext;
+#			ifndef NO_LAYER3
 			fr->cpu_opts.dct36 = dct36_3dnowext;
+#			endif
+#			ifndef NO_16BIT
 			fr->cpu_opts.synth_1to1 = synth_1to1_3dnowext;
+#			endif
 			done = 1;
 		}
 		#endif
@@ -421,19 +608,27 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		{
 			chosen = "SSE";
 			fr->cpu_opts.type = sse;
+#			ifndef NO_16BIT
 			fr->cpu_opts.synth_1to1 = synth_1to1_sse;
+#			endif
 			done = 1;
 		}
 		#endif
 		#ifdef OPT_3DNOW
+#		ifndef NO_LAYER3
 		fr->cpu_opts.dct36 = dct36;
+#		endif
 		if(    !done && (auto_choose || want_dec == dreidnow)
 		    && cpu_3dnow(cpu_flags) && cpu_mmx(cpu_flags) )
 		{
 			chosen = "3DNow";
 			fr->cpu_opts.type = dreidnow;
+#			ifndef NO_LAYER3
 			fr->cpu_opts.dct36 = dct36_3dnow;
+#			endif
+#			ifndef NO_16BIT
 			fr->cpu_opts.synth_1to1 = synth_1to1_3dnow;
+#			endif
 			done = 1;
 		}
 		#endif
@@ -443,7 +638,9 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		{
 			chosen = "MMX";
 			fr->cpu_opts.type = mmx;
+#			ifndef NO_16BIT
 			fr->cpu_opts.synth_1to1 = synth_1to1_mmx;
+#			endif
 			done = 1;
 		}
 		#endif
@@ -452,7 +649,9 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		{
 			chosen = "i586/pentium";
 			fr->cpu_opts.type = ifuenf;
+#			ifndef NO_16BIT
 			fr->cpu_opts.synth_1to1 = synth_1to1_i586;
+#			endif
 			done = 1;
 		}
 		#endif
@@ -461,9 +660,13 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		{
 			chosen = "dithered i586/pentium";
 			fr->cpu_opts.type = ifuenf_dither;
+#			ifndef NO_16BIT
 			fr->cpu_opts.synth_1to1 = synth_1to1_i586_dither;
+#			ifndef NO_DOWNSAMPLE
 			fr->cpu_opts.synth_2to1 = synth_2to1_dither;
 			fr->cpu_opts.synth_4to1 = synth_4to1_dither;
+#			endif
+#			endif
 			done = 1;
 		}
 		#endif
@@ -491,6 +694,8 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 	{ /* We have chosen some x86 decoder... */
 		/* First, we see if there is indeed some special (non-i386) synth_1to1 and use the 8bit wrappers over it.
 		   If not, we use the direct i386 8bit synth and the normal mono functions. */
+#ifndef NO_8BIT
+#ifndef NO_16BIT /* possibility to use a 16->8 wrapper... */
 		if(fr->cpu_opts.synth_1to1 != NULL)
 		{
 			fr->cpu_opts.synth_1to1_8bit = synth_1to1_8bit_wrap;
@@ -500,41 +705,70 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		else
 		{
 			fr->cpu_opts.synth_1to1 = synth_1to1_i386;
+#endif /* straight 8bit */
 			fr->cpu_opts.synth_1to1_8bit = synth_1to1_8bit_i386;
+#ifndef NO_16BIT
 		}
+#endif
+#endif
+#ifndef NO_16BIT
+		if(fr->cpu_opts.synth_1to1 == NULL)
+		fr->cpu_opts.synth_1to1 = synth_1to1_i386;
+#endif
 		/*
 			Now fill in the non-mono synths that are still missing from the i386 variants.
 			
 
 			## This is an inline bourne shell script for execution in nedit to generate the lines below.
 			## The ## is a quote for just #
-			for t in "" _8bit _real
+			for t in "" _8bit _s32 _real
 			do
-				if test "$t" = _real; then
-					echo "##		ifndef REAL_IS_FIXED"
-				fi
+				test "$t" = _real   && echo "##		ifndef NO_REAL"
+				test "$t" = ""      && echo "##		ifndef NO_16BIT"
+				test "$t" = "_8bit" && echo "##		ifndef NO_8BIT"
+				test "$t" = "_s32"  && echo "##		ifndef NO_32BIT"
+
 				for i in 1to1 2to1 4to1
 				do
+					if test "$i" = 2to1; then
+						echo "##		ifndef NO_DOWNSAMPLE"
+					fi
 					echo "		if(fr->cpu_opts.synth_${i}${t} == NULL) fr->cpu_opts.synth_${i}${t} = synth_${i}${t}_i386;"
+					if test "$i" = 4to1; then
+						echo "##		endif"
+					fi
 				done
-				if test "$t" = _real; then
-					echo "##		endif"
-				fi
+
+				echo "##		endif"
 			done
 		*/
+#		ifndef NO_16BIT
 		if(fr->cpu_opts.synth_1to1 == NULL) fr->cpu_opts.synth_1to1 = synth_1to1_i386;
+#		ifndef NO_DOWNSAMPLE
 		if(fr->cpu_opts.synth_2to1 == NULL) fr->cpu_opts.synth_2to1 = synth_2to1_i386;
 		if(fr->cpu_opts.synth_4to1 == NULL) fr->cpu_opts.synth_4to1 = synth_4to1_i386;
+#		endif
+#		endif
+#		ifndef NO_8BIT
 		if(fr->cpu_opts.synth_1to1_8bit == NULL) fr->cpu_opts.synth_1to1_8bit = synth_1to1_8bit_i386;
+#		ifndef NO_DOWNSAMPLE
 		if(fr->cpu_opts.synth_2to1_8bit == NULL) fr->cpu_opts.synth_2to1_8bit = synth_2to1_8bit_i386;
 		if(fr->cpu_opts.synth_4to1_8bit == NULL) fr->cpu_opts.synth_4to1_8bit = synth_4to1_8bit_i386;
-#		ifndef REAL_IS_FIXED
-		if(fr->cpu_opts.synth_1to1_real == NULL) fr->cpu_opts.synth_1to1_real = synth_1to1_real_i386;
-		if(fr->cpu_opts.synth_2to1_real == NULL) fr->cpu_opts.synth_2to1_real = synth_2to1_real_i386;
-		if(fr->cpu_opts.synth_4to1_real == NULL) fr->cpu_opts.synth_4to1_real = synth_4to1_real_i386;
+#		endif
+#		endif
+#		ifndef NO_32BIT
 		if(fr->cpu_opts.synth_1to1_s32 == NULL) fr->cpu_opts.synth_1to1_s32 = synth_1to1_s32_i386;
+#		ifndef NO_DOWNSAMPLE
 		if(fr->cpu_opts.synth_2to1_s32 == NULL) fr->cpu_opts.synth_2to1_s32 = synth_2to1_s32_i386;
 		if(fr->cpu_opts.synth_4to1_s32 == NULL) fr->cpu_opts.synth_4to1_s32 = synth_4to1_s32_i386;
+#		endif
+#		endif
+#		ifndef NO_REAL
+		if(fr->cpu_opts.synth_1to1_real == NULL) fr->cpu_opts.synth_1to1_real = synth_1to1_real_i386;
+#		ifndef NO_DOWNSAMPLE
+		if(fr->cpu_opts.synth_2to1_real == NULL) fr->cpu_opts.synth_2to1_real = synth_2to1_real_i386;
+		if(fr->cpu_opts.synth_4to1_real == NULL) fr->cpu_opts.synth_4to1_real = synth_4to1_real_i386;
+#		endif
 #		endif
 	}
 
@@ -545,9 +779,13 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 	{
 		chosen = "dithered generic";
 		fr->cpu_opts.type = generic_dither;
+#		ifndef NO_16BIT
 		fr->cpu_opts.synth_1to1 = synth_1to1_dither;
+#		ifndef NO_DOWNSAMPLE
 		fr->cpu_opts.synth_2to1 = synth_2to1_dither;
 		fr->cpu_opts.synth_4to1 = synth_4to1_dither;
+#		endif
+#		endif
 		/* Wrapping 8bit functions don't make sense for dithering. */
 		done = 1;
 	}
@@ -558,10 +796,12 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 	{
 		chosen = "AltiVec";
 		fr->cpu_opts.type = altivec;
+#		ifndef NO_16BIT
 		fr->cpu_opts.synth_1to1 = synth_1to1_altivec;
 		fr->cpu_opts.synth_1to1_8bit = synth_1to1_8bit_wrap;
 		fr->cpu_opts.synth_1to1_8bit_mono = synth_1to1_8bit_wrap_mono;
 		fr->cpu_opts.synth_1to1_8bit_mono2stereo = synth_1to1_8bit_wrap_mono2stereo;
+#		endif
 		done = 1;
 	}
 	#endif
@@ -584,72 +824,107 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 
 		## This is an inline bourne shell script for execution in nedit to generate the lines below.
 		## The ## is a quote for just #
-		for t in "" _8bit _real
+		for t in "" _8bit _s32 _real
 		do
-			if test "$t" = _real; then
-				echo "##	ifndef REAL_IS_FIXED"
-			fi
+			test "$t" = _real   && echo "##	ifndef NO_REAL"
+			test "$t" = ""      && echo "##	ifndef NO_16BIT"
+			test "$t" = "_8bit" && echo "##	ifndef NO_8BIT"
+			test "$t" = "_s32"  && echo "##	ifndef NO_32BIT"
+
 			for i in 1to1 2to1 4to1 ntom
 			do
+			if test "$i" = ntom; then
+				echo "##	ifndef NO_NTOM"
+			fi
+			if test "$i" = 2to1; then
+				echo "##	ifndef NO_DOWNSAMPLE"
+			fi
 			for m in "" _mono _mono2stereo
 			do
 				echo "	if(fr->cpu_opts.synth_${i}${t}${m} == NULL) fr->cpu_opts.synth_${i}${t}${m} = synth_${i}${t}${m};"
 			done
-			done
-			if test "$t" = _real; then
+			if test "$i" = ntom; then
 				echo "##	endif"
 			fi
+			if test "$i" = 4to1; then
+				echo "##	endif"
+			fi
+			done
+
+			echo "##	endif"
 		done
 	*/
+#	ifndef NO_16BIT
 	if(fr->cpu_opts.synth_1to1 == NULL) fr->cpu_opts.synth_1to1 = synth_1to1;
 	if(fr->cpu_opts.synth_1to1_mono == NULL) fr->cpu_opts.synth_1to1_mono = synth_1to1_mono;
 	if(fr->cpu_opts.synth_1to1_mono2stereo == NULL) fr->cpu_opts.synth_1to1_mono2stereo = synth_1to1_mono2stereo;
+#	ifndef NO_DOWNSAMPLE
 	if(fr->cpu_opts.synth_2to1 == NULL) fr->cpu_opts.synth_2to1 = synth_2to1;
 	if(fr->cpu_opts.synth_2to1_mono == NULL) fr->cpu_opts.synth_2to1_mono = synth_2to1_mono;
 	if(fr->cpu_opts.synth_2to1_mono2stereo == NULL) fr->cpu_opts.synth_2to1_mono2stereo = synth_2to1_mono2stereo;
 	if(fr->cpu_opts.synth_4to1 == NULL) fr->cpu_opts.synth_4to1 = synth_4to1;
 	if(fr->cpu_opts.synth_4to1_mono == NULL) fr->cpu_opts.synth_4to1_mono = synth_4to1_mono;
 	if(fr->cpu_opts.synth_4to1_mono2stereo == NULL) fr->cpu_opts.synth_4to1_mono2stereo = synth_4to1_mono2stereo;
+#	endif
+#	ifndef NO_NTOM
 	if(fr->cpu_opts.synth_ntom == NULL) fr->cpu_opts.synth_ntom = synth_ntom;
 	if(fr->cpu_opts.synth_ntom_mono == NULL) fr->cpu_opts.synth_ntom_mono = synth_ntom_mono;
 	if(fr->cpu_opts.synth_ntom_mono2stereo == NULL) fr->cpu_opts.synth_ntom_mono2stereo = synth_ntom_mono2stereo;
+#	endif
+#	endif
+#	ifndef NO_8BIT
 	if(fr->cpu_opts.synth_1to1_8bit == NULL) fr->cpu_opts.synth_1to1_8bit = synth_1to1_8bit;
 	if(fr->cpu_opts.synth_1to1_8bit_mono == NULL) fr->cpu_opts.synth_1to1_8bit_mono = synth_1to1_8bit_mono;
 	if(fr->cpu_opts.synth_1to1_8bit_mono2stereo == NULL) fr->cpu_opts.synth_1to1_8bit_mono2stereo = synth_1to1_8bit_mono2stereo;
+#	ifndef NO_DOWNSAMPLE
 	if(fr->cpu_opts.synth_2to1_8bit == NULL) fr->cpu_opts.synth_2to1_8bit = synth_2to1_8bit;
 	if(fr->cpu_opts.synth_2to1_8bit_mono == NULL) fr->cpu_opts.synth_2to1_8bit_mono = synth_2to1_8bit_mono;
 	if(fr->cpu_opts.synth_2to1_8bit_mono2stereo == NULL) fr->cpu_opts.synth_2to1_8bit_mono2stereo = synth_2to1_8bit_mono2stereo;
 	if(fr->cpu_opts.synth_4to1_8bit == NULL) fr->cpu_opts.synth_4to1_8bit = synth_4to1_8bit;
 	if(fr->cpu_opts.synth_4to1_8bit_mono == NULL) fr->cpu_opts.synth_4to1_8bit_mono = synth_4to1_8bit_mono;
 	if(fr->cpu_opts.synth_4to1_8bit_mono2stereo == NULL) fr->cpu_opts.synth_4to1_8bit_mono2stereo = synth_4to1_8bit_mono2stereo;
+#	endif
+#	ifndef NO_NTOM
 	if(fr->cpu_opts.synth_ntom_8bit == NULL) fr->cpu_opts.synth_ntom_8bit = synth_ntom_8bit;
 	if(fr->cpu_opts.synth_ntom_8bit_mono == NULL) fr->cpu_opts.synth_ntom_8bit_mono = synth_ntom_8bit_mono;
 	if(fr->cpu_opts.synth_ntom_8bit_mono2stereo == NULL) fr->cpu_opts.synth_ntom_8bit_mono2stereo = synth_ntom_8bit_mono2stereo;
-#	ifndef REAL_IS_FIXED
-	if(fr->cpu_opts.synth_1to1_real == NULL) fr->cpu_opts.synth_1to1_real = synth_1to1_real;
-	if(fr->cpu_opts.synth_1to1_real_mono == NULL) fr->cpu_opts.synth_1to1_real_mono = synth_1to1_real_mono;
-	if(fr->cpu_opts.synth_1to1_real_mono2stereo == NULL) fr->cpu_opts.synth_1to1_real_mono2stereo = synth_1to1_real_mono2stereo;
-	if(fr->cpu_opts.synth_2to1_real == NULL) fr->cpu_opts.synth_2to1_real = synth_2to1_real;
-	if(fr->cpu_opts.synth_2to1_real_mono == NULL) fr->cpu_opts.synth_2to1_real_mono = synth_2to1_real_mono;
-	if(fr->cpu_opts.synth_2to1_real_mono2stereo == NULL) fr->cpu_opts.synth_2to1_real_mono2stereo = synth_2to1_real_mono2stereo;
-	if(fr->cpu_opts.synth_4to1_real == NULL) fr->cpu_opts.synth_4to1_real = synth_4to1_real;
-	if(fr->cpu_opts.synth_4to1_real_mono == NULL) fr->cpu_opts.synth_4to1_real_mono = synth_4to1_real_mono;
-	if(fr->cpu_opts.synth_4to1_real_mono2stereo == NULL) fr->cpu_opts.synth_4to1_real_mono2stereo = synth_4to1_real_mono2stereo;
-	if(fr->cpu_opts.synth_ntom_real == NULL) fr->cpu_opts.synth_ntom_real = synth_ntom_real;
-	if(fr->cpu_opts.synth_ntom_real_mono == NULL) fr->cpu_opts.synth_ntom_real_mono = synth_ntom_real_mono;
-	if(fr->cpu_opts.synth_ntom_real_mono2stereo == NULL) fr->cpu_opts.synth_ntom_real_mono2stereo = synth_ntom_real_mono2stereo;
+#	endif
+#	endif
+#	ifndef NO_32BIT
 	if(fr->cpu_opts.synth_1to1_s32 == NULL) fr->cpu_opts.synth_1to1_s32 = synth_1to1_s32;
 	if(fr->cpu_opts.synth_1to1_s32_mono == NULL) fr->cpu_opts.synth_1to1_s32_mono = synth_1to1_s32_mono;
 	if(fr->cpu_opts.synth_1to1_s32_mono2stereo == NULL) fr->cpu_opts.synth_1to1_s32_mono2stereo = synth_1to1_s32_mono2stereo;
+#	ifndef NO_DOWNSAMPLE
 	if(fr->cpu_opts.synth_2to1_s32 == NULL) fr->cpu_opts.synth_2to1_s32 = synth_2to1_s32;
 	if(fr->cpu_opts.synth_2to1_s32_mono == NULL) fr->cpu_opts.synth_2to1_s32_mono = synth_2to1_s32_mono;
 	if(fr->cpu_opts.synth_2to1_s32_mono2stereo == NULL) fr->cpu_opts.synth_2to1_s32_mono2stereo = synth_2to1_s32_mono2stereo;
 	if(fr->cpu_opts.synth_4to1_s32 == NULL) fr->cpu_opts.synth_4to1_s32 = synth_4to1_s32;
 	if(fr->cpu_opts.synth_4to1_s32_mono == NULL) fr->cpu_opts.synth_4to1_s32_mono = synth_4to1_s32_mono;
 	if(fr->cpu_opts.synth_4to1_s32_mono2stereo == NULL) fr->cpu_opts.synth_4to1_s32_mono2stereo = synth_4to1_s32_mono2stereo;
+#	endif
+#	ifndef NO_NTOM
 	if(fr->cpu_opts.synth_ntom_s32 == NULL) fr->cpu_opts.synth_ntom_s32 = synth_ntom_s32;
 	if(fr->cpu_opts.synth_ntom_s32_mono == NULL) fr->cpu_opts.synth_ntom_s32_mono = synth_ntom_s32_mono;
 	if(fr->cpu_opts.synth_ntom_s32_mono2stereo == NULL) fr->cpu_opts.synth_ntom_s32_mono2stereo = synth_ntom_s32_mono2stereo;
+#	endif
+#	endif
+#	ifndef NO_REAL
+	if(fr->cpu_opts.synth_1to1_real == NULL) fr->cpu_opts.synth_1to1_real = synth_1to1_real;
+	if(fr->cpu_opts.synth_1to1_real_mono == NULL) fr->cpu_opts.synth_1to1_real_mono = synth_1to1_real_mono;
+	if(fr->cpu_opts.synth_1to1_real_mono2stereo == NULL) fr->cpu_opts.synth_1to1_real_mono2stereo = synth_1to1_real_mono2stereo;
+#	ifndef NO_DOWNSAMPLE
+	if(fr->cpu_opts.synth_2to1_real == NULL) fr->cpu_opts.synth_2to1_real = synth_2to1_real;
+	if(fr->cpu_opts.synth_2to1_real_mono == NULL) fr->cpu_opts.synth_2to1_real_mono = synth_2to1_real_mono;
+	if(fr->cpu_opts.synth_2to1_real_mono2stereo == NULL) fr->cpu_opts.synth_2to1_real_mono2stereo = synth_2to1_real_mono2stereo;
+	if(fr->cpu_opts.synth_4to1_real == NULL) fr->cpu_opts.synth_4to1_real = synth_4to1_real;
+	if(fr->cpu_opts.synth_4to1_real_mono == NULL) fr->cpu_opts.synth_4to1_real_mono = synth_4to1_real_mono;
+	if(fr->cpu_opts.synth_4to1_real_mono2stereo == NULL) fr->cpu_opts.synth_4to1_real_mono2stereo = synth_4to1_real_mono2stereo;
+#	endif
+#	ifndef NO_NTOM
+	if(fr->cpu_opts.synth_ntom_real == NULL) fr->cpu_opts.synth_ntom_real = synth_ntom_real;
+	if(fr->cpu_opts.synth_ntom_real_mono == NULL) fr->cpu_opts.synth_ntom_real_mono = synth_ntom_real_mono;
+	if(fr->cpu_opts.synth_ntom_real_mono2stereo == NULL) fr->cpu_opts.synth_ntom_real_mono2stereo = synth_ntom_real_mono2stereo;
+#	endif
 #	endif
 
 #endif /* OPT_MULTI */

@@ -9,6 +9,14 @@ First get the load of restructuring in!
 
 Also, implement something for MPG123_ENC_UNISGNED_16 ... either another whole set of functions or some postprocessing.
 
+
+1.7.0
+---
+- Lots of output format fun!
+- Lots of functionality now optional, enabling small-footpring builds of libmpg123.
+  ... some ends left ... I/O, strings, streamlining overhead code in libmpg123.c ...
+A test build for layer3 only was down to around 120K with -Os ...
+
 1.6.3
 ---
 

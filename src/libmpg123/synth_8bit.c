@@ -58,6 +58,8 @@
 
 #undef BLOCK
 
+#ifndef NO_DOWNSAMPLE
+
 /*
 	Part 2b: 2to1 synth. Only generic and i386.
 */
@@ -116,6 +118,9 @@
 
 #undef BLOCK
 
+#endif /* NO_DOWNSAMPLE */
+
+#ifndef NO_NTOM
 /*
 	Part 2d: ntom synth.
 	Same procedure as above... Just no extra play anymore, straight synth that may use an optimized dct64.
@@ -129,6 +134,8 @@
 #undef SYNTH_NAME
 #undef MONO_NAME
 #undef MONO2STEREO_NAME
+
+#endif
 
 #undef SAMPLE_T
 #undef WRITE_SAMPLE

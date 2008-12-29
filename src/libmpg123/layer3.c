@@ -391,7 +391,7 @@ static int III_get_side_info(mpg123_handle *fr, struct III_sideinfo *si,int ster
 
 	if(si->main_data_begin > fr->bitreservoir)
 	{
-		if(NOQUIET) error2("missing %d bytes in bit reservoir for frame %li", (int)(si->main_data_begin - fr->bitreservoir), (long)fr->num);
+		if(VERBOSE2) fprintf(stderr, "Note: missing %d bytes in bit reservoir for frame %li\n", (int)(si->main_data_begin - fr->bitreservoir), (long)fr->num);
 
 		/*  overwrite main_data_begin for the really available bit reservoir */
 		backbits(fr, tab[1]);

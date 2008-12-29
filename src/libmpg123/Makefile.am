@@ -42,32 +42,22 @@ libmpg123_la_SOURCES = \
 	debug.h \
 	decode.h \
 	dct64.c \
-	synth.c \
 	synth.h \
 	synth_mono.h \
 	synth_ntom.h \
 	synth_8bit.h \
-	synth_8bit.c \
-	ntom.c \
 	equalizer.c \
 	huffman.h \
-	icy.c \
 	icy.h \
-	icy2utf8.c \
 	icy2utf8.h \
-	id3.c \
 	id3.h \
+	id3.c \
 	true.h \
-	l2tables.h \
-	layer1.c \
-	layer2.c \
-	layer3.c \
 	getbits.h \
 	optimize.h \
 	optimize.c \
 	readers.c \
 	tabinit.c \
-	stringbuf.c \
 	libmpg123.c \
 	mpg123lib_intern.h \
 	mangle.h \
@@ -77,6 +67,12 @@ libmpg123_la_SOURCES = \
 	libmpg123.sym
 
 EXTRA_libmpg123_la_SOURCES = \
+	icy.c \
+	icy2utf8.c \
+	l2tables.h \
+	layer1.c \
+	layer2.c \
+	layer3.c \
 	dct36_3dnowext.S \
 	dct36_3dnow.S \
 	dct64_3dnowext.S \
@@ -95,10 +91,14 @@ EXTRA_libmpg123_la_SOURCES = \
 	synth_mmx.S \
 	synth_sse3d.h \
 	synth_sse.S \
+	ntom.c \
+	synth.c \
+	synth_8bit.c \
 	synth_real.c \
 	synth_s32.c \
 	equalizer_3dnow.S \
 	tabinit_mmx.S \
+	stringbuf.c \
 	getcpuflags.S
 
 # explicit preprocessing since mingw32 does not honor the big .S

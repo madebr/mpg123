@@ -63,16 +63,20 @@
 #define OUT_FORMATS 2 /* Basic output formats: 16bit and 8bit */
 #endif
 
+#ifdef NO_NTOM
+#define NTOM_MAX 1
+#else
 #define NTOM_MAX 8          /* maximum allowed factor for upsampling */
 #define NTOM_MAX_FREQ 96000 /* maximum frequency to upsample to / downsample from */
 #define NTOM_MUL (32768)
+#endif
 
 /* Let's collect all possible synth functions here, for an overview.
    If they are actually defined and used depends on preprocessor machinery.
    See synth.c and optimize.h for that, also some special C and assembler files. */
 
+#ifndef NO_16BIT
 /* The signed-16bit-producing variants. */
-
 int synth_1to1            (real*, int, mpg123_handle*, int);
 int synth_1to1_dither     (real*, int, mpg123_handle*, int);
 int synth_1to1_i386       (real*, int, mpg123_handle*, int);
@@ -92,6 +96,7 @@ int synth_1to1_mono       (real*, mpg123_handle*);
 int synth_1to1_mono2stereo(real*, mpg123_handle*);
 
 /* Sample rate decimation comes in less flavours. */
+#ifndef NO_DOWNSAMPLE
 int synth_2to1            (real*, int, mpg123_handle*, int);
 int synth_2to1_dither     (real*, int, mpg123_handle*, int);
 int synth_2to1_i386       (real*, int, mpg123_handle*, int);
@@ -102,21 +107,30 @@ int synth_4to1_dither     (real *,int, mpg123_handle*, int);
 int synth_4to1_i386       (real*, int, mpg123_handle*, int);
 int synth_4to1_mono       (real*, mpg123_handle*);
 int synth_4to1_mono2stereo(real*, mpg123_handle*);
+#endif
+#ifndef NO_NTOM
 /* NtoM is really just one implementation. */
 int synth_ntom (real *,int, mpg123_handle*, int);
 int synth_ntom_mono (real *, mpg123_handle *);
 int synth_ntom_mono2stereo (real *, mpg123_handle *);
+#endif
+#endif
 
+#ifndef NO_8BIT
 /* The 8bit-producing variants. */
-
 /* There are direct 8-bit synths and wrappers over a possibly optimized 16bit one. */
 int synth_1to1_8bit            (real*, int, mpg123_handle*, int);
 int synth_1to1_8bit_i386       (real*, int, mpg123_handle*, int);
+#ifndef NO_16BIT
 int synth_1to1_8bit_wrap       (real*, int, mpg123_handle*, int);
 int synth_1to1_8bit_mono       (real*, mpg123_handle*);
+#endif
 int synth_1to1_8bit_mono2stereo(real*, mpg123_handle*);
+#ifndef NO_16BIT
 int synth_1to1_8bit_wrap_mono       (real*, mpg123_handle*);
 int synth_1to1_8bit_wrap_mono2stereo(real*, mpg123_handle*);
+#endif
+#ifndef NO_DOWNSAMPLE
 int synth_2to1_8bit            (real*, int, mpg123_handle*, int);
 int synth_2to1_8bit_i386       (real*, int, mpg123_handle*, int);
 int synth_2to1_8bit_mono       (real*, mpg123_handle*);
@@ -125,18 +139,24 @@ int synth_4to1_8bit            (real*, int, mpg123_handle*, int);
 int synth_4to1_8bit_i386       (real*, int, mpg123_handle*, int);
 int synth_4to1_8bit_mono       (real*, mpg123_handle*);
 int synth_4to1_8bit_mono2stereo(real*, mpg123_handle*);
+#endif
+#ifndef NO_NTOM
 int synth_ntom_8bit            (real*, int, mpg123_handle*, int);
 int synth_ntom_8bit_mono       (real*, mpg123_handle*);
 int synth_ntom_8bit_mono2stereo(real*, mpg123_handle*);
-
+void ntom_set_ntom(mpg123_handle *fr, off_t num);
+#endif
+#endif
 
 #ifndef REAL_IS_FIXED
-/* The real-producing variants. */
 
+#ifndef NO_REAL
+/* The real-producing variants. */
 int synth_1to1_real            (real*, int, mpg123_handle*, int);
 int synth_1to1_real_i386       (real*, int, mpg123_handle*, int);
 int synth_1to1_real_mono       (real*, mpg123_handle*);
 int synth_1to1_real_mono2stereo(real*, mpg123_handle*);
+#ifndef NO_DOWNSAMPLE
 int synth_2to1_real            (real*, int, mpg123_handle*, int);
 int synth_2to1_real_i386       (real*, int, mpg123_handle*, int);
 int synth_2to1_real_mono       (real*, mpg123_handle*);
@@ -145,15 +165,21 @@ int synth_4to1_real            (real*, int, mpg123_handle*, int);
 int synth_4to1_real_i386       (real*, int, mpg123_handle*, int);
 int synth_4to1_real_mono       (real*, mpg123_handle*);
 int synth_4to1_real_mono2stereo(real*, mpg123_handle*);
+#endif
+#ifndef NO_NTOM
 int synth_ntom_real            (real*, int, mpg123_handle*, int);
 int synth_ntom_real_mono       (real*, mpg123_handle*);
 int synth_ntom_real_mono2stereo(real*, mpg123_handle*);
+#endif
+#endif
 
+#ifndef NO_32BIT
 /* 32bit integer */
 int synth_1to1_s32            (real*, int, mpg123_handle*, int);
 int synth_1to1_s32_i386       (real*, int, mpg123_handle*, int);
 int synth_1to1_s32_mono       (real*, mpg123_handle*);
 int synth_1to1_s32_mono2stereo(real*, mpg123_handle*);
+#ifndef NO_DOWNSAMPLE
 int synth_2to1_s32            (real*, int, mpg123_handle*, int);
 int synth_2to1_s32_i386       (real*, int, mpg123_handle*, int);
 int synth_2to1_s32_mono       (real*, mpg123_handle*);
@@ -162,10 +188,15 @@ int synth_4to1_s32            (real*, int, mpg123_handle*, int);
 int synth_4to1_s32_i386       (real*, int, mpg123_handle*, int);
 int synth_4to1_s32_mono       (real*, mpg123_handle*);
 int synth_4to1_s32_mono2stereo(real*, mpg123_handle*);
+#endif
+#ifndef NO_NTOM
 int synth_ntom_s32            (real*, int, mpg123_handle*, int);
 int synth_ntom_s32_mono       (real*, mpg123_handle*);
 int synth_ntom_s32_mono2stereo(real*, mpg123_handle*);
 #endif
+#endif
+
+#endif /* FIXED */
 
 
 /* Inside these synth functions, some dct64 variants may be used.
@@ -185,14 +216,25 @@ void dct36_3dnowext(real *,real *,real *,real *,real *);
 int synth_ntom_set_step(mpg123_handle *fr); /* prepare ntom decoding */
 unsigned long ntom_val(mpg123_handle *fr, off_t frame); /* compute ntom_val for frame offset */
 /* Frame and sample offsets. */
+#ifndef NO_NTOM
 off_t ntom_frmouts(mpg123_handle *fr, off_t frame);
 off_t ntom_ins2outs(mpg123_handle *fr, off_t ins);
 off_t ntom_frameoff(mpg123_handle *fr, off_t soff);
+#endif
 
-/* Initialization of any static data that may be needed at runtime.
+/* Initialization of any static data that majy be needed at runtime.
    Make sure you call these once before it is too late. */
+#ifndef NO_LAYER3
 void init_layer3(void);
-void init_layer2(void);
+real init_layer3_gainpow2(mpg123_handle *fr, int i);
+void init_layer3_stuff(mpg123_handle *fr, real (*gainpow2)(mpg123_handle *fr, int i));
+#endif
+#ifndef NO_LAYER12
+void  init_layer12(void);
+real* init_layer12_table(mpg123_handle *fr, real *table, double m);
+void  init_layer12_stuff(mpg123_handle *fr, real* (*init_table)(mpg123_handle *fr, real *table, double m));
+#endif
+
 void prepare_decode_tables(void);
 
 extern real *pnts[5]; /* tabinit provides, dct64 needs */
@@ -200,26 +242,38 @@ extern real *pnts[5]; /* tabinit provides, dct64 needs */
 /* Runtime (re)init functions; needed more often. */
 void make_decode_tables(mpg123_handle *fr); /* For every volume change. */
 /* Stuff needed after updating synth setup (see set_synth_functions()). */
-real* init_layer2_table(mpg123_handle *fr, real *table, double m);
-real init_layer3_gainpow2(mpg123_handle *fr, int i);
+
 #ifdef OPT_MMXORSSE
 /* Special treatment for mmx-like decoders, these functions go into the slots below. */
 void make_decode_tables_mmx(mpg123_handle *fr);
+#ifndef NO_LAYER3
 real init_layer3_gainpow2_mmx(mpg123_handle *fr, int i);
-real* init_layer2_table_mmx(mpg123_handle *fr, real *table, double m);
 #endif
-void init_layer2_stuff(mpg123_handle *fr, real* (*init_table)(mpg123_handle *fr, real *table, double m));
-void init_layer3_stuff(mpg123_handle *fr, real (*gainpow2)(mpg123_handle *fr, int i));
+#ifndef NO_LAYER12
+real* init_layer12_table_mmx(mpg123_handle *fr, real *table, double m);
+#endif
+#endif
+
+#ifndef NO_16BIT
+#ifndef NO_8BIT
 /* Needed when switching to 8bit output. */
 int make_conv16to8_table(mpg123_handle *fr);
+#endif
+#endif
 
 /* These are the actual workers.
    They operate on the parsed frame data and handle decompression to audio samples.
    The synth functions defined above are called from inside the layer handlers. */
 
+#ifndef NO_LAYER3
 int do_layer3(mpg123_handle *fr);
+#endif
+#ifndef NO_LAYER2
 int do_layer2(mpg123_handle *fr);
+#endif
+#ifndef NO_LAYER1
 int do_layer1(mpg123_handle *fr);
+#endif
 /* There's an 3DNow counterpart in asm. */
 void do_equalizer(real *bandPtr,int channel, real equalizer[2][32]);
 

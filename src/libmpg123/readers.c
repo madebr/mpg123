@@ -84,6 +84,7 @@ static ssize_t timeout_read(mpg123_handle *fr, void *buf, size_t count)
 }
 #endif
 
+#ifndef NO_ICY
 /* stream based operation  with icy meta data*/
 static ssize_t icy_fullread(mpg123_handle *fr, unsigned char *buf, ssize_t count)
 {
@@ -184,6 +185,9 @@ static ssize_t icy_fullread(mpg123_handle *fr, unsigned char *buf, ssize_t count
 	/* debug1("done reading, got %li", (long)cnt); */
 	return cnt;
 }
+#else
+#define icy_fullread NULL
+#endif /* NO_ICY */
 
 /* stream based operation */
 static ssize_t plain_fullread(mpg123_handle *fr,unsigned char *buf, ssize_t count)
@@ -856,11 +860,13 @@ static int default_init(mpg123_handle *fr)
 			fr->rd = &readers[READER_BUF_STREAM];
 			fr->rdat.fullread = plain_fullread;
 		}
+#ifndef NO_ICY
 		else if(fr->rd == &readers[READER_ICY_STREAM])
 		{
 			fr->rd = &readers[READER_BUF_ICY_STREAM];
 			fr->rdat.fullread = icy_fullread;
 		}
+#endif
 		else
 		{
 			if(NOQUIET) error("mpg123 Programmer's fault: invalid reader");
@@ -919,6 +925,7 @@ int open_stream(mpg123_handle *fr, const char *bs_filenam, int fd)
 	fr->rdat.flags = 0;
 	if(filept_opened)	fr->rdat.flags |= READER_FD_OPENED;
 
+#ifndef NO_ICY
 	if(fr->p.icy_interval > 0)
 	{
 		debug("ICY reader");
@@ -927,6 +934,7 @@ int open_stream(mpg123_handle *fr, const char *bs_filenam, int fd)
 		fr->rd = &readers[READER_ICY_STREAM];
 	}
 	else
+#endif
 	{
 		fr->rd = &readers[READER_STREAM];
 		debug("stream reader");

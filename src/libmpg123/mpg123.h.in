@@ -218,7 +218,8 @@ enum mpg123_errors
 	MPG123_BAD_KEY,	/**< Bad key value given. */
 	MPG123_NO_INDEX,	/**< No frame index in this build. */
 	MPG123_INDEX_FAIL,	/**< Something with frame index went wrong. */
-	MPG123_BAD_DECODER_SETUP	/**< Something prevents a proper decoder setup */
+	MPG123_BAD_DECODER_SETUP,	/**< Something prevents a proper decoder setup */
+	MPG123_MISSING_FEATURE  /**< This feature has not been built into libmpg123. */
 };
 
 /** Return a string describing that error errcode means. */

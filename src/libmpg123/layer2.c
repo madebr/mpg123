@@ -6,12 +6,17 @@
 	initially written by Michael Hipp
 
 	mpg123 started as mp2 decoder a long time ago...
+	part of this file is required for layer 1, too.
 */
 
 
 #include "mpg123lib_intern.h"
+#ifndef NO_LAYER2
 #include "l2tables.h"
+#endif
 #include "getbits.h"
+
+#ifndef NO_LAYER12 /* Stuff  needed for layer I and II. */
 
 static int grp_3tab[32 * 3] = { 0, };   /* used: 27 */
 static int grp_5tab[128 * 3] = { 0, };  /* used: 125 */
@@ -27,7 +32,7 @@ static const double mulmul[27] =
 	-8.0/9.0 , -4.0/9.0 , -2.0/9.0 , 2.0/9.0 , 4.0/9.0 , 8.0/9.0
 };
 
-void init_layer2(void)
+void init_layer12(void)
 {
 	const int base[3][9] =
 	{
@@ -55,7 +60,7 @@ void init_layer2(void)
 	}
 }
 
-void init_layer2_stuff(mpg123_handle *fr, real* (*init_table)(mpg123_handle *fr, real *table, double m))
+void init_layer12_stuff(mpg123_handle *fr, real* (*init_table)(mpg123_handle *fr, real *table, double m))
 {
 	int k;
 	real *table;
@@ -66,7 +71,7 @@ void init_layer2_stuff(mpg123_handle *fr, real* (*init_table)(mpg123_handle *fr,
 	}
 }
 
-real* init_layer2_table(mpg123_handle *fr, real *table, double m)
+real* init_layer12_table(mpg123_handle *fr, real *table, double m)
 {
 	int i,j;
 	for(j=3,i=0;i<63;i++,j--)
@@ -76,7 +81,7 @@ real* init_layer2_table(mpg123_handle *fr, real *table, double m)
 }
 
 #ifdef OPT_MMXORSSE
-real* init_layer2_table_mmx(mpg123_handle *fr, real *table, double m)
+real* init_layer12_table_mmx(mpg123_handle *fr, real *table, double m)
 {
 	int i,j;
 	if(!fr->p.down_sample) 
@@ -93,6 +98,11 @@ real* init_layer2_table_mmx(mpg123_handle *fr, real *table, double m)
 }
 #endif
 
+#endif /* NO_LAYER12 */
+
+/* The rest is the actual decoding of layer II data. */
+
+#ifndef NO_LAYER2
 
 void II_step_one(unsigned int *bit_alloc,int *scale,mpg123_handle *fr)
 {
@@ -345,3 +355,5 @@ int do_layer2(mpg123_handle *fr)
 
 	return clip;
 }
+
+#endif /* NO_LAYER2 */

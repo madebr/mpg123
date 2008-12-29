@@ -107,6 +107,7 @@ void make_decode_tables(mpg123_handle *fr)
   debug("decode tables done");
 }
 
+#ifndef NO_8BIT
 int make_conv16to8_table(mpg123_handle *fr)
 {
   int i;
@@ -161,4 +162,5 @@ int make_conv16to8_table(mpg123_handle *fr)
   }
 	return 0;
 }
+#endif
 
