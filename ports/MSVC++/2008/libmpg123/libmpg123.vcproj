@@ -42,11 +42,14 @@
 				Optimization="0"
 				AdditionalIncludeDirectories="../..;../../../../src/libmpg123"
 				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;OPT_I486;REAL_IS_FLOAT;_DEBUG"
-				MinimalRebuild="true"
+				MinimalRebuild="false"
+				ExceptionHandling="0"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
+				RuntimeTypeInfo="false"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+				CompileAs="1"
 				DisableSpecificWarnings="4996"
 			/>
 			<Tool
@@ -176,11 +179,14 @@
 				Optimization="0"
 				AdditionalIncludeDirectories="../..;../../../../src/libmpg123"
 				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;OPT_I386;REAL_IS_FLOAT;_DEBUG"
-				MinimalRebuild="true"
+				MinimalRebuild="false"
+				ExceptionHandling="0"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
+				RuntimeTypeInfo="false"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+				CompileAs="1"
 				DisableSpecificWarnings="4996"
 			/>
 			<Tool
@@ -238,11 +244,14 @@
 				Optimization="0"
 				AdditionalIncludeDirectories="../..;../../../../src/libmpg123"
 				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;REAL_IS_FLOAT;OPT_GENERIC;_DEBUG"
-				MinimalRebuild="true"
+				MinimalRebuild="false"
+				ExceptionHandling="0"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
+				RuntimeTypeInfo="false"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+				CompileAs="1"
 				DisableSpecificWarnings="4996"
 			/>
 			<Tool

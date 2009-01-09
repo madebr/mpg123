@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="8,00"
 	Name="feedseek"
-	ProjectGUID="{472481BF-11B6-41A9-BF6A-8BE16A7F8FD6}"
+	ProjectGUID="{17555DA4-8E95-4747-BEE2-57DF10043636}"
 	RootNamespace="feedseek"
 	Keyword="Win32Proj"
-	TargetFrameworkVersion="196613"
 	>
 	<Platforms>
 		<Platform
@@ -50,6 +49,7 @@
 				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 				CompileAs="1"
 				DisableSpecificWarnings="4996"
@@ -89,6 +89,9 @@
 				Name="VCAppVerifierTool"
 			/>
 			<Tool
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -117,7 +120,6 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="2"
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
@@ -133,6 +135,7 @@
 				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="0"
 				CompileAs="1"
 				DisableSpecificWarnings="4996"
@@ -174,13 +177,16 @@
 				Name="VCAppVerifierTool"
 			/>
 			<Tool
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
 	</Configurations>
 	<References>
 		<ProjectReference
-			ReferencedProjectIdentifier="{67CAA87B-7CF1-4F93-BB67-21C513F40803}"
+			ReferencedProjectIdentifier="{5ABE9A83-CA20-4321-878B-BF71EFDE3A6D}"
 			RelativePathToProject=".\libmpg123\libmpg123.vcproj"
 		/>
 	</References>
