@@ -38,10 +38,14 @@ print "#else\n";
 printdefs(0);
 print "#endif\n";
 
-for('warning', 'error', 'ereturn')
+foreach my $t ('warning', 'error', 'ereturn')
 {
-	print "\n/* $_ macros also here... */\n";
-	printdefs(1, $_);
+	print "\n/* $t macros also here... */\n";
+	print "#ifndef NO_".uc($t)."\n";
+	printdefs(1, $t);
+	print "#else\n";
+	printdefs(0, $t);
+	print "#endif\n";
 }
 
 sub printdefs
@@ -51,11 +55,13 @@ sub printdefs
 	$type = 'debug' unless defined $type;
 	my $i;
 	my $pre = ''; my $post = ''; my $rv = '';
+	my $notreal = '';
 	if($type eq 'ereturn')
 	{
 		$pre  = 'do{ ';
 		$post = '; return rv; }while(0)';
 		$rv   = 'rv, ';
+		$notreal = 'return rv';
 	}
 	while(++$i <= $num+1)
 	{
@@ -66,7 +72,7 @@ sub printdefs
 		print join(', ', @args).') ';
 		if($forreal){ print $pre.'fprintf(stderr, "[" __FILE__ ":%i] '.$type.': " s "\n", __LINE__'.join(', ', @args).")$post\n"; }
 		#else{ print "do {} while(0)\n"; } 
-		else{ print "\n"; }
+		else{ print "$notreal\n"; }
 	}
 }
 

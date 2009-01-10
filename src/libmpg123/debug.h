@@ -60,6 +60,7 @@
 #endif
 
 /* warning macros also here... */
+#ifndef NO_WARNING
 #define warning(s) fprintf(stderr, "[" __FILE__ ":%i] warning: " s "\n", __LINE__)
 #define warning1(s, a) fprintf(stderr, "[" __FILE__ ":%i] warning: " s "\n", __LINE__, a)
 #define warning2(s, a, b) fprintf(stderr, "[" __FILE__ ":%i] warning: " s "\n", __LINE__, a, b)
@@ -76,8 +77,27 @@
 #define warning13(s, a, b, c, d, e, f, g, h, i, j, k, l, m) fprintf(stderr, "[" __FILE__ ":%i] warning: " s "\n", __LINE__, a, b, c, d, e, f, g, h, i, j, k, l, m)
 #define warning14(s, a, b, c, d, e, f, g, h, i, j, k, l, m, n) fprintf(stderr, "[" __FILE__ ":%i] warning: " s "\n", __LINE__, a, b, c, d, e, f, g, h, i, j, k, l, m, n)
 #define warning15(s, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o) fprintf(stderr, "[" __FILE__ ":%i] warning: " s "\n", __LINE__, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o)
+#else
+#define warning(s) 
+#define warning1(s, a) 
+#define warning2(s, a, b) 
+#define warning3(s, a, b, c) 
+#define warning4(s, a, b, c, d) 
+#define warning5(s, a, b, c, d, e) 
+#define warning6(s, a, b, c, d, e, f) 
+#define warning7(s, a, b, c, d, e, f, g) 
+#define warning8(s, a, b, c, d, e, f, g, h) 
+#define warning9(s, a, b, c, d, e, f, g, h, i) 
+#define warning10(s, a, b, c, d, e, f, g, h, i, j) 
+#define warning11(s, a, b, c, d, e, f, g, h, i, j, k) 
+#define warning12(s, a, b, c, d, e, f, g, h, i, j, k, l) 
+#define warning13(s, a, b, c, d, e, f, g, h, i, j, k, l, m) 
+#define warning14(s, a, b, c, d, e, f, g, h, i, j, k, l, m, n) 
+#define warning15(s, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o) 
+#endif
 
 /* error macros also here... */
+#ifndef NO_ERROR
 #define error(s) fprintf(stderr, "[" __FILE__ ":%i] error: " s "\n", __LINE__)
 #define error1(s, a) fprintf(stderr, "[" __FILE__ ":%i] error: " s "\n", __LINE__, a)
 #define error2(s, a, b) fprintf(stderr, "[" __FILE__ ":%i] error: " s "\n", __LINE__, a, b)
@@ -94,8 +114,27 @@
 #define error13(s, a, b, c, d, e, f, g, h, i, j, k, l, m) fprintf(stderr, "[" __FILE__ ":%i] error: " s "\n", __LINE__, a, b, c, d, e, f, g, h, i, j, k, l, m)
 #define error14(s, a, b, c, d, e, f, g, h, i, j, k, l, m, n) fprintf(stderr, "[" __FILE__ ":%i] error: " s "\n", __LINE__, a, b, c, d, e, f, g, h, i, j, k, l, m, n)
 #define error15(s, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o) fprintf(stderr, "[" __FILE__ ":%i] error: " s "\n", __LINE__, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o)
+#else
+#define error(s) 
+#define error1(s, a) 
+#define error2(s, a, b) 
+#define error3(s, a, b, c) 
+#define error4(s, a, b, c, d) 
+#define error5(s, a, b, c, d, e) 
+#define error6(s, a, b, c, d, e, f) 
+#define error7(s, a, b, c, d, e, f, g) 
+#define error8(s, a, b, c, d, e, f, g, h) 
+#define error9(s, a, b, c, d, e, f, g, h, i) 
+#define error10(s, a, b, c, d, e, f, g, h, i, j) 
+#define error11(s, a, b, c, d, e, f, g, h, i, j, k) 
+#define error12(s, a, b, c, d, e, f, g, h, i, j, k, l) 
+#define error13(s, a, b, c, d, e, f, g, h, i, j, k, l, m) 
+#define error14(s, a, b, c, d, e, f, g, h, i, j, k, l, m, n) 
+#define error15(s, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o) 
+#endif
 
 /* ereturn macros also here... */
+#ifndef NO_ERETURN
 #define ereturn(rv, s) do{ fprintf(stderr, "[" __FILE__ ":%i] ereturn: " s "\n", __LINE__); return rv; }while(0)
 #define ereturn1(rv, s, a) do{ fprintf(stderr, "[" __FILE__ ":%i] ereturn: " s "\n", __LINE__, a); return rv; }while(0)
 #define ereturn2(rv, s, a, b) do{ fprintf(stderr, "[" __FILE__ ":%i] ereturn: " s "\n", __LINE__, a, b); return rv; }while(0)
@@ -112,3 +151,21 @@
 #define ereturn13(rv, s, a, b, c, d, e, f, g, h, i, j, k, l, m) do{ fprintf(stderr, "[" __FILE__ ":%i] ereturn: " s "\n", __LINE__, a, b, c, d, e, f, g, h, i, j, k, l, m); return rv; }while(0)
 #define ereturn14(rv, s, a, b, c, d, e, f, g, h, i, j, k, l, m, n) do{ fprintf(stderr, "[" __FILE__ ":%i] ereturn: " s "\n", __LINE__, a, b, c, d, e, f, g, h, i, j, k, l, m, n); return rv; }while(0)
 #define ereturn15(rv, s, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o) do{ fprintf(stderr, "[" __FILE__ ":%i] ereturn: " s "\n", __LINE__, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o); return rv; }while(0)
+#else
+#define ereturn(rv, s) return rv
+#define ereturn1(rv, s, a) return rv
+#define ereturn2(rv, s, a, b) return rv
+#define ereturn3(rv, s, a, b, c) return rv
+#define ereturn4(rv, s, a, b, c, d) return rv
+#define ereturn5(rv, s, a, b, c, d, e) return rv
+#define ereturn6(rv, s, a, b, c, d, e, f) return rv
+#define ereturn7(rv, s, a, b, c, d, e, f, g) return rv
+#define ereturn8(rv, s, a, b, c, d, e, f, g, h) return rv
+#define ereturn9(rv, s, a, b, c, d, e, f, g, h, i) return rv
+#define ereturn10(rv, s, a, b, c, d, e, f, g, h, i, j) return rv
+#define ereturn11(rv, s, a, b, c, d, e, f, g, h, i, j, k) return rv
+#define ereturn12(rv, s, a, b, c, d, e, f, g, h, i, j, k, l) return rv
+#define ereturn13(rv, s, a, b, c, d, e, f, g, h, i, j, k, l, m) return rv
+#define ereturn14(rv, s, a, b, c, d, e, f, g, h, i, j, k, l, m, n) return rv
+#define ereturn15(rv, s, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o) return rv
+#endif
