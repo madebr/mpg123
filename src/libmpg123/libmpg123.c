@@ -592,6 +592,10 @@ static int get_next_frame(mpg123_handle *mh)
 			debug1("ignoring frame %li", (long)mh->num);
 			/* Decoder structure must be current! decode_update has been called before... */
 			(mh->do_layer)(mh); mh->buffer.fill = 0;
+#ifndef NO_NTOM
+			/* The ignored decoding may have failed. Make sure ntom stays consistent. */
+			if(mh->down_sample == 3) ntom_set_ntom(mh, mh->num+1);
+#endif
 			mh->to_ignore = mh->to_decode = FALSE;
 		}
 		/* Read new frame data; possibly breaking out here for MPG123_NEED_MORE. */
@@ -658,21 +662,34 @@ void decode_the_frame(mpg123_handle *fr)
 {
 	size_t needed_bytes = samples_to_bytes(fr, frame_outs(fr, fr->num+1)-frame_outs(fr, fr->num));
 	fr->clip += (fr->do_layer)(fr);
-
-	/* There could be less data than promised. */
-	if(fr->buffer.fill < needed_bytes)
+	/*fprintf(stderr, "frame %"OFF_P": got %"SIZE_P" / %"SIZE_P"\n", fr->num,(size_p)fr->buffer.fill, (size_p)needed_bytes);*/
+	/* There could be less data than promised.
+	   Also, then debugging, we look out for coding errors that could result in _more_ data than expected. */
+#ifdef DEBUG
+	if(fr->buffer.fill != needed_bytes)
 	{
-		if(NOQUIET)
-		fprintf(stderr, "Note: broken frame %li, filling up with %"SIZE_P" zeroes, from %"SIZE_P"\n", (long)fr->num, (size_p)(needed_bytes-fr->buffer.fill), (size_p)fr->buffer.fill);
-
-		/* One could do a loop with individual samples instead... but zero is zero. */
-		memset(fr->buffer.data + fr->buffer.fill, 0, needed_bytes - fr->buffer.fill);
-		fr->buffer.fill = needed_bytes;
-#ifndef NO_NTOM
-		/* ntom_val will be wrong when the decoding wasn't carried out completely */
-		ntom_set_ntom(fr, fr->num+1);
 #endif
+		if(fr->buffer.fill < needed_bytes)
+		{
+			if(NOQUIET)
+			fprintf(stderr, "Note: broken frame %li, filling up with %"SIZE_P" zeroes, from %"SIZE_P"\n", (long)fr->num, (size_p)(needed_bytes-fr->buffer.fill), (size_p)fr->buffer.fill);
+
+			/* One could do a loop with individual samples instead... but zero is zero. */
+			memset(fr->buffer.data + fr->buffer.fill, 0, needed_bytes - fr->buffer.fill);
+			fr->buffer.fill = needed_bytes;
+#ifndef NO_NTOM
+			/* ntom_val will be wrong when the decoding wasn't carried out completely */
+			ntom_set_ntom(fr, fr->num+1);
+#endif
+		}
+#ifdef DEBUG
+		else
+		{
+			if(NOQUIET)
+			error2("I got _more_ bytes than expected (%"SIZE_P" / %"SIZE_P"), that should not be possible!", (size_p)fr->buffer.fill, (size_p)needed_bytes);
+		}
 	}
+#endif
 	/* Handle unsigned output formats via reshifting after decode here. */
 #ifndef NO_32BIT
 	if(fr->af.encoding == MPG123_ENC_UNSIGNED_32)
@@ -982,15 +999,24 @@ static int do_the_seek(mpg123_handle *mh)
 	int b;
 	off_t fnum = SEEKFRAME(mh);
 	mh->buffer.fill = 0;
+
 	if(mh->num < mh->firstframe) mh->to_decode = FALSE;
+
 	if(mh->num == fnum && mh->to_decode) return MPG123_OK;
 	if(mh->num == fnum-1)
 	{
 		mh->to_decode = FALSE;
 		return MPG123_OK;
 	}
+#ifndef NO_NTOM
+	if(mh->down_sample == 3)
+	{
+		ntom_set_ntom(mh, fnum);
+		debug3("fixed ntom for frame %"OFF_P" to %i, num=%"OFF_P, fnum, mh->ntom_val[0], mh->num);
+	}
+#endif
 	b = mh->rd->seek_frame(mh, fnum);
-debug1("seek_frame returned: %i", b);
+	debug1("seek_frame returned: %i", b);
 	if(b<0) return b;
 	/* Only mh->to_ignore is TRUE. */
 	if(mh->num < mh->firstframe) mh->to_decode = FALSE;
