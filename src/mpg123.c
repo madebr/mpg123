@@ -937,7 +937,7 @@ int main(int argc, char *argv[])
 			{
 				fprintf(stderr, "%s", "So, you have trouble getting an output format... this is the matrix of currently possible formats:\n");
 				print_capabilities(ao, mh);
-				fprintf(stderr, "%s", "Somehow the input data and your choices don't allow one of these.\nTried enabling resampling with a forced rate (only 2to1 and 4to1 downsampling is tried automatically)?\nTried allowing mono/stereo?\n");
+				fprintf(stderr, "%s", "Somehow the input data and your choices don't allow one of these.\n");
 			}
 			mpg123_close(mh);
 			continue;
