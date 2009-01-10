@@ -409,12 +409,11 @@ static void frame_fixed_reset(mpg123_handle *fr)
 	fr->firstoff = 0;
 #endif
 #ifdef OPT_I486
-	fr->bo[0] = fr->bo[1] = FIR_SIZE-1;
-#else
+	fr->i486bo[0] = fr->i486bo[1] = FIR_SIZE-1;
+#endif
 	fr->bo = 1; /* the usual bo */
 #ifdef OPT_DITHER
 	fr->ditherindex = 0;
-#endif
 #endif
 	reset_id3(fr);
 	reset_icy(&fr->icy);

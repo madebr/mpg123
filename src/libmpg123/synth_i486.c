@@ -115,7 +115,7 @@ int absynth_1to1_i486(real *bandPtr, int channel, mpg123_handle *fr, int nb_bloc
   /* samples address */
   samples+=channel;
 
-  bo_start=fr->bo[channel];
+  bo_start=fr->i486bo[channel];
   buf = fr->int_buffs[channel];
 
   b=bo_start;
@@ -138,7 +138,7 @@ int absynth_1to1_i486(real *bandPtr, int channel, mpg123_handle *fr, int nb_bloc
         }
       }
       /* we update 'bo' accordingly */
-      b=fr->bo[channel]=FIR_SIZE;
+      b=fr->i486bo[channel]=FIR_SIZE;
     }
     
     if(b & 1) {
@@ -148,7 +148,7 @@ int absynth_1to1_i486(real *bandPtr, int channel, mpg123_handle *fr, int nb_bloc
     }
     bandPtr+=32;
   }
-  fr->bo[channel]=b;
+  fr->i486bo[channel]=b;
 
   /* filter bank: part 1 */
   b=bo_start;

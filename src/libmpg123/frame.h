@@ -92,10 +92,9 @@ struct mpg123_handle_struct
 	unsigned char *rawbuffs;
 	int rawbuffss;
 #ifdef OPT_I486
-	int bo[2];
-#else
-	int bo;
+	int i486bo[2];
 #endif
+	int bo; /* Just have it always here. */
 #ifdef OPT_DITHER
 	int ditherindex;
 	float *dithernoise;
