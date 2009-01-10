@@ -28,8 +28,8 @@ int synth_1to1_altivec(real *bandPtr,int channel,mpg123_handle *fr, int final)
   if(fr->have_eq_settings) do_equalizer(bandPtr,channel,fr->equalizer);
 
   if(!channel) {
-    fr->bo[0]--;
-    fr->bo[0] &= 0xf;
+    fr->bo--;
+    fr->bo &= 0xf;
     buf = fr->real_buffs[0];
   }
   else {
@@ -37,15 +37,15 @@ int synth_1to1_altivec(real *bandPtr,int channel,mpg123_handle *fr, int final)
     buf = fr->real_buffs[1];
   }
 
-  if(fr->bo[0] & 0x1) {
+  if(fr->bo & 0x1) {
     b0 = buf[0];
-    bo1 = fr->bo[0];
-    dct64_altivec(buf[1]+((fr->bo[0]+1)&0xf),buf[0]+fr->bo[0],bandPtr);
+    bo1 = fr->bo;
+    dct64_altivec(buf[1]+((fr->bo+1)&0xf),buf[0]+fr->bo,bandPtr);
   }
   else {
     b0 = buf[1];
-    bo1 = fr->bo[0]+1;
-    dct64_altivec(buf[0]+fr->bo[0],buf[1]+fr->bo[0]+1,bandPtr);
+    bo1 = fr->bo+1;
+    dct64_altivec(buf[0]+fr->bo,buf[1]+fr->bo+1,bandPtr);
   }
 
 
