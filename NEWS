@@ -17,6 +17,10 @@ Also, implement something for MPG123_ENC_UNISGNED_16 ... either another whole se
   ... some ends left ... I/O, strings, streamlining overhead code in libmpg123.c ...
 A test build for layer3 only was down to around 120K with -Os ...
 
+1.6.4
+---
+- Fix for consistent NtoM resampled decoding and broken frames fillup.
+
 1.6.3
 ---
 
