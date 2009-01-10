@@ -10,6 +10,7 @@
 
 #include <jack/jack.h>
 #include <jack/ringbuffer.h>
+#include <sys/errno.h>
 
 #include "mpg123app.h"
 #include "debug.h"
@@ -108,9 +109,33 @@ static void shutdown_callback( void *arg )
 
 }
 
+/* connect to jack ports named in the NULL-terminated wishlist */
+static int real_connect_jack_ports( jack_handle_t* handle, const char** wishlist)
+{
+	const char **wish = wishlist;
+	int ch, err;
+
+	if(wish != NULL && *wish == NULL) return 1; /* success, nothing connected as wanted */
+
+	for(ch=0; ch<handle->channels; ++ch)
+	{
+		const char* in = jack_port_name( handle->ports[ch] );
+		if(param.verbose) fprintf(stderr, "JACK output: connecting %s to %s\n", in, *wish);
+
+		if ((err = jack_connect(handle->client, in, *wish)) != 0 && err != EEXIST) {
+			error1("connect_jack_ports(): failed to jack_connect() ports: %d",err);
+			return 0;
+		}
+		/* Increment wish only if there is another one. Otherwise simply connect to the same port multiple times. */
+		if(*(wish+1) != NULL) ++wish;
+	}
+
+	return 1;
+}
+
 /* crude way of automatically connecting up jack ports */
 /* 0 on error */
-static int autoconnect_jack_ports( jack_handle_t* handle )
+static int autoconnect_jack_ports( jack_handle_t* handle)
 {
 	const char **all_ports;
 	unsigned int ch=0;
@@ -128,10 +153,10 @@ static int autoconnect_jack_ports( jack_handle_t* handle )
 
 		const char* in = jack_port_name( handle->ports[ch] );
 		const char* out = all_ports[i];
-		
-		debug2("Connecting %s to %sesound", in, out);
-		
-		if ((err = jack_connect(handle->client, in, out)) != 0) {
+
+		if(param.verbose) fprintf(stderr, "JACK output: connecting %s to %s\n", in, out);
+
+		if ((err = jack_connect(handle->client, in, out)) != 0 && err != EEXIST) {
 			error1("connect_jack_ports(): failed to jack_connect() ports: %d",err);
 			return 0;
 		}
@@ -149,10 +174,36 @@ static int connect_jack_ports( jack_handle_t* handle, const char *dev )
 {
 	if (dev==NULL || strcmp(dev, "auto")==0) {
 		return autoconnect_jack_ports( handle );
-	} else if (strcmp(dev, "none")==0) {
-		warning("Not connecting up jack ports as requested.");
-	} else {
-		warning("Sorry I don't know how to connect up ports yet.");
+	}
+	else
+	{
+		const char* wishlist[] = { NULL, NULL, NULL }; /* Two channels and end marker. */
+		char *devcopy;
+		int ret;
+		size_t len = strlen(dev);
+		devcopy = malloc(len+1);
+		if(devcopy == NULL){ error("OOM"); return 0; }
+
+		/* We just look out for a possible second port, comma separated
+		   This is really crude cruft, but it's enough. Can be replaced by something sensible later. */
+		memcpy(devcopy, dev, len+1);
+		if( len > 0 && strcmp(dev, "none")!=0 )
+		{
+			size_t i=0;
+			wishlist[0] = devcopy;
+			while(devcopy[i] != 0 && devcopy[i] != ',') ++i;
+
+			if(devcopy[i] == ',')
+			{
+				devcopy[i] = 0;
+				wishlist[1] = devcopy+i+1;
+			}
+		}
+		if(wishlist[0] == NULL) warning("Not connecting up jack ports as requested.");
+
+		ret = real_connect_jack_ports(handle, wishlist);
+		free(devcopy);
+		return ret;
 	}
 	return 1;
 }
