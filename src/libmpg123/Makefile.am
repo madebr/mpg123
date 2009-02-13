@@ -41,6 +41,7 @@ libmpg123_la_SOURCES = \
 	reader.h \
 	debug.h \
 	decode.h \
+	sample.h \
 	dct64.c \
 	synth.h \
 	synth_mono.h \
