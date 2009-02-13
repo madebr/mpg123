@@ -8,6 +8,7 @@
 */
 
 #include "mpg123lib_intern.h"
+#include "sample.h"
 
 #ifndef __APPLE__
 #include <altivec.h>

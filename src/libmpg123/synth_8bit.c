@@ -7,6 +7,7 @@
 */
 
 #include "mpg123lib_intern.h"
+#include "sample.h"
 #include "debug.h"
 
 /* 
