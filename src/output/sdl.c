@@ -12,6 +12,9 @@
 
 #include "audio.h"
 #include "mpg123app.h"
+#ifdef WIN32
+#include <windows.h>
+#endif
 
 /* Including the sfifo code locally, to avoid module linkage issues. */
 #define SFIFO_STATIC
