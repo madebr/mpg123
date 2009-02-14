@@ -451,7 +451,7 @@ int audio_trash_buffers(audio_output_t *ao)
 }
 */
 
-int close_os2(audio_output_t *ao)
+static int close_os2(audio_output_t *ao)
 {
 	ULONG rc;
 	
@@ -571,7 +571,7 @@ int get_formats_os2(audio_output_t *ao)
 	return fmts;
 }
 
-int get_devices_os2(char *info, int deviceid)
+static int get_devices_os2(char *info, int deviceid)
 {
 	char buffer[128];
 	MCI_SYSINFO_PARMS mip;
@@ -623,7 +623,7 @@ int get_devices_os2(char *info, int deviceid)
 }
 
 
-void flush_os2(audio_output_t *ao)
+static void flush_os2(audio_output_t *ao)
 {
 }
 

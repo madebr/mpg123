@@ -140,7 +140,7 @@ static int initialize_device(audio_output_t *ao)
 	return 0;
 }
 
-void error_ignorer(const char *file, int line, const char *function, int err, const char *fmt,...)
+static void error_ignorer(const char *file, int line, const char *function, int err, const char *fmt,...)
 {
 	/* I can make ALSA silent. */
 }

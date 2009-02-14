@@ -31,7 +31,7 @@ struct queue_state
 	HANDLE play_done_event;
 };
 
-int open_win32(struct audio_output_struct *ao)
+static int open_win32(struct audio_output_struct *ao)
 {
 	struct queue_state* state;
 	int i;
@@ -91,7 +91,7 @@ int open_win32(struct audio_output_struct *ao)
 	return 0;
 }
 
-int get_formats_win32(struct audio_output_struct *ao)
+static int get_formats_win32(struct audio_output_struct *ao)
 {
 	/* FIXME: support for smth besides MPG123_ENC_SIGNED_16? */
 	return MPG123_ENC_SIGNED_16;
@@ -100,7 +100,7 @@ int get_formats_win32(struct audio_output_struct *ao)
 /* Stores audio data to the fixed size buffers and pushes them into the playback queue.
    I have one grief with that: The last piece of a track may not reach the output,
    only full buffers sent... But we don't get smooth audio otherwise. */
-int write_win32(struct audio_output_struct *ao, unsigned char *buf, int len)
+static int write_win32(struct audio_output_struct *ao, unsigned char *buf, int len)
 {
 	struct queue_state* state;
 	MMRESULT res;
@@ -157,7 +157,7 @@ int write_win32(struct audio_output_struct *ao, unsigned char *buf, int len)
 	return len;
 }
 
-void flush_win32(struct audio_output_struct *ao)
+static void flush_win32(struct audio_output_struct *ao)
 {
 	int i;
 	struct queue_state* state;
@@ -178,7 +178,7 @@ void flush_win32(struct audio_output_struct *ao)
 	}
 }
 
-int close_win32(struct audio_output_struct *ao)
+static int close_win32(struct audio_output_struct *ao)
 {
 	int i;
 	struct queue_state* state;

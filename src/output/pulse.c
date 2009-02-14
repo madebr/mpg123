@@ -18,7 +18,6 @@
 #include "audio.h"
 #include "module.h"
 #include "debug.h"
-#include "sfifo.h"
 
 static int open_pulse(audio_output_t *ao)
 {

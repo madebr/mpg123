@@ -160,7 +160,7 @@ static int write_sgi(audio_output_t *ao,unsigned char *buf,int len)
 }
 
 
-int close_sgi(audio_output_t *ao)
+static int close_sgi(audio_output_t *ao)
 {
 	ALport port = (ALport)ao->handle;
 	
@@ -173,7 +173,7 @@ int close_sgi(audio_output_t *ao)
 	return 0;
 }
 
-void flush_sgi(audio_output_t *ao)
+static void flush_sgi(audio_output_t *ao)
 {
 }
 
