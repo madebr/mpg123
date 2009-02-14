@@ -671,7 +671,7 @@ void decode_the_frame(mpg123_handle *fr)
 #endif
 		if(fr->buffer.fill < needed_bytes)
 		{
-			if(NOQUIET)
+			if(VERBOSE2)
 			fprintf(stderr, "Note: broken frame %li, filling up with %"SIZE_P" zeroes, from %"SIZE_P"\n", (long)fr->num, (size_p)(needed_bytes-fr->buffer.fill), (size_p)fr->buffer.fill);
 
 			/* One could do a loop with individual samples instead... but zero is zero. */
