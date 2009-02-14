@@ -882,7 +882,9 @@ static int default_init(mpg123_handle *fr)
 
 void open_bad(mpg123_handle *mh)
 {
+#ifndef NO_ICY
 	clear_icy(&mh->icy);
+#endif
 	mh->rd = &bad_reader;
 	mh->rdat.flags = 0;
 	bc_init(&mh->rdat.buffer);
@@ -891,7 +893,15 @@ void open_bad(mpg123_handle *mh)
 int open_feed(mpg123_handle *fr)
 {
 	debug("feed reader");
+#ifndef NO_ICY
+	if(fr->p.icy_interval > 0)
+	{
+		if(NOQUIET) error("Feed reader cannot do ICY parsing!");
+
+		return -1;
+	}
 	clear_icy(&fr->icy);
+#endif
 	fr->rd = &readers[READER_FEED];
 	fr->rdat.flags = 0;
 	if(fr->rd->init(fr) < 0) return -1;
