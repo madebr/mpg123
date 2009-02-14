@@ -686,6 +686,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\..\..\src\libmpg123\sample.h"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\src\libmpg123\synth_8bit.c"
 			>
 		</File>
