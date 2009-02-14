@@ -437,6 +437,8 @@ int set_synth_functions(mpg123_handle *fr)
 		fr->make_decode_tables = make_decode_tables;
 	}
 
+	fr->make_decode_tables(fr);
+
 	return 0;
 }
 
