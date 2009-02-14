@@ -16,6 +16,7 @@
 /* ABI conformance for other compilers.
    mpg123 needs 16byte-aligned stack for SSE and friends.
    gcc provides that, but others don't necessarily. */
+#ifdef ABI_ALIGN_FUN
 #ifndef attribute_align_arg
 #if defined(__GNUC__) && (__GNUC__ > 4 || __GNUC__ == 4 && __GNUC_MINOR__>1)
 #    define attribute_align_arg __attribute__((force_align_arg_pointer))
@@ -24,6 +25,10 @@
 #    define attribute_align_arg
 #    define NEED_ALIGNCHECK /* Other compilers get code to catch misaligned stack. */
 #endif
+#endif
+#else
+#define attribute_align_arg
+/* We won't try the align check... */
 #endif
 
 /* export DLL symbols */

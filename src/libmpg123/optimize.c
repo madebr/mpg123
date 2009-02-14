@@ -437,7 +437,7 @@ int set_synth_functions(mpg123_handle *fr)
 		fr->make_decode_tables = make_decode_tables;
 	}
 
-	// We allocated the table buffers just now, so (re)create the tables.
+	/* We allocated the table buffers just now, so (re)create the tables. */
 	fr->make_decode_tables(fr);
 
 	return 0;

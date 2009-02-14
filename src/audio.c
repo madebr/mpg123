@@ -271,9 +271,9 @@ static const struct enc_desc encdesc[] =
 
 void audio_enclist(char** list)
 {
-	*list = NULL;
 	size_t length = 0;
 	int i;
+	*list = NULL;
 	for(i=0;i<KNOWN_ENCS;++i) length += encdesc[i].nlen;
 
 	length += KNOWN_ENCS-1; /* spaces between the encodings */
