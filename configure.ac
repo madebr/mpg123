@@ -507,6 +507,7 @@ AC_ARG_WITH([default-audio], [
   --with-default-audio=aix        Use AIX as default audio output sub-system
   --with-default-audio=alib       Use Alib as default audio output sub-system (for HPUX)
   --with-default-audio=alsa       Use ALSA as default audio output sub-system
+  --with-default-audio=arts       Use aRts as default audio output sub-system (KDE sound server)
   --with-default-audio=dummy      Use dummy as default audio (when no sound card is available)
   --with-default-audio=esd        Use ESoundD as default audio output sub-system
   --with-default-audio=hp         Use HP as default audio output sub-system
@@ -522,7 +523,7 @@ AC_ARG_WITH([default-audio], [
   --with-default-audio=sgi        Use SGI as default audio output sub-system (IRIX)
   --with-default-audio=sndio      Use OpenBSD's sndio as default audio output sub-system
   --with-default-audio=sun        Use Sun as default audio output sub-system (/dev/audio)
-  --with-default-audio=arts       Use aRts as default audio output sub-system (KDE sound server)
+  --with-default-audio=win32      Use Win32 audio as default audio output sub-system
 ])
 
 AC_ARG_WITH([optimization], [
