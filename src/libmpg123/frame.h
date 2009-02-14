@@ -100,6 +100,7 @@ struct mpg123_handle_struct
 	float *dithernoise;
 #endif
 	unsigned char* rawdecwin; /* the block with all decwins */
+	int rawdecwins; /* size of rawdecwin memory */
 	real *decwin; /* _the_ decode table */
 #ifdef OPT_MMXORSSE
 	/* I am not really sure that I need both of them... used in assembler */

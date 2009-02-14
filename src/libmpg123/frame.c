@@ -59,7 +59,9 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 	fr->own_buffer = FALSE;
 	fr->buffer.data = NULL;
 	fr->rawbuffs = NULL;
+	fr->rawbuffss = 0;
 	fr->rawdecwin = NULL;
+	fr->rawdecwins = 0;
 #ifndef NO_8BIT
 	fr->conv16to8_buf = NULL;
 #endif
@@ -187,7 +189,6 @@ int frame_index_setup(mpg123_handle *fr)
 
 static void frame_decode_buffers_reset(mpg123_handle *fr)
 {
-	/* Not totally, but quite, sure that decwin(s) doesn't need cleaning. */
 	memset(fr->rawbuffs, 0, fr->rawbuffss);
 }
 
@@ -260,7 +261,6 @@ int frame_buffers(mpg123_handle *fr)
 	/* The MMX ones want 32byte alignment, which I'll try to ensure manually */
 	{
 		int decwin_size = (512+32)*sizeof(real);
-		if(fr->rawdecwin != NULL) free(fr->rawdecwin);
 #ifdef OPT_MMXORSSE
 #ifdef OPT_MULTI
 		if(fr->cpu_opts.class == mmxsse)
@@ -274,8 +274,19 @@ int frame_buffers(mpg123_handle *fr)
 		}
 #endif
 #endif
+		/* Hm, that's basically realloc() ... */
+		if(fr->rawdecwin != NULL && fr->rawdecwins != decwin_size)
+		{
+			free(fr->rawdecwin);
+			fr->rawdecwin = NULL;
+		}
+
+		if(fr->rawdecwin == NULL)
 		fr->rawdecwin = (unsigned char*) malloc(decwin_size);
+
 		if(fr->rawdecwin == NULL) return -1;
+
+		fr->rawdecwins = decwin_size;
 		fr->decwin = (real*) fr->rawdecwin;
 #ifdef OPT_MMXORSSE
 #ifdef OPT_MULTI
@@ -430,8 +441,10 @@ void frame_free_buffers(mpg123_handle *fr)
 {
 	if(fr->rawbuffs != NULL) free(fr->rawbuffs);
 	fr->rawbuffs = NULL;
+	fr->rawbuffss = 0;
 	if(fr->rawdecwin != NULL) free(fr->rawdecwin);
 	fr->rawdecwin = NULL;
+	fr->rawdecwins = 0;
 #ifndef NO_8BIT
 	if(fr->conv16to8_buf != NULL) free(fr->conv16to8_buf);
 	fr->conv16to8_buf = NULL;
