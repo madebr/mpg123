@@ -777,6 +777,9 @@ case $target in
  ;;
 esac
 
+dnl trying to get that socket lib settled in one line
+AC_SEARCH_LIBS(gethostbyname, nsl socket ws2_32 wsock32) 
+
 case $target in
   arm-*-linux*)
     # check that... perhaps we are better off on arm with kernel math emulation
@@ -821,7 +824,6 @@ case $target in
   ;;
   *-*-solaris*)
     cpu_type="generic_fpu"
-    LIBS="$LIBS -lsocket -lnsl"
   ;;
   *-dec-osf*)
     cpu_type="generic_fpu"
@@ -842,7 +844,7 @@ case $target in
     cpu_type="generic_fpu"
   ;;
   *-*-mingw32)
-    LIBS="-lwsock32 $LIBS"
+    LIBS="$LIBS"
     buffer=disabled
     cpu_type="x86"
   ;;
