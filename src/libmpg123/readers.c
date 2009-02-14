@@ -828,7 +828,13 @@ static int default_init(mpg123_handle *fr)
 #ifndef WIN32
 	if(fr->p.timeout > 0)
 	{
-		int flags = fcntl(fr->rdat.filept, F_GETFL);
+		int flags;
+		if(fr->rdat.r_read != NULL)
+		{
+			error("Timeout reading does not work with user-provided read function. Implement it yourself!");
+			return -1;
+		}
+		flags = fcntl(fr->rdat.filept, F_GETFL);
 		flags |= O_NONBLOCK;
 		fcntl(fr->rdat.filept, F_SETFL, flags);
 		fr->rdat.fdread = timeout_read;
