@@ -41,6 +41,13 @@ extern "C" {
 
 #include <errno.h>
 
+/* Defining SFIFO_STATIC and then including the sfifo.c will result in local code. */
+#ifdef SFIFO_STATIC
+#define SFIFO_SCOPE static
+#else
+#define SFIFO_SCOPE
+#endif
+
 /*------------------------------------------------
 	"Private" stuff
 ------------------------------------------------*/
@@ -72,11 +79,11 @@ typedef struct sfifo_t
 /*------------------------------------------------
 	API
 ------------------------------------------------*/
-int sfifo_init(sfifo_t *f, int size);
-void sfifo_close(sfifo_t *f);
-void sfifo_flush(sfifo_t *f);
-int sfifo_write(sfifo_t *f, const void *buf, int len);
-int sfifo_read(sfifo_t *f, void *buf, int len);
+SFIFO_SCOPE int sfifo_init(sfifo_t *f, int size);
+SFIFO_SCOPE void sfifo_close(sfifo_t *f);
+SFIFO_SCOPE void sfifo_flush(sfifo_t *f);
+SFIFO_SCOPE int sfifo_write(sfifo_t *f, const void *buf, int len);
+SFIFO_SCOPE int sfifo_read(sfifo_t *f, void *buf, int len);
 #define sfifo_used(x)	(((x)->writepos - (x)->readpos) & SFIFO_SIZEMASK(x))
 #define sfifo_space(x)	((x)->size - 1 - sfifo_used(x))
 #define sfifo_size(x)	((x)->size - 1)

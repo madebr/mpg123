@@ -11,8 +11,12 @@
 #include <SDL.h>
 
 #include "audio.h"
-#include "sfifo.h"
 #include "mpg123app.h"
+
+/* Including the sfifo code locally, to avoid module linkage issues. */
+#define SFIFO_STATIC
+#include "sfifo.c"
+
 #include "debug.h"
 
 

@@ -13,7 +13,8 @@ INCLUDES = $(LTDLINCL) -I$(top_builddir)/src/libmpg123 -I$(top_srcdir)/src/libmp
 mpg123_DEPENDENCIES = @OUTPUT_OBJ@ @MODULE_OBJ@ libmpg123/libmpg123.la
 
 SUBDIRS = output libmpg123
-EXTRA_DIST = Makefile.legacy config.h.legacy legacy_module.c module.c
+EXTRA_DIST = Makefile.legacy config.h.legacy legacy_module.c module.c sfifo.c sfifo.h
+
 
 CLEANFILES = *.a
 
@@ -47,8 +48,6 @@ mpg123_SOURCES = \
 	local.c \
 	playlist.c \
 	playlist.h \
-	sfifo.c \
-	sfifo.h \
 	term.c \
 	term.h \
 	wav.c \
