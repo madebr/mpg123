@@ -397,7 +397,7 @@ int set_synth_functions(mpg123_handle *fr)
 
 	if(frame_buffers(fr) != 0)
 	{
-		fr->err = MPG123_BAD_DECODER_SETUP;
+		fr->err = MPG123_NO_BUFFERS;
 		if(NOQUIET) error("Failed to set up decoder buffers!");
 
 		return MPG123_ERR;
@@ -437,6 +437,7 @@ int set_synth_functions(mpg123_handle *fr)
 		fr->make_decode_tables = make_decode_tables;
 	}
 
+	// We allocated the table buffers just now, so (re)create the tables.
 	fr->make_decode_tables(fr);
 
 	return 0;

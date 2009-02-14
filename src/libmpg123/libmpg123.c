@@ -161,7 +161,7 @@ mpg123_handle attribute_align_arg *mpg123_parnew(mpg123_pars *mp, const char* de
 	if(fr != NULL)
 	{
 		/* Cleanup that mess! ... use mpg123_decoder / decode_update! */
-		if(frame_outbuffer(fr) != 0 || (frame_buffers(fr) != 0))
+		if(frame_outbuffer(fr) != 0)
 		{
 			err = MPG123_NO_BUFFERS;
 			frame_exit(fr);
@@ -212,7 +212,7 @@ int attribute_align_arg mpg123_decoder(mpg123_handle *mh, const char* decoder)
 		return MPG123_ERR;
 	}
 	/* New buffers for decoder are created in frame_buffers() */
-	if((frame_outbuffer(mh) != 0) || (frame_buffers(mh) != 0))
+	if((frame_outbuffer(mh) != 0))
 	{
 		mh->err = MPG123_NO_BUFFERS;
 		frame_exit(mh);
