@@ -39,6 +39,7 @@ static off_t   posix_lseek(int fd, off_t offset, int whence){ return lseek(fd, o
 
 static ssize_t plain_fullread(mpg123_handle *fr,unsigned char *buf, ssize_t count);
 
+#ifndef NO_FEEDER
 /* Bufferchain methods. */
 static void bc_init(struct bufferchain *bc);
 static void bc_reset(struct bufferchain *bc);
@@ -51,6 +52,10 @@ static ssize_t bc_give(struct bufferchain *bc, unsigned char *out, size_t size);
 static ssize_t bc_skip(struct bufferchain *bc, ssize_t count);
 static ssize_t bc_seekback(struct bufferchain *bc, ssize_t count);
 static void bc_forget(struct bufferchain *bc);
+#else
+#define bc_init(a)
+#define bc_reset(a)
+#endif
 
 /* A normal read and a read with timeout. */
 static ssize_t plain_read(mpg123_handle *fr, void *buf, size_t count)
@@ -394,6 +399,7 @@ static off_t get_fileinfo(mpg123_handle *fr)
 	return len;
 }
 
+#ifndef NO_FEEDER
 /* Methods for the buffer chain, mainly used for feed reader, but not just that. */
 
 static void bc_init(struct bufferchain *bc)
@@ -691,8 +697,18 @@ static ssize_t buffered_fullread(mpg123_handle *fr, unsigned char *out, ssize_t 
 	if(gotcount != count){ if(NOQUIET) error("gotcount != count"); return READER_ERROR; }
 	else return gotcount;
 }
-
-
+#else
+int feed_more(mpg123_handle *fr, const unsigned char *in, long count)
+{
+	fr->err = MPG123_MISSING_FEATURE;
+	return -1;
+}
+off_t feed_set_pos(mpg123_handle *fr, off_t pos)
+{
+	fr->err = MPG123_MISSING_FEATURE;
+	return -1;
+}
+#endif /* NO_FEEDER */
 
 /*****************************************************************
  * read frame helper
@@ -747,6 +763,15 @@ struct reader readers[] =
 		stream_rewind,
 		NULL
 	},
+#ifdef NO_FEEDER
+#define feed_init NULL
+#define feed_read NULL
+#define buffered_fullread NULL
+#define buffered_seek_frame NULL
+#define feed_back_bytes NULL
+#define feed_skip_bytes NULL
+#define buffered_forget NULL
+#endif
 	{ /* READER_FEED */
 		feed_init,
 		stream_close,
@@ -861,6 +886,11 @@ static int default_init(mpg123_handle *fr)
 	/* Switch reader to a buffered one, if allowed. */
 	else if(fr->p.flags & MPG123_SEEKBUFFER)
 	{
+#ifdef NO_FEEDER
+		error("Buffered readers not supported in this build.");
+		fr->err = MPG123_MISSING_FEATURE;
+		return -1;
+#else
 		if     (fr->rd == &readers[READER_STREAM])
 		{
 			fr->rd = &readers[READER_BUF_STREAM];
@@ -881,6 +911,7 @@ static int default_init(mpg123_handle *fr)
 		bc_init(&fr->rdat.buffer);
 		fr->rdat.filelen = 0; /* We carry the offset, but never know how big the stream is. */
 		fr->rdat.flags |= READER_BUFFERED;
+#endif /* NO_FEEDER */
 	}
 	return 0;
 }
@@ -899,6 +930,11 @@ void open_bad(mpg123_handle *mh)
 int open_feed(mpg123_handle *fr)
 {
 	debug("feed reader");
+#ifdef NO_FEEDER
+	error("Buffered readers not supported in this build.");
+	fr->err = MPG123_MISSING_FEATURE;
+	return -1;
+#else
 #ifndef NO_ICY
 	if(fr->p.icy_interval > 0)
 	{
@@ -912,6 +948,7 @@ int open_feed(mpg123_handle *fr)
 	fr->rdat.flags = 0;
 	if(fr->rd->init(fr) < 0) return -1;
 	return 0;
+#endif /* NO_FEEDER */
 }
 
 int open_stream(mpg123_handle *fr, const char *bs_filenam, int fd)

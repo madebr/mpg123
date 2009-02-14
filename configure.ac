@@ -11,7 +11,7 @@ AC_PREREQ(2.57)
 dnl ############# Initialisation
 
 AC_INIT([mpg123], [1.7.0], [mpg123-devel@lists.sourceforge.net])
-LIBMPG123_VERSION=13:4:13
+LIBMPG123_VERSION=13:5:13
 AC_SUBST(LIBMPG123_VERSION)
 
 AC_CONFIG_SRCDIR(src/mpg123.c)
@@ -350,6 +350,19 @@ AC_ARG_ENABLE(downsample,
 
 if test "x$downsample" = "xdisabled"; then
   AC_DEFINE(NO_DOWNSAMPLE, 1, [ Define to disable downsampled decoding. ])
+fi
+
+feeder=enabled
+AC_ARG_ENABLE(feeder,
+              [  --disable-feeder=[no/yes] no feeder decoding, no buffered readers ],
+              [
+                if test "x$enableval" = xno; then
+                  feeder="disabled"
+                fi
+              ], [])
+
+if test "x$feeder" = "xdisabled"; then
+  AC_DEFINE(NO_FEEDER, 1, [ Define to disable feeder and buffered readers. ])
 fi
 
 int8=enabled
@@ -1591,7 +1604,7 @@ echo -n "
   NtoM resampling ......... $ntom
   downsampled decoding .... $downsample
   Posix file input ........ $fileio
-  Feeder input ............ $feeder
+  Feeder/buffered input ... $feeder
   Callback input .......... $callback
   ID3v2 parsing ........... $id3v2
   String API .............. $string
