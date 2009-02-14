@@ -1012,7 +1012,7 @@ static int do_the_seek(mpg123_handle *mh)
 	if(mh->down_sample == 3)
 	{
 		ntom_set_ntom(mh, fnum);
-		debug3("fixed ntom for frame %"OFF_P" to %i, num=%"OFF_P, fnum, mh->ntom_val[0], mh->num);
+		debug3("fixed ntom for frame %"OFF_P" to %lu, num=%"OFF_P, fnum, mh->ntom_val[0], mh->num);
 	}
 #endif
 	b = mh->rd->seek_frame(mh, fnum);
