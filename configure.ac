@@ -1603,9 +1603,7 @@ echo -n "
   Layer III ............... $layer3
   NtoM resampling ......... $ntom
   downsampled decoding .... $downsample
-  Posix file input ........ $fileio
   Feeder/buffered input ... $feeder
-  Callback input .......... $callback
   ID3v2 parsing ........... $id3v2
   String API .............. $string
   ICY parsing/conversion .. $icy
