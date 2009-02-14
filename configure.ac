@@ -11,7 +11,7 @@ AC_PREREQ(2.57)
 dnl ############# Initialisation
 
 AC_INIT([mpg123], [1.7.0], [mpg123-devel@lists.sourceforge.net])
-LIBMPG123_VERSION=13:3:13
+LIBMPG123_VERSION=13:4:13
 AC_SUBST(LIBMPG123_VERSION)
 
 AC_CONFIG_SRCDIR(src/mpg123.c)
@@ -755,6 +755,14 @@ if test x"$debugging" = xenabled; then
 		fi
 	fi
 fi
+
+dnl Only try the attribute_align_arg mumbo-jumbo on x86, x86-64 warns/errors out on that attribute.
+dnl ...dunno even what about other architectures.
+case $target in
+  i?86-*)
+    AC_DEFINE(ABI_ALIGN_FUN, 1, [ Define if your architecture wants/needs/can use attribute_align_arg and alignment checks. It's for 32bit x86... ])
+ ;;
+esac
 
 case $target in
   arm-*-linux*)
