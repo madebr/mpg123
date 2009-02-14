@@ -26,9 +26,9 @@ nodist_include_HEADERS = mpg123.h
 #libmpg123_a_LIBADD = @DECODER_OBJ@
 #libmpg123_a_DEPENDENCIES = @DECODER_OBJ@
 
-libmpg123_la_LDFLAGS = -no-undefined -version-info @LIBMPG123_VERSION@ -export-symbols $(top_srcdir)/src/libmpg123/libmpg123.sym
+libmpg123_la_LDFLAGS = -no-undefined -version-info @LIBMPG123_VERSION@ -export-symbols libmpg123.sym
 libmpg123_la_LIBADD = @DECODER_LOBJ@
-libmpg123_la_DEPENDENCIES = @DECODER_LOBJ@ $(top_srcdir)/src/libmpg123/libmpg123.sym
+libmpg123_la_DEPENDENCIES = @DECODER_LOBJ@ libmpg123.sym
 
 libmpg123_la_SOURCES = \
 	compat.c \
