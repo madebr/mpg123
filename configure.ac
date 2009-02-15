@@ -1629,12 +1629,6 @@ echo "  Checked audio modules ... $check_modules
 if test x"$modules" = xdisabled; then
 echo "The _single_ active output module is being statically linked in.
 "
-else
-	if test x"$HAVE_WIN32" = xyes; then
-	echo "WARNING: The output modules most likely won't work for you under Windows (MinGW32)..."
-	echo "You can try to hack our libtool stuff into making it happen -- and share your knowledge with the mpg123 team."
-	echo
-	fi
 fi
 if test x"$with_optimization" = x0; then
 	echo "No optimization flags chosen, make sure you have something basic in your CFLAGS at least...

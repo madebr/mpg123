@@ -13,6 +13,7 @@ Also, implement something for MPG123_ENC_UNISGNED_16 ... either another whole se
 1.7.0
 ---
 - --preload
+- win64 support, modules working on Windows (?)
 - Lots of output format fun!
 - Lots of functionality now optional, enabling small-footpring builds of libmpg123.
   ... some ends left ... I/O, strings, streamlining overhead code in libmpg123.c ...
