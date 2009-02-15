@@ -299,6 +299,12 @@ You should specify a buffer size of at least 1024
 less than about 300 does not make much sense.  The default is 0, 
 which turns buffering off.
 .TP
+\fB\-\^\-preload \fIfraction
+Wait for the buffer to be filled to
+.I fraction
+before starting playback (fraction between 0 and 1). You can tune this prebuffering to either get faster sound to your ears or safer uninterrupted web radio.
+Default is 1 (wait for full buffer before playback).
+.TP
 \fB\-\^\-smooth
 Keep buffer over track boundaries -- meaning, do not empty the buffer between tracks for possibly some added smoothness.
 

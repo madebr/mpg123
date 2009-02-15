@@ -150,7 +150,9 @@ void buffer_loop(audio_output_t *ao, sigset_t *oldsigset)
 	/* Fill complete buffer on first run before starting to play.
 	 * Live mp3 streams constantly approach buffer underrun otherwise. [dk]
 	 */
-	preload = xf->size;
+	preload = (int)(param.preload*xf->size);
+	if(preload > xf->size) preload = xf->size;
+	if(preload < 0) preload = 0;
 
 	for (;;) {
 		if (intflag) {

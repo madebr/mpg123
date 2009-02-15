@@ -111,6 +111,7 @@ struct parameter param = {
 	,0 /* force_utf8 */
 	,INDEX_SIZE
 	,NULL /* force_encoding */
+	,1. /* preload */
 };
 
 mpg123_handle *mh = NULL;
@@ -439,6 +440,7 @@ topt opts[] = {
 	{0, "index-size", GLO_ARG|GLO_LONG, 0, &param.index_size, 0},
 	{0, "no-seekbuffer", GLO_INT, unset_frameflag, &frameflag, MPG123_SEEKBUFFER},
 	{'e', "encoding", GLO_ARG|GLO_CHAR, 0, &param.force_encoding, 0},
+	{0, "preload", GLO_ARG|GLO_DOUBLE, 0, &param.preload, 0},
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -1182,6 +1184,7 @@ static void long_usage(int err)
 	fprintf(o," -o l   --lineout          (aix/hp/sun) output to lineout\n");
 #ifndef NOXFERMEM
 	fprintf(o," -b <n> --buffer <n>       set play buffer (\"output cache\")\n");
+	fprintf(o,"        --preload <value>  fraction of buffer to fill before playback\n");
 	fprintf(o,"        --smooth           keep buffer over track boundaries\n");
 #endif
 

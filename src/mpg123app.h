@@ -97,6 +97,7 @@ struct parameter
 	int force_utf8; /* Regardless of environment, always print out verbatim UTF for metadata. */
 	long index_size; /* size of frame index */
 	char *force_encoding;
+	double preload; /* buffer preload size (fraction of full buffer) */
 };
 
 extern char *equalfile;
