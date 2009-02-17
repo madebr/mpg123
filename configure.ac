@@ -780,6 +780,8 @@ esac
 
 dnl trying to get that socket lib settled in one line
 AC_SEARCH_LIBS(gethostbyname, nsl socket ws2_32 wsock32) 
+dnl OK, two lines... Solaris needs -lnsl -lsocket
+AC_SEARCH_LIBS(socket, socket ws2_32 wsock32) 
 
 case $target in
   arm-*-linux*)
