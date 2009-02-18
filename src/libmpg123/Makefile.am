@@ -74,41 +74,33 @@ EXTRA_libmpg123_la_SOURCES = \
 	layer1.c \
 	layer2.c \
 	layer3.c \
-	dct36_3dnowext.S \
-	dct36_3dnow.S \
-	dct64_3dnowext.S \
-	dct64_3dnow.S \
+	dct36_3dnowext.sx \
+	dct36_3dnow.sx \
+	dct64_3dnowext.sx \
+	dct64_3dnow.sx \
 	dct64_altivec.c \
 	dct64_i386.c \
 	dct64_i486.c \
-	dct64_mmx.S \
-	dct64_sse.S \
-	synth_3dnowext.S \
-	synth_3dnow.S \
+	dct64_mmx.sx \
+	dct64_sse.sx \
+	synth_3dnowext.sx \
+	synth_3dnow.sx \
 	synth_altivec.c \
 	synth_i486.c \
-	synth_i586_dither.S \
-	synth_i586.S \
-	synth_mmx.S \
+	synth_i586_dither.sx \
+	synth_i586.sx \
+	synth_mmx.sx \
 	synth_sse3d.h \
-	synth_sse.S \
+	synth_sse.sx \
 	ntom.c \
 	synth.c \
 	synth_8bit.c \
 	synth_real.c \
 	synth_s32.c \
-	equalizer_3dnow.S \
-	tabinit_mmx.S \
+	equalizer_3dnow.sx \
+	tabinit_mmx.sx \
 	stringbuf.c \
-	getcpuflags.S
-
-# explicit preprocessing since mingw32 does not honor the big .S
-.S.o:
-	$(CPP) $(AM_CPPFLAGS) $(DEFAULT_INCLUDES) $(CPPFLAGS) $< > $<.s
-	$(CCAS) $(CCASFLAGS) -c -o $@ $<.s && rm $<.s
-
-.S.lo:
-	$(LTCCASCOMPILE) $(DEFAULT_INCLUDES) -c -o $@ $<
+	getcpuflags.sx
 
 dnoise.c: dnoise.dat dnoise.sh
 	sh dnoise.sh "$<" > "$@"

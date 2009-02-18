@@ -79,19 +79,18 @@ run_cmd() {
 }
 
 
-# Automake 1.10 borks up with LTCCASCOMPILE... defines LTCPPCOMPILE instead ... what is correct??
 run_cmd libtoolize --force --copy --ltdl &&
 perl -pi -e 's/AC_PROG_LIBTOOL/m4_defun([_LT_AC_LANG_CXX_CONFIG], [:])
 m4_defun([_LT_AC_LANG_F77_CONFIG], [:])
 AC_PROG_LIBTOOL/' libltdl/configure.ac && cd libltdl &&
-run_cmd aclocal-1.9 &&
+run_cmd aclocal &&
 run_cmd autoheader  &&
-run_cmd automake-1.9 --add-missing --copy &&
+run_cmd automake --add-missing --copy &&
 run_cmd autoconf &&
 cd .. || exit
-run_cmd aclocal-1.9
+run_cmd aclocal
 run_cmd autoheader
-run_cmd automake-1.9 --add-missing --copy
+run_cmd automake --add-missing --copy
 run_cmd autoconf
 
 echo "Fixing that darned libltdl Makefile.in... it wants to blow on make dist because it's directory has been precreated!!!!"
