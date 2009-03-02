@@ -63,6 +63,7 @@ static char *get_module_dir()
 			moddir[l] = 0;
 		}
 	}
+	debug1("module dir: %s", moddir != NULL ? moddir : "<nil>");
 	return moddir;
 }
 
@@ -91,7 +92,11 @@ open_module( const char* type, const char* name )
 	/* Initialize libltdl */
 	if (lt_dlinit()) error( "Failed to initialise libltdl" );
 
-	chdir(moddir);
+	if(chdir(moddir) != 0)
+	{
+		error2("Failed to enter module directory %s: %s", moddir, strerror(errno));
+		goto om_bad;
+	}
 	/* Work out the path of the module to open */
 	module_path_len = strlen(type) + 1 + strlen(name) + strlen(MODULE_FILE_SUFFIX) + 1;
 	module_path = malloc( module_path_len );
