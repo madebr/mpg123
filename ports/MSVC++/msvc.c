@@ -18,7 +18,14 @@
 
 int mpg123_topen(mpg123_handle *fr, const _TCHAR *path)
 {
+	int ret;
 	int filept; /* descriptor of opened file/stream */
+
+	ret = mpg123_replace_reader(fr, _read, _lseek);
+	if(ret != MPG123_OK)
+	{
+		return ret;
+	}
 
 	if((filept = _topen(path, O_RDONLY|O_BINARY)) < 0)
 	{
@@ -31,13 +38,21 @@ int mpg123_topen(mpg123_handle *fr, const _TCHAR *path)
 	}
 
 	if(mpg123_open_fd(fr, filept) == MPG123_OK) {
-		/* Tell mpg123 that it is allowed to close the fd and be happy. */
-		fr->rdat.flags |= READER_FD_OPENED;
 		return MPG123_OK;
 	}
 	else
 	{
-		close(filept);
+		_close(filept);
 		return MPG123_ERR;
 	}
+}
+
+int mpg123_tclose(mpg123_handle *fr)
+{
+	int ret;
+
+	ret = mpg123_close(fr);
+	_close(fr->rdat.filept);
+
+	return ret;
 }

@@ -13,10 +13,14 @@
 #include <mpg123.h>
 #include <stdio.h>
 
+#ifdef _MSC_VER
+int _tmain(int argc, _TCHAR* argv[])
+#else
 int main(int argc, char **argv)
+#endif
 {
 	mpg123_handle *m;
-	int i;
+	int i, res;
 	if(argc < 2)
 	{
 		fprintf(stderr, "\nI will give you the estimated and exact sample lengths of MPEG audio files.\n");
@@ -29,12 +33,26 @@ int main(int argc, char **argv)
 	for(i = 1; i < argc; ++i)
 	{
 		off_t a, b;
-		mpg123_open(m, argv[i]);
-		a = mpg123_length(m);
-		mpg123_scan(m);
+		
+		#ifdef _MSC_VER
+		res = mpg123_topen(m, argv[i]);
+		#else
+		res = mpg123_open(m, argv[i]);
+		#endif
+
+		a = mpg123_length(m);		
+		res = mpg123_scan(m);
 		b = mpg123_length(m);
+
+		#ifdef _MSC_VER
+		res = mpg123_tclose(m);
+		#else
+		res = mpg123_close(m);
+		#endif
+
 		printf("File %i: estimated %li vs. scanned %li\n", i, (long)a, (long)b);
 	}
+
 	mpg123_delete(m);
 	mpg123_exit();
 	return 0;

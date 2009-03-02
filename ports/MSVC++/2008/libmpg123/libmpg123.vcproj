@@ -627,6 +627,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\..\..\src\libmpg123\sample.h"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\src\libmpg123\stringbuf.c"
 			>
 		</File>
@@ -636,10 +640,6 @@
 		</File>
 		<File
 			RelativePath="..\..\..\..\src\libmpg123\synth.h"
-			>
-		</File>
-		<File
-			RelativePath="..\..\..\..\src\libmpg123\sample.h"
 			>
 		</File>
 		<File
