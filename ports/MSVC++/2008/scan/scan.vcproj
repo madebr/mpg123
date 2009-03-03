@@ -186,7 +186,7 @@
 	</References>
 	<Files>
 		<File
-			RelativePath="..\..\..\..\doc\examples\scan.c"
+			RelativePath="..\..\examples\scan.c"
 			>
 		</File>
 	</Files>

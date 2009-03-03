@@ -13,7 +13,7 @@
 #include <mpg123.h>
 #include <stdio.h>
 
-int main(int argc, char **argv)
+int _tmain(int argc, _TCHAR* argv[])
 {
 	mpg123_handle *m;
 	int i;
@@ -30,13 +30,13 @@ int main(int argc, char **argv)
 	{
 		off_t a, b;
 		
-		mpg123_open(m, argv[i]);
+		mpg123_topen(m, argv[i]);
 
 		a = mpg123_length(m);		
 		mpg123_scan(m);
 		b = mpg123_length(m);
 
-		mpg123_close(m);
+		mpg123_tclose(m);
 
 		printf("File %i: estimated %li vs. scanned %li\n", i, (long)a, (long)b);
 	}
