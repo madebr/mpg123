@@ -1,12 +1,30 @@
 1.7.0
 ---
-- --preload
-- win64 support, modules working on Windows
-- using "plugins" subdir relative to mpg123 binary (in addition to ../lib/mpg123)
 - Lots of output format fun!
-- Lots of functionality now optional, enabling small-footpring builds of libmpg123.
-  ... some ends left ... I/O, strings, streamlining overhead code in libmpg123.c ...
-A test build for layer3 only was down to around 120K with -Os ...
+  - now supporting 8, 16, 32 bit signed/unsigned integers, 32bit float (64bit float can be hacked in quickly)
+  - optimized decoders use fallback routines for non-optimized formats transparently
+  - flexible resampling is automatically chosen when output does not support standard rates (like a JACK server)
+  - That meant quite some restructuring in the decoder code...
+- Lots of core functionality now optional, enabling small-footpring builds of libmpg123.
+  - choosing among the MPEG layer codes
+  - NtoM resampling
+  - downsampling
+  - feeder API (mpg123_open_feed())
+  - ID3v2
+  - String API
+  - ICY
+  - output formats
+  - error/warning message printouts
+- --preload (tune prefill before playback for buffered mode)
+- win64 support (one report at least;-), modules working on Windows
+- Windows/MSVC++: fixed handling of unicode file names, mpg123_topen() now actually working there
+  - You are obliged to use mpg123_tclose() now!
+- using "plugins" subdir relative to mpg123 binary (in addition to ../lib/mpg123)
+- switch to libtool 2.2 and automake 1.10 for the build scripts
+  - though no update to new libtool 2 API, yet
+- some portability fixes
+- prevent user from creating non-working I/O setups (replacing timeout reader, ICY with feeding)
+- JACK output accepts port names for -a, stereo gets mixed down when only one port is chosen
 
 1.6.4
 ---
