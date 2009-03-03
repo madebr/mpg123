@@ -1,7 +1,7 @@
 /*
 	format:routines to deal with audio (output) format
 
-	copyright 2008 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2008-9 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis, starting with parts of the old audio.c, with only faintly manage to show now
 */
@@ -130,13 +130,11 @@ static int freq_fit(mpg123_handle *fr, struct audioformat *nf, int f0, int f2)
 	if(cap_fit(fr,nf,f0,f2)) return 1;
 	nf->rate>>=1;
 	if(cap_fit(fr,nf,f0,f2)) return 1;
+#ifndef NO_NTOM
+	if(VERBOSE2) fprintf(stderr, "Note: trying to find a supported rate to resample to.\n");
 	/* If nothing worked, try the other rates, only without constrains from user.
 	   In case you didn't guess: We enable flexible resampling if we find a working rate. */
-#ifdef NO_NTOM
-	if(fr->p.down_sample == 0)
-#else
 	if(!fr->p.force_rate && fr->p.down_sample == 0)
-#endif
 	{
 		int i;
 		int c  = nf->channels-1;
@@ -160,6 +158,7 @@ static int freq_fit(mpg123_handle *fr, struct audioformat *nf, int f0, int f2)
 			return 1;
 		}
 	}
+#endif
 
 	return 0;
 }
@@ -186,8 +185,6 @@ int frame_output_format(mpg123_handle *fr)
 		f0 = 4;
 		f2 = 6;
 	}
-
-	/* There should be a branch for 32bit integer; but that's not anywhere now. */
 
 	/* force stereo is stronger */
 	if(p->flags & MPG123_FORCE_MONO)   nf.channels = 1;
