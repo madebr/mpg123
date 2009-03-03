@@ -15,6 +15,7 @@
   - ICY
   - output formats
   - error/warning message printouts
+  - ... a layer3-only shared libmpg123 can be just 107K on x86-64 or 94K on x86
 - --preload (tune prefill before playback for buffered mode)
 - win64 support (one report at least;-), modules working on Windows
 - Windows/MSVC++: fixed handling of unicode file names, mpg123_topen() now actually working there
