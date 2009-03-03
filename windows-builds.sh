@@ -5,7 +5,9 @@
 temp="$PWD/tmp"
 final="$PWD/releases"
 txt="README COPYING NEWS"
-opts="--with-audio=win32 --disable-modules"
+# let's try with modules
+opts=""
+#opts="--with-audio=win32 --disable-modules"
 
 # Get the version for the build from configure.ac .
 version=`sed -n 's/^AC_INIT([^,]*, \[\([^,]*\)\], .*$/\1/p' < configure.ac`
@@ -88,6 +90,15 @@ mpg123_build()
 		else
 			strip --strip-unneeded "$final/$name/"*.dll || exit 1
 		fi
+		for i in $tmp/lib/mpg123/*.la
+		do
+			if test -e "$i"; then
+				mkdir -p "$final/$name/plugins" &&
+				sed -e 's/libdir=.*$/libdir='"'.'/" < $i > "$final/$name/plugins/`basename $i`"
+				sofile=`echo $i | sed -e 's/\.la$/.so/'`
+				cp -v "$sofile" "$final/$name/plugins"
+			fi
+		done
 	fi &&
 	for i in $txt
 	do
