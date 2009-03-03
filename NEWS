@@ -1,19 +1,8 @@
-1.x.x
-
-What's about SINGLE_MIX?
-Check what is _really_ happening there, make some test file...
-
-You removed the opt_dct64(fr) ... it has been used in ntom ... but rarely worked.
-It may return, but only after actually testing which dct64 works (one candidate is plain 3dnow).
-First get the load of restructuring in!
-
-Also, implement something for MPG123_ENC_UNISGNED_16 ... either another whole set of functions or some postprocessing.
-
-
 1.7.0
 ---
 - --preload
-- win64 support, modules working on Windows (?)
+- win64 support, modules working on Windows
+- using "plugins" subdir relative to mpg123 binary (in addition to ../lib/mpg123)
 - Lots of output format fun!
 - Lots of functionality now optional, enabling small-footpring builds of libmpg123.
   ... some ends left ... I/O, strings, streamlining overhead code in libmpg123.c ...

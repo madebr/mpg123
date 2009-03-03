@@ -26,18 +26,17 @@
 
 /* It's nasty to hardcode that here...
    also it does need hacking around libtool's hardcoded .la paths:
-   When the .la file is in the same dir as .so file, you need libdir='.' in there.
-   Also, all this crap doesn't actually work on Win32 (for what I initially intended it). */
-#ifdef WIN32
-#define RELMOD "\\..\\lib\\mpg123" /* I suspect that win32api would accept "/", too */
-#else
-#define RELMOD "/../lib/mpg123"
-#endif
+   When the .la file is in the same dir as .so file, you need libdir='.' in there. */
+static const char* modulesearch[] =
+{
+	 "../lib/mpg123"
+	,"plugins"
+};
 
 static char *get_the_cwd(); /* further down... */
 static char *get_module_dir()
 {
-	/* Either PKGLIBDIR is accessible right away or we assume ../lib/mpg123 from binpath. */
+	/* Either PKGLIBDIR is accessible right away or we search for some possible plugin dirs relative to binary path. */
 	DIR* dir = NULL;
 	char *moddir = NULL;
 
@@ -53,14 +52,26 @@ static char *get_module_dir()
 		}
 		closedir(dir);
 	}
-	else
+	else /* Search relative to binary. */
 	{
-		size_t l = strlen(binpath) + strlen(RELMOD);
-		moddir = malloc(l+1);
-		if(moddir != NULL)
+		size_t i;
+		for(i=0; i<sizeof(modulesearch)/sizeof(char*); ++i)
 		{
-			snprintf(moddir, l+1, "%s%s", binpath, RELMOD);
-			moddir[l] = 0;
+			const char *testpath = modulesearch[i];
+			size_t l = strlen(binpath) + strlen(testpath) + 1;
+			moddir = malloc(l+1);
+			if(moddir != NULL)
+			{
+				snprintf(moddir, l+1, "%s/%s", binpath, testpath);
+				moddir[l] = 0;
+				debug1("Looking for module dir: %s", testpath);
+
+				dir = opendir(moddir);
+				closedir(dir);
+
+				if(dir != NULL) break; /* found it! */
+				else{ free(moddir); moddir=NULL; }
+			}
 		}
 	}
 	debug1("module dir: %s", moddir != NULL ? moddir : "<nil>");
