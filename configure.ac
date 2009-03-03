@@ -11,7 +11,7 @@ AC_PREREQ(2.57)
 dnl ############# Initialisation
 
 AC_INIT([mpg123], [1.7.0], [mpg123-devel@lists.sourceforge.net])
-LIBMPG123_VERSION=13:6:13
+LIBMPG123_VERSION=13:7:13
 AC_SUBST(LIBMPG123_VERSION)
 
 AC_CONFIG_SRCDIR(src/mpg123.c)
@@ -363,6 +363,21 @@ AC_ARG_ENABLE(feeder,
 
 if test "x$feeder" = "xdisabled"; then
   AC_DEFINE(NO_FEEDER, 1, [ Define to disable feeder and buffered readers. ])
+fi
+
+messages=enabled
+AC_ARG_ENABLE(messages,
+              [  --disable-messages=[no/yes] no error/warning messages on the console ],
+              [
+                if test "x$enableval" = xno; then
+                  messages="disabled"
+                fi
+              ], [])
+
+if test "x$messages" = "xdisabled"; then
+  AC_DEFINE(NO_WARNING, 1, [ Define to disable warning messages. ])
+  AC_DEFINE(NO_ERROR,   1, [ Define to disable error messages. ])
+  AC_DEFINE(NO_ERETURN, 1, [ Define to disable error messages in combination with a return value (the return is left intact). ])
 fi
 
 int8=enabled
@@ -1612,6 +1627,7 @@ echo -n "
   ID3v2 parsing ........... $id3v2
   String API .............. $string
   ICY parsing/conversion .. $icy
+  Error/warning messages .. $messages
   Output formats (nofpu will disable all but 16 or 8 bit!):
   8 bit integer ........... $int8
   16 bit integer .......... $int16
