@@ -94,6 +94,8 @@ AC_ARG_ENABLE(modules,
 [
 	if test "x$be_static" = "xyes"; then
 		modules=disabled
+	else
+		modules=enabled
 	fi
 ])
 
