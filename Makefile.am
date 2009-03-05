@@ -32,11 +32,13 @@ EXTRA_DIST = \
 	ports/MSVC++/mpg123.h \
 	ports/MSVC++/config.h \
 	ports/MSVC++/msvc.c \
+	ports/MSVC++/examples/scan.c \
 	ports/MSVC++/2005/libmpg123/libmpg123.vcproj \
 	ports/MSVC++/2008/mpg123.sln \
 	ports/MSVC++/2008/feedseek/feedseek.vcproj \
 	ports/MSVC++/2008/mpglib/mpglib.vcproj \
 	ports/MSVC++/2008/libmpg123/libmpg123.vcproj \
+	ports/MSVC++/2008/scan/scan.vcproj \
 	ports/MSVC++/CMP3Stream/libMPG123/libMPG123.vcproj \
 	ports/MSVC++/CMP3Stream/libMPG123/PLACE_LIBMPG123_SOURCES_HERE \
 	ports/MSVC++/CMP3Stream/README \
