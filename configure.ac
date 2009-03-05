@@ -94,9 +94,6 @@ AC_ARG_ENABLE(modules,
 [
 	if test "x$be_static" = "xyes"; then
 		modules=disabled
-	else
-		# Per default no modules in Windows...
-		AC_CHECK_HEADERS([windows.h], modules=disabled, modules=enabled)
 	fi
 ])
 
