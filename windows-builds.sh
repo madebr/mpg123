@@ -85,6 +85,7 @@ mpg123_build()
 	else
 		cp -v "$tmp/bin/libmpg123"*.dll "$tmp/include/mpg123.h" "$final/$name" &&
 		cp -v "src/libmpg123/.libs/libmpg123"*.dll.def "$final/$name" &&
+		cp -v libltdl/.libs/libltdl*.dll "$final/$name" && 
 		if test "$debug" = y; then
 			echo "Not stripping the debug build..."
 		else
@@ -93,10 +94,16 @@ mpg123_build()
 		for i in $tmp/lib/mpg123/*.la
 		do
 			if test -e "$i"; then
-				mkdir -p "$final/$name/plugins" &&
-				sed -e 's/libdir=.*$/libdir='"'.'/" < $i > "$final/$name/plugins/`basename $i`"
-				sofile=`echo $i | sed -e 's/\.la$/.so/'`
-				cp -v "$sofile" "$final/$name/plugins"
+				plugdir="$final/$name/plugins"
+				mkdir -p "$plugdir" &&
+				sed -e 's/libdir=.*$/libdir='"'.'/" < $i > "$plugdir/`basename $i`" &&
+				sofile=`echo $i | sed -e 's/\.la$/.so/'` &&
+				if test "$debug" = y; then
+					echo "not stripping debug module..."
+				else
+					strip --strip-unneeded "$sofile" || exit 1
+				fi &&
+				cp -v "$sofile" "$plugdir"
 			fi
 		done
 	fi &&
