@@ -394,6 +394,14 @@ int attribute_align_arg mpg123_getpar(mpg123_pars *mp, enum mpg123_parms key, lo
 		case MPG123_RESYNC_LIMIT:
 			if(val) *val = mp->resync_limit;
 		break;
+		case MPG123_INDEX_SIZE:
+			if(val)
+#ifdef FRAME_INDEX
+			*val = mp->index_size;
+#else
+			*val = 0; /* graceful fallback: no index is index of zero size */
+#endif
+		break;
 		default:
 			ret = MPG123_BAD_PARAM;
 	}

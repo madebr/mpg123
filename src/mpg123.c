@@ -720,6 +720,7 @@ int main(int argc, char *argv[])
 	mpg123_getpar(mp, MPG123_UPSPEED, &param.doublespeed, NULL);
 	mpg123_getpar(mp, MPG123_OUTSCALE, &param.outscale, NULL);
 	mpg123_getpar(mp, MPG123_FLAGS, &parr, NULL);
+	mpg123_getpar(mp, MPG123_INDEX_SIZE, &param.index_size, NULL);
 	param.flags = (int) parr;
 	param.flags |= MPG123_SEEKBUFFER; /* Default on, for HTTP streams. */
 	mpg123_getpar(mp, MPG123_RESYNC_LIMIT, &param.resync_limit, NULL);
@@ -828,8 +829,12 @@ int main(int argc, char *argv[])
 	}
 	if (!(param.listentry < 0) && !param.quiet) print_title(stderr); /* do not pollute stdout! */
 
-	if( (result = mpg123_par(mp, MPG123_INDEX_SIZE, param.index_size, 0.)) != MPG123_OK )
-	error1("Setting of frame index size failed: %s", mpg123_plain_strerror(result));
+	{
+		long default_index;
+		mpg123_getpar(mp, MPG123_INDEX_SIZE, &default_index, NULL);
+		if( param.index_size != default_index && (result = mpg123_par(mp, MPG123_INDEX_SIZE, param.index_size, 0.)) != MPG123_OK )
+		error1("Setting of frame index size failed: %s", mpg123_plain_strerror(result));
+	}
 
 	if(param.force_rate && param.down_sample)
 	{
