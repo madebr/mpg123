@@ -12,16 +12,17 @@
 #define MPG123_DECODE_H
 
 /* Selection of class of output routines for basic format. */
+#ifndef REAL_IS_FIXED
+#define OUT_FORMATS 4 /* Basic output formats: 16bit, 8bit, real and s32 */
+#else
+#define OUT_FORMATS 2 /* Only up to 16bit */
+#endif
+
 #define OUT_16 0
 #define OUT_8  1
-#ifndef REAL_IS_FIXED
-/* Write a floating point sample (that is, one matching the internal real type). */
-#define OUT_FORMATS 4 /* Basic output formats: 16bit, 8bit, real and s32 */
-#define OUT_REAL 2
+/* Those are defined but not supported for fixed point decoding! */
+#define OUT_REAL 2 /* Write a floating point sample (that is, one matching the internal real type). */
 #define OUT_S32 3
-#else
-#define OUT_FORMATS 2 /* Basic output formats: 16bit and 8bit */
-#endif
 
 #ifdef NO_NTOM
 #define NTOM_MAX 1

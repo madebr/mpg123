@@ -62,6 +62,14 @@
 #  define REAL_SCANF "%Lf"
 #  define REAL_PRINTF "%Lf"
 #elif defined(REAL_IS_FIXED)
+/* Disable some output formats for fixed point decoder... */
+#ifndef NO_REAL
+#define NO_REAL
+#endif
+#ifndef NO_32BIT
+#define NO_32BIT
+#endif
+
 # define real long
 
 # define REAL_RADIX            15
