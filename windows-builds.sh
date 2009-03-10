@@ -97,7 +97,7 @@ mpg123_build()
 				plugdir="$final/$name/plugins"
 				mkdir -p "$plugdir" &&
 				sed -e 's/libdir=.*$/libdir='"'.'/" < $i > "$plugdir/`basename $i`" &&
-				sofile=`echo $i | sed -e 's/\.la$/.so/'` &&
+				sofile=`echo $i | sed -e 's/\.la$/.dll/'` &&
 				if test "$debug" = y; then
 					echo "not stripping debug module..."
 				else
