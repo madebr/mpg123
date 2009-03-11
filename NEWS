@@ -26,6 +26,7 @@
 - some portability fixes
 - prevent user from creating non-working I/O setups (replacing timeout reader, ICY with feeding)
 - JACK output accepts port names for -a, stereo gets mixed down when only one port is chosen
+- added sndio output, contributed by Christian Weisgerber
 - Make --doublespeed paramter work, porting of which has been forgotten in the 1.x series!
 
 1.6.4
