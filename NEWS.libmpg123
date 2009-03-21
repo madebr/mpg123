@@ -1,5 +1,9 @@
 Changes in libmpg123 libtool interface versions...
 
+14.0.14
+	- the first libmpg123 with actually working MPG123_UPSPEED
+	- also important regression fix concerning skipping of frames
+
 13.0.13
 	- The whole set of output formats is generally available (8, 16 and 32 bit integer, signed/unsigned, float)
 	- Many features can be absent from libary as build decision (minimize binary size).
