@@ -1028,7 +1028,7 @@ static const char *mpg123_decoder_list[] =
 	dn_i386,
 	#endif
 	#ifdef OPT_ALTIVEC
-	dn_altivec,
+	dn_AltiVec,
 	#endif
 	#ifdef OPT_GENERIC
 	dn_generic,
