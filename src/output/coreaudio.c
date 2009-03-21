@@ -9,13 +9,17 @@
 */
 
 
-#include "sfifo.h"
 #include "mpg123app.h"
 
 #include <CoreServices/CoreServices.h>
 #include <AudioUnit/AudioUnit.h>
 #include <AudioToolbox/AudioToolbox.h>
 #include <errno.h>
+
+/* Including the sfifo code locally, to avoid module linkage issues. */
+#define SFIFO_STATIC
+#include "sfifo.c"
+
 #include "debug.h"
 
 #define FIFO_DURATION		(0.5f)		/* Duration of the ring buffer in seconds */

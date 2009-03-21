@@ -36,13 +36,10 @@ output_alsa_la_CFLAGS  = @ALSA_CFLAGS@
 output_alsa_la_LIBADD  = @ALSA_LIBS@ 
 endif
 
-# These are a bit tuned (stuff added to LDFLAGS)
-# Discussion is underway on why/if that's really needed.
-# Extra stuff may go into COREAUDIO_LDFLAGS to keep the autogeneration here intact.
 if HAVE_COREAUDIO
 pkglib_LTLIBRARIES += output_coreaudio.la
 output_coreaudio_la_SOURCES = coreaudio.c
-output_coreaudio_la_LDFLAGS = -module -Wl,-flat_namespace -Wl,-undefined -Wl,suppress -avoid-version -export-dynamic @COREAUDIO_LDFLAGS@
+output_coreaudio_la_LDFLAGS = -module -no-undefined -avoid-version -export-dynamic @COREAUDIO_LDFLAGS@
 output_coreaudio_la_CFLAGS  = @COREAUDIO_CFLAGS@
 output_coreaudio_la_LIBADD  = @COREAUDIO_LIBS@ 
 endif
