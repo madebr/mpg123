@@ -720,6 +720,13 @@ void frame_set_frameseek(mpg123_handle *fr, off_t fe)
 #endif
 }
 
+void frame_skip(mpg123_handle *fr)
+{
+#ifndef NO_LAYER3
+	if(fr->lay == 3) set_pointer(fr, 512);
+#endif
+}
+
 /* Sample accurate seek prepare for decoder. */
 /* This gets unadjusted output samples and takes resampling into account */
 void frame_set_seek(mpg123_handle *fr, off_t sp)

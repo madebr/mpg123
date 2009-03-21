@@ -406,6 +406,9 @@ void frame_gapless_ignore(mpg123_handle *fr, off_t frames);*/
 /* void frame_gapless_buffercheck(mpg123_handle *fr); */
 #endif
 
+/* Skip this frame... do some fake action to get away without actually decoding it. */
+void frame_skip(mpg123_handle *fr);
+
 /*
 	Seeking core functions:
 	- convert input sample offset to output sample offset

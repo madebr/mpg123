@@ -628,7 +628,12 @@ static int get_next_frame(mpg123_handle *mh)
 			debug("big header change");
 			change = 1;
 		}
-	} while(mh->num < mh->firstframe || (mh->p.doublespeed && (mh->num % mh->p.doublespeed)));
+		if(mh->num < mh->firstframe || (mh->p.doublespeed && (mh->num % mh->p.doublespeed)))
+		{
+			frame_skip(mh);
+		}
+		else break;
+	} while(1);
 	/* When we start actually using the CRC, this could move into the loop... */
 	/* A question of semantics ... should I fold start_frame and frame_number into firstframe/lastframe? */
 	if(mh->lastframe >= 0 && mh->num > mh->lastframe)
