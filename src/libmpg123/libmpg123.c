@@ -628,7 +628,9 @@ static int get_next_frame(mpg123_handle *mh)
 			debug("big header change");
 			change = 1;
 		}
-		if(mh->num < mh->firstframe || (mh->p.doublespeed && (mh->num % mh->p.doublespeed)))
+		/* Now some accounting: Look at the numbers and decide if we want this frame. */
+		++mh->playnum;
+		if(mh->num < mh->firstframe || (mh->p.doublespeed && (mh->playnum % mh->p.doublespeed)))
 		{
 			frame_skip(mh);
 		}
@@ -1033,6 +1035,8 @@ static int do_the_seek(mpg123_handle *mh)
 	if(b<0) return b;
 	/* Only mh->to_ignore is TRUE. */
 	if(mh->num < mh->firstframe) mh->to_decode = FALSE;
+
+	mh->playnum = mh->num;
 	return 0;
 }
 

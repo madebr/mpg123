@@ -273,6 +273,7 @@ struct mpg123_handle_struct
 	int freesize;  /* free format frame size */
 	enum mpg123_vbr vbr; /* 1 if variable bitrate was detected */
 	off_t num; /* frame offset ... */
+	off_t playnum; /* playback offset... includes repetitions, reset at seeks */
 	off_t audio_start; /* The byte offset in the file where audio data begins. */
 	char accurate; /* Flag to see if we trust the frame number. */
 	char silent_resync; /* Do not complain for the next n resyncs. */

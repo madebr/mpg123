@@ -387,6 +387,7 @@ static void frame_fixed_reset(mpg123_handle *fr)
 	fr->metaflags = 0;
 	fr->outblock = mpg123_safe_buffer();
 	fr->num = -1;
+	fr->playnum = -1;
 	fr->accurate = TRUE;
 	fr->silent_resync = 0;
 	fr->audio_start = 0;
