@@ -1903,7 +1903,7 @@ int do_layer3(mpg123_handle *fr)
 
 			if(III_dequantize_sample(fr, hybridIn[0], scalefacs[0],gr_info,sfreq,part2bits))
 			{
-				if(NOQUIET) error("dequantization failed!");
+				if(VERBOSE2) error("dequantization failed!");
 				return clip;
 			}
 		}
