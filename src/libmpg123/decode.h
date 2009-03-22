@@ -215,11 +215,9 @@ real* init_layer12_table_mmx(mpg123_handle *fr, real *table, double m);
 #endif
 #endif
 
-#ifndef NO_16BIT
 #ifndef NO_8BIT
 /* Needed when switching to 8bit output. */
 int make_conv16to8_table(mpg123_handle *fr);
-#endif
 #endif
 
 /* These are the actual workers.

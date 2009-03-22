@@ -403,6 +403,7 @@ int set_synth_functions(mpg123_handle *fr)
 		return MPG123_ERR;
 	}
 
+#ifndef NO_8BIT
 	if(basic_format == OUT_8)
 	{
 		if(make_conv16to8_table(fr) != 0)
@@ -412,6 +413,7 @@ int set_synth_functions(mpg123_handle *fr)
 			return -1;
 		}
 	}
+#endif
 
 #ifdef OPT_MMXORSSE
 	/* Special treatment for MMX, SSE and 3DNowExt stuff. */

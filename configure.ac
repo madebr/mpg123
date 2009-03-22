@@ -379,22 +379,6 @@ if test "x$messages" = "xdisabled"; then
   AC_DEFINE(NO_ERETURN, 1, [ Define to disable error messages in combination with a return value (the return is left intact). ])
 fi
 
-int8=enabled
-AC_ARG_ENABLE(8bit,
-              [  --disable-8bit=[no/yes] no 8 bit integer output ],
-              [
-                if test "x$enableval" = xno; then
-                  int8="disabled"
-                fi
-              ], [])
-
-if test "x$int8" = "xdisabled"; then
-  AC_DEFINE(NO_8BIT, 1, [ Define to disable 8 bit integer output. ])
-else
-  DECODER_OBJ="$DECODER_OBJ synth_8bit.\$(OBJEXT)"
-  DECODER_LOBJ="$DECODER_LOBJ synth_8bit.lo"
-fi
-
 int16=enabled
 AC_ARG_ENABLE(16bit,
               [  --disable-16bit=[no/yes] no 16 bit integer output ],
@@ -410,6 +394,28 @@ else
   DECODER_OBJ="$DECODER_OBJ synth.\$(OBJEXT)"
   DECODER_LOBJ="$DECODER_LOBJ synth.lo"
 fi
+
+int8=enabled
+AC_ARG_ENABLE(8bit,
+              [  --disable-8bit=[no/yes] no 8 bit integer output ],
+              [
+                if test "x$enableval" = xno; then
+                  int8="disabled"
+                fi
+              ], [])
+
+# 8bit works only through 16bit
+if test "x$int16" = "xdisabled"; then
+  int8=disabled
+fi
+if test "x$int8" = "xdisabled"; then
+  AC_DEFINE(NO_8BIT, 1, [ Define to disable 8 bit integer output. ])
+else
+  DECODER_OBJ="$DECODER_OBJ synth_8bit.\$(OBJEXT)"
+  DECODER_LOBJ="$DECODER_LOBJ synth_8bit.lo"
+fi
+
+
 int32=enabled
 AC_ARG_ENABLE(32bit,
               [  --disable-32bit=[no/yes] no 32 bit integer output ],
