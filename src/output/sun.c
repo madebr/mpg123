@@ -143,8 +143,6 @@ static int open_sun(audio_output_t *ao)
 	
 	if(!ao->device) {
 		if(getenv("AUDIODEV")) {
-			if(param.verbose > 1) 
-				warning("Using audio-device value from AUDIODEV environment variable!");
 			ao->device = getenv("AUDIODEV");
 		} else {
 			ao->device = "/dev/audio";
@@ -167,9 +165,7 @@ static int open_sun(audio_output_t *ao)
 		struct audio_device ad;
 		if(ioctl(ao->fn, AUDIO_GETDEV, &ad) == -1)
 			return -1;
-		if(param.verbose > 1)
-			fprintf(stderr,"Audio device type: %s\n",ad.name);
-		if(!strstr(ad.name,"dbri") && !strstr(ad.name,"CS4231") && param.verbose)
+		if(!strstr(ad.name,"dbri") && !strstr(ad.name,"CS4231"))
 			warning1("Unknown sound system %s. But we try it.",ad.name);
 	}
 #endif

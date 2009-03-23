@@ -120,7 +120,6 @@ static int real_connect_jack_ports( jack_handle_t* handle, const char** wishlist
 	for(ch=0; ch<handle->channels; ++ch)
 	{
 		const char* in = jack_port_name( handle->ports[ch] );
-		if(param.verbose) fprintf(stderr, "JACK output: connecting %s to %s\n", in, *wish);
 
 		if ((err = jack_connect(handle->client, in, *wish)) != 0 && err != EEXIST) {
 			error1("connect_jack_ports(): failed to jack_connect() ports: %d",err);
@@ -153,8 +152,6 @@ static int autoconnect_jack_ports( jack_handle_t* handle)
 
 		const char* in = jack_port_name( handle->ports[ch] );
 		const char* out = all_ports[i];
-
-		if(param.verbose) fprintf(stderr, "JACK output: connecting %s to %s\n", in, out);
 
 		if ((err = jack_connect(handle->client, in, out)) != 0 && err != EEXIST) {
 			error1("connect_jack_ports(): failed to jack_connect() ports: %d",err);

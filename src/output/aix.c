@@ -165,8 +165,6 @@ static int open_aix(audio_output_t *ao)
 
 	if(!ao->device) {
 		if(getenv("AUDIODEV")) {
-			if(param.verbose > 1) 
-				debug("Using audio-device value from AUDIODEV environmentvariable!");
 			ao->device = getenv("AUDIODEV");
 			ao->fn = open(ao->device,O_WRONLY);
 		} else {
