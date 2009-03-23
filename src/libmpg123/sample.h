@@ -19,12 +19,6 @@
   else if( (sum) < REAL_MINUS_32768) { *(samples) = -0x8000; (clip)++; } \
   else { *(samples) = REAL_TO_SHORT(sum); }
 
-/* Same for unsigned short. Not used yet. */
-#define WRITE_USHORT_SAMPLE(samples,sum,clip) \
-	if( (sum) > REAL_PLUS_32767) { *(samples) = 0xffff; (clip)++; } \
-	else if( (sum) < REAL_MINUS_32768) { *(samples) = 0x0000; (clip)++; } \
-	else { *(samples) = REAL_TO_SHORT(sum)+32768; }
-
 /*
 	32bit signed 
 	We do clipping with the same old borders... but different conversion.
