@@ -99,13 +99,13 @@
 #endif
 
 #ifndef DOUBLE_TO_REAL
-# define DOUBLE_TO_REAL(x)     (x)
+# define DOUBLE_TO_REAL(x)     (real)(x)
 #endif
 #ifndef REAL_TO_DOUBLE
 # define REAL_TO_DOUBLE(x)     (x)
 #endif
 #ifndef REAL_TO_SHORT
-# define REAL_TO_SHORT(x)      (x)
+# define REAL_TO_SHORT(x)      (short)(x)
 #endif
 #ifndef REAL_PLUS_32767
 # define REAL_PLUS_32767       32767.0
