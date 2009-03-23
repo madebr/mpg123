@@ -33,6 +33,7 @@ EXTRA_DIST = \
 	ports/MSVC++/config.h \
 	ports/MSVC++/msvc.c \
 	ports/MSVC++/examples/scan.c \
+	ports/MSVC++/examples/feedseek.c \
 	ports/MSVC++/2005/libmpg123/libmpg123.vcproj \
 	ports/MSVC++/2008/mpg123.sln \
 	ports/MSVC++/2008/feedseek/feedseek.vcproj \
