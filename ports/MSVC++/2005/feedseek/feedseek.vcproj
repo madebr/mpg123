@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="feedseek"
 	ProjectGUID="{17555DA4-8E95-4747-BEE2-57DF10043636}"
 	RootNamespace="feedseek"
@@ -192,7 +192,7 @@
 	</References>
 	<Files>
 		<File
-			RelativePath="..\..\..\..\doc\examples\feedseek.c"
+			RelativePath="..\..\examples\feedseek.c"
 			>
 		</File>
 	</Files>
