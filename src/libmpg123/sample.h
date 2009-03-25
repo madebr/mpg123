@@ -23,12 +23,14 @@
 	32bit signed 
 	We do clipping with the same old borders... but different conversion.
 	We see here that we need extra work for non-16bit output... we optimized for 16bit.
+	-0x7fffffff-1 is the minimum 32 bit signed integer value expressed so that MSVC 
+	does not give a compile time warning.
 */
 #define WRITE_S32_SAMPLE(samples,sum,clip) \
 	{ \
 		real tmpsum = REAL_MUL((sum),S32_RESCALE); \
 		if( tmpsum > REAL_PLUS_S32 ){ *(samples) = 0x7fffffff; (clip)++; } \
-		else if( tmpsum < REAL_MINUS_S32 ) { *(samples) = -0x80000000; (clip)++; } \
+		else if( tmpsum < REAL_MINUS_S32 ) { *(samples) = -0x7fffffff-1; (clip)++; } \
 		else { *(samples) = (int32_t)tmpsum; } \
 	}
 
