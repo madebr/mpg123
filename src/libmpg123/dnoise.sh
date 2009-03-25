@@ -20,7 +20,8 @@ float dithernoise[DITHERSIZE] =
 {'
 
 # If sed is there, use it.
-if echo -n | sed ''; then
+# not using echo -n, not portable -- the extra empty line does not matter
+if echo | sed '' >&2; then 
   sed -e 's/$/f,/' < "$1"
 else
 # Plain sh... very slow, but works.
