@@ -12,6 +12,11 @@
 #include <artsc.h>
 #include "debug.h"
 
+typedef struct
+{
+	arts_stream_t arse; /* That's short for ARts StrEam;-) */
+} mpg123_arts_t;
+
 static int open_arts(audio_output_t *ao)
 {
 	short bits = 0;
@@ -31,9 +36,9 @@ static int open_arts(audio_output_t *ao)
 	/* Initialize the aRts lib*/
 	arts_init();
 	/* Open a stream to the aRts server */
-	ao->fn = (int)arts_play_stream( ao->rate, bits, ao->channels, "mpg123" );
-	/* Postive numbers, please. */
-	return ao->fn < 0 ? ao->fn : ao->fn < 1 ? -1 : 0;
+	((mpg123_arts_t*)ao->userptr)->arse = arts_play_stream( ao->rate, bits, ao->channels, "mpg123" );
+	/* Yeah, black box and all... it's still a pointer that is NULL on error. */
+	return (void*)((mpg123_arts_t*)ao->userptr)->arse == NULL ? -1 : 0;
 }
 
 static int get_formats_arts(audio_output_t *ao)
@@ -45,13 +50,13 @@ static int get_formats_arts(audio_output_t *ao)
 static int write_arts(audio_output_t *ao,unsigned char *buf,int len)
 {
 	/* PIPE the PCM forward to the aRts Sound Daemon */
-	return arts_write( (arts_stream_t)ao->fn , buf, len);
+	return arts_write( ((mpg123_arts_t*)ao->userptr)->arse , buf, len);
 }
 
 static int close_arts(audio_output_t *ao)
 {
 	/* Close the connection! */
-	arts_close_stream( (arts_stream_t)ao->fn );
+	arts_close_stream( ((mpg123_arts_t*)ao->userptr)->arse );
 	/* Free the memory allocated*/
 	arts_free();
 	return 0;
@@ -62,16 +67,36 @@ static void flush_arts(audio_output_t *ao)
   /* aRts doesn't have a flush statement! */
 }
 
+static int deinit_arts(audio_output_t* ao)
+{
+	if(ao->userptr)
+	{
+		free(ao->userptr);
+		ao->userptr = NULL;
+	}
+	arts_free();
+	return 0;
+}
+
 static int init_arts(audio_output_t* ao)
 {
 	if (ao==NULL) return -1;
 
+	ao->userptr = malloc(sizeof(mpg123_arts_t));
+	if(ao->userptr == NULL)
+	{
+		error("Out of memory!");
+		return -1;
+	}
+	/* clear it to have a consistent state */
+	memset(ao->userptr, 0, sizeof(mpg123_arts_t));
 	/* Set callbacks */
 	ao->open = open_arts;
 	ao->flush = flush_arts;
 	ao->write = write_arts;
 	ao->get_formats = get_formats_arts;
 	ao->close = close_arts;
+	ao->deinit = deinit_arts;
 	/* Success */
 	return 0;
 }
