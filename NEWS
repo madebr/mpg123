@@ -1,3 +1,8 @@
+1.8.0
+---
+- MPG123_MODDIR for changing module directory at runtime
+- code cleanup (signed/unsigned integer usage)
+
 1.7.0
 ---
 - Lots of output format fun!
