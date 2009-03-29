@@ -21,9 +21,10 @@ int MONO_NAME(real *bandPtr, mpg123_handle *fr)
 {
 	SAMPLE_T samples_tmp[8*64];
 	SAMPLE_T *tmp1 = samples_tmp;
-	int i,ret;
+	size_t i;
+	int ret;
 
-	int pnt = fr->buffer.fill;
+	size_t pnt = fr->buffer.fill;
 	unsigned char *samples = fr->buffer.data;
 	fr->buffer.data = (unsigned char*) samples_tmp;
 	fr->buffer.fill = 0;
@@ -45,8 +46,9 @@ int MONO_NAME(real *bandPtr, mpg123_handle *fr)
 
 int MONO2STEREO_NAME(real *bandPtr, mpg123_handle *fr)
 {
-	int i,ret;
-	int pnt1 = fr->buffer.fill;
+	size_t i;
+	int ret;
+	size_t pnt1 = fr->buffer.fill;
 	unsigned char *samples = fr->buffer.data + pnt1;
 
 	ret = SYNTH_NAME(bandPtr, 0, fr, 1);
