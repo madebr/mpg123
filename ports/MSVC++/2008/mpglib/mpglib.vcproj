@@ -131,6 +131,7 @@
 				WarningLevel="3"
 				DebugInformationFormat="0"
 				CompileAs="1"
+				DisableSpecificWarnings="4996"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
