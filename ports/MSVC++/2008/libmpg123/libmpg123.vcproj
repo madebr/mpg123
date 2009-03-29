@@ -477,6 +477,7 @@
 				RuntimeLibrary="3"
 				RuntimeTypeInfo="false"
 				WarningLevel="3"
+				WarnAsError="false"
 				DebugInformationFormat="3"
 				CompileAs="1"
 				DisableSpecificWarnings="4996"
@@ -493,6 +494,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				OutputFile="$(SolutionDir)Debug\$(ProjectName).dll"
+				GenerateDebugInformation="true"
+				AssemblyDebug="1"
+				BaseAddress="0x63000000"
+				RandomizedBaseAddress="1"
+				FixedBaseAddress="2"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -556,7 +562,8 @@
 				FloatingPointModel="2"
 				RuntimeTypeInfo="false"
 				WarningLevel="3"
-				DebugInformationFormat="0"
+				WarnAsError="false"
+				DebugInformationFormat="3"
 				CompileAs="1"
 				DisableSpecificWarnings="4996"
 			/>
@@ -572,6 +579,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				OutputFile="$(SolutionDir)Release\$(ProjectName).dll"
+				GenerateDebugInformation="true"
+				BaseAddress="0x63000000"
+				RandomizedBaseAddress="1"
+				FixedBaseAddress="2"
 			/>
 			<Tool
 				Name="VCALinkTool"
