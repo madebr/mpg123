@@ -147,7 +147,7 @@ static int check_lame_tag(mpg123_handle *fr)
 		Also, how to avoid false positives? I guess I should interpret more of the header to rule that out(?).
 		I hope that ensuring all zeros until tag start is enough.
 	*/
-	size_t lame_offset = (fr->stereo == 2) ? (fr->lsf ? 17 : 32 ) : (fr->lsf ? 9 : 17);
+	int lame_offset = (fr->stereo == 2) ? (fr->lsf ? 17 : 32 ) : (fr->lsf ? 9 : 17);
 	/* At least skip the decoder delay. */
 #ifdef GAPLESS
 	if(fr->begin_s == 0) frame_gapless_init(fr, GAPLESS_DELAY, 0);
@@ -155,7 +155,7 @@ static int check_lame_tag(mpg123_handle *fr)
 
 	if(fr->framesize >= 120+lame_offset) /* traditional Xing header is 120 bytes */
 	{
-		size_t i;
+		int i;
 		int lame_type = 0;
 		debug("do we have lame tag?");
 		/* only search for tag when all zero before it (apart from checksum) */
@@ -337,7 +337,7 @@ static int check_lame_tag(mpg123_handle *fr)
 							else if(gt == 2) gt = 1; /* audiophile */
 							else continue;
 							/* get the 9 bits into a number, divide by 10, multiply sign... happy bit banging */
-							replay_gain[0] = ((fr->bsbuf[lame_offset] & 0x2) ? -0.1 : 0.1) * (make_short(fr->bsbuf, lame_offset) & 0x1f);
+							replay_gain[0] = (float) ((fr->bsbuf[lame_offset] & 0x2) ? -0.1 : 0.1) * (make_short(fr->bsbuf, lame_offset) & 0x1f);
 						}
 						lame_offset += 2;
 					}
@@ -1004,9 +1004,9 @@ int get_songlen(mpg123_handle *fr,int no)
 	if(no < 0) {
 		if(!fr->rd || fr->rdat.filelen < 0)
 			return 0;
-		no = (double) fr->rdat.filelen / compute_bpf(fr);
+		no = (int) ((double) fr->rdat.filelen / compute_bpf(fr));
 	}
 
 	tpf = mpg123_tpf(fr);
-	return no*tpf;
+	return (int) (no*tpf);
 }

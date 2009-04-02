@@ -543,7 +543,7 @@ off_t frame_fuzzy_find(mpg123_handle *fr, off_t want_frame, off_t* get_frame)
 		fr->accurate = FALSE; /* Fuzzy! */
 		fr->silent_resync = 1;
 		*get_frame = want_frame;
-		ret = fr->audio_start+fr->mean_framesize*want_frame;
+		ret = (off_t) (fr->audio_start+fr->mean_framesize*want_frame);
 	}
 	debug5("fuzzy: want %li of %li, get %li at %li B of %li B",
 		(long)want_frame, (long)fr->track_frames, (long)*get_frame, (long)ret, (long)(fr->rdat.filelen-fr->audio_start));

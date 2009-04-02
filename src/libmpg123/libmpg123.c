@@ -71,7 +71,7 @@ static void frame_buffercheck(mpg123_handle *fr)
 	if(fr->firstoff && fr->num == fr->firstframe)
 	{
 		off_t byteoff = samples_to_bytes(fr, fr->firstoff);
-		if(fr->buffer.fill > byteoff)
+		if((off_t)fr->buffer.fill > byteoff)
 		{
 			fr->buffer.fill -= byteoff;
 			/* buffer.p != buffer.data only for own buffer */
@@ -89,7 +89,7 @@ static void frame_buffercheck(mpg123_handle *fr)
 	if(fr->lastoff && fr->num == fr->lastframe)
 	{
 		off_t byteoff = samples_to_bytes(fr, fr->lastoff);
-		if(fr->buffer.fill > byteoff)
+		if((off_t)fr->buffer.fill > byteoff)
 		{
 			fr->buffer.fill = byteoff;
 		}

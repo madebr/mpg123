@@ -414,7 +414,7 @@ static int III_get_side_info(mpg123_handle *fr, struct III_sideinfo *si,int ster
 	Think: Substract the 2 crc bytes in parser already? */
 	fr->bitreservoir = fr->bitreservoir + fr->framesize - fr->ssize - (fr->error_protection ? 2 : 0);
 	/* Limit the reservoir to the max for MPEG 1.0 or 2.x . */
-	if(fr->bitreservoir > (fr->lsf == 0 ? 511 : 255))
+	if(fr->bitreservoir > (unsigned int) (fr->lsf == 0 ? 511 : 255))
 	fr->bitreservoir = (fr->lsf == 0 ? 511 : 255);
 
 	/* Now back into less commented territory. It's code. It works. */
@@ -1799,7 +1799,8 @@ static void III_hybrid(real fsIn[SBLIMIT][SSLIMIT], real tsOut[SSLIMIT][SBLIMIT]
 
 	real *tspnt = (real *) tsOut;
 	real *rawout1,*rawout2;
-	int bt,sb = 0;
+	int bt = 0;
+	size_t sb = 0;
 
 	{
 		int b = blc[ch];
@@ -1926,10 +1927,10 @@ int do_layer3(mpg123_handle *fr)
 			if(ms_stereo)
 			{
 				int i;
-				int maxb = sideinfo.ch[0].gr[gr].maxb;
+				unsigned int maxb = sideinfo.ch[0].gr[gr].maxb;
 				if(sideinfo.ch[1].gr[gr].maxb > maxb) maxb = sideinfo.ch[1].gr[gr].maxb;
 
-				for(i=0;i<SSLIMIT*maxb;i++)
+				for(i=0;i<SSLIMIT*(int)maxb;i++)
 				{
 					real tmp0 = ((real *)hybridIn[0])[i];
 					real tmp1 = ((real *)hybridIn[1])[i];
@@ -1954,7 +1955,7 @@ int do_layer3(mpg123_handle *fr)
 				{
 					register int i;
 					register real *in0 = (real *) hybridIn[0],*in1 = (real *) hybridIn[1];
-					for(i=0;i<SSLIMIT*gr_info->maxb;i++,in0++)
+					for(i=0;i<SSLIMIT*(int)gr_info->maxb;i++,in0++)
 					*in0 = (*in0 + *in1++); /* *0.5 done by pow-scale */ 
 				}
 				break;
@@ -1962,7 +1963,7 @@ int do_layer3(mpg123_handle *fr)
 				{
 					register int i;
 					register real *in0 = (real *) hybridIn[0],*in1 = (real *) hybridIn[1];
-					for(i=0;i<SSLIMIT*gr_info->maxb;i++)
+					for(i=0;i<SSLIMIT*(int)gr_info->maxb;i++)
 					*in0++ = *in1++;
 				}
 				break;

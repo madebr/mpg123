@@ -48,7 +48,7 @@ static int bc_append(struct bufferchain *bc, ssize_t size);
 static void bc_drop(struct bufferchain *bc);
 #endif
 static int bc_add(struct bufferchain *bc, const unsigned char *data, ssize_t size);
-static ssize_t bc_give(struct bufferchain *bc, unsigned char *out, size_t size);
+static ssize_t bc_give(struct bufferchain *bc, unsigned char *out, ssize_t size);
 static ssize_t bc_skip(struct bufferchain *bc, ssize_t count);
 static ssize_t bc_seekback(struct bufferchain *bc, ssize_t count);
 static void bc_forget(struct bufferchain *bc);
@@ -489,7 +489,7 @@ static int bc_add(struct bufferchain *bc, const unsigned char *data, ssize_t siz
 }
 
 /* Give some data, advancing position but not forgetting yet. */
-static ssize_t bc_give(struct bufferchain *bc, unsigned char *out, size_t size)
+static ssize_t bc_give(struct bufferchain *bc, unsigned char *out, ssize_t size)
 {
 	struct buffy *b = bc->first;
 	ssize_t gotcount = 0;

@@ -75,7 +75,7 @@ real* init_layer12_table(mpg123_handle *fr, real *table, double m)
 {
 	int i,j;
 	for(j=3,i=0;i<63;i++,j--)
-	*table++ = m * pow(2.0,(double) j / 3.0);
+	*table++ = (real) (m * pow(2.0,(double) j / 3.0));
 
 	return table;
 }

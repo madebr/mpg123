@@ -94,7 +94,7 @@ void I_step_two(real fraction[2][SBLIMIT],unsigned int balloc[2*SBLIMIT], unsign
 		{
 			if((n=*ba++))
 			{
-				real samp = ( ((-1)<<n) + (*sample++) + 1);
+				real samp = (real) ( ((-1)<<n) + (*sample++) + 1);
 				*f0++ = samp * fr->muls[n+1][*sca++];
 				*f1++ = samp * fr->muls[n+1][*sca++];
 			}
