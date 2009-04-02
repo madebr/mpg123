@@ -48,6 +48,7 @@ int synth_1to1_3dnow      (real*, int, mpg123_handle*, int);
 int synth_1to1_sse        (real*, int, mpg123_handle*, int);
 int synth_1to1_3dnowext   (real*, int, mpg123_handle*, int);
 int synth_1to1_altivec    (real*, int, mpg123_handle*, int);
+int synth_1to1_x86_64     (real*, int, mpg123_handle*, int);
 /* This is different, special usage in layer3.c only.
    Hence, the name... and now forget about it.
    Never use it outside that special portion of code inside layer3.c! */

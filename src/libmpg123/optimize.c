@@ -17,13 +17,13 @@
 	It SUCKS having to define these names that way, but compile-time intialization of string arrays is a bitch.
 	GCC doesn't see constant stuff when it's wiggling in front of it!
 	Anyhow: Have a script for that:
-names="generic generic_dither i386 i486 i586 i586_dither MMX 3DNow 3DNowExt AltiVec SSE"
-for i in $names; do echo "##define dn_$i \"$i\""; done
+names="generic generic_dither i386 i486 i586 i586_dither MMX 3DNow 3DNowExt AltiVec SSE x86-64"
+for i in $names; do echo "##define dn_${i/-/_} \"$i\""; done
 echo -n "static const char* decname[] =
 {
 	\"auto\"
 	"
-for i in $names; do echo -n ", dn_$i"; done
+for i in $names; do echo -n ", dn_${i/-/_}"; done
 echo "
 	, \"nodec\"
 };"
@@ -39,10 +39,11 @@ echo "
 #define dn_3DNowExt "3DNowExt"
 #define dn_AltiVec "AltiVec"
 #define dn_SSE "SSE"
+#define dn_x86_64 "x86-64"
 static const char* decname[] =
 {
 	"auto"
-	, dn_generic, dn_generic_dither, dn_i386, dn_i486, dn_i586, dn_i586_dither, dn_MMX, dn_3DNow, dn_3DNowExt, dn_AltiVec, dn_SSE
+	, dn_generic, dn_generic_dither, dn_i386, dn_i486, dn_i586, dn_i586_dither, dn_MMX, dn_3DNow, dn_3DNowExt, dn_AltiVec, dn_SSE, dn_x86_64
 	, "nodec"
 };
 
@@ -55,7 +56,7 @@ enum optdec defdec(void){ return defopt; }
 
 enum optcla decclass(const enum optdec type)
 {
-	return (type == mmx || type == sse || type == dreidnowext) ? mmxsse : normal;
+	return (type == mmx || type == sse || type == dreidnowext || type == x86_64 ) ? mmxsse : normal;
 }
 
 /* Determine what kind of decoder is actually active
@@ -191,6 +192,9 @@ static int find_dectype(mpg123_handle *fr)
 #endif
 #ifdef OPT_ALTIVEC
 	else if(basic_synth == synth_1to1_altivec) type = altivec;
+#endif
+#ifdef OPT_X86_64
+	else if(basic_synth == synth_1to1_x86_64) type = x86_64;
 #endif
 #endif /* 16bit */
 #ifdef OPT_I486
@@ -779,6 +783,21 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 
 #endif /* OPT_X86 */
 
+#ifdef OPT_X86_64
+	if(!done && (auto_choose || want_dec == x86_64))
+	{
+		chosen = "x86-64 (SSE)";
+		fr->cpu_opts.type = x86_64;
+#		ifndef NO_16BIT
+		fr->cpu_opts.synth_1to1 = synth_1to1_x86_64;
+		fr->cpu_opts.synth_1to1_8bit = synth_1to1_8bit_wrap;
+		fr->cpu_opts.synth_1to1_8bit_mono = synth_1to1_8bit_wrap_mono;
+		fr->cpu_opts.synth_1to1_8bit_mono2stereo = synth_1to1_8bit_wrap_mono2stereo;
+#		endif
+		done = 1;
+	}
+#endif
+
 #ifdef OPT_GENERIC_DITHER
 	if(!done && (auto_choose || want_dec == generic_dither))
 	{
@@ -990,6 +1009,9 @@ static const char *mpg123_supported_decoder_list[] =
 	#ifdef OPT_ALTIVEC
 	NULL,
 	#endif
+	#ifdef OPT_X86_64
+	NULL,
+	#endif
 	#ifdef OPT_GENERIC_FLOAT
 	NULL,
 	#endif
@@ -1031,6 +1053,9 @@ static const char *mpg123_decoder_list[] =
 	#endif
 	#ifdef OPT_ALTIVEC
 	dn_AltiVec,
+	#endif
+	#ifdef OPT_X86_64
+	dn_x86_64,
 	#endif
 	#ifdef OPT_GENERIC
 	dn_generic,
@@ -1084,6 +1109,9 @@ void check_decoders(void )
 /* every supported x86 can do i386, any cpu can do generic */
 #ifdef OPT_I386
 	*(d++) = decname[idrei];
+#endif
+#ifdef OPT_X86_64
+	*(d++) = decname[x86_64];
 #endif
 #ifdef OPT_GENERIC
 	*(d++) = decname[generic];

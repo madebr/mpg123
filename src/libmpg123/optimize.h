@@ -18,6 +18,7 @@
 	OPT_3DNOW (AMD 3DNow!, K6-2/3, Athlon, compatibles...)
 	OPT_3DNOWEXT (AMD 3DNow! extended, generally Athlon, compatibles...)
 	OPT_ALTIVEC (Motorola/IBM PPC with AltiVec under MacOSX)
+	
 
 	or you define OPT_MULTI and give a combination which makes sense (do not include i486, do not mix altivec and x86).
 
@@ -36,7 +37,7 @@ enum optdec
 { /* autodec needs to be =0 and the first, nodec needs to be the last -- for loops! */
 	autodec=0, generic, generic_dither, idrei,
 	ivier, ifuenf, ifuenf_dither, mmx,
-	dreidnow, dreidnowext, altivec, sse,
+	dreidnow, dreidnowext, altivec, sse, x86_64,
 	nodec
 };
 enum optcla { nocla=0, normal, mmxsse };
@@ -66,7 +67,7 @@ enum optcla decclass(const enum optdec);
 #ifdef REAL_IS_FIXED
 #if (defined OPT_I486)  || (defined OPT_I586) || (defined OPT_I586_DITHER) \
  || (defined OPT_MMX)   || (defined OPT_SSE)  || (defined_OPT_ALTIVEC) \
- || (defined OPT_3DNOW) || (defined OPT_3DNOWEXT) || (defined OPT_GENERIC_DITHER)
+ || (defined OPT_3DNOW) || (defined OPT_3DNOWEXT) || (defined OPT_X86_64) || (defined OPT_GENERIC_DITHER)
 #error "Bad decoder choice together with fixed point math!"
 #endif
 #endif
@@ -188,6 +189,14 @@ extern const int costab_mmxsse[];
 #ifndef OPT_MULTI
 #	define defopt altivec
 #	define opt_synth_1to1(fr) synth_1to1_altivec
+#endif
+#endif
+
+#ifdef OPT_X86_64
+#define OPT_MMXORSSE
+#ifndef OPT_MULTI
+#	define defopt x86_64
+#	define opt_synth_1to1(fr) synth_1to1_x86_64
 #endif
 #endif
 
@@ -547,11 +556,11 @@ extern float dithernoise[DITHERSIZE];
 
 /* End of generated output. */
 
+#endif /* OPT_MULTI else */
+
 #	ifndef opt_dct36
 #		define opt_dct36(fr) dct36
 #	endif
-
-#endif /* OPT_MULTI else */
 
 #endif /* MPG123_H_OPTIMIZE */
 

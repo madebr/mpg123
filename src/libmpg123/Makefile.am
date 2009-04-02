@@ -83,6 +83,7 @@ EXTRA_libmpg123_la_SOURCES = \
 	dct64_i486.c \
 	dct64_mmx.S \
 	dct64_sse.S \
+	dct64_x86_64.S \
 	synth_3dnowext.S \
 	synth_3dnow.S \
 	synth_altivec.c \
@@ -92,6 +93,7 @@ EXTRA_libmpg123_la_SOURCES = \
 	synth_mmx.S \
 	synth_sse3d.h \
 	synth_sse.S \
+	synth_x86_64.S \
 	ntom.c \
 	synth.c \
 	synth_8bit.c \

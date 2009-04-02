@@ -66,6 +66,7 @@ void prepare_decode_tables()
 }
 
 #ifdef OPT_MMXORSSE
+#ifndef OPT_X86_64
 void make_decode_tables_mmx_asm(long scaleval, float* decwin_mmx, float *decwins);
 void make_decode_tables_mmx(mpg123_handle *fr)
 {
@@ -74,6 +75,68 @@ void make_decode_tables_mmx(mpg123_handle *fr)
 	make_decode_tables_mmx_asm((fr->lastscale < 0 ? fr->p.outscale : fr->lastscale)*SHORT_SCALE, fr->decwin_mmx, fr->decwins);
 	debug("MMX decode tables done");
 }
+#else
+
+/* This mimics round() as defined in C99. We stay C89. */
+static int rounded(double f)
+{
+	return (int)(f>0 ? floor(f+0.5) : ceil(f-0.5));
+}
+
+/* x86-64 doesn't use asm version */
+void make_decode_tables_mmx(mpg123_handle *fr)
+{
+	int i,j,val;
+	int idx = 0;
+	short *ptr = (short *)fr->decwins;
+	/* Scale is always based on 1.0 . */
+	double scaleval = -0.5*(fr->lastscale < 0 ? fr->p.outscale : fr->lastscale);
+	debug1("decode tables with scaleval %g", scaleval);
+	for(i=0,j=0;i<256;i++,j++,idx+=32)
+	{
+		if(idx < 512+16)
+		fr->decwin_mmx[idx+16] = fr->decwin_mmx[idx] = DOUBLE_TO_REAL((double) intwinbase[j] * scaleval);
+		
+		if(i % 32 == 31)
+		idx -= 1023;
+		if(i % 64 == 63)
+		scaleval = - scaleval;
+	}
+	
+	for( /* i=256 */ ;i<512;i++,j--,idx+=32)
+	{
+		if(idx < 512+16)
+		fr->decwin_mmx[idx+16] = fr->decwin_mmx[idx] = DOUBLE_TO_REAL((double) intwinbase[j] * scaleval);
+		
+		if(i % 32 == 31)
+		idx -= 1023;
+		if(i % 64 == 63)
+		scaleval = - scaleval;
+	}
+	
+	for(i=0; i<512; i++) {
+		if(i&1) val = rounded(fr->decwin_mmx[i]*0.5);
+		else val = rounded(fr->decwin_mmx[i]*-0.5);
+		if(val > 32767) val = 32767;
+		else if(val < -32768) val = -32768;
+		ptr[i] = val;
+	}
+	for(i=512; i<512+32; i++) {
+		if(i&1) val = rounded(fr->decwin_mmx[i]*0.5);
+		else val = 0;
+		if(val > 32767) val = 32767;
+		else if(val < -32768) val = -32768;
+		ptr[i] = val;
+	}
+	for(i=0; i<512; i++) {
+		val = rounded(fr->decwin_mmx[511-i]*-0.5);
+		if(val > 32767) val = 32767;
+		else if(val < -32768) val = -32768;
+		ptr[512+32+i] = val;
+	}
+	debug("decode tables done");
+}
+#endif
 #endif
 
 void make_decode_tables(mpg123_handle *fr)
