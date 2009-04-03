@@ -656,7 +656,7 @@ int control_generic (mpg123_handle *fr)
 						if(!strcasecmp(arg, "off")) param.rva = MPG123_RVA_OFF;
 						else if(!strcasecmp(arg, "mix") || !strcasecmp(arg, "radio")) param.rva = MPG123_RVA_MIX;
 						else if(!strcasecmp(arg, "album") || !strcasecmp(arg, "audiophile")) param.rva = MPG123_RVA_ALBUM;
-						mpg123_volume(fr, -1);
+						mpg123_volume_change(fr, 0.);
 						generic_sendmsg("RVA %s", rva_name[param.rva]);
 						continue;
 					}
