@@ -382,7 +382,7 @@ static void term_handle_input(mpg123_handle *fr, audio_output_t *ao, int do_dela
 	case RVA_KEY:
 		if(++param.rva > MPG123_RVA_MAX) param.rva = 0;
 		mpg123_param(fr, MPG123_RVA, param.rva, 0);
-		mpg123_volume(fr, -1);
+		mpg123_volume_change(fr, 0.);
 	break;
 	case PREV_KEY:
 		if(!param.usebuffer) ao->flush(ao);
