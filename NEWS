@@ -1,5 +1,6 @@
 1.8.0
 ---
+- SSE is back -- we have optimized decoding on x86-64 systems!
 - MPG123_MODDIR for changing module directory at runtime
 - code cleanup (signed/unsigned integer usage)
 
