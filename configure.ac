@@ -11,7 +11,7 @@ AC_PREREQ(2.57)
 dnl ############# Initialisation
 
 AC_INIT([mpg123], [1.8.0], [mpg123-devel@lists.sourceforge.net])
-LIBMPG123_VERSION=15:0:15
+LIBMPG123_VERSION=15:1:15
 AC_SUBST(LIBMPG123_VERSION)
 
 AC_CONFIG_SRCDIR(src/mpg123.c)
@@ -517,9 +517,10 @@ AC_ARG_WITH([cpu], [
   --with-cpu=sse_alone          Really only SSE decoder, without i586 fallback for flexible rate
   --with-cpu=x86          Pack all x86 opts into one binary (excluding i486 and dither)
   --with-cpu=x86_dither   Pack all x86 opts into one binary (excluding i486, including dither)
-  --with-cpu=x86_64       Use code optimized for x86-64 processors (AMD64 and Intel64)
+  --with-cpu=x86-64       Use code optimized for x86-64 processors (AMD64 and Intel64)
+  --with-cpu=x86-64_dither x86-64 code together with generic dithering (runtime selection)
   --with-cpu=altivec      Use code optimized for Altivec processors (PowerPC G4 and G5)
-]) 
+])
 
 AC_ARG_WITH([audio], [
   --with-audio=<list of modules>  Select a list (or only one) of audio output modules (comma or space separated list).
