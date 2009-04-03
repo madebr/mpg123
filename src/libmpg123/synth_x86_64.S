@@ -51,7 +51,7 @@ ASM_NAME(synth_1to1_x86_64_asm):
 	movaps		(%rax), XMMREG_MAX
 	movaps		16(%rax), XMMREG_MIN
 	pxor		XMMREG_CLIP, XMMREG_CLIP
-	pcmpgtd		XMMREG_FULL, XMMREG_FULL
+	pcmpeqd		XMMREG_FULL, XMMREG_FULL
 	
 	movl		ARG3, %eax
 	shll		$1, %eax
