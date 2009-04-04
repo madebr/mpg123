@@ -808,6 +808,9 @@ static void convert_utf16(mpg123_string *sb, unsigned char* s, size_t l, int str
 	size_t high = 0;
 	size_t low  = 1;
 	debug1("convert_utf16 with length %lu", (unsigned long)l);
+
+	if(l < 1){ mpg123_set_string(sb, ""); return; }
+
 	if(!str_be) /* little-endian */
 	{
 		high = 1; /* The second byte is the high byte. */
@@ -835,8 +838,6 @@ static void convert_utf16(mpg123_string *sb, unsigned char* s, size_t l, int str
 		}
 		else length += UTF8LEN(point); /* 1,2 or 3 bytes */
 	}
-
-	if(l < 1){ mpg123_set_string(sb, ""); return; }
 
 	if(!mpg123_resize_string(sb, length+1)){ mpg123_free_string(sb); return ; }
 
