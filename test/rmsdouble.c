@@ -7,9 +7,12 @@
 
 int main(int argc, char** argv)
 {
-	int fda, fdb;
+	FILE *fa, *fb;
 	double iso_rms_limit, iso_diff_limit;
-	double av, bv, rms, maxdiff;
+	double rms, maxdiff;
+	size_t bufs = 1024;
+	size_t got;
+	double av[bufs], bv[bufs];
 	long count;
 
 	fprintf(stderr,"Computing RMS full scale for double float data (thus, full scale is 2).\n");
@@ -22,22 +25,26 @@ int main(int argc, char** argv)
 	maxdiff = 0;
 	count = 0;
 
-	fda = open(argv[1], O_RDONLY);
-	fdb = open(argv[2], O_RDONLY);
-	if(fda < 0 || fdb < 0){ fprintf(stderr, "cannot open files\n");return 1; }
+	fa = fopen(argv[1], "r");
+	fb = fopen(argv[2], "r");
+	if(fa == NULL || fb == NULL){ fprintf(stderr, "cannot open files\n");return 1; }
 
-	while( (read(fda, &av, sizeof(double)) == sizeof(double))
-	   &&  (read(fdb, &bv, sizeof(double)) == sizeof(double)) )
+	while( (got = fread(av, sizeof(double), bufs, fa))
+	           == fread(bv, sizeof(double), bufs, fb) && got )
 	{
-		double vd = (double)av-(double)bv;
-		++count;
-		rms += vd*vd;
-		if(vd < 0) vd *= -1;
-		if(vd > maxdiff) maxdiff = vd;
+		size_t i;
+		for(i=0; i<got; ++i)
+		{
+			double vd = (double)av[i]-(double)bv[i];
+			++count;
+			rms += vd*vd;
+			if(vd < 0) vd *= -1;
+			if(vd > maxdiff) maxdiff = vd;
+		}
 	}
 
-	close(fda);
-	close(fdb);
+	fclose(fa);
+	fclose(fb);
 
 	rms /= count;
 	rms  = sqrt(rms);
