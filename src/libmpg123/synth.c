@@ -166,39 +166,42 @@ void dct64_x86_64(short *out0, short *out1, real *samples);
 /* This is just a hull to use the mpg123 handle. */
 int synth_1to1_x86_64(real *bandPtr,int channel, mpg123_handle *fr, int final)
 {
-	short *samples = (short *) (fr->buffer.data+fr->buffer.fill);
-	
+	short *samples = (short *) (fr->buffer.data+fr->buffer.fill);	
 	short *b0, **buf;
 	int clip; 
 	int bo1;
-	
+
 	if(fr->have_eq_settings) do_equalizer(bandPtr,channel,fr->equalizer);
-	
-	if(!channel) {
+
+	if(!channel)
+	{
 		fr->bo--;
 		fr->bo &= 0xf;
 		buf = fr->short_buffs[0];
 	}
-	else {
+	else
+	{
 		samples++;
 		buf = fr->short_buffs[1];
 	}
-	
-	if(fr->bo & 0x1) {
+
+	if(fr->bo & 0x1) 
+	{
 		b0 = buf[0];
 		bo1 = fr->bo;
 		dct64_x86_64(buf[1]+((fr->bo+1)&0xf),buf[0]+fr->bo,bandPtr);
 	}
-	else {
+	else
+	{
 		b0 = buf[1];
 		bo1 = fr->bo+1;
 		dct64_x86_64(buf[0]+fr->bo,buf[1]+fr->bo+1,bandPtr);
 	}
-	
+
 	clip = synth_1to1_x86_64_asm((short *)fr->decwins, b0, samples, bo1);
-	
+
 	if(final) fr->buffer.fill += 128;
-	
+
 	return clip;
 }
 #endif
