@@ -186,14 +186,14 @@ void id3_link(mpg123_handle *fr)
 */
 void store_id3_text(mpg123_string *sb, char *source, size_t source_size, const int noquiet)
 {
-	int encoding;
+	unsigned int encoding;
 	unsigned int bwidth;
 	if(!source_size)
 	{
 		debug("Empty id3 data!");
 		return;
 	}
-	encoding = source[0];
+	encoding = (unsigned int) source[0];
 	++source;
 	--source_size;
 	debug1("encoding: %i", encoding);
