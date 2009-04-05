@@ -201,7 +201,7 @@ void store_id3_text(mpg123_string *sb, char *source, size_t source_size, const i
 	   UTF-16 uses a reserved/private range in UCS-2 to add the magic, so we just always treat it as UTF. */
 	if(encoding > 3)
 	{
-		if(noquiet) warning1("Unknown text encoding %d, assuming ISO8859-1 - I will probably screw a bit up!", encoding);
+		if(noquiet) warning1("Unknown text encoding %u, assuming ISO8859-1 - I will probably screw a bit up!", encoding);
 		encoding = 0;
 	}
 	bwidth = encoding_widths[encoding];
