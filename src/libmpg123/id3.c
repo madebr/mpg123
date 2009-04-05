@@ -196,7 +196,7 @@ void store_id3_text(mpg123_string *sb, char *source, size_t source_size, const i
 	encoding = (unsigned int) source[0];
 	++source;
 	--source_size;
-	debug1("encoding: %i", encoding);
+	debug1("encoding: %u", encoding);
 	/* A note: ID3v2.3 uses UCS-2 non-variable 16bit encoding, v2.4 uses UTF16.
 	   UTF-16 uses a reserved/private range in UCS-2 to add the magic, so we just always treat it as UTF. */
 	if(encoding > 3)
@@ -215,7 +215,7 @@ void store_id3_text(mpg123_string *sb, char *source, size_t source_size, const i
 	if(source_size % bwidth)
 	{
 		/* When we need two bytes for a character, it's strange to have an uneven bytestream length. */
-		if(noquiet) warning2("Weird tag size %d for encoding %d - I will probably trim too early or something but I think the MP3 is broken.", (int)source_size, encoding);
+		if(noquiet) warning2("Weird tag size %d for encoding %u - I will probably trim too early or something but I think the MP3 is broken.", (int)source_size, encoding);
 		source_size -= source_size % bwidth;
 	}
 	text_converters[encoding](sb, (unsigned char*)source, source_size);
