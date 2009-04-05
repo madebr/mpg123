@@ -427,8 +427,9 @@ int set_synth_functions(mpg123_handle *fr)
 #endif
 
 #ifdef OPT_MMXORSSE
-	/* Special treatment for MMX, SSE and 3DNowExt stuff. */
-	if(fr->cpu_opts.class == mmxsse)
+	/* Special treatment for MMX, SSE and 3DNowExt stuff.
+	   The real-decoding SSE for x86-64 uses normal tables! */
+	if(fr->cpu_opts.class == mmxsse && basic_format != OUT_REAL)
 	{
 #ifndef NO_LAYER3
 		init_layer3_stuff(fr, init_layer3_gainpow2_mmx);
