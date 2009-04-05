@@ -18,7 +18,7 @@
 	OPT_3DNOW (AMD 3DNow!, K6-2/3, Athlon, compatibles...)
 	OPT_3DNOWEXT (AMD 3DNow! extended, generally Athlon, compatibles...)
 	OPT_ALTIVEC (Motorola/IBM PPC with AltiVec under MacOSX)
-	
+	OPT_X86_64 (x86-64 / AMD64 / Intel 64)
 
 	or you define OPT_MULTI and give a combination which makes sense (do not include i486, do not mix altivec and x86).
 
@@ -197,6 +197,7 @@ extern const int costab_mmxsse[];
 #ifndef OPT_MULTI
 #	define defopt x86_64
 #	define opt_synth_1to1(fr) synth_1to1_x86_64
+#	define opt_synth_1to1_real(fr) synth_1to1_real_x86_64
 #endif
 #endif
 

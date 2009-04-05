@@ -11,7 +11,7 @@ AC_PREREQ(2.57)
 dnl ############# Initialisation
 
 AC_INIT([mpg123], [1.8.0], [mpg123-devel@lists.sourceforge.net])
-LIBMPG123_VERSION=15:2:15
+LIBMPG123_VERSION=16:0:16
 AC_SUBST(LIBMPG123_VERSION)
 
 AC_CONFIG_SRCDIR(src/mpg123.c)
@@ -943,7 +943,7 @@ if test "x$layer3" = "xenabled"; then
 fi
 s_mmx="$s_i386 dct64_mmx tabinit_mmx synth_mmx"
 s_sse="$s_i386 dct64_mmx tabinit_mmx dct64_sse synth_sse"
-s_x86_64="dct64_x86_64 synth_x86_64"
+s_x86_64="dct64_x86_64 synth_x86_64 dct64_x86_64_float synth_x86_64_float"
 s_x86multi="getcpuflags"
 
 dnl CPU specific compiler flags and sources

@@ -193,10 +193,17 @@ static int find_dectype(mpg123_handle *fr)
 #ifdef OPT_ALTIVEC
 	else if(basic_synth == synth_1to1_altivec) type = altivec;
 #endif
+#endif /* 16bit */
+
 #ifdef OPT_X86_64
+#ifndef NO_16BIT
 	else if(basic_synth == synth_1to1_x86_64) type = x86_64;
 #endif
-#endif /* 16bit */
+#ifndef NO_REAL
+	else if(basic_synth == synth_1to1_real_x86_64) type = x86_64;
+#endif
+#endif
+
 #ifdef OPT_I486
 	/* i486 is special ... the specific code is in use for 16bit 1to1 stereo
 	   otherwise we have i386 active... but still, the distinction doesn't matter*/
@@ -793,6 +800,9 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		fr->cpu_opts.synth_1to1_8bit = synth_1to1_8bit_wrap;
 		fr->cpu_opts.synth_1to1_8bit_mono = synth_1to1_8bit_wrap_mono;
 		fr->cpu_opts.synth_1to1_8bit_mono2stereo = synth_1to1_8bit_wrap_mono2stereo;
+#		endif
+#		ifndef NO_REAL
+		fr->cpu_opts.synth_1to1_real = synth_1to1_real_x86_64;
 #		endif
 		done = 1;
 	}
