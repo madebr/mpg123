@@ -2,6 +2,29 @@
 
 # A dirty script to create some windows binaries (shared, static, debug, ...) using the MSYS environment.
 
+# give build type as command line argument
+# x86 or x86_64-cross
+build_type=$1
+test -z "$build_type" && build_type=x86
+
+echo "build type: $build_type"
+case $build_type
+  x86)
+    decoder=x86
+    strip=strip
+    hostopt=
+  ;;
+  x86_64-cross)
+    decoder=generic
+    strip=x86_64-pc-mingw32-strip
+    hostopt="--host=x86_64-pc-mingw32 --build=i686-pc-mingw32"
+  ;;
+  *)
+    echo "Unknown build type!"
+    exit 1
+  ;;
+esac
+
 temp="$PWD/tmp"
 final="$PWD/releases"
 txt="README COPYING NEWS"
@@ -71,14 +94,14 @@ mpg123_build()
 	sleep 5 &&
 	if test -e Makefile; then make clean; fi &&
 	rm -rvf $tmp &&
-	./configure --prefix=$tmp $myopts --with-cpu=$cpu && make && make install &&
+	./configure $hostopt --prefix=$tmp $myopts --with-cpu=$cpu && make && make install &&
 	rm -rf "$final/$name" &&
 	mkdir  "$final/$name" &&
 	cp -v "$tmp/bin/mpg123.exe" "$final/$name" &&
 	if test "$debug" = y; then
 		echo "Not stripping the debug build..."
 	else
-		strip --strip-unneeded "$final/$name/"*.exe
+		$strip --strip-unneeded "$final/$name/"*.exe
 	fi &&
 	if test "$stat" = "y"; then
 		echo "No DLL there..."
@@ -89,7 +112,7 @@ mpg123_build()
 		if test "$debug" = y; then
 			echo "Not stripping the debug build..."
 		else
-			strip --strip-unneeded "$final/$name/"*.dll || exit 1
+			$strip --strip-unneeded "$final/$name/"*.dll || exit 1
 		fi
 		for i in $tmp/lib/mpg123/*.la
 		do
@@ -101,7 +124,7 @@ mpg123_build()
 				if test "$debug" = y; then
 					echo "not stripping debug module..."
 				else
-					strip --strip-unneeded "$sofile" || exit 1
+					$strip --strip-unneeded "$sofile" || exit 1
 				fi &&
 				cp -v "$sofile" "$plugdir"
 			fi
@@ -116,9 +139,9 @@ mpg123_build()
 
 prepare_dir &&
 prepare_unix2dos &&
-mpg123_build x86 y n &&
-mpg123_build x86_dither y n &&
-mpg123_build x86 n n &&
-mpg123_build x86_dither n n &&
-mpg123_build x86 n y &&
+mpg123_build $decoder y n &&
+mpg123_build ${decoder}_dither y n &&
+mpg123_build $decoder n n &&
+mpg123_build ${decoder}_dither n n &&
+mpg123_build $decoder n y &&
 echo "Hurray!" || echo "Bleh..."
