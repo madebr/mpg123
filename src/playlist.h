@@ -16,12 +16,14 @@ typedef struct listitem
 {
 	char* url; /* the filename */
 	char freeit; /* if it was allocated and should be free()d here */
+	size_t playcount; /* has been played as ...th track in overall counting */
 } listitem;
 
 typedef struct playlist_struct
 {
 	FILE* file; /* the current playlist stream */
 	size_t entry; /* entry in the playlist file */
+	size_t playcount; /* overall track counter for playback */
 	long loop;    /* repeat a track n times */
 	size_t size;
 	size_t fill;

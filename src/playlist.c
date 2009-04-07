@@ -82,8 +82,10 @@ char *get_next_file()
 {
 	char *newfile;
 
-	if(pl.fill == 0) newfile = NULL;
-	else
+	if(pl.fill == 0) return NULL;
+
+	++pl.playcount;
+
 	/* normal order, just pick next thing */
 	if(param.shuffle < 2)
 	{
@@ -102,9 +104,15 @@ char *get_next_file()
 	}
 	else
 	{	/* Randomly select files, with repeating... but keep track of current track for playlist printing. */
-		pl.pos = rando(pl.fill)+1;
-		newfile = pl.list[ pl.pos-1 ].url;
+		do /* limiting randomness: don't repeat too early */
+		{
+			pl.pos = rando(pl.fill)+1;
+			newfile = pl.list[ pl.pos-1 ].url;
+		} while( pl.list[ pl.pos-1 ].playcount && (pl.playcount - pl.list[ pl.pos-1 ].playcount) <= pl.fill/2 );
 	}
+
+	if(newfile != NULL) /* Remember the playback position of the track. */
+	pl.list[ pl.pos-1 ].playcount = pl.playcount;
 
 	return newfile; /* "-" is STDOUT, "" is dumb, NULL is nothing */
 }
@@ -137,6 +145,7 @@ void init_playlist()
 	SRAND(time(NULL));
 	pl.file = NULL;
 	pl.entry = 0;
+	pl.playcount = 0;
 	pl.size = 0;
 	pl.fill = 0;
 	pl.pos = 0;
@@ -532,6 +541,7 @@ int add_to_playlist(char* new_entry, char freeit)
 	{
 		pl.list[pl.fill].freeit = freeit;
 		pl.list[pl.fill].url = new_entry;
+		pl.list[pl.fill].playcount = 0;
 		++pl.fill;
 	}
 	else
