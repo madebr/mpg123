@@ -138,20 +138,20 @@ int _tmain(int argc, TCHAR **argv)
 		return -1;
 	}
 
-	ret = mpg123_format_none(m);
-	if(ret != MPG123_OK)
-	{
-		fprintf(stderr,"Unable to disable all output formats: %s\n", mpg123_plain_strerror(ret));
-		return -1;
-	}
-	
-	// Use float output
-	ret = mpg123_format(m, 44100, MPG123_MONO | MPG123_STEREO,  MPG123_ENC_FLOAT_32);
-	if(ret != MPG123_OK)
-	{
-		fprintf(stderr,"Unable to set float output formats: %s\n", mpg123_plain_strerror(ret));
-		return -1;
-	}
+	//ret = mpg123_format_none(m);
+	//if(ret != MPG123_OK)
+	//{
+	//	fprintf(stderr,"Unable to disable all output formats: %s\n", mpg123_plain_strerror(ret));
+	//	return -1;
+	//}
+	//
+	//// Use float output
+	//ret = mpg123_format(m, 44100, MPG123_MONO | MPG123_STEREO,  MPG123_ENC_FLOAT_32);
+	//if(ret != MPG123_OK)
+	//{
+	//	fprintf(stderr,"Unable to set float output formats: %s\n", mpg123_plain_strerror(ret));
+	//	return -1;
+	//}
 
 	ret = mpg123_open_feed(m);
 	if(ret != MPG123_OK)
@@ -174,7 +174,7 @@ int _tmain(int argc, TCHAR **argv)
 		return -1;
 	}
 	
-	while(ret = mpg123_feedseek(m, 95000, SEEK_SET, &inoffset) == MPG123_NEED_MORE)
+	/*while(ret = mpg123_feedseek(m, 95000, SEEK_SET, &inoffset) == MPG123_NEED_MORE)
 	{
 		len = fread(buf, sizeof(unsigned char), INBUFF, in);
 		if(len <= 0)
@@ -189,7 +189,7 @@ int _tmain(int argc, TCHAR **argv)
 		}
 	}
 	
-	fseek(in, inoffset, SEEK_SET);	
+	fseek(in, inoffset, SEEK_SET);*/	
 	
 	while(1)
 	{
