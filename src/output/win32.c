@@ -160,22 +160,24 @@ static int write_win32(struct audio_output_struct *ao, unsigned char *buf, int l
 
 static void flush_win32(struct audio_output_struct *ao)
 {
-	int i;
+	int i, z;
 	struct queue_state* state;
 
 	if(!ao || !ao->userptr) return;
-
 	state = (struct queue_state*)ao->userptr;
-	waveOutReset(state->waveout);
-	ResetEvent(state->play_done_event);
 
+	/* FIXME: The very last output buffer is not played. This could be a problem on the feeding side. */
+	i = 0;
+	z = state->next_buffer - 1;
 	for(i = 0; i < NUM_BUFFERS; i++)
 	{
-		if(state->buffer_headers[i].dwFlags & WHDR_DONE)
-		waveOutUnprepareHeader(state->waveout, &state->buffer_headers[i], sizeof(WAVEHDR));
+		if(!state->buffer_headers[i].dwFlags & WHDR_DONE)
+			WaitForSingleObject(state->play_done_event, INFINITE);
 
+		waveOutUnprepareHeader(state->waveout, &state->buffer_headers[i], sizeof(WAVEHDR));
 		state->buffer_headers[i].dwFlags = 0;
 		state->buffer_headers[i].dwBufferLength = 0;
+		z = (z + 1) % NUM_BUFFERS;
 	}
 }
 
