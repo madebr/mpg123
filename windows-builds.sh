@@ -8,7 +8,7 @@ build_type=$1
 test -z "$build_type" && build_type=x86
 
 echo "build type: $build_type"
-case $build_type
+case $build_type in
   x86)
     decoder=x86
     strip=strip
