@@ -54,7 +54,7 @@ SYNTH_NAME:
 	pushl	%esi
 	pushl	%ebx
 #define TEMP 12(%esp)
-#APP
+/* APP */
 	movl 12(%ebp),%ecx
 	movl 16(%ebp),%edi
 	movl $15,%ebx
@@ -237,8 +237,8 @@ SYNTH_NAME:
 	movd %mm0,%eax
 	movw %ax,(%edi)
 	emms
-	
-#NO_APP
+
+/* NO_APP */
 	popl	%ebx
 	popl	%esi
 	popl	%edi
