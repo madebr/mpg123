@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../..;../../../../src/libmpg123"
-				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;OPT_I386;REAL_IS_FLOAT;_DEBUG;BUILD_MPG123_DLL"
+				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;OPT_I386;_DEBUG;BUILD_MPG123_DLL"
 				MinimalRebuild="false"
 				ExceptionHandling="0"
 				BasicRuntimeChecks="3"
@@ -118,7 +118,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				AdditionalIncludeDirectories="../..;../../../../src/libmpg123"
-				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;REAL_IS_FLOAT;OPT_I386;BUILD_MPG123_DLL"
+				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;OPT_I386;BUILD_MPG123_DLL"
 				ExceptionHandling="0"
 				RuntimeLibrary="2"
 				BufferSecurityCheck="false"
@@ -192,7 +192,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../..;../../../../src/libmpg123"
-				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;OPT_I386;REAL_IS_FLOAT;_DEBUG"
+				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;OPT_I386;_DEBUG"
 				MinimalRebuild="false"
 				ExceptionHandling="0"
 				BasicRuntimeChecks="3"
@@ -258,7 +258,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../..;../../../../src/libmpg123"
-				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;REAL_IS_FLOAT;OPT_GENERIC;_DEBUG"
+				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;OPT_GENERIC;_DEBUG"
 				MinimalRebuild="false"
 				ExceptionHandling="0"
 				BasicRuntimeChecks="3"
@@ -329,7 +329,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				AdditionalIncludeDirectories="../..;../../../../src/libmpg123"
-				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;REAL_IS_FLOAT;OPT_I386"
+				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;OPT_I386"
 				ExceptionHandling="0"
 				RuntimeLibrary="2"
 				BufferSecurityCheck="false"
@@ -402,7 +402,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				AdditionalIncludeDirectories="../..;../../../../src/libmpg123"
-				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;REAL_IS_FLOAT;OPT_GENERIC"
+				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;OPT_GENERIC"
 				ExceptionHandling="0"
 				RuntimeLibrary="2"
 				BufferSecurityCheck="false"
@@ -470,7 +470,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../..;../../../../src/libmpg123"
-				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;REAL_IS_FLOAT;OPT_GENERIC;_DEBUG;BUILD_MPG123_DLL"
+				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;OPT_GENERIC;_DEBUG;BUILD_MPG123_DLL"
 				MinimalRebuild="false"
 				ExceptionHandling="0"
 				BasicRuntimeChecks="3"
@@ -553,7 +553,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				AdditionalIncludeDirectories="../..;../../../../src/libmpg123"
-				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;REAL_IS_FLOAT;OPT_GENERIC;BUILD_MPG123_DLL"
+				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;OPT_GENERIC;BUILD_MPG123_DLL"
 				ExceptionHandling="0"
 				RuntimeLibrary="2"
 				BufferSecurityCheck="false"
@@ -638,7 +638,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				AdditionalIncludeDirectories="../..;../../../../src/libmpg123"
-				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;REAL_IS_FLOAT;OPT_MMX;BUILD_MPG123_DLL"
+				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;OPT_MMX;BUILD_MPG123_DLL"
 				ExceptionHandling="0"
 				RuntimeLibrary="2"
 				BufferSecurityCheck="false"
@@ -665,6 +665,95 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="dct64_mmx.o synth_mmx.o tabinit_mmx.o"
+				OutputFile="$(SolutionDir)Release\$(ProjectName).dll"
+				AdditionalLibraryDirectories="&quot;$(ProjectDir)\Release&quot;"
+				GenerateDebugInformation="true"
+				BaseAddress="0x63000000"
+				RandomizedBaseAddress="1"
+				FixedBaseAddress="2"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine=""
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release_SSE_Dll|Win32"
+			OutputDirectory="$(SolutionDir)Release"
+			IntermediateDirectory="Release"
+			ConfigurationType="2"
+			CharacterSet="1"
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+				CommandLine=""
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="2"
+				InlineFunctionExpansion="2"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
+				OmitFramePointers="true"
+				AdditionalIncludeDirectories="../..;../../../../src/libmpg123"
+				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;OPT_SSE;BUILD_MPG123_DLL"
+				ExceptionHandling="0"
+				RuntimeLibrary="2"
+				BufferSecurityCheck="false"
+				EnableFunctionLevelLinking="true"
+				EnableEnhancedInstructionSet="1"
+				FloatingPointModel="2"
+				RuntimeTypeInfo="false"
+				WarningLevel="3"
+				WarnAsError="false"
+				DebugInformationFormat="3"
+				CompileAs="1"
+				DisableSpecificWarnings="4996"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+				CommandLine="cl /I &quot;..\..&quot; /EP /TC &quot;$(ProjectDir)..\..\..\..\src\libmpg123\synth_sse.S&quot; /nologo &gt; &quot;$(ProjectDir)..\libmpg123\Release\synth_sse.asm&quot;&#x0D;&#x0A;yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o &quot;$(ProjectDir)..\libmpg123\Release\synth_sse.o&quot; &quot;$(ProjectDir)..\libmpg123\Release\synth_sse.asm&quot;&#x0D;&#x0A;&#x0D;&#x0A;cl /I &quot;..\..&quot; /EP /TC &quot;$(ProjectDir)..\..\..\..\src\libmpg123\dct64_sse.S&quot; /nologo &gt; &quot;$(ProjectDir)..\libmpg123\Release\dct64_sse.asm&quot;&#x0D;&#x0A;yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o &quot;$(ProjectDir)..\libmpg123\Release\dct64_sse.o&quot; &quot;$(ProjectDir)..\libmpg123\Release\dct64_sse.asm&quot;&#x0D;&#x0A;&#x0D;&#x0A;cl /I &quot;..\..&quot; /EP /TC &quot;$(ProjectDir)..\..\..\..\src\libmpg123\tabinit_mmx.S&quot; /nologo &gt; &quot;$(ProjectDir)..\libmpg123\Release\tabinit_mmx.asm&quot;&#x0D;&#x0A;yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o &quot;$(ProjectDir)..\libmpg123\Release\tabinit_mmx.o&quot; &quot;$(ProjectDir)..\libmpg123\Release\tabinit_mmx.asm&quot;&#x0D;&#x0A;&#x0D;&#x0A;cl /I &quot;..\..&quot; /EP /TC &quot;$(ProjectDir)..\..\..\..\src\libmpg123\dct64_mmx.S&quot; /nologo &gt; &quot;$(ProjectDir)..\libmpg123\Release\dct64_mmx.asm&quot;&#x0D;&#x0A;yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o &quot;$(ProjectDir)..\libmpg123\Release\dct64_mmx.o&quot; &quot;$(ProjectDir)..\libmpg123\Release\dct64_mmx.asm&quot;&#x0D;&#x0A;"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="dct64_mmx.o tabinit_mmx.o dct64_sse.o synth_sse.o"
 				OutputFile="$(SolutionDir)Release\$(ProjectName).dll"
 				AdditionalLibraryDirectories="&quot;$(ProjectDir)\Release&quot;"
 				GenerateDebugInformation="true"
@@ -826,6 +915,14 @@
 					Name="VCCLCompilerTool"
 				/>
 			</FileConfiguration>
+			<FileConfiguration
+				Name="Release_SSE_Dll|Win32"
+				ExcludedFromBuild="true"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+				/>
+			</FileConfiguration>
 		</File>
 		<File
 			RelativePath="..\..\..\..\src\libmpg123\debug.h"
@@ -909,6 +1006,10 @@
 		</File>
 		<File
 			RelativePath="..\..\..\..\src\libmpg123\libmpg123.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\mangle.h"
 			>
 		</File>
 		<File
@@ -1040,6 +1141,14 @@
 			</FileConfiguration>
 			<FileConfiguration
 				Name="Release_MMX_Dll|Win32"
+				ExcludedFromBuild="true"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release_SSE_Dll|Win32"
 				ExcludedFromBuild="true"
 				>
 				<Tool

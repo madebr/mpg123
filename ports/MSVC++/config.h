@@ -15,3 +15,5 @@
 
 /* also gapless playback! */
 #define GAPLESS 1
+
+#define REAL_IS_FLOAT
