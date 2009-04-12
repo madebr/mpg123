@@ -29,7 +29,7 @@ ASM_NAME(dct64_MMX):
 	fstps    (%edx)
 	movl 276(%esp),%edi
 	flds    4(%eax)
-	movl $ASM_NAME(costab_mmxsse),%ebx
+	movl ASM_VALUE(costab_mmxsse),%ebx
 	fadds 120(%eax)
 	orl %ecx,%ecx
 	fstps   4(%edx)

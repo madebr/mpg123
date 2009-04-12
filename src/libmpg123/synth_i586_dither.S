@@ -104,7 +104,7 @@ ASM_NAME(synth_1to1_i586_asm_dither):
    stack: 0(%esp)=%ebx 4=esi 8=edi 12=ebp 16,20,24,28=local 32=back 36=bandptr 40=channel 44=out 48=buffs 52=bo 56=decwin 60=dithernoise */
 	movl LOC0,%edx
 	leal 0(,%edx,4),%edx
-	/* movl $ASM_NAME(decwin)+64,%eax */
+	/* movl ASM_VALUE(decwin)+64,%eax */
 	movl DECWIN,%eax
 	addl $64,%eax
 	movl %eax,%ecx

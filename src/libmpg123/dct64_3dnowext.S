@@ -51,7 +51,7 @@ ASM_NAME(dct64_3dnowext):
 	leal 128+-268(%ebp),%edx
 	movl 8(%ebp),%esi
 	movl 12(%ebp),%edi
-	movl $ASM_NAME(costab_mmxsse),%ebx
+	movl ASM_VALUE(costab_mmxsse),%ebx
 	leal -268(%ebp),%ecx
 	movq	(%eax), %mm0
 	movq	8(%eax), %mm4
