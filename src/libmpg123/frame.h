@@ -19,6 +19,7 @@
 #ifdef FRAME_INDEX
 #include "index.h"
 #endif
+#include "synths.h"
 
 /* max = 1728 */
 #define MAXFRAMESIZE 3456
@@ -74,10 +75,7 @@ struct mpg123_pars_struct
 	long index_size; /* Long, because: negative values have a meaning. */
 };
 
-/* The handle needs these types for selecting the decoding routine at runtime.
-   Not just for optimization, mainly for XtoY, mono/stereo. */
-typedef int (*func_synth)(real *,int, mpg123_handle *,int );
-typedef int (*func_synth_mono)(real *, mpg123_handle *);
+
 
 /* There is a lot to condense here... many ints can be merged as flags; though the main space is still consumed by buffers. */
 struct mpg123_handle_struct
@@ -141,88 +139,11 @@ struct mpg123_handle_struct
 #ifdef OPT_ALTIVEC
 	real *areal_buffs[4][4];
 #endif
+	struct synth_s synths;
 	struct
 	{
 #ifdef OPT_MULTI
-#ifndef NO_16BIT
-		int (*synth_1to1)(real *,int, mpg123_handle *,int );
-		int (*synth_1to1_mono)(real *, mpg123_handle *);
-		int (*synth_1to1_mono2stereo)(real *, mpg123_handle *);
-#endif
-#ifndef NO_8BIT
-		int (*synth_1to1_8bit)(real *,int, mpg123_handle *,int );
-		int (*synth_1to1_8bit_mono)(real *, mpg123_handle *);
-		int (*synth_1to1_8bit_mono2stereo)(real *, mpg123_handle *);
-#endif
-#ifndef NO_DOWNSAMPLE
-#ifndef NO_16BIT
-		int (*synth_2to1)(real *,int, mpg123_handle *,int );
-		int (*synth_2to1_mono)(real *, mpg123_handle *);
-		int (*synth_2to1_mono2stereo)(real *, mpg123_handle *);
-		int (*synth_4to1)(real *,int, mpg123_handle *,int );
-		int (*synth_4to1_mono)(real *, mpg123_handle *);
-		int (*synth_4to1_mono2stereo)(real *, mpg123_handle *);
-#endif
-#ifndef NO_8BIT
-		int (*synth_2to1_8bit)(real *,int, mpg123_handle *,int );
-		int (*synth_2to1_8bit_mono)(real *, mpg123_handle *);
-		int (*synth_2to1_8bit_mono2stereo)(real *, mpg123_handle *);
-		int (*synth_4to1_8bit)(real *,int, mpg123_handle *,int );
-		int (*synth_4to1_8bit_mono)(real *, mpg123_handle *);
-		int (*synth_4to1_8bit_mono2stereo)(real *, mpg123_handle *);
-#endif
-#endif
 
-#ifndef NO_NTOM
-#ifndef NO_16BIT
-		int (*synth_ntom)(real *,int, mpg123_handle *,int );
-		int (*synth_ntom_mono)(real *, mpg123_handle *);
-		int (*synth_ntom_mono2stereo)(real *, mpg123_handle *);
-#endif
-#ifndef NO_8BIT
-		int (*synth_ntom_8bit)(real *,int, mpg123_handle *,int );
-		int (*synth_ntom_8bit_mono)(real *, mpg123_handle *);
-		int (*synth_ntom_8bit_mono2stereo)(real *, mpg123_handle *);
-#endif
-#endif
-#ifndef NO_REAL
-#ifndef REAL_IS_FIXED
-		int (*synth_1to1_real)(real *,int, mpg123_handle *,int );
-		int (*synth_1to1_real_mono)(real *, mpg123_handle *);
-		int (*synth_1to1_real_mono2stereo)(real *, mpg123_handle *);
-#ifndef NO_DOWNSAMPLE
-		int (*synth_2to1_real)(real *,int, mpg123_handle *,int );
-		int (*synth_2to1_real_mono)(real *, mpg123_handle *);
-		int (*synth_2to1_real_mono2stereo)(real *, mpg123_handle *);
-		int (*synth_4to1_real)(real *,int, mpg123_handle *,int );
-		int (*synth_4to1_real_mono)(real *, mpg123_handle *);
-		int (*synth_4to1_real_mono2stereo)(real *, mpg123_handle *);
-#endif
-#ifndef NO_NTOM
-		int (*synth_ntom_real)(real *,int, mpg123_handle *,int );
-		int (*synth_ntom_real_mono)(real *, mpg123_handle *);
-		int (*synth_ntom_real_mono2stereo)(real *, mpg123_handle *);
-#endif
-#endif
-#ifndef NO_32BIT
-		int (*synth_1to1_s32)(real *,int, mpg123_handle *,int );
-		int (*synth_1to1_s32_mono)(real *, mpg123_handle *);
-		int (*synth_1to1_s32_mono2stereo)(real *, mpg123_handle *);
-#ifndef NO_DOWNSAMPLE
-		int (*synth_2to1_s32)(real *,int, mpg123_handle *,int );
-		int (*synth_2to1_s32_mono)(real *, mpg123_handle *);
-		int (*synth_2to1_s32_mono2stereo)(real *, mpg123_handle *);
-		int (*synth_4to1_s32)(real *,int, mpg123_handle *,int );
-		int (*synth_4to1_s32_mono)(real *, mpg123_handle *);
-		int (*synth_4to1_s32_mono2stereo)(real *, mpg123_handle *);
-#endif
-#ifndef NO_NTOM
-		int (*synth_ntom_s32)(real *,int, mpg123_handle *,int );
-		int (*synth_ntom_s32_mono)(real *, mpg123_handle *);
-		int (*synth_ntom_s32_mono2stereo)(real *, mpg123_handle *);
-#endif
-#endif
-#endif /* FIXED */
 #ifndef NO_LAYER3
 #if (defined OPT_3DNOW || defined OPT_3DNOWEXT)
 		void (*dct36)(real *,real *,real *,real *,real *);

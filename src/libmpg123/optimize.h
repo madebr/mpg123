@@ -95,9 +95,6 @@ enum optcla decclass(const enum optdec);
 #define OPT_DITHER
 #ifndef OPT_MULTI
 #	define defopt generic_dither
-#	define opt_synth_1to1(fr) synth_1to1_dither
-#	define opt_synth_2to1(fr) synth_2to1_dither
-#	define opt_synth_4to1(fr) synth_4to1_dither
 #endif
 #endif
 
@@ -123,7 +120,6 @@ enum optcla decclass(const enum optdec);
 #define OPT_X86
 #ifndef OPT_MULTI
 #	define defopt ifuenf
-#	define opt_synth_1to1(fr) synth_1to1_i586
 #endif
 #endif
 
@@ -132,9 +128,6 @@ enum optcla decclass(const enum optdec);
 #define OPT_DITHER
 #ifndef OPT_MULTI
 #	define defopt ifuenf_dither
-#	define opt_synth_1to1(fr) synth_1to1_i586_dither
-#	define opt_synth_2to1(fr) synth_2to1_dither
-#	define opt_synth_4to1(fr) synth_4to1_dither
 #endif
 #endif
 
@@ -145,7 +138,6 @@ enum optcla decclass(const enum optdec);
 #define OPT_X86
 #ifndef OPT_MULTI
 #	define defopt mmx
-#	define opt_synth_1to1(fr) synth_1to1_mmx
 #endif
 #endif
 
@@ -155,7 +147,6 @@ enum optcla decclass(const enum optdec);
 #define OPT_X86
 #ifndef OPT_MULTI
 #	define defopt sse
-#	define opt_synth_1to1(fr) synth_1to1_sse
 #endif
 #endif
 
@@ -166,7 +157,6 @@ enum optcla decclass(const enum optdec);
 #ifndef OPT_MULTI
 #	define defopt dreidnowext
 #	define opt_dct36(fr) dct36_3dnowext
-#	define opt_synth_1to1(fr) synth_1to1_3dnowext
 #endif
 #endif
 
@@ -181,14 +171,12 @@ extern const int costab_mmxsse[];
 #ifndef OPT_MULTI
 #	define defopt dreidnow
 #	define opt_dct36(fr) dct36_3dnow
-#	define opt_synth_1to1(fr) synth_1to1_3dnow
 #endif
 #endif
 
 #ifdef OPT_ALTIVEC
 #ifndef OPT_MULTI
 #	define defopt altivec
-#	define opt_synth_1to1(fr) synth_1to1_altivec
 #endif
 #endif
 
@@ -196,8 +184,6 @@ extern const int costab_mmxsse[];
 #define OPT_MMXORSSE
 #ifndef OPT_MULTI
 #	define defopt x86_64
-#	define opt_synth_1to1(fr) synth_1to1_x86_64
-#	define opt_synth_1to1_real(fr) synth_1to1_real_x86_64
 #endif
 #endif
 
@@ -220,342 +206,9 @@ extern float dithernoise[DITHERSIZE];
 
 #	define defopt nodec
 
-/*
-	## This is an inline bourne shell script for execution in nedit to generate the lines below.
-	## The ## is a quote for just #
-	star="*"; slash="/"; 
-	for i in 1to1 2to1 4to1 ntom;
-	do
-		echo
-		echo "$slash$star $i $star$slash"
-		for t in "" _8bit _real _s32; do for f in "" _mono _mono2stereo;
-		do
-			echo "##	define opt_synth_${i}${t}${f}(fr) ((fr)->cpu_opts.synth_${i}${t}${f})"
-		done; done
-	done
-*/
-
-/* 1to1 */
-#	define opt_synth_1to1(fr) ((fr)->cpu_opts.synth_1to1)
-#	define opt_synth_1to1_mono(fr) ((fr)->cpu_opts.synth_1to1_mono)
-#	define opt_synth_1to1_mono2stereo(fr) ((fr)->cpu_opts.synth_1to1_mono2stereo)
-#	define opt_synth_1to1_8bit(fr) ((fr)->cpu_opts.synth_1to1_8bit)
-#	define opt_synth_1to1_8bit_mono(fr) ((fr)->cpu_opts.synth_1to1_8bit_mono)
-#	define opt_synth_1to1_8bit_mono2stereo(fr) ((fr)->cpu_opts.synth_1to1_8bit_mono2stereo)
-#	define opt_synth_1to1_real(fr) ((fr)->cpu_opts.synth_1to1_real)
-#	define opt_synth_1to1_real_mono(fr) ((fr)->cpu_opts.synth_1to1_real_mono)
-#	define opt_synth_1to1_real_mono2stereo(fr) ((fr)->cpu_opts.synth_1to1_real_mono2stereo)
-#	define opt_synth_1to1_s32(fr) ((fr)->cpu_opts.synth_1to1_s32)
-#	define opt_synth_1to1_s32_mono(fr) ((fr)->cpu_opts.synth_1to1_s32_mono)
-#	define opt_synth_1to1_s32_mono2stereo(fr) ((fr)->cpu_opts.synth_1to1_s32_mono2stereo)
-
-/* 2to1 */
-#	define opt_synth_2to1(fr) ((fr)->cpu_opts.synth_2to1)
-#	define opt_synth_2to1_mono(fr) ((fr)->cpu_opts.synth_2to1_mono)
-#	define opt_synth_2to1_mono2stereo(fr) ((fr)->cpu_opts.synth_2to1_mono2stereo)
-#	define opt_synth_2to1_8bit(fr) ((fr)->cpu_opts.synth_2to1_8bit)
-#	define opt_synth_2to1_8bit_mono(fr) ((fr)->cpu_opts.synth_2to1_8bit_mono)
-#	define opt_synth_2to1_8bit_mono2stereo(fr) ((fr)->cpu_opts.synth_2to1_8bit_mono2stereo)
-#	define opt_synth_2to1_real(fr) ((fr)->cpu_opts.synth_2to1_real)
-#	define opt_synth_2to1_real_mono(fr) ((fr)->cpu_opts.synth_2to1_real_mono)
-#	define opt_synth_2to1_real_mono2stereo(fr) ((fr)->cpu_opts.synth_2to1_real_mono2stereo)
-#	define opt_synth_2to1_s32(fr) ((fr)->cpu_opts.synth_2to1_s32)
-#	define opt_synth_2to1_s32_mono(fr) ((fr)->cpu_opts.synth_2to1_s32_mono)
-#	define opt_synth_2to1_s32_mono2stereo(fr) ((fr)->cpu_opts.synth_2to1_s32_mono2stereo)
-
-/* 4to1 */
-#	define opt_synth_4to1(fr) ((fr)->cpu_opts.synth_4to1)
-#	define opt_synth_4to1_mono(fr) ((fr)->cpu_opts.synth_4to1_mono)
-#	define opt_synth_4to1_mono2stereo(fr) ((fr)->cpu_opts.synth_4to1_mono2stereo)
-#	define opt_synth_4to1_8bit(fr) ((fr)->cpu_opts.synth_4to1_8bit)
-#	define opt_synth_4to1_8bit_mono(fr) ((fr)->cpu_opts.synth_4to1_8bit_mono)
-#	define opt_synth_4to1_8bit_mono2stereo(fr) ((fr)->cpu_opts.synth_4to1_8bit_mono2stereo)
-#	define opt_synth_4to1_real(fr) ((fr)->cpu_opts.synth_4to1_real)
-#	define opt_synth_4to1_real_mono(fr) ((fr)->cpu_opts.synth_4to1_real_mono)
-#	define opt_synth_4to1_real_mono2stereo(fr) ((fr)->cpu_opts.synth_4to1_real_mono2stereo)
-#	define opt_synth_4to1_s32(fr) ((fr)->cpu_opts.synth_4to1_s32)
-#	define opt_synth_4to1_s32_mono(fr) ((fr)->cpu_opts.synth_4to1_s32_mono)
-#	define opt_synth_4to1_s32_mono2stereo(fr) ((fr)->cpu_opts.synth_4to1_s32_mono2stereo)
-
-/* ntom */
-#	define opt_synth_ntom(fr) ((fr)->cpu_opts.synth_ntom)
-#	define opt_synth_ntom_mono(fr) ((fr)->cpu_opts.synth_ntom_mono)
-#	define opt_synth_ntom_mono2stereo(fr) ((fr)->cpu_opts.synth_ntom_mono2stereo)
-#	define opt_synth_ntom_8bit(fr) ((fr)->cpu_opts.synth_ntom_8bit)
-#	define opt_synth_ntom_8bit_mono(fr) ((fr)->cpu_opts.synth_ntom_8bit_mono)
-#	define opt_synth_ntom_8bit_mono2stereo(fr) ((fr)->cpu_opts.synth_ntom_8bit_mono2stereo)
-#	define opt_synth_ntom_real(fr) ((fr)->cpu_opts.synth_ntom_real)
-#	define opt_synth_ntom_real_mono(fr) ((fr)->cpu_opts.synth_ntom_real_mono)
-#	define opt_synth_ntom_real_mono2stereo(fr) ((fr)->cpu_opts.synth_ntom_real_mono2stereo)
-#	define opt_synth_ntom_s32(fr) ((fr)->cpu_opts.synth_ntom_s32)
-#	define opt_synth_ntom_s32_mono(fr) ((fr)->cpu_opts.synth_ntom_s32_mono)
-#	define opt_synth_ntom_s32_mono2stereo(fr) ((fr)->cpu_opts.synth_ntom_s32_mono2stereo)
-
-/* End of generated output. */
-
-#	ifdef OPT_3DNOW
+#	if (defined OPT_3DNOW || defined OPT_3DNOWEXT)
 #		define opt_dct36(fr) ((fr)->cpu_opts.dct36)
 #	endif
-
-#else /* OPT_MULTI */
-
-/* Define missing opt functions, for generic or x86. */
-#	ifdef opt_synth_1to1
-/* If there is an optimized 1to1, we'll reuse it for 8bit stuff. */
-#		ifndef opt_synth_1to1_8bit
-#			define opt_synth_1to1_8bit(fr)               synth_1to1_8bit_wrap
-#		endif
-#		ifndef opt_synth_1to1_8bit_mono
-#				define opt_synth_1to1_8bit_mono(fr)        synth_1to1_8bit_wrap_mono
-#		endif
-#		ifndef opt_synth_1to1_8bit_mono2stereo
-#				define opt_synth_1to1_8bit_mono2stereo(fr) synth_1to1_8bit_wrap_mono2stereo
-#		endif
-#	endif
-
-/*
-	## This is an inline bourne shell script for execution in nedit to generate the lines below.
-	## The ## is a quote for just #
-	star="*"; slash="/"; 
-	for c in "ifdef OPT_X86" "else $slash$star generic code $star$slash"
-	do
-		if test "$c" = "ifdef OPT_X86"; then cpu=_i386; else cpu=; fi
-		echo "##	$c"
-		for i in 1to1 2to1 4to1 ntom;
-		do
-			if test $i = ntom; then cpu=; fi
-			echo "$slash$star $i $star$slash"
-			for t in "" _8bit _real _s32; do
-				echo "##		ifndef opt_synth_${i}${t}"
-				echo "##			define opt_synth_${i}${t}(fr) synth_${i}${t}$cpu"
-				echo "##		endif"
-			done
-		done
-	done
-	echo "##	endif $slash$star x86 / generic $star$slash"
-*/
-#	ifdef OPT_X86
-/* 1to1 */
-#		ifndef opt_synth_1to1
-#			define opt_synth_1to1(fr) synth_1to1_i386
-#		endif
-#		ifndef opt_synth_1to1_8bit
-#			define opt_synth_1to1_8bit(fr) synth_1to1_8bit_i386
-#		endif
-#		ifndef opt_synth_1to1_real
-#			define opt_synth_1to1_real(fr) synth_1to1_real_i386
-#		endif
-#		ifndef opt_synth_1to1_s32
-#			define opt_synth_1to1_s32(fr) synth_1to1_s32_i386
-#		endif
-/* 2to1 */
-#		ifndef opt_synth_2to1
-#			define opt_synth_2to1(fr) synth_2to1_i386
-#		endif
-#		ifndef opt_synth_2to1_8bit
-#			define opt_synth_2to1_8bit(fr) synth_2to1_8bit_i386
-#		endif
-#		ifndef opt_synth_2to1_real
-#			define opt_synth_2to1_real(fr) synth_2to1_real_i386
-#		endif
-#		ifndef opt_synth_2to1_s32
-#			define opt_synth_2to1_s32(fr) synth_2to1_s32_i386
-#		endif
-/* 4to1 */
-#		ifndef opt_synth_4to1
-#			define opt_synth_4to1(fr) synth_4to1_i386
-#		endif
-#		ifndef opt_synth_4to1_8bit
-#			define opt_synth_4to1_8bit(fr) synth_4to1_8bit_i386
-#		endif
-#		ifndef opt_synth_4to1_real
-#			define opt_synth_4to1_real(fr) synth_4to1_real_i386
-#		endif
-#		ifndef opt_synth_4to1_s32
-#			define opt_synth_4to1_s32(fr) synth_4to1_s32_i386
-#		endif
-/* ntom */
-#		ifndef opt_synth_ntom
-#			define opt_synth_ntom(fr) synth_ntom
-#		endif
-#		ifndef opt_synth_ntom_8bit
-#			define opt_synth_ntom_8bit(fr) synth_ntom_8bit
-#		endif
-#		ifndef opt_synth_ntom_real
-#			define opt_synth_ntom_real(fr) synth_ntom_real
-#		endif
-#		ifndef opt_synth_ntom_s32
-#			define opt_synth_ntom_s32(fr) synth_ntom_s32
-#		endif
-#	else /* generic code */
-/* 1to1 */
-#		ifndef opt_synth_1to1
-#			define opt_synth_1to1(fr) synth_1to1
-#		endif
-#		ifndef opt_synth_1to1_8bit
-#			define opt_synth_1to1_8bit(fr) synth_1to1_8bit
-#		endif
-#		ifndef opt_synth_1to1_real
-#			define opt_synth_1to1_real(fr) synth_1to1_real
-#		endif
-#		ifndef opt_synth_1to1_s32
-#			define opt_synth_1to1_s32(fr) synth_1to1_s32
-#		endif
-/* 2to1 */
-#		ifndef opt_synth_2to1
-#			define opt_synth_2to1(fr) synth_2to1
-#		endif
-#		ifndef opt_synth_2to1_8bit
-#			define opt_synth_2to1_8bit(fr) synth_2to1_8bit
-#		endif
-#		ifndef opt_synth_2to1_real
-#			define opt_synth_2to1_real(fr) synth_2to1_real
-#		endif
-#		ifndef opt_synth_2to1_s32
-#			define opt_synth_2to1_s32(fr) synth_2to1_s32
-#		endif
-/* 4to1 */
-#		ifndef opt_synth_4to1
-#			define opt_synth_4to1(fr) synth_4to1
-#		endif
-#		ifndef opt_synth_4to1_8bit
-#			define opt_synth_4to1_8bit(fr) synth_4to1_8bit
-#		endif
-#		ifndef opt_synth_4to1_real
-#			define opt_synth_4to1_real(fr) synth_4to1_real
-#		endif
-#		ifndef opt_synth_4to1_s32
-#			define opt_synth_4to1_s32(fr) synth_4to1_s32
-#		endif
-/* ntom */
-#		ifndef opt_synth_ntom
-#			define opt_synth_ntom(fr) synth_ntom
-#		endif
-#		ifndef opt_synth_ntom_8bit
-#			define opt_synth_ntom_8bit(fr) synth_ntom_8bit
-#		endif
-#		ifndef opt_synth_ntom_real
-#			define opt_synth_ntom_real(fr) synth_ntom_real
-#		endif
-#		ifndef opt_synth_ntom_s32
-#			define opt_synth_ntom_s32(fr) synth_ntom_s32
-#		endif
-#	endif /* x86 / generic */
-
-/* Common mono stuff, wrapping over possibly optimized basic synth. */
-/*
-	## This is an inline bourne shell script for execution in nedit to generate the lines below.
-	## The ## is a quote for just #
-	for i in 1to1 2to1 4to1 ntom; do
-	star="*"; slash="/"; echo "$slash$star $i mono $star$slash"
-	for t in "" _8bit _real _s32; do for m in mono mono2stereo; do
-	echo "##	ifndef opt_synth_${i}${t}_${m}"
-	echo "##		define opt_synth_${i}${t}_${m}(fr) synth_${i}${t}_${m}"
-	echo "##	endif"
-	done; done; done
-*/
-/* 1to1 mono */
-#	ifndef opt_synth_1to1_mono
-#		define opt_synth_1to1_mono(fr) synth_1to1_mono
-#	endif
-#	ifndef opt_synth_1to1_mono2stereo
-#		define opt_synth_1to1_mono2stereo(fr) synth_1to1_mono2stereo
-#	endif
-#	ifndef opt_synth_1to1_8bit_mono
-#		define opt_synth_1to1_8bit_mono(fr) synth_1to1_8bit_mono
-#	endif
-#	ifndef opt_synth_1to1_8bit_mono2stereo
-#		define opt_synth_1to1_8bit_mono2stereo(fr) synth_1to1_8bit_mono2stereo
-#	endif
-#	ifndef opt_synth_1to1_real_mono
-#		define opt_synth_1to1_real_mono(fr) synth_1to1_real_mono
-#	endif
-#	ifndef opt_synth_1to1_real_mono2stereo
-#		define opt_synth_1to1_real_mono2stereo(fr) synth_1to1_real_mono2stereo
-#	endif
-#	ifndef opt_synth_1to1_s32_mono
-#		define opt_synth_1to1_s32_mono(fr) synth_1to1_s32_mono
-#	endif
-#	ifndef opt_synth_1to1_s32_mono2stereo
-#		define opt_synth_1to1_s32_mono2stereo(fr) synth_1to1_s32_mono2stereo
-#	endif
-/* 2to1 mono */
-#	ifndef opt_synth_2to1_mono
-#		define opt_synth_2to1_mono(fr) synth_2to1_mono
-#	endif
-#	ifndef opt_synth_2to1_mono2stereo
-#		define opt_synth_2to1_mono2stereo(fr) synth_2to1_mono2stereo
-#	endif
-#	ifndef opt_synth_2to1_8bit_mono
-#		define opt_synth_2to1_8bit_mono(fr) synth_2to1_8bit_mono
-#	endif
-#	ifndef opt_synth_2to1_8bit_mono2stereo
-#		define opt_synth_2to1_8bit_mono2stereo(fr) synth_2to1_8bit_mono2stereo
-#	endif
-#	ifndef opt_synth_2to1_real_mono
-#		define opt_synth_2to1_real_mono(fr) synth_2to1_real_mono
-#	endif
-#	ifndef opt_synth_2to1_real_mono2stereo
-#		define opt_synth_2to1_real_mono2stereo(fr) synth_2to1_real_mono2stereo
-#	endif
-#	ifndef opt_synth_2to1_s32_mono
-#		define opt_synth_2to1_s32_mono(fr) synth_2to1_s32_mono
-#	endif
-#	ifndef opt_synth_2to1_s32_mono2stereo
-#		define opt_synth_2to1_s32_mono2stereo(fr) synth_2to1_s32_mono2stereo
-#	endif
-/* 4to1 mono */
-#	ifndef opt_synth_4to1_mono
-#		define opt_synth_4to1_mono(fr) synth_4to1_mono
-#	endif
-#	ifndef opt_synth_4to1_mono2stereo
-#		define opt_synth_4to1_mono2stereo(fr) synth_4to1_mono2stereo
-#	endif
-#	ifndef opt_synth_4to1_8bit_mono
-#		define opt_synth_4to1_8bit_mono(fr) synth_4to1_8bit_mono
-#	endif
-#	ifndef opt_synth_4to1_8bit_mono2stereo
-#		define opt_synth_4to1_8bit_mono2stereo(fr) synth_4to1_8bit_mono2stereo
-#	endif
-#	ifndef opt_synth_4to1_real_mono
-#		define opt_synth_4to1_real_mono(fr) synth_4to1_real_mono
-#	endif
-#	ifndef opt_synth_4to1_real_mono2stereo
-#		define opt_synth_4to1_real_mono2stereo(fr) synth_4to1_real_mono2stereo
-#	endif
-#	ifndef opt_synth_4to1_s32_mono
-#		define opt_synth_4to1_s32_mono(fr) synth_4to1_s32_mono
-#	endif
-#	ifndef opt_synth_4to1_s32_mono2stereo
-#		define opt_synth_4to1_s32_mono2stereo(fr) synth_4to1_s32_mono2stereo
-#	endif
-/* ntom mono */
-#	ifndef opt_synth_ntom_mono
-#		define opt_synth_ntom_mono(fr) synth_ntom_mono
-#	endif
-#	ifndef opt_synth_ntom_mono2stereo
-#		define opt_synth_ntom_mono2stereo(fr) synth_ntom_mono2stereo
-#	endif
-#	ifndef opt_synth_ntom_8bit_mono
-#		define opt_synth_ntom_8bit_mono(fr) synth_ntom_8bit_mono
-#	endif
-#	ifndef opt_synth_ntom_8bit_mono2stereo
-#		define opt_synth_ntom_8bit_mono2stereo(fr) synth_ntom_8bit_mono2stereo
-#	endif
-#	ifndef opt_synth_ntom_real_mono
-#		define opt_synth_ntom_real_mono(fr) synth_ntom_real_mono
-#	endif
-#	ifndef opt_synth_ntom_real_mono2stereo
-#		define opt_synth_ntom_real_mono2stereo(fr) synth_ntom_real_mono2stereo
-#	endif
-#	ifndef opt_synth_ntom_s32_mono
-#		define opt_synth_ntom_s32_mono(fr) synth_ntom_s32_mono
-#	endif
-#	ifndef opt_synth_ntom_s32_mono2stereo
-#		define opt_synth_ntom_s32_mono2stereo(fr) synth_ntom_s32_mono2stereo
-#	endif
-
-/* End of generated output. */
 
 #endif /* OPT_MULTI else */
 

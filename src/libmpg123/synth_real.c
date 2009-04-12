@@ -30,7 +30,7 @@
 #undef SYNTH_NAME
 
 /* Mono-related synths; they wrap over _some_ synth_1to1_real (could be generic, could be i386). */
-#define SYNTH_NAME       opt_synth_1to1_real(fr)
+#define SYNTH_NAME       fr->synths.plain[r_1to1][f_real]
 #define MONO_NAME        synth_1to1_real_mono
 #define MONO2STEREO_NAME synth_1to1_real_mono2stereo
 #include "synth_mono.h"
@@ -110,7 +110,7 @@ int synth_1to1_real_x86_64(real *bandPtr,int channel, mpg123_handle *fr, int fin
 #undef SYNTH_NAME
 
 /* Mono-related synths; they wrap over _some_ synth_2to1_real (could be generic, could be i386). */
-#define SYNTH_NAME       opt_synth_2to1_real(fr)
+#define SYNTH_NAME       fr->synths.plain[r_2to1][f_real]
 #define MONO_NAME        synth_2to1_real_mono
 #define MONO2STEREO_NAME synth_2to1_real_mono2stereo
 #include "synth_mono.h"
@@ -139,7 +139,7 @@ int synth_1to1_real_x86_64(real *bandPtr,int channel, mpg123_handle *fr, int fin
 #undef SYNTH_NAME
 
 /* Mono-related synths; they wrap over _some_ synth_4to1_real (could be generic, could be i386). */
-#define SYNTH_NAME       opt_synth_4to1_real(fr)
+#define SYNTH_NAME       fr->synths.plain[r_4to1][f_real]
 #define MONO_NAME        synth_4to1_real_mono
 #define MONO2STEREO_NAME synth_4to1_real_mono2stereo
 #include "synth_mono.h"

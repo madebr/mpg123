@@ -69,7 +69,7 @@ int MONO2STEREO_NAME(real *bandPtr, mpg123_handle *fr)
 	int pnt = fr->buffer.fill;
 	fr->buffer.data = (unsigned char*) samples_tmp;
 	fr->buffer.fill = 0;
-	ret = opt_synth_1to1(fr)(bandPtr, 0, fr, 0);
+	ret = BASE_SYNTH_NAME(bandPtr, 0, fr, 0);
 	fr->buffer.data = samples;
 
 	samples += pnt;

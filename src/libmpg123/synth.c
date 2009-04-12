@@ -14,7 +14,7 @@
 	Part 1: All synth functions that produce signed short.
 	That is:
 		- synth_1to1 with cpu-specific variants (synth_1to1_i386, synth_1to1_i586 ...)
-		- synth_1to1_mono and synth_1to1_mono2stereo; which use opt_synth_1to1(fr).
+		- synth_1to1_mono and synth_1to1_mono2stereo; which use fr->synths.plain[r_1to1][f_16].
 	Nearly every decoder variant has it's own synth_1to1, while the mono conversion is shared.
 */
 
@@ -29,7 +29,7 @@
 #undef SYNTH_NAME
 
 /* Mono-related synths; they wrap over _some_ synth_1to1. */
-#define SYNTH_NAME       opt_synth_1to1(fr)
+#define SYNTH_NAME       fr->synths.plain[r_1to1][f_16]
 #define MONO_NAME        synth_1to1_mono
 #define MONO2STEREO_NAME synth_1to1_mono2stereo
 #include "synth_mono.h"
@@ -226,7 +226,7 @@ int synth_1to1_x86_64(real *bandPtr,int channel, mpg123_handle *fr, int final)
 #undef SYNTH_NAME
 #endif
 
-#define SYNTH_NAME       opt_synth_2to1(fr)
+#define SYNTH_NAME       fr->synths.plain[r_2to1][f_16]
 #define MONO_NAME        synth_2to1_mono
 #define MONO2STEREO_NAME synth_2to1_mono2stereo
 #include "synth_mono.h"
@@ -263,7 +263,7 @@ int synth_1to1_x86_64(real *bandPtr,int channel, mpg123_handle *fr, int final)
 #undef SYNTH_NAME
 #endif
 
-#define SYNTH_NAME       opt_synth_4to1(fr) /* This is just for the _i386 one... gotta check if it is really useful... */
+#define SYNTH_NAME       fr->synths.plain[r_4to1][f_16] /* This is just for the _i386 one... gotta check if it is really useful... */
 #define MONO_NAME        synth_4to1_mono
 #define MONO2STEREO_NAME synth_4to1_mono2stereo
 #include "synth_mono.h"

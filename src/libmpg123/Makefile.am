@@ -47,6 +47,7 @@ libmpg123_la_SOURCES = \
 	synth_mono.h \
 	synth_ntom.h \
 	synth_8bit.h \
+	synths.h \
 	equalizer.c \
 	huffman.h \
 	icy.h \
