@@ -26,7 +26,7 @@ int main(int argc, char** argv)
 	count = 0;
 
 	fa = fopen(argv[1], "r");
-	fb = fopen(argv[2], "r");
+	fb = argc > 2 ? fopen(argv[2], "r") : stdin;
 	if(fa == NULL || fb == NULL){ fprintf(stderr, "cannot open files\n");return 1; }
 
 	while( (got = fread(av, sizeof(double), bufs, fa))
@@ -44,7 +44,7 @@ int main(int argc, char** argv)
 	}
 
 	fclose(fa);
-	fclose(fb);
+	if(fb != stdin) fclose(fb);
 
 	rms /= count;
 	rms  = sqrt(rms);
