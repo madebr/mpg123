@@ -1986,10 +1986,7 @@ int do_layer3(mpg123_handle *fr)
 			if(single != SINGLE_STEREO)
 			clip += (fr->synth_mono)(hybridOut[0][ss], fr);
 			else
-			{
-				clip += (fr->synth)(hybridOut[0][ss], 0, fr, 0);
-				clip += (fr->synth)(hybridOut[1][ss], 1, fr, 1);
-			}
+			clip += (fr->synth_stereo)(hybridOut[0][ss], hybridOut[1][ss], fr);
 
 		}
 #ifdef OPT_I486

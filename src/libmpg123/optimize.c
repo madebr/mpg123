@@ -102,19 +102,17 @@ const struct synth_s synth_base =
 		,OUT_SYNTHS(synth_ntom, synth_ntom_8bit, synth_ntom_real, synth_ntom_s32)
 #		endif
 	},
-#	if 0 /* Stereo code is dummy for now, gotta work out */
-	{ /* stereo*/
-		 OUT_SYNTHS(synth_1to1_stereo, synth_1to1_8bit_stereo, synth_1to1_real_stereo, synth_1to1_s32_stereo)
+	{ /* stereo, by default only wrappers over plain synth */
+		 OUT_SYNTHS(synth_stereo_wrap, synth_stereo_wrap, synth_stereo_wrap, synth_stereo_wrap)
 #		ifndef NO_DOWNSAMPLE
-		,OUT_SYNTHS(synth_2to1_stereo, synth_2to1_8bit_stereo, synth_2to1_real_stereo, synth_2to1_s32_stereo)
-		,OUT_SYNTHS(synth_4to1_stereo, synth_4to1_8bit_stereo, synth_4to1_real_stereo, synth_4to1_s32_stereo)
+		,OUT_SYNTHS(synth_stereo_wrap, synth_stereo_wrap, synth_stereo_wrap, synth_stereo_wrap)
+		,OUT_SYNTHS(synth_stereo_wrap, synth_stereo_wrap, synth_stereo_wrap, synth_stereo_wrap)
 #		endif
 #		ifndef NO_NTOM
-		,OUT_SYNTHS(synth_ntom_stereo, synth_ntom_8bit_stereo, synth_ntom_real_stereo, synth_ntom_s32_stereo)
+		,OUT_SYNTHS(synth_stereo_wrap, synth_stereo_wrap, synth_stereo_wrap, synth_stereo_wrap)
 #		endif
 	},
-#	endif
-	{ /* mono2stereo*/
+	{ /* mono2stereo */
 		 OUT_SYNTHS(synth_1to1_mono2stereo, synth_1to1_8bit_mono2stereo, synth_1to1_real_mono2stereo, synth_1to1_s32_mono2stereo)
 #		ifndef NO_DOWNSAMPLE
 		,OUT_SYNTHS(synth_2to1_mono2stereo, synth_2to1_8bit_mono2stereo, synth_2to1_real_mono2stereo, synth_2to1_s32_mono2stereo)
@@ -321,6 +319,7 @@ int set_synth_functions(mpg123_handle *fr)
 	debug2("selecting synth: resample=%i format=%i", resample, basic_format);
 	/* Finally selecting the synth functions for stereo / mono. */
 	fr->synth = fr->synths.plain[resample][basic_format];
+	fr->synth_stereo = fr->synths.stereo[resample][basic_format];
 	fr->synth_mono = fr->af.channels==2
 		? fr->synths.mono2stereo[resample][basic_format] /* Mono MPEG file decoded to stereo. */
 		: fr->synths.mono[resample][basic_format];       /* Mono MPEG file decoded to mono. */

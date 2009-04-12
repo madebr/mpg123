@@ -36,6 +36,10 @@
    If they are actually defined and used depends on preprocessor machinery.
    See synth.c and optimize.h for that, also some special C and assembler files. */
 
+/* The call of left and right plain synth, wrapped.
+   This may be replaced by a direct stereo optimized synth. */
+int synth_stereo_wrap(real*, real*, mpg123_handle*);
+
 #ifndef NO_16BIT
 /* The signed-16bit-producing variants. */
 int synth_1to1            (real*, int, mpg123_handle*, int);

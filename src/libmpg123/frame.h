@@ -159,8 +159,9 @@ struct mpg123_handle_struct
 
 	const struct al_table *alloc;
 	/* The runtime-chosen decoding, based on input and output format. */
-	int (*synth)(real *,int, mpg123_handle*, int);
-	int (*synth_mono)(real *, mpg123_handle*);
+	func_synth synth;
+	func_synth_stereo synth_stereo;
+	func_synth_mono synth_mono;
 	/* Yes, this function is runtime-switched, too. */
 	void (*make_decode_tables)(mpg123_handle *fr); /* That is the volume control. */
 

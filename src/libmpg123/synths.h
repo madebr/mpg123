@@ -9,8 +9,8 @@
    Not just for optimization, mainly for XtoY, mono/stereo. */
 typedef int (*func_synth)(real *,int, mpg123_handle *,int );
 typedef int (*func_synth_mono)(real *, mpg123_handle *);
-/* typedef int (*func_synth_stereo)(real *, real *, mpg123_handle *); */
-enum synth_channel  { c_plain=0, c_mono2stereo, c_mono, c_limit }; /* c_stereo */
+typedef int (*func_synth_stereo)(real *, real *, mpg123_handle *);
+enum synth_channel  { c_plain=0, c_stereo, c_mono2stereo, c_mono, c_limit };
 enum synth_resample
 {
 	 r_none=-1
@@ -44,7 +44,7 @@ enum synth_format
 struct synth_s
 {
 	func_synth              plain[r_limit][f_limit];
-/*	func_synth_stereo      stereo[r_limit][f_limit]; */
+	func_synth_stereo      stereo[r_limit][f_limit];
 	func_synth_mono   mono2stereo[r_limit][f_limit];
 	func_synth_mono          mono[r_limit][f_limit];
 };
