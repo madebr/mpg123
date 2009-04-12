@@ -25,8 +25,6 @@ EXTRA_DIST = \
 	makedll.sh \
 	windows-builds.sh \
 	equalize.dat \
-	test/forkfaint.c \
-	test/rms16.c \
 	NEWS.libmpg123 \
 	autogen.sh \
 	ports/MSVC++/mpg123.h \
