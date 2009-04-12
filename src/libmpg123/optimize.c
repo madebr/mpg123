@@ -90,11 +90,86 @@ char cpu_flags;
 #	define OUT_SYNTHS(synth_16, synth_8, synth_real, synth_32) { IF8(synth_real) IFREAL(synth_real) IF32(synth_32) }
 #endif
 
+const struct synth_s synth_base =
+{
+	{ /* plain */
+		 OUT_SYNTHS(synth_1to1, synth_1to1_8bit, synth_1to1_real, synth_1to1_s32)
+#		ifndef NO_DOWNSAMPLE
+		,OUT_SYNTHS(synth_2to1, synth_2to1_8bit, synth_2to1_real, synth_2to1_s32)
+		,OUT_SYNTHS(synth_4to1, synth_4to1_8bit, synth_4to1_real, synth_4to1_s32)
+#		endif
+#		ifndef NO_NTOM
+		,OUT_SYNTHS(synth_ntom, synth_ntom_8bit, synth_ntom_real, synth_ntom_s32)
+#		endif
+	},
+#	if 0 /* Stereo code is dummy for now, gotta work out */
+	{ /* stereo*/
+		 OUT_SYNTHS(synth_1to1_stereo, synth_1to1_8bit_stereo, synth_1to1_real_stereo, synth_1to1_s32_stereo)
+#		ifndef NO_DOWNSAMPLE
+		,OUT_SYNTHS(synth_2to1_stereo, synth_2to1_8bit_stereo, synth_2to1_real_stereo, synth_2to1_s32_stereo)
+		,OUT_SYNTHS(synth_4to1_stereo, synth_4to1_8bit_stereo, synth_4to1_real_stereo, synth_4to1_s32_stereo)
+#		endif
+#		ifndef NO_NTOM
+		,OUT_SYNTHS(synth_ntom_stereo, synth_ntom_8bit_stereo, synth_ntom_real_stereo, synth_ntom_s32_stereo)
+#		endif
+	},
+#	endif
+	{ /* mono2stereo*/
+		 OUT_SYNTHS(synth_1to1_mono2stereo, synth_1to1_8bit_mono2stereo, synth_1to1_real_mono2stereo, synth_1to1_s32_mono2stereo)
+#		ifndef NO_DOWNSAMPLE
+		,OUT_SYNTHS(synth_2to1_mono2stereo, synth_2to1_8bit_mono2stereo, synth_2to1_real_mono2stereo, synth_2to1_s32_mono2stereo)
+		,OUT_SYNTHS(synth_4to1_mono2stereo, synth_4to1_8bit_mono2stereo, synth_4to1_real_mono2stereo, synth_4to1_s32_mono2stereo)
+#		endif
+#		ifndef NO_NTOM
+		,OUT_SYNTHS(synth_ntom_mono2stereo, synth_ntom_8bit_mono2stereo, synth_ntom_real_mono2stereo, synth_ntom_s32_mono2stereo)
+#		endif
+	},
+	{ /* mono*/
+		 OUT_SYNTHS(synth_1to1_mono, synth_1to1_8bit_mono, synth_1to1_real_mono, synth_1to1_s32_mono)
+#		ifndef NO_DOWNSAMPLE
+		,OUT_SYNTHS(synth_2to1_mono, synth_2to1_8bit_mono, synth_2to1_real_mono, synth_2to1_s32_mono)
+		,OUT_SYNTHS(synth_4to1_mono, synth_4to1_8bit_mono, synth_4to1_real_mono, synth_4to1_s32_mono)
+#		endif
+#		ifndef NO_NTOM
+		,OUT_SYNTHS(synth_ntom_mono, synth_ntom_8bit_mono, synth_ntom_real_mono, synth_ntom_s32_mono)
+#endif
+	}
+};
+
+#ifdef OPT_X86
+/* More plain synths for i386 */
+const func_synth plain_i386[r_limit][f_limit] =
+{ /* plain */
+	 OUT_SYNTHS(synth_1to1_i386, synth_1to1_8bit_i386, synth_1to1_real_i386, synth_1to1_s32_i386)
+#	ifndef NO_DOWNSAMPLE
+	,OUT_SYNTHS(synth_2to1_i386, synth_2to1_8bit_i386, synth_2to1_real_i386, synth_2to1_s32_i386)
+	,OUT_SYNTHS(synth_4to1_i386, synth_4to1_8bit_i386, synth_4to1_real_i386, synth_4to1_s32_i386)
+#	endif
+#	ifndef NO_NTOM
+	,OUT_SYNTHS(synth_ntom, synth_ntom_8bit, synth_ntom_real, synth_ntom_s32)
+#	endif
+};
+#endif
+
+
 enum optdec defdec(void){ return defopt; }
 
 enum optcla decclass(const enum optdec type)
 {
 	return (type == mmx || type == sse || type == dreidnowext || type == x86_64 ) ? mmxsse : normal;
+}
+
+
+static int find_synth(func_synth synth,  const func_synth synths[r_limit][f_limit])
+{
+	enum synth_resample ri;
+	enum synth_format   fi;
+	for(ri=0; ri<r_limit; ++ri)
+	for(fi=0; fi<f_limit; ++fi)
+	if(synth == synths[ri][fi])
+	return TRUE;
+
+	return FALSE;
 }
 
 /* Determine what kind of decoder is actually active
@@ -132,90 +207,9 @@ static int find_dectype(mpg123_handle *fr)
 #ifdef OPT_I586
 	else if(basic_synth == synth_1to1_i586) type = ifuenf;
 #endif
-#endif /* 16bit */
-#ifdef OPT_I386
-	else if
-	( FALSE /* just as a first value for the || chain */
-#ifndef NO_16BIT
-		|| basic_synth == synth_1to1_i386
+#ifdef OPT_ALTIVEC
+	else if(basic_synth == synth_1to1_altivec) type = altivec;
 #endif
-#ifndef NO_8BIT
-		|| basic_synth == synth_1to1_8bit_i386
-#endif
-#ifndef NO_DOWNSAMPLE
-#ifndef NO_16BIT
-		|| basic_synth == synth_2to1_i386
-		|| basic_synth == synth_4to1_i386
-#endif
-#ifndef NO_8BIT
-		|| basic_synth == synth_2to1_8bit_i386
-		|| basic_synth == synth_4to1_8bit_i386
-#endif
-#endif
-#ifndef REAL_IS_FIXED
-#ifndef NO_REAL
-		|| basic_synth == synth_1to1_real_i386
-#endif
-#ifndef NO_32BIT
-		|| basic_synth == synth_1to1_s32_i386
-#endif
-#ifndef NO_DOWNSAMPLE
-#ifndef NO_REAL
-		|| basic_synth == synth_2to1_real_i386
-		|| basic_synth == synth_4to1_real_i386
-#endif
-#ifndef NO_32BIT
-		|| basic_synth == synth_2to1_s32_i386
-		|| basic_synth == synth_4to1_s32_i386
-#endif
-#endif
-#endif
-	) type = idrei;
-#endif
-	else if
-	( FALSE
-#ifndef NO_16BIT
-		|| basic_synth == synth_1to1
-#ifndef NO_DOWNSAMPLE
-		|| basic_synth == synth_2to1
-		|| basic_synth == synth_4to1
-#endif
-#ifndef NO_NTOM
-		|| basic_synth == synth_ntom
-#endif
-#endif
-#ifndef NO_8BIT
-		|| basic_synth == synth_1to1_8bit
-#ifndef NO_DOWNSAMPLE
-		|| basic_synth == synth_2to1_8bit
-		|| basic_synth == synth_4to1_8bit
-#endif
-#ifndef NO_NTOM
-		|| basic_synth == synth_ntom_8bit
-#endif
-#endif
-#ifndef NO_REAL
-		|| basic_synth == synth_1to1_real
-#ifndef NO_DOWNSAMPLE
-		|| basic_synth == synth_2to1_real
-		|| basic_synth == synth_4to1_real
-#endif
-#ifndef NO_NTOM
-		|| basic_synth == synth_ntom_real
-#endif
-#endif
-#ifndef NO_32BIT
-		|| basic_synth == synth_1to1_s32
-#ifndef NO_DOWNSAMPLE
-		|| basic_synth == synth_2to1_s32
-		|| basic_synth == synth_4to1_s32
-#endif
-#ifndef NO_NTOM
-		|| basic_synth == synth_ntom_s32
-#endif
-#endif
-	) type = generic;
-#ifndef NO_16BIT
 #ifdef OPT_GENERIC_DITHER
 	else if(basic_synth == synth_1to1_dither) type = generic_dither;
 #endif
@@ -228,10 +222,15 @@ static int find_dectype(mpg123_handle *fr)
 	) type = generic_dither;
 #endif
 #endif
-#ifdef OPT_ALTIVEC
-	else if(basic_synth == synth_1to1_altivec) type = altivec;
-#endif
 #endif /* 16bit */
+
+#ifdef OPT_X86
+	else if(find_synth(basic_synth, plain_i386))
+	type = idrei;
+#endif
+
+	else if(find_synth(basic_synth, synth_base.plain))
+	type = generic;
 
 #ifdef OPT_X86_64
 #ifndef NO_16BIT
@@ -241,6 +240,7 @@ static int find_dectype(mpg123_handle *fr)
 	else if(basic_synth == synth_1to1_real_x86_64) type = x86_64;
 #endif
 #endif
+
 
 #ifdef OPT_I486
 	/* i486 is special ... the specific code is in use for 16bit 1to1 stereo
@@ -392,66 +392,6 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 	enum optdec want_dec = nodec;
 	int done = 0;
 	int auto_choose = 0;
-	const struct synth_s synth_base =
-	{
-		{ /* plain */
-			 OUT_SYNTHS(synth_1to1, synth_1to1_8bit, synth_1to1_real, synth_1to1_s32)
-#			ifndef NO_DOWNSAMPLE
-			,OUT_SYNTHS(synth_2to1, synth_2to1_8bit, synth_2to1_real, synth_2to1_s32)
-			,OUT_SYNTHS(synth_4to1, synth_4to1_8bit, synth_4to1_real, synth_4to1_s32)
-#			endif
-#			ifndef NO_NTOM
-			,OUT_SYNTHS(synth_ntom, synth_ntom_8bit, synth_ntom_real, synth_ntom_s32)
-#			endif
-		},
-#		if 0 /* Stereo code is dummy for now, gotta work out */
-		{ /* stereo*/
-			 OUT_SYNTHS(synth_1to1_stereo, synth_1to1_8bit_stereo, synth_1to1_real_stereo, synth_1to1_s32_stereo)
-#			ifndef NO_DOWNSAMPLE
-			,OUT_SYNTHS(synth_2to1_stereo, synth_2to1_8bit_stereo, synth_2to1_real_stereo, synth_2to1_s32_stereo)
-			,OUT_SYNTHS(synth_4to1_stereo, synth_4to1_8bit_stereo, synth_4to1_real_stereo, synth_4to1_s32_stereo)
-#			endif
-#			ifndef NO_NTOM
-			,OUT_SYNTHS(synth_ntom_stereo, synth_ntom_8bit_stereo, synth_ntom_real_stereo, synth_ntom_s32_stereo)
-#			endif
-		},
-#		endif
-		{ /* mono2stereo*/
-			 OUT_SYNTHS(synth_1to1_mono2stereo, synth_1to1_8bit_mono2stereo, synth_1to1_real_mono2stereo, synth_1to1_s32_mono2stereo)
-#			ifndef NO_DOWNSAMPLE
-			,OUT_SYNTHS(synth_2to1_mono2stereo, synth_2to1_8bit_mono2stereo, synth_2to1_real_mono2stereo, synth_2to1_s32_mono2stereo)
-			,OUT_SYNTHS(synth_4to1_mono2stereo, synth_4to1_8bit_mono2stereo, synth_4to1_real_mono2stereo, synth_4to1_s32_mono2stereo)
-#			endif
-#			ifndef NO_NTOM
-			,OUT_SYNTHS(synth_ntom_mono2stereo, synth_ntom_8bit_mono2stereo, synth_ntom_real_mono2stereo, synth_ntom_s32_mono2stereo)
-#			endif
-		},
-		{ /* mono*/
-			 OUT_SYNTHS(synth_1to1_mono, synth_1to1_8bit_mono, synth_1to1_real_mono, synth_1to1_s32_mono)
-#			ifndef NO_DOWNSAMPLE
-			,OUT_SYNTHS(synth_2to1_mono, synth_2to1_8bit_mono, synth_2to1_real_mono, synth_2to1_s32_mono)
-			,OUT_SYNTHS(synth_4to1_mono, synth_4to1_8bit_mono, synth_4to1_real_mono, synth_4to1_s32_mono)
-#			endif
-#			ifndef NO_NTOM
-			,OUT_SYNTHS(synth_ntom_mono, synth_ntom_8bit_mono, synth_ntom_real_mono, synth_ntom_s32_mono)
-#	endif
-		}
-	};
-
-#ifdef OPT_X86
-	/* More plain synths for i386 */
-	const func_synth plain_i386[r_limit][f_limit] =
-	{ /* plain */
-		 OUT_SYNTHS(synth_1to1_i386, synth_1to1_8bit_i386, synth_1to1_real_i386, synth_1to1_s32_i386)
-#		ifndef NO_DOWNSAMPLE
-		,OUT_SYNTHS(synth_2to1_i386, synth_2to1_8bit_i386, synth_2to1_real_i386, synth_2to1_s32_i386)
-		,OUT_SYNTHS(synth_4to1_i386, synth_4to1_8bit_i386, synth_4to1_real_i386, synth_4to1_s32_i386)
-#		endif
-#		ifndef NO_NTOM
-		,OUT_SYNTHS(synth_ntom, synth_ntom_8bit, synth_ntom_real, synth_ntom_s32)
-#		endif
-	};
-#endif
 
 	want_dec = dectype(cpu);
 	auto_choose = want_dec == autodec;
