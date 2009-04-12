@@ -91,7 +91,7 @@ void make_decode_tables_mmx(mpg123_handle *fr)
 	short *ptr = (short *)fr->decwins;
 	/* Scale is always based on 1.0 . */
 	double scaleval = -0.5*(fr->lastscale < 0 ? fr->p.outscale : fr->lastscale);
-	debug1("decode tables with scaleval %g", scaleval);
+	debug1("MMX decode tables with scaleval %g", scaleval);
 	for(i=0,j=0;i<256;i++,j++,idx+=32)
 	{
 		if(idx < 512+16)
