@@ -1,0 +1,356 @@
+/*
+	synth_stereo_x86_64_float: SSE optimized synth for x86-64 (stereo specific, float output version)
+
+	copyright 1995-2009 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.org
+	initially written by Taihei Monma
+*/
+
+#include "mangle.h"
+
+/* real *window; */
+#define WINDOW %rdi
+/* real *b0l; */
+#define B0L %rsi
+/* real *b0r; */
+#define B0R %r8
+/* real *samples; */
+#define SAMPLES %rdx
+
+#define XMMREG_SCALE (%r9)  /* {1/32768.0, 1/32768.0, 1/32768.0, 1/32768.0} */
+
+/*
+	int synth_1to1_real_stereo_x86_64_asm(real *window, real *b0l, real *b0r, real *samples, int bo1);
+	return value: number of clipped samples (0)
+*/
+
+#ifndef __APPLE__
+	.section	.rodata
+#else
+	.data
+#endif
+	ALIGN32
+ASM_NAME(scale_x86_64):
+	.long   939524096
+	.long   939524096
+	.long   939524096
+	.long   939524096
+	.text
+	ALIGN16,,15
+.globl ASM_NAME(synth_1to1_real_stereo_x86_64_asm)
+ASM_NAME(synth_1to1_real_stereo_x86_64_asm):
+	
+	leaq		ASM_NAME(scale_x86_64)(%rip), %r9
+	
+	movq		%r8, %rax
+	shlq		$32, %rax
+	shrq		$30, %rax
+	movq		%rdx, %r8
+	movq		%rcx, %rdx
+	leaq		64(WINDOW), WINDOW
+	subq		%rax, WINDOW
+
+	movl		$4, %ecx
+	
+	ALIGN16
+loop_start_1:
+	movups		(WINDOW), %xmm8
+	movups		16(WINDOW), %xmm1
+	movups		32(WINDOW), %xmm2
+	movups		48(WINDOW), %xmm3
+	movups		128(WINDOW), %xmm9
+	movups		144(WINDOW), %xmm5
+	movups		160(WINDOW), %xmm6
+	movups		176(WINDOW), %xmm7
+	movaps		%xmm8, %xmm0
+	movaps		%xmm1, %xmm4
+	movaps		%xmm2, %xmm10
+	movaps		%xmm3, %xmm11
+	movaps		%xmm9, %xmm12
+	movaps		%xmm5, %xmm13
+	movaps		%xmm6, %xmm14
+	movaps		%xmm7, %xmm15
+	mulps		(B0L), %xmm8
+	mulps		16(B0L), %xmm1
+	mulps		32(B0L), %xmm2
+	mulps		48(B0L), %xmm3
+	mulps		64(B0L), %xmm9
+	mulps		80(B0L), %xmm5
+	mulps		96(B0L), %xmm6
+	mulps		112(B0L), %xmm7
+	mulps		(B0R), %xmm0
+	mulps		16(B0R), %xmm4
+	mulps		32(B0R), %xmm10
+	mulps		48(B0R), %xmm11
+	mulps		64(B0R), %xmm12
+	mulps		80(B0R), %xmm13
+	mulps		96(B0R), %xmm14
+	mulps		112(B0R), %xmm15
+	
+	addps		%xmm1, %xmm8
+	addps		%xmm2, %xmm3
+	addps		%xmm4, %xmm0
+	addps		%xmm11, %xmm10
+	addps		%xmm5, %xmm9
+	addps		%xmm7, %xmm6
+	addps		%xmm13, %xmm12
+	addps		%xmm15, %xmm14
+	addps		%xmm3, %xmm8
+	addps		%xmm6, %xmm9
+	addps		%xmm10, %xmm0
+	addps		%xmm12, %xmm14
+	movaps		%xmm0, %xmm12
+	movaps		%xmm14, %xmm13
+	leaq		256(WINDOW), WINDOW
+	leaq		128(B0L), B0L
+	leaq		128(B0R), B0R
+	
+	movups		(WINDOW), %xmm10
+	movups		16(WINDOW), %xmm1
+	movups		32(WINDOW), %xmm2
+	movups		48(WINDOW), %xmm3
+	movups		128(WINDOW), %xmm11
+	movups		144(WINDOW), %xmm5
+	movups		160(WINDOW), %xmm6
+	movups		176(WINDOW), %xmm7
+	movaps		%xmm10, %xmm0
+	movaps		%xmm1, %xmm4
+	movaps		%xmm2, %xmm14
+	movaps		%xmm3, %xmm15
+	mulps		(B0L), %xmm10
+	mulps		16(B0L), %xmm1
+	mulps		32(B0L), %xmm2
+	mulps		48(B0L), %xmm3
+	mulps		(B0R), %xmm0
+	mulps		16(B0R), %xmm4
+	mulps		32(B0R), %xmm14
+	mulps		48(B0R), %xmm15
+	addps		%xmm1, %xmm10
+	addps		%xmm2, %xmm3
+	addps		%xmm4, %xmm0
+	addps		%xmm15, %xmm14
+	movaps		%xmm11, %xmm1
+	movaps		%xmm5, %xmm2
+	movaps		%xmm6, %xmm4
+	movaps		%xmm7, %xmm15
+	mulps		64(B0L), %xmm11
+	mulps		80(B0L), %xmm5
+	mulps		96(B0L), %xmm6
+	mulps		112(B0L), %xmm7
+	mulps		64(B0R), %xmm1
+	mulps		80(B0R), %xmm2
+	mulps		96(B0R), %xmm4
+	mulps		112(B0R), %xmm15
+	addps		%xmm5, %xmm11
+	addps		%xmm7, %xmm6
+	addps		%xmm2, %xmm1
+	addps		%xmm15, %xmm4
+	
+	addps		%xmm3, %xmm10
+	addps		%xmm6, %xmm11
+	addps		%xmm0, %xmm14
+	addps		%xmm4, %xmm1
+	movaps		%xmm1, %xmm15
+	leaq		256(WINDOW), WINDOW
+	leaq		128(B0L), B0L
+	leaq		128(B0R), B0R
+	
+	movaps		%xmm8, %xmm0
+	movaps		%xmm9, %xmm1
+	movaps		%xmm12, %xmm4
+	movaps		%xmm13, %xmm5
+	unpcklps	%xmm10, %xmm8
+	unpcklps	%xmm11, %xmm9
+	unpckhps	%xmm10, %xmm0
+	unpckhps	%xmm11, %xmm1
+	unpcklps	%xmm14, %xmm12
+	unpcklps	%xmm15, %xmm13
+	unpckhps	%xmm14, %xmm4
+	unpckhps	%xmm15, %xmm5
+	movaps		%xmm8, %xmm2
+	movaps		%xmm0, %xmm3
+	movaps		%xmm12, %xmm6
+	movaps		%xmm4, %xmm7
+	unpcklps	%xmm9, %xmm8
+	unpckhps	%xmm9, %xmm2
+	unpcklps	%xmm1, %xmm0
+	unpckhps	%xmm1, %xmm3
+	unpcklps	%xmm13, %xmm12
+	unpckhps	%xmm13, %xmm6
+	unpcklps	%xmm5, %xmm4
+	unpckhps	%xmm5, %xmm7
+	subps		%xmm2, %xmm8
+	subps		%xmm3, %xmm0
+	subps		%xmm6, %xmm12
+	subps		%xmm7, %xmm4
+	addps		%xmm8, %xmm0
+	addps		%xmm12, %xmm4
+	
+	mulps		XMMREG_SCALE, %xmm0
+	mulps		XMMREG_SCALE, %xmm4
+	movaps		%xmm0, %xmm1
+	unpcklps	%xmm4, %xmm0
+	unpckhps	%xmm4, %xmm1
+	movaps		%xmm0, (SAMPLES)
+	movaps		%xmm1, 16(SAMPLES)
+	
+	leaq		32(SAMPLES), SAMPLES
+	decl		%ecx
+	jnz			loop_start_1
+	
+	movl		$4, %ecx
+	
+	ALIGN16
+loop_start_2:
+	movups		(WINDOW), %xmm8
+	movups		16(WINDOW), %xmm1
+	movups		32(WINDOW), %xmm2
+	movups		48(WINDOW), %xmm3
+	movups		128(WINDOW), %xmm9
+	movups		144(WINDOW), %xmm5
+	movups		160(WINDOW), %xmm6
+	movups		176(WINDOW), %xmm7
+	movaps		%xmm8, %xmm0
+	movaps		%xmm1, %xmm4
+	movaps		%xmm2, %xmm10
+	movaps		%xmm3, %xmm11
+	movaps		%xmm9, %xmm12
+	movaps		%xmm5, %xmm13
+	movaps		%xmm6, %xmm14
+	movaps		%xmm7, %xmm15
+	mulps		(B0L), %xmm8
+	mulps		16(B0L), %xmm1
+	mulps		32(B0L), %xmm2
+	mulps		48(B0L), %xmm3
+	mulps		-64(B0L), %xmm9
+	mulps		-48(B0L), %xmm5
+	mulps		-32(B0L), %xmm6
+	mulps		-16(B0L), %xmm7
+	mulps		(B0R), %xmm0
+	mulps		16(B0R), %xmm4
+	mulps		32(B0R), %xmm10
+	mulps		48(B0R), %xmm11
+	mulps		-64(B0R), %xmm12
+	mulps		-48(B0R), %xmm13
+	mulps		-32(B0R), %xmm14
+	mulps		-16(B0R), %xmm15
+	
+	addps		%xmm1, %xmm8
+	addps		%xmm2, %xmm3
+	addps		%xmm4, %xmm0
+	addps		%xmm11, %xmm10
+	addps		%xmm5, %xmm9
+	addps		%xmm7, %xmm6
+	addps		%xmm13, %xmm12
+	addps		%xmm15, %xmm14
+	addps		%xmm3, %xmm8
+	addps		%xmm6, %xmm9
+	addps		%xmm10, %xmm0
+	addps		%xmm12, %xmm14
+	movaps		%xmm0, %xmm12
+	movaps		%xmm14, %xmm13
+	leaq		256(WINDOW), WINDOW
+	leaq		-128(B0L), B0L
+	leaq		-128(B0R), B0R
+	
+	movups		(WINDOW), %xmm10
+	movups		16(WINDOW), %xmm1
+	movups		32(WINDOW), %xmm2
+	movups		48(WINDOW), %xmm3
+	movups		128(WINDOW), %xmm11
+	movups		144(WINDOW), %xmm5
+	movups		160(WINDOW), %xmm6
+	movups		176(WINDOW), %xmm7
+	movaps		%xmm10, %xmm0
+	movaps		%xmm1, %xmm4
+	movaps		%xmm2, %xmm14
+	movaps		%xmm3, %xmm15
+	mulps		(B0L), %xmm10
+	mulps		16(B0L), %xmm1
+	mulps		32(B0L), %xmm2
+	mulps		48(B0L), %xmm3
+	mulps		(B0R), %xmm0
+	mulps		16(B0R), %xmm4
+	mulps		32(B0R), %xmm14
+	mulps		48(B0R), %xmm15
+	addps		%xmm1, %xmm10
+	addps		%xmm2, %xmm3
+	addps		%xmm4, %xmm0
+	addps		%xmm15, %xmm14
+	movaps		%xmm11, %xmm1
+	movaps		%xmm5, %xmm2
+	movaps		%xmm6, %xmm4
+	movaps		%xmm7, %xmm15
+	mulps		-64(B0L), %xmm11
+	mulps		-48(B0L), %xmm5
+	mulps		-32(B0L), %xmm6
+	mulps		-16(B0L), %xmm7
+	mulps		-64(B0R), %xmm1
+	mulps		-48(B0R), %xmm2
+	mulps		-32(B0R), %xmm4
+	mulps		-16(B0R), %xmm15
+	addps		%xmm5, %xmm11
+	addps		%xmm7, %xmm6
+	addps		%xmm2, %xmm1
+	addps		%xmm15, %xmm4
+	
+	addps		%xmm3, %xmm10
+	addps		%xmm6, %xmm11
+	addps		%xmm0, %xmm14
+	addps		%xmm4, %xmm1
+	movaps		%xmm1, %xmm15
+	leaq		256(WINDOW), WINDOW
+	leaq		-128(B0L), B0L
+	leaq		-128(B0R), B0R
+	
+	movaps		%xmm8, %xmm0
+	movaps		%xmm9, %xmm1
+	movaps		%xmm12, %xmm4
+	movaps		%xmm13, %xmm5
+	unpcklps	%xmm10, %xmm8
+	unpcklps	%xmm11, %xmm9
+	unpckhps	%xmm10, %xmm0
+	unpckhps	%xmm11, %xmm1
+	unpcklps	%xmm14, %xmm12
+	unpcklps	%xmm15, %xmm13
+	unpckhps	%xmm14, %xmm4
+	unpckhps	%xmm15, %xmm5
+	movaps		%xmm8, %xmm2
+	movaps		%xmm0, %xmm3
+	movaps		%xmm12, %xmm6
+	movaps		%xmm4, %xmm7
+	unpcklps	%xmm9, %xmm8
+	unpckhps	%xmm9, %xmm2
+	unpcklps	%xmm1, %xmm0
+	unpckhps	%xmm1, %xmm3
+	unpcklps	%xmm13, %xmm12
+	unpckhps	%xmm13, %xmm6
+	unpcklps	%xmm5, %xmm4
+	unpckhps	%xmm5, %xmm7
+	addps		%xmm2, %xmm8
+	addps		%xmm3, %xmm0
+	addps		%xmm6, %xmm12
+	addps		%xmm7, %xmm4
+	addps		%xmm8, %xmm0
+	addps		%xmm12, %xmm4
+	
+	mulps		XMMREG_SCALE, %xmm0
+	mulps		XMMREG_SCALE, %xmm4
+	movaps		%xmm0, %xmm1
+	unpcklps	%xmm4, %xmm0
+	unpckhps	%xmm4, %xmm1
+	movaps		%xmm0, (SAMPLES)
+	movaps		%xmm1, 16(SAMPLES)
+	
+	leaq		32(SAMPLES), SAMPLES
+	decl		%ecx
+	jnz			loop_start_2
+	
+	xorl		%eax, %eax
+	
+	ret
+
+/* Mark non-executable stack. */
+#if defined(__linux__) && defined(__ELF__)
+.section .note.GNU-stack,"",%progbits
+#endif

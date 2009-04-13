@@ -53,6 +53,7 @@
 #ifdef OPT_X86_64
 /* Assembler routines. */
 int synth_1to1_real_x86_64_asm(real *window, real *b0, real *samples, int bo1);
+int synth_1to1_real_stereo_x86_64_asm(real *window, real *b0l, real *b0r, real *samples, int bo1);
 void dct64_real_x86_64(real *out0, real *out1, real *samples);
 /* Hull for C mpg123 API */
 int synth_1to1_real_x86_64(real *bandPtr,int channel, mpg123_handle *fr, int final)
@@ -96,6 +97,47 @@ int synth_1to1_real_x86_64(real *bandPtr,int channel, mpg123_handle *fr, int fin
 	return 0;
 }
 
+int synth_1to1_real_stereo_x86_64(real *bandPtr_l, real *bandPtr_r, mpg123_handle *fr)
+{
+	real *samples = (real *) (fr->buffer.data+fr->buffer.fill);
+
+	real *b0l, *b0r, **bufl, **bufr;
+	int bo1;
+
+	if(fr->have_eq_settings)
+	{
+		do_equalizer(bandPtr_l,0,fr->equalizer);
+		do_equalizer(bandPtr_r,1,fr->equalizer);
+	}
+
+	fr->bo--;
+	fr->bo &= 0xf;
+	bufl = fr->real_buffs[0];
+	bufr = fr->real_buffs[1];
+
+	if(fr->bo & 0x1)
+	{
+		b0l = bufl[0];
+		b0r = bufr[0];
+		bo1 = fr->bo;
+		dct64_real_x86_64(bufl[1]+((fr->bo+1)&0xf),bufl[0]+fr->bo,bandPtr_l);
+		dct64_real_x86_64(bufr[1]+((fr->bo+1)&0xf),bufr[0]+fr->bo,bandPtr_r);
+	}
+	else
+	{
+		b0l = bufl[1];
+		b0r = bufr[1];
+		bo1 = fr->bo+1;
+		dct64_real_x86_64(bufl[0]+fr->bo,bufl[1]+fr->bo+1,bandPtr_l);
+		dct64_real_x86_64(bufr[0]+fr->bo,bufr[1]+fr->bo+1,bandPtr_r);
+	}
+
+	synth_1to1_real_stereo_x86_64_asm(fr->decwin, b0l, b0r, samples, bo1);
+
+	fr->buffer.fill += 256;
+
+	return 0;
+}
 #endif
 
 #ifndef NO_DOWNSAMPLE
