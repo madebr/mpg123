@@ -208,6 +208,9 @@ static int find_dectype(mpg123_handle *fr)
 #ifdef OPT_ALTIVEC
 	else if(basic_synth == synth_1to1_altivec) type = altivec;
 #endif
+#ifdef OPT_X86_64
+	else if(basic_synth == synth_1to1_x86_64) type = x86_64;
+#endif
 #ifdef OPT_GENERIC_DITHER
 	else if(basic_synth == synth_1to1_dither) type = generic_dither;
 #endif
@@ -222,6 +225,16 @@ static int find_dectype(mpg123_handle *fr)
 #endif
 #endif /* 16bit */
 
+#ifndef NO_REAL
+#ifdef OPT_X86_64
+	else if(basic_synth == synth_1to1_real_x86_64) type = x86_64;
+#endif
+#ifdef OPT_ALTIVEC
+	else if(basic_synth == synth_1to1_real_altivec) type = altivec;
+#endif
+
+#endif /* real */
+
 #ifdef OPT_X86
 	else if(find_synth(basic_synth, plain_i386))
 	type = idrei;
@@ -230,14 +243,6 @@ static int find_dectype(mpg123_handle *fr)
 	else if(find_synth(basic_synth, synth_base.plain))
 	type = generic;
 
-#ifdef OPT_X86_64
-#ifndef NO_16BIT
-	else if(basic_synth == synth_1to1_x86_64) type = x86_64;
-#endif
-#ifndef NO_REAL
-	else if(basic_synth == synth_1to1_real_x86_64) type = x86_64;
-#endif
-#endif
 
 
 #ifdef OPT_I486
@@ -591,6 +596,9 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		fr->cpu_opts.type = altivec;
 #		ifndef NO_16BIT
 		fr->synths.plain[r_1to1][f_16] = synth_1to1_altivec;
+#		endif
+#		ifndef NO_REAL
+		fr->synths.plain[r_1to1][f_real] = synth_1to1_real_altivec;
 #		endif
 		done = 1;
 	}

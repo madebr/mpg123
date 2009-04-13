@@ -26,7 +26,7 @@
 
 void dct64_altivec(real *out0,real *out1,real *samples)
 {
-  ALIGNED(16) real bufs[64];
+  ALIGNED(16) real bufs[32];
 
 	{
 		register real *b1,*costab;
@@ -246,16 +246,6 @@ void dct64_altivec(real *out0,real *out1,real *samples)
 		vec_st(vbs6,80,bufs);
 		vec_st(vbs7,96,bufs);
 		vec_st(vbs8,112,bufs);
-		vec_st(vbs9,128,bufs);
-		vec_st(vbs10,144,bufs);
-		vec_st(vbs11,160,bufs);
-		vec_st(vbs12,176,bufs);
-		vec_st(vbs13,192,bufs);
-		vec_st(vbs14,208,bufs);
-		vec_st(vbs15,224,bufs);
-		vec_st(vbs16,240,bufs);
-		
-		
 	}
 
  {

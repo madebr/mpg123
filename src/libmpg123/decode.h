@@ -121,6 +121,7 @@ void ntom_set_ntom(mpg123_handle *fr, off_t num);
 int synth_1to1_real            (real*, int, mpg123_handle*, int);
 int synth_1to1_real_i386       (real*, int, mpg123_handle*, int);
 int synth_1to1_real_x86_64     (real*, int, mpg123_handle*, int);
+int synth_1to1_real_altivec    (real*, int, mpg123_handle*, int);
 int synth_1to1_real_mono       (real*, mpg123_handle*);
 int synth_1to1_real_mono2stereo(real*, mpg123_handle*);
 #ifndef NO_DOWNSAMPLE
