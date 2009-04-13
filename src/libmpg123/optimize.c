@@ -707,7 +707,7 @@ static const char *mpg123_supported_decoder_list[] =
 static const char *mpg123_decoder_list[] =
 {
 	#ifdef OPT_3DNOWEXT
-	dn_3DNowExt
+	dn_3DNowExt,
 	#endif
 	#ifdef OPT_SSE
 	dn_SSE,
