@@ -48,6 +48,8 @@ Update: x86 build includes all but i586_dither, which is a bit bigger due to the
 
 Another posibly important choice is --with-seektable=<number> for setting the size for the table of stored frame addresses to make seeking faster. When you want a minimal memory footprint, you can set number to 0. Seeking will always start from the beginning, then - being accurate, but rather slow, what doesn't matter if you don't use interactive seeking forth and back.
 
+There are various library features you can leave out via --disable options (like output formats, resampling modes). Please note that this is only configured/tested for the generic (fpu) decoder, not optimized ones. Perhaps that changes in future.
+
 
 2. The classic way via the provided Makefile
 
