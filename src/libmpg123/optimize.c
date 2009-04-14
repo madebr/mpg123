@@ -598,9 +598,11 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		fr->cpu_opts.type = altivec;
 #		ifndef NO_16BIT
 		fr->synths.plain[r_1to1][f_16] = synth_1to1_altivec;
+		fr->synths.stereo[r_1to1][f_16] = synth_1to1_stereo_altivec;
 #		endif
 #		ifndef NO_REAL
 		fr->synths.plain[r_1to1][f_real] = synth_1to1_real_altivec;
+		fr->synths.stereo[r_1to1][f_real] = synth_1to1_real_stereo_altivec;
 #		endif
 		done = 1;
 	}
