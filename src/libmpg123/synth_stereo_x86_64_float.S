@@ -156,33 +156,33 @@ loop_start_1:
 	leaq		128(B0R), B0R
 	
 	movaps		%xmm8, %xmm0
-	movaps		%xmm9, %xmm1
+	movaps		%xmm10, %xmm1
 	movaps		%xmm12, %xmm4
-	movaps		%xmm13, %xmm5
-	unpcklps	%xmm10, %xmm8
-	unpcklps	%xmm11, %xmm9
-	unpckhps	%xmm10, %xmm0
+	movaps		%xmm14, %xmm5
+	unpcklps	%xmm9, %xmm8
+	unpcklps	%xmm11, %xmm10
+	unpckhps	%xmm9, %xmm0
 	unpckhps	%xmm11, %xmm1
-	unpcklps	%xmm14, %xmm12
-	unpcklps	%xmm15, %xmm13
-	unpckhps	%xmm14, %xmm4
+	unpcklps	%xmm13, %xmm12
+	unpcklps	%xmm15, %xmm14
+	unpckhps	%xmm13, %xmm4
 	unpckhps	%xmm15, %xmm5
 	movaps		%xmm8, %xmm2
 	movaps		%xmm0, %xmm3
 	movaps		%xmm12, %xmm6
 	movaps		%xmm4, %xmm7
-	unpcklps	%xmm9, %xmm8
-	unpckhps	%xmm9, %xmm2
-	unpcklps	%xmm1, %xmm0
-	unpckhps	%xmm1, %xmm3
-	unpcklps	%xmm13, %xmm12
-	unpckhps	%xmm13, %xmm6
-	unpcklps	%xmm5, %xmm4
-	unpckhps	%xmm5, %xmm7
-	subps		%xmm2, %xmm8
-	subps		%xmm3, %xmm0
-	subps		%xmm6, %xmm12
-	subps		%xmm7, %xmm4
+	movlhps		%xmm10, %xmm8
+	movhlps		%xmm2, %xmm10
+	movlhps		%xmm1, %xmm0
+	movhlps		%xmm3, %xmm1
+	movlhps		%xmm14, %xmm12
+	movhlps		%xmm6, %xmm14
+	movlhps		%xmm5, %xmm4
+	movhlps		%xmm7, %xmm5
+	subps		%xmm10, %xmm8
+	subps		%xmm1, %xmm0
+	subps		%xmm14, %xmm12
+	subps		%xmm5, %xmm4
 	addps		%xmm8, %xmm0
 	addps		%xmm12, %xmm4
 	
@@ -304,33 +304,33 @@ loop_start_2:
 	leaq		-128(B0R), B0R
 	
 	movaps		%xmm8, %xmm0
-	movaps		%xmm9, %xmm1
+	movaps		%xmm10, %xmm1
 	movaps		%xmm12, %xmm4
-	movaps		%xmm13, %xmm5
-	unpcklps	%xmm10, %xmm8
-	unpcklps	%xmm11, %xmm9
-	unpckhps	%xmm10, %xmm0
+	movaps		%xmm14, %xmm5
+	unpcklps	%xmm9, %xmm8
+	unpcklps	%xmm11, %xmm10
+	unpckhps	%xmm9, %xmm0
 	unpckhps	%xmm11, %xmm1
-	unpcklps	%xmm14, %xmm12
-	unpcklps	%xmm15, %xmm13
-	unpckhps	%xmm14, %xmm4
+	unpcklps	%xmm13, %xmm12
+	unpcklps	%xmm15, %xmm14
+	unpckhps	%xmm13, %xmm4
 	unpckhps	%xmm15, %xmm5
 	movaps		%xmm8, %xmm2
 	movaps		%xmm0, %xmm3
 	movaps		%xmm12, %xmm6
 	movaps		%xmm4, %xmm7
-	unpcklps	%xmm9, %xmm8
-	unpckhps	%xmm9, %xmm2
-	unpcklps	%xmm1, %xmm0
-	unpckhps	%xmm1, %xmm3
-	unpcklps	%xmm13, %xmm12
-	unpckhps	%xmm13, %xmm6
-	unpcklps	%xmm5, %xmm4
-	unpckhps	%xmm5, %xmm7
-	addps		%xmm2, %xmm8
-	addps		%xmm3, %xmm0
-	addps		%xmm6, %xmm12
-	addps		%xmm7, %xmm4
+	movlhps		%xmm10, %xmm8
+	movhlps		%xmm2, %xmm10
+	movlhps		%xmm1, %xmm0
+	movhlps		%xmm3, %xmm1
+	movlhps		%xmm14, %xmm12
+	movhlps		%xmm6, %xmm14
+	movlhps		%xmm5, %xmm4
+	movhlps		%xmm7, %xmm5
+	addps		%xmm10, %xmm8
+	addps		%xmm1, %xmm0
+	addps		%xmm14, %xmm12
+	addps		%xmm5, %xmm4
 	addps		%xmm8, %xmm0
 	addps		%xmm12, %xmm4
 	

@@ -107,33 +107,33 @@ loop_start_1:
 	paddd		%xmm3, %xmm11
 	
 	movaps		%xmm0, %xmm1
-	movaps		%xmm2, %xmm3
+	movaps		%xmm4, %xmm3
 	movaps		%xmm8, %xmm5
-	movaps		%xmm10, %xmm7
-	punpckldq	%xmm4, %xmm0
-	punpckldq	%xmm6, %xmm2
-	punpckhdq	%xmm4, %xmm1
-	punpckhdq	%xmm6, %xmm3
-	punpckldq	%xmm9, %xmm8
-	punpckldq	%xmm11, %xmm10
-	punpckhdq	%xmm9, %xmm5
-	punpckhdq	%xmm11, %xmm7
-	movaps		%xmm0, %xmm4
-	movaps		%xmm1, %xmm6
-	movaps		%xmm8, %xmm9
-	movaps		%xmm5, %xmm11
+	movaps		%xmm9, %xmm7
 	punpckldq	%xmm2, %xmm0
-	punpckhdq	%xmm2, %xmm4
-	punpckldq	%xmm3, %xmm1
-	punpckhdq	%xmm3, %xmm6
+	punpckldq	%xmm6, %xmm4
+	punpckhdq	%xmm2, %xmm1
+	punpckhdq	%xmm6, %xmm3
 	punpckldq	%xmm10, %xmm8
-	punpckhdq	%xmm10, %xmm9
-	punpckldq	%xmm7, %xmm5
-	punpckhdq	%xmm7, %xmm11
+	punpckldq	%xmm11, %xmm9
+	punpckhdq	%xmm10, %xmm5
+	punpckhdq	%xmm11, %xmm7
+	movaps		%xmm0, %xmm2
+	movaps		%xmm1, %xmm6
+	movaps		%xmm8, %xmm10
+	movaps		%xmm5, %xmm11
+	movlhps		%xmm4, %xmm0
+	movhlps		%xmm2, %xmm4
+	movlhps		%xmm3, %xmm1
+	movhlps		%xmm6, %xmm3
+	movlhps		%xmm9, %xmm8
+	movhlps		%xmm10, %xmm9
+	movlhps		%xmm7, %xmm5
+	movhlps		%xmm11, %xmm7
 	paddd		%xmm4, %xmm0
-	paddd		%xmm6, %xmm1
+	paddd		%xmm3, %xmm1
 	paddd		%xmm9, %xmm8
-	paddd		%xmm11, %xmm5
+	paddd		%xmm7, %xmm5
 	paddd		%xmm1, %xmm0
 	paddd		%xmm5, %xmm8
 	psrad		$13, %xmm0
@@ -214,33 +214,33 @@ loop_start_2:
 	paddd		%xmm3, %xmm11
 	
 	movaps		%xmm0, %xmm1
-	movaps		%xmm2, %xmm3
+	movaps		%xmm4, %xmm3
 	movaps		%xmm8, %xmm5
-	movaps		%xmm10, %xmm7
-	punpckldq	%xmm4, %xmm0
-	punpckldq	%xmm6, %xmm2
-	punpckhdq	%xmm4, %xmm1
-	punpckhdq	%xmm6, %xmm3
-	punpckldq	%xmm9, %xmm8
-	punpckldq	%xmm11, %xmm10
-	punpckhdq	%xmm9, %xmm5
-	punpckhdq	%xmm11, %xmm7
-	movaps		%xmm0, %xmm4
-	movaps		%xmm1, %xmm6
-	movaps		%xmm8, %xmm9
-	movaps		%xmm5, %xmm11
+	movaps		%xmm9, %xmm7
 	punpckldq	%xmm2, %xmm0
-	punpckhdq	%xmm2, %xmm4
-	punpckldq	%xmm3, %xmm1
-	punpckhdq	%xmm3, %xmm6
+	punpckldq	%xmm6, %xmm4
+	punpckhdq	%xmm2, %xmm1
+	punpckhdq	%xmm6, %xmm3
 	punpckldq	%xmm10, %xmm8
-	punpckhdq	%xmm10, %xmm9
-	punpckldq	%xmm7, %xmm5
-	punpckhdq	%xmm7, %xmm11
+	punpckldq	%xmm11, %xmm9
+	punpckhdq	%xmm10, %xmm5
+	punpckhdq	%xmm11, %xmm7
+	movaps		%xmm0, %xmm2
+	movaps		%xmm1, %xmm6
+	movaps		%xmm8, %xmm10
+	movaps		%xmm5, %xmm11
+	movlhps		%xmm4, %xmm0
+	movhlps		%xmm2, %xmm4
+	movlhps		%xmm3, %xmm1
+	movhlps		%xmm6, %xmm3
+	movlhps		%xmm9, %xmm8
+	movhlps		%xmm10, %xmm9
+	movlhps		%xmm7, %xmm5
+	movhlps		%xmm11, %xmm7
 	paddd		%xmm4, %xmm0
-	paddd		%xmm6, %xmm1
+	paddd		%xmm3, %xmm1
 	paddd		%xmm9, %xmm8
-	paddd		%xmm11, %xmm5
+	paddd		%xmm7, %xmm5
 	paddd		%xmm1, %xmm0
 	paddd		%xmm5, %xmm8
 	psrad		$13, %xmm0

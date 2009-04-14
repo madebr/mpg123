@@ -106,19 +106,19 @@ loop_start_1:
 	leaq		128(ARG1), ARG1
 	
 	movaps		%xmm8, %xmm0
-	movaps		%xmm9, %xmm1
-	unpcklps	%xmm10, %xmm8
-	unpcklps	%xmm11, %xmm9
-	unpckhps	%xmm10, %xmm0
+	movaps		%xmm10, %xmm1
+	unpcklps	%xmm9, %xmm8
+	unpcklps	%xmm11, %xmm10
+	unpckhps	%xmm9, %xmm0
 	unpckhps	%xmm11, %xmm1
 	movaps		%xmm8, %xmm2
 	movaps		%xmm0, %xmm3
-	unpcklps	%xmm9, %xmm8
-	unpckhps	%xmm9, %xmm2
-	unpcklps	%xmm1, %xmm0
-	unpckhps	%xmm1, %xmm3
-	subps		%xmm2, %xmm8
-	subps		%xmm3, %xmm0
+	movlhps		%xmm10, %xmm8
+	movhlps		%xmm2, %xmm10
+	movlhps		%xmm1, %xmm0
+	movhlps		%xmm3, %xmm1
+	subps		%xmm10, %xmm8
+	subps		%xmm1, %xmm0
 	addps		%xmm8, %xmm0
 	
 	movups		(ARG2), %xmm1
@@ -192,19 +192,19 @@ loop_start_2:
 	leaq		-128(ARG1), ARG1
 	
 	movaps		%xmm8, %xmm0
-	movaps		%xmm9, %xmm1
-	unpcklps	%xmm10, %xmm8
-	unpcklps	%xmm11, %xmm9
-	unpckhps	%xmm10, %xmm0
+	movaps		%xmm10, %xmm1
+	unpcklps	%xmm9, %xmm8
+	unpcklps	%xmm11, %xmm10
+	unpckhps	%xmm9, %xmm0
 	unpckhps	%xmm11, %xmm1
 	movaps		%xmm8, %xmm2
 	movaps		%xmm0, %xmm3
-	unpcklps	%xmm9, %xmm8
-	unpckhps	%xmm9, %xmm2
-	unpcklps	%xmm1, %xmm0
-	unpckhps	%xmm1, %xmm3
-	addps		%xmm2, %xmm8
-	addps		%xmm3, %xmm0
+	movlhps		%xmm10, %xmm8
+	movhlps		%xmm2, %xmm10
+	movlhps		%xmm1, %xmm0
+	movhlps		%xmm3, %xmm1
+	addps		%xmm10, %xmm8
+	addps		%xmm1, %xmm0
 	addps		%xmm8, %xmm0
 	
 	movups		(ARG2), %xmm1
