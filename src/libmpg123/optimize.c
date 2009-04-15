@@ -226,6 +226,9 @@ static int find_dectype(mpg123_handle *fr)
 #endif /* 16bit */
 
 #ifndef NO_REAL
+#ifdef OPT_SSE
+	else if(basic_synth == synth_1to1_real_sse) type = sse;
+#endif
 #ifdef OPT_X86_64
 	else if(basic_synth == synth_1to1_real_x86_64) type = x86_64;
 #endif
@@ -452,6 +455,7 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 			fr->cpu_opts.type = sse;
 #			ifndef NO_16BIT
 			fr->synths.plain[r_1to1][f_16] = synth_1to1_sse;
+			fr->synths.plain[r_1to1][f_real] = synth_1to1_real_sse;
 #			endif
 			done = 1;
 		}

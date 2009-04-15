@@ -122,6 +122,7 @@ void ntom_set_ntom(mpg123_handle *fr, off_t num);
 /* The real-producing variants. */
 int synth_1to1_real            (real*, int, mpg123_handle*, int);
 int synth_1to1_real_i386       (real*, int, mpg123_handle*, int);
+int synth_1to1_real_sse        (real*, int, mpg123_handle*, int);
 int synth_1to1_real_x86_64     (real*, int, mpg123_handle*, int);
 int synth_1to1_real_stereo_x86_64(real*, real*, mpg123_handle*);
 int synth_1to1_real_altivec    (real*, int, mpg123_handle*, int);

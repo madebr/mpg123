@@ -140,6 +140,53 @@ int synth_1to1_real_stereo_x86_64(real *bandPtr_l, real *bandPtr_r, mpg123_handl
 }
 #endif
 
+#ifdef OPT_SSE
+/* Assembler routines. */
+int synth_1to1_real_sse_asm(real *window, real *b0, real *samples, int bo1);
+void dct64_real_sse(real *out0, real *out1, real *samples);
+/* Hull for C mpg123 API */
+int synth_1to1_real_sse(real *bandPtr,int channel, mpg123_handle *fr, int final)
+{
+	real *samples = (real *) (fr->buffer.data+fr->buffer.fill);
+
+	real *b0, **buf;
+	int bo1;
+
+	if(fr->have_eq_settings) do_equalizer(bandPtr,channel,fr->equalizer);
+
+	if(!channel)
+	{
+		fr->bo--;
+		fr->bo &= 0xf;
+		buf = fr->real_buffs[0];
+	}
+	else
+	{
+		samples++;
+		buf = fr->real_buffs[1];
+	}
+
+	if(fr->bo & 0x1)
+	{
+		b0 = buf[0];
+		bo1 = fr->bo;
+		dct64_real_sse(buf[1]+((fr->bo+1)&0xf),buf[0]+fr->bo,bandPtr);
+	}
+	else
+	{
+		b0 = buf[1];
+		bo1 = fr->bo+1;
+		dct64_real_sse(buf[0]+fr->bo,buf[1]+fr->bo+1,bandPtr);
+	}
+
+	synth_1to1_real_sse_asm(fr->decwin, b0, samples, bo1);
+
+	if(final) fr->buffer.fill += 256;
+
+	return 0;
+}
+#endif
+
 #ifndef NO_DOWNSAMPLE
 
 /*

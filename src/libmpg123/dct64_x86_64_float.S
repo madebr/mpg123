@@ -345,52 +345,45 @@ ASM_NAME(dct64_real_x86_64):
 	movss		%xmm2, 768(ARG1)
 	movss		%xmm3, 896(ARG1)
 	
-	movhlps		%xmm12, %xmm0
-	addss		%xmm14, %xmm12
-	addss		%xmm13, %xmm14
-	addss		%xmm15, %xmm13
-	addss		%xmm0, %xmm15
-	movss		%xmm12, 960(ARG0);
-	movss		%xmm14, 832(ARG0);
-	movss		%xmm13, 704(ARG0);
-	movss		%xmm15, 576(ARG0);
+	pshufd		$0x78, %xmm12, %xmm0
+	movaps		%xmm13, %xmm1
+	psrldq		$4, %xmm0
 	
+	addps		%xmm14, %xmm12
+	addps		%xmm15, %xmm13
+	addps		%xmm1, %xmm14
+	addps		%xmm0, %xmm15
+	
+	movss		%xmm12, 960(ARG0)
+	movss		%xmm14, 832(ARG0)
+	movss		%xmm13, 704(ARG0)
+	movss		%xmm15, 576(ARG0)
+	movhlps		%xmm12, %xmm0
 	movhlps		%xmm14, %xmm1
 	movhlps		%xmm13, %xmm2
 	movhlps		%xmm15, %xmm3
-	pshuflw		$0xee, %xmm12, %xmm4
-	addss		%xmm1, %xmm0
-	addss		%xmm2, %xmm1
-	addss		%xmm3, %xmm2
-	addss		%xmm4, %xmm3
-	movss		%xmm0, 448(ARG0);
-	movss		%xmm1, 320(ARG0);
-	movss		%xmm2, 192(ARG0);
-	movss		%xmm3, 64(ARG0);
+	movss		%xmm0, 448(ARG0)
+	movss		%xmm1, 320(ARG0)
+	movss		%xmm2, 192(ARG0)
+	movss		%xmm3, 64(ARG0)
 	
+	pshuflw		$0xee, %xmm12, %xmm4
 	pshuflw		$0xee, %xmm14, %xmm5
 	pshuflw		$0xee, %xmm13, %xmm6
 	pshuflw		$0xee, %xmm15, %xmm7
-	pshuflw		$0xee, %xmm0, %xmm0
-	addss		%xmm5, %xmm4
-	addss		%xmm6, %xmm5
-	addss		%xmm7, %xmm6
-	addss		%xmm0, %xmm7
-	movss		%xmm4, 64(ARG1);
-	movss		%xmm5, 192(ARG1);
-	movss		%xmm6, 320(ARG1);
-	movss		%xmm7, 448(ARG1);
+	movss		%xmm4, 64(ARG1)
+	movss		%xmm5, 192(ARG1)
+	movss		%xmm6, 320(ARG1)
+	movss		%xmm7, 448(ARG1)
 	
+	pshuflw		$0xee, %xmm0, %xmm0
 	pshuflw		$0xee, %xmm1, %xmm1
 	pshuflw		$0xee, %xmm2, %xmm2
 	pshuflw		$0xee, %xmm3, %xmm3
-	addss		%xmm1, %xmm0
-	addss		%xmm2, %xmm1
-	addss		%xmm3, %xmm2
-	movss		%xmm0, 576(ARG1);
-	movss		%xmm1, 704(ARG1);
-	movss		%xmm2, 832(ARG1);
-	movss		%xmm3, 960(ARG1);
+	movss		%xmm0, 576(ARG1)
+	movss		%xmm1, 704(ARG1)
+	movss		%xmm2, 832(ARG1)
+	movss		%xmm3, 960(ARG1)
 	
 	ret
 

@@ -167,8 +167,8 @@ void make_decode_tables(mpg123_handle *fr)
 		if(i % 64 == 63)
 		scaleval = - scaleval;
 	}
-#if defined(OPT_X86_64) || defined(OPT_ALTIVEC)
-	if(fr->cpu_opts.type == x86_64 || fr->cpu_opts.type == altivec)
+#if defined(OPT_X86_64) || defined(OPT_ALTIVEC) || defined(OPT_SSE)
+	if(fr->cpu_opts.type == x86_64 || fr->cpu_opts.type == altivec || fr->cpu_opts.type == sse)
 	{ /* for float SSE / AltiVec decoder */
 		for(i=512; i<512+32; i++)
 		{
