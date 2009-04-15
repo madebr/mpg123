@@ -97,6 +97,7 @@ EXTRA_libmpg123_la_SOURCES = \
 	synth_sse3d.h \
 	synth_sse.S \
 	synth_sse_float.S \
+	synth_stereo_sse_float.S \
 	synth_x86_64.S \
 	synth_x86_64_float.S \
 	synth_stereo_x86_64.S \

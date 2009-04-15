@@ -455,7 +455,10 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 			fr->cpu_opts.type = sse;
 #			ifndef NO_16BIT
 			fr->synths.plain[r_1to1][f_16] = synth_1to1_sse;
+#			endif
+#			ifndef NO_REAL
 			fr->synths.plain[r_1to1][f_real] = synth_1to1_real_sse;
+			fr->synths.stereo[r_1to1][f_real] = synth_1to1_real_stereo_sse;
 #			endif
 			done = 1;
 		}

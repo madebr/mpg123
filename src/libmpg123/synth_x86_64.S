@@ -62,7 +62,7 @@ ASM_NAME(synth_1to1_x86_64_asm):
 	movl		$4, %ecx
 	
 	ALIGN16
-loop_start_1:
+Loop_start_1:
 	movups		(ARG0), %xmm0
 	movups		16(ARG0), %xmm1
 	movups		64(ARG0), %xmm2
@@ -128,12 +128,12 @@ loop_start_1:
 	leaq		16(ARG2), ARG2
 	
 	decl		%ecx
-	jnz			loop_start_1
+	jnz			Loop_start_1
 	
 	movl		$4, %ecx
 	
 	ALIGN16
-loop_start_2:
+Loop_start_2:
 	movups		(ARG0), %xmm0
 	movups		16(ARG0), %xmm1
 	movups		64(ARG0), %xmm2
@@ -199,7 +199,7 @@ loop_start_2:
 	leaq		16(ARG2), ARG2
 	
 	decl		%ecx
-	jnz			loop_start_2
+	jnz			Loop_start_2
 	
 	pshuflw		$0xee, XMMREG_CLIP, %xmm0
 	movhlps		XMMREG_CLIP, %xmm1

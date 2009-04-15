@@ -53,7 +53,7 @@ ASM_NAME(synth_1to1_real_stereo_x86_64_asm):
 	movl		$4, %ecx
 	
 	ALIGN16
-loop_start_1:
+Loop_start_1:
 	movups		(WINDOW), %xmm8
 	movups		16(WINDOW), %xmm1
 	movups		32(WINDOW), %xmm2
@@ -196,12 +196,12 @@ loop_start_1:
 	
 	leaq		32(SAMPLES), SAMPLES
 	decl		%ecx
-	jnz			loop_start_1
+	jnz			Loop_start_1
 	
 	movl		$4, %ecx
 	
 	ALIGN16
-loop_start_2:
+Loop_start_2:
 	movups		(WINDOW), %xmm8
 	movups		16(WINDOW), %xmm1
 	movups		32(WINDOW), %xmm2
@@ -344,7 +344,7 @@ loop_start_2:
 	
 	leaq		32(SAMPLES), SAMPLES
 	decl		%ecx
-	jnz			loop_start_2
+	jnz			Loop_start_2
 	
 	xorl		%eax, %eax
 	
