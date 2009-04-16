@@ -127,7 +127,7 @@
 				FloatingPointModel="2"
 				RuntimeTypeInfo="false"
 				WarningLevel="3"
-				DebugInformationFormat="0"
+				DebugInformationFormat="3"
 				CompileAs="1"
 				DisableSpecificWarnings="4996"
 			/>
@@ -143,6 +143,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				OutputFile="$(SolutionDir)Release\$(ProjectName).dll"
+				GenerateDebugInformation="true"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -338,7 +339,7 @@
 				FloatingPointModel="2"
 				RuntimeTypeInfo="false"
 				WarningLevel="3"
-				DebugInformationFormat="0"
+				DebugInformationFormat="3"
 				CompileAs="1"
 				DisableSpecificWarnings="4996"
 			/>
@@ -411,7 +412,7 @@
 				FloatingPointModel="2"
 				RuntimeTypeInfo="false"
 				WarningLevel="3"
-				DebugInformationFormat="0"
+				DebugInformationFormat="3"
 				CompileAs="1"
 				DisableSpecificWarnings="4996"
 			/>
@@ -749,11 +750,11 @@
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
-				CommandLine="cl /I &quot;..\..&quot; /EP /TC &quot;$(ProjectDir)..\..\..\..\src\libmpg123\synth_sse.S&quot; /nologo &gt; &quot;$(ProjectDir)..\libmpg123\Release\synth_sse.asm&quot;&#x0D;&#x0A;yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o &quot;$(ProjectDir)..\libmpg123\Release\synth_sse.o&quot; &quot;$(ProjectDir)..\libmpg123\Release\synth_sse.asm&quot;&#x0D;&#x0A;&#x0D;&#x0A;cl /I &quot;..\..&quot; /EP /TC &quot;$(ProjectDir)..\..\..\..\src\libmpg123\dct64_sse.S&quot; /nologo &gt; &quot;$(ProjectDir)..\libmpg123\Release\dct64_sse.asm&quot;&#x0D;&#x0A;yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o &quot;$(ProjectDir)..\libmpg123\Release\dct64_sse.o&quot; &quot;$(ProjectDir)..\libmpg123\Release\dct64_sse.asm&quot;&#x0D;&#x0A;&#x0D;&#x0A;cl /I &quot;..\..&quot; /EP /TC &quot;$(ProjectDir)..\..\..\..\src\libmpg123\tabinit_mmx.S&quot; /nologo &gt; &quot;$(ProjectDir)..\libmpg123\Release\tabinit_mmx.asm&quot;&#x0D;&#x0A;yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o &quot;$(ProjectDir)..\libmpg123\Release\tabinit_mmx.o&quot; &quot;$(ProjectDir)..\libmpg123\Release\tabinit_mmx.asm&quot;&#x0D;&#x0A;&#x0D;&#x0A;cl /I &quot;..\..&quot; /EP /TC &quot;$(ProjectDir)..\..\..\..\src\libmpg123\dct64_mmx.S&quot; /nologo &gt; &quot;$(ProjectDir)..\libmpg123\Release\dct64_mmx.asm&quot;&#x0D;&#x0A;yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o &quot;$(ProjectDir)..\libmpg123\Release\dct64_mmx.o&quot; &quot;$(ProjectDir)..\libmpg123\Release\dct64_mmx.asm&quot;&#x0D;&#x0A;"
+				CommandLine="cl /I &quot;..\..&quot; /EP /TC &quot;$(ProjectDir)..\..\..\..\src\libmpg123\synth_sse.S&quot; /nologo &gt; &quot;$(ProjectDir)..\libmpg123\Release\synth_sse.asm&quot;&#x0D;&#x0A;yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o &quot;$(ProjectDir)..\libmpg123\Release\synth_sse.o&quot; &quot;$(ProjectDir)..\libmpg123\Release\synth_sse.asm&quot;&#x0D;&#x0A;&#x0D;&#x0A;cl /I &quot;..\..&quot; /EP /TC &quot;$(ProjectDir)..\..\..\..\src\libmpg123\dct64_sse.S&quot; /nologo &gt; &quot;$(ProjectDir)..\libmpg123\Release\dct64_sse.asm&quot;&#x0D;&#x0A;yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o &quot;$(ProjectDir)..\libmpg123\Release\dct64_sse.o&quot; &quot;$(ProjectDir)..\libmpg123\Release\dct64_sse.asm&quot;&#x0D;&#x0A;&#x0D;&#x0A;cl /I &quot;..\..&quot; /EP /TC &quot;$(ProjectDir)..\..\..\..\src\libmpg123\tabinit_mmx.S&quot; /nologo &gt; &quot;$(ProjectDir)..\libmpg123\Release\tabinit_mmx.asm&quot;&#x0D;&#x0A;yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o &quot;$(ProjectDir)..\libmpg123\Release\tabinit_mmx.o&quot; &quot;$(ProjectDir)..\libmpg123\Release\tabinit_mmx.asm&quot;&#x0D;&#x0A;&#x0D;&#x0A;cl /I &quot;..\..&quot; /EP /TC &quot;$(ProjectDir)..\..\..\..\src\libmpg123\dct64_mmx.S&quot; /nologo &gt; &quot;$(ProjectDir)..\libmpg123\Release\dct64_mmx.asm&quot;&#x0D;&#x0A;yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o &quot;$(ProjectDir)..\libmpg123\Release\dct64_mmx.o&quot; &quot;$(ProjectDir)..\libmpg123\Release\dct64_mmx.asm&quot;&#x0D;&#x0A;&#x0D;&#x0A;cl /I &quot;..\..&quot; /EP /TC &quot;$(ProjectDir)..\..\..\..\src\libmpg123\synth_stereo_sse_float.S&quot; /nologo &gt; &quot;$(ProjectDir)..\libmpg123\Release\synth_stereo_sse_float.asm&quot;&#x0D;&#x0A;yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o &quot;$(ProjectDir)..\libmpg123\Release\synth_stereo_sse_float.o&quot; &quot;$(ProjectDir)..\libmpg123\Release\synth_stereo_sse_float.asm&quot;&#x0D;&#x0A;&#x0D;&#x0A;cl /I &quot;..\..&quot; /EP /TC &quot;$(ProjectDir)..\..\..\..\src\libmpg123\dct64_sse_float.S&quot; /nologo &gt; &quot;$(ProjectDir)..\libmpg123\Release\dct64_sse_float.asm&quot;&#x0D;&#x0A;yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o &quot;$(ProjectDir)..\libmpg123\Release\dct64_sse_float.o&quot; &quot;$(ProjectDir)..\libmpg123\Release\dct64_sse_float.asm&quot;&#x0D;&#x0A;&#x0D;&#x0A;cl /I &quot;..\..&quot; /EP /TC &quot;$(ProjectDir)..\..\..\..\src\libmpg123\synth_sse_float.S&quot; /nologo &gt; &quot;$(ProjectDir)..\libmpg123\Release\synth_sse_float.asm&quot;&#x0D;&#x0A;yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o &quot;$(ProjectDir)..\libmpg123\Release\synth_sse_float.o&quot; &quot;$(ProjectDir)..\libmpg123\Release\synth_sse_float.asm&quot;&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dct64_mmx.o tabinit_mmx.o dct64_sse.o synth_sse.o"
+				AdditionalDependencies="dct64_mmx.o tabinit_mmx.o dct64_sse.o synth_sse.o synth_stereo_sse_float.o dct64_sse_float.o synth_sse_float.o"
 				OutputFile="$(SolutionDir)Release\$(ProjectName).dll"
 				AdditionalLibraryDirectories="&quot;$(ProjectDir)\Release&quot;"
 				GenerateDebugInformation="true"
@@ -782,6 +783,87 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				CommandLine=""
+			/>
+		</Configuration>
+		<Configuration
+			Name="Debug_SSE_Dll|Win32"
+			OutputDirectory="$(SolutionDir)Debug"
+			IntermediateDirectory="Debug"
+			ConfigurationType="2"
+			CharacterSet="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="../..;../../../../src/libmpg123"
+				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;OPT_SSE;_DEBUG;BUILD_MPG123_DLL"
+				MinimalRebuild="false"
+				ExceptionHandling="0"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				RuntimeTypeInfo="false"
+				WarningLevel="3"
+				WarnAsError="false"
+				DebugInformationFormat="3"
+				CompileAs="1"
+				DisableSpecificWarnings="4996"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+				CommandLine="cl /I &quot;..\..&quot; /EP /TC &quot;$(ProjectDir)..\..\..\..\src\libmpg123\synth_sse.S&quot; /nologo &gt; &quot;$(ProjectDir)..\libmpg123\Debug\synth_sse.asm&quot;&#x0D;&#x0A;yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o &quot;$(ProjectDir)..\libmpg123\Debug\synth_sse.o&quot; &quot;$(ProjectDir)..\libmpg123\Debug\synth_sse.asm&quot;&#x0D;&#x0A;&#x0D;&#x0A;cl /I &quot;..\..&quot; /EP /TC &quot;$(ProjectDir)..\..\..\..\src\libmpg123\dct64_sse.S&quot; /nologo &gt; &quot;$(ProjectDir)..\libmpg123\Debug\dct64_sse.asm&quot;&#x0D;&#x0A;yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o &quot;$(ProjectDir)..\libmpg123\Debug\dct64_sse.o&quot; &quot;$(ProjectDir)..\libmpg123\Debug\dct64_sse.asm&quot;&#x0D;&#x0A;&#x0D;&#x0A;cl /I &quot;..\..&quot; /EP /TC &quot;$(ProjectDir)..\..\..\..\src\libmpg123\tabinit_mmx.S&quot; /nologo &gt; &quot;$(ProjectDir)..\libmpg123\Debug\tabinit_mmx.asm&quot;&#x0D;&#x0A;yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o &quot;$(ProjectDir)..\libmpg123\Debug\tabinit_mmx.o&quot; &quot;$(ProjectDir)..\libmpg123\Debug\tabinit_mmx.asm&quot;&#x0D;&#x0A;&#x0D;&#x0A;cl /I &quot;..\..&quot; /EP /TC &quot;$(ProjectDir)..\..\..\..\src\libmpg123\dct64_mmx.S&quot; /nologo &gt; &quot;$(ProjectDir)..\libmpg123\Debug\dct64_mmx.asm&quot;&#x0D;&#x0A;yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o &quot;$(ProjectDir)..\libmpg123\Debug\dct64_mmx.o&quot; &quot;$(ProjectDir)..\libmpg123\Debug\dct64_mmx.asm&quot;&#x0D;&#x0A;&#x0D;&#x0A;cl /I &quot;..\..&quot; /EP /TC &quot;$(ProjectDir)..\..\..\..\src\libmpg123\synth_stereo_sse_float.S&quot; /nologo &gt; &quot;$(ProjectDir)..\libmpg123\Debug\synth_stereo_sse_float.asm&quot;&#x0D;&#x0A;yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o &quot;$(ProjectDir)..\libmpg123\Debug\synth_stereo_sse_float.o&quot; &quot;$(ProjectDir)..\libmpg123\Debug\synth_stereo_sse_float.asm&quot;&#x0D;&#x0A;&#x0D;&#x0A;cl /I &quot;..\..&quot; /EP /TC &quot;$(ProjectDir)..\..\..\..\src\libmpg123\dct64_sse_float.S&quot; /nologo &gt; &quot;$(ProjectDir)..\libmpg123\Debug\dct64_sse_float.asm&quot;&#x0D;&#x0A;yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o &quot;$(ProjectDir)..\libmpg123\Debug\dct64_sse_float.o&quot; &quot;$(ProjectDir)..\libmpg123\Debug\dct64_sse_float.asm&quot;&#x0D;&#x0A;&#x0D;&#x0A;cl /I &quot;..\..&quot; /EP /TC &quot;$(ProjectDir)..\..\..\..\src\libmpg123\synth_sse_float.S&quot; /nologo &gt; &quot;$(ProjectDir)..\libmpg123\Debug\synth_sse_float.asm&quot;&#x0D;&#x0A;yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o &quot;$(ProjectDir)..\libmpg123\Debug\synth_sse_float.o&quot; &quot;$(ProjectDir)..\libmpg123\Debug\synth_sse_float.asm&quot;&#x0D;&#x0A;"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="dct64_mmx.o tabinit_mmx.o dct64_sse.o synth_sse.o synth_stereo_sse_float.o dct64_sse_float.o synth_sse_float.o"
+				OutputFile="$(SolutionDir)Debug\$(ProjectName).dll"
+				AdditionalLibraryDirectories="&quot;$(ProjectDir)\Debug&quot;"
+				GenerateDebugInformation="true"
+				AssemblyDebug="1"
+				BaseAddress="0x63000000"
+				RandomizedBaseAddress="1"
+				FixedBaseAddress="2"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
 	</Configurations>
@@ -834,6 +916,13 @@
 			<FileConfiguration
 				Name="Release_Generic_Dll|Win32"
 				ExcludedFromBuild="true"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Debug_SSE_Dll|Win32"
 				>
 				<Tool
 					Name="VCCLCompilerTool"
@@ -917,6 +1006,14 @@
 			</FileConfiguration>
 			<FileConfiguration
 				Name="Release_SSE_Dll|Win32"
+				ExcludedFromBuild="true"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Debug_SSE_Dll|Win32"
 				ExcludedFromBuild="true"
 				>
 				<Tool
@@ -1149,6 +1246,14 @@
 			</FileConfiguration>
 			<FileConfiguration
 				Name="Release_SSE_Dll|Win32"
+				ExcludedFromBuild="true"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Debug_SSE_Dll|Win32"
 				ExcludedFromBuild="true"
 				>
 				<Tool
