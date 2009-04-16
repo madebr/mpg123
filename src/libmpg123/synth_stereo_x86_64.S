@@ -146,7 +146,7 @@ Loop_start_1:
 	punpckldq	%xmm8, %xmm0
 	punpckhdq	%xmm8, %xmm1
 	packssdw	%xmm1, %xmm0
-	movaps		%xmm0, (SAMPLES)
+	movups		%xmm0, (SAMPLES)
 	
 	pcmpgtd		XMMREG_MAX, %xmm2
 	pcmpgtd		XMMREG_MIN, %xmm3
@@ -253,7 +253,7 @@ Loop_start_2:
 	punpckldq	%xmm8, %xmm0
 	punpckhdq	%xmm8, %xmm1
 	packssdw	%xmm1, %xmm0
-	movaps		%xmm0, (SAMPLES)
+	movups		%xmm0, (SAMPLES)
 	
 	pcmpgtd		XMMREG_MAX, %xmm2
 	pcmpgtd		XMMREG_MIN, %xmm3

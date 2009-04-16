@@ -223,8 +223,8 @@ Loop_start_1:
 	movaps		%xmm5, %xmm1
 	unpcklps	%xmm0, %xmm5
 	unpckhps	%xmm0, %xmm1
-	movaps		%xmm5, (SAMPLES)
-	movaps		%xmm1, 16(SAMPLES)
+	movups		%xmm5, (SAMPLES)
+	movups		%xmm1, 16(SAMPLES)
 	
 	leal		32(SAMPLES), SAMPLES
 	decl		%ecx
@@ -396,8 +396,8 @@ Loop_start_2:
 	movaps		%xmm5, %xmm1
 	unpcklps	%xmm0, %xmm5
 	unpckhps	%xmm0, %xmm1
-	movaps		%xmm5, (SAMPLES)
-	movaps		%xmm1, 16(SAMPLES)
+	movups		%xmm5, (SAMPLES)
+	movups		%xmm1, 16(SAMPLES)
 	
 	leal		32(SAMPLES), SAMPLES
 	decl		%ecx
