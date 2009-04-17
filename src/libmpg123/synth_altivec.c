@@ -375,10 +375,11 @@ int synth_1to1_stereo_altivec(real *bandPtr_l, real *bandPtr_r, mpg123_handle *f
 		
 		ALIGNED(16) int clip_tmp[4];
 		vector float v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13;
-		vector unsigned char vperm1;
+		vector unsigned char vperm1,vperm2;
 		vector float vsum,vsum2,vsum3,vsum4,vsum5,vsum6,vsum7,vsum8,vmin,vmax,vzero;
 		vector signed int vclip;
 		vector unsigned int vshift;
+		vector signed short vprev;
 		vclip = vec_xor(vclip,vclip);
 		vzero = vec_xor(vzero,vzero);
 		vshift = vec_splat_u32(-1); /* 31 */
@@ -391,6 +392,8 @@ int synth_1to1_stereo_altivec(real *bandPtr_l, real *bandPtr_r, mpg123_handle *f
 #endif
 		
 		vperm1 = vec_lvsl(0,window);
+		vperm2 = vec_lvsr(0,samples);
+		vprev = vec_perm(vec_ld(0,samples),vec_ld(0,samples),vec_lvsl(0,samples));
 		for (j=4;j;j--)
 		{
 			v1 = vec_ld(0,window);
@@ -546,11 +549,13 @@ int synth_1to1_stereo_altivec(real *bandPtr_l, real *bandPtr_r, mpg123_handle *f
 			v3 = vec_mergeh(v1, v2);
 			v4 = vec_mergel(v1, v2);
 			v5 = (vector float)vec_packs((vector signed int)v3,(vector signed int)v4);
+			v6 = (vector float)vec_perm(vprev,(vector signed short)v5,vperm2);
+			vprev = (vector signed short)v5;
 			v1 = (vector float)vec_cmpgt(vsum,vmax);
 			v2 = (vector float)vec_cmplt(vsum,vmin);
 			v3 = (vector float)vec_cmpgt(vsum2,vmax);
 			v4 = (vector float)vec_cmplt(vsum2,vmin);
-			vec_st((vector signed short)v5,0,samples);
+			vec_st((vector signed short)v6,0,samples);
 			samples += 8;
 			
 			v1 = (vector float)vec_sr((vector unsigned int)v1, vshift);
@@ -718,11 +723,13 @@ int synth_1to1_stereo_altivec(real *bandPtr_l, real *bandPtr_r, mpg123_handle *f
 			v3 = vec_mergeh(v1, v2);
 			v4 = vec_mergel(v1, v2);
 			v5 = (vector float)vec_packs((vector signed int)v3,(vector signed int)v4);
+			v6 = (vector float)vec_perm(vprev,(vector signed short)v5,vperm2);
+			vprev = (vector signed short)v5;
 			v1 = (vector float)vec_cmpgt(vsum,vmax);
 			v2 = (vector float)vec_cmplt(vsum,vmin);
 			v3 = (vector float)vec_cmpgt(vsum2,vmax);
 			v4 = (vector float)vec_cmplt(vsum2,vmin);
-			vec_st((vector signed short)v5,0,samples);
+			vec_st((vector signed short)v6,0,samples);
 			samples += 8;
 			
 			v1 = (vector float)vec_sr((vector unsigned int)v1, vshift);
@@ -733,6 +740,13 @@ int synth_1to1_stereo_altivec(real *bandPtr_l, real *bandPtr_r, mpg123_handle *f
 			v2 = (vector float)vec_add((vector unsigned int)v3,(vector unsigned int)v4);
 			vclip = vec_sums((vector signed int)v1,vclip);
 			vclip = vec_sums((vector signed int)v2,vclip);
+		}
+		
+		if((size_t)samples & 0xf)
+		{
+			v1 = (vector float)vec_perm(vec_ld(0,samples),vec_ld(0,samples),vec_lvsl(0,samples));
+			v2 = (vector float)vec_perm(vprev,(vector signed short)v1,vperm2);
+			vec_st((vector signed short)v2,0,samples);
 		}
 
 		vec_st(vclip,0,clip_tmp);
@@ -1053,7 +1067,7 @@ int synth_1to1_real_altivec(real *bandPtr,int channel,mpg123_handle *fr, int fin
 
 int synth_1to1_real_stereo_altivec(real *bandPtr_l, real *bandPtr_r, mpg123_handle *fr)
 {
-	real *samples = (short *) (fr->buffer.data+fr->buffer.fill);
+	real *samples = (real *) (fr->buffer.data+fr->buffer.fill);
 	
 	real *b0l, *b0r, **bufl, **bufr;
 	int bo1;
@@ -1092,8 +1106,9 @@ int synth_1to1_real_stereo_altivec(real *bandPtr_l, real *bandPtr_r, mpg123_hand
 		real *window = fr->decwin + 16 - bo1;
 		
 		vector float v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13;
-		vector unsigned char vperm1;
+		vector unsigned char vperm1,vperm2;
 		vector float vsum,vsum2,vsum3,vsum4,vsum5,vsum6,vsum7,vsum8,vscale,vzero;
+		vector float vprev;
 		vzero = vec_xor(vzero,vzero);
 #ifdef __APPLE__
 		vscale = (vector float)(1.0f/32768.0f);
@@ -1102,6 +1117,8 @@ int synth_1to1_real_stereo_altivec(real *bandPtr_l, real *bandPtr_r, mpg123_hand
 #endif
 		
 		vperm1 = vec_lvsl(0,window);
+		vperm2 = vec_lvsr(0,samples);
+		vprev = vec_perm(vec_ld(0,samples),vec_ld(0,samples),vec_lvsl(0,samples));
 		for (j=4;j;j--)
 		{
 			v1 = vec_ld(0,window);
@@ -1256,8 +1273,11 @@ int synth_1to1_real_stereo_altivec(real *bandPtr_l, real *bandPtr_r, mpg123_hand
 			
 			v1 = vec_mergeh(vsum, vsum2);
 			v2 = vec_mergel(vsum, vsum2);
-			vec_st(v1,0,samples);
-			vec_st(v2,16,samples);
+			v3 = vec_perm(vprev,v1,vperm2);
+			v4 = vec_perm(v1,v2,vperm2);
+			vprev = v2;
+			vec_st(v3,0,samples);
+			vec_st(v4,16,samples);
 			samples += 8;
 		}
 		
@@ -1415,9 +1435,19 @@ int synth_1to1_real_stereo_altivec(real *bandPtr_l, real *bandPtr_r, mpg123_hand
 			
 			v1 = vec_mergeh(vsum, vsum2);
 			v2 = vec_mergel(vsum, vsum2);
-			vec_st(v1,0,samples);
-			vec_st(v2,16,samples);
+			v3 = vec_perm(vprev,v1,vperm2);
+			v4 = vec_perm(v1,v2,vperm2);
+			vprev = v2;
+			vec_st(v3,0,samples);
+			vec_st(v4,16,samples);
 			samples += 8;
+		}
+		
+		if((size_t)samples & 0xf)
+		{
+			v1 = (vector float)vec_perm(vec_ld(0,samples),vec_ld(0,samples),vec_lvsl(0,samples));
+			v2 = (vector float)vec_perm(vprev,(vector signed short)v1,vperm2);
+			vec_st((vector signed short)v2,0,samples);
 		}
 	}
 	fr->buffer.fill += 256;
