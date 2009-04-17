@@ -284,7 +284,7 @@ Loop_start_2:
 	paddw		%xmm2, %xmm0
 	paddw		%xmm3, %xmm0
 	
-	movd		XMMREG_CLIP, %eax
+	movd		%xmm0, %eax
 	andl		$0xffff, %eax
 	
 	ret
