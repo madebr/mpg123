@@ -211,36 +211,40 @@ int cdr_open(audio_output_t *ao)
 
 int wav_open(audio_output_t *ao)
 {
-   int bps;
+	int bps;
 
-   if(ao->format < 0) ao->format = MPG123_ENC_SIGNED_16;
+	if(ao->format < 0) ao->format = MPG123_ENC_SIGNED_16;
 
-   flipendian = 0;
+	flipendian = 0;
 
-   /* standard MS PCM, and its format specific is BitsPerSample */
-   long2littleendian(1,RIFF.WAVE.fmt.FormatTag,sizeof(RIFF.WAVE.fmt.FormatTag));
-   floatwav = 0;
-   if(ao->format == MPG123_ENC_FLOAT_32)
-   {
-     floatwav = 1;
-     long2littleendian(3,RIFF_FLOAT.WAVE.fmt.FormatTag,sizeof(RIFF_FLOAT.WAVE.fmt.FormatTag));
-     long2littleendian(bps=32,RIFF_FLOAT.WAVE.fmt.BitsPerSample,sizeof(RIFF_FLOAT.WAVE.fmt.BitsPerSample));
-     flipendian = testEndian();
-   }
-   else if(ao->format == MPG123_ENC_SIGNED_16) {
-      long2littleendian(bps=16,RIFF.WAVE.fmt.BitsPerSample,sizeof(RIFF.WAVE.fmt.BitsPerSample));
-      flipendian = testEndian();
-   }
-   else if(ao->format == MPG123_ENC_UNSIGNED_8)
-      long2littleendian(bps=8,RIFF.WAVE.fmt.BitsPerSample,sizeof(RIFF.WAVE.fmt.BitsPerSample));
-   else
-   {
-      error("Format not supported.");
-      return -1;
-   }
+	/* standard MS PCM, and its format specific is BitsPerSample */
+	long2littleendian(1,RIFF.WAVE.fmt.FormatTag,sizeof(RIFF.WAVE.fmt.FormatTag));
+	floatwav = 0;
+	if(ao->format == MPG123_ENC_FLOAT_32)
+	{
+		floatwav = 1;
+		long2littleendian(3,RIFF_FLOAT.WAVE.fmt.FormatTag,sizeof(RIFF_FLOAT.WAVE.fmt.FormatTag));
+		long2littleendian(bps=32,RIFF_FLOAT.WAVE.fmt.BitsPerSample,sizeof(RIFF_FLOAT.WAVE.fmt.BitsPerSample));
+		flipendian = testEndian();
+	}
+	else if(ao->format == MPG123_ENC_SIGNED_32) {
+		long2littleendian(bps=32,RIFF.WAVE.fmt.BitsPerSample,sizeof(RIFF.WAVE.fmt.BitsPerSample));
+		flipendian = testEndian();
+	}
+	else if(ao->format == MPG123_ENC_SIGNED_16) {
+		long2littleendian(bps=16,RIFF.WAVE.fmt.BitsPerSample,sizeof(RIFF.WAVE.fmt.BitsPerSample));
+		flipendian = testEndian();
+	}
+	else if(ao->format == MPG123_ENC_UNSIGNED_8)
+	long2littleendian(bps=8,RIFF.WAVE.fmt.BitsPerSample,sizeof(RIFF.WAVE.fmt.BitsPerSample));
+	else
+	{
+		error("Format not supported.");
+		return -1;
+	}
 
-   if(ao->rate < 0) ao->rate = 44100;
-   if(ao->channels < 0) ao->channels = 2;
+	if(ao->rate < 0) ao->rate = 44100;
+	if(ao->channels < 0) ao->channels = 2;
 
 	if(floatwav)
 	{

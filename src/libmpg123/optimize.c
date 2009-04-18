@@ -238,6 +238,15 @@ static int find_dectype(mpg123_handle *fr)
 
 #endif /* real */
 
+#ifndef NO_32BIT
+#ifdef OPT_X86_64
+	else if(basic_synth == synth_1to1_s32_x86_64) type = x86_64;
+#endif
+#ifdef OPT_ALTIVEC
+	else if(basic_synth == synth_1to1_s32_altivec) type = altivec;
+#endif
+#endif /* 32bit */
+
 #ifdef OPT_X86
 	else if(find_synth(basic_synth, plain_i386))
 	type = idrei;
@@ -364,6 +373,9 @@ int set_synth_functions(mpg123_handle *fr)
 	if(fr->cpu_opts.class == mmxsse
 #	ifndef NO_REAL
 	   && basic_format != f_real
+#	endif
+#	ifndef NO_32BIT
+	   && basic_format != f_32
 #	endif
 	  )
 	{
@@ -578,6 +590,10 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		fr->synths.plain[r_1to1][f_real] = synth_1to1_real_x86_64;
 		fr->synths.stereo[r_1to1][f_real] = synth_1to1_real_stereo_x86_64;
 #		endif
+#		ifndef NO_32BIT
+		fr->synths.plain[r_1to1][f_32] = synth_1to1_s32_x86_64;
+		fr->synths.stereo[r_1to1][f_32] = synth_1to1_s32_stereo_x86_64;
+#		endif
 		done = 1;
 	}
 #endif
@@ -610,6 +626,10 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 #		ifndef NO_REAL
 		fr->synths.plain[r_1to1][f_real] = synth_1to1_real_altivec;
 		fr->synths.stereo[r_1to1][f_real] = synth_1to1_real_stereo_altivec;
+#		endif
+#		ifndef NO_32BIT
+		fr->synths.plain[r_1to1][f_32] = synth_1to1_s32_altivec;
+		fr->synths.stereo[r_1to1][f_32] = synth_1to1_s32_stereo_altivec;
 #		endif
 		done = 1;
 	}
