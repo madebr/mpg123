@@ -146,10 +146,8 @@ Loop_start_1:
 	mulps		XMMREG_SCALE, %xmm0
 	cmpnleps	XMMREG_MAX, %xmm3
 	cmpltps		XMMREG_MIN, %xmm4
-	movaps		%xmm3, %xmm5
 	cvtps2dq	%xmm0, %xmm0
-	psrld		$31, %xmm5
-	psubd		%xmm5, %xmm0
+	xorps		%xmm3, %xmm0
 	shufps		$0xdd, %xmm2, %xmm1
 	movaps		%xmm0, %xmm2
 	unpcklps	%xmm1, %xmm0
@@ -245,10 +243,8 @@ Loop_start_2:
 	mulps		XMMREG_SCALE, %xmm0
 	cmpnleps	XMMREG_MAX, %xmm3
 	cmpltps		XMMREG_MIN, %xmm4
-	movaps		%xmm3, %xmm5
 	cvtps2dq	%xmm0, %xmm0
-	psrld		$31, %xmm5
-	psubd		%xmm5, %xmm0
+	xorps		%xmm3, %xmm0
 	shufps		$0xdd, %xmm2, %xmm1
 	movaps		%xmm0, %xmm2
 	unpcklps	%xmm1, %xmm0

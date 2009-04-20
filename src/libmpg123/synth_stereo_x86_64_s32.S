@@ -217,14 +217,10 @@ Loop_start_1:
 	cmpltps		XMMREG_MIN, %xmm3
 	cmpnleps	XMMREG_MAX, %xmm5
 	cmpltps		XMMREG_MIN, %xmm6
-	movaps		%xmm2, %xmm1
-	movaps		%xmm5, %xmm7
 	cvtps2dq	%xmm0, %xmm0
 	cvtps2dq	%xmm4, %xmm4
-	psrld		$31, %xmm1
-	psrld		$31, %xmm7
-	psubd		%xmm1, %xmm0
-	psubd		%xmm7, %xmm4
+	xorps		%xmm2, %xmm0
+	xorps		%xmm5, %xmm4
 	movaps		%xmm0, %xmm1
 	unpcklps	%xmm4, %xmm0
 	unpckhps	%xmm4, %xmm1
@@ -389,14 +385,10 @@ Loop_start_2:
 	cmpltps		XMMREG_MIN, %xmm3
 	cmpnleps	XMMREG_MAX, %xmm5
 	cmpltps		XMMREG_MIN, %xmm6
-	movaps		%xmm2, %xmm1
-	movaps		%xmm5, %xmm7
 	cvtps2dq	%xmm0, %xmm0
 	cvtps2dq	%xmm4, %xmm4
-	psrld		$31, %xmm1
-	psrld		$31, %xmm7
-	psubd		%xmm1, %xmm0
-	psubd		%xmm7, %xmm4
+	xorps		%xmm2, %xmm0
+	xorps		%xmm5, %xmm4
 	movaps		%xmm0, %xmm1
 	unpcklps	%xmm4, %xmm0
 	unpckhps	%xmm4, %xmm1
