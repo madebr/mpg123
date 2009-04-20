@@ -18,7 +18,7 @@
 #define ARG3 %ecx
 
 #define XMMREG_SCALE %xmm15  /* {65536.0, 65536.0, 65536.0, 65536.0} */
-#define XMMREG_MAX %xmm14  /* {32767.0, 32767.0, 32767.0, 32767.0} */
+#define XMMREG_MAX %xmm14  /* {32767.999, 32767.999, 32767.999, 32767.999} */
 #define XMMREG_MIN %xmm13  /* {-32768.0, -32768.0, -32768.0, -32768.0} */
 #define XMMREG_CLIP %xmm12
 
@@ -40,10 +40,10 @@ ASM_NAME(scale_s32):
 	.long   1199570944
 	ALIGN16
 ASM_NAME(maxmin_s32):
-	.long   1191181824
-	.long   1191181824
-	.long   1191181824
-	.long   1191181824
+	.long   1191182335
+	.long   1191182335
+	.long   1191182335
+	.long   1191182335
 	.long   -956301312
 	.long   -956301312
 	.long   -956301312
@@ -143,12 +143,13 @@ Loop_start_1:
 	movups		16(ARG2), %xmm2
 	movaps		%xmm0, %xmm3
 	movaps		%xmm0, %xmm4
-	minps		XMMREG_MAX, %xmm0
-	maxps		XMMREG_MIN, %xmm0
 	mulps		XMMREG_SCALE, %xmm0
 	cmpnleps	XMMREG_MAX, %xmm3
 	cmpltps		XMMREG_MIN, %xmm4
+	movaps		%xmm3, %xmm5
 	cvtps2dq	%xmm0, %xmm0
+	psrld		$31, %xmm5
+	psubd		%xmm5, %xmm0
 	shufps		$0xdd, %xmm2, %xmm1
 	movaps		%xmm0, %xmm2
 	unpcklps	%xmm1, %xmm0
@@ -241,12 +242,13 @@ Loop_start_2:
 	movups		16(ARG2), %xmm2
 	movaps		%xmm0, %xmm3
 	movaps		%xmm0, %xmm4
-	minps		XMMREG_MAX, %xmm0
-	maxps		XMMREG_MIN, %xmm0
 	mulps		XMMREG_SCALE, %xmm0
 	cmpnleps	XMMREG_MAX, %xmm3
 	cmpltps		XMMREG_MIN, %xmm4
+	movaps		%xmm3, %xmm5
 	cvtps2dq	%xmm0, %xmm0
+	psrld		$31, %xmm5
+	psubd		%xmm5, %xmm0
 	shufps		$0xdd, %xmm2, %xmm1
 	movaps		%xmm0, %xmm2
 	unpcklps	%xmm1, %xmm0

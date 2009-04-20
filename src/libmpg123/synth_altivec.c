@@ -810,12 +810,12 @@ int synth_1to1_s32_altivec(real *bandPtr,int channel,mpg123_handle *fr, int fina
 		vclip = vec_xor(vclip, vclip);
 		vshift = vec_splat_u32(-1); /* 31 */
 #ifdef __APPLE__
-		vmax = (vector float)(32767.0f);
+		vmax = (vector float)(32767.999f);
 		vmin = (vector float)(-32768.0f);
 		vperm4 = (vector unsigned char)(0,1,2,3,20,21,22,23,4,5,6,7,28,29,30,31);
 		vperm5 = (vector unsigned char)(8,9,10,11,20,21,22,23,12,13,14,15,28,29,30,31);
 #else
-		vmax = (vector float){32767.0f,32767.0f,32767.0f,32767.0f};
+		vmax = (vector float){32767.999f,32767.999f,32767.999f,32767.999f};
 		vmin = (vector float){-32768.0f,-32768.0f,-32768.0f,-32768.0f};
 		vperm4 = (vector unsigned char){0,1,2,3,20,21,22,23,4,5,6,7,28,29,30,31};
 		vperm5 = (vector unsigned char){8,9,10,11,20,21,22,23,12,13,14,15,28,29,30,31};
@@ -953,10 +953,10 @@ int synth_1to1_s32_stereo_altivec(real *bandPtr_l, real *bandPtr_r, mpg123_handl
 		vclip = vec_xor(vclip, vclip);
 		vshift = vec_splat_u32(-1); /* 31 */
 #ifdef __APPLE__
-		vmax = (vector float)(32767.0f);
+		vmax = (vector float)(32767.999f);
 		vmin = (vector float)(-32768.0f);
 #else
-		vmax = (vector float){32767.0f,32767.0f,32767.0f,32767.0f};
+		vmax = (vector float){32767.999f,32767.999f,32767.999f,32767.999f};
 		vmin = (vector float){-32768.0f,-32768.0f,-32768.0f,-32768.0f};
 #endif
 		

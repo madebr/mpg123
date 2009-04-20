@@ -18,7 +18,7 @@
 #define SAMPLES %rdx
 
 #define XMMREG_SCALE (%r9)  /* {65536.0, 65536.0, 65536.0, 65536.0} */
-#define XMMREG_MAX (%r10)  /* {32767.0, 32767.0, 32767.0, 32767.0} */
+#define XMMREG_MAX (%r10)  /* {32767.999, 32767.999, 32767.999, 32767.999} */
 #define XMMREG_MIN (%r11)  /* {-32768.0, -32768.0, -32768.0, -32768.0} */
 #define TEMP_CLIP (%rsp)
 
@@ -40,10 +40,10 @@ ASM_NAME(scale_s32):
 	.long   1199570944
 	ALIGN16
 ASM_NAME(maxmin_s32):
-	.long   1191181824
-	.long   1191181824
-	.long   1191181824
-	.long   1191181824
+	.long   1191182335
+	.long   1191182335
+	.long   1191182335
+	.long   1191182335
 	.long   -956301312
 	.long   -956301312
 	.long   -956301312
@@ -211,24 +211,26 @@ Loop_start_1:
 	movaps		%xmm0, %xmm3
 	movaps		%xmm4, %xmm5
 	movaps		%xmm4, %xmm6
-	minps		XMMREG_MAX, %xmm0
-	maxps		XMMREG_MIN, %xmm0
-	minps		XMMREG_MAX, %xmm4
-	maxps		XMMREG_MIN, %xmm4
 	mulps		XMMREG_SCALE, %xmm0
 	mulps		XMMREG_SCALE, %xmm4
+	cmpnleps	XMMREG_MAX, %xmm2
+	cmpltps		XMMREG_MIN, %xmm3
+	cmpnleps	XMMREG_MAX, %xmm5
+	cmpltps		XMMREG_MIN, %xmm6
+	movaps		%xmm2, %xmm1
+	movaps		%xmm5, %xmm7
 	cvtps2dq	%xmm0, %xmm0
 	cvtps2dq	%xmm4, %xmm4
+	psrld		$31, %xmm1
+	psrld		$31, %xmm7
+	psubd		%xmm1, %xmm0
+	psubd		%xmm7, %xmm4
 	movaps		%xmm0, %xmm1
 	unpcklps	%xmm4, %xmm0
 	unpckhps	%xmm4, %xmm1
 	movups		%xmm0, (SAMPLES)
 	movups		%xmm1, 16(SAMPLES)
 	
-	cmpnleps	XMMREG_MAX, %xmm2
-	cmpltps		XMMREG_MIN, %xmm3
-	cmpnleps	XMMREG_MAX, %xmm5
-	cmpltps		XMMREG_MIN, %xmm6
 	packssdw	%xmm5, %xmm2
 	packssdw	%xmm6, %xmm3
 	psrlw		$15, %xmm2
@@ -381,24 +383,26 @@ Loop_start_2:
 	movaps		%xmm0, %xmm3
 	movaps		%xmm4, %xmm5
 	movaps		%xmm4, %xmm6
-	minps		XMMREG_MAX, %xmm0
-	maxps		XMMREG_MIN, %xmm0
-	minps		XMMREG_MAX, %xmm4
-	maxps		XMMREG_MIN, %xmm4
 	mulps		XMMREG_SCALE, %xmm0
 	mulps		XMMREG_SCALE, %xmm4
+	cmpnleps	XMMREG_MAX, %xmm2
+	cmpltps		XMMREG_MIN, %xmm3
+	cmpnleps	XMMREG_MAX, %xmm5
+	cmpltps		XMMREG_MIN, %xmm6
+	movaps		%xmm2, %xmm1
+	movaps		%xmm5, %xmm7
 	cvtps2dq	%xmm0, %xmm0
 	cvtps2dq	%xmm4, %xmm4
+	psrld		$31, %xmm1
+	psrld		$31, %xmm7
+	psubd		%xmm1, %xmm0
+	psubd		%xmm7, %xmm4
 	movaps		%xmm0, %xmm1
 	unpcklps	%xmm4, %xmm0
 	unpckhps	%xmm4, %xmm1
 	movups		%xmm0, (SAMPLES)
 	movups		%xmm1, 16(SAMPLES)
 	
-	cmpnleps	XMMREG_MAX, %xmm2
-	cmpltps		XMMREG_MIN, %xmm3
-	cmpnleps	XMMREG_MAX, %xmm5
-	cmpltps		XMMREG_MIN, %xmm6
 	packssdw	%xmm5, %xmm2
 	packssdw	%xmm6, %xmm3
 	psrlw		$15, %xmm2
