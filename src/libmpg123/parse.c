@@ -602,6 +602,10 @@ init_resync:
 		{
 			long try = 0;
 			long limit = fr->p.resync_limit;
+			
+			/* If a resync is needed the bitreservoir of previous frames is no longer valid */
+			fr->bitreservoir = 0;
+
 			/* TODO: make this more robust, I'd like to cat two mp3 fragments together (in a dirty way) and still have mpg123 beign able to decode all it somehow. */
 			if(NOQUIET && fr->silent_resync == 0) fprintf(stderr, "Note: Trying to resync...\n");
 			/* Read more bytes until we find something that looks
@@ -612,7 +616,7 @@ init_resync:
 			do
 			{
 				++try;
-				if(limit >= 0 && try >= limit) break;
+				if(limit >= 0 && try >= limit) break;				
 
 				if((ret=fr->rd->head_shift(fr,&newhead)) <= 0)
 				{
