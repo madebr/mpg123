@@ -10,7 +10,8 @@
 #include "getcpuflags.h"
 #include "debug.h"
 
-#define IGNORESHIFT 2
+/* That number is empirically determined, I indeed have layer 3 files that need that many leading frames on some places (Metal music helps!). */
+#define IGNORESHIFT 9
 
 static void frame_fixed_reset(mpg123_handle *fr);
 
