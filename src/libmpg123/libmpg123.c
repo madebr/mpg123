@@ -630,10 +630,16 @@ static int get_next_frame(mpg123_handle *mh)
 		}
 		/* Now some accounting: Look at the numbers and decide if we want this frame. */
 		++mh->playnum;
+		/* Plain skipping without decoding, only when frame is not ignored on next cycle. */
 		if(mh->num < mh->firstframe || (mh->p.doublespeed && (mh->playnum % mh->p.doublespeed)))
 		{
-			frame_skip(mh);
+			if(!(mh->to_ignore && mh->num < mh->firstframe && mh->num >= mh->ignoreframe))
+			{
+				frame_skip(mh);
+				/* Should one fix NtoM here or not? NtoM with seeking is not repeatable sample accurate... */
+			}
 		}
+		/* Or, we are finally done and have a new frame. */
 		else break;
 	} while(1);
 	/* When we start actually using the CRC, this could move into the loop... */
