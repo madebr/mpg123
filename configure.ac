@@ -78,9 +78,8 @@ AC_INLINE
 
 dnl ############# Use Libtool for dynamic module loading
 
-LTDLDIR=
+modules=auto
 OUTPUT_OBJ="module.\$(OBJEXT)"
-dnl Enable building of the libltdl library
 AC_ARG_ENABLE(modules,
 [  --enable-modules=[no/yes] dynamically loadable output modules],
 [
@@ -95,7 +94,7 @@ AC_ARG_ENABLE(modules,
 	if test "x$be_static" = "xyes"; then
 		modules=disabled
 	else
-		modules=enabled
+		modules=auto
 	fi
 ])
 
@@ -110,26 +109,29 @@ else
 	AC_DEFINE(DYNAMIC_BUILD, 1, [ Define if building with dynamcally linked libmpg123])
 fi
 
+if test x"$modules" = xauto
+then
+	AC_CHECK_LIB( [ltdl], [lt_dlinit],
+		[ AC_CHECK_HEADER( [ltdl.h],
+			[
+				modules=enabled
+				LIBS="-lltdl $LIBS"
+				AC_DEFINE(HAVE_LTDL, 1, [ Define if libltdl is available ])
+			],
+			[ AC_MSG_WARN([Found ltdl library but NOT the header file on your system]) ] )
+		]
+	)
+fi
+
 if test x"$modules" = xdisabled
 then
-	echo "Modules disabled, not preparing libltdl"
+	echo "Modules disabled, not using libltdl"
 else
-LTDLDIR=libltdl
-AC_LIBLTDL_INSTALLABLE
-AC_DEFINE(HAVE_LTDL, 1, [ Define if LTDL library is available. ])
-
-dnl Check for dlopen support
-AC_LIBTOOL_DLOPEN
-
 # Enable module support in source code
 AC_DEFINE( USE_MODULES, 1, [Define if modules are enabled] )
 fi
 
 dnl Configure libtool
-
-dnl Hacks for libtool 1.5 to avoid unnecessary checks, check for removal on newer libtool that is smarter
-m4_defun([_LT_AC_LANG_CXX_CONFIG], [:])
-m4_defun([_LT_AC_LANG_F77_CONFIG], [:])
 
 AC_LIBTOOL_WIN32_DLL
 AM_PROG_LIBTOOL
@@ -137,20 +139,13 @@ AM_PROG_LIBTOOL
 if test x"$modules" = xdisabled
 then
 	echo "Modules still disabled..."
-	LIBLTDL=
-	LTDLINCL=
 	MODULE_OBJ="legacy_module.\$(OBJEXT)"
 else
 	MODULE_OBJ="module.\$(OBJEXT)"
-dnl Configure libltdl
-AC_CONFIG_SUBDIRS(libltdl)
 fi
 
 AM_CONDITIONAL( [HAVE_MODULES], [test "x$modules" = xenabled] )
 
-AC_SUBST(LTDLINCL)
-AC_SUBST(LIBLTDL)
-AC_SUBST(LTDLDIR)
 AC_SUBST(MODULE_OBJ)
 AC_SUBST(LT_LDFLAGS)
 
@@ -1692,9 +1687,7 @@ echo -n "
 # just an empty line
 echo
 
-if test x"$modules" = xenabled; then
-	echo "  Modules Directory ....... $pkglibdir"
-fi
+echo "  Modules ................. $modules"
 echo "  Checked audio modules ... $check_modules
   Detected audio support ..$output_modules
   Default output module ... $default_output_module
