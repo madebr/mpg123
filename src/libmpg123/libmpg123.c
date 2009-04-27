@@ -330,6 +330,10 @@ int attribute_align_arg mpg123_par(mpg123_pars *mp, enum mpg123_parms key, long 
 			ret = MPG123_NO_INDEX;
 #endif
 		break;
+		case MPG123_PREFRAMES:
+			if(val >= 0) mp->preframes = val;
+			else ret = MPG123_BAD_VALUE;
+		break;
 		default:
 			ret = MPG123_BAD_PARAM;
 	}
@@ -401,6 +405,9 @@ int attribute_align_arg mpg123_getpar(mpg123_pars *mp, enum mpg123_parms key, lo
 #else
 			*val = 0; /* graceful fallback: no index is index of zero size */
 #endif
+		break;
+		case MPG123_PREFRAMES:
+			*val = mp->preframes;
 		break;
 		default:
 			ret = MPG123_BAD_PARAM;
@@ -1410,6 +1417,7 @@ static const char *mpg123_error[] =
 	"Frame index operation failed.",
 	"Decoder setup failed (invalid combination of settings?)",
 	"Feature not in this build."
+	,"Some bad value has been provided."
 };
 
 const char* attribute_align_arg mpg123_plain_strerror(int errcode)

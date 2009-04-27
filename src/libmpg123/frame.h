@@ -73,6 +73,7 @@ struct mpg123_pars_struct
 	double outscale;
 	long resync_limit;
 	long index_size; /* Long, because: negative values have a meaning. */
+	long preframes;
 };
 
 

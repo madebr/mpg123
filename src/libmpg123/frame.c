@@ -10,9 +10,6 @@
 #include "getcpuflags.h"
 #include "debug.h"
 
-/* That number is empirically determined, I indeed have layer 3 files that need that many leading frames on some places (Metal music helps!). */
-#define IGNORESHIFT 9
-
 static void frame_fixed_reset(mpg123_handle *fr);
 
 /* that's doubled in decode_ntom.c */
@@ -47,6 +44,7 @@ void frame_default_pars(mpg123_pars *mp)
 #ifdef FRAME_INDEX
 	mp->index_size = INDEX_SIZE;
 #endif
+	mp->preframes = 13; /* On the safe side. That's Queensryche for you. */
 	mpg123_fmt_all(mp);
 }
 
@@ -419,7 +417,7 @@ static void frame_fixed_reset(mpg123_handle *fr)
 	fr->rva.peak[1] = 0;
 	fr->fsizeold = 0;
 	fr->firstframe = 0;
-	fr->ignoreframe = fr->firstframe-IGNORESHIFT;
+	fr->ignoreframe = fr->firstframe-fr->p.preframes;
 	fr->lastframe = -1;
 	fr->fresh = 1;
 	fr->new_format = 0;
@@ -718,7 +716,7 @@ void frame_set_frameseek(mpg123_handle *fr, off_t fe)
 		} else fr->lastoff = 0;
 	} else { fr->firstoff = fr->lastoff = 0; fr->lastframe = -1; }
 #endif
-	fr->ignoreframe = fr->lay == 3 ? fr->firstframe-IGNORESHIFT : fr->firstframe;
+	fr->ignoreframe = fr->lay == 3 ? fr->firstframe-fr->p.preframes : fr->firstframe;
 #ifdef GAPLESS
 	debug5("frame_set_frameseek: begin at %li frames and %li samples, end at %li and %li; ignore from %li",
 	       (long) fr->firstframe, (long) fr->firstoff,
@@ -744,7 +742,7 @@ void frame_set_seek(mpg123_handle *fr, off_t sp)
 #ifndef NO_NTOM
 	if(fr->down_sample == 3) ntom_set_ntom(fr, fr->firstframe);
 #endif
-	fr->ignoreframe = fr->lay == 3 ? fr->firstframe-IGNORESHIFT : fr->firstframe;
+	fr->ignoreframe = fr->lay == 3 ? fr->firstframe-fr->p.preframes : fr->firstframe;
 #ifdef GAPLESS /* The sample offset is used for non-gapless mode, too! */
 	fr->firstoff = sp - frame_outs(fr, fr->firstframe);
 	debug5("frame_set_seek: begin at %li frames and %li samples, end at %li and %li; ignore from %li",

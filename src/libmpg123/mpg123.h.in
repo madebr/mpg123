@@ -121,6 +121,7 @@ enum mpg123_parms
 	MPG123_REMOVE_FLAGS,   /**< remove some flags (inverse of MPG123_ADD_FLAGS, integer) */
 	MPG123_RESYNC_LIMIT,   /**< Try resync on frame parsing for that many bytes or until end of stream (<0 ... integer). */
 	MPG123_INDEX_SIZE      /**< Set the frame index size (if supported). Values <0 mean that the index is allowed to grow dynamically in these steps (in positive direction, of course) -- Use this when you really want a full index with every individual frame. */
+	,MPG123_PREFRAMES /**< Decode/ignore that many frames in advance for layer 3. This is needed to fill bit reservoir after seeking, for example (but also at least one frame in advance is needed to have all "normal" data for layer 3). Give a positive integer value, please.*/
 };
 
 /** Flag bits for MPG123_FLAGS, use the usual binary or to combine. */
@@ -220,6 +221,7 @@ enum mpg123_errors
 	MPG123_INDEX_FAIL,	/**< Something with frame index went wrong. */
 	MPG123_BAD_DECODER_SETUP,	/**< Something prevents a proper decoder setup */
 	MPG123_MISSING_FEATURE  /**< This feature has not been built into libmpg123. */
+	,MPG123_BAD_VALUE /**< A bad value has been given, somewhere. */
 };
 
 /** Return a string describing that error errcode means. */

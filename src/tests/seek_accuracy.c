@@ -16,6 +16,7 @@ enum theargs
 {
 	 arg_binname = 0
 	,arg_decoder
+	,arg_preframes
 	,arg_file
 	,arg_total
 };
@@ -37,6 +38,9 @@ int main(int argc, char **argv)
 	mpg123_init();
 	m = mpg123_new(argv[arg_decoder], NULL);
 	mpg123_param(m, MPG123_RESYNC_LIMIT, -1, 0);
+
+	if(mpg123_param(m, MPG123_PREFRAMES, atol(argv[arg_preframes]), 0) == MPG123_OK)
+	printf("Testing library with preframes set to %li\n", atol(argv[arg_preframes]));
 
 	filename = argv[arg_file];
 	ret = check_seeking();
