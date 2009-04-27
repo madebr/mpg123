@@ -438,6 +438,8 @@ EXPORT int mpg123_decode_frame(mpg123_handle *mh, off_t *num, unsigned char **au
  * - SEEK_END: set position to offset from end
  *
  * Note that sample-accurate seek only works when gapless support has been enabled at compile time; seek is frame-accurate otherwise.
+ * Also, really sample-accurate seeking (meaning that you get the identical sample value after seeking compared to plain decoding up to the position) is only guaranteed when you do not mess with the position code by using MPG123_UPSPEED, MPG123_DOWNSPEED or MPG123_START_FRAME. The first two mainly should cause trouble with NtoM resampling, but in any case with these options in effect, you have to keep in mind that the sample offset is not the same as counting the samples you get from decoding since mpg123 counts the skipped samples, too (or the samples played twice only once)!
+ * Short: When you care about the sample position, don't mess with those parameters;-)
  * Also, seeking is not guaranteed to work for all streams (underlying stream may not support it).
  *
  * @{

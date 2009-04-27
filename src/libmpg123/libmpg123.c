@@ -636,7 +636,8 @@ static int get_next_frame(mpg123_handle *mh)
 			if(!(mh->to_ignore && mh->num < mh->firstframe && mh->num >= mh->ignoreframe))
 			{
 				frame_skip(mh);
-				/* Should one fix NtoM here or not? NtoM with seeking is not repeatable sample accurate... */
+				/* Should one fix NtoM here or not?
+				   It is not work the trouble for doublespeed, but what with leading frames? */
 			}
 		}
 		/* Or, we are finally done and have a new frame. */
