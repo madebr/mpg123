@@ -181,7 +181,7 @@ ASM_NAME(synth_1to1_i586_asm_dither):
 	movl DITHERNOISE2,%edi
 	addl DITHERINDEX2,%edi	
 
-	fadd (%edi)
+	fadds (%edi)
 
 /* fistpl and popl as a unit keep the stack unchanged */
 	fistpl (%esp)
@@ -241,7 +241,7 @@ ASM_NAME(synth_1to1_i586_asm_dither):
 	movl DITHERNOISE2,%edi
 	addl DITHERINDEX2,%edi	
 
-	fadd (%edi)
+	fadds (%edi)
 /* fistpl and popl as a unit keep the stack unchanged */
 	fistpl (%esp)
 	popl %eax
@@ -335,7 +335,7 @@ ASM_NAME(synth_1to1_i586_asm_dither):
 	movl DITHERNOISE2,%edi
 	addl DITHERINDEX2,%edi	
 
-	fadd (%edi)
+	fadds (%edi)
 /* fistpl and popl as a unit keep the stack unchanged */
 	fistpl (%esp)
 	popl %eax
