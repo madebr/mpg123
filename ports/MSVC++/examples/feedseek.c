@@ -121,7 +121,7 @@ int _tmain(int argc, TCHAR **argv)
 		return -1;
 	}
 
-	mpg123_param(m, MPG123_VERBOSE, 2, 0);
+	mpg123_param(m, MPG123_VERBOSE, 4, 0);
 
 	ret = mpg123_param(m, MPG123_FLAGS, MPG123_FUZZY | MPG123_SEEKBUFFER | MPG123_GAPLESS, 0);
 	if(ret != MPG123_OK)
