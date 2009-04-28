@@ -150,7 +150,7 @@ static real pow1_1[2][16],pow2_1[2][16],pow1_2[2][16],pow2_2[2][16];
 #ifdef OPT_MMXORSSE
 real init_layer3_gainpow2_mmx(mpg123_handle *fr, int i)
 {
-	if(!fr->p.down_sample) return 16384.0 * pow((double)2.0,-0.25 * (double) (i+210) );
+	if(!fr->p.down_sample) return DOUBLE_TO_REAL(16384.0 * pow((double)2.0,-0.25 * (double) (i+210) ));
 	else return DOUBLE_TO_REAL(pow((double)2.0,-0.25 * (double) (i+210)));
 }
 #endif
