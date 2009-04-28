@@ -108,7 +108,6 @@ mpg123_build()
 	else
 		cp -v "$tmp/bin/libmpg123"*.dll "$tmp/include/mpg123.h" "$final/$name" &&
 		cp -v "src/libmpg123/.libs/libmpg123"*.dll.def "$final/$name" &&
-		cp -v libltdl/.libs/libltdl*.dll "$final/$name" && 
 		if test "$debug" = y; then
 			echo "Not stripping the debug build..."
 		else
@@ -144,4 +143,4 @@ mpg123_build ${decoder}_dither y n &&
 mpg123_build $decoder n n &&
 mpg123_build ${decoder}_dither n n &&
 mpg123_build $decoder n y &&
-echo "Hurray!" || echo "Bleh..."
+echo "Hurray! Note: Please do not forget to copy the libltdl DLL from MSYS to the dynamic build directories... " || echo "Bleh..."
