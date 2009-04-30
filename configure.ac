@@ -71,7 +71,8 @@ fi
 AM_PROG_AS
 AC_PROG_CC
 AC_PROG_INSTALL
-
+dnl "Checking for egrep is broken after removal of libltdl stuff... checks use $EGREP, so searching it here."
+AC_PROG_EGREP
 AC_C_CONST
 AC_INLINE
 
