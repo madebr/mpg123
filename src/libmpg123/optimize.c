@@ -442,6 +442,22 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 #		ifdef OPT_MULTI
 		debug2("standard flags: 0x%08x\textended flags: 0x%08x", cpu_flags.std, cpu_flags.ext);
 #		endif
+		#ifdef OPT_SSE
+		if(   !done && (auto_choose || want_dec == sse)
+		   && cpu_sse(cpu_flags) && cpu_mmx(cpu_flags) )
+		{
+			chosen = "SSE";
+			fr->cpu_opts.type = sse;
+#			ifndef NO_16BIT
+			fr->synths.plain[r_1to1][f_16] = synth_1to1_sse;
+#			endif
+#			ifndef NO_REAL
+			fr->synths.plain[r_1to1][f_real] = synth_1to1_real_sse;
+			fr->synths.stereo[r_1to1][f_real] = synth_1to1_real_stereo_sse;
+#			endif
+			done = 1;
+		}
+		#endif
 #		ifdef OPT_3DNOWEXT
 		if(   !done && (auto_choose || want_dec == dreidnowext )
 		   && cpu_3dnow(cpu_flags)
@@ -455,38 +471,6 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 #			endif
 #			ifndef NO_16BIT
 			fr->synths.plain[r_1to1][f_16] = synth_1to1_3dnowext;
-#			endif
-#			ifndef NO_REAL
-#			ifdef OPT_SSE
-			if(cpu_sse(cpu_flags))
-			{
-				/*
-					Use SSE opts for float decoding; both types are mmxsse, no pressing need to change cpu_opts.type .
-					AMD64 CPUs in 32bit mode seem to be a bit faster with SSE overall, but not the 32bit Athlons.
-					Though, the margin is tight... so perhaps we'll just make SSE the default. On the other hand,
-					when you got an AMD64 CPU, you can run 64bit mpg123! ;-)
-				*/
-				chosen = "3DNowExt+SSE";
-				fr->synths.plain[r_1to1][f_real] = synth_1to1_real_sse;
-				fr->synths.stereo[r_1to1][f_real] = synth_1to1_real_stereo_sse;
-			}
-#			endif
-#			endif
-			done = 1;
-		}
-		#endif
-		#ifdef OPT_SSE
-		if(   !done && (auto_choose || want_dec == sse)
-		   && cpu_sse(cpu_flags) && cpu_mmx(cpu_flags) )
-		{
-			chosen = "SSE";
-			fr->cpu_opts.type = sse;
-#			ifndef NO_16BIT
-			fr->synths.plain[r_1to1][f_16] = synth_1to1_sse;
-#			endif
-#			ifndef NO_REAL
-			fr->synths.plain[r_1to1][f_real] = synth_1to1_real_sse;
-			fr->synths.stereo[r_1to1][f_real] = synth_1to1_real_stereo_sse;
 #			endif
 			done = 1;
 		}
