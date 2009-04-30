@@ -70,6 +70,7 @@ fi
 
 AM_PROG_AS
 AC_PROG_CC
+AC_PROG_CPP
 AC_PROG_INSTALL
 dnl "Checking for egrep is broken after removal of libltdl stuff... checks use $EGREP, so searching it here."
 AC_PROG_EGREP
@@ -126,7 +127,7 @@ fi
 
 if test x"$modules" = xdisabled
 then
-	echo "Modules disabled, not using libltdl"
+	echo "Modules disabled."
 else
 # Enable module support in source code
 AC_DEFINE( USE_MODULES, 1, [Define if modules are enabled] )
@@ -600,6 +601,12 @@ fi
 dnl We apply alignment hints only to cpus that need it.
 dnl See further below for the definition of CCALIGN
 
+dnl ############## Really basic headers, needed for other checks.
+
+AC_HEADER_STDC
+dnl Is it too paranoid to specifically check for stdint.h and limits.h?
+AC_CHECK_HEADERS([stdio.h stdlib.h string.h unistd.h sched.h sys/ioctl.h sys/types.h stdint.h limits.h inttypes.h sys/time.h sys/wait.h sys/resource.h sys/signal.h signal.h])
+
 dnl ############## Types
 
 dnl Detect large file support, enable switches if needed.
@@ -699,9 +706,6 @@ fi
 
 dnl ############## Header and Library Checks
 
-AC_HEADER_STDC
-dnl Is it too paranoid to specifically check for stdint.h and limits.h?
-AC_CHECK_HEADERS([stdio.h stdlib.h string.h unistd.h sched.h sys/ioctl.h sys/types.h stdint.h limits.h inttypes.h sys/time.h sys/wait.h sys/resource.h sys/signal.h signal.h])
 # locale headers
 AC_CHECK_HEADERS([locale.h langinfo.h])
 # Headers for network (http) stuff
