@@ -13,7 +13,6 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libmpg123.pc
 
 EXTRA_DIST = \
-	MakeLegacy.sh \
 	libmpg123.pc.in \
 	mpg123.spec.in \
 	mpg123.spec \
