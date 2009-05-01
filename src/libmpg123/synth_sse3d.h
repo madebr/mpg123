@@ -81,7 +81,6 @@ SYNTH_NAME:
 	incl TEMP
 	leal 544(%esi),%esi
 	.L02:
-	emms
 	pushl 8(%ebp)
 	pushl %edx
 	pushl %ecx
