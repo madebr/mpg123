@@ -120,7 +120,14 @@ then
 				LIBS="-lltdl $LIBS"
 				AC_DEFINE(HAVE_LTDL, 1, [ Define if libltdl is available ])
 			],
-			[ AC_MSG_WARN([Found ltdl library but NOT the header file on your system]) ] )
+			[
+				modules=disabled
+				AC_MSG_WARN([Found ltdl library but NOT the header file on your system])
+			] )
+		],
+		[
+			modules=disabled
+			AC_MSG_WARN([ltdl library not found])
 		]
 	)
 fi
