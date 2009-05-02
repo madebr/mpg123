@@ -51,4 +51,6 @@ EXTRA_DIST = \
 	ports/Sony_PSP/README \
 	ports/Sony_PSP/Makefile.psp \
 	ports/Sony_PSP/readers.c.patch \
-	ports/mpg123_.pas
+	ports/mpg123_.pas \
+	scripts/benchmark-cpu.pl
+
