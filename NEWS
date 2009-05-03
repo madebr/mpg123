@@ -4,6 +4,18 @@
 - MPG123_MODDIR for changing module directory at runtime
 - code cleanup (signed/unsigned integer usage)
 
+1.7.3
+---
+  - Fix a regression introduced with the --doublespeed fix. Now seeking should be a lot smoother again.
+
+1.7.2
+---
+  - Fix a possible vulnerability in the ID3 code (negative encoding values).
+
+1.7.1
+---
+  - Just one fix for making the RVA switch in terminal and generic control mode work again (instead of plain silence).
+
 1.7.0
 ---
 - Lots of output format fun!
