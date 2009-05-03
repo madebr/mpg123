@@ -538,7 +538,7 @@ AC_ARG_WITH([default-audio], [
   --with-default-audio=esd        Use ESoundD as default audio output sub-system
   --with-default-audio=hp         Use HP as default audio output sub-system
   --with-default-audio=jack       Use JACK as default low-latency audio server
-  --with-default-audio=macosx     Use Mac OS X as default audio output sub-system (CoreAudio)
+  --with-default-audio=coreaudio  Use Mac OS X as default audio output sub-system (CoreAudio)
   --with-default-audio=mint       Use MinT as default audio output sub-system (Atari)
   --with-default-audio=nas        Use NAS as default audio output (Network Audio System)
   --with-default-audio=os2        Use OS2 as default audio output sub-system
