@@ -690,10 +690,10 @@ enum optdec dectype(const char* decoder)
 /* same number of entries as full list, but empty at beginning */
 static const char *mpg123_supported_decoder_list[] =
 {
-	#ifdef OPT_3DNOWEXT
+	#ifdef OPT_SSE
 	NULL,
 	#endif
-	#ifdef OPT_SSE
+	#ifdef OPT_3DNOWEXT
 	NULL,
 	#endif
 	#ifdef OPT_3DNOW
@@ -735,11 +735,11 @@ static const char *mpg123_supported_decoder_list[] =
 
 static const char *mpg123_decoder_list[] =
 {
-	#ifdef OPT_3DNOWEXT
-	dn_3DNowExt,
-	#endif
 	#ifdef OPT_SSE
 	dn_SSE,
+	#endif
+	#ifdef OPT_3DNOWEXT
+	dn_3DNowExt,
 	#endif
 	#ifdef OPT_3DNOW
 	dn_3DNow,
@@ -787,11 +787,11 @@ void check_decoders(void )
 	{
 		/* not yet: if(cpu_sse2(cpu_flags)) printf(" SSE2");
 		if(cpu_sse3(cpu_flags)) printf(" SSE3"); */
-#ifdef OPT_3DNOWEXT
-		if(cpu_3dnowext(cpu_flags)) *(d++) = decname[dreidnowext];
-#endif
 #ifdef OPT_SSE
 		if(cpu_sse(cpu_flags)) *(d++) = decname[sse];
+#endif
+#ifdef OPT_3DNOWEXT
+		if(cpu_3dnowext(cpu_flags)) *(d++) = decname[dreidnowext];
 #endif
 #ifdef OPT_3DNOW
 		if(cpu_3dnow(cpu_flags)) *(d++) = decname[dreidnow];
