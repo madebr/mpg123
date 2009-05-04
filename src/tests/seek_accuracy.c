@@ -11,6 +11,10 @@
 #include <mpg123.h>
 #include <compat.h>
 
+#define SAMPLES 1000
+/* Cannot use the const value as fixed array size:-( */
+const size_t samples = SAMPLES;
+
 /* Use getlopt.c in future? But heck, don't bloat. */
 enum theargs
 {
@@ -24,15 +28,20 @@ enum theargs
 const char* filename;
 int channels;
 mpg123_handle *m;
+size_t first_sample_errs = 0;
 
-int check_seeking();
+
+int check_seeking(size_t *errs);
 
 int main(int argc, char **argv)
 {
 	int ret = 0;
+	size_t errs[2] = {0, 0};
+	size_t errs_ntom[2] = {0, 0};
+
 	if(argc < arg_total)
 	{
-		fprintf(stderr, "\nUsage: %s <decoder> <mpeg audio file>\n\n", argv[0]);
+		fprintf(stderr, "\nUsage: %s <decoder> <preframes> <mpeg audio file>\n\n", argv[0]);
 		return -1;
 	}
 	mpg123_init();
@@ -43,19 +52,40 @@ int main(int argc, char **argv)
 	printf("Testing library with preframes set to %li\n", atol(argv[arg_preframes]));
 
 	filename = argv[arg_file];
-	ret = check_seeking();
+	ret = check_seeking(errs);
 
 	if(ret == 0)
 	{
 		printf("Now with NtoM resampling to 33333 Hz!");
 		mpg123_param(m, MPG123_FORCE_RATE, 33333, 0);
-		ret = check_seeking();
-		if(ret != 0)
-		printf("This libmpg123 is sample-accurate for normal decoding but _not_ for NtoM resampling!\n");
-		else
-		printf("Congratulations, all seeks were accurate!\n");
+		ret = check_seeking(errs_ntom);
 	}
-	else{ printf("This libmpg123 is _not_ sample-accurate for normal decoding!\n"); }
+	else fprintf(stderr, "Some failure occured! Unable to test properly!");
+
+	printf("\n");
+	printf("1to1 indexed seek errors: %"SIZE_P" / %"SIZE_P"\n", (size_p)errs[0],(size_p)samples);
+	printf("1to1 non-indexed seek errors: %"SIZE_P" / %"SIZE_P"\n", (size_p)errs[1],(size_p)samples);
+	printf("NtoM indexed seek errors: %"SIZE_P" / %"SIZE_P"\n", (size_p)errs_ntom[0],(size_p)samples);
+	printf("NtoM non-indexed seek errors: %"SIZE_P" / %"SIZE_P"\n", (size_p)errs_ntom[1],(size_p)samples);
+	printf("Errors in getting first sample again: %"SIZE_P"\n", first_sample_errs);
+	printf("\n");
+
+	if(ret == 0)
+	{
+
+		if(first_sample_errs == 0 && errs[0] == 0 && errs[1] == 0 && errs_ntom[0] == 0 && errs_ntom[1] == 0)
+		{
+			printf("Congratulations, all seeks were accurate!\n");
+			printf("But be warned: Not _all_ sample offsets have been tested. This result just means that the basic mechanism of sample-accurate seeking seems to work.\n");
+		}
+		else
+		{
+			printf("There have been some errors. For layer 3 files, this may be due to too low MPG123_PREFRAMES.\n");
+			ret = -1;
+		}
+
+	}
+	else fprintf(stderr, "Some bad failure during checking!\n");
 
 	mpg123_delete(m);
 	mpg123_exit();
@@ -85,7 +115,6 @@ int open_file()
 	Second mode: Check if this is identical to fresh decoding and seek (without frame index table)... less important now, focusing on the first one.
 */
 
-#define SAMPLES 1000
 struct seeko
 {
 	off_t position[SAMPLES];
@@ -96,14 +125,14 @@ struct seeko
 /* select some positions to check seek accuracy on */
 void fix_positions(struct seeko *so, off_t length)
 {
-	off_t step = (length-1)/(SAMPLES-1);
+	off_t step = (length-1)/(samples-1);
 	size_t i;
 	/* simple fixed stepping, in order (one could shuffle this) */
-	for(i=0; i<SAMPLES-1; ++i)
+	for(i=0; i<samples-1; ++i)
 	so->position[i] = i*step;
 
 	/* plus the last one! */
-	so->position[SAMPLES-1] = length-1;
+	so->position[samples-1] = length-1;
 }
 
 int collect(struct seeko *so)
@@ -136,9 +165,9 @@ int collect(struct seeko *so)
 			if(channels == 2)
 			so->right[posi] = buff[i+1];
 
-			if(++posi >= SAMPLES) break;
+			if(++posi >= samples) break;
 		}
-		if(posi >= SAMPLES) break;
+		if(posi >= samples) break;
 
 		pos_count += buffsamples;
 	}
@@ -180,23 +209,24 @@ int check_sample(struct seeko *so, size_t i)
 	return 0;
 }
 
-int check_positions(struct seeko *so)
+size_t check_positions(struct seeko *so)
 {
 	size_t i;
+	size_t errs = 0;
 	printf("Seeking and comparing...\n");
-	for(i=0; i<SAMPLES; ++i)
+	for(i=0; i<samples; ++i)
 	{
 		if(check_sample(so, i) != 0)
-		return -1;
+		++errs;
 	}
 	printf("Check the first one again, seeking back from the end.\n");
 	if(check_sample(so, 0) != 0)
-	return -1;
+	++first_sample_errs;
 
-	return 0;
+	return errs;
 }
 
-int check_seeking()
+int check_seeking(size_t *errs)
 {
 	struct seeko so;
 	int ret = 0;
@@ -208,13 +238,12 @@ int check_seeking()
 	ret = collect(&so);
 	if(ret != 0) return ret;
 
-	ret = check_positions(&so);
-	if(ret != 0) return ret;
+	errs[0] = check_positions(&so);
 
 	printf("With fresh opening (empty seek index):\n");
 	if(open_file() != 0) return -1;
 
-	ret = check_positions(&so);
+	errs[1] = check_positions(&so);
 
 	return ret;
 }
