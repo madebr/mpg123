@@ -3,6 +3,15 @@ Changes in libmpg123 libtool interface versions...
 18.0.18
 	- lots of news... got to re-trace the 15, 16, 17 versions, too...
 
+17.0.17
+
+
+16.0.16
+	- introducing floating point x86-64 SSE synth
+
+15.0.15
+	- first addition of x86-64 SSE optimizations
+
 14.0.14
 	- the first libmpg123 with actually working MPG123_UPSPEED
 	- also important regression fix concerning skipping of frames
