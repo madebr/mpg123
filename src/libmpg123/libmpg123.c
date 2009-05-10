@@ -1036,6 +1036,7 @@ static int do_the_seek(mpg123_handle *mh)
 		mh->to_decode = FALSE;
 		return MPG123_OK;
 	}
+	frame_buffers_reset(mh);
 #ifndef NO_NTOM
 	if(mh->down_sample == 3)
 	{
