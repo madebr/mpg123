@@ -44,7 +44,7 @@ void frame_default_pars(mpg123_pars *mp)
 #ifdef FRAME_INDEX
 	mp->index_size = INDEX_SIZE;
 #endif
-	mp->preframes = 13; /* On the safe side. That's Queensryche for you. */
+	mp->preframes = 3; /* Still open to debate. */
 	mpg123_fmt_all(mp);
 }
 
@@ -690,6 +690,12 @@ void frame_gapless_realinit(mpg123_handle *fr)
 }
 #endif
 
+static off_t ignoreframe(mpg123_handle *fr)
+{
+	/* Only layer 3 should need multiple frames decode-ahead? Am I seeing bugs? */
+	return fr->firstframe - fr->p.preframes; /* (fr->lay == 3 && fr->p.preframes > 1 ? fr->p.preframes : fr); */
+}
+
 /* The frame seek... This is not simply the seek to fe*spf(fr) samples in output because we think of _input_ frames here.
    Seek to frame offset 1 may be just seek to 200 samples offset in output since the beginning of first frame is delay/padding.
    Hm, is that right? OK for the padding stuff, but actually, should the decoder delay be better totally hidden or not?
@@ -716,7 +722,7 @@ void frame_set_frameseek(mpg123_handle *fr, off_t fe)
 		} else fr->lastoff = 0;
 	} else { fr->firstoff = fr->lastoff = 0; fr->lastframe = -1; }
 #endif
-	fr->ignoreframe = fr->lay == 3 ? fr->firstframe-fr->p.preframes : fr->firstframe;
+	fr->ignoreframe = ignoreframe(fr);
 #ifdef GAPLESS
 	debug5("frame_set_frameseek: begin at %li frames and %li samples, end at %li and %li; ignore from %li",
 	       (long) fr->firstframe, (long) fr->firstoff,
@@ -742,7 +748,7 @@ void frame_set_seek(mpg123_handle *fr, off_t sp)
 #ifndef NO_NTOM
 	if(fr->down_sample == 3) ntom_set_ntom(fr, fr->firstframe);
 #endif
-	fr->ignoreframe = fr->lay == 3 ? fr->firstframe-fr->p.preframes : fr->firstframe;
+	fr->ignoreframe = ignoreframe(fr);
 #ifdef GAPLESS /* The sample offset is used for non-gapless mode, too! */
 	fr->firstoff = sp - frame_outs(fr, fr->firstframe);
 	debug5("frame_set_seek: begin at %li frames and %li samples, end at %li and %li; ignore from %li",

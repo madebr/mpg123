@@ -245,5 +245,10 @@ int check_seeking(size_t *errs)
 
 	errs[1] = check_positions(&so);
 
+	printf("Another fresh Opening to see if first sample works:\n");
+	if(open_file() != 0) return -1;
+	if(check_sample(&so, 0) != 0)
+	++first_sample_errs;
+
 	return ret;
 }
