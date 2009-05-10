@@ -44,7 +44,7 @@ void frame_default_pars(mpg123_pars *mp)
 #ifdef FRAME_INDEX
 	mp->index_size = INDEX_SIZE;
 #endif
-	mp->preframes = 3; /* Still open to debate. */
+	mp->preframes = 4; /* That's good  for layer 3 ISO compliance bitstream. */
 	mpg123_fmt_all(mp);
 }
 
@@ -690,10 +690,16 @@ void frame_gapless_realinit(mpg123_handle *fr)
 }
 #endif
 
+/* Compute the needed frame to ignore from, for getting accurate/consistent output for intended firstframe. */
 static off_t ignoreframe(mpg123_handle *fr)
 {
-	/* Only layer 3 should need multiple frames decode-ahead? Am I seeing bugs? */
-	return fr->firstframe - fr->p.preframes; /* (fr->lay == 3 && fr->p.preframes > 1 ? fr->p.preframes : fr); */
+	off_t preshift = fr->p.preframes;
+	/* Layer 3 _really_ needs at least one frame before. */
+	if(fr->lay==3 && preshift < 1) preshift = 1;
+	/* Layer 1 & 2 reall do not need more than 2. */
+	if(fr->lay!=3 && preshift > 2) preshift = 2;
+
+	return fr->firstframe - preshift;
 }
 
 /* The frame seek... This is not simply the seek to fe*spf(fr) samples in output because we think of _input_ frames here.
