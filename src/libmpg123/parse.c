@@ -63,7 +63,6 @@
 	(still unsure about this private bit)
 */
 #define HDRCMPMASK 0xfffe0d00
-#define HDRCHANMASK 0xc0  /*      11000000, selecting II bits (channel mode) */
 #define HDRSAMPMASK 0xc00 /* 1100 00000000, FF bits (sample rate) */
 
 /* bitrates for [mpeg1/2][layer] */
@@ -390,6 +389,11 @@ static int check_lame_tag(mpg123_handle *fr)
 	return 0; /* no lame tag */
 }
 
+/* Just tell if the header is some mono. */
+static int header_mono(unsigned long newhead)
+{
+	return ((newhead>>6)&0x3) == MPG_MD_MONO ? TRUE : FALSE;
+}
 
 /*
 	That's a big one: read the next frame. 1 is success, <= 0 is some error
@@ -435,15 +439,14 @@ init_resync:
 	fr->header_change = 2; /* output format change is possible... */
 	if(fr->oldhead)        /* check a following header for change */
 	{
+		if(fr->oldhead == newhead) fr->header_change = 0;
+		else
 		/* If they have the same sample rate. Note that only is _not_ the case for the first header, as we enforce sample rate match for following frames.
 			 So, during one stream, only change of stereoness is possible and indicated by header_change == 2. */
 		if((fr->oldhead & HDRSAMPMASK) == (newhead & HDRSAMPMASK))
 		{
-			/* Now if both channel modes are mono... */
-			if( (fr->oldhead & HDRCHANMASK) == 0 && (newhead & HDRCHANMASK) == 0)
-			fr->header_change = 1;
-			/* ...or stereo (of sorts), then we have a small header change */
-			else if( (fr->oldhead & HDRCHANMASK) > 0 && (newhead & HDRCHANMASK) > 0)
+			/* Now if both channel modes are mono or both stereo, it's no big deal. */
+			if( header_mono(fr->oldhead) == header_mono(newhead))
 			fr->header_change = 1;
 		}
 	}
