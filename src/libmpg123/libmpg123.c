@@ -8,7 +8,6 @@
 
 #include "mpg123lib_intern.h"
 #include "icy2utf8.h"
-#include "getbits.h"
 #include "debug.h"
 
 #ifdef GAPLESS
