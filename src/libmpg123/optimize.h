@@ -72,15 +72,6 @@ enum optcla decclass(const enum optdec);
 #endif
 #endif
 
-/* Make sure we disable real and 32bit integer output for integer decoder. */
-#ifdef REAL_IS_FIXED
-/* Undef first in case it's defined to something specific already. */
-#undef NO_REAL
-#undef NO_32BIT
-#define NO_REAL
-#define NO_32BIT
-#endif
-
 #if (defined NO_LAYER1 && defined NO_LAYER2)
 #define NO_LAYER12
 #endif

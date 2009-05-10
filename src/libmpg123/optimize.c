@@ -85,9 +85,9 @@ char cpu_flags;
 #endif
 
 #ifndef NO_16BIT
-#	define OUT_SYNTHS(synth_16, synth_8, synth_real, synth_32) { synth_16, IF8(synth_real) IFREAL(synth_real) IF32(synth_32) }
+#	define OUT_SYNTHS(synth_16, synth_8, synth_real, synth_32) { synth_16, IF8(synth_8) IFREAL(synth_real) IF32(synth_32) }
 #else
-#	define OUT_SYNTHS(synth_16, synth_8, synth_real, synth_32) { IF8(synth_real) IFREAL(synth_real) IF32(synth_32) }
+#	define OUT_SYNTHS(synth_16, synth_8, synth_real, synth_32) { IF8(synth_8) IFREAL(synth_real) IF32(synth_32) }
 #endif
 
 const struct synth_s synth_base =
