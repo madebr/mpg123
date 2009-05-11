@@ -1,7 +1,7 @@
 Changes in libmpg123 libtool interface versions...
 
 18.0.18
-	- lots of news... got to re-trace the 15, 16, 17 versions, too...
+	- new parameter: MPG123_PREFRAMES is now tunable (the number of frames to decode and skip before a seek point), also default value increased
 
 17.0.17
 
