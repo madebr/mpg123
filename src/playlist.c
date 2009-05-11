@@ -108,6 +108,8 @@ char *get_next_file()
 		{
 			pl.pos = rando(pl.fill);
 		} while( pl.list[pl.pos].playcount && (pl.playcount - pl.list[pl.pos].playcount) <= pl.fill/2 );
+
+		newitem = &pl.list[pl.pos];
 	}
 
 	/* "-" is STDOUT, "" is dumb, NULL is nothing */
