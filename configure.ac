@@ -392,13 +392,6 @@ AC_ARG_ENABLE(16bit,
                 fi
               ], [])
 
-if test "x$int16" = "xdisabled"; then
-  AC_DEFINE(NO_16BIT, 1, [ Define to disable 16 bit integer output. ])
-else
-  DECODER_OBJ="$DECODER_OBJ synth.\$(OBJEXT)"
-  DECODER_LOBJ="$DECODER_LOBJ synth.lo"
-fi
-
 int8=enabled
 AC_ARG_ENABLE(8bit,
               [  --disable-8bit=[no/yes] no 8 bit integer output ],
@@ -407,6 +400,184 @@ AC_ARG_ENABLE(8bit,
                   int8="disabled"
                 fi
               ], [])
+
+int32=enabled
+AC_ARG_ENABLE(32bit,
+              [  --disable-32bit=[no/yes] no 32 bit integer output ],
+              [
+                if test "x$enableval" = xno; then
+                  int32="disabled"
+                fi
+              ], [])
+
+real=enabled
+AC_ARG_ENABLE(real,
+              [  --disable-real=[no/yes] no real (floating point) output ],
+              [
+                if test "x$enableval" = xno; then
+                  real="disabled"
+                fi
+              ], [])
+
+AC_ARG_WITH([cpu], [
+  --with-cpu=generic[_fpu]      Use generic processor code with floating point arithmetic
+  --with-cpu=generic_float      Plain alias to generic_fpu now... float output is a normal runtime option!
+  --with-cpu=generic_nofpu      Use generic processor code with fixed point arithmetic (p.ex. ARM, experimental)
+  --with-cpu=generic_dither     Use generic processor code with floating point arithmetic and dithering for 1to1 16bit decoding.
+  --with-cpu=i386[_fpu]         Use code optimized for i386 processors with floating point arithmetic
+  --with-cpu=i386_nofpu         Use code optimized for i386 processors with fixed point arithmetic (experimental)
+  --with-cpu=i486         Use code optimized for i486 processors (only usable alone!)
+  --with-cpu=i586         Use code optimized for i586 processors
+  --with-cpu=i586_dither  Use code optimized for i586 processors with dithering (noise shaping), adds 256K to binary size
+  --with-cpu=3dnow        Use code optimized for 3DNow processors
+  --with-cpu=3dnowext     Use code optimized for 3DNowExt processors (K6-3+, Athlon)
+  --with-cpu=3dnowext_alone     Really only 3DNowExt decoder, without 3DNow fallback for flexible rate
+  --with-cpu=mmx          Use code optimized for MMX processors
+  --with-cpu=mmx_alone          Really only MMX decoder, without i586 fallback for flexible rate
+  --with-cpu=sse          Use code optimized for SSE processors
+  --with-cpu=sse_alone          Really only SSE decoder, without i586 fallback for flexible rate
+  --with-cpu=x86          Pack all x86 opts into one binary (excluding i486 and dither)
+  --with-cpu=x86_dither   Pack all x86 opts into one binary (excluding i486, including dither)
+  --with-cpu=x86-64       Use code optimized for x86-64 processors (AMD64 and Intel64)
+  --with-cpu=x86-64_dither x86-64 code together with generic dithering (runtime selection)
+  --with-cpu=altivec      Use code optimized for Altivec processors (PowerPC G4 and G5)
+])
+
+case $target in
+  arm-*-linux*)
+    # check that... perhaps we are better off on arm with kernel math emulation
+    cpu_type="generic_nofpu"
+  ;;
+  i386-*-linux*|i386-*-kfreebsd*-gnu)
+    cpu_type="i386_fpu"
+  ;;
+  i486-*-linux*|i486-*-kfreebsd*-gnu)
+    cpu_type="i486"
+  ;;
+  i586-*-linux*|i586-*-kfreebsd*-gnu)
+    cpu_type="x86"
+  ;;
+  i686-*-linux*|i686-*-kfreebsd*-gnu)
+    cpu_type="x86"
+  ;;
+  x86_64-*-linux*|x86_64-*-kfreebsd*-gnu)
+    cpu_type="x86-64"
+  ;;
+  *-*-linux*|*-*-kfreebsd*-gnu)
+    cpu_type="generic_fpu"
+  ;;
+  i386-apple-darwin*)
+    cpu_type="x86"
+  ;;
+  x86_64-apple-darwin*)
+    cpu_type="x86-64"
+  ;;
+  *-apple-darwin*)
+    AC_MSG_CHECKING([if CPU type supports AltiVec])
+    case `machine` in
+      ppc7400 | ppc7450 | ppc970)
+        AC_MSG_RESULT([yes])
+        cpu_type="altivec"
+      ;;
+      *)
+        AC_MSG_RESULT([no])
+        cpu_type="generic_fpu"
+      ;;
+    esac
+  ;;
+  i?86-*-dragonfly* | i?86-*-freebsd* | i?86-*-midnightbsd* | i?86-*-mirbsd* | i?86-*-netbsd* | i?86-*-openbsd*)
+    cpu_type="x86"
+  ;;
+  x86_64-*-dragonfly* | x86_64-*-freebsd* | x86_64-*-midnightbsd* | x86_64-*-mirbsd* | x86_64-*-netbsd* | x86_64-*-openbsd*)
+    cpu_type="x86-64"
+  ;;
+  *-*-dragonfly* | *-*-freebsd* | *-*-midnightbsd* | *-*-mirbsd* | *-*-netbsd* | *-*-openbsd*)
+    cpu_type="generic_fpu"
+  ;;
+  *-*-solaris*)
+    cpu_type="generic_fpu"
+  ;;
+  *-dec-osf*)
+    cpu_type="generic_fpu"
+  ;;
+  x86_64-pc-cygwin*)
+    cpu_type="x86-64"
+  ;;
+  i686-pc-cygwin*)
+    cpu_type="x86"
+  ;;
+  i586-pc-cygwin*)
+    cpu_type="x86"
+  ;;
+  i486-pc-cygwin*)
+    cpu_type="i486"
+  ;;
+  i386-pc-cygwin*)
+    cpu_type="i386"
+  ;;
+  *-pc-cygwin*)
+    cpu_type="generic_fpu"
+  ;;
+  *-*-mingw32)
+    LIBS="$LIBS"
+    buffer=disabled
+    cpu_type="x86"
+  ;;
+	i386-*)
+		AC_MSG_WARN([Unknown target operating system])
+		cpu_type="i386"
+		buffer=disabled
+		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
+	;;
+	i486-*)
+		AC_MSG_WARN([Unknown target operating system])
+		cpu_type="i486"
+		buffer=disabled
+		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
+	;;
+	i586-*)
+		AC_MSG_WARN([Unknown target operating system])
+		cpu_type="i586"
+		buffer=disabled
+		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
+	;;
+	i686-*)
+		AC_MSG_WARN([Unknown target operating system])
+		cpu_type="x86"
+		buffer=disabled
+		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
+	;;
+	x86_64-*)
+		AC_MSG_WARN([Unknown target operating system])
+		cpu_type="x86-64"
+		buffer=disabled
+		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
+	;;
+  *)
+  	AC_MSG_WARN([Unknown target operating system])
+    cpu_type="generic_fpu"
+    buffer=disabled
+    ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
+  ;;
+esac
+
+
+dnl Did user choose other CPU type ?
+if test "x$with_cpu" != "x"; then
+	cpu_type=$with_cpu
+fi
+
+if test "x$cpu_type" = "xgeneric_nofpu"; then
+  real=disabled
+  int32=disabled
+fi
+
+if test "x$int16" = "xdisabled"; then
+  AC_DEFINE(NO_16BIT, 1, [ Define to disable 16 bit integer output. ])
+else
+  DECODER_OBJ="$DECODER_OBJ synth.\$(OBJEXT)"
+  DECODER_LOBJ="$DECODER_LOBJ synth.lo"
+fi
 
 # 8bit works only through 16bit
 if test "x$int16" = "xdisabled"; then
@@ -419,36 +590,19 @@ else
   DECODER_LOBJ="$DECODER_LOBJ synth_8bit.lo"
 fi
 
-
-int32=enabled
-AC_ARG_ENABLE(32bit,
-              [  --disable-32bit=[no/yes] no 32 bit integer output ],
-              [
-                if test "x$enableval" = xno; then
-                  int32="disabled"
-                fi
-              ], [])
-
 if test "x$int32" = "xdisabled"; then
   AC_DEFINE(NO_32BIT, 1, [ Define to disable 32 bit integer output. ])
 else
   s_fpu="$s_fpu synth_s32"
 fi
 
-real=enabled
-AC_ARG_ENABLE(real,
-              [  --disable-real=[no/yes] no real (floating point) output ],
-              [
-                if test "x$enableval" = xno; then
-                  real="disabled"
-                fi
-              ], [])
-
 if test "x$real" = "xdisabled"; then
   AC_DEFINE(NO_REAL, 1, [ Define to disable real output. ])
 else
   s_fpu="$s_fpu synth_real"
 fi
+
+
 
 layer1=enabled
 AC_ARG_ENABLE(layer1,
@@ -501,30 +655,6 @@ else
   DECODER_OBJ="$DECODER_OBJ layer3.\$(OBJEXT)"
   DECODER_LOBJ="$DECODER_LOBJ layer3.lo"
 fi
-
-AC_ARG_WITH([cpu], [
-  --with-cpu=generic[_fpu]      Use generic processor code with floating point arithmetic
-  --with-cpu=generic_float      Plain alias to generic_fpu now... float output is a normal runtime option!
-  --with-cpu=generic_nofpu      Use generic processor code with fixed point arithmetic (p.ex. ARM, experimental)
-  --with-cpu=generic_dither     Use generic processor code with floating point arithmetic and dithering for 1to1 16bit decoding.
-  --with-cpu=i386[_fpu]         Use code optimized for i386 processors with floating point arithmetic
-  --with-cpu=i386_nofpu         Use code optimized for i386 processors with fixed point arithmetic (experimental)
-  --with-cpu=i486         Use code optimized for i486 processors (only usable alone!)
-  --with-cpu=i586         Use code optimized for i586 processors
-  --with-cpu=i586_dither  Use code optimized for i586 processors with dithering (noise shaping), adds 256K to binary size
-  --with-cpu=3dnow        Use code optimized for 3DNow processors
-  --with-cpu=3dnowext     Use code optimized for 3DNowExt processors (K6-3+, Athlon)
-  --with-cpu=3dnowext_alone     Really only 3DNowExt decoder, without 3DNow fallback for flexible rate
-  --with-cpu=mmx          Use code optimized for MMX processors
-  --with-cpu=mmx_alone          Really only MMX decoder, without i586 fallback for flexible rate
-  --with-cpu=sse          Use code optimized for SSE processors
-  --with-cpu=sse_alone          Really only SSE decoder, without i586 fallback for flexible rate
-  --with-cpu=x86          Pack all x86 opts into one binary (excluding i486 and dither)
-  --with-cpu=x86_dither   Pack all x86 opts into one binary (excluding i486, including dither)
-  --with-cpu=x86-64       Use code optimized for x86-64 processors (AMD64 and Intel64)
-  --with-cpu=x86-64_dither x86-64 code together with generic dithering (runtime selection)
-  --with-cpu=altivec      Use code optimized for Altivec processors (PowerPC G4 and G5)
-])
 
 AC_ARG_WITH([audio], [
   --with-audio=<list of modules>  Select a list (or only one) of audio output modules (comma or space separated list).
@@ -812,130 +942,6 @@ dnl trying to get that socket lib settled in one line
 AC_SEARCH_LIBS(gethostbyname, nsl socket ws2_32 wsock32) 
 dnl OK, two lines... Solaris needs -lnsl -lsocket
 AC_SEARCH_LIBS(socket, socket ws2_32 wsock32) 
-
-case $target in
-  arm-*-linux*)
-    # check that... perhaps we are better off on arm with kernel math emulation
-    cpu_type="generic_nofpu"
-  ;;
-  i386-*-linux*|i386-*-kfreebsd*-gnu)
-    cpu_type="i386_fpu"
-  ;;
-  i486-*-linux*|i486-*-kfreebsd*-gnu)
-    cpu_type="i486"
-  ;;
-  i586-*-linux*|i586-*-kfreebsd*-gnu)
-    cpu_type="x86"
-  ;;
-  i686-*-linux*|i686-*-kfreebsd*-gnu)
-    cpu_type="x86"
-  ;;
-  x86_64-*-linux*|x86_64-*-kfreebsd*-gnu)
-    cpu_type="x86-64"
-  ;;
-  *-*-linux*|*-*-kfreebsd*-gnu)
-    cpu_type="generic_fpu"
-  ;;
-  i386-apple-darwin*)
-    cpu_type="x86"
-  ;;
-  x86_64-apple-darwin*)
-    cpu_type="x86-64"
-  ;;
-  *-apple-darwin*)
-    AC_MSG_CHECKING([if CPU type supports AltiVec])
-    case `machine` in
-      ppc7400 | ppc7450 | ppc970)
-        AC_MSG_RESULT([yes])
-        cpu_type="altivec"
-      ;;
-      *)
-        AC_MSG_RESULT([no])
-        cpu_type="generic_fpu"
-      ;;
-    esac
-  ;;
-  i?86-*-dragonfly* | i?86-*-freebsd* | i?86-*-midnightbsd* | i?86-*-mirbsd* | i?86-*-netbsd* | i?86-*-openbsd*)
-    cpu_type="x86"
-  ;;
-  x86_64-*-dragonfly* | x86_64-*-freebsd* | x86_64-*-midnightbsd* | x86_64-*-mirbsd* | x86_64-*-netbsd* | x86_64-*-openbsd*)
-    cpu_type="x86-64"
-  ;;
-  *-*-dragonfly* | *-*-freebsd* | *-*-midnightbsd* | *-*-mirbsd* | *-*-netbsd* | *-*-openbsd*)
-    cpu_type="generic_fpu"
-  ;;
-  *-*-solaris*)
-    cpu_type="generic_fpu"
-  ;;
-  *-dec-osf*)
-    cpu_type="generic_fpu"
-  ;;
-  x86_64-pc-cygwin*)
-    cpu_type="x86-64"
-  ;;
-  i686-pc-cygwin*)
-    cpu_type="x86"
-  ;;
-  i586-pc-cygwin*)
-    cpu_type="x86"
-  ;;
-  i486-pc-cygwin*)
-    cpu_type="i486"
-  ;;
-  i386-pc-cygwin*)
-    cpu_type="i386"
-  ;;
-  *-pc-cygwin*)
-    cpu_type="generic_fpu"
-  ;;
-  *-*-mingw32)
-    LIBS="$LIBS"
-    buffer=disabled
-    cpu_type="x86"
-  ;;
-	i386-*)
-		AC_MSG_WARN([Unknown target operating system])
-		cpu_type="i386"
-		buffer=disabled
-		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
-	;;
-	i486-*)
-		AC_MSG_WARN([Unknown target operating system])
-		cpu_type="i486"
-		buffer=disabled
-		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
-	;;
-	i586-*)
-		AC_MSG_WARN([Unknown target operating system])
-		cpu_type="i586"
-		buffer=disabled
-		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
-	;;
-	i686-*)
-		AC_MSG_WARN([Unknown target operating system])
-		cpu_type="x86"
-		buffer=disabled
-		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
-	;;
-	x86_64-*)
-		AC_MSG_WARN([Unknown target operating system])
-		cpu_type="x86-64"
-		buffer=disabled
-		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
-	;;
-  *)
-  	AC_MSG_WARN([Unknown target operating system])
-    cpu_type="generic_fpu"
-    buffer=disabled
-    ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
-  ;;
-esac
-
-
-dnl Did user choose other CPU type ?
-if test "x$with_cpu" != "x"; then
-	cpu_type=$with_cpu
-fi
 
 s_altivec="synth_altivec dct64_altivec"
 s_i386="dct64_i386"
