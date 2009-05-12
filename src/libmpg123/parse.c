@@ -410,7 +410,7 @@ int read_frame(mpg123_handle *fr)
 	int oldphase = fr->halfphase;
 	fr->fsizeold=fr->framesize;       /* for Layer3 */
 
-	/* Hm, I never tested this...*/
+	/* Speed-down hack: Play it again, Sam (the frame, I mean). */
 	if (fr->p.halfspeed) 
 	{
 		if(fr->halfphase) /* repeat last frame */
