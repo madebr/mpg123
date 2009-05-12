@@ -19,6 +19,11 @@
 #include "getbits.h"
 #include "debug.h"
 
+/* define CUT_SFB21 if you want to cut-off the frequency above 16kHz */
+#if 0
+#define CUT_SFB21
+#endif
+
 /* static one-time calculated tables... or so */
 static real ispow[8207];
 static real aa_ca[8],aa_cs[8];
@@ -983,9 +988,11 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 				{
 					mc = *m++;
 					cb = *m++;
+#ifdef CUT_SFB21
 					if(cb == 21)
 						v = 0.0;
 					else
+#endif
 						v = gr_info->pow2gain[((*scf++) + (*pretab++)) << shift];
 
 				}
@@ -1079,8 +1086,12 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 					{
 						mc = *m++;
 						cb = *m++;
-						if(cb == 21) v = 0.0;
-						else v = gr_info->pow2gain[((*scf++) + (*pretab++)) << shift];
+#ifdef CUT_SFB21
+						if(cb == 21)
+							v = 0.0;
+						else
+#endif
+							v = gr_info->pow2gain[((*scf++) + (*pretab++)) << shift];
 					}
 					mc--;
 				}
