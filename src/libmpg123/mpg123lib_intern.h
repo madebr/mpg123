@@ -99,7 +99,7 @@
 # define REAL_TO_DOUBLE(x)     (x)
 #endif
 #ifndef REAL_TO_SHORT
-# define REAL_TO_SHORT(x)      (short)(x)
+# define REAL_TO_SHORT(x)      (short)((x)>0.0f?(x)+0.5f:(x)-0.5f)
 #endif
 #ifndef REAL_PLUS_32767
 # define REAL_PLUS_32767       32767.0

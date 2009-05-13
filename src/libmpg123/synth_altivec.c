@@ -326,7 +326,8 @@ int synth_1to1_altivec(real *bandPtr,int channel,mpg123_handle *fr, int final)
 			v9 = vec_sub(v7,v8);
 			vsum = vec_add(vsum,v9);
 			
-			v3 = (vector float)vec_cts(vsum,0);
+			v3 = vec_round(vsum);
+			v3 = (vector float)vec_cts(v3,0);
 			v1 = (vector float)vec_cmpgt(vsum,vmax);
 			v2 = (vector float)vec_cmplt(vsum,vmin);
 			vsample1 = vec_ld(0,samples);
@@ -355,7 +356,8 @@ int synth_1to1_altivec(real *bandPtr,int channel,mpg123_handle *fr, int final)
 			v9 = vec_add(v7,v8);
 			vsum = vec_add(vsum,v9);
 			
-			v3 = (vector float)vec_cts(vsum,0);
+			v3 = vec_round(vsum);
+			v3 = (vector float)vec_cts(v3,0);
 			v1 = (vector float)vec_cmpgt(vsum,vmax);
 			v2 = (vector float)vec_cmplt(vsum,vmin);
 			vsample1 = vec_ld(0,samples);
@@ -457,8 +459,10 @@ int synth_1to1_stereo_altivec(real *bandPtr_l, real *bandPtr_r, mpg123_handle *f
 			vsum = vec_add(vsum,vsum3);
 			vsum2 = vec_add(vsum2,vsum4);
 			
-			v1 = (vector float)vec_cts(vsum,0);
-			v2 = (vector float)vec_cts(vsum2,0);
+			v1 = vec_round(vsum);
+			v2 = vec_round(vsum2);
+			v1 = (vector float)vec_cts(v1,0);
+			v2 = (vector float)vec_cts(v2,0);
 			v3 = vec_mergeh(v1, v2);
 			v4 = vec_mergel(v1, v2);
 			v5 = (vector float)vec_packs((vector signed int)v3,(vector signed int)v4);
@@ -492,8 +496,10 @@ int synth_1to1_stereo_altivec(real *bandPtr_l, real *bandPtr_r, mpg123_handle *f
 			vsum = vec_add(vsum,vsum3);
 			vsum2 = vec_add(vsum2,vsum4);
 			
-			v1 = (vector float)vec_cts(vsum,0);
-			v2 = (vector float)vec_cts(vsum2,0);
+			v1 = vec_round(vsum);
+			v2 = vec_round(vsum2);
+			v1 = (vector float)vec_cts(v1,0);
+			v2 = (vector float)vec_cts(v2,0);
 			v3 = vec_mergeh(v1, v2);
 			v4 = vec_mergel(v1, v2);
 			v5 = (vector float)vec_packs((vector signed int)v3,(vector signed int)v4);
