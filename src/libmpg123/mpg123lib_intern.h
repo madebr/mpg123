@@ -99,7 +99,22 @@
 # define REAL_TO_DOUBLE(x)     (x)
 #endif
 #ifndef REAL_TO_SHORT
-# define REAL_TO_SHORT(x)      (short)((x)>0.0f?(x)+0.5f:(x)-0.5f)
+# ifdef REAL_IS_FLOAT
+/* this function is only available for IEEE754 single-precision values */
+static inline short ftoi16(float x)
+{
+	union
+	{
+		float f;
+		int32_t i;
+	} u_fi;
+	u_fi.f = x + 12582912.0f; /* Magic Number: 2^23 + 2^22 */
+	return (short)u_fi.i;
+}
+#  define REAL_TO_SHORT(x)      ftoi16(x)
+# else
+#  define REAL_TO_SHORT(x)      (short)((x)>0.0?(x)+0.5:(x)-0.5)
+# endif
 #endif
 #ifndef REAL_PLUS_32767
 # define REAL_PLUS_32767       32767.0
