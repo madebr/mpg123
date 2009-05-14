@@ -2349,8 +2349,8 @@
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
 				BaseAddress="0x63000000"
-				RandomizedBaseAddress="1"
-				FixedBaseAddress="2"
+				RandomizedBaseAddress="2"
+				FixedBaseAddress="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -2434,6 +2434,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="dct36_3dnow.o dct36_3dnowext.o dct64_3dnow.o dct64_3dnowext.o dct64_mmx.o dct64_sse.o dct64_sse_float.o equalizer_3dnow.o getcpuflags.o synth_3dnow.o synth_3dnowext.o synth_i586.o synth_mmx.o synth_sse.o synth_sse_float.o synth_stereo_sse_float.o tabinit_mmx.o"
 				OutputFile="$(SolutionDir)Release\$(ProjectName).dll"
+				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(ProjectDir)\Release&quot;"
 				GenerateDebugInformation="true"
 				BaseAddress="0x63000000"
@@ -2480,7 +2481,23 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\..\..\src\libmpg123\dct36_3dnow.S"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\dct36_3dnowext.S"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\src\libmpg123\dct64.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\dct64_3dnow.S"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\dct64_3dnowext.S"
 			>
 		</File>
 		<File
@@ -2780,6 +2797,26 @@
 			</FileConfiguration>
 		</File>
 		<File
+			RelativePath="..\..\..\..\src\libmpg123\dct64_mmx.S"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\dct64_sse.S"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\dct64_sse_float.S"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\dct64_x86_64.S"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\dct64_x86_64_float.S"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\src\libmpg123\debug.h"
 			>
 		</File>
@@ -2789,6 +2826,10 @@
 		</File>
 		<File
 			RelativePath="..\..\..\..\src\libmpg123\equalizer.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\equalizer_3dnow.S"
 			>
 		</File>
 		<File
@@ -2809,6 +2850,10 @@
 		</File>
 		<File
 			RelativePath="..\..\..\..\src\libmpg123\getcpuflags.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\getcpuflags.S"
 			>
 		</File>
 		<File
@@ -2876,6 +2921,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\..\..\src\libmpg123\mpg123.h.in"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\src\libmpg123\mpg123lib_intern.h"
 			>
 		</File>
@@ -2925,6 +2974,14 @@
 		</File>
 		<File
 			RelativePath="..\..\..\..\src\libmpg123\synth.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\synth_3dnow.S"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\synth_3dnowext.S"
 			>
 		</File>
 		<File
@@ -3192,6 +3249,18 @@
 			</FileConfiguration>
 		</File>
 		<File
+			RelativePath="..\..\..\..\src\libmpg123\synth_i586.S"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\synth_i586_dither.S"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\synth_mmx.S"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\src\libmpg123\synth_real.c"
 			>
 		</File>
@@ -3200,7 +3269,47 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\..\..\src\libmpg123\synth_sse.S"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\synth_sse_float.S"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\synth_stereo_sse_float.S"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\synth_stereo_x86_64.S"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\synth_stereo_x86_64_float.S"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\synth_stereo_x86_64_s32.S"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\synth_x86_64.S"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\synth_x86_64_float.S"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\synth_x86_64_s32.S"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\src\libmpg123\tabinit.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\tabinit_mmx.S"
 			>
 		</File>
 		<File
