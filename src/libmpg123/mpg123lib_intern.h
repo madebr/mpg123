@@ -101,7 +101,7 @@
 #ifndef REAL_TO_SHORT
 # ifdef REAL_IS_FLOAT
 /* this function is only available for IEEE754 single-precision values */
-inline short ftoi16(float x)
+static short ftoi16(float x)
 {
 	union
 	{
