@@ -1028,14 +1028,23 @@ static int do_the_seek(mpg123_handle *mh)
 	off_t fnum = SEEKFRAME(mh);
 	mh->buffer.fill = 0;
 
-	if(mh->num < mh->firstframe) mh->to_decode = FALSE;
+	/* If we are inside the ignoreframe - firstframe window, we may get away without actual seeking. */
+	if(mh->num < mh->firstframe)
+	{
+		mh->to_decode = FALSE; /* In any case, don't decode the current frame, perhaps ignore instead. */
+		if(mh->num > fnum) return MPG123_OK;
+	}
 
-	if(mh->num == fnum && mh->to_decode) return MPG123_OK;
+	/* If we are already there, we are fine either for decoding or for ignoring. */
+	if(mh->num == fnum && (mh->to_decode || fnum < mh->firstframe)) return MPG123_OK;
+	/* We have the frame before... just go ahead as normal. */
 	if(mh->num == fnum-1)
 	{
 		mh->to_decode = FALSE;
 		return MPG123_OK;
 	}
+
+	/* OK, real seeking follows... clear buffers and go for it. */
 	frame_buffers_reset(mh);
 #ifndef NO_NTOM
 	if(mh->down_sample == 3)
