@@ -936,7 +936,15 @@ int main(int argc, char *argv[])
 			if(param.verbose) fprintf(stderr, "indexing...\r");
 			mpg123_scan(mh);
 		}
+		/*
+			Only trigger a seek if we do not want to start with the first frame.
+			Rationale: Because of libmpg123 sample accuracy, this could cause an unnecessary backwards seek, that even may fail on non-seekable streams.
+			For start frame of 0, we are already at the correct position!
+		*/
+		framenum = 0;
+		if(param.start_frame > 0)
 		framenum = mpg123_seek_frame(mh, param.start_frame, SEEK_SET);
+
 		if(framenum < 0)
 		{
 			error1("Initial seek failed: %s", mpg123_strerror(mh));
