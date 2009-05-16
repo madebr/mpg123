@@ -222,6 +222,7 @@ enum mpg123_errors
 	MPG123_BAD_DECODER_SETUP,	/**< Something prevents a proper decoder setup */
 	MPG123_MISSING_FEATURE  /**< This feature has not been built into libmpg123. */
 	,MPG123_BAD_VALUE /**< A bad value has been given, somewhere. */
+	,MPG123_LSEEK_FAILED /**< Low-level seek failed. */
 };
 
 /** Return a string describing that error errcode means. */

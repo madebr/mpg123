@@ -220,7 +220,11 @@ static off_t stream_lseek(mpg123_handle *fr, off_t pos, int whence)
 	off_t ret;
 	ret = fr->rdat.lseek(fr->rdat.filept, pos, whence);
 	if (ret >= 0)	fr->rdat.filepos = ret;
-	else ret = READER_ERROR; /* not the original value */
+	else
+	{
+		fr->err = MPG123_LSEEK_FAILED;
+		ret = READER_ERROR; /* not the original value */
+	}
 	return ret;
 }
 
@@ -232,17 +236,24 @@ static void stream_close(mpg123_handle *fr)
 
 static int stream_seek_frame(mpg123_handle *fr, off_t newframe)
 {
-	if(fr->rdat.flags & READER_SEEKABLE)
+	debug2("seek_frame to %"OFF_P" (from %"OFF_P")", (off_p)newframe, (off_p)fr->num);
+	/* Seekable streams can go backwards and jump forwards.
+	   Non-seekable streams still can go forward, just not jump. */
+	if((fr->rdat.flags & READER_SEEKABLE) || (newframe >= fr->num))
 	{
-		off_t preframe;
-
-		/* two leading frames? hm, doesn't seem to be really needed... */
-		/*if(newframe > 1) newframe -= 2;
-		else newframe = 0;*/
-
-		/* now seek to nearest leading index position and read from there until newframe is reached */
-		if(stream_lseek(fr,frame_index_find(fr, newframe, &preframe),SEEK_SET) < 0)
+		off_t preframe; /* a leading frame we jump to */
+		off_t seek_to;  /* the byte offset we want to reach */
+		off_t to_skip;  /* bytes to skip to get there (can be negative) */
+		/*
+			now seek to nearest leading index position and read from there until newframe is reached.
+			We use skip_bytes, which handles seekable and non-seekable streams
+			(the latter only for positive offset, which we ensured before entering here).
+		*/
+		seek_to = frame_index_find(fr, newframe, &preframe);
+		to_skip = seek_to - fr->rd->tell(fr);
+		if(fr->rd->skip_bytes(fr, to_skip) != seek_to)
 		return READER_ERROR;
+
 		debug2("going to %lu; just got %lu", (long unsigned)newframe, (long unsigned)preframe);
 		fr->num = preframe-1; /* Watch out! I am going to read preframe... fr->num should indicate the frame before! */
 		while(fr->num < newframe)
@@ -251,15 +262,15 @@ static int stream_seek_frame(mpg123_handle *fr, off_t newframe)
 			if(!read_frame(fr)) break;
 		}
 		/* Now the wanted frame should be ready for decoding. */
-
-		/* I think, I don't want this...
-		if(fr->lay == 3) set_pointer(fr, 512); */
-
 		debug1("arrived at %lu", (long unsigned)fr->num);
 
 		return MPG123_OK;
 	}
-	else return READER_ERROR; /* invalid, no seek happened */
+	else
+	{
+		fr->err = MPG123_NO_SEEK;
+		return READER_ERROR; /* invalid, no seek happened */
+	}
 }
 
 /* return FALSE on error, TRUE on success, READER_MORE on occasion */
@@ -298,8 +309,7 @@ static off_t stream_skip_bytes(mpg123_handle *fr,off_t len)
 	if(fr->rdat.flags & READER_SEEKABLE)
 	{
 		off_t ret = stream_lseek(fr, len, SEEK_CUR);
-
-		return ret<0 ? READER_ERROR : ret;
+		return (ret < 0) ? READER_ERROR : ret;
 	}
 	else if(len >= 0)
 	{
@@ -322,9 +332,17 @@ static off_t stream_skip_bytes(mpg123_handle *fr,off_t len)
 			fr->rdat.buffer.pos += len;
 			return fr->rd->tell(fr);
 		}
-		else return READER_ERROR;
+		else
+		{
+			fr->err = MPG123_NO_SEEK;
+			return READER_ERROR;
+		}
 	}
-	else return READER_ERROR;
+	else
+	{
+		fr->err = MPG123_NO_SEEK;
+		return READER_ERROR;
+	}
 }
 
 /* Return 0 on success... */
@@ -626,7 +644,7 @@ static int feed_back_bytes(mpg123_handle *fr, off_t bytes)
 	return feed_skip_bytes(fr, -bytes) >= 0 ? 0 : READER_ERROR;
 }
 
-static int buffered_seek_frame(mpg123_handle *fr, off_t num){ return READER_ERROR; }
+static int feed_seek_frame(mpg123_handle *fr, off_t num){ return READER_ERROR; }
 
 /* Not just for feed reader, also for self-feeding buffered reader. */
 static void buffered_forget(mpg123_handle *fr)
@@ -767,7 +785,7 @@ struct reader readers[] =
 #define feed_init NULL
 #define feed_read NULL
 #define buffered_fullread NULL
-#define buffered_seek_frame NULL
+#define feed_seek_frame NULL
 #define feed_back_bytes NULL
 #define feed_skip_bytes NULL
 #define buffered_forget NULL
@@ -781,7 +799,7 @@ struct reader readers[] =
 		feed_skip_bytes,
 		generic_read_frame_body,
 		feed_back_bytes,
-		buffered_seek_frame,
+		feed_seek_frame,
 		generic_tell,
 		stream_rewind,
 		buffered_forget
@@ -795,7 +813,7 @@ struct reader readers[] =
 		stream_skip_bytes,
 		generic_read_frame_body,
 		stream_back_bytes,
-		buffered_seek_frame,
+		stream_seek_frame,
 		generic_tell,
 		stream_rewind,
 		buffered_forget
@@ -809,7 +827,7 @@ struct reader readers[] =
 		stream_skip_bytes,
 		generic_read_frame_body,
 		stream_back_bytes,
-		buffered_seek_frame,
+		stream_seek_frame,
 		generic_tell,
 		stream_rewind,
 		buffered_forget

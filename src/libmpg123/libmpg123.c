@@ -1418,6 +1418,7 @@ static const char *mpg123_error[] =
 	"Decoder setup failed (invalid combination of settings?)",
 	"Feature not in this build."
 	,"Some bad value has been provided."
+	,"Low-level seeking has failed (call to lseek(), usually)."
 };
 
 const char* attribute_align_arg mpg123_plain_strerror(int errcode)
