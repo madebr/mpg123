@@ -131,7 +131,6 @@ static int freq_fit(mpg123_handle *fr, struct audioformat *nf, int f0, int f2)
 	nf->rate>>=1;
 	if(cap_fit(fr,nf,f0,f2)) return 1;
 #ifndef NO_NTOM
-	if(VERBOSE2) fprintf(stderr, "Note: trying to find a supported rate to resample to.\n");
 	/* If nothing worked, try the other rates, only without constrains from user.
 	   In case you didn't guess: We enable flexible resampling if we find a working rate. */
 	if(!fr->p.force_rate && fr->p.down_sample == 0)
