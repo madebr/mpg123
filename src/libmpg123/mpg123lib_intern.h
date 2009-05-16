@@ -69,13 +69,9 @@
 # define REAL_RADIX            15
 # define REAL_FACTOR           (32.0 * 1024.0)
 
-# define REAL_PLUS_32767       ( 32767 << REAL_RADIX )
-# define REAL_MINUS_32768      ( -32768 << REAL_RADIX )
-
 /* I just changed the (int) to (long) there... seemed right. */
 # define DOUBLE_TO_REAL(x)     ((long)((x) * REAL_FACTOR))
 # define REAL_TO_DOUBLE(x)     ((double)(x) / REAL_FACTOR)
-# define REAL_TO_SHORT(x)      ((x) >> REAL_RADIX)
 # define REAL_MUL(x, y)                (((long long)(x) * (long long)(y)) >> REAL_RADIX)
 #  define REAL_SCANF "%ld"
 #  define REAL_PRINTF "%ld"
@@ -98,36 +94,7 @@
 #ifndef REAL_TO_DOUBLE
 # define REAL_TO_DOUBLE(x)     (x)
 #endif
-#ifndef REAL_TO_SHORT
-# ifdef REAL_IS_FLOAT
-/* this function is only available for IEEE754 single-precision values */
-static short ftoi16(float x)
-{
-	union
-	{
-		float f;
-		int32_t i;
-	} u_fi;
-	u_fi.f = x + 12582912.0f; /* Magic Number: 2^23 + 2^22 */
-	return (short)u_fi.i;
-}
-#  define REAL_TO_SHORT(x)      ftoi16(x)
-# else
-#  define REAL_TO_SHORT(x)      (short)((x)>0.0?(x)+0.5:(x)-0.5)
-# endif
-#endif
-#ifndef REAL_PLUS_32767
-# define REAL_PLUS_32767       32767.0
-#endif
-#ifndef REAL_MINUS_32768
-# define REAL_MINUS_32768      -32768.0
-#endif
-#ifndef REAL_PLUS_S32
-# define REAL_PLUS_S32 2147483647.0
-#endif
-#ifndef REAL_MINUS_S32
-# define REAL_MINUS_S32 -2147483648.0
-#endif
+
 #ifndef REAL_MUL
 # define REAL_MUL(x, y)                ((x) * (y))
 #endif

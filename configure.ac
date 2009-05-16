@@ -383,6 +383,16 @@ if test "x$messages" = "xdisabled"; then
   AC_DEFINE(NO_ERETURN, 1, [ Define to disable error messages in combination with a return value (the return is left intact). ])
 fi
 
+integers=fast
+AC_ARG_ENABLE(int-quality,
+[  --enable-int-quality=[yes/no] use rounding instead of fast truncation for integer output, where possible ],
+[
+  if test "x$enableval" = xyes; then
+    integers=quality
+    AC_DEFINE(ACCURATE_ROUNDING,   1, [ Define to use proper rounding. ])
+  fi
+], [])
+
 int16=enabled
 AC_ARG_ENABLE(16bit,
               [  --disable-16bit=[no/yes] no 16 bit integer output ],
@@ -442,6 +452,22 @@ AC_ARG_WITH([cpu], [
   --with-cpu=x86-64_dither x86-64 code together with generic dithering (runtime selection)
   --with-cpu=altivec      Use code optimized for Altivec processors (PowerPC G4 and G5)
 ])
+
+
+# opt-in for IEEE754 floating point action
+# We want to make sure not to apply hacks relying on IEEE754 storage format on platforms where we did not make sure that this actually is valid.
+# It _should_ be fine for about all computers still out there, but we play safe.
+ieee=no
+case $target in
+  i?86-*|x86_64-*|powerpc*|sparc*)
+    ieee=yes
+  ;;
+esac
+if test "x$ieee" = xyes; then
+  echo "We assume IEEE754 floating point format."
+  AC_DEFINE(IEEE_FLOAT,   1, [ Define to indicate that float storage follows IEEE754. ])
+fi
+
 
 case $target in
   arm-*-linux*)
@@ -1688,6 +1714,7 @@ if test x"$aligncheck" = xenabled; then
 fi
 echo -n "
   Core libmpg123 features:
+  Integer conversion ...... $integers
   Layer I ................. $layer1
   Layer II ................ $layer2
   Layer III ............... $layer3
