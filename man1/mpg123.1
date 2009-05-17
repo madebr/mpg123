@@ -125,6 +125,14 @@ Do not accept ICY meta data.
 \fB\-i, \-\^-\index
 Index / scan through the track before playback.
 This fills the index table for seeking (if enabled in libmpg123) and may make the operating system cache the file contents for smoother operating on playback.
+.TP
+\fB\-\-index\-size \fIsize\fR
+Set the number of entries in the seek frame index table.
+.TP
+\fB\-\-preframes \fInum\fR
+Set the number of frames to be read as lead-in before a seeked-to position.
+This serves to fill the layer 3 bit reservoir, which is needed to faithfully reproduce a certain sample at a certain position.
+Note that for layer 3, a minimum of 1 is enforced (because of frame overlap), and for layer 1 and 2, this is limited to 2 (no bit reservoir in that case, but engine spin-up anyway).
 
 .SH OUTPUT and PROCESSING OPTIONS
 .TP

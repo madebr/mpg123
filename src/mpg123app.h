@@ -98,6 +98,7 @@ struct parameter
 	long index_size; /* size of frame index */
 	char *force_encoding;
 	double preload; /* buffer preload size (fraction of full buffer) */
+	long preframes;
 };
 
 extern char *equalfile;

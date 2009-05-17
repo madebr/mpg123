@@ -112,6 +112,7 @@ struct parameter param = {
 	,INDEX_SIZE
 	,NULL /* force_encoding */
 	,1. /* preload */
+	,-1 /* preframes */
 };
 
 mpg123_handle *mh = NULL;
@@ -441,6 +442,7 @@ topt opts[] = {
 	{0, "no-seekbuffer", GLO_INT, unset_frameflag, &frameflag, MPG123_SEEKBUFFER},
 	{'e', "encoding", GLO_ARG|GLO_CHAR, 0, &param.force_encoding, 0},
 	{0, "preload", GLO_ARG|GLO_DOUBLE, 0, &param.preload, 0},
+	{0, "preframes", GLO_ARG|GLO_LONG, 0, &param.preframes, 0},
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -724,6 +726,7 @@ int main(int argc, char *argv[])
 	param.flags = (int) parr;
 	param.flags |= MPG123_SEEKBUFFER; /* Default on, for HTTP streams. */
 	mpg123_getpar(mp, MPG123_RESYNC_LIMIT, &param.resync_limit, NULL);
+	mpg123_getpar(mp, MPG123_PREFRAMES, &param.preframes, NULL);
 
 #ifdef OS2
         _wildcard(&argc,&argv);
@@ -822,6 +825,8 @@ int main(int argc, char *argv[])
 #endif
 	    && ++libpar
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_OUTSCALE, param.outscale, 0))
+	    && ++libpar
+	    && MPG123_OK == (result = mpg123_par(mp, MPG123_PREFRAMES, param.preframes, 0))
 			))
 	{
 		error2("Cannot set library parameter %i: %s", libpar, mpg123_plain_strerror(result));
@@ -1145,7 +1150,8 @@ static void long_usage(int err)
 	fprintf(o," -Z     --random           full random play\n");
 	fprintf(o,"        --no-icy-meta      Do not accept ICY meta data\n");
 	fprintf(o," -i     --index            index / scan through the track before playback\n");
-	fprintf(o,"        --index-size       change size of frame index\n");
+	fprintf(o,"        --index-size <n>   change size of frame index\n");
+	fprintf(o,"        --preframes  <n>   number of frames to decode in advance after seeking (to keep layer 3 bit reservoir happy)\n");
 	fprintf(o,"        --resync-limit <n> Set number of bytes to search for valid MPEG data; <0 means search whole stream.\n");
 	fprintf(o,"\noutput/processing options\n\n");
 	fprintf(o," -o <o> --output <o>       select audio output module\n");
