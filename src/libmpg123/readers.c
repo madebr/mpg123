@@ -250,12 +250,18 @@ static int stream_seek_frame(mpg123_handle *fr, off_t newframe)
 			(the latter only for positive offset, which we ensured before entering here).
 		*/
 		seek_to = frame_index_find(fr, newframe, &preframe);
-		to_skip = seek_to - fr->rd->tell(fr);
-		if(fr->rd->skip_bytes(fr, to_skip) != seek_to)
-		return READER_ERROR;
+		/* No need to seek to index position if we are closer already.
+		   But I am picky about fr->num == newframe, play safe by reading the frame again.
+		   If you think that's stupid, don't call a seek to the current frame. */
+		if(fr->num >= newframe || fr->num < preframe)
+		{
+			to_skip = seek_to - fr->rd->tell(fr);
+			if(fr->rd->skip_bytes(fr, to_skip) != seek_to)
+			return READER_ERROR;
 
-		debug2("going to %lu; just got %lu", (long unsigned)newframe, (long unsigned)preframe);
-		fr->num = preframe-1; /* Watch out! I am going to read preframe... fr->num should indicate the frame before! */
+			debug2("going to %lu; just got %lu", (long unsigned)newframe, (long unsigned)preframe);
+			fr->num = preframe-1; /* Watch out! I am going to read preframe... fr->num should indicate the frame before! */
+		}
 		while(fr->num < newframe)
 		{
 			/* try to be non-fatal now... frameNum only gets advanced on success anyway */
