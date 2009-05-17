@@ -984,8 +984,8 @@ if test "x$layer3" = "xenabled"; then
   s_3dnowext="$s_3dnowext dct36_3dnowext"
 fi
 s_mmx="$s_i386 dct64_mmx tabinit_mmx synth_mmx"
-s_sse="$s_i386 dct64_mmx tabinit_mmx dct64_sse synth_sse dct64_sse_float synth_sse_float synth_stereo_sse_float"
-s_x86_64="dct64_x86_64 synth_x86_64 dct64_x86_64_float synth_x86_64_float synth_x86_64_s32 synth_stereo_x86_64 synth_stereo_x86_64_float synth_stereo_x86_64_s32"
+s_sse="$s_i386 dct64_mmx tabinit_mmx dct64_sse synth_sse dct64_sse_float synth_sse_float synth_stereo_sse_float synth_sse_s32 synth_stereo_sse_s32 synth_sse_accurate synth_stereo_sse_accurate"
+s_x86_64="dct64_x86_64 synth_x86_64 dct64_x86_64_float synth_x86_64_float synth_x86_64_s32 synth_stereo_x86_64 synth_stereo_x86_64_float synth_stereo_x86_64_s32 synth_x86_64_accurate synth_stereo_x86_64_accurate"
 s_x86multi="getcpuflags"
 
 dnl CPU specific compiler flags and sources

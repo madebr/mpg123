@@ -239,6 +239,9 @@ static int find_dectype(mpg123_handle *fr)
 #endif /* real */
 
 #ifndef NO_32BIT
+#ifdef OPT_SSE
+	else if(basic_synth == synth_1to1_s32_sse) type = sse;
+#endif
 #ifdef OPT_X86_64
 	else if(basic_synth == synth_1to1_s32_x86_64) type = x86_64;
 #endif
@@ -377,6 +380,10 @@ int set_synth_functions(mpg123_handle *fr)
 #	ifndef NO_32BIT
 	   && basic_format != f_32
 #	endif
+#	ifdef ACCURATE_ROUNDING
+	   && fr->cpu_opts.type != sse
+	   && fr->cpu_opts.type != x86_64
+#	endif
 	  )
 	{
 #ifndef NO_LAYER3
@@ -450,10 +457,17 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 			fr->cpu_opts.type = sse;
 #			ifndef NO_16BIT
 			fr->synths.plain[r_1to1][f_16] = synth_1to1_sse;
+#			ifdef ACCURATE_ROUNDING
+			fr->synths.stereo[r_1to1][f_16] = synth_1to1_stereo_sse;
+#			endif
 #			endif
 #			ifndef NO_REAL
 			fr->synths.plain[r_1to1][f_real] = synth_1to1_real_sse;
 			fr->synths.stereo[r_1to1][f_real] = synth_1to1_real_stereo_sse;
+#			endif
+#			ifndef NO_32BIT
+			fr->synths.plain[r_1to1][f_32] = synth_1to1_s32_sse;
+			fr->synths.stereo[r_1to1][f_32] = synth_1to1_s32_stereo_sse;
 #			endif
 			done = 1;
 		}

@@ -50,6 +50,7 @@ int synth_1to1_i586_dither(real*, int, mpg123_handle*, int);
 int synth_1to1_mmx        (real*, int, mpg123_handle*, int);
 int synth_1to1_3dnow      (real*, int, mpg123_handle*, int);
 int synth_1to1_sse        (real*, int, mpg123_handle*, int);
+int synth_1to1_stereo_sse (real*, real*, mpg123_handle*);
 int synth_1to1_3dnowext   (real*, int, mpg123_handle*, int);
 int synth_1to1_altivec    (real*, int, mpg123_handle*, int);
 int synth_1to1_stereo_altivec(real*, real*, mpg123_handle*);
@@ -151,6 +152,8 @@ int synth_ntom_real_mono2stereo(real*, mpg123_handle*);
 /* 32bit integer */
 int synth_1to1_s32            (real*, int, mpg123_handle*, int);
 int synth_1to1_s32_i386       (real*, int, mpg123_handle*, int);
+int synth_1to1_s32_sse        (real*, int, mpg123_handle*, int);
+int synth_1to1_s32_stereo_sse (real*, real*, mpg123_handle*);
 int synth_1to1_s32_x86_64     (real*, int, mpg123_handle*, int);
 int synth_1to1_s32_stereo_x86_64(real*, real*, mpg123_handle*);
 int synth_1to1_s32_altivec    (real*, int, mpg123_handle*, int);
