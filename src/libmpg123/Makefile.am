@@ -121,4 +121,4 @@ EXTRA_libmpg123_la_SOURCES = \
 	getcpuflags.S
 
 dnoise.c: dnoise.dat dnoise.sh
-	sh dnoise.sh "$<" > "$@"
+	sh "$(top_srcdir)/src/libmpg123/dnoise.sh" "$<" > "$@"
