@@ -11,7 +11,7 @@ AC_PREREQ(2.57)
 dnl ############# Initialisation
 
 AC_INIT([mpg123], [1.8.0], [mpg123-devel@lists.sourceforge.net])
-LIBMPG123_VERSION=18:4:18
+LIBMPG123_VERSION=18:5:18
 AC_SUBST(LIBMPG123_VERSION)
 
 AC_CONFIG_SRCDIR(src/mpg123.c)
@@ -984,9 +984,19 @@ if test "x$layer3" = "xenabled"; then
   s_3dnowext="$s_3dnowext dct36_3dnowext"
 fi
 s_mmx="$s_i386 dct64_mmx tabinit_mmx synth_mmx"
-s_sse="$s_i386 dct64_mmx tabinit_mmx dct64_sse synth_sse dct64_sse_float synth_sse_float synth_stereo_sse_float synth_sse_s32 synth_stereo_sse_s32 synth_sse_accurate synth_stereo_sse_accurate"
-s_x86_64="dct64_x86_64 synth_x86_64 dct64_x86_64_float synth_x86_64_float synth_x86_64_s32 synth_stereo_x86_64 synth_stereo_x86_64_float synth_stereo_x86_64_s32 synth_x86_64_accurate synth_stereo_x86_64_accurate"
+s_sse="$s_i386 dct64_mmx tabinit_mmx dct64_sse dct64_sse_float synth_sse_float synth_stereo_sse_float synth_sse_s32 synth_stereo_sse_s32 "
+s_x86_64="dct64_x86_64 dct64_x86_64_float synth_x86_64_float synth_x86_64_s32 synth_stereo_x86_64_float synth_stereo_x86_64_s32"
 s_x86multi="getcpuflags"
+
+# choose optimized 16bit decoder for SSE, quality or fast
+# note: supporting deactivation of output formats for these decoders would need more logic here
+if test "x$integers" = "xquality"; then
+  s_sse="$s_sse synth_sse_accurate synth_stereo_sse_accurate"
+  s_x86_64="$s_x86_64 synth_x86_64_accurate synth_stereo_x86_64_accurate"
+else
+  s_sse="$s_sse synth_sse synth_stereo_sse"
+  s_x86_64="$s_x86_64 synth_x86_64 synth_stereo_x86_64"
+fi
 
 dnl CPU specific compiler flags and sources
 case $cpu_type in
