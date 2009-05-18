@@ -13,6 +13,8 @@
 #define MPG123_RATES 9
 #define MPG123_ENCODINGS 10
 
+#include "config.h" /* Load this before _anything_ */
+
 /* ABI conformance for other compilers.
    mpg123 needs 16byte-aligned stack for SSE and friends.
    gcc provides that, but others don't necessarily. */
@@ -35,7 +37,6 @@
 #if defined(WIN32) && defined(DYNAMIC_BUILD)
 #define BUILD_MPG123_DLL
 #endif
-#include "config.h" /* Load this before mpg123.h, for example for largefile stuff. */
 #include "compat.h"
 #include "mpg123.h"
 
