@@ -33,7 +33,25 @@
 
 #include "mangle.h"
 
-.text
+#ifdef ACCURATE_ROUNDING
+#ifndef __APPLE__
+	.section	.rodata
+#else
+	.data
+#endif
+	ALIGN8
+max_s16:
+	.long   1191181824 /* 32767.0 */
+	.long   1191181824
+min_s16:
+	.long   -956301312 /* -32768.0 */
+	.long   -956301312
+ftoi_magic:
+	.long	1262485504 /* 2^23 + 2^22 */
+	.long	1262485504
+#endif
+	.text
+	ALIGN16,,15
 .globl ASM_NAME(synth_1to1_3dnow_asm)
 /* int synth_1to1_3dnow_asm(real *bandPtr, int channel, unsigned char *out, unsigned char *buffs, int *bo, real *decwin); */
 ASM_NAME(synth_1to1_3dnow_asm):
@@ -117,6 +135,8 @@ ASM_NAME(synth_1to1_3dnow_asm):
 	subl LOCAL1,%edx
 	movl LOCAL0,%edi
 
+	pcmpeqb %mm7,%mm7
+	pslld $31,%mm7
 	movq (%edx),%mm0
 	movq (%ebx),%mm1
 	ALIGN32
@@ -158,8 +178,14 @@ ASM_NAME(synth_1to1_3dnow_asm):
 	psrlq $32,%mm3
 	pfsub %mm3,%mm2
 	incl %ebp
+#ifdef ACCURATE_ROUNDING
+	pfmin (max_s16),%mm2
+	pfmax (min_s16),%mm2
+	pfadd (ftoi_magic),%mm2
+#else
 	pf2id %mm2,%mm2
 	packssdw %mm2,%mm2
+#endif
 	movd %mm2,%eax
 	movw %ax,0(%edi)
 	addl $4,%edi
@@ -190,8 +216,14 @@ ASM_NAME(synth_1to1_3dnow_asm):
 	pfmul %mm2,%mm1
 	pfadd %mm1,%mm0
 	pfacc %mm1,%mm0
+#ifdef ACCURATE_ROUNDING
+	pfmin (max_s16),%mm0
+	pfmax (min_s16),%mm0
+	pfadd (ftoi_magic),%mm0
+#else
 	pf2id %mm0,%mm0
 	packssdw %mm0,%mm0
+#endif
 	movd %mm0,%eax
 	movw %ax,0(%edi)
 	incl %ebp
@@ -259,11 +291,15 @@ ASM_NAME(synth_1to1_3dnow_asm):
 	pfadd %mm5,%mm3
 	pfacc %mm3,%mm3
 	incl %ebp
+	pxor %mm7,%mm3
+#ifdef ACCURATE_ROUNDING
+	pfmin (max_s16),%mm3
+	pfmax (min_s16),%mm3
+	pfadd (ftoi_magic),%mm3
+#else
 	pf2id %mm3,%mm3
-	movd %mm3,%eax
-	negl %eax
-	movd %eax,%mm3
 	packssdw %mm3,%mm3
+#endif
 	movd %mm3,%eax
 	movw %ax,(%edi)
 	addl $4,%edi
