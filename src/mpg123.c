@@ -42,9 +42,7 @@
 #include "playlist.h"
 #include "httpget.h"
 #include "metaprint.h"
-#include "getbits.h"
 #include "httpget.h"
-#include "getcpuflags.h"
 
 #include "debug.h"
 
