@@ -101,10 +101,12 @@ static ssize_t icy_fullread(mpg123_handle *fr, unsigned char *buf, ssize_t count
 		return -1;
 	}
 	/*
-		We check against READER_ID3TAG instead of rds->filelen >= 0 because if we got the ID3 TAG we know we have the end of the file.
-		If we don't have an ID3 TAG, then it is possible the file has grown since we started playing, so we want to keep reading from it if possible.
+		There used to be a check for expected file end here (length value or ID3 flag).
+		This is not needed:
+		1. EOF is indicated by fdread returning zero bytes anyway.
+		2. We get false positives of EOF for either files that grew or
+		3. ... files that have ID3v1 tags in between (stream with intro).
 	*/
-	if((fr->rdat.flags & READER_ID3TAG) && fr->rdat.filepos + count > fr->rdat.filelen) count = fr->rdat.filelen - fr->rdat.filepos;
 
 	while(cnt < count)
 	{
