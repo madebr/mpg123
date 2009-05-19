@@ -1,9 +1,44 @@
-1.8.0
+1.8.0 (The Taihei Monument)
 ---
-- SSE is back -- we have optimized decoding on x86-64 systems!
-- MPG123_MODDIR for changing module directory at runtime
-- code cleanup (signed/unsigned integer usage)
+
+- New and improved SSE optimizations! For x86-64, too! Also AltiVec! Fast float output! Faster stereo!
+  Finally, this should put mpg123 into the efficiency-leading position on current hardware!
+  Thanks go out to Taihei Monma for pushing lots of new assembler code.
+- Added proper rounding modes to 16bit integer.
+  - Use ./configure --enable-int-quality to prefer accuracy over speed.
+  - Accurate code (generic, SSE, 3dnow -- i586 has always been good) delivers ISO compliant quality with 16bit output.
+  - Uses fast rounding for IEEE754 floats.
+  - Mpg123 can do fully ISO compliant MPEG audio decoding to 16bits (of course to 32bit float/int, too).
+- subtle performance enhancements via broader data alignment
+- Prefer SSE code over 3DNowExt.
+  - It can be tight, but generally our new SSE code is better on CPUs that can do both.
+- Remove HF cutoff (SFB21), has been introduced in 0.59r .
+- Fix layer 1 regression (been there since version 1.x).
+  - Layer 1 ISO compliance test is positive now.
+- Fix layer 2 regression (false positives header change).
+  - Layer 2 ISO compliance test is positive now.
+- more sample-accurateness
+  - Clear frame buffers before seek.
+  - Decode 4 frames in advance for layer 3 (2 for layer 1 and 2) per default.
+  - Number of layer 3 frames to decoded in advance (and fill bit reservoir) is runtime tunable (--preframes).
+- Do not stop decoding after stray ID3v1 tags in streams (bug 2793677).
+- Fix handling of negative RVA2 values in ID3v2 (bug 2792417).
+- Discard bitreservoir of previous frames if a resync is needed.
 - improve perceived randomness of --random (do not repeat too early)
+- Fix special crash case in UTF16 conversion for ID3v2.
+- MPG123_MODDIR environment variable for changing module directory at runtime
+- arts output fixes (bug 2715128)
+- win32 output swallowing less buffers at end (but still some audio is lost, bug 2722991)
+- WAV output announces supported output formats correctly
+- Libltdl is _not_ included anymore.
+  - The host system is expected to provide it, otherwise plugins are not used.
+  - Our copy does not get in the way anymore.
+- enhancements of the MSVC++ builds, including optimizations using yasm
+- general build system fixes
+- Legacy build system is gone.
+- code cleanup
+  - signed/unsigned integer usage, make compilers more happy)
+  - simplified synth selection code (it is _less_ code now, and does more)
 
 1.7.3
 ---
