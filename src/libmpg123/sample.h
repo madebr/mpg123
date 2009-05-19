@@ -28,7 +28,7 @@
    This is nearly identical to proper rounding, just -+0.5 is rounded to 0 */
 #  if (defined REAL_IS_FLOAT) && (defined IEEE_FLOAT)
 /* this function is only available for IEEE754 single-precision values */
-static short ftoi16(float x)
+static inline short ftoi16(float x)
 {
 	union
 	{
