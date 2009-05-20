@@ -3,15 +3,7 @@ Things that need to be done...
 1. mpg123 could pick up new sample rates suggested by the output modules (like a jack server fixed to 96kHz) and adapt to that.
 
 Though the practical rates for MPEG audio are up to 48kHz ... but one could easily upsample.
-
-2. Optimize float decoding
-
-At least the 32bit float decoders should be able to work with 3DNow/SSE ... just skip the integer conversion.
-
-3. Get SSE/SSE2 on AMD64 going.
-
-MPlayer has that in mp3lib, which is a stripped-down mpg123 decoder.
-We need that optimization, but in the non-stripped mpg123.
+Currently, we detect standard rates and resample when needed... but not new ones.
 
 4. Prevent ID3v2 tags from being parsed multiple times after seek.
 
@@ -21,4 +13,3 @@ That being said, in the "normal" case, there is no leak.
 
 5. What's about SINGLE_MIX?
 Check what is _really_ happening there, make some test file...
-
