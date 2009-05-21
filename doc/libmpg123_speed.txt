@@ -1,3 +1,7 @@
+This is historic... one should make a new investigation.
+What I can say that a quick test of pre0.59s versus 1.7.3 with generic decoder on my x86-64 GNU/Linux box is not able to call a winner (or looser, for that matter).
+Though, 1.8.0 will make the new libmpg123 a winner, because there is new optimization code going on!
+
 The move to libmpg123 means some more code separation / interfacing and especially the move of any local static variables into the mpg123_handle to make multiple stream handling possible.
 That may very well have an impact on performance of the mpg123 decoder.
 I made some tests, even using gcc's -pg option and gprof, with mixed result: SSE and MMX on my Thinkpad X31 are slower, especially the asm synth funtion, while the generic code is fine.
