@@ -16,9 +16,6 @@ EXTRA_DIST = \
 	libmpg123.pc.in \
 	mpg123.spec.in \
 	mpg123.spec \
-	xmms2-plugin/README \
-	xmms2-plugin/mpg123/mpg123.c \
-	xmms2-plugin/mpg123/wscript \
 	makedll.sh \
 	windows-builds.sh \
 	equalize.dat \

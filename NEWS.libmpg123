@@ -4,7 +4,7 @@ Changes in libmpg123 libtool interface versions...
 	- new parameter: MPG123_PREFRAMES is now tunable (the number of frames to decode and skip before a seek point), also default value increased
 
 17.0.17
-
+	- introduction optimized stereo synths
 
 16.0.16
 	- introducing floating point x86-64 SSE synth
