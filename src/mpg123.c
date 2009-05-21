@@ -695,8 +695,8 @@ int main(int argc, char *argv[])
 			binpath[i] = 0;
 			break;
 		}
-		if(i==0) /* No directory separator found, no path prefix. */
-		binpath[0] = 0;
+		if(i==-1) /* No directory separator found, no path prefix. */
+		binpath = NULL;
 	}
 
 	/* Need to initialize mpg123 lib here for default parameter values. */

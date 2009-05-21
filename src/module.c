@@ -63,12 +63,15 @@ static char *get_module_dir()
 		for(i=0; i<sizeof(modulesearch)/sizeof(char*); ++i)
 		{
 			const char *testpath = modulesearch[i];
-			size_t l = strlen(binpath) + strlen(testpath) + 1;
+			size_t l;
+			if(binpath != NULL) l = strlen(binpath) + strlen(testpath) + 1;
+			else l = strlen(testpath);
+
 			moddir = malloc(l+1);
 			if(moddir != NULL)
 			{
-				if(strlen(binpath)==0) /* well, a copy of testpath, when there is no prefix */
-				snprintf(moddir, l, "%s", testpath);
+				if(binpath==NULL) /* a copy of testpath, when there is no prefix */
+				snprintf(moddir, l+1, "%s", testpath);
 				else
 				snprintf(moddir, l+1, "%s/%s", binpath, testpath);
 
