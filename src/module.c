@@ -73,7 +73,7 @@ static char *get_module_dir()
 				snprintf(moddir, l+1, "%s/%s", binpath, testpath);
 
 				moddir[l] = 0;
-				debug1("Looking for module dir: %s", testpath);
+				debug1("Looking for module dir: %s", moddir);
 
 				dir = opendir(moddir);
 				closedir(dir);
