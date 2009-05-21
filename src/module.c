@@ -67,7 +67,11 @@ static char *get_module_dir()
 			moddir = malloc(l+1);
 			if(moddir != NULL)
 			{
+				if(strlen(binpath)==0) /* well, a copy of testpath, when there is no prefix */
+				snprintf(moddir, l, "%s", testpath);
+				else
 				snprintf(moddir, l+1, "%s/%s", binpath, testpath);
+
 				moddir[l] = 0;
 				debug1("Looking for module dir: %s", testpath);
 
