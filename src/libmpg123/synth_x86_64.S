@@ -8,6 +8,16 @@
 
 #include "mangle.h"
 
+#ifdef _WIN64
+/* short *window; */
+#define ARG0 %r10
+/* short *b0; */
+#define ARG1 %rdx
+/* short *samples; */
+#define ARG2 %r8
+/* int bo1; */
+#define ARG3 %r9
+#else
 /* short *window; */
 #define ARG0 %rdi
 /* short *b0; */
@@ -15,7 +25,8 @@
 /* short *samples; */
 #define ARG2 %rdx
 /* int bo1; */
-#define ARG3 %ecx
+#define ARG3 %rcx
+#endif
 
 #define XMMREG_CLIP %xmm15
 #define XMMREG_MAX %xmm14 /* {32767, 32767, 32767, 32767} */
@@ -46,18 +57,27 @@ ASM_NAME(maxmin_x86_64):
 	ALIGN16,,15
 .globl ASM_NAME(synth_1to1_x86_64_asm)
 ASM_NAME(synth_1to1_x86_64_asm):
-	
+#ifdef _WIN64 /* should save xmm6-15 */
+	movq		%rcx, ARG0
+	subq		$104, %rsp /* stack alignment + 6 xmm registers */
+	movaps		%xmm6, (%rsp)
+	movaps		%xmm7, 16(%rsp)
+	movaps		%xmm12, 32(%rsp)
+	movaps		%xmm13, 48(%rsp)
+	movaps		%xmm14, 64(%rsp)
+	movaps		%xmm15, 80(%rsp)
+#endif
+
 	leaq		ASM_NAME(maxmin_x86_64)(%rip), %rax
 	movaps		(%rax), XMMREG_MAX
 	movaps		16(%rax), XMMREG_MIN
 	pxor		XMMREG_CLIP, XMMREG_CLIP
 	pcmpeqd		XMMREG_FULL, XMMREG_FULL
 	
-	movl		ARG3, %eax
-	shll		$1, %eax
-	cltq
+	andq		$0xf, ARG3
+	shlq		$1, ARG3
 	leaq		32(ARG0), ARG0
-	subq		%rax, ARG0
+	subq		ARG3, ARG0
 	
 	movl		$4, %ecx
 	
@@ -210,6 +230,15 @@ Loop_start_2:
 	
 	movd		XMMREG_CLIP, %eax
 	
+#ifdef _WIN64
+	movaps		(%rsp), %xmm6
+	movaps		16(%rsp), %xmm7
+	movaps		32(%rsp), %xmm12
+	movaps		48(%rsp), %xmm13
+	movaps		64(%rsp), %xmm14
+	movaps		80(%rsp), %xmm15
+	addq		$104, %rsp
+#endif
 	ret
 
 /* Mark non-executable stack. */

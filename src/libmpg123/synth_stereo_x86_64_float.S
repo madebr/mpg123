@@ -8,16 +8,27 @@
 
 #include "mangle.h"
 
+#ifdef _WIN64
+/* short *window; */
+#define WINDOW %r10
+/* short *b0l; */
+#define B0L %rdx
+/* short *b0r; */
+#define B0R %r8
+/* short *samples; */
+#define SAMPLES %r9
+#else
 /* real *window; */
 #define WINDOW %rdi
 /* real *b0l; */
 #define B0L %rsi
 /* real *b0r; */
-#define B0R %r8
+#define B0R %rdx
 /* real *samples; */
-#define SAMPLES %rdx
+#define SAMPLES %r9
+#endif
 
-#define XMMREG_SCALE (%r9)  /* {1/32768.0, 1/32768.0, 1/32768.0, 1/32768.0} */
+#define XMMREG_SCALE (%r11)  /* {1/32768.0, 1/32768.0, 1/32768.0, 1/32768.0} */
 
 /*
 	int synth_1to1_real_stereo_x86_64_asm(real *window, real *b0l, real *b0r, real *samples, int bo1);
@@ -39,14 +50,33 @@ ASM_NAME(scale_x86_64):
 	ALIGN16,,15
 .globl ASM_NAME(synth_1to1_real_stereo_x86_64_asm)
 ASM_NAME(synth_1to1_real_stereo_x86_64_asm):
+#ifdef _WIN64 /* should save xmm6-15 */
+	movl		40(%rsp), %eax /* 5th argument; placed after 32-byte shadow space */
+	subq		$168, %rsp /* stack alignment + 10 xmm registers */
+	movaps		%xmm6, (%rsp)
+	movaps		%xmm7, 16(%rsp)
+	movaps		%xmm8, 32(%rsp)
+	movaps		%xmm9, 48(%rsp)
+	movaps		%xmm10, 64(%rsp)
+	movaps		%xmm11, 80(%rsp)
+	movaps		%xmm12, 96(%rsp)
+	movaps		%xmm13, 112(%rsp)
+	movaps		%xmm14, 128(%rsp)
+	movaps		%xmm15, 144(%rsp)
+#endif
+
+	leaq		ASM_NAME(scale_x86_64)(%rip), %r11
 	
-	leaq		ASM_NAME(scale_x86_64)(%rip), %r9
-	
+#ifdef _WIN64
+	shlq		$32, %rax
+	shrq		$30, %rax
+	movq		%rcx, %r10
+#else
 	movq		%r8, %rax
 	shlq		$32, %rax
 	shrq		$30, %rax
-	movq		%rdx, %r8
-	movq		%rcx, %rdx
+	movq		%rcx, %r9
+#endif
 	leaq		64(WINDOW), WINDOW
 	subq		%rax, WINDOW
 
@@ -348,6 +378,19 @@ Loop_start_2:
 	
 	xorl		%eax, %eax
 	
+#ifdef _WIN64
+	movaps		(%rsp), %xmm6
+	movaps		16(%rsp), %xmm7
+	movaps		32(%rsp), %xmm8
+	movaps		48(%rsp), %xmm9
+	movaps		64(%rsp), %xmm10
+	movaps		80(%rsp), %xmm11
+	movaps		96(%rsp), %xmm12
+	movaps		112(%rsp), %xmm13
+	movaps		128(%rsp), %xmm14
+	movaps		144(%rsp), %xmm15
+	addq		$168, %rsp
+#endif
 	ret
 
 /* Mark non-executable stack. */

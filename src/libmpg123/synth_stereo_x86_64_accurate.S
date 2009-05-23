@@ -8,14 +8,25 @@
 
 #include "mangle.h"
 
+#ifdef _WIN64
+/* short *window; */
+#define WINDOW %rsi
+/* short *b0l; */
+#define B0L %rdx
+/* short *b0r; */
+#define B0R %r8
+/* short *samples; */
+#define SAMPLES %r9
+#else
 /* real *window; */
 #define WINDOW %rdi
 /* real *b0l; */
 #define B0L %rsi
 /* real *b0r; */
-#define B0R %r8
+#define B0R %rdx
 /* real *samples; */
-#define SAMPLES %rdx
+#define SAMPLES %r8
+#endif
 
 #define XMMREG_MAX (%r10)  /* {32767.0, 32767.0, 32767.0, 32767.0} */
 #define XMMREG_MIN (%r11)  /* {-32768.0, -32768.0, -32768.0, -32768.0} */
@@ -45,21 +56,39 @@ ASM_NAME(maxmin_s16):
 	ALIGN16,,15
 .globl ASM_NAME(synth_1to1_stereo_x86_64_accurate_asm)
 ASM_NAME(synth_1to1_stereo_x86_64_accurate_asm):
-	pushq		%rbp
-	movq		%rsp, %rbp
-	andq		$-16, %rsp
-	subq		$16, %rsp
+#ifdef _WIN64 /* should save xmm6-15 */
+	movl		40(%rsp), %eax /* 5th argument; placed after 32-byte shadow space */
+	pushq		%rsi
+	subq		$176, %rsp /* 10 xmm registers + temp */
+	movaps		%xmm6, 16(%rsp)
+	movaps		%xmm7, 32(%rsp)
+	movaps		%xmm8, 48(%rsp)
+	movaps		%xmm9, 64(%rsp)
+	movaps		%xmm10, 80(%rsp)
+	movaps		%xmm11, 96(%rsp)
+	movaps		%xmm12, 112(%rsp)
+	movaps		%xmm13, 128(%rsp)
+	movaps		%xmm14, 144(%rsp)
+	movaps		%xmm15, 160(%rsp)
+#else
+	subq		$24, %rsp /* stack alignment + temp */
+#endif
 	
 	leaq		ASM_NAME(maxmin_s16)(%rip), %r10
 	leaq		16(%r10), %r11
 	xorps		%xmm0, %xmm0
 	movaps		%xmm0, TEMP_CLIP
 	
+#ifdef _WIN64
+	shlq		$32, %rax
+	shrq		$30, %rax
+	movq		%rcx, %rbx
+#else
 	movq		%r8, %rax
 	shlq		$32, %rax
 	shrq		$30, %rax
-	movq		%rdx, %r8
-	movq		%rcx, %rdx
+	movq		%rcx, %r8
+#endif
 	leaq		64(WINDOW), WINDOW
 	subq		%rax, WINDOW
 
@@ -404,8 +433,22 @@ Loop_start_2:
 	movd		%xmm0, %eax
 	andl		$0xffff, %eax
 	
-	movq		%rbp, %rsp
-	popq		%rbp
+#ifdef _WIN64
+	movaps		(%rsp), %xmm6
+	movaps		16(%rsp), %xmm7
+	movaps		32(%rsp), %xmm8
+	movaps		48(%rsp), %xmm9
+	movaps		64(%rsp), %xmm10
+	movaps		80(%rsp), %xmm11
+	movaps		96(%rsp), %xmm12
+	movaps		112(%rsp), %xmm13
+	movaps		128(%rsp), %xmm14
+	movaps		144(%rsp), %xmm15
+	addq		$176, %rsp
+	popq		%rsi
+#else
+	addq		$24, %rsp
+#endif
 	ret
 
 /* Mark non-executable stack. */

@@ -8,12 +8,21 @@
 
 #include "mangle.h"
 
+#ifdef _WIN64
+/* short *out0 */
+#define ARG0 %r9
+/* short *out1 */
+#define ARG1 %rdx
+/* real *samples */
+#define ARG2 %r8
+#else
 /* real *out0 */
 #define ARG0 %rdi
 /* real *out1 */
 #define ARG1 %rsi
 /* real *samples */
 #define ARG2 %rdx
+#endif
 
 /*
 	void dct64_real_x86_64(real *out0, real *out1, real *samples);
@@ -62,6 +71,20 @@ ASM_NAME(costab_x86_64):
 	ALIGN16,,15
 .globl ASM_NAME(dct64_real_x86_64)
 ASM_NAME(dct64_real_x86_64):
+#ifdef _WIN64 /* should save xmm6-15 */
+	movq		%rcx, ARG0
+	subq		$168, %rsp /* stack alignment + 10 xmm registers */
+	movaps		%xmm6, (%rsp)
+	movaps		%xmm7, 16(%rsp)
+	movaps		%xmm8, 32(%rsp)
+	movaps		%xmm9, 48(%rsp)
+	movaps		%xmm10, 64(%rsp)
+	movaps		%xmm11, 80(%rsp)
+	movaps		%xmm12, 96(%rsp)
+	movaps		%xmm13, 112(%rsp)
+	movaps		%xmm14, 128(%rsp)
+	movaps		%xmm15, 144(%rsp)
+#endif
 
 	leaq		ASM_NAME(costab_x86_64)(%rip), %rcx
 
@@ -385,6 +408,19 @@ ASM_NAME(dct64_real_x86_64):
 	movss		%xmm2, 832(ARG1)
 	movss		%xmm3, 960(ARG1)
 	
+#ifdef _WIN64
+	movaps		(%rsp), %xmm6
+	movaps		16(%rsp), %xmm7
+	movaps		32(%rsp), %xmm8
+	movaps		48(%rsp), %xmm9
+	movaps		64(%rsp), %xmm10
+	movaps		80(%rsp), %xmm11
+	movaps		96(%rsp), %xmm12
+	movaps		112(%rsp), %xmm13
+	movaps		128(%rsp), %xmm14
+	movaps		144(%rsp), %xmm15
+	addq		$168, %rsp
+#endif
 	ret
 
 /* Mark non-executable stack. */

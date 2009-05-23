@@ -8,6 +8,16 @@
 
 #include "mangle.h"
 
+#ifdef _WIN64
+/* short *window; */
+#define ARG0 %r10
+/* short *b0; */
+#define ARG1 %rdx
+/* short *samples; */
+#define ARG2 %r8
+/* int bo1; */
+#define ARG3 %r9
+#else
 /* real *window; */
 #define ARG0 %rdi
 /* real *b0; */
@@ -15,7 +25,8 @@
 /* real *samples; */
 #define ARG2 %rdx
 /* int bo1; */
-#define ARG3 %ecx
+#define ARG3 %rcx
+#endif
 
 #define XMMREG_SCALE %xmm15  /* {65536.0, 65536.0, 65536.0, 65536.0} */
 #define XMMREG_MAX %xmm14  /* {32767.999, 32767.999, 32767.999, 32767.999} */
@@ -52,6 +63,20 @@ ASM_NAME(maxmin_s32):
 	ALIGN16,,15
 .globl ASM_NAME(synth_1to1_s32_x86_64_asm)
 ASM_NAME(synth_1to1_s32_x86_64_asm):
+#ifdef _WIN64 /* should save xmm6-15 */
+	movq		%rcx, ARG0
+	subq		$168, %rsp /* stack alignment + 10 xmm registers */
+	movaps		%xmm6, (%rsp)
+	movaps		%xmm7, 16(%rsp)
+	movaps		%xmm8, 32(%rsp)
+	movaps		%xmm9, 48(%rsp)
+	movaps		%xmm10, 64(%rsp)
+	movaps		%xmm11, 80(%rsp)
+	movaps		%xmm12, 96(%rsp)
+	movaps		%xmm13, 112(%rsp)
+	movaps		%xmm14, 128(%rsp)
+	movaps		%xmm15, 144(%rsp)
+#endif
 	
 	leaq		ASM_NAME(scale_s32)(%rip), %rax
 	movaps		(%rax), XMMREG_SCALE
@@ -61,11 +86,10 @@ ASM_NAME(synth_1to1_s32_x86_64_asm):
 	
 	xorps		XMMREG_CLIP, XMMREG_CLIP
 	
-	movl		ARG3, %eax
-	shll		$2, %eax
-	cltq
+	andq		$0xf, ARG3
+	shlq		$2, ARG3
 	leaq		64(ARG0), ARG0
-	subq		%rax, ARG0
+	subq		ARG3, ARG0
 
 	movl		$4, %ecx
 	
@@ -270,6 +294,19 @@ Loop_start_2:
 	
 	movd		XMMREG_CLIP, %eax
 	
+#ifdef _WIN64
+	movaps		(%rsp), %xmm6
+	movaps		16(%rsp), %xmm7
+	movaps		32(%rsp), %xmm8
+	movaps		48(%rsp), %xmm9
+	movaps		64(%rsp), %xmm10
+	movaps		80(%rsp), %xmm11
+	movaps		96(%rsp), %xmm12
+	movaps		112(%rsp), %xmm13
+	movaps		128(%rsp), %xmm14
+	movaps		144(%rsp), %xmm15
+	addq		$168, %rsp
+#endif
 	ret
 
 /* Mark non-executable stack. */
