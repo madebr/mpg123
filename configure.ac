@@ -611,6 +611,11 @@ if test "x$cpu_type" = "xgeneric_nofpu"; then
   int32=disabled
 fi
 
+if test "x$cpu_type" = "xi386_nofpu"; then
+  real=disabled
+  int32=disabled
+fi
+
 if test "x$int16" = "xdisabled"; then
   AC_DEFINE(NO_16BIT, 1, [ Define to disable 16 bit integer output. ])
 else
