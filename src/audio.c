@@ -428,7 +428,11 @@ void audio_capabilities(audio_output_t *ao, mpg123_handle *mh)
 
 #ifndef NOXFERMEM
 	/* Buffer loop shall start normal operation now. */
-	if(param.usebuffer) xfermem_putcmd(buffermem->fd[XF_WRITER], XF_CMD_WAKEUP);
+	if(param.usebuffer)
+	{
+		xfermem_putcmd(buffermem->fd[XF_WRITER], XF_CMD_WAKEUP);
+		xfermem_getcmd(buffermem->fd[XF_WRITER], TRUE);
+	}
 #endif
 
 	if(param.verbose > 1) print_capabilities(ao, mh);

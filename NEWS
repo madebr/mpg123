@@ -30,6 +30,7 @@
 - arts output fixes (bug 2715128)
 - win32 output swallowing less buffers at end (but still some audio is lost, bug 2722991)
 - WAV output announces supported output formats correctly
+- fix buffer startup to make sure the first bits of audio are not discarded (bug 2796802)
 - Libltdl is _not_ included anymore.
   - The host system is expected to provide it, otherwise plugins are not used.
   - Our copy does not get in the way anymore.

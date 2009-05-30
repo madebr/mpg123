@@ -216,6 +216,25 @@ int xfermem_block (int readwrite, txfermem *xf)
 	return ((result <= 0) ? -1 : result);
 }
 
+/* Parallel-safe code to signal a process and wait for it to respond. */
+int xfermem_sigblock(int readwrite, txfermem *xf, int pid, int signal)
+{
+	int myfd = xf->fd[readwrite];
+	int result;
+
+	xf->wakeme[readwrite] = TRUE;
+	kill(pid, signal);
+
+	/* not sure about that block... here */
+	if (xf->wakeme[1 - readwrite])
+		xfermem_putcmd (myfd, XF_CMD_WAKEUP);
+
+	result = xfermem_getcmd(myfd, TRUE);
+	xf->wakeme[readwrite] = FALSE;
+
+	return ((result <= 0) ? -1 : result);
+}
+
 int xfermem_write(txfermem *xf, byte *buffer, size_t bytes)
 {
 	if(buffer == NULL || bytes < 1) return FALSE;
@@ -289,6 +308,10 @@ int xfermem_putcmd (int fd, byte cmd)
   return 0;
 }
 int xfermem_block (int readwrite, txfermem *xf)
+{
+  return 0;
+}
+int xfermem_sigblock (int readwrite, txfermem *xf, int pid, int signal)
 {
   return 0;
 }
