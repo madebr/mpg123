@@ -217,24 +217,24 @@ void init_layer3(void)
 	}
 
 	for(i=0;i<9;i++)
-	COS9[i] = DOUBLE_TO_REAL(cos( M_PI / 18.0 * (double) i));
+	COS9[i] = DOUBLE_TO_REAL_COS(cos( M_PI / 18.0 * (double) i));
 
 	for(i=0;i<9;i++)
-	tfcos36[i] = DOUBLE_TO_REAL(0.5 / cos ( M_PI * (double) (i*2+1) / 36.0 ));
+	tfcos36[i] = DOUBLE_TO_REAL_COS(0.5 / cos ( M_PI * (double) (i*2+1) / 36.0 ));
 
 	for(i=0;i<3;i++)
-	tfcos12[i] = DOUBLE_TO_REAL(0.5 / cos ( M_PI * (double) (i*2+1) / 12.0 ));
+	tfcos12[i] = DOUBLE_TO_REAL_COS(0.5 / cos ( M_PI * (double) (i*2+1) / 12.0 ));
 
-	COS6_1 = DOUBLE_TO_REAL(cos( M_PI / 6.0 * (double) 1));
-	COS6_2 = DOUBLE_TO_REAL(cos( M_PI / 6.0 * (double) 2));
+	COS6_1 = DOUBLE_TO_REAL_COS(cos( M_PI / 6.0 * (double) 1));
+	COS6_2 = DOUBLE_TO_REAL_COS(cos( M_PI / 6.0 * (double) 2));
 
 #ifdef NEW_DCT9
-	cos9[0]  = DOUBLE_TO_REAL(cos(1.0*M_PI/9.0));
-	cos9[1]  = DOUBLE_TO_REAL(cos(5.0*M_PI/9.0));
-	cos9[2]  = DOUBLE_TO_REAL(cos(7.0*M_PI/9.0));
-	cos18[0] = DOUBLE_TO_REAL(cos(1.0*M_PI/18.0));
-	cos18[1] = DOUBLE_TO_REAL(cos(11.0*M_PI/18.0));
-	cos18[2] = DOUBLE_TO_REAL(cos(13.0*M_PI/18.0));
+	cos9[0]  = DOUBLE_TO_REAL_COS(cos(1.0*M_PI/9.0));
+	cos9[1]  = DOUBLE_TO_REAL_COS(cos(5.0*M_PI/9.0));
+	cos9[2]  = DOUBLE_TO_REAL_COS(cos(7.0*M_PI/9.0));
+	cos18[0] = DOUBLE_TO_REAL_COS(cos(1.0*M_PI/18.0));
+	cos18[1] = DOUBLE_TO_REAL_COS(cos(11.0*M_PI/18.0));
+	cos18[2] = DOUBLE_TO_REAL_COS(cos(13.0*M_PI/18.0));
 #endif
 
 	for(i=0;i<12;i++)
@@ -942,7 +942,6 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 							gainpow2_scale_idx = (int)(gr_info->full_gain[lwin] + (*scf << shift) - fr->gainpow2);
 #endif
 							v = gr_info->full_gain[lwin][(*scf++) << shift];
-							
 							step = 3;
 						}
 					}
@@ -1381,8 +1380,8 @@ static void III_antialias(real xr[SBLIMIT][SSLIMIT],struct gr_info_s *gr_info)
 			for(ss=7;ss>=0;ss--)
 			{ /* upper and lower butterfly inputs */
 				register real bu = *--xr2,bd = *xr1;
-				*xr2   = REAL_MUL(bu, *cs) - REAL_MUL(bd, *ca);
-				*xr1++ = REAL_MUL(bd, *cs++) + REAL_MUL(bu, *ca++);
+				*xr2   = REAL_MUL_ACCURATE(bu, *cs) - REAL_MUL_ACCURATE(bd, *ca);
+				*xr1++ = REAL_MUL_ACCURATE(bd, *cs++) + REAL_MUL_ACCURATE(bu, *ca++);
 			}
 		}
 	}
@@ -1452,8 +1451,8 @@ void dct36(real *inbuf,real *o1,real *o2,real *wintab,real *tsbuf)
 			{
 				real t0, t1, t2;
 
-				t0 = REAL_MUL(COS6_2, (in[8] + in[16] - in[4]));
-				t1 = REAL_MUL(COS6_2, in[12]);
+				t0 = REAL_MUL_COS(COS6_2, (in[8] + in[16] - in[4]));
+				t1 = REAL_MUL_COS(COS6_2, in[12]);
 
 				t3 = in[0];
 				t2 = t3 - t1 - t1;
@@ -1461,16 +1460,16 @@ void dct36(real *inbuf,real *o1,real *o2,real *wintab,real *tsbuf)
 				tmp[4]          = t2 + t0 + t0;
 				t3 += t1;
 
-				t2 = REAL_MUL(COS6_1, (in[10] + in[14] - in[2]));
+				t2 = REAL_MUL_COS(COS6_1, (in[10] + in[14] - in[2]));
 				tmp[1] -= t2;
 				tmp[7] += t2;
 			}
 			{
 				real t0, t1, t2;
 
-				t0 = REAL_MUL(cos9[0], (in[4] + in[8] ));
-				t1 = REAL_MUL(cos9[1], (in[8] - in[16]));
-				t2 = REAL_MUL(cos9[2], (in[4] + in[16]));
+				t0 = REAL_MUL_COS(cos9[0], (in[4] + in[8] ));
+				t1 = REAL_MUL_COS(cos9[1], (in[8] - in[16]));
+				t2 = REAL_MUL_COS(cos9[2], (in[4] + in[16]));
 
 				tmp[2] = tmp[6] = t3 - t0      - t2;
 				tmp[0] = tmp[8] = t3 + t0 + t1;
@@ -1480,9 +1479,9 @@ void dct36(real *inbuf,real *o1,real *o2,real *wintab,real *tsbuf)
 		{
 			real t1, t2, t3;
 
-			t1 = REAL_MUL(cos18[0], (in[2]  + in[10]));
-			t2 = REAL_MUL(cos18[1], (in[10] - in[14]));
-			t3 = REAL_MUL(COS6_1,    in[6]);
+			t1 = REAL_MUL_COS(cos18[0], (in[2]  + in[10]));
+			t2 = REAL_MUL_COS(cos18[1], (in[10] - in[14]));
+			t3 = REAL_MUL_COS(COS6_1,    in[6]);
 
 			{
 				real t0 = t1 + t2 + t3;
@@ -1493,7 +1492,7 @@ void dct36(real *inbuf,real *o1,real *o2,real *wintab,real *tsbuf)
 			t2 -= t3;
 			t1 -= t3;
 
-			t3 = REAL_MUL(cos18[2], (in[2] + in[14]));
+			t3 = REAL_MUL_COS(cos18[2], (in[2] + in[14]));
 
 			t1 += t3;
 			tmp[3] += t1;
@@ -1508,35 +1507,35 @@ void dct36(real *inbuf,real *o1,real *o2,real *wintab,real *tsbuf)
 		{
 			real t0, t1, t2, t3, t4, t5, t6, t7;
 
-			t1 = REAL_MUL(COS6_2, in[12]);
-			t2 = REAL_MUL(COS6_2, (in[8] + in[16] - in[4]));
+			t1 = REAL_MUL_COS(COS6_2, in[12]);
+			t2 = REAL_MUL_COS(COS6_2, (in[8] + in[16] - in[4]));
 
 			t3 = in[0] + t1;
 			t4 = in[0] - t1 - t1;
 			t5     = t4 - t2;
 			tmp[4] = t4 + t2 + t2;
 
-			t0 = REAL_MUL(cos9[0], (in[4] + in[8]));
-			t1 = REAL_MUL(cos9[1], (in[8] - in[16]));
+			t0 = REAL_MUL_COS(cos9[0], (in[4] + in[8]));
+			t1 = REAL_MUL_COS(cos9[1], (in[8] - in[16]));
 
-			t2 = REAL_MUL(cos9[2], (in[4] + in[16]));
+			t2 = REAL_MUL_COS(cos9[2], (in[4] + in[16]));
 
 			t6 = t3 - t0 - t2;
 			t0 += t3 + t1;
 			t3 += t2 - t1;
 
-			t2 = REAL_MUL(cos18[0], (in[2]  + in[10]));
-			t4 = REAL_MUL(cos18[1], (in[10] - in[14]));
-			t7 = REAL_MUL(COS6_1, in[6]);
+			t2 = REAL_MUL_COS(cos18[0], (in[2]  + in[10]));
+			t4 = REAL_MUL_COS(cos18[1], (in[10] - in[14]));
+			t7 = REAL_MUL_COS(COS6_1, in[6]);
 
 			t1 = t2 + t4 + t7;
 			tmp[0] = t0 + t1;
 			tmp[8] = t0 - t1;
-			t1 = REAL_MUL(cos18[2], (in[2] + in[14]));
+			t1 = REAL_MUL_COS(cos18[2], (in[2] + in[14]));
 			t2 += t1 - t7;
 
 			tmp[3] = t3 + t2;
-			t0 = REAL_MUL(COS6_1, (in[10] + in[14] - in[2]));
+			t0 = REAL_MUL_COS(COS6_1, (in[10] + in[14] - in[2]));
 			tmp[5] = t3 - t2;
 
 			t4 -= t1 + t7;
@@ -1551,53 +1550,53 @@ void dct36(real *inbuf,real *o1,real *o2,real *wintab,real *tsbuf)
 		{
 			real t0, t1, t2, t3, t4, t5, t6, t7;
 
-			t1 = REAL_MUL(COS6_2, in[13]);
-			t2 = REAL_MUL(COS6_2, (in[9] + in[17] - in[5]));
+			t1 = REAL_MUL_COS(COS6_2, in[13]);
+			t2 = REAL_MUL_COS(COS6_2, (in[9] + in[17] - in[5]));
 
 			t3 = in[1] + t1;
 			t4 = in[1] - t1 - t1;
 			t5 = t4 - t2;
 
-			t0 = REAL_MUL(cos9[0], (in[5] + in[9]));
-			t1 = REAL_MUL(cos9[1], (in[9] - in[17]));
+			t0 = REAL_MUL_COS(cos9[0], (in[5] + in[9]));
+			t1 = REAL_MUL_COS(cos9[1], (in[9] - in[17]));
 
-			tmp[13] = REAL_MUL((t4 + t2 + t2), tfcos36[17-13]);
-			t2 = REAL_MUL(cos9[2], (in[5] + in[17]));
+			tmp[13] = REAL_MUL_COS((t4 + t2 + t2), tfcos36[17-13]);
+			t2 = REAL_MUL_COS(cos9[2], (in[5] + in[17]));
 
 			t6 = t3 - t0 - t2;
 			t0 += t3 + t1;
 			t3 += t2 - t1;
 
-			t2 = REAL_MUL(cos18[0], (in[3]  + in[11]));
-			t4 = REAL_MUL(cos18[1], (in[11] - in[15]));
-			t7 = REAL_MUL(COS6_1, in[7]);
+			t2 = REAL_MUL_COS(cos18[0], (in[3]  + in[11]));
+			t4 = REAL_MUL_COS(cos18[1], (in[11] - in[15]));
+			t7 = REAL_MUL_COS(COS6_1, in[7]);
 
 			t1 = t2 + t4 + t7;
-			tmp[17] = REAL_MUL((t0 + t1), tfcos36[17-17]);
-			tmp[9]  = REAL_MUL((t0 - t1), tfcos36[17-9]);
-			t1 = REAL_MUL(cos18[2], (in[3] + in[15]));
+			tmp[17] = REAL_MUL_COS((t0 + t1), tfcos36[17-17]);
+			tmp[9]  = REAL_MUL_COS((t0 - t1), tfcos36[17-9]);
+			t1 = REAL_MUL_COS(cos18[2], (in[3] + in[15]));
 			t2 += t1 - t7;
 
-			tmp[14] = REAL_MUL((t3 + t2), tfcos36[17-14]);
-			t0 = REAL_MUL(COS6_1, (in[11] + in[15] - in[3]));
-			tmp[12] = REAL_MUL((t3 - t2), tfcos36[17-12]);
+			tmp[14] = REAL_MUL_COS((t3 + t2), tfcos36[17-14]);
+			t0 = REAL_MUL_COS(COS6_1, (in[11] + in[15] - in[3]));
+			tmp[12] = REAL_MUL_COS((t3 - t2), tfcos36[17-12]);
 
 			t4 -= t1 + t7;
 
-			tmp[16] = REAL_MUL((t5 - t0), tfcos36[17-16]);
-			tmp[10] = REAL_MUL((t5 + t0), tfcos36[17-10]);
-			tmp[15] = REAL_MUL((t6 + t4), tfcos36[17-15]);
-			tmp[11] = REAL_MUL((t6 - t4), tfcos36[17-11]);
+			tmp[16] = REAL_MUL_COS((t5 - t0), tfcos36[17-16]);
+			tmp[10] = REAL_MUL_COS((t5 + t0), tfcos36[17-10]);
+			tmp[15] = REAL_MUL_COS((t6 + t4), tfcos36[17-15]);
+			tmp[11] = REAL_MUL_COS((t6 - t4), tfcos36[17-11]);
 		}
 
 #define MACRO(v) { \
 		real tmpval; \
 		tmpval = tmp[(v)] + tmp[17-(v)]; \
-		out2[9+(v)] = REAL_MUL(tmpval, w[27+(v)]); \
-		out2[8-(v)] = REAL_MUL(tmpval, w[26-(v)]); \
+		out2[9+(v)] = REAL_MUL_ACCURATE(tmpval, w[27+(v)]); \
+		out2[8-(v)] = REAL_MUL_ACCURATE(tmpval, w[26-(v)]); \
 		tmpval = tmp[(v)] - tmp[17-(v)]; \
-		ts[SBLIMIT*(8-(v))] = out1[8-(v)] + REAL_MUL(tmpval, w[8-(v)]); \
-		ts[SBLIMIT*(9+(v))] = out1[9+(v)] + REAL_MUL(tmpval, w[9+(v)]); }
+		ts[SBLIMIT*(8-(v))] = out1[8-(v)] + REAL_MUL_ACCURATE(tmpval, w[8-(v)]); \
+		ts[SBLIMIT*(9+(v))] = out1[9+(v)] + REAL_MUL_ACCURATE(tmpval, w[9+(v)]); }
 
 		{
 			register real *out2 = o2;
@@ -1622,20 +1621,20 @@ void dct36(real *inbuf,real *o1,real *o2,real *wintab,real *tsbuf)
 
 #define MACRO0(v) { \
 	real tmp; \
-	out2[9+(v)] = REAL_MUL((tmp = sum0 + sum1), w[27+(v)]); \
-	out2[8-(v)] = REAL_MUL(tmp, w[26-(v)]);   } \
+	out2[9+(v)] = REAL_MUL_ACCURATE((tmp = sum0 + sum1), w[27+(v)]); \
+	out2[8-(v)] = REAL_MUL_ACCURATE(tmp, w[26-(v)]);   } \
 	sum0 -= sum1; \
-	ts[SBLIMIT*(8-(v))] = out1[8-(v)] + REAL_MUL(sum0, w[8-(v)]); \
-	ts[SBLIMIT*(9+(v))] = out1[9+(v)] + REAL_MUL(sum0, w[9+(v)]);
+	ts[SBLIMIT*(8-(v))] = out1[8-(v)] + REAL_MUL_ACCURATE(sum0, w[8-(v)]); \
+	ts[SBLIMIT*(9+(v))] = out1[9+(v)] + REAL_MUL_ACCURATE(sum0, w[9+(v)]);
 #define MACRO1(v) { \
 	real sum0,sum1; \
 	sum0 = tmp1a + tmp2a; \
-	sum1 = REAL_MUL((tmp1b + tmp2b), tfcos36[(v)]); \
+	sum1 = REAL_MUL_COS((tmp1b + tmp2b), tfcos36[(v)]); \
 	MACRO0(v); }
 #define MACRO2(v) { \
 	real sum0,sum1; \
 	sum0 = tmp2a - tmp1a; \
-	sum1 = REAL_MUL((tmp2b - tmp1b), tfcos36[(v)]); \
+	sum1 = REAL_MUL_COS((tmp2b - tmp1b), tfcos36[(v)]); \
 	MACRO0(v); }
 
 			register const real *c = COS9;
@@ -1646,17 +1645,17 @@ void dct36(real *inbuf,real *o1,real *o2,real *wintab,real *tsbuf)
 
 			real ta33,ta66,tb33,tb66;
 
-			ta33 = REAL_MUL(in[2*3+0], c[3]);
-			ta66 = REAL_MUL(in[2*6+0], c[6]);
-			tb33 = REAL_MUL(in[2*3+1], c[3]);
-			tb66 = REAL_MUL(in[2*6+1], c[6]);
+			ta33 = REAL_MUL_COS(in[2*3+0], c[3]);
+			ta66 = REAL_MUL_COS(in[2*6+0], c[6]);
+			tb33 = REAL_MUL_COS(in[2*3+1], c[3]);
+			tb66 = REAL_MUL_COS(in[2*6+1], c[6]);
 
 			{ 
 				real tmp1a,tmp2a,tmp1b,tmp2b;
-				tmp1a = REAL_MUL(in[2*1+0], c[1]) + ta33 + REAL_MUL(in[2*5+0], c[5]) + REAL_MUL(in[2*7+0], c[7]);
-				tmp1b = REAL_MUL(in[2*1+1], c[1]) + tb33 + REAL_MUL(in[2*5+1], c[5]) + REAL_MUL(in[2*7+1], c[7]);
-				tmp2a = REAL_MUL(in[2*2+0], c[2]) + REAL_MUL(in[2*4+0], c[4]) + ta66 + REAL_MUL(in[2*8+0], c[8]);
-				tmp2b = REAL_MUL(in[2*2+1], c[2]) + REAL_MUL(in[2*4+1], c[4]) + tb66 + REAL_MUL(in[2*8+1], c[8]);
+				tmp1a = REAL_MUL_COS(in[2*1+0], c[1]) + ta33 + REAL_MUL_COS(in[2*5+0], c[5]) + REAL_MUL_COS(in[2*7+0], c[7]);
+				tmp1b = REAL_MUL_COS(in[2*1+1], c[1]) + tb33 + REAL_MUL_COS(in[2*5+1], c[5]) + REAL_MUL_COS(in[2*7+1], c[7]);
+				tmp2a = REAL_MUL_COS(in[2*2+0], c[2]) + REAL_MUL_COS(in[2*4+0], c[4]) + ta66 + REAL_MUL_COS(in[2*8+0], c[8]);
+				tmp2b = REAL_MUL_COS(in[2*2+1], c[2]) + REAL_MUL_COS(in[2*4+1], c[4]) + tb66 + REAL_MUL_COS(in[2*8+1], c[8]);
 
 				MACRO1(0);
 				MACRO2(8);
@@ -1664,10 +1663,10 @@ void dct36(real *inbuf,real *o1,real *o2,real *wintab,real *tsbuf)
 
 			{
 				real tmp1a,tmp2a,tmp1b,tmp2b;
-				tmp1a = REAL_MUL(( in[2*1+0] - in[2*5+0] - in[2*7+0] ), c[3]);
-				tmp1b = REAL_MUL(( in[2*1+1] - in[2*5+1] - in[2*7+1] ), c[3]);
-				tmp2a = REAL_MUL(( in[2*2+0] - in[2*4+0] - in[2*8+0] ), c[6]) - in[2*6+0] + in[2*0+0];
-				tmp2b = REAL_MUL(( in[2*2+1] - in[2*4+1] - in[2*8+1] ), c[6]) - in[2*6+1] + in[2*0+1];
+				tmp1a = REAL_MUL_COS(( in[2*1+0] - in[2*5+0] - in[2*7+0] ), c[3]);
+				tmp1b = REAL_MUL_COS(( in[2*1+1] - in[2*5+1] - in[2*7+1] ), c[3]);
+				tmp2a = REAL_MUL_COS(( in[2*2+0] - in[2*4+0] - in[2*8+0] ), c[6]) - in[2*6+0] + in[2*0+0];
+				tmp2b = REAL_MUL_COS(( in[2*2+1] - in[2*4+1] - in[2*8+1] ), c[6]) - in[2*6+1] + in[2*0+1];
 
 				MACRO1(1);
 				MACRO2(7);
@@ -1675,10 +1674,10 @@ void dct36(real *inbuf,real *o1,real *o2,real *wintab,real *tsbuf)
 
 			{
 				real tmp1a,tmp2a,tmp1b,tmp2b;
-				tmp1a =   REAL_MUL(in[2*1+0], c[5]) - ta33 - REAL_MUL(in[2*5+0], c[7]) + REAL_MUL(in[2*7+0], c[1]);
-				tmp1b =   REAL_MUL(in[2*1+1], c[5]) - tb33 - REAL_MUL(in[2*5+1], c[7]) + REAL_MUL(in[2*7+1], c[1]);
-				tmp2a = - REAL_MUL(in[2*2+0], c[8]) - REAL_MUL(in[2*4+0], c[2]) + ta66 + REAL_MUL(in[2*8+0], c[4]);
-				tmp2b = - REAL_MUL(in[2*2+1], c[8]) - REAL_MUL(in[2*4+1], c[2]) + tb66 + REAL_MUL(in[2*8+1], c[4]);
+				tmp1a =   REAL_MUL_COS(in[2*1+0], c[5]) - ta33 - REAL_MUL_COS(in[2*5+0], c[7]) + REAL_MUL_COS(in[2*7+0], c[1]);
+				tmp1b =   REAL_MUL_COS(in[2*1+1], c[5]) - tb33 - REAL_MUL_COS(in[2*5+1], c[7]) + REAL_MUL_COS(in[2*7+1], c[1]);
+				tmp2a = - REAL_MUL_COS(in[2*2+0], c[8]) - REAL_MUL_COS(in[2*4+0], c[2]) + ta66 + REAL_MUL_COS(in[2*8+0], c[4]);
+				tmp2b = - REAL_MUL_COS(in[2*2+1], c[8]) - REAL_MUL_COS(in[2*4+1], c[2]) + tb66 + REAL_MUL_COS(in[2*8+1], c[4]);
 
 				MACRO1(2);
 				MACRO2(6);
@@ -1686,10 +1685,10 @@ void dct36(real *inbuf,real *o1,real *o2,real *wintab,real *tsbuf)
 
 			{
 				real tmp1a,tmp2a,tmp1b,tmp2b;
-				tmp1a =   REAL_MUL(in[2*1+0], c[7]) - ta33 + REAL_MUL(in[2*5+0], c[1]) - REAL_MUL(in[2*7+0], c[5]);
-				tmp1b =   REAL_MUL(in[2*1+1], c[7]) - tb33 + REAL_MUL(in[2*5+1], c[1]) - REAL_MUL(in[2*7+1], c[5]);
-				tmp2a = - REAL_MUL(in[2*2+0], c[4]) + REAL_MUL(in[2*4+0], c[8]) + ta66 - REAL_MUL(in[2*8+0], c[2]);
-				tmp2b = - REAL_MUL(in[2*2+1], c[4]) + REAL_MUL(in[2*4+1], c[8]) + tb66 - REAL_MUL(in[2*8+1], c[2]);
+				tmp1a =   REAL_MUL_COS(in[2*1+0], c[7]) - ta33 + REAL_MUL_COS(in[2*5+0], c[1]) - REAL_MUL_COS(in[2*7+0], c[5]);
+				tmp1b =   REAL_MUL_COS(in[2*1+1], c[7]) - tb33 + REAL_MUL_COS(in[2*5+1], c[1]) - REAL_MUL_COS(in[2*7+1], c[5]);
+				tmp2a = - REAL_MUL_COS(in[2*2+0], c[4]) + REAL_MUL_COS(in[2*4+0], c[8]) + ta66 - REAL_MUL_COS(in[2*8+0], c[2]);
+				tmp2b = - REAL_MUL_COS(in[2*2+1], c[4]) + REAL_MUL_COS(in[2*4+1], c[8]) + tb66 - REAL_MUL_COS(in[2*8+1], c[2]);
 
 				MACRO1(3);
 				MACRO2(5);
@@ -1698,7 +1697,7 @@ void dct36(real *inbuf,real *o1,real *o2,real *wintab,real *tsbuf)
 			{
 				real sum0,sum1;
 				sum0 =  in[2*0+0] - in[2*2+0] + in[2*4+0] - in[2*6+0] + in[2*8+0];
-				sum1 = REAL_MUL((in[2*0+1] - in[2*2+1] + in[2*4+1] - in[2*6+1] + in[2*8+1] ), tfcos36[4]);
+				sum1 = REAL_MUL_COS((in[2*0+1] - in[2*2+1] + in[2*4+1] - in[2*6+1] + in[2*8+1] ), tfcos36[4]);
 				MACRO0(4);
 			}
 		}
@@ -1721,19 +1720,19 @@ static void dct12(real *in,real *rawout1,real *rawout2,register real *wi,registe
 	\
 	in5 += in3; in3 += in1; \
 	\
-	in2 = REAL_MUL(in2, COS6_1); \
-	in3 = REAL_MUL(in3, COS6_1);
+	in2 = REAL_MUL_COS(in2, COS6_1); \
+	in3 = REAL_MUL_COS(in3, COS6_1);
 
 #define DCT12_PART2 \
-	in0 += REAL_MUL(in4, COS6_2); \
+	in0 += REAL_MUL_COS(in4, COS6_2); \
 	\
 	in4 = in0 + in2; \
 	in0 -= in2;      \
 	\
-	in1 += REAL_MUL(in5, COS6_2); \
+	in1 += REAL_MUL_COS(in5, COS6_2); \
 	\
-	in5 = REAL_MUL((in1 + in3), tfcos12[0]); \
-	in1 = REAL_MUL((in1 - in3), tfcos12[2]); \
+	in5 = REAL_MUL_COS((in1 + in3), tfcos12[0]); \
+	in1 = REAL_MUL_COS((in1 - in3), tfcos12[2]); \
 	\
 	in3 = in4 + in5; \
 	in4 -= in5;      \
@@ -1752,7 +1751,7 @@ static void dct12(real *in,real *rawout1,real *rawout2,register real *wi,registe
 		{
 			real tmp0,tmp1 = (in0 - in4);
 			{
-				real tmp2 = REAL_MUL((in1 - in5), tfcos12[1]);
+				real tmp2 = REAL_MUL_COS((in1 - in5), tfcos12[1]);
 				tmp0 = tmp1 + tmp2;
 				tmp1 -= tmp2;
 			}
@@ -1786,7 +1785,7 @@ static void dct12(real *in,real *rawout1,real *rawout2,register real *wi,registe
 		{
 			real tmp0,tmp1 = (in0 - in4);
 			{
-				real tmp2 = REAL_MUL((in1 - in5), tfcos12[1]);
+				real tmp2 = REAL_MUL_COS((in1 - in5), tfcos12[1]);
 				tmp0 = tmp1 + tmp2;
 				tmp1 -= tmp2;
 			}
@@ -1821,7 +1820,7 @@ static void dct12(real *in,real *rawout1,real *rawout2,register real *wi,registe
 		{
 			real tmp0,tmp1 = (in0 - in4);
 			{
-				real tmp2 = REAL_MUL((in1 - in5), tfcos12[1]);
+				real tmp2 = REAL_MUL_COS((in1 - in5), tfcos12[1]);
 				tmp0 = tmp1 + tmp2;
 				tmp1 -= tmp2;
 			}

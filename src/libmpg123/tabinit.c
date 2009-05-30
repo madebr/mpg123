@@ -61,7 +61,7 @@ void prepare_decode_tables()
     kr=0x10>>i; divv=0x40>>i;
     costab = pnts[i];
     for(k=0;k<kr;k++)
-      costab[k] = DOUBLE_TO_REAL(1.0 / (2.0 * cos(M_PI * ((double) k * 2.0 + 1.0) / (double) divv)));
+      costab[k] = DOUBLE_TO_REAL_COS(1.0 / (2.0 * cos(M_PI * ((double) k * 2.0 + 1.0) / (double) divv)));
   }
 }
 
