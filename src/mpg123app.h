@@ -99,6 +99,7 @@ struct parameter
 	char *force_encoding;
 	double preload; /* buffer preload size (fraction of full buffer) */
 	long preframes;
+	long gain; /* audio output gain, for selected outputs */
 };
 
 extern char *equalfile;

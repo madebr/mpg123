@@ -214,7 +214,7 @@ audio_output_t* alloc_audio_output()
 	/* Initialise variables */
 	ao->fn = -1;
 	ao->rate = -1;
-	ao->gain = -1;
+	ao->gain = param.gain;
 	ao->userptr = NULL;
 	ao->device = NULL;
 	ao->channels = -1;
