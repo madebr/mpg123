@@ -711,7 +711,9 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 	int l[3],l3;
 	int part2remain = gr_info->part2_3_length - part2bits;
 	int *me;
+#ifdef REAL_IS_FIXED
 	int gainpow2_scale_idx = 378;
+#endif
 
 	/* mhipp tree has this split up a bit... */
 	int num=getbitoffset(fr);
