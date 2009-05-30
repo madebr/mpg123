@@ -161,7 +161,7 @@ void buffer_loop(audio_output_t *ao, sigset_t *oldsigset)
 		if (intflag) {
 			debug("handle intflag... flushing");
 			intflag = FALSE;
-			if (param.outmode == DECODE_AUDIO) ao->flush(ao);
+			ao->flush(ao);
 			/* Either prepare for waiting or empty buffer now. */
 			if(!xf->justwait) xf->readindex = xf->freeindex;
 			else

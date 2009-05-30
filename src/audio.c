@@ -458,17 +458,6 @@ int init_output(audio_output_t **ao)
 	init_done = TRUE;
   
 #ifndef NOXFERMEM
-	/*
-	* Only DECODE_AUDIO and DECODE_FILE are sanely handled by the
-	* buffer process. For now, we just ignore the request
-	* to buffer the output. [dk]
-	*/
-	if (param.usebuffer && (param.outmode != DECODE_AUDIO) &&
-	(param.outmode != DECODE_FILE)) {
-	fprintf(stderr, "Sorry, won't buffer output unless writing plain audio.\n");
-	param.usebuffer = 0;
-	} 
-
 	if (param.usebuffer)
 	{
 		unsigned int bufferbytes;
