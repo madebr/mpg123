@@ -767,6 +767,10 @@ int main(int argc, char *argv[])
 		mpg123_delete_pars(mp);
 		return 0;
 	}
+	if(param.gain != -1)
+	{
+	    warning("The parameter -g is deprecated and may be removed in the future.");
+	}
 
 	if (loptind >= argc && !param.listname && !param.remote) usage(1);
 	/* Init audio as early as possible.
@@ -1089,7 +1093,7 @@ static void usage(int err)  /* print syntax & exit */
 	fprintf(o,"   -k n  skip first n frames [0]        -n n  decode only n frames [all]\n");
 	fprintf(o,"   -c    check range violations         -y    DISABLE resync on errors\n");
 	fprintf(o,"   -b n  output buffer: n Kbytes [0]    -f n  change scalefactor [%li]\n", param.outscale);
-	fprintf(o,"   -r n  set/force samplerate [auto]    -g n  set audio hardware output gain\n");
+	fprintf(o,"   -r n  set/force samplerate [auto]\n");
 	fprintf(o,"   -os,-ol,-oh  output to built-in speaker,line-out connector,headphones\n");
 	#ifdef NAS
 	fprintf(o,"                                        -a d  set NAS server\n");
@@ -1174,7 +1178,7 @@ static void long_usage(int err)
 	fprintf(o,"        --force-3dnow      force use of 3DNow! optimized routine (obsoleted by --test-cpu)\n");
 	fprintf(o,"        --no-3dnow         force use of floating-pointer routine (obsoleted by --cpu)\n");
 	#endif
-	fprintf(o," -g     --gain             set audio hardware output gain\n");
+	fprintf(o," -g     --gain             [DEPRECATED] set audio hardware output gain\n");
 	fprintf(o," -f <n> --scale <n>        scale output samples (soft gain - based on 32768), default=%li)\n", param.outscale);
 	fprintf(o,"        --rva-mix,\n");
 	fprintf(o,"        --rva-radio        use RVA2/ReplayGain values for mix/radio mode\n");

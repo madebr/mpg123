@@ -199,7 +199,8 @@ Tests your CPU and prints a list of possible choices for \-\-cpu.
 Lists all available decoder choices, regardless of support by your CPU.
 .TP
 \fB\-g \fIgain\fR, \fB\-\^\-gain \fIgain
-Set audio hardware output gain (default: don't change).
+[DEPRECATED] Set audio hardware output gain (default: don't change). The unit of the gain value is hardware and output module dependent.
+(This parameter is only provided for backwards compatibility and may be removed in the future without prior notice. Use the audio player for playing and a mixer app for mixing, UNIX style!)
 .TP
 \fB\-f \fIfactor\fR, \fB\-\^\-scale \fIfactor
 Change scale factor (default: 32768).
