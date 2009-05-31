@@ -67,36 +67,21 @@
 
 # define real long
 
-# define REAL_RADIX            15
-# define REAL_FACTOR           (32.0 * 1024.0)
-
-static inline long imuldiv_signed(long x, long y, int shift)
-{
-	long mod = (x ^ y) >> (shift - 1);
-	mod = (unsigned long)mod >> ((sizeof(long) << 3) - shift);
-	return ((long long)x * (long long)y + mod) >> shift;
-}
-
-static inline long idiv_signed(long x, int shift)
-{
-	long mod = x >> (shift - 1);
-	mod = (unsigned long)mod >> ((sizeof(long) << 3) - shift);
-	return (x + mod) >> shift;
-}
+# define REAL_RADIX				24
+# define REAL_FACTOR			16777216.0
 
 /* I just changed the (int) to (long) there... seemed right. */
 # define DOUBLE_TO_REAL(x)					((long)((x) * REAL_FACTOR))
+# define DOUBLE_TO_REAL_15(x)				((long)((x) * 32768.0))
 # define DOUBLE_TO_REAL_POW43(x)			((long)((x) * 8192.0))
-# define DOUBLE_TO_REAL_SCALE_LAYER12(x)	((long)((x) * 67108864.0))
+# define DOUBLE_TO_REAL_SCALE_LAYER12(x)	((long)((x) * 1073741824.0))
 # define DOUBLE_TO_REAL_SCALE_LAYER3(x, y)	((long)((x) * pow(2.0,gainpow2_scale[y])))
-# define DOUBLE_TO_REAL_COS(x)				((long)((x) * 16777216.0))
 # define REAL_TO_DOUBLE(x)					((double)(x) / REAL_FACTOR)
 # define REAL_MUL(x, y)						(((long long)(x) * (long long)(y)) >> REAL_RADIX)
-# define REAL_MUL_ACCURATE(x, y)			(imuldiv_signed(x, y, REAL_RADIX))
-# define REAL_MUL_SCALE_LAYER12(x, y)		(((long long)(x) * (long long)(y)) >> 26)
+# define REAL_MUL_15(x, y)					(((long long)(x) * (long long)(y)) >> 15)
+# define REAL_MUL_SCALE_LAYER12(x, y)		(((long long)(x) * (long long)(y)) >> 30 - (REAL_RADIX - 15))
 # define REAL_MUL_SCALE_LAYER3(x, y, z)		(((long long)(x) * (long long)(y)) >> (13 + gainpow2_scale[z] - REAL_RADIX))
-# define REAL_MUL_COS(x, y)					(((long long)(x) * (long long)(y)) >> 24)
-# define REAL_SCALE_LAYER12(x)				((long)((x) >> (26 - REAL_RADIX)))
+# define REAL_SCALE_LAYER12(x)				((long)((x) >> (30 - REAL_RADIX)))
 # define REAL_SCALE_LAYER3(x, y)			((long)((x) >> (gainpow2_scale[y] - REAL_RADIX)))
 #  define REAL_SCANF "%ld"
 #  define REAL_PRINTF "%ld"
@@ -116,6 +101,9 @@ static inline long idiv_signed(long x, int shift)
 #ifndef DOUBLE_TO_REAL
 # define DOUBLE_TO_REAL(x)					(real)(x)
 #endif
+#ifndef DOUBLE_TO_REAL_15
+# define DOUBLE_TO_REAL_15(x)				(real)(x)
+#endif
 #ifndef DOUBLE_TO_REAL_POW43
 # define DOUBLE_TO_REAL_POW43(x)			(real)(x)
 #endif
@@ -125,9 +113,6 @@ static inline long idiv_signed(long x, int shift)
 #ifndef DOUBLE_TO_REAL_SCALE_LAYER3
 # define DOUBLE_TO_REAL_SCALE_LAYER3(x, y)	(real)(x)
 #endif
-#ifndef DOUBLE_TO_REAL_COS
-# define DOUBLE_TO_REAL_COS(x)				(real)(x)
-#endif
 #ifndef REAL_TO_DOUBLE
 # define REAL_TO_DOUBLE(x)					(x)
 #endif
@@ -135,17 +120,14 @@ static inline long idiv_signed(long x, int shift)
 #ifndef REAL_MUL
 # define REAL_MUL(x, y)						((x) * (y))
 #endif
-#ifndef REAL_MUL_ACCURATE
-# define REAL_MUL_ACCURATE(x, y)			((x) * (y))
+#ifndef REAL_MUL_15
+# define REAL_MUL_15(x, y)					((x) * (y))
 #endif
 #ifndef REAL_MUL_SCALE_LAYER12
 # define REAL_MUL_SCALE_LAYER12(x, y)		((x) * (y))
 #endif
 #ifndef REAL_MUL_SCALE_LAYER3
 # define REAL_MUL_SCALE_LAYER3(x, y, z)		((x) * (y))
-#endif
-#ifndef REAL_MUL_COS
-# define REAL_MUL_COS(x, y)					((x) * (y))
 #endif
 #ifndef REAL_SCALE_LAYER12
 # define REAL_SCALE_LAYER12(x)				(x)

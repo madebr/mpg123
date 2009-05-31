@@ -14,9 +14,9 @@
 
 /* Special case is fixed point math... which does work, but not that nice yet.  */
 #ifdef REAL_IS_FIXED
-# define REAL_PLUS_32767       ( 32767 << REAL_RADIX )
-# define REAL_MINUS_32768      ( -32768 << REAL_RADIX )
-# define REAL_TO_SHORT(x)      (idiv_signed(x, REAL_RADIX))
+# define REAL_PLUS_32767       ( 32767 << 15 )
+# define REAL_MINUS_32768      ( -32768 << 15 )
+# define REAL_TO_SHORT(x)      ((x) >> 15)
 /* This is just here for completeness, it is not used! */
 # define REAL_TO_S32(x)        (x)
 #endif

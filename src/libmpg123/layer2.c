@@ -202,9 +202,9 @@ void II_step_two(unsigned int *bit_alloc,real fraction[2][4][SBLIMIT],int *scale
 				if( (d1=alloc2->d) < 0) 
 				{
 					real cm=fr->muls[k][scale[x1]];
-					fraction[j][0][i] = REAL_MUL_SCALE_LAYER12(DOUBLE_TO_REAL((int)getbits(fr, k) + d1), cm);
-					fraction[j][1][i] = REAL_MUL_SCALE_LAYER12(DOUBLE_TO_REAL((int)getbits(fr, k) + d1), cm);
-					fraction[j][2][i] = REAL_MUL_SCALE_LAYER12(DOUBLE_TO_REAL((int)getbits(fr, k) + d1), cm);
+					fraction[j][0][i] = REAL_MUL_SCALE_LAYER12(DOUBLE_TO_REAL_15((int)getbits(fr, k) + d1), cm);
+					fraction[j][1][i] = REAL_MUL_SCALE_LAYER12(DOUBLE_TO_REAL_15((int)getbits(fr, k) + d1), cm);
+					fraction[j][2][i] = REAL_MUL_SCALE_LAYER12(DOUBLE_TO_REAL_15((int)getbits(fr, k) + d1), cm);
 				}        
 				else 
 				{
@@ -234,9 +234,9 @@ void II_step_two(unsigned int *bit_alloc,real fraction[2][4][SBLIMIT],int *scale
 			{
 				real cm;
 				cm=fr->muls[k][scale[x1+3]];
-				fraction[0][0][i] = DOUBLE_TO_REAL((int)getbits(fr, k) + d1);
-				fraction[0][1][i] = DOUBLE_TO_REAL((int)getbits(fr, k) + d1);
-				fraction[0][2][i] = DOUBLE_TO_REAL((int)getbits(fr, k) + d1);
+				fraction[0][0][i] = DOUBLE_TO_REAL_15((int)getbits(fr, k) + d1);
+				fraction[0][1][i] = DOUBLE_TO_REAL_15((int)getbits(fr, k) + d1);
+				fraction[0][2][i] = DOUBLE_TO_REAL_15((int)getbits(fr, k) + d1);
 				fraction[1][0][i] = REAL_MUL_SCALE_LAYER12(fraction[0][0][i], cm);
 				fraction[1][1][i] = REAL_MUL_SCALE_LAYER12(fraction[0][1][i], cm);
 				fraction[1][2][i] = REAL_MUL_SCALE_LAYER12(fraction[0][2][i], cm);
