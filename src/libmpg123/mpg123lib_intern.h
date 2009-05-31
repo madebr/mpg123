@@ -96,7 +96,7 @@ static inline long idiv_signed(long x, int shift)
 # define REAL_MUL_SCALE_LAYER12(x, y)		(((long long)(x) * (long long)(y)) >> 26)
 # define REAL_MUL_SCALE_LAYER3(x, y, z)		(((long long)(x) * (long long)(y)) >> (13 + gainpow2_scale[z] - REAL_RADIX))
 # define REAL_MUL_COS(x, y)					(((long long)(x) * (long long)(y)) >> 24)
-# define REAL_SCALE_LAYER12(x)				((long)((x) >> 26))
+# define REAL_SCALE_LAYER12(x)				((long)((x) >> (26 - REAL_RADIX)))
 # define REAL_SCALE_LAYER3(x, y)			((long)((x) >> (gainpow2_scale[y] - REAL_RADIX)))
 #  define REAL_SCANF "%ld"
 #  define REAL_PRINTF "%ld"
