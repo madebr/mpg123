@@ -79,7 +79,7 @@
 # define REAL_TO_DOUBLE(x)					((double)(x) / REAL_FACTOR)
 # define REAL_MUL(x, y)						(((long long)(x) * (long long)(y)) >> REAL_RADIX)
 # define REAL_MUL_15(x, y)					(((long long)(x) * (long long)(y)) >> 15)
-# define REAL_MUL_SCALE_LAYER12(x, y)		(((long long)(x) * (long long)(y)) >> 30 - (REAL_RADIX - 15))
+# define REAL_MUL_SCALE_LAYER12(x, y)		(((long long)(x) * (long long)(y)) >> (15 + 30 - REAL_RADIX))
 # define REAL_MUL_SCALE_LAYER3(x, y, z)		(((long long)(x) * (long long)(y)) >> (13 + gainpow2_scale[z] - REAL_RADIX))
 # define REAL_SCALE_LAYER12(x)				((long)((x) >> (30 - REAL_RADIX)))
 # define REAL_SCALE_LAYER3(x, y)			((long)((x) >> (gainpow2_scale[y] - REAL_RADIX)))
