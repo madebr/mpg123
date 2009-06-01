@@ -95,11 +95,6 @@ static inline long real_mul_asm_i386(long x, long y)
 /* I just changed the (int) to (long) there... seemed right. */
 # define DOUBLE_TO_REAL(x)					(double_to_long_rounded(x, REAL_FACTOR))
 # define DOUBLE_TO_REAL_15(x)				(double_to_long_rounded(x, 32768.0))
-# ifdef ACCURATE_ROUNDING
-#  define DOUBLE_TO_REAL_WINDOW(x)			DOUBLE_TO_REAL_15(x)
-# else
-#  define DOUBLE_TO_REAL_WINDOW(x)			(double_to_long_rounded(x, 0.5))
-# endif
 # define DOUBLE_TO_REAL_POW43(x)			(double_to_long_rounded(x, 8192.0))
 # define DOUBLE_TO_REAL_SCALE_LAYER12(x)	(double_to_long_rounded(x, 1073741824.0))
 # define DOUBLE_TO_REAL_SCALE_LAYER3(x, y)	(double_to_long_rounded(x, pow(2.0,gainpow2_scale[y])))
@@ -109,20 +104,19 @@ static inline long real_mul_asm_i386(long x, long y)
 # else
 #  define REAL_MUL(x, y)					(((long long)(x) * (long long)(y)) >> REAL_RADIX)
 # endif
-# ifdef ACCURATE_ROUNDING
-#  define REAL_MUL_SYNTH(x, y)				REAL_MUL(x, y)
-# else
-#  define REAL_MUL_SYNTH(x, y)				((x) * (y))
-# endif
 # define REAL_MUL_15(x, y)					(((long long)(x) * (long long)(y)) >> 15)
 # define REAL_MUL_SCALE_LAYER12(x, y)		(((long long)(x) * (long long)(y)) >> (15 + 30 - REAL_RADIX))
 # define REAL_MUL_SCALE_LAYER3(x, y, z)		(((long long)(x) * (long long)(y)) >> (13 + gainpow2_scale[z] - REAL_RADIX))
 # define REAL_SCALE_LAYER12(x)				((long)((x) >> (30 - REAL_RADIX)))
 # define REAL_SCALE_LAYER3(x, y)			((long)((x) >> (gainpow2_scale[y] - REAL_RADIX)))
 # ifdef ACCURATE_ROUNDING
+#  define DOUBLE_TO_REAL_WINDOW(x)			DOUBLE_TO_REAL_15(x)
+#  define REAL_MUL_SYNTH(x, y)				REAL_MUL(x, y)
 #  define REAL_SCALE_DCT64(x)				(x)
 # else
-#  define REAL_SCALE_DCT64(x)				((x) >> 9)
+#  define DOUBLE_TO_REAL_WINDOW(x)			(double_to_long_rounded(x, 0.5))
+#  define REAL_MUL_SYNTH(x, y)				((x) * (y))
+#  define REAL_SCALE_DCT64(x)				((x) >> 8)
 # endif
 #  define REAL_SCANF "%ld"
 #  define REAL_PRINTF "%ld"
