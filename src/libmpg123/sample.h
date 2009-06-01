@@ -20,9 +20,15 @@ static inline short idiv_signed_rounded(long x, int shift)
 	x += (x & 1);
 	return (short)(x >> 1);
 }
-# define REAL_PLUS_32767       ( 32767 << 15 )
-# define REAL_MINUS_32768      ( -32768 << 15 )
-# define REAL_TO_SHORT(x)      (idiv_signed_rounded(x, 15))
+# ifdef ACCURATE_ROUNDING
+#  define REAL_PLUS_32767       ( 32767 << 15 )
+#  define REAL_MINUS_32768      ( -32768 << 15 )
+#  define REAL_TO_SHORT(x)      (idiv_signed_rounded(x, 15))
+# else
+#  define REAL_PLUS_32767       ( 32767 << 14 )
+#  define REAL_MINUS_32768      ( -32768 << 14 )
+#  define REAL_TO_SHORT(x)      (idiv_signed_rounded(x, 14))
+# endif
 /* This is just here for completeness, it is not used! */
 # define REAL_TO_S32(x)        (x)
 #endif

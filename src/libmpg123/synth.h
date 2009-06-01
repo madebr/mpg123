@@ -86,39 +86,39 @@ int SYNTH_NAME(real *bandPtr, int channel, mpg123_handle *fr, int final)
 		{
 			real sum;
 #ifndef NO_AUTOINCREMENT
-			sum  = REAL_MUL(*window++, *b0++);
-			sum -= REAL_MUL(*window++, *b0++);
-			sum += REAL_MUL(*window++, *b0++);
-			sum -= REAL_MUL(*window++, *b0++);
-			sum += REAL_MUL(*window++, *b0++);
-			sum -= REAL_MUL(*window++, *b0++);
-			sum += REAL_MUL(*window++, *b0++);
-			sum -= REAL_MUL(*window++, *b0++);
-			sum += REAL_MUL(*window++, *b0++);
-			sum -= REAL_MUL(*window++, *b0++);
-			sum += REAL_MUL(*window++, *b0++);
-			sum -= REAL_MUL(*window++, *b0++);
-			sum += REAL_MUL(*window++, *b0++);
-			sum -= REAL_MUL(*window++, *b0++);
-			sum += REAL_MUL(*window++, *b0++);
-			sum -= REAL_MUL(*window++, *b0++);
+			sum  = REAL_MUL_SYNTH(*window++, *b0++);
+			sum -= REAL_MUL_SYNTH(*window++, *b0++);
+			sum += REAL_MUL_SYNTH(*window++, *b0++);
+			sum -= REAL_MUL_SYNTH(*window++, *b0++);
+			sum += REAL_MUL_SYNTH(*window++, *b0++);
+			sum -= REAL_MUL_SYNTH(*window++, *b0++);
+			sum += REAL_MUL_SYNTH(*window++, *b0++);
+			sum -= REAL_MUL_SYNTH(*window++, *b0++);
+			sum += REAL_MUL_SYNTH(*window++, *b0++);
+			sum -= REAL_MUL_SYNTH(*window++, *b0++);
+			sum += REAL_MUL_SYNTH(*window++, *b0++);
+			sum -= REAL_MUL_SYNTH(*window++, *b0++);
+			sum += REAL_MUL_SYNTH(*window++, *b0++);
+			sum -= REAL_MUL_SYNTH(*window++, *b0++);
+			sum += REAL_MUL_SYNTH(*window++, *b0++);
+			sum -= REAL_MUL_SYNTH(*window++, *b0++);
 #else
-			sum  = REAL_MUL(window[0x0], b0[0x0]);
-			sum -= REAL_MUL(window[0x1], b0[0x1]);
-			sum += REAL_MUL(window[0x2], b0[0x2]);
-			sum -= REAL_MUL(window[0x3], b0[0x3]);
-			sum += REAL_MUL(window[0x4], b0[0x4]);
-			sum -= REAL_MUL(window[0x5], b0[0x5]);
-			sum += REAL_MUL(window[0x6], b0[0x6]);
-			sum -= REAL_MUL(window[0x7], b0[0x7]);
-			sum += REAL_MUL(window[0x8], b0[0x8]);
-			sum -= REAL_MUL(window[0x9], b0[0x9]);
-			sum += REAL_MUL(window[0xA], b0[0xA]);
-			sum -= REAL_MUL(window[0xB], b0[0xB]);
-			sum += REAL_MUL(window[0xC], b0[0xC]);
-			sum -= REAL_MUL(window[0xD], b0[0xD]);
-			sum += REAL_MUL(window[0xE], b0[0xE]);
-			sum -= REAL_MUL(window[0xF], b0[0xF]);
+			sum  = REAL_MUL_SYNTH(window[0x0], b0[0x0]);
+			sum -= REAL_MUL_SYNTH(window[0x1], b0[0x1]);
+			sum += REAL_MUL_SYNTH(window[0x2], b0[0x2]);
+			sum -= REAL_MUL_SYNTH(window[0x3], b0[0x3]);
+			sum += REAL_MUL_SYNTH(window[0x4], b0[0x4]);
+			sum -= REAL_MUL_SYNTH(window[0x5], b0[0x5]);
+			sum += REAL_MUL_SYNTH(window[0x6], b0[0x6]);
+			sum -= REAL_MUL_SYNTH(window[0x7], b0[0x7]);
+			sum += REAL_MUL_SYNTH(window[0x8], b0[0x8]);
+			sum -= REAL_MUL_SYNTH(window[0x9], b0[0x9]);
+			sum += REAL_MUL_SYNTH(window[0xA], b0[0xA]);
+			sum -= REAL_MUL_SYNTH(window[0xB], b0[0xB]);
+			sum += REAL_MUL_SYNTH(window[0xC], b0[0xC]);
+			sum -= REAL_MUL_SYNTH(window[0xD], b0[0xD]);
+			sum += REAL_MUL_SYNTH(window[0xE], b0[0xE]);
+			sum -= REAL_MUL_SYNTH(window[0xF], b0[0xF]);
 #endif
 
 			ADD_DITHER(fr,sum)
@@ -127,14 +127,14 @@ int SYNTH_NAME(real *bandPtr, int channel, mpg123_handle *fr, int final)
 
 		{
 			real sum;
-			sum  = REAL_MUL(window[0x0], b0[0x0]);
-			sum += REAL_MUL(window[0x2], b0[0x2]);
-			sum += REAL_MUL(window[0x4], b0[0x4]);
-			sum += REAL_MUL(window[0x6], b0[0x6]);
-			sum += REAL_MUL(window[0x8], b0[0x8]);
-			sum += REAL_MUL(window[0xA], b0[0xA]);
-			sum += REAL_MUL(window[0xC], b0[0xC]);
-			sum += REAL_MUL(window[0xE], b0[0xE]);
+			sum  = REAL_MUL_SYNTH(window[0x0], b0[0x0]);
+			sum += REAL_MUL_SYNTH(window[0x2], b0[0x2]);
+			sum += REAL_MUL_SYNTH(window[0x4], b0[0x4]);
+			sum += REAL_MUL_SYNTH(window[0x6], b0[0x6]);
+			sum += REAL_MUL_SYNTH(window[0x8], b0[0x8]);
+			sum += REAL_MUL_SYNTH(window[0xA], b0[0xA]);
+			sum += REAL_MUL_SYNTH(window[0xC], b0[0xC]);
+			sum += REAL_MUL_SYNTH(window[0xE], b0[0xE]);
 
 			ADD_DITHER(fr,sum)
 			WRITE_SAMPLE(samples,sum,clip);
@@ -148,39 +148,39 @@ int SYNTH_NAME(real *bandPtr, int channel, mpg123_handle *fr, int final)
 		{
 			real sum;
 #ifndef NO_AUTOINCREMENT
-			sum = -REAL_MUL(*(--window), *b0++);
-			sum -= REAL_MUL(*(--window), *b0++);
-			sum -= REAL_MUL(*(--window), *b0++);
-			sum -= REAL_MUL(*(--window), *b0++);
-			sum -= REAL_MUL(*(--window), *b0++);
-			sum -= REAL_MUL(*(--window), *b0++);
-			sum -= REAL_MUL(*(--window), *b0++);
-			sum -= REAL_MUL(*(--window), *b0++);
-			sum -= REAL_MUL(*(--window), *b0++);
-			sum -= REAL_MUL(*(--window), *b0++);
-			sum -= REAL_MUL(*(--window), *b0++);
-			sum -= REAL_MUL(*(--window), *b0++);
-			sum -= REAL_MUL(*(--window), *b0++);
-			sum -= REAL_MUL(*(--window), *b0++);
-			sum -= REAL_MUL(*(--window), *b0++);
-			sum -= REAL_MUL(*(--window), *b0++);
+			sum = -REAL_MUL_SYNTH(*(--window), *b0++);
+			sum -= REAL_MUL_SYNTH(*(--window), *b0++);
+			sum -= REAL_MUL_SYNTH(*(--window), *b0++);
+			sum -= REAL_MUL_SYNTH(*(--window), *b0++);
+			sum -= REAL_MUL_SYNTH(*(--window), *b0++);
+			sum -= REAL_MUL_SYNTH(*(--window), *b0++);
+			sum -= REAL_MUL_SYNTH(*(--window), *b0++);
+			sum -= REAL_MUL_SYNTH(*(--window), *b0++);
+			sum -= REAL_MUL_SYNTH(*(--window), *b0++);
+			sum -= REAL_MUL_SYNTH(*(--window), *b0++);
+			sum -= REAL_MUL_SYNTH(*(--window), *b0++);
+			sum -= REAL_MUL_SYNTH(*(--window), *b0++);
+			sum -= REAL_MUL_SYNTH(*(--window), *b0++);
+			sum -= REAL_MUL_SYNTH(*(--window), *b0++);
+			sum -= REAL_MUL_SYNTH(*(--window), *b0++);
+			sum -= REAL_MUL_SYNTH(*(--window), *b0++);
 #else
-			sum = -REAL_MUL(window[-0x1], b0[0x0]);
-			sum -= REAL_MUL(window[-0x2], b0[0x1]);
-			sum -= REAL_MUL(window[-0x3], b0[0x2]);
-			sum -= REAL_MUL(window[-0x4], b0[0x3]);
-			sum -= REAL_MUL(window[-0x5], b0[0x4]);
-			sum -= REAL_MUL(window[-0x6], b0[0x5]);
-			sum -= REAL_MUL(window[-0x7], b0[0x6]);
-			sum -= REAL_MUL(window[-0x8], b0[0x7]);
-			sum -= REAL_MUL(window[-0x9], b0[0x8]);
-			sum -= REAL_MUL(window[-0xA], b0[0x9]);
-			sum -= REAL_MUL(window[-0xB], b0[0xA]);
-			sum -= REAL_MUL(window[-0xC], b0[0xB]);
-			sum -= REAL_MUL(window[-0xD], b0[0xC]);
-			sum -= REAL_MUL(window[-0xE], b0[0xD]);
-			sum -= REAL_MUL(window[-0xF], b0[0xE]);
-			sum -= REAL_MUL(window[-0x0], b0[0xF]); /* Is that right? 0x0? Just wondering... */
+			sum = -REAL_MUL_SYNTH(window[-0x1], b0[0x0]);
+			sum -= REAL_MUL_SYNTH(window[-0x2], b0[0x1]);
+			sum -= REAL_MUL_SYNTH(window[-0x3], b0[0x2]);
+			sum -= REAL_MUL_SYNTH(window[-0x4], b0[0x3]);
+			sum -= REAL_MUL_SYNTH(window[-0x5], b0[0x4]);
+			sum -= REAL_MUL_SYNTH(window[-0x6], b0[0x5]);
+			sum -= REAL_MUL_SYNTH(window[-0x7], b0[0x6]);
+			sum -= REAL_MUL_SYNTH(window[-0x8], b0[0x7]);
+			sum -= REAL_MUL_SYNTH(window[-0x9], b0[0x8]);
+			sum -= REAL_MUL_SYNTH(window[-0xA], b0[0x9]);
+			sum -= REAL_MUL_SYNTH(window[-0xB], b0[0xA]);
+			sum -= REAL_MUL_SYNTH(window[-0xC], b0[0xB]);
+			sum -= REAL_MUL_SYNTH(window[-0xD], b0[0xC]);
+			sum -= REAL_MUL_SYNTH(window[-0xE], b0[0xD]);
+			sum -= REAL_MUL_SYNTH(window[-0xF], b0[0xE]);
+			sum -= REAL_MUL_SYNTH(window[-0x0], b0[0xF]); /* Is that right? 0x0? Just wondering... */
 #endif
 			ADD_DITHER(fr,sum)
 			WRITE_SAMPLE(samples,sum,clip);

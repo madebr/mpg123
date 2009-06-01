@@ -134,40 +134,40 @@ void dct64(real *out0,real *out1,real *samples)
  }
 
 
-  out0[0x10*16] = bufs[0];
-  out0[0x10*15] = bufs[16+0]  + bufs[16+8];
-  out0[0x10*14] = bufs[8];
-  out0[0x10*13] = bufs[16+8]  + bufs[16+4];
-  out0[0x10*12] = bufs[4];
-  out0[0x10*11] = bufs[16+4]  + bufs[16+12];
-  out0[0x10*10] = bufs[12];
-  out0[0x10* 9] = bufs[16+12] + bufs[16+2];
-  out0[0x10* 8] = bufs[2];
-  out0[0x10* 7] = bufs[16+2]  + bufs[16+10];
-  out0[0x10* 6] = bufs[10];
-  out0[0x10* 5] = bufs[16+10] + bufs[16+6];
-  out0[0x10* 4] = bufs[6];
-  out0[0x10* 3] = bufs[16+6]  + bufs[16+14];
-  out0[0x10* 2] = bufs[14];
-  out0[0x10* 1] = bufs[16+14] + bufs[16+1];
-  out0[0x10* 0] = bufs[1];
+  out0[0x10*16] = REAL_SCALE_DCT64(bufs[0]);
+  out0[0x10*15] = REAL_SCALE_DCT64(bufs[16+0]  + bufs[16+8]);
+  out0[0x10*14] = REAL_SCALE_DCT64(bufs[8]);
+  out0[0x10*13] = REAL_SCALE_DCT64(bufs[16+8]  + bufs[16+4]);
+  out0[0x10*12] = REAL_SCALE_DCT64(bufs[4]);
+  out0[0x10*11] = REAL_SCALE_DCT64(bufs[16+4]  + bufs[16+12]);
+  out0[0x10*10] = REAL_SCALE_DCT64(bufs[12]);
+  out0[0x10* 9] = REAL_SCALE_DCT64(bufs[16+12] + bufs[16+2]);
+  out0[0x10* 8] = REAL_SCALE_DCT64(bufs[2]);
+  out0[0x10* 7] = REAL_SCALE_DCT64(bufs[16+2]  + bufs[16+10]);
+  out0[0x10* 6] = REAL_SCALE_DCT64(bufs[10]);
+  out0[0x10* 5] = REAL_SCALE_DCT64(bufs[16+10] + bufs[16+6]);
+  out0[0x10* 4] = REAL_SCALE_DCT64(bufs[6]);
+  out0[0x10* 3] = REAL_SCALE_DCT64(bufs[16+6]  + bufs[16+14]);
+  out0[0x10* 2] = REAL_SCALE_DCT64(bufs[14]);
+  out0[0x10* 1] = REAL_SCALE_DCT64(bufs[16+14] + bufs[16+1]);
+  out0[0x10* 0] = REAL_SCALE_DCT64(bufs[1]);
 
-  out1[0x10* 0] = bufs[1];
-  out1[0x10* 1] = bufs[16+1]  + bufs[16+9];
-  out1[0x10* 2] = bufs[9];
-  out1[0x10* 3] = bufs[16+9]  + bufs[16+5];
-  out1[0x10* 4] = bufs[5];
-  out1[0x10* 5] = bufs[16+5]  + bufs[16+13];
-  out1[0x10* 6] = bufs[13];
-  out1[0x10* 7] = bufs[16+13] + bufs[16+3];
-  out1[0x10* 8] = bufs[3];
-  out1[0x10* 9] = bufs[16+3]  + bufs[16+11];
-  out1[0x10*10] = bufs[11];
-  out1[0x10*11] = bufs[16+11] + bufs[16+7];
-  out1[0x10*12] = bufs[7];
-  out1[0x10*13] = bufs[16+7]  + bufs[16+15];
-  out1[0x10*14] = bufs[15];
-  out1[0x10*15] = bufs[16+15];
+  out1[0x10* 0] = REAL_SCALE_DCT64(bufs[1]);
+  out1[0x10* 1] = REAL_SCALE_DCT64(bufs[16+1]  + bufs[16+9]);
+  out1[0x10* 2] = REAL_SCALE_DCT64(bufs[9]);
+  out1[0x10* 3] = REAL_SCALE_DCT64(bufs[16+9]  + bufs[16+5]);
+  out1[0x10* 4] = REAL_SCALE_DCT64(bufs[5]);
+  out1[0x10* 5] = REAL_SCALE_DCT64(bufs[16+5]  + bufs[16+13]);
+  out1[0x10* 6] = REAL_SCALE_DCT64(bufs[13]);
+  out1[0x10* 7] = REAL_SCALE_DCT64(bufs[16+13] + bufs[16+3]);
+  out1[0x10* 8] = REAL_SCALE_DCT64(bufs[3]);
+  out1[0x10* 9] = REAL_SCALE_DCT64(bufs[16+3]  + bufs[16+11]);
+  out1[0x10*10] = REAL_SCALE_DCT64(bufs[11]);
+  out1[0x10*11] = REAL_SCALE_DCT64(bufs[16+11] + bufs[16+7]);
+  out1[0x10*12] = REAL_SCALE_DCT64(bufs[7]);
+  out1[0x10*13] = REAL_SCALE_DCT64(bufs[16+7]  + bufs[16+15]);
+  out1[0x10*14] = REAL_SCALE_DCT64(bufs[15]);
+  out1[0x10*15] = REAL_SCALE_DCT64(bufs[16+15]);
 
 }
 

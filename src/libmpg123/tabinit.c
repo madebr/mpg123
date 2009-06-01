@@ -149,7 +149,7 @@ void make_decode_tables(mpg123_handle *fr)
 	for(i=0,j=0;i<256;i++,j++,idx+=32)
 	{
 		if(idx < 512+16)
-		fr->decwin[idx+16] = fr->decwin[idx] = DOUBLE_TO_REAL_15((double) intwinbase[j] * scaleval);
+		fr->decwin[idx+16] = fr->decwin[idx] = DOUBLE_TO_REAL_WINDOW((double) intwinbase[j] * scaleval);
 
 		if(i % 32 == 31)
 		idx -= 1023;
@@ -160,7 +160,7 @@ void make_decode_tables(mpg123_handle *fr)
 	for( /* i=256 */ ;i<512;i++,j--,idx+=32)
 	{
 		if(idx < 512+16)
-		fr->decwin[idx+16] = fr->decwin[idx] = DOUBLE_TO_REAL_15((double) intwinbase[j] * scaleval);
+		fr->decwin[idx+16] = fr->decwin[idx] = DOUBLE_TO_REAL_WINDOW((double) intwinbase[j] * scaleval);
 
 		if(i % 32 == 31)
 		idx -= 1023;
