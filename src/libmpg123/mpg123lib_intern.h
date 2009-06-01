@@ -70,12 +70,19 @@
 # define REAL_RADIX				24
 # define REAL_FACTOR			16777216.0
 
+static inline long double_to_long_rounded(double x, double scalefac)
+{
+	x *= scalefac;
+	x += (x > 0) ? 0.5 : -0.5;
+	return (long)x;
+}
+
 /* I just changed the (int) to (long) there... seemed right. */
-# define DOUBLE_TO_REAL(x)					((long)((x) * REAL_FACTOR))
-# define DOUBLE_TO_REAL_15(x)				((long)((x) * 32768.0))
-# define DOUBLE_TO_REAL_POW43(x)			((long)((x) * 8192.0))
-# define DOUBLE_TO_REAL_SCALE_LAYER12(x)	((long)((x) * 1073741824.0))
-# define DOUBLE_TO_REAL_SCALE_LAYER3(x, y)	((long)((x) * pow(2.0,gainpow2_scale[y])))
+# define DOUBLE_TO_REAL(x)					(double_to_long_rounded(x, REAL_FACTOR))
+# define DOUBLE_TO_REAL_15(x)				(double_to_long_rounded(x, 32768.0))
+# define DOUBLE_TO_REAL_POW43(x)			(double_to_long_rounded(x, 8192.0))
+# define DOUBLE_TO_REAL_SCALE_LAYER12(x)	(double_to_long_rounded(x, 1073741824.0))
+# define DOUBLE_TO_REAL_SCALE_LAYER3(x, y)	(double_to_long_rounded(x, pow(2.0,gainpow2_scale[y])))
 # define REAL_TO_DOUBLE(x)					((double)(x) / REAL_FACTOR)
 # define REAL_MUL(x, y)						(((long long)(x) * (long long)(y)) >> REAL_RADIX)
 # define REAL_MUL_15(x, y)					(((long long)(x) * (long long)(y)) >> 15)
