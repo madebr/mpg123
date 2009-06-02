@@ -1,7 +1,7 @@
 - integer decoder fun
 - buffer plays any audio type
 
-1.8.0 (The Taihei Monument)
+1.8.0 (The Taihei Monmament)
 ---
 
 - New and improved SSE optimizations! For x86-64, too! Also AltiVec! Fast float output! Faster stereo!
