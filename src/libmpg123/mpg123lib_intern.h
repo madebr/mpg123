@@ -79,17 +79,18 @@ static inline long double_to_long_rounded(double x, double scalefac)
 
 /* for i386_nofpu decoder */
 # if defined(__GNUC__) && defined(OPT_I386)
-static inline long real_mul_asm_i386(long x, long y)
-{
-	__asm__ (
-		"imull %%edx \n\t"
-		"shrdl $24, %%edx, %%eax \n\t"
-		: "+a" (x), "+d" (y)
-		:
-		:"cc"
-	);
-	return x;
-}
+#  define real_mul_asm_i386(x, y) \
+({ \
+	long _x=(x), _y=(y); \
+	__asm__ ( \
+		"imull %%edx \n\t" \
+		"shrdl $24, %%edx, %%eax \n\t" \
+		: "+a" (_x), "+d" (_y) \
+		: \
+		: "cc" \
+	); \
+	_x; \
+})
 # endif
 
 /* I just changed the (int) to (long) there... seemed right. */
