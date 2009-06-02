@@ -29,6 +29,7 @@
 - MPG123_MODDIR environment variable for changing module directory at runtime
 - arts output fixes (bug 2715128)
 - win32 output swallowing less buffers at end (but still some audio is lost, bug 2722991)
+- tested mpg123 on OS/2; it works, but not the native audio output (SDL works)
 - WAV output announces supported output formats correctly
 - fix buffer startup to make sure the first bits of audio are not discarded (bug 2796802)
 - re-enable the --gain parameter (the move to modules disabled that), untested
