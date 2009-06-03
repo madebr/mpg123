@@ -474,7 +474,7 @@ fi
 case $target in
   arm-*-linux*)
     # check that... perhaps we are better off on arm with kernel math emulation
-    cpu_type="generic_nofpu"
+    cpu_type="arm_nofpu"
   ;;
   i386-*-linux*|i386-*-kfreebsd*-gnu)
     cpu_type="i386_fpu"
