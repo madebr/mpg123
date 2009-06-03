@@ -77,20 +77,96 @@ static inline long double_to_long_rounded(double x, double scalefac)
 	return (long)x;
 }
 
+# ifdef __GNUC__
+#  if defined(OPT_I386)
 /* for i386_nofpu decoder */
-# if defined(__GNUC__) && defined(OPT_I386)
-#  define real_mul_asm_i386(x, y) \
+#   define REAL_MUL_ASM(x, y, radix) \
 ({ \
 	long _x=(x), _y=(y); \
 	__asm__ ( \
 		"imull %1 \n\t" \
 		"shrdl %2, %%edx, %0 \n\t" \
 		: "+&a" (_x) \
-		: "mr" (_y), "I" (REAL_RADIX) \
+		: "mr" (_y), "I" (radix) \
 		: "%edx", "cc" \
 	); \
 	_x; \
 })
+
+#   define REAL_MUL_SCALE_LAYER3_ASM(x, y, radix) \
+({ \
+	long _x=(x), _y=(y), _radix=(radix); \
+	__asm__ ( \
+		"imull %1 \n\t" \
+		"shrdl %%cl, %%edx, %0 \n\t" \
+		: "+&a" (_x) \
+		: "mr" (_y), "c" (_radix) \
+		: "%edx", "cc" \
+	); \
+	_x; \
+})
+#  elif defined(OPT_PPC)
+/* for powerpc */
+#   define REAL_MUL_ASM(x, y, radix) \
+({ \
+	long _x=(x), _y=(y), _mull, _mulh; \
+	__asm__ ( \
+		"mullw %0, %2, %3 \n\t" \
+		"mulhw %1, %2, %3 \n\t" \
+		"srwi %0, %0, %4 \n\t" \
+		"rlwimi %0, %1, %5, 0, %6 \n\t" \
+		: "=&r" (_mull), "=&r" (_mulh) \
+		: "%r" (_x), "r" (_y), "i" (radix), "i" (32-(radix)), "i" ((radix)-1) \
+	); \
+	_mull; \
+})
+
+#   define REAL_MUL_SCALE_LAYER3_ASM(x, y, radix) \
+({ \
+	long _x=(x), _y=(y), _radix=(radix), _mull, _mulh, _radix2; \
+	__asm__ ( \
+		"mullw %0, %3, %4 \n\t" \
+		"mulhw %1, %3, %4 \n\t" \
+		"subfic %2, %5, 32 \n\t" \
+		"srw %0, %0, %5 \n\t" \
+		"slw %1, %1, %2 \n\t" \
+		"or %0, %0, %1 \n\t" \
+		: "=&r" (_mull), "=&r" (_mulh), "=&r" (_radix2) \
+		: "%r" (_x), "r" (_y), "r" (_radix) \
+		: "cc" \
+	); \
+	_mull; \
+})
+#  elif defined(OPT_ARM)
+/* for arm */
+#   define REAL_MUL_ASM(x, y, radix) \
+({ \
+	long _x=(x), _y=(y), _mull, _mulh; \
+	__asm__ ( \
+		"smull %0, %1, %2, %3 \n\t" \
+		"lsr %0, %0, %4 \n\t" \
+		"orr %0, %0, %1, lsl %5 \n\t" \
+		: "=&r" (_mull), "=&r" (_mulh) \
+		: "%r" (_x), "r" (_y), "M" (radix), "M" (32-(radix)) \
+	); \
+	_mull; \
+})
+
+#   define REAL_MUL_SCALE_LAYER3_ASM(x, y, radix) \
+({ \
+	long _x=(x), _y=(y), _radix=(radix), _mull, _mulh, _radix2; \
+	__asm__ ( \
+		"smull %0, %1, %3, %4 \n\t" \
+		"mov %2, #32 \n\t" \
+		"lsr %0, %0, %5 \n\t" \
+		"sub %2, %2, %5 \n\t" \
+		"orr %0, %0, %1, lsl %2 \n\t" \
+		: "=&r" (_mull), "=&r" (_mulh), "=&r" (_radix2) \
+		: "%r" (_x), "r" (_y), "r" (_radix) \
+	); \
+	_mull; \
+})
+#  endif
 # endif
 
 /* I just changed the (int) to (long) there... seemed right. */
@@ -100,14 +176,20 @@ static inline long double_to_long_rounded(double x, double scalefac)
 # define DOUBLE_TO_REAL_SCALE_LAYER12(x)	(double_to_long_rounded(x, 1073741824.0))
 # define DOUBLE_TO_REAL_SCALE_LAYER3(x, y)	(double_to_long_rounded(x, pow(2.0,gainpow2_scale[y])))
 # define REAL_TO_DOUBLE(x)					((double)(x) / REAL_FACTOR)
-# if defined(__GNUC__) && defined(OPT_I386)
-#  define REAL_MUL(x, y)					(real_mul_asm_i386(x, y))
+# ifdef REAL_MUL_ASM
+#  define REAL_MUL(x, y)					REAL_MUL_ASM(x, y, REAL_RADIX)
+#  define REAL_MUL_15(x, y)					REAL_MUL_ASM(x, y, 15)
+#  define REAL_MUL_SCALE_LAYER12(x, y)		REAL_MUL_ASM(x, y, 15 + 30 - REAL_RADIX)
 # else
 #  define REAL_MUL(x, y)					(((long long)(x) * (long long)(y)) >> REAL_RADIX)
+#  define REAL_MUL_15(x, y)					(((long long)(x) * (long long)(y)) >> 15)
+#  define REAL_MUL_SCALE_LAYER12(x, y)		(((long long)(x) * (long long)(y)) >> (15 + 30 - REAL_RADIX))
 # endif
-# define REAL_MUL_15(x, y)					(((long long)(x) * (long long)(y)) >> 15)
-# define REAL_MUL_SCALE_LAYER12(x, y)		(((long long)(x) * (long long)(y)) >> (15 + 30 - REAL_RADIX))
-# define REAL_MUL_SCALE_LAYER3(x, y, z)		(((long long)(x) * (long long)(y)) >> (13 + gainpow2_scale[z] - REAL_RADIX))
+# ifdef REAL_MUL_SCALE_LAYER3_ASM
+#  define REAL_MUL_SCALE_LAYER3(x, y, z)	REAL_MUL_SCALE_LAYER3_ASM(x, y, 13 + gainpow2_scale[z] - REAL_RADIX)
+# else
+#  define REAL_MUL_SCALE_LAYER3(x, y, z)	(((long long)(x) * (long long)(y)) >> (13 + gainpow2_scale[z] - REAL_RADIX))
+# endif
 # define REAL_SCALE_LAYER12(x)				((long)((x) >> (30 - REAL_RADIX)))
 # define REAL_SCALE_LAYER3(x, y)			((long)((x) >> (gainpow2_scale[y] - REAL_RADIX)))
 # ifdef ACCURATE_ROUNDING
