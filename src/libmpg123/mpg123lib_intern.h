@@ -83,11 +83,11 @@ static inline long double_to_long_rounded(double x, double scalefac)
 ({ \
 	long _x=(x), _y=(y); \
 	__asm__ ( \
-		"imull %%edx \n\t" \
-		"shrdl $24, %%edx, %%eax \n\t" \
-		: "+a" (_x), "+d" (_y) \
-		: \
-		: "cc" \
+		"imull %1 \n\t" \
+		"shrdl %2, %%edx, %0 \n\t" \
+		: "+&a" (_x) \
+		: "mr" (_y), "I" (REAL_RADIX) \
+		: "%edx", "cc" \
 	); \
 	_x; \
 })
