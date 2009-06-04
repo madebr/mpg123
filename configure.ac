@@ -472,7 +472,7 @@ fi
 
 
 case $target in
-  arm-*-linux*)
+  arm*-*-linux*)
     # check that... perhaps we are better off on arm with kernel math emulation
     cpu_type="arm_nofpu"
   ;;
