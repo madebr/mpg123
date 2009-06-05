@@ -72,12 +72,6 @@ ASM_NAME(synth_1to1_stereo_x86_64_asm):
 	movaps		%xmm15, 144(%rsp)
 #endif
 	
-	leaq		ASM_NAME(maxmin_x86_64)(%rip), %rax
-	movaps		(%rax), XMMREG_MAX
-	movaps		16(%rax), XMMREG_MIN
-	pxor		XMMREG_CLIP, XMMREG_CLIP
-	pcmpeqd		XMMREG_FULL, XMMREG_FULL
-	
 #ifdef _WIN64
 	shlq		$32, %rax
 	shrq		$31, %rax
@@ -90,6 +84,12 @@ ASM_NAME(synth_1to1_stereo_x86_64_asm):
 #endif
 	leaq		32(WINDOW), WINDOW
 	subq		%rax, WINDOW
+	
+	leaq		ASM_NAME(maxmin_x86_64)(%rip), %rax
+	movaps		(%rax), XMMREG_MAX
+	movaps		16(%rax), XMMREG_MIN
+	pxor		XMMREG_CLIP, XMMREG_CLIP
+	pcmpeqd		XMMREG_FULL, XMMREG_FULL
 	
 	movl		$4, %ecx
 	
