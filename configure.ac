@@ -1023,9 +1023,11 @@ s_x86multi="getcpuflags"
 if test "x$integers" = "xquality"; then
   s_sse="$s_sse synth_sse_accurate synth_stereo_sse_accurate"
   s_x86_64="$s_x86_64 synth_x86_64_accurate synth_stereo_x86_64_accurate"
+  s_arm="synth_arm_accurate"
 else
   s_sse="$s_sse synth_sse" # no stereo
   s_x86_64="$s_x86_64 synth_x86_64 synth_stereo_x86_64"
+  s_arm="synth_arm"
 fi
 
 dnl CPU specific compiler flags and sources
@@ -1057,8 +1059,8 @@ dnl Not disabling buffer for float mode... check that this is OK now!
     ccalign=no
   ;;
   arm_nofpu)
-    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC -DOPT_ARM -DREAL_IS_FIXED"
-    more_sources=
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_ARM -DREAL_IS_FIXED"
+    more_sources="$s_arm"
     ccalign=no
   ;;
   altivec)

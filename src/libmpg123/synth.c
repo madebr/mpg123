@@ -441,6 +441,100 @@ int synth_1to1_stereo_x86_64(real *bandPtr_l,real *bandPtr_r, mpg123_handle *fr)
 #endif
 #endif
 
+#ifdef OPT_ARM
+#ifdef ACCURATE_ROUNDING
+/* Assembler routines. */
+int synth_1to1_arm_accurate_asm(real *window, real *b0, short *samples, int bo1);
+/* Hull for C mpg123 API */
+int synth_1to1_arm(real *bandPtr,int channel, mpg123_handle *fr, int final)
+{
+	short *samples = (short *) (fr->buffer.data+fr->buffer.fill);
+
+	real *b0, **buf;
+	int bo1;
+	int clip;
+
+	if(fr->have_eq_settings) do_equalizer(bandPtr,channel,fr->equalizer);
+
+	if(!channel)
+	{
+		fr->bo--;
+		fr->bo &= 0xf;
+		buf = fr->real_buffs[0];
+	}
+	else
+	{
+		samples++;
+		buf = fr->real_buffs[1];
+	}
+
+	if(fr->bo & 0x1)
+	{
+		b0 = buf[0];
+		bo1 = fr->bo;
+		dct64(buf[1]+((fr->bo+1)&0xf),buf[0]+fr->bo,bandPtr);
+	}
+	else
+	{
+		b0 = buf[1];
+		bo1 = fr->bo+1;
+		dct64(buf[0]+fr->bo,buf[1]+fr->bo+1,bandPtr);
+	}
+
+	clip = synth_1to1_arm_accurate_asm(fr->decwin, b0, samples, bo1);
+
+	if(final) fr->buffer.fill += 128;
+
+	return clip;
+}
+#else
+/* Assembler routines. */
+int synth_1to1_arm_asm(real *window, real *b0, short *samples, int bo1);
+/* Hull for C mpg123 API */
+int synth_1to1_arm(real *bandPtr,int channel, mpg123_handle *fr, int final)
+{
+	short *samples = (short *) (fr->buffer.data+fr->buffer.fill);
+
+	real *b0, **buf;
+	int bo1;
+	int clip;
+
+	if(fr->have_eq_settings) do_equalizer(bandPtr,channel,fr->equalizer);
+
+	if(!channel)
+	{
+		fr->bo--;
+		fr->bo &= 0xf;
+		buf = fr->real_buffs[0];
+	}
+	else
+	{
+		samples++;
+		buf = fr->real_buffs[1];
+	}
+
+	if(fr->bo & 0x1)
+	{
+		b0 = buf[0];
+		bo1 = fr->bo;
+		dct64(buf[1]+((fr->bo+1)&0xf),buf[0]+fr->bo,bandPtr);
+	}
+	else
+	{
+		b0 = buf[1];
+		bo1 = fr->bo+1;
+		dct64(buf[0]+fr->bo,buf[1]+fr->bo+1,bandPtr);
+	}
+
+	clip = synth_1to1_arm_asm(fr->decwin, b0, samples, bo1);
+
+	if(final) fr->buffer.fill += 128;
+
+	return clip;
+}
+#endif
+#endif
+
 #ifndef NO_DOWNSAMPLE
 
 /*

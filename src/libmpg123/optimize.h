@@ -37,7 +37,7 @@ enum optdec
 { /* autodec needs to be =0 and the first, nodec needs to be the last -- for loops! */
 	autodec=0, generic, generic_dither, idrei,
 	ivier, ifuenf, ifuenf_dither, mmx,
-	dreidnow, dreidnowext, altivec, sse, x86_64,
+	dreidnow, dreidnowext, altivec, sse, x86_64, arm,
 	nodec
 };
 enum optcla { nocla=0, normal, mmxsse };
@@ -175,6 +175,12 @@ extern const int costab_mmxsse[];
 #define OPT_MMXORSSE
 #ifndef OPT_MULTI
 #	define defopt x86_64
+#endif
+#endif
+
+#ifdef OPT_ARM
+#ifndef OPT_MULTI
+#	define defopt arm
 #endif
 #endif
 

@@ -276,7 +276,7 @@ int frame_buffers(mpg123_handle *fr)
 		}
 #endif
 #endif
-#ifdef OPT_ALTIVEC
+#if defined(OPT_ALTIVEC) || defined(OPT_ARM) 
 		if(decwin_size < (512+32)*4) decwin_size = (512+32)*4;
 		decwin_size += 512*4;
 #endif

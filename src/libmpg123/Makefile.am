@@ -110,6 +110,8 @@ EXTRA_libmpg123_la_SOURCES = \
 	synth_stereo_x86_64_float.S \
 	synth_stereo_x86_64_s32.S \
 	synth_stereo_x86_64_accurate.S \
+	synth_arm.S \
+	synth_arm_accurate.S \
 	ntom.c \
 	synth.c \
 	synth_8bit.c \

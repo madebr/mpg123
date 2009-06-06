@@ -40,10 +40,11 @@ echo "
 #define dn_AltiVec "AltiVec"
 #define dn_SSE "SSE"
 #define dn_x86_64 "x86-64"
+#define dn_ARM "ARM"
 static const char* decname[] =
 {
 	"auto"
-	, dn_generic, dn_generic_dither, dn_i386, dn_i486, dn_i586, dn_i586_dither, dn_MMX, dn_3DNow, dn_3DNowExt, dn_AltiVec, dn_SSE, dn_x86_64
+	, dn_generic, dn_generic_dither, dn_i386, dn_i486, dn_i586, dn_i586_dither, dn_MMX, dn_3DNow, dn_3DNowExt, dn_AltiVec, dn_SSE, dn_x86_64, dn_ARM
 	, "nodec"
 };
 
@@ -210,6 +211,9 @@ static int find_dectype(mpg123_handle *fr)
 #endif
 #ifdef OPT_X86_64
 	else if(basic_synth == synth_1to1_x86_64) type = x86_64;
+#endif
+#ifdef OPT_ARM
+	else if(basic_synth == synth_1to1_arm) type = arm;
 #endif
 #ifdef OPT_GENERIC_DITHER
 	else if(basic_synth == synth_1to1_dither) type = generic_dither;
@@ -649,6 +653,18 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 	}
 #	endif
 
+#	ifdef OPT_ARM
+	if(!done && (auto_choose || want_dec == arm))
+	{
+		chosen = "ARM";
+		fr->cpu_opts.type = arm;
+#		ifndef NO_16BIT
+		fr->synths.plain[r_1to1][f_16] = synth_1to1_arm;
+#		endif
+		done = 1;
+	}
+#	endif
+
 #	ifdef OPT_GENERIC
 	if(!done && (auto_choose || want_dec == generic))
 	{
@@ -734,6 +750,9 @@ static const char *mpg123_supported_decoder_list[] =
 	#ifdef OPT_X86_64
 	NULL,
 	#endif
+	#ifdef OPT_ARM
+	NULL,
+	#endif
 	#ifdef OPT_GENERIC_FLOAT
 	NULL,
 	#endif
@@ -778,6 +797,9 @@ static const char *mpg123_decoder_list[] =
 	#endif
 	#ifdef OPT_X86_64
 	dn_x86_64,
+	#endif
+	#ifdef OPT_ARM
+	dn_ARM,
 	#endif
 	#ifdef OPT_GENERIC
 	dn_generic,
@@ -834,6 +856,9 @@ void check_decoders(void )
 #endif
 #ifdef OPT_X86_64
 	*(d++) = decname[x86_64];
+#endif
+#ifdef OPT_ARM
+	*(d++) = decname[arm];
 #endif
 #ifdef OPT_GENERIC
 	*(d++) = decname[generic];
