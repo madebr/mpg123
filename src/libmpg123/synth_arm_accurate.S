@@ -33,186 +33,254 @@ ASM_NAME(synth_1to1_arm_accurate_asm):
 	
 	mov		r3, #16
 	
+	ldr		r5, [WINDOW], #4
+	ldr		r6, [B0], #4
 .Loop_start_1:
-	ldr		r5, [WINDOW], #4
-	ldr		r6, [B0], #4
+	ldr		r9, [WINDOW], #4
+	ldr		r10, [B0], #4
 	smull	r8, r7, r5, r6
-	ldr		r9, [WINDOW], #4
-	ldr		r10, [B0], #4
+	ldr		r5, [WINDOW], #4
+	ldr		r6, [B0], #4
 	smull	r12, r11, r9, r10
-	ldr		r5, [WINDOW], #4
-	ldr		r6, [B0], #4
-	smlal	r8, r7, r5, r6
 	ldr		r9, [WINDOW], #4
 	ldr		r10, [B0], #4
-	smlal	r12, r11, r9, r10
+	smlal	r8, r7, r5, r6
 	ldr		r5, [WINDOW], #4
 	ldr		r6, [B0], #4
-	smlal	r8, r7, r5, r6
+	smlal	r12, r11, r9, r10
 	ldr		r9, [WINDOW], #4
 	ldr		r10, [B0], #4
-	smlal	r12, r11, r9, r10
+	smlal	r8, r7, r5, r6
 	ldr		r5, [WINDOW], #4
 	ldr		r6, [B0], #4
-	smlal	r8, r7, r5, r6
+	smlal	r12, r11, r9, r10
 	ldr		r9, [WINDOW], #4
 	ldr		r10, [B0], #4
-	smlal	r12, r11, r9, r10
+	smlal	r8, r7, r5, r6
 	ldr		r5, [WINDOW], #4
 	ldr		r6, [B0], #4
-	smlal	r8, r7, r5, r6
+	smlal	r12, r11, r9, r10
 	ldr		r9, [WINDOW], #4
 	ldr		r10, [B0], #4
-	smlal	r12, r11, r9, r10
+	smlal	r8, r7, r5, r6
 	ldr		r5, [WINDOW], #4
 	ldr		r6, [B0], #4
-	smlal	r8, r7, r5, r6
+	smlal	r12, r11, r9, r10
 	ldr		r9, [WINDOW], #4
 	ldr		r10, [B0], #4
-	smlal	r12, r11, r9, r10
+	smlal	r8, r7, r5, r6
 	ldr		r5, [WINDOW], #4
 	ldr		r6, [B0], #4
-	smlal	r8, r7, r5, r6
+	smlal	r12, r11, r9, r10
 	ldr		r9, [WINDOW], #4
 	ldr		r10, [B0], #4
-	smlal	r12, r11, r9, r10
+	smlal	r8, r7, r5, r6
 	ldr		r5, [WINDOW], #4
 	ldr		r6, [B0], #4
-	smlal	r8, r7, r5, r6
+	smlal	r12, r11, r9, r10
 	ldr		r9, [WINDOW], #68
 	ldr		r10, [B0], #4
+	smlal	r8, r7, r5, r6
+	ldr		r5, [WINDOW], #4
+	ldr		r6, [B0], #4
 	smlal	r12, r11, r9, r10
 	
-	lsr		r5, r8, #24
-	lsr		r6, r12, #24
-	orr		r5, r5, r7, lsl #8
-	orr		r6, r6, r11, lsl #8
-	sub		r5, r5, r6
+	lsr		r8, r8, #24
+	lsr		r12, r12, #24
+	orr		r8, r8, r7, lsl #8
+	orr		r12, r12, r11, lsl #8
+	sub		r8, r8, r12
 	
-	cmp		r5, REG_MAX
-	movgt	r5, REG_MAX
+	cmp		r8, REG_MAX
+	movgt	r8, REG_MAX
 	addgt	REG_CLIP, REG_CLIP, #1
-	cmp		r5, #-1073741824
-	movlt	r5, #-1073741824
+	cmp		r8, #-1073741824
+	movlt	r8, #-1073741824
 	addlt	REG_CLIP, REG_CLIP, #1
-	asrs	r5, r5, #15
-	adc		r5, r5, #0
-	strh	r5, [SAMPLES], #4
+	asrs	r8, r8, #15
+	adc		r8, r8, #0
+	strh	r8, [SAMPLES], #4
 	
 	subs	r3, r3, #1
 	bne		.Loop_start_1
 	
-	ldr		r5, [WINDOW], #8
-	ldr		r6, [B0], #8
+	add		WINDOW, WINDOW, #4
+	add		B0, B0, #4
+	
+	ldr		r9, [WINDOW], #8
+	ldr		r10, [B0], #8
 	smull	r8, r7, r5, r6
-	ldr		r9, [WINDOW], #8
-	ldr		r10, [B0], #8
+	ldr		r5, [WINDOW], #8
+	ldr		r6, [B0], #8
 	smull	r12, r11, r9, r10
-	ldr		r5, [WINDOW], #8
-	ldr		r6, [B0], #8
-	smlal	r8, r7, r5, r6
 	ldr		r9, [WINDOW], #8
 	ldr		r10, [B0], #8
-	smlal	r12, r11, r9, r10
+	smlal	r8, r7, r5, r6
 	ldr		r5, [WINDOW], #8
 	ldr		r6, [B0], #8
-	smlal	r8, r7, r5, r6
+	smlal	r12, r11, r9, r10
 	ldr		r9, [WINDOW], #8
 	ldr		r10, [B0], #8
-	smlal	r12, r11, r9, r10
+	smlal	r8, r7, r5, r6
 	ldr		r5, [WINDOW], #8
 	ldr		r6, [B0], #8
-	smlal	r8, r7, r5, r6
+	smlal	r12, r11, r9, r10
 	ldr		r9, [WINDOW], #72
 	ldr		r10, [B0], #-120
+	smlal	r8, r7, r5, r6
+	ldr		r5, [WINDOW], #4
+	ldr		r6, [B0], #4
 	smlal	r12, r11, r9, r10
 	
-	lsr		r5, r8, #24
-	lsr		r6, r12, #24
-	orr		r5, r5, r7, lsl #8
-	orr		r6, r6, r11, lsl #8
-	add		r5, r5, r6
+	lsr		r8, r8, #24
+	lsr		r12, r12, #24
+	orr		r8, r8, r7, lsl #8
+	orr		r12, r12, r11, lsl #8
+	add		r8, r8, r12
 	
-	cmp		r5, REG_MAX
-	movgt	r5, REG_MAX
+	cmp		r8, REG_MAX
+	movgt	r8, REG_MAX
 	addgt	REG_CLIP, REG_CLIP, #1
-	cmp		r5, #-1073741824
-	movlt	r5, #-1073741824
+	cmp		r8, #-1073741824
+	movlt	r8, #-1073741824
 	addlt	REG_CLIP, REG_CLIP, #1
-	asrs	r5, r5, #15
-	adc		r5, r5, #0
-	strh	r5, [SAMPLES], #4
+	asrs	r8, r8, #15
+	adc		r8, r8, #0
+	strh	r8, [SAMPLES], #4
 	
-	mov		r3, #15
+	mov		r3, #14
 	
 .Loop_start_2:
-	ldr		r5, [WINDOW], #4
-	ldr		r6, [B0], #4
+	ldr		r9, [WINDOW], #4
+	ldr		r10, [B0], #4
 	smull	r8, r7, r5, r6
-	ldr		r9, [WINDOW], #4
-	ldr		r10, [B0], #4
+	ldr		r5, [WINDOW], #4
+	ldr		r6, [B0], #4
 	smull	r12, r11, r9, r10
-	ldr		r5, [WINDOW], #4
-	ldr		r6, [B0], #4
-	smlal	r8, r7, r5, r6
 	ldr		r9, [WINDOW], #4
 	ldr		r10, [B0], #4
-	smlal	r12, r11, r9, r10
+	smlal	r8, r7, r5, r6
 	ldr		r5, [WINDOW], #4
 	ldr		r6, [B0], #4
-	smlal	r8, r7, r5, r6
+	smlal	r12, r11, r9, r10
 	ldr		r9, [WINDOW], #4
 	ldr		r10, [B0], #4
-	smlal	r12, r11, r9, r10
+	smlal	r8, r7, r5, r6
 	ldr		r5, [WINDOW], #4
 	ldr		r6, [B0], #4
-	smlal	r8, r7, r5, r6
+	smlal	r12, r11, r9, r10
 	ldr		r9, [WINDOW], #4
 	ldr		r10, [B0], #4
-	smlal	r12, r11, r9, r10
+	smlal	r8, r7, r5, r6
 	ldr		r5, [WINDOW], #4
 	ldr		r6, [B0], #4
-	smlal	r8, r7, r5, r6
+	smlal	r12, r11, r9, r10
 	ldr		r9, [WINDOW], #4
 	ldr		r10, [B0], #4
-	smlal	r12, r11, r9, r10
+	smlal	r8, r7, r5, r6
 	ldr		r5, [WINDOW], #4
 	ldr		r6, [B0], #4
-	smlal	r8, r7, r5, r6
+	smlal	r12, r11, r9, r10
 	ldr		r9, [WINDOW], #4
 	ldr		r10, [B0], #4
-	smlal	r12, r11, r9, r10
+	smlal	r8, r7, r5, r6
 	ldr		r5, [WINDOW], #4
 	ldr		r6, [B0], #4
-	smlal	r8, r7, r5, r6
+	smlal	r12, r11, r9, r10
 	ldr		r9, [WINDOW], #4
 	ldr		r10, [B0], #4
-	smlal	r12, r11, r9, r10
+	smlal	r8, r7, r5, r6
 	ldr		r5, [WINDOW], #4
 	ldr		r6, [B0], #4
-	smlal	r8, r7, r5, r6
+	smlal	r12, r11, r9, r10
 	ldr		r9, [WINDOW], #68
 	ldr		r10, [B0], #-124
+	smlal	r8, r7, r5, r6
+	ldr		r5, [WINDOW], #4
+	ldr		r6, [B0], #4
 	smlal	r12, r11, r9, r10
 	
-	lsr		r5, r8, #24
-	lsr		r6, r12, #24
-	orr		r5, r5, r7, lsl #8
-	orr		r6, r6, r11, lsl #8
-	add		r5, r5, r6
+	lsr		r8, r8, #24
+	lsr		r12, r12, #24
+	orr		r8, r8, r7, lsl #8
+	orr		r12, r12, r11, lsl #8
+	add		r8, r8, r12
 	
-	cmp		r5, REG_MAX
-	movgt	r5, REG_MAX
+	cmp		r8, REG_MAX
+	movgt	r8, REG_MAX
 	addgt	REG_CLIP, REG_CLIP, #1
-	cmp		r5, #-1073741824
-	movlt	r5, #-1073741824
+	cmp		r8, #-1073741824
+	movlt	r8, #-1073741824
 	addlt	REG_CLIP, REG_CLIP, #1
-	asrs	r5, r5, #15
-	adc		r5, r5, #0
-	strh	r5, [SAMPLES], #4
+	asrs	r8, r8, #15
+	adc		r8, r8, #0
+	strh	r8, [SAMPLES], #4
 	
 	subs	r3, r3, #1
 	bne		.Loop_start_2
+	
+	ldr		r9, [WINDOW], #4
+	ldr		r10, [B0], #4
+	smull	r8, r7, r5, r6
+	ldr		r5, [WINDOW], #4
+	ldr		r6, [B0], #4
+	smull	r12, r11, r9, r10
+	ldr		r9, [WINDOW], #4
+	ldr		r10, [B0], #4
+	smlal	r8, r7, r5, r6
+	ldr		r5, [WINDOW], #4
+	ldr		r6, [B0], #4
+	smlal	r12, r11, r9, r10
+	ldr		r9, [WINDOW], #4
+	ldr		r10, [B0], #4
+	smlal	r8, r7, r5, r6
+	ldr		r5, [WINDOW], #4
+	ldr		r6, [B0], #4
+	smlal	r12, r11, r9, r10
+	ldr		r9, [WINDOW], #4
+	ldr		r10, [B0], #4
+	smlal	r8, r7, r5, r6
+	ldr		r5, [WINDOW], #4
+	ldr		r6, [B0], #4
+	smlal	r12, r11, r9, r10
+	ldr		r9, [WINDOW], #4
+	ldr		r10, [B0], #4
+	smlal	r8, r7, r5, r6
+	ldr		r5, [WINDOW], #4
+	ldr		r6, [B0], #4
+	smlal	r12, r11, r9, r10
+	ldr		r9, [WINDOW], #4
+	ldr		r10, [B0], #4
+	smlal	r8, r7, r5, r6
+	ldr		r5, [WINDOW], #4
+	ldr		r6, [B0], #4
+	smlal	r12, r11, r9, r10
+	ldr		r9, [WINDOW], #4
+	ldr		r10, [B0], #4
+	smlal	r8, r7, r5, r6
+	ldr		r5, [WINDOW], #4
+	ldr		r6, [B0], #4
+	smlal	r12, r11, r9, r10
+	ldr		r9, [WINDOW], #68
+	ldr		r10, [B0], #-124
+	smlal	r8, r7, r5, r6
+	smlal	r12, r11, r9, r10
+	
+	lsr		r8, r8, #24
+	lsr		r12, r12, #24
+	orr		r8, r8, r7, lsl #8
+	orr		r12, r12, r11, lsl #8
+	add		r8, r8, r12
+	
+	cmp		r8, REG_MAX
+	movgt	r8, REG_MAX
+	addgt	REG_CLIP, REG_CLIP, #1
+	cmp		r8, #-1073741824
+	movlt	r8, #-1073741824
+	addlt	REG_CLIP, REG_CLIP, #1
+	asrs	r8, r8, #15
+	adc		r8, r8, #0
+	strh	r8, [SAMPLES]
 	
 	mov		r0, REG_CLIP
 	

@@ -33,174 +33,238 @@ ASM_NAME(synth_1to1_arm_asm):
 	
 	mov		r3, #16
 	
+	ldr		r5, [WINDOW], #4
+	ldr		r6, [B0], #4
 .Loop_start_1:
-	ldr		r5, [WINDOW], #4
-	ldr		r6, [B0], #4
+	ldr		r8, [WINDOW], #4
+	ldr		r9, [B0], #4
 	mul		r7, r5, r6
-	ldr		r8, [WINDOW], #4
-	ldr		r9, [B0], #4
+	ldr		r5, [WINDOW], #4
+	ldr		r6, [B0], #4
 	mul		r10, r8, r9
-	ldr		r5, [WINDOW], #4
-	ldr		r6, [B0], #4
-	mla		r7, r5, r6, r7
 	ldr		r8, [WINDOW], #4
 	ldr		r9, [B0], #4
-	mla		r10, r8, r9, r10
+	mla		r7, r5, r6, r7
 	ldr		r5, [WINDOW], #4
 	ldr		r6, [B0], #4
-	mla		r7, r5, r6, r7
+	mla		r10, r8, r9, r10
 	ldr		r8, [WINDOW], #4
 	ldr		r9, [B0], #4
-	mla		r10, r8, r9, r10
+	mla		r7, r5, r6, r7
 	ldr		r5, [WINDOW], #4
 	ldr		r6, [B0], #4
-	mla		r7, r5, r6, r7
+	mla		r10, r8, r9, r10
 	ldr		r8, [WINDOW], #4
 	ldr		r9, [B0], #4
-	mla		r10, r8, r9, r10
+	mla		r7, r5, r6, r7
 	ldr		r5, [WINDOW], #4
 	ldr		r6, [B0], #4
-	mla		r7, r5, r6, r7
+	mla		r10, r8, r9, r10
 	ldr		r8, [WINDOW], #4
 	ldr		r9, [B0], #4
-	mla		r10, r8, r9, r10
+	mla		r7, r5, r6, r7
 	ldr		r5, [WINDOW], #4
 	ldr		r6, [B0], #4
-	mla		r7, r5, r6, r7
+	mla		r10, r8, r9, r10
 	ldr		r8, [WINDOW], #4
 	ldr		r9, [B0], #4
-	mla		r10, r8, r9, r10
+	mla		r7, r5, r6, r7
 	ldr		r5, [WINDOW], #4
 	ldr		r6, [B0], #4
-	mla		r7, r5, r6, r7
+	mla		r10, r8, r9, r10
 	ldr		r8, [WINDOW], #4
 	ldr		r9, [B0], #4
-	mla		r10, r8, r9, r10
+	mla		r7, r5, r6, r7
 	ldr		r5, [WINDOW], #4
 	ldr		r6, [B0], #4
-	mla		r7, r5, r6, r7
+	mla		r10, r8, r9, r10
 	ldr		r8, [WINDOW], #68
 	ldr		r9, [B0], #4
+	mla		r7, r5, r6, r7
+	ldr		r5, [WINDOW], #4
+	ldr		r6, [B0], #4
 	mla		r10, r8, r9, r10
 	
-	sub		r5, r7, r10
+	sub		r7, r7, r10
 	
-	cmp		r5, REG_MAX
-	movgt	r5, REG_MAX
+	cmp		r7, REG_MAX
+	movgt	r7, REG_MAX
 	addgt	REG_CLIP, REG_CLIP, #1
-	cmp		r5, #-1073741824
-	movlt	r5, #-1073741824
+	cmp		r7, #-1073741824
+	movlt	r7, #-1073741824
 	addlt	REG_CLIP, REG_CLIP, #1
-	asrs	r5, r5, #15
-	adc		r5, r5, #0
-	strh	r5, [SAMPLES], #4
+	asrs	r7, r7, #15
+	adc		r7, r7, #0
+	strh	r7, [SAMPLES], #4
 	
 	subs	r3, r3, #1
 	bne		.Loop_start_1
 	
-	ldr		r5, [WINDOW], #8
-	ldr		r6, [B0], #8
+	add		WINDOW, WINDOW, #4
+	add		B0, B0, #4
+	
+	ldr		r8, [WINDOW], #8
+	ldr		r9, [B0], #8
 	mul		r7, r5, r6
-	ldr		r8, [WINDOW], #8
-	ldr		r9, [B0], #8
+	ldr		r5, [WINDOW], #8
+	ldr		r6, [B0], #8
 	mul		r10, r8, r9
-	ldr		r5, [WINDOW], #8
-	ldr		r6, [B0], #8
-	mla		r7, r5, r6, r7
 	ldr		r8, [WINDOW], #8
 	ldr		r9, [B0], #8
-	mla		r10, r8, r9, r10
+	mla		r7, r5, r6, r7
 	ldr		r5, [WINDOW], #8
 	ldr		r6, [B0], #8
-	mla		r7, r5, r6, r7
+	mla		r10, r8, r9, r10
 	ldr		r8, [WINDOW], #8
 	ldr		r9, [B0], #8
-	mla		r10, r8, r9, r10
+	mla		r7, r5, r6, r7
 	ldr		r5, [WINDOW], #8
 	ldr		r6, [B0], #8
-	mla		r7, r5, r6, r7
+	mla		r10, r8, r9, r10
 	ldr		r8, [WINDOW], #72
 	ldr		r9, [B0], #-120
+	mla		r7, r5, r6, r7
+	ldr		r5, [WINDOW], #4
+	ldr		r6, [B0], #4
 	mla		r10, r8, r9, r10
 	
-	add		r5, r7, r10
+	add		r7, r7, r10
 	
-	cmp		r5, REG_MAX
-	movgt	r5, REG_MAX
+	cmp		r7, REG_MAX
+	movgt	r7, REG_MAX
 	addgt	REG_CLIP, REG_CLIP, #1
-	cmp		r5, #-1073741824
-	movlt	r5, #-1073741824
+	cmp		r7, #-1073741824
+	movlt	r7, #-1073741824
 	addlt	REG_CLIP, REG_CLIP, #1
-	asrs	r5, r5, #15
-	adc		r5, r5, #0
-	strh	r5, [SAMPLES], #4
+	asrs	r7, r7, #15
+	adc		r7, r7, #0
+	strh	r7, [SAMPLES], #4
 	
-	mov		r3, #15
+	mov		r3, #14
 	
 .Loop_start_2:
-	ldr		r5, [WINDOW], #4
-	ldr		r6, [B0], #4
+	ldr		r8, [WINDOW], #4
+	ldr		r9, [B0], #4
 	mul		r7, r5, r6
-	ldr		r8, [WINDOW], #4
-	ldr		r9, [B0], #4
+	ldr		r5, [WINDOW], #4
+	ldr		r6, [B0], #4
 	mul		r10, r8, r9
-	ldr		r5, [WINDOW], #4
-	ldr		r6, [B0], #4
-	mla		r7, r5, r6, r7
 	ldr		r8, [WINDOW], #4
 	ldr		r9, [B0], #4
-	mla		r10, r8, r9, r10
+	mla		r7, r5, r6, r7
 	ldr		r5, [WINDOW], #4
 	ldr		r6, [B0], #4
-	mla		r7, r5, r6, r7
+	mla		r10, r8, r9, r10
 	ldr		r8, [WINDOW], #4
 	ldr		r9, [B0], #4
-	mla		r10, r8, r9, r10
+	mla		r7, r5, r6, r7
 	ldr		r5, [WINDOW], #4
 	ldr		r6, [B0], #4
-	mla		r7, r5, r6, r7
+	mla		r10, r8, r9, r10
 	ldr		r8, [WINDOW], #4
 	ldr		r9, [B0], #4
-	mla		r10, r8, r9, r10
+	mla		r7, r5, r6, r7
 	ldr		r5, [WINDOW], #4
 	ldr		r6, [B0], #4
-	mla		r7, r5, r6, r7
+	mla		r10, r8, r9, r10
 	ldr		r8, [WINDOW], #4
 	ldr		r9, [B0], #4
-	mla		r10, r8, r9, r10
+	mla		r7, r5, r6, r7
 	ldr		r5, [WINDOW], #4
 	ldr		r6, [B0], #4
-	mla		r7, r5, r6, r7
+	mla		r10, r8, r9, r10
 	ldr		r8, [WINDOW], #4
 	ldr		r9, [B0], #4
-	mla		r10, r8, r9, r10
+	mla		r7, r5, r6, r7
 	ldr		r5, [WINDOW], #4
 	ldr		r6, [B0], #4
-	mla		r7, r5, r6, r7
+	mla		r10, r8, r9, r10
 	ldr		r8, [WINDOW], #4
 	ldr		r9, [B0], #4
-	mla		r10, r8, r9, r10
+	mla		r7, r5, r6, r7
 	ldr		r5, [WINDOW], #4
 	ldr		r6, [B0], #4
-	mla		r7, r5, r6, r7
+	mla		r10, r8, r9, r10
 	ldr		r8, [WINDOW], #68
 	ldr		r9, [B0], #-124
+	mla		r7, r5, r6, r7
+	ldr		r5, [WINDOW], #4
+	ldr		r6, [B0], #4
 	mla		r10, r8, r9, r10
 	
-	add		r5, r7, r10
+	add		r7, r7, r10
 	
-	cmp		r5, REG_MAX
-	movgt	r5, REG_MAX
+	cmp		r7, REG_MAX
+	movgt	r7, REG_MAX
 	addgt	REG_CLIP, REG_CLIP, #1
-	cmp		r5, #-1073741824
-	movlt	r5, #-1073741824
+	cmp		r7, #-1073741824
+	movlt	r7, #-1073741824
 	addlt	REG_CLIP, REG_CLIP, #1
-	asrs	r5, r5, #15
-	adc		r5, r5, #0
-	strh	r5, [SAMPLES], #4
+	asrs	r7, r7, #15
+	adc		r7, r7, #0
+	strh	r7, [SAMPLES], #4
 	
 	subs	r3, r3, #1
 	bne		.Loop_start_2
+	
+	ldr		r8, [WINDOW], #4
+	ldr		r9, [B0], #4
+	mul		r7, r5, r6
+	ldr		r5, [WINDOW], #4
+	ldr		r6, [B0], #4
+	mul		r10, r8, r9
+	ldr		r8, [WINDOW], #4
+	ldr		r9, [B0], #4
+	mla		r7, r5, r6, r7
+	ldr		r5, [WINDOW], #4
+	ldr		r6, [B0], #4
+	mla		r10, r8, r9, r10
+	ldr		r8, [WINDOW], #4
+	ldr		r9, [B0], #4
+	mla		r7, r5, r6, r7
+	ldr		r5, [WINDOW], #4
+	ldr		r6, [B0], #4
+	mla		r10, r8, r9, r10
+	ldr		r8, [WINDOW], #4
+	ldr		r9, [B0], #4
+	mla		r7, r5, r6, r7
+	ldr		r5, [WINDOW], #4
+	ldr		r6, [B0], #4
+	mla		r10, r8, r9, r10
+	ldr		r8, [WINDOW], #4
+	ldr		r9, [B0], #4
+	mla		r7, r5, r6, r7
+	ldr		r5, [WINDOW], #4
+	ldr		r6, [B0], #4
+	mla		r10, r8, r9, r10
+	ldr		r8, [WINDOW], #4
+	ldr		r9, [B0], #4
+	mla		r7, r5, r6, r7
+	ldr		r5, [WINDOW], #4
+	ldr		r6, [B0], #4
+	mla		r10, r8, r9, r10
+	ldr		r8, [WINDOW], #4
+	ldr		r9, [B0], #4
+	mla		r7, r5, r6, r7
+	ldr		r5, [WINDOW], #4
+	ldr		r6, [B0], #4
+	mla		r10, r8, r9, r10
+	ldr		r8, [WINDOW]
+	ldr		r9, [B0]
+	mla		r7, r5, r6, r7
+	mla		r10, r8, r9, r10
+	
+	add		r7, r7, r10
+	
+	cmp		r7, REG_MAX
+	movgt	r5, REG_MAX
+	addgt	REG_CLIP, REG_CLIP, #1
+	cmp		r7, #-1073741824
+	movlt	r7, #-1073741824
+	addlt	REG_CLIP, REG_CLIP, #1
+	asrs	r7, r7, #15
+	adc		r7, r7, #0
+	strh	r7, [SAMPLES]
 	
 	mov		r0, REG_CLIP
 	
