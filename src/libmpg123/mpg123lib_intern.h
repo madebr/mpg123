@@ -157,9 +157,8 @@ static inline long double_to_long_rounded(double x, double scalefac)
 	long _x=(x), _y=(y), _radix=(radix), _mull, _mulh, _radix2; \
 	__asm__ ( \
 		"smull %0, %1, %3, %4 \n\t" \
-		"mov %2, #32 \n\t" \
 		"lsr %0, %0, %5 \n\t" \
-		"sub %2, %2, %5 \n\t" \
+		"rsb %2, %5, #32 \n\t" \
 		"orr %0, %0, %1, lsl %2 \n\t" \
 		: "=&r" (_mull), "=&r" (_mulh), "=&r" (_radix2) \
 		: "%r" (_x), "r" (_y), "r" (_radix) \

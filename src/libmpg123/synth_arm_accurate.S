@@ -12,6 +12,7 @@
 #define B0 r1
 #define SAMPLES r2
 #define REG_CLIP r4
+#define REG_MAX r14
 
 /*
 	int synth_1to1_arm_accurate_asm(real *window, real *b0, short *samples, int bo1);
@@ -27,6 +28,8 @@ ASM_NAME(synth_1to1_arm_accurate_asm):
 	add		WINDOW, WINDOW, #64
 	sub		WINDOW, WINDOW, r3, lsl #2
 	eor		REG_CLIP, REG_CLIP, REG_CLIP
+	mov		REG_MAX, #1073741824
+	sub		REG_MAX, REG_MAX, #32768
 	
 	mov		r3, #16
 	
@@ -86,10 +89,8 @@ ASM_NAME(synth_1to1_arm_accurate_asm):
 	orr		r6, r6, r11, lsl #8
 	sub		r5, r5, r6
 	
-	mov		r6, #32768
-	sub		r6, r6, #1
-	cmp		r5, r6, lsl #15
-	movgt	r5, r6, lsl #15
+	cmp		r5, REG_MAX
+	movgt	r5, REG_MAX
 	addgt	REG_CLIP, REG_CLIP, #1
 	cmp		r5, #-1073741824
 	movlt	r5, #-1073741824
@@ -101,7 +102,48 @@ ASM_NAME(synth_1to1_arm_accurate_asm):
 	subs	r3, r3, #1
 	bne		.Loop_start_1
 	
-	mov		r3, #16
+	ldr		r5, [WINDOW], #8
+	ldr		r6, [B0], #8
+	smull	r8, r7, r5, r6
+	ldr		r9, [WINDOW], #8
+	ldr		r10, [B0], #8
+	smull	r12, r11, r9, r10
+	ldr		r5, [WINDOW], #8
+	ldr		r6, [B0], #8
+	smlal	r8, r7, r5, r6
+	ldr		r9, [WINDOW], #8
+	ldr		r10, [B0], #8
+	smlal	r12, r11, r9, r10
+	ldr		r5, [WINDOW], #8
+	ldr		r6, [B0], #8
+	smlal	r8, r7, r5, r6
+	ldr		r9, [WINDOW], #8
+	ldr		r10, [B0], #8
+	smlal	r12, r11, r9, r10
+	ldr		r5, [WINDOW], #8
+	ldr		r6, [B0], #8
+	smlal	r8, r7, r5, r6
+	ldr		r9, [WINDOW], #72
+	ldr		r10, [B0], #-120
+	smlal	r12, r11, r9, r10
+	
+	lsr		r5, r8, #24
+	lsr		r6, r12, #24
+	orr		r5, r5, r7, lsl #8
+	orr		r6, r6, r11, lsl #8
+	add		r5, r5, r6
+	
+	cmp		r5, REG_MAX
+	movgt	r5, REG_MAX
+	addgt	REG_CLIP, REG_CLIP, #1
+	cmp		r5, #-1073741824
+	movlt	r5, #-1073741824
+	addlt	REG_CLIP, REG_CLIP, #1
+	asrs	r5, r5, #15
+	adc		r5, r5, #0
+	strh	r5, [SAMPLES], #4
+	
+	mov		r3, #15
 	
 .Loop_start_2:
 	ldr		r5, [WINDOW], #4
@@ -159,10 +201,8 @@ ASM_NAME(synth_1to1_arm_accurate_asm):
 	orr		r6, r6, r11, lsl #8
 	add		r5, r5, r6
 	
-	mov		r6, #32768
-	sub		r6, r6, #1
-	cmp		r5, r6, lsl #15
-	movgt	r5, r6, lsl #15
+	cmp		r5, REG_MAX
+	movgt	r5, REG_MAX
 	addgt	REG_CLIP, REG_CLIP, #1
 	cmp		r5, #-1073741824
 	movlt	r5, #-1073741824
