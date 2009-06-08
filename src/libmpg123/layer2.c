@@ -22,6 +22,9 @@ static int grp_3tab[32 * 3] = { 0, };   /* used: 27 */
 static int grp_5tab[128 * 3] = { 0, };  /* used: 125 */
 static int grp_9tab[1024 * 3] = { 0, }; /* used: 729 */
 
+#if defined(REAL_IS_FIXED) && defined(PRECALC_TABLES)
+#include "l12_integer_tables.h"
+#else
 static const double mulmul[27] =
 {
 	0.0 , -2.0/3.0 , 2.0/3.0 ,
@@ -31,6 +34,7 @@ static const double mulmul[27] =
 	-4.0/5.0 , -2.0/5.0 , 2.0/5.0, 4.0/5.0 ,
 	-8.0/9.0 , -4.0/9.0 , -2.0/9.0 , 2.0/9.0 , 4.0/9.0 , 8.0/9.0
 };
+#endif
 
 void init_layer12(void)
 {
@@ -60,39 +64,45 @@ void init_layer12(void)
 	}
 }
 
-void init_layer12_stuff(mpg123_handle *fr, real* (*init_table)(mpg123_handle *fr, real *table, double m))
+void init_layer12_stuff(mpg123_handle *fr, real* (*init_table)(mpg123_handle *fr, real *table, int m))
 {
 	int k;
 	real *table;
 	for(k=0;k<27;k++)
 	{
-		table = init_table(fr, fr->muls[k], mulmul[k]);
+		table = init_table(fr, fr->muls[k], k);
 		*table++ = 0.0;
 	}
 }
 
-real* init_layer12_table(mpg123_handle *fr, real *table, double m)
+real* init_layer12_table(mpg123_handle *fr, real *table, int m)
 {
+#if defined(REAL_IS_FIXED) && defined(PRECALC_TABLES)
+	int i;
+	for(i=0;i<63;i++)
+	*table++ = layer12_table[m][i];
+#else
 	int i,j;
 	for(j=3,i=0;i<63;i++,j--)
-	*table++ = DOUBLE_TO_REAL_SCALE_LAYER12(m * pow(2.0,(double) j / 3.0));
+	*table++ = DOUBLE_TO_REAL_SCALE_LAYER12(mulmul[m] * pow(2.0,(double) j / 3.0));
+#endif
 
 	return table;
 }
 
 #ifdef OPT_MMXORSSE
-real* init_layer12_table_mmx(mpg123_handle *fr, real *table, double m)
+real* init_layer12_table_mmx(mpg123_handle *fr, real *table, int m)
 {
 	int i,j;
 	if(!fr->p.down_sample) 
 	{
 		for(j=3,i=0;i<63;i++,j--)
-			*table++ = DOUBLE_TO_REAL(16384 * m * pow(2.0,(double) j / 3.0));
+			*table++ = DOUBLE_TO_REAL(16384 * mulmul[m] * pow(2.0,(double) j / 3.0));
 	}
 	else
 	{
 		for(j=3,i=0;i<63;i++,j--)
-		*table++ = DOUBLE_TO_REAL(m * pow(2.0,(double) j / 3.0));
+		*table++ = DOUBLE_TO_REAL(mulmul[m] * pow(2.0,(double) j / 3.0));
 	}
 	return table;
 }

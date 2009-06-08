@@ -120,7 +120,9 @@ EXTRA_libmpg123_la_SOURCES = \
 	equalizer_3dnow.S \
 	tabinit_mmx.S \
 	stringbuf.c \
-	getcpuflags.S
+	getcpuflags.S \
+	l12_integer_tables.h \
+	l3_integer_tables.h
 
 dnoise.c: dnoise.dat dnoise.sh
 	sh "$(top_srcdir)/src/libmpg123/dnoise.sh" "$<" > "$@"

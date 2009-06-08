@@ -16,6 +16,28 @@ static ALIGNED(16) real cos32[8];
 static ALIGNED(16) real cos16[4];
 static ALIGNED(16) real cos8[2];
 static ALIGNED(16) real cos4[1];
+#elif defined(REAL_IS_FIXED) && defined(PRECALC_TABLES)
+static real cos64[16] = 
+{
+	8398725,8480395,8647771,8909416,9279544,9780026,10443886,11321405,
+	12491246,14081950,16316987,19619946,24900150,34523836,57170182,170959967
+};
+static real cos32[8] =
+{
+	8429197,8766072,9511743,10851869,13223040,17795219,28897867,85583072
+};
+static real cos16[4] =
+{
+	8552951,10088893,15099095,42998586
+};
+static real cos8[2] =
+{
+	9079764,21920489
+};
+static real cos4[1] =
+{
+	11863283
+};
 #else
 static real cos64[16],cos32[8],cos16[4],cos8[2],cos4[1];
 #endif
@@ -53,6 +75,7 @@ static long intwinbase[] = {
 
 void prepare_decode_tables()
 {
+#if !defined(REAL_IS_FIXED) || !defined(PRECALC_TABLES)
   int i,k,kr,divv;
   real *costab;
 
@@ -63,6 +86,7 @@ void prepare_decode_tables()
     for(k=0;k<kr;k++)
       costab[k] = DOUBLE_TO_REAL(1.0 / (2.0 * cos(M_PI * ((double) k * 2.0 + 1.0) / (double) divv)));
   }
+#endif
 }
 
 #ifdef OPT_MMXORSSE
@@ -146,26 +170,45 @@ void make_decode_tables(mpg123_handle *fr)
 	/* Scale is always based on 1.0 . */
 	double scaleval = -0.5*(fr->lastscale < 0 ? fr->p.outscale : fr->lastscale);
 	debug1("decode tables with scaleval %g", scaleval);
+#ifdef REAL_IS_FIXED
+	long scaleval_long = DOUBLE_TO_REAL_15(scaleval);
+#endif
 	for(i=0,j=0;i<256;i++,j++,idx+=32)
 	{
 		if(idx < 512+16)
-		fr->decwin[idx+16] = fr->decwin[idx] = DOUBLE_TO_REAL_WINDOW((double) intwinbase[j] * scaleval);
+#ifdef REAL_IS_FIXED
+		fr->decwin[idx+16] = fr->decwin[idx] = REAL_SCALE_WINDOW(intwinbase[j] * scaleval_long);
+#else
+		fr->decwin[idx+16] = fr->decwin[idx] = DOUBLE_TO_REAL((double) intwinbase[j] * scaleval);
+#endif
 
 		if(i % 32 == 31)
 		idx -= 1023;
 		if(i % 64 == 63)
+#ifdef REAL_IS_FIXED
+		scaleval_long = - scaleval_long;
+#else
 		scaleval = - scaleval;
+#endif
 	}
 
 	for( /* i=256 */ ;i<512;i++,j--,idx+=32)
 	{
 		if(idx < 512+16)
-		fr->decwin[idx+16] = fr->decwin[idx] = DOUBLE_TO_REAL_WINDOW((double) intwinbase[j] * scaleval);
+#ifdef REAL_IS_FIXED
+		fr->decwin[idx+16] = fr->decwin[idx] = REAL_SCALE_WINDOW(intwinbase[j] * scaleval_long);
+#else
+		fr->decwin[idx+16] = fr->decwin[idx] = DOUBLE_TO_REAL((double) intwinbase[j] * scaleval);
+#endif
 
 		if(i % 32 == 31)
 		idx -= 1023;
 		if(i % 64 == 63)
+#ifdef REAL_IS_FIXED
+		scaleval_long = - scaleval_long;
+#else
 		scaleval = - scaleval;
+#endif
 	}
 #if defined(OPT_X86_64) || defined(OPT_ALTIVEC) || defined(OPT_SSE) || defined(OPT_ARM)
 	if(fr->cpu_opts.type == x86_64 || fr->cpu_opts.type == altivec || fr->cpu_opts.type == sse || fr->cpu_opts.type == arm)

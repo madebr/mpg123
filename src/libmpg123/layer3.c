@@ -24,10 +24,13 @@
 #define CUT_SFB21
 #endif
 
+#ifdef REAL_IS_FIXED
+#define NEW_DCT9
+#include "l3_integer_tables.h"
+#else
 /* static one-time calculated tables... or so */
 static real ispow[8207];
 static real aa_ca[8],aa_cs[8];
-static real COS1[12][6];
 static real win[4][36];
 static real win1[4][36];
 real COS9[9]; /* dct36_3dnow wants to use that */
@@ -37,6 +40,9 @@ static real tfcos12[3];
 #define NEW_DCT9
 #ifdef NEW_DCT9
 static real cos9[3],cos18[3];
+static real tan1_1[16],tan2_1[16],tan1_2[16],tan2_2[16];
+static real pow1_1[2][16],pow2_1[2][16],pow1_2[2][16],pow2_2[2][16];
+#endif
 #endif
 
 /* Decoder state data, living on the stack of do_layer3. */
@@ -147,27 +153,6 @@ static int *mapend[9][3];
 static unsigned int n_slen2[512]; /* MPEG 2.0 slen for 'normal' mode */
 static unsigned int i_slen2[256]; /* MPEG 2.0 slen for intensity stereo */
 
-static real tan1_1[16],tan2_1[16],tan1_2[16],tan2_2[16];
-static real pow1_1[2][16],pow2_1[2][16],pow1_2[2][16],pow2_2[2][16];
-
-#ifdef REAL_IS_FIXED
-static const char gainpow2_scale[256+118+4+1] = 
-{
-	19,19,19,20,20,20,20,21,21,21,21,22,22,22,22,23,23,23,23,24,24,24,24,25,25,25,25,26,26,26,26,27,
-	27,27,27,28,28,28,28,29,29,29,29,30,30,30,30,31,31,31,31,32,32,32,32,33,33,33,33,34,34,34,34,34,
-	34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,
-	34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,
-	34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,
-	34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,
-	34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,
-	34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,
-	34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,
-	34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,
-	34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,
-	34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,0
-};
-#endif
-
 /* Some helpers used in init_layer3 */
 
 #ifdef OPT_MMXORSSE
@@ -180,7 +165,11 @@ real init_layer3_gainpow2_mmx(mpg123_handle *fr, int i)
 
 real init_layer3_gainpow2(mpg123_handle *fr, int i)
 {
+#if defined(REAL_IS_FIXED) && defined(PRECALC_TABLES)
+	return gainpow2[i+256];
+#else
 	return DOUBLE_TO_REAL_SCALE_LAYER3(pow((double)2.0,-0.25 * (double) (i+210)),i+256);
+#endif
 }
 
 
@@ -189,6 +178,7 @@ void init_layer3(void)
 {
 	int i,j,k,l;
 
+#if !defined(REAL_IS_FIXED) || !defined(PRECALC_TABLES)
 	for(i=0;i<8207;i++)
 	ispow[i] = DOUBLE_TO_REAL_POW43(pow((double)i,(double)4.0/3.0));
 
@@ -240,16 +230,6 @@ void init_layer3(void)
 	for(i=0;i<12;i++)
 	{
 		win[2][i] = DOUBLE_TO_REAL(0.5 * sin( M_PI / 24.0 * (double) (2*i+1) ) / cos ( M_PI * (double) (2*i+7) / 24.0 ));
-		for(j=0;j<6;j++)
-		COS1[i][j] = DOUBLE_TO_REAL(cos( M_PI / 24.0 * (double) ((2*i+7)*(2*j+1)) ));
-	}
-
-	for(j=0;j<4;j++)
-	{
-		const int len[4] = { 36,36,12,36 };
-		for(i=0;i<len[j];i+=2) win1[j][i] = + win[j][i];
-
-		for(i=1;i<len[j];i+=2) win1[j][i] = - win[j][i];
 	}
 
 	for(i=0;i<16;i++)
@@ -274,6 +254,15 @@ void init_layer3(void)
 			pow1_2[j][i] = DOUBLE_TO_REAL_15(M_SQRT2 * p1);
 			pow2_2[j][i] = DOUBLE_TO_REAL_15(M_SQRT2 * p2);
 		}
+	}
+#endif
+
+	for(j=0;j<4;j++)
+	{
+		const int len[4] = { 36,36,12,36 };
+		for(i=0;i<len[j];i+=2) win1[j][i] = + win[j][i];
+
+		for(i=1;i<len[j];i+=2) win1[j][i] = - win[j][i];
 	}
 
 	for(j=0;j<9;j++)

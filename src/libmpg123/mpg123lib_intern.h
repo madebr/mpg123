@@ -67,6 +67,12 @@
 
 # define real long
 
+/*
+  for fixed-point decoders, use pre-calculated tables to avoid expensive floating-point maths
+  undef this macro for run-time calculation
+*/
+#define PRECALC_TABLES
+
 # define REAL_RADIX				24
 # define REAL_FACTOR			16777216.0
 
@@ -75,6 +81,14 @@ static inline long double_to_long_rounded(double x, double scalefac)
 	x *= scalefac;
 	x += (x > 0) ? 0.5 : -0.5;
 	return (long)x;
+}
+
+static inline long scale_rounded(long x, int shift)
+{
+	x += (x >> 31);
+	x >>= (shift - 1);
+	x += (x & 1);
+	return (x >> 1);
 }
 
 # ifdef __GNUC__
@@ -192,13 +206,13 @@ static inline long double_to_long_rounded(double x, double scalefac)
 # define REAL_SCALE_LAYER12(x)				((long)((x) >> (30 - REAL_RADIX)))
 # define REAL_SCALE_LAYER3(x, y)			((long)((x) >> (gainpow2_scale[y] - REAL_RADIX)))
 # ifdef ACCURATE_ROUNDING
-#  define DOUBLE_TO_REAL_WINDOW(x)			DOUBLE_TO_REAL_15(x)
 #  define REAL_MUL_SYNTH(x, y)				REAL_MUL(x, y)
 #  define REAL_SCALE_DCT64(x)				(x)
+#  define REAL_SCALE_WINDOW(x)				(x)
 # else
-#  define DOUBLE_TO_REAL_WINDOW(x)			(double_to_long_rounded(x, 0.5))
 #  define REAL_MUL_SYNTH(x, y)				((x) * (y))
 #  define REAL_SCALE_DCT64(x)				((x) >> 8)
+#  define REAL_SCALE_WINDOW(x)				scale_rounded(x, 16)
 # endif
 #  define REAL_SCANF "%ld"
 #  define REAL_PRINTF "%ld"
@@ -220,9 +234,6 @@ static inline long double_to_long_rounded(double x, double scalefac)
 #endif
 #ifndef DOUBLE_TO_REAL_15
 # define DOUBLE_TO_REAL_15(x)				(real)(x)
-#endif
-#ifndef DOUBLE_TO_REAL_WINDOW
-# define DOUBLE_TO_REAL_WINDOW(x)			(real)(x)
 #endif
 #ifndef DOUBLE_TO_REAL_POW43
 # define DOUBLE_TO_REAL_POW43(x)			(real)(x)
