@@ -169,7 +169,7 @@ EXPORT int mpg123_getparam(mpg123_handle *mh, enum mpg123_parms type, long *val,
  * of the error codes returned by libmpg123.
  *
  * Most functions operating on a mpg123_handle simply return MPG123_OK on success and MPG123_ERR on failure (setting the internal error variable of the handle to the specific error code).
- * Decoding/seek functions may also return message codes MPG123_DONE, MPG123_NEW_FORMAT and MPG123_NEED_MORE.
+ * Decoding/seek functions may also return message codes MPG123_DONE, MPG123_NEW_FORMAT and MPG123_NEED_MORE (please read up on these on how to react!).
  * The positive range of return values is used for "useful" values when appropriate.
  *
  * @{
@@ -178,9 +178,9 @@ EXPORT int mpg123_getparam(mpg123_handle *mh, enum mpg123_parms type, long *val,
 /** Enumeration of the message and error codes and returned by libmpg123 functions. */
 enum mpg123_errors
 {
-	MPG123_DONE=-12,	/**< Message: Track ended. */
-	MPG123_NEW_FORMAT=-11,	/**< Message: Output format will be different on next call. */
-	MPG123_NEED_MORE=-10,	/**< Message: For feed reader: "Feed me more!" */
+	MPG123_DONE=-12,	/**< Message: Track ended. Stop decoding. */
+	MPG123_NEW_FORMAT=-11,	/**< Message: Output format will be different on next call. Note that some libmpg123 versions between 1.4.3 and 1.8.0 insist on you calling mpg123_getformat() after getting this message code. Newer verisons behave like advertised: You have the chance to call mpg123_getformat(), but you can also just continue decoding and get your data. */
+	MPG123_NEED_MORE=-10,	/**< Message: For feed reader: "Feed me more!" (call mpg123_feed() or mpg123_decode() with some new input data). */
 	MPG123_ERR=-1,			/**< Generic Error */
 	MPG123_OK=0, 			/**< Success */
 	MPG123_BAD_OUTFORMAT, 	/**< Unable to set up output format! */
