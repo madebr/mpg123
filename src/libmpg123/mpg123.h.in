@@ -361,7 +361,7 @@ EXPORT int mpg123_getformat(mpg123_handle *mh, long *rate, int *channels, int *e
 /** \defgroup mpg123_input mpg123 file input and decoding
  *
  * Functions for input bitstream and decoding operations.
- *
+ * Decoding/seek functions may also return message codes MPG123_DONE, MPG123_NEW_FORMAT and MPG123_NEED_MORE (please read up on these on how to react!).
  * @{
  */
 
