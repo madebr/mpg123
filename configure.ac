@@ -111,25 +111,34 @@ else
 	AC_DEFINE(DYNAMIC_BUILD, 1, [ Define if building with dynamcally linked libmpg123])
 fi
 
-if test x"$modules" = xauto
+if test x"$modules" = xdisabled
 then
+	echo "Modules disabled, not checking for libltdl."
+else
+	have_ltdl=no
 	AC_CHECK_LIB( [ltdl], [lt_dlinit],
 		[ AC_CHECK_HEADER( [ltdl.h],
 			[
-				modules=enabled
-				LIBS="-lltdl $LIBS"
+				have_ltdl=yes
 				AC_DEFINE(HAVE_LTDL, 1, [ Define if libltdl is available ])
 			],
 			[
-				modules=disabled
 				AC_MSG_WARN([Found ltdl library but NOT the header file on your system])
 			] )
 		],
 		[
-			modules=disabled
 			AC_MSG_WARN([ltdl library not found])
 		]
 	)
+	if test x"$modules" = xenabled -a x"$have_ltdl" = xno; then
+		AC_MSG_ERROR([Modules enabled but no libltdl found! This will not work...])
+	fi
+	if test x"$modules" = xauto -a x"$have_ltdl" = xyes; then
+		modules=enabled
+		echo "We found libltdl: Modules enabled."
+	else
+		modules=disabled
+	fi
 fi
 
 if test x"$modules" = xdisabled
@@ -1723,6 +1732,11 @@ fi
 AC_DEFINE_UNQUOTED(INDEX_SIZE, $seektable, [size of the frame index seek table])
 
 dnl ############## Final Output
+
+# Do that here to prevent the above tests usign -lltdl...
+if test "x$modules" = xenabled; then
+  LIBS="-lltdl $LIBS"
+fi
 
 AC_CONFIG_FILES([
 	Makefile
