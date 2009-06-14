@@ -1,6 +1,14 @@
 - integer decoder fun
 - buffer plays any audio type
 
+1.8.1
+---
+- Include improvements to integer decoder from SVN trunk.
+  They have been accidentally promised on 1.8.0 release announcements, though they were not there. Here it is: ISO compliant fixed point decoding (speed optimizations are still reserved for next release).
+- Fixed build with ./configure --enable-modules (bug in configure script).
+- Fix name of binary in help screen when called with path.
+- Build fix for old gcc with AltiVec code.
+
 1.8.0 (The Taihei Monmament)
 ---
 
