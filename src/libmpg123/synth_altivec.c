@@ -756,8 +756,8 @@ int synth_1to1_real_stereo_altivec(real *bandPtr_l, real *bandPtr_r, mpg123_hand
 		if((size_t)samples & 0xf)
 		{
 			v1 = (vector float)vec_perm(vec_ld(0,samples),vec_ld(0,samples),vec_lvsl(0,samples));
-			v2 = (vector float)vec_perm(vprev,(vector signed short)v1,vperm2);
-			vec_st((vector signed short)v2,0,samples);
+			v2 = (vector float)vec_perm(vprev,v1,vperm2);
+			vec_st(v2,0,samples);
 		}
 	}
 	fr->buffer.fill += 256;
@@ -1044,8 +1044,8 @@ int synth_1to1_s32_stereo_altivec(real *bandPtr_l, real *bandPtr_r, mpg123_handl
 		if((size_t)samples & 0xf)
 		{
 			v1 = (vector float)vec_perm(vec_ld(0,samples),vec_ld(0,samples),vec_lvsl(0,samples));
-			v2 = (vector float)vec_perm(vprev,(vector signed short)v1,vperm2);
-			vec_st((vector signed short)v2,0,samples);
+			v2 = (vector float)vec_perm(vprev,v1,vperm2);
+			vec_st((vector signed int)v2,0,samples);
 		}
 		
 		vec_st(vclip,0,clip_tmp);
