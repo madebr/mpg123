@@ -8,8 +8,9 @@ DEFINEFLAGS            := $(addprefix -D,$(DEFINES))
 INCDIR                 := ../.
 CFLAGS                 = -g -O2 -Wall -fomit-frame-pointer -funroll-all-loops -finline-functions -ffast-math $(DEFINEFLAGS)
 
-MPG123_OBJS = compat.o parse.o frame.o format.o decode_2to1.o decode_4to1.o decode_ntom.o \
- equalizer.o icy.o id3.o layer1.o layer2.o layer3.o optimize.o readers.o tabinit.o stringbuf.o libmpg123.o decode.o dct64.o 
+MPG123_OBJS = compat.o parse.o frame.o format.o index.o synth.o synth_8bit.o \
+ ntom.o icy2utf8.o synth_real.o synth_s32.o\
+ equalizer.o icy.o id3.o layer1.o layer2.o layer3.o optimize.o readers.o tabinit.o stringbuf.o libmpg123.o dct64.o 
 
 MPG123_LIB_FILE        = ./libmpg123.a
 

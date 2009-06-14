@@ -8,6 +8,7 @@
 - Fixed build with ./configure --enable-modules (bug in configure script).
 - Fix name of binary in help screen when called with path.
 - Build fix for old gcc with AltiVec code.
+- Update of Sony PSP build files.
 
 1.8.0 (The Taihei Monmament)
 ---
