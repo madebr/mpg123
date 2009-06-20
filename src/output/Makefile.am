@@ -180,6 +180,14 @@ output_mint_la_CFLAGS  = @MINT_CFLAGS@
 output_mint_la_LIBADD  = @MINT_LIBS@ 
 endif
 
+if HAVE_OPENAL
+pkglib_LTLIBRARIES += output_openal.la
+output_openal_la_SOURCES = openal.c
+output_openal_la_LDFLAGS = -module -no-undefined -avoid-version -export-dynamic @OPENAL_LDFLAGS@
+output_openal_la_CFLAGS  = @OPENAL_CFLAGS@
+output_openal_la_LIBADD  = @OPENAL_LIBS@ 
+endif
+
 if HAVE_DUMMY
 pkglib_LTLIBRARIES += output_dummy.la
 output_dummy_la_SOURCES = dummy.c

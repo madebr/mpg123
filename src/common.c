@@ -24,10 +24,10 @@ static const char *layers[4] = { "Unknown" , "I", "II", "III" };
 static const char *versions[4] = {"1.0", "2.0", "2.5", "x.x" };
 static const int samples_pre_frame[4][4] =
 {
-	{ -1,384,1152,1152 },	// MPEG 1
-	{ -1,384,1152,576 },	// MPEG 2
-	{ -1,384,1152,576 },	// MPEG 2.5
-	{ -1,-1,-1,-1 },		// Unknown
+	{ -1,384,1152,1152 },	/* MPEG 1 */
+	{ -1,384,1152,576 },	/* MPEG 2 */
+	{ -1,384,1152,576 },	/* MPEG 2.5 */
+	{ -1,-1,-1,-1 },		/* Unknown */
 };
 
 

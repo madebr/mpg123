@@ -1191,7 +1191,7 @@ fi
 dnl ############## Output module choice
 
 # The full list of supported modules to check, first come, first serve.
-check_modules="alsa oss coreaudio sndio sun win32 esd jack portaudio pulse sdl nas arts dummy"
+check_modules="alsa oss coreaudio sndio sun win32 esd jack portaudio pulse sdl nas arts openal dummy"
 # The final list.
 output_modules=
 
@@ -1359,6 +1359,33 @@ do
 				check_failed=yes
 			fi
 		;;
+		openal)
+			AC_CHECK_HEADERS([OpenAL/al.h OpenAL/alc.h AL/al.h AL/alc.h al.h alc.h])
+			if test "x${ac_cv_header_OpenAL_al_h}" = "xyes" \
+				 -a "x${ac_cv_header_OpenAL_alc_h}" = "xyes";
+			then #Mac OS X
+				output_modules="$output_modules openal"
+				OPENAL_LIBS="-framework OpenAL"
+				OPENAL_CFLAGS="-DOPENAL_SUBDIR_OPENAL"
+				HAVE_OPENAL="yes"
+			elif test "x${ac_cv_header_AL_al_h}" = "xyes" \
+				 -a "x${ac_cv_header_AL_alc_h}" = "xyes";
+			then #Linux
+				output_modules="$output_modules openal"
+				OPENAL_LIBS="-lopenal"
+				OPENAL_CFLAGS="-DOPENAL_SUBDIR_AL"
+				HAVE_OPENAL="yes"
+			elif test "x${ac_cv_header_al_h}" = "xyes" \
+				 -a "x${ac_cv_header_alc_h}" = "xyes";
+			then #Windows?
+				output_modules="$output_modules openal"
+				OPENAL_LIBS="-lopenal"
+				OPENAL_CFLAGS=""
+				HAVE_OPENAL="yes"
+			else
+				check_failed=yes
+			fi
+		;;
 # from here on only forced tests, untested code
 		hp)
 			# What's the deal with that and alib?
@@ -1424,7 +1451,7 @@ if test "x$check_forced" = xyes -a "x$check_failed" = "xyes"; then
 fi
 
 # When you extend check_modules, you should extend this:
-#for i in alsa oss coreaudio sndio sun win32 esd jack portaudio pulse sdl nas aix alib arts hp os2 sgi mint dummy; do echo $i; done |
+#for i in alsa oss coreaudio sndio sun win32 esd jack portaudio pulse sdl nas aix alib arts hp os2 sgi mint openal dummy; do echo $i; done |
 #perl -ne 'chomp; $big = uc($_); print <<EOT;
 #AC_SUBST(${big}_LIBS)
 #AC_SUBST(${big}_LDFLAGS)
@@ -1508,6 +1535,10 @@ AC_SUBST(MINT_LIBS)
 AC_SUBST(MINT_LDFLAGS)
 AC_SUBST(MINT_CFLAGS)
 AM_CONDITIONAL( [HAVE_MINT], [test "x$HAVE_MINT" = xyes] )
+AC_SUBST(OPENAL_LIBS)
+AC_SUBST(OPENAL_LDFLAGS)
+AC_SUBST(OPENAL_CFLAGS)
+AM_CONDITIONAL( [HAVE_OPENAL], [test "x$HAVE_OPENAL" = xyes] )
 AC_SUBST(DUMMY_LIBS)
 AC_SUBST(DUMMY_LDFLAGS)
 AC_SUBST(DUMMY_CFLAGS)
@@ -1643,6 +1674,11 @@ then
 			OUTPUT_LIBS="$MINT_LIBS"
 			OUTPUT_LDFLAGS="$MINT_LDFLAGS"
 			OUTPUT_CFLAGS="$MINT_CFLAGS"
+		;;
+		openal)
+			OUTPUT_LIBS="$OPENAL_LIBS"
+			OUTPUT_LDFLAGS="$OPENAL_LDFLAGS"
+			OUTPUT_CFLAGS="$OPENAL_CFLAGS"
 		;;
 	esac
 else
