@@ -774,7 +774,7 @@ read_frame_bad:
  * read ahead and find the next MPEG header, to guess framesize
  * return value: guessed framesize
  */
-static long guess_freeormat_framesize(mpg123_handle *fr)
+static long guess_freeformat_framesize(mpg123_handle *fr)
 {
 	long i;
 	int ret;
@@ -883,7 +883,7 @@ static int decode_header(mpg123_handle *fr,unsigned long newhead)
 		/* when we first encounter the frame with freeformat, guess framesize */
 		if(fr->freeformat_framesize < 0)
 		{
-			fr->framesize = guess_freeormat_framesize(fr);
+			fr->framesize = guess_freeformat_framesize(fr);
 			if(fr->framesize > 0)
 			{
 				fr->freeformat_framesize = fr->framesize - fr->padding;
