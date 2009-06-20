@@ -559,12 +559,6 @@ init_resync:
 	/* why has this head check been avoided here before? */
 	if(!head_check(newhead))
 	{
-		if(!fr->firsthead)
-		{
-			if(NOQUIET) error1("Header 0x%08lx seems to indicate a free format stream; I do not handle that yet", newhead);
-
-			goto read_again;
-		}
 		/* and those ugly ID3 tags */
 		if((newhead & 0xffffff00) == ('T'<<24)+('A'<<16)+('G'<<8))
 		{
@@ -779,7 +773,17 @@ static long guess_freeformat_framesize(mpg123_handle *fr)
 	long i;
 	int ret;
 	unsigned long head;
-	for(i=0;i<65536;i++) {
+	if(!(fr->rdat.flags & (READER_SEEKABLE|READER_BUFFERED)))
+	{
+		if(NOQUIET) error("Cannot look for freeformat frame size with non-seekable and non-buffered stream!");
+		return -1;
+	}
+	/* FIXME: We need proper handling/passing of MPG123_NEED_MORE! */
+	if((ret=fr->rd->head_read(fr,&head))<=0)
+	return -1;
+
+	/* We are already 4 bytes into it */
+	for(i=4;i<65536;i++) {
 		if((ret=fr->rd->head_shift(fr,&head))<=0)
 		{
 			return -1;
@@ -878,6 +882,7 @@ static int decode_header(mpg123_handle *fr,unsigned long newhead)
 	fr->oldhead = newhead;
 	
 	/* we can't use tabsel_123 for freeformat, so trying to guess framesize... */
+	/* FIXME: We need proper handling/passing of MPG123_NEED_MORE! */
 	if(fr->freeformat)
 	{
 		/* when we first encounter the frame with freeformat, guess framesize */
