@@ -442,6 +442,7 @@ static void frame_fixed_reset(mpg123_handle *fr)
 #endif
 	fr->halfphase = 0; /* here or indeed only on first-time init? */
 	fr->error_protection = 0;
+	fr->freeformat_framesize = -1;
 }
 
 void frame_free_buffers(mpg123_handle *fr)

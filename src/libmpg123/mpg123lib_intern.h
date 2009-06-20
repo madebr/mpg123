@@ -318,4 +318,14 @@ int decode_update(mpg123_handle *mh);
 off_t samples_to_bytes(mpg123_handle *fr , off_t s);
 off_t bytes_to_samples(mpg123_handle *fr , off_t b);
 
+static uint32_t dither_seed = 2463534242UL;
+
+static inline uint32_t xorshift()
+{
+	dither_seed ^= (dither_seed<<13);
+	dither_seed ^= (dither_seed>>17);
+	dither_seed ^= (dither_seed<<5);
+	return dither_seed;
+}
+
 #endif

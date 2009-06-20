@@ -118,9 +118,6 @@ int head_check(unsigned long head)
 		/* 1111 means bad bitrate */
 		(((head>>12)&0xf) == 0xf)
 		||
-		/* 0000 means free format... which should be supported in future. */
-		(((head>>12)&0xf) == 0x0)
-		||
 		/* sampling freq: 11 is reserved */
 		(((head>>10)&0x3) == 0x3 )
 		/* here used to be a mpeg 2.5 check... re-enabled 2.5 decoding due to lack of evidence that it is really not good */
@@ -453,7 +450,7 @@ init_resync:
 
 #ifdef SKIP_JUNK
 	/* watch out for junk/tags on beginning of stream by invalid header */
-	if(!fr->firsthead && !head_check(newhead) && !free_format_header(newhead)) {
+	if(!fr->firsthead && !head_check(newhead)) {
 		int i;
 
 		/* check for id3v2; first three bytes (of 4) are "ID3" */
@@ -562,7 +559,7 @@ init_resync:
 	/* why has this head check been avoided here before? */
 	if(!head_check(newhead))
 	{
-		if(!fr->firsthead && free_format_header(newhead))
+		if(!fr->firsthead)
 		{
 			if(NOQUIET) error1("Header 0x%08lx seems to indicate a free format stream; I do not handle that yet", newhead);
 
@@ -774,6 +771,52 @@ read_frame_bad:
 
 
 /*
+ * read ahead and find the next MPEG header, to guess framesize
+ * return value: guessed framesize
+ */
+static long guess_freeormat_framesize(mpg123_handle *fr)
+{
+	long i;
+	int ret;
+	unsigned long head;
+	for(i=0;i<65536;i++) {
+		if((ret=fr->rd->head_shift(fr,&head))<=0)
+		{
+			return -1;
+		}
+		if(head_check(head))
+		{
+			int sampling_frequency,mpeg25,lsf;
+			
+			if(head & (1<<20))
+			{
+				lsf = (head & (1<<19)) ? 0x0 : 0x1;
+				mpeg25 = 0;
+			}
+			else
+			{
+				lsf = 1;
+				mpeg25 = 1;
+			}
+			
+			if(mpeg25)
+				sampling_frequency = 6 + ((head>>10)&0x3);
+			else
+				sampling_frequency = ((head>>10)&0x3) + (lsf*3);
+			
+			if((lsf==fr->lsf) && (mpeg25==fr->mpeg25) && (sampling_frequency == fr->sampling_frequency))
+			{
+				fr->rd->back_bytes(fr,i+1);
+				return i-3;
+			}
+		}
+	}
+	fr->rd->back_bytes(fr,i);
+	return -1;
+}
+
+
+/*
  * decode a header and write the information
  * into the frame structure
  */
@@ -828,16 +871,34 @@ static int decode_header(mpg123_handle *fr,unsigned long newhead)
 	fr->copyright = ((newhead>>3)&0x1);
 	fr->original  = ((newhead>>2)&0x1);
 	fr->emphasis  = newhead & 0x3;
+	fr->freeformat = free_format_header(newhead);
 
 	fr->stereo    = (fr->mode == MPG_MD_MONO) ? 1 : 2;
 
 	fr->oldhead = newhead;
-
-	if(!fr->bitrate_index)
+	
+	/* we can't use tabsel_123 for freeformat, so trying to guess framesize... */
+	if(fr->freeformat)
 	{
-		if(NOQUIET) error1("encountered free format header %08lx in decode_header - not supported yet",newhead);
-
-		return 0;
+		/* when we first encounter the frame with freeformat, guess framesize */
+		if(fr->freeformat_framesize < 0)
+		{
+			fr->framesize = guess_freeormat_framesize(fr);
+			if(fr->framesize > 0)
+			{
+				fr->freeformat_framesize = fr->framesize - fr->padding;
+			}
+			else
+			{
+				error("encountered free format header, but failed to guess framesize");
+				return 0;
+			}
+		}
+		/* freeformat should be CBR, so the same framesize can be used at the 2nd reading or later */
+		else
+		{
+			fr->framesize = fr->freeformat_framesize + fr->padding;
+		}
 	}
 
 	switch(fr->lay)
@@ -845,18 +906,24 @@ static int decode_header(mpg123_handle *fr,unsigned long newhead)
 #ifndef NO_LAYER1
 		case 1:
 			fr->do_layer = do_layer1;
-			fr->framesize  = (long) tabsel_123[fr->lsf][0][fr->bitrate_index] * 12000;
-			fr->framesize /= freqs[fr->sampling_frequency];
-			fr->framesize  = ((fr->framesize+fr->padding)<<2)-4;
+			if(!fr->freeformat)
+			{
+				fr->framesize  = (long) tabsel_123[fr->lsf][0][fr->bitrate_index] * 12000;
+				fr->framesize /= freqs[fr->sampling_frequency];
+				fr->framesize  = ((fr->framesize+fr->padding)<<2)-4;
+			}
 		break;
 #endif
 #ifndef NO_LAYER2
 		case 2:
 			fr->do_layer = do_layer2;
-			debug2("bitrate index: %i (%i)", fr->bitrate_index, tabsel_123[fr->lsf][1][fr->bitrate_index] );
-			fr->framesize = (long) tabsel_123[fr->lsf][1][fr->bitrate_index] * 144000;
-			fr->framesize /= freqs[fr->sampling_frequency];
-			fr->framesize += fr->padding - 4;
+			if(!fr->freeformat)
+			{
+				debug2("bitrate index: %i (%i)", fr->bitrate_index, tabsel_123[fr->lsf][1][fr->bitrate_index] );
+				fr->framesize = (long) tabsel_123[fr->lsf][1][fr->bitrate_index] * 144000;
+				fr->framesize /= freqs[fr->sampling_frequency];
+				fr->framesize += fr->padding - 4;
+			}
 		break;
 #endif
 #ifndef NO_LAYER3
@@ -870,9 +937,12 @@ static int decode_header(mpg123_handle *fr,unsigned long newhead)
 			if(fr->error_protection)
 			fr->ssize += 2;
 
-			fr->framesize  = (long) tabsel_123[fr->lsf][2][fr->bitrate_index] * 144000;
-			fr->framesize /= freqs[fr->sampling_frequency]<<(fr->lsf);
-			fr->framesize = fr->framesize + fr->padding - 4;
+			if(!fr->freeformat)
+			{
+				fr->framesize  = (long) tabsel_123[fr->lsf][2][fr->bitrate_index] * 144000;
+				fr->framesize /= freqs[fr->sampling_frequency]<<(fr->lsf);
+				fr->framesize = fr->framesize + fr->padding - 4;
+			}
 		break;
 #endif 
 		default:

@@ -201,6 +201,8 @@ struct mpg123_handle_struct
 	char accurate; /* Flag to see if we trust the frame number. */
 	char silent_resync; /* Do not complain for the next n resyncs. */
 	unsigned char* xing_toc; /* The seek TOC from Xing header. */
+	int freeformat;
+	long freeformat_framesize;
 
 	/* bitstream info; bsi */
 	int bitindex;
