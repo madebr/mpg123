@@ -187,10 +187,8 @@ extern const int costab_mmxsse[];
 /* used for multi opt mode and the single 3dnow mode to have the old 3dnow test flag still working */
 void check_decoders(void);
 
-/* Announce the data in dnoise.c ... */
 #ifdef OPT_DITHER
 #define DITHERSIZE 65536
-extern float dithernoise[DITHERSIZE];
 #endif
 
 /*

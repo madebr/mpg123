@@ -98,8 +98,51 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 	frame_index_setup(fr); /* Apply the size setting. */
 #endif
 #ifdef OPT_DITHER
-	/* The idea is to read that at runtime in the future... to avoid bloating the binary. */
-	fr->dithernoise = dithernoise;
+	/* run-time dither noise table generation */
+	{
+		int32_t i;
+		uint32_t seed = 2463534242UL;
+		float prev_noise = 0.0f;
+		float xv[7], yv[7];
+		union
+		{
+			uint32_t i;
+			float f;
+		} dither_noise;
+		
+		for(i=0;i<7;i++)
+		{
+			xv[i] = yv[i] = 0.0f;
+		}
+		
+		for(i=0;i<DITHERSIZE;i++)
+		{
+			/* generate pseudo-random number (xorshift32) */
+			seed ^= (seed<<13);
+			seed ^= (seed>>17);
+			seed ^= (seed<<5);
+			
+			/* scale the number to [-0.5, 0.5] */
+#ifdef IEEE_FLOAT
+			dither_noise.i = (seed>>9)|0x3f800000;
+			dither_noise.f -= 1.5f;
+#else
+			dither_noise.f = (double)seed / 4294967297.0;
+			dither_noise.f -= 0.5f;
+#endif
+			
+			/* generate TPDF noise and apply 6th order Chebyshev high-pass IIR filter */
+			xv[0] = xv[1]; xv[1] = xv[2]; xv[2] = xv[3]; xv[3] = xv[4]; xv[4] = xv[5]; xv[5] = xv[6]; 
+			xv[6] = (prev_noise+dither_noise.f) / 1.647859704e+05;
+			yv[0] = yv[1]; yv[1] = yv[2]; yv[2] = yv[3]; yv[3] = yv[4]; yv[4] = yv[5]; yv[5] = yv[6]; 
+			yv[6] = (xv[0] + xv[6]) - 6 * (xv[1] + xv[5]) + 15 * (xv[2] + xv[4]) - 20 * xv[3]
+					+ ( -0.6682539858 * yv[0]) + ( -4.0815845465 * yv[1])
+					+ (-10.5886065980 * yv[2]) + (-14.9368935200 * yv[3])
+					+ (-12.0898921620 * yv[4]) + ( -5.3278862961 * yv[5]);
+			prev_noise = dither_noise.f;
+			fr->dithernoise[i] = yv[6] * 18.0f;
+		}
+	}
 #endif
 }
 

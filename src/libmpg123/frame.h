@@ -96,7 +96,7 @@ struct mpg123_handle_struct
 	int bo; /* Just have it always here. */
 #ifdef OPT_DITHER
 	int ditherindex;
-	float *dithernoise;
+	float dithernoise[DITHERSIZE];
 #endif
 	unsigned char* rawdecwin; /* the block with all decwins */
 	int rawdecwins; /* size of rawdecwin memory */

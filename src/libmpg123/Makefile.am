@@ -8,7 +8,7 @@
 #AM_LDFLAGS = 
 INCLUDES = -I$(top_srcdir)/src -I$(top_srcdir)/src/libmpg123
 
-EXTRA_DIST = mpg123.h.in dnoise.sh dnoise.dat
+EXTRA_DIST = mpg123.h.in
 
 EXTRA_PROGRAMS = testcpu
 testcpu_dependencies = getcpuflags.$(OBJEXT)
@@ -124,5 +124,3 @@ EXTRA_libmpg123_la_SOURCES = \
 	l12_integer_tables.h \
 	l3_integer_tables.h
 
-dnoise.c: dnoise.dat dnoise.sh
-	sh "$(top_srcdir)/src/libmpg123/dnoise.sh" "$<" > "$@"

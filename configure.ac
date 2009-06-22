@@ -1018,7 +1018,6 @@ s_i386="dct64_i386"
 s_i486="$s_i386 synth_i486 dct64_i486"
 s_i586="$s_i386 synth_i586"
 s_i586d="$s_i386 synth_i586_dither"
-s_dither="dnoise"
 s_3dnow="$s_i386 synth_3dnow dct64_3dnow equalizer_3dnow"
 s_3dnowext="$s_i386 dct64_3dnowext dct64_mmx tabinit_mmx synth_3dnowext"
 if test "x$layer3" = "xenabled"; then
@@ -1051,7 +1050,7 @@ case $cpu_type in
   ;;
   generic_dither)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC_DITHER -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_dither"
+    more_sources="$s_fpu"
     ccalign=no
   ;;
 dnl Not disabling buffer for float mode... check that this is OK now!
@@ -1106,7 +1105,7 @@ dnl Not disabling buffer for float mode... check that this is OK now!
   ;;
   i586_dither) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_I586_DITHER -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_i586d $s_dither"
+    more_sources="$s_fpu $s_i586d"
   ;;
   3dnow)
     # legacy 3dnow had the 3dnow paired with i586...
@@ -1139,7 +1138,7 @@ dnl Not disabling buffer for float mode... check that this is OK now!
  ;;
   x86_dither) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_GENERIC_DITHER -DOPT_I386 -DOPT_I586 -DOPT_I586_DITHER -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOWEXT -DOPT_SSE -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_i386 $s_i586 $s_i586d $s_dither $s_mmx $s_3dnow $s_3dnowext $s_sse $s_x86multi"
+    more_sources="$s_fpu $s_i386 $s_i586 $s_i586d $s_mmx $s_3dnow $s_3dnowext $s_sse $s_x86multi"
   ;;
   x86-64) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_X86_64 -DREAL_IS_FLOAT"
@@ -1147,11 +1146,11 @@ dnl Not disabling buffer for float mode... check that this is OK now!
   ;;
   x86-64_dither) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_X86_64 -DOPT_GENERIC_DITHER -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_dither $s_x86_64"
+    more_sources="$s_fpu $s_x86_64"
   ;;
   x86-64_all) # for direct comparison... undocumented actually very similar to the above because of generic code being there in the hidden anyway
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_X86_64 -DOPT_GENERIC -DOPT_GENERIC_DITHER -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_dither $s_x86_64"
+    more_sources="$s_fpu $s_x86_64"
   ;;
   *)
   	AC_MSG_ERROR([Unknown CPU type '$cpu_type'])
