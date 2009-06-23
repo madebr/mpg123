@@ -53,6 +53,7 @@ void frame_init(mpg123_handle *fr)
 	frame_init_par(fr, NULL);
 }
 
+#ifdef OPT_DITHER
 static void dither_table_init(float *dithertable)
 {
 	int32_t i;
@@ -117,7 +118,7 @@ static void dither_table_init(float *dithertable)
 		dithertable[i] = yv[8] * 3.0f;
 	}
 }
-
+#endif
 
 void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 {
