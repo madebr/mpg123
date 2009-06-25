@@ -2319,7 +2319,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../..;../../../../src/libmpg123"
-				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;_DEBUG;BUILD_MPG123_DLL;OPT_MULTI;OPT_GENERIC;OPT_I386;OPT_I586;OPT_MMX;OPT_3DNOW;OPT_3DNOWEXT;OPT_SSE"
+				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;_DEBUG;BUILD_MPG123_DLL;OPT_MULTI;OPT_GENERIC;OPT_I386;OPT_I586;OPT_MMX;OPT_3DNOW;OPT_3DNOWEXT;OPT_SSE;_BIND_TO_CURRENT_VCLIBS_VERSION=1"
 				MinimalRebuild="false"
 				ExceptionHandling="0"
 				BasicRuntimeChecks="3"
@@ -2407,7 +2407,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				AdditionalIncludeDirectories="../..;../../../../src/libmpg123"
-				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;BUILD_MPG123_DLL;OPT_MULTI;OPT_GENERIC;OPT_I386;OPT_I586;OPT_MMX;OPT_3DNOW;OPT_3DNOWEXT;OPT_SSE"
+				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;BUILD_MPG123_DLL;OPT_MULTI;OPT_GENERIC;OPT_I386;OPT_I586;OPT_MMX;OPT_3DNOW;OPT_3DNOWEXT;OPT_SSE;_BIND_TO_CURRENT_VCLIBS_VERSION=1"
 				ExceptionHandling="0"
 				RuntimeLibrary="2"
 				BufferSecurityCheck="false"
@@ -2467,8 +2467,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug_x86_Dll_Minimal|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)Debug"
+			IntermediateDirectory="Debug"
 			ConfigurationType="2"
 			CharacterSet="1"
 			>
@@ -2549,8 +2549,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release_x86_Dll_Minimal|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)Release"
+			IntermediateDirectory="Release"
 			ConfigurationType="2"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
