@@ -326,6 +326,7 @@ MPEG 2.5
 /* still fine-tuning the "real music" window... see read_frame */
 void frame_gapless_init(mpg123_handle *fr, off_t b, off_t e);
 void frame_gapless_realinit(mpg123_handle *fr);
+void frame_gapless_update(mpg123_handle *mh, off_t total_samples);
 /*void frame_gapless_position(mpg123_handle* fr);
 void frame_gapless_bytify(mpg123_handle *fr);
 void frame_gapless_ignore(mpg123_handle *fr, off_t frames);*/

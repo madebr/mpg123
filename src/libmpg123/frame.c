@@ -756,6 +756,22 @@ void frame_gapless_realinit(mpg123_handle *fr)
 	fr->end_os   = frame_ins2outs(fr, fr->end_s);
 	debug2("frame_gapless_realinit: from %lu to %lu samples", (long unsigned)fr->begin_os, (long unsigned)fr->end_os);
 }
+
+/* When we got a new sample count, update the gaplessness. */
+void frame_gapless_update(mpg123_handle *fr, off_t total_samples)
+{
+	if(fr->end_s < 1)
+	{
+		fr->end_s = total_samples;
+		frame_gapless_realinit(fr);
+	}
+	else if(fr->end_s > total_samples)
+	{
+		if(NOQUIET) error2("end sample count smaller than gapless end! (%"OFF_P" < %"OFF_P").", (off_p)total_samples, (off_p)fr->end_s);
+		fr->end_s = total_samples;
+	}
+}
+
 #endif
 
 /* Compute the needed frame to ignore from, for getting accurate/consistent output for intended firstframe. */
