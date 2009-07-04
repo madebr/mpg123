@@ -158,7 +158,7 @@ static inline long scale_rounded(long x, int shift)
 	long _x=(x), _y=(y), _mull, _mulh; \
 	__asm__ ( \
 		"smull %0, %1, %2, %3 \n\t" \
-		"lsr %0, %0, %4 \n\t" \
+		"mov %0, %0, lsr %4 \n\t" \
 		"orr %0, %0, %1, lsl %5 \n\t" \
 		: "=&r" (_mull), "=&r" (_mulh) \
 		: "%r" (_x), "r" (_y), "M" (radix), "M" (32-(radix)) \
@@ -171,7 +171,7 @@ static inline long scale_rounded(long x, int shift)
 	long _x=(x), _y=(y), _radix=(radix), _mull, _mulh, _radix2; \
 	__asm__ ( \
 		"smull %0, %1, %3, %4 \n\t" \
-		"lsr %0, %0, %5 \n\t" \
+		"mov %0, %0, lsr %5 \n\t" \
 		"rsb %2, %5, #32 \n\t" \
 		"orr %0, %0, %1, lsl %2 \n\t" \
 		: "=&r" (_mull), "=&r" (_mulh), "=&r" (_radix2) \

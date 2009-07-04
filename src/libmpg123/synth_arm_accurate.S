@@ -85,8 +85,8 @@ ASM_NAME(synth_1to1_arm_accurate_asm):
 	ldr		r6, [B0], #4
 	smlal	r12, r11, r9, r10
 	
-	lsr		r8, r8, #24
-	lsr		r12, r12, #24
+	mov		r8, r8, lsr #24
+	mov		r12, r12, lsr #24
 	orr		r8, r8, r7, lsl #8
 	orr		r12, r12, r11, lsl #8
 	sub		r8, r8, r12
@@ -97,7 +97,7 @@ ASM_NAME(synth_1to1_arm_accurate_asm):
 	cmp		r8, #-1073741824
 	movlt	r8, #-1073741824
 	addlt	REG_CLIP, REG_CLIP, #1
-	asrs	r8, r8, #15
+	movs	r8, r8, asr #15
 	adc		r8, r8, #0
 	strh	r8, [SAMPLES], #4
 	
@@ -132,8 +132,8 @@ ASM_NAME(synth_1to1_arm_accurate_asm):
 	ldr		r6, [B0], #4
 	smlal	r12, r11, r9, r10
 	
-	lsr		r8, r8, #24
-	lsr		r12, r12, #24
+	mov		r8, r8, lsr #24
+	mov		r12, r12, lsr #24
 	orr		r8, r8, r7, lsl #8
 	orr		r12, r12, r11, lsl #8
 	add		r8, r8, r12
@@ -144,7 +144,7 @@ ASM_NAME(synth_1to1_arm_accurate_asm):
 	cmp		r8, #-1073741824
 	movlt	r8, #-1073741824
 	addlt	REG_CLIP, REG_CLIP, #1
-	asrs	r8, r8, #15
+	movs	r8, r8, asr #15
 	adc		r8, r8, #0
 	strh	r8, [SAMPLES], #4
 	
@@ -200,8 +200,8 @@ ASM_NAME(synth_1to1_arm_accurate_asm):
 	ldr		r6, [B0], #4
 	smlal	r12, r11, r9, r10
 	
-	lsr		r8, r8, #24
-	lsr		r12, r12, #24
+	mov		r8, r8, lsr #24
+	mov		r12, r12, lsr #24
 	orr		r8, r8, r7, lsl #8
 	orr		r12, r12, r11, lsl #8
 	add		r8, r8, r12
@@ -212,7 +212,7 @@ ASM_NAME(synth_1to1_arm_accurate_asm):
 	cmp		r8, #-1073741824
 	movlt	r8, #-1073741824
 	addlt	REG_CLIP, REG_CLIP, #1
-	asrs	r8, r8, #15
+	movs	r8, r8, asr #15
 	adc		r8, r8, #0
 	strh	r8, [SAMPLES], #4
 	
@@ -266,8 +266,8 @@ ASM_NAME(synth_1to1_arm_accurate_asm):
 	smlal	r8, r7, r5, r6
 	smlal	r12, r11, r9, r10
 	
-	lsr		r8, r8, #24
-	lsr		r12, r12, #24
+	mov		r8, r8, lsr #24
+	mov		r12, r12, lsr #24
 	orr		r8, r8, r7, lsl #8
 	orr		r12, r12, r11, lsl #8
 	add		r8, r8, r12
@@ -278,7 +278,7 @@ ASM_NAME(synth_1to1_arm_accurate_asm):
 	cmp		r8, #-1073741824
 	movlt	r8, #-1073741824
 	addlt	REG_CLIP, REG_CLIP, #1
-	asrs	r8, r8, #15
+	movs	r8, r8, asr #15
 	adc		r8, r8, #0
 	strh	r8, [SAMPLES]
 	

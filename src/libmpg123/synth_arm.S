@@ -93,7 +93,7 @@ ASM_NAME(synth_1to1_arm_asm):
 	cmp		r7, #-1073741824
 	movlt	r7, #-1073741824
 	addlt	REG_CLIP, REG_CLIP, #1
-	asrs	r7, r7, #15
+	movs	r7, r7, asr #15
 	adc		r7, r7, #0
 	strh	r7, [SAMPLES], #4
 	
@@ -136,7 +136,7 @@ ASM_NAME(synth_1to1_arm_asm):
 	cmp		r7, #-1073741824
 	movlt	r7, #-1073741824
 	addlt	REG_CLIP, REG_CLIP, #1
-	asrs	r7, r7, #15
+	movs	r7, r7, asr #15
 	adc		r7, r7, #0
 	strh	r7, [SAMPLES], #4
 	
@@ -200,7 +200,7 @@ ASM_NAME(synth_1to1_arm_asm):
 	cmp		r7, #-1073741824
 	movlt	r7, #-1073741824
 	addlt	REG_CLIP, REG_CLIP, #1
-	asrs	r7, r7, #15
+	movs	r7, r7, asr #15
 	adc		r7, r7, #0
 	strh	r7, [SAMPLES], #4
 	
@@ -262,7 +262,7 @@ ASM_NAME(synth_1to1_arm_asm):
 	cmp		r7, #-1073741824
 	movlt	r7, #-1073741824
 	addlt	REG_CLIP, REG_CLIP, #1
-	asrs	r7, r7, #15
+	movs	r7, r7, asr #15
 	adc		r7, r7, #0
 	strh	r7, [SAMPLES]
 	
