@@ -21,6 +21,10 @@
 #endif
 #include "synths.h"
 
+#ifdef OPT_DITHER
+#include "dither.h"
+#endif
+
 /* max = 1728 */
 #define MAXFRAMESIZE 3456
 

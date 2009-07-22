@@ -75,6 +75,8 @@ EXTRA_libmpg123_la_SOURCES = \
 	layer1.c \
 	layer2.c \
 	layer3.c \
+	dither.h \
+	dither.c \
 	dct36_3dnowext.S \
 	dct36_3dnow.S \
 	dct64_3dnowext.S \
