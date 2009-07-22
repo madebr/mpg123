@@ -64,6 +64,9 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 #ifndef NO_8BIT
 	fr->conv16to8_buf = NULL;
 #endif
+#ifdef OPT_DITHER
+	fr->dithernoise = NULL;
+#endif
 	fr->xing_toc = NULL;
 	fr->cpu_opts.type = defdec();
 	fr->cpu_opts.class = decclass(fr->cpu_opts.type);
@@ -97,11 +100,24 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 	fi_init(&fr->index);
 	frame_index_setup(fr); /* Apply the size setting. */
 #endif
-#ifdef OPT_DITHER
-	/* run-time dither noise table generation */
-	dither_table_init(fr->dithernoise);
-#endif
 }
+
+#ifdef OPT_DITHER
+/* Also, only allocate the memory for the table on demand.
+   In future, one could create special noise for different sampling frequencies(?). */
+int frame_dither_init(mpg123_handle *fr)
+{
+	/* run-time dither noise table generation */
+	if(fr->dithernoise == NULL)
+	{
+		fr->dithernoise = malloc(sizeof(float)*DITHERSIZE);
+		if(fr->dithernoise == NULL) return 0;
+
+		dither_table_init(fr->dithernoise);
+	}
+	return 1;
+}
+#endif
 
 mpg123_pars attribute_align_arg *mpg123_new_pars(int *error)
 {
@@ -471,6 +487,13 @@ void frame_exit(mpg123_handle *fr)
 	frame_free_toc(fr);
 #ifdef FRAME_INDEX
 	fi_exit(&fr->index);
+#endif
+#ifdef OPT_DITHER
+	if(fr->dithernoise != NULL)
+	{
+		free(fr->dithernoise);
+		fr->dithernoise = NULL;
+	}
 #endif
 	exit_id3(fr);
 	clear_icy(&fr->icy);

@@ -422,6 +422,9 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 	enum optdec want_dec = nodec;
 	int done = 0;
 	int auto_choose = 0;
+#ifdef OPT_DITHER
+	int dithered = FALSE; /* If some dithered decoder is chosen. */
+#endif
 
 	want_dec = dectype(cpu);
 	auto_choose = want_dec == autodec;
@@ -536,6 +539,7 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		{
 			chosen = "dithered i586/pentium";
 			fr->cpu_opts.type = ifuenf_dither;
+			dithered = TRUE;
 #			ifndef NO_16BIT
 			fr->synths.plain[r_1to1][f_16] = synth_1to1_i586_dither;
 #			ifndef NO_DOWNSAMPLE
@@ -621,6 +625,7 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 	{
 		chosen = "dithered generic";
 		fr->cpu_opts.type = generic_dither;
+		dithered = TRUE;
 #		ifndef NO_16BIT
 		fr->synths.plain[r_1to1][f_16] = synth_1to1_dither;
 #		ifndef NO_DOWNSAMPLE
@@ -689,6 +694,18 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 	}
 #	endif
 #	endif
+
+#ifdef OPT_DITHER
+	if(done && dithered)
+	{
+		/* run-time dither noise table generation */
+		if(!frame_dither_init(fr))
+		{
+			if(NOQUIET) error("Dither noise setup failed!");
+			return 0;
+		}
+	}
+#endif
 
 	if(done)
 	{

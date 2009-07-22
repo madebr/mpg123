@@ -23,6 +23,7 @@
 
 #ifdef OPT_DITHER
 #include "dither.h"
+int frame_dither_init(mpg123_handle *fr);
 #endif
 
 /* max = 1728 */
@@ -100,7 +101,7 @@ struct mpg123_handle_struct
 	int bo; /* Just have it always here. */
 #ifdef OPT_DITHER
 	int ditherindex;
-	float dithernoise[DITHERSIZE];
+	float *dithernoise;
 #endif
 	unsigned char* rawdecwin; /* the block with all decwins */
 	int rawdecwins; /* size of rawdecwin memory */
