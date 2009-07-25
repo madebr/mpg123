@@ -257,7 +257,7 @@ ASM_NAME(synth_1to1_arm_asm):
 	add		r7, r7, r10
 	
 	cmp		r7, REG_MAX
-	movgt	r5, REG_MAX
+	movgt	r7, REG_MAX
 	addgt	REG_CLIP, REG_CLIP, #1
 	cmp		r7, #-1073741824
 	movlt	r7, #-1073741824
