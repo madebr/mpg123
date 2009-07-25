@@ -10,6 +10,8 @@
 #include "compat.h"
 #include "dither.h"
 
+#define WRAP 100
+
 void dither_table_init(float *dithertable)
 {
 	int32_t i;
@@ -27,8 +29,9 @@ void dither_table_init(float *dithertable)
 		xv[i] = yv[i] = 0.0f;
 	}
 	
-	for(i=0;i<DITHERSIZE;i++)
+	for(i=0;i<DITHERSIZE+WRAP;i++)
 	{
+		if(i==DITHERSIZE) seed=2463534242UL;
 		/* generate 1st pseudo-random number (xorshift32) */
 		seed ^= (seed<<13);
 		seed ^= (seed>>17);
@@ -63,14 +66,14 @@ void dither_table_init(float *dithertable)
 		
 		/* apply 8th order Chebyshev high-pass IIR filter */
 		xv[0] = xv[1]; xv[1] = xv[2]; xv[2] = xv[3]; xv[3] = xv[4]; xv[4] = xv[5]; xv[5] = xv[6]; xv[6] = xv[7]; xv[7] = xv[8]; 
-		xv[8] = input_noise / 1.046605543e+07;
+		xv[8] = input_noise / 1.382814179e+07;
 		yv[0] = yv[1]; yv[1] = yv[2]; yv[2] = yv[3]; yv[3] = yv[4]; yv[4] = yv[5]; yv[5] = yv[6]; yv[6] = yv[7]; yv[7] = yv[8]; 
 		yv[8] = (xv[0] + xv[8]) - 8 * (xv[1] + xv[7]) + 28 * (xv[2] + xv[6])
 				- 56 * (xv[3] + xv[5]) + 70 * xv[4]
-				+ ( -0.6610337226 * yv[0]) + ( -5.2856836445 * yv[1])
-				+ (-18.7646200370 * yv[2]) + (-38.6287198220 * yv[3])
-				+ (-50.4388759960 * yv[4]) + (-42.7846655830 * yv[5])
-				+ (-23.0310886710 * yv[6]) + ( -7.1965249172 * yv[7]);
-		dithertable[i] = yv[8] * 3.0f;
+				+ ( -0.6706204984 * yv[0]) + ( -5.3720827038 * yv[1])
+				+ (-19.0865382480 * yv[2]) + (-39.2831607860 * yv[3])
+				+ (-51.2308985070 * yv[4]) + (-43.3590135780 * yv[5])
+				+ (-23.2632305320 * yv[6]) + ( -7.2370122050 * yv[7]);
+		if(i>=WRAP) dithertable[i-WRAP] = yv[8] * 3.0f;
 	}
 }
