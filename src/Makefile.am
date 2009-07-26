@@ -20,7 +20,7 @@ CLEANFILES = *.a
 
 bin_PROGRAMS = mpg123
 
-EXTRA_PROGRAMS = tests/seek_accuracy tests/seek_whence
+EXTRA_PROGRAMS = tests/seek_accuracy tests/seek_whence tests/noise
 
 mpg123_SOURCES = \
 	audio.c \
@@ -151,3 +151,10 @@ libmpg123/compat.c
 
 tests_seek_whence_DEPENDENCIES = libmpg123/libmpg123.la
 tests_seek_whence_LDADD = libmpg123/libmpg123.la
+
+tests_noise_SOURCES = \
+tests/noise.c \
+libmpg123/compat.h \
+libmpg123/compat.c \
+libmpg123/dither.h \
+libmpg123/dither.c
