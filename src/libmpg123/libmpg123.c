@@ -683,6 +683,17 @@ debug1("new format: %i", mh->new_format);
 	return MPG123_OK;
 }
 
+/* Assumption: A buffer full of zero samples can be constructed by repetition of this byte.
+   Only to be used by decode_the_frame() ... */
+static int zero_byte(mpg123_handle *fr)
+{
+#ifndef NO_8BIT
+	return fr->af.encoding & MPG123_ENC_8 ? fr->conv16to8[0] : 0;
+#else
+	return 0; /* All normal signed formats have the zero here (even in byte form -- that may be an assumption for your funny machine...). */
+#endif
+}
+
 /*
 	Not part of the api. This just decodes the frame and fills missing bits with zeroes.
 	There can be frames that are broken and thus make do_layer() fail.
@@ -703,8 +714,14 @@ void decode_the_frame(mpg123_handle *fr)
 			if(VERBOSE2)
 			fprintf(stderr, "Note: broken frame %li, filling up with %"SIZE_P" zeroes, from %"SIZE_P"\n", (long)fr->num, (size_p)(needed_bytes-fr->buffer.fill), (size_p)fr->buffer.fill);
 
-			/* One could do a loop with individual samples instead... but zero is zero. */
-			memset(fr->buffer.data + fr->buffer.fill, 0, needed_bytes - fr->buffer.fill);
+			/*
+				One could do a loop with individual samples instead... but zero is zero
+				Actually, that is wrong: zero is mostly a series of null bytes,
+				but we have funny 8bit formats that have a different opinion on zero...
+				Unsigned 16 or 32 bit formats are handled later.
+			*/
+			memset( fr->buffer.data + fr->buffer.fill, zero_byte(fr), needed_bytes - fr->buffer.fill );
+
 			fr->buffer.fill = needed_bytes;
 #ifndef NO_NTOM
 			/* ntom_val will be wrong when the decoding wasn't carried out completely */
