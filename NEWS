@@ -1,5 +1,19 @@
+1.9.0
+---
+- Free format support.
+- ARM assembly optimizations (yay Taihei again!).
+- Nither noise now runtime-generated, thus less bloated binary (thanks Taihei...).
+  This means that dithered decoding is now included per default (TODO Thomas!).
+  Please note that work is ongoing to improve the dithering quality, more to come...
+- Buffer plays any audio type now.
+- New output module: OpenAL
+- Bug fixes:
+  - broken frame fillup for non-signed 8 bit formats with correct zero (bug 2805665)
+  - Crash on invalid UTF-16 in ID3 tags fixed (thanks to Andy Hefner)
+- Buid system allows AltiVec on non-Macs now (don't enforce unsupported gcc flags).
+
+What's the news here again? 
 - integer decoder fun
-- buffer plays any audio type
 
 1.8.1
 ---
