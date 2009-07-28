@@ -2,7 +2,7 @@
 ---
 - Free format support.
 - ARM assembly optimizations (yay Taihei again!).
-- Nither noise now runtime-generated, thus less bloated binary (thanks Taihei...).
+- Dither noise now runtime-generated, thus less bloated binary (thanks Taihei...).
   This means that dithered decoding is now included per default (TODO Thomas!).
   Please note that work is ongoing to improve the dithering quality, more to come...
 - Buffer plays any audio type now.
@@ -12,9 +12,6 @@
   - Crash on invalid UTF-16 in ID3 tags fixed (thanks to Andy Hefner)
 - Buid system allows AltiVec on non-Macs now (don't enforce unsupported gcc flags).
 - Terminal control mode is more verbose (gives hint about pressing 'h').
-
-What's the news here again? 
-- integer decoder fun
 
 1.8.1
 ---
