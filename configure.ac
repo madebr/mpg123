@@ -518,6 +518,7 @@ case $target in
       ppc7400 | ppc7450 | ppc970)
         AC_MSG_RESULT([yes])
         cpu_type="altivec"
+        altivec_extra_flag=-faltivec
       ;;
       *)
         AC_MSG_RESULT([no])
@@ -1076,7 +1077,7 @@ dnl Not disabling buffer for float mode... check that this is OK now!
     ccalign=no
   ;;
   altivec)
-    ADD_CFLAGS="$ADD_CFLAGS -maltivec -faltivec"
+    ADD_CFLAGS="$ADD_CFLAGS -maltivec $alti_extra_flag"
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DREAL_IS_FLOAT -DOPT_ALTIVEC"
     more_sources="$s_altivec $s_fpu"
   ;;
