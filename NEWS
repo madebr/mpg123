@@ -11,6 +11,7 @@
   - broken frame fillup for non-signed 8 bit formats with correct zero (bug 2805665)
   - Crash on invalid UTF-16 in ID3 tags fixed (thanks to Andy Hefner)
 - Buid system allows AltiVec on non-Macs now (don't enforce unsupported gcc flags).
+- Terminal control mode is more verbose (gives hint about pressing 'h').
 
 What's the news here again? 
 - integer decoder fun
