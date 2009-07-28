@@ -70,6 +70,7 @@
 void term_init(void);
 off_t term_control(mpg123_handle *mh, audio_output_t *ao);
 void term_restore(void);
+void term_hint(void); /* Print a message hinting at terminal usage. */
 
 #endif
 

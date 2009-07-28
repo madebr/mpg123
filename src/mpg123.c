@@ -972,6 +972,12 @@ int main(int argc, char *argv[])
 				&dirname, &filename))
 				fprintf(stderr, "Directory: %s\n", dirname);
 
+#ifdef HAVE_TERMIOS
+		/* Reminder about terminal usage. */
+		if(param.term_ctrl) term_hint();
+#endif
+
+
 			fprintf(stderr, "Playing MPEG stream %lu of %lu: %s ...\n", (unsigned long)pl.pos, (unsigned long)pl.fill, filename);
 			if(htd.icy_name.fill) fprintf(stderr, "ICY-NAME: %s\n", htd.icy_name.p);
 			if(htd.icy_url.fill)  fprintf(stderr, "ICY-URL: %s\n",  htd.icy_url.p);

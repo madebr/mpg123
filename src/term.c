@@ -103,6 +103,11 @@ void term_init(void)
   term_enable = 1;
 }
 
+void term_hint(void)
+{
+	fprintf(stderr, "\nTerminal control enabled, press 'h' for listing of keys and functions.\n\n");
+}
+
 static void term_handle_input(mpg123_handle *, audio_output_t *, int);
 
 static int stopped = 0;
