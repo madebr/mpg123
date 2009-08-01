@@ -45,7 +45,7 @@ open_module( const char* type, const char* name )
 	debug1("  name=%s", mod->name);
 	debug1("  description=%s", mod->description);
 	debug1("  revision=%s", mod->revision);
-	debug1("  handle=%x", (unsigned int)mod->handle);
+	debug1("  handle=%p", (void*)mod->handle);
 
 	return mod;
 }
