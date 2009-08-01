@@ -10,8 +10,10 @@
 - Bug fixes:
   - broken frame fillup for non-signed 8 bit formats with correct zero (bug 2805665)
   - Crash on invalid UTF-16 in ID3 tags fixed (thanks to Andy Hefner)
+- Topic ID3 and UTF: Now we are more tolerant with UTF16, even accepting those broken tags that id3v2 produces (multiple conflicing BOMs).
 - Buid system allows AltiVec on non-Macs now (don't enforce unsupported gcc flags).
 - Terminal control mode is more verbose (gives hint about pressing 'h').
+
 
 1.8.1
 ---

@@ -19,19 +19,19 @@ enum frame_types { unknown = -2, text = -1, comment, extra, rva2, uslt };
 
 /* UTF support definitions */
 
-typedef void (*text_converter)(mpg123_string *sb, unsigned char* source, size_t len);
+typedef void (*text_converter)(mpg123_string *sb, unsigned char* source, size_t len, int noquiet);
 
-static void convert_latin1  (mpg123_string *sb, unsigned char* source, size_t len);
-static void convert_utf16   (mpg123_string *sb, unsigned char* source, size_t len, int str_be);
-static void convert_utf16bom(mpg123_string *sb, unsigned char* source, size_t len);
-static void convert_utf16be (mpg123_string *sb, unsigned char* source, size_t len);
-static void convert_utf8    (mpg123_string *sb, unsigned char* source, size_t len);
+static void convert_latin1  (mpg123_string *sb, unsigned char* source, size_t len, int noquiet);
+static void convert_utf16bom(mpg123_string *sb, unsigned char* source, size_t len, int noquiet);
+static void convert_utf8    (mpg123_string *sb, unsigned char* source, size_t len, int noquiet);
 
 static const text_converter text_converters[4] = 
 {
 	convert_latin1,
+	/* We always check for (multiple) BOM in 16bit unicode. Without BOM, UTF16 BE is the default.
+	   Errors in encoding are detected anyway. */
 	convert_utf16bom,
-	convert_utf16be,
+	convert_utf16bom,
 	convert_utf8
 };
 
@@ -218,7 +218,7 @@ void store_id3_text(mpg123_string *sb, char *source, size_t source_size, const i
 		if(noquiet) warning2("Weird tag size %d for encoding %u - I will probably trim too early or something but I think the MP3 is broken.", (int)source_size, encoding);
 		source_size -= source_size % bwidth;
 	}
-	text_converters[encoding](sb, (unsigned char*)source, source_size);
+	text_converters[encoding](sb, (unsigned char*)source, source_size, noquiet);
 	if(sb->size) debug1("UTF-8 string (the first one): %s", sb->p);
 	else if(noquiet) error("unable to convert string to UTF-8 (out of memory, junk input?)!");
 }
@@ -764,7 +764,7 @@ tagparse_cleanup:
 
 #ifndef NO_ID3V2 /* Disabling all the rest... */
 
-static void convert_latin1(mpg123_string *sb, unsigned char* s, size_t l)
+static void convert_latin1(mpg123_string *sb, unsigned char* s, size_t l, int noquiet)
 {
 	size_t length = l;
 	size_t i;
@@ -791,25 +791,70 @@ static void convert_latin1(mpg123_string *sb, unsigned char* s, size_t l)
 	sb->fill = length+1;
 }
 
+/*
+	Check if we have a byte oder mark(s) there, return:
+	-1: little endian
+	 0: no BOM
+	 1: big endian
+
+	This modifies source and len to indicate the data _after_ the BOM(s).
+	Note on nasty data: The last encountered BOM determines the endianess.
+	I have seen data with multiple BOMS, namely from "the" id3v2 program.
+	Not nice, but what should I do?
+*/
+static int check_bom(unsigned char** source, size_t *len)
+{
+	int this_bom    = 0;
+	int further_bom = 0;
+
+	if(*len < 2) return 0;
+
+	if((*source)[0] == 0xff && (*source)[1] == 0xfe)
+	this_bom = -1;
+
+	if((*source)[0] == 0xfe && (*source)[1] == 0xff)
+	this_bom = 1;
+
+	/* Skip the detected BOM. */
+	if(this_bom != 0)
+	{
+		*source += 2;
+		*len    -= 2;
+		/* Check for following BOMs. The last one wins! */
+		further_bom = check_bom(source, len);
+		if(further_bom == 0) return this_bom; /* End of the recursion. */
+		else                 return further_bom;
+	}
+	else return 0;
+}
+
 #define FULLPOINT(f,s) ( (((f)&0x3ff)<<10) + ((s)&0x3ff) + 0x10000 )
 /* Remember: There's a limit at 0x1ffff. */
 #define UTF8LEN(x) ( (x)<0x80 ? 1 : ((x)<0x800 ? 2 : ((x)<0x10000 ? 3 : 4)))
-static void convert_utf16(mpg123_string *sb, unsigned char* s, size_t l, int str_be)
+static void convert_utf16bom(mpg123_string *sb, unsigned char* s, size_t l, int noquiet)
 {
 	size_t i;
-	size_t n = (l/2)*2; /* number bytes that make up full pairs */
+	size_t n; /* number bytes that make up full pairs */
 	unsigned char *p;
 	size_t length = 0; /* the resulting UTF-8 length */
 	/* Determine real length... extreme case can be more than utf-16 length. */
 	size_t high = 0;
 	size_t low  = 1;
+	int bom_endian;
+
 	debug1("convert_utf16 with length %lu", (unsigned long)l);
 
-	if(!str_be) /* little-endian */
+	bom_endian = check_bom(&s, &l);
+	debug1("UTF16 endianess check: %i", bom_endian);
+
+	if(bom_endian == -1) /* little-endian */
 	{
 		high = 1; /* The second byte is the high byte. */
 		low  = 0; /* The first byte is the low byte. */
 	}
+
+	n = (l/2)*2; /* number bytes that make up full pairs */
+
 	/* first: get length, check for errors -- stop at first one */
 	for(i=0; i < n; i+=2)
 	{
@@ -825,7 +870,7 @@ static void convert_utf16(mpg123_string *sb, unsigned char* s, size_t l, int str
 			}
 			else /* if no valid pair, break here */
 			{
-				debug1("Invalid UTF16 surrogate pair at %li.", (unsigned long)i);
+				if(noquiet) error2("Invalid UTF16 surrogate pair at %li (0x%04lx).", (unsigned long)i, point);
 				n = i; /* Forget the half pair, END! */
 				break;
 			}
@@ -872,22 +917,7 @@ static void convert_utf16(mpg123_string *sb, unsigned char* s, size_t l, int str
 #undef UTF8LEN
 #undef FULLPOINT
 
-static void convert_utf16be(mpg123_string *sb, unsigned char* source, size_t len)
-{
-	convert_utf16(sb, source, len, 1);
-}
-
-static void convert_utf16bom(mpg123_string *sb, unsigned char* source, size_t len)
-{
-	if(len < 2){ mpg123_free_string(sb); return; }
-
-	if(source[0] == 0xff && source[1] == 0xfe) /* Little-endian */
-	convert_utf16(sb, source + 2, len - 2, 0);
-	else /* Big-endian */
-	convert_utf16(sb, source + 2, len - 2, 1);
-}
-
-static void convert_utf8(mpg123_string *sb, unsigned char* source, size_t len)
+static void convert_utf8(mpg123_string *sb, unsigned char* source, size_t len, int noquiet)
 {
 	if(mpg123_resize_string(sb, len+1))
 	{
