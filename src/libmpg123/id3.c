@@ -19,11 +19,11 @@ enum frame_types { unknown = -2, text = -1, comment, extra, rva2, uslt };
 
 /* UTF support definitions */
 
-typedef void (*text_converter)(mpg123_string *sb, unsigned char* source, size_t len, int noquiet);
+typedef void (*text_converter)(mpg123_string *sb, unsigned char* source, size_t len, const int noquiet);
 
-static void convert_latin1  (mpg123_string *sb, unsigned char* source, size_t len, int noquiet);
-static void convert_utf16bom(mpg123_string *sb, unsigned char* source, size_t len, int noquiet);
-static void convert_utf8    (mpg123_string *sb, unsigned char* source, size_t len, int noquiet);
+static void convert_latin1  (mpg123_string *sb, unsigned char* source, size_t len, const int noquiet);
+static void convert_utf16bom(mpg123_string *sb, unsigned char* source, size_t len, const int noquiet);
+static void convert_utf8    (mpg123_string *sb, unsigned char* source, size_t len, const int noquiet);
 
 static const text_converter text_converters[4] = 
 {
@@ -764,7 +764,7 @@ tagparse_cleanup:
 
 #ifndef NO_ID3V2 /* Disabling all the rest... */
 
-static void convert_latin1(mpg123_string *sb, unsigned char* s, size_t l, int noquiet)
+static void convert_latin1(mpg123_string *sb, unsigned char* s, size_t l, const int noquiet)
 {
 	size_t length = l;
 	size_t i;
@@ -831,7 +831,7 @@ static int check_bom(unsigned char** source, size_t *len)
 #define FULLPOINT(f,s) ( (((f)&0x3ff)<<10) + ((s)&0x3ff) + 0x10000 )
 /* Remember: There's a limit at 0x1ffff. */
 #define UTF8LEN(x) ( (x)<0x80 ? 1 : ((x)<0x800 ? 2 : ((x)<0x10000 ? 3 : 4)))
-static void convert_utf16bom(mpg123_string *sb, unsigned char* s, size_t l, int noquiet)
+static void convert_utf16bom(mpg123_string *sb, unsigned char* s, size_t l, const int noquiet)
 {
 	size_t i;
 	size_t n; /* number bytes that make up full pairs */
@@ -917,7 +917,7 @@ static void convert_utf16bom(mpg123_string *sb, unsigned char* s, size_t l, int 
 #undef UTF8LEN
 #undef FULLPOINT
 
-static void convert_utf8(mpg123_string *sb, unsigned char* source, size_t len, int noquiet)
+static void convert_utf8(mpg123_string *sb, unsigned char* source, size_t len, const int noquiet)
 {
 	if(mpg123_resize_string(sb, len+1))
 	{
