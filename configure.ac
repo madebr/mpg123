@@ -459,10 +459,8 @@ AC_ARG_WITH([cpu], [
   --with-cpu=mmx_alone          Really only MMX decoder, without i586 fallback for flexible rate
   --with-cpu=sse          Use code optimized for SSE processors
   --with-cpu=sse_alone          Really only SSE decoder, without i586 fallback for flexible rate
-  --with-cpu=x86          Pack all x86 opts into one binary (excluding i486 and dither)
-  --with-cpu=x86_dither   Pack all x86 opts into one binary (excluding i486, including dither)
-  --with-cpu=x86-64       Use code optimized for x86-64 processors (AMD64 and Intel64)
-  --with-cpu=x86-64_dither x86-64 code together with generic dithering (runtime selection)
+  --with-cpu=x86          Pack all x86 opts into one binary (excluding i486, including dither)
+  --with-cpu=x86-64       Use code optimized for x86-64 processors (AMD64 and Intel64, including dithered generic)
   --with-cpu=altivec      Use code optimized for Altivec processors (PowerPC G4 and G5)
   --with-cpu=ppc_nofpu    Use code optimized for PowerPC processors with fixed point arithmetic (experimental)
   --with-cpu=arm_nofpu    Use code optimized for ARM processors with fixed point arithmetic (experimental)
@@ -530,11 +528,12 @@ case $host in
     cpu_type="x86"
   ;;
   x86_64-*-dragonfly* | x86_64-*-freebsd* | x86_64-*-midnightbsd* | x86_64-*-mirbsd* | x86_64-*-netbsd* | x86_64-*-openbsd*)
-    cpu_type="x86-64"
+    cpu_type="x86-64_all"
   ;;
   *-*-dragonfly* | *-*-freebsd* | *-*-midnightbsd* | *-*-mirbsd* | *-*-netbsd* | *-*-openbsd*)
     cpu_type="generic_fpu"
   ;;
+  # Todo: Add default for x86 solaris; need to test it there, too.
   *-*-solaris*)
     cpu_type="generic_fpu"
   ;;
@@ -578,7 +577,7 @@ case $host in
 	;;
 	i586-*)
 		AC_MSG_WARN([Unknown host operating system])
-		cpu_type="i586"
+		cpu_type="x86"
 		buffer=disabled
 		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
 	;;
@@ -590,7 +589,7 @@ case $host in
 	;;
 	x86_64-*)
 		AC_MSG_WARN([Unknown host operating system])
-		cpu_type="x86-64"
+		cpu_type="x86-64_all"
 		buffer=disabled
 		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
 	;;
@@ -1143,11 +1142,7 @@ dnl Not disabling buffer for float mode... check that this is OK now!
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_SSE -DREAL_IS_FLOAT"
     more_sources="$s_fpu $s_sse"
   ;;
-  x86) 
-    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_I386 -DOPT_I586 -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOWEXT -DOPT_SSE -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_i386 $s_i586 $s_mmx $s_3dnow $s_3dnowext $s_sse $s_x86multi"
- ;;
-  x86_dither) 
+  x86|x86_dither) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_GENERIC_DITHER -DOPT_I386 -DOPT_I586 -DOPT_I586_DITHER -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOWEXT -DOPT_SSE -DREAL_IS_FLOAT"
     more_sources="$s_fpu $s_i386 $s_i586 $s_i586d $s_mmx $s_3dnow $s_3dnowext $s_sse $s_x86multi $s_dither"
   ;;
@@ -1155,11 +1150,7 @@ dnl Not disabling buffer for float mode... check that this is OK now!
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_X86_64 -DREAL_IS_FLOAT"
     more_sources="$s_fpu $s_x86_64"
   ;;
-  x86-64_dither) 
-    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_X86_64 -DOPT_GENERIC_DITHER -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_x86_64 $s_dither"
-  ;;
-  x86-64_all) # for direct comparison... undocumented actually very similar to the above because of generic code being there in the hidden anyway
+  x86-64_all|x86-64_dither)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_X86_64 -DOPT_GENERIC -DOPT_GENERIC_DITHER -DREAL_IS_FLOAT"
     more_sources="$s_fpu $s_x86_64 $s_dither"
   ;;
