@@ -1177,7 +1177,7 @@ esac
 for i in $more_sources
 do
 	DECODER_OBJ="$DECODER_OBJ $i.\$(OBJEXT)"
-	echo $DECODER_LOBJ | grep -q $i.lo || DECODER_LOBJ="$DECODER_LOBJ $i.lo"
+	DECODER_LOBJ="$DECODER_LOBJ $i.lo"
 done
 
 AC_SUBST(DECODER_OBJ)
