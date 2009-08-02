@@ -500,7 +500,7 @@ case $host in
     cpu_type="x86"
   ;;
   x86_64-*-linux*|x86_64-*-kfreebsd*-gnu)
-    cpu_type="x86-64"
+    cpu_type="x86-64_all"
   ;;
   *-*-linux*|*-*-kfreebsd*-gnu)
     cpu_type="generic_fpu"
@@ -509,7 +509,7 @@ case $host in
     cpu_type="x86"
   ;;
   x86_64-apple-darwin*)
-    cpu_type="x86-64"
+    cpu_type="x86-64_all"
   ;;
   *-apple-darwin*)
     AC_MSG_CHECKING([if CPU type supports AltiVec])
@@ -541,7 +541,7 @@ case $host in
     cpu_type="generic_fpu"
   ;;
   x86_64-pc-cygwin*)
-    cpu_type="x86-64"
+    cpu_type="x86-64_all"
   ;;
   i686-pc-cygwin*)
     cpu_type="x86"
