@@ -17,7 +17,7 @@ AC_SUBST(LIBMPG123_VERSION)
 AC_CONFIG_SRCDIR(src/mpg123.c)
 AC_CONFIG_AUX_DIR(build)
 AC_CONFIG_SRCDIR(doc)
-AC_CANONICAL_TARGET
+AC_CANONICAL_HOST
 
 dnl Version 1.7 of automake is recommended
 AM_INIT_AUTOMAKE(1.7)
@@ -472,7 +472,7 @@ AC_ARG_WITH([cpu], [
 # We want to make sure not to apply hacks relying on IEEE754 storage format on platforms where we did not make sure that this actually is valid.
 # It _should_ be fine for about all computers still out there, but we play safe.
 ieee=no
-case $target in
+case $host in
   i?86-*|x86_64-*|powerpc*|sparc*)
     ieee=yes
   ;;
@@ -483,7 +483,7 @@ if test "x$ieee" = xyes; then
 fi
 
 
-case $target in
+case $host in
   arm*-*-linux*)
     # check that... perhaps we are better off on arm with kernel math emulation
     cpu_type="arm_nofpu"
@@ -564,37 +564,37 @@ case $target in
     cpu_type="x86"
   ;;
 	i386-*)
-		AC_MSG_WARN([Unknown target operating system])
+		AC_MSG_WARN([Unknown host operating system])
 		cpu_type="i386"
 		buffer=disabled
 		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
 	;;
 	i486-*)
-		AC_MSG_WARN([Unknown target operating system])
+		AC_MSG_WARN([Unknown host operating system])
 		cpu_type="i486"
 		buffer=disabled
 		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
 	;;
 	i586-*)
-		AC_MSG_WARN([Unknown target operating system])
+		AC_MSG_WARN([Unknown host operating system])
 		cpu_type="i586"
 		buffer=disabled
 		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
 	;;
 	i686-*)
-		AC_MSG_WARN([Unknown target operating system])
+		AC_MSG_WARN([Unknown host operating system])
 		cpu_type="x86"
 		buffer=disabled
 		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
 	;;
 	x86_64-*)
-		AC_MSG_WARN([Unknown target operating system])
+		AC_MSG_WARN([Unknown host operating system])
 		cpu_type="x86-64"
 		buffer=disabled
 		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
 	;;
   *)
-  	AC_MSG_WARN([Unknown target operating system])
+  	AC_MSG_WARN([Unknown host operating system])
     cpu_type="generic_fpu"
     buffer=disabled
     ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
@@ -1002,7 +1002,7 @@ fi
 
 dnl Only try the attribute_align_arg mumbo-jumbo on x86, x86-64 warns/errors out on that attribute.
 dnl ...dunno even what about other architectures.
-case $target in
+case $host in
   i?86-*)
     AC_DEFINE(ABI_ALIGN_FUN, 1, [ Define if your architecture wants/needs/can use attribute_align_arg and alignment checks. It's for 32bit x86... ])
  ;;
@@ -1170,7 +1170,7 @@ esac
 # Mac OS X specific linker flags
 case $cpu_type in
   3dnow|3dnow_alone|3dnowext|3dnowext_alone|mmx|mmx_alone|sse|sse_alone|x86|x86_dither)
-    case $target in
+    case $host in
       i386-apple-darwin8*)
         ADD_LDFLAGS="$ADD_LDFLAGS -Wl,-read_only_relocs,suppress"
       ;;
@@ -1262,7 +1262,7 @@ do
 			# Remember: This looks only insane because you chose an insane tab width!
 			PORTAUDIO_LIBS="-lportaudio"
 			PORTAUDIO_CFLAGS=
-			case $target in
+			case $host in
 				*-*-mingw32)
 					# We tested portaudio with MME
 					if test "x$HAVE_PORTAUDIO" != "xyes"; then
