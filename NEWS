@@ -1,5 +1,8 @@
 1.9.0
 ---
+
+TODO: fix generic dither decoder to always use accurate rounding (replace WRITE_SAMPLE before including synth.h).
+
 - Free format support.
 - ARM assembly optimizations (yay Taihei again!).
 - Dither noise now runtime-generated, thus less bloated binary (thanks Taihei...).
