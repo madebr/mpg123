@@ -44,6 +44,8 @@ mpg123_add_string
 mpg123_add_substring
 mpg123_set_string
 mpg123_set_substring
+mpg123_enc_from_id3
+mpg123_store_utf8
 mpg123_meta_check
 mpg123_id3
 mpg123_icy

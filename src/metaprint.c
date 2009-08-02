@@ -278,24 +278,20 @@ void print_icy(mpg123_handle *mh, FILE *outstream)
 	char* icy;
 	if(MPG123_OK == mpg123_icy(mh, &icy))
 	{
-		char *icy_decoded = mpg123_icy2utf8(icy);
-		if(icy_decoded != NULL)
+		mpg123_string in;
+		mpg123_init_string(&in);
+		if(mpg123_store_utf8(&in, mpg123_text_icy, (unsigned char*)icy, strlen(icy)+1))
 		{
-			mpg123_string in;
-			mpg123_init_string(&in);
-			if(mpg123_set_string(&in, icy_decoded))
-			{
-				mpg123_string out;
-				mpg123_init_string(&out);
+			mpg123_string out;
+			mpg123_init_string(&out);
 
-				transform(&out, &in);
-				if(out.fill)
-				fprintf(outstream, "\nICY-META: %s\n", out.p);
+			transform(&out, &in);
+			if(out.fill)
+			fprintf(outstream, "\nICY-META: %s\n", out.p);
 
-				mpg123_free_string(&out);
-			}
-			mpg123_free_string(&in);
+			mpg123_free_string(&out);
 		}
+		mpg123_free_string(&in);
 	}
 }
 

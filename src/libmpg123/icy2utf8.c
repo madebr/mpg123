@@ -370,9 +370,10 @@ is_utf8(const char* src)
 }
 
 /* The main conversion routine.
-   ICY in CP-1252 (or UTF-8 alreay) to UTF-8 encoded string. */
+   ICY in CP-1252 (or UTF-8 alreay) to UTF-8 encoded string.
+   If force is applied, it will always encode to UTF-8, without checking. */
 char *
-icy2utf8(const char *src)
+icy2utf8(const char *src, int force)
 {
 	const uint8_t *s = (const uint8_t *)src;
 	size_t srclen, dstlen, i, k;
@@ -380,8 +381,8 @@ icy2utf8(const char *src)
 	char *dst;
 
 	/* Some funny streams from Apple/iTunes give ICY info in UTF-8 already.
-	   So, be prepared and don't try to re-encode such. */
-	if(is_utf8(src)) return (strdup(src));
+	   So, be prepared and don't try to re-encode such. Unless forced. */
+	if(!force && is_utf8(src)) return (strdup(src));
 
 	srclen = strlen(src) + 1;
 	/* allocate conservatively */
@@ -416,13 +417,13 @@ main(void)
 {
 	char *t, *t2;
 
-	if ((t = icy2utf8(intext)) == NULL) {
+	if ((t = icy2utf8(intext, 0)) == NULL) {
 		fprintf(stderr, "out of memory\n");
 		return (1);
 	}
 
 	/* make sure it won't be converted twice */
-	if ((t2 = icy2utf8(t)) == NULL) {
+	if ((t2 = icy2utf8(t), 0) == NULL) {
 		fprintf(stderr, "out of memory\n");
 		return (1);
 	}

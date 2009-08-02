@@ -20,7 +20,7 @@ CLEANFILES = *.a
 
 bin_PROGRAMS = mpg123
 
-EXTRA_PROGRAMS = tests/seek_accuracy tests/seek_whence tests/noise
+EXTRA_PROGRAMS = tests/seek_accuracy tests/seek_whence tests/noise tests/text tests/plain_id3
 
 mpg123_SOURCES = \
 	audio.c \
@@ -158,3 +158,20 @@ libmpg123/compat.h \
 libmpg123/compat.c \
 libmpg123/dither.h \
 libmpg123/dither.c
+
+tests_text_SOURCES = \
+tests/text.c \
+tests/testtext.h \
+libmpg123/compat.h \
+libmpg123/compat.c
+
+tests_text_DEPENDENCIES = libmpg123/libmpg123.la
+tests_text_LDADD = libmpg123/libmpg123.la
+
+tests_plain_id3_SOURCES = \
+tests/plain_id3.c \
+libmpg123/compat.h \
+libmpg123/compat.c
+
+tests_plain_id3_DEPENDENCIES = libmpg123/libmpg123.la
+tests_plain_id3_LDADD = libmpg123/libmpg123.la

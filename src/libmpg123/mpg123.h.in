@@ -139,6 +139,7 @@ enum mpg123_param_flags
 	,MPG123_SEEKBUFFER   = 0x100 /**< 000100000000 Enable small buffer on non-seekable streams to allow some peek-ahead (for better MPEG sync). */
 	,MPG123_FUZZY        = 0x200 /**< 001000000000 Enable fuzzy seeks (guessing byte offsets or using approximate seek points from Xing TOC) */
 	,MPG123_FORCE_FLOAT  = 0x400 /**< 010000000000 Force floating point output (32 or 64 bits depends on mpg123 internal precision). */
+	,MPG123_PLAIN_ID3TEXT = 0x800 /**< 100000000000 Do not translate ID3 text data to UTF-8. ID3 strings will contain the raw text data, with the first byte containing the ID3 encoding code. */
 };
 
 /** choices for MPG123_RVA */
@@ -704,6 +705,50 @@ EXPORT int  mpg123_set_string(mpg123_string* sb, const char* stuff);
  *  \param count number of characters to copy (a null-byte is always appended) */
 EXPORT int  mpg123_set_substring(mpg123_string *sb, const char *stuff, size_t from, size_t count);
 
+/** The mpg123 text encodings. This contains encodings we encounter in ID3 tags or ICY meta info. */
+enum mpg123_text_encoding
+{
+	 mpg123_text_unknown  = 0 /**< Unkown encoding... mpg123_id3_encoding can return that on invalid codes. */
+	,mpg123_text_utf8     = 1 /**< UTF-8 */
+	,mpg123_text_latin1   = 2 /**< ISO-8859-1. Note that sometimes latin1 in ID3 is abused for totally different encodings. */
+	,mpg123_text_icy      = 3 /**< ICY metadata encoding, usually CP-1252 but we take it as UTF-8 if it qualifies as such. */
+	,mpg123_text_cp1252   = 4 /**< Really CP-1252 without any guessing. */
+	,mpg123_text_utf16    = 5 /**< Some UTF-16 encoding. The last of a set of leading BOMs (byte order mark) rules.
+	                           *   When there is no BOM, big endian ordering is used. Note that UCS-2 qualifies as UTF-8 when
+	                           *   you don't mess with the reserved code points. If you want to decode little endian data
+	                           *   without BOM you need to prepend 0xff 0xfe yourself. */
+	,mpg123_text_utf16bom = 6 /**< Just an alias for UTF-16, ID3v2 has this as distinct code. */
+	,mpg123_text_utf16be  = 7 /**< Another alias for UTF16 from ID3v2. Note, that, because of the mess that is reality,
+	                           *   BOMs are used if encountered. There really is not much distinction between the UTF16 types for mpg123
+	                           *   One exception: Since this is seen in ID3v2 tags, leading null bytes are skipped for all other UTF16
+	                           *   types (we expect a BOM before real data there), not so for utf16be!*/
+	,mpg123_text_max      = 7 /**< Placeholder for the maximum encoding value. */
+};
+
+/** The encoding byte values from ID3v2. */
+enum mpg123_id3_enc
+{
+	 mpg123_id3_latin1   = 0 /**< Note: This sometimes can mean anything in practice... */
+	,mpg123_id3_utf16bom = 1 /**< UTF16, UCS-2 ... it's all the same for practical purposes. */
+	,mpg123_id3_utf16be  = 2 /**< Big-endian UTF-16, BOM see note for mpg123_text_utf16be. */
+	,mpg123_id3_utf8     = 3 /**< Our lovely overly ASCII-compatible 8 byte encoding for the world. */
+	,mpg123_id3_enc_max  = 3 /**< Placeholder to check valid range of encoding byte. */
+};
+
+/** Convert ID3 encoding byte to mpg123 encoding index. */
+EXPORT enum mpg123_text_encoding mpg123_enc_from_id3(unsigned char id3_enc_byte);
+
+/** Store text data in string, after converting to UTF-8 from indicated encoding
+ *  \return 0 on error, 1 on success (on error, mpg123_free_string is called on sb)
+ *  \param sb  target string
+ *  \param enc mpg123 text encoding value
+ *  \param source source buffer with plain unsigned bytes (you might need to cast from char *)
+ *  \param source_size number of bytes in the source buffer
+ *
+ *  A prominent error can be that you provided an unknown encoding value, or this build of libmpg123 lacks support for certain encodings (ID3 or ICY stuff missing).
+ *  Also, you might want to take a bit of care with preparing the data; for example, strip leading zeroes (I have seen that).
+ */
+EXPORT int mpg123_store_utf8(mpg123_string *sb, enum mpg123_text_encoding enc, const unsigned char *source, size_t source_size);
 
 /** Sub data structure for ID3v2, for storing various text fields (including comments).
  *  This is for ID3v2 COMM, TXXX and all the other text fields.
@@ -775,6 +820,7 @@ EXPORT int mpg123_id3(mpg123_handle *mh, mpg123_id3v1 **v1, mpg123_id3v2 **v2);
 EXPORT int mpg123_icy(mpg123_handle *mh, char **icy_meta); /* same for ICY meta string */
 
 /** Decode from windows-1252 (the encoding ICY metainfo used) to UTF-8.
+ *  Note that this is very similar to mpg123_store_utf8(&sb, mpg123_text_icy, icy_text, strlen(icy_text+1)) .
  *  \param icy_text The input data in ICY encoding
  *  \return pointer to newly allocated buffer with UTF-8 data (You free() it!) */
 EXPORT char* mpg123_icy2utf8(const char* icy_text);

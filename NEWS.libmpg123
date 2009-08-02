@@ -1,5 +1,16 @@
 Changes in libmpg123 libtool interface versions...
 
+20.0.20
+	- New flag: MPG123_PLAIN_ID3TEXT
+	- Corresponding text encoding handling API added:
+	  mpg123_enc_from_id3, mpg123_store_utf8
+
+19.0.19
+	- Hm, what was it exactly now... there are candidates:
+		- runtime dithering
+		- free format
+		- ARM optimizations
+
 18.0.18
 	- new parameter: MPG123_PREFRAMES is now tunable (the number of frames to decode and skip before a seek point), also default value increased
 

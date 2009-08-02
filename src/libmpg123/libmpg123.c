@@ -1356,15 +1356,82 @@ int attribute_align_arg mpg123_icy(mpg123_handle *mh, char **icy_meta)
 #endif
 }
 
+/*
+	Simple utility functions that do not possibly call code with extra alignment requirements do not use the ALIGNCHECK.
+	I am aware of the chance that the compiler could have introduced such code outside assembly functions, but such a modern compiler (gcc) can also honour attribute_align_arg.
+*/
+
 char* attribute_align_arg mpg123_icy2utf8(const char* icy_text)
 {
 #ifndef NO_ICY
-	return icy2utf8(icy_text);
+	return icy2utf8(icy_text, 0);
 #else
 	return NULL;
 #endif
 }
 
+/* That one is always defined... it's not worth it to remove it for NO_ID3V2. */
+enum mpg123_text_encoding attribute_align_arg mpg123_enc_from_id3(unsigned char id3_enc_byte)
+{
+	switch(id3_enc_byte)
+	{
+		case mpg123_id3_latin1:   return mpg123_text_latin1;
+		case mpg123_id3_utf16bom: return mpg123_text_utf16bom; /* ID3v2.3 has UCS-2 with BOM here. */
+		case mpg123_id3_utf16be:  return mpg123_text_utf16be;
+		case mpg123_id3_utf8:     return mpg123_text_utf8;
+		default: return mpg123_text_unknown;
+	}
+}
+
+#ifndef NO_STRING
+int mpg123_store_utf8(mpg123_string *sb, enum mpg123_text_encoding enc, const unsigned char *source, size_t source_size)
+{
+	switch(enc)
+	{
+#ifndef NO_ID3V2
+		/* The encodings we get from ID3v2 tags. */
+		case mpg123_text_utf8:
+			id3_to_utf8(sb, mpg123_id3_utf8, source, source_size, 0);
+		break;
+		case mpg123_text_latin1:
+			id3_to_utf8(sb, mpg123_id3_latin1, source, source_size, 0);
+		break;
+		case mpg123_text_utf16bom:
+		case mpg123_text_utf16:
+			id3_to_utf8(sb, mpg123_id3_utf16bom, source, source_size, 0);
+		break;
+		/* Special because one cannot skip zero bytes here. */
+		case mpg123_text_utf16be:
+			id3_to_utf8(sb, mpg123_id3_utf16be, source, source_size, 0);
+		break;
+#endif
+#ifndef NO_ICY
+		/* ICY encoding... */
+		case mpg123_text_icy:
+		case mpg123_text_cp1252:
+		{
+			mpg123_free_string(sb);
+			/* Paranoia: Make sure that the string ends inside the buffer... */
+			if(source[source_size-1] == 0)
+			{
+				/* Convert from ICY encoding... with force applied or not. */
+				char *tmpstring = icy2utf8((const char*)source, enc == mpg123_text_cp1252 ? 1 : 0);
+				if(tmpstring != NULL)
+				{
+					mpg123_set_string(sb, tmpstring);
+					free(tmpstring);
+				}
+			}
+		}
+		break;
+#endif
+		default:
+			mpg123_free_string(sb);
+	}
+	/* At least a trailing null of some form should be there... */
+	return (sb->fill > 0) ? 1 : 0;
+}
+#endif
 
 int attribute_align_arg mpg123_index(mpg123_handle *mh, off_t **offsets, off_t *step, size_t *fill)
 {
