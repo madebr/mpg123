@@ -1176,8 +1176,9 @@ esac
 
 for i in $more_sources
 do
-	DECODER_OBJ="$DECODER_OBJ $i.\$(OBJEXT)"
-	DECODER_LOBJ="$DECODER_LOBJ $i.lo"
+  # Echo make sure every file is only once in the list.
+  echo "$DECODER_OBJ" | grep -v -w "$i\.\$(OBJEXT)" && DECODER_OBJ="$DECODER_OBJ $i.\$(OBJEXT)"
+  echo "$DECODER_LOBJ" | grep -v -w "$i\.lo" && DECODER_LOBJ="$DECODER_LOBJ $i.lo"
 done
 
 AC_SUBST(DECODER_OBJ)
