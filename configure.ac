@@ -17,6 +17,7 @@ AC_SUBST(LIBMPG123_VERSION)
 AC_CONFIG_SRCDIR(src/mpg123.c)
 AC_CONFIG_AUX_DIR(build)
 AC_CONFIG_SRCDIR(doc)
+AC_CONFIG_MACRO_DIR([m4])
 AC_CANONICAL_HOST
 
 dnl Version 1.7 of automake is recommended
