@@ -51,10 +51,18 @@ int synth_stereo_wrap(real *bandPtr_l, real *bandPtr_r, mpg123_handle *fr)
 
 #ifdef OPT_GENERIC_DITHER
 #define SYNTH_NAME synth_1to1_dither
+/* We need the accurate sample writing... */
+#undef WRITE_SAMPLE
+#define WRITE_SAMPLE(samples,sum,clip) WRITE_SHORT_SAMPLE_ACCURATE(samples,sum,clip)
+
 #define USE_DITHER
 #include "synth.h"
 #undef USE_DITHER
 #undef SYNTH_NAME
+
+#undef WRITE_SAMPLE
+#define WRITE_SAMPLE(samples,sum,clip) WRITE_SHORT_SAMPLE(samples,sum,clip)
+
 #endif
 
 #ifdef OPT_X86

@@ -23,17 +23,19 @@ static inline short idiv_signed_rounded(long x, int shift)
 #  define REAL_PLUS_32767       ( 32767 << 15 )
 #  define REAL_MINUS_32768      ( -32768 << 15 )
 #  define REAL_TO_SHORT(x)      (idiv_signed_rounded(x, 15))
+/* No better code (yet).  */
+#  define REAL_TO_SHORT_ACCURATE(x) REAL_TO_SHORT(x)
 /* This is just here for completeness, it is not used! */
 # define REAL_TO_S32(x)        (x)
 #endif
 
 /* From now on for single precision float... double precision is a possible option once we added some bits. But, it would be rather insane. */
 #ifndef REAL_TO_SHORT
-# ifdef ACCURATE_ROUNDING
-/* Optimized accurate rounding onlu for IEEE float
+
+/* Define the accurate rounding function. */
+# if (defined REAL_IS_FLOAT) && (defined IEEE_FLOAT)
+/* This function is only available for IEEE754 single-precision values
    This is nearly identical to proper rounding, just -+0.5 is rounded to 0 */
-#  if (defined REAL_IS_FLOAT) && (defined IEEE_FLOAT)
-/* this function is only available for IEEE754 single-precision values */
 static inline short ftoi16(float x)
 {
 	union
@@ -44,17 +46,23 @@ static inline short ftoi16(float x)
 	u_fi.f = x + 12582912.0f; /* Magic Number: 2^23 + 2^22 */
 	return (short)u_fi.i;
 }
-#   define REAL_TO_SHORT(x)      ftoi16(x)
-#  else
+#  define REAL_TO_SHORT_ACCURATE(x)      ftoi16(x)
+# else
 /* The "proper" rounding, plain C, a bit slow. */
-#   define REAL_TO_SHORT(x)      (short)((x)>0.0?(x)+0.5:(x)-0.5)
-#  endif
+#  define REAL_TO_SHORT_ACCURATE(x)      (short)((x)>0.0?(x)+0.5:(x)-0.5)
+# endif
+
+/* Now define the normal rounding. */
+# ifdef ACCURATE_ROUNDING
+#  define REAL_TO_SHORT(x)      REAL_TO_SHORT_ACCURATE(x)
 # else
 /* Non-accurate rounding... simple truncation. Fastest, most LSB errors. */
 #  define REAL_TO_SHORT(x)      (short)(x)
 # endif
-#endif
 
+#endif /* REAL_TO_SHORT */
+
+/* We should add dithering for S32, too? */
 #ifndef REAL_TO_S32
 # ifdef ACCURATE_ROUNDING
 #  define REAL_TO_S32(x) (int32_t)((x)>0.0?(x)+0.5:(x)-0.5)
@@ -86,6 +94,12 @@ static inline short ftoi16(float x)
   if( (sum) > REAL_PLUS_32767) { *(samples) = 0x7fff; (clip)++; } \
   else if( (sum) < REAL_MINUS_32768) { *(samples) = -0x8000; (clip)++; } \
   else { *(samples) = REAL_TO_SHORT(sum); }
+
+/* Same as above, but always using accurate rounding. Would we want softer clipping here, too? */
+#define WRITE_SHORT_SAMPLE_ACCURATE(samples,sum,clip) \
+  if( (sum) > REAL_PLUS_32767) { *(samples) = 0x7fff; (clip)++; } \
+  else if( (sum) < REAL_MINUS_32768) { *(samples) = -0x8000; (clip)++; } \
+  else { *(samples) = REAL_TO_SHORT_ACCURATE(sum); }
 
 /*
 	32bit signed 
