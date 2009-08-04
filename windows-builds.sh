@@ -139,8 +139,6 @@ mpg123_build()
 prepare_dir &&
 prepare_unix2dos &&
 mpg123_build $decoder y n &&
-mpg123_build ${decoder}_dither y n &&
 mpg123_build $decoder n n &&
-mpg123_build ${decoder}_dither n n &&
 mpg123_build $decoder n y &&
 echo "Hurray! Note: Please do not forget to copy the libltdl DLL from MSYS to the dynamic build directories... " || echo "Bleh..."
