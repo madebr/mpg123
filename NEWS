@@ -16,7 +16,7 @@
 - Topic ID3 and UTF: Now we are more tolerant with UTF16, even accepting those broken tags that id3v2 produces (multiple conflicing BOMs).
 - Build system allows AltiVec on non-Macs now (don't enforce unsupported gcc flags).
 - Terminal control mode is more verbose (gives hint about pressing 'h').
-- The library now offers a switch and small API to defer translation of ID3 text data until client app wants to do it (not not).
+- The library now offers a switch and small API to defer translation of ID3 text data until client app wants to do it (or not).
 
 1.8.1
 ---
