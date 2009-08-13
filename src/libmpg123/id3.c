@@ -348,7 +348,7 @@ static void process_comment(mpg123_handle *fr, enum frame_types tt, char *realda
 	}
 
 	init_mpg123_text(&localcom);
-	/* Store the text, with out without translation to UTF-8, but for comments always a local copy in UTF-8.
+	/* Store the text, without translation to UTF-8, but for comments always a local copy in UTF-8.
 	   Reminder: No bailing out from here on without freeing the local comment data! */
 	store_id3_text(&xcom->description, descr-1, text-descr+1, NOQUIET, fr->p.flags & MPG123_PLAIN_ID3TEXT);
 	if(tt == comment)
