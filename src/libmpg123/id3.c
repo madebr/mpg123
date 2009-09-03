@@ -274,7 +274,7 @@ char *next_text(char* prev, int encoding, size_t limit)
 
 		text += width;
 	}
-	if(text-prev >= limit) text = NULL;
+	if((size_t)(text-prev) >= limit) text = NULL;
 
 	return text;
 }
