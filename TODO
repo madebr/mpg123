@@ -31,3 +31,6 @@ That being said, in the "normal" case, there is no leak.
 
 5. What's about SINGLE_MIX?
 Check what is _really_ happening there, make some test file...
+
+6. Ensure proper operation of free format with the feeder.
+MPG123_NEED_MORE needs to be propagated from the freeformat framesize guesser.
