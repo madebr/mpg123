@@ -10,7 +10,7 @@ AC_PREREQ(2.57)
 
 dnl ############# Initialisation
 
-AC_INIT([mpg123], [1.9.0], [mpg123-devel@lists.sourceforge.net])
+AC_INIT([mpg123], [1.10.0], [mpg123-devel@lists.sourceforge.net])
 LIBMPG123_VERSION=20:1:20
 AC_SUBST(LIBMPG123_VERSION)
 
@@ -1795,6 +1795,7 @@ fi
 AC_CONFIG_FILES([
 	Makefile
 	libmpg123.pc
+	mpg123.spec
 	doc/Makefile
 	src/Makefile
 	src/output/Makefile
