@@ -62,6 +62,7 @@ mpg123_getpar
 mpg123_replace_buffer
 mpg123_outblock
 mpg123_replace_reader
+mpg123_feature
 mpg123_open@LARGEFILE_SUFFIX@
 mpg123_open_fd@LARGEFILE_SUFFIX@
 mpg123_decode_frame@LARGEFILE_SUFFIX@

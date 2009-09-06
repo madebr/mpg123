@@ -12,19 +12,12 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
-/* For select(), I need select.h according to POSIX 2001, else: sys/time.h sys/types.h unistd.h */
-/* Including these here although it works without on my Linux install... curious about _why_. */
+/* For select(), I need select.h according to POSIX 2001, else: sys/time.h sys/types.h unistd.h (the latter two included in compat.h already). */
 #ifdef HAVE_SYS_SELECT_H
 #include <sys/select.h>
 #endif
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
-#endif
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
 #endif
 #ifdef _MSC_VER
 #include <io.h>
@@ -985,6 +978,7 @@ int open_stream(mpg123_handle *fr, const char *bs_filenam, int fd)
 	int filept; /* descriptor of opened file/stream */
 
 	clear_icy(&fr->icy); /* can be done inside frame_clear ...? */
+
 	if(!bs_filenam) /* no file to open, got a descriptor (stdin) */
 	{
 		filept = fd;
@@ -993,7 +987,7 @@ int open_stream(mpg123_handle *fr, const char *bs_filenam, int fd)
 	#ifndef O_BINARY
 	#define O_BINARY (0)
 	#endif
-	else if((filept = open(bs_filenam, O_RDONLY|O_BINARY)) < 0) /* a plain old file to open... */
+	else if((filept = compat_open(bs_filenam, O_RDONLY|O_BINARY)) < 0) /* a plain old file to open... */
 	{
 		if(NOQUIET) error2("Cannot open file %s: %s", bs_filenam, strerror(errno));
 		fr->err = MPG123_BAD_FILE;

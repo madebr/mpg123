@@ -57,6 +57,12 @@ mpg123_SOURCES = \
 	xfermem.c \
 	xfermem.h
 
+if WIN32_USE_UNICODE
+    mpg123_SOURCES += \
+    win32conv.c \
+	win32conv.h
+endif
+
 # That is not nice... but it is how I manage to get the dependency on output/alsa.o without error about .deps/output/alsa.Tpo .
 # Did I mention that recursive make sucks?
 # `%'-style pattern rules are a GNU make extension

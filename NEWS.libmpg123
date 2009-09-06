@@ -1,5 +1,9 @@
 Changes in libmpg123 libtool interface versions...
 
+21.0.21
+	- Added support of unicode file names under windows via UTF-8 argument to mpg123_open.
+	- Added mpg123_feature(), for example to test for the above behaviour.
+
 20.0.20
 	- New flag: MPG123_PLAIN_ID3TEXT
 	- Corresponding text encoding handling API added:

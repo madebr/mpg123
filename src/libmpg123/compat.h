@@ -121,4 +121,44 @@ typedef intmax_t ssize_p;
 typedef long ssize_p;
 #endif
 
+/**
+ * Opening a file handle can be different.
+ * This function here is defined to take a path in native encoding (ISO8859 / UTF-8 / ...), or, when MS Windows Unicode support is enabled, an UTF-8 string that will be converted back to native UCS-2 (wide character) before calling the system's open function.
+ * @param[in] wptr Pointer to wide string.
+ * @param[in] mbptr Pointer to multibyte string.
+ * @return file descriptor (>=0) or error code.
+ */
+int compat_open(const char *filename, int mode);
+
+/* Those do make sense in a separate file, but I chose to include them in compat.c because that's the one source whose object is shared between mpg123 and libmpg123 -- and both need the functionality internally. */
+
+#ifdef WANT_WIN32_UNICODE
+/**
+ * win32_uni2mbc
+ * Converts a null terminated UCS-2 string to a multibyte (UTF-8) equivalent.
+ * Caller is supposed to free allocated buffer.
+ * @param[in] wptr Pointer to wide string.
+ * @param[out] mbptr Pointer to multibyte string.
+ * @param[out] buflen Optional parameter for length of allocated buffer.
+ * @return status of WideCharToMultiByte conversion.
+ *
+ * WideCharToMultiByte - http://msdn.microsoft.com/en-us/library/dd374130(VS.85).aspx
+ */
+int win32_wide_utf8 (const wchar_t * const wptr, const char **const mbptr, size_t * const buflen);
+
+/**
+ * win32_mbc2uni
+ * Converts a null terminated UTF-8 string to a UCS-2 equivalent.
+ * Caller is supposed to free allocated buffer.
+ * @param[out] mbptr Pointer to multibyte string.
+ * @param[in] wptr Pointer to wide string.
+ * @param[out] buflen Optional parameter for length of allocated buffer.
+ * @return status of WideCharToMultiByte conversion.
+ *
+ * MultiByteToWideChar - http://msdn.microsoft.com/en-us/library/dd319072(VS.85).aspx
+ */
+
+int win32_utf8_wide (const char *const mbptr, const wchar_t ** const wptr, size_t * const buflen);
+#endif
+
 #endif

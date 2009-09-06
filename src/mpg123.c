@@ -10,6 +10,7 @@
 #include "mpg123app.h"
 #include "mpg123.h"
 #include "local.h"
+#include "win32conv.h"
 
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
@@ -136,6 +137,14 @@ int OutputDescriptor;
 static int filept = -1;
 char *binpath; /* Path to myself. */
 
+/* File-global storage of command line arguments.
+   They may be needed for cleanup after charset conversion. */
+static char **argv = NULL;
+static int    argc = 0;
+
+/* Cleanup marker to know that we intiialized libmpg123 already. */
+static int cleanup_mpg123 = FALSE;
+
 void set_intflag()
 {
 	debug("set_intflag TRUE");
@@ -176,8 +185,14 @@ void safe_exit(int code)
 
 	if(mh != NULL) mpg123_delete(mh);
 
-	mpg123_exit();
+	if(cleanup_mpg123) mpg123_exit();
+
 	httpdata_free(&htd);
+
+#ifdef WIN32_WANT_UNICODE
+	win32_cmdline_free(argc, argv); /* This handles the premature argv == NULL, too. */
+#endif
+
 	/* It's ugly... but let's just fix this still-reachable memory chunk of static char*. */
 	split_dir_file("", &dummy, &dammy);
 	exit(code);
@@ -675,7 +690,25 @@ int skip_or_die(struct timeval *start_time)
 #define skip_or_die(a) TRUE
 #endif
 
-int main(int argc, char *argv[])
+#if defined (WANT_WIN32_UNICODE)
+static int
+argv_cleanup(void *in)
+{
+	debug ("argv_cleanup running!\n");
+	char ** ptr;
+	ptr = (char **)in;
+	while (ptr && *ptr) 
+	{
+		free ((void *)*ptr);
+		++ptr;
+	}
+	free(in);
+	debug ("argv_cleanup ran!\n");
+	return 0;
+}
+#endif
+
+int main(int sys_argc, char ** sys_argv)
 {
 	int result;
 	long parr;
@@ -684,6 +717,17 @@ int main(int argc, char *argv[])
 	mpg123_pars *mp;
 #if !defined(WIN32) && !defined(GENERIC)
 	struct timeval start_time;
+#endif
+
+#if defined (WANT_WIN32_UNICODE)
+	if(win32_cmdline_utf8(&argc, &argv) != 0)
+	{
+		error("Cannot convert command line to UTF8!");
+		safe_exit(76);
+	}
+#else
+	argv = sys_argv;
+	argc = sys_argc;
 #endif
 
 	/* Extract binary and path, take stuff before/after last / or \ . */
@@ -706,13 +750,15 @@ int main(int argc, char *argv[])
 	if(result != MPG123_OK)
 	{
 		error1("Cannot initialize mpg123 library: %s", mpg123_plain_strerror(result));
-		exit(77);
+		safe_exit(77);
 	}
+	cleanup_mpg123 = TRUE;
+
 	mp = mpg123_new_pars(&result); /* This may get leaked on premature exit(), which is mainly a cosmetic issue... */
 	if(mp == NULL)
 	{
 		error1("Crap! Cannot get mpg123 parameters: %s", mpg123_plain_strerror(result));
-		safe_exit(77);
+		safe_exit(78);
 	}
 
 	/* get default values */

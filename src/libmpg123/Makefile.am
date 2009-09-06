@@ -49,6 +49,7 @@ libmpg123_la_SOURCES = \
 	synth_8bit.h \
 	synths.h \
 	equalizer.c \
+	feature.c \
 	huffman.h \
 	icy.h \
 	icy2utf8.h \
