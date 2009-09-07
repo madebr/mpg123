@@ -897,7 +897,8 @@ int attribute_align_arg mpg123_decode(mpg123_handle *mh, const unsigned char *in
 			{
 				debug("notifiying new format");
 				mh->new_format = 0;
-				return MPG123_NEW_FORMAT;
+				ret = MPG123_NEW_FORMAT;
+				goto decodeend;
 			}
 			if(mh->buffer.size - mh->buffer.fill < mh->outblock)
 			{
