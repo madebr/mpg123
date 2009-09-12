@@ -11,6 +11,11 @@
 
 #include "config.h"
 #include "compat.h"
+
+#ifdef _MSC_VER
+#include <io.h>
+#endif
+
 #include "debug.h"
 
 /* A safe realloc also for very old systems where realloc(NULL, size) returns NULL. */
