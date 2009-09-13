@@ -164,7 +164,18 @@ EXPORT int mpg123_getparam(mpg123_handle *mh, enum mpg123_parms type, long *val,
 /** Feature set available for query with mpg123_feature. */
 enum mpg123_feature_set
 {
-	 mpg123_feature_utf8open = 0 /**< mpg123 expects path names to be given in UTF-8 encoding instead of plain native. */
+	 MPG123_FEATURE_ABI_UTF8OPEN = 0     /**< mpg123 expects path names to be given in UTF-8 encoding instead of plain native. */
+	,MPG123_FEATURE_OUTPUT_8BIT          /**< 8bit output   */
+	,MPG123_FEATURE_OUTPUT_16BIT         /**< 16bit output  */
+	,MPG123_FEATURE_OUTPUT_32BIT         /**< 32bit output  */
+	,MPG123_FEATURE_PARSE_ID3V2          /**< id3v2 parsing */
+	,MPG123_FEATURE_DECODE_LAYER1        /**< mpeg layer-1 decoder enabled */
+	,MPG123_FEATURE_DECODE_LAYER2        /**< mpeg layer-2 decoder enabled */
+	,MPG123_FEATURE_DECODE_LAYER3        /**< mpeg layer-3 decoder enabled */
+	,MPG123_FEATURE_DECODE_ACCURATE      /**< accurate decoder rounding    */
+	,MPG123_FEATURE_DECODE_DOWNSAMPLE    /**< downsample (sample omit)     */
+	,MPG123_FEATURE_DECODE_NTOM          /**< flexible rate decoding       */
+	,MPG123_FEATURE_PARSE_ICY            /**< ICY support                  */
 };
 
 /** Query libmpg123 feature, 1 for success, 0 for unimplemented functions. */
