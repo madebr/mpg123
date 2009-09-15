@@ -231,7 +231,7 @@ enum mpg123_errors
 	MPG123_NO_SEEK,			/**< Seek not supported by stream. */
 	MPG123_NO_READER,		/**< No stream opened. */
 	MPG123_BAD_PARS,		/**< Bad parameter handle. */
-	MPG123_BAD_INDEX_PAR,	/**< Bad parameters to mpg123_index() */
+	MPG123_BAD_INDEX_PAR,	/**< Bad parameters to mpg123_index() and mpg123_set_index() */
 	MPG123_OUT_OF_SYNC,	/**< Lost track in bytestream and did not try to resync. */
 	MPG123_RESYNC_FAIL,	/**< Resync failed to find valid MPEG data. */
 	MPG123_NO_8BIT,	/**< No 8bit encoding possible. */
