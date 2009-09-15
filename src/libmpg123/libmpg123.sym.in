@@ -66,6 +66,7 @@ mpg123_seek@LARGEFILE_SUFFIX@
 mpg123_seek_frame@LARGEFILE_SUFFIX@
 mpg123_set_filesize@LARGEFILE_SUFFIX@
 mpg123_set_string
+mpg123_set_index@LARGEFILE_SUFFIX@
 mpg123_set_substring
 mpg123_store_utf8
 mpg123_strerror

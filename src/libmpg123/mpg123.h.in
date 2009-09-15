@@ -51,6 +51,7 @@
 #define mpg123_seek_frame     mpg123_seek_frame@LARGEFILE_SUFFIX@
 #define mpg123_timeframe       mpg123_timeframe@LARGEFILE_SUFFIX@
 #define mpg123_index               mpg123_index@LARGEFILE_SUFFIX@
+#define mpg123_set_index       mpg123_set_index@LARGEFILE_SUFFIX@
 #define mpg123_position         mpg123_position@LARGEFILE_SUFFIX@
 #define mpg123_length             mpg123_length@LARGEFILE_SUFFIX@
 #define mpg123_set_filesize mpg123_set_filesize@LARGEFILE_SUFFIX@
@@ -168,6 +169,7 @@ enum mpg123_feature_set
 	,MPG123_FEATURE_OUTPUT_8BIT          /**< 8bit output   */
 	,MPG123_FEATURE_OUTPUT_16BIT         /**< 16bit output  */
 	,MPG123_FEATURE_OUTPUT_32BIT         /**< 32bit output  */
+	,MPG123_FEATURE_INDEX                /**< support for building a frame index for accurate seeking */
 	,MPG123_FEATURE_PARSE_ID3V2          /**< id3v2 parsing */
 	,MPG123_FEATURE_DECODE_LAYER1        /**< mpeg layer-1 decoder enabled */
 	,MPG123_FEATURE_DECODE_LAYER2        /**< mpeg layer-2 decoder enabled */
@@ -502,11 +504,18 @@ EXPORT off_t mpg123_seek_frame(mpg123_handle *mh, off_t frameoff, int whence);
 EXPORT off_t mpg123_timeframe(mpg123_handle *mh, double sec);
 
 /** Give access to the frame index table that is managed for seeking.
- *  You are asked not to modify the values... unless you are really aware of what you are doing.
+ *  You are asked not to modify the values... Use mpg123_set_index to set the
+ *  seek index
+ *  \param offsets pointer to the index array
+ *  \param step one index byte offset advances this many MPEG frames
+ *  \param fill number of recorded index offsets; size of the array */
+EXPORT int mpg123_index(mpg123_handle *mh, off_t **offsets, off_t *step, size_t *fill);
+
+/** Set the frame index table
  *  \param offsets pointer to the index array
  *  \param step    one index byte offset advances this many MPEG frames
- *  \param fill    number of recorded index offsets; size of the array */
-EXPORT int mpg123_index(mpg123_handle *mh, off_t **offsets, off_t *step, size_t *fill);
+ *  \param fill    number of recorded index offsets; size of the array */ 
+EXPORT int mpg123_set_index(mpg123_handle *mh, off_t *offsets, off_t step, size_t fill);
 
 /** Get information about current and remaining frames/seconds.
  *  WARNING: This function is there because of special usage by standalone mpg123 and may be removed in the final version of libmpg123!

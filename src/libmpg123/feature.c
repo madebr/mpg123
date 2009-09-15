@@ -89,6 +89,13 @@ int mpg123_feature(const enum mpg123_feature_set key)
 		return 1;
 #endif /* NO_ICY */
 
+		case MPG123_FEATURE_INDEX:
+#ifdef FRAME_INDEX
+		return 1;
+#else
+		return 0;
+#endif /* FRAME_INDEX */
+
 		default: return 0;
 	}
 }
