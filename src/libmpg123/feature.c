@@ -7,9 +7,9 @@ int mpg123_feature(const enum mpg123_feature_set key)
 	{
 		case MPG123_FEATURE_ABI_UTF8OPEN:
 #ifdef WANT_WIN32_UNICODE
-		  return 1;
+		return 1;
 #else
-		  return 0;
+		return 0;
 #endif /* WANT_WIN32_UNICODE */
 
 		case MPG123_FEATURE_OUTPUT_8BIT:
