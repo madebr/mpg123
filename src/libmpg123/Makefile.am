@@ -26,9 +26,9 @@ nodist_include_HEADERS = mpg123.h
 #libmpg123_a_LIBADD = @DECODER_OBJ@
 #libmpg123_a_DEPENDENCIES = @DECODER_OBJ@
 
-libmpg123_la_LDFLAGS = -no-undefined -version-info @LIBMPG123_VERSION@ -export-symbols libmpg123.sym
+libmpg123_la_LDFLAGS = -no-undefined -version-info @LIBMPG123_VERSION@ -export-symbols-regex '^mpg123_'
 libmpg123_la_LIBADD = @DECODER_LOBJ@
-libmpg123_la_DEPENDENCIES = @DECODER_LOBJ@ libmpg123.sym
+libmpg123_la_DEPENDENCIES = @DECODER_LOBJ@
 
 libmpg123_la_SOURCES = \
 	compat.c \
@@ -49,7 +49,6 @@ libmpg123_la_SOURCES = \
 	synth_8bit.h \
 	synths.h \
 	equalizer.c \
-	feature.c \
 	huffman.h \
 	icy.h \
 	icy2utf8.h \
@@ -66,8 +65,7 @@ libmpg123_la_SOURCES = \
 	mangle.h \
 	getcpuflags.h \
 	index.h \
-	index.c \
-	libmpg123.sym
+	index.c
 
 EXTRA_libmpg123_la_SOURCES = \
 	icy.c \
@@ -78,6 +76,7 @@ EXTRA_libmpg123_la_SOURCES = \
 	layer3.c \
 	dither.h \
 	dither.c \
+	feature.c \
 	dct36_3dnowext.S \
 	dct36_3dnow.S \
 	dct64_3dnowext.S \

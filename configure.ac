@@ -851,8 +851,7 @@ else
 fi
 
 dnl Insert the function name redefinitions and export symbols as needed.
-dnl ...based on these two variables and manual work in src/libmpg123/mpg123.h.in
-dnl as well as src/libmpg123/libmpg123.sym.in .
+dnl ...based on these two variables and manual work in src/libmpg123/mpg123.h.in .
 AC_SUBST(LARGEFILE_BITS)
 AC_SUBST(LARGEFILE_SUFFIX)
 AC_SUBST(LARGEFILE_SWITCH)
@@ -1191,6 +1190,25 @@ case $cpu_type in
     esac
   ;;
 esac
+
+# Check if we want feature report function.
+AC_MSG_CHECKING([if we want feature report function])
+feature_report=enabled
+AC_ARG_ENABLE(feature_report,
+	[  --disable-feature_report Disable feature report function ],
+	[
+		if test "x$enableval" = xno; then
+		AC_MSG_RESULT([no])
+		feature_report=disabled
+		else
+		AC_MSG_RESULT([yes])
+		fi
+	],
+	[AC_MSG_RESULT([yes])])
+
+if test "x$feature_report" == xenabled; then
+	more_sources="$more_sources feature"
+fi
 
 for i in $more_sources
 do
@@ -1821,7 +1839,6 @@ AC_CONFIG_FILES([
 	src/output/Makefile
 	src/libmpg123/Makefile
 	src/libmpg123/mpg123.h
-	src/libmpg123/libmpg123.sym
 ])
 
 AC_OUTPUT
@@ -1867,6 +1884,7 @@ echo -n "
   ICY parsing/conversion .. $icy
   Error/warning messages .. $messages
   Win32 Unicode File Open.. $win32_unicode
+  Feature Report Function.. $feature_report
   Output formats (nofpu will disable all but 16 or 8 bit!):
   8 bit integer ........... $int8
   16 bit integer .......... $int16
