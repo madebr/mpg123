@@ -1458,10 +1458,9 @@ int attribute_align_arg mpg123_index(mpg123_handle *mh, off_t **offsets, off_t *
 int attribute_align_arg mpg123_set_index(mpg123_handle *mh, off_t *offsets, off_t step, size_t fill)
 {
 	ALIGNCHECK(mh);
-	if(mh == NULL)
-		return MPG123_ERR;
+	if(mh == NULL) return MPG123_ERR;
 #ifdef FRAME_INDEX
-	if(offsets == NULL || step == 0 || fill == 0)
+	if(step == 0)
 	{
 		mh->err = MPG123_BAD_INDEX_PAR;
 		return MPG123_ERR;

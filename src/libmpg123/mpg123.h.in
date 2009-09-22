@@ -512,6 +512,8 @@ EXPORT off_t mpg123_timeframe(mpg123_handle *mh, double sec);
 EXPORT int mpg123_index(mpg123_handle *mh, off_t **offsets, off_t *step, size_t *fill);
 
 /** Set the frame index table
+ *  Setting offsets to NULL and fill > 0 will allocate fill entries. Setting offsets
+ *  to NULL and fill to 0 will clear the index and free the allocated memory used by the index.
  *  \param offsets pointer to the index array
  *  \param step    one index byte offset advances this many MPEG frames
  *  \param fill    number of recorded index offsets; size of the array */ 

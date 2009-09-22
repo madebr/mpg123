@@ -108,9 +108,17 @@ void fi_add(struct frame_index *fi, off_t pos)
 int fi_set(struct frame_index *fi, off_t *offsets, off_t step, size_t fill)
 {
 	if(fi_resize(fi, fill) == -1) return -1;
-	memcpy(fi->data, offsets, fill*sizeof(off_t));
 	fi->step = step;
-	fi->fill = fill;
+	if(offsets != NULL)
+	{
+		memcpy(fi->data, offsets, fill*sizeof(off_t));
+		fi->fill = fill;
+	}
+	else
+	{
+		// allocation only, no entries in index yet
+		fi->fill = 0;
+	}
 	fi->next = fi_next(fi);
 	debug3("set new index of fill %lu, size %lu at %p",
 	(unsigned long)fi->fill, (unsigned long)fi->size, (void*)fi->data);
