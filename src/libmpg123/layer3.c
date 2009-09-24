@@ -451,7 +451,7 @@ static int III_get_side_info(mpg123_handle *fr, struct III_sideinfo *si,int ster
 		gr_info->big_values = getbits(fr, 9);
 		if(gr_info->big_values > 288)
 		{
-			error("big_values too large!");
+			if(NOQUIET) error("big_values too large!");
 			gr_info->big_values = 288;
 		}
 		gr_info->pow2gain = fr->gainpow2+256 - getbits_fast(fr, 8) + powdiff;
@@ -476,7 +476,7 @@ static int III_get_side_info(mpg123_handle *fr, struct III_sideinfo *si,int ster
 
 			if(gr_info->block_type == 0)
 			{
-				error("Blocktype == 0 and window-switching == 1 not allowed.");
+				if(NOQUIET) error("Blocktype == 0 and window-switching == 1 not allowed.");
 				return 1;
 			}
 
@@ -723,7 +723,7 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 				The benefit of not crashing / having this security risk is bigger than these few frames of a lame-3.70 file that aren't audible anyway.
 				But still, I want to know if indeed this check or the old lame is at fault.
 			*/
-			error("You got some really nasty file there... region1>region2!");
+			if(NOQUIET) error("You got some really nasty file there... region1>region2!");
 			return 1;
 		}
 		l3 = ((576>>1)-bv)>>1;   
