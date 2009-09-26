@@ -49,6 +49,8 @@ static char *get_module_dir()
 	if(dir != NULL)
 	{
 		size_t l = strlen(defaultdir);
+
+		if(param.verbose > 1) fprintf(stderr, "Using default module dir: %s\n", defaultdir);
 		moddir = malloc(l+1);
 		if(moddir != NULL)
 		{
@@ -76,7 +78,7 @@ static char *get_module_dir()
 				snprintf(moddir, l+1, "%s/%s", binpath, testpath);
 
 				moddir[l] = 0;
-				debug1("Looking for module dir: %s", moddir);
+				if(param.verbose > 1) fprintf(stderr, "Looking for module dir: %s\n", moddir);
 
 				dir = opendir(moddir);
 				closedir(dir);
@@ -86,7 +88,7 @@ static char *get_module_dir()
 			}
 		}
 	}
-	debug1("module dir: %s", moddir != NULL ? moddir : "<nil>");
+	if(param.verbose > 1) fprintf(stderr, "Module dir: %s\n", moddir != NULL ? moddir : "<nil>");
 	return moddir;
 }
 
@@ -129,13 +131,16 @@ open_module( const char* type, const char* name )
 	}
 	snprintf( module_path, module_path_len, "%s_%s%s", type, name, MODULE_FILE_SUFFIX );
 	/* Display the path of the module created */
-	debug1( "Module path: %s", module_path );
+	if(param.verbose > 1) fprintf(stderr, "Module path: %s\n", module_path );
 
 	/* Open the module */
 	handle = lt_dlopen( module_path );
 	free( module_path );
 	if (handle==NULL) {
 		error2( "Failed to open module %s: %s", name, lt_dlerror() );
+		if(param.verbose > 1)
+		fprintf(stderr, "Note: This could be because of braindead path in the .la file...\n");
+
 		goto om_bad;
 	}
 	
