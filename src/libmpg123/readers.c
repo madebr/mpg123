@@ -509,19 +509,23 @@ static int bc_add(struct bufferchain *bc, const unsigned char *data, ssize_t siz
 	return ret;
 }
 
+/* Common handler for "You want more than I can give." situation. */
+static ssize_t bc_need_more(struct bufferchain *bc)
+{
+	debug3("hit end, back to beginning (%li - %li < %li)", (long)bc->size, (long)bc->pos, (long)size);
+	/* go back to firstpos, undo the previous reads */
+	bc->pos = bc->firstpos;
+	return READER_MORE;
+}
+
 /* Give some data, advancing position but not forgetting yet. */
 static ssize_t bc_give(struct bufferchain *bc, unsigned char *out, ssize_t size)
 {
 	struct buffy *b = bc->first;
 	ssize_t gotcount = 0;
 	ssize_t offset = 0;
-	if(bc->size - bc->pos < size)
-	{
-		debug3("hit end, back to beginning (%li - %li < %li)", (long)bc->size, (long)bc->pos, (long)size);
-		/* go back to firstpos, undo the previous reads */
-		bc->pos = bc->firstpos;
-		return READER_MORE;
-	}
+	if(bc->size - bc->pos < size) return bc_need_more(bc);
+
 	/* find the current buffer */
 	while(b != NULL && (offset + b->size) <= bc->pos)
 	{
@@ -558,7 +562,7 @@ static ssize_t bc_skip(struct bufferchain *bc, ssize_t count)
 {
 	if(count >= 0)
 	{
-		if(bc->size - bc->pos < count) return READER_MORE;
+		if(bc->size - bc->pos < count) return bc_need_more(bc);
 		else return bc->pos += count;
 	}
 	else return READER_ERROR;
@@ -636,7 +640,11 @@ static ssize_t feed_read(mpg123_handle *fr, unsigned char *out, ssize_t count)
 /* returns reached position... negative ones are bad... */
 static off_t feed_skip_bytes(mpg123_handle *fr,off_t len)
 {
-	return fr->rdat.buffer.fileoff+bc_skip(&fr->rdat.buffer, (ssize_t)len);
+	// This is either the new buffer offset or some negative error value.
+	off_t res = bc_skip(&fr->rdat.buffer, (ssize_t)len);
+	if(res < 0) return res;
+
+	return fr->rdat.buffer.fileoff+res;
 }
 
 static int feed_back_bytes(mpg123_handle *fr, off_t bytes)
