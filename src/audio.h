@@ -95,5 +95,12 @@ void output_unpause(audio_output_t *ao); /* Reactivate output (buffer process). 
 
 void audio_enclist(char** list); /* Make a string of encoding names. */
 
+/*
+	Twiddle audio output rate to yield speedup/down (pitch) effect.
+	The actually achieved pitch value is stored in param.pitch.
+	Returns 1 if pitch setting succeeded, 0 otherwise.
+*/
+int set_pitch(mpg123_handle *fr, audio_output_t *ao, double new_pitch);
+
 #endif
 

@@ -668,3 +668,47 @@ int reset_output(audio_output_t *ao)
 	}
 	else return 0;
 }
+
+int set_pitch(mpg123_handle *fr, audio_output_t *ao, double new_pitch)
+{
+	int ret = 1;
+	double old_pitch = param.pitch;
+	long rate;
+	int channels, format;
+	int smode = 0;
+
+	if(param.usebuffer)
+	{
+		error("No runtime pitch change with output buffer, sorry.");
+		return 0;
+	}
+
+	param.pitch = new_pitch;
+	if(param.pitch < -0.99) param.pitch = -0.99;
+
+	/* Be safe, check support. */
+	mpg123_getformat(fr, &rate, &channels, &format);
+	if(channels == 1) smode = MPG123_MONO;
+	if(channels == 2) smode = MPG123_STEREO;
+
+	output_pause(ao);
+	/* Remember: This takes param.pitch into account. */
+	audio_capabilities(ao, fr);
+	if(!(mpg123_format_support(fr, rate, format) & smode))
+	{
+		/* Note: When using --pitch command line parameter, you can go higher
+		   because a lower decoder sample rate is automagically chosen.
+		   Here, we'd need to switch decoder rate during track... good? */
+		error("Reached a hardware limit there with pitch!");
+		param.pitch = old_pitch;
+		audio_capabilities(ao, fr);
+		ret = 0;
+	}
+	ao->format   = format;
+	ao->channels = channels;
+	ao->rate     = pitch_rate(rate);
+	reset_output(ao);
+	output_unpause(ao);
+	return ret;
+}
+

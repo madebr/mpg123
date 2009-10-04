@@ -27,6 +27,8 @@
 #define MODE_PAUSED 2
 
 extern int buffer_pid;
+extern audio_output_t *ao;
+
 #ifdef FIFO
 #include <sys/stat.h>
 int control_file = STDIN_FILENO;
@@ -262,7 +264,7 @@ int control_generic (mpg123_handle *fr)
 #endif
 	/* the command behaviour is different, so is the ID */
 	/* now also with version for command availability */
-	fprintf(outstream, "@R MPG123 (ThOr) v5\n");
+	fprintf(outstream, "@R MPG123 (ThOr) v6\n");
 #ifdef FIFO
 	if(param.fifo)
 	{
@@ -507,6 +509,7 @@ int control_generic (mpg123_handle *fr)
 					generic_sendmsg("H SCAN: scan through the file, building seek index");
 					generic_sendmsg("H SAMPLE: print out the sample position and total number of samples");
 					generic_sendmsg("H SEQ <bass> <mid> <treble>: simple eq setting...");
+					generic_sendmsg("H PITCH <[+|-]value>: adjust playback speed (+0.01 is 1 %% faster)");
 					generic_sendmsg("H SILENCE: be silent during playback (meaning silence in text form)");
 					generic_sendmsg("H STATE: Print auxilliary state info in several lines (just try it to see what info is there).");
 					generic_sendmsg("H TAG/T: Print all available (ID3) tag info, for ID3v2 that gives output of all collected text fields, using the ID3v2.3/4 4-character names.");
@@ -647,6 +650,19 @@ int control_generic (mpg123_handle *fr)
 						mpg123_volume(fr, atof(arg)/100);
 						mpg123_getvolume(fr, &v, NULL, NULL); /* Necessary? */
 						generic_sendmsg("V %f%%", v * 100);
+						continue;
+					}
+
+					/* PITCH (playback speed) in percent */
+					if(!strcasecmp(cmd, "PITCH"))
+					{
+						double p;
+						if(sscanf(arg, "%lf", &p) == 1)
+						{
+							set_pitch(fr, ao, p);
+							generic_sendmsg("PITCH %f", param.pitch);
+						}
+						else generic_sendmsg("E invalid arguments for PITCH: %s", arg);
 						continue;
 					}
 

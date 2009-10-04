@@ -13,6 +13,7 @@ The creator: Michael Hipp (email: hippm@informatik.uni-tuebingen.de - please bot
 
 Contributions/ideas Thomas Orgis era (includes backports from mhipp trunk):
 
+Jeroen Valkonet <jvalkon@xs4all.nl>: motivate pitch control, suggestive patch for pitch command in generic control interface
 Andy Hefner <ahefner@gmail.com>: patch for that second UTF16 issue
 Taihei Monma <tmkk@mac.com>: A whole lot of new/improved assembler code!
 Christian Weisgerber <naddy@openbsd.org>: sndio output

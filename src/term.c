@@ -333,45 +333,16 @@ static void term_handle_input(mpg123_handle *fr, audio_output_t *ao, int do_dela
 	case PITCH_BDOWN_KEY:
 	case PITCH_ZERO_KEY:
 	{
-		double old_pitch = param.pitch;
-		long rate;
-		int channels, format;
-		int smode = 0;
-		if(param.usebuffer)
-		{
-			error("No runtime pitch change with output buffer, sorry.");
-			break;
-		}
+		double new_pitch = param.pitch;
 		switch(val) /* Not tolower here! */
 		{
-			case PITCH_UP_KEY:    param.pitch += PITCH_VAL;  break;
-			case PITCH_BUP_KEY:   param.pitch += PITCH_BVAL; break;
-			case PITCH_DOWN_KEY:  param.pitch -= PITCH_VAL;  break;
-			case PITCH_BDOWN_KEY: param.pitch -= PITCH_BVAL; break;
-			case PITCH_ZERO_KEY:  param.pitch = 0.0; break;
+			case PITCH_UP_KEY:    new_pitch += PITCH_VAL;  break;
+			case PITCH_BUP_KEY:   new_pitch += PITCH_BVAL; break;
+			case PITCH_DOWN_KEY:  new_pitch -= PITCH_VAL;  break;
+			case PITCH_BDOWN_KEY: new_pitch -= PITCH_BVAL; break;
+			case PITCH_ZERO_KEY:  new_pitch = 0.0; break;
 		}
-		if(param.pitch < -0.99) param.pitch = -0.99;
-		/* Be safe, check support. */
-		mpg123_getformat(fr, &rate, &channels, &format);
-		if(channels == 1) smode = MPG123_MONO;
-		if(channels == 2) smode = MPG123_STEREO;
-
-		output_pause(ao);
-		audio_capabilities(ao, fr);
-		if(!(mpg123_format_support(fr, rate, format) & smode))
-		{
-			/* Note: When using --pitch command line parameter, you can go higher
-			   because a lower decoder sample rate is automagically chosen.
-			   Here, we'd need to switch decoder rate during track... good? */
-			error("Reached a hardware limit there with pitch!");
-			param.pitch = old_pitch;
-			audio_capabilities(ao, fr);
-		}
-		ao->format   = format;
-		ao->channels = channels;
-		ao->rate     = pitch_rate(rate); 
-		reset_output(ao);
-		output_unpause(ao);
+		set_pitch(fr, ao, new_pitch);
 		fprintf(stderr, "New pitch: %f\n", param.pitch);
 	}
 	break;
