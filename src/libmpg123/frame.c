@@ -674,6 +674,28 @@ off_t frame_outs(mpg123_handle *fr, off_t num)
 	return outs;
 }
 
+/* Compute the number of output samples we expect from this frame.
+   This is either simple spf() or a tad more elaborate for ntom. */
+off_t frame_expect_outsamples(mpg123_handle *fr)
+{
+	off_t outs = 0;
+	switch(fr->down_sample)
+	{
+		case 0:
+#		ifndef NO_DOWNSAMPLE
+		case 1:
+		case 2:
+#		endif
+			outs = spf(fr)>>fr->down_sample;
+		break;
+#ifndef NO_NTOM
+		case 3: outs = ntom_frame_outsamples(fr); break;
+#endif
+		default: error1("Bad down_sample (%i) ... should not be possible!!", fr->down_sample);
+	}
+	return outs;
+}
+
 off_t frame_offset(mpg123_handle *fr, off_t outs)
 {
 	off_t num = 0;

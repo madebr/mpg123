@@ -2,6 +2,8 @@
 
 - There is a build-time option to enable unicode file names on windows now. UNIX (Linux) does not need that, UTF-8 works natively.
   An unicode-enabled build of libmpg123 expects file names as UTF-8 strings, opening of non-utf8 strings (by old applications) still works via fallback when the conversion of the string or opening of the file failed.
+- Several bugfixes:
+  - NtoM decoding (the -r parameter) caused increasing CPU usage with time for decoding integrity checks. That is fixed now: Constant CPU usage for playback!
 
 1.9.0
 ---

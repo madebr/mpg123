@@ -199,6 +199,12 @@ int synth_ntom_set_step(mpg123_handle *fr); /* prepare ntom decoding */
 unsigned long ntom_val(mpg123_handle *fr, off_t frame); /* compute ntom_val for frame offset */
 /* Frame and sample offsets. */
 #ifndef NO_NTOM
+/*
+	Outsamples of _this_ frame.
+	To be exact: The samples to be expected from the next frame decode (using the current ntom_val). When you already decoded _this_ frame, this is the number of samples to be expected from the next one.
+*/
+off_t ntom_frame_outsamples(mpg123_handle *fr);
+/* Total out/insample offset. */
 off_t ntom_frmouts(mpg123_handle *fr, off_t frame);
 off_t ntom_ins2outs(mpg123_handle *fr, off_t ins);
 off_t ntom_frameoff(mpg123_handle *fr, off_t soff);

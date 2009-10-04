@@ -700,8 +700,7 @@ static int zero_byte(mpg123_handle *fr)
 */
 void decode_the_frame(mpg123_handle *fr)
 {
-	size_t needed_bytes = samples_to_bytes(fr, frame_outs(fr, fr->num+1)-frame_outs(fr, fr->num));
-	fr->clip += (fr->do_layer)(fr);
+	size_t needed_bytes = samples_to_bytes(fr, frame_expect_outsamples(fr)); 	fr->clip += (fr->do_layer)(fr);
 	/*fprintf(stderr, "frame %"OFF_P": got %"SIZE_P" / %"SIZE_P"\n", fr->num,(size_p)fr->buffer.fill, (size_p)needed_bytes);*/
 	/* There could be less data than promised.
 	   Also, then debugging, we look out for coding errors that could result in _more_ data than expected. */

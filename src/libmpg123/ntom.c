@@ -68,6 +68,16 @@ void ntom_set_ntom(mpg123_handle *fr, off_t num)
 	fr->ntom_val[1] = fr->ntom_val[0] = ntom_val(fr, num);
 }
 
+/* Carry out the ntom sample count operation for this one frame. 
+   No fear of integer overflow here. */
+off_t ntom_frame_outsamples(mpg123_handle *fr)
+{
+	/* The do this before decoding the separate channels, so there is only one common ntom value. */
+	int ntm = fr->ntom_val[0];
+	ntm += spf(fr)*fr->ntom_step;
+	return ntm/NTOM_MUL;
+}
+
 /* Convert frame offset to unadjusted output sample offset. */
 off_t ntom_frmouts(mpg123_handle *fr, off_t frame)
 {
