@@ -338,6 +338,8 @@ void frame_gapless_ignore(mpg123_handle *fr, off_t frames);*/
 /* void frame_gapless_buffercheck(mpg123_handle *fr); */
 #endif
 
+off_t frame_expect_outsamples(mpg123_handle *fr);
+
 /* Skip this frame... do some fake action to get away without actually decoding it. */
 void frame_skip(mpg123_handle *fr);
 
