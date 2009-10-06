@@ -640,7 +640,7 @@ static ssize_t feed_read(mpg123_handle *fr, unsigned char *out, ssize_t count)
 /* returns reached position... negative ones are bad... */
 static off_t feed_skip_bytes(mpg123_handle *fr,off_t len)
 {
-	// This is either the new buffer offset or some negative error value.
+	/* This is either the new buffer offset or some negative error value. */
 	off_t res = bc_skip(&fr->rdat.buffer, (ssize_t)len);
 	if(res < 0) return res;
 
