@@ -5,6 +5,7 @@
 - Added pitch command to control interface.
 - Several bugfixes:
   - NtoM decoding (the -r parameter) caused increasing CPU usage with time for decoding integrity checks. That is fixed now: Constant CPU usage for playback!
+  - RVA parsing from ID3 comments and extra text fields works again (broken in 1.9).
 
 1.9.0
 ---
