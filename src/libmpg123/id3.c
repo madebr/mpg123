@@ -352,7 +352,7 @@ static void process_comment(mpg123_handle *fr, enum frame_types tt, char *realda
 	   Reminder: No bailing out from here on without freeing the local comment data! */
 	store_id3_text(&xcom->description, descr-1, text-descr+1, NOQUIET, fr->p.flags & MPG123_PLAIN_ID3TEXT);
 	if(tt == comment)
-	store_id3_text(&localcom.description, descr-1, text-descr+1, NOQUIET, 1);
+	store_id3_text(&localcom.description, descr-1, text-descr+1, NOQUIET, 0);
 
 	text[-1] = encoding; /* Byte abusal for encoding... */
 	store_id3_text(&xcom->text, text-1, realsize+1-(text-realdata), NOQUIET, fr->p.flags & MPG123_PLAIN_ID3TEXT);
@@ -379,7 +379,7 @@ static void process_comment(mpg123_handle *fr, enum frame_types tt, char *realda
 		if((rva_mode > -1) && (fr->rva.level[rva_mode] <= rva_level))
 		{
 			/* Only translate the contents in here where we really need them. */
-			store_id3_text(&localcom.text, text-1, realsize+1-(text-realdata), NOQUIET, 1);
+			store_id3_text(&localcom.text, text-1, realsize+1-(text-realdata), NOQUIET, 0);
 			if(localcom.text.fill > 0)
 			{
 				fr->rva.gain[rva_mode] = (float) atof(localcom.text.p);
@@ -424,10 +424,16 @@ void process_extra(mpg123_handle *fr, char* realdata, size_t realsize, int rva_l
 	}
 	memcpy(xex->id, id, 4);
 	init_mpg123_text(&localex); /* For our local copy. */
+
+	/* The outside storage gets reencoded to UTF-8 only if not requested otherwise.
+	   Remember that we really need the -1 here to hand in the encoding byte!*/
 	store_id3_text(&xex->description, descr-1, text-descr+1, NOQUIET, fr->p.flags & MPG123_PLAIN_ID3TEXT);
-	store_id3_text(&localex.description, descr-1, text-descr+1, NOQUIET, 1);
+	/* Our local copy is always stored in UTF-8! */
+	store_id3_text(&localex.description, descr-1, text-descr+1, NOQUIET, 0);
+	/* At first, only store the outside copy of the payload. We may not need the local copy. */
 	text[-1] = encoding;
 	store_id3_text(&xex->text, text-1, realsize-(text-realdata)+1, NOQUIET, fr->p.flags & MPG123_PLAIN_ID3TEXT);
+
 	/* Now check if we would like to interpret this extra info for RVA. */
 	if(localex.description.fill > 0)
 	{
@@ -454,7 +460,7 @@ void process_extra(mpg123_handle *fr, char* realdata, size_t realsize, int rva_l
 		if((rva_mode > -1) && (fr->rva.level[rva_mode] <= rva_level))
 		{
 			/* Now we need the translated copy of the data. */
-			store_id3_text(&localex.text, text-1, realsize-(text-realdata)+1, NOQUIET, 1);
+			store_id3_text(&localex.text, text-1, realsize-(text-realdata)+1, NOQUIET, 0);
 			if(localex.text.fill > 0)
 			{
 				if(is_peak)
