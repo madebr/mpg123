@@ -23,6 +23,7 @@
 #include <io.h>
 #endif
 
+#include "compat.h"
 #include "debug.h"
 
 static int default_init(mpg123_handle *fr);
@@ -227,7 +228,7 @@ static off_t stream_lseek(mpg123_handle *fr, off_t pos, int whence)
 
 static void stream_close(mpg123_handle *fr)
 {
-	if(fr->rdat.flags & READER_FD_OPENED) close(fr->rdat.filept);
+	if(fr->rdat.flags & READER_FD_OPENED) compat_close(fr->rdat.filept);
 	if(fr->rdat.flags & READER_BUFFERED)  bc_reset(&fr->rdat.buffer);
 }
 

@@ -130,6 +130,14 @@ typedef long ssize_p;
  */
 int compat_open(const char *filename, int mode);
 
+/**
+ * Closing a file handle can be platform specific.
+ * This function takes a file descriptor that is to be closed.
+ * @param[in] infd File descriptor to be closed.
+ * @return 0 if the file was successfully closed. A return value of -1 indicates an error.
+ */
+int compat_close(int infd);
+
 /* Those do make sense in a separate file, but I chose to include them in compat.c because that's the one source whose object is shared between mpg123 and libmpg123 -- and both need the functionality internally. */
 
 #ifdef WANT_WIN32_UNICODE

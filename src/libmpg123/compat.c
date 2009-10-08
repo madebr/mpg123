@@ -62,7 +62,11 @@ int compat_open(const char *filename, int mode)
 fallback:
 	#endif
 
-	ret = open (filename, mode); /* Try plain old open(), if it fails, do nothing */
+	#ifdef __MSVCRT__ /* MSDN says POSIX function is deprecated beginning in Visual C++ 2005 */
+	ret = _open (filename, mode); /* Try plain old _open(), if it fails, do nothing */
+	#else
+	ret = open (filename, mode);
+	#endif
 
 	#if defined (WANT_WIN32_UNICODE)
 open_ok:
@@ -70,6 +74,15 @@ open_ok:
 	#endif
 
 	return ret;
+}
+
+int compat_close(int infd)
+{
+	#ifdef __MSVCRT__ /* MSDN says POSIX function is deprecated beginning in Visual C++ 2005 */
+	return _close(infd);
+	#else
+	return close(infd);
+	#endif
 }
 
 /* Windows Unicode stuff */
