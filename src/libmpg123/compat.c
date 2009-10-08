@@ -52,7 +52,7 @@ char *strdup(const char *src)
 int compat_open(const char *filename, int mode)
 {
 	int ret;
-	#if defined (WANT_WIN32_UNICODE)
+#if defined (WANT_WIN32_UNICODE)
 	const wchar_t *frag = NULL;
 
 	ret = win32_utf8_wide(filename, &frag, NULL);
@@ -62,29 +62,29 @@ int compat_open(const char *filename, int mode)
 	if (ret != -1 ) goto open_ok; /* msdn says -1 means failure */
 
 fallback:
-	#endif
+#endif
 
-	#ifdef __MSVCRT__ /* MSDN says POSIX function is deprecated beginning in Visual C++ 2005 */
+#ifdef __MSVCRT__ /* MSDN says POSIX function is deprecated beginning in Visual C++ 2005 */
 	ret = _open (filename, mode); /* Try plain old _open(), if it fails, do nothing */
-	#else
+#else
 	ret = open (filename, mode);
-	#endif
+#endif
 
-	#if defined (WANT_WIN32_UNICODE)
+#if defined (WANT_WIN32_UNICODE)
 open_ok:
 	free ((void *)frag); /* Freeing a NULL should be OK */
-	#endif
+#endif
 
 	return ret;
 }
 
 int compat_close(int infd)
 {
-	#ifdef __MSVCRT__ /* MSDN says POSIX function is deprecated beginning in Visual C++ 2005 */
+#ifdef __MSVCRT__ /* MSDN says POSIX function is deprecated beginning in Visual C++ 2005 */
 	return _close(infd);
-	#else
+#else
 	return close(infd);
-	#endif
+#endif
 }
 
 /* Windows Unicode stuff */

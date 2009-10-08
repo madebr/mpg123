@@ -513,7 +513,7 @@ static int bc_add(struct bufferchain *bc, const unsigned char *data, ssize_t siz
 /* Common handler for "You want more than I can give." situation. */
 static ssize_t bc_need_more(struct bufferchain *bc)
 {
-	debug3("hit end, back to beginning (%li - %li < %li)", (long)bc->size, (long)bc->pos, (long)size);
+	debug3("hit end, back to beginning (%li - %li < %li)", (long)bc->size, (long)bc->pos, (long)bc->size);
 	/* go back to firstpos, undo the previous reads */
 	bc->pos = bc->firstpos;
 	return READER_MORE;
