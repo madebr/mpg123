@@ -14,6 +14,8 @@
 
 #ifdef _MSC_VER
 #include <io.h>
+#else
+#include <fcntl.h>
 #endif
 
 #include "debug.h"
