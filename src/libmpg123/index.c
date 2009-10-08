@@ -116,7 +116,7 @@ int fi_set(struct frame_index *fi, off_t *offsets, off_t step, size_t fill)
 	}
 	else
 	{
-		// allocation only, no entries in index yet
+		/* allocation only, no entries in index yet */
 		fi->fill = 0;
 	}
 	fi->next = fi_next(fi);
