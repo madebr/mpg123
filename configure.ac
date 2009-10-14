@@ -546,7 +546,12 @@ case $host in
   *-*-dragonfly* | *-*-freebsd* | *-*-midnightbsd* | *-*-mirbsd* | *-*-netbsd* | *-*-openbsd*)
     cpu_type="generic_fpu"
   ;;
-  # Todo: Add default for x86 solaris; need to test it there, too.
+  i386-*-solaris*)
+    cpu_type=x86
+  ;;
+  x86_64-*-solaris*)
+    cpu_type=x86-64_all
+  ;;
   *-*-solaris*)
     cpu_type="generic_fpu"
   ;;
