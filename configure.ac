@@ -913,21 +913,6 @@ if test x"$fifo" = xenabled; then
 	fi
 fi
 
-AC_CHECK_FUNCS( getaddrinfo, [ have_ipv6=yes ], [ have_ipv6=no ] )
-if test x"$ipv6" = xauto; then
-	if test x"$have_ipv6" = xyes; then
-		ipv6=enabled
-	else
-		ipv6=disabled
-	fi
-fi
-if test x"$ipv6" = xenabled; then
-	AC_DEFINE(IPV6, 1, [ Define if IPV6 support is enabled. ])
-	if test x"$have_ipv6" = xno; then
-		AC_MSG_WARN( [ You forced IPv6 code while I think there is no getaddrinfo() available! ] )
-	fi
-fi
-
 dnl ############## Header and Library Checks
 
 # locale headers
@@ -944,6 +929,12 @@ else
   have_network=no
 fi
 
+dnl trying to get that socket lib settled in one line
+AC_SEARCH_LIBS(gethostbyname, nsl socket ws2_32 wsock32) 
+dnl OK, two lines... Solaris needs -lnsl -lsocket
+AC_SEARCH_LIBS(socket, socket ws2_32 wsock32) 
+
+
 if test x"$network" = xauto; then
 	if test x"$have_network" = xyes; then
 		network=enabled
@@ -955,6 +946,22 @@ if test x"$network" = xenabled; then
 	AC_DEFINE(NETWORK, 1, [ Define if network support is enabled. ])
 	if test x"$have_network" = xno; then
 		AC_MSG_WARN( [ You forced network code while I think there is support missing! ] )
+	fi
+fi
+
+AC_CHECK_FUNCS( getaddrinfo, [ have_ipv6=yes ], [ have_ipv6=no ] )
+if test x"$ipv6" = xauto; then
+	if test x"$have_ipv6" = xyes; then
+		ipv6=enabled
+	else
+		ipv6=disabled
+	fi
+fi
+
+if test x"$ipv6" = xenabled; then
+	AC_DEFINE(IPV6, 1, [ Define if IPV6 support is enabled. ])
+	if test x"$have_ipv6" = xno; then
+		AC_MSG_WARN( [ You forced IPv6 code while I think there is no getaddrinfo() available! ] )
 	fi
 fi
 
@@ -1024,11 +1031,6 @@ case $host in
     AC_DEFINE(ABI_ALIGN_FUN, 1, [ Define if your architecture wants/needs/can use attribute_align_arg and alignment checks. It's for 32bit x86... ])
  ;;
 esac
-
-dnl trying to get that socket lib settled in one line
-AC_SEARCH_LIBS(gethostbyname, nsl socket ws2_32 wsock32) 
-dnl OK, two lines... Solaris needs -lnsl -lsocket
-AC_SEARCH_LIBS(socket, socket ws2_32 wsock32) 
 
 s_altivec="synth_altivec dct64_altivec"
 s_i386="dct64_i386"
