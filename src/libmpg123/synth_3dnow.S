@@ -51,7 +51,7 @@ ftoi_magic:
 	.long	1262485504
 #endif
 	.text
-	ALIGN16,,15
+	ALIGN16
 .globl ASM_NAME(synth_1to1_3dnow_asm)
 /* int synth_1to1_3dnow_asm(real *bandPtr, int channel, unsigned char *out, unsigned char *buffs, int *bo, real *decwin); */
 ASM_NAME(synth_1to1_3dnow_asm):

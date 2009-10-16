@@ -47,7 +47,7 @@ ASM_NAME(scale_x86_64):
 	.long   939524096
 	.long   939524096
 	.text
-	ALIGN16,,15
+	ALIGN16
 .globl ASM_NAME(synth_1to1_real_stereo_x86_64_asm)
 ASM_NAME(synth_1to1_real_stereo_x86_64_asm):
 #ifdef _WIN64 /* should save xmm6-15 */

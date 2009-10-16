@@ -35,7 +35,7 @@ mask:
 	.long	0
 	
 	.text
-	ALIGN16,,15
+	ALIGN16
 .globl ASM_NAME(dct64_real_sse)
 ASM_NAME(dct64_real_sse):
 	pushl		%ebp

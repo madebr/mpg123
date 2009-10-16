@@ -68,7 +68,7 @@ ASM_NAME(costab_x86_64):
 	.long 1060439283
 	.long 0
 	.text
-	ALIGN16,,15
+	ALIGN16
 .globl ASM_NAME(dct64_real_x86_64)
 ASM_NAME(dct64_real_x86_64):
 #ifdef _WIN64 /* should save xmm6-15 */

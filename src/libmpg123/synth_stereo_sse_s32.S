@@ -47,7 +47,7 @@ ASM_NAME(maxmin_s32):
 	.long   -956301312
 	.long   -956301312
 	.text
-	ALIGN16,,15
+	ALIGN16
 .globl ASM_NAME(synth_1to1_s32_stereo_sse_asm)
 ASM_NAME(synth_1to1_s32_stereo_sse_asm):
 	pushl		%ebp

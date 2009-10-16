@@ -32,7 +32,7 @@ ASM_NAME(scale_sse):
 	.long   939524096
 	.long   939524096
 	.text
-	ALIGN16,,15
+	ALIGN16
 .globl ASM_NAME(synth_1to1_real_sse_asm)
 ASM_NAME(synth_1to1_real_sse_asm):
 	pushl		%ebp
