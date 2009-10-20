@@ -515,7 +515,13 @@ int open_track(char *fname)
 	httpdata_reset(&htd);
 	if(MPG123_OK != mpg123_param(mh, MPG123_ICY_INTERVAL, 0, 0))
 	error1("Cannot (re)set ICY interval: %s", mpg123_strerror(mh));
-	if(!strcmp(fname, "-")) filept = STDIN_FILENO;
+	if(!strcmp(fname, "-"))
+	{
+		filept = STDIN_FILENO;
+#ifdef WIN32
+		_setmode(STDIN_FILENO, _O_BINARY);
+#endif
+	}
 	else if (!strncmp(fname, "http://", 7)) /* http stream */
 	{
 		filept = http_open(fname, &htd);
