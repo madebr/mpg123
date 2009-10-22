@@ -569,7 +569,7 @@ init_resync:
 			if((ret=fr->rd->fullread(fr,fr->id3buf+4,124)) < 0){ debug("need more?"); goto read_frame_bad; }
 			fr->metaflags  |= MPG123_NEW_ID3|MPG123_ID3;
 			fr->rdat.flags |= READER_ID3TAG; /* that marks id3v1 */
-			if (VERBOSE2) fprintf(stderr,"Note: Skipped ID3 Tag!\n");
+			if (VERBOSE3) fprintf(stderr,"Note: Skipped ID3v1 tag.\n");
 			goto read_again;
 		}
 		/* duplicated code from above! */

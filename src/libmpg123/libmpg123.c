@@ -650,13 +650,7 @@ static int get_next_frame(mpg123_handle *mh)
 		/* Or, we are finally done and have a new frame. */
 		else break;
 	} while(1);
-	/* When we start actually using the CRC, this could move into the loop... */
-	/* A question of semantics ... should I fold start_frame and frame_number into firstframe/lastframe? */
-	if(mh->lastframe >= 0 && mh->num > mh->lastframe)
-	{
-		mh->to_decode = mh->to_ignore = FALSE;
-		return MPG123_DONE;
-	}
+
 	if(change)
 	{
 		if(decode_update(mh) < 0)  /* dito... */
