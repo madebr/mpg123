@@ -82,9 +82,13 @@ static void frame_buffercheck(mpg123_handle *fr)
 			        (void*)fr->buffer.p, (void*)fr->buffer.data, ((short*)fr->buffer.p)[2]);
 		}
 		else fr->buffer.fill = 0;
-		fr->firstoff = 0; /* Only enter here once... when you seek, firstoff should be reset. */
+		/* We can only reach this frame again by seeking. And on seeking, firstoff will be recomputed.
+		   So it is safe to null it here (and it makes the if() decision abort earlier). */
+		fr->firstoff = 0;
 	}
-	/* The last interesting (planned) frame: Only use some leading samples. */
+	/* The last interesting (planned) frame: Only use some leading samples.
+	   Note a difference from the above: The last frame and offset are unchanges by seeks.
+	   The lastoff keeps being valid. */
 	if(fr->lastoff && fr->num == fr->lastframe)
 	{
 		off_t byteoff = samples_to_bytes(fr, fr->lastoff);
@@ -92,7 +96,6 @@ static void frame_buffercheck(mpg123_handle *fr)
 		{
 			fr->buffer.fill = byteoff;
 		}
-		fr->lastoff = 0; /* Only enter here once... when you seek, lastoff should be reset. */
 	}
 }
 #endif

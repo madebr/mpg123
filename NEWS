@@ -4,6 +4,10 @@
   An unicode-enabled build of libmpg123 expects file names as UTF-8 strings, opening of non-utf8 strings (by old applications) still works via fallback when the conversion of the string or opening of the file failed.
 - Added pitch command to control interface.
 
+1.9.2
+---
+ - Fix logic failure in gapless code: The trailing silence was only cut on the first decode. So, seek-back and decode again never was gapless:-(
+
 1.9.1
 ---
 - Fix OpenAL output issue (bug 2840085)
