@@ -6,7 +6,10 @@
 
 1.9.2
 ---
- - Fix logic failure in gapless code: The trailing silence was only cut on the first decode. So, seek-back and decode again never was gapless:-(
+- Fix logic failure in gapless code: The trailing silence was only cut on the first decode. So, seek-back and decode again never was gapless:-(
+- Fix linker flags on MacOS 10.6 .
+- Improve portability (mainly for Solaris/x86, possibly others).
+- Fix reading from standard input in Windows (use binary mode).
 
 1.9.1
 ---
