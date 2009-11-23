@@ -123,13 +123,14 @@ open_module( const char* type, const char* name )
 		goto om_bad;
 	}
 	/* Work out the path of the module to open */
-	module_path_len = strlen(type) + 1 + strlen(name) + strlen(MODULE_FILE_SUFFIX) + 1;
+	/* Note that we need to open ./file, not just file! */
+	module_path_len = 2 + strlen(type) + 1 + strlen(name) + strlen(MODULE_FILE_SUFFIX) + 1;
 	module_path = malloc( module_path_len );
 	if (module_path == NULL) {
 		error1( "Failed to allocate memory for module name: %s", strerror(errno) );
 		goto om_bad;
 	}
-	snprintf( module_path, module_path_len, "%s_%s%s", type, name, MODULE_FILE_SUFFIX );
+	snprintf( module_path, module_path_len, "./%s_%s%s", type, name, MODULE_FILE_SUFFIX );
 	/* Display the path of the module created */
 	if(param.verbose > 1) fprintf(stderr, "Module path: %s\n", module_path );
 
