@@ -483,6 +483,7 @@ int http_open(char* url, struct httpdata *hd)
 	int sock = -1;
 	int oom  = 0;
 	int relocate, numrelocs = 0;
+	int got_location = FALSE;
 	FILE *myfile;
 	/*
 		workaround for http://www.global24music.com/rautemusik/files/extreme/isdn.pls
@@ -589,9 +590,9 @@ int http_open(char* url, struct httpdata *hd)
 		{ \
 			error("readstring failed"); \
 			http_failure; \
-		}
+		} \
+		if(param.verbose > 2) fprintf(stderr, "HTTP in: %s", response.p);
 		safe_readstring;
-		if(param.verbose > 2)	fprintf(stderr, "HTTP response: %s",response.p);
 
 		{
 			char *sptr;
@@ -612,6 +613,9 @@ int http_open(char* url, struct httpdata *hd)
 			}
 		}
 
+		/* If we are relocated, we need to look out for a Location header. */
+		got_location = FALSE;
+
 		do
 		{
 			safe_readstring; /* Think about that: Should we really error out when we get nothing? Could be that the server forgot the trailing empty line... */
@@ -624,6 +628,7 @@ int http_open(char* url, struct httpdata *hd)
 					warning("relocated to very same place! trying request again without host port");
 					try_without_port = 1;
 				}
+				got_location = TRUE;
 			}
 			else
 			{ /* We got a header line (or the closing empty line). */
@@ -643,10 +648,14 @@ int http_open(char* url, struct httpdata *hd)
 				}
 			}
 		} while(response.p[0] != '\r' && response.p[0] != '\n');
-	} while(relocate && purl.fill && numrelocs++ < HTTP_MAX_RELOCATIONS);
+	} while(relocate && got_location && purl.fill && numrelocs++ < HTTP_MAX_RELOCATIONS);
 	if(relocate)
 	{
-		fprintf (stderr, "Too many HTTP relocations.\n");
+		if(!got_location)
+		error("Server meant to redirect but failed to provide a location!");
+		else
+		error1("Too many HTTP relocations (%i).", numrelocs);
+
 		http_failure;
 	}
 
