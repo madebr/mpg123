@@ -44,6 +44,7 @@ buffer=enabled # try to build with buffer by default
 dnl ############# Compiler and tools Checks
 
 LT_LDFLAGS=-export-dynamic
+EXEC_LT_LDFLAGS=
 be_static=no
 all_static=no
 AC_MSG_CHECKING([if you are up to something totally static with LDFLAGS/CFLAGS])
@@ -62,6 +63,7 @@ done
 if test "x$be_static" = xyes; then
 	AC_MSG_RESULT([yes])
 	LT_LDFLAGS=-all-static
+	EXEC_LT_LDFLAGS="$LT_LDFLAGS"
 else
 	AC_MSG_RESULT([no])
 fi
@@ -170,6 +172,7 @@ AM_CONDITIONAL( [HAVE_MODULES], [test "x$modules" = xenabled] )
 
 AC_SUBST(MODULE_OBJ)
 AC_SUBST(LT_LDFLAGS)
+AC_SUBST(EXEC_LT_LDFLAGS)
 
 dnl ############## Configurable Options
 
