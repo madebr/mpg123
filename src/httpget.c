@@ -88,7 +88,7 @@ int debunk_mime(const char* mime)
 	int r = 0;
 	for(i=0; mimes[i]    != NULL; ++i)
 	for(j=0; mimes[i][j] != NULL; ++j)
-	if(!strcmp(mimes[i][j], mime)) goto debunk_result;
+	if(!strcasecmp(mimes[i][j], mime)) goto debunk_result;
 
 debunk_result:
 	if(mimes[i] != NULL)
@@ -442,7 +442,7 @@ static int resolve_redirect(mpg123_string *response, mpg123_string *request_url,
 	if(!mpg123_copy_string(request_url, purl)) return FALSE;
 
 	/* We may strip it down to a prefix ot totally. */
-	if(strncmp(response->p, "Location: http://", 17))
+	if(strncasecmp(response->p, "Location: http://", 17))
 	{ /* OK, only partial strip, need prefix for relative path. */
 		char* ptmp = NULL;
 		/* though it's not RFC (?), accept relative URIs as wget does */
@@ -619,7 +619,7 @@ int http_open(char* url, struct httpdata *hd)
 		do
 		{
 			safe_readstring; /* Think about that: Should we really error out when we get nothing? Could be that the server forgot the trailing empty line... */
-			if (!strncmp(response.p, "Location: ", 10))
+			if (!strncasecmp(response.p, "Location: ", 10))
 			{ /* It is a redirection! */
 				if(!resolve_redirect(&response, &request_url, &purl)){ oom=1, http_failure; }
 

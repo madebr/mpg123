@@ -3,6 +3,7 @@
 
 - Make modules work with libtool-2.2.6b .
 - Added pitch command to control interface.
+- HTTP header field and MIME type parsing now case-insensitive (fixes bug 2904736).
 - There is a build-time option to enable unicode file names on windows now. UNIX (Linux) does not need that, UTF-8 works natively.
   An unicode-enabled build of libmpg123 expects file names as UTF-8 strings, opening of non-utf8 strings (by old applications) still works via fallback when the conversion of the string or opening of the file failed.
 - Also, on Windows, --realtime now works, along with added granularity of the new --priority parameter. Note that you get the latter functionality through nice/renice on UNIX, no need to add that to mpg123.
