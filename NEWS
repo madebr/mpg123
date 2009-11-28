@@ -9,6 +9,8 @@
   An unicode-enabled build of libmpg123 expects file names as UTF-8 strings, opening of non-utf8 strings (by old applications) still works via fallback when the conversion of the string or opening of the file failed.
 - Also, on Windows, --realtime now works, along with added granularity of the new --priority parameter. Note that you get the latter functionality through nice/renice on UNIX, no need to add that to mpg123.
 - Added experimental framebyframe API.
+- Added a new Microsoft common language runtime wrapper (aka .NET wrapper) written by Malcolm Boczek. See ports\MSVC++\2008clr\mpg123clr\ReadMe.txt for further information
+- Added Visual Studio 2010 Beta 2 project files for libmpg123
 
 1.9.2
 ---
