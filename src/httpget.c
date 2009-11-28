@@ -85,10 +85,23 @@ static const char** mimes[] = { mime_file, mime_m3u, mime_pls, NULL };
 int debunk_mime(const char* mime)
 {
 	int i,j;
+	size_t len;
 	int r = 0;
+	char *aux;
+	/* Watch out for such: "audio/x-mpegurl; charset=utf-8" */
+	aux = strchr(mime, ';');
+	if(aux != NULL)
+	{
+		fprintf(stderr, "Warning: additional info in content-type ignored (%s)\n", aux+1);
+		/* Just compare up to before the ";". */
+		len = aux-mime;
+	}
+	/* Else, compare the whole string -- including the end. */
+	else len = strlen(mime)+1;
+
 	for(i=0; mimes[i]    != NULL; ++i)
 	for(j=0; mimes[i][j] != NULL; ++j)
-	if(!strcasecmp(mimes[i][j], mime)) goto debunk_result;
+	if(!strncasecmp(mimes[i][j], mime, len)) goto debunk_result;
 
 debunk_result:
 	if(mimes[i] != NULL)
