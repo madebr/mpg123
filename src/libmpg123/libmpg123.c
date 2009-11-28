@@ -776,6 +776,79 @@ void decode_the_frame(mpg123_handle *fr)
 }
 
 /*
+	Decode the current frame into the frame structure's buffer, accessible at the location stored in <audio>, with <bytes> bytes available.
+	<num> will contain the last decoded frame number. This function should be called after mpg123_framebyframe_next positioned the stream at a
+	valid mp3 frame. The buffer contents will get lost on the next call to mpg123_framebyframe_next or mpg123_framebyframe_decode.
+	returns
+	MPG123_OK -- successfully decoded or ignored the frame, you get your output data or in case of ignored frames 0 bytes
+	MPG123_DONE -- decoding finished, should not happen
+	MPG123_ERR -- some error occured.
+	MPG123_ERR_NULL -- audio or bytes are not pointing to valid storage addresses
+	MPG123_BAD_HANDLE -- mh has not been initialized
+	MPG123_NO_SPACE -- not enough space in buffer for safe decoding, should not happen
+*/
+int attribute_align_arg mpg123_framebyframe_decode(mpg123_handle *mh, off_t *num, unsigned char **audio, size_t *bytes)
+{
+	ALIGNCHECK(mh);
+	if(bytes == NULL) return MPG123_ERR_NULL;
+	if(audio == NULL) return MPG123_ERR_NULL;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
+	if(mh->buffer.size < mh->outblock) return MPG123_NO_SPACE;
+
+	*bytes = 0;
+	mh->buffer.fill = 0; /* always start fresh */
+	if(!mh->to_decode) return MPG123_OK;
+
+	if(num != NULL) *num = mh->num;
+	debug("decoding");
+	decode_the_frame(mh);
+	mh->to_decode = mh->to_ignore = FALSE;
+	mh->buffer.p = mh->buffer.data;
+#ifdef GAPLESS
+	/* This checks for individual samples to skip, for gapless mode or sample-accurate seek. */
+	frame_buffercheck(mh);
+#endif
+	*audio = mh->buffer.p;
+	*bytes = mh->buffer.fill;
+	return MPG123_OK;
+}
+
+/*
+	Find, read and parse the next mp3 frame while skipping junk and parsing id3 tags, lame headers, etc.
+	Prepares everything for decoding using mpg123_framebyframe_decode.
+	returns
+	MPG123_OK -- new frame was read and parsed, call mpg123_framebyframe_decode to actually decode
+	MPG123_NEW_FORMAT -- new frame was read, it results in changed output format, call mpg123_framebyframe_decode to actually decode
+	MPG123_BAD_HANDLE -- mh has not been initialized
+	MPG123_NEED_MORE  -- more input data is needed to advance to the next frame. supply more input data using mpg123_feed
+*/
+int attribute_align_arg mpg123_framebyframe_next(mpg123_handle *mh)
+{
+	int b;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
+
+	mh->to_decode = mh->to_ignore = FALSE;
+	mh->buffer.fill = 0;
+
+	b = get_next_frame(mh);
+	if(b < 0) return b;
+	debug1("got next frame, %i", mh->to_decode);
+
+	/* mpg123_framebyframe_decode will return MPG123_OK with 0 bytes decoded if mh->to_decode is 0 */
+	if(!mh->to_decode)
+		return MPG123_OK;
+
+	if(mh->new_format)
+	{
+		debug("notifiying new format");
+		mh->new_format = 0;
+		return MPG123_NEW_FORMAT;
+	}
+
+	return MPG123_OK;
+}
+
+/*
 	Put _one_ decoded frame into the frame structure's buffer, accessible at the location stored in <audio>, with <bytes> bytes available.
 	The buffer contents will be lost on next call to mpg123_decode_frame.
 	MPG123_OK -- successfully decoded the frame, you get your output data
