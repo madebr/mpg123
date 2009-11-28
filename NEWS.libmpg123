@@ -1,5 +1,8 @@
 Changes in libmpg123 libtool interface versions...
 
+22.0.22
+	- Experimental framebyframe API added.
+
 21.0.21
 	- Added support of unicode file names under windows via UTF-8 argument to mpg123_open.
 	- Added mpg123_feature(), for example to test for the above behaviour.
