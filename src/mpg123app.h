@@ -62,6 +62,9 @@ struct parameter
   int force_reopen;
   int test_cpu;
   long realtime;
+#ifdef HAVE_WINDOWS_H
+  int w32_priority;
+#endif
   char *filename;
   long listentry; /* possibility to choose playback of one entry in playlist (0: off, > 0 : select, < 0; just show list*/
   char* listname; /* name of playlist */

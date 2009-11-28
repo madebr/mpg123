@@ -53,14 +53,14 @@ mpg123_SOURCES = \
 	term.c \
 	term.h \
 	wav.c \
+	win32_support.h \
 	wavhead.h \
 	xfermem.c \
 	xfermem.h
 
-if WIN32_USE_UNICODE
-    mpg123_SOURCES += \
-    win32conv.c \
-	win32conv.h
+if WIN32_CODES
+mpg123_SOURCES += \
+	win32_support.c
 endif
 
 # That is not nice... but it is how I manage to get the dependency on output/alsa.o without error about .deps/output/alsa.Tpo .
