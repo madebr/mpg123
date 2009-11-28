@@ -530,7 +530,7 @@ int open_track(char *fname)
 		filept = http_open(fname, &htd);
 		/* now check if we got sth. and if we got sth. good */
 		if(    (filept >= 0) && (htd.content_type.p != NULL)
-			  && !param.ignore_mime && strcmp(htd.content_type.p, "audio/mpeg") && strcmp(htd.content_type.p, "audio/x-mpeg") )
+			  && !param.ignore_mime && !(debunk_mime(htd.content_type.p) & IS_FILE) )
 		{
 			error1("Unknown mpeg MIME type %s - is it perhaps a playlist (use -@)?", htd.content_type.p == NULL ? "<nil>" : htd.content_type.p);
 			error("If you know the stream is mpeg1/2 audio, then please report this as "PACKAGE_NAME" bug");
