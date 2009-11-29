@@ -449,14 +449,19 @@ EXPORT int mpg123_decode(mpg123_handle *mh, const unsigned char *inmemory, size_
  */
 EXPORT int mpg123_decode_frame(mpg123_handle *mh, off_t *num, unsigned char **audio, size_t *bytes);
 
-/** Decode current MPEG frame to internal buffer
+/** Decode current MPEG frame to internal buffer.
+ * Warning: This is experimental API that might change in future releases!
+ * Please watch mpg123 development closely when using it.
  *  \param num last frame offset gets stored there
  *  \param audio this pointer is set to the internal buffer to read the decoded audio from.
  *  \param bytes number of output bytes ready in the buffer
  */
 EXPORT int mpg123_framebyframe_decode(mpg123_handle *mh, off_t *num, unsigned char **audio, size_t *bytes);
 
-/** Find, read and parse the next mp3 frame */
+/** Find, read and parse the next mp3 frame
+ * Warning: This is experimental API that might change in future releases!
+ * Please watch mpg123 development closely when using it.
+ */
 EXPORT int mpg123_framebyframe_next(mpg123_handle *mh);
 
 /*@}*/
