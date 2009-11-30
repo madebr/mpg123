@@ -169,4 +169,9 @@ int win32_wide_utf8 (const wchar_t * const wptr, const char **const mbptr, size_
 int win32_utf8_wide (const char *const mbptr, const wchar_t ** const wptr, size_t * const buflen);
 #endif
 
+/* That one comes from Tellie on OS/2, needed in resolver. */
+#ifdef __KLIBC__
+typedef int socklen_t;
+#endif
+
 #endif
