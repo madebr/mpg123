@@ -13,12 +13,14 @@ The creator: Michael Hipp (email: hippm@informatik.uni-tuebingen.de - please bot
 
 Contributions/ideas Thomas Orgis era (includes backports from mhipp trunk):
 
+Jonathan Yong (jon_y) <10walls@gmail.com>: win32 hacking
+Malcolm Boczek <MBoczek@terraindustries.com>: Common language runtime wrapper
 Elbert Pol (TeLLie) <elbert.pol@gmail.com>: OS/2 port fixup
 Jeroen Valkonet <jvalkon@xs4all.nl>: motivate pitch control, suggestive patch for pitch command in generic control interface
 Andy Hefner <ahefner@gmail.com>: patch for that second UTF16 issue
-Taihei Monma <tmkk@mac.com>: A whole lot of new/improved assembler code!
+Taihei Monma <tmkk@mac.com>: A whole lot of new/improved assembler code, including Altivec!
 Christian Weisgerber <naddy@openbsd.org>: sndio output
-Patrick Dehne <patrick@steidle.net>: more MSVC++ porting, patch to handle missing bit reservoirs
+Patrick Dehne (P4tr3ck) <patrick@steidle.net>: more MSVC++ porting, patch to handle missing bit reservoirs
 Thorsten Glaser <tg@mirbsd.de>: icy2utf8, suggest utf8 locale stuff
 Dan Smith <dan@algenta.com>: ABI fixes for ensuring stack alignment (esp. for MinGW-built DLL with MSVC)
 Michael Ryzhykh <mclroy@gmail.com>: mpg123.spec.in
@@ -36,7 +38,6 @@ Adrian Bacon <adrian.bacon@xs4all.nl>: patched decode_i586_dither (noise shaped 
 Cool Feet Audio project <nutcase@dtfm.org>: realtime equalizer control
 Steve Grundell <www@grundell.u-net.com>: clean stdout in control mode with stdout decoding
 Romain Dolbeau <romain@dolbeau.org>: Altivec support (taken from mplayer)
-Taihei Monma <tmkk@mac.com>: Altivec improvements
 higway <higway@mednet.md>: MMX Patch
 Clemens Ladisch <clemens@ladisch.de>: ALSA 0.9/1.0 support
 
