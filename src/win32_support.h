@@ -1,8 +1,8 @@
 /*
 	Code that handles conversion of the windows command line arguments to UTF-8 as internal representation.
 */
-#ifndef _MPG123_WIN32_SUPPORT_H_
-#define _MPG123_WIN32_SUPPORT_H_
+#ifndef MPG123_WIN32_SUPPORT_H
+#define MPG123_WIN32_SUPPORT_H
 
 #include "config.h"
 #ifdef HAVE_WINDOWS_H
@@ -37,5 +37,5 @@ void win32_cmdline_free(int argc, char **argv);
 void win32_set_priority (const int arg);
 
 #endif /* HAVE_WINDOWS_H */
-#endif /* _MPG123_WIN32_SUPPORT_H_ */
+#endif /* MPG123_WIN32_SUPPORT_H */
 
