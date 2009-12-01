@@ -1,6 +1,7 @@
 1.10.0
 ---
 
+- Confirmed/fixed on OS/2 platform.
 - Make modules work with libtool-2.2.6b .
 - Added pitch command to control interface.
 - HTTP header field and MIME type parsing now case-insensitive (fixes bug 2904736).

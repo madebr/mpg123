@@ -558,6 +558,17 @@ case $host in
   *-*-solaris*)
     cpu_type="generic_fpu"
   ;;
+  # os2-emx = OS/2 with some Unix fun; so p.ex. buffer works.
+  i386-pc-os2-emx)
+    cpu_type=x86
+  ;;
+  x86_64-pc-os2-emx)
+    # We are optimistic hat the future knows OS/2 on x86-64;-)
+    cpu_type=x86-64_all
+  ;;
+  *-pc-os2-emx)
+    cpu_type="generic_fpu"
+  ;;
   *-dec-osf*)
     cpu_type="generic_fpu"
   ;;
@@ -1239,7 +1250,7 @@ fi
 dnl ############## Output module choice
 
 # The full list of supported modules to check, first come, first serve.
-check_modules="alsa oss coreaudio sndio sun win32 esd jack portaudio pulse sdl nas arts openal dummy"
+check_modules="alsa oss coreaudio sndio sun win32 os2 esd jack portaudio pulse sdl nas arts openal dummy"
 # The final list.
 output_modules=
 
@@ -1434,6 +1445,18 @@ do
 				check_failed=yes
 			fi
 		;;
+		os2)
+			OS2_LIBS="-los2me -lmmpm2 -lsocket"
+			AC_CHECK_HEADERS([os2.h os2me.h])
+			if test "x${ac_cv_header_os2_h}" = xyes \
+			   -a   "x${ac_cv_header_os2me_h}" = xyes
+			then
+				output_modules="$output_modules os2"
+				HAVE_OS2=yes
+			else
+				check_failed=yes
+			fi
+		;;
 # from here on only forced tests, untested code
 		hp)
 			# What's the deal with that and alib?
@@ -1465,19 +1488,6 @@ do
 		aix)
 			UNSUPPORTED_AUDIO=yes
 			AC_CHECK_HEADERS([sys/audio.h], [output_modules="$output_modules aix" HAVE_AIX=yes], [check_failed=yes])
-		;;
-		os2)
-			UNSUPPORTED_AUDIO=yes
-			OS2_LIBS="-los2me -lsocket"
-			AC_CHECK_HEADERS([os2.h os2me.h])
-			if test "x${ac_cv_header_os2_h}" = xyes \
-			   -a   "x${ac_cv_header_os2me_h}" = xyes
-			then
-				output_modules="$output_modules os2"
-				HAVE_OS2=yes
-			else
-				check_failed=yes
-			fi
 		;;
 		sgi)
 			UNSUPPORTED_AUDIO=yes
