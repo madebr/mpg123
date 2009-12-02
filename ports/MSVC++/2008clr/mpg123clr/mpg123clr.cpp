@@ -19,6 +19,7 @@
 	1.9.0.0 01-Oct-09	Technical cleanup - subst nullptr for NULL (mb)
 	1.9.0.0 13-Oct-09	pin_ptr = nullptr on return (mb)
 	1.9.0.1	24-Nov-09	performance update - removed try/finally (mb)
+	1.10.0.0 30-Nov-09	release match - added mpg123_feature (mb)
 */
 
 // mpg123clr.cpp : Defines the exported functions for the DLL application.
@@ -135,6 +136,11 @@ mpg123clr::mpg::ErrorCode mpg123clr::mpg123::mpg123_getparam(mpg123clr::mpg::par
 	_val = nullptr;
 
 	return (mpg123clr::mpg::ErrorCode) ret;
+}
+
+int mpg123clr::mpg123::mpg123_feature(mpg123clr::mpg::feature_set key)
+{
+	return ::mpg123_feature((mpg123_feature_set) key);
 }
 
 String^ mpg123clr::mpg123::mpg123_strerror(void)

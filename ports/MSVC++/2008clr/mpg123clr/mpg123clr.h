@@ -16,6 +16,7 @@
 /*
 	1.8.1.0	04-Aug-09	Initial release.
 	1.9.0.0 24-Sep-09	Function names harmonized with libmpg123 (mb)
+	1.10.0.0 30-Nov-09	release match - added mpg123_feature (mb)
 */
 
 #pragma once
@@ -216,6 +217,13 @@ namespace mpg123clr
 		///<param name="fval">Returned real value.</param>
 		///<returns>MPG123_OK or applicable error code.</returns>
 		mpg123clr::mpg::ErrorCode __clrcall mpg123_getparam(mpg123clr::mpg::parms type, [Out] int% val, [Out] double% fval);
+
+		///<summary>Query libmpg123 feature.
+		///<para>Returns 1 for success, 0 for unimplemented feature.</para>
+		///</summary>
+		///<param name="key">Define the feature to query. (feature_set enumeration)</param>
+		///<returns>1 for success, 0 for unimplemented feature.</returns>
+		static int __clrcall mpg123_feature(mpg123clr::mpg::feature_set key);
 
 #pragma endregion -Library and Handle Setup
 

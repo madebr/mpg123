@@ -15,6 +15,7 @@
 */
 /*
 	1.8.1.0	04-Aug-09	Initial release.
+	1.10.0.0 30-Nov-09	release match - added mpg123_feature (mb)
 */
 
 #pragma once
@@ -70,6 +71,11 @@ namespace mpg123clr
 			seekbuffer = MPG123_SEEKBUFFER,			/// 000100000000 Enable small buffer on non-seekable streams to allow some peek-ahead (for better MPEG sync). 
 			fuzzy = MPG123_FUZZY,					/// 001000000000 Enable fuzzy seeks (guessing byte offsets or using approximate seek points from Xing TOC) 
 			force_float = MPG123_FORCE_FLOAT,		/// 010000000000 Force floating point output (32 or 64 bits depends on mpg123 internal precision). 
+
+			///<summary>Prevent ID3 text translation to UTF-8.
+			///<para>NOTE: Do not set if you intend to use CLR id3v2 objects.</para>
+			///</summary>
+			plain_id3text = MPG123_PLAIN_ID3TEXT,	/// 100000000000 Do not translate ID3 text data to UTF-8. ID3 strings will contain the raw text data, with the first byte containing the ID3 encoding code.
 		};
 
 		///<summary>RVA enumeration.</summary>
@@ -81,6 +87,27 @@ namespace mpg123clr
 			rva_album = MPG123_RVA_ALBUM,	/// Use album/audiophile gain 
 			rva_max   = MPG123_RVA_ALBUM,	/// The maximum RVA code, may increase in future. 
 		};
+
+		///<summary>Feature set available for query with mpg123_feature. </summary>
+		///<remarks>Equivalent to MPG123_FEATURE_SET.</remarks>
+		public enum class feature_set
+		{
+			feature_abi_utf8open = MPG123_FEATURE_ABI_UTF8OPEN,				/// mpg123 expects path names to be given in UTF-8 encoding instead of plain native.
+			feature_output_8bit = MPG123_FEATURE_OUTPUT_8BIT,				/// 8bit output  
+			feature_output_16bit = MPG123_FEATURE_OUTPUT_16BIT,				/// 16bit output
+			feature_output_32bit = MPG123_FEATURE_OUTPUT_32BIT,				/// 32bit output
+			feature_index = MPG123_FEATURE_INDEX,							/// support for building a frame index for accurate seeking
+			feature_parse_id3v2 = MPG123_FEATURE_PARSE_ID3V2,				/// id3v2 parsing
+			feature_decode_layer1 = MPG123_FEATURE_DECODE_LAYER1,			/// mpeg layer-1 decoder enabled
+			feature_decode_layer2 = MPG123_FEATURE_DECODE_LAYER2,			/// mpeg layer-2 decoder enabled
+			feature_decode_layer3 = MPG123_FEATURE_DECODE_LAYER3,			/// mpeg layer-3 decoder enabled
+			feature_decode_accurate = MPG123_FEATURE_DECODE_ACCURATE,		/// accurate decoder rounding
+			feature_decode_downsample = MPG123_FEATURE_DECODE_DOWNSAMPLE,	/// downsample (sample omit)
+			feature_decode_ntom = MPG123_FEATURE_DECODE_NTOM,				/// flexible rate decoding
+			feature_parse_icy = MPG123_FEATURE_PARSE_ICY,					/// ICY support
+		};
+
+
 
 		///<summary>An enum over all sample types possibly known to mpg123.</summary>
 		///<remarks><para>The values are designed as bit flags to allow bitmasking for encoding families.</para>
