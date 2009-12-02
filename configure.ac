@@ -559,12 +559,13 @@ case $host in
     cpu_type="generic_fpu"
   ;;
   # os2-emx = OS/2 with some Unix fun; so p.ex. buffer works.
+  # Till we sorted out the assembler troubles, generic CPU is default.
   i386-pc-os2-emx)
-    cpu_type=x86
+    cpu_type=generic_fpu
   ;;
   x86_64-pc-os2-emx)
     # We are optimistic hat the future knows OS/2 on x86-64;-)
-    cpu_type=x86-64_all
+    cpu_type=generic_fpu
   ;;
   *-pc-os2-emx)
     cpu_type="generic_fpu"
