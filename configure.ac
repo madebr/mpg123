@@ -1448,7 +1448,13 @@ do
 		;;
 		os2)
 			OS2_LIBS="-los2me -lmmpm2 -lsocket"
-			AC_CHECK_HEADERS([os2.h os2me.h])
+			AC_CHECK_HEADERS([os2.h])
+			# os2me.h depends on os2.h
+			# Yes, that way of coding it is ugly.
+			if test "x${ac_cv_header_os2_h}" = xyes
+			then
+				AC_CHECK_HEADERS([os2me.h], [], [], [#include <os2.h>])
+			fi
 			if test "x${ac_cv_header_os2_h}" = xyes \
 			   -a   "x${ac_cv_header_os2me_h}" = xyes
 			then
