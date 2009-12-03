@@ -15,6 +15,11 @@
 #include <windows.h>
 #include <winnls.h>
 #include <shellapi.h>
+#include <mmsystem.h>
+
+#ifndef __CYGWIN__ /*conflict with gethostname and select in select.h and unistd.h */
+#include <ws2tcpip.h>
+#endif
 
 #ifdef WANT_WIN32_UNICODE
 /**
