@@ -10,7 +10,6 @@
 #include "mpg123app.h"
 #include "mpg123.h"
 #include "local.h"
-#include "win32_support.h"
 
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
@@ -84,7 +83,7 @@ struct parameter param = {
 #ifdef FIFO
 	,NULL
 #endif
-#ifndef WIN32
+#if !defined (WIN32) || defined (__CYGWIN__)
 	,0 /* timeout */
 #endif
 	,1 /* loop */
@@ -926,7 +925,8 @@ int main(int sys_argc, char ** sys_argv)
 	}
 #endif
 
-#ifdef HAVE_SCHED_SETSCHEDULER
+#if defined (HAVE_SCHED_SETSCHEDULER) && !defined (__CYGWIN__)
+/* Cygwin --realtime seems to fail when accessing network, using win32 set priority instead */
 	if (param.realtime) {  /* Get real-time priority */
 	  struct sched_param sp;
 	  fprintf(stderr,"Getting real-time priority\n");

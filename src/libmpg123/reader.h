@@ -37,7 +37,7 @@ struct reader_data
 	off_t filepos; /* position in file or position in buffer chain */
 	int   filept;
 	int   flags;
-#ifndef WIN32
+#if (!defined (WIN32) || defined (__CYGWIN__))
 	long timeout_sec;
 #endif
 	ssize_t (*fdread) (mpg123_handle *, void *, size_t);

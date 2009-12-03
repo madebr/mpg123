@@ -1835,23 +1835,21 @@ fi
 # Define that always... also without frame index enabled.
 AC_DEFINE_UNQUOTED(INDEX_SIZE, $seektable, [size of the frame index seek table])
 
-# Check if we want Unicode for Win32.
+# Check if we want Unicode for Win32. Cygwin does not need _wopen
 win32_specific_codes=disabled
 win32_unicode=disabled
 AC_CHECK_HEADERS([windows.h], [win32_specific_codes=enabled])
-
 if test "x$win32_specific_codes" = xenabled; then
-	AC_MSG_CHECKING([if we want Unicode File Open for Win32])
-	AC_ARG_ENABLE(win32_unicode,
-		[  --enable-win32_unicode=[no/yes] Enable Unicode for Win32 ],
-		[   
-		if test "x$enableval" = xyes; then
-			AC_DEFINE(WANT_WIN32_UNICODE, 1, [ Define to use Unicode for Windows ])
-			win32_unicode=enabled
-			AC_MSG_RESULT([yes])
-		fi
-		], [AC_MSG_RESULT([no])])
+  AC_CHECK_FUNC([_wopen], [win32_unicode=enabled],[win32_unicode=disabled])
+  AC_MSG_CHECKING([if we want Unicode File Open for Win32])
+  if test "x$win32_unicode" = xenabled; then
+    AC_DEFINE([WANT_WIN32_UNICODE], [1], [ Define to use Unicode for Windows ])
+    AC_MSG_RESULT([yes])
+  else
+    AC_MSG_RESULT([no])
+  fi
 fi
+# Use Win32 support codes
 AM_CONDITIONAL([WIN32_CODES], [ test "x$win32_specific_codes" = xenabled ])
 
 dnl ############## Final Output

@@ -9,11 +9,9 @@
 
 #include "mpg123app.h"
 #include <stdarg.h>
-#ifndef WIN32
+#if !defined (WIN32) || defined (__CYGWIN__)
 #include <sys/wait.h>
 #include <sys/socket.h>
-#else
-#include <winsock.h>
 #endif
 #include <fcntl.h>
 #include <errno.h>

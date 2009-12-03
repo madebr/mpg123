@@ -11,7 +11,8 @@
 
 #ifndef MPG123_H
 #define MPG123_H
-
+#include "config.h"
+#include "win32_support.h"
 /* everyone needs it */
 #include "compat.h"
 /* import DLL symbols on windows */
@@ -74,7 +75,7 @@ struct parameter
 #ifdef FIFO
 	char* fifo;
 #endif
-#ifndef WIN32
+#if !defined (WIN32) || defined (__CYGWIN__)
 	long timeout; /* timeout for reading in seconds */
 #endif
 	long loop;    /* looping of tracks */

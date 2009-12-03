@@ -65,7 +65,7 @@ struct mpg123_pars_struct
 	int rva; /* (which) rva to do: 0: nothing, 1: radio/mix/track 2: album/audiophile */
 	long halfspeed;
 	long doublespeed;
-#ifndef WIN32
+#if (!defined (WIN32) || defined (__CYGWIN__))
 	long timeout;
 #endif
 #define NUM_CHANNELS 2

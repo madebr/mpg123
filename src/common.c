@@ -11,10 +11,6 @@
 #include <fcntl.h>
 #include "common.h"
 
-#ifdef WIN32
-#include <winsock.h>
-#endif
-
 #include "debug.h"
 
 const char* rva_name[3] = { "off", "mix", "album" };
@@ -31,7 +27,7 @@ static const int samples_pre_frame[4][4] =
 };
 
 
-#if !defined(WIN32) && defined(HAVE_SIGNAL_H)
+#if (!defined(WIN32) || defined (__CYGWIN__)) && defined(HAVE_SIGNAL_H)
 void (*catchsignal(int signum, void(*handler)()))()
 {
   struct sigaction new_sa;
