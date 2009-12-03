@@ -13,7 +13,7 @@
 
 #include "getbits.h"
 
-#if (defined (WIN32) || !defined (__CYGWIN__))
+#if (defined (WIN32) && !defined (__CYGWIN__))
 #include <ws2tcpip.h>
 #endif
 
