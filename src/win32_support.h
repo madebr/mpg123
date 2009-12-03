@@ -1,5 +1,8 @@
 /*
-	Code that handles conversion of the windows command line arguments to UTF-8 as internal representation.
+	Win32 support helper file
+
+	This file is only for use with the mpg123 frontend.
+	win32 support helpers for libmpg123 are in src/libmpg123/compat.h
 */
 #ifndef MPG123_WIN32_SUPPORT_H
 #define MPG123_WIN32_SUPPORT_H
