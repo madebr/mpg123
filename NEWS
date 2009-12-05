@@ -14,6 +14,7 @@
 - Added experimental framebyframe API.
 - Added a new Microsoft common language runtime wrapper (aka .NET wrapper) written by Malcolm Boczek. See ports\MSVC++\2008clr\mpg123clr\ReadMe.txt for further information
 - Added Visual Studio 2010 Beta 2 project files for libmpg123
+- Updated autotools machinery, autogen.sh is gone, use `autoreconf -iv`.
 
 1.9.2
 ---
