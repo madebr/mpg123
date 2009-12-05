@@ -1453,7 +1453,14 @@ do
 			# Yes, that way of coding it is ugly.
 			if test "x${ac_cv_header_os2_h}" = xyes
 			then
-				AC_CHECK_HEADERS([os2me.h], [], [], [#include <os2.h>])
+				# We mimick exactly the way how the header will be used.
+				# It seems to be picky...
+				AC_CHECK_HEADERS([os2me.h], [], [], [#define INCL_OS2MM
+#define INCL_DOS
+#define INCL_VIO
+#define INCL_KBD
+#include <os2.h>
+#])
 			fi
 			if test "x${ac_cv_header_os2_h}" = xyes \
 			   -a   "x${ac_cv_header_os2me_h}" = xyes
