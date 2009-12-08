@@ -281,6 +281,36 @@ struct mpg123_handle_struct
 #ifndef NO_ICY
 	struct icy_meta icy;
 #endif
+	/*
+		More variables needed for decoders, layerX.c.
+		This time it is not about static variables but about the need for alignment which cannot be guaranteed on the stack by certain compilers (Sun Studio).
+		We do not require the compiler to align stuff for our hand-written assembly. We only hope that it's able to align stuff for SSE and similar ops it generates itself.
+	*/
+	/*
+		Those layer-specific structs could actually share memory, as they are not in use simultaneously. One might allocate on decoder switch, too.
+		They all reside in one lump of memory (after each other), allocated to layerscratch.
+	*/
+	real *layerscratch;
+#ifndef NO_LAYER1
+	struct
+	{
+		real (*fraction)[SBLIMIT]; /* ALIGNED(16) real fraction[2][SBLIMIT]; */
+	} layer1;
+#endif
+#ifndef NO_LAYER2
+	struct
+	{
+		real (*fraction)[4][SBLIMIT]; /* ALIGNED(16) real fraction[2][4][SBLIMIT] */
+	} layer2;
+#endif
+#ifndef NO_LAYER3
+	/* These are significant chunks of memory already... */
+	struct
+	{
+		real (*hybrid_in)[SBLIMIT][SSLIMIT];  /* ALIGNED(16) real hybridIn[2][SBLIMIT][SSLIMIT]; */
+		real (*hybrid_out)[SSLIMIT][SBLIMIT]; /* ALIGNED(16) real hybridOut[2][SSLIMIT][SBLIMIT]; */
+	} layer3;
+#endif
 };
 
 /* generic init, does not include dynamic buffers */

@@ -129,7 +129,7 @@ int do_layer1(mpg123_handle *fr)
 	int i,stereo = fr->stereo;
 	unsigned int balloc[2*SBLIMIT];
 	unsigned int scale_index[2][SBLIMIT];
-	ALIGNED(16) real fraction[2][SBLIMIT];
+	real (*fraction)[SBLIMIT] = fr->layer1.fraction; /* fraction[2][SBLIMIT] */
 	int single = fr->single;
 
 	fr->jsbound = (fr->mode == MPG_MD_JOINT_STEREO) ? (fr->mode_ext<<2)+4 : 32;
