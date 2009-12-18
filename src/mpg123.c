@@ -1284,7 +1284,7 @@ static void long_usage(int err)
 	#ifdef HAVE_TERMIOS
 	fprintf(o," -C     --control          enable terminal control keys\n");
 	#endif
-	#ifndef GENERIG
+	#ifndef GENERIC
 	fprintf(o,"        --title            set xterm/rxvt title to filename\n");
 	#endif
 	fprintf(o,"        --long-tag         spacy id3 display with every item on a separate line\n");
