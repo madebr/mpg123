@@ -470,20 +470,6 @@
 					Name="VCCLCompilerTool"
 				/>
 			</FileConfiguration>
-			<FileConfiguration
-				Name="Debug_i386|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Debug_i486|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
 		</File>
 		<File
 			RelativePath="..\..\..\..\src\libmpg123\dct64_i386.c"
@@ -559,6 +545,10 @@
 		</File>
 		<File
 			RelativePath="..\..\..\..\src\libmpg123\equalizer.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\src\libmpg123\feature.c"
 			>
 		</File>
 		<File
@@ -674,6 +664,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\..\..\src\libmpg123\sample.h"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\src\libmpg123\stringbuf.c"
 			>
 		</File>
@@ -683,10 +677,6 @@
 		</File>
 		<File
 			RelativePath="..\..\..\..\src\libmpg123\synth.h"
-			>
-		</File>
-		<File
-			RelativePath="..\..\..\..\src\libmpg123\sample.h"
 			>
 		</File>
 		<File

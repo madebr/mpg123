@@ -999,6 +999,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\..\..\src\libmpg123\feature.c"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\src\libmpg123\format.c"
 			>
 		</File>
