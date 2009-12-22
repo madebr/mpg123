@@ -14,7 +14,7 @@
 #include "getbits.h"
 
 #if (defined (WIN32) && !defined (__CYGWIN__))
-#include <ws2tcpip.h>
+#include <winsock.h>
 #endif
 
 /* a limit for number of frames in a track; beyond that unsigned long may not be enough to hold byte addresses */
