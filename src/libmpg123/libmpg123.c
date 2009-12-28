@@ -97,6 +97,7 @@ static void frame_buffercheck(mpg123_handle *fr)
 		{
 			fr->buffer.fill = byteoff;
 		}
+		debug1("Cut frame buffer on end of stream, fill now %"SIZE_P" bytes.", (size_p)fr->buffer.fill);
 	}
 }
 #endif
@@ -1361,11 +1362,13 @@ int attribute_align_arg mpg123_scan(mpg123_handle *mh)
 	/* One frame must be there now. */
 	mh->track_frames = 1;
 	mh->track_samples = spf(mh); /* Internal samples. */
+	debug("TODO: We should disable gapless code when encountering inconsistent spf(mh)!");
 	while(read_frame(mh) == 1)
 	{
 		++mh->track_frames;
 		mh->track_samples += spf(mh);
 	}
+	debug2("Scanning yielded %"OFF_P" track samples, %"OFF_P" frames.", (off_p)mh->track_samples, (off_p)mh->track_frames);
 #ifdef GAPLESS
 	/* Also, think about usefulness of that extra value track_samples ... it could be used for consistency checking. */
 	frame_gapless_update(mh, mh->track_samples);

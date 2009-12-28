@@ -793,7 +793,11 @@ void frame_gapless_update(mpg123_handle *fr, off_t total_samples)
 	else if(fr->end_s > total_samples)
 	{
 		if(NOQUIET) error2("end sample count smaller than gapless end! (%"OFF_P" < %"OFF_P").", (off_p)total_samples, (off_p)fr->end_s);
-		fr->end_s = total_samples;
+		/* Humbly disabling gapless stuff on track end. */
+		fr->end_s = 0;
+		frame_gapless_realinit(fr);
+		fr->lastframe = -1;
+		fr->lastoff = 0;
 	}
 }
 
