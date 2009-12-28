@@ -89,9 +89,10 @@ static void frame_buffercheck(mpg123_handle *fr)
 	/* The last interesting (planned) frame: Only use some leading samples.
 	   Note a difference from the above: The last frame and offset are unchanges by seeks.
 	   The lastoff keeps being valid. */
-	if(fr->lastoff && fr->num == fr->lastframe)
+	if(fr->lastframe > -1 && fr->num >= fr->lastframe)
 	{
-		off_t byteoff = samples_to_bytes(fr, fr->lastoff);
+		/* There can be more than one frame of padding at the end, so we ignore the whole frame if we are beyond lastframe. */
+		off_t byteoff = (fr->num == fr->lastframe) ? samples_to_bytes(fr, fr->lastoff) : 0;
 		if((off_t)fr->buffer.fill > byteoff)
 		{
 			fr->buffer.fill = byteoff;
@@ -1322,10 +1323,15 @@ off_t attribute_align_arg mpg123_length(mpg123_handle *mh)
 	else if(mh->rdat.filelen == 0) return mpg123_tell(mh); /* we could be in feeder mode */
 	else return MPG123_ERR; /* No length info there! */
 
+	debug1("mpg123_length: internal sample length: %"OFF_P, (off_p)length);
+
 	length = frame_ins2outs(mh, length);
+	debug1("mpg123_length: external sample length: %"OFF_P, (off_p)length);
 #ifdef GAPLESS
+	debug2("mpg123_length: begin_os = %"OFF_P", end_os = %"OFF_P, (off_p)mh->begin_os, (off_p)mh->end_os);
 	if(mh->end_os > 0 && length > mh->end_os) length = mh->end_os;
 	length -= mh->begin_os;
+	debug1("mpg123_length: after gapless correction: %"OFF_P, (off_p)length);
 #endif
 	return length;
 }
