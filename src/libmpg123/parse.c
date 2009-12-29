@@ -199,49 +199,66 @@ static int check_lame_tag(mpg123_handle *fr)
 				debug1("Xing: flags 0x%08lx", xing_flags);
 				if(xing_flags & 1) /* frames */
 				{
-					/*
-						In theory, one should use that value for skipping...
-						When I know the exact number of samples I could simply count in flush_output,
-						but that's problematic with seeking and such.
-						I still miss the real solution for detecting the end.
-					*/
-					fr->track_frames = (off_t) make_long(fr->bsbuf, lame_offset);
-					if(fr->track_frames > TRACK_MAX_FRAMES) fr->track_frames = 0; /* endless stream? */
-					#ifdef GAPLESS
-					/* if no further info there, remove/add at least the decoder delay */
-					if(fr->p.flags & MPG123_GAPLESS)
+					if(fr->p.flags & MPG123_IGNORE_STREAMLENGTH)
 					{
-						off_t length = fr->track_frames * spf(fr);
-						if(length > 1)
-						frame_gapless_init(fr, GAPLESS_DELAY, length+GAPLESS_DELAY);
+						if(VERBOSE3)
+						fprintf(stderr, "Note: Ignoring Xing frames because of MPG123_IGNORE_STREAMLENGTH\n");
 					}
-					#endif
-					if(VERBOSE3) fprintf(stderr, "Note: Xing: %lu frames\n", (long unsigned)fr->track_frames);
+					else
+					{
+						/*
+							In theory, one should use that value for skipping...
+							When I know the exact number of samples I could simply count in flush_output,
+							but that's problematic with seeking and such.
+							I still miss the real solution for detecting the end.
+						*/
+						fr->track_frames = (off_t) make_long(fr->bsbuf, lame_offset);
+						if(fr->track_frames > TRACK_MAX_FRAMES) fr->track_frames = 0; /* endless stream? */
+						#ifdef GAPLESS
+						/* if no further info there, remove/add at least the decoder delay */
+						if(fr->p.flags & MPG123_GAPLESS)
+						{
+							off_t length = fr->track_frames * spf(fr);
+							if(length > 1)
+							frame_gapless_init(fr, GAPLESS_DELAY, length+GAPLESS_DELAY);
+						}
+						#endif
+						if(VERBOSE3) fprintf(stderr, "Note: Xing: %lu frames\n", (long unsigned)fr->track_frames);
+					}
+
 					lame_offset += 4;
 				}
 				if(xing_flags & 0x2) /* bytes */
 				{
-					unsigned long xing_bytes = make_long(fr->bsbuf, lame_offset);					/* We assume that this is the _total_ size of the file, including Xing frame ... and ID3 frames...
-					   It's not that clearly documented... */
-					if(fr->rdat.filelen < 1)
-					fr->rdat.filelen = (off_t) xing_bytes; /* One could start caring for overflow here. */
+					if(fr->p.flags & MPG123_IGNORE_STREAMLENGTH)
+					{
+						if(VERBOSE3)
+						fprintf(stderr, "Note: Ignoring Xing bytes because of MPG123_IGNORE_STREAMLENGTH\n");
+					}
 					else
 					{
-						if((off_t) xing_bytes != fr->rdat.filelen && NOQUIET)
+						unsigned long xing_bytes = make_long(fr->bsbuf, lame_offset);					/* We assume that this is the _total_ size of the file, including Xing frame ... and ID3 frames...
+						   It's not that clearly documented... */
+						if(fr->rdat.filelen < 1)
+						fr->rdat.filelen = (off_t) xing_bytes; /* One could start caring for overflow here. */
+						else
 						{
-							double diff = 1.0/fr->rdat.filelen * (fr->rdat.filelen - (off_t)xing_bytes);
-							if(diff < 0.) diff = -diff;
+							if((off_t) xing_bytes != fr->rdat.filelen && NOQUIET)
+							{
+								double diff = 1.0/fr->rdat.filelen * (fr->rdat.filelen - (off_t)xing_bytes);
+								if(diff < 0.) diff = -diff;
 
-							if(VERBOSE3)
-							fprintf(stderr, "Note: Xing stream size %lu differs by %f%% from determined/given file size!\n", xing_bytes, diff);
+								if(VERBOSE3)
+								fprintf(stderr, "Note: Xing stream size %lu differs by %f%% from determined/given file size!\n", xing_bytes, diff);
 
-							if(diff > 1.)
-							fprintf(stderr, "Warning: Xing stream size off by more than 1%%, fuzzy seeking may be even more fuzzy than by design!\n");
+								if(diff > 1.)
+								fprintf(stderr, "Warning: Xing stream size off by more than 1%%, fuzzy seeking may be even more fuzzy than by design!\n");
+							}
 						}
-					}
 
-					if(VERBOSE3)
-					fprintf(stderr, "Note: Xing: %lu bytes\n", (long unsigned)xing_bytes);
+						if(VERBOSE3)
+						fprintf(stderr, "Note: Xing: %lu bytes\n", (long unsigned)xing_bytes);
+					}
 
 					lame_offset += 4;
 				}
