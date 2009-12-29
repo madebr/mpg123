@@ -147,7 +147,10 @@ static int check_lame_tag(mpg123_handle *fr)
 	int lame_offset = (fr->stereo == 2) ? (fr->lsf ? 17 : 32 ) : (fr->lsf ? 9 : 17);
 	/* At least skip the decoder delay. */
 #ifdef GAPLESS
-	if(fr->begin_s == 0) frame_gapless_init(fr, GAPLESS_DELAY, 0);
+	if(fr->p.flags & MPG123_GAPLESS)
+	{
+		if(fr->begin_s == 0) frame_gapless_init(fr, GAPLESS_DELAY, 0);
+	}
 #endif
 
 	if(fr->framesize >= 120+lame_offset) /* traditional Xing header is 120 bytes */
