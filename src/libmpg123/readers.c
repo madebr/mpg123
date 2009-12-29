@@ -369,9 +369,7 @@ static int generic_read_frame_body(mpg123_handle *fr,unsigned char *buf, int siz
 	{
 		long ll = l;
 		if(ll <= 0) ll = 0;
-
-		/* This allows partial frames at the end... do we really want to pad and decode these?! */
-		memset(buf+ll,0,size-ll);
+		return READER_MORE;
 	}
 	return l;
 }
