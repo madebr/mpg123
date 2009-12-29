@@ -664,20 +664,22 @@ static int get_next_frame(mpg123_handle *mh)
 debug1("new format: %i", mh->new_format);
 
 		mh->decoder_change = 0;
-#ifdef GAPLESS
 		if(mh->fresh)
 		{
+#ifdef GAPLESS
 			int b=0;
 			/* Prepare offsets for gapless decoding. */
 			debug1("preparing gapless stuff with native rate %li", frame_freq(mh));
 			frame_gapless_realinit(mh);
 			frame_set_frameseek(mh, mh->num);
+#endif
 			mh->fresh = 0;
+#ifdef GAPLESS
 			/* Could this possibly happen? With a real big gapless offset... */
 			if(mh->num < mh->firstframe) b = get_next_frame(mh);
 			if(b < 0) return b; /* Could be error, need for more, new format... */
-		}
 #endif
+		}
 	}
 	return MPG123_OK;
 }
