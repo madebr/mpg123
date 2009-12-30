@@ -539,7 +539,7 @@ static ssize_t bc_give(struct bufferchain *bc, unsigned char *out, ssize_t size)
 		if(chunk > b->size - loff) chunk = b->size - loff;
 
 #ifdef EXTRA_DEBUG
-		debug3("copying %liB from %p+%li",(long)chunk, b->data, (long)loff); */
+		debug3("copying %liB from %p+%li",(long)chunk, b->data, (long)loff);
 #endif
 
 		memcpy(out+gotcount, b->data+loff, chunk);
