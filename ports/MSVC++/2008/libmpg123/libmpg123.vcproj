@@ -207,9 +207,9 @@
 				AdditionalLibraryDirectories="&quot;$(ProjectDir)\Debug&quot;"
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
-				BaseAddress="0x63000000"
-				RandomizedBaseAddress="1"
-				FixedBaseAddress="2"
+				BaseAddress=""
+				RandomizedBaseAddress="2"
+				FixedBaseAddress="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -291,9 +291,9 @@
 				Name="VCLinkerTool"
 				OutputFile="$(SolutionDir)Release\$(ProjectName).dll"
 				GenerateDebugInformation="true"
-				BaseAddress="0x63000000"
-				RandomizedBaseAddress="1"
-				FixedBaseAddress="2"
+				BaseAddress=""
+				RandomizedBaseAddress="2"
+				FixedBaseAddress="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
