@@ -15,12 +15,12 @@
 
 /* also gapless playback! */
 #define GAPLESS 1
-//#ifdef GAPLESS
-//#undef GAPLESS
-//#endif
+/* #ifdef GAPLESS
+#undef GAPLESS
+#endif */
 
-//#define DEBUG
-//#define EXTRA_DEBUG
+/* #define DEBUG
+#define EXTRA_DEBUG */
 
 #define REAL_IS_FLOAT
 
