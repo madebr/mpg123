@@ -58,7 +58,6 @@ char *strdup(const char *src)
 int compat_open(const char *filename, int mode)
 {
 	int ret;
-fprintf(stderr, "OPENING: %s\n", filename);
 #if defined (WANT_WIN32_UNICODE)
 	const wchar_t *frag = NULL;
 
@@ -81,7 +80,6 @@ fallback:
 open_ok:
 	free ((void *)frag); /* Freeing a NULL should be OK */
 #endif
-fprintf(stderr, "OPENED on %i\n", ret);
 
 	return ret;
 }
