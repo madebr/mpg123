@@ -321,7 +321,7 @@ static void set_out_stdout1(char *arg)
 	#endif
 }
 
-#if defined (HAVE_SCHED_SETSCHEDULER) && !defined (HAVE_WINDOWS_H)
+#if !defined (HAVE_SCHED_SETSCHEDULER) && !defined (HAVE_WINDOWS_H)
 static void realtime_not_compiled(char *arg)
 {
 	fprintf(stderr,"Option '-T / --realtime' not compiled into this binary.\n");
