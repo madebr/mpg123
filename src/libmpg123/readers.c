@@ -28,7 +28,13 @@
 
 static int default_init(mpg123_handle *fr);
 static off_t get_fileinfo(mpg123_handle *);
-static ssize_t posix_read(int fd, void *buf, size_t count){ return read(fd, buf, count); }
+static ssize_t posix_read(int fd, void *buf, size_t count)
+{
+	ssize_t rd = read(fd, buf, count);
+	if(rd > 0) fprintf(stderr, "read from %i: %02x\n", fd, ((unsigned char*)buf)[0]);
+	return rd;
+	/* return read(fd, buf, count); */
+}
 static off_t   posix_lseek(int fd, off_t offset, int whence){ return lseek(fd, offset, whence); }
 
 static ssize_t plain_fullread(mpg123_handle *fr,unsigned char *buf, ssize_t count);

@@ -146,8 +146,8 @@ static int writestring (int fd, mpg123_string *string)
 
 static size_t readstring (mpg123_string *string, size_t maxlen, FILE *f)
 {
-	debug2("Attempting readstring on %d for %d bytes", f ? fileno(f) : 0, maxlen);
 	int err;
+	debug2("Attempting readstring on %d for %"SIZE_P" bytes", f ? fileno(f) : 0, (size_p)maxlen);
 	string->fill = 0;
 	while(maxlen == 0 || string->fill < maxlen)
 	{
