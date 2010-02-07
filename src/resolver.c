@@ -15,6 +15,7 @@
 #ifdef NETWORK
 #include "true.h"
 #include "resolver.h"
+#if !defined (WANT_WIN32_SOCKETS)
 #include <netdb.h>
 #include <sys/param.h>
 #include <sys/socket.h>
@@ -22,6 +23,7 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
+#endif
 #ifdef HAVE_SYS_SELECT_H
 #include <sys/select.h>
 #endif
@@ -135,6 +137,7 @@ debug4("hostname between %lu and %lu, %lu chars of %s", (unsigned long)pos, (uns
 }
 
 /* Switch between blocking and non-blocking mode. */
+#if !defined (WANT_WIN32_SOCKETS)
 static void nonblock(int sock)
 {
 	int flags = fcntl(sock, F_GETFL);
@@ -219,6 +222,7 @@ static int timeout_connect(int sockfd, const struct sockaddr *serv_addr, socklen
 	}
 }
 
+
 /* So, this then is the only routine that should know about IPv4 or v6 in future. */
 int open_connection(mpg123_string *host, mpg123_string *port)
 {
@@ -302,7 +306,7 @@ int open_connection(mpg123_string *host, mpg123_string *port)
 #endif
 	return sock; /* Hopefully, that's an open socket to talk with. */
 }
-
+#endif /* !defined (WANT_WIN32_SOCKETS) */
 #else /* NETWORK */
 
 void resolver_dummy_without_sense()

@@ -12,6 +12,7 @@
 
 #ifndef _HTTPGET_H_
 #define _HTTPGET_H_
+#include "mpg123.h"
 
 /* Pulled in by mpg123app.h! */
 
@@ -37,7 +38,24 @@ void httpdata_free(struct httpdata *e);
 #define IS_LIST 2
 #define IS_M3U  4
 #define IS_PLS  8
+
+#define HTTP_MAX_RELOCATIONS 20
+
 int debunk_mime(const char* mime);
+
+/*Previously static functions, shared for win32_net_support */
+int proxy_init(struct httpdata *hd);
+int translate_url(const char *url, mpg123_string *purl);
+size_t accept_length(void);
+int fill_request(mpg123_string *request, mpg123_string *host, mpg123_string *port, mpg123_string *httpauth1, int *try_without_port);
+void get_header_string(mpg123_string *response, const char *fieldname, mpg123_string *store);
+char *get_header_val(const char *hname, mpg123_string *response);
+
+/* needed for HTTP/1.1 non-pipelining mode */
+/* #define CONN_HEAD "Connection: close\r\n" */
+#define CONN_HEAD ""
+#define icy_yes "Icy-MetaData: 1\r\n"
+#define icy_no "Icy-MetaData: 0\r\n"
 
 extern char *proxyurl;
 extern unsigned long proxyip;

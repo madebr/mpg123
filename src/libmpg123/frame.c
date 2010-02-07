@@ -37,9 +37,7 @@ void frame_default_pars(mpg123_pars *mp)
 #ifndef NO_ICY
 	mp->icy_interval = 0;
 #endif
-#ifndef WIN32
 	mp->timeout = 0;
-#endif
 	mp->resync_limit = 1024;
 #ifdef FRAME_INDEX
 	mp->index_size = INDEX_SIZE;

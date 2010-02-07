@@ -160,6 +160,9 @@ void init_playlist()
 	mpg123_init_string(&pl.linebuf);
 	pl.type = UNKNOWN;
 	pl.loop = param.loop;
+#ifdef WANT_WIN32_SOCKETS
+	pl.sockd = -1;
+#endif
 }
 
 /*
@@ -198,7 +201,11 @@ int add_next_file (int argc, char *argv[])
 	if (param.listname || pl.file)
 	{
 		size_t line_offset = 0;
+#ifndef WANT_WIN32_SOCKETS
 		if (!pl.file)
+#else
+		if (!pl.file && pl.sockd == -1)
+#endif
 		{
 			/* empty or "-" */
 			if (!*param.listname || !strcmp(param.listname, "-"))
@@ -212,7 +219,11 @@ int add_next_file (int argc, char *argv[])
 				int fd;
 				struct httpdata htd;
 				httpdata_init(&htd);
+#ifndef WANT_WIN32_SOCKETS
 				fd = http_open(param.listname, &htd);
+#else
+				fd = win32_net_http_open(param.listname, &htd);
+#endif
 				debug1("htd.content_type.p: %p", (void*) htd.content_type.p);
 				if(!param.ignore_mime && htd.content_type.p != NULL)
 				{
@@ -224,9 +235,13 @@ int add_next_file (int argc, char *argv[])
 					else if(mimi & IS_PLS)	pl.type = PLS;
 					else
 					{
+#ifndef WANT_WIN32_SOCKETS
 						if(fd >= 0) close(fd);
-
+#else
+						if(fd != SOCKET_ERROR) win32_net_close(fd);
+#endif
 						fd = -1;
+						
 						if(mimi & IS_FILE)
 						{
 							pl.type = NO_LIST;
@@ -250,12 +265,19 @@ int add_next_file (int argc, char *argv[])
 				{
 					param.listname = NULL;
 					pl.file = NULL;
+#ifdef WANT_WIN32_SOCKETS
+					pl.sockd = -1;
+#endif
 					error("Invalid playlist from http_open()!\n");
 				}
 				else
 				{
 					pl.entry = 0;
+#ifndef WANT_WIN32_SOCKETS
 					pl.file = fdopen(fd,"r");
+#else
+					pl.sockd = fd;
+#endif
 				}
 			}
 			else if (!(pl.file = fopen(param.listname, "rb")))
@@ -272,7 +294,11 @@ int add_next_file (int argc, char *argv[])
 			firstline = 1; /* just opened */
 		}
 		/* reading the file line by line */
+#ifndef WANT_WIN32_SOCKETS
 		while (pl.file)
+#else
+		while (pl.file || (pl.sockd) != -1)
+#endif
 		{
 			/*
 				now read a string of arbitrary size...
@@ -293,7 +319,11 @@ int add_next_file (int argc, char *argv[])
 					}
 				}
 				/* I rely on fgets writing the \0 at the end! */
+#ifndef WANT_WIN32_SOCKETS
 				if(fgets(pl.linebuf.p+have, pl.linebuf.size-have, pl.file))
+#else
+				if( (pl.file ? (fgets(pl.linebuf.p+have, pl.linebuf.size-have, pl.file)) : (win32_net_fgets(pl.linebuf.p+have, pl.linebuf.size-have, pl.sockd))))
+#endif
 				{
 					have += strlen(pl.linebuf.p+have);
 					debug2("have read %lu characters into linebuf: [%s]", (unsigned long)have, pl.linebuf.p);
@@ -443,9 +473,16 @@ int add_next_file (int argc, char *argv[])
 			else
 			{
 				if (param.listname)
-				fclose (pl.file);
+				if(pl.file) fclose (pl.file);
 				param.listname = NULL;
 				pl.file = NULL;
+#ifdef WANT_WIN32_SOCKETS
+				if( pl.sockd != -1)
+				{
+				  win32_net_close(pl.sockd);
+				  pl.sockd = -1;
+				}
+#endif
 			}
 		}
 	}

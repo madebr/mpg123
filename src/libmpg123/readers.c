@@ -58,7 +58,7 @@ static ssize_t plain_read(mpg123_handle *fr, void *buf, size_t count)
 	if(VERBOSE3) debug2("read %li bytes of %li", (long)ret, (long)count);
 	return ret;
 }
-#if (!defined (WIN32) || defined (__CYGWIN__))
+#if defined (NETWORK) && !defined (WANT_WIN32_SOCKETS)
 
 /* Wait for data becoming available, allowing soft-broken network connection to die
    This is needed for Shoutcast servers that have forgotten about us while connection was temporarily down. */

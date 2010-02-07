@@ -37,9 +37,7 @@ struct reader_data
 	off_t filepos; /* position in file or position in buffer chain */
 	int   filept;
 	int   flags;
-#if (!defined (WIN32) || defined (__CYGWIN__))
 	long timeout_sec;
-#endif
 	ssize_t (*fdread) (mpg123_handle *, void *, size_t);
 	/* User can replace the read and lseek functions. The r_* are the stored replacement functions or NULL,
 	   The second two pointers are the actual workers (default map to POSIX read/lseek). */

@@ -7,6 +7,8 @@
 #AM_CPPFLAGS = -I$(top_srcdir)/src/libmpg123 -I$(top_srcdir)/src
 INCLUDES = $(LTDLINCL) -I$(top_builddir)/src -I$(top_builddir)/src/libmpg123 -I$(top_srcdir)/src -I$(top_srcdir)/src/libmpg123
 
+#Do not include uneeded headers from mpg123app.h
+AM_CPPFLAGS = -DBUILDING_OUTPUT_MODULES=1
 
 if HAVE_MODULES
 

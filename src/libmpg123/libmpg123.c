@@ -318,11 +318,8 @@ int attribute_align_arg mpg123_par(mpg123_pars *mp, enum mpg123_parms key, long 
 			mp->outscale = val == 0 ? fval : (double)val/SHORT_SCALE;
 		break;
 		case MPG123_TIMEOUT:
-#if (!defined (WIN32) || defined (__CYGWIN__))
 			mp->timeout = val >= 0 ? val : 0;
-#else
-			ret = MPG123_NO_TIMEOUT;
-#endif
+			/*ret = MPG123_NO_TIMEOUT;*/
 		break;
 		case MPG123_RESYNC_LIMIT:
 			mp->resync_limit = val;
