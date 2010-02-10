@@ -4,6 +4,7 @@
 #include "httpget.h"
 #include "debug.h"
 #include "resolver.h"
+#include "compat.h"
 #include <errno.h>
 
 #if defined (WANT_WIN32_SOCKETS)
@@ -68,7 +69,7 @@ void win32_net_deinit (void)
   {
     if (ws.inited >= 2 && ws.local_socket != SOCKET_ERROR)
     {
-      debug1("ws.local_socket = %d", ws.local_socket);
+      debug1("ws.local_socket = %"SIZE_P"", (size_p)ws.local_socket);
       msgme_sock_err(shutdown(ws.local_socket, SD_BOTH));
       win32_net_close(ws.local_socket);
     }
@@ -96,10 +97,10 @@ static void win32_net_block(int sock)
 
 ssize_t win32_net_read (int fildes, void *buf, size_t nbyte)
 {
-  debug1("Attempting to read %u bytes from network.", nbyte);
+  debug1("Attempting to read %"SIZE_P" bytes from network.", (size_p)nbyte);
   ssize_t ret;
   msgme_sock_err(ret = (ssize_t) recv(ws.local_socket, buf, nbyte, 0));
-  debug1("Read %d bytes from network.", ret);
+  debug1("Read %"SSIZE_P" bytes from network.", (ssize_p)ret);
 
   return ret;
 }
@@ -126,7 +127,7 @@ char *win32_net_fgets(char *s, int n, int stream)
     if (c == '\n' || c == '\r')
       break;
   }
-  debug1("Pseudo net fgets got %u bytes.", (s - buf));
+  debug1("Pseudo net fgets got %"SIZE_P" bytes.", (size_p)(s - buf));
   if (c == -1 && s == buf)
   {
     debug("Pseudo net fgets met a premature end.");
@@ -138,10 +139,10 @@ char *win32_net_fgets(char *s, int n, int stream)
 
 ssize_t win32_net_write (int fildes, const void *buf, size_t nbyte)
 {
-  debug1("Attempting to write %u bytes to network.", nbyte);
+  debug1("Attempting to write %"SIZE_P" bytes to network.", (size_p)nbyte);
   ssize_t ret;
   msgme_sock_err((ret = (ssize_t) send(ws.local_socket, buf, nbyte, 0)));
-  debug1("wrote %d bytes to network.", ret);
+  debug1("wrote %"SSIZE_P" bytes to network.", (ssize_t)ret);
 
   return ret;
 }
@@ -289,7 +290,7 @@ static int win32_net_open_connection(mpg123_string *host, mpg123_string *port)
 
 static size_t win32_net_readstring (mpg123_string *string, size_t maxlen, FILE *f)
 {
-	debug2("Attempting readstring on %d for %d bytes", f ? fileno(f) : -1, maxlen);
+	debug2("Attempting readstring on %d for %"SIZE_P" bytes", f ? fileno(f) : -1, (size_p)maxlen);
 	int err;
 	string->fill = 0;
 	while(maxlen == 0 || string->fill < maxlen)
