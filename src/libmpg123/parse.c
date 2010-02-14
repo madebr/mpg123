@@ -449,7 +449,7 @@ int read_frame(mpg123_handle *fr)
 	}
 
 read_again:
-	debug2("trying to get frame %li at 0x%lx", (long)fr->num+1, (unsigned long)fr->rd->tell(fr));
+	debug2("trying to get frame %"OFF_P" at %"OFF_P, (off_p)fr->num+1, (off_p)fr->rd->tell(fr));
 	if((ret = fr->rd->head_read(fr,&newhead)) <= 0){ debug("need more?"); goto read_frame_bad;}
 
 init_resync:
@@ -537,7 +537,7 @@ init_resync:
 		unsigned long nexthead = 0;
 		int hd = 0;
 		off_t start = fr->rd->tell(fr);
-		debug2("doing ahead check with BPF %d at %li", fr->framesize+4, (long)start);
+		debug2("doing ahead check with BPF %d at %"OFF_P, fr->framesize+4, (off_p)start);
 		/* step framesize bytes forward and read next possible header*/
 		if((ret=fr->rd->skip_bytes(fr, fr->framesize))<0)
 		{
@@ -552,7 +552,7 @@ init_resync:
 			else debug("need more?"); 
 			goto read_frame_bad;
 		}
-		debug1("After fetching next header, at %li", (long)fr->rd->tell(fr));
+		debug1("After fetching next header, at %"OFF_P, (off_p)fr->rd->tell(fr));
 		if(!hd)
 		{
 			if(NOQUIET) warning("cannot read next header, a one-frame stream? Duh...");
@@ -751,8 +751,9 @@ init_resync:
 		fr->mean_framesize = ((fr->mean_frames-1)*fr->mean_framesize+compute_bpf(fr)) / fr->mean_frames ;
 	}
 	++fr->num; /* 0 for first frame! */
-	debug4("Frame %li %08lx %i, next filepos=0x%lx", 
-	(long)fr->num, newhead, fr->framesize, (long unsigned)fr->rd->tell(fr));
+	debug4("Frame %"OFF_P" %08lx %i, next filepos=%"OFF_P, 
+	(off_p)fr->num, newhead, fr->framesize, (off_p)fr->rd->tell(fr));
+
 	/* save for repetition */
 	if(fr->p.halfspeed && fr->lay == 3)
 	{
