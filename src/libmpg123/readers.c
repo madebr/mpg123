@@ -502,6 +502,9 @@ static void bc_drop(struct bufferchain *bc)
 static int bc_add(struct bufferchain *bc, const unsigned char *data, ssize_t size)
 {
 	int ret = 0;
+	debug2("bc_add: adding %"SSIZE_P" bytes at %"OFF_P, size, (off_p)(bc->fileoff+bc->size));
+	if(size >=4) debug4("first bytes: %02x %02x %02x %02x", data[0], data[1], data[2], data[3]);
+
 	if((ret = bc_append(bc, size)) == 0)
 	memcpy(bc->last->data, data, size);
 
@@ -579,10 +582,9 @@ static void bc_forget(struct bufferchain *bc)
 	struct buffy *b = bc->first;
 	/* free all buffers that are def'n'tly outdated */
 	/* we have buffers until filepos... delete all buffers fully below it */
-#ifdef EXTRA_DEBUG
 	if(b) debug2("bc_forget: block %lu pos %lu", (unsigned long)b->size, (unsigned long)bc->pos);
 	else debug("forget with nothing there!");
-#endif
+
 	while(b != NULL && bc->pos >= b->size)
 	{
 		struct buffy *n = b->next; /* != NULL or this is indeed the end and the last cycle anyway */
@@ -590,9 +592,9 @@ static void bc_forget(struct bufferchain *bc)
 		bc->fileoff += b->size;
 		bc->pos  -= b->size;
 		bc->size -= b->size;
-#ifdef EXTRA_DEBUG
+
 		debug5("bc_forget: forgot %p with %lu, pos=%li, size=%li, fileoff=%li", (void*)b->data, (long)b->size, (long)bc->pos,  (long)bc->size, (long)bc->fileoff);
-#endif
+
 		free(b->data);
 		free(b);
 		b = n;
@@ -669,12 +671,14 @@ off_t feed_set_pos(mpg123_handle *fr, off_t pos)
 	if(pos >= bc->fileoff && pos-bc->fileoff < bc->size)
 	{ /* We have the position! */
 		bc->pos = (ssize_t)(pos - bc->fileoff);
-		return pos+bc->size; /* Next input after end of buffer... */
+		debug1("feed_set_pos inside, next feed from %"OFF_P, (off_p)(bc->fileoff+bc->size));
+		return bc->fileoff+bc->size; /* Next input after end of buffer... */
 	}
 	else
 	{ /* I expect to get the specific position on next feed. Forget what I have now. */
 		bc_reset(bc);
 		bc->fileoff = pos;
+		debug1("feed_set_pos outside, buffer reset, next feed from %"OFF_P, (off_p)pos);
 		return pos; /* Next input from exactly that position. */
 	}
 }
