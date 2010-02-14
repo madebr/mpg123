@@ -875,6 +875,8 @@ void frame_set_seek(mpg123_handle *fr, off_t sp)
 	debug3("frame_set_seek: begin at %li frames, end at %li; ignore from %li",
 	       (long) fr->firstframe, (long) fr->lastframe, (long) fr->ignoreframe);
 #endif
+	/* Old bit reservoir should be invalid, eh? */
+	fr->bitreservoir = 0;
 }
 
 int attribute_align_arg mpg123_volume_change(mpg123_handle *mh, double change)
