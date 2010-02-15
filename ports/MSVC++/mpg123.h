@@ -15,6 +15,12 @@ typedef long ssize_t;
 typedef __int32 int32_t;
 typedef unsigned __int32 uint32_t;
 
+#define PRIiMAX "I64i"
+typedef __int64 intmax_t;
+// ftell returns long, _ftelli64 returns __int64
+// off_t is long, not __int64, use ftell
+#define ftello ftell
+
 #define MPG123_NO_CONFIGURE
 #include "mpg123.h.in" /* Yes, .h.in; we include the configure template! */
 
