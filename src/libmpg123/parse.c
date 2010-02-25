@@ -528,7 +528,7 @@ init_resync:
 			if(NOQUIET) error("Giving up searching valid MPEG header after (over) 64K of junk.");
 			return 0;
 		}
-		else debug("hopefully found one...");
+		else debug1("hopefully found one at %"OFF_P, (off_p)fr->rd->tell(fr));
 		/* 
 		 * should we additionaly check, whether a new frame starts at
 		 * the next expected position? (some kind of read ahead)
@@ -538,7 +538,6 @@ init_resync:
 #endif
 
 	/* first attempt of read ahead check to find the real first header; cannot believe what junk is out there! */
-	/* for now, a spurious first free format header screws up here; need free format support for detecting false free format headers... */
 	if(!fr->firsthead && fr->rdat.flags & (READER_SEEKABLE|READER_BUFFERED) && head_check(newhead) && decode_header(fr, newhead))
 	{
 		unsigned long nexthead = 0;
@@ -613,8 +612,8 @@ init_resync:
 		}
 		else if(NOQUIET && fr->silent_resync == 0)
 		{
-			fprintf(stderr,"Note: Illegal Audio-MPEG-Header 0x%08lx at offset 0x%lx.\n",
-				newhead, (long unsigned int)fr->rd->tell(fr)-4);
+			fprintf(stderr,"Note: Illegal Audio-MPEG-Header 0x%08lx at offset %"OFF_P".\n",
+				newhead, (off_p)fr->rd->tell(fr)-4);
 		}
 
 		if(NOQUIET && (newhead & 0xffffff00) == ('b'<<24)+('m'<<16)+('p'<<8)) fprintf(stderr,"Note: Could be a BMP album art.\n");
@@ -647,7 +646,7 @@ init_resync:
 
 					goto read_frame_bad;
 				}
-				if(VERBOSE3) debug3("resync try %li at 0x%lx, got newhead 0x%08lx", try, (unsigned long)fr->rd->tell(fr),  newhead);
+				if(VERBOSE3) debug3("resync try %li at %"OFF_P", got newhead 0x%08lx", try, (off_p)fr->rd->tell(fr),  newhead);
 
 				if(!fr->oldhead)
 				{
@@ -812,6 +811,7 @@ static long guess_freeformat_framesize(mpg123_handle *fr)
 	return -1;
 
 	/* We are already 4 bytes into it */
+/* fix that limit to be absolute for the first header search! */
 	for(i=4;i<65536;i++) {
 		if((ret=fr->rd->head_shift(fr,&head))<=0)
 		{
