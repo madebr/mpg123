@@ -426,7 +426,14 @@ int read_frame(mpg123_handle *fr)
 	/* stuff that needs resetting if complete frame reading fails */
 	int oldsize  = fr->framesize;
 	int oldphase = fr->halfphase;
+
+	/* The counter for the search-first-header loop.
+	   It is persistent outside the loop to prevent seemingly endless loops
+	   when repeatedly headers are found that do not have valid followup headers. */
+	int headcount = 0;
+
 	fr->fsizeold=fr->framesize;       /* for Layer3 */
+
 
 	/* Speed-down hack: Play it again, Sam (the frame, I mean). */
 	if (fr->p.halfspeed) 
@@ -472,7 +479,6 @@ init_resync:
 #ifdef SKIP_JUNK
 	/* watch out for junk/tags on beginning of stream by invalid header */
 	if(!fr->firsthead && !head_check(newhead)) {
-		int i;
 
 		/* check for id3v2; first three bytes (of 4) are "ID3" */
 		if((newhead & (unsigned long) 0xffffff00) == (unsigned long) 0x49443300)
@@ -510,15 +516,16 @@ init_resync:
 		/* unhandled junk... just continue search for a header */
 		/* step in byte steps through next 64K */
 		debug("searching for header...");
-		for(i=0;i<65536;i++) {
+		for(; headcount<65536; headcount++)
+		{
 			if((ret=fr->rd->head_shift(fr,&newhead))<=0){ debug("need more?"); goto read_frame_bad; }
 			/* if(head_check(newhead)) */
 			if(head_check(newhead) && decode_header(fr, newhead))
 				break;
 		}
-		if(i == 65536)
+		if(headcount == 65536)
 		{
-			if(NOQUIET) error("Giving up searching valid MPEG header after 64K of junk.");
+			if(NOQUIET) error("Giving up searching valid MPEG header after (over) 64K of junk.");
 			return 0;
 		}
 		else debug("hopefully found one...");
