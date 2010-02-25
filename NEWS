@@ -3,11 +3,16 @@
 
 - Help multilib setups that boldly assume that headers are invariant by removing the consistency check in mpg123.h and instead just adding a suffix to relevant functions when _FILE_OFFSET_BITS is defined. Invalid setups will now fail at the linking stage instead of the preprocessing stage.
   That should cover bug 2934488.
+- Fixes for gapless decoding:
+  - Correctly skip padding larger than one MPEG frame (strange, but occurs).
+  - Bug 2950218 (proper gapless cuts for seeking near the end).
 - Make sure the search for the first header aborts after 64K of one-byte reads, as always intended (bug 2951334).
   Certain files (or even random data) were able to fool mpg123 sufficiently enough that it basically reads through the whole file in 1-byte steps in search for MPEG data.
   The limit of 64K will very likely be configurable in a future mpg123 version.
+- Fix subtle bug with seeking in feeder mode: A seek close to the current position (meaning: the needed data offset is already in mpg123's buffer chain) resulted in skipped bytes.
 - Improve the feeder mode for handling large amounts of junk at the beginning, including proper passing of the request for more data when trying to determine free format frame size. This also fixes endless looping as reported in bug 2951334.
 - The parser code still needs overhaul. It is not pretty.
+- Compile fix for OpenAL.
 
 1.10.0
 ---
