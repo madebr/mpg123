@@ -921,7 +921,14 @@ int attribute_align_arg mpg123_feed(mpg123_handle *mh, const unsigned char *in, 
 		if(in != NULL)
 		{
 			if(feed_more(mh, in, size) != 0) return MPG123_ERR;
-			else return MPG123_OK;
+			else
+			{
+				/* The need for more data might have triggered an error.
+				   This one is outdated now with the new data. */
+				if(mh->err == MPG123_ERR_READER) mh->err = MPG123_OK;
+
+				return MPG123_OK;
+			}
 		}
 		else
 		{
