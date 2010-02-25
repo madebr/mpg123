@@ -1,3 +1,10 @@
+1.11.0
+---
+
+- Assembler cleanup (no relying on stack alignment for SSE, helping portability and even speedup by 8% on x86-64!).
+- Windows networking.
+- ...
+
 1.10.1
 ---
 
