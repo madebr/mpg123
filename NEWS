@@ -1,3 +1,9 @@
+1.10.1
+---
+
+- Help multilib setups that boldly assume that headers are invariant by removing the consistency check in mpg123.h and instead just adding a suffix to relevant functions when _FILE_OFFSET_BITS is defined. Invalid setups will now fail at the linking stage instead of the preprocessing stage.
+  That should cover bug 2934488.
+
 1.10.0
 ---
 
