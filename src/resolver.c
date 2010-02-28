@@ -2,7 +2,7 @@
 	resolver.c: TCP network stuff, for IPv4 and IPv6
 	Oh, and also some URL parsing... extracting host name and such.
 
-	copyright 2008 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2008-2010 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written Thomas Orgis (based on httpget.c)
 
@@ -277,6 +277,7 @@ int open_connection(mpg123_string *host, mpg123_string *port)
 	memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_family   = AF_UNSPEC; /* We accept both IPv4 and IPv6 ... and perhaps IPv8;-) */
 	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags    = AI_ADDRCONFIG; /* Only ask for addresses that we have configured inerfaces for. */
 
 	addrcount = getaddrinfo(host->p, port->p, &hints, &addrlist);
 
