@@ -44,12 +44,17 @@
 	Thinking about offering wrappers for non-largefile-aware apps (mpg123_open wrapping over mpg123_open_64, using 32 bit off_t):
 	This would need more pervasive changes in libmpg123, including	figuring out how to properly handle file descriptors being handed to mpg123_open_fd.
 	And frankly, I would like to avoid that complication. You can have multiple builds of libmpg123, after all -- with and without large file support.
+
+	More complication: What about client code defining _LARGEFILE64_SOURCE?
+	I only thought about _FILE_OFFSET_BITS. Dammit!
+	Perhaps make a new mpg123 API after all, avoiding off_t this time and
+	just cautioning apps about using mpg123_open_fd?
 */
 #if (defined _FILE_OFFSET_BITS)
 
 /* Need some trickery to concatenate the value of the given macro.
    To make it clear:
-   When _FILE_OFFSET_BITS is _64, the function names get _64 appended. */
+   When _FILE_OFFSET_BITS is 64, the function names get _64 appended. */
 #define MPG123_ADDSUFFIX_REALLY(func, suffix) func ## _ ## suffix
 #define MPG123_ADDSUFFIX(func, suffix) MPG123_ADDSUFFIX_REALLY(func, suffix)
 #define MPG123_LARGENAME(func) MPG123_ADDSUFFIX(func, _FILE_OFFSET_BITS)
@@ -69,6 +74,7 @@
 #define mpg123_position     MPG123_LARGENAME(mpg123_position)
 #define mpg123_length       MPG123_LARGENAME(mpg123_length)
 #define mpg123_set_filesize MPG123_LARGENAME(mpg123_set_filesize)
+#define mpg123_replace_reader MPG123_LARGENAME(mpg123_replace_reader)
 
 #endif /* largefile hackery */
 
