@@ -5,6 +5,7 @@
 - Windows networking.
 - Do not ask for addresses that do not have matching interfaces configured (IPv6 on a IPv4-only host, for example).
   That can help with broken DNS servers that choke on IPv6 addresses (T-Online Speedport W502V, for example).
+- Fix a potential icy reading problem were icy metadata could be read as mp3 data
 - ...
 
 1.10.1
