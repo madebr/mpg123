@@ -175,13 +175,15 @@ static ssize_t icy_fullread(mpg123_handle *fr, unsigned char *buf, ssize_t count
 			}
 			fr->icy.next = fr->icy.interval;
 		}
+		else
+		{
+			ret = plain_fullread(fr, buf+cnt, count-cnt);
+			if(ret < 0){ if(NOQUIET) error1("reading the rest of %li", (long)(count-cnt)); return READER_ERROR; }
+			if(ret == 0) break;
 
-		ret = plain_fullread(fr, buf+cnt, count-cnt);
-		if(ret < 0){ if(NOQUIET) error1("reading the rest of %li", (long)(count-cnt)); return READER_ERROR; }
-		if(ret == 0) break;
-
-		cnt += ret;
-		fr->icy.next -= ret;
+			cnt += ret;
+			fr->icy.next -= ret;
+		}
 	}
 	/* debug1("done reading, got %li", (long)cnt); */
 	return cnt;
