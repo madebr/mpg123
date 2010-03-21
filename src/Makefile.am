@@ -5,12 +5,12 @@
 ## initially written by Nicholas J. Humfrey
 
 AM_CPPFLAGS = -DPKGLIBDIR="\"$(pkglibdir)\""
-mpg123_LDADD = $(LIBLTDL) libmpg123/libmpg123.la @MODULE_OBJ@ @OUTPUT_OBJ@ @OUTPUT_LIBS@
+mpg123_LDADD = $(LIBLTDL) libmpg123/lib@LIBNAME@.la @MODULE_OBJ@ @OUTPUT_OBJ@ @OUTPUT_LIBS@
 mpg123_LDFLAGS = @EXEC_LT_LDFLAGS@ @OUTPUT_LDFLAGS@
 # Just mpg123_INCLUDES has no effect on build! Trying that before reverting to AM_CPPFLAGS.
 INCLUDES = $(LTDLINCL) -I$(top_builddir)/src/libmpg123 -I$(top_srcdir)/src/libmpg123
 # libltdl is not mentioned here... it's not that trivial
-mpg123_DEPENDENCIES = @OUTPUT_OBJ@ @MODULE_OBJ@ libmpg123/libmpg123.la
+mpg123_DEPENDENCIES = @OUTPUT_OBJ@ @MODULE_OBJ@ libmpg123/lib@LIBNAME@.la
 
 SUBDIRS = output libmpg123
 EXTRA_DIST = legacy_module.c module.c sfifo.c sfifo.h
@@ -140,7 +140,7 @@ output/sndio.$(OBJEXT): output/sndio.c audio.h module.h
 
 # Would have to mention _all_ source files... Dammit, that's what the libmpg123/Makefile.am does!
 # But again, the a make $something here needs that stupid rule... WHY???
-libmpg123/libmpg123.la: config.h libmpg123/mpg123.h
+libmpg123/lib@LIBNAME@.la: config.h libmpg123/mpg123.h
 	cd libmpg123 && $(MAKE)
 
 tests_seek_accuracy_SOURCES = \
@@ -148,16 +148,16 @@ tests/seek_accuracy.c \
 libmpg123/compat.h \
 libmpg123/compat.c
 
-tests_seek_accuracy_DEPENDENCIES = libmpg123/libmpg123.la
-tests_seek_accuracy_LDADD = libmpg123/libmpg123.la
+tests_seek_accuracy_DEPENDENCIES = libmpg123/lib@LIBNAME@.la
+tests_seek_accuracy_LDADD = libmpg123/lib@LIBNAME@.la
 
 tests_seek_whence_SOURCES = \
 tests/seek_whence.c \
 libmpg123/compat.h \
 libmpg123/compat.c
 
-tests_seek_whence_DEPENDENCIES = libmpg123/libmpg123.la
-tests_seek_whence_LDADD = libmpg123/libmpg123.la
+tests_seek_whence_DEPENDENCIES = libmpg123/lib@LIBNAME@.la
+tests_seek_whence_LDADD = libmpg123/lib@LIBNAME@.la
 
 tests_noise_SOURCES = \
 tests/noise.c \
@@ -172,13 +172,13 @@ tests/testtext.h \
 libmpg123/compat.h \
 libmpg123/compat.c
 
-tests_text_DEPENDENCIES = libmpg123/libmpg123.la
-tests_text_LDADD = libmpg123/libmpg123.la
+tests_text_DEPENDENCIES = libmpg123/lib@LIBNAME@.la
+tests_text_LDADD = libmpg123/lib@LIBNAME@.la
 
 tests_plain_id3_SOURCES = \
 tests/plain_id3.c \
 libmpg123/compat.h \
 libmpg123/compat.c
 
-tests_plain_id3_DEPENDENCIES = libmpg123/libmpg123.la
-tests_plain_id3_LDADD = libmpg123/libmpg123.la
+tests_plain_id3_DEPENDENCIES = libmpg123/lib@LIBNAME@.la
+tests_plain_id3_LDADD = libmpg123/lib@LIBNAME@.la

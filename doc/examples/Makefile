@@ -2,6 +2,10 @@ targets = feedseek mpg123_to_wav scan id3dump mpglib
 
 all: $(targets)
 
+# On largefile-aware systems you might want to use these instead:
+#MPG123_CFLAGS  := $(shell pkg-config --cflags libmpg123_64)
+#MPG123_LDFLAGS := $(shell pkg-config --libs   libmpg123_64)
+# This works on sane setups where off_t is off_t, and just that.
 MPG123_CFLAGS  := $(shell pkg-config --cflags libmpg123)
 MPG123_LDFLAGS := $(shell pkg-config --libs   libmpg123)
 SND_CFLAGS     := $(shell pkg-config --cflags sndfile)

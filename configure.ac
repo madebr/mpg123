@@ -11,7 +11,7 @@ AC_PREREQ(2.57)
 dnl ############# Initialisation
 
 AC_INIT([mpg123], [1.11.0], [mpg123-devel@lists.sourceforge.net])
-LIBMPG123_VERSION=22:8:22
+LIBMPG123_VERSION=23:0:23
 AC_SUBST(LIBMPG123_VERSION)
 
 AC_CONFIG_SRCDIR(src/mpg123.c)
@@ -873,6 +873,9 @@ dnl ...based on these two variables and manual work in src/libmpg123/mpg123.h.in
 AC_SUBST(LARGEFILE_BITS)
 AC_SUBST(LARGEFILE_SUFFIX)
 AC_SUBST(LARGEFILE_SWITCH)
+# New approach to avoid mess: Rename the library if it has explict large support enabled.
+LIBNAME=mpg123$LARGEFILE_SUFFIX
+AC_SUBST(LIBNAME)
 
 # Using the lower level macros instead of AC_TYPE_* for compatibility with not freshest autoconf.
 AC_CHECK_TYPE(size_t, unsigned long)
@@ -1965,6 +1968,7 @@ fi
 AC_CONFIG_FILES([
 	Makefile
 	libmpg123.pc
+	libmpg123_large.pc
 	mpg123.spec
 	doc/Makefile
 	src/Makefile
@@ -1992,9 +1996,14 @@ echo "
   Buffer .................. $buffer
   Network (http streams) .. $network
   Network Sockets ......... $network_type
-  IPv6 (getaddrinfo) ...... $ipv6
-  File offset (if needed) . $ac_cv_sys_file_offset_bits
-  Alignment checks ........ $aligncheck"
+  IPv6 (getaddrinfo) ...... $ipv6"
+if test x"$LARGEFILE_BITS" = x; then
+  echo "  File offsets ............ default"
+else
+  echo "  File offsets ............ $LARGEFILE_BITS"
+  echo "    This changes the library name to $LIBNAME (pkg-config name lib$LIBNAME)."
+fi
+echo "  Alignment checks ........ $aligncheck"
 if test x"$aligncheck" = xenabled; then
 	if test x"$ccalign" != xyes; then
 		echo "   (without effect since special alignment is not employed)"
