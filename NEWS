@@ -1,6 +1,9 @@
 1.11.0
 ---
 
+Attention: There was a re-release of the source archive, because the initial one missed the actual changes for the library name.
+Sorry for the inconvenience:-/
+
 - Big bad libray name change for builds with enabled large file support.
   That will break libmpg123 binary compatibility on Linux/x86 when upgrading from mpg123>=1.5.0 with enabled large file support. You need to relink with the new library called libmpg123_64.
   If you do not enable large file support, or it is implicit on your platform (x86-64), the library keeps the old name of libmpg123 and everything is fine.
