@@ -10,7 +10,7 @@ AC_PREREQ(2.57)
 
 dnl ############# Initialisation
 
-AC_INIT([mpg123], [1.11.0], [mpg123-devel@lists.sourceforge.net])
+AC_INIT([mpg123], [1.11.1], [mpg123-devel@lists.sourceforge.net])
 LIBMPG123_VERSION=23:0:23
 AC_SUBST(LIBMPG123_VERSION)
 
@@ -958,6 +958,8 @@ dnl OK, two lines... Solaris needs -lnsl -lsocket
 AC_SEARCH_LIBS(socket, socket) 
 
 AC_CHECK_FUNCS( getaddrinfo, [ have_ipv6=yes ], [ have_ipv6=no ] )
+
+APR_CHECK_GETADDRINFO_ADDRCONFIG()
 
 # Substitutions for the installable mpg123.h header
 if test "x$ac_cv_header_stdio_h" = "xyes"; then

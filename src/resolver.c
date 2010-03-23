@@ -277,8 +277,10 @@ int open_connection(mpg123_string *host, mpg123_string *port)
 	memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_family   = AF_UNSPEC; /* We accept both IPv4 and IPv6 ... and perhaps IPv8;-) */
 	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags    = AI_ADDRCONFIG; /* Only ask for addresses that we have configured inerfaces for. */
-
+	hints.ai_flags = 0;
+#ifdef HAVE_GAI_ADDRCONFIG
+	hints.ai_flags |= AI_ADDRCONFIG; /* Only ask for addresses that we have configured interfaces for. */
+#endif
 	addrcount = getaddrinfo(host->p, port->p, &hints, &addrlist);
 
 	if(addrcount <0)

@@ -1,3 +1,7 @@
+1.11.1
+---
+- Make the usage of AI_ADDRCONFIG dependend on a configure check. This flag is not available everywhere.
+
 1.11.0
 ---
 
