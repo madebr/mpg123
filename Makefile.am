@@ -54,3 +54,7 @@ EXTRA_DIST = \
 # Large file supporting version, where necessary, gets its pkg-config file constructed.
 libmpg123_@LARGEFILE_BITS@.pc: libmpg123_large.pc
 	cp $< $@
+
+# It is not cleaned up for some reason...
+clean-local:
+	if test -e libmpg123_@LARGEFILE_BITS@.pc; then rm libmpg123_@LARGEFILE_BITS@.pc; fi
