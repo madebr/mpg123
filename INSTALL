@@ -56,7 +56,7 @@ There are various library features you can leave out via --disable options (like
 The libmpg123 API includes the generic off_t type for file offsets and thus is subject to shape-shifting on systems that change off_t depending on build flags.
 To deal with the incompatibilities that can cause, depending on your build configuration, the library name will change when large file support is enabled.
 
-Generally, you can use ./configure --disable-large file to force a build with default (small) file support and the resulting library will be called libmpg123 (same for the pkg-config package name).
+Generally, you can use ./configure --disable-largefile to force a build with default (small) file support and the resulting library will be called libmpg123 (same for the pkg-config package name).
 Auto detection of large file support that can be enabled (via _FILE_OFFSET_BITS) optionally on your platform will result in a build that supports large files and uses the appropriate extended API of the system libc.
 Since this build will have a different ABI from the "default" one, the library changes its name to reflect that (on 32 bit systems wiht 64 bit large file support, the library will be called libmpg123_64). To prevent further possible damage by mis-linking, the symbols sensitive to relevant I/O calls get a _64 suffix appended, too.
 
