@@ -517,7 +517,7 @@ static void bc_drop(struct bufferchain *bc)
 static int bc_add(struct bufferchain *bc, const unsigned char *data, ssize_t size)
 {
 	int ret = 0;
-	debug2("bc_add: adding %"SSIZE_P" bytes at %"OFF_P, size, (off_p)(bc->fileoff+bc->size));
+	debug2("bc_add: adding %"SSIZE_P" bytes at %"OFF_P, (ssize_p)size, (off_p)(bc->fileoff+bc->size));
 	if(size >=4) debug4("first bytes: %02x %02x %02x %02x", data[0], data[1], data[2], data[3]);
 
 	if((ret = bc_append(bc, size)) == 0)
