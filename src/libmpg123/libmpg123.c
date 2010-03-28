@@ -1183,7 +1183,7 @@ static int do_the_seek(mpg123_handle *mh)
 	if(mh->down_sample == 3)
 	{
 		ntom_set_ntom(mh, fnum);
-		debug3("fixed ntom for frame %"OFF_P" to %lu, num=%"OFF_P, fnum, mh->ntom_val[0], mh->num);
+		debug3("fixed ntom for frame %"OFF_P" to %lu, num=%"OFF_P, (off_p)fnum, mh->ntom_val[0], (off_p)mh->num);
 	}
 #endif
 	b = mh->rd->seek_frame(mh, fnum);
@@ -1668,6 +1668,7 @@ static const char *mpg123_error[] =
 	,"Some bad value has been provided."
 	,"Low-level seeking has failed (call to lseek(), usually)."
 	,"Custom I/O obviously not prepared."
+	,"Overflow in LFS (large file support) conversion."
 };
 
 const char* attribute_align_arg mpg123_plain_strerror(int errcode)

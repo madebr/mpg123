@@ -275,6 +275,7 @@ enum mpg123_errors
 	,MPG123_BAD_VALUE /**< A bad value has been given, somewhere. */
 	,MPG123_LSEEK_FAILED /**< Low-level seek failed. */
 	,MPG123_BAD_CUSTOM_IO /**< Custom I/O not prepared. */
+	,MPG123_LFS_OVERFLOW /**< Offset value overflow during translation of large file API calls -- your client program cannot handle that large file. */
 };
 
 /** Return a string describing that error errcode means. */
@@ -473,8 +474,7 @@ EXPORT int mpg123_feed(mpg123_handle *mh, const unsigned char *in, size_t size);
  *  \param done address to store the number of actually decoded bytes to
  *  \return error/message code (watch out especially for MPG123_NEED_MORE)
  */
-EXPORT int mpg123_decode(mpg123_handle *mh, const unsigned char *inmemory, size_t inmemsize,
-                         unsigned char *outmemory, size_t outmemsize, size_t *done);
+EXPORT int mpg123_decode(mpg123_handle *mh, const unsigned char *inmemory, size_t inmemsize, unsigned char *outmemory, size_t outmemsize, size_t *done);
 
 /** Decode next MPEG frame to internal buffer
  *  or read a frame and return after setting a new format.
@@ -575,10 +575,7 @@ EXPORT int mpg123_set_index(mpg123_handle *mh, off_t *offsets, off_t step, size_
  *  served by libmpg123 but not yet played. You get the projected current frame 
  *  and seconds, as well as the remaining frames/seconds. This does _not_ care 
  *  about skipped samples due to gapless playback. */
-EXPORT int mpg123_position( mpg123_handle *mh, off_t frame_offset,
-                            off_t buffered_bytes,  off_t *current_frame,  
-                            off_t *frames_left, double *current_seconds,
-                            double *seconds_left);
+EXPORT int mpg123_position( mpg123_handle *mh, off_t frame_offset, off_t buffered_bytes, off_t *current_frame, off_t *frames_left, double *current_seconds, double *seconds_left);
 
 /*@}*/
 
@@ -993,9 +990,8 @@ EXPORT size_t mpg123_outblock(mpg123_handle *mh);
  *  used (active from next mpg123_open call on).
  *  Note: As it would be troublesome to mess with this while having a file open,
  *  this implies mpg123_close(). */
-EXPORT int mpg123_replace_reader( mpg123_handle *mh,
-                                  ssize_t (*r_read) (int, void *, size_t),
-                                  off_t   (*r_lseek)(int, off_t, int) );
+EXPORT int mpg123_replace_reader(mpg123_handle *mh, ssize_t (*r_read) (int, void *, size_t), off_t (*r_lseek)(int, off_t, int));
+
 /** Replace I/O functions with your own ones operating on some kind of handle instead of integer descriptors.
  *  The handle is a void pointer, so you can pass any data you want...
  *  mpg123_open_handle() is the call you make to use the I/O defined here.
@@ -1005,10 +1001,7 @@ EXPORT int mpg123_replace_reader( mpg123_handle *mh,
  *  \param r_read The callback for reading (behaviour like posix read).
  *  \param r_lseek The callback for seeking (like posix lseek).
  *  \param cleanup A callback to clean up an I/O handle on mpg123_close, can be NULL for none (you take care of cleaning your handles). */
-EXPORT int mpg123_replace_reader_handle( mpg123_handle *mh,
-                                  ssize_t (*r_read) (void *, void *, size_t),
-                                  off_t   (*r_lseek)(void *, off_t, int),
-                                  void    (*cleanup)(void*) );
+EXPORT int mpg123_replace_reader_handle(mpg123_handle *mh, ssize_t (*r_read) (void *, void *, size_t), off_t (*r_lseek)(void *, off_t, int), void (*cleanup)(void*));
 
 /* @} */
 
