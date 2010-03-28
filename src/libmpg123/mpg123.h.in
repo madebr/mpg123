@@ -66,6 +66,7 @@
 #define mpg123_open         MPG123_LARGENAME(mpg123_open)
 #define mpg123_open_fd      MPG123_LARGENAME(mpg123_open_fd)
 #define mpg123_open_handle  MPG123_LARGENAME(mpg123_open_handle)
+#define mpg123_framebyframe_decode MPG123_LARGENAME(mpg123_framebyframe_decode)
 #define mpg123_decode_frame MPG123_LARGENAME(mpg123_decode_frame)
 #define mpg123_tell         MPG123_LARGENAME(mpg123_tell)
 #define mpg123_tellframe    MPG123_LARGENAME(mpg123_tellframe)
