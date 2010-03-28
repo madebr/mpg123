@@ -1,6 +1,11 @@
-1.11.1
+1.12
 ---
+
+- libmpg123 24.0.24:
+  - Introduce handle-based custom I/O in libmpg123.
+  - The header now defines MPG123_API_VERSION to help compile-time detection of available functions (lib is version 24.0.24 now... MPG123_API_VERSION is 24).
 - Make the usage of AI_ADDRCONFIG dependend on a configure check. This flag is not available everywhere.
+
 
 1.11.0
 ---

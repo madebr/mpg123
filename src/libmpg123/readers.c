@@ -33,6 +33,10 @@ static off_t   posix_lseek(int fd, off_t offset, int whence){ return lseek(fd, o
 
 static ssize_t plain_fullread(mpg123_handle *fr,unsigned char *buf, ssize_t count);
 
+/* Wrapper to decide between descriptor-based and external handle-based I/O. */
+static off_t io_seek(struct reader_data *rdat, off_t offset, int whence);
+static ssize_t io_read(struct reader_data *rdat, void *buf, size_t count);
+
 #ifndef NO_FEEDER
 /* Bufferchain methods. */
 static void bc_init(struct bufferchain *bc);
@@ -54,7 +58,7 @@ static void bc_forget(struct bufferchain *bc);
 /* A normal read and a read with timeout. */
 static ssize_t plain_read(mpg123_handle *fr, void *buf, size_t count)
 {
-	ssize_t ret = fr->rdat.read(fr->rdat.filept, buf, count);
+	ssize_t ret = io_read(&fr->rdat, buf, count);
 	if(VERBOSE3) debug2("read %li bytes of %li", (long)ret, (long)count);
 	return ret;
 }
@@ -218,7 +222,7 @@ static ssize_t plain_fullread(mpg123_handle *fr,unsigned char *buf, ssize_t coun
 static off_t stream_lseek(mpg123_handle *fr, off_t pos, int whence)
 {
 	off_t ret;
-	ret = fr->rdat.lseek(fr->rdat.filept, pos, whence);
+	ret = io_seek(&fr->rdat, pos, whence);
 	if (ret >= 0)	fr->rdat.filepos = ret;
 	else
 	{
@@ -231,7 +235,16 @@ static off_t stream_lseek(mpg123_handle *fr, off_t pos, int whence)
 static void stream_close(mpg123_handle *fr)
 {
 	if(fr->rdat.flags & READER_FD_OPENED) compat_close(fr->rdat.filept);
+
+	fr->rdat.filept = 0;
+
 	if(fr->rdat.flags & READER_BUFFERED)  bc_reset(&fr->rdat.buffer);
+	if(fr->rdat.flags & READER_HANDLEIO)
+	{
+		if(fr->rdat.cleanup_handle != NULL) fr->rdat.cleanup_handle(fr->rdat.iohandle);
+
+		fr->rdat.iohandle = NULL;
+	}
 }
 
 static int stream_seek_frame(mpg123_handle *fr, off_t newframe)
@@ -406,15 +419,15 @@ static off_t get_fileinfo(mpg123_handle *fr)
 {
 	off_t len;
 
-	if((len=fr->rdat.lseek(fr->rdat.filept,0,SEEK_END)) < 0)	return -1;
+	if((len=io_seek(&fr->rdat,0,SEEK_END)) < 0)	return -1;
 
-	if(fr->rdat.lseek(fr->rdat.filept,-128,SEEK_END) < 0) return -1;
+	if(io_seek(&fr->rdat,-128,SEEK_END) < 0) return -1;
 
 	if(fr->rd->fullread(fr,(unsigned char *)fr->id3buf,128) != 128)	return -1;
 
 	if(!strncmp((char*)fr->id3buf,"TAG",3))	len -= 128;
 
-	if(fr->rdat.lseek(fr->rdat.filept,0,SEEK_SET) < 0)	return -1;
+	if(io_seek(&fr->rdat,0,SEEK_SET) < 0)	return -1;
 
 	if(len <= 0)	return -1;
 
@@ -985,6 +998,29 @@ int open_feed(mpg123_handle *fr)
 #endif /* NO_FEEDER */
 }
 
+/* Final code common to open_stream and open_stream_handle. */
+static int open_finish(mpg123_handle *fr)
+{
+#ifndef NO_ICY
+	if(fr->p.icy_interval > 0)
+	{
+		debug("ICY reader");
+		fr->icy.interval = fr->p.icy_interval;
+		fr->icy.next = fr->icy.interval;
+		fr->rd = &readers[READER_ICY_STREAM];
+	}
+	else
+#endif
+	{
+		fr->rd = &readers[READER_STREAM];
+		debug("stream reader");
+	}
+
+	if(fr->rd->init(fr) < 0) return -1;
+
+	return MPG123_OK;
+}
+
 int open_stream(mpg123_handle *fr, const char *bs_filenam, int fd)
 {
 	int filept_opened = 1;
@@ -1013,22 +1049,46 @@ int open_stream(mpg123_handle *fr, const char *bs_filenam, int fd)
 	fr->rdat.flags = 0;
 	if(filept_opened)	fr->rdat.flags |= READER_FD_OPENED;
 
-#ifndef NO_ICY
-	if(fr->p.icy_interval > 0)
+	return open_finish(fr);
+}
+
+int open_stream_handle(mpg123_handle *fr, void *iohandle)
+{
+	clear_icy(&fr->icy); /* can be done inside frame_clear ...? */
+	fr->rdat.filelen = -1;
+	fr->rdat.filept  = -1;
+	fr->rdat.iohandle = iohandle;
+	fr->rdat.flags = 0;
+	fr->rdat.flags |= READER_HANDLEIO;
+
+	return open_finish(fr);
+}
+
+/* Wrappers for actual reading/seeking... I'm full of wrappers here. */
+static off_t io_seek(struct reader_data *rdat, off_t offset, int whence)
+{
+	if(rdat->flags & READER_HANDLEIO)
 	{
-		debug("ICY reader");
-		fr->icy.interval = fr->p.icy_interval;
-		fr->icy.next = fr->icy.interval;
-		fr->rd = &readers[READER_ICY_STREAM];
+		if(rdat->r_lseek_handle != NULL)
+		{
+			return rdat->r_lseek_handle(rdat->iohandle, offset, whence);
+		}
+		else return -1;
 	}
 	else
-#endif
+	return rdat->lseek(rdat->filept, offset, whence);
+}
+
+static ssize_t io_read(struct reader_data *rdat, void *buf, size_t count)
+{
+	if(rdat->flags & READER_HANDLEIO)
 	{
-		fr->rd = &readers[READER_STREAM];
-		debug("stream reader");
+		if(rdat->r_read_handle != NULL)
+		{
+			return rdat->r_read_handle(rdat->iohandle, buf, count);
+		}
+		else return -1;
 	}
-
-	if(fr->rd->init(fr) < 0) return -1;
-
-	return MPG123_OK;
+	else
+	return rdat->read(rdat->filept, buf, count);
 }

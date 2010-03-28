@@ -85,6 +85,10 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 	invalidate_format(&fr->af);
 	fr->rdat.r_read = NULL;
 	fr->rdat.r_lseek = NULL;
+	fr->rdat.iohandle = NULL;
+	fr->rdat.r_read_handle = NULL;
+	fr->rdat.r_lseek_handle = NULL;
+	fr->rdat.cleanup_handle = NULL;
 	fr->decoder_change = 1;
 	fr->err = MPG123_OK;
 	if(mp == NULL) frame_default_pars(&fr->p);

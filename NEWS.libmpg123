@@ -1,5 +1,9 @@
 Changes in libmpg123 libtool interface versions...
 
+24.0.24
+	- Introduce mpg123_replace_reader_handle() and mpg123_open_handle()
+	  ... this is also in preparation for the next version which will drop the separated large-file library again, due to public display of dismay.
+
 23.0.23
 	- Version increase to mark the point where the explicit split between normal and large-file-enabled library has been introduced.
 

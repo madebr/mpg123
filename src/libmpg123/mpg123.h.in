@@ -10,6 +10,10 @@
 
 /** \file mpg123.h The header file for the libmpg123 MPEG Audio decoder */
 
+/* A macro to check at compile time which set of API functions to expect.
+   This should be incremented at least each time a new symbol is added to the header. */
+#define MPG123_API_VERSION @API_VERSION@
+
 /* These aren't actually in use... seems to work without using libtool. */
 #ifdef BUILD_MPG123_DLL
 /* The dll exports. */
@@ -61,6 +65,7 @@
 
 #define mpg123_open         MPG123_LARGENAME(mpg123_open)
 #define mpg123_open_fd      MPG123_LARGENAME(mpg123_open_fd)
+#define mpg123_open_handle  MPG123_LARGENAME(mpg123_open_handle)
 #define mpg123_decode_frame MPG123_LARGENAME(mpg123_decode_frame)
 #define mpg123_tell         MPG123_LARGENAME(mpg123_tell)
 #define mpg123_tellframe    MPG123_LARGENAME(mpg123_tellframe)
@@ -75,6 +80,7 @@
 #define mpg123_length       MPG123_LARGENAME(mpg123_length)
 #define mpg123_set_filesize MPG123_LARGENAME(mpg123_set_filesize)
 #define mpg123_replace_reader MPG123_LARGENAME(mpg123_replace_reader)
+#define mpg123_replace_reader_handle MPG123_LARGENAME(mpg123_replace_reader_handle)
 
 #endif /* largefile hackery */
 
@@ -422,6 +428,12 @@ EXPORT int mpg123_open(mpg123_handle *mh, const char *path);
  *  mpg123_close() will _not_ close the file descriptor.
  */
 EXPORT int mpg123_open_fd(mpg123_handle *mh, int fd);
+
+/** Use an opaque handle as bitstream input. This works only with the
+ *  replaced I/O from mpg123_replace_reader_handle()!
+ *  mpg123_close() will call the cleanup callback for your handle (if you gave one).
+ */
+EXPORT int mpg123_open_handle(mpg123_handle *mh, void *iohandle);
 
 /** Open a new bitstream and prepare for direct feeding
  *  This works together with mpg123_decode(); you are responsible for reading and feeding the input bitstream.
@@ -974,12 +986,22 @@ EXPORT size_t mpg123_outblock(mpg123_handle *mh);
 
 /** Replace low-level stream access functions; read and lseek as known in POSIX.
  *  You can use this to make any fancy file opening/closing yourself, 
- *  using open_fd to set the file descriptor for your read/lseek (doesn't need to be a "real" file descriptor...).
+ *  using mpg123_open_fd() to set the file descriptor for your read/lseek (doesn't need to be a "real" file descriptor...).
  *  Setting a function to NULL means that the default internal read is 
  *  used (active from next mpg123_open call on). */
 EXPORT int mpg123_replace_reader( mpg123_handle *mh,
                                   ssize_t (*r_read) (int, void *, size_t),
                                   off_t   (*r_lseek)(int, off_t, int) );
+/** Replace I/O functions with your own ones operating on some kind of handle instead of integer descriptors.
+ *  The handle is a void pointer, so you can pass any data you want...
+ *  mpg123_open_handle() is the call you make to use the I/O defined here.
+ *  \param r_read The callback for reading (behaviour like posix read).
+ *  \param r_lseek The callback for seeking (like posix lseek).
+ *  \param cleanup A callback to clean up an I/O handle on mpg123_close, can be NULL for none (you take care of cleaning your handles). */
+EXPORT int mpg123_replace_reader_handle( mpg123_handle *mh,
+                                  ssize_t (*r_read) (void *, void *, size_t),
+                                  off_t   (*r_lseek)(void *, off_t, int),
+                                  void    (*cleanup)(void*) );
 
 /* @} */
 

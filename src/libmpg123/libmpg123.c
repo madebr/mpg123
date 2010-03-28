@@ -507,6 +507,16 @@ int attribute_align_arg mpg123_open_fd(mpg123_handle *mh, int fd)
 	return open_stream(mh, NULL, fd);
 }
 
+int attribute_align_arg mpg123_open_handle(mpg123_handle *mh, void *iohandle)
+{
+	ALIGNCHECK(mh);
+	if(mh == NULL) return MPG123_ERR;
+
+	mpg123_close(mh);
+	frame_reset(mh);
+	return open_stream_handle(mh, iohandle);
+}
+
 int attribute_align_arg mpg123_open_feed(mpg123_handle *mh)
 {
 	ALIGNCHECK(mh);
@@ -528,6 +538,18 @@ int attribute_align_arg mpg123_replace_reader( mpg123_handle *mh,
 	return MPG123_OK;
 }
 
+int attribute_align_arg mpg123_replace_reader_handle( mpg123_handle *mh,
+                           ssize_t (*r_read) (void*, void *, size_t),
+                           off_t   (*r_lseek)(void*, off_t, int),
+                           void    (*cleanup)(void*)  )
+{
+	ALIGNCHECK(mh);
+	if(mh == NULL) return MPG123_ERR;
+	mh->rdat.r_read_handle = r_read;
+	mh->rdat.r_lseek_handle = r_lseek;
+	mh->rdat.cleanup_handle = cleanup;
+	return MPG123_OK;
+}
 
 int decode_update(mpg123_handle *mh)
 {
