@@ -514,6 +514,11 @@ int attribute_align_arg mpg123_open_handle(mpg123_handle *mh, void *iohandle)
 
 	mpg123_close(mh);
 	frame_reset(mh);
+	if(mh->rdat.r_read_handle == NULL)
+	{
+		mh->err = MPG123_BAD_CUSTOM_IO;
+		return MPG123_ERR;
+	}
 	return open_stream_handle(mh, iohandle);
 }
 
@@ -533,6 +538,8 @@ int attribute_align_arg mpg123_replace_reader( mpg123_handle *mh,
 {
 	ALIGNCHECK(mh);
 	if(mh == NULL) return MPG123_ERR;
+
+	mpg123_close(mh);
 	mh->rdat.r_read = r_read;
 	mh->rdat.r_lseek = r_lseek;
 	return MPG123_OK;
@@ -545,6 +552,8 @@ int attribute_align_arg mpg123_replace_reader_handle( mpg123_handle *mh,
 {
 	ALIGNCHECK(mh);
 	if(mh == NULL) return MPG123_ERR;
+
+	mpg123_close(mh);
 	mh->rdat.r_read_handle = r_read;
 	mh->rdat.r_lseek_handle = r_lseek;
 	mh->rdat.cleanup_handle = cleanup;
@@ -1658,6 +1667,7 @@ static const char *mpg123_error[] =
 	"Feature not in this build."
 	,"Some bad value has been provided."
 	,"Low-level seeking has failed (call to lseek(), usually)."
+	,"Custom I/O obviously not prepared."
 };
 
 const char* attribute_align_arg mpg123_plain_strerror(int errcode)

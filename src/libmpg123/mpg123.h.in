@@ -273,6 +273,7 @@ enum mpg123_errors
 	MPG123_MISSING_FEATURE  /**< This feature has not been built into libmpg123. */
 	,MPG123_BAD_VALUE /**< A bad value has been given, somewhere. */
 	,MPG123_LSEEK_FAILED /**< Low-level seek failed. */
+	,MPG123_BAD_CUSTOM_IO /**< Custom I/O not prepared. */
 };
 
 /** Return a string describing that error errcode means. */
@@ -988,13 +989,18 @@ EXPORT size_t mpg123_outblock(mpg123_handle *mh);
  *  You can use this to make any fancy file opening/closing yourself, 
  *  using mpg123_open_fd() to set the file descriptor for your read/lseek (doesn't need to be a "real" file descriptor...).
  *  Setting a function to NULL means that the default internal read is 
- *  used (active from next mpg123_open call on). */
+ *  used (active from next mpg123_open call on).
+ *  Note: As it would be troublesome to mess with this while having a file open,
+ *  this implies mpg123_close(). */
 EXPORT int mpg123_replace_reader( mpg123_handle *mh,
                                   ssize_t (*r_read) (int, void *, size_t),
                                   off_t   (*r_lseek)(int, off_t, int) );
 /** Replace I/O functions with your own ones operating on some kind of handle instead of integer descriptors.
  *  The handle is a void pointer, so you can pass any data you want...
  *  mpg123_open_handle() is the call you make to use the I/O defined here.
+ *  There is no fallback to internal read/seek here.
+ *  Note: As it would be troublesome to mess with this while having a file open,
+ *  this mpg123_close() is implied here.
  *  \param r_read The callback for reading (behaviour like posix read).
  *  \param r_lseek The callback for seeking (like posix lseek).
  *  \param cleanup A callback to clean up an I/O handle on mpg123_close, can be NULL for none (you take care of cleaning your handles). */
