@@ -1,9 +1,13 @@
-1.12
+1.12.0
 ---
 
-- libmpg123 24.0.24:
+Attention: This reverts the big bad libray name change. People did not like libmpg123_64.so at all ... so Thomas went along with proving that being responsible for a open source library package sucks for your life -- he coded large file dual-mode into libmpg123. One library with both APIs, like glibc.
+
+- libmpg123 25.0.25:
+  - The separate libraries are gone again, this one is dual-mode (using ca. 750 lines of not very funny code).
+  - The library even translates callbacks between large file support modes.
   - Introduce handle-based custom I/O in libmpg123.
-  - The header now defines MPG123_API_VERSION to help compile-time detection of available functions (lib is version 24.0.24 now... MPG123_API_VERSION is 24).
+  - The header now defines MPG123_API_VERSION to help compile-time detection of available functions (lib is version 25.0.25 now... MPG123_API_VERSION is 25).
 - Make the usage of AI_ADDRCONFIG dependend on a configure check. This flag is not available everywhere.
 
 

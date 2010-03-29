@@ -20,15 +20,15 @@ CLEANFILES = *.a
 
 
 # The library can have different names, depending on largefile setup.
-# Libtool macros think they're smart. Because of that @LIBNAME@.la does not work, it must be lib@LIBNAME@.la .
-lib_LTLIBRARIES = lib@LIBNAME@.la
+# Libtool macros think they're smart. Because of that mpg123.la does not work, it must be libmpg123.la .
+lib_LTLIBRARIES = libmpg123.la
 nodist_include_HEADERS = mpg123.h
 
-lib@LIBNAME@_la_LDFLAGS = -no-undefined -version-info @LIBMPG123_VERSION@ -export-symbols-regex '^mpg123_'
-lib@LIBNAME@_la_LIBADD = @DECODER_LOBJ@
-lib@LIBNAME@_la_DEPENDENCIES = @DECODER_LOBJ@
+libmpg123_la_LDFLAGS = -no-undefined -version-info @LIBMPG123_VERSION@ -export-symbols-regex '^mpg123_'
+libmpg123_la_LIBADD = @DECODER_LOBJ@ @LFS_LOBJ@
+libmpg123_la_DEPENDENCIES = @DECODER_LOBJ@ @LFS_LOBJ@
 
-lib@LIBNAME@_la_SOURCES = \
+libmpg123_la_SOURCES = \
 	compat.c \
 	compat.h \
 	parse.c \
@@ -65,7 +65,8 @@ lib@LIBNAME@_la_SOURCES = \
 	index.h \
 	index.c
 
-EXTRA_lib@LIBNAME@_la_SOURCES = \
+EXTRA_libmpg123_la_SOURCES = \
+	lfs_wrap.c \
 	icy.c \
 	icy2utf8.c \
 	l2tables.h \

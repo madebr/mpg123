@@ -89,6 +89,8 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 	fr->rdat.r_read_handle = NULL;
 	fr->rdat.r_lseek_handle = NULL;
 	fr->rdat.cleanup_handle = NULL;
+	fr->wrapperdata = NULL;
+	fr->wrapperclean = NULL;
 	fr->decoder_change = 1;
 	fr->err = MPG123_OK;
 	if(mp == NULL) frame_default_pars(&fr->p);
@@ -546,6 +548,12 @@ void frame_exit(mpg123_handle *fr)
 #endif
 	exit_id3(fr);
 	clear_icy(&fr->icy);
+	/* Clean up possible mess from LFS wrapper. */
+	if(fr->wrapperclean != NULL)
+	{
+		fr->wrapperclean(fr->wrapperdata);
+		fr->wrapperdata = NULL;
+	}
 }
 
 int attribute_align_arg mpg123_info(mpg123_handle *mh, struct mpg123_frameinfo *mi)

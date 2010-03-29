@@ -12,7 +12,7 @@ dnl ############# Initialisation
 
 AC_INIT([mpg123], [1.12.0], [mpg123-devel@lists.sourceforge.net])
 dnl Increment API_VERSION when the API gets changes (new functions).
-API_VERSION=24
+API_VERSION=25
 LIB_PATCHLEVEL=0
 dnl Since we want to be backwards compatible, both sides get set to API_VERSION.
 LIBMPG123_VERSION=$API_VERSION:$LIB_PATCHLEVEL:$API_VERSION
@@ -857,6 +857,8 @@ AC_CHECK_HEADERS([stdio.h stdlib.h string.h unistd.h sched.h sys/ioctl.h sys/typ
 
 dnl ############## Types
 
+dnl Large file support stuff needs cleanup. There are superfluous variables.
+
 dnl Detect large file support, enable switches if needed.
 AC_SYS_LARGEFILE
 dnl If we do have a switch for large files, rename off_t-aware API calls.
@@ -868,19 +870,22 @@ if test "x$ac_cv_sys_file_offset_bits" = x || echo "$ac_cv_sys_file_offset_bits"
 	dnl if it has non-numeric chars or is empty... ignore...
 	LARGEFILE_BITS=
 	LARGEFILE_SUFFIX=
+	LFS_LOBJ=
 else
 	LARGEFILE_BITS="$ac_cv_sys_file_offset_bits"
 	LARGEFILE_SUFFIX="_$ac_cv_sys_file_offset_bits"
+	# Add dual-mode wrapper code.
+	LFS_LOBJ=lfs_wrap.lo
 fi
+
+AC_SUBST(LFS_LOBJ)
 
 dnl Insert the function name redefinitions and export symbols as needed.
 dnl ...based on these two variables and manual work in src/libmpg123/mpg123.h.in .
+
 AC_SUBST(LARGEFILE_BITS)
 AC_SUBST(LARGEFILE_SUFFIX)
 AC_SUBST(LARGEFILE_SWITCH)
-# New approach to avoid mess: Rename the library if it has explict large support enabled.
-LIBNAME=mpg123$LARGEFILE_SUFFIX
-AC_SUBST(LIBNAME)
 
 # Using the lower level macros instead of AC_TYPE_* for compatibility with not freshest autoconf.
 AC_CHECK_TYPE(size_t, unsigned long)
@@ -1975,7 +1980,6 @@ fi
 AC_CONFIG_FILES([
 	Makefile
 	libmpg123.pc
-	libmpg123_large.pc
 	mpg123.spec
 	doc/Makefile
 	src/Makefile

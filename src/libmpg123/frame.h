@@ -309,6 +309,11 @@ struct mpg123_handle_struct
 		real (*hybrid_out)[SSLIMIT][SBLIMIT]; /* ALIGNED(16) real hybridOut[2][SSLIMIT][SBLIMIT]; */
 	} layer3;
 #endif
+	/* A place for storing additional data for the large file wrapper.
+	   This is cruft! */
+	void *wrapperdata;
+	/* A callback used to properly destruct the wrapper data. */
+	void (*wrapperclean)(void*);
 };
 
 /* generic init, does not include dynamic buffers */
