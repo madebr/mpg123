@@ -455,7 +455,8 @@ int control_generic (mpg123_handle *fr)
 					off_t pos = mpg123_tell(fr);
 					off_t len = mpg123_length(fr);
 					/* I need to have portable printf specifiers that do not truncate the type... more autoconf... */
-					generic_sendmsg("SAMPLE %li %li", (long)pos, (long)len);
+					if(len < 0) generic_sendmsg("E %s", mpg123_strerror(fr));
+					else generic_sendmsg("SAMPLE %li %li", (long)pos, (long)len);
 					continue;
 				}
 
