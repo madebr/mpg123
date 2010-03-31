@@ -56,22 +56,8 @@ There are various library features you can leave out via --disable options (like
 The libmpg123 API includes the generic off_t type for file offsets and thus is subject to shape-shifting on systems that change off_t depending on build flags.
 To deal with the incompatibilities that can cause, depending on your build configuration, the library name will change when large file support is enabled.
 
-Generally, you can use ./configure --disable-largefile to force a build with default (small) file support and the resulting library will be called libmpg123 (same for the pkg-config package name).
-Auto detection of large file support that can be enabled (via _FILE_OFFSET_BITS) optionally on your platform will result in a build that supports large files and uses the appropriate extended API of the system libc.
-Since this build will have a different ABI from the "default" one, the library changes its name to reflect that (on 32 bit systems wiht 64 bit large file support, the library will be called libmpg123_64). To prevent further possible damage by mis-linking, the symbols sensitive to relevant I/O calls get a _64 suffix appended, too.
-
-The mpg123 header uses the value of _FILE_OFFSET_BITS to determine which set of symbols shall be used in a client application -- it is the client build system's responsibility to define _FILE_OFFSET_BITS and link to the correct variant of libmpg123.
-
-Hint: If you want to install both variants of the library, do a main build with support for large files and install that. Then, do a build without large file support and install to some DESTDIR, then only adding the library files (.la, .so, .a) and pkg-config file to the main install.
-There is no benefit from installing the non-large-file mpg123 end-user binary.
-Also, the header will work for both libs.
-
-Oh, a simpler method might be to just do
-
-./configure --disable-largefile && make && make install
-./configure && make && make install
-
-The second build will enable large file support if possible and replace all files from the first install except the library and its pkg-config definition.
+Since version 1.12.0, a large-file-enabled libmpg123 (the default set by configure) provides a dual-mode ABI to work. Depending on _FILE_OFFSET_BITS, the mpg123.h header file selects different library symbols to use for your app.
+In both large-file and normal mode, the library should just work for your app.
 
 
 2. The classic way via the provided Makefile
