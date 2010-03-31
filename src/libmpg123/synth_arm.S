@@ -21,7 +21,7 @@
 
 	.text
 	ALIGN4
-	.global ASM_NAME(synth_1to1_arm_asm)
+	.globl ASM_NAME(synth_1to1_arm_asm)
 ASM_NAME(synth_1to1_arm_asm):
 	stmfd	sp!, {r4, r5, r6, r7, r8, r9, r10, lr}
 	
