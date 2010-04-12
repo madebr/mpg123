@@ -49,10 +49,11 @@ int mpg123_topen(mpg123_handle *fr, const _TCHAR *path)
 
 int mpg123_tclose(mpg123_handle *fr)
 {
-	int ret;
+	int ret, filept;
 
+	filept = fr->rdat.filept;
 	ret = mpg123_close(fr);
-	_close(fr->rdat.filept);
+	_close(filept);
 
 	return ret;
 }
