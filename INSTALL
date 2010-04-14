@@ -31,6 +31,8 @@ You want:
 
 - headers and lib for certain audio output drivers (libasound for alsa, sdl for sdl...)
 
+- libtool's libltdl for runtime output modules (this used to be included, but now we rely on an existing install)
+
 
 1. New installation via GNU autotools
 
