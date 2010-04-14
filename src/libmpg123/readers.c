@@ -62,7 +62,8 @@ static ssize_t plain_read(mpg123_handle *fr, void *buf, size_t count)
 	if(VERBOSE3) debug2("read %li bytes of %li", (long)ret, (long)count);
 	return ret;
 }
-#if defined (NETWORK) && !defined (WANT_WIN32_SOCKETS)
+
+#ifdef TIMEOUT_READ
 
 /* Wait for data becoming available, allowing soft-broken network connection to die
    This is needed for Shoutcast servers that have forgotten about us while connection was temporarily down. */
@@ -897,7 +898,10 @@ struct reader bad_reader =
 
 static int default_init(mpg123_handle *fr)
 {
-#if (!defined (WIN32) || defined (__CYGWIN__))
+	/* We had !__CYGWIN__ here ...
+	   does that work or does that not work on Cygwin?
+	   Please, someone test that... */
+#ifdef TIMEOUT_READ
 	if(fr->p.timeout > 0)
 	{
 		int flags;

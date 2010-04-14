@@ -95,6 +95,12 @@ int mpg123_feature(const enum mpg123_feature_set key)
 #else
 		return 0;
 #endif /* FRAME_INDEX */
+		case MPG123_FEATURE_TIMEOUT_READ:
+#ifdef TIMEOUT_READ
+		return 1;
+#else
+		return 0;
+#endif
 
 		default: return 0;
 	}

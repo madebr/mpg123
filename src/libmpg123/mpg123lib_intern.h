@@ -318,4 +318,9 @@ int decode_update(mpg123_handle *mh);
 off_t samples_to_bytes(mpg123_handle *fr , off_t s);
 off_t bytes_to_samples(mpg123_handle *fr , off_t b);
 
+/* If networking is enabled and we really mean internal networking, the timeout_read function is available. */
+#if defined (NETWORK) && !defined (WANT_WIN32_SOCKETS)
+#define TIMEOUT_READ
+#endif
+
 #endif
