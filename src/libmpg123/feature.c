@@ -1,5 +1,4 @@
-#include "config.h"
-#include "mpg123.h"
+#include "mpg123lib_intern.h"
 
 int mpg123_feature(const enum mpg123_feature_set key)
 {

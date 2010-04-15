@@ -898,9 +898,6 @@ struct reader bad_reader =
 
 static int default_init(mpg123_handle *fr)
 {
-	/* We had !__CYGWIN__ here ...
-	   does that work or does that not work on Cygwin?
-	   Please, someone test that... */
 #ifdef TIMEOUT_READ
 	if(fr->p.timeout > 0)
 	{
