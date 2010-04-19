@@ -2012,7 +2012,7 @@ if test x"$LARGEFILE_BITS" = x; then
   echo "  File offsets ............ default"
 else
   echo "  File offsets ............ $LARGEFILE_BITS"
-  echo "    This changes the library name to $LIBNAME (pkg-config name lib$LIBNAME)."
+  echo "    The lib will (try to) support default offset size, too."
 fi
 echo "  Alignment checks ........ $aligncheck"
 if test x"$aligncheck" = xenabled; then
