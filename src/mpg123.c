@@ -1269,7 +1269,7 @@ static void long_usage(int err)
 	fprintf(o,"        --8bit             force 8 bit output\n");
 	fprintf(o,"        --float            force floating point output (internal precision)\n");
 	audio_enclist(&enclist);
-	fprintf(o," -e <c> --encoding <c>     force a specific encoding c (%s)\n", enclist != NULL ? enclist : "OOM!");
+	fprintf(o," -e <c> --encoding <c>     force a specific encoding (%s)\n", enclist != NULL ? enclist : "OOM!");
 	fprintf(o," -d n   --doublespeed n    play only every nth frame\n");
 	fprintf(o," -h n   --halfspeed   n    play every frame n times\n");
 	fprintf(o,"        --equalizer        exp.: scales freq. bands acrd. to 'equalizer.dat'\n");
