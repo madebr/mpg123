@@ -91,6 +91,16 @@ char cpu_flags;
 #	define OUT_SYNTHS(synth_16, synth_8, synth_real, synth_32) { IF8(synth_8) IFREAL(synth_real) IF32(synth_32) }
 #endif
 
+/* The call of left and right plain synth, wrapped.
+   This may be replaced by a direct stereo optimized synth. */
+int synth_stereo_wrap(real *bandPtr_l, real *bandPtr_r, mpg123_handle *fr)
+{
+	int clip;
+	clip  = (fr->synth)(bandPtr_l, 0, fr, 0);
+	clip += (fr->synth)(bandPtr_r, 1, fr, 1);
+	return clip;
+}
+
 const struct synth_s synth_base =
 {
 	{ /* plain */
