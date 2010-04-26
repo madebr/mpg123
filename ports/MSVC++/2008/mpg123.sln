@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "feedseek", "feedseek\feedse
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "scan", "scan\scan.vcproj", "{245C2785-2FA9-4A6B-8558-35BB8473AEA1}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dump_seekindex", "dump_seekindex\dump_seekindex.vcproj", "{B086EA3E-700A-4DED-A91D-85ED8A79A8FC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -31,6 +33,10 @@ Global
 		{245C2785-2FA9-4A6B-8558-35BB8473AEA1}.Debug|Win32.Build.0 = Debug|Win32
 		{245C2785-2FA9-4A6B-8558-35BB8473AEA1}.Release|Win32.ActiveCfg = Release|Win32
 		{245C2785-2FA9-4A6B-8558-35BB8473AEA1}.Release|Win32.Build.0 = Release|Win32
+		{B086EA3E-700A-4DED-A91D-85ED8A79A8FC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B086EA3E-700A-4DED-A91D-85ED8A79A8FC}.Debug|Win32.Build.0 = Debug|Win32
+		{B086EA3E-700A-4DED-A91D-85ED8A79A8FC}.Release|Win32.ActiveCfg = Release|Win32
+		{B086EA3E-700A-4DED-A91D-85ED8A79A8FC}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
