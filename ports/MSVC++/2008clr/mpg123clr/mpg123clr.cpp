@@ -20,6 +20,7 @@
 	1.9.0.0 13-Oct-09	pin_ptr = nullptr on return (mb)
 	1.9.0.1	24-Nov-09	performance update - removed try/finally (mb)
 	1.10.0.0 30-Nov-09	release match - added mpg123_feature (mb)
+	1.12.0.0 14-Apr-10	release match - added framebyframe and "handle" ReplaceReaders (mb)
 */
 
 // mpg123clr.cpp : Defines the exported functions for the DLL application.
@@ -32,11 +33,15 @@
 mpg123clr::mpg123::mpg123(void)
 {
 	mh = nullptr;
+	useHandleReplacement = false;
+	lastReplacementWasHandle = false;
 }
 
 mpg123clr::mpg123::mpg123(mpg123_handle* mh)
 {
 	this->mh = mh;
+	useHandleReplacement = false;
+	lastReplacementWasHandle = false;
 }
 
 // Destructor
@@ -303,6 +308,20 @@ mpg123clr::mpg::ErrorCode  mpg123clr::mpg123::mpg123_open_fd(int filedescriptor)
 	return (mpg123clr::mpg::ErrorCode) ::mpg123_open_fd(mh, filedescriptor);
 }
 
+mpg123clr::mpg::ErrorCode  mpg123clr::mpg123::mpg123_open_handle(System::Object^ obj)
+{
+	// NOTE: You must have configured callbacks using mpg123_replace_reader_handle
+	// before calling mpg123_open_handle!
+
+	_ReplaceReader();	// activate callbacks
+
+	// Make sure we free this in Close functions
+	userObjectHandle = GCHandle::Alloc(obj);
+
+	// NOTE: This sends a HANDLE not an ADDRESS, no pinning required
+	return (mpg123clr::mpg::ErrorCode) ::mpg123_open_handle(mh, (void*)GCHandle::ToIntPtr(userObjectHandle).ToPointer());
+}
+
 mpg123clr::mpg::ErrorCode  mpg123clr::mpg123::mpg123_open_feed(void)
 {
 	_ReplaceReader();
@@ -312,7 +331,13 @@ mpg123clr::mpg::ErrorCode  mpg123clr::mpg123::mpg123_open_feed(void)
 
 mpg123clr::mpg::ErrorCode  mpg123clr::mpg123::mpg123_close(void)
 {
-	return (mpg123clr::mpg::ErrorCode) ::mpg123_close(mh);
+	// Closes 'mh' and calls Cleanup delegate if provided
+	int ret = ::mpg123_close(mh);
+
+	// See GCHandle.Free - caller must ensure Free called only once for a given handle.
+	if (userObjectHandle.IsAllocated) userObjectHandle.Free();
+		
+	return (mpg123clr::mpg::ErrorCode) ret;
 }
 
 mpg123clr::mpg::ErrorCode  mpg123clr::mpg123::mpg123_read(array<unsigned char>^ buffer, [Out] size_t% count)
@@ -380,6 +405,33 @@ mpg123clr::mpg::ErrorCode  mpg123clr::mpg123::mpg123_decode_frame([Out] off_t% n
 	_x = nullptr;
 	_num = nullptr;
 	_count = nullptr;
+	
+	return (mpg123clr::mpg::ErrorCode) ret;
+}
+
+mpg123clr::mpg::ErrorCode  mpg123clr::mpg123::mpg123_framebyframe_decode([Out] off_t% num, [Out] IntPtr% audio, [Out] size_t% count)
+{
+	// NOTE: must use framebyframe_next to obtain successive frames
+
+	pin_ptr<size_t> _count = &count;
+	pin_ptr<off_t> _num = &num;
+	pin_ptr<IntPtr> _x = &audio;
+
+	int ret = ::mpg123_framebyframe_decode(mh, _num, (unsigned char**)_x, _count);
+
+	_x = nullptr;
+	_num = nullptr;
+	_count = nullptr;
+	
+	return (mpg123clr::mpg::ErrorCode) ret;
+}
+
+mpg123clr::mpg::ErrorCode  mpg123clr::mpg123::mpg123_framebyframe_next()
+{
+	// mpg123lib has warning, Experimental API. Watch for updates!!!
+	// framebyframe_decode doesn't automatically move on to next frame,
+	// use framebyframe_next to move on to "Find, read and parse the next mp3 frame"
+	int ret = ::mpg123_framebyframe_next(mh);
 	
 	return (mpg123clr::mpg::ErrorCode) ret;
 }
@@ -720,7 +772,8 @@ size_t mpg123clr::mpg123::mpg123_outblock(void)
 
 void mpg123clr::mpg123::_ReplaceReader(void)
 {
-	if ((readDel == r_readDel) && (seekDel == r_seekDel)) return;
+	if ((readDel == r_readDel) && (seekDel == r_seekDel)
+		&& (readHDel == r_readHDel) && (seekDel == r_seekHDel) && (cleanHDel == r_cleanHDel)) return;
 
 	// readDel and seekDel are "keep alive" fields that prevent GC of the delegates.
 	// the underlying function pointers no not require "pinning".
@@ -734,17 +787,45 @@ void mpg123clr::mpg123::_ReplaceReader(void)
 
 	readDel = r_readDel;
 	seekDel = r_seekDel;
+	readHDel = r_readHDel;
+	seekHDel = r_seekHDel;
+	cleanHDel = r_cleanHDel;
 
 	// just for clarity
 	typedef off_t (_cdecl* SEEKCB)(int, off_t, int);
 	typedef ssize_t (_cdecl* READCB)(int, void*, size_t);
+	typedef off_t (_cdecl* HSEEKCB)(void*, off_t, int);
+	typedef ssize_t (_cdecl* HREADCB)(void*, void*, size_t);
+	typedef void (_cdecl* HCLEANCB)(void*);
 
-	// GetFunctionPointerForDelegate doesn't like nullptr
-	::mpg123_replace_reader(
-		mh, 
-		(readDel != nullptr) ? (READCB)(Marshal::GetFunctionPointerForDelegate(readDel)).ToPointer() : NULL, 
-		(seekDel != nullptr) ? (SEEKCB)(Marshal::GetFunctionPointerForDelegate(seekDel)).ToPointer() : NULL
-		);
+	// NOTE: GetFunctionPointerForDelegate doesn't like nullptr
+	// NOTE: I'm not suggesting that replace_reader and replace_reader_handle should be
+	//       intermingled, just trying to maintain a clean stack
+
+	if (!useHandleReplacement)
+	{
+		if (lastReplacementWasHandle)
+			::mpg123_replace_reader_handle(mh, nullptr, nullptr, nullptr);
+
+		::mpg123_replace_reader(
+			mh, 
+			(readDel != nullptr) ? (READCB)(Marshal::GetFunctionPointerForDelegate(readDel)).ToPointer() : nullptr, 
+			(seekDel != nullptr) ? (SEEKCB)(Marshal::GetFunctionPointerForDelegate(seekDel)).ToPointer() : nullptr
+			);
+	}
+	else
+	{
+		if (!lastReplacementWasHandle)	// can give redundant call on first use - microscopically inefficient - not catastrophic
+			::mpg123_replace_reader(mh, nullptr, nullptr);
+
+		::mpg123_replace_reader_handle(
+			mh, 
+			(readHDel != nullptr) ? (HREADCB)(Marshal::GetFunctionPointerForDelegate(readHDel)).ToPointer() : nullptr, 
+			(seekHDel != nullptr) ? (HSEEKCB)(Marshal::GetFunctionPointerForDelegate(seekHDel)).ToPointer() : nullptr,
+			(cleanHDel != nullptr) ? (HCLEANCB)(Marshal::GetFunctionPointerForDelegate(cleanHDel)).ToPointer() : nullptr
+			);
+	}
+	lastReplacementWasHandle = useHandleReplacement;
 }
 
 mpg123clr::mpg::ErrorCode mpg123clr::mpg123::mpg123_replace_reader(ReadDelegate^ r_read, SeekDelegate^ r_lseek)
@@ -752,6 +833,24 @@ mpg123clr::mpg::ErrorCode mpg123clr::mpg123::mpg123_replace_reader(ReadDelegate^
 	// save temporary delegates to be implemented at next 'Open'
 	r_readDel = r_read;
 	r_seekDel = r_lseek;
+	r_readHDel = nullptr;
+	r_seekHDel = nullptr;
+	r_cleanHDel = nullptr;
+	useHandleReplacement = false;
+
+	return mpg123clr::mpg::ErrorCode::ok;
+
+}
+
+mpg123clr::mpg::ErrorCode mpg123clr::mpg123::mpg123_replace_reader_handle(ReadHandleDelegate^ rh_read, SeekHandleDelegate^ rh_lseek, CleanupHandleDelegate^ rh_clean)
+{
+	// save temporary delegates to be implemented at next 'Open'
+	r_readHDel = rh_read;
+	r_seekHDel = rh_lseek;
+	r_cleanHDel = rh_clean;
+	r_readDel = nullptr;
+	r_seekDel = nullptr;
+	useHandleReplacement = true;
 
 	return mpg123clr::mpg::ErrorCode::ok;
 
@@ -776,7 +875,14 @@ mpg123clr::mpg::ErrorCode mpg123clr::mpg123::mpg123_topen(String^ path)
 
 mpg123clr::mpg::ErrorCode mpg123clr::mpg123::mpg123_tclose(void)
 {
-	return (mpg123clr::mpg::ErrorCode) ::mpg123_tclose(mh);
+	// Not sure if t_close calls Cleanup (it shouldn't since t_open substitutes its own readers)
+	int ret = ::mpg123_tclose(mh);
+
+	// Fairly sure replace_reader_handle, topen and tclose are incompatible, just for consistency
+	// See GCHandle.Free - caller must ensure Free called only once for a given handle.
+	if (userObjectHandle.IsAllocated) userObjectHandle.Free();
+		
+	return (mpg123clr::mpg::ErrorCode) ret;
 }
 
 #pragma endregion -MS Unicode Extension

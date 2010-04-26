@@ -76,6 +76,8 @@ namespace mpg123clr
 			///<para>NOTE: Do not set if you intend to use CLR id3v2 objects.</para>
 			///</summary>
 			plain_id3text = MPG123_PLAIN_ID3TEXT,	/// 100000000000 Do not translate ID3 text data to UTF-8. ID3 strings will contain the raw text data, with the first byte containing the ID3 encoding code.
+
+			ignore_streamlength = MPG123_IGNORE_STREAMLENGTH,	/// 1000000000000 Ignore any stream length information contained in the stream, which can be contained in a 'TLEN' frame of an ID3v2 tag or a Xing tag.
 		};
 
 		///<summary>RVA enumeration.</summary>
@@ -105,6 +107,7 @@ namespace mpg123clr
 			feature_decode_downsample = MPG123_FEATURE_DECODE_DOWNSAMPLE,	/// downsample (sample omit)
 			feature_decode_ntom = MPG123_FEATURE_DECODE_NTOM,				/// flexible rate decoding
 			feature_parse_icy = MPG123_FEATURE_PARSE_ICY,					/// ICY support
+			feature_timeout_read = MPG123_FEATURE_TIMEOUT_READ,				/// Reader with timeout (network)
 		};
 
 

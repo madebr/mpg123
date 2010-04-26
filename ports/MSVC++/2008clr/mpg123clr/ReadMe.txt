@@ -70,7 +70,7 @@ Developer Notes:
 	(or long long in C++) parameters, I've implemented off_t as a long long - with one notable exception. 
 	This fixed intellisense and accommodates the CLR 64bit long implementation positioners: And then intellisense 
 	started	working correctly and made this a moot point - at least as far as intellisense is concerned.
- 3) off_t notable exception - SeekDelegate
+ 3) off_t notable exception - SeekDelegate, SeekHandleDelegate
 	Usually 2008clr functions are called by the callee, long long (clr 64bit long) can be marshaled and passed
 	to libmpg123. The seek delegate is called directly by the libmpg123 seek functions - there isn't an opportunity
 	to marshal the offending parameters. A library compiled in 32 bit will expect the SeekDelegate to have a 32bit
@@ -93,6 +93,22 @@ Developer Notes:
 	If code analysis proves this to be redundant - can be removed...
 	(1.9.0.1 update) "insignificant" in Debug mode, quite significant if the debug overhead is removed, 
 	i.e. Release mode. So try/finally blocks removed in favour of allocating temporary local return variable.
+8)	(1.12.0.0 update) Support for mpg123_open_handle warrants further description... here it is.
+	a) Pinning of delegates is not required. See Microsoft: C++, How to: Marshal Callbacks and Delegates Using C++ Interop
+	b) Pinning of objects is an entirely different matter, so why is the open_handle object not pinned?
+	Answer: Because it's an object. I allowed passing of any object not just handles. 
+	i) a pin_ptr cannot be a field member for instance scope.
+	ii) cannot pin the object itself because there's no object.field to pin
+	iii) cannot pin the object target because the referenced object may be unblittable.
+	iv) GCHandle.Alloc(obj, GCHandleType.Pinned) doesn't work on unblittable objects (eg managed references like BinaryReader)
+	Since I don't restrict which objects may be passed I'm forced to exclude pinning.
+	c) The generated handle doesn't need to be pinned. GCHandle.Alloc(obj) creates a potentially GC relocatable object 
+	containing a Handle to the object. The GCHandle.ToIntPtr(userObjectHandle) creates an integer representation of the 
+	handle that is valid irrespective of any GC relocation of either the object or the GCHandle and can therefore be 
+	passed through unmanaged code to CLR native methods that can re-reference the original object via GCHandle.FromIntPtr 
+	and gch.Target.
+	All this seems relatively efficient, certainly there is little performance difference between the ReplaceReader
+	and ReplaceReaderHandle sample code.
 	
 =============================================================================
 Tested/Untested
@@ -100,6 +116,8 @@ Tested/Untested
 I haven't used mpg123clr in a production project yet, although one is about to start. Therefore EVERYTHING should
 be treated as though unproven. UPDATE: the scanclr, feedseekclr and replacereaderclr examples have provided a basic
 functional test.
+
+Largefile support totally untested... would appreciate a volunteer.
 
 The majority of functions have been tried in test projects with the following exceptions.
 
@@ -137,6 +155,7 @@ Revision History
 	1.9.0.0 30-Sep-09	Project config - if exists, copy libmpg123.dll to app output folder (mb)
 	1.9.0.0 01-Oct-09	Technical cleanup - subst nullptr for NULL (mb)
 	1.9.0.1	24-Nov-09	Performance update - removed try/finally (mb)
+	1.12.0.0 14-Apr-10	Release match - added open_handle and framebyframe support (mb)
 	
 Constructive feedback preferred.
 

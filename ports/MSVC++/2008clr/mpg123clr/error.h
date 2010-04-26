@@ -16,6 +16,7 @@
 /*
 	1.8.1.0	04-Aug-09	Initial release.
 	1.9.0.0 24-Sep-09	Function names harmonized with libmpg123 (mb)
+	1.12.0.0 14-Apr-10	Revision harmonization (catch-up)
 */
 
 #pragma once
@@ -93,7 +94,11 @@ namespace mpg123clr
 			missing_feature = MPG123_MISSING_FEATURE,		/// This feature has not been built into libmpg123. 
 			/* 1.8.1 */
 			bad_value = MPG123_BAD_VALUE,					/// A bad value has been given, somewhere. 
-			lseek_failed = MPG123_LSEEK_FAILED				/// Low-level seek failed. 
+			lseek_failed = MPG123_LSEEK_FAILED,				/// Low-level seek failed.
+			/* 1.12.0 */
+			bad_custom_io = MPG123_BAD_CUSTOM_IO,			/// Custom I/O not prepared.
+			lfs_overflow = MPG123_LFS_OVERFLOW,				/// Offset value overflow during translation of large file API calls,
+															/// - your client program cannot handle that large file.
 
 		};
 	}

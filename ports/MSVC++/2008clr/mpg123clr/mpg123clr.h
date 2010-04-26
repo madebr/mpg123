@@ -17,6 +17,7 @@
 	1.8.1.0	04-Aug-09	Initial release.
 	1.9.0.0 24-Sep-09	Function names harmonized with libmpg123 (mb)
 	1.10.0.0 30-Nov-09	release match - added mpg123_feature (mb)
+	1.12.0.0 14-Apr-10	release match - added framebyframe and "handle" ReplaceReaders (mb)
 */
 
 #pragma once
@@ -93,6 +94,9 @@ namespace mpg123clr
 		[UnmanagedFunctionPointer(CallingConvention::Cdecl)]		
 		delegate off_t SeekDelegate(int fd, off_t offset, int origin);
 
+		[UnmanagedFunctionPointer(CallingConvention::Cdecl)]		
+		delegate off_t SeekHandleDelegate(void* handle, off_t offset, int origin);
+
 		///<summary>Read Delegate.
 		///<para>Callback read function to provide low-level stream access to posix-like read operations.
 		/// Requires user supplied static callback fuction of form ssize_t fn(int fd, void* buffer, size_t size).</para>
@@ -105,14 +109,33 @@ namespace mpg123clr
 		[UnmanagedFunctionPointer(CallingConvention::Cdecl)]		
 		delegate ssize_t ReadDelegate(int fd, void* buffer, size_t size);
 
+		[UnmanagedFunctionPointer(CallingConvention::Cdecl)]		
+		delegate ssize_t ReadHandleDelegate(void* handle, void* buffer, size_t size);
+
+		[UnmanagedFunctionPointer(CallingConvention::Cdecl)]		
+		delegate void CleanupHandleDelegate(void* handle);
+
 	private:
 		// Delegate "keep alive" fields to prevent GC of delegate.
 		SeekDelegate^ seekDel;
 		ReadDelegate^ readDel;
 
+		SeekHandleDelegate^ seekHDel;
+		ReadHandleDelegate^ readHDel;
+		CleanupHandleDelegate^ cleanHDel;
+
+		GCHandle userObjectHandle;
+
 		// Temporary delegate store, replacereader action is defered until next stream 'open' action
 		SeekDelegate^ r_seekDel;
 		ReadDelegate^ r_readDel;
+
+		SeekHandleDelegate^ r_seekHDel;
+		ReadHandleDelegate^ r_readHDel;
+		CleanupHandleDelegate^ r_cleanHDel;
+
+		bool useHandleReplacement;
+		bool lastReplacementWasHandle;
 
 #pragma endregion -Callback and Delegate
 
@@ -400,6 +423,14 @@ namespace mpg123clr
 		///<returns>MPG123 error codes.</returns>
 		mpg123clr::mpg::ErrorCode __clrcall mpg123_open_fd(int fd);
 
+		///<summary>Use an opaque handle as bitstream input.
+		///<para>This works only with the replaced I/O from mpg123_replace_reader_handle()!</para>
+		///<para>mpg123_close() will call the cleanup callback for your handle (if you gave one).</para>
+		///<para>Returns MPG123 error codes.</para>
+		///</summary>
+		///<returns>MPG123 error codes.</returns>
+		mpg123clr::mpg::ErrorCode __clrcall mpg123_open_handle(System::Object^ obj);
+
 		///<summary>Open a new bitstream and prepare for direct feeding.
 		///<para>This works together with Decode(); you are responsible for reading and feeding the input bitstream.</para>
 		///<para>Returns MPG123 error codes.</para>
@@ -483,6 +514,27 @@ namespace mpg123clr
 		///<param name="count">Returns number of actual audio output bytes ready in the buffer.</param>
 		///<returns>MPG123 error codes. (watch out for MPG123_NEW_FORMAT)</returns>
 		mpg123clr::mpg::ErrorCode __clrcall mpg123_decode_frame([Out] off_t% num, [Out] IntPtr% audio, [Out] size_t% count);
+
+		///<summary>Decode current MPEG frame to internal buffer.
+		///<para>Use with mpg123_framebyframe_next to progress through data.</para>
+		///<para>Warning: This is experimental API that might change in future releases!
+		/// Please watch mpg123 development closely when using it.</para>
+		///<para>Returns MPG123 error codes.</para>
+		///</summary>
+		///<param name="num">Returns current frame offset.</param>
+		///<param name="audio">Returns pointer to internal buffer to read the decoded audio from. (Can be NULL for NEW_FORMAT)</param>
+		///<param name="bytes">Returns number of actual audio output bytes ready in the buffer.</param>
+		///<returns>MPG123 error codes.</returns>
+		mpg123clr::mpg::ErrorCode __clrcall mpg123_framebyframe_decode([Out] off_t% num, [Out] IntPtr% audio, [Out] size_t% bytes);
+
+		///<summary>Find, read and parse the next mp3 frame.
+		///<para>Use with mpg123_framebyframe_decode to obtain frame data.</para>
+		///<para>Warning: This is experimental API that might change in future releases!
+		/// Please watch mpg123 development closely when using it.</para>
+		///<para>Returns MPG123 error codes. (watch out for MPG123_NEW_FORMAT)</para>
+		///</summary>
+		///<returns>MPG123 error codes. (watch out for MPG123_NEW_FORMAT)</returns>
+		mpg123clr::mpg::ErrorCode __clrcall mpg123_framebyframe_next(void);
 
 #pragma endregion -File Input and Decoding
 
@@ -835,14 +887,18 @@ namespace mpg123clr
 
 		///<summary>Replace low-level stream access functions; read and lseek as known in POSIX.
 		///<para>You can use this to make any fancy file opening/closing yourself, 
-		/// using open_fd to set the file descriptor for your read/lseek (doesn't need to be a 'real' file descriptor...).</para>
+		/// using mpg123_open_fd() to set the file descriptor for your read/lseek (doesn't need to be a 'real' file descriptor...).</para>
 		///<para>Setting a function to NULL means that the default internal function is used (active from next Open call onward).</para>
+		/////////////////////////
 		///<para>Always returns MPG123_OK.</para>
 		///</summary>
 		///<param name="r_read">Delegate for read function, null for default.</param>
 		///<param name="r_lseek">Delegate for lseek function, null for default.</param>
 		///<returns>Always MPG123_OK.</returns>
 		mpg123clr::mpg::ErrorCode __clrcall mpg123_replace_reader(ReadDelegate^ r_read, SeekDelegate^ r_lseek);
+
+		///////////////////////////////////////
+		mpg123clr::mpg::ErrorCode __clrcall mpg123_replace_reader_handle(ReadHandleDelegate^ rh_read, SeekHandleDelegate^ rh_lseek, CleanupHandleDelegate^ rh_clean);
 
 	private:
 
