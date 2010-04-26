@@ -1,6 +1,8 @@
 1.12.2
 ---
 - Various build and portability fixes (including making some exotic configure switches work (again)).
+- Add dump_seekindex example
+- Sync mpg123_clr to 1.12 feature set, patch provided by Malcolm Boczek
 
 1.12.1
 ---
