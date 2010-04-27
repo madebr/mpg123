@@ -1,4 +1,4 @@
-targets = feedseek mpg123_to_wav scan id3dump mpglib
+targets = feedseek mpg123_to_wav scan id3dump mpglib dump_seekindex
 
 all: $(targets)
 
@@ -25,6 +25,9 @@ scan: scan.c
 
 id3dump:id3dump.c
 	$(compile) -o id3dump id3dump.c
+
+dump_seekindex: dump_seekindex.c
+	$(compile) -o dump_seekindex dump_seekindex.c
 
 mpglib: mpglib.c
 	$(compile) -o mpglib mpglib.c

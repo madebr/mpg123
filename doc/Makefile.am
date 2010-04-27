@@ -27,4 +27,5 @@ EXTRA_DIST = \
 	examples/mpglib.c \
 	examples/id3dump.c \
 	examples/feedseek.c \
+	examples/dump_seekindex.c \
 	examples/Makefile
