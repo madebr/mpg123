@@ -673,7 +673,7 @@ struct mpg123_frameinfo
 	enum mpg123_mode mode;			/**< The audio mode (Mono, Stereo, Joint-stero, Dual Channel). */
 	int mode_ext;					/**< The mode extension bit flag. */
 	int framesize;					/**< The size of the frame (in bytes). */
-	enum mpg123_flags flags;		/**< MPEG Audio flag bits. */
+	enum mpg123_flags flags;		/**< MPEG Audio flag bits. Just now I realize that it should be declared as int, not enum. It's a bitwise combination of the enum values. */
 	int emphasis;					/**< The emphasis type. */
 	int bitrate;					/**< Bitrate of the frame (kbps). */
 	int abr_rate;					/**< The target average bitrate. */
