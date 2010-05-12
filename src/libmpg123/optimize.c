@@ -903,8 +903,8 @@ const char* attribute_align_arg mpg123_current_decoder(mpg123_handle *mh)
 	return decname[mh->cpu_opts.type];
 }
 
-const char attribute_align_arg **mpg123_decoders(){ return mpg123_decoder_list; }
-const char attribute_align_arg **mpg123_supported_decoders()
+const char attribute_align_arg **mpg123_decoders(void){ return mpg123_decoder_list; }
+const char attribute_align_arg **mpg123_supported_decoders(void)
 {
 #ifdef OPT_MULTI
 	return mpg123_supported_decoder_list;

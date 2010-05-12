@@ -590,7 +590,7 @@ int decode_update(mpg123_handle *mh)
 	return 0;
 }
 
-size_t attribute_align_arg mpg123_safe_buffer()
+size_t attribute_align_arg mpg123_safe_buffer(void)
 {
 	/* real is the largest possible output (it's 32bit float, 32bit int or 64bit double). */
 	return sizeof(real)*2*1152*NTOM_MAX;

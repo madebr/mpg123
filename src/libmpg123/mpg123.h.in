@@ -303,10 +303,10 @@ EXPORT int mpg123_errcode(mpg123_handle *mh);
  */
 
 /** Return a NULL-terminated array of generally available decoder names (plain 8bit ASCII). */
-EXPORT const char **mpg123_decoders();
+EXPORT const char **mpg123_decoders(void);
 
 /** Return a NULL-terminated array of the decoders supported by the CPU (plain 8bit ASCII). */
-EXPORT const char **mpg123_supported_decoders();
+EXPORT const char **mpg123_supported_decoders(void);
 
 /** Set the chosen decoder to 'decoder_name' */
 EXPORT int mpg123_decoder(mpg123_handle *mh, const char* decoder_name);
@@ -684,7 +684,7 @@ struct mpg123_frameinfo
 EXPORT int mpg123_info(mpg123_handle *mh, struct mpg123_frameinfo *mi);
 
 /** Get the safe output buffer size for all cases (when you want to replace the internal buffer) */
-EXPORT size_t mpg123_safe_buffer(); 
+EXPORT size_t mpg123_safe_buffer(void); 
 
 /** Make a full parsing scan of each frame in the file. ID3 tags are found. An accurate length 
  *  value is stored. Seek index will be filled. A seek back to current position 
