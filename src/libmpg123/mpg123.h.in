@@ -43,25 +43,25 @@
 	New approach: When the app defines _FILE_OFFSET_BITS, it wants non-default large file support,
 	and thus functions with added suffix (mpg123_open_64).
 	Any mismatch will be caught at link time because of the _FILE_OFFSET_BITS setting used when
-	building libmpg123.
+	building libmpg123. Plus, there's dual mode large file support in mpg123 since 1.12 now.
+	Link failure is not the expected outcome of any half-sane usage anymore.
 
-	Thinking about offering wrappers for non-largefile-aware apps (mpg123_open wrapping over mpg123_open_64, using 32 bit off_t):
-	This would need more pervasive changes in libmpg123, including	figuring out how to properly handle file descriptors being handed to mpg123_open_fd.
-	And frankly, I would like to avoid that complication. You can have multiple builds of libmpg123, after all -- with and without large file support.
-
-	More complication: What about client code defining _LARGEFILE64_SOURCE?
-	I only thought about _FILE_OFFSET_BITS. Dammit!
-	Perhaps make a new mpg123 API after all, avoiding off_t this time and
-	just cautioning apps about using mpg123_open_fd?
+	More complication: What about client code defining _LARGEFILE64_SOURCE? It might want direct access to the _64 functions, along with the ones without suffix. Well, that's possible now via defining MPG123_NO_LARGENAME and MPG123_LARGESUFFIX, respectively, for disabling or enforcing the suffix names.
 */
-#if (defined _FILE_OFFSET_BITS)
 
-/* Need some trickery to concatenate the value of the given macro.
-   To make it clear:
-   When _FILE_OFFSET_BITS is 64, the function names get _64 appended. */
-#define MPG123_ADDSUFFIX_REALLY(func, suffix) func ## _ ## suffix
-#define MPG123_ADDSUFFIX(func, suffix) MPG123_ADDSUFFIX_REALLY(func, suffix)
-#define MPG123_LARGENAME(func) MPG123_ADDSUFFIX(func, _FILE_OFFSET_BITS)
+/*
+	Now, the renaming of large file aware functions.
+	By default, it appends underscore _FILE_OFFSET_BITS (so, mpg123_seek_64 for mpg123_seek), if _FILE_OFFSET_BITS is defined. You can force a different suffix via MPG123_LARGESUFFIX (that must include the underscore), or you can just disable the whole mess by defining MPG123_NO_LARGENAME.
+*/
+#if (!defined MPG123_NO_LARGENAME) && ((defined _FILE_OFFSET_BITS) || (defined MPG123_LARGESUFFIX))
+
+/* Need some trickery to concatenate the value(s) of the given macro(s). */
+#define MPG123_MACROCAT_REALLY(a, b) a ## b
+#define MPG123_MACROCAT(a, b) MPG123_MACROCAT_REALLY(a, b)
+#ifndef MPG123_LARGESUFFIX
+#define MPG123_LARGESUFFIX MPG123_MACROCAT(_, _FILE_OFFSET_BITS)
+#endif
+#define MPG123_LARGENAME(func) MPG123_MACROCAT(func, MPG123_LARGESUFFIX)
 
 #define mpg123_open         MPG123_LARGENAME(mpg123_open)
 #define mpg123_open_fd      MPG123_LARGENAME(mpg123_open_fd)
