@@ -1,5 +1,8 @@
 Changes in libmpg123 libtool interface versions...
 
+26.0.26
+	- Added mpg123_encsize().
+
 25.0.25
 	- Version increase to mark the point where the split between normal and large-file-enabled library vanishes again. The world did not like it.
 	  Now Thomas lost some days of recreation and sleep to give it a dual-mode libmpg123 on large-file-sensitive systems.

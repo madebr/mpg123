@@ -84,6 +84,20 @@ void attribute_align_arg mpg123_encodings(const int **list, size_t *number)
 	if(number != NULL) *number = sizeof(good_encodings)/sizeof(int);
 }
 
+int attribute_align_arg mpg123_encsize(int encoding)
+{
+	if(encoding & MPG123_ENC_8)
+	return 1;
+	else if(encoding & MPG123_ENC_16)
+	return 2;
+	else if(encoding & MPG123_ENC_32 || encoding == MPG123_ENC_FLOAT_32)
+	return 4;
+	else if(encoding == MPG123_ENC_FLOAT_64)
+	return 8;
+	else
+	return 0;
+}
+
 /*	char audio_caps[NUM_CHANNELS][MPG123_RATES+1][MPG123_ENCODINGS]; */
 
 static int rate2num(mpg123_pars *mp, long r)
@@ -254,15 +268,8 @@ end: /* Here is the _good_ end. */
 		fr->af.channels = nf.channels;
 		fr->af.encoding = nf.encoding;
 		/* Cache the size of one sample in bytes, for ease of use. */
-		if(fr->af.encoding & MPG123_ENC_8)
-		fr->af.encsize = 1;
-		else if(fr->af.encoding & MPG123_ENC_16)
-		fr->af.encsize = 2;
-		else if(fr->af.encoding & MPG123_ENC_32 || fr->af.encoding == MPG123_ENC_FLOAT_32)
-		fr->af.encsize = 4;
-		else if(fr->af.encoding == MPG123_ENC_FLOAT_64)
-		fr->af.encsize = 8;
-		else
+		fr->af.encsize = mpg123_encsize(fr->af.encoding);
+		if(fr->af.encsize < 1)
 		{
 			if(NOQUIET) error1("Some unknown encoding??? (%i)", fr->af.encoding);
 
