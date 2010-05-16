@@ -588,10 +588,17 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 #ifndef NO_ID3V2
 	if(VERBOSE2) fprintf(stderr,"Note: ID3v2.%i rev %i tag of %lu bytes\n", major, buf[0], length);
 	/* skip if unknown version/scary flags, parse otherwise */
-	if((flags & UNKNOWN_FLAGS) || (major > 4) || (major < 2))
+	if(fr->p.flags & MPG123_SKIP_ID3V2 || ((flags & UNKNOWN_FLAGS) || (major > 4) || (major < 2)))
 	{
-		/* going to skip because there are unknown flags set */
-		if(NOQUIET) warning2("ID3v2: Won't parse the ID3v2 tag with major version %u and flags 0x%xu - some extra code may be needed", major, flags);
+		if(NOQUIET)
+		{
+			if(fr->p.flags & MPG123_SKIP_ID3V2)
+			{
+				if(VERBOSE3) fprintf(stderr, "Note: Skipping ID3v2 tag per user request.\n");
+			}
+			else /* Must be because of scary Tag properties. */
+			warning2("ID3v2: Won't parse the ID3v2 tag with major version %u and flags 0x%xu - some extra code may be needed", major, flags);
+		}
 #endif
 		if((ret2 = fr->rd->skip_bytes(fr,length)) < 0) /* will not store data in backbuff! */
 		ret = ret2;

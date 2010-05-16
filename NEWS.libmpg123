@@ -2,6 +2,7 @@ Changes in libmpg123 libtool interface versions...
 
 26.0.26
 	- Added mpg123_encsize().
+	- Added flag MPG123_SKIP_ID3V2.
 
 25.0.25
 	- Version increase to mark the point where the split between normal and large-file-enabled library vanishes again. The world did not like it.

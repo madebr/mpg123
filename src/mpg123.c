@@ -461,6 +461,7 @@ topt opts[] = {
 	{'e', "encoding", GLO_ARG|GLO_CHAR, 0, &param.force_encoding, 0},
 	{0, "preload", GLO_ARG|GLO_DOUBLE, 0, &param.preload, 0},
 	{0, "preframes", GLO_ARG|GLO_LONG, 0, &param.preframes, 0},
+	{0, "skip-id3v2", GLO_INT, set_frameflag, &frameflag, MPG123_SKIP_ID3V2},
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -1214,6 +1215,7 @@ static void long_usage(int err)
 
 	fprintf(o,"\ninput options\n\n");
 	fprintf(o," -k <n> --skip <n>         skip n frames at beginning\n");
+	fprintf(o,"        --skip-id3v2       skip ID3v2 tags without parsing\n");
 	fprintf(o," -n     --frames <n>       play only <n> frames of every stream\n");
 	fprintf(o,"        --fuzzy            Enable fuzzy seeks (guessing byte offsets or using approximate seek points from Xing TOC)\n");
 	fprintf(o," -y     --no-resync        DISABLES resync on error (--resync is deprecated)\n");
