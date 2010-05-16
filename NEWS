@@ -3,6 +3,8 @@
 - Various build and portability fixes (including making some exotic configure switches work (again)).
 - Add dump_seekindex example
 - Sync mpg123_clr to 1.12 feature set, patch provided by Malcolm Boczek
+- Rework mpg123.h logic for large file stuff a bit, clients can control it by defining MPG123_NO_LARGENAME or MPG123_LARGESUFFIX.
+- Include dumb wrappers to provide names suffixed with _64 on 64 bit machines and _32 on 32 bit machines, respectively, to help clients that insist on defining _FILE_OFFSET_BITS where it is not needed (or with a non-large value).
 
 1.12.1
 ---
