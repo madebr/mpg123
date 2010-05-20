@@ -59,7 +59,6 @@ struct gr_info_s
 	/* Making those two signed int as workaround for open64/pathscale/sun compilers, and also for consistency, since they're worked on together with other signed variables. */
 	int maxband[3];
 	int maxbandl;
-	unsigned maxbandl;
 	unsigned maxb;
 	unsigned region1start;
 	unsigned region2start;
