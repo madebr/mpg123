@@ -16,7 +16,7 @@ static void frame_fixed_reset(mpg123_handle *fr);
 #define NTOM_MUL (32768)
 
 #define aligned_pointer(p, type, alignment) align_the_pointer(p, alignment)
-void *align_the_pointer(void *base, unsigned int alignment)
+static void *align_the_pointer(void *base, unsigned int alignment)
 {
 	/*
 		Work in unsigned integer realm, explicitly.
