@@ -20,7 +20,7 @@
 #define TEMP(n) (12+16*n)(%esp)
 
 /*
-	int synth_1to1_real_stereo_sse_asm(real *window, real *b0l, real *b0r, real *samples, int bo1);
+	int synth_1to1_real_s_sse_asm(real *window, real *b0l, real *b0r, real *samples, int bo1);
 	return value: number of clipped samples (0)
 */
 
@@ -37,8 +37,8 @@ ASM_NAME(scale_sse):
 	.long   939524096
 	.text
 	ALIGN16
-.globl ASM_NAME(synth_1to1_real_stereo_sse_asm)
-ASM_NAME(synth_1to1_real_stereo_sse_asm):
+.globl ASM_NAME(synth_1to1_real_s_sse_asm)
+ASM_NAME(synth_1to1_real_s_sse_asm):
 	pushl		%ebp
 	movl		%esp, %ebp
 	andl		$-16, %esp

@@ -34,7 +34,7 @@
 #define TEMP_CLIP (%rsp)
 
 /*
-	int synth_1to1_s32_stereo_x86_64_asm(real *window, real *b0l, real *b0r, int32_t *samples, int bo1);
+	int synth_1to1_s32_s_x86_64_asm(real *window, real *b0l, real *b0r, int32_t *samples, int bo1);
 	return value: number of clipped samples
 */
 
@@ -61,8 +61,8 @@ ASM_NAME(maxmin_s32):
 	.long   -956301312
 	.text
 	ALIGN16
-.globl ASM_NAME(synth_1to1_s32_stereo_x86_64_asm)
-ASM_NAME(synth_1to1_s32_stereo_x86_64_asm):
+.globl ASM_NAME(synth_1to1_s32_s_x86_64_asm)
+ASM_NAME(synth_1to1_s32_s_x86_64_asm):
 #ifdef _WIN64 /* should save xmm6-15 */
 	movl		40(%rsp), %eax /* 5th argument; placed after 32-byte shadow space */
 	pushq		%rsi

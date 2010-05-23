@@ -11,6 +11,7 @@
 #define __MANGLE_H
 
 #include "config.h"
+#include "intsym.h"
 
 #ifdef CCALIGN
 #define MOVUAPS movaps

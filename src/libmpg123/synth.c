@@ -143,7 +143,7 @@ int synth_1to1_mmx(real *bandPtr, int channel, mpg123_handle *fr, int final)
 #ifdef ACCURATE_ROUNDING
 /* This is defined in assembler. */
 int synth_1to1_sse_accurate_asm(real *window, real *b0, short *samples, int bo1);
-int synth_1to1_stereo_sse_accurate_asm(real *window, real *b0l, real *b0r, short *samples, int bo1);
+int synth_1to1_s_sse_accurate_asm(real *window, real *b0l, real *b0r, short *samples, int bo1);
 void dct64_real_sse(real *out0, real *out1, real *samples);
 /* This is just a hull to use the mpg123 handle. */
 int synth_1to1_sse(real *bandPtr,int channel, mpg123_handle *fr, int final)
@@ -223,7 +223,7 @@ int synth_1to1_stereo_sse(real *bandPtr_l, real *bandPtr_r, mpg123_handle *fr)
 		dct64_real_sse(bufr[0]+fr->bo,bufr[1]+fr->bo+1,bandPtr_r);
 	}
 
-	clip = synth_1to1_stereo_sse_accurate_asm(fr->decwin, b0l, b0r, samples, bo1);
+	clip = synth_1to1_s_sse_accurate_asm(fr->decwin, b0l, b0r, samples, bo1);
 
 	fr->buffer.fill += 128;
 
@@ -262,7 +262,7 @@ int synth_1to1_3dnowext(real *bandPtr, int channel, mpg123_handle *fr, int final
 #ifdef ACCURATE_ROUNDING
 /* Assembler routines. */
 int synth_1to1_x86_64_accurate_asm(real *window, real *b0, short *samples, int bo1);
-int synth_1to1_stereo_x86_64_accurate_asm(real *window, real *b0l, real *b0r, short *samples, int bo1);
+int synth_1to1_s_x86_64_accurate_asm(real *window, real *b0l, real *b0r, short *samples, int bo1);
 void dct64_real_x86_64(real *out0, real *out1, real *samples);
 /* Hull for C mpg123 API */
 int synth_1to1_x86_64(real *bandPtr,int channel, mpg123_handle *fr, int final)
@@ -343,7 +343,7 @@ int synth_1to1_stereo_x86_64(real *bandPtr_l, real *bandPtr_r, mpg123_handle *fr
 		dct64_real_x86_64(bufr[0]+fr->bo,bufr[1]+fr->bo+1,bandPtr_r);
 	}
 
-	clip = synth_1to1_stereo_x86_64_accurate_asm(fr->decwin, b0l, b0r, samples, bo1);
+	clip = synth_1to1_s_x86_64_accurate_asm(fr->decwin, b0l, b0r, samples, bo1);
 
 	fr->buffer.fill += 128;
 
@@ -352,7 +352,7 @@ int synth_1to1_stereo_x86_64(real *bandPtr_l, real *bandPtr_r, mpg123_handle *fr
 #else
 /* This is defined in assembler. */
 int synth_1to1_x86_64_asm(short *window, short *b0, short *samples, int bo1);
-int synth_1to1_stereo_x86_64_asm(short *window, short *b0l, short *b0r, short *samples, int bo1);
+int synth_1to1_s_x86_64_asm(short *window, short *b0l, short *b0r, short *samples, int bo1);
 void dct64_x86_64(short *out0, short *out1, real *samples);
 /* This is just a hull to use the mpg123 handle. */
 int synth_1to1_x86_64(real *bandPtr,int channel, mpg123_handle *fr, int final)
@@ -431,7 +431,7 @@ int synth_1to1_stereo_x86_64(real *bandPtr_l,real *bandPtr_r, mpg123_handle *fr)
 		dct64_x86_64(bufr[0]+fr->bo,bufr[1]+fr->bo+1,bandPtr_r);
 	}
 
-	clip = synth_1to1_stereo_x86_64_asm((short *)fr->decwins, b0l, b0r, samples, bo1);
+	clip = synth_1to1_s_x86_64_asm((short *)fr->decwins, b0l, b0r, samples, bo1);
 
 	fr->buffer.fill += 128;
 

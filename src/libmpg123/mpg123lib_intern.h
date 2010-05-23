@@ -14,6 +14,7 @@
 #define MPG123_ENCODINGS 10
 
 #include "config.h" /* Load this before _anything_ */
+#include "intsym.h" /* Prefixing of internal symbols that still are public in a static lib. */
 
 /* ABI conformance for other compilers.
    mpg123 needs 16byte-aligned stack for SSE and friends.

@@ -21,7 +21,7 @@
 #define MMREG_CLIP %mm7
 
 /*
-	int synth_1to1_stereo_sse_accurate_asm(real *window, real *b0l, real *b0r, short *samples, int bo1);
+	int synth_1to1_s_sse_accurate_asm(real *window, real *b0l, real *b0r, short *samples, int bo1);
 	return value: number of clipped samples
 */
 
@@ -42,8 +42,8 @@ ASM_NAME(maxmin_s16):
 	.long   -956301312
 	.text
 	ALIGN16
-.globl ASM_NAME(synth_1to1_stereo_sse_accurate_asm)
-ASM_NAME(synth_1to1_stereo_sse_accurate_asm):
+.globl ASM_NAME(synth_1to1_s_sse_accurate_asm)
+ASM_NAME(synth_1to1_s_sse_accurate_asm):
 	pushl		%ebp
 	movl		%esp, %ebp
 	andl		$-16, %esp

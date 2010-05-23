@@ -15,6 +15,7 @@
 #define MPG123_COMPAT_H
 
 #include "config.h"
+#include "intsym.h"
 
 #ifdef HAVE_STDLIB_H
 /* realloc, size_t */

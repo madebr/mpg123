@@ -34,7 +34,7 @@
 #define XMMREG_FULL %xmm12 /* {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF} */
 
 /*
-	int synth_1to1_stereo_x86_64_asm(short *window, short *b0l, short *b0r, short *samples, int bo1);
+	int synth_1to1_s_x86_64_asm(short *window, short *b0l, short *b0r, short *samples, int bo1);
 	return value: number of clipped samples
 */
 
@@ -55,8 +55,8 @@ ASM_NAME(maxmin_x86_64):
 	.long   -32769
 	.text
 	ALIGN16
-.globl ASM_NAME(synth_1to1_stereo_x86_64_asm)
-ASM_NAME(synth_1to1_stereo_x86_64_asm):
+.globl ASM_NAME(synth_1to1_s_x86_64_asm)
+ASM_NAME(synth_1to1_s_x86_64_asm):
 #ifdef _WIN64 /* should save xmm6-15 */
 	movl		40(%rsp), %eax /* 5th argument; placed after 32-byte shadow space */
 	subq		$168, %rsp /* stack alignment + 10 xmm registers */
