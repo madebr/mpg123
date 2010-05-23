@@ -31,6 +31,7 @@ EXTRA_DIST = \
 	ports/MSVC++/2008/mpglib/mpglib.vcproj \
 	ports/MSVC++/2008/libmpg123/libmpg123.vcproj \
 	ports/MSVC++/2008/scan/scan.vcproj \
+	ports/MSVC++/2008/dump_seekindex/dump_seekindex.vcproj \
 	ports/MSVC++/CMP3Stream/libMPG123/libMPG123.vcproj \
 	ports/MSVC++/CMP3Stream/libMPG123/PLACE_LIBMPG123_SOURCES_HERE \
 	ports/MSVC++/CMP3Stream/README \
