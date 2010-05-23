@@ -54,7 +54,7 @@ static struct cpuflags cpu_flags;
 #else
 /* Faking stuff for non-multi builds. The same code for synth function choice is used.
    Just no runtime dependency of result... */
-char cpu_flags;
+static char cpu_flags;
 #define cpu_i586(s)     1
 #define cpu_fpu(s)      1
 #define cpu_mmx(s)      1
