@@ -32,7 +32,7 @@
 /* Mono-related synths; they wrap over _some_ synth_1to1_real (could be generic, could be i386). */
 #define SYNTH_NAME       fr->synths.plain[r_1to1][f_real]
 #define MONO_NAME        synth_1to1_real_mono
-#define MONO2STEREO_NAME synth_1to1_real_mono2stereo
+#define MONO2STEREO_NAME synth_1to1_real_m2s
 #include "synth_mono.h"
 #undef SYNTH_NAME
 #undef MONO_NAME
@@ -244,7 +244,7 @@ int synth_1to1_real_stereo_sse(real *bandPtr_l, real *bandPtr_r, mpg123_handle *
 /* Mono-related synths; they wrap over _some_ synth_2to1_real (could be generic, could be i386). */
 #define SYNTH_NAME       fr->synths.plain[r_2to1][f_real]
 #define MONO_NAME        synth_2to1_real_mono
-#define MONO2STEREO_NAME synth_2to1_real_mono2stereo
+#define MONO2STEREO_NAME synth_2to1_real_m2s
 #include "synth_mono.h"
 #undef SYNTH_NAME
 #undef MONO_NAME
@@ -273,7 +273,7 @@ int synth_1to1_real_stereo_sse(real *bandPtr_l, real *bandPtr_r, mpg123_handle *
 /* Mono-related synths; they wrap over _some_ synth_4to1_real (could be generic, could be i386). */
 #define SYNTH_NAME       fr->synths.plain[r_4to1][f_real]
 #define MONO_NAME        synth_4to1_real_mono
-#define MONO2STEREO_NAME synth_4to1_real_mono2stereo
+#define MONO2STEREO_NAME synth_4to1_real_m2s
 #include "synth_mono.h"
 #undef SYNTH_NAME
 #undef MONO_NAME
@@ -301,7 +301,7 @@ int synth_1to1_real_stereo_sse(real *bandPtr_l, real *bandPtr_r, mpg123_handle *
 /* These are all in one header, there's no flexibility to gain. */
 #define SYNTH_NAME       synth_ntom_real
 #define MONO_NAME        synth_ntom_real_mono
-#define MONO2STEREO_NAME synth_ntom_real_mono2stereo
+#define MONO2STEREO_NAME synth_ntom_real_m2s
 #include "synth_ntom.h"
 #undef SYNTH_NAME
 #undef MONO_NAME

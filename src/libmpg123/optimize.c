@@ -124,13 +124,13 @@ const struct synth_s synth_base =
 #		endif
 	},
 	{ /* mono2stereo */
-		 OUT_SYNTHS(synth_1to1_mono2stereo, synth_1to1_8bit_mono2stereo, synth_1to1_real_mono2stereo, synth_1to1_s32_mono2stereo)
+		 OUT_SYNTHS(synth_1to1_m2s, synth_1to1_8bit_m2s, synth_1to1_real_m2s, synth_1to1_s32_m2s)
 #		ifndef NO_DOWNSAMPLE
-		,OUT_SYNTHS(synth_2to1_mono2stereo, synth_2to1_8bit_mono2stereo, synth_2to1_real_mono2stereo, synth_2to1_s32_mono2stereo)
-		,OUT_SYNTHS(synth_4to1_mono2stereo, synth_4to1_8bit_mono2stereo, synth_4to1_real_mono2stereo, synth_4to1_s32_mono2stereo)
+		,OUT_SYNTHS(synth_2to1_m2s, synth_2to1_8bit_m2s, synth_2to1_real_m2s, synth_2to1_s32_m2s)
+		,OUT_SYNTHS(synth_4to1_m2s, synth_4to1_8bit_m2s, synth_4to1_real_m2s, synth_4to1_s32_m2s)
 #		endif
 #		ifndef NO_NTOM
-		,OUT_SYNTHS(synth_ntom_mono2stereo, synth_ntom_8bit_mono2stereo, synth_ntom_real_mono2stereo, synth_ntom_s32_mono2stereo)
+		,OUT_SYNTHS(synth_ntom_m2s, synth_ntom_8bit_m2s, synth_ntom_real_m2s, synth_ntom_s32_m2s)
 #		endif
 	},
 	{ /* mono*/
@@ -595,7 +595,7 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		{
 			fr->synths.plain[r_1to1][f_8] = synth_1to1_8bit_wrap;
 			fr->synths.mono[r_1to1][f_8] = synth_1to1_8bit_wrap_mono;
-			fr->synths.mono2stereo[r_1to1][f_8] = synth_1to1_8bit_wrap_mono2stereo;
+			fr->synths.mono2stereo[r_1to1][f_8] = synth_1to1_8bit_wrap_m2s;
 		}
 #		endif
 #		endif
@@ -700,7 +700,7 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 	{
 		fr->synths.plain[r_1to1][f_8] = synth_1to1_8bit_wrap;
 		fr->synths.mono[r_1to1][f_8] = synth_1to1_8bit_wrap_mono;
-		fr->synths.mono2stereo[r_1to1][f_8] = synth_1to1_8bit_wrap_mono2stereo;
+		fr->synths.mono2stereo[r_1to1][f_8] = synth_1to1_8bit_wrap_m2s;
 	}
 #	endif
 #	endif
