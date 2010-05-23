@@ -780,17 +780,17 @@ off_t feed_set_pos(mpg123_handle *fr, off_t pos)
  */
 
 #define bugger_off { mh->err = MPG123_NO_READER; return MPG123_ERR; }
-int bad_init(mpg123_handle *mh) bugger_off
-void bad_close(mpg123_handle *mh){}
-ssize_t bad_fullread(mpg123_handle *mh, unsigned char *data, ssize_t count) bugger_off
-int bad_head_read(mpg123_handle *mh, unsigned long *newhead) bugger_off
-int bad_head_shift(mpg123_handle *mh, unsigned long *head) bugger_off
-off_t bad_skip_bytes(mpg123_handle *mh, off_t len) bugger_off
-int bad_read_frame_body(mpg123_handle *mh, unsigned char *data, int size) bugger_off
-int bad_back_bytes(mpg123_handle *mh, off_t bytes) bugger_off
-int bad_seek_frame(mpg123_handle *mh, off_t num) bugger_off
-off_t bad_tell(mpg123_handle *mh) bugger_off
-void bad_rewind(mpg123_handle *mh){}
+static int bad_init(mpg123_handle *mh) bugger_off
+static void bad_close(mpg123_handle *mh){}
+static ssize_t bad_fullread(mpg123_handle *mh, unsigned char *data, ssize_t count) bugger_off
+static int bad_head_read(mpg123_handle *mh, unsigned long *newhead) bugger_off
+static int bad_head_shift(mpg123_handle *mh, unsigned long *head) bugger_off
+static off_t bad_skip_bytes(mpg123_handle *mh, off_t len) bugger_off
+static int bad_read_frame_body(mpg123_handle *mh, unsigned char *data, int size) bugger_off
+static int bad_back_bytes(mpg123_handle *mh, off_t bytes) bugger_off
+static int bad_seek_frame(mpg123_handle *mh, off_t num) bugger_off
+static off_t bad_tell(mpg123_handle *mh) bugger_off
+static void bad_rewind(mpg123_handle *mh){}
 #undef bugger_off
 
 #define READER_STREAM 0
@@ -798,7 +798,7 @@ void bad_rewind(mpg123_handle *mh){}
 #define READER_FEED       2
 #define READER_BUF_STREAM 3
 #define READER_BUF_ICY_STREAM 4
-struct reader readers[] =
+static struct reader readers[] =
 {
 	{ /* READER_STREAM */
 		default_init,
@@ -897,7 +897,7 @@ struct reader readers[] =
 #endif
 };
 
-struct reader bad_reader =
+static struct reader bad_reader =
 {
 	bad_init,
 	bad_close,

@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
+use strict;
+
 my $dir = 'src/libmpg123';
 my @headers = qw(compat decode dither frame getbits getcpuflags huffman icy2utf8 icy id3 index mpg123lib_intern optimize parse reader);
 my $prefix = 'INT123_';
+my @leavealone = qw(strerror strdup);
 
 my %ident;
 
 # Extra symbols.
-my @symbols = qw(COS9);
+my @symbols = qw(COS9 tfcos36 pnts);
 
 foreach my $header (@headers)
 {
@@ -15,12 +18,12 @@ foreach my $header (@headers)
 	open(DAT, '<', $dir.'/'.$header.'.h') or die "Cannot open $header.\n";
 	while(<DAT>)
 	{
-		if(/^([^\s\(#][^\(]*)\s([a-z][a-z_0-9]+)\s*\(/)
+		if(/^([^\s\(#][^\(]*)\s\*?([a-z][a-z_0-9]+)\s*\(/)
 		{
 			# Skip preprocessing/comment stuff and official API.
 			unless($1 =~ '^#' or $1 =~ '/\*' or $2 =~ /^mpg123_/)
 			{
-				push(@symbols, $2);
+				push(@symbols, $2) unless grep {$_ eq $2} @leavealone;
 			}
 		}
 	}
@@ -31,7 +34,7 @@ print STDERR join("\n", glob("$dir/*.S"))."\n";
 foreach my $asm (glob("$dir/*.S"))
 {
 	print STDERR "==== working on asm file $asm\n";
-	open(DAT, '<', $asm) or die "Cannot open $header.\n";
+	open(DAT, '<', $asm) or die "Cannot open $asm.\n";
 	while(<DAT>)
 	{
 		if(/^\s*\.globl\s+ASM_NAME\((\S+)\)$/)

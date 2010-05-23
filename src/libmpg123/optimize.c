@@ -50,7 +50,7 @@ static const char* decname[] =
 
 #if (defined OPT_X86) && (defined OPT_MULTI)
 #include "getcpuflags.h"
-struct cpuflags cpu_flags;
+static struct cpuflags cpu_flags;
 #else
 /* Faking stuff for non-multi builds. The same code for synth function choice is used.
    Just no runtime dependency of result... */
@@ -93,7 +93,7 @@ char cpu_flags;
 
 /* The call of left and right plain synth, wrapped.
    This may be replaced by a direct stereo optimized synth. */
-int synth_stereo_wrap(real *bandPtr_l, real *bandPtr_r, mpg123_handle *fr)
+static int synth_stereo_wrap(real *bandPtr_l, real *bandPtr_r, mpg123_handle *fr)
 {
 	int clip;
 	clip  = (fr->synth)(bandPtr_l, 0, fr, 0);
@@ -101,7 +101,7 @@ int synth_stereo_wrap(real *bandPtr_l, real *bandPtr_r, mpg123_handle *fr)
 	return clip;
 }
 
-const struct synth_s synth_base =
+static const struct synth_s synth_base =
 {
 	{ /* plain */
 		 OUT_SYNTHS(synth_1to1, synth_1to1_8bit, synth_1to1_real, synth_1to1_s32)

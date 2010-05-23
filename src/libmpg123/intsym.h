@@ -2,6 +2,9 @@
 #define MPG123_INTMAP_H
 /* Mapping of internal mpg123 symbols to something that is less likely to conflict in case of static linking. */
 #define COS9 INT123_COS9
+#define tfcos36 INT123_tfcos36
+#define pnts INT123_pnts
+#define safe_realloc INT123_safe_realloc
 #define compat_open INT123_compat_open
 #define compat_close INT123_compat_close
 #define win32_wide_utf8 INT123_win32_wide_utf8
@@ -159,6 +162,7 @@
 #define frame_fill_toc INT123_frame_fill_toc
 #define getbits INT123_getbits
 #define getcpuflags INT123_getcpuflags
+#define icy2utf8 INT123_icy2utf8
 #define init_icy INT123_init_icy
 #define clear_icy INT123_clear_icy
 #define reset_icy INT123_reset_icy

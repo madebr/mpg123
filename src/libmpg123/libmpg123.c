@@ -702,7 +702,7 @@ static int zero_byte(mpg123_handle *fr)
 	Not part of the api. This just decodes the frame and fills missing bits with zeroes.
 	There can be frames that are broken and thus make do_layer() fail.
 */
-void decode_the_frame(mpg123_handle *fr)
+static void decode_the_frame(mpg123_handle *fr)
 {
 	size_t needed_bytes = samples_to_bytes(fr, frame_expect_outsamples(fr)); 	fr->clip += (fr->do_layer)(fr);
 	/*fprintf(stderr, "frame %"OFF_P": got %"SIZE_P" / %"SIZE_P"\n", fr->num,(size_p)fr->buffer.fill, (size_p)needed_bytes);*/

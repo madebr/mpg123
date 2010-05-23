@@ -35,7 +35,7 @@ static const text_converter text_converters[4] =
 	convert_utf8
 };
 
-const unsigned int encoding_widths[4] = { 1, 2, 2, 1 };
+static const unsigned int encoding_widths[4] = { 1, 2, 2, 1 };
 
 /* the code starts here... */
 
@@ -186,7 +186,7 @@ void id3_link(mpg123_handle *fr)
 	ID3v2 standard says that there should be one text frame of specific type per tag, and subsequent tags overwrite old values.
 	So, I always replace the text that may be stored already (perhaps with a list of zero-separated strings, though).
 */
-void store_id3_text(mpg123_string *sb, char *source, size_t source_size, const int noquiet, const int notranslate)
+static void store_id3_text(mpg123_string *sb, char *source, size_t source_size, const int noquiet, const int notranslate)
 {
 	if(!source_size)
 	{
@@ -247,7 +247,7 @@ void id3_to_utf8(mpg123_string *sb, unsigned char encoding, const unsigned char 
 	text_converters[encoding](sb, source, source_size, noquiet);
 }
 
-char *next_text(char* prev, int encoding, size_t limit)
+static char *next_text(char* prev, int encoding, size_t limit)
 {
 	char *text = prev;
 	size_t width = encoding_widths[encoding];
@@ -393,7 +393,7 @@ static void process_comment(mpg123_handle *fr, enum frame_types tt, char *realda
 	free_mpg123_text(&localcom);
 }
 
-void process_extra(mpg123_handle *fr, char* realdata, size_t realsize, int rva_level, char *id)
+static void process_extra(mpg123_handle *fr, char* realdata, size_t realsize, int rva_level, char *id)
 {
 	/* Text encoding          $xx */
 	/* Description        ... $00 (00) */
@@ -485,7 +485,7 @@ void process_extra(mpg123_handle *fr, char* realdata, size_t realsize, int rva_l
    Note that not all frames survived to 2.4; the mapping goes to 2.3 .
    A notable miss is the old RVA frame, which is very unspecific anyway.
    This function returns -1 when a not known 3 char ID was encountered, 0 otherwise. */
-int promote_framename(mpg123_handle *fr, char *id) /* fr because of VERBOSE macros */
+static int promote_framename(mpg123_handle *fr, char *id) /* fr because of VERBOSE macros */
 {
 	size_t i;
 	char *old[] =
