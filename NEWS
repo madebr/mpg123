@@ -4,6 +4,7 @@
 
 1.12.2
 ---
+- Fix for nasty memory corruption on configurations that hand out addresses in the upper half of the memory space (the poiner alignment function broke in that case, bug 2996045).
 - Various build and portability fixes (including making some exotic configure switches work (again)).
 - Add dump_seekindex example
 - Sync mpg123_clr to 1.12 feature set, patch provided by Malcolm Boczek

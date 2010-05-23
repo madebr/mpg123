@@ -1,7 +1,7 @@
 /*
 	frame: Heap of routines dealing with the core mpg123 data structure.
 
-	copyright 2008-9 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2008-2010 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis
 */
@@ -14,10 +14,25 @@ static void frame_fixed_reset(mpg123_handle *fr);
 
 /* that's doubled in decode_ntom.c */
 #define NTOM_MUL (32768)
-#define aligned_pointer(p,type,alignment) \
-	(((char*)(p)-(char*)NULL) % (alignment)) \
-	? (type*)((char*)(p) + (alignment) - (((char*)(p)-(char*)NULL) % (alignment))) \
-	: (type*)(p)
+
+#define aligned_pointer(p, type, alignment) align_the_pointer(p, alignment)
+void *align_the_pointer(void *base, unsigned int alignment)
+{
+	/*
+		Work in unsigned integer realm, explicitly.
+		Tricking the compiler into integer operations like % by invoking base-NULL is dangerous: It results into ptrdiff_t, which gets negative on big addresses. Big screw up, that.
+		I try to do it "properly" here: Casting only to uintptr_t and no artihmethic with void*.
+	*/
+	uintptr_t baseval = (uintptr_t)(char*)base;
+	uintptr_t aoff = baseval % alignment;
+
+	debug3("align_the_pointer: pointer %p is off by %u from %u",
+	       base, (unsigned int)aoff, alignment);
+
+	if(aoff) return (char*)base+alignment-aoff;
+	else     return base;
+}
+
 void frame_default_pars(mpg123_pars *mp)
 {
 	mp->outscale = 1.0;
