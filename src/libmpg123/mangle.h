@@ -31,14 +31,17 @@
 #define ALIGN32 .align 32
 #endif
 
+#define MANGLE_MACROCAT_REALLY(a, b) a ## b
+#define MANGLE_MACROCAT(a, b) MPG123_MACROCAT_REALLY(a, b)
+
 /* Feel free to add more to the list, eg. a.out IMO */
 #if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__OS2__) || defined(_MSC_VER) || \
    (defined(__OpenBSD__) && !defined(__ELF__)) || defined(__APPLE__)
-#define ASM_NAME(a) _##a
-#define ASM_VALUE(a) $_##a
+#define ASM_NAME(a) MANGLE_MACROCAT(_,a)
+#define ASM_VALUE(a) MANGLE_MACROCAT($_,a)
 #else
 #define ASM_NAME(a) a
-#define ASM_VALUE(a) $##a
+#define ASM_VALUE(a) MANGLE_MACROCAT($,a)
 #endif
 
 #if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__APPLE__)
