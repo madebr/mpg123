@@ -32,7 +32,7 @@
 #endif
 
 #define MANGLE_MACROCAT_REALLY(a, b) a ## b
-#define MANGLE_MACROCAT(a, b) MPG123_MACROCAT_REALLY(a, b)
+#define MANGLE_MACROCAT(a, b) MANGLE_MACROCAT_REALLY(a, b)
 
 /* Feel free to add more to the list, eg. a.out IMO */
 #if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__OS2__) || defined(_MSC_VER) || \
