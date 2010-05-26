@@ -35,13 +35,18 @@
 #define MANGLE_MACROCAT(a, b) MANGLE_MACROCAT_REALLY(a, b)
 
 /* Feel free to add more to the list, eg. a.out IMO */
-#if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__OS2__) || defined(_MSC_VER) || \
+#if defined(__USER_LABEL_PREFIX__)
+#define ASM_NAME(a) MANGLE_MACROCAT(__USER_LABEL_PREFIX__,a)
+#define ASM_VALUE(a) MANGLE_MACROCAT($##__USER_LABEL_PREFIX__,a)
+#else
+#if defined(__CYGWIN__) || defined(_WIN32) && !defined (_WIN64) || defined(__OS2__) || \
    (defined(__OpenBSD__) && !defined(__ELF__)) || defined(__APPLE__)
 #define ASM_NAME(a) MANGLE_MACROCAT(_,a)
 #define ASM_VALUE(a) MANGLE_MACROCAT($_,a)
 #else
 #define ASM_NAME(a) a
 #define ASM_VALUE(a) MANGLE_MACROCAT($,a)
+#endif
 #endif
 
 #if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__APPLE__)
