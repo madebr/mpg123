@@ -36,7 +36,7 @@ if(/^\s*EXPORT\s+(\S+)\s+(mpg123_\S+)\((.*)\);\s*$/)
 	my $type = $1;
 	my $name = $2;
 	my $args = $3;
-	next unless ($type =~ /off_t/ or $args =~ /off_t/);
+	next unless ($type =~ /off_t/ or $args =~ /off_t/ or ($name =~ /open/ and $name ne mpg123_open_feed));
 	$type =~ s/off_t/long/g;
 	my @nargs = ();
 	$args =~ s/off_t/long/g;
@@ -56,6 +56,21 @@ $type attribute_align_arg ALIAS_NAME($name)($args)
 EOT
 }' < mpg123.h.in
 */
+
+int attribute_align_arg ALIAS_NAME(mpg123_open)(mpg123_handle *mh, const char *path)
+{
+	return mpg123_open(mh, path);
+}
+
+int attribute_align_arg ALIAS_NAME(mpg123_open_fd)(mpg123_handle *mh, int fd)
+{
+	return mpg123_open_fd(mh, fd);
+}
+
+int attribute_align_arg ALIAS_NAME(mpg123_open_handle)(mpg123_handle *mh, void *iohandle)
+{
+	return mpg123_open_handle(mh, iohandle);
+}
 
 int attribute_align_arg ALIAS_NAME(mpg123_decode_frame)(mpg123_handle *mh, long *num, unsigned char **audio, size_t *bytes)
 {
