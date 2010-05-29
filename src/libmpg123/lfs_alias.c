@@ -17,7 +17,7 @@
 #endif
 
 /* Use the plain function names. */
-#define MPG123_NO_LARGENAME MPG123_MACROCAT(_, LFS_ALIAS_BITS)
+#define MPG123_NO_LARGENAME
 #include "mpg123.h"
 
 /* Now get the rest of the infrastructure on speed, namely attribute_align_arg, to stay safe. */
