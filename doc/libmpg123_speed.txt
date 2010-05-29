@@ -69,6 +69,16 @@ What worries me a bit is the total loose of 3DNow against MMX - should it be tha
 Well, it's higher quality, at least.
 
 
+Addendum: The game on an K6-3+
+
+On mpg123 < 1.8.0, he 3DNowExt decoder used to be slower than the 3DNow decoder. Only recently it has been observed, that the simplification of the runtime decoder choice code sped up that one significantly, towards the same performance level as the single-decoder build of mpg123 1.6.4 (-with-cpu=3dnowext_alone having broken build in later versions:-/).
+We are talking about a difference of 20% here... there is something special about the K6-3+ that makes is that sensitive to how the function pointers get thrown around.
+
+Example numbers: Dynamic x86 build of 1.6.4, 3DNowExt needs 5.9 s, 3DNow 5.6 s.
+3DNowExt-only build: 4.9 s
+3DNow-only build: 5.6 s
+Now... dynamic build of mpg123 trunk of 2010-05-24: 3DNowExt 4.9 s, 3DNow 5.6 s. That's how it should be. One might investigate how exactly the old ways before mpg123 1.8 worked against the K6-3+ ... possibly helping performance issues seen with the mpg123 coded for MPlayer on that CPU.
+
 -- 
 Thomas.
 
