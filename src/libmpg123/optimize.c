@@ -455,9 +455,11 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 	/* covers any i386+ cpu; they actually differ only in the synth_1to1 function, mostly... */
 #ifdef OPT_X86
 
+#ifdef OPT_MULTI
 #ifndef NO_LAYER3
 #if (defined OPT_3DNOW || defined OPT_3DNOWEXT)
-	fr->cpu_opts.dct36 = dct36;
+	fr->cpu_opts.the_dct36 = dct36;
+#endif
 #endif
 #endif
 
@@ -497,9 +499,11 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		{
 			chosen = "3DNowExt";
 			fr->cpu_opts.type = dreidnowext;
+#ifdef OPT_MULTI
 #			ifndef NO_LAYER3
-			fr->cpu_opts.dct36 = dct36_3dnowext;
+			fr->cpu_opts.the_dct36 = dct36_3dnowext;
 #			endif
+#endif
 #			ifndef NO_16BIT
 			fr->synths.plain[r_1to1][f_16] = synth_1to1_3dnowext;
 #			endif
@@ -512,9 +516,11 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		{
 			chosen = "3DNow";
 			fr->cpu_opts.type = dreidnow;
+#ifdef OPT_MULTI
 #			ifndef NO_LAYER3
-			fr->cpu_opts.dct36 = dct36_3dnow;
+			fr->cpu_opts.the_dct36 = dct36_3dnow;
 #			endif
+#endif
 #			ifndef NO_16BIT
 			fr->synths.plain[r_1to1][f_16] = synth_1to1_3dnow;
 #			endif

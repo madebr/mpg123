@@ -150,7 +150,7 @@ struct mpg123_handle_struct
 
 #ifndef NO_LAYER3
 #if (defined OPT_3DNOW || defined OPT_3DNOWEXT)
-		void (*dct36)(real *,real *,real *,real *,real *);
+		void (*the_dct36)(real *,real *,real *,real *,real *);
 #endif
 #endif
 
