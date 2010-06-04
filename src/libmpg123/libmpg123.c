@@ -1047,9 +1047,11 @@ static int init_track(mpg123_handle *mh)
 
 int attribute_align_arg mpg123_getformat(mpg123_handle *mh, long *rate, int *channels, int *encoding)
 {
+	int b;
 	ALIGNCHECK(mh);
 	if(mh == NULL) return MPG123_ERR;
-	if(init_track(mh) == MPG123_ERR) return MPG123_ERR;
+	b = init_track(mh);
+	if(b < 0) return b;
 
 	if(rate != NULL) *rate = mh->af.rate;
 	if(channels != NULL) *channels = mh->af.channels;
