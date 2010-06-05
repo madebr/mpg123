@@ -387,7 +387,7 @@ EXPORT void mpg123_encodings(const int **list, size_t *number);
 
 /** Return the size (in bytes) of one mono sample of the named encoding.
  * \param encoding The encoding value to analyze.
- * \return positive size of encoding in bytes, 0 on invalid encoding.
+ * \return positive size of encoding in bytes, 0 on invalid encoding. */
 EXPORT int mpg123_encsize(const int encoding);
 
 /** Configure a mpg123 handle to accept no output format at all, 
