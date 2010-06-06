@@ -639,8 +639,7 @@ int attribute_align_arg mpg123_open(mpg123_handle *mh, const char *path)
 		err = MPG123_LARGENAME(mpg123_replace_reader_handle)(mh, wrap_read, wrap_lseek, wrap_io_cleanup);
 		if(err != MPG123_OK) return MPG123_ERR;
 
-		/* The above call implied mpg123_close() already, only frame reset has to happen before a new opening. */
-		frame_reset(mh);
+		/* The above call implied mpg123_close() already */
 		/*
 			I really need to open the file here... to be able to use the replacer handle I/O ...
 			my_fd is used to indicate closing of the descriptor on cleanup.
@@ -692,8 +691,8 @@ int attribute_align_arg mpg123_open_fd(mpg123_handle *mh, int fd)
 		err = MPG123_LARGENAME(mpg123_replace_reader_handle)(mh, wrap_read, wrap_lseek, wrap_io_cleanup);
 		if(err != MPG123_OK) return MPG123_ERR;
 
-		/* The above call implied mpg123_close() already, only frame reset has to happen before a new opening. */
-		frame_reset(mh);
+		/* The above call implied mpg123_close() already */
+
 		/* Store the real file descriptor inside the handle. */
 		ioh->fd = fd;
 		/* Initiate I/O operating on my handle now. */
@@ -726,14 +725,8 @@ int attribute_align_arg mpg123_open_handle(mpg123_handle *mh, void *handle)
 		if(err != MPG123_OK) return MPG123_ERR;
 
 		ioh->handle = handle;
-		err = open_stream_handle(mh, ioh);
-		if(err != MPG123_OK)
-		{
-			wrap_io_cleanup(ioh);
-			return MPG123_ERR;
-		}
-		/* All fine... */
-		return MPG123_OK;
+		/* No extra error handling, keep behaviour of the original open_handle. */
+		return open_stream_handle(mh, ioh);
 	}
 	else
 	{

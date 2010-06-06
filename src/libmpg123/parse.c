@@ -85,12 +85,6 @@ static const long freqs[9] = { 44100, 48000, 32000, 22050, 24000, 16000 , 11025 
 
 static int decode_header(mpg123_handle *fr,unsigned long newhead);
 
-int read_frame_init(mpg123_handle* fr)
-{
-	if(frame_reset(fr) != 0) return -1;
-	return 0;
-}
-
 /* These two are to be replaced by one function that gives all the frame parameters (for outsiders).*/
 
 int frame_bitrate(mpg123_handle *fr)

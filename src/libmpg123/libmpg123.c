@@ -464,7 +464,6 @@ int attribute_align_arg mpg123_open(mpg123_handle *mh, const char *path)
 	if(mh == NULL) return MPG123_ERR;
 
 	mpg123_close(mh);
-	frame_reset(mh);
 	return open_stream(mh, path, -1);
 }
 
@@ -474,7 +473,6 @@ int attribute_align_arg mpg123_open_fd(mpg123_handle *mh, int fd)
 	if(mh == NULL) return MPG123_ERR;
 
 	mpg123_close(mh);
-	frame_reset(mh);
 	return open_stream(mh, NULL, fd);
 }
 
@@ -484,7 +482,6 @@ int attribute_align_arg mpg123_open_handle(mpg123_handle *mh, void *iohandle)
 	if(mh == NULL) return MPG123_ERR;
 
 	mpg123_close(mh);
-	frame_reset(mh);
 	if(mh->rdat.r_read_handle == NULL)
 	{
 		mh->err = MPG123_BAD_CUSTOM_IO;
@@ -499,7 +496,6 @@ int attribute_align_arg mpg123_open_feed(mpg123_handle *mh)
 	if(mh == NULL) return MPG123_ERR;
 
 	mpg123_close(mh);
-	frame_reset(mh);
 	return open_feed(mh);
 }
 
@@ -1584,6 +1580,8 @@ int attribute_align_arg mpg123_close(mpg123_handle *mh)
 		invalidate_format(&mh->af);
 		mh->new_format = 0;
 	}
+	/* Always reset the frame buffers on close, so we cannot forget it in funky opening routines (wrappers, even). */
+	frame_reset(mh);
 	return MPG123_OK;
 }
 
