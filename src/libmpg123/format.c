@@ -84,7 +84,7 @@ void attribute_align_arg mpg123_encodings(const int **list, size_t *number)
 	if(number != NULL) *number = sizeof(good_encodings)/sizeof(int);
 }
 
-int attribute_align_arg mpg123_encsize(const int encoding)
+int attribute_align_arg mpg123_encsize(int encoding)
 {
 	if(encoding & MPG123_ENC_8)
 	return 1;
