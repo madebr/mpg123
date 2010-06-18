@@ -151,7 +151,8 @@ static int open_alsa(audio_output_t *ao)
 	snd_pcm_t *pcm=NULL;
 	debug1("open_alsa with %p", ao->userptr);
 
-	snd_lib_error_set_handler(AOQUIET ? error_ignorer : NULL);
+	if(AOQUIET) snd_lib_error_set_handler(error_ignorer);
+
 	pcm_name = ao->device ? ao->device : "default";
 	if (snd_pcm_open(&pcm, pcm_name, SND_PCM_STREAM_PLAYBACK, 0) < 0) {
 		if(!AOQUIET) error1("cannot open device %s", pcm_name);

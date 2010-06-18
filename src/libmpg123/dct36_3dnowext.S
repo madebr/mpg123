@@ -42,7 +42,7 @@
 #include "mangle.h"
 
 	.text
-	ALIGN32,,31
+	ALIGN32
 .globl ASM_NAME(dct36_3dnowext)
 	/* .type	ASM_NAME(dct36_3dnowext), @function */
 ASM_NAME(dct36_3dnowext):
@@ -509,7 +509,4 @@ ASM_NAME(dct36_3dnowext):
 	ret
 	/* .size	ASM_NAME(dct36_3dnowext), .-ASM_NAME(dct36_3dnowext) */
 
-/* Mark non-executable stack. */
-#if defined(__linux__) && defined(__ELF__)
-.section .note.GNU-stack,"",%progbits
-#endif
+NONEXEC_STACK

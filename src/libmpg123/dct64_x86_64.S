@@ -461,7 +461,4 @@ ASM_NAME(dct64_x86_64):
 #endif
 	ret
 
-/* Mark non-executable stack. */
-#if defined(__linux__) && defined(__ELF__)
-.section .note.GNU-stack,"",%progbits
-#endif
+NONEXEC_STACK

@@ -17,6 +17,8 @@ TODO:
 - Include dumb wrappers to provide names suffixed with _64 on 64 bit machines and _32 on 32 bit machines, respectively, to help clients that insist on defining _FILE_OFFSET_BITS where it is not needed (or with a non-large value).
 - Tuning of the internal buffer code for feeder mode to minimize its performance impact (works in 4K blocks now).
 - Workaround for compiler bugs in Open64/PathScale/SunStudio (bug 3004396, suggestion by Doug Gilmore).
+  Note that Sun Studio is still a tricky fellow, at least when it comes to our preprocessed assembly.
+  Also, x86-Open64 recently produced another segfault in layer3.c on my box... GNU and intel compilers are what one can use as something stable.
 - Make mpg123_getformat() return more error codes (like MPG123_NEED_MORE).
 - Fix handle I/O for clients with small file offset (32 bit when libmpg123 has 64 bit).
 - Fix 3DNow(Ext) standalone builds.

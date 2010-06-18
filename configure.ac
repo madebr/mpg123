@@ -9,7 +9,6 @@ AC_PREREQ(2.57)
 
 
 dnl ############# Initialisation
-d
 AC_INIT([mpg123], [1.13.0], [mpg123-devel@lists.sourceforge.net])
 dnl Increment API_VERSION when the API gets changes (new functions).
 API_VERSION=26
@@ -901,7 +900,7 @@ fi
 
 lfs_alias=enabled
 AC_ARG_ENABLE(lfs-alias,
-              [  --disable-lfs-alias disable alias wrappers for largefile bitness (mpg123_seek_32 in addition to mpg123_seek, mpg123_seek_64 as alias onx86-64) ],
+              [  --disable-lfs-alias disable alias wrappers for largefile bitness (mpg123_seek_32 in addition to mpg123_seek, mpg123_seek_64 as alias on x86-64) ],
               [
                 if test "x$enableval" = xno; then
                   lfs_alias="disabled"
@@ -1058,13 +1057,13 @@ s_i486="$s_i386 synth_i486 dct64_i486"
 s_i586="$s_i386 synth_i586"
 s_i586d="$s_i386 synth_i586_dither"
 s_3dnow="$s_i386 synth_3dnow dct64_3dnow equalizer_3dnow"
-s_3dnowext="$s_i386 dct64_3dnowext dct64_mmx tabinit_mmx synth_3dnowext"
+s_3dnowext="$s_i386 dct64_3dnowext tabinit_mmx synth_3dnowext"
 if test "x$layer3" = "xenabled"; then
   s_3dnow="$s_3dnow dct36_3dnow"
   s_3dnowext="$s_3dnowext dct36_3dnowext"
 fi
 s_mmx="$s_i386 dct64_mmx tabinit_mmx synth_mmx"
-s_sse="$s_i386 dct64_mmx tabinit_mmx dct64_sse dct64_sse_float synth_sse_float synth_stereo_sse_float synth_sse_s32 synth_stereo_sse_s32 "
+s_sse="$s_i386 tabinit_mmx dct64_sse dct64_sse_float synth_sse_float synth_stereo_sse_float synth_sse_s32 synth_stereo_sse_s32 "
 s_x86_64="dct64_x86_64 dct64_x86_64_float synth_x86_64_float synth_x86_64_s32 synth_stereo_x86_64_float synth_stereo_x86_64_s32"
 s_x86multi="getcpuflags"
 s_dither="dither"

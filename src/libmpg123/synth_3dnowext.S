@@ -3,7 +3,4 @@
 #define SYNTH_NAME ASM_NAME(synth_1to1_3dnowext_asm)
 #include "synth_sse3d.h"
 
-/* Mark non-executable stack. */
-#if defined(__linux__) && defined(__ELF__)
-.section .note.GNU-stack,"",%progbits
-#endif
+NONEXEC_STACK

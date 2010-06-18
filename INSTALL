@@ -56,9 +56,8 @@ There are various library features you can leave out via --disable options (like
 1a. Large file support
 
 The libmpg123 API includes the generic off_t type for file offsets and thus is subject to shape-shifting on systems that change off_t depending on build flags.
-To deal with the incompatibilities that can cause, depending on your build configuration, the library name will change when large file support is enabled.
-
-Since version 1.12.0, a large-file-enabled libmpg123 (the default set by configure) provides a dual-mode ABI to work. Depending on _FILE_OFFSET_BITS, the mpg123.h header file selects different library symbols to use for your app.
+To deal with the incompatibilities that can cause, the library needs to separate code paths for small and large off_t.
+Since version 1.12.0, a large-file-enabled libmpg123 (the default set by configure) provides a dual-mode ABI. Depending on _FILE_OFFSET_BITS, the mpg123.h header file selects different library symbols to use for your app.
 In both large-file and normal mode, the library should just work for your app.
 
 
