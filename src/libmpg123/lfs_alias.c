@@ -91,23 +91,6 @@ EOT
 }' < mpg123.h.in
 */
 
-<<<<<<< .working
-int attribute_align_arg ALIAS_NAME(mpg123_open)(mpg123_handle *mh, const char *path)
-{
-	return mpg123_open(mh, path);
-}
-
-int attribute_align_arg ALIAS_NAME(mpg123_open_fd)(mpg123_handle *mh, int fd)
-{
-	return mpg123_open_fd(mh, fd);
-}
-
-int attribute_align_arg ALIAS_NAME(mpg123_open_handle)(mpg123_handle *mh, void *iohandle)
-{
-	return mpg123_open_handle(mh, iohandle);
-}
-
-=======
 #ifdef mpg123_open
 #undef mpg123_open
 #endif
@@ -135,7 +118,6 @@ int attribute_align_arg ALIAS_NAME(mpg123_open_handle)(mpg123_handle *mh, void *
 #ifdef mpg123_decode_frame
 #undef mpg123_decode_frame
 #endif
->>>>>>> .merge-rechts.r2735
 int attribute_align_arg ALIAS_NAME(mpg123_decode_frame)(mpg123_handle *mh, long *num, unsigned char **audio, size_t *bytes)
 {
 	return NATIVE_NAME(mpg123_decode_frame)(mh, num, audio, bytes);
