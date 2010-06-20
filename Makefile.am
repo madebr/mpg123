@@ -57,6 +57,15 @@ EXTRA_DIST = \
 	ports/MSVC++/2008clr/mpg123clr/targetver.h \
 	ports/MSVC++/2008clr/mpg123clr/text.cpp \
 	ports/MSVC++/2008clr/mpg123clr/text.h \
+	ports/MSVC++/2008clr/examples/feedseekclr/feedseekclr.csproj \
+	ports/MSVC++/2008clr/examples/feedseekclr/Program.cs \
+	ports/MSVC++/2008clr/examples/feedseekclr/Properties/AssemblyInfo.cs \
+	ports/MSVC++/2008clr/examples/ReplaceReaderclr/ReplaceReaderclr.csproj \
+	ports/MSVC++/2008clr/examples/ReplaceReaderclr/Program.cs \
+	ports/MSVC++/2008clr/examples/ReplaceReaderclr/Properties/AssemblyInfo.cs \
+	ports/MSVC++/2008clr/examples/scanclr/scanclr.csproj \
+	ports/MSVC++/2008clr/examples/scanclr/Program.cs \
+	ports/MSVC++/2008clr/examples/scanclr/Properties/AssemblyInfo.cs \
 	ports/MSVC++/CMP3Stream/libMPG123/libMPG123.vcproj \
 	ports/MSVC++/CMP3Stream/libMPG123/PLACE_LIBMPG123_SOURCES_HERE \
 	ports/MSVC++/CMP3Stream/README \
