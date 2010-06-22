@@ -54,7 +54,9 @@ static jack_handle_t* alloc_jack_handle()
 static void free_jack_handle( jack_handle_t* handle )
 {
 	int i;
-	
+
+	warning("FIXME: One needs to wait or write some silence here to prevent the last bits of audio to vanish out of the ringbuffer.");
+
 	for(i=0; i<MAX_CHANNELS; i++) {
 		/* Close the port for channel*/
 		if ( handle->ports[i] )
@@ -411,6 +413,7 @@ static void flush_jack(audio_output_t *ao)
 	jack_handle_t *handle = (jack_handle_t*)ao->userptr;
 	int c;
 
+	warning("This way, we drop audio on pausing... there must be a better way.");
 	/* Reset the ring buffers*/
 	for(c=0; c<handle->channels; c++) {
 		jack_ringbuffer_reset(handle->rb[c]);
