@@ -1,5 +1,9 @@
 Changes in libmpg123 libtool interface versions...
 
+27.0.27
+	- Implictly disable seeking on streams when client enforced ICY parsing.
+	  This helps debugging dumps of http streams.
+
 26.0.26
 	- Added mpg123_encsize().
 	- Added flag MPG123_SKIP_ID3V2.

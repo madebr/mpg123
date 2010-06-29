@@ -30,6 +30,7 @@ static int default_init(mpg123_handle *fr);
 static off_t get_fileinfo(mpg123_handle *);
 static ssize_t posix_read(int fd, void *buf, size_t count){ return read(fd, buf, count); }
 static off_t   posix_lseek(int fd, off_t offset, int whence){ return lseek(fd, offset, whence); }
+static off_t     nix_lseek(int fd, off_t offset, int whence){ return -1; }
 
 static ssize_t plain_fullread(mpg123_handle *fr,unsigned char *buf, ssize_t count);
 
@@ -939,7 +940,12 @@ static int default_init(mpg123_handle *fr)
 	fr->rdat.lseek = fr->rdat.r_lseek != NULL ? fr->rdat.r_lseek : posix_lseek;
 	fr->rdat.filelen = get_fileinfo(fr);
 	fr->rdat.filepos = 0;
-	if(fr->rdat.filelen >= 0)
+	/*
+		Don't enable seeking on ICY streams, just plain normal files.
+		This check is necessary since the client can enforce ICY parsing on files that would otherwise be seekable.
+		It is a task for the future to make the ICY parsing safe with seeks ... or not.
+	*/
+	if(fr->p.icy_interval <= 0 && fr->rdat.filelen >= 0)
 	{
 		fr->rdat.flags |= READER_SEEKABLE;
 		if(!strncmp((char*)fr->id3buf,"TAG",3))

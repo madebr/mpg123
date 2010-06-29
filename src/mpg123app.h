@@ -107,6 +107,7 @@ struct parameter
 	long preframes;
 	long gain; /* audio output gain, for selected outputs */
 	char* streamdump;
+	long icy_interval;
 };
 
 extern char *equalfile;
