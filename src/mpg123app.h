@@ -106,6 +106,7 @@ struct parameter
 	double preload; /* buffer preload size (fraction of full buffer) */
 	long preframes;
 	long gain; /* audio output gain, for selected outputs */
+	char* streamdump;
 };
 
 extern char *equalfile;

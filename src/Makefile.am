@@ -50,6 +50,8 @@ mpg123_SOURCES = \
 	local.c \
 	playlist.c \
 	playlist.h \
+	streamdump.h \
+	streamdump.c \
 	term.c \
 	term.h \
 	wav.c \
