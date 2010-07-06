@@ -536,7 +536,6 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 	unsigned char flags = 0;
 	int ret = 1;
 	int ret2;
-	unsigned char* tagdata = NULL;
 	unsigned char major = first4bytes & 0xff;
 	debug1("ID3v2: major tag version: %i", major);
 	if(major == 0xff) return 0; /* Invalid... */
@@ -606,6 +605,7 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 	}
 	else
 	{
+		unsigned char* tagdata = NULL;
 		fr->id3v2.version = major;
 		/* try to interpret that beast */
 		if((tagdata = (unsigned char*) malloc(length+1)) != NULL)
