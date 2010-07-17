@@ -1844,7 +1844,7 @@ AC_DEFINE_UNQUOTED(INDEX_SIZE, $seektable, [size of the frame index seek table])
 dnl ############## Win32 function checks
 # Check if we want Unicode for Win32. Cygwin does not need _wopen
 win32_specific_codes=disabled
-win32_unicode=Uneeded
+win32_unicode=unneeded
 win32_sockets=disabled
 win32_sockets_working=no
 win32_wide_working=no
