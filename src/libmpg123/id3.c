@@ -804,7 +804,7 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 			else
 			{
 				/* There are tags with zero length. Strictly not an error, then. */
-				if(length > 0 && NOQUIET) error("ID3v2: Duh, not able to read ID3v2 tag data.");
+				if(length > 0 && NOQUIET && ret2 != MPG123_NEED_MORE) error("ID3v2: Duh, not able to read ID3v2 tag data.");
 				ret = ret2;
 			}
 tagparse_cleanup:
