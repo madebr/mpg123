@@ -2011,7 +2011,7 @@ echo "
   $PACKAGE_NAME $PACKAGE_VERSION
 
   Install path ............ $prefix
-  CPU Optimisation......... $cpu_type
+  CPU Optimization ........ $cpu_type
   Compiler Optimization ... $with_optimization
   Gapless Support ......... $gapless
   Debugging ............... $debugging
