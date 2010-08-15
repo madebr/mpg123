@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# benchmark-cpu.pl: benchmark CPU optimisations of mpg123
+# benchmark-cpu.pl: benchmark CPU optimizations of mpg123
 #
 # initially written by Nicholas J Humfrey <njh@aelius.com>, placed in the public domain
 #
@@ -25,12 +25,12 @@ for(@TEST_FILES)
 # Check the CPUs available
 my $cpulist = `$MPG123_CMD --test-cpu`;
 chomp( $cpulist );
-die "Failed to get list of available CPU optimisations" unless ($cpulist =~ s/^Supported decoders: //);
+die "Failed to get list of available CPU optimizations" unless ($cpulist =~ s/^Supported decoders: //);
 
 my @cpus = split( / /, $cpulist );
 my @encs = qw(s16 f32);
 
-printf STDERR ("Found %d CPU optimisations to test...\n\n", scalar(@cpus) );
+printf STDERR ("Found %d CPU optimizations to test...\n\n", scalar(@cpus) );
 
 print "#mpg123 benchmark (user CPU time in seconds for decoding)\n";
 print "#decoder";
