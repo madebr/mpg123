@@ -516,7 +516,7 @@ Thanks go out to the ROM 106.5FM team (http://www.rom.lu/) for supporting this r
 - build fixes
 - use movap instruction in SSE assembly when compiler supports the needed alignment (idea from MPlayer)
 - show decoder options in their priority order in --list-cpu/--test-cpu
-- added Perl script to benchmark each of mpg123's CPU optimisations
+- added Perl script to benchmark each of mpg123's CPU optimizations
 - portability enhancements and cleanups along with testing on SunOS 4.1.2 with gcc-2.7.0
 - workaround for ugly flexible rate for MMX/SSE/3DNowExt code:
   --with-cpu=mmx also includes i586 code as fallback; similar with the others
