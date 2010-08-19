@@ -1,7 +1,7 @@
 /*
 	libmpg123: MPEG Audio Decoder library (version @PACKAGE_VERSION@)
 
-	copyright 1995-2009 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1995-2010 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 */
 
@@ -789,6 +789,14 @@ EXPORT int  mpg123_set_string(mpg123_string* sb, const char* stuff);
  *  \param from offset to copy from
  *  \param count number of characters to copy (a null-byte is always appended) */
 EXPORT int  mpg123_set_substring(mpg123_string *sb, const char *stuff, size_t from, size_t count);
+
+/** Count characters in a mpg123 string (non-null bytes or UTF-8 characters).
+ *  \return character count
+ *  \param sb the string
+ *  \param utf8 a flag to tell if the string is in utf8 encoding
+ *  Even with the fill property, the character count is not obvious as there could be multiple trailing null bytes.
+*/
+EXPORT size_t mpg123_strlen(mpg123_string *sb, int utf8);
 
 /** The mpg123 text encodings. This contains encodings we encounter in ID3 tags or ICY meta info. */
 enum mpg123_text_encoding

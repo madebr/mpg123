@@ -1,5 +1,8 @@
 Changes in libmpg123 libtool interface versions...
 
+28.0.28
+	- Add mpg123_strlen().
+
 27.0.27
 	- Implictly disable seeking on streams when client enforced ICY parsing.
 	  This helps debugging dumps of http streams.

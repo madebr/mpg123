@@ -1,7 +1,7 @@
 /*
 	id3print: display routines for ID3 tags (including filtering of UTF8 to ASCII)
 
-	copyright 2006-2008 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2006-2010 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis
 */
@@ -10,14 +10,42 @@
 #include "genre.h"
 #include "debug.h"
 
+const char joker_symbol = '*';
+
 static void utf8_ascii(mpg123_string *dest, mpg123_string *source);
-static void transform(mpg123_string *dest, mpg123_string *source)
+/* Copy UTF-8 string or melt it down to ASCII, also returning the character length. */
+static size_t transform(mpg123_string *dest, mpg123_string *source)
 {
 	debug("transform!");
-	if(source == NULL) return;
+	if(source == NULL) return 0;
 
 	if(utf8env) mpg123_copy_string(source, dest);
-	else utf8_ascii(dest, source);
+	else        utf8_ascii(dest, source);
+
+	return mpg123_strlen(dest, utf8env);
+}
+
+static void id3_gap(mpg123_string *dest, size_t count, char *v1, size_t *len)
+{
+	if(!dest->fill)
+	{
+		if(dest->size >= count+1 || mpg123_resize_string(dest, count+1))
+		{
+			strncpy(dest->p,v1,count);
+			dest->p[count] = 0;
+			*len = strlen(dest->p);
+			dest->fill = *len + 1;
+			/* We have no idea what encoding this is.
+			   So, to prevent mess up of our UTF-8 display, filter anything above ASCII.
+			   But in non-UTF-8 mode, we pray that the verbatim contents are meaningful to the user. Might filter non-printable characters, though. */
+			if(utf8env)
+			{
+				size_t i;
+				for(i=0; i<dest->fill-1; ++i)
+				if(dest->p[i] & 0x80) dest->p[i] = joker_symbol;
+			}
+		}
+	}
 }
 
 /* print tags... limiting the UTF-8 to ASCII */
@@ -26,6 +54,7 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 	char genre_from_v1 = 0;
 	enum { TITLE=0, ARTIST, ALBUM, COMMENT, YEAR, GENRE, FIELDS } ti;
 	mpg123_string tag[FIELDS];
+	size_t len[FIELDS];
 	mpg123_id3v1 *v1;
 	mpg123_id3v2 *v2;
 	/* no memory allocated here, so return is safe */
@@ -36,61 +65,21 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 	if(v1 == NULL && v2 == NULL) return;
 	if(v2 != NULL) /* fill from ID3v2 data */
 	{
-		transform(&tag[TITLE],   v2->title);
-		transform(&tag[ARTIST],  v2->artist);
-		transform(&tag[ALBUM],   v2->album);
-		transform(&tag[COMMENT], v2->comment);
-		transform(&tag[YEAR],    v2->year);
-		transform(&tag[GENRE],   v2->genre);
+		len[TITLE]   = transform(&tag[TITLE],   v2->title);
+		len[ARTIST]  = transform(&tag[ARTIST],  v2->artist);
+		len[ALBUM]   = transform(&tag[ALBUM],   v2->album);
+		len[COMMENT] = transform(&tag[COMMENT], v2->comment);
+		len[YEAR]    = transform(&tag[YEAR],    v2->year);
+		len[GENRE]   = transform(&tag[GENRE],   v2->genre);
 	}
 	if(v1 != NULL) /* fill gaps with ID3v1 data */
 	{
 		/* I _could_ skip the recalculation of fill ... */
-		if(!tag[TITLE].fill)
-		{
-			if(tag[TITLE].size >= 31 || mpg123_resize_string(&tag[TITLE], 31))
-			{
-				strncpy(tag[TITLE].p,v1->title,30);
-				tag[TITLE].p[30] = 0;
-				tag[TITLE].fill = strlen(tag[TITLE].p) + 1;
-			}
-		}
-		if(!tag[ARTIST].fill)
-		{
-			if(tag[ARTIST].size >= 31 || mpg123_resize_string(&tag[ARTIST],31))
-			{
-				strncpy(tag[ARTIST].p,v1->artist,30);
-				tag[ARTIST].p[30] = 0;
-				tag[ARTIST].fill = strlen(tag[ARTIST].p) + 1;
-			}
-		}
-		if(!tag[ALBUM].fill)
-		{
-			if(tag[ALBUM].size >= 31 || mpg123_resize_string(&tag[ALBUM],31))
-			{
-				strncpy(tag[ALBUM].p,v1->album,30);
-				tag[ALBUM].p[30] = 0;
-				tag[ALBUM].fill = strlen(tag[ALBUM].p) + 1;
-			}
-		}
-		if(!tag[COMMENT].fill)
-		{
-			if(tag[COMMENT].size >= 31 || mpg123_resize_string(&tag[COMMENT],31))
-			{
-				strncpy(tag[COMMENT].p,v1->comment,30);
-				tag[COMMENT].p[30] = 0;
-				tag[COMMENT].fill = strlen(tag[COMMENT].p) + 1;
-			}
-		}
-		if(!tag[YEAR].fill)
-		{
-			if(tag[YEAR].size >= 5 || mpg123_resize_string(&tag[YEAR],5))
-			{
-				strncpy(tag[YEAR].p,v1->year,4);
-				tag[YEAR].p[4] = 0;
-				tag[YEAR].fill = strlen(tag[YEAR].p) + 1;
-			}
-		}
+		id3_gap(&tag[TITLE],   30, v1->title,   &len[TITLE]);
+		id3_gap(&tag[ARTIST],  30, v1->artist,  &len[ARTIST]);
+		id3_gap(&tag[ALBUM],   30, v1->album,   &len[ALBUM]);
+		id3_gap(&tag[COMMENT], 30, v1->comment, &len[COMMENT]);
+		id3_gap(&tag[YEAR],    4,  v1->year,    &len[YEAR]);
 		/*
 			genre is special... v1->genre holds an index, id3v2 genre may contain indices in textual form and raw textual genres...
 		*/
@@ -216,6 +205,8 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 				if(tag[GENRE].fill) mpg123_add_string(&tag[GENRE], ", ");
 				mpg123_add_string(&tag[GENRE], tmp.p+nonum);
 			}
+			/* Do not like that ... assumes plain ASCII ... */
+			len[GENRE] = strlen(tag[GENRE].p);
 		}
 		mpg123_free_string(&tmp);
 	}
@@ -235,21 +226,26 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 	}
 	else
 	{
+		char space[31];
+		size_t i;
+		space[30] = 0;
+		for(i=0; i<30; ++i) space[i] = ' ';
+
 		/* We are trying to be smart here and conserve vertical space.
 		   So we will skip tags not set, and try to show them in two parallel columns if they are short, which is by far the	most common case. */
 		/* one _could_ circumvent the strlen calls... */
-		if(tag[TITLE].fill && tag[ARTIST].fill && strlen(tag[TITLE].p) <= 30 && strlen(tag[TITLE].p) <= 30)
+		if(tag[TITLE].fill && tag[ARTIST].fill && len[TITLE] <= 30 && len[TITLE] <= 30)
 		{
-			fprintf(out,"Title:   %-30s  Artist: %s\n",tag[TITLE].p,tag[ARTIST].p);
+			fprintf(out,"Title:   %s%s  Artist: %s\n",tag[TITLE].p, space+len[TITLE], tag[ARTIST].p);
 		}
 		else
 		{
 			if(tag[TITLE].fill) fprintf(out,"Title:   %s\n", tag[TITLE].p);
 			if(tag[ARTIST].fill) fprintf(out,"Artist:  %s\n", tag[ARTIST].p);
 		}
-		if(tag[COMMENT].fill && tag[ALBUM].fill && strlen(tag[COMMENT].p) <= 30 && strlen(tag[ALBUM].p) <= 30)
+		if(tag[COMMENT].fill && tag[ALBUM].fill && len[COMMENT] <= 30 && len[ALBUM] <= 30)
 		{
-			fprintf(out,"Comment: %-30s  Album:  %s\n",tag[COMMENT].p,tag[ALBUM].p);
+			fprintf(out,"Comment: %s%s  Album:  %s\n",tag[COMMENT].p, space+len[COMMENT], tag[ALBUM].p);
 		}
 		else
 		{
@@ -258,9 +254,9 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 			if(tag[ALBUM].fill)
 				fprintf(out,"Album:   %s\n", tag[ALBUM].p);
 		}
-		if(tag[YEAR].fill && tag[GENRE].fill && strlen(tag[YEAR].p) <= 30 && strlen(tag[GENRE].p) <= 30)
+		if(tag[YEAR].fill && tag[GENRE].fill && len[YEAR] <= 30 && len[GENRE] <= 30)
 		{
-			fprintf(out,"Year:    %-30s  Genre:  %s\n",tag[YEAR].p,tag[GENRE].p);
+			fprintf(out,"Year:    %s%s  Genre:  %s\n",tag[YEAR].p, space+len[YEAR], tag[GENRE].p);
 		}
 		else
 		{
@@ -300,10 +296,8 @@ static void utf8_ascii(mpg123_string *dest, mpg123_string *source)
 	size_t spos = 0;
 	size_t dlen = 0;
 	char *p;
-	/* Find length, continuation bytes don't count. */
-	for(spos=0; spos < source->fill; ++spos)
-	if((source->p[spos] & 0xc0) == 0x80) continue;
-	else ++dlen;
+
+	dlen = mpg123_strlen(source, 1);
 
 	if(!mpg123_resize_string(dest, dlen)){ mpg123_free_string(dest); return; }
 	/* Just ASCII, we take it easy. */
@@ -313,7 +307,7 @@ static void utf8_ascii(mpg123_string *dest, mpg123_string *source)
 		/* UTF-8 continuation byte 0x10?????? */
 		if((source->p[spos] & 0xc0) == 0x80) continue;
 		/* UTF-8 lead byte 0x11?????? */
-		else if(source->p[spos] & 0x80) *p = '*';
+		else if(source->p[spos] & 0x80) *p = joker_symbol;
 		/* just ASCII, 0x0??????? */
 		else *p = source->p[spos];
 
