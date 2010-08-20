@@ -299,7 +299,7 @@ static void utf8_ascii(mpg123_string *dest, mpg123_string *source)
 
 	dlen = mpg123_strlen(source, 1);
 
-	if(!mpg123_resize_string(dest, dlen)){ mpg123_free_string(dest); return; }
+	if(!mpg123_resize_string(dest, dlen+1)){ mpg123_free_string(dest); return; }
 	/* Just ASCII, we take it easy. */
 	p = dest->p;
 	for(spos=0; spos < source->fill; ++spos)
