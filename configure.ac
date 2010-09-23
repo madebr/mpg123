@@ -865,7 +865,7 @@ dnl Using the file_offset_bits variable here is fine for linux (possibly Solaris
 dnl Others... we'll have to see.
 dnl Note: I started writing this with with multiline replacements.
 dnl Does not work. Automake insists on putting these into Makefiles where they break things.
-if test "x$ac_cv_sys_file_offset_bits" = x || echo "$ac_cv_sys_file_offset_bits" | grep  '@<:@^0-9@:>@' > /dev/null; then
+if test "x$ac_cv_sys_file_offset_bits" = x || echo "$ac_cv_sys_file_offset_bits" | $GREP  '@<:@^0-9@:>@' > /dev/null; then
 	dnl if it has non-numeric chars or is empty... ignore...
 	LFS_LOBJ=
 else
@@ -1234,8 +1234,8 @@ fi
 for i in $more_sources
 do
   # Echo make sure every file is only once in the list.
-  echo "$DECODER_OBJ" | grep -v -w "$i\.\$(OBJEXT)" > /dev/null && DECODER_OBJ="$DECODER_OBJ $i.\$(OBJEXT)"
-  echo "$DECODER_LOBJ" | grep -v -w "$i\.lo" > /dev/null && DECODER_LOBJ="$DECODER_LOBJ $i.lo"
+  echo "$DECODER_OBJ" | $GREP -v -w "$i\.\$(OBJEXT)" > /dev/null && DECODER_OBJ="$DECODER_OBJ $i.\$(OBJEXT)"
+  echo "$DECODER_LOBJ" | $GREP -v -w "$i\.lo" > /dev/null && DECODER_LOBJ="$DECODER_LOBJ $i.lo"
 done
 
 AC_SUBST(DECODER_OBJ)
@@ -1818,7 +1818,7 @@ esac
 
 dnl If using gcc, prevent a bad alignment option from breaking things.
 dnl Let's default to safe 16-byte alignment for any special x86 or altivec stuff.
-if test "x$GCC" = xyes && echo "$CFLAGS" | grep 'mpreferred-stack-boundary=' > /dev/null; then
+if test "x$GCC" = xyes && echo "$CFLAGS" | $GREP 'mpreferred-stack-boundary=' > /dev/null; then
 	case $cpu_type in
 		x86 | i586* | mmx | sse | 3dnow* | altivec)
 			AC_MSG_WARN( [ You are trying to mess with stack alignment. I know better. ] )
