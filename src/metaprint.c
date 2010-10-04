@@ -297,11 +297,18 @@ static void utf8_ascii(mpg123_string *dest, mpg123_string *source)
 	size_t dlen = 0;
 	char *p;
 
-	dlen = mpg123_strlen(source, 1);
+	/* Find length of ASCII string (count non-continuation bytes).
+	   Do _not_ change this to mpg123_strlen()!
+	   It needs to match the loop below. Especially dlen should not stop at embedded null bytes. You can get any trash from ID3! */
+	for(spos=0; spos < source->fill; ++spos)
+	if((source->p[spos] & 0xc0) == 0x80) continue;
+	else ++dlen;
 
-	if(!mpg123_resize_string(dest, dlen+1)){ mpg123_free_string(dest); return; }
+	/* The trailing zero is included in dlen; if there is none, one character will be cut. Bad input -> bad output. */
+	if(!mpg123_resize_string(dest, dlen)){ mpg123_free_string(dest); return; }
 	/* Just ASCII, we take it easy. */
 	p = dest->p;
+
 	for(spos=0; spos < source->fill; ++spos)
 	{
 		/* UTF-8 continuation byte 0x10?????? */
@@ -313,6 +320,8 @@ static void utf8_ascii(mpg123_string *dest, mpg123_string *source)
 
 		++p; /* next output char */
 	}
+	/* Always close the string, trailing zero might be missing. */
 	if(dest->size) dest->p[dest->size-1] = 0;
-	dest->fill = dest->size; /* The one extra 0 is unaccounted. */
+
+	dest->fill = dest->size;
 }
