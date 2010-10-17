@@ -41,10 +41,11 @@ echo "
 #define dn_SSE "SSE"
 #define dn_x86_64 "x86-64"
 #define dn_ARM "ARM"
+#define dn_NEON "NEON"
 static const char* decname[] =
 {
 	"auto"
-	, dn_generic, dn_generic_dither, dn_i386, dn_i486, dn_i586, dn_i586_dither, dn_MMX, dn_3DNow, dn_3DNowExt, dn_AltiVec, dn_SSE, dn_x86_64, dn_ARM
+	, dn_generic, dn_generic_dither, dn_i386, dn_i486, dn_i586, dn_i586_dither, dn_MMX, dn_3DNow, dn_3DNowExt, dn_AltiVec, dn_SSE, dn_x86_64, dn_ARM, dn_NEON
 	, "nodec"
 };
 
@@ -165,7 +166,7 @@ enum optdec defdec(void){ return defopt; }
 
 enum optcla decclass(const enum optdec type)
 {
-	return (type == mmx || type == sse || type == dreidnowext || type == x86_64 ) ? mmxsse : normal;
+	return (type == mmx || type == sse || type == dreidnowext || type == x86_64  || type == neon) ? mmxsse : normal;
 }
 
 
@@ -225,6 +226,9 @@ static int find_dectype(mpg123_handle *fr)
 #ifdef OPT_ARM
 	else if(basic_synth == synth_1to1_arm) type = arm;
 #endif
+#ifdef OPT_NEON
+	else if(basic_synth == synth_1to1_neon) type = neon;
+#endif
 #ifdef OPT_GENERIC_DITHER
 	else if(basic_synth == synth_1to1_dither) type = generic_dither;
 #endif
@@ -249,6 +253,9 @@ static int find_dectype(mpg123_handle *fr)
 #ifdef OPT_ALTIVEC
 	else if(basic_synth == synth_1to1_real_altivec) type = altivec;
 #endif
+#ifdef OPT_NEON
+	else if(basic_synth == synth_1to1_real_neon) type = neon;
+#endif
 
 #endif /* real */
 
@@ -261,6 +268,9 @@ static int find_dectype(mpg123_handle *fr)
 #endif
 #ifdef OPT_ALTIVEC
 	else if(basic_synth == synth_1to1_s32_altivec) type = altivec;
+#endif
+#ifdef OPT_NEON
+	else if(basic_synth == synth_1to1_s32_neon) type = neon;
 #endif
 #endif /* 32bit */
 
@@ -397,6 +407,7 @@ int set_synth_functions(mpg123_handle *fr)
 #	ifdef ACCURATE_ROUNDING
 	   && fr->cpu_opts.type != sse
 	   && fr->cpu_opts.type != x86_64
+	   && fr->cpu_opts.type != neon
 #	endif
 	  )
 	{
@@ -674,6 +685,27 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 	}
 #	endif
 
+#	ifdef OPT_NEON
+	if(!done && (auto_choose || want_dec == neon))
+	{
+		chosen = "NEON";
+		fr->cpu_opts.type = neon;
+#		ifndef NO_16BIT
+		fr->synths.plain[r_1to1][f_16] = synth_1to1_neon;
+		fr->synths.stereo[r_1to1][f_16] = synth_1to1_stereo_neon;
+#		endif
+#		ifndef NO_REAL
+		fr->synths.plain[r_1to1][f_real] = synth_1to1_real_neon;
+		fr->synths.stereo[r_1to1][f_real] = synth_1to1_real_stereo_neon;
+#		endif
+#		ifndef NO_32BIT
+		fr->synths.plain[r_1to1][f_32] = synth_1to1_s32_neon;
+		fr->synths.stereo[r_1to1][f_32] = synth_1to1_s32_stereo_neon;
+#		endif
+		done = 1;
+	}
+#	endif
+
 #	ifdef OPT_ARM
 	if(!done && (auto_choose || want_dec == arm))
 	{
@@ -786,6 +818,9 @@ static const char *mpg123_supported_decoder_list[] =
 	#ifdef OPT_ARM
 	NULL,
 	#endif
+	#ifdef OPT_NEON
+	NULL,
+	#endif
 	#ifdef OPT_GENERIC_FLOAT
 	NULL,
 	#endif
@@ -833,6 +868,9 @@ static const char *mpg123_decoder_list[] =
 	#endif
 	#ifdef OPT_ARM
 	dn_ARM,
+	#endif
+	#ifdef OPT_NEON
+	dn_NEON,
 	#endif
 	#ifdef OPT_GENERIC
 	dn_generic,
@@ -892,6 +930,9 @@ void check_decoders(void )
 #endif
 #ifdef OPT_ARM
 	*(d++) = decname[arm];
+#endif
+#ifdef OPT_NEON
+	*(d++) = decname[neon];
 #endif
 #ifdef OPT_GENERIC
 	*(d++) = decname[generic];

@@ -54,6 +54,8 @@ int synth_1to1_stereo_altivec(real*, real*, mpg123_handle*);
 int synth_1to1_x86_64     (real*, int, mpg123_handle*, int);
 int synth_1to1_stereo_x86_64(real*, real*, mpg123_handle*);
 int synth_1to1_arm        (real*, int, mpg123_handle*, int);
+int synth_1to1_neon       (real*, int, mpg123_handle*, int);
+int synth_1to1_stereo_neon(real*, real*, mpg123_handle*);
 /* This is different, special usage in layer3.c only.
    Hence, the name... and now forget about it.
    Never use it outside that special portion of code inside layer3.c! */
@@ -126,6 +128,8 @@ int synth_1to1_real_x86_64     (real*, int, mpg123_handle*, int);
 int synth_1to1_real_stereo_x86_64(real*, real*, mpg123_handle*);
 int synth_1to1_real_altivec    (real*, int, mpg123_handle*, int);
 int synth_1to1_real_stereo_altivec(real*, real*, mpg123_handle*);
+int synth_1to1_real_neon       (real*, int, mpg123_handle*, int);
+int synth_1to1_real_stereo_neon(real*, real*, mpg123_handle*);
 int synth_1to1_real_mono       (real*, mpg123_handle*);
 int synth_1to1_real_m2s(real*, mpg123_handle*);
 #ifndef NO_DOWNSAMPLE
@@ -155,6 +159,8 @@ int synth_1to1_s32_x86_64     (real*, int, mpg123_handle*, int);
 int synth_1to1_s32_stereo_x86_64(real*, real*, mpg123_handle*);
 int synth_1to1_s32_altivec    (real*, int, mpg123_handle*, int);
 int synth_1to1_s32_stereo_altivec(real*, real*, mpg123_handle*);
+int synth_1to1_s32_neon       (real*, int, mpg123_handle*, int);
+int synth_1to1_s32_stereo_neon(real*, real*, mpg123_handle*);
 int synth_1to1_s32_mono       (real*, mpg123_handle*);
 int synth_1to1_s32_m2s(real*, mpg123_handle*);
 #ifndef NO_DOWNSAMPLE

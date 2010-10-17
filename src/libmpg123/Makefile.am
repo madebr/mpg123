@@ -91,6 +91,8 @@ EXTRA_libmpg123_la_SOURCES = \
 	dct64_sse_float.S \
 	dct64_x86_64.S \
 	dct64_x86_64_float.S \
+	dct64_neon.S \
+	dct64_neon_float.S \
 	synth_3dnowext.S \
 	synth_3dnow.S \
 	synth_altivec.c \
@@ -116,6 +118,14 @@ EXTRA_libmpg123_la_SOURCES = \
 	synth_stereo_x86_64_accurate.S \
 	synth_arm.S \
 	synth_arm_accurate.S \
+	synth_neon.S \
+	synth_neon_float.S \
+	synth_neon_s32.S \
+	synth_neon_accurate.S \
+	synth_stereo_neon.S \
+	synth_stereo_neon_float.S \
+	synth_stereo_neon_s32.S \
+	synth_stereo_neon_accurate.S \
 	ntom.c \
 	synth.c \
 	synth_8bit.c \

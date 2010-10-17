@@ -470,6 +470,7 @@ AC_ARG_WITH([cpu], [
   --with-cpu=x86-64       Use code optimized for x86-64 processors (AMD64 and Intel64, including dithered generic)
   --with-cpu=altivec      Use code optimized for Altivec processors (PowerPC G4 and G5)
   --with-cpu=ppc_nofpu    Use code optimized for PowerPC processors with fixed point arithmetic (experimental)
+  --with-cpu=neon         Use code optimized for ARM NEON SIMD engine (Cortex-A series)
   --with-cpu=arm_nofpu    Use code optimized for ARM processors with fixed point arithmetic (experimental)
 ])
 
@@ -1067,6 +1068,7 @@ s_sse="$s_i386 tabinit_mmx dct64_sse dct64_sse_float synth_sse_float synth_stere
 s_x86_64="dct64_x86_64 dct64_x86_64_float synth_x86_64_float synth_x86_64_s32 synth_stereo_x86_64_float synth_stereo_x86_64_s32"
 s_x86multi="getcpuflags"
 s_dither="dither"
+s_neon="dct64_neon dct64_neon_float synth_neon_float synth_neon_s32 synth_stereo_neon_float synth_stereo_neon_s32"
 
 # choose optimized 16bit decoder for SSE, quality or fast
 # note: supporting deactivation of output formats for these decoders would need more logic here
@@ -1074,10 +1076,12 @@ if test "x$integers" = "xquality"; then
   s_sse="$s_sse synth_sse_accurate synth_stereo_sse_accurate"
   s_x86_64="$s_x86_64 synth_x86_64_accurate synth_stereo_x86_64_accurate"
   s_arm="synth_arm_accurate"
+  s_neon="$s_neon synth_neon_accurate synth_stereo_neon_accurate"
 else
   s_sse="$s_sse synth_sse" # no stereo
   s_x86_64="$s_x86_64 synth_x86_64 synth_stereo_x86_64"
   s_arm="synth_arm"
+  s_neon="$s_neon synth_neon synth_stereo_neon"
 fi
 
 dnl CPU specific compiler flags and sources
@@ -1126,6 +1130,10 @@ dnl Not disabling buffer for float mode... check that this is OK now!
         AC_MSG_RESULT([no])
     fi
     rm -f conftest.o conftest.c
+  ;;
+  neon)
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_NEON -DREAL_IS_FLOAT"
+    more_sources="$s_neon $s_fpu"
   ;;
   i386) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_I386 -DREAL_IS_FLOAT"
