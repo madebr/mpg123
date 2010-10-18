@@ -1,7 +1,7 @@
 /*
 	module.c: modular code loader
 
-	copyright 1995-2009 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1995-2010 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Nicholas J Humfrey
 */
@@ -20,7 +20,6 @@
 #error Cannot build without LTDL library support
 #endif
 
-#define MODULE_FILE_SUFFIX		".la"
 #define MODULE_SYMBOL_PREFIX 	"mpg123_"
 #define MODULE_SYMBOL_SUFFIX 	"_module_info"
 

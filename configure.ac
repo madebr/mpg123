@@ -811,6 +811,16 @@ dnl ############## Modules
 # Dummy audio output module is always supported
 output_modules="dummy"
 
+# Decide on module file suffix. Setting it != .la allows removal of .la files.
+AC_ARG_WITH([module-suffix], [
+  --with-module-suffix=.la            (default) Use libtool's .la files for loading modules.
+  --with-module-suffix=[.so|.dll|...] Specify the native module file suffix to bypass .la files.
+])
+if test x"$with_module_suffix" = x; then
+  with_module_suffix=.la
+fi
+AC_DEFINE_UNQUOTED( MODULE_FILE_SUFFIX, "$with_module_suffix", [The suffix for module files.] )
+
 dnl ############## Assembler, compiler properties
 
 # based on posting from John Dalgliesh <johnd@defyne.org> on ffmpeg (LGPL) mailing list
@@ -2071,6 +2081,7 @@ echo -n "
 echo
 
 echo "  Modules ................. $modules"
+echo "  Module suffix ........... $with_module_suffix"
 echo "  Checked audio modules ... $check_modules
   Detected audio support ..$output_modules
   Default output module ... $default_output_module

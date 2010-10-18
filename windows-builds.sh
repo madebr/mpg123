@@ -94,7 +94,7 @@ mpg123_build()
 	sleep 5 &&
 	if test -e Makefile; then make clean; fi &&
 	rm -rvf $tmp &&
-	./configure $hostopt --prefix=$tmp $myopts --with-cpu=$cpu && make && make install &&
+	./configure $hostopt --prefix=$tmp --with-module-suffix=.dll $myopts --with-cpu=$cpu && make && make install &&
 	rm -rf "$final/$name" &&
 	mkdir  "$final/$name" &&
 	cp -v "$tmp/bin/mpg123.exe" "$final/$name" &&
@@ -113,19 +113,10 @@ mpg123_build()
 		else
 			$strip --strip-unneeded "$final/$name/"*.dll || exit 1
 		fi
-		for i in $tmp/lib/mpg123/*.la
+		for i in $tmp/lib/mpg123/*.dll
 		do
 			if test -e "$i"; then
-				plugdir="$final/$name/plugins"
-				mkdir -p "$plugdir" &&
-				sed -e 's/libdir=.*$/libdir='"'.'/" < $i > "$plugdir/`basename $i`" &&
-				sofile=`echo $i | sed -e 's/\.la$/.dll/'` &&
-				if test "$debug" = y; then
-					echo "not stripping debug module..."
-				else
-					$strip --strip-unneeded "$sofile" || exit 1
-				fi &&
-				cp -v "$sofile" "$plugdir"
+				cp -v "$i" "$plugdir"
 			fi
 		done
 	fi &&
