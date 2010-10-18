@@ -1,10 +1,12 @@
 1.13.0
 ---
 - libmpg123 API version 28 (see NEWS.libmpg123)
+- New optimization: ARM NEON (Cortex A series) -- kudos to Taihei, again!
 - Fixed formatting of meta data printout in UTF-8 (via mpg123_strlen()).
 - Cleanup of symbols for the static library: Only have global symbols that are actually needed, prefix them with INT123_ to avoid conflicts.
 - Added --streamdump to get a copy of the data libmpg123 used.
 - Added --icy-interval and tweaked libmpg123 to make playback of ICY stream dumps possible.
+- Added possibility to set module file suffix at build -- to be able to avoid .la files for plugins.
 TODO:
 - Remove compiler directives for alignment and disable associated tests.
   The tests don't work on a wide range of compilers anyway, and newer gccs
