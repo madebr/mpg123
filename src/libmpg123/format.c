@@ -23,6 +23,8 @@ static const int my_encodings[MPG123_ENCODINGS] =
 	MPG123_ENC_UNSIGNED_16,
 	MPG123_ENC_SIGNED_32,
 	MPG123_ENC_UNSIGNED_32,
+	MPG123_ENC_SIGNED_24,
+	MPG123_ENC_UNSIGNED_24,
 	MPG123_ENC_FLOAT_32,
 	MPG123_ENC_FLOAT_64,
 	MPG123_ENC_SIGNED_8,
@@ -48,6 +50,8 @@ static const int good_encodings[] =
 #ifndef NO_32BIT
 	MPG123_ENC_SIGNED_32,
 	MPG123_ENC_UNSIGNED_32,
+	MPG123_ENC_SIGNED_24,
+	MPG123_ENC_UNSIGNED_24,
 #endif
 #ifndef NO_REAL
 	MPG123_FLOAT_ENC,
@@ -90,6 +94,8 @@ int attribute_align_arg mpg123_encsize(int encoding)
 	return 1;
 	else if(encoding & MPG123_ENC_16)
 	return 2;
+	else if(encoding & MPG123_ENC_24)
+	return 3;
 	else if(encoding & MPG123_ENC_32 || encoding == MPG123_ENC_FLOAT_32)
 	return 4;
 	else if(encoding == MPG123_ENC_FLOAT_64)
@@ -390,6 +396,15 @@ void invalidate_format(struct audioformat *af)
 	af->channels = 0;
 }
 
+/* Consider 24bit output needing 32bit output as temporary storage. */
+off_t samples_to_storage(mpg123_handle *fr, off_t s)
+{
+	if(fr->af.encoding & MPG123_ENC_24)
+	return s*4*fr->af.channels; /* 4 bytes per sample */
+	else
+	return samples_to_bytes(fr, s);
+}
+
 /* take into account: channels, bytes per sample -- NOT resampling!*/
 off_t samples_to_bytes(mpg123_handle *fr , off_t s)
 {
@@ -399,4 +414,93 @@ off_t samples_to_bytes(mpg123_handle *fr , off_t s)
 off_t bytes_to_samples(mpg123_handle *fr , off_t b)
 {
 	return b / fr->af.encsize / fr->af.channels;
+}
+
+
+/* Remove every fourth byte, facilitating conversion from 32 bit to 24 bit integers.
+   This has to be aware of endinaness, of course. */
+static void chop_fourth_byte(struct outbuffer *buf)
+{
+	unsigned char *wpos = buf->data;
+	unsigned char *rpos = buf->data;
+#ifdef MPG123_BIGENDIAN
+	while(rpos-buf->data+4 <= buf->fill)
+	{
+		/* Really stupid: Copy, increment. Byte per byte. */
+		*wpos = *rpos;
+		wpos++; rpos++;
+		*wpos = *rpos;
+		wpos++; rpos++;
+		*wpos = *rpos;
+		wpos++; rpos++;
+		rpos++; /* Skip the lowest byte (last). */
+	}
+#else
+	while(rpos-buf->data+4 <= buf->fill)
+	{
+		/* Really stupid: Copy, increment. Byte per byte. */
+		rpos++; /* Skip the lowest byte (first). */
+		*wpos = *rpos;
+		wpos++; rpos++;
+		*wpos = *rpos;
+		wpos++; rpos++;
+		*wpos = *rpos;
+		wpos++; rpos++;
+	}
+#endif
+	buf->fill = wpos-buf->data;
+}
+
+void postprocess_buffer(mpg123_handle *fr)
+{
+	/* Handle unsigned output formats via reshifting after decode here.
+	   Also handle conversion to 24 bit. */
+#ifndef NO_32BIT
+	if(fr->af.encoding == MPG123_ENC_UNSIGNED_32 || fr->af.encoding == MPG123_ENC_UNSIGNED_24)
+	{ /* 32bit signed -> unsigned */
+		size_t i;
+		int32_t *ssamples;
+		uint32_t *usamples;
+		ssamples = (int32_t*)fr->buffer.data;
+		usamples = (uint32_t*)fr->buffer.data;
+		debug("converting output to unsigned 32 bit integer");
+		for(i=0; i<fr->buffer.fill/sizeof(int32_t); ++i)
+		{
+			/* Different strategy since we don't have a larger type at hand.
+				 Also watch out for silly +-1 fun because integer constants are signed in C90! */
+			if(ssamples[i] >= 0)
+			usamples[i] = (uint32_t)ssamples[i] + 2147483647+1;
+			/* The smalles value goes zero. */
+			else if(ssamples[i] == ((int32_t)-2147483647-1))
+			usamples[i] = 0;
+			/* Now -value is in the positive range of signed int ... so it's a possible value at all. */
+			else
+			usamples[i] = (uint32_t)2147483647+1 - (uint32_t)(-ssamples[i]);
+		}
+		/* Dumb brute force: A second pass for hacking off the last byte. */
+		if(fr->af.encoding == MPG123_ENC_UNSIGNED_24)
+		chop_fourth_byte(&fr->buffer);
+	}
+	else if(fr->af.encoding == MPG123_ENC_SIGNED_24)
+	{
+		/* We got 32 bit signed ... chop off for 24 bit signed. */
+		chop_fourth_byte(&fr->buffer);
+	}
+#endif
+#ifndef NO_16BIT
+	if(fr->af.encoding == MPG123_ENC_UNSIGNED_16)
+	{
+		size_t i;
+		short *ssamples;
+		unsigned short *usamples;
+		ssamples = (short*)fr->buffer.data;
+		usamples = (unsigned short*)fr->buffer.data;
+		debug("converting output to unsigned 16 bit integer");
+		for(i=0; i<fr->buffer.fill/sizeof(short); ++i)
+		{
+			long tmp = (long)ssamples[i]+32768;
+			usamples[i] = (unsigned short)tmp;
+		}
+	}
+#endif
 }

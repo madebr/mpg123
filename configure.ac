@@ -11,8 +11,8 @@ AC_PREREQ(2.57)
 dnl ############# Initialisation
 AC_INIT([mpg123], [1.13.0], [mpg123-devel@lists.sourceforge.net])
 dnl Increment API_VERSION when the API gets changes (new functions).
-API_VERSION=28
-LIB_PATCHLEVEL=2
+API_VERSION=29
+LIB_PATCHLEVEL=0
 dnl Since we want to be backwards compatible, both sides get set to API_VERSION.
 LIBMPG123_VERSION=$API_VERSION:$LIB_PATCHLEVEL:$API_VERSION
 AC_SUBST(LIBMPG123_VERSION)
@@ -433,7 +433,7 @@ AC_ARG_ENABLE(8bit,
 
 int32=enabled
 AC_ARG_ENABLE(32bit,
-              [  --disable-32bit=[no/yes] no 32 bit integer output ],
+              [  --disable-32bit=[no/yes] no 32 bit integer output (also 24 bit) ],
               [
                 if test "x$enableval" = xno; then
                   int32="disabled"
@@ -702,7 +702,7 @@ else
 fi
 
 if test "x$int32" = "xdisabled"; then
-  AC_DEFINE(NO_32BIT, 1, [ Define to disable 32 bit integer output. ])
+  AC_DEFINE(NO_32BIT, 1, [ Define to disable 32 bit and 24 bit integer output. ])
 else
   s_fpu="$s_fpu synth_s32"
 fi
@@ -2074,7 +2074,7 @@ echo -n "
   Output formats (nofpu will disable all but 16 or 8 bit!):
   8 bit integer ........... $int8
   16 bit integer .......... $int16
-  32 bit integer .......... $int32
+  32/24 bit integer ....... $int32
   real (32 bit float) ..... $real
 "
 # just an empty line

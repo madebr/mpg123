@@ -266,7 +266,9 @@ static const struct enc_desc encdesc[] =
 	{ MPG123_ENC_ALAW_8, "a-law (8 bit)", "alaw ", 4 },
 	{ MPG123_ENC_FLOAT_32, "float (32 bit)", "f32 ", 3 },
 	{ MPG123_ENC_SIGNED_32, "signed 32 bit", "s32 ", 3 },
-	{ MPG123_ENC_UNSIGNED_32, "unsigned 32 bit", "u32 ", 3 }
+	{ MPG123_ENC_UNSIGNED_32, "unsigned 32 bit", "u32 ", 3 },
+	{ MPG123_ENC_SIGNED_24, "signed 24 bit", "s24 ", 3 },
+	{ MPG123_ENC_UNSIGNED_24, "unsigned 24 bit", "u24 ", 3 }
 };
 #define KNOWN_ENCS (sizeof(encdesc)/sizeof(struct enc_desc))
 

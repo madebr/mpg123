@@ -2,7 +2,7 @@
 ---
 - libmpg123 API version 28 (see NEWS.libmpg123)
 - New optimization: ARM NEON (Cortex A series) -- kudos to Taihei, again!
-- Fixed formatting of meta data printout in UTF-8 (via mpg123_strlen()).
+- Added 24 bit integer output (truncation of 32 bit integer).
 - Cleanup of symbols for the static library: Only have global symbols that are actually needed, prefix them with INT123_ to avoid conflicts.
 - Added --streamdump to get a copy of the data libmpg123 used.
 - Added --icy-interval and tweaked libmpg123 to make playback of ICY stream dumps possible.

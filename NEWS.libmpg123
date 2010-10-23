@@ -1,5 +1,9 @@
 Changes in libmpg123 libtool interface versions...
 
+29.0.29
+	- New decoder: ARM neon.
+	- Added support for 24 bit output (dumb byte-chopping of 32 bit output).
+
 28.0.28
 	- Add mpg123_strlen().
 

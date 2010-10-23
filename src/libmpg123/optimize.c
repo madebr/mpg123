@@ -328,7 +328,8 @@ int set_synth_functions(mpg123_handle *fr)
 	basic_format = f_real;
 #endif
 #ifndef NO_32BIT
-	else if(fr->af.encoding & MPG123_ENC_32)
+	/* 24 bit integer means decoding to 32 bit first. */
+	else if(fr->af.encoding & MPG123_ENC_32 || fr->af.encoding & MPG123_ENC_24)
 	basic_format = f_32;
 #endif
 

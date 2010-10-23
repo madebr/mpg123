@@ -551,7 +551,7 @@ int decode_update(mpg123_handle *mh)
 		case 2:
 			mh->down_sample_sblimit = SBLIMIT>>(mh->down_sample);
 			/* With downsampling I get less samples per frame */
-			mh->outblock = samples_to_bytes(mh, (spf(mh)>>mh->down_sample));
+			mh->outblock = samples_to_storage(mh, (spf(mh)>>mh->down_sample));
 		break;
 #ifndef NO_NTOM
 		case 3:
@@ -563,10 +563,10 @@ int decode_update(mpg123_handle *mh)
 				mh->down_sample_sblimit /= frame_freq(mh);
 			}
 			else mh->down_sample_sblimit = SBLIMIT;
-			mh->outblock = mh->af.encsize * mh->af.channels *
-			               ( ( NTOM_MUL-1+spf(mh)
+			mh->outblock = samples_to_storage(mh,
+			                 ( ( NTOM_MUL-1+spf(mh)
 			                   * (((size_t)NTOM_MUL*mh->af.rate)/frame_freq(mh))
-			                 )/NTOM_MUL );
+			                 )/NTOM_MUL ));
 		}
 		break;
 #endif
@@ -684,6 +684,7 @@ debug1("new format: %i", mh->new_format);
 }
 
 /* Assumption: A buffer full of zero samples can be constructed by repetition of this byte.
+   Oh, and it handles some format conversion.
    Only to be used by decode_the_frame() ... */
 static int zero_byte(mpg123_handle *fr)
 {
@@ -700,7 +701,8 @@ static int zero_byte(mpg123_handle *fr)
 */
 static void decode_the_frame(mpg123_handle *fr)
 {
-	size_t needed_bytes = samples_to_bytes(fr, frame_expect_outsamples(fr)); 	fr->clip += (fr->do_layer)(fr);
+	size_t needed_bytes = samples_to_storage(fr, frame_expect_outsamples(fr));
+	fr->clip += (fr->do_layer)(fr);
 	/*fprintf(stderr, "frame %"OFF_P": got %"SIZE_P" / %"SIZE_P"\n", fr->num,(size_p)fr->buffer.fill, (size_p)needed_bytes);*/
 	/* There could be less data than promised.
 	   Also, then debugging, we look out for coding errors that could result in _more_ data than expected. */
@@ -735,47 +737,7 @@ static void decode_the_frame(mpg123_handle *fr)
 		}
 	}
 #endif
-	/* Handle unsigned output formats via reshifting after decode here. */
-#ifndef NO_32BIT
-	if(fr->af.encoding == MPG123_ENC_UNSIGNED_32)
-	{ /* 32bit signed -> unsigned */
-		size_t i;
-		int32_t *ssamples;
-		uint32_t *usamples;
-		ssamples = (int32_t*)fr->buffer.data;
-		usamples = (uint32_t*)fr->buffer.data;
-		debug("converting output to unsigned 32 bit integer");
-		for(i=0; i<fr->buffer.fill/sizeof(int32_t); ++i)
-		{
-			/* Different strategy since we don't have a larger type at hand.
-				 Also watch out for silly +-1 fun because integer constants are signed in C90! */
-			if(ssamples[i] >= 0)
-			usamples[i] = (uint32_t)ssamples[i] + 2147483647+1;
-			/* The smalles value goes zero. */
-			else if(ssamples[i] == ((int32_t)-2147483647-1))
-			usamples[i] = 0;
-			/* Now -value is in the positive range of signed int ... so it's a possible value at all. */
-			else
-			usamples[i] = (uint32_t)2147483647+1 - (uint32_t)(-ssamples[i]);
-		}
-	}
-#endif
-#ifndef NO_16BIT
-	if(fr->af.encoding == MPG123_ENC_UNSIGNED_16)
-	{
-		size_t i;
-		short *ssamples;
-		unsigned short *usamples;
-		ssamples = (short*)fr->buffer.data;
-		usamples = (unsigned short*)fr->buffer.data;
-		debug("converting output to unsigned 16 bit integer");
-		for(i=0; i<fr->buffer.fill/sizeof(short); ++i)
-		{
-			long tmp = (long)ssamples[i]+32768;
-			usamples[i] = (unsigned short)tmp;
-		}
-	}
-#endif
+	postprocess_buffer(fr);
 }
 
 /*
