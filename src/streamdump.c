@@ -33,7 +33,6 @@ static off_t dump_seek(int fd, off_t pos, int whence)
 	{
 		lseek(dump_fd, pos, whence);
 	}
-fprintf(stderr, "seek: %"OFF_P"\n", ret);
 	return ret;
 }
 
@@ -69,7 +68,7 @@ int dump_open(mpg123_handle *mh)
 
 void dump_close(void)
 {
-	if(dump_fd > -1) close(dump_fd);
+	if(dump_fd > -1) compat_close(dump_fd);
 
 	dump_fd = -1;
 }
