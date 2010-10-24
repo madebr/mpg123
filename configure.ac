@@ -83,7 +83,7 @@ dnl "Checking for egrep is broken after removal of libltdl stuff... checks use $
 AC_PROG_EGREP
 AC_C_CONST
 AC_INLINE
-
+AC_C_BIGENDIAN
 
 dnl ############# Use Libtool for dynamic module loading
 

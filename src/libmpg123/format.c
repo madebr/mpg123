@@ -418,12 +418,12 @@ off_t bytes_to_samples(mpg123_handle *fr , off_t b)
 
 
 /* Remove every fourth byte, facilitating conversion from 32 bit to 24 bit integers.
-   This has to be aware of endinaness, of course. */
+   This has to be aware of endianess, of course. */
 static void chop_fourth_byte(struct outbuffer *buf)
 {
 	unsigned char *wpos = buf->data;
 	unsigned char *rpos = buf->data;
-#ifdef MPG123_BIGENDIAN
+#ifdef WORDS_BIGENDIAN
 	while(rpos-buf->data+4 <= buf->fill)
 	{
 		/* Really stupid: Copy, increment. Byte per byte. */

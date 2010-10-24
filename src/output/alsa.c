@@ -35,8 +35,13 @@ static const struct {
 	{ SND_PCM_FORMAT_MU_LAW, MPG123_ENC_ULAW_8      },
 	{ SND_PCM_FORMAT_S32,    MPG123_ENC_SIGNED_32   },
 	{ SND_PCM_FORMAT_U32,    MPG123_ENC_UNSIGNED_32 },
-	{ SND_PCM_FORMAT_S24,    MPG123_ENC_SIGNED_24   },
-	{ SND_PCM_FORMAT_U24,    MPG123_ENC_UNSIGNED_24 },
+#ifdef WORDS_BIGENDIAN
+	{ SND_PCM_FORMAT_S24_3BE, MPG123_ENC_SIGNED_24   },
+	{ SND_PCM_FORMAT_U24_3BE, MPG123_ENC_UNSIGNED_24 },
+#else
+	{ SND_PCM_FORMAT_S24_3LE, MPG123_ENC_SIGNED_24   },
+	{ SND_PCM_FORMAT_U24_3LE, MPG123_ENC_UNSIGNED_24 },
+#endif
 	{ SND_PCM_FORMAT_FLOAT,  MPG123_ENC_FLOAT_32    },
 	{ SND_PCM_FORMAT_FLOAT64, MPG123_ENC_FLOAT_64   }
 };
@@ -194,7 +199,6 @@ static int get_formats_alsa(audio_output_t *ao)
 		return 0;
 	supported_formats = 0;
 	for (i = 0; i < NUM_FORMATS; ++i) {
-fprintf(stderr, "testing format %i: %i / %i\n", i, format_map[i].alsa, format_map[i].mpg123);
 		if (snd_pcm_hw_params_test_format(pcm, hw, format_map[i].alsa) == 0)
 			supported_formats |= format_map[i].mpg123;
 	}
