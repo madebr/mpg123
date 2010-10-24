@@ -129,7 +129,7 @@ typedef long ssize_p;
  * @param[in] mbptr Pointer to multibyte string.
  * @return file descriptor (>=0) or error code.
  */
-int compat_open(const char *filename, int mode);
+int compat_open(const char *filename, int flags);
 
 /**
  * Closing a file handle can be platform specific.

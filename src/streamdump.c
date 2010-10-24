@@ -7,7 +7,6 @@
 */
 
 #include "streamdump.h"
-#include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
 #include "debug.h"
@@ -47,7 +46,7 @@ int dump_open(mpg123_handle *mh)
 
 	if(!param.quiet) fprintf(stderr, "Note: Dumping stream to %s\n", param.streamdump);
 
-	dump_fd = open(param.streamdump, O_CREAT|O_TRUNC|O_RDWR, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH);
+	dump_fd = compat_open(param.streamdump, O_CREAT|O_TRUNC|O_RDWR);
 	if(dump_fd < 0)
 	{
 		error1("Failed to open dump file: %s\n", strerror(errno));

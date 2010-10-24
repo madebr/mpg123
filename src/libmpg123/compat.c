@@ -17,6 +17,7 @@
 #else
 #include <fcntl.h>
 #endif
+#include <sys/stat.h>
 
 #ifdef WANT_WIN32_UNICODE
 #include <wchar.h>
@@ -55,7 +56,7 @@ char *strdup(const char *src)
 }
 #endif
 
-int compat_open(const char *filename, int mode)
+int compat_open(const char *filename, int flags)
 {
 	int ret;
 #if defined (WANT_WIN32_UNICODE)
@@ -64,7 +65,7 @@ int compat_open(const char *filename, int mode)
 	ret = win32_utf8_wide(filename, &frag, NULL);
 	if ((frag == NULL) || (ret == 0)) goto fallback; /* Fallback to plain open when ucs-2 conversion fails */
 
-	ret = _wopen(frag, mode); /*Try _wopen */
+	ret = _wopen(frag, flags); /*Try _wopen */
 	if (ret != -1 ) goto open_ok; /* msdn says -1 means failure */
 
 fallback:
@@ -73,7 +74,12 @@ fallback:
 #ifdef __MSVCRT__ /* MSDN says POSIX function is deprecated beginning in Visual C++ 2005 */
 	ret = _open (filename, mode); /* Try plain old _open(), if it fails, do nothing */
 #else
-	ret = open (filename, mode);
+# ifndef WIN32
+	/* On UNIX, we always add a default permission mask in case flags|O_CREAT. */
+	ret = open (filename, flags, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH);
+# else
+	ret = open (filename, flags);
+# endif
 #endif
 
 #if defined (WANT_WIN32_UNICODE)
