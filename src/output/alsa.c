@@ -194,6 +194,7 @@ static int get_formats_alsa(audio_output_t *ao)
 		return 0;
 	supported_formats = 0;
 	for (i = 0; i < NUM_FORMATS; ++i) {
+fprintf(stderr, "testing format %i: %i / %i\n", i, format_map[i].alsa, format_map[i].mpg123);
 		if (snd_pcm_hw_params_test_format(pcm, hw, format_map[i].alsa) == 0)
 			supported_formats |= format_map[i].mpg123;
 	}
