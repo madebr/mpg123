@@ -72,14 +72,10 @@ fallback:
 #endif
 
 #ifdef __MSVCRT__ /* MSDN says POSIX function is deprecated beginning in Visual C++ 2005 */
-	ret = _open (filename, mode); /* Try plain old _open(), if it fails, do nothing */
+	ret = _open(filename, flags); /* Try plain old _open(), if it fails, do nothing */
 #else
-# ifndef WIN32
 	/* On UNIX, we always add a default permission mask in case flags|O_CREAT. */
-	ret = open (filename, flags, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH);
-# else
-	ret = open (filename, flags);
-# endif
+	ret = open(filename, flags, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH);
 #endif
 
 #if defined (WANT_WIN32_UNICODE)
