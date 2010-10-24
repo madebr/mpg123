@@ -916,10 +916,23 @@ AC_ARG_ENABLE(lfs-alias,
                 if test "x$enableval" = xno; then
                   lfs_alias="disabled"
                 fi
-              ], [])
+              ],
+              [
+                case $host in
+                *-cygwin*)
+                  lfs_alias="disabled"
+                  AC_MSG_NOTICE([lfs-alias disabled for Cygwin, use --enable-lfs-alias explicitly to enable, only if you know what you are doing])
+                ;;
+                esac
 
+              ])
+
+AC_MSG_CHECKING([if we want to enable alias wrappers for largefile])
 if test "x$lfs_alias" = "xenabled"; then
+  AC_MSG_RESULT([yes])
   LFS_LOBJ="$LFS_LOBJ lfs_alias.lo"
+else
+  AC_MSG_RESULT([no])
 fi
 
 AC_SUBST(LFS_LOBJ)
