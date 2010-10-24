@@ -231,6 +231,10 @@ int wav_open(audio_output_t *ao)
 		long2littleendian(bps=32,RIFF.WAVE.fmt.BitsPerSample,sizeof(RIFF.WAVE.fmt.BitsPerSample));
 		flipendian = testEndian();
 	}
+	else if(ao->format == MPG123_ENC_SIGNED_24) {
+		long2littleendian(bps=24,RIFF.WAVE.fmt.BitsPerSample,sizeof(RIFF.WAVE.fmt.BitsPerSample));
+		flipendian = testEndian();
+	}
 	else if(ao->format == MPG123_ENC_SIGNED_16) {
 		long2littleendian(bps=16,RIFF.WAVE.fmt.BitsPerSample,sizeof(RIFF.WAVE.fmt.BitsPerSample));
 		flipendian = testEndian();

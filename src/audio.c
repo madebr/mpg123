@@ -35,7 +35,7 @@ static int builtin_get_formats(struct audio_output_struct *ao)
 		return 0;
 	}
 	else if(param.outmode == DECODE_AU) return MPG123_ENC_SIGNED_16|MPG123_ENC_UNSIGNED_8|MPG123_ENC_ULAW_8;
-	else if(param.outmode == DECODE_WAV) return MPG123_ENC_SIGNED_16|MPG123_ENC_UNSIGNED_8|MPG123_ENC_FLOAT_32|MPG123_ENC_SIGNED_32;
+	else if(param.outmode == DECODE_WAV) return MPG123_ENC_SIGNED_16|MPG123_ENC_UNSIGNED_8|MPG123_ENC_FLOAT_32|MPG123_ENC_SIGNED_24|MPG123_ENC_SIGNED_32;
 	else return MPG123_ENC_ANY;
 }
 static int builtin_close(struct audio_output_struct *ao)
