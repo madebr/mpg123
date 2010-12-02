@@ -22,8 +22,6 @@
 
 static int initialized = 0;
 
-#include "aligncheck.h"
-
 #ifdef GAPLESS
 /*
 	Take the buffer after a frame decode (strictly: it is the data from frame fr->num!) and cut samples out.
@@ -76,7 +74,6 @@ static void frame_buffercheck(mpg123_handle *fr)
 
 int attribute_align_arg mpg123_init(void)
 {
-	ALIGNCHECKK
 	if((sizeof(short) != 2) || (sizeof(long) < 4)) return MPG123_BAD_TYPES;
 
 	if(initialized) return MPG123_OK; /* no need to initialize twice */
@@ -109,17 +106,7 @@ mpg123_handle attribute_align_arg *mpg123_parnew(mpg123_pars *mp, const char* de
 {
 	mpg123_handle *fr = NULL;
 	int err = MPG123_OK;
-#if (defined CCALIGN) && (defined NEED_ALIGNCHECK) && ((defined DEBUG) || (defined CHECK_ALIGN))
-#ifdef CCALIGN
-	double ALIGNED(16) altest[4];
-	if(((size_t)altest) % 16 != 0)
-	{
-		error("Stack variable is not aligned! Your combination of compiler/library is dangerous!");
-		*error = MPG123_BAD_ALIGN;
-		return NULL;
-	}
-#endif
-#endif
+
 	if(initialized) fr = (mpg123_handle*) malloc(sizeof(mpg123_handle));
 	else err = MPG123_NOT_INITIALIZED;
 	if(fr != NULL)
@@ -167,7 +154,7 @@ mpg123_handle attribute_align_arg *mpg123_parnew(mpg123_pars *mp, const char* de
 int attribute_align_arg mpg123_decoder(mpg123_handle *mh, const char* decoder)
 {
 	enum optdec dt = dectype(decoder);
-	ALIGNCHECK(mh);
+
 	if(mh == NULL) return MPG123_ERR;
 
 	if(dt == nodec)
@@ -203,7 +190,7 @@ int attribute_align_arg mpg123_decoder(mpg123_handle *mh, const char* decoder)
 int attribute_align_arg mpg123_param(mpg123_handle *mh, enum mpg123_parms key, long val, double fval)
 {
 	int r;
-	ALIGNCHECK(mh);
+
 	if(mh == NULL) return MPG123_ERR;
 	r = mpg123_par(&mh->p, key, val, fval);
 	if(r != MPG123_OK){ mh->err = r; r = MPG123_ERR; }
@@ -223,7 +210,7 @@ int attribute_align_arg mpg123_param(mpg123_handle *mh, enum mpg123_parms key, l
 int attribute_align_arg mpg123_par(mpg123_pars *mp, enum mpg123_parms key, long val, double fval)
 {
 	int ret = MPG123_OK;
-	ALIGNCHECKK
+
 	if(mp == NULL) return MPG123_BAD_PARS;
 	switch(key)
 	{
@@ -319,7 +306,7 @@ int attribute_align_arg mpg123_par(mpg123_pars *mp, enum mpg123_parms key, long 
 int attribute_align_arg mpg123_getparam(mpg123_handle *mh, enum mpg123_parms key, long *val, double *fval)
 {
 	int r;
-	ALIGNCHECK(mh);
+
 	if(mh == NULL) return MPG123_ERR;
 	r = mpg123_getpar(&mh->p, key, val, fval);
 	if(r != MPG123_OK){ mh->err = r; r = MPG123_ERR; }
@@ -329,7 +316,7 @@ int attribute_align_arg mpg123_getparam(mpg123_handle *mh, enum mpg123_parms key
 int attribute_align_arg mpg123_getpar(mpg123_pars *mp, enum mpg123_parms key, long *val, double *fval)
 {
 	int ret = 0;
-	ALIGNCHECKK
+
 	if(mp == NULL) return MPG123_BAD_PARS;
 	switch(key)
 	{
@@ -396,7 +383,7 @@ int attribute_align_arg mpg123_getstate(mpg123_handle *mh, enum mpg123_state key
 	int ret = MPG123_OK;
 	long theval = 0;
 	double thefval = 0.;
-	ALIGNCHECK(mh);
+
 	if(mh == NULL) return MPG123_ERR;
 
 	switch(key)
@@ -417,7 +404,6 @@ int attribute_align_arg mpg123_getstate(mpg123_handle *mh, enum mpg123_state key
 
 int attribute_align_arg mpg123_eq(mpg123_handle *mh, enum mpg123_channels channel, int band, double val)
 {
-	ALIGNCHECK(mh);
 	if(mh == NULL) return MPG123_ERR;
 	if(band < 0 || band > 31){ mh->err = MPG123_BAD_BAND; return MPG123_ERR; }
 	switch(channel)
@@ -438,7 +424,7 @@ int attribute_align_arg mpg123_eq(mpg123_handle *mh, enum mpg123_channels channe
 double attribute_align_arg mpg123_geteq(mpg123_handle *mh, enum mpg123_channels channel, int band)
 {
 	double ret = 0.;
-	ALIGNCHECK(mh);
+
 	if(mh == NULL) return MPG123_ERR;
 
 	/* Handle this gracefully. When there is no band, it has no volume. */
@@ -460,7 +446,6 @@ double attribute_align_arg mpg123_geteq(mpg123_handle *mh, enum mpg123_channels 
 /* plain file access, no http! */
 int attribute_align_arg mpg123_open(mpg123_handle *mh, const char *path)
 {
-	ALIGNCHECK(mh);
 	if(mh == NULL) return MPG123_ERR;
 
 	mpg123_close(mh);
@@ -469,7 +454,6 @@ int attribute_align_arg mpg123_open(mpg123_handle *mh, const char *path)
 
 int attribute_align_arg mpg123_open_fd(mpg123_handle *mh, int fd)
 {
-	ALIGNCHECK(mh);
 	if(mh == NULL) return MPG123_ERR;
 
 	mpg123_close(mh);
@@ -478,7 +462,6 @@ int attribute_align_arg mpg123_open_fd(mpg123_handle *mh, int fd)
 
 int attribute_align_arg mpg123_open_handle(mpg123_handle *mh, void *iohandle)
 {
-	ALIGNCHECK(mh);
 	if(mh == NULL) return MPG123_ERR;
 
 	mpg123_close(mh);
@@ -492,7 +475,6 @@ int attribute_align_arg mpg123_open_handle(mpg123_handle *mh, void *iohandle)
 
 int attribute_align_arg mpg123_open_feed(mpg123_handle *mh)
 {
-	ALIGNCHECK(mh);
 	if(mh == NULL) return MPG123_ERR;
 
 	mpg123_close(mh);
@@ -503,7 +485,6 @@ int attribute_align_arg mpg123_replace_reader( mpg123_handle *mh,
                            ssize_t (*r_read) (int, void *, size_t),
                            off_t   (*r_lseek)(int, off_t, int) )
 {
-	ALIGNCHECK(mh);
 	if(mh == NULL) return MPG123_ERR;
 
 	mpg123_close(mh);
@@ -517,7 +498,6 @@ int attribute_align_arg mpg123_replace_reader_handle( mpg123_handle *mh,
                            off_t   (*r_lseek)(void*, off_t, int),
                            void    (*cleanup)(void*)  )
 {
-	ALIGNCHECK(mh);
 	if(mh == NULL) return MPG123_ERR;
 
 	mpg123_close(mh);
@@ -531,7 +511,7 @@ int decode_update(mpg123_handle *mh)
 {
 	long native_rate;
 	int b;
-	ALIGNCHECK(mh);
+
 	native_rate = frame_freq(mh);
 
 	b = frame_output_format(mh); /* Select the new output format based on given constraints. */
@@ -754,7 +734,6 @@ static void decode_the_frame(mpg123_handle *fr)
 */
 int attribute_align_arg mpg123_framebyframe_decode(mpg123_handle *mh, off_t *num, unsigned char **audio, size_t *bytes)
 {
-	ALIGNCHECK(mh);
 	if(bytes == NULL) return MPG123_ERR_NULL;
 	if(audio == NULL) return MPG123_ERR_NULL;
 	if(mh == NULL) return MPG123_BAD_HANDLE;
@@ -827,7 +806,6 @@ int attribute_align_arg mpg123_framebyframe_next(mpg123_handle *mh)
 */
 int attribute_align_arg mpg123_decode_frame(mpg123_handle *mh, off_t *num, unsigned char **audio, size_t *bytes)
 {
-	ALIGNCHECK(mh);
 	if(bytes != NULL) *bytes = 0;
 	if(mh == NULL) return MPG123_ERR;
 	if(mh->buffer.size < mh->outblock) return MPG123_NO_SPACE;
@@ -917,7 +895,7 @@ int attribute_align_arg mpg123_decode(mpg123_handle *mh, const unsigned char *in
 {
 	int ret = MPG123_OK;
 	size_t mdone = 0;
-	ALIGNCHECK(mh);
+
 	if(done != NULL) *done = 0;
 	if(mh == NULL) return MPG123_ERR;
 	if(inmemsize > 0 && mpg123_feed(mh, inmemory, inmemsize) != MPG123_OK)
@@ -981,7 +959,7 @@ decodeend:
 long attribute_align_arg mpg123_clip(mpg123_handle *mh)
 {
 	long ret = 0;
-	ALIGNCHECK(mh);
+
 	if(mh != NULL)
 	{
 		ret = mh->clip;
@@ -1006,7 +984,7 @@ static int init_track(mpg123_handle *mh)
 int attribute_align_arg mpg123_getformat(mpg123_handle *mh, long *rate, int *channels, int *encoding)
 {
 	int b;
-	ALIGNCHECK(mh);
+
 	if(mh == NULL) return MPG123_ERR;
 	b = init_track(mh);
 	if(b < 0) return b;
@@ -1021,7 +999,7 @@ int attribute_align_arg mpg123_getformat(mpg123_handle *mh, long *rate, int *cha
 off_t attribute_align_arg mpg123_timeframe(mpg123_handle *mh, double seconds)
 {
 	off_t b;
-	ALIGNCHECK(mh);
+
 	if(mh == NULL) return MPG123_ERR;
 	b = init_track(mh);
 	if(b<0) return b;
@@ -1038,7 +1016,6 @@ off_t attribute_align_arg mpg123_timeframe(mpg123_handle *mh, double seconds)
 */
 off_t attribute_align_arg mpg123_tell(mpg123_handle *mh)
 {
-	ALIGNCHECK(mh);
 	if(mh == NULL) return MPG123_ERR;
 	if(track_need_init(mh)) return 0;
 	/* Now we have all the info at hand. */
@@ -1070,7 +1047,6 @@ off_t attribute_align_arg mpg123_tell(mpg123_handle *mh)
 
 off_t attribute_align_arg mpg123_tellframe(mpg123_handle *mh)
 {
-	ALIGNCHECK(mh);
 	if(mh == NULL) return MPG123_ERR;
 	if(mh->num < mh->firstframe) return mh->firstframe;
 	if(mh->to_decode) return mh->num;
@@ -1080,7 +1056,6 @@ off_t attribute_align_arg mpg123_tellframe(mpg123_handle *mh)
 
 off_t attribute_align_arg mpg123_tell_stream(mpg123_handle *mh)
 {
-	ALIGNCHECK(mh);
 	if(mh == NULL) return MPG123_ERR;
 	/* mh->rd is at least a bad_reader, so no worry. */
 	return mh->rd->tell(mh);
@@ -1131,7 +1106,7 @@ off_t attribute_align_arg mpg123_seek(mpg123_handle *mh, off_t sampleoff, int wh
 {
 	int b;
 	off_t pos;
-	ALIGNCHECK(mh);
+
 	pos = mpg123_tell(mh); /* adjusted samples */
 	/* pos < 0 also can mean that simply a former seek failed at the lower levels.
 	  In that case, we only allow absolute seeks. */
@@ -1181,7 +1156,7 @@ off_t attribute_align_arg mpg123_feedseek(mpg123_handle *mh, off_t sampleoff, in
 {
 	int b;
 	off_t pos;
-	ALIGNCHECK(mh);
+
 	pos = mpg123_tell(mh); /* adjusted samples */
 	debug3("seek from %li to %li (whence=%i)", (long)pos, (long)sampleoff, whence);
 	/* The special seek error handling does not apply here... there is no lowlevel I/O. */
@@ -1235,7 +1210,7 @@ off_t attribute_align_arg mpg123_seek_frame(mpg123_handle *mh, off_t offset, int
 {
 	int b;
 	off_t pos = 0;
-	ALIGNCHECK(mh);
+
 	if(mh == NULL) return MPG123_ERR;
 	if((b=init_track(mh)) < 0) return b;
 
@@ -1270,7 +1245,6 @@ off_t attribute_align_arg mpg123_seek_frame(mpg123_handle *mh, off_t offset, int
 
 int attribute_align_arg mpg123_set_filesize(mpg123_handle *mh, off_t size)
 {
-	ALIGNCHECK(mh);
 	if(mh == NULL) return MPG123_ERR;
 
 	mh->rdat.filelen = size;
@@ -1281,7 +1255,7 @@ off_t attribute_align_arg mpg123_length(mpg123_handle *mh)
 {
 	int b;
 	off_t length;
-	ALIGNCHECK(mh);
+
 	if(mh == NULL) return MPG123_ERR;
 	b = init_track(mh);
 	if(b<0) return b;
@@ -1317,7 +1291,7 @@ int attribute_align_arg mpg123_scan(mpg123_handle *mh)
 	int b;
 	off_t backframe;
 	int to_decode, to_ignore;
-	ALIGNCHECK(mh);
+
 	if(mh == NULL) return MPG123_ERR;
 	if(!(mh->rdat.flags & READER_SEEKABLE)){ mh->err = MPG123_NO_SEEK; return MPG123_ERR; }
 	/* Scan through the _whole_ file, since the current position is no count but computed assuming constant samples per frame. */
@@ -1363,7 +1337,6 @@ int attribute_align_arg mpg123_meta_check(mpg123_handle *mh)
 
 int attribute_align_arg mpg123_id3(mpg123_handle *mh, mpg123_id3v1 **v1, mpg123_id3v2 **v2)
 {
-	ALIGNCHECK(mh);
 	if(v1 != NULL) *v1 = NULL;
 	if(v2 != NULL) *v2 = NULL;
 	if(mh == NULL) return MPG123_ERR;
@@ -1387,7 +1360,6 @@ int attribute_align_arg mpg123_id3(mpg123_handle *mh, mpg123_id3v1 **v1, mpg123_
 
 int attribute_align_arg mpg123_icy(mpg123_handle *mh, char **icy_meta)
 {
-	ALIGNCHECK(mh);
 	if(mh == NULL) return MPG123_ERR;
 #ifndef NO_ICY
 	if(icy_meta == NULL)
@@ -1409,11 +1381,6 @@ int attribute_align_arg mpg123_icy(mpg123_handle *mh, char **icy_meta)
 	return MPG123_ERR;
 #endif
 }
-
-/*
-	Simple utility functions that do not possibly call code with extra alignment requirements do not use the ALIGNCHECK.
-	I am aware of the chance that the compiler could have introduced such code outside assembly functions, but such a modern compiler (gcc) can also honour attribute_align_arg.
-*/
 
 char* attribute_align_arg mpg123_icy2utf8(const char* icy_text)
 {
@@ -1489,7 +1456,6 @@ int mpg123_store_utf8(mpg123_string *sb, enum mpg123_text_encoding enc, const un
 
 int attribute_align_arg mpg123_index(mpg123_handle *mh, off_t **offsets, off_t *step, size_t *fill)
 {
-	ALIGNCHECK(mh);
 	if(mh == NULL) return MPG123_ERR;
 	if(offsets == NULL || step == NULL || fill == NULL)
 	{
@@ -1510,7 +1476,6 @@ int attribute_align_arg mpg123_index(mpg123_handle *mh, off_t **offsets, off_t *
 
 int attribute_align_arg mpg123_set_index(mpg123_handle *mh, off_t *offsets, off_t step, size_t fill)
 {
-	ALIGNCHECK(mh);
 	if(mh == NULL) return MPG123_ERR;
 #ifdef FRAME_INDEX
 	if(step == 0)
@@ -1532,7 +1497,6 @@ int attribute_align_arg mpg123_set_index(mpg123_handle *mh, off_t *offsets, off_
 
 int attribute_align_arg mpg123_close(mpg123_handle *mh)
 {
-	ALIGNCHECK(mh);
 	if(mh == NULL) return MPG123_ERR;
 	if(mh->rd != NULL && mh->rd->close != NULL) mh->rd->close(mh);
 	mh->rd = NULL;

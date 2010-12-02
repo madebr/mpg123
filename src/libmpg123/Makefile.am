@@ -60,7 +60,6 @@ libmpg123_la_SOURCES = \
 	readers.c \
 	tabinit.c \
 	libmpg123.c \
-	aligncheck.h \
 	mpg123lib_intern.h \
 	mangle.h \
 	getcpuflags.h \

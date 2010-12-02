@@ -207,23 +207,6 @@ AC_ARG_ENABLE(nagging,
               [ nagging="disabled" ]
 )
 
-AC_ARG_ENABLE(aligncheck,
-              [  --enable-aligncheck=[no/yes] turn on checks for stack alignment in the API if compiler supports alignment attributes, default is enabled],
-              [
-                if test "x$enableval" = xyes
-                then
-                  aligncheck="enabled"
-                  AC_DEFINE(CHECK_ALIGN, 1, [ Define if checking of stack alignment is wanted. ])
-                else
-                  aligncheck="disabled"
-                fi
-              ],
-              [
-                aligncheck="enabled"
-                AC_DEFINE(CHECK_ALIGN, 1, [ Define if checking of stack alignment is wanted. ])
-              ]
-)
-
 if test x"$debugging" = xenabled; then
 	AC_DEFINE(DEBUG, 1, [ Define if debugging is enabled. ])
 fi
