@@ -1,4 +1,5 @@
 This directory contains some (contributed) works covering usage and/or building of mpg123/libmpg123 from different programming environments.
+Note that those may be a bit outdated (especially when a file is added/removed in libmpg123 sources); as the team lacks resource to test everything. But in any case, the ports can provide a good starting point on the respective platform, to get it to work with minimal fuzz.
 
 - Delphi: mpg123_.pas
   Unit for linking against libmpg123 (Win32, DLL).
