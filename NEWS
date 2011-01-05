@@ -7,6 +7,7 @@
 ---
 - Fix --float and --8bit (MPG123_FORCE_FLOAT, MPG123_FORCE_8BIT) regression, caused by introduction of 24 bit formats. (bug 3151597).
   Btw: The use of specific format choice via `mpg123 -e f23` and friends is encouraged (meaning mpg123_format_none() / mpg123_format() calls in libmpg123 API).
+- Loosen the parser restrictions: Allow the private header bit to vary. It is not mpg123's business anyway (finally suggested by Marcel).
 
 1.13.0
 ---

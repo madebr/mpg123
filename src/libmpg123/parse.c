@@ -39,7 +39,7 @@
 	C: layer
 	D: CRC
 	E: bitrate
-	F:sampling rate
+	F: sampling rate
 	G: padding
 	H: private
 	I: channel mode
@@ -61,9 +61,11 @@
 	Even more, I'll allow varying crc bit.
 	11111111 11111110 00001101 00000000
 
-	(still unsure about this private bit)
+	Still unsure about this private bit... well, as Marcel pointed out:
+	The decoder should not care about this.
+	11111111 11111110 00001100 00000000
 */
-#define HDRCMPMASK 0xfffe0d00
+#define HDRCMPMASK 0xfffe0c00
 #define HDRSAMPMASK 0xc00 /* 1100 00000000, FF bits (sample rate) */
 
 /* bitrates for [mpeg1/2][layer] */
