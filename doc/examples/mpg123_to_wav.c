@@ -67,11 +67,6 @@ int main(int argc, char *argv[])
 	mpg123_format_none(mh);
 	mpg123_format(mh, rate, channels, encoding);
 
-	/* Buffer could be almost any size here, mpg123_outblock() is just some recommendation.
-	   Important, especially for sndfile writing, is that the size is a multiple of sample size. */
-	buffer_size = mpg123_outblock( mh );
-	buffer = malloc( buffer_size );
-
 	bzero(&sfinfo, sizeof(sfinfo) );
 	sfinfo.samplerate = rate;
 	sfinfo.channels = channels;
@@ -80,6 +75,11 @@ int main(int argc, char *argv[])
 
 	sndfile = sf_open(argv[2], SFM_WRITE, &sfinfo);
 	if(sndfile == NULL){ fprintf(stderr, "Cannot open output file!\n"); cleanup(mh); return -2; }
+
+	/* Buffer could be almost any size here, mpg123_outblock() is just some recommendation.
+	   Important, especially for sndfile writing, is that the size is a multiple of sample size. */
+	buffer_size = mpg123_outblock( mh );
+	buffer = malloc( buffer_size );
 
 	do
 	{
