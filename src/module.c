@@ -1,7 +1,7 @@
 /*
 	module.c: modular code loader
 
-	copyright 1995-2010 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1995-2011 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Nicholas J Humfrey
 */
@@ -260,8 +260,12 @@ void list_modules()
 				/* Extract the module type */
 				module_type = strdup( dp->d_name );
 				uscore_pos = strchr( module_type, '_' );
-				if (uscore_pos==NULL) continue;
-				if (uscore_pos>=module_type+strlen(module_type)+1) continue;
+				if (uscore_pos==NULL || (uscore_pos>=module_type+strlen(module_type)+1) )
+				{
+					free(module_type);
+					continue;
+				}
+				
 				*uscore_pos = '\0';
 				
 				/* Extract the short name of the module */
@@ -278,6 +282,7 @@ void list_modules()
 				}
 				
 				free( module_name );
+				free( module_type );
 			}
 		}
 	}
