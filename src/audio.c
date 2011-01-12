@@ -679,6 +679,14 @@ int set_pitch(mpg123_handle *fr, audio_output_t *ao, double new_pitch)
 	int channels, format;
 	int smode = 0;
 
+	/* Be safe, check support. */
+	if(mpg123_getformat(fr, &rate, &channels, &format) != MPG123_OK)
+	{
+		/* We might just not have a track handy. */
+		error("There is no current audio format, cannot apply pitch. This might get fixed in future.");
+		return 0;
+	}
+
 	if(param.usebuffer)
 	{
 		error("No runtime pitch change with output buffer, sorry.");
@@ -688,8 +696,6 @@ int set_pitch(mpg123_handle *fr, audio_output_t *ao, double new_pitch)
 	param.pitch = new_pitch;
 	if(param.pitch < -0.99) param.pitch = -0.99;
 
-	/* Be safe, check support. */
-	mpg123_getformat(fr, &rate, &channels, &format);
 	if(channels == 1) smode = MPG123_MONO;
 	if(channels == 2) smode = MPG123_STEREO;
 
