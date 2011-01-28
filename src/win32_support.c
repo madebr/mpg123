@@ -36,7 +36,7 @@ void win32_cmdline_free(int argc, char **argv)
 
 	for(i=0; i<argc; ++i) free(argv[i]);
 }
-#endif /* WIN32_WANT_UNICODE */
+#endif /* WANT_WIN32_UNICODE */
 
 void win32_set_priority (const int arg)
 {
@@ -63,3 +63,69 @@ void win32_set_priority (const int arg)
 	  }
 	}
 }
+
+#ifdef WANT_WIN32_FIFO
+static HANDLE fifohandle;
+
+ssize_t win32_fifo_read(void *buf, size_t nbyte){
+  int check;
+  DWORD re;
+  DWORD readbuff;
+  if (!fifohandle) return 0;
+  if (win32_fifo_read_peek(&check) == 0) return 0;
+  readbuff = (nbyte > win32_fifo_read_peek(&check)) ? win32_fifo_read_peek(&check) : nbyte;
+  check = ReadFile(fifohandle,buf,readbuff,&re,NULL);
+  return (!check) ? 0 : readbuff;
+}
+
+/* function should be able to tell if bytes are
+   available and return immediately on overlapped
+   asynchrounous pipes, like unix select() */
+DWORD win32_fifo_read_peek(void *p){
+  DWORD ret = 0;
+  DWORD err;
+  SetLastError(0);
+  if(!fifohandle) return 0;
+    PeekNamedPipe(fifohandle, NULL, 0, NULL, &ret, NULL);
+  err =  GetLastError();
+  if (err == ERROR_BROKEN_PIPE) {
+    printf("Broken pipe, disconnecting\n");
+    DisconnectNamedPipe(fifohandle);
+  } else if (err == ERROR_BAD_PIPE) {
+      printf("Bad pipe, Waiting for connect\n");
+      DisconnectNamedPipe(fifohandle);
+      if (!p) ConnectNamedPipe(fifohandle,NULL);
+  }
+  printf("peek %d bytes, error %d\n",ret, err);
+  return ret;
+}
+
+void win32_fifo_close(void){
+  if (fifohandle) {
+    DisconnectNamedPipe(fifohandle);
+    CloseHandle(fifohandle);
+  }
+  fifohandle = NULL;
+}
+
+int win32_fifo_mkfifo(const char *path){
+  HANDLE ret;
+  win32_fifo_close();
+  
+#ifdef WANT_WIN32_UNICODE
+  wchar_t *str;
+  if (win32_utf8_wide(path,(const wchar_t ** const)&str,NULL) == 0){
+    error("Cannot get FIFO name");
+  }
+  ret = CreateNamedPipeW(str,PIPE_ACCESS_DUPLEX,PIPE_TYPE_BYTE,1,255,255,0,NULL);
+  free(str);
+#else
+  ret = CreateNamedPipeA(path,PIPE_ACCESS_DUPLEX,PIPE_TYPE_BYTE,1,255,255,0,NULL);
+#endif /* WANT_WIN32_UNICODE */
+  if (ret == INVALID_HANDLE_VALUE) return -1;
+  fifohandle = ret;
+  /* Wait for client */
+  ConnectNamedPipe(fifohandle,NULL);
+  return 0;
+}
+#endif /* WANT_WIN32_FIFO */

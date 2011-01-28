@@ -111,6 +111,41 @@ void win32_cmdline_free(int argc, char **argv);
  */
 void win32_set_priority (const int arg);
 
+#ifdef WANT_WIN32_FIFO
+/**
+ * win32_fifo_mkfifo
+ * Creates a named pipe of path.
+ * Should be closed with win32_fifo_close.
+ * @param[in] path Path of pipe, should be in form of "\\.\pipe\pipename".
+ * @return -1 on failure, 0 otherwise.
+ * @see win32_fifo_close
+ */
+int win32_fifo_mkfifo(const char *path);
+
+/**
+ *win32_fifo_close
+ * Closes previously open pipe
+ */
+void win32_fifo_close(void);
+
+/**
+ * win32_fifo_read_peek
+ * Checks how many bytes in fifo is pending read operation
+ * @param[in] NULL to block forever, non-blocking otherwise
+ * @return bytes available
+ */
+DWORD win32_fifo_read_peek(void *p);
+
+/***
+ * win32_fifo_read
+ * Read up to nbyte of data from open pipe into buf
+ * @param[in] buf Pointer to buffer.
+ * @param[in] nbyte Number of bytes to read up to.
+ * @return Number of bytes actually read.
+ */
+ssize_t win32_fifo_read(void *buf, size_t nbyte);
+#endif /* #ifdef WANT_WIN32_FIFO */
+
 #endif /* HAVE_WINDOWS_H */
 #endif /* MPG123_WIN32_SUPPORT_H */
 
