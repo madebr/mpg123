@@ -303,7 +303,7 @@ int control_generic (mpg123_handle *fr)
 		/* play frame if no command needs to be processed */
 		if (mode == MODE_PLAYING) {
 #ifdef WANT_WIN32_FIFO
-			n = win32_fifo_read_peek();
+			n = win32_fifo_read_peek(&tv);
 #else
 			n = select(32, &fds, NULL, NULL, &tv);
 #endif
@@ -347,7 +347,7 @@ int control_generic (mpg123_handle *fr)
 			/* wait for command */
 			while (1) {
 #ifdef WANT_WIN32_FIFO
-				n = win32_fifo_read_peek();
+				n = win32_fifo_read_peek(NULL);
 #else
 				n = select(32, &fds, NULL, NULL, NULL);
 #endif

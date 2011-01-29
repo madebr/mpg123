@@ -83,10 +83,12 @@ ssize_t win32_fifo_read(void *buf, size_t nbyte){
   int check;
   DWORD re;
   DWORD readbuff;
+  DWORD available;
   if (!fifohandle) return 0;
-  if (win32_fifo_read_peek() == 0) return 0;
+  available = win32_fifo_read_peek(NULL);
+  if (!available) return 0;
   /* This looks more like a hack than a proper check */
-  readbuff = (nbyte > win32_fifo_read_peek()) ? win32_fifo_read_peek() : nbyte;
+  readbuff = (nbyte > available) ? available : nbyte;
   check = ReadFileEx(fifohandle,buf,readbuff,&ov1,&ReadComplete);
   WaitForSingleObjectEx(fifohandle,INFINITE,TRUE);
   return (!check) ? 0 : readbuff;
@@ -95,9 +97,12 @@ ssize_t win32_fifo_read(void *buf, size_t nbyte){
 /* function should be able to tell if bytes are
    available and return immediately on overlapped
    asynchrounous pipes, like unix select() */
-DWORD win32_fifo_read_peek(void){
+DWORD win32_fifo_read_peek(struct timeval *tv){
   DWORD ret = 0;
-  DWORD err;
+  DWORD err, timer;
+
+  timer = (tv) ? tv -> tv_sec * 1000 : INFINITE;
+
   SetLastError(0);
   if(!fifohandle) return 0;
     PeekNamedPipe(fifohandle, NULL, 0, NULL, &ret, NULL);
@@ -111,6 +116,8 @@ DWORD win32_fifo_read_peek(void){
       DisconnectNamedPipe(fifohandle);
       ConnectNamedPipe(fifohandle,&ov1);
   }
+
+  WaitForSingleObjectEx(fifohandle,timer,TRUE);
   debug2("peek %d bytes, error %d",ret, err);
   return ret;
 }

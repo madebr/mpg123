@@ -131,10 +131,11 @@ void win32_fifo_close(void);
 /**
  * win32_fifo_read_peek
  * Checks how many bytes in fifo is pending read operation
- * Is non-blocking
+ * Only the tv_sec member in timeval is evaluated! No microsecond precision.
+ * @param[in] tv contains information on block duration
  * @return bytes available
  */
-DWORD win32_fifo_read_peek(void);
+DWORD win32_fifo_read_peek(struct timeval *tv);
 
 /***
  * win32_fifo_read
