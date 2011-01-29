@@ -131,10 +131,10 @@ void win32_fifo_close(void);
 /**
  * win32_fifo_read_peek
  * Checks how many bytes in fifo is pending read operation
- * @param[in] NULL to block forever, non-blocking otherwise
+ * Is non-blocking
  * @return bytes available
  */
-DWORD win32_fifo_read_peek(void *p);
+DWORD win32_fifo_read_peek(void);
 
 /***
  * win32_fifo_read

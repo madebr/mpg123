@@ -66,22 +66,36 @@ void win32_set_priority (const int arg)
 
 #ifdef WANT_WIN32_FIFO
 static HANDLE fifohandle;
+static OVERLAPPED ov1;
+
+VOID CALLBACK ReadComplete(
+  DWORD dwErrorCode,
+  DWORD dwNumberOfBytesTransfered,
+  LPOVERLAPPED lpOverlapped
+)
+{
+  /* Reset OVERLAPPED structure */
+  memset(lpOverlapped,0,sizeof(OVERLAPPED));
+  return;
+}
 
 ssize_t win32_fifo_read(void *buf, size_t nbyte){
   int check;
   DWORD re;
   DWORD readbuff;
   if (!fifohandle) return 0;
-  if (win32_fifo_read_peek(&check) == 0) return 0;
-  readbuff = (nbyte > win32_fifo_read_peek(&check)) ? win32_fifo_read_peek(&check) : nbyte;
-  check = ReadFile(fifohandle,buf,readbuff,&re,NULL);
+  if (win32_fifo_read_peek() == 0) return 0;
+  /* This looks more like a hack than a proper check */
+  readbuff = (nbyte > win32_fifo_read_peek()) ? win32_fifo_read_peek() : nbyte;
+  check = ReadFileEx(fifohandle,buf,readbuff,&ov1,&ReadComplete);
+  WaitForSingleObjectEx(fifohandle,INFINITE,TRUE);
   return (!check) ? 0 : readbuff;
 }
 
 /* function should be able to tell if bytes are
    available and return immediately on overlapped
    asynchrounous pipes, like unix select() */
-DWORD win32_fifo_read_peek(void *p){
+DWORD win32_fifo_read_peek(void){
   DWORD ret = 0;
   DWORD err;
   SetLastError(0);
@@ -91,10 +105,11 @@ DWORD win32_fifo_read_peek(void *p){
   if (err == ERROR_BROKEN_PIPE) {
     debug("Broken pipe, disconnecting");
     DisconnectNamedPipe(fifohandle);
+    ConnectNamedPipe(fifohandle,&ov1);
   } else if (err == ERROR_BAD_PIPE) {
       debug("Bad pipe, Waiting for connect");
       DisconnectNamedPipe(fifohandle);
-      if (!p) ConnectNamedPipe(fifohandle,NULL);
+      ConnectNamedPipe(fifohandle,&ov1);
   }
   debug2("peek %d bytes, error %d",ret, err);
   return ret;
@@ -115,18 +130,19 @@ int win32_fifo_mkfifo(const char *path){
 #ifdef WANT_WIN32_UNICODE
   wchar_t *str;
   if (win32_utf8_wide(path,(const wchar_t ** const)&str,NULL) == 0){
-    fprintf(stderr,"Cannot get FIFO name\n");
+    fprintf(stderr,"Cannot get FIFO name, likely out of memory\n");
     return -1;
   }
-  ret = CreateNamedPipeW(str,PIPE_ACCESS_DUPLEX,PIPE_TYPE_BYTE,1,255,255,0,NULL);
+  ret = CreateNamedPipeW(str,PIPE_ACCESS_DUPLEX|FILE_FLAG_OVERLAPPED,PIPE_TYPE_BYTE,1,255,255,0,NULL);
   free(str);
 #else
-  ret = CreateNamedPipeA(path,PIPE_ACCESS_DUPLEX,PIPE_TYPE_BYTE,1,255,255,0,NULL);
+  ret = CreateNamedPipeA(path,PIPE_ACCESS_DUPLEX|FILE_FLAG_OVERLAPPED,PIPE_TYPE_BYTE,1,255,255,0,NULL);
 #endif /* WANT_WIN32_UNICODE */
   if (ret == INVALID_HANDLE_VALUE) return -1;
   fifohandle = ret;
   /* Wait for client */
-  ConnectNamedPipe(fifohandle,NULL);
+  ConnectNamedPipe(fifohandle,&ov1);
+  WaitForSingleObjectEx(fifohandle,INFINITE,TRUE);
   return 0;
 }
 #endif /* WANT_WIN32_FIFO */
