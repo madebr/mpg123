@@ -75,6 +75,7 @@ VOID CALLBACK ReadComplete(
 )
 {
   /* Reset OVERLAPPED structure */
+  debug("ReadFileEx completed");
   memset(lpOverlapped,0,sizeof(OVERLAPPED));
   return;
 }
@@ -84,6 +85,7 @@ ssize_t win32_fifo_read(void *buf, size_t nbyte){
   DWORD re;
   DWORD readbuff;
   DWORD available;
+  debug1("Reading pipe handle %p", fifohandle);
   if (!fifohandle) return 0;
   available = win32_fifo_read_peek(NULL);
   if (!available) return 0;
@@ -91,6 +93,7 @@ ssize_t win32_fifo_read(void *buf, size_t nbyte){
   readbuff = (nbyte > available) ? available : nbyte;
   check = ReadFileEx(fifohandle,buf,readbuff,&ov1,&ReadComplete);
   WaitForSingleObjectEx(fifohandle,INFINITE,TRUE);
+  debug1("Read %ld bytes from pipe", readbuff);
   return (!check) ? 0 : readbuff;
 }
 
@@ -100,6 +103,8 @@ ssize_t win32_fifo_read(void *buf, size_t nbyte){
 DWORD win32_fifo_read_peek(struct timeval *tv){
   DWORD ret = 0;
   DWORD err, timer;
+
+  debug1("Peeking on pipe handle %p", fifohandle);
 
   timer = (tv) ? tv -> tv_sec * 1000 : INFINITE;
 
@@ -123,6 +128,7 @@ DWORD win32_fifo_read_peek(struct timeval *tv){
 }
 
 void win32_fifo_close(void){
+  debug1("Attempting to close handle %p", fifohandle);
   if (fifohandle) {
     DisconnectNamedPipe(fifohandle);
     CloseHandle(fifohandle);
@@ -133,16 +139,21 @@ void win32_fifo_close(void){
 int win32_fifo_mkfifo(const char *path){
   HANDLE ret;
   win32_fifo_close();
-  
 #ifdef WANT_WIN32_UNICODE
   wchar_t *str;
   if (win32_utf8_wide(path,&str,NULL) == 0){
     fprintf(stderr,"Cannot get FIFO name, likely out of memory\n");
     return -1;
   }
+#if (DEBUG == 1)
+  fwprintf(stderr,L"CreateNamedPipeW %ws\n", str);
+#endif
   ret = CreateNamedPipeW(str,PIPE_ACCESS_DUPLEX|FILE_FLAG_OVERLAPPED,PIPE_TYPE_BYTE,1,255,255,0,NULL);
   free(str);
 #else
+#if (DEBUG == 1)
+  fprintf(stderr,"CreateNamedPipeA %s\n", path);
+#endif
   ret = CreateNamedPipeA(path,PIPE_ACCESS_DUPLEX|FILE_FLAG_OVERLAPPED,PIPE_TYPE_BYTE,1,255,255,0,NULL);
 #endif /* WANT_WIN32_UNICODE */
   if (ret == INVALID_HANDLE_VALUE) return -1;
