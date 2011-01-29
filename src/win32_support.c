@@ -113,19 +113,19 @@ DWORD win32_fifo_read_peek(struct timeval *tv){
   if(!fifohandle) return 0;
     PeekNamedPipe(fifohandle, NULL, 0, NULL, &ret, NULL);
   err =  GetLastError();
+  debug1("Waiting %d msec for pipe to be ready", timer);
+  debug1("GetLastError was %ld", err);
   if (err == ERROR_BROKEN_PIPE) {
     debug("Broken pipe, disconnecting");
     DisconnectNamedPipe(fifohandle);
     ConnectNamedPipe(fifohandle,&ov1);
+    WaitForSingleObjectEx(fifohandle,timer,TRUE);
   } else if (err == ERROR_BAD_PIPE) {
       debug("Bad pipe, Waiting for connect");
       DisconnectNamedPipe(fifohandle);
       ConnectNamedPipe(fifohandle,&ov1);
+      WaitForSingleObjectEx(fifohandle,timer,TRUE);
   }
-
-  debug1("Waiting %d msec for pipe to be ready", timer);
-  debug1("GetLastError was %ld", err);
-  WaitForSingleObjectEx(fifohandle,timer,TRUE);
   debug2("peek %d bytes, error %d",ret, err);
   return ret;
 }
