@@ -91,6 +91,7 @@ ssize_t win32_fifo_read(void *buf, size_t nbyte){
   if (!available) return 0;
   /* This looks more like a hack than a proper check */
   readbuff = (nbyte > available) ? available : nbyte;
+  debug("Starting ReadFileEx");
   check = ReadFileEx(fifohandle,buf,readbuff,&ov1,&ReadComplete);
   WaitForSingleObjectEx(fifohandle,INFINITE,TRUE);
   debug1("Read %ld bytes from pipe", readbuff);
@@ -104,9 +105,9 @@ DWORD win32_fifo_read_peek(struct timeval *tv){
   DWORD ret = 0;
   DWORD err, timer;
 
-  debug1("Peeking on pipe handle %p", fifohandle);
-
   timer = (tv) ? tv -> tv_sec * 1000 : INFINITE;
+
+  debug1("Peeking on pipe handle %p", fifohandle);
 
   SetLastError(0);
   if(!fifohandle) return 0;
@@ -122,6 +123,8 @@ DWORD win32_fifo_read_peek(struct timeval *tv){
       ConnectNamedPipe(fifohandle,&ov1);
   }
 
+  debug1("Waiting %d msec for pipe to be ready", timer);
+  debug1("GetLastError was %ld", err);
   WaitForSingleObjectEx(fifohandle,timer,TRUE);
   debug2("peek %d bytes, error %d",ret, err);
   return ret;
