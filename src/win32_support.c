@@ -89,14 +89,14 @@ DWORD win32_fifo_read_peek(void *p){
     PeekNamedPipe(fifohandle, NULL, 0, NULL, &ret, NULL);
   err =  GetLastError();
   if (err == ERROR_BROKEN_PIPE) {
-    printf("Broken pipe, disconnecting\n");
+    debug("Broken pipe, disconnecting");
     DisconnectNamedPipe(fifohandle);
   } else if (err == ERROR_BAD_PIPE) {
-      printf("Bad pipe, Waiting for connect\n");
+      debug("Bad pipe, Waiting for connect");
       DisconnectNamedPipe(fifohandle);
       if (!p) ConnectNamedPipe(fifohandle,NULL);
   }
-  printf("peek %d bytes, error %d\n",ret, err);
+  debug2("peek %d bytes, error %d",ret, err);
   return ret;
 }
 
@@ -115,7 +115,8 @@ int win32_fifo_mkfifo(const char *path){
 #ifdef WANT_WIN32_UNICODE
   wchar_t *str;
   if (win32_utf8_wide(path,(const wchar_t ** const)&str,NULL) == 0){
-    error("Cannot get FIFO name");
+    fprintf(stderr,"Cannot get FIFO name\n");
+    return -1;
   }
   ret = CreateNamedPipeW(str,PIPE_ACCESS_DUPLEX,PIPE_TYPE_BYTE,1,255,255,0,NULL);
   free(str);
