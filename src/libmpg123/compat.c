@@ -60,7 +60,7 @@ int compat_open(const char *filename, int flags)
 {
 	int ret;
 #if defined (WANT_WIN32_UNICODE)
-	const wchar_t *frag = NULL;
+	wchar_t *frag = NULL;
 
 	ret = win32_utf8_wide(filename, &frag, NULL);
 	if ((frag == NULL) || (ret == 0)) goto fallback; /* Fallback to plain open when ucs-2 conversion fails */
@@ -98,55 +98,41 @@ int compat_close(int infd)
 /* Windows Unicode stuff */
 
 #ifdef WANT_WIN32_UNICODE
-int win32_wide_utf8(const wchar_t * const wptr, const char **const mbptr, size_t * const buflen)
+int win32_wide_utf8(const wchar_t * const wptr, char **mbptr, size_t * buflen)
 {
-	size_t len;
-	char *buf;
-	int ret;
+  size_t len;
+  char *buf;
+  int ret = 0;
 
-	len = WideCharToMultiByte(CP_UTF8, 0, wptr, -1, NULL, 0, NULL, NULL); /* Get utf-8 string length */
-	buf = calloc(len, sizeof (char)); /* Can we assume sizeof char always = 1? */
-	debug2("win32_wide_utf8 allocated %u bytes at %p", len, buf);
+  len = WideCharToMultiByte(CP_UTF8, 0, wptr, -1, NULL, 0, NULL, NULL); /* Get utf-8 string length */
+  buf = calloc(len + 1, sizeof (char)); /* Can we assume sizeof char always = 1? */
 
-	if(buf != NULL)
-	{
-		ret = WideCharToMultiByte(CP_UTF8, 0, wptr, -1, buf, len, NULL, NULL); /*Do actual conversion*/
-		*mbptr = buf; /* Set string pointer to allocated buffer */
-		if(buflen != NULL) *buflen = len * sizeof (char); /* Give length of allocated memory if needed. */
-
-		return ret;
-	}
-	else
-	{
-		if(buflen != NULL) *buflen = 0;
-
-		return 0;
-	}
+  if(!buf) len = 0;
+  else {
+    if (len != 0) ret = WideCharToMultiByte(CP_UTF8, 0, wptr, -1, buf, len, NULL, NULL); /*Do actual conversion*/
+    buf[len] = '0'; /* Must terminate */
+  }
+  *mbptr = buf; /* Set string pointer to allocated buffer */
+  if(buflen != NULL) *buflen = (len) * sizeof (char); /* Give length of allocated memory if needed. */
+  return ret;
 }
 
-int win32_utf8_wide(const char *const mbptr, const wchar_t ** const wptr, size_t * const buflen)
+int win32_utf8_wide(const char *const mbptr, wchar_t **wptr, size_t *buflen)
 {
-	size_t len;
-	wchar_t *buf;
-	int ret;
+  size_t len;
+  wchar_t *buf;
+  int ret = 0;
 
-	len = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, mbptr, -1, NULL, 0); /* Get converted size */
-	buf = calloc(len, sizeof (wchar_t)); /* Allocate memory accordingly */
-	debug2("win32_utf8_wide allocated %u bytes at %p", len, buf);
+  len = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, mbptr, -1, NULL, 0); /* Get converted size */
+  buf = calloc(len + 1, sizeof (wchar_t)); /* Allocate memory accordingly */
 
-	if(buf != NULL)
-	{
-		ret = MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS, mbptr, -1, buf, len); /* Do conversion */
-		*wptr = buf; /* Set string pointer to allocated buffer */
-		if (buflen != NULL) *buflen = len * sizeof (wchar_t); /* Give length of allocated memory if needed. */
-
-		return ret;
-	}
-	else
-	{
-		if (buflen != NULL) *buflen = 0;
-
-		return 0;
-	}
+  if(!buf) len = 0;
+  else {
+    if (len != 0) ret = MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS, mbptr, -1, buf, len); /* Do conversion */
+    buf[len] = L'0'; /* Must terminate */
+  }
+  *wptr = buf; /* Set string pointer to allocated buffer */
+  if (buflen != NULL) *buflen = len * sizeof (wchar_t); /* Give length of allocated memory if needed. */
+  return ret; /* Number of characters written */
 }
 #endif

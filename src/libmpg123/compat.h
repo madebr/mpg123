@@ -153,7 +153,7 @@ int compat_close(int infd);
  *
  * WideCharToMultiByte - http://msdn.microsoft.com/en-us/library/dd374130(VS.85).aspx
  */
-int win32_wide_utf8 (const wchar_t * const wptr, const char **const mbptr, size_t * const buflen);
+int win32_wide_utf8(const wchar_t * const wptr, char **mbptr, size_t * buflen);
 
 /**
  * win32_mbc2uni
@@ -167,7 +167,7 @@ int win32_wide_utf8 (const wchar_t * const wptr, const char **const mbptr, size_
  * MultiByteToWideChar - http://msdn.microsoft.com/en-us/library/dd319072(VS.85).aspx
  */
 
-int win32_utf8_wide (const char *const mbptr, const wchar_t ** const wptr, size_t * const buflen);
+int win32_utf8_wide(const char *const mbptr, wchar_t **wptr, size_t *buflen);
 #endif
 
 /* That one comes from Tellie on OS/2, needed in resolver. */
