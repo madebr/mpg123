@@ -66,7 +66,12 @@
 	11111111 11111110 00001100 00000000
 */
 #define HDRCMPMASK 0xfffe0c00
-#define HDRSAMPMASK 0xc00 /* 1100 00000000, FF bits (sample rate) */
+/*
+	This needs cleanup ... The parser is not as strict as documented above.
+	Here comes a mask that checks for anything that can change sampling rate.
+	This includes change of MPEG version and frequency bits.
+	00011000 00001100 00000000, BB and FF bits */
+#define HDRSAMPMASK 0x180c00
 
 /* bitrates for [mpeg1/2][layer] */
 static const int tabsel_123[2][3][16] =
