@@ -640,11 +640,6 @@ int play_frame(void)
 		if(fresh && framenum >= param.start_frame)
 		{
 			fresh = FALSE;
-			if(!param.quiet)
-			{
-				if(param.verbose) print_header(mh);
-				else print_header_compact(mh);
-			}
 		}
 		/* Normal flushing of data, includes buffer decoding. */
 		if(flush_output(ao, audio, bytes) < (int)bytes && !intflag)
@@ -676,8 +671,14 @@ int play_frame(void)
 			long rate;
 			int channels, format;
 			mpg123_getformat(mh, &rate, &channels, &format);
-			if(param.verbose > 2) fprintf(stderr, "Note: New output format %liHz %ich, format %i\n", rate, channels, format);
+			if(param.verbose > 2) fprintf(stderr, "\nNote: New output format %liHz %ich, format %i\n", rate, channels, format);
 
+			if(!param.quiet)
+			{
+				printf("\n");
+				if(param.verbose) print_header(mh);
+				else print_header_compact(mh);
+			}
 			reset_audio(rate, channels, format);
 		}
 	}
