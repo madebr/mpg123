@@ -93,6 +93,7 @@ static const long freqs[9] = { 44100, 48000, 32000, 22050, 24000, 16000 , 11025 
 static int decode_header(mpg123_handle *fr,unsigned long newhead);
 
 /* These two are to be replaced by one function that gives all the frame parameters (for outsiders).*/
+/* Those functions are unsafe regarding bad arguments (inside the mpg123_handle), but just returning anything would also be unsafe, the caller code has to be trusted. */
 
 int frame_bitrate(mpg123_handle *fr)
 {
