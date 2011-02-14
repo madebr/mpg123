@@ -6,7 +6,7 @@
 
 /** \file mpglib.c Example program mimicking the old mpglib test program.
 	It takes an MPEG bitstream from standard input and writes raw audio to standard output.
-	This is an use case of the mpg123_decode() in and out function in the feeder mode.
+	This is an use case of the mpg123_decode() in and out function in the feeder mode, quite close to classic mpglib usage and thus a template to convert from that to libmpg123.
 */
 
 /** \file scan.c Example program that examines the exact length of an MPEG file.
