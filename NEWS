@@ -11,6 +11,7 @@
 - Prevent the nasty of bug 3154889: No change of pitch without a current audio format. No proper solution, but more like earlier behaviour.
 - Fix some compiler warnings.
 - Fix a memory leak in the module loader, also some in the examples, for being pedantic.
+- More use of AC_LANG_SOURCE to silence autoconf.
 
 1.13.1
 ---
