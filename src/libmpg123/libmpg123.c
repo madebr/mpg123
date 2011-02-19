@@ -32,6 +32,13 @@ static void frame_buffercheck(mpg123_handle *fr)
 	/* When we have no accurate position, gapless code does not make sense. */
 	if(!fr->accurate) return;
 
+	if(fr->lastframe > -1 && fr->num > fr->lastframe+2)
+	{
+		if(fr->num - fr->lastframe == 3 && NOQUIET) fprintf(stderr, "\nWarning: Activating hack for gapless jingles / heuristic to continue playback despite misled gapless decoding.\n");
+
+		return;
+	}
+
 	/* Important: We first cut samples from the end, then cut from beginning (including left-shift of the buffer).
 	   This order works also for the case where firstframe == lastframe. */
 
