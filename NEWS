@@ -3,6 +3,15 @@
 - Add --ignore-streamlength.
   TODO: Make mpg123 smarter to recognize concatenated streams, re-start the frame counter.
 
+1.13.2
+---
+- Updated .NET wrapper (MPG123_SKIP_ID3V2, encsize and mpg123_strlen functions) by Malcolm Boczek.
+- Fix crash when calling mpg123_decoder() before opening a track -- a rare use case since one can choose a decoder with mpg123_new() already.
+- Fix format change detection for certain (artificial) concatenated streams (p.ex. MPEG 1 frames following MPEG 2 frames).
+- Prevent the nasty of bug 3154889: No change of pitch without a current audio format. No proper solution, but more like earlier behaviour.
+- Fix some compiler warnings.
+- Fix a memory leak in the module loader, also some in the examples, for being pedantic.
+
 1.13.1
 ---
 - Fix --float and --8bit (MPG123_FORCE_FLOAT, MPG123_FORCE_8BIT) regression, caused by introduction of 24 bit formats. (bug 3151597).
