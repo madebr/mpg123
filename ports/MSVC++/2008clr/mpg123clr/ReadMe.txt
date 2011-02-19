@@ -127,6 +127,7 @@ ICY(icy_meta);			Never had genuine ICY data to test with.
 Icy2Utf8(icy_text);		Never tried. Please provide sample material.
 enc_from_id3(encbyte);	Works on libmpg123 enums, never had real world text samples.
 store_utf8(...);		Works with CLR generated text, not tried with real world text samples.
+mpg123str.strlen(...)	Not tested with utf8 text strings. Please provide sample material.
 
 ==============================================================================
 Documentation
@@ -156,6 +157,7 @@ Revision History
 	1.9.0.0 01-Oct-09	Technical cleanup - subst nullptr for NULL (mb)
 	1.9.0.1	24-Nov-09	Performance update - removed try/finally (mb)
 	1.12.0.0 14-Apr-10	Release match - added open_handle and framebyframe support (mb)
+	1.13.0.0 13-Jan-11	Release match - added encsize and strlen support (mb)
 	
 Constructive feedback preferred.
 

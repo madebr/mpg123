@@ -9,13 +9,14 @@
 /*
 	libmpg123: MPEG Audio Decoder library
 
-	copyright 1995-2008 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1995-2011 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 
 */
 /*
 	1.8.1.0	04-Aug-09	Initial release.
 	1.10.0.0 30-Nov-09	release match - added mpg123_feature (mb)
+	1.13.0.0 13-Jan-11	release match (mb)
 */
 
 #pragma once
@@ -78,6 +79,9 @@ namespace mpg123clr
 			plain_id3text = MPG123_PLAIN_ID3TEXT,	/// 100000000000 Do not translate ID3 text data to UTF-8. ID3 strings will contain the raw text data, with the first byte containing the ID3 encoding code.
 
 			ignore_streamlength = MPG123_IGNORE_STREAMLENGTH,	/// 1000000000000 Ignore any stream length information contained in the stream, which can be contained in a 'TLEN' frame of an ID3v2 tag or a Xing tag.
+
+			// 1.13.0.0
+			skip_id3v2 = MPG123_SKIP_ID3V2,			/// 10 0000 0000 0000 Do not parse ID3v2 tags, just skip them.
 		};
 
 		///<summary>RVA enumeration.</summary>
@@ -119,8 +123,10 @@ namespace mpg123clr
 		/// Usually, you can expect the 8bit encodings and signed 16 bit.
 		/// Also 32bit float will be usual beginning with mpg123-1.7.0 .</para>
 		///
-		///<para>What you should bear in mind is that (SSE, etc) optimized routines are just for
-		/// signed 16bit (and 8bit derived from that). Other formats use plain C code.</para>
+		///<para>What you should bear in mind is that (SSE, etc) optimized routines may be absent
+		/// for some formats. We do have SSE for 16, 32 bit and float, though.
+		/// 24 bit integer is done via postprocessing of 32 bit output -- just cutting
+		/// the last byte, no rounding, even. If you want better, do it yourself.</para>
 		///
 		///<para>All formats are in native byte order. On a little endian machine this should mean
 		/// that you can just feed the MPG123_ENC_SIGNED_32 data to common 24bit hardware that
@@ -130,6 +136,7 @@ namespace mpg123clr
 		{
 			enc_8			= MPG123_ENC_8,				/// 0000 0000 1111 Some 8 bit  integer encoding. 
 			enc_16			= MPG123_ENC_16,			/// 0000 0100 0000 Some 16 bit integer encoding.
+			enc_24			= MPG123_ENC_24,			/// 0100 0000 0000 0000 Some 24 bit integer encoding. (r1.13)
 			enc_32			= MPG123_ENC_32,			/// 0001 0000 0000 Some 32 bit integer encoding.
 			enc_signed		= MPG123_ENC_SIGNED,		/// 0000 1000 0000 Some signed integer encoding.
 			enc_float		= MPG123_ENC_FLOAT,			/// 1110 0000 0000 Some float encoding.
@@ -141,6 +148,8 @@ namespace mpg123clr
 			enc_alaw_8		= MPG123_ENC_ALAW_8,		///           0000 1000 alaw 8 bit
 			enc_signed_32   = MPG123_ENC_SIGNED_32,		/// 0001 0001 1000 0000 signed 32 bit
 			enc_unsigned_32 = MPG123_ENC_UNSIGNED_32,   /// 0010 0001 0000 0000 unsigned 32 bit
+			enc_signed_24	= MPG123_ENC_SIGNED_24,		/// 0101 0000 1000 0000 signed 24 bit (r1.13)
+			enc_unsigned_24	= MPG123_ENC_UNSIGNED_24,	/// 0110 0000 0000 0000 unsigned 24 bit (r1.13)
 			enc_float_32    = MPG123_ENC_FLOAT_32,      ///      0010 0000 0000 32bit float
 			enc_float_64    = MPG123_ENC_FLOAT_64,      ///      0100 0000 0000 64bit float
 			enc_any			= MPG123_ENC_ANY,			/// any encoding

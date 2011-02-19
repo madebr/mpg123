@@ -1,7 +1,7 @@
 /*
 	mpg123clr: MPEG Audio Decoder library Common Language Runtime version.
 
-	copyright 2009 by Malcolm Boczek - free software under the terms of the LGPL 2.1
+	copyright 2009-2011 by Malcolm Boczek - free software under the terms of the LGPL 2.1
 	mpg123clr.dll is a derivative work of libmpg123 - all original mpg123 licensing terms apply.
 
 	All rights to this work freely assigned to the mpg123 project.
@@ -9,7 +9,7 @@
 /*
 	libmpg123: MPEG Audio Decoder library
 
-	copyright 1995-2008 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1995-2011 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 
 */
@@ -21,6 +21,7 @@
 	1.9.0.1	24-Nov-09	performance update - removed try/finally (mb)
 	1.10.0.0 30-Nov-09	release match - added mpg123_feature (mb)
 	1.12.0.0 14-Apr-10	release match - added framebyframe and "handle" ReplaceReaders (mb)
+	1.13.0.0 13-Jan-11	release match - added encsize (mb)
 */
 
 // mpg123clr.cpp : Defines the exported functions for the DLL application.
@@ -239,6 +240,11 @@ array<mpg123clr::mpg::enc>^ mpg123clr::mpg123::mpg123_encodings(void)
 	while (index < (int)number){ rList[index++] = (mpg123clr::mpg::enc) *(list++); }
 
 	return rList;
+}
+
+int mpg123clr::mpg123::mpg123_encsize(mpg123clr::mpg::enc encoding)
+{
+	return ::mpg123_encsize((int) encoding);
 }
 
 mpg123clr::mpg::ErrorCode mpg123clr::mpg123::mpg123_format_none(void)

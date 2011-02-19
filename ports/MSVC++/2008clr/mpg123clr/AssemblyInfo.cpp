@@ -32,7 +32,7 @@ using namespace System::Runtime::CompilerServices;
 [assembly:AssemblyConfigurationAttribute("")];
 [assembly:AssemblyCompanyAttribute("mpg123 Project")];
 [assembly:AssemblyProductAttribute("mpg123clr.dll")];
-[assembly:AssemblyCopyrightAttribute("© 2009 by the mpg123 project")];
+[assembly:AssemblyCopyrightAttribute("© 2009-2011 by the mpg123 project")];
 [assembly:AssemblyTrademarkAttribute("")];
 [assembly:AssemblyCultureAttribute("")];		
 
@@ -47,7 +47,7 @@ using namespace System::Runtime::CompilerServices;
 // You can specify all the value or you can default the Revision and Build Numbers 
 // by using the '*' as shown below:
 
-[assembly:AssemblyVersionAttribute("1.12.0.0")];
+[assembly:AssemblyVersionAttribute("1.13.0.0")];
 
 //
 // In order to sign your assembly you must specify a key to use. Refer to the 

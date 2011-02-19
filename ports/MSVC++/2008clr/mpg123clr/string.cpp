@@ -1,7 +1,7 @@
 /*
 	mpg123clr: MPEG Audio Decoder library Common Language Runtime version.
 
-	copyright 2009 by Malcolm Boczek - free software under the terms of the LGPL 2.1
+	copyright 2009-2011 by Malcolm Boczek - free software under the terms of the LGPL 2.1
 	mpg123clr.dll is a derivative work of libmpg123 - all original mpg123 licensing terms apply.
 
 	All rights to this work freely assigned to the mpg123 project.
@@ -9,7 +9,7 @@
 /*
 	libmpg123: MPEG Audio Decoder library
 
-	copyright 1995-2008 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1995-2011 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 
 */
@@ -17,6 +17,7 @@
 	1.8.1.0	04-Aug-09	Initial release.
 	1.9.0.0 24-Sep-09	Function names harmonized with libmpg123 (mb)
 	1.9.0.0 01-Oct-09	Technical cleanup - subst nullptr for NULL (mb)
+	1.13.0.0 13-Jan-11	release match - added strlen (mb)
 */
 
 #include "StdAfx.h"
@@ -126,6 +127,12 @@ int mpg123clr::mpg123str::mpg123_set_substring(String ^ s, int from, int count)
 	Marshal::FreeHGlobal(IntPtr((void*)chars));
 
 	return ret;
+}
+
+long long mpg123clr::mpg123str::mpg123_strlen(bool utf8)
+{
+	// TODO: determine use for utf8 vs ansi
+	return ::mpg123_strlen(sb, utf8);
 }
 
 int mpg123clr::mpg123str::Fill::get()

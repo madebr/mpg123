@@ -1,7 +1,7 @@
 /*
 	mpg123clr: MPEG Audio Decoder library Common Language Runtime version.
 
-	copyright 2009 by Malcolm Boczek - free software under the terms of the LGPL 2.1
+	copyright 2009-2011 by Malcolm Boczek - free software under the terms of the LGPL 2.1
 	mpg123clr.dll is a derivative work of libmpg123 - all original mpg123 licensing terms apply.
 
 	All rights to this work freely assigned to the mpg123 project.
@@ -9,7 +9,7 @@
 /*
 	libmpg123: MPEG Audio Decoder library
 
-	copyright 1995-2008 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1995-2011 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 
 */
@@ -18,6 +18,7 @@
 	1.9.0.0 24-Sep-09	Function names harmonized with libmpg123 (mb)
 	1.10.0.0 30-Nov-09	release match - added mpg123_feature (mb)
 	1.12.0.0 14-Apr-10	release match - added framebyframe and "handle" ReplaceReaders (mb)
+	1.13.0.0 13-Jan-11	release match - added encsize (mb)
 */
 
 #pragma once
@@ -352,6 +353,13 @@ namespace mpg123clr
 		///</summary>
 		///<returns>An array of supported Encodings.</returns>
 		array<mpg123clr::mpg::enc>^ __clrcall mpg123_encodings(void);
+
+		///<summary>Get the size (in bytes) of one mono sample of the named encoding.
+		///<para>Returns the positive size of encoding in bytes, 0 on invalid encoding.</para>
+		///</summary>
+		///<param name="encoding">The encoding value to analyze.</param>
+		///<returns>The positive size of encoding in bytes, 0 on invalid encoding.</returns>
+		static int __clrcall mpg123_encsize(mpg123clr::mpg::enc encoding);
 
 		///<summary>Configure mpg123 to accept no output format at all.
 		///<para>Use to clear default parameters prior to applying specific settings.</para>

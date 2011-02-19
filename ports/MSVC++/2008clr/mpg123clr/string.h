@@ -1,7 +1,7 @@
 /*
 	mpg123clr: MPEG Audio Decoder library Common Language Runtime version.
 
-	copyright 2009 by Malcolm Boczek - free software under the terms of the LGPL 2.1
+	copyright 2009-2011 by Malcolm Boczek - free software under the terms of the LGPL 2.1
 	mpg123clr.dll is a derivative work of libmpg123 - all original mpg123 licensing terms apply.
 
 	All rights to this work freely assigned to the mpg123 project.
@@ -9,7 +9,7 @@
 /*
 	libmpg123: MPEG Audio Decoder library
 
-	copyright 1995-2008 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1995-2011 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 
 */
@@ -17,6 +17,7 @@
 	1.8.1.0	04-Aug-09	Initial release.
 	1.9.0.0 16-Sep-09	1.9.0 Update - add enc_from_id3, store_utf8
 	1.9.0.0 24-Sep-09	Function names harmonized with libmpg123 (mb)
+	1.13.0.0 13-Jan-11	release match - added strlen (mb)
 */
 
 #pragma once
@@ -209,6 +210,14 @@ namespace mpg123clr
 		///<param name="count">Number of characters to copy. (a null byte is always appended)</param>
 		///<returns>0 on error, 1 on success.</returns>
 		int __clrcall mpg123_set_substring(String ^ s, int from, int count);
+
+		///<summary>Count characters in a mpg123 string (non-null bytes or UTF-8 characters).
+		///<para>Even with the fill property, the character count is not obvious as there could be multiple trailing null bytes.</para>
+		///<para>Returns the character count.</para>
+		///</summary>
+		///<param name="utf8">Flag to tell if the string is in utf8 encoding.</param>
+		///<returns>Character count.</returns>
+		long long __clrcall mpg123_strlen(bool utf8);
 
 		///<summary>Get the number of used bytes. (including closing zero byte).
 		///<para>Property returns the number of used bytes.</para>
