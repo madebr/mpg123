@@ -382,7 +382,7 @@ AC_ARG_ENABLE(messages,
 
 if test "x$messages" = "xdisabled"; then
   AC_DEFINE(NO_WARNING, 1, [ Define to disable warning messages. ])
-  AC_DEFINE(NO_ERROR,   1, [ Define to disable error messages. ])
+  AC_DEFINE(NO_ERRORMSG,   1, [ Define to disable error messages. ])
   AC_DEFINE(NO_ERETURN, 1, [ Define to disable error messages in combination with a return value (the return is left intact). ])
 fi
 
