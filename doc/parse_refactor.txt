@@ -1,0 +1,24 @@
+Refactoring the stream parsing, beginning after revision 2890.
+
+Let's start with read_frame(). What does it do?
+
+1. Read the next header, interpret, read data into frame.
+2. Skip junk along the way, including first sync and resync.
+3. Interpret Xing/LAME tag, setup gapless code.
+4. Manage the frame position index.
+5. Layer 3 buffer flipping.
+6. Implement halfspeed hack.
+
+That's the stuff that comes to mind first ... and it's a lot! I need to separate that functionality. Let's begin with the bottom: The halfspeed hack is something that decides if we actually want a new frame. Easily able to be outsourced. The Layer 3 buffer flipping is associated with actually reading in the frame data ... and I must admit that I need a close look at this to fully understand what it's about ... and if the fixed 
+
+	unsigned char *newbuf = fr->bsspace[fr->bsnum]+512;
+
+is something safe to do. We got some funky buffer management there. But for now I am not about to change such logic, I am just going to rearrange it.
+
+The frame position index is easily handled outside ... just store the physical offset of the last successfully read frame. Yeah, and stuff like fr->audio_start. It's not really the business of a single frame at all. I see now that I will follow Vincent's path a bit by separating the mpg123_handle from the frame struct. The frame struct is part of the handle, but there is information a level up from that, like the frame index. There is other information that is not strictly about a single frame, but the decoding routines make use of it anyway -- I am talking about the function pointers used for decoding ... those should separate from the frame data. Heck, also the frame number should be separate!
+
+Right, the MPEG frame should be a self-contained data structure that also can be handed to the outside. But then, the picture is skewed because the frame does not just contain an audio frame, but state of the decoding engine, too. How much do I want to mess with that?
+
+But a bare frame as such should be part of the API. You should be able to ask mpg123 about where the next frame seems to start and how big it is... to read it yourself (or extract it via mpg123's help) and then feed it to mpg123 in one piece. One could implement intermediate operations like CRC checking in that world.
+
+What Vincent still has issues with is the handling of ID3v2 tags. They are no MPEG frames, not even in disguise (like the LAME tag). They can be huge. At least they tell their size in advance. One should be able to deal with that.
