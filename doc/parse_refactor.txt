@@ -5,11 +5,12 @@ Let's start with read_frame(). What does it do?
 1. Read the next header, interpret, read data into frame.
 2. Skip junk along the way, including first sync and resync.
 3. Interpret Xing/LAME tag, setup gapless code.
-4. Manage the frame position index.
-5. Layer 3 buffer flipping.
-6. Implement halfspeed hack.
+4. Interpret ID3v2 and ID3v1 (ID3v1 is dealt with in reader, too).
+5. Manage the frame position index.
+6. Layer 3 buffer flipping.
+7. Implement halfspeed hack.
 
-That's the stuff that comes to mind first ... and it's a lot! I need to separate that functionality. Let's begin with the bottom: The halfspeed hack is something that decides if we actually want a new frame. Easily able to be outsourced. The Layer 3 buffer flipping is associated with actually reading in the frame data ... and I must admit that I need a close look at this to fully understand what it's about ... and if the fixed 
+That's the stuff that comes to mind... and it's a lot! I need to separate that functionality. Let's begin with the bottom: The halfspeed hack is something that decides if we actually want a new frame. Easily able to be outsourced. The Layer 3 buffer flipping is associated with actually reading in the frame data ... and I must admit that I need a close look at this to fully understand what it's about ... and if the fixed 
 
 	unsigned char *newbuf = fr->bsspace[fr->bsnum]+512;
 
@@ -22,3 +23,88 @@ Right, the MPEG frame should be a self-contained data structure that also can be
 But a bare frame as such should be part of the API. You should be able to ask mpg123 about where the next frame seems to start and how big it is... to read it yourself (or extract it via mpg123's help) and then feed it to mpg123 in one piece. One could implement intermediate operations like CRC checking in that world.
 
 What Vincent still has issues with is the handling of ID3v2 tags. They are no MPEG frames, not even in disguise (like the LAME tag). They can be huge. At least they tell their size in advance. One should be able to deal with that.
+
+So... Vincent poked into the right direction. No shame in following some basic decisions. The basic stream parser function should only search for the next frame. It shall do nothing else.
+
+
+1. Function to locate (and read?) the next frame.
+-------------------------------------------------
+
+Vincent's raw API focuses on the I/O model of the fixed client-provided buffer. Ironically, it implies a memcpy() from the internal decoding buffer to the caller's output buffer -- omitting the possibility of letting the client just directly use the internal decoding buffer. Also, it skips over special frames and ID3 tags since it ultimately uses libmpg123.c's get_next_frame(). But well, this I am going to dissect.
+
+But, I will keep the grown I/O system of libmpg123. It's pull-based instead of push and all that, but gives users the value of abstracting different kinds of I/O, including buffering of non-seekable streams for better stream parsing. One might reorganize that part later, but for now I want to focus on the stuff a layer above that. Vincent will get his no-malloc policy, and possibly the no-memcpy policy, too, via configurable behaviour of the buffer chain (use of a fixed buffer pool, optionally caller-provided).
+
+Back to the point: Shall this function only check if the frame is there or also read it? Hm, checking may include read ahead ... would be a waste not to read in the frame body, too? Well, yeah, parsing consumes data from the stream anyway, and be it just the header. So MPEG frames are to be read in. That includes the LAME tag. A level higher, the frame can be checked and in case of LAME tag, it can be interpreted, then the next, real frame read.
+
+Now what about resync, skipping of junk? Skipping/Parsing of ID3? Somehow that stuff shall be separated. Well, mpg123_next_frame() shall indicate what to do next: MPG123_OK for successfully read frame, MPG123_FRAME_BAD for bogus header ... bogus header can be random junk or ID3, even RIFF indicator. Also, MPG123_NEED_MORE and MPG123_DONE are possiblities, depending on I/O option. The question of ID3 or LAME tag or whatnot can be cleared after that function fetched the whole frame (LAME tag) or just the header. Hm, yes, the frame struct shall contain a flag for indicating if the last read included frame body data or not.
+
+struct frame
+{
+	...
+	unsigned long firsthead;
+	unsigned long header;
+	int have_body;
+	...
+}
+
+Oh, about that: Do I want to waste whole integers for single flags? That's a general question. If I'd have a bool type I could ignore that issue and pretend that bool wouldn't just be stored as int anyway. But well, that's a detail question. A more importand question is if the have_body flag is stored inside the frame struct or at a higher level in the (public) mpg123_handle.
+
+Oh, and I realize: I got a flag for a similar purpose already: It's called to_decode. Slightly different semantics, though.
+
+1a. Separate function for just fetching header.
+
+Oh, yeah, consider that: For pure parsing, you might want to avoid reading the whole frame... just peek at the headers. So it would be, ideally:
+
+mpg123_read_header(mh); /* Read the next frame header. */
+mpg123_skip_frame(mh);  /* Skip amount of bytes indicated by header (complication: free format). */
+mpg123_read_header(mh); /* Next header... */
+mpg123_read_frame(mh);  /* Actually read the frame corresponding to the header. Optionally calling mpg123_read_header(), if needed. */
+
+mpg123_read_header() might indicate if the header is a valid MPEG header or not ... or just be a dumb reader of 4 bytes.
+
+
+2. Function(s) to skip junk, resync.
+------------------------------------
+
+Currently, we have separate code to handle junk at the beginning and just junk in between. Rationale being that certain things only happen at the beginning (like a RIFF header). Perhaps we should question that. I changed the code already to look out for ID3v2 tags at any occasion. Perhaps we can do the same for other types of "junk". A special thing is the LAME tag. I do not really like the prospect of supporting those occuring in the middle of streams. This implies an actual concept of concatenated files, the stream containing separate entities, each with its own LAME tag containing info for gapless decoding. What I already figured that one should support is the separation of a leading part of the stream being treated with the LAME tag info and a possibly following rest that is just "dumb" MPEG audio. No need for growable storage for an array for gapless offsets.
+
+But then ... dammit, I'm drifting away here. We're just talking about a simple array of ranges to cut away from the whole. Like the frame index, such an array could be allowed. Well, anyhow: There should be a lowlevel function that just parses such LAME tags and higher levels can later be extended to deal with it. This also means: The gapless info shall be separated from the decoding state. It shall not reside in the frame struct.
+
+The simple loop to find the next thing that looks like a header will be a function on its own. The read-ahead check for a following frame (or more of them?) will be a function on its own (returning an error if the stream does not support seeking / buffering ... separate from the error state of no following frame being found).
+
+int ret = mpg123_ahead_check(mh);
+if(ret != MPG123_OK)
+{
+	if(ret == MPG123_NEED_MORE) return;
+	if(ret == MPG123_NO_SEEK) ignore ...
+}
+
+
+3. LAME/Xing info
+=================
+
+Those are regular frames, a function can check, on demand, if the frame qualifies as meta info and parse it. The application of the gapless and length information lies in the hands of the caller.
+
+
+4. ID3
+======
+
+Both forms of ID3 do not disguise as MPEG frames, but one can tell them from the first 4 bytes what they are. So a diagnostic step after mpg123_read_header() catches those. Separate functions for parsing them are present in the case of ID3v2, ID3v1 being simple enough.
+
+
+5. Frame position index handling
+================================
+
+This is rather self-contained already. Just need to stored the byte offset of the frame (header) in mpg123_read_header().
+
+
+6. Preprocessing on frame data (Layer 3 buffer flip)
+====================================================
+
+That might still just happen as a call from mpg123_read_frame(), as the location of frame body storage depends on it.
+
+
+7. Halfspeed hack.
+==================
+
+A highlevel function, above mpg123_read_header() and mpg123_read_frame() ... only need that frame body data management.
