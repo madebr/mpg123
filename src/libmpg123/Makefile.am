@@ -32,6 +32,7 @@ libmpg123_la_SOURCES = \
 	intsym.h \
 	compat.c \
 	compat.h \
+	mpeghead.h \
 	parse.c \
 	parse.h \
 	frame.c \

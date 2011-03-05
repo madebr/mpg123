@@ -237,7 +237,9 @@ struct mpg123_handle_struct
 	unsigned char *bsbuf;
 	unsigned char *bsbufold;
 	int bsnum;
+	/* That is the header matching the last read frame body. */
 	unsigned long oldhead;
+	/* That is the header that is supposedly the first of the stream. */
 	unsigned long firsthead;
 	int abr_rate;
 #ifdef FRAME_INDEX
