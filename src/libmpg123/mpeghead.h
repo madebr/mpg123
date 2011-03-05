@@ -10,6 +10,7 @@
 
 /*
 	Avoid human error, let perl do the work of dissecting an MPEG header into parts.
+	To be clear: Never edit the following definitions by hand, modify the code block inside this comment and run it through perl instead!
 
 	$head = "AAAAAAAA AAABBCCD EEEEFFGH IIJJKLMM";
 	%parts = qw(A sync B version C layer D crc E bitrate F samplerate G padding H private I channel J chanex K copyright L original M emphasis);
