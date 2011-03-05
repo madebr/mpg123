@@ -9,7 +9,6 @@
 #define MPG123_MPEGHEAD_H
 
 /*
-	The 
 	Avoid human error, let perl do the work of dissecting an MPEG header into parts.
 
 	$head = "AAAAAAAA AAABBCCD EEEEFFGH IIJJKLMM";
@@ -76,7 +75,7 @@
 #define HDR_CMPMASK (HDR_SYNC|HDR_VERSION|HDR_LAYER|HDR_SAMPLERATE)
 
 /* A stricter mask, for matching free format headers. */
-#define HDR_SAMEMASK (HDR_SYNC|HDR_VERSION|HDR_LAYER|HDR_BITRATE|HDR_SAMPLERATE|HDR_CHANNELS)
+#define HDR_SAMEMASK (HDR_SYNC|HDR_VERSION|HDR_LAYER|HDR_BITRATE|HDR_SAMPLERATE|HDR_CHANNEL|HDR_CHANEX)
 
 /* Free format headers have zero bitrate value. */
 #define HDR_FREE_FORMAT(head) (!(head & HDR_BITRATE))

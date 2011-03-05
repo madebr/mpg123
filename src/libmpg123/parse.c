@@ -783,7 +783,6 @@ read_frame_bad:
  */
 static int guess_freeformat_framesize(mpg123_handle *fr)
 {
-	/* TODO: Use the new header flag macros, check for really matching header. */
 	long i;
 	int ret;
 	unsigned long head;
@@ -797,38 +796,17 @@ static int guess_freeformat_framesize(mpg123_handle *fr)
 	return ret;
 
 	/* We are already 4 bytes into it */
-/* fix that limit to be absolute for the first header search! */
-	for(i=4;i<65536;i++) {
-		if((ret=fr->rd->head_shift(fr,&head))<=0)
+	/* Fix that limit to be absolute for the first header search! */
+	for(i=4;i<65536;i++)
+	{
+		if((ret=fr->rd->head_shift(fr,&head))<=0) return ret;
+
+		/* No head_check needed, the mask contains all relevant bits. */
+		if((head & HDR_SAMEMASK) == (fr->oldhead & HDR_SAMEMASK))
 		{
-			return ret;
-		}
-		if(head_check(head))
-		{
-			int sampling_frequency,mpeg25,lsf;
-			
-			if(head & (1<<20))
-			{
-				lsf = (head & (1<<19)) ? 0x0 : 0x1;
-				mpeg25 = 0;
-			}
-			else
-			{
-				lsf = 1;
-				mpeg25 = 1;
-			}
-			
-			if(mpeg25)
-				sampling_frequency = 6 + ((head>>10)&0x3);
-			else
-				sampling_frequency = ((head>>10)&0x3) + (lsf*3);
-			
-			if((lsf==fr->lsf) && (mpeg25==fr->mpeg25) && (sampling_frequency == fr->sampling_frequency))
-			{
-				fr->rd->back_bytes(fr,i+1);
-				fr->framesize = i-3;
-				return 1; /* Success! */
-			}
+			fr->rd->back_bytes(fr,i+1);
+			fr->framesize = i-3;
+			return 1; /* Success! */
 		}
 	}
 	fr->rd->back_bytes(fr,i);
