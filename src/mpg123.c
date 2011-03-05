@@ -675,7 +675,7 @@ int play_frame(void)
 
 			if(!param.quiet)
 			{
-				printf("\n");
+				fprintf(stderr, "\n");
 				if(param.verbose) print_header(mh);
 				else print_header_compact(mh);
 			}
