@@ -84,6 +84,7 @@ if(ret != MPG123_OK)
 =================
 
 Those are regular frames, a function can check, on demand, if the frame qualifies as meta info and parse it. The application of the gapless and length information lies in the hands of the caller.
+Mind, though, that you cannot diagnose these frames without reading the body.
 
 
 4. ID3
@@ -95,7 +96,7 @@ Both forms of ID3 do not disguise as MPEG frames, but one can tell them from the
 5. Frame position index handling
 ================================
 
-This is rather self-contained already. Just need to stored the byte offset of the frame (header) in mpg123_read_header().
+This is rather self-contained already. Just need to store the byte offset of the frame (header) in mpg123_read_header().
 
 
 6. Preprocessing on frame data (Layer 3 buffer flip)
