@@ -63,6 +63,8 @@ mpg123_read_frame(mh);  /* Actually read the frame corresponding to the header. 
 mpg123_read_header() might indicate if the header is a valid MPEG header or not ... or just be a dumb reader of 4 bytes.
 
 The separation between reading the header and reading the frame body gets trickier with free format streams. When detecting the first free format header, one has to do some resync-like business to figure out the frame size. If the intention is reading of the frame to begin with, that could go without stream rewind ...
+But then, finding the first valid header does involve read ahead, too. Bother with that later.
+
 
 2. Function(s) to skip junk, resync.
 ------------------------------------
