@@ -113,6 +113,7 @@ static int check_lame_tag(mpg123_handle *fr)
 	}
 #endif
 
+	/* Note: CRC or not, that does not matter here. */
 	if(fr->framesize >= 120+lame_offset) /* traditional Xing header is 120 bytes */
 	{
 		int i;
@@ -240,7 +241,6 @@ static int check_lame_tag(mpg123_handle *fr)
 					lame_offset += 4;
 				}
 				/* I guess that either 0 or LAME extra data follows */
-				/* there may this crc16 be floating around... (?) */
 				if(fr->bsbuf[lame_offset] != 0)
 				{
 					unsigned char lame_vbr;
@@ -373,6 +373,40 @@ static int header_mono(unsigned long newhead)
 	return HDR_CHANNEL_VAL(newhead) == MPG_MD_MONO ? TRUE : FALSE;
 }
 
+static void halfspeed_prepare(mpg123_handle *fr)
+{
+	/* save for repetition */
+	if(fr->p.halfspeed && fr->lay == 3)
+	{
+		debug("halfspeed - reusing old bsbuf ");
+		memcpy (fr->ssave, fr->bsbuf, fr->ssize);
+	}
+}
+
+/* If this returns 1, the next frame is the repetition. */
+static int halfspeed_do(mpg123_handle *fr)
+{
+	/* Speed-down hack: Play it again, Sam (the frame, I mean). */
+	if (fr->p.halfspeed) 
+	{
+		if(fr->halfphase) /* repeat last frame */
+		{
+			debug("repeat!");
+			fr->to_decode = fr->to_ignore = TRUE;
+			--fr->halfphase;
+			fr->bitindex = 0;
+			fr->wordpointer = (unsigned char *) fr->bsbuf;
+			if(fr->lay == 3) memcpy (fr->bsbuf, fr->ssave, fr->ssize);
+			if(fr->error_protection) fr->crc = getbits(fr, 16); /* skip crc */
+			return 1;
+		}
+		else
+		{
+			fr->halfphase = fr->p.halfspeed - 1;
+		}
+	}
+}
+
 /*
 	That's a big one: read the next frame. 1 is success, <= 0 is some error
 	Special error READER_MORE means: Please feed more data and try again.
@@ -394,25 +428,7 @@ int read_frame(mpg123_handle *fr)
 
 	fr->fsizeold=fr->framesize;       /* for Layer3 */
 
-	/* Speed-down hack: Play it again, Sam (the frame, I mean). */
-	if (fr->p.halfspeed) 
-	{
-		if(fr->halfphase) /* repeat last frame */
-		{
-			debug("repeat!");
-			fr->to_decode = fr->to_ignore = TRUE;
-			--fr->halfphase;
-			fr->bitindex = 0;
-			fr->wordpointer = (unsigned char *) fr->bsbuf;
-			if(fr->lay == 3) memcpy (fr->bsbuf, fr->ssave, fr->ssize);
-			if(fr->error_protection) fr->crc = getbits(fr, 16); /* skip crc */
-			return 1;
-		}
-		else
-		{
-			fr->halfphase = fr->p.halfspeed - 1;
-		}
-	}
+	if(halfspeed_do(fr) == 1) return 1;
 
 read_again:
 	/* In case we are looping to find a valid frame, discard any buffered data before the current position.
@@ -737,12 +753,7 @@ init_resync:
 	debug4("Frame %"OFF_P" %08lx %i, next filepos=%"OFF_P, 
 	(off_p)fr->num, newhead, fr->framesize, (off_p)fr->rd->tell(fr));
 
-	/* save for repetition */
-	if(fr->p.halfspeed && fr->lay == 3)
-	{
-		debug("halfspeed - reusing old bsbuf ");
-		memcpy (fr->ssave, fr->bsbuf, fr->ssize);
-	}
+	prepare_halfspeed(fr);
 
 	/* index the position */
 #ifdef FRAME_INDEX
