@@ -20,7 +20,7 @@
 		$bits = $head;
 		$bits =~ s/$_/1/g;
 		$bits =~ s/[^1 ]/0/g;
-		print "\/* $bits *\/\n";
+		print "\/\* $bits \*\/\n";
 		$bits =~ s/\s//g;
 		print "#define HDR_$name".(" " x (18-length($name))).sprintf("0x%08x", eval("0b$bits"))."\n";
 		$bits =~ m/(0*)$/;
