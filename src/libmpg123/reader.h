@@ -20,6 +20,7 @@ struct buffy
 	struct buffy *next;
 };
 
+
 struct bufferchain
 {
 	struct buffy* first; /* The beginning of the chain. */
@@ -30,7 +31,19 @@ struct bufferchain
 	ssize_t firstpos;    /* The point of return on non-forget() */
 	/* The "real" filepos is fileoff + pos. */
 	off_t fileoff;       /* Beginning of chain is at this file offset. */
+	size_t bufblock;     /* Default (minimal) size of buffers. */
+	size_t pool_size;    /* Keep that many buffers in storage. */
+	size_t pool_fill;    /* That many buffers are there. */
+	/* A pool of buffers to re-use, if activated. It's a linked list that is worked on from the front. */
+	struct buffy *pool;
 };
+
+/* Call this before any buffer chain use (even bc_init()). */
+void bc_prepare(struct bufferchain *, size_t pool_size, size_t bufblock);
+/* Free persistent data in the buffer chain, after bc_reset(). */
+void bc_cleanup(struct bufferchain *);
+/* Change pool size. This does not actually allocate/free anything on itself, just instructs later operations to free less / allocate more buffers. */
+void bc_poolsize(struct bufferchain *, size_t pool_size, size_t bufblock);
 
 struct reader_data
 {

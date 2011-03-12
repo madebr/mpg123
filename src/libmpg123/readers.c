@@ -155,6 +155,7 @@ static ssize_t icy_fullread(mpg123_handle *fr, unsigned char *buf, ssize_t count
 			{
 				/* we have got some metadata */
 				char *meta_buff;
+				/* TODO: Get rid of this malloc ... perhaps hooking into the reader buffer pool? */
 				meta_buff = malloc(meta_size+1);
 				if(meta_buff != NULL)
 				{
@@ -437,11 +438,128 @@ static off_t get_fileinfo(mpg123_handle *fr)
 	return len;
 }
 
-/* Let's work in nice 4K blocks, that may be nicely reusable (by malloc(), even). */
-#define BUFFBLOCK 4096
-
 #ifndef NO_FEEDER
 /* Methods for the buffer chain, mainly used for feed reader, but not just that. */
+
+
+static struct buffy* buffy_new(size_t size, size_t minsize)
+{
+	struct buffy *newbuf;
+	newbuf = malloc(sizeof(struct buffy));
+	if(newbuf == NULL) return NULL;
+
+	newbuf->realsize = size > minsize ? size : minsize;
+	newbuf->data = malloc(newbuf->realsize);
+	if(newbuf->data == NULL)
+	{
+		free(newbuf);
+		return NULL;
+	}
+	newbuf->size = 0;
+	newbuf->next = NULL;
+	return newbuf;
+}
+
+static void buffy_del(struct buffy* buf)
+{
+	if(buf)
+	{
+		free(buf->data);
+		free(buf);
+	}
+}
+
+/* Delete this buffy and all following buffies. */
+static void buffy_del_chain(struct buffy* buf)
+{
+	while(buf)
+	{
+		struct buffy* next = buf->next;
+		buffy_del(buf);
+		buf = next;
+	}
+}
+
+void bc_prepare(struct bufferchain *bc, size_t pool_size, size_t bufblock)
+{
+	bc_poolsize(bc, pool_size, bufblock);
+	bc->pool = NULL;
+	bc->pool_fill = 0;
+}
+
+void bc_poolsize(struct bufferchain *bc, size_t pool_size, size_t bufblock)
+{
+	bc->pool_size = pool_size;
+	bc->bufblock = bufblock;
+}
+
+void bc_cleanup(struct bufferchain *bc)
+{
+	buffy_del_chain(bc->pool);
+	bc->pool = NULL;
+	bc->pool_fill = 0;
+}
+
+/* Fetch a buffer from the pool (if possible) or create one. */
+static struct buffy* bc_alloc(struct bufferchain *bc, size_t size)
+{
+	/* Easy route: Just try the first available buffer.
+	   Size does not matter, it's only a hint for creation of new buffers. */
+	if(bc->pool)
+	{
+		struct buffy *buf = bc->pool;
+		bc->pool = buf->next;
+		buf->next = NULL; /* That shall be set to a sensible value later. */
+		buf->size = 0;
+		--bc->pool_fill;
+		return buf;
+	}
+	else return buffy_new(size, bc->bufblock);
+}
+
+/* Either stuff the buffer back into the pool or free it for good. */
+static void bc_free(struct bufferchain *bc, struct buffy* buf)
+{
+	if(!buf) return;
+
+	if(bc->pool_fill < bc->pool_size)
+	{
+		buf->next = bc->pool;
+		bc->pool = buf;
+		++bc->pool_fill;
+	}
+	else buffy_del(buf);
+}
+
+/* Make the buffer count in the pool match the pool size. */
+static int bc_fill_pool(struct bufferchain *bc)
+{
+	/* Remove superfluous ones. */
+	while(bc->pool_fill > bc->pool_size)
+	{
+		/* Lazyness: Just work on the front. */
+		struct buffy* buf = bc->pool;
+		bc->pool = buf->next;
+		buffy_del(buf);
+		--bc->pool_fill;
+	}
+
+	/* Add missing ones. */
+	while(bc->pool_fill < bc->pool_size)
+	{
+		/* Again, just work on the front. */
+		struct buffy* buf;
+		buf = buffy_new(0, bc->bufblock); /* Use default block size. */
+		if(!buf) return -1;
+
+		buf->next = bc->pool;
+		bc->pool = buf;
+		++bc->pool_fill;
+	}
+
+	return 0;
+}
+
 
 static void bc_init(struct bufferchain *bc)
 {
@@ -455,15 +573,14 @@ static void bc_init(struct bufferchain *bc)
 
 static void bc_reset(struct bufferchain *bc)
 {
-	/* free the buffer chain */
-	struct buffy *b = bc->first;
-	while(b != NULL)
+	/* Free current chain, possibly stuffing back into the pool. */
+	while(bc->first)
 	{
-		struct buffy *n = b->next;
-		free(b->data);
-		free(b);
-		b = n;
+		struct buffy* buf = bc->first;
+		bc->first = buf->next;
+		bc_free(bc, buf);
 	}
+	bc_fill_pool(bc); /* Ignoring an error here... */
 	bc_init(bc);
 }
 
@@ -473,52 +590,15 @@ static int bc_append(struct bufferchain *bc, ssize_t size)
 	struct buffy *newbuf;
 	if(size < 1) return -1;
 
-	newbuf = malloc(sizeof(struct buffy));
+	newbuf = bc_alloc(bc, size);
 	if(newbuf == NULL) return -2;
 
-	newbuf->realsize = size > BUFFBLOCK ? size : BUFFBLOCK;
-	newbuf->data = malloc(newbuf->realsize);
-	if(newbuf->data == NULL)
-	{
-		free(newbuf);
-		return -3;
-	}
-	newbuf->size = size;
-	newbuf->next = NULL;
 	if(bc->last != NULL)  bc->last->next = newbuf;
 	else if(bc->first == NULL) bc->first = newbuf;
 
 	bc->last  = newbuf;
-	bc->size += size;
 	return 0;
 }
-
-#if 0
-/* Drop the last one (again).
-   This is not optimal but should happen on error situations only, anyway. */
-static void bc_drop(struct bufferchain *bc)
-{
-	struct buffy *cur = bc->first;
-	if(bc->first == NULL || bc->last == NULL) return;
-	/* Special case: only one buffer there. */
-	if(cur->next == NULL)
-	{
-		free(cur->data);
-		free(cur);
-		bc->first = bc->last = NULL;
-		bc->size  = 0;
-		return;
-	}
-	/* Find the pre-last buffy. If chain is consistent, this _will_ succeed. */
-	while(cur->next != bc->last){ cur = cur->next; }
-
-	bc->size -= bc->last->size;
-	free(bc->last->data);
-	free(bc->last);
-	cur->next = NULL;
-	bc->last  = cur;
-}
-#endif
 
 /* Append a new buffer and copy content to it. */
 static int bc_add(struct bufferchain *bc, const unsigned char *data, ssize_t size)
@@ -528,22 +608,25 @@ static int bc_add(struct bufferchain *bc, const unsigned char *data, ssize_t siz
 	debug2("bc_add: adding %"SSIZE_P" bytes at %"OFF_P, (ssize_p)size, (off_p)(bc->fileoff+bc->size));
 	if(size >=4) debug4("first bytes: %02x %02x %02x %02x", data[0], data[1], data[2], data[3]);
 
-	/* Try to fill up the last buffer block. */
-	if(bc->last != NULL && bc->last->size < bc->last->realsize)
+	while(size > 0)
 	{
-		part = bc->last->realsize - bc->last->size;
-		if(part > size) part = size;
+		/* Try to fill up the last buffer block. */
+		if(bc->last != NULL && bc->last->size < bc->last->realsize)
+		{
+			part = bc->last->realsize - bc->last->size;
+			if(part > size) part = size;
 
-		memcpy(bc->last->data+bc->last->size, data, part);
-		bc->last->size += part;
-		size -= part;
-		bc->size += part;
+			memcpy(bc->last->data+bc->last->size, data, part);
+			bc->last->size += part;
+			size -= part;
+			bc->size += part;
+			data += part;
+		}
+
+		/* If there is still data left, put it into a new buffer block. */
+		if(size > 0 && (ret = bc_append(bc, size)) != 0)
+		break;
 	}
-
-
-	/* If there is still data left, put it into a new buffer block. */
-	if(size > 0 && (ret = bc_append(bc, size)) == 0)
-	memcpy(bc->last->data, data+part, size);
 
 	return ret;
 }
@@ -632,8 +715,7 @@ static void bc_forget(struct bufferchain *bc)
 
 		debug5("bc_forget: forgot %p with %lu, pos=%li, size=%li, fileoff=%li", (void*)b->data, (long)b->size, (long)bc->pos,  (long)bc->size, (long)bc->fileoff);
 
-		free(b->data);
-		free(b);
+		bc_free(bc, b);
 		b = n;
 	}
 	bc->first = b;
@@ -645,6 +727,7 @@ static void bc_forget(struct bufferchain *bc)
 static int feed_init(mpg123_handle *fr)
 {
 	bc_init(&fr->rdat.buffer);
+	bc_fill_pool(&fr->rdat.buffer);
 	fr->rdat.filelen = 0;
 	fr->rdat.filepos = 0;
 	fr->rdat.flags |= READER_BUFFERED;
@@ -728,12 +811,12 @@ static ssize_t buffered_fullread(mpg123_handle *fr, unsigned char *out, ssize_t 
 	ssize_t gotcount;
 	if(bc->size - bc->pos < count)
 	{ /* Add more stuff to buffer. If hitting end of file, adjust count. */
-		unsigned char readbuf[BUFFBLOCK];
+		unsigned char readbuf[fr->p.feedbuffer];
 		ssize_t need = count - (bc->size-bc->pos);
 		while(need>0)
 		{
 			int ret;
-			ssize_t got = fr->rdat.fullread(fr, readbuf, BUFFBLOCK);
+			ssize_t got = fr->rdat.fullread(fr, readbuf, fr->p.feedbuffer);
 			if(got < 0)
 			{
 				if(NOQUIET) error("buffer reading");
@@ -748,7 +831,7 @@ static ssize_t buffered_fullread(mpg123_handle *fr, unsigned char *out, ssize_t 
 			}
 
 			need -= got; /* May underflow here... */
-			if(got < BUFFBLOCK) /* That naturally catches got == 0, too. */
+			if(got < fr->p.feedbuffer) /* That naturally catches got == 0, too. */
 			{
 				if(VERBOSE3) fprintf(stderr, "Note: Input data end.\n");
 				break; /* End. */

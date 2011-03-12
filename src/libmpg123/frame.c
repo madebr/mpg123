@@ -59,6 +59,9 @@ static void frame_default_pars(mpg123_pars *mp)
 #endif
 	mp->preframes = 4; /* That's good  for layer 3 ISO compliance bitstream. */
 	mpg123_fmt_all(mp);
+	/* Default of keeping some 4K buffers at hand, should cover the "usual" use case (using 16K pipe buffers as role model). */
+	mp->feedpool = 5; 
+	mp->feedbuffer = 4096;
 }
 
 void frame_init(mpg123_handle *fr)
@@ -110,6 +113,8 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 	fr->err = MPG123_OK;
 	if(mp == NULL) frame_default_pars(&fr->p);
 	else memcpy(&fr->p, mp, sizeof(struct mpg123_pars_struct));
+
+	bc_prepare(&fr->rdat.buffer, fr->p.feedpool, fr->p.feedbuffer);
 
 	fr->down_sample = 0; /* Initialize to silence harmless errors when debugging. */
 	frame_fixed_reset(fr); /* Reset only the fixed data, dynamic buffers are not there yet! */
@@ -569,6 +574,7 @@ void frame_exit(mpg123_handle *fr)
 		fr->wrapperclean(fr->wrapperdata);
 		fr->wrapperdata = NULL;
 	}
+	bc_cleanup(&fr->rdat.buffer);
 }
 
 int attribute_align_arg mpg123_info(mpg123_handle *mh, struct mpg123_frameinfo *mi)

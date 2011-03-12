@@ -200,6 +200,9 @@ int attribute_align_arg mpg123_param(mpg123_handle *mh, enum mpg123_parms key, l
 			if(r != MPG123_OK) mh->err = MPG123_INDEX_FAIL;
 		}
 #endif
+		/* Feeder pool size is applied right away, reader will react to that. */
+		if(key == MPG123_FEEDPOOL || key == MPG123_FEEDBUFFER)
+		bc_poolsize(&mh->rdat.buffer, mh->p.feedpool, mh->p.feedbuffer);
 	}
 	return r;
 }
@@ -294,6 +297,14 @@ int attribute_align_arg mpg123_par(mpg123_pars *mp, enum mpg123_parms key, long 
 			if(val >= 0) mp->preframes = val;
 			else ret = MPG123_BAD_VALUE;
 		break;
+		case MPG123_FEEDPOOL:
+			if(val >= 0) mp->feedpool = val;
+			else ret = MPG123_BAD_VALUE;
+		break;
+		case MPG123_FEEDBUFFER:
+			if(val > 0) mp->feedbuffer = val;
+			else ret = MPG123_BAD_VALUE;
+		break;
 		default:
 			ret = MPG123_BAD_PARAM;
 	}
@@ -368,6 +379,12 @@ int attribute_align_arg mpg123_getpar(mpg123_pars *mp, enum mpg123_parms key, lo
 		break;
 		case MPG123_PREFRAMES:
 			*val = mp->preframes;
+		break;
+		case MPG123_FEEDPOOL:
+			*val = mp->feedpool;
+		break;
+		case MPG123_FEEDBUFFER:
+			*val = mp->feedbuffer;
 		break;
 		default:
 			ret = MPG123_BAD_PARAM;

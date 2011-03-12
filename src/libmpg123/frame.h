@@ -77,6 +77,8 @@ struct mpg123_pars_struct
 	long resync_limit;
 	long index_size; /* Long, because: negative values have a meaning. */
 	long preframes;
+	long feedpool;
+	long feedbuffer;
 };
 
 
