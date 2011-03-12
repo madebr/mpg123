@@ -1,7 +1,7 @@
 Changes in libmpg123 libtool interface versions...
 
 30.0.30
-	- Added MPG123_FEEDPOOL and MPG123_FEEDBUFFER
+	- Added MPG123_FEEDPOOL and MPG123_FEEDBUFFER.
 
 29.0.29
 	- New decoder: ARM neon.
