@@ -610,6 +610,17 @@ int attribute_align_arg mpg123_info(mpg123_handle *mh, struct mpg123_frameinfo *
 	return MPG123_OK;
 }
 
+int attribute_align_arg mpg123_framedata(mpg123_handle *mh, unsigned long *header, unsigned char **bodydata, size_t *bodybytes)
+{
+	if(mh == NULL)     return MPG123_ERR;
+	if(!mh->to_decode) return MPG123_ERR;
+
+	if(header    != NULL) *header    = mh->oldhead;
+	if(bodydata  != NULL) *bodydata  = mh->bsbuf;
+	if(bodybytes != NULL) *bodybytes = mh->framesize;
+
+	return MPG123_OK;
+}
 
 /*
 	Fuzzy frame offset searching (guessing).

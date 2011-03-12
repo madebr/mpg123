@@ -113,6 +113,8 @@ static int check_lame_tag(mpg123_handle *fr)
 	}
 #endif
 
+	if(fr->p.flags & MPG123_IGNORE_INFOFRAME) return 0;
+
 	/* Note: CRC or not, that does not matter here. */
 	if(fr->framesize >= 120+lame_offset) /* traditional Xing header is 120 bytes */
 	{
