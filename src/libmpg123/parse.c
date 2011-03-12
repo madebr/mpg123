@@ -405,6 +405,7 @@ static int halfspeed_do(mpg123_handle *fr)
 			fr->halfphase = fr->p.halfspeed - 1;
 		}
 	}
+	return 0;
 }
 
 /*
@@ -753,7 +754,7 @@ init_resync:
 	debug4("Frame %"OFF_P" %08lx %i, next filepos=%"OFF_P, 
 	(off_p)fr->num, newhead, fr->framesize, (off_p)fr->rd->tell(fr));
 
-	prepare_halfspeed(fr);
+	halfspeed_prepare(fr);
 
 	/* index the position */
 #ifdef FRAME_INDEX
