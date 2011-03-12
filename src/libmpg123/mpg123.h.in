@@ -527,7 +527,7 @@ EXPORT int mpg123_framebyframe_next(mpg123_handle *mh);
 
 /** Get access to the raw input data for the last parsed frame.
  * This gives you a direct look (and write access) to the frame body data.
- * Together with the raw header, you can reconstruct the whole raw MPEG stream without junk and meta data, or play games by actually modifying the frame body data before decoding this frame (framebyframe_decode()).
+ * Together with the raw header, you can reconstruct the whole raw MPEG stream without junk and meta data, or play games by actually modifying the frame body data before decoding this frame (mpg123_framebyframe_decode()).
  * A more sane use would be to use this for CRC checking (see mpg123_info() and MPG123_CRC), the first two bytes of the body make up the CRC16 checksum, if present.
  * You can provide NULL for a parameter pointer when you are not interested in the value.
  *
