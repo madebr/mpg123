@@ -811,12 +811,12 @@ static ssize_t buffered_fullread(mpg123_handle *fr, unsigned char *out, ssize_t 
 	ssize_t gotcount;
 	if(bc->size - bc->pos < count)
 	{ /* Add more stuff to buffer. If hitting end of file, adjust count. */
-		unsigned char readbuf[fr->p.feedbuffer];
+		unsigned char readbuf[4096];
 		ssize_t need = count - (bc->size-bc->pos);
 		while(need>0)
 		{
 			int ret;
-			ssize_t got = fr->rdat.fullread(fr, readbuf, fr->p.feedbuffer);
+			ssize_t got = fr->rdat.fullread(fr, readbuf, sizeof(readbuf));
 			if(got < 0)
 			{
 				if(NOQUIET) error("buffer reading");
@@ -831,7 +831,7 @@ static ssize_t buffered_fullread(mpg123_handle *fr, unsigned char *out, ssize_t 
 			}
 
 			need -= got; /* May underflow here... */
-			if(got < fr->p.feedbuffer) /* That naturally catches got == 0, too. */
+			if(got < sizeof(readbuf)) /* That naturally catches got == 0, too. */
 			{
 				if(VERBOSE3) fprintf(stderr, "Note: Input data end.\n");
 				break; /* End. */
