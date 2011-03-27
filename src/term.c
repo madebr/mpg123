@@ -67,29 +67,30 @@ static void term_sigusr(int sig);
 /* This must call only functions safe inside a signal handler. */
 int term_setup(struct termios *pattern)
 {
-  struct termios tio = *pattern;
+	struct termios tio = *pattern;
 
-  /* One might want to use sigaction instead. */
-  signal(SIGCONT, term_sigcont);
-  signal(SIGUSR1, term_sigusr);
-  signal(SIGUSR2, term_sigusr);
+	/* One might want to use sigaction instead. */
+	signal(SIGCONT, term_sigcont);
+	signal(SIGUSR1, term_sigusr);
+	signal(SIGUSR2, term_sigusr);
 
-  tio.c_lflag &= ~(ICANON|ECHO); 
-  tio.c_cc[VMIN] = 1;
-  tio.c_cc[VTIME] = 0;
-  return tcsetattr(0,TCSANOW,&tio);
+	tio.c_lflag &= ~(ICANON|ECHO); 
+	tio.c_cc[VMIN] = 1;
+	tio.c_cc[VTIME] = 0;
+	return tcsetattr(0,TCSANOW,&tio);
 }
 
 void term_sigcont(int sig)
 {
-  term_enable = 0;
+	term_enable = 0;
 
-  if (term_setup(&old_tio) < 0) {
-    fprintf(stderr,"Can't set terminal attributes\n");
-    return;
-  }
+	if (term_setup(&old_tio) < 0)
+	{
+		fprintf(stderr,"Can't set terminal attributes\n");
+		return;
+	}
 
-  term_enable = 1;
+	term_enable = 1;
 }
 
 static void term_sigusr(int sig)
@@ -104,20 +105,22 @@ static void term_sigusr(int sig)
 /* initialze terminal */
 void term_init(void)
 {
-  debug("term_init");
+	debug("term_init");
 
-  term_enable = 0;
+	term_enable = 0;
 
-  if(tcgetattr(0,&old_tio) < 0) {
-    fprintf(stderr,"Can't get terminal attributes\n");
-    return;
-  }
-  if(term_setup(&old_tio) < 0) {
-    fprintf(stderr,"Can't set terminal attributes\n");
-    return;
-  }
+	if(tcgetattr(0,&old_tio) < 0)
+	{
+		fprintf(stderr,"Can't get terminal attributes\n");
+		return;
+	}
+	if(term_setup(&old_tio) < 0)
+	{
+		fprintf(stderr,"Can't set terminal attributes\n");
+		return;
+	}
 
-  term_enable = 1;
+	term_enable = 1;
 }
 
 void term_hint(void)
@@ -257,15 +260,12 @@ static int get_key(int do_delay, char *val)
 	else return 0;
 }
 
-static void term_handle_input(mpg123_handle *fr, audio_output_t *ao, int do_delay)
+static int term_handle_key(mpg123_handle *fr, audio_output_t *ao, char val)
 {
-  char val;
-  /* Do we really want that while loop? This means possibly handling multiple inputs that come very rapidly in one go. */
-  while(get_key(do_delay, &val))
-  {
-      switch(tolower(val)) {
+	switch(val)
+	{
 	case MPG123_BACK_KEY:
-        if(!param.usebuffer) ao->flush(ao);
+		if(!param.usebuffer) ao->flush(ao);
 				else buffer_resync();
 		if(paused) pause_cycle=(int)(LOOP_CYCLES/mpg123_tpf(fr));
 
@@ -273,12 +273,12 @@ static void term_handle_input(mpg123_handle *fr, audio_output_t *ao, int do_dela
 		error1("Seek to begin failed: %s", mpg123_strerror(fr));
 
 		framenum=0;
-		break;
+	break;
 	case MPG123_NEXT_KEY:
 		if(!param.usebuffer) ao->flush(ao);
 		else buffer_resync(); /* was: plain_buffer_resync */
-	  next_track();
-	  break;
+		next_track();
+	break;
 	case MPG123_QUIT_KEY:
 		debug("QUIT");
 		if(stopped)
@@ -292,32 +292,32 @@ static void term_handle_input(mpg123_handle *fr, audio_output_t *ao, int do_dela
 		}
 		set_intflag();
 		offset = 0;
-	  break;
+	break;
 	case MPG123_PAUSE_KEY:
-  	  paused=1-paused;
-	  if(paused) {
+		paused=1-paused;
+		if(paused) {
 			/* Not really sure if that is what is wanted
-			   This jumps in audio output, but has direct reaction to pausing loop. */
+				 This jumps in audio output, but has direct reaction to pausing loop. */
 			if(param.usebuffer) buffer_resync();
 
 			pause_recycle(fr);
-	  }
+		}
 		if(stopped)
 		{
 			stopped=0;
 			if(param.usebuffer) buffer_start();
 		}
-	  fprintf(stderr, "%s", (paused) ? MPG123_PAUSED_STRING : MPG123_EMPTY_STRING);
-	  break;
+		fprintf(stderr, "%s", (paused) ? MPG123_PAUSED_STRING : MPG123_EMPTY_STRING);
+	break;
 	case MPG123_STOP_KEY:
 	case ' ':
 		/* when seeking while stopped and then resuming, I want to prevent the chirp from the past */
 		if(!param.usebuffer) ao->flush(ao);
-	  stopped=1-stopped;
-	  if(paused) {
-		  paused=0;
-		  offset -= pause_cycle;
-	  }
+		stopped=1-stopped;
+		if(paused) {
+			paused=0;
+			offset -= pause_cycle;
+		}
 		if(param.usebuffer)
 		{
 			if(stopped) buffer_stop();
@@ -329,32 +329,32 @@ static void term_handle_input(mpg123_handle *fr, audio_output_t *ao, int do_dela
 				buffer_start();
 			}
 		}
-	  fprintf(stderr, "%s", (stopped) ? MPG123_STOPPED_STRING : MPG123_EMPTY_STRING);
-	  break;
+		fprintf(stderr, "%s", (stopped) ? MPG123_STOPPED_STRING : MPG123_EMPTY_STRING);
+	break;
 	case MPG123_FINE_REWIND_KEY:
-	  if(param.usebuffer) seekmode();
-	  offset--;
-	  break;
+		if(param.usebuffer) seekmode();
+		offset--;
+	break;
 	case MPG123_FINE_FORWARD_KEY:
-	  seekmode();
-	  offset++;
-	  break;
+		seekmode();
+		offset++;
+	break;
 	case MPG123_REWIND_KEY:
-	  seekmode();
-  	  offset-=10;
-	  break;
+		seekmode();
+		  offset-=10;
+	break;
 	case MPG123_FORWARD_KEY:
-	  seekmode();
-	  offset+=10;
-	  break;
+		seekmode();
+		offset+=10;
+	break;
 	case MPG123_FAST_REWIND_KEY:
-	  seekmode();
-	  offset-=50;
-	  break;
+		seekmode();
+		offset-=50;
+	break;
 	case MPG123_FAST_FORWARD_KEY:
-	  seekmode();
-	  offset+=50;
-	  break;
+		seekmode();
+		offset+=50;
+	break;
 	case MPG123_VOL_UP_KEY:
 		mpg123_volume_change(fr, 0.02);
 	break;
@@ -454,18 +454,25 @@ static void term_handle_input(mpg123_handle *fr, audio_output_t *ao, int do_dela
 		}
 	break;
 	default:
-	  ;
-      }
-    }
+		;
+	}
+}
+
+static void term_handle_input(mpg123_handle *fr, audio_output_t *ao, int do_delay)
+{
+	char val;
+	/* Do we really want that while loop? This means possibly handling multiple inputs that come very rapidly in one go. */
+	while(get_key(do_delay, &val))
+	{
+		term_handle_key(fr, ao, tolower(val));
+	}
 }
 
 void term_restore(void)
 {
-  
-  if(!term_enable)
-    return;
+	if(!term_enable) return;
 
-  tcsetattr(0,TCSAFLUSH,&old_tio);
+	tcsetattr(0,TCSAFLUSH,&old_tio);
 }
 
 #endif
