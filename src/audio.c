@@ -474,6 +474,7 @@ int init_output(audio_output_t **ao)
 		/* No +1024 for NtoM rounding problems anymore! */
 		xfermem_init (&buffermem, bufferbytes ,0,0);
 		sigemptyset (&newsigset);
+		/* ThOr: I'm not quite sure why we need to block that signal here. */
 		sigaddset (&newsigset, SIGUSR1);
 		sigprocmask (SIG_BLOCK, &newsigset, &oldsigset);
 #if !defined(WIN32) && !defined(GENERIC)
@@ -513,6 +514,8 @@ int init_output(audio_output_t **ao)
 			default: /* parent */
 			xfermem_init_writer (buffermem);
 		}
+		/* ThOr: I want that USR1 signal back for control. */
+		sigprocmask(SIG_UNBLOCK, &newsigset, NULL);
 	}
 #else
 	if(param.usebuffer)

@@ -62,6 +62,9 @@ struct parameter
   int   output_flags;	/* legacy output destination for AIX/HP/Sun */
 #ifdef HAVE_TERMIOS
   int term_ctrl;
+  /* Those are supposed to be single characters. */
+  char* term_usr1;
+  char* term_usr2;
 #endif
   int checkrange;
   int force_reopen;

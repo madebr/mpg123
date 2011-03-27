@@ -27,6 +27,10 @@ static int term_enable = 0;
 static struct termios old_tio;
 int seeking = FALSE;
 
+/* Buffered key from a signal or whatnot.
+   We ignore the null character... */
+static char prekey = 0;
+
 /* Hm, next step would be some system in this, plus configurability...
    Two keys for everything? It's just stop/pause for now... */
 struct keydef { const char key; const char key2; const char* desc; };
@@ -58,13 +62,17 @@ struct keydef term_help[] =
 };
 
 void term_sigcont(int sig);
+static void term_sigusr(int sig);
 
 /* This must call only functions safe inside a signal handler. */
 int term_setup(struct termios *pattern)
 {
   struct termios tio = *pattern;
 
+  /* One might want to use sigaction instead. */
   signal(SIGCONT, term_sigcont);
+  signal(SIGUSR1, term_sigusr);
+  signal(SIGUSR2, term_sigusr);
 
   tio.c_lflag &= ~(ICANON|ECHO); 
   tio.c_cc[VMIN] = 1;
@@ -82,6 +90,15 @@ void term_sigcont(int sig)
   }
 
   term_enable = 1;
+}
+
+static void term_sigusr(int sig)
+{
+	switch(sig)
+	{
+		case SIGUSR1: prekey=*param.term_usr1; break;
+		case SIGUSR2: prekey=*param.term_usr2; break;
+	}
 }
 
 /* initialze terminal */
@@ -209,26 +226,43 @@ static void seekmode(void)
 	}
 }
 
+/* Get the next pressed key, if any.
+   Returns 1 when there is a key, 0 if not. */
+static int get_key(int do_delay, char *val)
+{
+	fd_set r;
+	struct timeval t;
+
+	/* Shortcut: If some other means sent a key, use it. */
+	if(prekey)
+	{
+		debug1("Got prekey: %c\n", prekey);
+		*val = prekey;
+		prekey = 0;
+		return 1;
+	}
+
+	t.tv_sec=0;
+	t.tv_usec=(do_delay) ? 10*1000 : 0;
+
+	FD_ZERO(&r);
+	FD_SET(0,&r);
+	if(select(1,&r,NULL,NULL,&t) > 0 && FD_ISSET(0,&r))
+	{
+		if(read(0,val,1) <= 0)
+		return 0; /* Well, we couldn't read the key, so there is none. */
+		else
+		return 1;
+	}
+	else return 0;
+}
+
 static void term_handle_input(mpg123_handle *fr, audio_output_t *ao, int do_delay)
 {
-  int n = 1;
-  /* long offset = 0; */
-  
-  while(n > 0) {
-    fd_set r;
-    struct timeval t;
-    char val;
-
-    t.tv_sec=0;
-    t.tv_usec=(do_delay) ? 10*1000 : 0;
-    
-    FD_ZERO(&r);
-    FD_SET(0,&r);
-    n = select(1,&r,NULL,NULL,&t);
-    if(n > 0 && FD_ISSET(0,&r)) {
-      if(read(0,&val,1) <= 0)
-        break;
-
+  char val;
+  /* Do we really want that while loop? This means possibly handling multiple inputs that come very rapidly in one go. */
+  while(get_key(do_delay, &val))
+  {
       switch(tolower(val)) {
 	case MPG123_BACK_KEY:
         if(!param.usebuffer) ao->flush(ao);
@@ -423,7 +457,6 @@ static void term_handle_input(mpg123_handle *fr, audio_output_t *ao, int do_dela
 	  ;
       }
     }
-  }
 }
 
 void term_restore(void)

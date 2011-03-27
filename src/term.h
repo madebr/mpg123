@@ -67,6 +67,10 @@
 #define MPG123_STOPPED_STRING	"Stopped.\b\b\b\b\b\b\b\b"
 #define MPG123_EMPTY_STRING	"        \b\b\b\b\b\b\b\b"
 
+/* Need it as string for the param struct, change according to the above. */
+#define MPG123_TERM_USR1 "s"
+#define MPG123_TERM_USR2 "f"
+
 void term_init(void);
 off_t term_control(mpg123_handle *mh, audio_output_t *ao);
 void term_restore(void);

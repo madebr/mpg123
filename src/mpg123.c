@@ -66,6 +66,8 @@ struct parameter param = {
   0,      /* destination (headphones, ...) */
 #ifdef HAVE_TERMIOS
   FALSE , /* term control */
+  MPG123_TERM_USR1,
+  MPG123_TERM_USR2,
 #endif
   FALSE , /* checkrange */
   0 ,	  /* force_reopen, always (re)opens audio device for next song */
@@ -392,6 +394,8 @@ topt opts[] = {
 	{'n', "frames",      GLO_ARG | GLO_LONG, 0, &param.frame_number,  0},
 	#ifdef HAVE_TERMIOS
 	{'C', "control",     GLO_INT,  0, &param.term_ctrl, TRUE},
+	{0,   "ctrlusr1",    GLO_ARG | GLO_CHAR, 0, &param.term_usr1, 0},
+	{0,   "ctrlusr2",    GLO_ARG | GLO_CHAR, 0, &param.term_usr2, 0},
 	#endif
 #ifndef NOXFERMEM
 	{'b', "buffer",      GLO_ARG | GLO_LONG, 0, &param.usebuffer,  0},
@@ -1324,6 +1328,10 @@ static void long_usage(int err)
 	fprintf(o," -q     --quiet            quiet mode\n");
 	#ifdef HAVE_TERMIOS
 	fprintf(o," -C     --control          enable terminal control keys\n");
+	fprintf(o,"        --ctrlusr1 <c>     control key (characer) to map to SIGUSR1\n");
+	fprintf(o,"                           (default is for stop/start)\n");
+	fprintf(o,"        --ctrlusr2 <c>     control key (characer) to map to SIGUSR2\n");
+	fprintf(o,"                           (default is for next track)\n");
 	#endif
 	#ifndef GENERIC
 	fprintf(o,"        --title            set xterm/rxvt title to filename\n");
