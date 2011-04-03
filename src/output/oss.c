@@ -87,43 +87,33 @@ static int set_channels_oss(audio_output_t *ao)
 
 static int set_format_oss(audio_output_t *ao)
 {
-	int sample_size,fmts;
+	int fmts;
 	int sf,ret;
-	
+
 	if(ao->format == -1) return 0;
 
 	switch(ao->format) {
 		case MPG123_ENC_SIGNED_16:
 		default:
 			fmts = AFMT_S16_NE;
-			sample_size = 16;
 			break;
 		case MPG123_ENC_UNSIGNED_8:
 			fmts = AFMT_U8;
-			sample_size = 8;
 		break;
 		case MPG123_ENC_SIGNED_8:
 			fmts = AFMT_S8;
-			sample_size = 8;
 		break;
 		case MPG123_ENC_ULAW_8:
 			fmts = AFMT_MU_LAW;
-			sample_size = 8;
 		break;
 		case MPG123_ENC_ALAW_8:
 			fmts = AFMT_A_LAW;
-			sample_size = 8;
 		break;
 		case MPG123_ENC_UNSIGNED_16:
 			fmts = AFMT_U16_NE;
 		break;
 	}
 	
-#if 0
-	if(ioctl(ao->fn, SNDCTL_DSP_SAMPLESIZE, &sample_size) < 0)
-		return -1;
-#endif
-
 	sf = fmts;
 	ret = ioctl(ao->fn, SNDCTL_DSP_SETFMT, &fmts);
 	if(sf != fmts) return -1;
