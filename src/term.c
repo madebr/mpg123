@@ -260,7 +260,7 @@ static int get_key(int do_delay, char *val)
 	else return 0;
 }
 
-static int term_handle_key(mpg123_handle *fr, audio_output_t *ao, char val)
+static void term_handle_key(mpg123_handle *fr, audio_output_t *ao, char val)
 {
 	switch(val)
 	{
