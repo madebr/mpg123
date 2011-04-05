@@ -34,6 +34,16 @@
 
 #define bsbufid(fr) (fr)->bsbuf==(fr)->bsspace[0] ? 0 : ((fr)->bsbuf==fr->bsspace[1] ? 1 : ( (fr)->bsbuf==(fr)->bsspace[0]+512 ? 2 : ((fr)->bsbuf==fr->bsspace[1]+512 ? 3 : -1) ) )
 
+enum parse_codes
+{
+	 PARSE_MORE = MPG123_NEED_MORE
+	,PARSE_ERR  = MPG123_ERR
+	,PARSE_END  = 0 /* No more audio data to find. */
+	,PARSE_GOOD = 1 /* Everything's fine. */
+	,PARSE_RESYNC = 2 /* Header not good, go into resync. */
+	,PARSE_AGAIN  = 3 /* Really start over, throw away and read a new header, again. */
+};
+
 /* bitrates for [mpeg1/2][layer] */
 static const int tabsel_123[2][3][16] =
 {
@@ -52,6 +62,9 @@ static const int tabsel_123[2][3][16] =
 static const long freqs[9] = { 44100, 48000, 32000, 22050, 24000, 16000 , 11025 , 12000 , 8000 };
 
 static int decode_header(mpg123_handle *fr,unsigned long newhead);
+static int skip_junk(mpg123_handle *fr, unsigned long *newheadp, int *headcount);
+static int do_readahead(mpg123_handle *fr, unsigned long newhead);
+static int wetwork(mpg123_handle *fr, unsigned long *newheadp);
 
 /* These two are to be replaced by one function that gives all the frame parameters (for outsiders).*/
 /* Those functions are unsafe regarding bad arguments (inside the mpg123_handle), but just returning anything would also be unsafe, the caller code has to be trusted. */
@@ -410,6 +423,18 @@ static int halfspeed_do(mpg123_handle *fr)
 	return 0;
 }
 
+/* 
+	Temporary macro until we got this worked out.
+	Idea is to filter out special return values that shall trigger direct jumps to end / resync / read again. 
+	Particularily, ret==PARSE_END==0 and ret==PARSE_GOOD==1 are not affected.
+*/
+#define JUMP_CONCLUSION(ret) \
+{ \
+if(ret < 0){ debug1("%s", ret == MPG123_NEED_MORE ? "need more" : "read error"); goto read_frame_bad; } \
+else if(ret == PARSE_AGAIN) goto read_again; \
+else if(ret == PARSE_RESYNC) goto init_resync; \
+}
+
 /*
 	That's a big one: read the next frame. 1 is success, <= 0 is some error
 	Special error READER_MORE means: Please feed more data and try again.
@@ -459,248 +484,29 @@ init_resync:
 	}
 
 #ifdef SKIP_JUNK
-	/* watch out for junk/tags on beginning of stream by invalid header */
-	if(!fr->firsthead && !head_check(newhead)) {
-
-		/* check for id3v2; first three bytes (of 4) are "ID3" */
-		if((newhead & (unsigned long) 0xffffff00) == (unsigned long) 0x49443300)
-		{
-			int id3ret = 0;
-			id3ret = parse_new_id3(fr, newhead);
-			if     (id3ret < 0){ debug("need more?"); ret = id3ret; goto read_frame_bad; }
-#ifndef NO_ID3V2
-			else if(id3ret > 0){ debug("got ID3v2"); fr->metaflags  |= MPG123_NEW_ID3|MPG123_ID3; }
-			else debug("no useful ID3v2");
-#endif
-
-			fr->oldhead = 0;
-			goto read_again; /* Also in case of invalid ID3 tag (ret==0), try to get on track again. */
-		}
-		else if(VERBOSE2 && fr->silent_resync == 0) fprintf(stderr,"Note: Junk at the beginning (0x%08lx)\n",newhead);
-
-		/* I even saw RIFF headers at the beginning of MPEG streams ;( */
-		if(newhead == ('R'<<24)+('I'<<16)+('F'<<8)+'F') {
-			if(VERBOSE2 && fr->silent_resync == 0) fprintf(stderr, "Note: Looks like a RIFF header.\n");
-
-			if((ret=fr->rd->head_read(fr,&newhead))<=0){ debug("need more?"); goto read_frame_bad; }
-
-			while(newhead != ('d'<<24)+('a'<<16)+('t'<<8)+'a')
-			{
-				if((ret=fr->rd->head_shift(fr,&newhead))<=0){ debug("need more?"); goto read_frame_bad; }
-			}
-			if((ret=fr->rd->head_read(fr,&newhead))<=0){ debug("need more?"); goto read_frame_bad; }
-
-			if(VERBOSE2 && fr->silent_resync == 0) fprintf(stderr,"Note: Skipped RIFF header!\n");
-
-			fr->oldhead = 0;
-			goto read_again;
-		}
-		/* unhandled junk... just continue search for a header */
-		/* step in byte steps through next 64K */
-		debug("searching for header...");
-
-		ret = 0; /* We will check the value after the loop. */
-		for(; headcount<65536; headcount++)
-		{
-			if((ret=fr->rd->head_shift(fr,&newhead))<=0){ debug("need more?"); goto read_frame_bad; }
-			/* if(head_check(newhead)) */
-			if(head_check(newhead) && (ret=decode_header(fr, newhead)))
-				break;
-		}
-		if(ret<0){ debug("need more?"); goto read_frame_bad; }
-
-		if(headcount == 65536)
-		{
-			if(NOQUIET) error("Giving up searching valid MPEG header after (over) 64K of junk.");
-			return 0;
-		}
-		else debug1("hopefully found one at %"OFF_P, (off_p)fr->rd->tell(fr));
-		/* 
-		 * should we additionaly check, whether a new frame starts at
-		 * the next expected position? (some kind of read ahead)
-		 * We could implement this easily, at least for files.
-		 */
+	if(!fr->firsthead && !head_check(newhead))
+	{
+		ret = skip_junk(fr, &newhead, &headcount);
+		JUMP_CONCLUSION(ret);
 	}
 #endif
 
-	/* first attempt of read ahead check to find the real first header; cannot believe what junk is out there! */
-	if(!fr->firsthead && fr->rdat.flags & (READER_SEEKABLE|READER_BUFFERED) && head_check(newhead) && (ret=decode_header(fr, newhead)))
-	{
-		unsigned long nexthead = 0;
-		int hd = 0;
-		off_t start = fr->rd->tell(fr);
-		if(ret<0){ debug("need more?"); goto read_frame_bad; }
-
-		debug2("doing ahead check with BPF %d at %"OFF_P, fr->framesize+4, (off_p)start);
-		/* step framesize bytes forward and read next possible header*/
-		if((ret=fr->rd->skip_bytes(fr, fr->framesize))<0)
-		{
-			if(ret==READER_ERROR && NOQUIET) error("cannot seek!");
-			goto read_frame_bad;
-		}
-		hd = fr->rd->head_read(fr,&nexthead);
-		if(hd==MPG123_NEED_MORE){ debug("need more?"); ret = hd; goto read_frame_bad; }
-		if((ret=fr->rd->back_bytes(fr, fr->rd->tell(fr)-start))<0)
-		{
-			if(ret==READER_ERROR && NOQUIET) error("cannot seek!");
-			else debug("need more?"); 
-			goto read_frame_bad;
-		}
-		debug1("After fetching next header, at %"OFF_P, (off_p)fr->rd->tell(fr));
-		if(!hd)
-		{
-			if(NOQUIET) warning("cannot read next header, a one-frame stream? Duh...");
-		}
-		else
-		{
-			debug2("does next header 0x%08lx match first 0x%08lx?", nexthead, newhead);
-			/* not allowing free format yet */
-			if(!head_check(nexthead) || (nexthead & HDR_CMPMASK) != (newhead & HDR_CMPMASK))
-			{
-				debug("No, the header was not valid, start from beginning...");
-				fr->oldhead = 0; /* start over */
-				/* try next byte for valid header */
-				if((ret=fr->rd->back_bytes(fr, 3))<0)
-				{
-					if(NOQUIET) error("cannot seek!");
-					else debug("need more?"); 
-					goto read_frame_bad;
-				}
-				goto read_again;
-			}
-		}
+	ret = decode_header(fr, newhead);
+	JUMP_CONCLUSION(ret); /* That only continues for ret == 0 or 1 */
+	if(ret == 0)
+	{ /* Header was not good. */
+		ret = wetwork(fr, &newhead); /* Messy stuff, handle junk, resync ... */
+		JUMP_CONCLUSION(ret);
+		if(ret == 0) goto read_frame_bad;
 	}
 
-	/* why has this head check been avoided here before? */
-	if(!head_check(newhead))
-	{
-		/* and those ugly ID3 tags */
-		if((newhead & 0xffffff00) == ('T'<<24)+('A'<<16)+('G'<<8))
-		{
-			fr->id3buf[0] = (unsigned char) ((newhead >> 24) & 0xff);
-			fr->id3buf[1] = (unsigned char) ((newhead >> 16) & 0xff);
-			fr->id3buf[2] = (unsigned char) ((newhead >> 8)  & 0xff);
-			fr->id3buf[3] = (unsigned char) ( newhead        & 0xff);
-			if((ret=fr->rd->fullread(fr,fr->id3buf+4,124)) < 0){ debug("need more?"); goto read_frame_bad; }
-			fr->metaflags  |= MPG123_NEW_ID3|MPG123_ID3;
-			fr->rdat.flags |= READER_ID3TAG; /* that marks id3v1 */
-			if (VERBOSE3) fprintf(stderr,"Note: Skipped ID3v1 tag.\n");
-			goto read_again;
-		}
-		/* duplicated code from above! */
-		/* check for id3v2; first three bytes (of 4) are "ID3" */
-		if((newhead & (unsigned long) 0xffffff00) == (unsigned long) 0x49443300)
-		{
-			int id3length = 0;
-			id3length = parse_new_id3(fr, newhead);
-			if(id3length < 0){ debug("need more?"); ret = id3length; goto read_frame_bad; }
-
-			fr->metaflags  |= MPG123_NEW_ID3|MPG123_ID3;
-			goto read_again;
-		}
-		else if(NOQUIET && fr->silent_resync == 0)
-		{
-			fprintf(stderr,"Note: Illegal Audio-MPEG-Header 0x%08lx at offset %"OFF_P".\n",
-				newhead, (off_p)fr->rd->tell(fr)-4);
-		}
-
-		if(NOQUIET && (newhead & 0xffffff00) == ('b'<<24)+('m'<<16)+('p'<<8)) fprintf(stderr,"Note: Could be a BMP album art.\n");
-		/* Do resync if not forbidden by flag.
-		I used to have a check for not-icy-meta here, but concluded that the desync issues came from a reader bug, not the stream. */
-		if( !(fr->p.flags & MPG123_NO_RESYNC) )
-		{
-			long try = 0;
-			long limit = fr->p.resync_limit;
-			
-			/* If a resync is needed the bitreservoir of previous frames is no longer valid */
-			fr->bitreservoir = 0;
-
-			/* TODO: make this more robust, I'd like to cat two mp3 fragments together (in a dirty way) and still have mpg123 beign able to decode all it somehow. */
-			if(NOQUIET && fr->silent_resync == 0) fprintf(stderr, "Note: Trying to resync...\n");
-			/* Read more bytes until we find something that looks
-			 reasonably like a valid header.  This is not a
-			 perfect strategy, but it should get us back on the
-			 track within a short time (and hopefully without
-			 too much distortion in the audio output).  */
-			do
-			{
-				++try;
-				if(limit >= 0 && try >= limit) break;				
-
-				if((ret=fr->rd->head_shift(fr,&newhead)) <= 0)
-				{
-					debug("need more?");
-					if(NOQUIET) fprintf (stderr, "Note: Hit end of (available) data during resync.\n");
-
-					goto read_frame_bad;
-				}
-				if(VERBOSE3) debug3("resync try %li at %"OFF_P", got newhead 0x%08lx", try, (off_p)fr->rd->tell(fr),  newhead);
-
-				if(!fr->oldhead)
-				{
-					debug("going to init_resync...");
-					goto init_resync;       /* "considered harmful", eh? */
-				}
-				/* we should perhaps collect a list of valid headers that occured in file... there can be more */
-				/* Michael's new resync routine seems to work better with the one frame readahead (and some input buffering?) */
-			} while
-			(
-				!head_check(newhead) /* Simply check for any valid header... we have the readahead to get it straight now(?) */
-				/*   (newhead & HDR_CMPMASK) != (fr->oldhead & HDR_CMPMASK)
-				&& (newhead & HDR_CMPMASK) != (fr->firsthead & HDR_CMPMASK)*/
-			);
-			/* too many false positives 
-			}while (!(head_check(newhead) && decode_header(fr, newhead))); */
-			if(NOQUIET && fr->silent_resync == 0) fprintf (stderr, "Note: Skipped %li bytes in input.\n", try);
-
-			if(limit >= 0 && try >= limit)
-			{
-				if(NOQUIET)
-				error1("Giving up resync after %li bytes - your stream is not nice... (maybe increasing resync limit could help).", try);
-
-				fr->err = MPG123_RESYNC_FAIL;
-				return READER_ERROR;
-			}
-			else
-			{
-				debug1("Found valid header 0x%lx... unsetting firsthead to reinit stream.", newhead);
-				fr->firsthead = 0;
-				goto init_resync;
-			}
-		}
-		else
-		{
-			if(NOQUIET) error("not attempting to resync...");
-
-			fr->err = MPG123_OUT_OF_SYNC;
-			return READER_ERROR;
-		}
-	}
-
-	/* Man, that code looks awfully redundant...
-	   I need to untangle the spaghetti here in a future version. */
 	if(!fr->firsthead)
 	{
-		ret=decode_header(fr,newhead);
-		if(ret == 0)
-		{
-			if(NOQUIET) error("decode header failed before first valid one, going to read again");
+		ret = do_readahead(fr, newhead);
+		JUMP_CONCLUSION(ret);
+	}
 
-			goto read_again;
-		}
-		else if(ret < 0){ debug("need more?"); goto read_frame_bad; }
-	}
-	else
-	{
-		ret=decode_header(fr,newhead);
-		if(ret == 0)
-		{
-			if(NOQUIET) error("decode header failed - goto resync");
-			/* return 0; */
-			goto init_resync;
-		}
-		else if(ret < 0){ debug("need more?"); goto read_frame_bad; }
-	}
+	/* Now we should have our valid header and proceed to reading the frame. */
 
 	/* if filepos is invalid, so is framepos */
 	framepos = fr->rd->tell(fr) - 4;
@@ -1103,4 +909,225 @@ int get_songlen(mpg123_handle *fr,int no)
 
 	tpf = mpg123_tpf(fr);
 	return (int) (no*tpf);
+}
+
+/* first attempt of read ahead check to find the real first header; cannot believe what junk is out there! */
+static int do_readahead(mpg123_handle *fr, unsigned long newhead)
+{
+	unsigned long nexthead = 0;
+	int hd = 0;
+	off_t start;
+	int ret;
+
+	if( ! (!fr->firsthead && fr->rdat.flags & (READER_SEEKABLE|READER_BUFFERED)) )
+	return PARSE_GOOD;
+
+	start = fr->rd->tell(fr);
+
+	debug2("doing ahead check with BPF %d at %"OFF_P, fr->framesize+4, (off_p)start);
+	/* step framesize bytes forward and read next possible header*/
+	if((ret=fr->rd->skip_bytes(fr, fr->framesize))<0)
+	{
+		if(ret==READER_ERROR && NOQUIET) error("cannot seek!");
+		return PARSE_ERR;
+	}
+
+	/* Read header, seek back. */
+	hd = fr->rd->head_read(fr,&nexthead);
+	if( fr->rd->back_bytes(fr, fr->rd->tell(fr)-start) < 0 )
+	{
+		if(NOQUIET) error("Cannot seek back!");
+
+		return PARSE_ERR;
+	}
+	if(hd == MPG123_NEED_MORE) return PARSE_MORE;
+
+	debug1("After fetching next header, at %"OFF_P, (off_p)fr->rd->tell(fr));
+	if(!hd)
+	{
+		if(NOQUIET) warning("Cannot read next header, a one-frame stream? Duh...");
+		return PARSE_END;
+	}
+
+	debug2("does next header 0x%08lx match first 0x%08lx?", nexthead, newhead);
+	/* not allowing free format yet */
+	if(!head_check(nexthead) || (nexthead & HDR_CMPMASK) != (newhead & HDR_CMPMASK))
+	{
+		debug("No, the header was not valid, start from beginning...");
+		fr->oldhead = 0; /* start over */
+		/* try next byte for valid header */
+		if((ret=fr->rd->back_bytes(fr, 3))<0)
+		{
+			if(NOQUIET) error("Cannot seek 3 bytes back!");
+
+			return PARSE_ERR;
+		}
+		return PARSE_AGAIN;
+	}
+	else return PARSE_GOOD;
+}
+
+static int handle_id3v2(mpg123_handle *fr, unsigned long newhead)
+{
+	int ret;
+	fr->oldhead = 0; /* Think about that. Used to be present only for skipping of junk, not resync-style wetwork. */
+	ret = parse_new_id3(fr, newhead);
+	if     (ret < 0) return ret;
+#ifndef NO_ID3V2
+	else if(ret > 0){ debug("got ID3v2"); fr->metaflags  |= MPG123_NEW_ID3|MPG123_ID3; }
+	else debug("no useful ID3v2");
+#endif
+	return PARSE_AGAIN;
+}
+
+/* watch out for junk/tags on beginning of stream by invalid header */
+static int skip_junk(mpg123_handle *fr, unsigned long *newheadp, int *headcount)
+{
+	int ret;
+	unsigned long newhead = *newheadp;
+	/* check for id3v2; first three bytes (of 4) are "ID3" */
+	if((newhead & (unsigned long) 0xffffff00) == (unsigned long) 0x49443300)
+	{
+		return handle_id3v2(fr, newhead);
+	}
+	else if(VERBOSE2 && fr->silent_resync == 0) fprintf(stderr,"Note: Junk at the beginning (0x%08lx)\n",newhead);
+
+	/* I even saw RIFF headers at the beginning of MPEG streams ;( */
+	if(newhead == ('R'<<24)+('I'<<16)+('F'<<8)+'F')
+	{
+		if(VERBOSE2 && fr->silent_resync == 0) fprintf(stderr, "Note: Looks like a RIFF header.\n");
+
+		if((ret=fr->rd->head_read(fr,&newhead))<=0) return ret;
+
+		while(newhead != ('d'<<24)+('a'<<16)+('t'<<8)+'a')
+		{
+			if((ret=fr->rd->head_shift(fr,&newhead))<=0) return ret;
+		}
+		if((ret=fr->rd->head_read(fr,&newhead))<=0) return ret;
+
+		if(VERBOSE2 && fr->silent_resync == 0) fprintf(stderr,"Note: Skipped RIFF header!\n");
+
+		fr->oldhead = 0;
+		*newheadp = newhead;
+		return PARSE_AGAIN;
+	}
+
+	/*
+		Unhandled junk... just continue search for a header, stepping in single bytes through next 64K.
+		This is rather identical to the resync loop.
+	*/
+	debug("searching for header...");
+	*newheadp = 0; /* Invalidate the external value. */
+	ret = 0; /* We will check the value after the loop. */
+	for(; *headcount<65536; (*headcount)++)
+	{
+		if((ret=fr->rd->head_shift(fr,&newhead))<=0) return ret;
+
+		if(head_check(newhead) && (ret=decode_header(fr, newhead))) break;
+	}
+	if(ret<0) return ret;
+
+	if(*headcount == 65536)
+	{
+		if(NOQUIET) error("Giving up searching valid MPEG header after (over) 64K of junk.");
+		return PARSE_END;
+	}
+	else debug1("hopefully found one at %"OFF_P, (off_p)fr->rd->tell(fr));
+
+	/* If the new header ist good, it is already decoded. */
+	*newheadp = newhead;
+	return PARSE_GOOD;
+}
+
+/* The newhead is bad, so let's check if it is something special, otherwise just resync. */
+static int wetwork(mpg123_handle *fr, unsigned long *newheadp)
+{
+	int ret = PARSE_ERR;
+	unsigned long newhead = *newheadp;
+	*newheadp = 0;
+
+	/* Classic ID3 tags. Read, then start parsing again. */
+	if((newhead & 0xffffff00) == ('T'<<24)+('A'<<16)+('G'<<8))
+	{
+		fr->id3buf[0] = (unsigned char) ((newhead >> 24) & 0xff);
+		fr->id3buf[1] = (unsigned char) ((newhead >> 16) & 0xff);
+		fr->id3buf[2] = (unsigned char) ((newhead >> 8)  & 0xff);
+		fr->id3buf[3] = (unsigned char) ( newhead        & 0xff);
+
+		if((ret=fr->rd->fullread(fr,fr->id3buf+4,124)) < 0) return ret;
+
+		fr->metaflags  |= MPG123_NEW_ID3|MPG123_ID3;
+		fr->rdat.flags |= READER_ID3TAG; /* that marks id3v1 */
+		if(VERBOSE3) fprintf(stderr,"Note: Skipped ID3v1 tag.\n");
+
+		return PARSE_AGAIN;
+	}
+	/* This is similar to initial junk skipping code... */
+	/* Check for id3v2; first three bytes (of 4) are "ID3" */
+	if((newhead & (unsigned long) 0xffffff00) == (unsigned long) 0x49443300)
+	{
+		return handle_id3v2(fr, newhead);
+	}
+	else if(NOQUIET && fr->silent_resync == 0)
+	{
+		fprintf(stderr,"Note: Illegal Audio-MPEG-Header 0x%08lx at offset %"OFF_P".\n",
+			newhead, (off_p)fr->rd->tell(fr)-4);
+	}
+
+	/* Now we got something bad at hand, try to recover. */
+
+	if(NOQUIET && (newhead & 0xffffff00) == ('b'<<24)+('m'<<16)+('p'<<8)) fprintf(stderr,"Note: Could be a BMP album art.\n");
+
+	if( !(fr->p.flags & MPG123_NO_RESYNC) )
+	{
+		long try = 0;
+		long limit = fr->p.resync_limit;
+
+		/* If a resync is needed the bitreservoir of previous frames is no longer valid */
+		fr->bitreservoir = 0;
+
+		if(NOQUIET && fr->silent_resync == 0) fprintf(stderr, "Note: Trying to resync...\n");
+
+		do /* ... shift the header with additional single bytes until be found something that could be a header. */
+		{
+			++try;
+			if(limit >= 0 && try >= limit) break;				
+
+			if((ret=fr->rd->head_shift(fr,&newhead)) <= 0)
+			{
+				*newheadp = newhead;
+				if(NOQUIET) fprintf (stderr, "Note: Hit end of (available) data during resync.\n");
+
+				return ret;
+			}
+			if(VERBOSE3) debug3("resync try %li at %"OFF_P", got newhead 0x%08lx", try, (off_p)fr->rd->tell(fr),  newhead);
+		} while(!head_check(newhead));
+
+		*newheadp = newhead;
+		if(NOQUIET && fr->silent_resync == 0) fprintf (stderr, "Note: Skipped %li bytes in input.\n", try);
+
+		/* Now we either got something that could be a header, or we gave up. */
+		if(limit >= 0 && try >= limit)
+		{
+			if(NOQUIET)
+			error1("Giving up resync after %li bytes - your stream is not nice... (maybe increasing resync limit could help).", try);
+
+			fr->err = MPG123_RESYNC_FAIL;
+			return PARSE_ERR;
+		}
+		else
+		{
+			debug1("Found possibly valid header 0x%lx... unsetting firsthead to reinit stream.", newhead);
+			fr->firsthead = 0;
+			return PARSE_RESYNC;
+		}
+	}
+	else
+	{
+		if(NOQUIET) error("not attempting to resync...");
+
+		fr->err = MPG123_OUT_OF_SYNC;
+		return PARSE_ERR;
+	}
+	/* Control never goes here... we return before that. */
 }
