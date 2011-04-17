@@ -6,6 +6,7 @@
 AND TAKE PROPER CARE OF THAT HACK TO UN-IGNORE FRAMES FAR OVER LASTFRAME!
 This hack brings the sound, but also brings funky behaviour of mpg123 -k <n> ... with suddenly non-present verbose position info, for example.
 
+Remember the stuff that went into 1.13.3!
 
 1.13.2
 ---
