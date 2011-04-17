@@ -271,7 +271,7 @@ int open_connection(mpg123_string *host, mpg123_string *port)
 #else /* Host lookup and connection in a protocol independent manner. */
 	struct addrinfo hints;
 	struct addrinfo *addr, *addrlist;
-	int addrcount, sock = -1;
+	int ret, sock = -1;
 
 	if(param.verbose>1) fprintf(stderr, "Note: Attempting new-style connection to %s\n", host->p);
 	memset(&hints, 0, sizeof(struct addrinfo));
@@ -281,11 +281,10 @@ int open_connection(mpg123_string *host, mpg123_string *port)
 #ifdef HAVE_GAI_ADDRCONFIG
 	hints.ai_flags |= AI_ADDRCONFIG; /* Only ask for addresses that we have configured interfaces for. */
 #endif
-	addrcount = getaddrinfo(host->p, port->p, &hints, &addrlist);
-
-	if(addrcount <0)
+	ret = getaddrinfo(host->p, port->p, &hints, &addrlist);
+	if(ret != 0)
 	{
-		error3("Resolving %s:%s: %s", host->p, port->p, gai_strerror(addrcount));
+		error3("Resolving %s:%s: %s", host->p, port->p, gai_strerror(ret));
 		return -1;
 	}
 
