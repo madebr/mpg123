@@ -6,7 +6,12 @@
 AND TAKE PROPER CARE OF THAT HACK TO UN-IGNORE FRAMES FAR OVER LASTFRAME!
 This hack brings the sound, but also brings funky behaviour of mpg123 -k <n> ... with suddenly non-present verbose position info, for example.
 
-Remember the stuff that went into 1.13.3!
+1.13.3
+---
+- Fix an endless loop on bad headers, bug 3267863.
+- Prevent compiler warnings about unused variables with gcc 4.6 .
+- Fix return value handling of getaddrinfo(), bug 3288333.
+- Make decwin size computation work for OPT_ARM and sizeof(long) != 4 (bug 3288360).
 
 1.13.2
 ---
