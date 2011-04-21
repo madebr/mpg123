@@ -37,6 +37,14 @@ static int open_sndio(audio_output_t *ao)
 	par.pchan = ao->channels;
 	par.le = SIO_LE_NATIVE;
 	switch(ao->format) {
+	case MPG123_ENC_SIGNED_32:
+		par.sig = 1;
+		par.bits = 32;
+		break;
+	case MPG123_ENC_UNSIGNED_32:
+		par.sig = 0;
+		par.bits = 32;
+		break;
 	case MPG123_ENC_SIGNED_16:
 	case -1: /* query mode */
 		par.sig = 1;
@@ -67,22 +75,35 @@ static int open_sndio(audio_output_t *ao)
 		sio_close(hdl);
 		return -1;
 	}
-	if ((par.bits != 8 && par.bits != 16) || par.le != SIO_LE_NATIVE) {
+	if ((par.bits != 8 && par.bits != 16 && par.bits != 32) ||
+	    par.le != SIO_LE_NATIVE) {
 		sio_close(hdl);
 		return -1;
 	}
 	ao->rate = par.rate;
 	ao->channels = par.pchan;
-	ao->format = (par.bits == 8) ?
-	    (par.sig ? MPG123_ENC_SIGNED_8 : MPG123_ENC_UNSIGNED_8) :
-	    (par.sig ? MPG123_ENC_SIGNED_16 : MPG123_ENC_UNSIGNED_16);
+	switch (par.bits) {
+	case 8:
+		ao->format = par.sig ? MPG123_ENC_SIGNED_8 :
+		    MPG123_ENC_UNSIGNED_8;
+		break;
+	case 16:
+		ao->format = par.sig ? MPG123_ENC_SIGNED_16 :
+		    MPG123_ENC_UNSIGNED_16;
+		break;
+	case 32:
+		ao->format = par.sig ? MPG123_ENC_SIGNED_32 :
+		    MPG123_ENC_UNSIGNED_32;
+		break;
+	}
 	ao->userptr = hdl;
 	return 0;
 }
 
 static int get_formats_sndio(audio_output_t *ao)
 {
-	return (MPG123_ENC_SIGNED_16|MPG123_ENC_UNSIGNED_16|
+	return (MPG123_ENC_SIGNED_32|MPG123_ENC_UNSIGNED_32|
+	    MPG123_ENC_SIGNED_16|MPG123_ENC_UNSIGNED_16|
 	    MPG123_ENC_UNSIGNED_8|MPG123_ENC_SIGNED_8);
 }
 
