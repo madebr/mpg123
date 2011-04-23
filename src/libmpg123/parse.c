@@ -817,6 +817,13 @@ double compute_bpf(mpg123_handle *fr)
 	return bpf;
 }
 
+int attribute_align_arg mpg123_spf(mpg123_handle *mh)
+{
+	if(mh == NULL) return MPG123_ERR;
+
+	return spf(mh);
+}
+
 double attribute_align_arg mpg123_tpf(mpg123_handle *fr)
 {
 	static int bs[4] = { 0,384,1152,1152 };

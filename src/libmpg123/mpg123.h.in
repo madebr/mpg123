@@ -744,6 +744,9 @@ EXPORT int mpg123_set_filesize(mpg123_handle *mh, off_t size);
 /** Returns the time (seconds) per frame; <0 is error. */
 EXPORT double mpg123_tpf(mpg123_handle *mh);
 
+/** Returns the samples per frame for the most recently parsed frame; <0 is error. */
+EXPORT int mpg123_spf(mpg123_handle *mh);
+
 /** Get and reset the clip count. */
 EXPORT long mpg123_clip(mpg123_handle *mh);
 
