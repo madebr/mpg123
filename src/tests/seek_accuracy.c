@@ -171,7 +171,7 @@ int collect(struct seeko *so)
 
 		pos_count += buffsamples;
 	}
-	if(err != MPG123_DONE && err != MPG123_OK)
+	if(posi < samples && (err != MPG123_DONE && err != MPG123_OK))
 	{
 		printf("An error occured (not done)?: %s\n", mpg123_strerror(m));
 		return -1;
