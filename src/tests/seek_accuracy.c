@@ -179,6 +179,12 @@ int collect(struct seeko *so)
 	return 0;
 }
 
+/* We allow some minimal difference ... for subtle floating point effects. */
+int same(short a, short b)
+{
+	return (abs(a-b) <= 2);
+}
+
 int check_sample(struct seeko *so, size_t i)
 {
 	short buf[2]; /* at max one left and right sample */
@@ -197,7 +203,7 @@ int check_sample(struct seeko *so, size_t i)
 		printf("Error occured on reading sample %"SIZE_P"! (%s)\n", (size_p)i, mpg123_strerror(m));
 		return -1;
 	}
-	if(buf[0] == so->left[i] && (channels == 1 || buf[1] == so->right[i]))
+	if(same(buf[0], so->left[i]) && (channels == 1 || same(buf[1], so->right[i])))
 	{
 		printf("sample %"SIZE_P" PASS\n", (size_p)i);
 	}
