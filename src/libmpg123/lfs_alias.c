@@ -131,6 +131,14 @@ int attribute_align_arg ALIAS_NAME(mpg123_framebyframe_decode)(mpg123_handle *mh
 	return NATIVE_NAME(mpg123_framebyframe_decode)(mh, num, audio, bytes);
 }
 
+#ifdef mpg123_framepos
+#undef mpg123_framepos
+#endif
+int attribute_align_arg ALIAS_NAME(mpg123_framepos)(mpg123_handle *mh)
+{
+	return NATIVE_NAME(mpg123_framepos)(mh);
+}
+
 #ifdef mpg123_tell
 #undef mpg123_tell
 #endif

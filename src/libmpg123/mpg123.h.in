@@ -82,6 +82,7 @@
 #define mpg123_set_filesize MPG123_LARGENAME(mpg123_set_filesize)
 #define mpg123_replace_reader MPG123_LARGENAME(mpg123_replace_reader)
 #define mpg123_replace_reader_handle MPG123_LARGENAME(mpg123_replace_reader_handle)
+#define mpg123_framepos MPG123_LARGENAME(mpg123_framepos)
 
 #endif /* largefile hackery */
 
@@ -537,6 +538,11 @@ EXPORT int mpg123_framebyframe_next(mpg123_handle *mh);
  * \return MPG123_OK if there was a yet un-decoded frame to get the data from, MPG123_ERR otherwise (without further explanation, the error state of the mpg123_handle is not modified by this function).
  */
 EXPORT int mpg123_framedata(mpg123_handle *mh, unsigned long *header, unsigned char **bodydata, size_t *bodybytes);
+
+/** Get the input position (byte offset in stream) of the last parsed frame.
+ * This can be used for external seek index building, for example.
+ * It just returns the internally stored offset, regardless of validity -- you ensure that a valid frame has been parsed before! */
+EXPORT off_t mpg123_framepos(mpg123_handle *mh);
 
 /*@}*/
 

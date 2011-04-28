@@ -480,6 +480,7 @@ static void frame_fixed_reset(mpg123_handle *fr)
 	fr->metaflags = 0;
 	fr->outblock = mpg123_safe_buffer();
 	fr->num = -1;
+	fr->input_offset = -1;
 	fr->playnum = -1;
 	fr->accurate = TRUE;
 	fr->silent_resync = 0;
@@ -1004,3 +1005,9 @@ int attribute_align_arg mpg123_getvolume(mpg123_handle *mh, double *base, double
 	return MPG123_OK;
 }
 
+off_t attribute_align_arg mpg123_framepos(mpg123_handle *mh)
+{
+	if(mh == NULL) return MPG123_ERR;
+
+	return mh->input_offset;
+}

@@ -565,6 +565,7 @@ init_resync:
 	halfspeed_prepare(fr);
 
 	/* index the position */
+	fr->input_offset = framepos;
 #ifdef FRAME_INDEX
 	/* Keep track of true frame positions in our frame index.
 	   but only do so when we are sure that the frame number is accurate... */

@@ -46,6 +46,7 @@ if(/^\s*EXPORT\s+(\S+)\s+(mpg123_\S+)\((.*)\);\s*$/)
 
 mpg123_decode_frame
 mpg123_framebyframe_decode
+mpg123_framepos
 mpg123_tell
 mpg123_tellframe
 mpg123_tell_stream
@@ -58,6 +59,7 @@ mpg123_set_index
 mpg123_position
 mpg123_length
 mpg123_set_filesize
+mpg123_decode_raw  ... that's experimental.
 
 Let's work on them in that order.
 */
@@ -197,6 +199,23 @@ int attribute_align_arg mpg123_framebyframe_decode(mpg123_handle *mh, long *num,
 		}
 	}
 	return err;
+}
+
+#undef mpg123_framepos
+/* off_t mpg123_framepos(mpg123_handle *mh); */
+long attribute_align_arg mpg123_framepos(mpg123_handle *mh)
+{
+	long val;
+	off_t largeval;
+
+	largeval = MPG123_LARGENAME(mpg123_tell)(mh);
+	val = largeval;
+	if(val != largeval)
+	{
+		mh->err = MPG123_LFS_OVERFLOW;
+		return MPG123_ERR;
+	}
+	return val;
 }
 
 #undef mpg123_tell
