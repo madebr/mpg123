@@ -1,5 +1,8 @@
 Changes in libmpg123 libtool interface versions...
 
+32.0.32
+	- Added mpg123_framepos()
+
 31.0.31
 	- Added mpg123_framedata() and MPG123_IGNORE_INFOFRAME.
 
