@@ -1,7 +1,7 @@
 /*
 	httpget.c: http communication
 
-	copyright ?-2008 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2011 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written Oliver Fromme
 	old timestamp: Wed Apr  9 20:57:47 MET DST 1997
@@ -75,7 +75,9 @@ static const char* mime_file[] =
 	"audio/mp3",   "audio/x-mp3", 
 	"audio/mpeg3", "audio/x-mpeg3",
 	"audio/mpg",   "audio/x-mpg",
-	"audio/x-mpegaudio", NULL
+	"audio/x-mpegaudio",
+	"application/octet-stream", /* Assume raw binary data is some MPEG data. */
+	NULL
 };
 static const char* mime_m3u[] = { "audio/mpegurl", "audio/mpeg-url", "audio/x-mpegurl", NULL };
 static const char* mime_pls[]	= { "audio/x-scpls", "audio/scpls", "application/pls", NULL };
