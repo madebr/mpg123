@@ -197,7 +197,7 @@ static int win32_net_timeout_connect(int sockfd, const struct sockaddr *serv_add
 				}
 				else
 				{
-					error1("connection error: %s", msgme(err));
+					//error1("connection error: %s", msgme(err));
 					return -1;
 				}
 			}
