@@ -112,7 +112,18 @@ static int open_file(char *filename)
       wavfp = stdout;
    }
    else {
+#ifdef WANT_WIN32_UNICODE
+     wchar_t *filenamew = NULL;
+     win32_utf8_wide(filename, &filenamew, NULL);
+     if(filenamew == NULL) {
+       wavfp = NULL;
+     } else {
+       wavfp = _wfopen(filenamew,L"wb");
+       free(filenamew);
+     }
+#else
      wavfp = fopen(filename,"wb");
+#endif
      if(!wavfp)
        return -1;
    }
