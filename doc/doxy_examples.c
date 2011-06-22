@@ -14,4 +14,6 @@
 
 /** \file id3dump.c Parse ID3 info and print to standard output. */
 
+/** \file feedseek.c Fuzzy feeder seeking. */
+
 /* @} */
