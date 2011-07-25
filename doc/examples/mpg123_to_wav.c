@@ -91,17 +91,16 @@ int main(int argc, char *argv[])
 
 	do
 	{
+		sf_count_t more_samples;
 		err = mpg123_read( mh, buffer, buffer_size, &done );
-		if(encoding == MPG123_ENC_SIGNED_16)
+		more_samples = encoding == MPG123_ENC_SIGNED_16
+			? sf_write_short(sndfile, (short*)buffer, done/sizeof(short))
+			: sf_write_float(sndfile, (float*)buffer, done/sizeof(float));
+		if(more_samples < 0 || more_samples*mpg123_encsize(encoding) != done)
 		{
-			sf_write_short( sndfile, (short*)buffer, done/sizeof(short) );
-			samples += done/sizeof(short);
+			fprintf(stderr, "Warning: Written number of samples does not match the byte count we got from libmpg123: %li != %li\n", (long)(more_samples*mpg123_encsize(encoding)), (long)done);
 		}
-		else
-		{
-			sf_write_float( sndfile, (float*)buffer, done/sizeof(float) );
-			samples += done/sizeof(float);
-		}
+		samples += more_samples;
 		/* We are not in feeder mode, so MPG123_OK, MPG123_ERR and MPG123_NEW_FORMAT are the only possibilities.
 		   We do not handle a new format, MPG123_DONE is the end... so abort on anything not MPG123_OK. */
 	} while (err==MPG123_OK);
