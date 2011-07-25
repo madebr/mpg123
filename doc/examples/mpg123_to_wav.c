@@ -14,7 +14,7 @@
 
 void usage()
 {
-	printf("Usage: mpg123_to_wav <input> <output>\n");
+	printf("Usage: mpg123_to_wav <input> <output> [s16|f32 [ <buffersize>]]\n");
 	exit(99);
 }
 
@@ -39,24 +39,32 @@ int main(int argc, char *argv[])
 	int  err  = MPG123_OK;
 	off_t samples = 0;
 
-	if (argc!=3) usage();
+	if (argc<3) usage();
 	printf( "Input file: %s\n", argv[1]);
 	printf( "Output file: %s\n", argv[2]);
 	
 	err = mpg123_init();
-	if( err != MPG123_OK || (mh = mpg123_new(NULL, &err)) == NULL
-	    /* Let mpg123 work with the file, that excludes MPG123_NEED_MORE messages. */
-	    || mpg123_open(mh, argv[1]) != MPG123_OK
-	    /* Peek into track and get first output format. */
-	    || mpg123_getformat(mh, &rate, &channels, &encoding) != MPG123_OK )
+	if(err != MPG123_OK || (mh = mpg123_new(NULL, &err)) == NULL)
 	{
-		fprintf( stderr, "Trouble with mpg123: %s\n",
-		         mh==NULL ? mpg123_plain_strerror(err) : mpg123_strerror(mh) );
+		fprintf(stderr, "Basic setup goes wrong: %s", mpg123_plain_strerror(err));
 		cleanup(mh);
 		return -1;
 	}
 
-	if(encoding != MPG123_ENC_SIGNED_16)
+	/* Simple hack to enable floating point output. */
+	if(argc >= 4 && !strcmp(argv[3], "f32")) mpg123_param(mh, MPG123_ADD_FLAGS, MPG123_FORCE_FLOAT, 0.);
+
+	    /* Let mpg123 work with the file, that excludes MPG123_NEED_MORE messages. */
+	if(    mpg123_open(mh, argv[1]) != MPG123_OK
+	    /* Peek into track and get first output format. */
+	    || mpg123_getformat(mh, &rate, &channels, &encoding) != MPG123_OK )
+	{
+		fprintf( stderr, "Trouble with mpg123: %s\n", mpg123_strerror(mh) );
+		cleanup(mh);
+		return -1;
+	}
+
+	if(encoding != MPG123_ENC_SIGNED_16 && encoding != MPG123_ENC_FLOAT_32)
 	{ /* Signed 16 is the default output format anyways; it would actually by only different if we forced it.
 	     So this check is here just for this explanation. */
 		cleanup(mh);
@@ -70,22 +78,30 @@ int main(int argc, char *argv[])
 	bzero(&sfinfo, sizeof(sfinfo) );
 	sfinfo.samplerate = rate;
 	sfinfo.channels = channels;
-	sfinfo.format = SF_FORMAT_WAV|SF_FORMAT_PCM_16;
-	printf("Creating 16bit WAV with %i channels and %liHz.\n", channels, rate);
+	sfinfo.format = SF_FORMAT_WAV|(encoding == MPG123_ENC_SIGNED_16 ? SF_FORMAT_PCM_16 : SF_FORMAT_FLOAT);
+	printf("Creating WAV with %i channels and %liHz.\n", channels, rate);
 
 	sndfile = sf_open(argv[2], SFM_WRITE, &sfinfo);
 	if(sndfile == NULL){ fprintf(stderr, "Cannot open output file!\n"); cleanup(mh); return -2; }
 
 	/* Buffer could be almost any size here, mpg123_outblock() is just some recommendation.
 	   Important, especially for sndfile writing, is that the size is a multiple of sample size. */
-	buffer_size = mpg123_outblock( mh );
+	buffer_size = argc >= 5 ? atol(argv[4]) : mpg123_outblock(mh);
 	buffer = malloc( buffer_size );
 
 	do
 	{
 		err = mpg123_read( mh, buffer, buffer_size, &done );
-		sf_write_short( sndfile, (short*)buffer, done/sizeof(short) );
-		samples += done/sizeof(short);
+		if(encoding == MPG123_ENC_SIGNED_16)
+		{
+			sf_write_short( sndfile, (short*)buffer, done/sizeof(short) );
+			samples += done/sizeof(short);
+		}
+		else
+		{
+			sf_write_float( sndfile, (float*)buffer, done/sizeof(float) );
+			samples += done/sizeof(float);
+		}
 		/* We are not in feeder mode, so MPG123_OK, MPG123_ERR and MPG123_NEW_FORMAT are the only possibilities.
 		   We do not handle a new format, MPG123_DONE is the end... so abort on anything not MPG123_OK. */
 	} while (err==MPG123_OK);
