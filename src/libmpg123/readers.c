@@ -51,9 +51,6 @@ static ssize_t bc_give(struct bufferchain *bc, unsigned char *out, ssize_t size)
 static ssize_t bc_skip(struct bufferchain *bc, ssize_t count);
 static ssize_t bc_seekback(struct bufferchain *bc, ssize_t count);
 static void bc_forget(struct bufferchain *bc);
-#else
-#define bc_init(a)
-#define bc_reset(a)
 #endif
 
 /* A normal read and a read with timeout. */
@@ -242,7 +239,9 @@ static void stream_close(mpg123_handle *fr)
 
 	fr->rdat.filept = 0;
 
+#ifndef NO_FEEDER
 	if(fr->rdat.flags & READER_BUFFERED)  bc_reset(&fr->rdat.buffer);
+#endif
 	if(fr->rdat.flags & READER_HANDLEIO)
 	{
 		if(fr->rdat.cleanup_handle != NULL) fr->rdat.cleanup_handle(fr->rdat.iohandle);
@@ -348,6 +347,7 @@ static off_t stream_skip_bytes(mpg123_handle *fr,off_t len)
 		}
 		return fr->rd->tell(fr);
 	}
+#ifndef NO_FEEDER
 	else if(fr->rdat.flags & READER_BUFFERED)
 	{ /* Perhaps we _can_ go a bit back. */
 		if(fr->rdat.buffer.pos >= -len)
@@ -361,6 +361,7 @@ static off_t stream_skip_bytes(mpg123_handle *fr,off_t len)
 			return READER_ERROR;
 		}
 	}
+#endif
 	else
 	{
 		fr->err = MPG123_NO_SEEK;
@@ -395,8 +396,10 @@ static int generic_read_frame_body(mpg123_handle *fr,unsigned char *buf, int siz
 
 static off_t generic_tell(mpg123_handle *fr)
 {
+#ifndef NO_FEEDER
 	if(fr->rdat.flags & READER_BUFFERED)
 	fr->rdat.filepos = fr->rdat.buffer.fileoff+fr->rdat.buffer.pos;
+#endif
 
 	return fr->rdat.filepos;
 }
@@ -405,13 +408,20 @@ static off_t generic_tell(mpg123_handle *fr)
 static void stream_rewind(mpg123_handle *fr)
 {
 	if(fr->rdat.flags & READER_SEEKABLE)
-	fr->rdat.buffer.fileoff = fr->rdat.filepos = stream_lseek(fr,0,SEEK_SET);
+	{
+		fr->rdat.filepos = stream_lseek(fr,0,SEEK_SET);
+#ifndef NO_FEEDER
+		fr->rdat.buffer.fileoff = fr->rdat.filepos;
+#endif
+	}
+#ifndef NO_FEEDER
 	if(fr->rdat.flags & READER_BUFFERED)
 	{
 		fr->rdat.buffer.pos      = 0;
 		fr->rdat.buffer.firstpos = 0;
 		fr->rdat.filepos = fr->rdat.buffer.fileoff;
 	}
+#endif
 }
 
 /*
@@ -1082,7 +1092,9 @@ void open_bad(mpg123_handle *mh)
 #endif
 	mh->rd = &bad_reader;
 	mh->rdat.flags = 0;
+#ifndef NO_FEEDER
 	bc_init(&mh->rdat.buffer);
+#endif
 }
 
 int open_feed(mpg123_handle *fr)
