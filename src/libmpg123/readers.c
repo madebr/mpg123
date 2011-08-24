@@ -495,6 +495,12 @@ void bc_prepare(struct bufferchain *bc, size_t pool_size, size_t bufblock)
 	bc_poolsize(bc, pool_size, bufblock);
 	bc->pool = NULL;
 	bc->pool_fill = 0;
+	bc_init(bc); /* Ensure that members are zeroed for read-only use. */
+}
+
+size_t bc_fill(struct bufferchain *bc)
+{
+	return (size_t)(bc->size - bc->pos);
 }
 
 void bc_poolsize(struct bufferchain *bc, size_t pool_size, size_t bufblock)

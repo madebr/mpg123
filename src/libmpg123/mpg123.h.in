@@ -282,6 +282,7 @@ enum mpg123_errors
 	,MPG123_LSEEK_FAILED /**< Low-level seek failed. */
 	,MPG123_BAD_CUSTOM_IO /**< Custom I/O not prepared. */
 	,MPG123_LFS_OVERFLOW /**< Offset value overflow during translation of large file API calls -- your client program cannot handle that large file. */
+	,MPG123_INT_OVERFLOW /**< Some integer overflow. */
 };
 
 /** Return a string describing that error errcode means. */
@@ -761,6 +762,7 @@ EXPORT long mpg123_clip(mpg123_handle *mh);
 enum mpg123_state
 {
 	 MPG123_ACCURATE = 1 /**< Query if positons are currently accurate (integer value, 0 if false, 1 if true) */
+	,MPG123_BUFFERFILL   /**< Get fill of internal (feed) input buffer as integer byte count returned as long and as double. An error is returned on integer overflow while converting to (signed) long, but the returned floating point value shold still be fine. */
 };
 
 /** Get various current decoder/stream state information.

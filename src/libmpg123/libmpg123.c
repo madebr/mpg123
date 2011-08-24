@@ -423,6 +423,22 @@ int attribute_align_arg mpg123_getstate(mpg123_handle *mh, enum mpg123_state key
 		case MPG123_ACCURATE:
 			theval = mh->accurate;
 		break;
+		case MPG123_BUFFERFILL:
+#ifndef NO_FEEDER
+		{
+			size_t sval = bc_fill(&mh->rdat.buffer);
+			theval = (long)sval;
+			if((size_t)theval != sval)
+			{
+				mh->err = MPG123_INT_OVERFLOW;
+				ret = MPG123_ERR;
+			}
+		}
+#else
+			mh->err = MPG123_MISSING_FEATURE;
+			ret = MPG123_ERR;
+#endif
+		break;
 		default:
 			mh->err = MPG123_BAD_KEY;
 			ret = MPG123_ERR;
@@ -1632,6 +1648,7 @@ static const char *mpg123_error[] =
 	,"Low-level seeking has failed (call to lseek(), usually)."
 	,"Custom I/O obviously not prepared."
 	,"Overflow in LFS (large file support) conversion."
+	,"Overflow in integer conversion."
 };
 
 const char* attribute_align_arg mpg123_plain_strerror(int errcode)

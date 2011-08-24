@@ -45,6 +45,9 @@ void bc_prepare(struct bufferchain *, size_t pool_size, size_t bufblock);
 void bc_cleanup(struct bufferchain *);
 /* Change pool size. This does not actually allocate/free anything on itself, just instructs later operations to free less / allocate more buffers. */
 void bc_poolsize(struct bufferchain *, size_t pool_size, size_t bufblock);
+/* Return available byte count in the buffer. */
+size_t bc_fill(struct bufferchain *bc);
+
 #endif
 
 struct reader_data

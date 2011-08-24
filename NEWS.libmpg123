@@ -1,5 +1,8 @@
 Changes in libmpg123 libtool interface versions...
 
+33.0.33
+	- Added MPG123_BUFFERFILL.
+
 32.0.32
 	- Added mpg123_framepos()
 

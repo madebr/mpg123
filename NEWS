@@ -2,11 +2,14 @@
 ---
 - Add --ignore-streamlength.
 - Added handling of SIGUSR1 and SIGUSER2 to terminal control code, configurable via --ctrlusr1 and --ctrlusr2.
-- Some low-level API added (mpg123_Framedata(), mpg123_framepos()).
+- Some low-level API added (mpg123_framedata(), mpg123_framepos()).
 - Accept application/octet-stream from HTTP, assuming it's MPEG data.
   TODO: Make mpg123 smarter to recognize concatenated streams, re-start the frame counter.
 AND TAKE PROPER CARE OF THAT HACK TO UN-IGNORE FRAMES FAR OVER LASTFRAME!
 This hack brings the sound, but also brings funky behaviour of mpg123 -k <n> ... with suddenly non-present verbose position info, for example.
+
+- Added info about input buffer fill to mpg123_getstate().
+- Fix build without feeder.
 
 1.13.3
 ---
