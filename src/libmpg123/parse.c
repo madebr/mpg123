@@ -924,7 +924,7 @@ static int do_readahead(mpg123_handle *fr, unsigned long newhead)
 {
 	unsigned long nexthead = 0;
 	int hd = 0;
-	off_t start;
+	off_t start, oret;
 	int ret;
 
 	if( ! (!fr->firsthead && fr->rdat.flags & (READER_SEEKABLE|READER_BUFFERED)) )
@@ -934,10 +934,11 @@ static int do_readahead(mpg123_handle *fr, unsigned long newhead)
 
 	debug2("doing ahead check with BPF %d at %"OFF_P, fr->framesize+4, (off_p)start);
 	/* step framesize bytes forward and read next possible header*/
-	if((ret=fr->rd->skip_bytes(fr, fr->framesize))<0)
+	if((oret=fr->rd->skip_bytes(fr, fr->framesize))<0)
 	{
-		if(ret==READER_ERROR && NOQUIET) error("cannot seek!");
-		return PARSE_ERR;
+		if(oret==READER_ERROR && NOQUIET) error("cannot seek!");
+
+		return PARSE_ERR; /* ThOr: No need more here? This code needs CLEANUP! */
 	}
 
 	/* Read header, seek back. */

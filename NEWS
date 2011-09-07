@@ -11,6 +11,11 @@ This hack brings the sound, but also brings funky behaviour of mpg123 -k <n> ...
 - Added info about input buffer fill to mpg123_getstate().
 - Fix build without feeder.
 
+1.13.4
+---
+- Fix bogus error on resync with big offsets (hits systems that have bigger off_t than int), bug 3393801.
+- Fix windows binary package build script again with plugdir.
+
 1.13.3
 ---
 - Fix an endless loop on bad headers, bug 3267863.
