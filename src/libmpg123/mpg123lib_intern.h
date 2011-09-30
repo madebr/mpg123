@@ -137,7 +137,7 @@ static inline long scale_rounded(long x, int shift)
 		"srwi %0, %0, %4 \n\t" \
 		"rlwimi %0, %1, %5, 0, %6 \n\t" \
 		: "=&r" (_mull), "=&r" (_mulh) \
-		: "%r" (_x), "r" (_y), "i" (radix), "i" (32-(radix)), "i" ((radix)-1) \
+		: "r" (_x), "r" (_y), "i" (radix), "i" (32-(radix)), "i" ((radix)-1) \
 	); \
 	_mull; \
 })
@@ -153,7 +153,7 @@ static inline long scale_rounded(long x, int shift)
 		"slw %1, %1, %2 \n\t" \
 		"or %0, %0, %1 \n\t" \
 		: "=&r" (_mull), "=&r" (_mulh), "=&r" (_radix2) \
-		: "%r" (_x), "r" (_y), "r" (_radix) \
+		: "r" (_x), "r" (_y), "r" (_radix) \
 		: "cc" \
 	); \
 	_mull; \
@@ -168,7 +168,7 @@ static inline long scale_rounded(long x, int shift)
 		"mov %0, %0, lsr %4 \n\t" \
 		"orr %0, %0, %1, lsl %5 \n\t" \
 		: "=&r" (_mull), "=&r" (_mulh) \
-		: "%r" (_x), "r" (_y), "M" (radix), "M" (32-(radix)) \
+		: "r" (_x), "r" (_y), "M" (radix), "M" (32-(radix)) \
 	); \
 	_mull; \
 })
@@ -180,9 +180,10 @@ static inline long scale_rounded(long x, int shift)
 		"smull %0, %1, %3, %4 \n\t" \
 		"mov %0, %0, lsr %5 \n\t" \
 		"rsb %2, %5, #32 \n\t" \
-		"orr %0, %0, %1, lsl %2 \n\t" \
+		"mov %1, %1, lsl %2 \n\t" \
+		"orr %0, %0, %1 \n\t" \
 		: "=&r" (_mull), "=&r" (_mulh), "=&r" (_radix2) \
-		: "%r" (_x), "r" (_y), "r" (_radix) \
+		: "r" (_x), "r" (_y), "r" (_radix) \
 	); \
 	_mull; \
 })
