@@ -208,7 +208,7 @@ long attribute_align_arg mpg123_framepos(mpg123_handle *mh)
 	long val;
 	off_t largeval;
 
-	largeval = MPG123_LARGENAME(mpg123_tell)(mh);
+	largeval = MPG123_LARGENAME(mpg123_framepos)(mh);
 	val = largeval;
 	if(val != largeval)
 	{
