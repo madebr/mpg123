@@ -938,7 +938,7 @@ static int do_readahead(mpg123_handle *fr, unsigned long newhead)
 	{
 		if(oret==READER_ERROR && NOQUIET) error("cannot seek!");
 
-		return PARSE_ERR; /* ThOr: No need more here? This code needs CLEANUP! */
+		return oret == MPG123_NEED_MORE ? PARSE_MORE : PARSE_ERR;
 	}
 
 	/* Read header, seek back. */
@@ -959,7 +959,6 @@ static int do_readahead(mpg123_handle *fr, unsigned long newhead)
 	}
 
 	debug2("does next header 0x%08lx match first 0x%08lx?", nexthead, newhead);
-	/* not allowing free format yet */
 	if(!head_check(nexthead) || (nexthead & HDR_CMPMASK) != (newhead & HDR_CMPMASK))
 	{
 		debug("No, the header was not valid, start from beginning...");
