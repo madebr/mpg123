@@ -66,6 +66,14 @@ EXTRA_DIST = \
 	ports/MSVC++/2008clr/examples/scanclr/scanclr.csproj \
 	ports/MSVC++/2008clr/examples/scanclr/Program.cs \
 	ports/MSVC++/2008clr/examples/scanclr/Properties/AssemblyInfo.cs \
+	ports/MSVC++/2010/mpg123.sln \
+	ports/MSVC++/2010/dump_seekindex/dump_seekindex.vcxproj \
+	ports/MSVC++/2010/dump_seekindex/dump_seekindex.vcxproj.filters \
+	ports/MSVC++/2010/feedseek/feedseek.vcxproj \
+	ports/MSVC++/2010/feedseek/feedseek.vcxproj.filters \
+	ports/MSVC++/2010/libmpg123/libmpg123.vcxproj \
+	ports/MSVC++/2010/scan/scan.vcxproj \
+	ports/MSVC++/2010/scan/scan.vcxproj.filters \
 	ports/MSVC++/CMP3Stream/libMPG123/libMPG123.vcproj \
 	ports/MSVC++/CMP3Stream/libMPG123/PLACE_LIBMPG123_SOURCES_HERE \
 	ports/MSVC++/CMP3Stream/README \
