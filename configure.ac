@@ -1040,7 +1040,7 @@ dnl Only try the attribute_align_arg mumbo-jumbo on x86, x86-64 warns/errors out
 dnl ...dunno even what about other architectures.
 case $host in
   i?86-*)
-    AC_DEFINE(ABI_ALIGN_FUN, 1, [ Define if your architecture wants/needs/can use attribute_align_arg and alignment checks. It's for 32bit x86... ])
+    AC_DEFINE(ABI_ALIGN_FUN, 1, [ Define if your architecture wants/needs/can use attribute_align_arg and alignment checks. It is for 32bit x86... ])
  ;;
 esac
 
@@ -1100,7 +1100,7 @@ dnl Not disabling buffer for float mode... check that this is OK now!
     ccalign=no
   ;;
   ppc_nofpu)
-    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC -DOPT_PPC -DREAL_IS_FIXED"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_PPC -DREAL_IS_FIXED"
     more_sources=
     ccalign=no
   ;;
