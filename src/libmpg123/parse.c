@@ -503,6 +503,8 @@ init_resync:
 	if(!fr->firsthead)
 	{
 		ret = do_readahead(fr, newhead);
+		/* readahead can fail mit NEED_MORE, in which case we must also make the just read header available again for next go */
+		if(ret < 0) fr->rd->back_bytes(fr, 4);
 		JUMP_CONCLUSION(ret);
 	}
 
