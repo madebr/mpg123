@@ -300,16 +300,17 @@ static void set_out_file(char *arg)
 	#ifdef WANT_WIN32_UNICODE
 	wchar_t *argw = NULL;
 	OutputDescriptor = win32_utf8_wide(arg, &argw, NULL);
-	if(argw == NULL) goto openfail;
-	OutputDescriptor=_wopen(argw,_O_CREAT|_O_WRONLY|_O_BINARY|_O_TRUNC,0666);
-	free(argw);
+	if(argw != NULL)
+	{
+		OutputDescriptor=_wopen(argw,_O_CREAT|_O_WRONLY|_O_BINARY|_O_TRUNC,0666);
+		free(argw);
+	}
 	#else
 	OutputDescriptor=_open(arg,_O_CREAT|_O_WRONLY|_O_BINARY|_O_TRUNC,0666);
 	#endif /*WANT_WIN32_UNICODE*/
 	#else /*WIN32*/
 	OutputDescriptor=open(arg,O_CREAT|O_WRONLY|O_TRUNC,0666);
 	#endif /*WIN32*/
-	openfail:
 	if(OutputDescriptor==-1)
 	{
 		error2("Can't open %s for writing (%s).\n",arg,strerror(errno));
