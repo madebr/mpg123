@@ -582,7 +582,7 @@ init_resync:
 
 	return 1;
 read_frame_bad:
-	/* Also if we searched for valid data in vain, we can forget skipped data.
+	/* Also if we searched for valid data in vein, we can forget skipped data.
 	   Otherwise, the feeder would hold every dead old byte in memory until the first valid frame! */
 	if(fr->rd->forget != NULL) fr->rd->forget(fr);
 
