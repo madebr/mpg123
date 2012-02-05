@@ -38,10 +38,11 @@ struct al_table
 /* the output buffer, used to be pcm_sample, pcm_point and audiobufsize */
 struct outbuffer
 {
-	unsigned char *data;
+	unsigned char *data; /* main data pointer, aligned */
 	unsigned char *p; /* read pointer  */
 	size_t fill; /* fill from read pointer */
-	size_t size; /* that's actually more like a safe size, after we have more than that, flush it */
+	size_t size;
+	unsigned char *rdata; /* unaligned base pointer */
 };
 
 struct audioformat

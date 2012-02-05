@@ -130,18 +130,7 @@ mpg123_handle attribute_align_arg *mpg123_parnew(mpg123_pars *mp, const char* de
 	}
 	if(fr != NULL)
 	{
-		/* Cleanup that mess! ... use mpg123_decoder / decode_update! */
-		if(frame_outbuffer(fr) != 0)
-		{
-			err = MPG123_NO_BUFFERS;
-			frame_exit(fr);
-			free(fr);
-			fr = NULL;
-		}
-		else
-		{
-			fr->decoder_change = 1;
-		}
+		fr->decoder_change = 1;
 	}
 	else if(err == MPG123_OK) err = MPG123_OUT_OF_MEM;
 
@@ -619,6 +608,9 @@ int decode_update(mpg123_handle *mh)
 	}
 	else mh->single = (mh->p.flags & MPG123_FORCE_MONO)-1;
 	if(set_synth_functions(mh) != 0) return -1;;
+
+	/* The needed size of output buffer may have changed. */
+	if(frame_outbuffer(mh) != MPG123_OK) return -1;
 
 	do_rva(mh);
 	debug3("done updating decoder structure with native rate %li and af.rate %li and down_sample %i", frame_freq(mh), mh->af.rate, mh->down_sample);

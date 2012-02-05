@@ -73,7 +73,7 @@ void frame_init(mpg123_handle *fr)
 
 void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 {
-	fr->own_buffer = FALSE;
+	fr->own_buffer = TRUE;
 	fr->buffer.data = NULL;
 	fr->rawbuffs = NULL;
 	fr->rawbuffss = 0;
@@ -172,34 +172,51 @@ int attribute_align_arg mpg123_reset_eq(mpg123_handle *mh)
 
 int frame_outbuffer(mpg123_handle *fr)
 {
-	size_t size = mpg123_safe_buffer()*AUDIOBUFSIZE;
-	if(!fr->own_buffer) fr->buffer.data = NULL;
-	if(fr->buffer.data != NULL && fr->buffer.size != size)
+	size_t size = fr->outblock;
+	if(!fr->own_buffer)
 	{
-		free(fr->buffer.data);
-		fr->buffer.data = NULL;
+		if(fr->buffer.size < size)
+		{
+			fr->err = MPG123_BAD_BUFFER;
+			if(NOQUIET) error2("have external buffer of size %"SIZE_P", need %"SIZE_P, (size_p)fr->buffer.size, size);
+
+			return MPG123_ERR;
+		}
+	}
+
+	debug1("need frame buffer of %"SIZE_P, (size_p)size);
+	if(fr->buffer.rdata != NULL && fr->buffer.size != size)
+	{
+		free(fr->buffer.rdata);
+		fr->buffer.rdata = NULL;
 	}
 	fr->buffer.size = size;
-	if(fr->buffer.data == NULL) fr->buffer.data = (unsigned char*) malloc(fr->buffer.size);
-	if(fr->buffer.data == NULL)
+	fr->buffer.data = NULL;
+	/* be generous: use 16 byte alignment */
+	if(fr->buffer.rdata == NULL) fr->buffer.rdata = (unsigned char*) malloc(fr->buffer.size+15);
+	if(fr->buffer.rdata == NULL)
 	{
 		fr->err = MPG123_OUT_OF_MEM;
-		return -1;
+		return MPG123_ERR;
 	}
+	fr->buffer.data = aligned_pointer(fr->buffer.rdata, unsigned char*, 16);
 	fr->own_buffer = TRUE;
 	fr->buffer.fill = 0;
-	return 0;
+	return MPG123_OK;
 }
 
 int attribute_align_arg mpg123_replace_buffer(mpg123_handle *mh, unsigned char *data, size_t size)
 {
-	if(data == NULL || size < mpg123_safe_buffer())
+	debug2("replace buffer with %p size %"SIZE_P, data, (size_p)size);
+	/* Will accept any size, the error comes later... */
+	if(data == NULL)
 	{
 		mh->err = MPG123_BAD_BUFFER;
 		return MPG123_ERR;
 	}
-	if(mh->own_buffer && mh->buffer.data != NULL) free(mh->buffer.data);
+	if(mh->buffer.rdata != NULL) free(mh->buffer.rdata);
 	mh->own_buffer = FALSE;
+	mh->buffer.rdata = NULL;
 	mh->buffer.data = data;
 	mh->buffer.size = size;
 	mh->buffer.fill = 0;
@@ -482,7 +499,7 @@ static void frame_fixed_reset(mpg123_handle *fr)
 	fr->to_decode = FALSE;
 	fr->to_ignore = FALSE;
 	fr->metaflags = 0;
-	fr->outblock = mpg123_safe_buffer();
+	fr->outblock = 0; /* This will be set before decoding! */
 	fr->num = -1;
 	fr->input_offset = -1;
 	fr->playnum = -1;
@@ -554,12 +571,12 @@ static void frame_free_buffers(mpg123_handle *fr)
 
 void frame_exit(mpg123_handle *fr)
 {
-	if(fr->own_buffer && fr->buffer.data != NULL)
+	if(fr->buffer.rdata != NULL)
 	{
-		debug1("freeing buffer at %p", (void*)fr->buffer.data);
-		free(fr->buffer.data);
+		debug1("freeing buffer at %p", (void*)fr->buffer.rdata);
+		free(fr->buffer.rdata);
 	}
-	fr->buffer.data = NULL;
+	fr->buffer.rdata = NULL;
 	frame_free_buffers(fr);
 	frame_free_toc(fr);
 #ifdef FRAME_INDEX
