@@ -1,5 +1,9 @@
 Changes in libmpg123 libtool interface versions...
 
+34.0.34
+	- Added flag MPG123_AUTO_RESAMPLE.
+	- Changed (improved;-) outbuffer behaviour.
+
 33.0.33
 	- Added MPG123_BUFFERFILL.
 

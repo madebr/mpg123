@@ -36,11 +36,11 @@ static void *align_the_pointer(void *base, unsigned int alignment)
 static void frame_default_pars(mpg123_pars *mp)
 {
 	mp->outscale = 1.0;
-#ifdef GAPLESS
-	mp->flags = MPG123_GAPLESS;
-#else
 	mp->flags = 0;
+#ifdef GAPLESS
+	mp->flags |= MPG123_GAPLESS;
 #endif
+	mp->flags |= MPG123_AUTO_RESAMPLE;
 #ifndef NO_NTOM
 	mp->force_rate = 0;
 #endif

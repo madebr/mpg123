@@ -626,7 +626,8 @@ size_t attribute_align_arg mpg123_safe_buffer(void)
 
 size_t attribute_align_arg mpg123_outblock(mpg123_handle *mh)
 {
-	if(mh != NULL) return mh->outblock;
+	/* Try to be helpful and never return zero output block size. */
+	if(mh != NULL && mh->outblock > 0) return mh->outblock;
 	else return mpg123_safe_buffer();
 }
 
