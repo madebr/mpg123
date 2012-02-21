@@ -75,6 +75,7 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 {
 	fr->own_buffer = TRUE;
 	fr->buffer.data = NULL;
+	fr->buffer.rdata = NULL;
 	fr->rawbuffs = NULL;
 	fr->rawbuffss = 0;
 	fr->rawdecwin = NULL;
