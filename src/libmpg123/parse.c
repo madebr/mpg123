@@ -329,7 +329,7 @@ static int check_lame_tag(mpg123_handle *fr)
 							else if(gt == 2) gt = 1; /* audiophile */
 							else continue;
 							/* get the 9 bits into a number, divide by 10, multiply sign... happy bit banging */
-							replay_gain[0] = (float) ((fr->bsbuf[lame_offset] & 0x2) ? -0.1 : 0.1) * (make_short(fr->bsbuf, lame_offset) & 0x1f);
+							replay_gain[gt] = (float) ((fr->bsbuf[lame_offset] & 0x2) ? -0.1 : 0.1) * (make_short(fr->bsbuf, lame_offset) & 0x1f);
 						}
 						lame_offset += 2;
 					}

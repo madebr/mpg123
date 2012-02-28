@@ -10,6 +10,7 @@ This hack brings the sound, but also brings funky behaviour of mpg123 -k <n> ...
 
 - Added info about input buffer fill to mpg123_getstate().
 - Fix build without feeder.
+- Fix parsing of audiophile ReplayGain from Info tag (perhaps relevant for the future, yet have to see a file that has that value present).
 
 1.13.4
 ---
