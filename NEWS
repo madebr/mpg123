@@ -1,5 +1,8 @@
 1.14.0
 ---
+
+TODO: evaluate WRITE_SAMPLE enhancements from MPlayer work (if applicable in our changed structure)
+
 - Add --ignore-streamlength.
 - Add an attempt to deal with concatenated streams that begin with a (now invalid) Info frame with gapless info.
 - Added handling of SIGUSR1 and SIGUSER2 to terminal control code, configurable via --ctrlusr1 and --ctrlusr2.
