@@ -261,15 +261,30 @@ static int check_lame_tag(mpg123_handle *fr)
 					unsigned char lame_vbr;
 					float replay_gain[2] = {0,0};
 					float peak = 0;
-					/* float gain_offset = 0;  going to be +6 for old lame that used 83dB */
+					float gain_offset = 0; /* going to be +6 for old lame that used 83dB */
 					char nb[10];
 					memcpy(nb, fr->bsbuf+lame_offset, 9);
 					nb[9] = 0;
 					if(VERBOSE3) fprintf(stderr, "Note: Info: Encoder: %s\n", nb);
 					if(!strncmp("LAME", nb, 4))
 					{
-						/*gain_offset = 6;*/
-						warning("TODO: finish lame version detetcion...");
+						/* Lame versions before 3.95.1 used 83 dB reference level, later versions 89 dB.
+						   We stick with 89 dB as being "normal", adding 6 dB. */
+						unsigned int major, minor;
+						char rest[6];
+						rest[0] = 0;
+						if(sscanf(nb+4, "%u.%u%s", &major, &minor, rest) >= 2)
+						{
+							debug3("LAME: %u/%u/%s", major, minor, rest);
+							/* We cannot detect LAME 3.95 reliably (same version string as 3.95.1), so this is a blind spot.
+							   Everything < 3.95 is safe, though. */
+							if(major < 3 || (major == 3 && minor < 95))  /* || (major == 3 && minor == 95 && rest[0] == 0)) */
+							{
+								gain_offset = 6;
+								if(VERBOSE3) fprintf(stderr, "Note: Info: Old LAME detected, using ReplayGain preamp of %f dB.\n", gain_offset);
+							}
+						}
+						else if(VERBOSE3) fprintf(stderr, "Note: Info: Cannot determine LAME version.\n");
 					}
 					lame_offset += 9;
 					/* the 4 big bits are tag revision, the small bits vbr method */
@@ -330,6 +345,9 @@ static int check_lame_tag(mpg123_handle *fr)
 							else continue;
 							/* get the 9 bits into a number, divide by 10, multiply sign... happy bit banging */
 							replay_gain[gt] = (float) ((fr->bsbuf[lame_offset] & 0x2) ? -0.1 : 0.1) * (make_short(fr->bsbuf, lame_offset) & 0x1ff);
+							/* If this is an automatic value from LAME (or whatever), the automatic gain offset applies.
+							   If a user or whoever set the value, do not touch it! 011 is automatic origin. */
+							if(origin == 3) replay_gain[gt] += gain_offset;
 						}
 						lame_offset += 2;
 					}
