@@ -1,5 +1,7 @@
 Things that need to be done...
 
+... as always, mostly outdated.
+
 0. Fix that ugly crash that happens sometimes when Ctrl+C-ing with jack output active:
 
 Program terminated with signal 11, Segmentation fault.
