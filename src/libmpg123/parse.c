@@ -122,7 +122,7 @@ static int check_lame_tag(mpg123_handle *fr)
 #ifdef GAPLESS
 	if(fr->p.flags & MPG123_GAPLESS)
 	{
-		if(fr->begin_s == 0) frame_gapless_init(fr, GAPLESS_DELAY, 0);
+		if(fr->begin_s == 0) frame_gapless_init(fr, GAPLESS_DELAY, 0, -1);
 	}
 #endif
 
@@ -163,6 +163,10 @@ static int check_lame_tag(mpg123_handle *fr)
 			if(lame_type)
 			{
 				unsigned long xing_flags;
+#ifdef GAPLESS
+				off_t samplelength = -1;
+#endif
+				off_t track_bytes = -1;
 
 				/* we have one of these headers... */
 				if(VERBOSE2) fprintf(stderr, "Note: Xing/Lame/Info header detected\n");
@@ -197,9 +201,9 @@ static int check_lame_tag(mpg123_handle *fr)
 						/* if no further info there, remove/add at least the decoder delay */
 						if(fr->p.flags & MPG123_GAPLESS)
 						{
-							off_t length = fr->track_frames * spf(fr);
-							if(length > 1)
-							frame_gapless_init(fr, GAPLESS_DELAY, length+GAPLESS_DELAY);
+							samplelength = fr->track_frames * spf(fr);
+							if(samplelength > 1)
+							frame_gapless_init(fr, GAPLESS_DELAY, samplelength+GAPLESS_DELAY, -1);
 						}
 						#endif
 						if(VERBOSE3) fprintf(stderr, "Note: Xing: %lu frames\n", (long unsigned)fr->track_frames);
@@ -237,6 +241,15 @@ static int check_lame_tag(mpg123_handle *fr)
 
 						if(VERBOSE3)
 						fprintf(stderr, "Note: Xing: %lu bytes\n", (long unsigned)xing_bytes);
+
+						track_bytes = (off_t)xing_bytes;
+#ifdef GAPLESS
+						/* Next step of gapless info: This track length is a limit to detect bogus gapless headers / concatenated streams. */
+						if(fr->p.flags & MPG123_GAPLESS && samplelength > 1)
+						{
+							frame_gapless_init(fr, GAPLESS_DELAY, samplelength+GAPLESS_DELAY, track_bytes);
+						}
+#endif
 					}
 
 					lame_offset += 4;
@@ -386,7 +399,7 @@ static int check_lame_tag(mpg123_handle *fr)
 						debug3("preparing gapless mode for layer3: length %lu, skipbegin %lu, skipend %lu", 
 								(long unsigned)length, (long unsigned)skipbegin, (long unsigned)skipend);
 						if(length > 1)
-						frame_gapless_init(fr, skipbegin, (skipend < length) ? length-skipend : length);
+						frame_gapless_init(fr, skipbegin, (skipend < length) ? length-skipend : length, track_bytes);
 					}
 					#endif
 				}

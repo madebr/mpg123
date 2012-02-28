@@ -532,7 +532,7 @@ static void frame_fixed_reset(mpg123_handle *fr)
 	fr->fresh = 1;
 	fr->new_format = 0;
 #ifdef GAPLESS
-	frame_gapless_init(fr,0,0);
+	frame_gapless_init(fr,0,0,-1);
 	fr->lastoff = 0;
 	fr->firstoff = 0;
 #endif
@@ -833,10 +833,11 @@ off_t frame_offset(mpg123_handle *fr, off_t outs)
 
 #ifdef GAPLESS
 /* input in _input_ samples */
-void frame_gapless_init(mpg123_handle *fr, off_t b, off_t e)
+void frame_gapless_init(mpg123_handle *fr, off_t b, off_t e, off_t len)
 {
 	fr->begin_s = b;
 	fr->end_s = e;
+	fr->track_bytes = len;
 	/* These will get proper values later, from above plus resampling info. */
 	fr->begin_os = 0;
 	fr->end_os = 0;

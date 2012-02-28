@@ -269,6 +269,7 @@ struct mpg123_handle_struct
 	off_t begin_os;
 	off_t end_s;    /* overall end offset in samples */
 	off_t end_os;
+	off_t track_bytes; /* byte length from Xing header */
 #endif
 	unsigned int crc; /* Well, I need a safe 16bit type, actually. But wider doesn't hurt. */
 	struct reader *rd; /* pointer to the reading functions */
@@ -370,7 +371,7 @@ MPEG 2.5
 /* well, I take that one for granted... at least layer3 */
 #define GAPLESS_DELAY 529
 /* still fine-tuning the "real music" window... see read_frame */
-void frame_gapless_init(mpg123_handle *fr, off_t b, off_t e);
+void frame_gapless_init(mpg123_handle *fr, off_t b, off_t e, off_t l);
 void frame_gapless_realinit(mpg123_handle *fr);
 void frame_gapless_update(mpg123_handle *mh, off_t total_samples);
 /*void frame_gapless_position(mpg123_handle* fr);

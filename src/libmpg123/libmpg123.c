@@ -32,10 +32,18 @@ static void frame_buffercheck(mpg123_handle *fr)
 	/* When we have no accurate position, gapless code does not make sense. */
 	if(!fr->accurate) return;
 
-	if(fr->lastframe > -1 && fr->num > fr->lastframe+2)
+	/* Magic to get a grip on dirty streams that start with a gapless header. */
+	if(
+		(fr->lastframe > -1) && (fr->num > fr->lastframe) &&
+		/* If we had a length (should be the case with gapless info),
+		   and that length is clearly exceeded, the original track ended. */
+		(fr->track_bytes > -1 && fr->rd->tell(fr) > fr->track_bytes+1)
+	)
 	{
-		if(fr->num - fr->lastframe == 3 && NOQUIET) fprintf(stderr, "\nWarning: Activating hack for gapless jingles / heuristic to continue playback despite misled gapless decoding.\n");
+		
+		if(NOQUIET) fprintf(stderr, "\nWarning: Encountered more data after end of gapless track. This is a dirty stream.\n");
 
+		fr->accurate = FALSE;
 		return;
 	}
 
