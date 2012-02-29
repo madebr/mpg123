@@ -14,6 +14,7 @@ TODO: evaluate WRITE_SAMPLE enhancements from MPlayer work (if applicable in our
   - Fix parsing of audiophile ReplayGain from Info tag (perhaps relevant for the future, yet have to see a file that has that value present).
   - Fix parsing of any ReplayGain value from Info tag! All these years and nobody told me that we used only the last 5 bits, not 9?! I'm to blame, too: I use RVA values from ID3v2 tags... this is surreal.
   - Detect LAME below 3.95 for the different reference level of 83 dB (adding preamp of 6 dB). Version 3.95 itself (not 3.95.1) I cannot detect. User-set gain values are not touched.
+- Keep silent about missing bit reservoir when ignoring frames. That is the whole point (mostly;-).
 
 1.13.4
 ---
