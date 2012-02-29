@@ -4,7 +4,7 @@
 TODO: evaluate WRITE_SAMPLE enhancements from MPlayer work (if applicable in our changed structure)
 
 - Add --ignore-streamlength.
-- Add an attempt to deal with concatenated streams that begin with a (now invalid) Info frame with gapless info.
+- Deal with concatenated (Frankenstein) streams: Not applying gapless cutting once we're over the announced number of frames.
 - Added handling of SIGUSR1 and SIGUSER2 to terminal control code, configurable via --ctrlusr1 and --ctrlusr2.
 - Some low-level API added (mpg123_framedata(), mpg123_framepos()).
 - Accept application/octet-stream from HTTP, assuming it's MPEG data.

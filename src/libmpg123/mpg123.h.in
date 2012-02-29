@@ -764,6 +764,7 @@ enum mpg123_state
 {
 	 MPG123_ACCURATE = 1 /**< Query if positons are currently accurate (integer value, 0 if false, 1 if true) */
 	,MPG123_BUFFERFILL   /**< Get fill of internal (feed) input buffer as integer byte count returned as long and as double. An error is returned on integer overflow while converting to (signed) long, but the returned floating point value shold still be fine. */
+	,MPG123_FRANKENSTEIN /**< Stream consists of carelessly stitched together files (the leading one featuring gapless info).  */
 };
 
 /** Get various current decoder/stream state information.

@@ -504,7 +504,7 @@ static void frame_fixed_reset(mpg123_handle *fr)
 	fr->num = -1;
 	fr->input_offset = -1;
 	fr->playnum = -1;
-	fr->accurate = TRUE;
+	fr->state_flags = FRAME_ACCURATE;
 	fr->silent_resync = 0;
 	fr->audio_start = 0;
 	fr->clip = 0;
@@ -532,7 +532,7 @@ static void frame_fixed_reset(mpg123_handle *fr)
 	fr->fresh = 1;
 	fr->new_format = 0;
 #ifdef GAPLESS
-	frame_gapless_init(fr,0,0,-1);
+	frame_gapless_init(fr,-1,0,0);
 	fr->lastoff = 0;
 	fr->firstoff = 0;
 #endif
@@ -676,7 +676,7 @@ static off_t frame_fuzzy_find(mpg123_handle *fr, off_t want_frame, off_t* get_fr
 
 		/* Now estimate back what frame we get. */
 		*get_frame = (off_t) ((double)toc_entry/100. * fr->track_frames);
-		fr->accurate = FALSE;
+		fr->state_flags &= ~FRAME_ACCURATE;
 		fr->silent_resync = 1;
 		/* Question: Is the TOC for whole file size (with/without ID3) or the "real" audio data only?
 		   ID3v1 info could also matter. */
@@ -685,7 +685,7 @@ static off_t frame_fuzzy_find(mpg123_handle *fr, off_t want_frame, off_t* get_fr
 	else if(fr->mean_framesize > 0)
 	{	/* Just guess with mean framesize (may be exact with CBR files). */
 		/* Query filelen here or not? */
-		fr->accurate = FALSE; /* Fuzzy! */
+		fr->state_flags &= ~FRAME_ACCURATE; /* Fuzzy! */
 		fr->silent_resync = 1;
 		*get_frame = want_frame;
 		ret = (off_t) (fr->audio_start+fr->mean_framesize*want_frame);
@@ -732,7 +732,7 @@ off_t frame_index_find(mpg123_handle *fr, off_t want_frame, off_t* get_frame)
 		/* We have index position, that yields frame and byte offsets. */
 		*get_frame = fi*fr->index.step;
 		gopos = fr->index.data[fi];
-		fr->accurate = TRUE; /* When using the frame index, we are accurate. */
+		fr->state_flags |= FRAME_ACCURATE; /* When using the frame index, we are accurate. */
 	}
 	else
 	{
@@ -833,37 +833,45 @@ off_t frame_offset(mpg123_handle *fr, off_t outs)
 
 #ifdef GAPLESS
 /* input in _input_ samples */
-void frame_gapless_init(mpg123_handle *fr, off_t b, off_t e, off_t len)
+void frame_gapless_init(mpg123_handle *fr, off_t framecount, off_t bskip, off_t eskip)
 {
-	fr->begin_s = b;
-	fr->end_s = e;
-	fr->track_bytes = len;
+	debug3("frame_gaples_init: given %"OFF_P" frames, skip %"OFF_P" and %"OFF_P, (off_p)framecount, (off_p)bskip, (off_p)eskip);
+	fr->gapless_frames = framecount;
+	if(framecount > 0)
+	{
+		fr->begin_s = bskip+GAPLESS_DELAY;
+		fr->end_s = framecount*spf(fr)-eskip+GAPLESS_DELAY;
+		fr->gapless_frames = framecount;
+	}
+	else fr->begin_s = fr->end_s = 0;
 	/* These will get proper values later, from above plus resampling info. */
 	fr->begin_os = 0;
 	fr->end_os = 0;
-	debug2("frame_gapless_init: from %lu to %lu samples", (long unsigned)fr->begin_s, (long unsigned)fr->end_s);
+	fr->fullend_os = 0;
+	debug2("frame_gapless_init: from %"OFF_P" to %"OFF_P" samples", (off_p)fr->begin_s, (off_p)fr->end_s);
 }
 
 void frame_gapless_realinit(mpg123_handle *fr)
 {
 	fr->begin_os = frame_ins2outs(fr, fr->begin_s);
 	fr->end_os   = frame_ins2outs(fr, fr->end_s);
-	debug2("frame_gapless_realinit: from %lu to %lu samples", (long unsigned)fr->begin_os, (long unsigned)fr->end_os);
+	fr->fullend_os = frame_ins2outs(fr, fr->gapless_frames*spf(fr));
+	debug2("frame_gapless_realinit: from %"OFF_P" to %"OFF_P" samples", (off_p)fr->begin_os, (off_p)fr->end_os);
 }
 
-/* When we got a new sample count, update the gaplessness. */
+/* At least note when there is trouble... */
 void frame_gapless_update(mpg123_handle *fr, off_t total_samples)
 {
-	if(fr->end_s < 1)
+	off_t gapless_samples = fr->gapless_frames*spf(fr)
+	debug2("gapless update with new sample count %"OFF_P" as opposed to known %"OFF_P, total_samples, gapless_samples);
+	if(NOQUIET && total_samples != gapless_samples)
+	fprintf(stderr, "\nWarning: Real sample count differs from given gapless sample count. Frankenstein stream?\n");
+
+	if(gapless_samples > total_samples)
 	{
-		fr->end_s = total_samples;
-		frame_gapless_realinit(fr);
-	}
-	else if(fr->end_s > total_samples)
-	{
-		if(NOQUIET) error2("end sample count smaller than gapless end! (%"OFF_P" < %"OFF_P").", (off_p)total_samples, (off_p)fr->end_s);
-		/* Humbly disabling gapless stuff on track end. */
-		fr->end_s = 0;
+		if(NOQUIET) error2("End sample count smaller than gapless end! (%"OFF_P" < %"OFF_P"). Disabling gapless mode from now on.", (off_p)total_samples, (off_p)fr->end_s);
+		/* This invalidates the current position... but what should I do? */
+		frame_gapless_init(fr, -1, 0, 0);
 		frame_gapless_realinit(fr);
 		fr->lastframe = -1;
 		fr->lastoff = 0;
@@ -892,7 +900,7 @@ void frame_set_frameseek(mpg123_handle *fr, off_t fe)
 {
 	fr->firstframe = fe;
 #ifdef GAPLESS
-	if(fr->p.flags & MPG123_GAPLESS)
+	if(fr->p.flags & MPG123_GAPLESS && fr->gapless_frames > 0)
 	{
 		/* Take care of the beginning... */
 		off_t beg_f = frame_offset(fr, fr->begin_os);
@@ -907,7 +915,7 @@ void frame_set_frameseek(mpg123_handle *fr, off_t fe)
 		{
 			fr->lastframe  = frame_offset(fr,fr->end_os);
 			fr->lastoff    = fr->end_os - frame_outs(fr, fr->lastframe);
-		} else fr->lastoff = 0;
+		} else {fr->lastframe = -1; fr->lastoff = 0; }
 	} else { fr->firstoff = fr->lastoff = 0; fr->lastframe = -1; }
 #endif
 	fr->ignoreframe = ignoreframe(fr);

@@ -118,13 +118,6 @@ static int check_lame_tag(mpg123_handle *fr)
 		I hope that ensuring all zeros until tag start is enough.
 	*/
 	int lame_offset = (fr->stereo == 2) ? (fr->lsf ? 17 : 32 ) : (fr->lsf ? 9 : 17);
-	/* At least skip the decoder delay. */
-#ifdef GAPLESS
-	if(fr->p.flags & MPG123_GAPLESS)
-	{
-		if(fr->begin_s == 0) frame_gapless_init(fr, GAPLESS_DELAY, 0, -1);
-	}
-#endif
 
 	if(fr->p.flags & MPG123_IGNORE_INFOFRAME) return 0;
 
@@ -163,10 +156,6 @@ static int check_lame_tag(mpg123_handle *fr)
 			if(lame_type)
 			{
 				unsigned long xing_flags;
-#ifdef GAPLESS
-				off_t samplelength = -1;
-#endif
-				off_t track_bytes = -1;
 
 				/* we have one of these headers... */
 				if(VERBOSE2) fprintf(stderr, "Note: Xing/Lame/Info header detected\n");
@@ -197,15 +186,11 @@ static int check_lame_tag(mpg123_handle *fr)
 						*/
 						fr->track_frames = (off_t) make_long(fr->bsbuf, lame_offset);
 						if(fr->track_frames > TRACK_MAX_FRAMES) fr->track_frames = 0; /* endless stream? */
-						#ifdef GAPLESS
-						/* if no further info there, remove/add at least the decoder delay */
+#ifdef GAPLESS
+						/* if no further info there, remove at least the decoder delay */
 						if(fr->p.flags & MPG123_GAPLESS)
-						{
-							samplelength = fr->track_frames * spf(fr);
-							if(samplelength > 1)
-							frame_gapless_init(fr, GAPLESS_DELAY, samplelength+GAPLESS_DELAY, -1);
-						}
-						#endif
+						frame_gapless_init(fr, fr->track_frames, 0, 0);
+#endif
 						if(VERBOSE3) fprintf(stderr, "Note: Xing: %lu frames\n", (long unsigned)fr->track_frames);
 					}
 
@@ -241,15 +226,6 @@ static int check_lame_tag(mpg123_handle *fr)
 
 						if(VERBOSE3)
 						fprintf(stderr, "Note: Xing: %lu bytes\n", (long unsigned)xing_bytes);
-
-						track_bytes = (off_t)xing_bytes;
-#ifdef GAPLESS
-						/* Next step of gapless info: This track length is a limit to detect bogus gapless headers / concatenated streams. */
-						if(fr->p.flags & MPG123_GAPLESS && samplelength > 1)
-						{
-							frame_gapless_init(fr, GAPLESS_DELAY, samplelength+GAPLESS_DELAY, track_bytes);
-						}
-#endif
 					}
 
 					lame_offset += 4;
@@ -393,13 +369,9 @@ static int check_lame_tag(mpg123_handle *fr)
 					#ifdef GAPLESS
 					if(fr->p.flags & MPG123_GAPLESS)
 					{
-						off_t length = fr->track_frames * spf(fr);
-						off_t skipbegin = GAPLESS_DELAY + ((((int) fr->bsbuf[lame_offset]) << 4) | (((int) fr->bsbuf[lame_offset+1]) >> 4));
-						off_t skipend = -GAPLESS_DELAY + (((((int) fr->bsbuf[lame_offset+1]) << 8) | (((int) fr->bsbuf[lame_offset+2]))) & 0xfff);
-						debug3("preparing gapless mode for layer3: length %lu, skipbegin %lu, skipend %lu", 
-								(long unsigned)length, (long unsigned)skipbegin, (long unsigned)skipend);
-						if(length > 1)
-						frame_gapless_init(fr, skipbegin, (skipend < length) ? length-skipend : length, track_bytes);
+						off_t skipbegin = ((((int) fr->bsbuf[lame_offset]) << 4) | (((int) fr->bsbuf[lame_offset+1]) >> 4));
+						off_t skipend = (((((int) fr->bsbuf[lame_offset+1]) << 8) | (((int) fr->bsbuf[lame_offset+2]))) & 0xfff);
+						frame_gapless_init(fr, fr->track_frames, skipbegin, skipend);
 					}
 					#endif
 				}
@@ -594,6 +566,20 @@ init_resync:
 	++fr->num; /* 0 for first frame! */
 	debug4("Frame %"OFF_P" %08lx %i, next filepos=%"OFF_P, 
 	(off_p)fr->num, newhead, fr->framesize, (off_p)fr->rd->tell(fr));
+	if(!(fr->state_flags & FRAME_FRANKENSTEIN) && (
+		(fr->track_frames > 0 && fr->num >= fr->track_frames)
+#ifdef GAPLESS
+		|| (fr->gapless_frames > 0 && fr->num >= fr->gapless_frames)
+#endif
+	))
+	{
+		fr->state_flags |= FRAME_FRANKENSTEIN;
+		if(NOQUIET) fprintf(stderr, "\nWarning: Encountered more data after announced end of track (frame %"OFF_P"/%"OFF_P"). Frankenstein!\n", (off_p)fr->num, 
+#ifdef GAPLESS
+		fr->gapless_frames > 0 ? (off_p)fr->gapless_frames : 
+#endif
+		(off_p)fr->track_frames);
+	}
 
 	halfspeed_prepare(fr);
 
@@ -602,7 +588,7 @@ init_resync:
 #ifdef FRAME_INDEX
 	/* Keep track of true frame positions in our frame index.
 	   but only do so when we are sure that the frame number is accurate... */
-	if(fr->accurate && FI_NEXT(fr->index, fr->num))
+	if((fr->state_flags & FRAME_ACCURATE) && FI_NEXT(fr->index, fr->num))
 	fi_add(&fr->index, framepos);
 #endif
 
@@ -612,6 +598,7 @@ init_resync:
 
 	fr->to_decode = fr->to_ignore = TRUE;
 	if(fr->error_protection) fr->crc = getbits(fr, 16); /* skip crc */
+
 
 	return 1;
 read_frame_bad:
