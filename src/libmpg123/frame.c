@@ -862,7 +862,7 @@ void frame_gapless_realinit(mpg123_handle *fr)
 /* At least note when there is trouble... */
 void frame_gapless_update(mpg123_handle *fr, off_t total_samples)
 {
-	off_t gapless_samples = fr->gapless_frames*spf(fr)
+	off_t gapless_samples = fr->gapless_frames*spf(fr);
 	debug2("gapless update with new sample count %"OFF_P" as opposed to known %"OFF_P, total_samples, gapless_samples);
 	if(NOQUIET && total_samples != gapless_samples)
 	fprintf(stderr, "\nWarning: Real sample count differs from given gapless sample count. Frankenstein stream?\n");
