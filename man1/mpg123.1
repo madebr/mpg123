@@ -242,6 +242,13 @@ Set hardware pitch (speedup/down, 0 is neutral; 0.05 is 5%). This changes the ou
 .BR \-\-8bit
 Forces 8bit output
 .TP
+\fB\-\^\-float
+Forces f32 encoding
+.TP
+\fp\-e \fIenc\fR, \fB\-\^\-encoding \fIenc
+Choose output sample encoding. Possible values look like f32 (32-bit floating point), s32 (32-bit signed integer), u32 (32-bit unsigned integer) and the variants with different numbers of bits (s24, u24, s16, u16, s8, u8) and also special variants like ulaw and alaw 8-bit.
+See the output of mpg123's longhelp for actually available encodings.
+.TP
 \fB\-d \fIn\fR, \fB\-\^\-doublespeed \fIn
 Only play every
 .IR n 'th
