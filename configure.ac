@@ -12,7 +12,7 @@ dnl ############# Initialisation
 AC_INIT([mpg123], [1.14.0], [mpg123-devel@lists.sourceforge.net])
 dnl Increment API_VERSION when the API gets changes (new functions).
 API_VERSION=34
-LIB_PATCHLEVEL=6
+LIB_PATCHLEVEL=7
 dnl Since we want to be backwards compatible, both sides get set to API_VERSION.
 LIBMPG123_VERSION=$API_VERSION:$LIB_PATCHLEVEL:$API_VERSION
 AC_SUBST(LIBMPG123_VERSION)
@@ -472,7 +472,7 @@ if test "x$ieee" = xyes; then
   AC_DEFINE(IEEE_FLOAT,   1, [ Define to indicate that float storage follows IEEE754. ])
 fi
 
-
+newoldwritesample=disabled
 case $host in
   arm*-*-linux*)
     # check that... perhaps we are better off on arm with kernel math emulation
@@ -480,15 +480,19 @@ case $host in
   ;;
   i386-*-linux*|i386-*-kfreebsd*-gnu)
     cpu_type="i386_fpu"
+    newoldwritesample=enabled
   ;;
   i486-*-linux*|i486-*-kfreebsd*-gnu)
     cpu_type="i486"
+    newoldwritesample=enabled
   ;;
   i586-*-linux*|i586-*-kfreebsd*-gnu)
     cpu_type="x86"
+    newoldwritesample=enabled
   ;;
   i686-*-linux*|i686-*-kfreebsd*-gnu)
     cpu_type="x86"
+    newoldwritesample=enabled
   ;;
   x86_64-*-linux*|x86_64-*-kfreebsd*-gnu)
     cpu_type="x86-64_all"
@@ -506,11 +510,13 @@ case $host in
       *)
         AC_MSG_RESULT([no])
         cpu_type="x86"
+        newoldwritesample=enabled
       ;;
     esac
   ;;
   i386-apple-darwin*)
     cpu_type="x86"
+    newoldwritesample=enabled
   ;;
   x86_64-apple-darwin*)
     cpu_type="x86-64_all"
@@ -530,6 +536,7 @@ case $host in
   ;;
   i?86-*-dragonfly* | i?86-*-freebsd* | i?86-*-midnightbsd* | i?86-*-mirbsd* | i?86-*-netbsd* | i?86-*-openbsd*)
     cpu_type="x86"
+    newoldwritesample=enabled
   ;;
   x86_64-*-dragonfly* | x86_64-*-freebsd* | x86_64-*-midnightbsd* | x86_64-*-mirbsd* | x86_64-*-netbsd* | x86_64-*-openbsd*)
     cpu_type="x86-64_all"
@@ -539,6 +546,7 @@ case $host in
   ;;
   i386-*-solaris*)
     cpu_type=x86
+    newoldwritesample=enabled
   ;;
   x86_64-*-solaris*)
     cpu_type=x86-64_all
@@ -550,6 +558,7 @@ case $host in
   # Till we sorted out the assembler troubles, generic CPU is default.
   i386-pc-os2-emx)
     cpu_type=generic_fpu
+    newoldwritesample=enabled
   ;;
   x86_64-pc-os2-emx)
     # We are optimistic hat the future knows OS/2 on x86-64;-)
@@ -566,15 +575,19 @@ case $host in
   ;;
   i686-pc-cygwin*)
     cpu_type="x86"
+    newoldwritesample=enabled
   ;;
   i586-pc-cygwin*)
     cpu_type="x86"
+    newoldwritesample=enabled
   ;;
   i486-pc-cygwin*)
     cpu_type="i486"
+    newoldwritesample=enabled
   ;;
   i386-pc-cygwin*)
     cpu_type="i386"
+    newoldwritesample=enabled
   ;;
   *-pc-cygwin*)
     cpu_type="generic_fpu"
@@ -583,6 +596,7 @@ case $host in
     LIBS="$LIBS"
     buffer=disabled
     cpu_type="x86"
+    newoldwritesample=enabled
   ;;
   x86_64-*-mingw32*)
     LIBS="$LIBS"
@@ -594,24 +608,28 @@ case $host in
 		cpu_type="i386"
 		buffer=disabled
 		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
+    newoldwritesample=enabled
 	;;
 	i486-*)
 		AC_MSG_WARN([Unknown host operating system])
 		cpu_type="i486"
 		buffer=disabled
 		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
+    newoldwritesample=enabled
 	;;
 	i586-*)
 		AC_MSG_WARN([Unknown host operating system])
 		cpu_type="x86"
 		buffer=disabled
 		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
+    newoldwritesample=enabled
 	;;
 	i686-*)
 		AC_MSG_WARN([Unknown host operating system])
 		cpu_type="x86"
 		buffer=disabled
 		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
+    newoldwritesample=enabled
 	;;
 	x86_64-*)
 		AC_MSG_WARN([Unknown host operating system])
@@ -640,6 +658,19 @@ AC_ARG_ENABLE(buffer,
     fi
   ]
 )
+
+AC_ARG_ENABLE(newoldwritesample,
+[  --enable-newoldwritesample=[no/yes] enable new/old WRITE_SAMPLE macro for non-accurate 16 bit output, faster on certain CPUs (default on on x86-32)],
+[
+	if test "x$enableval" = xyes
+	then
+		newoldwritesample=enabled
+	else
+		newoldwritesample=disabled
+	fi
+])
+
+
 
 dnl Did user choose other CPU type ?
 if test "x$with_cpu" != "x"; then
@@ -1777,6 +1808,9 @@ CFLAGS="$ADD_CFLAGS $CFLAGS"
 if test x"$buffer" = xdisabled; then
 	ADD_CPPFLAGS="$ADD_CPPFLAGS -DNOXFERMEM"
 fi
+if test x"$newoldwritesample" = xenabled; then
+	ADD_CPPFLAGS="$ADD_CPPFLAGS -DNEWOLD_WRITE_SAMPLE"
+fi
 CPPFLAGS="$ADD_CPPFLAGS $CPPFLAGS"
 LDFLAGS="$ADD_LDFLAGS $LDFLAGS"
 
@@ -2097,6 +2131,7 @@ fi
 echo -n "
   Core libmpg123 features:
   Integer conversion ...... $integers
+  New/old WRITE_SAMPLE .... $newoldwritesample
   Layer I ................. $layer1
   Layer II ................ $layer2
   Layer III ............... $layer3

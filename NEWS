@@ -1,10 +1,8 @@
 1.14.0
 ---
 
-TODO: evaluate WRITE_SAMPLE enhancements from MPlayer work (if applicable in our changed structure)
-
 - Add --ignore-streamlength.
-- Deal with concatenated (Frankenstein) streams: Not applying gapless cutting once we're over the announced number of frames.
+- But also deal with concatenated (Frankenstein) streams: Not applying gapless cutting once we're over the announced number of frames.
 - Added handling of SIGUSR1 and SIGUSER2 to terminal control code, configurable via --ctrlusr1 and --ctrlusr2.
 - Some low-level API added (mpg123_framedata(), mpg123_framepos()).
 - Accept application/octet-stream from HTTP, assuming it's MPEG data.
@@ -15,6 +13,7 @@ TODO: evaluate WRITE_SAMPLE enhancements from MPlayer work (if applicable in our
   - Fix parsing of any ReplayGain value from Info tag! All these years and nobody told me that we used only the last 5 bits, not 9?! I'm to blame, too: I use RVA values from ID3v2 tags... this is surreal.
   - Detect LAME below 3.95 for the different reference level of 83 dB (adding preamp of 6 dB). Version 3.95 itself (not 3.95.1) I cannot detect. User-set gain values are not touched.
 - Keep silent about missing bit reservoir when ignoring frames. That is the whole point (mostly;-).
+- Add the new/old WRITE_SAMPLE variant from MPlayer that makes the generic decoder faster on older CPUs (x86 at least). Not on x86-64, though (it's not enabled per default there).
 
 1.13.4
 ---

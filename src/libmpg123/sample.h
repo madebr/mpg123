@@ -88,9 +88,8 @@ static inline short ftoi16(float x)
 /* The actual storage of a decoded sample is separated in the following macros.
    We can handle different types, we could also handle dithering here. */
 
-#ifdef WRITE_SAMPLE_EXPERIMENT
+#ifdef NEWOLD_WRITE_SAMPLE
 
-#warning "experiment"
 /* This is the old new mpg123 WRITE_SAMPLE, fixed for newer GCC by MPlayer folks.
    Makes a huge difference on old machines. */
 #if WORDS_BIGENDIAN 
