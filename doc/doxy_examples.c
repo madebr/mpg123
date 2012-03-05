@@ -14,6 +14,8 @@
 
 /** \file id3dump.c Parse ID3 info and print to standard output. */
 
+/** \file extract_frames.c Parse stream and extract only the valid MPEG frames to standard output. */
+
 /** \file feedseek.c Fuzzy feeder seeking. */
 
 /* @} */
