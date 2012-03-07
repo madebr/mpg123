@@ -10,6 +10,10 @@
 - Keep silent about missing bit reservoir when ignoring frames. That is the whole point (mostly;-).
 - Add the new/old WRITE_SAMPLE variant from MPlayer that makes the generic decoder faster on older CPUs (x86 at least). Not on x86-64, though (it's not enabled per default there).
 
+1.13.6
+---
+- Fix output of one random character in -vvv mode for ID3v2.2 frames (no buffer overflow, move along, folks;-).
+
 1.13.5
 ---
 - Fix reading of ReplayGain values from Lame tag (nobody seen this before?!)

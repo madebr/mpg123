@@ -654,6 +654,7 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 						{
 							/* 4 or 3 bytes id */
 							strncpy(id, (char*) tagdata+pos, head_part);
+							id[head_part] = 0; /* terminate for 3 or 4 bytes */
 							pos += head_part;
 							tagpos += head_part;
 							/* size as 32 bits or 28 bits */
