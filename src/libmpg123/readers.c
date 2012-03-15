@@ -1038,8 +1038,10 @@ static int default_init(mpg123_handle *fr)
 
 	fr->rdat.read  = fr->rdat.r_read  != NULL ? fr->rdat.r_read  : posix_read;
 	fr->rdat.lseek = fr->rdat.r_lseek != NULL ? fr->rdat.r_lseek : posix_lseek;
+#ifndef NO_ICY
 	/* ICY streams of any sort shall not be seekable. */
 	if(fr->p.icy_interval > 0) fr->rdat.lseek = nix_lseek;
+#endif
 
 	fr->rdat.filelen = get_fileinfo(fr);
 	fr->rdat.filepos = 0;
