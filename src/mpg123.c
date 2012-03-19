@@ -978,8 +978,9 @@ int main(int sys_argc, char ** sys_argv)
 	}
 #endif
 
-#if defined (HAVE_SCHED_SETSCHEDULER) && !defined (__CYGWIN__)
+#if defined (HAVE_SCHED_SETSCHEDULER) && !defined (__CYGWIN__) && !defined (HAVE_WINDOWS_H)
 /* Cygwin --realtime seems to fail when accessing network, using win32 set priority instead */
+/* MinGW may have pthread installed, we prefer win32API */
 	if (param.realtime) {  /* Get real-time priority */
 	  struct sched_param sp;
 	  fprintf(stderr,"Getting real-time priority\n");
