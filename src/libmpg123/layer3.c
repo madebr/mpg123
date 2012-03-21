@@ -79,10 +79,10 @@ struct III_sideinfo
 
 struct bandInfoStruct
 {
-	int longIdx[23];
-	int longDiff[22];
-	int shortIdx[14];
-	int shortDiff[13];
+	unsigned short longIdx[23];
+	unsigned char longDiff[22];
+	unsigned short shortIdx[14];
+	unsigned char shortDiff[13];
 };
 
 /* Techy details about our friendly MPEG data. Fairly constant over the years;-) */
@@ -270,7 +270,7 @@ void init_layer3(void)
 		const struct bandInfoStruct *bi = &bandInfo[j];
 		int *mp;
 		int cb,lwin;
-		const int *bdf;
+		const unsigned char *bdf;
 
 		mp = map[j][0] = mapbuf0[j];
 		bdf = bi->longDiff;
@@ -678,8 +678,11 @@ static int III_get_scale_factors_2(mpg123_handle *fr, int *scf,struct gr_info_s 
 	return numbits;
 }
 
-static const int pretab1[22] = {0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,2,2,3,3,3,2,0};
-static const int pretab2[22] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+static unsigned char pretab_choice[2][22] =
+{
+	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+	{0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,2,2,3,3,3,2,0}
+};
 
 /*
 	Dequantize samples
@@ -981,7 +984,7 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 	else
 	{
 		/* decoding with 'long' BandIndex table (block_type != 2) */
-		const int *pretab = gr_info->preflag ? pretab1 : pretab2;
+		const unsigned char *pretab = pretab_choice[gr_info->preflag];
 		int i,max = -1;
 		int cb = 0;
 		int *m = map[sfreq][2];
