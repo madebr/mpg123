@@ -262,7 +262,7 @@ static int get_key(int do_delay, char *val)
 
 static void term_handle_key(mpg123_handle *fr, audio_output_t *ao, char val)
 {
-	switch(val)
+	switch(tolower(val))
 	{
 	case MPG123_BACK_KEY:
 		if(!param.usebuffer) ao->flush(ao);
@@ -464,7 +464,7 @@ static void term_handle_input(mpg123_handle *fr, audio_output_t *ao, int do_dela
 	/* Do we really want that while loop? This means possibly handling multiple inputs that come very rapidly in one go. */
 	while(get_key(do_delay, &val))
 	{
-		term_handle_key(fr, ao, tolower(val));
+		term_handle_key(fr, ao, val);
 	}
 }
 
