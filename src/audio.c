@@ -23,10 +23,7 @@ static int file_write(struct audio_output_struct* ao, unsigned char *bytes, int 
 }
 static int wave_write(struct audio_output_struct* ao, unsigned char *bytes, int count)
 {
-	/* special: It is an error not to be able to write anything */
-	int written = wav_write(bytes, count);
-	fprintf(stderr, "written: %i\n", written);
-	return written > 0 ? written : -1;
+	return wav_write(bytes, count);
 }
 static int builtin_get_formats(struct audio_output_struct *ao)
 {
