@@ -432,7 +432,7 @@ off_t bytes_to_samples(mpg123_handle *fr , off_t b)
 
 #ifndef NO_32BIT
 /* Remove every fourth byte, facilitating conversion from 32 bit to 24 bit integers.
-   This has to be aware of endianess, of course. */
+   This has to be aware of endianness, of course. */
 static void chop_fourth_byte(struct outbuffer *buf)
 {
 	unsigned char *wpos = buf->data;

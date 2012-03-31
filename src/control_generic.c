@@ -538,7 +538,7 @@ int control_generic (mpg123_handle *fr)
 					generic_sendmsg("H SEQ <bass> <mid> <treble>: simple eq setting...");
 					generic_sendmsg("H PITCH <[+|-]value>: adjust playback speed (+0.01 is 1 %% faster)");
 					generic_sendmsg("H SILENCE: be silent during playback (meaning silence in text form)");
-					generic_sendmsg("H STATE: Print auxilliary state info in several lines (just try it to see what info is there).");
+					generic_sendmsg("H STATE: Print auxiliary state info in several lines (just try it to see what info is there).");
 					generic_sendmsg("H TAG/T: Print all available (ID3) tag info, for ID3v2 that gives output of all collected text fields, using the ID3v2.3/4 4-character names.");
 					generic_sendmsg("H    The output is multiple lines, begin marked by \"@T {\", end by \"@T }\".");
 					generic_sendmsg("H    ID3v1 data is like in the @I info lines (see below), just with \"@T\" in front.");

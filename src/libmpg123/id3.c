@@ -866,7 +866,7 @@ static void convert_latin1(mpg123_string *sb, const unsigned char* s, size_t l, 
 	 1: big endian
 
 	This modifies source and len to indicate the data _after_ the BOM(s).
-	Note on nasty data: The last encountered BOM determines the endianess.
+	Note on nasty data: The last encountered BOM determines the endianness.
 	I have seen data with multiple BOMS, namely from "the" id3v2 program.
 	Not nice, but what should I do?
 */
@@ -913,7 +913,7 @@ static void convert_utf16bom(mpg123_string *sb, const unsigned char* s, size_t l
 	debug1("convert_utf16 with length %lu", (unsigned long)l);
 
 	bom_endian = check_bom(&s, &l);
-	debug1("UTF16 endianess check: %i", bom_endian);
+	debug1("UTF16 endianness check: %i", bom_endian);
 
 	if(bom_endian == -1) /* little-endian */
 	{

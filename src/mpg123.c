@@ -1295,7 +1295,7 @@ static void long_usage(int err)
 	fprintf(o,"        --reopen           force close/open on audiodevice\n");
 	#ifdef OPT_MULTI
 	fprintf(o,"        --cpu <string>     set cpu optimization\n");
-	fprintf(o,"        --test-cpu         list optmizations possible with cpu and exit\n");
+	fprintf(o,"        --test-cpu         list optimizations possible with cpu and exit\n");
 	fprintf(o,"        --list-cpu         list builtin optimizations and exit\n");
 	#endif
 	#ifdef OPT_3DNOW

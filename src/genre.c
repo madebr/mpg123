@@ -75,7 +75,7 @@ char *genre_table[] =
 	"Native American",
 	"Cabaret",
 	"New Wave",
-	"Psychadelic",
+	"Psychedelic",
 	"Rave",
 	"Showtunes",
 	"Trailer",

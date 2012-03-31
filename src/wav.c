@@ -97,7 +97,7 @@ static int testEndian(void)
   if(a == b)
       ret = 1;
   else if(a != c) {
-      error3("Strange endianess?? %08lx %08lx %08lx\n",a,b,c);
+      error3("Strange endianness?? %08lx %08lx %08lx\n",a,b,c);
       ret = -1;
   }
   return ret;
@@ -136,6 +136,13 @@ static void close_file(void)
 	fclose(wavfp);
 
 	wavfp = NULL;
+}
+
+static int at_eof(void)
+{
+	/* Freestyle semantics: There is no file, so there is no end to it. */
+	if(!wavfp) return 0;
+	else return feof(wavfp);
 }
 
 /* Wrapper over header writing; ensure that stdout doesn't get multiple headers. */
@@ -191,7 +198,11 @@ int au_open(audio_output_t *ao)
   if(open_file(ao->device) < 0)
     return -1;
 
-	write_header(&auhead, sizeof(auhead));
+	if(write_header(&auhead, sizeof(auhead)) != 1)
+	{
+		error1("Cannot write header (not enough space?): %s", at_eof() ? "end-of-file" : strerror(errno));
+		close_file();
+	}
   datalen = 0;
 
   return 0;
@@ -297,7 +308,7 @@ int wav_open(audio_output_t *ao)
 	if(!( (floatwav && write_header(&RIFF_FLOAT, sizeof(RIFF_FLOAT)) == 1)
 	      || write_header(&RIFF, sizeof(RIFF)) == 1) )
 	{
-			error1("cannot write header: %s", strerror(errno));
+			error1("Cannot write header (not enough space?): %s", at_eof() ? "end-of-file" : strerror(errno));
 			close_file();
 			return -1;
 	}
@@ -351,6 +362,7 @@ int wav_write(unsigned char *buf,int len)
 	}
 
 	temp = fwrite(buf, 1, len, wavfp);
+fprintf(stderr, "fwrite returned %i\n", temp);
 	if(temp <= 0)
 	return 0;
 
