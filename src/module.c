@@ -108,6 +108,8 @@ open_module( const char* type, const char* name )
 	if(workdir == NULL || moddir == NULL)
 	{
 		error("Failure getting workdir or moddir!");
+		if(workdir == NULL) fprintf(stderr, "Hint: I need to know the current working directory to be able to come back after hunting modules. I will not leave because I do not know where I am.\n");
+
 		if(workdir != NULL) free(workdir);
 		if(moddir  != NULL) free(moddir);
 		return NULL;
@@ -199,9 +201,16 @@ static char *get_the_cwd()
 {
 	size_t bs = PATH_STEP;
 	char *buf = malloc(bs);
+	errno = 0;
 	while((buf != NULL) && getcwd(buf, bs) == NULL)
 	{
 		char *buf2;
+		if(errno != ERANGE)
+		{
+			error1("getcwd returned unexpected error: %s", strerror(errno));
+			free(buf);
+			return NULL;
+		}
 		buf2 = realloc(buf, bs+=PATH_STEP);
 		if(buf2 == NULL){ free(buf); buf = NULL; }
 		else debug1("pwd: increased buffer to %lu", (unsigned long)bs);
