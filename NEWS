@@ -9,6 +9,7 @@
 - ReplayGain: Try to detect LAME below 3.95 for the different reference level of 83 dB (adding preamp of 6 dB). Version 3.95 itself (not 3.95.1) I cannot detect. User-set gain values are not touched.
 - Keep silent about missing bit reservoir when ignoring frames. That is the whole point (mostly;-).
 - Add the new/old WRITE_SAMPLE variant from MPlayer that makes the generic decoder faster on older CPUs (x86 at least). Not on x86-64, though (it's not enabled per default there).
+- handle out-of-disk in the file writers (see http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=67259)
 
 1.13.7
 ---
