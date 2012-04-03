@@ -97,7 +97,7 @@ static int testEndian(void)
   if(a == b)
       ret = 1;
   else if(a != c) {
-      error3("Strange endianess?? %08lx %08lx %08lx\n",a,b,c);
+      error3("Strange endianness?? %08lx %08lx %08lx\n",a,b,c);
       ret = -1;
   }
   return ret;
