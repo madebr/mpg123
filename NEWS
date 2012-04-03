@@ -1,3 +1,7 @@
+?
+---
+- Added Xcode project files to build libmpg123 on Mac OS and iOS
+
 1.14.0
 ---
 

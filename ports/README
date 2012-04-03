@@ -18,3 +18,9 @@ Note that those may be a bit outdated (especially when a file is added/removed i
 	If you want to use the asm build you will need yasm (http://www.tortall.net/projects/yasm/). 
 	Please put yasm.exe into a directory where MSVC++ can find it. Finally switch the libmpg123 project to the 
 	Release_MMX_Dll build using the Visual Studio Configuration Manager.
+  - Xcode contains the project file for building and using libmpg123 with
+    Xcode for Mac and iOS (arm and simulator builds). Please add the
+	ports/Xcode folder to the header search path of your project so that 
+	Xcode can find the right mpg123.h and config.h. Then drag the mpg123
+	Xcode project into your own project. Finally in your build target, build
+	phases, add mpg123-ios or mpg123-mac to the libraries to link.
