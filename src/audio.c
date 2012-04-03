@@ -43,16 +43,16 @@ static int builtin_close(struct audio_output_struct *ao)
 	switch(param.outmode)
 	{
 		case DECODE_WAV:
-		wav_close();
+		return wav_close();
 		break;
 		case DECODE_AU:
-		au_close();
+		return au_close();
 		break;
 		case DECODE_CDR:
-		cdr_close();
+		return cdr_close();
 		break;
 	}
-	return 0;
+	return -1;
 }
 static int  builtin_nothingint(struct audio_output_struct *ao){ return 0; }
 static void builtin_nothing(struct audio_output_struct *ao){}

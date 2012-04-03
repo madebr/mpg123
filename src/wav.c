@@ -1,7 +1,7 @@
 /*
 	wav.c: write wav files
 
-	copyright ?-2008 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2012 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Samuel Audet
 
@@ -12,6 +12,11 @@
 	minor simplifications and ugly AU/CDR format stuff by MH
 
 	It's not a very clean code ... Fix this!
+
+	ThOr: The usage of stdio streams means we loose control over what data is actually written. On a full disk, fwrite() happily suceeds for ages, only a fflush fails.
+	Now: Do we want to fflush() after every write? That defeats the purpose of buffered I/O. So, switching to good old write() is an option (kernel doing disk buffering anyway).
+
+	TODO: convert fully to tab indent
 */
 
 #include "mpg123app.h"
@@ -110,6 +115,7 @@ static int open_file(char *filename)
 #endif
    if(!strcmp("-",filename))  {
       wavfp = stdout;
+	return 0;
    }
    else {
 #ifdef WANT_WIN32_UNICODE
@@ -126,20 +132,40 @@ static int open_file(char *filename)
 #endif
      if(!wavfp)
        return -1;
+		else
+		{
+			/* Test if we actually can write at least a byte, only chance to catch a totally full disk early. */
+			char a = 'a';
+			if(fwrite(&a, 1, 1, wavfp) == 1 && !fflush(wavfp) && !fseek(wavfp, 0, SEEK_SET))
+			return 0;
+			else
+			{
+				error1("cannot even write a single byte: %s", strerror(errno));
+				fclose(wavfp);
+				return -1;
+			}
+		}
    }
-  return 0;
 }
 
-static void close_file(void)
+static int close_file()
 {
 	if(wavfp != NULL && wavfp != stdout)
-	fclose(wavfp);
+	{
+		if(fclose(wavfp))
+		{
+			error1("problem closing the audio file, probably because of flushing to disk: %s\n", strerror(errno));
+			return -1;
+		}
+		else return 0;
+	}
 
 	wavfp = NULL;
+	return 0;
 }
 
 /* Wrapper over header writing; ensure that stdout doesn't get multiple headers. */
-static size_t write_header(const void*ptr, size_t size)
+static int write_header(const void*ptr, size_t size)
 {
 	if(wavfp == stdout)
 	{
@@ -147,7 +173,12 @@ static size_t write_header(const void*ptr, size_t size)
 
 		header_written = 1;
 	}
-	return fwrite(ptr, size, 1, wavfp);
+	if(fwrite(ptr, size, 1, wavfp) != 1 || fflush(wavfp))
+	{
+		error1("cannot write header: %s", strerror(errno));
+		return -1;
+	}
+	else return 0;
 }
 
 int au_open(audio_output_t *ao)
@@ -191,10 +222,9 @@ int au_open(audio_output_t *ao)
   if(open_file(ao->device) < 0)
     return -1;
 
-	write_header(&auhead, sizeof(auhead));
   datalen = 0;
 
-  return 0;
+	return write_header(&auhead, sizeof(auhead));
 }
 
 int cdr_open(audio_output_t *ao)
@@ -294,12 +324,10 @@ int wav_open(audio_output_t *ao)
 		long2littleendian(datalen+sizeof(RIFF.WAVE),RIFF.WAVElen,sizeof(RIFF.WAVElen));
 	}
 
-	if(!( (floatwav && write_header(&RIFF_FLOAT, sizeof(RIFF_FLOAT)) == 1)
-	      || write_header(&RIFF, sizeof(RIFF)) == 1) )
+	if(!(    ( floatwav && !write_header(&RIFF_FLOAT, sizeof(RIFF_FLOAT)))
+	      || (!floatwav && !write_header(&RIFF,       sizeof(RIFF))) ))
 	{
-			error1("cannot write header: %s", strerror(errno));
-			close_file();
-			return -1;
+		return -1;
 	}
 
 	datalen = 0;
@@ -353,7 +381,14 @@ int wav_write(unsigned char *buf,int len)
 	temp = fwrite(buf, 1, len, wavfp);
 	if(temp <= 0)
 	return 0;
-
+/* That would kill it of early when running out of disk space. */
+#if 0
+if(fflush(wavfp))
+{
+	fprintf(stderr, "flushing failed: %s\n", strerror(errno));
+	return 0;
+}
+#endif
 	datalen += temp;
 
 	return temp;
@@ -363,6 +398,13 @@ int wav_close(void)
 {
 	if(!wavfp) return 0;
 
+	/* flush before seeking to catch out-of-disk explicitly at least at the end */
+	if(fflush(wavfp))
+	{
+		error1("cannot flush WAV stream: %s", strerror(errno));
+		fclose(wavfp);
+		return -1;
+	}
 	if(fseek(wavfp, 0L, SEEK_SET) >= 0)
 	{
 		if(floatwav)
@@ -385,8 +427,7 @@ int wav_close(void)
 	else
 	warning("Cannot rewind WAV file. File-format isn't fully conform now.");
 
-	close_file();
-	return 0;
+	return close_file();
 }
 
 int au_close(void)
@@ -394,6 +435,13 @@ int au_close(void)
    if(!wavfp)
       return 0;
 
+	/* flush before seeking to catch out-of-disk explicitly at least at the end */
+	if(fflush(wavfp))
+	{
+		error1("cannot flush WAV stream: %s", strerror(errno));
+		fclose(wavfp);
+		return -1;
+	}
    if(fseek(wavfp, 0L, SEEK_SET) >= 0) {
      long2bigendian(datalen,auhead.datalen,sizeof(auhead.datalen));
      /* Always (over)writing the header here; also for stdout, when fseek worked, this overwrite works. */
@@ -402,17 +450,14 @@ int au_close(void)
    else
    warning("Cannot rewind AU file. File-format isn't fully conform now.");
 
-	close_file();
-
-  return 0;
+	return close_file();
 }
 
 int cdr_close(void)
 {
 	if(!wavfp) return 0;
 
-	close_file();
-	return 0;
+	return close_file();
 }
 
 
