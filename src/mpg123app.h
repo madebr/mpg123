@@ -116,6 +116,7 @@ struct parameter
 enum mpg123app_flags
 {
 	 MPG123APP_IGNORE_MIME = 0x01
+	,MPG123APP_LYRICS = 0x02
 };
 
 /* shortcut to check application flags */

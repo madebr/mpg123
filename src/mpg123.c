@@ -483,6 +483,7 @@ topt opts[] = {
 	{0, "resync-limit", GLO_ARG | GLO_LONG, 0, &param.resync_limit, 0},
 	{0, "pitch", GLO_ARG|GLO_DOUBLE, 0, &param.pitch, 0},
 	{0, "ignore-mime", GLO_INT, set_appflag, &appflag, MPG123APP_IGNORE_MIME },
+	{0, "lyrics", GLO_INT, set_appflag, &appflag, MPG123APP_LYRICS},
 	{0, "keep-open", GLO_INT, 0, &param.keep_open, 1},
 	{0, "utf8", GLO_INT, 0, &param.force_utf8, 1},
 	{0, "fuzzy", GLO_INT,  set_frameflag, &frameflag, MPG123_FUZZY},
@@ -1364,6 +1365,7 @@ static void long_usage(int err)
 	fprintf(o,"        --title            set xterm/rxvt title to filename\n");
 	#endif
 	fprintf(o,"        --long-tag         spacy id3 display with every item on a separate line\n");
+	fprintf(o,"        --lyrics           show lyrics (from ID3v2 USLT frame)\n");
 	fprintf(o,"        --utf8             Regardless of environment, print metadata in UTF-8.\n");
 	fprintf(o," -R     --remote           generic remote interface\n");
 	fprintf(o,"        --remote-err       force use of stderr for generic remote interface\n");

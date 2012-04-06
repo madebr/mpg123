@@ -267,6 +267,52 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 		}
 	}
 	for(ti=0; ti<FIELDS; ++ti) mpg123_free_string(&tag[ti]);
+
+	if(v2 != NULL && APPFLAG(MPG123APP_LYRICS))
+	{
+		/* find and print texts that have USLT IDs */
+		size_t i;
+		for(i=0; i<v2->texts; ++i)
+		{
+			if(!memcmp(v2->text[i].id, "USLT", 4))
+			{
+				/* split into lines, ensure usage of proper local line end */
+				size_t a=0;
+				size_t b=0;
+				char lang[4]; /* just a 3-letter ASCII code, no fancy encoding */
+				mpg123_string innline;
+				mpg123_string outline;
+				mpg123_string *uslt = &v2->text[i].text;
+
+				memcpy(lang, &v2->text[i].lang, 3);
+				lang[3] = 0;
+				printf("Lyrics begin, language: %s; %s\n\n", lang,  v2->text[i].description.fill ? v2->text[i].description.p : "");
+
+				mpg123_init_string(&innline);
+				mpg123_init_string(&outline);
+				while(a < uslt->fill)
+				{
+					b = a;
+					while(b < uslt->fill && uslt->p[b] != '\n' && uslt->p[b] != '\r') ++b;
+					/* Either found end of a line or end of the string (null byte) */
+					mpg123_set_substring(&innline, uslt->p, a, b-a);
+					transform(&outline, &innline);
+					printf(" %s\n", outline.p);
+
+					if(uslt->p[b] == uslt->fill) break; /* nothing more */
+
+					/* Swallow CRLF */
+					if(uslt->fill-b > 1 && uslt->p[b] == '\r' && uslt->p[b+1] == '\n') ++b;
+
+					a = b + 1; /* next line beginning */
+				}
+				mpg123_free_string(&innline);
+				mpg123_free_string(&outline);
+
+				printf("\nLyrics end.\n");
+			}
+		}
+	}
 }
 
 void print_icy(mpg123_handle *mh, FILE *outstream)
