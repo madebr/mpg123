@@ -1145,6 +1145,8 @@ int main(int sys_argc, char ** sys_argv)
 				{
 					if(meta & MPG123_NEW_ID3) print_id3_tag(mh, param.long_id3, stderr);
 					if(meta & MPG123_NEW_ICY) print_icy(mh, stderr);
+
+					mpg123_meta_free(mh); /* Do not waste memory after delivering. */
 				}
 			}
 			if(!fresh && param.verbose)

@@ -1,4 +1,6 @@
 Changes in libmpg123 libtool interface versions...
+35.0.35
+	- Added mpg123_meta_free().
 
 34.0.34
 	- Added flag MPG123_AUTO_RESAMPLE.

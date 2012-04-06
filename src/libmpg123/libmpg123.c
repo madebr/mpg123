@@ -1331,6 +1331,14 @@ int attribute_align_arg mpg123_meta_check(mpg123_handle *mh)
 	else return 0;
 }
 
+void attribute_align_arg mpg123_meta_free(mpg123_handle *mh)
+{
+	if(mh == NULL) return;
+
+	reset_id3(mh);
+	reset_icy(&mh->icy);
+}
+
 int attribute_align_arg mpg123_id3(mpg123_handle *mh, mpg123_id3v1 **v1, mpg123_id3v2 **v2)
 {
 	if(v1 != NULL) *v1 = NULL;

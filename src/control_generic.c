@@ -231,7 +231,11 @@ static void generic_load(mpg123_handle *fr, char *arg, int state)
 		return;
 	}
 	mpg123_seek(fr, 0, SEEK_SET); /* This finds ID3v2 at beginning. */
-	if(mpg123_meta_check(fr) & MPG123_NEW_ID3) generic_sendinfoid3(fr);
+	if(mpg123_meta_check(fr) & MPG123_NEW_ID3)
+	{
+		generic_sendinfoid3(fr);
+		mpg123_meta_free(fr);
+	}
 	else generic_sendinfo(arg);
 
 	if(htd.icy_name.fill) generic_sendmsg("I ICY-NAME: %s", htd.icy_name.p);

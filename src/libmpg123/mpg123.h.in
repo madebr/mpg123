@@ -948,6 +948,9 @@ typedef struct
    The check function returns a combination of flags. */
 EXPORT int mpg123_meta_check(mpg123_handle *mh); /* On error (no valid handle) just 0 is returned. */
 
+/** Clean up meta data storage (ID3v2 and ICY), freeing memory. */
+EXPORT void mpg123_meta_free(mpg123_handle *mh);
+
 /** Point v1 and v2 to existing data structures wich may change on any next read/decode function call.
  *  v1 and/or v2 can be set to NULL when there is no corresponding data.
  *  \return Return value is MPG123_OK or MPG123_ERR,  */
