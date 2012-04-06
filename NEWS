@@ -5,7 +5,7 @@
 - But also deal with concatenated (Frankenstein) streams: Not applying gapless cutting once we're over the announced number of frames.
 - Add --lyrics for printout of lyrics (from USLT in ID3v2).
 - Added handling of SIGUSR1 and SIGUSER2 to terminal control code, configurable via --ctrlusr1 and --ctrlusr2.
-- Some low-level API added (mpg123_framedata(), mpg123_framepos()).
+- Some low-level API added (mpg123_framedata(), mpg123_framepos(), buffering and resampling control).
 - Added info about input buffer fill to mpg123_getstate().
 - ReplayGain: Try to detect LAME below 3.95 for the different reference level of 83 dB (adding preamp of 6 dB). Version 3.95 itself (not 3.95.1) I cannot detect. User-set gain values are not touched.
 - Keep silent about missing bit reservoir when ignoring frames. That is the whole point (mostly;-).
