@@ -5,6 +5,10 @@ You are explicitly not allowed to send them unwanted business offers or to quest
 
 Current maintainers with various sorts of contributions:
 	Thomas Orgis <thomas@orgis.org>
+	Patrick Dehne <patrick@steidle.net>
+	Jonathan Yong <10walls@gmail.com>
+
+Co-initiator of the revived mpg123 project, but not that involved anymore:
 	Nicholas J Humfrey <njh@ecs.soton.ac.uk>
 
 Generic address pointing to the current maintainer (hopefully still works in future in case maintainership will change again): <maintainer@mpg123.org>
@@ -20,7 +24,7 @@ Elbert Pol (TeLLie) <elbert.pol@gmail.com>: OS/2 port fixup
 Jeroen Valkonet <jvalkon@xs4all.nl>: motivate pitch control, suggestive patch for pitch command in generic control interface
 Andy Hefner <ahefner@gmail.com>: patch for that second UTF16 issue
 Taihei Monma <tmkk@mac.com>: A whole lot of new/improved assembler code, including Altivec!
-Christian Weisgerber <naddy@openbsd.org>: sndio output
+Christian Weisgerber <naddy@openbsd.org>, Brad Smith: sndio output
 Patrick Dehne (P4tr3ck) <patrick@steidle.net>: more MSVC++ porting, patch to handle missing bit reservoirs
 Thorsten Glaser <tg@mirbsd.de>: icy2utf8, suggest utf8 locale stuff
 Dan Smith <dan@algenta.com>: ABI fixes for ensuring stack alignment (esp. for MinGW-built DLL with MSVC)

@@ -12,6 +12,7 @@
 - Add the new/old WRITE_SAMPLE variant from MPlayer that makes the generic decoder faster on older CPUs (x86 at least). Not on x86-64, though (it's not enabled per default there).
 - Handle out-of-disk in the file writers (a bit, see http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=67259)
 - Added Xcode project files to build libmpg123 on Mac OS and iOS
+- 32 bit output for sndio output (patch by Brad Smith).
 
 1.13.7
 ---
