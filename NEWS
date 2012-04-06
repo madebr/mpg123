@@ -15,6 +15,7 @@
 - 32 bit output for sndio output (patch by Brad Smith).
 - Remote control interface knows LOADLIST command now.
 - Now freeing meta data memory after printout.
+- Some documentation cleanup, including manpage fixes by quadrispro.
 
 1.13.7
 ---
