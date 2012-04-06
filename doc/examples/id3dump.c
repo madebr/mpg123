@@ -99,7 +99,10 @@ void print_raw_v2(mpg123_id3v2 *v2)
 		id[4] = 0;
 		memcpy(lang, v2->text[i].lang, 3);
 		lang[3] = 0;
-		printf("%s language(%s)\n", id, lang);
+		if(v2->text[i].description.fill)
+		printf("%s language(%s) description(%s)\n", id, lang, v2->text[i].description.p);
+		else printf("%s language(%s)\n", id, lang);
+
 		print_lines(" ", &v2->text[i].text);
 	}
 	for(i=0; i<v2->extras; ++i)
