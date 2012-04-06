@@ -2,8 +2,8 @@
 ---
 
 - Add --ignore-streamlength.
-- Add --lyrics for printout of lyrics (from USLT in ID3v2).
 - But also deal with concatenated (Frankenstein) streams: Not applying gapless cutting once we're over the announced number of frames.
+- Add --lyrics for printout of lyrics (from USLT in ID3v2).
 - Added handling of SIGUSR1 and SIGUSER2 to terminal control code, configurable via --ctrlusr1 and --ctrlusr2.
 - Some low-level API added (mpg123_framedata(), mpg123_framepos()).
 - Added info about input buffer fill to mpg123_getstate().
