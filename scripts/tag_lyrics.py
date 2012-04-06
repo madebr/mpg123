@@ -4,6 +4,7 @@
 # needs mutagen
 # grabbed from: http://code.activestate.com/recipes/577138-embed-lyrics-into-mp3-files-using-mutagen-uslt-tag/
 # simplified to only work on one file and get lyrics from stdin
+# I suspect this is public domain code. Just a usage example of the mutagen lib.
 
 import os
 import sys

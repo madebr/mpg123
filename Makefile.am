@@ -92,5 +92,6 @@ EXTRA_DIST = \
 	ports/Sony_PSP/readers.c.patch \
 	ports/mpg123_.pas \
 	scripts/benchmark-cpu.pl \
+	scripts/tag_lyrics.py \
 	ports/Xcode/mpg123.xcodeproj/project.pbxproj
 
