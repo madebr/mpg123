@@ -362,10 +362,10 @@ static void set_appflag(char *arg)
 {
 	param.appflags |= appflag;
 }
-static void unset_appflag(char *arg)
+/* static void unset_appflag(char *arg)
 {
 	param.appflags &= ~appflag;
-}
+} */
 
 /* Please note: GLO_NUM expects point to LONG! */
 /* ThOr:
