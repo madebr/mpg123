@@ -100,7 +100,7 @@ struct parameter
 	long resync_limit;
 	int smooth;
 	double pitch; /* <0 or >0, 0.05 for 5% speedup. */
-	int ignore_mime; /* An mpg123 app flag field in future? */
+	unsigned long appflags; /* various switches for mpg123 application */
 	char *proxyurl;
 	int keep_open; /* Whether to keep files open after end reached, for remote control mode, perhaps terminal control, too. */
 	int force_utf8; /* Regardless of environment, always print out verbatim UTF for metadata. */
@@ -112,6 +112,14 @@ struct parameter
 	char* streamdump;
 	long icy_interval;
 };
+
+enum mpg123app_flags
+{
+	 MPG123APP_IGNORE_MIME = 0x01
+};
+
+/* shortcut to check application flags */
+#define APPFLAG(a) (param.appflags & (a))
 
 extern char *equalfile;
 extern off_t framenum;

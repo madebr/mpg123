@@ -104,7 +104,7 @@ struct parameter param = {
 	,1024 /* resync_limit */
 	,0 /* smooth */
 	,0.0 /* pitch */
-	,0 /* ignore_mime */
+	,0 /* appflags */
 	,NULL /* proxyurl */
 	,0 /* keep_open */
 	,0 /* force_utf8 */
@@ -356,6 +356,17 @@ static void unset_frameflag(char *arg)
 {
 	param.flags &= ~frameflag;
 }
+
+static int appflag; /* still ugly, but works */
+static void set_appflag(char *arg)
+{
+	param.appflags |= appflag;
+}
+static void unset_appflag(char *arg)
+{
+	param.appflags &= ~appflag;
+}
+
 /* Please note: GLO_NUM expects point to LONG! */
 /* ThOr:
  *  Yeah, and despite that numerous addresses to int variables were 
@@ -471,7 +482,7 @@ topt opts[] = {
 	{'D', "delay", GLO_ARG | GLO_INT, 0, &param.delay, 0},
 	{0, "resync-limit", GLO_ARG | GLO_LONG, 0, &param.resync_limit, 0},
 	{0, "pitch", GLO_ARG|GLO_DOUBLE, 0, &param.pitch, 0},
-	{0, "ignore-mime", GLO_INT,  0, &param.ignore_mime, 1 },
+	{0, "ignore-mime", GLO_INT, set_appflag, &appflag, MPG123APP_IGNORE_MIME },
 	{0, "keep-open", GLO_INT, 0, &param.keep_open, 1},
 	{0, "utf8", GLO_INT, 0, &param.force_utf8, 1},
 	{0, "fuzzy", GLO_INT,  set_frameflag, &frameflag, MPG123_FUZZY},
@@ -583,7 +594,7 @@ int open_track(char *fname)
 		
 		/* now check if we got sth. and if we got sth. good */
 		if(    (filept >= 0) && (htd.content_type.p != NULL)
-			  && !param.ignore_mime && !(debunk_mime(htd.content_type.p) & IS_FILE) )
+			  && !APPFLAG(MPG123APP_IGNORE_MIME) && !(debunk_mime(htd.content_type.p) & IS_FILE) )
 		{
 			error1("Unknown mpeg MIME type %s - is it perhaps a playlist (use -@)?", htd.content_type.p == NULL ? "<nil>" : htd.content_type.p);
 			error("If you know the stream is mpeg1/2 audio, then please report this as "PACKAGE_NAME" bug");

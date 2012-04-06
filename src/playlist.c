@@ -225,7 +225,7 @@ int add_next_file (int argc, char *argv[])
 				fd = win32_net_http_open(param.listname, &htd);
 #endif
 				debug1("htd.content_type.p: %p", (void*) htd.content_type.p);
-				if(!param.ignore_mime && htd.content_type.p != NULL)
+				if(!APPFLAG(MPG123APP_IGNORE_MIME) && htd.content_type.p != NULL)
 				{
 					int mimi;
 					debug1("htd.content_type.p value: %s", htd.content_type.p);
