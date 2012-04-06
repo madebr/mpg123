@@ -13,6 +13,7 @@
 - Handle out-of-disk in the file writers (a bit, see http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=67259)
 - Added Xcode project files to build libmpg123 on Mac OS and iOS
 - 32 bit output for sndio output (patch by Brad Smith).
+- Remote control interface knows LOADLIST command now.
 
 1.13.7
 ---

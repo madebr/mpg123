@@ -9,6 +9,7 @@
 
 #include "mpg123app.h"
 #include <stdarg.h>
+#include <ctype.h>
 #if !defined (WIN32) || defined (__CYGWIN__)
 #include <sys/wait.h>
 #include <sys/socket.h>
@@ -20,6 +21,7 @@
 #include "common.h"
 #include "buffer.h"
 #include "genre.h"
+#include "playlist.h"
 #define MODE_STOPPED 0
 #define MODE_PLAYING 1
 #define MODE_PAUSED 2
@@ -240,6 +242,45 @@ static void generic_load(mpg123_handle *fr, char *arg, int state)
 	generic_sendmsg(mode == MODE_PAUSED ? "P 1" : "P 2");
 }
 
+static void generic_loadlist(mpg123_handle *fr, char *arg)
+{
+	/* arguments are two: first the index to play, then the URL */
+	long entry;
+	long i = 0;
+	char *file = NULL;
+	char *thefile = NULL;
+
+	/* I feel retarted with string parsing outside Perl. */
+	while(*arg && isspace(*arg)) ++arg;
+	entry = atol(arg);
+	while(*arg && !isspace(*arg)) ++arg;
+	while(*arg && isspace(*arg)) ++arg;
+	if(!*arg)
+	{
+		generic_sendmsg("E empty list name");
+		return;
+	}
+
+	/* Now got the plain playlist path in arg. On to evil manupulation of mpg123's playlist code. */
+	param.listname = arg;
+	param.listentry = 0; /* The playlist shall not filter. */
+	prepare_playlist(0, NULL);
+	while((file = get_next_file()))
+	{
+		++i;
+		/* semantics: 0 brings you to the last track */
+		if(entry == 0 || entry == i) thefile = file;
+
+		generic_sendmsg("I LISTENTRY %li: %s", i, file);
+	}
+	if(!i) generic_sendmsg("I LIST EMPTY");
+
+	/* If we have something to play, play it. */
+	if(thefile) generic_load(fr, thefile, MODE_PLAYING);
+
+	free_playlist(); /* Free memory after it is not needed anymore. */
+}
+
 int control_generic (mpg123_handle *fr)
 {
 	struct timeval tv;
@@ -267,7 +308,7 @@ int control_generic (mpg123_handle *fr)
 #endif
 	/* the command behaviour is different, so is the ID */
 	/* now also with version for command availability */
-	fprintf(outstream, "@R MPG123 (ThOr) v6\n");
+	fprintf(outstream, "@R MPG123 (ThOr) v7\n");
 #ifdef FIFO
 	if(param.fifo)
 	{
@@ -524,6 +565,7 @@ int control_generic (mpg123_handle *fr)
 					generic_sendmsg("H HELP/H: command listing (LONG/SHORT forms), command case insensitve");
 					generic_sendmsg("H LOAD/L <trackname>: load and start playing resource <trackname>");
 					generic_sendmsg("H LOADPAUSED/LP <trackname>: load but do not start playing resource <trackname>");
+					generic_sendmsg("H LOADLIST <entry> <url>: load a playlist from given <url>, and display its entries, optionally load and play one of these specificed by the integer <entry> (<0: just list, 0: play last track, >0:play track with that position in list)");
 					generic_sendmsg("H PAUSE/P: pause playback");
 					generic_sendmsg("H STOP/S: stop playback (closes file)");
 					generic_sendmsg("H JUMP/J <frame>|<+offset>|<-offset>|<[+|-]seconds>s: jump to mpeg frame <frame> or change position by offset, same in seconds if number followed by \"s\"");
@@ -706,6 +748,8 @@ int control_generic (mpg123_handle *fr)
 
 					/* LOAD - actually play */
 					if (!strcasecmp(cmd, "L") || !strcasecmp(cmd, "LOAD")){ generic_load(fr, arg, MODE_PLAYING); continue; }
+
+					if (!strcasecmp(cmd, "L") || !strcasecmp(cmd, "LOADLIST")){ generic_loadlist(fr, arg); continue; }
 
 					/* LOADPAUSED */
 					if (!strcasecmp(cmd, "LP") || !strcasecmp(cmd, "LOADPAUSED")){ generic_load(fr, arg, MODE_PAUSED); continue; }
