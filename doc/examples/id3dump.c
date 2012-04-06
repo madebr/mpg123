@@ -94,9 +94,12 @@ void print_raw_v2(mpg123_id3v2 *v2)
 	for(i=0; i<v2->texts; ++i)
 	{
 		char id[5];
+		char lang[4];
 		memcpy(id, v2->text[i].id, 4);
 		id[4] = 0;
-		printf("%s\n", id);
+		memcpy(lang, v2->text[i].lang, 3);
+		lang[3] = 0;
+		printf("%s language(%s)\n", id, lang);
 		print_lines(" ", &v2->text[i].text);
 	}
 	for(i=0; i<v2->extras; ++i)
