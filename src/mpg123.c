@@ -1030,6 +1030,7 @@ int main(int sys_argc, char ** sys_argv)
 	while ((fname = get_next_file()))
 	{
 		char *dirname, *filename;
+		int newdir;
 		/* skip_tracks includes the previous one. */
 		if(skip_tracks) --skip_tracks;
 		if(skip_tracks)
@@ -1092,11 +1093,12 @@ int main(int sys_argc, char ** sys_argv)
 			continue;
 		}
 
+		/* Prinout and xterm title need this, possibly independently. */
+		newdir = split_dir_file(fname ? fname : "standard input", &dirname, &filename);
+
 		if (!param.quiet)
 		{
-			if (split_dir_file(fname ? fname : "standard input",
-				&dirname, &filename))
-				fprintf(stderr, "Directory: %s\n", dirname);
+			if(newdir) fprintf(stderr, "Directory: %s\n", dirname);
 
 #ifdef HAVE_TERMIOS
 		/* Reminder about terminal usage. */
@@ -1107,7 +1109,7 @@ int main(int sys_argc, char ** sys_argv)
 			fprintf(stderr, "Playing MPEG stream %lu of %lu: %s ...\n", (unsigned long)pl.pos, (unsigned long)pl.fill, filename);
 			if(htd.icy_name.fill) fprintf(stderr, "ICY-NAME: %s\n", htd.icy_name.p);
 			if(htd.icy_url.fill)  fprintf(stderr, "ICY-URL: %s\n",  htd.icy_url.p);
-
+		}
 #if !defined(GENERIC)
 {
 	const char *term_type;
@@ -1116,11 +1118,11 @@ int main(int sys_argc, char ** sys_argv)
 	    (!strncmp(term_type,"xterm",5) || !strncmp(term_type,"rxvt",4)))
 	{
 		fprintf(stderr, "\033]0;%s\007", filename);
+		fflush(stderr); /* Paranoia: will the buffer buffer the escapes? */
 	}
 }
 #endif
 
-		}
 /* Rethink that SIGINT logic... */
 #if !defined(WIN32) && !defined(GENERIC)
 #ifdef HAVE_TERMIOS
