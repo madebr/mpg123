@@ -1,3 +1,9 @@
+1.15.0
+---
+
+- Set xterm title always if asked, disregarding the -q switch (if you want fully quiet, don't specify --title).
+
+
 1.14.0
 ---
 
@@ -16,7 +22,6 @@
 - Remote control interface knows LOADLIST command now.
 - Now freeing meta data memory after printout.
 - Some documentation cleanup, including manpage fixes by quadrispro.
-- Set xterm title always if asked, disregarding the -q switch (if you want fully quiet, don't specify --title).
 
 1.13.8
 ---
