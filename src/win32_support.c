@@ -3,37 +3,46 @@
 #include "debug.h"
 
 #ifdef WANT_WIN32_UNICODE
+
+/* Obscure and undocumented call from MS C Runtime "MSVCRT.DLL" */
+typedef struct {
+  int newmode;
+} _startupinfo;
+
+int __declspec(dllimport) __wgetmainargs (
+   int *_Argc,
+   wchar_t ***_Argv,
+   wchar_t ***_Env,
+   int _DoWildCard,
+   _startupinfo * _StartInfo);
+
 int win32_cmdline_utf8(int * argc, char *** argv)
 {
-	wchar_t **argv_wide;
-	char *argvptr;
-	int argcounter;
+    int argcounter, ret;
+    wchar_t **argv_wide;
+    wchar_t **env;
+    char *argvptr;
+    _startupinfo startup;
 
-	/* That's too lame. */
-	if(argv == NULL || argc == NULL) return -1;
+    /* That's too lame. */
+    if(argv == NULL || argc == NULL) return -1;
 
-	argv_wide = CommandLineToArgvW(GetCommandLineW(), argc);
-	if(argv_wide == NULL){ error("Cannot get wide command line."); return -1; }
-
+    startup.newmode = 0;
+    ret = __wgetmainargs(argc, &argv_wide,&env,1, &startup);
 	*argv = (char **)calloc(sizeof (char *), *argc);
 	if(*argv == NULL){ error("Cannot allocate memory for command line."); return -1; }
-
 	for(argcounter = 0; argcounter < *argc; argcounter++)
 	{
 		win32_wide_utf8(argv_wide[argcounter], &argvptr, NULL);
 		(*argv)[argcounter] = argvptr;
 	}
-	LocalFree(argv_wide); /* We don't need it anymore */
-
-	return 0;
+	return ret;
 }
 
 void win32_cmdline_free(int argc, char **argv)
 {
 	int i;
-
 	if(argv == NULL) return;
-
 	for(i=0; i<argc; ++i) free(argv[i]);
 }
 #endif /* WANT_WIN32_UNICODE */
