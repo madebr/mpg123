@@ -200,7 +200,7 @@ void safe_exit(int code)
 #ifdef WANT_WIN32_UNICODE
 	win32_cmdline_free(argc, argv); /* This handles the premature argv == NULL, too. */
 #endif
-#if defined (WANT_WIN32_UNICODE)
+#if defined (WANT_WIN32_SOCKETS)
 	win32_net_deinit();
 #endif
 	/* It's ugly... but let's just fix this still-reachable memory chunk of static char*. */
