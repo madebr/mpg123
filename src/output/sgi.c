@@ -127,7 +127,7 @@ static int open_sgi(audio_output_t *ao)
 		return -1;
 	}
 	
-	ao->handle = (void*)port;
+	ao->userptr = (void*)port;
 	
 	
 	set_format(ao, config);
@@ -149,7 +149,7 @@ static int get_formats_sgi(audio_output_t *ao)
 
 static int write_sgi(audio_output_t *ao,unsigned char *buf,int len)
 {
-	ALport port = (ALport)ao->handle;
+	ALport port = (ALport)ao->userptr;
 	
 	if(ao->format == MPG123_ENC_SIGNED_8)
 		alWriteFrames(port, buf, len>>1);
@@ -162,12 +162,12 @@ static int write_sgi(audio_output_t *ao,unsigned char *buf,int len)
 
 static int close_sgi(audio_output_t *ao)
 {
-	ALport port = (ALport)ao->handle;
+	ALport port = (ALport)ao->userptr;
 	
 	if (port) {
 		while(alGetFilled(port) > 0) sginap(1);  
 		alClosePort(port);
-		ao->handle=NULL;
+		ao->userptr=NULL;
 	}
 	
 	return 0;
