@@ -141,7 +141,7 @@ static int open_sgi(audio_output_t *ao)
 }
 
 
-static int get_formats_sgi(output_t *ao)
+static int get_formats_sgi(audio_output_t *ao)
 {
 	return MPG123_ENC_SIGNED_16;
 }
