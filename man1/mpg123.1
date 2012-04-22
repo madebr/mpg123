@@ -1,4 +1,4 @@
-.TH mpg123 1 "31 Jan 2008"
+.TH mpg123 1 "22 Apr 2012"
 .SH NAME
 mpg123 \- play audio MPEG 1.0/2.0/2.5 stream (layers 1, 2 and 3)
 .SH SYNOPSIS
@@ -100,6 +100,11 @@ last one will be recognized).
 Of the playlist, play specified entry only. 
 .I n
 is the number of entry starting at 1. A value of 0 is the default and means playling the whole list,  a negative value means showing of the list of titles with their numbers...
+.TP
+\fB\-\^\-continue
+Enable playlist continuation mode. This changes frame skipping to apply only to the first track and also continues to play following tracks in playlist after the selected one. Also, the option to play a number of frames only applies to the whole playlist. Basically, this tries to treat the playlist more like one big stream (like, an audio book).
+The current track number in list (1-based) and frame number (0-based) are printed at exit (useful if you interrupted playback and want to continue later).
+Note that the continuation info is printed to standard output unless the switch for piping audio data to standard out is used. Also, it really makes sense to work with actual playlist files instead of lists of file names as arguments, to keep track positions consistent.
 .TP
 \fB\-\-loop \fItimes\fR
 for looping track(s) a certain number of times, < 0 means infinite loop (not with \-\-random!).

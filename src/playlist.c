@@ -154,6 +154,9 @@ void init_playlist()
 	pl.size = 0;
 	pl.fill = 0;
 	pl.pos = 0;
+	if(APPFLAG(MPG123APP_CONTINUE) && param.listentry > 0)
+	pl.pos = param.listentry - 1;
+
 	pl.list = NULL;
 	pl.alloc_step = 10;
 	mpg123_init_string(&pl.dir);
@@ -464,7 +467,7 @@ int add_next_file (int argc, char *argv[])
 				}
 				++pl.entry;
 				if(param.listentry < 0) printf("#entry %lu\n%s\n", (unsigned long)pl.entry,pl.linebuf.p+line_offset);
-				else if((param.listentry == 0) || (param.listentry == pl.entry))
+				else if((param.listentry == 0) || (param.listentry == pl.entry) || APPFLAG(MPG123APP_CONTINUE))
 				{
 					add_copy_to_playlist(pl.linebuf.p+line_offset);
 					return 1;

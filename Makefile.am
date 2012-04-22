@@ -95,5 +95,6 @@ EXTRA_DIST = \
 	ports/Xcode/mpg123.h \
 	ports/Xcode/mpg123.xcodeproj/project.pbxproj \
 	scripts/benchmark-cpu.pl \
-	scripts/tag_lyrics.py
+	scripts/tag_lyrics.py \
+	scripts/con_play
 
