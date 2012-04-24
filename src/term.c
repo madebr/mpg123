@@ -427,6 +427,7 @@ static void term_handle_key(mpg123_handle *fr, audio_output_t *ao, char val)
 
 			fprintf(stderr, "\t%s\n", term_help[i].desc);
 		}
+		fprintf(stderr, "\nAlso, the number row (starting at 1, ending at 0) gives you jump points into the current track at 10%% intervals.\n");
 		fprintf(stderr, "\n");
 	}
 	break;
