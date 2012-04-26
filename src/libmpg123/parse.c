@@ -494,7 +494,9 @@ init_resync:
 	}
 #endif
 
-	ret = decode_header(fr, newhead);
+	ret = head_check(newhead);
+	if(ret) ret = decode_header(fr, newhead);
+
 	JUMP_CONCLUSION(ret); /* That only continues for ret == 0 or 1 */
 	if(ret == 0)
 	{ /* Header was not good. */
@@ -662,15 +664,16 @@ static int guess_freeformat_framesize(mpg123_handle *fr)
  *  1: success
  *  0: no valid header
  * <0: some error
+ * You are required to do a head_check() before calling!
  */
 static int decode_header(mpg123_handle *fr,unsigned long newhead)
 {
+#ifdef DEBUG /* Do not waste cycles checking the header twice all the time. */
 	if(!head_check(newhead))
 	{
-		if(NOQUIET) error("tried to decode obviously invalid header");
-
-		return 0;
+		error1("trying to decode obviously invalid header 0x%08lx", newhead);
 	}
+#endif
 	if(HDR_VERSION_VAL(newhead) & 0x2)
 	{
 		fr->lsf = (HDR_VERSION_VAL(newhead) & 0x1) ? 0 : 1;
