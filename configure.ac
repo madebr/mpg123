@@ -35,10 +35,11 @@ AM_CONFIG_HEADER(src/config.h)
 AC_MSG_CHECKING([for -Werror in CFLAGS (It breaks tests)])
 if echo "$CFLAGS" | grep Werror; then
 	AC_MSG_RESULT([yes])
-	AC_MSG_ERROR([I refuse to run with -Werror in CFLAGS. That breaks tests and makes this configure bogus.
+	AC_MSG_WARN([You have -Werror in CFLAGS. That may break some tests and make this configure bogus.
 If you want paranoid compilation, use --enable-nagging option, which adds -Werror for gcc.
 Also note that you shall not run make distcheck after configuring with --enable-nagging.
-distcheck uses the generated CFLAGS...])
+distcheck uses the generated CFLAGS...
+Anyhow, continuing at your own risk.])
 else
 	AC_MSG_RESULT([no])
 fi
