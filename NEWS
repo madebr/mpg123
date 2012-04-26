@@ -26,6 +26,7 @@
 - Some documentation cleanup, including manpage fixes by quadrispro.
 - Re-enabled wildcard expansion on Windows (been broken by unicode file name support).
 - Fix MMX tabinit syntax (thanks to Marcel Müller for pointing that out).
+- Fix SGI audio output (been broken since change to modules).
 
 1.13.8
 ---
