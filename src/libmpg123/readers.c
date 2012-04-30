@@ -202,7 +202,9 @@ static ssize_t plain_fullread(mpg123_handle *fr,unsigned char *buf, ssize_t coun
 {
 	ssize_t ret,cnt=0;
 
+#ifdef EXTRA_DEBUG
 	debug1("plain fullread of %"SSIZE_P, (size_p)count);
+#endif
 	/*
 		There used to be a check for expected file end here (length value or ID3 flag).
 		This is not needed:
