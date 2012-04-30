@@ -736,8 +736,9 @@ static int decode_header(mpg123_handle *fr,unsigned long newhead)
 			{
 				if(ret == MPG123_NEED_MORE)
 				debug("Need more data to guess free format frame size.");
-				else
+				else if(VERBOSE3)
 				error("Encountered free format header, but failed to guess frame size.");
+
 				return ret;
 			}
 		}
