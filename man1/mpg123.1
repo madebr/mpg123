@@ -63,8 +63,9 @@ With this switch you can make it bail out on data errors
 The old name still works, but is not advertised or recommened to use (subject to removal in future).
 .TP
 \fB\-\^-resync\-limit \fIbytes\fR
-Set number of bytes to search for valid MPEG data; <0 means search whole stream.
+Set number of bytes to search for valid MPEG data once lost in stream; <0 means search whole stream.
 If you know there are huge chunks of invalid data in your files... here is your hammer.
+Note: Only since version 1.14 this also increases the amount of junk skipped on beginning.
 .TP
 \fB\-p \fIURL \fR| \fBnone\fR, \fB\-\^\-proxy \fIURL \fR| \fBnone
 The specified

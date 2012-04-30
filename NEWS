@@ -8,7 +8,7 @@
 1.14.0
 ---
 
-- libmpg123 API version 35 (see NEWS.libmpg123)
+- libmpg123 API version 36 (see NEWS.libmpg123)
 - Add --ignore-streamlength.
 - But also deal with concatenated (Frankenstein) streams: Not applying gapless cutting once we're over the announced number of frames.
 - Add --lyrics for printout of lyrics (from USLT in ID3v2).
@@ -27,6 +27,8 @@
 - Re-enabled wildcard expansion on Windows (been broken by unicode file name support).
 - Fix MMX tabinit syntax (thanks to Marcel Müller for pointing that out).
 - Fix SGI audio output (been broken since change to modules).
+- Fix some fringe behaviour (mpg123_getformat() triggering needless reading of next frame, possibly hitting bogus MPG123_NEED_MORE).
+- Resync limit now also serves to increase amount of skipped junk on beginning.
 
 1.13.8
 ---
