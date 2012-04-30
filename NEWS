@@ -29,6 +29,7 @@
 - Fix SGI audio output (been broken since change to modules).
 - Fix some fringe behaviour (mpg123_getformat() triggering needless reading of next frame, possibly hitting bogus MPG123_NEED_MORE).
 - Resync limit now also serves to increase amount of skipped junk on beginning.
+- Better separation of stream end and read error (in case there is no stream opened, even).
 
 1.13.8
 ---

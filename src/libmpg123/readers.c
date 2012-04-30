@@ -1107,6 +1107,7 @@ void open_bad(mpg123_handle *mh)
 #ifndef NO_FEEDER
 	bc_init(&mh->rdat.buffer);
 #endif
+	mh->rdat.filelen = -1;
 }
 
 int open_feed(mpg123_handle *fr)

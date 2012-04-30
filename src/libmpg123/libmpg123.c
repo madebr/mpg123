@@ -603,7 +603,7 @@ static int get_next_frame(mpg123_handle *mh)
 		else if(b <= 0)
 		{
 			/* More sophisticated error control? */
-			if(b==0 || mh->rdat.filepos == mh->rdat.filelen)
+			if(b==0 || (mh->rdat.filelen >= 0 && mh->rdat.filepos == mh->rdat.filelen))
 			{ /* We simply reached the end. */
 				mh->track_frames = mh->num + 1;
 				debug("What about updating/checking gapless sample count here?");
