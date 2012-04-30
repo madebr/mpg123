@@ -970,7 +970,8 @@ long attribute_align_arg mpg123_clip(mpg123_handle *mh)
 	return ret;
 }
 
-#define track_need_init(mh) (!(mh)->to_decode && (mh)->fresh)
+/* Simples: Track needs initializtion if no initial frame has been read yet. */
+#define track_need_init(mh) ((mh)->num < 0)
 
 static int init_track(mpg123_handle *mh)
 {
