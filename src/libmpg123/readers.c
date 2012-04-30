@@ -202,6 +202,7 @@ static ssize_t plain_fullread(mpg123_handle *fr,unsigned char *buf, ssize_t coun
 {
 	ssize_t ret,cnt=0;
 
+	debug1("plain fullread of %"SSIZE_P, (size_p)count);
 	/*
 		There used to be a check for expected file end here (length value or ID3 flag).
 		This is not needed:
@@ -1125,6 +1126,8 @@ int open_feed(mpg123_handle *fr)
 	fr->rd = &readers[READER_FEED];
 	fr->rdat.flags = 0;
 	if(fr->rd->init(fr) < 0) return -1;
+
+	debug("feed reader init successful");
 	return 0;
 #endif /* NO_FEEDER */
 }
