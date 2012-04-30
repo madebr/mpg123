@@ -1098,6 +1098,7 @@ static int default_init(mpg123_handle *fr)
 
 void open_bad(mpg123_handle *mh)
 {
+	debug("open_bad");
 #ifndef NO_ICY
 	clear_icy(&mh->icy);
 #endif

@@ -1503,8 +1503,10 @@ int attribute_align_arg mpg123_set_index(mpg123_handle *mh, off_t *offsets, off_
 int attribute_align_arg mpg123_close(mpg123_handle *mh)
 {
 	if(mh == NULL) return MPG123_ERR;
-	if(mh->rd != NULL && mh->rd->close != NULL) mh->rd->close(mh);
-	mh->rd = NULL;
+
+	/* mh->rd is never NULL! */
+	if(mh->rd->close != NULL) mh->rd->close(mh);
+
 	if(mh->new_format)
 	{
 		debug("Hey, we are closing a track before the new format has been queried...");
