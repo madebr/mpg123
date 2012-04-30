@@ -1,4 +1,8 @@
 Changes in libmpg123 libtool interface versions...
+
+36.0.36
+	- Extended MPG123_RESYNC_LIMIT to initial header search.
+
 35.0.35
 	- Added mpg123_meta_free().
 

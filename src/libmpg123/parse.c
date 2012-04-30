@@ -62,7 +62,7 @@ static const int tabsel_123[2][3][16] =
 static const long freqs[9] = { 44100, 48000, 32000, 22050, 24000, 16000 , 11025 , 12000 , 8000 };
 
 static int decode_header(mpg123_handle *fr,unsigned long newhead);
-static int skip_junk(mpg123_handle *fr, unsigned long *newheadp, int *headcount);
+static int skip_junk(mpg123_handle *fr, unsigned long *newheadp, long *headcount);
 static int do_readahead(mpg123_handle *fr, unsigned long newhead);
 static int wetwork(mpg123_handle *fr, unsigned long *newheadp);
 
@@ -455,7 +455,7 @@ int read_frame(mpg123_handle *fr)
 	/* The counter for the search-first-header loop.
 	   It is persistent outside the loop to prevent seemingly endless loops
 	   when repeatedly headers are found that do not have valid followup headers. */
-	int headcount = 0;
+	long headcount = 0;
 
 	fr->fsizeold=fr->framesize;       /* for Layer3 */
 
@@ -1012,9 +1012,10 @@ static int handle_id3v2(mpg123_handle *fr, unsigned long newhead)
 }
 
 /* watch out for junk/tags on beginning of stream by invalid header */
-static int skip_junk(mpg123_handle *fr, unsigned long *newheadp, int *headcount)
+static int skip_junk(mpg123_handle *fr, unsigned long *newheadp, long *headcount)
 {
 	int ret;
+	long limit = 65536;
 	unsigned long newhead = *newheadp;
 	/* check for id3v2; first three bytes (of 4) are "ID3" */
 	if((newhead & (unsigned long) 0xffffff00) == (unsigned long) 0x49443300)
@@ -1050,17 +1051,26 @@ static int skip_junk(mpg123_handle *fr, unsigned long *newheadp, int *headcount)
 	debug("searching for header...");
 	*newheadp = 0; /* Invalidate the external value. */
 	ret = 0; /* We will check the value after the loop. */
-	for(; *headcount<65536; (*headcount)++)
+
+	/* We prepare for at least the 64K bytes as usual, unless
+	   user explicitly wanted more (even infinity). Never less. */
+	if(fr->p.resync_limit < 0 || fr->p.resync_limit > limit)
+	limit = fr->p.resync_limit;
+
+	do
 	{
+		++(*headcount);
+		if(limit >= 0 && *headcount >= limit) break;				
+
 		if((ret=fr->rd->head_shift(fr,&newhead))<=0) return ret;
 
 		if(head_check(newhead) && (ret=decode_header(fr, newhead))) break;
-	}
+	} while(1);
 	if(ret<0) return ret;
 
-	if(*headcount == 65536)
+	if(limit >= 0 && *headcount >= limit)
 	{
-		if(NOQUIET) error("Giving up searching valid MPEG header after (over) 64K of junk.");
+		if(NOQUIET) error1("Giving up searching valid MPEG header after %li bytes of junk.", *headcount);
 		return PARSE_END;
 	}
 	else debug1("hopefully found one at %"OFF_P, (off_p)fr->rd->tell(fr));
