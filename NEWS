@@ -5,6 +5,12 @@
 - added number row to terminal control keys for 10% jump points (for navigating long tracks)
 - Set xterm title always if asked, disregarding the -q switch (if you want fully quiet, don't specify --title).
 
+
+1.14.2
+---
+- Fix writing of WAV to stdout.
+  It is still not the best of ideas to do so, though. At least make sure to fix rate and channels.
+
 1.14.1
 ---
 - Fix subtle bug that could trigger failure to detect a format change on resync when using libmpg123's feeder API.

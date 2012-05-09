@@ -169,7 +169,7 @@ static int write_header(const void*ptr, size_t size)
 {
 	if(wavfp == stdout)
 	{
-		if(header_written) return 1;
+		if(header_written) return 0;
 
 		header_written = 1;
 	}
