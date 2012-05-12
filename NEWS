@@ -1,6 +1,5 @@
 1.15.0
 ---
-
 - added --continue (also see scripts/conplay)
 - added number row to terminal control keys for 10% jump points (for navigating long tracks)
 - Set xterm title always if asked, disregarding the -q switch (if you want fully quiet, don't specify --title).
