@@ -18,7 +18,6 @@
 
 1.14.0
 ---
-
 - libmpg123 API version 36 (see NEWS.libmpg123)
 - Add --ignore-streamlength.
 - But also deal with concatenated (Frankenstein) streams: Not applying gapless cutting once we're over the announced number of frames.
