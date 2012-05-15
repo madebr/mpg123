@@ -3,6 +3,7 @@
 # Hacked by Thomas Orgis, use at your leisure.
 
 use strict;
+use locale;
 
 my @mpg123_command = qw(mpg123 --continue -Cv --rva-album);
 my $listfile = "conplay.m3u";
@@ -48,7 +49,7 @@ if(-e $listfile)
 }
 else
 {
-	@files = glob($glob);
+	@files = get_files($glob);
 	write_list();
 }
 
@@ -86,4 +87,15 @@ sub write_list
 		print LIST "$f\n";
 	}
 	close(LIST);
+}
+
+sub get_files
+{
+	my $glob = shift;
+	my @files;
+	open(FIND, '-|', 'find', '.', '-type', 'f', '-name', $glob) or die "Cannot exec find to find files: ($!)\n";
+	@files = <FIND>;
+	close(FIND);
+	chomp(@files);
+	return sort @files;
 }
