@@ -53,6 +53,12 @@ else
 	write_list();
 }
 
+unless(@files)
+{
+	print STDERR "There are no files to play.\n";
+	exit;
+}
+
 if($entry < 0 or $entry > $#files or $frame < 0)
 {
 	die "You got bad data in your playlist file (mismatch between current entry and total count, bad frame index). Clean that up.\n";
@@ -78,6 +84,11 @@ write_list();
 
 sub write_list
 {
+	unless(@files)
+	{
+		print STDERR "Refusing to write empty playlist.\n";
+		return;
+	}
 	open(LIST, '>', $listfile) or die "Cannot write Playlist";
 	print LIST "#M3U\n";
 	print LIST "#current entry: $entry\n";
