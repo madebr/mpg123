@@ -55,7 +55,7 @@ else
 
 if($entry < 0 or $entry > $#files or $frame < 0)
 {
-	die "You got bad data in your playlist file. Clean that up.\n";
+	die "You got bad data in your playlist file (mismatch between current entry and total count, bad frame index). Clean that up.\n";
 }
 
 push(@mpg123_command, '-k', $frame, '--listentry', $entry, '-@', $listfile);
