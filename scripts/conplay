@@ -78,12 +78,6 @@ push(@mpg123_command, '-k', $frame, '--listentry', $entry, '-@', $listfile);
 print STDERR "running player:\n\t@mpg123_command\n\n";
 
 open(MPG123, '-|', @mpg123_command) or die "Cannot run mpg123!";
-
-sleep(1);
-print "What do yo think of this year?\n";
-my $ans = <STDIN>;
-print "You said: $ans";
-
 while(<MPG123>)
 {
 	print STDOUT $_;
