@@ -729,7 +729,7 @@ static int decode_header(mpg123_handle *fr,unsigned long newhead, int *freeforma
 			*freeformat_count += 1;
 			if(*freeformat_count > 5)
 			{
-				error("You fooled me too often. Refusing to guess free format frame size _again_.");
+				if(VERBOSE3) error("You fooled me too often. Refusing to guess free format frame size _again_.");
 				return 0;
 			}
 			ret = guess_freeformat_framesize(fr);
