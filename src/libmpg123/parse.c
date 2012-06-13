@@ -642,8 +642,7 @@ static int guess_freeformat_framesize(mpg123_handle *fr)
 	return ret;
 
 	/* We are already 4 bytes into it */
-	/* Fix that limit to be absolute for the first header search! */
-	for(i=4;i<65536;i++)
+	for(i=4;i<MAXFRAMESIZE+4;i++)
 	{
 		if((ret=fr->rd->head_shift(fr,&head))<=0) return ret;
 
