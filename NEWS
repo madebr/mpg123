@@ -4,6 +4,9 @@
 - added number row to terminal control keys for 10% jump points (for navigating long tracks)
 - Set xterm title always if asked, disregarding the -q switch (if you want fully quiet, don't specify --title).
 
+1.14.3
+---
+- Fix regression from 1.14.1 in parsing of bad free format streams, avoiding apparently endless loops (just very slow reading, in fact).
 
 1.14.2
 ---
