@@ -1054,7 +1054,10 @@ ADD_CPPFLAGS=""
 ADD_LDFLAGS=""
 LIBS="$LIBS"
 
+# Consider moving that stuff.
 AC_CHECK_HEADER([os2.h], [ADD_CPPFLAGS="$ADD_CPPFLAGS -DOS2"])
+# On OS/2, we need to link to os2term to make terminal control actually work.
+AC_CHECK_LIB([os2term], [tcsetattr], [ADD_LDFLAGS="$ADD_LDFLAGS -los2term"])
 
 # If debugging is enabled then make warnings errors
 if test x"$debugging" = xenabled; then

@@ -3,6 +3,7 @@
 - added --continue (also see scripts/conplay)
 - added number row to terminal control keys for 10% jump points (for navigating long tracks)
 - Set xterm title always if asked, disregarding the -q switch (if you want fully quiet, don't specify --title).
+- Enable terminal mode in OS/2 by explicitly checking for and using os2term library.
 
 1.14.3
 ---
