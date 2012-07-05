@@ -53,7 +53,6 @@ struct auhead {
 
 
 static FILE *wavfp;
-static int header_written = 0; /* prevent writing multiple headers to stdout */
 static long datalen = 0;
 static int flipendian=0;
 int bytes_per_sample = -1;
@@ -156,12 +155,6 @@ static int close_file()
 /* Wrapper over header writing; ensure that stdout doesn't get multiple headers. */
 static int write_header(const void*ptr, size_t size)
 {
-	if(wavfp == stdout)
-	{
-		if(header_written) return 0;
-
-		header_written = 1;
-	}
 	if(fwrite(ptr, size, 1, wavfp) != 1 || fflush(wavfp))
 	{
 		error1("cannot write header: %s", strerror(errno));

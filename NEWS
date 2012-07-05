@@ -4,6 +4,9 @@
 - added number row to terminal control keys for 10% jump points (for navigating long tracks)
 - Set xterm title always if asked, disregarding the -q switch (if you want fully quiet, don't specify --title).
 - Enable terminal mode in OS/2 by explicitly checking for and using os2term library.
+- Getting WAV/AU/CDR writing back to a sane state while still catching out-of-disk when writing headers (none in case of CDR) but removing that initial test that prevented writing on any non-seekable file (like, /dev/stdout to a pipe).
+
+TODO: fix/describe logic for changing input format (multiple headers in non-seekable streams)
 
 1.14.3
 ---
