@@ -131,20 +131,9 @@ static int open_file(char *filename)
      wavfp = fopen(filename,"wb");
 #endif
      if(!wavfp)
-       return -1;
-		else
-		{
-			/* Test if we actually can write at least a byte, only chance to catch a totally full disk early. */
-			char a = 'a';
-			if(fwrite(&a, 1, 1, wavfp) == 1 && !fflush(wavfp) && !fseek(wavfp, 0, SEEK_SET))
-			return 0;
-			else
-			{
-				error1("cannot even write a single byte: %s", strerror(errno));
-				fclose(wavfp);
-				return -1;
-			}
-		}
+        return -1;
+     else
+        return 0;
    }
 }
 
