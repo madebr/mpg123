@@ -1,7 +1,7 @@
 /*
 	parse: spawned from common; clustering around stream/frame parsing
 
-	copyright ?-2009 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2012 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp & Thomas Orgis
 */
@@ -34,12 +34,14 @@
 
 #define bsbufid(fr) (fr)->bsbuf==(fr)->bsspace[0] ? 0 : ((fr)->bsbuf==fr->bsspace[1] ? 1 : ( (fr)->bsbuf==(fr)->bsspace[0]+512 ? 2 : ((fr)->bsbuf==fr->bsspace[1]+512 ? 3 : -1) ) )
 
+/* PARSE_GOOD and PARSE_BAD have to be 1 and 0 (TRUE and FALSE), others can vary. */
 enum parse_codes
 {
 	 PARSE_MORE = MPG123_NEED_MORE
 	,PARSE_ERR  = MPG123_ERR
-	,PARSE_END  = 0 /* No more audio data to find. */
+	,PARSE_END  = 10 /* No more audio data to find. */
 	,PARSE_GOOD = 1 /* Everything's fine. */
+	,PARSE_BAD  = 0 /* Not fine (invalid data). */
 	,PARSE_RESYNC = 2 /* Header not good, go into resync. */
 	,PARSE_AGAIN  = 3 /* Really start over, throw away and read a new header, again. */
 };
@@ -429,7 +431,7 @@ static int halfspeed_do(mpg123_handle *fr)
 /* 
 	Temporary macro until we got this worked out.
 	Idea is to filter out special return values that shall trigger direct jumps to end / resync / read again. 
-	Particularily, ret==PARSE_END==0 and ret==PARSE_GOOD==1 are not affected.
+	Particularily, the generic ret==PARSE_BAD==0 and ret==PARSE_GOOD==1 are not affected.
 */
 #define JUMP_CONCLUSION(ret) \
 { \
@@ -499,12 +501,13 @@ init_resync:
 	ret = head_check(newhead);
 	if(ret) ret = decode_header(fr, newhead, &freeformat_count);
 
-	JUMP_CONCLUSION(ret); /* That only continues for ret == 0 or 1 */
-	if(ret == 0)
+	JUMP_CONCLUSION(ret); /* That only continues for ret == PARSE_BAD or PARSE_GOOD. */
+	if(ret == PARSE_BAD)
 	{ /* Header was not good. */
 		ret = wetwork(fr, &newhead); /* Messy stuff, handle junk, resync ... */
 		JUMP_CONCLUSION(ret);
-		if(ret == 0) goto read_frame_bad;
+		/* Normally, we jumped already. If for some reason everything's fine to continue, do continue. */
+		if(ret != PARSE_GOOD) goto read_frame_bad;
 	}
 
 	if(!fr->firsthead)
@@ -623,9 +626,9 @@ read_frame_bad:
 /*
  * read ahead and find the next MPEG header, to guess framesize
  * return value: success code
- *  1: found a valid frame size (stored in the handle).
+ *  PARSE_GOOD: found a valid frame size (stored in the handle).
  * <0: error codes, possibly from feeder buffer (NEED_MORE)
- *  0: cannot get the framesize for some reason and shall silentry try the next possible header (if this is no free format stream after all...)
+ *  PARSE_BAD: cannot get the framesize for some reason and shall silentry try the next possible header (if this is no free format stream after all...)
  */
 static int guess_freeformat_framesize(mpg123_handle *fr)
 {
@@ -636,7 +639,7 @@ static int guess_freeformat_framesize(mpg123_handle *fr)
 	{
 		if(NOQUIET) error("Cannot look for freeformat frame size with non-seekable and non-buffered stream!");
 
-		return 0;
+		return PARSE_BAD;
 	}
 	if((ret=fr->rd->head_read(fr,&head))<=0)
 	return ret;
@@ -651,11 +654,11 @@ static int guess_freeformat_framesize(mpg123_handle *fr)
 		{
 			fr->rd->back_bytes(fr,i+1);
 			fr->framesize = i-3;
-			return 1; /* Success! */
+			return PARSE_GOOD; /* Success! */
 		}
 	}
 	fr->rd->back_bytes(fr,i);
-	return 0;
+	return PARSE_BAD;
 }
 
 
@@ -729,10 +732,10 @@ static int decode_header(mpg123_handle *fr,unsigned long newhead, int *freeforma
 			if(*freeformat_count > 5)
 			{
 				if(VERBOSE3) error("You fooled me too often. Refusing to guess free format frame size _again_.");
-				return 0;
+				return PARSE_BAD;
 			}
 			ret = guess_freeformat_framesize(fr);
-			if(ret>0)
+			if(ret == PARSE_GOOD)
 			{
 				fr->freeformat_framesize = fr->framesize - fr->padding;
 				if(VERBOSE2)
@@ -802,15 +805,15 @@ static int decode_header(mpg123_handle *fr,unsigned long newhead, int *freeforma
 		default:
 			if(NOQUIET) error1("Layer type %i not supported in this build!", fr->lay); 
 
-			return 0;
+			return PARSE_BAD;
 	}
 	if (fr->framesize > MAXFRAMESIZE)
 	{
 		if(NOQUIET) error1("Frame size too big: %d", fr->framesize+4-fr->padding);
 
-		return (0);
+		return PARSE_BAD;
 	}
-	return 1;
+	return PARSE_GOOD;
 }
 
 void set_pointer(mpg123_handle *fr, long backstep)
@@ -1147,7 +1150,7 @@ static int wetwork(mpg123_handle *fr, unsigned long *newheadp)
 				*newheadp = newhead;
 				if(NOQUIET) fprintf (stderr, "Note: Hit end of (available) data during resync.\n");
 
-				return ret;
+				return ret ? ret : PARSE_END;
 			}
 			if(VERBOSE3) debug3("resync try %li at %"OFF_P", got newhead 0x%08lx", try, (off_p)fr->rd->tell(fr),  newhead);
 		} while(!head_check(newhead));

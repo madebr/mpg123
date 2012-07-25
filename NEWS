@@ -8,6 +8,10 @@
 
 TODO: fix/describe logic for changing input format (multiple headers in non-seekable streams)
 
+1.14.4
+---
+- Fix resync logic to properly work again (used to prematurely end stream on bad headers). A regression again, this sucks, but at least we got a regression test for that now.
+
 1.14.3
 ---
 - Fix regression from 1.14.1 in parsing of bad free format streams, avoiding apparently endless loops (just very slow reading, in fact).
