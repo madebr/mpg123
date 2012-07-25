@@ -531,6 +531,7 @@ static struct buffy* bc_alloc(struct bufferchain *bc, size_t size)
 		buf->next = NULL; /* That shall be set to a sensible value later. */
 		buf->size = 0;
 		--bc->pool_fill;
+		debug2("bc_alloc: picked %p from pool (fill now %"SIZE_P")", buf, (size_p)bc->pool_fill);
 		return buf;
 	}
 	else return buffy_new(size, bc->bufblock);
@@ -616,6 +617,7 @@ static int bc_append(struct bufferchain *bc, ssize_t size)
 	else if(bc->first == NULL) bc->first = newbuf;
 
 	bc->last  = newbuf;
+	debug3("bc_append: new last buffer %p with %"SSIZE_P" B (really %"SSIZE_P")", bc->last, (ssize_p)bc->last->size, (ssize_p)bc->last->realsize);
 	return 0;
 }
 
@@ -635,6 +637,7 @@ static int bc_add(struct bufferchain *bc, const unsigned char *data, ssize_t siz
 			part = bc->last->realsize - bc->last->size;
 			if(part > size) part = size;
 
+			debug2("bc_add: adding %"SSIZE_P" B to existing block %p", (ssize_p)part, bc->last);
 			memcpy(bc->last->data+bc->last->size, data, part);
 			bc->last->size += part;
 			size -= part;
