@@ -180,16 +180,10 @@ static int check_lame_tag(mpg123_handle *fr)
 					}
 					else
 					{
-						/*
-							In theory, one should use that value for skipping...
-							When I know the exact number of samples I could simply count in flush_output,
-							but that's problematic with seeking and such.
-							I still miss the real solution for detecting the end.
-						*/
 						fr->track_frames = (off_t) make_long(fr->bsbuf, lame_offset);
 						if(fr->track_frames > TRACK_MAX_FRAMES) fr->track_frames = 0; /* endless stream? */
 #ifdef GAPLESS
-						/* if no further info there, remove at least the decoder delay */
+						/* All or nothing: Only if encoder delay/padding is known we'll cut samples for gapless. */
 						if(fr->p.flags & MPG123_GAPLESS)
 						frame_gapless_init(fr, fr->track_frames, 0, 0);
 #endif
