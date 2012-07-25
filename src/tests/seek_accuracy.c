@@ -5,7 +5,7 @@
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis
 
-	arguments: decoder testfile.mpeg
+	arguments: decoder preframes testfile.mpeg
 */
 
 #include <mpg123.h>
