@@ -57,14 +57,13 @@ static off_t sample_unadjust(mpg123_handle *mh, off_t x)
 */
 static void frame_buffercheck(mpg123_handle *fr)
 {
-	/* When we have no accurate position or gapless frame count,
-	   gapless code does not make sense. */
-	if(!((fr->state_flags & FRAME_ACCURATE) && fr->gapless_frames > 0)) return;
+	/* When we have no accurate position, gapless code does not make sense. */
+	if(!(fr->state_flags & FRAME_ACCURATE)) return;
 
 	/* Get a grip on dirty streams that start with a gapless header.
-	   Simply accept all data from frames tha are too much,
+	   Simply accept all data from frames that are too much,
 	   they are supposedly attached to the stream after the fact. */
-	if(fr->num >= fr->gapless_frames) return;
+	if(fr->gapless_frames > 0 && fr->num >= fr->gapless_frames) return;
 
 	/* Important: We first cut samples from the end, then cut from beginning (including left-shift of the buffer).
 	   This order works also for the case where firstframe == lastframe. */

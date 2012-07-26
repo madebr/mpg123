@@ -10,8 +10,12 @@ TODO: fix/describe logic for changing input format (multiple headers in non-seek
 
 1.14.4
 ---
+
+Who reworks a parsing and data mangling without really making sure that things still work like before? I hope I won't do so in future. Not again.
+
 - Fix resync logic to properly work again (used to prematurely end stream on bad headers). A regression again, this sucks, but at least we got a regression test for that now.
 - Fix aeon-old regression (since 1.11.0) about short seeks: Bit reservoir was reset also for short seeks that did not break continuity.
+- Another damned regression got fixed: Sample-accurate seek for files without full gapless info.
 
 1.14.3
 ---
