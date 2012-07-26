@@ -839,11 +839,10 @@ void frame_gapless_init(mpg123_handle *fr, off_t framecount, off_t bskip, off_t 
 {
 	debug3("frame_gaples_init: given %"OFF_P" frames, skip %"OFF_P" and %"OFF_P, (off_p)framecount, (off_p)bskip, (off_p)eskip);
 	fr->gapless_frames = framecount;
-	if(framecount > 0)
+	if(fr->gapless_frames > 0)
 	{
 		fr->begin_s = bskip+GAPLESS_DELAY;
 		fr->end_s = framecount*spf(fr)-eskip+GAPLESS_DELAY;
-		fr->gapless_frames = framecount;
 	}
 	else fr->begin_s = fr->end_s = 0;
 	/* These will get proper values later, from above plus resampling info. */
