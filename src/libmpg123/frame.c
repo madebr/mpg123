@@ -436,7 +436,7 @@ int frame_buffers_reset(mpg123_handle *fr)
 	/* Wondering: could it be actually _wanted_ to retain buffer contents over different files? (special gapless / cut stuff) */
 	fr->bsbuf = fr->bsspace[1];
 	fr->bsbufold = fr->bsbuf;
-	fr->bitreservoir = 0; /* Not entirely sure if this is the right place for that counter. */
+	fr->bitreservoir = 0;
 	frame_decode_buffers_reset(fr);
 	memset(fr->bsspace, 0, 2*(MAXFRAMESIZE+512));
 	memset(fr->ssave, 0, 34);
@@ -943,6 +943,7 @@ void frame_skip(mpg123_handle *fr)
 void frame_set_seek(mpg123_handle *fr, off_t sp)
 {
 	fr->firstframe = frame_offset(fr, sp);
+	debug1("frame_set_seek: from %"OFF_P, fr->num);
 #ifndef NO_NTOM
 	if(fr->down_sample == 3) ntom_set_ntom(fr, fr->firstframe);
 #endif
@@ -956,8 +957,6 @@ void frame_set_seek(mpg123_handle *fr, off_t sp)
 	debug3("frame_set_seek: begin at %li frames, end at %li; ignore from %li",
 	       (long) fr->firstframe, (long) fr->lastframe, (long) fr->ignoreframe);
 #endif
-	/* Old bit reservoir should be invalid, eh? */
-	fr->bitreservoir = 0;
 }
 
 int attribute_align_arg mpg123_volume_change(mpg123_handle *mh, double change)
