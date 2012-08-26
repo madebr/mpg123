@@ -234,7 +234,7 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 		/* We are trying to be smart here and conserve vertical space.
 		   So we will skip tags not set, and try to show them in two parallel columns if they are short, which is by far the	most common case. */
 		/* one _could_ circumvent the strlen calls... */
-		if(tag[TITLE].fill && tag[ARTIST].fill && len[TITLE] <= 30 && len[TITLE] <= 30)
+		if(tag[TITLE].fill && tag[ARTIST].fill && len[TITLE] <= 30 && len[ARTIST] <= 30)
 		{
 			fprintf(out,"Title:   %s%s  Artist: %s\n",tag[TITLE].p, space+len[TITLE], tag[ARTIST].p);
 		}
