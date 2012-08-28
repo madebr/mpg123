@@ -56,6 +56,7 @@
 #define MPG123_PITCH_DOWN_KEY  'x'
 #define MPG123_PITCH_BDOWN_KEY 'X'
 #define MPG123_PITCH_ZERO_KEY  'w'
+#define MPG123_BOOKMARK_KEY    'k'
 /* This counts as "undocumented" and can disappear */
 #define MPG123_FRAME_INDEX_KEY 'i'
 #define MPG123_VARIOUS_INFO_KEY 'I'

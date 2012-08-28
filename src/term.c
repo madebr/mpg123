@@ -59,6 +59,7 @@ struct keydef term_help[] =
 	,{ MPG123_PITCH_UP_KEY, MPG123_PITCH_BUP_KEY, "pitch up (small step, big step)" }
 	,{ MPG123_PITCH_DOWN_KEY, MPG123_PITCH_BDOWN_KEY, "pitch down (small step, big step)" }
 	,{ MPG123_PITCH_ZERO_KEY, 0, "reset pitch to zero" }
+	,{ MPG123_BOOKMARK_KEY, 0, "print out current position in playlist and track, for the benefit of some external tool to store bookmarks" }
 };
 
 void term_sigcont(int sig);
@@ -475,6 +476,9 @@ static void term_handle_key(mpg123_handle *fr, audio_output_t *ao, char val)
 		if(len > 0) mpg123_seek(fr, (off_t)( (num/10.)*len ), SEEK_SET);
 
 	}
+	break;
+	case MPG123_BOOKMARK_KEY:
+		continue_msg("BOOKMARK");
 	break;
 	default:
 		;

@@ -1222,7 +1222,7 @@ int main(int sys_argc, char ** sys_argv)
 
 	if(APPFLAG(MPG123APP_CONTINUE))
 	{
-		fprintf(aux_out, "\n[CONTINUE] track %"SIZE_P" frame %"OFF_P"\n", (size_p)pl.pos, (off_p)framenum);
+		continue_msg("CONTINUE");
 	}
 
 	/* Free up memory used by playlist */    
@@ -1429,4 +1429,9 @@ static void give_version(char* arg)
 {
 	fprintf(stdout, PACKAGE_NAME" "PACKAGE_VERSION"\n");
 	safe_exit(0);
+}
+
+void continue_msg(const char *name)
+{
+		fprintf(aux_out, "\n[%s] track %"SIZE_P" frame %"OFF_P"\n", name,  (size_p)pl.pos, (off_p)framenum);
 }

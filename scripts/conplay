@@ -86,6 +86,12 @@ while(<MPG123>)
 		$entry = $1;
 		$frame = $2;
 	}
+	if(/^\[BOOKMARK\]\s+track\s+(\d+)\s+frame\s+(\d+)/)
+	{
+		print STDERR "\nGot bookmark at track $1, frame $2; not yet doing anything with that, besides storing.\n";
+		$entry = $1;
+		$frame = $2;
+	}
 }
 close(MPG123);
 
