@@ -215,6 +215,7 @@ static int write_alsa(audio_output_t *ao, unsigned char *buf, int bytes)
 	snd_pcm_sframes_t written;
 
 	frames = snd_pcm_bytes_to_frames(pcm, bytes);
+	debug1("trying to write %lu pcm frames", (unsigned long)frames);
 	written = snd_pcm_writei(pcm, buf, frames);
 	if(written < 0)
 	{
