@@ -158,7 +158,9 @@ static int open_alsa(audio_output_t *ao)
 	snd_pcm_t *pcm=NULL;
 	debug1("open_alsa with %p", ao->userptr);
 
+#ifndef DEBUG
 	if(AOQUIET) snd_lib_error_set_handler(error_ignorer);
+#endif
 
 	pcm_name = ao->device ? ao->device : "default";
 	if (snd_pcm_open(&pcm, pcm_name, SND_PCM_STREAM_PLAYBACK, 0) < 0) {
@@ -213,28 +215,23 @@ static int write_alsa(audio_output_t *ao, unsigned char *buf, int bytes)
 
 	frames = snd_pcm_bytes_to_frames(pcm, bytes);
 	written = snd_pcm_writei(pcm, buf, frames);
-	if (written == -EINTR) /* interrupted system call */
-		written = 0;
-	else if (written == -EPIPE) { /* underrun */
-		if (snd_pcm_prepare(pcm) >= 0)
-			written = snd_pcm_writei(pcm, buf, frames);
-	}
-	if (written >= 0)
-		return snd_pcm_frames_to_bytes(pcm, written);
-	else
+	if(written < 0)
 	{
-		if(snd_pcm_state(pcm) == SND_PCM_STATE_SUSPENDED)
+		int try = 11;
+		while(--try && written < 0)
 		{
-			/* Iamnothappyabouthisnothappyreallynot. */
-			snd_pcm_resume(pcm);
-			if(snd_pcm_state(pcm) == SND_PCM_STATE_SUSPENDED)
-			{
-				error("device still suspended after resume hackery... giving up");
-				return -1;
-			}
+			debug1("alsa issue %i, trying to recover", (int)written);
+			if(snd_pcm_recover(pcm, (int)written, 0) == 0)
+			written = snd_pcm_writei(pcm, buf, frames);
 		}
-		return 0;
+		if(!try) error("Giving up recovery, number of attempts exhausted.");
 	}
+	if(written < 0)
+	{
+		error1("Fatal problem with alsa output, error %i.", written);
+		return -1;
+	}
+	else return snd_pcm_frames_to_bytes(pcm, written);
 }
 
 static void flush_alsa(audio_output_t *ao)
