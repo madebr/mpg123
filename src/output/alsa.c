@@ -108,6 +108,7 @@ static int initialize_device(audio_output_t *ao)
 		if(!AOQUIET) error("initialize_device(): cannot set buffer size");
 		return -1;
 	}
+	debug1("buffer_size=%lu", (unsigned long)buffer_size);
 	period_size = buffer_size / 4;
 	if (snd_pcm_hw_params_set_period_size_near(pcm, hw, &period_size, NULL) < 0) {
 		if(!AOQUIET) error("initialize_device(): cannot set period size");
@@ -123,8 +124,8 @@ static int initialize_device(audio_output_t *ao)
 		if(!AOQUIET) error("initialize_device(): cannot get sw params");
 		return -1;
 	}
-	/* start playing after the first write */
-	if (snd_pcm_sw_params_set_start_threshold(pcm, sw, 1) < 0) {
+	/* start playing after some frames are present (minimal MPEG frame) or even full buffer? */
+	if (snd_pcm_sw_params_set_start_threshold(pcm, sw, buffer_size) < 0) {
 		if(!AOQUIET) error("initialize_device(): cannot set start threshold");
 		return -1;
 	}
@@ -220,7 +221,7 @@ static int write_alsa(audio_output_t *ao, unsigned char *buf, int bytes)
 		int try = 11;
 		while(--try && written < 0)
 		{
-			debug1("alsa issue %i, trying to recover", (int)written);
+			debug2("alsa issue %i, trying to recover (countdown %i)", (int)written, try);
 			if(snd_pcm_recover(pcm, (int)written, 0) == 0)
 			written = snd_pcm_writei(pcm, buf, frames);
 		}
