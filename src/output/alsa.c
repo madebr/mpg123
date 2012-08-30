@@ -124,8 +124,8 @@ static int initialize_device(audio_output_t *ao)
 		if(!AOQUIET) error("initialize_device(): cannot get sw params");
 		return -1;
 	}
-	/* start playing after some frames are present (minimal MPEG frame) or even full buffer? */
-	if (snd_pcm_sw_params_set_start_threshold(pcm, sw, buffer_size) < 0) {
+	/* start playing right away */
+	if (snd_pcm_sw_params_set_start_threshold(pcm, sw, 1) < 0) {
 		if(!AOQUIET) error("initialize_device(): cannot set start threshold");
 		return -1;
 	}
@@ -215,18 +215,13 @@ static int write_alsa(audio_output_t *ao, unsigned char *buf, int bytes)
 	snd_pcm_sframes_t written;
 
 	frames = snd_pcm_bytes_to_frames(pcm, bytes);
-	debug1("trying to write %lu pcm frames", (unsigned long)frames);
-	written = snd_pcm_writei(pcm, buf, frames);
-	if(written < 0)
+	while
+	( /* Try to write, recover if error, try again if recovery successful. */
+		(written = snd_pcm_writei(pcm, buf, frames)) < 0
+		&& snd_pcm_recover(pcm, (int)written, 0) == 0
+	)
 	{
-		int try = 11;
-		while(--try && written < 0)
-		{
-			debug2("alsa issue %i, trying to recover (countdown %i)", (int)written, try);
-			if(snd_pcm_recover(pcm, (int)written, 0) == 0)
-			written = snd_pcm_writei(pcm, buf, frames);
-		}
-		if(!try) error("Giving up recovery, number of attempts exhausted.");
+		debug2("recovered from alsa issue %i while trying to write %lu frames", (int)written, (unsigned long)frames);
 	}
 	if(written < 0)
 	{
