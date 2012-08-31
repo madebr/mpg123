@@ -250,8 +250,7 @@ static int close_alsa(audio_output_t *ao)
 	debug1("close_alsa with %p", ao->userptr);
 	if(pcm != NULL) /* be really generous for being called without any device opening */
 	{
-		if (snd_pcm_state(pcm) == SND_PCM_STATE_RUNNING)
-			snd_pcm_drain(pcm);
+		snd_pcm_drain(pcm); /* If there is something, let it drain, always. */
 		ao->userptr = NULL; /* Should alsa do this or the module wrapper? */
 		return snd_pcm_close(pcm);
 	}
