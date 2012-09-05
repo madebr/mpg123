@@ -29,10 +29,14 @@
 #define ALIGN16 .align 4
 #define ALIGN32 .align 5
 #else
+#ifdef ASMALIGN_BYTE
 #define ALIGN4  .align 4
 #define ALIGN8  .align 8
 #define ALIGN16 .align 16
 #define ALIGN32 .align 32
+#else
+#error "Dunno how assembler alignment works. Please specify."
+#endif
 #endif
 
 #define MANGLE_MACROCAT_REALLY(a, b) a ## b

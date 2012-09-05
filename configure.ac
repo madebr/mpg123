@@ -12,7 +12,7 @@ dnl ############# Initialisation
 AC_INIT([mpg123], [1.15.0], [mpg123-devel@lists.sourceforge.net])
 dnl Increment API_VERSION when the API gets changes (new functions).
 API_VERSION=36
-LIB_PATCHLEVEL=6
+LIB_PATCHLEVEL=7
 dnl Since we want to be backwards compatible, both sides get set to API_VERSION.
 LIBMPG123_VERSION=$API_VERSION:$LIB_PATCHLEVEL:$API_VERSION
 AC_SUBST(LIBMPG123_VERSION)
@@ -855,6 +855,8 @@ if test x"$asmalign_exp" = xunknown; then
 fi
 if test x"$asmalign_exp" = xyes; then
 	AC_DEFINE(ASMALIGN_EXP, 1, [ Define if .align takes 3 for alignment of 2^3=8 bytes instead of 8. ])
+else
+	AC_DEFINE(ASMALIGN_BYTE, 1, [ Define if .align just takes byte count. ])
 fi
 
 ccalign="unknown"
