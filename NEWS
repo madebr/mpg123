@@ -6,6 +6,7 @@
 - Enable terminal mode in OS/2 by explicitly checking for and using os2term library.
 - Getting WAV/AU/CDR writing back to a sane state while still catching out-of-disk when writing headers (none in case of CDR) but removing that initial test that prevented writing on any non-seekable file (like, /dev/stdout to a pipe).
 - more robust recovery from ALSA issues (device suspend)
+- fix crash in module loader on *BSD
 
 TODO: fix/describe logic for changing input format (multiple headers in non-seekable streams)
 

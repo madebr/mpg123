@@ -80,9 +80,11 @@ static char *get_module_dir()
 				if(param.verbose > 1) fprintf(stderr, "Looking for module dir: %s\n", moddir);
 
 				dir = opendir(moddir);
-				closedir(dir);
-
-				if(dir != NULL) break; /* found it! */
+				if(dir != NULL)
+				{
+					closedir(dir);
+					break; /* found it! */
+				}
 				else{ free(moddir); moddir=NULL; }
 			}
 		}
