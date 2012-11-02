@@ -196,6 +196,27 @@ unsigned int roundui(double val)
 	return (unsigned int) ((val-base) < 0.5 ? base : base + 1 );
 }
 
+/* Split into mm:ss.xx or hh:mm:ss, depending on value. */
+static void settle_time(double tim, unsigned long *times, char *sep)
+{
+	if(tim >= 3600.)
+	{
+		*sep = ':';
+		times[0] = (unsigned long) tim/3600;
+		tim -= times[0]*3600;
+		times[1] = (unsigned long) tim/60;
+		tim -= times[1]*60;
+		times[2] = (unsigned long) tim;
+	}
+	else
+	{
+		*sep = '.';
+		times[0] = (unsigned long) tim/60;
+		times[1] = (unsigned long) tim%60;
+		times[2] = (unsigned long) (tim*100)%100;
+	}
+}
+
 void print_stat(mpg123_handle *fr, long offset, long buffsize)
 {
 	double tim1,tim2;
@@ -222,10 +243,15 @@ void print_stat(mpg123_handle *fr, long offset, long buffsize)
 	if(    MPG123_OK == mpg123_position(fr, offset, buffsize, &no, &rno, &tim1, &tim2)
 	    && MPG123_OK == mpg123_getvolume(fr, &basevol, &realvol, NULL) )
 	{
-		fprintf(stderr, "\rFrame# %5"OFF_P" [%5"OFF_P"], Time: %02lu:%02u.%02u [%02u:%02u.%02u], RVA:%6s, Vol: %3u(%3u)",
+		/* Deal with overly long times. */
+		unsigned long times[2][3];
+		char timesep[2];
+		settle_time(tim1, times[0], &timesep[0]);
+		settle_time(tim2, times[1], &timesep[1]);
+		fprintf(stderr, "\rFrame# %5"OFF_P" [%5"OFF_P"], Time: %02lu:%02u%c%02u [%02u:%02u%c%02u], RVA:%6s, Vol: %3u(%3u)",
 		        (off_p)no, (off_p)rno,
-		        (unsigned long) tim1/60, (unsigned int)tim1%60, (unsigned int)(tim1*100)%100,
-		        (unsigned int)tim2/60, (unsigned int)tim2%60, (unsigned int)(tim2*100)%100,
+		        times[0][0], times[0][1], timesep[0], times[0][2],
+		        times[1][0], times[1][1], timesep[1], times[1][2],
 		        rva_name[param.rva], roundui(basevol*100), roundui(realvol*100) );
 		if(param.usebuffer) fprintf(stderr,", [%8ld] ",(long)buffsize);
 	}
