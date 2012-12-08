@@ -1221,11 +1221,11 @@ dnl Not disabling buffer for float mode... check that this is OK now!
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_GENERIC_DITHER -DOPT_I386 -DOPT_I586 -DOPT_I586_DITHER -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOWEXT -DOPT_SSE -DREAL_IS_FLOAT"
     more_sources="$s_fpu $s_i386 $s_i586 $s_i586d $s_mmx $s_3dnow $s_3dnowext $s_sse $s_x86multi $s_dither"
   ;;
-  x86-64) 
+  x86-64_alone) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_X86_64 -DREAL_IS_FLOAT"
     more_sources="$s_fpu $s_x86_64"
   ;;
-  x86-64_all|x86-64_dither)
+  x86-64)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_X86_64 -DOPT_GENERIC -DOPT_GENERIC_DITHER -DREAL_IS_FLOAT"
     more_sources="$s_fpu $s_x86_64 $s_dither"
   ;;
