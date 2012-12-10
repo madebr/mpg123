@@ -8,6 +8,7 @@
 - more robust recovery from ALSA issues (device suspend)
 - fix crash in module loader on *BSD
 - extend time display to switch to hours above 60 minutes (hh:mm:ss, ditching the sub-second precision)
+- really include dithering in default x86-64 build
 
 TODO: fix/describe logic for changing input format (multiple headers in non-seekable streams)
 
