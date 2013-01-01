@@ -11,6 +11,7 @@
 - really include dithering in default x86-64 build
 
 TODO: fix/describe logic for changing input format (multiple headers in non-seekable streams)
+TODO: fix mpg123_scan not properly seeking back for all types of files (see tracker)
 
 1.14.4
 ---
