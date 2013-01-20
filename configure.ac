@@ -2029,6 +2029,15 @@ fi
 
 fi #END OF WIN32 CHECKS
 
+#### Check mingw.org for EOVERFLOW
+AC_MSG_CHECKING([if we have EOVERFLOW macro])
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+#include <errno.h>
+int i = (EOVERFLOW) + 0;
+])],[eoverflow_present=yes],[eoverflow_present=no])
+AC_MSG_RESULT([$eoverflow_present])
+AS_IF([test "x$eoverflow_present" = "xyes"],[],[AC_DEFINE([EOVERFLOW],[EFBIG],[Use EFBIG as substitude for EOVERFLOW, mingw.org may lack the latter])])
+
 #### Use Win32 support codes
 AM_CONDITIONAL([WIN32_CODES], [ test "x$win32_specific_codes" = xenabled ])
 
