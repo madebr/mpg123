@@ -12,7 +12,7 @@ dnl ############# Initialisation
 AC_INIT([mpg123], [1.15.0], [mpg123-devel@lists.sourceforge.net])
 dnl Increment API_VERSION when the API gets changes (new functions).
 API_VERSION=36
-LIB_PATCHLEVEL=7
+LIB_PATCHLEVEL=8
 dnl Since we want to be backwards compatible, both sides get set to API_VERSION.
 LIBMPG123_VERSION=$API_VERSION:$LIB_PATCHLEVEL:$API_VERSION
 AC_SUBST(LIBMPG123_VERSION)
@@ -604,6 +604,10 @@ case $host in
     buffer=disabled
     cpu_type="x86-64"
   ;;
+  i386-*-nto-qnx*)
+    cpu_type="x86"
+    newoldwritesample=enabled
+  ;;
 	i386-*)
 		AC_MSG_WARN([Unknown host operating system])
 		cpu_type="i386"
@@ -801,6 +805,7 @@ AC_ARG_WITH([default-audio], [
   --with-default-audio=oss        Use OSS as default audio output sub-system (/dev/dsp)
   --with-default-audio=portaudio  Use PortAudio as default audio output sub-system
   --with-default-audio=pulse      Use Pulse audio server as default audio output sub-system
+  --with-default-audio=qsa        Use QSA as default audio output sub-system
   --with-default-audio=sdl        Use SDL as default audio output sub-system (Simple DirectMedia Layer)
   --with-default-audio=sgi        Use SGI as default audio output sub-system (IRIX)
   --with-default-audio=sndio      Use OpenBSD's sndio as default audio output sub-system
@@ -1287,7 +1292,7 @@ fi
 dnl ############## Output module choice
 
 # The full list of supported modules to check, first come, first serve.
-check_modules="alsa oss coreaudio sndio sun win32 os2 esd jack portaudio pulse sdl nas arts openal dummy"
+check_modules="alsa oss coreaudio sndio sun win32 os2 qsa esd jack portaudio pulse sdl nas arts openal dummy"
 # The final list.
 output_modules=
 
@@ -1333,6 +1338,19 @@ do
 				]
 			)
 			if test "x$HAVE_ALSA" != xyes; then
+				check_failed=yes
+			fi
+		;;
+		qsa)
+			QSA_LIBS="-lasound"
+			# Check for QSA
+			AC_CHECK_LIB( [asound], [snd_pcm_open],
+				[ AC_CHECK_HEADER( [sys/asoundlib.h],
+					[ output_modules="$output_modules qsa" HAVE_QSA="yes"],
+					[ AC_MSG_WARN([Found QSA library but NOT header files on your system]) ] )
+				]
+			)
+			if test "x$HAVE_QSA" != xyes; then
 				check_failed=yes
 			fi
 		;;
@@ -1571,6 +1589,10 @@ AC_SUBST(ALSA_LIBS)
 AC_SUBST(ALSA_LDFLAGS)
 AC_SUBST(ALSA_CFLAGS)
 AM_CONDITIONAL( [HAVE_ALSA], [test "x$HAVE_ALSA" = xyes] )
+AC_SUBST(QSA_LIBS)
+AC_SUBST(QSA_LDFLAGS)
+AC_SUBST(QSA_CFLAGS)
+AM_CONDITIONAL( [HAVE_QSA], [test "x$HAVE_QSA" = xyes] )
 AC_SUBST(OSS_LIBS)
 AC_SUBST(OSS_LDFLAGS)
 AC_SUBST(OSS_CFLAGS)
@@ -1692,6 +1714,11 @@ then
 			OUTPUT_LIBS="$ALSA_LIBS"
 			OUTPUT_LDFLAGS="$ALSA_LDFLAGS"
 			OUTPUT_CFLAGS="$ALSA_CFLAGS"
+		;;
+		qsa)
+			OUTPUT_LIBS="$QSA_LIBS"
+			OUTPUT_LDFLAGS="$QSA_LDFLAGS"
+			OUTPUT_CFLAGS="$QSA_CFLAGS"
 		;;
 		coreaudio)
 			OUTPUT_LIBS="$COREAUDIO_LIBS"
