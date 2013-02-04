@@ -219,7 +219,7 @@ static void settle_time(double tim, unsigned long *times, char *sep)
 
 void print_stat(mpg123_handle *fr, long offset, long buffsize)
 {
-	double tim1,tim2;
+	double tim[2];
 	off_t rno, no;
 	double basevol, realvol;
 	char *icy;
@@ -240,17 +240,24 @@ void print_stat(mpg123_handle *fr, long offset, long buffsize)
 	}
 #endif
 #endif
-	if(    MPG123_OK == mpg123_position(fr, offset, buffsize, &no, &rno, &tim1, &tim2)
+	if(    MPG123_OK == mpg123_position(fr, offset, buffsize, &no, &rno, tim, tim+1)
 	    && MPG123_OK == mpg123_getvolume(fr, &basevol, &realvol, NULL) )
 	{
+		int ti;
 		/* Deal with overly long times. */
 		unsigned long times[2][3];
 		char timesep[2];
-		settle_time(tim1, times[0], &timesep[0]);
-		settle_time(tim2, times[1], &timesep[1]);
-		fprintf(stderr, "\rFrame# %5"OFF_P" [%5"OFF_P"], Time: %02lu:%02u%c%02u [%02u:%02u%c%02u], RVA:%6s, Vol: %3u(%3u)",
+		char sign[2] = {' ', ' '};
+		for(ti=0; ti<2; ++ti)
+		{
+			if(tim[ti] < 0.){ sign[ti] = '-'; tim[ti] = -tim[ti]; }
+			settle_time(tim[ti], times[ti], &timesep[ti]);
+		}
+		fprintf(stderr, "\rFrame# %5"OFF_P" [%5"OFF_P"], Time:%c%02lu:%02u%c%02u%c[%02u:%02u%c%02u], RVA:%6s, Vol: %3u(%3u)",
 		        (off_p)no, (off_p)rno,
+		        sign[0],
 		        times[0][0], times[0][1], timesep[0], times[0][2],
+		        sign[1],
 		        times[1][0], times[1][1], timesep[1], times[1][2],
 		        rva_name[param.rva], roundui(basevol*100), roundui(realvol*100) );
 		if(param.usebuffer) fprintf(stderr,", [%8ld] ",(long)buffsize);
