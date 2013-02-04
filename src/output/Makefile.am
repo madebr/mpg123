@@ -94,6 +94,14 @@ output_pulse_la_CFLAGS  = @PULSE_CFLAGS@
 output_pulse_la_LIBADD  = @PULSE_LIBS@ 
 endif
 
+if HAVE_QSA
+pkglib_LTLIBRARIES += output_qsa.la
+output_qsa_la_SOURCES = qsa.c
+output_qsa_la_LDFLAGS = -module -no-undefined -avoid-version -export-dynamic  -export-symbols-regex '^mpg123_' @QSA_LDFLAGS@
+output_qsa_la_CFLAGS  = @QSA_CFLAGS@
+output_qsa_la_LIBADD  = @QSA_LIBS@ 
+endif
+
 if HAVE_SDL
 pkglib_LTLIBRARIES += output_sdl.la
 output_sdl_la_SOURCES = sdl.c

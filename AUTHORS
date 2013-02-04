@@ -17,6 +17,7 @@ The creator: Michael Hipp (email: hippm@informatik.uni-tuebingen.de - please bot
 
 Contributions/ideas Thomas Orgis era (includes backports from mhipp trunk):
 
+Mike Gorchak <mike.gorchak.qnx@gmail.com>: QNX native audio output (QSA)
 Dan McGee <dpmcgee@gmail.com>: various patches (also for test suite)
 Jonathan Yong (jon_y) <10walls@gmail.com>: win32 hacking
 Malcolm Boczek <MBoczek@terraindustries.com>: Common language runtime wrapper
