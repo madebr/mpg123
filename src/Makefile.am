@@ -20,7 +20,7 @@ CLEANFILES = *.a
 
 bin_PROGRAMS = mpg123
 
-EXTRA_PROGRAMS = tests/seek_accuracy tests/seek_whence tests/noise tests/text tests/plain_id3
+EXTRA_PROGRAMS = tests/seek_whence tests/noise tests/text tests/plain_id3
 
 mpg123_SOURCES = \
 	audio.c \
@@ -144,14 +144,6 @@ output/sndio.$(OBJEXT): output/sndio.c audio.h module.h
 # But again, the a make $something here needs that stupid rule... WHY???
 libmpg123/libmpg123.la: config.h libmpg123/mpg123.h
 	cd libmpg123 && $(MAKE)
-
-tests_seek_accuracy_SOURCES = \
-tests/seek_accuracy.c \
-libmpg123/compat.h \
-libmpg123/compat.c
-
-tests_seek_accuracy_DEPENDENCIES = libmpg123/libmpg123.la
-tests_seek_accuracy_LDADD = libmpg123/libmpg123.la
 
 tests_seek_whence_SOURCES = \
 tests/seek_whence.c \
