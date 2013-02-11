@@ -80,7 +80,7 @@ static const char* mime_file[] =
 	NULL
 };
 static const char* mime_m3u[] = { "audio/mpegurl", "audio/mpeg-url", "audio/x-mpegurl", NULL };
-static const char* mime_pls[]	= { "audio/x-scpls", "audio/scpls", "application/pls", NULL };
+static const char* mime_pls[]	= { "audio/x-scpls", "audio/scpls", "application/pls", "application/x-scpls", NULL };
 static const char** mimes[] = { mime_file, mime_m3u, mime_pls, NULL };
 
 int debunk_mime(const char* mime)
