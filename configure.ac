@@ -1292,7 +1292,15 @@ fi
 dnl ############## Output module choice
 
 # The full list of supported modules to check, first come, first serve.
-check_modules="alsa oss coreaudio sndio sun win32 os2 qsa esd jack portaudio pulse sdl nas arts openal dummy"
+check_modules="alsa oss coreaudio sndio sun win32 os2 esd jack portaudio pulse sdl nas arts openal dummy"
+# Only check qsa before all else on QNX.
+# It would mask ALSA otherwise.
+case $host in
+  *-nto-qnx*)
+    check_modules="qsa $check_modules"
+  ;;
+esac
+
 # The final list.
 output_modules=
 
@@ -1328,7 +1336,13 @@ do
 				check_failed=yes
 			fi
 		;;
+		# QSA and ALSA are not distinguishable in these tests, need to block
+		# each other and play with test order depending on platform.
 		alsa)
+			if test "x$HAVE_QSA" == xyes; then
+				HAVE_ALSA=no
+			else
+
 			ALSA_LIBS="-lasound"
 			# Check for ALSA
 			AC_CHECK_LIB( [asound], [snd_pcm_open],
@@ -1340,8 +1354,14 @@ do
 			if test "x$HAVE_ALSA" != xyes; then
 				check_failed=yes
 			fi
+
+			fi # HAVE_QSA
 		;;
 		qsa)
+			if test "x$HAVE_ALSA" == xyes; then
+				HAVE_QSA=no
+			else
+
 			QSA_LIBS="-lasound"
 			# Check for QSA
 			AC_CHECK_LIB( [asound], [snd_pcm_open],
@@ -1353,6 +1373,8 @@ do
 			if test "x$HAVE_QSA" != xyes; then
 				check_failed=yes
 			fi
+
+			fi # HAVE_ALSA
 		;;
 		jack)
 			PKG_CHECK_MODULES(JACK, jack, output_modules="$output_modules jack" HAVE_JACK="yes", HAVE_JACK="no" check_failed=yes)
