@@ -1273,11 +1273,30 @@ if test "x$feature_report" = xenabled; then
 	more_sources="$more_sources feature"
 fi
 
+# Return 0 if first arg appears in list of following arguments.
+# Return 1 otherwise.
+function word_in_list()
+{
+  word=$1
+  shift
+  # Avoid naming conflict with the outside!
+  # Is local not POSIX sh?
+  for given_word in "$@"
+  do
+    if test "x$word" == "x$given_word"; then
+      return 0
+    fi
+  done
+  return 1
+}
+
 for i in $more_sources
 do
-  # Echo make sure every file is only once in the list.
-  echo "$DECODER_OBJ" | $GREP -v -w "$i\.\$(OBJEXT)" > /dev/null && DECODER_OBJ="$DECODER_OBJ $i.\$(OBJEXT)"
-  echo "$DECODER_LOBJ" | $GREP -v -w "$i\.lo" > /dev/null && DECODER_LOBJ="$DECODER_LOBJ $i.lo"
+echo "is $i already in?"
+  # Make sure every file is only once in the list.
+  word_in_list "$i.\$(OBJEXT)" $DECODER_OBJ || DECODER_OBJ="$DECODER_OBJ $i.\$(OBJEXT)"
+  word_in_list "$i.lo" $DECODER_LOBJ || DECODER_LOBJ="$DECODER_LOBJ $i.lo"
+echo "decoder_lobj=$DECODER_LOBJ"
 done
 
 AC_SUBST(DECODER_OBJ)
