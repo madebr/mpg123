@@ -1275,8 +1275,7 @@ fi
 
 # Return 0 if first arg appears in list of following arguments.
 # Return 1 otherwise.
-function word_in_list()
-{
+word_in_list() {
   word=$1
   shift
   # Avoid naming conflict with the outside!
