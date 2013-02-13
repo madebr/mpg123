@@ -1,17 +1,17 @@
 1.15.0
 ---
-- added --continue (also see scripts/conplay)
-- added number row to terminal control keys for 10% jump points (for navigating long tracks)
+- Added --continue (also see scripts/conplay).
+- Added number row to terminal control keys for 10% jump points (for navigating long tracks).
 - Set xterm title always if asked, disregarding the -q switch (if you want fully quiet, don't specify --title).
 - Enable terminal mode in OS/2 by explicitly checking for and using os2term library.
 - Getting WAV/AU/CDR writing back to a sane state while still catching out-of-disk when writing headers (none in case of CDR) but removing that initial test that prevented writing on any non-seekable file (like, /dev/stdout to a pipe).
-- added native audio output for QNX (thanks to Mike Gorchak)
+- Added native audio output for QNX (thanks to Mike Gorchak).
 - more robust recovery from ALSA issues (device suspend)
-- fix crash in module loader on *BSD
-- extend time display to switch to hours above 60 minutes (hh:mm:ss, ditching the sub-second precision)- really include dithering in default x86-64 build
-- fix mpg123_scan() not properly seeking back for all types of files (bug 3582628 ... it got a different number on sf.net now ... brilliant, folks!)
-- prevent false positives for "Frankenstein!" when using mpg123_scan().
-- fix printing of negative positions with buffer (bug 186)
+- Fix crash in module loader on *BSD.
+- Extend time display to switch to hours above 60 minutes (hh:mm:ss, ditching the sub-second precision)- really include dithering in default x86-64 build.
+- Fix mpg123_scan() not properly seeking back for all types of files (bug 3582628 ... it got a different number on sf.net now ... brilliant, folks!).
+- Prevent false positives for "Frankenstein!" when using mpg123_scan().
+- Fix printing of negative positions with buffer (bug 186).
 
 1.14.4
 ---
