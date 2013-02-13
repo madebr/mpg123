@@ -8,7 +8,8 @@
 - Added native audio output for QNX (thanks to Mike Gorchak), also improving portability of configure script while at that.
 - more robust recovery from ALSA issues (device suspend)
 - Fix crash in module loader on *BSD.
-- Extend time display to switch to hours above 60 minutes (hh:mm:ss, ditching the sub-second precision)- really include dithering in default x86-64 build.
+- Extend time display to switch to hours above 60 minutes (hh:mm:ss, ditching the sub-second precision)
+- really include dithering in default x86-64 build.
 - Fix mpg123_scan() not properly seeking back for all types of files (bug 3582628 ... it got a different number on sf.net now ... brilliant, folks!).
 - Prevent false positives for "Frankenstein!" when using mpg123_scan().
 - Fix printing of negative positions with buffer (bug 186).
