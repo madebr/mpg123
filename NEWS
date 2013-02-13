@@ -13,8 +13,6 @@
 - prevent false positives for "Frankenstein!" when using mpg123_scan().
 - fix printing of negative positions with buffer (bug 186)
 
-TODO: fix/describe logic for changing input format (multiple headers in non-seekable streams)
-
 1.14.4
 ---
 
