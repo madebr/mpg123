@@ -13,6 +13,7 @@
 /*
 	Split an URL into parts of user:password, hostname, port, path on host.
 	There is no name resolution going on here, also no numeric conversion.
+	The URL string is supposed to be stripped of all \r and \n.
 	Return code 1 (TRUE) is fine, 0 (FALSE) is bad.
 */
 int split_url(mpg123_string *url, mpg123_string *auth, mpg123_string *host, mpg123_string *port, mpg123_string *path);

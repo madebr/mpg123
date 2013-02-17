@@ -1,3 +1,7 @@
+1.15.1
+---
+- Fix corner case in HTTP communication with missing path in Location header (bug 187).
+
 1.15.0
 ---
 - Added --continue (also see scripts/conplay).

@@ -128,8 +128,11 @@ debug4("hostname between %lu and %lu, %lu chars of %s", (unsigned long)pos, (uns
 		return FALSE;
 	}
 
-	/* Now only the path is left. */
-	if(path) ret = mpg123_set_substring(path, url->p, pos, url->fill-1-pos);
+	/* Now only the path is left.
+	   If there is no path at all, assume "/" */
+	if(path) ret = url->p[pos] == 0
+		? mpg123_set_string(path, "/")
+		: mpg123_set_substring(path, url->p, pos, url->fill-1-pos);
 
 	if(!ret) error("Cannot set path string (out of mem?)");
 

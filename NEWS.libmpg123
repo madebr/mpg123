@@ -1,5 +1,8 @@
 Changes in libmpg123 libtool interface versions...
 
+37.0.37
+	- Added mpg123_chomp_string.
+
 36.0.36
 	- Extended MPG123_RESYNC_LIMIT to initial header search.
 	- Not cutting decoder delay unconditionally anymore (only in combination with known encoder delay / padding).

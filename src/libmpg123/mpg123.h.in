@@ -843,6 +843,12 @@ EXPORT int  mpg123_set_substring(mpg123_string *sb, const char *stuff, size_t fr
 */
 EXPORT size_t mpg123_strlen(mpg123_string *sb, int utf8);
 
+/** Remove trailing \r and \n, if present.
+ *  \return 0 on error, 1 on success
+ *  \param sb the string
+ */
+EXPORT int mpg123_chomp_string(mpg123_string *sb);
+
 /** The mpg123 text encodings. This contains encodings we encounter in ID3 tags or ICY meta info. */
 enum mpg123_text_encoding
 {

@@ -547,6 +547,7 @@ int http_open(char* url, struct httpdata *hd)
 		if(strncasecmp(purl.p, "http://", 7) != 0) mpg123_set_string(&request_url, "http://");
 		else mpg123_set_string(&request_url, "");
 
+		mpg123_chomp_string(&purl);
 		mpg123_add_string(&request_url, purl.p);
 
 		if (hd->proxystate >= PROXY_HOST)
