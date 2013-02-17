@@ -9,7 +9,7 @@ AC_PREREQ(2.57)
 
 <
 dnl ############# Initialisation
-AC_INIT([mpg123], [1.15.0], [mpg123-devel@lists.sourceforge.net])
+AC_INIT([mpg123], [1.15.1], [mpg123-devel@lists.sourceforge.net])
 dnl Increment API_VERSION when the API gets changes (new functions).
 API_VERSION=37
 LIB_PATCHLEVEL=1
