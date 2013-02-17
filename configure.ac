@@ -1305,11 +1305,9 @@ word_in_list() {
 
 for i in $more_sources
 do
-echo "is $i already in?"
   # Make sure every file is only once in the list.
   word_in_list "$i.\$(OBJEXT)" $DECODER_OBJ || DECODER_OBJ="$DECODER_OBJ $i.\$(OBJEXT)"
   word_in_list "$i.lo" $DECODER_LOBJ || DECODER_LOBJ="$DECODER_LOBJ $i.lo"
-echo "decoder_lobj=$DECODER_LOBJ"
 done
 
 AC_SUBST(DECODER_OBJ)
