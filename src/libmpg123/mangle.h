@@ -22,7 +22,18 @@
 /*
 	ALIGNX: align to X bytes
 	This differs per compiler/platform in taking the byte count or an exponent for base 2.
+	A way out is balign, if the assembler supports it (gas extension).
 */
+
+#ifdef ASMALIGN_BALIGN
+
+#define ALIGN4  .balign 4
+#define ALIGN8  .balign 8
+#define ALIGN16 .balign 16
+#define ALIGN32 .balign 32
+
+#else
+
 #ifdef ASMALIGN_EXP
 #define ALIGN4  .align 2
 #define ALIGN8  .align 3
@@ -37,6 +48,8 @@
 #else
 #error "Dunno how assembler alignment works. Please specify."
 #endif
+#endif
+
 #endif
 
 #define MANGLE_MACROCAT_REALLY(a, b) a ## b

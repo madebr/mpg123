@@ -7,12 +7,12 @@ dnl initially written by Nicholas J. Humfrey
 dnl Require autoconf version >= 2.57
 AC_PREREQ(2.57)
 
-
+<
 dnl ############# Initialisation
 AC_INIT([mpg123], [1.15.0], [mpg123-devel@lists.sourceforge.net])
 dnl Increment API_VERSION when the API gets changes (new functions).
 API_VERSION=37
-LIB_PATCHLEVEL=0
+LIB_PATCHLEVEL=1
 dnl Since we want to be backwards compatible, both sides get set to API_VERSION.
 LIBMPG123_VERSION=$API_VERSION:$LIB_PATCHLEVEL:$API_VERSION
 AC_SUBST(LIBMPG123_VERSION)
@@ -844,6 +844,18 @@ AC_DEFINE_UNQUOTED( MODULE_FILE_SUFFIX, "$with_module_suffix", [The suffix for m
 dnl ############## Assembler, compiler properties
 
 # based on posting from John Dalgliesh <johnd@defyne.org> on ffmpeg (LGPL) mailing list
+# extended to use balign if present
+AC_MSG_CHECKING([if .balign is present])
+echo '.balign 4' > conftest.s
+if $CCAS -c -o conftest.o conftest.s 1>/dev/null 2>&1; then
+
+  AC_MSG_RESULT([yes])
+  AC_DEFINE(ASMALIGN_BALIGN, 1, [ Define if .balign is present. ])
+
+else
+
+AC_MSG_RESULT([no])
+
 # find if .align arg is power-of-two or not
 asmalign_exp="unknown"
 if test x"$asmalign_exp" = xunknown; then
@@ -862,6 +874,8 @@ if test x"$asmalign_exp" = xyes; then
 	AC_DEFINE(ASMALIGN_EXP, 1, [ Define if .align takes 3 for alignment of 2^3=8 bytes instead of 8. ])
 else
 	AC_DEFINE(ASMALIGN_BYTE, 1, [ Define if .align just takes byte count. ])
+fi
+
 fi
 
 ccalign="unknown"

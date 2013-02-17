@@ -1,6 +1,8 @@
 1.15.1
 ---
+- libmpg123 API version 37
 - Fix corner case in HTTP communication with missing path in Location header (bug 187).
+- Prevent nasty alignment issues by not guessing about assembler alignment when .balign is available (bug 188).
 
 1.15.0
 ---
