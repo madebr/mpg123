@@ -2215,15 +2215,6 @@ else
 fi
 echo "  LFS alias symbols ....... $lfs_alias ($LFS_ALIAS_BITS)"
 
-echo "  Alignment checks ........ $aligncheck"
-if test x"$aligncheck" = xenabled; then
-	if test x"$ccalign" != xyes; then
-		echo "   (without effect since special alignment is not employed)"
-	fi
-	if test x"$GCC" = xyes; then
-		echo "   (note that newer gcc 4.x versions do not use/need the align check)"
-	fi
-fi
 echo -n "
   Core libmpg123 features:
   Integer conversion ...... $integers
