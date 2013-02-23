@@ -7,7 +7,6 @@ dnl initially written by Nicholas J. Humfrey
 dnl Require autoconf version >= 2.57
 AC_PREREQ(2.57)
 
-<
 dnl ############# Initialisation
 AC_INIT([mpg123], [1.15.1], [mpg123-devel@lists.sourceforge.net])
 dnl Increment API_VERSION when the API gets changes (new functions).
