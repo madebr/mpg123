@@ -15,9 +15,15 @@
 */
 
 #include "mpg123lib_intern.h"
+#ifdef USE_NEW_HUFFTABLE
+#include "newhuffman.h"
+#else
 #include "huffman.h"
+#endif
 #include "getbits.h"
 #include "debug.h"
+
+
 
 /* define CUT_SFB21 if you want to cut-off the frequency above 16kHz */
 #if 0
@@ -775,7 +781,7 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 			const struct newhuff *h = ht+gr_info->table_select[i];
 			for(;lp;lp--,mc--)
 			{
-				register int x,y;
+				register long x,y;
 				if( (!mc) )
 				{
 					mc    = *m++;
@@ -802,6 +808,18 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 				{
 					const short *val = h->table;
 					REFRESH_MASK;
+#ifdef USE_NEW_HUFFTABLE
+					while((y=val[(unsigned long)mask>>(BITSHIFT+4)])<0)
+					{
+						val -= y;
+						num -= 4;
+						mask <<= 4;
+					}
+					num -= (y >> 8);
+					mask <<= (y >> 8);
+					x = (y >> 4) & 0xf;
+					y &= 0xf;
+#else
 					while((y=*val++)<0)
 					{
 						if (mask < 0) val -= y;
@@ -811,6 +829,7 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 					}
 					x = y >> 4;
 					y &= 0xf;
+#endif
 				}
 				if(x == 15 && h->linbits)
 				{
@@ -999,7 +1018,7 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 
 			for(;lp;lp--,mc--)
 			{
-				int x,y;
+				long x,y;
 				if(!mc)
 				{
 					mc = *m++;
@@ -1019,6 +1038,18 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 				{
 					const short *val = h->table;
 					REFRESH_MASK;
+#ifdef USE_NEW_HUFFTABLE
+					while((y=val[(unsigned long)mask>>(BITSHIFT+4)])<0)
+					{
+						val -= y;
+						num -= 4;
+						mask <<= 4;
+					}
+					num -= (y >> 8);
+					mask <<= (y >> 8);
+					x = (y >> 4) & 0xf;
+					y &= 0xf;
+#else
 					while((y=*val++)<0)
 					{
 						if (mask < 0) val -= y;
@@ -1028,6 +1059,7 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 					}
 					x = y >> 4;
 					y &= 0xf;
+#endif
 				}
 
 				if(x == 15 && h->linbits)
