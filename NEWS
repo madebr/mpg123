@@ -1,3 +1,7 @@
+1.15.2
+---
+- build fix with older shells (== in configure)
+
 1.15.1
 ---
 - libmpg123 API version 37
