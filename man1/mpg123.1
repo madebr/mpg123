@@ -176,13 +176,13 @@ is used as file name. You can also use
 .I --au
 and
 .I --cdr
-for AU and CDR format, respectively.
+for AU and CDR format, respectively. Note that WAV/AU writing to non-seekable files, or redirected stdout, needs some thought. Since 1.16.0, the logic changed to writing the header with the first actual data. This avoids spurious WAV headers in a pipe, for example. The result of decoding nothing to WAV/AU is a file consisting just of the header when it is seekable and really nothing when not (not even a header). Correctly writing data with prophetic headers to stdout is no easy business.
 .TP
 \fB\-\^\-au \fIfile
 Does not play the MPEG file but writes it to
 .I file
 in SUN audio format.  If \- is used as the filename, the AU file is
-written to stdout.
+written to stdout. See paragraph about WAV writing for header fun with non-seekable streams.
 .TP
 \fB\-\^\-cdr \fIfile
 Does not play the MPEG file but writes it to
