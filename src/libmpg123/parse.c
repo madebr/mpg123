@@ -474,14 +474,10 @@ init_resync:
 	{
 		if(fr->oldhead == newhead) fr->header_change = 0;
 		else
-		/* If they have the same sample rate. Note that only is _not_ the case for the first header, as we enforce sample rate match for following frames.
-			 So, during one stream, only change of stereoness is possible and indicated by header_change == 2. */
-		if((fr->oldhead & HDR_SAMPMASK) == (newhead & HDR_SAMPMASK))
-		{
-			/* Now if both channel modes are mono or both stereo, it's no big deal. */
-			if( header_mono(fr->oldhead) == header_mono(newhead))
-			fr->header_change = 1;
-		}
+		/* Headers that match in this test behave the same for the outside world.
+		   namely: same decoding routines, same amount of decoded data. */
+		if((fr->oldhead & HDR_CMPMASK) == (newhead & HDR_CMPMASK))
+		fr->header_change = 1;
 	}
 
 #ifdef SKIP_JUNK
@@ -1165,6 +1161,7 @@ static int wetwork(mpg123_handle *fr, unsigned long *newheadp)
 		{
 			debug1("Found possibly valid header 0x%lx... unsetting firsthead to reinit stream.", newhead);
 			fr->firsthead = 0;
+			fr->oldhead = 0;
 			return PARSE_RESYNC;
 		}
 	}
