@@ -253,7 +253,7 @@ void print_stat(mpg123_handle *fr, long offset, long buffsize)
 			if(tim[ti] < 0.){ sign[ti] = '-'; tim[ti] = -tim[ti]; }
 			settle_time(tim[ti], times[ti], &timesep[ti]);
 		}
-		fprintf(stderr, "\rFrame# %5"OFF_P" [%5"OFF_P"], Time:%c%02lu:%02u%c%02u%c[%02u:%02u%c%02u], RVA:%6s, Vol: %3u(%3u)",
+		fprintf(stderr, "\rFrame# %5"OFF_P" [%5"OFF_P"], Time:%c%02lu:%02lu%c%02lu%c[%02lu:%02lu%c%02lu], RVA:%6s, Vol: %3u(%3u)",
 		        (off_p)no, (off_p)rno,
 		        sign[0],
 		        times[0][0], times[0][1], timesep[0], times[0][2],

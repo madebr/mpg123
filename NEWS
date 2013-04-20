@@ -3,6 +3,11 @@
 - Taihei strikes again: New Huffman decoding scheme (configurable, on by default) brings nice boost to mpg123 to make it the fastest decoder on modern CPUs again.
 
 
+1.15.4
+---
+- Fix stupid bug in mpg123_chomp_string() (introduced in 1.15.1), empty lines were badly treated. Only usage in mpg123 is for parsing HTTP redirect headers; malicious HTTP servers might exploit that (possibility to zero bytes in memory).
+- some cleanup for nagging mode
+
 1.15.3
 ---
 - Fix WAV writing. AGAIN. People love to decode WAV to stdout in various ways that started to get broken with me starting to care for people who like to write to full disks. I frikkin' HATE this rat race! I'm even starting to SHOUT. Now, the code prefers to write no header at all (when there is no actual output) instead of possibly writing too many misleading ones. Getting the blame for breaking dir2ogg repeatedly while trying to cope with one fatal situation that you cannot really cope with sucks. Big time. I hope that's it now!
