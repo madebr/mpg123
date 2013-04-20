@@ -312,7 +312,7 @@ int control_generic (mpg123_handle *fr)
 #endif
 	/* the command behaviour is different, so is the ID */
 	/* now also with version for command availability */
-	fprintf(outstream, "@R MPG123 (ThOr) v7\n");
+	fprintf(outstream, "@R MPG123 (ThOr) v8\n");
 #ifdef FIFO
 	if(param.fifo)
 	{
@@ -533,6 +533,17 @@ int control_generic (mpg123_handle *fr)
 					continue;
 				}
 
+				if(!strcasecmp(comstr, "FORMAT"))
+				{
+					long rate;
+					int ch;
+					int ret = mpg123_getformat(fr, &rate, &ch, NULL);
+					/* I need to have portable printf specifiers that do not truncate the type... more autoconf... */
+					if(ret < 0) generic_sendmsg("E %s", mpg123_strerror(fr));
+					else generic_sendmsg("FORMAT %li %i", rate, ch);
+					continue;
+				}
+
 				if(!strcasecmp(comstr, "SHOWEQ"))
 				{
 					int i;
@@ -581,6 +592,7 @@ int control_generic (mpg123_handle *fr)
 					generic_sendmsg("H SEEK/K <sample>|<+offset>|<-offset>: jump to output sample position <samples> or change position by offset");
 					generic_sendmsg("H SCAN: scan through the file, building seek index");
 					generic_sendmsg("H SAMPLE: print out the sample position and total number of samples");
+					generic_sendmsg("H FORMAT: print out sampling rate in Hz and channel count");
 					generic_sendmsg("H SEQ <bass> <mid> <treble>: simple eq setting...");
 					generic_sendmsg("H PITCH <[+|-]value>: adjust playback speed (+0.01 is 1 %% faster)");
 					generic_sendmsg("H SILENCE: be silent during playback (meaning silence in text form)");

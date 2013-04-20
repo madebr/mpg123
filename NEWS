@@ -1,7 +1,7 @@
 1.16.0
 ---
 - Taihei strikes again: New Huffman decoding scheme (configurable, on by default) brings nice boost to mpg123 to make it the fastest decoder on modern CPUs again.
-
+- added FORMAT command to generic control
 
 1.15.4
 ---
