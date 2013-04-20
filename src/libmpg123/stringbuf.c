@@ -167,7 +167,7 @@ int attribute_align_arg mpg123_chomp_string(mpg123_string *sb)
 	ssize_t i;
 	if(!sb) return 0;
 
-	for(i=sb->fill-1; --i; i>0)
+	for(i=sb->fill-1; i>=0; --i)
 	{
 		char *c = sb->p+i;
 		/* Stop at the first proper character. */
