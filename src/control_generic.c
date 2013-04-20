@@ -234,7 +234,6 @@ static void generic_load(mpg123_handle *fr, char *arg, int state)
 	if(mpg123_meta_check(fr) & MPG123_NEW_ID3)
 	{
 		generic_sendinfoid3(fr);
-		mpg123_meta_free(fr);
 	}
 	else generic_sendinfo(arg);
 
@@ -597,7 +596,7 @@ int control_generic (mpg123_handle *fr)
 					generic_sendmsg("H PITCH <[+|-]value>: adjust playback speed (+0.01 is 1 %% faster)");
 					generic_sendmsg("H SILENCE: be silent during playback (meaning silence in text form)");
 					generic_sendmsg("H STATE: Print auxiliary state info in several lines (just try it to see what info is there).");
-					generic_sendmsg("H TAG/T: Print all available (ID3) tag info, for ID3v2 that gives output of all collected text fields, using the ID3v2.3/4 4-character names.");
+					generic_sendmsg("H TAG/T: Print all available (ID3) tag info, for ID3v2 that gives output of all collected text fields, using the ID3v2.3/4 4-character names. NOTE: ID3v2 data will be deleted on non-forward seeks.");
 					generic_sendmsg("H    The output is multiple lines, begin marked by \"@T {\", end by \"@T }\".");
 					generic_sendmsg("H    ID3v1 data is like in the @I info lines (see below), just with \"@T\" in front.");
 					generic_sendmsg("H    An ID3v2 data field is introduced via ([ ... ] means optional):");
@@ -678,6 +677,8 @@ int control_generic (mpg123_handle *fr)
 					if(!strcasecmp(cmd, "K") || !strcasecmp(cmd, "SEEK"))
 					{
 						off_t soff;
+						off_t oldpos;
+						off_t newpos;
 						char *spos = arg;
 						int whence = SEEK_SET;
 						if(mode == MODE_STOPPED)
@@ -685,6 +686,7 @@ int control_generic (mpg123_handle *fr)
 							generic_sendmsg("E No track loaded!");
 							continue;
 						}
+						oldpos = mpg123_tell(fr);
 
 						soff = (off_t) atobigint(spos);
 						if(spos[0] == '-' || spos[0] == '+') whence = SEEK_CUR;
@@ -695,13 +697,17 @@ int control_generic (mpg123_handle *fr)
 						}
 						if(param.usebuffer) buffer_resync();
 
-						generic_sendmsg("K %li", (long)mpg123_tell(fr));
+						newpos = mpg123_tell(fr);
+						if(newpos <= oldpos) mpg123_meta_free(fr);
+
+						generic_sendmsg("K %"OFF_P, (off_p)newpos);
 						continue;
 					}
 					/* JUMP */
 					if (!strcasecmp(cmd, "J") || !strcasecmp(cmd, "JUMP")) {
 						char *spos;
 						off_t offset;
+						off_t oldpos;
 						double secs;
 
 						spos = arg;
@@ -710,6 +716,7 @@ int control_generic (mpg123_handle *fr)
 							generic_sendmsg("E No track loaded!");
 							continue;
 						}
+						oldpos = framenum;
 
 						if(spos[strlen(spos)-1] == 's' && sscanf(arg, "%lf", &secs) == 1) offset = mpg123_timeframe(fr, secs);
 						else offset = atol(spos);
@@ -724,6 +731,7 @@ int control_generic (mpg123_handle *fr)
 						}
 						if(param.usebuffer)	buffer_resync();
 
+						if(framenum <= oldpos) mpg123_meta_free(fr);
 						generic_sendmsg("J %d", framenum);
 						continue;
 					}
