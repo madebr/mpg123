@@ -25,7 +25,7 @@ AC_CANONICAL_HOST
 
 dnl Version 1.7 of automake is recommended
 AM_INIT_AUTOMAKE(1.7)
-AM_CONFIG_HEADER(src/config.h)
+AC_CONFIG_HEADERS([src/config.h])
 
 
 # You get strange symptoms like jack module build failing because the AC_C_CONST failed to detect the working const support.

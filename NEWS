@@ -3,6 +3,7 @@
 - Taihei strikes again: New Huffman decoding scheme (configurable, on by default) brings nice boost to mpg123 to make it the fastest decoder on modern CPUs again.
 - added FORMAT command to generic control
 - not deleting ID3 data right after printing in generic control
+- build system fixed for automake 1.13 (thanks to Nix)
 
 1.15.4
 ---
