@@ -93,9 +93,8 @@ static char *get_module_dir()
 	return moddir;
 }
 
-/* Open a module */
-mpg123_module_t*
-open_module( const char* type, const char* name )
+/* Open a module in current directory. */
+mpg123_module_t* open_module_here(const char* type, const char* name)
 {
 	lt_dlhandle handle = NULL;
 	mpg123_module_t *module = NULL;
@@ -103,35 +102,21 @@ open_module( const char* type, const char* name )
 	size_t module_path_len = 0;
 	char* module_symbol = NULL;
 	size_t module_symbol_len = 0;
-	char *workdir = NULL;
-	char *moddir  = NULL;
-	workdir = get_the_cwd();
-	moddir  = get_module_dir();
-	if(workdir == NULL || moddir == NULL)
-	{
-		error("Failure getting workdir or moddir!");
-		if(workdir == NULL) fprintf(stderr, "Hint: I need to know the current working directory to be able to come back after hunting modules. I will not leave because I do not know where I am.\n");
 
-		if(workdir != NULL) free(workdir);
-		if(moddir  != NULL) free(moddir);
+	/* Initialize libltdl */
+	if(lt_dlinit())
+	{
+		error("Failed to initialise libltdl");
 		return NULL;
 	}
 
-	/* Initialize libltdl */
-	if (lt_dlinit()) error( "Failed to initialise libltdl" );
-
-	if(chdir(moddir) != 0)
-	{
-		error2("Failed to enter module directory %s: %s", moddir, strerror(errno));
-		goto om_bad;
-	}
 	/* Work out the path of the module to open */
 	/* Note that we need to open ./file, not just file! */
 	module_path_len = 2 + strlen(type) + 1 + strlen(name) + strlen(MODULE_FILE_SUFFIX) + 1;
 	module_path = malloc( module_path_len );
 	if (module_path == NULL) {
 		error1( "Failed to allocate memory for module name: %s", strerror(errno) );
-		goto om_bad;
+		return NULL;
 	}
 	snprintf( module_path, module_path_len, "./%s_%s%s", type, name, MODULE_FILE_SUFFIX );
 	/* Display the path of the module created */
@@ -145,7 +130,7 @@ open_module( const char* type, const char* name )
 		if(param.verbose > 1)
 		fprintf(stderr, "Note: This could be because of braindead path in the .la file...\n");
 
-		goto om_bad;
+		return NULL;
 	}
 	
 	/* Work out the symbol name */
@@ -153,6 +138,10 @@ open_module( const char* type, const char* name )
 						strlen( type )  +
 						strlen( MODULE_SYMBOL_SUFFIX ) + 1;
 	module_symbol = malloc(module_symbol_len);
+	if (module_symbol == NULL) {
+		error1( "Failed to allocate memory for module symbol: %s", strerror(errno) );
+		return NULL;
+	}
 	snprintf( module_symbol, module_symbol_len, "%s%s%s", MODULE_SYMBOL_PREFIX, type, MODULE_SYMBOL_SUFFIX );
 	debug1( "Module symbol: %s", module_symbol );
 	
@@ -161,33 +150,50 @@ open_module( const char* type, const char* name )
 	free( module_symbol );
 	if (module==NULL) {
 		error1( "Failed to get module symbol: %s", lt_dlerror() );
-		goto om_latebad;
+		return NULL;
 	}
 	
 	/* Check the API version */
-	if (MPG123_MODULE_API_VERSION > module->api_version) {
-		error( "API version of module is too old" );
-		goto om_latebad;
-	} else if (MPG123_MODULE_API_VERSION > module->api_version) {
-		error( "API version of module is too new" );
-		goto om_latebad;
+	if (MPG123_MODULE_API_VERSION != module->api_version)
+	{
+		error2( "API version of module does not match (got %i, expected %i).", module->api_version, MPG123_MODULE_API_VERSION);
+		lt_dlclose(handle);
+		return NULL;
 	}
 
 	/* Store handle in the data structure */
 	module->handle = handle;
+	return module;
+}
 
-	goto om_end;
-om_latebad:
-	lt_dlclose( handle );
-om_bad:
-	module = NULL;
-om_end:
+
+/* Open a module, including directory search. */
+mpg123_module_t* open_module(const char* type, const char* name)
+{
+	mpg123_module_t *module = NULL;
+	char *workdir = NULL;
+	char *moddir  = NULL;
+
+	workdir = get_the_cwd();
+	moddir  = get_module_dir();
+	if(workdir == NULL || moddir == NULL)
+	{
+		error("Failure getting workdir or moddir!");
+		if(workdir == NULL) fprintf(stderr, "Hint: I need to know the current working directory to be able to come back after hunting modules. I will not leave because I do not know where I am.\n");
+
+		if(workdir != NULL) free(workdir);
+		if(moddir  != NULL) free(moddir);
+		return NULL;
+	}
+
+	if(chdir(moddir) == 0) module = open_module_here(type, name);
+	else error2("Failed to enter module directory %s: %s", moddir, strerror(errno));
+
 	chdir(workdir);
 	free(moddir);
 	free(workdir);
 	return module;
 }
-
 
 void close_module( mpg123_module_t* module )
 {
@@ -282,16 +288,14 @@ void list_modules()
 				/* Extract the short name of the module */
 				module_name = strdup( dp->d_name + strlen( module_type ) + 1 );
 				module_name[ strlen( module_name ) - strlen( MODULE_FILE_SUFFIX ) ] = '\0';
-				
 				/* Open the module */
-				module = open_module( module_type, module_name );
+				module = open_module_here(module_type, module_name);
 				if (module) {
 					printf("%-15s%s  %s\n", module->name, module_type, module->description );
 				
 					/* Close the module again */
 					close_module( module );
 				}
-				
 				free( module_name );
 				free( module_type );
 			}
