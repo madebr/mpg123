@@ -27,9 +27,6 @@
 #define FRAMES_PER_BUFFER	(256)
 #define FIFO_DURATION		(0.5f)
 
-
-
-
 /* The audio function callback takes the following parameters:
        stream:  A pointer to the audio buffer to be filled
        len:     The length (in bytes) of the audio buffer
@@ -39,21 +36,17 @@ static void audio_callback_sdl(void *udata, Uint8 *stream, int len)
 	audio_output_t *ao = (audio_output_t*)udata;
 	sfifo_t *fifo = (sfifo_t*)ao->userptr;
 	int bytes_read;
+	int bytes_avail;
 
-	/* Only play if we have data left */
-	if ( sfifo_used( fifo ) < len ) {
-		warning("Didn't have any audio data for SDL (buffer underflow)");
-		SDL_PauseAudio(1);
-		return;
-	}
+	bytes_avail = sfifo_used(fifo);
+	if(bytes_avail < len) len = bytes_avail;
 
 	/* Read audio from FIFO to SDL's buffer */
 	bytes_read = sfifo_read( fifo, stream, len );
-	
-	if (len!=bytes_read)
-		warning2("Error reading from the FIFO (wanted=%u, bytes_read=%u).\n", len, bytes_read);
 
-} 
+	if (len!=bytes_read)
+	warning2("Error reading from the FIFO (wanted=%u, bytes_read=%u).\n", len, bytes_read);
+}
 
 static int open_sdl(audio_output_t *ao)
 {
@@ -72,8 +65,13 @@ static int open_sdl(audio_output_t *ao)
 		wanted.userdata = ao; 
 		wanted.channels = ao->channels; 
 		wanted.freq = ao->rate; 
-	
-		/* Open the audio device, forcing the desired format */
+
+		/* Open the audio device, forcing the desired format
+		   Actually, it is still subject to constraints by hardware.
+		   Need to have sample rate checked beforehand! SDL will
+		   happily play 22 kHz files with 44 kHz hardware rate!
+		   Same with channel count. No conversion. The manual is a bit
+		   misleading on that (only talking about sample format, I guess). */
 		if ( SDL_OpenAudio(&wanted, NULL) ) {
 			error1("Couldn't open SDL audio: %s\n", SDL_GetError());
 			return -1;
@@ -91,8 +89,37 @@ static int open_sdl(audio_output_t *ao)
 
 static int get_formats_sdl(audio_output_t *ao)
 {
-	/* Only implemented Signed 16-bit audio for now */
+	/* Got no better idea than to just take 16 bit and run with it */
 	return MPG123_ENC_SIGNED_16;
+#if 0
+	/*
+		This code would "properly" test audio format support.
+		But thing is, SDL will always say yes and amen to everything, but it takes
+		an awful amount of time to get all the variants tested (about 2 seconds,
+		for example). I have seen SDL builds that do proper format conversion
+		behind your back, I have seen builds that do not. Every build seems to
+		claim that it does, though. Just hope you're lucky and your SDL works.
+		Otherwise, use a proper audio output API.
+	*/
+	SDL_AudioSpec wanted, got;
+
+	/* Only implemented Signed 16-bit audio for now.
+	   The SDL manual doesn't suggest more interesting formats
+	   like S24 or S32 anyway. */
+	wanted.format = AUDIO_S16SYS;
+	wanted.samples = 1024;
+	wanted.callback = audio_callback_sdl;
+	wanted.userdata = ao;
+	wanted.channels = ao->channels;
+	wanted.freq = ao->rate;
+
+	if(SDL_OpenAudio(&wanted, &got)) return 0;
+	SDL_CloseAudio();
+fprintf(stderr, "wanted rate: %li got rate %li\n", (long)wanted.freq, (long)got.freq);
+	return (got.freq == ao->rate && got.channels == ao->channels)
+		? MPG123_ENC_SIGNED_16
+		: 0;
+#endif
 }
 
 
@@ -118,14 +145,28 @@ static int write_sdl(audio_output_t *ao, unsigned char *buf, int len)
 	
 	
 	/* Unpause once the buffer is 50% full */
-	if (sfifo_used(fifo) > (sfifo_size(fifo)*0.5) ) SDL_PauseAudio(0);
+	if (sfifo_used(fifo) > (sfifo_size(fifo)*0.5) )
+	SDL_PauseAudio(0);
 
 	return len;
 }
 
 static int close_sdl(audio_output_t *ao)
 {
+	int stuff;
 	sfifo_t *fifo = (sfifo_t*)ao->userptr;
+
+	/* Wait at least until SDL emptied the FIFO. */
+	while((stuff = sfifo_used(fifo))>0)
+	{
+		int msecs = stuff*1000/ao->rate;
+		debug1("still stuff for about %i ms there", msecs);
+#ifdef WIN32
+		Sleep(msecs/2);
+#else
+		usleep(msecs*1000/2);
+#endif
+	}
 
 	SDL_CloseAudio();
 	
