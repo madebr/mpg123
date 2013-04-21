@@ -200,8 +200,10 @@ static int close_win32(struct audio_output_struct *ao)
 
 	/* WRONG: need drain_win32 here, waiting for all active buffers to get
 	  dwFlags & WHDR_DONE
-	  So ... flush_win32(ao); -> drain_win32(ao) */
-	drain_win32(ao); 
+	  So ... flush_win32(ao); -> drain_win32(ao) 
+	UNFORTUNATELY, THIS IS NOT WORKING, MAY HANG INDEFINITELY
+	*/
+	/* drain_win32(ao); */
 	waveOutClose(state->waveout);
 	CloseHandle(state->play_done_event);
 
