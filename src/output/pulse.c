@@ -114,7 +114,9 @@ static int close_pulse(audio_output_t *ao)
 	pa_simple *pas = (pa_simple*)ao->userptr;
 
 	if (pas) {
-		pa_simple_free( pas );
+		int err; /* Do we really want to handle errors here? End is the end. */
+		pa_simple_drain(pas, &err);
+		pa_simple_free(pas);
 		ao->userptr = NULL;
 	}
 	
