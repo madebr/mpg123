@@ -83,6 +83,14 @@ from the respective servers.  See also the
 HTTP authentication to use when recieving files via HTTP.
 The format used is user:password.
 .TP
+\fB\-\^\-ignore\-mime
+Ignore MIME types given by HTTP server. If you know better and want mpg123
+to decode something the server thinks is image/png, then just do it.
+.TP
+\fB\-\^\-no\-seekbuffer
+Disable the default micro-buffering of non-seekable streams that gives the
+parser a safer footing.
+.TP
 \fB\-@ \fIfile\fR, \fB\-\^\-list \fIfile
 Read filenames and/or URLs of MPEG audio streams from the specified
 .I file
