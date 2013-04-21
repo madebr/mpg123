@@ -4,6 +4,9 @@
 - added FORMAT command to generic control
 - not deleting ID3 data right after printing in generic control
 - build system fixed for automake 1.13 (thanks to Nix)
+- module loader a bit more flexible with relative MPG123_MODDIR
+- Fix chopped-off playback with pulseaudio output: draining the output now on closing.
+- SDL output fixup, a) not chopping off end and b) non-fatal underrun
 
 1.15.4
 ---
@@ -11,7 +14,6 @@
 - some cleanup for nagging mode
 - more resync strictness to really catch (all) cases with changing decoder structure; in practice badly needed when disabling seekbuffer (so it's your fault, somehow ...) for non-seekable streams, otherwise not really an issue because of readahead checking
   I repeat: This fixes possibly fatal behaviour in the parser when readahead checking is explicitly disabled (p.ex. via mpg123 --no-seekbuffer on http streams). By default, readahead checking is _always_ active!
-- Fix chopped-off playback with pulseaudio output: draining the output now on closing.
 
 1.15.3
 ---
