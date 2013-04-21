@@ -7,6 +7,7 @@
 - module loader a bit more flexible with relative MPG123_MODDIR
 - Fix chopped-off playback with pulseaudio output: draining the output now on closing.
 - SDL output fixup, a) not chopping off end and b) non-fatal underrun
+- Fix obvious errors in win32 output ... does it now play the end of tracks? Need someone to test this.
 
 1.15.4
 ---

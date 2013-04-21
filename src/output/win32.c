@@ -160,23 +160,32 @@ static int write_win32(struct audio_output_struct *ao, unsigned char *buf, int l
 
 static void flush_win32(struct audio_output_struct *ao)
 {
+	/* TODO: What's the right approach to flush things?
+	   Wildly unprepare headers? 
+	   waveOutClose() might do the trick, although rather radical. */
+}
+
+/* Note: I tried to fix this stuff without testing.
+   There were some obvious errors in the code.
+   Someone run this on a win32 machine! -- ThOr */
+static void drain_win32(struct audio_output_struct *ao)
+{
 	int i, z;
 	struct queue_state* state;
 
 	if(!ao || !ao->userptr) return;
 	state = (struct queue_state*)ao->userptr;
 
-	/* FIXME: The very last output buffer is not played. This could be a problem on the feeding side. */
-	i = 0;
-	z = state->next_buffer - 1;
+	/* I _think_ I understood how this should work. -- ThOr */
+	z = state->next_buffer;
 	for(i = 0; i < NUM_BUFFERS; i++)
 	{
-		if(!state->buffer_headers[i].dwFlags & WHDR_DONE)
+		if(!(state->buffer_headers[z].dwFlags & WHDR_DONE))
 			WaitForSingleObject(state->play_done_event, INFINITE);
 
-		waveOutUnprepareHeader(state->waveout, &state->buffer_headers[i], sizeof(WAVEHDR));
-		state->buffer_headers[i].dwFlags = 0;
-		state->buffer_headers[i].dwBufferLength = 0;
+		waveOutUnprepareHeader(state->waveout, &state->buffer_headers[z], sizeof(WAVEHDR));
+		state->buffer_headers[z].dwFlags = 0;
+		state->buffer_headers[z].dwBufferLength = 0;
 		z = (z + 1) % NUM_BUFFERS;
 	}
 }
@@ -189,7 +198,10 @@ static int close_win32(struct audio_output_struct *ao)
 	if(!ao || !ao->userptr) return -1;
 	state = (struct queue_state*)ao->userptr;
 
-	flush_win32(ao);
+	/* WRONG: need drain_win32 here, waiting for all active buffers to get
+	  dwFlags & WHDR_DONE
+	  So ... flush_win32(ao); -> drain_win32(ao) */
+	drain_win32(ao); 
 	waveOutClose(state->waveout);
 	CloseHandle(state->play_done_event);
 
