@@ -1308,6 +1308,7 @@ static void long_usage(int err)
 	fprintf(o," -p <f> --proxy <f>        set WWW proxy\n");
 	fprintf(o," -u     --auth             set auth values for HTTP access\n");
 	fprintf(o,"        --ignore-mime      ignore HTTP MIME types (content-type)\n");
+	fprintf(o,"        --no-seekbuffer    disable seek buffer\n");
 	fprintf(o," -@ <f> --list <f>         play songs in playlist <f> (plain list, m3u, pls (shoutcast))\n");
 	fprintf(o," -l <n> --listentry <n>    play nth title in playlist; show whole playlist for n < 0\n");
 	fprintf(o,"        --continue         playlist continuation mode (see man page)\n");
