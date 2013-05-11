@@ -8,6 +8,7 @@
 - Fix chopped-off playback with pulseaudio output: draining the output now on closing.
 - SDL output fixup, a) not chopping off end and b) non-fatal underrun
 - Fix obvious errors in win32 output ... does it now play the end of tracks? Need someone to test this.
+- added support for screen and iris-ansi terminals with --title (as prompted by patch from sf.net user canavan)
 
 1.15.4
 ---

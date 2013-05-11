@@ -1,7 +1,7 @@
 /*
 	mpg123: main code of the program (not of the decoder...)
 
-	copyright 1995-2010 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1995-2013 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp
 */
@@ -1124,10 +1124,15 @@ int main(int sys_argc, char ** sys_argv)
 {
 	const char *term_type;
 	term_type = getenv("TERM");
-	if (term_type && param.xterm_title &&
-	    (!strncmp(term_type,"xterm",5) || !strncmp(term_type,"rxvt",4)))
+	if(term_type && param.xterm_title)
 	{
+		if(!strncmp(term_type,"xterm",5) || !strncmp(term_type,"rxvt",4))
 		fprintf(stderr, "\033]0;%s\007", filename);
+		else if(!strncmp(term_type,"screen",6))
+		fprintf(stderr, "\033k%s\033\\", filename);
+		else if(!strncmp(term_type,"iris-ansi",9))
+		fprintf(stderr, "\033P1.y %s\033\\\033P3.y%s\033\\", filename, filename);
+
 		fflush(stderr); /* Paranoia: will the buffer buffer the escapes? */
 	}
 }
@@ -1392,7 +1397,7 @@ static void long_usage(int err)
 	fprintf(o,"                           (default is for next track)\n");
 	#endif
 	#ifndef GENERIC
-	fprintf(o,"        --title            set xterm/rxvt title to filename\n");
+	fprintf(o,"        --title            set terminal title to filename\n");
 	#endif
 	fprintf(o,"        --long-tag         spacy id3 display with every item on a separate line\n");
 	fprintf(o,"        --lyrics           show lyrics (from ID3v2 USLT frame)\n");
