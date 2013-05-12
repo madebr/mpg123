@@ -113,6 +113,7 @@ static int open_sgi(audio_output_t *ao)
 			}
 			else {
 				fprintf(stderr, "Can't find output devices. alQueryValues failed: %s\n", alGetErrorString(oserror()));
+				goto open_sgi_bad;
 			}
 
 			alvalues = malloc(sizeof(ALvalue) * numOut);
