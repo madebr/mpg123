@@ -27,9 +27,9 @@ static int set_rate(audio_output_t *ao, ALconfig config)
 	}
 	if(ao->rate > 0)
 	{
-		params[0].param = AL_OUTPUT_RATE;
-		params[0].value.ll = ao->rate;
-		if(alSetParams(dev, params,1) < 0)
+		params[0].param = AL_RATE;
+		params[0].value.ll = alDoubleToFixed((double)ao->rate);
+		if(alSetParams(dev, params, 1) < 0)
 		{
 			error1("set_rate: %s", alGetErrorString(oserror()));
 			return -1;
@@ -114,7 +114,7 @@ static int open_sgi(audio_output_t *ao)
 
 			error2("Invalid audio resource: %s (%s)", ao->device, alGetErrorString(oserror()));
 
-			if((numOut= alQueryValues(AL_SYSTEM,AL_DEFAULT_OUTPUT,0,0,0,0))>=0
+			if((numOut= alQueryValues(AL_SYSTEM,AL_DEFAULT_OUTPUT,0,0,0,0))>=0)
 			fprintf(stderr, "There are %d output devices on this system.\n", numOut);
 			else
 			{
