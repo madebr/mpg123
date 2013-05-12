@@ -20,22 +20,21 @@ static int set_rate(audio_output_t *ao, ALconfig config)
 	ALpv params[1];
 
 	/* Make sure the device is OK */
-	if (dev < 0)
+	if(dev < 0)
 	{
 		error1("set_rate: %s", alGetErrorString(oserror()));
-		return -1;      
+		return -1;
 	}
-	
-	if (ao->rate > 0) {
+	if(ao->rate > 0)
+	{
 		params[0].param = AL_OUTPUT_RATE;
 		params[0].value.ll = ao->rate;
-		
-		if (alSetParams(dev, params,1) < 0) {
+		if(alSetParams(dev, params,1) < 0)
+		{
 			error1("set_rate: %s", alGetErrorString(oserror()));
 			return -1;
 		}
 	}
-	
 	return 0;
 }
 
@@ -43,14 +42,14 @@ static int set_rate(audio_output_t *ao, ALconfig config)
 static int set_channels(audio_output_t *ao, ALconfig config)
 {
 	int ret;
-	
-	if(ao->channels == 2) {
-		ret = alSetChannels(config, AL_STEREO);
-	} else {
-		ret = alSetChannels(config, AL_MONO);
-	}
-	
-	if (ret < 0) {
+
+	if(ao->channels == 2)
+	ret = alSetChannels(config, AL_STEREO);
+	else
+	ret = alSetChannels(config, AL_MONO);
+
+	if(ret < 0)
+	{
 		error1("set_channels : %s", alGetErrorString(oserror()));
 		return -1;
 	}
@@ -59,22 +58,26 @@ static int set_channels(audio_output_t *ao, ALconfig config)
 
 static int set_format(audio_output_t *ao, ALconfig config)
 {
-	if (ao->format == MPG123_ENC_FLOAT_32) {
-		if (alSetSampFmt(config, AL_SAMPFMT_FLOAT) < 0) {
+	if(ao->format == MPG123_ENC_FLOAT_32)
+	{
+		if(alSetSampFmt(config, AL_SAMPFMT_FLOAT) < 0)
+		{
 			error1("SetSampFmt: %s", alGetErrorString(oserror()));
 			return -1;
 		}
-	} else {
-		if (alSetSampFmt(config, AL_SAMPFMT_TWOSCOMP) < 0){ 
+	} else
+	{
+		if(alSetSampFmt(config, AL_SAMPFMT_TWOSCOMP) < 0)
+		{
 			error1("SetSampFmt: %s", alGetErrorString(oserror()));
 			return -1;
 		}
-		if (alSetWidth(config, AL_SAMPLE_16) < 0) {
+		if(alSetWidth(config, AL_SAMPLE_16) < 0)
+		{
 			error1("SetWidth: %s", alGetErrorString(oserror()));
 			return -1;
 		}
 	}
-	
 	return 0;
 }
 
@@ -88,19 +91,22 @@ static int open_sgi(audio_output_t *ao)
 	ao->userptr = NULL;
 
 	/* Test for correct completion */
-	if (config == 0) {
+	if(config == 0)
+	{
 		error1("open_sgi: %s", alGetErrorString(oserror()));
 		return -1;
 	}
 
 	/* Setup output device to specified device name. If there is no device name
 	specified in ao structure, use the default for output */
-	if ((ao->device) != NULL) {
+	if((ao->device) != NULL)
+	{
 		current_dev = alGetResourceByName(AL_SYSTEM, ao->device, AL_OUTPUT_DEVICE_TYPE);
 
 		debug2("Dev: %s %i", ao->device, current_dev);
 
-		if (!current_dev) {
+		if(!current_dev)
+		{
 			int i, numOut;
 			char devname[32];
 			ALpv pv[1];
@@ -108,20 +114,22 @@ static int open_sgi(audio_output_t *ao)
 
 			error2("Invalid audio resource: %s (%s)", ao->device, alGetErrorString(oserror()));
 
-			if ((numOut= alQueryValues(AL_SYSTEM,AL_DEFAULT_OUTPUT,0,0,0,0))>=0) {
-				fprintf(stderr, "There are %d output devices on this system.\n", numOut);
-			}
-			else {
+			if((numOut= alQueryValues(AL_SYSTEM,AL_DEFAULT_OUTPUT,0,0,0,0))>=0
+			fprintf(stderr, "There are %d output devices on this system.\n", numOut);
+			else
+			{
 				fprintf(stderr, "Can't find output devices. alQueryValues failed: %s\n", alGetErrorString(oserror()));
 				goto open_sgi_bad;
 			}
 
 			alvalues = malloc(sizeof(ALvalue) * numOut);
 			i = alQueryValues(AL_SYSTEM, AL_DEFAULT_OUTPUT, alvalues, numOut, pv, 0);
-			if (i == -1) {
-				error1("alQueryValues: %s", alGetErrorString(oserror()));
-			} else {
-				for (i=0; i < numOut; i++){ 
+			if(i == -1)
+			error1("alQueryValues: %s", alGetErrorString(oserror()));
+			else
+			{
+				for(i=0; i < numOut; i++)
+				{
 					pv[0].param = AL_NAME;
 					pv[0].value.ptr = devname;
 					pv[0].sizeIn = 32;
@@ -135,16 +143,16 @@ static int open_sgi(audio_output_t *ao)
 			goto open_sgi_bad;
 		}
 
-		if (alSetDevice(config, current_dev) < 0) {
+		if(alSetDevice(config, current_dev) < 0)
+		{
 			error1("open: alSetDevice : %s",alGetErrorString(oserror()));
 			goto open_sgi_bad;
 		}
-	} else {
-		current_dev = AL_DEFAULT_OUTPUT;
-	}
+	} else
+	current_dev = AL_DEFAULT_OUTPUT;
 
 	/* Set the device */
-	if (alSetDevice(config, current_dev) < 0)
+	if(alSetDevice(config, current_dev) < 0)
 	{
 		error1("open_sgi: %s", alGetErrorString(oserror()));
 		goto open_sgi_bad;
@@ -152,7 +160,8 @@ static int open_sgi(audio_output_t *ao)
 
 	/* Set port parameters */
 
-	if (alSetQueueSize(config, 131069) < 0) {
+	if(alSetQueueSize(config, 131069) < 0)
+	{
 		error1("open_sgi: setting audio buffer failed: %s", alGetErrorString(oserror()));
 		goto open_sgi_bad;
 	}
@@ -164,11 +173,12 @@ static int open_sgi(audio_output_t *ao)
 	
 	/* Open the audio port */
 	port = alOpenPort("mpg123-VSC", "w", config);
-	if (port == NULL) {
+	if(port == NULL)
+	{
 		error1("Unable to open audio channel: %s", alGetErrorString(oserror()));
 		goto open_sgi_bad;
 	}
-	
+
 	ao->userptr = (void*)port;
 
 	alFreeConfig(config);
@@ -195,16 +205,14 @@ static int write_sgi(audio_output_t *ao, unsigned char *buf, int len)
 
 	ALport port = (ALport)ao->userptr;
 
-	if(ao->channels == 2) {
-		length >>= 2;
-	} else {
-		length >>= 1;
-	}
-	if(ao->format == MPG123_ENC_FLOAT_32) {
-		length >>=1;
-	}
+	if(ao->channels == 2) length >>= 2;
+	else length >>= 1;
+
+	if(ao->format == MPG123_ENC_FLOAT_32) length >>=1;
+
+	/* Not much error checking ... */
 	alWriteFrames(port, buf, length);
-	
+
 	return len;
 }
 
@@ -214,14 +222,15 @@ static int close_sgi(audio_output_t *ao)
 	if(!ao || !ao->userptr) return -1;
 
 	ALport port = (ALport)ao->userptr;
-	
-	if (port) {
-		// play all remaining samples
-		while(alGetFilled(port) > 0) sginap(1);  
+
+	if(port)
+	{
+		/* play all remaining samples */
+		while(alGetFilled(port) > 0) sginap(1);
+
 		alClosePort(port);
 		ao->userptr=NULL;
 	}
-	
 	return 0;
 }
 
@@ -229,14 +238,12 @@ static void flush_sgi(audio_output_t *ao)
 {
 	ALport port = (ALport)ao->userptr;
 
-	if (port) {
-		alDiscardFrames(port, alGetFilled(port));
-	}
+	if(port) alDiscardFrames(port, alGetFilled(port));
 }
 
 static int init_sgi(audio_output_t* ao)
 {
-	if (ao == NULL) return -1;
+	if(ao == NULL) return -1;
 
 	/* Set callbacks */
 	ao->open = open_sgi;
@@ -249,15 +256,16 @@ static int init_sgi(audio_output_t* ao)
 	return 0;
 }
 
-/* 
+/*
 	Module information data structure
 */
-mpg123_module_t mpg123_output_module_info = {
+mpg123_module_t mpg123_output_module_info =
+{
 	/* api_version */	MPG123_MODULE_API_VERSION,
-	/* name */			"sgi",						
+	/* name */			"sgi",
 	/* description */	"Audio output for SGI.",
-	/* revision */		"$Rev:$",						
+	/* revision */		"$Rev:$",
 	/* handle */		NULL,
-	
-	/* init_output */	init_sgi,						
+
+	/* init_output */	init_sgi,
 };
