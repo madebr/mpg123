@@ -387,6 +387,13 @@ static int header_mono(unsigned long newhead)
 	return HDR_CHANNEL_VAL(newhead) == MPG_MD_MONO ? TRUE : FALSE;
 }
 
+/* true if the two headers will work with the same decoding routines */
+static int head_compatible(unsigned long fred, unsigned long bret)
+{
+	return ( (fred & HDR_CMPMASK) == (bret & HDR_CMPMASK)
+		&&       header_mono(fred) == header_mono(bret)    );
+}
+
 static void halfspeed_prepare(mpg123_handle *fr)
 {
 	/* save for repetition */
@@ -476,7 +483,7 @@ init_resync:
 		else
 		/* Headers that match in this test behave the same for the outside world.
 		   namely: same decoding routines, same amount of decoded data. */
-		if((fr->oldhead & HDR_CMPMASK) == (newhead & HDR_CMPMASK))
+		if(head_compatible(fr->oldhead, newhead))
 		fr->header_change = 1;
 	}
 
@@ -982,7 +989,7 @@ static int do_readahead(mpg123_handle *fr, unsigned long newhead)
 	}
 
 	debug2("does next header 0x%08lx match first 0x%08lx?", nexthead, newhead);
-	if(!head_check(nexthead) || (nexthead & HDR_CMPMASK) != (newhead & HDR_CMPMASK))
+	if(!head_check(nexthead) || !head_compatible(newhead, nexthead))
 	{
 		debug("No, the header was not valid, start from beginning...");
 		fr->oldhead = 0; /* start over */

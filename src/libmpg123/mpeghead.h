@@ -71,11 +71,11 @@
 /*
 	A generic mask for telling if a header is somewhat valid for the current stream.
 	Meaning: Most basic info is not allowed to change.
-	Added channels, too. This mask shall ensure that the corresponding
-	frames are decoded the same way: frame buffers and decoding
+	Checking of channel count needs to be done, too, though. So,
+	if channel count matches, frames are decoded the same way: frame buffers and decoding
 	routines can stay the same, especially frame buffers (think spf * channels!).
 */
-#define HDR_CMPMASK (HDR_SYNC|HDR_VERSION|HDR_LAYER|HDR_SAMPLERATE|HDR_CHANNEL)
+#define HDR_CMPMASK (HDR_SYNC|HDR_VERSION|HDR_LAYER|HDR_SAMPLERATE)
 
 /* A stricter mask, for matching free format headers. */
 #define HDR_SAMEMASK (HDR_SYNC|HDR_VERSION|HDR_LAYER|HDR_BITRATE|HDR_SAMPLERATE|HDR_CHANNEL|HDR_CHANEX)
