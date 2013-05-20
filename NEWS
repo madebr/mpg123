@@ -12,6 +12,7 @@
 
 1.15.4
 ---
+- Writing CDDA data via --cdr works again; had also been broken by attempts to catch failing writes because of full disk.
 - Fix stupid bug in mpg123_chomp_string() (introduced in 1.15.1), empty lines were badly treated. Only usage in mpg123 is for parsing HTTP redirect headers; malicious HTTP servers might exploit that (possibility to zero bytes in memory).
 - some cleanup for nagging mode
 - more resync strictness to really catch (all) cases with changing decoder structure; in practice badly needed when disabling seekbuffer (so it's your fault, somehow ...) for non-seekable streams, otherwise not really an issue because of readahead checking

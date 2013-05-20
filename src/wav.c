@@ -165,7 +165,7 @@ static int close_file()
 
 static int write_header(const void*ptr, size_t size)
 {
-	if(fwrite(ptr, size, 1, wavfp) != 1 || fflush(wavfp))
+	if(size > 0 && (fwrite(ptr, size, 1, wavfp) != 1 || fflush(wavfp)))
 	{
 		error1("cannot write header: %s", strerror(errno));
 		return -1;
