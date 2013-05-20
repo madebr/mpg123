@@ -114,6 +114,7 @@ static int testEndian(void)
   return ret;
 }
 
+/* return: 0 is good, -1 is bad */
 static int open_file(char *filename)
 {
 #if defined(HAVE_SETUID) && defined(HAVE_GETUID)
@@ -147,6 +148,7 @@ static int open_file(char *filename)
    }
 }
 
+/* return: 0 is good, -1 is bad */
 static int close_file()
 {
 	if(wavfp != NULL && wavfp != stdout)
@@ -163,6 +165,7 @@ static int close_file()
 	return 0;
 }
 
+/* return: 0 is good, -1 is bad */
 static int write_header(const void*ptr, size_t size)
 {
 	if(size > 0 && (fwrite(ptr, size, 1, wavfp) != 1 || fflush(wavfp)))
@@ -349,7 +352,7 @@ int wav_write(unsigned char *buf,int len)
 
 	if(datalen == 0)
 	{
-		if(write_header(the_header, the_header_size) < 0) return 0;
+		if(write_header(the_header, the_header_size) < 0) return -1;
 	}
 
 	if(flipendian)
@@ -359,7 +362,7 @@ int wav_write(unsigned char *buf,int len)
 			if(len & 3)
 			{
 				error("Number of bytes no multiple of 4 (32bit)!");
-				return 0;
+				return -1;
 			}
 			for(i=0;i<len;i+=4)
 			{
@@ -374,7 +377,7 @@ int wav_write(unsigned char *buf,int len)
 			if(len & 1)
 			{
 				error("Odd number of bytes!");
-				return 0;
+				return -1;
 			}
 			for(i=0;i<len;i+=2)
 			{
@@ -387,14 +390,13 @@ int wav_write(unsigned char *buf,int len)
 	}
 
 	temp = fwrite(buf, 1, len, wavfp);
-	if(temp <= 0)
-	return 0;
+	if(temp <= 0) return temp;
 /* That would kill it of early when running out of disk space. */
 #if 0
 if(fflush(wavfp))
 {
 	fprintf(stderr, "flushing failed: %s\n", strerror(errno));
-	return 0;
+	return -1;
 }
 #endif
 	datalen += temp;
@@ -404,7 +406,7 @@ if(fflush(wavfp))
 
 int wav_close(void)
 {
-	if(!wavfp) return 0;
+	if(!wavfp) return -1;
 
 	/* flush before seeking to catch out-of-disk explicitly at least at the end */
 	if(fflush(wavfp))
@@ -440,8 +442,7 @@ int wav_close(void)
 
 int au_close(void)
 {
-   if(!wavfp)
-      return 0;
+	if(!wavfp) return -1;
 
 	/* flush before seeking to catch out-of-disk explicitly at least at the end */
 	if(fflush(wavfp))
@@ -463,7 +464,7 @@ int au_close(void)
 
 int cdr_close(void)
 {
-	if(!wavfp) return 0;
+	if(!wavfp) return -1;
 
 	return close_file();
 }
