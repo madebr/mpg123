@@ -53,6 +53,8 @@ int synth_1to1_altivec    (real*, int, mpg123_handle*, int);
 int synth_1to1_stereo_altivec(real*, real*, mpg123_handle*);
 int synth_1to1_x86_64     (real*, int, mpg123_handle*, int);
 int synth_1to1_stereo_x86_64(real*, real*, mpg123_handle*);
+int synth_1to1_avx        (real*, int, mpg123_handle*, int);
+int synth_1to1_stereo_avx (real*, real*, mpg123_handle*);
 int synth_1to1_arm        (real*, int, mpg123_handle*, int);
 int synth_1to1_neon       (real*, int, mpg123_handle*, int);
 int synth_1to1_stereo_neon(real*, real*, mpg123_handle*);
@@ -126,6 +128,8 @@ int synth_1to1_real_sse        (real*, int, mpg123_handle*, int);
 int synth_1to1_real_stereo_sse (real*, real*, mpg123_handle*);
 int synth_1to1_real_x86_64     (real*, int, mpg123_handle*, int);
 int synth_1to1_real_stereo_x86_64(real*, real*, mpg123_handle*);
+int synth_1to1_real_avx        (real*, int, mpg123_handle*, int);
+int synth_1to1_real_stereo_avx (real*, real*, mpg123_handle*);
 int synth_1to1_real_altivec    (real*, int, mpg123_handle*, int);
 int synth_1to1_real_stereo_altivec(real*, real*, mpg123_handle*);
 int synth_1to1_real_neon       (real*, int, mpg123_handle*, int);
@@ -157,6 +161,8 @@ int synth_1to1_s32_sse        (real*, int, mpg123_handle*, int);
 int synth_1to1_s32_stereo_sse (real*, real*, mpg123_handle*);
 int synth_1to1_s32_x86_64     (real*, int, mpg123_handle*, int);
 int synth_1to1_s32_stereo_x86_64(real*, real*, mpg123_handle*);
+int synth_1to1_s32_avx        (real*, int, mpg123_handle*, int);
+int synth_1to1_s32_stereo_avx (real*, real*, mpg123_handle*);
 int synth_1to1_s32_altivec    (real*, int, mpg123_handle*, int);
 int synth_1to1_s32_stereo_altivec(real*, real*, mpg123_handle*);
 int synth_1to1_s32_neon       (real*, int, mpg123_handle*, int);
@@ -195,6 +201,9 @@ void dct64_i486(int*, int* , real*); /* Yeah, of no use outside of synth_i486.c 
 void dct36         (real *,real *,real *,real *,real *);
 void dct36_3dnow   (real *,real *,real *,real *,real *);
 void dct36_3dnowext(real *,real *,real *,real *,real *);
+void dct36_x86_64  (real *,real *,real *,real *,real *);
+void dct36_sse     (real *,real *,real *,real *,real *);
+void dct36_avx     (real *,real *,real *,real *,real *);
 
 /* Tools for NtoM resampling synth, defined in ntom.c . */
 int synth_ntom_set_step(mpg123_handle *fr); /* prepare ntom decoding */

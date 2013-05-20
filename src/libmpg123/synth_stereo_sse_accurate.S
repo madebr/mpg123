@@ -67,7 +67,7 @@ ASM_NAME(synth_1to1_s_sse_accurate_asm):
 	movl		$4, %ecx
 	
 	ALIGN16
-Loop_start_1:
+1:
 	movups		(WINDOW), %xmm0
 	movups		16(WINDOW), %xmm1
 	movups		32(WINDOW), %xmm2
@@ -274,12 +274,12 @@ Loop_start_1:
 	
 	leal		16(SAMPLES), SAMPLES
 	decl		%ecx
-	jnz			Loop_start_1
+	jnz			1b
 	
 	movl		$4, %ecx
 	
 	ALIGN16
-Loop_start_2:
+1:
 	movups		(WINDOW), %xmm0
 	movups		16(WINDOW), %xmm1
 	movups		32(WINDOW), %xmm2
@@ -486,7 +486,7 @@ Loop_start_2:
 	
 	leal		16(SAMPLES), SAMPLES
 	decl		%ecx
-	jnz			Loop_start_2
+	jnz			1b
 	
 	pshufw		$0xee, MMREG_CLIP, %mm0
 	paddw		MMREG_CLIP, %mm0

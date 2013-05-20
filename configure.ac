@@ -8,10 +8,10 @@ dnl Require autoconf version >= 2.57
 AC_PREREQ(2.57)
 
 dnl ############# Initialisation
-AC_INIT([mpg123], [1.16.0], [mpg123-devel@lists.sourceforge.net])
+AC_INIT([mpg123], [1.16.0-dctavx], [mpg123-devel@lists.sourceforge.net])
 dnl Increment API_VERSION when the API gets changes (new functions).
 API_VERSION=37
-LIB_PATCHLEVEL=5
+LIB_PATCHLEVEL=6
 dnl Since we want to be backwards compatible, both sides get set to API_VERSION.
 LIBMPG123_VERSION=$API_VERSION:$LIB_PATCHLEVEL:$API_VERSION
 AC_SUBST(LIBMPG123_VERSION)
@@ -463,8 +463,9 @@ AC_ARG_WITH([cpu], [
   --with-cpu=mmx_alone          Really only MMX decoder, without i586 fallback for flexible rate
   --with-cpu=sse          Use code optimized for SSE processors
   --with-cpu=sse_alone          Really only SSE decoder, without i586 fallback for flexible rate
+  --with-cpu=avx          Use code optimized for x86-64 with AVX processors
   --with-cpu=x86          Pack all x86 opts into one binary (excluding i486, including dither)
-  --with-cpu=x86-64       Use code optimized for x86-64 processors (AMD64 and Intel64, including dithered generic)
+  --with-cpu=x86-64       Use code optimized for x86-64 processors (AMD64 and Intel64, including AVX and dithered generic)
   --with-cpu=altivec      Use code optimized for Altivec processors (PowerPC G4 and G5)
   --with-cpu=ppc_nofpu    Use code optimized for PowerPC processors with fixed point arithmetic (experimental)
   --with-cpu=neon         Use code optimized for ARM NEON SIMD engine (Cortex-A series)
@@ -908,6 +909,49 @@ fi
 dnl We apply alignment hints only to cpus that need it.
 dnl See further below for the definition of CCALIGN
 
+avx_support="unknown"
+if test x"$avx_support" = xunknown; then
+	AC_MSG_CHECKING([if assembler supports AVX instructions])
+	avx_support="no"
+	echo '.text' > conftest.s
+	echo 'vaddps %ymm0,%ymm0,%ymm0' >> conftest.s
+	if $CCAS -c -o conftest.o conftest.s 1>/dev/null 2>&1; then
+		avx_support="yes"
+		AC_MSG_RESULT([yes])
+	else
+		AC_MSG_RESULT([no])
+	fi
+	rm -f conftest.o conftest.s
+fi
+
+if test x"$avx_support" = xno; then
+	AC_CHECK_PROGS(YASM,[yasm],no)
+	if test x"$YASM" != xno; then
+		AC_MSG_CHECKING([if $YASM supports GAS syntax and AVX instructions])
+		echo '.text' > conftest.s
+		echo 'vaddps %ymm0,%ymm0,%ymm0' >> conftest.s
+		if $YASM -pgas -rcpp -o conftest.o conftest.s 1>/dev/null 2>&1; then
+			avx_support="yes"
+			YASMFLAGS="-pgas -rgas -mamd64"
+			AC_MSG_RESULT([yes])
+		else
+			AC_MSG_RESULT([no])
+		fi
+		rm -f conftest.o conftest.s
+	fi
+else
+	YASM="no"
+fi
+
+if test "x$cpu_type" = "xavx"; then
+	if test "x$avx_support" != "xyes"; then
+		AC_MSG_ERROR([Assembler doesn't understand AVX instructions.])
+	fi
+fi
+
+AC_SUBST(YASM)
+AC_SUBST(YASMFLAGS)
+
 dnl ############## Really basic headers, needed for other checks.
 
 AC_HEADER_STDC
@@ -1125,9 +1169,12 @@ if test "x$layer3" = "xenabled"; then
   s_3dnowext="$s_3dnowext dct36_3dnowext"
 fi
 s_mmx="$s_i386 dct64_mmx tabinit_mmx synth_mmx"
-s_sse="$s_i386 tabinit_mmx dct64_sse dct64_sse_float synth_sse_float synth_stereo_sse_float synth_sse_s32 synth_stereo_sse_s32 "
-s_x86_64="dct64_x86_64 dct64_x86_64_float synth_x86_64_float synth_x86_64_s32 synth_stereo_x86_64_float synth_stereo_x86_64_s32"
+s_sse="$s_i386 tabinit_mmx dct36_sse dct64_sse dct64_sse_float synth_sse_float synth_stereo_sse_float synth_sse_s32 synth_stereo_sse_s32 "
+s_x86_64="dct36_x86_64 dct64_x86_64 dct64_x86_64_float synth_x86_64_float synth_x86_64_s32 synth_stereo_x86_64_float synth_stereo_x86_64_s32"
+s_x86_64_mono_synths="synth_x86_64_float synth_x86_64_s32"
+s_x86_64_avx="dct36_avx dct64_avx dct64_avx_float synth_stereo_avx_float synth_stereo_avx_s32"
 s_x86multi="getcpuflags"
+s_x86_64_multi="getcpuflags_x86_64"
 s_dither="dither"
 s_neon="dct64_neon dct64_neon_float synth_neon_float synth_neon_s32 synth_stereo_neon_float synth_stereo_neon_s32"
 
@@ -1136,11 +1183,15 @@ s_neon="dct64_neon dct64_neon_float synth_neon_float synth_neon_s32 synth_stereo
 if test "x$integers" = "xquality"; then
   s_sse="$s_sse synth_sse_accurate synth_stereo_sse_accurate"
   s_x86_64="$s_x86_64 synth_x86_64_accurate synth_stereo_x86_64_accurate"
+  s_x86_64_mono_synths="$s_x86_64_mono_synths synth_x86_64_accurate"
+  s_x86_64_avx="$s_x86_64_avx synth_stereo_avx_accurate"
   s_arm="synth_arm_accurate"
   s_neon="$s_neon synth_neon_accurate synth_stereo_neon_accurate"
 else
   s_sse="$s_sse synth_sse" # no stereo
   s_x86_64="$s_x86_64 synth_x86_64 synth_stereo_x86_64"
+  s_x86_64_mono_synths="$s_x86_64_mono_synths synth_x86_64"
+  s_x86_64_avx="$s_x86_64_avx synth_stereo_avx"
   s_arm="synth_arm"
   s_neon="$s_neon synth_neon synth_stereo_neon"
 fi
@@ -1249,6 +1300,13 @@ dnl Not disabling buffer for float mode... check that this is OK now!
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_SSE -DREAL_IS_FLOAT"
     more_sources="$s_fpu $s_sse"
   ;;
+  avx) 
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_AVX -DREAL_IS_FLOAT"
+    more_sources="$s_fpu $s_x86_64_avx $s_x86_64_mono_synths"
+	if test "x$YASM" != "xno"; then
+		use_yasm_for_avx="yes"
+	fi
+  ;;
   x86|x86_dither) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_GENERIC_DITHER -DOPT_I386 -DOPT_I586 -DOPT_I586_DITHER -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOWEXT -DOPT_SSE -DREAL_IS_FLOAT"
     more_sources="$s_fpu $s_i386 $s_i586 $s_i586d $s_mmx $s_3dnow $s_3dnowext $s_sse $s_x86multi $s_dither"
@@ -1259,7 +1317,14 @@ dnl Not disabling buffer for float mode... check that this is OK now!
   ;;
   x86-64|x86-64_all|x86-64_dither)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_X86_64 -DOPT_GENERIC -DOPT_GENERIC_DITHER -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_x86_64 $s_dither"
+    more_sources="$s_fpu $s_x86_64 $s_dither $s_x86_64_multi"
+	if test "x$avx_support" = "xyes"; then
+		ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_AVX"
+		more_sources="$more_sources $s_x86_64_avx"
+		if test "x$YASM" != "xno"; then
+			use_yasm_for_avx="yes"
+		fi
+	fi
   ;;
   *)
   	AC_MSG_ERROR([Unknown CPU type '$cpu_type'])
@@ -1280,6 +1345,24 @@ case $cpu_type in
     esac
   ;;
 esac
+
+# Use yasm instead of the default assembler for AVX sources
+if test "x$use_yasm_for_avx" = "xyes"; then
+	case $host_os in
+		*cygwin*|*mingw*)
+			YASM_FORMAT="-f win64"
+		;;
+		*darwin*)
+			YASM_FORMAT="-f macho"
+		;;
+		*)
+			YASM_FORMAT="-f elf"
+		;;
+	esac
+	AC_DEFINE(USE_YASM_FOR_AVX, 1, [Define to use yasm for assemble AVX sources.])
+fi
+AM_CONDITIONAL( [USE_YASM_FOR_AVX], [test "x$use_yasm_for_avx" = xyes] )
+AC_SUBST(YASM_FORMAT)
 
 # Check if we want feature report function.
 AC_MSG_CHECKING([if we want feature report function])

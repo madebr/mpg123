@@ -37,8 +37,8 @@
 /* static one-time calculated tables... or so */
 static real ispow[8207];
 static real aa_ca[8],aa_cs[8];
-static real win[4][36];
-static real win1[4][36];
+static ALIGNED(16) real win[4][36];
+static ALIGNED(16) real win1[4][36];
 real COS9[9]; /* dct36_3dnow wants to use that */
 static real COS6_1,COS6_2;
 real tfcos36[9]; /* dct36_3dnow wants to use that */

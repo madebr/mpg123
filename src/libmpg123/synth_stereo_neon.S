@@ -31,7 +31,7 @@ ASM_NAME(synth_1to1_s_neon_asm):
 
 	mov			r4, #4
 	mov			r5, #64
-.Loop_start_1:
+1:
 	vld1.16		{d0-d3}, [WINDOW], r5
 	vld1.16		{d4-d7}, [WINDOW], r5
 	vld1.16		{d8-d11}, [B0L, :128]!
@@ -97,11 +97,11 @@ ASM_NAME(synth_1to1_s_neon_asm):
 	vst1.16		{d0}, [SAMPLES]!
 
 	subs		r4, r4, #1
-	bne			.Loop_start_1
+	bne			1b
 
 	mov			r4, #4
 	mov			r6, #-32
-.Loop_start_2:
+1:
 	vld1.16		{d0-d3}, [WINDOW], r5
 	vld1.16		{d4-d7}, [WINDOW], r5
 	vld1.16		{d8-d11}, [B0L, :128], r6
@@ -167,7 +167,7 @@ ASM_NAME(synth_1to1_s_neon_asm):
 	vst1.16		{d0}, [SAMPLES]!
 
 	subs		r4, r4, #1
-	bne			.Loop_start_2
+	bne			1b
 
 	mov			r0, #0
 

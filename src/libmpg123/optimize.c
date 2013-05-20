@@ -42,14 +42,15 @@ echo "
 #define dn_x86_64 "x86-64"
 #define dn_ARM "ARM"
 #define dn_NEON "NEON"
+#define dn_AVX "AVX"
 static const char* decname[] =
 {
 	"auto"
-	, dn_generic, dn_generic_dither, dn_i386, dn_i486, dn_i586, dn_i586_dither, dn_MMX, dn_3DNow, dn_3DNowExt, dn_AltiVec, dn_SSE, dn_x86_64, dn_ARM, dn_NEON
+	, dn_generic, dn_generic_dither, dn_i386, dn_i486, dn_i586, dn_i586_dither, dn_MMX, dn_3DNow, dn_3DNowExt, dn_AltiVec, dn_SSE, dn_x86_64, dn_ARM, dn_NEON, dn_AVX
 	, "nodec"
 };
 
-#if (defined OPT_X86) && (defined OPT_MULTI)
+#if ((defined OPT_X86) || (defined OPT_X86_64)) && (defined OPT_MULTI)
 #include "getcpuflags.h"
 static struct cpuflags cpu_flags;
 #else
@@ -64,6 +65,7 @@ static struct cpuflags cpu_flags;
 #define cpu_sse(s)      1
 #define cpu_sse2(s)     1
 #define cpu_sse3(s)     1
+#define cpu_avx(s)      1
 #endif
 
 /* Ugly macros to build conditional synth function array values. */
@@ -166,7 +168,7 @@ enum optdec defdec(void){ return defopt; }
 
 enum optcla decclass(const enum optdec type)
 {
-	return (type == mmx || type == sse || type == dreidnowext || type == x86_64  || type == neon) ? mmxsse : normal;
+	return (type == mmx || type == sse || type == dreidnowext || type == x86_64  || type == neon || type == avx) ? mmxsse : normal;
 }
 
 
@@ -223,6 +225,9 @@ static int find_dectype(mpg123_handle *fr)
 #ifdef OPT_X86_64
 	else if(basic_synth == synth_1to1_x86_64) type = x86_64;
 #endif
+#ifdef OPT_AVX
+	else if(basic_synth == synth_1to1_avx) type = avx;
+#endif
 #ifdef OPT_ARM
 	else if(basic_synth == synth_1to1_arm) type = arm;
 #endif
@@ -250,6 +255,9 @@ static int find_dectype(mpg123_handle *fr)
 #ifdef OPT_X86_64
 	else if(basic_synth == synth_1to1_real_x86_64) type = x86_64;
 #endif
+#ifdef OPT_AVX
+	else if(basic_synth == synth_1to1_real_avx) type = avx;
+#endif
 #ifdef OPT_ALTIVEC
 	else if(basic_synth == synth_1to1_real_altivec) type = altivec;
 #endif
@@ -265,6 +273,9 @@ static int find_dectype(mpg123_handle *fr)
 #endif
 #ifdef OPT_X86_64
 	else if(basic_synth == synth_1to1_s32_x86_64) type = x86_64;
+#endif
+#ifdef OPT_AVX
+	else if(basic_synth == synth_1to1_s32_avx) type = avx;
 #endif
 #ifdef OPT_ALTIVEC
 	else if(basic_synth == synth_1to1_s32_altivec) type = altivec;
@@ -409,6 +420,7 @@ int set_synth_functions(mpg123_handle *fr)
 	   && fr->cpu_opts.type != sse
 	   && fr->cpu_opts.type != x86_64
 	   && fr->cpu_opts.type != neon
+	   && fr->cpu_opts.type != avx
 #	endif
 	  )
 	{
@@ -464,17 +476,15 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 #endif
 
 	fr->cpu_opts.type = nodec;
-	/* covers any i386+ cpu; they actually differ only in the synth_1to1 function, mostly... */
-#ifdef OPT_X86
-
 #ifdef OPT_MULTI
 #ifndef NO_LAYER3
-#if (defined OPT_3DNOW || defined OPT_3DNOWEXT)
+#if (defined OPT_3DNOW || defined OPT_3DNOWEXT || defined OPT_SSE || defined OPT_X86_64 || defined OPT_AVX)
 	fr->cpu_opts.the_dct36 = dct36;
 #endif
 #endif
 #endif
-
+	/* covers any i386+ cpu; they actually differ only in the synth_1to1 function, mostly... */
+#ifdef OPT_X86
 	if(cpu_i586(cpu_flags))
 	{
 #		ifdef OPT_MULTI
@@ -486,6 +496,11 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		{
 			chosen = "SSE";
 			fr->cpu_opts.type = sse;
+#ifdef OPT_MULTI
+#			ifndef NO_LAYER3
+			/* if(cpu_fast_sse(cpu_flags)) */ fr->cpu_opts.the_dct36 = dct36_sse;
+#			endif
+#endif
 #			ifndef NO_16BIT
 			fr->synths.plain[r_1to1][f_16] = synth_1to1_sse;
 #			ifdef ACCURATE_ROUNDING
@@ -629,11 +644,42 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 
 #endif /* OPT_X86 */
 
+#ifdef OPT_AVX
+	if(!done && (auto_choose || want_dec == avx) && cpu_avx(cpu_flags))
+	{
+		chosen = "x86-64 (AVX)";
+		fr->cpu_opts.type = avx;
+#ifdef OPT_MULTI
+#		ifndef NO_LAYER3
+		fr->cpu_opts.the_dct36 = dct36_avx;
+#		endif
+#endif
+#		ifndef NO_16BIT
+		fr->synths.plain[r_1to1][f_16] = synth_1to1_avx;
+		fr->synths.stereo[r_1to1][f_16] = synth_1to1_stereo_avx;
+#		endif
+#		ifndef NO_REAL
+		fr->synths.plain[r_1to1][f_real] = synth_1to1_real_avx;
+		fr->synths.stereo[r_1to1][f_real] = synth_1to1_real_stereo_avx;
+#		endif
+#		ifndef NO_32BIT
+		fr->synths.plain[r_1to1][f_32] = synth_1to1_s32_avx;
+		fr->synths.stereo[r_1to1][f_32] = synth_1to1_s32_stereo_avx;
+#		endif
+		done = 1;
+	}
+#endif
+
 #ifdef OPT_X86_64
 	if(!done && (auto_choose || want_dec == x86_64))
 	{
 		chosen = "x86-64 (SSE)";
 		fr->cpu_opts.type = x86_64;
+#ifdef OPT_MULTI
+#		ifndef NO_LAYER3
+		fr->cpu_opts.the_dct36 = dct36_x86_64;
+#		endif
+#endif
 #		ifndef NO_16BIT
 		fr->synths.plain[r_1to1][f_16] = synth_1to1_x86_64;
 		fr->synths.stereo[r_1to1][f_16] = synth_1to1_stereo_x86_64;
@@ -815,6 +861,9 @@ static const char *mpg123_supported_decoder_list[] =
 	#ifdef OPT_ALTIVEC
 	NULL,
 	#endif
+	#ifdef OPT_AVX
+	NULL,
+	#endif
 	#ifdef OPT_X86_64
 	NULL,
 	#endif
@@ -866,6 +915,9 @@ static const char *mpg123_decoder_list[] =
 	#ifdef OPT_ALTIVEC
 	dn_AltiVec,
 	#endif
+	#ifdef OPT_AVX
+	dn_AVX,
+	#endif
 	#ifdef OPT_X86_64
 	dn_x86_64,
 	#endif
@@ -891,8 +943,10 @@ void check_decoders(void )
 	return;
 #else
 	const char **d = mpg123_supported_decoder_list;
-#ifdef OPT_X86
+#if (defined OPT_X86) || (defined OPT_X86_64)
 	getcpuflags(&cpu_flags);
+#endif
+#ifdef OPT_X86
 	if(cpu_i586(cpu_flags))
 	{
 		/* not yet: if(cpu_sse2(cpu_flags)) printf(" SSE2");
@@ -927,6 +981,9 @@ void check_decoders(void )
 /* every supported x86 can do i386, any cpu can do generic */
 #ifdef OPT_I386
 	*(d++) = decname[idrei];
+#endif
+#ifdef OPT_AVX
+	if(cpu_avx(cpu_flags)) *(d++) = decname[avx];
 #endif
 #ifdef OPT_X86_64
 	*(d++) = decname[x86_64];

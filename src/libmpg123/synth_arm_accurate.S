@@ -35,7 +35,7 @@ ASM_NAME(synth_1to1_arm_accurate_asm):
 	
 	ldr		r5, [WINDOW], #4
 	ldr		r6, [B0], #4
-.Loop_start_1:
+1:
 	ldr		r9, [WINDOW], #4
 	ldr		r10, [B0], #4
 	smull	r8, r7, r5, r6
@@ -102,7 +102,7 @@ ASM_NAME(synth_1to1_arm_accurate_asm):
 	strh	r8, [SAMPLES], #4
 	
 	subs	r3, r3, #1
-	bne		.Loop_start_1
+	bne		1b
 	
 	add		WINDOW, WINDOW, #4
 	add		B0, B0, #4
@@ -150,7 +150,7 @@ ASM_NAME(synth_1to1_arm_accurate_asm):
 	
 	mov		r3, #14
 	
-.Loop_start_2:
+1:
 	ldr		r9, [WINDOW], #4
 	ldr		r10, [B0], #4
 	smull	r8, r7, r5, r6
@@ -217,7 +217,7 @@ ASM_NAME(synth_1to1_arm_accurate_asm):
 	strh	r8, [SAMPLES], #4
 	
 	subs	r3, r3, #1
-	bne		.Loop_start_2
+	bne		1b
 	
 	ldr		r9, [WINDOW], #4
 	ldr		r10, [B0], #4

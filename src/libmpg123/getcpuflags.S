@@ -51,6 +51,7 @@ ASM_NAME(getcpuflags):
 /* In principle, I would have to check the CPU's identify first to be sure how to interpret the extended flags. */
 /* now get the info, first extended */
 	movl $0x0, 12(%esi) /* clear value */
+	movl $0x0, 16(%esi) /* clear value */
 /* only if supported... */
 	movl $0x80000000, %eax
 	cpuid
@@ -68,6 +69,15 @@ ASM_NAME(getcpuflags):
 	movl %eax, (%esi)
 	movl %ecx, 4(%esi)
 	movl %edx, 8(%esi)
+/* check if xgetbv instruction is available */
+	test	$0x04000000, %ecx
+	jz		.Lend
+	test	$0x08000000, %ecx
+	jz		.Lend
+	xor		%ecx, %ecx
+	.byte	0x0f, 0x01, 0xd0 /* xgetbv instruction */
+	movl	%eax, 16(%esi)
+	movl	(%esi), %eax
 	jmp .Lend
 	ALIGN4
 .Lnocpuid:
@@ -77,6 +87,7 @@ ASM_NAME(getcpuflags):
 	movl $0, 4(%esi)
 	movl $0, 8(%esi)
 	movl $0, 12(%esi)
+	movl $0, 16(%esi)
 	ALIGN4
 .Lend:
 /* return value are the id flags, still stored in %eax */

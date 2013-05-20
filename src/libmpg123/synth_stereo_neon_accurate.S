@@ -34,7 +34,7 @@ ASM_NAME(synth_1to1_s_neon_accurate_asm):
 	mov			r4, #4
 	mov			r5, #128
 	mov			r6, #64
-.Loop_start_1:
+1:
 	vld1.32		{q0,q1}, [WINDOW], r5
 	vld1.32		{q2,q3}, [WINDOW]
 	vld1.32		{q4,q5}, [B0L, :128], r6
@@ -138,11 +138,11 @@ ASM_NAME(synth_1to1_s_neon_accurate_asm):
 	vst1.16		{d26}, [SAMPLES]!
 
 	subs		r4, r4, #1
-	bne			.Loop_start_1
+	bne			1b
 
 	mov			r4, #4
 	mov			r6, #-64
-.Loop_start_2:
+1:
 	vld1.32		{q0,q1}, [WINDOW], r5
 	vld1.32		{q2,q3}, [WINDOW]
 	vld1.32		{q4,q5}, [B0L, :128], r6
@@ -250,7 +250,7 @@ ASM_NAME(synth_1to1_s_neon_accurate_asm):
 	vst1.16		{d26}, [SAMPLES]!
 
 	subs		r4, r4, #1
-	bne			.Loop_start_2
+	bne			1b
 
 	vld1.32		{q0}, [sp, :128]
 	vpadd.i32	d0, d0, d1

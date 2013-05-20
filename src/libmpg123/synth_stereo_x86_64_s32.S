@@ -105,7 +105,7 @@ ASM_NAME(synth_1to1_s32_s_x86_64_asm):
 	movl		$4, %ecx
 	
 	ALIGN16
-Loop_start_1:
+1:
 	movups		(WINDOW), %xmm8
 	movups		16(WINDOW), %xmm1
 	movups		32(WINDOW), %xmm2
@@ -268,12 +268,12 @@ Loop_start_1:
 	
 	leaq		32(SAMPLES), SAMPLES
 	decl		%ecx
-	jnz			Loop_start_1
+	jnz			1b
 	
 	movl		$4, %ecx
 	
 	ALIGN16
-Loop_start_2:
+1:
 	movups		(WINDOW), %xmm8
 	movups		16(WINDOW), %xmm1
 	movups		32(WINDOW), %xmm2
@@ -436,7 +436,7 @@ Loop_start_2:
 	
 	leaq		32(SAMPLES), SAMPLES
 	decl		%ecx
-	jnz			Loop_start_2
+	jnz			1b
 	
 	movaps		TEMP_CLIP, %xmm4
 	movhlps		%xmm4, %xmm0

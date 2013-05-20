@@ -37,7 +37,7 @@ enum optdec
 { /* autodec needs to be =0 and the first, nodec needs to be the last -- for loops! */
 	autodec=0, generic, generic_dither, idrei,
 	ivier, ifuenf, ifuenf_dither, mmx,
-	dreidnow, dreidnowext, altivec, sse, x86_64, arm, neon,
+	dreidnow, dreidnowext, altivec, sse, x86_64, arm, neon, avx,
 	nodec
 };
 enum optcla { nocla=0, normal, mmxsse };
@@ -68,7 +68,7 @@ enum optcla decclass(const enum optdec);
 #if (defined OPT_I486)  || (defined OPT_I586) || (defined OPT_I586_DITHER) \
  || (defined OPT_MMX)   || (defined OPT_SSE)  || (defined_OPT_ALTIVEC) \
  || (defined OPT_3DNOW) || (defined OPT_3DNOWEXT) || (defined OPT_X86_64) \
- || (defined OPT_NEON) || (defined OPT_GENERIC_DITHER)
+ || (defined OPT_NEON) || (defined OPT_AVX) || (defined OPT_GENERIC_DITHER)
 #error "Bad decoder choice together with fixed point math!"
 #endif
 #endif
@@ -139,6 +139,7 @@ enum optcla decclass(const enum optdec);
 #define OPT_X86
 #ifndef OPT_MULTI
 #	define defopt sse
+#	define opt_dct36(fr) dct36_sse
 #endif
 #endif
 
@@ -176,6 +177,15 @@ extern const int costab_mmxsse[];
 #define OPT_MMXORSSE
 #ifndef OPT_MULTI
 #	define defopt x86_64
+#	define opt_dct36(fr) dct36_x86_64
+#endif
+#endif
+
+#ifdef OPT_AVX
+#define OPT_MMXORSSE
+#ifndef OPT_MULTI
+#	define defopt avx
+#	define opt_dct36(fr) dct36_avx
 #endif
 #endif
 
@@ -205,7 +215,7 @@ void check_decoders(void);
 
 #	define defopt nodec
 
-#	if (defined OPT_3DNOW || defined OPT_3DNOWEXT)
+#	if (defined OPT_3DNOW || defined OPT_3DNOWEXT || defined OPT_SSE || defined OPT_X86_64 || defined OPT_AVX)
 #		define opt_dct36(fr) ((fr)->cpu_opts.the_dct36)
 #	endif
 
