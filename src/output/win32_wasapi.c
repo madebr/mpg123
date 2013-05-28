@@ -320,8 +320,9 @@ static void flush_win32(struct audio_output_struct *ao){
   HRESULT hr;
   debug1("%s",__FUNCTION__);
   if(!pAudioClient) return;
-  Sleep((DWORD)(hnsRequestedDuration/REFTIMES_PER_MILLISEC));
   hr = IAudioClient_Stop(pAudioClient);
+  EXIT_ON_ERROR(hr)
+  IAudioClient_Reset(pAudioClient);
   EXIT_ON_ERROR(hr)
   return;
   Exit:
@@ -349,7 +350,7 @@ static int close_win32(struct audio_output_struct *ao)
   pData_off = 0;
   is_playing = 0;
   taskIndex = 0;
-	return 0;
+  return 0;
 }
 
 static int init_win32(audio_output_t* ao){
