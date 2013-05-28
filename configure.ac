@@ -804,27 +804,28 @@ AC_ARG_WITH([audio], [
   --with-audio=<list of modules>  Select a list (or only one) of audio output modules (comma or space separated list).
 ])
 AC_ARG_WITH([default-audio], [
-  --with-default-audio=aix        Use AIX as default audio output sub-system
-  --with-default-audio=alib       Use Alib as default audio output sub-system (for HPUX)
-  --with-default-audio=alsa       Use ALSA as default audio output sub-system
-  --with-default-audio=arts       Use aRts as default audio output sub-system (KDE sound server)
-  --with-default-audio=dummy      Use dummy as default audio (when no sound card is available)
-  --with-default-audio=esd        Use ESoundD as default audio output sub-system
-  --with-default-audio=hp         Use HP as default audio output sub-system
-  --with-default-audio=jack       Use JACK as default low-latency audio server
-  --with-default-audio=coreaudio  Use Mac OS X as default audio output sub-system (CoreAudio)
-  --with-default-audio=mint       Use MinT as default audio output sub-system (Atari)
-  --with-default-audio=nas        Use NAS as default audio output (Network Audio System)
-  --with-default-audio=os2        Use OS2 as default audio output sub-system
-  --with-default-audio=oss        Use OSS as default audio output sub-system (/dev/dsp)
-  --with-default-audio=portaudio  Use PortAudio as default audio output sub-system
-  --with-default-audio=pulse      Use Pulse audio server as default audio output sub-system
-  --with-default-audio=qsa        Use QSA as default audio output sub-system
-  --with-default-audio=sdl        Use SDL as default audio output sub-system (Simple DirectMedia Layer)
-  --with-default-audio=sgi        Use SGI as default audio output sub-system (IRIX)
-  --with-default-audio=sndio      Use OpenBSD's sndio as default audio output sub-system
-  --with-default-audio=sun        Use Sun as default audio output sub-system (/dev/audio)
-  --with-default-audio=win32      Use Win32 audio as default audio output sub-system
+  --with-default-audio=aix            Use AIX as default audio output sub-system
+  --with-default-audio=alib           Use Alib as default audio output sub-system (for HPUX)
+  --with-default-audio=alsa           Use ALSA as default audio output sub-system
+  --with-default-audio=arts           Use aRts as default audio output sub-system (KDE sound server)
+  --with-default-audio=dummy          Use dummy as default audio (when no sound card is available)
+  --with-default-audio=esd            Use ESoundD as default audio output sub-system
+  --with-default-audio=hp             Use HP as default audio output sub-system
+  --with-default-audio=jack           Use JACK as default low-latency audio server
+  --with-default-audio=coreaudio      Use Mac OS X as default audio output sub-system (CoreAudio)
+  --with-default-audio=mint           Use MinT as default audio output sub-system (Atari)
+  --with-default-audio=nas            Use NAS as default audio output (Network Audio System)
+  --with-default-audio=os2            Use OS2 as default audio output sub-system
+  --with-default-audio=oss            Use OSS as default audio output sub-system (/dev/dsp)
+  --with-default-audio=portaudio      Use PortAudio as default audio output sub-system
+  --with-default-audio=pulse          Use Pulse audio server as default audio output sub-system
+  --with-default-audio=qsa            Use QSA as default audio output sub-system
+  --with-default-audio=sdl            Use SDL as default audio output sub-system (Simple DirectMedia Layer)
+  --with-default-audio=sgi            Use SGI as default audio output sub-system (IRIX)
+  --with-default-audio=sndio          Use OpenBSD's sndio as default audio output sub-system
+  --with-default-audio=sun            Use Sun as default audio output sub-system (/dev/audio)
+  --with-default-audio=win32          Use Win32 audio as default audio output sub-system
+  --with-default-audio=win32_wasapi   Use Win32 wasapi audio as default audio output sub-system
 ])
 
 AC_ARG_WITH([optimization], [
@@ -1418,7 +1419,7 @@ fi
 dnl ############## Output module choice
 
 # The full list of supported modules to check, first come, first serve.
-check_modules="alsa oss coreaudio sndio sun win32 os2 esd jack portaudio pulse sdl nas arts openal dummy"
+check_modules="alsa oss coreaudio sndio sun win32 win32_wasapi os2 esd jack portaudio pulse sdl nas arts openal dummy"
 # Only check qsa before all else on QNX.
 # It would mask ALSA otherwise.
 case $host in
@@ -1567,6 +1568,36 @@ do
 			# AC_CHECK_LIB( [winmm], [waveOutOpen] )
 			WIN32_LIBS=-lwinmm
 			AC_CHECK_HEADERS([windows.h], output_modules="$output_modules win32" HAVE_WIN32=yes, HAVE_WIN32=no check_failed=yes)
+		;;
+		win32_wasapi)
+			# Check for windows ... and win32 wasapi audio
+			# Does not work... instead just check for header
+			# AC_CHECK_LIB( [avrt], [] )
+            AC_MSG_CHECKING([if we have wasapi headers])
+            OLD_LIBS=$LIBS
+            LIBS="$LIBS -lole32 -lavrt"
+            AC_LINK_IFELSE([AC_LANG_SOURCE([
+#define COBJMACROS 1
+#define _WIN32_WINNT 0x601
+#include <initguid.h>
+#include <audioclient.h>
+#include <mmdeviceapi.h>
+#include <avrt.h>
+int main(){
+  /* UUID Checks */
+  GUID *IDs[] = {
+    &CLSID_MMDeviceEnumerator,
+    &IID_IMMDeviceEnumerator,
+    &IID_IAudioClient,
+    &IID_IAudioRenderClient
+  };
+  return 0;
+}
+    ])], [HAVE_WIN32_WASAPI=yes], [HAVE_WIN32_WASAPI=no])
+            LIBS=$OLD_LIBS
+			WIN32_WASAPI_LIBS="-lole32 -lavrt"
+            output_modules="$output_modules win32_wasapi"
+            AC_MSG_RESULT([$HAVE_WIN32_WASAPI])
 		;;
 		sndio)
 			SNDIO_LIBS=-lsndio
@@ -1761,6 +1792,8 @@ AC_SUBST(WIN32_LIBS)
 AC_SUBST(WIN32_LDFLAGS)
 AC_SUBST(WIN32_CFLAGS)
 AM_CONDITIONAL( [HAVE_WIN32], [test "x$HAVE_WIN32" = xyes] )
+AC_SUBST(WIN32_WASAPI_LIBS)
+AM_CONDITIONAL( [HAVE_WIN32_WASAPI], [test "x$HAVE_WIN32_WASAPI" = xyes] )
 AC_SUBST(ESD_LIBS)
 AC_SUBST(ESD_LDFLAGS)
 AC_SUBST(ESD_CFLAGS)
