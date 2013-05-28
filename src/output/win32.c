@@ -21,6 +21,9 @@
 #define BUFFER_SIZE 0x10000
 #define NUM_BUFFERS 8  /* total 512k roughly 2.5 sec of CD quality sound */
 
+static void wait_for_buffer(WAVEHDR* hdr, HANDLE hEvent);
+static void drain_win32(struct audio_output_struct *ao);
+
 /* Buffer ring queue state */
 struct queue_state
 {
@@ -116,21 +119,7 @@ static int write_win32(struct audio_output_struct *ao, unsigned char *buf, int l
 	state = (struct queue_state*)ao->userptr;
 	hdr = &state->buffer_headers[state->next_buffer];
 
-	/* Check buffer header and wait if it's being played.
-	   Skip waiting if the buffer is not full yet */
-	while(hdr->dwBufferLength == BUFFER_SIZE && !(hdr->dwFlags & WHDR_DONE))
-	{
-		/* debug1("waiting for buffer %i...", state->next_buffer); */
-		WaitForSingleObject(state->play_done_event, INFINITE);
-	}
-
-	/* If it was a full buffer being played, clean up. */
-	if(hdr->dwFlags & WHDR_DONE)
-	{
-		waveOutUnprepareHeader(state->waveout, hdr, sizeof(WAVEHDR));
-		hdr->dwFlags = 0;
-		hdr->dwBufferLength = 0;
-	}
+	wait_for_buffer(hdr, state->play_done_event);
 
 	/* Now see how much we want to stuff in and then stuff it in. */
 	bufill = BUFFER_SIZE - hdr->dwBufferLength;
@@ -163,6 +152,65 @@ static void flush_win32(struct audio_output_struct *ao)
 	/* TODO: What's the right approach to flush things?
 	   Wildly unprepare headers? 
 	   waveOutClose() might do the trick, although rather radical. */
+    struct queue_state* state;
+    WAVEHDR* hdr;
+
+    if(!ao || !ao->userptr) return;
+    state = (struct queue_state*)ao->userptr;
+
+    /* Cancel any buffers in queue.  Ignore errors since we are void and
+    can't return them anyway */
+    waveOutReset(state->waveout);
+
+    /* Discard any partial buffer */
+    hdr = &state->buffer_headers[state->next_buffer];
+
+    /* If WHDR_PREPARED is not set, this is (potentially) a partial buffer */
+    if (!(hdr->dwFlags & WHDR_PREPARED))
+    hdr->dwBufferLength = 0;
+
+    /* Finish processing the buffers */
+    drain_win32(ao);
+}
+
+/* output final buffer (if any) */
+static void write_final_buffer(struct queue_state *state)
+{
+    WAVEHDR* hdr;
+    hdr = &state->buffer_headers[state->next_buffer];
+    if((!(hdr->dwFlags & WHDR_PREPARED)) && (hdr->dwBufferLength != 0))
+    {
+    hdr->dwFlags |= WHDR_PREPARED;
+    /* ignore any errors */
+    waveOutWrite(state->waveout, hdr, sizeof(WAVEHDR));
+
+    /* Cycle to the next buffer in the ring queue */
+    state->next_buffer = (state->next_buffer + 1) % NUM_BUFFERS;
+ 	}
+}
+
+static void wait_for_buffer(WAVEHDR* hdr, HANDLE hEvent)
+{
+    /* At this point there are several possible states:
+    1) Empty or partial buffer (unqueued) - dwFlags == 0
+    2) Buffer queued or being played - dwFlags == WHDR_PREPARED | WHDR_INQUEUE
+    3) Buffer unqueued and finished being played - dwFlags == WHDR_PREPARED | WHDR_DONE
+    4) Buffer removed from queue, but not yet marked as done - dwFlags == WHDR_PREPARED
+    */
+
+    /* Check buffer header and wait if it's being played. */
+    if (hdr->dwFlags & WHDR_PREPARED)
+    {
+        while(!(hdr->dwFlags & WHDR_DONE))
+        {
+            /*debug1("waiting for buffer %i...", state->next_buffer);*/
+            /* Waits for *a* buffer to finish.  May not be the one we
+            want, so check again */
+            WaitForSingleObject(hEvent, INFINITE);
+        }
+        hdr->dwFlags = 0;
+        hdr->dwBufferLength = 0;
+    }
 }
 
 /* Note: I tried to fix this stuff without testing.
@@ -176,17 +224,15 @@ static void drain_win32(struct audio_output_struct *ao)
 	if(!ao || !ao->userptr) return;
 	state = (struct queue_state*)ao->userptr;
 
+    /* output final buffer (if any) */
+    write_final_buffer(state);
+
 	/* I _think_ I understood how this should work. -- ThOr */
 	z = state->next_buffer;
 	for(i = 0; i < NUM_BUFFERS; i++)
 	{
-		if(!(state->buffer_headers[z].dwFlags & WHDR_DONE))
-			WaitForSingleObject(state->play_done_event, INFINITE);
-
-		waveOutUnprepareHeader(state->waveout, &state->buffer_headers[z], sizeof(WAVEHDR));
-		state->buffer_headers[z].dwFlags = 0;
-		state->buffer_headers[z].dwBufferLength = 0;
-		z = (z + 1) % NUM_BUFFERS;
+      wait_for_buffer(&state->buffer_headers[z], state->play_done_event);
+      z = (z + 1) % NUM_BUFFERS;
 	}
 }
 
@@ -207,7 +253,12 @@ static int close_win32(struct audio_output_struct *ao)
 	waveOutClose(state->waveout);
 	CloseHandle(state->play_done_event);
 
-	for(i = 0; i < NUM_BUFFERS; i++) free(state->buffer_headers[i].lpData);
+    for(i = 0; i < NUM_BUFFERS; i++) 
+    {
+     	state->buffer_headers[i].dwFlags |= WHDR_PREPARED;
+     	waveOutUnprepareHeader(state->waveout, &state->buffer_headers[i], sizeof(WAVEHDR));
+        free(state->buffer_headers[i].lpData);
+    }
 
 	free(ao->userptr);
 	ao->userptr = 0;
