@@ -53,36 +53,45 @@ mpg123_module_t mpg123_output_module_info = {
                 { (punk)->Release(); (punk) = NULL; }
 
 /* todo: move into handle struct */
-static IMMDeviceEnumerator *pEnumerator = NULL;
-static IMMDevice *pDevice = NULL;
-static IAudioClient *pAudioClient = NULL;
-static IAudioRenderClient *pRenderClient = NULL;
-static UINT32 bufferFrameCount;
-static REFERENCE_TIME hnsRequestedDuration = REFTIMES_PER_SEC;
-static HANDLE hEvent = NULL;
-static HANDLE hTask = NULL;
-static BYTE *pData = NULL;
-static size_t pData_off = 0;
-static int is_playing = 0;
-static DWORD taskIndex = 0;
+typedef struct _wasapi_state_struct {
+  IMMDeviceEnumerator *pEnumerator;
+  IMMDevice *pDevice;
+  IAudioClient *pAudioClient;
+  IAudioRenderClient *pRenderClient;
+  BYTE *pData;
+  UINT32 bufferFrameCount;
+  REFERENCE_TIME hnsRequestedDuration;
+  HANDLE hEvent;
+  HANDLE hTask;
+  size_t pData_off;
+  DWORD taskIndex;
+  char is_playing;
+} wasapi_state_struct;
 
 /* setup endpoints */
 static int open_win32(struct audio_output_struct *ao){
   HRESULT hr = 0;
+  wasapi_state_struct *state;
 
   debug1("%s",__FUNCTION__);
+  if(!ao || ao->userptr) return -1; /* userptr should really be null */
+  state = calloc(sizeof(*state),1);
+  if(!state) return -1;
+  state->hnsRequestedDuration = REFTIMES_PER_SEC;
+  ao->userptr = (void *)state;
+
   CoInitialize(NULL);
-  hr = CoCreateInstance(&CLSID_MMDeviceEnumerator,NULL,CLSCTX_ALL, &IID_IMMDeviceEnumerator,(void**)&pEnumerator);
+  hr = CoCreateInstance(&CLSID_MMDeviceEnumerator,NULL,CLSCTX_ALL, &IID_IMMDeviceEnumerator,(void**)&state->pEnumerator);
   debug("CoCreateInstance");
   EXIT_ON_ERROR(hr)
 
-  hr = IMMDeviceEnumerator_GetDefaultAudioEndpoint(pEnumerator,eRender, eConsole, &pDevice);
+  hr = IMMDeviceEnumerator_GetDefaultAudioEndpoint(state->pEnumerator,eRender, eConsole, &state->pDevice);
   debug("IMMDeviceEnumerator_GetDefaultAudioEndpoint");
   EXIT_ON_ERROR(hr)
 
-  hr = IMMDeviceActivator_Activate(pDevice,
+  hr = IMMDeviceActivator_Activate(state->pDevice,
                   &IID_IAudioClient, CLSCTX_ALL,
-                  NULL, (void**)&pAudioClient);
+                  NULL, (void**)&state->pAudioClient);
   debug("IMMDeviceActivator_Activate");
   EXIT_ON_ERROR(hr)
 
@@ -98,7 +107,11 @@ static int get_formats_win32(struct audio_output_struct *ao){
   HRESULT hr;
   int ret = 0;
   debug1("%s",__FUNCTION__);
+
+  if(!ao || !ao->userptr) return -1;
+  wasapi_state_struct *state = (wasapi_state_struct *) ao->userptr;
   debug2("channels %d\nrate %ld",ao->channels, ao->rate);
+
   WAVEFORMATEX s16 = {
     WAVE_FORMAT_PCM,
 	ao->channels,
@@ -109,7 +122,7 @@ static int get_formats_win32(struct audio_output_struct *ao){
 	0
   };
 
-  if((hr = IAudioClient_IsFormatSupported(pAudioClient,AUDCLNT_SHAREMODE_EXCLUSIVE, &s16, NULL)) == S_OK)
+  if((hr = IAudioClient_IsFormatSupported(state->pAudioClient,AUDCLNT_SHAREMODE_EXCLUSIVE, &s16, NULL)) == S_OK)
     ret |= MPG123_ENC_SIGNED_16;
   /*s16.nBlockAlign = ao->channels * 4;
   s16.wBitsPerSample = 32;
@@ -128,6 +141,11 @@ static int get_formats_win32(struct audio_output_struct *ao){
 static int write_init(struct audio_output_struct *ao){
   HRESULT hr;
   double offset = 0.5;
+
+  debug1("%s",__FUNCTION__);
+  if(!ao || !ao->userptr) return -1;
+  wasapi_state_struct *state = (wasapi_state_struct *) ao->userptr;
+
   WAVEFORMATEX s16 = {
     WAVE_FORMAT_PCM,
 	ao->channels,
@@ -137,16 +155,15 @@ static int write_init(struct audio_output_struct *ao){
 	16,
 	0
   };
-  debug1("%s",__FUNCTION__);
   /* cargo cult code */
-  hr = IAudioClient_GetDevicePeriod(pAudioClient,NULL, &hnsRequestedDuration);
+  hr = IAudioClient_GetDevicePeriod(state->pAudioClient,NULL, &state->hnsRequestedDuration);
   debug("IAudioClient_GetDevicePeriod OK");
   reinit:
-  hr = IAudioClient_Initialize(pAudioClient,
+  hr = IAudioClient_Initialize(state->pAudioClient,
                        AUDCLNT_SHAREMODE_EXCLUSIVE,
                        Init_Flag,
-                       hnsRequestedDuration,
-                       hnsRequestedDuration,
+                       state->hnsRequestedDuration,
+                       state->hnsRequestedDuration,
                        &s16,
                        NULL);
   debug("IAudioClient_Initialize OK");
@@ -154,31 +171,31 @@ static int write_init(struct audio_output_struct *ao){
   if (hr == AUDCLNT_E_BUFFER_SIZE_NOT_ALIGNED){
     if (offset > 10.0) goto Exit; /* is 10 enough to break out of the loop?*/
     debug("AUDCLNT_E_BUFFER_SIZE_NOT_ALIGNED");
-    IAudioClient_GetBufferSize(pAudioClient,&bufferFrameCount);
+    IAudioClient_GetBufferSize(state->pAudioClient,&state->bufferFrameCount);
     /* double buffered */
-	hnsRequestedDuration = (REFERENCE_TIME)((BUFFER_TIME / s16.nSamplesPerSec * bufferFrameCount) + offset);
+	state->hnsRequestedDuration = (REFERENCE_TIME)((BUFFER_TIME / s16.nSamplesPerSec * state->bufferFrameCount) + offset);
     offset += 0.5;
-	IAudioClient_Release(pAudioClient);
-	pAudioClient = NULL;
-	hr = IMMDeviceActivator_Activate(pDevice,
+	IAudioClient_Release(state->pAudioClient);
+	state->pAudioClient = NULL;
+	hr = IMMDeviceActivator_Activate(state->pDevice,
                   &IID_IAudioClient, CLSCTX_ALL,
-                  NULL, (void**)&pAudioClient);
+                  NULL, (void**)&state->pAudioClient);
     debug("IMMDeviceActivator_Activate");
     goto reinit;
   }
   EXIT_ON_ERROR(hr)
   EXIT_ON_ERROR(hr)
-  hr = IAudioClient_GetService(pAudioClient,
+  hr = IAudioClient_GetService(state->pAudioClient,
                         &IID_IAudioRenderClient,
-                        (void**)&pRenderClient);
+                        (void**)&state->pRenderClient);
   debug("IAudioClient_GetService OK");
   EXIT_ON_ERROR(hr)
-  hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+  state->hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
   debug("CreateEvent OK");
-  if(!hEvent) goto Exit;
-  hr = IAudioClient_SetEventHandle(pAudioClient,hEvent);
+  if(!state->hEvent) goto Exit;
+  hr = IAudioClient_SetEventHandle(state->pAudioClient,state->hEvent);
   EXIT_ON_ERROR(hr);
-  hr = IAudioClient_GetBufferSize(pAudioClient,&bufferFrameCount);
+  hr = IAudioClient_GetBufferSize(state->pAudioClient,&state->bufferFrameCount);
   debug("IAudioClient_GetBufferSize OK");
   EXIT_ON_ERROR(hr)
   return 0;
@@ -188,13 +205,15 @@ Exit:
 }
 
 /* Set play mode if unset, also raise thread priority */
-static HRESULT play_init(){
+static HRESULT play_init(struct audio_output_struct *ao){
   HRESULT hr = S_OK;
-  if(!is_playing){
+  if(!ao || !ao->userptr) return -1;
+  wasapi_state_struct *state = (wasapi_state_struct *) ao->userptr;
+  if(!state->is_playing){
     debug1("%s",__FUNCTION__);
-    hTask = AvSetMmThreadCharacteristicsW(L"Pro Audio", &taskIndex);
-    hr = IAudioClient_Start(pAudioClient);
-    is_playing = 1;
+    state->hTask = AvSetMmThreadCharacteristicsW(L"Pro Audio", &state->taskIndex);
+    hr = IAudioClient_Start(state->pAudioClient);
+    state->is_playing = 1;
     debug("IAudioClient_Start");
     EXIT_ON_ERROR(hr)
     }
@@ -211,36 +230,38 @@ static int write_win32(struct audio_output_struct *ao, unsigned char *buf, int l
   size_t framesize = ao->channels * 2; /* 16bit/8 */
   size_t frames_in = len/framesize; /* Frames in buf, is framesize even correct? */
   debug1("%s",__FUNCTION__);
+  if(!ao || !ao->userptr) return -1;
+  wasapi_state_struct *state = (wasapi_state_struct *) ao->userptr;
   if(!len) return 0;
-  if(!pRenderClient) write_init(ao);
+  if(!state->pRenderClient) write_init(ao);
 #ifdef WASAPI_EVENT_MODE
   /* Event mode WASAPI */
   DWORD retval = -1;
   int flag = 0; /* Silence flag */
   feed_again:
-  if(!pData){
+  if(!state->pData){
     /* Acquire buffer */
-    hr = IAudioRenderClient_GetBuffer(pRenderClient,bufferFrameCount, &pData);
+    hr = IAudioRenderClient_GetBuffer(state->pRenderClient,state->bufferFrameCount, &state->pData);
     debug("IAudioRenderClient_GetBuffer");
     EXIT_ON_ERROR(hr)
   }
   if(frames_in){ /* Did we get half a frame?? non-zero len smaller than framesize? */
     /* We must put in exactly the amount of frames specified by IAudioRenderClient_GetBuffer */
-    while(pData_off < bufferFrameCount){
-      to_copy = bufferFrameCount - pData_off;
-      debug3("pData_off %I64d, bufferFrameCount %d, to_copy %I64d", pData_off, bufferFrameCount, to_copy);
+    while(state->pData_off < state->bufferFrameCount){
+      to_copy = state->bufferFrameCount - state->pData_off;
+      debug3("pData_off %I64d, bufferFrameCount %d, to_copy %I64d", state->pData_off, state->bufferFrameCount, to_copy);
       if(to_copy > frames_in){
         /* buf can fit in provided buffer space */
         debug1("all buffers copied, %I64d", frames_in);
-        memcpy(pData+pData_off*framesize,buf,framesize*(frames_in));
-        pData_off += frames_in;
+        memcpy(state->pData+state->pData_off*framesize,buf,framesize*(frames_in));
+        state->pData_off += frames_in;
         frames_in = 0;
         break;
       } else {
         /* buf too big, needs spliting */
         debug1("partial buffers %I64d", to_copy);
-        memcpy(pData+pData_off*framesize,buf,framesize*(to_copy));
-        pData_off += to_copy;
+        memcpy(state->pData+state->pData_off*framesize,buf,framesize*(to_copy));
+        state->pData_off += to_copy;
         buf+=(to_copy*framesize);
         frames_in -= to_copy;
       }
@@ -249,21 +270,23 @@ static int write_win32(struct audio_output_struct *ao, unsigned char *buf, int l
     /* In case we ever get half a frame, is it possible? */
     flag = AUDCLNT_BUFFERFLAGS_SILENT;
   }
-  debug2("Copied %I64d, left %I64d", pData_off, frames_in);
-  if(pData_off == bufferFrameCount) {
+  debug2("Copied %I64d, left %I64d", state->pData_off, frames_in);
+  if(state->pData_off == state->bufferFrameCount) {
     /* Tell IAudioRenderClient that buffer is filled and released */
-    hr = IAudioRenderClient_ReleaseBuffer(pRenderClient,pData_off, flag);
-    pData_off = 0;
-    pData = NULL;
+    hr = IAudioRenderClient_ReleaseBuffer(state->pRenderClient,state->pData_off, flag);
+    state->pData_off = 0;
+    state->pData = NULL;
     debug("IAudioRenderClient_ReleaseBuffer");
     EXIT_ON_ERROR(hr)
-    hr = play_init();
-    EXIT_ON_ERROR(hr)
+    if(!state->is_playing){
+      hr = play_init(ao);
+      EXIT_ON_ERROR(hr)
+    }
     /* wait for next pull event */
-    retval = WaitForSingleObject(hEvent, 2000);
+    retval = WaitForSingleObject(state->hEvent, 2000);
     if (retval != WAIT_OBJECT_0){
       /* Event handle timed out after a 2-second wait, something went very wrong */
-      IAudioClient_Stop(pAudioClient);
+      IAudioClient_Stop(state->pAudioClient);
       hr = ERROR_TIMEOUT;
       goto Exit;
     }
@@ -274,10 +297,10 @@ static int write_win32(struct audio_output_struct *ao, unsigned char *buf, int l
     UINT32 numFramesAvailable, numFramesPadding, bufferFrameCount;
 feed_again:
     /* How much buffer do we get to use? */
-    hr = IAudioClient_GetBufferSize(pAudioClient,&bufferFrameCount);
+    hr = IAudioClient_GetBufferSize(state->pAudioClient,&bufferFrameCount);
     debug("IAudioRenderClient_GetBuffer");
     EXIT_ON_ERROR(hr)
-    hr = IAudioClient_GetCurrentPadding(pAudioClient,&numFramesPadding);
+    hr = IAudioClient_GetCurrentPadding(state->pAudioClient,&numFramesPadding);
     debug("IAudioClient_GetCurrentPadding");
     EXIT_ON_ERROR(hr)
     /* How much buffer is writable at the moment? */
@@ -293,19 +316,21 @@ feed_again:
       to_copy = numFramesAvailable;
     }
     /* Acquire buffer */
-    hr = IAudioRenderClient_GetBuffer(pRenderClient,to_copy,&pData);
+    hr = IAudioRenderClient_GetBuffer(state->pRenderClient,to_copy,&pData);
     debug("IAudioRenderClient_GetBuffer");
     EXIT_ON_ERROR(hr)
     memcpy(pData,buf+pData_off*framesize,to_copy*framesize);
     /* Release buffer */
-    hr = IAudioRenderClient_ReleaseBuffer(pRenderClient,to_copy, 0);
+    hr = IAudioRenderClient_ReleaseBuffer(state->pRenderClient,to_copy, 0);
     debug("IAudioRenderClient_ReleaseBuffer");
     EXIT_ON_ERROR(hr)
-    hr = play_init();
-    EXIT_ON_ERROR(hr)
+    if(!state->is_playing){
+      hr = play_init(ao);
+      EXIT_ON_ERROR(hr)
+    }
     frames_in -= to_copy;
     /* Wait sometime for buffer to empty? */
-    Sleep((DWORD)(hnsRequestedDuration/REFTIMES_PER_MILLISEC));
+    Sleep((DWORD)(state->hnsRequestedDuration/REFTIMES_PER_MILLISEC));
     if (frames_in)
       goto feed_again;
 #endif
@@ -317,12 +342,14 @@ feed_again:
 
 static void flush_win32(struct audio_output_struct *ao){
   /* Wait for the last buffer to play before stopping. */
-  HRESULT hr;
   debug1("%s",__FUNCTION__);
-  if(!pAudioClient) return;
-  hr = IAudioClient_Stop(pAudioClient);
+  if(!ao || !ao->userptr) return;
+  wasapi_state_struct *state = (wasapi_state_struct *) ao->userptr;
+  HRESULT hr;
+  if(!state->pAudioClient) return;
+  hr = IAudioClient_Stop(state->pAudioClient);
   EXIT_ON_ERROR(hr)
-  IAudioClient_Reset(pAudioClient);
+  IAudioClient_Reset(state->pAudioClient);
   EXIT_ON_ERROR(hr)
   return;
   Exit:
@@ -331,25 +358,17 @@ static void flush_win32(struct audio_output_struct *ao){
 
 static int close_win32(struct audio_output_struct *ao)
 {
-  if(pAudioClient) IAudioClient_Stop(pAudioClient);
-  if(pRenderClient) IAudioRenderClient_Release(pRenderClient);  
-  if(pAudioClient) IAudioClient_Release(pAudioClient);
-  if(hTask) AvRevertMmThreadCharacteristics(hTask);
-  if(pEnumerator) IMMDeviceEnumerator_Release(pEnumerator);
-  if(pDevice) IMMDevice_Release(pDevice);
+  if(!ao || !ao->userptr) return -1;
+  wasapi_state_struct *state = (wasapi_state_struct *) ao->userptr;
+  if(state->pAudioClient) IAudioClient_Stop(state->pAudioClient);
+  if(state->pRenderClient) IAudioRenderClient_Release(state->pRenderClient);  
+  if(state->pAudioClient) IAudioClient_Release(state->pAudioClient);
+  if(state->hTask) AvRevertMmThreadCharacteristics(state->hTask);
+  if(state->pEnumerator) IMMDeviceEnumerator_Release(state->pEnumerator);
+  if(state->pDevice) IMMDevice_Release(state->pDevice);
   CoUninitialize();
-  pEnumerator = NULL;
-  pDevice = NULL;
-  pAudioClient = NULL;
-  pRenderClient = NULL;
-  bufferFrameCount = 0;
-  hnsRequestedDuration = REFTIMES_PER_SEC;
-  hEvent = NULL;
-  hTask = NULL;
-  pData = NULL;
-  pData_off = 0;
-  is_playing = 0;
-  taskIndex = 0;
+  free(state);
+  ao->userptr = NULL;
   return 0;
 }
 
@@ -363,6 +382,7 @@ static int init_win32(audio_output_t* ao){
 	ao->write = write_win32;
 	ao->get_formats = get_formats_win32;
 	ao->close = close_win32;
+    ao->userptr = NULL;
 
 	/* Success */
 	return 0;
