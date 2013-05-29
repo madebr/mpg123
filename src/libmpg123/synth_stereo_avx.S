@@ -37,8 +37,8 @@
 .globl ASM_NAME(synth_1to1_s_avx_asm)
 ASM_NAME(synth_1to1_s_avx_asm):
 #ifdef _WIN64 /* should save xmm6-15 */
-	push		%rbx
-	mov			%rsp, %rbx
+	push		%rbp
+	mov			%rsp, %rbp
 	sub			$144, %rsp
 	movaps		%xmm6, (%rsp)
 	movaps		%xmm7, 16(%rsp)

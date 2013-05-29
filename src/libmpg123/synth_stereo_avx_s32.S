@@ -9,13 +9,13 @@
 #include "mangle.h"
 
 #ifdef _WIN64
-/* short *window; */
+/* real *window; */
 #define WINDOW %r10
-/* short *b0l; */
+/* real *b0l; */
 #define B0L %rdx
-/* short *b0r; */
+/* real *b0r; */
 #define B0R %r8
-/* short *samples; */
+/* real *samples; */
 #define SAMPLES %r9
 #else
 /* real *window; */
@@ -63,8 +63,8 @@ scale_avx:
 	.globl ASM_NAME(synth_1to1_s32_s_avx_asm)
 ASM_NAME(synth_1to1_s32_s_avx_asm):
 #ifdef _WIN64 /* should save xmm6-15 */
-	push		%rbx
-	mov			%rsp, %rbx
+	push		%rbp
+	mov			%rsp, %rbp
 	sub			$160, %rsp
 	movaps		%xmm6, (%rsp)
 	movaps		%xmm7, 16(%rsp)
