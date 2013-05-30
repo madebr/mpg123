@@ -66,6 +66,7 @@ typedef struct _wasapi_state_struct {
   size_t pData_off;
   DWORD taskIndex;
   char is_playing;
+  DWORD framesize;
 } wasapi_state_struct;
 
 /* setup endpoints */
@@ -101,6 +102,54 @@ static int open_win32(struct audio_output_struct *ao){
   return 1;
 }
 
+/*
+  typedef struct tWAVEFORMATEX {
+    WORD wFormatTag;
+    WORD nChannels;
+    DWORD nSamplesPerSec;
+    DWORD nAvgBytesPerSec;
+    WORD nBlockAlign;
+    WORD wBitsPerSample;
+    WORD cbSize;
+
+  } WAVEFORMATEX;
+*/
+
+static int formats_generator(const struct audio_output_struct * const ao, const int waveformat, WAVEFORMATEX *const format){
+  DWORD bytes_per_sample = 0;
+  WORD tag = WAVE_FORMAT_PCM;
+  debug1("%s",__FUNCTION__);
+  int ret = waveformat;
+  switch(waveformat){
+    case MPG123_ENC_SIGNED_8:
+      bytes_per_sample = 1;
+      break;
+    case MPG123_ENC_FLOAT_32:
+      tag = WAVE_FORMAT_IEEE_FLOAT;
+    case MPG123_ENC_SIGNED_32:
+      bytes_per_sample = 4;
+      break;
+    case MPG123_ENC_SIGNED_16:
+      bytes_per_sample = 2;
+      break;
+    case MPG123_ENC_SIGNED_24:
+      bytes_per_sample = 3;
+      break;
+    default:
+      debug1("uh oh unknown %d",waveformat);
+      ret = 0;
+      break;
+  }
+  format->wFormatTag = tag;
+  format->nChannels = ao->channels;
+  format->nSamplesPerSec = ao->rate;
+  format->nAvgBytesPerSec = ao->channels * bytes_per_sample * ao->rate;
+  format->nBlockAlign = ao->channels * bytes_per_sample;
+  format->wBitsPerSample = bytes_per_sample * 8;
+  format->cbSize = 0;
+  return ret;
+}
+
 /* check supported formats */
 static int get_formats_win32(struct audio_output_struct *ao){
   /* PLEASE check with write_init and write_win32 buffer size calculation in case it is able to support something other than 16bit */
@@ -112,39 +161,42 @@ static int get_formats_win32(struct audio_output_struct *ao){
   wasapi_state_struct *state = (wasapi_state_struct *) ao->userptr;
   debug2("channels %d, rate %ld",ao->channels, ao->rate);
 
-  WAVEFORMATEX s16 = {
-    WAVE_FORMAT_PCM,
-	ao->channels,
-	ao->rate,
-	ao->channels * 2 * ao->rate,
-	ao->channels * 2,
-	16,
-	0
-  };
+  WAVEFORMATEX wf;
 
-  if(ao->format & MPG123_ENC_SIGNED_16){
-    if((hr = IAudioClient_IsFormatSupported(state->pAudioClient,AUDCLNT_SHAREMODE_EXCLUSIVE, &s16, NULL)) == S_OK)
-      ret |= MPG123_ENC_SIGNED_16;
-   }
-  /*if(ao->format & MPG123_ENC_SIGNED_32){
-    s16.nBlockAlign = ao->channels * 4;
-    s16.wBitsPerSample = 32;
-    if((hr = IAudioClient_IsFormatSupported(state->pAudioClient,AUDCLNT_SHAREMODE_EXCLUSIVE, &s16, NULL)) == S_OK)
-    ret |= MPG123_ENC_SIGNED_32;
-  }
-  if(ao->format & MPG123_ENC_SIGNED_8){
-    s16.nBlockAlign = ao->channels * 1;
-    s16.wBitsPerSample = 8;
-    if((hr = IAudioClient_IsFormatSupported(state->pAudioClient,AUDCLNT_SHAREMODE_EXCLUSIVE, &s16, NULL)) == S_OK)
+   if(ao->format & MPG123_ENC_SIGNED_8){
+      formats_generator(ao,MPG123_ENC_SIGNED_8,&wf);
+      if((hr = IAudioClient_IsFormatSupported(state->pAudioClient,AUDCLNT_SHAREMODE_EXCLUSIVE, &wf, NULL)) == S_OK)
       ret |= MPG123_ENC_SIGNED_8;
+      if(hr == AUDCLNT_E_UNSUPPORTED_FORMAT) debug1("MPG123_ENC_SIGNED_8 %ld not supported", ao->rate);
    }
-  if(ao->format & MPG123_ENC_FLOAT_32){
-    s16.nBlockAlign = ao->channels * 4;
-    s16.wBitsPerSample = 32;
-    s16.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
-    if((hr = IAudioClient_IsFormatSupported(state->pAudioClient,AUDCLNT_SHAREMODE_EXCLUSIVE, &s16, NULL)) == S_OK)
+
+   if(ao->format & MPG123_ENC_SIGNED_16){
+      formats_generator(ao,MPG123_ENC_SIGNED_16,&wf);
+      if((hr = IAudioClient_IsFormatSupported(state->pAudioClient,AUDCLNT_SHAREMODE_EXCLUSIVE, &wf, NULL)) == S_OK)
+      ret |= MPG123_ENC_SIGNED_16;
+      if(hr == AUDCLNT_E_UNSUPPORTED_FORMAT) debug1("MPG123_ENC_SIGNED_16 %ld not supported", ao->rate);
+   }
+
+   if(ao->format & MPG123_ENC_SIGNED_32){
+      formats_generator(ao,MPG123_ENC_SIGNED_32,&wf);
+      if((hr = IAudioClient_IsFormatSupported(state->pAudioClient,AUDCLNT_SHAREMODE_EXCLUSIVE, &wf, NULL)) == S_OK)
+      ret |= MPG123_ENC_SIGNED_32;
+      if(hr == AUDCLNT_E_UNSUPPORTED_FORMAT) debug1("MPG123_ENC_SIGNED_32 %ld not supported", ao->rate);
+   }
+
+   if(ao->format & MPG123_ENC_FLOAT_32){
+      formats_generator(ao,MPG123_ENC_FLOAT_32,&wf);
+      if((hr = IAudioClient_IsFormatSupported(state->pAudioClient,AUDCLNT_SHAREMODE_EXCLUSIVE, &wf, NULL)) == S_OK)
       ret |= MPG123_ENC_FLOAT_32;
-   }*/
+      if(hr == AUDCLNT_E_UNSUPPORTED_FORMAT) debug1("MPG123_ENC_FLOAT_32 %ld not supported", ao->rate);
+   }
+
+   if(ao->format & MPG123_ENC_SIGNED_24){
+      formats_generator(ao,MPG123_ENC_SIGNED_24,&wf);
+      if((hr = IAudioClient_IsFormatSupported(state->pAudioClient,AUDCLNT_SHAREMODE_EXCLUSIVE, &wf, NULL)) == S_OK)
+      ret |= MPG123_ENC_SIGNED_24;
+      if(hr == AUDCLNT_E_UNSUPPORTED_FORMAT) debug1("MPG123_ENC_SIGNED_24 %ld not supported", ao->rate);
+   }
 
   return ret; /* afaik only 16bit 44.1kHz/48kHz has been known to work */
 }
@@ -158,15 +210,10 @@ static int write_init(struct audio_output_struct *ao){
   if(!ao || !ao->userptr) return -1;
   wasapi_state_struct *state = (wasapi_state_struct *) ao->userptr;
 
-  WAVEFORMATEX s16 = {
-    WAVE_FORMAT_PCM,
-	ao->channels,
-	ao->rate,
-	ao->channels * 2 * ao->rate,
-	ao->channels * 2, /* 16bit/8 */
-	16,
-	0
-  };
+  WAVEFORMATEX s16;
+  formats_generator(ao,ao->format,&s16);
+  state->framesize = s16.nBlockAlign;
+  debug1("block size %ld", state->framesize);
   /* cargo cult code */
   hr = IAudioClient_GetDevicePeriod(state->pAudioClient,NULL, &state->hnsRequestedDuration);
   debug("IAudioClient_GetDevicePeriod OK");
@@ -202,11 +249,13 @@ static int write_init(struct audio_output_struct *ao){
                         (void**)&state->pRenderClient);
   debug("IAudioClient_GetService OK");
   EXIT_ON_ERROR(hr)
+#ifdef WASAPI_EVENT_MODE
   state->hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
   debug("CreateEvent OK");
   if(!state->hEvent) goto Exit;
   hr = IAudioClient_SetEventHandle(state->pAudioClient,state->hEvent);
   EXIT_ON_ERROR(hr);
+#endif
   hr = IAudioClient_GetBufferSize(state->pAudioClient,&state->bufferFrameCount);
   debug("IAudioClient_GetBufferSize OK");
   EXIT_ON_ERROR(hr)
@@ -239,13 +288,13 @@ Exit:
 static int write_win32(struct audio_output_struct *ao, unsigned char *buf, int len){
   HRESULT hr;
   size_t to_copy = 0;
-  size_t framesize = ao->channels * 2; /* 16bit/8 */
-  size_t frames_in = len/framesize; /* Frames in buf, is framesize even correct? */
   debug1("%s",__FUNCTION__);
   if(!ao || !ao->userptr) return -1;
   wasapi_state_struct *state = (wasapi_state_struct *) ao->userptr;
   if(!len) return 0;
   if(!state->pRenderClient) write_init(ao);
+  size_t frames_in = len/state->framesize; /* Frames in buf, is framesize even correct? */
+  debug("mode entered");
 #ifdef WASAPI_EVENT_MODE
   /* Event mode WASAPI */
   DWORD retval = -1;
@@ -265,16 +314,16 @@ static int write_win32(struct audio_output_struct *ao, unsigned char *buf, int l
       if(to_copy > frames_in){
         /* buf can fit in provided buffer space */
         debug1("all buffers copied, %I64d", frames_in);
-        memcpy(state->pData+state->pData_off*framesize,buf,framesize*(frames_in));
+        memcpy(state->pData+state->pData_off*state->framesize,buf,state->framesize*(frames_in));
         state->pData_off += frames_in;
         frames_in = 0;
         break;
       } else {
         /* buf too big, needs spliting */
         debug1("partial buffers %I64d", to_copy);
-        memcpy(state->pData+state->pData_off*framesize,buf,framesize*(to_copy));
+        memcpy(state->pData+state->pData_off*state->framesize,buf,state->framesize*(to_copy));
         state->pData_off += to_copy;
-        buf+=(to_copy*framesize);
+        buf+=(to_copy*state->framesize);
         frames_in -= to_copy;
       }
     }
@@ -306,32 +355,33 @@ static int write_win32(struct audio_output_struct *ao, unsigned char *buf, int l
   if(frames_in > 0)
     goto feed_again;
 #else /* PUSH mode code */
-    UINT32 numFramesAvailable, numFramesPadding, bufferFrameCount;
+    UINT32 numFramesAvailable, numFramesPadding;
+    debug1("block size %ld", state->framesize);
 feed_again:
     /* How much buffer do we get to use? */
-    hr = IAudioClient_GetBufferSize(state->pAudioClient,&bufferFrameCount);
+    hr = IAudioClient_GetBufferSize(state->pAudioClient,&state->bufferFrameCount);
     debug("IAudioRenderClient_GetBuffer");
     EXIT_ON_ERROR(hr)
     hr = IAudioClient_GetCurrentPadding(state->pAudioClient,&numFramesPadding);
     debug("IAudioClient_GetCurrentPadding");
     EXIT_ON_ERROR(hr)
     /* How much buffer is writable at the moment? */
-    numFramesAvailable = bufferFrameCount - numFramesPadding;
-    debug3("numFramesAvailable %d, bufferFrameCount %d, numFramesPadding %d", numFramesAvailable, bufferFrameCount, numFramesPadding);
+    numFramesAvailable = state->bufferFrameCount - numFramesPadding;
+    debug3("numFramesAvailable %d, bufferFrameCount %d, numFramesPadding %d", numFramesAvailable, state->bufferFrameCount, numFramesPadding);
     if(numFramesAvailable > frames_in){
       /* can fit all frames now */
-      pData_off = 0;
+      state->pData_off = 0;
       to_copy = frames_in;
     } else {
       /* copy whatever that fits in the buffer */
-      pData_off = frames_in - numFramesAvailable;
+      state->pData_off = frames_in - numFramesAvailable;
       to_copy = numFramesAvailable;
     }
     /* Acquire buffer */
-    hr = IAudioRenderClient_GetBuffer(state->pRenderClient,to_copy,&pData);
+    hr = IAudioRenderClient_GetBuffer(state->pRenderClient,to_copy,&state->pData);
     debug("IAudioRenderClient_GetBuffer");
     EXIT_ON_ERROR(hr)
-    memcpy(pData,buf+pData_off*framesize,to_copy*framesize);
+    memcpy(state->pData,buf+state->pData_off * state->framesize,to_copy*state->framesize);
     /* Release buffer */
     hr = IAudioRenderClient_ReleaseBuffer(state->pRenderClient,to_copy, 0);
     debug("IAudioRenderClient_ReleaseBuffer");
@@ -342,7 +392,9 @@ feed_again:
     }
     frames_in -= to_copy;
     /* Wait sometime for buffer to empty? */
-    Sleep((DWORD)(state->hnsRequestedDuration/REFTIMES_PER_MILLISEC));
+    DWORD sleeptime = (DWORD)(state->hnsRequestedDuration/REFTIMES_PER_MILLISEC/ao->rate);
+    debug1("Sleeping %ld msec", sleeptime);
+    Sleep(sleeptime);
     if (frames_in)
       goto feed_again;
 #endif
@@ -359,6 +411,7 @@ static void flush_win32(struct audio_output_struct *ao){
   wasapi_state_struct *state = (wasapi_state_struct *) ao->userptr;
   HRESULT hr;
   if(!state->pAudioClient) return;
+  state->pData = NULL;
   hr = IAudioClient_Stop(state->pAudioClient);
   EXIT_ON_ERROR(hr)
   IAudioClient_Reset(state->pAudioClient);
@@ -370,8 +423,18 @@ static void flush_win32(struct audio_output_struct *ao){
 
 static int close_win32(struct audio_output_struct *ao)
 {
+  debug1("%s",__FUNCTION__);
   if(!ao || !ao->userptr) return -1;
   wasapi_state_struct *state = (wasapi_state_struct *) ao->userptr;
+#ifdef WASAPI_EVENT_MODE
+  if(state->pData){
+    /* Play all in buffer before closing */
+    debug("Flushing remaining buffers");
+    IAudioRenderClient_ReleaseBuffer(state->pRenderClient,state->bufferFrameCount, 0);
+    WaitForSingleObject(state->hEvent, 2000);
+    state->pData = NULL;
+  }
+#endif
   if(state->pAudioClient) IAudioClient_Stop(state->pAudioClient);
   if(state->pRenderClient) IAudioRenderClient_Release(state->pRenderClient);  
   if(state->pAudioClient) IAudioClient_Release(state->pAudioClient);
