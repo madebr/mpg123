@@ -110,7 +110,7 @@ static int get_formats_win32(struct audio_output_struct *ao){
 
   if(!ao || !ao->userptr) return -1;
   wasapi_state_struct *state = (wasapi_state_struct *) ao->userptr;
-  debug2("channels %d\nrate %ld",ao->channels, ao->rate);
+  debug2("channels %d, rate %ld",ao->channels, ao->rate);
 
   WAVEFORMATEX s16 = {
     WAVE_FORMAT_PCM,
@@ -122,19 +122,31 @@ static int get_formats_win32(struct audio_output_struct *ao){
 	0
   };
 
-  if((hr = IAudioClient_IsFormatSupported(state->pAudioClient,AUDCLNT_SHAREMODE_EXCLUSIVE, &s16, NULL)) == S_OK)
-    ret |= MPG123_ENC_SIGNED_16;
-  /*s16.nBlockAlign = ao->channels * 4;
-  s16.wBitsPerSample = 32;
-  if((hr = IAudioClient_IsFormatSupported(pAudioClient,AUDCLNT_SHAREMODE_EXCLUSIVE, &s16, NULL)) == S_OK)
+  if(ao->format & MPG123_ENC_SIGNED_16){
+    if((hr = IAudioClient_IsFormatSupported(state->pAudioClient,AUDCLNT_SHAREMODE_EXCLUSIVE, &s16, NULL)) == S_OK)
+      ret |= MPG123_ENC_SIGNED_16;
+   }
+  /*if(ao->format & MPG123_ENC_SIGNED_32){
+    s16.nBlockAlign = ao->channels * 4;
+    s16.wBitsPerSample = 32;
+    if((hr = IAudioClient_IsFormatSupported(state->pAudioClient,AUDCLNT_SHAREMODE_EXCLUSIVE, &s16, NULL)) == S_OK)
     ret |= MPG123_ENC_SIGNED_32;
-  s16.nBlockAlign = ao->channels * 1;
-  s16.wBitsPerSample = 8;
-  if((hr = IAudioClient_IsFormatSupported(pAudioClient,AUDCLNT_SHAREMODE_EXCLUSIVE, &s16, NULL)) == S_OK)
-    ret |= MPG123_ENC_SIGNED_8;
-  */
+  }
+  if(ao->format & MPG123_ENC_SIGNED_8){
+    s16.nBlockAlign = ao->channels * 1;
+    s16.wBitsPerSample = 8;
+    if((hr = IAudioClient_IsFormatSupported(state->pAudioClient,AUDCLNT_SHAREMODE_EXCLUSIVE, &s16, NULL)) == S_OK)
+      ret |= MPG123_ENC_SIGNED_8;
+   }
+  if(ao->format & MPG123_ENC_FLOAT_32){
+    s16.nBlockAlign = ao->channels * 4;
+    s16.wBitsPerSample = 32;
+    s16.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
+    if((hr = IAudioClient_IsFormatSupported(state->pAudioClient,AUDCLNT_SHAREMODE_EXCLUSIVE, &s16, NULL)) == S_OK)
+      ret |= MPG123_ENC_FLOAT_32;
+   }*/
 
-  return ret; /* afaik only 16bit has been known to work */
+  return ret; /* afaik only 16bit 44.1kHz/48kHz has been known to work */
 }
 
 /* setup with agreed on format, for now only MPG123_ENC_SIGNED_16 */
