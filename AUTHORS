@@ -17,9 +17,10 @@ The creator: Michael Hipp (email: hippm@informatik.uni-tuebingen.de - please bot
 
 Contributions/ideas Thomas Orgis era (includes backports from mhipp trunk):
 
+dw <limegreensocks@yahoo.com>: Win32 WaveOut buffer destructor fix.
 Mike Gorchak <mike.gorchak.qnx@gmail.com>: QNX native audio output (QSA)
 Dan McGee <dpmcgee@gmail.com>: various patches (also for test suite)
-Jonathan Yong (jon_y) <10walls@gmail.com>: win32 hacking
+Jonathan Yong (jon_y) <10walls@gmail.com>: win32 hacking, win32 wasapi audio.
 Malcolm Boczek <MBoczek@terraindustries.com>: Common language runtime wrapper
 Elbert Pol (TeLLie) <elbert.pol@gmail.com>: OS/2 port fixup
 Jeroen Valkonet <jvalkon@xs4all.nl>: motivate pitch control, suggestive patch for pitch command in generic control interface
