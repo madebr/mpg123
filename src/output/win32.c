@@ -6,7 +6,7 @@
 
     initially written (as it seems) by Tony Million
     rewrite of basic functionality for callback-less and properly ringbuffered operation by ravenexp
-    Closing buffer playback fixed by dw <limegreensocks (*) yahoo dod com>
+    Closing buffer playback fixed by David Wohlferd <limegreensocks (*) yahoo dod com>
 */
 
 #include "mpg123app.h"
