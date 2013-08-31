@@ -4,7 +4,7 @@ Regarding largefile setup, client apps can be built three ways:
 2. _FILE_OFFSET_BITS == 32        (header maps to mpg123_open_32)
 3. _FILE_OFFSET_BITS == <nothing> (header maps to mpg123_open)
 
-The libmpg123 builds needs to be prepared for everything. Also, it needs to keep
+The libmpg123 build needs to be prepared for everything. Also, it needs to keep
 in mind the days before introducing large file support --- binaries should still
 work with updated libmpg123. So, mpg123_open should always match what is the
 default build on a platform without added settings. Those are the platform
