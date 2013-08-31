@@ -9,6 +9,8 @@
 - Fix obvious errors in win32 output ... does it now play the end of tracks? Need someone to test this.
 - added support for screen and iris-ansi terminals with --title (as prompted by patch from sf.net user canavan)
 - fixes/enhancements for sgi audio output
+- libmpg123: proper largefile aliases for proper systems (FreeBSD with one one-and-only off_t
+  This enables client software that insists on defining pointless _FILE_OFFSET_BITS.
 
 1.15.4
 ---

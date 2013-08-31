@@ -11,7 +11,7 @@ dnl ############# Initialisation
 AC_INIT([mpg123], [1.16.0-dctavx], [mpg123-devel@lists.sourceforge.net])
 dnl Increment API_VERSION when the API gets changes (new functions).
 API_VERSION=37
-LIB_PATCHLEVEL=6
+LIB_PATCHLEVEL=7
 dnl Since we want to be backwards compatible, both sides get set to API_VERSION.
 LIBMPG123_VERSION=$API_VERSION:$LIB_PATCHLEVEL:$API_VERSION
 AC_SUBST(LIBMPG123_VERSION)
@@ -970,12 +970,16 @@ dnl Using the file_offset_bits variable here is fine for linux (possibly Solaris
 dnl Others... we'll have to see.
 dnl Note: I started writing this with with multiline replacements.
 dnl Does not work. Automake insists on putting these into Makefiles where they break things.
+dnl It is also assumed that a system that does not set file offset bits is not
+dnl sensitive to largefile changes, i.e. FreeBSD always using 64 bit off_t.
 if test "x$ac_cv_sys_file_offset_bits" = x || echo "$ac_cv_sys_file_offset_bits" | $GREP  '@<:@^0-9@:>@' > /dev/null; then
 	dnl if it has non-numeric chars or is empty... ignore...
 	LFS_LOBJ=
+	largefile_sensitive=no
 else
 	# Add dual-mode wrapper code.
 	LFS_LOBJ=lfs_wrap.lo
+	largefile_sensitive=yes
 fi
 
 # Using the lower level macros instead of AC_TYPE_* for compatibility with not freshest autoconf.
@@ -993,19 +997,30 @@ AC_CHECK_SIZEOF(off_t,4)
 AC_CHECK_SIZEOF(int32_t)
 AC_CHECK_SIZEOF(long,4)
 
-# The alias functions want to know the native off_t bits.
-# "Native" also means large file offsets, if enabled, it's what is native to the mpg123 library.
-if test "x$ac_cv_sizeof_long" = "x"; then 
-  AC_MSG_ERROR([Cannot determine sizeof(long)?])
+dnl The native type used for aliases is what off_t maps to without any largefile-
+dnl enabling switches. So, it's long int if the system is largefile-senstive,
+dnl but it is actual plain off_t if the system does not have such switches.
+if test "x$largefile_sensitive" = xyes; then
+  lfs_alias_type=long
+  lfs_alias_size=$ac_cv_sizeof_long
 else
-  LFS_ALIAS_BITS=`expr "$ac_cv_sizeof_long" "*" "8"`
+  lfs_alias_type=off_t
+  lfs_alias_size=$ac_cv_sizeof_off_t
+fi
+
+if test "x$lfs_alias_size" = "x"; then 
+  AC_MSG_ERROR([Cannot determine sizeof(lfs_alias_t)?])
+else
+  LFS_ALIAS_BITS=`expr "$lfs_alias_size" "*" "8"`
+  AC_DEFINE_UNQUOTED([lfs_alias_t], $lfs_alias_type,
+    [Define to the native offset type (long or actually off_t).])
   AC_DEFINE_UNQUOTED([LFS_ALIAS_BITS], $LFS_ALIAS_BITS,
-    [Define this to the size of long type in bits, used for LFS small/native alias functions.])
+    [Define this to the size of native offset type in bits, used for LFS alias functions.])
 fi
 
 lfs_alias=enabled
 AC_ARG_ENABLE(lfs-alias,
-              [  --disable-lfs-alias disable alias wrappers for largefile bitness (mpg123_seek_32 in addition to mpg123_seek, mpg123_seek_64 as alias on x86-64) ],
+              [  --disable-lfs-alias disable alias wrappers for largefile bitness (mpg123_seek_32 or mpg123_seek_64 in addition to mpg123_seek, or the other way around; It is a mess, do not play with this!) ],
               [
                 if test "x$enableval" = xno; then
                   lfs_alias="disabled"
@@ -2341,6 +2356,7 @@ else
   echo "    The lib will (try to) support default offset size, too."
 fi
 echo "  LFS alias symbols ....... $lfs_alias ($LFS_ALIAS_BITS)"
+echo "  LFS alias type .......... $lfs_alias_type"
 
 echo -n "
   Core libmpg123 features:

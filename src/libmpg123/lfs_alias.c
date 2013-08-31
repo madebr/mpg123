@@ -67,9 +67,9 @@ if(/^\s*EXPORT\s+(\S+)\s+(mpg123_\S+)\((.*)\);\s*$/)
 	my $name = $2;
 	my $args = $3;
 	next unless ($type =~ /off_t/ or $args =~ /off_t/ or ($name =~ /open/ and $name ne mpg123_open_feed));
-	$type =~ s/off_t/long/g;
+	$type =~ s/off_t/lfs_alias_t/g;
 	my @nargs = ();
-	$args =~ s/off_t/long/g;
+	$args =~ s/off_t/lfs_alias_t/g;
 	foreach my $a (split(/,/, $args))
 	{
 		$a =~ s/^.*\s\**([a-z_]+)$/$1/;
@@ -118,7 +118,7 @@ int attribute_align_arg ALIAS_NAME(mpg123_open_handle)(mpg123_handle *mh, void *
 #ifdef mpg123_decode_frame
 #undef mpg123_decode_frame
 #endif
-int attribute_align_arg ALIAS_NAME(mpg123_decode_frame)(mpg123_handle *mh, long *num, unsigned char **audio, size_t *bytes)
+int attribute_align_arg ALIAS_NAME(mpg123_decode_frame)(mpg123_handle *mh, lfs_alias_t *num, unsigned char **audio, size_t *bytes)
 {
 	return NATIVE_NAME(mpg123_decode_frame)(mh, num, audio, bytes);
 }
@@ -126,7 +126,7 @@ int attribute_align_arg ALIAS_NAME(mpg123_decode_frame)(mpg123_handle *mh, long 
 #ifdef mpg123_framebyframe_decode
 #undef mpg123_framebyframe_decode
 #endif
-int attribute_align_arg ALIAS_NAME(mpg123_framebyframe_decode)(mpg123_handle *mh, long *num, unsigned char **audio, size_t *bytes)
+int attribute_align_arg ALIAS_NAME(mpg123_framebyframe_decode)(mpg123_handle *mh, lfs_alias_t *num, unsigned char **audio, size_t *bytes)
 {
 	return NATIVE_NAME(mpg123_framebyframe_decode)(mh, num, audio, bytes);
 }
@@ -134,7 +134,7 @@ int attribute_align_arg ALIAS_NAME(mpg123_framebyframe_decode)(mpg123_handle *mh
 #ifdef mpg123_framepos
 #undef mpg123_framepos
 #endif
-long attribute_align_arg ALIAS_NAME(mpg123_framepos)(mpg123_handle *mh)
+lfs_alias_t attribute_align_arg ALIAS_NAME(mpg123_framepos)(mpg123_handle *mh)
 {
 	return NATIVE_NAME(mpg123_framepos)(mh);
 }
@@ -142,7 +142,7 @@ long attribute_align_arg ALIAS_NAME(mpg123_framepos)(mpg123_handle *mh)
 #ifdef mpg123_tell
 #undef mpg123_tell
 #endif
-long attribute_align_arg ALIAS_NAME(mpg123_tell)(mpg123_handle *mh)
+lfs_alias_t attribute_align_arg ALIAS_NAME(mpg123_tell)(mpg123_handle *mh)
 {
 	return NATIVE_NAME(mpg123_tell)(mh);
 }
@@ -150,7 +150,7 @@ long attribute_align_arg ALIAS_NAME(mpg123_tell)(mpg123_handle *mh)
 #ifdef mpg123_tellframe
 #undef mpg123_tellframe
 #endif
-long attribute_align_arg ALIAS_NAME(mpg123_tellframe)(mpg123_handle *mh)
+lfs_alias_t attribute_align_arg ALIAS_NAME(mpg123_tellframe)(mpg123_handle *mh)
 {
 	return NATIVE_NAME(mpg123_tellframe)(mh);
 }
@@ -158,7 +158,7 @@ long attribute_align_arg ALIAS_NAME(mpg123_tellframe)(mpg123_handle *mh)
 #ifdef mpg123_tell_stream
 #undef mpg123_tell_stream
 #endif
-long attribute_align_arg ALIAS_NAME(mpg123_tell_stream)(mpg123_handle *mh)
+lfs_alias_t attribute_align_arg ALIAS_NAME(mpg123_tell_stream)(mpg123_handle *mh)
 {
 	return NATIVE_NAME(mpg123_tell_stream)(mh);
 }
@@ -166,7 +166,7 @@ long attribute_align_arg ALIAS_NAME(mpg123_tell_stream)(mpg123_handle *mh)
 #ifdef mpg123_seek
 #undef mpg123_seek
 #endif
-long attribute_align_arg ALIAS_NAME(mpg123_seek)(mpg123_handle *mh, long sampleoff, int whence)
+lfs_alias_t attribute_align_arg ALIAS_NAME(mpg123_seek)(mpg123_handle *mh, lfs_alias_t sampleoff, int whence)
 {
 	return NATIVE_NAME(mpg123_seek)(mh, sampleoff, whence);
 }
@@ -174,7 +174,7 @@ long attribute_align_arg ALIAS_NAME(mpg123_seek)(mpg123_handle *mh, long sampleo
 #ifdef mpg123_feedseek
 #undef mpg123_feedseek
 #endif
-long attribute_align_arg ALIAS_NAME(mpg123_feedseek)(mpg123_handle *mh, long sampleoff, int whence, long *input_offset)
+lfs_alias_t attribute_align_arg ALIAS_NAME(mpg123_feedseek)(mpg123_handle *mh, lfs_alias_t sampleoff, int whence, lfs_alias_t *input_offset)
 {
 	return NATIVE_NAME(mpg123_feedseek)(mh, sampleoff, whence, input_offset);
 }
@@ -182,7 +182,7 @@ long attribute_align_arg ALIAS_NAME(mpg123_feedseek)(mpg123_handle *mh, long sam
 #ifdef mpg123_seek_frame
 #undef mpg123_seek_frame
 #endif
-long attribute_align_arg ALIAS_NAME(mpg123_seek_frame)(mpg123_handle *mh, long frameoff, int whence)
+lfs_alias_t attribute_align_arg ALIAS_NAME(mpg123_seek_frame)(mpg123_handle *mh, lfs_alias_t frameoff, int whence)
 {
 	return NATIVE_NAME(mpg123_seek_frame)(mh, frameoff, whence);
 }
@@ -190,7 +190,7 @@ long attribute_align_arg ALIAS_NAME(mpg123_seek_frame)(mpg123_handle *mh, long f
 #ifdef mpg123_timeframe
 #undef mpg123_timeframe
 #endif
-long attribute_align_arg ALIAS_NAME(mpg123_timeframe)(mpg123_handle *mh, double sec)
+lfs_alias_t attribute_align_arg ALIAS_NAME(mpg123_timeframe)(mpg123_handle *mh, double sec)
 {
 	return NATIVE_NAME(mpg123_timeframe)(mh, sec);
 }
@@ -198,7 +198,7 @@ long attribute_align_arg ALIAS_NAME(mpg123_timeframe)(mpg123_handle *mh, double 
 #ifdef mpg123_index
 #undef mpg123_index
 #endif
-int attribute_align_arg ALIAS_NAME(mpg123_index)(mpg123_handle *mh, long **offsets, long *step, size_t *fill)
+int attribute_align_arg ALIAS_NAME(mpg123_index)(mpg123_handle *mh, lfs_alias_t **offsets, lfs_alias_t *step, size_t *fill)
 {
 	return NATIVE_NAME(mpg123_index)(mh, offsets, step, fill);
 }
@@ -206,7 +206,7 @@ int attribute_align_arg ALIAS_NAME(mpg123_index)(mpg123_handle *mh, long **offse
 #ifdef mpg123_set_index
 #undef mpg123_set_index
 #endif
-int attribute_align_arg ALIAS_NAME(mpg123_set_index)(mpg123_handle *mh, long *offsets, long step, size_t fill)
+int attribute_align_arg ALIAS_NAME(mpg123_set_index)(mpg123_handle *mh, lfs_alias_t *offsets, lfs_alias_t step, size_t fill)
 {
 	return NATIVE_NAME(mpg123_set_index)(mh, offsets, step, fill);
 }
@@ -214,7 +214,7 @@ int attribute_align_arg ALIAS_NAME(mpg123_set_index)(mpg123_handle *mh, long *of
 #ifdef mpg123_position
 #undef mpg123_position
 #endif
-int attribute_align_arg ALIAS_NAME(mpg123_position)( mpg123_handle *mh, long frame_offset, long buffered_bytes, long *current_frame, long *frames_left, double *current_seconds, double *seconds_left)
+int attribute_align_arg ALIAS_NAME(mpg123_position)( mpg123_handle *mh, lfs_alias_t frame_offset, lfs_alias_t buffered_bytes, lfs_alias_t *current_frame, lfs_alias_t *frames_left, double *current_seconds, double *seconds_left)
 {
 	return NATIVE_NAME(mpg123_position)(mh, frame_offset, buffered_bytes, current_frame, frames_left, current_seconds, seconds_left);
 }
@@ -222,7 +222,7 @@ int attribute_align_arg ALIAS_NAME(mpg123_position)( mpg123_handle *mh, long fra
 #ifdef mpg123_length
 #undef mpg123_length
 #endif
-long attribute_align_arg ALIAS_NAME(mpg123_length)(mpg123_handle *mh)
+lfs_alias_t attribute_align_arg ALIAS_NAME(mpg123_length)(mpg123_handle *mh)
 {
 	return NATIVE_NAME(mpg123_length)(mh);
 }
@@ -230,7 +230,7 @@ long attribute_align_arg ALIAS_NAME(mpg123_length)(mpg123_handle *mh)
 #ifdef mpg123_set_filesize
 #undef mpg123_set_filesize
 #endif
-int attribute_align_arg ALIAS_NAME(mpg123_set_filesize)(mpg123_handle *mh, long size)
+int attribute_align_arg ALIAS_NAME(mpg123_set_filesize)(mpg123_handle *mh, lfs_alias_t size)
 {
 	return NATIVE_NAME(mpg123_set_filesize)(mh, size);
 }
@@ -238,7 +238,7 @@ int attribute_align_arg ALIAS_NAME(mpg123_set_filesize)(mpg123_handle *mh, long 
 #ifdef mpg123_replace_reader
 #undef mpg123_replace_reader
 #endif
-int attribute_align_arg ALIAS_NAME(mpg123_replace_reader)(mpg123_handle *mh, ssize_t (*r_read) (int, void *, size_t), long (*r_lseek)(int, long, int))
+int attribute_align_arg ALIAS_NAME(mpg123_replace_reader)(mpg123_handle *mh, ssize_t (*r_read) (int, void *, size_t), lfs_alias_t (*r_lseek)(int, lfs_alias_t, int))
 {
 	return NATIVE_NAME(mpg123_replace_reader)(mh, r_read, r_lseek);
 }
@@ -246,7 +246,7 @@ int attribute_align_arg ALIAS_NAME(mpg123_replace_reader)(mpg123_handle *mh, ssi
 #ifdef mpg123_replace_reader_handle
 #undef mpg123_replace_reader_handle
 #endif
-int attribute_align_arg ALIAS_NAME(mpg123_replace_reader_handle)(mpg123_handle *mh, ssize_t (*r_read) (void *, void *, size_t), long (*r_lseek)(void *, long, int), void (*cleanup)(void*))
+int attribute_align_arg ALIAS_NAME(mpg123_replace_reader_handle)(mpg123_handle *mh, ssize_t (*r_read) (void *, void *, size_t), lfs_alias_t (*r_lseek)(void *, lfs_alias_t, int), void (*cleanup)(void*))
 {
 	return NATIVE_NAME(mpg123_replace_reader_handle)(mh, r_read, r_lseek, cleanup);
 }
