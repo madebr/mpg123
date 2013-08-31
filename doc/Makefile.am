@@ -18,6 +18,7 @@ EXTRA_DIST = \
 	LICENSE \
 	THANKS \
 	ACCURACY \
+	LARGEFILE \
 	libmpg123_speed.txt \
 	doxyhead.xhtml \
 	doxy_examples.c \
