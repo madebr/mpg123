@@ -1,20 +1,26 @@
 /*
 	lfs_alias: Aliases to the small/native API functions with the size of long int as suffix.
 
-	copyright 2010 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2010-2013 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis
 
-	Use case: Client code on Linux/x86-64 that defines _FILE_OFFSET_BITS to 64, which is the only choice on that platform anyway. It should be no-op, but prompts the platform-agnostic header of mpg123 to define API calls with the corresponding suffix.
-	This file provides the names for this case. It's cruft, but glibc does it, too -- so people rely on it.
-	Oh, and it also caters for the lunatics that define _FILE_OFFSET_BITS=32 on 32 bit platforms.
+	Use case: Client code on Linux/x86-64 that defines _FILE_OFFSET_BITS to 64,
+	which is the only choice on that platform anyway. It should be no-op, but
+	prompts the platform-agnostic header of mpg123 to define API calls with the
+	corresponding suffix. This file provides the names for this case. It's cruft,
+	but glibc does it, too -- so people rely on it.
+	Oh, and it also caters for the lunatics that define _FILE_OFFSET_BITS=32 on
+	32 bit platforms. In addition, it's needed for platforms that always have
+	off_t /= long, and clients still insisting on defining _FILE_OFFSET_BITS.
 
-	There is also the strange case that the mpg123 build itself is configured for unnecessary _FILE_OFFSET_BITS == LFS_ALIAS_BITS =^ sizeof(long). In that case, the "native" function will have the suffix and the alias shall be provided without the suffix.
-
+	Depending on use case, the aliases map to 32 (small) or 64 bit (large) offset
+	functions, to the ones from libmpg123 or the ones from lfs_wrap.
+	
 	So, two basic cases:
-	1. mpg123_bla_32 alias for mpg123_bla
-	2. mpg123_bla    alias for mpg123_bla_32
-	Confusing, I know. It sucks.
+	1. mpg123_bla_32 alias for mpg123_bla (native)
+	2. mpg123_bla    alias for mpg123_bla_32 (wrapper)
+	Same for 64 bits. Confusing, I know. It sucks.
 */
 
 #include "config.h"
