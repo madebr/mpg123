@@ -178,7 +178,7 @@ mpg123_module_t* open_module(const char* type, const char* name)
 	moddir  = get_module_dir();
 	if(workdir == NULL || moddir == NULL)
 	{
-		error("Failure getting workdir or moddir!");
+		error("Failure getting workdir or moddir! (Perhaps set MPG123_MODDIR?)");
 		if(workdir == NULL) fprintf(stderr, "Hint: I need to know the current working directory to be able to come back after hunting modules. I will not leave because I do not know where I am.\n");
 
 		if(workdir != NULL) free(workdir);
