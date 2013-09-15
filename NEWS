@@ -12,6 +12,7 @@
 - libmpg123: proper largefile aliases for proper systems (FreeBSD with one one-and-only off_t
   This enables client software that insists on defining pointless _FILE_OFFSET_BITS.
 - wrapper script src/mpg123-with-modules to ease the pain of running mpg123 with modules without installation (setting MPG123_MODDIR)
+- removed ALSA 0.5 code (unused for longtime, last GPL-only bit)
 
 1.15.4
 ---
