@@ -148,10 +148,12 @@ static int initialize_device(audio_output_t *ao)
 	return 0;
 }
 
+#ifndef DEBUG
 static void error_ignorer(const char *file, int line, const char *function, int err, const char *fmt,...)
 {
 	/* I can make ALSA silent. */
 }
+#endif
 
 static int open_alsa(audio_output_t *ao)
 {
@@ -225,7 +227,7 @@ static int write_alsa(audio_output_t *ao, unsigned char *buf, int bytes)
 	}
 	if(written < 0)
 	{
-		error1("Fatal problem with alsa output, error %i.", written);
+		error1("Fatal problem with alsa output, error %i.", (int)written);
 		return -1;
 	}
 	else return snd_pcm_frames_to_bytes(pcm, written);
