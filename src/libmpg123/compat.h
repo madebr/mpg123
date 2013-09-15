@@ -175,4 +175,6 @@ int win32_utf8_wide(const char *const mbptr, wchar_t **wptr, size_t *buflen);
 typedef int socklen_t;
 #endif
 
+#include "true.h"
+
 #endif
