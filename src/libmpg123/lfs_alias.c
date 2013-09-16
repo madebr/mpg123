@@ -21,11 +21,19 @@
 	1. mpg123_bla_32 alias for mpg123_bla (native)
 	2. mpg123_bla    alias for mpg123_bla_32 (wrapper)
 	Same for 64 bits. Confusing, I know. It sucks.
+
+	Note that the mpg123 header is _not_ used here to avoid definition with whacky off_t.
+	The aliases are always about arguments of native alias_t type. This can be off_t, but
+	on Linux/x86, this is long int. The off_t declarations in mpg123.h confuse things,
+	so reproduce definitions for the wrapper functions in that case. The definitions are
+	pulled by an inline Perl script in any case ... no need to copy anything manually!
+	As a benefit, one can skip undefining possible largefile namings.
 */
 
 #include "config.h"
 
-/* Hack for Solaris: Some system headers included from compat.h might force _FILE_OFFSET_BITS. Need to follow that here. */
+/* Hack for Solaris: Some system headers included from compat.h might force _FILE_OFFSET_BITS. Need to follow that here.
+   Also, want it around to have types defined. */
 #include "compat.h"
 
 #ifndef LFS_ALIAS_BITS
@@ -39,20 +47,12 @@
 
 #if _FILE_OFFSET_BITS+0 == LFS_ALIAS_BITS
 
-/* The native functions are actually _with_ suffix, so let the mpg123 header use large file hackery to define the correct interfaces. */
-#include "mpg123.h"
-/* Don't forget to undef the function symbols before usage... */
-
 /* The native functions have suffix, the aliases not. */
 #define NATIVE_SUFFIX MACROCAT(_, _FILE_OFFSET_BITS)
 #define NATIVE_NAME(func) MACROCAT(func, NATIVE_SUFFIX)
 #define ALIAS_NAME(func) func
 
 #else
-
-/* Native functions are without suffix... */
-#define MPG123_NO_LARGENAME
-#include "mpg123.h"
 
 /* The alias functions have suffix, the native ones not. */
 #define ALIAS_SUFFIX MACROCAT(_, LFS_ALIAS_BITS)
@@ -61,8 +61,13 @@
 
 #endif
 
-/* Now get the rest of the infrastructure on speed, namely attribute_align_arg, to stay safe. */
-#include "mpg123lib_intern.h"
+/* Copy of necessary definitions, actually just forward declarations. */
+struct mpg123_handle_struct;
+typedef struct mpg123_handle_struct mpg123_handle;
+
+
+/* Get attribute_align_arg, to stay safe. */
+#include "abi_align.h"
 
 /*
 	Extract the list of functions we need wrappers for, pregenerating the wrappers for simple cases (inline script for nedit):
@@ -85,9 +90,7 @@ if(/^\s*EXPORT\s+(\S+)\s+(mpg123_\S+)\((.*)\);\s*$/)
 	$nargs = "Human: figure me out." if($nargs =~ /\(/);
 	print <<EOT
 
-##ifdef $name
-##undef $name
-##endif
+$type NATIVE_NAME($name)($args);
 $type attribute_align_arg ALIAS_NAME($name)($args)
 {
 	return NATIVE_NAME($name)($nargs);
@@ -97,162 +100,123 @@ EOT
 }' < mpg123.h.in
 */
 
-#ifdef mpg123_open
-#undef mpg123_open
-#endif
+int NATIVE_NAME(mpg123_open)(mpg123_handle *mh, const char *path);
 int attribute_align_arg ALIAS_NAME(mpg123_open)(mpg123_handle *mh, const char *path)
 {
 	return NATIVE_NAME(mpg123_open)(mh, path);
 }
 
-#ifdef mpg123_open_fd
-#undef mpg123_open_fd
-#endif
+int NATIVE_NAME(mpg123_open_fd)(mpg123_handle *mh, int fd);
 int attribute_align_arg ALIAS_NAME(mpg123_open_fd)(mpg123_handle *mh, int fd)
 {
 	return NATIVE_NAME(mpg123_open_fd)(mh, fd);
 }
 
-#ifdef mpg123_open_handle
-#undef mpg123_open_handle
-#endif
+int NATIVE_NAME(mpg123_open_handle)(mpg123_handle *mh, void *iohandle);
 int attribute_align_arg ALIAS_NAME(mpg123_open_handle)(mpg123_handle *mh, void *iohandle)
 {
 	return NATIVE_NAME(mpg123_open_handle)(mh, iohandle);
 }
 
-#ifdef mpg123_decode_frame
-#undef mpg123_decode_frame
-#endif
+int NATIVE_NAME(mpg123_decode_frame)(mpg123_handle *mh, lfs_alias_t *num, unsigned char **audio, size_t *bytes);
 int attribute_align_arg ALIAS_NAME(mpg123_decode_frame)(mpg123_handle *mh, lfs_alias_t *num, unsigned char **audio, size_t *bytes)
 {
 	return NATIVE_NAME(mpg123_decode_frame)(mh, num, audio, bytes);
 }
 
-#ifdef mpg123_framebyframe_decode
-#undef mpg123_framebyframe_decode
-#endif
+int NATIVE_NAME(mpg123_framebyframe_decode)(mpg123_handle *mh, lfs_alias_t *num, unsigned char **audio, size_t *bytes);
 int attribute_align_arg ALIAS_NAME(mpg123_framebyframe_decode)(mpg123_handle *mh, lfs_alias_t *num, unsigned char **audio, size_t *bytes)
 {
 	return NATIVE_NAME(mpg123_framebyframe_decode)(mh, num, audio, bytes);
 }
 
-#ifdef mpg123_framepos
-#undef mpg123_framepos
-#endif
+lfs_alias_t NATIVE_NAME(mpg123_framepos)(mpg123_handle *mh);
 lfs_alias_t attribute_align_arg ALIAS_NAME(mpg123_framepos)(mpg123_handle *mh)
 {
 	return NATIVE_NAME(mpg123_framepos)(mh);
 }
 
-#ifdef mpg123_tell
-#undef mpg123_tell
-#endif
+lfs_alias_t NATIVE_NAME(mpg123_tell)(mpg123_handle *mh);
 lfs_alias_t attribute_align_arg ALIAS_NAME(mpg123_tell)(mpg123_handle *mh)
 {
 	return NATIVE_NAME(mpg123_tell)(mh);
 }
 
-#ifdef mpg123_tellframe
-#undef mpg123_tellframe
-#endif
+lfs_alias_t NATIVE_NAME(mpg123_tellframe)(mpg123_handle *mh);
 lfs_alias_t attribute_align_arg ALIAS_NAME(mpg123_tellframe)(mpg123_handle *mh)
 {
 	return NATIVE_NAME(mpg123_tellframe)(mh);
 }
 
-#ifdef mpg123_tell_stream
-#undef mpg123_tell_stream
-#endif
+lfs_alias_t NATIVE_NAME(mpg123_tell_stream)(mpg123_handle *mh);
 lfs_alias_t attribute_align_arg ALIAS_NAME(mpg123_tell_stream)(mpg123_handle *mh)
 {
 	return NATIVE_NAME(mpg123_tell_stream)(mh);
 }
 
-#ifdef mpg123_seek
-#undef mpg123_seek
-#endif
+lfs_alias_t NATIVE_NAME(mpg123_seek)(mpg123_handle *mh, lfs_alias_t sampleoff, int whence);
 lfs_alias_t attribute_align_arg ALIAS_NAME(mpg123_seek)(mpg123_handle *mh, lfs_alias_t sampleoff, int whence)
 {
 	return NATIVE_NAME(mpg123_seek)(mh, sampleoff, whence);
 }
 
-#ifdef mpg123_feedseek
-#undef mpg123_feedseek
-#endif
+lfs_alias_t NATIVE_NAME(mpg123_feedseek)(mpg123_handle *mh, lfs_alias_t sampleoff, int whence, lfs_alias_t *input_offset);
 lfs_alias_t attribute_align_arg ALIAS_NAME(mpg123_feedseek)(mpg123_handle *mh, lfs_alias_t sampleoff, int whence, lfs_alias_t *input_offset)
 {
 	return NATIVE_NAME(mpg123_feedseek)(mh, sampleoff, whence, input_offset);
 }
 
-#ifdef mpg123_seek_frame
-#undef mpg123_seek_frame
-#endif
+lfs_alias_t NATIVE_NAME(mpg123_seek_frame)(mpg123_handle *mh, lfs_alias_t frameoff, int whence);
 lfs_alias_t attribute_align_arg ALIAS_NAME(mpg123_seek_frame)(mpg123_handle *mh, lfs_alias_t frameoff, int whence)
 {
 	return NATIVE_NAME(mpg123_seek_frame)(mh, frameoff, whence);
 }
 
-#ifdef mpg123_timeframe
-#undef mpg123_timeframe
-#endif
+lfs_alias_t NATIVE_NAME(mpg123_timeframe)(mpg123_handle *mh, double sec);
 lfs_alias_t attribute_align_arg ALIAS_NAME(mpg123_timeframe)(mpg123_handle *mh, double sec)
 {
 	return NATIVE_NAME(mpg123_timeframe)(mh, sec);
 }
 
-#ifdef mpg123_index
-#undef mpg123_index
-#endif
+int NATIVE_NAME(mpg123_index)(mpg123_handle *mh, lfs_alias_t **offsets, lfs_alias_t *step, size_t *fill);
 int attribute_align_arg ALIAS_NAME(mpg123_index)(mpg123_handle *mh, lfs_alias_t **offsets, lfs_alias_t *step, size_t *fill)
 {
 	return NATIVE_NAME(mpg123_index)(mh, offsets, step, fill);
 }
 
-#ifdef mpg123_set_index
-#undef mpg123_set_index
-#endif
+int NATIVE_NAME(mpg123_set_index)(mpg123_handle *mh, lfs_alias_t *offsets, lfs_alias_t step, size_t fill);
 int attribute_align_arg ALIAS_NAME(mpg123_set_index)(mpg123_handle *mh, lfs_alias_t *offsets, lfs_alias_t step, size_t fill)
 {
 	return NATIVE_NAME(mpg123_set_index)(mh, offsets, step, fill);
 }
 
-#ifdef mpg123_position
-#undef mpg123_position
-#endif
+int NATIVE_NAME(mpg123_position)( mpg123_handle *mh, lfs_alias_t frame_offset, lfs_alias_t buffered_bytes, lfs_alias_t *current_frame, lfs_alias_t *frames_left, double *current_seconds, double *seconds_left);
 int attribute_align_arg ALIAS_NAME(mpg123_position)( mpg123_handle *mh, lfs_alias_t frame_offset, lfs_alias_t buffered_bytes, lfs_alias_t *current_frame, lfs_alias_t *frames_left, double *current_seconds, double *seconds_left)
 {
 	return NATIVE_NAME(mpg123_position)(mh, frame_offset, buffered_bytes, current_frame, frames_left, current_seconds, seconds_left);
 }
 
-#ifdef mpg123_length
-#undef mpg123_length
-#endif
+lfs_alias_t NATIVE_NAME(mpg123_length)(mpg123_handle *mh);
 lfs_alias_t attribute_align_arg ALIAS_NAME(mpg123_length)(mpg123_handle *mh)
 {
 	return NATIVE_NAME(mpg123_length)(mh);
 }
 
-#ifdef mpg123_set_filesize
-#undef mpg123_set_filesize
-#endif
+int NATIVE_NAME(mpg123_set_filesize)(mpg123_handle *mh, lfs_alias_t size);
 int attribute_align_arg ALIAS_NAME(mpg123_set_filesize)(mpg123_handle *mh, lfs_alias_t size)
 {
 	return NATIVE_NAME(mpg123_set_filesize)(mh, size);
 }
 
-#ifdef mpg123_replace_reader
-#undef mpg123_replace_reader
-#endif
+int NATIVE_NAME(mpg123_replace_reader)(mpg123_handle *mh, ssize_t (*r_read) (int, void *, size_t), lfs_alias_t (*r_lseek)(int, lfs_alias_t, int));
 int attribute_align_arg ALIAS_NAME(mpg123_replace_reader)(mpg123_handle *mh, ssize_t (*r_read) (int, void *, size_t), lfs_alias_t (*r_lseek)(int, lfs_alias_t, int))
 {
 	return NATIVE_NAME(mpg123_replace_reader)(mh, r_read, r_lseek);
 }
 
-#ifdef mpg123_replace_reader_handle
-#undef mpg123_replace_reader_handle
-#endif
+int NATIVE_NAME(mpg123_replace_reader_handle)(mpg123_handle *mh, ssize_t (*r_read) (void *, void *, size_t), lfs_alias_t (*r_lseek)(void *, lfs_alias_t, int), void (*cleanup)(void*));
 int attribute_align_arg ALIAS_NAME(mpg123_replace_reader_handle)(mpg123_handle *mh, ssize_t (*r_read) (void *, void *, size_t), lfs_alias_t (*r_lseek)(void *, lfs_alias_t, int), void (*cleanup)(void*))
 {
 	return NATIVE_NAME(mpg123_replace_reader_handle)(mh, r_read, r_lseek, cleanup);
 }
+

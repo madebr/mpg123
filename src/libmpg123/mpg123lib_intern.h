@@ -16,29 +16,7 @@
 #include "config.h" /* Load this before _anything_ */
 #include "intsym.h" /* Prefixing of internal symbols that still are public in a static lib. */
 
-/* ABI conformance for other compilers.
-   mpg123 needs 16byte-aligned stack for SSE and friends.
-   gcc provides that, but others don't necessarily. */
-#ifdef ABI_ALIGN_FUN
-#ifndef attribute_align_arg
-#if defined(__GNUC__) && (__GNUC__ > 4 || __GNUC__ == 4 && __GNUC_MINOR__>1)
-#    define attribute_align_arg __attribute__((force_align_arg_pointer))
-/* The gcc that can align the stack does not need the check... nor does it work with gcc 4.3+, anyway. */
-#else
-
-#    define attribute_align_arg
-/* Other compilers get code to catch misaligned stack.
-   Well, except Sun Studio, which accepts the aligned attribute but does not honor it. */
-#if !defined(__SUNPRO_C)
-#    define NEED_ALIGNCHECK
-#endif
-
-#endif
-#endif
-#else
-#define attribute_align_arg
-/* We won't try the align check... */
-#endif
+#include "abi_align.h"
 
 /* export DLL symbols */
 #if defined(WIN32) && defined(DYNAMIC_BUILD)
