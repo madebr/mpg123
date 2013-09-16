@@ -16,6 +16,7 @@
   This enables client software that insists on defining pointless _FILE_OFFSET_BITS.
 - wrapper script src/mpg123-with-modules to ease the pain of running mpg123 with modules without installation (setting MPG123_MODDIR)
 - removed ALSA 0.5 code (unused for longtime, last GPL-only bit)
+- switch to re-enable DCT36 3DNow(ext) code for older cpus (AMD K6) at build time
 
 1.15.4
 ---

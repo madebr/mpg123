@@ -149,7 +149,9 @@ enum optcla decclass(const enum optdec);
 #define OPT_X86
 #ifndef OPT_MULTI
 #	define defopt dreidnowext
-#	define opt_dct36(fr) dct36_3dnowext
+#	ifdef DCT36_3DNOW
+#		define opt_dct36(fr) dct36_3dnowext
+#	endif
 #endif
 #endif
 
@@ -163,7 +165,9 @@ extern const int costab_mmxsse[];
 #define OPT_X86
 #ifndef OPT_MULTI
 #	define defopt dreidnow
-#	define opt_dct36(fr) dct36_3dnow
+#	ifdef DCT36_3DNOW
+#		define opt_dct36(fr) dct36_3dnow
+#	endif
 #endif
 #endif
 

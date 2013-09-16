@@ -689,7 +689,20 @@ AC_ARG_ENABLE(newoldwritesample,
 	fi
 ])
 
-
+dct36_3dnow=disabled
+AC_ARG_ENABLE(dct36-3dnow,
+[  --enable-dct36-3dnow=[no/yes] enable 3DNow(ext) dct36, which is slower than FPU code on newer CPUs, but still better on K6 (default is disabled, enable for old 3DNow CPUs)],
+[
+	if test "x$enableval" = xyes
+	then
+		dct36_3dnow=enabled
+	else
+		dct36_3dnow=disabled
+	fi
+])
+if test "x$dct36_3dnow" = "xenabled"; then
+  AC_DEFINE(DCT36_3DNOW, 1, [ Define to enable 3DNow-optimized dct36 routines (slower on K7 and up!). ])
+fi
 
 dnl Did user choose other CPU type ?
 if test "x$with_cpu" != "x"; then
@@ -1180,7 +1193,7 @@ s_i586="$s_i386 synth_i586"
 s_i586d="$s_i386 synth_i586_dither"
 s_3dnow="$s_i386 synth_3dnow dct64_3dnow equalizer_3dnow"
 s_3dnowext="$s_i386 dct64_3dnowext tabinit_mmx synth_3dnowext"
-if test "x$layer3" = "xenabled"; then
+if test "x$layer3" = "xenabled" && test "x$dct36_3dnow" = "xenabled"; then
   s_3dnow="$s_3dnow dct36_3dnow"
   s_3dnowext="$s_3dnowext dct36_3dnowext"
 fi
@@ -2360,8 +2373,6 @@ echo "  LFS alias type .......... $lfs_alias_type"
 
 echo -n "
   Core libmpg123 features:
-  Integer conversion ...... $integers
-  New/old WRITE_SAMPLE .... $newoldwritesample
   Layer I ................. $layer1
   Layer II ................ $layer2
   Layer III ............... $layer3
@@ -2379,7 +2390,11 @@ echo -n "
   16 bit integer .......... $int16
   32/24 bit integer ....... $int32
   real (32 bit float) ..... $real
+  Optimization detail:
+  Integer conversion ...... $integers
+  New/old WRITE_SAMPLE .... $newoldwritesample
   new Huffman scheme ...... $newhuff
+  3DNow DCT36 for old CPUs  $dct36_3dnow
 
 Note: Disabling core features is not commonly done and some combinations might not build/work. If you encounter such a case, help yourself (and provide a patch) or just poke the maintainers.
 "
