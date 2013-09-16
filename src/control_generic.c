@@ -14,7 +14,6 @@
 #include <sys/wait.h>
 #include <sys/socket.h>
 #endif
-#include <fcntl.h>
 #include <errno.h>
 #include <string.h>
 
