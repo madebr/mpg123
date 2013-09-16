@@ -64,6 +64,7 @@ libmpg123_la_SOURCES = \
 	libmpg123.c \
 	gapless.h \
 	mpg123lib_intern.h \
+	abi_align.h \
 	mangle.h \
 	getcpuflags.h \
 	index.h \
