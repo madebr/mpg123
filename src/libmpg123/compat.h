@@ -76,6 +76,9 @@
 #include <sys/select.h>
 #endif
 
+/* compat_open makes little sense without */
+#include <fcntl.h>
+
 /* To parse big numbers... */
 #ifdef HAVE_ATOLL
 #define atobigint atoll

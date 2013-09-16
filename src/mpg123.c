@@ -20,7 +20,6 @@
 
 #include <errno.h>
 #include <string.h>
-#include <fcntl.h>
 #include <time.h>
 
 #ifdef HAVE_SCHED_H
