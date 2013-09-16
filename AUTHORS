@@ -17,6 +17,7 @@ The creator: Michael Hipp (email: hippm@informatik.uni-tuebingen.de - please bot
 
 Contributions/ideas Thomas Orgis era (includes backports from mhipp trunk):
 
+Anthony Wells <borgboyone@yahoo.com>: initial version of ID3v2 APIC patch
 David Wohlferd <limegreensocks@yahoo.com>: Win32 WaveOut buffer destructor fix.
 Mike Gorchak <mike.gorchak.qnx@gmail.com>: QNX native audio output (QSA)
 Dan McGee <dpmcgee@gmail.com>: various patches (also for test suite)

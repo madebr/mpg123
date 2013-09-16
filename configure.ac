@@ -10,8 +10,8 @@ AC_PREREQ(2.57)
 dnl ############# Initialisation
 AC_INIT([mpg123], [1.16.0-dctavx], [mpg123-devel@lists.sourceforge.net])
 dnl Increment API_VERSION when the API gets changes (new functions).
-API_VERSION=37
-LIB_PATCHLEVEL=7
+API_VERSION=38
+LIB_PATCHLEVEL=0
 dnl Since we want to be backwards compatible, both sides get set to API_VERSION.
 LIBMPG123_VERSION=$API_VERSION:$LIB_PATCHLEVEL:$API_VERSION
 AC_SUBST(LIBMPG123_VERSION)

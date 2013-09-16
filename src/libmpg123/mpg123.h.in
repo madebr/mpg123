@@ -175,6 +175,7 @@ enum mpg123_param_flags
 	,MPG123_SKIP_ID3V2 = 0x2000 /**< 10 0000 0000 0000 Do not parse ID3v2 tags, just skip them. */
 	,MPG123_IGNORE_INFOFRAME = 0x4000 /**< 100 0000 0000 0000 Do not parse the LAME/Xing info frame, treat it as normal MPEG data. */
 	,MPG123_AUTO_RESAMPLE = 0x8000 /**< 1000 0000 0000 0000 Allow automatic internal resampling of any kind (default on if supported). Especially when going lowlevel with replacing output buffer, you might want to unset this flag. Setting MPG123_DOWNSAMPLE or MPG123_FORCE_RATE will override this. */
+	,MPG123_PICTURE = 0x10000 /**< 17th bit: Enable storage of pictures from tags (ID3v2 APIC). */
 };
 
 /** choices for MPG123_RVA */
@@ -380,7 +381,7 @@ enum mpg123_enc_enum
 	,MPG123_ENC_UNSIGNED_24 = MPG123_ENC_24|0x2000                   /**< 0110 0000 0000 0000 unsigned 24 bit */
 	,MPG123_ENC_FLOAT_32    = 0x200                                  /**<      0010 0000 0000 32bit float */
 	,MPG123_ENC_FLOAT_64    = 0x400                                  /**<      0100 0000 0000 64bit float */
-	,MPG123_ENC_ANY = ( MPG123_ENC_SIGNED_16  | MPG123_ENC_UNSIGNED_16 | MPG123_ENC_UNSIGNED_8 
+	,MPG123_ENC_ANY = ( MPG123_ENC_SIGNED_16  | MPG123_ENC_UNSIGNED_16 | MPG123_ENC_UNSIGNED_8
 	                  | MPG123_ENC_SIGNED_8   | MPG123_ENC_ULAW_8      | MPG123_ENC_ALAW_8
 	                  | MPG123_ENC_SIGNED_32  | MPG123_ENC_UNSIGNED_32
 	                  | MPG123_ENC_SIGNED_24  | MPG123_ENC_UNSIGNED_24
@@ -906,6 +907,45 @@ typedef struct
 	mpg123_string text;        /**< ... */
 } mpg123_text;
 
+/** The picture type values from ID3v2. */
+enum mpg123_id3_pic_type
+{
+	 mpg123_id3_pic_other          =  0
+	,mpg123_id3_pic_icon           =  1
+	,mpg123_id3_pic_other_icon     =  2
+	,mpg123_id3_pic_front_cover    =  3
+	,mpg123_id3_pic_back_cover     =  4
+	,mpg123_id3_pic_leaflet        =  5
+	,mpg123_id3_pic_media          =  6
+	,mpg123_id3_pic_lead           =  7
+	,mpg123_id3_pic_artist         =  8
+	,mpg123_id3_pic_conductor      =  9
+	,mpg123_id3_pic_orchestra      = 10
+	,mpg123_id3_pic_composer       = 11
+	,mpg123_id3_pic_lyricist       = 12
+	,mpg123_id3_pic_location       = 13
+	,mpg123_id3_pic_recording      = 14
+	,mpg123_id3_pic_performance    = 15
+	,mpg123_id3_pic_video          = 16
+	,mpg123_id3_pic_fish           = 17
+	,mpg123_id3_pic_illustration   = 18
+	,mpg123_id3_pic_artist_logo    = 19
+	,mpg123_id3_pic_publisher_logo = 20
+};
+
+/** Sub data structure for ID3v2, for storing picture data including comment.
+ *  This is for the ID3v2 APIC field. You should consult the ID3v2 specification
+ *  for the use of the APIC field ("frames" in ID3v2 documentation, I use "fields"
+ *  here to separate from MPEG frames). */
+typedef struct
+{
+	char type;
+	mpg123_string description;
+	mpg123_string mime_type;
+	size_t size;
+	unsigned char* data;
+} mpg123_picture;
+
 /** Data structure for storing IDV3v2 tags.
  *  This structure is not a direct binary mapping with the file contents.
  *  The ID3v2 text frames are allowed to contain multiple strings.
@@ -928,6 +968,8 @@ typedef struct
 	size_t          texts;        /**< Numer of text fields. */
 	mpg123_text    *extra;        /**< The array of extra (TXXX) fields. */
 	size_t          extras;       /**< Number of extra text (TXXX) fields. */
+	mpg123_picture  *picture;     /**< Array of ID3v2 pictures fields (APIC). */
+	size_t           pictures;    /**< Number of picture (APIC) fields. */
 } mpg123_id3v2;
 
 /** Data structure for ID3v1 tags (the last 128 bytes of a file).

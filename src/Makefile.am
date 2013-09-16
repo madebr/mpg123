@@ -17,7 +17,10 @@ EXTRA_DIST = legacy_module.c module.c sfifo.c sfifo.h mpg123-with-modules
 
 CLEANFILES = *.a
 
-bin_PROGRAMS = mpg123
+bin_PROGRAMS = mpg123 mpg123-id3dump
+
+mpg123_id3dump_DEPENDENCIES = libmpg123/libmpg123.la
+mpg123_id3dump_LDADD = libmpg123/libmpg123.la
 
 EXTRA_PROGRAMS = tests/seek_whence tests/noise tests/text tests/plain_id3
 
@@ -58,6 +61,12 @@ mpg123_SOURCES = \
 	wavhead.h \
 	xfermem.c \
 	xfermem.h
+
+mpg123_id3dump_SOURCES = mpg123-id3dump.c \
+	getlopt.c \
+	getlopt.h \
+	libmpg123/compat.c \
+	libmpg123/compat.h
 
 if WIN32_CODES
 mpg123_SOURCES += \

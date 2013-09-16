@@ -1,5 +1,8 @@
 Changes in libmpg123 libtool interface versions...
 
+38.0.38
+	- Added MPG123_PICTURE and associated addition to mpg123_id3v2 struct.
+
 37.0.37
 	- Added mpg123_chomp_string.
 
