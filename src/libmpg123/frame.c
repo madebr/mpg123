@@ -181,7 +181,7 @@ int frame_outbuffer(mpg123_handle *fr)
 		if(fr->buffer.size < size)
 		{
 			fr->err = MPG123_BAD_BUFFER;
-			if(NOQUIET) error2("have external buffer of size %"SIZE_P", need %"SIZE_P, (size_p)fr->buffer.size, size);
+			if(NOQUIET) error2("have external buffer of size %"SIZE_P", need %"SIZE_P, (size_p)fr->buffer.size, (size_p)size);
 
 			return MPG123_ERR;
 		}

@@ -212,7 +212,7 @@ void print_raw_v2(mpg123_id3v2 *v2)
 
 		pic = &v2->picture[i];
 		fprintf(stderr, "APIC type(%i, %s) mime(%s) size(%"SIZE_P")\n",
-			pic->type, pic_type(pic->type), pic->mime_type.p, pic->size);
+			pic->type, pic_type(pic->type), pic->mime_type.p, (size_p)pic->size);
 		print_lines(" ", &pic->description);
 	}
 }
