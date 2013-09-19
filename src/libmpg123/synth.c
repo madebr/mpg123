@@ -105,7 +105,7 @@ int synth_1to1_i586_dither(real *bandPtr, int channel, mpg123_handle *fr, int fi
 }
 #endif
 
-#ifdef OPT_3DNOW
+#if defined(OPT_3DNOW) || defined(OPT_3DNOW_VINTAGE)
 /* Those are defined in assembler. */
 void do_equalizer_3dnow(real *bandPtr,int channel, real equalizer[2][32]);
 int synth_1to1_3dnow_asm(real *bandPtr, int channel, unsigned char *out, unsigned char *buffs, int *bo, real *decwin);
@@ -244,7 +244,7 @@ int synth_1to1_sse(real *bandPtr, int channel, mpg123_handle *fr, int final)
 #endif
 #endif
 
-#ifdef OPT_3DNOWEXT
+#if defined(OPT_3DNOWEXT) || defined(OPT_3DNOWEXT_VINTAGE)
 /* This is defined in assembler. */
 void synth_1to1_3dnowext_asm(real *bandPtr, int channel, short *samples, short *buffs, int *bo, real *decwin);
 /* This is just a hull to use the mpg123 handle. */
