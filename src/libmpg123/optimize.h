@@ -3,7 +3,7 @@
 /*
 	optimize: get a grip on the different optimizations
 
-	copyright 2007 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2007-2013 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis, taking from mpg123.[hc]
 
@@ -16,9 +16,12 @@
 	OPT_I586_DITHER (Intel Pentium with dithering/noise shaping for enhanced quality)
 	OPT_MMX (Intel Pentium and compatibles with MMX, fast, but not the best accuracy)
 	OPT_3DNOW (AMD 3DNow!, K6-2/3, Athlon, compatibles...)
+	OPT_3DNOW_VINTAGE
 	OPT_3DNOWEXT (AMD 3DNow! extended, generally Athlon, compatibles...)
+	OPT_3DNOWEXT_VINTAGE
 	OPT_ALTIVEC (Motorola/IBM PPC with AltiVec under MacOSX)
 	OPT_X86_64 (x86-64 / AMD64 / Intel 64)
+	OPT_AVX
 
 	or you define OPT_MULTI and give a combination which makes sense (do not include i486, do not mix altivec and x86).
 
@@ -38,6 +41,7 @@ enum optdec
 	autodec=0, generic, generic_dither, idrei,
 	ivier, ifuenf, ifuenf_dither, mmx,
 	dreidnow, dreidnowext, altivec, sse, x86_64, arm, neon, avx,
+	dreidnow_vintage, dreidnowext_vintage,
 	nodec
 };
 enum optcla { nocla=0, normal, mmxsse };
@@ -68,6 +72,7 @@ enum optcla decclass(const enum optdec);
 #if (defined OPT_I486)  || (defined OPT_I586) || (defined OPT_I586_DITHER) \
  || (defined OPT_MMX)   || (defined OPT_SSE)  || (defined_OPT_ALTIVEC) \
  || (defined OPT_3DNOW) || (defined OPT_3DNOWEXT) || (defined OPT_X86_64) \
+ || (defined OPT_3DNOW_VINTAGE) || (defined OPT_3DNOWEXT_VINTAGE) \
  || (defined OPT_NEON) || (defined OPT_AVX) || (defined OPT_GENERIC_DITHER)
 #error "Bad decoder choice together with fixed point math!"
 #endif
@@ -149,9 +154,17 @@ enum optcla decclass(const enum optdec);
 #define OPT_X86
 #ifndef OPT_MULTI
 #	define defopt dreidnowext
-#	ifdef DCT36_3DNOW
-#		define opt_dct36(fr) dct36_3dnowext
-#	endif
+#endif
+#endif
+
+/* same as above but also using 3DNowExt dct36 */
+#ifdef OPT_3DNOWEXT_VINTAGE
+#define OPT_MMXORSSE
+#define OPT_MPLAYER
+#define OPT_X86
+#ifndef OPT_MULTI
+#	define defopt dreidnowext_vintage
+#	define opt_dct36(fr) dct36_3dnowext
 #endif
 #endif
 
@@ -165,9 +178,15 @@ extern const int costab_mmxsse[];
 #define OPT_X86
 #ifndef OPT_MULTI
 #	define defopt dreidnow
-#	ifdef DCT36_3DNOW
-#		define opt_dct36(fr) dct36_3dnow
-#	endif
+#endif
+#endif
+
+/* same as above but also using 3DNow dct36 */
+#ifdef OPT_3DNOW_VINTAGE
+#define OPT_X86
+#ifndef OPT_MULTI
+#	define defopt dreidnow_vintage
+#	define opt_dct36(fr) dct36_3dnow
 #endif
 #endif
 
@@ -219,7 +238,7 @@ void check_decoders(void);
 
 #	define defopt nodec
 
-#	if (defined OPT_3DNOW || defined OPT_3DNOWEXT || defined OPT_SSE || defined OPT_X86_64 || defined OPT_AVX)
+#	if (defined OPT_3DNOW_VINTAGE || defined OPT_3DNOWEXT_VINTAGE || defined OPT_SSE || defined OPT_X86_64 || defined OPT_AVX)
 #		define opt_dct36(fr) ((fr)->cpu_opts.the_dct36)
 #	endif
 

@@ -158,7 +158,7 @@ struct mpg123_handle_struct
 #ifdef OPT_MULTI
 
 #ifndef NO_LAYER3
-#if (defined OPT_3DNOW || defined OPT_3DNOWEXT || defined OPT_SSE || defined OPT_X86_64 || defined OPT_AVX)
+#if (defined OPT_3DNOW_VINTAGE || defined OPT_3DNOWEXT_VINTAGE || defined OPT_SSE || defined OPT_X86_64 || defined OPT_AVX)
 		void (*the_dct36)(real *,real *,real *,real *,real *);
 #endif
 #endif

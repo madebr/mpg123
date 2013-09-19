@@ -16,7 +16,7 @@
   This enables client software that insists on defining pointless _FILE_OFFSET_BITS.
 - wrapper script src/mpg123-with-modules to ease the pain of running mpg123 with modules without installation (setting MPG123_MODDIR)
 - removed ALSA 0.5 code (unused for longtime, last GPL-only bit)
-- switch to re-enable DCT36 3DNow(ext) code for older cpus (AMD K6) at build time
+- added configs for vintage 3DNow(ext) CPUs (AMD K6) utilizing assembly DCT36
 
 1.15.4
 ---
@@ -96,6 +96,7 @@ Who reworks a parsing and data mangling without really making sure that things s
 - ReplayGain: Try to detect LAME below 3.95 for the different reference level of 83 dB (adding preamp of 6 dB). Version 3.95 itself (not 3.95.1) I cannot detect. User-set gain values are not touched.
 - Keep silent about missing bit reservoir when ignoring frames. That is the whole point (mostly;-).
 - Add the new/old WRITE_SAMPLE variant from MPlayer that makes the generic decoder faster on older CPUs (x86 at least). Not on x86-64, though (it's not enabled per default there).
+- disable 3DNow and 3DNowExt DCT36, which is slow on modern CPUs
 - Handle out-of-disk in the file writers (a bit, see http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=67259)
 - Added Xcode project files to build libmpg123 on Mac OS and iOS
 - 32 bit output for sndio output (patch by Brad Smith).

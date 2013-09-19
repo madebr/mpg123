@@ -11,7 +11,7 @@ dnl ############# Initialisation
 AC_INIT([mpg123], [1.16.0-dctavx], [mpg123-devel@lists.sourceforge.net])
 dnl Increment API_VERSION when the API gets changes (new functions).
 API_VERSION=38
-LIB_PATCHLEVEL=0
+LIB_PATCHLEVEL=1
 dnl Since we want to be backwards compatible, both sides get set to API_VERSION.
 LIBMPG123_VERSION=$API_VERSION:$LIB_PATCHLEVEL:$API_VERSION
 AC_SUBST(LIBMPG123_VERSION)
@@ -456,9 +456,11 @@ AC_ARG_WITH([cpu], [
   --with-cpu=i486         Use code optimized for i486 processors (only usable alone!)
   --with-cpu=i586         Use code optimized for i586 processors
   --with-cpu=i586_dither  Use code optimized for i586 processors with dithering (noise shaping), adds 256K to binary size
-  --with-cpu=3dnow        Use code optimized for 3DNow processors
-  --with-cpu=3dnowext     Use code optimized for 3DNowExt processors (K6-3+, Athlon)
+  --with-cpu=3dnow         Use code optimized for 3DNow processors
+  --with-cpu=3dnow_vintage Use code optimized for older 3DNow processors (K6 family)
+  --with-cpu=3dnowext      Use code optimized for 3DNowExt processors (K6-3+, Athlon)
   --with-cpu=3dnowext_alone     Really only 3DNowExt decoder, without 3DNow fallback for flexible rate
+  --with-cpu=3dnow_vintage       Use code optimized for older extended 3DNow processors (like K6-III+)
   --with-cpu=mmx          Use code optimized for MMX processors
   --with-cpu=mmx_alone          Really only MMX decoder, without i586 fallback for flexible rate
   --with-cpu=sse          Use code optimized for SSE processors
@@ -688,21 +690,6 @@ AC_ARG_ENABLE(newoldwritesample,
 		newoldwritesample=disabled
 	fi
 ])
-
-dct36_3dnow=disabled
-AC_ARG_ENABLE(dct36-3dnow,
-[  --enable-dct36-3dnow=[no/yes] enable 3DNow(ext) dct36, which is slower than FPU code on newer CPUs, but still better on K6 (default is disabled, enable for old 3DNow CPUs)],
-[
-	if test "x$enableval" = xyes
-	then
-		dct36_3dnow=enabled
-	else
-		dct36_3dnow=disabled
-	fi
-])
-if test "x$dct36_3dnow" = "xenabled"; then
-  AC_DEFINE(DCT36_3DNOW, 1, [ Define to enable 3DNow-optimized dct36 routines (slower on K7 and up!). ])
-fi
 
 dnl Did user choose other CPU type ?
 if test "x$with_cpu" != "x"; then
@@ -1193,7 +1180,9 @@ s_i586="$s_i386 synth_i586"
 s_i586d="$s_i386 synth_i586_dither"
 s_3dnow="$s_i386 synth_3dnow dct64_3dnow equalizer_3dnow"
 s_3dnowext="$s_i386 dct64_3dnowext tabinit_mmx synth_3dnowext"
-if test "x$layer3" = "xenabled" && test "x$dct36_3dnow" = "xenabled"; then
+s_3dnow_vintage=s_3dnow
+s_3dnowext_vintage=s_3dnowext
+if test "x$layer3" = "xenabled"; then
   s_3dnow="$s_3dnow dct36_3dnow"
   s_3dnowext="$s_3dnowext dct36_3dnowext"
 fi
@@ -1309,6 +1298,10 @@ dnl Not disabling buffer for float mode... check that this is OK now!
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_I586 -DOPT_3DNOW -DREAL_IS_FLOAT"
     more_sources="$s_fpu $s_i586 $s_3dnow $s_x86multi "
   ;;
+  3dnow_vintage)
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_I586 -DOPT_3DNOW_VINTAGE -DREAL_IS_FLOAT"
+    more_sources="$s_fpu $s_i586 $s_3dnow_vintage $s_x86multi "
+  ;;
   3dnow_alone)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_3DNOW -DREAL_IS_FLOAT"
     more_sources="$s_fpu $s_3dnow"
@@ -1316,6 +1309,10 @@ dnl Not disabling buffer for float mode... check that this is OK now!
   3dnowext_alone) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_3DNOWEXT -DREAL_IS_FLOAT"
     more_sources="$s_fpu $s_3dnowext"
+  ;;
+  3dnowext_vintage) 
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_3DNOW -DOPT_3DNOWEXT_VINTAGE -DREAL_IS_FLOAT"
+    more_sources="$s_fpu $s_3dnowext_vintage $s_3dnow $s_x86multi"
   ;;
   3dnowext) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_3DNOW -DOPT_3DNOWEXT -DREAL_IS_FLOAT"
@@ -1336,8 +1333,9 @@ dnl Not disabling buffer for float mode... check that this is OK now!
 		use_yasm_for_avx="yes"
 	fi
   ;;
-  x86|x86_dither) 
-    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_GENERIC_DITHER -DOPT_I386 -DOPT_I586 -DOPT_I586_DITHER -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOWEXT -DOPT_SSE -DREAL_IS_FLOAT"
+  x86|x86_dither)
+    # Vintage sources are contained inside full 3DNow sources (C dct36 is always there).
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_GENERIC_DITHER -DOPT_I386 -DOPT_I586 -DOPT_I586_DITHER -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOW_VINTAGE -DOPT_3DNOWEXT -DOPT_3DNOWEXT_VINTAGE -DOPT_SSE -DREAL_IS_FLOAT"
     more_sources="$s_fpu $s_i386 $s_i586 $s_i586d $s_mmx $s_3dnow $s_3dnowext $s_sse $s_x86multi $s_dither"
   ;;
   x86-64_alone) 
@@ -2394,7 +2392,6 @@ echo -n "
   Integer conversion ...... $integers
   New/old WRITE_SAMPLE .... $newoldwritesample
   new Huffman scheme ...... $newhuff
-  3DNow DCT36 for old CPUs  $dct36_3dnow
 
 Note: Disabling core features is not commonly done and some combinations might not build/work. If you encounter such a case, help yourself (and provide a patch) or just poke the maintainers.
 "

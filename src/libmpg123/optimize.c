@@ -47,6 +47,7 @@ static const char* decname[] =
 {
 	"auto"
 	, dn_generic, dn_generic_dither, dn_i386, dn_i486, dn_i586, dn_i586_dither, dn_MMX, dn_3DNow, dn_3DNowExt, dn_AltiVec, dn_SSE, dn_x86_64, dn_ARM, dn_NEON, dn_AVX
+	, dn_3DNow "_vintage", dn_3DNowExt "_vintage"
 	, "nodec"
 };
 
@@ -201,14 +202,26 @@ static int find_dectype(mpg123_handle *fr)
 
 	if(FALSE) ; /* Just to initialize the else if ladder. */
 #ifndef NO_16BIT
-#ifdef OPT_3DNOWEXT
-	else if(basic_synth == synth_1to1_3dnowext) type = dreidnowext;
+#if defined(OPT_3DNOWEXT) || defined(OPT_3DNOWEXT_VINTAGE)
+	else if(basic_synth == synth_1to1_3dnowext)
+	{
+		type = dreidnowext;
+#		ifdef OPT_3DNOWEXT_VINTAGE
+		if(fr->cpu_opts.the_dct36 == dct36_3dnowext) type = dreidnowext_vintage;
+#		endif
+	}
 #endif
 #ifdef OPT_SSE
 	else if(basic_synth == synth_1to1_sse) type = sse;
 #endif
-#ifdef OPT_3DNOW
-	else if(basic_synth == synth_1to1_3dnow) type = dreidnow;
+#if defined(OPT_3DNOW) || defined(OPT_3DNOW_VINTAGE)
+	else if(basic_synth == synth_1to1_3dnow)
+	{
+		type = dreidnow;
+#		ifdef OPT_3DNOW_VINTAGE
+		if(fr->cpu_opts.the_dct36 == dct36_3dnow) type = dreidnow_vintage;
+#		endif
+	}
 #endif
 #ifdef OPT_MMX
 	else if(basic_synth == synth_1to1_mmx) type = mmx;
@@ -478,7 +491,7 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 	fr->cpu_opts.type = nodec;
 #ifdef OPT_MULTI
 #ifndef NO_LAYER3
-#if (defined OPT_3DNOW || defined OPT_3DNOWEXT || defined OPT_SSE || defined OPT_X86_64 || defined OPT_AVX)
+#if (defined OPT_3DNOW_VINTAGE || defined OPT_3DNOWEXT_VINTAGE || defined OPT_SSE || defined OPT_X86_64 || defined OPT_AVX)
 	fr->cpu_opts.the_dct36 = dct36;
 #endif
 #endif
@@ -519,18 +532,30 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		}
 		#endif
 #		ifdef OPT_3DNOWEXT
-		if(   !done && (auto_choose || want_dec == dreidnowext )
+		if(   !done && (auto_choose || want_dec == dreidnowext)
 		   && cpu_3dnow(cpu_flags)
 		   && cpu_3dnowext(cpu_flags)
 		   && cpu_mmx(cpu_flags) )
 		{
 			chosen = "3DNowExt";
 			fr->cpu_opts.type = dreidnowext;
+#			ifndef NO_16BIT
+			fr->synths.plain[r_1to1][f_16] = synth_1to1_3dnowext;
+#			endif
+			done = 1;
+		}
+#		endif
+#		ifdef OPT_3DNOWEXT_VINTAGE
+		if(   !done && (auto_choose || want_dec == dreidnowext_vintage)
+		   && cpu_3dnow(cpu_flags)
+		   && cpu_3dnowext(cpu_flags)
+		   && cpu_mmx(cpu_flags) )
+		{
+			chosen = decname[dreidnowext_vintage];
+			fr->cpu_opts.type = dreidnowext_vintage;
 #ifdef OPT_MULTI
 #			ifndef NO_LAYER3
-#			ifdef DCT36_3DNOW
 			fr->cpu_opts.the_dct36 = dct36_3dnowext;
-#			endif
 #			endif
 #endif
 #			ifndef NO_16BIT
@@ -538,18 +563,28 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 #			endif
 			done = 1;
 		}
-		#endif
-		#ifdef OPT_3DNOW
+#		endif
+#		ifdef OPT_3DNOW
 		if(    !done && (auto_choose || want_dec == dreidnow)
 		    && cpu_3dnow(cpu_flags) && cpu_mmx(cpu_flags) )
 		{
 			chosen = "3DNow";
 			fr->cpu_opts.type = dreidnow;
+#			ifndef NO_16BIT
+			fr->synths.plain[r_1to1][f_16] = synth_1to1_3dnow;
+#			endif
+			done = 1;
+		}
+#		endif
+#		ifdef OPT_3DNOW_VINTAGE
+		if(    !done && (auto_choose || want_dec == dreidnow)
+		    && cpu_3dnow(cpu_flags) && cpu_mmx(cpu_flags) )
+		{
+			chosen = decname[dreidnow_vintage];
+			fr->cpu_opts.type = dreidnow_vintage;
 #ifdef OPT_MULTI
 #			ifndef NO_LAYER3
-#			ifdef DCT36_3DNOW
 			fr->cpu_opts.the_dct36 = dct36_3dnow;
-#			endif
 #			endif
 #endif
 #			ifndef NO_16BIT
@@ -557,7 +592,7 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 #			endif
 			done = 1;
 		}
-		#endif
+#		endif
 		#ifdef OPT_MMX
 		if(   !done && (auto_choose || want_dec == mmx)
 		   && cpu_mmx(cpu_flags) )
@@ -896,8 +931,14 @@ static const char *mpg123_decoder_list[] =
 	#ifdef OPT_3DNOWEXT
 	dn_3DNowExt,
 	#endif
+	#ifdef OPT_3DNOWEXT_VINTAGE
+	dn_3DNowExt "_vintage",
+	#endif
 	#ifdef OPT_3DNOW
 	dn_3DNow,
+	#endif
+	#ifdef OPT_3DNOW_VINTAGE
+	dn_3DNow "_vintage",
 	#endif
 	#ifdef OPT_MMX
 	dn_MMX,
@@ -959,8 +1000,14 @@ void check_decoders(void )
 #ifdef OPT_3DNOWEXT
 		if(cpu_3dnowext(cpu_flags)) *(d++) = decname[dreidnowext];
 #endif
+#ifdef OPT_3DNOWEXT_VINTAGE
+		if(cpu_3dnowext(cpu_flags)) *(d++) = decname[dreidnowext_vintage];
+#endif
 #ifdef OPT_3DNOW
 		if(cpu_3dnow(cpu_flags)) *(d++) = decname[dreidnow];
+#endif
+#ifdef OPT_3DNOW_VINTAGE
+		if(cpu_3dnow(cpu_flags)) *(d++) = decname[dreidnow_vintage];
 #endif
 #ifdef OPT_MMX
 		if(cpu_mmx(cpu_flags)) *(d++) = decname[mmx];
