@@ -146,6 +146,23 @@ static int find_synth(func_synth synth,  const func_synth synths[r_limit][f_limi
 	return FALSE;
 }
 
+
+/* After knowing that it is either vintage or current SSE,
+   this separates the two. In case of non-OPT_MULTI, only one
+   of OPT_SSE and OPT_SSE_VINTAGE is active. */
+static enum optdec sse_or_vintage(struct frame *fr)
+{
+	enum optdec type;
+	type = sse_vintage;
+#	ifdef OPT_SSE
+#	ifdef OPT_MULTI
+	if(fr->cpu_opts.the_dct36 == dct36_sse)
+#	endif
+	type = sse;
+#	endif
+	return type;
+}
+
 /* Determine what kind of decoder is actually active
    This depends on runtime choices which may cause fallback to i386 or generic code. */
 static int find_dectype(mpg123_handle *fr)
@@ -166,19 +183,19 @@ static int find_dectype(mpg123_handle *fr)
 #if defined(OPT_3DNOWEXT) || defined(OPT_3DNOWEXT_VINTAGE)
 	else if(basic_synth == synth_1to1_3dnowext)
 	{
-		type = dreidnowext;
+		type = dreidnowext
 #		ifdef OPT_3DNOWEXT_VINTAGE
-		if(fr->cpu_opts.the_dct36 == dct36_3dnowext) type = dreidnowext_vintage;
+#		ifdef OPT_MULTI
+		if(fr->cpu_opts.the_dct36 == dct36_3dnowext)
+#		endif
+		type = dreidnowext_vintage;
 #		endif
 	}
 #endif
 #if defined(OPT_SSE) || defined(OPT_SSE_VINTAGE)
 	else if(basic_synth == synth_1to1_sse)
 	{
-		type = sse_vintage;
-#		ifdef OPT_SSE
-		if(fr->cpu_opts.the_dct36 == dct36_sse) type = sse;
-#		endif
+		type = sse_or_vintage(fr);
 	}
 #endif
 #if defined(OPT_3DNOW) || defined(OPT_3DNOW_VINTAGE)
@@ -186,7 +203,10 @@ static int find_dectype(mpg123_handle *fr)
 	{
 		type = dreidnow;
 #		ifdef OPT_3DNOW_VINTAGE
-		if(fr->cpu_opts.the_dct36 == dct36_3dnow) type = dreidnow_vintage;
+#		ifdef OPT_MULTI
+		if(fr->cpu_opts.the_dct36 == dct36_3dnow)
+#		endif
+		type = dreidnow_vintage;
 #		endif
 	}
 #endif
@@ -232,10 +252,7 @@ static int find_dectype(mpg123_handle *fr)
 #if defined(OPT_SSE) || defined(OPT_SSE_VINTAGE)
 	else if(basic_synth == synth_1to1_real_sse)
 	{
-		type = sse_vintage;
-#		ifdef OPT_SSE
-		if(fr->cpu_opts.the_dct36 == dct36_sse) type = sse;
-#		endif
+		type = sse_or_vintage(fr);
 	}
 #endif
 #ifdef OPT_X86_64
@@ -257,10 +274,7 @@ static int find_dectype(mpg123_handle *fr)
 #if defined(OPT_SSE) || defined(OPT_SSE_VINTAGE)
 	else if(basic_synth == synth_1to1_s32_sse)
 	{
-		type = sse_vintage;
-#		ifdef OPT_SSE
-		if(fr->cpu_opts.the_dct36 == dct36_sse) type = sse;
-#		endif
+		type = sse_or_vintage(fr);
 	}
 #endif
 #ifdef OPT_X86_64
