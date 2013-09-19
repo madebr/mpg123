@@ -11,7 +11,7 @@ dnl ############# Initialisation
 AC_INIT([mpg123], [1.16.0-dctavx], [mpg123-devel@lists.sourceforge.net])
 dnl Increment API_VERSION when the API gets changes (new functions).
 API_VERSION=38
-LIB_PATCHLEVEL=1
+LIB_PATCHLEVEL=2
 dnl Since we want to be backwards compatible, both sides get set to API_VERSION.
 LIBMPG123_VERSION=$API_VERSION:$LIB_PATCHLEVEL:$API_VERSION
 AC_SUBST(LIBMPG123_VERSION)
@@ -464,6 +464,7 @@ AC_ARG_WITH([cpu], [
   --with-cpu=mmx          Use code optimized for MMX processors
   --with-cpu=mmx_alone          Really only MMX decoder, without i586 fallback for flexible rate
   --with-cpu=sse          Use code optimized for SSE processors
+  --with-cpu=sse_vintage  Use code optimized for older SSE processors (plain C DCT36)
   --with-cpu=sse_alone          Really only SSE decoder, without i586 fallback for flexible rate
   --with-cpu=avx          Use code optimized for x86-64 with AVX processors
   --with-cpu=x86          Pack all x86 opts into one binary (excluding i486, including dither)
@@ -1180,14 +1181,15 @@ s_i586="$s_i386 synth_i586"
 s_i586d="$s_i386 synth_i586_dither"
 s_3dnow="$s_i386 synth_3dnow dct64_3dnow equalizer_3dnow"
 s_3dnowext="$s_i386 dct64_3dnowext tabinit_mmx synth_3dnowext"
-s_3dnow_vintage=s_3dnow
-s_3dnowext_vintage=s_3dnowext
+s_3dnow_vintage=$s_3dnow
+s_3dnowext_vintage=$s_3dnowext
 if test "x$layer3" = "xenabled"; then
-  s_3dnow="$s_3dnow dct36_3dnow"
-  s_3dnowext="$s_3dnowext dct36_3dnowext"
+  s_3dnow_vintage="$s_3dnow_vintage dct36_3dnow"
+  s_3dnowext_vintage="$s_3dnowext_vintage dct36_3dnowext"
 fi
 s_mmx="$s_i386 dct64_mmx tabinit_mmx synth_mmx"
-s_sse="$s_i386 tabinit_mmx dct36_sse dct64_sse dct64_sse_float synth_sse_float synth_stereo_sse_float synth_sse_s32 synth_stereo_sse_s32 "
+s_sse_vintage="$s_i386 tabinit_mmx dct64_sse dct64_sse_float synth_sse_float synth_stereo_sse_float synth_sse_s32 synth_stereo_sse_s32 "
+s_sse="$s_sse_vintage dct36_sse"
 s_x86_64="dct36_x86_64 dct64_x86_64 dct64_x86_64_float synth_x86_64_float synth_x86_64_s32 synth_stereo_x86_64_float synth_stereo_x86_64_s32"
 s_x86_64_mono_synths="synth_x86_64_float synth_x86_64_s32"
 s_x86_64_avx="dct36_avx dct64_avx dct64_avx_float synth_stereo_avx_float synth_stereo_avx_s32"
@@ -1200,6 +1202,7 @@ s_neon="dct64_neon dct64_neon_float synth_neon_float synth_neon_s32 synth_stereo
 # note: supporting deactivation of output formats for these decoders would need more logic here
 if test "x$integers" = "xquality"; then
   s_sse="$s_sse synth_sse_accurate synth_stereo_sse_accurate"
+  s_sse_vintage="$s_sse_vintage synth_sse_accurate synth_stereo_sse_accurate"
   s_x86_64="$s_x86_64 synth_x86_64_accurate synth_stereo_x86_64_accurate"
   s_x86_64_mono_synths="$s_x86_64_mono_synths synth_x86_64_accurate"
   s_x86_64_avx="$s_x86_64_avx synth_stereo_avx_accurate"
@@ -1207,6 +1210,7 @@ if test "x$integers" = "xquality"; then
   s_neon="$s_neon synth_neon_accurate synth_stereo_neon_accurate"
 else
   s_sse="$s_sse synth_sse" # no stereo
+  s_sse_vintage="$s_sse_vintage synth_sse" # no stereo
   s_x86_64="$s_x86_64 synth_x86_64 synth_stereo_x86_64"
   s_x86_64_mono_synths="$s_x86_64_mono_synths synth_x86_64"
   s_x86_64_avx="$s_x86_64_avx synth_stereo_avx"
@@ -1326,6 +1330,10 @@ dnl Not disabling buffer for float mode... check that this is OK now!
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_SSE -DREAL_IS_FLOAT"
     more_sources="$s_fpu $s_sse"
   ;;
+  sse_vintage) 
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_SSE_VINTAGE -DREAL_IS_FLOAT"
+    more_sources="$s_fpu $s_sse_vintage"
+  ;;
   avx) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_AVX -DREAL_IS_FLOAT"
     more_sources="$s_fpu $s_x86_64_avx $s_x86_64_mono_synths"
@@ -1334,9 +1342,12 @@ dnl Not disabling buffer for float mode... check that this is OK now!
 	fi
   ;;
   x86|x86_dither)
-    # Vintage sources are contained inside full 3DNow sources (C dct36 is always there).
-    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_GENERIC_DITHER -DOPT_I386 -DOPT_I586 -DOPT_I586_DITHER -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOW_VINTAGE -DOPT_3DNOWEXT -DOPT_3DNOWEXT_VINTAGE -DOPT_SSE -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_i386 $s_i586 $s_i586d $s_mmx $s_3dnow $s_3dnowext $s_sse $s_x86multi $s_dither"
+    # plain C dct36 always there, for vintage/non-vintage
+    # Selection of non-/vintage sources implies that
+    # $s_3dnow_vintage contains $s_3dnow,
+    # $s_sse contains $s_sse_vintage.
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_GENERIC_DITHER -DOPT_I386 -DOPT_I586 -DOPT_I586_DITHER -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOW_VINTAGE -DOPT_3DNOWEXT -DOPT_3DNOWEXT_VINTAGE -DOPT_SSE -DOPT_SSE_VINTAGE -DREAL_IS_FLOAT"
+    more_sources="$s_fpu $s_i386 $s_i586 $s_i586d $s_mmx $s_3dnow_vintage $s_3dnowext_vintage $s_sse $s_x86multi $s_dither"
   ;;
   x86-64_alone) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_X86_64 -DREAL_IS_FLOAT"
@@ -1360,7 +1371,7 @@ esac
 
 # Mac OS X specific linker flags
 case $cpu_type in
-  3dnow|3dnow_alone|3dnowext|3dnowext_alone|mmx|mmx_alone|sse|sse_alone|x86|x86_dither)
+  3dnow|3dnow_vintage|3dnow_alone|3dnowext|3dnowext_vintage|3dnowext_alone|mmx|mmx_alone|sse|sse_vintage|sse_alone|x86|x86_dither)
     case $host in
       i386-apple-darwin8*|*-apple-darwin10*)
         ADD_LDFLAGS="$ADD_LDFLAGS -Wl,-read_only_relocs,suppress"

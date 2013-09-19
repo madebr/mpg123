@@ -232,7 +232,7 @@ int synth_1to1_real_stereo_avx(real *bandPtr_l, real *bandPtr_r, mpg123_handle *
 }
 #endif
 
-#ifdef OPT_SSE
+#if defined(OPT_SSE) || defined(OPT_SSE_VINTAGE)
 /* Assembler routines. */
 int synth_1to1_real_sse_asm(real *window, real *b0, real *samples, int bo1);
 int synth_1to1_real_s_sse_asm(real *window, real *b0l, real *b0r, real *samples, int bo1);

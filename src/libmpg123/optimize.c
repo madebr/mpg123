@@ -8,48 +8,9 @@
 	Currently, this file contains the struct and function to choose an optimization variant and works only when OPT_MULTI is in effect.
 */
 
+#define I_AM_OPTIMIZE
 #include "mpg123lib_intern.h" /* includes optimize.h */
 #include "debug.h"
-
-/* Must match the enum dectype! */
-
-/*
-	It SUCKS having to define these names that way, but compile-time intialization of string arrays is a bitch.
-	GCC doesn't see constant stuff when it's wiggling in front of it!
-	Anyhow: Have a script for that:
-names="generic generic_dither i386 i486 i586 i586_dither MMX 3DNow 3DNowExt AltiVec SSE x86-64"
-for i in $names; do echo "##define dn_${i/-/_} \"$i\""; done
-echo -n "static const char* decname[] =
-{
-	\"auto\"
-	"
-for i in $names; do echo -n ", dn_${i/-/_}"; done
-echo "
-	, \"nodec\"
-};"
-*/
-#define dn_generic "generic"
-#define dn_generic_dither "generic_dither"
-#define dn_i386 "i386"
-#define dn_i486 "i486"
-#define dn_i586 "i586"
-#define dn_i586_dither "i586_dither"
-#define dn_MMX "MMX"
-#define dn_3DNow "3DNow"
-#define dn_3DNowExt "3DNowExt"
-#define dn_AltiVec "AltiVec"
-#define dn_SSE "SSE"
-#define dn_x86_64 "x86-64"
-#define dn_ARM "ARM"
-#define dn_NEON "NEON"
-#define dn_AVX "AVX"
-static const char* decname[] =
-{
-	"auto"
-	, dn_generic, dn_generic_dither, dn_i386, dn_i486, dn_i586, dn_i586_dither, dn_MMX, dn_3DNow, dn_3DNowExt, dn_AltiVec, dn_SSE, dn_x86_64, dn_ARM, dn_NEON, dn_AVX
-	, dn_3DNow "_vintage", dn_3DNowExt "_vintage"
-	, "nodec"
-};
 
 #if ((defined OPT_X86) || (defined OPT_X86_64)) && (defined OPT_MULTI)
 #include "getcpuflags.h"
@@ -169,7 +130,7 @@ enum optdec defdec(void){ return defopt; }
 
 enum optcla decclass(const enum optdec type)
 {
-	return (type == mmx || type == sse || type == dreidnowext || type == x86_64  || type == neon || type == avx) ? mmxsse : normal;
+	return (type == mmx || type == sse || type == sse_vintage || type == dreidnowext || type == x86_64  || type == neon || type == avx) ? mmxsse : normal;
 }
 
 
@@ -211,8 +172,14 @@ static int find_dectype(mpg123_handle *fr)
 #		endif
 	}
 #endif
-#ifdef OPT_SSE
-	else if(basic_synth == synth_1to1_sse) type = sse;
+#if defined(OPT_SSE) || defined(OPT_SSE_VINTAGE)
+	else if(basic_synth == synth_1to1_sse)
+	{
+		type = sse_vintage;
+#		ifdef OPT_SSE
+		if(fr->cpu_opts.the_dct36 == dct36_sse) type = sse;
+#		endif
+	}
 #endif
 #if defined(OPT_3DNOW) || defined(OPT_3DNOW_VINTAGE)
 	else if(basic_synth == synth_1to1_3dnow)
@@ -262,8 +229,14 @@ static int find_dectype(mpg123_handle *fr)
 #endif /* 16bit */
 
 #ifndef NO_REAL
-#ifdef OPT_SSE
-	else if(basic_synth == synth_1to1_real_sse) type = sse;
+#if defined(OPT_SSE) || defined(OPT_SSE_VINTAGE)
+	else if(basic_synth == synth_1to1_real_sse)
+	{
+		type = sse_vintage;
+#		ifdef OPT_SSE
+		if(fr->cpu_opts.the_dct36 == dct36_sse) type = sse;
+#		endif
+	}
 #endif
 #ifdef OPT_X86_64
 	else if(basic_synth == synth_1to1_real_x86_64) type = x86_64;
@@ -281,8 +254,14 @@ static int find_dectype(mpg123_handle *fr)
 #endif /* real */
 
 #ifndef NO_32BIT
-#ifdef OPT_SSE
-	else if(basic_synth == synth_1to1_s32_sse) type = sse;
+#if defined(OPT_SSE) || defined(OPT_SSE_VINTAGE)
+	else if(basic_synth == synth_1to1_s32_sse)
+	{
+		type = sse_vintage;
+#		ifdef OPT_SSE
+		if(fr->cpu_opts.the_dct36 == dct36_sse) type = sse;
+#		endif
+	}
 #endif
 #ifdef OPT_X86_64
 	else if(basic_synth == synth_1to1_s32_x86_64) type = x86_64;
@@ -431,6 +410,7 @@ int set_synth_functions(mpg123_handle *fr)
 #	endif
 #	ifdef ACCURATE_ROUNDING
 	   && fr->cpu_opts.type != sse
+	   && fr->cpu_opts.type != sse_vintage
 	   && fr->cpu_opts.type != x86_64
 	   && fr->cpu_opts.type != neon
 	   && fr->cpu_opts.type != avx
@@ -503,11 +483,11 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 #		ifdef OPT_MULTI
 		debug2("standard flags: 0x%08x\textended flags: 0x%08x", cpu_flags.std, cpu_flags.ext);
 #		endif
-		#ifdef OPT_SSE
+#		ifdef OPT_SSE
 		if(   !done && (auto_choose || want_dec == sse)
 		   && cpu_sse(cpu_flags) && cpu_mmx(cpu_flags) )
 		{
-			chosen = "SSE";
+			chosen = dn_sse;
 			fr->cpu_opts.type = sse;
 #ifdef OPT_MULTI
 #			ifndef NO_LAYER3
@@ -530,14 +510,37 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 #			endif
 			done = 1;
 		}
-		#endif
+#		endif
+#		ifdef OPT_SSE_VINTAGE
+		if(   !done && (auto_choose || want_dec == sse_vintage)
+		   && cpu_sse(cpu_flags) && cpu_mmx(cpu_flags) )
+		{
+			chosen = dn_sse_vintage;
+			fr->cpu_opts.type = sse_vintage;
+#			ifndef NO_16BIT
+			fr->synths.plain[r_1to1][f_16] = synth_1to1_sse;
+#			ifdef ACCURATE_ROUNDING
+			fr->synths.stereo[r_1to1][f_16] = synth_1to1_stereo_sse;
+#			endif
+#			endif
+#			ifndef NO_REAL
+			fr->synths.plain[r_1to1][f_real] = synth_1to1_real_sse;
+			fr->synths.stereo[r_1to1][f_real] = synth_1to1_real_stereo_sse;
+#			endif
+#			ifndef NO_32BIT
+			fr->synths.plain[r_1to1][f_32] = synth_1to1_s32_sse;
+			fr->synths.stereo[r_1to1][f_32] = synth_1to1_s32_stereo_sse;
+#			endif
+			done = 1;
+		}
+#		endif
 #		ifdef OPT_3DNOWEXT
 		if(   !done && (auto_choose || want_dec == dreidnowext)
 		   && cpu_3dnow(cpu_flags)
 		   && cpu_3dnowext(cpu_flags)
 		   && cpu_mmx(cpu_flags) )
 		{
-			chosen = "3DNowExt";
+			chosen = dn_dreidnowext;
 			fr->cpu_opts.type = dreidnowext;
 #			ifndef NO_16BIT
 			fr->synths.plain[r_1to1][f_16] = synth_1to1_3dnowext;
@@ -551,7 +554,7 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		   && cpu_3dnowext(cpu_flags)
 		   && cpu_mmx(cpu_flags) )
 		{
-			chosen = decname[dreidnowext_vintage];
+			chosen = dn_dreidnowext_vintage;
 			fr->cpu_opts.type = dreidnowext_vintage;
 #ifdef OPT_MULTI
 #			ifndef NO_LAYER3
@@ -568,7 +571,7 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		if(    !done && (auto_choose || want_dec == dreidnow)
 		    && cpu_3dnow(cpu_flags) && cpu_mmx(cpu_flags) )
 		{
-			chosen = "3DNow";
+			chosen = dn_dreidnow;
 			fr->cpu_opts.type = dreidnow;
 #			ifndef NO_16BIT
 			fr->synths.plain[r_1to1][f_16] = synth_1to1_3dnow;
@@ -577,10 +580,10 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		}
 #		endif
 #		ifdef OPT_3DNOW_VINTAGE
-		if(    !done && (auto_choose || want_dec == dreidnow)
+		if(    !done && (auto_choose || want_dec == dreidnow_vintage)
 		    && cpu_3dnow(cpu_flags) && cpu_mmx(cpu_flags) )
 		{
-			chosen = decname[dreidnow_vintage];
+			chosen = dn_dreidnow_vintage;
 			fr->cpu_opts.type = dreidnow_vintage;
 #ifdef OPT_MULTI
 #			ifndef NO_LAYER3
@@ -597,7 +600,7 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		if(   !done && (auto_choose || want_dec == mmx)
 		   && cpu_mmx(cpu_flags) )
 		{
-			chosen = "MMX";
+			chosen = dn_mmx;
 			fr->cpu_opts.type = mmx;
 #			ifndef NO_16BIT
 			fr->synths.plain[r_1to1][f_16] = synth_1to1_mmx;
@@ -638,7 +641,7 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 	   But still... here it is... maybe for real use in future. */
 	if(!done && (auto_choose || want_dec == ivier))
 	{
-		chosen = "i486";
+		chosen = dn_ivier;
 		fr->cpu_opts.type = ivier;
 		done = 1;
 	}
@@ -646,7 +649,7 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 	#ifdef OPT_I386
 	if(!done && (auto_choose || want_dec == idrei))
 	{
-		chosen = "i386";
+		chosen = dn_idrei;
 		fr->cpu_opts.type = idrei;
 		done = 1;
 	}
@@ -753,7 +756,7 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 #	ifdef OPT_ALTIVEC
 	if(!done && (auto_choose || want_dec == altivec))
 	{
-		chosen = "AltiVec";
+		chosen = dn_altivec;
 		fr->cpu_opts.type = altivec;
 #		ifndef NO_16BIT
 		fr->synths.plain[r_1to1][f_16] = synth_1to1_altivec;
@@ -774,7 +777,7 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 #	ifdef OPT_NEON
 	if(!done && (auto_choose || want_dec == neon))
 	{
-		chosen = "NEON";
+		chosen = dn_neon;
 		fr->cpu_opts.type = neon;
 #		ifndef NO_16BIT
 		fr->synths.plain[r_1to1][f_16] = synth_1to1_neon;
@@ -795,7 +798,7 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 #	ifdef OPT_ARM
 	if(!done && (auto_choose || want_dec == arm))
 	{
-		chosen = "ARM";
+		chosen = dn_arm;
 		fr->cpu_opts.type = arm;
 #		ifndef NO_16BIT
 		fr->synths.plain[r_1to1][f_16] = synth_1to1_arm;
@@ -807,7 +810,7 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 #	ifdef OPT_GENERIC
 	if(!done && (auto_choose || want_dec == generic))
 	{
-		chosen = "generic";
+		chosen = dn_generic;
 		fr->cpu_opts.type = generic;
 		done = 1;
 	}
@@ -874,10 +877,19 @@ static const char *mpg123_supported_decoder_list[] =
 	#ifdef OPT_SSE
 	NULL,
 	#endif
+	#ifdef OPT_SSE_VINTAGE
+	NULL,
+	#endif
 	#ifdef OPT_3DNOWEXT
 	NULL,
 	#endif
+	#ifdef OPT_3DNOWEXT_VINTAGE
+	NULL,
+	#endif
 	#ifdef OPT_3DNOW
+	NULL,
+	#endif
+	#ifdef OPT_3DNOW_VINTAGE
 	NULL,
 	#endif
 	#ifdef OPT_MMX
@@ -926,49 +938,52 @@ static const char *mpg123_supported_decoder_list[] =
 static const char *mpg123_decoder_list[] =
 {
 	#ifdef OPT_SSE
-	dn_SSE,
+	dn_sse,
+	#endif
+	#ifdef OPT_SSE_VINTAGE
+	dn_sse_vintage,
 	#endif
 	#ifdef OPT_3DNOWEXT
-	dn_3DNowExt,
+	dn_dreidnowext,
 	#endif
 	#ifdef OPT_3DNOWEXT_VINTAGE
-	dn_3DNowExt "_vintage",
+	dn_dreidnowext_vintage,
 	#endif
 	#ifdef OPT_3DNOW
-	dn_3DNow,
+	dn_dreidnow,
 	#endif
 	#ifdef OPT_3DNOW_VINTAGE
-	dn_3DNow "_vintage",
+	dn_dreidnow_vintage,
 	#endif
 	#ifdef OPT_MMX
-	dn_MMX,
+	dn_mmx,
 	#endif
 	#ifdef OPT_I586
-	dn_i586,
+	dn_ifuenf,
 	#endif
 	#ifdef OPT_I586_DITHER
-	dn_i586_dither,
+	dn_ifuenf_dither,
 	#endif
 	#ifdef OPT_I486
-	dn_i486,
+	dn_ivier,
 	#endif
 	#ifdef OPT_I386
-	dn_i386,
+	dn_idrei,
 	#endif
 	#ifdef OPT_ALTIVEC
-	dn_AltiVec,
+	dn_altivec,
 	#endif
 	#ifdef OPT_AVX
-	dn_AVX,
+	dn_avx,
 	#endif
 	#ifdef OPT_X86_64
 	dn_x86_64,
 	#endif
 	#ifdef OPT_ARM
-	dn_ARM,
+	dn_arm,
 	#endif
 	#ifdef OPT_NEON
-	dn_NEON,
+	dn_neon,
 	#endif
 	#ifdef OPT_GENERIC
 	dn_generic,
@@ -995,59 +1010,62 @@ void check_decoders(void )
 		/* not yet: if(cpu_sse2(cpu_flags)) printf(" SSE2");
 		if(cpu_sse3(cpu_flags)) printf(" SSE3"); */
 #ifdef OPT_SSE
-		if(cpu_sse(cpu_flags)) *(d++) = decname[sse];
+		if(cpu_sse(cpu_flags)) *(d++) = dn_sse;
+#endif
+#ifdef OPT_SSE_VINTAGE
+		if(cpu_sse(cpu_flags)) *(d++) = dn_sse_vintage;
 #endif
 #ifdef OPT_3DNOWEXT
-		if(cpu_3dnowext(cpu_flags)) *(d++) = decname[dreidnowext];
+		if(cpu_3dnowext(cpu_flags)) *(d++) = dn_dreidnowext;
 #endif
 #ifdef OPT_3DNOWEXT_VINTAGE
-		if(cpu_3dnowext(cpu_flags)) *(d++) = decname[dreidnowext_vintage];
+		if(cpu_3dnowext(cpu_flags)) *(d++) = dn_dreidnowext_vintage;
 #endif
 #ifdef OPT_3DNOW
-		if(cpu_3dnow(cpu_flags)) *(d++) = decname[dreidnow];
+		if(cpu_3dnow(cpu_flags)) *(d++) = dn_dreidnow;
 #endif
 #ifdef OPT_3DNOW_VINTAGE
-		if(cpu_3dnow(cpu_flags)) *(d++) = decname[dreidnow_vintage];
+		if(cpu_3dnow(cpu_flags)) *(d++) = dn_dreidnow_vintage;
 #endif
 #ifdef OPT_MMX
-		if(cpu_mmx(cpu_flags)) *(d++) = decname[mmx];
+		if(cpu_mmx(cpu_flags)) *(d++) = dn_mmx;
 #endif
 #ifdef OPT_I586
-		*(d++) = decname[ifuenf];
+		*(d++) = dn_ifuenf;
 #endif
 #ifdef OPT_I586_DITHER
-		*(d++) = decname[ifuenf_dither];
+		*(d++) = dn_ifuenf_dither;
 #endif
 	}
 #endif
 /* just assume that the i486 built is run on a i486 cpu... */
 #ifdef OPT_I486
-	*(d++) = decname[ivier];
+	*(d++) = dn_ivier;
 #endif
 #ifdef OPT_ALTIVEC
-	*(d++) = decname[altivec];
+	*(d++) = dn_altivec;
 #endif
 /* every supported x86 can do i386, any cpu can do generic */
 #ifdef OPT_I386
-	*(d++) = decname[idrei];
+	*(d++) = dn_idrei;
 #endif
 #ifdef OPT_AVX
-	if(cpu_avx(cpu_flags)) *(d++) = decname[avx];
+	if(cpu_avx(cpu_flags)) *(d++) = dn_avx;
 #endif
 #ifdef OPT_X86_64
-	*(d++) = decname[x86_64];
+	*(d++) = dn_x86_64;
 #endif
 #ifdef OPT_ARM
-	*(d++) = decname[arm];
+	*(d++) = dn_arm;
 #endif
 #ifdef OPT_NEON
-	*(d++) = decname[neon];
+	*(d++) = dn_neon;
 #endif
 #ifdef OPT_GENERIC
-	*(d++) = decname[generic];
+	*(d++) = dn_generic;
 #endif
 #ifdef OPT_GENERIC_DITHER
-	*(d++) = decname[generic_dither];
+	*(d++) = dn_generic_dither;
 #endif
 #endif /* ndef OPT_MULTI */
 }

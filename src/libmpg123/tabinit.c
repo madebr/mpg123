@@ -210,8 +210,14 @@ void make_decode_tables(mpg123_handle *fr)
 		scaleval = - scaleval;
 #endif
 	}
-#if defined(OPT_X86_64) || defined(OPT_ALTIVEC) || defined(OPT_SSE) || defined(OPT_ARM) || defined(OPT_NEON) || defined(OPT_AVX)
-	if(fr->cpu_opts.type == x86_64 || fr->cpu_opts.type == altivec || fr->cpu_opts.type == sse || fr->cpu_opts.type == arm || fr->cpu_opts.type == neon || fr->cpu_opts.type == avx)
+#if defined(OPT_X86_64) || defined(OPT_ALTIVEC) || defined(OPT_SSE) || defined(OPT_SSE_VINTAGE) || defined(OPT_ARM) || defined(OPT_NEON) || defined(OPT_AVX)
+	if(  fr->cpu_opts.type == x86_64
+	  || fr->cpu_opts.type == altivec
+	  || fr->cpu_opts.type == sse
+	  || fr->cpu_opts.type == sse_vintage
+	  || fr->cpu_opts.type == arm
+	  || fr->cpu_opts.type == neon
+	  || fr->cpu_opts.type == avx )
 	{ /* for float SSE / AltiVec / ARM decoder */
 		for(i=512; i<512+32; i++)
 		{

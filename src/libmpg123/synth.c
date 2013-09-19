@@ -139,7 +139,7 @@ int synth_1to1_mmx(real *bandPtr, int channel, mpg123_handle *fr, int final)
 }
 #endif
 
-#ifdef OPT_SSE
+#if defined(OPT_SSE) || defined(OPT_SSE_VINTAGE)
 #ifdef ACCURATE_ROUNDING
 /* This is defined in assembler. */
 int synth_1to1_sse_accurate_asm(real *window, real *b0, short *samples, int bo1);

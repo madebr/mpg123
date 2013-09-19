@@ -1,6 +1,11 @@
 1.16.0
 ---
-- Taihei strikes again: New Huffman decoding scheme (configurable, on by default) brings nice boost to mpg123 to make it the fastest decoder on modern CPUs again.
+- Taihei strikes again:
+  - New Huffman decoding scheme (configurable, on by default) brings nice boost to mpg123 to make it the fastest decoder on modern CPUs again.
+  - new AVX decoder
+  - assembly-optimized DCT36 for SSE and AVX
+- added configs for vintage 3DNow(ext) CPUs (AMD K6) utilizing assembly DCT36
+- added configs for vintage SSE CPUs (Pentium M), utilizing C DCT36
 - added FORMAT command to generic control
 - added support for ID3v2 APIC frames
 - added mpg123-id3dump as official companion to extract meta data
@@ -16,7 +21,6 @@
   This enables client software that insists on defining pointless _FILE_OFFSET_BITS.
 - wrapper script src/mpg123-with-modules to ease the pain of running mpg123 with modules without installation (setting MPG123_MODDIR)
 - removed ALSA 0.5 code (unused for longtime, last GPL-only bit)
-- added configs for vintage 3DNow(ext) CPUs (AMD K6) utilizing assembly DCT36
 
 1.15.4
 ---

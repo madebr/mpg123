@@ -19,6 +19,8 @@
 	OPT_3DNOW_VINTAGE
 	OPT_3DNOWEXT (AMD 3DNow! extended, generally Athlon, compatibles...)
 	OPT_3DNOWEXT_VINTAGE
+	OPT_SSE
+	OPT_SSE_VINTAGE
 	OPT_ALTIVEC (Motorola/IBM PPC with AltiVec under MacOSX)
 	OPT_X86_64 (x86-64 / AMD64 / Intel 64)
 	OPT_AVX
@@ -36,14 +38,128 @@
 
 /* Runtime optimization interface now here: */
 
+/* Nedit inline Perl script to generate decoder list and name mapping in one place
+   optimize.c defining I_AM_OPTIMIZE to get the names
+
+perl <<'EOT'
+## order is important (autodec first, nodec last)
+@names=
+(
+ ['autodec', 'auto']
+,['generic', 'generic']
+,['generic_dither', 'generic_dither']
+,['idrei', 'i386']
+,['ivier', 'i486']
+,['ifuenf', 'i586']
+,['ifuenf_dither', 'i586_dither']
+,['mmx', 'MMX']
+,['dreidnow', '3DNow']
+,['dreidnowext', '3DNowExt']
+,['altivec', 'AltiVec']
+,['sse', 'SSE']
+,['x86_64', 'x86-64']
+,['arm','ARM']
+,['neon','NEON']
+,['avx','AVX']
+,['dreidnow_vintage', '3DNow_vintage']
+,['dreidnowext_vintage', '3DNowExt_vintage']
+,['sse_vintage', 'SSE_vintage']
+,['nodec', 'nodec']
+);
+
+print "enum optdec\n{\n";
+for my $n (@names)
+{
+	$name = $n->[0];
+	$enum = $name eq 'autodec' ? $name = " $name=0" : ",$name";
+	print "\t$enum\n"
+}
+print "};\n";
+print "##ifdef I_AM_OPTIMIZE\n";
+for my $n (@names)
+{
+	my $key = $n->[0];
+	my $val = $n->[1];
+	print "static const char dn_$key\[\] = \"$val\";\n";
+}
+print "static const char* decname[] =\n{\n";
+for my $n (@names)
+{
+	my $key = $n->[0];
+	print "\t".($key eq 'autodec' ? ' ' : ',')."dn_$key\n";
+}
+print "};\n##endif"
+EOT
+*/
 enum optdec
-{ /* autodec needs to be =0 and the first, nodec needs to be the last -- for loops! */
-	autodec=0, generic, generic_dither, idrei,
-	ivier, ifuenf, ifuenf_dither, mmx,
-	dreidnow, dreidnowext, altivec, sse, x86_64, arm, neon, avx,
-	dreidnow_vintage, dreidnowext_vintage,
-	nodec
+{
+	 autodec=0
+	,generic
+	,generic_dither
+	,idrei
+	,ivier
+	,ifuenf
+	,ifuenf_dither
+	,mmx
+	,dreidnow
+	,dreidnowext
+	,altivec
+	,sse
+	,x86_64
+	,arm
+	,neon
+	,avx
+	,dreidnow_vintage
+	,dreidnowext_vintage
+	,sse_vintage
+	,nodec
 };
+#ifdef I_AM_OPTIMIZE
+static const char dn_autodec[] = "auto";
+static const char dn_generic[] = "generic";
+static const char dn_generic_dither[] = "generic_dither";
+static const char dn_idrei[] = "i386";
+static const char dn_ivier[] = "i486";
+static const char dn_ifuenf[] = "i586";
+static const char dn_ifuenf_dither[] = "i586_dither";
+static const char dn_mmx[] = "MMX";
+static const char dn_dreidnow[] = "3DNow";
+static const char dn_dreidnowext[] = "3DNowExt";
+static const char dn_altivec[] = "AltiVec";
+static const char dn_sse[] = "SSE";
+static const char dn_x86_64[] = "x86-64";
+static const char dn_arm[] = "ARM";
+static const char dn_neon[] = "NEON";
+static const char dn_avx[] = "AVX";
+static const char dn_dreidnow_vintage[] = "3DNow_vintage";
+static const char dn_dreidnowext_vintage[] = "3DNowExt_vintage";
+static const char dn_sse_vintage[] = "SSE_vintage";
+static const char dn_nodec[] = "nodec";
+static const char* decname[] =
+{
+	 dn_autodec
+	,dn_generic
+	,dn_generic_dither
+	,dn_idrei
+	,dn_ivier
+	,dn_ifuenf
+	,dn_ifuenf_dither
+	,dn_mmx
+	,dn_dreidnow
+	,dn_dreidnowext
+	,dn_altivec
+	,dn_sse
+	,dn_x86_64
+	,dn_arm
+	,dn_neon
+	,dn_avx
+	,dn_dreidnow_vintage
+	,dn_dreidnowext_vintage
+	,dn_sse_vintage
+	,dn_nodec
+};
+#endif
+
 enum optcla { nocla=0, normal, mmxsse };
 
 /*  - Set up the table of synth functions for current decoder choice. */
@@ -73,6 +189,7 @@ enum optcla decclass(const enum optdec);
  || (defined OPT_MMX)   || (defined OPT_SSE)  || (defined_OPT_ALTIVEC) \
  || (defined OPT_3DNOW) || (defined OPT_3DNOWEXT) || (defined OPT_X86_64) \
  || (defined OPT_3DNOW_VINTAGE) || (defined OPT_3DNOWEXT_VINTAGE) \
+ || (defined OPT_SSE_VINTAGE) \
  || (defined OPT_NEON) || (defined OPT_AVX) || (defined OPT_GENERIC_DITHER)
 #error "Bad decoder choice together with fixed point math!"
 #endif
@@ -145,6 +262,15 @@ enum optcla decclass(const enum optdec);
 #ifndef OPT_MULTI
 #	define defopt sse
 #	define opt_dct36(fr) dct36_sse
+#endif
+#endif
+
+#ifdef OPT_SSE_VINTAGE
+#define OPT_MMXORSSE
+#define OPT_MPLAYER
+#define OPT_X86
+#ifndef OPT_MULTI
+#	define defopt sse
 #endif
 #endif
 
