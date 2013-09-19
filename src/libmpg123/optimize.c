@@ -150,7 +150,7 @@ static int find_synth(func_synth synth,  const func_synth synths[r_limit][f_limi
 /* After knowing that it is either vintage or current SSE,
    this separates the two. In case of non-OPT_MULTI, only one
    of OPT_SSE and OPT_SSE_VINTAGE is active. */
-static enum optdec sse_or_vintage(struct frame *fr)
+static enum optdec sse_or_vintage(mpg123_handle *fr)
 {
 	enum optdec type;
 	type = sse_vintage;
@@ -183,7 +183,7 @@ static int find_dectype(mpg123_handle *fr)
 #if defined(OPT_3DNOWEXT) || defined(OPT_3DNOWEXT_VINTAGE)
 	else if(basic_synth == synth_1to1_3dnowext)
 	{
-		type = dreidnowext
+		type = dreidnowext;
 #		ifdef OPT_3DNOWEXT_VINTAGE
 #		ifdef OPT_MULTI
 		if(fr->cpu_opts.the_dct36 == dct36_3dnowext)
