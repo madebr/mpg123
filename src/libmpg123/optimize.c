@@ -130,9 +130,18 @@ enum optdec defdec(void){ return defopt; }
 
 enum optcla decclass(const enum optdec type)
 {
-	return (type == mmx || type == sse || type == sse_vintage || type == dreidnowext || type == x86_64  || type == neon || type == avx) ? mmxsse : normal;
+	return
+	(
+		   type == mmx
+		|| type == sse
+		|| type == sse_vintage
+		|| type == dreidnowext
+		|| type == dreidnowext_vintage
+		|| type == x86_64
+		|| type == neon
+		|| type == avx
+	) ? mmxsse : normal;
 }
-
 
 static int find_synth(func_synth synth,  const func_synth synths[r_limit][f_limit])
 {
