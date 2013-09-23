@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		fprintf(stderr, "I'll take your dirty MPEG audio from standard input and will write the extrated pure MPEG data to stadard output.\n");
+		fprintf(stderr, "I'll take your dirty MPEG audio from standard input and will write the extracted pure MPEG data to standard output.\n");
 		if(argc > 1 && strcmp(argv[1], "--noinfo") == 0)
 		{
 			fprintf(stderr, "Enabling parsing/consuming of the Info frame so that it will not appear in output.\n");
