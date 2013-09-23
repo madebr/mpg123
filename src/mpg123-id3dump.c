@@ -13,6 +13,7 @@
 #include <errno.h>
 #include <ctype.h>
 #include "debug.h"
+#include "win32_support.h"
 
 static int errors = 0;
 
@@ -342,7 +343,9 @@ int main(int argc, char **argv)
 {
 	int i, result;
 	mpg123_handle* m;
-
+#if defined(WIN32) && defined(WIN32_WANT_UNICODE)
+	win32_cmdline_utf8(&argc,&argv);
+#endif
 	progname = argv[0];
 
 	while ((result = getlopt(argc, argv, opts)))
@@ -404,4 +407,7 @@ int main(int argc, char **argv)
 
 	if(errors) error1("Encountered %i errors along the way.", errors);
 	return errors != 0;
+#if defined(WIN32) && defined(WIN32_WANT_UNICODE)
+	win32_cmdline_utf8_free(argc,argv);
+#endif
 }
