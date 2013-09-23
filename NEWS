@@ -10,6 +10,8 @@
 - added support for ID3v2 APIC frames
 - added mpg123-id3dump as official companion to extract meta data
   (including writing of album art from APIC to files)
+- added mpg123-strip as official companion to strip dirt out of MPEG streams
+  (including meta data)
 - not deleting ID3 data right after printing in generic control
 - module loader a bit more flexible with relative MPG123_MODDIR
 - Fix chopped-off playback with pulseaudio output: draining the output now on closing.
