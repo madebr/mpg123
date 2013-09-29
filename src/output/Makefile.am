@@ -127,7 +127,7 @@ output_sun_la_LIBADD  = @SUN_LIBS@
 endif
 
 if HAVE_WIN32
-pkglib_LTLIBRARIES += output_win32.la output_win32_wasapi.la
+pkglib_LTLIBRARIES += output_win32.la
 output_win32_la_SOURCES = win32.c
 output_win32_la_LDFLAGS = -module -no-undefined -avoid-version -export-dynamic  -export-symbols-regex '^mpg123_' @WIN32_LDFLAGS@
 output_win32_la_CFLAGS  = @WIN32_CFLAGS@
@@ -135,6 +135,7 @@ output_win32_la_LIBADD  = @WIN32_LIBS@
 endif
 
 if HAVE_WIN32_WASAPI
+pkglib_LTLIBRARIES += output_win32_wasapi.la
 output_win32_wasapi_la_SOURCES = win32_wasapi.c
 output_win32_wasapi_la_LDFLAGS = -module -no-undefined -avoid-version -export-dynamic  -export-symbols-regex '^mpg123_' @WIN32_LDFLAGS@
 output_win32_wasapi_la_CFLAGS  = @WIN32_CFLAGS@
