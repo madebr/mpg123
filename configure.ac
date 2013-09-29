@@ -1631,10 +1631,14 @@ int main(){
   return 0;
 }
     ])], [HAVE_WIN32_WASAPI=yes], [HAVE_WIN32_WASAPI=no])
-            LIBS=$OLD_LIBS
+			LIBS=$OLD_LIBS
 			WIN32_WASAPI_LIBS="-lole32 -lavrt"
-            output_modules="$output_modules win32_wasapi"
-            AC_MSG_RESULT([$HAVE_WIN32_WASAPI])
+			AC_MSG_RESULT([$HAVE_WIN32_WASAPI])
+			if test "x$HAVE_WIN32_WASAPI" = xyes; then
+				output_modules="$output_modules win32_wasapi"
+			else
+				check_failed=yes
+			fi
 		;;
 		sndio)
 			SNDIO_LIBS=-lsndio
@@ -1793,7 +1797,8 @@ if test "x$check_forced" = xyes -a "x$check_failed" = "xyes"; then
 fi
 
 # When you extend check_modules, you should extend this:
-#for i in alsa oss coreaudio sndio sun win32 esd jack portaudio pulse sdl nas aix alib arts hp os2 sgi mint openal dummy; do echo $i; done |
+#for i in alsa qsa oss coreaudio sndio sun win32 win32_wasapi esd jack portaudio pulse sdl nas aix alib arts hp os2 sgi mint openal dummy
+#do echo $i; done |
 #perl -ne 'chomp; $big = uc($_); print <<EOT;
 #AC_SUBST(${big}_LIBS)
 #AC_SUBST(${big}_LDFLAGS)
@@ -1830,6 +1835,8 @@ AC_SUBST(WIN32_LDFLAGS)
 AC_SUBST(WIN32_CFLAGS)
 AM_CONDITIONAL( [HAVE_WIN32], [test "x$HAVE_WIN32" = xyes] )
 AC_SUBST(WIN32_WASAPI_LIBS)
+AC_SUBST(WIN32_WASAPI_LDFLAGS)
+AC_SUBST(WIN32_WASAPI_CFLAGS)
 AM_CONDITIONAL( [HAVE_WIN32_WASAPI], [test "x$HAVE_WIN32_WASAPI" = xyes] )
 AC_SUBST(ESD_LIBS)
 AC_SUBST(ESD_LDFLAGS)
@@ -1919,7 +1926,8 @@ then
 	# That feels stupid... what about hashed arrays?
 	case $OUTPUT_MOD in
 	# Here's a script for that tedious list, perhaps to be outsourced together with the one in src/output/Makefile.am
-#for i in alsa coreaudio esd jack nas oss portaudio pulse sdl sndio sun win32 aix alib arts hp os2 sgi mint; do echo $i; done |
+#for i in alsa qsa coreaudio esd jack nas oss portaudio pulse sdl sndio sun win32 win32_wasapi aix alib arts hp os2 sgi mint openal
+#do echo $i; done |
 #perl -ne 'chomp; $big = uc($_); print <<EOT;
 #		$_)
 #			OUTPUT_LIBS="\$${big}_LIBS"
@@ -1992,6 +2000,11 @@ then
 			OUTPUT_LIBS="$WIN32_LIBS"
 			OUTPUT_LDFLAGS="$WIN32_LDFLAGS"
 			OUTPUT_CFLAGS="$WIN32_CFLAGS"
+		;;
+		win32_wasapi)
+			OUTPUT_LIBS="$WIN32_WASAPI_LIBS"
+			OUTPUT_LDFLAGS="$WIN32_WASAPI_LDFLAGS"
+			OUTPUT_CFLAGS="$WIN32_WASAPI_CFLAGS"
 		;;
 		aix)
 			OUTPUT_LIBS="$AIX_LIBS"

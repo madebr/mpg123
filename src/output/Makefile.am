@@ -17,7 +17,7 @@ pkglib_LTLIBRARIES =
 # These are not tested and _very_ likely need work: aix alib hp os2 sgi mint
 
 # Use that sh/perl script to generate the module entries:
-#for i in alsa coreaudio esd jack nas oss portaudio pulse sdl sndio sun win32 aix alib arts hp os2 sgi mint openal dummy; do echo $i; done |
+#for i in alsa coreaudio esd jack nas oss portaudio pulse qsa sdl sndio sun win32 win32_wasapi aix alib arts hp os2 sgi mint openal dummy; do echo $i; done |
 #perl -ne 'chomp; $big = uc($_); print <<EOT;
 #
 #if HAVE_$big
@@ -131,15 +131,15 @@ pkglib_LTLIBRARIES += output_win32.la
 output_win32_la_SOURCES = win32.c
 output_win32_la_LDFLAGS = -module -no-undefined -avoid-version -export-dynamic  -export-symbols-regex '^mpg123_' @WIN32_LDFLAGS@
 output_win32_la_CFLAGS  = @WIN32_CFLAGS@
-output_win32_la_LIBADD  = @WIN32_LIBS@
+output_win32_la_LIBADD  = @WIN32_LIBS@ 
 endif
 
 if HAVE_WIN32_WASAPI
 pkglib_LTLIBRARIES += output_win32_wasapi.la
 output_win32_wasapi_la_SOURCES = win32_wasapi.c
-output_win32_wasapi_la_LDFLAGS = -module -no-undefined -avoid-version -export-dynamic  -export-symbols-regex '^mpg123_' @WIN32_LDFLAGS@
-output_win32_wasapi_la_CFLAGS  = @WIN32_CFLAGS@
-output_win32_wasapi_la_LIBADD  = @WIN32_WASAPI_LIBS@
+output_win32_wasapi_la_LDFLAGS = -module -no-undefined -avoid-version -export-dynamic  -export-symbols-regex '^mpg123_' @WIN32_WASAPI_LDFLAGS@
+output_win32_wasapi_la_CFLAGS  = @WIN32_WASAPI_CFLAGS@
+output_win32_wasapi_la_LIBADD  = @WIN32_WASAPI_LIBS@ 
 endif
 
 if HAVE_AIX
