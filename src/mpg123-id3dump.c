@@ -343,7 +343,7 @@ int main(int argc, char **argv)
 {
 	int i, result;
 	mpg123_handle* m;
-#if defined(WIN32) && defined(WIN32_WANT_UNICODE)
+#if defined(WANT_WIN32_UNICODE)
 	win32_cmdline_utf8(&argc,&argv);
 #endif
 	progname = argv[0];
@@ -407,7 +407,7 @@ int main(int argc, char **argv)
 
 	if(errors) error1("Encountered %i errors along the way.", errors);
 	return errors != 0;
-#if defined(WIN32) && defined(WIN32_WANT_UNICODE)
+#if defined(WANT_WIN32_UNICODE)
 	win32_cmdline_utf8_free(argc,argv);
 #endif
 }
