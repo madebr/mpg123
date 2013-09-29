@@ -81,6 +81,9 @@ if WIN32_CODES
 mpg123_SOURCES += \
 	win32_support.c \
 	win32_net.c
+
+mpg123_id3dump_SOURCES += \
+	win32_support.c
 endif
 
 # That is not nice... but it is how I manage to get the dependency on output/alsa.o without error about .deps/output/alsa.Tpo .
