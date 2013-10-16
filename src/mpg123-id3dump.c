@@ -20,9 +20,11 @@ static int errors = 0;
 static struct
 {
 	int store_pics;
+	int do_scan;
 } param =
 {
-	FALSE
+	  FALSE
+	, TRUE
 };
 
 static const char* progname;
@@ -40,6 +42,7 @@ static void usage(int err)
 	fprintf(o,"\nusage: %s [option(s)] file(s)\n", progname);
 	fprintf(o,"\noptions:\n");
 	fprintf(o," -h     --help              give usage help\n");
+	fprintf(o," -n     --no-scan           do not scan entire file (just beginning)\n");
 	fprintf(o," -p     --store-pics        write APIC frames (album art pictures) to files\n");
 	fprintf(o,"                            file names using whole input file name as prefix\n");
 	fprintf(o,"\nNote that text output will always be in UTF-8, regardless of locale.\n");
@@ -53,6 +56,7 @@ static void want_usage(char* bla)
 static topt opts[] =
 {
 	 {'h', "help",         0,       want_usage, 0,                 0}
+	,{'n', "no-scan",      GLO_INT, 0,          &param.do_scan,    FALSE}
 	,{'p', "store-pics",   GLO_INT, 0,          &param.store_pics, TRUE}
 	,{0, 0, 0, 0, 0, 0}
 };
@@ -379,7 +383,8 @@ int main(int argc, char **argv)
 			fprintf(stderr, "Cannot open %s: %s\n", argv[i], mpg123_strerror(m));
 			continue;
 		}
-		mpg123_scan(m);
+		if(param.do_scan) mpg123_scan(m);
+		mpg123_seek(m, 0, SEEK_SET);
 		meta = mpg123_meta_check(m);
 		if(meta & MPG123_ID3 && mpg123_id3(m, &v1, &v2) == MPG123_OK)
 		{

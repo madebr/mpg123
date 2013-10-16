@@ -1,3 +1,7 @@
+1.17.0
+---
+- mpg123-id3dump --no-scan; for speedup
+
 1.16.0
 ---
 - Taihei strikes again:
