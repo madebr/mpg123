@@ -1280,7 +1280,11 @@ static void usage(int err)  /* print syntax & exit */
 	#endif
 	fprintf(o,"   -z    shuffle play (with wildcards)  -Z    random play\n");
 	fprintf(o,"   -u a  HTTP authentication string     -E f  Equalizer, data from file\n");
+#ifdef HAVE_TERMIOS
 	fprintf(o,"   -C    enable control keys            --no-gapless  not skip junk/padding in mp3s\n");
+#else
+	fprintf(o,"                                        --no-gapless  not skip junk/padding in mp3s\n");
+#endif
 	fprintf(o,"   -?    this help                      --version  print name + version\n");
 	fprintf(o,"See the manpage %s(1) or call %s with --longhelp for more parameters and information.\n", prgName,prgName);
 	safe_exit(err);

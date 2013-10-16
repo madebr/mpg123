@@ -1,6 +1,7 @@
 1.17.0
 ---
 - mpg123-id3dump --no-scan; for speedup
+- hide -C parameter from mpg123 --help when it is not supported
 
 1.16.0
 ---
