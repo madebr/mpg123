@@ -150,6 +150,9 @@ output/arts.$(OBJEXT): output/arts.c audio.h module.h
 output/esd.$(OBJEXT): output/esd.c audio.h module.h
 	cd output && $(MAKE)
 
+output/tinyalsa.$(OBJEXT): output/tinyalsa.c audio.h module.h
+	cd output && $(MAKE)
+
 output/alsa.$(OBJEXT): output/alsa.c audio.h module.h
 	cd output && $(MAKE)
 

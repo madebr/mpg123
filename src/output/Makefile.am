@@ -17,7 +17,7 @@ pkglib_LTLIBRARIES =
 # These are not tested and _very_ likely need work: aix alib hp os2 sgi mint
 
 # Use that sh/perl script to generate the module entries:
-#for i in alsa coreaudio esd jack nas oss portaudio pulse qsa sdl sndio sun win32 win32_wasapi aix alib arts hp os2 sgi mint openal dummy; do echo $i; done |
+#for i in tinyalsa alsa coreaudio esd jack nas oss portaudio pulse qsa sdl sndio sun win32 win32_wasapi aix alib arts hp os2 sgi mint openal dummy; do echo $i; done |
 #perl -ne 'chomp; $big = uc($_); print <<EOT;
 #
 #if HAVE_$big
@@ -29,6 +29,14 @@ pkglib_LTLIBRARIES =
 #endif
 #EOT
 #'
+
+if HAVE_TINYALSA
+pkglib_LTLIBRARIES += output_tinyalsa.la
+output_tinyalsa_la_SOURCES = tinyalsa.c
+output_tinyalsa_la_LDFLAGS = -module -no-undefined -avoid-version -export-dynamic  -export-symbols-regex '^mpg123_' @TINYALSA_LDFLAGS@
+output_tinyalsa_la_CFLAGS  = @TINYALSA_CFLAGS@
+output_tinyalsa_la_LIBADD  = @TINYALSA_LIBS@ 
+endif
 
 if HAVE_ALSA
 pkglib_LTLIBRARIES += output_alsa.la

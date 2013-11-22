@@ -807,7 +807,8 @@ AC_ARG_WITH([audio], [
 AC_ARG_WITH([default-audio], [
   --with-default-audio=aix            Use AIX as default audio output sub-system
   --with-default-audio=alib           Use Alib as default audio output sub-system (for HPUX)
-  --with-default-audio=alsa           Use ALSA as default audio output sub-system
+  --with-default-audio=alsa           Use ALSA as default audio output sub-system (libasound)
+  --with-default-audio=tinyalsa       Use ALSA as default audio output sub-system (tinyalsa)
   --with-default-audio=arts           Use aRts as default audio output sub-system (KDE sound server)
   --with-default-audio=dummy          Use dummy as default audio (when no sound card is available)
   --with-default-audio=esd            Use ESoundD as default audio output sub-system
@@ -1456,7 +1457,7 @@ fi
 dnl ############## Output module choice
 
 # The full list of supported modules to check, first come, first serve.
-check_modules="alsa oss coreaudio sndio sun win32 win32_wasapi os2 esd jack portaudio pulse sdl nas arts openal dummy"
+check_modules="alsa tinyalsa oss coreaudio sndio sun win32 win32_wasapi os2 esd jack portaudio pulse sdl nas arts openal dummy"
 # Only check qsa before all else on QNX.
 # It would mask ALSA otherwise.
 case $host in
@@ -1497,6 +1498,19 @@ do
 				output_modules="$output_modules oss"
 				HAVE_OSS="yes"
 			else
+				check_failed=yes
+			fi
+		;;
+		tinyalsa)
+			TINYALSA_LIBS="-ltinyalsa"
+			# Check for ALSA
+			AC_CHECK_LIB( [tinyalsa], [pcm_open],
+				[ AC_CHECK_HEADER( [tinyalsa/asoundlib.h],
+					[ output_modules="$output_modules tinyalsa" HAVE_TINYALSA="yes"],
+					[ AC_MSG_WARN([Found TINYALSA library but NOT header files on your system]) ] )
+				]
+			)
+			if test "x$HAVE_TINYALSA" != xyes; then
 				check_failed=yes
 			fi
 		;;
@@ -1806,6 +1820,10 @@ fi
 #AM_CONDITIONAL( [HAVE_$big], [test "x\$HAVE_$big" = xyes] )
 #EOT
 #'
+AC_SUBST(TINYALSA_LIBS)
+AC_SUBST(TINYALSA_LDFLAGS)
+AC_SUBST(TINYALSA_CFLAGS)
+AM_CONDITIONAL( [HAVE_TINYALSA], [test "x$HAVE_TINYALSA" = xyes] )
 AC_SUBST(ALSA_LIBS)
 AC_SUBST(ALSA_LDFLAGS)
 AC_SUBST(ALSA_CFLAGS)
@@ -1926,7 +1944,7 @@ then
 	# That feels stupid... what about hashed arrays?
 	case $OUTPUT_MOD in
 	# Here's a script for that tedious list, perhaps to be outsourced together with the one in src/output/Makefile.am
-#for i in alsa qsa coreaudio esd jack nas oss portaudio pulse sdl sndio sun win32 win32_wasapi aix alib arts hp os2 sgi mint openal
+#for i in tinyalsa alsa qsa coreaudio esd jack nas oss portaudio pulse sdl sndio sun win32 win32_wasapi aix alib arts hp os2 sgi mint openal
 #do echo $i; done |
 #perl -ne 'chomp; $big = uc($_); print <<EOT;
 #		$_)
@@ -1936,6 +1954,11 @@ then
 #		;;
 #EOT
 #'
+		tinyalsa)
+			OUTPUT_LIBS="$TINYALSA_LIBS"
+			OUTPUT_LDFLAGS="$TINYALSA_LDFLAGS"
+			OUTPUT_CFLAGS="$TINYALSA_CFLAGS"
+		;;
 		alsa)
 			OUTPUT_LIBS="$ALSA_LIBS"
 			OUTPUT_LDFLAGS="$ALSA_LDFLAGS"
