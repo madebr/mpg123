@@ -88,80 +88,84 @@ endif
 
 # That is not nice... but it is how I manage to get the dependency on output/alsa.o without error about .deps/output/alsa.Tpo .
 # Did I mention that recursive make sucks?
+# Actually ... does that really make really here? Not been updated
+# for some time before. I need to revisit our build system.
 # `%'-style pattern rules are a GNU make extension
-#find output/ -name '*.c' | perl -ne 'chomp; $mod=$_; $mod=~s/\.c$/.\$(OBJEXT)/;
+#find output/ -name '*.c' | sort | perl -ne 'chomp; $mod=$_; $mod=~s/\.c$/.\$(OBJEXT)/;
 #print "$mod: $_ audio.h module.h\n";
 #print "\tcd output && \$(MAKE)\n\n";'
 
-output/coreaudio.$(OBJEXT): output/coreaudio.c audio.h module.h
-	cd output && $(MAKE)
-
-output/win32.$(OBJEXT): output/win32.c audio.h module.h
-	cd output && $(MAKE)
-
-output/alsa05.$(OBJEXT): output/alsa05.c audio.h module.h
-	cd output && $(MAKE)
-
-output/sdl.$(OBJEXT): output/sdl.c audio.h module.h
-	cd output && $(MAKE)
-
-output/dummy.$(OBJEXT): output/dummy.c audio.h module.h
+output/aix.$(OBJEXT): output/aix.c audio.h module.h
 	cd output && $(MAKE)
 
 output/alib.$(OBJEXT): output/alib.c audio.h module.h
 	cd output && $(MAKE)
 
-output/libao.$(OBJEXT): output/libao.c audio.h module.h
-	cd output && $(MAKE)
-
-output/sun.$(OBJEXT): output/sun.c audio.h module.h
-	cd output && $(MAKE)
-
-output/aix.$(OBJEXT): output/aix.c audio.h module.h
-	cd output && $(MAKE)
-
-output/oss.$(OBJEXT): output/oss.c audio.h module.h
-	cd output && $(MAKE)
-
-output/mint.$(OBJEXT): output/mint.c audio.h module.h
-	cd output && $(MAKE)
-
-output/pulse.$(OBJEXT): output/pulse.c audio.h module.h
-	cd output && $(MAKE)
-
-output/jack.$(OBJEXT): output/jack.c audio.h module.h
-	cd output && $(MAKE)
-
-output/os2.$(OBJEXT): output/os2.c audio.h module.h
-	cd output && $(MAKE)
-
-output/nas.$(OBJEXT): output/nas.c audio.h module.h
-	cd output && $(MAKE)
-
-output/sgi.$(OBJEXT): output/sgi.c audio.h module.h
-	cd output && $(MAKE)
-
-output/portaudio.$(OBJEXT): output/portaudio.c audio.h module.h
+output/alsa.$(OBJEXT): output/alsa.c audio.h module.h
 	cd output && $(MAKE)
 
 output/arts.$(OBJEXT): output/arts.c audio.h module.h
 	cd output && $(MAKE)
 
+output/coreaudio.$(OBJEXT): output/coreaudio.c audio.h module.h
+	cd output && $(MAKE)
+
+output/dummy.$(OBJEXT): output/dummy.c audio.h module.h
+	cd output && $(MAKE)
+
 output/esd.$(OBJEXT): output/esd.c audio.h module.h
-	cd output && $(MAKE)
-
-output/tinyalsa.$(OBJEXT): output/tinyalsa.c audio.h module.h
-	cd output && $(MAKE)
-
-output/alsa.$(OBJEXT): output/alsa.c audio.h module.h
 	cd output && $(MAKE)
 
 output/hp.$(OBJEXT): output/hp.c audio.h module.h
 	cd output && $(MAKE)
 
+output/jack.$(OBJEXT): output/jack.c audio.h module.h
+	cd output && $(MAKE)
+
+output/mint.$(OBJEXT): output/mint.c audio.h module.h
+	cd output && $(MAKE)
+
+output/nas.$(OBJEXT): output/nas.c audio.h module.h
+	cd output && $(MAKE)
+
+output/openal.$(OBJEXT): output/openal.c audio.h module.h
+	cd output && $(MAKE)
+
+output/os2.$(OBJEXT): output/os2.c audio.h module.h
+	cd output && $(MAKE)
+
+output/oss.$(OBJEXT): output/oss.c audio.h module.h
+	cd output && $(MAKE)
+
+output/portaudio.$(OBJEXT): output/portaudio.c audio.h module.h
+	cd output && $(MAKE)
+
+output/pulse.$(OBJEXT): output/pulse.c audio.h module.h
+	cd output && $(MAKE)
+
+output/qsa.$(OBJEXT): output/qsa.c audio.h module.h
+	cd output && $(MAKE)
+
+output/sdl.$(OBJEXT): output/sdl.c audio.h module.h
+	cd output && $(MAKE)
+
+output/sgi.$(OBJEXT): output/sgi.c audio.h module.h
+	cd output && $(MAKE)
+
 output/sndio.$(OBJEXT): output/sndio.c audio.h module.h
 	cd output && $(MAKE)
 
+output/sun.$(OBJEXT): output/sun.c audio.h module.h
+	cd output && $(MAKE)
+
+output/tinyalsa.$(OBJEXT): output/tinyalsa.c audio.h module.h
+	cd output && $(MAKE)
+
+output/win32.$(OBJEXT): output/win32.c audio.h module.h
+	cd output && $(MAKE)
+
+output/win32_wasapi.$(OBJEXT): output/win32_wasapi.c audio.h module.h
+	cd output && $(MAKE)
 
 # Would have to mention _all_ source files... Dammit, that's what the libmpg123/Makefile.am does!
 # But again, the a make $something here needs that stupid rule... WHY???
