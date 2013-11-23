@@ -8,7 +8,7 @@
 
 #include "mangle.h"
 
-#ifdef _WIN64
+#ifdef IS_MSABI
 /* short *window; */
 #define WINDOW %r10
 /* short *b0l; */
@@ -36,7 +36,7 @@
 	ALIGN16
 .globl ASM_NAME(synth_1to1_s_avx_asm)
 ASM_NAME(synth_1to1_s_avx_asm):
-#ifdef _WIN64 /* should save xmm6-15 */
+#ifdef IS_MSABI /* should save xmm6-15 */
 	push		%rbp
 	mov			%rsp, %rbp
 	sub			$144, %rsp
@@ -52,7 +52,7 @@ ASM_NAME(synth_1to1_s_avx_asm):
 	movl		48(%rbp), %eax /* 5th argument; placed after 32-byte shadow space */
 #endif
 	
-#ifdef _WIN64
+#ifdef IS_MSABI
 	shl			$1, %eax
 	mov			%rcx, WINDOW
 #else
@@ -238,7 +238,7 @@ ASM_NAME(synth_1to1_s_avx_asm):
 	movd		%xmm0, %eax
 	and			$0x7f, %eax
 	
-#ifdef _WIN64
+#ifdef IS_MSABI
 	movaps		(%rsp), %xmm6
 	movaps		16(%rsp), %xmm7
 	movaps		32(%rsp), %xmm8

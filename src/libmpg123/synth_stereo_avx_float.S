@@ -8,7 +8,7 @@
 
 #include "mangle.h"
 
-#ifdef _WIN64
+#ifdef IS_MSABI
 /* real *window; */
 #define WINDOW %r10
 /* real *b0l; */
@@ -45,7 +45,7 @@ scale_avx:
 	ALIGN16
 	.globl ASM_NAME(synth_1to1_real_s_avx_asm)
 ASM_NAME(synth_1to1_real_s_avx_asm):
-#ifdef _WIN64 /* should save xmm6-15 */
+#ifdef IS_MSABI /* should save xmm6-15 */
 	push		%rbp
 	mov			%rsp, %rbp
 	sub			$144, %rsp
@@ -63,7 +63,7 @@ ASM_NAME(synth_1to1_real_s_avx_asm):
 
 	vbroadcastss	scale_avx(%rip), %ymm14
 	
-#ifdef _WIN64
+#ifdef IS_MSABI
 	shl			$2, %eax
 	mov			%rcx, WINDOW
 #else
@@ -225,7 +225,7 @@ ASM_NAME(synth_1to1_real_s_avx_asm):
 	
 	xor			%eax, %eax
 	
-#ifdef _WIN64
+#ifdef IS_MSABI
 	movaps		(%rsp), %xmm6
 	movaps		16(%rsp), %xmm7
 	movaps		32(%rsp), %xmm8

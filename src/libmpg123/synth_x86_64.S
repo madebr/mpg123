@@ -8,7 +8,7 @@
 
 #include "mangle.h"
 
-#ifdef _WIN64
+#ifdef IS_MSABI
 /* short *window; */
 #define ARG0 %r10
 /* short *b0; */
@@ -57,7 +57,7 @@ ASM_NAME(maxmin_x86_64):
 	ALIGN16
 .globl ASM_NAME(synth_1to1_x86_64_asm)
 ASM_NAME(synth_1to1_x86_64_asm):
-#ifdef _WIN64 /* should save xmm6-15 */
+#ifdef IS_MSABI /* should save xmm6-15 */
 	movq		%rcx, ARG0
 	subq		$104, %rsp /* stack alignment + 6 xmm registers */
 	movaps		%xmm6, (%rsp)
@@ -230,7 +230,7 @@ ASM_NAME(synth_1to1_x86_64_asm):
 	
 	movd		XMMREG_CLIP, %eax
 	
-#ifdef _WIN64
+#ifdef IS_MSABI
 	movaps		(%rsp), %xmm6
 	movaps		16(%rsp), %xmm7
 	movaps		32(%rsp), %xmm12

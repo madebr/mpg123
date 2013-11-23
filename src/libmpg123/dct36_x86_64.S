@@ -8,7 +8,7 @@
 
 #include "mangle.h"
 
-#ifdef _WIN64
+#ifdef IS_MSABI
 #define in %rcx
 #define out1 %rdx
 #define out2 %r8
@@ -74,7 +74,7 @@ dct36_x86_64_sign:
 	ALIGN16
 	.globl ASM_NAME(dct36_x86_64)
 ASM_NAME(dct36_x86_64):
-#ifdef _WIN64
+#ifdef IS_MSABI
 	push		%rbp
 	mov			%rsp, %rbp
 	sub			$160, %rsp
@@ -375,7 +375,7 @@ xmm15 tmp2b
 	movss		%xmm2, 32*68(ts)
 	movss		%xmm4, 32*12(ts)
 	
-#ifdef _WIN64
+#ifdef IS_MSABI
 	movaps		(%rsp), %xmm6
 	movaps		16(%rsp), %xmm7
 	movaps		32(%rsp), %xmm8

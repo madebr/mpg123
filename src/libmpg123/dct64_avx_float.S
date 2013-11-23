@@ -60,7 +60,7 @@ costab_avx:
 	ALIGN16
 .globl ASM_NAME(dct64_real_avx)
 ASM_NAME(dct64_real_avx):
-#ifdef _WIN64
+#ifdef IS_MSABI
 	push		%rbp
 	mov			%rsp, %rbp
 	sub			$112, %rsp
@@ -276,7 +276,7 @@ ASM_NAME(dct64_real_avx):
 	movss		%xmm7, (out1,%rax,1)
 	movss		%xmm3, (out1,%rax,2)
 
-#ifdef _WIN64
+#ifdef IS_MSABI
 	pop			%rsi
 	pop			%rdi
 	movaps		(%rsp), %xmm6

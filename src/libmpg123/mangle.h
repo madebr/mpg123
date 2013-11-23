@@ -90,5 +90,9 @@
 #define NONEXEC_STACK
 #endif
 
+#if defined(__x86_64__) && (defined(_WIN64) || defined (__CYGWIN__))
+#define IS_MSABI 1 /* Not using SYSV */
+#endif
+
 #endif /* !__MANGLE_H */
 

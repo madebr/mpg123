@@ -16,7 +16,7 @@ ASM_NAME(getcpuflags):
 	mov		%rsp, %rbp
 	push	%rbx
 	
-#ifdef _WIN64
+#ifdef IS_MSABI
 	push	%rdi
 	mov		%rcx, %rdi
 #endif
@@ -46,7 +46,7 @@ ASM_NAME(getcpuflags):
 	movl	%eax, 16(%rdi)
 	movl	(%rdi), %eax
 2:
-#ifdef _WIN64
+#ifdef IS_MSABI
 	pop		%rdi
 #endif
 	pop		%rbx

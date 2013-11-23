@@ -8,7 +8,7 @@
 
 #include "mangle.h"
 
-#ifdef _WIN64
+#ifdef IS_MSABI
 /* short *out0 */
 #define ARG0 %r9
 /* short *out1 */
@@ -71,7 +71,7 @@ ASM_NAME(costab_x86_64):
 	ALIGN16
 .globl ASM_NAME(dct64_x86_64)
 ASM_NAME(dct64_x86_64):
-#ifdef _WIN64 /* should save xmm6-15 */
+#ifdef IS_MSABI /* should save xmm6-15 */
 	movq		%rcx, ARG0
 	subq		$168, %rsp /* stack alignment + 10 xmm registers */
 	movaps		%xmm6, (%rsp)
@@ -446,7 +446,7 @@ ASM_NAME(dct64_x86_64):
 	movw		%ax, 416(ARG1)
 	movw		%cx, 480(ARG1)
 	
-#ifdef _WIN64
+#ifdef IS_MSABI
 	movaps		(%rsp), %xmm6
 	movaps		16(%rsp), %xmm7
 	movaps		32(%rsp), %xmm8
