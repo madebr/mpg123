@@ -588,26 +588,26 @@ case $host in
   *-dec-osf*)
     cpu_type="generic_fpu"
   ;;
-  x86_64-pc-cygwin*)
+  x86_64-*-cygwin*)
     cpu_type="x86-64"
   ;;
-  i686-pc-cygwin*)
+  i686-*-cygwin*)
     cpu_type="x86"
     newoldwritesample=enabled
   ;;
-  i586-pc-cygwin*)
+  i586-*-cygwin*)
     cpu_type="x86"
     newoldwritesample=enabled
   ;;
-  i486-pc-cygwin*)
+  i486-*-cygwin*)
     cpu_type="i486"
     newoldwritesample=enabled
   ;;
-  i386-pc-cygwin*)
+  i386-*-cygwin*)
     cpu_type="i386"
     newoldwritesample=enabled
   ;;
-  *-pc-cygwin*)
+  *-cygwin*)
     cpu_type="generic_fpu"
   ;;
   i@<:@3-7@:>@86-*-mingw32*)
@@ -2170,8 +2170,8 @@ win32_sockets=disabled
 win32_sockets_working=no
 win32_wide_working=no
 win32_winver_bump=no
-AC_CHECK_HEADERS([windows.h], [win32_specific_codes=enabled])
 if test "x$win32_specific_codes" = xenabled && test "x$host_os" != "xcygwin"; then
+AC_CHECK_HEADERS([windows.h], [win32_specific_codes=enabled])
 
 #### Check for Wide functions
   AC_CHECK_FUNC([_wopen], [win32_unicode=enabled],[win32_unicode=disabled])
