@@ -1007,7 +1007,8 @@ int main(int sys_argc, char ** sys_argv)
 	}
 #endif
 
-#ifdef HAVE_WINDOWS_H
+/* make sure not Cygwin, it doesn't need it */
+#if defined(WIN32) && defined(HAVE_WINDOWS_H)
 	/* argument "3" is equivalent to realtime priority class */
 	win32_set_priority( param.realtime ? 3 : param.w32_priority);
 #endif

@@ -19,7 +19,7 @@
 
 #include "xfermem.h"
 #include "httpget.h"
-#ifndef BUILDING_OUTPUT_MODULES
+#if WIN32
 #include "win32_support.h"
 #endif
 
