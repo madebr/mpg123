@@ -4,7 +4,6 @@
 ## see COPYING and AUTHORS files in distribution or http://mpg123.org
 ## initially written by Nicholas J. Humfrey
 
-AUTOMAKE_OPTIONS = subdir-objects
 AM_CPPFLAGS = -DPKGLIBDIR="\"$(pkglibdir)\""
 mpg123_LDADD = $(LIBLTDL) libmpg123/libmpg123.la @MODULE_OBJ@ @OUTPUT_OBJ@ @OUTPUT_LIBS@
 mpg123_LDFLAGS = @EXEC_LT_LDFLAGS@ @OUTPUT_LDFLAGS@
