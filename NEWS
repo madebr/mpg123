@@ -3,6 +3,7 @@
 - mpg123-id3dump --no-scan; for speedup
 - hide -C parameter from mpg123 --help when it is not supported
 - added tinyalsa Output (by Jarno Lehtinen)
+- build system tweaking, especially some care for fixing Cygwin builds
 
 1.16.0
 ---
