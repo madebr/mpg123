@@ -4,7 +4,7 @@
 - hide -C parameter from mpg123 --help when it is not supported
 - added tinyalsa Output (by Jarno Lehtinen)
 - build system tweaking
-- some care for fixing Cygwin builds1
+- some care for fixing Cygwin builds
 
 1.16.0
 ---
