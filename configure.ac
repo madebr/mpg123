@@ -2170,9 +2170,9 @@ win32_sockets=disabled
 win32_sockets_working=no
 win32_wide_working=no
 win32_winver_bump=no
-if test "x$win32_specific_codes" = xenabled && test "x$host_os" != "xcygwin"; then
 AC_CHECK_HEADERS([windows.h], [win32_specific_codes=enabled])
 
+if test "x$win32_specific_codes" = xenabled && test "x$host_os" != "xcygwin"; then
 #### Check for Wide functions
   AC_CHECK_FUNC([_wopen], [win32_unicode=enabled],[win32_unicode=disabled])
   AC_MSG_CHECKING([if we want Unicode File Open for Win32])
