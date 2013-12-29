@@ -974,7 +974,7 @@ typedef struct
 
 /** Data structure for ID3v1 tags (the last 128 bytes of a file).
  *  Don't take anything for granted (like string termination)!
- *  Also note the change ID3v1.1 did: comment[28] = 0; comment[19] = track_number
+ *  Also note the change ID3v1.1 did: comment[28] = 0; comment[29] = track_number
  *  It is your task to support ID3v1 only or ID3v1.1 ...*/
 typedef struct
 {
