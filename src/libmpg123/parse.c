@@ -476,15 +476,22 @@ read_again:
 
 init_resync:
 
-	fr->header_change = 2; /* output format change is possible... */
-	if(fr->oldhead)        /* check a following header for change */
+	/* header_change > 1: decoder structure has to be updated
+	   Preserve header_change value from previous runs if it is serious.
+	   If we still have a big change pending, it should be dealt with outside,
+	   fr->header_change set to zero afterwards. */
+	if(fr->header_change < 2)
 	{
-		if(fr->oldhead == newhead) fr->header_change = 0;
-		else
-		/* Headers that match in this test behave the same for the outside world.
-		   namely: same decoding routines, same amount of decoded data. */
-		if(head_compatible(fr->oldhead, newhead))
-		fr->header_change = 1;
+		fr->header_change = 2; /* output format change is possible... */
+		if(fr->oldhead)        /* check a following header for change */
+		{
+			if(fr->oldhead == newhead) fr->header_change = 0;
+			else
+			/* Headers that match in this test behave the same for the outside world.
+			   namely: same decoding routines, same amount of decoded data. */
+			if(head_compatible(fr->oldhead, newhead))
+			fr->header_change = 1;
+		}
 	}
 
 #ifdef SKIP_JUNK

@@ -575,10 +575,19 @@ size_t attribute_align_arg mpg123_outblock(mpg123_handle *mh)
    This includes skipping/ignoring frames, in additon to skipping junk in the parser. */
 static int get_next_frame(mpg123_handle *mh)
 {
-	/* We have some decoder ready, if the desired decoder has changed,
-	   it is OK to use the old one for ignoring frames and activating
-	   the new one for real (decode_update()) after getting the frame. */
 	int change = mh->decoder_change;
+	/* Ensure we got proper decoder for ignoring frames.
+	   Header can be changed from seeking around. But be careful: Only after at
+	   least one frame got read, decoder update makes sense. */
+	if(mh->header_change > 1 && mh->num >= 0)
+	{
+		change = 1;
+		mh->header_change = 0;
+		debug("starting with big header change");
+		if(decode_update(mh) < 0)
+		return MPG123_ERR;
+	}
+
 	do
 	{
 		int b;
@@ -616,6 +625,11 @@ static int get_next_frame(mpg123_handle *mh)
 		{
 			debug("big header change");
 			change = 1;
+			mh->header_change = 0;
+			/* Need to update decoder structure right away since frame might need to
+			   be decoded on next loop iteration for properly ignoring its output. */
+			if(decode_update(mh) < 0)
+			return MPG123_ERR;
 		}
 		/* Now some accounting: Look at the numbers and decide if we want this frame. */
 		++mh->playnum;
@@ -637,7 +651,9 @@ static int get_next_frame(mpg123_handle *mh)
 	   All other situations resulted in returns from the loop. */
 	if(change)
 	{
-		if(decode_update(mh) < 0)  /* dito... */
+		/* The third possible call in this routine. Not totally sure if necessary,
+		   but it does not hurt. */
+		if(decode_update(mh) < 0)
 		return MPG123_ERR;
 
 debug1("new format: %i", mh->new_format);
