@@ -439,7 +439,7 @@ static int halfspeed_do(mpg123_handle *fr)
 if(ret < 0){ debug1("%s", ret == MPG123_NEED_MORE ? "need more" : "read error"); goto read_frame_bad; } \
 else if(ret == PARSE_AGAIN) goto read_again; \
 else if(ret == PARSE_RESYNC) goto init_resync; \
-else if(ret == PARSE_END) goto read_frame_bad; \
+else if(ret == PARSE_END){ ret=0; goto read_frame_bad; } \
 }
 
 /*
