@@ -651,13 +651,6 @@ static int get_next_frame(mpg123_handle *mh)
 	   All other situations resulted in returns from the loop. */
 	if(change)
 	{
-		/* The third possible call in this routine. Not totally sure if necessary,
-		   but it does not hurt. */
-		if(decode_update(mh) < 0)
-		return MPG123_ERR;
-
-debug1("new format: %i", mh->new_format);
-
 		mh->decoder_change = 0;
 		if(mh->fresh)
 		{
@@ -1112,6 +1105,11 @@ static int do_the_seek(mpg123_handle *mh)
 	}
 #endif
 	b = mh->rd->seek_frame(mh, fnum);
+	if(mh->header_change > 1)
+	{
+		if(decode_update(mh) < 0) return MPG123_ERR;
+		mh->header_change = 0;
+	}
 	debug1("seek_frame returned: %i", b);
 	if(b<0) return b;
 	/* Only mh->to_ignore is TRUE. */
@@ -1324,6 +1322,7 @@ int attribute_align_arg mpg123_scan(mpg123_handle *mh)
 	track_frames = 1;
 	track_samples = spf(mh); /* Internal samples. */
 	debug("TODO: We should disable gapless code when encountering inconsistent spf(mh)!");
+	debug("      ... at least unset MPG123_ACCURATE.");
 	/* Do not increment mh->track_frames in the loop as tha would confuse Frankenstein detection. */
 	while(read_frame(mh) == 1)
 	{
@@ -1332,7 +1331,6 @@ int attribute_align_arg mpg123_scan(mpg123_handle *mh)
 	}
 	mh->track_frames = track_frames;
 	mh->track_samples = track_samples;
-	mpg123_seek_frame(mh, SEEK_SET, mh->track_frames);
 	debug2("Scanning yielded %"OFF_P" track samples, %"OFF_P" frames.", (off_p)mh->track_samples, (off_p)mh->track_frames);
 #ifdef GAPLESS
 	/* Also, think about usefulness of that extra value track_samples ... it could be used for consistency checking. */
