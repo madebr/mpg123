@@ -520,7 +520,7 @@ int decode_update(mpg123_handle *mh)
 		case 2:
 			mh->down_sample_sblimit = SBLIMIT>>(mh->down_sample);
 			/* With downsampling I get less samples per frame */
-			mh->outblock = samples_to_storage(mh, (spf(mh)>>mh->down_sample));
+			mh->outblock = samples_to_storage(mh, (mh->spf>>mh->down_sample));
 		break;
 #ifndef NO_NTOM
 		case 3:
@@ -533,7 +533,7 @@ int decode_update(mpg123_handle *mh)
 			}
 			else mh->down_sample_sblimit = SBLIMIT;
 			mh->outblock = samples_to_storage(mh,
-			                 ( ( NTOM_MUL-1+spf(mh)
+			                 ( ( NTOM_MUL-1+mh->spf
 			                   * (((size_t)NTOM_MUL*mh->af.rate)/frame_freq(mh))
 			                 )/NTOM_MUL ));
 		}
@@ -1279,12 +1279,12 @@ off_t attribute_align_arg mpg123_length(mpg123_handle *mh)
 	b = init_track(mh);
 	if(b<0) return b;
 	if(mh->track_samples > -1) length = mh->track_samples;
-	else if(mh->track_frames > 0) length = mh->track_frames*spf(mh);
+	else if(mh->track_frames > 0) length = mh->track_frames*mh->spf;
 	else if(mh->rdat.filelen > 0) /* Let the case of 0 length just fall through. */
 	{
 		/* A bad estimate. Ignoring tags 'n stuff. */
 		double bpf = mh->mean_framesize ? mh->mean_framesize : compute_bpf(mh);
-		length = (off_t)((double)(mh->rdat.filelen)/bpf*spf(mh));
+		length = (off_t)((double)(mh->rdat.filelen)/bpf*mh->spf);
 	}
 	else if(mh->rdat.filelen == 0) return mpg123_tell(mh); /* we could be in feeder mode */
 	else return MPG123_ERR; /* No length info there! */
@@ -1320,14 +1320,14 @@ int attribute_align_arg mpg123_scan(mpg123_handle *mh)
 	if(b<0 || mh->num != 0) return MPG123_ERR;
 	/* One frame must be there now. */
 	track_frames = 1;
-	track_samples = spf(mh); /* Internal samples. */
-	debug("TODO: We should disable gapless code when encountering inconsistent spf(mh)!");
+	track_samples = mh->spf; /* Internal samples. */
+	debug("TODO: We should disable gapless code when encountering inconsistent mh->spf!");
 	debug("      ... at least unset MPG123_ACCURATE.");
 	/* Do not increment mh->track_frames in the loop as tha would confuse Frankenstein detection. */
 	while(read_frame(mh) == 1)
 	{
 		++track_frames;
-		track_samples += spf(mh);
+		track_samples += mh->spf;
 	}
 	mh->track_frames = track_frames;
 	mh->track_samples = track_samples;

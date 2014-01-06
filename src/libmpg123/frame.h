@@ -193,6 +193,7 @@ struct mpg123_handle_struct
 	int down_sample;
 	int header_change;
 	int lay;
+	long spf; /* cached count of samples per frame */
 	int (*do_layer)(mpg123_handle *);
 	int error_protection;
 	int bitrate_index;
@@ -370,7 +371,6 @@ MPEG 2.5
 1152
 576
 */
-#define spf(fr) ((fr)->lay == 1 ? 384 : ((fr)->lay==2 ? 1152 : ((fr)->lsf || (fr)->mpeg25 ? 576 : 1152)))
 
 #ifdef GAPLESS
 /* well, I take that one for granted... at least layer3 */

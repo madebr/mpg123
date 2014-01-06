@@ -759,6 +759,7 @@ static int decode_header(mpg123_handle *fr,unsigned long newhead, int *freeforma
 	{
 #ifndef NO_LAYER1
 		case 1:
+			fr->spf = 384;
 			fr->do_layer = do_layer1;
 			if(!fr->freeformat)
 			{
@@ -770,6 +771,7 @@ static int decode_header(mpg123_handle *fr,unsigned long newhead, int *freeforma
 #endif
 #ifndef NO_LAYER2
 		case 2:
+			fr->spf = 1152;
 			fr->do_layer = do_layer2;
 			if(!fr->freeformat)
 			{
@@ -782,6 +784,7 @@ static int decode_header(mpg123_handle *fr,unsigned long newhead, int *freeforma
 #endif
 #ifndef NO_LAYER3
 		case 3:
+			fr->spf = fr->lsf ? 576 : 1152; /* MPEG 2.5 implies LSF.*/
 			fr->do_layer = do_layer3;
 			if(fr->lsf)
 			fr->ssize = (fr->stereo == 1) ? 9 : 17;
@@ -852,14 +855,14 @@ int attribute_align_arg mpg123_spf(mpg123_handle *mh)
 {
 	if(mh == NULL) return MPG123_ERR;
 
-	return spf(mh);
+	return mh->firsthead ? mh->spf : MPG123_ERR;
 }
 
 double attribute_align_arg mpg123_tpf(mpg123_handle *fr)
 {
 	static int bs[4] = { 0,384,1152,1152 };
 	double tpf;
-	if(fr == NULL) return -1;
+	if(fr == NULL || !fr->firsthead) return -1;
 
 	tpf = (double) bs[fr->lay];
 	tpf /= freqs[fr->sampling_frequency] << (fr->lsf);

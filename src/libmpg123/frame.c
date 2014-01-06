@@ -782,7 +782,7 @@ off_t frame_outs(mpg123_handle *fr, off_t num)
 		case 1:
 		case 2:
 #		endif
-			outs = (spf(fr)>>fr->down_sample)*num;
+			outs = (fr->spf>>fr->down_sample)*num;
 		break;
 #ifndef NO_NTOM
 		case 3: outs = ntom_frmouts(fr, num); break;
@@ -804,7 +804,7 @@ off_t frame_expect_outsamples(mpg123_handle *fr)
 		case 1:
 		case 2:
 #		endif
-			outs = spf(fr)>>fr->down_sample;
+			outs = fr->spf>>fr->down_sample;
 		break;
 #ifndef NO_NTOM
 		case 3: outs = ntom_frame_outsamples(fr); break;
@@ -824,7 +824,7 @@ off_t frame_offset(mpg123_handle *fr, off_t outs)
 		case 1:
 		case 2:
 #		endif
-			num = outs/(spf(fr)>>fr->down_sample);
+			num = outs/(fr->spf>>fr->down_sample);
 		break;
 #ifndef NO_NTOM
 		case 3: num = ntom_frameoff(fr, outs); break;
@@ -843,7 +843,7 @@ void frame_gapless_init(mpg123_handle *fr, off_t framecount, off_t bskip, off_t 
 	if(fr->gapless_frames > 0 && bskip >=0 && eskip >= 0)
 	{
 		fr->begin_s = bskip+GAPLESS_DELAY;
-		fr->end_s = framecount*spf(fr)-eskip+GAPLESS_DELAY;
+		fr->end_s = framecount*fr->spf-eskip+GAPLESS_DELAY;
 	}
 	else fr->begin_s = fr->end_s = 0;
 	/* These will get proper values later, from above plus resampling info. */
@@ -858,7 +858,7 @@ void frame_gapless_realinit(mpg123_handle *fr)
 	fr->begin_os = frame_ins2outs(fr, fr->begin_s);
 	fr->end_os   = frame_ins2outs(fr, fr->end_s);
 	if(fr->gapless_frames > 0)
-	fr->fullend_os = frame_ins2outs(fr, fr->gapless_frames*spf(fr));
+	fr->fullend_os = frame_ins2outs(fr, fr->gapless_frames*fr->spf);
 	else fr->fullend_os = 0;
 
 	debug4("frame_gapless_realinit: from %"OFF_P" to %"OFF_P" samples (%"OFF_P", %"OFF_P")", (off_p)fr->begin_os, (off_p)fr->end_os, (off_p)fr->fullend_os, (off_p)fr->gapless_frames);
@@ -867,7 +867,7 @@ void frame_gapless_realinit(mpg123_handle *fr)
 /* At least note when there is trouble... */
 void frame_gapless_update(mpg123_handle *fr, off_t total_samples)
 {
-	off_t gapless_samples = fr->gapless_frames*spf(fr);
+	off_t gapless_samples = fr->gapless_frames*fr->spf;
 	debug2("gapless update with new sample count %"OFF_P" as opposed to known %"OFF_P, total_samples, gapless_samples);
 	if(NOQUIET && total_samples != gapless_samples)
 	fprintf(stderr, "\nWarning: Real sample count differs from given gapless sample count. Frankenstein stream?\n");
@@ -897,7 +897,7 @@ static off_t ignoreframe(mpg123_handle *fr)
 	return fr->firstframe - preshift;
 }
 
-/* The frame seek... This is not simply the seek to fe*spf(fr) samples in output because we think of _input_ frames here.
+/* The frame seek... This is not simply the seek to fe*fr->spf samples in output because we think of _input_ frames here.
    Seek to frame offset 1 may be just seek to 200 samples offset in output since the beginning of first frame is delay/padding.
    Hm, is that right? OK for the padding stuff, but actually, should the decoder delay be better totally hidden or not?
    With gapless, even the whole frame position could be advanced further than requested (since Homey don't play dat). */
