@@ -683,29 +683,22 @@ static int decode_header(mpg123_handle *fr,unsigned long newhead, int *freeforma
 		error1("trying to decode obviously invalid header 0x%08lx", newhead);
 	}
 #endif
+	/* For some reason, the layer and sampling freq settings used to be wrapped
+	   in a weird conditional including MPG123_NO_RESYNC. What was I thinking?
+	   This information has to be consistent. */
+	fr->lay = 4 - HDR_LAYER_VAL(newhead);
+
 	if(HDR_VERSION_VAL(newhead) & 0x2)
 	{
 		fr->lsf = (HDR_VERSION_VAL(newhead) & 0x1) ? 0 : 1;
 		fr->mpeg25 = 0;
+		fr->sampling_frequency = HDR_SAMPLERATE_VAL(newhead) + (fr->lsf*3);
 	}
 	else
 	{
 		fr->lsf = 1;
 		fr->mpeg25 = 1;
-	}
-
-	if(   (fr->p.flags & MPG123_NO_RESYNC) || !fr->oldhead
-	   || (HDR_VERSION_VAL(fr->oldhead) != HDR_VERSION_VAL(newhead)) )
-	{
-		/* If "tryresync" is false, assume that certain
-		parameters do not change within the stream!
-		Force an update if lsf or mpeg25 settings
-		have changed. */
-		fr->lay = 4 - HDR_LAYER_VAL(newhead);
-		if(fr->mpeg25)
 		fr->sampling_frequency = 6 + HDR_SAMPLERATE_VAL(newhead);
-		else
-		fr->sampling_frequency = HDR_SAMPLERATE_VAL(newhead) + (fr->lsf*3);
 	}
 
 	#ifdef DEBUG
