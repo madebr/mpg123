@@ -838,9 +838,9 @@ off_t frame_offset(mpg123_handle *fr, off_t outs)
 /* input in _input_ samples */
 void frame_gapless_init(mpg123_handle *fr, off_t framecount, off_t bskip, off_t eskip)
 {
-	debug3("frame_gaples_init: given %"OFF_P" frames, skip %"OFF_P" and %"OFF_P, (off_p)framecount, (off_p)bskip, (off_p)eskip);
+	debug3("frame_gapless_init: given %"OFF_P" frames, skip %"OFF_P" and %"OFF_P, (off_p)framecount, (off_p)bskip, (off_p)eskip);
 	fr->gapless_frames = framecount;
-	if(fr->gapless_frames > 0)
+	if(fr->gapless_frames > 0 && bskip >=0 && eskip >= 0)
 	{
 		fr->begin_s = bskip+GAPLESS_DELAY;
 		fr->end_s = framecount*spf(fr)-eskip+GAPLESS_DELAY;
@@ -857,8 +857,11 @@ void frame_gapless_realinit(mpg123_handle *fr)
 {
 	fr->begin_os = frame_ins2outs(fr, fr->begin_s);
 	fr->end_os   = frame_ins2outs(fr, fr->end_s);
+	if(fr->gapless_frames > 0)
 	fr->fullend_os = frame_ins2outs(fr, fr->gapless_frames*spf(fr));
-	debug2("frame_gapless_realinit: from %"OFF_P" to %"OFF_P" samples", (off_p)fr->begin_os, (off_p)fr->end_os);
+	else fr->fullend_os = 0;
+
+	debug4("frame_gapless_realinit: from %"OFF_P" to %"OFF_P" samples (%"OFF_P", %"OFF_P")", (off_p)fr->begin_os, (off_p)fr->end_os, (off_p)fr->fullend_os, (off_p)fr->gapless_frames);
 }
 
 /* At least note when there is trouble... */
