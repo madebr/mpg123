@@ -1334,7 +1334,7 @@ int attribute_align_arg mpg123_scan(mpg123_handle *mh)
 	debug2("Scanning yielded %"OFF_P" track samples, %"OFF_P" frames.", (off_p)mh->track_samples, (off_p)mh->track_frames);
 #ifdef GAPLESS
 	/* Also, think about usefulness of that extra value track_samples ... it could be used for consistency checking. */
-	frame_gapless_update(mh, mh->track_samples);
+	if(mh->p.flags & MPG123_GAPLESS) frame_gapless_update(mh, mh->track_samples);
 #endif
 	return mpg123_seek(mh, oldpos, SEEK_SET) >= 0 ? MPG123_OK : MPG123_ERR;
 }
