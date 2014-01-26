@@ -8,7 +8,7 @@ TODO: Settle bug 201 and seeking accuracy for good.
 - ensure decoder reinitialization on combination of seek and resync (buffer overflow bug 201, introduced in 1.14.1)
 - make parsing really end on reaching of junk limit (introduced in 1.14.4)
 
-1.17.0s
+1.17.0
 ---
 - mpg123-id3dump --no-scan; for speedup
 - hide -C parameter from mpg123 --help when it is not supported
