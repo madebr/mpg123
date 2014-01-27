@@ -480,7 +480,7 @@ init_resync:
 	   Preserve header_change value from previous runs if it is serious.
 	   If we still have a big change pending, it should be dealt with outside,
 	   fr->header_change set to zero afterwards. */
-	if(fr->header_change < 2)
+	if(head_check(newhead) && fr->header_change < 2)
 	{
 		fr->header_change = 2; /* output format change is possible... */
 		if(fr->oldhead)        /* check a following header for change */
@@ -493,9 +493,16 @@ init_resync:
 			fr->header_change = 1;
 			else
 			{
+				fr->state_flags |= FRAME_FRANKENSTEIN;
 				if(NOQUIET)
 				fprintf(stderr, "\nWarning: Big change (MPEG version, layer, rate). Frankenstein stream?\n");
 			}
+		}
+		else if(fr->firsthead && !head_compatible(fr->firsthead, newhead))
+		{
+			fr->state_flags |= FRAME_FRANKENSTEIN;
+			if(NOQUIET)
+			fprintf(stderr, "\nWarning: Big change from first (MPEG version, layer, rate). Frankenstein stream?\n");
 		}
 	}
 
@@ -1174,8 +1181,7 @@ static int wetwork(mpg123_handle *fr, unsigned long *newheadp)
 		}
 		else
 		{
-			debug1("Found possibly valid header 0x%lx... unsetting firsthead to reinit stream.", newhead);
-			fr->firsthead = 0;
+			debug1("Found possibly valid header 0x%lx... unsetting oldhead to reinit stream.", newhead);
 			fr->oldhead = 0;
 			return PARSE_RESYNC;
 		}
