@@ -1,12 +1,12 @@
 1.18.0
 ---
 
+- Big version increase for clear distinction regarding the 1.14.x regression fixes in libmpg123.
+- Regression fix: Ensure decoder reinitialization on combination of seek and resync (buffer overflow bug 201, introduced in 1.14.1).
+- Regression fix: Make parsing really end on reaching of junk limit (introduced in 1.14.4).
 - Add check for bad bit allocation value in layer I decoder (removes audible glitch in bug 201 test file).
 - Avoid wrong error message about Frankenstein streams when gapless decoding disabled.
 - Be verbose about big header changes (Frankenstein streams). Note that changes in samples per frame will confuse the seeking code, but decoding can get through.
-- big version increase for clear distinction regarding the 1.14.x regression fixes
-- ensure decoder reinitialization on combination of seek and resync (buffer overflow bug 201, introduced in 1.14.1)
-- make parsing really end on reaching of junk limit (introduced in 1.14.4)
 
 1.17.0
 ---
