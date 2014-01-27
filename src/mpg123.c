@@ -1202,7 +1202,7 @@ int main(int sys_argc, char ** sys_argv)
 	}
 	else if(param.verbose) fprintf(stderr, "\n");
 
-	mpg123_close(mh);
+	close_track();
 
 	if (intflag)
 	{

@@ -7,6 +7,7 @@
 - Add check for bad bit allocation value in layer I decoder (removes audible glitch in bug 201 test file).
 - Avoid wrong error message about Frankenstein streams when gapless decoding disabled.
 - Be verbose about big header changes (Frankenstein streams). Note that changes in samples per frame will confuse the seeking code, but decoding can get through.
+- Actually use the full routine to close tracks. Avoids socket leak when playing multiple HTTP streams from a playlist (bug 203).
 
 1.17.0
 ---
