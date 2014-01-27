@@ -480,7 +480,7 @@ init_resync:
 	   Preserve header_change value from previous runs if it is serious.
 	   If we still have a big change pending, it should be dealt with outside,
 	   fr->header_change set to zero afterwards. */
-	if(head_check(newhead) && fr->header_change < 2)
+	if(fr->header_change < 2)
 	{
 		fr->header_change = 2; /* output format change is possible... */
 		if(fr->oldhead)        /* check a following header for change */
@@ -498,7 +498,7 @@ init_resync:
 				fprintf(stderr, "\nWarning: Big change (MPEG version, layer, rate). Frankenstein stream?\n");
 			}
 		}
-		else if(fr->firsthead && !head_compatible(fr->firsthead, newhead))
+		else if(head_check(newhead) && fr->firsthead && !head_compatible(fr->firsthead, newhead))
 		{
 			fr->state_flags |= FRAME_FRANKENSTEIN;
 			if(NOQUIET)
