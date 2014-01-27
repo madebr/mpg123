@@ -88,6 +88,7 @@ enum frame_state_flags
 {
 	 FRAME_ACCURATE      = 0x1  /**<     0001 Positions are considered accurate. */
 	,FRAME_FRANKENSTEIN  = 0x2  /**<     0010 This stream is concatenated. */
+	,FRAME_FRESH_DECODER = 0x4  /**<     0100 Decoder is fleshly initialized. */
 };
 
 /* There is a lot to condense here... many ints can be merged as flags; though the main space is still consumed by buffers. */

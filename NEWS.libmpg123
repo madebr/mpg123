@@ -1,5 +1,9 @@
 Changes in libmpg123 libtool interface versions...
 
+39.0.39
+	- Added MPG123_FRESH_DECODER.
+	- Also containing several regression fixes.
+
 38.0.38
 	- Added MPG123_PICTURE and associated addition to mpg123_id3v2 struct.
 

@@ -326,6 +326,10 @@ EXPORT int mpg123_decoder(mpg123_handle *mh, const char* decoder_name);
     \return The decoder name or NULL on error. */
 EXPORT const char* mpg123_current_decoder(mpg123_handle *mh);
 
+/** Get and clear the flag for updated decoder structure (can be triggerend
+    by input stream changes). If this returns 1, you may get different info
+    from mpg123
+
 /*@}*/
 
 
@@ -565,6 +569,7 @@ EXPORT off_t mpg123_framepos(mpg123_handle *mh);
  * Also, really sample-accurate seeking (meaning that you get the identical sample value after seeking compared to plain decoding up to the position) is only guaranteed when you do not mess with the position code by using MPG123_UPSPEED, MPG123_DOWNSPEED or MPG123_START_FRAME. The first two mainly should cause trouble with NtoM resampling, but in any case with these options in effect, you have to keep in mind that the sample offset is not the same as counting the samples you get from decoding since mpg123 counts the skipped samples, too (or the samples played twice only once)!
  * Short: When you care about the sample position, don't mess with those parameters;-)
  * Also, seeking is not guaranteed to work for all streams (underlying stream may not support it).
+ * And yet another caveat: If the stream is concatenated out of differing pieces (Frankenstein stream), seeking may suffer, too.
  *
  * @{
  */
@@ -765,7 +770,8 @@ enum mpg123_state
 {
 	 MPG123_ACCURATE = 1 /**< Query if positons are currently accurate (integer value, 0 if false, 1 if true) */
 	,MPG123_BUFFERFILL   /**< Get fill of internal (feed) input buffer as integer byte count returned as long and as double. An error is returned on integer overflow while converting to (signed) long, but the returned floating point value shold still be fine. */
-	,MPG123_FRANKENSTEIN /**< Stream consists of carelessly stitched together files (the leading one featuring gapless info).  */
+	,MPG123_FRANKENSTEIN /**< Stream consists of carelessly stitched together files. Seeking may yield unexpected results (also with MPG123_ACCURATE, it may be confused). */
+	,MPG123_FRESH_DECODER /**< Decoder structure has been updated, possibly indicating changed stream (integer value, 0 if false, 1 if true). Flag is cleared after retrieval. */
 };
 
 /** Get various current decoder/stream state information.

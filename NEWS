@@ -1,6 +1,7 @@
 1.18.0
 ---
 
+- libmpg123 version 39
 - Big version increase for clear distinction regarding the 1.14.x regression fixes in libmpg123.
 - Regression fix: Ensure decoder reinitialization on combination of seek and resync (buffer overflow bug 201, introduced in 1.14.1).
 - Regression fix: Make parsing really end on reaching of junk limit (introduced in 1.14.4).
@@ -9,6 +10,7 @@
 - Be verbose about big header changes (Frankenstein streams). Note that changes in samples per frame will confuse the seeking code, but decoding can get through.
 - Actually use the full routine to close tracks. Avoids socket leak when playing multiple HTTP streams from a playlist (bug 203).
 - Send correct host header when connecting through HTTP proxy (bug 202, figured out by Rajeev V. Pillai).
+- The console application now informs about changed major stream properties (prints out another header line).
 
 1.17.0
 ---

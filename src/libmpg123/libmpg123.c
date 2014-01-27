@@ -368,6 +368,10 @@ int attribute_align_arg mpg123_getstate(mpg123_handle *mh, enum mpg123_state key
 			ret = MPG123_ERR;
 #endif
 		break;
+		case MPG123_FRESH_DECODER:
+			theval = mh->state_flags & FRAME_FRESH_DECODER;
+			mh->state_flags &= ~FRAME_FRESH_DECODER;
+		break;
 		default:
 			mh->err = MPG123_BAD_KEY;
 			ret = MPG123_ERR;
@@ -501,6 +505,7 @@ int decode_update(mpg123_handle *mh)
 		return MPG123_ERR;
 	}
 
+	mh->state_flags |= FRAME_FRESH_DECODER;
 	native_rate = frame_freq(mh);
 
 	b = frame_output_format(mh); /* Select the new output format based on given constraints. */

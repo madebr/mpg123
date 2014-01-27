@@ -658,10 +658,13 @@ int play_frame(void)
 {
 	unsigned char *audio;
 	int mc;
+	long new_header = 0;
 	size_t bytes;
 	debug("play_frame");
 	/* The first call will not decode anything but return MPG123_NEW_FORMAT! */
 	mc = mpg123_decode_frame(mh, &framenum, &audio, &bytes);
+	mpg123_getstate(mh, MPG123_FRESH_DECODER, &new_header, NULL);
+
 	/* Play what is there to play (starting with second decode_frame call!) */
 	if(bytes)
 	{
@@ -702,14 +705,15 @@ int play_frame(void)
 			mpg123_getformat(mh, &rate, &channels, &format);
 			if(param.verbose > 2) fprintf(stderr, "\nNote: New output format %liHz %ich, format %i\n", rate, channels, format);
 
-			if(!param.quiet)
-			{
-				fprintf(stderr, "\n");
-				if(param.verbose) print_header(mh);
-				else print_header_compact(mh);
-			}
+			new_header = 1;
 			reset_audio(rate, channels, format);
 		}
+	}
+	if(new_header && !param.quiet)
+	{
+		fprintf(stderr, "\n");
+		if(param.verbose) print_header(mh);
+		else print_header_compact(mh);
 	}
 	return 1;
 }
