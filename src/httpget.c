@@ -7,7 +7,7 @@
 	old timestamp: Wed Apr  9 20:57:47 MET DST 1997
 
 	Thomas' notes:
-	
+	;
 	I used to do 
 	GET http://server/path HTTP/1.0
 
@@ -550,12 +550,14 @@ int http_open(char* url, struct httpdata *hd)
 		mpg123_chomp_string(&purl);
 		mpg123_add_string(&request_url, purl.p);
 
+		/* Always store the host and port from the URL for correct host header
+		   in the request. Proxy server is used for connection, but never in the
+		   host header! */
+		if(!split_url(&purl, NULL, &host, &port, &path)){ oom=1; goto exit; }
 		if (hd->proxystate >= PROXY_HOST)
 		{
 			/* We will connect to proxy, full URL goes into the request. */
-			if(    !mpg123_copy_string(&hd->proxyhost, &host)
-			    || !mpg123_copy_string(&hd->proxyport, &port)
-			    || !mpg123_set_string(&request, "GET ")
+			if(    !mpg123_set_string(&request, "GET ")
 			    || !mpg123_add_string(&request, request_url.p) )
 			{
 				oom=1; goto exit;
@@ -564,7 +566,6 @@ int http_open(char* url, struct httpdata *hd)
 		else
 		{
 			/* We will connect to the host from the URL and only the path goes into the request. */
-			if(!split_url(&purl, NULL, &host, &port, &path)){ oom=1; goto exit; }
 			if(    !mpg123_set_string(&request, "GET ")
 			    || !mpg123_add_string(&request, path.p) )
 			{
@@ -575,6 +576,16 @@ int http_open(char* url, struct httpdata *hd)
 		if(!fill_request(&request, &host, &port, &httpauth1, &try_without_port)){ oom=1; goto exit; }
 
 		httpauth1.fill = 0; /* We use the auth data from the URL only once. */
+		if (hd->proxystate >= PROXY_HOST)
+		{
+			/* Only the host:port used for actual connection is replaced by
+			   proxy. */
+			if(    !mpg123_copy_string(&hd->proxyhost, &host)
+			    || !mpg123_copy_string(&hd->proxyport, &port) )
+			{
+				oom=1; goto exit;
+			}
+		}
 		debug2("attempting to open_connection to %s:%s", host.p, port.p);
 		sock = open_connection(&host, &port);
 		if(sock < 0)

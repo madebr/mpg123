@@ -8,6 +8,7 @@
 - Avoid wrong error message about Frankenstein streams when gapless decoding disabled.
 - Be verbose about big header changes (Frankenstein streams). Note that changes in samples per frame will confuse the seeking code, but decoding can get through.
 - Actually use the full routine to close tracks. Avoids socket leak when playing multiple HTTP streams from a playlist (bug 203).
+- Send correct host header when connecting through HTTP proxy (bug 202, figured out by Rajeev V. Pillai).
 
 1.17.0
 ---
