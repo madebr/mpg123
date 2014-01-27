@@ -1,8 +1,7 @@
 1.18.0
 ---
 
-TODO: Settle bug 201 and seeking accuracy for good.
-
+- Add check for bad bit allocation value in layer I decoder (removes audible glitch in bug 201 test file).
 - Avoid irritating error message about Frankenstein streams when gapless decoding disabled (might come back, though, for stream format changes).
 - big version increase for clear distinction regarding the 1.14.x regression fixes
 - ensure decoder reinitialization on combination of seek and resync (buffer overflow bug 201, introduced in 1.14.1)
