@@ -491,6 +491,11 @@ init_resync:
 			   namely: same decoding routines, same amount of decoded data. */
 			if(head_compatible(fr->oldhead, newhead))
 			fr->header_change = 1;
+			else
+			{
+				if(NOQUIET)
+				fprintf(stderr, "\nWarning: Big change (MPEG version, layer, rate). Frankenstein stream?\n");
+			}
 		}
 	}
 
