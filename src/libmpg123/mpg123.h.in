@@ -326,10 +326,6 @@ EXPORT int mpg123_decoder(mpg123_handle *mh, const char* decoder_name);
     \return The decoder name or NULL on error. */
 EXPORT const char* mpg123_current_decoder(mpg123_handle *mh);
 
-/** Get and clear the flag for updated decoder structure (can be triggerend
-    by input stream changes). If this returns 1, you may get different info
-    from mpg123
-
 /*@}*/
 
 
