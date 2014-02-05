@@ -1,3 +1,7 @@
+1.18.1
+---
+- Do not close buffer twice with mpg123 -R (delete outdated code in control_generic(), fixing bug 207.
+
 1.18.0
 ---
 

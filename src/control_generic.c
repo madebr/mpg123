@@ -804,14 +804,6 @@ int control_generic (mpg123_handle *fr)
 	} /* end main (alive) loop */
 	debug("going to end");
 	/* quit gracefully */
-#ifndef NOXFERMEM
-	if (param.usebuffer) {
-		kill(buffer_pid, SIGINT);
-		xfermem_done_writer(buffermem);
-		waitpid(buffer_pid, NULL, 0);
-		xfermem_done(buffermem);
-	}
-#endif
 	debug("closing control");
 #ifdef FIFO
 #if WANT_WIN32_FIFO
