@@ -121,7 +121,7 @@ off_t framenum;
 off_t frames_left;
 audio_output_t *ao = NULL;
 txfermem *buffermem = NULL;
-char *prgName = NULL;
+const char *prgName = "mpg123";
 /* ThOr: pointers are not TRUE or FALSE */
 char *equalfile = NULL;
 struct httpdata htd;
@@ -140,8 +140,6 @@ int OutputDescriptor;
 static int filept = -1;
 
 static int network_sockets_used = 0; /* Win32 socket open/close Support */
-
-char *binpath; /* Path to myself. */
 
 /* File-global storage of command line arguments.
    They may be needed for cleanup after charset conversion. */
@@ -809,20 +807,6 @@ int main(int sys_argc, char ** sys_argv)
 #if defined (WANT_WIN32_SOCKETS)
 	win32_net_init();
 #endif
-
-	/* Extract binary and path, take stuff before/after last / or \ . */
-	if((prgName = strrchr(argv[0], '/')) || (prgName = strrchr(argv[0], '\\')))
-	{
-		/* There is some explicit path. */
-		prgName[0] = 0; /* End byte for path. */
-		prgName++;
-		binpath = argv[0];
-	}
-	else
-	{
-		prgName = argv[0]; /* No path separators there. */
-		binpath = NULL; /* No path at all. */
-	}
 
 	/* Need to initialize mpg123 lib here for default parameter values. */
 
