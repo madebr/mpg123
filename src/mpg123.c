@@ -812,9 +812,11 @@ int main(int sys_argc, char ** sys_argv)
 	win32_net_init();
 #endif
 
-	fullprogname = malloc(strlen(argv[0])+1);
-	memcpy(fullprogname, argv[0], strlen(argv[0])+1);
-
+	if(!(fullprogname = strdup(argv[0])))
+	{
+		error("OOM"); /* Out Of Memory. Don't waste bytes on that error. */
+		safe_exit(1);
+	}
 	/* Extract binary and path, take stuff before/after last / or \ . */
 	if(  (prgName = strrchr(fullprogname, '/')) 
 	  || (prgName = strrchr(fullprogname, '\\')))
