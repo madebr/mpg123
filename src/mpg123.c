@@ -121,7 +121,7 @@ off_t framenum;
 off_t frames_left;
 audio_output_t *ao = NULL;
 txfermem *buffermem = NULL;
-const char *prgName = "mpg123";
+char *prgName = NULL;
 /* ThOr: pointers are not TRUE or FALSE */
 char *equalfile = NULL;
 struct httpdata htd;
@@ -140,6 +140,9 @@ int OutputDescriptor;
 static int filept = -1;
 
 static int network_sockets_used = 0; /* Win32 socket open/close Support */
+
+char *fullprogname = NULL; /* Copy of argv[0]. */
+char *binpath; /* Path to myself. */
 
 /* File-global storage of command line arguments.
    They may be needed for cleanup after charset conversion. */
@@ -203,6 +206,7 @@ void safe_exit(int code)
 #endif
 	/* It's ugly... but let's just fix this still-reachable memory chunk of static char*. */
 	split_dir_file("", &dummy, &dammy);
+	if(fullprogname) free(fullprogname);
 	exit(code);
 }
 
@@ -807,6 +811,24 @@ int main(int sys_argc, char ** sys_argv)
 #if defined (WANT_WIN32_SOCKETS)
 	win32_net_init();
 #endif
+
+	fullprogname = malloc(strlen(argv[0])+1);
+	memcpy(fullprogname, argv[0], strlen(argv[0])+1);
+
+	/* Extract binary and path, take stuff before/after last / or \ . */
+	if(  (prgName = strrchr(fullprogname, '/')) 
+	  || (prgName = strrchr(fullprogname, '\\')))
+	{
+		/* There is some explicit path. */
+		prgName[0] = 0; /* End byte for path. */
+		prgName++;
+		binpath = fullprogname;
+	}
+	else
+	{
+		prgName = fullprogname; /* No path separators there. */
+		binpath = NULL; /* No path at all. */
+	}
 
 	/* Need to initialize mpg123 lib here for default parameter values. */
 

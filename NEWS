@@ -1,8 +1,7 @@
 1.18.1
 ---
 - Do not close buffer twice with mpg123 -R (delete outdated code in control_generic(), fixing bug 207.
-- Do not mess around with first command line argument to extract program name, just hardcode "mpg123", fixing bug 205.
-
+- Do not mess around with first command line argument to extract program name, use a copy instead, fixing bug 205.
 1.18.0
 ---
 
