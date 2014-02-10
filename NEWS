@@ -2,6 +2,8 @@
 ---
 - Do not close buffer twice with mpg123 -R (delete outdated code in control_generic(), fixing bug 207.
 - Do not mess around with first command line argument to extract program name, use a copy instead, fixing bug 205.
+- Prevent premature exit on timing of failure to open a track in the playlist and the user wanting to skip over it (bug 206).
+
 1.18.0
 ---
 

@@ -1078,10 +1078,13 @@ int main(int sys_argc, char ** sys_argv)
 #ifdef HAVE_TERMIOS
 			/* We need the opportunity to cancel in case of --loop -1 . */
 			if(param.term_ctrl) term_control(mh, ao);
+			else
 #endif
 			/* No wait for a second interrupt before we started playing. */
 			if(intflag) break;
 
+			/* We already interrupted this cycle, start fresh with the next one. */
+			intflag = FALSE;
 			continue;
 		}
 
