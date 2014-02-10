@@ -288,9 +288,9 @@ static int win32_net_open_connection(mpg123_string *host, mpg123_string *port)
 	return 1;
 }
 
-static size_t win32_net_readstring (mpg123_string *string, size_t maxlen, FILE *f)
+static size_t win32_net_readstring (mpg123_string *string, size_t maxlen, int fd)
 {
-	debug2("Attempting readstring on %d for %"SIZE_P" bytes", f ? fileno(f) : -1, (size_p)maxlen);
+	debug2("Attempting readstring on %d for %"SIZE_P" bytes", fd, (size_p)maxlen);
 	int err;
 	string->fill = 0;
 	while(maxlen == 0 || string->fill < maxlen)
@@ -502,7 +502,7 @@ int win32_net_http_open(char* url, struct httpdata *hd)
 		relocate = FALSE;
 		/* Arbitrary length limit here... */
 #define safe_readstring \
-		win32_net_readstring(&response, SIZE_MAX/16, NULL); \
+		win32_net_readstring(&response, SIZE_MAX/16, -1); \
 		if(response.fill > SIZE_MAX/16) /* > because of appended zero. */ \
 		{ \
 			error("HTTP response line exceeds max. length"); \
@@ -570,6 +570,7 @@ int win32_net_http_open(char* url, struct httpdata *hd)
 				}
 			}
 		} while(response.p[0] != '\r' && response.p[0] != '\n');
+		if (relocate) { win32_net_close(ws.local_socket); ws.local_socket=SOCKET_ERROR; }
 	} while(relocate && got_location && purl.fill && numrelocs++ < HTTP_MAX_RELOCATIONS);
 	if(relocate)
 	{
