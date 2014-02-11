@@ -176,7 +176,7 @@ void next_track(void)
 void prev_track(void)
 {
 	if(pl.pos > 2) pl.pos -= 2;
-	else pl.pos = 0;
+	else pl.pos = skip_tracks = 0;
 
 	next_track();
 }
