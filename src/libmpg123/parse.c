@@ -476,39 +476,6 @@ read_again:
 
 init_resync:
 
-	/* header_change > 1: decoder structure has to be updated
-	   Preserve header_change value from previous runs if it is serious.
-	   If we still have a big change pending, it should be dealt with outside,
-	   fr->header_change set to zero afterwards. */
-	/* If the new header is not possibly a valid MPEG header, there
-	   will not be header change with this one. */
-	if(head_check(newhead) && fr->header_change < 2)
-	{
-		fr->header_change = 2; /* output format change is possible... */
-		if(fr->oldhead)        /* check a following header for change */
-		{
-			if(fr->oldhead == newhead) fr->header_change = 0;
-			else
-			/* Headers that match in this test behave the same for the outside world.
-			   namely: same decoding routines, same amount of decoded data. */
-			if(head_compatible(fr->oldhead, newhead))
-			fr->header_change = 1;
-			else if(head_check(newhead))
-			{
-				fr->state_flags |= FRAME_FRANKENSTEIN;
-				if(NOQUIET)
-				fprintf(stderr, "\nWarning: Big change (MPEG version, layer, rate). Frankenstein stream?\n");
-			}
-		}
-		else if(fr->firsthead && !head_compatible(fr->firsthead, newhead))
-		{
-			fr->state_flags |= FRAME_FRANKENSTEIN;
-			if(NOQUIET)
-			fprintf(stderr, "\nWarning: Big change from first (MPEG version, layer, rate). Frankenstein stream?\n");
-		}
-	}
-	else debug1("Fall-through for header %08lx.", newhead);
-
 #ifdef SKIP_JUNK
 	if(!fr->firsthead && !head_check(newhead))
 	{
@@ -624,6 +591,41 @@ init_resync:
 
 	fr->to_decode = fr->to_ignore = TRUE;
 	if(fr->error_protection) fr->crc = getbits(fr, 16); /* skip crc */
+
+	/*
+		Let's check for header change after deciding that the new one is good
+		and actually having read a frame.
+
+		header_change > 1: decoder structure has to be updated
+		Preserve header_change value from previous runs if it is serious.
+		If we still have a big change pending, it should be dealt with outside,
+		fr->header_change set to zero afterwards.
+	*/
+	if(fr->header_change < 2)
+	{
+		fr->header_change = 2; /* output format change is possible... */
+		if(fr->oldhead)        /* check a following header for change */
+		{
+			if(fr->oldhead == newhead) fr->header_change = 0;
+			else
+			/* Headers that match in this test behave the same for the outside world.
+			   namely: same decoding routines, same amount of decoded data. */
+			if(head_compatible(fr->oldhead, newhead))
+			fr->header_change = 1;
+			else
+			{
+				fr->state_flags |= FRAME_FRANKENSTEIN;
+				if(NOQUIET)
+				fprintf(stderr, "\nWarning: Big change (MPEG version, layer, rate). Frankenstein stream?\n");
+			}
+		}
+		else if(fr->firsthead && !head_compatible(fr->firsthead, newhead))
+		{
+			fr->state_flags |= FRAME_FRANKENSTEIN;
+			if(NOQUIET)
+			fprintf(stderr, "\nWarning: Big change from first (MPEG version, layer, rate). Frankenstein stream?\n");
+		}
+	}
 
 	fr->oldhead = newhead;
 

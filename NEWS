@@ -5,7 +5,7 @@
 - Prevent premature exit on timing of failure to open a track in the playlist and the user wanting to skip over it (bug 206).
 - Fixup of HTTP socket mess, also avoiding unnecessary FILE objects (bug 204, patch by Rajeev V. Pillai).
 - Fix playlist behaviour on slow HTTP streams, jumping back ('d' key) from first track stays at first track (thanks to Rajeev again, sub-bug of bug 206).
-- Fix Frankenstein check not to stumble over ID3v1 tags. My apologies.
+- Fix Frankenstein check not to stumble over ID3v1 tags. My apologies. As a bonus, the position of the concerned code in the parser is now far more logical.
 
 1.18.0
 ---
