@@ -449,10 +449,10 @@ AC_ARG_ENABLE(real,
 AC_ARG_WITH([cpu], [
   --with-cpu=generic[_fpu]      Use generic processor code with floating point arithmetic
   --with-cpu=generic_float      Plain alias to generic_fpu now... float output is a normal runtime option!
-  --with-cpu=generic_nofpu      Use generic processor code with fixed point arithmetic (p.ex. ARM, experimental)
+  --with-cpu=generic_nofpu      Use generic processor code with fixed point arithmetic (p.ex. ARM)
   --with-cpu=generic_dither     Use generic processor code with floating point arithmetic and dithering for 1to1 16bit decoding.
   --with-cpu=i386[_fpu]         Use code optimized for i386 processors with floating point arithmetic
-  --with-cpu=i386_nofpu         Use code optimized for i386 processors with fixed point arithmetic (experimental)
+  --with-cpu=i386_nofpu         Use code optimized for i386 processors with fixed point arithmetic
   --with-cpu=i486         Use code optimized for i486 processors (only usable alone!)
   --with-cpu=i586         Use code optimized for i586 processors
   --with-cpu=i586_dither  Use code optimized for i586 processors with dithering (noise shaping), adds 256K to binary size
@@ -470,9 +470,9 @@ AC_ARG_WITH([cpu], [
   --with-cpu=x86          Pack all x86 opts into one binary (excluding i486, including dither)
   --with-cpu=x86-64       Use code optimized for x86-64 processors (AMD64 and Intel64, including AVX and dithered generic)
   --with-cpu=altivec      Use code optimized for Altivec processors (PowerPC G4 and G5)
-  --with-cpu=ppc_nofpu    Use code optimized for PowerPC processors with fixed point arithmetic (experimental)
+  --with-cpu=ppc_nofpu    Use code optimized for PowerPC processors with fixed point arithmetic
   --with-cpu=neon         Use code optimized for ARM NEON SIMD engine (Cortex-A series)
-  --with-cpu=arm_nofpu    Use code optimized for ARM processors with fixed point arithmetic (experimental)
+  --with-cpu=arm_nofpu    Use code optimized for ARM processors with fixed point arithmetic
 ])
 
 
