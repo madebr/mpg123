@@ -45,7 +45,8 @@
 #  define real float
 #elif defined(REAL_IS_FIXED)
 
-# define real long
+# define real  int32_t
+# define dreal int64_t
 
 /*
   for fixed-point decoders, use pre-calculated tables to avoid expensive floating-point maths
@@ -56,14 +57,14 @@
 # define REAL_RADIX				24
 # define REAL_FACTOR			16777216.0
 
-static inline long double_to_long_rounded(double x, double scalefac)
+static inline int32_t double_to_long_rounded(double x, double scalefac)
 {
 	x *= scalefac;
 	x += (x > 0) ? 0.5 : -0.5;
-	return (long)x;
+	return (int32_t)x;
 }
 
-static inline long scale_rounded(long x, int shift)
+static inline int32_t scale_rounded(int32_t x, int shift)
 {
 	x += (x >> 31);
 	x >>= (shift - 1);
@@ -163,7 +164,7 @@ static inline long scale_rounded(long x, int shift)
 #  endif
 # endif
 
-/* I just changed the (int) to (long) there... seemed right. */
+/* I just changed the (int) to (real) there... seemed right. */
 # define DOUBLE_TO_REAL(x)					(double_to_long_rounded(x, REAL_FACTOR))
 # define DOUBLE_TO_REAL_15(x)				(double_to_long_rounded(x, 32768.0))
 # define DOUBLE_TO_REAL_POW43(x)			(double_to_long_rounded(x, 8192.0))
@@ -175,17 +176,17 @@ static inline long scale_rounded(long x, int shift)
 #  define REAL_MUL_15(x, y)					REAL_MUL_ASM(x, y, 15)
 #  define REAL_MUL_SCALE_LAYER12(x, y)		REAL_MUL_ASM(x, y, 15 + 30 - REAL_RADIX)
 # else
-#  define REAL_MUL(x, y)					(((long long)(x) * (long long)(y)) >> REAL_RADIX)
-#  define REAL_MUL_15(x, y)					(((long long)(x) * (long long)(y)) >> 15)
-#  define REAL_MUL_SCALE_LAYER12(x, y)		(((long long)(x) * (long long)(y)) >> (15 + 30 - REAL_RADIX))
+#  define REAL_MUL(x, y)					(((dreal)(x) * (dreal)(y)) >> REAL_RADIX)
+#  define REAL_MUL_15(x, y)					(((dreal)(x) * (dreal)(y)) >> 15)
+#  define REAL_MUL_SCALE_LAYER12(x, y)		(((dreal)(x) * (dreal)(y)) >> (15 + 30 - REAL_RADIX))
 # endif
 # ifdef REAL_MUL_SCALE_LAYER3_ASM
 #  define REAL_MUL_SCALE_LAYER3(x, y, z)	REAL_MUL_SCALE_LAYER3_ASM(x, y, 13 + gainpow2_scale[z] - REAL_RADIX)
 # else
-#  define REAL_MUL_SCALE_LAYER3(x, y, z)	(((long long)(x) * (long long)(y)) >> (13 + gainpow2_scale[z] - REAL_RADIX))
+#  define REAL_MUL_SCALE_LAYER3(x, y, z)	(((dreal)(x) * (dreal)(y)) >> (13 + gainpow2_scale[z] - REAL_RADIX))
 # endif
-# define REAL_SCALE_LAYER12(x)				((long)((x) >> (30 - REAL_RADIX)))
-# define REAL_SCALE_LAYER3(x, y)			((long)((x) >> (gainpow2_scale[y] - REAL_RADIX)))
+# define REAL_SCALE_LAYER12(x)				((real)((x) >> (30 - REAL_RADIX)))
+# define REAL_SCALE_LAYER3(x, y)			((real)((x) >> (gainpow2_scale[y] - REAL_RADIX)))
 # ifdef ACCURATE_ROUNDING
 #  define REAL_MUL_SYNTH(x, y)				REAL_MUL(x, y)
 #  define REAL_SCALE_DCT64(x)				(x)
