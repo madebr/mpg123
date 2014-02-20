@@ -1,6 +1,7 @@
 1.19.0
 ---
 - Support float and 32/24 bit integer output also with fixed-point decoders (conversion from 16 bit precision).
+- A-Law output encoding is actually implemented now (Michael introduced the encoding back in the old days without ever implementing theconversion table, apparently).
 
 1.18.1
 ---
