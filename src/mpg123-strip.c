@@ -145,14 +145,16 @@ int do_work(mpg123_handle *m)
 			write(STDOUT_FILENO, hbuf, 4);
 			write(STDOUT_FILENO, bodydata, bodybytes);
 			if(param.verbose)
-			fprintf(stderr, "%zu: header 0x%08x, %zu body bytes\n", ++count, header, bodybytes);
+			fprintf(stderr, "%"SIZE_P": header 0x%08lx, %"SIZE_P" body bytes\n"
+			, (size_p)++count, header, (size_p)bodybytes);
 		}
 	}
 
 	if(ret != MPG123_DONE)
 	fprintf(stderr, "Some error occured (non-fatal?): %s\n", mpg123_strerror(m));
 
-	if(param.verbose) fprintf(stderr, "Done with %zu MPEG frames.\n", count);
+	if(param.verbose) fprintf(stderr, "Done with %"SIZE_P" MPEG frames.\n"
+	, (size_p)count);
 
 	return MPG123_OK;
 }
