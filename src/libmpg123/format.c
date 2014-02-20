@@ -584,6 +584,7 @@ static void conv_s16_to_f32(struct outbuffer *buf)
 	int16_t *in = (int16_t*) buf->data;
 	float  *out = (float*)   buf->data;
 	size_t count = buf->fill/sizeof(int16_t);
+	float scale = 1./SHORT_SCALE;
 
 	if(buf->size < count*sizeof(float))
 	{
@@ -593,10 +594,7 @@ static void conv_s16_to_f32(struct outbuffer *buf)
 
 	/* Work from the back since output is bigger. */
 	for(i=count-1; i>=0; --i)
-	{
-		out[i] = in[i];
-		out[i] /= SHORT_SCALE;
-	}
+	out[i] = (float)in[i] * scale;
 
 	buf->fill = count*sizeof(float);
 }
