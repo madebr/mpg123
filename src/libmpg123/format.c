@@ -351,7 +351,6 @@ end: /* Here is the _good_ end. */
 		}
 #endif
 		fr->af.dec_encsize = mpg123_encsize(fr->af.dec_enc);
-fprintf(stderr, "encsize: %i, dec_encsize: %i\n", fr->af.encsize, fr->af.dec_encsize);
 		return 1;
 	}
 }
