@@ -38,7 +38,6 @@ static int I_step_one(unsigned int balloc[], unsigned int scale_index[2][SBLIMIT
 {
 	unsigned int *ba=balloc;
 	unsigned int *sca = (unsigned int *) scale_index;
-	unsigned int tmpba;
 
 	if(fr->stereo == 2)
 	{
