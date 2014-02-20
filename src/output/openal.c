@@ -65,7 +65,7 @@ static int open_openal(audio_output_t *ao)
 
 static int get_formats_openal(audio_output_t *ao)
 {
-	return MPG123_ENC_SIGNED_16|MPG123_ENC_UNSIGNED_8|((alIsExtensionPresent((ALubyte*)"AL_EXT_float32") == AL_TRUE) ? MPG123_ENC_FLOAT_32 : 0);
+	return MPG123_ENC_SIGNED_16|MPG123_ENC_UNSIGNED_8|((alIsExtensionPresent((ALchar*)"AL_EXT_float32") == AL_TRUE) ? MPG123_ENC_FLOAT_32 : 0);
 }
 
 static int write_openal(audio_output_t *ao, unsigned char *buf, int len)
