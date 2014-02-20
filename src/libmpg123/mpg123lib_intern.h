@@ -38,17 +38,12 @@
 #define memmove(dst,src,size) bcopy(src,dst,size)
 #endif
 
-/* some stuff has to go back to mpg123.h */
+/* We don't really do long double... there are 3 options for REAL:
+   float, long and double. */
+
 #ifdef REAL_IS_FLOAT
 #  define real float
-#  define REAL_SCANF "%f"
-#  define REAL_PRINTF "%f"
-#elif defined(REAL_IS_LONG_DOUBLE)
-#  define real long double
-#  define REAL_SCANF "%Lf"
-#  define REAL_PRINTF "%Lf"
 #elif defined(REAL_IS_FIXED)
-/* Disable some output formats for fixed point decoder... */
 
 # define real long
 
@@ -200,13 +195,12 @@ static inline long scale_rounded(long x, int shift)
 #  define REAL_SCALE_DCT64(x)				((x) >> 8)
 #  define REAL_SCALE_WINDOW(x)				scale_rounded(x, 16)
 # endif
-#  define REAL_SCANF "%ld"
-#  define REAL_PRINTF "%ld"
 
 #else
+/* Just define a symbol to make things clear.
+   Existing code still uses (not (float or fixed)) for that. */
+#  define REAL_IS_DOUBLE
 #  define real double
-#  define REAL_SCANF "%lf"
-#  define REAL_PRINTF "%f"
 #endif
 
 #ifndef REAL_IS_FIXED
@@ -301,9 +295,10 @@ static inline long scale_rounded(long x, int shift)
 
 int decode_update(mpg123_handle *mh);
 /* residing in format.c  */
-off_t samples_to_storage(mpg123_handle *fr , off_t s);
+off_t decoder_synth_bytes(mpg123_handle *fr , off_t s);
 off_t samples_to_bytes(mpg123_handle *fr , off_t s);
 off_t bytes_to_samples(mpg123_handle *fr , off_t b);
+off_t outblock_bytes(mpg123_handle *fr, off_t s);
 /* Postprocessing format conversion of freshly decoded buffer. */
 void postprocess_buffer(mpg123_handle *fr);
 

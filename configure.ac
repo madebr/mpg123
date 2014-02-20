@@ -11,7 +11,7 @@ dnl ############# Initialisation
 AC_INIT([mpg123], [1.19.0], [mpg123-devel@lists.sourceforge.net])
 dnl Increment API_VERSION when the API gets changes (new functions).
 API_VERSION=39
-LIB_PATCHLEVEL=1
+LIB_PATCHLEVEL=2
 dnl Since we want to be backwards compatible, both sides get set to API_VERSION.
 LIBMPG123_VERSION=$API_VERSION:$LIB_PATCHLEVEL:$API_VERSION
 AC_SUBST(LIBMPG123_VERSION)
@@ -697,25 +697,16 @@ if test "x$with_cpu" != "x"; then
 	cpu_type=$with_cpu
 fi
 
-if test "x$cpu_type" = "xgeneric_nofpu"; then
-  real=disabled
-  int32=disabled
-fi
-
-if test "x$cpu_type" = "xi386_nofpu"; then
-  real=disabled
-  int32=disabled
-fi
-
-if test "x$cpu_type" = "xppc_nofpu"; then
-  real=disabled
-  int32=disabled
-fi
-
-if test "x$cpu_type" = "xarm_nofpu"; then
-  real=disabled
-  int32=disabled
-fi
+# Flag for 32 bit synth output or post-processing.
+case "$cpu_type" in
+*_nofpu)
+  synth32=false
+  AC_DEFINE(NO_SYNTH32, 1, [ Define for post-processed 32 bit formats. ])
+;;
+*)
+  synth32=true
+;;
+esac
 
 if test "x$int16" = "xdisabled"; then
   AC_DEFINE(NO_16BIT, 1, [ Define to disable 16 bit integer output. ])
@@ -738,13 +729,17 @@ fi
 if test "x$int32" = "xdisabled"; then
   AC_DEFINE(NO_32BIT, 1, [ Define to disable 32 bit and 24 bit integer output. ])
 else
-  s_fpu="$s_fpu synth_s32"
+  if $synth32; then
+    s_fpu="$s_fpu synth_s32"
+  fi
 fi
 
 if test "x$real" = "xdisabled"; then
   AC_DEFINE(NO_REAL, 1, [ Define to disable real output. ])
 else
-  s_fpu="$s_fpu synth_real"
+  if $synth32; then
+    s_fpu="$s_fpu synth_real"
+  fi
 fi
 
 

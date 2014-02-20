@@ -525,7 +525,7 @@ int decode_update(mpg123_handle *mh)
 		case 2:
 			mh->down_sample_sblimit = SBLIMIT>>(mh->down_sample);
 			/* With downsampling I get less samples per frame */
-			mh->outblock = samples_to_storage(mh, (mh->spf>>mh->down_sample));
+			mh->outblock = outblock_bytes(mh, (mh->spf>>mh->down_sample));
 		break;
 #ifndef NO_NTOM
 		case 3:
@@ -537,7 +537,7 @@ int decode_update(mpg123_handle *mh)
 				mh->down_sample_sblimit /= frame_freq(mh);
 			}
 			else mh->down_sample_sblimit = SBLIMIT;
-			mh->outblock = samples_to_storage(mh,
+			mh->outblock = outblock_bytes(mh,
 			                 ( ( NTOM_MUL-1+mh->spf
 			                   * (((size_t)NTOM_MUL*mh->af.rate)/frame_freq(mh))
 			                 )/NTOM_MUL ));
@@ -695,7 +695,7 @@ static int zero_byte(mpg123_handle *fr)
 */
 static void decode_the_frame(mpg123_handle *fr)
 {
-	size_t needed_bytes = samples_to_storage(fr, frame_expect_outsamples(fr));
+	size_t needed_bytes = decoder_synth_bytes(fr, frame_expect_outsamples(fr));
 	fr->clip += (fr->do_layer)(fr);
 	/*fprintf(stderr, "frame %"OFF_P": got %"SIZE_P" / %"SIZE_P"\n", fr->num,(size_p)fr->buffer.fill, (size_p)needed_bytes);*/
 	/* There could be less data than promised.

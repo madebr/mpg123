@@ -38,6 +38,8 @@ static struct cpuflags cpu_flags;
 #define IF8(synth)
 #endif
 
+#ifndef NO_SYNTH32
+
 #ifndef NO_REAL
 #define IFREAL(synth) synth,
 #else
@@ -48,6 +50,13 @@ static struct cpuflags cpu_flags;
 #define IF32(synth) synth
 #else
 #define IF32(synth)
+#endif
+
+#else
+
+#define IFREAL(synth)
+#define IF32(synth)
+
 #endif
 
 #ifndef NO_16BIT
@@ -257,6 +266,8 @@ static int find_dectype(mpg123_handle *fr)
 #endif
 #endif /* 16bit */
 
+#ifndef NO_SYNTH32
+
 #ifndef NO_REAL
 #if defined(OPT_SSE) || defined(OPT_SSE_VINTAGE)
 	else if(basic_synth == synth_1to1_real_sse)
@@ -300,6 +311,8 @@ static int find_dectype(mpg123_handle *fr)
 #endif
 #endif /* 32bit */
 
+#endif /* any 32 bit synth */
+
 #ifdef OPT_X86
 	else if(find_synth(basic_synth, plain_i386))
 	type = idrei;
@@ -342,20 +355,20 @@ int set_synth_functions(mpg123_handle *fr)
 	/* Select the basic output format, different from 16bit: 8bit, real. */
 	if(FALSE){}
 #ifndef NO_16BIT
-	else if(fr->af.encoding & MPG123_ENC_16)
+	else if(fr->af.dec_enc & MPG123_ENC_16)
 	basic_format = f_16;
 #endif
 #ifndef NO_8BIT
-	else if(fr->af.encoding & MPG123_ENC_8)
+	else if(fr->af.dec_enc & MPG123_ENC_8)
 	basic_format = f_8;
 #endif
 #ifndef NO_REAL
-	else if(fr->af.encoding & MPG123_ENC_FLOAT)
+	else if(fr->af.dec_enc & MPG123_ENC_FLOAT)
 	basic_format = f_real;
 #endif
 #ifndef NO_32BIT
 	/* 24 bit integer means decoding to 32 bit first. */
-	else if(fr->af.encoding & MPG123_ENC_32 || fr->af.encoding & MPG123_ENC_24)
+	else if(fr->af.dec_enc & MPG123_ENC_32 || fr->af.dec_enc & MPG123_ENC_24)
 	basic_format = f_32;
 #endif
 

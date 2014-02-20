@@ -1089,7 +1089,10 @@ EXPORT int mpg123_getpar(mpg123_pars *mp, enum mpg123_parms type, long *val, dou
   * @{ */
 
 /** Replace default internal buffer with user-supplied buffer.
-  * Instead of working on it's own private buffer, mpg123 will directly use the one you provide for storing decoded audio. */
+  * Instead of working on it's own private buffer, mpg123 will directly use the one you provide for storing decoded audio.
+  * Note that the required buffer size could be bigger than expected from output
+  * encoding if libmpg123 has to convert from primary decoder output (p.ex. 32 bit
+  * storage for 24 bit output. */
 EXPORT int mpg123_replace_buffer(mpg123_handle *mh, unsigned char *data, size_t size);
 
 /** The max size of one frame's decoded output with current settings.

@@ -47,8 +47,10 @@ struct outbuffer
 
 struct audioformat
 {
-	int encoding;
+	int encoding; /* Final encoding, after post-processing. */
 	int encsize; /* Size of one sample in bytes, plain int should be fine here... */
+	int dec_enc;  /* Encoding of decoder synth. */
+	int dec_encsize; /* Size of one decoder sample. */
 	int channels;
 	long rate;
 };
