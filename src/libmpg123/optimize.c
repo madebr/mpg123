@@ -165,6 +165,7 @@ static int find_synth(func_synth synth,  const func_synth synths[r_limit][f_limi
 }
 
 
+#if defined(OPT_SSE) || defined(OPT_SSE_VINTAGE)
 /* After knowing that it is either vintage or current SSE,
    this separates the two. In case of non-OPT_MULTI, only one
    of OPT_SSE and OPT_SSE_VINTAGE is active. */
@@ -180,6 +181,7 @@ static enum optdec sse_or_vintage(mpg123_handle *fr)
 #	endif
 	return type;
 }
+#endif
 
 /* Determine what kind of decoder is actually active
    This depends on runtime choices which may cause fallback to i386 or generic code. */
