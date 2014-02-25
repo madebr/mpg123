@@ -44,6 +44,7 @@ costab_arm:
 	.word 1060439283
 	.word 1060439283
 	.globl ASM_NAME(dct64_real_neon)
+	ALIGN4
 ASM_NAME(dct64_real_neon):
 	vpush		{q4-q7}
 
