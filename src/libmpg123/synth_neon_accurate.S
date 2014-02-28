@@ -17,8 +17,16 @@
 	return value: number of clipped samples (0)
 */
 
+	.code 32
+#ifndef __APPLE__
+	.fpu neon
+#endif
+
 	.text
 	.globl ASM_NAME(synth_1to1_neon_accurate_asm)
+#ifdef __ELF__
+	.type ASM_NAME(synth_1to1_neon_accurate_asm), %function
+#endif
 ASM_NAME(synth_1to1_neon_accurate_asm):
 	push		{r4-r6, lr}
 	vpush		{q4-q7}
