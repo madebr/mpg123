@@ -44,11 +44,16 @@ foreach my $cpu (@cpus)
 	{
 		# using user CPU time
 		my @start_time  = times();
-		system($MPG123_CMD, '-q', '--cpu', $cpu, '-e', $e, '-t', @TEST_FILES );
+		my $ret = system($MPG123_CMD, '-q', '--cpu', $cpu, '-e', $e, '-t', @TEST_FILES );
 		my @end_time = times();
-
+		my $runtime = $end_time[2] - $start_time[2];
+		if($ret)
+		{
+			print STDERR "Execution of $MPG123_CMD failed with code $ret!\n";
+			$runtime = 0;
+		}
 		# third entry is child user time
-		printf("	%4.2f", $end_time[2] - $start_time[2]);
+		printf("	%4.2f", $runtime);
 	}
 	print("\n");
 }
