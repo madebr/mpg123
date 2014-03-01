@@ -3,6 +3,11 @@
 - Support float and 32/24 bit integer output also with fixed-point decoders (conversion from 16 bit precision).
 - A-Law output encoding is actually implemented now (Michael introduced the encoding back in the old days without ever implementing theconversion table, apparently).
 
+1.18.2
+---
+- Fix ARM builds to work properly on debian systems without special CFLAGS (NEON decoder, specifically).
+- Make scripts/benchmark-cpu.pl check the return value instead of delivering crazy timings for crashed mpg123.
+
 1.18.1
 ---
 - Do not close buffer twice with mpg123 -R (delete outdated code in control_generic(), fixing bug 207.
