@@ -37,6 +37,8 @@ print "#decoder";
 for(@encs){ print "	t_$_/s"; }
 print "\n";
 
+my $allret = 0;
+
 foreach my $cpu (@cpus)
 {
 	print "$cpu";
@@ -51,6 +53,7 @@ foreach my $cpu (@cpus)
 		{
 			print STDERR "Execution of $MPG123_CMD failed with code $ret!\n";
 			$runtime = 0;
+			$allret = 1;
 		}
 		# third entry is child user time
 		printf("	%4.2f", $runtime);
@@ -58,4 +61,4 @@ foreach my $cpu (@cpus)
 	print("\n");
 }
 
-
+exit($allret);
