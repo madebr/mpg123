@@ -4,6 +4,7 @@ Changes in libmpg123 libtool interface versions...
 	- Bump for marking the first actual implementation of A-Law encoding.
 	  Not that it matters to anyone, though --- I wonder why not even the
 	  Asterisk users wanted this. It's for telephony, dammit!
+	- Added arm_fpu decoder for runtime switch between NEON and generic fpu.
 
 39.2.39
 	- Added more elaborate post-processing to enable 32 and 24 bit output also with low-precision decoder (16 bit, fixed-point).
