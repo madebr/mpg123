@@ -274,3 +274,5 @@ ASM_NAME(synth_1to1_arm_asm):
 	mov		r0, REG_CLIP
 	
 	ldmfd   sp!, {r4, r5, r6, r7, r8, r9, r10, pc}
+
+NONEXEC_STACK

@@ -85,7 +85,11 @@
 /* Mark non-executable stack.
    It's mainly for GNU on Linux... who else does (not) like this? */
 #if !defined(__SUNPRO_C) && defined(__linux__) && defined(__ELF__)
+#if defined(__arm__)
+#define NONEXEC_STACK .section .note.GNU-stack,"",%progbits
+#else
 #define NONEXEC_STACK .section .note.GNU-stack,"",@progbits
+#endif
 #else
 #define NONEXEC_STACK
 #endif

@@ -277,3 +277,5 @@ ASM_NAME(dct64_real_neon):
 
 	vpop		{q4-q7}
 	bx			lr
+
+NONEXEC_STACK

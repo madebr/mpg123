@@ -268,3 +268,5 @@ ASM_NAME(synth_1to1_s_neon_accurate_asm):
 	mov			sp, r7
 	vpop		{q4-q7}
 	pop			{r4-r7, pc}
+
+NONEXEC_STACK

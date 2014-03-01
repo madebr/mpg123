@@ -253,3 +253,5 @@ ASM_NAME(synth_1to1_s32_s_neon_asm):
 	mov			sp, r7
 	vpop		{q4-q7}
 	pop			{r4-r7, pc}
+
+NONEXEC_STACK

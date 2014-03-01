@@ -155,3 +155,5 @@ ASM_NAME(synth_1to1_real_neon_asm):
 
 	vpop		{q4-q7}
 	pop			{r4-r5, pc}
+
+NONEXEC_STACK
