@@ -29,11 +29,15 @@
 
 struct cpuflags
 {
+#if defined(OPT_ARM) || defined(OPT_NEON)
+	unsigned int has_neon;
+#else
 	unsigned int id;
 	unsigned int std;
 	unsigned int std2;
 	unsigned int ext;
 	unsigned int xcr0_lo;
+#endif
 };
 
 unsigned int getcpuflags(struct cpuflags* cf);
@@ -51,5 +55,6 @@ unsigned int getcpuflags(struct cpuflags* cf);
 #define cpu_avx(s) ((FLAG_AVX & s.std) == FLAG_AVX && (XCR0FLAG_AVX & s.xcr0_lo) == XCR0FLAG_AVX)
 #define cpu_fast_sse(s) ((((s.id & 0xf00)>>8) == 6 && FLAG_SSSE3 & s.std) /* for Intel/VIA; family 6 CPUs with SSSE3 */ || \
 						   (((s.id & 0xf00)>>8) == 0xf && (((s.id & 0x0ff00000)>>20) > 0 && ((s.id & 0x0ff00000)>>20) != 5))) /* for AMD; family > 0xF CPUs except Bobcat */
+#define cpu_neon(s) (s.has_neon)
 
 #endif

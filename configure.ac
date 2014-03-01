@@ -447,11 +447,11 @@ AC_ARG_ENABLE(real,
               ], [])
 
 AC_ARG_WITH([cpu], [
-  --with-cpu=generic[_fpu]      Use generic processor code with floating point arithmetic
+  --with-cpu=generic[[_fpu]]      Use generic processor code with floating point arithmetic
   --with-cpu=generic_float      Plain alias to generic_fpu now... float output is a normal runtime option!
   --with-cpu=generic_nofpu      Use generic processor code with fixed point arithmetic (p.ex. ARM)
   --with-cpu=generic_dither     Use generic processor code with floating point arithmetic and dithering for 1to1 16bit decoding.
-  --with-cpu=i386[_fpu]         Use code optimized for i386 processors with floating point arithmetic
+  --with-cpu=i386[[_fpu]]         Use code optimized for i386 processors with floating point arithmetic
   --with-cpu=i386_nofpu         Use code optimized for i386 processors with fixed point arithmetic
   --with-cpu=i486         Use code optimized for i486 processors (only usable alone!)
   --with-cpu=i586         Use code optimized for i586 processors
@@ -472,6 +472,7 @@ AC_ARG_WITH([cpu], [
   --with-cpu=altivec      Use code optimized for Altivec processors (PowerPC G4 and G5)
   --with-cpu=ppc_nofpu    Use code optimized for PowerPC processors with fixed point arithmetic
   --with-cpu=neon         Use code optimized for ARM NEON SIMD engine (Cortex-A series)
+  --with-cpu=arm_fpu      Pack neon and generic[[_dither]] decoders, for ARM processors with FPU and/or NEON
   --with-cpu=arm_nofpu    Use code optimized for ARM processors with fixed point arithmetic
 ])
 
@@ -492,9 +493,15 @@ fi
 
 newoldwritesample=disabled
 case $host in
+  arm*-*-linux*-*eabihf)
+    cpu_type="arm_fpu"
+  ;;
   arm*-*-linux*)
     # check that... perhaps we are better off on arm with kernel math emulation
     cpu_type="arm_nofpu"
+  ;;
+  armv7*-apple-darwin*)
+    cpu_type="arm_fpu"
   ;;
   i386-*-linux*|i386-*-kfreebsd*-gnu)
     cpu_type="i386_fpu"
@@ -1194,6 +1201,7 @@ s_x86multi="getcpuflags"
 s_x86_64_multi="getcpuflags_x86_64"
 s_dither="dither"
 s_neon="dct64_neon dct64_neon_float synth_neon_float synth_neon_s32 synth_stereo_neon_float synth_stereo_neon_s32"
+s_arm_multi="getcpuflags_arm"
 
 # choose optimized 16bit decoder for SSE, quality or fast
 # note: supporting deactivation of output formats for these decoders would need more logic here
@@ -1265,6 +1273,10 @@ dnl Not disabling buffer for float mode... check that this is OK now!
   neon)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_NEON -DREAL_IS_FLOAT"
     more_sources="$s_neon $s_fpu"
+  ;;
+  arm_fpu)
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_GENERIC_DITHER -DOPT_NEON -DREAL_IS_FLOAT"
+    more_sources="$s_neon $s_fpu $s_dither $s_arm_multi"
   ;;
   i386) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_I386 -DREAL_IS_FLOAT"

@@ -12,7 +12,7 @@
 #include "mpg123lib_intern.h" /* includes optimize.h */
 #include "debug.h"
 
-#if ((defined OPT_X86) || (defined OPT_X86_64)) && (defined OPT_MULTI)
+#if ((defined OPT_X86) || (defined OPT_X86_64) || (defined OPT_NEON)) && (defined OPT_MULTI)
 #include "getcpuflags.h"
 static struct cpuflags cpu_flags;
 #else
@@ -28,6 +28,7 @@ static struct cpuflags cpu_flags;
 #define cpu_sse2(s)     1
 #define cpu_sse3(s)     1
 #define cpu_avx(s)      1
+#define cpu_neon(s)     1
 #endif
 
 /* Ugly macros to build conditional synth function array values. */
@@ -774,23 +775,6 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 	}
 #endif
 
-#ifdef OPT_GENERIC_DITHER
-	if(!done && (auto_choose || want_dec == generic_dither))
-	{
-		chosen = "dithered generic";
-		fr->cpu_opts.type = generic_dither;
-		dithered = TRUE;
-#		ifndef NO_16BIT
-		fr->synths.plain[r_1to1][f_16] = synth_1to1_dither;
-#		ifndef NO_DOWNSAMPLE
-		fr->synths.plain[r_2to1][f_16] = synth_2to1_dither;
-		fr->synths.plain[r_4to1][f_16] = synth_4to1_dither;
-#		endif
-#		endif
-		done = 1;
-	}
-#endif
-
 #	ifdef OPT_ALTIVEC
 	if(!done && (auto_choose || want_dec == altivec))
 	{
@@ -813,7 +797,7 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 #	endif
 
 #	ifdef OPT_NEON
-	if(!done && (auto_choose || want_dec == neon))
+	if(!done && (auto_choose || want_dec == neon) && cpu_neon(cpu_flags))
 	{
 		chosen = dn_neon;
 		fr->cpu_opts.type = neon;
@@ -853,6 +837,23 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 		done = 1;
 	}
 #	endif
+
+#ifdef OPT_GENERIC_DITHER
+	if(!done && (auto_choose || want_dec == generic_dither))
+	{
+		chosen = "dithered generic";
+		fr->cpu_opts.type = generic_dither;
+		dithered = TRUE;
+#		ifndef NO_16BIT
+		fr->synths.plain[r_1to1][f_16] = synth_1to1_dither;
+#		ifndef NO_DOWNSAMPLE
+		fr->synths.plain[r_2to1][f_16] = synth_2to1_dither;
+		fr->synths.plain[r_4to1][f_16] = synth_4to1_dither;
+#		endif
+#		endif
+		done = 1;
+	}
+#endif
 
 	fr->cpu_opts.class = decclass(fr->cpu_opts.type);
 
@@ -1039,7 +1040,7 @@ void check_decoders(void )
 	return;
 #else
 	const char **d = mpg123_supported_decoder_list;
-#if (defined OPT_X86) || (defined OPT_X86_64)
+#if (defined OPT_X86) || (defined OPT_X86_64) || (defined OPT_NEON)
 	getcpuflags(&cpu_flags);
 #endif
 #ifdef OPT_X86
@@ -1097,7 +1098,7 @@ void check_decoders(void )
 	*(d++) = dn_arm;
 #endif
 #ifdef OPT_NEON
-	*(d++) = dn_neon;
+	if(cpu_neon(cpu_flags)) *(d++) = dn_neon;
 #endif
 #ifdef OPT_GENERIC
 	*(d++) = dn_generic;

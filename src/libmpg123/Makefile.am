@@ -148,6 +148,7 @@ EXTRA_libmpg123_la_SOURCES = \
 	stringbuf.c \
 	getcpuflags.S \
 	getcpuflags_x86_64.S \
+	getcpuflags_arm.c \
 	l12_integer_tables.h \
 	l3_integer_tables.h
 
