@@ -268,4 +268,5 @@
 #define synth_1to1_s32_s_neon_asm INT123_synth_1to1_s32_s_neon_asm
 #define costab_mmxsse INT123_costab_mmxsse
 #define make_decode_tables_mmx_asm INT123_make_decode_tables_mmx_asm
+#define check_neon INT123_check_neon
 #endif

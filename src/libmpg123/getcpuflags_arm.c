@@ -11,6 +11,8 @@
 #include "mpg123lib_intern.h"
 #include "getcpuflags.h"
 
+extern void check_neon(void);
+
 static sigjmp_buf jmpbuf;
 
 static void mpg123_arm_catch_sigill(int sig)
@@ -29,11 +31,7 @@ unsigned int getcpuflags(struct cpuflags* cf)
 	cf->has_neon = 0;
 	
 	if(!sigsetjmp(jmpbuf, 1)) {
-#ifdef __thumb__
-		__asm__ __volatile__(".byte 0x20, 0xef, 0x10, 0x01\n\t"); /* vorr d0, d0, d0 */
-#else
-		__asm__ __volatile__(".byte 0x10, 0x01, 0x20, 0xf2\n\t"); /* vorr d0, d0, d0 */
-#endif
+		check_neon();
 		cf->has_neon = 1;
 	}
 	
