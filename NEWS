@@ -5,6 +5,7 @@
 - Added --with-cpu=arm_fpu as decoder choice for runtime switch between plain fpu code and NEON.
 - Fix ARM builds to work properly on debian systems without special CFLAGS (NEON decoder, specifically).
 - Make scripts/benchmark-cpu.pl check the return value instead of delivering crazy timings for crashed mpg123.
+- Trigger track initialization in mpg123_info() to avoid use of uninitialized variables (watch out for MPG123_NEED_MORE return value!).
 
 1.18.1
 ---
