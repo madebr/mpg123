@@ -123,6 +123,7 @@
 #define dct36_sse INT123_dct36_sse
 #define dct36_x86_64 INT123_dct36_x86_64
 #define dct36_avx INT123_dct36_avx
+#define dct36_neon INT123_dct36_neon
 #define synth_ntom_set_step INT123_synth_ntom_set_step
 #define ntom_val INT123_ntom_val
 #define ntom_frame_outsamples INT123_ntom_frame_outsamples

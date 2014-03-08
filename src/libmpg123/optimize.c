@@ -510,7 +510,7 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 	fr->cpu_opts.type = nodec;
 #ifdef OPT_MULTI
 #ifndef NO_LAYER3
-#if (defined OPT_3DNOW_VINTAGE || defined OPT_3DNOWEXT_VINTAGE || defined OPT_SSE || defined OPT_X86_64 || defined OPT_AVX)
+#if (defined OPT_3DNOW_VINTAGE || defined OPT_3DNOWEXT_VINTAGE || defined OPT_SSE || defined OPT_X86_64 || defined OPT_AVX || defined OPT_NEON)
 	fr->cpu_opts.the_dct36 = dct36;
 #endif
 #endif
@@ -801,6 +801,11 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 	{
 		chosen = dn_neon;
 		fr->cpu_opts.type = neon;
+#ifdef OPT_MULTI
+#		ifndef NO_LAYER3
+		fr->cpu_opts.the_dct36 = dct36_neon;
+#		endif
+#endif
 #		ifndef NO_16BIT
 		fr->synths.plain[r_1to1][f_16] = synth_1to1_neon;
 		fr->synths.stereo[r_1to1][f_16] = synth_1to1_stereo_neon;

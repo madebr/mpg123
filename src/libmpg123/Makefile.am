@@ -87,6 +87,7 @@ EXTRA_libmpg123_la_SOURCES = \
 	dct36_sse.S \
 	dct36_x86_64.S \
 	dct36_avx.S \
+	dct36_neon.S \
 	dct64_3dnowext.S \
 	dct64_3dnow.S \
 	dct64_altivec.c \

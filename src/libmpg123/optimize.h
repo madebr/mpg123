@@ -348,6 +348,7 @@ extern const int costab_mmxsse[];
 #define OPT_MMXORSSE
 #ifndef OPT_MULTI
 #	define defopt neon
+#	define opt_dct36(fr) dct36_neon
 #endif
 #endif
 
@@ -364,7 +365,7 @@ void check_decoders(void);
 
 #	define defopt nodec
 
-#	if (defined OPT_3DNOW_VINTAGE || defined OPT_3DNOWEXT_VINTAGE || defined OPT_SSE || defined OPT_X86_64 || defined OPT_AVX)
+#	if (defined OPT_3DNOW_VINTAGE || defined OPT_3DNOWEXT_VINTAGE || defined OPT_SSE || defined OPT_X86_64 || defined OPT_AVX || defined OPT_NEON)
 #		define opt_dct36(fr) ((fr)->cpu_opts.the_dct36)
 #	endif
 

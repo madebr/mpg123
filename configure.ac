@@ -1200,7 +1200,7 @@ s_x86_64_avx="dct36_avx dct64_avx dct64_avx_float synth_stereo_avx_float synth_s
 s_x86multi="getcpuflags"
 s_x86_64_multi="getcpuflags_x86_64"
 s_dither="dither"
-s_neon="dct64_neon dct64_neon_float synth_neon_float synth_neon_s32 synth_stereo_neon_float synth_stereo_neon_s32"
+s_neon="dct36_neon dct64_neon dct64_neon_float synth_neon_float synth_neon_s32 synth_stereo_neon_float synth_stereo_neon_s32"
 s_arm_multi="getcpuflags_arm check_neon"
 
 # choose optimized 16bit decoder for SSE, quality or fast

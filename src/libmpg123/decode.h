@@ -204,6 +204,7 @@ void dct36_3dnowext(real *,real *,real *,real *,real *);
 void dct36_x86_64  (real *,real *,real *,real *,real *);
 void dct36_sse     (real *,real *,real *,real *,real *);
 void dct36_avx     (real *,real *,real *,real *,real *);
+void dct36_neon     (real *,real *,real *,real *,real *);
 
 /* Tools for NtoM resampling synth, defined in ntom.c . */
 int synth_ntom_set_step(mpg123_handle *fr); /* prepare ntom decoding */
