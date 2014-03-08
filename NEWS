@@ -6,6 +6,8 @@
 - Fix ARM builds to work properly on debian systems without special CFLAGS (NEON decoder, specifically).
 - Make scripts/benchmark-cpu.pl check the return value instead of delivering crazy timings for crashed mpg123.
 - Trigger track initialization in mpg123_info() to avoid use of uninitialized variables (watch out for MPG123_NEED_MORE return value!).
+- Fix integer code to 32 bit numbers where it would waste 64 bit on modern systems.
+- Add non-executable stack marking also to ARM assembly.
 
 1.18.1
 ---
