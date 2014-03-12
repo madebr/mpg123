@@ -1192,15 +1192,15 @@ if test "x$layer3" = "xenabled"; then
   s_3dnowext_vintage="$s_3dnowext_vintage dct36_3dnowext"
 fi
 s_mmx="$s_i386 dct64_mmx tabinit_mmx synth_mmx"
-s_sse_vintage="$s_i386 tabinit_mmx dct64_sse dct64_sse_float synth_sse_float synth_stereo_sse_float synth_sse_s32 synth_stereo_sse_s32 "
+s_sse_vintage="$s_i386 tabinit_mmx dct64_sse_float synth_sse_float synth_stereo_sse_float synth_sse_s32 synth_stereo_sse_s32 "
 s_sse="$s_sse_vintage dct36_sse"
-s_x86_64="dct36_x86_64 dct64_x86_64 dct64_x86_64_float synth_x86_64_float synth_x86_64_s32 synth_stereo_x86_64_float synth_stereo_x86_64_s32"
+s_x86_64="dct36_x86_64 dct64_x86_64_float synth_x86_64_float synth_x86_64_s32 synth_stereo_x86_64_float synth_stereo_x86_64_s32"
 s_x86_64_mono_synths="synth_x86_64_float synth_x86_64_s32"
-s_x86_64_avx="dct36_avx dct64_avx dct64_avx_float synth_stereo_avx_float synth_stereo_avx_s32"
+s_x86_64_avx="dct36_avx dct64_avx_float synth_stereo_avx_float synth_stereo_avx_s32"
 s_x86multi="getcpuflags"
 s_x86_64_multi="getcpuflags_x86_64"
 s_dither="dither"
-s_neon="dct36_neon dct64_neon dct64_neon_float synth_neon_float synth_neon_s32 synth_stereo_neon_float synth_stereo_neon_s32"
+s_neon="dct36_neon dct64_neon_float synth_neon_float synth_neon_s32 synth_stereo_neon_float synth_stereo_neon_s32"
 s_arm_multi="getcpuflags_arm check_neon"
 
 # choose optimized 16bit decoder for SSE, quality or fast
@@ -1214,13 +1214,13 @@ if test "x$integers" = "xquality"; then
   s_arm="synth_arm_accurate"
   s_neon="$s_neon synth_neon_accurate synth_stereo_neon_accurate"
 else
-  s_sse="$s_sse synth_sse" # no stereo
-  s_sse_vintage="$s_sse_vintage synth_sse" # no stereo
-  s_x86_64="$s_x86_64 synth_x86_64 synth_stereo_x86_64"
+  s_sse="$s_sse dct64_sse synth_sse" # no stereo
+  s_sse_vintage="$s_sse_vintage dct64_sse synth_sse" # no stereo
+  s_x86_64="$s_x86_64 synth_x86_64 dct64_x86_64 synth_stereo_x86_64"
   s_x86_64_mono_synths="$s_x86_64_mono_synths synth_x86_64"
-  s_x86_64_avx="$s_x86_64_avx synth_stereo_avx"
+  s_x86_64_avx="$s_x86_64_avx dct64_avx synth_stereo_avx"
   s_arm="synth_arm"
-  s_neon="$s_neon synth_neon synth_stereo_neon"
+  s_neon="$s_neon dct64_neon synth_neon synth_stereo_neon"
 fi
 
 dnl CPU specific compiler flags and sources
