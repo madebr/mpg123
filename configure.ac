@@ -474,6 +474,8 @@ AC_ARG_WITH([cpu], [
   --with-cpu=neon         Use code optimized for ARM NEON SIMD engine (Cortex-A series)
   --with-cpu=arm_fpu      Pack neon and generic[[_dither]] decoders, for ARM processors with FPU and/or NEON
   --with-cpu=arm_nofpu    Use code optimized for ARM processors with fixed point arithmetic
+  --with-cpu=neon64       Use code optimized for AArch64 NEON SIMD engine
+  --with-cpu=aarch64      Pack neon64 and generic[[_dither]] decoders, for 64bit ARM processors
 ])
 
 
@@ -493,6 +495,12 @@ fi
 
 newoldwritesample=disabled
 case $host in
+  aarch64-*-linux*|arm64-*-linux*)
+    cpu_type="aarch64"
+  ;;
+  aarch64-apple-darwin*|arm64-apple-darwin*)
+    cpu_type="aarch64"
+  ;;
   arm*-*-linux*-*eabihf)
     cpu_type="arm_fpu"
   ;;
@@ -1201,6 +1209,7 @@ s_x86multi="getcpuflags"
 s_x86_64_multi="getcpuflags_x86_64"
 s_dither="dither"
 s_neon="dct36_neon dct64_neon_float synth_neon_float synth_neon_s32 synth_stereo_neon_float synth_stereo_neon_s32"
+s_neon64="dct36_neon64 dct64_neon64_float synth_neon64_float synth_neon64_s32 synth_stereo_neon64_float synth_stereo_neon64_s32"
 s_arm_multi="getcpuflags_arm check_neon"
 
 # choose optimized 16bit decoder for SSE, quality or fast
@@ -1213,6 +1222,7 @@ if test "x$integers" = "xquality"; then
   s_x86_64_avx="$s_x86_64_avx synth_stereo_avx_accurate"
   s_arm="synth_arm_accurate"
   s_neon="$s_neon synth_neon_accurate synth_stereo_neon_accurate"
+  s_neon64="$s_neon64 synth_neon64_accurate synth_stereo_neon64_accurate"
 else
   s_sse="$s_sse dct64_sse synth_sse" # no stereo
   s_sse_vintage="$s_sse_vintage dct64_sse synth_sse" # no stereo
@@ -1221,6 +1231,7 @@ else
   s_x86_64_avx="$s_x86_64_avx dct64_avx synth_stereo_avx"
   s_arm="synth_arm"
   s_neon="$s_neon dct64_neon synth_neon synth_stereo_neon"
+  s_neon64="$s_neon64 dct64_neon64 synth_neon64 synth_stereo_neon64"
 fi
 
 dnl CPU specific compiler flags and sources
@@ -1277,6 +1288,14 @@ dnl Not disabling buffer for float mode... check that this is OK now!
   arm_fpu)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_GENERIC_DITHER -DOPT_NEON -DREAL_IS_FLOAT"
     more_sources="$s_neon $s_fpu $s_dither $s_arm_multi"
+  ;;
+  neon64)
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_NEON64 -DREAL_IS_FLOAT"
+    more_sources="$s_neon64 $s_fpu"
+  ;;
+  aarch64)
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_GENERIC_DITHER -DOPT_NEON64 -DREAL_IS_FLOAT"
+    more_sources="$s_neon64 $s_fpu $s_dither $s_arm_multi"
   ;;
   i386) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_I386 -DREAL_IS_FLOAT"

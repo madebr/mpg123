@@ -88,6 +88,7 @@ EXTRA_libmpg123_la_SOURCES = \
 	dct36_x86_64.S \
 	dct36_avx.S \
 	dct36_neon.S \
+	dct36_neon64.S \
 	dct64_3dnowext.S \
 	dct64_3dnow.S \
 	dct64_altivec.c \
@@ -100,6 +101,8 @@ EXTRA_libmpg123_la_SOURCES = \
 	dct64_x86_64_float.S \
 	dct64_neon.S \
 	dct64_neon_float.S \
+	dct64_neon64.S \
+	dct64_neon64_float.S \
 	dct64_avx.S \
 	dct64_avx_float.S \
 	synth_3dnowext.S \
@@ -135,6 +138,14 @@ EXTRA_libmpg123_la_SOURCES = \
 	synth_stereo_neon_float.S \
 	synth_stereo_neon_s32.S \
 	synth_stereo_neon_accurate.S \
+	synth_neon64.S \
+	synth_neon64_float.S \
+	synth_neon64_s32.S \
+	synth_neon64_accurate.S \
+	synth_stereo_neon64.S \
+	synth_stereo_neon64_float.S \
+	synth_stereo_neon64_s32.S \
+	synth_stereo_neon64_accurate.S \
 	synth_stereo_avx.S \
 	synth_stereo_avx_float.S \
 	synth_stereo_avx_s32.S \
