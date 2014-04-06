@@ -501,7 +501,7 @@ case $host in
   aarch64-apple-darwin*|arm64-apple-darwin*)
     cpu_type="aarch64"
   ;;
-  arm*-*-linux*-*eabihf)
+  arm*-*-linux*-*eabihf|armv7hl*-*-linux*)
     cpu_type="arm_fpu"
   ;;
   arm*-*-linux*)
