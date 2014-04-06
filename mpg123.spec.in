@@ -34,7 +34,7 @@ Libraries and header files for development with mpg123.
 %setup -q -n %name-%version
 
 %build
-%configure --with-cpu=x86_dither --enable-shared --enable-static --disable-ltdl-install
+%configure --enable-shared --enable-static --disable-ltdl-install
 make
 
 %install
