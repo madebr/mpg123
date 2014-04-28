@@ -51,6 +51,7 @@ void win32_cmdline_free(int argc, char **argv)
 }
 #endif /* WANT_WIN32_UNICODE */
 
+#ifdef _WIN32
 void win32_set_priority (const int arg)
 {
 	DWORD proc_result = 0;
@@ -74,6 +75,7 @@ void win32_set_priority (const int arg)
 		else fprintf(stderr,"GetCurrentProcess failed\n");
 	}
 }
+#endif
 
 #ifdef WANT_WIN32_FIFO
 static HANDLE fifohandle;
