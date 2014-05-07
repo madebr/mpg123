@@ -71,14 +71,14 @@ mpg123_SOURCES = \
 	xfermem.c \
 	xfermem.h
 
-# This list is to be reduced after factoring out mpg123-specific bits,
-# starting in common.c (that chains in control_generic.c and a whole lot).
+# Replace common.h by sysutil.h!
 out123_SOURCES = \
 	audio.c \
 	audio.h \
 	buffer.c \
 	buffer.h \
 	sysutil.c \
+	sysutil.h \
 	common.h \
 	libmpg123/compat.c \
 	libmpg123/compat.h \
