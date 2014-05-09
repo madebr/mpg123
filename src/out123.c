@@ -51,6 +51,13 @@ static void want_long_usage(char* arg);
 static void print_title(FILE* o);
 static void give_version(char* arg);
 
+static FILE* input = NULL;
+size_t pcmblock = 1152; /* samples (pcm frames) we treat en bloc */
+/* To be set after settling format. */
+size_t pcmframe = 0;
+unsigned char *audio = NULL;
+
+
 struct parameter param = { 
   FALSE , /* aggressiv */
   FALSE , /* shuffle */
@@ -99,7 +106,7 @@ struct parameter param = {
 	,-1 /* frame_number */
 	,0 /* outscale */
 	,0 /* flags */
-	,0 /* force_rate */
+	,44100 /* force_rate */
 	,1 /* ICY */
 	,1024 /* resync_limit */
 	,0 /* smooth */
@@ -109,7 +116,7 @@ struct parameter param = {
 	,0 /* keep_open */
 	,0 /* force_utf8 */
 	,INDEX_SIZE
-	,NULL /* force_encoding */
+	,"s16" /* force_encoding */
 	,1. /* preload */
 	,-1 /* preframes */
 	,-1 /* gain */
@@ -160,6 +167,7 @@ void safe_exit(int code)
 	/* It's ugly... but let's just fix this still-reachable memory chunk of static char*. */
 	split_dir_file("", &dummy, &dammy);
 	if(fullprogname) free(fullprogname);
+	if(audio) free(audio);
 	exit(code);
 }
 
@@ -460,11 +468,6 @@ static void reset_audio(long rate, int channels, int format)
 #endif
 }
 
-static FILE* input = NULL;
-size_t pcmblock = 1152; /* samples (pcm frames) we treat en bloc */
-size_t pcmframe = 4; /* fixed to stereo 16 bit for now */
-unsigned char audio[4*1152];
-
 /* return 1 on success, 0 on failure */
 int play_frame(void)
 {
@@ -499,6 +502,9 @@ void buffer_drain(void)
 #endif
 }
 
+/* Hack: A hidden function in audio.c just for me. */
+int audio_enc_name2code(const char* name);
+
 int main(int sys_argc, char ** sys_argv)
 {
 	int result;
@@ -506,6 +512,8 @@ int main(int sys_argc, char ** sys_argv)
 	long parr;
 	char *fname;
 	int libpar = 0;
+	int encoding;
+	size_t channels;
 	mpg123_pars *mp;
 #if defined (WANT_WIN32_UNICODE)
 	if(win32_cmdline_utf8(&argc, &argv) != 0)
@@ -554,7 +562,19 @@ int main(int sys_argc, char ** sys_argv)
 			usage(1);
 	}
 
+	encoding = audio_enc_name2code(param.force_encoding);
+	channels = 2;
+	if(frameflag & MPG123_FORCE_MONO) channels = 1;
+	if(!encoding)
+	{
+		error1("Unknown encoding '%s' given!\n", param.force_encoding);
+		safe_exit(1);
+	}
+	pcmframe = mpg123_encsize(encoding)*channels;
 	bufferblock = pcmblock*pcmframe;
+	audio = (unsigned char*) malloc(bufferblock);
+
+	/* This needs bufferblock set! */
 	if(init_output(&ao) < 0)
 	{
 		error("Failed to initialize output, goodbye.");
@@ -562,12 +582,28 @@ int main(int sys_argc, char ** sys_argv)
 	}
 	have_output = TRUE;
 
-
-
 	fprintf(stderr, "TODO: Check audio caps, add option to display 'em.\n");
 	/* audio_capabilities(ao, mh); */
+	/*
+		This is in audio_capabilities(), buffer must be told to leave config mode.
+		We don't ask capabilities in normal playback operation, but there'll be
+		an extra mode of operation to query if an audio device supports a certain
+		format, or indeed the whole matrix. Actually, we usually got independent
+		support for certain encodings and for certain rates and channels. Could
+		remodel the interface for that, as we're not thinking about fixed MPEG
+		rates.
+	*/
+#ifndef NOXFERMEM
+	/* Buffer loop shall start normal operation now. */
+	if(param.usebuffer)
+	{
+		xfermem_putcmd(buffermem->fd[XF_WRITER], XF_CMD_WAKEUP);
+		xfermem_getcmd(buffermem->fd[XF_WRITER], TRUE);
+	}
+#endif
 
-	reset_audio(44100, 2, MPG123_ENC_SIGNED_16);
+	reset_audio(param.force_rate, channels, encoding);
+
 	input = stdin;
 	while(play_frame())
 	{
