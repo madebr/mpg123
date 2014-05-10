@@ -365,6 +365,7 @@ topt opts[] = {
 	{'a', "audiodevice", GLO_ARG | GLO_CHAR, 0, &param.output_device,  0},
 #ifndef NOXFERMEM
 	{'b', "buffer",      GLO_ARG | GLO_LONG, 0, &param.usebuffer,  0},
+	{0, "preload", GLO_ARG|GLO_DOUBLE, 0, &param.preload, 0},
 #endif
 #ifdef HAVE_SETPRIORITY
 	{0,   "aggressive",	 GLO_INT,  0, &param.aggressive, 2},
