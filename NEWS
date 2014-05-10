@@ -1,3 +1,13 @@
+1.20.0
+---
+- Added NEON optimized decoder for AArch64 (ARM 64bit environment)
+  - enabled for --with-cpu=neon64 (NEON only) or --with-cpu=aarch64 (runtime switch between neon and generic_fpu, like arm_fpu) configuration
+  - compatible with aarch64-linux-gnu toolchains (from Ubuntu, debian) and Xcode 5
+- Added new binary out123 only with the audio output part of mpg123.
+  This is a precursor to separating out said code into a simple audio output library. It also allows plugging in some processing in a pipe before feeding to output.
+- Prevent opendir(NULL) for unknown module directory when listing modules.
+- some build fixes
+
 1.19.0
 ---
 - Support float and 32/24 bit integer output also with fixed-point decoders (conversion from 16 bit precision).
