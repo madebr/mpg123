@@ -103,6 +103,7 @@ mpg123_build()
 	rm -rf "$final/$name" &&
 	mkdir  "$final/$name" &&
 	cp -v "$tmp/bin/mpg123.exe" "$final/$name" &&
+	cp -v "$tmp/bin/out123.exe" "$final/$name" &&
 	if test "$debug" = y; then
 		echo "Not stripping the debug build..."
 	else
