@@ -38,6 +38,15 @@
 #include <string.h>
 #include <time.h>
 
+#ifdef HAVE_SCHED_H
+#include <sched.h>
+#endif
+
+/* be paranoid about setpriority support */
+#ifndef PRIO_PROCESS
+#undef HAVE_SETPRIORITY
+#endif
+
 #include "common.h"
 #include "getlopt.h"
 #include "buffer.h"
@@ -301,6 +310,13 @@ static void set_out_stdout1(char *arg)
 	#endif
 }
 
+#if !defined (HAVE_SCHED_SETSCHEDULER) && !defined (HAVE_WINDOWS_H)
+static void realtime_not_compiled(char *arg)
+{
+	fprintf(stderr,"Option '-T / --realtime' not compiled into this binary.\n");
+}
+#endif
+
 static int frameflag; /* ugly, but that's the way without hacking getlopt */
 static void set_frameflag(char *arg)
 {
@@ -332,91 +348,43 @@ passed.
  *  GLO_NUM no longer exists.
  */
 topt opts[] = {
-	{'k', "skip",        GLO_ARG | GLO_LONG, 0, &param.start_frame, 0},
-	{'2', "2to1",        GLO_INT,  0, &param.down_sample, 1},
-	{'4', "4to1",        GLO_INT,  0, &param.down_sample, 2},
 	{'t', "test",        GLO_INT,  0, &param.outmode, DECODE_TEST},
 	{'s', "stdout",      GLO_INT,  set_out_stdout, &param.outmode, DECODE_FILE},
 	{'S', "STDOUT",      GLO_INT,  set_out_stdout1, &param.outmode,DECODE_AUDIOFILE},
 	{'O', "outfile",     GLO_ARG | GLO_CHAR, set_out_file, NULL, 0},
-	{'c', "check",       GLO_INT,  0, &param.checkrange, TRUE},
 	{'v', "verbose",     0,        set_verbose, 0,           0},
 	{'q', "quiet",       0,        set_quiet,   0,           0},
-	{'y', "no-resync",      GLO_INT,  set_frameflag, &frameflag, MPG123_NO_RESYNC},
-	/* compatibility, no-resync is to be used nowadays */
-	{0, "resync",      GLO_INT,  set_frameflag, &frameflag, MPG123_NO_RESYNC},
-	{'0', "single0",     GLO_INT,  set_frameflag, &frameflag, MPG123_MONO_LEFT},
-	{0,   "left",        GLO_INT,  set_frameflag, &frameflag, MPG123_MONO_LEFT},
-	{'1', "single1",     GLO_INT,  set_frameflag, &frameflag, MPG123_MONO_RIGHT},
-	{0,   "right",       GLO_INT,  set_frameflag, &frameflag, MPG123_MONO_RIGHT},
-	{'m', "singlemix",   GLO_INT,  set_frameflag, &frameflag, MPG123_MONO_MIX},
-	{0,   "mix",         GLO_INT,  set_frameflag, &frameflag, MPG123_MONO_MIX},
-	{0,   "mono",        GLO_INT,  set_frameflag, &frameflag, MPG123_MONO_MIX},
+	{'m',  "mono",        GLO_INT,  set_frameflag, &frameflag, MPG123_MONO_MIX},
 	{0,   "stereo",      GLO_INT,  set_frameflag, &frameflag, MPG123_FORCE_STEREO},
-	{0,   "reopen",      GLO_INT,  0, &param.force_reopen, 1},
-	{'g', "gain",        GLO_ARG | GLO_LONG, 0, &param.gain,    0},
 	{'r', "rate",        GLO_ARG | GLO_LONG, 0, &param.force_rate,  0},
-	{0,   "8bit",        GLO_INT,  set_frameflag, &frameflag, MPG123_FORCE_8BIT},
-	{0,   "float",       GLO_INT,  set_frameflag, &frameflag, MPG123_FORCE_FLOAT},
 	{0,   "headphones",  0,                  set_output_h, 0,0},
 	{0,   "speaker",     0,                  set_output_s, 0,0},
 	{0,   "lineout",     0,                  set_output_l, 0,0},
 	{'o', "output",      GLO_ARG | GLO_CHAR, set_output, 0,  0},
 	{0,   "list-modules",0,        list_modules, NULL,  0}, 
 	{'a', "audiodevice", GLO_ARG | GLO_CHAR, 0, &param.output_device,  0},
-	{'f', "scale",       GLO_ARG | GLO_LONG, 0, &param.outscale,   0},
-	{'n', "frames",      GLO_ARG | GLO_LONG, 0, &param.frame_number,  0},
 #ifndef NOXFERMEM
 	{'b', "buffer",      GLO_ARG | GLO_LONG, 0, &param.usebuffer,  0},
-	{0,  "smooth",      GLO_INT,  0, &param.smooth, 1},
 #endif
-	{'R', "remote",      GLO_INT,  0, &param.remote, TRUE},
-	{0,   "remote-err",  GLO_INT,  0, &param.remote_err, TRUE},
-	{'d', "doublespeed", GLO_ARG | GLO_LONG, 0, &param.doublespeed, 0},
-	{'h', "halfspeed",   GLO_ARG | GLO_LONG, 0, &param.halfspeed, 0},
-	{'p', "proxy",       GLO_ARG | GLO_CHAR, 0, &param.proxyurl,   0},
-	{'@', "list",        GLO_ARG | GLO_CHAR, 0, &param.listname,   0},
-	/* 'z' comes from the the german word 'zufall' (eng: random) */
-	{'z', "shuffle",     GLO_INT,  0, &param.shuffle, 1},
-	{'Z', "random",      GLO_INT,  0, &param.shuffle, 2},
-	{'E', "equalizer",	 GLO_ARG | GLO_CHAR, 0, &equalfile,1},
-	{0, "title",         GLO_INT,  0, &param.xterm_title, TRUE },
+#ifdef HAVE_SETPRIORITY
+	{0,   "aggressive",	 GLO_INT,  0, &param.aggressive, 2},
+#endif
+#if defined (HAVE_SCHED_SETSCHEDULER) || defined (HAVE_WINDOWS_H)
+	/* check why this should be a long variable instead of int! */
+	{'T', "realtime",    GLO_LONG,  0, &param.realtime, TRUE },
+#else
+	{'T', "realtime",    0,  realtime_not_compiled, 0,           0 },    
+#endif
+#ifdef HAVE_WINDOWS_H
+	{0, "priority", GLO_ARG | GLO_INT, 0, &param.w32_priority, 0},
+#endif
 	{'w', "wav",         GLO_ARG | GLO_CHAR, set_out_wav, 0, 0 },
 	{0, "cdr",           GLO_ARG | GLO_CHAR, set_out_cdr, 0, 0 },
 	{0, "au",            GLO_ARG | GLO_CHAR, set_out_au, 0, 0 },
-	{0,   "gapless",	 GLO_INT,  set_frameflag, &frameflag, MPG123_GAPLESS},
-	{0,   "no-gapless", GLO_INT, unset_frameflag, &frameflag, MPG123_GAPLESS},
 	{'?', "help",            0,  want_usage, 0,           0 },
 	{0 , "longhelp" ,        0,  want_long_usage, 0,      0 },
 	{0 , "version" ,         0,  give_version, 0,         0 },
-	{'l', "listentry",       GLO_ARG | GLO_LONG, 0, &param.listentry, 0 },
-	{0, "continue", GLO_INT, set_appflag, &appflag, MPG123APP_CONTINUE },
-	{0, "rva-mix",         GLO_INT,  0, &param.rva, 1 },
-	{0, "rva-radio",         GLO_INT,  0, &param.rva, 1 },
-	{0, "rva-album",         GLO_INT,  0, &param.rva, 2 },
-	{0, "rva-audiophile",         GLO_INT,  0, &param.rva, 2 },
-	{0, "no-icy-meta",      GLO_INT,  0, &param.talk_icy, 0 },
-	{0, "long-tag",         GLO_INT,  0, &param.long_id3, 1 },
-	{0, "timeout", GLO_ARG | GLO_LONG, 0, &param.timeout, 0},
-	{0, "loop", GLO_ARG | GLO_LONG, 0, &param.loop, 0},
-	{'i', "index", GLO_INT, 0, &param.index, 1},
-	{'D', "delay", GLO_ARG | GLO_INT, 0, &param.delay, 0},
-	{0, "resync-limit", GLO_ARG | GLO_LONG, 0, &param.resync_limit, 0},
-	{0, "pitch", GLO_ARG|GLO_DOUBLE, 0, &param.pitch, 0},
-	{0, "ignore-mime", GLO_INT, set_appflag, &appflag, MPG123APP_IGNORE_MIME },
-	{0, "lyrics", GLO_INT, set_appflag, &appflag, MPG123APP_LYRICS},
-	{0, "keep-open", GLO_INT, 0, &param.keep_open, 1},
-	{0, "utf8", GLO_INT, 0, &param.force_utf8, 1},
-	{0, "fuzzy", GLO_INT,  set_frameflag, &frameflag, MPG123_FUZZY},
-	{0, "index-size", GLO_ARG|GLO_LONG, 0, &param.index_size, 0},
-	{0, "no-seekbuffer", GLO_INT, unset_frameflag, &frameflag, MPG123_SEEKBUFFER},
 	{'e', "encoding", GLO_ARG|GLO_CHAR, 0, &param.force_encoding, 0},
-	{0, "preload", GLO_ARG|GLO_DOUBLE, 0, &param.preload, 0},
-	{0, "preframes", GLO_ARG|GLO_LONG, 0, &param.preframes, 0},
-	{0, "skip-id3v2", GLO_INT, set_frameflag, &frameflag, MPG123_SKIP_ID3V2},
-	{0, "streamdump", GLO_ARG|GLO_CHAR, 0, &param.streamdump, 0},
-	{0, "icy-interval", GLO_ARG|GLO_LONG, 0, &param.icy_interval, 0},
-	{0, "ignore-streamlength", GLO_INT, set_frameflag, &frameflag, MPG123_IGNORE_STREAMLENGTH},
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -562,6 +530,35 @@ int main(int sys_argc, char ** sys_argv)
 			usage(1);
 	}
 
+#ifdef HAVE_SETPRIORITY
+	if(param.aggressive) { /* tst */
+		int mypid = getpid();
+		if(!param.quiet) fprintf(stderr,"Aggressively trying to increase priority.\n");
+		if(setpriority(PRIO_PROCESS,mypid,-20))
+			error("Failed to aggressively increase priority.\n");
+	}
+#endif
+
+#if defined (HAVE_SCHED_SETSCHEDULER) && !defined (__CYGWIN__) && !defined (HAVE_WINDOWS_H)
+/* Cygwin --realtime seems to fail when accessing network, using win32 set priority instead */
+/* MinGW may have pthread installed, we prefer win32API */
+	if (param.realtime)
+	{  /* Get real-time priority */
+		struct sched_param sp;
+		if(!param.quiet) fprintf(stderr,"Getting real-time priority\n");
+		memset(&sp, 0, sizeof(struct sched_param));
+		sp.sched_priority = sched_get_priority_min(SCHED_FIFO);
+		if (sched_setscheduler(0, SCHED_RR, &sp) == -1)
+			error("Can't get realtime priority\n");
+	}
+#endif
+
+/* make sure not Cygwin, it doesn't need it */
+#if defined(WIN32) && defined(HAVE_WINDOWS_H)
+	/* argument "3" is equivalent to realtime priority class */
+	win32_set_priority( param.realtime ? 3 : param.w32_priority);
+#endif
+
 	encoding = audio_enc_name2code(param.force_encoding);
 	channels = 2;
 	if(frameflag & MPG123_FORCE_MONO) channels = 1;
@@ -622,8 +619,8 @@ int main(int sys_argc, char ** sys_argv)
 
 static void print_title(FILE *o)
 {
-	fprintf(o, "High Performance MPEG 1.0/2.0/2.5 Audio Player for Layers 1, 2 and 3\n");
-	fprintf(o, "\tversion %s; written and copyright by Michael Hipp and others\n", PACKAGE_VERSION);
+	fprintf(o, "Simple audio output with raw PCM input\n");
+	fprintf(o, "\tversion %s; derived from mpg123 by Michael Hipp and others\n", PACKAGE_VERSION);
 	fprintf(o, "\tfree software (LGPL) without any warranty but with best wishes\n");
 }
 
@@ -638,39 +635,18 @@ static void usage(int err)  /* print syntax & exit */
 	print_title(o);
 	fprintf(o,"\nusage: %s [option(s)] [file(s) | URL(s) | -]\n", prgName);
 	fprintf(o,"supported options [defaults in brackets]:\n");
-	fprintf(o,"   -v    increase verbosity level       -q    quiet (don't print title)\n");
+	fprintf(o,"   -v    increase verbosity level       -q    quiet (only print errors)\n");
 	fprintf(o,"   -t    testmode (no output)           -s    write to stdout\n");
-	fprintf(o,"   -w <filename> write Output as WAV file\n");
-	fprintf(o,"   -k n  skip first n frames [0]        -n n  decode only n frames [all]\n");
-	fprintf(o,"   -c    check range violations         -y    DISABLE resync on errors\n");
-	fprintf(o,"   -b n  output buffer: n Kbytes [0]    -f n  change scalefactor [%li]\n", param.outscale);
-	fprintf(o,"   -r n  set/force samplerate [auto]\n");
-	fprintf(o,"   -os,-ol,-oh  output to built-in speaker,line-out connector,headphones\n");
-	#ifdef NAS
-	fprintf(o,"                                        -a d  set NAS server\n");
-	#elif defined(SGI)
-	fprintf(o,"                                        -a [1..4] set RAD device\n");
-	#else
-	fprintf(o,"                                        -a d  set audio device\n");
-	#endif
-	fprintf(o,"   -2    downsample 1:2 (22 kHz)        -4    downsample 1:4 (11 kHz)\n");
-	fprintf(o,"   -d n  play every n'th frame only     -h n  play every frame n times\n");
-	fprintf(o,"   -0    decode channel 0 (left) only   -1    decode channel 1 (right) only\n");
-	fprintf(o,"   -m    mix both channels (mono)       -p p  use HTTP proxy p [$HTTP_PROXY]\n");
+	fprintf(o,"   -w f  write output as WAV file\n");
+	fprintf(o,"   -b n  output buffer: n Kbytes [0]                                  \n", param.outscale);
+	fprintf(o,"   -r n  set samplerate [44100]\n");
+	fprintf(o,"   -o m  select output module           -a d  set audio device\n");
+	fprintf(o,"   -m    single-channel (mono) instead of stereo\n");
 	#ifdef HAVE_SCHED_SETSCHEDULER
-	fprintf(o,"   -@ f  read filenames/URLs from f     -T get realtime priority\n");
-	#else
-	fprintf(o,"   -@ f  read filenames/URLs from f\n");
+	fprintf(o,"   -T get realtime priority\n");
 	#endif
-	fprintf(o,"   -z    shuffle play (with wildcards)  -Z    random play\n");
-	fprintf(o,"   -u a  HTTP authentication string     -E f  Equalizer, data from file\n");
-#ifdef HAVE_TERMIOS
-	fprintf(o,"   -C    enable control keys            --no-gapless  not skip junk/padding in mp3s\n");
-#else
-	fprintf(o,"                                        --no-gapless  not skip junk/padding in mp3s\n");
-#endif
 	fprintf(o,"   -?    this help                      --version  print name + version\n");
-	fprintf(o,"See the manpage %s(1) or call %s with --longhelp for more parameters and information.\n", prgName,prgName);
+	fprintf(o,"See the manpage out123(1) or call %s with --longhelp for more parameters and information.\n", prgName);
 	safe_exit(err);
 }
 
@@ -691,33 +667,6 @@ static void long_usage(int err)
 	print_title(o);
 	fprintf(o,"\nusage: %s [option(s)] [file(s) | URL(s) | -]\n", prgName);
 
-	fprintf(o,"\ninput options\n\n");
-	fprintf(o," -k <n> --skip <n>         skip n frames at beginning\n");
-	fprintf(o,"        --skip-id3v2       skip ID3v2 tags without parsing\n");
-	fprintf(o," -n     --frames <n>       play only <n> frames of every stream\n");
-	fprintf(o,"        --fuzzy            Enable fuzzy seeks (guessing byte offsets or using approximate seek points from Xing TOC)\n");
-	fprintf(o," -y     --no-resync        DISABLES resync on error (--resync is deprecated)\n");
-	fprintf(o," -p <f> --proxy <f>        set WWW proxy\n");
-	fprintf(o," -u     --auth             set auth values for HTTP access\n");
-	fprintf(o,"        --ignore-mime      ignore HTTP MIME types (content-type)\n");
-	fprintf(o,"        --no-seekbuffer    disable seek buffer\n");
-	fprintf(o," -@ <f> --list <f>         play songs in playlist <f> (plain list, m3u, pls (shoutcast))\n");
-	fprintf(o," -l <n> --listentry <n>    play nth title in playlist; show whole playlist for n < 0\n");
-	fprintf(o,"        --continue         playlist continuation mode (see man page)\n");
-	fprintf(o,"        --loop <n>         loop track(s) <n> times, < 0 means infinite loop (not with --random!)\n");
-	fprintf(o,"        --keep-open        (--remote mode only) keep loaded file open after reaching end\n");
-	fprintf(o,"        --timeout <n>      Timeout in seconds before declaring a stream dead (if <= 0, wait forever)\n");
-	fprintf(o," -z     --shuffle          shuffle song-list before playing\n");
-	fprintf(o," -Z     --random           full random play\n");
-	fprintf(o,"        --no-icy-meta      Do not accept ICY meta data\n");
-	fprintf(o," -i     --index            index / scan through the track before playback\n");
-	fprintf(o,"        --index-size <n>   change size of frame index\n");
-	fprintf(o,"        --preframes  <n>   number of frames to decode in advance after seeking (to keep layer 3 bit reservoir happy)\n");
-	fprintf(o,"        --resync-limit <n> Set number of bytes to search for valid MPEG data; <0 means search whole stream.\n");
-	fprintf(o,"        --streamdump <f>   Dump a copy of input data (as read by libmpg123) to given file.\n");
-	fprintf(o,"        --icy-interval <n> Enforce ICY interval in bytes (for playing a stream dump.\n");
-	fprintf(o,"        --ignore-streamlength Ignore header info about length of MPEG streams.");
-	fprintf(o,"\noutput/processing options\n\n");
 	fprintf(o," -o <o> --output <o>       select audio output module\n");
 	fprintf(o,"        --list-modules     list the available modules\n");
 	fprintf(o," -a <d> --audiodevice <d>  select audio device\n");
@@ -726,74 +675,19 @@ static void long_usage(int err)
 	fprintf(o," -w <f> --wav <f>          write samples as WAV file in <f> (- is stdout)\n");
 	fprintf(o,"        --au <f>           write samples as Sun AU file in <f> (- is stdout)\n");
 	fprintf(o,"        --cdr <f>          write samples as raw CD audio file in <f> (- is stdout)\n");
-	fprintf(o,"        --reopen           force close/open on audiodevice\n");
-	#ifdef OPT_MULTI
-	fprintf(o,"        --cpu <string>     set cpu optimization\n");
-	fprintf(o,"        --test-cpu         list optimizations possible with cpu and exit\n");
-	fprintf(o,"        --list-cpu         list builtin optimizations and exit\n");
-	#endif
-	#ifdef OPT_3DNOW
-	fprintf(o,"        --test-3dnow       display result of 3DNow! autodetect and exit (obsoleted by --cpu)\n");
-	fprintf(o,"        --force-3dnow      force use of 3DNow! optimized routine (obsoleted by --test-cpu)\n");
-	fprintf(o,"        --no-3dnow         force use of floating-pointer routine (obsoleted by --cpu)\n");
-	#endif
-	fprintf(o," -g     --gain             [DEPRECATED] set audio hardware output gain\n");
-	fprintf(o," -f <n> --scale <n>        scale output samples (soft gain - based on 32768), default=%li)\n", param.outscale);
-	fprintf(o,"        --rva-mix,\n");
-	fprintf(o,"        --rva-radio        use RVA2/ReplayGain values for mix/radio mode\n");
-	fprintf(o,"        --rva-album,\n");
-	fprintf(o,"        --rva-audiophile   use RVA2/ReplayGain values for album/audiophile mode\n");
-	fprintf(o," -0     --left --single0   play only left channel\n");
-	fprintf(o," -1     --right --single1  play only right channel\n");
-	fprintf(o," -m     --mono --mix       mix stereo to mono\n");
-	fprintf(o,"        --stereo           duplicate mono channel\n");
-	fprintf(o," -r     --rate             force a specific audio output rate\n");
-	fprintf(o," -2     --2to1             2:1 downsampling\n");
-	fprintf(o," -4     --4to1             4:1 downsampling\n");
-  fprintf(o,"        --pitch <value>    set hardware pitch (speedup/down, 0 is neutral; 0.05 is 5%%)\n");
-	fprintf(o,"        --8bit             force 8 bit output\n");
-	fprintf(o,"        --float            force floating point output (internal precision)\n");
-	audio_enclist(&enclist);
-	fprintf(o," -e <c> --encoding <c>     force a specific encoding (%s)\n", enclist != NULL ? enclist : "OOM!");
-	fprintf(o," -d n   --doublespeed n    play only every nth frame\n");
-	fprintf(o," -h n   --halfspeed   n    play every frame n times\n");
-	fprintf(o,"        --equalizer        exp.: scales freq. bands acrd. to 'equalizer.dat'\n");
-	fprintf(o,"        --gapless          remove padding/junk on mp3s (best with Lame tag)\n");
-	fprintf(o,"                           This is on by default when libmpg123 supports it.\n");
-	fprintf(o,"        --no-gapless       disable gapless mode, not remove padding/junk\n");
-	fprintf(o," -D n   --delay n          insert a delay of n seconds before each track\n");
+	fprintf(o," -m     --mono             set channelcount to 1\n");
+	fprintf(o,"        --stereo           set channelcount to 2 (default)\n");
+	fprintf(o," -r <r> --rate <r>         set the audio output rate in Hz (default 44100)\n");
+	fprintf(o," -e <c> --encoding <c>     set output encoding (%s)\n", enclist != NULL ? enclist : "OOM!");
 	fprintf(o," -o h   --headphones       (aix/hp/sun) output on headphones\n");
 	fprintf(o," -o s   --speaker          (aix/hp/sun) output on speaker\n");
 	fprintf(o," -o l   --lineout          (aix/hp/sun) output to lineout\n");
 #ifndef NOXFERMEM
 	fprintf(o," -b <n> --buffer <n>       set play buffer (\"output cache\")\n");
 	fprintf(o,"        --preload <value>  fraction of buffer to fill before playback\n");
-	fprintf(o,"        --smooth           keep buffer over track boundaries\n");
 #endif
-
-	fprintf(o,"\nmisc options\n\n");
-	fprintf(o," -t     --test             only decode, no output (benchmark)\n");
-	fprintf(o," -c     --check            count and display clipped samples\n");
+	fprintf(o," -t     --test             no output, just read and discard data\n");
 	fprintf(o," -v[*]  --verbose          increase verboselevel\n");
-	fprintf(o," -q     --quiet            quiet mode\n");
-	#ifdef HAVE_TERMIOS
-	fprintf(o," -C     --control          enable terminal control keys\n");
-	fprintf(o,"        --ctrlusr1 <c>     control key (characer) to map to SIGUSR1\n");
-	fprintf(o,"                           (default is for stop/start)\n");
-	fprintf(o,"        --ctrlusr2 <c>     control key (characer) to map to SIGUSR2\n");
-	fprintf(o,"                           (default is for next track)\n");
-	#endif
-	#ifndef GENERIC
-	fprintf(o,"        --title            set terminal title to filename\n");
-	#endif
-	fprintf(o,"        --long-tag         spacy id3 display with every item on a separate line\n");
-	fprintf(o,"        --lyrics           show lyrics (from ID3v2 USLT frame)\n");
-	fprintf(o,"        --utf8             Regardless of environment, print metadata in UTF-8.\n");
-	fprintf(o," -R     --remote           generic remote interface\n");
-	fprintf(o,"        --remote-err       force use of stderr for generic remote interface\n");
-#ifdef FIFO
-	fprintf(o,"        --fifo <path>      open a FIFO at <path> for commands instead of stdin\n");
-#endif
 	#ifdef HAVE_SETPRIORITY
 	fprintf(o,"        --aggressive       tries to get higher priority (nice)\n");
 	#endif
@@ -809,7 +703,7 @@ static void long_usage(int err)
 	fprintf(o,"        --longhelp         give this long help listing\n");
 	fprintf(o,"        --version          give name / version string\n");
 
-	fprintf(o,"\nSee the manpage %s(1) for more information.\n", prgName);
+	fprintf(o,"\nSee the manpage out123(1) for more information.\n");
 	safe_exit(err);
 }
 
@@ -820,6 +714,6 @@ static void want_long_usage(char* arg)
 
 static void give_version(char* arg)
 {
-	fprintf(stdout, PACKAGE_NAME" "PACKAGE_VERSION"\n");
+	fprintf(stdout, "out123 "PACKAGE_VERSION"\n");
 	safe_exit(0);
 }

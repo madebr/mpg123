@@ -1002,7 +1002,9 @@ int main(int sys_argc, char ** sys_argv)
 #ifdef HAVE_SETPRIORITY
 	if(param.aggressive) { /* tst */
 		int mypid = getpid();
-		setpriority(PRIO_PROCESS,mypid,-20);
+		if(!param.quiet) fprintf(stderr,"Aggressively trying to increase priority.\n");
+		if(setpriority(PRIO_PROCESS,mypid,-20))
+			error("Failed to aggressively increase priority.\n");
 	}
 #endif
 
@@ -1015,7 +1017,7 @@ int main(int sys_argc, char ** sys_argv)
 	  memset(&sp, 0, sizeof(struct sched_param));
 	  sp.sched_priority = sched_get_priority_min(SCHED_FIFO);
 	  if (sched_setscheduler(0, SCHED_RR, &sp) == -1)
-	    fprintf(stderr,"Can't get real-time priority\n");
+	    error("Can't get realtime priority\n");
 	}
 #endif
 
@@ -1272,19 +1274,12 @@ static void usage(int err)  /* print syntax & exit */
 	fprintf(o,"supported options [defaults in brackets]:\n");
 	fprintf(o,"   -v    increase verbosity level       -q    quiet (don't print title)\n");
 	fprintf(o,"   -t    testmode (no output)           -s    write to stdout\n");
-	fprintf(o,"   -w <filename> write Output as WAV file\n");
+	fprintf(o,"   -w f  write output as WAV file\n");
 	fprintf(o,"   -k n  skip first n frames [0]        -n n  decode only n frames [all]\n");
 	fprintf(o,"   -c    check range violations         -y    DISABLE resync on errors\n");
 	fprintf(o,"   -b n  output buffer: n Kbytes [0]    -f n  change scalefactor [%li]\n", param.outscale);
 	fprintf(o,"   -r n  set/force samplerate [auto]\n");
-	fprintf(o,"   -os,-ol,-oh  output to built-in speaker,line-out connector,headphones\n");
-	#ifdef NAS
-	fprintf(o,"                                        -a d  set NAS server\n");
-	#elif defined(SGI)
-	fprintf(o,"                                        -a [1..4] set RAD device\n");
-	#else
-	fprintf(o,"                                        -a d  set audio device\n");
-	#endif
+	fprintf(o,"   -o m  select output module           -a d  set audio device\n");
 	fprintf(o,"   -2    downsample 1:2 (22 kHz)        -4    downsample 1:4 (11 kHz)\n");
 	fprintf(o,"   -d n  play every n'th frame only     -h n  play every frame n times\n");
 	fprintf(o,"   -0    decode channel 0 (left) only   -1    decode channel 1 (right) only\n");
@@ -1302,7 +1297,7 @@ static void usage(int err)  /* print syntax & exit */
 	fprintf(o,"                                        --no-gapless  not skip junk/padding in mp3s\n");
 #endif
 	fprintf(o,"   -?    this help                      --version  print name + version\n");
-	fprintf(o,"See the manpage %s(1) or call %s with --longhelp for more parameters and information.\n", prgName,prgName);
+	fprintf(o,"See the manpage "PACKAGE_NAME"(1) or call %s with --longhelp for more parameters and information.\n", prgName);
 	safe_exit(err);
 }
 
@@ -1352,7 +1347,7 @@ static void long_usage(int err)
 	fprintf(o,"\noutput/processing options\n\n");
 	fprintf(o," -o <o> --output <o>       select audio output module\n");
 	fprintf(o,"        --list-modules     list the available modules\n");
-	fprintf(o," -a <d> --audiodevice <d>  select audio device\n");
+	fprintf(o," -a <d> --audiodevice <d>  select audio device (depending on chosen module)\n");
 	fprintf(o," -s     --stdout           write raw audio to stdout (host native format)\n");
 	fprintf(o," -S     --STDOUT           play AND output stream (not implemented yet)\n");
 	fprintf(o," -w <f> --wav <f>          write samples as WAV file in <f> (- is stdout)\n");
@@ -1441,7 +1436,7 @@ static void long_usage(int err)
 	fprintf(o,"        --longhelp         give this long help listing\n");
 	fprintf(o,"        --version          give name / version string\n");
 
-	fprintf(o,"\nSee the manpage %s(1) for more information.\n", prgName);
+	fprintf(o,"\nSee the manpage "PACKAGE_NAME"(1) for more information.\n");
 	safe_exit(err);
 }
 
