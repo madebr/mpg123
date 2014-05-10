@@ -111,6 +111,9 @@ mpg123_SOURCES += \
 	win32_support.c \
 	win32_net.c
 
+out123_SOURCES+= \
+	win32_support.c
+
 mpg123_id3dump_SOURCES += \
 	win32_support.c
 endif
