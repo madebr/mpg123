@@ -16,9 +16,10 @@ out123_LDFLAGS = @EXEC_LT_LDFLAGS@ @OUTPUT_LDFLAGS@
 AM_CPPFLAGS += $(LTDLINCL) -I$(top_builddir)/src/libmpg123 -I$(top_srcdir)/src/libmpg123
 # libltdl is not mentioned here... it's not that trivial
 mpg123_DEPENDENCIES = @OUTPUT_OBJ@ @MODULE_OBJ@ libmpg123/libmpg123.la
+out123_DEPENDENCIES = @OUTPUT_OBJ@ @MODULE_OBJ@ libmpg123/libmpg123.la
 
 SUBDIRS = output libmpg123
-EXTRA_DIST = legacy_module.c module.c sfifo.c sfifo.h mpg123-with-modules
+EXTRA_DIST = legacy_module.c module.c sfifo.c sfifo.h mpg123-with-modules out123-with-modules
 
 
 CLEANFILES = *.a

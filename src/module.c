@@ -232,10 +232,14 @@ void list_modules()
 {
 	DIR* dir = NULL;
 	struct dirent *dp = NULL;
-	char *workdir = NULL;
 	char *moddir  = NULL;
 
 	moddir = get_module_dir();
+	if(moddir == NULL)
+	{
+		error("Failure getting module directory! (Perhaps set MPG123_MODDIR?)");
+		exit(-1); /* TODO: change this to return a value instead of exit()! */
+	}
 	/* Open the module directory */
 	dir = opendir(moddir);
 	if (dir==NULL) {
@@ -244,12 +248,10 @@ void list_modules()
 		exit(-1);
 	}
 	
-	workdir = get_the_cwd();
 	if(chdir(moddir) != 0)
 	{
 		error2("Failed to enter module directory (%s): %s\n", PKGLIBDIR, strerror(errno));
 		closedir( dir );
-		free(workdir);
 		free(moddir);
 		exit(-1);
 	}
@@ -302,8 +304,6 @@ void list_modules()
 		}
 	}
 
-	chdir(workdir);
-	free(workdir);
 	closedir( dir );
 	free(moddir);
 	exit(0);
