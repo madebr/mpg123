@@ -413,6 +413,6 @@ int main(int argc, char **argv)
 	if(errors) error1("Encountered %i errors along the way.", errors);
 	return errors != 0;
 #if defined(WANT_WIN32_UNICODE)
-	win32_cmdline_utf8_free(argc,argv);
+	win32_cmdline_free(argc,argv);
 #endif
 }
