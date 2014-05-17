@@ -6,7 +6,7 @@
 - Added new binary out123 only with the audio output part of mpg123.
   This is a precursor to separating out said code into a simple audio output library. It also allows plugging in some processing in a pipe before feeding to output.
 - Prevent opendir(NULL) for unknown module directory when listing modules.
-- some build fixes
+- some build fixes, among those fixing mpg123-id3dump on Windows
 
 1.19.0
 ---
