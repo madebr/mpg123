@@ -481,6 +481,10 @@ int main(int sys_argc, char ** sys_argv)
 	int encoding;
 	size_t channels;
 	mpg123_pars *mp;
+#if defined(WIN32)
+	_setmode(STDIN_FILENO,  _O_BINARY);
+#endif
+
 #if defined (WANT_WIN32_UNICODE)
 	if(win32_cmdline_utf8(&argc, &argv) != 0)
 	{
