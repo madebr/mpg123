@@ -1,3 +1,7 @@
+1.20.1
+---
+- Make feed reader more efficient when skipping junk by early discarding of data from buffers to avoid re-parsing.
+
 1.20.0
 ---
 - Added NEON optimized decoder for AArch64 (ARM 64bit environment)
