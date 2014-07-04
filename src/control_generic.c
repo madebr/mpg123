@@ -578,7 +578,7 @@ int control_generic (mpg123_handle *fr)
 					generic_sendmsg("H HELP/H: command listing (LONG/SHORT forms), command case insensitve");
 					generic_sendmsg("H LOAD/L <trackname>: load and start playing resource <trackname>");
 					generic_sendmsg("H LOADPAUSED/LP <trackname>: load but do not start playing resource <trackname>");
-					generic_sendmsg("H LOADLIST <entry> <url>: load a playlist from given <url>, and display its entries, optionally load and play one of these specificed by the integer <entry> (<0: just list, 0: play last track, >0:play track with that position in list)");
+					generic_sendmsg("H LOADLIST/LL <entry> <url>: load a playlist from given <url>, and display its entries, optionally load and play one of these specificed by the integer <entry> (<0: just list, 0: play last track, >0:play track with that position in list)");
 					generic_sendmsg("H PAUSE/P: pause playback");
 					generic_sendmsg("H STOP/S: stop playback (closes file)");
 					generic_sendmsg("H JUMP/J <frame>|<+offset>|<-offset>|<[+|-]seconds>s: jump to mpeg frame <frame> or change position by offset, same in seconds if number followed by \"s\"");
@@ -772,7 +772,7 @@ int control_generic (mpg123_handle *fr)
 					/* LOAD - actually play */
 					if (!strcasecmp(cmd, "L") || !strcasecmp(cmd, "LOAD")){ generic_load(fr, arg, MODE_PLAYING); continue; }
 
-					if (!strcasecmp(cmd, "L") || !strcasecmp(cmd, "LOADLIST")){ generic_loadlist(fr, arg); continue; }
+					if (!strcasecmp(cmd, "LL") || !strcasecmp(cmd, "LOADLIST")){ generic_loadlist(fr, arg); continue; }
 
 					/* LOADPAUSED */
 					if (!strcasecmp(cmd, "LP") || !strcasecmp(cmd, "LOADPAUSED")){ generic_load(fr, arg, MODE_PAUSED); continue; }
