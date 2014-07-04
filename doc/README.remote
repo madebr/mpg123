@@ -28,7 +28,7 @@ LOAD/L <trackname>: load and start playing resource <trackname>
 
 LOADPAUSED/LP <trackname>: load but do not start playing resource <trackname>
 
-LOADLIST <entry> <url>: load a playlist from given <url>, and display its entries, optionally load and play one of these specificed by the integer <entry> (<0: just list, 0: play last track, >0:play track with that position in list)
+LOADLIST/LL <entry> <url>: load a playlist from given <url>, and display its entries, optionally load and play one of these specificed by the integer <entry> (<0: just list, 0: play last track, >0:play track with that position in list)
 
 PAUSE/P: pause playback
 
