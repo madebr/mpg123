@@ -1,3 +1,7 @@
+1.21.0
+---
+- Use LL as shortcut for LOADLIST remote command, L is taken already (bug 210).
+
 1.20.1
 ---
 - Make feed reader more efficient when skipping junk by early discarding of data from buffers to avoid re-parsing.
