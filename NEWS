@@ -1,6 +1,7 @@
 1.21.0
 ---
 - Use LL as shortcut for LOADLIST remote command, L is taken already (bug 210).
+- Less namespace pollution (MPG123_EXPORT in header instead of EXPORT, bug 212).
 
 1.20.1
 ---
