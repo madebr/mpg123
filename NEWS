@@ -1,3 +1,6 @@
+1.21.1
+- Rework Xing/Info/Lame tag parsing, also detecting short ones without the TOC now.
+
 1.21.0
 ---
 - Use LL as shortcut for LOADLIST remote command, L is taken already (bug 210).
