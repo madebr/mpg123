@@ -1,5 +1,6 @@
 1.21.1
 - Rework Xing/Info/Lame tag parsing, also detecting short ones without the TOC now.
+  In addition, the warning about file size being off is a _lot_ more accurate now.
 
 1.21.0
 ---

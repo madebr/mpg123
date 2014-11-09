@@ -223,25 +223,26 @@ static int check_lame_tag(mpg123_handle *fr)
 		}
 		else
 		{
-fprintf(stderr, "TODO: Settle the question if this is size of file or bytes _after_ the Xing header!\n");
-fprintf(stderr, "filelen: %"OFF_P" xing: %lu current offset in file %"OFF_P"\n"
-, (off_p)fr->rdat.filelen, long_tmp, (off_p)fr->rd->tell(fr));
-fprintf(stderr, "Also ... ID3v2 tags at beginning or end ... at beginning, they should be in front of the xing header.\n");
+			/* The Xing bitstream length, at least as interpreted by the Lame
+			   encoder, encompasses all data from the Xing header frame on,
+			   ignoring leading ID3v2 data. Trailing tags (ID3v1) seem to be 
+			   included, though. */
 			if(fr->rdat.filelen < 1)
-			fr->rdat.filelen = (off_t) long_tmp; /* Overflow? */
+			fr->rdat.filelen = (off_t) long_tmp + fr->audio_start; /* Overflow? */
 			else
 			{
-				if((off_t) long_tmp != fr->rdat.filelen && NOQUIET)
-				{
-					double diff = 1.0/fr->rdat.filelen
-					            * (fr->rdat.filelen - (off_t)long_tmp);
+				if((off_t)long_tmp != fr->rdat.filelen - fr->audio_start && NOQUIET)
+				{ /* 1/filelen instead of 1/(filelen-start), my decision */
+					double diff = 100.0/fr->rdat.filelen
+					            * ( fr->rdat.filelen - fr->audio_start
+					                - (off_t)long_tmp );
 					if(diff < 0.) diff = -diff;
 
 					if(VERBOSE3) fprintf(stderr
 					,	"Note: Xing stream size %lu differs by %f%% from determined/given file size!\n"
 					,	long_tmp, diff);
 
-					if(diff > 1.) fprintf(stderr
+					if(diff > 1. && NOQUIET) fprintf(stderr
 					,	"Warning: Xing stream size off by more than 1%%, fuzzy seeking may be even more fuzzy than by design!\n");
 				}
 			}
