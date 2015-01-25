@@ -922,7 +922,7 @@ double attribute_align_arg mpg123_tpf(mpg123_handle *fr)
 {
 	static int bs[4] = { 0,384,1152,1152 };
 	double tpf;
-	if(fr == NULL || !fr->firsthead) return -1;
+	if(fr == NULL || !fr->firsthead) return MPG123_ERR;
 
 	tpf = (double) bs[fr->lay];
 	tpf /= freqs[fr->sampling_frequency] << (fr->lsf);
@@ -938,11 +938,7 @@ int attribute_align_arg mpg123_position(mpg123_handle *fr, off_t no, off_t buffs
 	off_t cur, left;
 	double curs, lefts;
 
-	if(!fr || !fr->rd) /* Isn't this too paranoid? */
-	{
-		debug("reader troubles!");
-		return MPG123_ERR;
-	}
+	if(!fr || !fr->rd) return MPG123_ERR;
 
 	no += fr->num; /* no starts out as offset */
 	cur = no;

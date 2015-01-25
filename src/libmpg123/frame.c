@@ -167,6 +167,8 @@ void attribute_align_arg mpg123_delete_pars(mpg123_pars* mp)
 int attribute_align_arg mpg123_reset_eq(mpg123_handle *mh)
 {
 	int i;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
+
 	mh->have_eq_settings = 0;
 	for(i=0; i < 32; ++i) mh->equalizer[0][i] = mh->equalizer[1][i] = DOUBLE_TO_REAL(1.0);
 
@@ -211,6 +213,7 @@ int frame_outbuffer(mpg123_handle *fr)
 int attribute_align_arg mpg123_replace_buffer(mpg123_handle *mh, unsigned char *data, size_t size)
 {
 	debug2("replace buffer with %p size %"SIZE_P, data, (size_p)size);
+	if(mh == NULL) return MPG123_BAD_HANDLE;
 	/* Will accept any size, the error comes later... */
 	if(data == NULL)
 	{
@@ -608,7 +611,7 @@ void frame_exit(mpg123_handle *fr)
 
 int attribute_align_arg mpg123_framedata(mpg123_handle *mh, unsigned long *header, unsigned char **bodydata, size_t *bodybytes)
 {
-	if(mh == NULL)     return MPG123_ERR;
+	if(mh == NULL)     return MPG123_BAD_HANDLE;
 	if(!mh->to_decode) return MPG123_ERR;
 
 	if(header    != NULL) *header    = mh->oldhead;

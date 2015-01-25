@@ -1,5 +1,38 @@
 Changes in libmpg123 libtool interface versions...
 
+41.0.41
+	- Add checks for NULL handles in some API functions that missed that, changed return value in others to MPG123_BAD_HANDLE where appropriate:
+		- mpg123_format_none(NULL) == MPG123_BAD_HANDLE (was: MPG123_ERR)
+		- mpg123_format_all(NULL)  == MPG123_BAD_HANDLE (was: MPG123_ERR)
+		- mpg123_format(NULL, ...) == MPG123_BAD_HANDLE (was: MPG123_ERR)
+		- mpg123_reset_eq(NULL)    == MPG123_BAD_HANDLE (was: undefined)
+		- mpg123_replace_buffer(NULL, ...) == MPG123_BAD_HANDLE (was: undefined)
+		- mpg123_framedata(NULL, ...) == MPG123_BAD_HANDLE (was: MPG123_ERR)
+		- mpg123_decoder(NULL, ...)   == MPG123_BAD_HANDLE (was: MPG123_ERR)
+		- mpg123_param(NULL, ...)     == MPG123_BAD_HANDLE (was: MPG123_ERR)
+		- mpg123_getparam(NULL, ...)  == MPG123_BAD_HANDLE (was: MPG123_ERR)
+		- mpg123_getstate(NULL, ...)  == MPG123_BAD_HANDLE (was: MPG123_ERR)
+		- mpg123_eq(NULL, ...)        == MPG123_BAD_HANDLE (was: MPG123_ERR)
+		- mpg123_open(NULL, ...)      == MPG123_BAD_HANDLE (was: MPG123_ERR)
+		- mpg123_open_handle(NULL, ...) == MPG123_BAD_HANDLE (was: MPG123_ERR)
+		- mpg123_open_feed(NULL, ...)   == MPG123_BAD_HANDLE (was: MPG123_ERR)
+		- mpg123_replace_reader(NULL, ...) == MPG123_BAD_HANDLE (was: MPG123_ERR)
+		- mpg123_replace_reader_handle(NULL, ...) == MPG123_BAD_HANDLE (was: MPG123_ERR)
+		- mpg123_decode_frame(NULL, ...) == MPG123_BAD_HANDLE (was: MPG123_ERR)
+		- mpg123_feed(NULL, ...)   == MPG123_BAD_HANDLE (was: MPG123_ERR)
+		- mpg123_decode(NULL, ...) == MPG123_BAD_HANDLE (was: MPG123_ERR)
+		- mpg123_info(NULL, ...)   == MPG123_BAD_HANDLE (was: MPG123_ERR)
+		- mpg123_getformat(NULL, ...) == MPG123_BAD_HANDLE (was: MPG123_ERR)
+		- mpg123_set_filesize(NULL, ...) == MPG123_BAD_HANDLE (was: MPG123_ERR)
+		- mpg123_scan(NULL) == MPG123_BAD_HANDLE (was: MPG123_ERR)
+		- mpg123_id3(NULL, ...) == MPG123_BAD_HANDLE (was: MPG123_ERR)
+		- mpg123_icy(NULL, ...) == MPG123_BAD_HANDLE (was: MPG123_ERR)
+		- mpg123_index(NULL, ...) == MPG123_BAD_HANDLE (was: MPG123_ERR)
+		- mpg123_set_index(NULL, ...) == MPG123_BAD_HANDLE (was: MPG123_ERR)
+		- mpg123_close(NULL, ...) == MPG123_BAD_HANDLE (was: MPG123_ERR)
+	- Changed return value of mpg123_geteq() to 0 for NULL handle to be consistent with itself.
+
+
 40.0.40
 	- Bump for marking the first actual implementation of A-Law encoding.
 	  Not that it matters to anyone, though --- I wonder why not even the

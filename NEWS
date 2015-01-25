@@ -1,5 +1,7 @@
-1.21.2
+1.22.0
+- libmpg123 version 41
 - Build fix: Avoid name clash on OSX SDK with "normal" being defined in an enum already.
+- More resilience against folks who do not check errors and rather pass NULL pointers around (see NEWS.libmpg123).
 
 1.21.1
 - Rework Xing/Info/Lame tag parsing, also detecting short ones without the TOC now.
@@ -26,6 +28,7 @@
 
 1.19.0
 ---
+- libmpg123 version 40
 - Support float and 32/24 bit integer output also with fixed-point decoders (conversion from 16 bit precision).
 - A-Law output encoding is actually implemented now (Michael introduced the encoding back in the old days without ever implementing theconversion table, apparently).
 - Added --with-cpu=arm_fpu as decoder choice for runtime switch between plain fpu code and NEON.

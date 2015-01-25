@@ -79,7 +79,7 @@ int attribute_align_arg mpg123_decoder(mpg123_handle *mh, const char* decoder)
 {
 	enum optdec dt = dectype(decoder);
 
-	if(mh == NULL) return MPG123_ERR;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
 
 	if(dt == nodec)
 	{
@@ -114,7 +114,7 @@ int attribute_align_arg mpg123_param(mpg123_handle *mh, enum mpg123_parms key, l
 {
 	int r;
 
-	if(mh == NULL) return MPG123_ERR;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
 	r = mpg123_par(&mh->p, key, val, fval);
 	if(r != MPG123_OK){ mh->err = r; r = MPG123_ERR; }
 	else
@@ -251,7 +251,7 @@ int attribute_align_arg mpg123_getparam(mpg123_handle *mh, enum mpg123_parms key
 {
 	int r;
 
-	if(mh == NULL) return MPG123_ERR;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
 	r = mpg123_getpar(&mh->p, key, val, fval);
 	if(r != MPG123_OK){ mh->err = r; r = MPG123_ERR; }
 	return r;
@@ -342,7 +342,7 @@ int attribute_align_arg mpg123_getstate(mpg123_handle *mh, enum mpg123_state key
 	long theval = 0;
 	double thefval = 0.;
 
-	if(mh == NULL) return MPG123_ERR;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
 
 	switch(key)
 	{
@@ -385,7 +385,7 @@ int attribute_align_arg mpg123_getstate(mpg123_handle *mh, enum mpg123_state key
 
 int attribute_align_arg mpg123_eq(mpg123_handle *mh, enum mpg123_channels channel, int band, double val)
 {
-	if(mh == NULL) return MPG123_ERR;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
 	if(band < 0 || band > 31){ mh->err = MPG123_BAD_BAND; return MPG123_ERR; }
 	switch(channel)
 	{
@@ -406,10 +406,8 @@ double attribute_align_arg mpg123_geteq(mpg123_handle *mh, enum mpg123_channels 
 {
 	double ret = 0.;
 
-	if(mh == NULL) return MPG123_ERR;
-
 	/* Handle this gracefully. When there is no band, it has no volume. */
-	if(band > -1 && band < 32)
+	if(mh != NULL && band > -1 && band < 32)
 	switch(channel)
 	{
 		case MPG123_LEFT|MPG123_RIGHT:
@@ -427,7 +425,7 @@ double attribute_align_arg mpg123_geteq(mpg123_handle *mh, enum mpg123_channels 
 /* plain file access, no http! */
 int attribute_align_arg mpg123_open(mpg123_handle *mh, const char *path)
 {
-	if(mh == NULL) return MPG123_ERR;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
 
 	mpg123_close(mh);
 	return open_stream(mh, path, -1);
@@ -435,7 +433,7 @@ int attribute_align_arg mpg123_open(mpg123_handle *mh, const char *path)
 
 int attribute_align_arg mpg123_open_fd(mpg123_handle *mh, int fd)
 {
-	if(mh == NULL) return MPG123_ERR;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
 
 	mpg123_close(mh);
 	return open_stream(mh, NULL, fd);
@@ -443,7 +441,7 @@ int attribute_align_arg mpg123_open_fd(mpg123_handle *mh, int fd)
 
 int attribute_align_arg mpg123_open_handle(mpg123_handle *mh, void *iohandle)
 {
-	if(mh == NULL) return MPG123_ERR;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
 
 	mpg123_close(mh);
 	if(mh->rdat.r_read_handle == NULL)
@@ -456,7 +454,7 @@ int attribute_align_arg mpg123_open_handle(mpg123_handle *mh, void *iohandle)
 
 int attribute_align_arg mpg123_open_feed(mpg123_handle *mh)
 {
-	if(mh == NULL) return MPG123_ERR;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
 
 	mpg123_close(mh);
 	return open_feed(mh);
@@ -466,7 +464,7 @@ int attribute_align_arg mpg123_replace_reader( mpg123_handle *mh,
                            ssize_t (*r_read) (int, void *, size_t),
                            off_t   (*r_lseek)(int, off_t, int) )
 {
-	if(mh == NULL) return MPG123_ERR;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
 
 	mpg123_close(mh);
 	mh->rdat.r_read = r_read;
@@ -479,7 +477,7 @@ int attribute_align_arg mpg123_replace_reader_handle( mpg123_handle *mh,
                            off_t   (*r_lseek)(void*, off_t, int),
                            void    (*cleanup)(void*)  )
 {
-	if(mh == NULL) return MPG123_ERR;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
 
 	mpg123_close(mh);
 	mh->rdat.r_read_handle = r_read;
@@ -750,7 +748,7 @@ int attribute_align_arg mpg123_framebyframe_decode(mpg123_handle *mh, off_t *num
 {
 	if(bytes == NULL) return MPG123_ERR_NULL;
 	if(audio == NULL) return MPG123_ERR_NULL;
-	if(mh == NULL) return MPG123_BAD_HANDLE;
+	if(mh == NULL)    return MPG123_BAD_HANDLE;
 	if(mh->buffer.size < mh->outblock) return MPG123_NO_SPACE;
 
 	*bytes = 0;
@@ -818,7 +816,7 @@ int attribute_align_arg mpg123_framebyframe_next(mpg123_handle *mh)
 int attribute_align_arg mpg123_decode_frame(mpg123_handle *mh, off_t *num, unsigned char **audio, size_t *bytes)
 {
 	if(bytes != NULL) *bytes = 0;
-	if(mh == NULL) return MPG123_ERR;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
 	if(mh->buffer.size < mh->outblock) return MPG123_NO_SPACE;
 	mh->buffer.fill = 0; /* always start fresh */
 	while(TRUE)
@@ -861,7 +859,7 @@ int attribute_align_arg mpg123_read(mpg123_handle *mh, unsigned char *out, size_
 
 int attribute_align_arg mpg123_feed(mpg123_handle *mh, const unsigned char *in, size_t size)
 {
-	if(mh == NULL) return MPG123_ERR;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
 #ifndef NO_FEEDER
 	if(size > 0)
 	{
@@ -910,7 +908,7 @@ int attribute_align_arg mpg123_decode(mpg123_handle *mh, const unsigned char *in
 	size_t mdone = 0;
 
 	if(done != NULL) *done = 0;
-	if(mh == NULL) return MPG123_ERR;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
 #ifndef NO_FEEDER
 	if(inmemsize > 0 && mpg123_feed(mh, inmemory, inmemsize) != MPG123_OK)
 	{
@@ -1002,7 +1000,7 @@ int attribute_align_arg mpg123_info(mpg123_handle *mh, struct mpg123_frameinfo *
 {
 	int b;
 
-	if(mh == NULL) return MPG123_ERR;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
 	if(mi == NULL)
 	{
 		mh->err = MPG123_ERR_NULL;
@@ -1040,7 +1038,7 @@ int attribute_align_arg mpg123_getformat(mpg123_handle *mh, long *rate, int *cha
 {
 	int b;
 
-	if(mh == NULL) return MPG123_ERR;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
 	b = init_track(mh);
 	if(b < 0) return b;
 
@@ -1307,7 +1305,7 @@ off_t attribute_align_arg mpg123_seek_frame(mpg123_handle *mh, off_t offset, int
 
 int attribute_align_arg mpg123_set_filesize(mpg123_handle *mh, off_t size)
 {
-	if(mh == NULL) return MPG123_ERR;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
 
 	mh->rdat.filelen = size;
 	return MPG123_OK;
@@ -1347,7 +1345,7 @@ int attribute_align_arg mpg123_scan(mpg123_handle *mh)
 	off_t track_frames = 0;
 	off_t track_samples = 0;
 
-	if(mh == NULL) return MPG123_ERR;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
 	if(!(mh->rdat.flags & READER_SEEKABLE)){ mh->err = MPG123_NO_SEEK; return MPG123_ERR; }
 	/* Scan through the _whole_ file, since the current position is no count but computed assuming constant samples per frame. */
 	/* Also, we can just keep the current buffer and seek settings. Just operate on input frames here. */
@@ -1400,7 +1398,7 @@ int attribute_align_arg mpg123_id3(mpg123_handle *mh, mpg123_id3v1 **v1, mpg123_
 {
 	if(v1 != NULL) *v1 = NULL;
 	if(v2 != NULL) *v2 = NULL;
-	if(mh == NULL) return MPG123_ERR;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
 
 	if(mh->metaflags & MPG123_ID3)
 	{
@@ -1421,7 +1419,7 @@ int attribute_align_arg mpg123_id3(mpg123_handle *mh, mpg123_id3v1 **v1, mpg123_
 
 int attribute_align_arg mpg123_icy(mpg123_handle *mh, char **icy_meta)
 {
-	if(mh == NULL) return MPG123_ERR;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
 #ifndef NO_ICY
 	if(icy_meta == NULL)
 	{
@@ -1517,7 +1515,7 @@ int mpg123_store_utf8(mpg123_string *sb, enum mpg123_text_encoding enc, const un
 
 int attribute_align_arg mpg123_index(mpg123_handle *mh, off_t **offsets, off_t *step, size_t *fill)
 {
-	if(mh == NULL) return MPG123_ERR;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
 	if(offsets == NULL || step == NULL || fill == NULL)
 	{
 		mh->err = MPG123_BAD_INDEX_PAR;
@@ -1537,7 +1535,7 @@ int attribute_align_arg mpg123_index(mpg123_handle *mh, off_t **offsets, off_t *
 
 int attribute_align_arg mpg123_set_index(mpg123_handle *mh, off_t *offsets, off_t step, size_t fill)
 {
-	if(mh == NULL) return MPG123_ERR;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
 #ifdef FRAME_INDEX
 	if(step == 0)
 	{
@@ -1558,7 +1556,7 @@ int attribute_align_arg mpg123_set_index(mpg123_handle *mh, off_t *offsets, off_
 
 int attribute_align_arg mpg123_close(mpg123_handle *mh)
 {
-	if(mh == NULL) return MPG123_ERR;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
 
 	/* mh->rd is never NULL! */
 	if(mh->rd->close != NULL) mh->rd->close(mh);

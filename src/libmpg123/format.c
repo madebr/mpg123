@@ -358,7 +358,7 @@ end: /* Here is the _good_ end. */
 int attribute_align_arg mpg123_format_none(mpg123_handle *mh)
 {
 	int r;
-	if(mh == NULL) return MPG123_ERR;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
 
 	r = mpg123_fmt_none(&mh->p);
 	if(r != MPG123_OK){ mh->err = r; r = MPG123_ERR; }
@@ -379,7 +379,7 @@ int attribute_align_arg mpg123_fmt_none(mpg123_pars *mp)
 int attribute_align_arg mpg123_format_all(mpg123_handle *mh)
 {
 	int r;
-	if(mh == NULL) return MPG123_ERR;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
 
 	r = mpg123_fmt_all(&mh->p);
 	if(r != MPG123_OK){ mh->err = r; r = MPG123_ERR; }
@@ -405,7 +405,7 @@ int attribute_align_arg mpg123_fmt_all(mpg123_pars *mp)
 int attribute_align_arg mpg123_format(mpg123_handle *mh, long rate, int channels, int encodings)
 {
 	int r;
-	if(mh == NULL) return MPG123_ERR;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
 	r = mpg123_fmt(&mh->p, rate, channels, encodings);
 	if(r != MPG123_OK){ mh->err = r; r = MPG123_ERR; }
 
