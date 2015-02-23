@@ -2,6 +2,7 @@
 - libmpg123 version 41
 - Build fix: Avoid name clash on OSX SDK with "normal" being defined in an enum already.
 - More resilience against folks who do not check errors and rather pass NULL pointers around (see NEWS.libmpg123).
+- Fix WAV writing to stdout on Windows (bug 214).
 
 1.21.1
 - Rework Xing/Info/Lame tag parsing, also detecting short ones without the TOC now.
