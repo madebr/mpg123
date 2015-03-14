@@ -1,6 +1,7 @@
 1.23.0
 ---
 - Added mpg123 --no-infoframe.
+- Not linking libmpg123 against libltdl anymore (bug 215).
 
 1.22.0
 ---

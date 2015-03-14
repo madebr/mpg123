@@ -2399,6 +2399,8 @@ fi
 dnl ############## Final Output
 
 # Do that here to prevent the above tests usign -lltdl...
+LIBMPG123_LIBS=$LIBS
+AC_SUBST(LIBMPG123_LIBS)
 if test "x$modules" = xenabled; then
   LIBS="-lltdl $LIBS"
 fi

@@ -10,6 +10,8 @@ AM_CPPFLAGS = -I$(top_srcdir)/src -I$(top_srcdir)/src/libmpg123
 
 EXTRA_DIST = mpg123.h.in
 
+LIBS = @LIBMPG123_LIBS@
+
 EXTRA_PROGRAMS = testcpu
 testcpu_dependencies = getcpuflags.$(OBJEXT)
 testcpu_sources = testcpu.c
