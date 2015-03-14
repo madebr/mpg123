@@ -468,6 +468,7 @@ topt opts[] = {
 	{0, "au",            GLO_ARG | GLO_CHAR, set_out_au, 0, 0 },
 	{0,   "gapless",	 GLO_INT,  set_frameflag, &frameflag, MPG123_GAPLESS},
 	{0,   "no-gapless", GLO_INT, unset_frameflag, &frameflag, MPG123_GAPLESS},
+	{0, "no-infoframe", GLO_INT, set_frameflag, &frameflag, MPG123_IGNORE_INFOFRAME},
 	{'?', "help",            0,  want_usage, 0,           0 },
 	{0 , "longhelp" ,        0,  want_long_usage, 0,      0 },
 	{0 , "version" ,         0,  give_version, 0,         0 },
@@ -1388,6 +1389,7 @@ static void long_usage(int err)
 	fprintf(o,"        --gapless          remove padding/junk on mp3s (best with Lame tag)\n");
 	fprintf(o,"                           This is on by default when libmpg123 supports it.\n");
 	fprintf(o,"        --no-gapless       disable gapless mode, not remove padding/junk\n");
+	fprintf(o,"        --no-infoframe     disable parsing of Xing/Lame/VBR/Info frame\n");
 	fprintf(o," -D n   --delay n          insert a delay of n seconds before each track\n");
 	fprintf(o," -o h   --headphones       (aix/hp/sun) output on headphones\n");
 	fprintf(o," -o s   --speaker          (aix/hp/sun) output on speaker\n");

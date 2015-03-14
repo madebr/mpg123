@@ -1,3 +1,7 @@
+1.23.0
+---
+- Added mpg123 --no-infoframe.
+
 1.22.0
 ---
 - libmpg123 version 41

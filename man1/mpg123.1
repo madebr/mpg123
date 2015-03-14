@@ -306,6 +306,10 @@ This is enabled per default beginning with mpg123 version 1.0.0 .
 \fB\-\^\-no\-gapless
 Disable the gapless code. That gives you MP3 decodings that include encoder delay and padding plus mpg123's decoder delay.
 .TP
+\fB\-\^\-no\-infoframe
+Do not parse the Xing/Lame/VBR/Info frame, decode it instead just like a stupid old MP3 hardware player.
+This implies disabling of gapless playback as the necessary information is in said metadata frame.
+.TP
 \fB\-D \fIn\fR, \fB\-\-delay \fIn
 Insert a delay of \fIn\fR seconds before each track.
 .TP
