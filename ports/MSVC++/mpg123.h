@@ -36,8 +36,8 @@ extern "C" {
 
 	// Wrapper around mpg123_open that supports path names with unicode
 	// characters
-	EXPORT int mpg123_topen(mpg123_handle *fr, const _TCHAR *path);
-	EXPORT int mpg123_tclose(mpg123_handle *fr);
+	MPG123_EXPORT int mpg123_topen(mpg123_handle *fr, const _TCHAR *path);
+	MPG123_EXPORT int mpg123_tclose(mpg123_handle *fr);
 
 #ifdef __cplusplus
 }

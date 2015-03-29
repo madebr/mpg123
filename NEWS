@@ -2,6 +2,7 @@
 ---
 - Added mpg123 --no-infoframe.
 - Not linking libmpg123 against libltdl anymore (bug 215).
+- Update MSVC++ ports a bit to make them work again.
 
 1.22.0
 ---
