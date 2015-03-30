@@ -3,6 +3,13 @@
 - Added mpg123 --no-infoframe.
 - Not linking libmpg123 against libltdl anymore (bug 215).
 - Update MSVC++ ports a bit to make them work again.
+- Clip decode tables for large amplification with fixed-point decoders.
+  Without that, high-pitched distortion enters really quickly when
+  trying to increase volume even if output samples would not be clipped,
+  weren't it for fixed-point math.
+
+TODO: Decide how to inform about the table clipping. It is some sort of
+clipping. Count every decoded sample as clipped?
 
 1.22.0
 ---
