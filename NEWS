@@ -7,9 +7,12 @@
   Without that, high-pitched distortion enters really quickly when
   trying to increase volume even if output samples would not be clipped,
   weren't it for fixed-point math.
+- Warning messages also start with a line break now to better fit in with
+  verbose playback.
 
 TODO: Decide how to inform about the table clipping. It is some sort of
-clipping. Count every decoded sample as clipped?
+clipping. Count every decoded sample as clipped? The user is informed now
+via a warning. Should there be a message through the API?
 
 1.22.0
 ---
