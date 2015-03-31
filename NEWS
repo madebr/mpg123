@@ -11,10 +11,6 @@
   verbose playback.
 - Reporting of clipped samples also includes a line break now.
 
-TODO: Decide how to inform about the table clipping. It is some sort of
-clipping. Count every decoded sample as clipped? The user is informed now
-via a warning. Should there be a message through the API?
-
 1.22.0
 ---
 - libmpg123 version 41
