@@ -685,7 +685,7 @@ int play_frame(void)
 		if(param.checkrange)
 		{
 			long clip = mpg123_clip(mh);
-			if(clip > 0) fprintf(stderr,"%ld samples clipped\n", clip);
+			if(clip > 0) fprintf(stderr,"\n%ld samples clipped\n", clip);
 		}
 	}
 	/* Special actions and errors. */

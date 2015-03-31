@@ -9,6 +9,7 @@
   weren't it for fixed-point math.
 - Warning messages also start with a line break now to better fit in with
   verbose playback.
+- Reporting of clipped samples also includes a line break now.
 
 TODO: Decide how to inform about the table clipping. It is some sort of
 clipping. Count every decoded sample as clipped? The user is informed now
