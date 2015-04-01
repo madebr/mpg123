@@ -11,6 +11,17 @@
   verbose playback.
 - Reporting of clipped samples also includes a line break now.
 
+1.22.1
+---
+- Fix mpg123-id3dump when writing images with funny (manipulated) MIME type.
+  Stupid mistake in length computation of the fallback file extension caused
+  junk from memory being appended to the filename if the pointer size
+  is less than 64 bit. For 64 bit pointers (or longer) it was correct by
+  accident.
+- Fix pedantic build by cleaning up out123 source, also now really showing
+  the encoding list in --longhelp instead of possibly, again, writing junk
+  from memory in there.
+
 1.22.0
 ---
 - libmpg123 version 41

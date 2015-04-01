@@ -230,8 +230,9 @@ static char* mime2end(mpg123_string* mime)
 	char* end;
 	if(strncasecmp("image/",mime->p,6))
 	{
-		end = malloc(sizeof(unknown_end));
-		memcpy(end, unknown_end, sizeof(unknown_end));
+		len = strlen(unknown_end)+1;
+		end = malloc(len);
+		memcpy(end, unknown_end, len);
 		return end;
 	}
 

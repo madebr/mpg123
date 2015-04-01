@@ -146,12 +146,7 @@ int buffer_pid;
 size_t bufferblock = 4096;
 
 static int intflag = FALSE;
-static int skip_tracks = 0;
 int OutputDescriptor;
-
-static int filept = -1;
-
-static int network_sockets_used = 0; /* Win32 socket open/close Support */
 
 char *fullprogname = NULL; /* Copy of argv[0]. */
 char *binpath; /* Path to myself. */
@@ -321,17 +316,18 @@ static void set_frameflag(char *arg)
 	if(frameflag & MPG123_FORCE_MONO) param.flags &= ~MPG123_FORCE_MONO;
 	param.flags |= frameflag;
 }
+/* Disabled while not used to make pedantic gcc happy
 static void unset_frameflag(char *arg)
 {
 	param.flags &= ~frameflag;
-}
+} */
 
-static int appflag; /* still ugly, but works */
-static void set_appflag(char *arg)
+/*static int appflag;*/ /* still ugly, but works */
+/*static void set_appflag(char *arg)
 {
 	param.appflags |= appflag;
 }
-/* static void unset_appflag(char *arg)
+static void unset_appflag(char *arg)
 {
 	param.appflags &= ~appflag;
 } */
@@ -474,13 +470,8 @@ int audio_enc_name2code(const char* name);
 int main(int sys_argc, char ** sys_argv)
 {
 	int result;
-	char end_of_files = FALSE;
-	long parr;
-	char *fname;
-	int libpar = 0;
 	int encoding;
 	size_t channels;
-	mpg123_pars *mp;
 #if defined(WIN32)
 	_setmode(STDIN_FILENO,  _O_BINARY);
 #endif
@@ -606,7 +597,7 @@ int main(int sys_argc, char ** sys_argv)
 	input = stdin;
 	while(play_frame())
 	{
-		// be happy
+		/* be happy */
 	}
 	/* Ensure we played everything. */
 	if(param.usebuffer)
@@ -640,7 +631,7 @@ static void usage(int err)  /* print syntax & exit */
 	fprintf(o,"   -v    increase verbosity level       -q    quiet (only print errors)\n");
 	fprintf(o,"   -t    testmode (no output)           -s    write to stdout\n");
 	fprintf(o,"   -w f  write output as WAV file\n");
-	fprintf(o,"   -b n  output buffer: n Kbytes [0]                                  \n", param.outscale);
+	fprintf(o,"   -b n  output buffer: n Kbytes [0]                                  \n");
 	fprintf(o,"   -r n  set samplerate [44100]\n");
 	fprintf(o,"   -o m  select output module           -a d  set audio device\n");
 	fprintf(o,"   -m    single-channel (mono) instead of stereo\n");
@@ -659,8 +650,9 @@ static void want_usage(char* arg)
 
 static void long_usage(int err)
 {
-	char *enclist;
+	char *enclist = NULL;
 	FILE* o = stdout;
+	audio_enclist(&enclist);
 	if(err)
 	{
   	o = stderr; 
