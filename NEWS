@@ -1,8 +1,6 @@
 1.23.0
 ---
 - Added mpg123 --no-infoframe.
-- Not linking libmpg123 against libltdl anymore (bug 215).
-- Update MSVC++ ports a bit to make them work again.
 - Clip decode tables for large amplification with fixed-point decoders.
   Without that, high-pitched distortion enters really quickly when
   trying to increase volume even if output samples would not be clipped,
@@ -21,6 +19,8 @@
 - Fix pedantic build by cleaning up out123 source, also now really showing
   the encoding list in --longhelp instead of possibly, again, writing junk
   from memory in there.
+- Not linking libmpg123 against libltdl anymore (bug 215).
+- Update MSVC++ ports a bit to make them work again.
 
 1.22.0
 ---
