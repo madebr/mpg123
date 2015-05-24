@@ -276,6 +276,9 @@ void buffer_loop(audio_output_t *ao, sigset_t *oldsigset)
 		if (bytes > outburst)
 			bytes = outburst;
 
+		/* The output can only take multiples of framesize. */
+		bytes -= bytes % ao->framesize;
+
 		debug("write");
 		outbytes = flush_output(ao, (unsigned char*) xf->data + xf->readindex, bytes);
 

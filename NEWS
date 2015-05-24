@@ -9,6 +9,12 @@
   verbose playback.
 - Reporting of clipped samples also includes a line break now.
 
+1.22.2
+---
+- Fix buffering for funny sample formats (namely, 24 bit), that do not
+  fit nicely into 32768 bytes. Effect was a nasty endless loop where
+  mpg123 needs to be externally killed.
+
 1.22.1
 ---
 - Fix mpg123-id3dump when writing images with funny (manipulated) MIME type.

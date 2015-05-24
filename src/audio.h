@@ -58,6 +58,7 @@ typedef struct audio_output_struct
 	long gain;		/* output gain */
 	int channels;	/* number of channels */
 	int format;		/* format flags */
+	int framesize;	/* Output needs data in chunks of framesize bytes. */
 	int is_open;	/* something opened? */
 #define MPG123_OUT_QUIET 1
 	int auxflags; /* For now just one: quiet mode (for probing). */
