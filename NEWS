@@ -9,6 +9,10 @@
   verbose playback.
 - Reporting of clipped samples also includes a line break now.
 
+1.22.3
+- Fix UTF-16 surrogate detection because that used to falsely detect
+  characters above 0xDFFF as surrogates (bug 216).
+
 1.22.2
 ---
 - Fix buffering for funny sample formats (namely, 24 bit), that do not
