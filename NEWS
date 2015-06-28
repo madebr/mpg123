@@ -8,6 +8,7 @@
 - Warning messages also start with a line break now to better fit in with
   verbose playback.
 - Reporting of clipped samples also includes a line break now.
+- Silently skip APE tags (thanks to Hans de Goede).
 
 1.22.3
 - Fix UTF-16 surrogate detection because that used to falsely detect

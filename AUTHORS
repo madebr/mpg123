@@ -17,6 +17,8 @@ The creator: Michael Hipp (email: hippm@informatik.uni-tuebingen.de - please bot
 
 Contributions/ideas Thomas Orgis era (includes backports from mhipp trunk):
 
+Hans de Goede <j.w.r.degoede@gmail.com>: patch to skip APE tags
+Stephan Vedder <stephan.vedder@gmail.com>: MSVC++ 2013 port update
 Rajeev V. Pillai <rajeevvp@users.sf.net>: pointing out/patching issues in HTTP code and behaviour of mpg123 remote/terminal control
 Jarno Lehtinen <lehtinen@sci.fi>: tinyalsa output
 Anthony Wells <borgboyone@yahoo.com>: initial version of ID3v2 APIC patch
