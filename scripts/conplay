@@ -69,7 +69,7 @@ unless(@files)
 	exit;
 }
 
-if($entry < 0 or $entry > $#files or $frame < 0)
+if($entry < 0 or $entry > @files or $frame < 0)
 {
 	die "You got bad data in your playlist file (mismatch between current entry and total count, bad frame index). Clean that up.\n";
 }
@@ -95,6 +95,11 @@ while(<MPG123>)
 }
 close(MPG123);
 
+if($entry > @files)
+{
+	$entry = 0;
+	$frame = 0;
+}
 print STDERR "Continue point is in track $entry, frame $frame.\n";
 write_list();
 
