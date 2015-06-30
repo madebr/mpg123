@@ -9,6 +9,8 @@
   verbose playback.
 - Reporting of clipped samples also includes a line break now.
 - Silently skip APE tags (thanks to Hans de Goede).
+- Some reduction in bitrot on AIX (typos in output module, build with
+  --disable-largefile --with-audio=aix, real test welcome).
 
 1.22.3
 - Fix UTF-16 surrogate detection because that used to falsely detect

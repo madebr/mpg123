@@ -34,7 +34,7 @@ static int rate_best_match(audio_output_t *ao)
 	int  i = 0;
 	long best = 8000;
 
-	if(!ai || ao->fn < 0 || ao->rate < 0) {
+	if(!ao || ao->fn < 0 || ao->rate < 0) {
 		return -1;
 	} 
 	
@@ -94,7 +94,7 @@ static int reset_parameters(audio_output_t *ao)
 	/* Init Device for new values */
 	if (ao->rate >0) {
 		memset ( & ainit, '\0', sizeof (ainit));
-		ainit.srate                 = rate_best_match(ai);
+		ainit.srate                 = rate_best_match(ao);
 		if (ao->channels > 0)
 		ainit.channels          = ao->channels;
 		else
@@ -195,7 +195,7 @@ static int open_aix(audio_output_t *ao)
 	ret = ioctl (ao->fn, AUDIO_INIT, & ainit);
 	if (ret < 0) return ret;
 	
-	reset_parameters(ai);
+	reset_parameters(ao);
 	return ao->fn;
 }
 
@@ -214,7 +214,7 @@ static int get_formats_aix(audio_output_t *ao)
 	long rate;
 	
 	rate = ao->rate;
-	rate_best_match(ai);
+	rate_best_match(ao);
 	if (ao->rate == rate)
 		return (MPG123_ENC_SIGNED_16|MPG123_ENC_UNSIGNED_16|
 			MPG123_ENC_UNSIGNED_8|MPG123_ENC_SIGNED_8|
@@ -290,7 +290,7 @@ static int init_aix(audio_output_t* ao)
 */
 mpg123_module_t mpg123_output_module_info = {
 	/* api_version */	MPG123_MODULE_API_VERSION,
-	/* name */			"AIX",						
+	/* name */			"aix",						
 	/* description */	"Output audio on IBM RS/6000 with AIX Ultimedia Services.",
 	/* revision */		"$Rev: 932 $",						
 	/* handle */		NULL,
