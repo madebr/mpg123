@@ -12,6 +12,12 @@
 - Some reduction in bitrot on AIX (typos in output module, build with
   --disable-largefile --with-audio=aix, real test welcome).
 
+1.22.4
+---
+- Fix stupid regression introduced with a bugfix in 1.14.1 to make
+  free format streams work again. It took 3 years for someone to notice.
+  I added a regression test for that now!
+
 1.22.3
 - Fix UTF-16 surrogate detection because that used to falsely detect
   characters above 0xDFFF as surrogates (bug 216).
