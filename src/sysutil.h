@@ -13,6 +13,8 @@
 
 void (*catchsignal(int signum, void(*handler)()))();
 int split_dir_file(const char *path, char **dname, char **fname);
+/* Length of directory part in given path. */
+size_t dir_length(const char *path);
 
 #endif
 

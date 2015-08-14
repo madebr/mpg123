@@ -51,6 +51,13 @@ char *strndup (const char *src, int num)
 }
 #endif
 
+
+size_t dir_length(const char *path)
+{
+	char * slashpos = strrchr(path, '/');
+	return (slashpos ? slashpos-path : 0);
+}
+
 /*
  *   Split "path" into directory and filename components.
  *
