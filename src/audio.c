@@ -9,6 +9,7 @@
 #include <errno.h>
 #include "mpg123app.h"
 #include "common.h"
+#include "sysutil.h"
 #include "buffer.h"
 
 #ifdef HAVE_SYS_WAIT_H
