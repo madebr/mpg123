@@ -47,7 +47,7 @@
 #undef HAVE_SETPRIORITY
 #endif
 
-#include "common.h"
+#include "sysutil.h"
 #include "getlopt.h"
 #include "buffer.h"
 
