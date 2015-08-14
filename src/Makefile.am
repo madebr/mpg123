@@ -41,6 +41,8 @@ mpg123_SOURCES = \
 	buffer.h \
 	common.c \
 	common.h \
+	sysutil.c \
+	sysutil.h \
 	libmpg123/compat.c \
 	libmpg123/compat.h \
 	control_generic.c \
@@ -80,7 +82,6 @@ out123_SOURCES = \
 	buffer.h \
 	sysutil.c \
 	sysutil.h \
-	common.h \
 	libmpg123/compat.c \
 	libmpg123/compat.h \
 	getlopt.c \

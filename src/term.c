@@ -39,6 +39,8 @@ struct keydef term_help[] =
 	 { MPG123_STOP_KEY,  ' ', "interrupt/restart playback (i.e. '(un)pause')" }
 	,{ MPG123_NEXT_KEY,    0, "next track" }
 	,{ MPG123_PREV_KEY,    0, "previous track" }
+	,{ MPG123_NEXT_DIR_KEY, 0, "next directory (next track until directory part changes)" }
+	,{ MPG123_PREV_DIR_KEY, 0, "previous directory (previous track until directory part changes)" }
 	,{ MPG123_BACK_KEY,    0, "back to beginning of track" }
 	,{ MPG123_PAUSE_KEY,   0, "loop around current position (don't combine with output buffer)" }
 	,{ MPG123_FORWARD_KEY, 0, "forward" }
@@ -280,6 +282,11 @@ static void term_handle_key(mpg123_handle *fr, audio_output_t *ao, char val)
 		else buffer_resync(); /* was: plain_buffer_resync */
 		next_track();
 	break;
+	case MPG123_NEXT_DIR_KEY:
+		if(!param.usebuffer) ao->flush(ao);
+		else buffer_resync(); /* was: plain_buffer_resync */
+		next_dir();
+	break;
 	case MPG123_QUIT_KEY:
 		debug("QUIT");
 		if(stopped)
@@ -400,6 +407,12 @@ static void term_handle_key(mpg123_handle *fr, audio_output_t *ao, char val)
 		else buffer_resync(); /* was: plain_buffer_resync */
 
 		prev_track();
+	break;
+	case MPG123_PREV_DIR_KEY:
+		if(!param.usebuffer) ao->flush(ao);
+		else buffer_resync(); /* was: plain_buffer_resync */
+
+		prev_dir();
 	break;
 	case MPG123_PLAYLIST_KEY:
 		fprintf(stderr, "%s\nPlaylist (\">\" indicates current track):\n", param.verbose ? "\n" : "");

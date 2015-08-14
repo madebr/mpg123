@@ -15,6 +15,7 @@
 #ifndef NOXFERMEM
 
 #include "common.h"
+#include "sysutil.h"
 #include <errno.h>
 #include "debug.h"
 

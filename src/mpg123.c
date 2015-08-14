@@ -32,6 +32,7 @@
 #endif
 
 #include "common.h"
+#include "sysutil.h"
 #include "getlopt.h"
 #include "buffer.h"
 #include "term.h"
@@ -178,6 +179,46 @@ void prev_track(void)
 	if(pl.pos > 2) pl.pos -= 2;
 	else pl.pos = skip_tracks = 0;
 
+	next_track();
+}
+
+/* Directory jumping based on comparing the directory part of the playlist
+   URLs. */
+int cmp_dir(const char* patha, const char* pathb)
+{
+	size_t dirlen[2];
+	dirlen[0] = dir_length(patha);
+	dirlen[1] = dir_length(pathb);
+	return (dirlen[0] < dirlen[1])
+	?	-1
+	:	( dirlen[0] > dirlen[1]
+		?	1
+		:	memcmp(patha, pathb, dirlen[0])
+		);
+}
+
+void next_dir(void)
+{
+	size_t npos = pl.pos ? pl.pos-1 : 0;
+	do { ++npos; }
+	while(npos < pl.fill && !cmp_dir(pl.list[npos-1].url, pl.list[npos].url));
+	pl.pos = npos;
+	next_track();
+}
+
+void prev_dir(void)
+{
+	size_t npos = pl.pos ? pl.pos-1 : 0;
+	/* 1. Find end of previous directory. */
+	if(npos && npos < pl.fill)
+	do { --npos; }
+	while(npos && !cmp_dir(pl.list[npos+1].url, pl.list[npos].url));
+	/* npos == the last track of previous directory */
+	/* 2. Find the first track of this directory */
+	if(npos < pl.fill)
+	while(npos && !cmp_dir(pl.list[npos-1].url, pl.list[npos].url))
+	{ --npos; }
+	pl.pos = npos;
 	next_track();
 }
 

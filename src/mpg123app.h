@@ -162,6 +162,8 @@ extern struct parameter param;
 /* avoid the SIGINT in terminal control */
 void next_track(void);
 void prev_track(void);
+void next_dir(void);
+void prev_dir(void);
 int  open_track(char *fname);
 void close_track(void);
 void set_intflag(void);

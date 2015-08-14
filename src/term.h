@@ -60,6 +60,10 @@
 /* This counts as "undocumented" and can disappear */
 #define MPG123_FRAME_INDEX_KEY 'i'
 #define MPG123_VARIOUS_INFO_KEY 'I'
+
+#define MPG123_PREV_DIR_KEY '['
+#define MPG123_NEXT_DIR_KEY ']'
+
 /* The normal and big pitch adjustment done on key presses. */
 #define MPG123_PITCH_VAL 0.001
 #define MPG123_PITCH_BVAL 0.01
@@ -71,6 +75,7 @@
 /* Need it as string for the param struct, change according to the above. */
 #define MPG123_TERM_USR1 "s"
 #define MPG123_TERM_USR2 "f"
+
 
 void term_init(void);
 off_t term_control(mpg123_handle *mh, audio_output_t *ao);
