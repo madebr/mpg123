@@ -11,8 +11,6 @@
 
 #include "mpg123app.h"
 
-void (*catchsignal(int signum, void(*handler)()))();
-
 void print_header(mpg123_handle *);
 void print_header_compact(mpg123_handle *);
 void print_stat(mpg123_handle *fr, long offset, long buffsize);
@@ -21,8 +19,6 @@ void clear_stat();
 extern const char* remote_header_help;
 void print_remote_header(mpg123_handle *mh);
 void generic_sendmsg (const char *fmt, ...);
-
-int split_dir_file(const char *path, char **dname, char **fname);
 
 extern const char* rva_name[3];
 #endif

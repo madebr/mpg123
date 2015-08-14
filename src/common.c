@@ -26,26 +26,6 @@ static const int samples_per_frame[4][4] =
 };
 
 
-#if (!defined(WIN32) || defined (__CYGWIN__)) && defined(HAVE_SIGNAL_H)
-void (*catchsignal(int signum, void(*handler)()))()
-{
-  struct sigaction new_sa;
-  struct sigaction old_sa;
-
-#ifdef DONT_CATCH_SIGNALS
-  fprintf (stderr, "Not catching any signals.\n");
-  return ((void (*)()) -1);
-#endif
-
-  new_sa.sa_handler = handler;
-  sigemptyset(&new_sa.sa_mask);
-  new_sa.sa_flags = 0;
-  if (sigaction(signum, &new_sa, &old_sa) == -1)
-    return ((void (*)()) -1);
-  return (old_sa.sa_handler);
-}
-#endif
-
 /* concurring to print_rheader... here for control_generic */
 const char* remote_header_help = "S <mpeg-version> <layer> <sampling freq> <mode(stereo/mono/...)> <mode_ext> <framesize> <stereo> <copyright> <error_protected> <emphasis> <bitrate> <extension> <vbr(0/1=yes/no)>";
 void print_remote_header(mpg123_handle *mh)
@@ -119,74 +99,6 @@ void print_header_compact(mpg123_handle *mh)
 		default: fprintf(stderr, "???");
 	}
 	fprintf(stderr,", %ld Hz %s\n", i.rate, smodes[i.mode]);
-}
-
-#if 0
-/* removed the strndup for better portability */
-/*
- *   Allocate space for a new string containing the first
- *   "num" characters of "src".  The resulting string is
- *   always zero-terminated.  Returns NULL if malloc fails.
- */
-char *strndup (const char *src, int num)
-{
-	char *dst;
-
-	if (!(dst = (char *) malloc(num+1)))
-		return (NULL);
-	dst[num] = '\0';
-	return (strncpy(dst, src, num));
-}
-#endif
-
-/*
- *   Split "path" into directory and filename components.
- *
- *   Return value is 0 if no directory was specified (i.e.
- *   "path" does not contain a '/'), OR if the directory
- *   is the same as on the previous call to this function.
- *
- *   Return value is 1 if a directory was specified AND it
- *   is different from the previous one (if any).
- */
-
-int split_dir_file (const char *path, char **dname, char **fname)
-{
-	static char *lastdir = NULL;
-	char *slashpos;
-
-	if ((slashpos = strrchr(path, '/'))) {
-		*fname = slashpos + 1;
-		*dname = strdup(path); /* , 1 + slashpos - path); */
-		if(!(*dname)) {
-			perror("failed to allocate memory for dir name");
-			return 0;
-		}
-		(*dname)[1 + slashpos - path] = 0;
-		if (lastdir && !strcmp(lastdir, *dname)) {
-			/***   same as previous directory   ***/
-			free (*dname);
-			*dname = lastdir;
-			return 0;
-		}
-		else {
-			/***   different directory   ***/
-			if (lastdir)
-				free (lastdir);
-			lastdir = *dname;
-			return 1;
-		}
-	}
-	else {
-		/***   no directory specified   ***/
-		if (lastdir) {
-			free (lastdir);
-			lastdir = NULL;
-		};
-		*dname = NULL;
-		*fname = (char *)path;
-		return 0;
-	}
 }
 
 unsigned int roundui(double val)
