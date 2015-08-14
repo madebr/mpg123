@@ -178,14 +178,14 @@ static int close_portaudio(audio_output_t *ao)
 static void flush_portaudio(audio_output_t *ao)
 {
 	mpg123_portaudio_t *pa = (mpg123_portaudio_t*)ao->userptr;
-	PaError err;
+	/*PaError err;*/
 	
 	/* throw away contents of FIFO */
 	sfifo_flush( &pa->fifo );
 	
 	/* and empty out PortAudio buffers */
-	err = Pa_AbortStream( pa->stream );
-	
+	/*err = */
+	Pa_AbortStream( pa->stream );
 }
 
 
