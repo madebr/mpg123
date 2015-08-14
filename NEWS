@@ -12,6 +12,7 @@
 - Some reduction in bitrot on AIX (typos in output module, build with
   --disable-largefile --with-audio=aix, real test welcome).
 - Added '[' and ']' keys to skip to previous/next directory in playlist.
+- Added support for Haiku to configure script (thanks to Jerome Duval).
 
 1.22.4
 ---
