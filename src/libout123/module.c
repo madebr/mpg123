@@ -5,6 +5,7 @@
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Nicholas J Humfrey
 */
+
 #include "config.h"
 #include "out123_intsym.h"
 #include "compat.h"
@@ -253,6 +254,8 @@ int list_modules(const char *type, char ***names, char ***descr, int verbose)
 	char *moddir  = NULL;
 	int count = 0;
 
+	debug1("verbose:%i", verbose);
+
 	*names = NULL;
 	*descr = NULL;
 
@@ -263,6 +266,7 @@ int list_modules(const char *type, char ***names, char ***descr, int verbose)
 			error("Failure getting module directory! (Perhaps set MPG123_MODDIR?)");
 		return -1;
 	}
+	debug1("module dir: %s", moddir);
 	/* Open the module directory */
 	dir = moddir != NULL ? opendir(moddir) : NULL;
 	if (dir==NULL) {
@@ -286,51 +290,71 @@ int list_modules(const char *type, char ***names, char ***descr, int verbose)
 
 	while( count >= 0 && (dp = readdir(dir)) != NULL )
 	{
+		/* Copy of file name to be cut into pieces. */
+		char *module_typename = NULL;
+		/* Pointers to the pieces. */
 		char *module_name = NULL;
 		char *module_type = NULL;
 		char *uscore_pos = NULL;
 		mpg123_module_t *module = NULL;
 		char* ext;
 		struct stat fst;
+		size_t name_len;
 
 		/* Various checks as loop shortcuts, avoiding too much nesting. */
+		debug1("checking entry: %s", dp->d_name);
 
 		if(stat(dp->d_name, &fst) != 0)
 			continue;
 		if(!S_ISREG(fst.st_mode)) /* Allow links? */
 			continue;
 
+		name_len = strlen(dp->d_name);
+		if(name_len < strlen(MODULE_FILE_SUFFIX))
+			continue;
 		ext = dp->d_name
-		+	strlen(dp->d_name)
+		+	name_len
 		-	strlen(MODULE_FILE_SUFFIX);
 		if(strcmp(ext, MODULE_FILE_SUFFIX))
 			continue;
+		debug("has suffix");
 
-		/* Extract the module type */
-		if(!(module_type=strdup(dp->d_name)))
+		/* Extract the module type and name */
+		if(!(module_typename=strdup(dp->d_name)))
 			continue;
-		/* Only list modules of desired type. */
-		if(strcmp(type, module_type))
-			continue;
-		uscore_pos = strchr( module_type, '_' );
+		uscore_pos = strchr( module_typename, '_' );
 		if(   uscore_pos==NULL
-		  || (uscore_pos>=module_type+strlen(module_type)+1) )
+		  || (uscore_pos>=module_typename+name_len+1) )
 		{
-			free(module_type);
+			free(module_typename);
 			continue;
 		}
 		*uscore_pos = '\0';
-
-		/* Extract the short name of the module */
-		module_name = strdup(dp->d_name + strlen(module_type) + 1);
-		if(!module_name)
+		module_type = module_typename;
+		module_name = uscore_pos+1;
+		/* Only list modules of desired type. */
+		if(strcmp(type, module_type))
 		{
-			free(module_type);
+			debug("wrong type");
+			free(module_typename);
 			continue;
 		}
-		module_name[strlen(module_name)-strlen(MODULE_FILE_SUFFIX)] = '\0';
+		debug("has type");
 
-		/* Open the module */
+		/* Extract the short name of the module */
+		name_len -= uscore_pos - module_typename + 1;
+		if(name_len <= strlen(MODULE_FILE_SUFFIX))
+		{
+			debug("name too short");
+			free(module_typename);
+			continue;
+		}
+		name_len -= strlen(MODULE_FILE_SUFFIX);
+		module_name[name_len] = '\0';
+
+		debug("opening module");
+		/* Open the module
+		   Yes, this re-builds the file name we chopped to pieces just now. */
 		if((module=open_module_here(module_type, module_name, verbose)))
 		{
 			char **more_names = NULL;
@@ -360,8 +384,7 @@ int list_modules(const char *type, char ***names, char ***descr, int verbose)
 			/* Close the module again */
 			close_module(module, verbose);
 		}
-		free(module_name);
-		free(module_type);
+		free(module_typename);
 	}
 	closedir(dir);
 	return count;

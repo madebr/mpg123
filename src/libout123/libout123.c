@@ -20,6 +20,7 @@ static int have_buffer(audio_output_t *ao)
 
 static int modverbose(audio_output_t *ao)
 {
+	debug3("modverbose: %x %x %x", (unsigned)ao->flags, (unsigned)ao->auxflags, (unsigned)OUT123_QUIET);
 	return AOQUIET
 	?	-1
 	:	ao->verbose;
@@ -773,7 +774,7 @@ int out123_drivers(audio_output_t *ao, char ***names, char ***descr)
 	   interested in both lists. it's a bit wasteful, but the code looks
 	   ugly enough already down there. */
 	count = list_modules("output", &tmpnames, &tmpdescr, modverbose(ao));
-
+	debug1("list_modules()=%i", count);
 	if(count < 0)
 		return count;
 
