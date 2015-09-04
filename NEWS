@@ -1,3 +1,13 @@
+- Activate terminal control automatically if run in an interactive terminal.
+  Provide switch to _deactivate_ terminal control.
+
+- reverse order of arguments for out123_start() again, matching mpg123_getformat()
+
+- fancy: do progress bar on terminal by reversing text colors on status line
+
+- anticipate messages from libmpg123 with param.verbose>1 in term.c and print("\n")
+  on key presses that _will_ result in "Note: " printouts
+
 1.23.0
 ---
 - Added mpg123 --no-infoframe.
@@ -8,6 +18,13 @@
 - Warning messages also start with a line break now to better fit in with
   verbose playback.
 - Reporting of clipped samples also includes a line break now.
+- Default for --preload now is 0.2 instead of 1 (fill whole buffer before
+  playback). The maximum is 0.5 . This is mandated by corrected buffer
+  interaction in libout123.
+- Improved interaction with buffer process in terminal control mode.
+  Seeking is more transparent now, taking dropped samples from buffer into
+  account to avoid unintended jumps. Direct seeks with number row do not
+  pause playback anymore.
 - Silently skip APE tags (thanks to Hans de Goede).
 - Some reduction in bitrot on AIX (typos in output module, build with
   --disable-largefile --with-audio=aix, real test welcome).

@@ -8,6 +8,7 @@
 */
 
 #include "mpg123app.h"
+#include "out123.h"
 #include <stdarg.h>
 #include <ctype.h>
 #if !defined (WIN32) || defined (__CYGWIN__)
@@ -18,14 +19,12 @@
 #include <string.h>
 
 #include "common.h"
-#include "buffer.h"
 #include "genre.h"
 #include "playlist.h"
 #define MODE_STOPPED 0
 #define MODE_PLAYING 1
 #define MODE_PAUSED 2
 
-extern int buffer_pid;
 extern audio_output_t *ao;
 
 #ifdef FIFO
@@ -100,7 +99,7 @@ void generic_sendstat (mpg123_handle *fr)
 {
 	off_t current_frame, frames_left;
 	double current_seconds, seconds_left;
-	if(!mpg123_position(fr, 0, xfermem_get_usedspace(buffermem), &current_frame, &frames_left, &current_seconds, &seconds_left))
+	if(!mpg123_position(fr, 0, out123_buffered(ao), &current_frame, &frames_left, &current_seconds, &seconds_left))
 	generic_sendmsg("F %"OFF_P" %"OFF_P" %3.2f %3.2f", (off_p)current_frame, (off_p)frames_left, current_seconds, seconds_left);
 }
 
@@ -213,11 +212,7 @@ void generic_sendinfo (char *filename)
 
 static void generic_load(mpg123_handle *fr, char *arg, int state)
 {
-	if(param.usebuffer)
-	{
-		buffer_resync();
-		if(mode == MODE_PAUSED && state != MODE_PAUSED) buffer_start();
-	}
+	out123_drop(ao);
 	if(mode != MODE_STOPPED)
 	{
 		close_track();
@@ -359,7 +354,7 @@ int control_generic (mpg123_handle *fr)
 					{
 						mode = MODE_PAUSED;
 						/* Hm, buffer should be stopped already, shouldn't it? */
-						if(param.usebuffer) buffer_stop();
+						if(param.usebuffer) out123_pause(ao);
 						generic_sendmsg("P 1");
 					}
 					else
@@ -469,11 +464,11 @@ int control_generic (mpg123_handle *fr)
 					{	
 						if (mode == MODE_PLAYING) {
 							mode = MODE_PAUSED;
-							if(param.usebuffer) buffer_stop();
+							out123_pause(ao);
 							generic_sendmsg("P 1");
 						} else {
 							mode = MODE_PLAYING;
-							if(param.usebuffer) buffer_start();
+							out123_continue(ao);
 							generic_sendmsg("P 2");
 						}
 					} else generic_sendmsg("P 0");
@@ -483,11 +478,9 @@ int control_generic (mpg123_handle *fr)
 				/* STOP */
 				if (!strcasecmp(comstr, "S") || !strcasecmp(comstr, "STOP")) {
 					if (mode != MODE_STOPPED) {
-						if(param.usebuffer)
-						{
-							buffer_stop();
-							buffer_resync();
-						}
+						/* Do we want to drop here? */
+						out123_drop(ao);
+						out123_stop(ao);
 						close_track();
 						mode = MODE_STOPPED;
 						generic_sendmsg("P 0");
@@ -694,7 +687,7 @@ int control_generic (mpg123_handle *fr)
 							generic_sendmsg("E Error while seeking: %s", mpg123_strerror(fr));
 							mpg123_seek(fr, 0, SEEK_SET);
 						}
-						if(param.usebuffer) buffer_resync();
+						out123_drop(ao);
 
 						newpos = mpg123_tell(fr);
 						if(newpos <= oldpos) mpg123_meta_free(fr);
@@ -728,7 +721,7 @@ int control_generic (mpg123_handle *fr)
 							generic_sendmsg("E Error while seeking");
 							mpg123_seek_frame(fr, 0, SEEK_SET);
 						}
-						if(param.usebuffer)	buffer_resync();
+						out123_drop(ao);
 
 						if(framenum <= oldpos) mpg123_meta_free(fr);
 						generic_sendmsg("J %d", framenum);

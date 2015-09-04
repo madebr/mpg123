@@ -1,7 +1,7 @@
 /*
 	mpg123: main code of the program (not of the decoder...)
 
-	copyright 1995-2009 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1995-2015 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp
 
@@ -17,7 +17,6 @@
 #include "compat.h"
 /* import DLL symbols on windows */
 
-#include "xfermem.h"
 #include "httpget.h"
 #if WIN32
 #include "win32_support.h"
@@ -52,13 +51,12 @@ struct parameter
 	int shuffle;	/* shuffle/random play */
 	int remote;	/* remote operation */
 	int remote_err;	/* remote operation to stderr */
-	int outmode;	/* where to out the decoded sampels */
 	int quiet;	/* shut up! */
 	int xterm_title;	/* Change xterm title to song names? */
 	long usebuffer;	/* second level buffer size */
 	int verbose;    /* verbose level */
-	char* output_module;	/* audio output module to use */
-	char* output_device;	/* audio output device to use */
+	const char* output_module;	/* audio output module to use */
+	const char* output_device;	/* audio output device to use */
 	int   output_flags;	/* legacy output destination for AIX/HP/Sun */
 #ifdef HAVE_TERMIOS
 	int term_ctrl;
@@ -73,7 +71,6 @@ struct parameter
 #ifdef HAVE_WINDOWS_H
 	int w32_priority;
 #endif
-	char *filename;
 	long listentry; /* possibility to choose playback of one entry in playlist (0: off, > 0 : select, < 0; just show list*/
 	char* listname; /* name of playlist */
 	int long_id3;
@@ -127,14 +124,6 @@ extern char *equalfile;
 extern off_t framenum;
 extern struct httpdata htd;
 
-extern int buffer_fd[2];
-extern txfermem *buffermem;
-extern int buffer_pid;
-
-#ifndef NOXFERMEM
-extern void buffer_loop(audio_output_t *ao,sigset_t *oldsigset);
-#endif
-
 extern int OutputDescriptor;
 
 #ifdef VARMODESUPPORT
@@ -147,15 +136,6 @@ extern void prepare_audioinfo(mpg123_handle *mh, audio_output_t *ao);
 extern int play_frame(void);
 
 extern int control_generic(mpg123_handle *fr);
-
-/* Eh... I see duplicated definitions. Clean up after merge! */
-extern int cdr_open(audio_output_t *);
-extern int au_open(audio_output_t *);
-extern int wav_open(audio_output_t *);
-extern int wav_write(unsigned char *buf,int len);
-extern int cdr_close(void);
-extern int au_close(void);
-extern int wav_close(void);
 
 extern struct parameter param;
 

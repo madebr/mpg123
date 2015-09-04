@@ -1,7 +1,7 @@
 /*
 	out123: simple program to stream data to an audio output device
 
-	copyright 1995-2014 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1995-2015 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis (extracted from mpg123.c)
 
@@ -26,6 +26,7 @@
 
 #define ME "main"
 #include "mpg123app.h"
+#include "out123.h"
 
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
@@ -49,7 +50,6 @@
 
 #include "sysutil.h"
 #include "getlopt.h"
-#include "buffer.h"
 
 #include "debug.h"
 
@@ -72,7 +72,6 @@ struct parameter param = {
   FALSE , /* shuffle */
   FALSE , /* remote */
   FALSE , /* remote to stderr */
-  DECODE_AUDIO , /* write samples to audio device */
   FALSE , /* silent operation */
   FALSE , /* xterm title on/off */
   0 ,     /* second level buffer size */
@@ -93,7 +92,6 @@ struct parameter param = {
 #ifdef HAVE_WINDOWS_H 
   0, /* win32 process priority */
 #endif
-  NULL,  /* wav,cdr,au Filename */
 	0, /* default is to play all titles in playlist */
 	NULL, /* no playlist per default */
 	0 /* condensed id3 per default */
@@ -126,7 +124,7 @@ struct parameter param = {
 	,0 /* force_utf8 */
 	,INDEX_SIZE
 	,"s16" /* force_encoding */
-	,1. /* preload */
+	,0.2 /* preload */
 	,-1 /* preframes */
 	,-1 /* gain */
 	,NULL /* stream dump file */
@@ -134,18 +132,13 @@ struct parameter param = {
 };
 
 audio_output_t *ao = NULL;
-txfermem *buffermem = NULL;
 char *prgName = NULL;
 /* ThOr: pointers are not TRUE or FALSE */
 char *equalfile = NULL;
 int fresh = TRUE;
-int have_output = FALSE; /* If we are past the output init step. */
 
-int buffer_fd[2];
-int buffer_pid;
 size_t bufferblock = 4096;
 
-static int intflag = FALSE;
 int OutputDescriptor;
 
 char *fullprogname = NULL; /* Copy of argv[0]. */
@@ -160,8 +153,7 @@ void safe_exit(int code)
 {
 	char *dummy, *dammy;
 
-	if(have_output) exit_output(ao, intflag);
-
+	out123_del(ao);
 #ifdef WANT_WIN32_UNICODE
 	win32_cmdline_free(argc, argv); /* This handles the premature argv == NULL, too. */
 #endif
@@ -172,7 +164,22 @@ void safe_exit(int code)
 	exit(code);
 }
 
-/* returns 1 if reset_audio needed instead */
+static void check_fatal(int code)
+{
+	if(code) safe_exit(code);
+}
+
+static void check_fatal_output(int code)
+{
+	if(code)
+	{
+		if(!param.quiet)
+			error2( "out123 error %i: %s"
+			,	out123_errcode(ao), out123_strerror(ao) );
+		safe_exit(code);
+	}
+}
+
 static void set_output_module( char *arg )
 {
 	unsigned int i;
@@ -241,65 +248,44 @@ static void set_quiet (char *arg)
 
 static void set_out_wav(char *arg)
 {
-	param.outmode = DECODE_WAV;
-	param.filename = arg;
+	param.output_module = "wav";
+	param.output_device = arg;
 }
 
 void set_out_cdr(char *arg)
 {
-	param.outmode = DECODE_CDR;
-	param.filename = arg;
+	param.output_module = "cdr";
+	param.output_device = arg;
 }
 
 void set_out_au(char *arg)
 {
-  param.outmode = DECODE_AU;
-  param.filename = arg;
+	param.output_module = "au";
+	param.output_device = arg;
+}
+
+void set_out_test(char *arg)
+{
+	param.output_module = "test";
+	param.output_device = NULL;
 }
 
 static void set_out_file(char *arg)
 {
-	param.outmode=DECODE_FILE;
-	#ifdef WIN32
-	#ifdef WANT_WIN32_UNICODE
-	wchar_t *argw = NULL;
-	OutputDescriptor = win32_utf8_wide(arg, &argw, NULL);
-	if(argw != NULL)
-	{
-		OutputDescriptor=_wopen(argw,_O_CREAT|_O_WRONLY|_O_BINARY|_O_TRUNC,0666);
-		free(argw);
-	}
-	#else
-	OutputDescriptor=_open(arg,_O_CREAT|_O_WRONLY|_O_BINARY|_O_TRUNC,0666);
-	#endif /*WANT_WIN32_UNICODE*/
-	#else /*WIN32*/
-	OutputDescriptor=open(arg,O_CREAT|O_WRONLY|O_TRUNC,0666);
-	#endif /*WIN32*/
-	if(OutputDescriptor==-1)
-	{
-		error2("Can't open %s for writing (%s).\n",arg,strerror(errno));
-		safe_exit(1);
-	}
+	param.output_module = "raw";
+	param.output_device = arg;
 }
 
 static void set_out_stdout(char *arg)
 {
-	param.outmode=DECODE_FILE;
-	param.remote_err=TRUE;
-	OutputDescriptor=STDOUT_FILENO;
-	#ifdef WIN32
-	_setmode(STDOUT_FILENO, _O_BINARY);
-	#endif
+	param.output_module = "raw";
+	param.output_device = NULL;
 }
 
 static void set_out_stdout1(char *arg)
 {
-	param.outmode=DECODE_AUDIOFILE;
-	param.remote_err=TRUE;
-	OutputDescriptor=STDOUT_FILENO;
-	#ifdef WIN32
-	_setmode(STDOUT_FILENO, _O_BINARY);
-	#endif
+	param.output_module = "raw";
+	param.output_device = NULL;
 }
 
 #if !defined (HAVE_SCHED_SETSCHEDULER) && !defined (HAVE_WINDOWS_H)
@@ -322,6 +308,32 @@ static void unset_frameflag(char *arg)
 	param.flags &= ~frameflag;
 } */
 
+static void list_output_modules(char *arg)
+{
+	char **names = NULL;
+	char **descr = NULL;
+	int count = -1;
+	audio_output_t *lao;
+
+	if((lao=out123_new()))
+	{
+		out123_param(lao, OUT123_VERBOSE, param.verbose, 0.);
+		out123_param(lao, OUT123_FLAGS, OUT123_QUIET, 0.);
+		if((count=out123_drivers(lao, &names, &descr)) >= 0)
+		{
+			int i;
+			for(i=0; i<count; ++i)
+				printf( "%-15s\t%s\n", names[i], descr[i] );
+			free(names);
+			free(descr);
+		}
+		out123_del(lao);
+	}
+	else if(!param.quiet)
+		error("Failed to create an out123 handle.");
+	exit(count >= 0 ? 0 : 1);
+}
+
 /*static int appflag;*/ /* still ugly, but works */
 /*static void set_appflag(char *arg)
 {
@@ -341,9 +353,9 @@ passed.
  *  GLO_NUM no longer exists.
  */
 topt opts[] = {
-	{'t', "test",        GLO_INT,  0, &param.outmode, DECODE_TEST},
-	{'s', "stdout",      GLO_INT,  set_out_stdout, &param.outmode, DECODE_FILE},
-	{'S', "STDOUT",      GLO_INT,  set_out_stdout1, &param.outmode,DECODE_AUDIOFILE},
+	{'t', "test",        GLO_INT,  set_out_test, NULL, 0},
+	{'s', "stdout",      GLO_INT,  set_out_stdout,  NULL, 0},
+	{'S', "STDOUT",      GLO_INT,  set_out_stdout1, NULL, 0},
 	{'O', "outfile",     GLO_ARG | GLO_CHAR, set_out_file, NULL, 0},
 	{'v', "verbose",     0,        set_verbose, 0,           0},
 	{'q', "quiet",       0,        set_quiet,   0,           0},
@@ -354,7 +366,7 @@ topt opts[] = {
 	{0,   "speaker",     0,                  set_output_s, 0,0},
 	{0,   "lineout",     0,                  set_output_l, 0,0},
 	{'o', "output",      GLO_ARG | GLO_CHAR, set_output, 0,  0},
-	{0,   "list-modules",0,        list_modules, NULL,  0}, 
+	{0,   "list-modules",0,       list_output_modules, NULL,  0}, 
 	{'a', "audiodevice", GLO_ARG | GLO_CHAR, 0, &param.output_device,  0},
 #ifndef NOXFERMEM
 	{'b', "buffer",      GLO_ARG | GLO_LONG, 0, &param.usebuffer,  0},
@@ -382,54 +394,6 @@ topt opts[] = {
 	{0, 0, 0, 0, 0, 0}
 };
 
-/*
- *   Change the playback sample rate.
- *   Consider that changing it after starting playback is not covered by gapless code!
- */
-static void reset_audio(long rate, int channels, int format)
-{
-#ifndef NOXFERMEM
-	if (param.usebuffer) {
-		/* wait until the buffer is empty,
-		 * then tell the buffer process to
-		 * change the sample rate.   [OF]
-		 */
-		while (xfermem_get_usedspace(buffermem)	> 0)
-			if (xfermem_block(XF_WRITER, buffermem) == XF_CMD_TERMINATE) {
-				intflag = TRUE;
-				break;
-			}
-		buffermem->freeindex = -1;
-		buffermem->readindex = 0; /* I know what I'm doing! ;-) */
-		buffermem->freeindex = 0;
-		if (intflag)
-			return;
-		buffermem->rate     = pitch_rate(rate); 
-		buffermem->channels = channels; 
-		buffermem->format   = format;
-		buffer_reset();
-	}
-	else 
-	{
-#endif
-		if(ao == NULL)
-		{
-			error("Audio handle should not be NULL here!");
-			safe_exit(98);
-		}
-		ao->rate     = pitch_rate(rate); 
-		ao->channels = channels; 
-		ao->format   = format;
-		if(reset_output(ao) < 0)
-		{
-			error1("failed to reset audio device: %s", strerror(errno));
-			safe_exit(1);
-		}
-#ifndef NOXFERMEM
-	}
-#endif
-}
-
 /* return 1 on success, 0 on failure */
 int play_frame(void)
 {
@@ -439,9 +403,13 @@ int play_frame(void)
 	if(got_samples)
 	{
 		size_t got_bytes = pcmframe * got_samples;
-		if(flush_output(ao, audio, got_bytes) < (int)got_bytes)
+		if(out123_play(ao, audio, got_bytes) < (int)got_bytes)
 		{
-			error("Deep trouble! Cannot flush to my output anymore!");
+			if(!param.quiet)
+			{
+				error2( "out123 error %i: %s"
+				,	out123_errcode(ao), out123_strerror(ao) );
+			}
 			safe_exit(133);
 		}
 		return 1;
@@ -449,23 +417,16 @@ int play_frame(void)
 	else return 0;
 }
 
-void buffer_drain(void)
-{
-#ifndef NOXFERMEM
-	int s;
-	while ((s = xfermem_get_usedspace(buffermem)))
-	{
-		struct timeval wait170 = {0, 170000};
-		if(intflag) break;
-		buffer_ignore_lowmem();
-/*		if(param.verbose) print_stat(mh,0,s); */
-		select(0, NULL, NULL, NULL, &wait170);
-	}
-#endif
-}
-
 /* Hack: A hidden function in audio.c just for me. */
 int audio_enc_name2code(const char* name);
+
+static int intflag = FALSE;
+#if !defined(WIN32) && !defined(GENERIC)
+static void catch_interrupt(void)
+{
+        intflag = TRUE;
+}
+#endif
 
 int main(int sys_argc, char ** sys_argv)
 {
@@ -523,6 +484,27 @@ int main(int sys_argc, char ** sys_argv)
 			usage(1);
 	}
 
+	/* Ensure cleanup before we cause too much mess. */
+#if !defined(WIN32) && !defined(GENERIC)
+	catchsignal(SIGINT, catch_interrupt);
+	catchsignal(SIGTERM, catch_interrupt);
+#endif
+	ao = out123_new();
+	if(!ao){ error("Failed to allocate output."); exit(1); }
+
+	if
+	( 0
+	||	out123_param(ao, OUT123_FLAGS, param.output_flags, 0.)
+	|| out123_param(ao, OUT123_PRELOAD, 0, param.preload)
+	|| out123_param(ao, OUT123_GAIN, param.gain, 0.)
+	|| out123_param(ao, OUT123_VERBOSE, param.verbose, 0.)
+	)
+	{
+		error("Error setting output parameters. Do you need a usage reminder?");
+		usage(1);
+	}
+	
+
 #ifdef HAVE_SETPRIORITY
 	if(param.aggressive) { /* tst */
 		int mypid = getpid();
@@ -564,46 +546,26 @@ int main(int sys_argc, char ** sys_argv)
 	bufferblock = pcmblock*pcmframe;
 	audio = (unsigned char*) malloc(bufferblock);
 
+	check_fatal_output(out123_set_buffer(ao, param.usebuffer*1024));
 	/* This needs bufferblock set! */
-	if(init_output(&ao) < 0)
-	{
-		error("Failed to initialize output, goodbye.");
-		return 99; /* It's safe here... nothing nasty happened yet. */
-	}
-	have_output = TRUE;
+	check_fatal_output(out123_open( ao
+	,	param.output_module, param.output_device ));
 
 	fprintf(stderr, "TODO: Check audio caps, add option to display 'em.\n");
 	/* audio_capabilities(ao, mh); */
-	/*
-		This is in audio_capabilities(), buffer must be told to leave config mode.
-		We don't ask capabilities in normal playback operation, but there'll be
-		an extra mode of operation to query if an audio device supports a certain
-		format, or indeed the whole matrix. Actually, we usually got independent
-		support for certain encodings and for certain rates and channels. Could
-		remodel the interface for that, as we're not thinking about fixed MPEG
-		rates.
-	*/
-#ifndef NOXFERMEM
-	/* Buffer loop shall start normal operation now. */
-	if(param.usebuffer)
-	{
-		xfermem_putcmd(buffermem->fd[XF_WRITER], XF_CMD_WAKEUP);
-		xfermem_getcmd(buffermem->fd[XF_WRITER], TRUE);
-	}
-#endif
 
-	reset_audio(param.force_rate, channels, encoding);
+	check_fatal_output(out123_start(ao, encoding, channels, param.force_rate));
 
 	input = stdin;
-	while(play_frame())
+	while(play_frame() && !intflag)
 	{
 		/* be happy */
 	}
-	/* Ensure we played everything. */
-	if(param.usebuffer)
+	if(intflag) /* Make it quick! */
 	{
-		buffer_drain();
-		buffer_resync();
+		if(!param.quiet)
+			fprintf(stderr, "Interrupted. Dropping the ball.\n");
+		out123_drop(ao);
 	}
 
 	safe_exit(0); /* That closes output and restores terminal, too. */

@@ -10,12 +10,23 @@ AC_PREREQ(2.57)
 dnl ############# Initialisation
 AC_INIT([mpg123], [1.23.0], [mpg123-devel@lists.sourceforge.net])
 dnl Increment API_VERSION when the API gets changes (new functions).
+
+dnl libmpg123
 API_VERSION=41
 LIB_PATCHLEVEL=4
+
+dnl libout123
+OUTAPI_VERSION=1
+OUTLIB_PATCHLEVEL=0
+
 dnl Since we want to be backwards compatible, both sides get set to API_VERSION.
 LIBMPG123_VERSION=$API_VERSION:$LIB_PATCHLEVEL:$API_VERSION
+LIBOUT123_VERSION=$OUTAPI_VERSION:$OUTLIB_PATCHLEVEL:$OUTAPI_VERSION
 AC_SUBST(LIBMPG123_VERSION)
 AC_SUBST(API_VERSION)
+AC_SUBST(LIBOUT123_VERSION)
+AC_SUBST(OUTAPI_VERSION)
+
 
 AC_CONFIG_SRCDIR(src/mpg123.c)
 AC_CONFIG_AUX_DIR(build)
@@ -24,7 +35,9 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CANONICAL_HOST
 
 dnl Version 1.7 of automake is recommended
-AM_INIT_AUTOMAKE(1.7)
+dnl Not sure what minimal version does not choke on sub directories.
+dnl Testing with 1.14.
+AM_INIT_AUTOMAKE([subdir-objects])
 AC_CONFIG_HEADERS([src/config.h])
 
 
@@ -164,17 +177,8 @@ dnl Configure libtool
 AC_LIBTOOL_WIN32_DLL
 AM_PROG_LIBTOOL
 
-if test x"$modules" = xdisabled
-then
-	echo "Modules still disabled..."
-	MODULE_OBJ="legacy_module.\$(OBJEXT)"
-else
-	MODULE_OBJ="module.\$(OBJEXT)"
-fi
-
 AM_CONDITIONAL( [HAVE_MODULES], [test "x$modules" = xenabled] )
 
-AC_SUBST(MODULE_OBJ)
 AC_SUBST(LT_LDFLAGS)
 AC_SUBST(EXEC_LT_LDFLAGS)
 
@@ -1057,6 +1061,8 @@ else
   AC_MSG_RESULT([no])
 fi
 
+# Again, prepend path for non-recursive make.
+LFS_LOBJ=`for i in $LFS_LOBJ; do echo src/libmpg123/$i; done | tr '\n' ' '`
 AC_SUBST(LFS_LOBJ)
 
 
@@ -1471,6 +1477,12 @@ do
   word_in_list "$i.\$(OBJEXT)" $DECODER_OBJ || DECODER_OBJ="$DECODER_OBJ $i.\$(OBJEXT)"
   word_in_list "$i.lo" $DECODER_LOBJ || DECODER_LOBJ="$DECODER_LOBJ $i.lo"
 done
+
+# Another preprocessing step: Append prefix for non-recursive make.
+# Just because $(addprefix ...) is a GNU extension.
+
+DECODER_OBJ=`for i in $DECODER_OBJ; do echo src/libmpg123/$i; done | tr '\n' ' '`
+DECODER_LOBJ=`for i in $DECODER_LOBJ; do echo src/libmpg123/$i; done | tr '\n' ' '`
 
 AC_SUBST(DECODER_OBJ)
 AC_SUBST(DECODER_LOBJ)
@@ -1954,167 +1966,55 @@ fi
 # That's (beginning of) the list for mpg123's internal default.
 default_output_modules=$default_output_module
 
-OUTPUT_OBJ=
-OUTPUT_MOD=
-OUTPUT_CFLAGS=
-OUTPUT_LIBS=
-OUTPUT_LDFLAGS=
-
 # Setup the static build.
-if test "x$modules" = xdisabled
-then
-	echo "Preparing static output $default_output_module"
-	OUTPUT_MOD="$default_output_module"
-	OUTPUT_OBJ="output/$default_output_module.\$(OBJEXT)"
-	OUTPUT_CFLAGS=
-	OUTPUT_LIBS=
-	# That feels stupid... what about hashed arrays?
-	case $OUTPUT_MOD in
-	# Here's a script for that tedious list, perhaps to be outsourced together with the one in src/output/Makefile.am
-#for i in tinyalsa alsa qsa coreaudio esd jack nas oss portaudio pulse sdl sndio sun win32 win32_wasapi aix alib arts hp os2 sgi mint openal
+# The conditionals always need to be defined by configure, even if
+# HAVE_MODULES is FALSE!
+# Here's a script for that tedious list, perhaps to be outsourced together with the one in #src/output/Makefile.am
+#for i in dummy tinyalsa alsa qsa coreaudio esd jack nas oss portaudio pulse sdl sndio sun win32 win32_wasapi aix alib arts hp os2 sgi mint openal
 #do echo $i; done |
 #perl -ne 'chomp; $big = uc($_); print <<EOT;
-#		$_)
-#			OUTPUT_LIBS="\$${big}_LIBS"
-#			OUTPUT_LDFLAGS="\$${big}_LDFLAGS"
-#			OUTPUT_CFLAGS="\$${big}_CFLAGS"
-#		;;
+#AM_CONDITIONAL([BUILD_${big}], [ test "$_" = \$default_output_module ])
 #EOT
 #'
-		tinyalsa)
-			OUTPUT_LIBS="$TINYALSA_LIBS"
-			OUTPUT_LDFLAGS="$TINYALSA_LDFLAGS"
-			OUTPUT_CFLAGS="$TINYALSA_CFLAGS"
-		;;
-		alsa)
-			OUTPUT_LIBS="$ALSA_LIBS"
-			OUTPUT_LDFLAGS="$ALSA_LDFLAGS"
-			OUTPUT_CFLAGS="$ALSA_CFLAGS"
-		;;
-		qsa)
-			OUTPUT_LIBS="$QSA_LIBS"
-			OUTPUT_LDFLAGS="$QSA_LDFLAGS"
-			OUTPUT_CFLAGS="$QSA_CFLAGS"
-		;;
-		coreaudio)
-			OUTPUT_LIBS="$COREAUDIO_LIBS"
-			OUTPUT_LDFLAGS="$COREAUDIO_LDFLAGS"
-			OUTPUT_CFLAGS="$COREAUDIO_CFLAGS"
-		;;
-		esd)
-			OUTPUT_LIBS="$ESD_LIBS"
-			OUTPUT_LDFLAGS="$ESD_LDFLAGS"
-			OUTPUT_CFLAGS="$ESD_CFLAGS"
-		;;
-		jack)
-			OUTPUT_LIBS="$JACK_LIBS"
-			OUTPUT_LDFLAGS="$JACK_LDFLAGS"
-			OUTPUT_CFLAGS="$JACK_CFLAGS"
-		;;
-		nas)
-			OUTPUT_LIBS="$NAS_LIBS"
-			OUTPUT_LDFLAGS="$NAS_LDFLAGS"
-			OUTPUT_CFLAGS="$NAS_CFLAGS"
-		;;
-		oss)
-			OUTPUT_LIBS="$OSS_LIBS"
-			OUTPUT_LDFLAGS="$OSS_LDFLAGS"
-			OUTPUT_CFLAGS="$OSS_CFLAGS"
-		;;
-		portaudio)
-			OUTPUT_LIBS="$PORTAUDIO_LIBS"
-			OUTPUT_LDFLAGS="$PORTAUDIO_LDFLAGS"
-			OUTPUT_CFLAGS="$PORTAUDIO_CFLAGS"
-		;;
-		pulse)
-			OUTPUT_LIBS="$PULSE_LIBS"
-			OUTPUT_LDFLAGS="$PULSE_LDFLAGS"
-			OUTPUT_CFLAGS="$PULSE_CFLAGS"
-		;;
-		sdl)
-			OUTPUT_LIBS="$SDL_LIBS"
-			OUTPUT_LDFLAGS="$SDL_LDFLAGS"
-			OUTPUT_CFLAGS="$SDL_CFLAGS"
-		;;
-		sndio)
-			OUTPUT_LIBS="$SNDIO_LIBS"
-			OUTPUT_LDFLAGS="$SNDIO_LDFLAGS"
-			OUTPUT_CFLAGS="$SNDIO_CFLAGS"
-		;;
-		sun)
-			OUTPUT_LIBS="$SUN_LIBS"
-			OUTPUT_LDFLAGS="$SUN_LDFLAGS"
-			OUTPUT_CFLAGS="$SUN_CFLAGS"
-		;;
-		win32)
-			OUTPUT_LIBS="$WIN32_LIBS"
-			OUTPUT_LDFLAGS="$WIN32_LDFLAGS"
-			OUTPUT_CFLAGS="$WIN32_CFLAGS"
-		;;
-		win32_wasapi)
-			OUTPUT_LIBS="$WIN32_WASAPI_LIBS"
-			OUTPUT_LDFLAGS="$WIN32_WASAPI_LDFLAGS"
-			OUTPUT_CFLAGS="$WIN32_WASAPI_CFLAGS"
-		;;
-		aix)
-			OUTPUT_LIBS="$AIX_LIBS"
-			OUTPUT_LDFLAGS="$AIX_LDFLAGS"
-			OUTPUT_CFLAGS="$AIX_CFLAGS"
-		;;
-		alib)
-			OUTPUT_LIBS="$ALIB_LIBS"
-			OUTPUT_LDFLAGS="$ALIB_LDFLAGS"
-			OUTPUT_CFLAGS="$ALIB_CFLAGS"
-		;;
-		arts)
-			OUTPUT_LIBS="$ARTS_LIBS"
-			OUTPUT_LDFLAGS="$ARTS_LDFLAGS"
-			OUTPUT_CFLAGS="$ARTS_CFLAGS"
-		;;
-		hp)
-			OUTPUT_LIBS="$HP_LIBS"
-			OUTPUT_LDFLAGS="$HP_LDFLAGS"
-			OUTPUT_CFLAGS="$HP_CFLAGS"
-		;;
-		os2)
-			OUTPUT_LIBS="$OS2_LIBS"
-			OUTPUT_LDFLAGS="$OS2_LDFLAGS"
-			OUTPUT_CFLAGS="$OS2_CFLAGS"
-		;;
-		sgi)
-			OUTPUT_LIBS="$SGI_LIBS"
-			OUTPUT_LDFLAGS="$SGI_LDFLAGS"
-			OUTPUT_CFLAGS="$SGI_CFLAGS"
-		;;
-		mint)
-			OUTPUT_LIBS="$MINT_LIBS"
-			OUTPUT_LDFLAGS="$MINT_LDFLAGS"
-			OUTPUT_CFLAGS="$MINT_CFLAGS"
-		;;
-		openal)
-			OUTPUT_LIBS="$OPENAL_LIBS"
-			OUTPUT_LDFLAGS="$OPENAL_LDFLAGS"
-			OUTPUT_CFLAGS="$OPENAL_CFLAGS"
-		;;
-	esac
-else
-	# Now make a comma-separated list again... eliminating the possible duplicate and dummy.
-	for i in $output_modules
-	do
-		if test $i != $default_output_module && test $i != dummy; then
-			default_output_modules=$default_output_modules,$i
-		fi
-	done
+
+AM_CONDITIONAL([BUILD_DUMMY], [ test "dummy" = $default_output_module ])
+AM_CONDITIONAL([BUILD_TINYALSA], [ test "tinyalsa" = $default_output_module ])
+AM_CONDITIONAL([BUILD_ALSA], [ test "alsa" = $default_output_module ])
+AM_CONDITIONAL([BUILD_QSA], [ test "qsa" = $default_output_module ])
+AM_CONDITIONAL([BUILD_COREAUDIO], [ test "coreaudio" = $default_output_module ])
+AM_CONDITIONAL([BUILD_ESD], [ test "esd" = $default_output_module ])
+AM_CONDITIONAL([BUILD_JACK], [ test "jack" = $default_output_module ])
+AM_CONDITIONAL([BUILD_NAS], [ test "nas" = $default_output_module ])
+AM_CONDITIONAL([BUILD_OSS], [ test "oss" = $default_output_module ])
+AM_CONDITIONAL([BUILD_PORTAUDIO], [ test "portaudio" = $default_output_module ])
+AM_CONDITIONAL([BUILD_PULSE], [ test "pulse" = $default_output_module ])
+AM_CONDITIONAL([BUILD_SDL], [ test "sdl" = $default_output_module ])
+AM_CONDITIONAL([BUILD_SNDIO], [ test "sndio" = $default_output_module ])
+AM_CONDITIONAL([BUILD_SUN], [ test "sun" = $default_output_module ])
+AM_CONDITIONAL([BUILD_WIN32], [ test "win32" = $default_output_module ])
+AM_CONDITIONAL([BUILD_WIN32_WASAPI], [ test "win32_wasapi" = $default_output_module ])
+AM_CONDITIONAL([BUILD_AIX], [ test "aix" = $default_output_module ])
+AM_CONDITIONAL([BUILD_ALIB], [ test "alib" = $default_output_module ])
+AM_CONDITIONAL([BUILD_ARTS], [ test "arts" = $default_output_module ])
+AM_CONDITIONAL([BUILD_HP], [ test "hp" = $default_output_module ])
+AM_CONDITIONAL([BUILD_OS2], [ test "os2" = $default_output_module ])
+AM_CONDITIONAL([BUILD_SGI], [ test "sgi" = $default_output_module ])
+AM_CONDITIONAL([BUILD_MINT], [ test "mint" = $default_output_module ])
+AM_CONDITIONAL([BUILD_OPENAL], [ test "openal" = $default_output_module ])
+
+if test "x$modules" = xenabled
+then
+
+  # Now make a comma-separated list again... eliminating the possible duplicate and dummy.
+  for i in $output_modules
+  do
+    if test $i != $default_output_module && test $i != dummy; then
+      default_output_modules=$default_output_modules,$i
+    fi
+  done
 fi
 
 AC_DEFINE_UNQUOTED( DEFAULT_OUTPUT_MODULE, "$default_output_modules", [The default audio output module(s) to use] )
-
-
-AC_SUBST(OUTPUT_OBJ)
-AC_SUBST(OUTPUT_MOD)
-AC_SUBST(OUTPUT_CFLAGS)
-AC_SUBST(OUTPUT_LIBS)
-AC_SUBST(OUTPUT_LDFLAGS)
 
 dnl ############## Compiler Optimizations
 
@@ -2398,22 +2298,12 @@ fi
 
 dnl ############## Final Output
 
-# Do that here to prevent the above tests usign -lltdl...
-LIBMPG123_LIBS=$LIBS
-AC_SUBST(LIBMPG123_LIBS)
-if test "x$modules" = xenabled; then
-  LIBS="-lltdl $LIBS"
-fi
-
 AC_CONFIG_FILES([
 	Makefile
 	libmpg123.pc
 	mpg123.spec
-	doc/Makefile
-	src/Makefile
-	src/output/Makefile
-	src/libmpg123/Makefile
 	src/libmpg123/mpg123.h
+	src/libout123/out123.h
 ])
 
 AC_OUTPUT

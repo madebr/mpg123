@@ -9,6 +9,7 @@
 #define ME "main"
 #include "mpg123app.h"
 #include "mpg123.h"
+#include "out123.h"
 #include "local.h"
 
 #ifdef HAVE_SYS_WAIT_H
@@ -34,7 +35,6 @@
 #include "common.h"
 #include "sysutil.h"
 #include "getlopt.h"
-#include "buffer.h"
 #include "term.h"
 #include "playlist.h"
 #include "httpget.h"
@@ -56,7 +56,6 @@ struct parameter param = {
   FALSE , /* shuffle */
   FALSE , /* remote */
   FALSE , /* remote to stderr */
-  DECODE_AUDIO , /* write samples to audio device */
   FALSE , /* silent operation */
   FALSE , /* xterm title on/off */
   0 ,     /* second level buffer size */
@@ -77,7 +76,6 @@ struct parameter param = {
 #ifdef HAVE_WINDOWS_H 
   0, /* win32 process priority */
 #endif
-  NULL,  /* wav,cdr,au Filename */
 	0, /* default is to play all titles in playlist */
 	NULL, /* no playlist per default */
 	0 /* condensed id3 per default */
@@ -110,7 +108,7 @@ struct parameter param = {
 	,0 /* force_utf8 */
 	,INDEX_SIZE
 	,NULL /* force_encoding */
-	,1. /* preload */
+	,0.2 /* preload */
 	,-1 /* preframes */
 	,-1 /* gain */
 	,NULL /* stream dump file */
@@ -121,20 +119,16 @@ mpg123_handle *mh = NULL;
 off_t framenum;
 off_t frames_left;
 audio_output_t *ao = NULL;
-txfermem *buffermem = NULL;
 char *prgName = NULL;
 /* ThOr: pointers are not TRUE or FALSE */
 char *equalfile = NULL;
 struct httpdata htd;
 int fresh = TRUE;
-int have_output = FALSE; /* If we are past the output init step. */
 FILE* aux_out = NULL; /* Output for interesting information, normally on stdout to be parseable. */
 
-int buffer_fd[2];
-int buffer_pid;
 size_t bufferblock = 0;
 
-static int intflag = FALSE;
+int intflag = FALSE;
 static int skip_tracks = 0;
 int OutputDescriptor;
 
@@ -182,6 +176,34 @@ void prev_track(void)
 	next_track();
 }
 
+/* Drain output device/buffer, but still give the option to interrupt things. */
+static void controlled_drain(void)
+{
+	int framesize;
+	size_t drain_block;
+
+	if(intflag || !out123_buffered(ao))
+		return;
+	if(out123_getformat(ao, NULL, NULL, NULL, &framesize))
+		return;
+	drain_block = 1152*framesize;
+	if(param.verbose)
+		fprintf(stderr, "\n");
+	do
+	{
+		out123_ndrain(ao, drain_block);
+		if(param.verbose)
+			print_buf("Draining buffer: ", ao);
+#ifdef HAVE_TERMIOS
+		if(param.term_ctrl)
+			term_control(mh, ao);
+#endif
+	}
+	while(!intflag && out123_buffered(ao));
+	if(param.verbose)
+		fprintf(stderr, "\n");
+}
+
 /* Directory jumping based on comparing the directory part of the playlist
    URLs. */
 int cmp_dir(const char* patha, const char* pathb)
@@ -227,11 +249,14 @@ void safe_exit(int code)
 	char *dummy, *dammy;
 
 	dump_close();
+	controlled_drain();
 #ifdef HAVE_TERMIOS
 	if(param.term_ctrl)
 		term_restore();
 #endif
-	if(have_output) exit_output(ao, intflag);
+	if(intflag)
+		out123_drop(ao);
+	out123_del(ao);
 
 	if(mh != NULL) mpg123_delete(mh);
 
@@ -251,7 +276,22 @@ void safe_exit(int code)
 	exit(code);
 }
 
-/* returns 1 if reset_audio needed instead */
+static void check_fatal(int code)
+{
+	if(code) safe_exit(code);
+}
+
+static void check_fatal_output(int code)
+{
+	if(code)
+	{
+		if(!param.quiet)
+			error2( "out123 error %i: %s"
+			,	out123_errcode(ao), out123_strerror(ao) );
+		safe_exit(code);
+	}
+}
+
 static void set_output_module( char *arg )
 {
 	unsigned int i;
@@ -320,67 +360,44 @@ static void set_quiet (char *arg)
 
 static void set_out_wav(char *arg)
 {
-	param.outmode = DECODE_WAV;
-	param.filename = arg;
+	param.output_module = "wav";
+	param.output_device = arg;
 }
 
 void set_out_cdr(char *arg)
 {
-	param.outmode = DECODE_CDR;
-	param.filename = arg;
+	param.output_module = "cdr";
+	param.output_device = arg;
 }
 
 void set_out_au(char *arg)
 {
-  param.outmode = DECODE_AU;
-  param.filename = arg;
+	param.output_module = "au";
+	param.output_device = arg;
+}
+
+void set_out_test(char *arg)
+{
+	param.output_module = "test";
+	param.output_device = NULL;
 }
 
 static void set_out_file(char *arg)
 {
-	param.outmode=DECODE_FILE;
-	#ifdef WIN32
-	#ifdef WANT_WIN32_UNICODE
-	wchar_t *argw = NULL;
-	OutputDescriptor = win32_utf8_wide(arg, &argw, NULL);
-	if(argw != NULL)
-	{
-		OutputDescriptor=_wopen(argw,_O_CREAT|_O_WRONLY|_O_BINARY|_O_TRUNC,0666);
-		free(argw);
-	}
-	#else
-	OutputDescriptor=_open(arg,_O_CREAT|_O_WRONLY|_O_BINARY|_O_TRUNC,0666);
-	#endif /*WANT_WIN32_UNICODE*/
-	#else /*WIN32*/
-	OutputDescriptor=open(arg,O_CREAT|O_WRONLY|O_TRUNC,0666);
-	#endif /*WIN32*/
-	if(OutputDescriptor==-1)
-	{
-		error2("Can't open %s for writing (%s).\n",arg,strerror(errno));
-		safe_exit(1);
-	}
+	param.output_module = "raw";
+	param.output_device = arg;
 }
 
 static void set_out_stdout(char *arg)
 {
-	param.outmode=DECODE_FILE;
-	param.remote_err=TRUE;
-	aux_out = stderr;
-	OutputDescriptor=STDOUT_FILENO;
-	#ifdef WIN32
-	_setmode(STDOUT_FILENO, _O_BINARY);
-	#endif
+	param.output_module = "raw";
+	param.output_device = NULL;
 }
 
 static void set_out_stdout1(char *arg)
 {
-	param.outmode=DECODE_AUDIOFILE;
-	param.remote_err=TRUE;
-	aux_out = stderr;
-	OutputDescriptor=STDOUT_FILENO;
-	#ifdef WIN32
-	_setmode(STDOUT_FILENO, _O_BINARY);
-	#endif
+	param.output_module = "raw";
+	param.output_device = NULL;
 }
 
 #if !defined (HAVE_SCHED_SETSCHEDULER) && !defined (HAVE_WINDOWS_H)
@@ -407,6 +424,38 @@ static void set_appflag(char *arg)
 {
 	param.appflags |= appflag;
 }
+
+static void list_output_modules(char *arg)
+{
+	char **names = NULL;
+	char **descr = NULL;
+	int count = -1;
+	audio_output_t *lao;
+
+	if((lao=out123_new()))
+	{
+		printf("\n");
+		printf("Available modules\n");
+		printf("-----------------\n");
+		out123_param(lao, OUT123_VERBOSE, param.verbose, 0.);
+		out123_param(lao, OUT123_FLAGS, OUT123_QUIET, 0.);
+		if((count=out123_drivers(lao, &names, &descr)) >= 0)
+		{
+			int i;
+			for(i=0; i<count; ++i)
+				printf( "%-15s%s  %s\n"
+				,	names[i], "output", descr[i] );
+			free(names);
+			free(descr);
+		}
+		out123_del(lao);
+	}
+	else if(!param.quiet)
+		error("Failed to create an out123 handle.");
+	exit(count >= 0 ? 0 : 1);
+}
+
+
 /* static void unset_appflag(char *arg)
 {
 	param.appflags &= ~appflag;
@@ -427,9 +476,9 @@ topt opts[] = {
 	{'k', "skip",        GLO_ARG | GLO_LONG, 0, &param.start_frame, 0},
 	{'2', "2to1",        GLO_INT,  0, &param.down_sample, 1},
 	{'4', "4to1",        GLO_INT,  0, &param.down_sample, 2},
-	{'t', "test",        GLO_INT,  0, &param.outmode, DECODE_TEST},
-	{'s', "stdout",      GLO_INT,  set_out_stdout, &param.outmode, DECODE_FILE},
-	{'S', "STDOUT",      GLO_INT,  set_out_stdout1, &param.outmode,DECODE_AUDIOFILE},
+	{'t', "test",        GLO_INT,  set_out_test, NULL, 0},
+	{'s', "stdout",      GLO_INT,  set_out_stdout,  NULL, 0},
+	{'S', "STDOUT",      GLO_INT,  set_out_stdout1, NULL, 0},
 	{'O', "outfile",     GLO_ARG | GLO_CHAR, set_out_file, NULL, 0},
 	{'c', "check",       GLO_INT,  0, &param.checkrange, TRUE},
 	{'v', "verbose",     0,        set_verbose, 0,           0},
@@ -454,7 +503,7 @@ topt opts[] = {
 	{0,   "speaker",     0,                  set_output_s, 0,0},
 	{0,   "lineout",     0,                  set_output_l, 0,0},
 	{'o', "output",      GLO_ARG | GLO_CHAR, set_output, 0,  0},
-	{0,   "list-modules",0,        list_modules, NULL,  0}, 
+	{0,   "list-modules",0,       list_output_modules, NULL, 0},
 	{'a', "audiodevice", GLO_ARG | GLO_CHAR, 0, &param.output_device,  0},
 	{'f', "scale",       GLO_ARG | GLO_LONG, 0, &param.outscale,   0},
 	{'n', "frames",      GLO_ARG | GLO_LONG, 0, &param.frame_number,  0},
@@ -545,54 +594,6 @@ topt opts[] = {
 	{0, "ignore-streamlength", GLO_INT, set_frameflag, &frameflag, MPG123_IGNORE_STREAMLENGTH},
 	{0, 0, 0, 0, 0, 0}
 };
-
-/*
- *   Change the playback sample rate.
- *   Consider that changing it after starting playback is not covered by gapless code!
- */
-static void reset_audio(long rate, int channels, int format)
-{
-#ifndef NOXFERMEM
-	if (param.usebuffer) {
-		/* wait until the buffer is empty,
-		 * then tell the buffer process to
-		 * change the sample rate.   [OF]
-		 */
-		while (xfermem_get_usedspace(buffermem)	> 0)
-			if (xfermem_block(XF_WRITER, buffermem) == XF_CMD_TERMINATE) {
-				intflag = TRUE;
-				break;
-			}
-		buffermem->freeindex = -1;
-		buffermem->readindex = 0; /* I know what I'm doing! ;-) */
-		buffermem->freeindex = 0;
-		if (intflag)
-			return;
-		buffermem->rate     = pitch_rate(rate); 
-		buffermem->channels = channels; 
-		buffermem->format   = format;
-		buffer_reset();
-	}
-	else 
-	{
-#endif
-		if(ao == NULL)
-		{
-			error("Audio handle should not be NULL here!");
-			safe_exit(98);
-		}
-		ao->rate     = pitch_rate(rate); 
-		ao->channels = channels; 
-		ao->format   = format;
-		if(reset_output(ao) < 0)
-		{
-			error1("failed to reset audio device: %s", strerror(errno));
-			safe_exit(1);
-		}
-#ifndef NOXFERMEM
-	}
-#endif
-}
 
 static int open_track_fd (void)
 {
@@ -717,8 +718,10 @@ int play_frame(void)
 		{
 			fresh = FALSE;
 		}
-		/* Normal flushing of data, includes buffer decoding. */
-		if(flush_output(ao, audio, bytes) < (int)bytes && !intflag)
+		/* Interrupt here doesn't necessarily interrupt out123_play().
+		   I wonder if that makes us miss errors. Actual issues should
+		   just be postponed. */
+		if(out123_play(ao, audio, bytes) < bytes && !intflag)
 		{
 			error("Deep trouble! Cannot flush to my output anymore!");
 			safe_exit(133);
@@ -750,7 +753,7 @@ int play_frame(void)
 			if(param.verbose > 2) fprintf(stderr, "\nNote: New output format %liHz %ich, format %i\n", rate, channels, format);
 
 			new_header = 1;
-			reset_audio(rate, channels, format);
+			check_fatal_output(out123_start(ao, format, channels, rate));
 		}
 	}
 	if(new_header && !param.quiet)
@@ -760,24 +763,6 @@ int play_frame(void)
 		else print_header_compact(mh);
 	}
 	return 1;
-}
-
-void buffer_drain(void)
-{
-#ifndef NOXFERMEM
-	int s;
-	while ((s = xfermem_get_usedspace(buffermem)))
-	{
-		struct timeval wait170 = {0, 170000};
-		if(intflag) break;
-		buffer_ignore_lowmem();
-		if(param.verbose) print_stat(mh,0,s);
-	#ifdef HAVE_TERMIOS
-		if(param.term_ctrl) term_control(mh, ao);
-	#endif
-		select(0, NULL, NULL, NULL, &wait170);
-	}
-#endif
 }
 
 /* Return TRUE if we should continue (second interrupt happens quickly), skipping tracks, or FALSE if we should die. */
@@ -950,13 +935,6 @@ int main(int sys_argc, char ** sys_argv)
 	/* Init audio as early as possible.
 	   If there is the buffer process to be spawned, it shouldn't carry the mpg123_handle with it. */
 	bufferblock = mpg123_safe_buffer(); /* Can call that before mpg123_init(), it's stateless. */
-	if(init_output(&ao) < 0)
-	{
-		error("Failed to initialize output, goodbye.");
-		mpg123_delete_pars(mp);
-		return 99; /* It's safe here... nothing nasty happened yet. */
-	}
-	have_output = TRUE;
 
 	/* ========================================================================================================= */
 	/* Enterning the leaking zone... we start messing with stuff here that should be taken care of when leaving. */
@@ -1036,9 +1014,6 @@ int main(int sys_argc, char ** sys_argv)
 	/* Prepare stream dumping, possibly replacing mpg123 reader. */
 	if(dump_open(mh) != 0) safe_exit(78);
 
-	/* Now either check caps myself or query buffer for that. */
-	audio_capabilities(ao, mh);
-
 	load_equalizer(mh);
 
 #ifdef HAVE_SETPRIORITY
@@ -1068,6 +1043,38 @@ int main(int sys_argc, char ** sys_argv)
 	/* argument "3" is equivalent to realtime priority class */
 	win32_set_priority( param.realtime ? 3 : param.w32_priority);
 #endif
+
+	/* TODO: There's some memory leaking on fatal safe_exits().
+	   This is a cosmetic issue, though. */
+
+
+	/* Initializing output after the priority stuff, might influence
+	   buffer process. */
+	ao = out123_new();
+	if(!ao)
+	{
+		if(!param.quiet)
+			error("Failed to allocate output.");
+		safe_exit(97);
+	}
+	if
+	( 0
+	||	out123_param(ao, OUT123_FLAGS, param.output_flags, 0.)
+	|| out123_param(ao, OUT123_PRELOAD, 0, param.preload)
+	|| out123_param(ao, OUT123_GAIN, param.gain, 0.)
+	|| out123_param(ao, OUT123_VERBOSE, param.verbose, 0.)
+	)
+	{
+		if(!param.quiet)
+			error("Error setting output parameters. Do you need a usage reminder?");
+		safe_exit(98);
+	}
+	check_fatal_output(out123_set_buffer(ao, param.usebuffer*1024));
+	check_fatal_output(out123_open( ao
+	,	param.output_module, param.output_device ));
+
+	/* Now either check caps myself or query buffer for that. */
+	audio_capabilities(ao, mh);
 
 	if(!param.remote) prepare_playlist(argc, argv);
 
@@ -1103,15 +1110,14 @@ int main(int sys_argc, char ** sys_argv)
 		}
 		if(param.delay > 0)
 		{
+			controlled_drain();
 			/* One should enable terminal control during that sleeping phase! */
 			if(param.verbose > 2) fprintf(stderr, "Note: pausing %i seconds before next track.\n", param.delay);
-			output_pause(ao);
 #ifdef WIN32
 			Sleep(param.delay*1000);
 #else
 			sleep(param.delay);
 #endif
-			output_unpause(ao);
 		}
 		if(!APPFLAG(MPG123APP_CONTINUE)) frames_left = param.frame_number;
 
@@ -1232,12 +1238,7 @@ int main(int sys_argc, char ** sys_argv)
 			}
 			if(!fresh && param.verbose)
 			{
-#ifndef NOXFERMEM
-				if (param.verbose > 1 || !(framenum & 0x7))
-					print_stat(mh,0,xfermem_get_usedspace(buffermem)); 
-#else
-				if(param.verbose > 1 || !(framenum & 0x7))	print_stat(mh,0,0);
-#endif
+				if(param.verbose > 1 || !(framenum & 0x7)) print_stat(mh,0,ao);
 			}
 #ifdef HAVE_TERMIOS
 			if(!param.term_ctrl) continue;
@@ -1245,8 +1246,9 @@ int main(int sys_argc, char ** sys_argv)
 #endif
 		}
 
-	if(!param.smooth && param.usebuffer) buffer_drain();
-	if(param.verbose) print_stat(mh,0,xfermem_get_usedspace(buffermem)); 
+	if(!param.smooth && !intflag)
+		controlled_drain();
+	if(param.verbose) print_stat(mh,0,ao); 
 
 	if(!param.quiet)
 	{
@@ -1269,20 +1271,12 @@ int main(int sys_argc, char ** sys_argv)
 
         intflag = FALSE;
 
-#ifndef NOXFERMEM
-        if(!param.smooth && param.usebuffer) buffer_resync();
-#endif
+		if(!param.smooth)
+			out123_drop(ao);
 	}
 
 		if(end_of_files) break;
 	} /* end of loop over input files */
-
-	/* Ensure we played everything. */
-	if(param.smooth && param.usebuffer)
-	{
-		buffer_drain();
-		buffer_resync();
-	}
 
 	if(APPFLAG(MPG123APP_CONTINUE))
 	{

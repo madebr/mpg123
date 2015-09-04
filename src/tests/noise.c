@@ -3,6 +3,10 @@
 #include "dither.h"
 #include "debug.h"
 
+/* Directly include the code for testing, avoiding
+   build of same object with and without libtool. */
+#include "../libmpg123/dither_impl.h"
+
 const char *typenames[] = { "white", "tpdf", "highpass_tpdf" };
 enum mpg123_noise_type types[] = { mpg123_white_noise, mpg123_tpdf_noise, mpg123_highpass_tpdf_noise };
 

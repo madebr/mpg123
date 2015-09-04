@@ -13,7 +13,7 @@
 
 void print_header(mpg123_handle *);
 void print_header_compact(mpg123_handle *);
-void print_stat(mpg123_handle *fr, long offset, long buffsize);
+void print_stat(mpg123_handle *fr, long offset, audio_output_t *ao);
 void clear_stat();
 /* for control_generic */
 extern const char* remote_header_help;

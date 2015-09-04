@@ -1,0 +1,384 @@
+    ________________________________________________________________________
+   /                                                                        \
+  |   Let's analyze how the buffer stuff works to put it into proper form    |
+  |   for libout123! (ThOr, 2015-06-13 and ongoing)                          |
+   \________________________________________________________________________/
+
+1. How does the buffer communication work?
+==========================================
+
+There are these API calls:
+
+- buffer_start()
+	if(buffermem->justwait)
+	xfermem_putcmd(buffermem->fd[XF_WRITER], XF_CMD_WAKEUP);
+
+- buffer_stop()
+	buffermem->justwait = TRUE;
+	buffer_sig(SIGINT, TRUE);
+
+- buffer_reset()
+	buffer_sig(SIGUSR1, TRUE);
+
+- buffer_resync()
+	if(buffermem->justwait)
+	{
+		buffermem->wakeme[XF_WRITER] = TRUE;
+		xfermem_putcmd(buffermem->fd[XF_WRITER], XF_CMD_RESYNC);
+		xfermem_getcmd(buffermem->fd[XF_WRITER], TRUE);
+	}
+	else buffer_sig(SIGINT, TRUE);
+
+- plain_buffer_resync()
+	buffer_sig(SIGINT, FALSE);
+
+- buffer_ignore_lowmem()
+	if(buffermem->wakeme[XF_READER])
+		xfermem_putcmd(buffermem->fd[XF_WRITER], XF_CMD_WAKEUP);
+
+- buffer_end()
+	xfermem_putcmd(buffermem->fd[XF_WRITER], rude ? XF_CMD_ABORT : XF_CMD_TERMINATE);
+
+Also, there is direct use of the xfermem API:
+
+- xfermem_write(buffermem, bytes, count)
+  to push data to buffer
+
+- xfermem_get_usedspace(buffermem)
+  to get bytes still in buffer (not written to audio output)
+
+- xfermem_block(XF_WRITER, buffermem)
+  for synchronization / messaging to writer (buffer client)
+
+- xfermem_putcmd(buffermem->fd[XF_WRITER], cmd)
+  to give comands to buffer
+
+- xfermem_getcmd(buffermem->fd[XF_WRITER], TRUE (FALSE?))
+  to get commands/response from buffer?
+
+I probably should clear that up first.
+
+
+1.1 xfermem
+-----------
+
+Quoting Oliver:
+
+	This is a stand-alone module which implements a unidirectional,
+	fast pipe using mmap().  Its primary use is to transfer large
+	amounts of data from a parent process to its child process,
+	with a buffer in between which decouples blocking conditions
+	on both sides.  Control information is transferred between the
+	processes through a socketpair.
+
+The actual shared memory is implemented using anonymous mmap(),
+mmap() of /dev/zero, or via traditional System V memory. This reminds
+me that there are some code paths that are not excercised often.
+I should introduce (runtime?) switch to be able to test each variant.
+On the other hand, the sysVshm API is not that rapidly changing.
+
+Anyhow, the point is that we have xfermem structure and buffer memory
+shared between main and buffer process, by whatever means. Commands
+are exchanged via the socket pair xfermem->fd[XF_WRITER] and
+xfermem->fd[XF_READER].
+
+- xfermem_init(xf, bufsize, msize, skipbuf)
+  to intialize the pipe, msize and skipbuf equal to zero for mpg123 use
+
+- xfermem_done(xf)
+  to free the shared memory, not bothering with cleaning up the sockets
+  Should I change that? The reader process exists before clearing the
+  data structure, but the writer process keeps the socket open ...
+  I think I should introduce xfermem_exit_writer() and xfermem_exit_reader(),
+
+- xfermem_init_writer() / xfermem_init_reader()
+  to close the respective other end of the socket pair
+
+- xfermem_get_freespace()
+  to return space available for writing
+
+- xfermem_get_usedspace()
+  to return space filled with data, waiting to be consumed
+
+- xfermem_getcmd(fd, block)
+  to ... well wait for a one-byte command code on the given file descriptor,
+  blocking or non-blocking.
+
+- xfermem_putcmd(fd, cmd)
+  to send a command to the other end with the fd on this side
+
+- xfermem_block(rw, xf)
+  to synchronize ... needs some thought
+  The value of rw is XF_READER or XF_WRITER, xf->wakeme[rw] is set, if the
+  other end has set xf->wakeme[1-rw], it gets a wakeup call
+  (xfermem_putcmd(xf->fd[rw], XF_CMD_WAKEUP)) and this end waits for a sign
+  (xfermem_getcmd(xf->fd[rw], TRUE)), clearing cf->wakeme[rw] after that.
+  Classic synchronization.
+
+- xfermem_sigblock(rw, xf, pid, sig)
+  to signal the other process by given pid and wait for a wakeup call as
+  response
+  I added that to fix bug 2796802 in the year 2009. Hm. Well, it is
+  necessary to interrupt the buffer process if it is not currently
+  waiting for a command.
+
+- xfermem_write(xf, buffer, bytes)
+  to wait until enough space is free, then copy over the bytes
+  A bonus is to wakeup the reader process if it has xf->wakeme set.
+
+That's it. It's a shared ringbuffer with some synchronization and
+messaging.
+
+
+1.2 buffer API explained
+------------------------
+
+Now it's time to decipher what the buffer API calls do. The buffer works
+on an instance of xfermem which is called buffermem, but I'll refer to it
+using xf as before.
+
+- buffer_start()
+  to send XF_CMD_WAKEUP to the buffer in case it is waiting (xf->justwait)
+  Why is there xf->justwait in addition to xf->wakeme? Apparently to set
+  it from the reader in buffer_stop(). It's the hack to be able to use
+  SIGINT for two messages.
+
+- buffer_stop()
+  to interrupt the buffer and send it into waiting mode
+  This sets xf->justwait and then signals SIGINT, waiting for the buffer
+  to acknowledge. The buffer process sets intflag and, on the next occasion
+  in the main loop, drains its command queue, sends wakeup to the writer
+  desired. It then waits for commands.
+
+- buffer_reset()
+  to interrupt the buffer, causing it to reopen the audio device, possibly
+  with new settings
+  This also discards all data currently in the buffer (presumably in
+  incompatible audio format/encoding) and sends a wakeup to the writer
+  if desired. Flushing of audio device happens first.
+
+- buffer_resync()
+  to send XF_CMD_RESYNC directly or indirectly (plain SIGINT) to the buffer
+  The buffer flushes the audio and discards all buffer data, wakes writer
+  afterwards.
+
+- plain_buffer_resync()
+  to signal a resync (SIGINT) to the buffer without waiting for the result
+  This disregards the case 
+
+- buffer_ignore_lowmem()
+  to wake the buffer process
+  Yes, this just sends XF_CMD_WAKEUP to the buffer, if it is waiting for it.
+  Why the funny name for the function?
+  Well, it is designed for the situation where the buffer is waiting for
+  more data to start playback again. Normal writing of data gives
+  XF_CMD_WAKEUP_INFO, which only triggers playback if there is enough data
+  buffered. XF_CMD_WAKEUP triggers playback right away (if there is any data).
+  There is a catch: This routine only does a wakeup call if the buffer already
+  blocks waiting for a command, but there is a possible race condition where
+  the buffer is about to enter xfermem_block() but didn't yet. Then, there is
+  no effect of buffer_ignore_lowmem()!
+
+- buffer_end()
+  to either send XF_CMD_ABORT (end processing right away) or XF_CMD_TERMINATE
+  In either case, the buffer only gets this as normal command, not per signal,
+  though I have to think about what the signalling stuff really adds to the
+  picture. Damn! It's designed to abort flush_output(), or rather
+  ao->write(). I twarted that some time ago by making flush_output() resilient.
+  I need to revert that; the buffer code should not call flush_output.
+  Instead, it should just call ao->write(). Being interrupted does not matter
+  much since the buffer continues to write on the next iteration anyway.
+  But then, I also need to make the buffer resilient about ao->write()
+  being interrupted. It is already checking for SIGINT / SIGUSR1, but
+  I uttered something about SIGSTOP / SIGCONT. I need to revisit that
+  behaviour. Does SIGSTOP really cause audio output writes to return early?
+
+
+1.3 Analysis
+------------
+
+Well, there we are now. Some questions popped, specifically about the use
+of signals.
+
+- 1. Is the use of signals SIGINT / SIGUSR1 really appropriate?
+
+- 2. What do SIGSTOP / SIGCONT do to ao->flush()?
+
+The idea of the signals should be that the buffer reacts to them immediately
+instead of finishing a write to the audio device. I don't see another point.
+I may want to revisit which actions really demand that kind of reaction.
+Currently, it's three of them:
+
+- stop operation (justwait)
+- resync (discarding buffered data)
+- reset (discard data, re-open audio device)
+
+That list looks sensible.
+
+Now, I damanged that logic in 2007 with commit 1278. I put flush_output() also
+into the buffer, which broke the immediate reaction after a signal. Now the
+question is: Do we really care about that immediate reaction? Only if the
+hardware buffer happens to be large, or because it is blocking for some
+reason. Hm, the latter could be annoying.
+
+In the current state, the signals could be replaced with normal messages and
+nothing would change. But I will change that and repair the buffer reaction
+again!
+
+The second question about SIGSTOP / SIGCONT doesn't really matter in this
+context. The normal flush_output() indeed should loop to make things work,
+as that is the semantics of the non-buffered output. It returns after it
+is finised. It may be a question if I want to introduce that in the libout123
+API, too. I guess there should be a parameter or separate API call to
+decide if the writing/flushing should return after being interrupted or
+only after it wrote the given data. There are use cases for both.
+
+But still, I have to check the behaviour with SIGSTOP. How does ALSA handle
+it? Heh, a search for that returns this:
+
+	https://sourceforge.net/p/mpg123/bugs/37/
+
+	with alsa and mpg123-0.65, when I press ^Z and then
+	fg after some time, there is evil squeaky sound --
+	the longer the pause, the longer the squeaky sound.
+
+I keep stumbling over my own tracks in the internet;-) Of course, this bug
+wasn't always numbered 37, that's sf.net's reboot. Also, I don't find
+an attachment, but a patch is referenced by Clemens. Did sf.net kill that? At
+least I mentioned the revision: 637. Yes, that introduces some EINTR handling.
+
+Another interesting data point:
+
+	http://compgroups.net/comp.linux.development.system/sigstop-and-interrupted-system/2865328
+
+	This is somewhat debatable.  What the OP is talking about here is
+	behaviour that occurs *in the absence* of a signal handler.  On almost
+	every other Unix, in this case, the signal is not visible to the
+	application; that is, the system call is automatically resumed upon
+	receipt of SIGCONT.
+
+	The behaviour of Linux is idiosyncratic: on Linux, a stop signal +
+	SIGCONT causes certain system calls to fail with EINTR, even in the
+	absence of signal handlers.  In my reading of SUSv3, this ishould not
+	happen.  No other contemporary Unix implementation that I know of (and
+	I've tested many) does this.  (I'm told that historically one oether
+	implementation -- I think it was AIX -- did this, but does not do it
+	nowadays, since it was deemed to be non-standard.)
+
+	Cheers,
+
+	Michael
+
+So it seems that, indeed, I need the outer loop over ao->flush to cope
+with SIGSTOP / SIGCONT. I didn't add it just for fun. If I remove that
+loop from the buffer, it needs to be aware that less written bytes that
+given does not have to mean that an error occured. It could be
+SIGSTOP+SIGCONT. And since the EINTR is handled inside the audio outputs,
+the details are hidden and the buffer just has to assume that if the
+number of written bytes is >= 0, that everything is OK so far.
+
+
+1.4 Specific use of buffer API in terminal mode
+-----------------------------------------------
+
+The client part that does care about buffer operation is the interactive
+terminal control mode. I need to understand where it needs what buffer
+calls and how they should be abstracted in a generic audio output API.
+
+First, there's buffer_ignore_lowmem() while paused to force playback in the
+loop. The usage of the buffer with the pause/looping mode is not encouraged
+anyway.
+
+
+1.5 Synchronization issues
+--------------------------
+
+It occurs to me that, although the buffer logic at the core is rather old
+and tried, there are race conditions. A common idiom is this:
+
+	if (xf->wakeme[XF_X]) xfermem_putcmd(xf->fd[XF_Y], XF_CMD_WAKEUP);
+
+Now, this works if we are sure that xf->wakeme[XF_X] has been set by the other
+end before the code above was triggered. Even without digging into shared
+memory semantics and questions of atomicity (I hereby declare int-sized writes
+as atomic, which generally works nowadays. Also, I could make the data type
+smaller, as it's just about zero or one. How can the effective setting of
+a single bit not be atomic?), this can only be considered safe if the
+code is triggered in response to an action from the other side, after the
+other side has set xf->wakeme[XF_X].
+
+This works when the buffer is currently blocking, waiting for a command inside
+xfermem_block(), and the writer does a xfermem_block or xfermem_sigblock on
+its own.
+
+Let's focus on buffer_ignore_lowmem(). This works to unleash the buffer if
+it is currently stuck in xfermem_block() because of not having enough data.
+What if it just entered the branch for that but did not call xfermem_block()
+yet? then, xf->wakeme[XF_READER] won't be set yet and buffer_ignore_lowmem()
+will not trigger anything. The buffer will block although we wanted it to
+continue!
+
+This is a very small time window, but it is possible. This is a definition of
+unreliable code.
+
+In this specific case, we don't actually want to tell the buffer all the time
+that it should ignore small buffer fill. We want it to ignore the low buffer
+fill from now on until told otherwise. We want to set some permanent flag.
+
+Also, in this specific case, things work out since buffer_ignore_lowmem() is
+called in a loop anyway. It will catch the buffer blocking some later time.
+Is this now as intended? Is it buggy?
+
+The crux with buffer_ignore_lowmem() is that it assumes state on the side of
+the buffer and gives a command the meaning of which depends on this state.
+But, well it's really non-fatal in this case. I have to wonder how I can
+make it robust for general use. I guess the sending of the commands needs
+to be unconditional and the buffer needs to look for commands on each loop
+cycle, without blocking.
+
+Uh, apart from the messed up semantics of output_pause(), I now come back
+to the races with seekmode() of term.c . It uses buffer_stop, but it also
+should do buffer_resync right away. The call to that follows later, after
+we have put the buffer into justwait mode. And it actually works that way.
+But it is still not the right way to do this!
+
+The interactive seeking really is an interesting place for audio buffering.
+As long as I do not want to seek around inside the actual buffer, the
+buffered data needs to be thrown away. This should happen in seekmode()
+directly. Also, the playback needs to be paused with the buffer as long
+as it does not really tie in with the seeking. They're mutually exclusive.
+
+If not using the buffer, playback can stay active to give audible feedback
+during seeking. How do I abstract that? I guess there need to be
+audio_buffer_disable/enable() calls. A bonus could even be to really just
+disable the buffer and do playback directly while seeking, but I don't want
+to close/reopen the audio device unnecessarily (think JACK again).
+
+There could be a pass-through mode for the buffer, giving lower latency.
+But what am I doing here? I want to extract the audio code into a library.
+I can do the funky improvements later.
+
+
+2. What would I like to change?
+===============================
+
+I want to have operation with and without buffer more symmetric. I do not
+want only a one-shot time window to query audio caps, I want to be able to
+do that anytime (preferrably not while an audio device is open). I want
+more communication with the buffer. I need to exchange strings (module
+name, error response) and numbers (various parameters).
+
+There are established ways already. I can repoen the audio device with
+differing settings. I can query caps. One just needs some generic
+(or not so generic) fields in the xfermem structure. The only new thing
+is that I can reserve some space for moderate error strings, too. Or:
+If no audio data is pending, I'd have lots of space to point into for
+message strings. But, well, it should be enough to communicate a specific
+error code and the value of errno, if that may help. Verbose printing
+can hapen to stderr.
+
+While at that, I'll make the communication safer by adhering to a stricter
+protocol: Keep requests and responses together. Acknowledge actions on the
+buffer side. The only fire-and-forget performance critical part is about
+feeding audio data. Everhthing else should be rather synchronous, thank
+you very much.
