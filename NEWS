@@ -10,6 +10,9 @@
 
 1.23.0
 ---
+- first incarnation of libout123, a basic library to get audio data written
+  to audio devices (or files). This collects the output modules of mpg123
+  and makes them available to the wider masses.
 - Added mpg123 --no-infoframe.
 - Clip decode tables for large amplification with fixed-point decoders.
   Without that, high-pitched distortion enters really quickly when

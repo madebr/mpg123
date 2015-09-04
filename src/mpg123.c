@@ -438,7 +438,8 @@ static void list_output_modules(char *arg)
 		printf("Available modules\n");
 		printf("-----------------\n");
 		out123_param(lao, OUT123_VERBOSE, param.verbose, 0.);
-		out123_param(lao, OUT123_FLAGS, OUT123_QUIET, 0.);
+		if(param.quiet)
+			out123_param(lao, OUT123_FLAGS, OUT123_QUIET, 0.);
 		if((count=out123_drivers(lao, &names, &descr)) >= 0)
 		{
 			int i;
