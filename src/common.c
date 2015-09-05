@@ -33,7 +33,7 @@ int term_width(int fd)
 	return -1;
 }
 
-const char* rva_name[3] = { "v", "m", "a" }; /* vanilla, mix, album */
+const char* rva_name[3] = { "---", "mix", "alb" }; /* vanilla, mix, album */
 static const char *modes[5] = {"Stereo", "Joint-Stereo", "Dual-Channel", "Single-Channel", "Invalid" };
 static const char *smodes[5] = { "stereo", "joint-stereo", "dual-channel", "mono", "invalid" };
 static const char *layers[4] = { "Unknown" , "I", "II", "III" };
@@ -218,21 +218,29 @@ void print_stat(mpg123_handle *fr, long offset, audio_output_t *ao)
 			settle_time(tim[ti], times[ti], &timesep[ti]);
 		}
 		memset(line, 0, sizeof(line));
+		/* Start with position info. */
 		len = snprintf( line, sizeof(line)-1
-		,	"%c %5"OFF_P"[%5"OFF_P"] %c%02lu:%02lu%c%02lu[%c%02lu:%02lu%c%02lu] V(%s)=%3u(%3u)"
+		,	"%c %05"OFF_P"+%05"OFF_P" %c%02lu:%02lu%c%02lu+%02lu:%02lu%c%02lu"
 		,	stopped ? '_' : (paused ? '=' : '>')
 		,	(off_p)no, (off_p)rno
 		,	sign[0]
 		,	times[0][0], times[0][1], timesep[0], times[0][2]
-		,	sign[1]
 		,	times[1][0], times[1][1], timesep[1], times[1][2]
-		,	rva_name[param.rva], roundui(basevol*100), roundui(realvol*100)
 		);
 		if(len >= 0 && param.usebuffer && len < sizeof(line) )
-		{
+		{ /* Buffer info. */
 			int len_add = snprintf( line+len, sizeof(line)-1-len
 			,	" [%02lu:%02lu%c%02lu]"
 			,	times[2][0], times[2][1], timesep[2], times[2][2] );
+			if(len_add > 0)
+				len += len_add;
+		}
+		if(len >= 0 && len < sizeof(line))
+		{ /* Volume info. */
+			int len_add = snprintf( line+len, sizeof(line)-1-len
+			,	" %s %03u=%03u"
+			,	rva_name[param.rva], roundui(basevol*100), roundui(realvol*100)
+			);
 			if(len_add > 0)
 				len += len_add;
 		}
