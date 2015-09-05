@@ -131,8 +131,6 @@ void term_hint(void)
 
 static void term_handle_input(mpg123_handle *, audio_output_t *, int);
 
-static int stopped = 0;
-static int paused = 0;
 static int pause_cycle;
 
 static int print_index(mpg123_handle *mh)
@@ -228,6 +226,8 @@ static void seekmode(mpg123_handle *mh, audio_output_t *ao)
 		fprintf(stderr, "\ndropped, now at %"OFF_P"\n"
 		,	(off_p)mpg123_tell(mh));
 		fprintf(stderr, "%s", MPG123_STOPPED_STRING);
+		if(param.verbose)
+			print_stat(mh, 0, ao);
 	}
 }
 
@@ -331,7 +331,10 @@ static void term_handle_key(mpg123_handle *fr, audio_output_t *ao, char val)
 				out123_drop(ao);
 			out123_continue(ao);
 		}
-		fprintf(stderr, "%s", (stopped) ? MPG123_STOPPED_STRING : MPG123_EMPTY_STRING);
+		if(param.verbose)
+			print_stat(fr, 0, ao);
+		else
+			fprintf(stderr, "%s", (stopped) ? MPG123_STOPPED_STRING : MPG123_EMPTY_STRING);
 	break;
 	case MPG123_FINE_REWIND_KEY:
 		seekmode(fr, ao);

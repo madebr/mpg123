@@ -11,6 +11,8 @@
 
 #include "mpg123app.h"
 
+extern int stopped;
+extern int paused;
 /* Return width of terminal associated with given descriptor,
    -1 when there is none. */
 int term_width(int fd);

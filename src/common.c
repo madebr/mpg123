@@ -18,6 +18,9 @@
 
 #include "debug.h"
 
+int stopped = 0;
+int paused = 0;
+
 /* Also serves as a way to detect if we have an interactive terminal. */
 int term_width(int fd)
 {
@@ -216,7 +219,8 @@ void print_stat(mpg123_handle *fr, long offset, audio_output_t *ao)
 		}
 		memset(line, 0, sizeof(line));
 		len = snprintf( line, sizeof(line)-1
-		,	"f# %5"OFF_P"[%5"OFF_P"] %c%02lu:%02lu%c%02lu[%c%02lu:%02lu%c%02lu] V(%s)=%3u(%3u)"
+		,	"%c %5"OFF_P"[%5"OFF_P"] %c%02lu:%02lu%c%02lu[%c%02lu:%02lu%c%02lu] V(%s)=%3u(%3u)"
+		,	stopped ? '_' : (paused ? '=' : '>')
 		,	(off_p)no, (off_p)rno
 		,	sign[0]
 		,	times[0][0], times[0][1], timesep[0], times[0][2]

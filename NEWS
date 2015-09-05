@@ -19,6 +19,7 @@
 - Avoid spillover of status line that caused unwanted terminal scrolling.
   If the terminal width is smaller than the full status string, a cut is
   made to make it fit.
+- Rework the format of the status line to be more compact and consistent.
 - Clip decode tables for large amplification with fixed-point decoders.
   Without that, high-pitched distortion enters really quickly when
   trying to increase volume even if output samples would not be clipped,
