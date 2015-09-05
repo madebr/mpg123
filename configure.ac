@@ -12,8 +12,8 @@ AC_INIT([mpg123], [1.23.0], [mpg123-devel@lists.sourceforge.net])
 dnl Increment API_VERSION when the API gets changes (new functions).
 
 dnl libmpg123
-API_VERSION=41
-LIB_PATCHLEVEL=4
+API_VERSION=42
+LIB_PATCHLEVEL=0
 
 dnl libout123
 OUTAPI_VERSION=1

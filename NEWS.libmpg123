@@ -1,5 +1,9 @@
 Changes in libmpg123 libtool interface versions...
 
+42.0.42
+	- added mpg123_framelength()
+	  Now mpg123_position() is truly obsolete!
+
 41.0.41
 	- Add checks for NULL handles in some API functions that missed that, changed return value in others to MPG123_BAD_HANDLE where appropriate:
 		- mpg123_format_none(NULL) == MPG123_BAD_HANDLE (was: MPG123_ERR)
