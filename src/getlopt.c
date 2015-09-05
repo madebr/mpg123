@@ -34,7 +34,7 @@ topt *findopt (int islong, char *opt, topt *opts)
 	return (0);
 }
 
-int performoption (int argc, char *argv[], topt *opt)
+static int performoption (int argc, char *argv[], topt *opt)
 {
 	int result = GLO_CONTINUE;
 	/* this really is not supposed to happen, so the exit may be justified to create asap ficing pressure */
@@ -44,6 +44,8 @@ int performoption (int argc, char *argv[], topt *opt)
 		exit(1); \
 	}
 
+	debug2("performoption on %c / %s"
+	,	opt->sname ? opt->sname : '_', opt->lname ? opt->lname : "");
 	if (!(opt->flags & GLO_ARG)) { /* doesn't take argument */
 		if (opt->var) {
 			if (opt->flags & GLO_CHAR) /* var is *char */
@@ -66,10 +68,13 @@ int performoption (int argc, char *argv[], topt *opt)
 								
 			debug("casting assignment done");
 		}
+#if 0 /* Oliver: What was this for?! --ThOr */
 		else
 			result = opt->value ? opt->value : opt->sname;
+#endif
 	}
 	else { /* requires argument */
+		debug("argument required");
 		if (loptind >= argc)
 			return (GLO_NOARG);
 		loptarg = argv[loptind++]+loptchr;
@@ -85,11 +90,14 @@ int performoption (int argc, char *argv[], topt *opt)
 				*((double *) opt->var) = atof(loptarg);
 			else prog_error();
 		}
+#if 0 /* Oliver: What was this for?! --ThOr */
 		else
 			result = opt->value ? opt->value : opt->sname;
+#endif
 	}
 	if (opt->func)
 		opt->func(loptarg);
+	debug4("result: %i (%p, %i, %i)", result, opt->var, opt->value, opt->sname);
 	return (result);
 }
 

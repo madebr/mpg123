@@ -36,6 +36,9 @@
 - Remove spurious Frankenstein warning when scanning files that have no
   gapless info (the reported value of -1152 gapless sample length should be
   a giveaway anyway).
+- Fix a bug in the command line parser that was present from the beginning,
+  apparently, causing certain parameters (--au, --cdr) to kill off parsing
+  of following ones. Nobody complained in all these years. Astounding.
 
 1.22.4
 ---
