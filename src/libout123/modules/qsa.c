@@ -60,7 +60,7 @@ typedef struct _qsa_internal
     snd_pcm_channel_params_t cpars;
 } qsa_internal_t;
 
-static int open_qsa(audio_output_t* ao)
+static int open_qsa(out123_handle* ao)
 {
     int status;
     int cardno;
@@ -138,7 +138,7 @@ static int open_qsa(audio_output_t* ao)
     return TRUE;
 }
 
-static int get_formats_qsa(audio_output_t* ao)
+static int get_formats_qsa(out123_handle* ao)
 {
     qsa_internal_t* userptr;
     int status;
@@ -171,7 +171,7 @@ static int get_formats_qsa(audio_output_t* ao)
     return 0;
 }
 
-static int write_qsa(audio_output_t* ao, unsigned char* buf, int bytes)
+static int write_qsa(out123_handle* ao, unsigned char* buf, int bytes)
 {
     int written;
     int status;
@@ -215,7 +215,7 @@ static int write_qsa(audio_output_t* ao, unsigned char* buf, int bytes)
     return written;
 }
 
-static void flush_qsa(audio_output_t* ao)
+static void flush_qsa(out123_handle* ao)
 {
     qsa_internal_t* userptr;
 
@@ -226,7 +226,7 @@ static void flush_qsa(audio_output_t* ao)
     }
 }
 
-static int close_qsa(audio_output_t* ao)
+static int close_qsa(out123_handle* ao)
 {
     qsa_internal_t* userptr;
 
@@ -240,12 +240,12 @@ static int close_qsa(audio_output_t* ao)
     return TRUE;
 }
 
-static int deinit_qsa(audio_output_t* ao)
+static int deinit_qsa(out123_handle* ao)
 {
     return TRUE;
 }
 
-static int init_qsa(audio_output_t* ao)
+static int init_qsa(out123_handle* ao)
 {
     if (ao==NULL) return -1;
 

@@ -277,7 +277,7 @@ static int close_win32(struct audio_output_struct *ao)
     return 0;
 }
 
-static int init_win32(audio_output_t* ao)
+static int init_win32(out123_handle* ao)
 {
     if(!ao) return -1;
 

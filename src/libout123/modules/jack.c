@@ -208,7 +208,7 @@ static int connect_jack_ports( jack_handle_t* handle, const char *dev )
 }
 
 
-static int close_jack(audio_output_t *ao)
+static int close_jack(out123_handle *ao)
 {
 	jack_handle_t *handle = (jack_handle_t*)ao->userptr;
 	
@@ -224,7 +224,7 @@ static int close_jack(audio_output_t *ao)
 }
 
 
-static int open_jack(audio_output_t *ao)
+static int open_jack(out123_handle *ao)
 {
 	char client_name[255];
 	jack_handle_t *handle=NULL;
@@ -330,14 +330,14 @@ static int open_jack(audio_output_t *ao)
 
 
 /* Jack prefers floats, I actually assume it does _only_ float/double (as it is nowadays)! */
-static int get_formats_jack(audio_output_t *ao)
+static int get_formats_jack(out123_handle *ao)
 {
 	if(jack_get_sample_rate( ((jack_handle_t*)(ao->userptr))->client ) != (jack_nframes_t)ao->rate) return 0;
 	else return MPG123_ENC_FLOAT_32|MPG123_ENC_FLOAT_64|MPG123_ENC_SIGNED_16;
 }
 
 
-static int write_jack(audio_output_t *ao, unsigned char *buf, int len)
+static int write_jack(out123_handle *ao, unsigned char *buf, int len)
 {
 	int c,n = 0;
 	jack_handle_t *handle = (jack_handle_t*)ao->userptr;
@@ -408,7 +408,7 @@ static int write_jack(audio_output_t *ao, unsigned char *buf, int len)
 	return len;
 }
 
-static void flush_jack(audio_output_t *ao)
+static void flush_jack(out123_handle *ao)
 {
 	jack_handle_t *handle = (jack_handle_t*)ao->userptr;
 	int c;
@@ -420,7 +420,7 @@ static void flush_jack(audio_output_t *ao)
 	}
 }
 
-static int init_jack(audio_output_t* ao)
+static int init_jack(out123_handle* ao)
 {
 	if (ao==NULL) return -1;
 	

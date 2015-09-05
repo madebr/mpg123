@@ -19,7 +19,7 @@
 #include "module.h"
 #include "debug.h"
 
-static int open_pulse(audio_output_t *ao)
+static int open_pulse(out123_handle *ao)
 {
 	int err;
 	pa_simple* pas = NULL;
@@ -91,14 +91,14 @@ static int open_pulse(audio_output_t *ao)
 }
 
 
-static int get_formats_pulse(audio_output_t *ao)
+static int get_formats_pulse(out123_handle *ao)
 {
 	/* Only implemented Signed 16-bit audio for now */
 	return MPG123_ENC_SIGNED_16;
 }
 
 
-static int write_pulse(audio_output_t *ao, unsigned char *buf, int len)
+static int write_pulse(out123_handle *ao, unsigned char *buf, int len)
 {
 	pa_simple *pas = (pa_simple*)ao->userptr;
 	int ret, err;
@@ -109,7 +109,7 @@ static int write_pulse(audio_output_t *ao, unsigned char *buf, int len)
 	return len; /* If successful, everything has been written. */
 }
 
-static int close_pulse(audio_output_t *ao)
+static int close_pulse(out123_handle *ao)
 {
 	pa_simple *pas = (pa_simple*)ao->userptr;
 
@@ -123,7 +123,7 @@ static int close_pulse(audio_output_t *ao)
 	return 0;
 }
 
-static void flush_pulse(audio_output_t *ao)
+static void flush_pulse(out123_handle *ao)
 {
 	pa_simple *pas = (pa_simple*)ao->userptr;
 	
@@ -135,7 +135,7 @@ static void flush_pulse(audio_output_t *ao)
 }
 
 
-static int init_pulse(audio_output_t* ao)
+static int init_pulse(out123_handle* ao)
 {
 	if (ao==NULL) return -1;
 

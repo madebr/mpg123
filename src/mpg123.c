@@ -118,7 +118,7 @@ struct parameter param = {
 mpg123_handle *mh = NULL;
 off_t framenum;
 off_t frames_left;
-audio_output_t *ao = NULL;
+out123_handle *ao = NULL;
 char *prgName = NULL;
 /* ThOr: pointers are not TRUE or FALSE */
 char *equalfile = NULL;
@@ -433,7 +433,7 @@ static void list_output_modules(char *arg)
 	char **names = NULL;
 	char **descr = NULL;
 	int count = -1;
-	audio_output_t *lao;
+	out123_handle *lao;
 
 	if((lao=out123_new()))
 	{

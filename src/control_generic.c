@@ -25,7 +25,7 @@
 #define MODE_PLAYING 1
 #define MODE_PAUSED 2
 
-extern audio_output_t *ao;
+extern out123_handle *ao;
 
 #ifdef FIFO
 #include <sys/stat.h>

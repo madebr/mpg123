@@ -19,7 +19,7 @@ int real_rate_printed = 0;
 
 
 
-static int rate_best_match(audio_output_t *ao)
+static int rate_best_match(out123_handle *ao)
 {
 	int ret,dsp_rate;
 	
@@ -34,7 +34,7 @@ static int rate_best_match(audio_output_t *ao)
 	return 0;
 }
 
-static int set_rate(audio_output_t *ao)
+static int set_rate(out123_handle *ao)
 {
 	int dsp_rate = ao->rate;
 	
@@ -54,7 +54,7 @@ static int set_rate(audio_output_t *ao)
 	return 0;
 }
 
-static int set_channels(audio_output_t *ao)
+static int set_channels(out123_handle *ao)
 {
 	int chan = ao->channels;
 	
@@ -63,7 +63,7 @@ static int set_channels(audio_output_t *ao)
 	return ioctl(ao->fn, AIOCSCHAN, (void *)chan);
 }
 
-static int set_format(audio_output_t *ao)
+static int set_format(out123_handle *ao)
 {
 	int fmts;
 	
@@ -89,7 +89,7 @@ static int set_format(audio_output_t *ao)
 	return ioctl(ao->fn, AIOCSFMT, (void *)fmts);
 }
 
-static int reset_parameters(audio_output_t *ao)
+static int reset_parameters(out123_handle *ao)
 {
 	int ret;
 	ret = ioctl(ao->fn,AIOCRESET,NULL);
@@ -101,7 +101,7 @@ static int reset_parameters(audio_output_t *ao)
 
 
 
-static int open_mint(audio_output_t *ao)
+static int open_mint(out123_handle *ao)
 {
 	if(!ai) return -1;
 
@@ -126,7 +126,7 @@ static int open_mint(audio_output_t *ao)
 	return ao->fn;
 }
 
-static int get_formats_mint(audio_output_t *ao)
+static int get_formats_mint(out123_handle *ao)
 {
 	int ret = 0;
 	int fmts;
@@ -146,23 +146,23 @@ static int get_formats_mint(audio_output_t *ao)
 	return ret;
 }
 
-static int write_mint(audio_output_t *ao,unsigned char *buf,int len)
+static int write_mint(out123_handle *ao,unsigned char *buf,int len)
 {
 	return write(ao->fn,buf,len);
 }
 
-static int close_mint(audio_output_t *ao)
+static int close_mint(out123_handle *ao)
 {
 	close (ao->fn);
 	return 0;
 }
 
-static void flush_mint(audio_output_t *ao)
+static void flush_mint(out123_handle *ao)
 {
 }
 
 
-static int init_mint(audio_output_t* ao)
+static int init_mint(out123_handle* ao)
 {
 	if (ao==NULL) return -1;
 

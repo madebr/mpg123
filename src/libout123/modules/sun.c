@@ -31,7 +31,7 @@
 #include <fcntl.h>
 #include "debug.h"
 
-static void set_format_helper(audio_output_t *ao, audio_info_t *ainfo)
+static void set_format_helper(out123_handle *ao, audio_info_t *ainfo)
 {
 	
 	switch(ao->format) {
@@ -66,7 +66,7 @@ static void set_format_helper(audio_output_t *ao, audio_info_t *ainfo)
 }
 
 
-static int reset_parameters_sun(audio_output_t *ao)
+static int reset_parameters_sun(out123_handle *ao)
 {
 	audio_info_t ainfo;
 
@@ -81,7 +81,7 @@ static int reset_parameters_sun(audio_output_t *ao)
 	return 0;
 }
 
-static int rate_best_match(audio_output_t *ao)
+static int rate_best_match(out123_handle *ao)
 {
 	audio_info_t ainfo;
 	AUDIO_INITINFO(&ainfo);
@@ -99,7 +99,7 @@ static int rate_best_match(audio_output_t *ao)
 	return 0;
 }
 
-static int set_rate(audio_output_t *ao)
+static int set_rate(out123_handle *ao)
 {
 	audio_info_t ainfo;
 	
@@ -113,7 +113,7 @@ static int set_rate(audio_output_t *ao)
 	return -1;
 }
 
-static int set_channels(audio_output_t *ao)
+static int set_channels(out123_handle *ao)
 {
 	audio_info_t ainfo;
 	
@@ -125,7 +125,7 @@ static int set_channels(audio_output_t *ao)
 	return 0;
 }
 
-static int set_format(audio_output_t *ao)
+static int set_format(out123_handle *ao)
 {
 	audio_info_t ainfo;
 	
@@ -137,7 +137,7 @@ static int set_format(audio_output_t *ao)
 	return 0;
 }
 
-static int open_sun(audio_output_t *ao)
+static int open_sun(out123_handle *ao)
 {
 	audio_info_t ainfo;
 	
@@ -198,7 +198,7 @@ static int open_sun(audio_output_t *ao)
 
 
 
-static int get_formats_sun(audio_output_t *ao)
+static int get_formats_sun(out123_handle *ao)
 {
 	static int tab[][3] = {
 		{ AUDIO_ENCODING_ULAW , 8,  MPG123_ENC_ULAW_8 } ,
@@ -229,24 +229,24 @@ static int get_formats_sun(audio_output_t *ao)
 	return fmts;
 }
 
-static int write_sun(audio_output_t *ao,unsigned char *buf,int len)
+static int write_sun(out123_handle *ao,unsigned char *buf,int len)
 {
 	return write(ao->fn,buf,len);
 }
 
-static int close_sun(audio_output_t *ao)
+static int close_sun(out123_handle *ao)
 {
 	close (ao->fn);
 	return 0;
 }
 
-static void flush_sun(audio_output_t *ao)
+static void flush_sun(out123_handle *ao)
 {
 	/*ioctl (ao->fn, I_FLUSH, FLUSHRW);*/
 }
 
 
-static int init_sun(audio_output_t* ao)
+static int init_sun(out123_handle* ao)
 {
 	if (ao==NULL) return -1;
 

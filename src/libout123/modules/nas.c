@@ -30,7 +30,7 @@ typedef struct
 #define NAS_MAX_FORMAT 10 /* currently, there are 7 supported formats */
 
 
-/* FIXME: stick this inside userptr inside audio_output_t instead */
+/* FIXME: stick this inside userptr inside out123_handle instead */
 static InfoRec info;
 
 /* NAS specific routines */
@@ -86,7 +86,7 @@ static AuBool nas_eventHandler(AuServer *aud, AuEvent *ev, AuEventHandlerRec *ha
 }
 
 /* 0 on error */
-static int nas_createFlow(audio_output_t *ao)
+static int nas_createFlow(out123_handle *ao)
 {
     AuDeviceID      device = AuNone;
     AuElement       elements[2];
@@ -198,7 +198,7 @@ static int nas_createFlow(audio_output_t *ao)
 }
 
 
-static void flush_nas(audio_output_t *ao)
+static void flush_nas(out123_handle *ao)
 {
     AuEvent         ev;
     
@@ -211,7 +211,7 @@ static void flush_nas(audio_output_t *ao)
 
 
 /* returning -1 on error, 0 on success... */
-static int open_nas(audio_output_t *ao)
+static int open_nas(out123_handle *ao)
 {
 	if(!ao) return -1;
 
@@ -229,7 +229,7 @@ static int open_nas(audio_output_t *ao)
 }
 
 
-static int get_formats_nas(audio_output_t *ao)
+static int get_formats_nas(out123_handle *ao)
 {
     int i, j, k, ret;
 
@@ -256,7 +256,7 @@ static int get_formats_nas(audio_output_t *ao)
     return ret;
 }
 
-static int write_nas(audio_output_t *ao,unsigned char *buf,int len)
+static int write_nas(out123_handle *ao,unsigned char *buf,int len)
 {
     int buf_cnt = 0;
 
@@ -279,7 +279,7 @@ static int write_nas(audio_output_t *ao,unsigned char *buf,int len)
     return len;
 }
 
-static int close_nas(audio_output_t *ao)
+static int close_nas(out123_handle *ao)
 {
     if (info.aud == NULL) {
         return 0;
@@ -302,7 +302,7 @@ static int close_nas(audio_output_t *ao)
 
 
 
-static int init_nas(audio_output_t* ao)
+static int init_nas(out123_handle* ao)
 {
 	if (ao==NULL) return -1;
 

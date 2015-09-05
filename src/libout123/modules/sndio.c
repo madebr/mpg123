@@ -23,7 +23,7 @@
 
 #include "debug.h"
 
-static int open_sndio(audio_output_t *ao)
+static int open_sndio(out123_handle *ao)
 {
 	struct sio_hdl *hdl;
 	struct sio_par par;
@@ -100,14 +100,14 @@ static int open_sndio(audio_output_t *ao)
 	return 0;
 }
 
-static int get_formats_sndio(audio_output_t *ao)
+static int get_formats_sndio(out123_handle *ao)
 {
 	return (MPG123_ENC_SIGNED_32|MPG123_ENC_UNSIGNED_32|
 	    MPG123_ENC_SIGNED_16|MPG123_ENC_UNSIGNED_16|
 	    MPG123_ENC_UNSIGNED_8|MPG123_ENC_SIGNED_8);
 }
 
-static int write_sndio(audio_output_t *ao, unsigned char *buf, int len)
+static int write_sndio(out123_handle *ao, unsigned char *buf, int len)
 {
 	struct sio_hdl *hdl = (struct sio_hdl *)ao->userptr;
 	int count;
@@ -118,12 +118,12 @@ static int write_sndio(audio_output_t *ao, unsigned char *buf, int len)
 	return count;
 }
 
-static void flush_sndio(audio_output_t *ao)
+static void flush_sndio(out123_handle *ao)
 {
 	return;
 }
 
-static int close_sndio(audio_output_t *ao)
+static int close_sndio(out123_handle *ao)
 {
 	struct sio_hdl *hdl = (struct sio_hdl *)ao->userptr;
 
@@ -131,7 +131,7 @@ static int close_sndio(audio_output_t *ao)
 	return 0;
 }
 
-static int init_sndio(audio_output_t* ao)
+static int init_sndio(out123_handle* ao)
 {
 	if (ao == NULL)
 		return -1;

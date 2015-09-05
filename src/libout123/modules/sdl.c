@@ -33,7 +33,7 @@
 */
 static void audio_callback_sdl(void *udata, Uint8 *stream, int len)
 {
-	audio_output_t *ao = (audio_output_t*)udata;
+	out123_handle *ao = (out123_handle*)udata;
 	sfifo_t *fifo = (sfifo_t*)ao->userptr;
 	int bytes_read;
 	int bytes_avail;
@@ -48,7 +48,7 @@ static void audio_callback_sdl(void *udata, Uint8 *stream, int len)
 	warning2("Error reading from the FIFO (wanted=%u, bytes_read=%u).\n", len, bytes_read);
 }
 
-static int open_sdl(audio_output_t *ao)
+static int open_sdl(out123_handle *ao)
 {
 	sfifo_t *fifo = (sfifo_t*)ao->userptr;
 	
@@ -87,7 +87,7 @@ static int open_sdl(audio_output_t *ao)
 }
 
 
-static int get_formats_sdl(audio_output_t *ao)
+static int get_formats_sdl(out123_handle *ao)
 {
 	/* Got no better idea than to just take 16 bit and run with it */
 	return MPG123_ENC_SIGNED_16;
@@ -123,7 +123,7 @@ fprintf(stderr, "wanted rate: %li got rate %li\n", (long)wanted.freq, (long)got.
 }
 
 
-static int write_sdl(audio_output_t *ao, unsigned char *buf, int len)
+static int write_sdl(out123_handle *ao, unsigned char *buf, int len)
 {
 	sfifo_t *fifo = (sfifo_t*)ao->userptr;
 
@@ -151,7 +151,7 @@ static int write_sdl(audio_output_t *ao, unsigned char *buf, int len)
 	return len;
 }
 
-static int close_sdl(audio_output_t *ao)
+static int close_sdl(out123_handle *ao)
 {
 	int stuff;
 	sfifo_t *fifo = (sfifo_t*)ao->userptr;
@@ -176,7 +176,7 @@ static int close_sdl(audio_output_t *ao)
 	return 0;
 }
 
-static void flush_sdl(audio_output_t *ao)
+static void flush_sdl(out123_handle *ao)
 {
 	sfifo_t *fifo = (sfifo_t*)ao->userptr;
 
@@ -186,7 +186,7 @@ static void flush_sdl(audio_output_t *ao)
 }
 
 
-static int deinit_sdl(audio_output_t* ao)
+static int deinit_sdl(out123_handle* ao)
 {
 	/* Free up memory */
 	if (ao->userptr) {
@@ -202,7 +202,7 @@ static int deinit_sdl(audio_output_t* ao)
 }
 
 
-static int init_sdl(audio_output_t* ao)
+static int init_sdl(out123_handle* ao)
 {
 	if (ao==NULL) return -1;
 	

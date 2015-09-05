@@ -15,19 +15,19 @@
 /* Interfaces from wav.c, variants of file writing, to be combined into
    fake modules by the main library code.  */
 
-int au_open(audio_output_t *);
-int cdr_open(audio_output_t *);
-int raw_open(audio_output_t *);
-int wav_open(audio_output_t *);
-int wav_write(audio_output_t *, unsigned char *buf, int len);
-int wav_close(audio_output_t *);
-int au_close(audio_output_t *);
-int raw_close(audio_output_t *);
-int cdr_formats(audio_output_t *);
-int au_formats(audio_output_t *);
-int raw_formats(audio_output_t *);
-int wav_formats(audio_output_t *);
-void wav_drain(audio_output_t *);
+int au_open(out123_handle *);
+int cdr_open(out123_handle *);
+int raw_open(out123_handle *);
+int wav_open(out123_handle *);
+int wav_write(out123_handle *, unsigned char *buf, int len);
+int wav_close(out123_handle *);
+int au_close(out123_handle *);
+int raw_close(out123_handle *);
+int cdr_formats(out123_handle *);
+int au_formats(out123_handle *);
+int raw_formats(out123_handle *);
+int wav_formats(out123_handle *);
+void wav_drain(out123_handle *);
 
 #endif
 

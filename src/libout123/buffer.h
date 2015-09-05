@@ -19,37 +19,37 @@
 #include "out123_int.h"
 #include "compat.h"
 
-int  buffer_init(audio_output_t *ao, size_t bytes);
-void buffer_exit(audio_output_t *ao);
+int  buffer_init(out123_handle *ao, size_t bytes);
+void buffer_exit(out123_handle *ao);
 
 /* Messages with payload. */
 
-int buffer_sync_param(audio_output_t *ao);
-int buffer_open(audio_output_t *ao, const char* driver, const char* device);
-int buffer_encodings(audio_output_t *ao);
-int buffer_start(audio_output_t *ao);
-void buffer_ndrain(audio_output_t *ao, size_t bytes);
+int buffer_sync_param(out123_handle *ao);
+int buffer_open(out123_handle *ao, const char* driver, const char* device);
+int buffer_encodings(out123_handle *ao);
+int buffer_start(out123_handle *ao);
+void buffer_ndrain(out123_handle *ao, size_t bytes);
 
 /* Simple messages to be deal with after playback. */
 
-void buffer_stop(audio_output_t *ao);
-void buffer_close(audio_output_t *ao);
-void buffer_continue(audio_output_t *ao);
+void buffer_stop(out123_handle *ao);
+void buffer_close(out123_handle *ao);
+void buffer_continue(out123_handle *ao);
 /* Still undecided if that one is to be used anywhere. */
-void buffer_ignore_lowmem(audio_output_t *ao);
-void buffer_drain(audio_output_t *ao);
-void buffer_end(audio_output_t *ao);
+void buffer_ignore_lowmem(out123_handle *ao);
+void buffer_drain(out123_handle *ao);
+void buffer_end(out123_handle *ao);
 
 /* Simple messages with interruption of playback. */
 
-void buffer_pause(audio_output_t *ao);
-void buffer_drop(audio_output_t *ao);
+void buffer_pause(out123_handle *ao);
+void buffer_drop(out123_handle *ao);
 
 /* The actual work: Hand over audio data. */
-size_t buffer_write(audio_output_t *ao, void *buffer, size_t bytes);
+size_t buffer_write(out123_handle *ao, void *buffer, size_t bytes);
 
 /* Thin wrapper over xfermem giving the current buffer fill. */
-size_t buffer_fill(audio_output_t *ao);
+size_t buffer_fill(out123_handle *ao);
 
 /* Special handler to safely read values from command channel with
    an additional buffer handed in. Exported for read_parameters(). */

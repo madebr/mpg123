@@ -136,7 +136,7 @@ static void MciError(ULONG ulError)
 }
 
 
-static int set_volume(audio_output_t *ao, USHORT setvolume)
+static int set_volume(out123_handle *ao, USHORT setvolume)
 {
 	if(setvolume > 100) setvolume = 100;
 	volume = setvolume; /* useful when device is closed and reopened */
@@ -155,7 +155,7 @@ static int set_volume(audio_output_t *ao, USHORT setvolume)
 }
 
 
-int open_os2(audio_output_t *ao)
+int open_os2(out123_handle *ao)
 {
 	ULONG rc,i;
 	char *temp;
@@ -327,7 +327,7 @@ int open_os2(audio_output_t *ao)
 }
 
 
-static int write_os2(audio_output_t *ao,unsigned char *buf,int len)
+static int write_os2(out123_handle *ao,unsigned char *buf,int len)
 {
 	/* if we're too quick, let's wait */
 	if(nobuffermode)
@@ -373,7 +373,7 @@ static int write_os2(audio_output_t *ao,unsigned char *buf,int len)
 }
 
 #if 0
-static int write_os2(audio_output_t *ao,unsigned char *buf,int len)
+static int write_os2(out123_handle *ao,unsigned char *buf,int len)
 {
 	if(len > audiobufsize || !playingbuffer) return -1;
 	
@@ -430,13 +430,13 @@ static int write_os2(audio_output_t *ao,unsigned char *buf,int len)
 #endif
 
 /*
-static int audio_nobuffermode(audio_output_t *ao, int setnobuffermode)
+static int audio_nobuffermode(out123_handle *ao, int setnobuffermode)
 {
    nobuffermode = setnobuffermode;
    return TRUE;
 }
 
-int audio_trash_buffers(audio_output_t *ao)
+int audio_trash_buffers(out123_handle *ao)
 {
    int i;
 
@@ -453,7 +453,7 @@ int audio_trash_buffers(audio_output_t *ao)
 }
 */
 
-static int close_os2(audio_output_t *ao)
+static int close_os2(out123_handle *ao)
 {
 	ULONG rc;
 	
@@ -513,7 +513,7 @@ static int close_os2(audio_output_t *ao)
 /*
  * get formats for specific channel/rate parameters
  */
-int get_formats_os2(audio_output_t *ao)
+int get_formats_os2(out123_handle *ao)
 {
 	int fmts = 0;
 	ULONG rc;
@@ -625,12 +625,12 @@ static int get_devices_os2(char *info, int deviceid)
 }
 
 
-static void flush_os2(audio_output_t *ao)
+static void flush_os2(out123_handle *ao)
 {
 }
 
 
-static int init_os2(audio_output_t* ao)
+static int init_os2(out123_handle* ao)
 {
 	if (ao==NULL) return -1;
 	

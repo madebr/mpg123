@@ -10,10 +10,7 @@
 */
 
 /* API TODO:
-	- rename audio_output_t to out123_handle
-	- ensure that mpg123_encsize() is not used when deciding not to rely on
-	  libmpg123; easy enough to reimplement. Should not have been a function
-	  from the beginning!
+	- rename out123_handle to out123_handle
 	- Consider zero-copy mode. Ideally, one asks the buffer process for
 	  a memory block to write to and avoids any copying.
 	  Only trouble is that a desired size might not fit in one piece into
@@ -26,6 +23,11 @@
 
 #ifndef _OUT123_H_
 #define _OUT123_H_
+
+/** \file out123.h The header file for the libout123 audio output facility. */
+
+/* We only need size_t definition. */
+#include <stddef.h>
 
 #define OUT123_API_VERSION @OUTAPI_VERSION@
 
@@ -59,33 +61,10 @@
  @{
  */
 
-/*
-	This includes the mpg123 header, but does only use definitions from there,
-	no symbols of the actual mpg123 library.
-	Actually, I have to think about that. The string memory management could be
-	useful for out123_drivers(), but somehow I feel we should get by without
-	linking in an MPEG decoder library. Unless: Offer transparent decoding of
-	MP3 directly to the output. Hm, then, WAV and friends should also be
-	supported. This widens the scope of the library. Does it also actually
-	increase the usefulness?
+#include <mpg123_enc.h>
 
-	Oh, and another point is that the string stuff is optional in libmpg123
-	anyway. So, this option of transparently decoding things in the background
-	is a separate point from easing the creation of strings with lists of
-	driver modules.
-
-	While it might be nice to have a very minimal program to play MPEG data,
-	I think the purity of having the output library just deal with PCM data
-	should not be given up lightly.
-
-	A more sensible feature should be a WAV header parser to enable a client
-	program to auto-configure output format.
-*/
-#include "mpg123.h"
-#include "module.h"
-
-struct audio_output_struct;
-typedef struct audio_output_struct audio_output_t;
+struct out123_struct;
+typedef struct out123_struct out123_handle;
 
 /** Enumeration of codes for the parameters that it is possible to set/get. */
 enum out123_parms
@@ -122,12 +101,12 @@ enum out123_flags
  *  error condition is running out of memory.
  * \return pointer to new handle or NULL on error
  */
-audio_output_t *out123_new(void);
+out123_handle *out123_new(void);
 
 /** Delete output handle.
  *  This implies out123_close().
  */
-void out123_del(audio_output_t *ao);
+void out123_del(out123_handle *ao);
 
 /** Error code enumeration
  * API calls return a useful (positve) value or zero (OUT123_OK) on simple
@@ -156,12 +135,12 @@ enum out123_error
  *  context of given handle.
  *  \return error string
  */
-const char* out123_strerror(audio_output_t *ao);
+const char* out123_strerror(out123_handle *ao);
 
 /** Get the plain errcode intead of a string.
  * \return error code recorded in handle or OUT123_BAD_HANDLE
  */
-int out123_errcode(audio_output_t *ao);
+int out123_errcode(out123_handle *ao);
 
 /** Return the error string for a given error code.
  * \param errcode the integer error code
@@ -198,7 +177,7 @@ const char* out123_plain_strerror(int errcode);
  *    a value of zero disables the buffer.
  * \return 0 on success, MPG123_ERR on error
  */
-int out123_set_buffer(audio_output_t *ao, size_t buffer_bytes);
+int out123_set_buffer(out123_handle *ao, size_t buffer_bytes);
 
 /** Set a specific parameter, for a specific out123_handle, using a parameter 
  *  code chosen from the out123_parms enumeration, to the specified value.
@@ -209,7 +188,7 @@ int out123_set_buffer(audio_output_t *ao, size_t buffer_bytes);
  * \param fvalue input value for floating point parameters
  * \return 0 on success, MPG123_ERR on error.
  */
-int out123_param( audio_output_t *ao, enum out123_parms code
+int out123_param( out123_handle *ao, enum out123_parms code
 ,                 long value, double fvalue );
 
 /** Get a specific parameter, for a specific out123_handle, using a parameter
@@ -219,13 +198,13 @@ int out123_param( audio_output_t *ao, enum out123_parms code
  * \param fvalue output address for floating point parameters
  * \return 0 on success, MPG123_ERR on error (bad parameter name or bad handle).
  */
-int out123_getparam( audio_output_t *ao, enum out123_parms code
+int out123_getparam( out123_handle *ao, enum out123_parms code
 ,                    long *ret_value, double *ret_fvalue );
 
 /** Copy parameters from another out123_handle.
  * \param from_ao the handle to copy parameters from
  */
-int out123_param_from(audio_output_t *ao, audio_output_t* from_ao);
+int out123_param_from(out123_handle *ao, out123_handle* from_ao);
 
 /** Get list of driver modules reachable in system in C argv-style format.
  *  The client is responsible for freeing the memory of both the individual
@@ -238,7 +217,7 @@ int out123_param_from(audio_output_t *ao, audio_output_t* from_ao);
  * \param descr address for storing list of descriptions
  * \return number of drivers found, -1 on error
  */
-int out123_drivers(audio_output_t *ao, char ***names, char ***descr);
+int out123_drivers(out123_handle *ao, char ***names, char ***descr);
 
 /** Open an output device with a certain driver
  *  Note: Opening means that the driver code is loaded and the desired
@@ -250,7 +229,7 @@ int out123_drivers(audio_output_t *ao, char ***names, char ***descr);
  * \param device device name to open, NULL for default
  * \return 0 on success, -1 on error.
  */
-int out123_open(audio_output_t *ao, const char* driver, const char* device);
+int out123_open(out123_handle *ao, const char* driver, const char* device);
 
 /** Give info about currently loaded driver and device
  *  Any of the return addresses can be NULL if you are not interested in
@@ -262,7 +241,7 @@ int out123_open(audio_output_t *ao, const char* driver, const char* device);
  * \param device return address for device name
  * \return 0 on success, -1 on error (i.e. no driver loaded)
  */
-int out123_driver_info(audio_output_t *ao, char **driver, char **device);
+int out123_driver_info(out123_handle *ao, char **driver, char **device);
 
 /** Close the current output device and driver.
  *  This implies out123_drain() to ensure no data is lost.
@@ -271,7 +250,7 @@ int out123_driver_info(audio_output_t *ao, char **driver, char **device);
  *  Call out123_drop() beforehand if you want to end things
  *  quickly.
  */
-void out123_close(audio_output_t *ao);
+void out123_close(out123_handle *ao);
 
 /** Get supported audio encodings for given rate and channel count,
  *  for the currently openend audio device.
@@ -289,29 +268,7 @@ void out123_close(audio_output_t *ao);
  * \return supported encodings combined with bitwise or, to be checked
  *         against your favourite bitmask, -1 on error
  */
-int out123_encodings(audio_output_t *ao, int channels, long rate);
-
-/** Get size of one PCM sample with given encoding.
- *  This is a macro that might belong into a header file separate from
- *  both mpg123.h and out123.h. No need to have those generic definitions
- *  tied to library code.
- *  Also: Thomas really likes the ?: operator.
- * \param encoding the encoding (mpg123_enc_enum value)
- * \return size of one sample in bytes
- */
-#define out123_samplesize(enc) ( \
-	(enc) & MPG123_ENC_8 \
-	?	1 \
-	:	( (enc) & MPG123_ENC_16 \
-		?	2 \
-		:	( (enc) & MPG123_ENC_24 \
-			?	3 \
-			:	( ((enc) & MPG123_ENC_32 || (enc) == MPG123_ENC_FLOAT_32) \
-				?	4 \
-				:	( (enc) == MPG123_ENC_FLOAT_64 \
-					?	8 \
-					:	0 \
-)	)	)	)	)
+int out123_encodings(out123_handle *ao, int channels, long rate);
 
 /** Start playback with a certain output format
  *  It might be a good idea to have audio data handy to feed after this
@@ -321,7 +278,7 @@ int out123_encodings(audio_output_t *ao, int channels, long rate);
  * \param rate sampling rate
  * \return 0 on success, negative on error (bad format, usually)
  */
-int out123_start( audio_output_t *ao
+int out123_start( out123_handle *ao
 ,                 long rate, int channels, int encoding );
 
 /** Pause playback
@@ -338,7 +295,7 @@ int out123_start( audio_output_t *ao
  *  data for some time, although it might have the same effect, again,
  *  deopending on the selected driver.
  */
-void out123_pause(audio_output_t *ao);
+void out123_pause(out123_handle *ao);
 
 /** Continue playback
  *  The counterpart to out123_pause(). Announce to the driver that playback
@@ -349,14 +306,14 @@ void out123_pause(audio_output_t *ao);
  *  out123_drain(), or just by feeding more data with out123_play(), which
  *  will trigger out123_continue(), too.
  */
-void out123_continue(audio_output_t *ao);
+void out123_continue(out123_handle *ao);
 
 /** Stop playback.
  *  This waits for pending audio data to drain to the speakers.
  *  You might want to call out123_drop() before stopping if you want
  *  to end things right away.
  */
-void out123_stop(audio_output_t *ao);
+void out123_stop(out123_handle *ao);
 
 /** Hand over data for playback and wait in case audio device is busy.
  *  This survives non-fatal signals like SIGSTOP/SIGCONT and keeps on
@@ -373,7 +330,7 @@ void out123_stop(audio_output_t *ao);
  * \param bytes number of bytes to read from the buffer
  * \return number of bytes played (might be less than given, even zero)
  */
-size_t out123_play( audio_output_t *ao
+size_t out123_play( out123_handle *ao
                   , void *buffer, size_t bytes );
 
 /** Drop any buffered data, making next provided data play right away.
@@ -382,7 +339,7 @@ size_t out123_play( audio_output_t *ao
  *  but feel free to call out123_stop() afterwards instead for a quicker
  *  exit than the implied out123_drain().
  */
-void out123_drop(audio_output_t *ao);
+void out123_drop(out123_handle *ao);
 
 /** Drain the output, waiting until all data went to the hardware.
   * This does not imply out123_stop(). You might continue handing in
@@ -390,7 +347,7 @@ void out123_drop(audio_output_t *ao);
   * This might involve only the optional buffer process, or the
   * buffers on the audio driver side, too.
   */
-void out123_drain(audio_output_t *ao);
+void out123_drain(out123_handle *ao);
 
 /** Drain the output, but only partially up to the given number of
  *  bytes. This gives you the opportunity to do something while
@@ -405,14 +362,14 @@ void out123_drain(audio_output_t *ao);
  * \param bytes limit of buffered bytes to drain
  * \return number of bytes drained from buffer
  */
-void out123_ndrain(audio_output_t *ao, size_t bytes);
+void out123_ndrain(out123_handle *ao, size_t bytes);
 
 /** Get an indication of how many bytes reside in the optional buffer.
  * This might get extended to tell the number of bytes queued up in the
  * audio backend, too.
  * \return number of bytes in out123 library buffer
  */
-size_t out123_buffered(audio_output_t *ao);
+size_t out123_buffered(out123_handle *ao);
 
 /** Extract currently used audio format from handle.
  *  TODO: make the order of out123_start() match the arguments here,
@@ -423,45 +380,8 @@ size_t out123_buffered(audio_output_t *ao);
  * \param encoding address for encoding
  * \param size of a full PCM frame (for convenience)
  */
-int out123_getformat( audio_output_t *ao
+int out123_getformat( out123_handle *ao
 ,	long *rate, int *channels, int *encoding, int *framesize );
-
-#if 0 /* Old stuff following. */
-
-
-/* ------ Declarations from "audio.c" ------ */
-
-audio_output_t* open_output_module( const char* name );
-void close_output_module( audio_output_t* ao );
-const char* audio_encoding_name(const int encoding, const int longer);
-
-int init_output(audio_output_t **ao);
-void exit_output(audio_output_t *ao, int rude);
-int flush_output(audio_output_t *ao, unsigned char *bytes, size_t count);
-int open_output(audio_output_t *ao);
-void close_output(audio_output_t *ao );
-int reset_output(audio_output_t *ao);
-void output_pause(audio_output_t *ao);  /* Prepare output for inactivity. */
-void output_unpause(audio_output_t *ao); /* Reactivate output (buffer process). */
-
-int audio_enc_name2code(const char* name);
-void audio_enclist(char** list); /* Make a string of encoding names. */
-
-int audio_format_support(audio_output_t *ao, long rate, int channels);
-void audio_prepare_format(audio_output_t *ao, int rate, int channels, int encoding);
-const char* audio_module_name(audio_output_t *ao);
-const char* audio_device_name(audio_output_t *ao);
-
-int audio_reset(audio_output_t *ao, long rate, int channels, int format);
-void audio_drain(audio_output_t *ao);
-long audio_buffered_bytes(audio_output_t *ao);
-void audio_start(audio_output_t *ao);
-void audio_stop(audio_output_t *ao);
-void audio_drop(audio_output_t *ao);
-void audio_continue(audio_output_t *ao);
-void audio_fixme_wake_buffer(audio_output_t *ao);
-
-#endif
 
 /* @} */
 

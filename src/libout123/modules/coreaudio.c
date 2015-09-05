@@ -111,7 +111,7 @@ static OSStatus convertProc(void *inRefCon, AudioUnitRenderActionFlags *inAction
 	return err;
 }
 
-static int open_coreaudio(audio_output_t *ao)
+static int open_coreaudio(out123_handle *ao)
 {
 	mpg123_coreaudio_t* ca = (mpg123_coreaudio_t*)ao->userptr;
 	UInt32 size;
@@ -239,12 +239,12 @@ static int open_coreaudio(audio_output_t *ao)
 	return(0);
 }
 
-static int get_formats_coreaudio(audio_output_t *ao)
+static int get_formats_coreaudio(out123_handle *ao)
 {
 	return MPG123_ENC_SIGNED_16|MPG123_ENC_SIGNED_8|MPG123_ENC_UNSIGNED_8|MPG123_ENC_SIGNED_32|MPG123_ENC_FLOAT_32;
 }
 
-static int write_coreaudio(audio_output_t *ao, unsigned char *buf, int len)
+static int write_coreaudio(out123_handle *ao, unsigned char *buf, int len)
 {
 	mpg123_coreaudio_t* ca = (mpg123_coreaudio_t*)ao->userptr;
 	int written;
@@ -274,7 +274,7 @@ static int write_coreaudio(audio_output_t *ao, unsigned char *buf, int len)
 	return len;
 }
 
-static int close_coreaudio(audio_output_t *ao)
+static int close_coreaudio(out123_handle *ao)
 {
 	mpg123_coreaudio_t* ca = (mpg123_coreaudio_t*)ao->userptr;
 
@@ -302,7 +302,7 @@ static int close_coreaudio(audio_output_t *ao)
 	return 0;
 }
 
-static void flush_coreaudio(audio_output_t *ao)
+static void flush_coreaudio(out123_handle *ao)
 {
 	mpg123_coreaudio_t* ca = (mpg123_coreaudio_t*)ao->userptr;
 
@@ -316,7 +316,7 @@ static void flush_coreaudio(audio_output_t *ao)
 	sfifo_flush( &ca->fifo );	
 }
 
-static int deinit_coreaudio(audio_output_t* ao)
+static int deinit_coreaudio(out123_handle* ao)
 {
 	/* Free up memory */
 	if (ao->userptr) {
@@ -328,7 +328,7 @@ static int deinit_coreaudio(audio_output_t* ao)
 	return 0;
 }
 
-static int init_coreaudio(audio_output_t* ao)
+static int init_coreaudio(out123_handle* ao)
 {
 	if (ao==NULL) return -1;
 

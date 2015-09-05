@@ -52,7 +52,7 @@ static int paCallback(
     void *userData )
 #endif
 {
-	audio_output_t *ao = userData;
+	out123_handle *ao = userData;
 	mpg123_portaudio_t *pa = (mpg123_portaudio_t*)ao->userptr;
 	unsigned long bytes = framesPerBuffer * SAMPLE_SIZE * ao->channels;
 	
@@ -66,7 +66,7 @@ static int paCallback(
 }
 
 
-static int open_portaudio(audio_output_t *ao)
+static int open_portaudio(out123_handle *ao)
 {
 	mpg123_portaudio_t *pa = (mpg123_portaudio_t*)ao->userptr;
 	PaError err;
@@ -101,14 +101,14 @@ static int open_portaudio(audio_output_t *ao)
 }
 
 
-static int get_formats_portaudio(audio_output_t *ao)
+static int get_formats_portaudio(out123_handle *ao)
 {
 	/* Only implemented Signed 16-bit audio for now */
 	return MPG123_ENC_SIGNED_16;
 }
 
 
-static int write_portaudio(audio_output_t *ao, unsigned char *buf, int len)
+static int write_portaudio(out123_handle *ao, unsigned char *buf, int len)
 {
 	mpg123_portaudio_t *pa = (mpg123_portaudio_t*)ao->userptr;
 	PaError err;
@@ -143,7 +143,7 @@ static int write_portaudio(audio_output_t *ao, unsigned char *buf, int len)
 }
 
 
-static int close_portaudio(audio_output_t *ao)
+static int close_portaudio(out123_handle *ao)
 {
 	mpg123_portaudio_t *pa = (mpg123_portaudio_t*)ao->userptr;
 	PaError err;
@@ -175,7 +175,7 @@ static int close_portaudio(audio_output_t *ao)
 }
 
 
-static void flush_portaudio(audio_output_t *ao)
+static void flush_portaudio(out123_handle *ao)
 {
 	mpg123_portaudio_t *pa = (mpg123_portaudio_t*)ao->userptr;
 	/*PaError err;*/
@@ -189,7 +189,7 @@ static void flush_portaudio(audio_output_t *ao)
 }
 
 
-static int deinit_portaudio(audio_output_t* ao)
+static int deinit_portaudio(out123_handle* ao)
 {
 	/* Free up memory */
 	if (ao->userptr) {
@@ -205,7 +205,7 @@ static int deinit_portaudio(audio_output_t* ao)
 }
 
 
-static int init_portaudio(audio_output_t* ao)
+static int init_portaudio(out123_handle* ao)
 {
 	int err = paNoError;
 	

@@ -27,7 +27,7 @@
 static unsigned esd_rate = 0, esd_format = 0, esd_channels = 0;
 
 
-static int open_esound(audio_output_t *ao)
+static int open_esound(out123_handle *ao)
 {
 	esd_format_t format = ESD_STREAM | ESD_PLAY;
 
@@ -94,7 +94,7 @@ static int open_esound(audio_output_t *ao)
 	return (ao->fn);
 }
 
-static int get_formats_esound (audio_output_t *ao)
+static int get_formats_esound (out123_handle *ao)
 {
 	if (0 < ao->channels && ao->channels <= esd_channels 
 	    && 0 < ao->rate && ao->rate <= esd_rate)
@@ -105,38 +105,38 @@ static int get_formats_esound (audio_output_t *ao)
 	}
 }
 
-static int write_esound(audio_output_t *ao,unsigned char *buf,int len)
+static int write_esound(out123_handle *ao,unsigned char *buf,int len)
 {
 	return write(ao->fn,buf,len);
 }
 
-static int close_esound(audio_output_t *ao)
+static int close_esound(out123_handle *ao)
 {
 	close (ao->fn);
 	return 0;
 }
 
 #ifdef SOLARIS
-static void flush_esound (audio_output_t *ao)
+static void flush_esound (out123_handle *ao)
 {
         ioctl (ao->fn, I_FLUSH, FLUSHRW);
 }
 #else
 #ifdef NETBSD
-static void flush_esound (audio_output_t *ao)
+static void flush_esound (out123_handle *ao)
 {
         ioctl (ao->fn, AUDIO_FLUSH, 0);
 }
 #else
 /* Dunno what to do on Linux and Cygwin, but the func must be at least defined! */
-static void flush_esound (audio_output_t *ao)
+static void flush_esound (out123_handle *ao)
 {
 }
 #endif
 #endif
 
 
-static int init_esound(audio_output_t* ao)
+static int init_esound(out123_handle* ao)
 {
 	if (ao==NULL) return -1;
 

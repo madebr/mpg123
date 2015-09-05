@@ -132,7 +132,7 @@ extern int playlimit;
 #endif
 
 /* why extern? */
-extern void prepare_audioinfo(mpg123_handle *mh, audio_output_t *ao);
+extern void prepare_audioinfo(mpg123_handle *mh, out123_handle *ao);
 extern int play_frame(void);
 
 extern int control_generic(mpg123_handle *fr);

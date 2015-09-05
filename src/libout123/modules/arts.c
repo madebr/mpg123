@@ -17,7 +17,7 @@ typedef struct
 	arts_stream_t arse; /* That's short for ARts StrEam;-) */
 } mpg123_arts_t;
 
-static int open_arts(audio_output_t *ao)
+static int open_arts(out123_handle *ao)
 {
 	short bits = 0;
 	if(!ao) return -1;
@@ -41,19 +41,19 @@ static int open_arts(audio_output_t *ao)
 	return (void*)((mpg123_arts_t*)ao->userptr)->arse == NULL ? -1 : 0;
 }
 
-static int get_formats_arts(audio_output_t *ao)
+static int get_formats_arts(out123_handle *ao)
 {
 	/* aRts runs not everything, but any rate. */
 	return MPG123_ENC_SIGNED_16|MPG123_ENC_UNSIGNED_8;
 }
 
-static int write_arts(audio_output_t *ao,unsigned char *buf,int len)
+static int write_arts(out123_handle *ao,unsigned char *buf,int len)
 {
 	/* PIPE the PCM forward to the aRts Sound Daemon */
 	return arts_write( ((mpg123_arts_t*)ao->userptr)->arse , buf, len);
 }
 
-static int close_arts(audio_output_t *ao)
+static int close_arts(out123_handle *ao)
 {
 	/* Close the connection! */
 	arts_close_stream( ((mpg123_arts_t*)ao->userptr)->arse );
@@ -62,12 +62,12 @@ static int close_arts(audio_output_t *ao)
 	return 0;
 }
 
-static void flush_arts(audio_output_t *ao)
+static void flush_arts(out123_handle *ao)
 {
   /* aRts doesn't have a flush statement! */
 }
 
-static int deinit_arts(audio_output_t* ao)
+static int deinit_arts(out123_handle* ao)
 {
 	if(ao->userptr)
 	{
@@ -78,7 +78,7 @@ static int deinit_arts(audio_output_t* ao)
 	return 0;
 }
 
-static int init_arts(audio_output_t* ao)
+static int init_arts(out123_handle* ao)
 {
 	if (ao==NULL) return -1;
 

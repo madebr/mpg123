@@ -75,7 +75,7 @@ static long myHandler(Audio *audio,AErrorEvent *err_event) {
  */
 
 /* return on error leaves stuff dirty here... */
-static int open_alib(audio_output_t *ao)
+static int open_alib(out123_handle *ao)
 {
 	AudioAttributes Attribs;
 	AudioAttrMask   AttribsMask;
@@ -144,7 +144,7 @@ static int open_alib(audio_output_t *ao)
 
 /**************************************************************************/
 
-static int close_alib(audio_output_t *ao)
+static int close_alib(out123_handle *ao)
 {
 	close(ao->fn);
 	ASetCloseDownMode( audioServer, AKeepTransactions, NULL );
@@ -160,24 +160,24 @@ static int close_alib(audio_output_t *ao)
  * deserv to be inline
  */
 
-static int write_alib(audio_output_t *ao,unsigned char *buf,int len)
+static int write_alib(out123_handle *ao,unsigned char *buf,int len)
 {
 	return write(ao->fn,buf,len*2);
 }
 
 /**************************************************************************/
 
-static int get_formats_alib(audio_output_t *ao)
+static int get_formats_alib(out123_handle *ao)
 {
 	return MPG123_ENC_SIGNED_16;
 }
 
-static void flush_alib(audio_output_t *ao)
+static void flush_alib(out123_handle *ao)
 {
 }
 
 
-static int init_alib(audio_output_t* ao)
+static int init_alib(out123_handle* ao)
 {
 	if (ao==NULL) return -1;
 

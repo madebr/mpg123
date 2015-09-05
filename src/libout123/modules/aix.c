@@ -27,7 +27,7 @@
 /* #define AUDIO_BSIZE AUDIO_IGNORE */
 #define AUDIO_BSIZE 200
 
-static int rate_best_match(audio_output_t *ao)
+static int rate_best_match(out123_handle *ao)
 {
 	static long valid [ ] = {  5510,  6620,  8000,  9600, 11025, 16000, 18900,
 							22050, 27420, 32000, 33075, 37800, 44100, 48000, 0 };
@@ -50,7 +50,7 @@ static int rate_best_match(audio_output_t *ao)
 	return best;
 }
 
-static int reset_parameters(audio_output_t *ao)
+static int reset_parameters(out123_handle *ao)
 {
 	audio_control  acontrol;
 	audio_change   achange;
@@ -158,7 +158,7 @@ static int reset_parameters(audio_output_t *ao)
 	return 0;
 }
 
-static int open_aix(audio_output_t *ao)
+static int open_aix(out123_handle *ao)
 {
 	audio_init ainit;
 	int ret;
@@ -201,7 +201,7 @@ static int open_aix(audio_output_t *ao)
 
 
 
-static int get_formats_aix(audio_output_t *ao)
+static int get_formats_aix(out123_handle *ao)
 {
 	/* ULTIMEDIA DOCUMENTATION SAYS:
 	The Ultimedia Audio Adapter supports fourteen sample rates you can use to
@@ -223,12 +223,12 @@ static int get_formats_aix(audio_output_t *ao)
 		return 0;
 }
 
-static int write_aix(audio_output_t *ao,unsigned char *buf,int len)
+static int write_aix(out123_handle *ao,unsigned char *buf,int len)
 {
 	return write(ao->fn,buf,len);
 }
 
-static int close_aix(audio_output_t *ao)
+static int close_aix(out123_handle *ao)
 {
 	audio_control acontrol;
 	audio_buffer  abuffer;
@@ -264,11 +264,11 @@ static int close_aix(audio_output_t *ao)
 	return 0;
 }
 
-static void flush_aix(audio_output_t *ao)
+static void flush_aix(out123_handle *ao)
 {
 }
 
-static int init_aix(audio_output_t* ao)
+static int init_aix(out123_handle* ao)
 {
 	if (ao==NULL) return -1;
 

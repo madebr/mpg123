@@ -12,7 +12,7 @@
 #include "debug.h"
 
 
-static int set_rate(audio_output_t *ao)
+static int set_rate(out123_handle *ao)
 {
 	if(ao->rate >= 0) {
 		return ioctl(ao->fn,AUDIO_SET_SAMPLE_RATE,ao->rate);
@@ -21,13 +21,13 @@ static int set_rate(audio_output_t *ao)
 	}
 }
 
-static int set_channels(audio_output_t *ao)
+static int set_channels(out123_handle *ao)
 {
 	if(ao->channels<0) return 0;
 	return ioctl(ao->fn,AUDIO_SET_CHANNELS,ao->channels);
 }
 
-static int set_format(audio_output_t *ao)
+static int set_format(out123_handle *ao)
 {
 	int fmt;
 	
@@ -53,12 +53,12 @@ static int set_format(audio_output_t *ao)
 	return ioctl(ao->fn,AUDIO_SET_DATA_FORMAT,fmt);
 }
 
-static int get_formats(audio_output_t *ao)
+static int get_formats(out123_handle *ao)
 {
 	return MPG123_ENC_SIGNED_16;
 }
 
-static int reset_parameters(audio_output_t *ao)
+static int reset_parameters(out123_handle *ao)
 {
 	int ret;
 		ret = set_format(ai);
@@ -70,7 +70,7 @@ static int reset_parameters(audio_output_t *ao)
 }
 
 
-static int open_hp(audio_output_t *ao)
+static int open_hp(out123_handle *ao)
 {
 	struct audio_describe ades;
 	struct audio_gain again;
@@ -136,24 +136,24 @@ static int open_hp(audio_output_t *ao)
 
 
 
-static int write_hp(audio_output_t *ao,unsigned char *buf,int len)
+static int write_hp(out123_handle *ao,unsigned char *buf,int len)
 {
 	return write(ao->fn,buf,len);
 }
 
-static int close_hp(audio_output_t *ao)
+static int close_hp(out123_handle *ao)
 {
 	close (ao->fn);
 	return 0;
 }
 
-static void flush_hp(audio_output_t *ao)
+static void flush_hp(out123_handle *ao)
 {
 }
 
 
 
-static int init_hp(audio_output_t* ao)
+static int init_hp(out123_handle* ao)
 {
 	if (ao==NULL) return -1;
 

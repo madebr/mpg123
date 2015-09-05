@@ -13,12 +13,12 @@
 
 #include "debug.h"
 
-static int have_buffer(audio_output_t *ao)
+static int have_buffer(out123_handle *ao)
 {
 	return (ao->buffer_pid != -1);
 }
 
-static int modverbose(audio_output_t *ao)
+static int modverbose(out123_handle *ao)
 {
 	debug3("modverbose: %x %x %x", (unsigned)ao->flags, (unsigned)ao->auxflags, (unsigned)OUT123_QUIET);
 	return AOQUIET
@@ -26,10 +26,10 @@ static int modverbose(audio_output_t *ao)
 	:	ao->verbose;
 }
 
-static void check_output_module( audio_output_t *ao
+static void check_output_module( out123_handle *ao
 ,	const char *name, const char *device, int final );
 
-static void out123_clear_module(audio_output_t *ao)
+static void out123_clear_module(out123_handle *ao)
 {
 	ao->open = NULL;
 	ao->get_formats = NULL;
@@ -44,9 +44,9 @@ static void out123_clear_module(audio_output_t *ao)
 	ao->fn = -1;
 }
 
-audio_output_t* out123_new(void)
+out123_handle* out123_new(void)
 {
-	audio_output_t* ao = malloc( sizeof( audio_output_t ) );
+	out123_handle* ao = malloc( sizeof( out123_handle ) );
 	if(!ao)
 		return NULL;
 	ao->errcode = 0;
@@ -75,7 +75,7 @@ audio_output_t* out123_new(void)
 	return ao;
 }
 
-void out123_del(audio_output_t *ao)
+void out123_del(out123_handle *ao)
 {
 	debug1("out123_del(%p)", (void*)ao);
 	if(!ao) return;
@@ -105,12 +105,12 @@ static const char *const errstring[OUT123_ERRCOUNT] =
 ,	"basic module system error"
 };
 
-const char* out123_strerror(audio_output_t *ao)
+const char* out123_strerror(out123_handle *ao)
 {
 	return out123_plain_strerror(out123_errcode(ao));
 }
 
-int out123_errcode(audio_output_t *ao)
+int out123_errcode(out123_handle *ao)
 {
 	if(!ao) return OUT123_ERR;
 	else    return ao->errcode;
@@ -129,7 +129,7 @@ const char* out123_plain_strerror(int errcode)
 	return errstring[errcode];
 }
 
-static int out123_seterr(audio_output_t *ao, enum out123_error errcode)
+static int out123_seterr(out123_handle *ao, enum out123_error errcode)
 {
 	if(!ao)
 		return OUT123_ERR;
@@ -139,7 +139,7 @@ static int out123_seterr(audio_output_t *ao, enum out123_error errcode)
 
 /* pre-playback setup */
 
-int out123_set_buffer(audio_output_t *ao, size_t buffer_bytes)
+int out123_set_buffer(out123_handle *ao, size_t buffer_bytes)
 {
 	debug2("out123_set_buffer(%p, %"SIZE_P")", (void*)ao, (size_p)buffer_bytes);
 	if(!ao)
@@ -158,7 +158,7 @@ int out123_set_buffer(audio_output_t *ao, size_t buffer_bytes)
 	return 0;
 }
 
-int out123_param( audio_output_t *ao, enum out123_parms code
+int out123_param( out123_handle *ao, enum out123_parms code
 ,                 long value, double fvalue )
 {
 	int ret = 0;
@@ -199,7 +199,7 @@ int out123_param( audio_output_t *ao, enum out123_parms code
 	return ret;
 }
 
-int out123_getparam( audio_output_t *ao, enum out123_parms code
+int out123_getparam( out123_handle *ao, enum out123_parms code
 ,                    long *ret_value, double *ret_fvalue )
 {
 	int ret = 0;
@@ -241,7 +241,7 @@ int out123_getparam( audio_output_t *ao, enum out123_parms code
 	return ret;
 }
 
-int out123_param_from(audio_output_t *ao, audio_output_t* from_ao)
+int out123_param_from(out123_handle *ao, out123_handle* from_ao)
 {
 	debug2("out123_param_from(%p, %p)", (void*)ao, (void*)from_ao);
 	if(!ao || !from_ao) return -1;
@@ -258,7 +258,7 @@ int out123_param_from(audio_output_t *ao, audio_output_t* from_ao)
 /* Serialization of tunable parameters to communicate them between
    main process and buffer. Make sure these two stay in sync ... */
 
-int write_parameters(audio_output_t *ao, int fd)
+int write_parameters(out123_handle *ao, int fd)
 {
 	if(
 		GOOD_WRITEVAL(fd, ao->flags)
@@ -272,7 +272,7 @@ int write_parameters(audio_output_t *ao, int fd)
 		return -1;
 }
 
-int read_parameters(audio_output_t *ao
+int read_parameters(out123_handle *ao
 ,	int fd, byte *prebuf, int *preoff, int presize)
 {
 #define GOOD_READVAL_BUF(fd, val) \
@@ -290,7 +290,7 @@ int read_parameters(audio_output_t *ao
 #undef GOOD_READVAL_BUF
 }
 
-int out123_open(audio_output_t *ao, const char* driver, const char* device)
+int out123_open(out123_handle *ao, const char* driver, const char* device)
 {
 	debug3( "out123_open(%p, %s, %s)", (void*)ao
 	,	driver ? driver : "<nil>", device ? device : "<nil>" );
@@ -378,7 +378,7 @@ int out123_open(audio_output_t *ao, const char* driver, const char* device)
 }
 
 /* Be resilient, always do cleanup work regardless of state. */
-void out123_close(audio_output_t *ao)
+void out123_close(out123_handle *ao)
 {
 	debug1("out123_close(%p)", (void*)ao);
 	if(!ao)
@@ -421,7 +421,7 @@ void out123_close(audio_output_t *ao)
 	ao->state = play_dead;
 }
 
-int out123_start( audio_output_t *ao
+int out123_start( out123_handle *ao
 ,                 long rate, int channels, int encoding )
 {
 	debug4( "out123_start(%p, %li, %i, %li)"
@@ -440,7 +440,7 @@ int out123_start( audio_output_t *ao
 	ao->rate      = rate;
 	ao->channels  = channels;
 	ao->format    = encoding;
-	ao->framesize = out123_samplesize(encoding)*channels;
+	ao->framesize = mpg123_samplesize(encoding)*channels;
 
 #ifndef NOXFERMEM
 	if(have_buffer(ao))
@@ -463,7 +463,7 @@ int out123_start( audio_output_t *ao
 	}
 }
 
-void out123_pause(audio_output_t *ao)
+void out123_pause(out123_handle *ao)
 {
 	debug1("out123_pause(%p)", (void*)ao);
 	if(ao && ao->state == play_live)
@@ -476,7 +476,7 @@ void out123_pause(audio_output_t *ao)
 	}
 }
 
-void out123_continue(audio_output_t *ao)
+void out123_continue(out123_handle *ao)
 {
 	debug1("out123_continue(%p)", (void*)ao);
 	if(ao && ao->state == play_paused)
@@ -489,7 +489,7 @@ void out123_continue(audio_output_t *ao)
 	}
 }
 
-void out123_stop(audio_output_t *ao)
+void out123_stop(out123_handle *ao)
 {
 	debug1("out123_stop(%p)", (void*)ao);
 	if(!ao)
@@ -507,7 +507,7 @@ void out123_stop(audio_output_t *ao)
 	ao->state = play_stopped;
 }
 
-size_t out123_play(audio_output_t *ao, void *bytes, size_t count)
+size_t out123_play(out123_handle *ao, void *bytes, size_t count)
 {
 	size_t sum = 0;
 	int written;
@@ -548,7 +548,7 @@ size_t out123_play(audio_output_t *ao, void *bytes, size_t count)
 }
 
 /* Drop means to flush it down. Quickly. */
-void out123_drop(audio_output_t *ao)
+void out123_drop(out123_handle *ao)
 {
 	debug1("out123_drop(%p)", (void*)ao);
 	if(!ao)
@@ -565,7 +565,7 @@ void out123_drop(audio_output_t *ao)
 	}
 }
 
-void out123_drain(audio_output_t *ao)
+void out123_drain(out123_handle *ao)
 {
 	debug1("out123_drain(%p)", (void*)ao);
 	if(!ao)
@@ -582,7 +582,7 @@ void out123_drain(audio_output_t *ao)
 		ao->drain(ao);
 }
 
-void out123_ndrain(audio_output_t *ao, size_t bytes)
+void out123_ndrain(out123_handle *ao, size_t bytes)
 {
 	debug2("out123_ndrain(%p, %"SIZE_P")", (void*)ao, (size_p)bytes);
 	if(!ao)
@@ -601,38 +601,38 @@ void out123_ndrain(audio_output_t *ao, size_t bytes)
 
 
 /* A function that does nothing and returns nothing. */
-static void builtin_nothing(audio_output_t *ao){}
-static int test_open(audio_output_t *ao)
+static void builtin_nothing(out123_handle *ao){}
+static int test_open(out123_handle *ao)
 {
 	debug("test_open");
 	return OUT123_OK;
 }
-static int test_get_formats(audio_output_t *ao)
+static int test_get_formats(out123_handle *ao)
 {
 	debug("test_get_formats");
 	return MPG123_ENC_ANY;
 }
-static int test_write(audio_output_t *ao, unsigned char *buf, int len)
+static int test_write(out123_handle *ao, unsigned char *buf, int len)
 {
 	debug2("test_write: %i B from %p", len, (void*)buf);
 	return len;
 }
-static void test_flush(audio_output_t *ao)
+static void test_flush(out123_handle *ao)
 {
 	debug("test_flush");
 }
-static void test_drain(audio_output_t *ao)
+static void test_drain(out123_handle *ao)
 {
 	debug("test_drain");
 }
-static int test_close(audio_output_t *ao)
+static int test_close(out123_handle *ao)
 {
 	debug("test_drain");
 	return 0;
 }
 
 /* Open one of our builtin driver modules. */
-static int open_fake_module(audio_output_t *ao, const char *driver)
+static int open_fake_module(out123_handle *ao, const char *driver)
 {
 	if(!strcmp("test", driver))
 	{
@@ -690,7 +690,7 @@ static int open_fake_module(audio_output_t *ao, const char *driver)
 
 /* Check if given output module is loadable and has a working device.
    final flag triggers printing and storing of errors. */
-static void check_output_module( audio_output_t *ao
+static void check_output_module( out123_handle *ao
 ,	const char *name, const char *device, int final )
 {
 	int result;
@@ -747,7 +747,7 @@ check_output_module_cleanup:
 }
 
 /*
-static void audio_output_dump(audio_output_t *ao)
+static void audio_output_dump(out123_handle *ao)
 {
 	fprintf(stderr, "ao->fn=%d\n", ao->fn);
 	fprintf(stderr, "ao->userptr=%p\n", ao->userptr);
@@ -759,7 +759,7 @@ static void audio_output_dump(audio_output_t *ao)
 }
 */
 
-int out123_drivers(audio_output_t *ao, char ***names, char ***descr)
+int out123_drivers(out123_handle *ao, char ***names, char ***descr)
 {
 	char **tmpnames;
 	char **tmpdescr;
@@ -800,7 +800,7 @@ int out123_drivers(audio_output_t *ao, char ***names, char ***descr)
 
 /* We always have ao->driver and ao->device set, also with buffer.
    The latter can be positively NULL, though. */
-int out123_driver_info(audio_output_t *ao, char **driver, char **device)
+int out123_driver_info(out123_handle *ao, char **driver, char **device)
 {
 	debug3( "out123_driver_info(%p, %p, %p)"
 	,	(void*)ao, (void*)driver, (void*)device );
@@ -816,7 +816,7 @@ int out123_driver_info(audio_output_t *ao, char **driver, char **device)
 	return OUT123_OK;
 }
 
-int out123_encodings(audio_output_t *ao, int channels, long rate)
+int out123_encodings(out123_handle *ao, int channels, long rate)
 {
 	debug3("out123_encodings(%p, %i, %li)", (void*)ao, channels, rate);
 	if(!ao)
@@ -851,7 +851,7 @@ int out123_encodings(audio_output_t *ao, int channels, long rate)
 	}
 }
 
-size_t out123_buffered(audio_output_t *ao)
+size_t out123_buffered(out123_handle *ao)
 {
 	debug1("out123_buffered(%p)", (void*)ao);
 	if(!ao)
@@ -865,7 +865,7 @@ size_t out123_buffered(audio_output_t *ao)
 		return 0;
 }
 
-int out123_getformat( audio_output_t *ao
+int out123_getformat( out123_handle *ao
 ,	long *rate, int *channels, int *encoding, int *framesize )
 {
 	if(!ao)

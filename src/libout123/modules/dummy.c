@@ -8,43 +8,43 @@
 #include "out123_int.h"
 #include "debug.h"
 
-static int open_dummy(audio_output_t *ao)
+static int open_dummy(out123_handle *ao)
 {
 	debug("open_dummy()");
 	return 0;
 }
 
-static int get_formats_dummy(audio_output_t *ao)
+static int get_formats_dummy(out123_handle *ao)
 {
 	debug("get_formats_dummy()");
 	return MPG123_ENC_SIGNED_16;
 }
 
-static int write_dummy(audio_output_t *ao,unsigned char *buf,int len)
+static int write_dummy(out123_handle *ao,unsigned char *buf,int len)
 {
 	debug("write_dummy()");
 	return len;
 }
 
-static void flush_dummy(audio_output_t *ao)
+static void flush_dummy(out123_handle *ao)
 {
 	debug("flush_dummy()");
 }
 
-static int close_dummy(audio_output_t *ao)
+static int close_dummy(out123_handle *ao)
 {
 	debug("close_dummy()");
 	return 0;
 }
 
-static int deinit_dummy(audio_output_t *ao)
+static int deinit_dummy(out123_handle *ao)
 {
 	debug("deinit_dummy()");
 	return 0;
 }
 
 
-static int init_dummy(audio_output_t* ao)
+static int init_dummy(out123_handle* ao)
 {
 	if (ao==NULL) return -1;
 	debug("init_dummy()");

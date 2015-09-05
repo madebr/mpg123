@@ -110,7 +110,7 @@ static void capline(mpg123_handle *mh, long rate)
 	fprintf(stderr, "\n");
 }
 
-void print_capabilities(audio_output_t *ao, mpg123_handle *mh)
+void print_capabilities(out123_handle *ao, mpg123_handle *mh)
 {
 	int r,e;
 	const long *rates;
@@ -138,7 +138,7 @@ void print_capabilities(audio_output_t *ao, mpg123_handle *mh)
 
 /* This uses the currently opened audio device, queries its caps.
    In case of buffered playback, this works _once_ by querying the buffer for the caps before entering the main loop. */
-void audio_capabilities(audio_output_t *ao, mpg123_handle *mh)
+void audio_capabilities(out123_handle *ao, mpg123_handle *mh)
 {
 	int force_fmt = 0;
 	int fmts;
@@ -189,7 +189,7 @@ void audio_capabilities(audio_output_t *ao, mpg123_handle *mh)
 	if(param.verbose > 1) print_capabilities(ao, mh);
 }
 
-int set_pitch(mpg123_handle *fr, audio_output_t *ao, double new_pitch)
+int set_pitch(mpg123_handle *fr, out123_handle *ao, double new_pitch)
 {
 	double old_pitch = param.pitch;
 	long rate;

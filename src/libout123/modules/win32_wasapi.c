@@ -27,7 +27,7 @@
 #define BUFFER_TIME 640000000.0
 #endif
 
-static int init_win32(audio_output_t* ao);
+static int init_win32(out123_handle* ao);
 static void flush_win32(struct audio_output_struct *ao);
 /* 
 	Module information data structure
@@ -447,7 +447,7 @@ static int close_win32(struct audio_output_struct *ao)
   return 0;
 }
 
-static int init_win32(audio_output_t* ao){
+static int init_win32(out123_handle* ao){
     debug1("%s",__FUNCTION__);
 	if(!ao) return -1;
 

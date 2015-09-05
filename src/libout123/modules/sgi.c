@@ -14,7 +14,7 @@
 #include "errno.h"
 #include "debug.h"
 
-static int set_rate(audio_output_t *ao, ALconfig config)
+static int set_rate(out123_handle *ao, ALconfig config)
 {
 	int dev = alGetDevice(config);
 	ALpv params[1];
@@ -39,7 +39,7 @@ static int set_rate(audio_output_t *ao, ALconfig config)
 }
 
 
-static int set_channels(audio_output_t *ao, ALconfig config)
+static int set_channels(out123_handle *ao, ALconfig config)
 {
 	int ret;
 
@@ -56,7 +56,7 @@ static int set_channels(audio_output_t *ao, ALconfig config)
 	return 0;
 }
 
-static int set_format(audio_output_t *ao, ALconfig config)
+static int set_format(out123_handle *ao, ALconfig config)
 {
 	if(ao->format == MPG123_ENC_FLOAT_32)
 	{
@@ -82,7 +82,7 @@ static int set_format(audio_output_t *ao, ALconfig config)
 }
 
 
-static int open_sgi(audio_output_t *ao)
+static int open_sgi(out123_handle *ao)
 {
 	int current_dev;
 	ALport port = NULL;
@@ -191,13 +191,13 @@ open_sgi_bad:
 }
 
 
-static int get_formats_sgi(audio_output_t *ao)
+static int get_formats_sgi(out123_handle *ao)
 {
 	return MPG123_ENC_SIGNED_16|MPG123_ENC_FLOAT_32;
 }
 
 
-static int write_sgi(audio_output_t *ao, unsigned char *buf, int len)
+static int write_sgi(out123_handle *ao, unsigned char *buf, int len)
 {
 	int length = len;
 
@@ -217,7 +217,7 @@ static int write_sgi(audio_output_t *ao, unsigned char *buf, int len)
 }
 
 
-static int close_sgi(audio_output_t *ao)
+static int close_sgi(out123_handle *ao)
 {
 	if(!ao || !ao->userptr) return -1;
 
@@ -234,14 +234,14 @@ static int close_sgi(audio_output_t *ao)
 	return 0;
 }
 
-static void flush_sgi(audio_output_t *ao)
+static void flush_sgi(out123_handle *ao)
 {
 	ALport port = (ALport)ao->userptr;
 
 	if(port) alDiscardFrames(port, alGetFilled(port));
 }
 
-static int init_sgi(audio_output_t* ao)
+static int init_sgi(out123_handle* ao)
 {
 	if(ao == NULL) return -1;
 

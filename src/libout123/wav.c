@@ -199,7 +199,7 @@ static int open_file(struct wavdata *wdat, char *filename)
 /* return: 0 is good, -1 is bad
    Works for any partial state of setup, especially should not complain if
    ao->userptr == NULL. */
-static int close_file(audio_output_t *ao)
+static int close_file(out123_handle *ao)
 {
 	struct wavdata *wdat = ao->userptr;
 	int ret = 0;
@@ -222,7 +222,7 @@ static int close_file(audio_output_t *ao)
 }
 
 /* return: 0 is good, -1 is bad */
-static int write_header(audio_output_t *ao)
+static int write_header(out123_handle *ao)
 {
 	struct wavdata *wdat = ao->userptr;
 
@@ -244,7 +244,7 @@ static int write_header(audio_output_t *ao)
 	else return 0;
 }
 
-int au_open(audio_output_t *ao)
+int au_open(out123_handle *ao)
 {
 	struct wavdata *wdat   = NULL;
 	struct auhead  *auhead = NULL;
@@ -322,7 +322,7 @@ au_open_bad:
 	return -1;
 }
 
-int cdr_open(audio_output_t *ao)
+int cdr_open(out123_handle *ao)
 {
 	struct wavdata *wdat   = NULL;
 
@@ -364,7 +364,7 @@ cdr_open_bad:
 }
 
 /* RAW files are headerless WAVs where the format does not matter. */
-int raw_open(audio_output_t *ao)
+int raw_open(out123_handle *ao)
 {
 	struct wavdata *wdat;
 
@@ -388,7 +388,7 @@ raw_open_bad:
 	return -1;
 }
 
-int wav_open(audio_output_t *ao)
+int wav_open(out123_handle *ao)
 {
 	int bps;
 	struct wavdata    *wdat      = NULL;
@@ -532,7 +532,7 @@ wav_open_bad:
 	return -1;
 }
 
-int wav_write(audio_output_t *ao, unsigned char *buf, int len)
+int wav_write(out123_handle *ao, unsigned char *buf, int len)
 {
 	struct wavdata *wdat = ao->userptr;
 	int temp;
@@ -596,7 +596,7 @@ if(fflush(wdat->wavfp))
 	return temp;
 }
 
-int wav_close(audio_output_t *ao)
+int wav_close(out123_handle *ao)
 {
 	struct wavdata *wdat = ao->userptr;
 
@@ -650,7 +650,7 @@ int wav_close(audio_output_t *ao)
 	return close_file(ao);
 }
 
-int au_close(audio_output_t *ao)
+int au_close(out123_handle *ao)
 {
 	struct wavdata *wdat = ao->userptr;
 
@@ -682,7 +682,7 @@ int au_close(audio_output_t *ao)
 }
 
 /* CDR data also uses that. */
-int raw_close(audio_output_t *ao)
+int raw_close(out123_handle *ao)
 {
 	struct wavdata *wdat = ao->userptr;
 
@@ -697,7 +697,7 @@ int raw_close(audio_output_t *ao)
 
 /* Some trivial functions to interface with out123's module architecture. */
 
-int cdr_formats(audio_output_t *ao)
+int cdr_formats(out123_handle *ao)
 {
 	if(ao->rate == 44100 && ao->channels == 2)
 		return MPG123_ENC_SIGNED_16;
@@ -705,17 +705,17 @@ int cdr_formats(audio_output_t *ao)
 		return 0;
 }
 
-int au_formats(audio_output_t *ao)
+int au_formats(out123_handle *ao)
 {
 	return MPG123_ENC_SIGNED_16|MPG123_ENC_UNSIGNED_8|MPG123_ENC_ULAW_8;
 }
 
-int raw_formats(audio_output_t *ao)
+int raw_formats(out123_handle *ao)
 {
 	return MPG123_ENC_ANY;
 }
 
-int wav_formats(audio_output_t *ao)
+int wav_formats(out123_handle *ao)
 {
 	return
 		MPG123_ENC_SIGNED_16
@@ -729,7 +729,7 @@ int wav_formats(audio_output_t *ao)
    One could call fsync(), too, but to be safe, that would need to
    be called on the directory, too. Also, apps randomly calling
    fsync() can cause annoying issues in a system. */
-void wav_drain(audio_output_t *ao)
+void wav_drain(out123_handle *ao)
 {
 	struct wavdata *wdat = ao->userptr;
 

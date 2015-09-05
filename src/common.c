@@ -150,7 +150,7 @@ static void settle_time(double tim, unsigned long *times, char *sep)
 }
 
 /* Print output buffer fill. */
-void print_buf(const char* prefix, audio_output_t *ao)
+void print_buf(const char* prefix, out123_handle *ao)
 {
 	long rate;
 	int framesize;
@@ -172,7 +172,7 @@ void print_buf(const char* prefix, audio_output_t *ao)
    Negative positions mean that the previous track is still playing from the
    buffer. It's a countdown. The frame counter always relates to the last
    decoded frame, what entered the buffer right now. */
-void print_stat(mpg123_handle *fr, long offset, audio_output_t *ao)
+void print_stat(mpg123_handle *fr, long offset, out123_handle *ao)
 {
 	size_t buffered;
 	off_t decoded;

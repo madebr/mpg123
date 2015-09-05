@@ -55,7 +55,7 @@ static int rates_match(long int desired, unsigned int actual)
 	       actual * 100 < desired * (100 + AUDIO_RATE_TOLERANCE);
 }
 
-static int initialize_device(audio_output_t *ao)
+static int initialize_device(out123_handle *ao)
 {
 	snd_pcm_hw_params_t *hw=NULL;
 	snd_pcm_sw_params_t *sw=NULL;
@@ -156,7 +156,7 @@ static void error_ignorer(const char *file, int line, const char *function, int 
 }
 #endif
 
-static int open_alsa(audio_output_t *ao)
+static int open_alsa(out123_handle *ao)
 {
 	const char *pcm_name;
 	snd_pcm_t *pcm=NULL;
@@ -182,7 +182,7 @@ static int open_alsa(audio_output_t *ao)
 }
 
 
-static int get_formats_alsa(audio_output_t *ao)
+static int get_formats_alsa(out123_handle *ao)
 {
 	snd_pcm_t *pcm=(snd_pcm_t*)ao->userptr;
 	snd_pcm_hw_params_t *hw;
@@ -211,7 +211,7 @@ static int get_formats_alsa(audio_output_t *ao)
 	return supported_formats;
 }
 
-static int write_alsa(audio_output_t *ao, unsigned char *buf, int bytes)
+static int write_alsa(out123_handle *ao, unsigned char *buf, int bytes)
 {
 	snd_pcm_t *pcm=(snd_pcm_t*)ao->userptr;
 	snd_pcm_uframes_t frames;
@@ -234,7 +234,7 @@ static int write_alsa(audio_output_t *ao, unsigned char *buf, int bytes)
 	else return snd_pcm_frames_to_bytes(pcm, written);
 }
 
-static void flush_alsa(audio_output_t *ao)
+static void flush_alsa(out123_handle *ao)
 {
 	snd_pcm_t *pcm=(snd_pcm_t*)ao->userptr;
 
@@ -247,7 +247,7 @@ debug("alsa prepare");
 debug("alsa flush done");
 }
 
-static int close_alsa(audio_output_t *ao)
+static int close_alsa(out123_handle *ao)
 {
 	snd_pcm_t *pcm=(snd_pcm_t*)ao->userptr;
 	debug1("close_alsa with %p", ao->userptr);
@@ -261,7 +261,7 @@ static int close_alsa(audio_output_t *ao)
 }
 
 
-static int init_alsa(audio_output_t* ao)
+static int init_alsa(out123_handle* ao)
 {
 	if (ao==NULL) return -1;
 

@@ -28,7 +28,7 @@ typedef struct
 } mpg123_tinyalsa_t;
 
 
-static int initialize_device(audio_output_t *ao)
+static int initialize_device(out123_handle *ao)
 {
 	mpg123_tinyalsa_t* ta = (mpg123_tinyalsa_t*)ao->userptr;
 
@@ -52,7 +52,7 @@ static int initialize_device(audio_output_t *ao)
 }
 
 
-static int open_tinyalsa(audio_output_t *ao)
+static int open_tinyalsa(out123_handle *ao)
 {
         debug("open_tinyalsa()");
 
@@ -71,7 +71,7 @@ static int open_tinyalsa(audio_output_t *ao)
 }
 
 
-static int get_formats_tinyalsa(audio_output_t *ao)
+static int get_formats_tinyalsa(out123_handle *ao)
 {
         debug("get_formats_tinyalsa()");
 
@@ -88,7 +88,7 @@ static int get_formats_tinyalsa(audio_output_t *ao)
 }
 
 
-static int write_tinyalsa(audio_output_t *ao, unsigned char *buf, int bytes)
+static int write_tinyalsa(out123_handle *ao, unsigned char *buf, int bytes)
 {
 	mpg123_tinyalsa_t* ta = (mpg123_tinyalsa_t*)ao->userptr;
 
@@ -105,13 +105,13 @@ static int write_tinyalsa(audio_output_t *ao, unsigned char *buf, int bytes)
 }
 
 
-static void flush_tinyalsa(audio_output_t *ao)
+static void flush_tinyalsa(out123_handle *ao)
 {
         debug("flush_tinyalsa()");
 }
 
 
-static int close_tinyalsa(audio_output_t *ao)
+static int close_tinyalsa(out123_handle *ao)
 {
         debug("close_tinyalsa()");
 
@@ -126,7 +126,7 @@ static int close_tinyalsa(audio_output_t *ao)
 }
 
 
-static int deinit_tinyalsa(audio_output_t* ao)
+static int deinit_tinyalsa(out123_handle* ao)
 {
 	mpg123_tinyalsa_t* ta = (mpg123_tinyalsa_t*)ao->userptr;
 
@@ -145,7 +145,7 @@ static int deinit_tinyalsa(audio_output_t* ao)
 }
 
 
-static int init_tinyalsa(audio_output_t* ao)
+static int init_tinyalsa(out123_handle* ao)
 {
 	if (ao==NULL) return -1;
 

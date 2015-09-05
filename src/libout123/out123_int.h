@@ -45,7 +45,7 @@ enum playstate
 ,	play_live     /* playing right now */
 };
 
-struct audio_output_struct
+struct out123_struct
 {
 	enum out123_error errcode;
 #ifndef NOXFERMEM
@@ -60,13 +60,13 @@ struct audio_output_struct
 	void *userptr;	/* driver specific pointer */
 	
 	/* Callbacks */
-	int (*open)(struct audio_output_struct *);
-	int (*get_formats)(struct audio_output_struct *);
-	int (*write)(struct audio_output_struct *, unsigned char *,int);
-	void (*flush)(struct audio_output_struct *); /* flush == drop != drain */
-	void (*drain)(struct audio_output_struct *);
-	int (*close)(struct audio_output_struct *);
-	int (*deinit)(struct audio_output_struct *);
+	int (*open)(out123_handle *);
+	int (*get_formats)(out123_handle *);
+	int (*write)(out123_handle *, unsigned char *,int);
+	void (*flush)(out123_handle *); /* flush == drop != drain */
+	void (*drain)(out123_handle *);
+	int (*close)(out123_handle *);
+	int (*deinit)(out123_handle *);
 	
 	/* the loaded that has set the above */
 	mpg123_module_t *module;
@@ -101,8 +101,8 @@ struct audio_format_name {
 	char *sname;
 };
 
-int write_parameters(audio_output_t *ao, int fd);
-int read_parameters(audio_output_t *ao
+int write_parameters(out123_handle *ao, int fd);
+int read_parameters(out123_handle *ao
 ,	int fd, byte *prebuf, int *preoff, int presize);
 
 #endif

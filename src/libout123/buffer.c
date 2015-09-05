@@ -56,10 +56,10 @@ static void catch_interrupt (void)
 	intflag = TRUE;
 }
 
-static int write_string(audio_output_t *ao, int who, const char *buf);
-static int read_string(audio_output_t *ao
+static int write_string(out123_handle *ao, int who, const char *buf);
+static int read_string(out123_handle *ao
 ,	int who, char **buf, byte *prebuf, int *preoff, int presize);
-static int buffer_loop(audio_output_t *ao);
+static int buffer_loop(out123_handle *ao);
 
 static void catch_child(void)
 {
@@ -73,7 +73,7 @@ static void catch_child(void)
 */
 
 /* Start a buffer process. */
-int buffer_init(audio_output_t *ao, size_t bytes)
+int buffer_init(out123_handle *ao, size_t bytes)
 {
 	buffer_exit(ao);
 	if(bytes < outburst) bytes = 2*outburst;
@@ -140,7 +140,7 @@ buffer_init_bad:
 }
 
 /* End a buffer process. */
-void buffer_exit(audio_output_t *ao)
+void buffer_exit(out123_handle *ao)
 {
 	int status = 0;
 	if(ao->buffer_pid == -1) return;
@@ -168,7 +168,7 @@ void buffer_exit(audio_output_t *ao)
 	Remember: The ao struct here is the writer's instance.
 */
 
-static int buffer_cmd_finish(audio_output_t *ao)
+static int buffer_cmd_finish(out123_handle *ao)
 {
 	/* Only if buffer returns XF_CMD_OK we got lucky. Otherwise, we expect
 	   the buffer to deliver a reason right after XF_CMD_ERROR. */
@@ -186,7 +186,7 @@ static int buffer_cmd_finish(audio_output_t *ao)
 	}
 }
 
-int buffer_sync_param(audio_output_t *ao)
+int buffer_sync_param(out123_handle *ao)
 {
 	int writerfd = ao->buffermem->fd[XF_WRITER];
 	if(xfermem_putcmd(writerfd, BUF_CMD_PARAM) != 1)
@@ -204,7 +204,7 @@ int buffer_sync_param(audio_output_t *ao)
 	return buffer_cmd_finish(ao);
 }
 
-int buffer_open(audio_output_t *ao, const char* driver, const char* device)
+int buffer_open(out123_handle *ao, const char* driver, const char* device)
 {
 	int writerfd = ao->buffermem->fd[XF_WRITER];
 
@@ -234,7 +234,7 @@ int buffer_open(audio_output_t *ao, const char* driver, const char* device)
 	return 0;
 }
 
-int buffer_encodings(audio_output_t *ao)
+int buffer_encodings(out123_handle *ao)
 {
 	int writerfd = ao->buffermem->fd[XF_WRITER];
 
@@ -267,7 +267,7 @@ int buffer_encodings(audio_output_t *ao)
 	else return -1;
 }
 
-int buffer_start(audio_output_t *ao)
+int buffer_start(out123_handle *ao)
 {
 	int writerfd = ao->buffermem->fd[XF_WRITER];
 	if(xfermem_putcmd(writerfd, BUF_CMD_START) != 1)
@@ -290,7 +290,7 @@ int buffer_start(audio_output_t *ao)
 }
 
 #define BUFFER_SIMPLE_CONTROL(name, cmd) \
-void name(audio_output_t *ao) \
+void name(out123_handle *ao) \
 { \
 	xfermem_putcmd(ao->buffermem->fd[XF_WRITER], cmd); \
 	xfermem_getcmd(ao->buffermem->fd[XF_WRITER], TRUE); \
@@ -304,7 +304,7 @@ BUFFER_SIMPLE_CONTROL(buffer_end, XF_CMD_TERMINATE)
 BUFFER_SIMPLE_CONTROL(buffer_close, BUF_CMD_CLOSE)
 
 #define BUFFER_SIGNAL_CONTROL(name, cmd) \
-void name(audio_output_t *ao) \
+void name(out123_handle *ao) \
 { \
 	kill(ao->buffer_pid, SIGINT); \
 	xfermem_putcmd(ao->buffermem->fd[XF_WRITER], cmd); \
@@ -314,12 +314,12 @@ void name(audio_output_t *ao) \
 BUFFER_SIGNAL_CONTROL(buffer_pause, XF_CMD_PAUSE)
 BUFFER_SIGNAL_CONTROL(buffer_drop, XF_CMD_DROP)
 
-size_t buffer_fill(audio_output_t *ao)
+size_t buffer_fill(out123_handle *ao)
 {
 	return xfermem_get_usedspace(ao->buffermem);
 }
 
-void buffer_ndrain(audio_output_t *ao, size_t bytes)
+void buffer_ndrain(out123_handle *ao, size_t bytes)
 {
 	size_t oldfill;
 	int writerfd = ao->buffermem->fd[XF_WRITER];
@@ -343,7 +343,7 @@ void buffer_ndrain(audio_output_t *ao, size_t bytes)
 
 /* The workhorse: Send data to the buffer with some synchronization and even
    error checking. */
-size_t buffer_write(audio_output_t *ao, void *buffer, size_t bytes)
+size_t buffer_write(out123_handle *ao, void *buffer, size_t bytes)
 {
 	/*
 		Writing the whole buffer in one piece is no good as that means
@@ -403,7 +403,7 @@ buffer loop:
 	One might also define intermediate preload to recover from underruns. Earlier
 	code used 1/8 of the buffer.
 */
-static size_t preload_size(audio_output_t *ao)
+static size_t preload_size(out123_handle *ao)
 {
 	size_t preload = 0;
 	txfermem *xf = ao->buffermem;
@@ -420,7 +420,7 @@ static size_t preload_size(audio_output_t *ao)
    On error, the device is closed and this naturally stops playback
    as that depends on ao->state == play_live.
    This plays _at_ _most_ the given amount of bytes, usually less. */
-static void buffer_play(audio_output_t *ao, size_t bytes)
+static void buffer_play(out123_handle *ao, size_t bytes)
 {
 	int written;
 	txfermem *xf = ao->buffermem;
@@ -463,7 +463,7 @@ static void skip_bytes(int fd, size_t count)
 
 /* Write a string to command channel.
    Return 0 on success, set ao->errcode on issues. */
-static int write_string(audio_output_t *ao, int who, const char *buf)
+static int write_string(out123_handle *ao, int who, const char *buf)
 {
 	txfermem *xf = ao->buffermem;
 	int my_fd = xf->fd[who];
@@ -506,7 +506,7 @@ int read_buf(int fd, void *addr, size_t size, byte *prebuf, int *preoff, int pre
 
 /* Read a string from command channel.
    Return 0 on success, set ao->errcode on issues. */
-static int read_string(audio_output_t *ao
+static int read_string(out123_handle *ao
 ,	int who, char **buf, byte *prebuf, int *preoff, int presize)
 {
 	txfermem *xf = ao->buffermem;
@@ -540,7 +540,7 @@ static int read_string(audio_output_t *ao
 
 
 /* The main loop, returns 0 when no issue occured. */
-int buffer_loop(audio_output_t *ao)
+int buffer_loop(out123_handle *ao)
 {
 	txfermem *xf = ao->buffermem;
 	int my_fd = xf->fd[XF_READER];

@@ -13,6 +13,8 @@
 #include <ltdl.h>
 #endif
 
+#include "out123.h"
+
 /* TODO: put that into out123_int.h instead? */
 #define MPG123_MODULE_API_VERSION		(2)
 
@@ -33,7 +35,7 @@ typedef struct mpg123_module_struct {
 #endif
 
 	/* Initialisers - set to NULL if unsupported by module */
-	int (*init_output)(struct audio_output_struct* ao);		/* audio output - returns 0 on success */
+	int (*init_output)(out123_handle *ao);		/* audio output - returns 0 on success */
 
 } mpg123_module_t;
 

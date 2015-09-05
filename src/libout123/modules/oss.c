@@ -47,7 +47,7 @@ struct oss_stuff
 	int nfrag;    /* number of fragments  */
 };
 
-static int rate_best_match_oss(audio_output_t *ao)
+static int rate_best_match_oss(out123_handle *ao)
 {
 	int ret,dsp_rate;
 	
@@ -60,7 +60,7 @@ static int rate_best_match_oss(audio_output_t *ao)
 	return 0;
 }
 
-static int set_rate_oss(audio_output_t *ao)
+static int set_rate_oss(out123_handle *ao)
 {
 	int dsp_rate;
 	int ret = 0;
@@ -72,7 +72,7 @@ static int set_rate_oss(audio_output_t *ao)
 	return ret;
 }
 
-static int set_channels_oss(audio_output_t *ao)
+static int set_channels_oss(out123_handle *ao)
 {
 	int chan = ao->channels - 1;
 	int ret;
@@ -85,7 +85,7 @@ static int set_channels_oss(audio_output_t *ao)
 	return ret;
 }
 
-static int set_format_oss(audio_output_t *ao)
+static int set_format_oss(out123_handle *ao)
 {
 	int fmts;
 	int sf,ret;
@@ -122,7 +122,7 @@ static int set_format_oss(audio_output_t *ao)
 }
 
 
-static int reset_parameters_oss(audio_output_t *ao)
+static int reset_parameters_oss(out123_handle *ao)
 {
 	int ret;
 	ret = ioctl(ao->fn, SNDCTL_DSP_RESET, NULL);
@@ -150,7 +150,7 @@ err:
 }
 
 
-static int open_oss(audio_output_t *ao)
+static int open_oss(out123_handle *ao)
 {
 	char usingdefdev = 0;
 	
@@ -210,7 +210,7 @@ static int open_oss(audio_output_t *ao)
 /*
  * get formats for specific channel/rate parameters
  */
-static int get_formats_oss(audio_output_t *ao)
+static int get_formats_oss(out123_handle *ao)
 {
 	int fmt = 0;
 	int r = ao->rate;
@@ -268,25 +268,25 @@ static int get_formats_oss(audio_output_t *ao)
 	return fmt;
 }
 
-static int write_oss(audio_output_t *ao,unsigned char *buf,int len)
+static int write_oss(out123_handle *ao,unsigned char *buf,int len)
 {
 	return write(ao->fn,buf,len);
 }
 
-static int close_oss(audio_output_t *ao)
+static int close_oss(out123_handle *ao)
 {
 	close(ao->fn);
 	return 0;
 }
 
-static void flush_oss(audio_output_t *ao)
+static void flush_oss(out123_handle *ao)
 {
 }
 
 
 
 
-static int init_oss(audio_output_t* ao)
+static int init_oss(out123_handle* ao)
 {
 	if (ao==NULL) return -1;
 

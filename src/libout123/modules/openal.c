@@ -43,7 +43,7 @@ typedef struct
 } mpg123_openal_t;
 
 
-static int open_openal(audio_output_t *ao)
+static int open_openal(out123_handle *ao)
 {
 	mpg123_openal_t* al = (mpg123_openal_t*)ao->userptr;
 
@@ -63,12 +63,12 @@ static int open_openal(audio_output_t *ao)
 	return 0;
 }
 
-static int get_formats_openal(audio_output_t *ao)
+static int get_formats_openal(out123_handle *ao)
 {
 	return MPG123_ENC_SIGNED_16|MPG123_ENC_UNSIGNED_8|((alIsExtensionPresent((ALchar*)"AL_EXT_float32") == AL_TRUE) ? MPG123_ENC_FLOAT_32 : 0);
 }
 
-static int write_openal(audio_output_t *ao, unsigned char *buf, int len)
+static int write_openal(out123_handle *ao, unsigned char *buf, int len)
 {
 	ALint state, n;
 	mpg123_openal_t* al = (mpg123_openal_t*)ao->userptr;
@@ -98,7 +98,7 @@ static int write_openal(audio_output_t *ao, unsigned char *buf, int len)
 	return len;
 }
 
-static int close_openal(audio_output_t *ao)
+static int close_openal(out123_handle *ao)
 {
 	ALint state, n;
 	mpg123_openal_t* al = (mpg123_openal_t*)ao->userptr;
@@ -125,7 +125,7 @@ static int close_openal(audio_output_t *ao)
 	return 0;
 }
 
-static void flush_openal(audio_output_t *ao)
+static void flush_openal(out123_handle *ao)
 {
 	ALint n;
 	mpg123_openal_t* al = (mpg123_openal_t*)ao->userptr;
@@ -142,7 +142,7 @@ static void flush_openal(audio_output_t *ao)
 	}
 }
 
-static int deinit_openal(audio_output_t* ao)
+static int deinit_openal(out123_handle* ao)
 {
 	/* Free up memory */
 	if(ao->userptr)
@@ -155,7 +155,7 @@ static int deinit_openal(audio_output_t* ao)
 	return 0;
 }
 
-static int init_openal(audio_output_t* ao)
+static int init_openal(out123_handle* ao)
 {
 	if (ao==NULL) return -1;
 

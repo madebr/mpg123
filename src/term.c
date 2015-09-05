@@ -19,7 +19,7 @@
 #include "metaprint.h"
 #include "debug.h"
 
-extern audio_output_t *ao;
+extern out123_handle *ao;
 
 static int term_enable = 0;
 static struct termios old_tio;
@@ -129,7 +129,7 @@ void term_hint(void)
 	fprintf(stderr, "\nTerminal control enabled, press 'h' for listing of keys and functions.\n\n");
 }
 
-static void term_handle_input(mpg123_handle *, audio_output_t *, int);
+static void term_handle_input(mpg123_handle *, out123_handle *, int);
 
 static int pause_cycle;
 
@@ -171,7 +171,7 @@ void pause_uncycle(void)
 	offset += pause_cycle;
 }
 
-off_t term_control(mpg123_handle *fr, audio_output_t *ao)
+off_t term_control(mpg123_handle *fr, out123_handle *ao)
 {
 	offset = 0;
 	debug2("control for frame: %li, enable: %i", (long)mpg123_tellframe(fr), term_enable);
@@ -207,7 +207,7 @@ off_t term_control(mpg123_handle *fr, audio_output_t *ao)
 }
 
 /* Stop playback while seeking if buffer is involved. */
-static void seekmode(mpg123_handle *mh, audio_output_t *ao)
+static void seekmode(mpg123_handle *mh, out123_handle *ao)
 {
 	if(param.usebuffer && !stopped)
 	{
@@ -218,7 +218,7 @@ static void seekmode(mpg123_handle *mh, audio_output_t *ao)
 
 		out123_pause(ao);
 		mpg123_getformat(mh, NULL, &channels, &encoding);
-		back_samples = out123_buffered(ao)/(out123_samplesize(encoding)*channels);
+		back_samples = out123_buffered(ao)/(mpg123_samplesize(encoding)*channels);
 		fprintf(stderr, "\nseeking back %"OFF_P" samples from %"OFF_P"\n"
 		,	(off_p)back_samples, (off_p)mpg123_tell(mh));
 		mpg123_seek(mh, -back_samples, SEEK_CUR);
@@ -262,7 +262,7 @@ static int get_key(int do_delay, char *val)
 	else return 0;
 }
 
-static void term_handle_key(mpg123_handle *fr, audio_output_t *ao, char val)
+static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 {
 	debug1("term_handle_key: %c", val);
 	switch(tolower(val))
@@ -500,7 +500,7 @@ static void term_handle_key(mpg123_handle *fr, audio_output_t *ao, char val)
 	}
 }
 
-static void term_handle_input(mpg123_handle *fr, audio_output_t *ao, int do_delay)
+static void term_handle_input(mpg123_handle *fr, out123_handle *ao, int do_delay)
 {
 	char val;
 	/* Do we really want that while loop? This means possibly handling multiple inputs that come very rapidly in one go. */

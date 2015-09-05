@@ -26,15 +26,15 @@ int audio_enc_name2code(const char* name);
 const char* audio_encoding_name(const int encoding, const int longer);
 void audio_enclist(char** list);
 
-void audio_capabilities(audio_output_t *ao, mpg123_handle *mh);
-void print_capabilities(audio_output_t *ao, mpg123_handle *mh);
+void audio_capabilities(out123_handle *ao, mpg123_handle *mh);
+void print_capabilities(out123_handle *ao, mpg123_handle *mh);
 
 /*
 	Twiddle audio output rate to yield speedup/down (pitch) effect.
 	The actually achieved pitch value is stored in param.pitch.
 	Returns 1 if pitch setting succeeded, 0 otherwise.
 */
-int set_pitch(mpg123_handle *fr, audio_output_t *ao, double new_pitch);
+int set_pitch(mpg123_handle *fr, out123_handle *ao, double new_pitch);
 
 #endif
 
