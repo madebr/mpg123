@@ -253,6 +253,9 @@ void safe_exit(int code)
 #ifdef HAVE_TERMIOS
 	if(param.term_ctrl)
 		term_restore();
+	/* Bring cursor back. */
+	if(term_width(STDERR_FILENO) >= 0)
+		fprintf(stderr, "\x1b[?25h");
 #endif
 	if(intflag)
 		out123_drop(ao);
@@ -950,6 +953,11 @@ int main(int sys_argc, char ** sys_argv)
 	/* Don't just exit() or return out...                                                                        */
 	/* ========================================================================================================= */
 
+#ifdef HAVE_TERMIOS
+	/* Hide cursor. */
+	if(term_width(STDERR_FILENO) >= 0)
+		fprintf(stderr, "\x1b[?25l");
+#endif
 	httpdata_init(&htd);
 
 #if !defined(WIN32) && !defined(GENERIC)

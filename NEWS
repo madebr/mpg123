@@ -1,7 +1,5 @@
 - reverse order of arguments for out123_start() again, matching mpg123_getformat()
 
-- fancy: do progress bar on terminal by reversing text colors on status line
-
 1.23.0
 ---
 - First incarnation of libout123, a basic library to get audio data written
@@ -15,6 +13,8 @@
 - Avoid spillover of status line that caused unwanted terminal scrolling.
   If the terminal width is smaller than the full status string, a cut is
   made to make it fit.
+- Draw a progress bar on the terminal by inversing colors behind status
+  line.
 - Rework the format of the status line to be more compact and consistent.
 - Clip decode tables for large amplification with fixed-point decoders.
   Without that, high-pitched distortion enters really quickly when

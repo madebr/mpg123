@@ -33,7 +33,8 @@ int term_width(int fd)
 	return -1;
 }
 
-const char* rva_name[3] = { "---", "mix", "alb" }; /* vanilla, mix, album */
+const char* rva_name[3] = { "off", "mix", "album" };
+static const char* rva_statname[3] = { "---", "mix", "alb" };
 static const char *modes[5] = {"Stereo", "Joint-Stereo", "Dual-Channel", "Single-Channel", "Invalid" };
 static const char *smodes[5] = { "stereo", "joint-stereo", "dual-channel", "mono", "invalid" };
 static const char *layers[4] = { "Unknown" , "I", "II", "III" };
@@ -204,22 +205,31 @@ void print_stat(mpg123_handle *fr, long offset, audio_output_t *ao)
 	if(  MPG123_OK == mpg123_position(fr, offset, buffsize, &no, &rno, tim, tim+1)
 	  && MPG123_OK == mpg123_getvolume(fr, &basevol, &realvol, NULL) )
 	{
-		char line[255]; /* Stat lines cannot grow too much. */
+		char *line;
+		int linesize;
+		int maxlen;
 		int len;
 		int ti;
 		/* Deal with overly long times. */
 		unsigned long times[3][3];
 		char timesep[3];
 		char sign[3] = {' ', ' ', ' '};
+
+		/* 255 is enough for the data I prepare, if there is no terminal width to
+		   fill */
+		maxlen = term_width(STDERR_FILENO);
+		linesize = maxlen > 0 ? maxlen+1 : 255;
+		line = malloc(linesize); /* Should use some static memory instead. */
+
 		tim[2] = (double)(buffsize/framesize)/rate;
 		for(ti=0; ti<3; ++ti)
 		{
 			if(tim[ti] < 0.){ sign[ti] = '-'; tim[ti] = -tim[ti]; }
 			settle_time(tim[ti], times[ti], &timesep[ti]);
 		}
-		memset(line, 0, sizeof(line));
+		memset(line, 0, linesize);
 		/* Start with position info. */
-		len = snprintf( line, sizeof(line)-1
+		len = snprintf( line, linesize-1
 		,	"%c %05"OFF_P"+%05"OFF_P" %c%02lu:%02lu%c%02lu+%02lu:%02lu%c%02lu"
 		,	stopped ? '_' : (paused ? '=' : '>')
 		,	(off_p)no, (off_p)rno
@@ -227,26 +237,25 @@ void print_stat(mpg123_handle *fr, long offset, audio_output_t *ao)
 		,	times[0][0], times[0][1], timesep[0], times[0][2]
 		,	times[1][0], times[1][1], timesep[1], times[1][2]
 		);
-		if(len >= 0 && param.usebuffer && len < sizeof(line) )
+		if(len >= 0 && param.usebuffer && len < linesize )
 		{ /* Buffer info. */
-			int len_add = snprintf( line+len, sizeof(line)-1-len
+			int len_add = snprintf( line+len, linesize-1-len
 			,	" [%02lu:%02lu%c%02lu]"
 			,	times[2][0], times[2][1], timesep[2], times[2][2] );
 			if(len_add > 0)
 				len += len_add;
 		}
-		if(len >= 0 && len < sizeof(line))
+		if(len >= 0 && len < linesize)
 		{ /* Volume info. */
-			int len_add = snprintf( line+len, sizeof(line)-1-len
+			int len_add = snprintf( line+len, linesize-1-len
 			,	" %s %03u=%03u"
-			,	rva_name[param.rva], roundui(basevol*100), roundui(realvol*100)
+			,	rva_statname[param.rva], roundui(basevol*100), roundui(realvol*100)
 			);
 			if(len_add > 0)
 				len += len_add;
 		}
 		if(len >= 0)
 		{
-			int maxlen = term_width(STDOUT_FILENO);
 			if(maxlen > 0 && len > maxlen)
 			{
 				/* Emergency cut to avoid terminal scrolling. */
@@ -261,8 +270,37 @@ void print_stat(mpg123_handle *fr, long offset, audio_output_t *ao)
 				}
 				line[maxlen] = 0;
 			}
+#ifdef HAVE_TERMIOS
+			/* Use inverse color to draw a progress bar.
+			   Using the proper sample offsets here, which takes gapless mode into
+			   account and makes the bar really reach 100 %. */
+			if(maxlen > 0 && linesize > maxlen)
+			{
+				char old;
+				int barlen = 0;
+				off_t length  = mpg123_length(fr);
+				off_t elapsed = mpg123_tell(fr);
+				if(length > 0 && elapsed > 0)
+				{
+					if(elapsed < length)
+						barlen = (int)((double)elapsed/length * maxlen);
+					else
+						barlen = maxlen;
+				}
+				memset(line+len, ' ', linesize-1-len);
+				old = line[barlen];
+				fprintf(stderr, "\x1b[7m");
+				line[barlen] = 0;
+				fprintf(stderr, "\r%s", line);
+				line[barlen] = old;
+				fprintf(stderr, "\x1b[0m");
+				fprintf(stderr, "%s", line+barlen);
+			}
+			else
+#endif
 			fprintf(stderr, "\r%s", line);
 		}
+		free(line);
 	}
 	/* Check for changed tags here too? */
 	if( mpg123_meta_check(fr) & MPG123_NEW_ICY && MPG123_OK == mpg123_icy(fr, &icy) )

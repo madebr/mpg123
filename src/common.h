@@ -13,6 +13,7 @@
 
 extern int stopped;
 extern int paused;
+
 /* Return width of terminal associated with given descriptor,
    -1 when there is none. */
 int term_width(int fd);
@@ -27,5 +28,6 @@ void print_remote_header(mpg123_handle *mh);
 void generic_sendmsg (const char *fmt, ...);
 
 extern const char* rva_name[3];
+
 #endif
 
