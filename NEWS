@@ -1,18 +1,14 @@
-- Activate terminal control automatically if run in an interactive terminal.
-  Provide switch to _deactivate_ terminal control.
-
 - reverse order of arguments for out123_start() again, matching mpg123_getformat()
 
 - fancy: do progress bar on terminal by reversing text colors on status line
-
-- anticipate messages from libmpg123 with param.verbose>1 in term.c and print("\n")
-  on key presses that _will_ result in "Note: " printouts
 
 1.23.0
 ---
 - First incarnation of libout123, a basic library to get audio data written
   to audio devices (or files). This collects the output modules of mpg123
-  and makes them available to the wider masses.
+  and makes them available to the wider masses. Also, the buffer logic
+  (contained in libout123) got a lot of reworking which might be noticable
+  in the interaction with terminal control.
 - Added mpg123 --no-infoframe.
 - Detect terminal on input side and enable control keys automatically.
   There is --no-control now to disable terminal control anyway.
