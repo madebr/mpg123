@@ -261,7 +261,7 @@ void print_stat(mpg123_handle *fr, long offset, audio_output_t *ao)
 				}
 				line[maxlen] = 0;
 			}
-			fprintf(stderr, "\r%s\r", line);
+			fprintf(stderr, "\r%s", line);
 		}
 	}
 	/* Check for changed tags here too? */
