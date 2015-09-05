@@ -916,7 +916,7 @@ MPG123_EXPORT int  mpg123_set_substring(mpg123_string *sb, const char *stuff, si
 */
 MPG123_EXPORT size_t mpg123_strlen(mpg123_string *sb, int utf8);
 
-/** Remove trailing \r and \n, if present.
+/** Remove trailing \\r and \\n, if present.
  *  \return 0 on error, 1 on success
  *  \param sb the string
  */
