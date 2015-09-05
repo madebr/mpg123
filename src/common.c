@@ -309,6 +309,16 @@ void print_stat(mpg123_handle *fr, long offset, audio_output_t *ao)
 			if(len_add > 0)
 				len += len_add;
 		}
+		if(len >= 0 && len < linelen)
+		{ /* Size of frame in bytes. */
+			int len_add = 0;
+			long res = 0;
+			if(mpg123_getstate(fr, MPG123_ACCURATE, &res, NULL) == MPG123_OK)
+				len_add = snprintf( line+len, linelen-len
+				,	" %s", res ? "accurate" : "fuzzy" );
+			if(len_add > 0)
+				len += len_add;
+		}
 		if(len >= 0)
 		{
 			if(maxlen > 0 && len > maxlen)
