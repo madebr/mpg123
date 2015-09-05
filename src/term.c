@@ -312,7 +312,10 @@ static void term_handle_key(mpg123_handle *fr, audio_output_t *ao, char val)
 			stopped=0;
 			out123_continue(ao);
 		}
-		fprintf(stderr, "%s", (paused) ? MPG123_PAUSED_STRING : MPG123_EMPTY_STRING);
+		if(param.verbose)
+			print_stat(fr, 0, ao);
+		else
+			fprintf(stderr, "%s", (paused) ? MPG123_PAUSED_STRING : MPG123_EMPTY_STRING);
 	break;
 	case MPG123_STOP_KEY:
 	case ' ':
@@ -396,6 +399,8 @@ static void term_handle_key(mpg123_handle *fr, audio_output_t *ao, char val)
 	break;
 	case MPG123_RVA_KEY:
 		if(++param.rva > MPG123_RVA_MAX) param.rva = 0;
+		if(param.verbose)
+			fprintf(stderr, "\n");
 		mpg123_param(fr, MPG123_RVA, param.rva, 0);
 		mpg123_volume_change(fr, 0.);
 	break;
