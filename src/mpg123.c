@@ -444,8 +444,12 @@ static void list_output_modules(char *arg)
 		{
 			int i;
 			for(i=0; i<count; ++i)
+			{
 				printf( "%-15s%s  %s\n"
 				,	names[i], "output", descr[i] );
+				free(names[i]);
+				free(descr[i]);
+			}
 			free(names);
 			free(descr);
 		}

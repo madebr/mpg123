@@ -324,7 +324,11 @@ static void list_output_modules(char *arg)
 		{
 			int i;
 			for(i=0; i<count; ++i)
+			{
 				printf( "%-15s\t%s\n", names[i], descr[i] );
+				free(names[i]);
+				free(descr[i]);
+			}
 			free(names);
 			free(descr);
 		}
