@@ -41,9 +41,6 @@ src_libout123_libmodule_la_SOURCES += src/libout123/legacy_module.c
 
 endif
 
-# Too lazy to put it into deps for every module.
-EXTRA_DIST += src/libout123/outmod_def.h
-
 # The sfifo code is directly used in some modules.
 EXTRA_DIST += \
   src/libout123/out123.h.in \
