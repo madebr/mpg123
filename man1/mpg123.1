@@ -337,7 +337,7 @@ which turns buffering off.
 Wait for the buffer to be filled to
 .I fraction
 before starting playback (fraction between 0 and 1). You can tune this prebuffering to either get faster sound to your ears or safer uninterrupted web radio.
-Default is 1 (wait for full buffer before playback).
+Default is 0.2 (wait for 20 % of buffer to be full, changed from 1 in version 1.23).
 .TP
 \fB\-\^\-smooth
 Keep buffer over track boundaries -- meaning, do not empty the buffer between tracks for possibly some added smoothness.
@@ -360,9 +360,13 @@ numbers during decoding.
 Quiet.  Suppress diagnostic messages.
 .TP
 .BR \-C ", " \-\^\-control
-Enable terminal control keys. By default use 's' or the space bar to stop/restart (pause, unpause) playback, 'f' to jump forward to the next song, 'b' to jump back to the
+Enable terminal control keys. This is enabled automatically if a terminal is detected.
+By default use 's' or the space bar to stop/restart (pause, unpause) playback, 'f' to jump forward to the next song, 'b' to jump back to the
 beginning of the song, ',' to rewind, '.' to fast forward, and 'q' to quit.
 Type 'h' for a full list of available controls.
+.TP
+\fB\-\^\-no\-control
+Disable terminal control even if terminal is detected.
 .TP
 \fB\-\^\-title
 In an xterm, rxvt, screen, iris-ansi (compatible, TERM environment variable is examined), change the window's title to the name of song currently
@@ -463,9 +467,45 @@ pressing Ctrl-C might not be audible
 immediately, due to audio data buffering in the audio device.
 This delay is system dependent, but it is usually not more
 than one or two seconds.
-.SH "SEE ALSO"
-.BR wget (1),
-.BR sox (1),
+
+.SH PLAYBACK STATUS LINE
+In verbose mode, mpg123 updates a line with various information centering around
+the current playback position. On any decent terminal, the line also works
+as a progress bar in the current file by reversing video for a fraction of the
+line according to the current position. An example for a full line is this:
+
+	> 0291+0955  00:01.68+00:28.22 [00:05.30] mix 100=085 192 kb/s  576 B accurate    
+
+The information consists of, in order:
+.TP
+.BR >
+single-character playback state (``>'' for playing, ``='' for pausing/looping, ``_'' for stopped)
+.TP
+.BR 0291+0955
+current frame offset and number of remaining frames after the plus sign
+.TP
+.BR 00:01.68+00:28.22
+current position from and remaining time in human terms
+(hours, minutes, seconds)
+.TP
+.BR [00:05.30]
+fill of the output buffer in terms of playback time, if the buffer is enabled
+.TP
+.BR mix
+selected RVA mode (possible values: mix, alb (album), and \-\^\-\^\- (neutral, off))
+.TP
+.BR 100=085
+set volume and the RVA-modified effective volume after the equal sign
+.TP
+.BR 192\ kb/s
+current bitrate
+.TP
+.BR 576\ B
+size of current frame in bytes
+.TP
+.BR accurate
+if positions are accurate, possible values are ``accurate'' or ``fuzzy''
+
 .SH NOTES
 MPEG audio decoding requires a good deal of CPU performance,
 especially layer-3.  To decode it in realtime, you should
@@ -477,14 +517,10 @@ somewhat for layer-3 streams.  See also the
 .BR \-2 " and " \-4
 options.
 .P
-If everything else fails, use the
-.B \-s
-option to decode to standard output, direct it into a file
-and then use an appropriate utility to play that file.
-You might have to use a tool such as
-.BR sox (1)
-to convert the output to an audio format suitable for
-your audio player.
+If everything else fails, have mpg123 decode to a file
+and then use an appropriate utility to play that file with less CPU load.
+Most probably you can configure mpg123 to produce a format suitable
+for your audio device (see above about encodings and sampling rates).
 .P
 If your system is generally fast enough to decode in 
 realtime, but there are sometimes periods of heavy 
@@ -499,21 +535,18 @@ option to use a buffer of reasonable size (at least 1000 Kbytes).
 Mostly MPEG-1 layer 2 and 3 are tested in real life.
 Please report any issues and provide test files to help fixing them.
 .P
-Free format streams are not supported, but they could be (there is some code).
-.P
 No CRC error checking is performed.
 .P
 Some platforms lack audio hardware support; you may be able to use the
 .B -s
 switch to feed the decoded data to a program that can play it on your audio device.
-Notably, this includes Tru64 with MME, but you should be able to install and use OSS there (it perhaps will perform better as MME would anyway).
 .SH AUTHORS
 .TP
 Maintainer:
 .br
 Thomas Orgis <maintainer@mpg123.org>, <thomas@orgis.org>
 .TP
-Creator:
+Original Creator:
 .br
 Michael Hipp
 .TP
