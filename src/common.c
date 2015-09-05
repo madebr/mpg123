@@ -279,7 +279,7 @@ void print_stat(mpg123_handle *fr, long offset, audio_output_t *ao)
 				char old;
 				int barlen = 0;
 				off_t length  = mpg123_length(fr);
-				off_t elapsed = mpg123_tell(fr);
+				off_t elapsed = mpg123_tell(fr)-(buffsize/framesize);
 				if(length > 0 && elapsed > 0)
 				{
 					if(elapsed < length)
