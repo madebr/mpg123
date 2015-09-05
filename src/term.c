@@ -296,13 +296,12 @@ static void term_handle_key(mpg123_handle *fr, audio_output_t *ao, char val)
 	break;
 	case MPG123_PAUSE_KEY:
 		paused=1-paused;
+		out123_drop(ao);
 		if(paused)
 		{
 			/* Not really sure if that is what is wanted
 				 This jumps in audio output, but has direct reaction to pausing loop. */
-			out123_drop(ao);
 			out123_param(ao, OUT123_PRELOAD, 0, 0.);
-
 			pause_recycle(fr);
 		}
 		else
