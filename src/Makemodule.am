@@ -23,11 +23,7 @@ src_out123_LDADD = $(LIBLTDL) \
 
 src_out123_LDFLAGS = @EXEC_LT_LDFLAGS@ $(output_ldflags)
 
-# The sfifo situation needs to be cleared up.
-# It's used from places.
 EXTRA_DIST += \
-  src/sfifo.c \
-  src/sfifo.h \
   src/mpg123-with-modules \
   src/out123-with-modules
 
