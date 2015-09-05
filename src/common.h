@@ -11,6 +11,10 @@
 
 #include "mpg123app.h"
 
+/* Return width of terminal associated with given descriptor,
+   -1 when there is none. */
+int term_width(int fd);
+
 void print_header(mpg123_handle *);
 void print_header_compact(mpg123_handle *);
 void print_stat(mpg123_handle *fr, long offset, audio_output_t *ao);

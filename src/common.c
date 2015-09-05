@@ -11,7 +11,24 @@
 #include <sys/stat.h>
 #include "common.h"
 
+#ifdef HAVE_TERMIOS
+#include <termios.h>
+#include <sys/ioctl.h>
+#endif
+
 #include "debug.h"
+
+/* Also serves as a way to detect if we have an interactive terminal. */
+int term_width(int fd)
+{
+#ifdef HAVE_TERMIOS
+	struct winsize geometry;
+	geometry.ws_col = 0;
+	if(ioctl(fd, TIOCGWINSZ, &geometry) >= 0)
+		return (int)geometry.ws_col;
+#endif
+	return -1;
+}
 
 const char* rva_name[3] = { "v", "m", "a" }; /* vanilla, mix, album */
 static const char *modes[5] = {"Stereo", "Joint-Stereo", "Dual-Channel", "Single-Channel", "Invalid" };

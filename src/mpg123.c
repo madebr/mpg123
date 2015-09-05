@@ -512,11 +512,12 @@ topt opts[] = {
 	{'a', "audiodevice", GLO_ARG | GLO_CHAR, 0, &param.output_device,  0},
 	{'f', "scale",       GLO_ARG | GLO_LONG, 0, &param.outscale,   0},
 	{'n', "frames",      GLO_ARG | GLO_LONG, 0, &param.frame_number,  0},
-	#ifdef HAVE_TERMIOS
+#ifdef HAVE_TERMIOS
 	{'C', "control",     GLO_INT,  0, &param.term_ctrl, TRUE},
+	{0, "no-control",    GLO_INT,  0, &param.term_ctrl, FALSE},
 	{0,   "ctrlusr1",    GLO_ARG | GLO_CHAR, 0, &param.term_usr1, 0},
 	{0,   "ctrlusr2",    GLO_ARG | GLO_CHAR, 0, &param.term_usr2, 0},
-	#endif
+#endif
 #ifndef NOXFERMEM
 	{'b', "buffer",      GLO_ARG | GLO_LONG, 0, &param.usebuffer,  0},
 	{0,  "smooth",      GLO_INT,  0, &param.smooth, 1},
@@ -898,7 +899,10 @@ int main(int sys_argc, char ** sys_argv)
 #ifdef OS2
         _wildcard(&argc,&argv);
 #endif
-
+#ifdef HAVE_TERMIOS
+	/* Detect terminal on input side, enable control by default. */
+	param.term_ctrl = !(term_width(STDIN_FILENO) < 0);
+#endif
 	while ((result = getlopt(argc, argv, opts)))
 	switch (result) {
 		case GLO_UNKNOWN:
@@ -1446,7 +1450,8 @@ static void long_usage(int err)
 	fprintf(o," -v[*]  --verbose          increase verboselevel\n");
 	fprintf(o," -q     --quiet            quiet mode\n");
 	#ifdef HAVE_TERMIOS
-	fprintf(o," -C     --control          enable terminal control keys\n");
+	fprintf(o," -C     --control          enable terminal control keys (else auto detect)\n");
+	fprintf(o,"        --no-control       disable terminal control keys (disable auto detect)\n");
 	fprintf(o,"        --ctrlusr1 <c>     control key (characer) to map to SIGUSR1\n");
 	fprintf(o,"                           (default is for stop/start)\n");
 	fprintf(o,"        --ctrlusr2 <c>     control key (characer) to map to SIGUSR2\n");

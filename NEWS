@@ -14,6 +14,8 @@
   to audio devices (or files). This collects the output modules of mpg123
   and makes them available to the wider masses.
 - Added mpg123 --no-infoframe.
+- Detect terminal on input side and enable control keys automatically.
+  There is --no-control now to disable terminal control anyway.
 - Clip decode tables for large amplification with fixed-point decoders.
   Without that, high-pitched distortion enters really quickly when
   trying to increase volume even if output samples would not be clipped,
