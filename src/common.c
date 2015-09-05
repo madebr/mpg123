@@ -174,17 +174,21 @@ void print_buf(const char* prefix, audio_output_t *ao)
    decoded frame, what entered the buffer right now. */
 void print_stat(mpg123_handle *fr, long offset, audio_output_t *ao)
 {
-	double tim[3];
-	off_t rno, no;
+	size_t buffered;
+	off_t decoded;
+	off_t elapsed;
+	off_t remain;
+	off_t length;
+	off_t frame;
+	off_t frames;
+	off_t rframes;
+	int spf;
 	double basevol, realvol;
 	char *icy;
-	size_t buffsize;
 	long rate;
 	int framesize;
+	struct mpg123_frameinfo mi;
 
-	buffsize = out123_buffered(ao);
-	if(out123_getformat(ao, &rate, NULL, NULL, &framesize))
-		return;
 #ifndef WIN32
 #ifndef GENERIC
 /* Only generate new stat line when stderr is ready... don't overfill... */
@@ -202,55 +206,106 @@ void print_stat(mpg123_handle *fr, long offset, audio_output_t *ao)
 	}
 #endif
 #endif
-	if(  MPG123_OK == mpg123_position(fr, offset, buffsize, &no, &rno, tim, tim+1)
+	if(out123_getformat(ao, &rate, NULL, NULL, &framesize))
+		return;
+	buffered = out123_buffered(ao)/framesize;
+	decoded  = mpg123_tell(fr);
+	length   = mpg123_length(fr);
+	frame    = mpg123_tellframe(fr);
+	frames   = mpg123_framelength(fr);
+	spf      = mpg123_spf(fr);
+	if(decoded < 0 || length < 0 || frame < 0 || frames <= 0 || spf <= 0)
+		return;
+	/* Apply offset. */
+	frame += offset;
+	if(frame < 0)
+		frame = 0;
+	/* Some sensible logic around offsets and time.
+	   Buffering makes the relationships between the numbers non-trivial. */
+	rframes = frames-frame;
+	elapsed = decoded + offset*spf - buffered; /* May be negative, a countdown. */
+	remain  = elapsed > 0 ? length - elapsed : length;
+	if(  MPG123_OK == mpg123_info(fr, &mi)
 	  && MPG123_OK == mpg123_getvolume(fr, &basevol, &realvol, NULL) )
 	{
 		char *line;
-		int linesize;
+		char framefmt[10];
+		char framestr[2][32];
+		int linelen;
 		int maxlen;
 		int len;
 		int ti;
 		/* Deal with overly long times. */
+		double tim[3];
 		unsigned long times[3][3];
 		char timesep[3];
 		char sign[3] = {' ', ' ', ' '};
 
 		/* 255 is enough for the data I prepare, if there is no terminal width to
 		   fill */
-		maxlen = term_width(STDERR_FILENO);
-		linesize = maxlen > 0 ? maxlen+1 : 255;
-		line = malloc(linesize); /* Should use some static memory instead. */
+		maxlen  = term_width(STDERR_FILENO);
+		linelen = maxlen > 0 ? maxlen : 255;
+		line = malloc(linelen+1); /* Should use some static memory instead. */
 
-		tim[2] = (double)(buffsize/framesize)/rate;
+		tim[0] = (double)elapsed/rate;
+		tim[1] = (double)remain/rate;
+		tim[2] = (double)buffered/rate;
 		for(ti=0; ti<3; ++ti)
 		{
 			if(tim[ti] < 0.){ sign[ti] = '-'; tim[ti] = -tim[ti]; }
 			settle_time(tim[ti], times[ti], &timesep[ti]);
 		}
-		memset(line, 0, linesize);
+		/* Taking pains to properly size the frame number fields. */
+		len = snprintf( framefmt, sizeof(framefmt)
+		,	"%%0%d"OFF_P, (int)log10(frames)+1 );
+		if(len < 0 || len >= sizeof(framefmt))
+			memcpy(framefmt, "%05"OFF_P, sizeof("%05"OFF_P));
+		snprintf( framestr[0], sizeof(framestr[0])-1, framefmt, (off_p)frame);
+		framestr[0][sizeof(framestr[0])-1] = 0;
+		snprintf( framestr[1], sizeof(framestr[1])-1, framefmt, (off_p)rframes);
+		framestr[1][sizeof(framestr[1])-1] = 0;
+		/* Now start with the state line. */
+		memset(line, 0, linelen+1); /* Always one zero more. */
 		/* Start with position info. */
-		len = snprintf( line, linesize-1
-		,	"%c %05"OFF_P"+%05"OFF_P" %c%02lu:%02lu%c%02lu+%02lu:%02lu%c%02lu"
+		len = snprintf( line, linelen
+		,	"%c %s+%s %c%02lu:%02lu%c%02lu+%02lu:%02lu%c%02lu"
 		,	stopped ? '_' : (paused ? '=' : '>')
-		,	(off_p)no, (off_p)rno
+		,	framestr[0], framestr[1]
 		,	sign[0]
 		,	times[0][0], times[0][1], timesep[0], times[0][2]
 		,	times[1][0], times[1][1], timesep[1], times[1][2]
 		);
-		if(len >= 0 && param.usebuffer && len < linesize )
+		/* Just cut it. */
+		if(len >= linelen)
+			len=linelen;
+		if(len >= 0 && param.usebuffer && len < linelen )
 		{ /* Buffer info. */
-			int len_add = snprintf( line+len, linesize-1-len
+			int len_add = snprintf( line+len, linelen-len
 			,	" [%02lu:%02lu%c%02lu]"
 			,	times[2][0], times[2][1], timesep[2], times[2][2] );
 			if(len_add > 0)
 				len += len_add;
 		}
-		if(len >= 0 && len < linesize)
+		if(len >= 0 && len < linelen)
 		{ /* Volume info. */
-			int len_add = snprintf( line+len, linesize-1-len
+			int len_add = snprintf( line+len, linelen-len
 			,	" %s %03u=%03u"
 			,	rva_statname[param.rva], roundui(basevol*100), roundui(realvol*100)
 			);
+			if(len_add > 0)
+				len += len_add;
+		}
+		if(len >= 0 && len < linelen)
+		{ /* Bitrate. */
+			int len_add = snprintf( line+len, linelen-len
+			,	" %3d kb/s", mi.bitrate );
+			if(len_add > 0)
+				len += len_add;
+		}
+		if(len >= 0 && len < linelen)
+		{ /* Size of frame in bytes. */
+			int len_add = snprintf( line+len, linelen-len
+			,	" %4d B", mi.framesize );
 			if(len_add > 0)
 				len += len_add;
 		}
@@ -269,17 +324,14 @@ void print_stat(mpg123_handle *fr, long offset, audio_output_t *ao)
 						break;
 				}
 				line[maxlen] = 0;
+				len = maxlen;
 			}
 #ifdef HAVE_TERMIOS
-			/* Use inverse color to draw a progress bar.
-			   Using the proper sample offsets here, which takes gapless mode into
-			   account and makes the bar really reach 100 %. */
-			if(maxlen > 0 && linesize > maxlen)
+			/* Use inverse color to draw a progress bar. */
+			if(maxlen > 0)
 			{
 				char old;
 				int barlen = 0;
-				off_t length  = mpg123_length(fr);
-				off_t elapsed = mpg123_tell(fr)-(buffsize/framesize);
 				if(length > 0 && elapsed > 0)
 				{
 					if(elapsed < length)
@@ -287,7 +339,7 @@ void print_stat(mpg123_handle *fr, long offset, audio_output_t *ao)
 					else
 						barlen = maxlen;
 				}
-				memset(line+len, ' ', linesize-1-len);
+				memset(line+len, ' ', linelen-len);
 				old = line[barlen];
 				fprintf(stderr, "\x1b[7m");
 				line[barlen] = 0;
