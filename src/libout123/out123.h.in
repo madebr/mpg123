@@ -322,7 +322,7 @@ int out123_encodings(audio_output_t *ao, int channels, long rate);
  * \return 0 on success, negative on error (bad format, usually)
  */
 int out123_start( audio_output_t *ao
-,                 int encoding, int channels, long rate );
+,                 long rate, int channels, int encoding );
 
 /** Pause playback
  *  Interrupt playback without waiting for the data pushed to the optional

@@ -422,10 +422,10 @@ void out123_close(audio_output_t *ao)
 }
 
 int out123_start( audio_output_t *ao
-,                  int encoding, int channels, long rate )
+,                 long rate, int channels, int encoding )
 {
-	debug4( "out123_start(%p, %i, %i, %li)"
-	,	(void*)ao, (int)encoding, channels, rate );
+	debug4( "out123_start(%p, %li, %i, %li)"
+	,	(void*)ao, rate, channels, encoding );
 	if(!ao)
 		return OUT123_ERR;
 	ao->errcode = 0;

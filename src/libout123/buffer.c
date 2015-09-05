@@ -706,7 +706,7 @@ int buffer_loop(audio_output_t *ao)
 					||	!GOOD_READVAL_BUF(my_fd, ao->rate)
 					)
 						return 2;
-					if(!out123_start(ao, ao->format, ao->channels, ao->rate))
+					if(!out123_start(ao, ao->rate, ao->channels, ao->format))
 					{
 						preloading = TRUE;
 						xfermem_putcmd(my_fd, XF_CMD_OK);

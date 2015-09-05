@@ -559,7 +559,7 @@ int main(int sys_argc, char ** sys_argv)
 	fprintf(stderr, "TODO: Check audio caps, add option to display 'em.\n");
 	/* audio_capabilities(ao, mh); */
 
-	check_fatal_output(out123_start(ao, encoding, channels, param.force_rate));
+	check_fatal_output(out123_start(ao, param.force_rate, channels, encoding));
 
 	input = stdin;
 	while(play_frame() && !intflag)

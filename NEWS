@@ -1,5 +1,3 @@
-- reverse order of arguments for out123_start() again, matching mpg123_getformat()
-
 1.23.0
 ---
 - libmpg123 version 42

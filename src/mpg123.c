@@ -762,7 +762,7 @@ int play_frame(void)
 			if(param.verbose > 2) fprintf(stderr, "\nNote: New output format %liHz %ich, format %i\n", rate, channels, format);
 
 			new_header = 1;
-			check_fatal_output(out123_start(ao, format, channels, rate));
+			check_fatal_output(out123_start(ao, rate, channels, format));
 		}
 	}
 	if(new_header && !param.quiet)
