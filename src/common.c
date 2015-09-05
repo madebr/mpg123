@@ -178,7 +178,6 @@ void print_stat(mpg123_handle *fr, long offset, audio_output_t *ao)
 	long rate;
 	int framesize;
 
-
 	buffsize = out123_buffered(ao);
 	if(out123_getformat(ao, &rate, NULL, NULL, &framesize))
 		return;
@@ -202,6 +201,8 @@ void print_stat(mpg123_handle *fr, long offset, audio_output_t *ao)
 	if(  MPG123_OK == mpg123_position(fr, offset, buffsize, &no, &rno, tim, tim+1)
 	  && MPG123_OK == mpg123_getvolume(fr, &basevol, &realvol, NULL) )
 	{
+		char line[255]; /* Stat lines cannot grow too much. */
+		int len;
 		int ti;
 		/* Deal with overly long times. */
 		unsigned long times[3][3];
@@ -213,16 +214,43 @@ void print_stat(mpg123_handle *fr, long offset, audio_output_t *ao)
 			if(tim[ti] < 0.){ sign[ti] = '-'; tim[ti] = -tim[ti]; }
 			settle_time(tim[ti], times[ti], &timesep[ti]);
 		}
-		fprintf(stderr, "\rf# %5"OFF_P"[%5"OFF_P"] %c%02lu:%02lu%c%02lu[%c%02lu:%02lu%c%02lu] V(%s)=%3u(%3u)",
-		        (off_p)no, (off_p)rno,
-		        sign[0],
-		        times[0][0], times[0][1], timesep[0], times[0][2],
-		        sign[1],
-		        times[1][0], times[1][1], timesep[1], times[1][2],
-		        rva_name[param.rva], roundui(basevol*100), roundui(realvol*100) );
-		if(param.usebuffer)
-			fprintf( stderr," [%02lu:%02lu%c%02lu] "
-			,  times[2][0], times[2][1], timesep[2], times[2][2] );
+		memset(line, 0, sizeof(line));
+		len = snprintf( line, sizeof(line)-1
+		,	"f# %5"OFF_P"[%5"OFF_P"] %c%02lu:%02lu%c%02lu[%c%02lu:%02lu%c%02lu] V(%s)=%3u(%3u)"
+		,	(off_p)no, (off_p)rno
+		,	sign[0]
+		,	times[0][0], times[0][1], timesep[0], times[0][2]
+		,	sign[1]
+		,	times[1][0], times[1][1], timesep[1], times[1][2]
+		,	rva_name[param.rva], roundui(basevol*100), roundui(realvol*100)
+		);
+		if(len >= 0 && param.usebuffer && len < sizeof(line) )
+		{
+			int len_add = snprintf( line+len, sizeof(line)-1-len
+			,	" [%02lu:%02lu%c%02lu]"
+			,	times[2][0], times[2][1], timesep[2], times[2][2] );
+			if(len_add > 0)
+				len += len_add;
+		}
+		if(len >= 0)
+		{
+			int maxlen = term_width(STDOUT_FILENO);
+			if(maxlen > 0 && len > maxlen)
+			{
+				/* Emergency cut to avoid terminal scrolling. */
+				int i;
+				/* Blank a word that would have been cut off. */
+				for(i=maxlen; i>=0; --i)
+				{
+					char old = line[i];
+					line[i] = ' ';
+					if(old == ' ')
+						break;
+				}
+				line[maxlen] = 0;
+			}
+			fprintf(stderr, "\r%s\r", line);
+		}
 	}
 	/* Check for changed tags here too? */
 	if( mpg123_meta_check(fr) & MPG123_NEW_ICY && MPG123_OK == mpg123_icy(fr, &icy) )

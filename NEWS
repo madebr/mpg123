@@ -16,6 +16,9 @@
 - Added mpg123 --no-infoframe.
 - Detect terminal on input side and enable control keys automatically.
   There is --no-control now to disable terminal control anyway.
+- Avoid spillover of status line that caused unwanted terminal scrolling.
+  If the terminal width is smaller than the full status string, a cut is
+  made to make it fit.
 - Clip decode tables for large amplification with fixed-point decoders.
   Without that, high-pitched distortion enters really quickly when
   trying to increase volume even if output samples would not be clipped,
