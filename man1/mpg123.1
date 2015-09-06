@@ -474,7 +474,7 @@ the current playback position. On any decent terminal, the line also works
 as a progress bar in the current file by reversing video for a fraction of the
 line according to the current position. An example for a full line is this:
 
-	> 0291+0955  00:01.68+00:28.22 [00:05.30] mix 100=085 192 kb/s  576 B acc   18 clip
+	> 0291+0955  00:01.68+00:28.22 [00:05.30] mix 100=085 192 kb/s  576 B acc   18 clip p+0.014
 
 The information consists of, in order:
 .TP
@@ -510,6 +510,9 @@ if positions are accurate, possible values are ``acc'' for accurate positions or
 .BR 18\ clip
 amount of clipped samples, non-zero only if decoder reports that
 (generic does, some optimized ones not)
+.TP
+.BR p+0.014
+pitch change (increased/decreased playback sampling rate on user request)
 
 .SH NOTES
 MPEG audio decoding requires a good deal of CPU performance,

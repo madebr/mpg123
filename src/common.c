@@ -329,6 +329,14 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao)
 			if(len_add > 0)
 				len += len_add;
 		}
+		if(len >= 0 && len < linelen)
+		{ /* Size of frame in bytes. */
+			int len_add = 0;
+			len_add = snprintf( line+len, linelen-len
+			,	" p%+.3f", param.pitch );
+			if(len_add > 0)
+				len += len_add;
+		}
 		if(len >= 0)
 		{
 			if(maxlen > 0 && len > maxlen)
