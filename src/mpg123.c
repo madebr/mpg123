@@ -249,7 +249,8 @@ void safe_exit(int code)
 	char *dummy, *dammy;
 
 	dump_close();
-	controlled_drain();
+	if(!code)
+		controlled_drain();
 #ifdef HAVE_TERMIOS
 	if(param.term_ctrl)
 		term_restore();

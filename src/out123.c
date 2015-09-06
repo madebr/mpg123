@@ -54,6 +54,8 @@
 #undef HAVE_SETPRIORITY
 #endif
 
+static int intflag = FALSE;
+
 static void usage(int err);
 static void want_usage(char* arg);
 static void long_usage(int err);
@@ -104,10 +106,35 @@ char *binpath; /* Path to myself. */
 static char **argv = NULL;
 static int    argc = 0;
 
-void safe_exit(int code)
+/* Drain output device/buffer, but still give the option to interrupt things. */
+static void controlled_drain(void)
+{
+	int framesize;
+	long rate;
+	size_t drain_block;
+
+	if(intflag || !out123_buffered(ao))
+		return;
+	if(out123_getformat(ao, &rate, NULL, NULL, &framesize))
+		return;
+	drain_block = 1024*framesize;
+	if(!quiet)
+		fprintf( stderr
+		,	"\n"ME": draining buffer of %.1f s (you may interrupt)\n"
+		,	(double)out123_buffered(ao)/framesize/rate );
+	do {
+		out123_ndrain(ao, drain_block);
+	} while(!intflag && out123_buffered(ao));
+}
+
+static void safe_exit(int code)
 {
 	char *dummy, *dammy;
 
+	if(!code)
+		controlled_drain();
+	if(intflag || code)
+		out123_drop(ao);
 	out123_del(ao);
 #ifdef WANT_WIN32_UNICODE
 	win32_cmdline_free(argc, argv); /* This handles the premature argv == NULL, too. */
@@ -413,7 +440,6 @@ int play_frame(void)
 	else return 0;
 }
 
-static int intflag = FALSE;
 #if !defined(WIN32) && !defined(GENERIC)
 static void catch_interrupt(void)
 {
@@ -472,6 +498,9 @@ int main(int sys_argc, char ** sys_argv)
 			fprintf (stderr, ME": missing argument for parameter: %s\n", loptarg);
 			usage(1);
 	}
+
+	if(quiet)
+		verbose = 0;
 
 	/* Ensure cleanup before we cause too much mess. */
 #if !defined(WIN32) && !defined(GENERIC)
@@ -538,9 +567,6 @@ int main(int sys_argc, char ** sys_argv)
 	check_fatal_output(out123_set_buffer(ao, buffer_kb*1024));
 	/* This needs bufferblock set! */
 	check_fatal_output(out123_open(ao, driver, device));
-
-	fprintf(stderr, ME": TODO: Check audio caps, add option to display 'em.\n");
-	/* audio_capabilities(ao, mh); */
 
 	if(verbose)
 	{
