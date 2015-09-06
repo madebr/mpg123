@@ -6,8 +6,6 @@ include src/libout123/modules/Makemodule.am
 # For now only wrapping the module loader or the legacy module.
 noinst_LTLIBRARIES += src/libout123/libmodule.la
 
-nodist_include_HEADERS += src/libout123/out123.h
-
 lib_LTLIBRARIES += src/libout123/libout123.la
 src_libout123_libout123_la_SOURCES = \
   src/libout123/libout123.c \
