@@ -15,6 +15,7 @@ CLEANFILES += src/libmpg123/*.a
 # does not work, it must be libmpg123.la .
 lib_LTLIBRARIES += src/libmpg123/libmpg123.la
 nodist_include_HEADERS += src/libmpg123/mpg123.h
+include_HEADERS += src/libmpg123/mpg123_enc.h
 
 src_libmpg123_libmpg123_la_LDFLAGS = \
   -no-undefined \
