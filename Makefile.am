@@ -16,6 +16,7 @@ lib_LTLIBRARIES =
 noinst_LIBRARIES =
 noinst_LTLIBRARIES =
 nodist_include_HEADERS =
+include_HEADERS =
 dist_man_MANS =
 CLEANFILES =
 
@@ -39,7 +40,7 @@ include src/Makemodule.am
 include doc/Makemodule.am
 
 # Stuff from this directory.
-pkgconfig_DATA += libmpg123.pc
+pkgconfig_DATA += libmpg123.pc libout123.pc
 
 dist_man_MANS += man1/mpg123.1 man1/out123.1
 

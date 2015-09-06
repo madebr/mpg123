@@ -2301,6 +2301,7 @@ dnl ############## Final Output
 AC_CONFIG_FILES([
 	Makefile
 	libmpg123.pc
+	libout123.pc
 	mpg123.spec
 	src/libmpg123/mpg123.h
 	src/libout123/out123.h
