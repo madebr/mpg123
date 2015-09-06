@@ -1,7 +1,7 @@
 /*
-	mpg123_to_wav.c
+	mpg123_to_wav_replaced_io.c
 
-	copyright 2007-2010 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2007-2015 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Nicholas Humfrey (moved to handle I/O by Thomas Orgis)
 
@@ -25,20 +25,21 @@
 #include <stdio.h>
 #include <strings.h>
 #include <mpg123.h>
-#include <sndfile.h>
+#include <out123.h>
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 
-void usage()
+void usage(const char *cmd)
 {
-	printf("Usage: mpg123_to_wav <input> <output>\n");
+	printf("Usage: %s <input> <output>\n", cmd);
 	exit(99);
 }
 
-void cleanup(mpg123_handle *mh)
+void cleanup(mpg123_handle *mh, out123_handle *ao)
 {
+	out123_del(ao);
 	/* It's really to late for error checks here;-) */
 	mpg123_close(mh);
 	mpg123_delete(mh);
@@ -83,9 +84,8 @@ void cleanup_cb(void *handle)
 
 int main(int argc, char *argv[])
 {
-	SNDFILE* sndfile = NULL;
-	SF_INFO sfinfo;
 	mpg123_handle *mh = NULL;
+	out123_handle *ao = NULL;
 	unsigned char* buffer = NULL;
 	size_t buffer_size = 0;
 	size_t done = 0;
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 	off_t samples = 0;
 	struct ioh *iohandle;
 
-	if (argc!=3) usage();
+	if (argc!=3) usage(argv[0]);
 	printf( "Input file: %s\n", argv[1]);
 	printf( "Output file: %s\n", argv[2]);
 
@@ -119,14 +119,14 @@ int main(int argc, char *argv[])
 	{
 		fprintf( stderr, "Trouble with mpg123: %s\n",
 		         mh==NULL ? mpg123_plain_strerror(err) : mpg123_strerror(mh) );
-		cleanup(mh);
+		cleanup(mh, ao);
 		return -1;
 	}
 
 	if(encoding != MPG123_ENC_SIGNED_16)
 	{ /* Signed 16 is the default output format anyways; it would actually by only different if we forced it.
 	     So this check is here just for this explanation. */
-		cleanup(mh);
+		cleanup(mh, ao);
 		fprintf(stderr, "Bad encoding: 0x%x!\n", encoding);
 		return -2;
 	}
@@ -134,38 +134,42 @@ int main(int argc, char *argv[])
 	mpg123_format_none(mh);
 	mpg123_format(mh, rate, channels, encoding);
 
+	printf("Creating 16bit WAV with %i channels and %liHz.\n", channels, rate);
+	if(
+		!(ao = out123_new())
+	||	out123_open(ao, "wav", argv[2])
+	||	out123_start(ao, rate, channels, encoding)
+	)
+	{
+		fprintf(stderr, "Cannot create / start output: %s\n"
+		,	out123_strerror(ao));
+		cleanup(mh, ao);
+		return -1;
+	}
+
 	/* Buffer could be almost any size here, mpg123_outblock() is just some recommendation.
 	   Important, especially for sndfile writing, is that the size is a multiple of sample size. */
 	buffer_size = mpg123_outblock( mh );
 	buffer = malloc( buffer_size );
 
-	bzero(&sfinfo, sizeof(sfinfo) );
-	sfinfo.samplerate = rate;
-	sfinfo.channels = channels;
-	sfinfo.format = SF_FORMAT_WAV|SF_FORMAT_PCM_16;
-	printf("Creating 16bit WAV with %i channels and %liHz.\n", channels, rate);
-
-	sndfile = sf_open(argv[2], SFM_WRITE, &sfinfo);
-	if(sndfile == NULL){ fprintf(stderr, "Cannot open output file!\n"); cleanup(mh); return -2; }
-
 	do
 	{
 		err = mpg123_read( mh, buffer, buffer_size, &done );
-		sf_write_short( sndfile, (short*)buffer, done/sizeof(short) );
+		out123_play(ao, buffer, done);
 		samples += done/sizeof(short);
 		/* We are not in feeder mode, so MPG123_OK, MPG123_ERR and MPG123_NEW_FORMAT are the only possibilities.
 		   We do not handle a new format, MPG123_DONE is the end... so abort on anything not MPG123_OK. */
-	} while (err==MPG123_OK);
+	} while (done && err==MPG123_OK);
+
+	free(buffer);
 
 	if(err != MPG123_DONE)
 	fprintf( stderr, "Warning: Decoding ended prematurely because: %s\n",
 	         err == MPG123_ERR ? mpg123_strerror(mh) : mpg123_plain_strerror(err) );
 
-	sf_close( sndfile );
-
 	samples /= channels;
 	printf("%li samples written.\n", (long)samples);
-	cleanup(mh);
+	cleanup(mh, ao);
 	free(iohandle);
 	return 0;
 }

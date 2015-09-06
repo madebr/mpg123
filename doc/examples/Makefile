@@ -9,22 +9,24 @@ all: $(targets)
 ifeq ($(MPG123_PREFIX),)
   MPG123_CFLAGS  := $(shell pkg-config --cflags libmpg123)
   MPG123_LDFLAGS := $(shell pkg-config --libs   libmpg123)
+  OUT123_CFLAGS  := $(shell pkg-config --cflags libout123)
+  OUT123_LDFLAGS := $(shell pkg-config --libs   libout123)
 else # Yeah, that's with GNU/Linux in mind, at least GNU ld ...
   MPG123_CFLAGS  := -I$(MPG123_PREFIX)/include
   MPG123_LDFLAGS := -L$(MPG123_PREFIX)/lib -Wl,-rpath $(MPG123_PREFIX)/lib -lmpg123
+  OUT123_CFLAGS  := -I$(MPG123_PREFIX)/include
+  OUT123_LDFLAGS := -L$(MPG123_PREFIX)/lib -Wl,-rpath $(MPG123_PREFIX)/lib -lout123
 endif
-SND_CFLAGS     := $(shell pkg-config --cflags sndfile)
-SND_LDFLAGS    := $(shell pkg-config --libs   sndfile)
 
 # Oder of libs not that important here...
 compile = $(CC) $(CPPFLAGS) $(CFLAGS) $(MPG123_CFLAGS)
 linkflags = $(MPG123_LDFLAGS) $(LDFLAGS)
 
 mpg123_to_wav: mpg123_to_wav.c
-	$(compile) -o mpg123_to_wav mpg123_to_wav.c $(SND_CFLAGS) $(SND_LDFLAGS) $(linkflags)
+	$(compile) -o mpg123_to_wav mpg123_to_wav.c $(OUT123_CFLAGS) $(OUT123_LDFLAGS) $(linkflags)
 
 mpg123_to_wav_replaced_io: mpg123_to_wav_replaced_io.c
-	$(compile) -o $@ $< $(SND_CFLAGS) $(SND_LDFLAGS) $(linkflags)
+	$(compile) -o $@ $< $(OUT123_CFLAGS) $(OUT123_LDFLAGS) $(linkflags)
 
 feedseek: feedseek.c
 	$(compile) -o feedseek feedseek.c $(linkflags)
