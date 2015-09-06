@@ -5,6 +5,7 @@ Changes in libmpg123 libtool interface versions...
 	  Now mpg123_position() is truly obsolete!
 	- hardened string API to not crash if given NULL pointers
 	  (except mpg123_init_string())
+	- equalizer feature optional
 
 41.0.41
 	- Add checks for NULL handles in some API functions that missed that, changed return value in others to MPG123_BAD_HANDLE where appropriate:

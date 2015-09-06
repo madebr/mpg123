@@ -382,9 +382,9 @@ int attribute_align_arg mpg123_getstate(mpg123_handle *mh, enum mpg123_state key
 
 	return ret;
 }
-
 int attribute_align_arg mpg123_eq(mpg123_handle *mh, enum mpg123_channels channel, int band, double val)
 {
+#ifndef NO_EQUALIZER
 	if(mh == NULL) return MPG123_BAD_HANDLE;
 	if(band < 0 || band > 31){ mh->err = MPG123_BAD_BAND; return MPG123_ERR; }
 	switch(channel)
@@ -399,12 +399,14 @@ int attribute_align_arg mpg123_eq(mpg123_handle *mh, enum mpg123_channels channe
 			return MPG123_ERR;
 	}
 	mh->have_eq_settings = TRUE;
+#endif
 	return MPG123_OK;
 }
 
 double attribute_align_arg mpg123_geteq(mpg123_handle *mh, enum mpg123_channels channel, int band)
 {
 	double ret = 0.;
+#ifndef NO_EQUALIZER
 
 	/* Handle this gracefully. When there is no band, it has no volume. */
 	if(mh != NULL && band > -1 && band < 32)
@@ -417,10 +419,9 @@ double attribute_align_arg mpg123_geteq(mpg123_handle *mh, enum mpg123_channels 
 		case MPG123_RIGHT: ret = REAL_TO_DOUBLE(mh->equalizer[1][band]); break;
 		/* Default case is already handled: ret = 0 */
 	}
-
+#endif
 	return ret;
 }
-
 
 /* plain file access, no http! */
 int attribute_align_arg mpg123_open(mpg123_handle *mh, const char *path)

@@ -451,6 +451,16 @@ AC_ARG_ENABLE(real,
                 fi
               ], [])
 
+equalizer=enabled
+AC_ARG_ENABLE(equalizer,
+              [  --disable-equalizer=[no/yes] no equalizer support ],
+              [
+                if test "x$enableval" = xno; then
+                  equalizer="disabled"
+                fi
+              ], [])
+
+			  
 AC_ARG_WITH([cpu], [
   --with-cpu=generic[[_fpu]]      Use generic processor code with floating point arithmetic
   --with-cpu=generic_float      Plain alias to generic_fpu now... float output is a normal runtime option!
@@ -762,7 +772,9 @@ else
   fi
 fi
 
-
+if test "x$equalizer" = "xdisabled"; then
+  AC_DEFINE(NO_EQUALIZER, 1, [ Define to disable equalizer. ])
+fi
 
 layer1=enabled
 AC_ARG_ENABLE(layer1,
@@ -2356,6 +2368,7 @@ echo -n "
   16 bit integer .......... $int16
   32/24 bit integer ....... $int32
   real (32 bit float) ..... $real
+  Equalizer ............... $equalizer
   Optimization detail:
   Integer conversion ...... $integers
   New/old WRITE_SAMPLE .... $newoldwritesample

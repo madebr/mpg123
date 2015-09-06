@@ -17,6 +17,7 @@ The creator: Michael Hipp (email: hippm@informatik.uni-tuebingen.de - please bot
 
 Contributions/ideas Thomas Orgis era (includes backports from mhipp trunk):
 
+Tobias Weber <tobiw@suprafluid.com>: patch for --disable-equalizer
 Hans de Goede <j.w.r.degoede@gmail.com>: patch to skip APE tags
 Stephan Vedder <stephan.vedder@gmail.com>: MSVC++ 2013 port update
 Rajeev V. Pillai <rajeevvp@users.sf.net>: pointing out/patching issues in HTTP code and behaviour of mpg123 remote/terminal control

@@ -1,7 +1,8 @@
 1.23.0
 ---
 - libmpg123 version 42
-  This adds mpg123_framelength() and makes mpg123_position() truly obsolete.
+-- This adds mpg123_framelength() and makes mpg123_position() truly obsolete.
+-- Equalizer optional now (--disable-equalizer) to save precious memory
 - First incarnation of libout123, a basic library to get audio data written
   to audio devices (or files). This collects the output modules of mpg123
   and makes them available to the wider masses. Also, the buffer logic

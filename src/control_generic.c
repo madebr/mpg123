@@ -616,6 +616,7 @@ int control_generic (mpg123_handle *fr)
 
 				if (cmd && strlen(cmd) && arg && strlen(arg))
 				{
+#ifndef NO_EQUALIZER
 					/* Simple EQ: SEQ <BASS> <MID> <TREBLE>  */
 					if (!strcasecmp(cmd, "SEQ")) {
 						double b,m,t;
@@ -664,7 +665,7 @@ int control_generic (mpg123_handle *fr)
 
 						continue;
 					}
-
+#endif
 					/* SEEK to a sample offset */
 					if(!strcasecmp(cmd, "K") || !strcasecmp(cmd, "SEEK"))
 					{

@@ -219,6 +219,7 @@ enum mpg123_feature_set
 	,MPG123_FEATURE_DECODE_NTOM          /**< flexible rate decoding       */
 	,MPG123_FEATURE_PARSE_ICY            /**< ICY support                  */
 	,MPG123_FEATURE_TIMEOUT_READ         /**< Reader with timeout (network). */
+	,MPG123_FEATURE_EQUALIZER            /**< tunable equalizer */
 };
 
 /** Query libmpg123 features.
