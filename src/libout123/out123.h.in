@@ -292,7 +292,7 @@ void out123_close(out123_handle *ao);
  * \return supported encodings combined with bitwise or, to be checked
  *         against your favourite bitmask, -1 on error
  */
-int out123_encodings(out123_handle *ao, int channels, long rate);
+int out123_encodings(out123_handle *ao, long rate, int channels);
 
 /** Get list of encodings known to the library.
  *  You are responsible for freeing the allocated array.
