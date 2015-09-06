@@ -112,7 +112,7 @@ mpg123_build()
 	if test "$stat" = "y"; then
 		echo "No DLL there..."
 	else
-		cp -v "$tmp/bin/libmpg123"*.dll "$tmp/include/mpg123.h" "$final/$name" &&
+		cp -v "$tmp/bin/lib*123"*.dll "$tmp/include/*123*.h" "$final/$name" &&
 		cp -v "src/libmpg123/.libs/libmpg123"*.dll.def "$final/$name" &&
 		if test "$debug" = y; then
 			echo "Not stripping the debug build..."
