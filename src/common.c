@@ -315,7 +315,17 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao)
 			long res = 0;
 			if(mpg123_getstate(fr, MPG123_ACCURATE, &res, NULL) == MPG123_OK)
 				len_add = snprintf( line+len, linelen-len
-				,	" %s", res ? "accurate" : "fuzzy" );
+				,	" %s", res ? "acc" : "fuz" );
+			if(len_add > 0)
+				len += len_add;
+		}
+		if(len >= 0 && len < linelen)
+		{ /* Size of frame in bytes. */
+			int len_add = 0;
+			long res = mpg123_clip(fr);
+			if(res >= 0)
+				len_add = snprintf( line+len, linelen-len
+				,	" %4ld clip", res );
 			if(len_add > 0)
 				len += len_add;
 		}
