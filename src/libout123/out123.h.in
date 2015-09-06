@@ -28,6 +28,10 @@
 /* We only need size_t definition. */
 #include <stddef.h>
 
+/** A macro to check at compile time which set of API functions to expect.
+ * This should be incremented at least each time a new symbol is added
+ * to the header.
+ */
 #define OUT123_API_VERSION @OUTAPI_VERSION@
 
 #ifdef __cplusplus
@@ -66,7 +70,9 @@ extern "C" {
 
 #include <mpg123_enc.h>
 
+/** Opaque structure for the libout123 handle. */
 struct out123_struct;
+/** Typedef shortcut as preferrend name for the handle type. */
 typedef struct out123_struct out123_handle;
 
 /** Enumeration of codes for the parameters that it is possible to set/get. */
@@ -85,6 +91,7 @@ enum out123_parms
  */
 };
 
+/** Flags to tune out123 behaviour */
 enum out123_flags
 {
 	AUDIO_OUT_HEADPHONES       = 0x01 /**< output to headphones (if supported) */
@@ -137,17 +144,20 @@ enum out123_error
 
 /** Get string representation of last encountered error in the
  *  context of given handle.
- *  \return error string
+ * \param ao handle
+ * \return error string
  */
 const char* out123_strerror(out123_handle *ao);
 
 /** Get the plain errcode intead of a string.
+ * \param ao handle
  * \return error code recorded in handle or OUT123_BAD_HANDLE
  */
 int out123_errcode(out123_handle *ao);
 
 /** Return the error string for a given error code.
  * \param errcode the integer error code
+ * \return error string
  */
 const char* out123_plain_strerror(int errcode);
 
@@ -177,6 +187,7 @@ const char* out123_plain_strerror(int errcode);
  *  processes off threaded programs. Probably you are better off spawning a
  *  buffer thread yourself.
  *
+ * \param ao handle
  * \param buffer_bytes size (bytes) of a memory buffer for decoded audio,
  *    a value of zero disables the buffer.
  * \return 0 on success, MPG123_ERR on error
@@ -187,6 +198,7 @@ int out123_set_buffer(out123_handle *ao, size_t buffer_bytes);
  *  code chosen from the out123_parms enumeration, to the specified value.
  *  The parameters usually only change what happens on next out123_open, not
  *  incfluencing running operation.
+ * \param ao handle
  * \param code parameter code
  * \param value input value for integer parameters
  * \param fvalue input value for floating point parameters
@@ -197,6 +209,7 @@ int out123_param( out123_handle *ao, enum out123_parms code
 
 /** Get a specific parameter, for a specific out123_handle, using a parameter
  *  code chosen from the out123_parms enumeration, to the specified value.
+ * \param ao handle
  * \param code parameter code
  * \param ret_value output address for integer parameters
  * \param ret_fvalue output address for floating point parameters
@@ -206,7 +219,9 @@ int out123_getparam( out123_handle *ao, enum out123_parms code
 ,                    long *ret_value, double *ret_fvalue );
 
 /** Copy parameters from another out123_handle.
+ * \param ao handle
  * \param from_ao the handle to copy parameters from
+ * \return 0 in success, -1 on error
  */
 int out123_param_from(out123_handle *ao, out123_handle* from_ao);
 
@@ -217,6 +232,7 @@ int out123_param_from(out123_handle *ao, out123_handle* from_ao);
  *  skipped. You will get stderr messages about that unless OUT123_QUIET was
  *  was set, though. Failure to open the module directory is a serious error,
  *  resulting in negative return value.
+ * \param ao handle
  * \param names address for storing list of names
  * \param descr address for storing list of descriptions
  * \return number of drivers found, -1 on error
@@ -228,6 +244,7 @@ int out123_drivers(out123_handle *ao, char ***names, char ***descr);
  *  device name recorded, possibly tested for availability or tentatively
  *  opened. After out123_open(), you can ask for supported encodings
  *  and then really open the device for playback with out123_start().
+ * \param ao handle
  * \param driver (comma-separated list of) output driver name(s to try),
  *               NULL for default (stdout for file-based drivers)
  * \param device device name to open, NULL for default
@@ -241,6 +258,7 @@ int out123_open(out123_handle *ao, const char* driver, const char* device);
  *  as long as the driver/device combination is opened.
  *  The device may be NULL indicating some unnamed default.
  *  TODO: Make the driver modules return names for such defaults.
+ * \param ao handle
  * \param driver return address for driver name
  * \param device return address for device name
  * \return 0 on success, -1 on error (i.e. no driver loaded)
@@ -253,6 +271,7 @@ int out123_driver_info(out123_handle *ao, char **driver, char **device);
  *  which your main application is blocked waiting.
  *  Call out123_drop() beforehand if you want to end things
  *  quickly.
+ * \param ao handle
  */
 void out123_close(out123_handle *ao);
 
@@ -267,6 +286,7 @@ void out123_close(out123_handle *ao);
  *  does not match any defined format (only 15 bits used for encodings,
  *  so this would even work with 16 bit integers).
  *  This implies out123_stop() to enter query mode.
+ * \param ao handle
  * \param rate sampling rate
  * \param channels number of channels
  * \return supported encodings combined with bitwise or, to be checked
@@ -277,6 +297,7 @@ int out123_encodings(out123_handle *ao, int channels, long rate);
 /** Start playback with a certain output format
  *  It might be a good idea to have audio data handy to feed after this
  *  returns with success.
+ * \param ao handle
  * \param encoding sample encoding (values matching libmpg123 API)
  * \param channels number of channels (1 or 2, usually)
  * \param rate sampling rate
@@ -298,6 +319,7 @@ int out123_start( out123_handle *ao
  *  At least announcing the pause is nicer than just stopping to feed audio
  *  data for some time, although it might have the same effect, again,
  *  deopending on the selected driver.
+ * \param ao handle
  */
 void out123_pause(out123_handle *ao);
 
@@ -309,6 +331,7 @@ void out123_pause(out123_handle *ao);
  *  To wait for a minimum fill. You can force playback of the last scrap with
  *  out123_drain(), or just by feeding more data with out123_play(), which
  *  will trigger out123_continue(), too.
+ * \param ao handle
  */
 void out123_continue(out123_handle *ao);
 
@@ -316,6 +339,7 @@ void out123_continue(out123_handle *ao);
  *  This waits for pending audio data to drain to the speakers.
  *  You might want to call out123_drop() before stopping if you want
  *  to end things right away.
+ * \param ao handle
  */
 void out123_stop(out123_handle *ao);
 
@@ -330,6 +354,7 @@ void out123_stop(out123_handle *ao);
  *  as constant. Some output drivers might need to do things like swap
  *  byte order. This is done in-place instead of wasting memory on yet
  *  another copy. 
+ * \param ao handle
  * \param buffer pointer to raw audio data to be played
  * \param bytes number of bytes to read from the buffer
  * \return number of bytes played (might be less than given, even zero)
@@ -342,15 +367,17 @@ size_t out123_play( out123_handle *ao
  *  an actual pause in playback. You are expected to play something,
  *  but feel free to call out123_stop() afterwards instead for a quicker
  *  exit than the implied out123_drain().
+ * \param ao handle
  */
 void out123_drop(out123_handle *ao);
 
 /** Drain the output, waiting until all data went to the hardware.
-  * This does not imply out123_stop(). You might continue handing in
-  * new data after that (after you enforced a buffer underrun ...).
-  * This might involve only the optional buffer process, or the
-  * buffers on the audio driver side, too.
-  */
+ * This does not imply out123_stop(). You might continue handing in
+ * new data after that (after you enforced a buffer underrun ...).
+ * This might involve only the optional buffer process, or the
+ * buffers on the audio driver side, too.
+ * \param ao handle
+ */
 void out123_drain(out123_handle *ao);
 
 /** Drain the output, but only partially up to the given number of
@@ -363,6 +390,7 @@ void out123_drain(out123_handle *ao);
  *  provided limit, as the buffer is writing all the time in the
  *  background.
  *
+ * \param ao handle
  * \param bytes limit of buffered bytes to drain
  * \return number of bytes drained from buffer
  */
@@ -371,6 +399,7 @@ void out123_ndrain(out123_handle *ao, size_t bytes);
 /** Get an indication of how many bytes reside in the optional buffer.
  * This might get extended to tell the number of bytes queued up in the
  * audio backend, too.
+ * \param ao handle
  * \return number of bytes in out123 library buffer
  */
 size_t out123_buffered(out123_handle *ao);
@@ -378,6 +407,7 @@ size_t out123_buffered(out123_handle *ao);
 /** Extract currently used audio format from handle.
  *  matching mpg123_getformat().
  *  Given return addresses may be NULL to indicate no interest.
+ * \param ao handle
  * \param rate address for sample rate
  * \param channels address for channel count
  * \param encoding address for encoding

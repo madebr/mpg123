@@ -17,6 +17,8 @@
 /** \defgroup mpg123_enc mpg123 PCM sample encodings
  *  These are definitions for sample encodings used by libmpg123 and
  *  libout123.
+ *
+ * @{
  */
 
 /** An enum over all sample types possibly known to mpg123.
