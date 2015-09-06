@@ -14,6 +14,11 @@
 
 /** \file mpg123_enc.h Audio encoding definitions from mpg123. */
 
+/** \defgroup mpg123_enc mpg123 PCM sample encodings
+ *  These are definitions for sample encodings used by libmpg123 and
+ *  libout123.
+ */
+
 /** An enum over all sample types possibly known to mpg123.
  *  The values are designed as bit flags to allow bitmasking for encoding families.
  *
@@ -59,7 +64,7 @@ enum mpg123_enc_enum
 /** Get size of one PCM sample with given encoding.
  *  This is too trivial to trigger binding to a library.
  *  Also: Thomas really likes the ?: operator.
- * \param encoding the encoding (mpg123_enc_enum value)
+ * \param enc the encoding (mpg123_enc_enum value)
  * \return size of one sample in bytes
  */
 #define mpg123_samplesize(enc) ( \
@@ -76,4 +81,8 @@ enum mpg123_enc_enum
 					:	0 \
 )	)	)	)	)
 
+/* @} */
+
+
 #endif
+

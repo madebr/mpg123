@@ -10,7 +10,6 @@
 */
 
 /* API TODO:
-	- rename out123_handle to out123_handle
 	- Consider zero-copy mode. Ideally, one asks the buffer process for
 	  a memory block to write to and avoids any copying.
 	  Only trouble is that a desired size might not fit in one piece into
@@ -31,7 +30,11 @@
 
 #define OUT123_API_VERSION @OUTAPI_VERSION@
 
-/** \defgroup out123_api
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/** \defgroup out123_api out123 library API
  *  This is out123, a library focused on continuous playback of audio streams
  *  via various platform-specific output methods. It glosses over details of
  *  the native APIs to give an interface close to simply writing data to a
@@ -73,13 +76,13 @@ enum out123_parms
 ,	OUT123_PRELOAD /**< float, fraction of buffer to fill before playback */
 ,	OUT123_GAIN    /**< integer, output device gain (module-specific) */
 ,	OUT123_VERBOSE /**< integer, verbosity to stderr, >= 0 */
-/** float, length of device buffer in seconds
+,	OUT123_DEVICEBUFFER /**<
+ *  float, length of device buffer in seconds;
  *  This might be ignored, might have only a loose relation to actual
  *  buffer sizes and latency, depending on output driver. Try to tune
  *  this before opening a device if you want to influcence latency or reduce
  *  dropouts. Value <= 0 uses some default.
  */
-,	OUT123_DEVICEBUFFER
 };
 
 enum out123_flags
@@ -88,12 +91,12 @@ enum out123_flags
 ,	AUDIO_OUT_INTERNAL_SPEAKER = 0x02 /**< output to speaker (if supported) */
 ,	AUDIO_OUT_LINE_OUT         = 0x04 /**< output to line out (if supported) */
 ,	OUT123_QUIET               = 0x08 /**< no printouts to stdandard error */
-/** When this is set (default), playback continues in a loop when the device
+,	OUT123_KEEP_PLAYING        = 0x10 /**<
+ *  When this is set (default), playback continues in a loop when the device
  *  does not consume all given data at once. This happens when encountering
  *  signals (like SIGSTOP, SIGCONT) that cause interruption of the underlying
  *  functions.
  */
-,	OUT123_KEEP_PLAYING        = 0x10
 };
 
 /** Create a new output handle.
@@ -125,8 +128,9 @@ enum out123_error
 ,	OUT123_NOT_LIVE /**< no active audio device */
 ,	OUT123_DEV_PLAY /**< some device playback error */
 ,	OUT123_DEV_OPEN /**< error opening device */
-/** Some (really unexpected) error in buffer infrastructure. */	
-,	OUT123_BUFFER_ERROR
+,	OUT123_BUFFER_ERROR /**<
+ * Some (really unexpected) error in buffer infrastructure.
+ */
 ,	OUT123_MODULE_ERROR /**< basic failure in module loading */
 ,	OUT123_ERRCOUNT /**< placeholder for shaping arrays */
 };
@@ -153,7 +157,7 @@ const char* out123_plain_strerror(int errcode);
  *  burden to ensure sparing CPU cycles for actual playback.
  *  This is for applicatons that prefer continuous playback over small latency.
  *  In other words: The kind of applications that out123 is designed for.
- *  This routine always kills of any currently active audio output module /
+ *  This routine always kills off any currently active audio output module /
  *  device, even if you just disable the buffer when there is no buffer.
  *
  *  Keep this in mind for memory-constrainted systems: Activating the
@@ -173,7 +177,7 @@ const char* out123_plain_strerror(int errcode);
  *  processes off threaded programs. Probably you are better off spawning a
  *  buffer thread yourself.
  *
- * \param buffer_size size (bytes) of a memory buffer for decoded audio,
+ * \param buffer_bytes size (bytes) of a memory buffer for decoded audio,
  *    a value of zero disables the buffer.
  * \return 0 on success, MPG123_ERR on error
  */
@@ -194,8 +198,8 @@ int out123_param( out123_handle *ao, enum out123_parms code
 /** Get a specific parameter, for a specific out123_handle, using a parameter
  *  code chosen from the out123_parms enumeration, to the specified value.
  * \param code parameter code
- * \param value output address for integer parameters
- * \param fvalue output address for floating point parameters
+ * \param ret_value output address for integer parameters
+ * \param ret_fvalue output address for floating point parameters
  * \return 0 on success, MPG123_ERR on error (bad parameter name or bad handle).
  */
 int out123_getparam( out123_handle *ao, enum out123_parms code
@@ -372,18 +376,22 @@ void out123_ndrain(out123_handle *ao, size_t bytes);
 size_t out123_buffered(out123_handle *ao);
 
 /** Extract currently used audio format from handle.
- *  TODO: make the order of out123_start() match the arguments here,
  *  matching mpg123_getformat().
  *  Given return addresses may be NULL to indicate no interest.
  * \param rate address for sample rate
  * \param channels address for channel count
  * \param encoding address for encoding
- * \param size of a full PCM frame (for convenience)
+ * \param framesize size of a full PCM frame (for convenience)
+ * \return 0 on success, -1 on error
  */
 int out123_getformat( out123_handle *ao
 ,	long *rate, int *channels, int *encoding, int *framesize );
 
 /* @} */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 
