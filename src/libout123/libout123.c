@@ -816,9 +816,9 @@ int out123_driver_info(out123_handle *ao, char **driver, char **device)
 	return OUT123_OK;
 }
 
-int out123_encodings(out123_handle *ao, int channels, long rate)
+int out123_encodings(out123_handle *ao, long rate, int channels)
 {
-	debug3("out123_encodings(%p, %i, %li)", (void*)ao, channels, rate);
+	debug3("out123_encodings(%p, %li, %i)", (void*)ao, rate, channels);
 	if(!ao)
 		return OUT123_ERR;
 	ao->errcode = OUT123_OK;

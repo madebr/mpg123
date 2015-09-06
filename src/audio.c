@@ -126,7 +126,7 @@ void audio_capabilities(out123_handle *ao, mpg123_handle *mh)
 		rate = pitch_rate(decode_rate);
 		if(param.verbose > 2) fprintf(stderr, "Note: checking support for %liHz/%ich.\n", rate, channels);
 
-		fmts = out123_encodings(ao, channels, rate);
+		fmts = out123_encodings(ao, rate, channels);
 
 		if(param.verbose > 2) fprintf(stderr, "Note: result 0x%x\n", fmts);
 		if(force_fmt)

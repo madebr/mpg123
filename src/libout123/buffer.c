@@ -683,7 +683,7 @@ int buffer_loop(out123_handle *ao)
 					||	!GOOD_READVAL_BUF(my_fd, ao->rate)
 					)
 						return 2;
-					encodings = out123_encodings(ao, ao->channels, ao->rate);
+					encodings = out123_encodings(ao, ao->rate, ao->channels);
 					if(encodings >= 0)
 					{
 						xfermem_putcmd(my_fd, XF_CMD_OK);

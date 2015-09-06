@@ -297,6 +297,45 @@ static void list_encodings(char *arg)
 	exit(0);
 }
 
+static int getencs(void)
+{
+	int encs = 0;
+	out123_handle *lao;
+	if(verbose)
+		fprintf( stderr
+		,	ME": getting supported encodings for %li Hz, %i channels\n"
+		,	rate, channels );
+	if((lao=out123_new()))
+	{
+		out123_param(lao, OUT123_VERBOSE, verbose, 0.);
+		if(quiet)
+			out123_param(lao, OUT123_FLAGS, OUT123_QUIET, 0.);
+		if(!out123_open(lao, driver, device))
+			encs = out123_encodings(lao, rate, channels);
+		else if(!quiet)
+			error1("cannot open driver: %s", out123_strerror(lao));
+		out123_del(lao);
+	}
+	else if(!quiet)
+		error("Failed to create an out123 handle.");
+	return encs;
+}
+
+static void test_format(char *arg)
+{
+	int encs;
+	encs = getencs();
+	exit((encs & encoding) ? 0 : -1);
+}
+
+static void test_encodings(char *arg)
+{
+	int encs;
+	encs = getencs();
+	printf("%i\n", encs);
+	exit(!encs);
+}
+
 /* Please note: GLO_NUM expects point to LONG! */
 /* ThOr:
  *  Yeah, and despite that numerous addresses to int variables were 
@@ -346,6 +385,8 @@ topt opts[] = {
 	{0 , "version" ,         0,  give_version, 0,         0 },
 	{'e', "encoding", GLO_ARG|GLO_CHAR, 0, &encoding_name, 0},
 	{0, "list-encodings", 0, list_encodings, 0, 0 },
+	{0, "test-format", 0, test_format, 0, 0 },
+	{0, "test-encodings", 0, test_encodings, 0, 0},
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -604,18 +645,22 @@ static void long_usage(int err)
 
 	fprintf(o," -o <o> --output <o>       select audio output module\n");
 	fprintf(o,"        --list-modules     list the available modules\n");
-	fprintf(o," -a <d> --audiodevice <d>  select audio device\n");
-	fprintf(o," -s     --stdout           write raw audio to stdout (host native format)\n");
+	fprintf(o," -a <d> --audiodevice <d>  select audio device (for files, empty or - is stdout)\n");
+	fprintf(o," -s     --stdout           write raw audio to stdout (-o raw -a -)\n");
 	fprintf(o," -S     --STDOUT           play AND output stream (not implemented yet)\n");
-	fprintf(o," -w <f> --wav <f>          write samples as WAV file in <f> (- is stdout)\n");
-	fprintf(o,"        --au <f>           write samples as Sun AU file in <f> (- is stdout)\n");
-	fprintf(o,"        --cdr <f>          write samples as raw CD audio file in <f> (- is stdout)\n");
-	fprintf(o," -m     --mono             set channelcount to 1\n");
-	fprintf(o,"        --stereo           set channelcount to 2 (default)\n");
+	fprintf(o," -O <f> --output <f>       raw output to given file (-o raw -a <f>)\n");
+	fprintf(o," -w <f> --wav <f>          write samples as WAV file in <f> (-o wav -a <f>)\n");
+	fprintf(o,"        --au <f>           write samples as Sun AU file in <f> (-o au -a <f>)\n");
+	fprintf(o,"        --cdr <f>          write samples as raw CD audio file in <f> (-o cdr -a <f>)\n");
 	fprintf(o," -r <r> --rate <r>         set the audio output rate in Hz (default 44100)\n");
+	fprintf(o," -c <n> --channels <n>     set channel count to <n>\n");
 	fprintf(o," -e <c> --encoding <c>     set output encoding (%s)\n"
 	,	enclist != NULL ? enclist : "OOM!");
+	fprintf(o," -m     --mono             set channel count to 1\n");
+	fprintf(o,"        --stereo           set channel count to 2 (default)\n");
 	fprintf(o,"        --list-encodings   list of encoding short and long names\n");
+	fprintf(o,"        --test-format      return 0 if configued audio format is supported\n");
+	fprintf(o,"        --test-encodings   print out possible encodings with given channels/rate\n");
 	fprintf(o," -o h   --headphones       (aix/hp/sun) output on headphones\n");
 	fprintf(o," -o s   --speaker          (aix/hp/sun) output on speaker\n");
 	fprintf(o," -o l   --lineout          (aix/hp/sun) output to lineout\n");
@@ -623,7 +668,7 @@ static void long_usage(int err)
 	fprintf(o," -b <n> --buffer <n>       set play buffer (\"output cache\")\n");
 	fprintf(o,"        --preload <value>  fraction of buffer to fill before playback\n");
 #endif
-	fprintf(o," -t     --test             no output, just read and discard data\n");
+	fprintf(o," -t     --test             no output, just read and discard data (-o test)\n");
 	fprintf(o," -v[*]  --verbose          increase verboselevel\n");
 	#ifdef HAVE_SETPRIORITY
 	fprintf(o,"        --aggressive       tries to get higher priority (nice)\n");
