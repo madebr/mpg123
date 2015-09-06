@@ -20,6 +20,7 @@
 #define buffer_open IOT123_buffer_open
 #define buffer_encodings IOT123_buffer_encodings
 #define buffer_start IOT123_buffer_start
+#define buffer_ndrain IOT123_buffer_ndrain
 #define buffer_stop IOT123_buffer_stop
 #define buffer_close IOT123_buffer_close
 #define buffer_continue IOT123_buffer_continue
@@ -30,12 +31,14 @@
 #define buffer_drop IOT123_buffer_drop
 #define buffer_write IOT123_buffer_write
 #define buffer_fill IOT123_buffer_fill
+#define read_buf IOT123_read_buf
 #define xfermem_init IOT123_xfermem_init
 #define xfermem_init_writer IOT123_xfermem_init_writer
 #define xfermem_init_reader IOT123_xfermem_init_reader
 #define xfermem_get_freespace IOT123_xfermem_get_freespace
 #define xfermem_get_usedspace IOT123_xfermem_get_usedspace
 #define xfermem_getcmd IOT123_xfermem_getcmd
+#define xfermem_getcmds IOT123_xfermem_getcmds
 #define xfermem_putcmd IOT123_xfermem_putcmd
 #define xfermem_writer_block IOT123_xfermem_writer_block
 #define xfermem_write IOT123_xfermem_write
