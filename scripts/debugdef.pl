@@ -30,7 +30,14 @@ print <<EOT;
 	It's cumbersome to have them all with different names, though...
 */
 
+#ifdef ME
+#define DBGPRFX ME": "
+#else
+#define DBGPRFX ""
+#endif
+
 #ifdef DEBUG
+
 #include <stdio.h>
 EOT
 printdefs(1);
@@ -70,7 +77,7 @@ sub printdefs
 		unshift(@args, '') if(@args);
 		print '#define '.$type.($i > 1 ? ($i-1) : '').'('.$rv.'s';
 		print join(', ', @args).') ';
-		if($forreal){ print $pre.'fprintf(stderr, "[" __FILE__ ":%i] '.$type.': " s "\n", __LINE__'.join(', ', @args).")$post\n"; }
+		if($forreal){ print $pre.'fprintf(stderr, DBGPRFX"[" __FILE__ ":%i] '.$type.': " s "\n", __LINE__'.join(', ', @args).")$post\n"; }
 		#else{ print "do {} while(0)\n"; } 
 		else{ print "$notreal\n"; }
 	}
