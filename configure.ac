@@ -90,6 +90,7 @@ fi
 
 AM_PROG_AS
 AC_PROG_CC
+AM_PROG_CC_C_O
 AC_PROG_CPP
 AC_PROG_INSTALL
 dnl "Checking for egrep is broken after removal of libltdl stuff... checks use $EGREP, so searching it here."
