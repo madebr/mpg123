@@ -10,6 +10,7 @@
 #define _MPG123_TERM_H_
 
 #include "mpg123app.h"
+#include "audio.h"
 
 #ifdef HAVE_TERMIOS
 

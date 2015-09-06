@@ -1361,13 +1361,14 @@ static void want_usage(char* arg)
 
 static void long_usage(int err)
 {
-	char *enclist;
+	mpg123_string *enclist;
 	FILE* o = stdout;
 	if(err)
 	{
   	o = stderr; 
   	fprintf(o, "You made some mistake in program usage... let me remind you:\n\n");
 	}
+	enclist = audio_enclist();
 	print_title(o);
 	fprintf(o,"\nusage: %s [option(s)] [file(s) | URL(s) | -]\n", prgName);
 
@@ -1433,8 +1434,8 @@ static void long_usage(int err)
   fprintf(o,"        --pitch <value>    set hardware pitch (speedup/down, 0 is neutral; 0.05 is 5%%)\n");
 	fprintf(o,"        --8bit             force 8 bit output\n");
 	fprintf(o,"        --float            force floating point output (internal precision)\n");
-	audio_enclist(&enclist);
-	fprintf(o," -e <c> --encoding <c>     force a specific encoding (%s)\n", enclist != NULL ? enclist : "OOM!");
+	fprintf(o," -e <c> --encoding <c>     force a specific encoding (%s)\n"
+	,	enclist != NULL ? enclist->p : "OOM!");
 	fprintf(o," -d n   --doublespeed n    play only every nth frame\n");
 	fprintf(o," -h n   --halfspeed   n    play every frame n times\n");
 	fprintf(o,"        --equalizer        exp.: scales freq. bands acrd. to 'equalizer.dat'\n");
@@ -1492,6 +1493,8 @@ static void long_usage(int err)
 	fprintf(o,"        --version          give name / version string\n");
 
 	fprintf(o,"\nSee the manpage "PACKAGE_NAME"(1) for more information.\n");
+	mpg123_free_string(enclist);
+	free(enclist);
 	safe_exit(err);
 }
 

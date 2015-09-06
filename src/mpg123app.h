@@ -36,7 +36,6 @@
 #define INLINE
 #endif
 
-#include "audio.h"
 #include "local.h"
 
 extern size_t bufferblock;
@@ -132,7 +131,6 @@ extern int playlimit;
 #endif
 
 /* why extern? */
-extern void prepare_audioinfo(mpg123_handle *mh, out123_handle *ao);
 extern int play_frame(void);
 
 extern int control_generic(mpg123_handle *fr);

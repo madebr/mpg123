@@ -15,10 +15,7 @@ src_mpg123_LDADD = $(LIBLTDL) \
 
 src_mpg123_LDFLAGS = @EXEC_LT_LDFLAGS@ $(output_ldflags)
 
-# The dependency on libmpg123 could/should vanish. Or not.
-# Does it matter much?
 src_out123_LDADD = $(LIBLTDL) \
-  src/libmpg123/libmpg123.la \
   src/libout123/libout123.la
 
 src_out123_LDFLAGS = @EXEC_LT_LDFLAGS@ $(output_ldflags)
@@ -78,8 +75,6 @@ src_mpg123_SOURCES +=
 
 # Replace common.h by sysutil.h!
 src_out123_SOURCES = \
-  src/audio.h \
-  src/audio.c \
   src/sysutil.c \
   src/sysutil.h \
   src/common.h \

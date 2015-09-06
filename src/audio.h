@@ -22,9 +22,7 @@
 
 #define pitch_rate(rate)	(param.pitch == 0 ? (rate) : (long) ((param.pitch+1.0)*(rate)))
 
-int audio_enc_name2code(const char* name);
-const char* audio_encoding_name(const int encoding, const int longer);
-void audio_enclist(char** list);
+mpg123_string* audio_enclist(void);
 
 void audio_capabilities(out123_handle *ao, mpg123_handle *mh);
 void print_capabilities(out123_handle *ao, mpg123_handle *mh);

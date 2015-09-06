@@ -8,6 +8,7 @@
 
 #include <errno.h>
 #include "mpg123app.h"
+#include "audio.h"
 #include "out123.h"
 #include "common.h"
 #include "sysutil.h"
@@ -18,77 +19,27 @@
 
 #include "debug.h"
 
-struct enc_desc
+mpg123_string* audio_enclist(void)
 {
-	int code; /* MPG123_ENC_SOMETHING */
-	const char *longname; /* signed bla bla */
-	const char *name; /* sXX, short name */
-	const unsigned char nlen; /* significant characters in short name */
-};
-
-static const struct enc_desc encdesc[] =
-{
-	{ MPG123_ENC_SIGNED_16, "signed 16 bit", "s16 ", 3 },
-	{ MPG123_ENC_UNSIGNED_16, "unsigned 16 bit", "u16 ", 3 },
-	{ MPG123_ENC_UNSIGNED_8, "unsigned 8 bit", "u8  ", 2 },
-	{ MPG123_ENC_SIGNED_8, "signed 8 bit", "s8  ", 2 },
-	{ MPG123_ENC_ULAW_8, "mu-law (8 bit)", "ulaw ", 4 },
-	{ MPG123_ENC_ALAW_8, "a-law (8 bit)", "alaw ", 4 },
-	{ MPG123_ENC_FLOAT_32, "float (32 bit)", "f32 ", 3 },
-	{ MPG123_ENC_SIGNED_32, "signed 32 bit", "s32 ", 3 },
-	{ MPG123_ENC_UNSIGNED_32, "unsigned 32 bit", "u32 ", 3 },
-	{ MPG123_ENC_SIGNED_24, "signed 24 bit", "s24 ", 3 },
-	{ MPG123_ENC_UNSIGNED_24, "unsigned 24 bit", "u24 ", 3 }
-};
-#define KNOWN_ENCS (sizeof(encdesc)/sizeof(struct enc_desc))
-
-int audio_enc_name2code(const char* name)
-{
-	int code = 0;
 	int i;
-	for(i=0;i<KNOWN_ENCS;++i)
-	if(!strncasecmp(encdesc[i].name, name, encdesc[i].nlen))
+	mpg123_string *list;
+	size_t enc_count = 0;
+	const int *enc_codes = NULL;
+
+	/* Only the encodings supported by libmpg123 build
+	   Those returned by out123_enc_list() are a superset. */
+	mpg123_encodings(&enc_codes, &enc_count);
+	if((list = malloc(sizeof(*list))))
+		mpg123_init_string(list);
+	/* Further calls to mpg123 string lib are hardened against NULL. */
+	for(i=0;i<enc_count;++i)
 	{
-		code = encdesc[i].code;
-		break;
+		if(i>0)
+			mpg123_add_string(list, " ");
+		mpg123_add_string(list, out123_enc_name(enc_codes[i]));
 	}
-	return code;
+	return list;
 }
-
-void audio_enclist(char** list)
-{
-	size_t length = 0;
-	int i;
-	*list = NULL;
-	for(i=0;i<KNOWN_ENCS;++i) length += encdesc[i].nlen;
-
-	length += KNOWN_ENCS-1; /* spaces between the encodings */
-	*list = malloc(length+1); /* plus zero */
-	if(*list != NULL)
-	{
-		size_t off = 0;
-		(*list)[length] = 0;
-		for(i=0;i<KNOWN_ENCS;++i)
-		{
-			if(i>0) (*list)[off++] = ' ';
-			memcpy(*list+off, encdesc[i].name, encdesc[i].nlen);
-			off += encdesc[i].nlen;
-		}
-	}
-}
-
-/* Safer as function... */
-const char* audio_encoding_name(const int encoding, const int longer)
-{
-	const char *name = longer ? "unknown" : "???";
-	int i;
-	for(i=0;i<KNOWN_ENCS;++i)
-	if(encdesc[i].code == encoding)
-	name = longer ? encdesc[i].longname : encdesc[i].name;
-
-	return name;
-}
-
 
 static void capline(mpg123_handle *mh, long rate)
 {
@@ -123,7 +74,11 @@ void print_capabilities(out123_handle *ao, mpg123_handle *mh)
 	mpg123_rates(&rates, &num_rates);
 	mpg123_encodings(&encs, &num_encs);
 	fprintf(stderr,"\nAudio driver: %s\nAudio device: %s\nAudio capabilities:\n(matrix of [S]tereo or [M]ono support for sample format and rate in Hz)\n       |", name, dev);
-	for(e=0;e<num_encs;e++) fprintf(stderr," %5s |",audio_encoding_name(encs[e], 0));
+	for(e=0;e<num_encs;e++)
+	{
+		const char *encname = out123_enc_name(encs[e]);
+		fprintf(stderr," %5s |", encname ? encname : "xxx");
+	}
 
 	fprintf(stderr,"\n ------|");
 	for(e=0;e<num_encs;e++) fprintf(stderr,"-------|");
@@ -155,7 +110,7 @@ void audio_capabilities(out123_handle *ao, mpg123_handle *mh)
 	{
 		if(!param.quiet) fprintf(stderr, "Note: forcing output encoding %s\n", param.force_encoding);
 
-		force_fmt = audio_enc_name2code(param.force_encoding);
+		force_fmt = out123_enc_byname(param.force_encoding);
 		if(!force_fmt)
 		{
 			error1("Failed to find an encoding to match requested \"%s\"!\n", param.force_encoding);
