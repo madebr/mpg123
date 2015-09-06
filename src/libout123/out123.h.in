@@ -371,7 +371,7 @@ void out123_stop(out123_handle *ao);
 /** Hand over data for playback and wait in case audio device is busy.
  *  This survives non-fatal signals like SIGSTOP/SIGCONT and keeps on
  *  playing until the buffer is done with if the flag
- *  OUT123_PLAY_OVER_SIGNALS ist set (default). So, per default, if
+ *  OUT123_KEEP_PLAYING ist set (default). So, per default, if
  *  you provided a byte count divisible by the PCM frame size, it is an
  *  error when less bytes than given are played.
  *  To be sure if an error occured, check out123_errcode().
