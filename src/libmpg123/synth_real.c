@@ -189,7 +189,7 @@ int synth_1to1_real_avx(real *bandPtr,int channel, mpg123_handle *fr, int final)
 	return 0;
 }
 
-int synth_1to1_real_stereo_avx(real *bandPtr_l, real *bandPtr_r, mpg123_handle *fr)
+int synth_1to1_fltst_avx(real *bandPtr_l, real *bandPtr_r, mpg123_handle *fr)
 {
 	real *samples = (real *) (fr->buffer.data+fr->buffer.fill);
 
@@ -457,7 +457,7 @@ int synth_1to1_real_neon64(real *bandPtr,int channel, mpg123_handle *fr, int fin
 
 	return 0;
 }
-int synth_1to1_real_stereo_neon64(real *bandPtr_l, real *bandPtr_r, mpg123_handle *fr)
+int synth_1to1_fltst_neon64(real *bandPtr_l, real *bandPtr_r, mpg123_handle *fr)
 {
 	real *samples = (real *) (fr->buffer.data+fr->buffer.fill);
 

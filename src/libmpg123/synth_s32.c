@@ -467,7 +467,7 @@ int synth_1to1_s32_neon64(real *bandPtr,int channel, mpg123_handle *fr, int fina
 	return clip;
 }
 
-int synth_1to1_s32_stereo_neon64(real *bandPtr_l, real *bandPtr_r, mpg123_handle *fr)
+int synth_1to1_s32st_neon64(real *bandPtr_l, real *bandPtr_r, mpg123_handle *fr)
 {
 	int32_t *samples = (int32_t *) (fr->buffer.data+fr->buffer.fill);
 

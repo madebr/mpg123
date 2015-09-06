@@ -653,7 +653,7 @@ int synth_1to1_real_altivec(real *bandPtr,int channel,mpg123_handle *fr, int fin
 	return 0;
 }
 
-int synth_1to1_real_stereo_altivec(real *bandPtr_l, real *bandPtr_r, mpg123_handle *fr)
+int synth_1to1_fltst_altivec(real *bandPtr_l, real *bandPtr_r, mpg123_handle *fr)
 {
 	real *samples = (real *) (fr->buffer.data+fr->buffer.fill);
 	
