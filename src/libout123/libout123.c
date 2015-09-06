@@ -884,3 +884,70 @@ int out123_getformat( out123_handle *ao
 		*framesize = ao->framesize;
 	return OUT123_OK;
 }
+
+struct enc_desc
+{
+	int code; /* MPG123_ENC_SOMETHING */
+	const char *longname; /* signed bla bla */
+	const char *name; /* sXX, short name */
+};
+
+static const struct enc_desc encdesc[] =
+{
+	{ MPG123_ENC_SIGNED_16,   "signed 16 bit",   "s16"  }
+,	{ MPG123_ENC_UNSIGNED_16, "unsigned 16 bit", "u16"  }
+,	{ MPG123_ENC_SIGNED_32,   "signed 32 bit",   "s32"  }
+,	{ MPG123_ENC_UNSIGNED_32, "unsigned 32 bit", "u32"  }
+,	{ MPG123_ENC_SIGNED_24,   "signed 24 bit",   "s24"  }
+,	{ MPG123_ENC_UNSIGNED_24, "unsigned 24 bit", "u24"  }
+,	{ MPG123_ENC_FLOAT_32,    "float (32 bit)",  "f32"  }
+,	{ MPG123_ENC_FLOAT_64,    "float (64 bit)",  "f64"  }
+,	{ MPG123_ENC_SIGNED_8,    "signed 8 bit",    "s8"   }
+,	{ MPG123_ENC_UNSIGNED_8,  "unsigned 8 bit",  "u8"   }
+,	{ MPG123_ENC_ULAW_8,      "mu-law (8 bit)",  "ulaw" }
+,	{ MPG123_ENC_ALAW_8,      "a-law (8 bit)",   "alaw" }
+};
+#define KNOWN_ENCS (sizeof(encdesc)/sizeof(struct enc_desc))
+
+int out123_enc_list(int **enclist)
+{
+	int i;
+	if(!enclist)
+		return OUT123_ERR;
+	*enclist = malloc(sizeof(int)*KNOWN_ENCS);
+	if(!(*enclist))
+		return OUT123_ERR;
+	for(i=0;i<KNOWN_ENCS;++i)
+		(*enclist)[i] = encdesc[i].code;
+	return KNOWN_ENCS;
+}
+
+int out123_enc_byname(const char *name)
+{
+	int i;
+	if(!name)
+		return OUT123_ERR;
+	for(i=0;i<KNOWN_ENCS;++i) if
+	(
+		!strcasecmp(encdesc[i].name, name)
+	||	!strcasecmp(encdesc[i].longname, name)
+	)
+		return encdesc[i].code;
+	return OUT123_ERR;
+}
+
+const char* out123_enc_name(int encoding)
+{
+	int i;
+	for(i=0;i<KNOWN_ENCS;++i) if(encdesc[i].code == encoding)
+		return encdesc[i].name;
+	return NULL;
+}
+
+const char* out123_enc_longname(int encoding)
+{
+	int i;
+	for(i=0;i<KNOWN_ENCS;++i) if(encdesc[i].code == encoding)
+		return encdesc[i].longname;
+	return NULL;
+}

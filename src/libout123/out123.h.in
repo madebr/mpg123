@@ -294,6 +294,31 @@ void out123_close(out123_handle *ao);
  */
 int out123_encodings(out123_handle *ao, int channels, long rate);
 
+/** Get list of encodings known to the library.
+ *  You are responsible for freeing the allocated array.
+ * \param enclist return address for allocated array of encoding codes
+ * \return number of encodings, -1 on error
+ */
+int out123_enc_list(int **enclist);
+
+/** Find encoding code by name.
+ * \param name short or long name to find encoding code for
+ * \return encoding if found (enum mpg123_enc_enum), else 0
+ */
+int out123_enc_byname(const char *name);
+
+/** Get name of encoding.
+ * \param encoding code (enum mpg123_enc_enum)
+ * \return short name for valid encodings, NULL otherwise
+ */
+const char* out123_enc_name(int encoding);
+
+/** Get long name of encoding.
+ * \param encoding code (enum mpg123_enc_enum)
+ * \return long name for valid encodings, NULL otherwise
+ */
+const char* out123_enc_longname(int encoding);
+
 /** Start playback with a certain output format
  *  It might be a good idea to have audio data handy to feed after this
  *  returns with success.
