@@ -11,6 +11,7 @@
 
 #include "config.h"
 #include "out123_intsym.h"
+#include "abi_align.h"
 #include "compat.h"
 #include "out123.h"
 #include "module.h"

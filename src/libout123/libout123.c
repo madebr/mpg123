@@ -20,7 +20,8 @@ static int have_buffer(out123_handle *ao)
 
 static int modverbose(out123_handle *ao)
 {
-	debug3("modverbose: %x %x %x", (unsigned)ao->flags, (unsigned)ao->auxflags, (unsigned)OUT123_QUIET);
+	debug3("modverbose: %x %x %x"
+	,	(unsigned)ao->flags, (unsigned)ao->auxflags, (unsigned)OUT123_QUIET);
 	return AOQUIET
 	?	-1
 	:	ao->verbose;
@@ -44,7 +45,7 @@ static void out123_clear_module(out123_handle *ao)
 	ao->fn = -1;
 }
 
-out123_handle* out123_new(void)
+out123_handle* attribute_align_arg out123_new(void)
 {
 	out123_handle* ao = malloc( sizeof( out123_handle ) );
 	if(!ao)
@@ -75,7 +76,7 @@ out123_handle* out123_new(void)
 	return ao;
 }
 
-void out123_del(out123_handle *ao)
+void attribute_align_arg out123_del(out123_handle *ao)
 {
 	debug1("out123_del(%p)", (void*)ao);
 	if(!ao) return;
@@ -105,7 +106,7 @@ static const char *const errstring[OUT123_ERRCOUNT] =
 ,	"basic module system error"
 };
 
-const char* out123_strerror(out123_handle *ao)
+const char* attribute_align_arg out123_strerror(out123_handle *ao)
 {
 	return out123_plain_strerror(out123_errcode(ao));
 }
@@ -116,7 +117,7 @@ int out123_errcode(out123_handle *ao)
 	else    return ao->errcode;
 }
 
-const char* out123_plain_strerror(int errcode)
+const char* attribute_align_arg out123_plain_strerror(int errcode)
 {
 	if(errcode >= OUT123_ERRCOUNT || errcode < 0)
 		return "invalid error code";
@@ -139,7 +140,8 @@ static int out123_seterr(out123_handle *ao, enum out123_error errcode)
 
 /* pre-playback setup */
 
-int out123_set_buffer(out123_handle *ao, size_t buffer_bytes)
+int attribute_align_arg
+out123_set_buffer(out123_handle *ao, size_t buffer_bytes)
 {
 	debug2("out123_set_buffer(%p, %"SIZE_P")", (void*)ao, (size_p)buffer_bytes);
 	if(!ao)
@@ -158,8 +160,9 @@ int out123_set_buffer(out123_handle *ao, size_t buffer_bytes)
 	return 0;
 }
 
-int out123_param( out123_handle *ao, enum out123_parms code
-,                 long value, double fvalue )
+int attribute_align_arg
+out123_param( out123_handle *ao, enum out123_parms code
+            , long value, double fvalue )
 {
 	int ret = 0;
 
@@ -199,8 +202,9 @@ int out123_param( out123_handle *ao, enum out123_parms code
 	return ret;
 }
 
-int out123_getparam( out123_handle *ao, enum out123_parms code
-,                    long *ret_value, double *ret_fvalue )
+int attribute_align_arg
+out123_getparam( out123_handle *ao, enum out123_parms code
+               , long *ret_value, double *ret_fvalue )
 {
 	int ret = 0;
 	long value = 0;
@@ -241,7 +245,8 @@ int out123_getparam( out123_handle *ao, enum out123_parms code
 	return ret;
 }
 
-int out123_param_from(out123_handle *ao, out123_handle* from_ao)
+int attribute_align_arg
+out123_param_from(out123_handle *ao, out123_handle* from_ao)
 {
 	debug2("out123_param_from(%p, %p)", (void*)ao, (void*)from_ao);
 	if(!ao || !from_ao) return -1;
@@ -290,7 +295,8 @@ int read_parameters(out123_handle *ao
 #undef GOOD_READVAL_BUF
 }
 
-int out123_open(out123_handle *ao, const char* driver, const char* device)
+int attribute_align_arg
+out123_open(out123_handle *ao, const char* driver, const char* device)
 {
 	debug3( "out123_open(%p, %s, %s)", (void*)ao
 	,	driver ? driver : "<nil>", device ? device : "<nil>" );
@@ -378,7 +384,7 @@ int out123_open(out123_handle *ao, const char* driver, const char* device)
 }
 
 /* Be resilient, always do cleanup work regardless of state. */
-void out123_close(out123_handle *ao)
+void attribute_align_arg out123_close(out123_handle *ao)
 {
 	debug1("out123_close(%p)", (void*)ao);
 	if(!ao)
@@ -421,8 +427,8 @@ void out123_close(out123_handle *ao)
 	ao->state = play_dead;
 }
 
-int out123_start( out123_handle *ao
-,                 long rate, int channels, int encoding )
+int attribute_align_arg 
+out123_start(out123_handle *ao, long rate, int channels, int encoding)
 {
 	debug4( "out123_start(%p, %li, %i, %li)"
 	,	(void*)ao, rate, channels, encoding );
@@ -463,7 +469,7 @@ int out123_start( out123_handle *ao
 	}
 }
 
-void out123_pause(out123_handle *ao)
+void attribute_align_arg out123_pause(out123_handle *ao)
 {
 	debug1("out123_pause(%p)", (void*)ao);
 	if(ao && ao->state == play_live)
@@ -476,7 +482,7 @@ void out123_pause(out123_handle *ao)
 	}
 }
 
-void out123_continue(out123_handle *ao)
+void attribute_align_arg out123_continue(out123_handle *ao)
 {
 	debug1("out123_continue(%p)", (void*)ao);
 	if(ao && ao->state == play_paused)
@@ -489,7 +495,7 @@ void out123_continue(out123_handle *ao)
 	}
 }
 
-void out123_stop(out123_handle *ao)
+void attribute_align_arg out123_stop(out123_handle *ao)
 {
 	debug1("out123_stop(%p)", (void*)ao);
 	if(!ao)
@@ -507,7 +513,8 @@ void out123_stop(out123_handle *ao)
 	ao->state = play_stopped;
 }
 
-size_t out123_play(out123_handle *ao, void *bytes, size_t count)
+size_t attribute_align_arg
+out123_play(out123_handle *ao, void *bytes, size_t count)
 {
 	size_t sum = 0;
 	int written;
@@ -548,7 +555,7 @@ size_t out123_play(out123_handle *ao, void *bytes, size_t count)
 }
 
 /* Drop means to flush it down. Quickly. */
-void out123_drop(out123_handle *ao)
+void attribute_align_arg out123_drop(out123_handle *ao)
 {
 	debug1("out123_drop(%p)", (void*)ao);
 	if(!ao)
@@ -565,7 +572,7 @@ void out123_drop(out123_handle *ao)
 	}
 }
 
-void out123_drain(out123_handle *ao)
+void attribute_align_arg out123_drain(out123_handle *ao)
 {
 	debug1("out123_drain(%p)", (void*)ao);
 	if(!ao)
@@ -582,7 +589,7 @@ void out123_drain(out123_handle *ao)
 		ao->drain(ao);
 }
 
-void out123_ndrain(out123_handle *ao, size_t bytes)
+void attribute_align_arg out123_ndrain(out123_handle *ao, size_t bytes)
 {
 	debug2("out123_ndrain(%p, %"SIZE_P")", (void*)ao, (size_p)bytes);
 	if(!ao)
@@ -759,7 +766,8 @@ static void audio_output_dump(out123_handle *ao)
 }
 */
 
-int out123_drivers(out123_handle *ao, char ***names, char ***descr)
+int attribute_align_arg
+out123_drivers(out123_handle *ao, char ***names, char ***descr)
 {
 	char **tmpnames;
 	char **tmpdescr;
@@ -800,7 +808,8 @@ int out123_drivers(out123_handle *ao, char ***names, char ***descr)
 
 /* We always have ao->driver and ao->device set, also with buffer.
    The latter can be positively NULL, though. */
-int out123_driver_info(out123_handle *ao, char **driver, char **device)
+int attribute_align_arg
+out123_driver_info(out123_handle *ao, char **driver, char **device)
 {
 	debug3( "out123_driver_info(%p, %p, %p)"
 	,	(void*)ao, (void*)driver, (void*)device );
@@ -816,7 +825,8 @@ int out123_driver_info(out123_handle *ao, char **driver, char **device)
 	return OUT123_OK;
 }
 
-int out123_encodings(out123_handle *ao, long rate, int channels)
+int attribute_align_arg
+out123_encodings(out123_handle *ao, long rate, int channels)
 {
 	debug3("out123_encodings(%p, %li, %i)", (void*)ao, rate, channels);
 	if(!ao)
@@ -851,7 +861,7 @@ int out123_encodings(out123_handle *ao, long rate, int channels)
 	}
 }
 
-size_t out123_buffered(out123_handle *ao)
+size_t attribute_align_arg out123_buffered(out123_handle *ao)
 {
 	debug1("out123_buffered(%p)", (void*)ao);
 	if(!ao)
@@ -865,7 +875,7 @@ size_t out123_buffered(out123_handle *ao)
 		return 0;
 }
 
-int out123_getformat( out123_handle *ao
+int attribute_align_arg out123_getformat( out123_handle *ao
 ,	long *rate, int *channels, int *encoding, int *framesize )
 {
 	if(!ao)
@@ -909,7 +919,7 @@ static const struct enc_desc encdesc[] =
 };
 #define KNOWN_ENCS (sizeof(encdesc)/sizeof(struct enc_desc))
 
-int out123_enc_list(int **enclist)
+int attribute_align_arg out123_enc_list(int **enclist)
 {
 	int i;
 	if(!enclist)
@@ -922,7 +932,7 @@ int out123_enc_list(int **enclist)
 	return KNOWN_ENCS;
 }
 
-int out123_enc_byname(const char *name)
+int attribute_align_arg out123_enc_byname(const char *name)
 {
 	int i;
 	if(!name)
@@ -936,7 +946,7 @@ int out123_enc_byname(const char *name)
 	return OUT123_ERR;
 }
 
-const char* out123_enc_name(int encoding)
+const char* attribute_align_arg out123_enc_name(int encoding)
 {
 	int i;
 	for(i=0;i<KNOWN_ENCS;++i) if(encdesc[i].code == encoding)
@@ -944,7 +954,7 @@ const char* out123_enc_name(int encoding)
 	return NULL;
 }
 
-const char* out123_enc_longname(int encoding)
+const char* attribute_align_arg out123_enc_longname(int encoding)
 {
 	int i;
 	for(i=0;i<KNOWN_ENCS;++i) if(encdesc[i].code == encoding)
