@@ -1356,7 +1356,7 @@ int mpg123_replace_reader( mpg123_handle *mh
  *  \param cleanup A callback to clean up an I/O handle on mpg123_close,
  *         can be NULL for none (you take care of cleaning your handles).
  * \return MPG123_OK on success
- */s
+ */
 int mpg123_replace_reader_handle( mpg123_handle *mh
                                 , ssize_t (*r_read) (void *, void *, size_t)
                                 , off_t (*r_lseek)(void *, off_t, int)
