@@ -435,12 +435,13 @@ static void buffer_play(out123_handle *ao, size_t bytes)
 	bytes -= bytes % ao->framesize;
 	/* Now do a normal ao->write(), with interruptions by signals
 		being expected. */
+	errno = 0;
 	written = ao->write(ao, (unsigned char*)xf->data+xf->readindex, (int)bytes);
 	debug2("buffer wrote %i B / %i B to device", written, (int)bytes);
 	if(written >= 0)
 		/* Advance read pointer by the amount of written bytes. */
 		xf->readindex = (xf->readindex + written) % xf->size;
-	else
+	else if(errno != EINTR && errno != ERESTART)
 	{
 		ao->errcode = OUT123_DEV_PLAY;
 		if(!(ao->flags & OUT123_QUIET))

@@ -540,9 +540,10 @@ out123_play(out123_handle *ao, void *bytes, size_t count)
 #endif
 	do /* Playback in a loop to be able to continue after interruptions. */
 	{
+		errno = 0;
 		written = ao->write(ao, (unsigned char*)bytes, (int)count);
 		if(written >= 0){ sum+=written; count -= written; }
-		else
+		else if(errno != EINTR && errno != ERESTART)
 		{
 			ao->errcode = OUT123_DEV_PLAY;
 			if(!AOQUIET)
