@@ -93,6 +93,8 @@ AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_CPP
 AC_PROG_INSTALL
+AC_CHECK_LIBM
+AC_SUBST(LIBM)
 dnl "Checking for egrep is broken after removal of libltdl stuff... checks use $EGREP, so searching it here."
 AC_PROG_EGREP
 AC_C_CONST
