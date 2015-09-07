@@ -9,6 +9,8 @@ noinst_LTLIBRARIES += src/libout123/libmodule.la
 lib_LTLIBRARIES += src/libout123/libout123.la
 src_libout123_libout123_la_SOURCES = \
   src/libout123/libout123.c \
+  src/libout123/stringlists.h \
+  src/libout123/stringlists.c \
   src/libout123/out123_int.h \
   src/libout123/out123_intsym.h \
   src/libout123/compat.c \

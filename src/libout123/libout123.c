@@ -6,10 +6,10 @@
 	initially written by Michael Hipp
 */
 
-#include <errno.h>
 #include "out123_int.h"
 #include "wav.h"
 #include "buffer.h"
+#include "stringlists.h"
 
 #include "debug.h"
 
@@ -785,6 +785,21 @@ out123_drivers(out123_handle *ao, char ***names, char ***descr)
 	debug1("list_modules()=%i", count);
 	if(count < 0)
 		return count;
+
+	if(
+		stringlists_add( &tmpnames, &tmpdescr
+		,	"raw", "raw headerless stream (builtin)", &count )
+	||	stringlists_add( &tmpnames, &tmpdescr
+		,	"cdr", "compact disc digital audio stream (builtin)", &count )
+	||	stringlists_add( &tmpnames, &tmpdescr
+		,	"wav", "RIFF WAVE file (builtin)", &count )
+	||	stringlists_add( &tmpnames, &tmpdescr
+		,	"au", "Sun AU file (builtin)", &count )
+	||	stringlists_add( &tmpnames, &tmpdescr
+		,	"test", "output into the void (builtin)", &count )
+	)
+		if(!AOQUIET)
+			error("OOM");
 
 	/* Return or free gathered lists of names or descriptions. */
 	if(names)

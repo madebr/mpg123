@@ -1,13 +1,14 @@
 /*
 	module.c: modular code loader
 
-	copyright 1995-2011 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1995-2015 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Nicholas J Humfrey
 */
 
 #include "config.h"
 #include "out123_intsym.h"
+#include "stringlists.h"
 #include "compat.h"
 #include <dirent.h>
 #include <sys/stat.h>
@@ -357,30 +358,10 @@ int list_modules(const char *type, char ***names, char ***descr, int verbose)
 		   Yes, this re-builds the file name we chopped to pieces just now. */
 		if((module=open_module_here(module_type, module_name, verbose)))
 		{
-			char **more_names = NULL;
-			char **more_descr = NULL;
-			char *name = NULL;
-			char *description = NULL;
-			if(
-				(name=strdup(module->name))
-			&&	(description=strdup(module->description))
-			&&	(more_names=safe_realloc(*names, sizeof(char*)*(count+1)))
-			&&	(more_descr=safe_realloc(*descr, sizeof(char*)*(count+1)))
-			)
-			{
-				*names = more_names;
-				*descr = more_descr;
-				(*names)[count] = name;
-				(*descr)[count] = description;
-				++count;
-			}
-			else
-			{
-				free(more_descr);
-				free(more_names);
-				free(description);
-				free(name);
-			}
+			if( stringlists_add( names, descr
+			,	module->name, module->description, &count) )
+				if(verbose > -1)
+					error("OOM");
 			/* Close the module again */
 			close_module(module, verbose);
 		}
