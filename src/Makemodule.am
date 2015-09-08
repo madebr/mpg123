@@ -10,13 +10,13 @@ bin_PROGRAMS += \
   src/mpg123-strip
 
 src_mpg123_LDADD = $(LIBLTDL) \
+  $(LIBM) \
   src/libmpg123/libmpg123.la \
   src/libout123/libout123.la
 
 src_mpg123_LDFLAGS = @EXEC_LT_LDFLAGS@ $(output_ldflags)
 
 src_out123_LDADD = $(LIBLTDL) \
-  $(LIBM) \
   src/libout123/libout123.la
 
 src_out123_LDFLAGS = @EXEC_LT_LDFLAGS@ $(output_ldflags)
