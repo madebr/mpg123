@@ -17,6 +17,26 @@
  */
 #define MPG123_API_VERSION @API_VERSION@
 
+/** Defines needed for MSVC++ DLL builds.
+ * Every public function must be prefixed with MPG123_EXPORT. When building 
+ * the DLL ensure to define BUILD_MPG123_DLL. This makes the function accessible
+ * for clients and includes it in the import library which is created together
+ * with the DLL. When consuming the DLL ensure to define LINK_MPG123_DLL which
+ * imports the functions from the DLL. 
+ */
+#ifdef BUILD_MPG123_DLL
+/* The dll exports. */
+#define MPG123_EXPORT __declspec(dllexport)
+#else
+#ifdef LINK_MPG123_DLL
+/* The exe imports. */
+#define MPG123_EXPORT __declspec(dllimport)
+#else
+/* Nothing on normal/UNIX builds */
+#define MPG123_EXPORT
+#endif
+#endif
+
 #ifndef MPG123_NO_CONFIGURE /* Enable use of this file without configure. */
 @INCLUDE_STDLIB_H@
 @INCLUDE_SYS_TYPE_H@
@@ -104,11 +124,11 @@ typedef struct mpg123_handle_struct mpg123_handle;
  *
  *	\return MPG123_OK if successful, otherwise an error number.
  */
-int  mpg123_init(void);
+MPG123_EXPORT int  mpg123_init(void);
 
 /** Function to close down the mpg123 library. 
  *	This function is not thread-safe. Call it exactly once per process, before any other (possibly threaded) work with the library. */
-void mpg123_exit(void);
+MPG123_EXPORT void mpg123_exit(void);
 
 /** Create a handle with optional choice of decoder (named by a string, see mpg123_decoders() or mpg123_supported_decoders()).
  *  and optional retrieval of an error code to feed to mpg123_plain_strerror().
@@ -118,12 +138,12 @@ void mpg123_exit(void);
  *  \param error optional address to store error codes
  *  \return Non-NULL pointer to fresh handle when successful.
  */
-mpg123_handle *mpg123_new(const char* decoder, int *error);
+MPG123_EXPORT mpg123_handle *mpg123_new(const char* decoder, int *error);
 
 /** Delete handle, mh is either a valid mpg123 handle or NULL.
  *  \param mh handle
  */
-void mpg123_delete(mpg123_handle *mh);
+MPG123_EXPORT void mpg123_delete(mpg123_handle *mh);
 
 /** Enumeration of the parameters types that it is possible to set/get. */
 enum mpg123_parms
@@ -189,7 +209,7 @@ enum mpg123_param_rva
  *  \param fvalue floating point value
  *  \return MPG123_OK on success
  */
-int mpg123_param(mpg123_handle *mh, enum mpg123_parms type, long value, double fvalue);
+MPG123_EXPORT int mpg123_param(mpg123_handle *mh, enum mpg123_parms type, long value, double fvalue);
 
 /** Get a specific parameter, for a specific mpg123_handle. 
  *  See the mpg123_parms enumeration for a list of available parameters.
@@ -199,7 +219,7 @@ int mpg123_param(mpg123_handle *mh, enum mpg123_parms type, long value, double f
  *  \param fvalue floating point value return address
  *  \return MPG123_OK on success
  */
-int mpg123_getparam( mpg123_handle *mh, enum mpg123_parms type
+MPG123_EXPORT int mpg123_getparam( mpg123_handle *mh, enum mpg123_parms type
                                  , long *value, double *fvalue );
 
 /** Feature set available for query with mpg123_feature. */
@@ -226,7 +246,7 @@ enum mpg123_feature_set
  *  \param key feature selection
  *  \return 1 for success, 0 for unimplemented functions
  */
-int mpg123_feature(const enum mpg123_feature_set key);
+MPG123_EXPORT int mpg123_feature(const enum mpg123_feature_set key);
 
 /* @} */
 
@@ -319,7 +339,7 @@ enum mpg123_errors
  *  \param errcode integer error code
  *  \return string describing what that error error code means
  */
-const char* mpg123_plain_strerror(int errcode);
+MPG123_EXPORT const char* mpg123_plain_strerror(int errcode);
 
 /** Give string describing what error has occured in the context of handle mh.
  *  When a function operating on an mpg123 handle returns MPG123_ERR, you should check for the actual reason via
@@ -328,13 +348,13 @@ const char* mpg123_plain_strerror(int errcode);
  *  \param mh handle
  *  \return error message
  */
-const char* mpg123_strerror(mpg123_handle *mh);
+MPG123_EXPORT const char* mpg123_strerror(mpg123_handle *mh);
 
 /** Return the plain errcode intead of a string.
  *  \param mh handle
  *  \return error code recorded in handle or MPG123_BAD_HANDLE
  */
-int mpg123_errcode(mpg123_handle *mh);
+MPG123_EXPORT int mpg123_errcode(mpg123_handle *mh);
 
 /*@}*/
 
@@ -350,19 +370,19 @@ int mpg123_errcode(mpg123_handle *mh);
 /** Get available decoder list.
  *  \return NULL-terminated array of generally available decoder names (plain 8bit ASCII)
  */
-const char **mpg123_decoders(void);
+MPG123_EXPORT const char **mpg123_decoders(void);
 
 /** Get supported decoder list.
  *  \return NULL-terminated array of the decoders supported by the CPU (plain 8bit ASCII)
  */
-const char **mpg123_supported_decoders(void);
+MPG123_EXPORT const char **mpg123_supported_decoders(void);
 
 /** Set the active decoder.
  *  \param mh handle
  *  \param decoder_name name of decoder
  *  \return MPG123_OK on success
  */
-int mpg123_decoder(mpg123_handle *mh, const char* decoder_name);
+MPG123_EXPORT int mpg123_decoder(mpg123_handle *mh, const char* decoder_name);
 
 /** Get the currently active decoder name.
  *  The active decoder engine can vary depening on output constraints,
@@ -373,7 +393,7 @@ int mpg123_decoder(mpg123_handle *mh, const char* decoder_name);
  *  \param mh handle
  *  \return The decoder name or NULL on error.
  */
-const char* mpg123_current_decoder(mpg123_handle *mh);
+MPG123_EXPORT const char* mpg123_current_decoder(mpg123_handle *mh);
 
 /*@}*/
 
@@ -409,32 +429,32 @@ enum mpg123_channelcount
  *  You can still force mpg123 to resample to a different one, but by default you will only get audio in one of these samplings.
  *  \param list Store a pointer to the sample rates array there.
  *  \param number Store the number of sample rates there. */
-void mpg123_rates(const long **list, size_t *number);
+MPG123_EXPORT void mpg123_rates(const long **list, size_t *number);
 
 /** An array of supported audio encodings.
  *  An audio encoding is one of the fully qualified members of mpg123_enc_enum (MPG123_ENC_SIGNED_16, not MPG123_SIGNED).
  *  \param list Store a pointer to the encodings array there.
  *  \param number Store the number of encodings there. */
-void mpg123_encodings(const int **list, size_t *number);
+MPG123_EXPORT void mpg123_encodings(const int **list, size_t *number);
 
 /** Return the size (in bytes) of one mono sample of the named encoding.
  * \param encoding The encoding value to analyze.
  * \return positive size of encoding in bytes, 0 on invalid encoding. */
-int mpg123_encsize(int encoding);
+MPG123_EXPORT int mpg123_encsize(int encoding);
 
 /** Configure a mpg123 handle to accept no output format at all, 
  *  use before specifying supported formats with mpg123_format
  *  \param mh handle
  *  \return MPG123_OK on success
  */
-int mpg123_format_none(mpg123_handle *mh);
+MPG123_EXPORT int mpg123_format_none(mpg123_handle *mh);
 
 /** Configure mpg123 handle to accept all formats 
  *  (also any custom rate you may set) -- this is default.
  *  \param mh handle
  *  \return MPG123_OK on success
  */
-int mpg123_format_all(mpg123_handle *mh);
+MPG123_EXPORT int mpg123_format_all(mpg123_handle *mh);
 
 /** Set the audio format support of a mpg123_handle in detail:
  *  \param mh handle
@@ -442,7 +462,7 @@ int mpg123_format_all(mpg123_handle *mh);
  *  \param channels A combination of MPG123_STEREO and MPG123_MONO.
  *  \param encodings A combination of accepted encodings for rate and channels, p.ex MPG123_ENC_SIGNED16 | MPG123_ENC_ULAW_8 (or 0 for no support). Please note that some encodings may not be supported in the library build and thus will be ignored here.
  *  \return MPG123_OK on success, MPG123_ERR if there was an error. */
-int mpg123_format(mpg123_handle *mh, long rate, int channels, int encodings);
+MPG123_EXPORT int mpg123_format(mpg123_handle *mh, long rate, int channels, int encodings);
 
 /** Check to see if a specific format at a specific rate is supported 
  *  by mpg123_handle.
@@ -451,7 +471,7 @@ int mpg123_format(mpg123_handle *mh, long rate, int channels, int encodings);
  *  \param encoding encoding
  *  \return 0 for no support (that includes invalid parameters), MPG123_STEREO, 
  *          MPG123_MONO or MPG123_STEREO|MPG123_MONO. */
-int mpg123_format_support(mpg123_handle *mh, long rate, int encoding);
+MPG123_EXPORT int mpg123_format_support(mpg123_handle *mh, long rate, int encoding);
 
 /** Get the current output format written to the addresses given.
  *  \param mh handle
@@ -460,7 +480,7 @@ int mpg123_format_support(mpg123_handle *mh, long rate, int encoding);
  *  \param encoding encoding return address
  *  \return MPG123_OK on success
  */
-int mpg123_getformat(mpg123_handle *mh, long *rate, int *channels, int *encoding);
+MPG123_EXPORT int mpg123_getformat(mpg123_handle *mh, long *rate, int *channels, int *encoding);
 
 /*@}*/
 
@@ -482,7 +502,7 @@ int mpg123_getformat(mpg123_handle *mh, long *rate, int *channels, int *encoding
  *  \param path filesystem path
  *  \return MPG123_OK on success
  */
-int mpg123_open(mpg123_handle *mh, const char *path);
+MPG123_EXPORT int mpg123_open(mpg123_handle *mh, const char *path);
 
 /** Use an already opened file descriptor as the bitstream input
  *  mpg123_close() will _not_ close the file descriptor.
@@ -490,7 +510,7 @@ int mpg123_open(mpg123_handle *mh, const char *path);
  *  \param fd file descriptor
  *  \return MPG123_OK on success
  */
-int mpg123_open_fd(mpg123_handle *mh, int fd);
+MPG123_EXPORT int mpg123_open_fd(mpg123_handle *mh, int fd);
 
 /** Use an opaque handle as bitstream input. This works only with the
  *  replaced I/O from mpg123_replace_reader_handle()!
@@ -499,20 +519,20 @@ int mpg123_open_fd(mpg123_handle *mh, int fd);
  *  \param iohandle your handle
  *  \return MPG123_OK on success
  */
-int mpg123_open_handle(mpg123_handle *mh, void *iohandle);
+MPG123_EXPORT int mpg123_open_handle(mpg123_handle *mh, void *iohandle);
 
 /** Open a new bitstream and prepare for direct feeding
  *  This works together with mpg123_decode(); you are responsible for reading and feeding the input bitstream.
  *  \param mh handle
  *  \return MPG123_OK on success
  */
-int mpg123_open_feed(mpg123_handle *mh);
+MPG123_EXPORT int mpg123_open_feed(mpg123_handle *mh);
 
 /** Closes the source, if libmpg123 opened it.
  *  \param mh handle
  *  \return MPG123_OK on success
  */
-int mpg123_close(mpg123_handle *mh);
+MPG123_EXPORT int mpg123_close(mpg123_handle *mh);
 
 /** Read from stream and decode up to outmemsize bytes.
  *  \param mh handle
@@ -521,7 +541,7 @@ int mpg123_close(mpg123_handle *mh);
  *  \param done address to store the number of actually decoded bytes to
  *  \return MPG123_OK or error/message code
  */
-int mpg123_read(mpg123_handle *mh, unsigned char *outmemory, size_t outmemsize, size_t *done);
+MPG123_EXPORT int mpg123_read(mpg123_handle *mh, unsigned char *outmemory, size_t outmemsize, size_t *done);
 
 /** Feed data for a stream that has been opened with mpg123_open_feed().
  *  It's give and take: You provide the bytestream, mpg123 gives you the decoded samples.
@@ -530,7 +550,7 @@ int mpg123_read(mpg123_handle *mh, unsigned char *outmemory, size_t outmemsize, 
  *  \param size number of input bytes
  *  \return MPG123_OK or error/message code.
  */
-int mpg123_feed(mpg123_handle *mh, const unsigned char *in, size_t size);
+MPG123_EXPORT int mpg123_feed(mpg123_handle *mh, const unsigned char *in, size_t size);
 
 /** Decode MPEG Audio from inmemory to outmemory. 
  *  This is very close to a drop-in replacement for old mpglib.
@@ -547,7 +567,7 @@ int mpg123_feed(mpg123_handle *mh, const unsigned char *in, size_t size);
  *  \param done address to store the number of actually decoded bytes to
  *  \return error/message code (watch out especially for MPG123_NEED_MORE)
  */
-int mpg123_decode(mpg123_handle *mh, const unsigned char *inmemory, size_t inmemsize, unsigned char *outmemory, size_t outmemsize, size_t *done);
+MPG123_EXPORT int mpg123_decode(mpg123_handle *mh, const unsigned char *inmemory, size_t inmemsize, unsigned char *outmemory, size_t outmemsize, size_t *done);
 
 /** Decode next MPEG frame to internal buffer
  *  or read a frame and return after setting a new format.
@@ -557,7 +577,7 @@ int mpg123_decode(mpg123_handle *mh, const unsigned char *inmemory, size_t inmem
  *  \param bytes number of output bytes ready in the buffer
  *  \return MPG123_OK or error/message code
  */
-int mpg123_decode_frame(mpg123_handle *mh, off_t *num, unsigned char **audio, size_t *bytes);
+MPG123_EXPORT int mpg123_decode_frame(mpg123_handle *mh, off_t *num, unsigned char **audio, size_t *bytes);
 
 /** Decode current MPEG frame to internal buffer.
  * Warning: This is experimental API that might change in future releases!
@@ -568,7 +588,7 @@ int mpg123_decode_frame(mpg123_handle *mh, off_t *num, unsigned char **audio, si
  *  \param bytes number of output bytes ready in the buffer
  *  \return MPG123_OK or error/message code
  */
-int mpg123_framebyframe_decode(mpg123_handle *mh, off_t *num, unsigned char **audio, size_t *bytes);
+MPG123_EXPORT int mpg123_framebyframe_decode(mpg123_handle *mh, off_t *num, unsigned char **audio, size_t *bytes);
 
 /** Find, read and parse the next mp3 frame
  * Warning: This is experimental API that might change in future releases!
@@ -576,7 +596,7 @@ int mpg123_framebyframe_decode(mpg123_handle *mh, off_t *num, unsigned char **au
  *  \param mh handle
  *  \return MPG123_OK or error/message code
  */
-int mpg123_framebyframe_next(mpg123_handle *mh);
+MPG123_EXPORT int mpg123_framebyframe_next(mpg123_handle *mh);
 
 /** Get access to the raw input data for the last parsed frame.
  * This gives you a direct look (and write access) to the frame body data.
@@ -593,7 +613,7 @@ int mpg123_framebyframe_next(mpg123_handle *mh);
  *    explanation, the error state of the mpg123_handle is not modified by
  *    this function).
  */
-int mpg123_framedata(mpg123_handle *mh, unsigned long *header, unsigned char **bodydata, size_t *bodybytes);
+MPG123_EXPORT int mpg123_framedata(mpg123_handle *mh, unsigned long *header, unsigned char **bodydata, size_t *bodybytes);
 
 /** Get the input position (byte offset in stream) of the last parsed frame.
  *  This can be used for external seek index building, for example.
@@ -602,7 +622,7 @@ int mpg123_framedata(mpg123_handle *mh, unsigned long *header, unsigned char **b
  * \param mh handle
  * \return byte offset in stream
  */
-off_t mpg123_framepos(mpg123_handle *mh);
+MPG123_EXPORT off_t mpg123_framepos(mpg123_handle *mh);
 
 /*@}*/
 
@@ -632,19 +652,19 @@ off_t mpg123_framepos(mpg123_handle *mh);
  *  \param mh handle
  *  \return sample offset or MPG123_ERR (null handle)
  */
-off_t mpg123_tell(mpg123_handle *mh);
+MPG123_EXPORT off_t mpg123_tell(mpg123_handle *mh);
 
 /** Returns the frame number that the next read will give you data from.
  *  \param mh handle
  *  \return frame offset or MPG123_ERR (null handle)
  */
-off_t mpg123_tellframe(mpg123_handle *mh);
+MPG123_EXPORT off_t mpg123_tellframe(mpg123_handle *mh);
 
 /** Returns the current byte offset in the input stream.
  *  \param mh handle
  *  \return byte offset or MPG123_ERR (null handle)
  */
-off_t mpg123_tell_stream(mpg123_handle *mh);
+MPG123_EXPORT off_t mpg123_tell_stream(mpg123_handle *mh);
 
 /** Seek to a desired sample offset.
  *  Usage is modelled afer the standard lseek().
@@ -653,7 +673,7 @@ off_t mpg123_tell_stream(mpg123_handle *mh);
  * \param whence one of SEEK_SET, SEEK_CUR or SEEK_END
  * \return The resulting offset >= 0 or error/message code
  */
-off_t mpg123_seek(mpg123_handle *mh, off_t sampleoff, int whence);
+MPG123_EXPORT off_t mpg123_seek(mpg123_handle *mh, off_t sampleoff, int whence);
 
 /** Seek to a desired sample offset in data feeding mode. 
  *  This just prepares things to be right only if you ensure that the next chunk of input data will be from input_offset byte position.
@@ -663,7 +683,7 @@ off_t mpg123_seek(mpg123_handle *mh, off_t sampleoff, int whence);
  *  \param input_offset The position it expects to be at the 
  *                      next time data is fed to mpg123_decode().
  *  \return The resulting offset >= 0 or error/message code */
-off_t mpg123_feedseek(mpg123_handle *mh, off_t sampleoff
+MPG123_EXPORT off_t mpg123_feedseek(mpg123_handle *mh, off_t sampleoff
                                    , int whence, off_t *input_offset);
 
 /** Seek to a desired MPEG frame offset.
@@ -672,12 +692,12 @@ off_t mpg123_feedseek(mpg123_handle *mh, off_t sampleoff
  * \param frameoff offset in MPEG frames
  * \param whence one of SEEK_SET, SEEK_CUR or SEEK_END
  * \return The resulting offset >= 0 or error/message code */
-off_t mpg123_seek_frame(mpg123_handle *mh, off_t frameoff, int whence);
+MPG123_EXPORT off_t mpg123_seek_frame(mpg123_handle *mh, off_t frameoff, int whence);
 
 /** Return a MPEG frame offset corresponding to an offset in seconds.
  *  This assumes that the samples per frame do not change in the file/stream, which is a good assumption for any sane file/stream only.
  *  \return frame offset >= 0 or error/message code */
-off_t mpg123_timeframe(mpg123_handle *mh, double sec);
+MPG123_EXPORT off_t mpg123_timeframe(mpg123_handle *mh, double sec);
 
 /** Give access to the frame index table that is managed for seeking.
  *  You are asked not to modify the values... Use mpg123_set_index to set the
@@ -688,7 +708,7 @@ off_t mpg123_timeframe(mpg123_handle *mh, double sec);
  *  \param fill number of recorded index offsets; size of the array
  *  \return MPG123_OK on success
  */
-int mpg123_index(mpg123_handle *mh
+MPG123_EXPORT int mpg123_index(mpg123_handle *mh
                               , off_t **offsets, off_t *step, size_t *fill);
 
 /** Set the frame index table
@@ -700,7 +720,7 @@ int mpg123_index(mpg123_handle *mh
  *  \param fill    number of recorded index offsets; size of the array
  *  \return MPG123_OK on success
  */
-int mpg123_set_index(mpg123_handle *mh
+MPG123_EXPORT int mpg123_set_index(mpg123_handle *mh
                                   , off_t *offsets, off_t step, size_t fill);
 
 /** An old crutch to keep old mpg123 binaries happy.
@@ -710,7 +730,7 @@ int mpg123_set_index(mpg123_handle *mh
  *  for various cases (p.ex. 24 bit output). Do never use. It might eventually
  *  be purged from the library.
  */
-int mpg123_position( mpg123_handle *mh, off_t frame_offset, off_t buffered_bytes, off_t *current_frame, off_t *frames_left, double *current_seconds, double *seconds_left);
+MPG123_EXPORT int mpg123_position( mpg123_handle *mh, off_t frame_offset, off_t buffered_bytes, off_t *current_frame, off_t *frames_left, double *current_seconds, double *seconds_left);
 
 /*@}*/
 
@@ -735,7 +755,7 @@ enum mpg123_channels
  *  \param val The (linear) adjustment factor.
  *  \return MPG123_OK on success
  */
-int mpg123_eq(mpg123_handle *mh, enum mpg123_channels channel
+MPG123_EXPORT int mpg123_eq(mpg123_handle *mh, enum mpg123_channels channel
                            , int band, double val);
 
 /** Get the 32 Band Audio Equalizer settings.
@@ -743,14 +763,14 @@ int mpg123_eq(mpg123_handle *mh, enum mpg123_channels channel
  *  \param channel Can be MPG123_LEFT, MPG123_RIGHT or MPG123_LEFT|MPG123_RIGHT for (arithmetic mean of) both.
  *  \param band The equaliser band to change (from 0 to 31)
  *  \return The (linear) adjustment factor (zero for pad parameters) */
-double mpg123_geteq(mpg123_handle *mh
+MPG123_EXPORT double mpg123_geteq(mpg123_handle *mh
                                  , enum mpg123_channels channel, int band);
 
 /** Reset the 32 Band Audio Equalizer settings to flat
  *  \param mh handle
  *  \return MPG123_OK on success
  */
-int mpg123_reset_eq(mpg123_handle *mh);
+MPG123_EXPORT int mpg123_reset_eq(mpg123_handle *mh);
 
 /** Set the absolute output volume including the RVA setting, 
  *  vol<0 just applies (a possibly changed) RVA setting.
@@ -758,14 +778,14 @@ int mpg123_reset_eq(mpg123_handle *mh);
  *  \param vol volume value (linear factor)
  *  \return MPG123_OK on success
  */
-int mpg123_volume(mpg123_handle *mh, double vol);
+MPG123_EXPORT int mpg123_volume(mpg123_handle *mh, double vol);
 
 /** Adjust output volume including the RVA setting by chosen amount
  *  \param mh handle
  *  \param change volume value (linear factor increment)
  *  \return MPG123_OK on success
  */
-int mpg123_volume_change(mpg123_handle *mh, double change);
+MPG123_EXPORT int mpg123_volume_change(mpg123_handle *mh, double change);
 
 /** Return current volume setting, the actual value due to RVA, and the RVA 
  *  adjustment itself. It's all as double float value to abstract the sample 
@@ -777,7 +797,7 @@ int mpg123_volume_change(mpg123_handle *mh, double change);
  *  \param rva_db return address for RVA value (decibels)
  *  \return MPG123_OK on success
  */
-int mpg123_getvolume(mpg123_handle *mh, double *base, double *really, double *rva_db);
+MPG123_EXPORT int mpg123_getvolume(mpg123_handle *mh, double *base, double *really, double *rva_db);
 
 /* TODO: Set some preamp in addition / to replace internal RVA handling? */
 
@@ -843,13 +863,13 @@ struct mpg123_frameinfo
  *  \param mi address of existing frameinfo structure to write to
  *  \return MPG123_OK on success
  */
-int mpg123_info(mpg123_handle *mh, struct mpg123_frameinfo *mi);
+MPG123_EXPORT int mpg123_info(mpg123_handle *mh, struct mpg123_frameinfo *mi);
 
 /** Get the safe output buffer size for all cases
  *  (when you want to replace the internal buffer)
  *  \return safe buffer size
  */
-size_t mpg123_safe_buffer(void); 
+MPG123_EXPORT size_t mpg123_safe_buffer(void); 
 
 /** Make a full parsing scan of each frame in the file. ID3 tags are found. An
  *  accurate length value is stored. Seek index will be filled. A seek back to
@@ -858,19 +878,19 @@ size_t mpg123_safe_buffer(void);
  *  \param mh handle
  *  \return MPG123_OK on success
  */
-int mpg123_scan(mpg123_handle *mh);
+MPG123_EXPORT int mpg123_scan(mpg123_handle *mh);
 
 /** Return, if possible, the full (expected) length of current track in frames.
  * \param mh handle
  * \return length >= 0 or MPG123_ERR if there is no length guess possible.
  */
-off_t mpg123_framelength(mpg123_handle *mh);
+MPG123_EXPORT off_t mpg123_framelength(mpg123_handle *mh);
 
 /** Return, if possible, the full (expected) length of current track in samples.
  * \param mh handle
  * \return length >= 0 or MPG123_ERR if there is no length guess possible.
  */
-off_t mpg123_length(mpg123_handle *mh);
+MPG123_EXPORT off_t mpg123_length(mpg123_handle *mh);
 
 /** Override the value for file size in bytes.
  *  Useful for getting sensible track length values in feed mode or for HTTP streams.
@@ -878,25 +898,25 @@ off_t mpg123_length(mpg123_handle *mh);
  *  \param size file size in bytes
  *  \return MPG123_OK on success
  */
-int mpg123_set_filesize(mpg123_handle *mh, off_t size);
+MPG123_EXPORT int mpg123_set_filesize(mpg123_handle *mh, off_t size);
 
 /** Get MPEG frame duration in seconds.
  *  \param mh handle
  *  \return frame duration in seconds, <0 on error
  */
-double mpg123_tpf(mpg123_handle *mh);
+MPG123_EXPORT double mpg123_tpf(mpg123_handle *mh);
 
 /** Get MPEG frame duration in samples.
  *  \param mh handle
  *  \return samples per frame for the most recently parsed frame; <0 on errors
  */
-int mpg123_spf(mpg123_handle *mh);
+MPG123_EXPORT int mpg123_spf(mpg123_handle *mh);
 
 /** Get and reset the clip count.
  *  \param mh handle
  *  \return count of clipped samples
  */
-long mpg123_clip(mpg123_handle *mh);
+MPG123_EXPORT long mpg123_clip(mpg123_handle *mh);
 
 
 /** The key values for state information from mpg123_getstate(). */
@@ -915,7 +935,7 @@ enum mpg123_state
  *  \param fval the address to return floating point values to
  *  \return MPG123_OK on success
  */
-int mpg123_getstate(mpg123_handle *mh, enum mpg123_state key
+MPG123_EXPORT int mpg123_getstate(mpg123_handle *mh, enum mpg123_state key
                                  , long *val, double *fval);
 
 /*@}*/
@@ -941,19 +961,19 @@ typedef struct
 /** Create and allocate memory for a new mpg123_string
  *  \param sb string handle (address of existing structure on your side)
  */
-void mpg123_init_string(mpg123_string* sb);
+MPG123_EXPORT void mpg123_init_string(mpg123_string* sb);
 
 /** Free-up mempory for an existing mpg123_string
  *  \param sb string handle
  */
-void mpg123_free_string(mpg123_string* sb);
+MPG123_EXPORT void mpg123_free_string(mpg123_string* sb);
 
 /** Change the size of a mpg123_string
  *  \param sb string handle
  *  \param news new size in bytes
  *  \return 0 on error, 1 on success
  */
-int  mpg123_resize_string(mpg123_string* sb, size_t news);
+MPG123_EXPORT int  mpg123_resize_string(mpg123_string* sb, size_t news);
 
 /** Increase size of a mpg123_string if necessary (it may stay larger).
  *  Note that the functions for adding and setting in current libmpg123
@@ -964,7 +984,7 @@ int  mpg123_resize_string(mpg123_string* sb, size_t news);
  *  \param news new minimum size
  *  \return 0 on error, 1 on success
  */
-int  mpg123_grow_string(mpg123_string* sb, size_t news);
+MPG123_EXPORT int  mpg123_grow_string(mpg123_string* sb, size_t news);
 
 /** Copy the contents of one mpg123_string string to another.
  *  Yes the order of arguments is reversed compated to memcpy().
@@ -972,14 +992,14 @@ int  mpg123_grow_string(mpg123_string* sb, size_t news);
  *  \param to string handle
  *  \return 0 on error, 1 on success
  */
-int  mpg123_copy_string(mpg123_string* from, mpg123_string* to);
+MPG123_EXPORT int  mpg123_copy_string(mpg123_string* from, mpg123_string* to);
 
 /** Append a C-String to an mpg123_string
  *  \param sb string handle
  *  \param stuff to append
  *  \return 0 on error, 1 on success
  */
-int  mpg123_add_string(mpg123_string* sb, const char* stuff);
+MPG123_EXPORT int  mpg123_add_string(mpg123_string* sb, const char* stuff);
 
 /** Append a C-substring to an mpg123 string
  *  \param sb string handle
@@ -988,7 +1008,7 @@ int  mpg123_add_string(mpg123_string* sb, const char* stuff);
  *  \param count number of characters to copy (a null-byte is always appended)
  *  \return 0 on error, 1 on success
  */
-int  mpg123_add_substring(mpg123_string *sb, const char *stuff
+MPG123_EXPORT int  mpg123_add_substring(mpg123_string *sb, const char *stuff
                                        , size_t from, size_t count);
 
 /** Set the content of a mpg123_string to a C-string
@@ -996,7 +1016,7 @@ int  mpg123_add_substring(mpg123_string *sb, const char *stuff
  *  \param stuff content to copy
  *  \return 0 on error, 1 on success
  */
-int  mpg123_set_string(mpg123_string* sb, const char* stuff);
+MPG123_EXPORT int  mpg123_set_string(mpg123_string* sb, const char* stuff);
 
 /** Set the content of a mpg123_string to a C-substring
  *  \param sb string handle
@@ -1005,7 +1025,7 @@ int  mpg123_set_string(mpg123_string* sb, const char* stuff);
  *  \param count number of characters to copy (a null-byte is always appended)
  *  \return 0 on error, 1 on success
  */
-int  mpg123_set_substring(mpg123_string *sb, const char *stuff
+MPG123_EXPORT int  mpg123_set_substring(mpg123_string *sb, const char *stuff
                                        , size_t from, size_t count);
 
 /** Count characters in a mpg123 string (non-null bytes or UTF-8 characters).
@@ -1014,13 +1034,13 @@ int  mpg123_set_substring(mpg123_string *sb, const char *stuff
  *  \param utf8 a flag to tell if the string is in utf8 encoding
  *  \return character count
 */
-size_t mpg123_strlen(mpg123_string *sb, int utf8);
+MPG123_EXPORT size_t mpg123_strlen(mpg123_string *sb, int utf8);
 
 /** Remove trailing \\r and \\n, if present.
  *  \param sb string handle
  *  \return 0 on error, 1 on success
  */
-int mpg123_chomp_string(mpg123_string *sb);
+MPG123_EXPORT int mpg123_chomp_string(mpg123_string *sb);
 
 /** The mpg123 text encodings. This contains encodings we encounter in ID3 tags or ICY meta info. */
 enum mpg123_text_encoding
@@ -1057,7 +1077,7 @@ enum mpg123_id3_enc
  *  \return the mpg123 encoding index
  */
 
-enum mpg123_text_encoding mpg123_enc_from_id3(unsigned char id3_enc_byte);
+MPG123_EXPORT enum mpg123_text_encoding mpg123_enc_from_id3(unsigned char id3_enc_byte);
 
 /** Store text data in string, after converting to UTF-8 from indicated encoding
  *  A prominent error can be that you provided an unknown encoding value, or this build of libmpg123 lacks support for certain encodings (ID3 or ICY stuff missing).
@@ -1068,7 +1088,7 @@ enum mpg123_text_encoding mpg123_enc_from_id3(unsigned char id3_enc_byte);
  *  \param source_size number of bytes in the source buffer
  *  \return 0 on error, 1 on success (on error, mpg123_free_string is called on sb)
  */
-int mpg123_store_utf8(mpg123_string *sb, enum mpg123_text_encoding enc, const unsigned char *source, size_t source_size);
+MPG123_EXPORT int mpg123_store_utf8(mpg123_string *sb, enum mpg123_text_encoding enc, const unsigned char *source, size_t source_size);
 
 /** Sub data structure for ID3v2, for storing various text fields (including comments).
  *  This is for ID3v2 COMM, TXXX and all the other text fields.
@@ -1171,18 +1191,18 @@ typedef struct
  *  \param mh handle
  *  \return combination of flags, 0 on error (same as "nothing new")
  */
-int mpg123_meta_check(mpg123_handle *mh);
+MPG123_EXPORT int mpg123_meta_check(mpg123_handle *mh);
 
 /** Clean up meta data storage (ID3v2 and ICY), freeing memory.
  *  \param mh handle
  */
-void mpg123_meta_free(mpg123_handle *mh);
+MPG123_EXPORT void mpg123_meta_free(mpg123_handle *mh);
 
 /** Point v1 and v2 to existing data structures wich may change on any next read/decode function call.
  *  v1 and/or v2 can be set to NULL when there is no corresponding data.
  *  \return MPG123_OK on success
  */
-int mpg123_id3(mpg123_handle *mh
+MPG123_EXPORT int mpg123_id3(mpg123_handle *mh
                             , mpg123_id3v1 **v1, mpg123_id3v2 **v2);
 
 /** Point icy_meta to existing data structure wich may change on any next read/decode function call.
@@ -1190,13 +1210,13 @@ int mpg123_id3(mpg123_handle *mh
  *  \param icy_meta return address for ICY meta string (set to NULL if nothing there)
  *  \return MPG123_OK on success
  */
-int mpg123_icy(mpg123_handle *mh, char **icy_meta);
+MPG123_EXPORT int mpg123_icy(mpg123_handle *mh, char **icy_meta);
 
 /** Decode from windows-1252 (the encoding ICY metainfo used) to UTF-8.
  *  Note that this is very similar to mpg123_store_utf8(&sb, mpg123_text_icy, icy_text, strlen(icy_text+1)) .
  *  \param icy_text The input data in ICY encoding
  *  \return pointer to newly allocated buffer with UTF-8 data (You free() it!) */
-char* mpg123_icy2utf8(const char* icy_text);
+MPG123_EXPORT char* mpg123_icy2utf8(const char* icy_text);
 
 
 /* @} */
@@ -1229,33 +1249,33 @@ typedef struct mpg123_pars_struct   mpg123_pars;
  *  \param error error code return address
  *  \return mpg123 handle
  */
-mpg123_handle *mpg123_parnew(mpg123_pars *mp
+MPG123_EXPORT mpg123_handle *mpg123_parnew(mpg123_pars *mp
                                           , const char* decoder, int *error);
 
 /** Allocate memory for and return a pointer to a new mpg123_pars
  *  \param error error code return address
  *  \return new parameter handle
  */
-mpg123_pars *mpg123_new_pars(int *error);
+MPG123_EXPORT mpg123_pars *mpg123_new_pars(int *error);
 
 /** Delete and free up memory used by a mpg123_pars data structure
  *  \param mp parameter handle
  */
-void mpg123_delete_pars(mpg123_pars* mp);
+MPG123_EXPORT void mpg123_delete_pars(mpg123_pars* mp);
 
 /** Configure mpg123 parameters to accept no output format at all, 
  *  use before specifying supported formats with mpg123_format
  *  \param mp parameter handle
  *  \return MPG123_OK on success
  */
-int mpg123_fmt_none(mpg123_pars *mp);
+MPG123_EXPORT int mpg123_fmt_none(mpg123_pars *mp);
 
 /** Configure mpg123 parameters to accept all formats 
  *  (also any custom rate you may set) -- this is default. 
  *  \param mp parameter handle
  *  \return MPG123_OK on success
  */
-int mpg123_fmt_all(mpg123_pars *mp);
+MPG123_EXPORT int mpg123_fmt_all(mpg123_pars *mp);
 
 /** Set the audio format support of a mpg123_pars in detail:
  * \param mp parameter handle
@@ -1266,7 +1286,7 @@ int mpg123_fmt_all(mpg123_pars *mp);
  *                  support).
  * \return MPG123_OK on success
 */
-int mpg123_fmt(mpg123_pars *mp
+MPG123_EXPORT int mpg123_fmt(mpg123_pars *mp
                             , long rate, int channels, int encodings);
 
 /** Check to see if a specific format at a specific rate is supported
@@ -1276,7 +1296,7 @@ int mpg123_fmt(mpg123_pars *mp
  *  \param encoding encoding
  *  \return 0 for no support (that includes invalid parameters), MPG123_STEREO, 
  *          MPG123_MONO or MPG123_STEREO|MPG123_MONO. */
-int mpg123_fmt_support(mpg123_pars *mp, long rate, int encoding);
+MPG123_EXPORT int mpg123_fmt_support(mpg123_pars *mp, long rate, int encoding);
 
 /** Set a specific parameter, for a specific mpg123_pars, using a parameter 
  *  type key chosen from the mpg123_parms enumeration, to the specified value.
@@ -1286,7 +1306,7 @@ int mpg123_fmt_support(mpg123_pars *mp, long rate, int encoding);
  *  \param fvalue floating point value
  *  \return MPG123_OK on success
  */
-int mpg123_par( mpg123_pars *mp, enum mpg123_parms type
+MPG123_EXPORT int mpg123_par( mpg123_pars *mp, enum mpg123_parms type
                             , long value, double fvalue);
 
 /** Get a specific parameter, for a specific mpg123_pars. 
@@ -1297,7 +1317,7 @@ int mpg123_par( mpg123_pars *mp, enum mpg123_parms type
  *  \param fvalue floating point value return address
  *  \return MPG123_OK on success
  */
-int mpg123_getpar( mpg123_pars *mp, enum mpg123_parms type
+MPG123_EXPORT int mpg123_getpar( mpg123_pars *mp, enum mpg123_parms type
                                , long *value, double *fvalue);
 
 /* @} */
@@ -1318,14 +1338,14 @@ int mpg123_getpar( mpg123_pars *mp, enum mpg123_parms type
   * \param size of buffer in bytes
   * \return MPG123_OK on success
   */
-int mpg123_replace_buffer(mpg123_handle *mh, unsigned char *data, size_t size);
+MPG123_EXPORT int mpg123_replace_buffer(mpg123_handle *mh, unsigned char *data, size_t size);
 
 /** The max size of one frame's decoded output with current settings.
  *  Use that to determine an appropriate minimum buffer size for decoding one frame.
  *  \param mh handle
  *  \return maximum decoded data size in bytes
  */
-size_t mpg123_outblock(mpg123_handle *mh);
+MPG123_EXPORT size_t mpg123_outblock(mpg123_handle *mh);
 
 /** Replace low-level stream access functions; read and lseek as known in POSIX.
  *  You can use this to make any fancy file opening/closing yourself, 
@@ -1340,7 +1360,7 @@ size_t mpg123_outblock(mpg123_handle *mh);
  * \param r_lseek callback for seeking (like POSIX lseek)
  * \return MPG123_OK on success
  */
-int mpg123_replace_reader( mpg123_handle *mh
+MPG123_EXPORT int mpg123_replace_reader( mpg123_handle *mh
                                        , ssize_t (*r_read) (int, void *, size_t)
                                        , off_t (*r_lseek)(int, off_t, int) );
 
@@ -1358,7 +1378,7 @@ int mpg123_replace_reader( mpg123_handle *mh
  *         can be NULL for none (you take care of cleaning your handles).
  * \return MPG123_OK on success
  */
-int mpg123_replace_reader_handle( mpg123_handle *mh
+MPG123_EXPORT int mpg123_replace_reader_handle( mpg123_handle *mh
                                 , ssize_t (*r_read) (void *, void *, size_t)
                                 , off_t (*r_lseek)(void *, off_t, int)
                                 , void (*cleanup)(void*) );
