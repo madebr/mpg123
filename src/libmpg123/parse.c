@@ -362,7 +362,7 @@ static int check_lame_tag(mpg123_handle *fr)
 		{
 			unsigned char gt     =  fr->bsbuf[lame_offset] >> 5;
 			unsigned char origin = (fr->bsbuf[lame_offset] >> 2) & 0x7;
-			float factor         = (fr->bsbuf[lame_offset] & 0x2) ? -0.1 : 0.1;
+			float factor         = (fr->bsbuf[lame_offset] & 0x2) ? -0.1f : 0.1f;
 			unsigned short gain  = bit_read_short(fr->bsbuf, &lame_offset) & 0x1ff; /* 19 in (2 cycles) */
 			if(origin == 0 || gt < 1 || gt > 2) continue;
 
