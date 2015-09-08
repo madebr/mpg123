@@ -101,25 +101,21 @@ FILE* compat_fopen(const char *filename, const char *mode)
 #ifdef WANT_WIN32_UNICODE
 	int cnt = 0;
 	wchar_t *wname = NULL;
-	wchat_t *wmode = NULL;
+	wchar_t *wmode = NULL;
 
 	cnt = win32_utf8_wide(filename, &wname, NULL);
-	if( (filenamew == NULL) || (cnt == 0))
+	if( (wname == NULL) || (cnt == 0))
 		goto fopen_fallback;
 	cnt = win32_utf8_wide(mode, &wmode, NULL);
 	if( (wmode == NULL) || (cnt == 0))
 		goto fopen_fallback;
 
-	stream = _wfopen(filenamew, wmode);
+	stream = _wfopen(wname, wmode);
 	if(stream) goto fopen_ok;
 
 fopen_fallback:
 #endif
-#if (defined(WIN32) && !defined (__CYGWIN__))
-	stream = _fopen(filename, mode);
-#else
 	stream = fopen(filename, mode);
-#endif
 #ifdef WANT_WIN32_UNICODE
 
 fopen_ok:
@@ -140,11 +136,7 @@ int compat_close(int infd)
 
 int compat_fclose(FILE *stream)
 {
-#if (defined(WIN32) && !defined (__CYGWIN__))
-	return _fclose(stream);
-#else
 	return fclose(stream);
-#endif
 }
 
 /* Windows Unicode stuff */
