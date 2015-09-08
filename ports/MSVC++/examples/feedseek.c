@@ -229,7 +229,7 @@ int _tmain(int argc, TCHAR **argv)
 		}
 	}
 
-	fprintf(stderr, "Finished\n", (unsigned long)inc, (unsigned long)outc);
+	fprintf(stderr, "Finished read %lu, decoded %lu\n", (unsigned long)inc, (unsigned long)outc);
 
 	closewav();
 	fclose(out);

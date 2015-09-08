@@ -20,7 +20,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	if(argc < 2)
 	{
 		fprintf(stderr, "\nI will give you the estimated and exact sample lengths of MPEG audio files.\n");
-		fprintf(stderr, "\nUsage: %s <mpeg audio file list>\n\n", argv[0]);
+		fprintf(stderr, "\nUsage: %ls <mpeg audio file list>\n\n", argv[0]);
 		return -1;
 	}
 	mpg123_init();
