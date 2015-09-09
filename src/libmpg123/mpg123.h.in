@@ -17,7 +17,7 @@
  */
 #define MPG123_API_VERSION @API_VERSION@
 
-/** Defines needed for MSVC++ DLL builds.
+/** Defines needed for MS Visual Studio(tm) DLL builds.
  * Every public function must be prefixed with MPG123_EXPORT. When building 
  * the DLL ensure to define BUILD_MPG123_DLL. This makes the function accessible
  * for clients and includes it in the import library which is created together
