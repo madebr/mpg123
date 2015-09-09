@@ -281,6 +281,10 @@ void out123_close(out123_handle *ao);
 
 /** Get supported audio encodings for given rate and channel count,
  *  for the currently openend audio device.
+ *  TODO: Reopening the underlying audio device for each query
+ *        is dumb, at least when dealing with JACK. It takes
+ *        a long time and is just a waste. Reconsider that.
+ *        Make sure that all output modules are fine with it, though!
  *  Usually, a wider range of rates is supported, but the number
  *  of sample encodings is limited, as is the number of channels.
  *  So you can call this with some standard rate and hope that the
