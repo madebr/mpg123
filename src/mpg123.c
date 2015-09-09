@@ -280,11 +280,6 @@ void safe_exit(int code)
 	exit(code);
 }
 
-static void check_fatal(int code)
-{
-	if(code) safe_exit(code);
-}
-
 static void check_fatal_output(int code)
 {
 	if(code)
@@ -954,11 +949,6 @@ int main(int sys_argc, char ** sys_argv)
 	/* Don't just exit() or return out...                                                                        */
 	/* ========================================================================================================= */
 
-#ifdef HAVE_TERMIOS
-	/* Hide cursor. */
-	if(term_width(STDERR_FILENO) >= 0)
-		fprintf(stderr, "\x1b[?25l");
-#endif
 	httpdata_init(&htd);
 
 #if !defined(WIN32) && !defined(GENERIC)
@@ -1091,9 +1081,6 @@ int main(int sys_argc, char ** sys_argv)
 	check_fatal_output(out123_open( ao
 	,	param.output_module, param.output_device ));
 
-	/* Now either check caps myself or query buffer for that. */
-	audio_capabilities(ao, mh);
-
 	if(!param.remote) prepare_playlist(argc, argv);
 
 #if !defined(WIN32) && !defined(GENERIC)
@@ -1102,6 +1089,13 @@ int main(int sys_argc, char ** sys_argv)
 	   The more important use being a graceful exit, including telling the buffer process what's going on. */
 	if(!param.remote) catchsignal (SIGINT, catch_interrupt);
 #endif
+#ifdef HAVE_TERMIOS
+	/* Hide cursor. */
+	if(term_width(STDERR_FILENO) >= 0)
+		fprintf(stderr, "\x1b[?25l");
+#endif
+	/* Now either check caps myself or query buffer for that. */
+	audio_capabilities(ao, mh);
 
 	if(param.remote) {
 		int ret;
