@@ -21,6 +21,7 @@
 #include "common.h"
 #include "genre.h"
 #include "playlist.h"
+#include "audio.h"
 #define MODE_STOPPED 0
 #define MODE_PLAYING 1
 #define MODE_PAUSED 2
