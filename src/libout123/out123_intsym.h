@@ -1,6 +1,8 @@
 #ifndef OUT123_INTSYM_H
 #define OUT123_INTSYM_H
-/* Mapping of internal mpg123 symbols to something that is less likely to conflict in case of static linking. */
+/* Mapping of internal mpg123 symbols to something that is less likely to
+   conflict in case of static linking. */
+#include "config.h"
 #define catchsignal IOT123_catchsignal
 #define safe_realloc IOT123_safe_realloc
 #define compat_open IOT123_compat_open

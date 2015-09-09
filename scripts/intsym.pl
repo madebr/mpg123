@@ -75,7 +75,11 @@ for my $i (@instances)
 
 	print $out "#ifndef $i->{guard}\n";
 	print $out "#define $i->{guard}\n";
-	print $out "/* Mapping of internal mpg123 symbols to something that is less likely to conflict in case of static linking. */\n";
+	print $out <<EOT;
+/* Mapping of internal mpg123 symbols to something that is less likely to
+   conflict in case of static linking. */
+#include "config.h"
+EOT
 
 	foreach my $sym (@symbols)
 	{
