@@ -21,6 +21,7 @@ int term_width(int fd);
 void print_header(mpg123_handle *);
 void print_header_compact(mpg123_handle *);
 void print_stat(mpg123_handle *fr, long offset, out123_handle *ao);
+void print_buf(const char* prefix, out123_handle *ao);
 void clear_stat();
 /* for control_generic */
 extern const char* remote_header_help;
