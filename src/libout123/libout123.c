@@ -863,9 +863,16 @@ out123_encodings(out123_handle *ao, long rate, int channels)
 #endif
 	{
 		int enc = 0;
+		/* This tells outputs to choose a fitting format so that ao->open() succeeds
+		   They possibly set a sample rate and channel count they like best.
+		   We should add API to retrieve those defaults, too. */
 		ao->format   = -1;
 		if(ao->open(ao) >= 0)
 		{
+			/* Need to reset those since the choose-your-format open
+			   call might have changed them. */
+			ao->channels = channels;
+			ao->rate     = rate;
 			enc = ao->get_formats(ao);
 			ao->close(ao);
 			return enc;

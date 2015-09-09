@@ -55,8 +55,6 @@ static void free_jack_handle( jack_handle_t* handle )
 {
 	int i;
 
-	warning("FIXME: One needs to wait or write some silence here to prevent the last bits of audio to vanish out of the ringbuffer.");
-
 	for(i=0; i<MAX_CHANNELS; i++) {
 		/* Close the port for channel*/
 		if ( handle->ports[i] )
@@ -255,8 +253,9 @@ static int open_jack(out123_handle *ao)
 	}
 	
 	/* Display the unique client name allocated to us */
-	fprintf(stderr,"Registered as JACK client %s.\n",
-		jack_get_client_name( handle->client ) );
+	if(AOVERBOSE(1))
+		fprintf( stderr, "Registered as JACK client %s.\n"
+		,	jack_get_client_name( handle->client ) );
 
 	/* The initial open lets me choose the settings. */
 	if (ao->format==-1)
@@ -423,7 +422,9 @@ static void flush_jack(out123_handle *ao)
 static int init_jack(out123_handle* ao)
 {
 	if (ao==NULL) return -1;
-	
+
+	warning("FIXME: Need draining to prevent the last bits of audio to vanish out of the ringbuffer.");
+
 	/* Set callbacks */
 	ao->open = open_jack;
 	ao->flush = flush_jack;
