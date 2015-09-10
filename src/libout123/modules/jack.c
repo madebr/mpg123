@@ -260,7 +260,7 @@ static int open_jack(out123_handle *ao)
 	/* The initial open lets me choose the settings. */
 	if (ao->format==-1)
 	{
-		ao->format = MPG123_ENC_16;
+		ao->format = MPG123_ENC_FLOAT_32;
 		ao->rate   = jack_get_sample_rate(handle->client);
 		ao->channels = 2;
 	}
