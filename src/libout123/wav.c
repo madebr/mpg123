@@ -165,7 +165,7 @@ static int testEndian(void)
 /* return: 0 is good, -1 is bad */
 static int open_file(struct wavdata *wdat, char *filename)
 {
-	debug2("open_file(%p, %s)", wdat, filename ? filename : "<nil>");
+	debug2("open_file(%p, %s)", (void*)wdat, filename ? filename : "<nil>");
 	if(!wdat)
 		return -1;
 #if defined(HAVE_SETUID) && defined(HAVE_GETUID)

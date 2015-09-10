@@ -430,7 +430,7 @@ void attribute_align_arg out123_close(out123_handle *ao)
 int attribute_align_arg 
 out123_start(out123_handle *ao, long rate, int channels, int encoding)
 {
-	debug4( "out123_start(%p, %li, %i, %li)"
+	debug4( "out123_start(%p, %li, %i, %i)"
 	,	(void*)ao, rate, channels, encoding );
 	if(!ao)
 		return OUT123_ERR;
@@ -890,7 +890,7 @@ int out123_formats( out123_handle *ao, const long *rates, int ratecount
 {
 	debug6( "out123_formats(%p, %p, %i, %i, %i, %p)"
 	,	(void*)ao, (void*)rates, ratecount, minchannels, maxchannels
-	,	(void)fmtlist );
+	,	(void*)fmtlist );
 	if(!ao)
 		return OUT123_ERR;
 	ao->errcode = OUT123_OK;

@@ -211,11 +211,11 @@ static void seekmode(mpg123_handle *mh, out123_handle *ao)
 {
 	if(param.usebuffer && !stopped)
 	{
-		stopped = TRUE;
 		int channels;
 		int encoding;
 		off_t back_samples;
 
+		stopped = TRUE;
 		out123_pause(ao);
 		mpg123_getformat(mh, NULL, &channels, &encoding);
 		back_samples = out123_buffered(ao)/(mpg123_samplesize(encoding)*channels);

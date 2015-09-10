@@ -27,6 +27,9 @@ void buffer_exit(out123_handle *ao);
 int buffer_sync_param(out123_handle *ao);
 int buffer_open(out123_handle *ao, const char* driver, const char* device);
 int buffer_encodings(out123_handle *ao);
+int buffer_formats( out123_handle *ao, const long *rates, int ratecount
+                  , int minchannels, int maxchannels
+                  , struct mpg123_fmt **fmtlist );
 int buffer_start(out123_handle *ao);
 void buffer_ndrain(out123_handle *ao, size_t bytes);
 

@@ -274,6 +274,7 @@ int buffer_formats( out123_handle *ao, const long *rates, int ratecount
                   , struct mpg123_fmt **fmtlist )
 {
 	int writerfd = ao->buffermem->fd[XF_WRITER];
+	size_t ratesize;
 
 	if(xfermem_putcmd(writerfd, BUF_CMD_AUDIOFMT) != 1)
 	{
@@ -281,7 +282,7 @@ int buffer_formats( out123_handle *ao, const long *rates, int ratecount
 		return -1;
 	}
 
-	size_t ratesize = ratecount*sizeof(rates);
+	ratesize = ratecount*sizeof(rates);
 
 	if(
 		!GOOD_WRITEVAL(writerfd, maxchannels)
@@ -753,9 +754,7 @@ int buffer_loop(out123_handle *ao)
 					int minchannels;
 					int maxchannels;
 					struct mpg123_fmt *fmtlist;
-					int success;
 					int fmtcount = -1;
-					int recread = 0;
 
 					if(
 						!GOOD_READVAL_BUF(my_fd, maxchannels)

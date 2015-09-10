@@ -117,11 +117,9 @@ long brate(struct ratepair *table, long arate, int count, int *last)
 void audio_capabilities(out123_handle *ao, mpg123_handle *mh)
 {
 	int force_fmt = 0;
-	int fmts;
 	size_t ri;
 	/* Pitching introduces a difference between decoder rate and playback rate. */
-	long rate, decode_rate;
-	int channels;
+	long decode_rate;
 	const long *rates;
 	long *outrates;
 	struct ratepair *unpitch;

@@ -97,7 +97,7 @@ static int performoption (int argc, char *argv[], topt *opt)
 	}
 	if (opt->func)
 		opt->func(loptarg);
-	debug4("result: %i (%p, %i, %i)", result, opt->var, opt->value, opt->sname);
+	debug4("result: %i (%p, %li, %i)", result, opt->var, opt->value, opt->sname);
 	return (result);
 }
 

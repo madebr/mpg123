@@ -146,11 +146,6 @@ static void safe_exit(int code)
 	exit(code);
 }
 
-static void check_fatal(int code)
-{
-	if(code) safe_exit(code);
-}
-
 static void check_fatal_output(int code)
 {
 	if(code)
@@ -636,7 +631,7 @@ static char* output_enclist(void)
 	int i;
 	char *list = NULL;
 	char *pos;
-	size_t len;
+	size_t len = 0;
 	int enc_count = 0;
 	int *enc_codes = NULL;
 

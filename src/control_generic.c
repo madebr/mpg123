@@ -7,6 +7,14 @@
 	reworked by Thomas Orgis - it was the entry point for eventually becoming maintainer...
 */
 
+#include "config.h"
+/* _BSD_SOURCE needed for setlinebuf, erm, but that's deprecated
+   so trying _DEFAULT_SOURCE */
+#ifndef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE
+#endif
+#include "compat.h"
+
 #include "mpg123app.h"
 #include "out123.h"
 #include <stdarg.h>
