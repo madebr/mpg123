@@ -48,7 +48,7 @@
     <ClInclude Include="..\..\..\..\..\src\libmpg123\mangle.h" />
     <ClInclude Include="..\..\..\..\..\src\libmpg123\mpeghead.h" />
     <ClInclude Include="..\..\..\..\..\src\libmpg123\mpg123lib_intern.h" />
-    <ClInclude Include="..\..\..\..\..\src\libmpg123\mpg123_enc.h" />
+    <ClInclude Include="..\..\..\..\..\src\libmpg123\fmt123.h" />
     <ClInclude Include="..\..\..\..\..\src\libmpg123\newhuffman.h" />
     <ClInclude Include="..\..\..\..\..\src\libmpg123\optimize.h" />
     <ClInclude Include="..\..\..\..\..\src\libmpg123\parse.h" />

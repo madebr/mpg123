@@ -83,8 +83,23 @@ enum mpg123_enc_enum
 					:	0 \
 )	)	)	)	)
 
-/* @} */
+/** Structure defining an audio format
+ *  Providing the members as individual function arguments to define a certain
+ *  output format is easy enough. This struct makes is more comfortable to deal
+ *  with a list of formats.
+ *  Negative values for the members might be used to communicate use of default
+ *  values.
+ */
+struct mpg123_fmt
+{
+	long rate;    /**< sampling rate in Hz  */
+	int channels; /**< channel count */
+	/** encoding code, can be single value or bitwise or of members of
+	 *  mpg123_enc_enum */
+	int encoding;
+};
 
+/* @} */
 
 #endif
 
