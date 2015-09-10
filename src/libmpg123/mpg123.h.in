@@ -9,6 +9,8 @@
 #ifndef MPG123_LIB_H
 #define MPG123_LIB_H
 
+#include <fmt123.h>
+
 /** \file mpg123.h The header file for the libmpg123 MPEG Audio decoder */
 
 /** A macro to check at compile time which set of API functions to expect.
@@ -415,8 +417,6 @@ MPG123_EXPORT const char* mpg123_current_decoder(mpg123_handle *mh);
  *
  * @{
  */
-
-#include <mpg123_enc.h>
 
 /** They can be combined into one number (3) to indicate mono and stereo... */
 enum mpg123_channelcount

@@ -28,6 +28,8 @@
 /* We only need size_t definition. */
 #include <stddef.h>
 
+#include <fmt123.h>
+
 /** A macro to check at compile time which set of API functions to expect.
  * This should be incremented at least each time a new symbol is added
  * to the header.
