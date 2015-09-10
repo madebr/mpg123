@@ -960,8 +960,7 @@ int attribute_align_arg out123_enc_byname(const char *name)
 	int i;
 	if(!name)
 		return OUT123_ERR;
-	for(i=0;i<KNOWN_ENCS;++i) if
-	(
+	for(i=0;i<KNOWN_ENCS;++i) if(
 		!strcasecmp(encdesc[i].name, name)
 	||	!strcasecmp(encdesc[i].longname, name)
 	)
