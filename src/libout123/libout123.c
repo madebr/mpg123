@@ -960,7 +960,7 @@ int attribute_align_arg out123_enc_byname(const char *name)
 	int i;
 	if(!name)
 		return OUT123_ERR;
-	for(i=0;i<KNOWN_ENCS;++i) if(
+	for(i=0; i<KNOWN_ENCS; ++i) if(
 		!strcasecmp(encdesc[i].name, name)
 	||	!strcasecmp(encdesc[i].longname, name)
 	)
@@ -971,7 +971,7 @@ int attribute_align_arg out123_enc_byname(const char *name)
 const char* attribute_align_arg out123_enc_name(int encoding)
 {
 	int i;
-	for(i=0;i<KNOWN_ENCS;++i) if(encdesc[i].code == encoding)
+	for(i=0; i<KNOWN_ENCS; ++i) if(encdesc[i].code == encoding)
 		return encdesc[i].name;
 	return NULL;
 }
@@ -979,7 +979,7 @@ const char* attribute_align_arg out123_enc_name(int encoding)
 const char* attribute_align_arg out123_enc_longname(int encoding)
 {
 	int i;
-	for(i=0;i<KNOWN_ENCS;++i) if(encdesc[i].code == encoding)
+	for(i=0; i<KNOWN_ENCS; ++i) if(encdesc[i].code == encoding)
 		return encdesc[i].longname;
 	return NULL;
 }
