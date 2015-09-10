@@ -226,7 +226,7 @@ static int open_jack(out123_handle *ao)
 {
 	char client_name[255];
 	jack_handle_t *handle=NULL;
-	jack_options_t jopt = JackNullOption;
+	jack_options_t jopt = JackNullOption|JackNoStartServer;
 	jack_status_t jstat = 0;
 	unsigned int i;
 
