@@ -143,6 +143,7 @@ enum out123_error
  * Some (really unexpected) error in buffer infrastructure.
  */
 ,	OUT123_MODULE_ERROR /**< basic failure in module loading */
+,	OUT123_ARG_ERROR /**< some bad function arguments supplied */
 ,	OUT123_ERRCOUNT /**< placeholder for shaping arrays */
 };
 
@@ -302,6 +303,38 @@ void out123_close(out123_handle *ao);
  */
 int out123_encodings(out123_handle *ao, long rate, int channels);
 
+/** Get list of supported formats for currently opened audio device.
+ *  Given a list of sampling rates and minimal/maximal channel count,
+ *  this quickly checks what formats are supported with these
+ *  constraints. The first entry is always reserved for a default
+ *  format for the output device. If there is no such default,
+ *  all values of the format are -1.
+ *  For each requested combination of rate and channels, a format entry is
+ *  created, possible with encoding value 0 to indicate that this combination
+ *  has been tested and rejected. So, when there is no basic error, the
+ *  number of returned format entries should be
+ *     (ratecount*(maxchannels-minchannels+1)+1)
+ *  . But instead of forcing you to guess, this will be allocated by
+ *  successful run.
+ *  For the first entry, the encoding member is supposed to be a definite
+ *  encoding, for the others it is a bitwise combination of all possible
+ *  encodings.
+ *  This function is more efficient than many calls to out123_encodings().
+ * \param ao handle
+ * \param rates pointer to an array of sampling rates, may be NULL for none
+ * \param ratecount number of provided sampling rates
+ * \param minchannels minimal channel count
+ * \param maxchannels maximal channel count
+ * \param fmtlist return address for array of supported formats
+ *        the encoding field of each entry is a combination of all
+ *        supported encodings at this rate and channel count;
+ *        Memory shall be freed by user.
+ * \return number of returned format enries, -1 on error
+ */
+int out123_formats( out123_handle *ao, const long *rates, int ratecount
+                  , int minchannels, int maxchannels
+                  , struct mpg123_fmt **fmtlist );
+
 /** Get list of encodings known to the library.
  *  You are responsible for freeing the allocated array.
  * \param enclist return address for allocated array of encoding codes
@@ -330,6 +363,9 @@ const char* out123_enc_longname(int encoding);
 /** Start playback with a certain output format
  *  It might be a good idea to have audio data handy to feed after this
  *  returns with success.
+ *  Rationale for not taking a pointer to struct mpg123_fmt: This would
+ *  always force you to deal with that type and needlessly enlarge the
+ *  shortest possible program.
  * \param ao handle
  * \param encoding sample encoding (values matching libmpg123 API)
  * \param channels number of channels (1 or 2, usually)

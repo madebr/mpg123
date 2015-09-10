@@ -11,6 +11,12 @@
 static int open_dummy(out123_handle *ao)
 {
 	debug("open_dummy()");
+	if(ao->format < 0)
+	{
+		ao->rate     = 44100;
+		ao->channels = 2;
+		ao->format   = MPG123_ENC_SIGNED_16;
+	}
 	return 0;
 }
 

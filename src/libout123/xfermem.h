@@ -66,6 +66,7 @@ enum xf_cmd_code
 ,	XF_CMD_CUSTOM5   /**< Some custom command to be filled with meaning. */
 ,	XF_CMD_CUSTOM6   /**< Some custom command to be filled with meaning. */
 ,	XF_CMD_CUSTOM7   /**< Some custom command to be filled with meaning. */
+,	XF_CMD_CUSTOM8   /**< Some custom command to be filled with meaning. */
 };
 
 #define XF_WRITER 0

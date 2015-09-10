@@ -884,6 +884,90 @@ out123_encodings(out123_handle *ao, long rate, int channels)
 	}
 }
 
+int out123_formats( out123_handle *ao, const long *rates, int ratecount
+                  , int minchannels, int maxchannels
+                  , struct mpg123_fmt **fmtlist )
+{
+	debug6( "out123_formats(%p, %p, %i, %i, %i, %p)"
+	,	(void*)ao, (void*)rates, ratecount, minchannels, maxchannels
+	,	(void)fmtlist );
+	if(!ao)
+		return OUT123_ERR;
+	ao->errcode = OUT123_OK;
+
+	out123_stop(ao); /* That brings the buffer into waiting state, too. */
+
+	if(ao->state != play_stopped)
+		return out123_seterr(ao, OUT123_NO_DRIVER);
+
+	if(ratecount > 0 && !rates)
+		return out123_seterr(ao, OUT123_ARG_ERROR);
+	if(!fmtlist || minchannels > maxchannels)
+		return out123_seterr(ao, OUT123_ARG_ERROR);
+	*fmtlist = NULL; /* Initialize so free(fmtlist) is always allowed. */
+
+#ifndef NOXFERMEM
+	if(have_buffer(ao))
+		return buffer_formats( ao, rates, ratecount
+		                     , minchannels, maxchannels, fmtlist );
+	else
+#endif
+	{
+		/* This tells outputs to choose a fitting format so that ao->open()
+		   succeeds. */
+		ao->format   = -1;
+		ao->rate     = -1;
+		ao->channels = -1;
+		if(ao->open(ao) >= 0)
+		{
+			struct mpg123_fmt *fmts;
+			int ri, ch;
+			int fi = 0;
+			int fmtcount = 1; /* Always the default format. */
+			if(ratecount > 0)
+				fmtcount += ratecount*(maxchannels-minchannels+1);
+			if(!(fmts = malloc(sizeof(*fmts)*fmtcount)))
+			{
+				ao->close(ao);
+				return out123_seterr(ao, OUT123_DOOM);
+			}
+			/* Store default format if present. */
+			if(ao->format > 0 && ao->channels > 0 && ao->rate > 0)
+			{
+				fmts[0].rate     = ao->rate;
+				fmts[0].channels = ao->channels;
+				fmts[0].encoding = ao->format;
+			}
+			else
+			{ /* Ensure consistent -1 in all entries. */
+				fmts[0].rate     = -1;
+				fmts[0].channels = -1;
+				fmts[0].encoding = -1;
+			}
+			/* Test all combinations of rate and channel count. */
+			for(ri=0; ri<ratecount; ++ri)
+			for(ch=minchannels; ch<=maxchannels; ++ch)
+			{
+				++fi;
+				ao->rate = rates[ri];
+				ao->channels = ch;
+				fmts[fi].rate     = ao->rate;
+				fmts[fi].channels = ao->channels;
+				fmts[fi].encoding = ao->get_formats(ao);
+			}
+			ao->close(ao);
+
+			*fmtlist = fmts;
+			return fmtcount;
+		}
+		else
+			return out123_seterr(ao, (ao->errcode != OUT123_OK
+			?	ao->errcode
+			:	OUT123_DEV_OPEN));
+	}
+}
+
+
 size_t attribute_align_arg out123_buffered(out123_handle *ao)
 {
 	debug1("out123_buffered(%p)", (void*)ao);

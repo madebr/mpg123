@@ -250,7 +250,12 @@ int au_open(out123_handle *ao)
 	struct auhead  *auhead = NULL;
 
 	if(ao->format < 0)
+	{
+		ao->rate = 44100;
+		ao->channels = 2;
+		ao->format = MPG123_ENC_SIGNED_16;
 		return 0;
+	}
 
 	if(ao->format & MPG123_ENC_FLOAT)
 	{
@@ -272,11 +277,6 @@ int au_open(out123_handle *ao)
 	wdat->the_header_size = sizeof(*auhead);
 
 	wdat->flipendian = 0;
-
-	if(ao->rate < 0)
-		ao->rate = 44100;
-	if(ao->channels < 0)
-		ao->channels = 2;
 
 	switch(ao->format)
 	{
@@ -327,7 +327,12 @@ int cdr_open(out123_handle *ao)
 	struct wavdata *wdat   = NULL;
 
 	if(ao->format < 0)
+	{
+		ao->rate = 44100;
+		ao->channels = 2;
+		ao->format = MPG123_ENC_SIGNED_16;
 		return 0;
+	}
 
 	if(
 		ao->format != MPG123_ENC_SIGNED_16
@@ -369,7 +374,12 @@ int raw_open(out123_handle *ao)
 	struct wavdata *wdat;
 
 	if(ao->format < 0)
+	{
+		ao->rate = 44100;
+		ao->channels = 2;
+		ao->format = MPG123_ENC_SIGNED_16;
 		return 0;
+	}
 
 	if(!(wdat = wavdata_new()))
 	{
@@ -396,7 +406,12 @@ int wav_open(out123_handle *ao)
 	struct riff_float *floathead = NULL;
 
 	if(ao->format < 0)
+	{
+		ao->rate = 44100;
+		ao->channels = 2;
+		ao->format = MPG123_ENC_SIGNED_16;
 		return 0;
+	}
 
 	if(!(wdat = wavdata_new()))
 	{

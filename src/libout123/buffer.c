@@ -43,6 +43,7 @@
 #define BUF_CMD_AUDIOCAP XF_CMD_CUSTOM5
 #define BUF_CMD_PARAM    XF_CMD_CUSTOM6
 #define BUF_CMD_NDRAIN   XF_CMD_CUSTOM7
+#define BUF_CMD_AUDIOFMT XF_CMD_CUSTOM8
 
 /* TODO: Dynamically allocate that to allow multiple instances. */
 int outburst = 32768;
@@ -57,8 +58,8 @@ static void catch_interrupt (void)
 }
 
 static int write_string(out123_handle *ao, int who, const char *buf);
-static int read_string(out123_handle *ao
-,	int who, char **buf, byte *prebuf, int *preoff, int presize);
+static int read_record(out123_handle *ao
+,	int who, void **buf, byte *prebuf, int *preoff, int presize, size_t *recsize);
 static int buffer_loop(out123_handle *ao);
 
 static void catch_child(void)
@@ -224,9 +225,10 @@ int buffer_open(out123_handle *ao, const char* driver, const char* device)
 	if(buffer_cmd_finish(ao) == 0)
 	{
 		/* Retrieve driver and device name. */
-		if(  read_string(ao, XF_WRITER, &ao->driver, NULL, NULL, 0)
-		  || read_string(ao, XF_WRITER, &ao->device, NULL, NULL, 0) )
-		{
+		if(
+			read_record(ao, XF_WRITER, (void**)&ao->driver, NULL, NULL, 0, NULL)
+		||	read_record(ao, XF_WRITER, (void**)&ao->device, NULL, NULL, 0, NULL)
+		){
 			ao->errcode = OUT123_BUFFER_ERROR;
 			return -1;
 		}
@@ -263,6 +265,45 @@ int buffer_encodings(out123_handle *ao)
 			return -1;
 		}
 		else return encodings;
+	}
+	else return -1;
+}
+
+int buffer_formats( out123_handle *ao, const long *rates, int ratecount
+                  , int minchannels, int maxchannels
+                  , struct mpg123_fmt **fmtlist )
+{
+	int writerfd = ao->buffermem->fd[XF_WRITER];
+
+	if(xfermem_putcmd(writerfd, BUF_CMD_AUDIOFMT) != 1)
+	{
+		ao->errcode = OUT123_BUFFER_ERROR;
+		return -1;
+	}
+
+	size_t ratesize = ratecount*sizeof(rates);
+
+	if(
+		!GOOD_WRITEVAL(writerfd, maxchannels)
+	||	!GOOD_WRITEVAL(writerfd, minchannels)
+	||	!GOOD_WRITEVAL(writerfd, ratesize)
+	||	!GOOD_WRITEBUF(writerfd, rates, ratesize)
+	){
+		ao->errcode = OUT123_BUFFER_ERROR;
+		return -1;
+	}
+	if(buffer_cmd_finish(ao) == 0)
+	{
+		int fmtcount;
+		size_t fmtsize;
+		if(
+			!GOOD_READVAL(writerfd, fmtcount)
+		||	read_record(ao, XF_WRITER, (void**)fmtlist, NULL, NULL, 0, &fmtsize)
+		){
+			ao->errcode = OUT123_BUFFER_ERROR;
+			return -1;
+		} else
+			return fmtsize/sizeof(struct mpg123_fmt);
 	}
 	else return -1;
 }
@@ -505,10 +546,11 @@ int read_buf(int fd, void *addr, size_t size, byte *prebuf, int *preoff, int pre
 		return 0;
 }
 
-/* Read a string from command channel.
+/* Read a record of unspecified type from command channel.
    Return 0 on success, set ao->errcode on issues. */
-static int read_string(out123_handle *ao
-,	int who, char **buf, byte *prebuf, int *preoff, int presize)
+static int read_record(out123_handle *ao
+,	int who, void **buf, byte *prebuf, int *preoff, int presize
+,	size_t *reclen)
 {
 	txfermem *xf = ao->buffermem;
 	int my_fd = xf->fd[who];
@@ -523,6 +565,8 @@ static int read_string(out123_handle *ao
 		ao->errcode = OUT123_BUFFER_ERROR;
 		return 2;
 	}
+	if(reclen)
+		*reclen = len;
 	/* If there is an insane length of given, that shall be handled. */
 	if(len && !(*buf = malloc(len)))
 	{
@@ -530,10 +574,11 @@ static int read_string(out123_handle *ao
 		skip_bytes(my_fd, len);
 		return -1;
 	}
-	
 	if(read_buf(my_fd, *buf, len, prebuf, preoff, presize))
 	{
 		ao->errcode = OUT123_BUFFER_ERROR;
+		free(*buf);
+		*buf = NULL;
 		return 2;
 	}
 	return 0;
@@ -646,8 +691,10 @@ int buffer_loop(out123_handle *ao)
 
 					intflag = FALSE;
 					success = (
-						!read_string(ao, XF_READER, &driver, cmd, &i, cmdcount)
-					&&	!read_string(ao, XF_READER, &device, cmd, &i, cmdcount)
+						!read_record( ao, XF_READER, (void**)&driver
+						,	cmd, &i, cmdcount, NULL )
+					&&	!read_record( ao, XF_READER, (void**)&device
+						,	cmd, &i, cmdcount, NULL )
 					&&	!out123_open(ao, driver, device)
 					);
 					free(device);
@@ -692,6 +739,51 @@ int buffer_loop(out123_handle *ao)
 							return 2;
 					}
 					else
+					{
+						xfermem_putcmd(my_fd, XF_CMD_ERROR);
+						if(!GOOD_WRITEVAL(my_fd, ao->errcode))
+							return 2;
+					}
+				}
+				break;
+				case BUF_CMD_AUDIOFMT:
+				{
+					size_t ratesize;
+					long *rates = NULL;
+					int minchannels;
+					int maxchannels;
+					struct mpg123_fmt *fmtlist;
+					int success;
+					int fmtcount = -1;
+					int recread = 0;
+
+					if(
+						!GOOD_READVAL_BUF(my_fd, maxchannels)
+					||	!GOOD_READVAL_BUF(my_fd, minchannels)
+					)
+						return 2;
+					if(
+						read_record( ao, XF_READER, (void**)&rates
+						,	cmd, &i, cmdcount, &ratesize )
+					){
+						xfermem_putcmd(my_fd, XF_CMD_ERROR);
+						if(!GOOD_WRITEVAL(my_fd, ao->errcode))
+							return 2;
+					}
+					fmtcount = out123_formats( ao, rates
+					,	(int)(ratesize/sizeof(*rates))
+					,	minchannels, maxchannels, &fmtlist );
+					free(rates);
+					if(fmtcount >= 0)
+					{
+						int success;
+						xfermem_putcmd(my_fd, XF_CMD_OK);
+						success = GOOD_WRITEBUF( my_fd
+						,	fmtlist, sizeof(*fmtlist)*fmtcount );
+						free(fmtlist);
+						if(!success)
+							return 2;
+					} else
 					{
 						xfermem_putcmd(my_fd, XF_CMD_ERROR);
 						if(!GOOD_WRITEVAL(my_fd, ao->errcode))
