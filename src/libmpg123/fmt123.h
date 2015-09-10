@@ -123,6 +123,13 @@ struct mpg123_fmt
 	int encoding;
 };
 
+/** Helper to decide if a format spec is obviously incomplete/invalid. */
+#define mpg123_fmt_empty(fmt) ( \
+		(fmt).rate     < 1 \
+	||	(fmt).channels < 1 \
+	||	(fmt).encoding < 1 \
+)
+
 /* @} */
 
 #endif

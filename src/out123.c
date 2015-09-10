@@ -363,6 +363,44 @@ static void test_encodings(char *arg)
 	exit(!encs);
 }
 
+static void query_format(char *arg)
+{
+	out123_handle *lao;
+
+	if(verbose)
+		fprintf(stderr, ME": querying default format\n");
+	if((lao=out123_new()))
+	{
+		out123_param(lao, OUT123_VERBOSE, verbose, 0.);
+		if(quiet)
+			out123_param(lao, OUT123_FLAGS, OUT123_QUIET, 0.);
+		if(!out123_open(lao, driver, device))
+		{
+			struct mpg123_fmt *fmts = NULL;
+			int count;
+			count = out123_formats(lao, NULL, 0, 0, 0, &fmts);
+			if(count > 0 && !mpg123_fmt_empty(fmts[0]))
+			{
+				printf( "--rate %li --channels %i --encoding %s\n"
+				,	fmts[0].rate, fmts[0].channels
+				,	out123_enc_name(fmts[0].encoding) );
+			}
+			else
+			{
+				if(verbose)
+					fprintf(stderr, ME": no default format found\n");
+			}
+			free(fmts);
+		}
+		else if(!quiet)
+			error1("cannot open driver: %s", out123_strerror(lao));
+		out123_del(lao);
+	}
+	else if(!quiet)
+		error("Failed to create an out123 handle.");
+	exit(0);
+}
+
 /* Please note: GLO_NUM expects point to LONG! */
 /* ThOr:
  *  Yeah, and despite that numerous addresses to int variables were 
@@ -414,6 +452,7 @@ topt opts[] = {
 	{0, "list-encodings", 0, list_encodings, 0, 0 },
 	{0, "test-format", 0, test_format, 0, 0 },
 	{0, "test-encodings", 0, test_encodings, 0, 0},
+	{0, "query-format", 0, query_format, 0, 0},
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -687,6 +726,7 @@ static void long_usage(int err)
 	fprintf(o,"        --list-encodings   list of encoding short and long names\n");
 	fprintf(o,"        --test-format      return 0 if configued audio format is supported\n");
 	fprintf(o,"        --test-encodings   print out possible encodings with given channels/rate\n");
+	fprintf(o,"        --query-format     print out default format for given device, if any\n");
 	fprintf(o," -o h   --headphones       (aix/hp/sun) output on headphones\n");
 	fprintf(o," -o s   --speaker          (aix/hp/sun) output on speaker\n");
 	fprintf(o," -o l   --lineout          (aix/hp/sun) output to lineout\n");

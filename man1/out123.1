@@ -97,6 +97,11 @@ encountering this), silently returning 0 as exit value if it is the case.
 .BR \-\^\-test\-encodings
 Print out the short names of encodings supported with the current setup.
 .TP
+.BR \-\^\-query\-format
+If the selected driver and device communicate some default accepted format, print
+out a command line fragment for out123 setting that format, always in that order:
+\-\^\-rate <r> -\^\-channels <c> -\^\-encoding <e>
+.TP
 .BR "\-o h" ", " \-\^\-headphones
 Direct audio output to the headphone connector (some hardware only; AIX, HP, SUN).
 .TP

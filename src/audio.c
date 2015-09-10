@@ -91,6 +91,27 @@ void print_capabilities(out123_handle *ao, mpg123_handle *mh)
 	fprintf(stderr,"\n");
 }
 
+/* Quick-shot paired table setup with remembering search in it.
+   this is for storing pairs of output sampling rate and decoding
+   sampling rate. */
+struct ratepair { long a; long b; };
+
+long brate(struct ratepair *table, long arate, int count, int *last)
+{
+	int i = 0;
+	int j;
+	for(j=0; j<2; ++j)
+	{
+		i = i ? 0 : *last;
+		for(; i<count; ++i) if(table[i].a == arate)
+		{
+			*last = i;
+			return table[i].b;
+		}
+	}
+	return 0;
+}
+
 /* This uses the currently opened audio device, queries its caps.
    In case of buffered playback, this works _once_ by querying the buffer for the caps before entering the main loop. */
 void audio_capabilities(out123_handle *ao, mpg123_handle *mh)
@@ -102,44 +123,84 @@ void audio_capabilities(out123_handle *ao, mpg123_handle *mh)
 	long rate, decode_rate;
 	int channels;
 	const long *rates;
-	size_t      num_rates, rlimit;
+	long *outrates;
+	struct ratepair *unpitch;
+	struct mpg123_fmt *outfmts = NULL;
+	int fmtcount;
+	size_t num_rates, rlimit;
+
 	debug("audio_capabilities");
 	mpg123_rates(&rates, &num_rates);
+
 	mpg123_format_none(mh); /* Start with nothing. */
+
 	if(param.force_encoding != NULL)
 	{
-		if(!param.quiet) fprintf(stderr, "Note: forcing output encoding %s\n", param.force_encoding);
+		if(!param.quiet)
+			fprintf(stderr, "Note: forcing output encoding %s\n", param.force_encoding);
 
 		force_fmt = out123_enc_byname(param.force_encoding);
 		if(!force_fmt)
 		{
-			error1("Failed to find an encoding to match requested \"%s\"!\n", param.force_encoding);
+			error1("Failed to find an encoding to match requested \"%s\"!\n"
+			,	param.force_encoding);
 			return; /* No capabilities at all... */
 		}
-		else if(param.verbose > 2) fprintf(stderr, "Note: forcing encoding code 0x%x\n", force_fmt);
+		else if(param.verbose > 2)
+			fprintf(stderr, "Note: forcing encoding code 0x%x (%s)\n"
+			,	force_fmt, out123_enc_name(force_fmt));
 	}
+	/* Lots of preparation of rate lists. */
 	rlimit = param.force_rate > 0 ? num_rates+1 : num_rates;
-	for(channels=1; channels<=2; channels++)
-	for(ri = 0;ri<rlimit;ri++)
+	outrates = malloc(sizeof(*rates)*rlimit);
+	unpitch  = malloc(sizeof(*unpitch)*rlimit);
+	if(!outrates || !unpitch)
+	{
+		if(!param.quiet)
+			error("DOOM");
+		return;
+	}
+	for(ri = 0; ri<rlimit; ri++)
 	{
 		decode_rate = ri < num_rates ? rates[ri] : param.force_rate;
-		rate = pitch_rate(decode_rate);
-		if(param.verbose > 2) fprintf(stderr, "Note: checking support for %liHz/%ich.\n", rate, channels);
-
-		fmts = out123_encodings(ao, rate, channels);
-
-		if(param.verbose > 2) fprintf(stderr, "Note: result 0x%x\n", fmts);
-		if(force_fmt)
-		{ /* Filter for forced encoding. */
-			if((fmts & force_fmt) == force_fmt) fmts = force_fmt;
-			else fmts = 0; /* Nothing else! */
-
-			if(param.verbose > 2) fprintf(stderr, "Note: after forcing 0x%x\n", fmts);
-		}
-
-		if(fmts < 0) continue;
-		else mpg123_format(mh, decode_rate, channels, fmts);
+		outrates[ri] = pitch_rate(decode_rate);
+		unpitch[ri].a = outrates[ri];
+		unpitch[ri].b = decode_rate;
 	}
+	/* Actually query formats possible with given rates. */
+	fmtcount = out123_formats(ao, outrates, rlimit, 1, 2, &outfmts);
+	free(outrates);
+	if(fmtcount > 0)
+	{
+		int fi;
+		int unpitch_i = 0;
+		if(param.verbose > 1 && !mpg123_fmt_empty(outfmts[0]))
+		{
+			fprintf(stderr, "Note: default format %li Hz, %i channels, %s\n"
+			,	outfmts[0].rate, outfmts[0].channels
+			,	out123_enc_name(outfmts[0].encoding) );
+		}
+		for(fi=1; fi<fmtcount; ++fi)
+		{
+			int fmts = outfmts[fi].encoding;
+			if(param.verbose > 2)
+				fprintf( stderr
+				,	"Note: output support for %li Hz, %i channels: 0x%x\n"
+				,	outfmts[fi].rate, outfmts[fi].channels, outfmts[fi].encoding );
+			if(force_fmt)
+			{ /* Filter for forced encoding. */
+				if((fmts & force_fmt) == force_fmt)
+					fmts = force_fmt;
+				else /* Nothing else! */
+					fmts = 0;
+			}
+			mpg123_format( mh
+			,	brate(unpitch, outfmts[fi].rate, rlimit, &unpitch_i)
+			,	outfmts[fi].channels, fmts );
+		}
+	}
+	free(outfmts);
+	free(unpitch);
 
 	if(param.verbose > 1) print_capabilities(ao, mh);
 }
