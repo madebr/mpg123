@@ -70,8 +70,6 @@ extern "C" {
  @{
  */
 
-#include <mpg123_enc.h>
-
 /** Opaque structure for the libout123 handle. */
 struct out123_struct;
 /** Typedef shortcut as preferrend name for the handle type. */
