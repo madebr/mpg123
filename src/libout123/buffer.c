@@ -232,8 +232,11 @@ int buffer_open(out123_handle *ao, const char* driver, const char* device)
 			ao->errcode = OUT123_BUFFER_ERROR;
 			return -1;
 		}
+		else
+			return 0;
 	}
-	return 0;
+	else
+		return -1;
 }
 
 int buffer_encodings(out123_handle *ao)
@@ -275,6 +278,8 @@ int buffer_formats( out123_handle *ao, const long *rates, int ratecount
 {
 	int writerfd = ao->buffermem->fd[XF_WRITER];
 	size_t ratesize;
+
+	debug("buffer_formats");
 
 	if(xfermem_putcmd(writerfd, BUF_CMD_AUDIOFMT) != 1)
 	{
@@ -749,7 +754,7 @@ int buffer_loop(out123_handle *ao)
 				break;
 				case BUF_CMD_AUDIOFMT:
 				{
-					size_t ratesize;
+					size_t blocksize;
 					long *rates = NULL;
 					int minchannels;
 					int maxchannels;
@@ -763,22 +768,28 @@ int buffer_loop(out123_handle *ao)
 						return 2;
 					if(
 						read_record( ao, XF_READER, (void**)&rates
-						,	cmd, &i, cmdcount, &ratesize )
+						,	cmd, &i, cmdcount, &blocksize )
 					){
 						xfermem_putcmd(my_fd, XF_CMD_ERROR);
 						if(!GOOD_WRITEVAL(my_fd, ao->errcode))
 							return 2;
 					}
 					fmtcount = out123_formats( ao, rates
-					,	(int)(ratesize/sizeof(*rates))
+					,	(int)(blocksize/sizeof(*rates))
 					,	minchannels, maxchannels, &fmtlist );
 					free(rates);
 					if(fmtcount >= 0)
 					{
 						int success;
+
+						blocksize = sizeof(*fmtlist)*fmtcount;
+						debug2("responding with %i formats (block: %"SIZE_P")"
+						, fmtcount, (size_p)blocksize);
 						xfermem_putcmd(my_fd, XF_CMD_OK);
-						success = GOOD_WRITEBUF( my_fd
-						,	fmtlist, sizeof(*fmtlist)*fmtcount );
+						success =
+							GOOD_WRITEVAL(my_fd, fmtcount)
+						&&	GOOD_WRITEVAL(my_fd, blocksize)
+						&&	GOOD_WRITEBUF(my_fd, fmtlist, blocksize);
 						free(fmtlist);
 						if(!success)
 							return 2;
