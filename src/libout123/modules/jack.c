@@ -357,8 +357,12 @@ static int write_jack(out123_handle *ao, unsigned char *buf, int len)
 	}
 	
 	
-	/* Wait until there is space in the ring buffer*/
-	while (jack_ringbuffer_write_space( handle->rb[0] ) < tmp_size) {
+	/* Wait until there is space in the ring buffer
+	   Hacked to avoid endless wait on dead server.
+	   We need proper JACK API usage! This is really stupid. */
+	n = 0;
+	while(++n < 5 && jack_ringbuffer_write_space( handle->rb[0] ) < tmp_size)
+	{
 		/* Sleep for a quarter of the ring buffer size (1/4 second)*/
 		usleep(250000);
 	}
