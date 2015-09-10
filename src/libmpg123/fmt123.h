@@ -1,7 +1,7 @@
 /*
 	libmpg123: MPEG Audio Decoder library
 
-	separate header just for audio encoding definitions not tied to
+	separate header just for audio format definitions not tied to
 	library code
 
 	copyright 1995-2015 by the mpg123 project
@@ -12,10 +12,10 @@
 #ifndef MPG123_ENC_H
 #define MPG123_ENC_H
 
-/** \file mpg123_enc.h Audio encoding definitions from mpg123. */
+/** \file fmt123.h Audio format definitions. */
 
 /** \defgroup mpg123_enc mpg123 PCM sample encodings
- *  These are definitions for sample encodings used by libmpg123 and
+ *  These are definitions for audio formats used by libmpg123 and
  *  libout123.
  *
  * @{
@@ -83,7 +83,7 @@ enum mpg123_enc_enum
 					:	0 \
 )	)	)	)	)
 
-/** Structure defining an audio format
+/** Structure defining an audio format.
  *  Providing the members as individual function arguments to define a certain
  *  output format is easy enough. This struct makes is more comfortable to deal
  *  with a list of formats.
