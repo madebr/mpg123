@@ -16,11 +16,15 @@ src_libout123_libout123_la_SOURCES = \
   src/libout123/compat.c \
   src/libout123/wav.c \
   src/libout123/wav.h \
-  src/libout123/wavhead.h \
+  src/libout123/wavhead.h
+
+if BUILD_BUFFER
+src_libout123_libout123_la_SOURCES += \
   src/libout123/buffer.c \
   src/libout123/buffer.h \
   src/libout123/xfermem.c \
   src/libout123/xfermem.h
+endif
 
 src_libout123_libout123_la_LDFLAGS = \
   -no-undefined -version-info @LIBOUT123_VERSION@ -export-symbols-regex '^out123_'
@@ -41,6 +45,7 @@ else
 src_libout123_libmodule_la_SOURCES += src/libout123/legacy_module.c
 
 endif
+
 
 # The sfifo code is directly used in some modules.
 EXTRA_DIST += \

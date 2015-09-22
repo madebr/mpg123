@@ -8,15 +8,16 @@
 
 #include "out123_int.h"
 #include "wav.h"
+#ifndef NOXFERMEM
 #include "buffer.h"
-#include "stringlists.h"
-
-#include "debug.h"
-
 static int have_buffer(out123_handle *ao)
 {
 	return (ao->buffer_pid != -1);
 }
+#endif
+#include "stringlists.h"
+
+#include "debug.h"
 
 static int modverbose(out123_handle *ao)
 {
@@ -260,6 +261,7 @@ out123_param_from(out123_handle *ao, out123_handle* from_ao)
 	return 0;
 }
 
+#ifndef NOXFERMEM
 /* Serialization of tunable parameters to communicate them between
    main process and buffer. Make sure these two stay in sync ... */
 
@@ -294,6 +296,7 @@ int read_parameters(out123_handle *ao
 		return -1;
 #undef GOOD_READVAL_BUF
 }
+#endif
 
 int attribute_align_arg
 out123_open(out123_handle *ao, const char* driver, const char* device)
@@ -562,7 +565,7 @@ void attribute_align_arg out123_drop(out123_handle *ao)
 	if(!ao)
 		return;
 	ao->errcode = 0;
-#ifndef NO_XFERMEM
+#ifndef NOXFERMEM
 	if(have_buffer(ao))
 		buffer_drop(ao);
 	else
@@ -581,7 +584,7 @@ void attribute_align_arg out123_drain(out123_handle *ao)
 	ao->errcode = 0;
 	if(ao->state != play_live)
 		return;
-#ifndef NO_XFERMEM
+#ifndef NOXFERMEM
 	if(have_buffer(ao))
 		buffer_drain(ao);
 	else
@@ -598,7 +601,7 @@ void attribute_align_arg out123_ndrain(out123_handle *ao, size_t bytes)
 	ao->errcode = 0;
 	if(ao->state != play_live)
 		return;
-#ifndef NO_XFERMEM
+#ifndef NOXFERMEM
 	if(have_buffer(ao))
 		buffer_ndrain(ao, bytes);
 	else

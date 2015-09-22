@@ -2034,6 +2034,7 @@ AC_DEFINE_UNQUOTED( DEFAULT_OUTPUT_MODULE, "$default_output_modules", [The defau
 dnl ############## Compiler Optimizations
 
 CFLAGS="$ADD_CFLAGS $CFLAGS"
+AM_CONDITIONAL([BUILD_BUFFER], [ test x"$buffer" = xenabled ])
 if test x"$buffer" = xdisabled; then
 	ADD_CPPFLAGS="$ADD_CPPFLAGS -DNOXFERMEM"
 fi
