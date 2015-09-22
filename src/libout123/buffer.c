@@ -488,7 +488,7 @@ static void buffer_play(out123_handle *ao, size_t bytes)
 	if(written >= 0)
 		/* Advance read pointer by the amount of written bytes. */
 		xf->readindex = (xf->readindex + written) % xf->size;
-	else if(errno != EINTR && errno != ERESTART)
+	else if(errno != EINTR)
 	{
 		ao->errcode = OUT123_DEV_PLAY;
 		if(!(ao->flags & OUT123_QUIET))

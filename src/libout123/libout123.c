@@ -546,7 +546,7 @@ out123_play(out123_handle *ao, void *bytes, size_t count)
 		errno = 0;
 		written = ao->write(ao, (unsigned char*)bytes, (int)count);
 		if(written >= 0){ sum+=written; count -= written; }
-		else if(errno != EINTR && errno != ERESTART)
+		else if(errno != EINTR)
 		{
 			ao->errcode = OUT123_DEV_PLAY;
 			if(!AOQUIET)
