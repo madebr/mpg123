@@ -1077,7 +1077,7 @@ else
 fi
 
 # Again, prepend path for non-recursive make.
-LFS_LOBJ=`for i in $LFS_LOBJ; do echo src/libmpg123/$i; done | tr '\n' ' '`
+LFS_LOBJ=`for i in $LFS_LOBJ; do printf ' src/libmpg123/%s' $i; done`
 AC_SUBST(LFS_LOBJ)
 
 
@@ -1496,8 +1496,8 @@ done
 # Another preprocessing step: Append prefix for non-recursive make.
 # Just because $(addprefix ...) is a GNU extension.
 
-DECODER_OBJ=`for i in $DECODER_OBJ; do echo src/libmpg123/$i; done | tr '\n' ' '`
-DECODER_LOBJ=`for i in $DECODER_LOBJ; do echo src/libmpg123/$i; done | tr '\n' ' '`
+DECODER_OBJ=`for i in $DECODER_OBJ; do printf ' src/libmpg123/%s' $i; done`
+DECODER_LOBJ=`for i in $DECODER_LOBJ; do printf ' src/libmpg123/%s' $i; done`
 
 AC_SUBST(DECODER_OBJ)
 AC_SUBST(DECODER_LOBJ)
