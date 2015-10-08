@@ -300,10 +300,10 @@
 #define synth_1to1_s32_x86_64_asm INT123_synth_1to1_s32_x86_64_asm
 #define costab_mmxsse INT123_costab_mmxsse
 #define make_decode_tables_mmx_asm INT123_make_decode_tables_mmx_asm
-#ifndef HAVE_STRERROR
-#define strerror INT123_strerror
-#endif
 #ifndef HAVE_STRDUP
 #define strdup INT123_strdup
+#endif
+#ifndef HAVE_STRERROR
+#define strerror INT123_strerror
 #endif
 #endif

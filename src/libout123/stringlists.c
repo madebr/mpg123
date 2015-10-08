@@ -10,6 +10,7 @@
 	functions just for returning driver module lists.
 */
 
+#include "out123_intsym.h"
 #include "compat.h"
 
 /* Construction helper for paired string lists.

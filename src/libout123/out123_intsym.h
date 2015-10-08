@@ -21,6 +21,7 @@
 #define buffer_sync_param IOT123_buffer_sync_param
 #define buffer_open IOT123_buffer_open
 #define buffer_encodings IOT123_buffer_encodings
+#define buffer_formats IOT123_buffer_formats
 #define buffer_start IOT123_buffer_start
 #define buffer_ndrain IOT123_buffer_ndrain
 #define buffer_stop IOT123_buffer_stop
