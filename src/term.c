@@ -126,7 +126,8 @@ void term_init(void)
 
 void term_hint(void)
 {
-	fprintf(stderr, "\nTerminal control enabled, press 'h' for listing of keys and functions.\n\n");
+	if(term_enable)
+		fprintf(stderr, "\nTerminal control enabled, press 'h' for listing of keys and functions.\n\n");
 }
 
 static void term_handle_input(mpg123_handle *, out123_handle *, int);
