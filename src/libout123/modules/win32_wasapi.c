@@ -28,7 +28,7 @@
 #endif
 
 static int init_win32(out123_handle* ao);
-static void flush_win32(struct audio_output_struct *ao);
+static void flush_win32(out123_handle *ao);
 /* 
 	Module information data structure
 */
@@ -70,7 +70,7 @@ typedef struct _wasapi_state_struct {
 } wasapi_state_struct;
 
 /* setup endpoints */
-static int open_win32(struct audio_output_struct *ao){
+static int open_win32(out123_handle *ao){
   HRESULT hr = 0;
   wasapi_state_struct *state;
 
@@ -115,7 +115,7 @@ static int open_win32(struct audio_output_struct *ao){
   } WAVEFORMATEX;
 */
 
-static int formats_generator(const struct audio_output_struct * const ao, const int waveformat, WAVEFORMATEX *const format){
+static int formats_generator(const out123_handle * const ao, const int waveformat, WAVEFORMATEX *const format){
   DWORD bytes_per_sample = 0;
   WORD tag = WAVE_FORMAT_PCM;
   debug1("%s",__FUNCTION__);
@@ -151,7 +151,7 @@ static int formats_generator(const struct audio_output_struct * const ao, const 
 }
 
 /* check supported formats */
-static int get_formats_win32(struct audio_output_struct *ao){
+static int get_formats_win32(out123_handle *ao){
   /* PLEASE check with write_init and write_win32 buffer size calculation in case it is able to support something other than 16bit */
   HRESULT hr;
   int ret = 0;
@@ -202,7 +202,7 @@ static int get_formats_win32(struct audio_output_struct *ao){
 }
 
 /* setup with agreed on format, for now only MPG123_ENC_SIGNED_16 */
-static int write_init(struct audio_output_struct *ao){
+static int write_init(out123_handle *ao){
   HRESULT hr;
   double offset = 0.5;
 
@@ -266,7 +266,7 @@ Exit:
 }
 
 /* Set play mode if unset, also raise thread priority */
-static HRESULT play_init(struct audio_output_struct *ao){
+static HRESULT play_init(out123_handle *ao){
   HRESULT hr = S_OK;
   if(!ao || !ao->userptr) return -1;
   wasapi_state_struct *state = (wasapi_state_struct *) ao->userptr;
@@ -285,7 +285,7 @@ Exit:
 }
 
 /* copy audio into IAudioRenderClient provided buffer */
-static int write_win32(struct audio_output_struct *ao, unsigned char *buf, int len){
+static int write_win32(out123_handle *ao, unsigned char *buf, int len){
   HRESULT hr;
   size_t to_copy = 0;
   debug1("%s",__FUNCTION__);
@@ -404,7 +404,7 @@ feed_again:
   return -1;
 }
 
-static void flush_win32(struct audio_output_struct *ao){
+static void flush_win32(out123_handle *ao){
   /* Wait for the last buffer to play before stopping. */
   debug1("%s",__FUNCTION__);
   if(!ao || !ao->userptr) return;
@@ -421,7 +421,7 @@ static void flush_win32(struct audio_output_struct *ao){
   debug2("%s IAudioClient_Stop with %lx", __FUNCTION__, hr);
 }
 
-static int close_win32(struct audio_output_struct *ao)
+static int close_win32(out123_handle *ao)
 {
   debug1("%s",__FUNCTION__);
   if(!ao || !ao->userptr) return -1;

@@ -23,7 +23,7 @@
 #define NUM_BUFFERS 8  /* total 512k roughly 2.5 sec of CD quality sound */
 
 static void wait_for_buffer(WAVEHDR* hdr, HANDLE hEvent);
-static void drain_win32(struct audio_output_struct *ao);
+static void drain_win32(out123_handle *ao);
 
 /* Buffer ring queue state */
 struct queue_state
@@ -36,7 +36,7 @@ struct queue_state
     HWAVEOUT waveout;
 };
 
-static int open_win32(struct audio_output_struct *ao)
+static int open_win32(out123_handle *ao)
 {
     struct queue_state* state;
     int i;
@@ -138,7 +138,7 @@ static void wait_for_buffer(WAVEHDR* hdr, HANDLE hEvent)
     }
 }
 
-static int get_formats_win32(struct audio_output_struct *ao)
+static int get_formats_win32(out123_handle *ao)
 {
     /* FIXME: support for smth besides MPG123_ENC_SIGNED_16? */
     return MPG123_ENC_SIGNED_16;
@@ -147,7 +147,7 @@ static int get_formats_win32(struct audio_output_struct *ao)
 /* Stores audio data to the fixed size buffers and pushes them into the playback queue.
    I have one grief with that: The last piece of a track may not reach the output,
    only full buffers sent... But we don't get smooth audio otherwise. */
-static int write_win32(struct audio_output_struct *ao, unsigned char *buf, int len)
+static int write_win32(out123_handle *ao, unsigned char *buf, int len)
 {
     struct queue_state* state;
     MMRESULT res;
@@ -190,7 +190,7 @@ static int write_win32(struct audio_output_struct *ao, unsigned char *buf, int l
 }
 
      /* Flush means abort any pending playback */
-static void flush_win32(struct audio_output_struct *ao)
+static void flush_win32(out123_handle *ao)
 {
     struct queue_state* state;
     WAVEHDR* hdr;
@@ -232,7 +232,7 @@ static void write_final_buffer(struct queue_state *state)
 /* Note: I tried to fix this stuff without testing.
    There were some obvious errors in the code.
    Someone run this on a win32 machine! -- ThOr */
-static void drain_win32(struct audio_output_struct *ao)
+static void drain_win32(out123_handle *ao)
 {
     int i, z;
     struct queue_state* state;
@@ -252,7 +252,7 @@ static void drain_win32(struct audio_output_struct *ao)
     }
 }
 
-static int close_win32(struct audio_output_struct *ao)
+static int close_win32(out123_handle *ao)
 {
     int i;
     struct queue_state* state;
