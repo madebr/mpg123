@@ -667,7 +667,15 @@ int http_open(char* url, struct httpdata *hd)
 				}
 			}
 		} while(response.p[0] != '\r' && response.p[0] != '\n');
-		if (relocate) { close(sock); sock = -1; }
+		if(relocate)
+		{
+			close(sock);
+			sock = -1;
+			/* Forget content type, might just relate to a displayed error page,
+			   not the resource being redirected to. */
+			mpg123_free_string(&hd->content_type);
+			mpg123_init_string(&hd->content_type);
+		}
 	} while(relocate && got_location && purl.fill && numrelocs++ < HTTP_MAX_RELOCATIONS);
 	if(relocate)
 	{

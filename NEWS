@@ -42,6 +42,9 @@
 - Fix a bug in the command line parser that was present from the beginning,
   apparently, causing certain parameters (--au, --cdr) to kill off parsing
   of following ones. Nobody complained in all these years. Astounding.
+- Forget content type from HTTP redirects (relate to error pages, not the
+  stream redirected to), fixes web radio streams that do not send any
+  content type for the actual stream.
 
 1.22.4
 ---
