@@ -45,6 +45,8 @@
 - Forget content type from HTTP redirects (relate to error pages, not the
   stream redirected to), fixes web radio streams that do not send any
   content type for the actual stream.
+- Accept application/pls+xml for PLS playlists. It happens. Don't ask
+  mpg123 to actually parse any XML!
 
 1.22.4
 ---
