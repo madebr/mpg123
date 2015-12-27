@@ -129,6 +129,7 @@ FILE* aux_out = NULL; /* Output for interesting information, normally on stdout 
 size_t bufferblock = 0;
 
 int intflag = FALSE;
+int deathflag = FALSE;
 static int skip_tracks = 0;
 int OutputDescriptor;
 
@@ -158,6 +159,23 @@ void set_intflag()
 static void catch_interrupt(void)
 {
 	intflag = TRUE;
+}
+static void handle_fatal_msg(const char *msg, size_t n)
+{
+	if(!param.quiet)
+		write(STDERR_FILENO, msg, n);
+	intflag = TRUE;
+	deathflag = TRUE;
+}
+static void catch_fatal_term(void)
+{
+	const char msg[] = "\nmpg123: death by SIGTERM\n";
+	handle_fatal_msg(msg, sizeof(msg));
+}
+static void catch_fatal_pipe(void)
+{
+	const char msg[] = "\nmpg123: death by SIGPIPE\n";
+	handle_fatal_msg(msg, sizeof(msg));
 }
 #endif
 
@@ -251,13 +269,6 @@ void safe_exit(int code)
 	dump_close();
 	if(!code)
 		controlled_drain();
-#ifdef HAVE_TERMIOS
-	if(param.term_ctrl)
-		term_restore();
-	/* Bring cursor back. */
-	if(term_width(STDERR_FILENO) >= 0)
-		fprintf(stderr, "\x1b[?25h");
-#endif
 	if(intflag)
 		out123_drop(ao);
 	out123_del(ao);
@@ -277,6 +288,10 @@ void safe_exit(int code)
 	/* It's ugly... but let's just fix this still-reachable memory chunk of static char*. */
 	split_dir_file("", &dummy, &dammy);
 	if(fullprogname) free(fullprogname);
+
+#ifdef HAVE_TERMIOS
+	term_exit();
+#endif
 	exit(code);
 }
 
@@ -774,6 +789,12 @@ int play_frame(void)
 #if !defined(WIN32) && !defined(GENERIC)
 int skip_or_die(struct timeval *start_time)
 {
+	/* Death is fatal right away. */
+	if(deathflag)
+	{
+		debug("The world wants me to die.");
+		return FALSE;
+	}
 /* 
  * When HAVE_TERMIOS is defined, there is 'q' to terminate a list of songs, so
  * no pressing need to keep up this first second SIGINT hack that was too
@@ -1087,12 +1108,11 @@ int main(int sys_argc, char ** sys_argv)
 	/* Remote mode is special... but normal console and terminal-controlled operation needs to catch the SIGINT.
 	   For one it serves for track skip when not in terminal control mode.
 	   The more important use being a graceful exit, including telling the buffer process what's going on. */
-	if(!param.remote) catchsignal (SIGINT, catch_interrupt);
-#endif
-#ifdef HAVE_TERMIOS
-	/* Hide cursor. */
-	if(term_width(STDERR_FILENO) >= 0)
-		fprintf(stderr, "\x1b[?25l");
+	if(!param.remote)
+		catchsignal(SIGINT, catch_interrupt);
+	/* Need to catch things to exit cleanly, not messing up the terminal. */
+	catchsignal(SIGTERM, catch_fatal_term);
+	catchsignal(SIGPIPE, catch_fatal_pipe);
 #endif
 	/* Now either check caps myself or query buffer for that. */
 	audio_capabilities(ao, mh);
@@ -1103,8 +1123,6 @@ int main(int sys_argc, char ** sys_argv)
 		safe_exit(ret);
 	}
 #ifdef HAVE_TERMIOS
-		debug1("param.term_ctrl: %i", param.term_ctrl);
-		if(param.term_ctrl)
 			term_init();
 #endif
 	if(APPFLAG(MPG123APP_CONTINUE)) frames_left = param.frame_number;

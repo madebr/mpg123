@@ -125,6 +125,8 @@ extern struct httpdata htd;
 
 extern int OutputDescriptor;
 
+extern int intflag;
+
 #ifdef VARMODESUPPORT
 extern int varmode;
 extern int playlimit;

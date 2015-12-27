@@ -79,8 +79,8 @@
 
 
 void term_init(void);
+void term_exit(void);
 off_t term_control(mpg123_handle *mh, out123_handle *ao);
-void term_restore(void);
 void term_hint(void); /* Print a message hinting at terminal usage. */
 
 #endif

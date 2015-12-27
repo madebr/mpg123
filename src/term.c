@@ -106,7 +106,15 @@ static void term_sigusr(int sig)
 /* initialze terminal */
 void term_init(void)
 {
+	const char hide_cursor[] = "\x1b[?25l";
 	debug("term_init");
+
+	if(term_width(STDERR_FILENO) >= 0)
+		write(STDERR_FILENO, hide_cursor, sizeof(hide_cursor));
+
+	debug1("param.term_ctrl: %i", param.term_ctrl);
+	if(!param.term_ctrl)
+		return;
 
 	term_enable = 0;
 
@@ -192,7 +200,7 @@ off_t term_control(mpg123_handle *fr, out123_handle *ao)
 		if((offset < 0) && (-offset > framenum)) offset = - framenum;
 		if(param.verbose && offset != old_offset)
 			print_stat(fr,offset,ao);
-	} while (stopped);
+	} while (!intflag && stopped);
 
 	/* Make the seeking experience with buffer less annoying.
 	   No sound during seek, but at least it is possible to go backwards. */
@@ -511,8 +519,13 @@ static void term_handle_input(mpg123_handle *fr, out123_handle *ao, int do_delay
 	}
 }
 
-void term_restore(void)
+void term_exit(void)
 {
+	const char cursor_restore[] = "\x1b[?25h";
+	/* Bring cursor back. */
+	if(term_width(STDERR_FILENO) >= 0)
+		write(STDERR_FILENO, cursor_restore, sizeof(cursor_restore));
+
 	if(!term_enable) return;
 
 	tcsetattr(0,TCSAFLUSH,&old_tio);
