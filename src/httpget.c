@@ -36,6 +36,8 @@
 #include "true.h"
 #endif
 
+#include <ctype.h>
+
 #include "debug.h"
 
 void httpdata_init(struct httpdata *e)
@@ -101,12 +103,16 @@ int debunk_mime(const char* mime)
 	aux = strchr(mime, ';');
 	if(aux != NULL)
 	{
-		fprintf(stderr, "Warning: additional info in content-type ignored (%s)\n", aux+1);
-		/* Just compare up to before the ";". */
+		if(!param.quiet)
+			fprintf(stderr, "Warning: additional info in content-type ignored (%s)\n", aux+1);
+		/* Just compare up to before the ";" */
 		len = aux-mime;
 	}
 	/* Else, compare the whole string -- including the end. */
 	else len = strlen(mime)+1;
+
+	/* Skip trailing whitespace, to ne nice to strange folks. */
+	while(len && isspace(mime[len-1])) --len;
 
 	for(i=0; mimes[i]    != NULL; ++i)
 	for(j=0; mimes[i][j] != NULL; ++j)

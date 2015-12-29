@@ -47,6 +47,7 @@
   content type for the actual stream.
 - Accept application/pls+xml for PLS playlists. It happens. Don't ask
   mpg123 to actually parse any XML!
+- Ignore whitespace after HTTP MIME types (esp. before a ";").
 
 1.22.4
 ---
