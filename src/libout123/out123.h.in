@@ -1,7 +1,7 @@
 /*
 	out123: audio output interface
 
-	copyright ?-2015 by the mpg123 project,
+	copyright 1995-2016 by the mpg123 project,
 	free software under the terms of the LGPL 2.1
 
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
@@ -35,6 +35,26 @@
  * to the header.
  */
 #define OUT123_API_VERSION @OUTAPI_VERSION@
+
+/** Defines needed for MS Visual Studio(tm) DLL builds.
+ * Every public function must be prefixed with MPG123_EXPORT. When building 
+ * the DLL ensure to define BUILD_MPG123_DLL. This makes the function accessible
+ * for clients and includes it in the import library which is created together
+ * with the DLL. When consuming the DLL ensure to define LINK_MPG123_DLL which
+ * imports the functions from the DLL. 
+ */
+#ifdef BUILD_MPG123_DLL
+/* The dll exports. */
+#define MPG123_EXPORT __declspec(dllexport)
+#else
+#ifdef LINK_MPG123_DLL
+/* The exe imports. */
+#define MPG123_EXPORT __declspec(dllimport)
+#else
+/* Nothing on normal/UNIX builds */
+#define MPG123_EXPORT
+#endif
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -115,11 +135,13 @@ enum out123_flags
  *  error condition is running out of memory.
  * \return pointer to new handle or NULL on error
  */
+MPG123_EXPORT
 out123_handle *out123_new(void);
 
 /** Delete output handle.
  *  This implies out123_close().
  */
+MPG123_EXPORT
 void out123_del(out123_handle *ao);
 
 /** Error code enumeration
@@ -152,18 +174,21 @@ enum out123_error
  * \param ao handle
  * \return error string
  */
+MPG123_EXPORT
 const char* out123_strerror(out123_handle *ao);
 
 /** Get the plain errcode intead of a string.
  * \param ao handle
  * \return error code recorded in handle or OUT123_BAD_HANDLE
  */
+MPG123_EXPORT
 int out123_errcode(out123_handle *ao);
 
 /** Return the error string for a given error code.
  * \param errcode the integer error code
  * \return error string
  */
+MPG123_EXPORT
 const char* out123_plain_strerror(int errcode);
 
 /** Set a desired output buffer size.
@@ -197,6 +222,7 @@ const char* out123_plain_strerror(int errcode);
  *    a value of zero disables the buffer.
  * \return 0 on success, MPG123_ERR on error
  */
+MPG123_EXPORT
 int out123_set_buffer(out123_handle *ao, size_t buffer_bytes);
 
 /** Set a specific parameter, for a specific out123_handle, using a parameter 
@@ -209,6 +235,7 @@ int out123_set_buffer(out123_handle *ao, size_t buffer_bytes);
  * \param fvalue input value for floating point parameters
  * \return 0 on success, MPG123_ERR on error.
  */
+MPG123_EXPORT
 int out123_param( out123_handle *ao, enum out123_parms code
 ,                 long value, double fvalue );
 
@@ -220,6 +247,7 @@ int out123_param( out123_handle *ao, enum out123_parms code
  * \param ret_fvalue output address for floating point parameters
  * \return 0 on success, MPG123_ERR on error (bad parameter name or bad handle).
  */
+MPG123_EXPORT
 int out123_getparam( out123_handle *ao, enum out123_parms code
 ,                    long *ret_value, double *ret_fvalue );
 
@@ -228,6 +256,7 @@ int out123_getparam( out123_handle *ao, enum out123_parms code
  * \param from_ao the handle to copy parameters from
  * \return 0 in success, -1 on error
  */
+MPG123_EXPORT
 int out123_param_from(out123_handle *ao, out123_handle* from_ao);
 
 /** Get list of driver modules reachable in system in C argv-style format.
@@ -242,6 +271,7 @@ int out123_param_from(out123_handle *ao, out123_handle* from_ao);
  * \param descr address for storing list of descriptions
  * \return number of drivers found, -1 on error
  */
+MPG123_EXPORT
 int out123_drivers(out123_handle *ao, char ***names, char ***descr);
 
 /** Open an output device with a certain driver
@@ -255,6 +285,7 @@ int out123_drivers(out123_handle *ao, char ***names, char ***descr);
  * \param device device name to open, NULL for default
  * \return 0 on success, -1 on error.
  */
+MPG123_EXPORT
 int out123_open(out123_handle *ao, const char* driver, const char* device);
 
 /** Give info about currently loaded driver and device
@@ -268,6 +299,7 @@ int out123_open(out123_handle *ao, const char* driver, const char* device);
  * \param device return address for device name
  * \return 0 on success, -1 on error (i.e. no driver loaded)
  */
+MPG123_EXPORT
 int out123_driver_info(out123_handle *ao, char **driver, char **device);
 
 /** Close the current output device and driver.
@@ -278,6 +310,7 @@ int out123_driver_info(out123_handle *ao, char **driver, char **device);
  *  quickly.
  * \param ao handle
  */
+MPG123_EXPORT
 void out123_close(out123_handle *ao);
 
 /** Get supported audio encodings for given rate and channel count,
@@ -301,6 +334,7 @@ void out123_close(out123_handle *ao);
  * \return supported encodings combined with bitwise or, to be checked
  *         against your favourite bitmask, -1 on error
  */
+MPG123_EXPORT
 int out123_encodings(out123_handle *ao, long rate, int channels);
 
 /** Get list of supported formats for currently opened audio device.
@@ -331,6 +365,7 @@ int out123_encodings(out123_handle *ao, long rate, int channels);
  *        Memory shall be freed by user.
  * \return number of returned format enries, -1 on error
  */
+MPG123_EXPORT
 int out123_formats( out123_handle *ao, const long *rates, int ratecount
                   , int minchannels, int maxchannels
                   , struct mpg123_fmt **fmtlist );
@@ -340,24 +375,28 @@ int out123_formats( out123_handle *ao, const long *rates, int ratecount
  * \param enclist return address for allocated array of encoding codes
  * \return number of encodings, -1 on error
  */
+MPG123_EXPORT
 int out123_enc_list(int **enclist);
 
 /** Find encoding code by name.
  * \param name short or long name to find encoding code for
  * \return encoding if found (enum mpg123_enc_enum), else 0
  */
+MPG123_EXPORT
 int out123_enc_byname(const char *name);
 
 /** Get name of encoding.
  * \param encoding code (enum mpg123_enc_enum)
  * \return short name for valid encodings, NULL otherwise
  */
+MPG123_EXPORT
 const char* out123_enc_name(int encoding);
 
 /** Get long name of encoding.
  * \param encoding code (enum mpg123_enc_enum)
  * \return long name for valid encodings, NULL otherwise
  */
+MPG123_EXPORT
 const char* out123_enc_longname(int encoding);
 
 /** Start playback with a certain output format
@@ -372,6 +411,7 @@ const char* out123_enc_longname(int encoding);
  * \param rate sampling rate
  * \return 0 on success, negative on error (bad format, usually)
  */
+MPG123_EXPORT
 int out123_start( out123_handle *ao
 ,                 long rate, int channels, int encoding );
 
@@ -390,6 +430,7 @@ int out123_start( out123_handle *ao
  *  deopending on the selected driver.
  * \param ao handle
  */
+MPG123_EXPORT
 void out123_pause(out123_handle *ao);
 
 /** Continue playback
@@ -402,6 +443,7 @@ void out123_pause(out123_handle *ao);
  *  will trigger out123_continue(), too.
  * \param ao handle
  */
+MPG123_EXPORT
 void out123_continue(out123_handle *ao);
 
 /** Stop playback.
@@ -410,6 +452,7 @@ void out123_continue(out123_handle *ao);
  *  to end things right away.
  * \param ao handle
  */
+MPG123_EXPORT
 void out123_stop(out123_handle *ao);
 
 /** Hand over data for playback and wait in case audio device is busy.
@@ -428,6 +471,7 @@ void out123_stop(out123_handle *ao);
  * \param bytes number of bytes to read from the buffer
  * \return number of bytes played (might be less than given, even zero)
  */
+MPG123_EXPORT
 size_t out123_play( out123_handle *ao
                   , void *buffer, size_t bytes );
 
@@ -438,6 +482,7 @@ size_t out123_play( out123_handle *ao
  *  exit than the implied out123_drain().
  * \param ao handle
  */
+MPG123_EXPORT
 void out123_drop(out123_handle *ao);
 
 /** Drain the output, waiting until all data went to the hardware.
@@ -447,6 +492,7 @@ void out123_drop(out123_handle *ao);
  * buffers on the audio driver side, too.
  * \param ao handle
  */
+MPG123_EXPORT
 void out123_drain(out123_handle *ao);
 
 /** Drain the output, but only partially up to the given number of
@@ -463,6 +509,7 @@ void out123_drain(out123_handle *ao);
  * \param bytes limit of buffered bytes to drain
  * \return number of bytes drained from buffer
  */
+MPG123_EXPORT
 void out123_ndrain(out123_handle *ao, size_t bytes);
 
 /** Get an indication of how many bytes reside in the optional buffer.
@@ -471,6 +518,7 @@ void out123_ndrain(out123_handle *ao, size_t bytes);
  * \param ao handle
  * \return number of bytes in out123 library buffer
  */
+MPG123_EXPORT
 size_t out123_buffered(out123_handle *ao);
 
 /** Extract currently used audio format from handle.
@@ -483,6 +531,7 @@ size_t out123_buffered(out123_handle *ao);
  * \param framesize size of a full PCM frame (for convenience)
  * \return 0 on success, -1 on error
  */
+MPG123_EXPORT
 int out123_getformat( out123_handle *ao
 ,	long *rate, int *channels, int *encoding, int *framesize );
 
@@ -491,6 +540,8 @@ int out123_getformat( out123_handle *ao
 #ifdef __cplusplus
 }
 #endif
+
+#undef MPG123_EXPORT
 
 #endif
 
