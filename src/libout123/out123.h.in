@@ -115,9 +115,9 @@ enum out123_parms
 /** Flags to tune out123 behaviour */
 enum out123_flags
 {
-	AUDIO_OUT_HEADPHONES       = 0x01 /**< output to headphones (if supported) */
-,	AUDIO_OUT_INTERNAL_SPEAKER = 0x02 /**< output to speaker (if supported) */
-,	AUDIO_OUT_LINE_OUT         = 0x04 /**< output to line out (if supported) */
+	OUT123_HEADPHONES       = 0x01 /**< output to headphones (if supported) */
+,	OUT123_INTERNAL_SPEAKER = 0x02 /**< output to speaker (if supported) */
+,	OUT123_LINE_OUT         = 0x04 /**< output to line out (if supported) */
 ,	OUT123_QUIET               = 0x08 /**< no printouts to stdandard error */
 ,	OUT123_KEEP_PLAYING        = 0x10 /**<
  *  When this is set (default), playback continues in a loop when the device
