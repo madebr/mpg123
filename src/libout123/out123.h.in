@@ -109,6 +109,7 @@ enum out123_parms
  *  this before opening a device if you want to influcence latency or reduce
  *  dropouts. Value <= 0 uses some default.
  */
+,	OUT123_PROPFLAGS /**< integer, query driver/device property flags (r/o) */
 };
 
 /** Flags to tune out123 behaviour */
@@ -127,6 +128,15 @@ enum out123_flags
  *  There, your program will always block until the buffer completely took
  *  over the data given to it via out123_play(), unless a communcation error
  *  arises.
+ */
+};
+
+/** Read-only output driver/device property flags (OUT123_PROPFLAGS). */
+enum out123_propflags
+{
+	OUT123_PROP_LIVE = 0x01 /**< This is a live output, meaning that
+ *  special care might be needed for pauses in playback (p.ex. stream
+ *  of silence instead of interruption), as opposed to files on disk.
  */
 };
 
@@ -166,6 +176,8 @@ enum out123_error
  */
 ,	OUT123_MODULE_ERROR /**< basic failure in module loading */
 ,	OUT123_ARG_ERROR /**< some bad function arguments supplied */
+,	OUT123_BAD_PARAM /**< unknown parameter code */
+,	OUT123_SET_RO_PARAM /**< attempt to set read-only parameter */
 ,	OUT123_ERRCOUNT /**< placeholder for shaping arrays */
 };
 

@@ -1,7 +1,7 @@
 /*
 	out123_int: internal header for libout123
 
-	copyright ?-2015 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2016 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp (some traces left)
 */
@@ -82,6 +82,7 @@ struct out123_struct
 	int framesize;	/* Output needs data in chunks of framesize bytes. */
 	enum playstate state; /* ... */
 	int auxflags;	/* For now just one: quiet mode (for probing). */
+	int propflags;	/* Property flags, set by driver. */
 	double preload;	/* buffer fraction to preload before play */
 	int verbose;	/* verbosity to stderr */
 	double device_buffer; /* device buffer in seconds */

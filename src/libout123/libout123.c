@@ -1,7 +1,7 @@
 /*
 	audio: audio output interface
 
-	copyright ?-2015 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2016 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp
 */
@@ -44,6 +44,8 @@ static void out123_clear_module(out123_handle *ao)
 	ao->module = NULL;
 	ao->userptr = NULL;
 	ao->fn = -1;
+	/* The default is live output devices, files are the special case. */
+	ao->propflags = OUT123_PROP_LIVE;
 }
 
 out123_handle* attribute_align_arg out123_new(void)
@@ -105,6 +107,8 @@ static const char *const errstring[OUT123_ERRCOUNT] =
 ,	"failed to open device"
 ,	"buffer (communication) error"
 ,	"basic module system error"
+,	"unknown parameter code"
+,	"attempt to set read-only parameter"
 };
 
 const char* attribute_align_arg out123_strerror(out123_handle *ao)
@@ -189,9 +193,14 @@ out123_param( out123_handle *ao, enum out123_parms code
 		case OUT123_DEVICEBUFFER:
 			ao->device_buffer = fvalue;
 		break;
+		case OUT123_PROPFLAGS:
+			ao->errcode = OUT123_SET_RO_PARAM;
+			ret = OUT123_ERR;
+		break;
 		default:
-			error1("bad parameter code %i", (int)code);
-			ret = -1;
+			ao->errcode = OUT123_BAD_PARAM;
+			if(!AOQUIET) error1("bad parameter code %i", (int)code);
+			ret = OUT123_ERR;
 	}
 #ifndef NOXFERMEM
 	/* If there is a buffer, it needs to update its copy of parameters. */
@@ -234,8 +243,12 @@ out123_getparam( out123_handle *ao, enum out123_parms code
 		case OUT123_DEVICEBUFFER:
 			fvalue = ao->device_buffer;
 		break;
+		case OUT123_PROPFLAGS:
+			value = ao->propflags;
+		break;
 		default:
-			error1("bad parameter code %i", (int)code);
+			if(!AOQUIET) error1("bad parameter code %i", (int)code);
+			ao->errcode = OUT123_BAD_PARAM;
 			ret = OUT123_ERR;
 	}
 	if(!ret)
@@ -273,6 +286,7 @@ int write_parameters(out123_handle *ao, int fd)
 	&&	GOOD_WRITEVAL(fd, ao->gain)
 	&&	GOOD_WRITEVAL(fd, ao->device_buffer)
 	&&	GOOD_WRITEVAL(fd, ao->verbose)
+	&&	GOOD_WRITEVAL(fd, ao->propflags)
 	)
 		return 0;
 	else
@@ -290,6 +304,7 @@ int read_parameters(out123_handle *ao
 	&&	GOOD_READVAL_BUF(fd, ao->gain)
 	&&	GOOD_READVAL_BUF(fd, ao->device_buffer)
 	&&	GOOD_READVAL_BUF(fd, ao->verbose)
+	&&	GOOD_READVAL_BUF(fd, ao->propflags)
 	)
 		return 0;
 	else
@@ -647,6 +662,7 @@ static int open_fake_module(out123_handle *ao, const char *driver)
 {
 	if(!strcmp("test", driver))
 	{
+		ao->propflags &= ~OUT123_PROP_LIVE;
 		ao->open  = test_open;
 		ao->get_formats = test_get_formats;
 		ao->write = test_write;
@@ -657,6 +673,7 @@ static int open_fake_module(out123_handle *ao, const char *driver)
 	else
 	if(!strcmp("raw", driver))
 	{
+		ao->propflags &= ~OUT123_PROP_LIVE;
 		ao->open  = raw_open;
 		ao->get_formats = raw_formats;
 		ao->write = wav_write;
@@ -667,6 +684,7 @@ static int open_fake_module(out123_handle *ao, const char *driver)
 	else
 	if(!strcmp("wav", driver))
 	{
+		ao->propflags &= ~OUT123_PROP_LIVE;
 		ao->open = wav_open;
 		ao->get_formats = wav_formats;
 		ao->write = wav_write;
@@ -677,6 +695,7 @@ static int open_fake_module(out123_handle *ao, const char *driver)
 	else
 	if(!strcmp("cdr", driver))
 	{
+		ao->propflags &= ~OUT123_PROP_LIVE;
 		ao->open  = cdr_open;
 		ao->get_formats = cdr_formats;
 		ao->write = wav_write;
@@ -687,6 +706,7 @@ static int open_fake_module(out123_handle *ao, const char *driver)
 	else
 	if(!strcmp("au", driver))
 	{
+		ao->propflags &= ~OUT123_PROP_LIVE;
 		ao->open  = au_open;
 		ao->get_formats = au_formats;
 		ao->write = wav_write;

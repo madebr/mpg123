@@ -1,27 +1,15 @@
 /*
 	out123: simple program to stream data to an audio output device
 
-	copyright 1995-2015 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1995-2016 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis (extracted from mpg123.c)
 
-	This rips out anything dealing with MPEG decoding and playlist handling,
-	reducing the functionality to what shall become part of libout123: Simple
-	means to get mono/stereo audio to various output devices on various
-	platforms. Since this is rather redundant to other approaches (portaudio,
-	etc.), the justification stems from two points:
+	This is a stripped down mpg123 that only uses libout123 to write standard input
+	to an audio device.
 
-	1. It's code home-grown for mpg123, defining a feature set without resorting
-	another build dependency. Throwing the code away would reduce what the mpg123
-	code base offers by itself.
-
-	2. It's feature set is a commonly-needed subset of what a full audio
-	framework provides. It's what simple playback of mono/stereo data needs.
-	Therefore, it has a chance to stay (be?) simple to use, explicitly hiding
-	complexity.
-
-	TODO: Decide if the buffer process should be part of it. Might be a good
-	idea. It's specific to output and is something tricky to get going yourself.
+	TODO: Add basic parsing of WAV headers to be able to pipe in WAV files, especially
+	from something like mpg123 -w -.
 */
 
 #define ME "out123"
@@ -604,9 +592,13 @@ int main(int sys_argc, char ** sys_argv)
 
 	if(verbose)
 	{
+		long props = 0;
 		const char *encname = out123_enc_name(encoding);
 		fprintf(stderr, ME": format: %li Hz, %i channels, %s\n"
 		,	rate, channels, encname ? encname : "???" );
+		out123_getparam(ao, OUT123_PROPFLAGS, &props, NULL);
+		if(props & OUT123_PROP_LIVE)
+			fprintf(stderr, ME": This is a live sink.\n");
 	}
 	check_fatal_output(out123_start(ao, rate, channels, encoding));
 
