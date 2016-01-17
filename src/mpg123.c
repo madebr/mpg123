@@ -332,17 +332,17 @@ static void set_output_flag(int flag)
 
 static void set_output_h(char *a)
 {
-	set_output_flag(AUDIO_OUT_HEADPHONES);
+	set_output_flag(OUT123_HEADPHONES);
 }
 
 static void set_output_s(char *a)
 {
-	set_output_flag(AUDIO_OUT_INTERNAL_SPEAKER);
+	set_output_flag(OUT123_INTERNAL_SPEAKER);
 }
 
 static void set_output_l(char *a)
 {
-	set_output_flag(AUDIO_OUT_LINE_OUT);
+	set_output_flag(OUT123_LINE_OUT);
 }
 
 static void set_output(char *arg)

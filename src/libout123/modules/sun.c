@@ -177,12 +177,12 @@ static int open_sun(out123_handle *ao)
 	
 	if(ao->flags > 0)
 		ainfo.play.port = 0;
-	if(ao->flags & AUDIO_OUT_INTERNAL_SPEAKER)
+	if(ao->flags & OUT123_INTERNAL_SPEAKER)
 		ainfo.play.port |= AUDIO_SPEAKER;
-	if(ao->flags & AUDIO_OUT_HEADPHONES)
+	if(ao->flags & OUT123_HEADPHONES)
 		ainfo.play.port |= AUDIO_HEADPHONE;
 	#ifdef AUDIO_LINE_OUT
-	if(ao->flags & AUDIO_OUT_LINE_OUT)
+	if(ao->flags & OUT123_LINE_OUT)
 		ainfo.play.port |= AUDIO_LINE_OUT;
 	#endif
 	

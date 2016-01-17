@@ -106,12 +106,12 @@ static int open_hp(out123_handle *ao)
 	
 	if(ao->flags != -1)
 	{
-		if(ao->flags & AUDIO_OUT_INTERNAL_SPEAKER)
-			ioctl(ao->fn,AUDIO_SET_OUTPUT,AUDIO_OUT_SPEAKER);
-		else if(ao->flags & AUDIO_OUT_HEADPHONES)
-			ioctl(ao->fn,AUDIO_SET_OUTPUT,AUDIO_OUT_HEADPHONE);
-		else if(ao->flags & AUDIO_OUT_LINE_OUT)
-			ioctl(ao->fn,AUDIO_SET_OUTPUT,AUDIO_OUT_LINE);
+		if(ao->flags & OUT123_INTERNAL_SPEAKER)
+			ioctl(ao->fn,AUDIO_SET_OUTPUT,OUT123_SPEAKER);
+		else if(ao->flags & OUT123_HEADPHONES)
+			ioctl(ao->fn,AUDIO_SET_OUTPUT,OUT123_HEADPHONE);
+		else if(ao->flags & OUT123_LINE_OUT)
+			ioctl(ao->fn,AUDIO_SET_OUTPUT,OUT123_LINE);
 	}
 	
 	if(ao->rate == -1)

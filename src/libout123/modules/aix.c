@@ -68,11 +68,11 @@ static int reset_parameters(out123_handle *ao)
 	if (ao->flags == -1) achange.output = INTERNAL_SPEAKER;
 	else achange.output      = 0;
 	
-	if(ao->flags & AUDIO_OUT_INTERNAL_SPEAKER)
+	if(ao->flags & OUT123_INTERNAL_SPEAKER)
 	achange.output     |= INTERNAL_SPEAKER;
-	if(ao->flags & AUDIO_OUT_HEADPHONES)
+	if(ao->flags & OUT123_HEADPHONES)
 	achange.output     |= EXTERNAL_SPEAKER;
-	if(ao->flags & AUDIO_OUT_LINE_OUT)
+	if(ao->flags & OUT123_LINE_OUT)
 	achange.output     |= OUTPUT_1;
 	if(ao->flags == 0)
 	achange.output      = AUDIO_IGNORE;
