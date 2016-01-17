@@ -220,7 +220,7 @@ const char* out123_plain_strerror(int errcode);
  * \param ao handle
  * \param buffer_bytes size (bytes) of a memory buffer for decoded audio,
  *    a value of zero disables the buffer.
- * \return 0 on success, MPG123_ERR on error
+ * \return 0 on success, OUT123_ERR on error
  */
 MPG123_EXPORT
 int out123_set_buffer(out123_handle *ao, size_t buffer_bytes);
@@ -233,7 +233,7 @@ int out123_set_buffer(out123_handle *ao, size_t buffer_bytes);
  * \param code parameter code
  * \param value input value for integer parameters
  * \param fvalue input value for floating point parameters
- * \return 0 on success, MPG123_ERR on error.
+ * \return 0 on success, OUT123_ERR on error.
  */
 MPG123_EXPORT
 int out123_param( out123_handle *ao, enum out123_parms code
@@ -245,7 +245,7 @@ int out123_param( out123_handle *ao, enum out123_parms code
  * \param code parameter code
  * \param ret_value output address for integer parameters
  * \param ret_fvalue output address for floating point parameters
- * \return 0 on success, MPG123_ERR on error (bad parameter name or bad handle).
+ * \return 0 on success, OUT123_ERR on error (bad parameter name or bad handle).
  */
 MPG123_EXPORT
 int out123_getparam( out123_handle *ao, enum out123_parms code
