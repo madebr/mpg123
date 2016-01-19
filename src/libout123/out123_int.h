@@ -42,6 +42,7 @@ enum playstate
 {
 	play_dead = 0 /* nothing playing, nothing loaded */
 ,	play_stopped  /* driver present, but no device configured/opened */
+/* The ordering is used, state > play_stopped means some device is opened. */
 ,	play_paused   /* paused, ready to continue, device still active */
 ,	play_live     /* playing right now */
 };
