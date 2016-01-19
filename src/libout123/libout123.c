@@ -417,7 +417,9 @@ void attribute_align_arg out123_close(out123_handle *ao)
 	else
 #endif
 	{
-		if(ao->close)
+		/* Only close output device if one is opened. Module code might not be resilient
+		   about that. */
+		if(ao->state > play_stopped && ao->close)
 		{
 			int ret;
 			if((ret=ao->close(ao)))
@@ -726,8 +728,10 @@ static void check_output_module( out123_handle *ao
 {
 	int result;
 
+	debug3("check_output_module %p %p %p", (void*)ao, (void*)device, (void*)ao->device);
 	if(AOVERBOSE(1))
-		fprintf(stderr, "Trying output module: %s\n", name);
+		fprintf( stderr, "Trying output module: %s, device: %s\n"
+		,	name, ao->device ? ao->device : "<nil>" );
 
 	/* Use internal code. */
 	if(open_fake_module(ao, name) == OUT123_OK)
@@ -760,7 +764,8 @@ static void check_output_module( out123_handle *ao
 		ao->format = -1;
 		result = ao->open(ao);
 		debug1("ao->open() = %i", result);
-		ao->close(ao);
+		if(result >= 0)
+			ao->close(ao);
 	}
 	else if(!AOQUIET)
 		error2("Module '%s' init failed: %i", name, result);
