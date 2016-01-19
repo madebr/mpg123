@@ -510,6 +510,7 @@ if test "x$ieee" = xyes; then
   AC_DEFINE(IEEE_FLOAT,   1, [ Define to indicate that float storage follows IEEE754. ])
 fi
 
+sys_cppflags=
 newoldwritesample=disabled
 case $host in
   aarch64-*-linux*|arm64-*-linux*)
@@ -657,45 +658,52 @@ case $host in
     cpu_type="x86"
     newoldwritesample=enabled
   ;;
+  *-ibm-aix*)
+    AC_MSG_WARN([AIX system detected. You might want to --disable-largefile when trouble about conflicting types for lseek64 and friends occurs.])
+    # Altivec instead? It is developed for MacOS ...
+    cpu_type=generic_fpu
+    # no struct winsize without _ALL_SOURCE
+    sys_cppflags=-D_ALL_SOURCE
+  ;;
 	i386-*)
 		AC_MSG_WARN([Unknown host operating system])
 		cpu_type="i386"
 		buffer=disabled
-		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
+		sys_cppflags=-DGENERIC
     newoldwritesample=enabled
 	;;
 	i486-*)
 		AC_MSG_WARN([Unknown host operating system])
 		cpu_type="i486"
 		buffer=disabled
-		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
+		sys_cppflags=-DGENERIC
     newoldwritesample=enabled
 	;;
 	i586-*)
 		AC_MSG_WARN([Unknown host operating system])
 		cpu_type="x86"
 		buffer=disabled
-		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
+		sys_cppflags=-DGENERIC
     newoldwritesample=enabled
 	;;
 	i686-*)
 		AC_MSG_WARN([Unknown host operating system])
 		cpu_type="x86"
 		buffer=disabled
-		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
+		sys_cppflags=-DGENERIC
     newoldwritesample=enabled
 	;;
 	x86_64-*)
 		AC_MSG_WARN([Unknown host operating system])
 		cpu_type="x86-64"
 		buffer=disabled
-		ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
+		sys_cppflags=-DGENERIC
 	;;
   *)
   	AC_MSG_WARN([Unknown host operating system])
     cpu_type="generic_fpu"
     buffer=disabled
-    ADD_CPPFLAGS="-DGENERIC $ADD_CPPFLAGS"
+    sys_cppflags=-DGENERIC
   ;;
 esac
 
@@ -1178,7 +1186,7 @@ dnl ############## Choose compiler flags and CPU
 
 # do not assume gcc here, so no flags by default
 ADD_CFLAGS=""
-ADD_CPPFLAGS=""
+ADD_CPPFLAGS="$sys_cppflags"
 ADD_LDFLAGS=""
 LIBS="$LIBS"
 
@@ -2352,7 +2360,7 @@ fi
 echo "  LFS alias symbols ....... $lfs_alias ($LFS_ALIAS_BITS)"
 echo "  LFS alias type .......... $lfs_alias_type"
 
-echo -n "
+echo "
   Core libmpg123 features:
   Layer I ................. $layer1
   Layer II ................ $layer2
@@ -2377,8 +2385,7 @@ echo -n "
   New/old WRITE_SAMPLE .... $newoldwritesample
   new Huffman scheme ...... $newhuff
 
-Note: Disabling core features is not commonly done and some combinations might not build/work. If you encounter such a case, help yourself (and provide a patch) or just poke the maintainers.
-"
+Note: Disabling core features is not commonly done and some combinations might not build/work. If you encounter such a case, help yourself (and provide a patch) or just poke the maintainers."
 # just an empty line
 echo
 
@@ -2396,9 +2403,10 @@ if test x"$with_optimization" = x0; then
 	echo "No optimization flags chosen, make sure you have something basic in your CFLAGS at least...
 "
 fi
-if test x"$debugging" = xenabled; then
-	echo "CFLAGS='$CFLAGS'"
-	echo "LIBS='$LIBS'"
-else
-    echo "Next type 'make' and then 'make install'."
-fi
+
+echo
+echo "  CPPFLAGS='$CPPFLAGS'"
+echo "  CFLAGS='$CFLAGS'"
+echo "  LIBS='$LIBS'"
+echo
+echo "Next type 'make' and then 'make install'."
