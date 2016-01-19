@@ -140,16 +140,17 @@ static int set_format(out123_handle *ao)
 static int open_sun(out123_handle *ao)
 {
 	audio_info_t ainfo;
-	
-	if(!ao->device) {
+	const char *dev = ao->device;
+
+	if(!dev) {
 		if(getenv("AUDIODEV")) {
-			ao->device = getenv("AUDIODEV");
+			dev = getenv("AUDIODEV");
 		} else {
-			ao->device = "/dev/audio";
+			dev = "/dev/audio";
 		}
 	}
 	
-	ao->fn = open(ao->device,O_WRONLY);
+	ao->fn = open(dev,O_WRONLY);
 	if(ao->fn < 0) return ao->fn;
 	
 #if defined(SUNOS)  &&  defined(AUDIO_GETDEV)

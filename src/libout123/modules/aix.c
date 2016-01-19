@@ -162,20 +162,21 @@ static int open_aix(out123_handle *ao)
 {
 	audio_init ainit;
 	int ret;
+	const char *dev = ao->device;
 
-	if(!ao->device) {
+	if(!dev) {
 		if(getenv("AUDIODEV")) {
-			ao->device = getenv("AUDIODEV");
-			ao->fn = open(ao->device,O_WRONLY);
+			dev = getenv("AUDIODEV");
+			ao->fn = open(dev,O_WRONLY);
 		} else {
-			ao->device = "/dev/paud0/1";                   /* paud0 for PCI */
-			ao->fn = open(ao->device,O_WRONLY);
+			dev = "/dev/paud0/1";                   /* paud0 for PCI */
+			ao->fn = open(dev,O_WRONLY);
 			if ((ao->fn == -1) & (errno == ENOENT)) {
-				ao->device = "/dev/baud0/1";                 /* baud0 for MCA */
-				ao->fn = open(ao->device,O_WRONLY);
+				dev = "/dev/baud0/1";                 /* baud0 for MCA */
+				ao->fn = open(dev,O_WRONLY);
 			}  
 		}
-	} else ao->fn = open(ao->device,O_WRONLY);
+	} else ao->fn = open(dev,O_WRONLY);
 	
 	if(ao->fn < 0) {
 		error("Can't open audio device!");

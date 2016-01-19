@@ -169,6 +169,7 @@ static int autoconnect_jack_ports( jack_handle_t* handle)
 
 static int connect_jack_ports( jack_handle_t* handle, const char *dev ) 
 {
+	debug1("connect_jack_ports with dev=%s", dev ? dev : "<nil>");
 	if (dev==NULL || strcmp(dev, "auto")==0) {
 		return autoconnect_jack_ports( handle );
 	}
@@ -224,6 +225,8 @@ static int close_jack(out123_handle *ao)
 
 static int open_jack(out123_handle *ao)
 {
+//#error FIXME: Make JACK client name a parameter, for messages, a generic program name is an idea, for outputs an instance name matters
+//#error FIXME: also fix that segfault in out123 on --query-format
 	char client_name[255];
 	jack_handle_t *handle=NULL;
 	jack_options_t jopt = JackNullOption|JackNoStartServer;

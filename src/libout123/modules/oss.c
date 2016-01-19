@@ -153,27 +153,29 @@ err:
 static int open_oss(out123_handle *ao)
 {
 	char usingdefdev = 0;
-	
+	const char *dev;
+
 	if(!ao) return -1;
-	
-	if(!ao->device) {
-		ao->device = "/dev/dsp";
+
+	dev = ao->device;
+	if(!dev) {
+		dev = "/dev/dsp";
 		usingdefdev = 1;
 	}
 	
-	ao->fn = open(ao->device,O_WRONLY);  
+	ao->fn = open(dev,O_WRONLY);  
 	
 	if(ao->fn < 0)
 	{
 		if(usingdefdev) {
-			ao->device = "/dev/sound/dsp";
-			ao->fn = open(ao->device,O_WRONLY);
+			dev = "/dev/sound/dsp";
+			ao->fn = open(dev,O_WRONLY);
 			if(ao->fn < 0) {
 				if(!AOQUIET) error("Can't open default sound device!");
 				return -1;
 			}
 		} else {
-			if(!AOQUIET) error1("Can't open %s!",ao->device);
+			if(!AOQUIET) error1("Can't open %s!",dev);
 			return -1;
 		}
 	}
@@ -201,7 +203,7 @@ static int open_oss(out123_handle *ao)
 			e = ioctl(ao->fn, SOUND_MIXER_WRITE_VOLUME , &gain);
 		}
 	}
-	
+
 	return ao->fn;
 }
 

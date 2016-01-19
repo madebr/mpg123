@@ -162,12 +162,13 @@ int open_os2(out123_handle *ao)
 	ULONG openflags;
 	PPIB ppib;
 	USHORT bits;
-	
+	const char *dev = ao->device;
+
 	if(maop.usDeviceID) return (maop.usDeviceID);
 	
 	if(!ao) return -1;
 	
-	if(!ao->device) ao->device = "0";
+	if(!dev) dev = "0";
 	
 	if(ao->rate < 0) ao->rate = 44100;
 	if(ao->channels < 0) ao->channels = 2;
@@ -182,7 +183,7 @@ int open_os2(out123_handle *ao)
 	/* open the mixer device */
 	memset (&maop, 0, sizeof(maop));
 	maop.usDeviceID = 0;
-	maop.pszDeviceType = (PSZ) MAKEULONG(MCI_DEVTYPE_AUDIO_AMPMIX, atoi(ao->device));
+	maop.pszDeviceType = (PSZ) MAKEULONG(MCI_DEVTYPE_AUDIO_AMPMIX, atoi(dev));
 	
 	openflags = MCI_WAIT | MCI_OPEN_TYPE_ID;
 	if(!lockdevice) openflags |= MCI_OPEN_SHAREABLE;

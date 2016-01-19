@@ -103,16 +103,17 @@ static int reset_parameters(out123_handle *ao)
 
 static int open_mint(out123_handle *ao)
 {
-	if(!ai) return -1;
+	const char *dev = ao->device;
 
-	if(!ao->device)
-		ao->device = "/dev/audio";
+	if(!ai) return -1;
+	if(!dev)
+		dev = "/dev/audio";
 	
-	ao->fn = open(ao->device,O_WRONLY);  
+	ao->fn = open(dev,O_WRONLY);  
 	
 	if(ao->fn < 0)
 	{
-		error1("Can't open %s!",ao->device);
+		error1("Can't open %s!",dev);
 		return -1;
 	}
 	ioctl(ao->fn, AIOCGBLKSIZE, &outburst);
