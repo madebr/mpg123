@@ -114,6 +114,7 @@ struct parameter param = {
 	,NULL /* stream dump file */
 	,0 /* ICY interval */
 	,"mpg123" /* name */
+	,0. /* device buffer */
 };
 
 mpg123_handle *mh = NULL;
@@ -614,6 +615,7 @@ topt opts[] = {
 	{0, "icy-interval", GLO_ARG|GLO_LONG, 0, &param.icy_interval, 0},
 	{0, "ignore-streamlength", GLO_INT, set_frameflag, &frameflag, MPG123_IGNORE_STREAMLENGTH},
 	{0, "name", GLO_ARG|GLO_CHAR, 0, &param.name, 0},
+	{0, "devbuffer", GLO_ARG|GLO_DOUBLE, 0, &param.device_buffer, 0},
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -1095,6 +1097,7 @@ int main(int sys_argc, char ** sys_argv)
 	|| out123_param_int(ao, OUT123_GAIN, param.gain)
 	|| out123_param_int(ao, OUT123_VERBOSE, param.verbose)
 	|| out123_param_string(ao, OUT123_NAME, param.name)
+	|| out123_param_float(ao, OUT123_DEVICEBUFFER, param.device_buffer)
 	)
 	{
 		if(!param.quiet)
@@ -1468,6 +1471,7 @@ static void long_usage(int err)
 	fprintf(o,"        --preload <value>  fraction of buffer to fill before playback\n");
 	fprintf(o,"        --smooth           keep buffer over track boundaries\n");
 #endif
+	fprintf(o,"        --devbuffer <s>    set device buffer in seconds; <= 0 means default\n");
 
 	fprintf(o,"\nmisc options\n\n");
 	fprintf(o," -t     --test             only decode, no output (benchmark)\n");

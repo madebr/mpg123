@@ -1,9 +1,11 @@
 /*
 	jack: audio output via JACK Audio Connection Kit
 
-	copyright 2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2006-2016 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Nicholas J. Humfrey
+
+	This module needs some love. It works, but could work better.
 */
 
 #include <math.h>
@@ -225,7 +227,6 @@ static int close_jack(out123_handle *ao)
 
 static int open_jack(out123_handle *ao)
 {
-	const char *client_name = ao->name ? ao->name : "out123";
 	jack_handle_t *handle=NULL;
 	jack_options_t jopt = JackNullOption|JackNoStartServer;
 	jack_status_t jstat = 0;
@@ -247,7 +248,7 @@ static int open_jack(out123_handle *ao)
 	ao->userptr = (void*)handle;
 
 	/* Register with Jack*/
-	if ((handle->client = jack_client_open(client_name, jopt, &jstat)) == 0) {
+	if ((handle->client = jack_client_open(ao->name, jopt, &jstat)) == 0) {
 		error1("Failed to open jack client: 0x%x", jstat);
 		close_jack(ao);
 		return -1;
@@ -302,7 +303,8 @@ static int open_jack(out123_handle *ao)
 		return -1;
 	}
 
-	/* Create the ring buffers (one seconds audio)*/
+	/* Create the ring buffers (one seconds audio)
+      Should that relate to ao->device_buffer? One full second, really?! */
     handle->rb_size = jack_get_sample_rate(handle->client) * sizeof(jack_default_audio_sample_t);
     for(i=0;i<handle->channels;i++){
         handle->rb[i]=jack_ringbuffer_create(handle->rb_size);

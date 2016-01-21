@@ -107,10 +107,11 @@ enum out123_parms
  *  This might be ignored, might have only a loose relation to actual
  *  buffer sizes and latency, depending on output driver. Try to tune
  *  this before opening a device if you want to influcence latency or reduce
- *  dropouts. Value <= 0 uses some default.
+ *  dropouts. Value <= 0 uses some default, usually favouring stable playback
+ *  over low latency. Values above 0.5 are probably too much.
  */
 ,	OUT123_PROPFLAGS /**< integer, query driver/device property flags (r/o) */
-,	OUT123_NAME /**< string, name of this instance (may be NULL!);
+,	OUT123_NAME /**< string, name of this instance (NULL restores default);
  * The value returned by out123_getparam() might be different if the audio
  * backend changed it (to be unique among clients, p.ex.).
  * TODO: The name provided here is used as prefix in diagnostic messages. */

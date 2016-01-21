@@ -1,7 +1,7 @@
 /*
 	coreaudio: audio output on MacOS X
 
-	copyright ?-2006 by the mpg123 project - free software under the terms of the GPL 2
+	copyright ?-2016 by the mpg123 project - free software under the terms of the GPL 2
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Guillaume Outters
 	modified by Nicholas J Humfrey to use SFIFO code
@@ -22,7 +22,9 @@
 
 #include "debug.h"
 
-#define FIFO_DURATION		(0.5f)		/* Duration of the ring buffer in seconds */
+/* Duration of the ring buffer in seconds.
+   Is that all that there is to tunable latency? */
+#define FIFO_DURATION (ao->device_buffer > 0. ? ao->device_buffer : 0.5)
 
 
 typedef struct mpg123_coreaudio

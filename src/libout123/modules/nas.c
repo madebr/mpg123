@@ -1,7 +1,7 @@
 /*
 	nas: audio output via NAS
 
-	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2016 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Martin Denn
 */
@@ -25,7 +25,8 @@ typedef struct
 	AuBool              finished;
 } InfoRec, *InfoPtr;
 
-#define NAS_SOUND_PORT_DURATION 5 /* seconds */
+/* seconds */
+#define NAS_SOUND_PORT_DURATION (ao->device_buffer > 0. ? ao->device_buffer : 5)
 #define NAS_SOUND_LOW_WATER_MARK 25 /* percent */
 #define NAS_MAX_FORMAT 10 /* currently, there are 7 supported formats */
 

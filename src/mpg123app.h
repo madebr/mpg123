@@ -108,6 +108,7 @@ struct parameter
 	char* streamdump;
 	long icy_interval;
 	const char* name; /* name for this player instance */
+	double device_buffer; /* output device buffer */
 };
 
 enum mpg123app_flags

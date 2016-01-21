@@ -1,7 +1,7 @@
 /*
 	pulse: audio output using PulseAudio server
 
-	copyright 2006-9 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2006-2016 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Nicholas J. Humfrey
 */
@@ -51,6 +51,27 @@ static int open_pulse(out123_handle *ao)
 			ss.format=PA_SAMPLE_S16LE;
 #endif
 		break;
+		case MPG123_ENC_SIGNED_24:
+#ifdef WORDS_BIGENDIAN
+			ss.format=PA_SAMPLE_S24BE;
+#else
+			ss.format=PA_SAMPLE_S24LE;
+#endif
+		break;
+		case MPG123_ENC_SIGNED_32:
+#ifdef WORDS_BIGENDIAN
+			ss.format=PA_SAMPLE_S32BE;
+#else
+			ss.format=PA_SAMPLE_S32LE;
+#endif
+		break;
+		case MPG123_ENC_FLOAT_32:
+#ifdef WORDS_BIGENDIAN
+			ss.format=PA_SAMPLE_FLOAT32BE;
+#else
+			ss.format=PA_SAMPLE_FLOAT32LE;
+#endif
+		break;
 		case MPG123_ENC_ALAW_8:
 			ss.format=PA_SAMPLE_ALAW;
 		break;
@@ -70,10 +91,10 @@ static int open_pulse(out123_handle *ao)
 	/* Perform the open */
 	pas = pa_simple_new(
 			NULL,				/* Use the default server */
-			"mpg123",			/* Our application's name */
+			ao->name,		/* Our application's name */
 			PA_STREAM_PLAYBACK,
 			ao->device,			/* Use the default device if NULL */
-			"MPEG Audio",		/* Description of our stream */
+			"via out123",		/* Description of our stream */
 			&ss,				/* Our sample format */
 			NULL,				/* Use default channel map */
 			NULL,				/* Use default buffering attributes */

@@ -19,6 +19,8 @@ static int have_buffer(out123_handle *ao)
 
 #include "debug.h"
 
+static const char *default_name = "out123";
+
 static int modverbose(out123_handle *ao)
 {
 	debug3("modverbose: %x %x %x"
@@ -62,7 +64,7 @@ out123_handle* attribute_align_arg out123_new(void)
 #endif
 
 	out123_clear_module(ao);
-	ao->name = NULL;
+	ao->name = strdup(default_name);
 	ao->realname = NULL;
 	ao->driver = NULL;
 	ao->device = NULL;
@@ -91,6 +93,8 @@ void attribute_align_arg out123_del(out123_handle *ao)
 #ifndef NOXFERMEM
 	if(have_buffer(ao)) buffer_exit(ao);
 #endif
+	if(ao->name)
+		free(ao->name);
 	free(ao);
 }
 
@@ -202,7 +206,7 @@ out123_param( out123_handle *ao, enum out123_parms code
 		case OUT123_NAME:
 			if(ao->name)
 				free(ao->name);
-			ao->name = svalue ? strdup(svalue) : NULL;
+			ao->name = strdup(svalue ? svalue : default_name);
 		break;
 		default:
 			ao->errcode = OUT123_BAD_PARAM;

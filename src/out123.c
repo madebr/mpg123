@@ -71,6 +71,7 @@ static double preload = 0.2;
 static int outflags = 0;
 static long gain = -1;
 static const char *name = NULL; /* Let the out123 library choose "out123". */
+static double device_buffer; /* output device buffer */
 
 size_t pcmblock = 1152; /* samples (pcm frames) we treat en bloc */
 /* To be set after settling format. */
@@ -438,6 +439,7 @@ topt opts[] = {
 	{0, "test-encodings", 0, test_encodings, 0, 0},
 	{0, "query-format", 0, query_format, 0, 0},
 	{0, "name", GLO_ARG|GLO_CHAR, 0, &name, 0},
+	{0, "devbuffer", GLO_ARG|GLO_DOUBLE, 0, &device_buffer, 0},
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -541,6 +543,7 @@ int main(int sys_argc, char ** sys_argv)
 	|| out123_param_int(ao, OUT123_GAIN, gain)
 	|| out123_param_int(ao, OUT123_VERBOSE, verbose)
 	|| out123_param_string(ao, OUT123_NAME, name)
+	|| out123_param_float(ao, OUT123_DEVICEBUFFER, device_buffer)
 	)
 	{
 		error("Error setting output parameters. Do you need a usage reminder?");
@@ -597,7 +600,7 @@ int main(int sys_argc, char ** sys_argv)
 	{
 		long props = 0;
 		const char *encname;
-		const char *realname = NULL;
+		char *realname = NULL;
 		encname = out123_enc_name(encoding);
 		fprintf(stderr, ME": format: %li Hz, %i channels, %s\n"
 		,	rate, channels, encname ? encname : "???" );
@@ -729,6 +732,7 @@ static void long_usage(int err)
 	fprintf(o," -b <n> --buffer <n>       set play buffer (\"output cache\")\n");
 	fprintf(o,"        --preload <value>  fraction of buffer to fill before playback\n");
 #endif
+	fprintf(o,"        --devbuffer <s>    set device buffer in seconds; <= 0 means default\n");
 	fprintf(o," -t     --test             no output, just read and discard data (-o test)\n");
 	fprintf(o," -v[*]  --verbose          increase verboselevel\n");
 	#ifdef HAVE_SETPRIORITY

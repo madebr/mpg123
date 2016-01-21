@@ -1,7 +1,7 @@
 /*
 	aix: Driver for IBM RS/6000 with AIX Ultimedia Services
 
-	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2016 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Juergen Schoew and Tomas Oegren
 */
@@ -25,7 +25,9 @@
 /* use AUDIO_BSIZE to set the msec for audio buffering in Ultimedia library
  */
 /* #define AUDIO_BSIZE AUDIO_IGNORE */
-#define AUDIO_BSIZE 200
+#define AUDIO_BSIZE ( ao->device_buffer > 0. \
+? (long)(ao->device_buffer*1000) \
+: 200 )
 
 static int rate_best_match(out123_handle *ao)
 {

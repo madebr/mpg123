@@ -8,6 +8,8 @@
   and makes them available to the wider masses. Also, the buffer logic
   (contained in libout123) got a lot of reworking which might be noticable
   in the interaction with terminal control.
+-- Some tuning of several output drivers (modules) regarding flexible
+   buffer size, client names, supported formats.
 - Added mpg123 --no-infoframe.
 - Detect terminal on input side and enable control keys automatically.
   There is --no-control now to disable terminal control anyway.
@@ -52,6 +54,9 @@
 - Added --name to mpg123 and out123 for providing client name p.ex. for JACK.
   There is no default of appending the PID to "mpg123" as client name anymore,
   just plain "mpg123" or "out123".
+- Added --devbuffer to mpg123 and out123 for influencing device buffer and
+  possible latency a bit (perhaps more so in future when drivers are adapted
+  to pay more attention to that).
 
 1.22.4
 ---

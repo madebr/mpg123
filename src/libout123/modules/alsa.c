@@ -1,7 +1,7 @@
 /*
 	alsa: sound output with Advanced Linux Sound Architecture 1.x API
 
-	copyright 2006-8 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2006-2016 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 
 	initially written by Clemens Ladisch <clemens@ladisch.de>
@@ -21,8 +21,8 @@
 
 #include "debug.h"
 
-/* My laptop has probs playing low-sampled files with only 0.5s buffer... this should be a user setting -- ThOr */
-#define BUFFER_LENGTH 0.5	/* in seconds */
+/* in seconds */
+#define BUFFER_LENGTH (ao->device_buffer > 0. ? ao->device_buffer : 0.5)
 
 static const struct {
 	snd_pcm_format_t alsa;
@@ -110,7 +110,7 @@ static int initialize_device(out123_handle *ao)
 		return -1;
 	}
 	debug1("buffer_size=%lu", (unsigned long)buffer_size);
-	period_size = buffer_size / 4;
+	period_size = buffer_size / 3; /* 3 periods is so much more common. */
 	if (snd_pcm_hw_params_set_period_size_near(pcm, hw, &period_size, NULL) < 0) {
 		if(!AOQUIET) error("initialize_device(): cannot set period size");
 		return -1;
