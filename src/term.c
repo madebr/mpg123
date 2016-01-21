@@ -310,11 +310,11 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 		{
 			/* Not really sure if that is what is wanted
 				 This jumps in audio output, but has direct reaction to pausing loop. */
-			out123_param(ao, OUT123_PRELOAD, 0, 0.);
+			out123_param_float(ao, OUT123_PRELOAD, 0.);
 			pause_recycle(fr);
 		}
 		else
-			out123_param(ao, OUT123_PRELOAD, 0, param.preload);
+			out123_param_float(ao, OUT123_PRELOAD, param.preload);
 		if(stopped)
 		{
 			stopped=0;

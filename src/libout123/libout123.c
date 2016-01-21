@@ -62,6 +62,8 @@ out123_handle* attribute_align_arg out123_new(void)
 #endif
 
 	out123_clear_module(ao);
+	ao->name = NULL;
+	ao->realname = NULL;
 	ao->driver = NULL;
 	ao->device = NULL;
 
@@ -167,7 +169,7 @@ out123_set_buffer(out123_handle *ao, size_t buffer_bytes)
 
 int attribute_align_arg
 out123_param( out123_handle *ao, enum out123_parms code
-            , long value, double fvalue )
+            , long value, double fvalue, const char *svalue )
 {
 	int ret = 0;
 
@@ -197,6 +199,11 @@ out123_param( out123_handle *ao, enum out123_parms code
 			ao->errcode = OUT123_SET_RO_PARAM;
 			ret = OUT123_ERR;
 		break;
+		case OUT123_NAME:
+			if(ao->name)
+				free(ao->name);
+			ao->name = svalue ? strdup(svalue) : NULL;
+		break;
 		default:
 			ao->errcode = OUT123_BAD_PARAM;
 			if(!AOQUIET) error1("bad parameter code %i", (int)code);
@@ -214,11 +221,12 @@ out123_param( out123_handle *ao, enum out123_parms code
 
 int attribute_align_arg
 out123_getparam( out123_handle *ao, enum out123_parms code
-               , long *ret_value, double *ret_fvalue )
+               , long *ret_value, double *ret_fvalue, char* *ret_svalue )
 {
 	int ret = 0;
 	long value = 0;
 	double fvalue = 0.;
+	char *svalue = NULL;
 
 	debug4( "out123_getparam(%p, %i, %p, %p)"
 	,	(void*)ao, (int)code, (void*)ret_value, (void*)ret_fvalue );
@@ -246,6 +254,9 @@ out123_getparam( out123_handle *ao, enum out123_parms code
 		case OUT123_PROPFLAGS:
 			value = ao->propflags;
 		break;
+		case OUT123_NAME:
+			svalue = ao->realname ? ao->realname : ao->name;
+		break;
 		default:
 			if(!AOQUIET) error1("bad parameter code %i", (int)code);
 			ao->errcode = OUT123_BAD_PARAM;
@@ -255,6 +266,7 @@ out123_getparam( out123_handle *ao, enum out123_parms code
 	{
 		if(ret_value)  *ret_value  = value;
 		if(ret_fvalue) *ret_fvalue = fvalue;
+		if(ret_svalue) *ret_svalue = svalue;
 	}
 	return ret;
 }
@@ -278,8 +290,9 @@ out123_param_from(out123_handle *ao, out123_handle* from_ao)
 /* Serialization of tunable parameters to communicate them between
    main process and buffer. Make sure these two stay in sync ... */
 
-int write_parameters(out123_handle *ao, int fd)
+int write_parameters(out123_handle *ao, int who)
 {
+	int fd = ao->buffermem->fd[who];
 	if(
 		GOOD_WRITEVAL(fd, ao->flags)
 	&&	GOOD_WRITEVAL(fd, ao->preload)
@@ -287,6 +300,7 @@ int write_parameters(out123_handle *ao, int fd)
 	&&	GOOD_WRITEVAL(fd, ao->device_buffer)
 	&&	GOOD_WRITEVAL(fd, ao->verbose)
 	&&	GOOD_WRITEVAL(fd, ao->propflags)
+	&& !xfer_write_string(ao, who, ao->name)
 	)
 		return 0;
 	else
@@ -294,8 +308,9 @@ int write_parameters(out123_handle *ao, int fd)
 }
 
 int read_parameters(out123_handle *ao
-,	int fd, byte *prebuf, int *preoff, int presize)
+,	int who, byte *prebuf, int *preoff, int presize)
 {
+	int fd = ao->buffermem->fd[who];
 #define GOOD_READVAL_BUF(fd, val) \
 	!read_buf(fd, &val, sizeof(val), prebuf, preoff, presize)
 	if(
@@ -305,6 +320,7 @@ int read_parameters(out123_handle *ao
 	&&	GOOD_READVAL_BUF(fd, ao->device_buffer)
 	&&	GOOD_READVAL_BUF(fd, ao->verbose)
 	&&	GOOD_READVAL_BUF(fd, ao->propflags)
+	&& !xfer_read_string(ao, who, &ao->name)
 	)
 		return 0;
 	else
@@ -443,6 +459,9 @@ void attribute_align_arg out123_close(out123_handle *ao)
 	if(ao->device)	
 		free(ao->device);
 	ao->device = NULL;
+	if(ao->realname)
+		free(ao->realname);
+	ao->realname = NULL;
 
 	ao->state = play_dead;
 }

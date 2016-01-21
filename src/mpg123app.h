@@ -107,6 +107,7 @@ struct parameter
 	long gain; /* audio output gain, for selected outputs */
 	char* streamdump;
 	long icy_interval;
+	const char* name; /* name for this player instance */
 };
 
 enum mpg123app_flags

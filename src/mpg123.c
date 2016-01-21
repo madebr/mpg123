@@ -113,6 +113,7 @@ struct parameter param = {
 	,-1 /* gain */
 	,NULL /* stream dump file */
 	,0 /* ICY interval */
+	,"mpg123" /* name */
 };
 
 mpg123_handle *mh = NULL;
@@ -451,9 +452,9 @@ static void list_output_modules(char *arg)
 		printf("\n");
 		printf("Available modules\n");
 		printf("-----------------\n");
-		out123_param(lao, OUT123_VERBOSE, param.verbose, 0.);
+		out123_param_int(lao, OUT123_VERBOSE, param.verbose);
 		if(param.quiet)
-			out123_param(lao, OUT123_FLAGS, OUT123_QUIET, 0.);
+			out123_param_int(lao, OUT123_FLAGS, OUT123_QUIET);
 		if((count=out123_drivers(lao, &names, &descr)) >= 0)
 		{
 			int i;
@@ -612,6 +613,7 @@ topt opts[] = {
 	{0, "streamdump", GLO_ARG|GLO_CHAR, 0, &param.streamdump, 0},
 	{0, "icy-interval", GLO_ARG|GLO_LONG, 0, &param.icy_interval, 0},
 	{0, "ignore-streamlength", GLO_INT, set_frameflag, &frameflag, MPG123_IGNORE_STREAMLENGTH},
+	{0, "name", GLO_ARG|GLO_CHAR, 0, &param.name, 0},
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -1088,10 +1090,11 @@ int main(int sys_argc, char ** sys_argv)
 	}
 	if
 	( 0
-	||	out123_param(ao, OUT123_FLAGS, param.output_flags, 0.)
-	|| out123_param(ao, OUT123_PRELOAD, 0, param.preload)
-	|| out123_param(ao, OUT123_GAIN, param.gain, 0.)
-	|| out123_param(ao, OUT123_VERBOSE, param.verbose, 0.)
+	||	out123_param_int(ao, OUT123_FLAGS, param.output_flags)
+	|| out123_param_float(ao, OUT123_PRELOAD, param.preload)
+	|| out123_param_int(ao, OUT123_GAIN, param.gain)
+	|| out123_param_int(ao, OUT123_VERBOSE, param.verbose)
+	|| out123_param_string(ao, OUT123_NAME, param.name)
 	)
 	{
 		if(!param.quiet)
@@ -1481,6 +1484,7 @@ static void long_usage(int err)
 	#endif
 	#ifndef GENERIC
 	fprintf(o,"        --title            set terminal title to filename\n");
+	fprintf(o,"        --name <n>         set instance name (used in various places)\n");
 	#endif
 	fprintf(o,"        --long-tag         spacy id3 display with every item on a separate line\n");
 	fprintf(o,"        --lyrics           show lyrics (from ID3v2 USLT frame)\n");

@@ -73,6 +73,8 @@ struct out123_struct
 	/* the loaded that has set the above */
 	mpg123_module_t *module;
 
+	char *name;	    /* optional name of this instance */
+	char *realname; /* name possibly changed by backend */
 	char *driver;	/* driver (module) name */
 	char *device;	/* device name */
 	int   flags;	/* some bits; namely headphone/speaker/line */

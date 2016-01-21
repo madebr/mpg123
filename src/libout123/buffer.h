@@ -59,4 +59,8 @@ size_t buffer_fill(out123_handle *ao);
 int read_buf(int fd, void *addr, size_t size
 ,	byte *prebuf, int *preoff, int presize);
 
+/* Read/write strings from/to command channel. 0 on success. */
+int xfer_write_string(out123_handle *ao, int who, const char *buf);
+int xfer_read_string(out123_handle *ao, int who, char* *buf);
+
 #endif

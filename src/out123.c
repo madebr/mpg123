@@ -70,6 +70,7 @@ static int aggressive = FALSE;
 static double preload = 0.2;
 static int outflags = 0;
 static long gain = -1;
+static const char *name = NULL; /* Let the out123 library choose "out123". */
 
 size_t pcmblock = 1152; /* samples (pcm frames) we treat en bloc */
 /* To be set after settling format. */
@@ -269,9 +270,9 @@ static void list_output_modules(char *arg)
 
 	if((lao=out123_new()))
 	{
-		out123_param(lao, OUT123_VERBOSE, verbose, 0.);
+		out123_param_int(lao, OUT123_VERBOSE, verbose);
 		if(quiet)
-			out123_param(lao, OUT123_FLAGS, OUT123_QUIET, 0.);
+			out123_param_int(lao, OUT123_FLAGS, OUT123_QUIET);
 		if((count=out123_drivers(lao, &names, &descr)) >= 0)
 		{
 			int i;
@@ -317,9 +318,9 @@ static int getencs(void)
 		,	rate, channels );
 	if((lao=out123_new()))
 	{
-		out123_param(lao, OUT123_VERBOSE, verbose, 0.);
+		out123_param_int(lao, OUT123_VERBOSE, verbose);
 		if(quiet)
-			out123_param(lao, OUT123_FLAGS, OUT123_QUIET, 0.);
+			out123_param_int(lao, OUT123_FLAGS, OUT123_QUIET);
 		if(!out123_open(lao, driver, device))
 			encs = out123_encodings(lao, rate, channels);
 		else if(!quiet)
@@ -354,9 +355,9 @@ static void query_format(char *arg)
 		fprintf(stderr, ME": querying default format\n");
 	if((lao=out123_new()))
 	{
-		out123_param(lao, OUT123_VERBOSE, verbose, 0.);
+		out123_param_int(lao, OUT123_VERBOSE, verbose);
 		if(quiet)
-			out123_param(lao, OUT123_FLAGS, OUT123_QUIET, 0.);
+			out123_param_int(lao, OUT123_FLAGS, OUT123_QUIET);
 		if(!out123_open(lao, driver, device))
 		{
 			struct mpg123_fmt *fmts = NULL;
@@ -436,6 +437,7 @@ topt opts[] = {
 	{0, "test-format", 0, test_format, 0, 0 },
 	{0, "test-encodings", 0, test_encodings, 0, 0},
 	{0, "query-format", 0, query_format, 0, 0},
+	{0, "name", GLO_ARG|GLO_CHAR, 0, &name, 0},
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -534,10 +536,11 @@ int main(int sys_argc, char ** sys_argv)
 
 	if
 	( 0
-	||	out123_param(ao, OUT123_FLAGS, outflags, 0.)
-	|| out123_param(ao, OUT123_PRELOAD, 0, preload)
-	|| out123_param(ao, OUT123_GAIN, gain, 0.)
-	|| out123_param(ao, OUT123_VERBOSE, verbose, 0.)
+	||	out123_param_int(ao, OUT123_FLAGS, outflags)
+	|| out123_param_float(ao, OUT123_PRELOAD, preload)
+	|| out123_param_int(ao, OUT123_GAIN, gain)
+	|| out123_param_int(ao, OUT123_VERBOSE, verbose)
+	|| out123_param_string(ao, OUT123_NAME, name)
 	)
 	{
 		error("Error setting output parameters. Do you need a usage reminder?");
@@ -593,10 +596,15 @@ int main(int sys_argc, char ** sys_argv)
 	if(verbose)
 	{
 		long props = 0;
-		const char *encname = out123_enc_name(encoding);
+		const char *encname;
+		const char *realname = NULL;
+		encname = out123_enc_name(encoding);
 		fprintf(stderr, ME": format: %li Hz, %i channels, %s\n"
 		,	rate, channels, encname ? encname : "???" );
-		out123_getparam(ao, OUT123_PROPFLAGS, &props, NULL);
+		out123_getparam_string(ao, OUT123_NAME, &realname);
+		if(realname)
+			fprintf(stderr, ME": output real name: %s\n", realname);
+		out123_getparam_int(ao, OUT123_PROPFLAGS, &props);
 		if(props & OUT123_PROP_LIVE)
 			fprintf(stderr, ME": This is a live sink.\n");
 	}

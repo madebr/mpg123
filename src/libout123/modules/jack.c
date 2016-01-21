@@ -225,13 +225,12 @@ static int close_jack(out123_handle *ao)
 
 static int open_jack(out123_handle *ao)
 {
-//#error FIXME: Make JACK client name a parameter, for messages, a generic program name is an idea, for outputs an instance name matters
-//#error FIXME: also fix that segfault in out123 on --query-format
-	char client_name[255];
+	const char *client_name = ao->name ? ao->name : "out123";
 	jack_handle_t *handle=NULL;
 	jack_options_t jopt = JackNullOption|JackNoStartServer;
 	jack_status_t jstat = 0;
 	unsigned int i;
+	char *realname;
 
 	debug("jack open");
 	if(!ao) return -1;
@@ -248,17 +247,17 @@ static int open_jack(out123_handle *ao)
 	ao->userptr = (void*)handle;
 
 	/* Register with Jack*/
-	snprintf(client_name, 255, "mpg123-%d", getpid());
 	if ((handle->client = jack_client_open(client_name, jopt, &jstat)) == 0) {
 		error1("Failed to open jack client: 0x%x", jstat);
 		close_jack(ao);
 		return -1;
 	}
-	
+
+	realname = jack_get_client_name(handle->client);
 	/* Display the unique client name allocated to us */
 	if(AOVERBOSE(1))
 		fprintf( stderr, "Registered as JACK client %s.\n"
-		,	jack_get_client_name( handle->client ) );
+		,	realname ? realname : "<nil>" );
 
 	/* The initial open lets me choose the settings. */
 	if (ao->format==-1)
@@ -327,6 +326,7 @@ static int open_jack(out123_handle *ao)
 	}
 
 	debug("Jack open successful.\n");
+	ao->realname = strdup(realname);
 	return 0;
 }
 

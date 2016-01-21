@@ -57,7 +57,6 @@ static void catch_interrupt (void)
 	intflag = TRUE;
 }
 
-static int write_string(out123_handle *ao, int who, const char *buf);
 static int read_record(out123_handle *ao
 ,	int who, void **buf, byte *prebuf, int *preoff, int presize, size_t *recsize);
 static int buffer_loop(out123_handle *ao);
@@ -197,7 +196,7 @@ int buffer_sync_param(out123_handle *ao)
 	}
 	/* Calling an external serialization routine to avoid forgetting
 	   any fresh parameters here. */
-	if(write_parameters(ao, writerfd))
+	if(write_parameters(ao, XF_WRITER))
 	{
 		ao->errcode = OUT123_BUFFER_ERROR;
 		return -1;
@@ -215,26 +214,18 @@ int buffer_open(out123_handle *ao, const char* driver, const char* device)
 		return -1;
 	}
 	/* Passing over driver and device name. */
-	if(  write_string(ao, XF_WRITER, driver)
-	  || write_string(ao, XF_WRITER, device) )
+	if(  xfer_write_string(ao, XF_WRITER, driver)
+	  || xfer_write_string(ao, XF_WRITER, device) )
 	{
 		ao->errcode = OUT123_BUFFER_ERROR;
 		return -1;
 	}
 
 	if(buffer_cmd_finish(ao) == 0)
-	{
 		/* Retrieve driver and device name. */
-		if(
-			read_record(ao, XF_WRITER, (void**)&ao->driver, NULL, NULL, 0, NULL)
-		||	read_record(ao, XF_WRITER, (void**)&ao->device, NULL, NULL, 0, NULL)
-		){
-			ao->errcode = OUT123_BUFFER_ERROR;
-			return -1;
-		}
-		else
-			return 0;
-	}
+		return ( xfer_read_string(ao, XF_WRITER, &ao->driver)
+		      || xfer_read_string(ao, XF_WRITER, &ao->device)
+		      || xfer_read_string(ao, XF_WRITER, &ao->realname) );
 	else
 		return -1;
 }
@@ -511,7 +502,7 @@ static void skip_bytes(int fd, size_t count)
 
 /* Write a string to command channel.
    Return 0 on success, set ao->errcode on issues. */
-static int write_string(out123_handle *ao, int who, const char *buf)
+int xfer_write_string(out123_handle *ao, int who, const char *buf)
 {
 	txfermem *xf = ao->buffermem;
 	int my_fd = xf->fd[who];
@@ -523,9 +514,18 @@ static int write_string(out123_handle *ao, int who, const char *buf)
 	 || !GOOD_WRITEBUF(my_fd, buf, len) )
 	{
 		ao->errcode = OUT123_BUFFER_ERROR;
-		return 2;
+		return -1;
 	}
 	return 0;
+}
+
+
+int xfer_read_string(out123_handle *ao, int who, char **buf)
+{
+	/* ao->errcode set in read_record() */
+	return read_record(ao, who, (void**)buf, NULL, NULL, 0, NULL)
+	? -1 /* read_record could return 2, normalize to -1 */
+	: 0;
 }
 
 /* Read a value from command channel with prebuffer.
@@ -551,6 +551,7 @@ int read_buf(int fd, void *addr, size_t size, byte *prebuf, int *preoff, int pre
 	else
 		return 0;
 }
+
 
 /* Read a record of unspecified type from command channel.
    Return 0 on success, set ao->errcode on issues. */
@@ -686,7 +687,7 @@ int buffer_loop(out123_handle *ao)
 					intflag = FALSE;
 					/* If that does not work, communication is broken anyway and
 					   writer will notice soon enough. */
-					read_parameters(ao, my_fd, cmd, &i, cmdcount);
+					read_parameters(ao, XF_READER, cmd, &i, cmdcount);
 					xfermem_putcmd(my_fd, XF_CMD_OK);
 				break;
 				case BUF_CMD_OPEN:
@@ -708,8 +709,9 @@ int buffer_loop(out123_handle *ao)
 					if(success)
 					{
 						xfermem_putcmd(my_fd, XF_CMD_OK);
-						if(  write_string(ao, XF_READER, ao->driver)
-						  || write_string(ao, XF_READER, ao->device) )
+						if(  xfer_write_string(ao, XF_READER, ao->driver)
+						  || xfer_write_string(ao, XF_READER, ao->device)
+						  || xfer_write_string(ao, XF_READER, ao->realname ) )
 							return 2;
 					}
 					else
