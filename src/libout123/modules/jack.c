@@ -441,6 +441,7 @@ static int init_jack(out123_handle* ao)
 	ao->get_formats = get_formats_jack;
 	ao->close = close_jack;
 
+	ao->propflags |= OUT123_PROP_PERSISTENT;
 	/* Success */
 	return 0;
 }

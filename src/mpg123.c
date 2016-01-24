@@ -121,14 +121,13 @@ mpg123_handle *mh = NULL;
 off_t framenum;
 off_t frames_left;
 out123_handle *ao = NULL;
+static long output_propflags = 0;
 char *prgName = NULL;
 /* ThOr: pointers are not TRUE or FALSE */
 char *equalfile = NULL;
 struct httpdata htd;
 int fresh = TRUE;
 FILE* aux_out = NULL; /* Output for interesting information, normally on stdout to be parseable. */
-
-size_t bufferblock = 0;
 
 int intflag = FALSE;
 int deathflag = FALSE;
@@ -149,6 +148,12 @@ static int    argc = 0;
 
 /* Cleanup marker to know that we intiialized libmpg123 already. */
 static int cleanup_mpg123 = FALSE;
+
+static long new_header = FALSE;
+static char *prebuffer = NULL;
+static size_t prebuffer_size = 0;
+static size_t prebuffer_fill = 0;
+static size_t minbytes = 0;
 
 void set_intflag()
 {
@@ -196,11 +201,29 @@ void prev_track(void)
 	next_track();
 }
 
+void safe_exit(int code);
+
+static void play_prebuffer(void)
+{
+	/* Ensure that the prebuffer bit has been posted. */
+	if(prebuffer_fill)
+	{
+		if(out123_play(ao, prebuffer, prebuffer_fill) < prebuffer_fill)
+		{
+			error("Deep trouble! Cannot flush to my output anymore!");
+			safe_exit(133);
+		}
+		prebuffer_fill = 0;
+	}
+}
+
 /* Drain output device/buffer, but still give the option to interrupt things. */
 static void controlled_drain(void)
 {
 	int framesize;
 	size_t drain_block;
+
+	play_prebuffer();
 
 	if(intflag || !out123_buffered(ao))
 		return;
@@ -267,6 +290,9 @@ void prev_dir(void)
 void safe_exit(int code)
 {
 	char *dummy, *dammy;
+
+	if(prebuffer)
+		free(prebuffer);
 
 	dump_close();
 	if(!code)
@@ -727,10 +753,8 @@ int play_frame(void)
 {
 	unsigned char *audio;
 	int mc;
-	long new_header = 0;
-	size_t bytes;
+	size_t bytes = 0;
 	debug("play_frame");
-	/* The first call will not decode anything but return MPG123_NEW_FORMAT! */
 	mc = mpg123_decode_frame(mh, &framenum, &audio, &bytes);
 	mpg123_getstate(mh, MPG123_FRESH_DECODER, &new_header, NULL);
 
@@ -742,18 +766,67 @@ int play_frame(void)
 		{
 			fresh = FALSE;
 		}
-		/* Interrupt here doesn't necessarily interrupt out123_play().
-		   I wonder if that makes us miss errors. Actual issues should
-		   just be postponed. */
-		if(out123_play(ao, audio, bytes) < bytes && !intflag)
+		if(bytes < minbytes && !prebuffer_fill)
 		{
-			error("Deep trouble! Cannot flush to my output anymore!");
-			safe_exit(133);
+			/* Postpone playback of little buffers until large buffers can
+				follow them right away, preventing underruns. */
+			if(prebuffer_size < minbytes)
+			{
+				if(prebuffer)
+					free(prebuffer);
+				if(!(prebuffer = malloc(minbytes)))
+					safe_exit(11);
+				prebuffer_size = minbytes;
+			}
+			memcpy(prebuffer, audio, bytes);
+			prebuffer_fill = bytes;
+			bytes = 0;
+			debug1("prebuffered %"SIZE_P" bytes", prebuffer_fill);
 		}
 		if(param.checkrange)
 		{
 			long clip = mpg123_clip(mh);
 			if(clip > 0) fprintf(stderr,"\n%ld samples clipped\n", clip);
+		}
+	}
+	/* The bytes could have been postponed to later. */
+	if(bytes)
+	{
+		unsigned char *playbuf = audio;
+		if(prebuffer_fill)
+		{
+			size_t missing;
+			/* This is tricky: The small piece needs to be filled up. Playing 10
+			   pcm frames will always trigger underruns with ALSA, dammit!
+			   This grabs some data from current frame, unless it itself would
+			   end up smaller than the prebuffer. Ending up empty is fine. */
+			if(  prebuffer_fill < prebuffer_size
+			  && (  bytes <= (missing=prebuffer_size-prebuffer_fill)
+			     || bytes >= missing+prebuffer_size ) )
+			{
+				if(bytes < missing)
+					missing=bytes;
+				memcpy(prebuffer+prebuffer_fill, playbuf, missing);
+				playbuf += missing;
+				bytes -= missing;
+				prebuffer_fill += missing;
+			}
+			if(   out123_play(ao, prebuffer, prebuffer_fill) < prebuffer_fill
+			   && !intflag )
+			{
+				error("Deep trouble! Cannot flush to my output anymore!");
+				safe_exit(133);
+			}
+			prebuffer_fill = 0;
+		}
+		/* Interrupt here doesn't necessarily interrupt out123_play().
+		   I wonder if that makes us miss errors. Actual issues should
+		   just be postponed. */
+		if(bytes && !intflag) /* Previous piece could already be interrupted. */
+		if(out123_play(ao, audio, bytes) < bytes && !intflag)
+		{
+			error("Deep trouble! Cannot flush to my output anymore!");
+			safe_exit(133);
 		}
 	}
 	/* Special actions and errors. */
@@ -772,16 +845,31 @@ int play_frame(void)
 		if(mc == MPG123_NEW_FORMAT)
 		{
 			long rate;
-			int channels, format;
-			mpg123_getformat(mh, &rate, &channels, &format);
-			if(param.verbose > 2) fprintf(stderr, "\nNote: New output format %liHz %ich, format %i\n", rate, channels, format);
-
-			new_header = 1;
-			check_fatal_output(out123_start(ao, rate, channels, format));
+			int channels;
+			int encoding;
+			play_prebuffer(); /* Make sure we got rid of old data. */
+			mpg123_getformat(mh, &rate, &channels, &encoding);
+			/* A layer I frame duration at minimum for live outputs. */
+			if(output_propflags & OUT123_PROP_LIVE)
+				minbytes = mpg123_samplesize(encoding)*channels*384;
+			else
+				minbytes = 0;
+			if(param.verbose > 2)
+			{
+				const char* encname = out123_enc_name(encoding);
+				fprintf( stderr
+				,	"\nNote: New output format with %li Hz, %i channels, encoding %s.\n"
+				,	rate, channels, encname ? encname : "???" );
+			}
+			new_header = TRUE;
+			check_fatal_output(out123_start(ao, rate, channels, encoding));
+			/* We may take some time feeding proper data, so pause by default. */
+			out123_pause(ao);
 		}
 	}
 	if(new_header && !param.quiet)
 	{
+		new_header = FALSE;
 		fprintf(stderr, "\n");
 		if(param.verbose) print_header(mh);
 		else print_header_compact(mh);
@@ -967,7 +1055,6 @@ int main(int sys_argc, char ** sys_argv)
 	if (loptind >= argc && !param.listname && !param.remote) usage(1);
 	/* Init audio as early as possible.
 	   If there is the buffer process to be spawned, it shouldn't carry the mpg123_handle with it. */
-	bufferblock = mpg123_safe_buffer(); /* Can call that before mpg123_init(), it's stateless. */
 
 	/* ========================================================================================================= */
 	/* Enterning the leaking zone... we start messing with stuff here that should be taken care of when leaving. */
@@ -1112,6 +1199,7 @@ int main(int sys_argc, char ** sys_argv)
 	check_fatal_output(out123_set_buffer(ao, param.usebuffer*1024));
 	check_fatal_output(out123_open( ao
 	,	param.output_module, param.output_device ));
+	out123_getparam_int(ao, OUT123_PROPFLAGS, &output_propflags);
 
 	if(!param.remote) prepare_playlist(argc, argv);
 

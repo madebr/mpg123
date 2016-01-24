@@ -143,6 +143,10 @@ enum out123_propflags
  *  special care might be needed for pauses in playback (p.ex. stream
  *  of silence instead of interruption), as opposed to files on disk.
  */
+,	OUT123_PROP_PERSISTENT = 0x02 /**< This (live) output does not need
+ *  special care for pauses (continues with silence itself),
+ *  out123_pause() does nothing to the device.
+ */
 };
 
 /** Create a new output handle.
@@ -448,18 +452,10 @@ int out123_start( out123_handle *ao
 ,                 long rate, int channels, int encoding );
 
 /** Pause playback
- *  Interrupt playback without waiting for the data pushed to the optional
- *  buffer being sent to the audio device.
+ *  Interrupt playback, holding any data in the optional buffer.
  *
- *  It keeps the audio device openend, able to resume. Occuring
- *  underruns at the device layer should be silently dealt by the driver.
- *  The nice way to stop feeding the device is to call out123_stop() and
- *  then later out123_start() again.
- *
- *  But feel free to try out123_pause() and out123_continue() instead.
- *  At least announcing the pause is nicer than just stopping to feed audio
- *  data for some time, although it might have the same effect, again,
- *  deopending on the selected driver.
+ *  This closes the audio device if it is a live sink, ready to be re-opened
+ *  by out123_continue() or out123_play() with the existing parameters.
  * \param ao handle
  */
 MPG123_EXPORT
@@ -470,9 +466,9 @@ void out123_pause(out123_handle *ao);
  *  shall continue.
  *
  *  Playback might not resume immediately if the optional buffer is configured
- *  To wait for a minimum fill. You can force playback of the last scrap with
- *  out123_drain(), or just by feeding more data with out123_play(), which
- *  will trigger out123_continue(), too.
+ *  to wait for a minimum fill and close to being empty. You can force playback
+ *  of the last scrap with out123_drain(), or just by feeding more data with
+ *  out123_play(), which will trigger out123_continue() for you, too.
  * \param ao handle
  */
 MPG123_EXPORT
@@ -508,18 +504,20 @@ size_t out123_play( out123_handle *ao
                   , void *buffer, size_t bytes );
 
 /** Drop any buffered data, making next provided data play right away.
- *  This is different from out123_pause() in that it doesn't imply
- *  an actual pause in playback. You are expected to play something,
- *  but feel free to call out123_stop() afterwards instead for a quicker
+ *  This does not imply an actual pause in playback.
+ *  You are expected to play something, unless you called out123_pause().
+ *  Feel free to call out123_stop() afterwards instead for a quicker
  *  exit than the implied out123_drain().
+ *  For live sinks, this may include dropping data from their buffers.
+ *  For others (files), this only concerns data in the optional buffer.
  * \param ao handle
  */
 MPG123_EXPORT
 void out123_drop(out123_handle *ao);
 
 /** Drain the output, waiting until all data went to the hardware.
- * This does not imply out123_stop(). You might continue handing in
- * new data after that (after you enforced a buffer underrun ...).
+ * This does imply out123_continue() before and out123_pause()
+ * after draining.
  * This might involve only the optional buffer process, or the
  * buffers on the audio driver side, too.
  * \param ao handle
@@ -537,6 +535,9 @@ void out123_drain(out123_handle *ao);
  *  provided limit, as the buffer is writing all the time in the
  *  background.
  *
+ *  This is just a plain out123_drain() if the optional buffer is not
+ *  in use. Also triggers out123_continue(), but only out123_pause()
+ *  if there is no buffered data anymore.
  * \param ao handle
  * \param bytes limit of buffered bytes to drain
  * \return number of bytes drained from buffer

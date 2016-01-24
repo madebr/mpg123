@@ -837,7 +837,7 @@ int buffer_loop(out123_handle *ao)
 				case XF_CMD_CONTINUE:
 					intflag = FALSE;
 					out123_continue(ao);
-					preloading = TRUE;
+					preloading = FALSE; /* It should continue without delay. */
 					xfermem_putcmd(my_fd, XF_CMD_OK);
 				break;
 				case XF_CMD_IGNLOW:
@@ -880,7 +880,9 @@ int buffer_loop(out123_handle *ao)
 						&&	(oldfill-bytes) < limit
 						)
 							buffer_play(ao, bytes > limit ? limit : bytes);
-						out123_drain(ao);
+						/* Only drain hardware if the end was reached. */
+						if(!xfermem_get_usedspace(xf))
+							out123_drain(ao);
 						debug2( "buffer drained %"SIZE_P" / %"SIZE_P
 						,	oldfill-bytes, limit );
 					}

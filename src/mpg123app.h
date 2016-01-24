@@ -38,8 +38,6 @@
 
 #include "local.h"
 
-extern size_t bufferblock;
-
 #define VERBOSE_MAX 3
 
 extern char* binpath; /* argv[0], actually... */

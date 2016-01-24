@@ -19,11 +19,11 @@
 #include "metaprint.h"
 #include "debug.h"
 
-extern out123_handle *ao;
-
 static int term_enable = 0;
 static struct termios old_tio;
 int seeking = FALSE;
+
+extern out123_handle *ao;
 
 /* Buffered key from a signal or whatnot.
    We ignore the null character... */
@@ -277,6 +277,7 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 	switch(tolower(val))
 	{
 	case MPG123_BACK_KEY:
+		out123_pause(ao);
 		out123_drop(ao);
 		if(paused) pause_cycle=(int)(LOOP_CYCLES/mpg123_tpf(fr));
 
@@ -286,10 +287,12 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 		framenum=0;
 	break;
 	case MPG123_NEXT_KEY:
+		out123_pause(ao);
 		out123_drop(ao);
 		next_track();
 	break;
 	case MPG123_NEXT_DIR_KEY:
+		out123_pause(ao);
 		out123_drop(ao);
 		next_dir();
 	break;
@@ -298,6 +301,7 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 		if(stopped)
 		{
 			stopped = 0;
+			out123_pause(ao); /* no chance for annoying underrun warnings */
 			out123_drop(ao);
 		}
 		set_intflag();
@@ -305,6 +309,7 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 	break;
 	case MPG123_PAUSE_KEY:
 		paused=1-paused;
+		out123_pause(ao); /* underrun awareness */
 		out123_drop(ao);
 		if(paused)
 		{
@@ -316,10 +321,7 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 		else
 			out123_param_float(ao, OUT123_PRELOAD, param.preload);
 		if(stopped)
-		{
 			stopped=0;
-			out123_continue(ao);
-		}
 		if(param.verbose)
 			print_stat(fr, 0, ao);
 		else
@@ -340,7 +342,7 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 		{
 			if(offset) /* If position changed, old is outdated. */
 				out123_drop(ao);
-			out123_continue(ao);
+			/* No out123_continue(), that's triggered by out123_play(). */
 		}
 		if(param.verbose)
 			print_stat(fr, 0, ao);
@@ -413,11 +415,13 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 		mpg123_volume_change(fr, 0.);
 	break;
 	case MPG123_PREV_KEY:
+		out123_pause(ao);
 		out123_drop(ao);
 
 		prev_track();
 	break;
 	case MPG123_PREV_DIR_KEY:
+		out123_pause(ao);
 		out123_drop(ao);
 		prev_dir();
 	break;
@@ -496,9 +500,10 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 		   is no race filling the buffer or waiting for more incremental
 		   seek orders. */
 		len = mpg123_length(fr);
+		out123_pause(ao);
+		out123_drop(ao);
 		if(len > 0)
 			mpg123_seek(fr, (off_t)( (num/10.)*len ), SEEK_SET);
-		out123_drop(ao);
 	}
 	break;
 	case MPG123_BOOKMARK_KEY:

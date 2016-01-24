@@ -58,7 +58,7 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 	mpg123_id3v1 *v1;
 	mpg123_id3v2 *v2;
 	/* no memory allocated here, so return is safe */
-	for(ti=0; ti<FIELDS; ++ti) mpg123_init_string(&tag[ti]);
+	for(ti=0; ti<FIELDS; ++ti){ len[ti]=0; mpg123_init_string(&tag[ti]); }
 	/* extract the data */
 	mpg123_id3(mh, &v1, &v2);
 	/* Only work if something there... */

@@ -519,8 +519,15 @@ void attribute_align_arg out123_pause(out123_handle *ao)
 	{
 #ifndef NOXFERMEM
 		if(have_buffer(ao)) buffer_pause(ao);
+		else
 #endif
-		/* TODO: Be nice and prepare output device for silence. */
+		{
+			/* Close live devices to avoid underruns. */
+			if(    ao->propflags & OUT123_PROP_LIVE
+			  && !(ao->propflags & OUT123_PROP_PERSISTENT)
+			  && ao->close && ao->close(ao) && !AOQUIET )
+				error("trouble closing device");
+		}
 		ao->state = play_paused;
 	}
 }
@@ -532,8 +539,19 @@ void attribute_align_arg out123_continue(out123_handle *ao)
 	{
 #ifndef NOXFERMEM
 		if(have_buffer(ao)) buffer_continue(ao);
+		else
 #endif
-		/* TODO: Revitalize device for resuming playback. */
+		/* Re-open live devices to avoid underruns. */
+		if(    ao->propflags & OUT123_PROP_LIVE
+		  && !(ao->propflags & OUT123_PROP_PERSISTENT)
+		  && ao->open(ao) < 0)
+		{
+			/* Will be overwritten by following out123_play() ... */
+			ao->errcode = OUT123_DEV_OPEN;
+			if(!AOQUIET)
+				error("failed re-opening of device after pause");
+			return;
+		}
 		ao->state = play_live;
 	}
 }
@@ -566,10 +584,16 @@ out123_play(out123_handle *ao, void *bytes, size_t count)
 	if(!ao)
 		return 0;
 	ao->errcode = 0;
+	/* If paused, automatically continue. Other states are an error. */
 	if(ao->state != play_live)
 	{
-		ao->errcode = OUT123_NOT_LIVE;
-		return 0;
+		if(ao->state == play_paused)
+			out123_continue(ao);
+		if(ao->state != play_live)
+		{
+			ao->errcode = OUT123_NOT_LIVE;
+			return 0;
+		}
 	}
 
 	/* Ensure that we are writing whole PCM frames. */
@@ -612,7 +636,8 @@ void attribute_align_arg out123_drop(out123_handle *ao)
 #endif
 	if(ao->state == play_live)
 	{
-		if(ao->flush) ao->flush(ao);
+		if(ao->propflags & OUT123_PROP_LIVE && ao->flush)
+			ao->flush(ao);
 	}
 }
 
@@ -622,15 +647,24 @@ void attribute_align_arg out123_drain(out123_handle *ao)
 	if(!ao)
 		return;
 	ao->errcode = 0;
+	/* If paused, automatically continue. */
 	if(ao->state != play_live)
-		return;
+	{
+		if(ao->state == play_paused)
+			out123_continue(ao);
+		if(ao->state != play_live)
+			return;
+	}
 #ifndef NOXFERMEM
 	if(have_buffer(ao))
 		buffer_drain(ao);
 	else
 #endif
-	if(ao->drain)
-		ao->drain(ao);
+	{
+		if(ao->drain)
+			ao->drain(ao);
+		out123_pause(ao);
+	}
 }
 
 void attribute_align_arg out123_ndrain(out123_handle *ao, size_t bytes)
@@ -639,15 +673,24 @@ void attribute_align_arg out123_ndrain(out123_handle *ao, size_t bytes)
 	if(!ao)
 		return;
 	ao->errcode = 0;
+	/* If paused, automatically continue. */
 	if(ao->state != play_live)
-		return;
+	{
+		if(ao->state == play_paused)
+			out123_continue(ao);
+		if(ao->state != play_live)
+			return;
+	}
 #ifndef NOXFERMEM
 	if(have_buffer(ao))
 		buffer_ndrain(ao, bytes);
 	else
 #endif
-	if(ao->drain)
-		ao->drain(ao);
+	{
+		if(ao->drain)
+			ao->drain(ao);
+		out123_pause(ao);
+	}
 }
 
 
