@@ -882,7 +882,7 @@ MPG123_EXPORT int mpg123_info(mpg123_handle *mh, struct mpg123_frameinfo *mi);
  *  (when you want to replace the internal buffer)
  *  \return safe buffer size
  */
-MPG123_EXPORT size_t mpg123_safe_buffer(void); 
+MPG123_EXPORT size_t mpg123_safe_buffer(void);
 
 /** Make a full parsing scan of each frame in the file. ID3 tags are found. An
  *  accurate length value is stored. Seek index will be filled. A seek back to
@@ -1345,7 +1345,7 @@ MPG123_EXPORT int mpg123_getpar( mpg123_pars *mp
   * Instead of working on it's own private buffer, mpg123 will directly use the one you provide for storing decoded audio.
   * Note that the required buffer size could be bigger than expected from output
   * encoding if libmpg123 has to convert from primary decoder output (p.ex. 32 bit
-  * storage for 24 bit output.
+  * storage for 24 bit output).
   * \param mh handle
   * \param data pointer to user buffer
   * \param size of buffer in bytes
