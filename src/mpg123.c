@@ -982,11 +982,16 @@ int main(int sys_argc, char ** sys_argv)
 		param.verbose = 0;
 		param.quiet = 1;
 		param.flags |= MPG123_QUIET;
+		param.output_flags |= OUT123_QUIET;
 	}
 #endif
 
 	/* Set the frame parameters from command line options */
-	if(param.quiet) param.flags |= MPG123_QUIET;
+	if(param.quiet)
+	{
+		param.flags |= MPG123_QUIET;
+		param.output_flags |= OUT123_QUIET;
+	}
 
 #ifdef OPT_3DNOW
 	if(dnow != 0) param.cpu = (dnow == SET_3DNOW) ? "3dnow" : "i586";
