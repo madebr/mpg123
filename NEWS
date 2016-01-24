@@ -57,6 +57,8 @@
 - Added --devbuffer to mpg123 and out123 for influencing device buffer and
   possible latency a bit (perhaps more so in future when drivers are adapted
   to pay more attention to that).
+- Added out123 --channels <n>, --list-encodings, --test-format,
+  --test-encodings, --query-format.
 
 1.22.4
 ---
