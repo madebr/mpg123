@@ -247,19 +247,24 @@ debug("alsa prepare");
 debug("alsa flush done");
 }
 
+static void drain_alsa(out123_handle *ao)
+{
+	snd_pcm_t *pcm=(snd_pcm_t*)ao->userptr;
+	debug1("drain_alsa with %p", ao->userptr);
+	snd_pcm_drain(pcm);
+}
+
 static int close_alsa(out123_handle *ao)
 {
 	snd_pcm_t *pcm=(snd_pcm_t*)ao->userptr;
 	debug1("close_alsa with %p", ao->userptr);
 	if(pcm != NULL) /* be really generous for being called without any device opening */
 	{
-		snd_pcm_drain(pcm); /* If there is something, let it drain, always. */
 		ao->userptr = NULL; /* Should alsa do this or the module wrapper? */
 		return snd_pcm_close(pcm);
 	}
 	else return 0;
 }
-
 
 static int init_alsa(out123_handle* ao)
 {
@@ -268,6 +273,7 @@ static int init_alsa(out123_handle* ao)
 	/* Set callbacks */
 	ao->open = open_alsa;
 	ao->flush = flush_alsa;
+	ao->drain = drain_alsa;
 	ao->write = write_alsa;
 	ao->get_formats = get_formats_alsa;
 	ao->close = close_alsa;
