@@ -10,6 +10,10 @@
   in the interaction with terminal control.
 -- Some tuning of several output drivers (modules) regarding flexible
    buffer size, client names, supported formats.
+-- Notably the JACK output got a major overhaul and now does not swallow
+   audio at the end anymore. Latency also reduced and tunable. Encoding
+   fixed to floating point, so that libmpg123 actually chooses what is
+   sensible.
 - Added mpg123 --no-infoframe.
 - Detect terminal on input side and enable control keys automatically.
   There is --no-control now to disable terminal control anyway.
