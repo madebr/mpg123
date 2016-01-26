@@ -226,27 +226,42 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 	}
 	else
 	{
-		char space[31];
+		/* We are trying to be smart here and conserve some vertical space.
+		   So we will skip tags not set, and try to show them in two parallel
+		   columns if they are short, which is by far the most common case. */
+		char space[2][31];
 		size_t i;
-		space[30] = 0;
-		for(i=0; i<30; ++i) space[i] = ' ';
+		int linelimit;
+		int climit[2];
+		const int overhead[2] = { 9, 10 }; /* "Title:   %s  Artist: %s" without the %s. */
+		char cfmt[24]; /* "%-9s%-XXXs  %-8s%-XXXs\n" */
 
-		/* We are trying to be smart here and conserve vertical space.
-		   So we will skip tags not set, and try to show them in two parallel columns if they are short, which is by far the	most common case. */
-		/* one _could_ circumvent the strlen calls... */
-		if(tag[TITLE].fill && tag[ARTIST].fill && len[TITLE] <= 30 && len[ARTIST] <= 30)
-		{
-			fprintf(out,"Title:   %s%s  Artist: %s\n",tag[TITLE].p, space+len[TITLE], tag[ARTIST].p);
-		}
+		/* Adapt formatting width to terminal if possible. */
+		linelimit = term_width(fileno(out));
+		if(linelimit < 0)
+			linelimit=overhead[0]+30+overhead[1]+30; /* the old style, based on ID3v1 */
+		if(linelimit > 200)
+			linelimit = 200; /* Not too wide. Also for format string safety. */
+		/* Divide the space between the two columns, not wasting any. */
+		climit[1] = linelimit/2-overhead[0];
+		climit[0] = linelimit-linelimit/2-overhead[1];
+		if(climit[0] > 0 && climit[1] > 0)
+			sprintf(cfmt, "%%-9s%%-%ds  %%-8s%%-%ds\n", climit[0], climit[1]);
+		else /* Format will not be used anyway, but play safe. */
+			cfmt[0] = 0;
+
+		fprintf(out,"\n"); /* Still use one separator line. Too ugly without. */
+		if(  tag[TITLE].fill && tag[ARTIST].fill
+		  && len[TITLE]  <= climit[0] && len[ARTIST] <= climit[1] )
+			fprintf(out, cfmt, "Title:", tag[TITLE].p, "Artist:", tag[ARTIST].p);
 		else
 		{
-			if(tag[TITLE].fill) fprintf(out,"Title:   %s\n", tag[TITLE].p);
+			if(tag[TITLE].fill)  fprintf(out,"Title:   %s\n", tag[TITLE].p);
 			if(tag[ARTIST].fill) fprintf(out,"Artist:  %s\n", tag[ARTIST].p);
 		}
-		if(tag[COMMENT].fill && tag[ALBUM].fill && len[COMMENT] <= 30 && len[ALBUM] <= 30)
-		{
-			fprintf(out,"Comment: %s%s  Album:  %s\n",tag[COMMENT].p, space+len[COMMENT], tag[ALBUM].p);
-		}
+		if(  tag[COMMENT].fill && tag[ALBUM].fill
+		  && len[COMMENT] <= climit[0] && len[ALBUM]   <= climit[1] )
+			fprintf(out, cfmt, "Comment:", tag[COMMENT].p, "Album:", tag[ALBUM].p);
 		else
 		{
 			if(tag[COMMENT].fill)
@@ -254,10 +269,9 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 			if(tag[ALBUM].fill)
 				fprintf(out,"Album:   %s\n", tag[ALBUM].p);
 		}
-		if(tag[YEAR].fill && tag[GENRE].fill && len[YEAR] <= 30 && len[GENRE] <= 30)
-		{
-			fprintf(out,"Year:    %s%s  Genre:  %s\n",tag[YEAR].p, space+len[YEAR], tag[GENRE].p);
-		}
+		if(  tag[YEAR].fill && tag[GENRE].fill
+		  && len[YEAR] <= climit[0] && len[GENRE] <= climit[1] )
+			fprintf(out, cfmt, "Year:", tag[YEAR].p, "Genre:", tag[GENRE].p);
 		else
 		{
 			if(tag[YEAR].fill)
