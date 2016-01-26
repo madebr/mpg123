@@ -1581,8 +1581,8 @@ static void long_usage(int err)
 	#endif
 	#ifndef GENERIC
 	fprintf(o,"        --title            set terminal title to filename\n");
-	fprintf(o,"        --name <n>         set instance name (used in various places)\n");
 	#endif
+	fprintf(o,"        --name <n>         set instance name (used in various places)\n");
 	fprintf(o,"        --long-tag         spacy id3 display with every item on a separate line\n");
 	fprintf(o,"        --lyrics           show lyrics (from ID3v2 USLT frame)\n");
 	fprintf(o,"        --utf8             Regardless of environment, print metadata in UTF-8.\n");

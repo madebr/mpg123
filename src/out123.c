@@ -706,6 +706,7 @@ static void long_usage(int err)
 	print_title(o);
 	fprintf(o,"\nusage: %s [option(s)] [file(s) | URL(s) | -]\n", cmd_name);
 
+	fprintf(o,"        --name <n>         set instance name (p.ex. JACK client)\n");
 	fprintf(o," -o <o> --output <o>       select audio output module\n");
 	fprintf(o,"        --list-modules     list the available modules\n");
 	fprintf(o," -a <d> --audiodevice <d>  select audio device (for files, empty or - is stdout)\n");
