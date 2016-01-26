@@ -9,17 +9,6 @@
 	by Thomas Orgis
 */
 
-/* API TODO:
-	- Consider zero-copy mode. Ideally, one asks the buffer process for
-	  a memory block to write to and avoids any copying.
-	  Only trouble is that a desired size might not fit in one piece into
-	  the ringbuffer.
-	  Same goes for audio driver backends, some might offer the buffers to
-	  the client. But this is post-release of the first incarnation:
-	  The library should exist and provide functionality first before
-	  spending time on irrelevant optimizations.
-*/
-
 #ifndef _OUT123_H_
 #define _OUT123_H_
 
