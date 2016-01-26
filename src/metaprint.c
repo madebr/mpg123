@@ -1,12 +1,13 @@
 /*
 	id3print: display routines for ID3 tags (including filtering of UTF8 to ASCII)
 
-	copyright 2006-2010 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2006-2016 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis
 */
 
 #include "mpg123app.h"
+#include "common.h"
 #include "genre.h"
 #include "debug.h"
 
@@ -96,7 +97,9 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 					strncpy(tag[GENRE].p,"Unknown",30);
 				}
 				tag[GENRE].p[30] = 0;
-				tag[GENRE].fill = strlen(tag[GENRE].p) + 1;
+				/* V1 was plain ASCII, so strlen is fine. */
+				len[GENRE] = strlen(tag[GENRE].p);
+				tag[GENRE].fill = len[GENRE] + 1;
 				genre_from_v1 = 1;
 			}
 		}
@@ -245,11 +248,16 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 		/* Divide the space between the two columns, not wasting any. */
 		climit[1] = linelimit/2-overhead[0];
 		climit[0] = linelimit-linelimit/2-overhead[1];
+		debug3("linelimits: %i  < %i | %i >", linelimit, climit[0], climit[1]);
+
 		if(climit[0] > 0 && climit[1] > 0)
 			sprintf(cfmt, "%%-9s%%-%ds  %%-8s%%-%ds\n", climit[0], climit[1]);
 		else /* Format will not be used anyway, but play safe. */
+		{
+			climit[0] = 0;
+			climit[1] = 0;
 			cfmt[0] = 0;
-
+		}
 		fprintf(out,"\n"); /* Still use one separator line. Too ugly without. */
 		if(  tag[TITLE].fill && tag[ARTIST].fill
 		  && len[TITLE]  <= climit[0] && len[ARTIST] <= climit[1] )

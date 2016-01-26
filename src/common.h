@@ -10,6 +10,7 @@
 #define _MPG123_COMMON_H_
 
 #include "mpg123app.h"
+#include "out123.h"
 
 extern int stopped;
 extern int paused;
