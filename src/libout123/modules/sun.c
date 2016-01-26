@@ -51,7 +51,8 @@ static void set_format_helper(out123_handle *ao, audio_info_t *ainfo)
 		break;
 #endif
 		case MPG123_ENC_SIGNED_8:
-			error("Linear signed 8 bit not supported!");
+			if(!AOQUIET)
+				error("Linear signed 8 bit not supported!");
 		return;
 		case MPG123_ENC_ULAW_8:
 			ainfo->play.encoding = AUDIO_ENCODING_ULAW;

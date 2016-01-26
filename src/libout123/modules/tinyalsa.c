@@ -44,7 +44,9 @@ static int initialize_device(out123_handle *ao)
 	ta->pcm = pcm_open(ta->card, ta->device, PCM_OUT, &ta->config);
 	if (!ta->pcm || !pcm_is_ready(ta->pcm))
 	{
-		error3("(open) Unable to open card %u PCM device %u (%s)\n", ta->card, ta->device, pcm_get_error(ta->pcm));
+		if(!AOQUIET)
+			error3( "(open) Unable to open card %u PCM device %u (%s)\n"
+			,	ta->card, ta->device, pcm_get_error(ta->pcm) );
 		return -1;
 	}
 
@@ -94,14 +96,14 @@ static int write_tinyalsa(out123_handle *ao, unsigned char *buf, int bytes)
 
 	if (ta->pcm)
 	{
-        	if (pcm_write(ta->pcm, buf, bytes))
+		if(pcm_write(ta->pcm, buf, bytes))
 		{
-          		error("Error playing sample\n");
-          		return -1;
-          	}
+			if(!AOQUIET)
+				error("Error playing sample\n");
+			return -1;
+		}
 	}
-
-        return bytes;
+	return bytes;
 }
 
 
@@ -157,14 +159,15 @@ static int init_tinyalsa(out123_handle* ao)
 	ao->close = close_tinyalsa;
 	ao->deinit = deinit_tinyalsa;
 
-        /* Allocate memory for data structure */
-        ao->userptr = malloc( sizeof( mpg123_tinyalsa_t ) );
-        if(ao->userptr==NULL)
-        {
-                error("failed to malloc memory for 'mpg123_tinyalsa_t'");
-                return -1;
-        }
-        memset( ao->userptr, 0, sizeof(mpg123_tinyalsa_t) );
+	/* Allocate memory for data structure */
+	ao->userptr = malloc( sizeof( mpg123_tinyalsa_t ) );
+	if(ao->userptr==NULL)
+	{
+		if(!AOQUIET)
+			error("failed to malloc memory for 'mpg123_tinyalsa_t'");
+		return -1;
+	}
+	memset( ao->userptr, 0, sizeof(mpg123_tinyalsa_t) );
 
 	/* Set card and device */
 	mpg123_tinyalsa_t* ta = (mpg123_tinyalsa_t*)ao->userptr;
@@ -183,12 +186,14 @@ static int init_tinyalsa(out123_handle* ao)
 	}
 
 	/* Get card/device parameters */
-    	ta->params = pcm_params_get(ta->card, ta->device, PCM_OUT);
-    	if (ta->params == NULL)
+	ta->params = pcm_params_get(ta->card, ta->device, PCM_OUT);
+	if (ta->params == NULL)
 	{
-        	error2("(params) Unable to open card %u PCM device %u.\n", ta->card, ta->device);
-        	return -1;
-    	}
+		if(!AOQUIET)
+			error2( "(params) Unable to open card %u PCM device %u.\n"
+			,	ta->card, ta->device );
+		return -1;
+	}
 
 	/* Success */
 	return 0;

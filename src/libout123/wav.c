@@ -156,7 +156,6 @@ static int testEndian(void)
   if(a == b)
       ret = 1;
   else if(a != c) {
-      error3("Strange endianness?? %08lx %08lx %08lx\n",a,b,c);
       ret = -1;
   }
   return ret;
@@ -295,7 +294,8 @@ int au_open(out123_handle *ao)
 			long2bigendian(1,auhead->encoding,sizeof(auhead->encoding));
 		break;
 		default:
-			error("AU output is only a hack. This audio mode isn't supported yet.");
+			if(!AOQUIET)
+				error("AU output is only a hack. This audio mode isn't supported yet.");
 			goto au_open_bad;
 	}
 

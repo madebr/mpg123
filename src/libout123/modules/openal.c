@@ -1,7 +1,7 @@
 /*
 	openal.c: audio output on OpenAL
 
-	copyright 1995-2009 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1995-2016 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Taihei Monma
 */
@@ -171,7 +171,8 @@ static int init_openal(out123_handle* ao)
 	ao->userptr = malloc( sizeof( mpg123_openal_t ) );
 	if(ao->userptr==NULL)
 	{
-		error("failed to malloc memory for 'mpg123_openal_t'");
+		if(!AOQUIET)
+			error("failed to malloc memory for 'mpg123_openal_t'");
 		return -1;
 	}
 	memset( ao->userptr, 0, sizeof(mpg123_openal_t) );

@@ -72,15 +72,18 @@ static int open_sdl(out123_handle *ao)
 		   happily play 22 kHz files with 44 kHz hardware rate!
 		   Same with channel count. No conversion. The manual is a bit
 		   misleading on that (only talking about sample format, I guess). */
-		if ( SDL_OpenAudio(&wanted, NULL) ) {
-			error1("Couldn't open SDL audio: %s\n", SDL_GetError());
+		if ( SDL_OpenAudio(&wanted, NULL) )
+		{
+			if(!AOQUIET)
+				error1("Couldn't open SDL audio: %s\n", SDL_GetError());
 			return -1;
 		}
 		
 		/* Initialise FIFO */
 		ringbuffer_len = ao->rate * FIFO_DURATION * SAMPLE_SIZE *ao->channels;
 		debug2( "Allocating %d byte ring-buffer (%f seconds)", (int)ringbuffer_len, (float)FIFO_DURATION);
-		if (sfifo_init( fifo, ringbuffer_len )) error1( "Failed to initialise FIFO of size %d bytes", (int)ringbuffer_len );
+		if (sfifo_init( fifo, ringbuffer_len ) && !AOQUIET)
+			error1( "Failed to initialise FIFO of size %d bytes", (int)ringbuffer_len );
 	}
 	
 	return(0);
@@ -216,15 +219,19 @@ static int init_sdl(out123_handle* ao)
 	
 	/* Allocate memory */
 	ao->userptr = malloc( sizeof(sfifo_t) );
-	if (ao->userptr==NULL) {
-		error( "Failed to allocated memory for FIFO structure" );
+	if (ao->userptr==NULL)
+	{
+		if(!AOQUIET)
+			error( "Failed to allocated memory for FIFO structure" );
 		return -1;
 	}
 	memset( ao->userptr, 0, sizeof(sfifo_t) );
 
 	/* Initialise SDL */
-	if (SDL_Init( SDL_INIT_AUDIO ) ) {
-		error1("Failed to initialise SDL: %s\n", SDL_GetError());
+	if (SDL_Init( SDL_INIT_AUDIO ) )
+	{
+		if(!AOQUIET)
+			error1("Failed to initialise SDL: %s\n", SDL_GetError());
 		return -1;
 	}
 

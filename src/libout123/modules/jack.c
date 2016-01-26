@@ -334,8 +334,9 @@ static void drain_jack(out123_handle *ao)
 	while(  handle && handle->alive && handle->rb
 	     && jack_ringbuffer_write_space(handle->rb)+1 < handle->rb_size )
 	{
-fprintf(stderr, "JACK close wait %"SIZE_P" < %"SIZE_P"\n"
-,	(size_p)jack_ringbuffer_write_space(handle->rb), (size_p)handle->rb_size);
+		debug2( "JACK close wait %"SIZE_P" < %"SIZE_P"\n"
+		,	(size_p)jack_ringbuffer_write_space(handle->rb)
+		,	(size_p)handle->rb_size );
 		sem_wait(&handle->sem);
 	}
 }
@@ -343,16 +344,14 @@ fprintf(stderr, "JACK close wait %"SIZE_P" < %"SIZE_P"\n"
 static int close_jack(out123_handle *ao)
 {
 	jack_handle_t *handle = (jack_handle_t*)ao->userptr;
-	
-	debug("close_jack().");
 
+	debug("close_jack().");
 	/* Close and shutdown*/
 	if(handle)
 	{
 		free_jack_handle(handle);
 		ao->userptr = NULL;
 	}
-
 	return 0;
 }
 
@@ -366,7 +365,8 @@ static int open_jack(out123_handle *ao)
 	char *realname;
 
 	debug("jack open");
-	if(!ao) return -1;
+	if(!ao)
+		return -1;
 
 	/* Return if already open*/
 	if(ao->userptr)

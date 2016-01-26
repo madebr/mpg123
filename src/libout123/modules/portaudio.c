@@ -57,7 +57,8 @@ static int paCallback(
 	unsigned long bytes = framesPerBuffer * SAMPLE_SIZE * ao->channels;
 	
 	if (sfifo_used(&pa->fifo)<bytes) {
-		error("ringbuffer for PortAudio is empty");
+		if(!AOQUIET)
+			error("ringbuffer for PortAudio is empty");
 		return 1;
 	} else {
 		sfifo_read( &pa->fifo, outputBuffer, bytes );
@@ -88,7 +89,9 @@ static int open_portaudio(out123_handle *ao)
 					ao );
 			
 		if( err != paNoError ) {
-			error1("Failed to open PortAudio default stream: %s", Pa_GetErrorText( err ));
+			if(!AOQUIET)
+				error1( "Failed to open PortAudio default stream: %s"
+				,	Pa_GetErrorText(err) );
 			return -1;
 		}
 		
@@ -131,11 +134,16 @@ static int write_portaudio(out123_handle *ao, unsigned char *buf, int len)
 	if (err == 0) {
 		err = Pa_StartStream( pa->stream );
 		if( err != paNoError ) {
-			error1("Failed to start PortAudio stream: %s", Pa_GetErrorText( err ));
+			if(!AOQUIET)
+				error1( "Failed to start PortAudio stream: %s"
+				,	Pa_GetErrorText(err) );
 			return -1; /* triggering exit here is not good, better handle that somehow... */
 		}
-	} else if (err < 0) {
-		error1("Failed to check state of PortAudio stream: %s", Pa_GetErrorText( err ));
+	} else if (err < 0)
+	{
+		if(!AOQUIET)
+			error1( "Failed to check state of PortAudio stream: %s"
+			,	Pa_GetErrorText(err) );
 		return -1;
 	}
 	
@@ -152,16 +160,22 @@ static int close_portaudio(out123_handle *ao)
 		/* stop the stream if it is active */
 		if (Pa_IsStreamActive( pa->stream ) == 1) {
 			err = Pa_StopStream( pa->stream );
-			if( err != paNoError ) {
-				error1("Failed to stop PortAudio stream: %s", Pa_GetErrorText( err ));
+			if( err != paNoError )
+			{
+				if(!AOQUIET)
+					error1( "Failed to stop PortAudio stream: %s"
+					,	Pa_GetErrorText(err) );
 				return -1;
 			}
 		}
 	
 		/* and then close the stream */
 		err = Pa_CloseStream( pa->stream );
-		if( err != paNoError ) {
-			error1("Failed to close PortAudio stream: %s", Pa_GetErrorText( err ));
+		if( err != paNoError )
+		{
+			if(!AOQUIET)
+				error1( "Failed to close PortAudio stream: %s"
+				,	Pa_GetErrorText(err) );
 			return -1;
 		}
 		
@@ -221,16 +235,21 @@ static int init_portaudio(out123_handle* ao)
 
 	/* Allocate memory for handle */
 	ao->userptr = malloc( sizeof(mpg123_portaudio_t) );
-	if (ao->userptr==NULL) {
-		error( "Failed to allocated memory for driver structure" );
+	if (ao->userptr==NULL)
+	{
+		if(!AOQUIET)
+			error( "Failed to allocated memory for driver structure" );
 		return -1;
 	}
 	memset( ao->userptr, 0, sizeof(mpg123_portaudio_t) );
 
 	/* Initialise PortAudio */
 	err = Pa_Initialize();
-	if( err != paNoError ) {
-		error1("Failed to initialise PortAudio: %s", Pa_GetErrorText( err ));
+	if( err != paNoError )
+	{
+		if(!AOQUIET)
+			error1( "Failed to initialise PortAudio: %s"
+			,	Pa_GetErrorText(err) );
 		return -1;
 	}
 

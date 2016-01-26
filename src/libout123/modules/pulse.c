@@ -26,7 +26,8 @@ static int open_pulse(out123_handle *ao)
 	pa_sample_spec ss;
 	/* Check if already open ? */
 	if (ao->userptr) {
-		error("Pulse audio output is already open.");
+		if(!AOQUIET)
+			error("Pulse audio output is already open.");
 		return -1;
 	}
 
@@ -82,7 +83,8 @@ static int open_pulse(out123_handle *ao)
 			ss.format=PA_SAMPLE_U8;
 		break;
 		default:
-			error1("Unsupported audio format: 0x%x", ao->format);
+			if(!AOQUIET)
+				error1("Unsupported audio format: 0x%x", ao->format);
 			return -1;
 		break;
 	}
@@ -101,8 +103,10 @@ static int open_pulse(out123_handle *ao)
 			&err				/* Error result code */
 	);
 
-	if( pas == NULL ) {
-		error1("Failed to open pulse audio output: %s", pa_strerror(err));
+	if(pas == NULL)
+	{
+		if(!AOQUIET)
+			error1("Failed to open pulse audio output: %s", pa_strerror(err));
 		return -1;
 	}
 
@@ -125,8 +129,12 @@ static int write_pulse(out123_handle *ao, unsigned char *buf, int len)
 	int ret, err;
 	/* Doesn't return number of bytes but just success or not. */
 	ret = pa_simple_write( pas, buf, len, &err );
-	if(ret<0){ error1("Failed to write audio: %s", pa_strerror(err)); return -1; }
-
+	if(ret<0)
+	{
+		if(!AOQUIET)
+			error1("Failed to write audio: %s", pa_strerror(err));
+		return -1;
+	}
 	return len; /* If successful, everything has been written. */
 }
 
@@ -151,7 +159,8 @@ static void flush_pulse(out123_handle *ao)
 	if (pas) {
 		int err;
 		pa_simple_flush( pas, &err );	
-		if (err) error1("Failed to flush audio: %s", pa_strerror(err));
+		if(err && !AOQUIET)
+			error1("Failed to flush audio: %s", pa_strerror(err));
 	}
 }
 

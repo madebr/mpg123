@@ -61,7 +61,8 @@ static int open_esound(out123_handle *ao)
 		ao->format = esd_format;
 	else if (!(ao->format & esd_format))
 	{
-		error1("Unsupported audio format: %d\n", ao->format);
+		if(!AOQUIET)
+			error1("Unsupported audio format: %d\n", ao->format);
 		errno = EINVAL;
 		return -1;
 	}
@@ -76,7 +77,8 @@ static int open_esound(out123_handle *ao)
 	if (ao->channels == -1) ao->channels = 2;
 	else if (ao->channels <= 0 || ao->channels > esd_channels)
 	{
-		error1("Unsupported no of channels: %d\n", ao->channels);
+		if(!AOQUIET)
+			error1("Unsupported no of channels: %d\n", ao->channels);
 		errno = EINVAL;
 		return -1;
 	}

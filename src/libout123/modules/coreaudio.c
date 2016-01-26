@@ -140,30 +140,40 @@ static int open_coreaudio(out123_handle *ao)
 	desc.componentFlags = 0;
 	desc.componentFlagsMask = 0;
 	comp = FindNextComponent(NULL, &desc);
-	if(comp == NULL) {
-		error("FindNextComponent failed");
+	if(comp == NULL)
+	{
+		if(!AOQUIET)
+			error("FindNextComponent failed");
 		return(-1);
 	}
 	
-	if(OpenAComponent(comp, &(ca->outputUnit)))  {
-		error("OpenAComponent failed");
+	if(OpenAComponent(comp, &(ca->outputUnit)))
+	{
+		if(!AOQUIET)
+			error("OpenAComponent failed");
 		return (-1);
 	}
 	
-	if(AudioUnitInitialize(ca->outputUnit)) {
-		error("AudioUnitInitialize failed");
+	if(AudioUnitInitialize(ca->outputUnit))
+	{
+		if(!AOQUIET)
+			error("AudioUnitInitialize failed");
 		return (-1);
 	}
 	
 	/* Specify the output PCM format */
 	AudioUnitGetPropertyInfo(ca->outputUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &size, &outWritable);
-	if(AudioUnitGetProperty(ca->outputUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &outFormat, &size)) {
-		error("AudioUnitGetProperty(kAudioUnitProperty_StreamFormat) failed");
+	if(AudioUnitGetProperty(ca->outputUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &outFormat, &size))
+	{
+		if(!AOQUIET)
+			error("AudioUnitGetProperty(kAudioUnitProperty_StreamFormat) failed");
 		return (-1);
 	}
 	
-	if(AudioUnitSetProperty(ca->outputUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &outFormat, size)) {
-		error("AudioUnitSetProperty(kAudioUnitProperty_StreamFormat) failed");
+	if(AudioUnitSetProperty(ca->outputUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &outFormat, size))
+	{
+		if(!AOQUIET)
+			error("AudioUnitSetProperty(kAudioUnitProperty_StreamFormat) failed");
 		return (-1);
 	}
 	
@@ -210,8 +220,10 @@ static int open_coreaudio(out123_handle *ao)
 	memset(&renderCallback, 0, sizeof(AURenderCallbackStruct));
 	renderCallback.inputProc = convertProc;
 	renderCallback.inputProcRefCon = ao->userptr;
-	if(AudioUnitSetProperty(ca->outputUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &renderCallback, sizeof(AURenderCallbackStruct))) {
-		error("AudioUnitSetProperty(kAudioUnitProperty_SetRenderCallback) failed");
+	if(AudioUnitSetProperty(ca->outputUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &renderCallback, sizeof(AURenderCallbackStruct)))
+	{
+		if(!AOQUIET)
+			error("AudioUnitSetProperty(kAudioUnitProperty_SetRenderCallback) failed");
 		return(-1);
 	}
 	
@@ -220,14 +232,18 @@ static int open_coreaudio(out123_handle *ao)
 	if (ao->rate > 0 && ao->channels >0 ) {
 		int ringbuffer_len;
 
-		if(AudioConverterNew(&inFormat, &outFormat, &(ca->converter))) {
-			error("AudioConverterNew failed");
+		if(AudioConverterNew(&inFormat, &outFormat, &(ca->converter)))
+		{
+			if(!AOQUIET)
+				error("AudioConverterNew failed");
 			return(-1);
 		}
 		if(ao->channels == 1) {
 			SInt32 channelMap[2] = { 0, 0 };
-			if(AudioConverterSetProperty(ca->converter, kAudioConverterChannelMap, sizeof(channelMap), channelMap)) {
-				error("AudioConverterSetProperty(kAudioConverterChannelMap) failed");
+			if(AudioConverterSetProperty(ca->converter, kAudioConverterChannelMap, sizeof(channelMap), channelMap))
+			{
+				if(!AOQUIET)
+					error("AudioConverterSetProperty(kAudioConverterChannelMap) failed");
 				return(-1);
 			}
 		}
@@ -266,8 +282,10 @@ static int write_coreaudio(out123_handle *ao, unsigned char *buf, int len)
 	/* Start playback now that we have something to play */
 	if(!ca->play)
 	{
-		if(AudioOutputUnitStart(ca->outputUnit)) {
-			error("AudioOutputUnitStart failed");
+		if(AudioOutputUnitStart(ca->outputUnit))
+		{
+			if(!AOQUIET)
+				error("AudioOutputUnitStart failed");
 			return(-1);
 		}
 		ca->play = 1;
@@ -309,8 +327,10 @@ static void flush_coreaudio(out123_handle *ao)
 	mpg123_coreaudio_t* ca = (mpg123_coreaudio_t*)ao->userptr;
 
 	/* Stop playback */
-	if(AudioOutputUnitStop(ca->outputUnit)) {
-		error("AudioOutputUnitStop failed");
+	if(AudioOutputUnitStop(ca->outputUnit))
+	{
+		if(!AOQUIET)
+			error("AudioOutputUnitStop failed");
 	}
 	ca->play=0;
 	
@@ -344,8 +364,10 @@ static int init_coreaudio(out123_handle* ao)
 
 	/* Allocate memory for data structure */
 	ao->userptr = malloc( sizeof( mpg123_coreaudio_t ) );
-	if (ao->userptr==NULL) {
-		error("failed to malloc memory for 'mpg123_coreaudio_t'");
+	if (ao->userptr==NULL)
+	{
+		if(!AOQUIET)
+			error("failed to malloc memory for 'mpg123_coreaudio_t'");
 		return -1;
 	}
 	memset( ao->userptr, 0, sizeof(mpg123_coreaudio_t) );

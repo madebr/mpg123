@@ -124,7 +124,9 @@ static int nas_createFlow(out123_handle *ao)
             break;
        }
     if (device == AuNone) {
-       error1("Couldn't find an output device providing %d channels.", ao->channels);
+       if(!AOQUIET)
+         error1( "Couldn't find an output device providing %d channels."
+               , ao->channels );
        return 0;
     }
 
@@ -136,12 +138,13 @@ static int nas_createFlow(out123_handle *ao)
             AuSetDeviceAttributes(info.aud, AuDeviceIdentifier(info.da),
                                   AuCompDeviceGainMask, info.da, NULL);
         }
-        else
+        else if(!AOQUIET)
             error("audio/gain: setable Volume/PCM-Level not supported");
     }
     
     if (!(info.flow = AuCreateFlow(info.aud, NULL))) {
-        error("Couldn't create flow");
+        if(!AOQUIET)
+          error("Couldn't create flow");
         return 0;
     }
 
@@ -184,8 +187,9 @@ static int nas_createFlow(out123_handle *ao)
     info.buf_size = buf_samples * ao->channels * AuSizeofFormat(format);
     info.buf = (char *) malloc(info.buf_size);
     if (info.buf == NULL) {
-        error1("Unable to allocate input/output buffer of size %ld",
-             (long)info.buf_size);
+        if(!AOQUIET)
+          error1("Unable to allocate input/output buffer of size %ld",
+            (long)info.buf_size);
         return 0;
     }
     info.buf_cnt = 0;
@@ -216,17 +220,22 @@ static int open_nas(out123_handle *ao)
 {
 	if(!ao) return -1;
 
-    if (!(info.aud = AuOpenServer(ao->device, 0, NULL, 0, NULL, NULL))) {
-		if (ao->device==NULL) {
-            error("could not open default NAS server");
-		} else {
-			error1("could not open NAS server %s\n", ao->device);
+	if (!(info.aud = AuOpenServer(ao->device, 0, NULL, 0, NULL, NULL)))
+	{
+		if (ao->device==NULL)
+		{
+			if(!AOQUIET)
+				error("could not open default NAS server");
+		} else
+		{
+			if(!AOQUIET)
+				error1("could not open NAS server %s\n", ao->device);
 		}
-        return -1;
-    }
-    info.buf_size = 0;
-        
-    return 0;
+		return -1;
+	}
+	info.buf_size = 0;
+
+	return 0;
 }
 
 

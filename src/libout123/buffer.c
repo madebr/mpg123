@@ -89,7 +89,8 @@ int buffer_init(out123_handle *ao, size_t bytes)
 	switch((ao->buffer_pid = fork()))
 	{
 		case -1: /* error */
-			error("cannot fork!");
+			if(!AOQUIET)
+				error("cannot fork!");
 			goto buffer_init_bad;
 		case 0: /* child */
 		{
@@ -649,7 +650,8 @@ int buffer_loop(out123_handle *ao)
 			,	sizeof(cmd) );
 			if(cmdcount < 0)
 			{
-				error1("Reading a command set returned %i, my link is broken.", cmdcount);
+				if(!AOQUIET)
+					error1("Reading a command set returned %i, my link is broken.", cmdcount);
 				return 1;
 			}
 #ifdef DEBUG
