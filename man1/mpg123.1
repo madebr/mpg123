@@ -1,4 +1,4 @@
-.TH mpg123 1 "10 May 2014"
+.TH mpg123 1 "26 Jan 2016"
 .SH NAME
 mpg123 \- play audio MPEG 1.0/2.0/2.5 stream (layers 1, 2 and 3)
 .SH SYNOPSIS
@@ -339,6 +339,10 @@ Wait for the buffer to be filled to
 before starting playback (fraction between 0 and 1). You can tune this prebuffering to either get faster sound to your ears or safer uninterrupted web radio.
 Default is 0.2 (wait for 20 % of buffer to be full, changed from 1 in version 1.23).
 .TP
+\fB\-\^\-devbuffer \fIseconds
+Set device buffer in seconds; <= 0 means default value. This is the small buffer between the
+application and the audio backend, possibly directly related to hardware buffers.
+.TP
 \fB\-\^\-smooth
 Keep buffer over track boundaries -- meaning, do not empty the buffer between tracks for possibly some added smoothness.
 
@@ -371,6 +375,9 @@ Disable terminal control even if terminal is detected.
 \fB\-\^\-title
 In an xterm, rxvt, screen, iris-ansi (compatible, TERM environment variable is examined), change the window's title to the name of song currently
 playing.
+.TP
+\fB\-\^\-name \fIname
+Set the name of this instance, possibly used in various places. This sets the client name for JACK output.
 .TP
 \fB\-\^\-long\-tag
 Display ID3 tag info always in long format with one line per item (artist, title, ...)

@@ -1,4 +1,4 @@
-.TH out123 1 "10 May 2014"
+.TH out123 1 "26 May 2016"
 .SH NAME
 out123 \- play raw PCM audio to an output device
 .SH SYNOPSIS
@@ -17,6 +17,9 @@ or the GNU style long options.  POSIX style options start with a
 single ``\-'', while GNU long options start with ``\-\^\-''.
 Option arguments (if needed) follow separated by whitespace (not ``='').
 Note that some options can be absent from your installation when disabled in the build process.
+.TP
+\fB\-\^\-name \fIname
+Set the name of this instance, possibly used in various places. This sets the client name for JACK output.
 .TP
 \fB\-o \fImodule\fR, \-\^\-output \fImodule\fR
 Select audio output module. You can provide a comma-separated list to use the first one that works.
@@ -127,6 +130,10 @@ Wait for the buffer to be filled to
 .I fraction
 before starting playback (fraction between 0 and 1). You can tune this prebuffering to either get sound faster to your ears or safer uninterrupted web radio.
 Default is 0.2 (changed from 1 since version 1.23).
+.TP
+\fB\-\^\-devbuffer \fIseconds
+Set device buffer in seconds; <= 0 means default value. This is the small buffer between the
+application and the audio backend, possibly directly related to hardware buffers.
 .TP
 .BR \-t ", " \-\^\-test
 Test mode.  The audio stream is read, but no output occurs.

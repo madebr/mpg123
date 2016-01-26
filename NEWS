@@ -2,35 +2,39 @@
 -------
 - libmpg123 version 42
 -- This adds mpg123_framelength() and makes mpg123_position() truly obsolete.
--- Equalizer optional now (--disable-equalizer) to save precious memory
-- First incarnation of libout123, a basic library to get audio data written
-  to audio devices (or files). This collects the output modules of mpg123
-  and makes them available to the wider masses. Also, the buffer logic
-  (contained in libout123) got a lot of reworking which might be noticable
-  in the interaction with terminal control.
+-- Equalizer optional now (./configure --disable-equalizer) to save precious
+   memory
+-- Clip decode tables for large amplification with fixed-point decoders.
+   Without that, high-pitched distortion enters really quickly when
+   trying to increase volume even if output samples would not be clipped,
+   weren't it for fixed-point math.
+- libout123 version 1: First incarnation of libout123, a basic library to
+  get audio data written to audio devices (or files) in simple blocking
+  manner as opposed to callback APIs (which it wraps over). This collects
+  the output modules of mpg123 and makes them available to the wider
+  masses. Also, the separate shared memory buffer process (contained
+  in libout123) got a lot of reworking which should be noticable in the
+  interaction with terminal control.
 -- Some tuning of several output drivers (modules) regarding flexible
    buffer size, client names, supported formats.
 -- Notably the JACK output got a major overhaul and now does not swallow
-   audio at the end anymore. Latency also reduced and tunable. Encoding
+   audio at the end anymore. Huge latency also reduced and tunable. Encoding
    fixed to floating point, so that libmpg123 actually chooses what is
    sensible.
 - Added mpg123 --no-infoframe.
 - Detect terminal on input side and enable control keys automatically.
   There is --no-control now to disable terminal control anyway.
-- Avoid spillover of status line that caused unwanted terminal scrolling.
-  If the terminal width is smaller than the full status string, a cut is
-  made to make it fit.
-- Draw a progress bar on the terminal by inversing colors behind status
-  line.
-- Rework the format of the status line to be more compact and consistent.
-- Rework smart tag printout for adapting to terminal width.
-- Clip decode tables for large amplification with fixed-point decoders.
-  Without that, high-pitched distortion enters really quickly when
-  trying to increase volume even if output samples would not be clipped,
-  weren't it for fixed-point math.
-- Warning messages also start with a line break now to better fit in with
-  verbose playback.
-- Reporting of clipped samples also includes a line break now.
+- Display stuff:
+-- Avoid spillover of status line that caused unwanted terminal scrolling.
+   If the terminal width is smaller than the full status string, a cut is
+   made to make it fit.
+-- Draw a progress bar on the terminal by inversing colors behind status
+   line.
+-- Rework the format of the status line to be more compact and consistent.
+-- Rework smart tag printout for adapting to terminal width.
+-- Warning messages also start with a line break now to better fit in with
+   verbose playback.
+-- Reporting of clipped samples also includes a line break now.
 - Default for --preload now is 0.2 instead of 1 (fill whole buffer before
   playback). The maximum is 0.5 . This is mandated by corrected buffer
   interaction in libout123.
@@ -55,7 +59,6 @@
 - Accept application/pls+xml for PLS playlists. It happens. Don't ask
   mpg123 to actually parse any XML!
 - Ignore whitespace after HTTP MIME types (esp. before a ";").
-- Some testing on AIX 7.1 . Generic decoder works, audio output builds.
 - Added --name to mpg123 and out123 for providing client name p.ex. for JACK.
   There is no default of appending the PID to "mpg123" as client name anymore,
   just plain "mpg123" or "out123".
