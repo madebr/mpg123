@@ -65,7 +65,7 @@ static int open_openal(out123_handle *ao)
 
 static int get_formats_openal(out123_handle *ao)
 {
-	return MPG123_ENC_SIGNED_16|MPG123_ENC_UNSIGNED_8|((alIsExtensionPresent((ALchar*)"AL_EXT_float32") == AL_TRUE) ? MPG123_ENC_FLOAT_32 : 0);
+	return MPG123_ENC_SIGNED_16|MPG123_ENC_UNSIGNED_8|((alIsExtensionPresent((ALubyte*)"AL_EXT_float32") == AL_TRUE) ? MPG123_ENC_FLOAT_32 : 0);
 }
 
 static int write_openal(out123_handle *ao, unsigned char *buf, int len)
