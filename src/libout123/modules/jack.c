@@ -182,9 +182,6 @@ static int process_callback( jack_nframes_t nframes, void *arg )
 		}
 		/* Give the writer a hint about the time passed. */
 		sem_post(&handle->sem);
-		/* As I am not sure about the semantics of the JACK ringbuffer, I'll
-		   be generous with another one. It doesn't hurt. */
-		sem_post(&handle->sem);
 		to_read -= piece;
 	}
 	/* Success*/
@@ -279,7 +276,7 @@ static int connect_jack_ports(out123_handle *ao
 		int c;
 		size_t len = strlen(ao->device);
 		wishlist = malloc(sizeof(char*)*handle->channels+1);
-		devcopy = malloc(len+1);
+		devcopy = strdup(ao->device);;
 		if(devcopy == NULL || wishlist == NULL)
 		{
 			if(devcopy)
@@ -294,18 +291,18 @@ static int connect_jack_ports(out123_handle *ao
 		/* We just look out for a set of ports, comma separated. */
 		for(c=0;c<=handle->channels;++c)
 			wishlist[c] = NULL;
-		memcpy(devcopy, ao->device, len+1);
 		if(len && strcmp(devcopy, "none"))
 		{
 			size_t i=0;
 			wishlist[0] = devcopy;
-			for(c=1;c<handle->channels;++c)
+			for(c=0;c<handle->channels;++c)
 			{
 				while(devcopy[i] != 0 && devcopy[i] != ',') ++i;
 				if(devcopy[i] == ',')
 				{
 					devcopy[i] = 0;
-					wishlist[c] = devcopy+i+1;
+					if(c+1 < handle->channels)
+						wishlist[c+1] = devcopy+i+1;
 				}
 				else
 					break;
@@ -520,26 +517,19 @@ static int write_jack(out123_handle *ao, unsigned char *buf, int len)
 	bytes_left = len;
 	while(bytes_left && handle->alive)
 	{
-		size_t piece1;
-		size_t piece2;
+		size_t piece;
 
 		debug("writing to ringbuffer");
-		piece1 = jack_ringbuffer_write_space(handle->rb);
-		if( (piece2=jack_ringbuffer_write(handle->rb, (char*)buf
-		,	bytes_left)) < piece1 )
+		/* No help: piece1 = jack_ringbuffer_write_space(handle->rb); */
+		piece = jack_ringbuffer_write(handle->rb, (char*)buf, bytes_left);
+		debug1("wrote %"SIZE_P" B", (size_p)piece);
+		buf += piece;
+		bytes_left -= piece;
+		/* Allow nothing being written some times, but not too often. 
+		   Don't know how often in a row that would be supposed to happen. */
+		if(!piece)
 		{
-			if(!AOQUIET)
-				error("Available space was not available.");
-			return len-bytes_left+piece2;
-		}
-		debug2("wrote %"SIZE_P" B (%"SIZE_P")", (size_p)piece2, (size_p)piece1);
-debug1("JACK cpu: %g", jack_cpu_load(handle->client));
-		buf += piece2;
-		bytes_left -= piece2;
-		/* Allow nothing being written some times, but not too often. */
-		if(!piece2)
-		{
-			if(++strike > 3)
+			if(++strike > 100)
 			{
 				if(!AOQUIET)
 					error("Cannot write to ringbuffer.");
