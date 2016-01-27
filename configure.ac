@@ -494,6 +494,16 @@ AC_ARG_WITH([cpu], [
   --with-cpu=aarch64      Pack neon64 and generic[[_dither]] decoders, for 64bit ARM processors
 ])
 
+use_yasm=auto
+AC_ARG_ENABLE(yasm,
+              [  --enable-yasm=[no/yes] enforce yasm instad of default assembler for some optimizations (AVX, currently) ],
+              [
+                if test "x$enableval" = xyes; then
+                  use_yasm="enabled"
+                else
+                  use_yasm="disabled"
+                fi
+              ], [])
 
 # opt-in for IEEE754 floating point action
 # We want to make sure not to apply hacks relying on IEEE754 storage format on platforms where we did not make sure that this actually is valid.
@@ -963,7 +973,15 @@ if test x"$avx_support" = xunknown; then
 	rm -f conftest.o conftest.s
 fi
 
-if test x"$avx_support" = xno; then
+check_yasm=no
+if test x"$avx_support" = xno || test x"$use_yasm" = xenabled; then
+  check_yasm=yes
+fi
+if test x"$use_yasm" = xdisabled; then
+  check_yasm=no
+fi
+
+if test x"$check_yasm" = xyes; then
 	AC_CHECK_PROGS(YASM,[yasm],no)
 	if test x"$YASM" != xno; then
 		AC_MSG_CHECKING([if $YASM supports GAS syntax and AVX instructions])
@@ -977,6 +995,10 @@ if test x"$avx_support" = xno; then
 			AC_MSG_RESULT([no])
 		fi
 		rm -f conftest.o conftest.s
+	else
+		if test x"$use_yasm" = xenabled; then
+			AC_MSG_ERROR([Yasm enforced but not found!])
+		fi
 	fi
 else
 	YASM="no"
@@ -2358,6 +2380,11 @@ else
 fi
 echo "  LFS alias symbols ....... $lfs_alias ($LFS_ALIAS_BITS)"
 echo "  LFS alias type .......... $lfs_alias_type"
+if test x"$use_yasm_for_avx" = xyes; then
+  echo "  Use yasm (for AVX only) . enabled"
+else
+  echo "  Use yasm (for AVX only) . disabled"
+fi
 
 echo "
   Core libmpg123 features:
