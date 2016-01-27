@@ -201,7 +201,7 @@ AC_ARG_ENABLE(debug,
 )
 
 AC_ARG_ENABLE(nagging,
-              [  --enable-nagging=[no/yes] turn on GCC's pedantic nagging with error on warnings, also enables debugging ],
+              [  --enable-nagging=[no/yes] turn on GCC's pedantic nagging with error on warnings, does not include --enable-debug anymore ],
               [
                 if test "x$enableval" = xyes
                 then
