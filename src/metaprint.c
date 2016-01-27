@@ -232,8 +232,6 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 		/* We are trying to be smart here and conserve some vertical space.
 		   So we will skip tags not set, and try to show them in two parallel
 		   columns if they are short, which is by far the most common case. */
-		char space[2][31];
-		size_t i;
 		int linelimit;
 		int climit[2];
 		const int overhead[2] = { 9, 10 }; /* "Title:   %s  Artist: %s" without the %s. */
