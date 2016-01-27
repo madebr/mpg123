@@ -220,14 +220,17 @@ static void seekmode(mpg123_handle *mh, out123_handle *ao)
 {
 	if(param.usebuffer && !stopped)
 	{
-		int channels;
-		int encoding;
-		off_t back_samples;
+		int channels = 0;
+		int encoding = 0;
+		int pcmframe;
+		off_t back_samples = 0;
 
 		stopped = TRUE;
 		out123_pause(ao);
 		mpg123_getformat(mh, NULL, &channels, &encoding);
-		back_samples = out123_buffered(ao)/(mpg123_samplesize(encoding)*channels);
+		pcmframe = out123_encsize(encoding)*channels;
+		if(pcmframe > 0)
+			back_samples = out123_buffered(ao)/pcmframe;
 		fprintf(stderr, "\nseeking back %"OFF_P" samples from %"OFF_P"\n"
 		,	(off_p)back_samples, (off_p)mpg123_tell(mh));
 		mpg123_seek(mh, -back_samples, SEEK_CUR);

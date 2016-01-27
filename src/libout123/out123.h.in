@@ -17,6 +17,12 @@
 /* We only need size_t definition. */
 #include <stddef.h>
 
+/* Common audio encoding specification, including a macro for getting
+ *  size of encodined samples in bytes. Said macro is still hardcoded
+ *  into out123_encsize(). Relying on this one may help an old program
+ *  know sizes of encodings added to fmt123.h later on.
+ *  If you don't care, just use the macro.
+ */
 #include <fmt123.h>
 
 /** A macro to check at compile time which set of API functions to expect.
@@ -361,6 +367,11 @@ void out123_close(out123_handle *ao);
  */
 MPG123_EXPORT
 int out123_encodings(out123_handle *ao, long rate, int channels);
+
+/** Return the size (in bytes) of one mono sample of the named encoding.
+ * \param encoding The encoding value to analyze.
+ * \return positive size of encoding in bytes, 0 on invalid encoding. */
+MPG123_EXPORT int out123_encsize(int encoding);
 
 /** Get list of supported formats for currently opened audio device.
  *  Given a list of sampling rates and minimal/maximal channel count,

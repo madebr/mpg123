@@ -38,7 +38,7 @@
  *
  *  All formats are in native byte order. If you need different endinaness, you
  *  can simply postprocess the output buffers (libmpg123 wouldn't do anything
- * else). The macro mpg123_samplesize() can be helpful there.
+ * else). The macro MPG123_SAMPLESIZE() can be helpful there.
  */
 enum mpg123_enc_enum
 {
@@ -88,19 +88,25 @@ enum mpg123_enc_enum
 };
 
 /** Get size of one PCM sample with given encoding.
- *  This is too trivial to trigger binding to a library.
- *  Also: Thomas really likes the ?: operator.
+ *  This is included both in libmpg123 and libout123. Both offer
+ *  an API function to provide the macro results from library
+ *  compile-time, not that of you application. This most likely
+ *  does not matter as I do not expect any fresh PCM sample
+ *  encoding to appear. But who knows? Perhaps the encoding type
+ *  will be abused for funny things in future, not even plain PCM.
+ *  And, by the way: Thomas really likes the ?: operator.
  * \param enc the encoding (mpg123_enc_enum value)
  * \return size of one sample in bytes
  */
-#define mpg123_samplesize(enc) ( \
+#define MPG123_SAMPLESIZE(enc) ( \
 	(enc) & MPG123_ENC_8 \
 	?	1 \
 	:	( (enc) & MPG123_ENC_16 \
 		?	2 \
 		:	( (enc) & MPG123_ENC_24 \
 			?	3 \
-			:	( ((enc) & MPG123_ENC_32 || (enc) == MPG123_ENC_FLOAT_32) \
+			:	( (  (enc) & MPG123_ENC_32 \
+				  || (enc) == MPG123_ENC_FLOAT_32 ) \
 				?	4 \
 				:	( (enc) == MPG123_ENC_FLOAT_64 \
 					?	8 \
@@ -122,13 +128,6 @@ struct mpg123_fmt
 	 *  mpg123_enc_enum */
 	int encoding;
 };
-
-/** Helper to decide if a format spec is obviously incomplete/invalid. */
-#define mpg123_fmt_empty(fmt) ( \
-		(fmt).rate     < 1 \
-	||	(fmt).channels < 1 \
-	||	(fmt).encoding < 1 \
-)
 
 /* @} */
 

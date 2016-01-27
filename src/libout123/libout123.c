@@ -489,7 +489,7 @@ out123_start(out123_handle *ao, long rate, int channels, int encoding)
 	ao->rate      = rate;
 	ao->channels  = channels;
 	ao->format    = encoding;
-	ao->framesize = mpg123_samplesize(encoding)*channels;
+	ao->framesize = out123_encsize(encoding)*channels;
 
 #ifndef NOXFERMEM
 	if(have_buffer(ao))
@@ -978,9 +978,15 @@ out123_encodings(out123_handle *ao, long rate, int channels)
 	}
 }
 
-int out123_formats( out123_handle *ao, const long *rates, int ratecount
-                  , int minchannels, int maxchannels
-                  , struct mpg123_fmt **fmtlist )
+int attribute_align_arg out123_encsize(int encoding)
+{
+	return MPG123_SAMPLESIZE(encoding);
+}
+
+int attribute_align_arg
+out123_formats( out123_handle *ao, const long *rates, int ratecount
+              , int minchannels, int maxchannels
+              , struct mpg123_fmt **fmtlist )
 {
 	debug6( "out123_formats(%p, %p, %i, %i, %i, %p)"
 	,	(void*)ao, (void*)rates, ratecount, minchannels, maxchannels

@@ -364,11 +364,12 @@ static void query_format(char *arg)
 			struct mpg123_fmt *fmts = NULL;
 			int count;
 			count = out123_formats(lao, NULL, 0, 0, 0, &fmts);
-			if(count > 0 && !mpg123_fmt_empty(fmts[0]))
+			if(count > 0 && fmts[0].encoding > 0)
 			{
+				const char *encname = out123_enc_name(fmts[0].encoding);
 				printf( "--rate %li --channels %i --encoding %s\n"
 				,	fmts[0].rate, fmts[0].channels
-				,	out123_enc_name(fmts[0].encoding) );
+				,	encname ? encname : "???" );
 			}
 			else
 			{
@@ -588,7 +589,7 @@ int main(int sys_argc, char ** sys_argv)
 			safe_exit(1);
 		}
 	}
-	pcmframe = mpg123_samplesize(encoding)*channels;
+	pcmframe = out123_encsize(encoding)*channels;
 	bufferblock = pcmblock*pcmframe;
 	audio = (unsigned char*) malloc(bufferblock);
 

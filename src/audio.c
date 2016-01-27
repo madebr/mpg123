@@ -1,7 +1,7 @@
 /*
 	audio: audio output interface
 
-	copyright ?-2015 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2016 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp
 */
@@ -77,7 +77,7 @@ void print_capabilities(out123_handle *ao, mpg123_handle *mh)
 	for(e=0;e<num_encs;e++)
 	{
 		const char *encname = out123_enc_name(encs[e]);
-		fprintf(stderr," %5s |", encname ? encname : "xxx");
+		fprintf(stderr," %5s |", encname ? encname : "???");
 	}
 
 	fprintf(stderr,"\n ------|");
@@ -172,11 +172,12 @@ void audio_capabilities(out123_handle *ao, mpg123_handle *mh)
 	{
 		int fi;
 		int unpitch_i = 0;
-		if(param.verbose > 1 && !mpg123_fmt_empty(outfmts[0]))
+		if(param.verbose > 1 && outfmts[0].encoding > 0)
 		{
+			const char *encname = out123_enc_name(outfmts[0].encoding);
 			fprintf(stderr, "Note: default format %li Hz, %i channels, %s\n"
 			,	outfmts[0].rate, outfmts[0].channels
-			,	out123_enc_name(outfmts[0].encoding) );
+			,	encname ? encname : "???" );
 		}
 		for(fi=1; fi<fmtcount; ++fi)
 		{

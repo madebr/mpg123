@@ -125,7 +125,7 @@ void attribute_align_arg mpg123_encodings(const int **list, size_t *number)
 
 int attribute_align_arg mpg123_encsize(int encoding)
 {
-	return mpg123_samplesize(encoding);
+	return MPG123_SAMPLESIZE(encoding);
 }
 
 /*	char audio_caps[NUM_CHANNELS][MPG123_RATES+1][MPG123_ENCODINGS]; */

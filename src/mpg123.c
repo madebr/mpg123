@@ -851,7 +851,7 @@ int play_frame(void)
 			mpg123_getformat(mh, &rate, &channels, &encoding);
 			/* A layer I frame duration at minimum for live outputs. */
 			if(output_propflags & OUT123_PROP_LIVE)
-				minbytes = mpg123_samplesize(encoding)*channels*384;
+				minbytes = out123_encsize(encoding)*channels*384;
 			else
 				minbytes = 0;
 			if(param.verbose > 2)
