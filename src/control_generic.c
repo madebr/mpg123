@@ -13,6 +13,13 @@
 #ifndef _DEFAULT_SOURCE
 #define _DEFAULT_SOURCE
 #endif
+/* Defining that after _DEFAULT_SOURCE seems fine and is still
+   needed for older glibc. I guess I need a configure check
+   about setlinebuf()/setvbuf() if I really care about old
+   systems. */
+#ifndef _BSD_SOURCE
+#define _BSD_SOURCE
+#endif
 #include "compat.h"
 
 #include "mpg123app.h"
