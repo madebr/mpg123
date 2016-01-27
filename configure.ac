@@ -206,7 +206,6 @@ AC_ARG_ENABLE(nagging,
                 if test "x$enableval" = xyes
                 then
                   nagging="enabled"
-                  debugging="enabled"
                else
                   nagging="disabled"
                 fi

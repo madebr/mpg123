@@ -67,6 +67,8 @@
   to pay more attention to that).
 - Added out123 --channels <n>, --list-encodings, --test-format,
   --test-encodings, --query-format.
+- Calling ./configure --enable-nagging does not include --enable-debug anymore,
+  you specify that separately.
 
 1.22.4:
 -------
