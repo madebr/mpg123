@@ -12,6 +12,9 @@
 
 #include "mpg123app.h"
 
+/* Newer glibc is strict about this: getaddrinfo() stuff needs POSIX2K. */
+#define POSIX_C_SOURCE 200112L
+
 #ifdef NETWORK
 #include "true.h"
 #include "resolver.h"

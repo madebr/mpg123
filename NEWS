@@ -69,6 +69,8 @@
   --test-encodings, --query-format.
 - Calling ./configure --enable-nagging does not include --enable-debug anymore,
   you specify that separately.
+- Fix for newer glibc that wants higher POSIX feature test for getaddrinfo()
+  stuff.
 
 1.22.4:
 -------
