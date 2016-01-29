@@ -441,7 +441,10 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 	case MPG123_MPEG_KEY:
 		if(param.verbose) print_stat(fr,0,ao); /* Make sure that we are talking about the correct frame. */
 		fprintf(stderr, "\n");
-		print_header(fr);
+		if(param.verbose > 1)
+			print_header(fr);
+		else
+			print_header_compact(fr);
 		fprintf(stderr, "\n");
 	break;
 	case MPG123_HELP_KEY:

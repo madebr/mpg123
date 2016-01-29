@@ -871,8 +871,10 @@ int play_frame(void)
 	{
 		new_header = FALSE;
 		fprintf(stderr, "\n");
-		if(param.verbose) print_header(mh);
-		else print_header_compact(mh);
+		if(param.verbose > 1)
+			print_header(mh);
+		else
+			print_header_compact(mh);
 	}
 	return 1;
 }
@@ -1362,6 +1364,9 @@ int main(int sys_argc, char ** sys_argv)
 					if(meta & MPG123_NEW_ID3) print_id3_tag(mh, param.long_id3, stderr);
 					if(meta & MPG123_NEW_ICY) print_icy(mh, stderr);
 
+#ifdef HAVE_TERMIOS
+					if(!param.term_ctrl) /* Terminal user can query meta data again. */
+#endif
 					mpg123_meta_free(mh); /* Do not waste memory after delivering. */
 				}
 			}

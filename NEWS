@@ -34,7 +34,14 @@
 -- Rework smart tag printout for adapting to terminal width.
 -- Warning messages also start with a line break now to better fit in with
    verbose playback.
+-- Doubly-verbose mode now needed for long MPEG header print out.
+   It is a higher level of verbosity than printing the current position.
+   The compact header is a better fit.
+-- Compact header printout also compacted, example:
+   MPEG 1.0 L III cbr128 44100 j-s
 -- Reporting of clipped samples also includes a line break now.
+-- Keep ID3v2 data around for terminal control to be able to print on
+   demand. That was broken for some time.
 - Default for --preload now is 0.2 instead of 1 (fill whole buffer before
   playback). The maximum is 0.5 . This is mandated by corrected buffer
   interaction in libout123.

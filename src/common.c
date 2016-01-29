@@ -51,7 +51,7 @@ int term_width(int fd)
 const char* rva_name[3] = { "off", "mix", "album" };
 static const char* rva_statname[3] = { "---", "mix", "alb" };
 static const char *modes[5] = {"Stereo", "Joint-Stereo", "Dual-Channel", "Single-Channel", "Invalid" };
-static const char *smodes[5] = { "stereo", "joint-stereo", "dual-channel", "mono", "invalid" };
+static const char *smodes[5] = { "stereo", "j-s", "dual", "mono", "o.O" };
 static const char *layers[4] = { "Unknown" , "I", "II", "III" };
 static const char *versions[4] = {"1.0", "2.0", "2.5", "x.x" };
 static const int samples_per_frame[4][4] =
@@ -123,18 +123,18 @@ void print_header_compact(mpg123_handle *mh)
 	if(i.version > 3 || i.version < 0) i.version = 3;
 	if(i.layer > 3 || i.layer < 0) i.layer = 0;
 	
-	fprintf(stderr,"MPEG %s layer %s, ", versions[i.version], layers[i.layer]);
+	fprintf(stderr,"MPEG %s L %s ", versions[i.version], layers[i.layer]);
 	switch(i.vbr)
 	{
 		case MPG123_CBR:
-			if(i.bitrate) fprintf(stderr, "%d kbit/s", i.bitrate);
-			else fprintf(stderr, "%d kbit/s (free format)", (int)((double)i.framesize*8*i.rate*0.001/samples_per_frame[i.version][i.layer]+0.5));
+			if(i.bitrate) fprintf(stderr, "cbr%d", i.bitrate);
+			else fprintf(stderr, "cbr%d", (int)((double)i.framesize*8*i.rate*0.001/samples_per_frame[i.version][i.layer]+0.5));
 			break;
-		case MPG123_VBR: fprintf(stderr, "VBR"); break;
-		case MPG123_ABR: fprintf(stderr, "%d kbit/s ABR", i.abr_rate); break;
+		case MPG123_VBR: fprintf(stderr, "vbr"); break;
+		case MPG123_ABR: fprintf(stderr, "abr%d", i.abr_rate); break;
 		default: fprintf(stderr, "???");
 	}
-	fprintf(stderr,", %ld Hz %s\n", i.rate, smodes[i.mode]);
+	fprintf(stderr," %ld %s\n", i.rate, smodes[i.mode]);
 }
 
 unsigned int roundui(double val)
@@ -182,6 +182,8 @@ void print_buf(const char* prefix, out123_handle *ao)
 	fprintf( stderr, "\r%s[%02lu:%02lu%c%02lu]"
 	,	prefix, times[0], times[1], timesep, times[2] );
 }
+
+
 
 /* Note about position info with buffering:
    Negative positions mean that the previous track is still playing from the
@@ -243,6 +245,7 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao)
 	if(  MPG123_OK == mpg123_info(fr, &mi)
 	  && MPG123_OK == mpg123_getvolume(fr, &basevol, &realvol, NULL) )
 	{
+		char linebuf[256];
 		char *line;
 		char framefmt[10];
 		char framestr[2][32];
@@ -259,8 +262,10 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao)
 		/* 255 is enough for the data I prepare, if there is no terminal width to
 		   fill */
 		maxlen  = term_width(STDERR_FILENO);
-		linelen = maxlen > 0 ? maxlen : 255;
-		line = malloc(linelen+1); /* Should use some static memory instead. */
+		linelen = maxlen > 0 ? maxlen : (sizeof(linebuf)-1);
+		line = linelen >= sizeof(linebuf)
+		?	malloc(linelen+1) /* Only malloc if it is a really long line. */
+		:	linebuf; /* Small buffer on stack is enough. */
 
 		tim[0] = (double)elapsed/rate;
 		tim[1] = (double)remain/rate;
@@ -395,7 +400,8 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao)
 #endif
 			fprintf(stderr, "\r%s", line);
 		}
-		free(line);
+		if(line != linebuf)
+			free(line);
 	}
 	/* Check for changed tags here too? */
 	if( mpg123_meta_check(fr) & MPG123_NEW_ICY && MPG123_OK == mpg123_icy(fr, &icy) )
@@ -404,5 +410,13 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao)
 
 void clear_stat()
 {
-	fprintf(stderr, "\r                                                                                       \r");
+	int len = term_width(STDERR_FILENO);
+	if(len > 0)
+	{
+		char fmt[20];
+		int flen;
+		if( (flen=snprintf(fmt, sizeof(fmt), "\r%%%ds\r", len)) > 0
+		  && flen < sizeof(fmt) )
+			fprintf(stderr, fmt, " ");
+	}
 }
