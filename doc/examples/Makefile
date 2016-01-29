@@ -1,4 +1,12 @@
-targets = feedseek mpg123_to_wav mpg123_to_wav_replaced_io scan id3dump mpglib  dump_seekindex extract_frames
+targets = \
+  feedseek \
+  mpg123_to_out123 \
+  mpg123_to_wav_replaced_io \
+  scan \
+  id3dump \
+  mpglib \
+  dump_seekindex \
+  extract_frames
 
 all: $(targets)
 
@@ -22,8 +30,8 @@ endif
 compile = $(CC) $(CPPFLAGS) $(CFLAGS) $(MPG123_CFLAGS)
 linkflags = $(MPG123_LDFLAGS) $(LDFLAGS)
 
-mpg123_to_wav: mpg123_to_wav.c
-	$(compile) -o mpg123_to_wav mpg123_to_wav.c $(OUT123_CFLAGS) $(OUT123_LDFLAGS) $(linkflags)
+mpg123_to_out123: mpg123_to_out123.c
+	$(compile) -o $@ $< $(OUT123_CFLAGS) $(OUT123_LDFLAGS) $(linkflags)
 
 mpg123_to_wav_replaced_io: mpg123_to_wav_replaced_io.c
 	$(compile) -o $@ $< $(OUT123_CFLAGS) $(OUT123_LDFLAGS) $(linkflags)
