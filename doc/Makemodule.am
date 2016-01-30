@@ -16,6 +16,7 @@ EXTRA_DIST += \
   doc/LARGEFILE \
   doc/libmpg123_speed.txt \
   doc/doxyhead.xhtml \
+  doc/doxyfoot.xhtml \
   doc/doxy_examples.c \
   doc/doxygen.conf \
   doc/examples/mpg123_to_out123.c \
