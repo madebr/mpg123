@@ -1,7 +1,7 @@
 /** \defgroup mpg123_examples example programs using libmpg123 and libout123
 	@{ */
 
-/** \file mpg123_to_wav.c A simple MPEG audio to WAV converter using libmpg123 (read) and libout123 (write).
+/** \file mpg123_to_out123.c A simple MPEG audio to WAV converter using libmpg123 (read) and libout123 (write).
     ...an excersize on two simple APIs. */
 
 /** \file mpglib.c Example program mimicking the old mpglib test program.
