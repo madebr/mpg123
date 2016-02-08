@@ -1,3 +1,10 @@
+1.23.1:
+-------
+- libmpg123:
+-- Fix logic to prevent cases of output devices being closed more than once
+   (stop after pausing triggered multiple close calls, which broke sndio, for
+   example).
+
 1.23.0:
 -------
 - libmpg123 version 42

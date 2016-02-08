@@ -19,6 +19,12 @@ static int have_buffer(out123_handle *ao)
 
 #include "debug.h"
 
+/* An output that is live and does not deal with pausing itself.
+   The device needs to be closed if we stop feeding. */
+#define SENSITIVE_OUTPUT(ao) \
+  (    (ao)->propflags & OUT123_PROP_LIVE \
+  && !((ao)->propflags & OUT123_PROP_PERSISTENT) )
+
 static const char *default_name = "out123";
 
 static int modverbose(out123_handle *ao)
@@ -430,6 +436,7 @@ void attribute_align_arg out123_close(out123_handle *ao)
 	ao->errcode = 0;
 
 	out123_drain(ao);
+	out123_stop(ao);
 
 #ifndef NOXFERMEM
 	if(have_buffer(ao))
@@ -437,17 +444,6 @@ void attribute_align_arg out123_close(out123_handle *ao)
 	else
 #endif
 	{
-		/* Only close output device if one is opened. Module code might not be resilient
-		   about that. */
-		if(ao->state > play_stopped && ao->close)
-		{
-			int ret;
-			if((ret=ao->close(ao)))
-			{
-				if(!AOQUIET)
-					error1("ao->close() returned %i", ret);
-			}
-		}
 		if(ao->deinit)
 			ao->deinit(ao);
 		if(ao->module)
@@ -523,8 +519,7 @@ void attribute_align_arg out123_pause(out123_handle *ao)
 #endif
 		{
 			/* Close live devices to avoid underruns. */
-			if(    ao->propflags & OUT123_PROP_LIVE
-			  && !(ao->propflags & OUT123_PROP_PERSISTENT)
+			if( SENSITIVE_OUTPUT(ao)
 			  && ao->close && ao->close(ao) && !AOQUIET )
 				error("trouble closing device");
 		}
@@ -542,9 +537,7 @@ void attribute_align_arg out123_continue(out123_handle *ao)
 		else
 #endif
 		/* Re-open live devices to avoid underruns. */
-		if(    ao->propflags & OUT123_PROP_LIVE
-		  && !(ao->propflags & OUT123_PROP_PERSISTENT)
-		  && ao->open(ao) < 0)
+		if(SENSITIVE_OUTPUT(ao) && ao->open(ao) < 0)
 		{
 			/* Will be overwritten by following out123_play() ... */
 			ao->errcode = OUT123_DEV_OPEN;
@@ -569,8 +562,12 @@ void attribute_align_arg out123_stop(out123_handle *ao)
 		buffer_stop(ao);
 	else
 #endif
-	if(ao->close && ao->close(ao) && !AOQUIET)
-		error("trouble closing device");
+	if(   ao->state == play_live
+	  || (ao->state == play_paused && !SENSITIVE_OUTPUT(ao)) )
+	{
+		if(ao->close && ao->close(ao) && !AOQUIET)
+			error("trouble closing device");
+	}
 	ao->state = play_stopped;
 }
 
