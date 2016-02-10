@@ -4,6 +4,8 @@
 -- Fix logic to prevent cases of output devices being closed more than once
    (stop after pausing triggered multiple close calls, which broke sndio, for
    example).
+- mpg123:
+-- Hide networking-related command-line parameters when disabled.
 
 1.23.0:
 -------

@@ -569,7 +569,9 @@ topt opts[] = {
 	{0,   "remote-err",  GLO_INT,  0, &param.remote_err, TRUE},
 	{'d', "doublespeed", GLO_ARG | GLO_LONG, 0, &param.doublespeed, 0},
 	{'h', "halfspeed",   GLO_ARG | GLO_LONG, 0, &param.halfspeed, 0},
+#ifdef NETWORK
 	{'p', "proxy",       GLO_ARG | GLO_CHAR, 0, &param.proxyurl,   0},
+#endif
 	{'@', "list",        GLO_ARG | GLO_CHAR, 0, &param.listname,   0},
 	/* 'z' comes from the the german word 'zufall' (eng: random) */
 	{'z', "shuffle",     GLO_INT,  0, &param.shuffle, 1},
@@ -588,9 +590,9 @@ topt opts[] = {
 	{0, "cpu", GLO_ARG | GLO_CHAR, 0, &param.cpu,  0},
 	{0, "test-cpu",  GLO_INT,  0, &param.test_cpu, TRUE},
 	{0, "list-cpu", GLO_INT,  0, &param.list_cpu , 1},
-	#ifdef NETWORK
+#ifdef NETWORK
 	{'u', "auth",        GLO_ARG | GLO_CHAR, 0, &httpauth,   0},
-	#endif
+#endif
 	#if defined (HAVE_SCHED_SETSCHEDULER) || defined (HAVE_WINDOWS_H)
 	/* check why this should be a long variable instead of int! */
 	{'T', "realtime",    GLO_LONG,  0, &param.realtime, TRUE },
@@ -627,7 +629,9 @@ topt opts[] = {
 	{'D', "delay", GLO_ARG | GLO_INT, 0, &param.delay, 0},
 	{0, "resync-limit", GLO_ARG | GLO_LONG, 0, &param.resync_limit, 0},
 	{0, "pitch", GLO_ARG|GLO_DOUBLE, 0, &param.pitch, 0},
+#ifdef NETWORK
 	{0, "ignore-mime", GLO_INT, set_appflag, &appflag, MPG123APP_IGNORE_MIME },
+#endif
 	{0, "lyrics", GLO_INT, set_appflag, &appflag, MPG123APP_LYRICS},
 	{0, "keep-open", GLO_INT, 0, &param.keep_open, 1},
 	{0, "utf8", GLO_INT, 0, &param.force_utf8, 1},
@@ -1453,7 +1457,11 @@ static void usage(int err)  /* print syntax & exit */
 	fprintf(o,"   -2    downsample 1:2 (22 kHz)        -4    downsample 1:4 (11 kHz)\n");
 	fprintf(o,"   -d n  play every n'th frame only     -h n  play every frame n times\n");
 	fprintf(o,"   -0    decode channel 0 (left) only   -1    decode channel 1 (right) only\n");
+#ifdef NETWORK
 	fprintf(o,"   -m    mix both channels (mono)       -p p  use HTTP proxy p [$HTTP_PROXY]\n");
+#else
+	fprintf(o,"   -m    mix both channels (mono)\n");
+#endif
 	#ifdef HAVE_SCHED_SETSCHEDULER
 	fprintf(o,"   -@ f  read filenames/URLs from f     -T get realtime priority\n");
 	#else
@@ -1495,9 +1503,11 @@ static void long_usage(int err)
 	fprintf(o," -n     --frames <n>       play only <n> frames of every stream\n");
 	fprintf(o,"        --fuzzy            Enable fuzzy seeks (guessing byte offsets or using approximate seek points from Xing TOC)\n");
 	fprintf(o," -y     --no-resync        DISABLES resync on error (--resync is deprecated)\n");
+#ifdef NETWORK
 	fprintf(o," -p <f> --proxy <f>        set WWW proxy\n");
 	fprintf(o," -u     --auth             set auth values for HTTP access\n");
 	fprintf(o,"        --ignore-mime      ignore HTTP MIME types (content-type)\n");
+#endif
 	fprintf(o,"        --no-seekbuffer    disable seek buffer\n");
 	fprintf(o," -@ <f> --list <f>         play songs in playlist <f> (plain list, m3u, pls (shoutcast))\n");
 	fprintf(o," -l <n> --listentry <n>    play nth title in playlist; show whole playlist for n < 0\n");

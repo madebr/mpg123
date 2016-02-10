@@ -721,6 +721,8 @@ exit: /* The end as well as the exception handling point... */
 /* stub */
 int http_open (char* url, struct httpdata *hd)
 {
+	if(!param.quiet)
+		error("HTTP support not built in.");
 	return -1;
 }
 #endif
