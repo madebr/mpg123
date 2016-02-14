@@ -56,6 +56,19 @@ static void out123_clear_module(out123_handle *ao)
 	ao->propflags = OUT123_PROP_LIVE;
 }
 
+/* Ensure that real name is not leaked, needs to be freed before any call to
+   ao->open(ao). One might free it on closing already, but it might be sensible
+   to keep it around, might still be the same after re-opening. */
+static int aoopen(out123_handle *ao)
+{
+	if(ao->realname)
+	{
+		free(ao->realname);
+		ao->realname = NULL;
+	}
+	return ao->open(ao);
+}
+
 out123_handle* attribute_align_arg out123_new(void)
 {
 	out123_handle* ao = malloc( sizeof( out123_handle ) );
@@ -501,7 +514,7 @@ out123_start(out123_handle *ao, long rate, int channels, int encoding)
 	else
 #endif
 	{
-		if(ao->open(ao) < 0)
+		if(aoopen(ao) < 0)
 			return out123_seterr(ao, OUT123_DEV_OPEN);
 		ao->state = play_live;
 		return OUT123_OK;
@@ -537,7 +550,7 @@ void attribute_align_arg out123_continue(out123_handle *ao)
 		else
 #endif
 		/* Re-open live devices to avoid underruns. */
-		if(SENSITIVE_OUTPUT(ao) && ao->open(ao) < 0)
+		if(SENSITIVE_OUTPUT(ao) && aoopen(ao) < 0)
 		{
 			/* Will be overwritten by following out123_play() ... */
 			ao->errcode = OUT123_DEV_OPEN;
@@ -825,7 +838,7 @@ static void check_output_module( out123_handle *ao
 	if(result == 0)
 	{ /* Try to open the device. I'm only interested in actually working modules. */
 		ao->format = -1;
-		result = ao->open(ao);
+		result = aoopen(ao);
 		debug1("ao->open() = %i", result);
 		if(result >= 0)
 			ao->close(ao);
@@ -958,7 +971,7 @@ out123_encodings(out123_handle *ao, long rate, int channels)
 		   They possibly set a sample rate and channel count they like best.
 		   We should add API to retrieve those defaults, too. */
 		ao->format   = -1;
-		if(ao->open(ao) >= 0)
+		if(aoopen(ao) >= 0)
 		{
 			/* Need to reset those since the choose-your-format open
 			   call might have changed them. */
@@ -1015,7 +1028,7 @@ out123_formats( out123_handle *ao, const long *rates, int ratecount
 		ao->format   = -1;
 		ao->rate     = -1;
 		ao->channels = -1;
-		if(ao->open(ao) >= 0)
+		if(aoopen(ao) >= 0)
 		{
 			struct mpg123_fmt *fmts;
 			int ri, ch;

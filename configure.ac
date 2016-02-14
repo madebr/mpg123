@@ -8,7 +8,7 @@ dnl Require autoconf version >= 2.57
 AC_PREREQ(2.57)
 
 dnl ############# Initialisation
-AC_INIT([mpg123], [1.23.0], [maintainer@mpg123.org])
+AC_INIT([mpg123], [1.23.1], [maintainer@mpg123.org])
 dnl Increment API_VERSION when the API gets changes (new functions).
 
 dnl libmpg123
@@ -1638,7 +1638,17 @@ do
 			fi # HAVE_ALSA
 		;;
 		jack)
-			PKG_CHECK_MODULES(JACK, jack, output_modules="$output_modules jack" HAVE_JACK="yes", HAVE_JACK="no" check_failed=yes)
+			# JACK module uses semaphores, hence -lpthread.
+			AC_CHECK_LIB( [pthread], [sem_post],
+				[ PKG_CHECK_MODULES(JACK, jack,
+					[
+						output_modules="$output_modules jack"
+						HAVE_JACK="yes"
+						JACK_LIBS="$JACK_LIBS -lpthread"
+					], [ HAVE_JACK="no" check_failed=yes ] )
+				],
+				[ HAVE_JACK=no check_failed=yes ]
+			)
 		;;
 		pulse)
 			PKG_CHECK_MODULES(PULSE, libpulse-simple, output_modules="$output_modules pulse" HAVE_PULSE="yes", HAVE_PULSE="no" check_failed=yes)

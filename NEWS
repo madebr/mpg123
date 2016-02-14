@@ -1,9 +1,20 @@
 1.23.1:
 -------
-- libmpg123:
+- libout123:
 -- Fix logic to prevent cases of output devices being closed more than once
    (stop after pausing triggered multiple close calls, which broke sndio, for
    example).
+-- Fix JACK output handling of port wishlist, was simply broken for more than
+   two ports (-o jack -a port1,port2,port3). Now, it is ensured that each
+   output ports gets some connection to an out123 channel, possibly splitting
+   one to multiple ports or mixing multiple channels into one port (cyclic
+   connection scheme). Note that this does only apply for an explicitly given
+   list of ports. You can still use --stereo to ensure that two output ports
+   (if found) are used also for mono tracks.
+-- Also use jack_free() in JACK output for ports list.
+-- And finally, ensure that pthread library is linked to JACK module (would need
+   hacking to work on non-POSIX, replacing sem_t with equivalent).
+
 - mpg123:
 -- Hide networking-related command-line parameters when disabled.
 

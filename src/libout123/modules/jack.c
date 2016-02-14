@@ -204,22 +204,42 @@ static int real_connect_jack_ports(out123_handle *ao
 {
 	const char **wish = wishlist;
 	int ch, err;
+	int ch_wrap = 0, wish_wrap = 0;
 
+	if(!wish)
+		return 0;
 	if(wish != NULL && *wish == NULL)
 		return 1; /* success, nothing connected as wanted */
-	for(ch=0; ch<handle->channels; ++ch)
+	ch=0;
+	/* Connect things as long as there are sources or sinks left. */
+	while(!wish_wrap || !ch_wrap)
 	{
-		const char* in = jack_port_name( handle->ports[ch] );
+		const char* in = jack_port_name(handle->ports[ch]);
 
-		if ((err = jack_connect(handle->client, in, *wish)) != 0 && err != EEXIST)
+		if((err = jack_connect(handle->client, in, *wish)) != 0 && err != EEXIST)
 		{
 			if(!AOQUIET)
-				error1("connect_jack_ports(): failed to jack_connect() ports: %d",err);
+				error4( "connect_jack_ports(): failed to jack_connect() ch%i (%s) to %s: %d"
+				,	ch, in ? in : "<nil>", *wish, err );
 			return 0;
 		}
-		/* Increment wish only if there is another one. Otherwise simply
-		   connect to the same port multiple times. */
-		if(*(wish+1) != NULL) ++wish;
+		/*
+			Increment channel and wishlist, both possibly wrapping around, to
+			ensure we connected all channels to some output port and provided
+			some input to all ports in the wishlist. Both cases of less channels
+			than output ports (splitting) and more channels	than output ports
+			(downmix) are sensible.
+		*/
+		if(++ch == handle->channels)
+		{
+			ch = 0;
+			++ch_wrap;
+		}
+		if(!*(++wish))
+		{
+			wish = wishlist;
+			++wish_wrap;
+		}
 	}
 
 	return 1;
@@ -257,7 +277,7 @@ static int autoconnect_jack_ports(out123_handle *ao, jack_handle_t* handle)
 		/* Found enough ports ?*/
 		if (++ch >= handle->channels) break;
 	}
-	free(all_ports);
+	jack_free(all_ports);
 	return 1;
 }
 
@@ -270,13 +290,21 @@ static int connect_jack_ports(out123_handle *ao
 		return autoconnect_jack_ports(ao, handle);
 	else
 	{
+		/* Parse device for a set of ports, comma separated. */
 		const char** wishlist; /* Channels and end marker. */
-		char *devcopy;
+		int wish_channels = 1; /* Numper of entries in wishlist. */
+		char *devcopy, *chr;
 		int ret;
 		int c;
-		size_t len = strlen(ao->device);
-		wishlist = malloc(sizeof(char*)*handle->channels+1);
-		devcopy = strdup(ao->device);;
+		size_t len;
+		len = strlen(ao->device);
+		/* We connect as many JACK ports as desired, possibly duplicating. */
+		for(chr=ao->device; *chr; ++chr)
+			if(*chr == ',')
+				++wish_channels;
+		debug1("wish_channels: %i", wish_channels);
+		wishlist = malloc(sizeof(char*)*(wish_channels+1));
+		devcopy = strdup(ao->device);
 		if(devcopy == NULL || wishlist == NULL)
 		{
 			if(devcopy)
@@ -288,21 +316,23 @@ static int connect_jack_ports(out123_handle *ao
 			return 0;
 		}
 
-		/* We just look out for a set of ports, comma separated. */
-		for(c=0;c<=handle->channels;++c)
+		for(c=0;c<=wish_channels;++c)
 			wishlist[c] = NULL;
 		if(len && strcmp(devcopy, "none"))
 		{
 			size_t i=0;
 			wishlist[0] = devcopy;
-			for(c=0;c<handle->channels;++c)
+			for(c=0;c<wish_channels;++c)
 			{
 				while(devcopy[i] != 0 && devcopy[i] != ',') ++i;
+				debug2("devcopy[%"SIZE_P"]=%i", i, devcopy[i]);
 				if(devcopy[i] == ',')
 				{
-					devcopy[i] = 0;
-					if(c+1 < handle->channels)
-						wishlist[c+1] = devcopy+i+1;
+					/* Terminate previous port name, assign next one. */
+					devcopy[i++] = 0;
+					debug2("terminaled wish %i: %s", c, wishlist[c]);
+					if(c+1 < wish_channels)
+						wishlist[c+1] = devcopy+i;
 				}
 				else
 					break;
