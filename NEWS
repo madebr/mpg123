@@ -1,3 +1,8 @@
+1.23.2:
+-------
+- mpg123: Fix compact ID3 tag printing to take UTF-8 character count
+  into account again (thoughtless regression in 1.23.0).
+
 1.23.1:
 -------
 - libout123:

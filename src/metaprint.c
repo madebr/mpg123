@@ -11,7 +11,24 @@
 #include "genre.h"
 #include "debug.h"
 
-const char joker_symbol = '*';
+static const char joker_symbol = '*';
+
+/* Metadata name field texts with index enumeration. */
+enum tagcode { TITLE=0, ARTIST, ALBUM, COMMENT, YEAR, GENRE, FIELDS };
+static const char* name[FIELDS] =
+{
+	"Title"
+,	"Artist"
+,	"Album"
+,	"Comment"
+,	"Year"
+,	"Genre"
+};
+
+/* Two-column printing: max length of left and right name strings.
+   see print_id3 for what goes left or right.
+   Choose namelen[0] >= namelen[1]! */
+static const int namelen[2] = {7, 6};
 
 static void utf8_ascii(mpg123_string *dest, mpg123_string *source);
 /* Copy UTF-8 string or melt it down to ASCII, also returning the character length. */
@@ -49,11 +66,69 @@ static void id3_gap(mpg123_string *dest, size_t count, char *v1, size_t *len)
 	}
 }
 
-/* print tags... limiting the UTF-8 to ASCII */
+/* Print one metadata entry on a line, aligning the beginning. */
+static void print_oneline( FILE* out
+,	const mpg123_string *tag, enum tagcode fi, int long_mode )
+{
+	char fmt[14]; /* "%s:%-XXXs%s\n" plus one null */
+	if(!tag[fi].fill && !long_mode)
+		return;
+
+	if(long_mode)
+		fprintf(out, "\t");
+	snprintf(fmt, sizeof(fmt)-1, "%%s:%%-%ds%%s\n", 1+namelen[0]-strlen(name[fi]));
+	fprintf(out, fmt, name[fi], " ", tag[fi].fill ? tag[fi].p : "");
+}
+
+/*
+	Print a pair of tag name-value pairs along each other in two columns or
+	each on a line if that is not sensible.
+	This takes a given length (in columns) into account, not just bytes.
+	If that length would be computed taking grapheme clusters into account, things
+	could be fine for the whole world of Unicode. So far we ride only on counting
+	possibly multibyte characters (unless mpg123_strlen() got adapted meanwhile).
+*/
+static void print_pair
+(
+	FILE* out /* Output stream. */
+,	const int *climit /* Maximum width of columns (two values). */
+,	const mpg123_string *tag /* array of tag value strings */
+,	const size_t *len /* array of character/column lengths */
+,	enum tagcode f0, enum tagcode f1 /* field indices for column 0 and 1 */
+){
+	/* Two-column printout if things match, dumb printout otherwise. */
+	if(  tag[f0].fill         && tag[f1].fill
+	  && len[f0] <= (size_t)climit[0] && len[f1] <= (size_t)climit[1] )
+	{
+		char cfmt[35]; /* "%s:%-XXXs%-XXXs  %s:%-XXXs%-XXXs\n" plus one extra null from snprintf */
+		int chardiff[2];
+		size_t bytelen;
+
+		/* difference between character length and byte length */
+		bytelen = strlen(tag[f0].p);
+		chardiff[0] = len[f0] < bytelen ? bytelen-len[f0] : 0;
+		bytelen = strlen(tag[f1].p);
+		chardiff[1] = len[f1] < bytelen ? bytelen-len[f1] : 0;
+
+		/* Two-column format string with added padding for multibyte chars. */
+		snprintf( cfmt, sizeof(cfmt)-1, "%%s:%%-%ds%%-%ds  %%s:%%-%ds%%-%ds\n"
+		,	1+namelen[0]-strlen(name[f0]), climit[0]+chardiff[0]
+		,	1+namelen[1]-strlen(name[f1]), climit[1]+chardiff[1] );
+		/* Actual printout of name and value pairs. */
+		fprintf(out, cfmt, name[f0], " ", tag[f0].p, name[f1], " ", tag[f1].p);
+	}
+	else
+	{
+		print_oneline(out, tag, f0, FALSE);
+		print_oneline(out, tag, f1, FALSE);
+	}
+}
+
+/* Print tags... limiting the UTF-8 to ASCII, if necessary. */
 void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 {
 	char genre_from_v1 = 0;
-	enum { TITLE=0, ARTIST, ALBUM, COMMENT, YEAR, GENRE, FIELDS } ti;
+	enum tagcode ti;
 	mpg123_string tag[FIELDS];
 	size_t len[FIELDS];
 	mpg123_id3v1 *v1;
@@ -218,13 +293,12 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 	{
 		fprintf(out,"\n");
 		/* print id3v2 */
-		/* dammed, I use pointers as bool again! It's so convenient... */
-		fprintf(out,"\tTitle:   %s\n", tag[TITLE].fill ? tag[TITLE].p : "");
-		fprintf(out,"\tArtist:  %s\n", tag[ARTIST].fill ? tag[ARTIST].p : "");
-		fprintf(out,"\tAlbum:   %s\n", tag[ALBUM].fill ? tag[ALBUM].p : "");
-		fprintf(out,"\tYear:    %s\n", tag[YEAR].fill ? tag[YEAR].p : "");
-		fprintf(out,"\tGenre:   %s\n", tag[GENRE].fill ? tag[GENRE].p : "");
-		fprintf(out,"\tComment: %s\n", tag[COMMENT].fill ? tag[COMMENT].p : "");
+		print_oneline(out, tag, TITLE,   TRUE);
+		print_oneline(out, tag, ARTIST,  TRUE);
+		print_oneline(out, tag, ALBUM,   TRUE);
+		print_oneline(out, tag, YEAR,    TRUE);
+		print_oneline(out, tag, GENRE,   TRUE);
+		print_oneline(out, tag, COMMENT, TRUE);
 		fprintf(out,"\n");
 	}
 	else
@@ -233,9 +307,9 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 		   So we will skip tags not set, and try to show them in two parallel
 		   columns if they are short, which is by far the most common case. */
 		int linelimit;
+		/* Overhead is Name + ": " and also plus "  " for right column. */
+		const int overhead[2] = { namelen[0]+2, namelen[1]+4 };
 		int climit[2];
-		const int overhead[2] = { 9, 10 }; /* "Title:   %s  Artist: %s" without the %s. */
-		char cfmt[24]; /* "%-9s%-XXXs  %-8s%-XXXs\n" */
 
 		/* Adapt formatting width to terminal if possible. */
 		linelimit = term_width(fileno(out));
@@ -248,43 +322,16 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 		climit[0] = linelimit-linelimit/2-overhead[1];
 		debug3("linelimits: %i  < %i | %i >", linelimit, climit[0], climit[1]);
 
-		if(climit[0] > 0 && climit[1] > 0)
-			sprintf(cfmt, "%%-9s%%-%ds  %%-8s%%-%ds\n", climit[0], climit[1]);
-		else /* Format will not be used anyway, but play safe. */
+		if(climit[0] <= 0 || climit[1] <= 0)
 		{
+			/* Ensure disabled column printing, no play with signedness in comparisons. */
 			climit[0] = 0;
 			climit[1] = 0;
-			cfmt[0] = 0;
 		}
 		fprintf(out,"\n"); /* Still use one separator line. Too ugly without. */
-		if(  tag[TITLE].fill && tag[ARTIST].fill
-		  && len[TITLE]  <= climit[0] && len[ARTIST] <= climit[1] )
-			fprintf(out, cfmt, "Title:", tag[TITLE].p, "Artist:", tag[ARTIST].p);
-		else
-		{
-			if(tag[TITLE].fill)  fprintf(out,"Title:   %s\n", tag[TITLE].p);
-			if(tag[ARTIST].fill) fprintf(out,"Artist:  %s\n", tag[ARTIST].p);
-		}
-		if(  tag[COMMENT].fill && tag[ALBUM].fill
-		  && len[COMMENT] <= climit[0] && len[ALBUM]   <= climit[1] )
-			fprintf(out, cfmt, "Comment:", tag[COMMENT].p, "Album:", tag[ALBUM].p);
-		else
-		{
-			if(tag[COMMENT].fill)
-				fprintf(out,"Comment: %s\n", tag[COMMENT].p);
-			if(tag[ALBUM].fill)
-				fprintf(out,"Album:   %s\n", tag[ALBUM].p);
-		}
-		if(  tag[YEAR].fill && tag[GENRE].fill
-		  && len[YEAR] <= climit[0] && len[GENRE] <= climit[1] )
-			fprintf(out, cfmt, "Year:", tag[YEAR].p, "Genre:", tag[GENRE].p);
-		else
-		{
-			if(tag[YEAR].fill)
-				fprintf(out,"Year:    %s\n", tag[YEAR].p);
-			if(tag[GENRE].fill)
-				fprintf(out,"Genre:   %s\n", tag[GENRE].p);
-		}
+		print_pair(out, climit, tag, len, TITLE,   ARTIST);
+		print_pair(out, climit, tag, len, COMMENT, ALBUM );
+		print_pair(out, climit, tag, len, YEAR,    GENRE );
 	}
 	for(ti=0; ti<FIELDS; ++ti) mpg123_free_string(&tag[ti]);
 
