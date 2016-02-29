@@ -6,8 +6,7 @@ mpg123 \- play audio MPEG 1.0/2.0/2.5 stream (layers 1, 2 and 3)
 [
 .B options
 ]
-.IR file " ... | " URL " ... | "
-.B \-
+.IR file-or-URL ...
 .SH DESCRIPTION
 .B mpg123
 reads one or more
@@ -136,7 +135,7 @@ plays individual songs more than once.
 \fB\-\^\-no\-icy\-meta
 Do not accept ICY meta data.
 .TP
-\fB\-i, \-\^-\index
+\fB\-i, \-\^-index
 Index / scan through the track before playback.
 This fills the index table for seeking (if enabled in libmpg123) and may make the operating system cache the file contents for smoother operating on playback.
 .TP
@@ -259,7 +258,7 @@ Forces 8bit output
 \fB\-\^\-float
 Forces f32 encoding
 .TP
-\fp\-e \fIenc\fR, \fB\-\^\-encoding \fIenc
+\fB\-e \fIenc\fR, \fB\-\^\-encoding \fIenc
 Choose output sample encoding. Possible values look like f32 (32-bit floating point), s32 (32-bit signed integer), u32 (32-bit unsigned integer) and the variants with different numbers of bits (s24, u24, s16, u16, s8, u8) and also special variants like ulaw and alaw 8-bit.
 See the output of mpg123's longhelp for actually available encodings.
 .TP
@@ -396,7 +395,7 @@ Issue ``help'' to get a full list of commands and syntax.
 Print responses for generic control mode to standard error, not standard out.
 This is automatically triggered when using 
 .B -s
-\fN.
+N.
 .TP
 \fB\-\-fifo \fIpath
 Create a fifo / named pipe on the given path and use that for reading commands instead of standard input.
@@ -564,7 +563,7 @@ Thomas Orgis <maintainer@mpg123.org>, <thomas@orgis.org>
 Original Creator:
 .br
 Michael Hipp
-.TP
+.PP
 Uses code or ideas from various people, see the AUTHORS file accompanying the source code.
 .SH LICENSE
 .B mpg123

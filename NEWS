@@ -1,3 +1,8 @@
+1.23.3:
+-------
+- mpg123: Man page fixes by ESR.
+- TODO: POSIX header stuff (select.h)
+
 1.23.2:
 -------
 - mpg123: Fix compact ID3 tag printing to take UTF-8 character count
