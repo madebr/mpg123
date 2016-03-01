@@ -1,7 +1,8 @@
 1.23.3:
 -------
 - mpg123: Man page fixes by ESR.
-- TODO: POSIX header stuff (select.h)
+- Actually check for sys/select.h (again?) in configure so that it is used.
+  Fixes build on a Cygwin install, at least.
 
 1.23.2:
 -------
