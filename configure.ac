@@ -13,7 +13,7 @@ dnl Increment API_VERSION when the API gets changes (new functions).
 
 dnl libmpg123
 API_VERSION=42
-LIB_PATCHLEVEL=0
+LIB_PATCHLEVEL=1
 
 dnl libout123
 OUTAPI_VERSION=1
@@ -505,16 +505,17 @@ AC_ARG_ENABLE(yasm,
                 fi
               ], [])
 
-# opt-in for IEEE754 floating point action
-# We want to make sure not to apply hacks relying on IEEE754 storage format on platforms where we did not make sure that this actually is valid.
-# It _should_ be fine for about all computers still out there, but we play safe.
-ieee=no
-case $host in
-  i?86-*|x86_64-*|powerpc*|sparc*)
-    ieee=yes
-  ;;
-esac
-if test "x$ieee" = xyes; then
+AC_ARG_ENABLE(ieeefloat,
+  [  --enable-ieeefloat=[yes/no] use special hackery relying on IEEE 754 floating point storage format (to accurately round to 16 bit integer at bit more efficiently in generic decoder, enabled by default, disable in case you have a very special computer) ],
+  [
+    if test "x$enableval" = xyes; then
+      ieee=enabled
+    else
+      ieee=disabled
+    fi
+  ], [ ieee=enabled ])
+
+if test "x$ieee" = xenabled; then
   echo "We assume IEEE754 floating point format."
   AC_DEFINE(IEEE_FLOAT,   1, [ Define to indicate that float storage follows IEEE754. ])
 fi
@@ -2418,6 +2419,7 @@ echo "
   Equalizer ............... $equalizer
   Optimization detail:
   Integer conversion ...... $integers
+  IEEE 754 hackery ........ $ieee
   New/old WRITE_SAMPLE .... $newoldwritesample
   new Huffman scheme ...... $newhuff
 

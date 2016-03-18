@@ -11,6 +11,7 @@
 #include "debug.h"
 
 #include "gapless.h"
+#include "sample.h"
 
 #define SEEKFRAME(mh) ((mh)->ignoreframe < 0 ? 0 : (mh)->ignoreframe)
 
@@ -31,6 +32,15 @@ int attribute_align_arg mpg123_init(void)
 	prepare_decode_tables();
 	check_decoders();
 	initialized = 1;
+#if (defined REAL_IS_FLOAT) && (defined IEEE_FLOAT)
+	/* This is rather pointless but it eases my mind to check that we did
+	   not enable the special rounding on a VAX or something. */
+	if(12346 != REAL_TO_SHORT_ACCURATE(12345.67f))
+	{
+		error("Bad IEEE 754 rounding. Re-build libmpg123 properly.");
+		return MPG123_ERR;
+	}
+#endif
 	return MPG123_OK;
 }
 

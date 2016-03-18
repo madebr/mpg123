@@ -3,6 +3,11 @@
 - mpg123: Man page fixes by ESR.
 - Actually check for sys/select.h (again?) in configure so that it is used.
   Fixes build on a Cygwin install, at least.
+- libmpg123: Always default to enabled IEEE 754 hack for rounding on all
+  platforms, use ./configure --disable-ieeefloat if you do not want it.
+  As a protection for the exotic machine that does not use IEEE floating
+  point storage format, mpg123_init() will error out early if the rounding
+  does not work out.
 
 1.23.2:
 -------
