@@ -9,7 +9,9 @@
 #makenam=src_libout123_modules
 
 # Optionally containing the one static module to use.
+if !HAVE_MODULES
 noinst_LTLIBRARIES += src/libout123/modules/libdefaultmodule.la
+endif
 
 # Do not include uneeded headers from mpg123app.h .
 libout123_mod_cppflags = -DBUILDING_OUTPUT_MODULES=1

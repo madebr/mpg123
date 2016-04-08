@@ -30,8 +30,11 @@ src_libout123_libout123_la_LDFLAGS = \
   -no-undefined -version-info @LIBOUT123_VERSION@ -export-symbols-regex '^out123_'
 
 src_libout123_libout123_la_LIBADD = \
-  src/libout123/libmodule.la \
+  src/libout123/libmodule.la
+if !HAVE_MODULES
+src_libout123_libout123_la_LIBADD += \
   src/libout123/modules/libdefaultmodule.la
+endif
 
 src_libout123_libmodule_la_SOURCES = src/libout123/module.h
  
