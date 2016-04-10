@@ -6,10 +6,10 @@
 	initially written by Michael Hipp
 */
 
+#include "out123_int.h"
+
 #include <sys/ioctl.h>
 #include <fcntl.h>
-
-#include "out123_int.h"
 
 #ifdef HAVE_LINUX_SOUNDCARD_H
 #include <linux/soundcard.h>

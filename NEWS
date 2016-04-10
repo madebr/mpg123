@@ -1,3 +1,13 @@
+1.23.4
+------
+- Build fixes (bugs 227 and 228), another take on libc feature test macros.
+  This helps OSX, mainly.
+- ./configure --enable-nagging does something also without --enable-debug,
+  explictly triggers -std=c89, too.
+- Some fixup to make things work in pedantic C89 mode again.
+  It really might be time to swich on some serious C99 for the next release,
+  since there's a followup standard to _that_ which we can ignore now.
+
 1.23.3:
 -------
 - mpg123: Man page fixes by ESR.

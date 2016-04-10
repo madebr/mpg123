@@ -14,6 +14,8 @@
 	There's always a deadlock. --ThOr
 */
 
+#include "out123_int.h"
+
 #include <math.h>
 
 #include <jack/jack.h>
@@ -24,7 +26,6 @@
 #include <semaphore.h>
 #include <sys/errno.h>
 
-#include "out123_int.h"
 #include "debug.h"
 
 typedef struct {

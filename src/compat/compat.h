@@ -16,9 +16,26 @@
 
 #include "config.h"
 
-/* Needed for strdup(), in strict mode ... */
-#ifndef _XOPEN_SOURCE
-#define _XOPEN_SOURCE 500
+/*
+	It starts with strdup(), gets interesting with MAP_ANON:
+	Trying to enable some API without excluding other parts.
+	Do _not_ just specify POSIX as that _excludes_ API (on
+	some non-glibc platform at least).
+*/
+#define _BSD_SOURCE
+#define _SVID_SOURCE
+/* Glibc replaces the above with the below.
+   Also, it's possibly defined already. */
+#ifndef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE 1
+#endif
+
+/* For --nagging compilation with -std=c89, we need
+   to disable the inline keyword. */
+#ifdef PLAIN_C89
+#ifndef inline
+#define inline
+#endif
 #endif
 
 #include <errno.h>

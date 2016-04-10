@@ -6,6 +6,8 @@
 	initially written by Nicholas J. Humfrey
 */
 
+#include "out123_int.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -13,10 +15,6 @@
 #include <pulse/simple.h>
 #include <pulse/error.h>
 
-#include "config.h"
-#include "out123_int.h"
-#include "audio.h"
-#include "module.h"
 #include "debug.h"
 
 static int open_pulse(out123_handle *ao)

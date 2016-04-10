@@ -6,12 +6,9 @@
 	initially written by Nicholas J. Humfrey
 */
 
-#include <math.h>
-
-#include <portaudio.h>
-
-#include "audio.h"
 #include "out123_int.h"
+#include <math.h>
+#include <portaudio.h>
 
 #ifdef WIN32
 #include <windows.h>

@@ -6,6 +6,8 @@
 	initially written by Juergen Schoew and Tomas Oegren
 */
 
+#include "out123_int.h"
+
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -19,7 +21,6 @@
 #include <sys/stat.h>
 #include <sys/param.h>
 
-#include "out123_int.h"
 #include "debug.h"
 
 /* use AUDIO_BSIZE to set the msec for audio buffering in Ultimedia library

@@ -8,8 +8,6 @@
 */
 
 #include "out123_int.h"
-#include "audio.h"
-#include "module.h"
 #include <errno.h>
 
 /* make ALSA 0.9.x compatible to the 1.0.x API */

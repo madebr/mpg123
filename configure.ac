@@ -8,7 +8,7 @@ dnl Require autoconf version >= 2.57
 AC_PREREQ(2.57)
 
 dnl ############# Initialisation
-AC_INIT([mpg123], [1.23.3], [maintainer@mpg123.org])
+AC_INIT([mpg123], [1.23.4], [maintainer@mpg123.org])
 dnl Increment API_VERSION when the API gets changes (new functions).
 
 dnl libmpg123
@@ -1223,9 +1223,12 @@ if test x"$debugging" = xenabled; then
 	# gcc specific...
 	if test x"$GCC" = xyes; then
 		ADD_CFLAGS="$ADD_CFLAGS -Wall -fno-strict-aliasing"
-		if test x"$nagging" = xenabled; then
-			ADD_CFLAGS="$ADD_CFLAGS -Werror -pedantic -DPLAIN_C89"
-		fi
+	fi
+fi
+# gcc specific...
+if test x"$GCC" = xyes; then
+	if test x"$nagging" = xenabled; then
+		ADD_CFLAGS="$ADD_CFLAGS -Werror -std=c89 -pedantic -DPLAIN_C89"
 	fi
 fi
 

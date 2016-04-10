@@ -6,6 +6,8 @@
 	initially written by Samuel Audet
 */
 
+#include "out123_int.h"
+
 #define INCL_OS2MM
 #define INCL_DOS
 #define INCL_VIO
@@ -15,10 +17,6 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-/* I guess this #ifndef could be removed now... */
-#ifndef MPG123_INCLUDED
-#include "out123_int.h"
-#endif
 #include "debug.h"
 
 /* complementary audio parameters */

@@ -8,8 +8,6 @@
 */
 
 #include "out123_int.h"
-#include "audio.h"
-#include "module.h"
 #include <errno.h>
 
 #include <stdint.h>

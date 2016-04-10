@@ -6,12 +6,11 @@
 	initially written by Nicholas J. Humfrey
 */
 
+#include "out123_int.h"
 #include <math.h>
 
 #include <SDL.h>
 
-#include "audio.h"
-#include "out123_int.h"
 #ifdef WIN32
 #include <windows.h>
 #endif

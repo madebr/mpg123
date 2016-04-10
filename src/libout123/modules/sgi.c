@@ -6,11 +6,9 @@
 	initially written (as it seems) by Thomas Woerner
 */
 
-#include <fcntl.h>
-
-#include <dmedia/audio.h>
-
 #include "out123_int.h"
+#include <fcntl.h>
+#include <dmedia/audio.h>
 #include "errno.h"
 #include "debug.h"
 
