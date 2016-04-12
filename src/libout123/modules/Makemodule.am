@@ -38,7 +38,9 @@ libout123_mod_cppflags = -DBUILDING_OUTPUT_MODULES=1
 #  -export-dynamic  -export-symbols-regex '"'"'^mpg123_'"'"' \\
 #  \@${big}_LDFLAGS\@
 #src_libout123_modules_output_${_}_la_CFLAGS   = \@${big}_CFLAGS\@
-#src_libout123_modules_output_${_}_la_LIBADD   = \@${big}_LIBS\@
+#src_libout123_modules_output_${_}_la_LIBADD   = \\
+#  src/compat/libcompat_str.la \\
+#  \@${big}_LIBS\@
 #src_libout123_modules_outout_${_}_la_CPPFLAGS = \\
 #  \$(AM_CPPFLAGS) \\
 #  \$(libout123_mod_cppflags)
@@ -58,6 +60,7 @@ libout123_mod_cppflags = -DBUILDING_OUTPUT_MODULES=1
 #EOT
 #'
 
+
 if HAVE_MODULES
 if HAVE_DUMMY
 pkglib_LTLIBRARIES += src/libout123/modules/output_dummy.la
@@ -68,7 +71,9 @@ src_libout123_modules_output_dummy_la_LDFLAGS = \
   -export-dynamic  -export-symbols-regex '^mpg123_' \
   @DUMMY_LDFLAGS@
 src_libout123_modules_output_dummy_la_CFLAGS   = @DUMMY_CFLAGS@
-src_libout123_modules_output_dummy_la_LIBADD   = @DUMMY_LIBS@
+src_libout123_modules_output_dummy_la_LIBADD   = \
+  src/compat/libcompat_str.la \
+  @DUMMY_LIBS@
 src_libout123_modules_outout_dummy_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   $(libout123_mod_cppflags)
@@ -96,7 +101,9 @@ src_libout123_modules_output_tinyalsa_la_LDFLAGS = \
   -export-dynamic  -export-symbols-regex '^mpg123_' \
   @TINYALSA_LDFLAGS@
 src_libout123_modules_output_tinyalsa_la_CFLAGS   = @TINYALSA_CFLAGS@
-src_libout123_modules_output_tinyalsa_la_LIBADD   = @TINYALSA_LIBS@
+src_libout123_modules_output_tinyalsa_la_LIBADD   = \
+  src/compat/libcompat_str.la \
+  @TINYALSA_LIBS@
 src_libout123_modules_outout_tinyalsa_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   $(libout123_mod_cppflags)
@@ -124,7 +131,9 @@ src_libout123_modules_output_alsa_la_LDFLAGS = \
   -export-dynamic  -export-symbols-regex '^mpg123_' \
   @ALSA_LDFLAGS@
 src_libout123_modules_output_alsa_la_CFLAGS   = @ALSA_CFLAGS@
-src_libout123_modules_output_alsa_la_LIBADD   = @ALSA_LIBS@
+src_libout123_modules_output_alsa_la_LIBADD   = \
+  src/compat/libcompat_str.la \
+  @ALSA_LIBS@
 src_libout123_modules_outout_alsa_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   $(libout123_mod_cppflags)
@@ -152,7 +161,9 @@ src_libout123_modules_output_qsa_la_LDFLAGS = \
   -export-dynamic  -export-symbols-regex '^mpg123_' \
   @QSA_LDFLAGS@
 src_libout123_modules_output_qsa_la_CFLAGS   = @QSA_CFLAGS@
-src_libout123_modules_output_qsa_la_LIBADD   = @QSA_LIBS@
+src_libout123_modules_output_qsa_la_LIBADD   = \
+  src/compat/libcompat_str.la \
+  @QSA_LIBS@
 src_libout123_modules_outout_qsa_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   $(libout123_mod_cppflags)
@@ -180,7 +191,9 @@ src_libout123_modules_output_coreaudio_la_LDFLAGS = \
   -export-dynamic  -export-symbols-regex '^mpg123_' \
   @COREAUDIO_LDFLAGS@
 src_libout123_modules_output_coreaudio_la_CFLAGS   = @COREAUDIO_CFLAGS@
-src_libout123_modules_output_coreaudio_la_LIBADD   = @COREAUDIO_LIBS@
+src_libout123_modules_output_coreaudio_la_LIBADD   = \
+  src/compat/libcompat_str.la \
+  @COREAUDIO_LIBS@
 src_libout123_modules_outout_coreaudio_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   $(libout123_mod_cppflags)
@@ -208,7 +221,9 @@ src_libout123_modules_output_esd_la_LDFLAGS = \
   -export-dynamic  -export-symbols-regex '^mpg123_' \
   @ESD_LDFLAGS@
 src_libout123_modules_output_esd_la_CFLAGS   = @ESD_CFLAGS@
-src_libout123_modules_output_esd_la_LIBADD   = @ESD_LIBS@
+src_libout123_modules_output_esd_la_LIBADD   = \
+  src/compat/libcompat_str.la \
+  @ESD_LIBS@
 src_libout123_modules_outout_esd_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   $(libout123_mod_cppflags)
@@ -236,7 +251,9 @@ src_libout123_modules_output_jack_la_LDFLAGS = \
   -export-dynamic  -export-symbols-regex '^mpg123_' \
   @JACK_LDFLAGS@
 src_libout123_modules_output_jack_la_CFLAGS   = @JACK_CFLAGS@
-src_libout123_modules_output_jack_la_LIBADD   = @JACK_LIBS@
+src_libout123_modules_output_jack_la_LIBADD   = \
+  src/compat/libcompat_str.la \
+  @JACK_LIBS@
 src_libout123_modules_outout_jack_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   $(libout123_mod_cppflags)
@@ -264,7 +281,9 @@ src_libout123_modules_output_nas_la_LDFLAGS = \
   -export-dynamic  -export-symbols-regex '^mpg123_' \
   @NAS_LDFLAGS@
 src_libout123_modules_output_nas_la_CFLAGS   = @NAS_CFLAGS@
-src_libout123_modules_output_nas_la_LIBADD   = @NAS_LIBS@
+src_libout123_modules_output_nas_la_LIBADD   = \
+  src/compat/libcompat_str.la \
+  @NAS_LIBS@
 src_libout123_modules_outout_nas_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   $(libout123_mod_cppflags)
@@ -292,7 +311,9 @@ src_libout123_modules_output_oss_la_LDFLAGS = \
   -export-dynamic  -export-symbols-regex '^mpg123_' \
   @OSS_LDFLAGS@
 src_libout123_modules_output_oss_la_CFLAGS   = @OSS_CFLAGS@
-src_libout123_modules_output_oss_la_LIBADD   = @OSS_LIBS@
+src_libout123_modules_output_oss_la_LIBADD   = \
+  src/compat/libcompat_str.la \
+  @OSS_LIBS@
 src_libout123_modules_outout_oss_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   $(libout123_mod_cppflags)
@@ -320,7 +341,9 @@ src_libout123_modules_output_portaudio_la_LDFLAGS = \
   -export-dynamic  -export-symbols-regex '^mpg123_' \
   @PORTAUDIO_LDFLAGS@
 src_libout123_modules_output_portaudio_la_CFLAGS   = @PORTAUDIO_CFLAGS@
-src_libout123_modules_output_portaudio_la_LIBADD   = @PORTAUDIO_LIBS@
+src_libout123_modules_output_portaudio_la_LIBADD   = \
+  src/compat/libcompat_str.la \
+  @PORTAUDIO_LIBS@
 src_libout123_modules_outout_portaudio_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   $(libout123_mod_cppflags)
@@ -348,7 +371,9 @@ src_libout123_modules_output_pulse_la_LDFLAGS = \
   -export-dynamic  -export-symbols-regex '^mpg123_' \
   @PULSE_LDFLAGS@
 src_libout123_modules_output_pulse_la_CFLAGS   = @PULSE_CFLAGS@
-src_libout123_modules_output_pulse_la_LIBADD   = @PULSE_LIBS@
+src_libout123_modules_output_pulse_la_LIBADD   = \
+  src/compat/libcompat_str.la \
+  @PULSE_LIBS@
 src_libout123_modules_outout_pulse_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   $(libout123_mod_cppflags)
@@ -376,7 +401,9 @@ src_libout123_modules_output_sdl_la_LDFLAGS = \
   -export-dynamic  -export-symbols-regex '^mpg123_' \
   @SDL_LDFLAGS@
 src_libout123_modules_output_sdl_la_CFLAGS   = @SDL_CFLAGS@
-src_libout123_modules_output_sdl_la_LIBADD   = @SDL_LIBS@
+src_libout123_modules_output_sdl_la_LIBADD   = \
+  src/compat/libcompat_str.la \
+  @SDL_LIBS@
 src_libout123_modules_outout_sdl_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   $(libout123_mod_cppflags)
@@ -404,7 +431,9 @@ src_libout123_modules_output_sndio_la_LDFLAGS = \
   -export-dynamic  -export-symbols-regex '^mpg123_' \
   @SNDIO_LDFLAGS@
 src_libout123_modules_output_sndio_la_CFLAGS   = @SNDIO_CFLAGS@
-src_libout123_modules_output_sndio_la_LIBADD   = @SNDIO_LIBS@
+src_libout123_modules_output_sndio_la_LIBADD   = \
+  src/compat/libcompat_str.la \
+  @SNDIO_LIBS@
 src_libout123_modules_outout_sndio_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   $(libout123_mod_cppflags)
@@ -432,7 +461,9 @@ src_libout123_modules_output_sun_la_LDFLAGS = \
   -export-dynamic  -export-symbols-regex '^mpg123_' \
   @SUN_LDFLAGS@
 src_libout123_modules_output_sun_la_CFLAGS   = @SUN_CFLAGS@
-src_libout123_modules_output_sun_la_LIBADD   = @SUN_LIBS@
+src_libout123_modules_output_sun_la_LIBADD   = \
+  src/compat/libcompat_str.la \
+  @SUN_LIBS@
 src_libout123_modules_outout_sun_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   $(libout123_mod_cppflags)
@@ -460,7 +491,9 @@ src_libout123_modules_output_win32_la_LDFLAGS = \
   -export-dynamic  -export-symbols-regex '^mpg123_' \
   @WIN32_LDFLAGS@
 src_libout123_modules_output_win32_la_CFLAGS   = @WIN32_CFLAGS@
-src_libout123_modules_output_win32_la_LIBADD   = @WIN32_LIBS@
+src_libout123_modules_output_win32_la_LIBADD   = \
+  src/compat/libcompat_str.la \
+  @WIN32_LIBS@
 src_libout123_modules_outout_win32_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   $(libout123_mod_cppflags)
@@ -488,7 +521,9 @@ src_libout123_modules_output_win32_wasapi_la_LDFLAGS = \
   -export-dynamic  -export-symbols-regex '^mpg123_' \
   @WIN32_WASAPI_LDFLAGS@
 src_libout123_modules_output_win32_wasapi_la_CFLAGS   = @WIN32_WASAPI_CFLAGS@
-src_libout123_modules_output_win32_wasapi_la_LIBADD   = @WIN32_WASAPI_LIBS@
+src_libout123_modules_output_win32_wasapi_la_LIBADD   = \
+  src/compat/libcompat_str.la \
+  @WIN32_WASAPI_LIBS@
 src_libout123_modules_outout_win32_wasapi_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   $(libout123_mod_cppflags)
@@ -516,7 +551,9 @@ src_libout123_modules_output_aix_la_LDFLAGS = \
   -export-dynamic  -export-symbols-regex '^mpg123_' \
   @AIX_LDFLAGS@
 src_libout123_modules_output_aix_la_CFLAGS   = @AIX_CFLAGS@
-src_libout123_modules_output_aix_la_LIBADD   = @AIX_LIBS@
+src_libout123_modules_output_aix_la_LIBADD   = \
+  src/compat/libcompat_str.la \
+  @AIX_LIBS@
 src_libout123_modules_outout_aix_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   $(libout123_mod_cppflags)
@@ -544,7 +581,9 @@ src_libout123_modules_output_alib_la_LDFLAGS = \
   -export-dynamic  -export-symbols-regex '^mpg123_' \
   @ALIB_LDFLAGS@
 src_libout123_modules_output_alib_la_CFLAGS   = @ALIB_CFLAGS@
-src_libout123_modules_output_alib_la_LIBADD   = @ALIB_LIBS@
+src_libout123_modules_output_alib_la_LIBADD   = \
+  src/compat/libcompat_str.la \
+  @ALIB_LIBS@
 src_libout123_modules_outout_alib_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   $(libout123_mod_cppflags)
@@ -572,7 +611,9 @@ src_libout123_modules_output_arts_la_LDFLAGS = \
   -export-dynamic  -export-symbols-regex '^mpg123_' \
   @ARTS_LDFLAGS@
 src_libout123_modules_output_arts_la_CFLAGS   = @ARTS_CFLAGS@
-src_libout123_modules_output_arts_la_LIBADD   = @ARTS_LIBS@
+src_libout123_modules_output_arts_la_LIBADD   = \
+  src/compat/libcompat_str.la \
+  @ARTS_LIBS@
 src_libout123_modules_outout_arts_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   $(libout123_mod_cppflags)
@@ -600,7 +641,9 @@ src_libout123_modules_output_hp_la_LDFLAGS = \
   -export-dynamic  -export-symbols-regex '^mpg123_' \
   @HP_LDFLAGS@
 src_libout123_modules_output_hp_la_CFLAGS   = @HP_CFLAGS@
-src_libout123_modules_output_hp_la_LIBADD   = @HP_LIBS@
+src_libout123_modules_output_hp_la_LIBADD   = \
+  src/compat/libcompat_str.la \
+  @HP_LIBS@
 src_libout123_modules_outout_hp_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   $(libout123_mod_cppflags)
@@ -628,7 +671,9 @@ src_libout123_modules_output_os2_la_LDFLAGS = \
   -export-dynamic  -export-symbols-regex '^mpg123_' \
   @OS2_LDFLAGS@
 src_libout123_modules_output_os2_la_CFLAGS   = @OS2_CFLAGS@
-src_libout123_modules_output_os2_la_LIBADD   = @OS2_LIBS@
+src_libout123_modules_output_os2_la_LIBADD   = \
+  src/compat/libcompat_str.la \
+  @OS2_LIBS@
 src_libout123_modules_outout_os2_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   $(libout123_mod_cppflags)
@@ -656,7 +701,9 @@ src_libout123_modules_output_sgi_la_LDFLAGS = \
   -export-dynamic  -export-symbols-regex '^mpg123_' \
   @SGI_LDFLAGS@
 src_libout123_modules_output_sgi_la_CFLAGS   = @SGI_CFLAGS@
-src_libout123_modules_output_sgi_la_LIBADD   = @SGI_LIBS@
+src_libout123_modules_output_sgi_la_LIBADD   = \
+  src/compat/libcompat_str.la \
+  @SGI_LIBS@
 src_libout123_modules_outout_sgi_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   $(libout123_mod_cppflags)
@@ -684,7 +731,9 @@ src_libout123_modules_output_mint_la_LDFLAGS = \
   -export-dynamic  -export-symbols-regex '^mpg123_' \
   @MINT_LDFLAGS@
 src_libout123_modules_output_mint_la_CFLAGS   = @MINT_CFLAGS@
-src_libout123_modules_output_mint_la_LIBADD   = @MINT_LIBS@
+src_libout123_modules_output_mint_la_LIBADD   = \
+  src/compat/libcompat_str.la \
+  @MINT_LIBS@
 src_libout123_modules_outout_mint_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   $(libout123_mod_cppflags)
@@ -712,7 +761,9 @@ src_libout123_modules_output_openal_la_LDFLAGS = \
   -export-dynamic  -export-symbols-regex '^mpg123_' \
   @OPENAL_LDFLAGS@
 src_libout123_modules_output_openal_la_CFLAGS   = @OPENAL_CFLAGS@
-src_libout123_modules_output_openal_la_LIBADD   = @OPENAL_LIBS@
+src_libout123_modules_output_openal_la_LIBADD   = \
+  src/compat/libcompat_str.la \
+  @OPENAL_LIBS@
 src_libout123_modules_outout_openal_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   $(libout123_mod_cppflags)
@@ -729,6 +780,3 @@ src_libout123_modules_libdefaultmodule_la_CPPFLAGS = \
   $(libout123_mod_cppflags)
 endif
 endif
-
-
-

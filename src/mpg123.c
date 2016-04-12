@@ -963,7 +963,7 @@ int main(int sys_argc, char ** sys_argv)
 	win32_net_init();
 #endif
 
-	if(!(fullprogname = strdup(argv[0])))
+	if(!(fullprogname = compat_strdup(argv[0])))
 	{
 		error("OOM"); /* Out Of Memory. Don't waste bytes on that error. */
 		safe_exit(1);

@@ -74,10 +74,10 @@ int list_modules(const char *type, char ***names, char ***descr, int verbose)
 	if(
 		(*names=malloc(sizeof(char*)))
 	&&	!((*names)[0]=NULL) /* for safe cleanup */
-	&&	((*names)[0]=strdup(mpg123_output_module_info.name))
+	&&	((*names)[0]=compat_strdup(mpg123_output_module_info.name))
 	&&	(*descr=malloc(sizeof(char*)))
 	&&	!((*descr)[0]=NULL) /* for safe cleanup */
-	&& ((*descr)[0]=strdup(mpg123_output_module_info.description))
+	&& ((*descr)[0]=compat_strdup(mpg123_output_module_info.description))
 	)
 		return 1;
 	else

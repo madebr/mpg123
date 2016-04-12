@@ -15,20 +15,7 @@
 #define MPG123_COMPAT_H
 
 #include "config.h"
-
-/*
-	It starts with strdup(), gets interesting with MAP_ANON:
-	Trying to enable some API without excluding other parts.
-	Do _not_ just specify POSIX as that _excludes_ API (on
-	some non-glibc platform at least).
-*/
-#define _BSD_SOURCE
-#define _SVID_SOURCE
-/* Glibc replaces the above with the below.
-   Also, it's possibly defined already. */
-#ifndef _DEFAULT_SOURCE
-#define _DEFAULT_SOURCE 1
-#endif
+#include "intsym.h"
 
 /* For --nagging compilation with -std=c89, we need
    to disable the inline keyword. */
@@ -124,9 +111,9 @@ void *safe_realloc(void *ptr, size_t size);
 const char *strerror(int errnum);
 #endif
 
-#ifndef HAVE_STRDUP
-char *strdup(const char *s);
-#endif
+/* Roll our own strdup() that does not depend on libc feature test macros
+   and returns NULL on NULL input instead of crashing. */
+char* compat_strdup(const char *s);
 
 /* If we have the size checks enabled, try to derive some sane printfs.
    Simple start: Use max integer type and format if long is not big enough.
@@ -164,6 +151,10 @@ typedef long ssize_p;
  */
 int compat_open(const char *filename, int flags);
 FILE* compat_fopen(const char *filename, const char *mode);
+/**
+ * Also fdopen to avoid having to define POSIX macros in various source files.
+ */
+FILE* compat_fdopen(int fd, const char *mode);
 
 /**
  * Closing a file handle can be platform specific.

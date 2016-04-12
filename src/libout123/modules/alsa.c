@@ -7,6 +7,13 @@
 	initially written by Clemens Ladisch <clemens@ladisch.de>
 */
 
+/* ALSA headers define struct timeval if no POSIX macro is set,
+   nicely in conflict with definitions in system headers. They had
+   a discussion about that a long time ago:
+     http://mailman.alsa-project.org/pipermail/alsa-devel/2007-June/001684.html
+   ... seems like the conclusion was not carried through.
+ */
+#define _POSIX_SOURCE
 #include "out123_int.h"
 #include <errno.h>
 

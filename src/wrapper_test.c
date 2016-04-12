@@ -50,8 +50,8 @@ if(waitpid(pid, &retval, WNOHANG) == 0 )
 	fcntl(dec_stdin[1], F_SETFD, FD_CLOEXEC); //close on exec (after forking)
 	fcntl(dec_err[0], F_SETFD, FD_CLOEXEC); //close on exec (after forking)
 
-	status  = fdopen(dec_err[0],"r"); /* the responses or errors */
-	control = fdopen(dec_stdin[1],"a"); /* here we can dump orders */
+	status  = compat_fdopen(dec_err[0],"r"); /* the responses or errors */
+	control = compat_fdopen(dec_stdin[1],"a"); /* here we can dump orders */
 
 	/* Read and write lines of commands ... a bit of buffering makes sense for that. */
 	setlinebuf(control);

@@ -10,7 +10,7 @@
 #define _MPG123_OUT123_INT_H_
 
 #include "config.h"
-#include "out123_intsym.h"
+#include "intsym.h"
 #include "abi_align.h"
 #include "compat.h"
 #include "out123.h"

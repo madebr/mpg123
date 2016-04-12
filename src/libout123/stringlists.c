@@ -10,7 +10,6 @@
 	functions just for returning driver module lists.
 */
 
-#include "out123_intsym.h"
 #include "compat.h"
 
 /* Construction helper for paired string lists.
@@ -34,8 +33,8 @@ int stringlists_add( char ***alist, char ***blist
 		return -1;
 
 	if(
-		(atextcopy = strdup(atext))
-	&&	(btextcopy = strdup(btext))
+		(atextcopy = compat_strdup(atext))
+	&&	(btextcopy = compat_strdup(btext))
 	)
 	{
 		(*alist)[*count] = atextcopy;

@@ -8,22 +8,33 @@ my @instances =
 (
 {	name => 'intsym.h'
 ,	guard => 'MPG123_INTSYM_H'
-,	dir => 'src/libmpg123'
-,	headers => [qw(../compat/compat decode dither frame getbits getcpuflags huffman icy2utf8 icy id3 index mpg123lib_intern optimize parse reader)]
+,	dir => 'src'
+,	headers => [qw(
+		compat/compat
+		libmpg123/decode
+		libmpg123/dither
+		libmpg123/frame
+		libmpg123/getbits
+		libmpg123/getcpuflags 
+		libmpg123/huffman
+		libmpg123/icy2utf8
+		libmpg123/icy
+		libmpg123/id3
+		libmpg123/index
+		libmpg123/mpg123lib_intern
+		libmpg123/optimize
+		libmpg123/parse
+		libmpg123/reader
+		libout123/module
+		libout123/buffer
+		libout123/xfermem
+		libout123/wav
+		libout123/out123_int
+	)]
 ,	prefix => 'INT123_'
-,	apiprefix => 'mpg123_'
-,	conditional => { strerror=>'HAVE_STRERROR', strdup=>'HAVE_STRDUP' }
+,	apiprefix => 'mpg123_|out123_'
+,	conditional => { strerror=>'HAVE_STRERROR' }
 ,	symbols => [qw(COS9 tfcos36 pnts)] # extra symbols
-}
-,
-{ name => 'out123_intsym.h'
-, guard => 'OUT123_INTSYM_H'
-, dir => 'src/libout123'
-, headers => [qw(../compat/compat module buffer xfermem wav out123_int)]
-, prefix => 'IOT123_'
-, apiprefix => 'out123_|audio_|output_'
-, conditional => { strerror=>'HAVE_STRERROR', strdup=>'HAVE_STRDUP' }
-, symbols => [qw(catchsignal)] # extra symbols
 }
 );
 

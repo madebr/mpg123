@@ -305,7 +305,7 @@ static int connect_jack_ports(out123_handle *ao
 				++wish_channels;
 		debug1("wish_channels: %i", wish_channels);
 		wishlist = malloc(sizeof(char*)*(wish_channels+1));
-		devcopy = strdup(ao->device);
+		devcopy = compat_strdup(ao->device);
 		if(devcopy == NULL || wishlist == NULL)
 		{
 			if(devcopy)
@@ -522,7 +522,7 @@ static int open_jack(out123_handle *ao)
 	}
 
 	debug("Jack open successful.\n");
-	ao->realname = strdup(realname);
+	ao->realname = compat_strdup(realname);
 	return 0;
 }
 

@@ -321,7 +321,7 @@ static void store_pictures(const char* prefix, mpg123_id3v2 *v2)
 		fd = open_picfile(prefix, pic);
 		if(fd >= 0)
 		{ /* stream I/O for not having to care about interruptions */
-			FILE* picfile = fdopen(fd, "w");
+			FILE* picfile = compat_fdopen(fd, "w");
 			if(picfile)
 			{
 				if(fwrite(pic->data, pic->size, 1, picfile) != 1)

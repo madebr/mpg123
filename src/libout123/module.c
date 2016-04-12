@@ -7,7 +7,7 @@
 */
 
 #include "config.h"
-#include "out123_intsym.h"
+#include "intsym.h"
 #include "stringlists.h"
 #include "compat.h"
 #include <dirent.h>
@@ -321,7 +321,7 @@ int list_modules(const char *type, char ***names, char ***descr, int verbose)
 		debug("has suffix");
 
 		/* Extract the module type and name */
-		if(!(module_typename=strdup(dp->d_name)))
+		if(!(module_typename=compat_strdup(dp->d_name)))
 			continue;
 		uscore_pos = strchr( module_typename, '_' );
 		if(   uscore_pos==NULL

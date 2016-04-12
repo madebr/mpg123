@@ -277,7 +277,7 @@ int add_next_file (int argc, char *argv[])
 				{
 					pl.entry = 0;
 #ifndef WANT_WIN32_SOCKETS
-					pl.file = fdopen(fd,"r");
+					pl.file = compat_fdopen(fd,"r");
 #else
 					pl.sockd = fd;
 #endif

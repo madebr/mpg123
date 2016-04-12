@@ -10,7 +10,6 @@
 */
 
 #include "config.h"
-#include "out123_intsym.h"
 #include "compat.h"
 #include "xfermem.h"
 #include <string.h>

@@ -83,7 +83,7 @@ out123_handle* attribute_align_arg out123_new(void)
 #endif
 
 	out123_clear_module(ao);
-	ao->name = strdup(default_name);
+	ao->name = compat_strdup(default_name);
 	ao->realname = NULL;
 	ao->driver = NULL;
 	ao->device = NULL;
@@ -225,7 +225,7 @@ out123_param( out123_handle *ao, enum out123_parms code
 		case OUT123_NAME:
 			if(ao->name)
 				free(ao->name);
-			ao->name = strdup(svalue ? svalue : default_name);
+			ao->name = compat_strdup(svalue ? svalue : default_name);
 		break;
 		default:
 			ao->errcode = OUT123_BAD_PARAM;
@@ -388,13 +388,13 @@ out123_open(out123_handle *ao, const char* driver, const char* device)
 
 		/* It is ridiculous how these error messages are larger than the pieces
 		   of memory they are about! */
-		if(device && !(ao->device = strdup(device)))
+		if(device && !(ao->device = compat_strdup(device)))
 		{
 			if(!AOQUIET) error("OOM device name copy");
 			return out123_seterr(ao, OUT123_DOOM);
 		}
 
-		if(!(modnames = strdup(names)))
+		if(!(modnames = compat_strdup(names)))
 		{
 			out123_close(ao); /* Frees ao->device, too. */
 			if(!AOQUIET) error("OOM driver names");
@@ -413,7 +413,7 @@ out123_open(out123_handle *ao, const char* driver, const char* device)
 				if(AOVERBOSE(2))
 					fprintf(stderr, "Chosen output module: %s\n", curname);
 				/* A bit redundant, but useful when it's a fake module. */
-				if(!(ao->driver = strdup(curname)))
+				if(!(ao->driver = compat_strdup(curname)))
 				{
 					out123_close(ao);
 					if(!AOQUIET) error("OOM driver name");

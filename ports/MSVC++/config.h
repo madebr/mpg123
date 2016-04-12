@@ -1,6 +1,5 @@
 #define strcasecmp _strcmpi
 #define strncasecmp _strnicmp
-#define strdup _strdup
 
 #define HAVE_STRERROR 1
 #define HAVE_SYS_TYPES_H 1
