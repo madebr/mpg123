@@ -1,7 +1,15 @@
+TODO: Fix abysmal performance of sfifo-based outputs.
+
 1.23.4
 ------
-- libout123: Actually make OUT123_KEEP_PLAYING on by default, as documented.
-- mpg123, out123: Actually use the default output flags.
+- libout123:
+-- Actually make OUT123_KEEP_PLAYING on by default, as documented.
+-- Fix buffer logic with regard to draining, use common device writing
+   code to handle resuming from pause. This fixes sdl output with buffer,
+   possibly other sfifo-based outputs like CoreAudio (those were poorly
+   tested with buffer, as the combination is indeed unusual).
+-- Buffer pauses devices for prebuffering, to avoid underruns.
+- mpg123, out123: Use the default output flags to get OUT123_KEEP_PLAYING.
   Without this, there is a good chance to abort on SIGSTOP/CONT while playing.
   This is a regression from 1.22 .
 - Build fixes (bugs 227 and 228) and some build system hackery.

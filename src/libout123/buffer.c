@@ -457,13 +457,12 @@ static size_t preload_size(out123_handle *ao)
 
 /* Play one piece of audio from the buffer after settling preload etc.
    On error, the device is closed and this naturally stops playback
-   as that depends on ao->state == play_live.
+   as that depends on ao->state == play_live. 
    This plays _at_ _most_ the given amount of bytes, usually less. */
 static void buffer_play(out123_handle *ao, size_t bytes)
 {
-	int written;
+	size_t written;
 	txfermem *xf = ao->buffermem;
-
 	/* Settle amount of bytes accessible in one block. */
 	if (bytes > xf->size - xf->readindex)
 		bytes = xf->size - xf->readindex;
@@ -472,21 +471,13 @@ static void buffer_play(out123_handle *ao, size_t bytes)
 		bytes = outburst;
 	/* The output can only take multiples of framesize. */
 	bytes -= bytes % ao->framesize;
-	/* Now do a normal ao->write(), with interruptions by signals
-		being expected. */
-	errno = 0;
-	written = ao->write(ao, (unsigned char*)xf->data+xf->readindex, (int)bytes);
-	debug2("buffer wrote %i B / %i B to device", written, (int)bytes);
-	if(written >= 0)
-		/* Advance read pointer by the amount of written bytes. */
-		xf->readindex = (xf->readindex + written) % xf->size;
-	else if(errno != EINTR)
-	{
-		ao->errcode = OUT123_DEV_PLAY;
-		if(!(ao->flags & OUT123_QUIET))
-			error1("Error in writing audio (%s?)!", strerror(errno));
+	/* Actual work by out123_play to ensure logic like automatic continue. */
+	written = out123_play(ao, (unsigned char*)xf->data+xf->readindex, bytes);
+	/* Advance read pointer by the amount of written bytes. */
+	xf->readindex = (xf->readindex + written) % xf->size;
+	/* Detect a fatal error by proxy. */
+	if(ao->errcode == OUT123_DEV_PLAY)
 		out123_close(ao);
-	}
 }
 
 /* Now I'm getting really paranoid: Helper to skip bytes from command
@@ -599,7 +590,14 @@ int buffer_loop(out123_handle *ao)
 	txfermem *xf = ao->buffermem;
 	int my_fd = xf->fd[XF_READER];
 	int preloading = FALSE;
+	int draining = FALSE;
+	/* The buffer loop maintains a playback state that can differ from
+	   the underlying device's. During prebuffering, the device is paused,
+	   but we are playing (as soon as enough data is there, the device is,
+	   too). */
+	enum playstate mystate = ao->state;
 
+	ao->flags &= ~OUT123_KEEP_PLAYING; /* No need for that here. */
 	/* Be prepared to use SIGINT for communication. */
 	catchsignal (SIGINT, catch_interrupt);
 	/* sigprocmask (SIG_SETMASK, oldsigset, NULL); */
@@ -610,24 +608,30 @@ int buffer_loop(out123_handle *ao)
 	while(1)
 	{
 		/* If a device is opened and playing, it is our first duty to keep it playing. */
-		if(ao->state == play_live)
+		if(mystate == play_live)
 		{
 			size_t bytes = xfermem_get_usedspace(xf);
-			debug2( "Play or preload? Got %"SIZE_P" B / %"SIZE_P" B."
-			,	(size_p)bytes, (size_p)preload_size(ao) );
+			debug4( "Play or preload? Got %"SIZE_P" B / %"SIZE_P" B (%i,%i)."
+			,	(size_p)bytes, (size_p)preload_size(ao), preloading, draining );
 			if(preloading)
 				preloading = (bytes < preload_size(ao));
 			if(!preloading)
 			{
-				if(bytes < outburst)
+				if(!draining && bytes < outburst)
 					preloading = TRUE;
 				else
+				{
 					buffer_play(ao, bytes);
+					mystate = ao->state; /* Maybe changed, must be in sync now. */
+				}
 			}
+			/* Be nice and pause the device on preloading. */
+			if(preloading && ao->state == play_live)
+				out123_pause(ao);
 		}
 		/* Now always check for a pending command, in a blocking way if there is
 		   no playback. */
-		debug1("Buffer cmd? (Interruped: %i)", intflag);
+		debug2("Buffer cmd? (Interruped: %i) (mystate=%i)", intflag, (int)mystate);
 		/*
 			The writer only ever signals before sending a command and also waiting
 			for a response. So, the right place to reset the flag is any time
@@ -645,7 +649,7 @@ int buffer_loop(out123_handle *ao)
 			int i;
 
 			cmdcount = xfermem_getcmds( my_fd
-			,	(preloading || intflag || (ao->state != play_live))
+			,	(preloading || intflag || (mystate != play_live))
 			,	cmd
 			,	sizeof(cmd) );
 			if(cmdcount < 0)
@@ -669,12 +673,17 @@ int buffer_loop(out123_handle *ao)
 	!read_buf(my_fd, &val, sizeof(val), cmd, &i, cmdcount)
 				case XF_CMD_DATA:
 					debug("got new data");
+					/* Other states should not happen. */
+					if(mystate = play_paused)
+						mystate = play_live;
+					/* When new data arrives, we are obviously not draining. */
+					draining = FALSE;
 				break;
 				case XF_CMD_PING:
 					intflag = FALSE;
 					/* Expecting ping-pong only while playing! Otherwise, the writer
 					   could get stuck waiting for free space forever. */
-					if(ao->state == play_live)
+					if(mystate == play_live)
 						xfermem_putcmd(my_fd, XF_CMD_PONG);
 					else
 					{
@@ -690,6 +699,7 @@ int buffer_loop(out123_handle *ao)
 					/* If that does not work, communication is broken anyway and
 					   writer will notice soon enough. */
 					read_parameters(ao, XF_READER, cmd, &i, cmdcount);
+					ao->flags &= ~OUT123_KEEP_PLAYING; /* No need for that here. */
 					xfermem_putcmd(my_fd, XF_CMD_OK);
 				break;
 				case BUF_CMD_OPEN:
@@ -708,6 +718,8 @@ int buffer_loop(out123_handle *ao)
 					);
 					free(device);
 					free(driver);
+					draining = FALSE;
+					mystate = ao->state;
 					if(success)
 					{
 						xfermem_putcmd(my_fd, XF_CMD_OK);
@@ -729,6 +741,8 @@ int buffer_loop(out123_handle *ao)
 				case BUF_CMD_CLOSE:
 					intflag = FALSE;
 					out123_close(ao);
+					draining = FALSE;
+					mystate = ao->state;
 					xfermem_putcmd(my_fd, XF_CMD_OK);
 				break;
 				case BUF_CMD_AUDIOCAP:
@@ -742,6 +756,7 @@ int buffer_loop(out123_handle *ao)
 					)
 						return 2;
 					encodings = out123_encodings(ao, ao->rate, ao->channels);
+					mystate = ao->state;
 					if(encodings >= 0)
 					{
 						xfermem_putcmd(my_fd, XF_CMD_OK);
@@ -781,6 +796,7 @@ int buffer_loop(out123_handle *ao)
 					fmtcount = out123_formats( ao, rates
 					,	(int)(blocksize/sizeof(*rates))
 					,	minchannels, maxchannels, &fmtlist );
+					mystate = ao->state;
 					free(rates);
 					if(fmtcount >= 0)
 					{
@@ -807,6 +823,7 @@ int buffer_loop(out123_handle *ao)
 				break;
 				case BUF_CMD_START:
 					intflag = FALSE;
+					draining = FALSE;
 					if(
 						!GOOD_READVAL_BUF(my_fd, ao->format)
 					||	!GOOD_READVAL_BUF(my_fd, ao->channels)
@@ -815,11 +832,14 @@ int buffer_loop(out123_handle *ao)
 						return 2;
 					if(!out123_start(ao, ao->rate, ao->channels, ao->format))
 					{
+						out123_pause(ao); /* Be nice, start only on buffer_play(). */
+						mystate = play_live;
 						preloading = TRUE;
 						xfermem_putcmd(my_fd, XF_CMD_OK);
 					}
 					else
 					{
+						mystate = ao->state;
 						xfermem_putcmd(my_fd, XF_CMD_ERROR);
 						if(!GOOD_WRITEVAL(my_fd, ao->errcode))
 							return 2;
@@ -827,19 +847,23 @@ int buffer_loop(out123_handle *ao)
 				break;
 				case BUF_CMD_STOP:
 					intflag = FALSE;
-					if(ao->state == play_live)
+					if(mystate == play_live)
 					{ /* Drain is implied! */
 						size_t bytes;
 						while((bytes = xfermem_get_usedspace(xf)))
 							buffer_play(ao, bytes);
 					}
 					out123_stop(ao);
+					draining = FALSE;
+					mystate = ao->state;
 					xfermem_putcmd(my_fd, XF_CMD_OK);
 				break;
 				case XF_CMD_CONTINUE:
 					intflag = FALSE;
-					out123_continue(ao);
+					debug("continuing");
+					mystate = play_live; /* We'll get errors reported later if that is not right. */
 					preloading = FALSE; /* It should continue without delay. */
+					draining = FALSE; /* But outburst should be cared for. */
 					xfermem_putcmd(my_fd, XF_CMD_OK);
 				break;
 				case XF_CMD_IGNLOW:
@@ -848,8 +872,9 @@ int buffer_loop(out123_handle *ao)
 					xfermem_putcmd(my_fd, XF_CMD_OK);
 				break;
 				case XF_CMD_DRAIN:
+					debug("buffer drain");
 					intflag = FALSE;
-					if(ao->state == play_live)
+					if(mystate == play_live)
 					{
 						size_t bytes;
 						while(
@@ -858,7 +883,9 @@ int buffer_loop(out123_handle *ao)
 						)
 							buffer_play(ao, bytes);
 						out123_drain(ao);
+						mystate = ao->state;
 					}
+					draining = FALSE;
 					xfermem_putcmd(my_fd, XF_CMD_OK);
 				break;
 				case BUF_CMD_NDRAIN:
@@ -866,13 +893,17 @@ int buffer_loop(out123_handle *ao)
 					size_t limit;
 					size_t oldfill;
 
+					debug("buffer ndrain");
 					intflag = FALSE;
+					/* Expect further calls to ndrain, avoid prebuffering. */
+					draining = TRUE;
+					preloading = FALSE;
 					if(
 						!GOOD_READVAL_BUF(my_fd, limit)
 					||	!GOOD_READVAL_BUF(my_fd, oldfill)
 					)
 						return 2;
-					if(ao->state == play_live)
+					if(mystate == play_live)
 					{
 						size_t bytes;
 						while(
@@ -884,10 +915,16 @@ int buffer_loop(out123_handle *ao)
 							buffer_play(ao, bytes > limit ? limit : bytes);
 						/* Only drain hardware if the end was reached. */
 						if(!xfermem_get_usedspace(xf))
+						{
 							out123_drain(ao);
+							mystate = ao->state;
+							draining = FALSE;
+						}
 						debug2( "buffer drained %"SIZE_P" / %"SIZE_P
 						,	oldfill-bytes, limit );
 					}
+					else
+						debug("drain without playback ... not good");
 					xfermem_putcmd(my_fd, XF_CMD_OK);
 				}
 				break;
@@ -899,11 +936,14 @@ int buffer_loop(out123_handle *ao)
 					return 0;
 				case XF_CMD_PAUSE:
 					intflag = FALSE;
+					draining = FALSE;
 					out123_pause(ao);
+					mystate = ao->state;
 					xfermem_putcmd(my_fd, XF_CMD_OK);
 				break;
 				case XF_CMD_DROP:
 					intflag = FALSE;
+					draining = FALSE;
 					xf->readindex = xf->freeindex;
 					out123_drop(ao);
 					xfermem_putcmd(my_fd, XF_CMD_OK);
