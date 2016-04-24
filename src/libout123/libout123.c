@@ -104,7 +104,7 @@ out123_handle* attribute_align_arg out123_new(void)
 
 void attribute_align_arg out123_del(out123_handle *ao)
 {
-	debug1("out123_del(%p)", (void*)ao);
+	debug2("[%ld]out123_del(%p)", (long)getpid(), (void*)ao);
 	if(!ao) return;
 
 	out123_close(ao); /* TODO: That talks to the buffer if present. */
@@ -355,7 +355,7 @@ int read_parameters(out123_handle *ao
 int attribute_align_arg
 out123_open(out123_handle *ao, const char* driver, const char* device)
 {
-	debug3( "out123_open(%p, %s, %s)", (void*)ao
+	debug4( "[%ld]out123_open(%p, %s, %s)", (long)getpid(), (void*)ao
 	,	driver ? driver : "<nil>", device ? device : "<nil>" );
 	if(!ao)
 		return OUT123_ERR;
@@ -443,7 +443,7 @@ out123_open(out123_handle *ao, const char* driver, const char* device)
 /* Be resilient, always do cleanup work regardless of state. */
 void attribute_align_arg out123_close(out123_handle *ao)
 {
-	debug1("out123_close(%p)", (void*)ao);
+	debug2("[%ld]out123_close(%p)", (long)getpid(), (void*)ao);
 	if(!ao)
 		return;
 	ao->errcode = 0;
@@ -482,7 +482,7 @@ void attribute_align_arg out123_close(out123_handle *ao)
 int attribute_align_arg 
 out123_start(out123_handle *ao, long rate, int channels, int encoding)
 {
-	debug4( "out123_start(%p, %li, %i, %i)"
+	debug5( "[%ld]out123_start(%p, %li, %i, %i)", (long)getpid()
 	,	(void*)ao, rate, channels, encoding );
 	if(!ao)
 		return OUT123_ERR;
@@ -523,14 +523,16 @@ out123_start(out123_handle *ao, long rate, int channels, int encoding)
 
 void attribute_align_arg out123_pause(out123_handle *ao)
 {
-	debug1("out123_pause(%p)", (void*)ao);
+	debug3( "[%ld]out123_pause(%p) %i", (long)getpid()
+	,	(void*)ao, ao ? (int)ao->state : -1 );
 	if(ao && ao->state == play_live)
 	{
 #ifndef NOXFERMEM
-		if(have_buffer(ao)) buffer_pause(ao);
+		if(have_buffer(ao)){ debug("pause with buffer"); buffer_pause(ao); }
 		else
 #endif
 		{
+debug1("pause without buffer, sensitive=%d", SENSITIVE_OUTPUT(ao));
 			/* Close live devices to avoid underruns. */
 			if( SENSITIVE_OUTPUT(ao)
 			  && ao->close && ao->close(ao) && !AOQUIET )
@@ -542,7 +544,8 @@ void attribute_align_arg out123_pause(out123_handle *ao)
 
 void attribute_align_arg out123_continue(out123_handle *ao)
 {
-	debug1("out123_continue(%p)", (void*)ao);
+	debug3( "[%ld]out123_continue(%p) %i", (long)getpid()
+	,	(void*)ao, ao ? (int)ao->state : -1 );
 	if(ao && ao->state == play_paused)
 	{
 #ifndef NOXFERMEM
@@ -564,7 +567,7 @@ void attribute_align_arg out123_continue(out123_handle *ao)
 
 void attribute_align_arg out123_stop(out123_handle *ao)
 {
-	debug1("out123_stop(%p)", (void*)ao);
+	debug2("[%ld]out123_stop(%p)", (long)getpid(), (void*)ao);
 	if(!ao)
 		return;
 	ao->errcode = 0;
@@ -590,7 +593,8 @@ out123_play(out123_handle *ao, void *bytes, size_t count)
 	size_t sum = 0;
 	int written;
 
-	debug3("out123_play(%p, %p, %"SIZE_P")", (void*)ao, bytes, (size_p)count);
+	debug5( "[%ld]out123_play(%p, %p, %"SIZE_P") (%i)", (long)getpid()
+	,	(void*)ao, bytes, (size_p)count, ao ? (int)ao->state : -1 );
 	if(!ao)
 		return 0;
 	ao->errcode = 0;
@@ -641,7 +645,7 @@ out123_play(out123_handle *ao, void *bytes, size_t count)
 /* Drop means to flush it down. Quickly. */
 void attribute_align_arg out123_drop(out123_handle *ao)
 {
-	debug1("out123_drop(%p)", (void*)ao);
+	debug2("[%ld]out123_drop(%p)", (long)getpid(), (void*)ao);
 	if(!ao)
 		return;
 	ao->errcode = 0;
@@ -659,7 +663,7 @@ void attribute_align_arg out123_drop(out123_handle *ao)
 
 void attribute_align_arg out123_drain(out123_handle *ao)
 {
-	debug1("out123_drain(%p)", (void*)ao);
+	debug2("[%ld]out123_drain(%p) ", (long)getpid(), (void*)ao);
 	if(!ao)
 		return;
 	ao->errcode = 0;
@@ -685,7 +689,7 @@ void attribute_align_arg out123_drain(out123_handle *ao)
 
 void attribute_align_arg out123_ndrain(out123_handle *ao, size_t bytes)
 {
-	debug2("out123_ndrain(%p, %"SIZE_P")", (void*)ao, (size_p)bytes);
+	debug3("[%ld]out123_ndrain(%p, %"SIZE_P")", (long)getpid(), (void*)ao, (size_p)bytes);
 	if(!ao)
 		return;
 	ao->errcode = 0;
@@ -954,7 +958,8 @@ out123_driver_info(out123_handle *ao, char **driver, char **device)
 int attribute_align_arg
 out123_encodings(out123_handle *ao, long rate, int channels)
 {
-	debug3("out123_encodings(%p, %li, %i)", (void*)ao, rate, channels);
+	debug4( "[%ld]out123_encodings(%p, %li, %i)", (long)getpid()
+	,	(void*)ao, rate, channels );
 	if(!ao)
 		return OUT123_ERR;
 	ao->errcode = OUT123_OK;
@@ -1004,7 +1009,7 @@ out123_formats( out123_handle *ao, const long *rates, int ratecount
               , int minchannels, int maxchannels
               , struct mpg123_fmt **fmtlist )
 {
-	debug6( "out123_formats(%p, %p, %i, %i, %i, %p)"
+	debug7( "[%ld]out123_formats(%p, %p, %i, %i, %i, %p)", (long)getpid()
 	,	(void*)ao, (void*)rates, ratecount, minchannels, maxchannels
 	,	(void*)fmtlist );
 	if(!ao)
@@ -1086,13 +1091,17 @@ out123_formats( out123_handle *ao, const long *rates, int ratecount
 
 size_t attribute_align_arg out123_buffered(out123_handle *ao)
 {
-	debug1("out123_buffered(%p)", (void*)ao);
+	debug2("[%ld]out123_buffered(%p)", (long)getpid(), (void*)ao);
 	if(!ao)
 		return 0;
 	ao->errcode = 0;
 #ifndef NOXFERMEM
 	if(have_buffer(ao))
-		return buffer_fill(ao);
+	{
+		size_t fill = buffer_fill(ao);
+		debug2("out123_buffered(%p) = %"SIZE_P, (void*)ao, (size_p)fill);
+		return fill;
+	}
 	else
 #endif
 		return 0;
