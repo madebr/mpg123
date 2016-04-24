@@ -1,8 +1,9 @@
 1.23.4
 ------
 - libout123: Actually make OUT123_KEEP_PLAYING on by default, as documented.
-  Without it, mpg123 has a good chance to abort on SIGSTOP/CONT while playing.
-  This is a regression of mpg123 from 1.22 .
+- mpg123, out123: Actually use the default output flags.
+  Without this, there is a good chance to abort on SIGSTOP/CONT while playing.
+  This is a regression from 1.22 .
 - Build fixes (bugs 227 and 228) and some build system hackery.
   Gone are libc feature test macros in compat.h . This means always
   using our own strdup() implementation. Simpler than being bugged by

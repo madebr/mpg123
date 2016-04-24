@@ -54,7 +54,7 @@ struct parameter
 	int verbose;    /* verbose level */
 	const char* output_module;	/* audio output module to use */
 	const char* output_device;	/* audio output device to use */
-	int   output_flags;	/* legacy output destination for AIX/HP/Sun */
+	long  output_flags;	/* out123 flags */
 #ifdef HAVE_TERMIOS
 	int term_ctrl;
 	/* Those are supposed to be single characters. */

@@ -1013,6 +1013,12 @@ int main(int sys_argc, char ** sys_argv)
 	param.flags |= MPG123_SEEKBUFFER; /* Default on, for HTTP streams. */
 	mpg123_getpar(mp, MPG123_RESYNC_LIMIT, &param.resync_limit, NULL);
 	mpg123_getpar(mp, MPG123_PREFRAMES, &param.preframes, NULL);
+	/* Also need proper default flags from libout123. */
+	{
+		out123_handle *paro = out123_new();
+		out123_getparam_int(paro, OUT123_FLAGS, &param.output_flags);
+		out123_del(paro);
+	}
 
 #ifdef OS2
         _wildcard(&argc,&argv);
