@@ -619,6 +619,9 @@ out123_play(out123_handle *ao, void *bytes, size_t count)
 	{
 		errno = 0;
 		written = ao->write(ao, (unsigned char*)bytes, (int)count);
+		debug4( "written: %d errno: %i (%s), keep_on=%d"
+		,	written, errno, strerror(errno)
+		,	ao->flags & OUT123_KEEP_PLAYING );
 		if(written >= 0){ sum+=written; count -= written; }
 		else if(errno != EINTR)
 		{
@@ -629,6 +632,9 @@ out123_play(out123_handle *ao, void *bytes, size_t count)
 			break;
 		}
 	} while(count && ao->flags & OUT123_KEEP_PLAYING);
+
+	debug3( "out123_play(%p, %p, ...) = %"SIZE_P
+	,	(void*)ao, bytes, (size_p)sum );
 	return sum;
 }
 
