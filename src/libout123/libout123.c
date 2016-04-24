@@ -88,7 +88,7 @@ out123_handle* attribute_align_arg out123_new(void)
 	ao->driver = NULL;
 	ao->device = NULL;
 
-	ao->flags = 0;
+	ao->flags = OUT123_KEEP_PLAYING;
 	ao->rate = -1;
 	ao->gain = -1;
 	ao->channels = -1;
