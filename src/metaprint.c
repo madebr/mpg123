@@ -80,7 +80,8 @@ static void print_oneline( FILE* out
 
 	if(long_mode)
 		fprintf(out, "\t");
-	snprintf(fmt, sizeof(fmt)-1, "%%s:%%-%ds%%s\n", 1+namelen[0]-strlen(name[fi]));
+	snprintf( fmt, sizeof(fmt)-1, "%%s:%%-%ds%%s\n"
+	,	1+namelen[0]-(int)strlen(name[fi]) );
 	fprintf(out, fmt, name[fi], " ", tag[fi].fill ? tag[fi].p : "");
 }
 
@@ -116,8 +117,8 @@ static void print_pair
 
 		/* Two-column format string with added padding for multibyte chars. */
 		snprintf( cfmt, sizeof(cfmt)-1, "%%s:%%-%ds%%-%ds  %%s:%%-%ds%%-%ds\n"
-		,	1+namelen[0]-strlen(name[f0]), climit[0]+chardiff[0]
-		,	1+namelen[1]-strlen(name[f1]), climit[1]+chardiff[1] );
+		,	1+namelen[0]-(int)strlen(name[f0]), climit[0]+chardiff[0]
+		,	1+namelen[1]-(int)strlen(name[f1]), climit[1]+chardiff[1] );
 		/* Actual printout of name and value pairs. */
 		fprintf(out, cfmt, name[f0], " ", tag[f0].p, name[f1], " ", tag[f1].p);
 	}
