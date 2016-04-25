@@ -26,8 +26,9 @@
 
 #include "debug.h"
 
-/* in seconds */
-#define BUFFER_LENGTH (ao->device_buffer > 0. ? ao->device_buffer : 0.5)
+/* Total buffer size in seconds, 0.2 is more true to what ALSA maximally uses
+   here (8192 samples). The earlier default of 0.5 was never true. */
+#define BUFFER_LENGTH (ao->device_buffer > 0. ? ao->device_buffer : 0.2)
 
 static const struct {
 	snd_pcm_format_t alsa;
@@ -120,6 +121,7 @@ static int initialize_device(out123_handle *ao)
 		if(!AOQUIET) error("initialize_device(): cannot set period size");
 		return -1;
 	}
+	debug1("period_size=%lu", (unsigned long)period_size);
 	if (snd_pcm_hw_params(pcm, hw) < 0) {
 		if(!AOQUIET) error("initialize_device(): cannot set hw params");
 		return -1;

@@ -24,7 +24,13 @@
 
 #define SAMPLE_SIZE			(2)
 #define FRAMES_PER_BUFFER	(256)
-#define FIFO_DURATION		(ao->device_buffer > 0. ? ao->device_buffer : 0.5)
+/* Performance of SDL with ALSA is a bit of a mystery to me. Regardless
+   of buffer size here, I just cannot avoid buffer underruns on my system.
+   SDL always chooses 1024x2 periods, which seems to be just not quite
+   enough on the Thinkpad:-/ Choosing 0.2 s as a plentiful default instead
+   of 0.5 s which is just a lie. */
+#define FIFO_DURATION		(ao->device_buffer > 0. ? ao->device_buffer : 0.2)
+#define BUFFER_SAMPLES		((FIFO_DURATION*ao->rate)/2)
 
 /* The audio function callback takes the following parameters:
        stream:  A pointer to the audio buffer to be filled
@@ -59,7 +65,9 @@ static int open_sdl(out123_handle *ao)
 		/* L16 uncompressed audio data, using 16-bit signed representation in twos 
 		   complement notation - system endian-ness. */
 		wanted.format = AUDIO_S16SYS;
-		wanted.samples = 1024;  /* Good low-latency value for callback */ 
+		/* Seems reasonable to demand a buffer size related to the device
+		   buffer. */
+		wanted.samples = BUFFER_SAMPLES;
 		wanted.callback = audio_callback_sdl; 
 		wanted.userdata = ao; 
 		wanted.channels = ao->channels; 
@@ -109,7 +117,7 @@ static int get_formats_sdl(out123_handle *ao)
 	   The SDL manual doesn't suggest more interesting formats
 	   like S24 or S32 anyway. */
 	wanted.format = AUDIO_S16SYS;
-	wanted.samples = 1024;
+	wanted.samples = BUFFER_SAMPLES;
 	wanted.callback = audio_callback_sdl;
 	wanted.userdata = ao;
 	wanted.channels = ao->channels;
@@ -128,28 +136,33 @@ fprintf(stderr, "wanted rate: %li got rate %li\n", (long)wanted.freq, (long)got.
 static int write_sdl(out123_handle *ao, unsigned char *buf, int len)
 {
 	sfifo_t *fifo = (sfifo_t*)ao->userptr;
+	int len_remain = len;
 
-	/* Sleep for half the length of the FIFO */
-	while (sfifo_space( fifo ) < len )
+	/* Some busy waiting, but feed what is possible. */
+	while(len_remain) /* Note: input len is multiple of framesize! */
+	{
+		int block = sfifo_space(fifo);
+		block -= block % ao->framesize;
+		if(block > len_remain)
+			block = len_remain;
+		if(block)
+		{
+			sfifo_write(fifo, buf, block);
+			len_remain -= block;
+			buf += block;
+			/* Unpause once the buffer is 50% full */
+			if (sfifo_used(fifo) > (sfifo_size(fifo)/2) )
+				SDL_PauseAudio(0);
+		}
+		if(len_remain)
+		{
 #ifdef WIN32
-		Sleep( (FIFO_DURATION/2) * 1000);
+		Sleep( (0.1*FIFO_DURATION) * 1000);
 #else
-		usleep( (FIFO_DURATION/2) * 1000000 );
+		usleep( (0.1*FIFO_DURATION) * 1000000 );
 #endif
-	
-	/* Bung decoded audio into the FIFO 
-		 SDL Audio locking probably isn't actually needed
-		 as SFIFO claims to be thread safe...
-	*/
-	SDL_LockAudio();
-	sfifo_write( fifo, buf, len);
-	SDL_UnlockAudio();
-	
-	
-	/* Unpause once the buffer is 50% full */
-	if (sfifo_used(fifo) > (sfifo_size(fifo)*0.5) )
-	SDL_PauseAudio(0);
-
+		}
+	}
 	return len;
 }
 

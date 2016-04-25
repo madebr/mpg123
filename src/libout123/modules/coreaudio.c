@@ -23,8 +23,10 @@
 #include "debug.h"
 
 /* Duration of the ring buffer in seconds.
-   Is that all that there is to tunable latency? */
-#define FIFO_DURATION (ao->device_buffer > 0. ? ao->device_buffer : 0.5)
+   Is that all that there is to tunable latency?
+   Size of 200 ms should be enough for a default value, rare is the
+   hardware that actually allows such large buffers. */
+#define FIFO_DURATION (ao->device_buffer > 0. ? ao->device_buffer : 0.2)
 
 
 typedef struct mpg123_coreaudio
@@ -265,32 +267,37 @@ static int get_formats_coreaudio(out123_handle *ao)
 static int write_coreaudio(out123_handle *ao, unsigned char *buf, int len)
 {
 	mpg123_coreaudio_t* ca = (mpg123_coreaudio_t*)ao->userptr;
-	int written;
+	int len_remain = len;
 
-	/* If there is no room, then sleep for half the length of the FIFO */
-	while (sfifo_space( &ca->fifo ) < len ) {
-		usleep( (FIFO_DURATION/2) * 1000000 );
-	}
-	
-	/* Store converted audio in ring buffer */
-	written = sfifo_write( &ca->fifo, (char*)buf, len);
-	if (written != len) {
-		warning( "Failed to write audio to ring buffer" );
-		return -1;
-	}
-	
-	/* Start playback now that we have something to play */
-	if(!ca->play)
+	/* Some busy waiting, but feed what is possible. */
+	while(len_remain) /* Note: input len is multiple of framesize! */
 	{
-		if(AudioOutputUnitStart(ca->outputUnit))
+		int block = sfifo_space(&ca->fifo);
+		block -= block % ao->framesize;
+		if(block > len_remain)
+			block = len_remain;
+		if(block)
 		{
-			if(!AOQUIET)
-				error("AudioOutputUnitStart failed");
-			return(-1);
+			sfifo_write(&ca->fifo, buf, block);
+			len_remain -= block;
+			buf += block;
+			/* Start playback now that we have something to play */
+			if(!ca->play && (sfifo_used(fifo) > (sfifo_size(fifo)/2)))
+			{
+				if(AudioOutputUnitStart(ca->outputUnit))
+				{
+					if(!AOQUIET)
+						error("AudioOutputUnitStart failed");
+					return(-1);
+				}
+				ca->play = 1;
+			}
 		}
-		ca->play = 1;
+		/* If there is no room, then sleep for a bit, but not too long. */
+		if(len_remain)
+			usleep( (0.1*FIFO_DURATION) * 1000000 );
 	}
-	
+
 	return len;
 }
 
