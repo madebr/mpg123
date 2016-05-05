@@ -189,7 +189,10 @@ static int write_sdl(out123_handle *ao, unsigned char *buf, int len)
 				SDL_PauseAudio(0);
 		}
 		if(len_remain)
+		{
+			debug1("Still need to write %d bytes, sleeping a bit.", len_remain);
 			ms_sleep(0.1*FIFO_DURATION*1000);
+		}
 	}
 	return len;
 }
