@@ -68,6 +68,7 @@ SFIFO_SCOPE void sfifo_close(sfifo_t *f)
  */
 SFIFO_SCOPE void sfifo_flush(sfifo_t *f)
 {
+	debug("sfifo_flush()");
 	/* Reset positions */
 	f->readpos = 0;
 	f->writepos = 0;
@@ -93,6 +94,7 @@ SFIFO_SCOPE int sfifo_write(sfifo_t *f, const void *_buf, int len)
 		len = total;
 	else
 		total = len;
+	debug1("sfifo_write() = %d", total);
 
 	i = f->writepos;
 	if(i + len > f->size)
@@ -129,6 +131,7 @@ SFIFO_SCOPE int sfifo_read(sfifo_t *f, void *_buf, int len)
 		len = total;
 	else
 		total = len;
+	debug1("sfifo_read() = %d", total);
 
 	i = f->readpos;
 	if(i + len > f->size)
