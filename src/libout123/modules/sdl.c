@@ -203,7 +203,7 @@ static int close_sdl(out123_handle *ao)
 	struct handle *sh = (struct handle*)ao->userptr;
 	sfifo_t *fifo = &sh->fifo;
 
-debug1("close_sdl with %d", sfifo_used(fifo));
+	debug1("close_sdl with %d", sfifo_used(fifo));
 	sh->finished = 1;
 	/* Wait at least until SDL emptied the FIFO. */
 	while((stuff = sfifo_used(fifo))>0)
