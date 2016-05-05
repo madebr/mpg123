@@ -850,8 +850,10 @@ static void check_output_module( out123_handle *ao
 		ao->format = -1;
 		result = aoopen(ao);
 		debug1("ao->open() = %i", result);
-		if(result >= 0)
+		if(result >= 0) /* Opening worked, close again. */
 			ao->close(ao);
+		else if(ao->deinit)
+			ao->deinit(ao); /* Failed, ensure that cleanup after init_output() occurs. */
 	}
 	else if(!AOQUIET)
 		error2("Module '%s' init failed: %i", name, result);
