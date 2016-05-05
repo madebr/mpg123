@@ -28,6 +28,7 @@
 typedef struct {
 	PaStream *stream;
 	sfifo_t fifo;
+	int finished;
 } mpg123_portaudio_t;
 
 #ifdef PORTAUDIO18
@@ -35,6 +36,16 @@ typedef struct {
 #define Pa_IsStreamActive Pa_StreamActive
 #endif
 
+/* Some busy waiting. Proper stuff like semaphores might add
+   dependencies (POSIX) that the platform does not know. */
+static void ms_sleep(int milliseconds)
+{
+#ifdef WIN32
+		Sleep(milliseconds));
+#else
+		usleep(milliseconds*1000);
+#endif
+}
 
 #ifdef PORTAUDIO18
 static int paCallback( void *inputBuffer, void *outputBuffer,
@@ -52,15 +63,30 @@ static int paCallback(
 	out123_handle *ao = userData;
 	mpg123_portaudio_t *pa = (mpg123_portaudio_t*)ao->userptr;
 	unsigned long bytes = framesPerBuffer * SAMPLE_SIZE * ao->channels;
-	
-	if (sfifo_used(&pa->fifo)<bytes) {
-		if(!AOQUIET)
-			error("ringbuffer for PortAudio is empty");
-		return 1;
-	} else {
-		sfifo_read( &pa->fifo, outputBuffer, bytes );
-		return 0;
+	int bytes_avail;
+	int bytes_read;
+
+	while((bytes_avail=sfifo_used(&pa->fifo))<bytes && !pa->finished)
+	{
+		int ms = (bytes-bytes_avail)/ao->framesize*1000/ao->rate;
+		debug3("waiting for more input, %d ms missing (%i < %lu)"
+		,	ms, bytes_avail, bytes);
+		ms_sleep(ms/10);
 	}
+	if(bytes_avail > bytes)
+		bytes_avail = bytes;
+	bytes_read = sfifo_read(&pa->fifo, outputBuffer, bytes_avail);
+	if(bytes_read != bytes_avail)
+		warning2("Error reading from the FIFO (wanted=%d, bytes_read=%d).\n"
+		,	bytes_avail, bytes_read);
+	if(bytes_read < 0)
+		bytes_read = 0;
+	/* Ensure that any remaining space is filled with zero bytes. */
+	if(bytes_read >= 0 && bytes_read < bytes)
+		memset((char*)outputBuffer+bytes_read, 0, bytes-bytes_read);
+
+	debug1("callback successfully passed along %i B", bytes_read);
+	return 0;
 }
 
 
@@ -68,7 +94,8 @@ static int open_portaudio(out123_handle *ao)
 {
 	mpg123_portaudio_t *pa = (mpg123_portaudio_t*)ao->userptr;
 	PaError err;
-	
+
+	pa->finished = 0;
 	/* Open an audio I/O stream. */
 	if (ao->rate > 0 && ao->channels >0 ) {
 	
@@ -113,46 +140,73 @@ static int write_portaudio(out123_handle *ao, unsigned char *buf, int len)
 	mpg123_portaudio_t *pa = (mpg123_portaudio_t*)ao->userptr;
 	PaError err;
 	int written;
-	
-	/* Sleep for half the length of the FIFO */
-	while (sfifo_space( &pa->fifo ) < len ) {
-#ifdef WIN32
-		Sleep( (FIFO_DURATION/2) * 1000);
-#else
-		usleep( (FIFO_DURATION/2) * 1000000 );
-#endif
-	}
+	int len_remain = len;
 
-	/* Write the audio to the ring buffer */
-	written = sfifo_write( &pa->fifo, buf, len );
-
-	/* Start stream if not ative */
-	err = Pa_IsStreamActive( pa->stream );
-	if (err == 0) {
-		err = Pa_StartStream( pa->stream );
-		if( err != paNoError ) {
-			if(!AOQUIET)
-				error1( "Failed to start PortAudio stream: %s"
-				,	Pa_GetErrorText(err) );
-			return -1; /* triggering exit here is not good, better handle that somehow... */
-		}
-	} else if (err < 0)
+	/* Some busy waiting, but feed what is possible. */
+	while(len_remain) /* Note: input len is multiple of framesize! */
 	{
-		if(!AOQUIET)
-			error1( "Failed to check state of PortAudio stream: %s"
-			,	Pa_GetErrorText(err) );
-		return -1;
+		int block = sfifo_space(&pa->fifo);
+		block -= block % ao->framesize;
+		debug1("space for writing: %i", block);
+		if(block > len_remain)
+			block = len_remain;
+		if(block)
+		{
+			sfifo_write(&pa->fifo, buf, block);
+			len_remain -= block;
+			buf += block;
+			/* Start stream if not ative and 50 % full.*/
+			if(sfifo_used(&pa->fifo) > (sfifo_size(&pa->fifo)/2))
+			{
+				pa->finished = 0;
+				err = Pa_IsStreamActive( pa->stream );
+				if (err == 0) {
+					err = Pa_StartStream( pa->stream );
+					if( err != paNoError ) {
+						if(!AOQUIET)
+							error1( "Failed to start PortAudio stream: %s"
+							,	Pa_GetErrorText(err) );
+						return -1; /* triggering exit here is not good, better handle that somehow... */
+					}
+					else
+						debug("started stream");
+				} else if (err < 0)
+				{
+					if(!AOQUIET)
+						error1( "Failed to check state of PortAudio stream: %s"
+						,	Pa_GetErrorText(err) );
+					return -1;
+				}
+				else
+					debug("stream already active");
+			}
+		}
+		if(len_remain)
+		{
+			debug1("Still need to write %d bytes, sleeping a bit.", len_remain);
+			ms_sleep(0.1*FIFO_DURATION*1000);
+		}
 	}
-	
-	return written;
-}
 
+	return len;
+}
 
 static int close_portaudio(out123_handle *ao)
 {
 	mpg123_portaudio_t *pa = (mpg123_portaudio_t*)ao->userptr;
 	PaError err;
-	
+	int stuff;
+
+	debug1("close_portaudio with %d", sfifo_used(&pa->fifo));
+	pa->finished = 1;
+	/* Wait at least until the FIFO is empty. */
+	while((stuff = sfifo_used(&pa->fifo))>0)
+	{
+		int ms = stuff/ao->framesize*1000/ao->rate;
+		debug1("still stuff for about %i ms there", ms);
+		ms_sleep(ms/2);
+	}
+
 	if (pa->stream) {
 		/* stop the stream if it is active */
 		if (Pa_IsStreamActive( pa->stream ) == 1) {
@@ -193,7 +247,7 @@ static void flush_portaudio(out123_handle *ao)
 	
 	/* throw away contents of FIFO */
 	sfifo_flush( &pa->fifo );
-	
+
 	/* and empty out PortAudio buffers */
 	/*err = */
 	Pa_AbortStream( pa->stream );
@@ -219,7 +273,8 @@ static int deinit_portaudio(out123_handle* ao)
 static int init_portaudio(out123_handle* ao)
 {
 	int err = paNoError;
-	
+	mpg123_portaudio_t *handle;
+
 	if (ao==NULL) return -1;
 	
 	/* Set callbacks */
@@ -230,16 +285,6 @@ static int init_portaudio(out123_handle* ao)
 	ao->close = close_portaudio;
 	ao->deinit = deinit_portaudio;
 
-	/* Allocate memory for handle */
-	ao->userptr = malloc( sizeof(mpg123_portaudio_t) );
-	if (ao->userptr==NULL)
-	{
-		if(!AOQUIET)
-			error( "Failed to allocated memory for driver structure" );
-		return -1;
-	}
-	memset( ao->userptr, 0, sizeof(mpg123_portaudio_t) );
-
 	/* Initialise PortAudio */
 	err = Pa_Initialize();
 	if( err != paNoError )
@@ -249,6 +294,18 @@ static int init_portaudio(out123_handle* ao)
 			,	Pa_GetErrorText(err) );
 		return -1;
 	}
+
+	/* Allocate memory for handle */
+	ao->userptr = handle = malloc( sizeof(mpg123_portaudio_t) );
+	if (ao->userptr==NULL)
+	{
+		if(!AOQUIET)
+			error( "Failed to allocated memory for driver structure" );
+		return -1;
+	}
+	handle->finished = 0;
+	handle->stream = NULL;
+	memset(&handle->fifo, 0, sizeof(sfifo_t));
 
 	/* Success */
 	return 0;
