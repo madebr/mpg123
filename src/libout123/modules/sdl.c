@@ -75,8 +75,10 @@ static void audio_callback_sdl(void *udata, Uint8 *stream, int len)
 		bytes_avail = len;
 	bytes_read = sfifo_read( fifo, stream, bytes_avail );
 	if(bytes_read != bytes_avail)
-		warning2("Error reading from the FIFO (wanted=%u, bytes_read=%u).\n"
+		warning2("Error reading from the FIFO (wanted=%d, bytes_read=%d).\n"
 		,	bytes_avail, bytes_read);
+	if(bytes_read < 0)
+		bytes_read = 0;
 	/* Ensure that any remaining space is filled with zero bytes. */
 	if(bytes_read < len)
 		memset(stream+bytes_read, 0, len-bytes_read);
