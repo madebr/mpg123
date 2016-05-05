@@ -5,11 +5,11 @@
 -- Fix buffer logic with regard to draining, use common device writing
    code to handle resuming from pause. This fixes sdl output with buffer,
    possibly other sfifo-based outputs like CoreAudio (those were poorly
-   tested with buffer, as the combination is indeed unusual).
+   tested with buffer, as the combination is indeed unusual, see bug 230).
 -- Buffer pauses devices for prebuffering, to avoid underruns.
 -- More reliable playback with SDL, Portaudio and CoreAudio outputs.
    This includes FIFO draining on close to avoid dropping of the end.
-   It should fix bug 230.
+   It should fix parts of bug 230.
 -- Fixed memory leaks with some outputs where a call to the deinit()
    function is necessary during available/working module checking.
 - mpg123, out123: Use the default output flags to get OUT123_KEEP_PLAYING.
