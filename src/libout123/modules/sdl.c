@@ -32,6 +32,23 @@
 #define FIFO_DURATION		(ao->device_buffer > 0. ? ao->device_buffer : 0.2)
 #define BUFFER_SAMPLES		((FIFO_DURATION*ao->rate)/2)
 
+struct handle
+{
+	int finished; /* A flag for communicating end, one-way. */
+	sfifo_t fifo;
+};
+
+/* Some busy waiting. Proper stuff like semaphores might add
+   dependencies (POSIX) that the platform does not know. */
+static void ms_sleep(int milliseconds)
+{
+#ifdef WIN32
+		Sleep(milliseconds));
+#else
+		usleep(milliseconds*1000);
+#endif
+}
+
 /* The audio function callback takes the following parameters:
        stream:  A pointer to the audio buffer to be filled
        len:     The length (in bytes) of the audio buffer
@@ -39,24 +56,37 @@
 static void audio_callback_sdl(void *udata, Uint8 *stream, int len)
 {
 	out123_handle *ao = (out123_handle*)udata;
-	sfifo_t *fifo = (sfifo_t*)ao->userptr;
+	struct handle *sh = (struct handle*)ao->userptr;
+	sfifo_t *fifo = &sh->fifo;
 	int bytes_read;
 	int bytes_avail;
 
-	bytes_avail = sfifo_used(fifo);
-	if(bytes_avail < len) len = bytes_avail;
-
+	/* Until the finished flag is set, we will wait for more.
+	   As the exact value does not matter and late detection of
+	   a change is kindof OK, I do not see a thread safety problem here. */
+	while((bytes_avail = sfifo_used(fifo)) < len && !sh->finished)
+	{
+		int ms = (len-bytes_avail)/ao->framesize*1000/ao->rate;
+		debug1("waiting for more input, %d ms missing", ms);
+		ms_sleep(ms/10);
+	}
 	/* Read audio from FIFO to SDL's buffer */
-	bytes_read = sfifo_read( fifo, stream, len );
-
-	if (len!=bytes_read)
-	warning2("Error reading from the FIFO (wanted=%u, bytes_read=%u).\n", len, bytes_read);
+	if(bytes_avail > len)
+		bytes_avail = len;
+	bytes_read = sfifo_read( fifo, stream, bytes_avail );
+	if(bytes_read != bytes_avail)
+		warning2("Error reading from the FIFO (wanted=%u, bytes_read=%u).\n"
+		,	bytes_avail, bytes_read);
+	/* Ensure that any remaining space is filled with zero bytes. */
+	if(bytes_read < len)
+		memset(stream+bytes_read, 0, len-bytes_read);
 }
 
 static int open_sdl(out123_handle *ao)
 {
-	sfifo_t *fifo = (sfifo_t*)ao->userptr;
-	
+	struct handle *sh = (struct handle*)ao->userptr;
+	sfifo_t *fifo = &sh->fifo;
+
 	/* Open an audio I/O stream. */
 	if (ao->rate > 0 && ao->channels >0 ) {
 		size_t ringbuffer_len;
@@ -73,6 +103,7 @@ static int open_sdl(out123_handle *ao)
 		wanted.channels = ao->channels; 
 		wanted.freq = ao->rate; 
 
+		sh->finished = 0;
 		/* Open the audio device, forcing the desired format
 		   Actually, it is still subject to constraints by hardware.
 		   Need to have sample rate checked beforehand! SDL will
@@ -135,7 +166,8 @@ fprintf(stderr, "wanted rate: %li got rate %li\n", (long)wanted.freq, (long)got.
 
 static int write_sdl(out123_handle *ao, unsigned char *buf, int len)
 {
-	sfifo_t *fifo = (sfifo_t*)ao->userptr;
+	struct handle *sh = (struct handle*)ao->userptr;
+	sfifo_t *fifo = &sh->fifo;
 	int len_remain = len;
 
 	/* Some busy waiting, but feed what is possible. */
@@ -155,13 +187,7 @@ static int write_sdl(out123_handle *ao, unsigned char *buf, int len)
 				SDL_PauseAudio(0);
 		}
 		if(len_remain)
-		{
-#ifdef WIN32
-		Sleep( (0.1*FIFO_DURATION) * 1000);
-#else
-		usleep( (0.1*FIFO_DURATION) * 1000000 );
-#endif
-		}
+			ms_sleep(0.1*FIFO_DURATION*1000);
 	}
 	return len;
 }
@@ -169,18 +195,17 @@ static int write_sdl(out123_handle *ao, unsigned char *buf, int len)
 static int close_sdl(out123_handle *ao)
 {
 	int stuff;
-	sfifo_t *fifo = (sfifo_t*)ao->userptr;
+	struct handle *sh = (struct handle*)ao->userptr;
+	sfifo_t *fifo = &sh->fifo;
 
+debug1("close_sdl with %d", sfifo_used(fifo));
+	sh->finished = 1;
 	/* Wait at least until SDL emptied the FIFO. */
 	while((stuff = sfifo_used(fifo))>0)
 	{
-		int msecs = stuff*1000/ao->rate;
-		debug1("still stuff for about %i ms there", msecs);
-#ifdef WIN32
-		Sleep(msecs/2);
-#else
-		usleep(msecs*1000/2);
-#endif
+		int ms = stuff/ao->framesize*1000/ao->rate;
+		debug1("still stuff for about %i ms there", ms);
+		ms_sleep(ms/2);
 	}
 
 	SDL_CloseAudio();
@@ -193,14 +218,14 @@ static int close_sdl(out123_handle *ao)
 
 static void flush_sdl(out123_handle *ao)
 {
-	sfifo_t *fifo = (sfifo_t*)ao->userptr;
+	struct handle *sh = (struct handle*)ao->userptr;
 
 	SDL_PauseAudio(1);
-	
-	sfifo_flush( fifo );	
+	sfifo_flush(&sh->fifo);
 }
 
-
+/* You can only rely on that being called after successful init_sdl()!
+   And sdl_close() should be called before to free the sfifo. */
 static int deinit_sdl(out123_handle* ao)
 {
 	/* Free up memory */
@@ -216,9 +241,12 @@ static int deinit_sdl(out123_handle* ao)
 	return 0;
 }
 
-
+/* Remember: If this returns failure, no additional cleanup happens.
+   Resources must be freed here. */
 static int init_sdl(out123_handle* ao)
 {
+	struct handle *sh;
+
 	if (ao==NULL) return -1;
 	
 	/* Set callbacks */
@@ -228,16 +256,6 @@ static int init_sdl(out123_handle* ao)
 	ao->get_formats = get_formats_sdl;
 	ao->close = close_sdl;
 	ao->deinit = deinit_sdl;
-	
-	/* Allocate memory */
-	ao->userptr = malloc( sizeof(sfifo_t) );
-	if (ao->userptr==NULL)
-	{
-		if(!AOQUIET)
-			error( "Failed to allocated memory for FIFO structure" );
-		return -1;
-	}
-	memset( ao->userptr, 0, sizeof(sfifo_t) );
 
 	/* Initialise SDL */
 	if (SDL_Init( SDL_INIT_AUDIO ) )
@@ -246,6 +264,19 @@ static int init_sdl(out123_handle* ao)
 			error1("Failed to initialise SDL: %s\n", SDL_GetError());
 		return -1;
 	}
+	/* Allocate memory _after_ checking that SDL is available, so we do not
+	   have to free after failure. */
+	ao->userptr = sh = malloc( sizeof(struct handle) );
+	if (ao->userptr==NULL)
+	{
+		if(!AOQUIET)
+			error( "Failed to allocated memory for FIFO structure" );
+		return -1;
+	}
+	sh->finished = 0;
+	/* Not exactly necessary; only for somewhat safe sdl_close after a fake
+	   sdl_open(). */
+	memset( &sh->fifo, 0, sizeof(sfifo_t) );
 
 	/* Success */
 	return 0;
