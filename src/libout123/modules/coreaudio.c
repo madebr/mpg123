@@ -287,7 +287,7 @@ static int write_coreaudio(out123_handle *ao, unsigned char *buf, int len)
 			len_remain -= block;
 			buf += block;
 			/* Start playback now that we have something to play */
-			if(!ca->play && (sfifo_used(fifo) > (sfifo_size(fifo)/2)))
+			if(!ca->play && (sfifo_used(&ca->fifo) > (sfifo_size(&ca->fifo)/2)))
 			{
 				if(AudioOutputUnitStart(ca->outputUnit))
 				{
