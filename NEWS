@@ -1,5 +1,9 @@
 1.23.4
 ------
+- mpg123: Fix logic of prebuffering small bits for glitch-free start of
+  playback. The logic as introduced in 1.23.0 actually introduced stuttering!
+  The fix for this is really minimal and I urge everyone to at least include
+  that one. It is the changeset of rev. 4041.
 - libout123:
 -- Actually make OUT123_KEEP_PLAYING on by default, as documented.
 -- Fix buffer logic with regard to draining, use common device writing

@@ -827,7 +827,7 @@ int play_frame(void)
 		   I wonder if that makes us miss errors. Actual issues should
 		   just be postponed. */
 		if(bytes && !intflag) /* Previous piece could already be interrupted. */
-		if(out123_play(ao, audio, bytes) < bytes && !intflag)
+		if(out123_play(ao, playbuf, bytes) < bytes && !intflag)
 		{
 			error("Deep trouble! Cannot flush to my output anymore!");
 			safe_exit(133);
