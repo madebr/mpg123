@@ -9,6 +9,7 @@ my @instances =
 {	name => 'intsym.h'
 ,	guard => 'MPG123_INTSYM_H'
 ,	dir => 'src'
+,	asmdir => 'src/libmpg123'
 ,	headers => [qw(
 		compat/compat
 		libmpg123/decode
@@ -30,11 +31,12 @@ my @instances =
 		libout123/xfermem
 		libout123/wav
 		libout123/out123_int
+		libout123/stringlists
 	)]
 ,	prefix => 'INT123_'
 ,	apiprefix => 'mpg123_|out123_'
 ,	conditional => { strerror=>'HAVE_STRERROR' }
-,	symbols => [qw(COS9 tfcos36 pnts)] # extra symbols
+,	symbols => [qw(COS9 tfcos36 pnts catchsignal)] # extra symbols
 }
 );
 
@@ -68,8 +70,8 @@ for my $i (@instances)
 		close(DAT);
 	}
 
-	print STDERR join("\n", glob("$dir/*.S"))."\n";
-	foreach my $asm (glob("$dir/*.S"))
+	print STDERR join("\n", glob("$i->{asmdir}/*.S"))."\n";
+	foreach my $asm (glob("$i->{asmdir}/*.S"))
 	{
 		print STDERR "==== working on asm file $asm\n";
 		open(DAT, '<', $asm) or die "Cannot open $asm.\n";
