@@ -34,8 +34,6 @@
 - Internal compatibility functions now handled via libtool convenience
   archives, avoiding the hackish code copies.
 
-TODO: Check if bloat of modules from libcompat_str can sensibly reduced.
-
 1.23.3:
 -------
 - mpg123: Man page fixes by ESR.
