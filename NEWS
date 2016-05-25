@@ -3,6 +3,8 @@
 - libout123: fix build of portaudio and SDL on win32 (too many parentheses,
   thanks to Sandro Cumerlato for pointing it out)
 - fix windows-builds.sh (shell quoting in copying stage)
+- no overwriting of LIBS in Makefile (build system regression in 1.23,
+  thanks to Peter Korsgaard for reporting that one)
 
 1.23.4
 ------
