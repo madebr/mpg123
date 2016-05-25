@@ -1,3 +1,8 @@
+1.23.5
+------
+- libout123: fix build of portaudio and SDL on win32 (too many parentheses,
+  thanks to Sandro Cumerlato for pointing it out)
+
 1.23.4
 ------
 - mpg123: Fix logic of prebuffering small bits for glitch-free start of

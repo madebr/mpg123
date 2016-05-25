@@ -43,7 +43,7 @@ struct handle
 static void ms_sleep(int milliseconds)
 {
 #ifdef WIN32
-		Sleep(milliseconds));
+		Sleep(milliseconds);
 #else
 		usleep(milliseconds*1000);
 #endif
