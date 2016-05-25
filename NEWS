@@ -2,6 +2,7 @@
 ------
 - libout123: fix build of portaudio and SDL on win32 (too many parentheses,
   thanks to Sandro Cumerlato for pointing it out)
+- fix windows-builds.sh (shell quoting in copying stage)
 
 1.23.4
 ------
