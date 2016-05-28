@@ -1387,7 +1387,7 @@ MPG123_EXPORT int mpg123_replace_reader( mpg123_handle *mh
  *  Note: As it would be troublesome to mess with this while having a file open,
  *  this mpg123_close() is implied here.
  *  \param mh handle
- *  \param r_read callback for reading (behaviour like POSIXread)
+ *  \param r_read callback for reading (behaviour like POSIX read)
  *  \param r_lseek callback for seeking (like POSIX lseek)
  *  \param cleanup A callback to clean up an I/O handle on mpg123_close,
  *         can be NULL for none (you take care of cleaning your handles).
