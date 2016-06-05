@@ -391,7 +391,7 @@ MPG123_EXPORT int mpg123_decoder(mpg123_handle *mh, const char* decoder_name);
  *  The active decoder engine can vary depening on output constraints,
  *  mostly non-resampling, integer output is accelerated via 3DNow & Co. but for
  *  other modes a fallback engine kicks in.
- *  Note that this can return a decoder that is ony active in the hidden and not
+ *  Note that this can return a decoder that is only active in the hidden and not
  *  available as decoder choice from the outside.
  *  \param mh handle
  *  \return The decoder name or NULL on error.
