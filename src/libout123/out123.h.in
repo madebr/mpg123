@@ -195,10 +195,10 @@ MPG123_EXPORT
 const char* out123_strerror(out123_handle *ao);
 
 /** Get the plain errcode intead of a string.
- * \param ao handle
- * \return error code recorded in handle or OUT123_BAD_HANDLE
  * Note that this used to return OUT123_ERR instead of
  * OUT123_BAD_HANDLE in case of ao==NULL before mpg123-1.23.5 .
+ * \param ao handle
+ * \return error code recorded in handle or OUT123_BAD_HANDLE
  */
 MPG123_EXPORT
 int out123_errcode(out123_handle *ao);
