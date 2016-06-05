@@ -1097,7 +1097,7 @@ MPG123_EXPORT enum mpg123_text_encoding mpg123_enc_from_id3(unsigned char id3_en
  *  Also, you might want to take a bit of care with preparing the data; for example, strip leading zeroes (I have seen that).
  *  \param sb  target string
  *  \param enc mpg123 text encoding value
- *  \param source source buffer with plain unsigned bytes (you might need to cast from char *)
+ *  \param source source buffer with plain unsigned bytes (you might need to cast from signed char)
  *  \param source_size number of bytes in the source buffer
  *  \return 0 on error, 1 on success (on error, mpg123_free_string is called on sb)
  */
