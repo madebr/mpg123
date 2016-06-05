@@ -182,6 +182,7 @@ enum out123_error
 ,	OUT123_ARG_ERROR /**< some bad function arguments supplied */
 ,	OUT123_BAD_PARAM /**< unknown parameter code */
 ,	OUT123_SET_RO_PARAM /**< attempt to set read-only parameter */
+,	OUT123_BAD_HANDLE /**< bad handle pointer (NULL, usually) */
 ,	OUT123_ERRCOUNT /**< placeholder for shaping arrays */
 };
 
@@ -196,6 +197,8 @@ const char* out123_strerror(out123_handle *ao);
 /** Get the plain errcode intead of a string.
  * \param ao handle
  * \return error code recorded in handle or OUT123_BAD_HANDLE
+ * Note that this used to return OUT123_ERR instead of
+ * OUT123_BAD_HANDLE in case of ao==NULL before mpg123-1.23.5 .
  */
 MPG123_EXPORT
 int out123_errcode(out123_handle *ao);

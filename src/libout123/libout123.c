@@ -134,6 +134,7 @@ static const char *const errstring[OUT123_ERRCOUNT] =
 ,	"basic module system error"
 ,	"unknown parameter code"
 ,	"attempt to set read-only parameter"
+,	"invalid out123 handle"
 };
 
 const char* attribute_align_arg out123_strerror(out123_handle *ao)
@@ -143,7 +144,7 @@ const char* attribute_align_arg out123_strerror(out123_handle *ao)
 
 int out123_errcode(out123_handle *ao)
 {
-	if(!ao) return OUT123_ERR;
+	if(!ao) return OUT123_BAD_HANDLE;
 	else    return ao->errcode;
 }
 

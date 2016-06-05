@@ -1,7 +1,11 @@
 1.23.5
 ------
-- libout123: fix build of portaudio and SDL on win32 (too many parentheses,
-  thanks to Sandro Cumerlato for pointing it out)
+- libout123:
+-- fix build of portaudio and SDL on win32 (too many parentheses,
+   thanks to Sandro Cumerlato for pointing it out)
+-- make out123_errcode() return OUT123_BAD_HANDLE as documented
+   (adding that value to the error enum, was documented but missing),
+   again thanks to Sandro
 - fix windows-builds.sh (shell quoting in copying stage)
 - no overwriting of LIBS in Makefile (build system regression in 1.23,
   thanks to Peter Korsgaard for reporting that one)
