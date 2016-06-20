@@ -39,6 +39,11 @@
 #endif
 #endif
 
+#if defined(_MSC_VER)
+#include <stddef.h>
+typedef ptrdiff_t ssize_t;
+#endif
+
 #ifndef MPG123_NO_CONFIGURE /* Enable use of this file without configure. */
 @INCLUDE_STDLIB_H@
 @INCLUDE_SYS_TYPE_H@
