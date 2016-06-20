@@ -39,6 +39,7 @@
 #endif
 #endif
 
+/* This is for Visual Studio, so this header works as distributed in the binary downloads */
 #if defined(_MSC_VER)
 #include <stddef.h>
 typedef ptrdiff_t ssize_t;
