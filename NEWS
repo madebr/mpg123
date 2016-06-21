@@ -6,7 +6,8 @@
 -- make out123_errcode() return OUT123_BAD_HANDLE as documented
    (adding that value to the error enum, was documented but missing),
    again thanks to Sandro
-- fix windows-builds.sh (shell quoting in copying stage)
+- fix windows-builds.sh (shell quoting in copying stage) and add some
+  bits to shipped header to make it directly usable in MSVC (define ssize_t)
 - no overwriting of LIBS in Makefile (build system regression in 1.23,
   thanks to Peter Korsgaard for reporting that one)
 
