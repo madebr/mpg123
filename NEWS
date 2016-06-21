@@ -11,6 +11,8 @@
   bug 232)
 - no overwriting of LIBS in Makefile (build system regression in 1.23,
   thanks to Peter Korsgaard for reporting that one)
+- no printing of message in response to SIGPIPE, as that could trigger
+  a hang if stderr itself is the piped culprit (regression from 1.22, bug 233)
 
 1.23.4
 ------

@@ -169,7 +169,7 @@ static void catch_interrupt(void)
 }
 static void handle_fatal_msg(const char *msg, size_t n)
 {
-	if(!param.quiet)
+	if(msg && !param.quiet)
 		write(STDERR_FILENO, msg, n);
 	intflag = TRUE;
 	deathflag = TRUE;
@@ -181,8 +181,9 @@ static void catch_fatal_term(void)
 }
 static void catch_fatal_pipe(void)
 {
-	const char msg[] = "\nmpg123: death by SIGPIPE\n";
-	handle_fatal_msg(msg, sizeof(msg));
+	/* If the SIGPIPE is because of piped stderr, trying to write
+	   in the signal handler hangs the program. */
+	handle_fatal_msg(NULL, 0);
 }
 #endif
 
