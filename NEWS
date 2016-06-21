@@ -7,7 +7,8 @@
    (adding that value to the error enum, was documented but missing),
    again thanks to Sandro
 - fix windows-builds.sh (shell quoting in copying stage) and add some
-  bits to shipped header to make it directly usable in MSVC (define ssize_t)
+  bits to shipped header to make it directly usable in MSVC (define ssize_t,
+  bug 232)
 - no overwriting of LIBS in Makefile (build system regression in 1.23,
   thanks to Peter Korsgaard for reporting that one)
 
