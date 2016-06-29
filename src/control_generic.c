@@ -496,7 +496,7 @@ int control_generic (mpg123_handle *fr)
 					if (mode != MODE_STOPPED) {
 						/* Do we want to drop here? */
 						out123_drop(ao);
-						out123_stop(ao);
+						out123_pause(ao);
 						close_track();
 						mode = MODE_STOPPED;
 						generic_sendmsg("P 0");

@@ -1,3 +1,10 @@
+1.23.6
+------
+- call out123_pause() instead of out123_stop() in remote control STOP
+  command, fixing the regression in 1.23.x of not being able to resume
+  playback with a nother LOAD unless the new track has differing audio
+  format (bug 234)
+
 1.23.5
 ------
 - libout123:
