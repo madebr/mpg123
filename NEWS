@@ -1,3 +1,9 @@
+1.24.0
+------
+- libmpg123 version 43:
+-- Add flags MPG123_NO_PEEK_END and MPG123_FORCE_SEEKABLE, as suggested
+   by Bent Bisballe Nyeng.
+
 1.23.7
 ------
 - Fix the bad RPM spec file (broken since out123 addition).

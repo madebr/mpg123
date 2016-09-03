@@ -1,5 +1,8 @@
 Changes in libmpg123 libtool interface versions...
 
+43.0.43
+	- added MPG123_NO_PEEK_END and MPG123_FORCE_SEEKABLE
+
 42.0.42
 	- added mpg123_framelength()
 	  Now mpg123_position() is truly obsolete!
