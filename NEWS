@@ -1,3 +1,7 @@
+1.23.7
+------
+- Fix the bad RPM spec file (broken since out123 addition).
+
 1.23.6
 ------
 - call out123_pause() instead of out123_stop() in remote control STOP
