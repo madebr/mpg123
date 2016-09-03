@@ -49,6 +49,7 @@ make
 %{_bindir}/*
 %defattr(644,root,root)
 %doc %{_mandir}/*/mpg123.1.gz
+%doc %{_mandir}/*/out123.1.gz
 %{_libdir}/libmpg123.so.*
 %{_libdir}/libout123.so.*
 %{_libdir}/mpg123/output_*.la
@@ -68,6 +69,8 @@ make
 %exclude %{_libdir}/mpg123/output_*.a
 
 %changelog
+* Sat Sep  3 2016 Srikanth Rao <srirao@bandwidth.com>
+- remove junk added in last edit, add out123 manpage
 * Much later Thomas Orgis <thomas@orgis.org>
 - some blind update
 * Tue Jan  1 2008 Michael Ryzhykh <mclroy@gmail.com>
