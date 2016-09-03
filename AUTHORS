@@ -3,6 +3,15 @@ There are names and email addresses listed. Please use these addresses only to c
 You are explicitly not allowed to send them unwanted business offers or to question the quality of their sex life.
 --------------------
 
+Being on the list of contributing authors not necessarily means that there
+is significant copyright in parts of the source code. There are obviously
+contributions of differing complexity. I try to mention people who motivated
+changes at least by suggesting some definite code changes, even if their
+code did not enter the mpg123 source verbatim. Trivial changes like pointing
+out ovbious syntax errors that make compilers cry do not land here.
+
+--------------------
+
 Current maintainers with various sorts of contributions:
 	Thomas Orgis <thomas@orgis.org>
 	Patrick Dehne <patrick@steidle.net>
@@ -17,6 +26,8 @@ The creator: Michael Hipp (email: hippm@informatik.uni-tuebingen.de - please bot
 
 Contributions/ideas Thomas Orgis era (includes backports from mhipp trunk):
 
+Bent Bisballe Nyeng <bbn@dynastrom.com>: patch for MPG123_NO_PEEK_END and MPG123_FORCE_SEEKABLE
+Eric S. Raymond <esr@thyrsus.com>: man page fixes
 Tobias Weber <tobiw@suprafluid.com>: patch for --disable-equalizer
 Hans de Goede <j.w.r.degoede@gmail.com>: patch to skip APE tags
 Stephan Vedder <stephan.vedder@gmail.com>: MSVC++ 2013 port update
