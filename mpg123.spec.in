@@ -1,4 +1,4 @@
-bv# This is a generic spec file that should "just work" with rpmbuild on any distro.
+# This is a generic spec file that should "just work" with rpmbuild on any distro.
 # Make sure you have appropriate -devel packes installed:
 # - the package providing libltdl.so and .la (libtool or libtool-devel)
 # - devel packages for alsa, sdl, etc... to build the respective output modules.
