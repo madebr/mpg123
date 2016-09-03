@@ -198,12 +198,12 @@ enum mpg123_param_flags
 	,MPG123_IGNORE_INFOFRAME = 0x4000 /**< 100 0000 0000 0000 Do not parse the LAME/Xing info frame, treat it as normal MPEG data. */
 	,MPG123_AUTO_RESAMPLE = 0x8000 /**< 1000 0000 0000 0000 Allow automatic internal resampling of any kind (default on if supported). Especially when going lowlevel with replacing output buffer, you might want to unset this flag. Setting MPG123_DOWNSAMPLE or MPG123_FORCE_RATE will override this. */
 	,MPG123_PICTURE = 0x10000 /**< 17th bit: Enable storage of pictures from tags (ID3v2 APIC). */
-	/** 18th bit: Do not seek to the end of the stream in order to probe
+	,MPG123_NO_PEEK_END    = 0x20000 /**< 18th bit: Do not seek to the end of
+	 *  the stream in order to probe
 	 *  the stream length and search for the id3v1 field. This also means
 	 *  the file size is unknown unless set using mpg123_set_filesize() and
 	 *  the stream is assumed as non-seekable unless overridden.
 	 */
-	,MPG123_NO_PEEK_END    = 0x20000
 	,MPG123_FORCE_SEEKABLE = 0x40000 /**< 19th bit: Force the stream to be seekable. */
 };
 
