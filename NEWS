@@ -3,6 +3,8 @@
 - libmpg123 version 43:
 -- Add flags MPG123_NO_PEEK_END and MPG123_FORCE_SEEKABLE, as suggested
    by Bent Bisballe Nyeng.
+- Avoid repeating genre in metadata printout for specifications like
+  (144)Thrash Metal.
 
 1.23.7
 ------

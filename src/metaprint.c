@@ -283,7 +283,12 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 				}
 				if(state == outtahere) break;
 			}
-			if(nonum < tmp.fill-1)
+			/* Small hack: Avoid repeating genre in case of stuff like
+			   (144)Thrash Metal being given. The simple cases. */
+			if(
+				nonum < tmp.fill-1 &&
+				(!tag[GENRE].fill || strncmp(tag[GENRE].p, tmp.p+nonum, tag[GENRE].fill))
+			)
 			{
 				if(tag[GENRE].fill) mpg123_add_string(&tag[GENRE], ", ");
 				mpg123_add_string(&tag[GENRE], tmp.p+nonum);
