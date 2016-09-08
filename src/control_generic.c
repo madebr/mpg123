@@ -364,13 +364,13 @@ int control_generic (mpg123_handle *fr)
 			if (n == 0) {
 				if (!play_frame())
 				{
+					out123_pause(ao);
 					/* When the track ended, user may want to keep it open (to seek back),
 					   so there is a decision between stopping and pausing at the end. */
 					if(param.keep_open)
 					{
 						mode = MODE_PAUSED;
 						/* Hm, buffer should be stopped already, shouldn't it? */
-						if(param.usebuffer) out123_pause(ao);
 						generic_sendmsg("P 1");
 					}
 					else

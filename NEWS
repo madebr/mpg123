@@ -9,6 +9,7 @@
 1.23.7
 ------
 - Fix the bad RPM spec file (broken since out123 addition).
+- More out123_pause() in generic control mode.
 
 1.23.6
 ------
