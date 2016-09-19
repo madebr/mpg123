@@ -1,5 +1,7 @@
 1.24.0
 ------
+TODO: - Detect playlists from MIME type by default, finally? Or should the -@
+  always stay there as it already switches to track playback?
 - libmpg123 version 43:
 -- Add flags MPG123_NO_PEEK_END and MPG123_FORCE_SEEKABLE, as suggested
    by Bent Bisballe Nyeng.
@@ -10,6 +12,8 @@
 ------
 - Fix the bad RPM spec file (broken since out123 addition).
 - More out123_pause() in generic control mode.
+- Do not undef MPG123_EXPORT in the headers, rather be prepared for it
+  being defined already. This fixes MSVC builds, broken since 1.23.0 .
 
 1.23.6
 ------
