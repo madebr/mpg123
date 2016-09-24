@@ -579,7 +579,5 @@ int out123_getformat( out123_handle *ao
 }
 #endif
 
-#undef MPG123_EXPORT
-
 #endif
 
