@@ -11,9 +11,11 @@ TODO: - Detect playlists from MIME type by default, finally? Or should the -@
 1.23.7
 ------
 - Fix the bad RPM spec file (broken since out123 addition).
-- More out123_pause() in generic control mode.
+- More out123_pause() in generic control mode, working around
+  bug 236. The coreaudio output needs to be more robust, though.
 - Do not undef MPG123_EXPORT in the headers, rather be prepared for it
-  being defined already. This fixes MSVC builds, broken since 1.23.0 .
+  being defined already. This fixes MSVC builds, broken since 1.23.0
+  (bug 239).
 
 1.23.6
 ------
