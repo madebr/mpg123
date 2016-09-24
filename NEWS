@@ -1,12 +1,15 @@
 1.24.0
 ------
-TODO: - Detect playlists from MIME type by default, finally? Or should the -@
-  always stay there as it already switches to track playback?
+TODO: looping and playlists, also printout of lists in control_generic
+      (avoid looping stuff there)
+TODO: Make coreaudio more robust (see bug 236)
 - libmpg123 version 43:
 -- Add flags MPG123_NO_PEEK_END and MPG123_FORCE_SEEKABLE, as suggested
    by Bent Bisballe Nyeng.
 - Avoid repeating genre in metadata printout for specifications like
   (144)Thrash Metal.
+- libout123/coreaudio:
+-- Use AudioComponents API on OSX >= 10.6 (thanks to Michael Weiser).
 
 1.23.7
 ------

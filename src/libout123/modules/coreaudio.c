@@ -11,7 +11,33 @@
 
 #include "out123_int.h"
 
+/* has been around since at least 10.4 */
+#include <AvailabilityMacros.h>
+
+/* Use AudioComponents API when compiling for >= 10.6, otherwise fall back to
+ * Components Manager, which is deprecated since 10.8.
+ * MAC_OS_X_VERSION_MIN_REQUIRED defaults to the host system version and can be
+ * governed by MACOSX_DEPLOYMENT_TARGET environment variable and
+ * -mmacosx-version-min= when running the compiler. */
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
+#define HAVE_AUDIOCOMPONENTS 1
+#endif
+
+#if HAVE_AUDIOCOMPONENTS
+#define MPG123_AUDIOCOMPONENTDESCRIPTION AudioComponentDescription
+#define MPG123_AUDIOCOMPONENT AudioComponent
+#define MPG123_AUDIOCOMPONENTFINDNEXT AudioComponentFindNext
+/* Funky API twist: AudioUnit is actually typedef'd AudioComponentInstance */
+#define MPG123_AUDIOCOMPONENTINSTANCENEW AudioComponentInstanceNew
+#define MPG123_AUDIOCOMPONENTINSTANCEDISPOSE AudioComponentInstanceDispose
+#else
 #include <CoreServices/CoreServices.h>
+#define MPG123_AUDIOCOMPONENTDESCRIPTION ComponentDescription
+#define MPG123_AUDIOCOMPONENT Component
+#define MPG123_AUDIOCOMPONENTFINDNEXT FindNextComponent
+#define MPG123_AUDIOCOMPONENTINSTANCENEW OpenAComponent
+#define MPG123_AUDIOCOMPONENTINSTANCEDISPOSE CloseComponent
+#endif
 #include <AudioUnit/AudioUnit.h>
 #include <AudioToolbox/AudioToolbox.h>
 #include <errno.h>
@@ -126,8 +152,8 @@ static int open_coreaudio(out123_handle *ao)
 {
 	mpg123_coreaudio_t* ca = (mpg123_coreaudio_t*)ao->userptr;
 	UInt32 size;
-	ComponentDescription desc;
-	Component comp;
+	MPG123_AUDIOCOMPONENTDESCRIPTION desc;
+	MPG123_AUDIOCOMPONENT comp;
 	AudioStreamBasicDescription inFormat;
 	AudioStreamBasicDescription outFormat;
 	AURenderCallbackStruct  renderCallback;
@@ -146,18 +172,18 @@ static int open_coreaudio(out123_handle *ao)
 	desc.componentManufacturer = kAudioUnitManufacturer_Apple;
 	desc.componentFlags = 0;
 	desc.componentFlagsMask = 0;
-	comp = FindNextComponent(NULL, &desc);
+	comp = MPG123_AUDIOCOMPONENTFINDNEXT(NULL, &desc);
 	if(comp == NULL)
 	{
 		if(!AOQUIET)
-			error("FindNextComponent failed");
+			error("AudioComponentFindNext failed");
 		return(-1);
 	}
 	
-	if(OpenAComponent(comp, &(ca->outputUnit)))
+	if(MPG123_AUDIOCOMPONENTINSTANCENEW(comp, &(ca->outputUnit)))
 	{
 		if(!AOQUIET)
-			error("OpenAComponent failed");
+			error("AudioComponentInstanceNew failed");
 		return (-1);
 	}
 	
@@ -318,7 +344,7 @@ static int close_coreaudio(out123_handle *ao)
 		AudioConverterDispose(ca->converter);
 		AudioOutputUnitStop(ca->outputUnit);
 		AudioUnitUninitialize(ca->outputUnit);
-		CloseComponent(ca->outputUnit);
+		MPG123_AUDIOCOMPONENTINSTANCEDISPOSE(ca->outputUnit);
 	
 	    /* Free the ring buffer */
 		sfifo_close( &ca->fifo );

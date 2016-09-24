@@ -26,6 +26,7 @@ The creator: Michael Hipp (email: hippm@informatik.uni-tuebingen.de - please bot
 
 Contributions/ideas Thomas Orgis era (includes backports from mhipp trunk):
 
+Michael Weiser <michaelweiser@users.sf.net>: update of coreaudio output to AudioComponents API
 Bent Bisballe Nyeng <bbn@dynastrom.com>: patch for MPG123_NO_PEEK_END and MPG123_FORCE_SEEKABLE
 Eric S. Raymond <esr@thyrsus.com>: man page fixes
 Tobias Weber <tobiw@suprafluid.com>: patch for --disable-equalizer
