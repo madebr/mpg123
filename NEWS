@@ -11,6 +11,12 @@ TODO: Make coreaudio more robust (see bug 236)
 - libout123/coreaudio:
 -- Use AudioComponents API on OSX >= 10.6 (thanks to Michael Weiser).
 
+1.23.8
+------
+- Fix long-standing bad memory read (via integer underflow) in ID3 parser
+  for crafted ID3v2 tags with tiny size information (bug 240). Thanks to
+  Han Lee & Jerold Hoong for the detailed report.
+
 1.23.7
 ------
 - Fix the bad RPM spec file (broken since out123 addition, thanks
