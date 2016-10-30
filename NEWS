@@ -2,7 +2,6 @@
 ------
 TODO: looping and playlists, also printout of lists in control_generic
       (avoid looping stuff there)
-TODO: Make coreaudio more robust (see bug 236)
 - libmpg123 version 43:
 -- Add flags MPG123_NO_PEEK_END and MPG123_FORCE_SEEKABLE, as suggested
    by Bent Bisballe Nyeng.
@@ -10,6 +9,8 @@ TODO: Make coreaudio more robust (see bug 236)
   (144)Thrash Metal.
 - libout123/coreaudio:
 -- Use AudioComponents API on OSX >= 10.6 (thanks to Michael Weiser).
+-- Fix behaviour of out123_drop(), not killing the output anymore
+   without re-opening the device (bug 236, thanks to Taihei fir the fix).
 
 1.23.8
 ------
