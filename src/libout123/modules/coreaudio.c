@@ -364,13 +364,12 @@ static void flush_coreaudio(out123_handle *ao)
 {
 	mpg123_coreaudio_t* ca = (mpg123_coreaudio_t*)ao->userptr;
 
-	/* Stop playback */
-	if(AudioOutputUnitStop(ca->outputUnit))
+	/* Flush AudioConverter's buffer */
+	if(AudioConverterReset(ca->converter))
 	{
 		if(!AOQUIET)
-			error("AudioOutputUnitStop failed");
+			error("AudioConverterReset failed");
 	}
-	ca->play=0;
 	
 	/* Empty out the ring buffer */
 	sfifo_flush( &ca->fifo );	
