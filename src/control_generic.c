@@ -277,6 +277,8 @@ static void generic_loadlist(mpg123_handle *fr, char *arg)
 	/* Now got the plain playlist path in arg. On to evil manupulation of mpg123's playlist code. */
 	param.listname = arg;
 	param.listentry = 0; /* The playlist shall not filter. */
+	param.loop = 1;
+	param.shuffle = 0;
 	prepare_playlist(0, NULL);
 	while((file = get_next_file()))
 	{

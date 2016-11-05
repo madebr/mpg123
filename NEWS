@@ -34,6 +34,8 @@ TODO: looping and playlists, also printout of lists in control_generic
   So, usage on an intact installation (with /usr/lib/mpg123 or the like) was
   safe. Nevertheless this new version fixes the search to be relative to the
   binary path as it was with 1.22 and before.
+- Prevent --loop and --shuffle or --random from messing with the remote
+  control LOADLIST command (printout of the list would loop without reason).
 
 1.23.8
 ------
