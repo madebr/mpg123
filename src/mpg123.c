@@ -1081,8 +1081,6 @@ int main(int sys_argc, char ** sys_argv)
 	{
 		param.verbose = 0;
 		param.quiet = 1;
-		param.flags |= MPG123_QUIET;
-		param.output_flags |= OUT123_QUIET;
 	}
 #endif
 
