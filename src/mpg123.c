@@ -1077,11 +1077,8 @@ int main(int sys_argc, char ** sys_argv)
 	httpdata_init(&htd);
 
 #if !defined(WIN32) && !defined(GENERIC)
-	if (param.remote)
-	{
-		param.verbose = 0;
+	if(param.remote && !param.verbose)
 		param.quiet = 1;
-	}
 #endif
 
 	/* Set the frame parameters from command line options */

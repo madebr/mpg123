@@ -7,6 +7,8 @@ TODO: looping and playlists, also printout of lists in control_generic
    by Bent Bisballe Nyeng.
 - Avoid repeating genre in metadata printout for specifications like
   (144)Thrash Metal.
+- remote control mode:
+-- Only enforce --quiet if no verbosity was required.
 - libout123/coreaudio:
 -- Use AudioComponents API on OSX >= 10.6 (thanks to Michael Weiser).
 -- Fix behaviour of out123_drop(), not killing the output anymore
