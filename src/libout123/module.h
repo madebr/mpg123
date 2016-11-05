@@ -43,8 +43,10 @@ typedef struct mpg123_module_struct {
 
 /* ------ Declarations from "module.c" ------ */
 
-mpg123_module_t* open_module(const char* type, const char* name, int verbose);
+mpg123_module_t* open_module( const char* type, const char* name, int verbose
+,	const char* bindir );
 void close_module(mpg123_module_t* module, int verbose);
-int list_modules(const char *type, char ***names, char ***descr, int verbose);
+int list_modules( const char *type, char ***names, char ***descr, int verbose
+,	const char* bindir );
 
 #endif

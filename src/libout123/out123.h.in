@@ -112,6 +112,11 @@ enum out123_parms
  * The value returned by out123_getparam() might be different if the audio
  * backend changed it (to be unique among clients, p.ex.).
  * TODO: The name provided here is used as prefix in diagnostic messages. */
+,	OUT123_BINDIR /**< string, path to a program binary directory to use
+ * as starting point in the search for the output module directory
+ * (e.g. ../lib/mpg123 or ./plugins). The environment variable MPG123_MODDIR
+ * is always tried first and the in-built installation path last.
+ */
 };
 
 /** Flags to tune out123 behaviour */

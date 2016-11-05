@@ -33,60 +33,48 @@ static const char* modulesearch[] =
 {
 	 "../lib/mpg123"
 	,"plugins"
+	,"libout123/modules/.libs"
+	,"libout123/modules"
+	,"../libout123/modules/.libs"
+	,"../libout123/modules"
 };
 
 static char *get_the_cwd(int verbose); /* further down... */
-static char *get_module_dir(int verbose)
+static char *get_module_dir(int verbose, const char* bindir)
 {
-	/* Either PKGLIBDIR is accessible right away or we search for some possible plugin dirs relative to binary path. */
 	DIR* dir = NULL;
 	char *moddir = NULL;
 	const char *defaultdir;
-	/* Compiled-in default module dir or environment variable MPG123_MODDIR. */
+	/* First the environment override, then relative to bindir, then installation prefix. */
 	defaultdir = getenv("MPG123_MODDIR");
-	if(defaultdir == NULL)
-		defaultdir=PKGLIBDIR;
-	else if(verbose > 1)
-		fprintf(stderr, "Trying module directory from environment: %s\n", defaultdir);
-
-	dir = opendir(defaultdir);
-	if(dir != NULL)
+	if(defaultdir)
 	{
-		size_t l = strlen(defaultdir);
-
 		if(verbose > 1)
-			fprintf(stderr, "Using default module dir: %s\n", defaultdir);
-		moddir = malloc(l+1);
-		if(moddir != NULL)
+			fprintf(stderr, "Trying module directory from environment: %s\n", defaultdir);
+		dir = opendir(defaultdir);
+		if(dir)
 		{
-			strcpy(moddir, defaultdir);
-			moddir[l] = 0;
+			closedir(dir);
+			moddir = compat_strdup(defaultdir);
 		}
-		closedir(dir);
 	}
-	else /* Search relative to binary. */
+	else if(bindir) /* Search relative to binary. */
 	{
 		size_t i;
+		size_t bl = strlen(bindir);
 		for(i=0; i<sizeof(modulesearch)/sizeof(char*); ++i)
 		{
 			const char *testpath = modulesearch[i];
 			size_t l;
-			fprintf(stderr, "TODO: module search relative to binary path\n");
-/*			if(binpath != NULL) l = strlen(binpath) + strlen(testpath) + 1;
-			else */ l = strlen(testpath);
 
+			l = bl + strlen(testpath) + 1;
 			moddir = malloc(l+1);
-			if(moddir != NULL)
+			if(moddir)
 			{
-				/*if(binpath==NULL)*/ /* a copy of testpath, when there is no prefix */
-				snprintf(moddir, l+1, "%s", testpath);
-				/* else
-				snprintf(moddir, l+1, "%s/%s", binpath, testpath); */
-
+				snprintf(moddir, l+1, "%s/%s", bindir, testpath);
 				moddir[l] = 0;
 				if(verbose > 1)
 					fprintf(stderr, "Looking for module dir: %s\n", moddir);
-
 				dir = opendir(moddir);
 				if(dir != NULL)
 				{
@@ -97,6 +85,19 @@ static char *get_module_dir(int verbose)
 			}
 		}
 	}
+	if(!moddir) /* Resort to installation prefix. */
+	{
+		defaultdir=PKGLIBDIR;
+		dir = opendir(defaultdir);
+		if(dir)
+		{
+			closedir(dir);
+			if(verbose > 1)
+				fprintf(stderr, "Using default module dir: %s\n", defaultdir);
+			moddir = compat_strdup(defaultdir);
+		}
+	}
+
 	if(verbose > 1)
 		fprintf(stderr, "Module dir: %s\n", moddir != NULL ? moddir : "<nil>");
 	return moddir;
@@ -181,14 +182,15 @@ mpg123_module_t* open_module_here(const char* type, const char* name, int verbos
 
 
 /* Open a module, including directory search. */
-mpg123_module_t* open_module(const char* type, const char* name, int verbose)
+mpg123_module_t* open_module( const char* type, const char* name, int verbose
+,	const char* bindir )
 {
 	mpg123_module_t *module = NULL;
 	char *workdir = NULL;
 	char *moddir  = NULL;
 
 	workdir = get_the_cwd(verbose);
-	moddir  = get_module_dir(verbose);
+	moddir  = get_module_dir(verbose, bindir);
 	if(workdir == NULL || moddir == NULL)
 	{
 		if(verbose > -1)
@@ -248,7 +250,8 @@ static char *get_the_cwd(int verbose)
 	return buf;
 }
 
-int list_modules(const char *type, char ***names, char ***descr, int verbose)
+int list_modules( const char *type, char ***names, char ***descr, int verbose
+,	const char* bindir )
 {
 	DIR* dir = NULL;
 	struct dirent *dp = NULL;
@@ -260,7 +263,7 @@ int list_modules(const char *type, char ***names, char ***descr, int verbose)
 	*names = NULL;
 	*descr = NULL;
 
-	moddir = get_module_dir(verbose);
+	moddir = get_module_dir(verbose, bindir);
 	if(moddir == NULL)
 	{
 		if(verbose > -1)

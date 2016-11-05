@@ -13,6 +13,27 @@ TODO: looping and playlists, also printout of lists in control_generic
 -- Use AudioComponents API on OSX >= 10.6 (thanks to Michael Weiser).
 -- Fix behaviour of out123_drop(), not killing the output anymore
    without re-opening the device (bug 236, thanks to Taihei fir the fix).
+- libout123:
+-- New search order for output plugin directory: MPG123_MODDIR, or (relative
+   to executable directory OUT123_BINDIR) ../lib/mpg123, plugins
+   libout123/modules/.libs, libout123/modules, ../libout123/modules/.libs,
+   ../libout123/modules, and at last the installation prefix $libdir/mpg213/.
+   This shall ensure that a build inside a source tree does not try to use old
+   modules from the system prefix. The normal libtool wrapper deals with the
+   shared libout123 or libmpg123 only, not modules.
+   Note that if you set MPG123_MODDIR to a non-existing directory, no modules
+   will be found (earlier versions fell back to other choices).
+-- The OUT123_NAME parameter is now copied by out123_param_from(), as is
+   the newly added OUT123_BINDIR.
+- Fix the mpg123 command (esp. our provided binaries on Windows) to now find
+  modules again relative to the executable directory, not the current working
+  directory. This was a regression in 1.23 and might be security-relevant if
+  you called mpg123 in working directories with untrusted content.
+  Note that mpg123 1.23 looked for modules relative to the current working
+  directory only if the installation prefix for modules did not exist.
+  So, usage on an intact installation (with /usr/lib/mpg123 or the like) was
+  safe. Nevertheless this new version fixes the search to be relative to the
+  binary path as it was with 1.22 and before.
 
 1.23.8
 ------

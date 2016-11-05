@@ -480,6 +480,7 @@ static void list_output_modules(char *arg)
 		printf("\n");
 		printf("Available modules\n");
 		printf("-----------------\n");
+		out123_param_string(lao, OUT123_BINDIR, binpath);
 		out123_param_int(lao, OUT123_VERBOSE, param.verbose);
 		if(param.quiet)
 			out123_param_int(lao, OUT123_FLAGS, OUT123_QUIET);
@@ -1197,6 +1198,7 @@ int main(int sys_argc, char ** sys_argv)
 	|| out123_param_int(ao, OUT123_GAIN, param.gain)
 	|| out123_param_int(ao, OUT123_VERBOSE, param.verbose)
 	|| out123_param_string(ao, OUT123_NAME, param.name)
+	|| out123_param_string(ao, OUT123_BINDIR, binpath)
 	|| out123_param_float(ao, OUT123_DEVICEBUFFER, param.device_buffer)
 	)
 	{

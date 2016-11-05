@@ -99,6 +99,7 @@ out123_handle* attribute_align_arg out123_new(void)
 	ao->preload = 0.;
 	ao->verbose = 0;
 	ao->device_buffer = 0.;
+	ao->bindir = NULL;
 	return ao;
 }
 
@@ -114,6 +115,8 @@ void attribute_align_arg out123_del(out123_handle *ao)
 #endif
 	if(ao->name)
 		free(ao->name);
+	if(ao->bindir)
+		free(ao->bindir);
 	free(ao);
 }
 
@@ -228,6 +231,11 @@ out123_param( out123_handle *ao, enum out123_parms code
 				free(ao->name);
 			ao->name = compat_strdup(svalue ? svalue : default_name);
 		break;
+		case OUT123_BINDIR:
+			if(ao->bindir)
+				free(ao->bindir);
+			ao->bindir = compat_strdup(svalue);
+		break;
 		default:
 			ao->errcode = OUT123_BAD_PARAM;
 			if(!AOQUIET) error1("bad parameter code %i", (int)code);
@@ -281,6 +289,9 @@ out123_getparam( out123_handle *ao, enum out123_parms code
 		case OUT123_NAME:
 			svalue = ao->realname ? ao->realname : ao->name;
 		break;
+		case OUT123_BINDIR:
+			svalue = ao->bindir;
+		break;
 		default:
 			if(!AOQUIET) error1("bad parameter code %i", (int)code);
 			ao->errcode = OUT123_BAD_PARAM;
@@ -306,6 +317,12 @@ out123_param_from(out123_handle *ao, out123_handle* from_ao)
 	ao->gain      = from_ao->gain;
 	ao->device_buffer = from_ao->device_buffer;
 	ao->verbose   = from_ao->verbose;
+	if(ao->name)
+		free(ao->name);
+	ao->name = compat_strdup(from_ao->name);
+	if(ao->bindir)
+		free(ao->bindir);
+	ao->bindir = compat_strdup(from_ao->bindir);
 
 	return 0;
 }
@@ -325,6 +342,7 @@ int write_parameters(out123_handle *ao, int who)
 	&&	GOOD_WRITEVAL(fd, ao->verbose)
 	&&	GOOD_WRITEVAL(fd, ao->propflags)
 	&& !xfer_write_string(ao, who, ao->name)
+	&& !xfer_write_string(ao, who, ao->bindir)
 	)
 		return 0;
 	else
@@ -345,6 +363,7 @@ int read_parameters(out123_handle *ao
 	&&	GOOD_READVAL_BUF(fd, ao->verbose)
 	&&	GOOD_READVAL_BUF(fd, ao->propflags)
 	&& !xfer_read_string(ao, who, &ao->name)
+	&& !xfer_read_string(ao, who, &ao->bindir)
 	)
 		return 0;
 	else
@@ -825,7 +844,7 @@ static void check_output_module( out123_handle *ao
 		return;
 
 	/* Open the module, initial check for availability+libraries. */
-	ao->module = open_module( "output", name, modverbose(ao));
+	ao->module = open_module( "output", name, modverbose(ao), ao->bindir);
 	if(!ao->module)
 		return;
 	/* Check if module supports output */
@@ -899,7 +918,7 @@ out123_drivers(out123_handle *ao, char ***names, char ***descr)
 	/* Wrap the call to isolate the lower levels from the user not being
 	   interested in both lists. it's a bit wasteful, but the code looks
 	   ugly enough already down there. */
-	count = list_modules("output", &tmpnames, &tmpdescr, modverbose(ao));
+	count = list_modules("output", &tmpnames, &tmpdescr, modverbose(ao), ao->bindir);
 	debug1("list_modules()=%i", count);
 	if(count < 0)
 		return count;

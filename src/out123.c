@@ -271,6 +271,7 @@ static void list_output_modules(char *arg)
 
 	if((lao=out123_new()))
 	{
+		out123_param_string(lao, OUT123_BINDIR, binpath);
 		out123_param_int(lao, OUT123_VERBOSE, verbose);
 		if(quiet)
 			out123_param_int(lao, OUT123_FLAGS, OUT123_QUIET);
@@ -551,6 +552,7 @@ int main(int sys_argc, char ** sys_argv)
 	|| out123_param_int(ao, OUT123_GAIN, gain)
 	|| out123_param_int(ao, OUT123_VERBOSE, verbose)
 	|| out123_param_string(ao, OUT123_NAME, name)
+	|| out123_param_string(ao, OUT123_BINDIR, binpath)
 	|| out123_param_float(ao, OUT123_DEVICEBUFFER, device_buffer)
 	)
 	{

@@ -89,6 +89,7 @@ struct out123_struct
 	double preload;	/* buffer fraction to preload before play */
 	int verbose;	/* verbosity to stderr */
 	double device_buffer; /* device buffer in seconds */
+	char *bindir;	/* OUT123_BINDIR */
 /* TODO int intflag;   ... is it really useful/necessary from the outside? */
 };
 
