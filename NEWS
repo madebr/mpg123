@@ -11,7 +11,8 @@
 -- Use AudioComponents API on OSX >= 10.6 (thanks to Michael Weiser).
 -- Fix behaviour of out123_drop(), not killing the output anymore
    without re-opening the device (bug 236, thanks to Taihei fir the fix).
-- libout123:
+- libout123 version 2:
+-- Added OUT123_BINDIR.
 -- New search order for output plugin directory: MPG123_MODDIR, or (relative
    to executable directory OUT123_BINDIR) ../lib/mpg123, plugins
    libout123/modules/.libs, libout123/modules, ../libout123/modules/.libs,
