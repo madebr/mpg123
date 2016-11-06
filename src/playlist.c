@@ -9,6 +9,7 @@
 */
 
 #include "mpg123app.h"
+#include "sysutil.h"
 #include "getlopt.h" /* for loptind */
 #include "term.h" /* for term_restore */
 #include "playlist.h"
@@ -27,24 +28,43 @@
 /* increase linebuf in blocks of ... bytes */
 #define LINEBUF_STEP 100
 
+enum playlist_type { UNKNOWN = 0, M3U, PLS, NO_LIST };
+
+typedef struct listitem
+{
+	char* url; /* the filename */
+	char freeit; /* if it was allocated and should be free()d here */
+	size_t playcount; /* has been played as ...th track in overall counting */
+} listitem;
+
+typedef struct playlist_struct
+{
+	FILE* file; /* the current playlist stream */
+	size_t entry; /* entry in the playlist file */
+	size_t playcount; /* overall track counter for playback */
+	long loop;    /* repeat a track n times */
+	size_t size;
+	size_t fill;
+	size_t pos; /* (next) position, internal use */
+	size_t num; /* current track number */
+	size_t alloc_step;
+	struct listitem* list;
+	mpg123_string linebuf;
+	mpg123_string dir;
+	enum playlist_type type;
+#if defined (WANT_WIN32_SOCKETS)
+	int sockd; /* Is Win32 socket descriptor working? */
+#endif
+} playlist_struct;
+
 /* one global instance... add a pointer to this to every function definition and you have OO-style... */
-playlist_struct pl;
+static playlist_struct pl;
 
-/*
-	functions to be called from outside and thus declared in the header:
-
-	void prepare_playlist(int argc, char** argv);
-	char *get_next_file(int argc, char **argv);
-	void free_playlist();
-*/
-
-/* local functions */
-
-int add_next_file (int argc, char *argv[]);
-void shuffle_playlist();
-void init_playlist();
-int add_copy_to_playlist(char* new_entry);
-int add_to_playlist(char* new_entry, char freeit);
+static int add_next_file (int argc, char *argv[]);
+static void shuffle_playlist(void);
+static void init_playlist(void);
+static int add_copy_to_playlist(char* new_entry);
+static int add_to_playlist(char* new_entry, char freeit);
 
 /* used to be init_input */
 void prepare_playlist(int argc, char** argv)
@@ -78,11 +98,13 @@ static size_t rando(size_t n)
 	return (size_t)(ran%n);
 }
 
-char *get_next_file()
+char *get_next_file(void)
 {
 	struct listitem *newitem = NULL;
 
-	if(pl.fill == 0) return NULL;
+	/* Zero looping is nothing, as is nothing at all. */
+	if(pl.fill == 0 || param.loop == 0)
+		return NULL;
 
 	++pl.playcount;
 
@@ -91,7 +113,11 @@ char *get_next_file()
 	{
 		do
 		{
-			if(pl.pos < pl.fill) newitem = &pl.list[pl.pos];
+			if(pl.pos < pl.fill)
+			{
+				newitem = &pl.list[pl.pos];
+				pl.num = pl.pos+1;
+			}
 			else newitem = NULL;
 			/* if we have rounds left, decrease loop, else reinit loop because it's a new track */
 			if(pl.loop > 0) --pl.loop; /* loop for current track... */
@@ -103,13 +129,22 @@ char *get_next_file()
 		} while(pl.loop == 0 && newitem != NULL);
 	}
 	else
-	{	/* Randomly select files, with repeating... but keep track of current track for playlist printing. */
-		do /* limiting randomness: don't repeat too early */
+	{
+		/* Handle looping first, but only if there is a random track selection
+		   presently active (see playlist_jump() for interaction). */
+		if(!(pl.num && ((pl.loop > 0 && --pl.loop) || pl.loop < 0)))
 		{
-			pl.pos = rando(pl.fill);
-		} while( pl.list[pl.pos].playcount && (pl.playcount - pl.list[pl.pos].playcount) <= pl.fill/2 );
+			/* Randomly select the next track. */
+			do /* limiting randomness: don't repeat too early */
+			{
+				pl.pos = rando(pl.fill);
+			} while( pl.list[pl.pos].playcount
+				&& (pl.playcount - pl.list[pl.pos].playcount) <= pl.fill/2 );
+			pl.loop = param.loop;
+		}
 
 		newitem = &pl.list[pl.pos];
+		pl.num = pl.pos+1;
 	}
 
 	/* "-" is STDOUT, "" is dumb, NULL is nothing */
@@ -122,9 +157,89 @@ char *get_next_file()
 	else return NULL;
 }
 
+size_t playlist_pos(size_t *total, long *loop)
+{
+	if(total)
+		*total = pl.fill;
+	if(loop)
+		*loop = pl.loop;
+	return pl.num;
+}
+
+void playlist_jump(ssize_t incr)
+{
+	size_t off = incr < 0 ? -incr : incr;
+
+	pl.loop = 0; /* This loop is done, always. */
+	/* Straight or shuffled lists can be jumped around in. */
+	if(pl.fill && param.shuffle < 2)
+	{
+		debug3("jump %"SIZE_P" (%ld) + %"SSIZE_P, pl.pos, pl.loop, incr);
+		if(pl.pos)
+			--pl.pos;
+		/* Now we're at the _current_ position. */
+		if(incr < 0)
+			pl.pos -= off > pl.pos ? pl.pos : off;
+		else
+		{
+			if(off >= pl.fill - pl.pos)
+				pl.pos = pl.fill; /* Any value >= pl.fill would actually be OK. */
+			else
+				pl.pos += off;
+		}
+		debug2("jumped %"SIZE_P" (%ld)", pl.pos, pl.loop);
+	}
+}
+
+/* Directory jumping based on comparing the directory part of the playlist
+   URLs. */
+static int cmp_dir(const char* patha, const char* pathb)
+{
+	size_t dirlen[2];
+	dirlen[0] = dir_length(patha);
+	dirlen[1] = dir_length(pathb);
+	return (dirlen[0] < dirlen[1])
+	?	-1
+	:	( dirlen[0] > dirlen[1]
+		?	1
+		:	memcmp(patha, pathb, dirlen[0])
+		);
+}
+
+void playlist_next_dir(void)
+{
+	if(pl.fill && param.shuffle < 2)
+	{
+		size_t npos = pl.pos ? pl.pos-1 : 0;
+		do ++npos;
+		while(npos < pl.fill && !cmp_dir(pl.list[npos-1].url, pl.list[npos].url));
+		pl.pos = npos;
+	}
+	pl.loop = 0;
+}
+
+void playlist_prev_dir(void)
+{
+	if(pl.fill && param.shuffle < 2)
+	{
+		size_t npos = pl.pos ? pl.pos-1 : 0;
+		/* 1. Find end of previous directory. */
+		if(npos && npos < pl.fill)
+			do --npos;
+			while(npos && !cmp_dir(pl.list[npos+1].url, pl.list[npos].url));
+		/* npos == the last track of previous directory */
+		/* 2. Find the first track of this directory */
+		if(npos < pl.fill)
+			while(npos && !cmp_dir(pl.list[npos-1].url, pl.list[npos].url))
+				--npos;
+		pl.pos = npos;
+	}
+	pl.loop = 0;
+}
+
 /* It doesn't really matter on program exit, but anyway...
    Make sure you don't free() an item of argv! */
-void free_playlist()
+void free_playlist(void)
 {
 	if(pl.list != NULL)
 	{
@@ -145,7 +260,7 @@ void free_playlist()
 }
 
 /* the constructor... */
-void init_playlist()
+static void init_playlist(void)
 {
 	SRAND(time(NULL));
 	pl.file = NULL;
@@ -154,6 +269,7 @@ void init_playlist()
 	pl.size = 0;
 	pl.fill = 0;
 	pl.pos = 0;
+	pl.num = 0;
 	if(APPFLAG(MPG123APP_CONTINUE) && param.listentry > 0)
 	pl.pos = param.listentry - 1;
 
@@ -173,7 +289,7 @@ void init_playlist()
 	now doesn't return the next entry but adds it to playlist struct
 	returns 1 if it found something, 0 on end
 */
-int add_next_file (int argc, char *argv[])
+static int add_next_file (int argc, char *argv[])
 {
 	int firstline = 0;
 
@@ -497,7 +613,7 @@ int add_next_file (int argc, char *argv[])
 	return 0;
 }
 
-void shuffle_playlist()
+static void shuffle_playlist(void)
 {
 	size_t loop;
 	size_t rannum;
@@ -543,14 +659,14 @@ void print_playlist(FILE* out, int showpos)
 	{
 		char *pre = "";
 		if(showpos)
-		pre = (pl.pos>0 && loop==pl.pos-1) ? "> " : "  ";
+		pre = (loop+1==pl.num) ? "> " : "  ";
 
 		fprintf(out, "%s%s\n", pre, pl.list[loop].url);
 	}
 }
 
 
-int add_copy_to_playlist(char* new_entry)
+static int add_copy_to_playlist(char* new_entry)
 {
 	char* cop;
 	if((cop = (char*) malloc(strlen(new_entry)+1)) != NULL)
@@ -562,7 +678,7 @@ int add_copy_to_playlist(char* new_entry)
 }
 
 /* add new entry to playlist - no string copy, just the pointer! */
-int add_to_playlist(char* new_entry, char freeit)
+static int add_to_playlist(char* new_entry, char freeit)
 {
 	if(pl.fill == pl.size)
 	{

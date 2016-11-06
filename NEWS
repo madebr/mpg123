@@ -1,7 +1,5 @@
 1.24.0
 ------
-TODO: looping and playlists, also printout of lists in control_generic
-      (avoid looping stuff there)
 - libmpg123 version 43:
 -- Add flags MPG123_NO_PEEK_END and MPG123_FORCE_SEEKABLE, as suggested
    by Bent Bisballe Nyeng.
@@ -36,6 +34,12 @@ TODO: looping and playlists, also printout of lists in control_generic
   binary path as it was with 1.22 and before.
 - Prevent --loop and --shuffle or --random from messing with the remote
   control LOADLIST command (printout of the list would loop without reason).
+- At least consistent behaviour of playlist code in the face of looping.
+  Looping is about individual tracks, always. They are looped also in random
+  mode. Jumping (prev/next keys) is between tracks and resets the loop counter.
+  The display of currently playing track in the playlist is fixed for random
+  and looped play now.
+- Looping is now mentioned for a to-be-repeated track with --verbose.
 
 1.23.8
 ------

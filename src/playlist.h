@@ -10,43 +10,21 @@
 
 #include "mpg123app.h"
 
-enum playlist_type { UNKNOWN = 0, M3U, PLS, NO_LIST };
-
-typedef struct listitem
-{
-	char* url; /* the filename */
-	char freeit; /* if it was allocated and should be free()d here */
-	size_t playcount; /* has been played as ...th track in overall counting */
-} listitem;
-
-typedef struct playlist_struct
-{
-	FILE* file; /* the current playlist stream */
-	size_t entry; /* entry in the playlist file */
-	size_t playcount; /* overall track counter for playback */
-	long loop;    /* repeat a track n times */
-	size_t size;
-	size_t fill;
-	size_t pos;
-	size_t alloc_step;
-	struct listitem* list;
-	mpg123_string linebuf;
-	mpg123_string dir;
-	enum playlist_type type;
-#if defined (WANT_WIN32_SOCKETS)
-	int sockd; /* Is Win32 socket descriptor working? */
-#endif
-} playlist_struct;
-
-extern struct playlist_struct pl;
-
 /* create playlist form argv including reading of playlist file */
 void prepare_playlist(int argc, char** argv);
 /* returns the next url to play or NULL when there is none left */
-char *get_next_file();
+char *get_next_file(void);
+/* Get current track number, optionally the total count and loop counter. */
+size_t playlist_pos(size_t *total, long *loop);
 /* frees memory that got allocated in prepare_playlist */
-void free_playlist();
+void free_playlist(void);
 /* Print out the playlist, with optional position indicator. */
 void print_playlist(FILE* out, int showpos);
+/* This prepares a jump to be executed on next get_next_file(). */
+void playlist_jump(ssize_t incr);
+/* Aim for the next directory (just trigger next track for random play). */
+void playlist_next_dir(void);
+/* Same for previous one. */
+void playlist_prev_dir(void);
 
 #endif
