@@ -22,6 +22,9 @@
 - Looping is now mentioned for a to-be-repeated track with --verbose.
 - Move some compiler nagging from --enable-debug to --enable-nagging, fix up
   some new build failures by adding some pesky feature test macros.
+- Try not to pollute the terminal buffer with old progress bars in inverse
+  video. Only the currently live one shall be seen. That one is pretty. The
+  others are not.
 - libmpg123 version 43:
 -- Add flags MPG123_NO_PEEK_END and MPG123_FORCE_SEEKABLE, as suggested
    by Bent Bisballe Nyeng.

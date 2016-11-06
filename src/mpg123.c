@@ -1367,7 +1367,7 @@ int main(int sys_argc, char ** sys_argv)
 			}
 			if(!fresh && param.verbose)
 			{
-				if(param.verbose > 1 || !(framenum & 0x7)) print_stat(mh,0,ao);
+				if(param.verbose > 1 || !(framenum & 0x7)) print_stat(mh,0,ao,1);
 			}
 #ifdef HAVE_TERMIOS
 			if(!param.term_ctrl) continue;
@@ -1377,7 +1377,7 @@ int main(int sys_argc, char ** sys_argv)
 
 	if(!param.smooth && !intflag)
 		controlled_drain();
-	if(param.verbose) print_stat(mh,0,ao); 
+	if(param.verbose) print_stat(mh,0,ao,0);
 
 	if(!param.quiet)
 	{

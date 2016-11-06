@@ -192,7 +192,7 @@ void print_buf(const char* prefix, out123_handle *ao)
    Negative positions mean that the previous track is still playing from the
    buffer. It's a countdown. The frame counter always relates to the last
    decoded frame, what entered the buffer right now. */
-void print_stat(mpg123_handle *fr, long offset, out123_handle *ao)
+void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar)
 {
 	size_t buffered;
 	off_t decoded;
@@ -208,6 +208,8 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao)
 	long rate;
 	int framesize;
 	struct mpg123_frameinfo mi;
+	char linebuf[256];
+	char *line = NULL;
 
 #ifndef WIN32
 #ifndef GENERIC
@@ -248,8 +250,6 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao)
 	if(  MPG123_OK == mpg123_info(fr, &mi)
 	  && MPG123_OK == mpg123_getvolume(fr, &basevol, &realvol, NULL) )
 	{
-		char linebuf[256];
-		char *line;
 		char framefmt[10];
 		char framestr[2][32];
 		int linelen;
@@ -377,9 +377,13 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao)
 				line[maxlen] = 0;
 				len = maxlen;
 			}
+			/* Ensure that it is filled with spaces if we got some line length.
+			   Shouldn't we always fill to maxlen? */
+			if(maxlen > 0)
+				memset(line+len, ' ', linelen-len);
 #ifdef HAVE_TERMIOS
 			/* Use inverse color to draw a progress bar. */
-			if(maxlen > 0)
+			if(maxlen > 0 && draw_bar)
 			{
 				char old;
 				int barlen = 0;
@@ -390,7 +394,6 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao)
 					else
 						barlen = maxlen;
 				}
-				memset(line+len, ' ', linelen-len);
 				old = line[barlen];
 				fprintf(stderr, "\x1b[7m");
 				line[barlen] = 0;
@@ -403,12 +406,16 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao)
 #endif
 			fprintf(stderr, "\r%s", line);
 		}
-		if(line != linebuf)
-			free(line);
 	}
 	/* Check for changed tags here too? */
 	if( mpg123_meta_check(fr) & MPG123_NEW_ICY && MPG123_OK == mpg123_icy(fr, &icy) )
-	fprintf(stderr, "\nICY-META: %s\n", icy);
+	{
+		if(line) /* Clear the inverse video. */
+			fprintf(stderr, "\r%s", line);
+		fprintf(stderr, "\nICY-META: %s\n", icy);
+	}
+	if(line && line != linebuf)
+		free(line);
 }
 
 void clear_stat()

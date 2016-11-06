@@ -199,7 +199,7 @@ off_t term_control(mpg123_handle *fr, out123_handle *ao)
 		term_handle_input(fr, ao, stopped|seeking);
 		if((offset < 0) && (-offset > framenum)) offset = - framenum;
 		if(param.verbose && offset != old_offset)
-			print_stat(fr,offset,ao);
+			print_stat(fr,offset,ao,1);
 	} while (!intflag && stopped);
 
 	/* Make the seeking experience with buffer less annoying.
@@ -227,19 +227,23 @@ static void seekmode(mpg123_handle *mh, out123_handle *ao)
 
 		stopped = TRUE;
 		out123_pause(ao);
+		if(param.verbose)
+			print_stat(mh, 0, ao, 0);
 		mpg123_getformat(mh, NULL, &channels, &encoding);
 		pcmframe = out123_encsize(encoding)*channels;
 		if(pcmframe > 0)
 			back_samples = out123_buffered(ao)/pcmframe;
-		fprintf(stderr, "\nseeking back %"OFF_P" samples from %"OFF_P"\n"
-		,	(off_p)back_samples, (off_p)mpg123_tell(mh));
+		if(param.verbose > 2)
+			fprintf(stderr, "\nseeking back %"OFF_P" samples from %"OFF_P"\n"
+			,	(off_p)back_samples, (off_p)mpg123_tell(mh));
 		mpg123_seek(mh, -back_samples, SEEK_CUR);
 		out123_drop(ao);
-		fprintf(stderr, "\ndropped, now at %"OFF_P"\n"
-		,	(off_p)mpg123_tell(mh));
+		if(param.verbose > 2)
+			fprintf(stderr, "\ndropped, now at %"OFF_P"\n"
+			,	(off_p)mpg123_tell(mh));
 		fprintf(stderr, "%s", MPG123_STOPPED_STRING);
 		if(param.verbose)
-			print_stat(mh, 0, ao);
+			print_stat(mh, 0, ao, 1);
 	}
 }
 
@@ -326,7 +330,7 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 		if(stopped)
 			stopped=0;
 		if(param.verbose)
-			print_stat(fr, 0, ao);
+			print_stat(fr, 0, ao, 1);
 		else
 			fprintf(stderr, "%s", (paused) ? MPG123_PAUSED_STRING : MPG123_EMPTY_STRING);
 	break;
@@ -348,7 +352,7 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 			/* No out123_continue(), that's triggered by out123_play(). */
 		}
 		if(param.verbose)
-			print_stat(fr, 0, ao);
+			print_stat(fr, 0, ao, 1);
 		else
 			fprintf(stderr, "%s", (stopped) ? MPG123_STOPPED_STRING : MPG123_EMPTY_STRING);
 	break;
@@ -398,7 +402,12 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 			case MPG123_PITCH_ZERO_KEY:  new_pitch = 0.0; break;
 		}
 		set_pitch(fr, ao, new_pitch);
-		fprintf(stderr, "New pitch: %f\n", param.pitch);
+		if(param.verbose > 1)
+		{
+			print_stat(fr,0,ao,0);
+			fprintf(stderr, "\nNew pitch: %f\n", param.pitch);
+			print_stat(fr,0,ao,1);
+		}
 	}
 	break;
 	case MPG123_VERBOSE_KEY:
@@ -412,10 +421,10 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 	break;
 	case MPG123_RVA_KEY:
 		if(++param.rva > MPG123_RVA_MAX) param.rva = 0;
-		if(param.verbose)
-			fprintf(stderr, "\n");
 		mpg123_param(fr, MPG123_RVA, param.rva, 0);
 		mpg123_volume_change(fr, 0.);
+		if(param.verbose)
+			print_stat(fr,0,ao,1);
 	break;
 	case MPG123_PREV_KEY:
 		out123_pause(ao);
@@ -429,17 +438,22 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 		prev_dir();
 	break;
 	case MPG123_PLAYLIST_KEY:
+		if(param.verbose)
+			print_stat(fr,0,ao,0);
 		fprintf(stderr, "%s\nPlaylist (\">\" indicates current track):\n", param.verbose ? "\n" : "");
 		print_playlist(stderr, 1);
 		fprintf(stderr, "\n");
 	break;
 	case MPG123_TAG_KEY:
+		if(param.verbose)
+			print_stat(fr,0,ao,0);
 		fprintf(stderr, "%s\n", param.verbose ? "\n" : "");
 		print_id3_tag(fr, param.long_id3, stderr);
 		fprintf(stderr, "\n");
 	break;
 	case MPG123_MPEG_KEY:
-		if(param.verbose) print_stat(fr,0,ao); /* Make sure that we are talking about the correct frame. */
+		if(param.verbose)
+			print_stat(fr,0,ao,0);
 		fprintf(stderr, "\n");
 		if(param.verbose > 1)
 			print_header(fr);
@@ -450,6 +464,8 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 	case MPG123_HELP_KEY:
 	{ /* This is more than the one-liner before, but it's less spaghetti. */
 		int i;
+		if(param.verbose)
+			print_stat(fr,0,ao,0);
 		fprintf(stderr,"\n\n -= terminal control keys =-\n");
 		for(i=0; i<(sizeof(term_help)/sizeof(struct keydef)); ++i)
 		{
