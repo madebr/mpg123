@@ -1,16 +1,30 @@
 1.24.0
 ------
+- Avoid repeating genre in metadata printout for specifications like
+  (144)Thrash Metal.
+- In remote control mode, only enforce --quiet if no verbosity was required.
+- Prevent --loop and --shuffle or --random from messing with the remote
+  control LOADLIST command (printout of the list would loop without reason).
+- Fix the mpg123 command (esp. our provided binaries on Windows) to now find
+  modules again relative to the executable directory, not the current working
+  directory. This was a regression in 1.23 and might be security-relevant if
+  you called mpg123 in working directories with untrusted content.
+  Note that mpg123 1.23 looked for modules relative to the current working
+  directory only if the installation prefix for modules did not exist.
+  So, usage on an intact installation (with /usr/lib/mpg123 or the like) was
+  safe. Nevertheless this new version fixes the search to be relative to the
+  binary path as it was with 1.22 and before.
+- At least consistent behaviour of playlist code in the face of looping.
+  Looping is about individual tracks, always. They are looped also in random
+  mode. Jumping (prev/next keys) is between tracks and resets the loop counter.
+  The display of currently playing track in the playlist is fixed for random
+  and looped play now (bug 198).
+- Looping is now mentioned for a to-be-repeated track with --verbose.
+- Move some compiler nagging from --enable-debug to --enable-nagging, fix up
+  some new build failures by adding some pesky feature test macros.
 - libmpg123 version 43:
 -- Add flags MPG123_NO_PEEK_END and MPG123_FORCE_SEEKABLE, as suggested
    by Bent Bisballe Nyeng.
-- Avoid repeating genre in metadata printout for specifications like
-  (144)Thrash Metal.
-- remote control mode:
--- Only enforce --quiet if no verbosity was required.
-- libout123/coreaudio:
--- Use AudioComponents API on OSX >= 10.6 (thanks to Michael Weiser).
--- Fix behaviour of out123_drop(), not killing the output anymore
-   without re-opening the device (bug 236, thanks to Taihei fir the fix).
 - libout123 version 2:
 -- Added OUT123_BINDIR.
 -- New search order for output plugin directory: MPG123_MODDIR, or (relative
@@ -24,25 +38,9 @@
    will be found (earlier versions fell back to other choices).
 -- The OUT123_NAME parameter is now copied by out123_param_from(), as is
    the newly added OUT123_BINDIR.
-- Fix the mpg123 command (esp. our provided binaries on Windows) to now find
-  modules again relative to the executable directory, not the current working
-  directory. This was a regression in 1.23 and might be security-relevant if
-  you called mpg123 in working directories with untrusted content.
-  Note that mpg123 1.23 looked for modules relative to the current working
-  directory only if the installation prefix for modules did not exist.
-  So, usage on an intact installation (with /usr/lib/mpg123 or the like) was
-  safe. Nevertheless this new version fixes the search to be relative to the
-  binary path as it was with 1.22 and before.
-- Prevent --loop and --shuffle or --random from messing with the remote
-  control LOADLIST command (printout of the list would loop without reason).
-- At least consistent behaviour of playlist code in the face of looping.
-  Looping is about individual tracks, always. They are looped also in random
-  mode. Jumping (prev/next keys) is between tracks and resets the loop counter.
-  The display of currently playing track in the playlist is fixed for random
-  and looped play now.
-- Looping is now mentioned for a to-be-repeated track with --verbose.
-- Move some compiler nagging from --enable-debug to --enable-nagging, fix up
-  some new build failures by adding some pesky feature test macros.
+-- Coreaudio: Use AudioComponents API on OSX >= 10.6 (thanks to Michael Weiser).
+-- Coreaudio: Fix behaviour of out123_drop(), not killing the output anymore
+   without re-opening the device (bug 236, thanks to Taihei fir the fix).
 
 1.23.8
 ------
