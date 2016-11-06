@@ -11,6 +11,8 @@
 #include "debug.h"
 
 #include "gapless.h"
+/* Want accurate rounding function regardless of decoder setup. */
+#define FORCE_ACCURATE
 #include "sample.h"
 
 #define SEEKFRAME(mh) ((mh)->ignoreframe < 0 ? 0 : (mh)->ignoreframe)

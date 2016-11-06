@@ -6,6 +6,9 @@
 	initially written by Thomas Orgis
 */
 
+/* Need snprintf(). */
+#define _DEFAULT_SOURCE
+#define _BSD_SOURCE
 #include "mpg123app.h"
 #include "common.h"
 #include "genre.h"

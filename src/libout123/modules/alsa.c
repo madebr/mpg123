@@ -14,6 +14,9 @@
    ... seems like the conclusion was not carried through.
  */
 #define _POSIX_SOURCE
+/* Things are still missing if _DEFAULT_SOURCE is not defined (for recent
+   glibc, I presume. */
+#define _DEFAULT_SOURCE
 #include "out123_int.h"
 #include <errno.h>
 

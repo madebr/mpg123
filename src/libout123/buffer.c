@@ -27,6 +27,9 @@
 	for a following command.
 */
 
+/* Needed for kill() from signal.h. */
+#define _POSIX_SOURCE
+
 #include "buffer.h"
 #include "out123_int.h"
 #include "xfermem.h"
@@ -35,6 +38,14 @@
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
 #endif
+#ifdef HAVE_SIGNAL_H
+#include <signal.h>
+#else
+#ifdef HAVE_SYS_SIGNAL_H
+#include <sys/signal.h>
+#endif
+#endif
+
 
 #define BUF_CMD_OPEN     XF_CMD_CUSTOM1
 #define BUF_CMD_CLOSE    XF_CMD_CUSTOM2
@@ -674,7 +685,7 @@ int buffer_loop(out123_handle *ao)
 				case XF_CMD_DATA:
 					debug("got new data");
 					/* Other states should not happen. */
-					if(mystate = play_paused)
+					if(mystate == play_paused)
 						mystate = play_live;
 					/* When new data arrives, we are obviously not draining. */
 					draining = FALSE;

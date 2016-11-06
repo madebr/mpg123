@@ -8,6 +8,10 @@
 	If we officially support Windows again, we should have this reworked to really cope with Windows paths, too.
 */
 
+/* Need random(). */
+#define _DEFAULT_SOURCE
+#define _BSD_SOURCE
+
 #include "mpg123app.h"
 #include "sysutil.h"
 #include "getlopt.h" /* for loptind */

@@ -6,6 +6,9 @@
 	initially written by Michael Hipp
 */
 
+/* Need snprintf. */
+#define _DEFAULT_SOURCE
+#define _BSD_SOURCE
 #include "mpg123app.h"
 #include "out123.h"
 #include <sys/stat.h>

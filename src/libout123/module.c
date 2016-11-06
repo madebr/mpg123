@@ -6,6 +6,9 @@
 	initially written by Nicholas J Humfrey
 */
 
+/* Need snprintf(). */
+#define _DEFAULT_SOURCE
+#define _BSD_SOURCE
 #include "config.h"
 #include "intsym.h"
 #include "stringlists.h"

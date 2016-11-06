@@ -6,6 +6,9 @@
 	initially written by Taihei Monma
 */
 
+/* Need usleep(). */
+#define _DEFAULT_SOURCE
+#define _BSD_SOURCE
 
 #include "out123_int.h"
 

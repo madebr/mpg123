@@ -6,6 +6,9 @@
 	initially written by Nicholas J. Humfrey
 */
 
+/* Need usleep(). */
+#define _DEFAULT_SOURCE
+#define _BSD_SOURCE
 #include "out123_int.h"
 #include <math.h>
 #include <portaudio.h>
@@ -139,7 +142,6 @@ static int write_portaudio(out123_handle *ao, unsigned char *buf, int len)
 {
 	mpg123_portaudio_t *pa = (mpg123_portaudio_t*)ao->userptr;
 	PaError err;
-	int written;
 	int len_remain = len;
 
 	/* Some busy waiting, but feed what is possible. */
