@@ -41,6 +41,8 @@
   The display of currently playing track in the playlist is fixed for random
   and looped play now.
 - Looping is now mentioned for a to-be-repeated track with --verbose.
+- Move some compiler nagging from --enable-debug to --enable-nagging, fix up
+  some new build failures by adding some pesky feature test macros.
 
 1.23.8
 ------

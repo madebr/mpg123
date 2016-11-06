@@ -1215,18 +1215,15 @@ AC_CHECK_HEADER([os2.h], [ADD_CPPFLAGS="$ADD_CPPFLAGS -DOS2"])
 # On OS/2, we need to link to os2term to make terminal control actually work.
 AC_CHECK_LIB([os2term], [tcsetattr], [ADD_LDFLAGS="$ADD_LDFLAGS -los2term"])
 
-# If debugging is enabled then make warnings errors
+# If debugging is enabled, just enable debugging symbols.
+# All other stuff enters nagging territory.
 if test x"$debugging" = xenabled; then
 	ADD_CFLAGS="-g"
-	# gcc specific...
-	if test x"$GCC" = xyes; then
-		ADD_CFLAGS="$ADD_CFLAGS -Wall -fno-strict-aliasing"
-	fi
 fi
 # gcc specific...
 if test x"$GCC" = xyes; then
 	if test x"$nagging" = xenabled; then
-		ADD_CFLAGS="$ADD_CFLAGS -Werror -std=c89 -pedantic -DPLAIN_C89"
+		ADD_CFLAGS="$ADD_CFLAGS -Wall -Werror -std=c89 -pedantic -DPLAIN_C89"
 	fi
 fi
 
