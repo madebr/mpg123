@@ -940,7 +940,17 @@ int main(int sys_argc, char ** sys_argv)
 	win32_net_init();
 #endif
 
-	if(!(fullprogname = compat_strdup(argv[0])))
+#ifdef WIN32
+	/* Despite in Unicode form, the path munging backend is still in ANSI/ASCII
+	 * so using _wpgmptr with unicode paths after UTF8 conversion is broken on Windows
+	 */
+	
+	fullprogname = compat_strdup(_pgmptr);
+#else
+	fullprogname = compat_strdup(argv[0]);
+#endif
+
+	if(!fullprogname)
 	{
 		error("OOM"); /* Out Of Memory. Don't waste bytes on that error. */
 		safe_exit(1);
