@@ -17,13 +17,34 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <ctype.h>
-#include <ltdl.h>
 
 #include "module.h"
 #include "debug.h"
 
-#ifndef HAVE_LTDL
-#error Cannot build without LTDL library support
+#ifndef USE_MODULES
+#error This is a build without modules. Why am I here?
+#endif
+
+#if defined(HAVE_DLOPEN) && defined(HAVE_DLSYM) && defined(HAVE_DLCLOSE)
+#  ifdef HAVE_DLFCN_H
+#    include <dlfcn.h>
+#  endif
+#  define DLOPEN(a) dlopen((a), RTLD_NOW)
+#  define DLSYM     dlsym
+#  define DLCLOSE   dlclose
+#else
+#  if defined(HAVE_LOADLIBRARY) \
+   && defined(HAVE_GETPROCADDRESS) \
+   && defined(HAVE_FREELIBRARY)
+#    ifdef HAVE_WINDOWS_H
+#      include <windows.h>
+#    endif
+#    define DLOPEN    LoadLibrary
+#    define DLSYM     GetProcAddress
+#    define DLCLOSE   FreeLibrary
+#  else
+#    error No dynamic loading mechanism available.
+#  endif
 #endif
 
 #define MODULE_SYMBOL_PREFIX 	"mpg123_"
@@ -109,43 +130,33 @@ static char *get_module_dir(int verbose, const char* bindir)
 /* Open a module in current directory. */
 mpg123_module_t* open_module_here(const char* type, const char* name, int verbose)
 {
-	lt_dlhandle handle = NULL;
+	void* handle = NULL;
 	mpg123_module_t *module = NULL;
 	char* module_path = NULL;
 	size_t module_path_len = 0;
 	char* module_symbol = NULL;
 	size_t module_symbol_len = 0;
 
-	/* Initialize libltdl */
-	if(lt_dlinit())
-	{
-		if(verbose > -1)
-			error("Failed to initialise libltdl");
-		return NULL;
-	}
-
 	/* Work out the path of the module to open */
 	/* Note that we need to open ./file, not just file! */
-	module_path_len = 2 + strlen(type) + 1 + strlen(name) + strlen(MODULE_FILE_SUFFIX) + 1;
+	module_path_len = 2 + strlen(type) + 1 + strlen(name) + strlen(LT_MODULE_EXT) + 1;
 	module_path = malloc( module_path_len );
 	if (module_path == NULL) {
 		if(verbose > -1)
 			error1( "Failed to allocate memory for module name: %s", strerror(errno) );
 		return NULL;
 	}
-	snprintf( module_path, module_path_len, "./%s_%s%s", type, name, MODULE_FILE_SUFFIX );
+	snprintf( module_path, module_path_len, "./%s_%s%s", type, name, LT_MODULE_EXT );
 	/* Display the path of the module created */
 	if(verbose > 1)
 		fprintf(stderr, "Module path: %s\n", module_path );
 
 	/* Open the module */
-	handle = lt_dlopen( module_path );
-	free( module_path );
-	if (handle==NULL) {
-		error2( "Failed to open module %s: %s", name, lt_dlerror() );
-		if(verbose > 1)
-			fprintf(stderr, "Note: This could be because of braindead path in the .la file...\n");
-
+	handle = DLOPEN(module_path);
+	free(module_path);
+	if (handle==NULL)
+	{
+		error1("Failed to open module %s.", name);
 		return NULL;
 	}
 	
@@ -163,10 +174,10 @@ mpg123_module_t* open_module_here(const char* type, const char* name, int verbos
 	debug1( "Module symbol: %s", module_symbol );
 	
 	/* Get the information structure from the module */
-	module = (mpg123_module_t*)lt_dlsym(handle, module_symbol );
+	module = (mpg123_module_t*)DLSYM(handle, module_symbol );
 	free( module_symbol );
 	if (module==NULL) {
-		error1( "Failed to get module symbol: %s", lt_dlerror() );
+		error("Failed to get module symbol.");
 		return NULL;
 	}
 	
@@ -174,7 +185,7 @@ mpg123_module_t* open_module_here(const char* type, const char* name, int verbos
 	if (MPG123_MODULE_API_VERSION != module->api_version)
 	{
 		error2( "API version of module does not match (got %i, expected %i).", module->api_version, MPG123_MODULE_API_VERSION);
-		lt_dlclose(handle);
+		DLCLOSE(handle);
 		return NULL;
 	}
 
@@ -220,12 +231,10 @@ mpg123_module_t* open_module( const char* type, const char* name, int verbose
 
 void close_module( mpg123_module_t* module, int verbose )
 {
-	lt_dlhandle handle = module->handle;
-	int err = lt_dlclose( handle );
+	int err = DLCLOSE(module->handle);
 	
 	if(err && verbose > -1)
-		error1("Failed to close module: %s", lt_dlerror());
-
+		error("Failed to close module.");
 }
 
 #define PATH_STEP 50
@@ -317,12 +326,12 @@ int list_modules( const char *type, char ***names, char ***descr, int verbose
 			continue;
 
 		name_len = strlen(dp->d_name);
-		if(name_len < strlen(MODULE_FILE_SUFFIX))
+		if(name_len < strlen(LT_MODULE_EXT))
 			continue;
 		ext = dp->d_name
 		+	name_len
-		-	strlen(MODULE_FILE_SUFFIX);
-		if(strcmp(ext, MODULE_FILE_SUFFIX))
+		-	strlen(LT_MODULE_EXT);
+		if(strcmp(ext, LT_MODULE_EXT))
 			continue;
 		debug("has suffix");
 
@@ -350,13 +359,13 @@ int list_modules( const char *type, char ***names, char ***descr, int verbose
 
 		/* Extract the short name of the module */
 		name_len -= uscore_pos - module_typename + 1;
-		if(name_len <= strlen(MODULE_FILE_SUFFIX))
+		if(name_len <= strlen(LT_MODULE_EXT))
 		{
 			debug("name too short");
 			free(module_typename);
 			continue;
 		}
-		name_len -= strlen(MODULE_FILE_SUFFIX);
+		name_len -= strlen(LT_MODULE_EXT);
 		module_name[name_len] = '\0';
 
 		debug("opening module");

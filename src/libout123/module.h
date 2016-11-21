@@ -9,10 +9,6 @@
 #ifndef _MPG123_MODULE_H_
 #define _MPG123_MODULE_H_
 
-#ifdef HAVE_LTDL
-#include <ltdl.h>
-#endif
-
 #include "out123.h"
 
 /* TODO: put that into out123_int.h instead? */
@@ -28,11 +24,7 @@ typedef struct mpg123_module_struct {
 	const char* description;					/* description of what the module does */
 	const char* revision;						/* source code revision */
 	
-#ifdef HAVE_LTDL
-	lt_dlhandle handle;							/* ltdl handle - set by open_module */
-#else
-	void* handle;
-#endif
+	void* handle; /* dynamic loader handle */
 
 	/* Initialisers - set to NULL if unsupported by module */
 	int (*init_output)(out123_handle *ao);		/* audio output - returns 0 on success */
