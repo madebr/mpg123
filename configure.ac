@@ -135,7 +135,7 @@ else
 fi
 
 dnl We need the windows header also for checking the module mechanism.
-AC_CHECK_HEADER(windows.h)
+AC_CHECK_HEADERS([windows.h])
 
 if test x"$modules" = xdisabled
 then
@@ -144,7 +144,26 @@ else
   have_dl=no
   # The dlopen() API is either in libc or in libdl.
   if test x$ac_cv_header_windows_h = xyes; then
-    AC_CHECK_FUNCS( LoadLibrary GetProcAddress FreeLibrary, [have_dl=yes] )
+    AC_MSG_CHECKING([if LoadLibrary should be used])
+    AC_LINK_IFELSE([AC_LANG_SOURCE([
+
+#ifdef __CYGWIN__
+#error Cygwin should use dlopen
+#endif
+
+#include <windows.h>
+
+int main() {
+  LoadLibraryW(0);
+  GetProcAddress(0, 0);
+  FreeLibrary(0);
+  return 0;
+}
+    ])], [
+    have_dl=yes
+    AC_MSG_RESULT([Using LoadLibrary])
+    AC_DEFINE([USE_LOADLIBRARY], [1], [Use Windows LoadLibrary for loading plugins])],
+  [AC_MSG_RESULT([no])])
   else
     AC_SEARCH_LIBS(dlopen, dl)
     AC_CHECK_HEADER(dlfcn.h)
@@ -2139,7 +2158,7 @@ AC_DEFINE_UNQUOTED(INDEX_SIZE, $seektable, [size of the frame index seek table])
 
 dnl ############## Win32 function checks
 # Check if we want Unicode for Win32. Cygwin does not need _wopen
-if test x$have_cv_header_windows_h = xyes; then
+if test x$ac_cv_header_windows_h = xyes; then
   win32_specific_codes=enabled
 else
   win32_specific_codes=disabled
