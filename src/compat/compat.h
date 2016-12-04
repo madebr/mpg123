@@ -101,8 +101,10 @@
 
 typedef unsigned char byte;
 
-#ifdef _MSC_VER
-typedef long ssize_t;
+#if defined(_MSC_VER) && !defined(MPG123_DEF_SSIZE_T)
+#define MPG123_DEF_SSIZE_T
+#include <stddef.h>
+typedef ptrdiff_t ssize_t;
 #endif
 
 /* A safe realloc also for very old systems where realloc(NULL, size) returns NULL. */

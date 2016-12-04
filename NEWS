@@ -31,6 +31,8 @@
 - libmpg123 version 43:
 -- Add flags MPG123_NO_PEEK_END and MPG123_FORCE_SEEKABLE, as suggested
    by Bent Bisballe Nyeng.
+-- Build fix for MSVC (consistent definition of ssize_t, spotted by manx,
+   bug 243).
 - libout123 version 2:
 -- Added OUT123_BINDIR.
 -- New search order for output plugin directory: MPG123_MODDIR, or (relative
@@ -47,6 +49,7 @@
 -- Coreaudio: Use AudioComponents API on OSX >= 10.6 (thanks to Michael Weiser).
 -- Coreaudio: Fix behaviour of out123_drop(), not killing the output anymore
    without re-opening the device (bug 236, thanks to Taihei for the fix).
+
 
 1.23.8
 ------
