@@ -33,6 +33,7 @@
    by Bent Bisballe Nyeng.
 -- Build fix for MSVC (consistent definition of ssize_t, spotted by manx,
    bug 243).
+-- Build fix for --with-cpu=ppc_nofpu (thanks to Michael Kostylev, bug 244).
 - libout123 version 2:
 -- Added OUT123_BINDIR.
 -- New search order for output plugin directory: MPG123_MODDIR, or (relative

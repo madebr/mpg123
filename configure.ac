@@ -1314,7 +1314,7 @@ dnl Not disabling buffer for float mode... check that this is OK now!
     ccalign=no
   ;;
   ppc_nofpu)
-    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_PPC -DREAL_IS_FIXED"
+    ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC -DOPT_PPC -DREAL_IS_FIXED"
     more_sources=
     ccalign=no
   ;;
