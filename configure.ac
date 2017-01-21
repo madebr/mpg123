@@ -157,17 +157,16 @@ int main() {
   LoadLibraryW(0);
   GetProcAddress(0, 0);
   FreeLibrary(0);
-  return 0;
 }
     ])], [
     have_dl=yes
     AC_MSG_RESULT([Using LoadLibrary])
-    AC_DEFINE([USE_LOADLIBRARY], [1], [Use Windows LoadLibrary for loading plugins])],
+    ],
   [AC_MSG_RESULT([no])])
   else
     AC_SEARCH_LIBS(dlopen, dl)
     AC_CHECK_HEADER(dlfcn.h)
-    AC_CHECK_FUNCS(dlopen dlsym dlclose, [have_dl=yes])
+    AC_CHECK_FUNCS(dlopen dlsym dlclose, [ have_dl=yes ])
   fi
   if test x"$modules" = xenabled -a x"$have_dl" = xno; then
     AC_MSG_ERROR([Modules enabled but no runtime loader found! This will not work...])
@@ -1025,7 +1024,7 @@ dnl ############## Really basic headers, needed for other checks.
 
 AC_HEADER_STDC
 dnl Is it too paranoid to specifically check for stdint.h and limits.h?
-AC_CHECK_HEADERS([stdio.h stdlib.h string.h unistd.h sched.h sys/ioctl.h sys/types.h stdint.h limits.h inttypes.h sys/time.h sys/wait.h sys/resource.h sys/signal.h signal.h sys/select.h])
+AC_CHECK_HEADERS([stdio.h stdlib.h string.h unistd.h sched.h sys/ioctl.h sys/types.h stdint.h limits.h inttypes.h sys/time.h sys/wait.h sys/resource.h sys/signal.h signal.h sys/select.h dirent.h sys/stat.h])
 
 dnl ############## Types
 
@@ -2158,7 +2157,7 @@ AC_DEFINE_UNQUOTED(INDEX_SIZE, $seektable, [size of the frame index seek table])
 
 dnl ############## Win32 function checks
 # Check if we want Unicode for Win32. Cygwin does not need _wopen
-if test x$ac_cv_header_windows_h = xyes; then
+if test x$ac_cv_header_windows_h = xyes && test "x$host_os" != "xcygwin"; then
   win32_specific_codes=enabled
 else
   win32_specific_codes=disabled
@@ -2169,20 +2168,27 @@ win32_sockets_working=no
 win32_wide_working=no
 win32_winver_bump=no
 
-if test "x$win32_specific_codes" = xenabled && test "x$host_os" != "xcygwin"; then
+dnl We do not support non-unicode Windows.
+if test "x$win32_specific_codes" = xenabled; then
 #### Check for Wide functions
   AC_CHECK_FUNC([_wopen], [win32_unicode=enabled],[win32_unicode=disabled])
   AC_MSG_CHECKING([if we want Unicode File Open for Win32])
   if test "x$win32_unicode" = xenabled; then
+    dnl We need to include the header for PathCombineW checking as
+    dnl the actual symbol has a very funny name.
+    oldlibs=$LIBS
+    LIBS="$LIBS -lshlwapi"
     AC_MSG_RESULT([yes])
     AC_MSG_CHECKING([if Unicode functions working])
     AC_LINK_IFELSE([AC_LANG_SOURCE([
       #include <windows.h>
+      #include <shlwapi.h>
       #include <stdlib.h>
       int main()
       {
         MultiByteToWideChar (0, 0, NULL, 0, NULL, 0);
         WideCharToMultiByte (0, 0, NULL, 0, NULL, 0, NULL, NULL);
+        PathCombineW(0,0,0);
         return 0;
       }
     ])], [win32_wide_working=yes], [win32_winver_bump=yes])
@@ -2191,11 +2197,13 @@ if test "x$win32_specific_codes" = xenabled && test "x$host_os" != "xcygwin"; th
         #define WINVER 0x501
         #define _WIN32_WINNT 0x501
         #include <windows.h>
+        #include <shlwapi.h>
         #include <stdlib.h>
         int main()
         {
           MultiByteToWideChar (0, 0, NULL, 0, NULL, 0);
           WideCharToMultiByte (0, 0, NULL, 0, NULL, 0, NULL, NULL);
+          PathCombineW(0,0,0);
           return 0;
         }
       ])], [win32_wide_working=yes], [AC_MSG_RESULT([no])])
@@ -2203,9 +2211,12 @@ if test "x$win32_specific_codes" = xenabled && test "x$host_os" != "xcygwin"; th
     if test "x$win32_wide_working" = xyes; then
       AC_MSG_RESULT([yes])
       AC_DEFINE([WANT_WIN32_UNICODE], [1], [ Define to use Unicode for Windows ])
+    else
+      LIBS=$oldlibs
+      AC_MSG_ERROR([Unicode support for Win32 not working])
     fi
   else
-    AC_MSG_WARN([Unicode File Open for Win32 disabled])
+    AC_MSG_ERROR([Unicode File Open for Win32 not available])
   fi
 
 #### Check for Network functions

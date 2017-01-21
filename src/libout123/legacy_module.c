@@ -16,7 +16,7 @@ extern mpg123_module_t mpg123_output_module_info;
 
 /* Open a module */
 mpg123_module_t*
-open_module(const char* type, const char* name, int verbose)
+open_module(const char* type, const char* name, int verbose, const char *bindir)
 {
 	mpg123_module_t *mod = NULL;
 	
@@ -64,7 +64,8 @@ void close_module(mpg123_module_t* module, int verbose)
 }
 
 
-int list_modules(const char *type, char ***names, char ***descr, int verbose)
+int list_modules(const char *type, char ***names, char ***descr, int verbose
+,	const char *bindir)
 {
 	debug("list_modules()" );
 

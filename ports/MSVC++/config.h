@@ -31,6 +31,4 @@
 #define HAVE_WINDOWS_H
 
 /* use the unicode support within libmpg123 */
-#ifdef UNICODE
-	#define WANT_WIN32_UNICODE
-#endif
+#define WANT_WIN32_UNICODE

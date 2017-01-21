@@ -21,8 +21,6 @@ You want:
 
 - working assembler (recent GNU binutils) if using certain CPU optimizations
 - headers and lib for certain audio output drivers (libasound for alsa, sdl for sdl...)
-- libtool's libltdl for runtime output modules (this used to be included, but now we rely on an existing install)
-
 
 1. Build
 
@@ -109,3 +107,9 @@ The libmpg123 API includes the generic off_t type for file offsets and thus is s
 To deal with the incompatibilities that can cause, the library needs to separate code paths for small and large off_t.
 Since version 1.12.0, a large-file-enabled libmpg123 (the default set by configure) provides a dual-mode ABI. Depending on _FILE_OFFSET_BITS, the mpg123.h header file selects different library symbols to use for your app.
 In both large-file and normal mode, the library should just work for your app.
+
+6. Security
+
+If you consider installing the mpg123 binary or any program using libout123 as suid root, please don't. Apart from evaluating MPG123_MODDIR from the environment and thus possibly loading any code, the purpose of libout123 is to write audio data to somewhere. That includes writing raw data to files. Any files you specify to the program. You do not install dd or gzip suid root, do you?
+
+Programs using libmpg123 should be fine, as that one does not load runtime modules and also only has code to read files, not write them. Still, if your task involves decoding random MPEG audio files from anywhere, it is only sensible to limit the damage of a possible bug triggered by certain crafted files. This is not specific to libmpg123 but generally a good idea working with data from untrusted sources.

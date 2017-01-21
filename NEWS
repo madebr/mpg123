@@ -28,6 +28,8 @@
 - Using plain dlopen()/LoadLibrary() for opening modules instead of libltdl.
   This also means that --with-module-suffix is gone in configure.
   TODO: ensure that .la files are not installed
+- Windows builds only work when Unicode support is there (older than Windows
+  2000/XP will definitely not work anymore).
 - libmpg123 version 43:
 -- Add flags MPG123_NO_PEEK_END and MPG123_FORCE_SEEKABLE, as suggested
    by Bent Bisballe Nyeng.
