@@ -921,7 +921,11 @@ out123_drivers(out123_handle *ao, char ***names, char ***descr)
 	count = list_modules("output", &tmpnames, &tmpdescr, modverbose(ao), ao->bindir);
 	debug1("list_modules()=%i", count);
 	if(count < 0)
-		return count;
+	{
+		if(!AOQUIET)
+			error("Dynamic module search failed.");
+		count = 0;
+	}
 
 	if(
 		stringlists_add( &tmpnames, &tmpdescr
