@@ -15,6 +15,9 @@
 #define ME "out123"
 #include "config.h"
 #include "compat.h"
+#if WIN32
+#include "win32_support.h"
+#endif
 #include "out123.h"
 
 #ifdef HAVE_SYS_WAIT_H
