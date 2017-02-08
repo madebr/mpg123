@@ -6,9 +6,9 @@
 
 	based on win32.c
 */
-#include "out123_int.h"
-#define COBJMACROS 1
 #define _WIN32_WINNT 0x601
+#define COBJMACROS 1
+#include "out123_int.h"
 #include <initguid.h>
 #include <audioclient.h>
 #include <mmdeviceapi.h>
