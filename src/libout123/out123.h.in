@@ -133,7 +133,7 @@ enum out123_flags
  *  functions.
  *  Note that this flag is meaningless when the optional buffer is employed,
  *  There, your program will always block until the buffer completely took
- *  over the data given to it via out123_play(), unless a communcation error
+ *  over the data given to it via out123_play(), unless a communication error
  *  arises.
  */
 };
