@@ -341,10 +341,10 @@ static int close_coreaudio(out123_handle *ao)
 		while(!ca->play_done && ca->play)
 			usleep((0.1*FIFO_DURATION)*1000000);
 		/* No matter the error code, we want to close it (by brute force if necessary) */
-		AudioConverterDispose(ca->converter);
 		AudioOutputUnitStop(ca->outputUnit);
 		AudioUnitUninitialize(ca->outputUnit);
 		MPG123_AUDIOCOMPONENTINSTANCEDISPOSE(ca->outputUnit);
+		AudioConverterDispose(ca->converter);
 	
 	    /* Free the ring buffer */
 		sfifo_close( &ca->fifo );
