@@ -59,6 +59,7 @@ char *compat_getenv(const char* name)
 	if(ret)
 		ret = compat_strdup(ret);
 #endif
+	return ret;
 }
 
 #ifdef WANT_WIN32_UNICODE
