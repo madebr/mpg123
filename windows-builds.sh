@@ -34,7 +34,7 @@ temp="$PWD/tmp"
 final="$PWD/releases"
 txt="README COPYING NEWS"
 # let's try with modules
-opts=""
+opts="LIBS=-static-libgcc"
 #opts="--with-audio=win32 --disable-modules"
 
 # Get the version for the build from configure.ac .
@@ -102,7 +102,7 @@ mpg123_build()
 	# We do not like dependency to libgcc_s_dw2-1.dll.
 	# Libout123 somehow pulls in that one. Not sure if avoiding
 	# it is an option.
-	CC='gcc -static-libgcc' ./configure $hostopt \
+	./configure $hostopt \
 	  --prefix=$tmp $myopts --with-cpu=$cpu &&
 	make && make install &&
 	rm -rf "$final/$name" &&
