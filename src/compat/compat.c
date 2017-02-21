@@ -310,7 +310,7 @@ char* compat_catpath(const char *prefix, const char* path)
 		ThOr: I presume this hack is for supporting pre-8 Windows, as
 		from Windows 8 on, this is documented in the API.
 	*/
-	HRESULT (*__stdcall mypac)( const wchar_t *in, const wchar_t* more
+	HRESULT (__stdcall *mypac)( const wchar_t *in, const wchar_t* more
 	,	unsigned long flags, wchar_t **out ) = NULL;
 	HMODULE pathcch = NULL;
 
@@ -332,9 +332,8 @@ char* compat_catpath(const char *prefix, const char* path)
 	}
 	else
 	{
-		/* Playing safe, docs say PATH_MAX, so we use PATH_MAX.
-		   If we'd care much about performance, this would be on the stack. */
-		locwret = LocalAlloc(LPTR, sizeof(wchar_t)*PATH_MAX);
+		/* Playing safe, if we'd care much about performance, this would be on the stack. */
+		locwret = LocalAlloc(LPTR, sizeof(wchar_t)*MAX_PATH);
 		if(locwret)
 			PathCombineW(locwret, wprefix, wpath);
 	}
