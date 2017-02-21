@@ -332,7 +332,8 @@ char* compat_catpath(const char *prefix, const char* path)
 	}
 	else
 	{
-		/* Playing safe, if we'd care much about performance, this would be on the stack. */
+		/* Playing safe, if we'd care much about performance, this would be on
+		   the stack. */
 		locwret = LocalAlloc(LPTR, sizeof(wchar_t)*MAX_PATH);
 		if(locwret)
 			PathCombineW(locwret, wprefix, wpath);
