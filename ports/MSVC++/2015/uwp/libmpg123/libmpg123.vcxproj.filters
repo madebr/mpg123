@@ -4,7 +4,6 @@
     <ClInclude Include="..\..\..\config.h" />
     <ClInclude Include="..\..\..\mpg123.h" />
     <ClInclude Include="..\..\..\..\..\src\compat\compat.h" />
-    <ClInclude Include="..\..\..\..\..\src\compat\compat_impl.h" />
     <ClInclude Include="..\..\..\..\..\src\libmpg123\abi_align.h" />
     <ClInclude Include="..\..\..\..\..\src\libmpg123\debug.h" />
     <ClInclude Include="..\..\..\..\..\src\libmpg123\decode.h" />
@@ -17,7 +16,6 @@
     <ClInclude Include="..\..\..\..\..\src\libmpg123\icy2utf8.h" />
     <ClInclude Include="..\..\..\..\..\src\libmpg123\id3.h" />
     <ClInclude Include="..\..\..\..\..\src\libmpg123\index.h" />
-    <ClInclude Include="..\..\..\..\..\src\libmpg123\intsym.h" />
     <ClInclude Include="..\..\..\..\..\src\libmpg123\l2tables.h" />
     <ClInclude Include="..\..\..\..\..\src\libmpg123\l3_integer_tables.h" />
     <ClInclude Include="..\..\..\..\..\src\libmpg123\l12_integer_tables.h" />
@@ -42,7 +40,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\msvc.c" />
-    <ClCompile Include="..\..\..\..\..\src\libmpg123\compat.c" />
     <ClCompile Include="..\..\..\..\..\src\libmpg123\dct64.c" />
     <ClCompile Include="..\..\..\..\..\src\libmpg123\dct64_i386.c" />
     <ClCompile Include="..\..\..\..\..\src\libmpg123\dct64_i486.c" />
@@ -69,6 +66,8 @@
     <ClCompile Include="..\..\..\..\..\src\libmpg123\synth_real.c" />
     <ClCompile Include="..\..\..\..\..\src\libmpg123\synth_s32.c" />
     <ClCompile Include="..\..\..\..\..\src\libmpg123\tabinit.c" />
+    <ClCompile Include="..\..\..\..\..\src\compat\compat.c" />
+    <ClCompile Include="..\..\..\..\..\src\compat\compat_str.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\..\..\src\libmpg123\libmpg123.sym.in" />

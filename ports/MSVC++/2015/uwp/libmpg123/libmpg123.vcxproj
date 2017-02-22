@@ -28,7 +28,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\src\compat\compat.h" />
-    <ClInclude Include="..\..\..\..\..\src\compat\compat_impl.h" />
     <ClInclude Include="..\..\..\..\..\src\libmpg123\abi_align.h" />
     <ClInclude Include="..\..\..\..\..\src\libmpg123\debug.h" />
     <ClInclude Include="..\..\..\..\..\src\libmpg123\decode.h" />
@@ -41,7 +40,6 @@
     <ClInclude Include="..\..\..\..\..\src\libmpg123\icy2utf8.h" />
     <ClInclude Include="..\..\..\..\..\src\libmpg123\id3.h" />
     <ClInclude Include="..\..\..\..\..\src\libmpg123\index.h" />
-    <ClInclude Include="..\..\..\..\..\src\libmpg123\intsym.h" />
     <ClInclude Include="..\..\..\..\..\src\libmpg123\l12_integer_tables.h" />
     <ClInclude Include="..\..\..\..\..\src\libmpg123\l2tables.h" />
     <ClInclude Include="..\..\..\..\..\src\libmpg123\l3_integer_tables.h" />
@@ -65,12 +63,18 @@
     <ClInclude Include="..\..\..\mpg123.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\..\src\libmpg123\compat.c" />
+    <ClCompile Include="..\..\..\..\..\src\compat\compat.c" />
+    <ClCompile Include="..\..\..\..\..\src\compat\compat_str.c" />
     <ClCompile Include="..\..\..\..\..\src\libmpg123\dct64.c" />
     <ClCompile Include="..\..\..\..\..\src\libmpg123\dct64_i386.c" />
     <ClCompile Include="..\..\..\..\..\src\libmpg123\dct64_i486.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\..\..\..\src\libmpg123\equalizer.c" />
     <ClCompile Include="..\..\..\..\..\src\libmpg123\feature.c" />
@@ -94,6 +98,11 @@
     <ClCompile Include="..\..\..\..\..\src\libmpg123\synth_i486.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\..\..\..\src\libmpg123\synth_real.c" />
     <ClCompile Include="..\..\..\..\..\src\libmpg123\synth_s32.c" />
@@ -202,19 +211,19 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
+    <UseDebugLibraries>true</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
+    <UseDebugLibraries>true</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
+    <UseDebugLibraries>true</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
@@ -246,10 +255,15 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <GenerateManifest>false</GenerateManifest>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\$(MSBuildProjectName)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <GenerateManifest>false</GenerateManifest>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)$(Platform)$(Configuration)\$(MSBuildProjectName)\</OutDir>
+    <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <GenerateManifest>false</GenerateManifest>
@@ -258,6 +272,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <GenerateManifest>false</GenerateManifest>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
+    <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <GenerateManifest>false</GenerateManifest>
@@ -266,89 +281,91 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <GenerateManifest>false</GenerateManifest>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
+    <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>false</CompileAsWinRT>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\..\src;$(ProjectDir)..\..\..\..\..\src\libmpg123;$(ProjectDir)..\..\..\..\..\src\compat;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\..\src;$(ProjectDir)..\..\..\..\..\src\libmpg123;$(ProjectDir)..\..\..\..\..\src\compat;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;BUILD_MPG123_DLL;OPT_MULTI;OPT_GENERIC;OPT_I386;OPT_I586;OPT_MMX;OPT_3DNOW;OPT_3DNOWEXT;OPT_SSE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
-      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
-      <AdditionalLibraryDirectories>$(ProjectDir)Debug</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
       <AdditionalDependencies>dct36_3dnow.o;dct36_3dnowext.o;dct36_sse.o;dct64_3dnow.o;dct64_3dnowext.o;dct64_mmx.o;dct64_sse.o;dct64_sse_float.o;equalizer_3dnow.o;getcpuflags.o;synth_3dnow.o;synth_3dnowext.o;synth_i586.o;synth_mmx.o;synth_sse.o;synth_sse_float.o;synth_stereo_sse_float.o;tabinit_mmx.o;synth_sse_accurate.o;synth_sse_s32.o;synth_stereo_sse_accurate.o;synth_stereo_sse_s32.o;%(AdditionalDependencies)</AdditionalDependencies>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
     <PreLinkEvent>
-      <Command>cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnow.S" /nologo &gt; "$(ProjectDir)Debug\dct36_3dnow.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(ProjectDir)Debug\dct36_3dnow.o" "$(ProjectDir)Debug\dct36_3dnow.asm"
+      <Command>cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnow.S" /nologo &gt; "$(OutDir)dct36_3dnow.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct36_3dnow.o" "$(OutDir)dct36_3dnow.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnowext.S" /nologo &gt; "$(ProjectDir)Debug\dct36_3dnowext.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(ProjectDir)Debug\dct36_3dnowext.o" "$(ProjectDir)Debug\dct36_3dnowext.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnowext.S" /nologo &gt; "$(OutDir)dct36_3dnowext.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct36_3dnowext.o" "$(OutDir)dct36_3dnowext.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_sse.S" /nologo &gt; "$(ProjectDir)Debug\dct36_sse.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(ProjectDir)Debug\dct36_sse.o" "$(ProjectDir)Debug\dct36_sse.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_sse.S" /nologo &gt; "$(OutDir)dct36_sse.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct36_sse.o" "$(OutDir)dct36_sse.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnow.S" /nologo &gt; "$(ProjectDir)Debug\dct64_3dnow.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(ProjectDir)Debug\dct64_3dnow.o" "$(ProjectDir)Debug\dct64_3dnow.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnow.S" /nologo &gt; "$(OutDir)dct64_3dnow.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct64_3dnow.o" "$(OutDir)dct64_3dnow.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnowext.S" /nologo &gt; "$(ProjectDir)Debug\dct64_3dnowext.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(ProjectDir)Debug\dct64_3dnowext.o" "$(ProjectDir)Debug\dct64_3dnowext.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnowext.S" /nologo &gt; "$(OutDir)dct64_3dnowext.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct64_3dnowext.o" "$(OutDir)dct64_3dnowext.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_mmx.S" /nologo &gt; "$(ProjectDir)Debug\dct64_mmx.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(ProjectDir)Debug\dct64_mmx.o" "$(ProjectDir)Debug\dct64_mmx.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_mmx.S" /nologo &gt; "$(OutDir)dct64_mmx.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct64_mmx.o" "$(OutDir)dct64_mmx.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse.S" /nologo &gt; "$(ProjectDir)Debug\dct64_sse.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(ProjectDir)Debug\dct64_sse.o" "$(ProjectDir)Debug\dct64_sse.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse.S" /nologo &gt; "$(OutDir)dct64_sse.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct64_sse.o" "$(OutDir)dct64_sse.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse_float.S" /nologo &gt; "$(ProjectDir)Debug\dct64_sse_float.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Debug\dct64_sse_float.o" "$(ProjectDir)Debug\dct64_sse_float.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse_float.S" /nologo &gt; "$(OutDir)dct64_sse_float.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)dct64_sse_float.o" "$(OutDir)dct64_sse_float.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\equalizer_3dnow.S" /nologo &gt; "$(ProjectDir)Debug\equalizer_3dnow.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Debug\equalizer_3dnow.o" "$(ProjectDir)Debug\equalizer_3dnow.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\equalizer_3dnow.S" /nologo &gt; "$(OutDir)equalizer_3dnow.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)equalizer_3dnow.o" "$(OutDir)equalizer_3dnow.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\getcpuflags.S" /nologo &gt; "$(ProjectDir)Debug\getcpuflags.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Debug\getcpuflags.o" "$(ProjectDir)Debug\getcpuflags.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\getcpuflags.S" /nologo &gt; "$(OutDir)getcpuflags.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)getcpuflags.o" "$(OutDir)getcpuflags.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnow.S" /nologo &gt; "$(ProjectDir)Debug\synth_3dnow.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Debug\synth_3dnow.o" "$(ProjectDir)Debug\synth_3dnow.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnow.S" /nologo &gt; "$(OutDir)synth_3dnow.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_3dnow.o" "$(OutDir)synth_3dnow.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnowext.S" /nologo &gt; "$(ProjectDir)Debug\synth_3dnowext.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Debug\synth_3dnowext.o" "$(ProjectDir)Debug\synth_3dnowext.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnowext.S" /nologo &gt; "$(OutDir)synth_3dnowext.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_3dnowext.o" "$(OutDir)synth_3dnowext.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_i586.S" /nologo &gt; "$(ProjectDir)Debug\synth_i586.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Debug\synth_i586.o" "$(ProjectDir)Debug\synth_i586.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_i586.S" /nologo &gt; "$(OutDir)synth_i586.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_i586.o" "$(OutDir)synth_i586.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_mmx.S" /nologo &gt; "$(ProjectDir)Debug\synth_mmx.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Debug\synth_mmx.o" "$(ProjectDir)Debug\synth_mmx.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_mmx.S" /nologo &gt; "$(OutDir)synth_mmx.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_mmx.o" "$(OutDir)synth_mmx.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse.S" /nologo &gt; "$(ProjectDir)Debug\synth_sse.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Debug\synth_sse.o" "$(ProjectDir)Debug\synth_sse.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse.S" /nologo &gt; "$(OutDir)synth_sse.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_sse.o" "$(OutDir)synth_sse.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_float.S" /nologo &gt; "$(ProjectDir)Debug\synth_sse_float.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Debug\synth_sse_float.o" "$(ProjectDir)Debug\synth_sse_float.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_float.S" /nologo &gt; "$(OutDir)synth_sse_float.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_sse_float.o" "$(OutDir)synth_sse_float.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_float.S" /nologo &gt; "$(ProjectDir)Debug\synth_stereo_sse_float.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Debug\synth_stereo_sse_float.o" "$(ProjectDir)Debug\synth_stereo_sse_float.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_float.S" /nologo &gt; "$(OutDir)synth_stereo_sse_float.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_stereo_sse_float.o" "$(OutDir)synth_stereo_sse_float.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\tabinit_mmx.S" /nologo &gt; "$(ProjectDir)Debug\tabinit_mmx.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Debug\tabinit_mmx.o" "$(ProjectDir)Debug\tabinit_mmx.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\tabinit_mmx.S" /nologo &gt; "$(OutDir)tabinit_mmx.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)tabinit_mmx.o" "$(OutDir)tabinit_mmx.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_accurate.S" /nologo &gt; "$(ProjectDir)Debug\synth_sse_accurate.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Debug\synth_sse_accurate.o" "$(ProjectDir)Debug\synth_sse_accurate.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_accurate.S" /nologo &gt; "$(OutDir)synth_sse_accurate.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_sse_accurate.o" "$(OutDir)synth_sse_accurate.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_s32.S" /nologo &gt; "$(ProjectDir)Debug\synth_sse_s32.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Debug\synth_sse_s32.o" "$(ProjectDir)Debug\synth_sse_s32.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_s32.S" /nologo &gt; "$(OutDir)synth_sse_s32.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_sse_s32.o" "$(OutDir)synth_sse_s32.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_accurate.S" /nologo &gt; "$(ProjectDir)Debug\synth_stereo_sse_accurate.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Debug\synth_stereo_sse_accurate.o" "$(ProjectDir)Debug\synth_stereo_sse_accurate.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_accurate.S" /nologo &gt; "$(OutDir)synth_stereo_sse_accurate.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_stereo_sse_accurate.o" "$(OutDir)synth_stereo_sse_accurate.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_s32.S" /nologo &gt; "$(ProjectDir)Debug\synth_stereo_sse_s32.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Debug\synth_stereo_sse_s32.o" "$(ProjectDir)Debug\synth_stereo_sse_s32.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_s32.S" /nologo &gt; "$(OutDir)synth_stereo_sse_s32.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_stereo_sse_s32.o" "$(OutDir)synth_stereo_sse_s32.asm"
 </Command>
     </PreLinkEvent>
   </ItemDefinitionGroup>
@@ -356,130 +373,426 @@ yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Debug\synth_s
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>false</CompileAsWinRT>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\..\src;$(ProjectDir)..\..\..\..\..\src\libmpg123;$(ProjectDir)..\..\..\..\..\src\compat;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\..\src;$(ProjectDir)..\..\..\..\..\src\libmpg123;$(ProjectDir)..\..\..\..\..\src\compat;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;BUILD_MPG123_DLL;OPT_MULTI;OPT_GENERIC;OPT_I386;OPT_I586;OPT_MMX;OPT_3DNOW;OPT_3DNOWEXT;OPT_SSE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
-      <AdditionalLibraryDirectories>$(ProjectDir)Release</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
       <AdditionalDependencies>dct36_3dnow.o;dct36_3dnowext.o;dct36_sse.o;dct64_3dnow.o;dct64_3dnowext.o;dct64_mmx.o;dct64_sse.o;dct64_sse_float.o;equalizer_3dnow.o;getcpuflags.o;synth_3dnow.o;synth_3dnowext.o;synth_i586.o;synth_mmx.o;synth_sse.o;synth_sse_float.o;synth_stereo_sse_float.o;tabinit_mmx.o;synth_sse_accurate.o;synth_sse_s32.o;synth_stereo_sse_accurate.o;synth_stereo_sse_s32.o;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreLinkEvent>
-      <Command>cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnow.S" /nologo &gt; "$(ProjectDir)Release\dct36_3dnow.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(ProjectDir)Release\dct36_3dnow.o" "$(ProjectDir)Release\dct36_3dnow.asm"
+      <Command>cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnow.S" /nologo &gt; "$(OutDir)dct36_3dnow.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct36_3dnow.o" "$(OutDir)dct36_3dnow.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnowext.S" /nologo &gt; "$(ProjectDir)Release\dct36_3dnowext.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(ProjectDir)Release\dct36_3dnowext.o" "$(ProjectDir)Release\dct36_3dnowext.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnowext.S" /nologo &gt; "$(OutDir)dct36_3dnowext.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct36_3dnowext.o" "$(OutDir)dct36_3dnowext.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_sse.S" /nologo &gt; "$(ProjectDir)Release\dct36_sse.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(ProjectDir)Release\dct36_sse.o" "$(ProjectDir)Release\dct36_sse.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_sse.S" /nologo &gt; "$(OutDir)dct36_sse.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct36_sse.o" "$(OutDir)dct36_sse.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnow.S" /nologo &gt; "$(ProjectDir)Release\dct64_3dnow.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(ProjectDir)Release\dct64_3dnow.o" "$(ProjectDir)Release\dct64_3dnow.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnow.S" /nologo &gt; "$(OutDir)dct64_3dnow.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct64_3dnow.o" "$(OutDir)dct64_3dnow.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnowext.S" /nologo &gt; "$(ProjectDir)Release\dct64_3dnowext.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(ProjectDir)Release\dct64_3dnowext.o" "$(ProjectDir)Release\dct64_3dnowext.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnowext.S" /nologo &gt; "$(OutDir)dct64_3dnowext.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct64_3dnowext.o" "$(OutDir)dct64_3dnowext.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_mmx.S" /nologo &gt; "$(ProjectDir)Release\dct64_mmx.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(ProjectDir)Release\dct64_mmx.o" "$(ProjectDir)Release\dct64_mmx.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_mmx.S" /nologo &gt; "$(OutDir)dct64_mmx.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct64_mmx.o" "$(OutDir)dct64_mmx.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse.S" /nologo &gt; "$(ProjectDir)Release\dct64_sse.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(ProjectDir)Release\dct64_sse.o" "$(ProjectDir)Release\dct64_sse.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse.S" /nologo &gt; "$(OutDir)dct64_sse.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct64_sse.o" "$(OutDir)dct64_sse.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse_float.S" /nologo &gt; "$(ProjectDir)Release\dct64_sse_float.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Release\dct64_sse_float.o" "$(ProjectDir)Release\dct64_sse_float.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse_float.S" /nologo &gt; "$(OutDir)dct64_sse_float.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)dct64_sse_float.o" "$(OutDir)dct64_sse_float.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\equalizer_3dnow.S" /nologo &gt; "$(ProjectDir)Release\equalizer_3dnow.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Release\equalizer_3dnow.o" "$(ProjectDir)Release\equalizer_3dnow.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\equalizer_3dnow.S" /nologo &gt; "$(OutDir)equalizer_3dnow.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)equalizer_3dnow.o" "$(OutDir)equalizer_3dnow.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\getcpuflags.S" /nologo &gt; "$(ProjectDir)Release\getcpuflags.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Release\getcpuflags.o" "$(ProjectDir)Release\getcpuflags.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\getcpuflags.S" /nologo &gt; "$(OutDir)getcpuflags.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)getcpuflags.o" "$(OutDir)getcpuflags.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnow.S" /nologo &gt; "$(ProjectDir)Release\synth_3dnow.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Release\synth_3dnow.o" "$(ProjectDir)Release\synth_3dnow.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnow.S" /nologo &gt; "$(OutDir)synth_3dnow.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_3dnow.o" "$(OutDir)synth_3dnow.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnowext.S" /nologo &gt; "$(ProjectDir)Release\synth_3dnowext.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Release\synth_3dnowext.o" "$(ProjectDir)Release\synth_3dnowext.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnowext.S" /nologo &gt; "$(OutDir)synth_3dnowext.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_3dnowext.o" "$(OutDir)synth_3dnowext.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_i586.S" /nologo &gt; "$(ProjectDir)Release\synth_i586.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Release\synth_i586.o" "$(ProjectDir)Release\synth_i586.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_i586.S" /nologo &gt; "$(OutDir)synth_i586.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_i586.o" "$(OutDir)synth_i586.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_mmx.S" /nologo &gt; "$(ProjectDir)Release\synth_mmx.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Release\synth_mmx.o" "$(ProjectDir)Release\synth_mmx.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_mmx.S" /nologo &gt; "$(OutDir)synth_mmx.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_mmx.o" "$(OutDir)synth_mmx.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse.S" /nologo &gt; "$(ProjectDir)Release\synth_sse.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Release\synth_sse.o" "$(ProjectDir)Release\synth_sse.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse.S" /nologo &gt; "$(OutDir)synth_sse.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_sse.o" "$(OutDir)synth_sse.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_float.S" /nologo &gt; "$(ProjectDir)Release\synth_sse_float.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Release\synth_sse_float.o" "$(ProjectDir)Release\synth_sse_float.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_float.S" /nologo &gt; "$(OutDir)synth_sse_float.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_sse_float.o" "$(OutDir)synth_sse_float.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_float.S" /nologo &gt; "$(ProjectDir)Release\synth_stereo_sse_float.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Release\synth_stereo_sse_float.o" "$(ProjectDir)Release\synth_stereo_sse_float.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_float.S" /nologo &gt; "$(OutDir)synth_stereo_sse_float.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_stereo_sse_float.o" "$(OutDir)synth_stereo_sse_float.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\tabinit_mmx.S" /nologo &gt; "$(ProjectDir)Release\tabinit_mmx.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Release\tabinit_mmx.o" "$(ProjectDir)Release\tabinit_mmx.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\tabinit_mmx.S" /nologo &gt; "$(OutDir)tabinit_mmx.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)tabinit_mmx.o" "$(OutDir)tabinit_mmx.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_accurate.S" /nologo &gt; "$(ProjectDir)Release\synth_sse_accurate.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Release\synth_sse_accurate.o" "$(ProjectDir)Release\synth_sse_accurate.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_accurate.S" /nologo &gt; "$(OutDir)synth_sse_accurate.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_sse_accurate.o" "$(OutDir)synth_sse_accurate.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_s32.S" /nologo &gt; "$(ProjectDir)Release\synth_sse_s32.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Release\synth_sse_s32.o" "$(ProjectDir)Release\synth_sse_s32.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_s32.S" /nologo &gt; "$(OutDir)synth_sse_s32.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_sse_s32.o" "$(OutDir)synth_sse_s32.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_accurate.S" /nologo &gt; "$(ProjectDir)Release\synth_stereo_sse_accurate.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Release\synth_stereo_sse_accurate.o" "$(ProjectDir)Release\synth_stereo_sse_accurate.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_accurate.S" /nologo &gt; "$(OutDir)synth_stereo_sse_accurate.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_stereo_sse_accurate.o" "$(OutDir)synth_stereo_sse_accurate.asm"
 
-cl /I "..\..\.." /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_s32.S" /nologo &gt; "$(ProjectDir)Release\synth_stereo_sse_s32.asm"
-yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(ProjectDir)Release\synth_stereo_sse_s32.o" "$(ProjectDir)Release\synth_stereo_sse_s32.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_s32.S" /nologo &gt; "$(OutDir)synth_stereo_sse_s32.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_stereo_sse_s32.o" "$(OutDir)synth_stereo_sse_s32.asm"
 </Command>
     </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|arm'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>false</CompileAsWinRT>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\..\src;$(ProjectDir)..\..\..\..\..\src\libmpg123;$(ProjectDir)..\..\..\..\..\src\compat;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;BUILD_MPG123_DLL;OPT_MULTI;OPT_GENERIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CompileAs>CompileAsC</CompileAs>
+      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
+    <PreLinkEvent>
+      <Command>cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnow.S" /nologo &gt; "$(OutDir)dct36_3dnow.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct36_3dnow.o" "$(OutDir)dct36_3dnow.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnowext.S" /nologo &gt; "$(OutDir)dct36_3dnowext.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct36_3dnowext.o" "$(OutDir)dct36_3dnowext.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_sse.S" /nologo &gt; "$(OutDir)dct36_sse.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct36_sse.o" "$(OutDir)dct36_sse.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnow.S" /nologo &gt; "$(OutDir)dct64_3dnow.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct64_3dnow.o" "$(OutDir)dct64_3dnow.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnowext.S" /nologo &gt; "$(OutDir)dct64_3dnowext.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct64_3dnowext.o" "$(OutDir)dct64_3dnowext.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_mmx.S" /nologo &gt; "$(OutDir)dct64_mmx.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct64_mmx.o" "$(OutDir)dct64_mmx.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse.S" /nologo &gt; "$(OutDir)dct64_sse.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct64_sse.o" "$(OutDir)dct64_sse.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse_float.S" /nologo &gt; "$(OutDir)dct64_sse_float.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)dct64_sse_float.o" "$(OutDir)dct64_sse_float.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\equalizer_3dnow.S" /nologo &gt; "$(OutDir)equalizer_3dnow.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)equalizer_3dnow.o" "$(OutDir)equalizer_3dnow.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\getcpuflags.S" /nologo &gt; "$(OutDir)getcpuflags.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)getcpuflags.o" "$(OutDir)getcpuflags.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnow.S" /nologo &gt; "$(OutDir)synth_3dnow.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_3dnow.o" "$(OutDir)synth_3dnow.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnowext.S" /nologo &gt; "$(OutDir)synth_3dnowext.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_3dnowext.o" "$(OutDir)synth_3dnowext.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_i586.S" /nologo &gt; "$(OutDir)synth_i586.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_i586.o" "$(OutDir)synth_i586.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_mmx.S" /nologo &gt; "$(OutDir)synth_mmx.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_mmx.o" "$(OutDir)synth_mmx.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse.S" /nologo &gt; "$(OutDir)synth_sse.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_sse.o" "$(OutDir)synth_sse.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_float.S" /nologo &gt; "$(OutDir)synth_sse_float.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_sse_float.o" "$(OutDir)synth_sse_float.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_float.S" /nologo &gt; "$(OutDir)synth_stereo_sse_float.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_stereo_sse_float.o" "$(OutDir)synth_stereo_sse_float.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\tabinit_mmx.S" /nologo &gt; "$(OutDir)tabinit_mmx.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)tabinit_mmx.o" "$(OutDir)tabinit_mmx.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_accurate.S" /nologo &gt; "$(OutDir)synth_sse_accurate.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_sse_accurate.o" "$(OutDir)synth_sse_accurate.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_s32.S" /nologo &gt; "$(OutDir)synth_sse_s32.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_sse_s32.o" "$(OutDir)synth_sse_s32.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_accurate.S" /nologo &gt; "$(OutDir)synth_stereo_sse_accurate.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_stereo_sse_accurate.o" "$(OutDir)synth_stereo_sse_accurate.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_s32.S" /nologo &gt; "$(OutDir)synth_stereo_sse_s32.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_stereo_sse_s32.o" "$(OutDir)synth_stereo_sse_s32.asm"
+</Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|arm'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>false</CompileAsWinRT>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\..\src;$(ProjectDir)..\..\..\..\..\src\libmpg123;$(ProjectDir)..\..\..\..\..\src\compat;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;BUILD_MPG123_DLL;OPT_MULTI;OPT_GENERIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CompileAs>CompileAsC</CompileAs>
+      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Link>
+    <PreLinkEvent>
+      <Command>cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnow.S" /nologo &gt; "$(OutDir)dct36_3dnow.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct36_3dnow.o" "$(OutDir)dct36_3dnow.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnowext.S" /nologo &gt; "$(OutDir)dct36_3dnowext.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct36_3dnowext.o" "$(OutDir)dct36_3dnowext.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_sse.S" /nologo &gt; "$(OutDir)dct36_sse.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct36_sse.o" "$(OutDir)dct36_sse.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnow.S" /nologo &gt; "$(OutDir)dct64_3dnow.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct64_3dnow.o" "$(OutDir)dct64_3dnow.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnowext.S" /nologo &gt; "$(OutDir)dct64_3dnowext.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct64_3dnowext.o" "$(OutDir)dct64_3dnowext.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_mmx.S" /nologo &gt; "$(OutDir)dct64_mmx.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct64_mmx.o" "$(OutDir)dct64_mmx.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse.S" /nologo &gt; "$(OutDir)dct64_sse.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct64_sse.o" "$(OutDir)dct64_sse.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse_float.S" /nologo &gt; "$(OutDir)dct64_sse_float.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)dct64_sse_float.o" "$(OutDir)dct64_sse_float.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\equalizer_3dnow.S" /nologo &gt; "$(OutDir)equalizer_3dnow.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)equalizer_3dnow.o" "$(OutDir)equalizer_3dnow.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\getcpuflags.S" /nologo &gt; "$(OutDir)getcpuflags.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)getcpuflags.o" "$(OutDir)getcpuflags.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnow.S" /nologo &gt; "$(OutDir)synth_3dnow.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_3dnow.o" "$(OutDir)synth_3dnow.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnowext.S" /nologo &gt; "$(OutDir)synth_3dnowext.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_3dnowext.o" "$(OutDir)synth_3dnowext.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_i586.S" /nologo &gt; "$(OutDir)synth_i586.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_i586.o" "$(OutDir)synth_i586.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_mmx.S" /nologo &gt; "$(OutDir)synth_mmx.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_mmx.o" "$(OutDir)synth_mmx.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse.S" /nologo &gt; "$(OutDir)synth_sse.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_sse.o" "$(OutDir)synth_sse.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_float.S" /nologo &gt; "$(OutDir)synth_sse_float.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_sse_float.o" "$(OutDir)synth_sse_float.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_float.S" /nologo &gt; "$(OutDir)synth_stereo_sse_float.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_stereo_sse_float.o" "$(OutDir)synth_stereo_sse_float.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\tabinit_mmx.S" /nologo &gt; "$(OutDir)tabinit_mmx.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)tabinit_mmx.o" "$(OutDir)tabinit_mmx.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_accurate.S" /nologo &gt; "$(OutDir)synth_sse_accurate.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_sse_accurate.o" "$(OutDir)synth_sse_accurate.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_s32.S" /nologo &gt; "$(OutDir)synth_sse_s32.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_sse_s32.o" "$(OutDir)synth_sse_s32.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_accurate.S" /nologo &gt; "$(OutDir)synth_stereo_sse_accurate.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_stereo_sse_accurate.o" "$(OutDir)synth_stereo_sse_accurate.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_s32.S" /nologo &gt; "$(OutDir)synth_stereo_sse_s32.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_stereo_sse_s32.o" "$(OutDir)synth_stereo_sse_s32.asm"
+</Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>false</CompileAsWinRT>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\..\src;$(ProjectDir)..\..\..\..\..\src\libmpg123;$(ProjectDir)..\..\..\..\..\src\compat;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;BUILD_MPG123_DLL;OPT_MULTI;OPT_GENERIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CompileAs>CompileAsC</CompileAs>
+      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
+    <PreLinkEvent>
+      <Command>cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnow.S" /nologo &gt; "$(OutDir)dct36_3dnow.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct36_3dnow.o" "$(OutDir)dct36_3dnow.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnowext.S" /nologo &gt; "$(OutDir)dct36_3dnowext.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct36_3dnowext.o" "$(OutDir)dct36_3dnowext.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_sse.S" /nologo &gt; "$(OutDir)dct36_sse.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct36_sse.o" "$(OutDir)dct36_sse.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnow.S" /nologo &gt; "$(OutDir)dct64_3dnow.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct64_3dnow.o" "$(OutDir)dct64_3dnow.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnowext.S" /nologo &gt; "$(OutDir)dct64_3dnowext.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct64_3dnowext.o" "$(OutDir)dct64_3dnowext.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_mmx.S" /nologo &gt; "$(OutDir)dct64_mmx.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct64_mmx.o" "$(OutDir)dct64_mmx.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse.S" /nologo &gt; "$(OutDir)dct64_sse.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct64_sse.o" "$(OutDir)dct64_sse.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse_float.S" /nologo &gt; "$(OutDir)dct64_sse_float.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)dct64_sse_float.o" "$(OutDir)dct64_sse_float.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\equalizer_3dnow.S" /nologo &gt; "$(OutDir)equalizer_3dnow.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)equalizer_3dnow.o" "$(OutDir)equalizer_3dnow.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\getcpuflags.S" /nologo &gt; "$(OutDir)getcpuflags.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)getcpuflags.o" "$(OutDir)getcpuflags.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnow.S" /nologo &gt; "$(OutDir)synth_3dnow.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_3dnow.o" "$(OutDir)synth_3dnow.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnowext.S" /nologo &gt; "$(OutDir)synth_3dnowext.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_3dnowext.o" "$(OutDir)synth_3dnowext.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_i586.S" /nologo &gt; "$(OutDir)synth_i586.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_i586.o" "$(OutDir)synth_i586.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_mmx.S" /nologo &gt; "$(OutDir)synth_mmx.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_mmx.o" "$(OutDir)synth_mmx.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse.S" /nologo &gt; "$(OutDir)synth_sse.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_sse.o" "$(OutDir)synth_sse.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_float.S" /nologo &gt; "$(OutDir)synth_sse_float.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_sse_float.o" "$(OutDir)synth_sse_float.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_float.S" /nologo &gt; "$(OutDir)synth_stereo_sse_float.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_stereo_sse_float.o" "$(OutDir)synth_stereo_sse_float.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\tabinit_mmx.S" /nologo &gt; "$(OutDir)tabinit_mmx.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)tabinit_mmx.o" "$(OutDir)tabinit_mmx.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_accurate.S" /nologo &gt; "$(OutDir)synth_sse_accurate.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_sse_accurate.o" "$(OutDir)synth_sse_accurate.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_s32.S" /nologo &gt; "$(OutDir)synth_sse_s32.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_sse_s32.o" "$(OutDir)synth_sse_s32.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_accurate.S" /nologo &gt; "$(OutDir)synth_stereo_sse_accurate.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_stereo_sse_accurate.o" "$(OutDir)synth_stereo_sse_accurate.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_s32.S" /nologo &gt; "$(OutDir)synth_stereo_sse_s32.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_stereo_sse_s32.o" "$(OutDir)synth_stereo_sse_s32.asm"
+</Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>false</CompileAsWinRT>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\..\src;$(ProjectDir)..\..\..\..\..\src\libmpg123;$(ProjectDir)..\..\..\..\..\src\compat;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;BUILD_MPG123_DLL;OPT_MULTI;OPT_GENERIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CompileAs>CompileAsC</CompileAs>
+      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Link>
+    <PreLinkEvent>
+      <Command>cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnow.S" /nologo &gt; "$(OutDir)dct36_3dnow.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct36_3dnow.o" "$(OutDir)dct36_3dnow.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnowext.S" /nologo &gt; "$(OutDir)dct36_3dnowext.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct36_3dnowext.o" "$(OutDir)dct36_3dnowext.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_sse.S" /nologo &gt; "$(OutDir)dct36_sse.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct36_sse.o" "$(OutDir)dct36_sse.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnow.S" /nologo &gt; "$(OutDir)dct64_3dnow.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct64_3dnow.o" "$(OutDir)dct64_3dnow.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnowext.S" /nologo &gt; "$(OutDir)dct64_3dnowext.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct64_3dnowext.o" "$(OutDir)dct64_3dnowext.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_mmx.S" /nologo &gt; "$(OutDir)dct64_mmx.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct64_mmx.o" "$(OutDir)dct64_mmx.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse.S" /nologo &gt; "$(OutDir)dct64_sse.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(OutDir)dct64_sse.o" "$(OutDir)dct64_sse.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse_float.S" /nologo &gt; "$(OutDir)dct64_sse_float.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)dct64_sse_float.o" "$(OutDir)dct64_sse_float.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\equalizer_3dnow.S" /nologo &gt; "$(OutDir)equalizer_3dnow.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)equalizer_3dnow.o" "$(OutDir)equalizer_3dnow.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\getcpuflags.S" /nologo &gt; "$(OutDir)getcpuflags.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)getcpuflags.o" "$(OutDir)getcpuflags.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnow.S" /nologo &gt; "$(OutDir)synth_3dnow.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_3dnow.o" "$(OutDir)synth_3dnow.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnowext.S" /nologo &gt; "$(OutDir)synth_3dnowext.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_3dnowext.o" "$(OutDir)synth_3dnowext.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_i586.S" /nologo &gt; "$(OutDir)synth_i586.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_i586.o" "$(OutDir)synth_i586.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_mmx.S" /nologo &gt; "$(OutDir)synth_mmx.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_mmx.o" "$(OutDir)synth_mmx.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse.S" /nologo &gt; "$(OutDir)synth_sse.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_sse.o" "$(OutDir)synth_sse.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_float.S" /nologo &gt; "$(OutDir)synth_sse_float.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_sse_float.o" "$(OutDir)synth_sse_float.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_float.S" /nologo &gt; "$(OutDir)synth_stereo_sse_float.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_stereo_sse_float.o" "$(OutDir)synth_stereo_sse_float.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\tabinit_mmx.S" /nologo &gt; "$(OutDir)tabinit_mmx.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)tabinit_mmx.o" "$(OutDir)tabinit_mmx.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_accurate.S" /nologo &gt; "$(OutDir)synth_sse_accurate.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_sse_accurate.o" "$(OutDir)synth_sse_accurate.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_s32.S" /nologo &gt; "$(OutDir)synth_sse_s32.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_sse_s32.o" "$(OutDir)synth_sse_s32.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_accurate.S" /nologo &gt; "$(OutDir)synth_stereo_sse_accurate.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_stereo_sse_accurate.o" "$(OutDir)synth_stereo_sse_accurate.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_s32.S" /nologo &gt; "$(OutDir)synth_stereo_sse_s32.asm"
+yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(OutDir)synth_stereo_sse_s32.o" "$(OutDir)synth_stereo_sse_s32.asm"
+</Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
