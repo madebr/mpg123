@@ -51,14 +51,17 @@ char *compat_getenv(const char* name)
 	if(win32_utf8_wide(name, &wname, NULL) > 0)
 	{
 		env = _wgetenv(wname);
-		win32_wide_utf8(env, &ret, NULL);
 		free(wname);
+		if(!env)
+			goto end;
+		win32_wide_utf8(env, &ret, NULL);
 	}
 #else
 	ret = getenv(name);
 	if(ret)
 		ret = compat_strdup(ret);
 #endif
+end:
 	return ret;
 }
 
