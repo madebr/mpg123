@@ -16,12 +16,18 @@
 
 #include "debug.h"
 
+/* mpg123_replace_reader expects size_t as count, _read unsigned int */
+static ssize_t read_helper(int handle, void *dest, size_t count)
+{
+	return _read(handle, dest, (unsigned int) count);
+}
+
 int mpg123_topen(mpg123_handle *fr, const _TCHAR *path)
 {
 	int ret;
 	int filept; /* descriptor of opened file/stream */
 
-	ret = mpg123_replace_reader(fr, _read, _lseek);
+	ret = mpg123_replace_reader(fr, read_helper, _lseek);
 	if(ret != MPG123_OK)
 	{
 		return ret;
