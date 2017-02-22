@@ -16,6 +16,11 @@
 
 #ifdef _MSC_VER
 #include <io.h>
+
+#if(defined(WINAPI_FAMILY) && (WINAPI_FAMILY==WINAPI_FAMILY_APP))
+#define WINDOWS_UWP
+#endif
+
 #endif
 #ifdef HAVE_SYS_STAT_H
 #  include <sys/stat.h>
@@ -41,6 +46,8 @@
 #endif
 
 #include "debug.h"
+
+#ifndef WINDOWS_UWP
 
 char *compat_getenv(const char* name)
 {
@@ -152,6 +159,21 @@ static wchar_t* u2wlongpath(const char *upath)
 		free(wpath);
 		wpath = wlpath;
 	}
+	return wpath;
+}
+
+#endif
+
+#else
+
+static wchar_t* u2wlongpath(const char *upath)
+{
+	wchar_t* wpath, *p;
+	if (!upath || win32_utf8_wide(upath, &wpath, NULL) < 1)
+		return NULL;
+	for (p = wpath; *p; ++p)
+		if (*p == L'/')
+			*p = L'\\';
 	return wpath;
 }
 
@@ -285,6 +307,8 @@ int win32_utf8_wide(const char *const mbptr, wchar_t **wptr, size_t *buflen)
   return ret; /* Number of characters written */
 }
 #endif
+
+#ifndef WINDOWS_UWP
 
 /*
 	The Windows file and path stuff is an extract of jon_y's win32 loader
@@ -537,6 +561,8 @@ char* compat_nextdir(struct compat_dir *cd)
 #endif
 	return NULL;
 }
+
+#endif
 
 #ifdef USE_MODULES
 /*
