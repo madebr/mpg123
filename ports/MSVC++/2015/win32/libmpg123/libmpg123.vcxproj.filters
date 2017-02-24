@@ -148,6 +148,9 @@
     <None Include="..\..\..\..\..\src\libmpg123\tabinit_mmx.S">
       <Filter>asm</Filter>
     </None>
+    <None Include="..\..\..\..\..\src\libmpg123\getcpuflags_x86_64.S">
+      <Filter>asm</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="asm">

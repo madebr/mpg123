@@ -558,7 +558,7 @@ yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_stereo_sse_
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\..\src;$(ProjectDir)..\..\..\..\..\src\libmpg123;$(ProjectDir)..\..\..\..\..\src\compat;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CRT_SECURE_NO_WARNINGS;OPT_MULTI;OPT_GENERIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CRT_SECURE_NO_WARNINGS;OPT_MULTI;OPT_GENERIC;OPT_X86_64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>
       </ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -570,11 +570,45 @@ yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_stereo_sse_
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <PreLinkEvent>
-      <Command>
-      </Command>
+      <Command>cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\getcpuflags_x86_64.S" /nologo &gt; "$(IntDir)getcpuflags_x86_64.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)getcpuflags_x86_64.o" "$(IntDir)getcpuflags_x86_64.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_x86_64.S" /nologo &gt; "$(IntDir)dct36_x86_64.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)dct36_x86_64.o" "$(IntDir)dct36_x86_64.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64_float.S" /nologo &gt; "$(IntDir)synth_x86_64_float.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_x86_64_float.o" "$(IntDir)synth_x86_64_float.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64_s32.S" /nologo &gt; "$(IntDir)synth_x86_64_s32.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_x86_64_s32.o" "$(IntDir)synth_x86_64_s32.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64_float.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64_float.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x86_64_float.o" "$(IntDir)synth_stereo_x86_64_float.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64_s32.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64_s32.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x86_64_s32.o" "$(IntDir)synth_stereo_x86_64_s32.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64.S" /nologo &gt; "$(IntDir)synth_x86_64.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_x86_64.o" "$(IntDir)synth_x86_64.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_x86_64.S" /nologo &gt; "$(IntDir)dct64_x86_64.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)dct64_x86_64.o" "$(IntDir)dct64_x86_64.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_x86_64_float.S" /nologo &gt; "$(IntDir)dct64_x86_64_float.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)dct64_x86_64_float.o" "$(IntDir)dct64_x86_64_float.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x86_64.o" "$(IntDir)synth_stereo_x86_64.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64_accurate.S" /nologo &gt; "$(IntDir)synth_x86_64_accurate.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_x86_64_accurate.o" "$(IntDir)synth_x86_64_accurate.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64_accurate.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64_accurate.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x86_64_accurate.o" "$(IntDir)synth_stereo_x86_64_accurate.asm"
+</Command>
     </PreLinkEvent>
     <Lib>
-      <AdditionalDependencies>Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Shlwapi.lib;getcpuflags_x86_64.o;dct36_x86_64.o;synth_x86_64_float.o;synth_x86_64_s32.o;synth_stereo_x86_64_float.o;synth_stereo_x86_64_s32.o;synth_x86_64.o;dct64_x86_64.o;dct64_x86_64_float.o;synth_stereo_x86_64.o;synth_x86_64_accurate.o;synth_stereo_x86_64_accurate.o;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(IntDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
@@ -679,7 +713,7 @@ yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_stereo_sse_
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\..\src;$(ProjectDir)..\..\..\..\..\src\libmpg123;$(ProjectDir)..\..\..\..\..\src\compat;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;OPT_MULTI;OPT_GENERIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;OPT_MULTI;OPT_GENERIC;OPT_X86_64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>
       </ExceptionHandling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -691,11 +725,45 @@ yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_stereo_sse_
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <PreLinkEvent>
-      <Command>
-      </Command>
+      <Command>cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\getcpuflags_x86_64.S" /nologo &gt; "$(IntDir)getcpuflags_x86_64.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)getcpuflags_x86_64.o" "$(IntDir)getcpuflags_x86_64.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_x86_64.S" /nologo &gt; "$(IntDir)dct36_x86_64.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)dct36_x86_64.o" "$(IntDir)dct36_x86_64.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64_float.S" /nologo &gt; "$(IntDir)synth_x86_64_float.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_x86_64_float.o" "$(IntDir)synth_x86_64_float.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64_s32.S" /nologo &gt; "$(IntDir)synth_x86_64_s32.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_x86_64_s32.o" "$(IntDir)synth_x86_64_s32.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64_float.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64_float.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x86_64_float.o" "$(IntDir)synth_stereo_x86_64_float.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64_s32.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64_s32.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x86_64_s32.o" "$(IntDir)synth_stereo_x86_64_s32.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64.S" /nologo &gt; "$(IntDir)synth_x86_64.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_x86_64.o" "$(IntDir)synth_x86_64.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_x86_64.S" /nologo &gt; "$(IntDir)dct64_x86_64.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)dct64_x86_64.o" "$(IntDir)dct64_x86_64.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_x86_64_float.S" /nologo &gt; "$(IntDir)dct64_x86_64_float.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)dct64_x86_64_float.o" "$(IntDir)dct64_x86_64_float.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x86_64.o" "$(IntDir)synth_stereo_x86_64.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64_accurate.S" /nologo &gt; "$(IntDir)synth_x86_64_accurate.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_x86_64_accurate.o" "$(IntDir)synth_x86_64_accurate.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64_accurate.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64_accurate.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x86_64_accurate.o" "$(IntDir)synth_stereo_x86_64_accurate.asm"
+</Command>
     </PreLinkEvent>
     <Lib>
-      <AdditionalDependencies>Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Shlwapi.lib;getcpuflags_x86_64.o;dct36_x86_64.o;synth_x86_64_float.o;synth_x86_64_s32.o;synth_stereo_x86_64_float.o;synth_stereo_x86_64_s32.o;synth_x86_64.o;dct64_x86_64.o;dct64_x86_64_float.o;synth_stereo_x86_64.o;synth_x86_64_accurate.o;synth_stereo_x86_64_accurate.o;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(IntDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <Verbose>true</Verbose>
     </Lib>
@@ -798,7 +866,7 @@ yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_stereo_sse_
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\..\src;$(ProjectDir)..\..\..\..\..\src\libmpg123;$(ProjectDir)..\..\..\..\..\src\compat;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;_DEBUG;BUILD_MPG123_DLL;OPT_MULTI;OPT_GENERIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;_DEBUG;BUILD_MPG123_DLL;OPT_MULTI;OPT_GENERIC;OPT_X86_64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>
       </ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -811,11 +879,45 @@ yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_stereo_sse_
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <PreLinkEvent>
-      <Command>
-      </Command>
+      <Command>cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\getcpuflags_x86_64.S" /nologo &gt; "$(IntDir)getcpuflags_x86_64.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)getcpuflags_x86_64.o" "$(IntDir)getcpuflags_x86_64.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_x86_64.S" /nologo &gt; "$(IntDir)dct36_x86_64.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)dct36_x86_64.o" "$(IntDir)dct36_x86_64.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64_float.S" /nologo &gt; "$(IntDir)synth_x86_64_float.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_x86_64_float.o" "$(IntDir)synth_x86_64_float.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64_s32.S" /nologo &gt; "$(IntDir)synth_x86_64_s32.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_x86_64_s32.o" "$(IntDir)synth_x86_64_s32.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64_float.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64_float.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x86_64_float.o" "$(IntDir)synth_stereo_x86_64_float.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64_s32.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64_s32.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x86_64_s32.o" "$(IntDir)synth_stereo_x86_64_s32.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64.S" /nologo &gt; "$(IntDir)synth_x86_64.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_x86_64.o" "$(IntDir)synth_x86_64.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_x86_64.S" /nologo &gt; "$(IntDir)dct64_x86_64.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)dct64_x86_64.o" "$(IntDir)dct64_x86_64.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_x86_64_float.S" /nologo &gt; "$(IntDir)dct64_x86_64_float.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)dct64_x86_64_float.o" "$(IntDir)dct64_x86_64_float.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x86_64.o" "$(IntDir)synth_stereo_x86_64.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64_accurate.S" /nologo &gt; "$(IntDir)synth_x86_64_accurate.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_x86_64_accurate.o" "$(IntDir)synth_x86_64_accurate.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64_accurate.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64_accurate.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x86_64_accurate.o" "$(IntDir)synth_stereo_x86_64_accurate.asm"
+</Command>
     </PreLinkEvent>
     <Link>
-      <AdditionalDependencies>Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Shlwapi.lib;getcpuflags_x86_64.o;dct36_x86_64.o;synth_x86_64_float.o;synth_x86_64_s32.o;synth_stereo_x86_64_float.o;synth_stereo_x86_64_s32.o;synth_x86_64.o;dct64_x86_64.o;dct64_x86_64_float.o;synth_stereo_x86_64.o;synth_x86_64_accurate.o;synth_stereo_x86_64_accurate.o;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(IntDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
       <AssemblyDebug>true</AssemblyDebug>
@@ -940,7 +1042,7 @@ yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_stereo_sse_
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\..\src;$(ProjectDir)..\..\..\..\..\src\libmpg123;$(ProjectDir)..\..\..\..\..\src\compat;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;BUILD_MPG123_DLL;OPT_MULTI;OPT_GENERIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;BUILD_MPG123_DLL;OPT_MULTI;OPT_GENERIC;OPT_X86_64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>
       </ExceptionHandling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -951,11 +1053,45 @@ yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_stereo_sse_
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <PreLinkEvent>
-      <Command>
-      </Command>
+      <Command>cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\getcpuflags_x86_64.S" /nologo &gt; "$(IntDir)getcpuflags_x86_64.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)getcpuflags_x86_64.o" "$(IntDir)getcpuflags_x86_64.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_x86_64.S" /nologo &gt; "$(IntDir)dct36_x86_64.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)dct36_x86_64.o" "$(IntDir)dct36_x86_64.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64_float.S" /nologo &gt; "$(IntDir)synth_x86_64_float.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_x86_64_float.o" "$(IntDir)synth_x86_64_float.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64_s32.S" /nologo &gt; "$(IntDir)synth_x86_64_s32.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_x86_64_s32.o" "$(IntDir)synth_x86_64_s32.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64_float.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64_float.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x86_64_float.o" "$(IntDir)synth_stereo_x86_64_float.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64_s32.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64_s32.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x86_64_s32.o" "$(IntDir)synth_stereo_x86_64_s32.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64.S" /nologo &gt; "$(IntDir)synth_x86_64.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_x86_64.o" "$(IntDir)synth_x86_64.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_x86_64.S" /nologo &gt; "$(IntDir)dct64_x86_64.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)dct64_x86_64.o" "$(IntDir)dct64_x86_64.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_x86_64_float.S" /nologo &gt; "$(IntDir)dct64_x86_64_float.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)dct64_x86_64_float.o" "$(IntDir)dct64_x86_64_float.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x86_64.o" "$(IntDir)synth_stereo_x86_64.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64_accurate.S" /nologo &gt; "$(IntDir)synth_x86_64_accurate.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_x86_64_accurate.o" "$(IntDir)synth_x86_64_accurate.asm"
+
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64_accurate.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64_accurate.asm"
+yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x86_64_accurate.o" "$(IntDir)synth_stereo_x86_64_accurate.asm"
+</Command>
     </PreLinkEvent>
     <Link>
-      <AdditionalDependencies>Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Shlwapi.lib;getcpuflags_x86_64.o;dct36_x86_64.o;synth_x86_64_float.o;synth_x86_64_s32.o;synth_stereo_x86_64_float.o;synth_stereo_x86_64_s32.o;synth_x86_64.o;dct64_x86_64.o;dct64_x86_64_float.o;synth_stereo_x86_64.o;synth_x86_64_accurate.o;synth_stereo_x86_64_accurate.o;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(IntDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <BaseAddress>0x63000000</BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
@@ -1077,6 +1213,7 @@ yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_stereo_sse_
     <None Include="..\..\..\..\..\src\libmpg123\dct64_x86_64_float.S" />
     <None Include="..\..\..\..\..\src\libmpg123\equalizer_3dnow.S" />
     <None Include="..\..\..\..\..\src\libmpg123\getcpuflags.S" />
+    <None Include="..\..\..\..\..\src\libmpg123\getcpuflags_x86_64.S" />
     <None Include="..\..\..\..\..\src\libmpg123\mpg123.h.in" />
     <None Include="..\..\..\..\..\src\libmpg123\synth_3dnow.S" />
     <None Include="..\..\..\..\..\src\libmpg123\synth_3dnowext.S" />
