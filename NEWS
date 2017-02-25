@@ -52,7 +52,8 @@
 -- Coreaudio: Use AudioComponents API on OSX >= 10.6 (thanks to Michael Weiser).
 -- Coreaudio: Fix behaviour of out123_drop(), not killing the output anymore
    without re-opening the device (bug 236, thanks to Taihei for the fix).
-
+-- Add asm optimized MSVC++ Win32|x64 and UWP|x64 builds
+-- Remove old, broken MSVC++ builds
 
 1.23.8
 ------
