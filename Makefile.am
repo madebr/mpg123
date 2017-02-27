@@ -51,18 +51,12 @@ EXTRA_DIST += \
   windows-builds.sh \
   equalize.dat \
   NEWS.libmpg123 \
+  NEWS.libout123 \
   ports/MSVC++/mpg123.h \
   ports/MSVC++/config.h \
   ports/MSVC++/msvc.c \
   ports/MSVC++/examples/scan.c \
   ports/MSVC++/examples/feedseek.c \
-  ports/MSVC++/2005/libmpg123/libmpg123.vcproj \
-  ports/MSVC++/2008/mpg123.sln \
-  ports/MSVC++/2008/feedseek/feedseek.vcproj \
-  ports/MSVC++/2008/mpglib/mpglib.vcproj \
-  ports/MSVC++/2008/libmpg123/libmpg123.vcproj \
-  ports/MSVC++/2008/scan/scan.vcproj \
-  ports/MSVC++/2008/dump_seekindex/dump_seekindex.vcproj \
   ports/MSVC++/2008clr/2008clr.sln \
   ports/MSVC++/2008clr/mpg123clr/advanced.cpp \
   ports/MSVC++/2008clr/mpg123clr/advanced.h \
@@ -97,14 +91,26 @@ EXTRA_DIST += \
   ports/MSVC++/2008clr/examples/scanclr/scanclr.csproj \
   ports/MSVC++/2008clr/examples/scanclr/Program.cs \
   ports/MSVC++/2008clr/examples/scanclr/Properties/AssemblyInfo.cs \
-  ports/MSVC++/2010/mpg123.sln \
-  ports/MSVC++/2010/dump_seekindex/dump_seekindex.vcxproj \
-  ports/MSVC++/2010/dump_seekindex/dump_seekindex.vcxproj.filters \
-  ports/MSVC++/2010/feedseek/feedseek.vcxproj \
-  ports/MSVC++/2010/feedseek/feedseek.vcxproj.filters \
-  ports/MSVC++/2010/libmpg123/libmpg123.vcxproj \
-  ports/MSVC++/2010/scan/scan.vcxproj \
-  ports/MSVC++/2010/scan/scan.vcxproj.filters \
+  ports/MSVC++/2015/ \
+  ports/MSVC++/2015/win32 \
+  ports/MSVC++/2015/win32/feedseek \
+  ports/MSVC++/2015/win32/feedseek/feedseek.vcxproj.filters \
+  ports/MSVC++/2015/win32/feedseek/feedseek.vcxproj \
+  ports/MSVC++/2015/win32/libmpg123 \
+  ports/MSVC++/2015/win32/libmpg123/libmpg123.vcxproj \
+  ports/MSVC++/2015/win32/libmpg123/libmpg123.vcxproj.filters \
+  ports/MSVC++/2015/win32/mpg123.sln \
+  ports/MSVC++/2015/win32/dump_seekindex \
+  ports/MSVC++/2015/win32/dump_seekindex/dump_seekindex.vcxproj \
+  ports/MSVC++/2015/win32/dump_seekindex/dump_seekindex.vcxproj.filters \
+  ports/MSVC++/2015/win32/scan \
+  ports/MSVC++/2015/win32/scan/scan.vcxproj.filters \
+  ports/MSVC++/2015/win32/scan/scan.vcxproj \
+  ports/MSVC++/2015/uwp \
+  ports/MSVC++/2015/uwp/libmpg123 \
+  ports/MSVC++/2015/uwp/libmpg123/libmpg123.vcxproj \
+  ports/MSVC++/2015/uwp/libmpg123/libmpg123.vcxproj.filters \
+  ports/MSVC++/2015/uwp/libmpg123.sln \
   ports/MSVC++/CMP3Stream/libMPG123/libMPG123.vcproj \
   ports/MSVC++/CMP3Stream/libMPG123/PLACE_LIBMPG123_SOURCES_HERE \
   ports/MSVC++/CMP3Stream/README \
