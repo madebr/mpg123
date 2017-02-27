@@ -2020,11 +2020,18 @@ AC_SUBST(DUMMY_LIBS)
 AC_SUBST(DUMMY_LDFLAGS)
 AC_SUBST(DUMMY_CFLAGS)
 AM_CONDITIONAL( [HAVE_DUMMY], [test "x$HAVE_DUMMY" = xyes] )
+# Hackery to get rid of module .la files.
+AC_SUBST(output_modules)
+for f in $output_modules
+do
+  output_modules_la="$output_modules_la output_$f.la"
+done
+AC_SUBST(output_modules_la)
 
 # Did user choose default audio subsystem ?
 if test "x$with_default_audio" != "x"; then
 	default_output_module=$with_default_audio
-else 
+else $output_modules
 	default_output_module=`echo "$output_modules" | $AWK '{ print $1 }'`
 fi
 

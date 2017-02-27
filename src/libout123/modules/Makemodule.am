@@ -780,3 +780,9 @@ src_libout123_modules_libdefaultmodule_la_CPPFLAGS = \
   $(libout123_mod_cppflags)
 endif
 endif
+
+if HAVE_MODULES
+# Get rid of .la files, at least _after_ install.
+install-exec-hook:
+	cd $(DESTDIR)$(pkglibdir) && $(RM) @output_modules_la@
+endif
