@@ -6,8 +6,9 @@
 	copyright 2017 by the mpg123 project, license: LGPL 2.1
 
 	This originates from Thomas' DerMixD, but the idea is probably generic
-	enough: Construct a buffer containing a lookup table that covers a full
-	period and serve that to the outside world.
+	enough: Construct a buffer containing a lookup table that covers some
+	periods (for fractinal relations between sampling frequency and generated
+	wave frequency).
 
 	For added fun, this not only has a single oscillator, but combines any
 	number of them (multiplicative).
