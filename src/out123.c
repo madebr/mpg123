@@ -905,15 +905,15 @@ static void long_usage(int err)
 	fprintf(o,"        --timelimit <s>    set time limit in PCM samples if >= 0\n");
 	fprintf(o,"        --wave-freq <f>    set wave generator frequency or list of those\n");
 	fprintf(o,"                           with comma separation for enabling a generated\n");
-	fprintf(o,"                           test signal instead of standard input.\n");
-	fprintf(o,"                           Empty value repeats the previous.\n");
+	fprintf(o,"                           test signal instead of standard input,\n");
+	fprintf(o,"                           empty value repeating the previous\n");
 	fprintf(o,"        --wave-pat <p>     set wave pattern(s) (out of those:\n");
-	fprintf(o,"                           %s)\n", wave_pattern_list);
-	fprintf(o,"                           Empty value repeats the previous.\n");
-	fprintf(o,"        --wave-phase <p>   Set wave phase shift(s). Negative values\n");
-	fprintf(o,"                           invert the pattern in time.\n");
-	fprintf(o,"                           Empty value repeats the previous.\n");
-	fprintf(o,"        --wave-limit       Soft limit on wave table size.\n");
+	fprintf(o,"                           %s),\n", wave_pattern_list);
+	fprintf(o,"                           empty value repeating the previous\n");
+	fprintf(o,"        --wave-phase <p>   set wave phase shift(s), negative values\n");
+	fprintf(o,"                           inverting the pattern in time and\n");
+	fprintf(o,"                           empty value repeating the previous\n");
+	fprintf(o,"        --wave-limit <l>   soft limit on wave table size\n");
 	fprintf(o," -t     --test             no output, just read and discard data (-o test)\n");
 	fprintf(o," -v[*]  --verbose          increase verboselevel\n");
 	#ifdef HAVE_SETPRIORITY

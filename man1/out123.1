@@ -1,8 +1,14 @@
 .TH out123 1 "26 May 2016"
 .SH NAME
-out123 \- play raw PCM audio to an output device
+out123 \- send raw PCM audio or a waveform pattern to an output device
 .SH SYNOPSIS
 .B cat audio.raw | out123
+[
+.B options
+]
+
+.B out123 --wave-freq
+freq1[,freq2,...]
 [
 .B options
 ]
@@ -10,6 +16,8 @@ out123 \- play raw PCM audio to an output device
 .B out123
 reads raw PCM data (in host byte order) from standard input 
 and plays it on the audio device specified by given options.
+Alternatively, it can generate periodic signals for playback
+itself.
 .SH OPTIONS
 .B out123
 options may be either the traditional POSIX one letter options,
@@ -81,7 +89,7 @@ Set channel count to given value.
 .TP
 \fp\-e \fIenc\fR, \fB\-\^\-encoding \fIenc
 Choose output sample encoding. Possible values look like f32 (32-bit floating point), s32 (32-bit signed integer), u32 (32-bit unsigned integer) and the variants with different numbers of bits (s24, u24, s16, u16, s8, u8) and also special variants like ulaw and alaw 8-bit.
-See the output of out123's longhelp for actually available encodings.
+See the output of \fBout123\fR's longhelp for actually available encodings.
 Default is s16.
 .TP
 .BR \-m ", " \-\^\-mono "
@@ -102,7 +110,7 @@ Print out the short names of encodings supported with the current setup.
 .TP
 .BR \-\^\-query\-format
 If the selected driver and device communicate some default accepted format, print
-out a command line fragment for out123 setting that format, always in that order:
+out a command line fragment for \fBout123\fR setting that format, always in that order:
 \-\^\-rate <r> -\^\-channels <c> -\^\-encoding <e>
 .TP
 .BR "\-o h" ", " \-\^\-headphones
@@ -134,6 +142,29 @@ Default is 0.2 (changed from 1 since version 1.23).
 \fB\-\^\-devbuffer \fIseconds
 Set device buffer in seconds; <= 0 means default value. This is the small buffer between the
 application and the audio backend, possibly directly related to hardware buffers.
+.TP
+\fB\-\^\-timelimit \fIsamples
+Set playback time limit in PCM samples if set to a value greater than zero.
+\fBout123\fR will stop reading from stdin or playing from the generated wave
+table after reaching that number of samples.
+.TP
+\fB\-\^\-wave\-freq \fIfrequencies
+Set wave generator frequency or list of those with comma separation for enabling
+a generated test signal instead of standard input. Empty values repeat the
+previous one.
+.TP
+\fB\-\^\-wave\-pat \fIpatterns
+Set the waveform patterns of the generated waves as comma-separated list.
+Choices include sine, square, triangle, sawtooth, gauss, pulse, and shot.
+Empty values repeat the previous one.
+.TP
+\fB\-\^\-wave\-phase \fIphases
+Set waveform phase shift(s) as comma-separated list, negative values
+inverting the pattern in time and empty value repeating the previous.
+.TP
+\fB\-\^\-wave\-limit \fIsamples
+Set a custom soft limit on the wave table size. Small values cause larger changes
+in actual frequencies to make whole periods fit.
 .TP
 .BR \-t ", " \-\^\-test
 Test mode.  The audio stream is read, but no output occurs.
