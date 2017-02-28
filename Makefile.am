@@ -91,8 +91,6 @@ EXTRA_DIST += \
   ports/MSVC++/2008clr/examples/scanclr/scanclr.csproj \
   ports/MSVC++/2008clr/examples/scanclr/Program.cs \
   ports/MSVC++/2008clr/examples/scanclr/Properties/AssemblyInfo.cs \
-  ports/MSVC++/2015/ \
-  ports/MSVC++/2015/win32 \
   ports/MSVC++/2015/win32/feedseek \
   ports/MSVC++/2015/win32/feedseek/feedseek.vcxproj.filters \
   ports/MSVC++/2015/win32/feedseek/feedseek.vcxproj \
@@ -106,7 +104,6 @@ EXTRA_DIST += \
   ports/MSVC++/2015/win32/scan \
   ports/MSVC++/2015/win32/scan/scan.vcxproj.filters \
   ports/MSVC++/2015/win32/scan/scan.vcxproj \
-  ports/MSVC++/2015/uwp \
   ports/MSVC++/2015/uwp/libmpg123 \
   ports/MSVC++/2015/uwp/libmpg123/libmpg123.vcxproj \
   ports/MSVC++/2015/uwp/libmpg123/libmpg123.vcxproj.filters \
