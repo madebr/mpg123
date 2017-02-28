@@ -32,11 +32,17 @@ struct wave_table
 
 extern const char *wave_pattern_list;
 
+/* Depending on your selection of frequencies, a very large table */
+/* might be required to cover them properly. You are required to provide */
+/* a limit for the table size, prompting adjustment on the frequencies */
+/* to make things fit. The limit is not strict, it can be overstepped by */
+/* about one period of one of the configured waveforms. */
 struct wave_table* wave_table_new(
 	long rate, int channels, int encoding /* desired output format */
-,	size_t count, long *freq   /* required: number and frequencies of waves */
+,	size_t count, double *freq /* required: number and frequencies of waves */
 ,	const char** pattern       /* optional: wave pattern list */
 ,	double *phase /* optional: phase shift list  */
+,	size_t size_limit /* non-strict upper limit for table size */
 );
 
 /* The destructor. Returns NULL, always. */

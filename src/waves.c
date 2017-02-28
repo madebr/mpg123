@@ -17,7 +17,6 @@
 
 /* Not depending on C99 math for these simple things, */
 
-static const size_t max_periods = 100;
 static const double freq_error = 1e-4;
 static const double twopi = 2.0*3.14159265358979323846;
 
@@ -44,7 +43,8 @@ static double myfrac(double a)
 	period for the combined signal. Invalid frequencies are set to
 	the error bound for some sanity.
 */
-static double common_samples_per_period(long rate, size_t count, double *freq)
+static double common_samples_per_period( long rate, size_t count
+,	double *freq, size_t size_limit )
 {
 	double spp = 0;
 	size_t i;
@@ -58,36 +58,40 @@ static double common_samples_per_period(long rate, size_t count, double *freq)
 		if(freq[i] > rate/2)
 			freq[i] = rate/2;
 		sppi = myabs((double)rate/freq[i]);
+		debug2("freq=%g sppi=%g", freq[i], sppi);
 		if(spp == 0)
 			spp = sppi;
 		while
 		(
-			periods < max_periods &&
+			periods*spp < size_limit &&
 			myabs( myfrac(periods*spp / sppi) ) > freq_error
 		)
 			periods++;
 		spp*=periods;
-		debug2("samples_per_period + %f Hz = %g", freq[i], spp);
+		debug3( "samples_per_period + %f Hz = %g (%" SIZE_P " periods)"
+		,	freq[i], spp, periods );
 	}
 	return spp;
 }
 
 /* Compute a good size of a table covering the common period for all waves. */
-static size_t tablesize(long rate, size_t count, double *freq)
+static size_t tablesize( long rate, size_t count
+,	double *freq, size_t size_limit )
 {
 	size_t ts;
 	double samples_per_period;
 	size_t periods;
 
-	samples_per_period = common_samples_per_period(rate, count, freq);
+	samples_per_period = common_samples_per_period( rate, count
+	,	freq, size_limit );
 	periods = 1;
 	while
 	(
-		periods < max_periods &&
 		myabs( (double)(ts =
 			round2size(periods*samples_per_period))
 			- periods*samples_per_period
 		) / periods > freq_error*samples_per_period
+		&& periods*samples_per_period < size_limit
 	)
 		periods++;
 	/* Ensure that we got an even number of samples to accomodate the minimal */
@@ -100,7 +104,7 @@ static size_t tablesize(long rate, size_t count, double *freq)
 /* The wave functions. Argument is the phase normalised to the period. */
 /* The argument is guaranteed to be 0 <= p < 1. */
 
-const char *wave_pattern_list = "sine, square, triangle, sawtooth, gauss";
+const char *wave_pattern_list = "sine, square, triangle, sawtooth, gauss, pulse, shot";
 
 /* _________ */
 /*           */
@@ -149,8 +153,28 @@ static double wave_sawtooth(double p)
 /*         */
 static double wave_gauss(double p)
 {
-	double v = exp(-30*(p-0.5));
-	return v*v;
+	double v = p-0.5;
+	return exp(-30*v*v);
+}
+
+/*    _      */
+/*  _/ -___  */
+/*           */
+/* p**2*exp(-a*p**2) */
+/* Scaling: maximum at sqrt(1/a), value 1/a*exp(-1). */
+static double wave_pulse(double p)
+{
+	return p*p*exp(-50*p*p)/0.00735758882342885;
+}
+
+/*  _     */
+/* / -___ */
+/*        */
+/* p**2*exp(-a*p) */
+/* Scaling: maximum at 4/a, value 4/a**2*exp(-2). */
+static double wave_shot(double p)
+{
+	return p*p*exp(-100*p)/5.41341132946451e-05;
 }
 
 /* Fill table with given periodic wave function. */
@@ -162,6 +186,8 @@ static void add_table( double *table, size_t samples
 	double (*wave)(double);
 	debug3("add_table %" SIZE_P " %ld %g", samples, rate, *freq);
 	periods = round2size((double)samples*(*freq)/rate);
+	if(!periods)
+		periods = 1;
 	spp     = (double)samples/periods;
 	/* 2 samples is absolute minimum. */
 	if(spp < 2)
@@ -186,6 +212,10 @@ static void add_table( double *table, size_t samples
 		wave = wave_sawtooth;
 	else if(!strcasecmp(wavetype, "gauss"))
 		wave = wave_gauss;
+	else if(!strcasecmp(wavetype, "pulse"))
+		wave = wave_pulse;
+	else if(!strcasecmp(wavetype, "shot"))
+		wave = wave_shot;
 	else
 		wave = wave_none;
 
@@ -198,19 +228,23 @@ static void add_table( double *table, size_t samples
 		max/min amplitude, not both zero so, center the samples within one
 		period. That's achieved by adding 0.25 to the counter.
 	*/
-	for(i=0; i<samples; ++i)
-		table[i] *= wave(myfrac( ((double)i+phaseoff)/spp + phase));
+	if(phase >= 0)
+		for(i=0; i<samples; ++i)
+			table[i] *= wave(myfrac( ((double)i+phaseoff)/spp + phase));
+	else
+		for(i=0; i<samples; ++i)
+			table[i] *= wave(1.-myfrac( ((double)i+phaseoff)/spp - phase));
 }
 
 /* Construct the prototype table in double precision. */
 static double* mytable( long rate, size_t count, double *freq
 ,	const char** wavetype, double *phase
-,	size_t *samples)
+,	size_t size_limit, size_t *samples)
 {
 	size_t i;
 	double *table = NULL;
 
-	*samples = tablesize(rate, count, freq);
+	*samples = tablesize(rate, count, freq, size_limit);
 	debug1("computed table size: %" SIZE_P, *samples);
 	table = malloc(*samples*sizeof(double));
 	if(!table)
@@ -279,9 +313,10 @@ if(!(p)) \
 /* Build internal table, allocate external table, convert to that one, */
 /* adjusting sample storage format and channel count. */
 struct wave_table* wave_table_new(
-	long rate, int channels, int encoding /* desired output format */
-,	size_t count, long *freq /* required: number and frequencies of waves */
-,	const char** wavetype, double *phase /* optional */
+	long rate, int channels, int encoding
+,	size_t count, double *freq
+,	const char** wavetype, double *phase
+,	size_t size_limit
 ){
 	struct wave_table *handle;
 	double *dtable;
@@ -305,7 +340,7 @@ struct wave_table* wave_table_new(
 		handle->freq[i] = freq[i];
 
 	dtable = mytable( rate, count, handle->freq, wavetype, phase
-	,	&handle->samples );
+	,	size_limit, &handle->samples );
 	HANDLE_OOM(dtable, handle, NULL)
 	handle->buf = malloc( handle->samples
 	            * MPG123_SAMPLESIZE(encoding) * channels );

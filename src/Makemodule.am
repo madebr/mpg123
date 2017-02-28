@@ -83,6 +83,8 @@ src_mpg123_SOURCES +=
 src_out123_SOURCES = \
   src/sysutil.c \
   src/sysutil.h \
+  src/waves.c \
+  src/waves.h \
   src/common.h \
   src/getlopt.c \
   src/getlopt.h \

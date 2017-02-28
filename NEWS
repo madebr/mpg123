@@ -29,6 +29,9 @@
   This also means that --with-module-suffix is gone in configure.
 - Windows builds only work when Unicode support is there (older than Windows
   2000/XP will definitely not work anymore).
+- The out123 tool now features tone generation, with a mix of differing
+  wave patterns. Makes sense to be able to test the audio output by itself,
+  and it's fun. See --wave-freq and related parameters.
 - libmpg123 version 43:
 -- Add flags MPG123_NO_PEEK_END and MPG123_FORCE_SEEKABLE, as suggested
    by Bent Bisballe Nyeng.
