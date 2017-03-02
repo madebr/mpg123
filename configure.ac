@@ -2031,7 +2031,7 @@ AC_SUBST(output_modules_la)
 # Did user choose default audio subsystem ?
 if test "x$with_default_audio" != "x"; then
 	default_output_module=$with_default_audio
-else $output_modules
+else
 	default_output_module=`echo "$output_modules" | $AWK '{ print $1 }'`
 fi
 
