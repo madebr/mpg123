@@ -1800,7 +1800,7 @@ int main(){
 		;;
 		arts)
 			AC_MSG_CHECKING([for artsc])
-			if artsc-config; then
+			if artsc-config > /dev/null 2>&1; then
 				AC_MSG_RESULT([yes])
 				output_modules="$output_modules arts"
 				HAVE_ARTS=yes
