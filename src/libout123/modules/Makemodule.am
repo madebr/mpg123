@@ -785,4 +785,7 @@ if HAVE_MODULES
 # Get rid of .la files, at least _after_ install.
 install-exec-hook:
 	cd $(DESTDIR)$(pkglibdir) && $(RM) @output_modules_la@
+# The above breaks uninstall of module .so files?
+uninstall-hook:
+	for m in @output_modules_la@; do eval $$(grep dlname= src/libout123/modules/$$m) && $(RM) $(DESTDIR)$(pkglibdir)/$$dlname; done
 endif
