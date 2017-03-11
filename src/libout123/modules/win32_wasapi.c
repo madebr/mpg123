@@ -15,6 +15,39 @@
 #include <avrt.h>
 #include "debug.h"
 
+#ifdef _MSC_VER
+
+/* When compiling C code with MSVC it is only possible to declare, but not
+   define the WASAPI interface GUIDs using MS headers. So we define them 
+   ourselves. */
+
+#ifndef GUID_SECT
+#define GUID_SECT
+#endif
+
+#define __DEFINE_GUID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) static const GUID n GUID_SECT = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
+#define __DEFINE_IID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) static const IID n GUID_SECT = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
+#define __DEFINE_CLSID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) static const CLSID n GUID_SECT = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
+#define MPG123_DEFINE_CLSID(className, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
+    __DEFINE_CLSID(mpg123_CLSID_##className, 0x##l, 0x##w1, 0x##w2, 0x##b1, 0x##b2, 0x##b3, 0x##b4, 0x##b5, 0x##b6, 0x##b7, 0x##b8)
+#define MPG123_DEFINE_IID(interfaceName, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
+    __DEFINE_IID(mpg123_IID_##interfaceName, 0x##l, 0x##w1, 0x##w2, 0x##b1, 0x##b2, 0x##b3, 0x##b4, 0x##b5, 0x##b6, 0x##b7, 0x##b8)
+
+// "1CB9AD4C-DBFA-4c32-B178-C2F568A703B2"
+MPG123_DEFINE_IID(IAudioClient, 1cb9ad4c, dbfa, 4c32, b1, 78, c2, f5, 68, a7, 03, b2);
+// "A95664D2-9614-4F35-A746-DE8DB63617E6"
+MPG123_DEFINE_IID(IMMDeviceEnumerator, a95664d2, 9614, 4f35, a7, 46, de, 8d, b6, 36, 17, e6);
+// "BCDE0395-E52F-467C-8E3D-C4579291692E"
+MPG123_DEFINE_CLSID(IMMDeviceEnumerator, bcde0395, e52f, 467c, 8e, 3d, c4, 57, 92, 91, 69, 2e);
+// "F294ACFC-3146-4483-A7BF-ADDCA7C260E2"
+MPG123_DEFINE_IID(IAudioRenderClient, f294acfc, 3146, 4483, a7, bf, ad, dc, a7, c2, 60, e2);
+#else
+#define mpg123_IID_IAudioClient IID_IAudioClient
+#define mpg123_IID_IMMDeviceEnumerator IID_IMMDeviceEnumerator
+#define mpg123_CLSID_IMMDeviceEnumerator CLSID_MMDeviceEnumerator
+#define mpg123_IID_IAudioRenderClient IID_IAudioRenderClient
+#endif
+
 /* Push mode does not work right yet, noisy audio, probably something to do with timing and buffers */
 #define WASAPI_EVENT_MODE 1
 #ifdef WASAPI_EVENT_MODE
@@ -82,7 +115,7 @@ static int open_win32(out123_handle *ao){
   ao->userptr = (void *)state;
 
   CoInitialize(NULL);
-  hr = CoCreateInstance(&CLSID_MMDeviceEnumerator,NULL,CLSCTX_ALL, &IID_IMMDeviceEnumerator,(void**)&state->pEnumerator);
+  hr = CoCreateInstance(&mpg123_CLSID_IMMDeviceEnumerator,NULL,CLSCTX_ALL, &mpg123_IID_IMMDeviceEnumerator,(void**)&state->pEnumerator);
   debug("CoCreateInstance");
   EXIT_ON_ERROR(hr)
 
@@ -91,7 +124,7 @@ static int open_win32(out123_handle *ao){
   EXIT_ON_ERROR(hr)
 
   hr = IMMDeviceActivator_Activate(state->pDevice,
-                  &IID_IAudioClient, CLSCTX_ALL,
+                  &mpg123_IID_IAudioClient, CLSCTX_ALL,
                   NULL, (void**)&state->pAudioClient);
   debug("IMMDeviceActivator_Activate");
   EXIT_ON_ERROR(hr)
@@ -237,7 +270,7 @@ static int write_init(out123_handle *ao){
 	IAudioClient_Release(state->pAudioClient);
 	state->pAudioClient = NULL;
 	hr = IMMDeviceActivator_Activate(state->pDevice,
-                  &IID_IAudioClient, CLSCTX_ALL,
+                  &mpg123_IID_IAudioClient, CLSCTX_ALL,
                   NULL, (void**)&state->pAudioClient);
     debug("IMMDeviceActivator_Activate");
     goto reinit;
@@ -245,7 +278,7 @@ static int write_init(out123_handle *ao){
   EXIT_ON_ERROR(hr)
   EXIT_ON_ERROR(hr)
   hr = IAudioClient_GetService(state->pAudioClient,
-                        &IID_IAudioRenderClient,
+                        &mpg123_IID_IAudioRenderClient,
                         (void**)&state->pRenderClient);
   debug("IAudioClient_GetService OK");
   EXIT_ON_ERROR(hr)
