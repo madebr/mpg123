@@ -64,6 +64,7 @@ LT_LDFLAGS=-export-dynamic
 EXEC_LT_LDFLAGS=
 be_static=no
 all_static=no
+lib_static=no
 AC_MSG_CHECKING([if you are up to something totally static with LDFLAGS/CFLAGS])
 for f in $LDFLAGS $CFLAGS
 do
@@ -71,9 +72,14 @@ do
 		-all-static)
 			be_static=yes
 			all_static=yes
+			lib_static=yes
 		;;
 		-static)
 			be_static=yes
+			lib_static=yes
+		;;
+		-static-libgcc)
+			lib_static=yes
 		;;
 	esac
 done
@@ -100,6 +106,12 @@ AC_PROG_EGREP
 AC_C_CONST
 AC_INLINE
 AC_C_BIGENDIAN
+
+if test "x$lib_static" = xyes; then
+        CC="$CC -static-libgcc"
+        CCLD="$CC"
+	echo "Adding -static-libgcc"
+fi
 
 dnl ############# Use Libtool for dynamic module loading
 
