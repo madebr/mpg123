@@ -34,7 +34,7 @@ temp="$PWD/tmp"
 final="$PWD/releases"
 txt="README COPYING NEWS"
 # let's try with modules
-opts="LIBS=-static-libgcc"
+opts="LDFLAGS=-static-libgcc"
 #opts="--with-audio=win32 --disable-modules"
 
 # Get the version for the build from configure.ac .
