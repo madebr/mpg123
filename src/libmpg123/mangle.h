@@ -61,7 +61,7 @@
 #if defined(__USER_LABEL_PREFIX__)
 #define ASM_NAME(a) MANGLE_MACROCAT(__USER_LABEL_PREFIX__,a)
 #define ASM_VALUE(a) MANGLE_MACROCAT($,ASM_NAME(a))
-#elif defined(__CYGWIN__) || defined(_WIN32) && !defined (_WIN64) || defined(__OS2__) || \
+#elif defined(__CYGWIN__) || defined(_WIN32) && !defined (_WIN64) && !defined (_M_ARM) || defined(__OS2__) || \
    (defined(__OpenBSD__) && !defined(__ELF__)) || defined(__APPLE__)
 #define ASM_NAME(a) MANGLE_MACROCAT(_,a)
 #define ASM_VALUE(a) MANGLE_MACROCAT($_,a)
