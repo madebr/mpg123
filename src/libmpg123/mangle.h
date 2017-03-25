@@ -49,7 +49,15 @@
 #define ALIGN32 .align 32
 #define ALIGN64 .align 64
 #else
+#ifdef ASMALIGN_ARMASM
+#define ALIGN4  ALIGN 4
+#define ALIGN8  ALIGN 8
+#define ALIGN16 ALIGN 16
+#define ALIGN32 ALIGN 32
+#define ALIGN64 ALIGN 64
+#else
 #error "Dunno how assembler alignment works. Please specify."
+#endif
 #endif
 #endif
 
@@ -80,6 +88,13 @@
 #define BSS .data
 #else
 #define BSS .bss
+#endif
+
+/* armasm for WIN32 UWP */
+#ifdef _M_ARM
+#define GLOBAL_SYMBOL EXPORT
+#else
+#define GLOBAL_SYMBOL .globl
 #endif
 
 /* Mark non-executable stack.
