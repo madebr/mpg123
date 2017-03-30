@@ -37,7 +37,9 @@ ASM_NAME(synth_1to1_s32_s_neon_asm):
 	ldr			r4, [sp, #84]
 	mov			r7, sp
 	sub			sp, sp, #16
-	bic			sp, #0xff
+	mov			r5, sp
+	and			r5, r5, #0xf
+	sub			sp, sp, r5
 	
 	add			WINDOW, WINDOW, #64
 	sub			WINDOW, WINDOW, r4, lsl #2
