@@ -1794,12 +1794,25 @@ int main(){
 			fi
 		;;
 		coreaudio)
-			COREAUDIO_LIBS="-framework AudioToolbox -framework AudioUnit -framework CoreServices"
-			AC_CHECK_HEADERS([AudioUnit/AudioUnit.h CoreServices/CoreServices.h AudioToolbox/AudioToolbox.h])
+			COREAUDIO_LIBS="-framework AudioToolbox"
+			AC_CHECK_HEADERS([AudioUnit/AudioUnit.h AudioToolbox/AudioToolbox.h])
 			if test "x${ac_cv_header_AudioUnit_AudioUnit_h}" = "xyes" \
-				 -a "x${ac_cv_header_CoreServices_CoreServices_h}" = "xyes" \
 				 -a "x${ac_cv_header_AudioToolbox_AudioToolbox_h}" = "xyes";
 			then
+				OLD_LIBS=$LIBS
+				LIBS="$LIBS $COREAUDIO_LIBS"
+    			AC_MSG_CHECKING([if AudioUnit functions are available within AudioToolbox])
+				AC_TRY_LINK(
+					[#include <AudioUnit/AudioUnit.h>],
+					[AudioUnitInitialize(NULL);],
+					[AC_MSG_RESULT([yes])],
+					[AC_MSG_RESULT([no])
+					 COREAUDIO_LIBS="$COREAUDIO_LIBS -framework AudioUnit"]
+				)
+				LIBS=$OLD_LIBS
+				AC_CHECK_HEADERS([CoreServices/CoreServices.h],
+					[COREAUDIO_LIBS="$COREAUDIO_LIBS -framework CoreServices"]
+				)
 				if test x"$modules" = xdisabled; then
 					AC_MSG_WARN([Disabling buffer because of directly linked CoreAudio! Use the module if you need the buffer.])
 					buffer=disabled

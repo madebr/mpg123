@@ -19,7 +19,7 @@
  * MAC_OS_X_VERSION_MIN_REQUIRED defaults to the host system version and can be
  * governed by MACOSX_DEPLOYMENT_TARGET environment variable and
  * -mmacosx-version-min= when running the compiler. */
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060 || __IPHONE_OS_VERSION_MIN_REQUIRED >= 20000
 #define HAVE_AUDIOCOMPONENTS 1
 #endif
 
@@ -167,8 +167,12 @@ static int open_coreaudio(out123_handle *ao)
 	ca->decode_done = 0;
 	
 	/* Get the default audio output unit */
-	desc.componentType = kAudioUnitType_Output; 
+	desc.componentType = kAudioUnitType_Output;
+#if TARGET_OS_IPHONE
+	desc.componentSubType = kAudioUnitSubType_RemoteIO;
+#else
 	desc.componentSubType = kAudioUnitSubType_DefaultOutput;
+#endif
 	desc.componentManufacturer = kAudioUnitManufacturer_Apple;
 	desc.componentFlags = 0;
 	desc.componentFlagsMask = 0;
