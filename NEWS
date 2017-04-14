@@ -5,6 +5,7 @@
   fixing 32 bit Windows builds (depend on libgcc DLL otherwise).
 - Fix build with non-GNU make by using plain rm -f instead of silly $(RM)
   in libout123/modules makefile fragment.
+- Make build work on iOS, including coreaudio backend.
 - out123: Fix stupid crash with verbose mode and tone generation (print
   the string if the pointer is non-null, not if it is null).
 
