@@ -573,10 +573,12 @@ static void setup_wavegen(void)
 	if(verbose)
 	{
 		fprintf(stderr, "wave table of %" SIZE_P " samples\n", waver->samples);
+		/* TODO: There is a crash here! pat being optimised away ... */
 		for(i=0; i<count; ++i)
 			fprintf( stderr, "wave %" SIZE_P ": %s @ %g Hz (%g Hz) p %g\n"
 			,	i
-			,	pat && pat[i] ? "none" : pat[i], freq[i], waver->freq[i]
+			,	(pat && pat[i]) ? pat[i] : wave_pattern_default
+			,	freq[i], waver->freq[i]
 			,	phase ? phase[i] : 0 );
 	}
 

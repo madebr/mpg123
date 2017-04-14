@@ -104,6 +104,7 @@ static size_t tablesize( long rate, size_t count
 /* The wave functions. Argument is the phase normalised to the period. */
 /* The argument is guaranteed to be 0 <= p < 1. */
 
+const char *wave_pattern_default = "sine";
 const char *wave_pattern_list = "sine, square, triangle, sawtooth, gauss, pulse, shot";
 
 /* _________ */
@@ -259,7 +260,7 @@ static double* mytable( long rate, size_t count, double *freq
 	for(i=0; i<count; ++i)
 		add_table(
 			table, *samples, rate, freq+i
-		,	wavetype ? wavetype[i] : "sine"
+		,	wavetype ? wavetype[i] : wave_pattern_default
 		,	phase    ? phase[i]    : 0
 		);
 	/* Amplification could have caused clipping. */

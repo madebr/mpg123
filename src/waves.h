@@ -30,6 +30,7 @@ struct wave_table
 	double *freq;   /* actual wave frequency list */
 };
 
+extern const char *wave_pattern_default;
 extern const char *wave_pattern_list;
 
 /* Depending on your selection of frequencies, a very large table */
