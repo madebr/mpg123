@@ -551,10 +551,7 @@ fi
 sys_cppflags=
 newoldwritesample=disabled
 case $host in
-  aarch64-*-linux*|arm64-*-linux*)
-    cpu_type="aarch64"
-  ;;
-  aarch64-apple-darwin*|arm64-apple-darwin*)
+  aarch64-*linux*|arm64-*linux*|aarch64-*bsd*|arm64-*bsd*|aarch64-apple-darwin*|arm64-apple-darwin*)
     cpu_type="aarch64"
   ;;
   arm*-*-linux*-*eabihf|armv7hl*-*-linux*)
