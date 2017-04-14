@@ -3,6 +3,8 @@
 - Silence test for artsc-config if it is not there.
 - Make sure -static-libgcc from LDFLAGS gets through libtool,
   fixing 32 bit Windows builds (depend on libgcc DLL otherwise).
+- Fix build with non-GNU make by using plain rm -f instead of silly $(RM)
+  in libout123/modules makefile fragment.
 
 1.24.0
 ------
