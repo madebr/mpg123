@@ -220,7 +220,7 @@ static int timeout_connect(int sockfd, const struct sockaddr *serv_addr, socklen
 	{
 		if(connect(sockfd, serv_addr, addrlen))
 		{
-			error1("connecton failed: %s", strerror(errno));
+			error1("connection failed: %s", strerror(errno));
 			return -1;
 		}
 		else return 0; /* _good_ */

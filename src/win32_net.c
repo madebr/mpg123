@@ -226,8 +226,8 @@ static int win32_net_timeout_connect(int sockfd, const struct sockaddr *serv_add
 	{
 		if(connect(ws.local_socket, serv_addr, addrlen) == SOCKET_ERROR)
 		{
-			/*error1("connecton failed: %s", strerror(errno));*/
-			debug("connecton failed");
+			/*error1("connection failed: %s", strerror(errno));*/
+			debug("connection failed");
 			msgme1;
 			return -1;
 		}
