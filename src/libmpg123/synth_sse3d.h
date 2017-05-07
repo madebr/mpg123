@@ -49,11 +49,25 @@ SYNTH_NAME:
 	pushl	%ebp
 /* stack:0=ebp 4=back 8=bandptr 12=channel 16=samples 20=buffs 24=bo 28=decwins */
 	movl	%esp, %ebp
+
 /* Now the old stack addresses are preserved via %epb. */
+#ifdef PIC
+	subl  $8,%esp /* What has been called temp before. */
+#else
 	subl  $4,%esp /* What has been called temp before. */
+#endif
 	pushl	%edi
 	pushl	%esi
 	pushl	%ebx
+
+#ifdef PIC
+	#undef _EBX_
+	#define _EBX_ %eax
+	GET_GOT
+#define EBXSAVE -4(%ebp)
+	movl _EBX_, EBXSAVE /* save PIC register */
+#endif
+
 #define TEMP 12(%esp)
 /* APP */
 	movl 12(%ebp),%ecx
@@ -95,6 +109,9 @@ SYNTH_NAME:
 	leal (%ecx,%ebx,2), %edx
 	movl (%esp),%ecx /* restore, but leave value on stack */
 	shrl $1, %ecx
+#ifdef PIC
+	movl EBXSAVE, _EBX_
+#endif
 	ALIGN16
 3:
 	movq  (%edx),%mm0
@@ -131,8 +148,8 @@ SYNTH_NAME:
 	packssdw %mm4,%mm4
 	movq	(%edi), %mm1
 	punpckldq %mm4, %mm0
-	pand   one_null, %mm1
-	pand   null_one, %mm0
+	pand   LOCAL_VAR(one_null), %mm1
+	pand   LOCAL_VAR(null_one), %mm0
 	por    %mm0, %mm1
 	movq   %mm1,(%edi)
 	leal 64(%esi),%esi
@@ -167,6 +184,10 @@ SYNTH_NAME:
 4:
 	subl $64,%esi
 	movl $7,%ecx
+
+#ifdef PIC
+	movl EBXSAVE, _EBX_
+#endif
 	ALIGN16
 5:
 	movq  (%edx),%mm0
@@ -207,8 +228,8 @@ SYNTH_NAME:
 	psubsw %mm5,%mm4
 	movq	(%edi), %mm1
 	punpckldq %mm4, %mm0
-	pand   one_null, %mm1
-	pand   null_one, %mm0
+	pand   LOCAL_VAR(one_null), %mm1
+	pand   LOCAL_VAR(null_one), %mm0
 	por    %mm0, %mm1
 	movq   %mm1,(%edi)
 	subl $64,%esi
@@ -242,6 +263,6 @@ SYNTH_NAME:
 	popl	%ebx
 	popl	%esi
 	popl	%edi
-	addl $4,%esp
+	mov		%ebp, %esp
 	popl	%ebp
 	ret

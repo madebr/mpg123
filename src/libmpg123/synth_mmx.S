@@ -61,7 +61,7 @@ ASM_NAME(synth_1to1_MMX):
 2:
         pushl %edx
         pushl %ecx
-        call ASM_NAME(dct64_MMX)
+        call FUNC(dct64_MMX)
         addl $12,%esp
 /* stack like before, pushed 3, incremented again */
 	leal 1(%ebx), %ecx
@@ -130,5 +130,12 @@ ASM_NAME(synth_1to1_MMX):
         popl %edi
         popl %ebp
         ret
+
+#if defined(PIC) && defined(__APPLE__)
+	.section __IMPORT,__jump_table,symbol_stubs,self_modifying_code+pure_instructions,5
+L_dct64_MMX:
+	.indirect_symbol ASM_NAME(dct64_MMX)
+	hlt ; hlt ; hlt ; hlt ; hlt
+#endif
 
 NONEXEC_STACK

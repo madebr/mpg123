@@ -13,6 +13,13 @@
 #include "config.h"
 #include "intsym.h"
 
+#if (defined OPT_I486)  || (defined OPT_I586) || (defined OPT_I586_DITHER) \
+ || (defined OPT_MMX)   || (defined OPT_SSE)  || (defined OPT_3DNOW) || (defined OPT_3DNOWEXT) \
+ || (defined OPT_3DNOW_VINTAGE) || (defined OPT_3DNOWEXT_VINTAGE) \
+ || (defined OPT_SSE_VINTAGE)
+#define OPT_X86
+#endif
+
 #ifdef CCALIGN
 #define MOVUAPS movaps
 #else
@@ -76,6 +83,46 @@
 #else
 #define ASM_NAME(a) a
 #define ASM_VALUE(a) MANGLE_MACROCAT($,a)
+#endif
+
+#if defined(OPT_X86) && defined(PIC)
+#define _EBX_	%ebx
+#ifdef __APPLE__
+#define LOCAL_VAR(a) a ## - Lpic_base(_EBX_)
+#define GLOBAL_VAR(a) #error This ABI cannot access non-local symbols directly.
+#define GLOBAL_VAR_PTR(a) L_ ## a ## - Lpic_base(_EBX_)
+#define FUNC(a) L_ ## a
+#define EXTERNAL_FUNC(a) L_ ## a
+#define GET_GOT \
+	call Lpic_base; \
+Lpic_base: \
+	pop _EBX_
+#else
+#define LOCAL_VAR(a) a ## @GOTOFF(_EBX_)
+#define GLOBAL_VAR(a) ASM_NAME(a) ## @GOTOFF(_EBX_)
+#define GLOBAL_VAR_PTR(a) ASM_NAME(a) ## @GOT(_EBX_)
+#define FUNC(a) ASM_NAME(a)
+#define EXTERNAL_FUNC(a) ASM_NAME(a) ## @PLT
+#undef ASM_VALUE
+#define ASM_VALUE(a) MANGLE_MACROCAT($,a) ##@GOTOFF
+#define GET_GOT \
+	call 1f; \
+1: \
+	pop _EBX_; \
+2: \
+	addl $_GLOBAL_OFFSET_TABLE_ + (2b-1b), _EBX_
+#endif
+#define PREPARE_GOT	pushl _EBX_
+#define RESTORE_GOT	popl _EBX_
+#else
+#define GET_GOT
+#define PREPARE_GOT
+#define RESTORE_GOT
+#define LOCAL_VAR(a) a
+#define GLOBAL_VAR ASM_NAME
+#define GLOBAL_VAR_PTR(a) #error Cannot use indirect addressing in non-PIC object.
+#define FUNC ASM_NAME
+#define EXTERNAL_FUNC ASM_NAME
 #endif
 
 #if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__APPLE__)
