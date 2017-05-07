@@ -15,11 +15,12 @@
 	That's not memory efficient since there's doubled code, but it's easier than giving another function pointer.
 	Maybe I'll change it in future, but now I need something that works.
 
-	Original comment from MPlayer source follows:
+	Original comment from MPlayer source follows. Regarding the license history see
+	synth_mmx.S, which the original comment about this being licensed under GPL is
+	relating to.
 */
 
 /*
- * this code comes under GPL
  * This code was taken from http://www.mpg123.org
  * See ChangeLog of mpg123-0.59s-pre.1 for detail
  * Applied to mplayer by Nick Kurshev <nickols_k@mail.ru>

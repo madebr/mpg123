@@ -11,6 +11,8 @@
   OS whitelist, anyway.
 - out123: Fix stupid crash with verbose mode and tone generation (print
   the string if the pointer is non-null, not if it is null).
+- Clarify some license language in files descending from the original MMX
+  optimisation.
 
 1.24.0
 ------
