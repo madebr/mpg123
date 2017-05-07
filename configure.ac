@@ -1461,21 +1461,6 @@ dnl Not disabling buffer for float mode... check that this is OK now!
   ;;
 esac
 
-# Mac OS X specific linker flags
-case $cpu_type in
-  3dnow|3dnow_vintage|3dnow_alone|3dnowext|3dnowext_vintage|3dnowext_alone|mmx|mmx_alone|sse|sse_vintage|sse_alone|x86|x86_dither)
-    case $host in
-      i386-apple-darwin8*|*-apple-darwin10*)
-        ADD_LDFLAGS="$ADD_LDFLAGS -Wl,-read_only_relocs,suppress"
-      ;;
-      i386-apple-darwin9*)
-        ADD_CFLAGS="$ADD_CFLAGS -mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.4u.sdk"
-        ADD_LDFLAGS="$ADD_LDFLAGS -Wl,-syslibroot,/Developer/SDKs/MacOSX10.4u.sdk -Wl,-classic_linker -Wl,-read_only_relocs,suppress"
-      ;;
-    esac
-  ;;
-esac
-
 # Use yasm instead of the default assembler for AVX sources
 if test "x$use_yasm_for_avx" = "xyes"; then
 	case $host_os in
