@@ -2495,6 +2495,14 @@ if test x"$with_optimization" = x0; then
 "
 fi
 
+if test x"$cpu_type" = xi486; then
+  echo "WARNING: You selected the i486 decoder. This is not recommened for regular use."
+  echo "It was designed for actual i486 CPUs a long time ago. Generic C code is likely"
+  echo "to perform better nowadays. Also, the decoder misses features like volume"
+  echo "scaling and has clipping issues. Continue if you are into software archeology"
+  echo "only."
+fi
+
 echo
 echo "  CPPFLAGS='$CPPFLAGS'"
 echo "  CFLAGS='$CFLAGS'"
