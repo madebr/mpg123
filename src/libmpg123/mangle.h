@@ -85,6 +85,11 @@
 #define ASM_VALUE(a) MANGLE_MACROCAT($,a)
 #endif
 
+/* 32-bit Windows always uses relocatable code */
+#if defined(__i386__) && defined(_WIN32)
+#undef PIC
+#endif
+
 #if defined(OPT_X86) && defined(PIC)
 #define _EBX_	%ebx
 #ifdef __APPLE__
