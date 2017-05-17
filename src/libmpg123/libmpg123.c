@@ -369,7 +369,7 @@ int attribute_align_arg mpg123_getstate(mpg123_handle *mh, enum mpg123_state key
 		{
 			size_t sval = bc_fill(&mh->rdat.buffer);
 			theval = (long)sval;
-			if((size_t)theval != sval)
+			if(theval < 0 || (size_t)theval != sval)
 			{
 				mh->err = MPG123_INT_OVERFLOW;
 				ret = MPG123_ERR;
