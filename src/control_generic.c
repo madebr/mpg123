@@ -546,7 +546,7 @@ int control_generic (mpg123_handle *fr)
 				{
 					long rate;
 					int ch;
-					int ret = mpg123_getformat(fr, &rate, &ch, NULL);
+					int ret = mpg123_getformat2(fr, &rate, &ch, NULL, 0);
 					/* I need to have portable printf specifiers that do not truncate the type... more autoconf... */
 					if(ret < 0) generic_sendmsg("E %s", mpg123_strerror(fr));
 					else generic_sendmsg("FORMAT %li %i", rate, ch);

@@ -21,6 +21,10 @@
 - libout123: More consistent error messages for dynamic and legacy
   (built-in) modules. Namely, you get a hint how if you choose a different
   module than the built-in ones for a static libout123.
+- libmpg123: Introduced mpg123_getformat2() to enable the FORMAT command
+  for the generic control not stealing MPG123_NEW_FORMAT from the main
+  playback loop. The sequence LOADPAUSED-FORMAT-PAUSE (play) is supposed
+  to work now.
 
 1.24.0
 ------
