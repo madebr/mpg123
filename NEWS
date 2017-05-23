@@ -1,33 +1,33 @@
-1.24.1
-------
+1.25.0: MP3 now patent-free worldwide!
+-------
 - Silence test for artsc-config if it is not there.
 - Make sure -static-libgcc from LDFLAGS gets through libtool,
   fixing 32 bit Windows builds (depend on libgcc DLL otherwise).
 - Fix build with non-GNU make by using plain rm -f instead of silly $(RM)
   in libout123/modules makefile fragment.
 - Make build work on iOS, including coreaudio backend.
-- Enable aarch64 optimisations on *BSD by default, too. You can always
-  use --enable-buffer and --with-optimisation to override that stupid
-  OS whitelist, anyway.
+- libmpg123:
+-- Finally provide position-independent code for x86 with assembly
+   optimisations.The textrels are gone thanks to Won Kyu Park and Taihei Momma.
+-- Clarify some license language in files descending from the original MMX
+   optimisation.
+-- Fix return value overflow check for MPG123_BUFFERFILL.
+-- Introduced mpg123_getformat2() to enable the FORMAT command
+   for the generic control not stealing MPG123_NEW_FORMAT from the main
+   playback loop. The sequence LOADPAUSED-FORMAT-PAUSE (play) is supposed
+   to work now.
+-- Enable aarch64 optimisations on *BSD by default, too. You can always
+   override that stupid OS whitelist using --with-optimization, anyway.
+-- Use of the i486 decoder is now discouraged more prominently, in configure
+   output.
 - out123: Fix stupid crash with verbose mode and tone generation (print
   the string if the pointer is non-null, not if it is null).
-- Finally provide position-independent code for x86 with assembly optimisations.
-  The textrels are gone thanks to Won Kyu Park and Taihei Momma.
-- Clarify some license language in files descending from the original MMX
-  optimisation.
-- Use of the i486 decoder is now discouraged more prominently, in configure
-  output.
-- libmpg123: Fix return value overflow check for MPG123_BUFFERFILL.
 - libout123: More consistent error messages for dynamic and legacy
   (built-in) modules. Namely, you get a hint how if you choose a different
   module than the built-in ones for a static libout123.
-- libmpg123: Introduced mpg123_getformat2() to enable the FORMAT command
-  for the generic control not stealing MPG123_NEW_FORMAT from the main
-  playback loop. The sequence LOADPAUSED-FORMAT-PAUSE (play) is supposed
-  to work now.
 
-1.24.0
-------
+1.24.0:
+-------
 - Avoid repeating genre in metadata printout for specifications like
   (144)Thrash Metal.
 - In remote control mode, only enforce --quiet if no verbosity was required.
