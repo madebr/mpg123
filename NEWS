@@ -18,6 +18,9 @@
 - Use of the i486 decoder is now discouraged more prominently, in configure
   output.
 - libmpg123: Fix return value overflow check for MPG123_BUFFERFILL.
+- libout123: More consistent error messages for dynamic and legacy
+  (built-in) modules. Namely, you get a hint how if you choose a different
+  module than the built-in ones for a static libout123.
 
 1.24.0
 ------

@@ -129,7 +129,8 @@ mpg123_module_t* open_module_here( const char *dir, const char* type
 	free(module_path);
 	if (handle==NULL)
 	{
-		error1("Failed to open module %s.", name);
+		if(verbose > -1)
+			error1("Failed to open module %s.", name);
 		return NULL;
 	}
 	
@@ -150,14 +151,16 @@ mpg123_module_t* open_module_here( const char *dir, const char* type
 	module = (mpg123_module_t*)compat_dlsym(handle, module_symbol);
 	free( module_symbol );
 	if (module==NULL) {
-		error("Failed to get module symbol.");
+		if(verbose > -1)
+			error("Failed to get module symbol.");
 		return NULL;
 	}
 	
 	/* Check the API version */
 	if (MPG123_MODULE_API_VERSION != module->api_version)
 	{
-		error2( "API version of module does not match (got %i, expected %i).", module->api_version, MPG123_MODULE_API_VERSION);
+		if(verbose > -1)
+			error2( "API version of module does not match (got %i, expected %i).", module->api_version, MPG123_MODULE_API_VERSION);
 		compat_dlclose(handle);
 		return NULL;
 	}

@@ -27,12 +27,12 @@ static int have_buffer(out123_handle *ao)
 
 static const char *default_name = "out123";
 
-static int modverbose(out123_handle *ao)
+static int modverbose(out123_handle *ao, int final)
 {
 	debug3("modverbose: %x %x %x"
 	,	(unsigned)ao->flags, (unsigned)ao->auxflags, (unsigned)OUT123_QUIET);
 	return AOQUIET
-	?	-1
+	?	(final ? 0 : -1)
 	:	ao->verbose;
 }
 
@@ -480,7 +480,7 @@ void attribute_align_arg out123_close(out123_handle *ao)
 		if(ao->deinit)
 			ao->deinit(ao);
 		if(ao->module)
-			close_module(ao->module, modverbose(ao));
+			close_module(ao->module, modverbose(ao, 0));
 		/* Null module methods and pointer. */
 		out123_clear_module(ao);
 	}
@@ -844,7 +844,7 @@ static void check_output_module( out123_handle *ao
 		return;
 
 	/* Open the module, initial check for availability+libraries. */
-	ao->module = open_module( "output", name, modverbose(ao), ao->bindir);
+	ao->module = open_module( "output", name, modverbose(ao, final), ao->bindir);
 	if(!ao->module)
 		return;
 	/* Check if module supports output */
@@ -885,7 +885,7 @@ static void check_output_module( out123_handle *ao
 
 check_output_module_cleanup:
 	/* Only if module did not check out we get to clean up here. */
-	close_module(ao->module, modverbose(ao));
+	close_module(ao->module, modverbose(ao, final));
 	out123_clear_module(ao);
 	return;
 }
@@ -918,7 +918,7 @@ out123_drivers(out123_handle *ao, char ***names, char ***descr)
 	/* Wrap the call to isolate the lower levels from the user not being
 	   interested in both lists. it's a bit wasteful, but the code looks
 	   ugly enough already down there. */
-	count = list_modules("output", &tmpnames, &tmpdescr, modverbose(ao), ao->bindir);
+	count = list_modules("output", &tmpnames, &tmpdescr, modverbose(ao, 0), ao->bindir);
 	debug1("list_modules()=%i", count);
 	if(count < 0)
 	{
