@@ -256,7 +256,8 @@ int frame_index_setup(mpg123_handle *fr)
 
 static void frame_decode_buffers_reset(mpg123_handle *fr)
 {
-	memset(fr->rawbuffs, 0, fr->rawbuffss);
+	if(fr->rawbuffs) /* memset(NULL, 0, 0) not desired */
+		memset(fr->rawbuffs, 0, fr->rawbuffss);
 }
 
 int frame_buffers(mpg123_handle *fr)
