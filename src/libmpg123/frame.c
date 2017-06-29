@@ -516,6 +516,7 @@ static void frame_fixed_reset(mpg123_handle *fr)
 	fr->clip = 0;
 	fr->oldhead = 0;
 	fr->firsthead = 0;
+	fr->lay = 0;
 	fr->vbr = MPG123_CBR;
 	fr->abr_rate = 0;
 	fr->track_frames = 0;
