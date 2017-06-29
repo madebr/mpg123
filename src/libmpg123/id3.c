@@ -700,6 +700,8 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 
 	/* length-10 or length-20 (footer present); 4 synchsafe integers == 28 bit number  */
 	/* we have already read 10 bytes, so left are length or length+10 bytes belonging to tag */
+	/* Note: This is an 28 bit value in 32 bit storage, plenty of space for */
+	/* length+x for reasonable x. */
 	if(!synchsafe_to_long(buf+2,length))
 	{
 		if(NOQUIET) error4("Bad tag length (not synchsafe): 0x%02x%02x%02x%02x; You got a bad ID3 tag here.", buf[2],buf[3],buf[4],buf[5]);
@@ -764,13 +766,16 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 					char id[5];
 					unsigned long framesize;
 					unsigned long fflags; /* need 16 bits, actually */
+					/* bytes of frame title and of framesize value */
+					int head_part = fr->id3v2.version > 2 ? 4 : 3;
+					int flag_part = fr->id3v2.version > 2 ? 2 : 0;
 					id[4] = 0;
 					/* pos now advanced after ext head, now a frame has to follow */
-					while(tagpos < length-10) /* I want to read at least a full header */
+					/* I want to read at least one full header now. */
+					while(tagpos <= length-head_part-head_part-flag_part)
 					{
 						int i = 0;
 						unsigned long pos = tagpos;
-						int head_part = fr->id3v2.version == 2 ? 3 : 4; /* bytes of frame title and of framesize value */
 						/* level 1,2,3 - 0 is info from lame/info tag! */
 						/* rva tags with ascending significance, then general frames */
 						enum frame_types tt = unknown;
@@ -801,7 +806,7 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 							}
 							if(VERBOSE3) fprintf(stderr, "Note: ID3v2 %s frame of size %lu\n", id, framesize);
 							tagpos += head_part + framesize; /* the important advancement in whole tag */
-							if(tagpos > length)
+							if(tagpos > length-flag_part)
 							{
 								if(NOQUIET) error("Whoa! ID3v2 frame claims to be larger than the whole rest of the tag.");
 								break;
