@@ -7,6 +7,9 @@
    time). Fuzzers are in the house again.
 -- Avoid a mostly harmless conditional jump depending on uninitialised
    fr->lay in compute_bpf() (mpg123_position()) when track is not ready yet.
+-- Fix undefined shifts on signed long mask in layer3.c (worked in practice,
+   never right in theory). Code might be a bit faster now, even.
+   Thanks to Agostino Sarubbo for reporting.
 
 1.25.0: MP3 now patent-free worldwide!
 -------
