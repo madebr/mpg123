@@ -1,3 +1,13 @@
+1.25.1: Hot Fuzz
+-------
+- libmpg123:
+-- Avoid memset(NULL, 0, 0) to calm down the paranoid.
+-- Fix bug 252, invalid read of size 1 in ID3v2 parser due to forgotten
+   offset from the frame flag bytes (unnoticed in practice for a long
+   time). Fuzzers are in the house again.
+-- Avoid a mostly harmless conditional jump depending on uninitialised
+   fr->lay in compute_bpf() (mpg123_position()) when track is not ready yet.
+
 1.25.0: MP3 now patent-free worldwide!
 -------
 - Silence test for artsc-config if it is not there.
