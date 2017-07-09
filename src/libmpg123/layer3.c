@@ -928,10 +928,12 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 				More insight into the real workings is still needed.
 				Especially why there are (valid?) files that make xrpnt exceed the array with 4 bytes without segfaulting, more seems to be really bad, though.
 			*/
+			#ifdef DEBUG
 			if(!(xrpnt < &xr[SBLIMIT][0]))
 			{
-				error2("\nattempted soft xrpnt overflow (%p !< %p) ?", (void*) xrpnt, (void*) &xr[SBLIMIT][0]);
+				if(VERBOSE) debug2("\nattempted soft xrpnt overflow (%p !< %p) ?", (void*) xrpnt, (void*) &xr[SBLIMIT][0]);
 			}
+			#endif
 			if(!(xrpnt < &xr[SBLIMIT][0]+5))
 			{
 				if(NOQUIET) error2("attempted xrpnt overflow (%p !< %p)", (void*) xrpnt, (void*) &xr[SBLIMIT][0]);
