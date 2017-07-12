@@ -1,3 +1,17 @@
+1.25.2
+------
+
+- libmpg123:
+-- Extend pow tables for layer III to properly handle files with i-stereo and
+   5-bit scalefactors. Never observed them for real, just as fuzzed input to
+   trigger the read overflow. Note: This one goes on record as CVE-2017-11126,
+   calling remote denial of service. While the accesses are out of bounds for
+   the pow tables, they still are safely within libmpg123's memory (other
+   static tables). Just wrong values are used for computation, no actual crash
+   unless you use something like GCC's AddressSanitizer, nor any information
+   disclosure.
+-- Avoid left-shifts of negative integers in layer I decoding.
+
 1.25.1: Hot Fuzz
 -------
 - libmpg123:
