@@ -848,7 +848,7 @@ int play_frame(void)
 			out123_pause(ao);
 		}
 	}
-	if(new_header && !param.quiet)
+	if((param.verbose > 3 || new_header) && !param.quiet)
 	{
 		new_header = FALSE;
 		fprintf(stderr, "\n");

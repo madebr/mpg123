@@ -1,6 +1,8 @@
+1.26.0
+- Print out MPEG header info for each frame for mpg123 -vvvv.
+
 1.25.2
 ------
-
 - libmpg123:
 -- Extend pow tables for layer III to properly handle files with i-stereo and
    5-bit scalefactors. Never observed them for real, just as fuzzed input to
