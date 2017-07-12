@@ -806,6 +806,7 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 				if( (!mc) )
 				{
 					mc    = *m++;
+fprintf(stderr, "%i setting xrpnt = xr + %i (%ld)\n", __LINE__, *m, xrpnt-(real*)xr);
 					xrpnt = ((real *) xr) + (*m++);
 					lwin  = *m++;
 					cb    = *m++;
@@ -852,6 +853,7 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 					y &= 0xf;
 #endif
 				}
+fprintf(stderr, "%i using xrpnt\n", __LINE__);
 				if(x == 15 && h->linbits)
 				{
 					max[lwin] = cb;
@@ -875,7 +877,9 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 				}
 				else *xrpnt = DOUBLE_TO_REAL(0.0);
 
+fprintf(stderr, "%i setting xrpnt += %i (%ld)\n", __LINE__, step, xrpnt-(real*)xr);
 				xrpnt += step;
+fprintf(stderr, "%i using xrpnt\n", __LINE__);
 				if(y == 15 && h->linbits)
 				{
 					max[lwin] = cb;
@@ -899,6 +903,7 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 				}
 				else *xrpnt = DOUBLE_TO_REAL(0.0);
 
+fprintf(stderr, "%i setting xrpnt += %i (%ld)\n", __LINE__, step, xrpnt-(real*)xr);
 				xrpnt += step;
 			}
 		}
@@ -940,7 +945,7 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 			if(!(xrpnt < &xr[SBLIMIT][0]+5))
 			{
 				if(NOQUIET) error2("attempted xrpnt overflow (%p !< %p)", (void*) xrpnt, (void*) &xr[SBLIMIT][0]);
-				return 2;
+/*				return 2; */
 			}
 
 			for(i=0;i<4;i++)
@@ -950,6 +955,7 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 					if(!mc)
 					{
 						mc = *m++;
+fprintf(stderr, "%i setting xrpnt = xr + %i (%ld)\n", __LINE__, *m, xrpnt-(real*)xr);
 						xrpnt = ((real *) xr) + (*m++);
 						lwin = *m++;
 						cb = *m++;
@@ -972,6 +978,7 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 					}
 					mc--;
 				}
+fprintf(stderr, "%i using xrpnt\n", __LINE__);
 				if( (a & (0x8>>i)) )
 				{
 					max[lwin] = cb;
@@ -986,6 +993,7 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 				}
 				else *xrpnt = DOUBLE_TO_REAL(0.0);
 
+fprintf(stderr, "%i setting xrpnt += %i (%ld)\n", __LINE__, step, xrpnt-(real*)xr);
 				xrpnt += step;
 			}
 		}
@@ -996,6 +1004,7 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 			{
 				for(;mc > 0;mc--)
 				{
+fprintf(stderr, "%i using xrpnt and 2 x xrpnt+=3 (%ld)\n", __LINE__, xrpnt-(real*)xr);
 					*xrpnt = DOUBLE_TO_REAL(0.0); xrpnt += 3; /* short band -> step=3 */
 					*xrpnt = DOUBLE_TO_REAL(0.0); xrpnt += 3;
 				}
@@ -1003,6 +1012,7 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 				break;
 
 				mc    = *m++;
+fprintf(stderr, "%i setting xrpnt = xr + %i (%ld)\n", __LINE__, *m, xrpnt-(real*)xr);
 				xrpnt = ((real *) xr) + *m++;
 				if(*m++ == 0)
 				break; /* optimize: field will be set to zero at the end of the function */
@@ -1085,6 +1095,7 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 #endif
 				}
 
+fprintf(stderr, "%i using/incrementing xrpn (%ld)\n", __LINE__, xrpnt-(real*)xr);
 				if(x == 15 && h->linbits)
 				{
 					max = cb;
@@ -1108,6 +1119,7 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 				}
 				else *xrpnt++ = DOUBLE_TO_REAL(0.0);
 
+fprintf(stderr, "%i using/incrementing xrpn (%ld)\n", __LINE__, xrpnt-(real*)xr);
 				if(y == 15 && h->linbits)
 				{
 					max = cb;
@@ -1176,6 +1188,7 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 					}
 					mc--;
 				}
+fprintf(stderr, "%i using/incrementing xrpn (%ld)\n", __LINE__, xrpnt-(real*)xr);
 				if( (a & (0x8>>i)) )
 				{
 					max = cb;
@@ -1200,6 +1213,7 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 	backbits(fr, num);
 	num = 0;
 
+fprintf(stderr, "%i filling xrpnt with zeros\n", __LINE__);
 	while(xrpnt < &xr[SBLIMIT][0]) 
 	*xrpnt++ = DOUBLE_TO_REAL(0.0);
 
