@@ -12,6 +12,7 @@
    write to any file/device depending on your permissions.
 - out123: Changed output of --test-encodings to list of encoding names
   instead of raw bitmask value.
+- libout123: Added hex and txt (plain text) printout.
 
 1.25.2
 ------
