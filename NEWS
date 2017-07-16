@@ -10,6 +10,8 @@
    sudo to allow users to run mpg123 with arbitrary arguments.
    You should treat out123_open just like the regular open(): You can
    write to any file/device depending on your permissions.
+- out123: Changed output of --test-encodings to list of encoding names
+  instead of raw bitmask value.
 
 1.25.2
 ------

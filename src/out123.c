@@ -360,9 +360,18 @@ static void test_format(char *arg)
 
 static void test_encodings(char *arg)
 {
-	int encs;
+	int encs, enc_count, *enc_codes, i, j;
+
 	encs = getencs();
-	printf("%i\n", encs);
+	j=0;
+	enc_count = out123_enc_list(&enc_codes);
+	for(i=0;i<enc_count;++i)
+	{
+		if(encs & enc_codes[i] == enc_codes[i])
+			printf("%s%s", j++ ? " " : "", out123_enc_name(enc_codes[i]));
+	}
+	printf("\n");
+	free(enc_codes);
 	exit(!encs);
 }
 
