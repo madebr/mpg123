@@ -1,5 +1,15 @@
 1.26.0
+------
 - Print out MPEG header info for each frame for mpg123 -vvvv.
+- libout123:
+-- Removed change of effective user ID in the WAV/RAW/AU/CDR writer.
+   This was intended as a safeguard to avoid creating files with root
+   priviledges. But: Other output modules still allowed root-level
+   access to various devices and files, so it was never safe to do
+   something awful like installing mpg123 with suid bit or configure
+   sudo to allow users to run mpg123 with arbitrary arguments.
+   You should treat out123_open just like the regular open(): You can
+   write to any file/device depending on your permissions.
 
 1.25.2
 ------

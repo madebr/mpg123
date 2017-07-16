@@ -167,12 +167,6 @@ static int open_file(struct wavdata *wdat, char *filename)
 	debug2("open_file(%p, %s)", (void*)wdat, filename ? filename : "<nil>");
 	if(!wdat)
 		return -1;
-#if defined(HAVE_SETUID) && defined(HAVE_GETUID)
-	/* TODO: get rid of that and settle that you rather not install mpg123
-	   setuid-root. Why should you?
-	   In case this program is setuid, create files owned by original user. */
-	setuid(getuid());
-#endif
 	if(!filename || !strcmp("-",filename) || !strcmp("", filename))
 	{
 		wdat->wavfp = stdout;
