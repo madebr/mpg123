@@ -247,10 +247,10 @@ int txt_write(out123_handle *ao, unsigned char *buf, int len)
 				CHANPRINT(uint32_t, unsigned long, "%lu")
 			break;
 			case MPG123_ENC_FLOAT_32:
-				CHANPRINT(float, double, "%f")
+				CHANPRINT(float, double, "%e")
 			break;
 			case MPG123_ENC_FLOAT_64:
-				CHANPRINT(double, double, "%f")
+				CHANPRINT(double, double, "%e")
 			break;
 		}
 	}
