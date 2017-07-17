@@ -199,9 +199,9 @@ int txt_write(out123_handle *ao, unsigned char *buf, int len)
 		for(c=0; c<ao->channels; ++c) \
 		{ \
 			uint32_t tmp = 0; \
-			tmp &= ((uint32_t)(*(ff++))) << 24; \
-			tmp &= ((uint32_t)(*(ff++))) << 16; \
-			tmp &= ((uint32_t)(*(ff++))) << 8; \
+			tmp |= ((uint32_t)(*(ff++))) << 24; \
+			tmp |= ((uint32_t)(*(ff++))) << 16; \
+			tmp |= ((uint32_t)(*(ff++))) << 8; \
 			fprintf(fp, "%s"fmt, c ? "\t" : "", (ptype)(*((type*)&tmp)/256)); \
 		} \
 		fprintf(fp, "\n"); \
@@ -214,9 +214,9 @@ int txt_write(out123_handle *ao, unsigned char *buf, int len)
 		for(c=0; c<ao->channels; ++c) \
 		{ \
 			uint32_t tmp = 0; \
-			tmp &= ((uint32_t)(*(ff++))) << 8; \
-			tmp &= ((uint32_t)(*(ff++))) << 16; \
-			tmp &= ((uint32_t)(*(ff++))) << 24; \
+			tmp |= ((uint32_t)(*(ff++))) << 8; \
+			tmp |= ((uint32_t)(*(ff++))) << 16; \
+			tmp |= ((uint32_t)(*(ff++))) << 24; \
 			fprintf(fp, "%s"fmt, c ? "\t" : "", (ptype)(*((type*)&tmp)/256)); \
 		} \
 		fprintf(fp, "\n"); \
