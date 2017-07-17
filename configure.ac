@@ -434,15 +434,18 @@ if test "x$newhuff" = "xenabled"; then
   AC_DEFINE(USE_NEW_HUFFTABLE, 1, [ Define for new Huffman decoding scheme. ])
 fi
 
-integers=fast
+integers=quality
 AC_ARG_ENABLE(int-quality,
 [  --enable-int-quality=[yes/no] use rounding instead of fast truncation for integer output, where possible ],
 [
-  if test "x$enableval" = xyes; then
-    integers=quality
-    AC_DEFINE(ACCURATE_ROUNDING,   1, [ Define to use proper rounding. ])
+  if test "x$enableval" = xno; then
+    integers=fast
   fi
 ], [])
+
+if test $integers = quality; then
+  AC_DEFINE(ACCURATE_ROUNDING,   1, [ Define to use proper rounding. ])
+fi  
 
 int16=enabled
 AC_ARG_ENABLE(16bit,

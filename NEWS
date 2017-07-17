@@ -1,6 +1,7 @@
 1.26.0
 ------
-- Print out MPEG header info for each frame for mpg123 -vvvv.
+- Default build with proper integer rounding (--enable-int-quality) now.
+- mpg123: Print out MPEG header info for each frame for mpg123 -vvvv.
 - libout123:
 -- Removed change of effective user ID in the WAV/RAW/AU/CDR writer.
    This was intended as a safeguard to avoid creating files with root
