@@ -771,7 +771,14 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 			}
 		}
 	}
- 
+
+#define CHECK_XRPNT if(xrpnt >= &xr[SBLIMIT][0]) \
+{ \
+	if(NOQUIET) \
+		error2("attempted xrpnt overflow (%p !< %p)", (void*) xrpnt, (void*) &xr[SBLIMIT][0]); \
+	return 1; \
+}
+
 	if(gr_info->block_type == 2)
 	{
 		/* decoding with short or mixed mode BandIndex table */
@@ -853,7 +860,7 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 					y &= 0xf;
 #endif
 				}
-//fprintf(stderr, "%i using xrpnt\n", __LINE__);
+				CHECK_XRPNT;
 				if(x == 15 && h->linbits)
 				{
 					max[lwin] = cb;
@@ -877,9 +884,8 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 				}
 				else *xrpnt = DOUBLE_TO_REAL(0.0);
 
-//fprintf(stderr, "%i setting xrpnt += %i (%ld)\n", __LINE__, step, xrpnt-(real*)xr);
 				xrpnt += step;
-//fprintf(stderr, "%i using xrpnt\n", __LINE__);
+				CHECK_XRPNT;
 				if(y == 15 && h->linbits)
 				{
 					max[lwin] = cb;
@@ -903,7 +909,6 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 				}
 				else *xrpnt = DOUBLE_TO_REAL(0.0);
 
-//fprintf(stderr, "%i setting xrpnt += %i (%ld)\n", __LINE__, step, xrpnt-(real*)xr);
 				xrpnt += step;
 			}
 		}
@@ -929,23 +934,6 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 			{
 				num -= part2remain+num;
 				break;
-			}
-
-			/*
-				This is only a humble hack to prevent a special segfault.
-				More insight into the real workings is still needed.
-				Especially why there are (valid?) files that make xrpnt exceed the array with 4 bytes without segfaulting, more seems to be really bad, though.
-			*/
-			#ifdef DEBUG
-			if(!(xrpnt < &xr[SBLIMIT][0]))
-			{
-				if(VERBOSE) debug2("\nattempted soft xrpnt overflow (%p !< %p) ?", (void*) xrpnt, (void*) &xr[SBLIMIT][0]);
-			}
-			#endif
-			if(!(xrpnt < &xr[SBLIMIT][0]+5))
-			{
-				if(NOQUIET) error2("attempted xrpnt overflow (%p !< %p)", (void*) xrpnt, (void*) &xr[SBLIMIT][0]);
-/*				return 2; */
 			}
 
 			for(i=0;i<4;i++)
@@ -978,7 +966,7 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 					}
 					mc--;
 				}
-//fprintf(stderr, "%i using xrpnt\n", __LINE__);
+				CHECK_XRPNT;
 				if( (a & (0x8>>i)) )
 				{
 					max[lwin] = cb;
@@ -993,7 +981,6 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 				}
 				else *xrpnt = DOUBLE_TO_REAL(0.0);
 
-//fprintf(stderr, "%i setting xrpnt += %i (%ld)\n", __LINE__, step, xrpnt-(real*)xr);
 				xrpnt += step;
 			}
 		}
@@ -1004,7 +991,7 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 			{
 				for(;mc > 0;mc--)
 				{
-//fprintf(stderr, "%i using xrpnt and 2 x xrpnt+=3 (%ld)\n", __LINE__, xrpnt-(real*)xr);
+					CHECK_XRPNT;
 					*xrpnt = DOUBLE_TO_REAL(0.0); xrpnt += 3; /* short band -> step=3 */
 					*xrpnt = DOUBLE_TO_REAL(0.0); xrpnt += 3;
 				}
@@ -1012,7 +999,6 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 				break;
 
 				mc    = *m++;
-//fprintf(stderr, "%i setting xrpnt = xr + %i (%ld)\n", __LINE__, *m, xrpnt-(real*)xr);
 				xrpnt = ((real *) xr) + *m++;
 				if(*m++ == 0)
 				break; /* optimize: field will be set to zero at the end of the function */
@@ -1095,7 +1081,7 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 #endif
 				}
 
-//fprintf(stderr, "%i using/incrementing xrpn (%ld)\n", __LINE__, xrpnt-(real*)xr);
+				CHECK_XRPNT;
 				if(x == 15 && h->linbits)
 				{
 					max = cb;
@@ -1119,7 +1105,7 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 				}
 				else *xrpnt++ = DOUBLE_TO_REAL(0.0);
 
-//fprintf(stderr, "%i using/incrementing xrpn (%ld)\n", __LINE__, xrpnt-(real*)xr);
+				CHECK_XRPNT;
 				if(y == 15 && h->linbits)
 				{
 					max = cb;
@@ -1188,7 +1174,7 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 					}
 					mc--;
 				}
-//fprintf(stderr, "%i using/incrementing xrpn (%ld)\n", __LINE__, xrpnt-(real*)xr);
+				CHECK_XRPNT;
 				if( (a & (0x8>>i)) )
 				{
 					max = cb;
@@ -1213,7 +1199,6 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 	backbits(fr, num);
 	num = 0;
 
-//fprintf(stderr, "%i filling xrpnt with zeros\n", __LINE__);
 	while(xrpnt < &xr[SBLIMIT][0]) 
 	*xrpnt++ = DOUBLE_TO_REAL(0.0);
 

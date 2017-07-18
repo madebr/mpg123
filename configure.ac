@@ -13,7 +13,7 @@ dnl Increment API_VERSION when the API gets changes (new functions).
 
 dnl libmpg123
 API_VERSION=44
-LIB_PATCHLEVEL=2
+LIB_PATCHLEVEL=3
 
 dnl libout123
 OUTAPI_VERSION=2
