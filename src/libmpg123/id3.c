@@ -250,6 +250,7 @@ void id3_link(mpg123_handle *fr)
 */
 static void store_id3_text(mpg123_string *sb, unsigned char *source, size_t source_size, const int noquiet, const int notranslate)
 {
+	unsigned char encoding;
 	if(!source_size)
 	{
 		debug("Empty id3 data!");
@@ -271,26 +272,29 @@ static void store_id3_text(mpg123_string *sb, unsigned char *source, size_t sour
 		return;
 	}
 
-	id3_to_utf8(sb, source[0], source+1, source_size-1, noquiet);
+	encoding = source[0];
+	if(encoding > mpg123_id3_enc_max)
+	{
+		if(noquiet)
+			error1("Unknown text encoding %u, I take no chances, sorry!", encoding);
+
+		mpg123_free_string(sb);
+		return;
+	}
+	id3_to_utf8(sb, encoding, source+1, source_size-1, noquiet);
 
 	if(sb->fill) debug1("UTF-8 string (the first one): %s", sb->p);
 	else if(noquiet) error("unable to convert string to UTF-8 (out of memory, junk input?)!");
 }
 
 /* On error, sb->size is 0. */
+/* Also, encoding has been checked already! */
 void id3_to_utf8(mpg123_string *sb, unsigned char encoding, const unsigned char *source, size_t source_size, int noquiet)
 {
 	unsigned int bwidth;
 	debug1("encoding: %u", encoding);
 	/* A note: ID3v2.3 uses UCS-2 non-variable 16bit encoding, v2.4 uses UTF16.
 	   UTF-16 uses a reserved/private range in UCS-2 to add the magic, so we just always treat it as UTF. */
-	if(encoding > mpg123_id3_enc_max)
-	{
-		if(noquiet) error1("Unknown text encoding %u, I take no chances, sorry!", encoding);
-
-		mpg123_free_string(sb);
-		return;
-	}
 	bwidth = encoding_widths[encoding];
 	/* Hack! I've seen a stray zero byte before BOM. Is that supposed to happen? */
 	if(encoding != mpg123_id3_utf16be) /* UTF16be _can_ beging with a null byte! */
@@ -309,6 +313,7 @@ void id3_to_utf8(mpg123_string *sb, unsigned char encoding, const unsigned char 
 	text_converters[encoding](sb, source, source_size, noquiet);
 }
 
+/* You have checked encoding to be in the range already. */
 static unsigned char *next_text(unsigned char* prev, unsigned char encoding, size_t limit)
 {
 	unsigned char *text = prev;
@@ -379,6 +384,12 @@ static void process_picture(mpg123_handle *fr, unsigned char *realdata, size_t r
 		debug("Empty id3 data!");
 		return;
 	}
+	if(encoding > mpg123_id3_enc_max)
+	{
+		if(NOQUIET)
+			error1("Unknown text encoding %u, I take no chances, sorry!", encoding);
+		return;
+	}
 	if(VERBOSE4) fprintf(stderr, "Note: Storing picture from APIC frame.\n");
 	/* decompose realdata accordingly */
 	i = add_picture(fr);
@@ -445,6 +456,12 @@ static void process_comment(mpg123_handle *fr, enum frame_types tt, unsigned cha
 	if(realsize < (size_t)(descr-realdata))
 	{
 		if(NOQUIET) error1("Invalid frame size of %"SIZE_P" (too small for anything).", (size_p)realsize);
+		return;
+	}
+	if(encoding > mpg123_id3_enc_max)
+	{
+		if(NOQUIET)
+			error1("Unknown text encoding %u, I take no chances, sorry!", encoding);
 		return;
 	}
 	xcom = (tt == uslt ? add_text(fr) : add_comment(fr));
@@ -527,6 +544,12 @@ static void process_extra(mpg123_handle *fr, unsigned char* realdata, size_t rea
 	if((int)realsize < descr-realdata)
 	{
 		if(NOQUIET) error1("Invalid frame size of %lu (too small for anything).", (unsigned long)realsize);
+		return;
+	}
+	if(encoding > mpg123_id3_enc_max)
+	{
+		if(NOQUIET)
+			error1("Unknown text encoding %u, I take no chances, sorry!", encoding);
 		return;
 	}
 	text = next_text(descr, encoding, realsize-(descr-realdata));
@@ -878,7 +901,9 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 									debug2("ID3v2: de-unsync made %lu out of %lu bytes", realsize, framesize);
 								}
 								pos = 0; /* now at the beginning again... */
-								switch(tt)
+								/* Avoid reading over boundary, even if there is a */
+								/* zero byte of padding for safety. */
+								if(realsize) switch(tt)
 								{
 									case comment:
 									case uslt:
