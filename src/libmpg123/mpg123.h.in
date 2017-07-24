@@ -1210,7 +1210,8 @@ typedef struct
 	size_t          texts;        /**< Numer of text fields. */
 	mpg123_text    *extra;        /**< The array of extra (TXXX) fields. */
 	size_t          extras;       /**< Number of extra text (TXXX) fields. */
-	mpg123_picture  *picture;     /**< Array of ID3v2 pictures fields (APIC). */
+	mpg123_picture  *picture;     /**< Array of ID3v2 pictures fields (APIC).
+		Only populated if MPG123_PICTURE flag is set! */
 	size_t           pictures;    /**< Number of picture (APIC) fields. */
 } mpg123_id3v2;
 
