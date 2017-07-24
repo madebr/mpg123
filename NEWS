@@ -18,6 +18,10 @@
 1.25.4
 ------
 - Better configure checks for i?86-apple-darwin (bug 253).
+- libmpg123:
+-- Prevent harmless call to memcpy(NULL, NULL, 0).
+-- More early checking of ID3v2 encoding values to avoid bogus text being
+   stored.
 
 1.25.3
 ------
