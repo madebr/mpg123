@@ -15,6 +15,11 @@
   instead of raw bitmask value.
 - libout123: Added hex and txt (plain text) printout.
 
+1.25.5
+------
+- Avoid another buffer read overflow in the ID3 parser on 32 bit platforms
+  (bug 254).
+
 1.25.4
 ------
 - Better configure checks for i?86-apple-darwin (bug 253).
