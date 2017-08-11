@@ -15,6 +15,12 @@
   instead of raw bitmask value.
 - libout123: Added hex and txt (plain text) printout.
 
+1.25.6
+------
+- Hotfix for bug 255: Overflow reading frame data bits in layer II decoding.
+  Now, all-zero data is returned if the frame data is exhausted. This might
+  have a slight impact on performance, but not easily measurable so far.
+
 1.25.5
 ------
 - Avoid another buffer read overflow in the ID3 parser on 32 bit platforms
