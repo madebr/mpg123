@@ -42,6 +42,9 @@ int split_url(mpg123_string *url, mpg123_string *auth, mpg123_string *host, mpg1
 {
 	size_t pos  = 0; /* current position in input URL */
 	size_t pos2 = 0; /* another position in input URL */
+#ifdef IPV6
+	size_t pos3 = 0; /* yet another (for IPv6 port)   */
+#endif
 	char *part  = NULL; /* a part of url we work on */
 	int ret = TRUE; /* return code */
 	/* Zeroing the output strings; not freeing to avoid unnecessary mallocs. */
@@ -92,6 +95,7 @@ int split_url(mpg123_string *url, mpg123_string *auth, mpg123_string *host, mpg1
 		if( (part = strchr(url->p+pos,']')) != NULL)
 		{
 			pos2 = part-url->p;
+			pos3 = pos2+1; /* : after ] */
 		}
 		else { error("Malformed IPv6 URL!"); return FALSE; }
 	}
@@ -109,7 +113,11 @@ debug4("hostname between %lu and %lu, %lu chars of %s", (unsigned long)pos, (uns
 		error("Cannot set host string (out of mem?).");
 		return FALSE;
 	}
+#ifdef IPV6
+	pos = pos3; /* Look after ], if present. */
+#else
 	pos = pos2;
+#endif
 
 	/* Now for the port... */
 	if(url->p[pos] == ':')
