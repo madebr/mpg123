@@ -280,10 +280,12 @@ void init_layer3(void)
 		int *mp;
 		int cb,lwin;
 		const unsigned char *bdf;
+		int switch_idx;
 
 		mp = map[j][0] = mapbuf0[j];
 		bdf = bi->longDiff;
-		for(i=0,cb = 0; cb < 8 ; cb++,i+=*bdf++)
+		switch_idx = (j < 3) ? 8 : 6;
+		for(i=0,cb = 0; cb < switch_idx ; cb++,i+=*bdf++)
 		{
 			*mp++ = (*bdf) >> 1;
 			*mp++ = i;

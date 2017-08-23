@@ -24,6 +24,12 @@
    when TERM=dumb.
 -- Fix parsing of host port for numerical IPv6 addresses (just did
    not work before, only for textual host names).
+- libmpg123: Proper fix for the xrpnt overflow problems by correctly
+  initialising certain tables for MPEG 2.x layer III. The checks that
+  catch the resulting overflow are still in place, but likely superfluous
+  now. Note that this means certain valid files would have been misdecoded
+  before, if anyone actually produced them. Thanks to Robert Hegemann for
+  the fix!
 
 1.25.6
 ------
