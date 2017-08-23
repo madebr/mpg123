@@ -29,6 +29,29 @@
 
 int stopped = 0;
 int paused = 0;
+static int term_is_fun = -1;
+
+int term_have_fun(int fd)
+{
+	if(term_is_fun > -1)
+		return term_is_fun;
+	else
+		term_is_fun = 0;
+#ifdef HAVE_TERMIOS
+	if(term_width(fd) > 0 && param.term_visual)
+	{
+		/* Only play with non-dumb terminals. */
+		char *tname = compat_getenv("TERM");
+		if(tname)
+		{
+			if(strcmp(tname, "dumb"))
+				term_is_fun = 1;
+			free(tname);
+		}
+	}
+#endif
+	return term_is_fun;
+}
 
 /* Also serves as a way to detect if we have an interactive terminal. */
 int term_width(int fd)
@@ -382,6 +405,7 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar)
 			if(maxlen > 0)
 				memset(line+len, ' ', linelen-len);
 #ifdef HAVE_TERMIOS
+			draw_bar = draw_bar && term_have_fun(STDERR_FILENO);
 			/* Use inverse color to draw a progress bar. */
 			if(maxlen > 0 && draw_bar)
 			{

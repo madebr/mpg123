@@ -57,6 +57,7 @@ struct parameter
 	long  output_flags;	/* out123 flags */
 #ifdef HAVE_TERMIOS
 	int term_ctrl;
+	int term_visual;
 	/* Those are supposed to be single characters. */
 	char* term_usr1;
 	char* term_usr2;

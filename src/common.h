@@ -15,6 +15,9 @@
 extern int stopped;
 extern int paused;
 
+/* Return non-zero if full terminal fun is desired/possible. */
+int term_have_fun(int fd);
+
 /* Return width of terminal associated with given descriptor,
    -1 when there is none. */
 int term_width(int fd);

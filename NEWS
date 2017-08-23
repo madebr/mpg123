@@ -1,7 +1,9 @@
 1.26.0
 ------
 - Default build with proper integer rounding (--enable-int-quality) now.
-- mpg123: Print out MPEG header info for each frame for mpg123 -vvvv.
+- mpg123:
+-- Print out MPEG header info for each frame for mpg123 -vvvv.
+-- Added --no-visual to disable cursor/inverse video games explicitly.
 - libout123:
 -- Removed change of effective user ID in the WAV/RAW/AU/CDR writer.
    This was intended as a safeguard to avoid creating files with root
@@ -14,6 +16,11 @@
 - out123: Changed output of --test-encodings to list of encoding names
   instead of raw bitmask value.
 - libout123: Added hex and txt (plain text) printout.
+
+1.25.7
+------
+- mpg123: Do not play with cursor and inverse video for progress bar
+  when TERM=dumb.
 
 1.25.6
 ------
