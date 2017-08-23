@@ -77,7 +77,7 @@ for my $i (@instances)
 		open(DAT, '<', $asm) or die "Cannot open $asm.\n";
 		while(<DAT>)
 		{
-			if(/^\s*\.globl\s+ASM_NAME\((\S+)\)$/)
+			if(/^\s*(?:\.globl|GLOBAL_SYMBOL)\s+ASM_NAME\((\S+)\)$/)
 			{
 				print STDERR;
 				push(@symbols, $1) unless grep {$_ eq $1} @symbols;

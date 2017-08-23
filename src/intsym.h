@@ -9,6 +9,7 @@
 #define catchsignal INT123_catchsignal
 #define safe_realloc INT123_safe_realloc
 #define compat_strdup INT123_compat_strdup
+#define compat_getenv INT123_compat_getenv
 #define compat_open INT123_compat_open
 #define compat_fopen INT123_compat_fopen
 #define compat_fdopen INT123_compat_fdopen
@@ -16,6 +17,15 @@
 #define compat_fclose INT123_compat_fclose
 #define win32_wide_utf8 INT123_win32_wide_utf8
 #define win32_utf8_wide INT123_win32_utf8_wide
+#define compat_catpath INT123_compat_catpath
+#define compat_isdir INT123_compat_isdir
+#define compat_diropen INT123_compat_diropen
+#define compat_dirclose INT123_compat_dirclose
+#define compat_nextfile INT123_compat_nextfile
+#define compat_nextdir INT123_compat_nextdir
+#define compat_dlopen INT123_compat_dlopen
+#define compat_dlsym INT123_compat_dlsym
+#define compat_dlclose INT123_compat_dlclose
 #define unintr_write INT123_unintr_write
 #define unintr_read INT123_unintr_read
 #define ntom_set_ntom INT123_ntom_set_ntom
