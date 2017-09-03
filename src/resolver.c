@@ -100,12 +100,17 @@ int split_url(mpg123_string *url, mpg123_string *auth, mpg123_string *host, mpg1
 		else { error("Malformed IPv6 URL!"); return FALSE; }
 	}
 	else
+	{
 #endif
 	for(pos2=pos; pos2 < url->fill-1; ++pos2)
 	{
 		char a = url->p[pos2];
 		if( a == ':' || a == '/') break;
 	}
+#ifdef IPV6
+		pos3 = pos2;
+	}
+#endif
 	/* At pos2 there is now either a delimiter or the end. */
 debug4("hostname between %lu and %lu, %lu chars of %s", (unsigned long)pos, (unsigned long)pos2, (unsigned long)(pos2-pos), url->p + pos);
 	if(host != NULL && !mpg123_set_substring(host, url->p, pos, pos2-pos))
