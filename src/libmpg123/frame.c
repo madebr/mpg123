@@ -124,6 +124,7 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 #endif
 
 	fr->down_sample = 0; /* Initialize to silence harmless errors when debugging. */
+	fr->id3v2_raw = NULL;
 	frame_fixed_reset(fr); /* Reset only the fixed data, dynamic buffers are not there yet! */
 	fr->synth = NULL;
 	fr->synth_mono = NULL;
@@ -561,6 +562,13 @@ static void frame_fixed_reset(mpg123_handle *fr)
 	fr->halfphase = 0; /* here or indeed only on first-time init? */
 	fr->error_protection = 0;
 	fr->freeformat_framesize = -1;
+	fr->enc_delay = -1;
+	fr->enc_padding = -1;
+	memset(fr->id3buf, 0, sizeof(fr->id3buf));
+	if(fr->id3v2_raw)
+		free(fr->id3v2_raw);
+	fr->id3v2_raw = NULL;
+	fr->id3v2_size = 0;
 }
 
 static void frame_free_buffers(mpg123_handle *fr)
@@ -621,6 +629,18 @@ int attribute_align_arg mpg123_framedata(mpg123_handle *mh, unsigned long *heade
 	if(bodybytes != NULL) *bodybytes = mh->framesize;
 
 	return MPG123_OK;
+}
+
+int attribute_align_arg mpg123_set_moreinfo( mpg123_handle *mh
+,	struct mpg123_moreinfo *mi)
+{
+#ifndef NO_MOREINFO
+	mh->pinfo = mi;
+	return MPG123_OK;
+#else
+	mh->err = MPG123_MISSING_FEATURE;
+	return MPG123_ERR;
+#endif
 }
 
 /*

@@ -16,6 +16,20 @@
 - out123: Changed output of --test-encodings to list of encoding names
   instead of raw bitmask value.
 - libout123: Added hex and txt (plain text) printout.
+- libmpg123:
+-- Add special value 0 for all standard rates in mpg123_format() and
+   mpg123_fmt().
+-- Fix changing of decoder (and output format along with that) after stream
+   opening. This was never recommened and only now should work at all.
+-- Also mpg123_decode_frame() now sets return buffer to NULL and returned byte
+   count to zero in case of MPG123_NEED_MORE (or any other early abort).
+-- Added mpg123_set_moreinfo() to support the Lame project's frame analyzer,
+   disabled by ./configure --disable-moreinfo.
+-- Added optional storage and retrieval of raw ID3 data.
+-- Fix skipping of ID3v2 footers (too much was attempted to be skipped). This
+   is of not much practical consequence as a tag with footer would appear on
+   the end of files anyway and files with ID3v2 tags at the end seem to be
+   rather rare.
 
 1.25.7
 ------

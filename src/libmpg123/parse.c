@@ -408,6 +408,9 @@ static int check_lame_tag(mpg123_handle *fr)
 		lame_offset += 3; /* 24 in */
 		if(VERBOSE3) fprintf(stderr, "Note: Encoder delay = %i; padding = %i\n"
 		,	(int)pad_in, (int)pad_out);
+		/* Store even if libmpg123 does not do gapless decoding itself. */
+		fr->enc_delay   = (int)pad_in;
+		fr->enc_padding = (int)pad_out;
 		#ifdef GAPLESS
 		if(fr->p.flags & MPG123_GAPLESS)
 		frame_gapless_init(fr, fr->track_frames, pad_in, pad_out);

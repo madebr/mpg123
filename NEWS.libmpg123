@@ -1,5 +1,16 @@
 Changes in libmpg123 libtool interface versions...
 
+45.0.45
+	- value 0 for any rate in mpg123_format()/mpg123_fmt()
+	- use of mpg123_decoder() after track open supported
+	  (also as hack to trigger renegotiation of output format,
+	  which will not be communicated as it only happens by users's
+	  intention)
+	- added struct mpg123_moreinfo and mpg123_set_moreinfo()
+	- officially declared mpg123_exit() as superfluous
+	- added MPG123_ENC_DELAY, MPG123_ENC_PADDING, MPG123_DEC_DELAY
+	- added MPG123_STORE_RAW_ID3 and mpg123_id3_raw()
+
 44.0.44
 	- added mpg123_getformat2()
 

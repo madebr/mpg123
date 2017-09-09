@@ -457,6 +457,7 @@ static int III_get_side_info(mpg123_handle *fr, struct III_sideinfo *si,int ster
 	for (ch=0; ch<stereo; ch++)
 	{
 		register struct gr_info_s *gr_info = &(si->ch[ch].gr[gr]);
+		unsigned int qss;
 
 		gr_info->part2_3_length = getbits(fr, 12);
 		gr_info->big_values = getbits(fr, 9);
@@ -465,8 +466,14 @@ static int III_get_side_info(mpg123_handle *fr, struct III_sideinfo *si,int ster
 			if(NOQUIET) error("big_values too large!");
 			gr_info->big_values = 288;
 		}
-		gr_info->pow2gain = fr->gainpow2+256 - getbits_fast(fr, 8) + powdiff;
-		if(ms_stereo) gr_info->pow2gain += 2;
+		qss = getbits_fast(fr, 8);
+		gr_info->pow2gain = fr->gainpow2+256 - qss + powdiff;
+		if(ms_stereo)
+			gr_info->pow2gain += 2;
+#ifndef NO_MOREINFO
+		if(fr->pinfo)
+			fr->pinfo->qss[gr][ch] = qss;
+#endif
 
 		gr_info->scalefac_compress = getbits(fr, tab[4]);
 
@@ -483,7 +490,14 @@ static int III_get_side_info(mpg123_handle *fr, struct III_sideinfo *si,int ster
 			*/
 			gr_info->table_select[2] = 0;
 			for(i=0;i<3;i++)
-			gr_info->full_gain[i] = gr_info->pow2gain + (getbits_fast(fr, 3)<<3);
+			{
+				unsigned int sbg = (getbits_fast(fr, 3)<<3);
+				gr_info->full_gain[i] = gr_info->pow2gain + sbg;
+#ifndef NO_MOREINFO
+				if(fr->pinfo)
+					fr->pinfo->sub_gain[gr][ch][i] = sbg / 8;
+#endif
+			}
 
 			if(gr_info->block_type == 0)
 			{
@@ -1940,6 +1954,73 @@ static void III_hybrid(real fsIn[SBLIMIT][SSLIMIT], real tsOut[SSLIMIT][SBLIMIT]
 	}
 }
 
+#ifndef NO_MOREINFO
+static void fill_pinfo_side(mpg123_handle *fr, struct III_sideinfo *si, int gr, int stereo1)
+{
+	int   i, sb;
+	float ifqstep; /* Why not double? */
+	int ch, ss;;
+
+	for(ch = 0; ch < stereo1; ++ch)
+	{
+		struct gr_info_s *gr_infos = &(si->ch[ch].gr[gr]);
+		fr->pinfo->big_values[gr][ch] = gr_infos->big_values;
+		fr->pinfo->scalefac_scale[gr][ch] = gr_infos->scalefac_scale;
+		fr->pinfo->mixed[gr][ch] = gr_infos->mixed_block_flag;
+		fr->pinfo->blocktype[gr][ch] = gr_infos->block_type;
+		fr->pinfo->mainbits[gr][ch] = gr_infos->part2_3_length;
+		fr->pinfo->preflag[gr][ch] = gr_infos->preflag;
+		if(gr == 1)
+			fr->pinfo->scfsi[ch] = gr_infos->scfsi;
+	}
+
+	for(ch = 0; ch < stereo1; ++ch)
+	{
+		struct gr_info_s *gr_infos = &(si->ch[ch].gr[gr]);
+		ifqstep = (fr->pinfo->scalefac_scale[gr][ch] == 0) ? .5 : 1.0;
+		if(2 == gr_infos->block_type)
+		{
+			for(i = 0; i < 3; ++i)
+			{
+				for(sb = 0; sb < 12; ++sb)
+				{
+					int	  j = 3 * sb + i;
+					/*
+						 is_p = scalefac[sfb*3+lwin-gr_infos->mixed_block_flag]; 
+					*/
+					/* scalefac was copied into pinfo->sfb_s[] before */
+					fr->pinfo->sfb_s[gr][ch][j] = -ifqstep *
+						fr->pinfo->sfb_s[gr][ch][j - gr_infos->mixed_block_flag];
+					fr->pinfo->sfb_s[gr][ch][j] -= 2 *
+						(fr->pinfo->sub_gain[gr][ch][i]);
+				}
+				fr->pinfo->sfb_s[gr][ch][3 * sb + i] =
+					-2 * (fr->pinfo->sub_gain[gr][ch][i]);
+			}
+		} else
+		{
+			for(sb = 0; sb < 21; ++sb)
+			{
+				/* scalefac was copied into pinfo->sfb[] before */
+				fr->pinfo->sfb[gr][ch][sb] = fr->pinfo->sfb_s[gr][ch][sb];
+				if (gr_infos->preflag)
+					fr->pinfo->sfb[gr][ch][sb] += pretab_choice[1][sb];
+				fr->pinfo->sfb[gr][ch][sb] *= -ifqstep;
+			}
+			fr->pinfo->sfb[gr][ch][21] = 0;
+		}
+	}
+
+
+	for(ch = 0; ch < stereo1; ++ch)
+	{
+		int j = 0;
+		for(sb = 0; sb < SBLIMIT; ++sb)
+			for (ss = 0; ss < SSLIMIT; ++ss, ++j)
+				fr->pinfo->xr[gr][ch][j] = fr->layer3.hybrid_in[ch][sb][ss];
+	}
+}
+#endif
 
 /* And at the end... the main layer3 handler */
 int do_layer3(mpg123_handle *fr)
@@ -1981,7 +2062,13 @@ int do_layer3(mpg123_handle *fr)
 	}
 
 	set_pointer(fr,sideinfo.main_data_begin);
-
+#ifndef NO_MOREINFO
+	if(fr->pinfo)
+	{
+		fr->pinfo->maindata = sideinfo.main_data_begin;
+		fr->pinfo->padding  = fr->padding;
+	}
+#endif
 	for(gr=0;gr<granules;gr++)
 	{
 		/*  hybridIn[2][SBLIMIT][SSLIMIT] */
@@ -1996,6 +2083,16 @@ int do_layer3(mpg123_handle *fr)
 			part2bits = III_get_scale_factors_2(fr, scalefacs[0],gr_info,0);
 			else
 			part2bits = III_get_scale_factors_1(fr, scalefacs[0],gr_info,0,gr);
+
+#ifndef NO_MOREINFO
+			if(fr->pinfo)
+			{
+				int i;
+				fr->pinfo->sfbits[gr][0] = part2bits;
+				for(i=0; i<39; ++i)
+					fr->pinfo->sfb_s[gr][0][i] = scalefacs[0][i];
+			}
+#endif
 
 			if(III_dequantize_sample(fr, hybridIn[0], scalefacs[0],gr_info,sfreq,part2bits))
 			{
@@ -2012,6 +2109,16 @@ int do_layer3(mpg123_handle *fr)
 			part2bits = III_get_scale_factors_2(fr, scalefacs[1],gr_info,i_stereo);
 			else
 			part2bits = III_get_scale_factors_1(fr, scalefacs[1],gr_info,1,gr);
+
+#ifndef NO_MOREINFO
+			if(fr->pinfo)
+			{
+				int i;
+				fr->pinfo->sfbits[gr][1] = part2bits;
+				for(i=0; i<39; ++i)
+					fr->pinfo->sfb_s[gr][1][i] = scalefacs[1][i];
+			}
+#endif
 
 			if(III_dequantize_sample(fr, hybridIn[1],scalefacs[1],gr_info,sfreq,part2bits))
 			{
@@ -2064,6 +2171,11 @@ int do_layer3(mpg123_handle *fr)
 				break;
 			}
 		}
+
+#ifndef NO_MOREINFO
+		if(fr->pinfo)
+			fill_pinfo_side(fr, &sideinfo, gr, stereo1);
+#endif
 
 		for(ch=0;ch<stereo1;ch++)
 		{

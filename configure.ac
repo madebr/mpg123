@@ -12,8 +12,8 @@ AC_INIT([mpg123], [1.26.0], [maintainer@mpg123.org])
 dnl Increment API_VERSION when the API gets changes (new functions).
 
 dnl libmpg123
-API_VERSION=44
-LIB_PATCHLEVEL=6
+API_VERSION=45
+LIB_PATCHLEVEL=0
 
 dnl libout123
 OUTAPI_VERSION=2
@@ -403,6 +403,19 @@ AC_ARG_ENABLE(feeder,
 
 if test "x$feeder" = "xdisabled"; then
   AC_DEFINE(NO_FEEDER, 1, [ Define to disable feeder and buffered readers. ])
+fi
+
+moreinfo=enabled
+AC_ARG_ENABLE(moreinfo,
+              [  --disable-moreinfo=[no/yes] no extra information for frame analyzers ],
+              [
+                if test "x$enableval" = xno; then
+                  moreinfo="disabled"
+                fi
+              ], [])
+
+if test "x$moreinfo" = "xdisabled"; then
+  AC_DEFINE(NO_MOREINFO, 1, [ Define to disable analyzer info. ])
 fi
 
 messages=enabled

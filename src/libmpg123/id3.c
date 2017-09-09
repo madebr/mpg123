@@ -660,6 +660,50 @@ static int promote_framename(mpg123_handle *fr, char *id) /* fr because of VERBO
 
 #endif /* NO_ID3V2 */
 
+int store_id3v2( mpg123_handle *fr
+,	unsigned long first4bytes, unsigned char buf[6], unsigned long length )
+{
+	int ret = 1;
+	off_t ret2;
+	unsigned long fullen = 10+length;
+	if(fr->id3v2_raw)
+		free(fr->id3v2_raw);
+	fr->id3v2_size = 0;
+	/* Allocate one byte more for a closing zero as safety catch for strlen(). */
+	fr->id3v2_raw = malloc(fullen+1);
+	if(!fr->id3v2_raw)
+	{
+		fr->err = MPG123_OUT_OF_MEM;
+		if(NOQUIET)
+			error1("ID3v2: Arrg! Unable to allocate %lu bytes"
+				" for ID3v2 data - trying to skip instead.", length+1);
+		if((ret2=fr->rd->skip_bytes(fr,length)) < 0)
+			ret = ret2;
+		else
+			ret = 0;
+	}
+	else
+	{
+		fr->id3v2_raw[0] = (first4bytes>>24) & 0xff;
+		fr->id3v2_raw[1] = (first4bytes>>16) & 0xff;
+		fr->id3v2_raw[2] = (first4bytes>>8)  & 0xff;
+		fr->id3v2_raw[3] =  first4bytes      & 0xff;
+		memcpy(fr->id3v2_raw+4, buf, 6);
+		if((ret2=fr->rd->read_frame_body(fr, fr->id3v2_raw+10, length)) < 0)
+		{
+			ret=ret2;
+			free(fr->id3v2_raw);
+			fr->id3v2_raw = NULL;
+		}
+		else
+		{ /* Closing with a zero for paranoia. */
+			fr->id3v2_raw[fullen] = 0;
+			fr->id3v2_size = fullen;
+		}
+	}
+	return ret;
+}
+
 /*
 	trying to parse ID3v2.3 and ID3v2.4 tags...
 
@@ -678,18 +722,23 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 	unsigned long length=0;
 	unsigned char flags = 0;
 	int ret = 1;
-	int ret2;
+	off_t ret2;
+	int storetag = 0;
+	unsigned int footlen = 0;
 #ifndef NO_ID3V2
 	int skiptag = 0;
 #endif
 	unsigned char major = first4bytes & 0xff;
 	debug1("ID3v2: major tag version: %i", major);
+
 	if(major == 0xff) return 0; /* Invalid... */
 	if((ret2 = fr->rd->read_frame_body(fr, buf, 6)) < 0) /* read more header information */
 	return ret2;
 
 	if(buf[0] == 0xff) return 0; /* Revision, will never be 0xff. */
 
+	if(fr->p.flags & MPG123_STORE_RAW_ID3)
+		storetag = 1;
 	/* second new byte are some nice flags, if these are invalid skip the whole thing */
 	flags = buf[1];
 	debug1("ID3v2: flags 0x%08x", flags);
@@ -731,6 +780,8 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 		if(NOQUIET) error4("Bad tag length (not synchsafe): 0x%02x%02x%02x%02x; You got a bad ID3 tag here.", buf[2],buf[3],buf[4],buf[5]);
 		return 0;
 	}
+	if(flags & FOOTER_FLAG)
+		footlen = 10;
 	debug1("ID3v2: tag data length %lu", length);
 #ifndef NO_ID3V2
 	if(VERBOSE2) fprintf(stderr,"Note: ID3v2.%i rev %i tag of %lu bytes\n", major, buf[0], length);
@@ -755,252 +806,248 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 			warning1("ID3v2: unrealistic small tag lengh %lu, skipping", length);
 		skiptag = 1;
 	}
+	if(!skiptag)
+		storetag = 1;
+#endif
+	if(storetag)
+	{
+		/* Stores whole tag with footer and an additonal trailing zero. */
+		if((ret2 = store_id3v2(fr, first4bytes, buf, length+footlen)) <= 0)
+			return ret2;
+	}
+#ifndef NO_ID2V2
 	if(skiptag)
 	{
 #endif
-		if((ret2 = fr->rd->skip_bytes(fr,length)) < 0) /* will not store data in backbuff! */
-		ret = ret2;
+		if(!storetag && (ret2=fr->rd->skip_bytes(fr,length+footlen))<0)
+			ret=ret2;
 #ifndef NO_ID3V2
 	}
 	else
 	{
-		unsigned char* tagdata = NULL;
+		unsigned char* tagdata = fr->id3v2_raw+10;
 		fr->id3v2.version = major;
 		/* try to interpret that beast */
-		if((tagdata = (unsigned char*) malloc(length+1)) != NULL)
+		debug("ID3v2: analysing frames...");
+		if(length > 0)
 		{
-			debug("ID3v2: analysing frames...");
-			if((ret2 = fr->rd->read_frame_body(fr,tagdata,length)) > 0)
+			unsigned long tagpos = 0;
+			/* bytes of frame title and of framesize value */
+			unsigned int head_part = fr->id3v2.version > 2 ? 4 : 3;
+			unsigned int flag_part = fr->id3v2.version > 2 ? 2 : 0;
+			/* The amount of bytes that are unconditionally read for each frame: */
+			/* ID, size, flags. */
+			unsigned int framebegin = head_part+head_part+flag_part;
+			debug1("ID3v2: have read at all %lu bytes for the tag now", (unsigned long)length+6);
+			if(flags & EXTHEAD_FLAG)
 			{
-				unsigned long tagpos = 0;
-				/* bytes of frame title and of framesize value */
-				unsigned int head_part = fr->id3v2.version > 2 ? 4 : 3;
-				unsigned int flag_part = fr->id3v2.version > 2 ? 2 : 0;
-				/* The amount of bytes that are unconditionally read for each frame: */
-				/* ID, size, flags. */
-				unsigned int framebegin = head_part+head_part+flag_part;
-				debug1("ID3v2: have read at all %lu bytes for the tag now", (unsigned long)length+6);
-				/* going to apply strlen for strings inside frames, make sure that it doesn't overflow! */
-				tagdata[length] = 0;
-				if(flags & EXTHEAD_FLAG)
+				debug("ID3v2: skipping extended header");
+				if(!bytes_to_long(tagdata, tagpos) || tagpos >= length)
 				{
-					debug("ID3v2: skipping extended header");
-					if(!bytes_to_long(tagdata, tagpos) || tagpos >= length)
-					{
-						ret = 0;
-						if(NOQUIET)
-							error4( "Bad (non-synchsafe/too large) tag offset:"
-								"0x%02x%02x%02x%02x"
-							,	tagdata[0], tagdata[1], tagdata[2], tagdata[3] );
-					}
-				}
-				if(ret > 0)
-				{
-					char id[5];
-					unsigned long framesize;
-					unsigned long fflags; /* need 16 bits, actually */
-					id[4] = 0;
-					/* Pos now advanced after ext head, now a frame has to follow. */
-					/* Note: tagpos <= length, which is 28 bit integer, so both */
-					/* far away from overflow for adding known small values. */
-					/* I want to read at least one full header now. */
-					while(length >= tagpos+framebegin)
-					{
-						int i = 0;
-						unsigned long pos = tagpos;
-						/* level 1,2,3 - 0 is info from lame/info tag! */
-						/* rva tags with ascending significance, then general frames */
-						enum frame_types tt = unknown;
-						/* we may have entered the padding zone or any other strangeness: check if we have valid frame id characters */
-						for(i=0; i< head_part; ++i)
-						if( !( ((tagdata[tagpos+i] > 47) && (tagdata[tagpos+i] < 58))
-						    || ((tagdata[tagpos+i] > 64) && (tagdata[tagpos+i] < 91)) ) )
-						{
-							debug5("ID3v2: real tag data apparently ended after %lu bytes with 0x%02x%02x%02x%02x", tagpos, tagdata[tagpos], tagdata[tagpos+1], tagdata[tagpos+2], tagdata[tagpos+3]);
-							/* This is no hard error... let's just hope that we got something meaningful already (ret==1 in that case). */
-							goto tagparse_cleanup; /* Need to escape two loops here. */
-						}
-						if(ret > 0)
-						{
-							/* 4 or 3 bytes id */
-							strncpy(id, (char*) tagdata+pos, head_part);
-							id[head_part] = 0; /* terminate for 3 or 4 bytes */
-							pos += head_part;
-							tagpos += head_part;
-							/* size as 32 bits or 28 bits */
-							if(fr->id3v2.version == 2) threebytes_to_long(tagdata+pos, framesize);
-							else
-							if(!bytes_to_long(tagdata+pos, framesize))
-							{
-								/* Just assume that up to now there was some good data. */
-								if(NOQUIET) error1("ID3v2: non-syncsafe size of %s frame, skipping the remainder of tag", id);
-								break;
-							}
-							if(VERBOSE3) fprintf(stderr, "Note: ID3v2 %s frame of size %lu\n", id, framesize);
-							tagpos += head_part;
-							pos += head_part;
-							if(fr->id3v2.version > 2)
-							{
-								fflags  = (((unsigned long) tagdata[pos]) << 8) | ((unsigned long) tagdata[pos+1]);
-								pos    += 2;
-								tagpos += 2;
-							}
-							else fflags = 0;
-
-							if(length - tagpos < framesize)
-							{
-								if(NOQUIET) error("Whoa! ID3v2 frame claims to be larger than the whole rest of the tag.");
-								break;
-							}
-							tagpos += framesize; /* the important advancement in whole tag */
-							/* for sanity, after full parsing tagpos should be == pos */
-							/* debug4("ID3v2: found %s frame, size %lu (as bytes: 0x%08lx), flags 0x%016lx", id, framesize, framesize, fflags); */
-							/* %0abc0000 %0h00kmnp */
-							#define BAD_FFLAGS (unsigned long) 36784
-							#define PRES_TAG_FFLAG 16384
-							#define PRES_FILE_FFLAG 8192
-							#define READ_ONLY_FFLAG 4096
-							#define GROUP_FFLAG 64
-							#define COMPR_FFLAG 8
-							#define ENCR_FFLAG 4
-							#define UNSYNC_FFLAG 2
-							#define DATLEN_FFLAG 1
-							if(head_part < 4 && promote_framename(fr, id) != 0) continue;
-
-							/* shall not or want not handle these */
-							if(fflags & (BAD_FFLAGS | COMPR_FFLAG | ENCR_FFLAG))
-							{
-								if(NOQUIET) warning("ID3v2: skipping invalid/unsupported frame");
-								continue;
-							}
-
-							for(i = 0; i < KNOWN_FRAMES; ++i)
-							if(!strncmp(frame_type[i], id, 4)){ tt = i; break; }
-
-							if(id[0] == 'T' && tt != extra) tt = text;
-
-							if(tt != unknown)
-							{
-								int rva_mode = -1; /* mix / album */
-								unsigned long realsize = framesize;
-								unsigned char* realdata = tagdata+pos;
-								if((flags & UNSYNC_FLAG) || (fflags & UNSYNC_FFLAG))
-								{
-									unsigned long ipos = 0;
-									unsigned long opos = 0;
-									debug("Id3v2: going to de-unsync the frame data");
-									/* de-unsync: FF00 -> FF; real FF00 is simply represented as FF0000 ... */
-									/* damn, that means I have to delete bytes from withing the data block... thus need temporal storage */
-									/* standard mandates that de-unsync should always be safe if flag is set */
-									realdata = (unsigned char*) malloc(framesize); /* will need <= bytes */
-									if(realdata == NULL)
-									{
-										if(NOQUIET) error("ID3v2: unable to allocate working buffer for de-unsync");
-										continue;
-									}
-									/* now going byte per byte through the data... */
-									realdata[0] = tagdata[pos];
-									opos = 1;
-									for(ipos = pos+1; ipos < pos+framesize; ++ipos)
-									{
-										if(!((tagdata[ipos] == 0) && (tagdata[ipos-1] == 0xff)))
-										{
-											realdata[opos++] = tagdata[ipos];
-										}
-									}
-									realsize = opos;
-									debug2("ID3v2: de-unsync made %lu out of %lu bytes", realsize, framesize);
-								}
-								pos = 0; /* now at the beginning again... */
-								/* Avoid reading over boundary, even if there is a */
-								/* zero byte of padding for safety. */
-								if(realsize) switch(tt)
-								{
-									case comment:
-									case uslt:
-										process_comment(fr, tt, realdata, realsize, comment+1, id);
-									break;
-									case extra: /* perhaps foobar2000's work */
-										process_extra(fr, realdata, realsize, extra+1, id);
-									break;
-									case rva2: /* "the" RVA tag */
-									{
-										/* starts with null-terminated identification */
-										if(VERBOSE3) fprintf(stderr, "Note: RVA2 identification \"%s\"\n", realdata);
-										/* default: some individual value, mix mode */
-										rva_mode = 0;
-										if( !strncasecmp((char*)realdata, "album", 5)
-										    || !strncasecmp((char*)realdata, "audiophile", 10)
-										    || !strncasecmp((char*)realdata, "user", 4))
-										rva_mode = 1;
-										if(fr->rva.level[rva_mode] <= rva2+1)
-										{
-											pos += strlen((char*) realdata) + 1;
-											if(realdata[pos] == 1)
-											{
-												++pos;
-												/* only handle master channel */
-												debug("ID3v2: it is for the master channel");
-												/* two bytes adjustment, one byte for bits representing peak - n bytes, eh bits, for peak */
-												/* 16 bit signed integer = dB * 512  ... the double cast is needed to preserve the sign of negative values! */
-												fr->rva.gain[rva_mode] = (float) ( (((short)((signed char)realdata[pos])) << 8) | realdata[pos+1] ) / 512;
-												pos += 2;
-												if(VERBOSE3) fprintf(stderr, "Note: RVA value %fdB\n", fr->rva.gain[rva_mode]);
-												/* heh, the peak value is represented by a number of bits - but in what manner? Skipping that part */
-												fr->rva.peak[rva_mode] = 0;
-												fr->rva.level[rva_mode] = rva2+1;
-											}
-										}
-									}
-									break;
-									/* non-rva metainfo, simply store... */
-									case text:
-										process_text(fr, realdata, realsize, id);
-									break;
-									case picture:
-										if (fr->p.flags & MPG123_PICTURE)
-										process_picture(fr, realdata, realsize);
-
-										break;
-									default: if(NOQUIET) error1("ID3v2: unknown frame type %i", tt);
-								}
-								if((flags & UNSYNC_FLAG) || (fflags & UNSYNC_FFLAG)) free(realdata);
-							}
-							#undef BAD_FFLAGS
-							#undef PRES_TAG_FFLAG
-							#undef PRES_FILE_FFLAG
-							#undef READ_ONLY_FFLAG
-							#undef GROUP_FFLAG
-							#undef COMPR_FFLAG
-							#undef ENCR_FFLAG
-							#undef UNSYNC_FFLAG
-							#undef DATLEN_FFLAG
-						}
-						else break;
-						#undef KNOWN_FRAMES
-					}
+					ret = 0;
+					if(NOQUIET)
+						error4( "Bad (non-synchsafe/too large) tag offset:"
+							"0x%02x%02x%02x%02x"
+						,	tagdata[0], tagdata[1], tagdata[2], tagdata[3] );
 				}
 			}
-			else
+			if(ret > 0)
 			{
-				/* There are tags with zero length. Strictly not an error, then. */
-				if(length > 0 && NOQUIET && ret2 != MPG123_NEED_MORE) error("ID3v2: Duh, not able to read ID3v2 tag data.");
-				ret = ret2;
+				char id[5];
+				unsigned long framesize;
+				unsigned long fflags; /* need 16 bits, actually */
+				id[4] = 0;
+				/* Pos now advanced after ext head, now a frame has to follow. */
+				/* Note: tagpos <= length, which is 28 bit integer, so both */
+				/* far away from overflow for adding known small values. */
+				/* I want to read at least one full header now. */
+				while(length >= tagpos+framebegin)
+				{
+					int i = 0;
+					unsigned long pos = tagpos;
+					/* level 1,2,3 - 0 is info from lame/info tag! */
+					/* rva tags with ascending significance, then general frames */
+					enum frame_types tt = unknown;
+					/* we may have entered the padding zone or any other strangeness: check if we have valid frame id characters */
+					for(i=0; i< head_part; ++i)
+					if( !( ((tagdata[tagpos+i] > 47) && (tagdata[tagpos+i] < 58))
+						 || ((tagdata[tagpos+i] > 64) && (tagdata[tagpos+i] < 91)) ) )
+					{
+						debug5("ID3v2: real tag data apparently ended after %lu bytes with 0x%02x%02x%02x%02x", tagpos, tagdata[tagpos], tagdata[tagpos+1], tagdata[tagpos+2], tagdata[tagpos+3]);
+						/* This is no hard error... let's just hope that we got something meaningful already (ret==1 in that case). */
+						goto tagparse_cleanup; /* Need to escape two loops here. */
+					}
+					if(ret > 0)
+					{
+						/* 4 or 3 bytes id */
+						strncpy(id, (char*) tagdata+pos, head_part);
+						id[head_part] = 0; /* terminate for 3 or 4 bytes */
+						pos += head_part;
+						tagpos += head_part;
+						/* size as 32 bits or 28 bits */
+						if(fr->id3v2.version == 2) threebytes_to_long(tagdata+pos, framesize);
+						else
+						if(!bytes_to_long(tagdata+pos, framesize))
+						{
+							/* Just assume that up to now there was some good data. */
+							if(NOQUIET) error1("ID3v2: non-syncsafe size of %s frame, skipping the remainder of tag", id);
+							break;
+						}
+						if(VERBOSE3) fprintf(stderr, "Note: ID3v2 %s frame of size %lu\n", id, framesize);
+						tagpos += head_part;
+						pos += head_part;
+						if(fr->id3v2.version > 2)
+						{
+							fflags  = (((unsigned long) tagdata[pos]) << 8) | ((unsigned long) tagdata[pos+1]);
+							pos    += 2;
+							tagpos += 2;
+						}
+						else fflags = 0;
+
+						if(length - tagpos < framesize)
+						{
+							if(NOQUIET) error("Whoa! ID3v2 frame claims to be larger than the whole rest of the tag.");
+							break;
+						}
+						tagpos += framesize; /* the important advancement in whole tag */
+						/* for sanity, after full parsing tagpos should be == pos */
+						/* debug4("ID3v2: found %s frame, size %lu (as bytes: 0x%08lx), flags 0x%016lx", id, framesize, framesize, fflags); */
+						/* %0abc0000 %0h00kmnp */
+						#define BAD_FFLAGS (unsigned long) 36784
+						#define PRES_TAG_FFLAG 16384
+						#define PRES_FILE_FFLAG 8192
+						#define READ_ONLY_FFLAG 4096
+						#define GROUP_FFLAG 64
+						#define COMPR_FFLAG 8
+						#define ENCR_FFLAG 4
+						#define UNSYNC_FFLAG 2
+						#define DATLEN_FFLAG 1
+						if(head_part < 4 && promote_framename(fr, id) != 0) continue;
+
+						/* shall not or want not handle these */
+						if(fflags & (BAD_FFLAGS | COMPR_FFLAG | ENCR_FFLAG))
+						{
+							if(NOQUIET) warning("ID3v2: skipping invalid/unsupported frame");
+							continue;
+						}
+
+						for(i = 0; i < KNOWN_FRAMES; ++i)
+						if(!strncmp(frame_type[i], id, 4)){ tt = i; break; }
+
+						if(id[0] == 'T' && tt != extra) tt = text;
+
+						if(tt != unknown)
+						{
+							int rva_mode = -1; /* mix / album */
+							unsigned long realsize = framesize;
+							unsigned char* realdata = tagdata+pos;
+							if((flags & UNSYNC_FLAG) || (fflags & UNSYNC_FFLAG))
+							{
+								unsigned long ipos = 0;
+								unsigned long opos = 0;
+								debug("Id3v2: going to de-unsync the frame data");
+								/* de-unsync: FF00 -> FF; real FF00 is simply represented as FF0000 ... */
+								/* damn, that means I have to delete bytes from withing the data block... thus need temporal storage */
+								/* standard mandates that de-unsync should always be safe if flag is set */
+								realdata = (unsigned char*) malloc(framesize); /* will need <= bytes */
+								if(realdata == NULL)
+								{
+									if(NOQUIET) error("ID3v2: unable to allocate working buffer for de-unsync");
+									continue;
+								}
+								/* now going byte per byte through the data... */
+								realdata[0] = tagdata[pos];
+								opos = 1;
+								for(ipos = pos+1; ipos < pos+framesize; ++ipos)
+								{
+									if(!((tagdata[ipos] == 0) && (tagdata[ipos-1] == 0xff)))
+									{
+										realdata[opos++] = tagdata[ipos];
+									}
+								}
+								realsize = opos;
+								debug2("ID3v2: de-unsync made %lu out of %lu bytes", realsize, framesize);
+							}
+							pos = 0; /* now at the beginning again... */
+							/* Avoid reading over boundary, even if there is a */
+							/* zero byte of padding for safety. */
+							if(realsize) switch(tt)
+							{
+								case comment:
+								case uslt:
+									process_comment(fr, tt, realdata, realsize, comment+1, id);
+								break;
+								case extra: /* perhaps foobar2000's work */
+									process_extra(fr, realdata, realsize, extra+1, id);
+								break;
+								case rva2: /* "the" RVA tag */
+								{
+									/* starts with null-terminated identification */
+									if(VERBOSE3) fprintf(stderr, "Note: RVA2 identification \"%s\"\n", realdata);
+									/* default: some individual value, mix mode */
+									rva_mode = 0;
+									if( !strncasecmp((char*)realdata, "album", 5)
+										 || !strncasecmp((char*)realdata, "audiophile", 10)
+										 || !strncasecmp((char*)realdata, "user", 4))
+									rva_mode = 1;
+									if(fr->rva.level[rva_mode] <= rva2+1)
+									{
+										pos += strlen((char*) realdata) + 1;
+										if(realdata[pos] == 1)
+										{
+											++pos;
+											/* only handle master channel */
+											debug("ID3v2: it is for the master channel");
+											/* two bytes adjustment, one byte for bits representing peak - n bytes, eh bits, for peak */
+											/* 16 bit signed integer = dB * 512  ... the double cast is needed to preserve the sign of negative values! */
+											fr->rva.gain[rva_mode] = (float) ( (((short)((signed char)realdata[pos])) << 8) | realdata[pos+1] ) / 512;
+											pos += 2;
+											if(VERBOSE3) fprintf(stderr, "Note: RVA value %fdB\n", fr->rva.gain[rva_mode]);
+											/* heh, the peak value is represented by a number of bits - but in what manner? Skipping that part */
+											fr->rva.peak[rva_mode] = 0;
+											fr->rva.level[rva_mode] = rva2+1;
+										}
+									}
+								}
+								break;
+								/* non-rva metainfo, simply store... */
+								case text:
+									process_text(fr, realdata, realsize, id);
+								break;
+								case picture:
+									if (fr->p.flags & MPG123_PICTURE)
+									process_picture(fr, realdata, realsize);
+
+									break;
+								default: if(NOQUIET) error1("ID3v2: unknown frame type %i", tt);
+							}
+							if((flags & UNSYNC_FLAG) || (fflags & UNSYNC_FFLAG)) free(realdata);
+						}
+						#undef BAD_FFLAGS
+						#undef PRES_TAG_FFLAG
+						#undef PRES_FILE_FFLAG
+						#undef READ_ONLY_FFLAG
+						#undef GROUP_FFLAG
+						#undef COMPR_FFLAG
+						#undef ENCR_FFLAG
+						#undef UNSYNC_FFLAG
+						#undef DATLEN_FFLAG
+					}
+					else break;
+					#undef KNOWN_FRAMES
+				}
 			}
-tagparse_cleanup:
-			free(tagdata);
 		}
-		else
+tagparse_cleanup:
+		/* Get rid of stored raw data that should not be kept. */
+		if(!(fr->p.flags & MPG123_STORE_RAW_ID3))
 		{
-			if(NOQUIET) error1("ID3v2: Arrg! Unable to allocate %lu bytes for interpreting ID3v2 data - trying to skip instead.", length);
-			if((ret2 = fr->rd->skip_bytes(fr,length)) < 0) ret = ret2; /* will not store data in backbuff! */
-			else ret = 0;
+			free(fr->id3v2_raw);
+			fr->id3v2_raw = NULL;
+			fr->id3v2_size = 0;
 		}
 	}
 #endif /* NO_ID3V2 */
-	/* skip footer if present */
-	if((ret > 0) && (flags & FOOTER_FLAG) && ((ret2 = fr->rd->skip_bytes(fr,length)) < 0)) ret = ret2;
-
 	return ret;
 	#undef UNSYNC_FLAG
 	#undef EXTHEAD_FLAG

@@ -403,7 +403,7 @@ int attribute_align_arg mpg123_format(mpg123_handle *mh, long rate, int channels
 
 int attribute_align_arg mpg123_fmt(mpg123_pars *mp, long rate, int channels, int encodings)
 {
-	int ie, ic, ratei;
+	int ie, ic, ratei, r1, r2;
 	int ch[2] = {0, 1};
 	if(mp == NULL) return MPG123_BAD_PARS;
 	if(!(channels & (MPG123_MONO|MPG123_STEREO))) return MPG123_BAD_CHANNEL;
@@ -412,10 +412,21 @@ int attribute_align_arg mpg123_fmt(mpg123_pars *mp, long rate, int channels, int
 
 	if(!(channels & MPG123_STEREO)) ch[1] = 0;     /* {0,0} */
 	else if(!(channels & MPG123_MONO)) ch[0] = 1; /* {1,1} */
-	ratei = rate2num(mp, rate);
-	if(ratei < 0) return MPG123_BAD_RATE;
+	if(rate)
+	{
+		r1 = rate2num(mp, rate);
+		r2 = ratei+1;
+	}
+	else
+	{
+		r1 = 0;
+		r2 = MPG123_RATES+1; /* including forced rate */
+	}
+	
+	if(r1 < 0) return MPG123_BAD_RATE;
 
 	/* now match the encodings */
+	for(ratei = r1; ratei < r2; ++ratei)
 	for(ic = 0; ic < 2; ++ic)
 	{
 		for(ie = 0; ie < MPG123_ENCODINGS; ++ie)
