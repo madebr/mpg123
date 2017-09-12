@@ -14,6 +14,24 @@
 #include <string.h>
 #include "debug.h"
 
+mpg123_string* attribute_align_arg mpg123_new_string(const char *val)
+{
+	mpg123_string *sb = malloc(sizeof(mpg123_string));
+	if(!sb)
+		return NULL;
+	mpg123_init_string(sb);
+	mpg123_set_string(sb, val);
+	return sb;
+}
+
+void attribute_align_arg mpg123_delete_string(mpg123_string* sb)
+{
+	if(!sb)
+		return;
+	mpg123_free_string(sb);
+	free(sb);
+}
+
 void attribute_align_arg mpg123_init_string(mpg123_string* sb)
 {
 	/* Handing in NULL here is a fatal mistake and rightfully so. */

@@ -30,6 +30,8 @@
    is of not much practical consequence as a tag with footer would appear on
    the end of files anyway and files with ID3v2 tags at the end seem to be
    rather rare.
+-- Add mpg123_new_string() and mpg123_delete_string() to avoid confusion
+   about what mpg123_init_string() and mpg123_free_string() do.
 
 1.25.7
 ------

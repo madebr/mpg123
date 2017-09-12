@@ -1049,12 +1049,22 @@ typedef struct
 	size_t fill; /**< number of used bytes (including closing zero byte) */
 } mpg123_string;
 
-/** Create and allocate memory for a new mpg123_string
+/** Allocate and intialize a new string.
+ *  \param val optional initial string value (can be NULL)
+ */
+MPG123_EXPORT mpg123_string* mpg123_new_string(const char* val);
+
+/** Free memory of contents and the string structure itself.
+ *  \param sb string handle
+ */
+MPG123_EXPORT void mpg123_delete_string(mpg123_string* sb);
+
+/** Initialize an existing mpg123_string structure to {NULL, 0, 0}.
  *  \param sb string handle (address of existing structure on your side)
  */
 MPG123_EXPORT void mpg123_init_string(mpg123_string* sb);
 
-/** Free-up mempory for an existing mpg123_string
+/** Free-up memory of the contents of an mpg123_string (not the struct itself).
  *  \param sb string handle
  */
 MPG123_EXPORT void mpg123_free_string(mpg123_string* sb);
