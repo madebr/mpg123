@@ -569,6 +569,14 @@ static int III_get_scale_factors_1(mpg123_handle *fr, int *scf,struct gr_info_s 
 	int num0 = slen[0][gr_info->scalefac_compress];
 	int num1 = slen[1][gr_info->scalefac_compress];
 
+	if(gr_info->part2_3_length == 0)
+	{
+		int i;
+		for(i=0;i<39;i++)
+			*scf++ = 0;
+		numbits=0;
+	}
+	else
 	if(gr_info->block_type == 2)
 	{
 		int i=18;
@@ -683,6 +691,14 @@ static int III_get_scale_factors_2(mpg123_handle *fr, int *scf,struct gr_info_s 
 
 	pnt = stab[n][(slen>>12)&0x7];
 
+	if(gr_info->part2_3_length == 0)
+	{
+		int i;
+		for(i=0;i<39;i++)
+			*scf++ = 0;
+		numbits=0;
+	}
+	else
 	for(i=0;i<4;i++)
 	{
 		int num = slen & 0x7;
@@ -696,7 +712,7 @@ static int III_get_scale_factors_2(mpg123_handle *fr, int *scf,struct gr_info_s 
 		else
 		for(j=0;j<(int)(pnt[i]);j++) *scf++ = 0;
 	}
-  
+
 	n = (n << 1) + 1;
 	for(i=0;i<n;i++) *scf++ = 0;
 
@@ -750,6 +766,12 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 #ifdef REAL_IS_FIXED
 	int gainpow2_scale_idx = 378;
 #endif
+
+	/* Assumption: If there is some part2_3_length at all, there should be
+	   enough of it to work with properly. In case of zero length we silently
+	   zero things. */
+	if(gr_info->part2_3_length > 0)
+	{
 
 	/* mhipp tree has this split up a bit... */
 	int num=getbitoffset(fr);
@@ -1214,6 +1236,18 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 	part2remain += num;
 	backbits(fr, num);
 	num = 0;
+
+	}
+	else
+	{
+		part2remain = 0;
+		/* Not entirely sure what good values are, must be > 0. */
+		gr_info->maxband[0] = 1;
+		gr_info->maxband[1] = 1;
+		gr_info->maxband[2] = 1;
+		gr_info->maxbandl   = 1;
+		gr_info->maxb       = 1;
+	}
 
 	while(xrpnt < &xr[SBLIMIT][0]) 
 	*xrpnt++ = DOUBLE_TO_REAL(0.0);
