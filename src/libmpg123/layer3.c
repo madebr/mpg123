@@ -574,9 +574,9 @@ static int III_get_scale_factors_1(mpg123_handle *fr, int *scf,struct gr_info_s 
 		int i;
 		for(i=0;i<39;i++)
 			*scf++ = 0;
-		numbits=0;
+		return 0;
 	}
-	else
+
 	if(gr_info->block_type == 2)
 	{
 		int i=18;
@@ -696,9 +696,9 @@ static int III_get_scale_factors_2(mpg123_handle *fr, int *scf,struct gr_info_s 
 		int i;
 		for(i=0;i<39;i++)
 			*scf++ = 0;
-		numbits=0;
+		return 0;
 	}
-	else
+
 	for(i=0;i<4;i++)
 	{
 		int num = slen & 0x7;
