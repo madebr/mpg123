@@ -47,8 +47,8 @@
    now. Note that this means certain valid files would have been misdecoded
    before, if anyone actually produced them. Thanks to Robert Hegemann for
    the fix!
--- Properly handle granules with part2_3_length == 0. After 20 years, someone
-   finally comes up with a file that needs that (VLC bug 18834)!
+-- Silently handle granules with part2_3_length == 0, but
+   scalefac_compress != 0 (ignore the latter).
 
 1.25.6
 ------
