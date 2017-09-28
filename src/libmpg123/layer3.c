@@ -477,8 +477,8 @@ static int III_get_side_info(mpg123_handle *fr, struct III_sideinfo *si,int ster
 		gr_info->scalefac_compress = getbits(fr, tab[4]);
 		if(gr_info->part2_3_length == 0)
 		{
-			if(gr_info->scalefac_compress > 0)
-				debug1( "scalefac_compress _should_ be zero instead of %i"
+			if(gr_info->scalefac_compress > 0 && VERBOSE2)
+				error1( "scalefac_compress should be zero instead of %i"
 				,	gr_info->scalefac_compress );
 			gr_info->scalefac_compress = 0;
 		}
@@ -586,7 +586,10 @@ static int III_get_scale_factors_1(mpg123_handle *fr, int *scf,struct gr_info_s 
 	if(gr_info->block_type == 2)
 	{
 		int i=18;
-		numbits = (num0 + num1) * 18;
+		numbits = (num0 + num1) * 18 /* num0 * (17+1?) + num1 * 18 */
+		        - (gr_info->mixed_block_flag ? num0 : 0);
+		if(numbits > gr_info->part2_3_length)
+			return -1;
 
 		if(gr_info->mixed_block_flag)
 		{
@@ -594,7 +597,6 @@ static int III_get_scale_factors_1(mpg123_handle *fr, int *scf,struct gr_info_s 
 			*scf++ = getbits_fast(fr, num0);
 
 			i = 9;
-			numbits -= num0; /* num0 * 17 + num1 * 18 */
 		}
 
 		for(;i;i--) *scf++ = getbits_fast(fr, num0);
@@ -610,51 +612,53 @@ static int III_get_scale_factors_1(mpg123_handle *fr, int *scf,struct gr_info_s 
 
 		if(scfsi < 0)
 		{ /* scfsi < 0 => granule == 0 */
+			numbits = (num0 + num1) * 10 + num0;
+			if(numbits > gr_info->part2_3_length)
+				return -1;
+
 			for(i=11;i;i--) *scf++ = getbits_fast(fr, num0);
 
 			for(i=10;i;i--) *scf++ = getbits_fast(fr, num1);
 
-			numbits = (num0 + num1) * 10 + num0;
 			*scf++ = 0;
 		}
 		else
 		{
-			numbits = 0;
+			numbits = !(scfsi & 0x8) * num0 * 6
+			        + !(scfsi & 0x4) * num0 * 5
+			        + !(scfsi & 0x2) * num1 * 5
+			        + !(scfsi & 0x1) * num1 * 5;
+			if(numbits > gr_info->part2_3_length)
+				return -1;
+
 			if(!(scfsi & 0x8))
 			{
 				for (i=0;i<6;i++) *scf++ = getbits_fast(fr, num0);
-
-				numbits += num0 * 6;
 			}
 			else scf += 6; 
 
 			if(!(scfsi & 0x4))
 			{
 				for (i=0;i<5;i++) *scf++ = getbits_fast(fr, num0);
-
-				numbits += num0 * 5;
 			}
 			else scf += 5;
 
 			if(!(scfsi & 0x2))
 			{
 				for(i=0;i<5;i++) *scf++ = getbits_fast(fr, num1);
-
-				numbits += num1 * 5;
 			}
 			else scf += 5;
 
 			if(!(scfsi & 0x1))
 			{
 				for (i=0;i<5;i++) *scf++ = getbits_fast(fr, num1);
-
-				numbits += num1 * 5;
 			}
 			else scf += 5;
 
 			*scf++ = 0;  /* no l[21] in original sources */
 		}
 	}
+
 	return numbits;
 }
 
@@ -663,7 +667,7 @@ static int III_get_scale_factors_2(mpg123_handle *fr, int *scf,struct gr_info_s 
 {
 	const unsigned char *pnt;
 	int i,j,n=0,numbits=0;
-	unsigned int slen;
+	unsigned int slen, slen2;
 
 	const unsigned char stab[3][6][4] =
 	{
@@ -699,11 +703,21 @@ static int III_get_scale_factors_2(mpg123_handle *fr, int *scf,struct gr_info_s 
 
 	if(gr_info->part2_3_length == 0)
 	{
-		int i;
 		for(i=0;i<39;i++)
 			*scf++ = 0;
 		return 0;
 	}
+
+	slen2 = slen;
+	for(i=0;i<4;i++)
+	{
+		int num = slen2 & 0x7;
+		slen2 >>= 3;
+		if(num)
+			numbits += pnt[i] * num;
+	}
+	if(numbits > gr_info->part2_3_length)
+		return -1;
 
 	for(i=0;i<4;i++)
 	{
@@ -712,8 +726,6 @@ static int III_get_scale_factors_2(mpg123_handle *fr, int *scf,struct gr_info_s 
 		if(num)
 		{
 			for(j=0;j<(int)(pnt[i]);j++) *scf++ = getbits_fast(fr, num);
-
-			numbits += pnt[i] * num;
 		}
 		else
 		for(j=0;j<(int)(pnt[i]);j++) *scf++ = 0;
@@ -1266,7 +1278,8 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 	if(part2remain > 0) skipbits(fr, part2remain);
 	else if(part2remain < 0)
 	{
-		debug1("Can't rewind stream by %d bits!",-part2remain);
+		if(VERBOSE2)
+			error1("Can't rewind stream by %d bits!",-part2remain);
 		return 1; /* -> error */
 	}
 	return 0;
@@ -2123,6 +2136,13 @@ int do_layer3(mpg123_handle *fr)
 			part2bits = III_get_scale_factors_2(fr, scalefacs[0],gr_info,0);
 			else
 			part2bits = III_get_scale_factors_1(fr, scalefacs[0],gr_info,0,gr);
+
+			if(part2bits < 0)
+			{
+				if(VERBOSE2)
+					error("not enough bits for scale factors");
+				return clip;
+			}
 
 #ifndef NO_MOREINFO
 			if(fr->pinfo)

@@ -20,7 +20,10 @@
   fr->bitindex    &= 0x7 ))
 
 #define getbitoffset(fr) ((-fr->bitindex)&0x7)
-#define getbyte(fr)      (*fr->wordpointer++)
+/* Precomputing the bytes to be read is error-prone, and some over-read
+   is even expected for Huffman. Just play safe and return zeros in case
+   of overflow */
+#define getbyte(fr) ((fr->wordpointer-fr->bsbuf) < fr->framesize ? *fr->wordpointer++ : 0)
 
 /* There is something wrong with that macro... the function below works also for the layer1 test case. */
 #define macro_getbits(fr, nob) ( \
