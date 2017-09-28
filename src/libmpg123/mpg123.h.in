@@ -214,6 +214,13 @@ enum mpg123_param_flags
 	 */
 	,MPG123_FORCE_SEEKABLE = 0x40000 /**< 19th bit: Force the stream to be seekable. */
 	,MPG123_STORE_RAW_ID3  = 0x80000 /**< store raw ID3 data (even if skipping) */
+	,MPG123_FORCE_ENDIAN   = 0x100000 /**< Enforce endianess of output samples.
+	 *  This is not reflected in the format codes. If this flag is set along with
+	 *  MPG123_BIG_ENDIAN, MPG123_ENC_SIGNED16 means s16be, without
+	 *  MPG123_BIG_ENDIAN, it means s16le. Normal operation without
+	 *  MPG123_FORCE_ENDIAN produces output in native byte order.
+	 */
+	,MPG123_BIG_ENDIAN     = 0x200000 /**< choose big endian insead of little */
 };
 
 /** choices for MPG123_RVA */

@@ -629,6 +629,54 @@ static void conv_s16_to_s32(struct outbuffer *buf)
 #endif
 #endif
 
+void swap_endian(struct outbuffer *buf, int block)
+{
+	size_t count;
+	size_t i;
+	unsigned char *p = buf->data;
+	unsigned char tmp;
+
+	if(block < 2)
+		return;
+	count = buf->fill/(unsigned int)block;
+	switch(block)
+	{
+#define SWAP(a,b) tmp = p[a]; p[a] = p[b]; p[b] = tmp;
+		case 2: /* AB -> BA */
+			for(i=0; i<count; ++i, p+=2)
+			{
+				SWAP(0,1)
+			}
+		break;
+		case 3: /* ABC -> CBA */
+			for(i=0; i<count; ++i, p+=3)
+			{
+				SWAP(0,2)
+			}
+		break;
+		case 4: /* ABCD -> DCBA */
+			for(i=0; i<count; ++i, p+=4)
+			{
+				SWAP(0,3)
+				SWAP(1,2)
+			}
+		break;
+#ifdef REAL_IS_DOUBLE
+		/* In case we ever enable double precision output ... */
+		case 8: /* ABCDEFGH -> HGFEDCBA */
+			for(i=0; i<count; ++i, p+=8)
+			{
+				SWAP(0,7)
+				SWAP(1,6)
+				SWAP(2,5)
+				SWAP(3,4)
+			}
+		break;
+#endif
+#undef SWAP
+	}
+	return; /* Do not care about non-existing encoding sizes. */
+}
 
 void postprocess_buffer(mpg123_handle *fr)
 {
@@ -690,5 +738,18 @@ void postprocess_buffer(mpg123_handle *fr)
 		}
 	break;
 #endif
+	}
+	if(fr->p.flags & MPG123_FORCE_ENDIAN)
+	{
+		if(
+#ifdef WORDS_BIGENDIAN
+			!(
+#endif
+				fr->p.flags & MPG123_BIG_ENDIAN
+#ifdef WORDS_BIGENDIAN
+			)
+#endif
+		)
+			swap_endian(&fr->buffer, mpg123_encsize(fr->af.encoding));
 	}
 }

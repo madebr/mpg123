@@ -33,6 +33,7 @@
 -- Add mpg123_new_string() and mpg123_delete_string() to avoid confusion
    about what mpg123_init_string() and mpg123_free_string() do.
 -- Improve layer III frame parsing/error reporting for bad part2_3_length.
+-- Optionally enforce output endianess (big/little) away from native.
 
 1.25.7
 ------
