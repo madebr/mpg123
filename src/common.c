@@ -44,7 +44,7 @@ int term_have_fun(int fd)
 		char *tname = compat_getenv("TERM");
 		if(tname)
 		{
-			if(strcmp(tname, "dumb"))
+			if(strcmp(tname, "") && strcmp(tname, "dumb"))
 				term_is_fun = 1;
 			free(tname);
 		}
