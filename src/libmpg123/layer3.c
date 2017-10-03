@@ -434,8 +434,8 @@ static int III_get_side_info(mpg123_handle *fr, struct III_sideinfo *si,int ster
 	}
 
 	/* Keep track of the available data bytes for the bit reservoir.
-	Think: Substract the 2 crc bytes in parser already? */
-	fr->bitreservoir = fr->bitreservoir + fr->framesize - fr->ssize - (fr->error_protection ? 2 : 0);
+	   CRC is included in ssize already. */
+	fr->bitreservoir = fr->bitreservoir + fr->framesize - fr->ssize;
 	/* Limit the reservoir to the max for MPEG 1.0 or 2.x . */
 	if(fr->bitreservoir > (unsigned int) (fr->lsf == 0 ? 511 : 255))
 	fr->bitreservoir = (fr->lsf == 0 ? 511 : 255);
