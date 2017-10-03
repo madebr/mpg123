@@ -35,6 +35,14 @@
    about what mpg123_init_string() and mpg123_free_string() do.
 -- Improve layer III frame parsing/error reporting for bad part2_3_length.
 -- Do not remove CRC bits twice from possibly available bit reservoir.
+   This move needed recomputation of the layer3is reference data for 8 and
+   24 kHz. Old mpg123 is _wrong_ in the first few frames.
+-- Generally more tight control and early bail out on reading bits of
+   frame data for all layers. This reduces the count of error messages
+   on badly damaged files a lot and feels a lot safer, too. Note that
+   we already silently returned zero bytes instead of actually over-reading
+   the frame buffer before, but now it happens with diagnostics and more
+   checks before it may happen.
 -- Optionally enforce output endianess (big/little) away from native.
 
 1.25.7

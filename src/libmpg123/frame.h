@@ -224,6 +224,7 @@ struct mpg123_handle_struct
 
 	/* bitstream info; bsi */
 	int bitindex;
+	long bits_avail;
 	unsigned char *wordpointer;
 	/* temporary storage for getbits stuff */
 	unsigned long ultmp;
@@ -248,7 +249,7 @@ struct mpg123_handle_struct
 	int fsizeold;
 	int ssize;
 	unsigned int bitreservoir;
-	unsigned char bsspace[2][MAXFRAMESIZE+512]; /* MAXFRAMESIZE */
+	unsigned char bsspace[2][MAXFRAMESIZE+512+4]; /* MAXFRAMESIZE */
 	unsigned char *bsbuf;
 	unsigned char *bsbufold;
 	int bsnum;

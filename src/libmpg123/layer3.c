@@ -410,6 +410,23 @@ static int III_get_side_info(mpg123_handle *fr, struct III_sideinfo *si,int ster
 	const int tabs[2][5] = { { 2,9,5,3,4 } , { 1,8,1,2,9 } };
 	const int *tab = tabs[fr->lsf];
 
+	{ /* First ensure we got enough bits available. */
+		unsigned int needbits;
+		needbits += tab[1]; /* main_data_begin */
+		needbits += stereo == 1 ? tab[2] : tab[3]; /* private */
+		if(!fr->lsf)
+			needbits += stereo*4; /* scfsi */
+		/* For each granule for each channel ... */
+		needbits += tab[0]*stereo*(29+tab[4]+1+22+(!fr->lsf?1:0)+2);
+		if(fr->bits_avail < needbits) \
+		{
+			if(NOQUIET)
+				error2( "%u bits for side info needed, only %li available"
+				,	needbits, fr->bits_avail );
+			return 1;
+		}
+	}
+
 	si->main_data_begin = getbits(fr, tab[1]);
 
 	if(si->main_data_begin > fr->bitreservoir)
@@ -436,6 +453,7 @@ static int III_get_side_info(mpg123_handle *fr, struct III_sideinfo *si,int ster
 	/* Keep track of the available data bytes for the bit reservoir.
 	   CRC is included in ssize already. */
 	fr->bitreservoir = fr->bitreservoir + fr->framesize - fr->ssize;
+
 	/* Limit the reservoir to the max for MPEG 1.0 or 2.x . */
 	if(fr->bitreservoir > (unsigned int) (fr->lsf == 0 ? 511 : 255))
 	fr->bitreservoir = (fr->lsf == 0 ? 511 : 255);
@@ -443,14 +461,14 @@ static int III_get_side_info(mpg123_handle *fr, struct III_sideinfo *si,int ster
 	/* Now back into less commented territory. It's code. It works. */
 
 	if (stereo == 1)
-	si->private_bits = getbits_fast(fr, tab[2]);
+	si->private_bits = getbits(fr, tab[2]);
 	else 
-	si->private_bits = getbits_fast(fr, tab[3]);
+	si->private_bits = getbits(fr, tab[3]);
 
 	if(!fr->lsf) for(ch=0; ch<stereo; ch++)
 	{
 		si->ch[ch].gr[0].scfsi = -1;
-		si->ch[ch].gr[1].scfsi = getbits_fast(fr, 4);
+		si->ch[ch].gr[1].scfsi = getbits(fr, 4);
 	}
 
 	for (gr=0; gr<tab[0]; gr++)
@@ -458,7 +476,6 @@ static int III_get_side_info(mpg123_handle *fr, struct III_sideinfo *si,int ster
 	{
 		register struct gr_info_s *gr_info = &(si->ch[ch].gr[gr]);
 		unsigned int qss;
-
 		gr_info->part2_3_length = getbits(fr, 12);
 		gr_info->big_values = getbits(fr, 9);
 		if(gr_info->big_values > 288)
@@ -483,7 +500,8 @@ static int III_get_side_info(mpg123_handle *fr, struct III_sideinfo *si,int ster
 			gr_info->scalefac_compress = 0;
 		}
 
-		if(get1bit(fr))
+		/* 22 bits for if/else block */
+		if(getbits(fr,1))
 		{ /* window switch flag  */
 			int i;
 			gr_info->block_type       = getbits_fast(fr, 2);
@@ -798,6 +816,8 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 	mask  = ((MASK_UTYPE) getbits(fr, num))<<BITSHIFT;
 	mask <<= 8-num;
 	part2remain -= num;
+
+	/* Bitindex is zero now, we are allowed to use getbyte(). */
 
 	{
 		int bv       = gr_info->big_values;
@@ -2114,7 +2134,7 @@ int do_layer3(mpg123_handle *fr)
 		return clip;
 	}
 
-	set_pointer(fr,sideinfo.main_data_begin);
+	set_pointer(fr, 1, sideinfo.main_data_begin);
 #ifndef NO_MOREINFO
 	if(fr->pinfo)
 	{
@@ -2132,6 +2152,14 @@ int do_layer3(mpg123_handle *fr)
 		{
 			struct gr_info_s *gr_info = &(sideinfo.ch[0].gr[gr]);
 			long part2bits;
+			if(gr_info->part2_3_length > fr->bits_avail)
+			{
+				if(NOQUIET)
+					error2(
+						"part2_3_length (%u) too large for available bit count (%li)"
+					,	gr_info->part2_3_length, fr->bits_avail );
+				return clip;
+			}
 			if(fr->lsf)
 			part2bits = III_get_scale_factors_2(fr, scalefacs[0],gr_info,0);
 			else
@@ -2156,7 +2184,14 @@ int do_layer3(mpg123_handle *fr)
 
 			if(III_dequantize_sample(fr, hybridIn[0], scalefacs[0],gr_info,sfreq,part2bits))
 			{
-				if(VERBOSE2) error("dequantization failed!");
+				if(NOQUIET)
+					error("dequantization failed!");
+				return clip;
+			}
+			if(fr->bits_avail < 0)
+			{
+				if(NOQUIET)
+					error("bit deficit after dequant");
 				return clip;
 			}
 		}
@@ -2182,7 +2217,14 @@ int do_layer3(mpg123_handle *fr)
 
 			if(III_dequantize_sample(fr, hybridIn[1],scalefacs[1],gr_info,sfreq,part2bits))
 			{
-				if(VERBOSE2) error("dequantization failed!");
+				if(NOQUIET)
+					error("dequantization failed!");
+				return clip;
+			}
+			if(fr->bits_avail < 0)
+			{
+				if(NOQUIET)
+					error("bit deficit after dequant");
 				return clip;
 			}
 

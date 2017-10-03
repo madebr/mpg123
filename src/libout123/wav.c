@@ -552,7 +552,8 @@ int wav_write(out123_handle *ao, unsigned char *buf, int len)
 
 	if(wdat->datalen == 0 && write_header(ao) < 0)
 		return -1;
-
+// TODO: offer way to hand in big-endian data already, as libmpg123
+// can enforce endianess now
 	/* Endianess conversion. Not fancy / optimized. */
 	if(wdat->flipendian)
 	{

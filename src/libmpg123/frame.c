@@ -932,7 +932,7 @@ void frame_set_frameseek(mpg123_handle *fr, off_t fe)
 void frame_skip(mpg123_handle *fr)
 {
 #ifndef NO_LAYER3
-	if(fr->lay == 3) set_pointer(fr, 512);
+	if(fr->lay == 3) set_pointer(fr, 1, 512);
 #endif
 }
 
