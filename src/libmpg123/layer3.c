@@ -2205,6 +2205,13 @@ int do_layer3(mpg123_handle *fr)
 			else
 			part2bits = III_get_scale_factors_1(fr, scalefacs[1],gr_info,1,gr);
 
+			if(part2bits < 0)
+			{
+				if(VERBOSE2)
+					error("not enough bits for scale factors");
+				return clip;
+			}
+
 #ifndef NO_MOREINFO
 			if(fr->pinfo)
 			{
