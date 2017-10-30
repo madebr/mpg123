@@ -7,17 +7,20 @@
 build_type=$1
 test -z "$build_type" && build_type=x86
 
+# -D__MINGW_USE_VC2005_COMPAT=1 use 64bit time internally for 32bit, so XP and earlier don't get into
+# missing _time32 errors
+
 echo "build type: $build_type"
 case $build_type in
   x86)
     decoder=x86
     strip=strip
-    hostopt=
+    hostopt="CPPFLAGS=-D__MINGW_USE_VC2005_COMPAT=1"
   ;;
   x86-cross)
     decoder=x86
     strip=i686-w64-mingw32-strip
-    hostopt="--host=i686-w64-mingw32 --build=`./build/config.guess`"
+    hostopt="--host=i686-w64-mingw32 --build=`./build/config.guess` CPPFLAGS=-D__MINGW_USE_VC2005_COMPAT=1"
   ;;
   x86_64-cross)
     decoder=x86-64
