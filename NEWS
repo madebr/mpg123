@@ -4,7 +4,6 @@
 - mpg123:
 -- Print out MPEG header info for each frame for mpg123 -vvvv.
 -- Added --no-visual to disable cursor/inverse video games explicitly.
--- Also disable cursor/video games for empty TERM (not just unset and dumb).
 - libout123:
 -- Removed change of effective user ID in the WAV/RAW/AU/CDR writer.
    This was intended as a safeguard to avoid creating files with root
@@ -44,12 +43,14 @@
    the frame buffer before, but now it happens with diagnostics and more
    checks before it may happen.
 -- Optionally enforce output endianess (big/little) away from native.
--- Accept changing mode extension bits when looking for next header for
-   detecting free-format streams (bug 257).
 
 1.25.8
 ------
+- mpg123:
+-- Also disable cursor/video games for empty TERM (not just unset and dumb).
 - libmpg123:
+-- Accept changing mode extension bits when looking for next header for
+   detecting free-format streams (bug 257).
 -- Fix compute_bpf() for free format streams (needed to estimate track
    length and working fuzzy seeking in absence of an Info tag).
 
