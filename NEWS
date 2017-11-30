@@ -47,6 +47,12 @@
 -- Accept changing mode extension bits when looking for next header for
    detecting free-format streams (bug 257).
 
+1.25.8
+------
+- libmpg123:
+-- Fix compute_bpf() for free format streams (needed to estimate track
+   length and working fuzzy seeking in absence of an Info tag).
+
 1.25.7
 ------
 - mpg123:
