@@ -44,6 +44,8 @@
    the frame buffer before, but now it happens with diagnostics and more
    checks before it may happen.
 -- Optionally enforce output endianess (big/little) away from native.
+-- Accept changing mode extension bits when looking for next header for
+   detecting free-format streams (bug 257).
 
 1.25.7
 ------
