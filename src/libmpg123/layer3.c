@@ -411,7 +411,7 @@ static int III_get_side_info(mpg123_handle *fr, struct III_sideinfo *si,int ster
 	const int *tab = tabs[fr->lsf];
 
 	{ /* First ensure we got enough bits available. */
-		unsigned int needbits;
+		unsigned int needbits = 0;
 		needbits += tab[1]; /* main_data_begin */
 		needbits += stereo == 1 ? tab[2] : tab[3]; /* private */
 		if(!fr->lsf)
