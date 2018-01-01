@@ -415,7 +415,7 @@ int attribute_align_arg mpg123_fmt(mpg123_pars *mp, long rate, int channels, int
 	if(rate)
 	{
 		r1 = rate2num(mp, rate);
-		r2 = ratei+1;
+		r2 = r1+1;
 	}
 	else
 	{
