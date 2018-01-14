@@ -18,7 +18,7 @@
 #include <stddef.h>
 
 /* Common audio encoding specification, including a macro for getting
- *  size of encodined samples in bytes. Said macro is still hardcoded
+ *  size of encoded samples in bytes. Said macro is still hardcoded
  *  into out123_encsize(). Relying on this one may help an old program
  *  know sizes of encodings added to fmt123.h later on.
  *  If you don't care, just use the macro.
