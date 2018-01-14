@@ -815,7 +815,7 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 		if((ret2 = store_id3v2(fr, first4bytes, buf, length+footlen)) <= 0)
 			return ret2;
 	}
-#ifndef NO_ID2V2
+#ifndef NO_ID3V2
 	if(skiptag)
 	{
 #endif

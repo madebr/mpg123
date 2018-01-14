@@ -133,7 +133,9 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 	fi_init(&fr->index);
 	frame_index_setup(fr); /* Apply the size setting. */
 #endif
+#ifndef NO_MOREINFO
 	fr->pinfo = NULL;
+#endif
 }
 
 #ifdef OPT_DITHER
