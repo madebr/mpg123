@@ -126,7 +126,7 @@ static double wave_sine(double p)
 /*  ___|      */
 static double wave_square(double p)
 {
-	return (myfrac(p) < 0.5 ? -1 : 1);
+	return (p < 0.5 ? -1 : 1);
 }
 
 /*    1234    Avoid jump from zero at beginning. */
@@ -234,7 +234,7 @@ static void add_table( double *table, size_t samples
 			table[i] *= wave(myfrac( ((double)i+phaseoff)/spp + phase));
 	else
 		for(i=0; i<samples; ++i)
-			table[i] *= wave(1.-myfrac( ((double)i+phaseoff)/spp - phase));
+			table[i] *= wave(myfrac(1.-myfrac( ((double)i+phaseoff)/spp - phase)));
 }
 
 /* Construct the prototype table in double precision. */
