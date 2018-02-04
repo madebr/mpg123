@@ -255,6 +255,9 @@ int attribute_align_arg mpg123_par(mpg123_pars *mp, enum mpg123_parms key, long 
 			ret = MPG123_MISSING_FEATURE;
 #endif
 		break;
+		case MPG123_FREEFORMAT_SIZE:
+			mp->freeformat_framesize = val;
+		break; 
 		default:
 			ret = MPG123_BAD_PARAM;
 	}
@@ -344,6 +347,9 @@ int attribute_align_arg mpg123_getpar(mpg123_pars *mp, enum mpg123_parms key, lo
 			ret = MPG123_MISSING_FEATURE;
 #endif
 		break;
+		case MPG123_FREEFORMAT_SIZE:
+			*val = mp->freeformat_framesize;
+		break; 
 		default:
 			ret = MPG123_BAD_PARAM;
 	}

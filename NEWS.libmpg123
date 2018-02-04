@@ -12,6 +12,7 @@ Changes in libmpg123 libtool interface versions...
 	- added MPG123_STORE_RAW_ID3 and mpg123_id3_raw()
 	- added mpg123_new_string() and mpg123_delete_string()
 	- added MPG123_FORCE_ENDIAN and MPG123_BIG_ENDIAN
+	- added MPG123_NO_READAHEAD and MPG123_FREEFORMAT_SIZE
 
 44.0.44
 	- added mpg123_getformat2()

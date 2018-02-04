@@ -64,6 +64,7 @@ static void frame_default_pars(mpg123_pars *mp)
 	mp->feedpool = 5; 
 	mp->feedbuffer = 4096;
 #endif
+	mp->freeformat_framesize = -1;
 }
 
 void frame_init(mpg123_handle *fr)
@@ -564,7 +565,7 @@ static void frame_fixed_reset(mpg123_handle *fr)
 #endif
 	fr->halfphase = 0; /* here or indeed only on first-time init? */
 	fr->error_protection = 0;
-	fr->freeformat_framesize = -1;
+	fr->freeformat_framesize = fr->p.freeformat_framesize;
 	fr->enc_delay = -1;
 	fr->enc_padding = -1;
 	memset(fr->id3buf, 0, sizeof(fr->id3buf));

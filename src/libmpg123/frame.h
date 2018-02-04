@@ -84,6 +84,7 @@ struct mpg123_pars_struct
 	long feedpool;
 	long feedbuffer;
 #endif
+	long freeformat_framesize;
 };
 
 enum frame_state_flags

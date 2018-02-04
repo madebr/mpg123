@@ -543,7 +543,9 @@ init_resync:
 
 	if(!fr->firsthead)
 	{
-		ret = do_readahead(fr, newhead);
+		ret = fr->p.flags & MPG123_NO_READAHEAD
+		?	PARSE_GOOD
+		:	do_readahead(fr, newhead);
 		/* readahead can fail mit NEED_MORE, in which case we must also make the just read header available again for next go */
 		if(ret < 0) fr->rd->back_bytes(fr, 4);
 		JUMP_CONCLUSION(ret);
@@ -787,6 +789,12 @@ static int decode_header(mpg123_handle *fr,unsigned long newhead, int *freeforma
 		if(fr->freeformat_framesize < 0)
 		{
 			int ret;
+			if(fr->p.flags & MPG123_NO_READAHEAD)
+			{
+				if(VERBOSE3)
+					error("Got no free-format frame size and am not allowed to read ahead.");
+				return PARSE_BAD;
+			}
 			*freeformat_count += 1;
 			if(*freeformat_count > 5)
 			{
