@@ -104,7 +104,7 @@
 #endif
 
 /* error macros also here... */
-#ifndef NO_ERROR
+#ifndef NO_ERRORMSG
 #define error(s) fprintf(stderr, DBGPRFX"[" __FILE__ ":%i] error: " s "\n", __LINE__)
 #define error1(s, a) fprintf(stderr, DBGPRFX"[" __FILE__ ":%i] error: " s "\n", __LINE__, a)
 #define error2(s, a, b) fprintf(stderr, DBGPRFX"[" __FILE__ ":%i] error: " s "\n", __LINE__, a, b)

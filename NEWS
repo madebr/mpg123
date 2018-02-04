@@ -43,6 +43,7 @@
    the frame buffer before, but now it happens with diagnostics and more
    checks before it may happen.
 -- Optionally enforce output endianess (big/little) away from native.
+-- Fix build without error messages.
 
 1.25.8
 ------
