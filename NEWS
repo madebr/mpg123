@@ -44,6 +44,8 @@
    checks before it may happen.
 -- Optionally enforce output endianess (big/little) away from native.
 -- Fix build without error messages.
+-- Disable buffer when neither mmap nor shm functions detected (fixes
+   build for Android, thanks to vquicksilver).
 
 1.25.8
 ------

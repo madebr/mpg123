@@ -1144,7 +1144,11 @@ AC_SUBST(LFS_LOBJ)
 
 dnl ############## Function Checks
 
-AC_FUNC_MMAP
+AC_CHECK_FUNCS([mmap],[have_mmap=yes],[have_mmap=no])
+if test "x$have_mmap" = "xno"; then
+  AC_CHECK_HEADERS([sys/ipc.h sys/shm.h],[], [buffer=disabled])
+  AC_CHECK_FUNCS([shmget shmat shmdt shmctl],[], [buffer=disabled])
+fi
 
 # Check if system supports termios
 AC_SYS_POSIX_TERMIOS
