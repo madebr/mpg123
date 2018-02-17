@@ -1,0 +1,348 @@
+/*
+	syn123: some signal synthesis born out of out123
+
+	copyright 2017-2018 by the mpg123 project,
+	free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.org
+
+	initially written by Thomas Orgis
+
+	With the need to present the generated signals with differing
+	encodings for playback, the two-fold nature of this library
+	emerges: Signal generation and encoding conversion. Both can be
+	rather trivial indivdually, but become tedious when one wants
+	to cover a certain range of options. So, here it is. This is
+	not designed to be another full-fledged audio synthesis package.
+	It is designed to be what one can use to get some test sound into
+	(or out of) a program quickly without a big framework.
+	I try to keep it small, adding gimmicks only if they have a high
+	fun-to-code ratio (for me;-).
+*/
+
+#ifndef SYN123_H
+#define SYN123_H
+
+/** \file syn123.h The header file for the libsyn123 library. */
+
+/* Common audio encoding specification. */
+#include <fmt123.h>
+
+/** A macro to check at compile time which set of API functions to expect.
+ * This should be incremented at least each time a new symbol is added
+ * to the header.
+ */
+#define SYN123_API_VERSION @SYNAPI_VERSION@
+
+#ifndef MPG123_EXPORT
+/** Defines needed for MS Visual Studio(tm) DLL builds.
+ * Every public function must be prefixed with MPG123_EXPORT. When building 
+ * the DLL ensure to define BUILD_MPG123_DLL. This makes the function accessible
+ * for clients and includes it in the import library which is created together
+ * with the DLL. When consuming the DLL ensure to define LINK_MPG123_DLL which
+ * imports the functions from the DLL. 
+ */
+#ifdef BUILD_MPG123_DLL
+/* The dll exports. */
+#define MPG123_EXPORT __declspec(dllexport)
+#else
+#ifdef LINK_MPG123_DLL
+/* The exe imports. */
+#define MPG123_EXPORT __declspec(dllimport)
+#else
+/* Nothing on normal/UNIX builds */
+#define MPG123_EXPORT
+#endif
+#endif
+#endif
+
+#ifndef MPG123_RESTRICT
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+#define MPG123_RESTRICT restrict
+#else
+#define MPG123_RESTRICT
+#endif
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/** \defgroup syn123_api syn123 library API
+ *
+ *  The usage model is this:
+ *
+ *  1. Create handle with desired output format.
+ *  2. Set up synthesis mode with parameters.
+ *  3. Repeatedly extract buffers with PCM samples.
+ *
+ *  Idea: configurable time shift and balance between channels,
+ *  for stereo experiments. Simple for two. But for more? Well,
+ *  an array of shifts and channel volume. Doesn't hurt if I 
+ *  have the channel index in the outmost loop anyway.
+ *
+ *  The buffering of the oscillators in a table should be optional.
+ *  For small freqs, it will be likely slower than just computing
+ *  as the table is spilling out of the caches. I could get smart
+ *  and try to mix the approaches. Really slow oscillations (usually
+ *  a pulse/shot/gaussian) could be applied to the existing buffer.
+ *  But this is just toying around ...
+ @{
+ */
+
+/** Opaque structure for the libsyn123 handle. */
+struct syn123_struct;
+/** Typedef shortcut as preferrend name for the handle type. */
+typedef struct syn123_struct syn123_handle;
+
+/** Functions that return an integer success code either return
+ *  SYN123_OK if everything went fine, or one of the other detailed
+ *  error codes.
+ */
+enum syn123_error
+{
+	SYN123_OK = 0   /**< no error */
+,	SYN123_BAD_HANDLE /**< bad handle given (NULL) */
+,	SYN123_BAD_FMT  /**< bad format (rate/channels) */
+,	SYN123_BAD_ENC  /**< bad encoding given */
+,	SYN123_BAD_CONV /**< unsupported conversion */
+,	SYN123_BAD_SIZE /**< buffer size bad (too small) */
+,	SYN123_BAD_BUF  /**< bad buffer pointer (NULL) */
+,	SYN123_BAD_CHOP /**< byte buffer not cut at sample boundaries */
+,	SYN123_DOOM     /**< Disaster, Out Of Memory. */
+,	SYN123_WEIRD    /**< An internal error that should never occur. */
+};
+
+/** Give a short phrase explaining an error code.
+ *  \param errcode the code returned by an API function
+ *  \return error phrase
+ */
+const char* syn123_strerror(int errcode);
+
+/** Wave types */
+enum syn123_wave_id
+{
+	SYN123_WAVE_INVALID = -1 /**< invalid wave pattern */
+,	SYN123_WAVE_NONE = 0 /**< flat line, silence */
+,	SYN123_WAVE_SINE     /**< sinusodial wave*/
+,	SYN123_WAVE_SQUARE   /**< square wave */
+,	SYN123_WAVE_TRIANGLE /**< triangle wave */
+,	SYN123_WAVE_SAWTOOTH /**< sawtooth wave */
+,	SYN123_WAVE_GAUSS    /**< Gaussian bell shape */
+,	SYN123_WAVE_PULSE    /**< pulse shape, x^2 exp(-A x^2)/S */
+,	SYN123_WAVE_SHOT     /**< shot (sharper pulse), x^2 exp(-A x)/S
+	* (different values for A and S) */
+,	SYN123_WAVE_LIMIT /**< valid IDs below that. A newer release of
+	* the library might support more. */
+};
+
+/** Create new handle with specified output format.
+ *  \param rate sampling rate
+ *  \param channels channel count (duplicated mono channels)
+ *  \param encoding sample encoding (see enum mpg123_enc_enum)
+ *  \param maxbuff maximum buffer size in bytes to allow for caching periodic
+ *    signals. When this is given, it is attempted to fit any configured signal
+ *    into this buffer in the hope it will work being played periodically. Maybe
+ *    there will be tricks with non-periodic signals.
+ *    A buffer size of zero turns off buffering and signals are always generated
+ *    during extraction.
+ *  \param err address to store error code, non-NULL if you care
+ *  \return Pointer to allocated handle structure or NULL on error.
+ */
+MPG123_EXPORT
+syn123_handle* syn123_new( long rate, int channels, int encoding
+,	size_t maxbuf, int *err );
+
+/** Delete a handle.
+ *  \param sh the handle to delete
+ */
+MPG123_EXPORT
+void syn123_del(syn123_handle *sh);
+
+/** Extract desired amount of data from the generator.
+ *  \param sh handle
+ *  \param dest destination buffer
+ *  \param dest_bytes number of bytes to extract
+ *  \return actual number of extracted bytes
+ *  (might differ if dest_bytes is no multiple of the PCM frame size)
+ */
+MPG123_EXPORT
+size_t syn123_read(syn123_handle *sh, void *dest, size_t dest_bytes);
+
+
+/** Setup periodic wave generator.
+ *  You can ensure strict periodicity without possible shifts in phases
+ *  due to floating point rounding errors with the buffered variant.
+ *  That may adjust your chosen frequencies to be able to keep the limit
+ *  on buffer size, but the resulting data is then strictly periodic
+ *  without any further computations that may introduce timing errors.
+ *  Apart from possibly saving computing time via the precomputed table,
+ *  this is the reason to pre-mix multiple waves into a common buffer at
+ *  all.
+ *
+ *  The adjustments of the wave frequencies also include limiting them
+ *  between some minimal value and the Nyquist frequency. Without the
+ *  buffer, you can happily choose waves that are not resolved at all
+ *  by the sampling rate and get the nasty results. Things get nasty
+ *  inside the buffer, too when you approach the Nyquist limit, but that
+ *  is life (and mathematics).
+ *
+ *  \param sh handle
+ *  \param count number of waves (if zero, a standard sine wave with
+ *    440 Hz is chosen)
+ *  \param id array of wave IDs (enum syn123_wave_id), may be NULL
+ *  \param freq array of wave frequencies, may be NULL
+ *     Your provided frequencies are overwritten with the actual
+ *     values if the periodic buffer is chosen.
+ *  \param phase array of wave phases, may be NULL
+ *  \param backwards array of true (non-zero) or false indication
+      of the wave being inverted in time, may be NULL
+ *  \param common_period address to store the size of the period buffer
+ *    in samples (zero if not using the buffer), ignored if NULL
+ *  \return success code
+ */
+MPG123_EXPORT
+int syn123_setup_waves( syn123_handle* sh, size_t count
+,	int *id, double *freq, double *phase, int* backwards
+,	size_t *common_period );
+
+/** Return the name of the indicated wave pattern.
+ *  \param id The numerical ID of the wave pattern
+ *    (out of enum syn123_wave_id).
+ *  \return The name string, guaranteed to be non-NULL.
+ *    Invalid codes yield the string "???".
+ */
+MPG123_EXPORT
+const char* syn123_wave_name(int id);
+
+/** Return the wave pattern id given a name string.
+ *  \param name The name string.
+ *  \return The numerical id (out of enum syn123_wave_id).
+ *  
+ */
+MPG123_EXPORT
+int syn123_wave_id(const char *name);
+
+/** Convert between supported encodings.
+ *  The buffers shall not overlap.
+ *  Note that syn123 uses a symmetric range to scale between float and integer
+ *  encodings, leaving the most negative integer value unused. This differs
+ *  from libmpg123, which uses 32768 for signed 16 bit, for example.
+ *  There is no universal correct way. Since we are dealing with pure wave
+ *  generators here and the conversions are an adjunct to that, symmetry is
+ *  preferred over that last fraction of dynamic range.
+ *  The conversions only work either from anything to double/float or from
+ *  double/float to anything. Also the ulaw and alaw conversions use Sun's
+ *  reference implementation of the G711 standard (differing from libmpg123's
+ *  big lookup table).
+ *
+ *  \param dest destination buffer
+ *  \param dest_enc destination encoding (enum mpg123_enc_enum)
+ *  \param dest_size size of destination buffer in bytes
+ *  \param src source buffer
+ *  \param src_enc source encoding
+ *  \param src_bytes source buffer size in bytes
+ *  \param dest_bytes optional address to store the written byte count to
+ *  \return success code
+ */
+MPG123_EXPORT
+int syn123_conv( void * MPG123_RESTRICT dest, int dest_enc, size_t dest_size
+,	void * MPG123_RESTRICT src, int src_enc, size_t src_bytes
+,	size_t *dest_bytes );
+
+/** Interleave given number of channels into one stream.
+ *  A rather trivial functionality, here for completeness. As the
+ *  algorithm is agnostic to what is actually stored as a "sample",
+ *  the parameter types are so generic that you could use these
+ *  functions to arrange huge structs (hence samplesize as size_t)
+ *  or whatever. If that makes sense is up to you.
+ *  The buffers shall not overlap!
+ *  \param dest destination buffer
+ *  \param src source buffer array (one per channel)
+ *  \param channels channel count
+ *  \param samplesize size of one sample
+ *  \param samplecount count of samples per channel
+ */
+MPG123_EXPORT
+void syn123_interleave( void * MPG123_RESTRICT dest, void** MPG123_RESTRICT src
+,	int channels, size_t samplesize, size_t samplecount );
+
+/** Deinterleave given number of channels out of one stream.
+ *  A rather trivial functionality, here for completeness. As the
+ *  algorithm is agnostic to what is actually stored as a "sample",
+ *  the parameter types are so generic that you could use these
+ *  functions to arrange huge structs (hence samplesize as size_t)
+ *  or whatever. If that makes sense is up to you.
+ *  The buffers shall not overlap!
+ *  \param dest destination buffer array (one per channel)
+ *  \param src source buffer
+ *  \param channels channel count
+ *  \param samplesize size of one sample (see MPG123_SAMPLESIZE)
+ *  \param samplecount count of samples per channel
+ */
+MPG123_EXPORT
+void syn123_deinterleave( void ** MPG123_RESTRICT dest, void * MPG123_RESTRICT src
+,	int channels, size_t samplesize, size_t samplecount );
+
+/** Simply copies mono samples into an interleaved stream.
+ *  This might be implemented by a call to syn123_interleave(), it might
+ *  be optimized to something different. You could have fun measuring that.
+ *  \param dest destination buffer
+ *  \param src source buffer
+ *  \param channels channel count
+ *  \param samplesize size of one sample (see MPG123_SAMPLESIZE)
+ *  \param samplecount count of samples per channel
+ */
+MPG123_EXPORT
+void syn123_mono2many( void * MPG123_RESTRICT dest, void * MPG123_RESTRICT src
+, int channels, size_t samplesize, size_t samplecount );
+
+/** Swap byte order between little/big endian.
+ *  \param buf buffer to work on
+ *  \param samplesize size of one sample (see MPG123_SAMPLESIZE)
+ *  \param samplecount count of samples
+ */
+MPG123_EXPORT
+void syn123_swap_bytes(void* buf, size_t samplesize, size_t samplecount);
+
+/* Wrappers over the above to convert to/from syn123's native byte order
+   from/to little or big endian. */
+
+/** Convert from host order to little endian.
+ *  \param buf buffer to work on
+ *  \param samplesize size of one sample (see MPG123_SAMPLESIZE)
+ *  \param samplecount count of samples
+ */
+MPG123_EXPORT
+void syn123_host2le(void *buf, size_t samplesize, size_t samplecount);
+
+/** Convert from host order to big endian.
+ *  \param buf buffer to work on
+ *  \param samplesize size of one sample (see MPG123_SAMPLESIZE)
+ *  \param samplecount count of samples
+ */
+MPG123_EXPORT
+void syn123_host2be(void *buf, size_t samplesize, size_t samplecount);
+
+/** Convert from little endian to host order.
+ *  \param buf buffer to work on
+ *  \param samplesize size of one sample (see MPG123_SAMPLESIZE)
+ *  \param samplecount count of samples
+ */
+MPG123_EXPORT
+void syn123_le2host(void *buf, size_t samplesize, size_t samplecount);
+
+/** Convert from big endian to host order.
+ *  \param buf buffer to work on
+ *  \param samplesize size of one sample (see MPG123_SAMPLESIZE)
+ *  \param samplecount count of samples
+ */
+MPG123_EXPORT
+void syn123_be2host(void *buf, size_t samplesize, size_t samplecount);
+
+/* @} */
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

@@ -1,8 +1,10 @@
 /*
 	out123: simple program to stream data to an audio output device
 
-	copyright 1995-2016 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1995-2018 by the mpg123 project,
+	free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
+
 	initially written by Thomas Orgis (extracted from mpg123.c)
 
 	This is a stripped down mpg123 that only uses libout123 to write standard input
@@ -10,11 +12,18 @@
 
 	TODO: Add basic parsing of WAV headers to be able to pipe in WAV files, especially
 	from something like mpg123 -w -.
+
+	TODO: Add option for phase shift between channels (delaying the second one).
+	This might be useful with generated signals, to locate left/right speakers
+	or just generally enhance the experience ... compensating for speaker locations.
+	This also means the option of mixing, channel attentuation. This is not
+	too hard to implement and might be useful for debugging outputs.
 */
 
 #define ME "out123"
 #include "config.h"
 #include "compat.h"
+#include <ctype.h>
 #if WIN32
 #include "win32_support.h"
 #endif
@@ -38,7 +47,7 @@
 #include "sysutil.h"
 #include "getlopt.h"
 
-#include "waves.h"
+#include "syn123.h"
 
 #include "debug.h"
 
@@ -83,6 +92,7 @@ off_t offset = 0;
 char *wave_patterns = NULL;
 char *wave_freqs    = NULL;
 char *wave_phases   = NULL;
+char *wave_direction = NULL;
 /* Default to around 2 MiB memory for the table. */
 long wave_limit     = 300000;
 
@@ -92,7 +102,7 @@ size_t pcmframe = 0;
 unsigned char *audio = NULL;
 
 /* Option to play some oscillatory test signals. */
-struct wave_table *waver = NULL;
+syn123_handle *waver = NULL;
 
 out123_handle *ao = NULL;
 char *cmd_name = NULL;
@@ -149,7 +159,7 @@ static void safe_exit(int code)
 	split_dir_file("", &dummy, &dammy);
 	if(fullprogname) free(fullprogname);
 	if(audio) free(audio);
-	wave_table_del(waver);
+	syn123_del(waver);
 	exit(code);
 }
 
@@ -366,7 +376,7 @@ static void test_encodings(char *arg)
 	enc_count = out123_enc_list(&enc_codes);
 	for(i=0;i<enc_count;++i)
 	{
-		if(encs & enc_codes[i] == enc_codes[i])
+		if((encs & enc_codes[i]) == enc_codes[i])
 			printf("%s\n", out123_enc_name(enc_codes[i]));
 	}
 	free(enc_codes);
@@ -470,6 +480,7 @@ topt opts[] = {
 	{0, "wave-pat", GLO_ARG|GLO_CHAR, 0, &wave_patterns, 0},
 	{0, "wave-freq", GLO_ARG|GLO_CHAR, 0, &wave_freqs, 0},
 	{0, "wave-phase", GLO_ARG|GLO_CHAR, 0, &wave_phases, 0},
+	{0, "wave-direction", GLO_ARG|GLO_CHAR, 0, &wave_direction, 0},
 	{0, "wave-limit", GLO_ARG|GLO_LONG, 0, &wave_limit, 0},
 	{0, 0, 0, 0, 0, 0}
 };
@@ -500,7 +511,11 @@ static char *mytok(char **choppy)
 		++(*choppy);
 	/* Another token follows if we found a separator. */
 	if(**choppy == ',')
+	{
 		*(*choppy)++ = 0;
+		while(isspace(**choppy))
+			*(*choppy)++ = 0;
+	}
 	else
 		*choppy = NULL; /* Nothing left. */
 	return tok;
@@ -511,8 +526,10 @@ static void setup_wavegen(void)
 	size_t count = 0;
 	size_t i;
 	double *freq = NULL;
+	double *freq_real = NULL;
 	double *phase = NULL;
-	const char **pat = NULL;
+	int *backwards = NULL;
+	int *id = NULL;
 
 	if(wave_freqs)
 	{
@@ -520,7 +537,8 @@ static void setup_wavegen(void)
 		char *next;
 		count = mytok_count(wave_freqs);
 		freq = malloc(sizeof(double)*count);
-		if(!freq){ error("OOM!"); safe_exit(1); }
+		freq_real = malloc(sizeof(double)*count);
+		if(!freq || !freq_real){ error("OOM!"); safe_exit(1); }
 		next = wave_freqs;
 		for(i=0; i<count; ++i)
 		{
@@ -532,6 +550,7 @@ static void setup_wavegen(void)
 			else
 				freq[i] = 0;
 		}
+		memcpy(freq_real, freq, sizeof(double)*count);
 	}
 	else return;
 
@@ -539,15 +558,19 @@ static void setup_wavegen(void)
 	{
 		char *tok;
 		char *next = wave_patterns;
-		pat = malloc(sizeof(char*)*count);
-		if(!pat){ error("OOM!"); safe_exit(1); }
+		id = malloc(sizeof(int)*count);
+		if(!id){ error("OOM!"); safe_exit(1); }
 		for(i=0; i<count; ++i)
 		{
 			tok = mytok(&next);
 			if((tok && *tok) || i==0)
-				pat[i] = tok;
+			{
+				id[i] = syn123_wave_id(tok);
+				if(id[i] < 0)
+					fprintf(stderr, "Warning: bad wave pattern: %s\n", tok);
+			}
 			else
-				pat[i] = pat[i-1];
+				id[i] = id[i-1];
 		}
 	}
 
@@ -556,7 +579,8 @@ static void setup_wavegen(void)
 		char *tok;
 		char *next = wave_phases;
 		phase = malloc(sizeof(double)*count);
-		if(!phase){ error("OOM!"); safe_exit(1); }
+		backwards = malloc(sizeof(int)*count);
+		if(!phase || !backwards){ error("OOM!"); safe_exit(1); }
 		for(i=0; i<count; ++i)
 		{
 			tok = mytok(&next);
@@ -566,33 +590,64 @@ static void setup_wavegen(void)
 				phase[i] = phase[i-1];
 			else
 				phase[i] = 0;
+			if(phase[i] < 0)
+			{
+				phase[i] *= -1;
+				backwards[i] = TRUE;
+			}
+			else
+				backwards[i] = FALSE;
 		}
 	}
 
-	waver = wave_table_new( rate, channels, encoding, count, freq, pat, phase
-	,	(size_t)wave_limit );
-	if(!waver)
+	if(count && wave_direction)
 	{
-		error("Cannot set up wave generator.");
-		safe_exit(132);
+		char *tok;
+		char *next = wave_direction;
+		if(!backwards)
+			backwards = malloc(sizeof(int)*count);
+		if(!backwards){ error("OOM!"); safe_exit(1); }
+		for(i=0; i<count; ++i)
+		{
+			tok = mytok(&next);
+			if(tok && *tok)
+				backwards[i] = atof(tok) < 0 ? TRUE : FALSE;
+			else if(i)
+				backwards[i] = backwards[i-1];
+			else
+				backwards[i] = FALSE;
+		}
 	}
 
+	int synerr = 0;
+	size_t common;
+	waver = syn123_new(rate, channels, encoding, wave_limit, &synerr);
+	if(waver)
+		synerr = syn123_setup_waves( waver, count
+		,	id, freq_real, phase, backwards, &common );
+	if(!waver || synerr)
+	{
+		error1("setting up wave generator: %s\n", syn123_strerror(synerr));
+		safe_exit(132);
+	}
 	if(verbose)
 	{
-		fprintf(stderr, "wave table of %" SIZE_P " samples\n", waver->samples);
-		/* TODO: There is a crash here! pat being optimised away ... */
+		if(common)
+			fprintf(stderr, "periodic signal table of %" SIZE_P " samples\n", common);
+		else
+			fprintf(stderr, "live signal generation\n");
 		for(i=0; i<count; ++i)
 			fprintf( stderr, "wave %" SIZE_P ": %s @ %g Hz (%g Hz) p %g\n"
 			,	i
-			,	(pat && pat[i]) ? pat[i] : wave_pattern_default
-			,	freq[i], waver->freq[i]
+			,	syn123_wave_name(id ? id[i] : SYN123_WAVE_SINE)
+			,	freq[i], freq_real[i]
 			,	phase ? phase[i] : 0 );
 	}
 
 	if(phase)
 		free(phase);
-	if(pat)
-		free(pat);
+	if(id)
+		free(id);
 	if(freq)
 		free(freq);
 }
@@ -610,7 +665,7 @@ int play_frame(void)
 			get_samples = (off_t)timelimit-offset;
 	}
 	if(waver)
-		got_samples = wave_table_extract(waver, audio, get_samples);
+		got_samples = syn123_read(waver, audio, get_samples*pcmframe)/pcmframe;
 	else
 		got_samples = fread(audio, pcmframe, get_samples, input);
 	/* Play what is there to play (starting with second decode_frame call!) */
@@ -756,7 +811,7 @@ int main(int sys_argc, char ** sys_argv)
 	if(encoding_name)
 	{
 		encoding = out123_enc_byname(encoding_name);
-		if(!encoding)
+		if(encoding < 0)
 		{
 			error1("Unknown encoding '%s' given!\n", encoding_name);
 			safe_exit(1);
@@ -816,6 +871,8 @@ static char* output_enclist(void)
 	int *enc_codes = NULL;
 
 	enc_count = out123_enc_list(&enc_codes);
+	if(enc_count < 0 || !enc_codes)
+		return NULL;
 	for(i=0;i<enc_count;++i)
 		len += strlen(out123_enc_name(enc_codes[i]));
 	len += enc_count;
@@ -917,12 +974,21 @@ static void long_usage(int err)
 	fprintf(o,"                           test signal instead of standard input,\n");
 	fprintf(o,"                           empty value repeating the previous\n");
 	fprintf(o,"        --wave-pat <p>     set wave pattern(s) (out of those:\n");
-	fprintf(o,"                           %s),\n", wave_pattern_list);
+	{
+		int i=0;
+		const char* wn;
+		while((wn=syn123_wave_name(i++)) && wn[0] != '?')
+			fprintf(o, "                           %s\n", wn);
+	}
+	fprintf(o,"                           ),\n");
 	fprintf(o,"                           empty value repeating the previous\n");
 	fprintf(o,"        --wave-phase <p>   set wave phase shift(s), negative values\n");
 	fprintf(o,"                           inverting the pattern in time and\n");
-	fprintf(o,"                           empty value repeating the previous\n");
-	fprintf(o,"        --wave-limit <l>   soft limit on wave table size\n");
+	fprintf(o,"                           empty value repeating the previous,\n");
+	fprintf(o,"                           --wave-direction overriding the negative bit\n");
+	fprintf(o,"        --wave-direction <d> set direction explicitly (the sign counts)\n");
+	fprintf(o,"        --wave-limit <l>   hard limit on wave table size in bytes\n");
+	fprintf(o,"                           (zero disables table for live computation)\n");
 	fprintf(o," -t     --test             no output, just read and discard data (-o test)\n");
 	fprintf(o," -v[*]  --verbose          increase verboselevel\n");
 	#ifdef HAVE_SETPRIORITY

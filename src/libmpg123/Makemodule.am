@@ -34,6 +34,7 @@ src_libmpg123_libmpg123_la_SOURCES = \
   src/libmpg123/parse.h \
   src/libmpg123/frame.c \
   src/libmpg123/format.c \
+  src/libmpg123/swap_bytes_impl.h \
   src/libmpg123/frame.h \
   src/libmpg123/reader.h \
   src/libmpg123/debug.h \

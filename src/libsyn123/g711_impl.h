@@ -64,7 +64,7 @@ static int16_t seg_uend[8] = {
 	0x3FF, 0x7FF, 0xFFF, 0x1FFF
 };
 
-static int search(int16_t, val, int16_t *table, int size)
+static int search(int16_t val, int16_t *table, int size)
 {
 	int i;
 

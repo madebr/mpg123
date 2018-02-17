@@ -287,10 +287,13 @@ int open_picfile(const char* prefix, mpg123_picture* pic)
 	fd = compat_open(pfn, O_CREAT|O_WRONLY|O_EXCL);
 	while(fd < 0 && errno == EEXIST && ++count < ULONG_MAX)
 	{
-		char dum;
+		char dum[3];
 		size_t digits;
 
-		digits = snprintf(&dum, 1, "%lu", count);
+		// Just want to know the number of bytes needed.
+		// Modern compiler diagnostics complain if limit is smaller than
+		// format string, so increasing dummy to 3 characters.
+		digits = snprintf(dum, 3, "%lu", count);
 		if(!(pfn=safe_realloc(pfn, len+digits+1))) exit(11);
 
 		sprintf(pfn, "%s.%s%lu.%s", prefix, typestr, count, end);

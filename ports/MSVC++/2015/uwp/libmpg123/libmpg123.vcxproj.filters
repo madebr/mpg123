@@ -28,6 +28,7 @@
     <ClInclude Include="..\..\..\..\..\src\libmpg123\parse.h" />
     <ClInclude Include="..\..\..\..\..\src\libmpg123\reader.h" />
     <ClInclude Include="..\..\..\..\..\src\libmpg123\sample.h" />
+    <ClInclude Include="..\..\..\..\..\src\libmpg123\swap_bytes_impl.h" />
     <ClInclude Include="..\..\..\..\..\src\libmpg123\synth.h" />
     <ClInclude Include="..\..\..\..\..\src\libmpg123\synth_8bit.h" />
     <ClInclude Include="..\..\..\..\..\src\libmpg123\synth_mono.h" />

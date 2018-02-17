@@ -30,6 +30,7 @@
 		CD132C90152A4D7E00B4F5A8 /* parse.h in Headers */ = {isa = PBXBuildFile; fileRef = CD132C75152A4D7E00B4F5A8 /* parse.h */; };
 		CD132C91152A4D7E00B4F5A8 /* reader.h in Headers */ = {isa = PBXBuildFile; fileRef = CD132C76152A4D7E00B4F5A8 /* reader.h */; };
 		CD132C92152A4D7E00B4F5A8 /* sample.h in Headers */ = {isa = PBXBuildFile; fileRef = CD132C77152A4D7E00B4F5A8 /* sample.h */; };
+		CD132C92152A4D7E00B4F5A8 /* swap_bytes_impl.h in Headers */ = {isa = PBXBuildFile; fileRef = CD132C77152A4D7E00B4F5A8 /* swap_bytes_impl.h */; };
 		CD132C93152A4D7E00B4F5A8 /* synth_8bit.h in Headers */ = {isa = PBXBuildFile; fileRef = CD132C78152A4D7E00B4F5A8 /* synth_8bit.h */; };
 		CD132C94152A4D7E00B4F5A8 /* synth_mono.h in Headers */ = {isa = PBXBuildFile; fileRef = CD132C79152A4D7E00B4F5A8 /* synth_mono.h */; };
 		CD132C95152A4D7E00B4F5A8 /* synth_ntom.h in Headers */ = {isa = PBXBuildFile; fileRef = CD132C7A152A4D7E00B4F5A8 /* synth_ntom.h */; };
@@ -111,6 +112,7 @@
 		CDB028B3152B764100B01410 /* reader.h in Headers */ = {isa = PBXBuildFile; fileRef = CD132C76152A4D7E00B4F5A8 /* reader.h */; };
 		CDB028B4152B764100B01410 /* readers.c in Sources */ = {isa = PBXBuildFile; fileRef = CD132CAC152A4E7000B4F5A8 /* readers.c */; };
 		CDB028B5152B764900B01410 /* sample.h in Headers */ = {isa = PBXBuildFile; fileRef = CD132C77152A4D7E00B4F5A8 /* sample.h */; };
+		CDB028B5152B764900B01410 /* swap_bytes_impl.h in Headers */ = {isa = PBXBuildFile; fileRef = CD132C77152A4D7E00B4F5A8 /* swap_bytes_impl.h */; };
 		CDB028B6152B764900B01410 /* stringbuf.c in Sources */ = {isa = PBXBuildFile; fileRef = CD132CAD152A4E7000B4F5A8 /* stringbuf.c */; };
 		CDB028B7152B764900B01410 /* synth.c in Sources */ = {isa = PBXBuildFile; fileRef = CD132CB1152A4E7000B4F5A8 /* synth.c */; };
 		CDB028B8152B764900B01410 /* synth_8bit.h in Headers */ = {isa = PBXBuildFile; fileRef = CD132C78152A4D7E00B4F5A8 /* synth_8bit.h */; };
@@ -153,6 +155,7 @@
 		CD132C75152A4D7E00B4F5A8 /* parse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = parse.h; sourceTree = "<group>"; };
 		CD132C76152A4D7E00B4F5A8 /* reader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = reader.h; sourceTree = "<group>"; };
 		CD132C77152A4D7E00B4F5A8 /* sample.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sample.h; sourceTree = "<group>"; };
+		CD132C77152A4D7E00B4F5A8 /* swap_bytes_impl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = swap_bytes_impl.h; sourceTree = "<group>"; };
 		CD132C78152A4D7E00B4F5A8 /* synth_8bit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = synth_8bit.h; sourceTree = "<group>"; };
 		CD132C79152A4D7E00B4F5A8 /* synth_mono.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = synth_mono.h; sourceTree = "<group>"; };
 		CD132C7A152A4D7E00B4F5A8 /* synth_ntom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = synth_ntom.h; sourceTree = "<group>"; };
@@ -297,6 +300,7 @@
 				CD132C76152A4D7E00B4F5A8 /* reader.h */,
 				CD132CAC152A4E7000B4F5A8 /* readers.c */,
 				CD132C77152A4D7E00B4F5A8 /* sample.h */,
+				CD132C77152A4D7E00B4F5A8 /* swap_bytes_impl.h */,
 				CD132CAD152A4E7000B4F5A8 /* stringbuf.c */,
 				CD132CB1152A4E7000B4F5A8 /* synth.c */,
 				CD132C78152A4D7E00B4F5A8 /* synth_8bit.h */,
@@ -349,6 +353,7 @@
 				CD132C90152A4D7E00B4F5A8 /* parse.h in Headers */,
 				CD132C91152A4D7E00B4F5A8 /* reader.h in Headers */,
 				CD132C92152A4D7E00B4F5A8 /* sample.h in Headers */,
+				CD132C92152A4D7E00B4F5A8 /* swap_bytes_impl.h in Headers */,
 				CD132C93152A4D7E00B4F5A8 /* synth_8bit.h in Headers */,
 				CD132C94152A4D7E00B4F5A8 /* synth_mono.h in Headers */,
 				CD132C95152A4D7E00B4F5A8 /* synth_ntom.h in Headers */,
@@ -383,6 +388,7 @@
 				CDB028B1152B764100B01410 /* parse.h in Headers */,
 				CDB028B3152B764100B01410 /* reader.h in Headers */,
 				CDB028B5152B764900B01410 /* sample.h in Headers */,
+				CDB028B5152B764900B01410 /* swap_bytes_impl.h in Headers */,
 				CDB028B8152B764900B01410 /* synth_8bit.h in Headers */,
 				CDB028BA152B764900B01410 /* synth_mono.h in Headers */,
 				CDB028BB152B764900B01410 /* synth_ntom.h in Headers */,

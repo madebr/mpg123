@@ -3,6 +3,7 @@
 include src/compat/Makemodule.am
 include src/libmpg123/Makemodule.am
 include src/libout123/Makemodule.am
+include src/libsyn123/Makemodule.am
 
 bin_PROGRAMS += \
   src/mpg123 \
@@ -20,6 +21,7 @@ src_mpg123_LDFLAGS = @EXEC_LT_LDFLAGS@
 
 src_out123_LDADD = \
   src/compat/libcompat.la \
+  src/libsyn123/libsyn123.la \
   src/libout123/libout123.la
 
 src_out123_LDFLAGS = @EXEC_LT_LDFLAGS@
@@ -83,8 +85,6 @@ src_mpg123_SOURCES +=
 src_out123_SOURCES = \
   src/sysutil.c \
   src/sysutil.h \
-  src/waves.c \
-  src/waves.h \
   src/common.h \
   src/getlopt.c \
   src/getlopt.h \

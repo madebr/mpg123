@@ -30,6 +30,7 @@ AM_CPPFLAGS += \
   -I$(top_srcdir)/src/libmpg123 \
   -I$(top_srcdir)/src/libout123 \
   -I$(top_builddir)/src/libmpg123 \
+  -I$(top_builddir)/src/libsyn123 \
   -I$(top_builddir)/src/libout123
 
 pkgconfigdir = $(libdir)/pkgconfig

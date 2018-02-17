@@ -26,6 +26,7 @@
 */
 
 #include "mpg123lib_intern.h"
+#include "sample.h"
 #include "debug.h"
 
 /* static int chans[NUM_CHANNELS] = { 1 , 2 }; */
@@ -495,37 +496,17 @@ off_t outblock_bytes(mpg123_handle *fr, off_t s)
 }
 
 #ifndef NO_32BIT
+
 /* Remove every fourth byte, facilitating conversion from 32 bit to 24 bit integers.
    This has to be aware of endianness, of course. */
 static void chop_fourth_byte(struct outbuffer *buf)
 {
 	unsigned char *wpos = buf->data;
 	unsigned char *rpos = buf->data;
-#ifdef WORDS_BIGENDIAN
-	while((size_t) (rpos - buf->data + 4) <= buf->fill)
-	{
-		/* Really stupid: Copy, increment. Byte per byte. */
-		*wpos = *rpos;
-		wpos++; rpos++;
-		*wpos = *rpos;
-		wpos++; rpos++;
-		*wpos = *rpos;
-		wpos++; rpos++;
-		rpos++; /* Skip the lowest byte (last). */
-	}
-#else
-	while((size_t) (rpos - buf->data + 4) <= buf->fill)
-	{
-		/* Really stupid: Copy, increment. Byte per byte. */
-		rpos++; /* Skip the lowest byte (first). */
-		*wpos = *rpos;
-		wpos++; rpos++;
-		*wpos = *rpos;
-		wpos++; rpos++;
-		*wpos = *rpos;
-		wpos++; rpos++;
-	}
-#endif
+	size_t blocks = buf->fill/4;
+	size_t i;
+	for(i=0; i<blocks; ++i,wpos+=4,rpos+=4)
+		DROP4BYTE(wpos, rpos)
 	buf->fill = wpos-buf->data;
 }
 
@@ -537,18 +518,7 @@ static void conv_s32_to_u32(struct outbuffer *buf)
 	size_t count = buf->fill/sizeof(int32_t);
 
 	for(i=0; i<count; ++i)
-	{
-		/* Different strategy since we don't have a larger type at hand.
-			 Also watch out for silly +-1 fun because integer constants are signed in C90! */
-		if(ssamples[i] >= 0)
-		usamples[i] = (uint32_t)ssamples[i] + 2147483647+1;
-		/* The smallest value goes zero. */
-		else if(ssamples[i] == ((int32_t)-2147483647-1))
-		usamples[i] = 0;
-		/* Now -value is in the positive range of signed int ... so it's a possible value at all. */
-		else
-		usamples[i] = (uint32_t)2147483647+1 - (uint32_t)(-ssamples[i]);
-	}
+		usamples[i] = CONV_SU32(ssamples[i]);
 }
 
 #endif
@@ -570,10 +540,7 @@ static void conv_s16_to_u16(struct outbuffer *buf)
 	size_t count = buf->fill/sizeof(int16_t);
 
 	for(i=0; i<count; ++i)
-	{
-		long tmp = (long)ssamples[i]+32768;
-		usamples[i] = (uint16_t)tmp;
-	}
+		usamples[i] = CONV_SU16(ssamples[i]);
 }
 
 #ifndef NO_REAL
@@ -629,53 +596,17 @@ static void conv_s16_to_s32(struct outbuffer *buf)
 #endif
 #endif
 
+#include "swap_bytes_impl.h"
+
 void swap_endian(struct outbuffer *buf, int block)
 {
 	size_t count;
-	size_t i;
-	unsigned char *p = buf->data;
-	unsigned char tmp;
 
-	if(block < 2)
-		return;
-	count = buf->fill/(unsigned int)block;
-	switch(block)
+	if(block >= 2)
 	{
-#define SWAP(a,b) tmp = p[a]; p[a] = p[b]; p[b] = tmp;
-		case 2: /* AB -> BA */
-			for(i=0; i<count; ++i, p+=2)
-			{
-				SWAP(0,1)
-			}
-		break;
-		case 3: /* ABC -> CBA */
-			for(i=0; i<count; ++i, p+=3)
-			{
-				SWAP(0,2)
-			}
-		break;
-		case 4: /* ABCD -> DCBA */
-			for(i=0; i<count; ++i, p+=4)
-			{
-				SWAP(0,3)
-				SWAP(1,2)
-			}
-		break;
-#ifdef REAL_IS_DOUBLE
-		/* In case we ever enable double precision output ... */
-		case 8: /* ABCDEFGH -> HGFEDCBA */
-			for(i=0; i<count; ++i, p+=8)
-			{
-				SWAP(0,7)
-				SWAP(1,6)
-				SWAP(2,5)
-				SWAP(3,4)
-			}
-		break;
-#endif
-#undef SWAP
+		count = buf->fill/(unsigned int)block;
+		swap_bytes(buf->data, (size_t)block, count);
 	}
-	return; /* Do not care about non-existing encoding sizes. */
 }
 
 void postprocess_buffer(mpg123_handle *fr)

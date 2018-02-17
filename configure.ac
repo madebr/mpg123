@@ -19,13 +19,20 @@ dnl libout123
 OUTAPI_VERSION=2
 OUTLIB_PATCHLEVEL=3
 
+dnl libsyn123
+SYNAPI_VERSION=1
+SYNLIB_PATCHLEVEL=0
+
 dnl Since we want to be backwards compatible, both sides get set to API_VERSION.
 LIBMPG123_VERSION=$API_VERSION:$LIB_PATCHLEVEL:$API_VERSION
 LIBOUT123_VERSION=$OUTAPI_VERSION:$OUTLIB_PATCHLEVEL:$OUTAPI_VERSION
+LIBSYN123_VERSION=$SYNAPI_VERSION:$SYNLIB_PATCHLEVEL:$SYNAPI_VERSION
 AC_SUBST(LIBMPG123_VERSION)
 AC_SUBST(API_VERSION)
 AC_SUBST(LIBOUT123_VERSION)
 AC_SUBST(OUTAPI_VERSION)
+AC_SUBST(LIBSYN123_VERSION)
+AC_SUBST(SYNAPI_VERSION)
 
 
 AC_CONFIG_SRCDIR(src/mpg123.c)
@@ -1237,6 +1244,9 @@ AC_CHECK_LIB([mx], [powf])
 #	AC_DEFINE( 
 #fi
 
+# Optionally use platform macros for byte swapping.
+AC_CHECK_HEADERS([byteswap.h])
+
 dnl ############## Choose compiler flags and CPU
 
 # do not assume gcc here, so no flags by default
@@ -1258,7 +1268,7 @@ fi
 # gcc specific...
 if test x"$GCC" = xyes; then
 	if test x"$nagging" = xenabled; then
-		ADD_CFLAGS="$ADD_CFLAGS -Wall -Werror -std=c89 -pedantic -DPLAIN_C89"
+		ADD_CFLAGS="$ADD_CFLAGS -Wall -Werror -std=c99 -pedantic"
 	fi
 fi
 
@@ -2417,9 +2427,11 @@ AC_CONFIG_FILES([
 	Makefile
 	libmpg123.pc
 	libout123.pc
+	libsyn123.pc
 	mpg123.spec
 	src/libmpg123/mpg123.h
 	src/libout123/out123.h
+	src/libsyn123/syn123.h
 ])
 
 AC_OUTPUT

@@ -21,7 +21,7 @@ It can play MPEG1.0/2.0/2.5 layer I, II, II (1, 2, 3;-) files
 raw data to stdout and different sound systems depending on your platform.
 
 %package devel
-Summary:	Files needed for development with libmpg123 or libout123
+Summary:	Files needed for development with libmpg123 or libout123 or libsyn123
 Group:		Development/Libraries
 
 %description devel
@@ -49,12 +49,14 @@ make
 %doc %{_mandir}/*/out123.1.gz
 %{_libdir}/libmpg123.so.*
 %{_libdir}/libout123.so.*
+%{_libdir}/libsyn123.so.*
 %{_libdir}/mpg123/output_*.so
 
 %files devel
 %defattr(644,root,root)
 %{_libdir}/pkgconfig/libmpg123.pc
 %{_libdir}/pkgconfig/libout123.pc
+%{_libdir}/pkgconfig/libsyn123.pc
 %{_includedir}/*.h
 %{_libdir}/libmpg123.a
 %{_libdir}/libmpg123.la
@@ -62,9 +64,14 @@ make
 %{_libdir}/libout123.a
 %{_libdir}/libout123.la
 %{_libdir}/libout123.so
+%{_libdir}/libsyn123.a
+%{_libdir}/libsyn123.la
+%{_libdir}/libsyn123.so
 %exclude %{_libdir}/mpg123/output_*.a
 
 %changelog
+* 2018-02-17 Thomas Orgis <thomas@orgis.org>
+- added libsyn123
 * 2017-02-27 Thomas Orgis <thomas@orgis.org>
 - libltdl and module .la files gone
 * Sat Sep  3 2016 Srikanth Rao <srirao@bandwidth.com>
