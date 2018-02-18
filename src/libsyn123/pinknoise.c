@@ -30,48 +30,56 @@
 #include "syn123_int.h"
 #include <math.h>
 
-/************************************************************/
-/* Calculate pseudo-random 32 bit number based on linear congruential method. */
-static unsigned long GenerateRandomNumber( void )
+// Calculate pseudo-random 32 bit number based on linear congruential method.
+// ... or via xor after all? That looks a lot better when not
+// faking out with 64 bit long.
+static int32_t GenerateRandomNumber(uint32_t *seed)
 {
-	static unsigned long randSeed = 22222;  /* Change this for different random sequences. */
-	randSeed = (randSeed * 196314165) + 907633515;
-	return randSeed;
+#if 0
+	*seed = *seed * 196314165 + 907633515;
+#else
+	*seed ^= (*seed<<13);
+	*seed ^= (*seed>>17);
+	*seed ^= (*seed<<5);
+#endif
+	return (int32_t)*seed; // Implementaton-defined ...
 }
 
 #define PINK_MAX_RANDOM_ROWS   (30)
 #define PINK_RANDOM_BITS       (24)
-#define PINK_RANDOM_SHIFT      ((sizeof(long)*8)-PINK_RANDOM_BITS)
+#define PINK_RANDOM_SHIFT      ((sizeof(int32_t)*8)-PINK_RANDOM_BITS-1)
 
 typedef struct
 {
-	long      pink_Rows[PINK_MAX_RANDOM_ROWS];
-	long      pink_RunningSum;   /* Used to optimize summing of generators. */
+	int32_t  pink_Rows[PINK_MAX_RANDOM_ROWS];
+	int32_t  pink_RunningSum;   /* Used to optimize summing of generators. */
 	int       pink_Index;        /* Incremented each sample. */
 	int       pink_IndexMask;    /* Index wrapped by ANDing with this mask. */
 	float     pink_Scalar;       /* Used to scale within range of -1.0 to +1.0 */
+	uint32_t  rand_value;        /* The state of the random number generator. */
 } PinkNoise;
 
 /* Setup PinkNoise structure for N rows of generators. */
 static void InitializePinkNoise( PinkNoise *pink, int numRows )
 {
 	int i;
-	long pmax;
+	int32_t pmax;
 	pink->pink_Index = 0;
 	pink->pink_IndexMask = (1<<numRows) - 1;
-/* Calculate maximum possible signed random value. Extra 1 for white noise always added. */
+	/* Calculate maximum possible random value. Extra 1 for white noise always added. */
 	pmax = (numRows + 1) * (1<<(PINK_RANDOM_BITS-1));
 	pink->pink_Scalar = 1.0f / pmax;
 /* Initialize rows. */
 	for( i=0; i<numRows; i++ ) pink->pink_Rows[i] = 0;
 	pink->pink_RunningSum = 0;
+	pink->rand_value = 22222;
 }
 
 /* Generate Pink noise values between -1.0 and +1.0 */
 static float GeneratePinkNoise( PinkNoise *pink )
 {
-	long newRandom;
-	long sum;
+	int32_t newRandom;
+	int32_t sum;
 	float output;
 
 /* Increment and mask index. */
@@ -95,13 +103,13 @@ static float GeneratePinkNoise( PinkNoise *pink )
 	 * values together. Only one changes each time.
 	 */
 		pink->pink_RunningSum -= pink->pink_Rows[numZeros];
-		newRandom = ((long)GenerateRandomNumber()) >> PINK_RANDOM_SHIFT;
+		newRandom = GenerateRandomNumber(&pink->rand_value) >> PINK_RANDOM_SHIFT;
 		pink->pink_RunningSum += newRandom;
 		pink->pink_Rows[numZeros] = newRandom;
 	}
 	
 /* Add extra white noise value. */
-	newRandom = ((long)GenerateRandomNumber()) >> PINK_RANDOM_SHIFT;
+	newRandom = GenerateRandomNumber(&pink->rand_value) >> PINK_RANDOM_SHIFT;
 	sum = pink->pink_RunningSum + newRandom;
 
 /* Scale to range of -1.0 to 0.9999. */

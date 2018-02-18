@@ -224,6 +224,7 @@ int syn123_wave_id(const char *name);
 /** Set up pink noise generator.
  *  This employs the Gardner/McCartney method to the approximate
  *  the real thing. The number of rows in the tree pattern is tunable.
+ *  The result is pink noise with around 2.5 dB/octave.
  *  \param sh handle
  *  \param rows rows for the generator algorithm
  *    It maxes out at 30 rows. Below 1 chooses a default.
