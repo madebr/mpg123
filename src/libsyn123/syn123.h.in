@@ -6,17 +6,6 @@
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 
 	initially written by Thomas Orgis
-
-	With the need to present the generated signals with differing
-	encodings for playback, the two-fold nature of this library
-	emerges: Signal generation and encoding conversion. Both can be
-	rather trivial indivdually, but become tedious when one wants
-	to cover a certain range of options. So, here it is. This is
-	not designed to be another full-fledged audio synthesis package.
-	It is designed to be what one can use to get some test sound into
-	(or out of) a program quickly without a big framework.
-	I try to keep it small, adding gimmicks only if they have a high
-	fun-to-code ratio (for me;-).
 */
 
 #ifndef SYN123_H
@@ -68,24 +57,22 @@ extern "C" {
 #endif
 
 /** \defgroup syn123_api syn123 library API
+ *  With the need to present the generated signals with differing
+ *  encodings for playback, the two-fold nature of this library
+ *  emerges: Signal generation and encoding conversion. Both can be
+ *  rather trivial indivdually, but become tedious when one wants
+ *  to cover a certain range of options. So, here it is. This is
+ *  not designed to be another full-fledged audio synthesis package.
+ *  It is designed to be what one can use to get some test sound into
+ *  (or out of) a program quickly without a big framework.
+ *  I try to keep it small, adding gimmicks only if they have a high
+ *  fun-to-code ratio (for me;-).
  *
  *  The usage model is this:
  *
  *  1. Create handle with desired output format.
  *  2. Set up synthesis mode with parameters.
  *  3. Repeatedly extract buffers with PCM samples.
- *
- *  Idea: configurable time shift and balance between channels,
- *  for stereo experiments. Simple for two. But for more? Well,
- *  an array of shifts and channel volume. Doesn't hurt if I 
- *  have the channel index in the outmost loop anyway.
- *
- *  The buffering of the oscillators in a table should be optional.
- *  For small freqs, it will be likely slower than just computing
- *  as the table is spilling out of the caches. I could get smart
- *  and try to mix the approaches. Really slow oscillations (usually
- *  a pulse/shot/gaussian) could be applied to the existing buffer.
- *  But this is just toying around ...
  @{
  */
 
@@ -169,6 +156,16 @@ MPG123_EXPORT
 size_t syn123_read(syn123_handle *sh, void *dest, size_t dest_bytes);
 
 /** Setup periodic wave generator.
+ *  This sets up a series of oscillators with differing wave shapes.
+ *  They are multiplied/scaled with each other instead of mixed
+ *  in a sum of signals. It's more fun this way to generate interesting
+ *  sounds. Of you want to mix differing streams with differing volumes,
+ *  channel balance and phase shifts, just create multiple single-channel
+ *  generators with a convenient format (float encoding comes to mind)
+ *  and mix to your heart's desire. You can then still use this library
+ *  to get your channel buffers interleaved and converted to something
+ *  your output device likes.
+ *
  *  You can ensure strict periodicity without possible shifts in phases
  *  due to floating point rounding errors with the buffered variant.
  *  That may adjust your chosen frequencies to be able to keep the limit
@@ -182,7 +179,7 @@ size_t syn123_read(syn123_handle *sh, void *dest, size_t dest_bytes);
  *  between some minimal value and the Nyquist frequency. Without the
  *  buffer, you can happily choose waves that are not resolved at all
  *  by the sampling rate and get the nasty results. Things get nasty
- *  inside the buffer, too when you approach the Nyquist limit, but that
+ *  inside the buffer, too, when you approach the Nyquist limit, but that
  *  is life (and mathematics).
  *
  *  \param sh handle
