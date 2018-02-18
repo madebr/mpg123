@@ -229,11 +229,23 @@ int syn123_wave_id(const char *name);
  *  \param rows rows for the generator algorithm
  *    It maxes out at 30 rows. Below 1 chooses a default.
  *  \param period optional address to store the size of the enforced period
- *    (zero for endlessly fresh generated signal)
+ *    (zero for endlessly freshly generated signal)
  *  \return success code
  */
 MPG123_EXPORT
 int syn123_setup_pink(syn123_handle *sh, int rows, size_t *period);
+
+/** Set up Geiger counter simulator.
+ *  This models a speaker that is triggered by the pulses from
+ *  the Geiger-Mueller counter. That creepy ticking sound.
+ *  \param sh handle
+ *  \param activity average events per second
+ *  \param period optional address to store the size of the enforced period
+ *    (zero for endlessly freshly generated signal)
+ *  \return success code
+ */
+MPG123_EXPORT
+int syn123_setup_geiger(syn123_handle *sh, double activity, size_t *period);
 
 /** Set up silence.
  *  This goes back to the vanilla state.

@@ -97,6 +97,7 @@ const char *signal_source = "file";
 /* Default to around 2 MiB memory for the table. */
 long wave_limit     = 300000;
 int pink_rows = 0;
+double geiger_activity = 17;
 
 size_t pcmblock = 1152; /* samples (pcm frames) we treat en bloc */
 /* To be set after settling format. */
@@ -436,6 +437,12 @@ void set_pink_rows(char *arg)
 	pink_rows = atoi(arg);
 }
 
+void set_geiger_act(char *arg)
+{
+	signal_source = "geiger";
+	geiger_activity = atof(arg);
+}
+
 /* Please note: GLO_NUM expects point to LONG! */
 /* ThOr:
  *  Yeah, and despite that numerous addresses to int variables were 
@@ -499,6 +506,7 @@ topt opts[] = {
 	{0, "wave-limit", GLO_ARG|GLO_LONG, 0, &wave_limit, 0},
 	{0, "genbuffer", GLO_ARG|GLO_LONG, 0, &wave_limit, 0},
 	{0, "pink-rows", GLO_ARG|GLO_INT, set_pink_rows, 0, 0},
+	{0, "geiger-activity", GLO_ARG|GLO_DOUBLE, set_geiger_act, 0, 0},
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -568,6 +576,27 @@ static void setup_wavegen(void)
 				fprintf(stderr, "out123: live signal generation\n");
 			fprintf(stderr, "out123; pink noise with %i generator rows (0=internal default)\n"
 			,	pink_rows);
+		}
+		return;
+	}
+
+	if(!strcmp(signal_source, "geiger"))
+	{
+		waver = syn123_new(rate, channels, encoding, wave_limit, &synerr);
+		if(waver)
+			synerr = syn123_setup_geiger(waver, geiger_activity, &common);
+		if(!waver || synerr)
+		{
+			error1("setting up geiger generator: %s\n", syn123_strerror(synerr));
+			safe_exit(132);
+		}
+		if(verbose)
+		{
+			if(common)
+				fprintf(stderr, "out123: periodic signal table of %" SIZE_P " samples\n", common);
+			else
+				fprintf(stderr, "out123: live signal generation\n");
+			fprintf(stderr, "out123; geiger with actvity %g\n", geiger_activity);
 		}
 		return;
 	}
@@ -1020,7 +1049,8 @@ static void long_usage(int err)
 	fprintf(o,"        --devbuffer <s>    set device buffer in seconds; <= 0 means default\n");
 	fprintf(o,"        --timelimit <s>    set time limit in PCM samples if >= 0\n");
 	fprintf(o,"        --source <s>       choose signal source: file (default),\n");
-	fprintf(o,"                           wave, pink; also set by --wave-freq and friends\n"); 
+	fprintf(o,"                           wave, pink, geiger; implied by --wave-freq,\n");
+	fprintf(o,"                           --pink-rows, --geiger-activity\n");
 	fprintf(o,"        --wave-freq <f>    set wave generator frequency or list of those\n");
 	fprintf(o,"                           with comma separation for enabling a generated\n");
 	fprintf(o,"                           test signal instead of standard input,\n");
@@ -1045,7 +1075,9 @@ static void long_usage(int err)
 	fprintf(o,"                           less runtime CPU overhead\n");
 	fprintf(o,"        --wave-limit <l>   alias for --genbuffer\n");
 	fprintf(o,"        --pink-rows <r>    activate pink noise source and choose rows for\n");
-	fprintf(o,"                           the algorithm (<1 chooses default)\n");
+	fprintf(o,"                   `       the algorithm (<1 chooses default)\n");
+	fprintf(o,"        --geiger-activity <a> a Geiger-Mueller counter as source, with\n");
+	fprintf(o,"                           <a> average events per second\n");
 	fprintf(o," -t     --test             no output, just read and discard data (-o test)\n");
 	fprintf(o," -v[*]  --verbose          increase verboselevel\n");
 	#ifdef HAVE_SETPRIORITY
