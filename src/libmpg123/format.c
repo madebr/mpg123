@@ -505,7 +505,7 @@ static void chop_fourth_byte(struct outbuffer *buf)
 	unsigned char *rpos = buf->data;
 	size_t blocks = buf->fill/4;
 	size_t i;
-	for(i=0; i<blocks; ++i,wpos+=4,rpos+=4)
+	for(i=0; i<blocks; ++i,wpos+=3,rpos+=4)
 		DROP4BYTE(wpos, rpos)
 	buf->fill = wpos-buf->data;
 }
