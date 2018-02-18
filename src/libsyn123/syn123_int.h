@@ -46,9 +46,12 @@ struct syn123_struct
 	// Given count of sampls <= bufblock!
 	void (*generator)(syn123_handle*, int);
 	// Generator configuration.
-	// SYN123_WAVES
+	// wave generator
 	size_t wave_count;
 	struct syn123_wave* waves;
+	// pink noise, maybe others: simple structs that can be
+	// simply free()d
+	void* handle;
 	// Extraction of initially-computed waveform from buffer.
 	void *buf;      // period buffer
 	size_t bufs;    // allocated size of buffer in bytes
@@ -56,5 +59,19 @@ struct syn123_struct
 	size_t samples; // samples (PCM frames) in period buffer
 	size_t offset;  // offset in buffer for extraction helper
 };
+
+// Grow period buffer to at least given size.
+// Content is not preserved.
+static void grow_buf(syn123_handle *sh, size_t bytes)
+{
+	if(sh->bufs >= bytes)
+		return;
+	if(sh->buf)
+		free(sh->buf);
+	sh->buf = NULL;
+	if(bytes && bytes <= sh->maxbuf)
+		sh->buf = malloc(bytes);
+	sh->bufs = sh->buf ? bytes : 0;
+}
 
 #endif

@@ -168,7 +168,6 @@ void syn123_del(syn123_handle *sh);
 MPG123_EXPORT
 size_t syn123_read(syn123_handle *sh, void *dest, size_t dest_bytes);
 
-
 /** Setup periodic wave generator.
  *  You can ensure strict periodicity without possible shifts in phases
  *  due to floating point rounding errors with the buffered variant.
@@ -196,14 +195,14 @@ size_t syn123_read(syn123_handle *sh, void *dest, size_t dest_bytes);
  *  \param phase array of wave phases, may be NULL
  *  \param backwards array of true (non-zero) or false indication
       of the wave being inverted in time, may be NULL
- *  \param common_period address to store the size of the period buffer
+ *  \param period address to store the size of the period buffer
  *    in samples (zero if not using the buffer), ignored if NULL
  *  \return success code
  */
 MPG123_EXPORT
 int syn123_setup_waves( syn123_handle* sh, size_t count
 ,	int *id, double *freq, double *phase, int* backwards
-,	size_t *common_period );
+,	size_t *period );
 
 /** Return the name of the indicated wave pattern.
  *  \param id The numerical ID of the wave pattern
@@ -221,6 +220,26 @@ const char* syn123_wave_name(int id);
  */
 MPG123_EXPORT
 int syn123_wave_id(const char *name);
+
+/** Set up pink noise generator.
+ *  This employs the Gardner/McCartney method to the approximate
+ *  the real thing. The number of rows in the tree pattern is tunable.
+ *  \param sh handle
+ *  \param rows rows for the generator algorithm
+ *    It maxes out at 30 rows. Below 1 chooses a default.
+ *  \param period optional address to store the size of the enforced period
+ *    (zero for endlessly fresh generated signal)
+ *  \return success code
+ */
+MPG123_EXPORT
+int syn123_setup_pink(syn123_handle *sh, int rows, size_t *period);
+
+/** Set up silence.
+ *  This goes back to the vanilla state.
+ *  \return success code
+ */
+MPG123_EXPORT
+int syn123_setup_silence(syn123_handle *sh);
 
 /** Convert between supported encodings.
  *  The buffers shall not overlap.

@@ -356,20 +356,6 @@ static void wave_add_buffer( double outbuf[bufblock], size_t samples
 	wave->phase = phasefrac(wave->phase+samples*pps);
 }
 
-// Grow period buffer to at least given size.
-// Content is not preserved.
-static void grow_buf(syn123_handle *sh, size_t bytes)
-{
-	if(sh->bufs >= bytes)
-		return;
-	if(sh->buf)
-		free(sh->buf);
-	sh->buf = NULL;
-	if(bytes && bytes <= sh->maxbuf)
-		sh->buf = malloc(bytes);
-	sh->bufs = sh->buf ? bytes : 0;
-}
-
 // The most basic generator of all.
 static void silence_generator(syn123_handle *sh, int samples)
 {
@@ -378,15 +364,23 @@ static void silence_generator(syn123_handle *sh, int samples)
 }
 
 // Clear the handle of generator data structures.
-static void clear_generator(syn123_handle *sh)
+// Well, except the one generating silence.
+int attribute_align_arg
+syn123_setup_silence(syn123_handle *sh)
 {
+	if(!sh)
+		return SYN123_BAD_HANDLE;
 	sh->generator = silence_generator;
 	if(sh->wave_count && sh->waves)
 		free(sh->waves);
 	sh->waves = NULL;
 	sh->wave_count = 0;
+	if(sh->handle)
+		free(sh->handle);
+	sh->handle = NULL;
 	sh->samples = 0;
 	sh->offset = 0;
+	return SYN123_OK;
 }
 
 // The generator function is called upon to fill sh->workbuf[1] with the
@@ -424,7 +418,7 @@ syn123_setup_waves( syn123_handle *sh, size_t count
 
 	if(!sh)
 		return SYN123_BAD_HANDLE;
-	clear_generator(sh);
+	syn123_setup_silence(sh);
 
 	if(!count)
 	{
@@ -491,7 +485,7 @@ syn123_setup_waves( syn123_handle *sh, size_t count
 
 setup_wave_end:
 	if(ret != SYN123_OK)
-		clear_generator(sh);
+		syn123_setup_silence(sh);
 	if(common_period)
 		*common_period = sh->samples;
 	return ret;
@@ -505,7 +499,6 @@ syn123_new(long rate, int channels, int encoding
 	syn123_handle *sh = NULL;
 	size_t sbytes = MPG123_SAMPLESIZE(encoding);
 
-fprintf(stderr, "encoding: %i, sbytes: %zu\n", encoding, sbytes);
 	if(!sbytes)
 	{
 		myerr = SYN123_BAD_ENC;
@@ -530,7 +523,8 @@ fprintf(stderr, "encoding: %i, sbytes: %zu\n", encoding, sbytes);
 	sh->offset  = 0;
 	sh->wave_count = 0;
 	sh->waves = NULL;
-	clear_generator(sh);
+	sh->handle = NULL;
+	syn123_setup_silence(sh);
 
 syn123_new_end:
 	if(err)
@@ -548,7 +542,7 @@ syn123_del(syn123_handle* sh)
 {
 	if(!sh)
 		return;
-	clear_generator(sh);
+	syn123_setup_silence(sh);
 	if(sh->buf)
 		free(sh->buf);
 	free(sh);

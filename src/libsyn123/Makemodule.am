@@ -17,6 +17,7 @@ src_libsyn123_libsyn123_la_SOURCES = \
   src/libsyn123/syn123.h \
   src/libsyn123/syn123_int.h \
   src/libsyn123/g711_impl.h \
+  src/libsyn123/pinknoise.c \
   src/libsyn123/libsyn123.c \
   src/libsyn123/sampleconv.c
 

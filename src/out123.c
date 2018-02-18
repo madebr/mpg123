@@ -93,8 +93,10 @@ char *wave_patterns = NULL;
 char *wave_freqs    = NULL;
 char *wave_phases   = NULL;
 char *wave_direction = NULL;
+const char *signal_source = "file";
 /* Default to around 2 MiB memory for the table. */
 long wave_limit     = 300000;
+int pink_rows = 0;
 
 size_t pcmblock = 1152; /* samples (pcm frames) we treat en bloc */
 /* To be set after settling format. */
@@ -422,6 +424,18 @@ static void query_format(char *arg)
 	exit(0);
 }
 
+void set_wave_freqs(char *arg)
+{
+	signal_source = "wave";
+	wave_freqs = arg;
+}
+
+void set_pink_rows(char *arg)
+{
+	signal_source = "pink";
+	pink_rows = atoi(arg);
+}
+
 /* Please note: GLO_NUM expects point to LONG! */
 /* ThOr:
  *  Yeah, and despite that numerous addresses to int variables were 
@@ -477,11 +491,14 @@ topt opts[] = {
 	{0, "name", GLO_ARG|GLO_CHAR, 0, &name, 0},
 	{0, "devbuffer", GLO_ARG|GLO_DOUBLE, 0, &device_buffer, 0},
 	{0, "timelimit", GLO_ARG|GLO_LONG, 0, &timelimit, 0},
+	{0, "source", GLO_ARG|GLO_CHAR, 0, &signal_source, 0},
 	{0, "wave-pat", GLO_ARG|GLO_CHAR, 0, &wave_patterns, 0},
-	{0, "wave-freq", GLO_ARG|GLO_CHAR, 0, &wave_freqs, 0},
+	{0, "wave-freq", GLO_ARG|GLO_CHAR, set_wave_freqs, 0, 0},
 	{0, "wave-phase", GLO_ARG|GLO_CHAR, 0, &wave_phases, 0},
 	{0, "wave-direction", GLO_ARG|GLO_CHAR, 0, &wave_direction, 0},
 	{0, "wave-limit", GLO_ARG|GLO_LONG, 0, &wave_limit, 0},
+	{0, "genbuffer", GLO_ARG|GLO_LONG, 0, &wave_limit, 0},
+	{0, "pink-rows", GLO_ARG|GLO_INT, set_pink_rows, 0, 0},
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -530,6 +547,33 @@ static void setup_wavegen(void)
 	double *phase = NULL;
 	int *backwards = NULL;
 	int *id = NULL;
+	int synerr = 0;
+	size_t common = 0;
+
+	if(!strcmp(signal_source, "pink"))
+	{
+		waver = syn123_new(rate, channels, encoding, wave_limit, &synerr);
+		if(waver)
+			synerr = syn123_setup_pink(waver, pink_rows, &common);
+		if(!waver || synerr)
+		{
+			error1("setting up pink noise generator: %s\n", syn123_strerror(synerr));
+			safe_exit(132);
+		}
+		if(verbose)
+		{
+			if(common)
+				fprintf(stderr, "out123: periodic signal table of %" SIZE_P " samples\n", common);
+			else
+				fprintf(stderr, "out123: live signal generation\n");
+			fprintf(stderr, "out123; pink noise with %i generator rows (0=internal default)\n"
+			,	pink_rows);
+		}
+		return;
+	}
+
+	if(strcmp(signal_source, "wave"))
+		return;
 
 	if(wave_freqs)
 	{
@@ -552,7 +596,6 @@ static void setup_wavegen(void)
 		}
 		memcpy(freq_real, freq, sizeof(double)*count);
 	}
-	else return;
 
 	if(count && wave_patterns)
 	{
@@ -619,8 +662,6 @@ static void setup_wavegen(void)
 		}
 	}
 
-	int synerr = 0;
-	size_t common;
 	waver = syn123_new(rate, channels, encoding, wave_limit, &synerr);
 	if(waver)
 		synerr = syn123_setup_waves( waver, count
@@ -633,15 +674,17 @@ static void setup_wavegen(void)
 	if(verbose)
 	{
 		if(common)
-			fprintf(stderr, "periodic signal table of %" SIZE_P " samples\n", common);
+			fprintf(stderr, "out123: periodic signal table of %" SIZE_P " samples\n", common);
 		else
-			fprintf(stderr, "live signal generation\n");
-		for(i=0; i<count; ++i)
-			fprintf( stderr, "wave %" SIZE_P ": %s @ %g Hz (%g Hz) p %g\n"
+			fprintf(stderr, "out123: live signal generation\n");
+		if(count) for(i=0; i<count; ++i)
+			fprintf( stderr, "out123: wave %" SIZE_P ": %s @ %g Hz (%g Hz) p %g\n"
 			,	i
 			,	syn123_wave_name(id ? id[i] : SYN123_WAVE_SINE)
 			,	freq[i], freq_real[i]
 			,	phase ? phase[i] : 0 );
+		else
+			fprintf(stderr, "out123: default sine wave\n");
 	}
 
 	if(phase)
@@ -843,8 +886,15 @@ int main(int sys_argc, char ** sys_argv)
 	check_fatal_output(out123_start(ao, rate, channels, encoding));
 
 	input = stdin;
-	if(wave_freqs)
+	if(strcmp(signal_source, "file"))
+	{
 		setup_wavegen();
+		if(!waver)
+		{
+			error("unknown signal source");
+			safe_exit(133);
+		}
+	}
 
 	while(play_frame() && !intflag)
 	{
@@ -969,6 +1019,8 @@ static void long_usage(int err)
 #endif
 	fprintf(o,"        --devbuffer <s>    set device buffer in seconds; <= 0 means default\n");
 	fprintf(o,"        --timelimit <s>    set time limit in PCM samples if >= 0\n");
+	fprintf(o,"        --source <s>       choose signal source: file (default),\n");
+	fprintf(o,"                           wave, pink; also set by --wave-freq and friends\n"); 
 	fprintf(o,"        --wave-freq <f>    set wave generator frequency or list of those\n");
 	fprintf(o,"                           with comma separation for enabling a generated\n");
 	fprintf(o,"                           test signal instead of standard input,\n");
@@ -987,8 +1039,13 @@ static void long_usage(int err)
 	fprintf(o,"                           empty value repeating the previous,\n");
 	fprintf(o,"                           --wave-direction overriding the negative bit\n");
 	fprintf(o,"        --wave-direction <d> set direction explicitly (the sign counts)\n");
-	fprintf(o,"        --wave-limit <l>   hard limit on wave table size in bytes\n");
-	fprintf(o,"                           (zero disables table for live computation)\n");
+	fprintf(o,"        --genbuffer <b>    buffer size (limit) for signal generators,\n");
+	fprintf(o,"                           if > 0 (default), this enforces a periodic\n");
+	fprintf(o,"                           buffer also for non-periodic signals, benefit:\n");
+	fprintf(o,"                           less runtime CPU overhead\n");
+	fprintf(o,"        --wave-limit <l>   alias for --genbuffer\n");
+	fprintf(o,"        --pink-rows <r>    activate pink noise source and choose rows for\n");
+	fprintf(o,"                           the algorithm (<1 chooses default)\n");
 	fprintf(o," -t     --test             no output, just read and discard data (-o test)\n");
 	fprintf(o," -v[*]  --verbose          increase verboselevel\n");
 	#ifdef HAVE_SETPRIORITY
