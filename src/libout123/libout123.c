@@ -124,7 +124,8 @@ void attribute_align_arg out123_del(out123_handle *ao)
 /* Error reporting */
 
 /* Carefully keep that in sync with the error enum! */
-static const char *const errstring[OUT123_ERRCOUNT] =
+/* Sizing according to contents so that we can check! */
+static const char *const errstring[] =
 {
 	"no problem"
 ,	"out of memory"
@@ -136,6 +137,7 @@ static const char *const errstring[OUT123_ERRCOUNT] =
 ,	"failed to open device"
 ,	"buffer (communication) error"
 ,	"basic module system error"
+,	"bad function argument(s)"
 ,	"unknown parameter code"
 ,	"attempt to set read-only parameter"
 ,	"invalid out123 handle"
@@ -154,6 +156,8 @@ int out123_errcode(out123_handle *ao)
 
 const char* attribute_align_arg out123_plain_strerror(int errcode)
 {
+	if(errcode == OUT123_ERR)
+		return "some generic error";
 	if(errcode >= OUT123_ERRCOUNT || errcode < 0)
 		return "invalid error code";
 
