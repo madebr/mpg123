@@ -54,27 +54,23 @@ static type name(ftype d) \
 /* If there is an actual 24 bit integer with cleared last byte, */
 /* single precision should be accurate. Otherwise, double is needed. */
 CONV(d_s32, double, int32_t, 2147483647)
-CONV(f_s32, float, int32_t, 2147483647)
 CONV(f_s16, float, int16_t, 32767)
 CONV(f_s8,  float, int8_t,  127)
 
 static uint8_t         f_u8(float f) { return CONV_SU8(f_s8(f));     }
 static uint16_t       f_u16(float f) { return CONV_SU16(f_s16(f));   }
 static uint32_t       d_u32(double d){ return CONV_SU32(d_s32(d));   }
-static uint32_t       f_u32(float f){ return CONV_SU32(f_s32(f));   }
 static unsigned char f_alaw(float f) { return linear2alaw(f_s16(f)); }
 static unsigned char f_ulaw(float f) { return linear2ulaw(f_s16(f)); }
 
 /* 2. From various to double/float. */
 
 static double s32_d(int32_t n)      { return (double)n/2147483647.; }
-static float  s32_f(int32_t n)      { return (float)n/2147483647.;  }
 static float  s16_f(int16_t n)      { return (float)n/32767.;       }
 static float  s8_f (int8_t n)       { return (float)n/127.;         }
 static float  u8_f (uint8_t u)      { return s8_f(CONV_US8(u));     }
 static float  u16_f(uint16_t u)     { return s16_f(CONV_US16(u));   }
 static double u32_d(uint32_t u)     { return s32_d(CONV_US32(u));   }
-static float  u32_f(uint32_t u)     { return s32_f(CONV_US32(u));   }
 static float alaw_f(unsigned char n){ return s16_f(alaw2linear(n)); }
 static float ulaw_f(unsigned char n){ return s16_f(ulaw2linear(n)); }
 
@@ -96,7 +92,7 @@ switch(dest_enc) \
 	case MPG123_ENC_SIGNED_24: \
 		for(; tsrc!=tend; ++tsrc, tdest+=3) \
 		{ \
-			int32_t tmp = f_s32(*tsrc); \
+			int32_t tmp = d_s32(*tsrc); \
 			DROP4BYTE((char*)tdest, (char*)&tmp); \
 		} \
 	break; \
@@ -123,7 +119,7 @@ switch(dest_enc) \
 	case MPG123_ENC_UNSIGNED_24: \
 		for(; tsrc!=tend; ++tsrc, tdest+=3) \
 		{ \
-			uint32_t tmp = f_u32(*tsrc); \
+			uint32_t tmp = d_u32(*tsrc); \
 			DROP4BYTE((char*)tdest, (char*)&tmp); \
 		} \
 	break; \
@@ -160,7 +156,7 @@ switch(src_enc) \
 		{ \
 			int32_t tmp; \
 			ADD4BYTE((char*)&tmp, (char*)tsrc); \
-			*tdest = s32_f(tmp); \
+			*tdest = s32_d(tmp); \
 		} \
 	break; \
 	case MPG123_ENC_SIGNED_8: \
@@ -188,7 +184,7 @@ switch(src_enc) \
 		{ \
 			uint32_t tmp; \
 			ADD4BYTE((char*)&tmp, (char*)tsrc); \
-			*tdest = u32_f(tmp); \
+			*tdest = u32_d(tmp); \
 		} \
 	break; \
 	case MPG123_ENC_UNSIGNED_32: \
