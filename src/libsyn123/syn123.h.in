@@ -159,7 +159,7 @@ size_t syn123_read(syn123_handle *sh, void *dest, size_t dest_bytes);
  *  This sets up a series of oscillators with differing wave shapes.
  *  They are multiplied/scaled with each other instead of mixed
  *  in a sum of signals. It's more fun this way to generate interesting
- *  sounds. Of you want to mix differing streams with differing volumes,
+ *  sounds. If you want to mix differing streams with differing volumes,
  *  channel balance and phase shifts, just create multiple single-channel
  *  generators with a convenient format (float encoding comes to mind)
  *  and mix to your heart's desire. You can then still use this library
