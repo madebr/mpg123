@@ -60,6 +60,7 @@ struct syn123_struct
 	size_t offset;  // offset in buffer for extraction helper
 };
 
+#ifndef NO_GROW_BUF
 // Grow period buffer to at least given size.
 // Content is not preserved.
 static void grow_buf(syn123_handle *sh, size_t bytes)
@@ -73,5 +74,6 @@ static void grow_buf(syn123_handle *sh, size_t bytes)
 		sh->buf = malloc(bytes);
 	sh->bufs = sh->buf ? bytes : 0;
 }
+#endif
 
 #endif

@@ -15,6 +15,7 @@
 	for real, but still with some caution.
 */
 
+#define NO_GROW_BUF
 #include "syn123_int.h"
 #include "sample.h"
 #include "debug.h"
