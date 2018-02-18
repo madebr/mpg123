@@ -295,6 +295,8 @@ const char* syn123_strerror(int errcode)
 // Give vectorization a chance.
 // This precomputes a vector of phases for the option of applying
 // vectorized functions directly.
+// It _seems_ that compilers are smart enough to figure that out.
+// Might drop the second workbuf.
 static void add_some_wave( double outbuf[bufblock], int samples
 ,	enum syn123_wave_id id, double pps, double phase
 ,	double workbuf[bufblock] )
