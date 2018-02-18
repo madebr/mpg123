@@ -314,7 +314,7 @@ static void add_some_wave( double outbuf[bufblock], int samples
 // precomputing phases, but still hardcodes the function calls.
 static void add_some_wave( double outbuf[bufblock], int samples
 ,	enum syn123_wave_id id, double pps, double phase
-,	workbuf[bufblock] )
+,	double workbuf[bufblock] )
 {
 	#define PHASE phasefrac(pi*pps+phase)
 	#define PI_LOOP( code ) \
