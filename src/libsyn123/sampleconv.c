@@ -28,8 +28,11 @@
 
 /* 1. From double/float to various. */
 
-/* All symmetric, +/- 2^n-1. Clipping and conversion. */
-/* One might optimize here. Or at least try to, in vain. */
+// We have symmetric signals with +/- 2^(n-1)-1 in mind, nevertheless
+// clipping the negative side at -2^(n-1) for lossless conversion of
+// any input in integer encoding.
+// There might be possible optimizations. We hope for some auto-vectorization.
+// And also, nowadays, CPUs can do so much while they wait for memory ...
 #define CONV(name, ftype, type, maxval) \
 static type name(ftype d) \
 { \
@@ -45,15 +48,15 @@ static type name(ftype d) \
 	else \
 	{ \
 		d -= 0.5; \
-		return d < -imax \
-		?	-imax \
+		return d < (-imax-1) \
+		?	(-imax-1) \
 		:	(type)d; \
 	} \
 }
 
 /* If there is an actual 24 bit integer with cleared last byte, */
 /* single precision should be accurate. Otherwise, double is needed. */
-CONV(d_s32, double, int32_t, 2147483647)
+CONV(d_s32, double, int32_t, 2147483647L)
 CONV(f_s16, float, int16_t, 32767)
 CONV(f_s8,  float, int8_t,  127)
 
@@ -65,14 +68,52 @@ static unsigned char f_ulaw(float f) { return linear2ulaw(f_s16(f)); }
 
 /* 2. From various to double/float. */
 
-static double s32_d(int32_t n)      { return (double)n/2147483647.; }
-static float  s16_f(int16_t n)      { return (float)n/32767.;       }
-static float  s8_f (int8_t n)       { return (float)n/127.;         }
+static double s32_d(int32_t n)
+{
+	return n==-2147483648 ? -1. : (double)n/2147483647.;
+}
+static float  s16_f(int16_t n)
+{
+	return n==     -32768 ? -1. : (float)n/32767.;
+}
+static float  s8_f (int8_t n)
+{
+	return n==       -128 ? -1. : (float)n/127.;
+}
 static float  u8_f (uint8_t u)      { return s8_f(CONV_US8(u));     }
 static float  u16_f(uint16_t u)     { return s16_f(CONV_US16(u));   }
 static double u32_d(uint32_t u)     { return s32_d(CONV_US32(u));   }
 static float alaw_f(unsigned char n){ return s16_f(alaw2linear(n)); }
 static float ulaw_f(unsigned char n){ return s16_f(ulaw2linear(n)); }
+
+size_t attribute_align_arg
+syn123_clip(void *buf, int encoding, size_t samples)
+{
+	if(!buf)
+		return 0;
+
+	size_t clipped = 0;
+	switch(encoding)
+	{
+		case MPG123_ENC_FLOAT_32:
+		{
+			float *p = buf;
+			for(size_t i=0; i<samples; ++i)
+				if     (p[i] < -1.0){ p[i] = -1.0; ++clipped; }
+				else if(p[i] > +1.0){ p[i] = +1.0; ++clipped; }
+		}
+		break;
+		case MPG123_ENC_FLOAT_64:
+		{
+			double *p = buf;
+			for(size_t i=0; i<samples; ++i)
+				if     (p[i] < -1.0){ p[i] = -1.0; ++clipped; }
+				else if(p[i] > +1.0){ p[i] = +1.0; ++clipped; }
+		}
+		break;
+	}
+	return clipped;
+}
 
 // All together in a happy matrix game, but only directly to/from
 // double or float.

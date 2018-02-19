@@ -278,6 +278,17 @@ int syn123_conv( void * MPG123_RESTRICT dest, int dest_enc, size_t dest_size
 ,	void * MPG123_RESTRICT src, int src_enc, size_t src_bytes
 ,	size_t *dest_bytes );
 
+/** Clip samples in buffer to default range.
+ *  This only does anything with floating point encoding, but you can always
+ *  call it without damage.
+ *  \param buf buffer to work on
+ *  \param encoding sample encoding
+ *  \param samples total number of samples
+ *  \return number of clipped samples
+ */
+MPG123_EXPORT
+size_t syn123_clip(void *buf, int encoding, size_t samples);
+
 /** Interleave given number of channels into one stream.
  *  A rather trivial functionality, here for completeness. As the
  *  algorithm is agnostic to what is actually stored as a "sample",
