@@ -75,6 +75,7 @@ static int  channels = 2;
 static long rate     = 44100;
 static char *driver = NULL;
 static char *device = NULL;
+int also_stdout = FALSE;
 size_t buffer_kb = 0;
 static int realtime = FALSE;
 #ifdef HAVE_WINDOWS_H
@@ -88,6 +89,7 @@ static const char *name = NULL; /* Let the out123 library choose "out123". */
 static double device_buffer; /* output device buffer */
 long timelimit = -1;
 off_t offset = 0;
+int do_clip = FALSE;
 
 char *wave_patterns = NULL;
 char *wave_freqs    = NULL;
@@ -281,8 +283,7 @@ static void set_out_stdout(char *arg)
 
 static void set_out_stdout1(char *arg)
 {
-	driver = "raw";
-	device = NULL;
+	also_stdout = TRUE;
 }
 
 #if !defined (HAVE_SCHED_SETSCHEDULER) && !defined (HAVE_WINDOWS_H)
@@ -462,6 +463,7 @@ topt opts[] = {
 	{0,   "stereo",      GLO_INT,  0, &channels, 2},
 	{'c', "channels",    GLO_ARG | GLO_INT,  0, &channels, 0},
 	{'r', "rate",        GLO_ARG | GLO_LONG, 0, &rate,  0},
+	{0,   "clip",        GLO_INT,  0, &do_clip, TRUE},
 	{0,   "headphones",  0,                  set_output_h, 0,0},
 	{0,   "speaker",     0,                  set_output_s, 0,0},
 	{0,   "lineout",     0,                  set_output_l, 0,0},
@@ -743,7 +745,14 @@ int play_frame(void)
 	/* Play what is there to play (starting with second decode_frame call!) */
 	if(got_samples)
 	{
+		errno = 0;
 		size_t got_bytes = pcmframe * got_samples;
+		if(do_clip && encoding & MPG123_ENC_FLOAT)
+		{
+			size_t clipped = syn123_clip(audio, encoding, got_samples*channels);
+			if(verbose > 1 && clipped)
+				fprintf(stderr, "out123: clipped %"SIZE_P" samples\n", clipped);
+		}
 		if(out123_play(ao, audio, got_bytes) < (int)got_bytes)
 		{
 			if(!quiet)
@@ -751,6 +760,12 @@ int play_frame(void)
 				error2( "out123 error %i: %s"
 				,	out123_errcode(ao), out123_strerror(ao) );
 			}
+			safe_exit(133);
+		}
+		if(also_stdout && fwrite(audio, pcmframe, got_samples, stdout) < got_samples)
+		{
+			if(!quiet && errno != EINTR)
+				error1( "failed to copy stream to stdout: %s", strerror(errno));
 			safe_exit(133);
 		}
 		offset += got_samples;
@@ -1024,7 +1039,7 @@ static void long_usage(int err)
 	fprintf(o,"        --list-modules     list the available modules\n");
 	fprintf(o," -a <d> --audiodevice <d>  select audio device (for files, empty or - is stdout)\n");
 	fprintf(o," -s     --stdout           write raw audio to stdout (-o raw -a -)\n");
-	fprintf(o," -S     --STDOUT           play AND output stream (not implemented yet)\n");
+	fprintf(o," -S     --STDOUT           play AND output stream to stdout\n");
 	fprintf(o," -O <f> --output <f>       raw output to given file (-o raw -a <f>)\n");
 	fprintf(o," -w <f> --wav <f>          write samples as WAV file in <f> (-o wav -a <f>)\n");
 	fprintf(o,"        --au <f>           write samples as Sun AU file in <f> (-o au -a <f>)\n");
@@ -1033,8 +1048,16 @@ static void long_usage(int err)
 	fprintf(o," -c <n> --channels <n>     set channel count to <n>\n");
 	fprintf(o," -e <c> --encoding <c>     set output encoding (%s)\n"
 	,	enclist != NULL ? enclist : "OOM!");
-	fprintf(o," -m     --mono             set channel count to 1\n");
-	fprintf(o,"        --stereo           set channel count to 2 (default)\n");
+	fprintf(o,"TODO -C <n> --inchan <n>       set input channel count for conversion\n");
+	fprintf(o,"TODO        --mix <m>          mixing matrix <m> between input and output channels\n");
+	fprintf(o,"TODO                           as linear factors, comma separated list for output\n");
+	fprintf(o,"TODO                           channel 1, then 2, ... default unity if channel counts\n");
+	fprintf(o,"TODO                           match, 0.5,0.5 for stereo to mono, 1,1 for the other way\n");
+	fprintf(o,"TODO        --preamp <p>       amplify signal with <p> dB (triggers mixing)\n");
+	fprintf(o," -E <c> --inenc <c>        set input encoding for conversion\n");
+	fprintf(o,"        --clip             clip float samples before output\n");
+	fprintf(o," -m     --mono             set output channel count to 1\n");
+	fprintf(o,"        --stereo           set output channel count to 2 (default)\n");
 	fprintf(o,"        --list-encodings   list of encoding short and long names\n");
 	fprintf(o,"        --test-format      return 0 if configued audio format is supported\n");
 	fprintf(o,"        --test-encodings   print out possible encodings with given channels/rate\n");
