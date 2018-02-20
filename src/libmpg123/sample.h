@@ -189,7 +189,7 @@ static inline int16_t ftoi16(float x)
 #else
 /* Lowest byte first, drop that. */
 #define DROP4BYTE(w,r) {(w)[0]=(r)[1]; (w)[1]=(r)[2]; (w)[2]=(r)[3];}
-#define ADD4BYTE(w,r)  {(w)[0]=0; (w)[1]=(r)[1]; (w)[2]=(r)[2]; (w)[3]=(r)[3];}
+#define ADD4BYTE(w,r)  {(w)[0]=0; (w)[1]=(r)[0]; (w)[2]=(r)[1]; (w)[3]=(r)[2];}
 #endif
 
 #endif
