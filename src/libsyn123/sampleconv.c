@@ -93,25 +93,23 @@ syn123_clip(void *buf, int encoding, size_t samples)
 		return 0;
 
 	size_t clipped = 0;
+	#define CLIPCODE(type) \
+	{ \
+		type *p = buf; \
+		for(size_t i=0; i<samples; ++i) \
+			if     (p[i] < -1.0){ p[i] = -1.0; ++clipped; } \
+			else if(p[i] > +1.0){ p[i] = +1.0; ++clipped; } \
+	}
 	switch(encoding)
 	{
 		case MPG123_ENC_FLOAT_32:
-		{
-			float *p = buf;
-			for(size_t i=0; i<samples; ++i)
-				if     (p[i] < -1.0){ p[i] = -1.0; ++clipped; }
-				else if(p[i] > +1.0){ p[i] = +1.0; ++clipped; }
-		}
+			CLIPCODE(float)
 		break;
 		case MPG123_ENC_FLOAT_64:
-		{
-			double *p = buf;
-			for(size_t i=0; i<samples; ++i)
-				if     (p[i] < -1.0){ p[i] = -1.0; ++clipped; }
-				else if(p[i] > +1.0){ p[i] = +1.0; ++clipped; }
-		}
+			CLIPCODE(double)
 		break;
 	}
+	#undef CLIPCODE
 	return clipped;
 }
 
