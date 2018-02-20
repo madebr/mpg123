@@ -815,9 +815,11 @@ int play_frame(void)
 	/* Special actions and errors. */
 	if(mc != MPG123_OK)
 	{
-		if(mc == MPG123_ERR || mc == MPG123_DONE)
+		if(mc == MPG123_ERR || mc == MPG123_DONE || mc == MPG123_NEED_MORE)
 		{
-			if(mc == MPG123_ERR) error1("...in decoding next frame: %s", mpg123_strerror(mh));
+			if(!param.quiet && mc == MPG123_ERR) error1("...in decoding next frame: %s", mpg123_strerror(mh));
+			if(!param.quiet && mc == MPG123_NEED_MORE)
+				error("The decoder expected more. File cut off early?");
 			return 0;
 		}
 		if(mc == MPG123_NO_SPACE)

@@ -559,6 +559,7 @@ init_resync:
 	{
 		unsigned char *newbuf = fr->bsspace[fr->bsnum]+512;
 		/* read main data into memory */
+		debug2("read frame body of %i at %"OFF_P, fr->framesize, framepos+4);
 		if((ret=fr->rd->read_frame_body(fr,newbuf,fr->framesize))<0)
 		{
 			/* if failed: flip back */
