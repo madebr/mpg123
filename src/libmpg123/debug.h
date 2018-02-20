@@ -20,6 +20,8 @@
 	Variadic macros are a C99 feature...
 	Now just predefining stuff non-variadic for up to 15 arguments.
 	It's cumbersome to have them all with different names, though...
+
+	Update: Also adding variadic macros now. We star to use some C99.
 */
 
 #ifdef ME
@@ -31,6 +33,10 @@
 #ifdef DEBUG
 
 #include <stdio.h>
+
+// The future (from about 20 years ago;-):
+#define mdebug(s, ...) fprintf(stderr, DBGPRFX "[" __FILE__ ":%i] debug: " s "\n", __LINE__, __VA_ARGS__)
+
 #define debug(s) fprintf(stderr, DBGPRFX"[" __FILE__ ":%i] debug: " s "\n", __LINE__)
 #define debug1(s, a) fprintf(stderr, DBGPRFX"[" __FILE__ ":%i] debug: " s "\n", __LINE__, a)
 #define debug2(s, a, b) fprintf(stderr, DBGPRFX"[" __FILE__ ":%i] debug: " s "\n", __LINE__, a, b)
@@ -48,6 +54,9 @@
 #define debug14(s, a, b, c, d, e, f, g, h, i, j, k, l, m, n) fprintf(stderr, DBGPRFX"[" __FILE__ ":%i] debug: " s "\n", __LINE__, a, b, c, d, e, f, g, h, i, j, k, l, m, n)
 #define debug15(s, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o) fprintf(stderr, DBGPRFX"[" __FILE__ ":%i] debug: " s "\n", __LINE__, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o)
 #else
+
+#define mdebug(s, ...) 
+
 #define debug(s) 
 #define debug1(s, a) 
 #define debug2(s, a, b) 
