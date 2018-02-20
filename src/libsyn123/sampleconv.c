@@ -131,8 +131,9 @@ switch(dest_enc) \
 	case MPG123_ENC_SIGNED_24: \
 		for(; tsrc!=tend; ++tsrc, tdest+=3) \
 		{ \
-			int32_t tmp = d_s32(*tsrc); \
-			DROP4BYTE((char*)tdest, (char*)&tmp); \
+			union { int32_t i; char c[4]; } tmp; \
+			tmp.i = d_s32(*tsrc); \
+			DROP4BYTE(tdest, tmp.c); \
 		} \
 	break; \
 	case MPG123_ENC_SIGNED_8: \
@@ -158,8 +159,9 @@ switch(dest_enc) \
 	case MPG123_ENC_UNSIGNED_24: \
 		for(; tsrc!=tend; ++tsrc, tdest+=3) \
 		{ \
-			uint32_t tmp = d_u32(*tsrc); \
-			DROP4BYTE((char*)tdest, (char*)&tmp); \
+			union { uint32_t i; char c[4]; } tmp; \
+			tmp.i = d_u32(*tsrc); \
+			DROP4BYTE(tdest, tmp.c); \
 		} \
 	break; \
 	case MPG123_ENC_UNSIGNED_32: \
@@ -193,9 +195,9 @@ switch(src_enc) \
 	case MPG123_ENC_SIGNED_24: \
 		for(; tdest!=tend; ++tdest, tsrc+=3) \
 		{ \
-			int32_t tmp; \
-			ADD4BYTE((char*)&tmp, (char*)tsrc); \
-			*tdest = s32_d(tmp); \
+			union { int32_t i; char c[4]; } tmp; \
+			ADD4BYTE(tmp.c, tsrc); \
+			*tdest = s32_d(tmp.i); \
 		} \
 	break; \
 	case MPG123_ENC_SIGNED_8: \
@@ -221,9 +223,9 @@ switch(src_enc) \
 	case MPG123_ENC_UNSIGNED_24: \
 		for(; tdest!=tend; ++tdest, tsrc+=3) \
 		{ \
-			uint32_t tmp; \
-			ADD4BYTE((char*)&tmp, (char*)tsrc); \
-			*tdest = u32_d(tmp); \
+			union { uint32_t i; char c[4]; } tmp; \
+			ADD4BYTE(tmp.c, tsrc); \
+			*tdest = u32_d(tmp.i); \
 		} \
 	break; \
 	case MPG123_ENC_UNSIGNED_32: \
@@ -250,7 +252,10 @@ syn123_conv( void * MPG123_RESTRICT dest, int dest_enc, size_t dest_size
 	size_t inblock  = MPG123_SAMPLESIZE(src_enc);
 	size_t outblock = MPG123_SAMPLESIZE(dest_enc);
 	size_t samples = src_bytes/inblock;
-debug2("conv from %i to %i", src_enc, dest_enc);
+	debug6( "conv from %i (%i) to %i (%i), %zu into %zu bytes"
+	,	src_enc, MPG123_SAMPLESIZE(src_enc)
+	,	dest_enc, MPG123_SAMPLESIZE(dest_enc)
+	,	src_bytes, dest_size );
 	if(!inblock || !outblock)
 		return SYN123_BAD_ENC;
 	if(!dest || !src)
