@@ -71,7 +71,12 @@ static int quiet = FALSE;
 static FILE* input = NULL;
 static char *encoding_name = NULL;
 static int  encoding = MPG123_ENC_SIGNED_16;
+static char *inputenc_name = NULL;
+static int  inputenc = 0;
+static int  mixenc = 0;
 static int  channels = 2;
+static int  inputch  = 0;
+static float *chmatrix = NULL;
 static long rate     = 44100;
 static char *driver = NULL;
 static char *device = NULL;
@@ -104,7 +109,11 @@ double geiger_activity = 17;
 size_t pcmblock = 1152; /* samples (pcm frames) we treat en bloc */
 /* To be set after settling format. */
 size_t pcmframe = 0;
+size_t pcminframe = 0;
+size_t pcmmixframe = 0;
 unsigned char *audio = NULL;
+unsigned char *inaudio = NULL;
+unsigned char *mixaudio = NULL;
 
 /* Option to play some oscillatory test signals. */
 syn123_handle *waver = NULL;
@@ -114,8 +123,6 @@ char *cmd_name = NULL;
 /* ThOr: pointers are not TRUE or FALSE */
 char *equalfile = NULL;
 int fresh = TRUE;
-
-size_t bufferblock = 4096;
 
 int OutputDescriptor;
 
@@ -163,6 +170,8 @@ static void safe_exit(int code)
 	/* It's ugly... but let's just fix this still-reachable memory chunk of static char*. */
 	split_dir_file("", &dummy, &dammy);
 	if(fullprogname) free(fullprogname);
+	if(mixaudio) free(mixaudio);
+	if(inaudio && inaudio != audio) free(inaudio);
 	if(audio) free(audio);
 	syn123_del(waver);
 	exit(code);
@@ -462,6 +471,7 @@ topt opts[] = {
 	{'m',  "mono",       GLO_INT,  0, &channels, 1},
 	{0,   "stereo",      GLO_INT,  0, &channels, 2},
 	{'c', "channels",    GLO_ARG | GLO_INT,  0, &channels, 0},
+	{'C', "inputch",     GLO_ARG | GLO_INT,  0, &inputch, 0},
 	{'r', "rate",        GLO_ARG | GLO_LONG, 0, &rate,  0},
 	{0,   "clip",        GLO_INT,  0, &do_clip, TRUE},
 	{0,   "headphones",  0,                  set_output_h, 0,0},
@@ -493,6 +503,7 @@ topt opts[] = {
 	{0 , "longhelp" ,        0,  want_long_usage, 0,      0 },
 	{0 , "version" ,         0,  give_version, 0,         0 },
 	{'e', "encoding", GLO_ARG|GLO_CHAR, 0, &encoding_name, 0},
+	{'E', "inputenc", GLO_ARG|GLO_CHAR, 0, &inputenc_name, 0}, 
 	{0, "list-encodings", 0, list_encodings, 0, 0 },
 	{0, "test-format", 0, test_format, 0, 0 },
 	{0, "test-encodings", 0, test_encodings, 0, 0},
@@ -562,7 +573,7 @@ static void setup_wavegen(void)
 
 	if(!strcmp(signal_source, "pink"))
 	{
-		waver = syn123_new(rate, channels, encoding, wave_limit, &synerr);
+		waver = syn123_new(rate, channels, inputenc, wave_limit, &synerr);
 		if(waver)
 			synerr = syn123_setup_pink(waver, pink_rows, &common);
 		if(!waver || synerr)
@@ -584,7 +595,7 @@ static void setup_wavegen(void)
 
 	if(!strcmp(signal_source, "geiger"))
 	{
-		waver = syn123_new(rate, channels, encoding, wave_limit, &synerr);
+		waver = syn123_new(rate, channels, inputenc, wave_limit, &synerr);
 		if(waver)
 			synerr = syn123_setup_geiger(waver, geiger_activity, &common);
 		if(!waver || synerr)
@@ -693,7 +704,7 @@ static void setup_wavegen(void)
 		}
 	}
 
-	waver = syn123_new(rate, channels, encoding, wave_limit, &synerr);
+	waver = syn123_new(rate, channels, inputenc, wave_limit, &synerr);
 	if(waver)
 		synerr = syn123_setup_waves( waver, count
 		,	id, freq_real, phase, backwards, &common );
@@ -739,14 +750,45 @@ int play_frame(void)
 			get_samples = (off_t)timelimit-offset;
 	}
 	if(waver)
-		got_samples = syn123_read(waver, audio, get_samples*pcmframe)/pcmframe;
+		got_samples = syn123_read(waver, inaudio, get_samples*pcminframe)/pcminframe;
 	else
-		got_samples = fread(audio, pcmframe, get_samples, input);
+		got_samples = fread(inaudio, pcminframe, get_samples, input);
 	/* Play what is there to play (starting with second decode_frame call!) */
 	if(got_samples)
 	{
 		errno = 0;
-		size_t got_bytes = pcmframe * got_samples;
+		size_t got_bytes = 0;
+		if(inaudio != audio)
+		{
+			// Convert audio.
+			if(inputch == channels) // Just encoding
+			{
+				int err;
+				if(mixaudio)
+				{
+					err = syn123_conv( mixaudio, mixenc, pcmblock*pcmmixframe
+					,	inaudio, inputenc, got_samples*pcminframe, &got_bytes );
+					if(!err)
+						err = syn123_conv( audio, encoding, pcmblock*pcmframe
+						,	mixaudio, mixenc, got_bytes, &got_bytes );
+				}
+				else
+					err = syn123_conv( audio, encoding, got_samples*pcmframe
+					,	inaudio, inputenc, got_samples*pcminframe, &got_bytes );
+				if(err)
+				{
+					error1("conversion failure: %s", syn123_strerror(err));
+					safe_exit(135);
+				}
+			}
+			else
+			{
+				error("mixing not implemented yet");
+				safe_exit(120);
+			}
+		}
+		else
+			got_bytes = pcmframe * got_samples;
 		if(do_clip && encoding & MPG123_ENC_FLOAT)
 		{
 			size_t clipped = syn123_clip(audio, encoding, got_samples*channels);
@@ -780,6 +822,17 @@ static void catch_interrupt(void)
         intflag = TRUE;
 }
 #endif
+
+static void *fatal_malloc(size_t bytes)
+{
+	void *buf;
+	if(!(buf = malloc(bytes)))
+	{
+		error("OOM");
+		safe_exit(1);
+	}
+	return buf;
+}
 
 int main(int sys_argc, char ** sys_argv)
 {
@@ -904,12 +957,38 @@ int main(int sys_argc, char ** sys_argv)
 			safe_exit(1);
 		}
 	}
+	inputenc = encoding;
+	if(inputenc_name)
+	{
+		inputenc = out123_enc_byname(inputenc_name);
+		if(inputenc < 0)
+		{
+			error1("Unknown input encoding '%s' given!\n", inputenc_name);
+			safe_exit(1);
+		}
+	}
+	if(!inputch)
+		inputch = channels;
+	// Up to 24 bit integer is mixed using float, anything above using double.
+	// Except 32 bit float, of course.
+	mixenc = ((encoding != MPG123_ENC_FLOAT_32 && out123_encsize(encoding) > 3) ||
+		(inputenc != MPG123_ENC_FLOAT_32 && out123_encsize(inputenc) > 3))
+	?	MPG123_ENC_FLOAT_64
+	:	MPG123_ENC_FLOAT_32;
+	pcmmixframe = out123_encsize(mixenc)*channels;
+	pcminframe = out123_encsize(inputenc)*inputch;
 	pcmframe = out123_encsize(encoding)*channels;
-	bufferblock = pcmblock*pcmframe;
-	audio = (unsigned char*) malloc(bufferblock);
+	audio = fatal_malloc(pcmblock*pcmframe);
+	if(inputenc != encoding)
+	{
+		inaudio = fatal_malloc(pcmblock*pcminframe);
+		if(!(inputenc & MPG123_ENC_FLOAT || encoding & MPG123_ENC_FLOAT))
+			mixaudio = fatal_malloc(pcmblock*pcmmixframe);
+	}
+	else
+		inaudio = audio;
 
 	check_fatal_output(out123_set_buffer(ao, buffer_kb*1024));
-	/* This needs bufferblock set! */
 	check_fatal_output(out123_open(ao, driver, device));
 
 	if(verbose)
@@ -917,6 +996,17 @@ int main(int sys_argc, char ** sys_argv)
 		long props = 0;
 		const char *encname;
 		char *realname = NULL;
+		if(inaudio != audio)
+		{
+			encname = out123_enc_name(inputenc);
+			fprintf( stderr, ME": input format: %li Hz, %i, channels, %s\n"
+			,	rate, channels, encname ? encname : "???" );
+		}
+		if(mixaudio)
+		{
+			encname = out123_enc_name(mixenc);
+			fprintf( stderr, ME": mixing in %s\n", encname ? encname : "???" );
+		}
 		encname = out123_enc_name(encoding);
 		fprintf(stderr, ME": format: %li Hz, %i channels, %s\n"
 		,	rate, channels, encname ? encname : "???" );
@@ -1048,13 +1138,13 @@ static void long_usage(int err)
 	fprintf(o," -c <n> --channels <n>     set channel count to <n>\n");
 	fprintf(o," -e <c> --encoding <c>     set output encoding (%s)\n"
 	,	enclist != NULL ? enclist : "OOM!");
-	fprintf(o,"TODO -C <n> --inchan <n>       set input channel count for conversion\n");
+	fprintf(o,"-C <n> --inputch <n>       set input channel count for conversion\n");
 	fprintf(o,"TODO        --mix <m>          mixing matrix <m> between input and output channels\n");
 	fprintf(o,"TODO                           as linear factors, comma separated list for output\n");
 	fprintf(o,"TODO                           channel 1, then 2, ... default unity if channel counts\n");
 	fprintf(o,"TODO                           match, 0.5,0.5 for stereo to mono, 1,1 for the other way\n");
 	fprintf(o,"TODO        --preamp <p>       amplify signal with <p> dB (triggers mixing)\n");
-	fprintf(o," -E <c> --inenc <c>        set input encoding for conversion\n");
+	fprintf(o," -E <c> --inputenc <c>     set input encoding for conversion\n");
 	fprintf(o,"        --clip             clip float samples before output\n");
 	fprintf(o," -m     --mono             set output channel count to 1\n");
 	fprintf(o,"        --stereo           set output channel count to 2 (default)\n");
