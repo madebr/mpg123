@@ -1,5 +1,10 @@
 1.26.0
 ------
+TODO: dither flag in syn123_handle ... some place for the noise ...
+TPDF is enough, isn't it? The highpass is specific to a sampling rate.
+Not sure if buffering TPDF is worth it. It is cheap, very cheap.
+TODO: drop special optimization flags, default to just -On ... but
+  consider defaulting to O3 for auto-vectorization
 TODO: avoid MPG123_NEED_MORE from non-feed reader reading frame
 bodies or see it as a feature
 - Starting to intentionaly use C99 in the codebase. API headers are still
@@ -24,6 +29,7 @@ bodies or see it as a feature
    output.
 -- It also hosts sample format conversions as a necessity to be able to
    directly produce the format output devices need.
+-- Well, also channel mixing while we're at it.
 TODO: Make libout123 and/or mpg123 use that to convert on the fly. Optionally?
       A new incompatible version of libmpg123 would drop duplicate code for
       conversions …

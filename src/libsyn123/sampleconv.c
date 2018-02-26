@@ -16,6 +16,7 @@
 */
 
 #define NO_GROW_BUF
+#define NO_SMAX
 #include "syn123_int.h"
 #include "sample.h"
 #include "debug.h"
@@ -117,8 +118,8 @@ syn123_clip(void *buf, int encoding, size_t samples)
 // double or float.
 
 #define FROM_FLT(type) \
-{ type *tsrc = src; type *tend = tsrc+samples; char *tdest = dest; \
-switch(dest_enc) \
+{ type *tsrc = src; type *tend = tsrc+samples; char *tdest = dst; \
+switch(dst_enc) \
 { \
 	case MPG123_ENC_SIGNED_16: \
 		for(; tsrc!=tend; ++tsrc, tdest+=2) \
@@ -181,7 +182,7 @@ switch(dest_enc) \
 }}
 
 #define TO_FLT(type) \
-{ type* tdest = dest; type* tend = tdest + samples; char * tsrc = src; \
+{ type* tdest = dst; type* tend = tdest + samples; char * tsrc = src; \
 switch(src_enc) \
 { \
 	case MPG123_ENC_SIGNED_16: \
@@ -245,27 +246,39 @@ switch(src_enc) \
 }}
 
 int attribute_align_arg
-syn123_conv( void * MPG123_RESTRICT dest, int dest_enc, size_t dest_size
-,	void * MPG123_RESTRICT src, int src_enc, size_t src_bytes
-,	size_t *dest_bytes)
+syn123_mixenc(int encoding)
 {
-	size_t inblock  = MPG123_SAMPLESIZE(src_enc);
-	size_t outblock = MPG123_SAMPLESIZE(dest_enc);
-	size_t samples = src_bytes/inblock;
+	int esize = MPG123_SAMPLESIZE(encoding);
+	if(!esize)
+		return 0;
+	else
+		return (encoding != MPG123_ENC_FLOAT_32 && esize > 3)
+		?	MPG123_ENC_FLOAT_64
+		:	MPG123_ENC_FLOAT_32;	
+}
+
+int attribute_align_arg
+syn123_conv( void * MPG123_RESTRICT dst, int dst_enc, size_t dst_size
+,	void * MPG123_RESTRICT src, int src_enc, size_t src_bytes
+,	size_t *dst_bytes, syn123_handle *sh )
+{
+	size_t srcframe  = MPG123_SAMPLESIZE(src_enc);
+	size_t dstframe = MPG123_SAMPLESIZE(dst_enc);
+	if(!srcframe || !dstframe)
+		return SYN123_BAD_ENC;
+	size_t samples = src_bytes/srcframe;
 	debug6( "conv from %i (%i) to %i (%i), %zu into %zu bytes"
 	,	src_enc, MPG123_SAMPLESIZE(src_enc)
-	,	dest_enc, MPG123_SAMPLESIZE(dest_enc)
-	,	src_bytes, dest_size );
-	if(!inblock || !outblock)
-		return SYN123_BAD_ENC;
-	if(!dest || !src)
+	,	dst_enc, MPG123_SAMPLESIZE(dst_enc)
+	,	src_bytes, dst_size );
+	if(!dst || !src)
 		return SYN123_BAD_BUF;
-	if(samples*inblock != src_bytes)
+	if(samples*srcframe != src_bytes)
 		return SYN123_BAD_CHOP;
-	if(samples*outblock > dest_size)
+	if(samples*dstframe > dst_size)
 		return SYN123_BAD_SIZE;
-	if(src_enc == dest_enc)
-		memcpy(dest, src, samples*outblock);
+	if(src_enc == dst_enc)
+		memcpy(dst, src, samples*dstframe);
 	else if(src_enc & MPG123_ENC_FLOAT)
 	{
 		if(src_enc == MPG123_ENC_FLOAT_64)
@@ -275,19 +288,53 @@ syn123_conv( void * MPG123_RESTRICT dest, int dest_enc, size_t dest_size
 		else
 			return SYN123_BAD_CONV;
 	}
-	else if(dest_enc & MPG123_ENC_FLOAT)
+	else if(dst_enc & MPG123_ENC_FLOAT)
 	{
-		if(dest_enc == MPG123_ENC_FLOAT_64)
+		if(dst_enc == MPG123_ENC_FLOAT_64)
 			TO_FLT(double)
-		else if(dest_enc == MPG123_ENC_FLOAT_32)
+		else if(dst_enc == MPG123_ENC_FLOAT_32)
 			TO_FLT(float)
 		else
 			return SYN123_BAD_CONV;
 	}
-	else
+	else if(sh)
+	{
+		char *cdst = dst;
+		char *csrc = src;
+		int mixenc = syn123_mixenc(dst_enc);
+		int mixframe = MPG123_SAMPLESIZE(mixenc);
+		if(!mixenc || !mixframe)
+			return SYN123_BAD_CONV;
+		// Use the whole workbuf, both halves.
+		int mbufblock = 2*bufblock*sizeof(double)/mixframe;
+		mdebug("mbufblock=%i (enc %i)", mbufblock, mixenc);
+		// Abuse the handle workbuf for intermediate storage.
+		size_t samples_left = samples;
+		while(samples_left)
+		{
+			int block = (int)smin(samples_left, mbufblock);
+			int err = syn123_conv(
+				sh->workbuf, mixenc, sizeof(sh->workbuf)
+			,	csrc, src_enc, srcframe*block
+			,	NULL, NULL );
+			if(!err)
+				err = syn123_conv(
+					cdst, dst_enc, dstframe*block
+				,	sh->workbuf, mixenc, mixframe*block
+				,	NULL, NULL );
+			if(err)
+			{
+				mdebug("conv error: %i", err);
+				return SYN123_BAD_CONV;
+			}
+			cdst += dstframe*block;
+			csrc += srcframe*block;
+			samples_left -= block;
+		}
+	} else
 		return SYN123_BAD_CONV;
-	if(dest_bytes)
-		*dest_bytes = outblock*samples;
+	if(dst_bytes)
+		*dst_bytes = dstframe*samples;
 	return SYN123_OK;
 }
 
@@ -331,6 +378,7 @@ void attribute_align_arg
 syn123_mono2many( void * MPG123_RESTRICT dest, void * MPG123_RESTRICT src
 , int channels, size_t samplesize, size_t samplecount )
 {
+#ifndef SYN123_NO_CASES
 	switch(channels)
 	{
 		case 1:
@@ -377,12 +425,16 @@ syn123_mono2many( void * MPG123_RESTRICT dest, void * MPG123_RESTRICT src
 			}
 		break;
 	}
+#else
+	BYTEMULTIPLY(dest, src, samplesize, samplecount, channels)
+#endif
 }
 
 void attribute_align_arg
 syn123_interleave(void * MPG123_RESTRICT dest, void ** MPG123_RESTRICT src
 ,	int channels, size_t samplesize, size_t samplecount)
 {
+#ifndef SYN123_NO_CASEs
 	switch(channels)
 	{
 		case 1:
@@ -429,12 +481,16 @@ syn123_interleave(void * MPG123_RESTRICT dest, void ** MPG123_RESTRICT src
 			}
 		break;
 	}
+#else
+	BYTEINTERLEAVE(dest, src, samplesize, samplecount, channels)
+#endif
 }
 
 void attribute_align_arg
 syn123_deinterleave(void ** MPG123_RESTRICT dest, void * MPG123_RESTRICT src
 ,	int channels, size_t samplesize, size_t samplecount)
 {
+#ifndef SYN123_NO_CASES
 	switch(channels)
 	{
 		case 1:
@@ -480,6 +536,161 @@ syn123_deinterleave(void ** MPG123_RESTRICT dest, void * MPG123_RESTRICT src
 				break;
 			}
 		break;
+	}
+#else
+	BYTEDEINTERLEAVE(dest, src, samplesize, samplecount, channels)
+#endif
+}
+
+#define MIX_CODE(type,scc,dcc) \
+	for(size_t i=0; i<samples; ++i) \
+	{ \
+		for(int dc=0; dc<dcc; ++dc) \
+		{ \
+			dst[SYN123_IOFF(i, dc, dcc)] = \
+				(type)mixmatrix[SYN123_IOFF(dc,0,scc)] * src[SYN123_IOFF(i,0,scc)]; \
+			for(int sc=1; sc<scc; ++sc) \
+				dst[SYN123_IOFF(i,dc,dcc)] += \
+					(type)mixmatrix[SYN123_IOFF(dc,sc,scc)] * src[SYN123_IOFF(i,sc,scc)]; \
+		} \
+	}
+
+// I decided against optimizing for mixing factors of 1, unity matrix ...
+// A floating point multiplication is not that expensive and there might
+// be value in the runtime of the function not depending on the matrix
+// values, only on channel setup and sample count.
+// I might trust the compiler here to hardcode the case value for
+// src/dst_channels. But why take the risk?
+#ifndef SYN123_NO_CASES
+#define SYN123_MIX_FUNC(type) \
+	switch(src_channels) \
+	{ \
+		case 1: \
+			switch(dst_channels) \
+			{ \
+				case 1: \
+					MIX_CODE(type,1,1) \
+				break; \
+				case 2: \
+					MIX_CODE(type,1,2) \
+				break; \
+				default: \
+					MIX_CODE(type,1,dst_channels) \
+			} \
+		break; \
+		case 2: \
+			switch(dst_channels) \
+			{ \
+				case 1: \
+					MIX_CODE(type,2,1) \
+				break; \
+				case 2: \
+					MIX_CODE(type,2,2) \
+				break; \
+				default: \
+					MIX_CODE(type,2,dst_channels) \
+			} \
+		break; \
+		default: \
+			MIX_CODE(type,src_channels, dst_channels) \
+	}
+#else
+#define SYN123_MIX_FUNC(type) \
+	MIX_CODE(type, src_channels, dst_channels)
+#endif
+
+static void syn123_mix_f32( float * MPG123_RESTRICT dst, int dst_channels
+,	float * MPG123_RESTRICT src, int src_channels
+,	const double * MPG123_RESTRICT mixmatrix
+,	size_t samples )
+{
+	debug("syn123_mix_f32");
+	SYN123_MIX_FUNC(float)
+}
+
+static void syn123_mix_f64( double * MPG123_RESTRICT dst, int dst_channels
+,	double * MPG123_RESTRICT src, int src_channels
+,	const double * MPG123_RESTRICT mixmatrix
+,	size_t samples )
+{
+	debug("syn123_mix_f64");
+	SYN123_MIX_FUNC(double)
+}
+
+int attribute_align_arg
+syn123_mix( void * MPG123_RESTRICT dst, int dst_enc, int dst_channels
+,	void * MPG123_RESTRICT src, int src_enc, int src_channels
+,	const double * mixmatrix
+,	size_t samples, syn123_handle *sh )
+{
+	if(src_channels < 1 || dst_channels < 1)
+		return SYN123_BAD_FMT;
+	if(!dst || !src || !mixmatrix)
+		return SYN123_BAD_BUF;
+	if(dst_enc == src_enc) switch(dst_enc)
+	{
+		case MPG123_ENC_FLOAT_32:
+			syn123_mix_f32( dst, dst_channels, src, src_channels
+			,	mixmatrix, samples );
+			return SYN123_OK;
+		break;
+		case MPG123_ENC_FLOAT_64:
+			syn123_mix_f64( dst, dst_channels, src, src_channels
+			,	mixmatrix, samples );
+			return SYN123_OK;
+		break;
+	}
+	// If still here: Some conversion needed.
+	if(!sh)
+		return SYN123_BAD_ENC;
+	else
+	{
+		debug("mix with conversion");
+		char *cdst = dst;
+		char *csrc = src;
+		int srcframe = MPG123_SAMPLESIZE(src_enc)*src_channels;
+		int dstframe = MPG123_SAMPLESIZE(dst_enc)*dst_channels;
+		if(!srcframe || !dstframe)
+			return SYN123_BAD_ENC;
+		int mixenc = syn123_mixenc(dst_enc);
+		int mixinframe = MPG123_SAMPLESIZE(mixenc)*src_channels;
+		int mixoutframe = MPG123_SAMPLESIZE(mixenc)*dst_channels;
+		int mixframe = mixinframe > mixoutframe ? mixinframe : mixoutframe;
+		if(!mixenc || !mixinframe || !mixoutframe)
+			return SYN123_BAD_CONV;
+		// Mix from buffblock[0] to buffblock[1].
+		int mbufblock = bufblock*sizeof(double)/mixframe;
+		mdebug("mbufblock=%i (enc %i)", mbufblock, mixenc);
+		// Need at least one sample per round to avoid endless loop.
+		// Of course, we would prefer more, but it's your fault for
+		// giving an excessive amount of channels without handling conversion
+		// beforehand.
+		if(mbufblock < 1)
+			return SYN123_BAD_CONV;
+		while(samples)
+		{
+			int block = (int)smin(samples, mbufblock);
+			int err = syn123_conv(
+				sh->workbuf[0], mixenc, sizeof(sh->workbuf[0])
+			,	csrc, src_enc, srcframe*block
+			,	NULL, NULL );
+			if(err)
+				return err;
+			err = syn123_mix( sh->workbuf[1], mixenc, dst_channels
+			,	sh->workbuf[0], mixenc, src_channels, mixmatrix, block, NULL );
+			if(err)
+				return err;
+			err = syn123_conv(
+					cdst, dst_enc, dstframe*block
+				,	sh->workbuf[1], mixenc, mixoutframe*block
+				,	NULL, NULL );
+			if(err)
+				return err;
+			cdst += dstframe*block;
+			csrc += srcframe*block;
+			samples -= block;
+		}
+		return SYN123_OK;
 	}
 }
 

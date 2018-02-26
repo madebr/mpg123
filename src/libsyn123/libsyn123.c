@@ -39,16 +39,6 @@ static size_t round2size(double a)
 	return a < 0 ? 0 : (size_t)(a+0.5);
 }
 
-static size_t smin(size_t a, size_t b)
-{
-	return a < b ? a : b;
-}
-
-static size_t smax(size_t a, size_t b)
-{
-	return a > b ? a : b;
-}
-
 /* fractional part, relating to frequencies (so long matches) */
 static double myfrac(double a)
 {
@@ -597,7 +587,7 @@ syn123_read( syn123_handle *sh, void *dest, size_t dest_bytes )
 			int err = syn123_conv(
 				sh->workbuf[0], sh->fmt.encoding, sizeof(sh->workbuf[0])
 			,	sh->workbuf[1], MPG123_ENC_FLOAT_64, sizeof(double)*block
-			,	NULL );
+			,	NULL, NULL );
 			if(err)
 			{
 				debug1("conv error: %i", err);

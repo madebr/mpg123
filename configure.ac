@@ -571,6 +571,20 @@ if test "x$ieee" = xenabled; then
   AC_DEFINE(IEEE_FLOAT,   1, [ Define to indicate that float storage follows IEEE754. ])
 fi
 
+AC_ARG_ENABLE(cases,
+  [ --enable-cases=[yes/no] include special cases for likely parameter values (channel count, encoding sizes in libsyn123 routines) in the hope of better optimization at the expense of some code bloat (default enabled) ],
+  [
+     if test "x$enableval" = xyes; then
+       specialcases=enabled
+     else
+       specialcases=disabled
+     fi
+  ], [ specialcases=enabled ])
+
+if test "x$specialcases" = xdisabled; then
+  AC_DEFINE(SYN123_NO_CASES, 1, [ Define to not duplicate some code for likely cases in libsyn123. ])
+fi
+
 sys_cppflags=
 newoldwritesample=disabled
 case $host in
@@ -2496,6 +2510,9 @@ echo "
 
 Note: Disabling core features is not commonly done and some combinations might not build/work. If you encounter such a case, help yourself (and provide a patch) or just poke the maintainers."
 # just an empty line
+echo
+
+echo "  libsyn123 special cases . $specialcases"
 echo
 
 echo "  Modules ................. $modules"

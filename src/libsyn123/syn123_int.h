@@ -60,6 +60,20 @@ struct syn123_struct
 	size_t offset;  // offset in buffer for extraction helper
 };
 
+#ifndef NO_SMIN
+static size_t smin(size_t a, size_t b)
+{
+	return a < b ? a : b;
+}
+#endif
+
+#ifndef NO_SMAX
+static size_t smax(size_t a, size_t b)
+{
+	return a > b ? a : b;
+}
+#endif
+
 #ifndef NO_GROW_BUF
 // Grow period buffer to at least given size.
 // Content is not preserved.

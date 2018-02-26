@@ -7,8 +7,14 @@
 
 	initially written by Thomas Orgis (extracted from mpg123.c)
 
-	This is a stripped down mpg123 that only uses libout123 to write standard input
-	to an audio device.
+	This is a stripped down mpg123 that only uses libout123 to write standard
+	input to an audio device. Of course, it got some enhancements with the
+	advent of libsyn123.
+
+	Please bear in mind that the code started out as a nasty hack on a very
+	old piece made out of nasty hacks and plain ugly code. Some nastiness
+	(like lax parameter checking) even serves a purpose: Test the robustness
+	of our libraries in catching bad caller behaviour.
 
 	TODO: Add basic parsing of WAV headers to be able to pipe in WAV files, especially
 	from something like mpg123 -w -.
@@ -73,10 +79,8 @@ static char *encoding_name = NULL;
 static int  encoding = MPG123_ENC_SIGNED_16;
 static char *inputenc_name = NULL;
 static int  inputenc = 0;
-static int  mixenc = 0;
 static int  channels = 2;
 static int  inputch  = 0;
-static float *chmatrix = NULL;
 static long rate     = 44100;
 static char *driver = NULL;
 static char *device = NULL;
@@ -110,13 +114,15 @@ size_t pcmblock = 1152; /* samples (pcm frames) we treat en bloc */
 /* To be set after settling format. */
 size_t pcmframe = 0;
 size_t pcminframe = 0;
-size_t pcmmixframe = 0;
 unsigned char *audio = NULL;
 unsigned char *inaudio = NULL;
-unsigned char *mixaudio = NULL;
+char *mixmat_string = NULL;
+double *mixmat = NULL;
 
-/* Option to play some oscillatory test signals. */
+// Option to play some oscillatory test signals.
+// Also used for conversions.
 syn123_handle *waver = NULL;
+int generate = FALSE; // Wheter to use the syn123 generator.
 
 out123_handle *ao = NULL;
 char *cmd_name = NULL;
@@ -170,10 +176,10 @@ static void safe_exit(int code)
 	/* It's ugly... but let's just fix this still-reachable memory chunk of static char*. */
 	split_dir_file("", &dummy, &dammy);
 	if(fullprogname) free(fullprogname);
-	if(mixaudio) free(mixaudio);
+	if(mixmat) free(mixmat);
 	if(inaudio && inaudio != audio) free(inaudio);
 	if(audio) free(audio);
-	syn123_del(waver);
+	if(waver) syn123_del(waver);
 	exit(code);
 }
 
@@ -184,7 +190,17 @@ static void check_fatal_output(int code)
 		if(!quiet)
 			error2( "out123 error %i: %s"
 			,	out123_errcode(ao), out123_strerror(ao) );
-		safe_exit(code);
+		safe_exit(133);
+	}
+}
+
+static void check_fatal_syn(int code)
+{
+	if(code)
+	{
+		if(!quiet)
+			merror("syn123 error %i: %s", code, syn123_strerror(code));
+		safe_exit(132);
 	}
 }
 
@@ -472,6 +488,7 @@ topt opts[] = {
 	{0,   "stereo",      GLO_INT,  0, &channels, 2},
 	{'c', "channels",    GLO_ARG | GLO_INT,  0, &channels, 0},
 	{'C', "inputch",     GLO_ARG | GLO_INT,  0, &inputch, 0},
+	{'M', "mix",         GLO_ARG | GLO_CHAR, 0, &mixmat_string, 0},
 	{'r', "rate",        GLO_ARG | GLO_LONG, 0, &rate,  0},
 	{0,   "clip",        GLO_INT,  0, &do_clip, TRUE},
 	{0,   "headphones",  0,                  set_output_h, 0,0},
@@ -571,52 +588,57 @@ static void setup_wavegen(void)
 	int synerr = 0;
 	size_t common = 0;
 
+	if(!generate)
+		wave_limit = 0;
+	waver = syn123_new(rate, inputch, inputenc, wave_limit, &synerr);
+	check_fatal_syn(synerr);
+	if(!waver)
+		safe_exit(132);
+	// At least have waver handy for conversions.
+	if(!generate)
+		return;
+
 	if(!strcmp(signal_source, "pink"))
 	{
-		waver = syn123_new(rate, channels, inputenc, wave_limit, &synerr);
-		if(waver)
-			synerr = syn123_setup_pink(waver, pink_rows, &common);
-		if(!waver || synerr)
+		synerr = syn123_setup_pink(waver, pink_rows, &common);
+		if(synerr)
 		{
-			error1("setting up pink noise generator: %s\n", syn123_strerror(synerr));
+			if(!quiet)
+				merror("setting up pink noise generator: %s\n", syn123_strerror(synerr));
 			safe_exit(132);
 		}
 		if(verbose)
 		{
-			if(common)
-				fprintf(stderr, "out123: periodic signal table of %" SIZE_P " samples\n", common);
-			else
-				fprintf(stderr, "out123: live signal generation\n");
-			fprintf(stderr, "out123; pink noise with %i generator rows (0=internal default)\n"
-			,	pink_rows);
+			fprintf( stderr
+			,	ME ": pink noise with %i generator rows (0=internal default)\n"
+			,	pink_rows );
 		}
-		return;
+		goto setup_waver_end;
 	}
-
-	if(!strcmp(signal_source, "geiger"))
+	else if(!strcmp(signal_source, "geiger"))
 	{
-		waver = syn123_new(rate, channels, inputenc, wave_limit, &synerr);
-		if(waver)
-			synerr = syn123_setup_geiger(waver, geiger_activity, &common);
-		if(!waver || synerr)
+		synerr = syn123_setup_geiger(waver, geiger_activity, &common);
+		if(synerr)
 		{
-			error1("setting up geiger generator: %s\n", syn123_strerror(synerr));
+			if(!quiet)
+				merror("setting up geiger generator: %s\n", syn123_strerror(synerr));
 			safe_exit(132);
 		}
 		if(verbose)
 		{
-			if(common)
-				fprintf(stderr, "out123: periodic signal table of %" SIZE_P " samples\n", common);
-			else
-				fprintf(stderr, "out123: live signal generation\n");
-			fprintf(stderr, "out123; geiger with actvity %g\n", geiger_activity);
+			fprintf(stderr, ME ": geiger with actvity %g\n", geiger_activity);
 		}
-		return;
+		goto setup_waver_end;
+	}
+	else if(strcmp(signal_source, "wave"))
+	{
+		if(!quiet)
+			merror("unknown signal source: %s", signal_source);
+		safe_exit(132);
 	}
 
-	if(strcmp(signal_source, "wave"))
-		return;
-
+	// The big default code block is for wave setup.
+	// Exceptions jump over it.
 	if(wave_freqs)
 	{
 		char *tok;
@@ -704,31 +726,34 @@ static void setup_wavegen(void)
 		}
 	}
 
-	waver = syn123_new(rate, channels, inputenc, wave_limit, &synerr);
-	if(waver)
-		synerr = syn123_setup_waves( waver, count
-		,	id, freq_real, phase, backwards, &common );
-	if(!waver || synerr)
+	synerr = syn123_setup_waves( waver, count
+	,	id, freq_real, phase, backwards, &common );
+	if(synerr)
 	{
-		error1("setting up wave generator: %s\n", syn123_strerror(synerr));
+		if(!quiet)
+			merror("setting up wave generator: %s\n", syn123_strerror(synerr));
 		safe_exit(132);
 	}
 	if(verbose)
 	{
-		if(common)
-			fprintf(stderr, "out123: periodic signal table of %" SIZE_P " samples\n", common);
-		else
-			fprintf(stderr, "out123: live signal generation\n");
 		if(count) for(i=0; i<count; ++i)
-			fprintf( stderr, "out123: wave %" SIZE_P ": %s @ %g Hz (%g Hz) p %g\n"
+			fprintf( stderr, ME ": wave %" SIZE_P ": %s @ %g Hz (%g Hz) p %g\n"
 			,	i
 			,	syn123_wave_name(id ? id[i] : SYN123_WAVE_SINE)
 			,	freq[i], freq_real[i]
 			,	phase ? phase[i] : 0 );
 		else
-			fprintf(stderr, "out123: default sine wave\n");
+			fprintf(stderr, ME ": default sine wave\n");
 	}
 
+setup_waver_end:
+	if(verbose)
+	{
+		if(common)
+			fprintf(stderr, ME ": periodic signal table of %" SIZE_P " samples\n", common);
+		else
+			fprintf(stderr, ME ": live signal generation\n");
+	}
 	if(phase)
 		free(phase);
 	if(id)
@@ -742,6 +767,7 @@ int play_frame(void)
 {
 	size_t got_samples;
 	size_t get_samples = pcmblock;
+	debug("play_frame");
 	if(timelimit >= 0)
 	{
 		if(offset >= timelimit)
@@ -749,7 +775,7 @@ int play_frame(void)
 		else if(timelimit < offset+get_samples)
 			get_samples = (off_t)timelimit-offset;
 	}
-	if(waver)
+	if(generate)
 		got_samples = syn123_read(waver, inaudio, get_samples*pcminframe)/pcminframe;
 	else
 		got_samples = fread(inaudio, pcminframe, get_samples, input);
@@ -760,31 +786,15 @@ int play_frame(void)
 		size_t got_bytes = 0;
 		if(inaudio != audio)
 		{
-			// Convert audio.
-			if(inputch == channels) // Just encoding
+			if(mixmat)
 			{
-				int err;
-				if(mixaudio)
-				{
-					err = syn123_conv( mixaudio, mixenc, pcmblock*pcmmixframe
-					,	inaudio, inputenc, got_samples*pcminframe, &got_bytes );
-					if(!err)
-						err = syn123_conv( audio, encoding, pcmblock*pcmframe
-						,	mixaudio, mixenc, got_bytes, &got_bytes );
-				}
-				else
-					err = syn123_conv( audio, encoding, got_samples*pcmframe
-					,	inaudio, inputenc, got_samples*pcminframe, &got_bytes );
-				if(err)
-				{
-					error1("conversion failure: %s", syn123_strerror(err));
-					safe_exit(135);
-				}
-			}
-			else
+				check_fatal_syn(syn123_mix( audio, encoding, channels
+				,	inaudio, inputenc, inputch, mixmat, got_samples, waver ));
+				got_bytes = pcmframe * got_samples;
+			} else
 			{
-				error("mixing not implemented yet");
-				safe_exit(120);
+				check_fatal_syn(syn123_conv( audio, encoding, got_samples*pcmframe
+				,	inaudio, inputenc, got_samples*pcminframe, &got_bytes, waver ));
 			}
 		}
 		else
@@ -793,17 +803,10 @@ int play_frame(void)
 		{
 			size_t clipped = syn123_clip(audio, encoding, got_samples*channels);
 			if(verbose > 1 && clipped)
-				fprintf(stderr, "out123: clipped %"SIZE_P" samples\n", clipped);
+				fprintf(stderr, ME ": clipped %"SIZE_P" samples\n", clipped);
 		}
-		if(out123_play(ao, audio, got_bytes) < (int)got_bytes)
-		{
-			if(!quiet)
-			{
-				error2( "out123 error %i: %s"
-				,	out123_errcode(ao), out123_strerror(ao) );
-			}
-			safe_exit(133);
-		}
+		mdebug("playing %zu bytes", got_bytes);
+		check_fatal_output(out123_play(ao, audio, got_bytes) < (int)got_bytes);
 		if(also_stdout && fwrite(audio, pcmframe, got_samples, stdout) < got_samples)
 		{
 			if(!quiet && errno != EINTR)
@@ -828,7 +831,8 @@ static void *fatal_malloc(size_t bytes)
 	void *buf;
 	if(!(buf = malloc(bytes)))
 	{
-		error("OOM");
+		if(!quiet)
+			error("OOM");
 		safe_exit(1);
 	}
 	return buf;
@@ -969,25 +973,46 @@ int main(int sys_argc, char ** sys_argv)
 	}
 	if(!inputch)
 		inputch = channels;
-	// Up to 24 bit integer is mixed using float, anything above using double.
-	// Except 32 bit float, of course.
-	mixenc = ((encoding != MPG123_ENC_FLOAT_32 && out123_encsize(encoding) > 3) ||
-		(inputenc != MPG123_ENC_FLOAT_32 && out123_encsize(inputenc) > 3))
-	?	MPG123_ENC_FLOAT_64
-	:	MPG123_ENC_FLOAT_32;
-	pcmmixframe = out123_encsize(mixenc)*channels;
 	pcminframe = out123_encsize(inputenc)*inputch;
 	pcmframe = out123_encsize(encoding)*channels;
 	audio = fatal_malloc(pcmblock*pcmframe);
-	if(inputenc != encoding)
+	// Full mixing is initiated if channel counts differ or a non-empty
+	// mixing matrix has been specified.
+	if(1 || inputch != channels || (mixmat_string && mixmat_string[0]))
 	{
-		inaudio = fatal_malloc(pcmblock*pcminframe);
-		if(!(inputenc & MPG123_ENC_FLOAT || encoding & MPG123_ENC_FLOAT))
-			mixaudio = fatal_malloc(pcmblock*pcmmixframe);
+		mixmat = fatal_malloc(sizeof(double)*inputch*channels);
+		size_t mmcount = mytok_count(mixmat_string);
+		// Special cases of trivial down/upmixing need no user input.
+		if(mmcount == 0 && inputch == 1)
+		{
+			for(int oc=0; oc<channels; ++oc)
+				mixmat[oc] = 1.;
+		}
+		else if(mmcount == 0 && channels == 1)
+		{
+			for(int ic=0; ic<inputch; ++ic)
+				mixmat[ic] = 1./inputch;
+		}
+		else if(mmcount != inputch*channels)
+		{
+			merror( "Need %i mixing matrix entries, got %zu."
+			,	inputch*channels, mmcount );
+			safe_exit(1);
+		} else
+		{
+			char *next = mixmat_string;
+			for(int i=0; i<inputch*channels; ++i)
+			{
+				char *tok = mytok(&next);
+				mixmat[i] = tok ? atof(tok) : 0.;
+			}
+		}
 	}
+	// If converting or mixing, use separate input buffer.
+	if(inputenc != encoding || mixmat)
+		inaudio = fatal_malloc(pcmblock*pcminframe);
 	else
 		inaudio = audio;
-
 	check_fatal_output(out123_set_buffer(ao, buffer_kb*1024));
 	check_fatal_output(out123_open(ao, driver, device));
 
@@ -999,13 +1024,22 @@ int main(int sys_argc, char ** sys_argv)
 		if(inaudio != audio)
 		{
 			encname = out123_enc_name(inputenc);
-			fprintf( stderr, ME": input format: %li Hz, %i, channels, %s\n"
-			,	rate, channels, encname ? encname : "???" );
-		}
-		if(mixaudio)
-		{
-			encname = out123_enc_name(mixenc);
-			fprintf( stderr, ME": mixing in %s\n", encname ? encname : "???" );
+			fprintf( stderr, ME": input format: %li Hz, %i channels, %s\n"
+			,	rate, inputch, encname ? encname : "???" );
+			encname = out123_enc_name(syn123_mixenc(encoding));
+			if(mixmat)
+			{
+				fprintf( stderr, ME": mixing in %s\n", encname ? encname : "???" );
+				for(int oc=0; oc<channels; ++oc)
+				{
+					fprintf(stderr, ME": out ch %i mix:", oc);
+					for(int ic=0; ic<inputch; ++ic)
+						fprintf(stderr, " %4.2f", mixmat[SYN123_IOFF(oc,ic,inputch)]);
+					fprintf(stderr, "\n");
+				}
+			}
+			else
+				fprintf( stderr, ME": converting via %s\n", encname ? encname : "???" );
 		}
 		encname = out123_enc_name(encoding);
 		fprintf(stderr, ME": format: %li Hz, %i channels, %s\n"
@@ -1021,14 +1055,8 @@ int main(int sys_argc, char ** sys_argv)
 
 	input = stdin;
 	if(strcmp(signal_source, "file"))
-	{
-		setup_wavegen();
-		if(!waver)
-		{
-			error("unknown signal source");
-			safe_exit(133);
-		}
-	}
+		generate = TRUE;
+	setup_wavegen(); // Used also for conversion/mixing.
 
 	while(play_frame() && !intflag)
 	{
@@ -1208,7 +1236,8 @@ static void long_usage(int err)
 	fprintf(o,"        --longhelp         give this long help listing\n");
 	fprintf(o,"        --version          give name / version string\n");
 
-	fprintf(o,"\nSee the manpage out123(1) for more information.\n");
+	fprintf(o,"\nSee the manpage out123(1) for more information. Also, note that\n");
+	fprintf(o,"any numeric arguments are parsed in C locale (pi is 3.14, not 3,14).");
 	free(enclist);
 	safe_exit(err);
 }

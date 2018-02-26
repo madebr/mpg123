@@ -73,6 +73,12 @@ extern "C" {
  *  1. Create handle with desired output format.
  *  2. Set up synthesis mode with parameters.
  *  3. Repeatedly extract buffers with PCM samples.
+ *
+ *  The other functions for encoding conversion, (de-)interleaving,
+ *  and interleaved mixing work without a handle and only use the
+ *  buffers you hand in. Only the functions that are able to return
+ *  a success code do check arguments for obvious trouble like
+ *  NULL pointers. You are supposed to act responsibly when calling.
  @{
  */
 
@@ -271,12 +277,16 @@ int syn123_setup_silence(syn123_handle *sh);
  *  \param src_enc source encoding
  *  \param src_bytes source buffer size in bytes
  *  \param dest_bytes optional address to store the written byte count to
+ *  \param sh an optional syn123_handle which enables arbitrary encoding
+ *    conversions by utilizing the contained buffer as intermediate storage,
+ *    can be NULL, disabling any conversion not involving floating point
+ *    input or output
  *  \return success code
  */
 MPG123_EXPORT
 int syn123_conv( void * MPG123_RESTRICT dest, int dest_enc, size_t dest_size
 ,	void * MPG123_RESTRICT src, int src_enc, size_t src_bytes
-,	size_t *dest_bytes );
+,	size_t *dest_bytes, syn123_handle * sh );
 
 /** Clip samples in buffer to default range.
  *  This only does anything with floating point encoding, but you can always
@@ -335,6 +345,58 @@ void syn123_deinterleave( void ** MPG123_RESTRICT dest, void * MPG123_RESTRICT s
 MPG123_EXPORT
 void syn123_mono2many( void * MPG123_RESTRICT dest, void * MPG123_RESTRICT src
 , int channels, size_t samplesize, size_t samplecount );
+
+/** A little helper/reminder on how interleaved format works:
+ *  Produce the offset of the given sample for the given channel.
+ */
+#define SYN123_IOFF(sample, channel, channels) ((sample)*(channels)+(channel))
+
+/** Specify floating point encoding to use for preserving precision in
+ *  intermediate computations for given output encoding.
+ *  This should return either MPG123_ENC_FLOAT_32 or MPG123_ENC_FLOAT_64,
+ *  unless an uncertain future adds things like 16 bit fp ...
+ *  This is what syn123_conv() and syn123_mix() will use internally if
+ *  intermediate conversion is necessary.
+ *  \param inputenc input encoding
+ *  \param outputenc output encoding
+ *  \return encoding value, zero if none can be chosen (invalid parameters)
+ */
+MPG123_EXPORT
+int syn123_mixenc(int encoding);
+
+/** Mix n input channels into m output channels.
+ *  This takes an interleaved input stream and mixes its channels
+ *  into the output stream given a channel matrix (m,n) where
+ *  each of the m rows contains the n volume factors (weights)
+ *  to apply when summing the samples from the n input channels.
+ *  This works either on 32 bit or 64 bit floating point encodings. It
+ *  may have some optimization to work faster with mono or stereo on
+ *  either side and slower generic code for arbitrary channel counts.
+ *  You can use syn123_conv() to convert from/to input/output encodings.
+ *  There are no optimizations for special cases of mixing factors, so
+ *  you should always be able to predict the number of floating point
+ *  operations being executed.
+ *  For fun, you could give the same problem to a BLAS implementation
+ *  of your choice and compare the performance;-)
+ *  \param dst destination buffer
+ *  \param dst_channels destination channel count (m)
+ *  \param src source buffer
+ *  \param src_channels source channel count (n)
+ *  \param mixmatrix mixing factors ((m,n) matrix), same encoding as
+ *    the audio data
+ *  \param encoding sample encoding, must be MPG123_ENC_FLOAT_32 or
+ *    MPG123_ENC_FLOAT_64 unless a syn123_handle is provided
+ *  \param sh an optional syn123_handle which enables work on non-float
+ *    encodings by utilizing the contained buffer as intermediate storage,
+ *    converting to/from float transparently; Note that this may limit
+ *    the amount of channels depending on the available buffer space.
+ *  \return success code (e.g. bad encoding, channel counts ...)
+ */
+MPG123_EXPORT
+int syn123_mix( void * MPG123_RESTRICT dst, int dst_enc, int dst_channels
+,	void * MPG123_RESTRICT src, int src_enc, int src_channels
+,	const double * mixmatrix
+,	size_t samples, syn123_handle *sh );
 
 /** Swap byte order between little/big endian.
  *  \param buf buffer to work on
