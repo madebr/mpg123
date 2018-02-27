@@ -655,7 +655,6 @@ int open_track(char *fname)
 #ifdef WIN32
 		_setmode(STDIN_FILENO, _O_BINARY);
 #endif
-		return open_track_fd();
 	}
 	else if (!strncmp(fname, "http://", 7)) /* http stream */
 	{
@@ -701,7 +700,7 @@ int open_track(char *fname)
 
 	debug("OK... going to finally open.");
 	/* Now hook up the decoder on the opened stream or the file. */
-	if(network_sockets_used) 
+	if(filept > -1)
 	{
 		return open_track_fd();
 	}
