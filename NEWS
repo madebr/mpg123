@@ -81,7 +81,8 @@ TODO: Make libout123 and/or mpg123 use that to convert on the fly. Optionally?
 ------
 - mpg123: Fix --icy-interval handling to work with stream from stdin.
   (curl | mpg123 --icy-interval=n -)
-TODO: fix that mp3gain-related crash in layer3.c
+- libmpg123: Fix another invalid read and segfault on damaged (fuzzed)
+  files with part2_3_length == 0 (set maxband=1, pulled from upcoming 1.26.0).
 
 1.25.8
 ------
