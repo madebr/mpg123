@@ -42,7 +42,6 @@ TODO: Make libout123 and/or mpg123 use that to convert on the fly. Optionally?
    sudo to allow users to run mpg123 with arbitrary arguments.
    You should treat out123_open just like the regular open(): You can
    write to any file/device depending on your permissions.
--- Fix error messages beginning from OUT123_ARG_ERROR (bug 261).
 - out123: Changed output of --test-encodings to list of encoding names
   instead of raw bitmask value.
 - libout123: Added hex and txt (plain text) printout.
@@ -76,6 +75,11 @@ TODO: Make libout123 and/or mpg123 use that to convert on the fly. Optionally?
 -- Fix build without error messages.
 -- Disable buffer when neither mmap nor shm functions detected (fixes
    build for Android, thanks to vquicksilver).
+
+1.25.10
+-------
+
+- libout123: Fix error messages beginning from OUT123_ARG_ERROR (bug 261).
 
 1.25.9
 ------
