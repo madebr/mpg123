@@ -547,9 +547,7 @@ syn123_deinterleave(void ** MPG123_RESTRICT dest, void * MPG123_RESTRICT src
 	{ \
 		for(int dc=0; dc<dcc; ++dc) \
 		{ \
-			dst[SYN123_IOFF(i, dc, dcc)] = \
-				(type)mixmatrix[SYN123_IOFF(dc,0,scc)] * src[SYN123_IOFF(i,0,scc)]; \
-			for(int sc=1; sc<scc; ++sc) \
+			for(int sc=0; sc<scc; ++sc) \
 				dst[SYN123_IOFF(i,dc,dcc)] += \
 					(type)mixmatrix[SYN123_IOFF(dc,sc,scc)] * src[SYN123_IOFF(i,sc,scc)]; \
 		} \
@@ -621,13 +619,13 @@ int attribute_align_arg
 syn123_mix( void * MPG123_RESTRICT dst, int dst_enc, int dst_channels
 ,	void * MPG123_RESTRICT src, int src_enc, int src_channels
 ,	const double * mixmatrix
-,	size_t samples, syn123_handle *sh )
+,	size_t samples, int silence, syn123_handle *sh )
 {
 	if(src_channels < 1 || dst_channels < 1)
 		return SYN123_BAD_FMT;
 	if(!dst || !src || !mixmatrix)
 		return SYN123_BAD_BUF;
-	if(dst_enc == src_enc) switch(dst_enc)
+	if(!silence && dst_enc == src_enc) switch(dst_enc)
 	{
 		case MPG123_ENC_FLOAT_32:
 			syn123_mix_f32( dst, dst_channels, src, src_channels
@@ -676,8 +674,17 @@ syn123_mix( void * MPG123_RESTRICT dst, int dst_enc, int dst_channels
 			,	NULL, NULL );
 			if(err)
 				return err;
+			if(silence)
+			{
+				if(mixenc == MPG123_ENC_FLOAT_32)
+					for(int i=0; i<block*dst_channels; ++i)
+						((float*)(sh->workbuf[1]))[i] = 0.;
+				else
+					for(int i=0; i<block*dst_channels; ++i)
+						sh->workbuf[1][i] = 0.;
+			}
 			err = syn123_mix( sh->workbuf[1], mixenc, dst_channels
-			,	sh->workbuf[0], mixenc, src_channels, mixmatrix, block, NULL );
+			,	sh->workbuf[0], mixenc, src_channels, mixmatrix, block, 0, NULL );
 			if(err)
 				return err;
 			err = syn123_conv(

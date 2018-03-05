@@ -789,7 +789,7 @@ int play_frame(void)
 			if(mixmat)
 			{
 				check_fatal_syn(syn123_mix( audio, encoding, channels
-				,	inaudio, inputenc, inputch, mixmat, got_samples, waver ));
+				,	inaudio, inputenc, inputch, mixmat, got_samples, TRUE, waver ));
 				got_bytes = pcmframe * got_samples;
 			} else
 			{
@@ -978,10 +978,12 @@ int main(int sys_argc, char ** sys_argv)
 	audio = fatal_malloc(pcmblock*pcmframe);
 	// Full mixing is initiated if channel counts differ or a non-empty
 	// mixing matrix has been specified.
-	if(1 || inputch != channels || (mixmat_string && mixmat_string[0]))
+	if(inputch != channels || (mixmat_string && mixmat_string[0]))
 	{
 		mixmat = fatal_malloc(sizeof(double)*inputch*channels);
-		size_t mmcount = mytok_count(mixmat_string);
+		size_t mmcount = (mixmat_string && mixmat_string[0])
+		?	mytok_count(mixmat_string)
+		:	0;
 		// Special cases of trivial down/upmixing need no user input.
 		if(mmcount == 0 && inputch == 1)
 		{
