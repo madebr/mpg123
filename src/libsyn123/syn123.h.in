@@ -79,6 +79,11 @@ extern "C" {
  *  buffers you hand in. Only the functions that are able to return
  *  a success code do check arguments for obvious trouble like
  *  NULL pointers. You are supposed to act responsibly when calling.
+ *
+ *  The size of buffers is either counted in bytes or samples, which,
+ *  depending on the context, refer to individual PCM samples or to what is
+ *  more strictly called a frame (one sample for each channel counted
+ *  together).
  @{
  */
 
