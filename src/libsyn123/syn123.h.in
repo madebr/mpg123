@@ -352,17 +352,19 @@ void syn123_mono2many( void * MPG123_RESTRICT dst, void * MPG123_RESTRICT src
 #define SYN123_IOFF(sample, channel, channels) ((sample)*(channels)+(channel))
 
 /** Specify floating point encoding to use for preserving precision in
- *  intermediate computations for given output encoding.
+ *  intermediate computations for given source and destination encoding.
  *  This should return either MPG123_ENC_FLOAT_32 or MPG123_ENC_FLOAT_64,
  *  unless an uncertain future adds things like 16 bit fp ...
  *  This is what syn123_conv() and syn123_mix() will use internally if
  *  intermediate conversion is necessary.
- *  \param inputenc input encoding
- *  \param outputenc output encoding
+ *  Note that 64 bit floating point material will be mixed in 32 bit if the
+ *  destination encoding does not need more precision.
+ *  \param src_enc source/input encoding
+ *  \param dst_enc destination/output encoding
  *  \return encoding value, zero if none can be chosen (invalid parameters)
  */
 MPG123_EXPORT
-int syn123_mixenc(int encoding);
+int syn123_mixenc(int src_enc, int dst_enc);
 
 /** Mix n input channels on top of m output channels.
  *  This takes an interleaved input stream and mixes its channels

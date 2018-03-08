@@ -1028,7 +1028,7 @@ int main(int sys_argc, char ** sys_argv)
 			encname = out123_enc_name(inputenc);
 			fprintf( stderr, ME": input format: %li Hz, %i channels, %s\n"
 			,	rate, inputch, encname ? encname : "???" );
-			encname = out123_enc_name(syn123_mixenc(encoding));
+			encname = out123_enc_name(syn123_mixenc(inputenc, encoding));
 			if(mixmat)
 			{
 				fprintf( stderr, ME": mixing in %s\n", encname ? encname : "???" );

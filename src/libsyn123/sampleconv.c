@@ -246,13 +246,15 @@ switch(src_enc) \
 }}
 
 int attribute_align_arg
-syn123_mixenc(int encoding)
+syn123_mixenc(int src_enc, int dst_enc)
 {
-	int esize = MPG123_SAMPLESIZE(encoding);
-	if(!esize)
+	int isize = MPG123_SAMPLESIZE(src_enc);
+	int osize = MPG123_SAMPLESIZE(dst_enc);
+	if(!isize || !osize)
 		return 0;
-	else
-		return (encoding != MPG123_ENC_FLOAT_32 && esize > 3)
+	else // Only if both sides warrant high precision, double is used.
+		return ( src_enc != MPG123_ENC_FLOAT_32 && isize > 3 &&
+			dst_enc != MPG123_ENC_FLOAT_32 && osize > 3 )
 		?	MPG123_ENC_FLOAT_64
 		:	MPG123_ENC_FLOAT_32;	
 }
@@ -301,7 +303,7 @@ syn123_conv( void * MPG123_RESTRICT dst, int dst_enc, size_t dst_size
 	{
 		char *cdst = dst;
 		char *csrc = src;
-		int mixenc = syn123_mixenc(dst_enc);
+		int mixenc = syn123_mixenc(src_enc, dst_enc);
 		int mixframe = MPG123_SAMPLESIZE(mixenc);
 		if(!mixenc || !mixframe)
 			return SYN123_BAD_CONV;
@@ -650,7 +652,7 @@ syn123_mix( void * MPG123_RESTRICT dst, int dst_enc, int dst_channels
 		int dstframe = MPG123_SAMPLESIZE(dst_enc)*dst_channels;
 		if(!srcframe || !dstframe)
 			return SYN123_BAD_ENC;
-		int mixenc = syn123_mixenc(dst_enc);
+		int mixenc = syn123_mixenc(src_enc, dst_enc);
 		int mixinframe = MPG123_SAMPLESIZE(mixenc)*src_channels;
 		int mixoutframe = MPG123_SAMPLESIZE(mixenc)*dst_channels;
 		int mixframe = mixinframe > mixoutframe ? mixinframe : mixoutframe;
