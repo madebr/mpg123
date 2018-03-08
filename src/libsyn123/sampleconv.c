@@ -375,32 +375,32 @@ syn123_conv( void * MPG123_RESTRICT dst, int dst_enc, size_t dst_size
 
 /* Special case of multiplying a mono stream. */
 void attribute_align_arg
-syn123_mono2many( void * MPG123_RESTRICT dest, void * MPG123_RESTRICT src
+syn123_mono2many( void * MPG123_RESTRICT dst, void * MPG123_RESTRICT src
 , int channels, size_t samplesize, size_t samplecount )
 {
 #ifndef SYN123_NO_CASES
 	switch(channels)
 	{
 		case 1:
-			memcpy(dest, src, samplesize*samplecount);
+			memcpy(dst, src, samplesize*samplecount);
 		break;
 		case 2:
 			switch(samplesize)
 			{
 				case 1:
-					BYTEMULTIPLY(dest, src, 1, samplecount, 2)
+					BYTEMULTIPLY(dst, src, 1, samplecount, 2)
 				break;
 				case 2:
-					BYTEMULTIPLY(dest, src, 2, samplecount, 2)
+					BYTEMULTIPLY(dst, src, 2, samplecount, 2)
 				break;
 				case 3:
-					BYTEMULTIPLY(dest, src, 3, samplecount, 2)
+					BYTEMULTIPLY(dst, src, 3, samplecount, 2)
 				break;
 				case 4:
-					BYTEMULTIPLY(dest, src, 4, samplecount, 2)
+					BYTEMULTIPLY(dst, src, 4, samplecount, 2)
 				break;
 				default:
-					BYTEMULTIPLY(dest, src, samplesize, samplecount, 2)
+					BYTEMULTIPLY(dst, src, samplesize, samplecount, 2)
 				break;
 			}
 		break;
@@ -408,55 +408,55 @@ syn123_mono2many( void * MPG123_RESTRICT dest, void * MPG123_RESTRICT src
 			switch(samplesize)
 			{
 				case 1:
-					BYTEMULTIPLY(dest, src, 1, samplecount, channels)
+					BYTEMULTIPLY(dst, src, 1, samplecount, channels)
 				break;
 				case 2:
-					BYTEMULTIPLY(dest, src, 2, samplecount, channels)
+					BYTEMULTIPLY(dst, src, 2, samplecount, channels)
 				break;
 				case 3:
-					BYTEMULTIPLY(dest, src, 3, samplecount, channels)
+					BYTEMULTIPLY(dst, src, 3, samplecount, channels)
 				break;
 				case 4:
-					BYTEMULTIPLY(dest, src, 4, samplecount, channels)
+					BYTEMULTIPLY(dst, src, 4, samplecount, channels)
 				break;
 				default:
-					BYTEMULTIPLY(dest, src, samplesize, samplecount, channels)
+					BYTEMULTIPLY(dst, src, samplesize, samplecount, channels)
 				break;
 			}
 		break;
 	}
 #else
-	BYTEMULTIPLY(dest, src, samplesize, samplecount, channels)
+	BYTEMULTIPLY(dst, src, samplesize, samplecount, channels)
 #endif
 }
 
 void attribute_align_arg
-syn123_interleave(void * MPG123_RESTRICT dest, void ** MPG123_RESTRICT src
+syn123_interleave(void * MPG123_RESTRICT dst, void ** MPG123_RESTRICT src
 ,	int channels, size_t samplesize, size_t samplecount)
 {
 #ifndef SYN123_NO_CASEs
 	switch(channels)
 	{
 		case 1:
-			memcpy(dest, src, samplesize*samplecount);
+			memcpy(dst, src, samplesize*samplecount);
 		break;
 		case 2:
 			switch(samplesize)
 			{
 				case 1:
-					BYTEINTERLEAVE(dest, src, 1, samplecount, 2)
+					BYTEINTERLEAVE(dst, src, 1, samplecount, 2)
 				break;
 				case 2:
-					BYTEINTERLEAVE(dest, src, 2, samplecount, 2)
+					BYTEINTERLEAVE(dst, src, 2, samplecount, 2)
 				break;
 				case 3:
-					BYTEINTERLEAVE(dest, src, 3, samplecount, 2)
+					BYTEINTERLEAVE(dst, src, 3, samplecount, 2)
 				break;
 				case 4:
-					BYTEINTERLEAVE(dest, src, 4, samplecount, 2)
+					BYTEINTERLEAVE(dst, src, 4, samplecount, 2)
 				break;
 				default:
-					BYTEINTERLEAVE(dest, src, samplesize, samplecount, 2)
+					BYTEINTERLEAVE(dst, src, samplesize, samplecount, 2)
 				break;
 			}
 		break;
@@ -464,55 +464,55 @@ syn123_interleave(void * MPG123_RESTRICT dest, void ** MPG123_RESTRICT src
 			switch(samplesize)
 			{
 				case 1:
-					BYTEINTERLEAVE(dest, src, 1, samplecount, channels)
+					BYTEINTERLEAVE(dst, src, 1, samplecount, channels)
 				break;
 				case 2:
-					BYTEINTERLEAVE(dest, src, 2, samplecount, channels)
+					BYTEINTERLEAVE(dst, src, 2, samplecount, channels)
 				break;
 				case 3:
-					BYTEINTERLEAVE(dest, src, 3, samplecount, channels)
+					BYTEINTERLEAVE(dst, src, 3, samplecount, channels)
 				break;
 				case 4:
-					BYTEINTERLEAVE(dest, src, 4, samplecount, channels)
+					BYTEINTERLEAVE(dst, src, 4, samplecount, channels)
 				break;
 				default:
-					BYTEINTERLEAVE(dest, src, samplesize, samplecount, channels)
+					BYTEINTERLEAVE(dst, src, samplesize, samplecount, channels)
 				break;
 			}
 		break;
 	}
 #else
-	BYTEINTERLEAVE(dest, src, samplesize, samplecount, channels)
+	BYTEINTERLEAVE(dst, src, samplesize, samplecount, channels)
 #endif
 }
 
 void attribute_align_arg
-syn123_deinterleave(void ** MPG123_RESTRICT dest, void * MPG123_RESTRICT src
+syn123_deinterleave(void ** MPG123_RESTRICT dst, void * MPG123_RESTRICT src
 ,	int channels, size_t samplesize, size_t samplecount)
 {
 #ifndef SYN123_NO_CASES
 	switch(channels)
 	{
 		case 1:
-			memcpy(dest[0], src, samplesize*samplecount);
+			memcpy(dst[0], src, samplesize*samplecount);
 		break;
 		case 2:
 			switch(samplesize)
 			{
 				case 1:
-					BYTEDEINTERLEAVE(dest, src, 1, samplecount, 2)
+					BYTEDEINTERLEAVE(dst, src, 1, samplecount, 2)
 				break;
 				case 2:
-					BYTEDEINTERLEAVE(dest, src, 2, samplecount, 2)
+					BYTEDEINTERLEAVE(dst, src, 2, samplecount, 2)
 				break;
 				case 3:
-					BYTEDEINTERLEAVE(dest, src, 3, samplecount, 2)
+					BYTEDEINTERLEAVE(dst, src, 3, samplecount, 2)
 				break;
 				case 4:
-					BYTEDEINTERLEAVE(dest, src, 4, samplecount, 2)
+					BYTEDEINTERLEAVE(dst, src, 4, samplecount, 2)
 				break;
 				default:
-					BYTEDEINTERLEAVE(dest, src, samplesize, samplecount, 2)
+					BYTEDEINTERLEAVE(dst, src, samplesize, samplecount, 2)
 				break;
 			}
 		break;
@@ -520,25 +520,25 @@ syn123_deinterleave(void ** MPG123_RESTRICT dest, void * MPG123_RESTRICT src
 			switch(samplesize)
 			{
 				case 1:
-					BYTEDEINTERLEAVE(dest, src, 1, samplecount, channels)
+					BYTEDEINTERLEAVE(dst, src, 1, samplecount, channels)
 				break;
 				case 2:
-					BYTEDEINTERLEAVE(dest, src, 2, samplecount, channels)
+					BYTEDEINTERLEAVE(dst, src, 2, samplecount, channels)
 				break;
 				case 3:
-					BYTEDEINTERLEAVE(dest, src, 3, samplecount, channels)
+					BYTEDEINTERLEAVE(dst, src, 3, samplecount, channels)
 				break;
 				case 4:
-					BYTEDEINTERLEAVE(dest, src, 4, samplecount, channels)
+					BYTEDEINTERLEAVE(dst, src, 4, samplecount, channels)
 				break;
 				default:
-					BYTEDEINTERLEAVE(dest, src, samplesize, samplecount, channels)
+					BYTEDEINTERLEAVE(dst, src, samplesize, samplecount, channels)
 				break;
 			}
 		break;
 	}
 #else
-	BYTEDEINTERLEAVE(dest, src, samplesize, samplecount, channels)
+	BYTEDEINTERLEAVE(dst, src, samplesize, samplecount, channels)
 #endif
 }
 

@@ -153,13 +153,13 @@ void syn123_del(syn123_handle *sh);
 
 /** Extract desired amount of data from the generator.
  *  \param sh handle
- *  \param dest destination buffer
- *  \param dest_bytes number of bytes to extract
+ *  \param dst destination buffer
+ *  \param dst_bytes number of bytes to extract
  *  \return actual number of extracted bytes
- *  (might differ if dest_bytes is no multiple of the PCM frame size)
+ *  (might differ if dst_bytes is no multiple of the PCM frame size)
  */
 MPG123_EXPORT
-size_t syn123_read(syn123_handle *sh, void *dest, size_t dest_bytes);
+size_t syn123_read(syn123_handle *sh, void *dst, size_t dst_bytes);
 
 /** Setup periodic wave generator.
  *  This sets up a series of oscillators with differing wave shapes.
@@ -270,13 +270,13 @@ int syn123_setup_silence(syn123_handle *sh);
  *  reference implementation of the G711 standard (differing from libmpg123's
  *  big lookup table).
  *
- *  \param dest destination buffer
- *  \param dest_enc destination encoding (enum mpg123_enc_enum)
- *  \param dest_size size of destination buffer in bytes
+ *  \param dst destination buffer
+ *  \param dst_enc destination encoding (enum mpg123_enc_enum)
+ *  \param dst_size size of destination buffer in bytes
  *  \param src source buffer
  *  \param src_enc source encoding
  *  \param src_bytes source buffer size in bytes
- *  \param dest_bytes optional address to store the written byte count to
+ *  \param dst_bytes optional address to store the written byte count to
  *  \param sh an optional syn123_handle which enables arbitrary encoding
  *    conversions by utilizing the contained buffer as intermediate storage,
  *    can be NULL, disabling any conversion not involving floating point
@@ -284,9 +284,9 @@ int syn123_setup_silence(syn123_handle *sh);
  *  \return success code
  */
 MPG123_EXPORT
-int syn123_conv( void * MPG123_RESTRICT dest, int dest_enc, size_t dest_size
+int syn123_conv( void * MPG123_RESTRICT dst, int dst_enc, size_t dst_size
 ,	void * MPG123_RESTRICT src, int src_enc, size_t src_bytes
-,	size_t *dest_bytes, syn123_handle * sh );
+,	size_t *dst_bytes, syn123_handle * sh );
 
 /** Clip samples in buffer to default range.
  *  This only does anything with floating point encoding, but you can always
@@ -306,14 +306,14 @@ size_t syn123_clip(void *buf, int encoding, size_t samples);
  *  functions to arrange huge structs (hence samplesize as size_t)
  *  or whatever. If that makes sense is up to you.
  *  The buffers shall not overlap!
- *  \param dest destination buffer
+ *  \param dst destination buffer
  *  \param src source buffer array (one per channel)
  *  \param channels channel count
  *  \param samplesize size of one sample
  *  \param samplecount count of samples per channel
  */
 MPG123_EXPORT
-void syn123_interleave( void * MPG123_RESTRICT dest, void** MPG123_RESTRICT src
+void syn123_interleave( void * MPG123_RESTRICT dst, void** MPG123_RESTRICT src
 ,	int channels, size_t samplesize, size_t samplecount );
 
 /** Deinterleave given number of channels out of one stream.
@@ -323,27 +323,27 @@ void syn123_interleave( void * MPG123_RESTRICT dest, void** MPG123_RESTRICT src
  *  functions to arrange huge structs (hence samplesize as size_t)
  *  or whatever. If that makes sense is up to you.
  *  The buffers shall not overlap!
- *  \param dest destination buffer array (one per channel)
+ *  \param dst destination buffer array (one per channel)
  *  \param src source buffer
  *  \param channels channel count
  *  \param samplesize size of one sample (see MPG123_SAMPLESIZE)
  *  \param samplecount count of samples per channel
  */
 MPG123_EXPORT
-void syn123_deinterleave( void ** MPG123_RESTRICT dest, void * MPG123_RESTRICT src
+void syn123_deinterleave( void ** MPG123_RESTRICT dst, void * MPG123_RESTRICT src
 ,	int channels, size_t samplesize, size_t samplecount );
 
 /** Simply copies mono samples into an interleaved stream.
  *  This might be implemented by a call to syn123_interleave(), it might
  *  be optimized to something different. You could have fun measuring that.
- *  \param dest destination buffer
+ *  \param dst destination buffer
  *  \param src source buffer
  *  \param channels channel count
  *  \param samplesize size of one sample (see MPG123_SAMPLESIZE)
  *  \param samplecount count of samples per channel
  */
 MPG123_EXPORT
-void syn123_mono2many( void * MPG123_RESTRICT dest, void * MPG123_RESTRICT src
+void syn123_mono2many( void * MPG123_RESTRICT dst, void * MPG123_RESTRICT src
 , int channels, size_t samplesize, size_t samplecount );
 
 /** A little helper/reminder on how interleaved format works:
