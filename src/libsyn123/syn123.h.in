@@ -84,6 +84,13 @@ extern "C" {
  *  depending on the context, refer to individual PCM samples or to what is
  *  more strictly called a frame (one sample for each channel counted
  *  together).
+ *
+ *  So far, I am not considering fixed-point implementations. The main
+ *  functionality of the generators can limit (emulated) floating-point
+ *  work to the initial filling of the period buffer, with no computational
+ *  overhead after that. The mixing code might benefit from a fixed-point
+ *  variant on certain platforms, but I do not have such a platform at
+ *  hand and do not feel the need.
  @{
  */
 
