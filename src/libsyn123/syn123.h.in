@@ -236,6 +236,31 @@ const char* syn123_wave_name(int id);
 MPG123_EXPORT
 int syn123_wave_id(const char *name);
 
+/** Types of frequency sweeps.
+ *  There are no functions mapping those to/from strings,
+ *  as this list is supposed to be fixed and small.
+ *  There are only so many types of sweeps that make sense.
+ */
+enum syn123_sweep_id
+{
+	SYN123_SWEEP_LINEAR = 0 /**< linear frequency change */
+,	SYN123_SWEEP_SQUARE     /**< quadratic frequency change */
+,	SYN123_SWEEP_EXP        /**< exponential (octave per time unit) */
+};
+
+/** Frequency sweep generator.
+ *  This generates a sweep from one frequency to another with one
+ *  of the available wave shapes over a given time.
+ *  The
+MPG123_EXPORT
+int syn123_setup_sweep( syn123_handle* sh, int wave_id, double f1, double f2
+,	size_t duration, 
+,	int *wave_id, double *freq, double *phase, int* backwards
+,	size_t *period );
+
+
+
+
 /** Set up pink noise generator.
  *  This employs the Gardner/McCartney method to the approximate
  *  the real thing. The number of rows in the tree pattern is tunable.
@@ -300,9 +325,64 @@ int syn123_conv( void * MPG123_RESTRICT dst, int dst_enc, size_t dst_size
 ,	void * MPG123_RESTRICT src, int src_enc, size_t src_bytes
 ,	size_t *dst_bytes, syn123_handle * sh );
 
+/** The range of decibel values handled by syn123 goes from
+ *  -SYN123_DB_LIMIT to +SYN123_DB_LIMIT
+ *  This value ensures that a resulting linear volume can still
+ *  be expressed using single-precision float.
+ *  The resulting amplitude from -500 dB is still small enough
+ *  to drive a 32 bit integer sample value orders of magnitude below
+ *  1, so it is effectively a zero. Note that physical volume controls
+ *  typically give a range as small as 60 dB. You might want to present
+ *  a tighter range to the user than +/- 500 dB!
+ */
+#define SYN123_DB_LIMIT 500
+
+/** Convert decibels to linear volume (amplitude factor).
+ *  This just returns pow(10, db/20) in the supported range.
+ *  The dB value is limited according to SYN123_DB_LIMIT, with
+ *  NaN being put at the lower end of the range. Better silent
+ *  than insanely loud. Even before dB computation, the linear
+ *  volume is limited to be > 0.
+ *  \param db relative volume in dB
+ *  \return linear volume factor
+ */
+MPG123_EXPORT double syn123_db2lin(double db);
+
+/** Convert linear volume (amplitude factor) to decibels.
+ *  This just returns 20*log10(volume) in the supported range.
+ *  The returned value is limited according to SYN123_DB_LIMIT, with
+ *  NaN being put at the lower end of the range. Better silent
+ *  than insanely loud.
+ *  \param volume linear volume factor
+ *  \return relative volume in dB
+ */
+MPG123_EXPORT double syn123_lin2db(double volume);
+
+/** Amplify given buffer.
+ *  This multiplies all samples by the given floating point value
+ *  (possibly converting to/from floating point on the fly, if a
+ *  handle with the included working buffer is given).
+ *  Also an offset correction is provided.
+ *  \param buf the buffer to work on
+ *  \param encding the sample encoding
+ *  \param samples number of samples
+ *  \param volume linear volume factor (use syn123_db2lin() for
+ *    applying a change in dB)
+ *  \param offset offset to add to the sample values before
+ *    multiplication
+ *  \param sh optional handle to enable work on non-float
+ *    encodings
+ *  \return success code (e.g. bad encoding without handle)
+ */
+MPG123_EXPORT
+int syn123_amp( void* buf, int encoding, size_t samples
+,	double volume, double offset,	syn123_handle *sh );
+
 /** Clip samples in buffer to default range.
  *  This only does anything with floating point encoding, but you can always
- *  call it without damage.
+ *  call it without damage as a no-op on other encodings. After this, the
+ *  samples are guaranteed to be in the range [-1,+1]. NaNs are mapped
+ *  to zero (and counted as clipped), so they will still sound bad.
  *  \param buf buffer to work on
  *  \param encoding sample encoding
  *  \param samples total number of samples
@@ -420,6 +500,18 @@ int syn123_mix( void * MPG123_RESTRICT dst, int dst_enc, int dst_channels
 ,	void * MPG123_RESTRICT src, int src_enc, int src_channels
 ,	const double * mixmatrix
 ,	size_t samples, int silence, syn123_handle *sh );
+
+/*
+Some resampling? I would like to offer something simple but adequate.
+One is the dropping/repeating of samples to adjust for a small
+clock drift. The other something for acutal resampling of content.
+Linear interpolation is always a fallback that should be fine in practice,
+although it does audible distortion on a sine sweep. I should offer
+one good-enough bandlimited interpolation algorithm, too. Nothing fancy.
+MPG123_EXPORT
+int syn123_drift( void * MPG123_RESTRICT dst, int dst_enc, int channels
+,	void * MPG123_RESTRICT
+*/
 
 /** Swap byte order between little/big endian.
  *  \param buf buffer to work on

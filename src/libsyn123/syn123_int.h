@@ -11,6 +11,8 @@
 #ifndef _MPG123_SYN123_INT_H_
 #define _MPG123_SYN123_INT_H_
 
+#define _ISOC99_SOURCE
+
 #include "config.h"
 #include "intsym.h"
 #include "compat.h"
