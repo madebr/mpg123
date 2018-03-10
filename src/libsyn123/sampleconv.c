@@ -38,6 +38,8 @@
 static type name(ftype d) \
 { \
 	type imax = maxval; \
+	if(isnan(d)) \
+		d = 0.; \
 	d *= imax; \
 	if(d>=0) \
 	{ \
