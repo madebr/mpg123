@@ -387,15 +387,6 @@ static void wave_generator(syn123_handle *sh, int samples)
 	for(int c=0; c<sh->wave_count; ++c)
 		wave_add_buffer( sh->workbuf[1], samples, sh->fmt.rate, sh->waves+c
 		,	sh->workbuf[0] );
-	/* Amplification could have caused clipping. */
-	for(int i=0; i<samples; ++i)
-	{
-		if(sh->workbuf[1][i] >  1.0)
-			sh->workbuf[1][i] =  1.0;
-		if(sh->workbuf[1][i] < -1.0)
-			sh->workbuf[1][i] = -1.0;
-		//debug2("sh->workbuf[1][%i]=%f", i, sh->workbuf[1][i]);
-	}
 }
 
 /* Build internal table, allocate external table, convert to that one, */
