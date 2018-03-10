@@ -1169,10 +1169,10 @@ static void long_usage(int err)
 	fprintf(o," -e <c> --encoding <c>     set output encoding (%s)\n"
 	,	enclist != NULL ? enclist : "OOM!");
 	fprintf(o,"-C <n> --inputch <n>       set input channel count for conversion\n");
-	fprintf(o,"TODO        --mix <m>          mixing matrix <m> between input and output channels\n");
-	fprintf(o,"TODO                           as linear factors, comma separated list for output\n");
-	fprintf(o,"TODO                           channel 1, then 2, ... default unity if channel counts\n");
-	fprintf(o,"TODO                           match, 0.5,0.5 for stereo to mono, 1,1 for the other way\n");
+	fprintf(o,"       --mix <m>           mixing matrix <m> between input and output channels\n");
+	fprintf(o,"                           as linear factors, comma separated list for output\n");
+	fprintf(o,"                           channel 1, then 2, ... default unity if channel counts\n");
+	fprintf(o,"                           match, 0.5,0.5 for stereo to mono, 1,1 for the other way\n");
 	fprintf(o,"TODO        --preamp <p>       amplify signal with <p> dB (triggers mixing)\n");
 	fprintf(o," -E <c> --inputenc <c>     set input encoding for conversion\n");
 	fprintf(o,"        --clip             clip float samples before output\n");
@@ -1239,7 +1239,7 @@ static void long_usage(int err)
 	fprintf(o,"        --version          give name / version string\n");
 
 	fprintf(o,"\nSee the manpage out123(1) for more information. Also, note that\n");
-	fprintf(o,"any numeric arguments are parsed in C locale (pi is 3.14, not 3,14).");
+	fprintf(o,"any numeric arguments are parsed in C locale (pi is 3.14, not 3,14).\n");
 	free(enclist);
 	safe_exit(err);
 }
