@@ -100,7 +100,8 @@ syn123_clip(void *buf, int encoding, size_t samples)
 	{ \
 		type *p = buf; \
 		for(size_t i=0; i<samples; ++i) \
-			if     (p[i] < -1.0){ p[i] = -1.0; ++clipped; } \
+			if(isnan(p[i]))     { p[i] =  0.0; ++clipped; } \
+			else if(p[i] < -1.0){ p[i] = -1.0; ++clipped; } \
 			else if(p[i] > +1.0){ p[i] = +1.0; ++clipped; } \
 	}
 	switch(encoding)
