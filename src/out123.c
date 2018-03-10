@@ -93,7 +93,9 @@ static int w32_priority = 0;
 static int aggressive = FALSE;
 static double preload = 0.2;
 static long outflags = 0;
-static long gain = -1;
+double preamp = 0.;
+double preamp_factor = 1.;
+double preamp_offset = 0.;
 static const char *name = NULL; /* Let the out123 library choose "out123". */
 static double device_buffer; /* output device buffer */
 long timelimit = -1;
@@ -489,6 +491,8 @@ topt opts[] = {
 	{'c', "channels",    GLO_ARG | GLO_INT,  0, &channels, 0},
 	{'C', "inputch",     GLO_ARG | GLO_INT,  0, &inputch, 0},
 	{'M', "mix",         GLO_ARG | GLO_CHAR, 0, &mixmat_string, 0},
+	{'P', "preamp",      GLO_ARG | GLO_DOUBLE, 0, &preamp, 0},
+	{0,   "offset",      GLO_ARG | GLO_DOUBLE, 0, &preamp_offset, 0},
 	{'r', "rate",        GLO_ARG | GLO_LONG, 0, &rate,  0},
 	{0,   "clip",        GLO_INT,  0, &do_clip, TRUE},
 	{0,   "headphones",  0,                  set_output_h, 0,0},
@@ -799,6 +803,11 @@ int play_frame(void)
 		}
 		else
 			got_bytes = pcmframe * got_samples;
+		if(preamp_factor != 1. || preamp_offset != 0.)
+		{
+			check_fatal_syn(syn123_amp (audio, encoding, got_samples*channels
+			,	preamp_factor, preamp_offset, waver ));
+		}
 		if(do_clip && encoding & MPG123_ENC_FLOAT)
 		{
 			size_t clipped = syn123_clip(audio, encoding, got_samples*channels);
@@ -912,7 +921,6 @@ int main(int sys_argc, char ** sys_argv)
 	( 0
 	||	out123_param_int(ao, OUT123_FLAGS, outflags)
 	|| out123_param_float(ao, OUT123_PRELOAD, preload)
-	|| out123_param_int(ao, OUT123_GAIN, gain)
 	|| out123_param_int(ao, OUT123_VERBOSE, verbose)
 	|| out123_param_string(ao, OUT123_NAME, name)
 	|| out123_param_string(ao, OUT123_BINDIR, binpath)
@@ -1018,6 +1026,20 @@ int main(int sys_argc, char ** sys_argv)
 	check_fatal_output(out123_set_buffer(ao, buffer_kb*1024));
 	check_fatal_output(out123_open(ao, driver, device));
 
+	if(preamp != 0. || preamp_offset != 0.)
+	{
+		preamp_factor = syn123_db2lin(preamp);
+		// Store limited value for proper reporting.
+		preamp = syn123_lin2db(preamp_factor);
+		if(preamp_offset == 0. && mixmat)
+		{
+			// If we are mixing already, just include preamp in this.
+			for(int i=0; i<inputch*channels; ++i)
+				mixmat[i] *= preamp_factor;
+			preamp_factor = 1.;
+		}
+	}
+
 	if(verbose)
 	{
 		long props = 0;
@@ -1036,7 +1058,7 @@ int main(int sys_argc, char ** sys_argv)
 				{
 					fprintf(stderr, ME": out ch %i mix:", oc);
 					for(int ic=0; ic<inputch; ++ic)
-						fprintf(stderr, " %4.2f", mixmat[SYN123_IOFF(oc,ic,inputch)]);
+						fprintf(stderr, " %6.2f", mixmat[SYN123_IOFF(oc,ic,inputch)]);
 					fprintf(stderr, "\n");
 				}
 			}
@@ -1046,6 +1068,11 @@ int main(int sys_argc, char ** sys_argv)
 		encname = out123_enc_name(encoding);
 		fprintf(stderr, ME": format: %li Hz, %i channels, %s\n"
 		,	rate, channels, encname ? encname : "???" );
+		if(preamp != 0.)
+			fprintf( stderr, ME": preamp: %.1f dB%s\n", preamp
+			,	preamp_factor != 1. ? "" : " (during mixing)" );
+		if(preamp_offset != 0.)
+			fprintf(stderr, ME": applying scaled offset: %f\n", preamp_offset);
 		out123_getparam_string(ao, OUT123_NAME, &realname);
 		if(realname)
 			fprintf(stderr, ME": output real name: %s\n", realname);
@@ -1173,9 +1200,11 @@ static void long_usage(int err)
 	fprintf(o,"                           as linear factors, comma separated list for output\n");
 	fprintf(o,"                           channel 1, then 2, ... default unity if channel counts\n");
 	fprintf(o,"                           match, 0.5,0.5 for stereo to mono, 1,1 for the other way\n");
-	fprintf(o,"TODO        --preamp <p>       amplify signal with <p> dB (triggers mixing)\n");
+	fprintf(o," -P <p> --preamp <p>       amplify signal with <p> dB before output\n");
+	fprintf(o,"        --offset <o>       apply PCM offset (floating point scaled in [-1:1]");
 	fprintf(o," -E <c> --inputenc <c>     set input encoding for conversion\n");
 	fprintf(o,"        --clip             clip float samples before output\n");
+	fprintf(o,"TODO        --soft-clip        smoothly clip float samples before output\n");
 	fprintf(o," -m     --mono             set output channel count to 1\n");
 	fprintf(o,"        --stereo           set output channel count to 2 (default)\n");
 	fprintf(o,"        --list-encodings   list of encoding short and long names\n");
