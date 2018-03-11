@@ -98,8 +98,10 @@ double preamp_factor = 1.;
 double preamp_offset = 0.;
 static const char *name = NULL; /* Let the out123 library choose "out123". */
 static double device_buffer; /* output device buffer */
-long timelimit = -1;
+long timelimit_samples = -1;
+double timelimit_seconds = -1.;
 off_t offset = 0;
+off_t timelimit = -1;
 int do_clip = FALSE;
 
 char *wave_patterns = NULL;
@@ -531,7 +533,8 @@ topt opts[] = {
 	{0, "query-format", 0, query_format, 0, 0},
 	{0, "name", GLO_ARG|GLO_CHAR, 0, &name, 0},
 	{0, "devbuffer", GLO_ARG|GLO_DOUBLE, 0, &device_buffer, 0},
-	{0, "timelimit", GLO_ARG|GLO_LONG, 0, &timelimit, 0},
+	{0, "timelimit", GLO_ARG|GLO_LONG, 0, &timelimit_samples, 0},
+	{0, "seconds", GLO_ARG|GLO_DOUBLE, 0, &timelimit_seconds, 0},
 	{0, "source", GLO_ARG|GLO_CHAR, 0, &signal_source, 0},
 	{0, "wave-pat", GLO_ARG|GLO_CHAR, 0, &wave_patterns, 0},
 	{0, "wave-freq", GLO_ARG|GLO_CHAR, set_wave_freqs, 0, 0},
@@ -1087,6 +1090,11 @@ int main(int sys_argc, char ** sys_argv)
 		generate = TRUE;
 	setup_wavegen(); // Used also for conversion/mixing.
 
+	if(timelimit_seconds >= 0.)
+		timelimit = timelimit_seconds*rate;
+	if(timelimit_samples >= 0)
+		timelimit = timelimit_samples;
+
 	while(play_frame() && !intflag)
 	{
 		/* be happy */
@@ -1220,6 +1228,7 @@ static void long_usage(int err)
 #endif
 	fprintf(o,"        --devbuffer <s>    set device buffer in seconds; <= 0 means default\n");
 	fprintf(o,"        --timelimit <s>    set time limit in PCM samples if >= 0\n");
+	fprintf(o,"        --seconds <s>      set time limit in seconds if >= 0\n");
 	fprintf(o,"        --source <s>       choose signal source: file (default),\n");
 	fprintf(o,"                           wave, pink, geiger; implied by --wave-freq,\n");
 	fprintf(o,"                           --pink-rows, --geiger-activity\n");
