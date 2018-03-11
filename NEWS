@@ -24,6 +24,7 @@ bodies or see it as a feature
    libsyn123.
 -- Pink noise from libsyn123 added (using code from Phil Burk).
 -- Geiger-Mueller counter simulation from libsyn123.
+-- Wave sweep generator from libsyn123.
 - libsyn123:
 -- Created the library to host some simple signal generators for testing
    output.

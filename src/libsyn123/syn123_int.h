@@ -32,6 +32,17 @@ struct syn123_wave
 	double phase; /* current phase */
 };
 
+struct syn123_sweep
+{
+	struct syn123_wave wave;
+	double f1, f2; // begin/end frequencies (or logarithms of the same)
+	enum syn123_sweep_id id;
+	size_t i; // position counter
+	size_t d; // duration
+	size_t post; // amount of samples after sweep to finish period
+	double endphase; // phase for continuing, just after sweep end
+};
+
 struct syn123_struct
 {
 	// Temporary storage in internal precision.
@@ -45,7 +56,7 @@ struct syn123_struct
 	struct mpg123_fmt fmt;
 	// Pointer to a generator function that writes a bit of samples
 	// into workbuf[1], possibly using workbuf[0] internally.
-	// Given count of sampls <= bufblock!
+	// Given count of samples <= bufblock!
 	void (*generator)(syn123_handle*, int);
 	// Generator configuration.
 	// wave generator

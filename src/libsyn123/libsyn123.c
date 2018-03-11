@@ -26,12 +26,7 @@
 static const double freq_error = 1e-4;
 /* For our precisions, that value will always be good enough. */
 static const double twopi = 2.0*3.14159265358979323846;
-
-/* absolute value */
-static double myabs(double a)
-{
-	return a < 0 ? -a : a;
-}
+static struct syn123_wave defwave = { SYN123_WAVE_SINE, FALSE, 440., 0. };
 
 /* round floating point to size_t */
 static size_t round2size(double a)
@@ -71,14 +66,14 @@ static double common_samples_per_period( long rate, size_t count
 			waves[i].freq = freq_error;
 		if(waves[i].freq > rate/2)
 			waves[i].freq = rate/2;
-		sppi = myabs((double)rate/waves[i].freq);
+		sppi = fabs((double)rate/waves[i].freq);
 		debug2("freq=%g sppi=%g", waves[i].freq, sppi);
 		if(spp == 0)
 			spp = sppi;
 		while
 		(
 			(periods+1)*spp <= size_limit &&
-			myabs( myfrac(periods*spp / sppi) ) > freq_error
+			fabs( myfrac(periods*spp / sppi) ) > freq_error
 		)
 			periods++;
 		spp*=periods;
@@ -109,7 +104,7 @@ static size_t tablesize( long rate, size_t count
 		ts  = round2size(fts);
 		nts = round2size((periods+1)*samples_per_period);
 	}
-	while(myabs(fts-ts) > periods*tolerance && nts <= size_limit);
+	while(fabs(fts-ts) > periods*tolerance && nts <= size_limit);
 
 	/* Ensure size limit. Even it is ridiculous. */
 	ts = smin(ts, size_limit);
@@ -191,36 +186,51 @@ static double wave_shot(double p)
 	return p*p*exp(-100*p)/5.41341132946451e-05;
 }
 
-#define WAVE_SWITCH(id) \
-	switch(id) \
-	{ \
-		case SYN123_WAVE_NONE: \
-			PI_LOOP( wave_none(PHASE) ) \
-		break; \
-		case SYN123_WAVE_SINE: \
-			PI_LOOP( wave_sine(PHASE) ) \
-		break; \
-		case SYN123_WAVE_SQUARE: \
-			PI_LOOP( wave_square(PHASE) ) \
-		break; \
-		case SYN123_WAVE_TRIANGLE: \
-			PI_LOOP( wave_triangle(PHASE) ) \
-		break; \
-		case SYN123_WAVE_SAWTOOTH: \
-			PI_LOOP( wave_sawtooth(PHASE) ) \
-		break; \
-		case SYN123_WAVE_GAUSS: \
-			PI_LOOP( wave_gauss(PHASE) ) \
-		break; \
-		case SYN123_WAVE_PULSE: \
-			PI_LOOP( wave_pulse(PHASE) ) \
-		break; \
-		case SYN123_WAVE_SHOT: \
-			PI_LOOP( wave_shot(PHASE) ) \
-		break; \
-		default: \
-			PI_LOOP( wave_none(PHASE) ) \
+// Actual wave worker function, to be used to give up to
+// bufblock samples in one go. This takes a vector of phases
+// and multiplies the resulting amplitudes into the output buffer.
+static void evaluate_wave( double outbuf[bufblock], int samples
+,	enum syn123_wave_id id, double phase[bufblock] )
+{
+	// Ensuring that the inner loop is inside the switch.
+	// Compilers might be smart enough, but it is not hard
+	// to write it down the right way from the beginning.
+	#define PHASE phase[pi]
+	#define PI_LOOP( code ) \
+		for(int pi=0; pi<samples; ++pi) \
+			outbuf[pi] *= code;
+	switch(id)
+	{
+		case SYN123_WAVE_NONE:
+			PI_LOOP( wave_none(PHASE) )
+		break;
+		case SYN123_WAVE_SINE:
+			PI_LOOP( wave_sine(PHASE) )
+		break;
+		case SYN123_WAVE_SQUARE:
+			PI_LOOP( wave_square(PHASE) )
+		break;
+		case SYN123_WAVE_TRIANGLE:
+			PI_LOOP( wave_triangle(PHASE) )
+		break;
+		case SYN123_WAVE_SAWTOOTH:
+			PI_LOOP( wave_sawtooth(PHASE) )
+		break;
+		case SYN123_WAVE_GAUSS:
+			PI_LOOP( wave_gauss(PHASE) )
+		break;
+		case SYN123_WAVE_PULSE:
+			PI_LOOP( wave_pulse(PHASE) )
+		break;
+		case SYN123_WAVE_SHOT:
+			PI_LOOP( wave_shot(PHASE) )
+		break;
+		default:
+			PI_LOOP( wave_none(PHASE) )
 	}
+	#undef PI_LOOP
+	#undef PHASE
+}
 
 static const char* wave_names[] =
 {
@@ -271,52 +281,32 @@ const char* syn123_strerror(int errcode)
 			return "out of memory";
 		case SYN123_WEIRD:
 			return "Call the Ghostbusters!";
+		case SYN123_BAD_FREQ:
+			return "Bad signal frequency given.";
+		case SYN123_BAD_SWEEP:
+			return "Invalid sweep curve given.";
+		case SYN123_OVERFLOW:
+			return "An integer overflow occured.";
 		default:
 			return "unkown error";
 	}
 }
 
-// Actual wave worker function, to be used to give up to
-// bufblock samples in one go.
-// With a good compiler, I suppose the two variants should
-// perform identically. Not totally sure, though. And what is
-// a good compiler?
-#ifndef NO_VECTOR_FUN
-// Give vectorization a chance.
-// This precomputes a vector of phases for the option of applying
-// vectorized functions directly.
-// It _seems_ that compilers are smart enough to figure that out.
-// Might drop the second workbuf.
+// I first introduced the vectorization-friendly aproach with a precomputed
+// buffer of phases as a (premature) optimization, but it turns out that
+// this separation is really useful for computing frequency sweeps.
+// The computation of phases, including varying frequency, really is a separate
+// task from actually evaluating the wave functions.
+// The code is actually smaller and better abstracted that way.
+
 static void add_some_wave( double outbuf[bufblock], int samples
 ,	enum syn123_wave_id id, double pps, double phase
 ,	double workbuf[bufblock] )
 {
-	#define PHASE workbuf[pi]
 	for(int pi=0; pi<samples; ++pi)
-		PHASE = phasefrac(pi*pps+phase);
-	#define PI_LOOP( code ) \
-		for(int pi=0; pi<samples; ++pi) \
-			outbuf[pi] *= code;
-	WAVE_SWITCH(id)
-	#undef PI_LOOP
-	#undef PHASE
+		workbuf[pi] = phasefrac(pi*pps+phase);
+	evaluate_wave(outbuf, samples, id, workbuf);
 }
-#else
-// A variant that does not specifically prepare for vectorization by
-// precomputing phases, but still hardcodes the function calls.
-static void add_some_wave( double outbuf[bufblock], int samples
-,	enum syn123_wave_id id, double pps, double phase
-,	double workbuf[bufblock] )
-{
-	#define PHASE phasefrac(pi*pps+phase)
-	#define PI_LOOP( code ) \
-		for(int pi=0; pi<samples; ++pi) \
-			outbuf[pi] *= code;
-	WAVE_SWITCH(id)
-	#undef PI_LOOP
-	#undef PHASE
-}
-#endif
 
 // Fit waves into given table size.
 static void wave_fit_table( size_t samples
@@ -396,7 +386,6 @@ syn123_setup_waves( syn123_handle *sh, size_t count
 ,	int *id, double *freq, double *phase, int *backwards
 ,	size_t *common_period )
 {
-	struct syn123_wave defwave = { SYN123_WAVE_SINE, FALSE, 440., 0. };
 	int ret = SYN123_OK;
 
 	if(!sh)
@@ -469,8 +458,281 @@ syn123_setup_waves( syn123_handle *sh, size_t count
 setup_wave_end:
 	if(ret != SYN123_OK)
 		syn123_setup_silence(sh);
-	if(common_period)
-		*common_period = sh->samples;
+	else
+	{
+		if(common_period)
+			*common_period = sh->samples;
+	}
+	return ret;
+}
+
+// Given time normalized to the sweep duration, return the
+// current frequency.
+
+// With the power of analytical integration, we can compute
+// the proper phase instead of error-prone summing.
+// Given the normalized time: t = i/d
+// Wallclock time: w = i/r   (100 samples with rate 100 Hz = 1 s time)
+// Ratio:  w = i/r = t*d/r
+//        dw = d/r dt
+// dp = f(t) * dw = d/r f(t) dt
+//  p = (d-1)/r int_0^t f(t) dt = d/r (F(t) - F(0))
+// linear: f(t) = f1 + t*(f2-f1); F = f1*t + t**2 * (f2-f1)/2
+// square: f(t) = f1 + t**2*(f2-f1); F = f1*t + t**3 * (f2-f1)/3
+// exp:    f(t) = exp(log(f1) + t*(log(f2)-log(f1)))
+//         F(t) = 1/(log(f2)-log(f1)) exp(log(f1) + t*(log(f2)-log(f1)))
+
+// These are the unscaled expressions, just F(t)-F(0).
+
+static double sweep_phase_linear(double t, double f1, double f2)
+{
+	return f1*t + t*t*0.5*(f2-f1);
+}
+
+static double sweep_phase_square(double t, double f1, double f2)
+{
+	return f1*t+t*t*t*(1./3)*(f2-f1);
+}
+
+// Be sure to only call if f2-f1 has some minimal value.
+static double sweep_phase_exp(double t, double logf1, double logf2)
+{
+	return 1./(logf2-logf1) * (exp(logf1 + t*(logf2-logf1)) - exp(logf1));
+}
+
+// Return phases after given offset of samples from now, including
+// phase recovery.
+// This is the central logic for periodic sweeps.
+static void sweep_phase( syn123_handle *sh, size_t off
+,	double buf[bufblock], int count )
+{
+	struct syn123_sweep *sw = sh->handle;
+	// Working on a local offset, not touching sw->i.
+	mdebug("computing position: (%zu + %zu) % (%zu + %zu)", sw->i, off, sw->d, sw->post);
+	size_t pos = (sw->i + off) % (sw->d + sw->post);
+	int boff = 0;
+	while(count)
+	{
+		// Finish the current sweep+post cycle.
+		// 0 <= sw->i < sw->d+sw->post
+		// 1. Fill phases for actual sweep, if some of it is left.
+		//    This includes the endpoint, one sample after configured length,
+		//    if so many samples are desired. Note that pos == sw->d will not
+		//    happen unless sw->post > 0.
+		int sweep_s = pos <= sw->d
+		?	(int)smin(sw->d+1 - pos, count)
+		:	0;
+		// normalized time here to reduce code redundancy
+		for(int i=0; i<sweep_s; ++i)
+			buf[boff+i] = (double)pos++/sw->d;
+		// actual phase computation, with inner loops for auto-vectorization
+		switch(sw->id)
+		{
+			case SYN123_SWEEP_LINEAR:
+				for(int i=0; i<sweep_s; ++i)
+					buf[boff+i] = sweep_phase_linear(buf[boff+i], sw->f1, sw->f2);
+			break;
+			case SYN123_SWEEP_SQUARE:
+				for(int i=0; i<sweep_s; ++i)
+					buf[boff+i] = sweep_phase_square(buf[boff+i], sw->f1, sw->f2);
+			break;
+			case SYN123_SWEEP_EXP:
+				for(int i=0; i<sweep_s; ++i)
+					buf[boff+i] = sweep_phase_exp(buf[boff+i], sw->f1, sw->f2);
+			break;
+			default:
+				for(int i=0; i<sweep_s; ++i)
+					buf[boff+i] = 0;
+		}
+		// scaling from normalized time to sampled proper time
+		for(int i=0; i<sweep_s; ++i)
+			buf[boff++] *= (double)sw->d/sh->fmt.rate;
+		count -= sweep_s;
+		// 2. Fill phases for post sweep phase, if reached.
+		if(pos > sw->d)
+		{
+			int post_s = (int)smin(sw->d + sw->post - pos, count);
+			double pps = sw->wave.freq/sh->fmt.rate;
+			for(int i=0; i<post_s; ++i)
+				buf[boff++] = sw->endphase - sw->wave.phase + (pos++ - sw->d)*pps;
+			count -= post_s;
+		}
+		// Now we can possibly wrap around. Actually, we have to
+		// hit the boundary exactly.
+		if(pos == sw->d + sw->post)
+			pos = 0;
+	}
+	// Turn all phases into fractions and invert if going backwards.
+	if(sw->wave.backwards)
+		for(int i=0; i<boff; ++i)
+			buf[i] = phasefrac(-buf[i]-sw->wave.phase);
+	else
+		for(int i=0; i<boff; ++i)
+			buf[i] = phasefrac(buf[i]+sw->wave.phase);
+}
+
+static void sweep_generator(syn123_handle *sh, int samples)
+{
+	struct syn123_sweep *sw = sh->handle;
+	// Precompute phases into work buffer.
+	sweep_phase(sh, 0, sh->workbuf[0], samples);
+	// Initialise output to zero amplitude and multiply by the wave.
+	for(int i=0; i<samples; ++i)
+		sh->workbuf[1][i] = 1.;
+	evaluate_wave(sh->workbuf[1], samples, sw->wave.id, sh->workbuf[0]);
+	// Advance.
+	sw->i = (sw->i+samples) % (sw->d + sw->post);
+}
+
+int attribute_align_arg
+syn123_setup_sweep( syn123_handle* sh
+,	int wave_id, double phase, int backwards
+,	int sweep_id, double *f1, double *f2, int smooth, size_t duration
+,	double *endphase, size_t *period, size_t *buffer_period )
+{
+	double real_f1;
+	int ret = SYN123_OK;
+	struct syn123_sweep *sw;
+	if(!sh)
+		return SYN123_BAD_HANDLE;
+	syn123_setup_silence(sh);
+	if(!duration) // Empty sweep is silence.
+	{
+		if(endphase)
+			*endphase = phase;
+		if(period)
+			*period = 0;
+		return SYN123_OK;
+	}
+	if( sweep_id != SYN123_SWEEP_LINEAR && sweep_id != SYN123_SWEEP_SQUARE &&
+		sweep_id != SYN123_SWEEP_EXP )
+		return SYN123_BAD_SWEEP;
+
+	sh->handle = sw = malloc(sizeof(struct syn123_sweep));
+	if(!sh->handle)
+	{
+		ret = SYN123_DOOM;
+		goto setup_sweep_end;
+	}
+	sw->f1 = (!f1 || *f1 <= 0.) ? defwave.freq : *f1;
+	real_f1 = sw->f1;
+	sw->f2 = (!f2 || *f2 <= 0.) ? defwave.freq : *f2;
+	if( sw->f1 < freq_error || sw->f2 < freq_error )
+	{
+		ret = SYN123_BAD_FREQ;
+		goto setup_sweep_end;
+	}
+	// Also, don't try exp sweep for very small difference.
+	// We need 1/log(f2/f1) ...
+	if(sweep_id == SYN123_SWEEP_EXP && (fabs(sw->f2 - sw->f1) < freq_error))
+	{
+		ret = SYN123_BAD_FREQ;
+		goto setup_sweep_end;
+	}
+
+	sw->wave.id = wave_id;
+	sw->wave.backwards = 0; // Set to true value later.
+	sw->wave.freq = sw->f2; // We'll use that later for continuation.
+	sw->wave.phase = phase; // Beginning phase offset, not updated.
+	sw->id = sweep_id;
+	// Store the logarithms for exponential sweep.
+	if(sweep_id == SYN123_SWEEP_EXP)
+	{
+		sw->f1 = log(sw->f1);
+		sw->f2 = log(sw->f2);
+	}
+	sw->i = 0;
+	sw->d = duration;
+	sw->post = 1; // Needed to be set for end phases.
+	if(sw->d + sw->post < sw->d || sw->d + sw->post < sw->post)
+	{
+		ret = SYN123_OVERFLOW;
+		goto setup_sweep_end;
+	}
+	// The last phase served by the sweep, and the one after that that
+	// tryly concludes the sweep (f==f2, not infinitesimally smaller).
+	mdebug("computing endphase, with 2 points from %zu - 1 on", duration);
+	sweep_phase(sh, duration-1, sh->workbuf[0], 2);
+	double before_endphase = sh->workbuf[0][0];
+	sw->endphase = sh->workbuf[0][1];
+	sw->post = 0; // Reset that again, only increasing if really needed.
+	// The phase that would smoothly continue the sweep, one sample
+	// after the last one.
+	// We want confirmed zero crossing between before_endphase and
+	// endphase. This only matters for resolved frequencies, though.
+	if(smooth && 2*sw->f2 < sh->fmt.rate &&
+		phasefrac(sw->endphase-phase) > phasefrac(before_endphase-phase) )
+	{
+		// Start from before_endphase on, to reach the actual point where
+		// the signal truly reaches f2. Anything on top is with constant
+		// f2.
+		double poststeps = phasefrac(1.-before_endphase+phase)
+		*	((double)sh->fmt.rate/sw->wave.freq);
+		// We want the integer part, except in the unlikely
+		// case that it is an exact integer: Then we want one less. The
+		// actual zero crossing is _after_ the post samples.
+		size_t prepos = (size_t)poststeps;
+		if(prepos && prepos == poststeps)
+			prepos--;
+		sw->post = prepos;
+	}
+	size_t fulldur = sw->d + sw->post;
+	if(fulldur < sw->d || fulldur < sw->post)
+	{
+		ret = SYN123_OVERFLOW;
+		goto setup_sweep_end;
+	}
+	// Now we can go backwards. Otherwise the above computation would
+	// be more confusing.
+	sw->wave.backwards = backwards;
+
+	sh->generator = sweep_generator;
+
+	size_t samplesize = MPG123_SAMPLESIZE(sh->fmt.encoding);
+	if(sh->maxbuf && sh->maxbuf >= samplesize*fulldur)
+	{
+		grow_buf(sh, samplesize*fulldur);
+		if(sh->bufs/samplesize < fulldur)
+		{
+			ret = SYN123_DOOM; // Actually, also overflow.
+			goto setup_sweep_end;
+		}
+		// Fill the buffer using workbuf as intermediate. As long as
+		// the buffer is not ready, we can just use syn123_read() to fill it.
+		// Just need to ensure mono storage. Once sh->samples is set, the
+		// buffer is used.
+		int outchannels = sh->fmt.channels;
+		sh->fmt.channels = 1;
+		size_t buffer_bytes = syn123_read(sh, sh->buf, fulldur*samplesize);
+		sh->fmt.channels = outchannels;
+		// Restore sweep state.
+		sw->i = 0;
+		// Last check for sanity.
+		if(buffer_bytes != fulldur*samplesize)
+		{
+			ret = SYN123_WEIRD;
+			goto setup_sweep_end;
+		}
+		sh->samples = fulldur;
+	}
+
+setup_sweep_end:
+	if(ret != SYN123_OK)
+		syn123_setup_silence(sh);
+	else
+	{
+		mdebug("done with sweep setup %g %g", real_f1, sw->wave.freq);
+		if(period)
+			*period = fulldur;
+		if(endphase)
+			*endphase = sw->endphase;
+		if(f1)
+			*f1 = real_f1;
+		if(f2)
+			*f2 = sw->wave.freq;
+		if(buffer_period)
+			*buffer_period = sh->samples;
+	}
 	return ret;
 }
 

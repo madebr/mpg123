@@ -115,6 +115,9 @@ enum syn123_error
 ,	SYN123_BAD_CHOP /**< byte buffer not cut at sample boundaries */
 ,	SYN123_DOOM     /**< Disaster, Out Of Memory. */
 ,	SYN123_WEIRD    /**< An internal error that should never occur. */
+,	SYN123_BAD_FREQ /**< Invalid wave frequency given. */
+,	SYN123_BAD_SWEEP /**< Invalid sweep curve given. */
+,	SYN123_OVERFLOW  /**< Some fatal (integer) overflow that prevents proper operation. */
 };
 
 /** Give a short phrase explaining an error code.
@@ -251,15 +254,50 @@ enum syn123_sweep_id
 /** Frequency sweep generator.
  *  This generates a sweep from one frequency to another with one
  *  of the available wave shapes over a given time.
- *  The
+ *  While you can just extract your single sweep by exactly reading
+ *  the requestet duration, the generator is set up to run the sweep
+ *  a bit longer until the beginning phase is reached again
+ *  (one sample before that, of course). That way, reasonably smooth 
+ *  periodic playback from the buffer is possible without that nasty jump.
+ *  Still, a large freqency difference will result in an audible pop,
+ *  but at least that is not whole spectrum due to a phase jump.
+ *  \param sh handle
+ *  \param wave_id wave ID (enum syn123_wave_id)
+ *  \param f1 pointer to beginning frequency in Hz (>= 1e-4, please,
+ *    a value <= 0 being replaced by the standard frequency and stored for you)
+ *  \param f2 ending frequency in Hz (>= 1e-4, please,
+ *    in case of exponential sweep: f2-f1 >= 1e-4, too,
+ *    a value <= 0 being replaced by the standard frequency and stored for you)
+ *  \param sweep_id choice of sweep curve (enum syn123_sweep_id)
+ *  \param smooth enable the periodic smoothing, if sensible
+ *    (extending signal beyond the sweep to avoid phase jumps, a continuing
+ *    starting at given start phase, not the returned endphase)
+ *  \param duration duration of sweep in samples (> 1, please)
+ *    This theoretically should be an off_t relating to the size of a
+ *    file you produce, but off_t in API headers causes headaches.
+ *    A 32 bit size_t still gives you over 24 hours of sweeping with 44100 kHz
+ *    rate. On top of that, you can use the returned endphase to chop
+ *    your monster sweep into pieces.
+ *  \param phase initial phase of the sweep
+ *  \param backwards invert the waveform in time
+ *  \param endphase address to store the normal phase that would
+ *    smoothly continue the signal without the period correction
+ *    (You can create a following sweep that continues smoothly to a new
+ *    target frequency by handing in this endphase as initial phase. Combine
+ *    that with phases of constant tone and you could simulate a Theremin
+ *    player by approximating the reaction to hand movements via sweeps.)
+ *  \param period address to store the periodic sample count, usually
+ *    being a bit bigger than the duration for getting the phase
+ *    back down; does not imply use of the internal period buffer
+ *  \param buffer_period address to store the period count only if the
+ *    period buffer is actually in use
+ *  \param backwards invert the waveform in time if true
+ */
 MPG123_EXPORT
-int syn123_setup_sweep( syn123_handle* sh, int wave_id, double f1, double f2
-,	size_t duration, 
-,	int *wave_id, double *freq, double *phase, int* backwards
-,	size_t *period );
-
-
-
+int syn123_setup_sweep( syn123_handle* sh
+,	int wave_id, double phase, int backwards
+,	int sweep_id, double *f1, double *f2, int smooth, size_t duration
+,	double *endphase, size_t *period, size_t *buffer_period );
 
 /** Set up pink noise generator.
  *  This employs the Gardner/McCartney method to the approximate

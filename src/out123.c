@@ -108,6 +108,11 @@ char *wave_patterns = NULL;
 char *wave_freqs    = NULL;
 char *wave_phases   = NULL;
 char *wave_direction = NULL;
+double sweep_freq = 0.;
+double sweep_time = 0.;
+int sweep_hard = 0;
+long sweep_count = -1;
+const char *sweep_type = "square";
 const char *signal_source = "file";
 /* Default to around 2 MiB memory for the table. */
 long wave_limit     = 300000;
@@ -473,6 +478,12 @@ void set_geiger_act(char *arg)
 	geiger_activity = atof(arg);
 }
 
+void set_sweep_freq(char *arg)
+{
+	signal_source = "sweep";
+	sweep_freq = atof(arg);
+}
+
 /* Please note: GLO_NUM expects point to LONG! */
 /* ThOr:
  *  Yeah, and despite that numerous addresses to int variables were 
@@ -544,6 +555,11 @@ topt opts[] = {
 	{0, "genbuffer", GLO_ARG|GLO_LONG, 0, &wave_limit, 0},
 	{0, "pink-rows", GLO_ARG|GLO_INT, set_pink_rows, 0, 0},
 	{0, "geiger-activity", GLO_ARG|GLO_DOUBLE, set_geiger_act, 0, 0},
+	{0, "wave-sweep", GLO_ARG|GLO_DOUBLE, set_sweep_freq, 0, 0},
+	{0, "sweep-type", GLO_ARG|GLO_CHAR, 0, &sweep_type, 0 },
+	{0, "sweep-time", GLO_ARG|GLO_DOUBLE, 0, &sweep_time, 0},
+	{0, "sweep-hard", GLO_INT, 0, &sweep_hard, TRUE},
+	{0, "sweep-count", GLO_ARG|GLO_LONG, 0, &sweep_count, 0},
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -637,6 +653,88 @@ static void setup_wavegen(void)
 		}
 		goto setup_waver_end;
 	}
+	else if(!strcmp(signal_source, "sweep"))
+	{
+		double f1 = 0.;
+		double f2 = sweep_freq;
+		int wid = SYN123_WAVE_SINE;
+		int backwards = FALSE;
+		int sid = SYN123_SWEEP_SQUARE;
+		// Yes, could overflow. You get a short time, then.
+		size_t duration = timelimit > -1 ? (size_t)timelimit : rate;
+		size_t period = 0;
+		double sweep_phase = 0.;
+		double endphase = -1;
+		if(sweep_type)
+		{
+			if(!strncmp("lin", sweep_type, 3))
+				sid = SYN123_SWEEP_LINEAR;
+			else if(!strncmp("squ", sweep_type, 3))
+				sid = SYN123_SWEEP_SQUARE;
+			else if(!strncmp("exp", sweep_type, 3))
+				sid = SYN123_SWEEP_EXP;
+			else
+			{
+				if(!quiet)
+					merror("bad sweep choice: %s", sweep_type);
+				safe_exit(132);
+			}
+		}
+		if(wave_freqs)
+		{
+			char *next = wave_freqs;
+			f1 = atof(mytok(&next));
+		}
+		if(wave_patterns)
+		{
+			char *next = wave_patterns;
+			wid = syn123_wave_id(mytok(&next));
+			if(wid < 0 && !quiet)
+				fprintf(stderr, "Warning: bad wave pattern: %s\n", wave_patterns);
+		}
+		if(wave_phases)
+		{
+			char *next = wave_phases;
+			sweep_phase = atof(mytok(&next));
+			if(sweep_phase < 0)
+			{
+				backwards = TRUE;
+				sweep_phase = -sweep_phase;
+			}
+		}
+		if(wave_direction)
+		{
+			char *next = wave_phases;
+			backwards = atof(mytok(&next)) < 0 ? TRUE : FALSE;
+		}
+		if(sweep_time > 0)
+			duration = (size_t)(sweep_time*rate);
+		synerr = syn123_setup_sweep( waver, wid, sweep_phase, backwards
+		, sid, &f1, &f2, !sweep_hard, duration, &endphase, &period, &common);
+		if(synerr)
+		{
+			if(!quiet)
+				merror("setting up sweep generator: %s\n", syn123_strerror(synerr));
+			safe_exit(132);
+		}
+		if(sweep_count > -1)
+			timelimit = sweep_count * period;
+		if(verbose)
+		{
+			fprintf( stderr, ME ": %s sweep of %"SIZE_P" samples (%s)\n"
+			,	sweep_type
+			,	(timelimit > -1 && timelimit < period) ? (size_t)timelimit : period
+			,	(timelimit > -1 && timelimit < period)
+			?	((timelimit == duration) ? "exactly" : "cut off" )
+			:	(sweep_hard ? "periodic with phase jumps" : "smoothly periodic") );
+			fprintf( stderr, ME ": from: %s @ %g Hz p %g\n"
+				,	syn123_wave_name(wid), f1, sweep_phase );
+			fprintf( stderr, ME ": to:   %s @ %g Hz p %g\n"
+			,	syn123_wave_name(wid), f2
+			,	(timelimit < 0 || timelimit >= period) ? sweep_phase : endphase );
+		}
+		goto setup_waver_end;
+	}
 	else if(strcmp(signal_source, "wave"))
 	{
 		if(!quiet)
@@ -680,7 +778,7 @@ static void setup_wavegen(void)
 			if((tok && *tok) || i==0)
 			{
 				id[i] = syn123_wave_id(tok);
-				if(id[i] < 0)
+				if(id[i] < 0 && !quiet)
 					fprintf(stderr, "Warning: bad wave pattern: %s\n", tok);
 			}
 			else
@@ -1043,6 +1141,11 @@ int main(int sys_argc, char ** sys_argv)
 		}
 	}
 
+	if(timelimit_seconds >= 0.)
+		timelimit = timelimit_seconds*rate;
+	if(timelimit_samples >= 0)
+		timelimit = timelimit_samples;
+
 	if(verbose)
 	{
 		long props = 0;
@@ -1089,11 +1192,6 @@ int main(int sys_argc, char ** sys_argv)
 	if(strcmp(signal_source, "file"))
 		generate = TRUE;
 	setup_wavegen(); // Used also for conversion/mixing.
-
-	if(timelimit_seconds >= 0.)
-		timelimit = timelimit_seconds*rate;
-	if(timelimit_samples >= 0)
-		timelimit = timelimit_samples;
 
 	while(play_frame() && !intflag)
 	{
@@ -1230,7 +1328,8 @@ static void long_usage(int err)
 	fprintf(o,"        --timelimit <s>    set time limit in PCM samples if >= 0\n");
 	fprintf(o,"        --seconds <s>      set time limit in seconds if >= 0\n");
 	fprintf(o,"        --source <s>       choose signal source: file (default),\n");
-	fprintf(o,"                           wave, pink, geiger; implied by --wave-freq,\n");
+	fprintf(o,"                           wave, sweep, pink, geiger; implied by\n");
+	fprintf(o,"                           --wave-freq, --wave-sweep,\n");
 	fprintf(o,"                           --pink-rows, --geiger-activity\n");
 	fprintf(o,"        --wave-freq <f>    set wave generator frequency or list of those\n");
 	fprintf(o,"                           with comma separation for enabling a generated\n");
@@ -1250,6 +1349,15 @@ static void long_usage(int err)
 	fprintf(o,"                           empty value repeating the previous,\n");
 	fprintf(o,"                           --wave-direction overriding the negative bit\n");
 	fprintf(o,"        --wave-direction <d> set direction explicitly (the sign counts)\n");
+	fprintf(o,"        --wave-sweep <f>   sweep a generated wave to frequency f, from\n");
+	fprintf(o,"                           first one specified for --wave-freq, using the\n");
+	fprintf(o,"                           first wave pattern and direction, too\n");
+	fprintf(o,"        --sweep-time <s>   set frequency sweep duration to s seconds if > 0\n");
+	fprintf(o,"                           (defaulting to timelimit if set, otherwise one second)\n");
+	fprintf(o,"        --sweep-count <c>  set timelimit to exactly produce that many (smooth) sweeps");
+	fprintf(o,"        --sweep-type <t>   set sweep type: lin(ear), square (default),\n");
+	fprintf(o,"                           exp(onential)\n");
+	fprintf(o,"        --sweep-hard       disable post-sweep smoothing for periodicity\n");
 	fprintf(o,"        --genbuffer <b>    buffer size (limit) for signal generators,\n");
 	fprintf(o,"                           if > 0 (default), this enforces a periodic\n");
 	fprintf(o,"                           buffer also for non-periodic signals, benefit:\n");
