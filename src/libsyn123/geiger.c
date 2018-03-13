@@ -122,18 +122,6 @@ struct geigerspace
 	double speed; // speed of speaker movement
 };
 
-// Soft clipping as speaker property. It can only move so far.
-// Of course this could be produced by a nicely nonlinear force, too.
-static float soft_clip(double x)
-{
-	const float w = 0.1;
-	if(x > 1.-w)
-		x =  1. - w*w/(2*w-1.+x);
-	else if(x < -1.+w)
-		x = -1. + w*w/(2*w-1.-x);
-	return x;
-}
-
 static double sign(double val)
 {
 	return val < 0 ? -1. : +1;
@@ -170,7 +158,7 @@ static double speaker(struct geigerspace *gs, double force)
 				gs->speed = 0.;
 		}
 	} while(++steps*euler_step < gs->time_interval);
-	return soft_clip(gs->pos);
+	return gs->pos;
 }
 
 // The logic of the Geiger-Mueller counter.
@@ -250,6 +238,9 @@ static void geiger_generator(syn123_handle *sh, int samples)
 	for(int i=0; i<samples; ++i)
 		sh->workbuf[1][i] = speaker( gs
 		,	discharge_force(gs, rand_xorshift32(&gs->rand_seed)>gs->thres) );
+	// Soft clipping as speaker property. It can only move so far.
+	// Of course this could be produced by a nicely nonlinear force, too.
+	syn123_soft_clip(sh->workbuf[1], MPG123_ENC_FLOAT_64, samples, 0.1);
 }
 
 int attribute_align_arg

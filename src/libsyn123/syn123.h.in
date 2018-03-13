@@ -118,6 +118,8 @@ enum syn123_error
 ,	SYN123_BAD_FREQ /**< Invalid wave frequency given. */
 ,	SYN123_BAD_SWEEP /**< Invalid sweep curve given. */
 ,	SYN123_OVERFLOW  /**< Some fatal (integer) overflow that prevents proper operation. */
+,	SYN123_BAD_RESAMPLE /**< Invalid resampling method choice. */
+,	SYN123_NO_DATA /**< Not enough data to do something. */
 };
 
 /** Give a short phrase explaining an error code.
@@ -332,6 +334,26 @@ int syn123_setup_geiger(syn123_handle *sh, double activity, size_t *period);
 MPG123_EXPORT
 int syn123_setup_silence(syn123_handle *sh);
 
+/* TODO: implement the simple dither options
+ * No noise shaping as practical relevance for listening purposes
+ * is questionable anyway and it would need adapted filters for
+ * specific sampling rates. Triangular Probability Density Function
+ * noise is easy enough to generate and actually rather cheap
+ * CPU-wise.
+ * All routines that may trigger conversion need this parameter.
+ * One could store it in the syn123_handle. I guess I will do that.
+ * When you want to use dither, you have to create a handle even for
+ * functions that normally do not require one. But most of those
+ * wouldn't even do any conversion without a handle so the point
+ * is moot.
+ */
+enum syn123_dither
+{
+	SYN123_DITHER_NONE /**< no dithering, just rounding */
+,	SYN123_DITHER_TPDF_16BIT /**< TPDF dithering for 16 bit and below */
+,	SYN123_DITHER_TPDF_24BIT /**< TPDF dithering for 12 bit and below */
+};
+
 /** Convert between supported encodings.
  *  The buffers shall not overlap.
  *  Note that syn123 uses a symmetric range to scale between float and integer
@@ -428,6 +450,18 @@ int syn123_amp( void* buf, int encoding, size_t samples
  */
 MPG123_EXPORT
 size_t syn123_clip(void *buf, int encoding, size_t samples);
+
+/** Soft clipping in a buffer zone.
+ *  This limits the samples above the threshold of 1-width with a
+ *  smooth curve, dampening the high-frequency content of the clipping.
+ *  This is no frequency filter, but just an independent function on each
+ *  sample value.
+ *  TODO: Offer it for integer encodings, too? Since softening of clipped
+ *  areas may be useful. Or should the user be forced to convert things
+ *  externally?
+ */
+MPG123_EXPORT
+size_t syn123_soft_clip(void *buf, int encoding, size_t samples, double width);
 
 /** Interleave given number of channels into one stream.
  *  A rather trivial functionality, here for completeness. As the
@@ -539,17 +573,81 @@ int syn123_mix( void * MPG123_RESTRICT dst, int dst_enc, int dst_channels
 ,	const double * mixmatrix
 ,	size_t samples, int silence, syn123_handle *sh );
 
-/*
-Some resampling? I would like to offer something simple but adequate.
-One is the dropping/repeating of samples to adjust for a small
-clock drift. The other something for acutal resampling of content.
-Linear interpolation is always a fallback that should be fine in practice,
-although it does audible distortion on a sine sweep. I should offer
-one good-enough bandlimited interpolation algorithm, too. Nothing fancy.
+/** Some basic choices for resampling.
+ *  There is much talk about differing variants of sinc resampling.
+ *  People really can get worked up about this. For music, many folks
+ *  can actually bear the simple drop/repeat method, while most
+ *  should not bother about the distortions from linear resampling.
+ *  They do look ugly in spectrograms and are easily audible for
+ *  synthetic test signals. But some music recording, perhaps with
+ *  distorted guitars to begin with, makes that harder.
+ *  Finally, a run-of-the-mill bandlimited sinc interpolation
+ *  should make everyone reasonably happy. With this one, one cannot
+ *  hide the the necessary latency to achieve the desired properties.
+ *  You need to feed some data until the first sample pops out.
+ *  I actually do wonder if I could fake my way out of the latency
+ *  and still get reasonable results.
+ *  I also do not like sinc overshoots causing clipping. Perhaps there
+ *  is something 'good enough' available without these problems. */
+enum syn123_resample_method
+{
+	SYN123_RESAMPLE_DROP = 0 /**< drop/repeat samples only (for small drift) */
+,	SYN123_RESAMPLE_LINEAR   /**< linear resampling without latency */
+,	SYN123_RESAMPLE_SINC     /**< proper resampling with some latency */
+};
+
+#if 0
+/** Work in progress ... some resampling.
+ *  I begin with interpolation that is oblivious to the sampling
+ *  frequencies involved. Probably that has to be changed for bandlimiting
+ *  ... but maybe I can get away with something that only works on
+ *  the ratio of sampling rates derived from the sample counts.
+ * The resampling may work without a syn123_handle, but there will
+ * be artifacts because there is no information preserved between
+ * calls for successive buffers.
+TODO: Eh ... I guess it's too easy not mentioning the rates.
+The ratio of buffer sizes may simply lack the required precision.
+But I like the idea to exactly predict the number of samples
+attained. A helper function for that?
+   This shall be an application of the speaker bandpass that uses
+   the numerical integration of the speaker sim for interpolating
+   samples.
+ */
 MPG123_EXPORT
-int syn123_drift( void * MPG123_RESTRICT dst, int dst_enc, int channels
-,	void * MPG123_RESTRICT
-*/
+int syn123_resample(
+	void * MPG123_RESTRICT dst, int dst_enc, long dst_rate
+,	size_t dst_samples_limit
+,	void * MPG123_RESTRICT src, int src_enc, long src_rate
+,	int channels, int method
+,	size_t src_samples, size_t *dst_samples
+,	syn123_handle *sh );
+
+/* Experiments with a physical model filter */
+
+/** Reset any internal filter state resulting from prior resampling
+ *  or filtering work. */
+MPG123_EXPORT
+void syn123_reset_filter(syn123_handle *sh);
+
+/** Physical speaker lowpass.
+ *  This is a crazy idea of mine: Instead of frequency-domain filters
+ *  that need some finite time window of samples to operate on and a
+ *  possibly considerably large filter bank, a physical model of a
+ *  speaker is applied to give a faster response and maybe even
+ *  competitive computing overhead.
+ *  This might be totally idiotic. But maybe it just seems like that.
+ *  Maybe that is why nobody tried yet. I am smarter than anyone else
+ *  MUAHAHAHAHAHAHAHAHAHAHAHAHAHA! Seriously: This is really dirty thinking
+ *  that just ignores digital signal theory. It may be utter crap for
+ *  generic signal processing. But for audio ... if it sounds fine, I'll
+ *  consider acutally shipping it. It would do away with the need to
+ *  have space for that sliding filter window, with delays and all that.
+ */
+MPG123_EXPORT
+int syn123_lowpass( void * buf, int encoding, int channels, size_t samples
+,	long rate, long freq_limit, long width
+,	syn123_handle *sh );
+#endif
 
 /** Swap byte order between little/big endian.
  *  \param buf buffer to work on

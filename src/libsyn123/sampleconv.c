@@ -117,6 +117,43 @@ syn123_clip(void *buf, int encoding, size_t samples)
 	return clipped;
 }
 
+// TODO: Also do that for integer encodings. At least there is
+// some smoothing to get from this even for already clipped material.
+size_t attribute_align_arg
+syn123_soft_clip(void *buf, int encoding, size_t samples, double width)
+{
+	if(!buf)
+		return 0;
+
+	size_t clipped = 0;
+	#define CLIPCODE(type) \
+	{ \
+		type w = width; \
+		type ww = w*w; \
+		type w21 = 2*w-1.; \
+		type h = 1.-w; \
+		type l = -1+w; \
+		type *p = buf; \
+		for(size_t i=0; i<samples; ++i) \
+		{ \
+			if(isnan(p[i])){   p[i] = 0.;                  ++clipped; } \
+			else if(p[i] > h){ p[i] =  1. - ww/(w21+p[i]); ++clipped; } \
+			else if(p[i] < l){ p[i] = -1. + ww/(w21-p[i]); ++clipped; } \
+		} \
+	}
+	switch(encoding)
+	{
+		case MPG123_ENC_FLOAT_32:
+			CLIPCODE(float)
+		break;
+		case MPG123_ENC_FLOAT_64:
+			CLIPCODE(double)
+		break;
+	}
+	#undef CLIPCODE
+	return clipped;
+}
+
 // All together in a happy matrix game, but only directly to/from
 // double or float.
 
