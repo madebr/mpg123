@@ -1,5 +1,8 @@
 1.26.0
 ------
+TODO: Think about mpg123_init() being safe to be called in parallel
+(writing the same numbers to the same arrays) and just call it
+automatically in mpg123_new().
 TODO: dither flag in syn123_handle ... some place for the noise ...
 TPDF is enough, isn't it? The highpass is specific to a sampling rate.
 Not sure if buffering TPDF is worth it. It is cheap, very cheap.
