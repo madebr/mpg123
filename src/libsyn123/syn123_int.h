@@ -65,6 +65,7 @@ struct syn123_struct
 	// pink noise, maybe others: simple structs that can be
 	// simply free()d
 	void* handle;
+	uint32_t seed; // random seed for some RNGs
 	// Extraction of initially-computed waveform from buffer.
 	void *buf;      // period buffer
 	size_t bufs;    // allocated size of buffer in bytes
@@ -100,6 +101,28 @@ static void grow_buf(syn123_handle *sh, size_t bytes)
 	if(bytes && bytes <= sh->maxbuf)
 		sh->buf = malloc(bytes);
 	sh->bufs = sh->buf ? bytes : 0;
+}
+#endif
+
+#ifdef FILL_PERIOD
+static int fill_period(syn123_handle *sh)
+{
+	sh->samples = 0;
+	if(!sh->maxbuf)
+		return SYN123_OK;
+	size_t samplesize = MPG123_SAMPLESIZE(sh->fmt.encoding);
+	size_t buffer_samples = sh->maxbuf/samplesize;
+	grow_buf(sh, buffer_samples*samplesize);
+	if(buffer_samples > sh->bufs/samplesize)
+		return SYN123_DOOM;
+	int outchannels = sh->fmt.channels;
+	sh->fmt.channels = 1;
+	size_t buffer_bytes = syn123_read(sh, sh->buf, buffer_samples*samplesize);
+	sh->fmt.channels = outchannels;
+	if(buffer_bytes != buffer_samples*samplesize)
+		return SYN123_WEIRD;
+	sh->samples = buffer_samples;
+	return SYN123_OK;
 }
 #endif
 

@@ -623,7 +623,7 @@ static void setup_wavegen(void)
 
 	if(!strcmp(signal_source, "pink"))
 	{
-		synerr = syn123_setup_pink(waver, pink_rows, &common);
+		synerr = syn123_setup_pink(waver, pink_rows, 123456, &common);
 		if(synerr)
 		{
 			if(!quiet)
@@ -638,9 +638,24 @@ static void setup_wavegen(void)
 		}
 		goto setup_waver_end;
 	}
+	if(!strcmp(signal_source, "white"))
+	{
+		synerr = syn123_setup_white(waver, 123456, &common);
+		if(synerr)
+		{
+			if(!quiet)
+				merror("setting up white noise generator: %s\n", syn123_strerror(synerr));
+			safe_exit(132);
+		}
+		if(verbose)
+		{
+			fprintf( stderr, ME ": white noise\n" );
+		}
+		goto setup_waver_end;
+	}
 	else if(!strcmp(signal_source, "geiger"))
 	{
-		synerr = syn123_setup_geiger(waver, geiger_activity, &common);
+		synerr = syn123_setup_geiger(waver, geiger_activity, 123456, &common);
 		if(synerr)
 		{
 			if(!quiet)

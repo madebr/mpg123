@@ -13,6 +13,7 @@
 
 #include "config.h"
 
+#define FILL_PERIOD
 #include "syn123_int.h"
 
 // Borrowing the random number algorithm from the dither code.
@@ -42,6 +43,28 @@ static float rand_xorshift32(uint32_t *seed)
 	return fi.f;
 }
 
+static void white_generator(syn123_handle *sh, int samples)
+{
+	for(int i=0; i<samples; ++i)
+		sh->workbuf[1][i] = 2*(rand_xorshift32(&sh->seed)-0.5);
+}
+
+int attribute_align_arg
+syn123_setup_white(syn123_handle *sh, unsigned long seed, size_t *period)
+{
+	if(!sh)
+		return SYN123_BAD_HANDLE;
+	syn123_setup_silence(sh);
+	sh->seed = seed;
+	sh->generator = white_generator;
+	int ret = fill_period(sh);
+	sh->seed = seed;
+	if(ret != SYN123_OK)
+		syn123_setup_silence(sh);
+	if(period)
+		*period = sh->samples;
+	return ret;
+}
 
 /*
 	Brain dump for the speaker model:
@@ -106,8 +129,6 @@ struct geigerspace
 	long dead_time;
 	// Number of intervals till recovery after dead time.
 	long recover_time;
-	// random state
-	uint32_t rand_seed;
 	// Threshold for random value to jump over.
 	float thres;
 
@@ -225,7 +246,6 @@ static void geiger_init(struct geigerspace *gs, double activity, long rate)
 	// Experimenting, actually. Some relation to the speaker.
 	gs->force_scale = 50000.*gs->mass*0.001/(4.*gs->dead_s*gs->dead_s);
 
-	gs->rand_seed = 123456;
 	float event_likelihood = activity*gs->time_interval;
 	if(event_likelihood > 1.)
 		event_likelihood = 1.;
@@ -237,14 +257,15 @@ static void geiger_generator(syn123_handle *sh, int samples)
 	struct geigerspace *gs = sh->handle;
 	for(int i=0; i<samples; ++i)
 		sh->workbuf[1][i] = speaker( gs
-		,	discharge_force(gs, rand_xorshift32(&gs->rand_seed)>gs->thres) );
+		,	discharge_force(gs, rand_xorshift32(&sh->seed)>gs->thres) );
 	// Soft clipping as speaker property. It can only move so far.
 	// Of course this could be produced by a nicely nonlinear force, too.
 	syn123_soft_clip(sh->workbuf[1], MPG123_ENC_FLOAT_64, samples, 0.1);
 }
 
 int attribute_align_arg
-syn123_setup_geiger(syn123_handle *sh, double activity, size_t *period)
+syn123_setup_geiger( syn123_handle *sh, double activity, unsigned long seed
+,	size_t *period )
 {
 	int ret = SYN123_OK;
 	if(!sh)
@@ -253,30 +274,18 @@ syn123_setup_geiger(syn123_handle *sh, double activity, size_t *period)
 	struct geigerspace *handle = malloc(sizeof(*handle));
 	if(!handle)
 		return SYN123_DOOM;
+	sh->seed = seed;
 	geiger_init(handle, activity, sh->fmt.rate);
 	sh->handle = handle;
 	sh->generator = geiger_generator;
-	if(sh->maxbuf)
+	// Fill period buffer, re-init generator for cleanliness.
+	ret = fill_period(sh);
+	if(ret)
+		goto setup_geiger_end;
+	if(sh->samples)
 	{
-		size_t samplesize = MPG123_SAMPLESIZE(sh->fmt.encoding);
-		size_t buffer_samples = sh->maxbuf/samplesize;
-		grow_buf(sh, buffer_samples*samplesize);
-		if(buffer_samples > sh->bufs/samplesize)
-		{
-			ret = SYN123_DOOM;
-			goto setup_geiger_end;
-		}
-		int outchannels = sh->fmt.channels;
-		sh->fmt.channels = 1;
-		size_t buffer_bytes = syn123_read(sh, sh->buf, buffer_samples*samplesize);
-		sh->fmt.channels = outchannels;
+		sh->seed = seed;
 		geiger_init(handle, activity, sh->fmt.rate);
-		if(buffer_bytes != buffer_samples*samplesize)
-		{
-			ret = SYN123_WEIRD;
-			goto setup_geiger_end;
-		}
-		sh->samples = buffer_samples;
 	}
 
 setup_geiger_end:

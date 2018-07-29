@@ -72,7 +72,6 @@ static void InitializePinkNoise( PinkNoise *pink, int numRows )
 /* Initialize rows. */
 	for( i=0; i<numRows; i++ ) pink->pink_Rows[i] = 0;
 	pink->pink_RunningSum = 0;
-	pink->rand_value = 22222;
 }
 
 /* Generate Pink noise values between -1.0 and +1.0 */
@@ -121,11 +120,11 @@ static float GeneratePinkNoise( PinkNoise *pink )
 static void pink_generator(syn123_handle *sh, int samples)
 {
 	for(int i=0; i<samples; ++i)
-		sh->workbuf[1][i] = GeneratePinkNoise((PinkNoise*)sh->handle);
+		sh->workbuf[1][i] = GeneratePinkNoise(sh->handle);
 }
 
 int attribute_align_arg
-syn123_setup_pink(syn123_handle *sh, int rows, size_t *period)
+syn123_setup_pink(syn123_handle *sh, int rows, unsigned long seed, size_t *period)
 {
 	int ret = SYN123_OK;
 	if(!sh)
@@ -138,6 +137,7 @@ syn123_setup_pink(syn123_handle *sh, int rows, size_t *period)
 	PinkNoise *handle = malloc(sizeof(PinkNoise));
 	if(!handle)
 		return SYN123_DOOM;
+	handle->rand_value = seed;
 	InitializePinkNoise(handle, rows);
 	sh->handle = handle;
 	sh->generator = pink_generator;
@@ -163,7 +163,11 @@ syn123_setup_pink(syn123_handle *sh, int rows, size_t *period)
 		}
 		sh->samples = buffer_samples;
 	}
-
+	if(sh->samples)
+	{
+		handle->rand_value = seed;
+		InitializePinkNoise(handle, rows);
+	}
 setup_pink_end:
 	if(ret != SYN123_OK)
 		syn123_setup_silence(sh);
