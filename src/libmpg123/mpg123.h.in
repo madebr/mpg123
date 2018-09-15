@@ -501,12 +501,24 @@ MPG123_EXPORT int mpg123_format_all(mpg123_handle *mh);
 
 /** Set the audio format support of a mpg123_handle in detail:
  *  \param mh handle
- *  \param rate The sample rate value (in Hertz). Special value 0 means
- *              all standard rates (since mpg123 1.26.0).
+ *  \param rate The sample rate value (in Hertz).
  *  \param channels A combination of MPG123_STEREO and MPG123_MONO.
  *  \param encodings A combination of accepted encodings for rate and channels, p.ex MPG123_ENC_SIGNED16 | MPG123_ENC_ULAW_8 (or 0 for no support). Please note that some encodings may not be supported in the library build and thus will be ignored here.
  *  \return MPG123_OK on success, MPG123_ERR if there was an error. */
 MPG123_EXPORT int mpg123_format( mpg123_handle *mh
+,	long rate, int channels, int encodings );
+
+/** Set the audio format support of a mpg123_handle in detail:
+ *  \param mh handle
+ *  \param rate The sample rate value (in Hertz). Special value 0 means
+ *     all rates (the reason for this variant of mpg123_format()).
+ *  \param channels A combination of MPG123_STEREO and MPG123_MONO.
+ *  \param encodings A combination of accepted encodings for rate and channels,
+ *     p.ex MPG123_ENC_SIGNED16 | MPG123_ENC_ULAW_8 (or 0 for no support).
+ *     Please note that some encodings may not be supported in the library build
+ *     and thus will be ignored here.
+ *  \return MPG123_OK on success, MPG123_ERR if there was an error. */
+MPG123_EXPORT int mpg123_format2( mpg123_handle *mh
 ,	long rate, int channels, int encodings );
 
 /** Check to see if a specific format at a specific rate is supported 
@@ -1415,8 +1427,7 @@ MPG123_EXPORT int mpg123_fmt_all(mpg123_pars *mp);
 
 /** Set the audio format support of a mpg123_pars in detail:
  * \param mp parameter handle
- * \param rate The sample rate value (in Hertz). Special value 0 means
- *             all standard rates (since mpg123 1.26.0).
+ * \param rate The sample rate value (in Hertz).
  * \param channels A combination of MPG123_STEREO and MPG123_MONO.
  * \param encodings A combination of accepted encodings for rate and channels,
  *                  p.ex MPG123_ENC_SIGNED16|MPG123_ENC_ULAW_8 (or 0 for no
@@ -1424,6 +1435,19 @@ MPG123_EXPORT int mpg123_fmt_all(mpg123_pars *mp);
  * \return MPG123_OK on success
 */
 MPG123_EXPORT int mpg123_fmt(mpg123_pars *mp
+,	long rate, int channels, int encodings);
+
+/** Set the audio format support of a mpg123_pars in detail:
+ * \param mp parameter handle
+ * \param rate The sample rate value (in Hertz). Special value 0 means
+ *             all rates (reason for this variant of mpg123_fmt).
+ * \param channels A combination of MPG123_STEREO and MPG123_MONO.
+ * \param encodings A combination of accepted encodings for rate and channels,
+ *                  p.ex MPG123_ENC_SIGNED16|MPG123_ENC_ULAW_8 (or 0 for no
+ *                  support).
+ * \return MPG123_OK on success
+*/
+MPG123_EXPORT int mpg123_fmt2(mpg123_pars *mp
 ,	long rate, int channels, int encodings);
 
 /** Check to see if a specific format at a specific rate is supported

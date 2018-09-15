@@ -392,6 +392,17 @@ int attribute_align_arg mpg123_fmt_all(mpg123_pars *mp)
 	return MPG123_OK;
 }
 
+int attribute_align_arg mpg123_format2(mpg123_handle *mh, long rate, int channels, int encodings)
+{
+	int r;
+	if(mh == NULL) return MPG123_BAD_HANDLE;
+	r = mpg123_fmt2(&mh->p, rate, channels, encodings);
+	if(r != MPG123_OK){ mh->err = r; r = MPG123_ERR; }
+
+	return r;
+}
+
+// Keep old behaviour.
 int attribute_align_arg mpg123_format(mpg123_handle *mh, long rate, int channels, int encodings)
 {
 	int r;
@@ -402,7 +413,7 @@ int attribute_align_arg mpg123_format(mpg123_handle *mh, long rate, int channels
 	return r;
 }
 
-int attribute_align_arg mpg123_fmt(mpg123_pars *mp, long rate, int channels, int encodings)
+int attribute_align_arg mpg123_fmt2(mpg123_pars *mp, long rate, int channels, int encodings)
 {
 	int ie, ic, ratei, r1, r2;
 	int ch[2] = {0, 1};
@@ -438,6 +449,14 @@ int attribute_align_arg mpg123_fmt(mpg123_pars *mp, long rate, int channels, int
 	}
 
 	return MPG123_OK;
+}
+
+// Keep old behaviour, error on rate=0.
+int attribute_align_arg mpg123_fmt(mpg123_pars *mp, long rate, int channels, int encodings)
+{
+	return (rate == 0)
+	?	MPG123_BAD_RATE
+	:	mpg123_fmt2(mp, rate, channels, encodings);
 }
 
 int attribute_align_arg mpg123_format_support(mpg123_handle *mh, long rate, int encoding)

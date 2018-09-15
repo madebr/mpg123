@@ -52,8 +52,8 @@ TODO: Make libout123 and/or mpg123 use that to convert on the fly. Optionally?
   instead of raw bitmask value.
 - libout123: Added hex and txt (plain text) printout.
 - libmpg123:
--- Add special value 0 for all standard rates in mpg123_format() and
-   mpg123_fmt().
+-- Add mpg123_format2() and mpg123_fmt2() supporting special value 0 for all
+   rates.
 -- Fix changing of decoder (and output format along with that) after stream
    opening. This was never recommened and only now should work at all.
 -- Also mpg123_decode_frame() now sets return buffer to NULL and returned byte
