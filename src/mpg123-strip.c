@@ -113,7 +113,8 @@ int main(int argc, char **argv)
 
 		if(ret == MPG123_OK) ret = do_work(m);
 
-		if(ret != MPG123_OK) fprintf(stderr, "Some error occured: %s\n", mpg123_strerror(m));
+		if(ret != MPG123_OK && mpg123_errcode(m))
+			fprintf(stderr, "Some error occured: %s\n", mpg123_strerror(m));
 
 		mpg123_delete(m); /* Closes, too. */
 	}
@@ -142,8 +143,12 @@ int do_work(mpg123_handle *m)
 			for(i=0; i<4; ++i) hbuf[i] = (unsigned char) ((header >> ((3-i)*8)) & 0xff);
 
 			/* Now write out both header and data, fire and forget. */
-			write(STDOUT_FILENO, hbuf, 4);
-			write(STDOUT_FILENO, bodydata, bodybytes);
+			if( 4 != unintr_write(STDOUT_FILENO, hbuf, 4) ||
+			    bodybytes != unintr_write(STDOUT_FILENO, bodydata, bodybytes) )
+			{
+				fprintf(stderr, "Failed to write data: %s\n", strerror(errno));
+				return MPG123_ERR;
+			}
 			if(param.verbose)
 			fprintf(stderr, "%"SIZE_P": header 0x%08lx, %"SIZE_P" body bytes\n"
 			, (size_p)++count, header, (size_p)bodybytes);
