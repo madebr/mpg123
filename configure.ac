@@ -156,19 +156,25 @@ fi
 dnl We need the windows header also for checking the module mechanism.
 AC_CHECK_HEADERS([windows.h])
 
+case "$host" in
+	*-*-mingw*)
+		win32=yes
+	;;
+	*)
+		win32=no
+	;;
+esac
+
 if test x"$modules" = xdisabled
 then
   echo "Modules disabled, not checking for dynamic loading."
 else
   have_dl=no
   # The dlopen() API is either in libc or in libdl.
-  if test x$ac_cv_header_windows_h = xyes; then
+  if test "x$ac_cv_header_windows_h" = xyes &&
+     test "x$win32" = xyes; then
     AC_MSG_CHECKING([if LoadLibrary should be used])
     AC_LINK_IFELSE([AC_LANG_SOURCE([
-
-#ifdef __CYGWIN__
-#error Cygwin should use dlopen
-#endif
 
 #include <windows.h>
 
@@ -2214,8 +2220,10 @@ fi
 AC_DEFINE_UNQUOTED(INDEX_SIZE, $seektable, [size of the frame index seek table])
 
 dnl ############## Win32 function checks
-# Check if we want Unicode for Win32. Cygwin does not need _wopen
-if test x$ac_cv_header_windows_h = xyes && test "x$host_os" != "xcygwin"; then
+# Check if we want Unicode for Win32. Cygwin and Midipix does not need _wopen
+if test "x$ac_cv_header_windows_h" = xyes &&
+   test "x$host_os" != xcygwin &&
+   test "x$host_os" != xmidipix; then
   win32_specific_codes=enabled
 else
   win32_specific_codes=disabled

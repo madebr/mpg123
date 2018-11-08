@@ -13,6 +13,7 @@ bodies or see it as a feature
 - Starting to intentionaly use C99 in the codebase. API headers are still
   supposed to be compatible to C89.
 - Default build with proper integer rounding (--enable-int-quality) now.
+- Cygwin/midipix autoconf fixes (thanks to Redfoxmoon).
 - mpg123:
 -- Print out MPEG header info for each frame for mpg123 -vvvv.
 -- Added --no-visual to disable cursor/inverse video games explicitly.
