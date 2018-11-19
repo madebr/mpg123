@@ -176,7 +176,7 @@ static double speaker(struct geigerspace *gs, double force)
 			if(sign(gs->speed+ff) == sign(gs->speed))
 				gs->speed += ff;
 			else
-				gs->speed = 0.;
+				gs->speed /= 2;
 		}
 	} while(++steps*euler_step < gs->time_interval);
 	return gs->pos;
