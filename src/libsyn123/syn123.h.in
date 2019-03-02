@@ -248,10 +248,10 @@ int syn123_wave_id(const char *name);
  */
 enum syn123_sweep_id
 {
-	SYN123_SWEEP_LINEAR = 0 /**< linear frequency change */
-,	SYN123_SWEEP_SQUARE     /**< quadratic frequency change */
-,	SYN123_SWEEP_EXP        /**< exponential (octave per time unit) */
-,	SYN123_SWEEP_LIMIT      /**< valid IDs less than that */
+	SYN123_SWEEP_LIN = 0 /**< linear frequency change */
+,	SYN123_SWEEP_QUAD    /**< quadratic frequency change */
+,	SYN123_SWEEP_EXP     /**< exponential (octave per time unit) */
+,	SYN123_SWEEP_LIMIT   /**< valid IDs less than that */
 };
 
 /** Frequency sweep generator.

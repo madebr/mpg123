@@ -478,18 +478,18 @@ setup_wave_end:
 // dp = f(t) * dw = d/r f(t) dt
 //  p = (d-1)/r int_0^t f(t) dt = d/r (F(t) - F(0))
 // linear: f(t) = f1 + t*(f2-f1); F = f1*t + t**2 * (f2-f1)/2
-// square: f(t) = f1 + t**2*(f2-f1); F = f1*t + t**3 * (f2-f1)/3
+// quad:   f(t) = f1 + t**2*(f2-f1); F = f1*t + t**3 * (f2-f1)/3
 // exp:    f(t) = exp(log(f1) + t*(log(f2)-log(f1)))
 //         F(t) = 1/(log(f2)-log(f1)) exp(log(f1) + t*(log(f2)-log(f1)))
 
 // These are the unscaled expressions, just F(t)-F(0).
 
-static double sweep_phase_linear(double t, double f1, double f2)
+static double sweep_phase_lin(double t, double f1, double f2)
 {
 	return f1*t + t*t*0.5*(f2-f1);
 }
 
-static double sweep_phase_square(double t, double f1, double f2)
+static double sweep_phase_quad(double t, double f1, double f2)
 {
 	return f1*t+t*t*t*(1./3)*(f2-f1);
 }
@@ -528,13 +528,13 @@ static void sweep_phase( syn123_handle *sh, size_t off
 		// actual phase computation, with inner loops for auto-vectorization
 		switch(sw->id)
 		{
-			case SYN123_SWEEP_LINEAR:
+			case SYN123_SWEEP_LIN:
 				for(int i=0; i<sweep_s; ++i)
-					buf[boff+i] = sweep_phase_linear(buf[boff+i], sw->f1, sw->f2);
+					buf[boff+i] = sweep_phase_lin(buf[boff+i], sw->f1, sw->f2);
 			break;
-			case SYN123_SWEEP_SQUARE:
+			case SYN123_SWEEP_QUAD:
 				for(int i=0; i<sweep_s; ++i)
-					buf[boff+i] = sweep_phase_square(buf[boff+i], sw->f1, sw->f2);
+					buf[boff+i] = sweep_phase_quad(buf[boff+i], sw->f1, sw->f2);
 			break;
 			case SYN123_SWEEP_EXP:
 				for(int i=0; i<sweep_s; ++i)
@@ -604,7 +604,7 @@ syn123_setup_sweep( syn123_handle* sh
 			*period = 0;
 		return SYN123_OK;
 	}
-	if( sweep_id != SYN123_SWEEP_LINEAR && sweep_id != SYN123_SWEEP_SQUARE &&
+	if( sweep_id != SYN123_SWEEP_LIN && sweep_id != SYN123_SWEEP_QUAD &&
 		sweep_id != SYN123_SWEEP_EXP )
 		return SYN123_BAD_SWEEP;
 

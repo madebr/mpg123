@@ -112,7 +112,7 @@ double sweep_freq = 0.;
 double sweep_time = 0.;
 int sweep_hard = 0;
 long sweep_count = -1;
-const char *sweep_type = "square";
+const char *sweep_type = "quad";
 const char *signal_source = "file";
 /* Default to around 2 MiB memory for the table. */
 long wave_limit     = 300000;
@@ -674,7 +674,7 @@ static void setup_wavegen(void)
 		double f2 = sweep_freq;
 		int wid = SYN123_WAVE_SINE;
 		int backwards = FALSE;
-		int sid = SYN123_SWEEP_SQUARE;
+		int sid = SYN123_SWEEP_QUAD;
 		// Yes, could overflow. You get a short time, then.
 		size_t duration = timelimit > -1 ? (size_t)timelimit : rate;
 		size_t period = 0;
@@ -683,9 +683,9 @@ static void setup_wavegen(void)
 		if(sweep_type)
 		{
 			if(!strncmp("lin", sweep_type, 3))
-				sid = SYN123_SWEEP_LINEAR;
-			else if(!strncmp("squ", sweep_type, 3))
-				sid = SYN123_SWEEP_SQUARE;
+				sid = SYN123_SWEEP_LIN;
+			else if(!strncmp("qua", sweep_type, 3))
+				sid = SYN123_SWEEP_QUAD;
 			else if(!strncmp("exp", sweep_type, 3))
 				sid = SYN123_SWEEP_EXP;
 			else
@@ -1370,7 +1370,7 @@ static void long_usage(int err)
 	fprintf(o,"        --sweep-time <s>   set frequency sweep duration to s seconds if > 0\n");
 	fprintf(o,"                           (defaulting to timelimit if set, otherwise one second)\n");
 	fprintf(o,"        --sweep-count <c>  set timelimit to exactly produce that many (smooth) sweeps");
-	fprintf(o,"        --sweep-type <t>   set sweep type: lin(ear), square (default),\n");
+	fprintf(o,"        --sweep-type <t>   set sweep type: lin(ear), qua(d) (default),\n");
 	fprintf(o,"                           exp(onential)\n");
 	fprintf(o,"        --sweep-hard       disable post-sweep smoothing for periodicity\n");
 	fprintf(o,"        --genbuffer <b>    buffer size (limit) for signal generators,\n");
