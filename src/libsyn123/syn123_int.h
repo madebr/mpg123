@@ -43,12 +43,6 @@ struct syn123_sweep
 	double endphase; // phase for continuing, just after sweep end
 };
 
-// Only a forward declaration of the resampler state. An instance
-// is allocated and a pointer stored if it is configured. The
-// resampler is pretty disjunct from the other parts of syn123.
-// Not sure if synergies will emerge eventually.
-struct resample_data;
-
 struct syn123_struct
 {
 	// Temporary storage in internal precision.
@@ -78,7 +72,6 @@ struct syn123_struct
 	size_t maxbuf;  // maximum period buffer size in bytes
 	size_t samples; // samples (PCM frames) in period buffer
 	size_t offset;  // offset in buffer for extraction helper
-	struct resample_data *rd; // resampler data, if initialized
 };
 
 #ifndef NO_SMIN

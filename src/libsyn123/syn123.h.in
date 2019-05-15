@@ -94,14 +94,7 @@ extern "C" {
  @{
  */
 
-/** Opaque structure for the libsyn123 handle.
- *
- *  Simple context-free API functions do not need a handle, while
- *  others require it. Those that require it want it as first argument.
- *  Functions taking a handle as last argument after others make optional
- *  use of it (if non-NULL) to enable advanced functionality like
- *  on-the-fly encoding conversion that needs temporary storage.
- */
+/** Opaque structure for the libsyn123 handle. */
 struct syn123_struct;
 /** Typedef shortcut as preferrend name for the handle type. */
 typedef struct syn123_struct syn123_handle;
@@ -125,8 +118,8 @@ enum syn123_error
 ,	SYN123_BAD_FREQ /**< Invalid wave frequency given. */
 ,	SYN123_BAD_SWEEP /**< Invalid sweep curve given. */
 ,	SYN123_OVERFLOW  /**< Some fatal (integer) overflow that prevents proper operation. */
+,	SYN123_BAD_RESAMPLE /**< Invalid resampling method choice. */
 ,	SYN123_NO_DATA /**< Not enough data to do something. */
-,	SYN123_NO_SPACE /**< Not enough space (destination memory) to do something. */
 };
 
 /** Give a short phrase explaining an error code.
@@ -421,8 +414,6 @@ int syn123_conv( void * MPG123_RESTRICT dst, int dst_enc, size_t dst_size
  */
 #define SYN123_DB_LIMIT 500
 
-/* TODO: Turn those two into macros? Too simple ... */
-
 /** Convert decibels to linear volume (amplitude factor).
  *  This just returns pow(10, db/20) in the supported range.
  *  The dB value is limited according to SYN123_DB_LIMIT, with
@@ -573,16 +564,13 @@ int syn123_mixenc(int src_enc, int dst_enc);
  *  For fun, you could give the same problem to a BLAS implementation
  *  of your choice and compare the performance;-)
  *  \param dst destination buffer
- *  \param dst_enc output sample encoding, must be MPG123_ENC_FLOAT_32 or
- *   MPG123_ENC_FLOAT_64 unless a syn123_handle is provided
  *  \param dst_channels destination channel count (m)
  *  \param src source buffer
- *  \param src_enc input sample encoding, must be MPG123_ENC_FLOAT_32 or
- *   MPG123_ENC_FLOAT_64 unless a syn123_handle is provided
  *  \param src_channels source channel count (n)
  *  \param mixmatrix mixing factors ((m,n) matrix), same encoding as
  *    the audio data
- *  \param samples count of samples (PCM frames) to work on
+ *  \param encoding sample encoding, must be MPG123_ENC_FLOAT_32 or
+ *    MPG123_ENC_FLOAT_64 unless a syn123_handle is provided
  *  \param silence Set to non-zero value to intialize the output
  *    to a silent signal before adding the input. This only works
  *    with provided syn123_handle, as it uses the small working
@@ -591,7 +579,7 @@ int syn123_mixenc(int src_enc, int dst_enc);
  *  \param sh an optional syn123_handle which enables work on non-float
  *    encodings by utilizing the contained buffer as intermediate storage,
  *    converting to/from float transparently; Note that this may limit
- *    the amount of channels depending on the fixed internal buffer space.
+ *    the amount of channels depending on the available buffer space.
  *    As long as you are below 100 channels, you should not worry.
  *  \return success code (e.g. bad encoding, channel counts ...)
  */
@@ -601,255 +589,81 @@ int syn123_mix( void * MPG123_RESTRICT dst, int dst_enc, int dst_channels
 ,	const double * mixmatrix
 ,	size_t samples, int silence, syn123_handle *sh );
 
-/** Set up a generic digital filter.
- *
- *  This takes a filter order N and coefficient set to prepare
- *  the internal state of a digital filter defined by the transfer
- *  function
- *
- *             b_0 + b_1 z^-1 + ... + b_N z^-N
- *    H(z) = -----------------------------------
- *               1 + a_1 z^-1 + ... + a_N z^-N
- *
- *  It is your task to come up with fun values for the coefficients
- *  b_n and a_n to implement various FIR and IIR filters.
- *
- *  \param sh mandatory handle
- *  \param order filter order (filter length minus one)
- *  \param b nominator coefficients, starting with b_0 (order+1 elements)
- *  \param a denominator coefficients, starting with a_0=1 (order+1 elements).
- *    It is an error to provide a sequence that does not start with 1.
- *    For a non-recursive (FIR) filter, you can set all following
- *    values from a_1 on to zero or choose to provide a NULL pointer.
- *  \param mixenc either MPG123_ENC_FLOAT_32 or MPG123_ENC_FLOAT_64 for
- *    computation in single or double precision
- *  \param channels number of channels in the audio signal
- *  \param init_firstval If non-zero, initialize the filter history with
- *    a constant stream of the first encountered sample instead of zero.
- *  \return success code
+/** Some basic choices for resampling.
+ *  There is much talk about differing variants of sinc resampling.
+ *  People really can get worked up about this. For music, many folks
+ *  can actually bear the simple drop/repeat method, while most
+ *  should not bother about the distortions from linear resampling.
+ *  They do look ugly in spectrograms and are easily audible for
+ *  synthetic test signals. But some music recording, perhaps with
+ *  distorted guitars to begin with, makes that harder.
+ *  Finally, a run-of-the-mill bandlimited sinc interpolation
+ *  should make everyone reasonably happy. With this one, one cannot
+ *  hide the the necessary latency to achieve the desired properties.
+ *  You need to feed some data until the first sample pops out.
+ *  I actually do wonder if I could fake my way out of the latency
+ *  and still get reasonable results.
+ *  I also do not like sinc overshoots causing clipping. Perhaps there
+ *  is something 'good enough' available without these problems. */
+enum syn123_resample_method
+{
+	SYN123_RESAMPLE_DROP = 0 /**< drop/repeat samples only (for small drift) */
+,	SYN123_RESAMPLE_LINEAR   /**< linear resampling without latency */
+,	SYN123_RESAMPLE_SINC     /**< proper resampling with some latency */
+};
+
+#if 0
+/** Work in progress ... some resampling.
+ *  I begin with interpolation that is oblivious to the sampling
+ *  frequencies involved. Probably that has to be changed for bandlimiting
+ *  ... but maybe I can get away with something that only works on
+ *  the ratio of sampling rates derived from the sample counts.
+ * The resampling may work without a syn123_handle, but there will
+ * be artifacts because there is no information preserved between
+ * calls for successive buffers.
+TODO: Eh ... I guess it's too easy not mentioning the rates.
+The ratio of buffer sizes may simply lack the required precision.
+But I like the idea to exactly predict the number of samples
+attained. A helper function for that?
+   This shall be an application of the speaker bandpass that uses
+   the numerical integration of the speaker sim for interpolating
+   samples.
  */
 MPG123_EXPORT
-int syn123_setup_filter( syn123_handle *sh
-,	unsigned int order, double *b, double *a
-,	int mixenc, int channels, int init_firstval );
+int syn123_resample(
+	void * MPG123_RESTRICT dst, int dst_enc, long dst_rate
+,	size_t dst_samples_limit
+,	void * MPG123_RESTRICT src, int src_enc, long src_rate
+,	int channels, int method
+,	size_t src_samples, size_t *dst_samples
+,	syn123_handle *sh );
 
-/** Apply a prepared digital filter.
- * 
- *  This applies the filter prepared by syn123_setup_filter
- *  This converts to/from the configured mixing encoding on the fly,
- *  if necessary.
- *
- *  \param sh handle
- *  \param buf audio data to work on (channel count matching what
- *     was given to mpg123_setup_filter())
- *  \param encoding audio encoding
- *  \param samples count of samples (PCM frames) in the buffer
- *  \return success code
+/* Experiments with a physical model filter */
+
+/** Reset any internal filter state resulting from prior resampling
+ *  or filtering work. */
+MPG123_EXPORT
+void syn123_reset_filter(syn123_handle *sh);
+
+/** Physical speaker lowpass.
+ *  This is a crazy idea of mine: Instead of frequency-domain filters
+ *  that need some finite time window of samples to operate on and a
+ *  possibly considerably large filter bank, a physical model of a
+ *  speaker is applied to give a faster response and maybe even
+ *  competitive computing overhead.
+ *  This might be totally idiotic. But maybe it just seems like that.
+ *  Maybe that is why nobody tried yet. I am smarter than anyone else
+ *  MUAHAHAHAHAHAHAHAHAHAHAHAHAHA! Seriously: This is really dirty thinking
+ *  that just ignores digital signal theory. It may be utter crap for
+ *  generic signal processing. But for audio ... if it sounds fine, I'll
+ *  consider acutally shipping it. It would do away with the need to
+ *  have space for that sliding filter window, with delays and all that.
  */
 MPG123_EXPORT
-int syn123_filter( syn123_handle *sh
-,	void* buf, int encoding, size_t samples );
-
-/** Set up the resampler.
- *
- *  People can get worked up a lot about differing algorithms for resampling,
- *  while many folks can actually bear the simple drop/repeat method and most
- *  probably do not bother about the distortions from linear resampling.
- *  A testament to this is that in the 18 years of me maintaining mpg123, I
- *  got bugged about the missing dithering and on subtle bias in shuffling
- *  a playlist, but people seem to insist on using the NtoM resampoler inside
- *  libmpg123, despite me warning about its horrible consequences for audio
- *  quality. It is a plain drop-sample implementation. The only good things to
- *  say about it is that it is cheap and is embedded with the sample-accurate
- *  decoder so that you do not have to worry about offsets in terms of input
- *  and output samples.
- *
- *  Anyhow, this is my take on a reasonably good and efficient resampler that is
- *  neither the best-sounding, nor the fastest in terms of CPU time, but gets
- *  by without significant latency. It needs far less computation than usual
- *  high-quality windowed-sinc resampling (libsamplerate), but cannot beat
- *  libsoxr with its FFT-based approach. The less stringent dirty mode (using
- *  only a 72 dB lowpass filter, in practice still close to CD-DA quality)
- *  comes quite close, though.
- *
- *  The selling point is that it produces output samples as soon as you start
- *  feeding, without any buffering of future samples to fill a window for the
- *  FIR filter or the Fourier transform. It employs IIR filters for low-passing,
- *  possibly in multiple stages for decimation, and optimized interpolation
- *  formulas using up to 6 points. These formulas, based on research by
- *  Olli Niemitalo using using Differential Evolution, are what enables a
- *  dynamic range of 108 dB, well above 16 bit CD-DA quality. Simple
- *  cubic splines after low-passing distort up to around -40 dB in my tests.
- *
- *  There is some effective signal delay well below 10 samples. The impulse
- *  response is about 3 samples late, so this well inside the realm of
- *  (nonlinear) phase shift. The phase distortion looks bad on paper but does
- *  not matter much in the intended domain of application: the final change in
- *  sampling rate before playback on audio hardware, the last filter that is
- *  applied before the sound hits the speakers (or all the other filters
- *  implemented in your audio harware, that you can choose to be ignorant
- *  about). Use better resamplers for mixing in the studio. Use better
- *  resamplers for converting files on disk. For live playback, consider this
- *  one because it is good enough, fast enough, cheap enough.
- *
- *  Note that if you call this function repeatedly, the internal history
- *  is only cleared if you change anything besides the sampling rates. If
- *  only the rates change, the state of the resampler is kept to enable
- *  you to continue on prior data. This means you can vary the resampling
- *  ratio during operation, somewhat smoothly depending on your buffer size.
- *
- *  \param sh mandatory handle
-    \param dirty Enable (!= 0) the dirty mode for even more 'good enough'
-    resampling with less computing time. Offers -72 dB low pass attentuation,
-    worst-case distortion around that, too, and 85% worst-case bandwidth.
-    With this set to zero, the normal mode is used, offering at least 108 dB
-    dynamic range and worst-case bandwidth above 84%.
- */
-MPG123_EXPORT
-int syn123_setup_resample( syn123_handle *sh, long inrate, long outrate
-,	int channels, int dirty );
-
-/** Give upper limit for output sample count from the resampler.
- *
- *  Since there is some rounding involved, the exact number of output samples
- *  from the resampler, being given a certain amount of input samples, can
- *  vary (one more or less than expected). This function is here to give you
- *  a safe output buffer size given a certain input buffer size. If you intend
- *  to vary the output rate for a fixed input rate, you may compute the output
- *  buffer size for the largest intended output rate and use that throughout.
- *  The same applies to the input sample count.
- *  A return value of zero indicates an error (zero, negative, or too large
- *  rate given) unless the given input sample count is also zero.
- *  The resampler only produces output when given new input.
- *  \param inrate input sample rate
- *  \param outrate output sample rate
- *  \param ins input sample count for one buffer
- *  \return number of maximum output samples for one buffer, or zero
- *     if no sensible value exists
- */
-MPG123_EXPORT
-size_t syn123_resample_count(long inrate, long outrate, size_t ins);
-
-To keep things close, I should also give a number that definitely fills the
-history "good enough". That depends on the resampling ratio, though. There is the
-12th order lowpass for decimation. Hm, does its exact state matter?
-Once the actual lowpass and intetrpolation happens, it's 6 samples at least,
-also matching the maximum 6 points for interpolation. Are 10 samples really
-enough? How much does that decimator matter?
-When I got syn123_resample_intotal(), I can return the number of input samples
-playing a role for n output samples. Just need to decide if the interpolation
-delay is all that matters or if intermediate lowpassing is also an issue.
-Or ... no ... I just want to fill the history. No think about delay. If there is
-12th-order lowpass in between, I need 12 samples of history at that point. This needs
-a staged computation.
-
-/** Compute the minimal input sample count needed for given output sample count.
- *
- *  The reverse of syn123_resample_count(), in a way. This gives you the
- *  minimum amount of input samples to guarantee at least the desired amount
- *  of output samples. Once you got that, ensure to call syn123_resample_count()
- *  to get a safe buffer size for that amount of input and prepare accordingly.
- *  With this approach, you can ensure that you get your realtime output device
- *  buffer filled with each loop run fetching a bit of input, at the expense
- *  of handling some additional buffering for the returned sample counts above
- *  the minimum.
- *
- *  \param input_rate input sample rate
- *  \param output_rate output sample rate
- *  \param outs desired minimal output sample count for one input buffer
- *  \return number of minimal input samples in one buffer, or zero if no
- *    sensible value exists (invalid input parameters, or zero outs)
- */
-MPG123_EXPORT
-size_t syn123_resample_incount(long input_rate, long output_rate, size_t outs);
-
-/* Lightweight large file hackery to enable worry-reduced use of off_t.
-   Depending on the size of off_t in your client build, the corresponding
-   library function needs to be chosen. */
-#ifdef _FILE_OFFSET_BITS
-#  if _FILE_OFFSET_BITS+0 == 32
-#    define syn123_resample_total   syn123_resample_total_32
-#    define syn123_resample_intotal syn123_resample_intotal_32
-#  elif _FILE_OFFSET_BITS+0 == 64
-#    define syn123_resample_total   syn123_resample_total_64
-#    define syn123_resample_intotal syn123_resample_intotal_64
-#  else
-#    error "Unpredicted _FILE_OFFSET_BITS value."
-#  endif
-#else
-#    define syn123_resample_total   syn123_resample_total_@LFS_ALIAS_BITS@
-#    define syn123_resample_intotal syn123_resample_intotal_@LFS_ALIAS_BITS@
-#fi
-
-/** Give exact output sample count for total input sample count.
- *
- *  Use this to determine the total length of your output stream
- *  given the length of the input stream. The computation is exact.
- *
- *  \param inrate input sample rate
- *  \param outrate output sample rate
- *  \param ins input sample count for the whole stream
- *  \return number of output samples or -1 if the computation fails
- *    (bad/too large sampling rates, integer overflow)
- */
-MPG123_EXPORT
-off_t syn123_resample_total(long inrate, long outrate, off_t ins);
-
-/** Give minimum input sample count for total output sample count.
- *
- *  You need to feed at least that amount of input samples to get
- *  the desired amount of output samples from the resampler. Depending
- *  on the resampling ratio, you may in fact get more than the desired
- *  amount (one input sample being worth multiple output samples during
- *  upsampling) so make sure to call syn123_resample_total() to get
- *  the exact number of samples you need to prepare for.
- *
- *  \param inrate input sample rate
- *  \param outrate output sample rate
- *  \param outs output sample count for the whole stream
- *  \return number of input samples or -1 if the computation fails
- *    (bad/too large sampling rates, integer overflow)
- */
-MPG123_EXPORT
-off_t syn123_resample_intotal(long inrate, long outrate, off_t outs);
-
-/** Resample input buffer to output buffer.
- *
- *  This executes the resampling configured by syn123_setup_resample(). The
- *  input and output encoding is fixed at single-precision float
- *  (MPG123_ENC_FLOAT_32) and multiple channels are interleaved. There
- *  is no implicit conversion of other encodings since the fixed internal
- *  buffers for that may not fit your chosen extreme resampling ratios. Also,
- *  dealing with double precision does not make sense with the mathematical
- *  limitations of the employed filters.
- *
- *  You are responsible for having your buffers prepared with the correct sizes.
- *  Use syn123_resample_count() to ensure that you are prepared for the correct
- *  number of output samples given your input sample count.
- *
- *  \param sh handle with prepared resampling method
- *    If this is NULL or if the resampler has not been initialized before, the
- *    function returns zero instead of crashing randomly.
- *  \param dst destination buffer
- *  \param src source buffer
- *  \param samples input samples (PCM frames) in source buffer
- *  \return number of output samples (PCM frames)
- */
-MPG123_EXPORT
-size_t syn123_resample( syn123_handle *sh,
-	float * MPG123_RESTRICT dst, float * MPG123_RESTRICT src, size_t samples );
-
-/** Clear any historic sample values for filters/interpolation.
- *
- *  The filters and resampling interpolators of syn123_filter() and
- *  syn123_resample() remember past samples in some form to produce
- *  continous output. If you want a fresh start, this function clears
- *  that history.
- *
- *  \param sh handle that should get history cleared
- */
-MPG123_EXPORT
-void syn123_clear_history(syn123_handle *sh);
+int syn123_lowpass( void * buf, int encoding, int channels, size_t samples
+,	long rate, long freq_limit, long width
+,	syn123_handle *sh );
+#endif
 
 /** Swap byte order between little/big endian.
  *  \param buf buffer to work on

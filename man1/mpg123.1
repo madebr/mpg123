@@ -86,19 +86,6 @@ The format used is user:password.
 Ignore MIME types given by HTTP server. If you know better and want mpg123
 to decode something the server thinks is image/png, then just do it.
 .TP
-\fB\-\^\-no\-icy\-meta
-Do not accept ICY meta data.
-.TP
-\fB\-\^-streamdump \fIfilename\fR
-Dump a copy of the input data (as read by libmpg123) to the given file.
-This enables you to store a web stream to disk while playing, or just create
-a concatenation of the local files you play for ... why not?
-.TP
-\fB\-\^-icy\-interval \fIbytes\fR
-This setting enables you to play a stream dump containing ICY metadata at the given
-interval in bytes (the value of the icy-metaint HTTP response header). Without it,
-such a stream will play, but will cause regular decoding glitches with resync.
-.TP
 \fB\-\^\-no\-seekbuffer
 Disable the default micro-buffering of non-seekable streams that gives the
 parser a safer footing.
@@ -144,6 +131,9 @@ line, or in the list file.
 Continuous random play.  Keeps picking a random file from the command line
 or the play list.  Unlike shuffle play above, random play never ends, and
 plays individual songs more than once.
+.TP
+\fB\-\^\-no\-icy\-meta
+Do not accept ICY meta data.
 .TP
 \fB\-i, \-\^-index
 Index / scan through the track before playback.

@@ -27,7 +27,6 @@ static const double freq_error = 1e-4;
 /* For our precisions, that value will always be good enough. */
 static const double twopi = 2.0*3.14159265358979323846;
 static struct syn123_wave defwave = { SYN123_WAVE_SINE, FALSE, 440., 0. };
-static struct filter_state deffstate = { 0, 0, 0, NULL };
 
 /* round floating point to size_t */
 static size_t round2size(double a)
@@ -771,8 +770,6 @@ syn123_new(long rate, int channels, int encoding
 	sh->waves = NULL;
 	sh->handle = NULL;
 	syn123_setup_silence(sh);
-	sh->lowpass  = deffstate;
-	sh->interpol = deffstate;
 
 syn123_new_end:
 	if(err)
@@ -793,10 +790,6 @@ syn123_del(syn123_handle* sh)
 	syn123_setup_silence(sh);
 	if(sh->buf)
 		free(sh->buf);
-	if(sh->lowpass.history)
-		free(sh->lowpass.history;
-	if(sh->interpol.history)
-		free(interpol.history);
 	free(sh);
 }
 

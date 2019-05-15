@@ -82,7 +82,6 @@ static int  inputenc = 0;
 static int  channels = 2;
 static int  inputch  = 0;
 static long rate     = 44100;
-static long inputrate = 0;
 static char *driver = NULL;
 static char *device = NULL;
 int also_stdout = FALSE;
@@ -508,7 +507,6 @@ topt opts[] = {
 	{'P', "preamp",      GLO_ARG | GLO_DOUBLE, 0, &preamp, 0},
 	{0,   "offset",      GLO_ARG | GLO_DOUBLE, 0, &preamp_offset, 0},
 	{'r', "rate",        GLO_ARG | GLO_LONG, 0, &rate,  0},
-	{'R', "inputrate",   GLO_ARG | GLO_LONG, 0, &inputrate,  0},
 	{0,   "clip",        GLO_INT,  0, &do_clip, TRUE},
 	{0,   "headphones",  0,                  set_output_h, 0,0},
 	{0,   "speaker",     0,                  set_output_s, 0,0},
@@ -1315,7 +1313,6 @@ static void long_usage(int err)
 	fprintf(o,"        --au <f>           write samples as Sun AU file in <f> (-o au -a <f>)\n");
 	fprintf(o,"        --cdr <f>          write samples as raw CD audio file in <f> (-o cdr -a <f>)\n");
 	fprintf(o," -r <r> --rate <r>         set the audio output rate in Hz (default 44100)\n");
-	fprintf(o," -R <r> --inputrate <r>    set intput rate in Hz for conversion\n");
 	fprintf(o," -c <n> --channels <n>     set channel count to <n>\n");
 	fprintf(o," -m     --mono             set output channel count to 1\n");
 	fprintf(o,"        --stereo           set output channel count to 2 (default)\n");
