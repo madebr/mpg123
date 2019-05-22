@@ -602,7 +602,7 @@ MPG123_EXPORT int mpg123_open_handle(mpg123_handle *mh, void *iohandle);
 /** Open a new bitstream and prepare for direct feeding
  *  This works together with mpg123_decode(); you are responsible for reading and feeding the input bitstream.
  *  Also, you are expected to handle ICY metadata extraction yourself. This
- *  input method does not handle ICY_INTERVAL. It does parse ID3 frames, though.
+ *  input method does not handle MPG123_ICY_INTERVAL. It does parse ID3 frames, though.
  *  \param mh handle
  *  \return MPG123_OK on success
  */
