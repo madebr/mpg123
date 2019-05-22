@@ -174,7 +174,8 @@ enum mpg123_parms
 	MPG123_UPSPEED,        /**< play every Nth frame (integer) */
 	MPG123_START_FRAME,    /**< start with this frame (skip frames before that, integer) */ 
 	MPG123_DECODE_FRAMES,  /**< decode only this number of frames (integer) */
-	MPG123_ICY_INTERVAL,   /**< stream contains ICY metadata with this interval (integer) */
+	MPG123_ICY_INTERVAL,   /**< Stream contains ICY metadata with this interval (integer).
+	                            Make sure to set this _before_ opening a stream.*/
 	MPG123_OUTSCALE,       /**< the scale for output samples (amplitude - integer or float according to mpg123 output format, normally integer) */
 	MPG123_TIMEOUT,        /**< timeout for reading from a stream (not supported on win32, integer) */
 	MPG123_REMOVE_FLAGS,   /**< remove some flags (inverse of MPG123_ADD_FLAGS, integer) */
@@ -600,6 +601,8 @@ MPG123_EXPORT int mpg123_open_handle(mpg123_handle *mh, void *iohandle);
 
 /** Open a new bitstream and prepare for direct feeding
  *  This works together with mpg123_decode(); you are responsible for reading and feeding the input bitstream.
+ *  Also, you are expected to handle ICY metadata extraction yourself. This
+ *  input method does not handle ICY_INTERVAL. It does parse ID3 frames, though.
  *  \param mh handle
  *  \return MPG123_OK on success
  */
