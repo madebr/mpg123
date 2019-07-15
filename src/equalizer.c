@@ -1,12 +1,13 @@
 /*
 	equalizer: code for loading equalizer settings
 
-	copyright 1995-2008 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1995-2019 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp (exported to this file by Thomas Orgis)
 */
 
 #include "mpg123app.h"
+#include "debug.h"
 
 /* Load the settings from the path in the global variable equalfile.
    If there is no file, restore equalizer defaults. 
@@ -27,7 +28,11 @@ int load_equalizer(mpg123_handle *mh)
 				do /* ignore comments */
 				{
 					line[0]=0;
-					fgets(line,255,fe);
+					if(!fgets(line,255,fe))
+					{
+						error("equalizer file read error");
+						return -1;
+					}
 				}
 				while(line[0]=='#');
 				/* Hm, why not use fscanf? Comments... */
@@ -40,7 +45,7 @@ int load_equalizer(mpg123_handle *mh)
 		}
 		else
 		{
-			fprintf(stderr,"Can't open equalizer file '%s'\n",equalfile);
+			merror("Can't open equalizer file '%s'.",equalfile);
 			return -1;
 		}
 	}
