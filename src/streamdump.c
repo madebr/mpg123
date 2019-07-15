@@ -1,7 +1,7 @@
 /*
 	streamdump: Dumping a copy of the input data.
 
-	copyright 2010 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2010-2019 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp
 */
@@ -20,7 +20,7 @@ static ssize_t dump_read(int fd, void *buf, size_t count)
 	ssize_t ret = read(fd, buf, count);
 	if(ret > 0 && dump_fd > -1)
 	{
-		write(dump_fd, buf, ret);
+		ret = write(dump_fd, buf, ret);
 	}
 	return ret;
 }
@@ -31,7 +31,7 @@ static off_t dump_seek(int fd, off_t pos, int whence)
 	off_t ret = lseek(fd, pos, whence);
 	if(ret >= 0 && dump_fd > -1)
 	{
-		lseek(dump_fd, pos, whence);
+		ret = lseek(dump_fd, pos, whence);
 	}
 	return ret;
 }
