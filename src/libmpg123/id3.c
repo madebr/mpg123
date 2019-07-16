@@ -966,7 +966,7 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 									}
 								}
 								realsize = opos;
-								// Append a zero to keep strlen() safe.
+								/* Append a zero to keep strlen() safe. */
 								realdata[realsize] = 0;
 								debug2("ID3v2: de-unsync made %lu out of %lu bytes", realsize, framesize);
 							}
@@ -1006,9 +1006,9 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 											/* only handle master channel */
 											debug("ID3v2: it is for the master channel");
 											/* two bytes adjustment, one byte for bits representing peak - n bytes, eh bits, for peak */
-											// 16 bit signed integer = dB * 512. Do not shift signed integers! Multiply instead.
-											// Also no implementation-defined casting. Reinterpret the pointer to signed char, then do
-											// proper casting.
+											/* 16 bit signed integer = dB * 512. Do not shift signed integers! Multiply instead.
+											   Also no implementation-defined casting. Reinterpret the pointer to signed char, then do
+											   proper casting. */
 											fr->rva.gain[rva_mode] = (float) (
 												((short)((signed char*)realdata)[pos]) * 256 + (short)realdata[pos+1] ) / 512;
 											pos += 2;
