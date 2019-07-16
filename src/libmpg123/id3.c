@@ -1006,8 +1006,11 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 											/* only handle master channel */
 											debug("ID3v2: it is for the master channel");
 											/* two bytes adjustment, one byte for bits representing peak - n bytes, eh bits, for peak */
-											/* 16 bit signed integer = dB * 512  ... the double cast is needed to preserve the sign of negative values! */
-											fr->rva.gain[rva_mode] = (float) ( (((short)((signed char)realdata[pos])) << 8) | realdata[pos+1] ) / 512;
+											// 16 bit signed integer = dB * 512. Do not shift signed integers! Multiply instead.
+											// Also no implementation-defined casting. Reinterpret the pointer to signed char, then do
+											// proper casting.
+											fr->rva.gain[rva_mode] = (float) (
+												((short)((signed char*)realdata)[pos]) * 256 + (short)realdata[pos+1] ) / 512;
 											pos += 2;
 											if(VERBOSE3) fprintf(stderr, "Note: RVA value %fdB\n", fr->rva.gain[rva_mode]);
 											/* heh, the peak value is represented by a number of bits - but in what manner? Skipping that part */
