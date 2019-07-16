@@ -949,7 +949,7 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 								/* de-unsync: FF00 -> FF; real FF00 is simply represented as FF0000 ... */
 								/* damn, that means I have to delete bytes from withing the data block... thus need temporal storage */
 								/* standard mandates that de-unsync should always be safe if flag is set */
-								realdata = (unsigned char*) malloc(framesize); /* will need <= bytes */
+								realdata = (unsigned char*) malloc(framesize+1); /* will need <= bytes, plus a safety zero */
 								if(realdata == NULL)
 								{
 									if(NOQUIET) error("ID3v2: unable to allocate working buffer for de-unsync");
@@ -966,6 +966,8 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 									}
 								}
 								realsize = opos;
+								// Append a zero to keep strlen() safe.
+								realdata[realsize] = 0;
 								debug2("ID3v2: de-unsync made %lu out of %lu bytes", realsize, framesize);
 							}
 							pos = 0; /* now at the beginning again... */
@@ -993,7 +995,12 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 									if(fr->rva.level[rva_mode] <= rva2+1)
 									{
 										pos += strlen((char*) realdata) + 1;
-										if(realdata[pos] == 1)
+										if(pos >= realsize)
+										{
+											if(NOQUIET)
+												error("bad RVA2 tag (non-terminated identification)");
+										}
+										else if(realdata[pos] == 1)
 										{
 											++pos;
 											/* only handle master channel */
