@@ -94,6 +94,8 @@ TODO: Make libout123 and/or mpg123 use that to convert on the fly. Optionally?
 -- Fix out-of-bounds read for RVA2 frames with non-delimited identifier.
    (oss-fuzz-bug 15852)
 -- Fix implementation-defined parsing of RVA2 values. (oss-fuzz-bug 15862)
+-- Fix undefined parsing of APE header for skipping. Also prevent
+   endless loop on premature end of supposed APE header. (oss-fuzz-bug 15864)
 
 1.25.10
 -------
