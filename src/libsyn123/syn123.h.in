@@ -126,7 +126,6 @@ enum syn123_error
 ,	SYN123_BAD_SWEEP /**< Invalid sweep curve given. */
 ,	SYN123_OVERFLOW  /**< Some fatal (integer) overflow that prevents proper operation. */
 ,	SYN123_NO_DATA   /**< Not enough data to do something. */
-,	SYN123_NO_SPACE  /**< Not enough space (destination memory) to do something. */
 };
 
 /** Give a short phrase explaining an error code.
