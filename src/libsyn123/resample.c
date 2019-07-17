@@ -7,8 +7,12 @@ TODO: efficient ringbuffer access for the decimation filter
 TODO: separate decimate_init, lowpass_init, etc. to be called on entry
       of the full resampling function, to remove that branch from the
       workers
+TODO: smooth ratio changes with interpolator history and final lowpass filter
+      history handling
+TODO: initialize with first sample or zero? is there an actual benefit? impulse
+      response?
 
-	resample: low-latency usable and quick enough resampler
+	resample: low-latency usable and quick resampler
 
 	copyright 2018-2019 by the mpg123 project
 	licensed under the terms of the LGPL 2.1
@@ -21,7 +25,7 @@ TODO: separate decimate_init, lowpass_init, etc. to be called on entry
 	1. If output rate < 1/4 input rate:
 	1.1 Repeat until output >= 1/4 input rate:
 	1.1.1 Low pass with transition band from 1/4 to 1/2 input bandwidth.
-	1.1.2 Drop samples to halve input sample rate.
+	1.1.2 Drop samples to halve the input sample rate.
 	1.2 Pre-emphasis to compensate for interpolator response.
 
 	2. If output rate > 1/2 input rate:
@@ -61,13 +65,13 @@ TODO: separate decimate_init, lowpass_init, etc. to be called on entry
 	The upside is that there is virtually no latency compared to FIR-based
 	resamplers and it should be rather easy to use. You have a direct
 	relation between input buffer and output buffer and do not have to
-	think about draining internal windowing buffers. Data with one sampe
+	think about draining internal windowing buffers. Data with one sample
 	rate in, data with another sample rate out. Simple as that.
 
 	The performance is very good compared to windowed-sinc interpolators,
 	but is behind the FFT-based approach of libsoxr. You trade in massive
 	latency for a performance gain, there. Vectorization of the code does
-	not seem to = bring much. A test with SSE intrinsics yielded about 10%
+	not seem to bring much. A test with SSE intrinsics yielded about 10%
 	speedup. This is a basic problem of recursive computations. There is
 	not that much dumb parallelism --- and the SIMD parallelism offered in
 	current CPUs is rather dumb and useless without the specific data flow
@@ -76,7 +80,8 @@ TODO: separate decimate_init, lowpass_init, etc. to be called on entry
 	If you want to optimize: Most time is spent in the low pass filtering. The
 	interpolation itself is rather cheap. The decimation filter is also worth
 	considering. Currently, it is not even optimized for efficient coefficient
-	access (that's a TODO).
+	access (that's a TODO), let alone using the more efficient Direct Form II,
+	or anything more fancy.
 */
 
 #define NO_GROW_BUF
@@ -88,7 +93,7 @@ TODO: separate decimate_init, lowpass_init, etc. to be called on entry
 // coefficient tables generated from coeff-ellip-6-0.01-36-16.txd
 // (coeff-{filter_type}-{order}-{passband_ripple}-{rejection_dB}-{points})
 
-static const unsigned int lpf_db = 36;
+// static const unsigned int lpf_db = 36;
 
 // Order of the lowpass filter.
 // You'd wish to have that as a multiple of 4 to help vectorization, but
@@ -368,7 +373,7 @@ static const float lpf_ma[LPF_POINTS][LPF_ORDER] =
 
 #define LPF_4_ORDER 12
 
-static const float lpf_4_coeff[2][LPF_ORDER+1] =
+static const float lpf_4_coeff[2][LPF_4_ORDER+1] =
 {
 	{ +4.942274456389e-04, +2.456588519653e-03, +7.333608109998e-03
 	, +1.564190404912e-02, +2.595749312226e-02, +3.475411633752e-02
@@ -381,6 +386,8 @@ static const float lpf_4_coeff[2][LPF_ORDER+1] =
 	, -1.203614775500e-01, +2.006360736124e-02, -2.070940463771e-03
 	, +1.010063725617e-04 }
 };
+
+// 4th-order pre-emphasis filters for the differing interpolations
 
 #define PREEMP_ORDER 5
 
@@ -415,11 +422,17 @@ static const float preemp_2xopt6p5o_coeff[2][6] =
 
 struct decimator_state
 {
-	long sflags; // also stores decimation position (0 or 1)
-	int n1;
+	unsigned int sflags; // also stores decimation position (0 or 1)
+	unsigned int n1;
 	float x[LPF_4_ORDER];
 	float y[LPF_4_ORDER];
 };
+
+#ifdef SYN123_HIGH_PREC
+typedef double lpf_sum_type;
+#else
+typedef float lpf_sum_type;
+#endif
 
 // The amount of lowpass runs determines much of the quality.
 // Each run gives lpf_db reduction. The lowpass also includes the
@@ -427,9 +440,9 @@ struct decimator_state
 #define LPF_TIMES 3
 #define DIRTY_LPF_TIMES 2
 #define LOWPASS_PREEMP          lowpass3_df2_preemp
-#define LOWPASS_PREEMP_2x       lowpass3_df2_preemp_2x
+#define LOWPASS_PREEMP_2X       lowpass3_df2_preemp_2x
 #define DIRTY_LOWPASS_PREEMP    lowpass2_df2_preemp
-#define DIRTY_LOWPASS_PREEMP_2x lowpass2_df2_preemp_2x
+#define DIRTY_LOWPASS_PREEMP_2X lowpass2_df2_preemp_2x
 // The number of points used in the interpolators.
 #define FINE_POINTS 6
 #define DIRTY_POINTS 4
@@ -437,8 +450,28 @@ struct decimator_state
 // The data structure accomodates a fixed amount of low pass applications.
 #define LPF_MAX_TIMES LPF_TIMES
 
+enum state_flags
+{
+	inter_flow   = 1<<0
+,	preemp_configured = 1<<1
+,	preemp_flow = 1<<2
+,	decimate_store = 1<<3 // one skipped sample from last buffer
+,	oversample_2x = 1<<4 // x2 oversampling or not
+,	lowpass_configured = 1<<5
+,	lowpass_flow = 1<<6
+,	dirty_method = 1<<7
+};
+
+// TODO: tune that to the smallest sensible value.
+#ifndef SYN123_BATCH
+#define BATCH 128
+#else
+#define BATCH SYN123_BATCH
+#endif
+
 struct resample_data
 {
+	unsigned int sflags;
 	// The configured resampling function to call.
 	// Decides: oversampling/nothing/decimation, fine/dirty
 	size_t (*resample_func)(struct resample_data *, float *, size_t, float *);
@@ -447,30 +480,41 @@ struct resample_data
 	size_t input_limit;
 	// Decimator state. Each stage has a an instance of lpf_4 and the decimator.
 	struct decimator_state *decim;
-	// Lowpass filter setup.
+	unsigned int decim_stages;
+	float prebuf[BATCH];
+	float upbuf[2*BATCH];
+	// Final lowpass filter setup.
 	float lpf_cutoff;
 	float lpf_w_c;
 	unsigned char lpf_bw; // Bandwidth in percent, rounded to integer.
-	// Lowpass filter state.
+	// Pre-emphasis filter coefficients and history.
+	float pre_b0;
+	unsigned char pre_n1;
+	float pre_b[PREEMP_ORDER][PREEMP_ORDER];
+	float pre_a[PREEMP_ORDER][PREEMP_ORDER];
+	float pre_w[PREEMP_ORDER]; // history for Direct Form II
+	// Same for the low pass.
 	float lpf_b0;
 	// Low pass filter history in ringbuffer. For each ringbuffer state, there is
 	// one mirroring set of coefficients to avoid re-sorting during application.
 	unsigned char lpf_n1; // Current index of the most recent past.
 	// It may help to have these aligned, but since LPF_ORDER is not 4 nor 8, things
-	// just don't add up.
-	float lpf_b[LPF_ORDER][LPF_ORDER] ALIGN(16);
-	float lpf_a[LPF_ORDER][LPF_ORDER] ALIGN(16);
-	float lpf_x[LPF_MAX_TIMES][LPF_ORDER] ALIGN(16);
-	float lpf_y[LPF_MAX_TIMES][LPF_ORDER] ALIGN(16);
-
-
+	// just don't add up for vector instructions.
+	float lpf_b[LPF_ORDER][LPF_ORDER];
+	float lpf_a[LPF_ORDER][LPF_ORDER];
+	float lpf_w[LPF_MAX_TIMES][LPF_ORDER];
 	// Interpolator state.
 	// In future, I could pull the same trick with ringbuffer and copies
 	// of coefficients (matrices, even) as for lpf.
+	// TODO: maybe store more of these for better filter adaption on rate changes, or
+	// at least always the full set of 5.
 	float x[5]; // past input samples for interpolator
-}
-
-#define BATCH 128
+	long offset; // interpolator offset
+	long inrate;
+	long vinrate;
+	long outrate;
+	long voutrate;
+};
 
 // Interpolation of low pass coefficients for specified cutoff, using
 // the precomputed table. Instead of properly computing the filter
@@ -541,29 +585,6 @@ static float lpf_deriv( const float x[LPF_POINTS]
 	return m/w; 
 }
 
-// Derivative for component of an array. Could optimize to return the
-// whole vector right away.
-static float lpf_ideriv(float x[LPF_POINTS], float val[LPF_POINTS][LPF_ORDER]
-, unsigned int i, unsigned int j)
-{
-	float w = 0;
-	float m = 0;
-	// lpf_w_c assumed to be monotonically increasing
-	if(i<LPF_POINTS-1)
-	{
-		float w1 = x[i+1]-x[i];
-		m += (val[i+1][j]-val[i][j])/(w1*w1);
-		w += 1./w1; 
-	}
-	if(i>0)
-	{
-		float w0 = x[i]-x[i-1];
-		m += (val[i][j]-val[i-1][j])/(w0*w0);
-		w += 1./w0;
-	}
-	return m/w; 
-}
-
 // Static ring buffer index used for filter history and coefficients.
 // i: offset
 // n1: current position of the first entry
@@ -593,12 +614,12 @@ static void lpf_init(struct resample_data *rd)
 	,	lpf_deriv(lpf_cutoff, lpf_w_c, lpfi)
 	,	lpf_deriv(lpf_cutoff, lpf_w_c, lpfi+1)
 	);
-	debug(stderr, "lowpass cutoff %g; w_c %g\n", rd->lpf_cutoff, rd->lpf_w_c);
+	mdebug("lowpass cutoff %g; w_c %g", rd->lpf_cutoff, rd->lpf_w_c);
 	lpfi = lpf_entry(lpf_w_c, rd->lpf_w_c);
 	rd->lpf_bw = (unsigned char)( 0.5 + lpf_cut_scale*(lpf_bw[lpfi]
 	+	(rd->lpf_w_c-lpf_w_c[lpfi])/(lpf_w_c[lpfi+1]-lpf_w_c[lpfi])
 	*	(lpf_bw[lpfi+1]-lpf_bw[lpfi])) );
-	debug(stderr, "lowpass bandwidth: %u%%\n", rd->lpf_bw);
+	mdebug("lowpass bandwidth: %u%%", rd->lpf_bw);
 	rd->lpf_b0 = spline_val( rd->lpf_w_c, lpf_w_c[lpfi], lpf_w_c[lpfi+1]
 	,	lpf_b0[lpfi], lpf_b0[lpfi+1]
 	,	lpf_mb0[lpfi], lpf_mb0[lpfi+1] );
@@ -625,14 +646,59 @@ static void lpf_init(struct resample_data *rd)
 			rd->lpf_a[j][RING_INDEX(i,j,LPF_ORDER)] = a[i];
 		}
 	}
-	debug(stderr, "lpf coefficients [b,a]: \n%.15e\n", rd->lpf_b0);
+	debug("lpf coefficients [b,a]:");
+	mdebug("%.15e", rd->lpf_b0);
 	for(int i=0; i<LPF_ORDER; ++i)
-		debug(stderr, "%.15e\n", rd->lpf_b[0][i]);
-	debug(stderr, "%.15e\n", 1.);
+		mdebug("%.15e", rd->lpf_b[0][i]);
+	mdebug("%.15e", 1.);
 	for(int i=0; i<LPF_ORDER; ++i)
-		debug(stderr, "%.15e\n", rd->lpf_a[0][i]);
+		mdebug("%.15e", rd->lpf_a[0][i]);
 	rd->sflags |= lowpass_configured;
 }
+
+static void preemp_init(struct resample_data *rd)
+{
+	const float* pre_b;
+	const float* pre_a;
+	rd->sflags &= ~preemp_configured;
+
+	#define PREEMP_COEFF(name) \
+		pre_b     = preemp_ ## name ## _coeff[0]; \
+		pre_a     = preemp_ ## name ## _coeff[1];
+	if(rd->sflags & oversample_2x)
+	{
+		if(rd->sflags & dirty_method)
+		{
+			PREEMP_COEFF(2xopt4p4o);
+		} else
+		{
+			PREEMP_COEFF(2xopt6p5o);
+		}
+	}
+	else
+	{
+		if(rd->sflags & dirty_method)
+		{
+			PREEMP_COEFF(1xopt4p4o);
+		} else
+		{
+			PREEMP_COEFF(1xopt6p5o);
+		}
+	}
+
+	rd->pre_b0 = pre_b[0];
+	for(int i=0; i<PREEMP_ORDER; ++i)
+	{
+		for(int j=0; j<PREEMP_ORDER; ++j)
+		{
+			rd->pre_b[j][RING_INDEX(i,j,PREEMP_ORDER)] = pre_b[i+1];
+			rd->pre_a[j][RING_INDEX(i,j,PREEMP_ORDER)] = pre_a[i+1];
+		}
+	}
+
+	rd->sflags |= preemp_configured;
+}
+
 
 // Actual resampling workers.
 
@@ -657,7 +723,7 @@ static size_t decimate(struct decimator_state *rd, float *in, size_t ins)
 	for(size_t i=0; i<ins; ++i)
 	{
 		// y0 = b0x0 + b1x1 + ... + bxyn - a1y1 - ... - anyn
-		// Switching y to double pushes roundoff hf noise down.
+		// Switching y to double pushes roundoff hf noise down (?).
 		lpf_sum_type ny = lpf_4_coeff[0][0] * in[i]; // a0 == 1 implicit here
 		for(int j=0; j<LPF_4_ORDER; ++j)
 		{
@@ -691,14 +757,46 @@ static size_t decimate(struct decimator_state *rd, float *in, size_t ins)
 //  <=>  (1 + sum_i(a[i])) w[n] = x[n]
 //  <=>  w[n] = 1 / (1 + sum_i(a[i])) * x[n]
 // Looks simple. Just a scale value.
-static float lpf_df2_initval(struct resample_data *rd, float insample)
+static float df2_initval(unsigned int order, float *filter_a, float insample)
 {
 	float asum = 0;
-	for(int i=0; i<LPF_ORDER; ++i)
-		asum += rd->lpf_a[0][i];
+	for(unsigned int i=0; i<order; ++i)
+		asum += filter_a[i];
 	float scale = 1.f/(1.f + asum);
 	return scale * insample;
 }
+
+#define PREEMP_DF2_BEGIN(initval, ret) \
+	if(!(rd->sflags & preemp_flow)) \
+	{ \
+		if(!(rd->sflags & preemp_configured)) \
+		{ \
+			fprintf(stderr, "unconfigured pre-emphasis\n"); \
+			return ret; \
+		} \
+		float iv = df2_initval(PREEMP_ORDER, rd->pre_a[0], initval); \
+		for(int i=0; i<PREEMP_ORDER; ++i) \
+			rd->pre_w[i] = iv; \
+		rd->pre_n1 = 0; \
+		rd->sflags |= preemp_flow; \
+	}
+
+// Might not be faster than DFI, but for sure needs less storage.
+#define PREEMP_DF2_SAMPLE(out) \
+	{ \
+		lpf_sum_type ny = 0; \
+		lpf_sum_type nw = 0; \
+		for(int i=0; i<PREEMP_ORDER; ++i) \
+		{ \
+			ny += rd->pre_w[i]*rd->pre_b[rd->pre_n1][i]; \
+			nw -= rd->pre_w[i]*rd->pre_a[rd->pre_n1][i]; \
+		} \
+		rd->pre_n1 = RING_INDEX(PREEMP_ORDER-1, rd->pre_n1, PREEMP_ORDER); \
+		nw += in[i]; \
+		ny += rd->pre_b0 * nw; \
+		rd->pre_w[rd->pre_n1] = nw; \
+		out = ny; \
+	}
 
 // Beginning of a low pass function with on-the-fly initialization
 // of filter history.
@@ -713,9 +811,10 @@ static float lpf_df2_initval(struct resample_data *rd, float insample)
 			return ret; \
 		} \
 		rd->lpf_n1 = 0; \
+		float iv = df2_initval(LPF_ORDER, rd->lpf_a[0], initval); \
 		for(int j=0; j<2; ++j) \
 			for(int i=0; i<LPF_ORDER; ++i) \
-				rd->lpf_x[j][i] = rd->lpf_y[j][i] = lpf_df2_initval(rd, initval); \
+				rd->lpf_w[j][i] = iv; \
 		rd->sflags |= lowpass_flow; \
 	} \
 	int n1 = rd->lpf_n1; \
@@ -723,24 +822,24 @@ static float lpf_df2_initval(struct resample_data *rd, float insample)
 	float old_y;
 
 #define LPF_DF2_SAMPLE(times, insample, outsample) \
-			old_y = (insample); \
-			n1n = RING_INDEX(LPF_ORDER-1, n1, LPF_ORDER); \
-			for(int j=0; j<times; ++j) \
-			{ \
-				lpf_sum_type w = old_y; \
-				lpf_sum_type y = 0; \
-				for(int k=0; k<LPF_ORDER; ++k) \
-				{ \
-					y += rd->lpf_x[j][k]*rd->lpf_b[n1][k]; \
-					w -= rd->lpf_x[j][k]*rd->lpf_a[n1][k]; \
-				} \
-				rd->lpf_x[j][n1n] = w; \
-				y += rd->lpf_b0*w; \
-				old_y = y; \
-			} \
- \
-			n1 = n1n; \
-			(outsample) = old_y;
+	old_y = (insample); \
+	n1n = RING_INDEX(LPF_ORDER-1, n1, LPF_ORDER); \
+	for(int j=0; j<times; ++j) \
+	{ \
+		lpf_sum_type w = old_y; \
+		lpf_sum_type y = 0; \
+		for(int k=0; k<LPF_ORDER; ++k) \
+		{ \
+			y += rd->lpf_w[j][k]*rd->lpf_b[n1][k]; \
+			w -= rd->lpf_w[j][k]*rd->lpf_a[n1][k]; \
+		} \
+		rd->lpf_w[j][n1n] = w; \
+		y += rd->lpf_b0*w; \
+		old_y = y; \
+	} \
+\
+	n1 = n1n; \
+	(outsample) = old_y;
 
 #define LPF_DF2_END \
 	rd->lpf_n1 = n1;
@@ -749,23 +848,23 @@ static float lpf_df2_initval(struct resample_data *rd, float insample)
 // The parameter determines the number of repeated applications of the same
 // low pass.
 
-#define LOWPASS_DF2_FUNCS(times) \
+#define LOWPASS_DF2_FUNCSX(times) \
 \
 static void lowpass##times##_df2_preemp_2x(struct resample_data *rd, float *in, size_t ins, float *out) \
 { \
 	if(!ins) \
 		return; \
-	LPF_DF2_BEGIN(times,0.5f*in[0],) \
-	preemp_begin(rd, in); \
+	LPF_DF2_BEGIN(times,in[0],) \
+	PREEMP_DF2_BEGIN(in[0],); \
 	for(size_t i=0; i<ins; ++i) \
 	{ \
 			float insample = in[0]; \
-			PREEMP_SAMPLE_DF2(insample) \
-			LPF_DF2_SAMPLE(times, insample, *out) \
+			PREEMP_DF2_SAMPLE(insample) \
 			/* Zero-stuffing! Insert zero, make up for energy loss. */ \
-			*out++ *= 2; \
+			LPF_DF2_SAMPLE(times, 2*insample, *out) \
+			++out; \
 			LPF_DF2_SAMPLE(times, 0, *out) \
-			*out++ *= 2; \
+			++out; \
 	} \
 	LPF_DF2_END \
 } \
@@ -776,16 +875,20 @@ static void lowpass##times##_df2_preemp(struct resample_data *rd, float *in, siz
 		return; \
 	float *out = in; \
 	LPF_DF2_BEGIN(times,in[0],) \
+	PREEMP_DF2_BEGIN(in[0],); \
 	for(size_t i=0; i<ins; ++i) \
 	{ \
-		PREEMP_SAMPLE_DF2(in[i]) \
+		PREEMP_DF2_SAMPLE(in[i]) \
 		LPF_DF2_SAMPLE(times, in[i], out[i]) \
 	} \
 	LPF_DF2_END \
 }
+// Need that indirection so that times is expanded properly for concatenation.
+#define LOWPASS_DF2_FUNCS(times) \
+	LOWPASS_DF2_FUNCSX(times)
 
-LOWPASS_DF2_FUNCS(LPF_ORDER)
-LOWPASS_DF2_FUNCS(DIRTY_LPF_ORDER)
+LOWPASS_DF2_FUNCS(LPF_TIMES)
+LOWPASS_DF2_FUNCS(DIRTY_LPF_TIMES)
 
 // Some interpolators based on the deip paper:
 // Polynomial Interpolators for High-Quality Resampling of Oversampled Audio
@@ -975,7 +1078,7 @@ static size_t name( struct resample_data *rd \
 	{ \
 		memcpy(rd->prebuf, in, BATCH*sizeof(*in)); \
 		lpf(rd, rd->prebuf, BATCH); \
-		nouts = interpolate(rd, rd->prebuf, fill, out); \
+		nouts = interpolate(rd, rd->prebuf, BATCH, out); \
 		outs += nouts; \
 		out  += nouts; \
 		in   += BATCH; \
@@ -983,7 +1086,7 @@ static size_t name( struct resample_data *rd \
 	ins -= blocks*BATCH; \
 	memcpy(rd->prebuf, in, ins*sizeof(*in)); \
 	lpf(rd, rd->prebuf, ins); \
-	nouts = interpolate(rd, rd->prebuf, fill, out); \
+	nouts = interpolate(rd, rd->prebuf, ins, out); \
 	outs += nouts; \
 	return outs; \
 }
@@ -1233,9 +1336,9 @@ syn123_resample_history(long inrate, long outrate, int dirty)
 	// before the current sample in the history, so one less.
 	size_t history = (dirty ? DIRTY_POINTS : FINE_POINTS) - 1;
 	// For the oldest of these, we need a history of input before it to
-	// fill the lowpass histories. The number of previous lowpass points
-	// simply comes on top.
-	history += LPF_HISTORY(dirty ? DIRTY_LPF_ORDER : FINE_LPF_ORDER);
+	// fill the low pass histories. The number of previous low pass points
+	// simply comes on top. The number of low pass applications does not matter.
+	history += LPF_HISTORY(LPF_ORDER);
 
 	if(oversample)
 	{
@@ -1362,7 +1465,6 @@ syn123_resample_intotal_64(long inrate, long outrate, int64_t outs)
 	// With decimation, I need the smallest input that fulfills out=(2*in+1)/2.
 	if(decim_stages)
 	{
-		uintmax_t decim_factor = (uint64_t)1<<decim_stages;
 		for(unsigned int i=0; i<decim_stages; ++i)
 		{
 			if(!tot)
@@ -1430,10 +1532,137 @@ syn123_resample_incount(long inrate, long outrate, size_t outs)
 	*/
 	if(outs > INT64_MAX-1)
 		return 0;
-	int64_t tot1 = syn123_resample_total_64(inrate, outrate, 1);
-	int64_t tot  = syn123_resample_total_64(inrate, outrate, (int64_t)outs+1);
+	int64_t tot1 = syn123_resample_intotal_64(inrate, outrate, 1);
+	int64_t tot  = syn123_resample_intotal_64(inrate, outrate, (int64_t)outs+1);
 	tot -= tot1;
 	return (tot >= 0 && tot <= SIZE_MAX) ? (size_t)tot : 0;
+}
+
+void resample_free(struct resample_data *rd)
+{
+	if(!rd)
+		return;
+	if(rd->decim)
+		free(rd->decim);
+	free(rd);
+}
+
+// Want to support smooth rate changes.
+// If there is a handle present, try to keep as much as possible.
+// If you change the dirty flag, things get refreshed totally.
+int attribute_align_arg
+syn123_setup_resample( syn123_handle *sh, long inrate, long outrate
+,	int channels, int dirty )
+{
+	int err = 0;
+	struct resample_data *rd = NULL;
+
+	if(inrate == 0 && outrate == 0 && channels == 0)
+	{
+		err = SYN123_BAD_FMT;
+		goto setup_resample_cleanup;
+	}
+
+	if(channels != 1)
+	{
+		error("only mono supported right now\n");
+		err = SYN123_BAD_FMT;
+		goto setup_resample_cleanup;
+	}
+
+	// If dirty setyp changed, start anew.
+	// TODO: implement proper smooth rate change.
+	if(sh->rd && (!(sh->rd->sflags & dirty_method) != !dirty))
+	{
+		resample_free(sh->rd);
+		sh->rd = NULL;
+	}
+
+	int oversample;
+	unsigned int decim_stages;
+	if(rate_setup(inrate, outrate, &oversample, &decim_stages))
+		return SYN123_BAD_FMT;
+	if(oversample && decim_stages)
+		return SYN123_WEIRD;
+	long voutrate = outrate<<decim_stages;
+	long vinrate  = oversample ? inrate*2 : inrate;
+
+	if(!sh->rd)
+	{
+		sh->rd = malloc(sizeof(*(sh->rd)));
+		if(!sh->rd)
+			return SYN123_DOOM;
+		memset(sh->rd, 0, sizeof(*(sh->rd)));
+		rd = sh->rd;
+		rd->inrate = rd->vinrate = rd->voutrate = rd->outrate = -1;
+		rd->resample_func = NULL;
+		rd->decim = NULL;
+	}
+	else
+		rd = sh->rd;
+
+	mdebug("init in %ld out %ld", inrate, outrate);
+
+	// To support smooth rate changes, superfluous decimator stages are simply
+	// forgotten, new ones added as needed.
+
+	if(decim_stages != rd->decim_stages)
+	{
+		struct decimator_state *nd = safe_realloc( rd->decim
+		,	sizeof(*rd->decim)*decim_stages );
+		if(!nd)
+		{
+			perror("cannot allocate decimator state");
+			err = SYN123_DOOM;
+			goto setup_resample_cleanup;
+		}
+		for(unsigned int dc=rd->decim_stages; dc<decim_stages; ++dc)
+			nd[dc].sflags = 0;
+		rd->decim = nd;
+		rd->decim_stages = decim_stages;
+	}
+
+	// TODO: rate change detection
+	rd->inrate = inrate;
+	rd->outrate = outrate;
+	rd->vinrate = vinrate;
+	rd->voutrate = voutrate;
+	if(oversample)
+		rd->sflags |= oversample_2x;
+	else
+		rd->sflags &= ~oversample_2x;
+
+	// TODO: channels!
+	if(rd->sflags & oversample_2x)
+		rd->resample_func = dirty ? resample_2x_dirty : resample_2x_fine;
+	else if(rd->decim_stages)
+		rd->resample_func = dirty ? resample_0x_dirty : resample_0x_fine;
+	else
+		rd->resample_func = dirty ? resample_1x_dirty : resample_1x_fine;
+
+	if(dirty)
+		rd->sflags |= dirty_method;
+
+	mdebug( "%u times decimation by 2"
+		", virtual output rate %ld, %ldx oversampling (%i)"
+	,	rd->decim_stages, rd->voutrate, rd->vinrate / rd->inrate
+	,	rd->sflags && oversample_2x ? 1 : 0 );
+
+	// Round result to single precision, but compute with double to be able
+	// to correctly represent 32 bit longs first.
+	rd->lpf_cutoff = (double)(rd->inrate < rd->outrate ? rd->inrate : rd->voutrate)/rd->vinrate;
+	mdebug( "lowpass cutoff: %.8f of virtual %.0f Hz = %.0f Hz"
+	,	rd->lpf_cutoff, 0.5*rd->vinrate, rd->lpf_cutoff*0.5*rd->vinrate );
+	mdebug("rates final: %ld|%ld -> %ld|%ld"
+	,	rd->inrate, rd->vinrate, rd->voutrate, rd->outrate );
+	lpf_init(rd);
+	preemp_init(rd);
+	rd->input_limit = syn123_resample_maxincount(inrate, outrate);
+	return 0;
+setup_resample_cleanup:
+	resample_free(sh->rd);
+	sh->rd = NULL;
+	return err;
 }
 
 size_t attribute_align_arg

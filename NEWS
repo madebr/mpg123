@@ -88,6 +88,9 @@ TODO: Make libout123 and/or mpg123 use that to convert on the fly. Optionally?
 1.25.11
 -------
 
+So, here is a number of bugs found by OSS-Fuzz. Credit to OSS-Fuzz
+for the bunch, then.
+
 - libmpg123:
 -- Fix out-of-bounds reads in ID3 parser for unsynced frames.
    (oss-fuzz-bug 15852) 

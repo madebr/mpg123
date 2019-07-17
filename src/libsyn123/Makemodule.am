@@ -21,6 +21,7 @@ src_libsyn123_libsyn123_la_SOURCES = \
   src/libsyn123/geiger.c \
   src/libsyn123/libsyn123.c \
   src/libsyn123/volume.c \
+  src/libsyn123/resample.c \
   src/libsyn123/sampleconv.c
 
 EXTRA_DIST += src/libsyn123/syn123.h.in

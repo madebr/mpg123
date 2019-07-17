@@ -14,39 +14,15 @@
 #include "config.h"
 
 #define FILL_PERIOD
+#define RAND_XORSHIFT32
+#define NO_SMAX
+#define NO_SMIN
 #include "syn123_int.h"
-
-// Borrowing the random number algorithm from the dither code.
-// xorshift random number generator
-// See http://www.jstatsoft.org/v08/i14/paper on XOR shift random number generators.
-static float rand_xorshift32(uint32_t *seed)
-{
-	union
-	{
-		uint32_t i;
-		float f;
-	} fi;
-	
-	fi.i = *seed;
-	fi.i ^= (fi.i<<13);
-	fi.i ^= (fi.i>>17);
-	fi.i ^= (fi.i<<5);
-	*seed = fi.i;
-	
-	/* scale the number to [0, 1] */
-#ifdef IEEE_FLOAT
-	fi.i = (fi.i>>9)|0x3f800000;
-	fi.f -= 1.0f;
-#else
-	fi.f = (double)fi.i / 4294967295.0;
-#endif
-	return fi.f;
-}
 
 static void white_generator(syn123_handle *sh, int samples)
 {
 	for(int i=0; i<samples; ++i)
-		sh->workbuf[1][i] = 2*(rand_xorshift32(&sh->seed)-0.5);
+		sh->workbuf[1][i] = 2*rand_xorshift32(&sh->seed);
 }
 
 int attribute_align_arg
@@ -257,10 +233,11 @@ static void geiger_generator(syn123_handle *sh, int samples)
 	struct geigerspace *gs = sh->handle;
 	for(int i=0; i<samples; ++i)
 		sh->workbuf[1][i] = speaker( gs
-		,	discharge_force(gs, rand_xorshift32(&sh->seed)>gs->thres) );
+		,	discharge_force(gs, (rand_xorshift32(&sh->seed)+0.5)>gs->thres) );
 	// Soft clipping as speaker property. It can only move so far.
 	// Of course this could be produced by a nicely nonlinear force, too.
-	syn123_soft_clip(sh->workbuf[1], MPG123_ENC_FLOAT_64, samples, 0.1);
+	syn123_soft_clip( sh->workbuf[1], MPG123_ENC_FLOAT_64, samples
+	,	1., 0.1, NULL );
 }
 
 int attribute_align_arg

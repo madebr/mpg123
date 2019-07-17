@@ -508,7 +508,7 @@ static void sweep_phase( syn123_handle *sh, size_t off
 {
 	struct syn123_sweep *sw = sh->handle;
 	// Working on a local offset, not touching sw->i.
-	mdebug("computing position: (%zu + %zu) % (%zu + %zu)", sw->i, off, sw->d, sw->post);
+	mdebug("computing position: (%zu + %zu) %% (%zu + %zu)", sw->i, off, sw->d, sw->post);
 	size_t pos = (sw->i + off) % (sw->d + sw->post);
 	int boff = 0;
 	while(count)
@@ -770,6 +770,9 @@ syn123_new(long rate, int channels, int encoding
 	sh->waves = NULL;
 	sh->handle = NULL;
 	syn123_setup_silence(sh);
+	sh->rd = NULL;
+	sh->dither = 0;
+	sh->dither_seed = 0;
 
 syn123_new_end:
 	if(err)
@@ -788,6 +791,7 @@ syn123_del(syn123_handle* sh)
 	if(!sh)
 		return;
 	syn123_setup_silence(sh);
+	syn123_setup_resample(sh, 0, 0, 0, 0);
 	if(sh->buf)
 		free(sh->buf);
 	free(sh);
@@ -840,7 +844,7 @@ syn123_read( syn123_handle *sh, void *dest, size_t dest_bytes )
 			int err = syn123_conv(
 				sh->workbuf[0], sh->fmt.encoding, sizeof(sh->workbuf[0])
 			,	sh->workbuf[1], MPG123_ENC_FLOAT_64, sizeof(double)*block
-			,	NULL, NULL );
+			,	NULL, NULL, NULL );
 			if(err)
 			{
 				debug1("conv error: %i", err);
@@ -856,4 +860,17 @@ syn123_read( syn123_handle *sh, void *dest, size_t dest_bytes )
 	}
 	debug1("extracted: %" SIZE_P, extracted);
 	return extracted*framesize;
+}
+
+int attribute_align_arg
+syn123_dither(syn123_handle *sh, int dither, unsigned long *seed)
+{
+	if(!sh)
+		return SYN123_BAD_HANDLE;
+	// So far we only know 1 or 0 as choices.
+	sh->dither = dither ? 1 : 0;
+	sh->dither_seed = (seed && *seed) ? *seed : 2463534242UL;
+	if(seed)
+		*seed = sh->dither_seed;
+	return SYN123_OK;
 }

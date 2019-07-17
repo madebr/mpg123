@@ -44,12 +44,18 @@ double attribute_align_arg syn123_lin2db(double volume)
 	return db;
 }
 
+
 int attribute_align_arg
 syn123_amp( void* buf, int encoding, size_t samples
-,	double volume, double offset,	syn123_handle *sh )
+,	double volume, double offset, size_t *clipped, syn123_handle *sh )
 {
+	size_t clips = 0;
+	int err = 0;
 	if(!buf)
-		return SYN123_BAD_BUF;
+	{
+		err = SYN123_BAD_BUF;
+		goto amp_end;
+	}
 	switch(encoding)
 	{
 		// This is close to FMA, but only that. It's FAM.
@@ -58,14 +64,17 @@ syn123_amp( void* buf, int encoding, size_t samples
 				((type*)buf)[i] = (type)volume * (((type*)buf)[i] + (type)offset);
 		case MPG123_ENC_FLOAT_32:
 			AMP_LOOP(float)
-			return SYN123_OK;
+			goto amp_end;
 		case MPG123_ENC_FLOAT_64:
 			AMP_LOOP(double)
-			return SYN123_OK;
+			goto amp_end;
 		#undef AMP_LOOP
 	}
 	if(!sh)
-		return SYN123_BAD_ENC;
+	{
+		err = SYN123_BAD_ENC;
+		goto amp_end;
+	}
 	else
 	{
 		char *cbuf = buf;
@@ -73,7 +82,10 @@ syn123_amp( void* buf, int encoding, size_t samples
 		int mixframe = MPG123_SAMPLESIZE(mixenc);
 		int inframe = MPG123_SAMPLESIZE(encoding);
 		if(!mixenc || !mixframe || !inframe)
-			return SYN123_BAD_CONV;
+		{
+			err = SYN123_BAD_CONV;
+			goto amp_end;
+		}
 		// Use the whole workbuf, both halves.
 		int mbufblock = 2*bufblock*sizeof(double)/mixframe;
 		mdebug("mbufblock=%i (enc %i)", mbufblock, mixenc);
@@ -83,26 +95,32 @@ syn123_amp( void* buf, int encoding, size_t samples
 			int err = syn123_conv(
 				sh->workbuf, mixenc, sizeof(sh->workbuf)
 			,	cbuf, encoding, inframe*block
-			,	NULL, NULL );
+			,	NULL, NULL, NULL );
 			if(!err)
 			{
 				err = syn123_amp( sh->workbuf, mixenc, block
-				,	volume, offset, NULL );
+				,	volume, offset, NULL, NULL );
 				if(err)
 					return err;
+				size_t clips_block = 0;
 				err = syn123_conv(
 					cbuf, encoding, inframe*block
 				,	sh->workbuf, mixenc, mixframe*block
-				,	NULL, NULL );
+				,	NULL, &clips_block, NULL );
+				clips += clips_block;
 			}
 			if(err)
 			{
 				mdebug("conv error: %i", err);
-				return SYN123_BAD_CONV; // SYN123_WEIRD also an option
+				err = SYN123_BAD_CONV; // SYN123_WEIRD also an option
+				goto amp_end;
 			}
 			cbuf += block*inframe;
 			samples -= block;
 		}
-		return SYN123_OK;
 	}
+amp_end:
+	if(clipped)
+		*clipped = clips;
+	return err;
 }

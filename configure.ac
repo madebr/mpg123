@@ -1138,6 +1138,8 @@ else
     [Define this to the size of native offset type in bits, used for LFS alias functions.])
 fi
 
+AC_SUBST(LFS_ALIAS_BITS)
+
 lfs_alias=enabled
 AC_ARG_ENABLE(lfs-alias,
               [  --disable-lfs-alias disable alias wrappers for largefile bitness (mpg123_seek_32 or mpg123_seek_64 in addition to mpg123_seek, or the other way around; It is a mess, do not play with this!) ],

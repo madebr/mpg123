@@ -27,6 +27,8 @@
 	Copyleft 1999 Phil Burk - No rights reserved.
 */
 
+#define NO_SMAX
+#define NO_SMIN
 #include "syn123_int.h"
 #include <math.h>
 

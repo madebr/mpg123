@@ -1,7 +1,7 @@
 /*
-	out123: simple program to stream data to an audio output device
+	out123: stream data from libmpg123 or libsyn123 to an audio output device
 
-	copyright 1995-2018 by the mpg123 project,
+	copyright 1995-2019 by the mpg123 project,
 	free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 
@@ -79,9 +79,11 @@ static char *encoding_name = NULL;
 static int  encoding = MPG123_ENC_SIGNED_16;
 static char *inputenc_name = NULL;
 static int  inputenc = 0;
+static int  mixenc = -1;
 static int  channels = 2;
 static int  inputch  = 0;
 static long rate     = 44100;
+static long inputrate = 0;
 static char *driver = NULL;
 static char *device = NULL;
 int also_stdout = FALSE;
@@ -102,7 +104,14 @@ long timelimit_samples = -1;
 double timelimit_seconds = -1.;
 off_t offset = 0;
 off_t timelimit = -1;
+const char *clip_mode = "implicit";
+int soft_clip = FALSE;
 int do_clip = FALSE;
+int do_preamp = FALSE;
+int do_resample = FALSE;
+int dither = 0;
+double clip_limit = 1.;
+double clip_width = 0.0234;
 
 char *wave_patterns = NULL;
 char *wave_freqs    = NULL;
@@ -118,13 +127,18 @@ const char *signal_source = "file";
 long wave_limit     = 300000;
 int pink_rows = 0;
 double geiger_activity = 17;
+char *resampler = "fine";
 
 size_t pcmblock = 1152; /* samples (pcm frames) we treat en bloc */
+size_t resample_block = 0; /* resample that many samples in one go */
 /* To be set after settling format. */
-size_t pcmframe = 0;
-size_t pcminframe = 0;
-unsigned char *audio = NULL;
-unsigned char *inaudio = NULL;
+size_t pcmframe = 0; // Bytes for one PCM frame of output format.
+size_t pcminframe = 0; // ... of input format
+size_t mixframe = 0;   // ... of mixing format
+unsigned char *audio = NULL; // in/output buffer
+unsigned char *inaudio = NULL; // separate input buffer
+unsigned char *mixaudio = NULL; // separate mixing buffer
+float *resaudio = NULL; // separate resampling buffer, always 32 bit float
 char *mixmat_string = NULL;
 double *mixmat = NULL;
 
@@ -188,6 +202,8 @@ static void safe_exit(int code)
 	if(mixmat) free(mixmat);
 	if(inaudio && inaudio != audio) free(inaudio);
 	if(audio) free(audio);
+	if(mixaudio) free(mixaudio);
+	if(resaudio) free(resaudio);
 	if(waver) syn123_del(waver);
 	exit(code);
 }
@@ -507,12 +523,14 @@ topt opts[] = {
 	{'P', "preamp",      GLO_ARG | GLO_DOUBLE, 0, &preamp, 0},
 	{0,   "offset",      GLO_ARG | GLO_DOUBLE, 0, &preamp_offset, 0},
 	{'r', "rate",        GLO_ARG | GLO_LONG, 0, &rate,  0},
-	{0,   "clip",        GLO_INT,  0, &do_clip, TRUE},
+	{'R', "inputrate",   GLO_ARG | GLO_LONG, 0, &inputrate,  0},
+	{0,   "clip",        GLO_ARG | GLO_CHAR, 0, &clip_mode, 0},
+	{0,   "dither",      GLO_INT,            0, &dither,    1},
 	{0,   "headphones",  0,                  set_output_h, 0,0},
 	{0,   "speaker",     0,                  set_output_s, 0,0},
 	{0,   "lineout",     0,                  set_output_l, 0,0},
 	{'o', "output",      GLO_ARG | GLO_CHAR, set_output, 0,  0},
-	{0,   "list-modules",0,       list_output_modules, NULL,  0}, 
+	{0,   "list-modules",0,       list_output_modules, NULL,  0},
 	{'a', "audiodevice", GLO_ARG | GLO_CHAR, 0, &device,  0},
 #ifndef NOXFERMEM
 	{'b', "buffer",      GLO_ARG | GLO_LONG, 0, &buffer_kb,  0},
@@ -560,6 +578,7 @@ topt opts[] = {
 	{0, "sweep-time", GLO_ARG|GLO_DOUBLE, 0, &sweep_time, 0},
 	{0, "sweep-hard", GLO_INT, 0, &sweep_hard, TRUE},
 	{0, "sweep-count", GLO_ARG|GLO_LONG, 0, &sweep_count, 0},
+	{0, "resampler", GLO_ARG|GLO_CHAR, 0, &resampler, 0},
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -613,10 +632,28 @@ static void setup_wavegen(void)
 
 	if(!generate)
 		wave_limit = 0;
-	waver = syn123_new(rate, inputch, inputenc, wave_limit, &synerr);
+	waver = syn123_new(inputrate, inputch, inputenc, wave_limit, &synerr);
 	check_fatal_syn(synerr);
+	check_fatal_syn(syn123_dither(waver, dither, NULL));
 	if(!waver)
 		safe_exit(132);
+	if(do_resample)
+	{
+		int dirty = -1;
+		if(!strcasecmp(resampler, "fine"))
+			dirty = 0;
+		else if(!strcasecmp(resampler, "dirty"))
+			dirty = 1;
+		else
+		{
+			if(!quiet)
+				error1("Bad value for resampler type given: %s\n", resampler);
+			safe_exit(132);
+		}
+		check_fatal_syn( syn123_setup_resample(waver
+		,	inputrate, rate, channels, dirty ) );
+		
+	}
 	// At least have waver handy for conversions.
 	if(!generate)
 		return;
@@ -676,7 +713,7 @@ static void setup_wavegen(void)
 		int backwards = FALSE;
 		int sid = SYN123_SWEEP_QUAD;
 		// Yes, could overflow. You get a short time, then.
-		size_t duration = timelimit > -1 ? (size_t)timelimit : rate;
+		size_t duration = timelimit > -1 ? (size_t)timelimit : inputrate;
 		size_t period = 0;
 		double sweep_phase = 0.;
 		double endphase = -1;
@@ -723,7 +760,7 @@ static void setup_wavegen(void)
 			backwards = atof(mytok(&next)) < 0 ? TRUE : FALSE;
 		}
 		if(sweep_time > 0)
-			duration = (size_t)(sweep_time*rate);
+			duration = (size_t)(sweep_time*inputrate);
 		synerr = syn123_setup_sweep( waver, wid, sweep_phase, backwards
 		, sid, &f1, &f2, !sweep_hard, duration, &endphase, &period, &common);
 		if(synerr)
@@ -882,6 +919,34 @@ setup_waver_end:
 		free(freq);
 }
 
+
+void push_output(unsigned char *buf, size_t samples)
+{
+	errno = 0;
+	size_t bytes = samples*pcmframe;
+	mdebug("playing %zu bytes", bytes);
+	check_fatal_output(out123_play(ao, buf, bytes) < (int)bytes);
+	if(also_stdout && fwrite(buf, pcmframe, samples, stdout) < samples)
+	{
+		// TODO: I guess some signal handling should be considered here.
+		if(!quiet && errno != EINTR)
+			error1( "failed to copy stream to stdout: %s", strerror(errno));
+		safe_exit(133);
+	}
+}
+
+// Clipping helper, called with mixbuf, resampler buffer, playback buffer ...
+// This implies the output channel count.
+void clip(void *buf, int enc, size_t samples)
+{
+	size_t clipped = soft_clip
+	?	syn123_soft_clip( buf, enc, samples*channels
+		,	clip_limit, clip_width, waver )
+	:	syn123_clip(buf, enc, samples*channels);
+	if(verbose > 1 && clipped)
+		fprintf(stderr, ME ": explicitly clipped %"SIZE_P" samples\n", clipped);
+}
+
 /* return 1 on success, 0 on failure */
 int play_frame(void)
 {
@@ -896,52 +961,128 @@ int play_frame(void)
 			get_samples = (off_t)timelimit-offset;
 	}
 	if(generate)
-		got_samples = syn123_read(waver, inaudio, get_samples*pcminframe)/pcminframe;
+		got_samples = syn123_read(waver, inaudio, get_samples*pcminframe)
+		/	pcminframe;
 	else
 		got_samples = fread(inaudio, pcminframe, get_samples, input);
 	/* Play what is there to play (starting with second decode_frame call!) */
-	if(got_samples)
+	if(!got_samples)
+		return 0;
+
+	if(mixaudio)
 	{
-		errno = 0;
-		size_t got_bytes = 0;
+		// All complicated cases trigger mixing/conversion into intermediate
+		// buffer.
+		// First either mix or convert into the mixing buffer.
+		if(mixmat)
+			check_fatal_syn(syn123_mix( mixaudio, mixenc, channels
+			,	inaudio, inputenc, inputch, mixmat, got_samples, TRUE, NULL, waver ));
+		else
+			check_fatal_syn(syn123_conv( mixaudio, mixenc, got_samples*mixframe
+			,	inaudio, inputenc, got_samples*pcminframe, NULL, NULL, waver ));
+		// Do pre-amplification in-place.
+		if(do_preamp)
+			check_fatal_syn(syn123_amp( mixaudio, mixenc, got_samples*channels
+			,	preamp_factor, preamp_offset, NULL, NULL ));
+		// Resampling needs another buffer.
+		if(do_resample)
+		{
+			// Resampling, clipping, and conversion to end buffer in a loop
+			// of small blocks since resampling can mean a lot of output from tiny
+			// input.
+			// Mixaudio has to carry 32 bit float!
+			float * fmixaudio = (float*)mixaudio;
+			size_t insamples = got_samples;
+			size_t inoff = 0;
+			while(insamples)
+			{
+				size_t inblock = insamples < resample_block
+				?	insamples
+				:	resample_block;
+				size_t outsamples = syn123_resample( waver
+				,	resaudio, fmixaudio+inoff*channels, inblock );
+				if(do_clip)
+					clip(resaudio, MPG123_ENC_FLOAT_32, outsamples);
+				// Damn, another loop inside the loop for a smaller output buffer?!
+				// No. I will ensure pcmblock being as large as the largest to be
+				// expected resampling block output!
+				size_t clipped = 0;
+				check_fatal_syn(syn123_conv( audio, encoding, outsamples*pcmframe
+				,	resaudio, MPG123_ENC_FLOAT_32, outsamples*sizeof(float)*channels
+				,	NULL, &clipped, NULL ));
+				if(verbose > 1 && clipped)
+					fprintf(stderr, ME ": clipped %"SIZE_P" samples\n", clipped);
+				// Finally, some output!
+				push_output(audio, outsamples);
+				// Advance.
+				insamples -= inblock;
+				inoff     += inblock;
+				if(intflag)
+					return 1; // 1 or 0? Does it matter?
+			}
+		} else
+		{
+			// Just handle explicit clipping and do final conversion.
+			if(do_clip)
+				clip(mixaudio, mixenc, got_samples);
+			// Finally, convert to output.
+			size_t clipped = 0;
+			check_fatal_syn(syn123_conv( audio, encoding, got_samples*pcmframe
+			,	mixaudio, mixenc, got_samples*mixframe, NULL, &clipped, NULL ));
+			if(verbose > 1 && clipped)
+				fprintf(stderr, ME ": clipped %"SIZE_P" samples\n", clipped);
+		}
+	} else
+	{
+		size_t clipped = 0;
+		// No separate mixing buffer, but possibly some mixing or conversion
+		// directly into the output buffer. This path should only be taken if
+		// there is either only one operation happening, or if the output
+		// is in floating point encoding which makes intermediate conversions
+		// unnecessary. The path should still be correct for other cases, just
+		// slow and with suboptimal quality.
 		if(inaudio != audio)
 		{
 			if(mixmat)
 			{
 				check_fatal_syn(syn123_mix( audio, encoding, channels
-				,	inaudio, inputenc, inputch, mixmat, got_samples, TRUE, waver ));
-				got_bytes = pcmframe * got_samples;
+				,	inaudio, inputenc, inputch, mixmat, got_samples, TRUE, &clipped
+				,	waver ));
 			} else
 			{
 				check_fatal_syn(syn123_conv( audio, encoding, got_samples*pcmframe
-				,	inaudio, inputenc, got_samples*pcminframe, &got_bytes, waver ));
+				,	inaudio, inputenc, got_samples*pcminframe, NULL, &clipped
+				,	waver ));
 			}
 		}
-		else
-			got_bytes = pcmframe * got_samples;
-		if(preamp_factor != 1. || preamp_offset != 0.)
+		if(do_preamp)
 		{
 			check_fatal_syn(syn123_amp (audio, encoding, got_samples*channels
-			,	preamp_factor, preamp_offset, waver ));
-		}
-		if(do_clip && encoding & MPG123_ENC_FLOAT)
-		{
-			size_t clipped = syn123_clip(audio, encoding, got_samples*channels);
+			,	preamp_factor, preamp_offset, &clipped, waver ));
 			if(verbose > 1 && clipped)
 				fprintf(stderr, ME ": clipped %"SIZE_P" samples\n", clipped);
 		}
-		mdebug("playing %zu bytes", got_bytes);
-		check_fatal_output(out123_play(ao, audio, got_bytes) < (int)got_bytes);
-		if(also_stdout && fwrite(audio, pcmframe, got_samples, stdout) < got_samples)
-		{
-			if(!quiet && errno != EINTR)
-				error1( "failed to copy stream to stdout: %s", strerror(errno));
-			safe_exit(133);
-		}
-		offset += got_samples;
-		return 1;
+		if(do_clip)
+			clip(audio, encoding, got_samples);
 	}
-	else return 0;
+
+	// To recap: Without any conversion, the simplest code path has
+	// optional preamp and possibly clipping, but only one of those.
+	// The next stage is a combination, mixing or conversion before
+	// those. If resampling is desired, the complex
+	// code path with mixing buffer and resampling buffer is chosen, with
+	// all the other bits. Soft clipping is probably a default with resampling,
+	// for integer output. Also, if soft clip and preamp is desired for
+	// integer output, this also triggers the complex code path. I rather
+	// create separate copies than to convert from/to integers multiple
+	// times.
+
+	// The resampling loop triggers its own output. All other
+	// paths want output of the prepared data here.
+	if(!do_resample)
+		push_output(audio, got_samples);
+	offset += got_samples;
+	return 1;
 }
 
 #if !defined(WIN32) && !defined(GENERIC)
@@ -961,6 +1102,171 @@ static void *fatal_malloc(size_t bytes)
 		safe_exit(1);
 	}
 	return buf;
+}
+
+// Prepare all the buffers and some of the flags for the processing chain.
+// The goal is to avoid unnecessary copies and format conversions.
+// If we do multiple operations on the intermediate data, it gets a separate
+// buffer in floating point encoding. If there is not much to do, this
+// intermediate copy is skipped.
+static void setup_processing(void)
+{
+	pcminframe = out123_encsize(inputenc)*inputch;
+	pcmframe = out123_encsize(encoding)*channels;
+	audio = fatal_malloc(pcmblock*pcmframe);
+
+	unsigned int op_count = 0;
+
+	// Full mixing is initiated if channel counts differ or a non-empty
+	// mixing matrix has been specified.
+	if(inputch != channels || (mixmat_string && mixmat_string[0]))
+	{
+		mixmat = fatal_malloc(sizeof(double)*inputch*channels);
+		size_t mmcount = (mixmat_string && mixmat_string[0])
+		?	mytok_count(mixmat_string)
+		:	0;
+		// Special cases of trivial down/upmixing need no user input.
+		if(mmcount == 0 && inputch == 1)
+		{
+			for(int oc=0; oc<channels; ++oc)
+				mixmat[oc] = 1.;
+		}
+		else if(mmcount == 0 && channels == 1)
+		{
+			for(int ic=0; ic<inputch; ++ic)
+				mixmat[ic] = 1./inputch;
+		}
+		else if(mmcount != inputch*channels)
+		{
+			merror( "Need %i mixing matrix entries, got %zu."
+			,	inputch*channels, mmcount );
+			safe_exit(1);
+		} else
+		{
+			char *next = mixmat_string;
+			for(int i=0; i<inputch*channels; ++i)
+			{
+				char *tok = mytok(&next);
+				mixmat[i] = tok ? atof(tok) : 0.;
+			}
+		}
+	}
+
+	if(inputrate != rate)
+	{
+		do_resample = TRUE;
+		++op_count;
+		// Buffer computations only make sense if resampling possibly can
+		// be set up at all. 
+		if( inputrate > syn123_resample_maxrate()
+		||       rate > syn123_resample_maxrate() )
+		{
+			error("Sampling rates out of range for the resampler.");
+			safe_exit(134);
+		}
+		// Settle resampling block size, which determines the resampling
+		// buffer size.
+		// First attempt: Try if pcmblock input yields a reasonable
+		// number of samples/frames for the resampling output.
+		// if it is too large, reduce until we are below a threshold.
+		// How big should the threshold be? When I say 10 times pcmblock ...
+		// I still to the channel count as variable ... but let's say that.
+		// Then the baddest resampling ratio that could barely work is about
+		// 1:10000. That's quite generous. Even fixing things at pcmblock
+		// max in the output would still be ok for factors close to 1000.
+		// Well, let's try this to stay reasonable: limit to 10*pcmblock
+		// at first. If that is not enough, reduce resample_block down to
+		// 100 samples or so, to avoid too degenerate situations. If
+		// that lower limit of resample_block is reached and still produces
+		// more than 10*pcmblock output, it is attempted to just allocate
+		// that bigger buffer. If you have the memory, you can choose the
+		// rates. Reasonable resampling tasks should be well within the
+		// factor 10 allowed for by default.
+		// Another question: Should I try to increase pcmblock for the case of
+		// extreme downsampling? This is just a matter of efficiency, having
+		// lots of code only producing a single sample now and then, the
+		// block treatment in libsyn123 not getting active.
+		resample_block = pcmblock;
+		size_t resample_out;
+		while( (resample_out = syn123_resample_count( inputrate, rate
+		,	resample_block )) > 10*pcmblock)
+			resample_block /= 2;
+		if(resample_block < 128)
+		{
+			resample_block = 128;
+			resample_out = syn123_resample_count(inputrate, rate, resample_block);
+		}
+		if(verbose)
+			fprintf( stderr, ME": resampling %zu samples @ %ld Hz"
+				" to up to %zu samples @ %ld Hz\n", resample_block, inputrate
+			,	resample_out, rate );
+		if(!resample_out)
+		{
+			error("Cannot compute resampler output count.");
+			safe_exit(134);
+		}
+		// Now we got some number of resampler output samples.
+		// That buffer will always be big enough when handing in resample_block.
+		resaudio = fatal_malloc(resample_out*sizeof(float)*channels);
+	}
+
+	// If converting or mixing, use separate input buffer.
+	if(inputenc != encoding || mixmat)
+	{
+		inaudio = fatal_malloc(pcmblock*pcminframe);
+		++op_count; // conversion or mixing
+	}
+	else
+		inaudio = audio;
+
+	if(preamp != 0. || preamp_offset != 0.)
+	{
+		preamp_factor = syn123_db2lin(preamp);
+		// Store limited value for proper reporting.
+		preamp = syn123_lin2db(preamp_factor);
+		if(preamp_offset == 0. && mixmat)
+		{
+			// If we are mixing already, just include preamp in this.
+			for(int i=0; i<inputch*channels; ++i)
+				mixmat[i] *= preamp_factor;
+			preamp_factor = 1.;
+		}
+		do_preamp = TRUE;
+		++op_count;
+	}
+
+	do_clip = FALSE;
+	if(!strcasecmp(clip_mode, "soft"))
+	{
+		do_clip = TRUE;
+		soft_clip = TRUE;
+	}
+	else if(!strcasecmp(clip_mode, "hard"))
+	{
+		if(encoding & MPG123_ENC_FLOAT)
+			do_clip = TRUE;
+		soft_clip = FALSE;
+	}
+	else if(strcasecmp(clip_mode, "implicit"))
+	{
+		if(!quiet)
+			error1("Bad value for clipping mode given: %s\n", clip_mode);
+		safe_exit(135);
+	}
+	if(do_clip)
+		++op_count;
+
+	if(do_resample || op_count > 1)
+	{
+		// Create a separate mixing buffer for the complicated cases.
+		// Resampling limits quality to 32 bits float anyway, so avoid
+		// trying to mix in double.
+		mixenc = do_resample
+		?	MPG123_ENC_FLOAT_32
+		:	syn123_mixenc(inputenc, encoding);
+		mixframe = out123_encsize(mixenc)*channels;
+		mixaudio = fatal_malloc(mixframe*pcmblock);
+	}
 }
 
 int main(int sys_argc, char ** sys_argv)
@@ -1021,6 +1327,9 @@ int main(int sys_argc, char ** sys_argv)
 			fprintf (stderr, ME": missing argument for parameter: %s\n", loptarg);
 			usage(1);
 	}
+
+	if(inputrate < 1)
+		inputrate = rate;
 
 	if(quiet)
 		verbose = 0;
@@ -1085,7 +1394,17 @@ int main(int sys_argc, char ** sys_argv)
 			safe_exit(1);
 		}
 	}
-	inputenc = encoding;
+
+	input = stdin;
+	if(strcmp(signal_source, "file"))
+		generate = TRUE;
+
+	// Genererally generate signal in floating point for later conversion
+	// after possible additional processing.
+	inputenc = generate && encoding != MPG123_ENC_FLOAT_64
+	?	MPG123_ENC_FLOAT_32
+	:	encoding;
+	// User can override.
 	if(inputenc_name)
 	{
 		inputenc = out123_enc_byname(inputenc_name);
@@ -1097,67 +1416,14 @@ int main(int sys_argc, char ** sys_argv)
 	}
 	if(!inputch)
 		inputch = channels;
-	pcminframe = out123_encsize(inputenc)*inputch;
-	pcmframe = out123_encsize(encoding)*channels;
-	audio = fatal_malloc(pcmblock*pcmframe);
-	// Full mixing is initiated if channel counts differ or a non-empty
-	// mixing matrix has been specified.
-	if(inputch != channels || (mixmat_string && mixmat_string[0]))
-	{
-		mixmat = fatal_malloc(sizeof(double)*inputch*channels);
-		size_t mmcount = (mixmat_string && mixmat_string[0])
-		?	mytok_count(mixmat_string)
-		:	0;
-		// Special cases of trivial down/upmixing need no user input.
-		if(mmcount == 0 && inputch == 1)
-		{
-			for(int oc=0; oc<channels; ++oc)
-				mixmat[oc] = 1.;
-		}
-		else if(mmcount == 0 && channels == 1)
-		{
-			for(int ic=0; ic<inputch; ++ic)
-				mixmat[ic] = 1./inputch;
-		}
-		else if(mmcount != inputch*channels)
-		{
-			merror( "Need %i mixing matrix entries, got %zu."
-			,	inputch*channels, mmcount );
-			safe_exit(1);
-		} else
-		{
-			char *next = mixmat_string;
-			for(int i=0; i<inputch*channels; ++i)
-			{
-				char *tok = mytok(&next);
-				mixmat[i] = tok ? atof(tok) : 0.;
-			}
-		}
-	}
-	// If converting or mixing, use separate input buffer.
-	if(inputenc != encoding || mixmat)
-		inaudio = fatal_malloc(pcmblock*pcminframe);
-	else
-		inaudio = audio;
+
+	// Settle buffers and the mixing/conversion code path.
+	setup_processing();
 	check_fatal_output(out123_set_buffer(ao, buffer_kb*1024));
 	check_fatal_output(out123_open(ao, driver, device));
 
-	if(preamp != 0. || preamp_offset != 0.)
-	{
-		preamp_factor = syn123_db2lin(preamp);
-		// Store limited value for proper reporting.
-		preamp = syn123_lin2db(preamp_factor);
-		if(preamp_offset == 0. && mixmat)
-		{
-			// If we are mixing already, just include preamp in this.
-			for(int i=0; i<inputch*channels; ++i)
-				mixmat[i] *= preamp_factor;
-			preamp_factor = 1.;
-		}
-	}
-
 	if(timelimit_seconds >= 0.)
-		timelimit = timelimit_seconds*rate;
+		timelimit = timelimit_seconds*inputrate;
 	if(timelimit_samples >= 0)
 		timelimit = timelimit_samples;
 
@@ -1170,7 +1436,7 @@ int main(int sys_argc, char ** sys_argv)
 		{
 			encname = out123_enc_name(inputenc);
 			fprintf( stderr, ME": input format: %li Hz, %i channels, %s\n"
-			,	rate, inputch, encname ? encname : "???" );
+			,	inputrate, inputch, encname ? encname : "???" );
 			encname = out123_enc_name(syn123_mixenc(inputenc, encoding));
 			if(mixmat)
 			{
@@ -1203,9 +1469,6 @@ int main(int sys_argc, char ** sys_argv)
 	}
 	check_fatal_output(out123_start(ao, rate, channels, encoding));
 
-	input = stdin;
-	if(strcmp(signal_source, "file"))
-		generate = TRUE;
 	setup_wavegen(); // Used also for conversion/mixing.
 
 	while(play_frame() && !intflag)
@@ -1313,10 +1576,13 @@ static void long_usage(int err)
 	fprintf(o,"        --au <f>           write samples as Sun AU file in <f> (-o au -a <f>)\n");
 	fprintf(o,"        --cdr <f>          write samples as raw CD audio file in <f> (-o cdr -a <f>)\n");
 	fprintf(o," -r <r> --rate <r>         set the audio output rate in Hz (default 44100)\n");
+	fprintf(o," -R <r> --inputrate <r>    set intput rate in Hz for conversion (if > 0)\n"
+	          "                           (always last operation before output)\n");
+	fprintf(o,"        --resampler <s>    set resampler method (fine (default) or dirty)\n");
 	fprintf(o," -c <n> --channels <n>     set channel count to <n>\n");
 	fprintf(o," -m     --mono             set output channel count to 1\n");
 	fprintf(o,"        --stereo           set output channel count to 2 (default)\n");
-	fprintf(o,"-C <n>  --inputch <n>      set input channel count for conversion\n");
+	fprintf(o," -C <n  --inputch <n>      set input channel count for conversion\n");
 	fprintf(o," -e <c> --encoding <c>     set output encoding (%s)\n"
 	,	enclist != NULL ? enclist : "OOM!");
 	fprintf(o," -E <c> --inputenc <c>     set input encoding for conversion\n");
@@ -1327,8 +1593,10 @@ static void long_usage(int err)
 	fprintf(o,"                           match, 0.5,0.5 for stereo to mono, 1,1 for the other way\n");
 	fprintf(o," -P <p> --preamp <p>       amplify signal with <p> dB before output\n");
 	fprintf(o,"        --offset <o>       apply PCM offset (floating point scaled in [-1:1]");
-	fprintf(o,"        --clip             clip float samples before output\n");
-	fprintf(o,"TODO        --soft-clip        smoothly clip float samples before output\n");
+	fprintf(o,"        --clip <s>         select clipping mode: soft or hard for forced\n"
+	          "                           clipping also for floating point output, implicit\n"
+	          "                           (default) for implied clipping during conversion\n" );
+	fprintf(o,"        --dither           enable dithering for conversions to integer\n");
 	fprintf(o,"        --test-format      return 0 if audio format set by preceeding options is supported\n");
 	fprintf(o,"        --test-encodings   print out possible encodings with given channels/rate\n");
 	fprintf(o,"        --query-format     print out default format for given device, if any\n");

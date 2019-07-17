@@ -1,7 +1,7 @@
 /*
 	term: terminal control
 
-	copyright ?-2015 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2019 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp
 */
@@ -110,7 +110,7 @@ void term_init(void)
 	debug("term_init");
 
 	if(term_have_fun(STDERR_FILENO))
-		write(STDERR_FILENO, hide_cursor, sizeof(hide_cursor));
+		fprintf(stderr, "%s", hide_cursor);
 
 	debug1("param.term_ctrl: %i", param.term_ctrl);
 	if(!param.term_ctrl)
@@ -551,7 +551,7 @@ void term_exit(void)
 	const char cursor_restore[] = "\x1b[?25h";
 	/* Bring cursor back. */
 	if(term_have_fun(STDERR_FILENO))
-		write(STDERR_FILENO, cursor_restore, sizeof(cursor_restore));
+		fprintf(stderr, "%s", cursor_restore);
 
 	if(!term_enable) return;
 

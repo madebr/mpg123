@@ -22,6 +22,7 @@
 // Generally, a number of samples we work on in one go to
 // allow the compiler to know our loops.
 // An enum is the best integer constant you can define in plain C.
+// This sets an upper limit to the number of channels in some functions.
 enum { bufblock = 512 };
 
 struct syn123_wave
@@ -43,6 +44,12 @@ struct syn123_sweep
 	double endphase; // phase for continuing, just after sweep end
 };
 
+// Only a forward declaration of the resampler state. An instance
+// is allocated and a pointer stored if it is configured. The
+// resampler is pretty disjunct from the other parts of syn123.
+// Not sure if synergies will emerge eventually.
+struct resample_data;
+
 struct syn123_struct
 {
 	// Temporary storage in internal precision.
@@ -54,6 +61,8 @@ struct syn123_struct
 	// handle, also with the biggest alignment.
 	double workbuf[2][bufblock];
 	struct mpg123_fmt fmt;
+	int dither;
+	uint32_t dither_seed;
 	// Pointer to a generator function that writes a bit of samples
 	// into workbuf[1], possibly using workbuf[0] internally.
 	// Given count of samples <= bufblock!
@@ -72,6 +81,7 @@ struct syn123_struct
 	size_t maxbuf;  // maximum period buffer size in bytes
 	size_t samples; // samples (PCM frames) in period buffer
 	size_t offset;  // offset in buffer for extraction helper
+	struct resample_data *rd; // resampler data, if initialized
 };
 
 #ifndef NO_SMIN
@@ -123,6 +133,35 @@ static int fill_period(syn123_handle *sh)
 		return SYN123_WEIRD;
 	sh->samples = buffer_samples;
 	return SYN123_OK;
+}
+#endif
+
+#ifdef RAND_XORSHIFT32
+// Borrowing the random number algorithm from the libmpg123 dither code.
+// xorshift random number generator
+// See http://www.jstatsoft.org/v08/i14/paper on XOR shift random number generators.
+static float rand_xorshift32(uint32_t *seed)
+{
+	union
+	{
+		uint32_t i;
+		float f;
+	} fi;
+	
+	fi.i = *seed;
+	fi.i ^= (fi.i<<13);
+	fi.i ^= (fi.i>>17);
+	fi.i ^= (fi.i<<5);
+	*seed = fi.i;
+	/* scale the number to [-0.5, 0.5] */
+#ifdef IEEE_FLOAT
+	fi.i = (fi.i>>9)|0x3f800000;
+	fi.f -= 1.5f;
+#else
+	fi.f = (double)fi.i / 4294967295.0;
+	fi.f -= 0.5f;
+#endif
+	return fi.f;
 }
 #endif
 
