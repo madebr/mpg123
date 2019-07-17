@@ -220,7 +220,7 @@ syn123_soft_clip( void *buf, int encoding, size_t samples
 // All together in a happy matrix game, but only directly to/from
 // double or float.
 
-#define FROM_FLT(type,clips) \
+#define FROM_FLT(type) \
 { type *tsrc = src; type *tend = tsrc+samples; char *tdest = dst; \
 switch(dst_enc) \
 { \
@@ -284,59 +284,66 @@ switch(dst_enc) \
 		return SYN123_BAD_CONV; \
 }}
 
+
+static float dither_noise(uint32_t *seed)
+{
+	return rand_xorshift32(seed) + rand_xorshift32(seed);
+}
+
 // Dithering to 24 bit needs attention: I think just
 // adding 255*[-1:1] before cutting off the last byte should do the trick.
-#define FROM_FLT_DITHER(type,clips) \
-{ type *tsrc = (type*)sh->workbuf[0]; type *tend = tsrc+block; char *tdest = cdst; \
+#define NOISE dither_noise(&sh->dither_seed)
+#define FROM_FLT_DITHER(type) \
+{ type *tsrc = src; type *tend = tsrc+samples; char *tdest = dst; \
 switch(dst_enc) \
 { \
 	case MPG123_ENC_SIGNED_16: \
 		for(; tsrc!=tend; ++tsrc, tdest+=2) \
-			*(int16_t*)tdest = f_s16(*tsrc, *(dithn++), &clips); \
+			*(int16_t*)tdest = f_s16(*tsrc, NOISE, &clips); \
 	break; \
 	case MPG123_ENC_SIGNED_32: \
 		for(; tsrc!=tend; ++tsrc, tdest+=4) \
-			*(int32_t*)tdest = d_s32(*tsrc, *(dithn++), &clips); \
+			*(int32_t*)tdest = d_s32(*tsrc, NOISE, &clips); \
 	break; \
 	case MPG123_ENC_SIGNED_24: \
 		for(; tsrc!=tend; ++tsrc, tdest+=3) \
 		{ \
 			union { int32_t i; char c[4]; } tmp; \
-			tmp.i = d_s32(*tsrc, *(dithn++)*255, &clips); \
+			tmp.i = d_s32(*tsrc, NOISE*255, &clips); \
 			DROP4BYTE(tdest, tmp.c); \
 		} \
 	break; \
 	case MPG123_ENC_SIGNED_8: \
 		for(; tsrc!=tend; ++tsrc, tdest+=1) \
-			*(int8_t*)tdest = f_s8(*tsrc, *(dithn++), &clips); \
+			*(int8_t*)tdest = f_s8(*tsrc, NOISE, &clips); \
 	break; \
 	case MPG123_ENC_ULAW_8: \
 		for(; tsrc!=tend; ++tsrc, tdest+=1) \
-			*(unsigned char*)tdest = f_ulaw(*tsrc, *(dithn++), &clips); \
+			*(unsigned char*)tdest = f_ulaw(*tsrc, NOISE, &clips); \
 	break; \
 	case MPG123_ENC_ALAW_8: \
 		for(; tsrc!=tend; ++tsrc, tdest+=1) \
-			*(unsigned char*)tdest = f_alaw(*tsrc, *(dithn++), &clips); \
+			*(unsigned char*)tdest = f_alaw(*tsrc, NOISE, &clips); \
 	break; \
 	case MPG123_ENC_UNSIGNED_8: \
 		for(; tsrc!=tend; ++tsrc, tdest+=1) \
-			*(uint8_t*)tdest = f_u8(*tsrc, *(dithn++), &clips); \
+			*(uint8_t*)tdest = f_u8(*tsrc, NOISE, &clips); \
 	break; \
 	case MPG123_ENC_UNSIGNED_16: \
 		for(; tsrc!=tend; ++tsrc, tdest+=2) \
-			*(uint16_t*)tdest = f_u16(*tsrc, *(dithn++), &clips); \
+			*(uint16_t*)tdest = f_u16(*tsrc, NOISE, &clips); \
 	break; \
 	case MPG123_ENC_UNSIGNED_24: \
 		for(; tsrc!=tend; ++tsrc, tdest+=3) \
 		{ \
 			union { uint32_t i; char c[4]; } tmp; \
-			tmp.i = d_u32(*tsrc, *(dithn++)*255, &clips); \
+			tmp.i = d_u32(*tsrc, NOISE*255, &clips); \
 			DROP4BYTE(tdest, tmp.c); \
 		} \
 	break; \
 	case MPG123_ENC_UNSIGNED_32: \
 		for(; tsrc!=tend; ++tsrc, tdest+=4) \
-			*(uint32_t*)tdest = d_u32(*tsrc, *(dithn++), &clips); \
+			*(uint32_t*)tdest = d_u32(*tsrc, NOISE, &clips); \
 	break; \
 	case MPG123_ENC_FLOAT_32: \
 		for(; tsrc!=tend; ++tsrc, tdest+=4) \
@@ -452,27 +459,29 @@ static int need_dither(int from, int to)
 	return (tosize < fromsize) ? 1 : 0;
 }
 
-static float dither_noise(uint32_t *seed)
-{
-	return rand_xorshift32(seed) + rand_xorshift32(seed);
-}
-
 int attribute_align_arg
 syn123_conv( void * MPG123_RESTRICT dst, int dst_enc, size_t dst_size
 ,	void * MPG123_RESTRICT src, int src_enc, size_t src_bytes
 ,	size_t *dst_bytes, size_t *clipped, syn123_handle *sh )
 {
-	size_t srcframe  = MPG123_SAMPLESIZE(src_enc);
+	size_t srcframe = MPG123_SAMPLESIZE(src_enc);
 	size_t dstframe = MPG123_SAMPLESIZE(dst_enc);
+	// Take the provided do_dither setting and make sure to have it cleared.
 	int do_dither = 0;
+	if(sh)
+	{
+		do_dither = sh->do_dither;
+		sh->do_dither = 0;
+	}
 	if(!srcframe || !dstframe)
 		return SYN123_BAD_ENC;
 	size_t samples = src_bytes/srcframe;
 	size_t clips = 0;
-	debug6( "conv from %i (%i) to %i (%i), %zu into %zu bytes"
+	mdebug( "conv from %i (%i) to %i (%i), %zu into %zu bytes, dither %i/%i"
 	,	src_enc, MPG123_SAMPLESIZE(src_enc)
 	,	dst_enc, MPG123_SAMPLESIZE(dst_enc)
-	,	src_bytes, dst_size );
+	,	src_bytes, dst_size
+	,	sh ? sh->dither : 0, do_dither );
 	if(!dst || !src)
 		return SYN123_BAD_BUF;
 	if(samples*srcframe != src_bytes)
@@ -492,17 +501,35 @@ syn123_conv( void * MPG123_RESTRICT dst, int dst_enc, size_t dst_size
 		else
 			return SYN123_BAD_CONV;
 	}
-	// If converting from float, delay processing if dither is involved.
-	else if( src_enc & MPG123_ENC_FLOAT
-	&&	(!sh || !sh->dither || !(do_dither = need_dither(src_enc, dst_enc))) )
+	// If converting from float, possibly add dither noise.
+	else if(src_enc & MPG123_ENC_FLOAT)
 	{
-		debug("from_flt");
-		if(src_enc == MPG123_ENC_FLOAT_64)
-			FROM_FLT(double, clips)
-		else if(src_enc == MPG123_ENC_FLOAT_32)
-			FROM_FLT(float, clips)
+		// Either this is a direct call and dithering is decided by given encodings
+		// or this is an intermediate conversion called from syn123_conv() itself,
+		// where the outer instance decided to enforce (1) or disable (-1) dithering.
+		if( sh && sh->dither 
+		&&	( do_dither == 1
+			||	(do_dither == 0 && need_dither(src_enc, dst_enc))
+			) )
+		{
+			debug("from_flt dither");
+			if(src_enc == MPG123_ENC_FLOAT_64)
+				FROM_FLT_DITHER(double)
+			else if(src_enc == MPG123_ENC_FLOAT_32)
+				FROM_FLT_DITHER(float)
+			else
+				return SYN123_BAD_CONV;
+		}
 		else
-			return SYN123_BAD_CONV;
+		{
+			debug("from_flt");
+			if(src_enc == MPG123_ENC_FLOAT_64)
+				FROM_FLT(double)
+			else if(src_enc == MPG123_ENC_FLOAT_32)
+				FROM_FLT(float)
+			else
+				return SYN123_BAD_CONV;
+		}
 	}
 	else if(sh)
 	{
@@ -512,77 +539,39 @@ syn123_conv( void * MPG123_RESTRICT dst, int dst_enc, size_t dst_size
 		int mixframe = MPG123_SAMPLESIZE(mixenc);
 		if(!mixenc || !mixframe)
 			return SYN123_BAD_CONV;
-		if(do_dither)
+		// Use the whole workbuf, both halves.
+		int mbufblock = 2*bufblock*sizeof(double)/mixframe;
+		mdebug("mbufblock=%i (enc %i)", mbufblock, mixenc);
+		// Abuse the handle workbuf for intermediate storage.
+		size_t samples_left = samples;
+		// The final conversion needs to apply dithering depending on
+		// actual input and output encodings.
+		// The intermediate calls get dithering on/off enforced via sh->do_dither.
+		if(!do_dither)
+			do_dither = sh->dither && need_dither(src_enc, dst_enc) ? 1 : -1;
+		while(samples_left)
 		{
-			debug("dither");
-			// Use the two buffers: One for PCM data, one for dither.
-			unsigned int mbufblock = bufblock*sizeof(double)/mixframe;
-			mdebug("dither mbufblock=%i (enc %i)", mbufblock, mixenc);
-			size_t samples_left = samples;
-			while(samples_left)
+			int block = (int)smin(samples_left, mbufblock);
+			size_t clipped_now = 0;
+			int err = syn123_conv(
+				sh->workbuf, mixenc, sizeof(sh->workbuf)
+			,	csrc, src_enc, srcframe*block
+			,	NULL, NULL, NULL );
+			sh->do_dither = do_dither; // possibly dither now
+			if(!err)
+				err = syn123_conv(
+					cdst, dst_enc, dstframe*block
+				,	sh->workbuf, mixenc, mixframe*block
+				,	NULL, &clipped_now, sh );
+			if(err)
 			{
-				unsigned int block = (unsigned int)smin(samples_left, mbufblock);
-				int err = syn123_conv(
-					sh->workbuf[0], mixenc, sizeof(sh->workbuf[0])
-				,	csrc, src_enc, srcframe*block
-				,	NULL, NULL, NULL );
-				float *dithn = (float*)sh->workbuf[1];
-				if(!err)
-				{
-					// Now fill the second work buffer with dither noise.
-					// The noise is always 32 bit float, while mixenc can be 32 or
-					// 64 bits. As we're mostly dropping 16 bits or less, 32 bit noise
-					// should be plenty. You could argue that you need more going from
-					// double to 16 bits, but ... shut up!
-					// Dither noise is applied in ignorance of multiple channels. This
-					// avoids hampering stereo separation, and is simpler to implement
-					// than coordinated noise on all channels avoiding introduction of
-					// separation that was not there before.
-					for(unsigned int i=0; i<block; ++i)
-						dithn[i] = dither_noise(&sh->dither_seed);
-					if(mixenc == MPG123_ENC_FLOAT_64)
-						FROM_FLT_DITHER(double, clips)
-					else
-						FROM_FLT_DITHER(float, clips)
-				}
-				if(err)
-				{
-					mdebug("conv error: %i", err);
-					return SYN123_BAD_CONV;
-				}
-				cdst += dstframe*block;
-				csrc += srcframe*block;
-				samples_left -= block;
+				mdebug("conv error: %i", err);
+				return SYN123_BAD_CONV;
 			}
-		}
-		else
-		{
-			// Use the whole workbuf, both halves.
-			int mbufblock = 2*bufblock*sizeof(double)/mixframe;
-			mdebug("mbufblock=%i (enc %i)", mbufblock, mixenc);
-			// Abuse the handle workbuf for intermediate storage.
-			size_t samples_left = samples;
-			while(samples_left)
-			{
-				int block = (int)smin(samples_left, mbufblock);
-				int err = syn123_conv(
-					sh->workbuf, mixenc, sizeof(sh->workbuf)
-				,	csrc, src_enc, srcframe*block
-				,	NULL, NULL, NULL );
-				if(!err)
-					err = syn123_conv(
-						cdst, dst_enc, dstframe*block
-					,	sh->workbuf, mixenc, mixframe*block
-					,	NULL, NULL, NULL );
-				if(err)
-				{
-					mdebug("conv error: %i", err);
-					return SYN123_BAD_CONV;
-				}
-				cdst += dstframe*block;
-				csrc += srcframe*block;
-				samples_left -= block;
-			}
+			clips += clipped_now;
+			cdst += dstframe*block;
+			csrc += srcframe*block;
+			samples_left -= block;
 		}
 	} else
 		return SYN123_BAD_CONV;

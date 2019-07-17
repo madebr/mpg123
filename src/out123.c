@@ -1017,7 +1017,7 @@ int play_frame(void)
 				debug("conv");
 				check_fatal_syn(syn123_conv( audio, encoding, outsamples*pcmframe
 				,	resaudio, MPG123_ENC_FLOAT_32, outsamples*sizeof(float)*channels
-				,	NULL, &clipped, NULL ));
+				,	NULL, &clipped, waver ));
 				if(verbose > 1 && clipped)
 					fprintf(stderr, ME ": clipped %"SIZE_P" samples\n", clipped);
 				// Finally, some output!
@@ -1036,7 +1036,7 @@ int play_frame(void)
 			// Finally, convert to output.
 			size_t clipped = 0;
 			check_fatal_syn(syn123_conv( audio, encoding, got_samples*pcmframe
-			,	mixaudio, mixenc, got_samples*mixframe, NULL, &clipped, NULL ));
+			,	mixaudio, mixenc, got_samples*mixframe, NULL, &clipped, waver ));
 			if(verbose > 1 && clipped)
 				fprintf(stderr, ME ": clipped %"SIZE_P" samples\n", clipped);
 		}

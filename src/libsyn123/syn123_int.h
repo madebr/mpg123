@@ -61,7 +61,8 @@ struct syn123_struct
 	// handle, also with the biggest alignment.
 	double workbuf[2][bufblock];
 	struct mpg123_fmt fmt;
-	int dither;
+	int dither; // if dithering is activated for the handle
+	int do_dither; // flag for recursive calls of syn123_conv()
 	uint32_t dither_seed;
 	// Pointer to a generator function that writes a bit of samples
 	// into workbuf[1], possibly using workbuf[0] internally.

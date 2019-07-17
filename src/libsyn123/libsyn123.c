@@ -772,6 +772,7 @@ syn123_new(long rate, int channels, int encoding
 	syn123_setup_silence(sh);
 	sh->rd = NULL;
 	sh->dither = 0;
+	sh->do_dither = 0;
 	sh->dither_seed = 0;
 
 syn123_new_end:
@@ -841,6 +842,8 @@ syn123_read( syn123_handle *sh, void *dest, size_t dest_bytes )
 			sh->generator(sh, block);
 			// Convert to external format, mono. We are abusing workbuf[0] here,
 			// because it is big enough.
+			// The converter does not use workbuf if converting from float. Dither is
+			// added on the fly.
 			int err = syn123_conv(
 				sh->workbuf[0], sh->fmt.encoding, sizeof(sh->workbuf[0])
 			,	sh->workbuf[1], MPG123_ENC_FLOAT_64, sizeof(double)*block
@@ -850,7 +853,6 @@ syn123_read( syn123_handle *sh, void *dest, size_t dest_bytes )
 				debug1("conv error: %i", err);
 				break;
 			}
-//debug2("buf[1][0]=%f buf[0][0]=%f", sh->workbuf[1][0], *(float*)(&sh->workbuf[0][0]));
 			syn123_mono2many( cdest, sh->workbuf[0]
 			,	sh->fmt.channels, samplesize, block );
 			cdest += framesize*block;

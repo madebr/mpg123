@@ -1677,5 +1677,7 @@ syn123_resample( syn123_handle *sh,
 	// Input limit is zero if no resampler configured.
 	if(!samples || samples > sh->rd->input_limit)
 		return 0;
+	mdebug( "calling actual resample functon from %p to %p with %"SIZE_P" samples"
+	,	(void*)src, (void*)dst, (size_p)samples );
 	return rd->resample_func(rd, src, samples, dst);
 }
