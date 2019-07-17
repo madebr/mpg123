@@ -407,7 +407,7 @@ switch(src_enc) \
 			*tdest = *(float*)tsrc; \
 	break; \
 	case MPG123_ENC_FLOAT_64: \
-		for(; tdest!=tend; ++tdest, tsrc+=4) \
+		for(; tdest!=tend; ++tdest, tsrc+=8) \
 			*tdest = *(double*)tsrc; \
 	break; \
 	default: \
@@ -484,6 +484,7 @@ syn123_conv( void * MPG123_RESTRICT dst, int dst_enc, size_t dst_size
 	// Always shortcut for converting to float, not considering dither.
 	else if(dst_enc & MPG123_ENC_FLOAT)
 	{
+		debug("to_flt");
 		if(dst_enc == MPG123_ENC_FLOAT_64)
 			TO_FLT(double)
 		else if(dst_enc == MPG123_ENC_FLOAT_32)
@@ -495,6 +496,7 @@ syn123_conv( void * MPG123_RESTRICT dst, int dst_enc, size_t dst_size
 	else if( src_enc & MPG123_ENC_FLOAT
 	&&	(!sh || !sh->dither || !(do_dither = need_dither(src_enc, dst_enc))) )
 	{
+		debug("from_flt");
 		if(src_enc == MPG123_ENC_FLOAT_64)
 			FROM_FLT(double, clips)
 		else if(src_enc == MPG123_ENC_FLOAT_32)
@@ -512,9 +514,10 @@ syn123_conv( void * MPG123_RESTRICT dst, int dst_enc, size_t dst_size
 			return SYN123_BAD_CONV;
 		if(do_dither)
 		{
+			debug("dither");
 			// Use the two buffers: One for PCM data, one for dither.
 			unsigned int mbufblock = bufblock*sizeof(double)/mixframe;
-			mdebug("mbufblock=%i (enc %i)", mbufblock, mixenc);
+			mdebug("dither mbufblock=%i (enc %i)", mbufblock, mixenc);
 			size_t samples_left = samples;
 			while(samples_left)
 			{
