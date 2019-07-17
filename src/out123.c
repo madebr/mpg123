@@ -84,6 +84,8 @@ static int  channels = 2;
 static int  inputch  = 0;
 static long rate     = 44100;
 static long inputrate = 0;
+static double speed = 1.;
+static long outputrate = 0;
 static char *driver = NULL;
 static char *device = NULL;
 int also_stdout = FALSE;
@@ -524,6 +526,7 @@ topt opts[] = {
 	{0,   "offset",      GLO_ARG | GLO_DOUBLE, 0, &preamp_offset, 0},
 	{'r', "rate",        GLO_ARG | GLO_LONG, 0, &rate,  0},
 	{'R', "inputrate",   GLO_ARG | GLO_LONG, 0, &inputrate,  0},
+	{0,  "speed",       GLO_ARG | GLO_DOUBLE, 0, &speed, 0},
 	{0,   "clip",        GLO_ARG | GLO_CHAR, 0, &clip_mode, 0},
 	{0,   "dither",      GLO_INT,            0, &dither,    1},
 	{0,   "headphones",  0,                  set_output_h, 0,0},
@@ -651,7 +654,7 @@ static void setup_wavegen(void)
 			safe_exit(132);
 		}
 		check_fatal_syn( syn123_setup_resample(waver
-		,	inputrate, rate, channels, dirty ) );
+		,	inputrate, outputrate, channels, dirty ) );
 		
 	}
 	// At least have waver handy for conversions.
@@ -917,6 +920,8 @@ setup_waver_end:
 		free(id);
 	if(freq)
 		free(freq);
+	if(freq_real)
+		free(freq_real);
 }
 
 
@@ -999,14 +1004,17 @@ int play_frame(void)
 				size_t inblock = insamples < resample_block
 				?	insamples
 				:	resample_block;
+				debug("resample");
 				size_t outsamples = syn123_resample( waver
 				,	resaudio, fmixaudio+inoff*channels, inblock );
+				debug("clip?");
 				if(do_clip)
 					clip(resaudio, MPG123_ENC_FLOAT_32, outsamples);
 				// Damn, another loop inside the loop for a smaller output buffer?!
 				// No. I will ensure pcmblock being as large as the largest to be
 				// expected resampling block output!
 				size_t clipped = 0;
+				debug("conv");
 				check_fatal_syn(syn123_conv( audio, encoding, outsamples*pcmframe
 				,	resaudio, MPG123_ENC_FLOAT_32, outsamples*sizeof(float)*channels
 				,	NULL, &clipped, NULL ));
@@ -1113,7 +1121,7 @@ static void setup_processing(void)
 {
 	pcminframe = out123_encsize(inputenc)*inputch;
 	pcmframe = out123_encsize(encoding)*channels;
-	audio = fatal_malloc(pcmblock*pcmframe);
+	size_t resample_out = 0;
 
 	unsigned int op_count = 0;
 
@@ -1152,14 +1160,14 @@ static void setup_processing(void)
 		}
 	}
 
-	if(inputrate != rate)
+	if(inputrate != outputrate)
 	{
 		do_resample = TRUE;
 		++op_count;
 		// Buffer computations only make sense if resampling possibly can
 		// be set up at all. 
-		if( inputrate > syn123_resample_maxrate()
-		||       rate > syn123_resample_maxrate() )
+		if( inputrate  > syn123_resample_maxrate()
+		||  outputrate > syn123_resample_maxrate() )
 		{
 			error("Sampling rates out of range for the resampler.");
 			safe_exit(134);
@@ -1187,19 +1195,18 @@ static void setup_processing(void)
 		// lots of code only producing a single sample now and then, the
 		// block treatment in libsyn123 not getting active.
 		resample_block = pcmblock;
-		size_t resample_out;
-		while( (resample_out = syn123_resample_count( inputrate, rate
+		while( (resample_out = syn123_resample_count( inputrate, outputrate
 		,	resample_block )) > 10*pcmblock)
 			resample_block /= 2;
 		if(resample_block < 128)
 		{
 			resample_block = 128;
-			resample_out = syn123_resample_count(inputrate, rate, resample_block);
+			resample_out = syn123_resample_count(inputrate, outputrate, resample_block);
 		}
 		if(verbose)
 			fprintf( stderr, ME": resampling %zu samples @ %ld Hz"
 				" to up to %zu samples @ %ld Hz\n", resample_block, inputrate
-			,	resample_out, rate );
+			,	resample_out, outputrate );
 		if(!resample_out)
 		{
 			error("Cannot compute resampler output count.");
@@ -1209,6 +1216,8 @@ static void setup_processing(void)
 		// That buffer will always be big enough when handing in resample_block.
 		resaudio = fatal_malloc(resample_out*sizeof(float)*channels);
 	}
+
+	audio = fatal_malloc((resample_out ? resample_out : pcmblock)*pcmframe);
 
 	// If converting or mixing, use separate input buffer.
 	if(inputenc != encoding || mixmat)
@@ -1261,6 +1270,7 @@ static void setup_processing(void)
 		// Create a separate mixing buffer for the complicated cases.
 		// Resampling limits quality to 32 bits float anyway, so avoid
 		// trying to mix in double.
+		debug("employing separate mixing buffer");
 		mixenc = do_resample
 		?	MPG123_ENC_FLOAT_32
 		:	syn123_mixenc(inputenc, encoding);
@@ -1328,11 +1338,16 @@ int main(int sys_argc, char ** sys_argv)
 			usage(1);
 	}
 
-	if(inputrate < 1)
-		inputrate = rate;
-
 	if(quiet)
 		verbose = 0;
+
+	if(inputrate < 1)
+		inputrate = rate;
+	double outputrater = (1./speed) * rate;
+	if(outputrater+0.5 > LONG_MAX)
+		outputrate = LONG_MAX;
+	else
+		outputrate = (long)(outputrater+0.5);
 
 	/* Ensure cleanup before we cause too much mess. */
 #if !defined(WIN32) && !defined(GENERIC)
@@ -1452,6 +1467,8 @@ int main(int sys_argc, char ** sys_argv)
 			else
 				fprintf( stderr, ME": converting via %s\n", encname ? encname : "???" );
 		}
+		if(outputrate != rate)
+			fprintf(stderr, ME": virtual output rate %li for speed\n", outputrate);
 		encname = out123_enc_name(encoding);
 		fprintf(stderr, ME": format: %li Hz, %i channels, %s\n"
 		,	rate, channels, encname ? encname : "???" );
@@ -1578,6 +1595,7 @@ static void long_usage(int err)
 	fprintf(o," -r <r> --rate <r>         set the audio output rate in Hz (default 44100)\n");
 	fprintf(o," -R <r> --inputrate <r>    set intput rate in Hz for conversion (if > 0)\n"
 	          "                           (always last operation before output)\n");
+	fprintf(o,"        --speed <f>        play at given speed factor by resampling\n");
 	fprintf(o,"        --resampler <s>    set resampler method (fine (default) or dirty)\n");
 	fprintf(o," -c <n> --channels <n>     set channel count to <n>\n");
 	fprintf(o," -m     --mono             set output channel count to 1\n");
