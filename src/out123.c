@@ -1348,7 +1348,11 @@ int main(int sys_argc, char ** sys_argv)
 		outputrate = LONG_MAX;
 	else
 		outputrate = (long)(outputrater+0.5);
-
+	if(outputrate < 1)
+	{
+		fprintf(stderr, ME": negative or too large speed given for current output rate\n");
+		exit(1);
+	}
 	/* Ensure cleanup before we cause too much mess. */
 #if !defined(WIN32) && !defined(GENERIC)
 	catchsignal(SIGINT, catch_interrupt);
@@ -1468,7 +1472,8 @@ int main(int sys_argc, char ** sys_argv)
 				fprintf( stderr, ME": converting via %s\n", encname ? encname : "???" );
 		}
 		if(outputrate != rate)
-			fprintf(stderr, ME": virtual output rate %li for speed\n", outputrate);
+			fprintf( stderr, ME": virtual output rate %li for actual speed %g\n"
+			,	outputrate, (double)rate/outputrate );
 		encname = out123_enc_name(encoding);
 		fprintf(stderr, ME": format: %li Hz, %i channels, %s\n"
 		,	rate, channels, encname ? encname : "???" );
