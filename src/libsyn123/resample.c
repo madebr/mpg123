@@ -739,6 +739,7 @@ static size_t decimate(struct decimator_state *rd, struct resample_data *rrd, fl
 	}
 	float *out = in;
 	size_t outs = 0;
+#ifndef SYN123_NO_CASES
 	switch(rrd->channels)
 	{
 		case 1: for(size_t i=0; i<ins; ++i)
@@ -806,7 +807,9 @@ static size_t decimate(struct decimator_state *rd, struct resample_data *rrd, fl
 				rd->sflags |= decimate_store;
 		}
 		break;
-		default: for(size_t i=0; i<ins; ++i)
+		default:
+#endif
+		for(size_t i=0; i<ins; ++i)
 		{
 			int ni[LPF_4_ORDER];
 			for(int j=0; j<LPF_4_ORDER; ++j)
@@ -840,7 +843,9 @@ static size_t decimate(struct decimator_state *rd, struct resample_data *rrd, fl
 			} else
 				rd->sflags |= decimate_store;
 		}
+#ifndef SYN123_NO_CASES
 	}
+#endif
 	return outs;
 }
 
@@ -955,6 +960,7 @@ static float df2_initval(unsigned int order, float *filter_a, float insample)
 // The parameter determines the number of repeated applications of the same
 // low pass.
 
+#ifndef SYN123_NO_CASES
 #define LOWPASS_DF2_FUNCSX(times) \
 \
 static void lowpass##times##_df2_preemp_2x(struct resample_data *rd, float *in, size_t ins, float *out) \
@@ -1046,10 +1052,54 @@ static void lowpass##times##_df2_preemp(struct resample_data *rd, float *in, siz
 			in  += rd->channels; \
 			out += rd->channels; \
 		} \
-		break; \
 	} \
 	LPF_DF2_END \
 }
+#else
+#define LOWPASS_DF2_FUNCSX(times) \
+\
+static void lowpass##times##_df2_preemp_2x(struct resample_data *rd, float *in, size_t ins, float *out) \
+{ \
+	if(!ins) \
+		return; \
+	LPF_DF2_BEGIN(times,in,rd->channels,) \
+	PREEMP_DF2_BEGIN(in,rd->channels,); \
+	for(size_t i=0; i<ins; ++i) \
+	{ \
+		PREEMP_DF2_SAMPLE(in, rd->frame, rd->channels) \
+		/* Zero-stuffing! Insert zero after making up for energy loss. */ \
+		for(unsigned int c=0; c<rd->channels; ++c) \
+			rd->frame[c] *= 2; \
+		LPF_DF2_SAMPLE(times, rd->frame, out, rd->channels) \
+		out += rd->channels; \
+		for(unsigned int c=0; c<rd->channels; ++c) \
+			rd->frame[c] = 0; \
+		LPF_DF2_SAMPLE(times, rd->frame, out, rd->channels) \
+		out += rd->channels; \
+		in  += rd->channels; \
+	} \
+	LPF_DF2_END \
+} \
+\
+static void lowpass##times##_df2_preemp(struct resample_data *rd, float *in, size_t ins) \
+{ \
+	if(!ins) \
+		return; \
+	float *out = in; \
+	LPF_DF2_BEGIN(times, in, rd->channels,) \
+	PREEMP_DF2_BEGIN(in, rd->channels,); \
+	for(size_t i=0; i<ins; ++i) \
+	{ \
+		PREEMP_DF2_SAMPLE(in, rd->frame, rd->channels) \
+		LPF_DF2_SAMPLE(times, rd->frame, out, rd->channels) \
+		in  += rd->channels; \
+		out += rd->channels; \
+	} \
+	LPF_DF2_END \
+}
+#endif
+
+
 // Need that indirection so that times is expanded properly for concatenation.
 #define LOWPASS_DF2_FUNCS(times) \
 	LOWPASS_DF2_FUNCSX(times)
@@ -1130,6 +1180,7 @@ static size_t resample_opt4p4o(struct resample_data *rd, float*in
 	if(!ins)
 		return outs;
 	OPT4P4O_BEGIN(in)
+#ifndef SYN123_NO_CASES
 	switch(rd->channels)
 	{
 		case  1: for(size_t i=0; i<ins; ++i)
@@ -1144,12 +1195,16 @@ static size_t resample_opt4p4o(struct resample_data *rd, float*in
 			in += 2;
 		}
 		break;
-		default: for(size_t i=0; i<ins; ++i)
+		default:
+#endif
+		for(size_t i=0; i<ins; ++i)
 		{
 			OPT4P4O_INTERPOL(in, out, outs, rd->channels)
 			in += rd->channels;
 		}
+#ifndef SYN123_NO_CASES
 	}
+#endif
 	OPT4P4O_END
 	return outs;
 }
@@ -1158,6 +1213,7 @@ static size_t resample_opt4p4o_2batch(struct resample_data *rd, float*in, float 
 {
 	size_t outs = 0;
 	OPT4P4O_BEGIN(in)
+#ifndef SYN123_NO_CASES
 	switch(rd->channels)
 	{
 		case  1: for(size_t i=0; i<2*BATCH; ++i)
@@ -1172,12 +1228,16 @@ static size_t resample_opt4p4o_2batch(struct resample_data *rd, float*in, float 
 			in += 2;
 		}
 		break;
-		default: for(size_t i=0; i<2*BATCH; ++i)
+		default:
+#endif
+		for(size_t i=0; i<2*BATCH; ++i)
 		{
 			OPT4P4O_INTERPOL(in, out, outs, rd->channels)
 			in += rd->channels;
 		}
+#ifndef SYN123_NO_CASES
 	}
+#endif
 	OPT4P4O_END
 	return outs;
 }
@@ -1266,6 +1326,7 @@ static size_t resample_opt6p5o(struct resample_data *rd, float*in
 	if(!ins)
 		return outs;
 	OPT6P5O_BEGIN(in)
+#ifndef SYN123_NO_CASES
 	switch(rd->channels)
 	{
 		case  1: for(size_t i=0; i<ins; ++i)
@@ -1280,12 +1341,16 @@ static size_t resample_opt6p5o(struct resample_data *rd, float*in
 			in += 2;
 		}
 		break;
-		default: for(size_t i=0; i<ins; ++i)
+		default:
+#endif
+		for(size_t i=0; i<ins; ++i)
 		{
 			OPT6P5O_INTERPOL(in, out, outs, rd->channels)
 			in += rd->channels;
 		}
+#ifndef SYN123_NO_CASES
 	}
+#endif
 	OPT6P5O_END
 	return outs;
 }
@@ -1296,6 +1361,7 @@ static size_t resample_opt6p5o_2batch(struct resample_data *rd, float*in
 {
 	size_t outs = 0;
 	OPT6P5O_BEGIN(in)
+#ifndef SYN123_NO_CASES
 	switch(rd->channels)
 	{
 		case 1: for(size_t i=0; i<2*BATCH; ++i)
@@ -1310,12 +1376,16 @@ static size_t resample_opt6p5o_2batch(struct resample_data *rd, float*in
 			in += 2;
 		}
 		break;
-		default: for(size_t i=0; i<2*BATCH; ++i)
+		default:
+#endif
+		for(size_t i=0; i<2*BATCH; ++i)
 		{
 			OPT6P5O_INTERPOL(in, out, outs, rd->channels)
 			in += rd->channels;
 		}
+#ifndef SYN123_NO_CASES
 	}
+#endif
 	OPT6P5O_END
 	return outs;
 }
@@ -1888,7 +1958,9 @@ syn123_setup_resample( syn123_handle *sh, long inrate, long outrate
 		rd->decim_hist = NULL;
 		rd->channels = channels;
 		rd->frame = NULL;
+#ifndef SYN123_NO_CASES
 		if(channels > 2)
+#endif
 		{
 			rd->frame = malloc(sizeof(float)*channels);
 			if(!rd->frame)
