@@ -1,8 +1,4 @@
 /*
-TODO: stereo and multi-channel mode
-      I want to share one resampler setup, but need flexible history storage.
-      Fixed storage for one and two channels, 2.1 combining these, more
-      getting a separate allocation?
 TODO: efficient ringbuffer access for the decimation filter
 TODO: separate decimate_init, lowpass_init, etc. to be called on entry
       of the full resampling function, to remove that branch from the
