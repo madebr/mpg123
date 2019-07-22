@@ -170,6 +170,7 @@ then
   echo "Modules disabled, not checking for dynamic loading."
 else
   have_dl=no
+  dl_missing=no
   # The dlopen() API is either in libc or in libdl.
   if test "x$ac_cv_header_windows_h" = xyes &&
      test "x$win32" = xyes; then
@@ -190,8 +191,14 @@ int main() {
   [AC_MSG_RESULT([no])])
   else
     AC_SEARCH_LIBS(dlopen, dl)
+    AC_SEARCH_LIBS(dlsym, dl)
+    AC_SEARCH_LIBS(dlclose, dl)
     AC_CHECK_HEADER(dlfcn.h)
-    AC_CHECK_FUNCS(dlopen dlsym dlclose, [ have_dl=yes ])
+    AC_CHECK_FUNCS(dlopen dlsym dlclose, [ have_dl=yes ], [ dl_missing=yes] )
+  fi
+  if test x"$dl_missing" = xyes; then
+    AC_MSG_WARN([Some dynamic loading functions missing.])
+    have_dl=no
   fi
   if test x"$modules" = xenabled -a x"$have_dl" = xno; then
     AC_MSG_ERROR([Modules enabled but no runtime loader found! This will not work...])

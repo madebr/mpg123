@@ -94,7 +94,8 @@ More credit to OSS-Fuxx.
 -- Fix an out-of-bounds read of maximal two bytes for truncated RVA2 frames.
    (oss-fuzz-bug 15975). The earlier fix around the same location needed
    one thought more.
-
+- Fix dynamic build with gcc -fsanitize=address (check for all dl functions
+  before deciding that separate -ldl is not needed).
 
 1.25.11
 -------
