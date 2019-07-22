@@ -1,8 +1,5 @@
 /*
 TODO: efficient ringbuffer access for the decimation filter
-TODO: separate decimate_init, lowpass_init, etc. to be called on entry
-      of the full resampling function, to remove that branch from the
-      workers
 TODO: smooth ratio changes with interpolator history and final lowpass filter
       history handling
 TODO: initialize with first sample or zero? is there an actual benefit? impulse
