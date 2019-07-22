@@ -420,12 +420,18 @@ static const float preemp_2xopt6p5o_coeff[2][6] =
 	, -3.1166281821e-01, -1.3266510256e-01, -1.1224337963e-02 }
 };
 
+// TODO: switch the decimation filter to Direct Form II
+struct lpf4_hist
+{
+	float x[LPF_4_ORDER];
+	float y[LPF_4_ORDER];
+};
+
 struct decimator_state
 {
 	unsigned int sflags; // also stores decimation position (0 or 1)
 	unsigned int n1;
-	float x[LPF_4_ORDER];
-	float y[LPF_4_ORDER];
+	struct lpf4_hist *ch; // one for each channel, pointer into common array
 };
 
 #ifdef SYN123_HIGH_PREC
@@ -469,6 +475,15 @@ enum state_flags
 #define BATCH SYN123_BATCH
 #endif
 
+struct channel_history
+{
+	// Direct Form II histories for preemp and lowpass
+	float pre_w[PREEMP_ORDER]; // history for Direct Form II
+	float lpf_w[LPF_MAX_TIMES][LPF_ORDER];
+	float x[5]; // past input samples for interpolator
+	float c[6]; // interpolator coefficients
+};
+
 struct resample_data
 {
 	unsigned int sflags;
@@ -479,10 +494,13 @@ struct resample_data
 	// number of output samples safely within the limit of size_t.
 	size_t input_limit;
 	// Decimator state. Each stage has a an instance of lpf_4 and the decimator.
-	struct decimator_state *decim;
 	unsigned int decim_stages;
-	float prebuf[BATCH];
-	float upbuf[2*BATCH];
+	struct decimator_state *decim;
+	struct lpf4_hist *decim_hist; // storage for the above to avoid nested malloc
+	struct channel_history *ch;
+	float *frame; // One PCM frame to work on (one sample for each channel).
+	float *prebuf; // [channels*BATCH]
+	float *upbuf;  // [channels*2*BATCH]
 	// Final lowpass filter setup.
 	float lpf_cutoff;
 	float lpf_w_c;
@@ -492,7 +510,6 @@ struct resample_data
 	unsigned char pre_n1;
 	float pre_b[PREEMP_ORDER][PREEMP_ORDER];
 	float pre_a[PREEMP_ORDER][PREEMP_ORDER];
-	float pre_w[PREEMP_ORDER]; // history for Direct Form II
 	// Same for the low pass.
 	float lpf_b0;
 	// Low pass filter history in ringbuffer. For each ringbuffer state, there is
@@ -502,14 +519,13 @@ struct resample_data
 	// just don't add up for vector instructions.
 	float lpf_b[LPF_ORDER][LPF_ORDER];
 	float lpf_a[LPF_ORDER][LPF_ORDER];
-	float lpf_w[LPF_MAX_TIMES][LPF_ORDER];
 	// Interpolator state.
 	// In future, I could pull the same trick with ringbuffer and copies
 	// of coefficients (matrices, even) as for lpf.
 	// TODO: maybe store more of these for better filter adaption on rate changes, or
 	// at least always the full set of 5.
-	float x[5]; // past input samples for interpolator
 	long offset; // interpolator offset
+	unsigned int channels;
 	long inrate;
 	long vinrate;
 	long outrate;
@@ -708,44 +724,124 @@ static void preemp_init(struct resample_data *rd)
 
 // One decimation step: low pass with transition band from 1/2 to 1/4,
 // drop every second sample. This works within the input buffer.
-static size_t decimate(struct decimator_state *rd, float *in, size_t ins)
+static size_t decimate(struct decimator_state *rd, struct resample_data *rrd, float *in, size_t ins)
 {
 	if(!ins)
 		return 0;
+	mdebug("decimating %zu samples", ins);
 	if(!(rd->sflags & lowpass_flow))
 	{
-		for(int j=0; j<LPF_4_ORDER; ++j)
-			rd->x[j] = rd->y[j] = in[0];
+		for(unsigned int c=0; c<rrd->channels; ++c)
+			for(unsigned int j=0; j<LPF_4_ORDER; ++j)
+				rd->ch[c].x[j] = rd->ch[c].y[j] = in[c];
 		rd->n1 = 0;
 		rd->sflags |= lowpass_flow|decimate_store;
 	}
 	float *out = in;
-	for(size_t i=0; i<ins; ++i)
+	size_t outs = 0;
+	switch(rrd->channels)
 	{
-		// y0 = b0x0 + b1x1 + ... + bxyn - a1y1 - ... - anyn
-		// Switching y to double pushes roundoff hf noise down (?).
-		lpf_sum_type ny = lpf_4_coeff[0][0] * in[i]; // a0 == 1 implicit here
-		for(int j=0; j<LPF_4_ORDER; ++j)
+		case 1: for(size_t i=0; i<ins; ++i)
 		{
-			// This direct summing without intermediate asum and bsum
-			// pushs roundoff hf noise down.
-			int ni = RING_INDEX(j, rd->n1, LPF_4_ORDER);
-			ny += rd->x[ni]*lpf_4_coeff[0][j+1];
-			ny -= rd->y[ni]*lpf_4_coeff[1][j+1];
+			int ni[LPF_4_ORDER];
+			for(int j=0; j<LPF_4_ORDER; ++j)
+				ni[j] = RING_INDEX(j, rd->n1, LPF_4_ORDER);
+			rd->n1 = ni[LPF_4_ORDER-1];
+			// y0 = b0x0 + b1x1 + ... + bxyn - a1y1 - ... - anyn
+			// Switching y to double pushes roundoff hf noise down (?).
+			lpf_sum_type ny = lpf_4_coeff[0][0] * in[i]; // a0 == 1 implicit here
+			for(int j=0; j<LPF_4_ORDER; ++j)
+			{
+				// This direct summing without intermediate asum and bsum
+				// pushs roundoff hf noise down.
+				ny += rd->ch[0].x[ni[j]]*lpf_4_coeff[0][j+1];
+				ny -= rd->ch[0].y[ni[j]]*lpf_4_coeff[1][j+1];
+			}
+			rd->ch[0].x[rd->n1] = in[i];
+			rd->ch[0].y[rd->n1] = ny;
+			// Drop every second sample.
+			// Maybe its faster doing this in a separate step after all?
+			if(rd->sflags & decimate_store)
+			{
+				*(out++) = ny;
+				rd->sflags &= ~decimate_store;
+				++outs;
+			} else
+				rd->sflags |= decimate_store;
 		}
-		rd->n1 = RING_INDEX(LPF_4_ORDER-1, rd->n1, LPF_4_ORDER);
-		rd->x[rd->n1] = in[i];
-		rd->y[rd->n1] = ny;
-		// Drop every second sample.
-		// Maybe its faster doing this in a separate step after all?
-		if(rd->sflags & decimate_store)
+		break;
+		case 2: for(size_t i=0; i<ins; ++i)
 		{
-			*(out++) = ny;
-			rd->sflags &= ~decimate_store;
-		} else
-			rd->sflags |= decimate_store;
+			int ni[LPF_4_ORDER];
+			for(int j=0; j<LPF_4_ORDER; ++j)
+				ni[j] = RING_INDEX(j, rd->n1, LPF_4_ORDER);
+			rd->n1 = ni[LPF_4_ORDER-1];
+			float frame[2];
+			for(unsigned int c=0; c<2; ++c)
+			{
+				// y0 = b0x0 + b1x1 + ... + bxyn - a1y1 - ... - anyn
+				// Switching y to double pushes roundoff hf noise down (?).
+				lpf_sum_type ny = lpf_4_coeff[0][0] * in[c]; // a0 == 1 implicit here
+				for(int j=0; j<LPF_4_ORDER; ++j)
+				{
+					// This direct summing without intermediate asum and bsum
+					// pushs roundoff hf noise down.
+					ny += rd->ch[c].x[ni[j]]*lpf_4_coeff[0][j+1];
+					ny -= rd->ch[c].y[ni[j]]*lpf_4_coeff[1][j+1];
+				}
+				rd->ch[c].x[rd->n1] = in[c];
+				rd->ch[c].y[rd->n1] = ny;
+				frame[c] = ny;
+			}
+			in += 2;
+			// Drop every second sample.
+			// Maybe its faster doing this in a separate step after all?
+			if(rd->sflags & decimate_store)
+			{
+				*(out++) = frame[0];
+				*(out++) = frame[1];
+				rd->sflags &= ~decimate_store;
+				++outs;
+			} else
+				rd->sflags |= decimate_store;
+		}
+		break;
+		default: for(size_t i=0; i<ins; ++i)
+		{
+			int ni[LPF_4_ORDER];
+			for(int j=0; j<LPF_4_ORDER; ++j)
+				ni[j] = RING_INDEX(j, rd->n1, LPF_4_ORDER);
+			rd->n1 = ni[LPF_4_ORDER-1];
+			for(unsigned int c=0; c<rrd->channels; ++c)
+			{
+				// y0 = b0x0 + b1x1 + ... + bxyn - a1y1 - ... - anyn
+				// Switching y to double pushes roundoff hf noise down (?).
+				lpf_sum_type ny = lpf_4_coeff[0][0] * in[c]; // a0 == 1 implicit here
+				for(int j=0; j<LPF_4_ORDER; ++j)
+				{
+					// This direct summing without intermediate asum and bsum
+					// pushs roundoff hf noise down.
+					ny += rd->ch[c].x[ni[j]]*lpf_4_coeff[0][j+1];
+					ny -= rd->ch[c].y[ni[j]]*lpf_4_coeff[1][j+1];
+				}
+				rd->ch[c].x[rd->n1] = in[c];
+				rd->ch[c].y[rd->n1] = ny;
+				rrd->frame[c] = ny;
+			}
+			in += rrd->channels;
+			// Drop every second sample.
+			// Maybe its faster doing this in a separate step after all?
+			if(rd->sflags & decimate_store)
+			{
+				for(unsigned int c=0; c<rrd->channels; ++c)
+					*(out++) = rrd->frame[c];
+				rd->sflags &= ~decimate_store;
+				++outs;
+			} else
+				rd->sflags |= decimate_store;
+		}
 	}
-	return (size_t)(out-in);
+	return outs;
 }
 
 // Initialization of Direct Form 2 history.
@@ -766,7 +862,7 @@ static float df2_initval(unsigned int order, float *filter_a, float insample)
 	return scale * insample;
 }
 
-#define PREEMP_DF2_BEGIN(initval, ret) \
+#define PREEMP_DF2_BEGIN(initval, channels, ret) \
 	if(!(rd->sflags & preemp_flow)) \
 	{ \
 		if(!(rd->sflags & preemp_configured)) \
@@ -774,35 +870,42 @@ static float df2_initval(unsigned int order, float *filter_a, float insample)
 			fprintf(stderr, "unconfigured pre-emphasis\n"); \
 			return ret; \
 		} \
-		float iv = df2_initval(PREEMP_ORDER, rd->pre_a[0], initval); \
-		for(int i=0; i<PREEMP_ORDER; ++i) \
-			rd->pre_w[i] = iv; \
+		for(int c=0; c<channels; ++c) \
+		{ \
+			float iv = df2_initval(PREEMP_ORDER, rd->pre_a[0], initval[c]); \
+			for(int i=0; i<PREEMP_ORDER; ++i) \
+				rd->ch[c].pre_w[i] = iv; \
+		} \
 		rd->pre_n1 = 0; \
 		rd->sflags |= preemp_flow; \
 	}
 
 // Might not be faster than DFI, but for sure needs less storage.
-#define PREEMP_DF2_SAMPLE(out) \
+#define PREEMP_DF2_SAMPLE(in, out, channels) \
 	{ \
-		lpf_sum_type ny = 0; \
-		lpf_sum_type nw = 0; \
-		for(int i=0; i<PREEMP_ORDER; ++i) \
-		{ \
-			ny += rd->pre_w[i]*rd->pre_b[rd->pre_n1][i]; \
-			nw -= rd->pre_w[i]*rd->pre_a[rd->pre_n1][i]; \
-		} \
+		unsigned char n1 = rd->pre_n1; \
 		rd->pre_n1 = RING_INDEX(PREEMP_ORDER-1, rd->pre_n1, PREEMP_ORDER); \
-		nw += in[i]; \
-		ny += rd->pre_b0 * nw; \
-		rd->pre_w[rd->pre_n1] = nw; \
-		out = ny; \
+		for(unsigned int c=0; c<channels; ++c) \
+		{ \
+			lpf_sum_type ny = 0; \
+			lpf_sum_type nw = 0; \
+			for(unsigned char i=0; i<PREEMP_ORDER; ++i) \
+			{ \
+				ny += rd->ch[c].pre_w[i]*rd->pre_b[n1][i]; \
+				nw -= rd->ch[c].pre_w[i]*rd->pre_a[n1][i]; \
+			} \
+			nw += in[c]; \
+			ny += rd->pre_b0 * nw; \
+			rd->ch[c].pre_w[rd->pre_n1] = nw; \
+			out[c] = ny; \
+		} \
 	}
 
 // Beginning of a low pass function with on-the-fly initialization
 // of filter history.
 // For oversampling lowpass with zero-stuffing, initialize to half of first
 // input sample.
-#define LPF_DF2_BEGIN(times,initval,ret) \
+#define LPF_DF2_BEGIN(times,initval,channels,ret) \
 	if(!(rd->sflags & lowpass_flow)) \
 	{ \
 		if(!(rd->sflags & lowpass_configured)) \
@@ -811,35 +914,39 @@ static float df2_initval(unsigned int order, float *filter_a, float insample)
 			return ret; \
 		} \
 		rd->lpf_n1 = 0; \
-		float iv = df2_initval(LPF_ORDER, rd->lpf_a[0], initval); \
-		for(int j=0; j<2; ++j) \
-			for(int i=0; i<LPF_ORDER; ++i) \
-				rd->lpf_w[j][i] = iv; \
+		for(unsigned int c=0; c<channels; ++c) \
+		{ \
+			float iv = df2_initval(LPF_ORDER, rd->lpf_a[0], initval[c]); \
+			for(int j=0; j<2; ++j) \
+				for(int i=0; i<LPF_ORDER; ++i) \
+					rd->ch[c].lpf_w[j][i] = iv; \
+		} \
 		rd->sflags |= lowpass_flow; \
 	} \
 	int n1 = rd->lpf_n1; \
-	int n1n; \
-	float old_y;
+	int n1n;
 
-#define LPF_DF2_SAMPLE(times, insample, outsample) \
-	old_y = (insample); \
+#define LPF_DF2_SAMPLE(times, in, out, channels) \
 	n1n = RING_INDEX(LPF_ORDER-1, n1, LPF_ORDER); \
-	for(int j=0; j<times; ++j) \
+	for(unsigned int c=0; c<channels; ++c) \
 	{ \
-		lpf_sum_type w = old_y; \
-		lpf_sum_type y = 0; \
-		for(int k=0; k<LPF_ORDER; ++k) \
+		float old_y = in[c]; \
+		for(int j=0; j<times; ++j) \
 		{ \
-			y += rd->lpf_w[j][k]*rd->lpf_b[n1][k]; \
-			w -= rd->lpf_w[j][k]*rd->lpf_a[n1][k]; \
+			lpf_sum_type w = old_y; \
+			lpf_sum_type y = 0; \
+			for(int k=0; k<LPF_ORDER; ++k) \
+			{ \
+				y += rd->ch[c].lpf_w[j][k]*rd->lpf_b[n1][k]; \
+				w -= rd->ch[c].lpf_w[j][k]*rd->lpf_a[n1][k]; \
+			} \
+			rd->ch[c].lpf_w[j][n1n] = w; \
+			y += rd->lpf_b0*w; \
+			old_y = y; \
 		} \
-		rd->lpf_w[j][n1n] = w; \
-		y += rd->lpf_b0*w; \
-		old_y = y; \
+		out[c] = old_y; \
 	} \
-\
-	n1 = n1n; \
-	(outsample) = old_y;
+	n1 = n1n;
 
 #define LPF_DF2_END \
 	rd->lpf_n1 = n1;
@@ -854,17 +961,53 @@ static void lowpass##times##_df2_preemp_2x(struct resample_data *rd, float *in, 
 { \
 	if(!ins) \
 		return; \
-	LPF_DF2_BEGIN(times,in[0],) \
-	PREEMP_DF2_BEGIN(in[0],); \
-	for(size_t i=0; i<ins; ++i) \
+	LPF_DF2_BEGIN(times,in,rd->channels,) \
+	PREEMP_DF2_BEGIN(in,rd->channels,); \
+	switch(rd->channels) \
 	{ \
-			float insample = in[0]; \
-			PREEMP_DF2_SAMPLE(insample) \
-			/* Zero-stuffing! Insert zero, make up for energy loss. */ \
-			LPF_DF2_SAMPLE(times, 2*insample, *out) \
-			++out; \
-			LPF_DF2_SAMPLE(times, 0, *out) \
-			++out; \
+		case 1: for(size_t i=0; i<ins; ++i) \
+		{ \
+			float sample; \
+			PREEMP_DF2_SAMPLE(in, (&sample), 1) \
+			/* Zero-stuffing! Insert zero after making up for energy loss. */ \
+			sample *= 2; \
+			LPF_DF2_SAMPLE(times, (&sample), out, 1) \
+			out++; \
+			sample = 0; \
+			LPF_DF2_SAMPLE(times, (&sample), out, 1) \
+			out++; \
+			in++; \
+		} \
+		break; \
+		case 2: for(size_t i=0; i<ins; ++i) \
+		{ \
+			float frame[2]; \
+			PREEMP_DF2_SAMPLE(in, frame, 2) \
+			/* Zero-stuffing! Insert zero after making up for energy loss. */ \
+			frame[0] *= 2; \
+			frame[1] *= 2; \
+			LPF_DF2_SAMPLE(times, frame, out, 2) \
+			out += 2; \
+			frame[1] = frame[0] = 0; \
+			LPF_DF2_SAMPLE(times, frame, out, 2) \
+			out += 2; \
+			in  += 2; \
+		} \
+		break; \
+		default: for(size_t i=0; i<ins; ++i) \
+		{ \
+			PREEMP_DF2_SAMPLE(in, rd->frame, rd->channels) \
+			/* Zero-stuffing! Insert zero after making up for energy loss. */ \
+			for(unsigned int c=0; c<rd->channels; ++c) \
+				rd->frame[c] *= 2; \
+			LPF_DF2_SAMPLE(times, rd->frame, out, rd->channels) \
+			out += rd->channels; \
+			for(unsigned int c=0; c<rd->channels; ++c) \
+				rd->frame[c] = 0; \
+			LPF_DF2_SAMPLE(times, rd->frame, out, rd->channels) \
+			out += rd->channels; \
+			in  += rd->channels; \
+		} \
 	} \
 	LPF_DF2_END \
 } \
@@ -874,12 +1017,36 @@ static void lowpass##times##_df2_preemp(struct resample_data *rd, float *in, siz
 	if(!ins) \
 		return; \
 	float *out = in; \
-	LPF_DF2_BEGIN(times,in[0],) \
-	PREEMP_DF2_BEGIN(in[0],); \
-	for(size_t i=0; i<ins; ++i) \
+	LPF_DF2_BEGIN(times, in, rd->channels,) \
+	PREEMP_DF2_BEGIN(in, rd->channels,); \
+	switch(rd->channels) \
 	{ \
-		PREEMP_DF2_SAMPLE(in[i]) \
-		LPF_DF2_SAMPLE(times, in[i], out[i]) \
+		case 1:  for(size_t i=0; i<ins; ++i) \
+		{ \
+			float sample; \
+			PREEMP_DF2_SAMPLE(in, (&sample), 1) \
+			LPF_DF2_SAMPLE(times, (&sample), out, 1) \
+			in++; \
+			out++; \
+		} \
+		break; \
+		case 2:  for(size_t i=0; i<ins; ++i) \
+		{ \
+			float frame[2]; \
+			PREEMP_DF2_SAMPLE(in, frame, 2) \
+			LPF_DF2_SAMPLE(times, frame, out, 2) \
+			in  += 2; \
+			out += 2; \
+		} \
+		break; \
+		default: for(size_t i=0; i<ins; ++i) \
+		{ \
+			PREEMP_DF2_SAMPLE(in, rd->frame, rd->channels) \
+			LPF_DF2_SAMPLE(times, rd->frame, out, rd->channels) \
+			in  += rd->channels; \
+			out += rd->channels; \
+		} \
+		break; \
 	} \
 	LPF_DF2_END \
 }
@@ -897,45 +1064,63 @@ LOWPASS_DF2_FUNCS(DIRTY_LPF_TIMES)
 // http://www.student.oulu.fi/~oniemita/DSP/INDEX.HTM
 // http://yehar.com/blog/wp-content/uploads/2009/08/deip.pdf
 
-#define OPT4P4O_BEGIN(insample) \
+#define OPT4P4O_BEGIN(in) \
 	if(!(rd->sflags & inter_flow)) \
 	{ \
-		rd->x[0] = rd->x[1] = rd->x[2] = (insample); \
+		for(unsigned int c=0; c<rd->channels; ++c) \
+			rd->ch[c].x[0] = rd->ch[c].x[1] = rd->ch[c].x[2] = in[c]; \
 		rd->offset = -rd->vinrate; \
 		rd->sflags |= inter_flow; \
-	} \
-	float x0 = rd->x[0]; \
-	float x1 = rd->x[1]; \
-	float x2 = rd->x[2]; \
-
-#define OPT4P4O_INTERPOL(insample) \
-	{ \
-		float x3 = insample; \
-		float even1 = x2+x1, odd1 = x2-x1; \
-		float even2 = x3+x0, odd2 = x3-x0; \
-		float c0 = even1*0.45645918406487612f + even2*0.04354173901996461f; \
-		float c1 = odd1*0.47236675362442071f + odd2*0.17686613581136501f; \
-		float c2 = even1*-0.253674794204558521f + even2*0.25371918651882464f; \
-		float c3 = odd1*-0.37917091811631082f + odd2*0.11952965967158000f; \
-		float c4 = even1*0.04252164479749607f + even2*-0.04289144034653719f; \
-		/* Offset is how long ago the last sample occured. */ \
-		long sampleoff = rd->offset; \
-		while(sampleoff+rd->vinrate < rd->voutrate) \
-		{ \
-			sampleoff += rd->vinrate; \
-			float z = ((float)sampleoff/rd->voutrate) - (float)0.5; \
-			out[outs++] = (((c4*z+c3)*z+c2)*z+c1)*z+c0; \
-		} \
-		rd->offset = sampleoff - rd->voutrate; \
-		x0 = x1; \
-		x1 = x2; \
-		x2 = x3; \
 	}
 
-#define OPT4P4O_END \
-	rd->x[0] = x0; \
-	rd->x[1] = x1; \
-	rd->x[2] = x2;
+/* See OPT6P5O_INTERPOL for logic hints. */
+#define OPT4P4O_INTERPOL(in, out, outs, channels) \
+	{ \
+		long sampleoff = rd->offset; \
+		if(sampleoff+rd->vinrate < rd->voutrate) \
+		{ \
+			for(unsigned int c=0; c<channels; ++c) \
+			{ \
+				float even1 = rd->ch[c].x[2]+rd->ch[c].x[1]; \
+				float  odd1 = rd->ch[c].x[2]-rd->ch[c].x[1]; \
+				float even2 = in[c]+rd->ch[c].x[0]; \
+				float  odd2 = in[c]-rd->ch[c].x[0]; \
+				rd->ch[c].c[0] = even1*0.45645918406487612f \
+				               + even2*0.04354173901996461f; \
+				rd->ch[c].c[1] = odd1*0.47236675362442071f \
+				               + odd2*0.17686613581136501f; \
+				rd->ch[c].c[2] = even1*-0.253674794204558521f \
+				               + even2*0.25371918651882464f; \
+				rd->ch[c].c[3] = odd1*-0.37917091811631082f \
+				               + odd2*0.11952965967158000f; \
+				rd->ch[c].c[4] = even1*0.04252164479749607f \
+				               + even2*-0.04289144034653719f; \
+			} \
+			do	{ \
+				sampleoff += rd->vinrate; \
+				float z = ((float)sampleoff/rd->voutrate) - (float)0.5; \
+				for(unsigned int c=0; c<channels; ++c) \
+					out[c] = \
+					(	(	( \
+								rd->ch[c].c[4] \
+								*z + rd->ch[c].c[3] \
+							)*z + rd->ch[c].c[2] \
+						)*z + rd->ch[c].c[1] \
+					)*z + rd->ch[c].c[0]; \
+				outs++; \
+				out += channels; \
+			} while(sampleoff+rd->vinrate < rd->voutrate); \
+		} \
+		for(unsigned int c=0; c<channels; ++c) \
+		{ \
+			rd->ch[c].x[0] = rd->ch[c].x[1]; \
+			rd->ch[c].x[1] = rd->ch[c].x[2]; \
+			rd->ch[c].x[2] = in[c]; \
+		} \
+		rd->offset = sampleoff - rd->voutrate; \
+	}
+
+#define OPT4P4O_END
 
 // Optimal 2x (4-point, 4th-order) (z-form)
 static size_t resample_opt4p4o(struct resample_data *rd, float*in
@@ -944,9 +1129,27 @@ static size_t resample_opt4p4o(struct resample_data *rd, float*in
 	size_t outs = 0;
 	if(!ins)
 		return outs;
-	OPT4P4O_BEGIN(in[0])
-	for(size_t i=0; i<ins; ++i)
-		OPT4P4O_INTERPOL(in[i])
+	OPT4P4O_BEGIN(in)
+	switch(rd->channels)
+	{
+		case  1: for(size_t i=0; i<ins; ++i)
+		{
+			OPT4P4O_INTERPOL(in, out, outs, 1)
+			in++;
+		}
+		break;
+		case  2: for(size_t i=0; i<ins; ++i)
+		{
+			OPT4P4O_INTERPOL(in, out, outs, 2)
+			in += 2;
+		}
+		break;
+		default: for(size_t i=0; i<ins; ++i)
+		{
+			OPT4P4O_INTERPOL(in, out, outs, rd->channels)
+			in += rd->channels;
+		}
+	}
 	OPT4P4O_END
 	return outs;
 }
@@ -954,9 +1157,27 @@ static size_t resample_opt4p4o(struct resample_data *rd, float*in
 static size_t resample_opt4p4o_2batch(struct resample_data *rd, float*in, float *out)
 {
 	size_t outs = 0;
-	OPT4P4O_BEGIN(in[0])
-	for(size_t i=0; i<2*BATCH; ++i)
-		OPT4P4O_INTERPOL(in[i])
+	OPT4P4O_BEGIN(in)
+	switch(rd->channels)
+	{
+		case  1: for(size_t i=0; i<2*BATCH; ++i)
+		{
+			OPT4P4O_INTERPOL(in, out, outs, 1)
+			in++;
+		}
+		break;
+		case  2: for(size_t i=0; i<2*BATCH; ++i)
+		{
+			OPT4P4O_INTERPOL(in, out, outs, 2)
+			in += 2;
+		}
+		break;
+		default: for(size_t i=0; i<2*BATCH; ++i)
+		{
+			OPT4P4O_INTERPOL(in, out, outs, rd->channels)
+			in += rd->channels;
+		}
+	}
 	OPT4P4O_END
 	return outs;
 }
@@ -964,59 +1185,79 @@ static size_t resample_opt4p4o_2batch(struct resample_data *rd, float*in, float 
 // This one has low distortion, somewhat more problematic response
 // Optimal 2x (6-point, 5th-order) (z-form)
 
-#define OPT6P5O_BEGIN(insample) \
+#define OPT6P5O_BEGIN(in) \
 	if(!(rd->sflags & inter_flow)) \
 	{ \
-		rd->x[0] = rd->x[1] = rd->x[2] = rd->x[3] = rd->x[4] = (insample); \
+		for(unsigned int c=0; c<rd->channels; ++c) \
+		{ \
+			rd->ch[c].x[0] = rd->ch[c].x[1] = rd->ch[c].x[2] \
+			=	rd->ch[c].x[3] = rd->ch[c].x[4] = in[c]; \
+		} \
 		rd->offset = -rd->vinrate; \
 		rd->sflags |= inter_flow; \
-	} \
-	float x0 = rd->x[0]; \
-	float x1 = rd->x[1]; \
-	float x2 = rd->x[2]; \
-	float x3 = rd->x[3]; \
-	float x4 = rd->x[4];
-
-#define OPT6P5O_INTERPOL(insample, out, outs) \
-	{ \
-		float x5 = in[i]; \
-		float even1 = x3+x2, odd1 = x3-x2; \
-		float even2 = x4+x1, odd2 = x4-x1; \
-		float even3 = x5+x0, odd3 = x5-x0; \
-		float c0 = even1*0.40513396007145713f + even2*0.09251794438424393f \
-		+ even3*0.00234806603570670f; \
-		float c1 = odd1*0.28342806338906690f + odd2*0.21703277024054901f \
-		+ odd3*0.01309294748731515f; \
-		float c2 = even1*-0.191337682540351941f + even2*0.16187844487943592f \
-		+ even3*0.02946017143111912f; \
-		float c3 = odd1*-0.16471626190554542f + odd2*-0.00154547203542499f \
-		+ odd3*0.03399271444851909f; \
-		float c4 = even1*0.03845798729588149f + even2*-0.05712936104242644f \
-		+ even3*0.01866750929921070f; \
-		float c5 = odd1*0.04317950185225609f + odd2*-0.01802814255926417f \
-		+ odd3*0.00152170021558204f; \
-		/* Offset is how long ago the last sample occured. */ \
-		long sampleoff = rd->offset; \
-		while(sampleoff < rd->voutrate-rd->vinrate) \
-		{ \
-			sampleoff += rd->vinrate; \
-			float z = ((float)sampleoff/rd->voutrate) - (float)0.5; \
-			out[outs++] = ((((c5*z+c4)*z+c3)*z+c2)*z+c1)*z+c0; \
-		} \
-		rd->offset = sampleoff - rd->voutrate; \
-		x0 = x1; \
-		x1 = x2; \
-		x2 = x3; \
-		x3 = x4; \
-		x4 = x5; \
 	}
 
-#define OPT6P5O_END \
-	rd->x[0] = x0; \
-	rd->x[1] = x1; \
-	rd->x[2] = x2; \
-	rd->x[3] = x3; \
-	rd->x[4] = x4;
+#define OPT6P5O_INTERPOL(in, out, outs, channels) \
+	{ \
+		/* Offset is how long ago the last sample occured. */ \
+		long sampleoff = rd->offset; \
+		/* First check if this interval is interesting at all. */ \
+		if(sampleoff < rd->voutrate-rd->vinrate) \
+		{ \
+			/* Not sure if one big loop over the channels would be better. SIMD?! */ \
+			for(unsigned int c=0; c<channels; ++c) \
+			{ \
+				float even1 = rd->ch[c].x[3]+rd->ch[c].x[2]; \
+				float  odd1 = rd->ch[c].x[3]-rd->ch[c].x[2]; \
+				float even2 = rd->ch[c].x[4]+rd->ch[c].x[1]; \
+				float  odd2 = rd->ch[c].x[4]-rd->ch[c].x[1]; \
+				float even3 = in[c]+rd->ch[c].x[0]; \
+				float  odd3 = in[c]-rd->ch[c].x[0]; \
+				rd->ch[c].c[0] = even1*0.40513396007145713f + even2*0.09251794438424393f \
+				               + even3*0.00234806603570670f; \
+				rd->ch[c].c[1] = odd1*0.28342806338906690f + odd2*0.21703277024054901f \
+				               + odd3*0.01309294748731515f; \
+				rd->ch[c].c[2] = even1*-0.191337682540351941f + even2*0.16187844487943592f \
+				               + even3*0.02946017143111912f; \
+				rd->ch[c].c[3] = odd1*-0.16471626190554542f + odd2*-0.00154547203542499f \
+				               + odd3*0.03399271444851909f; \
+				rd->ch[c].c[4] = even1*0.03845798729588149f + even2*-0.05712936104242644f \
+				               + even3*0.01866750929921070f; \
+				rd->ch[c].c[5] = odd1*0.04317950185225609f + odd2*-0.01802814255926417f \
+				               + odd3*0.00152170021558204f; \
+			} \
+			/* Only reaching this code if at least one evaluation is due. */ \
+			do { \
+				sampleoff += rd->vinrate; \
+				/* Evaluating as vector sum may be worthwhile for strong upsampling, */ \
+				/* possibly many channels. Otherwise, it's just more muls. */ \
+				float z = ((float)sampleoff/rd->voutrate) - (float)0.5; \
+				for(unsigned int c=0; c<channels; ++c) \
+					out[c] = \
+					(	(	(	( \
+									rd->ch[c].c[5] \
+									*z + rd->ch[c].c[4] \
+								)*z + rd->ch[c].c[3] \
+							)*z +	rd->ch[c].c[2] \
+						)*z +	rd->ch[c].c[1] \
+					)*z + rd->ch[c].c[0]; \
+				outs++; \
+				out += channels; \
+			} while(sampleoff < rd->voutrate-rd->vinrate); \
+		} \
+		for(unsigned int c=0; c<channels; ++c) \
+		{ \
+			/* Store shifted history. Think about using RING_INDEX here, too, */ \
+			rd->ch[c].x[0] = rd->ch[c].x[1]; \
+			rd->ch[c].x[1] = rd->ch[c].x[2]; \
+			rd->ch[c].x[2] = rd->ch[c].x[3]; \
+			rd->ch[c].x[3] = rd->ch[c].x[4]; \
+			rd->ch[c].x[4] = in[c]; \
+		} \
+		rd->offset = sampleoff - rd->voutrate; \
+	}
+
+#define OPT6P5O_END
 
 static size_t resample_opt6p5o(struct resample_data *rd, float*in
 ,	size_t ins, float *out)
@@ -1024,20 +1265,57 @@ static size_t resample_opt6p5o(struct resample_data *rd, float*in
 	size_t outs = 0;
 	if(!ins)
 		return outs;
-	OPT6P5O_BEGIN(in[0])
-	for(size_t i=0; i<ins; ++i)
-		OPT6P5O_INTERPOL(in[i], out, outs)
+	OPT6P5O_BEGIN(in)
+	switch(rd->channels)
+	{
+		case  1: for(size_t i=0; i<ins; ++i)
+		{
+			OPT6P5O_INTERPOL(in, out, outs, 1)
+			in++;
+		}
+		break;
+		case  2: for(size_t i=0; i<ins; ++i)
+		{
+			OPT6P5O_INTERPOL(in, out, outs, 2)
+			in += 2;
+		}
+		break;
+		default: for(size_t i=0; i<ins; ++i)
+		{
+			OPT6P5O_INTERPOL(in, out, outs, rd->channels)
+			in += rd->channels;
+		}
+	}
 	OPT6P5O_END
 	return outs;
 }
 
+// TODO: Remove the 2batch version after verifying that it doesn't improve things.
 static size_t resample_opt6p5o_2batch(struct resample_data *rd, float*in
 ,	float *out)
 {
 	size_t outs = 0;
-	OPT6P5O_BEGIN(in[0])
-	for(size_t i=0; i<2*BATCH; ++i)
-		OPT6P5O_INTERPOL(in[i], out, outs)
+	OPT6P5O_BEGIN(in)
+	switch(rd->channels)
+	{
+		case 1: for(size_t i=0; i<2*BATCH; ++i)
+		{
+			OPT6P5O_INTERPOL(in, out, outs, 1)
+			in++;
+		}
+		break;
+		case 2: for(size_t i=0; i<2*BATCH; ++i)
+		{
+			OPT6P5O_INTERPOL(in, out, outs, 2)
+			in += 2;
+		}
+		break;
+		default: for(size_t i=0; i<2*BATCH; ++i)
+		{
+			OPT6P5O_INTERPOL(in, out, outs, rd->channels)
+			in += rd->channels;
+		}
+	}
 	OPT6P5O_END
 	return outs;
 }
@@ -1056,8 +1334,8 @@ static size_t name( struct resample_data *rd \
 		lpf_2x(rd, in, BATCH, rd->upbuf); \
 		nouts = interpolate_2batch(rd, rd->upbuf, out); \
 		outs += nouts; \
-		out  += nouts; \
-		in   += BATCH; \
+		out  += nouts*rd->channels; \
+		in   += BATCH*rd->channels; \
 	} \
 	ins -= blocks*BATCH; \
 	lpf_2x(rd, in, ins, rd->upbuf); \
@@ -1076,15 +1354,15 @@ static size_t name( struct resample_data *rd \
 	size_t blocks = ins/BATCH; \
 	for(size_t bi = 0; bi<blocks; ++bi) \
 	{ \
-		memcpy(rd->prebuf, in, BATCH*sizeof(*in)); \
+		memcpy(rd->prebuf, in, BATCH*sizeof(*in)*rd->channels); \
 		lpf(rd, rd->prebuf, BATCH); \
 		nouts = interpolate(rd, rd->prebuf, BATCH, out); \
 		outs += nouts; \
-		out  += nouts; \
-		in   += BATCH; \
+		out  += nouts*rd->channels; \
+		in   += BATCH*rd->channels; \
 	} \
 	ins -= blocks*BATCH; \
-	memcpy(rd->prebuf, in, ins*sizeof(*in)); \
+	memcpy(rd->prebuf, in, ins*sizeof(*in)*rd->channels); \
 	lpf(rd, rd->prebuf, ins); \
 	nouts = interpolate(rd, rd->prebuf, ins, out); \
 	outs += nouts; \
@@ -1102,20 +1380,20 @@ static size_t name( struct resample_data *rd \
 	for(size_t bi = 0; bi<blocks; ++bi) \
 	{ \
 		int fill = BATCH; \
-		memcpy(rd->prebuf, in, fill*sizeof(*in)); \
+		memcpy(rd->prebuf, in, fill*sizeof(*in)*rd->channels); \
 		for(int ds = 0; ds<rd->decim_stages; ++ds) \
-			fill = decimate(rd->decim+ds, rd->prebuf, fill); \
+			fill = decimate(rd->decim+ds, rd, rd->prebuf, fill); \
 		lpf(rd, rd->prebuf, fill); \
 		nouts = interpolate(rd, rd->prebuf, fill, out); \
 		outs += nouts; \
-		out  += nouts; \
-		in   += BATCH; \
+		out  += nouts*rd->channels; \
+		in   += BATCH*rd->channels; \
 	} \
 	ins -= blocks*BATCH; \
 	int fill = ins; \
-	memcpy(rd->prebuf, in, fill*sizeof(*in)); \
+	memcpy(rd->prebuf, in, fill*sizeof(*in)*rd->channels); \
 	for(int ds = 0; ds<rd->decim_stages; ++ds) \
-		fill = decimate(rd->decim+ds, rd->prebuf, fill); \
+		fill = decimate(rd->decim+ds, rd, rd->prebuf, fill); \
 	lpf(rd, rd->prebuf, fill); \
 	nouts = interpolate(rd, rd->prebuf, fill, out); \
 	outs += nouts; \
@@ -1542,8 +1820,18 @@ void resample_free(struct resample_data *rd)
 {
 	if(!rd)
 		return;
+	if(rd->decim_hist)
+		free(rd->decim_hist);
 	if(rd->decim)
 		free(rd->decim);
+	if(rd->upbuf)
+		free(rd->upbuf);
+	if(rd->prebuf)
+		free(rd->prebuf);
+	if(rd->ch)
+		free(rd->ch);
+	if(rd->frame)
+		free(rd->frame);
 	free(rd);
 }
 
@@ -1563,16 +1851,16 @@ syn123_setup_resample( syn123_handle *sh, long inrate, long outrate
 		goto setup_resample_cleanup;
 	}
 
-	if(channels != 1)
+	if(channels < 1)
 	{
-		error("only mono supported right now\n");
 		err = SYN123_BAD_FMT;
 		goto setup_resample_cleanup;
 	}
 
 	// If dirty setyp changed, start anew.
 	// TODO: implement proper smooth rate change.
-	if(sh->rd && (!(sh->rd->sflags & dirty_method) != !dirty))
+	if( sh->rd && ( (rd->channels != channels)
+	||	(!(sh->rd->sflags & dirty_method) != !dirty) ) )
 	{
 		resample_free(sh->rd);
 		sh->rd = NULL;
@@ -1597,6 +1885,34 @@ syn123_setup_resample( syn123_handle *sh, long inrate, long outrate
 		rd->inrate = rd->vinrate = rd->voutrate = rd->outrate = -1;
 		rd->resample_func = NULL;
 		rd->decim = NULL;
+		rd->decim_hist = NULL;
+		rd->channels = channels;
+		rd->frame = NULL;
+		if(channels > 2)
+		{
+			rd->frame = malloc(sizeof(float)*channels);
+			if(!rd->frame)
+			{
+				free(rd);
+				return SYN123_DOOM;
+			}
+		}
+		rd->ch = malloc(sizeof(struct channel_history)*channels);
+		rd->prebuf = malloc(sizeof(float)*channels*BATCH);
+		rd->upbuf  = malloc(sizeof(float)*channels*2*BATCH);
+		if(!rd->ch || !rd->prebuf || !rd->upbuf)
+		{
+			if(rd->upbuf)
+				free(rd->upbuf);
+			if(rd->prebuf)
+				free(rd->prebuf);
+			if(rd->ch)
+				free(rd->ch);
+			if(rd->frame)
+				free(rd->frame);
+			free(rd);
+			return SYN123_DOOM;
+		}
 	}
 	else
 		rd = sh->rd;
@@ -1610,15 +1926,20 @@ syn123_setup_resample( syn123_handle *sh, long inrate, long outrate
 	{
 		struct decimator_state *nd = safe_realloc( rd->decim
 		,	sizeof(*rd->decim)*decim_stages );
-		if(!nd)
+		struct lpf4_hist *ndh = safe_realloc( rd->decim_hist
+		,	sizeof(*rd->decim_hist)*decim_stages*channels );
+		if(!nd || !ndh)
 		{
 			perror("cannot allocate decimator state");
 			err = SYN123_DOOM;
 			goto setup_resample_cleanup;
 		}
+		for(unsigned int dc=0; dc<decim_stages; ++dc)
+			nd[dc].ch = ndh+dc*channels;
 		for(unsigned int dc=rd->decim_stages; dc<decim_stages; ++dc)
 			nd[dc].sflags = 0;
 		rd->decim = nd;
+		rd->decim_hist = ndh;
 		rd->decim_stages = decim_stages;
 	}
 
@@ -1677,7 +1998,7 @@ syn123_resample( syn123_handle *sh,
 	// Input limit is zero if no resampler configured.
 	if(!samples || samples > sh->rd->input_limit)
 		return 0;
-	mdebug( "calling actual resample functon from %p to %p with %"SIZE_P" samples"
+	mdebug( "calling actual resample function from %p to %p with %"SIZE_P" samples"
 	,	(void*)src, (void*)dst, (size_p)samples );
 	return rd->resample_func(rd, src, samples, dst);
 }
