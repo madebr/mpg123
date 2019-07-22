@@ -678,7 +678,7 @@ void attribute_align_arg
 syn123_interleave(void * MPG123_RESTRICT dst, void ** MPG123_RESTRICT src
 ,	int channels, size_t samplesize, size_t samplecount)
 {
-#ifndef SYN123_NO_CASEs
+#ifndef SYN123_NO_CASES
 	switch(channels)
 	{
 		case 1:
