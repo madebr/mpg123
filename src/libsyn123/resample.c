@@ -3,7 +3,7 @@ TODO: efficient ringbuffer access for the decimation filter
 TODO: smooth ratio changes with interpolator history and final lowpass filter
       history handling
 TODO: initialize with first sample or zero? is there an actual benefit? impulse
-      response?
+      response? I figure it makes sense for smoothness on rate changes.
 
 	resample: low-latency usable and quick resampler
 
