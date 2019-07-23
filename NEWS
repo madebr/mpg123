@@ -38,6 +38,7 @@ TODO: Make libout123 and/or mpg123 use that to convert on the fly. Optionally?
       A new incompatible version of libmpg123 would drop duplicate code for
       conversions …
 - libout123:
+-- Added out123_free() for the benefit of library wrappers. (bug 276)
 -- Removed change of effective user ID in the WAV/RAW/AU/CDR writer.
    This was intended as a safeguard to avoid creating files with root
    priviledges. But: Other output modules still allowed root-level
@@ -50,6 +51,7 @@ TODO: Make libout123 and/or mpg123 use that to convert on the fly. Optionally?
   instead of raw bitmask value.
 - libout123: Added hex and txt (plain text) printout.
 - libmpg123:
+-- Added mpg123_free() for the benefit of library wrappers. (bug 276)
 -- Add mpg123_format2() and mpg123_fmt2() supporting special value 0 for all
    rates.
 -- Fix changing of decoder (and output format along with that) after stream

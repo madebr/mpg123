@@ -121,6 +121,11 @@ void attribute_align_arg out123_del(out123_handle *ao)
 	free(ao);
 }
 
+void attribute_align_arg out123_free(void *ptr)
+{
+	free(ptr);
+}
+
 /* Error reporting */
 
 /* Carefully keep that in sync with the error enum! */

@@ -1672,6 +1672,11 @@ void attribute_align_arg mpg123_delete(mpg123_handle *mh)
 	}
 }
 
+void attribute_align_arg mpg123_free(void *ptr)
+{
+	free(ptr);
+}
+
 static const char *mpg123_error[] =
 {
 	"No error... (code 0)",

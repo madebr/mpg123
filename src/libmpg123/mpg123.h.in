@@ -161,6 +161,13 @@ MPG123_EXPORT mpg123_handle *mpg123_new(const char* decoder, int *error);
  */
 MPG123_EXPORT void mpg123_delete(mpg123_handle *mh);
 
+/** Free plain memory allocated within libmpg123.
+ *  This is for library users that are not sure to use the same underlying
+ *  memory allocator as libmpg123. It is just a wrapper over free() in
+ *  the underlying C library.
+ */
+MPG123_EXPORT void mpg123_free(void *ptr);
+
 /** Enumeration of the parameters types that it is possible to set/get. */
 enum mpg123_parms
 {

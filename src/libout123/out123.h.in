@@ -165,6 +165,13 @@ out123_handle *out123_new(void);
 MPG123_EXPORT
 void out123_del(out123_handle *ao);
 
+/** Free plain memory allocated within libout123.
+ *  This is for library users that are not sure to use the same underlying
+ *  memory allocator as libout123. It is just a wrapper over free() in
+ *  the underlying C library.
+ */
+MPG123_EXPORT void out123_free(void *ptr);
+
 /** Error code enumeration
  * API calls return a useful (positve) value or zero (OUT123_OK) on simple
  * success. A negative value (-1 == OUT123_ERR) usually indicates that some
