@@ -32,9 +32,10 @@ my @instances =
 		libout123/wav
 		libout123/out123_int
 		libout123/stringlists
+		libsyn123/syn123_int
 	)]
 ,	prefix => 'INT123_'
-,	apiprefix => 'mpg123_|out123_'
+,	apiprefix => 'mpg123_|out123_|syn123_'
 ,	conditional => { strerror=>'HAVE_STRERROR' }
 ,	symbols => [qw(COS9 tfcos36 pnts catchsignal)] # extra symbols
 }
@@ -61,7 +62,7 @@ for my $i (@instances)
 			if(/^([^\s\(#][^\(]*)\s\*?([a-z][a-z_0-9]+)\s*\(/)
 			{
 				# Skip preprocessing/comment stuff and official API.
-				unless($1 =~ '^#' or $1 =~ '/\*' or $2 =~ $apiex)
+				unless($1 =~ '^#' or $1 =~ '/\*' or $2 =~ $apiex or $1 =~ /\bstatic\b/)
 				{
 					push(@symbols, $2) unless grep {$_ eq $2} (keys %{$i->{conditional}});
 				}

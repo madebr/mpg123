@@ -202,7 +202,6 @@
 #define frame_set_seek INT123_frame_set_seek
 #define frame_tell_seek INT123_frame_tell_seek
 #define frame_fill_toc INT123_frame_fill_toc
-#define getbits INT123_getbits
 #define getcpuflags INT123_getcpuflags
 #define icy2utf8 INT123_icy2utf8
 #define init_icy INT123_init_icy
@@ -220,8 +219,6 @@
 #define fi_add INT123_fi_add
 #define fi_set INT123_fi_set
 #define fi_reset INT123_fi_reset
-#define double_to_long_rounded INT123_double_to_long_rounded
-#define scale_rounded INT123_scale_rounded
 #define decode_update INT123_decode_update
 #define decoder_synth_bytes INT123_decoder_synth_bytes
 #define samples_to_bytes INT123_samples_to_bytes
