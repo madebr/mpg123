@@ -83,6 +83,9 @@ TODO: Make libout123 and/or mpg123 use that to convert on the fly. Optionally?
    build for Android, thanks to vquicksilver).
 -- Correct preprocessor syntax in mangle.h, no #error in a #define line.
    (bug 273, thanks to nmlgc).
+-- Some support for extremely small streams (below 128 bytes). Those are
+   too short to contain anything useful besides some tiny metadata, but
+   serve to find/reproduce parser bugs.
 
 1.25.12
 -------
