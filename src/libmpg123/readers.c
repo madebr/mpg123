@@ -1,5 +1,6 @@
 /* TODO: Check all read calls (in loops, especially!) for return value 0 (EOF)! */
-
+/* Check if get_fileinfo should read ID3 info or not, seems a bit out of place here. */
+#define EXTRA_DEBUG
 /*
 	readers.c: reading input data
 
@@ -436,18 +437,35 @@ static off_t get_fileinfo(mpg123_handle *fr)
 {
 	off_t len;
 
-	if((len=io_seek(&fr->rdat,0,SEEK_END)) < 0)	return -1;
+	if((len=io_seek(&fr->rdat,0,SEEK_END)) < 0)
+	{
+		debug("cannot seek to end");
+		return -1;
+	} else if(len >= 128)
+	{
+		if(io_seek(&fr->rdat,-128,SEEK_END) < 0)
+		{
+			debug("cannot seek to END-128");
+			return -1;
+		}
+		if(fr->rd->fullread(fr,(unsigned char *)fr->id3buf,128) != 128)
+		{
+			debug("cannot read ID3v1?!");
+			return -1;
+		}
+		if(!strncmp((char*)fr->id3buf,"TAG",3)) len -= 128;
+	} else
+	{
+		debug("stream too short for ID3");
+	}
 
-	if(io_seek(&fr->rdat,-128,SEEK_END) < 0) return -1;
+	if(io_seek(&fr->rdat,0,SEEK_SET) < 0)
+	{
+		debug("cannot seek back");
+		return -1;
+	}
 
-	if(fr->rd->fullread(fr,(unsigned char *)fr->id3buf,128) != 128)	return -1;
-
-	if(!strncmp((char*)fr->id3buf,"TAG",3))	len -= 128;
-
-	if(io_seek(&fr->rdat,0,SEEK_SET) < 0)	return -1;
-
-	if(len <= 0)	return -1;
-
+	debug1("returning length: %"OFF_P, (off_p)len);
 	return len;
 }
 
@@ -1060,6 +1078,7 @@ static int default_init(mpg123_handle *fr)
 	*/
 	if(fr->rdat.filelen >= 0)
 	{
+		debug("seekable stream");
 		fr->rdat.flags |= READER_SEEKABLE;
 		if(!strncmp((char*)fr->id3buf,"TAG",3))
 		{
@@ -1077,12 +1096,14 @@ static int default_init(mpg123_handle *fr)
 #else
 		if     (fr->rd == &readers[READER_STREAM])
 		{
+			debug("switching to buffered stream reader");
 			fr->rd = &readers[READER_BUF_STREAM];
 			fr->rdat.fullread = plain_fullread;
 		}
 #ifndef NO_ICY
 		else if(fr->rd == &readers[READER_ICY_STREAM])
 		{
+			debug("switching to buffered ICY stream reader");
 			fr->rd = &readers[READER_BUF_ICY_STREAM];
 			fr->rdat.fullread = icy_fullread;
 		}
