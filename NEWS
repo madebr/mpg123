@@ -90,13 +90,22 @@ TODO: Make libout123 and/or mpg123 use that to convert on the fly. Optionally?
 1.25.12
 -------
 
-More credit to OSS-Fuxx.
+More credit to OSS-Fuzz. The ID3v2 parser code is not yet as hardened
+as the actual MPEG decoder. The paranoid can disable it at build-time.
+If you do not need it, this is a good idea, anyway: Code that is not
+there, cannot be exploited. Speaking about exploits: The recent crop
+of bugs trigger a denial of service (crash) worst-case, some invalid
+ID3 data normally. Code injection maybe not totally ruled out (that one
+write of a zero byte?), but does not seem easy. Update to be sure that
+you are only suceptible to as of yet hidden bugs.
 
 - libmpg123
--- Fix an out-of-bounds read of maximal two bytes for truncated RVA2 frames.
+-- Fix an out-of-bounds read of maximal two bytes for truncated RVA2 frames
    (oss-fuzz-bug 15975). The earlier fix around the same location needed
    one thought more. Actually, another though was needed, oss-fuzz-bug 16009
    documents the incomplete fix.
+-- Fix an invalid write of one zero byte for empty ID3v2 frames that demand
+   de-unsyncing (oss-fuzz-bug 16050).
 - Fix dynamic build with gcc -fsanitize=address (check for all dl functions
   before deciding that separate -ldl is not needed).
 
