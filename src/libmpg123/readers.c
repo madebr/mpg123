@@ -1,6 +1,6 @@
 /* TODO: Check all read calls (in loops, especially!) for return value 0 (EOF)! */
 /* Check if get_fileinfo should read ID3 info or not, seems a bit out of place here. */
-#define EXTRA_DEBUG
+/* #define EXTRA_DEBUG */
 /*
 	readers.c: reading input data
 
