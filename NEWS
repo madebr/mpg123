@@ -86,6 +86,10 @@ TODO: Make libout123 and/or mpg123 use that to convert on the fly. Optionally?
 -- Some support for extremely small streams (below 128 bytes). Those are
    too short to contain anything useful besides some tiny metadata, but
    serve to find/reproduce parser bugs.
+-- Fix mpg123_read() for builds without feeder. It calls mpg123_decode()
+   without feeding input, which was disabled by mistake. The use of
+   mpg123_read() (instead of mpg123_decode_frame()) with mpg123_open()
+   was broken in feederless builds since those were fixed in version 1.15.
 
 1.25.12
 -------

@@ -945,7 +945,6 @@ int attribute_align_arg mpg123_decode(mpg123_handle *mh, const unsigned char *in
 
 	if(done != NULL) *done = 0;
 	if(mh == NULL) return MPG123_BAD_HANDLE;
-#ifndef NO_FEEDER
 	if(inmemsize > 0 && mpg123_feed(mh, inmemory, inmemsize) != MPG123_OK)
 	{
 		ret = MPG123_ERR;
@@ -1005,10 +1004,6 @@ int attribute_align_arg mpg123_decode(mpg123_handle *mh, const unsigned char *in
 decodeend:
 	if(done != NULL) *done = mdone;
 	return ret;
-#else
-	mh->err = MPG123_MISSING_FEATURE;
-	return MPG123_ERR;
-#endif
 }
 
 long attribute_align_arg mpg123_clip(mpg123_handle *mh)
