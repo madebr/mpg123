@@ -834,9 +834,10 @@ static int decode_header(mpg123_handle *fr,unsigned long newhead, int *freeforma
 			fr->do_layer = do_layer1;
 			if(!fr->freeformat)
 			{
-				fr->framesize  = (long) tabsel_123[fr->lsf][0][fr->bitrate_index] * 12000;
-				fr->framesize /= freqs[fr->sampling_frequency];
-				fr->framesize  = ((fr->framesize+fr->padding)<<2)-4;
+				long fs = (long) tabsel_123[fr->lsf][0][fr->bitrate_index] * 12000;
+				fs /= freqs[fr->sampling_frequency];
+				fs = ((fs+fr->padding)<<2)-4;
+				fr->framesize = (int)fs;
 			}
 		break;
 #endif
@@ -847,9 +848,10 @@ static int decode_header(mpg123_handle *fr,unsigned long newhead, int *freeforma
 			if(!fr->freeformat)
 			{
 				debug2("bitrate index: %i (%i)", fr->bitrate_index, tabsel_123[fr->lsf][1][fr->bitrate_index] );
-				fr->framesize = (long) tabsel_123[fr->lsf][1][fr->bitrate_index] * 144000;
-				fr->framesize /= freqs[fr->sampling_frequency];
-				fr->framesize += fr->padding - 4;
+				long fs = (long) tabsel_123[fr->lsf][1][fr->bitrate_index] * 144000;
+				fs /= freqs[fr->sampling_frequency];
+				fs += fr->padding - 4;
+				fr->framesize = (int)fs;
 			}
 		break;
 #endif
@@ -867,9 +869,10 @@ static int decode_header(mpg123_handle *fr,unsigned long newhead, int *freeforma
 
 			if(!fr->freeformat)
 			{
-				fr->framesize  = (long) tabsel_123[fr->lsf][2][fr->bitrate_index] * 144000;
-				fr->framesize /= freqs[fr->sampling_frequency]<<(fr->lsf);
-				fr->framesize = fr->framesize + fr->padding - 4;
+				long fs = (long) tabsel_123[fr->lsf][2][fr->bitrate_index] * 144000;
+				fs /= freqs[fr->sampling_frequency]<<(fr->lsf);
+				fs += fr->padding - 4;
+				fr->framesize = fs;
 			}
 			if(fr->framesize < fr->ssize)
 			{
