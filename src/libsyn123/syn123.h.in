@@ -52,6 +52,13 @@
 #endif
 #endif
 
+/* Enable use of this file without configure. */
+/* Also make sure to define _FILE_OFFSET_BITS, too. */
+#ifndef MPG123_NO_CONFIGURE
+@INCLUDE_STDLIB_H@
+@INCLUDE_SYS_TYPE_H@
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -232,9 +239,11 @@ enum syn123_wave_id
  *  inside the buffer, too, when you approach the Nyquist limit, but that
  *  is life (and mathematics).
  *
+ *  The default wave is a 440 Hz sine without phase offset. If any setting
+ *  is missing, the default is taken from that.
+ *
  *  \param sh handle
- *  \param count number of waves (if zero, a standard sine wave with
- *    440 Hz is chosen)
+ *  \param count number of waves (if zero, one default wave is configured)
  *  \param id array of wave IDs (enum syn123_wave_id), may be NULL
  *  \param freq array of wave frequencies, may be NULL
  *     Your provided frequencies are overwritten with the actual
