@@ -1922,7 +1922,7 @@ syn123_setup_resample( syn123_handle *sh, long inrate, long outrate
 
 	// If dirty setyp changed, start anew.
 	// TODO: implement proper smooth rate change.
-	if( sh->rd && ( (rd->channels != channels)
+	if( sh->rd && ( (sh->rd->channels != channels)
 	||	(!(sh->rd->sflags & dirty_method) != !dirty) ) )
 	{
 		resample_free(sh->rd);
