@@ -665,6 +665,18 @@ static void lpf_init(struct resample_data *rd)
 	rd->sflags |= lowpass_configured;
 }
 
+// Compute an estimate of the magnitude of lowpass history values.
+// This is used to re-scale those values on sample ratio changes to
+// try to keep a smooth ride. Relate this to df2_initval().
+// First approach: b_0 / (1+sum(a))
+static float lpf_history_scale(struct resample_data *rd)
+{
+	float asum = 1;
+	for(unsigned int i=0; i<LPF_ORDER; ++i)
+		asum += rd->lpf_a[0][i];
+	return rd->lpf_b0/asum;
+}
+
 static void preemp_init(struct resample_data *rd)
 {
 	const float* pre_b;
@@ -853,10 +865,10 @@ static size_t decimate(struct decimator_state *rd, struct resample_data *rrd, fl
 // Looks simple. Just a scale value.
 static float df2_initval(unsigned int order, float *filter_a, float insample)
 {
-	float asum = 0;
+	float asum = 1.;
 	for(unsigned int i=0; i<order; ++i)
 		asum += filter_a[i];
-	float scale = 1.f/(1.f + asum);
+	float scale = 1.f/asum;
 	return scale * insample;
 }
 
@@ -1998,6 +2010,8 @@ syn123_setup_resample( syn123_handle *sh, long inrate, long outrate
 			free(rd);
 			return SYN123_DOOM;
 		}
+		// Ensure we at least got zeroes for the history rescaler.
+		memset(rd->ch, 0, sizeof(struct channel_history)*channels);
 	}
 	else
 		rd = sh->rd;
@@ -2078,7 +2092,20 @@ syn123_setup_resample( syn123_handle *sh, long inrate, long outrate
 	,	rd->lpf_cutoff, 0.5*rd->vinrate, rd->lpf_cutoff*0.5*rd->vinrate );
 	mdebug("rates final: %ld|%ld -> %ld|%ld"
 	,	rd->inrate, rd->vinrate, rd->voutrate, rd->outrate );
-	lpf_init(rd);
+	if(rd->sflags & lowpass_flow)
+	{
+		// Attempt to dampen spikes from the filter history magnitudes
+		// not matching changed filter setup. Alternative: Fully reset filter.
+		float scale = lpf_history_scale(rd);
+		lpf_init(rd);
+		scale = scale > 1e-10 ? lpf_history_scale(rd) / scale : 0.;
+		for(unsigned int c=0; c<rd->channels; ++c)
+			for(unsigned int j=0; j<LPF_MAX_TIMES; ++j)
+				for(unsigned int i=0; i<LPF_ORDER; ++i)
+					rd->ch[c].lpf_w[j][i] *= scale;
+	}
+	else
+		lpf_init(rd);
 	preemp_init(rd);
 	rd->input_limit = syn123_resample_maxincount(inrate, outrate);
 	return 0;
