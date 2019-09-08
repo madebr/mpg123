@@ -1702,6 +1702,26 @@ syn123_resample_history(long inrate, long outrate, int dirty)
 	return history;
 }
 
+#if 0
+// This should be the essence of what the interpolation does regarding
+// input and output sample count.
+int64_t simulate_interpolate(long vinrate, long voutrate, int64_t ins)
+{
+	int64_t outs = 0;
+	long offset = -vinrate;
+	for(int64_t n = 0; n<ins; ++n)
+	{
+		while(offset+vinrate < voutrate)
+		{
+			++outs;
+			offset += vinrate;
+		}
+		offset -= voutrate;
+	}
+	return outs;
+}
+#endif
+
 // The exact output sample count given total input size.
 // It assumes zero history.
 // This returns a negative code on error.
@@ -2008,7 +2028,24 @@ syn123_setup_resample( syn123_handle *sh, long inrate, long outrate
 		rd->decim_stages = decim_stages;
 	}
 
-	// TODO: rate change detection
+	// If the virtual input rate changes (esp. increases), the interpolation
+	// offset needs adjustment to stay at/below predicted sample counts.
+	// Could always re-initialize the interpolation, but want to keep things
+	// smooth.
+	if(rd->sflags & inter_flow)
+	{
+		long sign = rd->offset < 0 ? -1 : +1;
+		// Zero on overflow, suits me just fine.
+		uint64_t noff = muldiv64( (uint64_t)(sign*rd->offset)
+		,	(uint64_t)vinrate, (uint64_t)rd->vinrate, NULL, NULL );
+		// Magnitude must not be too large. Too small is OK.
+		if(noff > LONG_MAX)
+			noff = LONG_MAX;
+		rd->offset = sign*noff;
+		// Total paranoia. This is the crucial condition.
+		if(rd->offset < -vinrate)
+			rd->offset = -vinrate;
+	}
 	rd->inrate = inrate;
 	rd->outrate = outrate;
 	rd->vinrate = vinrate;
