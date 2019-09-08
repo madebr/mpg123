@@ -6,9 +6,9 @@
 int main(int argc, char **argv)
 {
 	int ret = 0;
-	if(argc < 5)
+	if(argc < 6)
 	{
-		fprintf( stderr, "Usage: %s <rate> <freq> <block> <speedfactor>"
+		fprintf( stderr, "Usage: %s <rate> <freq> <block> <speed> <speedfactor>"
 			" [duration [outfile]]\n"
 		,	argv[0] );
 		return 1;
@@ -17,9 +17,10 @@ int main(int argc, char **argv)
 	double freq = atof(argv[2]);
 	long block = atol(argv[3]);
 	size_t bi = 0;
-	double factor = atof(argv[4]);
-	double duration = argc > 5 ? atof(argv[5]) : 5;
-	char *outfile = argc > 6 ? argv[6] : NULL;
+	double speed  = atof(argv[4]);
+	double factor = atof(argv[5]);
+	double duration = argc > 6 ? atof(argv[6]) : 6;
+	char *outfile = argc > 7 ? argv[7] : NULL;
 	syn123_handle *syn = syn123_new(rate, 1, MPG123_ENC_FLOAT_32, 0, NULL);
 	if(!syn)
 		return -1;
@@ -43,7 +44,7 @@ int main(int argc, char **argv)
 			ret = -14;
 			break;
 		}
-		double outrate = (double)rate/pow(factor, bi);
+		double outrate = (double)rate/(speed*pow(factor, bi));
 		if(outrate > LONG_MAX)
 			outrate = LONG_MAX;
 		if(syn123_setup_resample(syn, rate, (long)outrate, 1, 1))
@@ -64,12 +65,21 @@ int main(int argc, char **argv)
 			break;
 		}
 		size_t outsamples = syn123_resample(syn, outbuf, inbuf, block);
-		syn123_amp(outbuf, MPG123_ENC_FLOAT_32, outsamples, syn123_db2lin(-6), 0, NULL, NULL);
+		syn123_amp(outbuf, MPG123_ENC_FLOAT_32, outsamples, syn123_db2lin(-12), 0, NULL, NULL);
 		if(out123_play(out, outbuf, sizeof(float)*outsamples) != sizeof(float)*outsamples)
 		{
 			ret = -10;
 			break;
 		}
+		float spacer[100];
+		if(outsamples)
+		{
+			for(unsigned int i=0; i<sizeof(spacer)/sizeof(float); ++i)
+				spacer[i] = outbuf[outsamples-1];
+		}
+		else
+			memset(spacer, 0, sizeof(spacer));
+		out123_play(out, spacer, sizeof(spacer));
 		free(outbuf);
 		++bi;
 	}
