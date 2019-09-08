@@ -44,6 +44,7 @@ src_mpg123_strip_LDADD = \
 EXTRA_PROGRAMS += \
   src/tests/seek_whence \
   src/tests/noise \
+  src/tests/sweeper \
   src/tests/text \
   src/tests/plain_id3
 
@@ -126,6 +127,14 @@ src_tests_noise_SOURCES = \
   src/libmpg123/dither_impl.h
 src_tests_noise_LDADD = \
   src/compat/libcompat.la
+
+src_tests_sweeper_SOURCES = \
+  src/tests/sweeper.c
+src_tests_sweeper_LDADD = \
+  src/compat/libcompat.la \
+  src/libsyn123/libsyn123.la \
+  src/libout123/libout123.la \
+  $(LIBM)
 
 src_tests_text_SOURCES = \
   src/tests/text.c \
