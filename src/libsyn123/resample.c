@@ -915,7 +915,7 @@ static float df2_initval(unsigned int order, float *filter_a, float insample)
 		for(unsigned int c=0; c<channels; ++c) \
 		{ \
 			float iv = df2_initval(LPF_ORDER, rd->lpf_a[0], initval[c]); \
-			for(int j=0; j<2; ++j) \
+			for(int j=0; j<times; ++j) \
 				for(int i=0; i<LPF_ORDER; ++i) \
 					rd->ch[c].lpf_w[j][i] = iv; \
 		} \
