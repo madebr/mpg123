@@ -738,11 +738,15 @@ int syn123_filter( syn123_handle *sh
  *  worst-case distortion around that, too, and 85% worst-case bandwidth.
  *  With this set to zero, the normal mode is used, offering at least 108 dB
  *  dynamic range and worst-case bandwidth above 84%.
+ *  \param smooth Enable (!=0) extra code smoothing the resampler response to
+ *  on-the-fly changes of sampling rate ratio. This involves keeping
+ *  some per-stage history to bootstrap additional decimation filters and the
+ *  changed final lowpass/interpolation.
  *  \return success code
  */
 MPG123_EXPORT
 int syn123_setup_resample( syn123_handle *sh, long inrate, long outrate
-,	int channels, int dirty );
+,	int channels, int dirty, int smooth );
 
 /** Return the maximum allowed value for sample rates given to the resampler.
  *

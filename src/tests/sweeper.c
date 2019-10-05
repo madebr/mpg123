@@ -6,9 +6,10 @@
 int main(int argc, char **argv)
 {
 	int ret = 0;
-	if(argc < 6)
+	if(argc < 7)
 	{
-		fprintf( stderr, "Usage: %s <rate> <freq> <block> <speed> <speedfactor>"
+		fprintf( stderr
+		,	"Usage: %s <rate> <freq> <block> <speed> <speedfactor> <smooth>"
 			" [duration [outfile]]\n"
 		,	argv[0] );
 		return 1;
@@ -19,8 +20,9 @@ int main(int argc, char **argv)
 	size_t bi = 0;
 	double speed  = atof(argv[4]);
 	double factor = atof(argv[5]);
-	double duration = argc > 6 ? atof(argv[6]) : 6;
-	char *outfile = argc > 7 ? argv[7] : NULL;
+	int smooth = atoi(argv[6]);
+	double duration = argc > 7 ? atof(argv[7]) : 5;
+	char *outfile = argc > 8 ? argv[8] : NULL;
 	syn123_handle *syn = syn123_new(rate, 1, MPG123_ENC_FLOAT_32, 0, NULL);
 	if(!syn)
 		return -1;
@@ -47,7 +49,7 @@ int main(int argc, char **argv)
 		double outrate = (double)rate/(speed*pow(factor, bi));
 		if(outrate > LONG_MAX)
 			outrate = LONG_MAX;
-		if(syn123_setup_resample(syn, rate, (long)outrate, 1, 1))
+		if(syn123_setup_resample(syn, rate, (long)outrate, 1, 0, smooth))
 		{
 			ret = -11;
 			break;
@@ -71,6 +73,7 @@ int main(int argc, char **argv)
 			ret = -10;
 			break;
 		}
+#if 0
 		float spacer[100];
 		if(outsamples)
 		{
@@ -80,6 +83,7 @@ int main(int argc, char **argv)
 		else
 			memset(spacer, 0, sizeof(spacer));
 		out123_play(out, spacer, sizeof(spacer));
+#endif
 		free(outbuf);
 		++bi;
 	}

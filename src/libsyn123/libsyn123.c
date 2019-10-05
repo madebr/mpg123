@@ -792,7 +792,7 @@ syn123_del(syn123_handle* sh)
 	if(!sh)
 		return;
 	syn123_setup_silence(sh);
-	syn123_setup_resample(sh, 0, 0, 0, 0);
+	syn123_setup_resample(sh, 0, 0, 0, 0, 0);
 	if(sh->buf)
 		free(sh->buf);
 	free(sh);

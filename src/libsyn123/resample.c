@@ -1,9 +1,7 @@
 /*
 TODO: efficient ringbuffer access for the decimation filter
-TODO: smooth ratio changes with interpolator history and final lowpass filter
-      history handling
 TODO: initialize with first sample or zero? is there an actual benefit? impulse
-      response? I figure it makes sense for smoothness on rate changes.
+      response?
 
 	resample: low-latency usable and quick resampler
 
@@ -416,6 +414,7 @@ static const float preemp_2xopt6p5o_coeff[2][6] =
 // TODO: switch the decimation filter to Direct Form II
 struct lpf4_hist
 {
+	// Filter history (to be switched to Direct Form 2).
 	float x[LPF_4_ORDER];
 	float y[LPF_4_ORDER];
 };
@@ -425,6 +424,7 @@ struct decimator_state
 	unsigned int sflags; // also stores decimation position (0 or 1)
 	unsigned int n1;
 	struct lpf4_hist *ch; // one for each channel, pointer into common array
+	float *out_hist; // channels*STAGE_HISTORY, pointer to common block
 };
 
 #ifdef SYN123_HIGH_PREC
@@ -438,8 +438,10 @@ typedef float lpf_sum_type;
 // pre-emphasis and oversampling.
 #define LPF_TIMES 3
 #define DIRTY_LPF_TIMES 2
+#define LOWPASS                 lowpass3_df2
 #define LOWPASS_PREEMP          lowpass3_df2_preemp
 #define LOWPASS_PREEMP_2X       lowpass3_df2_preemp_2x
+#define DIRTY_LOWPASS           lowpass2_df2
 #define DIRTY_LOWPASS_PREEMP    lowpass2_df2_preemp
 #define DIRTY_LOWPASS_PREEMP_2X lowpass2_df2_preemp_2x
 // The number of points used in the interpolators.
@@ -448,6 +450,17 @@ typedef float lpf_sum_type;
 
 // The data structure accomodates a fixed amount of low pass applications.
 #define LPF_MAX_TIMES LPF_TIMES
+
+// Let's define what we see a a reasonable history size for an IIR lowpass.
+// On arrival of a new sample, <order> previous samples are needed, both
+// input and output (recursive). Let's simply double that to cater for
+// the recursive nature, ensuring that each recursive input at least already
+// contains something from the new samples
+#define LPF_HISTORY(order) (2*(order))
+
+// Number of samples to keep for smooth rate changes on
+// addition/removal of stages.
+#define STAGE_HISTORY 32
 
 enum state_flags
 {
@@ -459,6 +472,7 @@ enum state_flags
 ,	lowpass_configured = 1<<5
 ,	lowpass_flow = 1<<6
 ,	dirty_method = 1<<7
+,	smooth_change = 1<<8
 };
 
 // TODO: tune that to the smallest sensible value.
@@ -466,6 +480,10 @@ enum state_flags
 #define BATCH 128
 #else
 #define BATCH SYN123_BATCH
+#endif
+
+#if (BATCH < STAGE_HISTORY)
+#error "Batch size cannot be smaller than the stage history."
 #endif
 
 struct channel_history
@@ -483,15 +501,24 @@ struct resample_data
 	// The configured resampling function to call.
 	// Decides: oversampling/nothing/decimation, fine/dirty
 	size_t (*resample_func)(struct resample_data *, float *, size_t, float *);
+	// The lowpass functions used before interpolation, including preemp.
+	void (*lowpass_2x_func)(struct resample_data *, float *, size_t, float *);
+	void (*lowpass_func)   (struct resample_data *, float *, size_t);
 	// Maximum number of input samples that can be fed in one go to have the
 	// number of output samples safely within the limit of size_t.
 	size_t input_limit;
 	// Decimator state. Each stage has a an instance of lpf_4 and the decimator.
 	unsigned int decim_stages;
 	struct decimator_state *decim;
-	struct lpf4_hist *decim_hist; // storage for the above to avoid nested malloc
+	// storage for the above to avoid nested malloc
+	struct lpf4_hist *decim_hist;
 	struct channel_history *ch;
-	float *frame; // One PCM frame to work on (one sample for each channel).
+	// Blocks of STAGE_HISTORY*channels samples.
+	// 0: plain input for first decimation, oversampling or direct interpolation
+	// 1: output of first decimation
+	// 2: output of second decimation, etc.
+	float *stage_history; // storage for past input of final (2x) lowpass
+	float *frame;  // One PCM frame to work on (one sample for each channel).
 	float *prebuf; // [channels*BATCH]
 	float *upbuf;  // [channels*2*BATCH]
 	// Final lowpass filter setup.
@@ -721,6 +748,41 @@ static void preemp_init(struct resample_data *rd)
 }
 
 
+// Store the last samples of given input data in the respective
+// stage history buffer.
+static void stage_history( struct resample_data *rd
+,	unsigned int stage, float *in, size_t ins )
+{
+	if(!rd->stage_history)
+		return;
+	// Case 1: We got enough and can fill it all.
+	// Case 2: Just a bit, have to shift existing
+	//         history to append to.
+	float *hist = rd->stage_history + stage*STAGE_HISTORY*rd->channels;
+	if(ins >= STAGE_HISTORY)
+		memcpy( hist, in+(ins-STAGE_HISTORY)*rd->channels
+		,	STAGE_HISTORY*rd->channels*sizeof(float) );
+	else
+	{
+		memmove( hist, hist+ins*rd->channels
+		,	(STAGE_HISTORY-ins)*rd->channels*sizeof(float) );
+		memcpy( hist+(STAGE_HISTORY-ins)*rd->channels, in
+		,	ins*rd->channels*sizeof(float) );
+	}
+}
+
+
+static void stage_history_init( struct resample_data *rd
+,	unsigned int stage, float *in )
+{
+	if(!rd->stage_history)
+		return;
+	float *hist = rd->stage_history + stage*STAGE_HISTORY*rd->channels;
+	for(size_t i=0; i<STAGE_HISTORY; ++i)
+		for(unsigned int c=0; c<rd->channels; ++c)
+			hist[i*rd->channels+c] = in[c];
+}
+
 // Actual resampling workers.
 
 // To make things easier to compilers, things like the number of times
@@ -729,8 +791,10 @@ static void preemp_init(struct resample_data *rd)
 
 // One decimation step: low pass with transition band from 1/2 to 1/4,
 // drop every second sample. This works within the input buffer.
-static size_t decimate(struct decimator_state *rd, struct resample_data *rrd, float *in, size_t ins)
+static size_t decimate( struct resample_data *rrd, unsigned int dstage
+,	float *in, size_t ins )
 {
+	struct decimator_state *rd = rrd->decim+dstage;
 	if(!ins)
 		return 0;
 	mdebug("decimating %zu samples", ins);
@@ -741,8 +805,10 @@ static size_t decimate(struct decimator_state *rd, struct resample_data *rrd, fl
 				rd->ch[c].x[j] = rd->ch[c].y[j] = in[c];
 		rd->n1 = 0;
 		rd->sflags |= lowpass_flow|decimate_store;
+		stage_history_init(rrd, dstage+1, in);
 	}
-	float *out = in;
+	float *out  = in; // output worker
+	float *oout = in; // for history storage
 	size_t outs = 0;
 #ifndef SYN123_NO_CASES
 	switch(rrd->channels)
@@ -851,6 +917,7 @@ static size_t decimate(struct decimator_state *rd, struct resample_data *rrd, fl
 #ifndef SYN123_NO_CASES
 	}
 #endif
+	stage_history(rrd, dstage+1, oout, outs);
 	return outs;
 }
 
@@ -1059,6 +1126,38 @@ static void lowpass##times##_df2_preemp(struct resample_data *rd, float *in, siz
 		} \
 	} \
 	LPF_DF2_END \
+} \
+\
+static void lowpass##times##_df2(struct resample_data *rd, float *in, size_t ins) \
+{ \
+	if(!ins) \
+		return; \
+	float *out = in; \
+	LPF_DF2_BEGIN(times, in, rd->channels,) \
+	switch(rd->channels) \
+	{ \
+		case 1:  for(size_t i=0; i<ins; ++i) \
+		{ \
+			LPF_DF2_SAMPLE(times, in, out, 1) \
+			in++; \
+			out++; \
+		} \
+		break; \
+		case 2:  for(size_t i=0; i<ins; ++i) \
+		{ \
+			LPF_DF2_SAMPLE(times, in, out, 2) \
+			in  += 2; \
+			out += 2; \
+		} \
+		break; \
+		default: for(size_t i=0; i<ins; ++i) \
+		{ \
+			LPF_DF2_SAMPLE(times, in, out, rd->channels) \
+			in  += rd->channels; \
+			out += rd->channels; \
+		} \
+	} \
+	LPF_DF2_END \
 }
 #else
 #define LOWPASS_DF2_FUNCSX(times) \
@@ -1097,6 +1196,21 @@ static void lowpass##times##_df2_preemp(struct resample_data *rd, float *in, siz
 	{ \
 		PREEMP_DF2_SAMPLE(in, rd->frame, rd->channels) \
 		LPF_DF2_SAMPLE(times, rd->frame, out, rd->channels) \
+		in  += rd->channels; \
+		out += rd->channels; \
+	} \
+	LPF_DF2_END \
+} \
+\
+static void lowpass##times##_df2(struct resample_data *rd, float *in, size_t ins) \
+{ \
+	if(!ins) \
+		return; \
+	float *out = in; \
+	LPF_DF2_BEGIN(times, in, rd->channels,) \
+	for(size_t i=0; i<ins; ++i) \
+	{ \
+		LPF_DF2_SAMPLE(times, in, out, rd->channels) \
 		in  += rd->channels; \
 		out += rd->channels; \
 	} \
@@ -1400,6 +1514,10 @@ static size_t resample_opt6p5o_2batch(struct resample_data *rd, float*in
 static size_t name( struct resample_data *rd \
 ,	float *in, size_t ins, float *out ) \
 { \
+	float *iin = in; \
+	size_t iins = ins; \
+	if(!(rd->sflags & inter_flow) && ins) \
+		stage_history_init(rd, 0, iin); \
 	size_t outs = 0; \
 	size_t nouts = 0; \
 	size_t blocks = ins/BATCH; \
@@ -1416,6 +1534,7 @@ static size_t name( struct resample_data *rd \
 	lpf_2x(rd, in, ins, rd->upbuf); \
 	nouts = interpolate(rd, rd->upbuf, 2*ins, out); \
 	outs += nouts; \
+	stage_history(rd, 0, iin, iins); \
 	return outs; \
 }
 
@@ -1424,6 +1543,10 @@ static size_t name( struct resample_data *rd \
 static size_t name( struct resample_data *rd \
 ,	float *in, size_t ins, float *out ) \
 { \
+	float *iin = in; \
+	size_t iins = ins; \
+	if(!(rd->sflags & inter_flow) && ins) \
+		stage_history_init(rd, 0, iin); \
 	size_t outs = 0; \
 	size_t nouts = 0; \
 	size_t blocks = ins/BATCH; \
@@ -1441,6 +1564,7 @@ static size_t name( struct resample_data *rd \
 	lpf(rd, rd->prebuf, ins); \
 	nouts = interpolate(rd, rd->prebuf, ins, out); \
 	outs += nouts; \
+	stage_history(rd, 0, iin, iins); \
 	return outs; \
 }
 
@@ -1449,6 +1573,10 @@ static size_t name( struct resample_data *rd \
 static size_t name( struct resample_data *rd \
 ,	float *in, size_t ins, float *out ) \
 { \
+	float *iin = in; \
+	size_t iins = ins; \
+	if(!(rd->sflags & inter_flow) && ins) \
+		stage_history_init(rd, 0, iin); \
 	size_t outs = 0; \
 	size_t nouts = 0; \
 	size_t blocks = ins/BATCH; \
@@ -1457,7 +1585,7 @@ static size_t name( struct resample_data *rd \
 		int fill = BATCH; \
 		memcpy(rd->prebuf, in, fill*sizeof(*in)*rd->channels); \
 		for(int ds = 0; ds<rd->decim_stages; ++ds) \
-			fill = decimate(rd->decim+ds, rd, rd->prebuf, fill); \
+			fill = decimate(rd, ds, rd->prebuf, fill); \
 		lpf(rd, rd->prebuf, fill); \
 		nouts = interpolate(rd, rd->prebuf, fill, out); \
 		outs += nouts; \
@@ -1468,10 +1596,11 @@ static size_t name( struct resample_data *rd \
 	int fill = ins; \
 	memcpy(rd->prebuf, in, fill*sizeof(*in)*rd->channels); \
 	for(int ds = 0; ds<rd->decim_stages; ++ds) \
-		fill = decimate(rd->decim+ds, rd, rd->prebuf, fill); \
+		fill = decimate(rd, ds, rd->prebuf, fill); \
 	lpf(rd, rd->prebuf, fill); \
 	nouts = interpolate(rd, rd->prebuf, fill, out); \
 	outs += nouts; \
+	stage_history(rd, 0, iin, iins); \
 	return outs; \
 }
 
@@ -1663,14 +1792,6 @@ syn123_resample_maxincount(long inrate, long outrate)
 	else
 		return SIZE_MAX;
 }
-
-
-// Let's define what we see a a reasonable history size for an IIR lowpass.
-// On arrival of a new sample, <order> previous samples are needed, both
-// input and output (recursive). Let's simply double that to cater for
-// the recursive nature, ensuring that each recursive input at least already
-// contains something from the new samples
-#define LPF_HISTORY(order) (2*(order))
 
 // The history is returned as size_t, which usually provide plenty of range.
 // The idea is that the history needs to fit into memory, although that is not
@@ -1915,6 +2036,8 @@ void resample_free(struct resample_data *rd)
 {
 	if(!rd)
 		return;
+	if(rd->stage_history)
+		free(rd->stage_history);
 	if(rd->decim_hist)
 		free(rd->decim_hist);
 	if(rd->decim)
@@ -1935,10 +2058,11 @@ void resample_free(struct resample_data *rd)
 // If you change the dirty flag, things get refreshed totally.
 int attribute_align_arg
 syn123_setup_resample( syn123_handle *sh, long inrate, long outrate
-,	int channels, int dirty )
+,	int channels, int dirty, int smooth )
 {
 	int err = 0;
 	struct resample_data *rd = NULL;
+	int fresh = 0;
 
 	if(inrate == 0 && outrate == 0 && channels == 0)
 	{
@@ -1955,7 +2079,8 @@ syn123_setup_resample( syn123_handle *sh, long inrate, long outrate
 	// If dirty setyp changed, start anew.
 	// TODO: implement proper smooth rate change.
 	if( sh->rd && ( (sh->rd->channels != channels)
-	||	(!(sh->rd->sflags & dirty_method) != !dirty) ) )
+	||	(!(sh->rd->sflags & dirty_method) != !dirty)
+	||	(!(sh->rd->sflags & smooth_change) != !smooth) ) )
 	{
 		resample_free(sh->rd);
 		sh->rd = NULL;
@@ -1969,9 +2094,9 @@ syn123_setup_resample( syn123_handle *sh, long inrate, long outrate
 		return SYN123_WEIRD;
 	long voutrate = outrate<<decim_stages;
 	long vinrate  = oversample ? inrate*2 : inrate;
-
 	if(!sh->rd)
 	{
+		fresh = 1;
 		sh->rd = malloc(sizeof(*(sh->rd)));
 		if(!sh->rd)
 			return SYN123_DOOM;
@@ -1979,9 +2104,12 @@ syn123_setup_resample( syn123_handle *sh, long inrate, long outrate
 		rd = sh->rd;
 		rd->inrate = rd->vinrate = rd->voutrate = rd->outrate = -1;
 		rd->resample_func = NULL;
+		rd->lowpass_func    = dirty ? DIRTY_LOWPASS_PREEMP    : LOWPASS_PREEMP;
+		rd->lowpass_2x_func = dirty ? DIRTY_LOWPASS_PREEMP_2X : LOWPASS_PREEMP_2X;
 		rd->decim = NULL;
 		rd->decim_hist = NULL;
 		rd->channels = channels;
+		rd->stage_history = NULL;
 		rd->frame = NULL;
 #ifndef SYN123_NO_CASES
 		if(channels > 2)
@@ -2005,49 +2133,89 @@ syn123_setup_resample( syn123_handle *sh, long inrate, long outrate
 				free(rd->prebuf);
 			if(rd->ch)
 				free(rd->ch);
+			if(rd->stage_history)
+				free(rd->stage_history);
 			if(rd->frame)
 				free(rd->frame);
 			free(rd);
 			return SYN123_DOOM;
 		}
-		// Ensure we at least got zeroes for the history rescaler.
 		memset(rd->ch, 0, sizeof(struct channel_history)*channels);
 	}
 	else
 		rd = sh->rd;
 
 	mdebug("init in %ld out %ld", inrate, outrate);
-
-	// To support smooth rate changes, superfluous decimator stages are simply
+	// To support on-the-fly rate changes, superfluous decimator stages are
 	// forgotten, new ones added as needed.
-
-	if(decim_stages != rd->decim_stages)
+	// If smoothing is desired and the stream already flowing, new stages will
+	// get started on the previously utmost stage's history.
+	if(fresh || decim_stages != rd->decim_stages)
 	{
+		if(smooth)
+		{
+			float *sth = safe_realloc( rd->stage_history
+			,	sizeof(float)*STAGE_HISTORY*channels*(decim_stages+1) );
+			if(!sth)
+			{
+				err = SYN123_DOOM;
+				goto setup_resample_cleanup;
+			}
+			rd->stage_history = sth;
+		}
 		struct decimator_state *nd = safe_realloc( rd->decim
 		,	sizeof(*rd->decim)*decim_stages );
 		struct lpf4_hist *ndh = safe_realloc( rd->decim_hist
 		,	sizeof(*rd->decim_hist)*decim_stages*channels );
+		if(nd)
+			rd->decim = nd;
+		if(ndh)
+			rd->decim_hist = ndh;
 		if(!nd || !ndh)
 		{
 			perror("cannot allocate decimator state");
 			err = SYN123_DOOM;
 			goto setup_resample_cleanup;
 		}
+		// Link up the common memory blocks after each realloc.
 		for(unsigned int dc=0; dc<decim_stages; ++dc)
-			nd[dc].ch = ndh+dc*channels;
+		{
+			rd->decim[dc].ch = ndh+dc*channels;
+			rd->decim[dc].out_hist = rd->stage_history
+			?	rd->stage_history+(dc+1)*STAGE_HISTORY*channels
+			:	NULL;
+		}
+		// Smoothness does matter if the interpolator produced something
+		// previously, so inter_flow is a good flag to test.
+		int init_stages = rd->stage_history && rd->sflags & inter_flow;
+		// The situation: Got stage rd->decim_stages (possibly zero).
+		// with proper output history. Need to start up the additional
+		// stages with the output of the preceeding stages. I'll pretend
+		// each stage history being complete, even if I know that I am
+		// halving the count in each step.
 		for(unsigned int dc=rd->decim_stages; dc<decim_stages; ++dc)
-			nd[dc].sflags = 0;
-		rd->decim = nd;
-		rd->decim_hist = ndh;
+		{
+			rd->decim[dc].sflags = 0;
+			if(init_stages)
+			{
+				// Take previous stage output dc, process through
+				// the new stage and have it make up its output history.
+				// As decimate() overwrites its input, work on a copy.
+				memcpy( rd->prebuf
+				,	rd->stage_history+dc*STAGE_HISTORY*rd->channels
+				,	STAGE_HISTORY*rd->channels*sizeof(float) );
+				decimate(rd, dc, rd->prebuf, STAGE_HISTORY);
+			}
+		}
 		rd->decim_stages = decim_stages;
 	}
 
-	// If the virtual input rate changes (esp. increases), the interpolation
-	// offset needs adjustment to stay at/below predicted sample counts.
-	// Could always re-initialize the interpolation, but want to keep things
-	// smooth.
 	if(rd->sflags & inter_flow)
 	{
+		// If the virtual input rate changes (esp. increases), the interpolation
+		// offset needs adjustment to stay at/below predicted sample counts.
+		// Could always re-initialize the interpolation, but want to keep things
+		// smooth.
 		long sign = rd->offset < 0 ? -1 : +1;
 		// Zero on overflow, suits me just fine.
 		uint64_t noff = muldiv64( (uint64_t)(sign*rd->offset)
@@ -2079,6 +2247,8 @@ syn123_setup_resample( syn123_handle *sh, long inrate, long outrate
 
 	if(dirty)
 		rd->sflags |= dirty_method;
+	if(smooth)
+		rd->sflags |= smooth_change;
 
 	mdebug( "%u times decimation by 2"
 		", virtual output rate %ld, %ldx oversampling (%i)"
@@ -2092,21 +2262,54 @@ syn123_setup_resample( syn123_handle *sh, long inrate, long outrate
 	,	rd->lpf_cutoff, 0.5*rd->vinrate, rd->lpf_cutoff*0.5*rd->vinrate );
 	mdebug("rates final: %ld|%ld -> %ld|%ld"
 	,	rd->inrate, rd->vinrate, rd->voutrate, rd->outrate );
+	preemp_init(rd);
 	if(rd->sflags & lowpass_flow)
 	{
+		// First cheap stage of rate change smoothing:
 		// Attempt to dampen spikes from the filter history magnitudes
-		// not matching changed filter setup. Alternative: Fully reset filter.
+		// not matching changed filter setup by simple rescaling.
+		// This catches the massive spikes on adding decimation stages.
 		float scale = lpf_history_scale(rd);
 		lpf_init(rd);
-		scale = scale > 1e-10 ? lpf_history_scale(rd) / scale : 0.;
+		mdebug( "smooth old scale: %g, new scale: %g"
+		,	scale, lpf_history_scale(rd) );
+		scale = scale > 1e-10 ? lpf_history_scale(rd) / scale : 1.;
 		for(unsigned int c=0; c<rd->channels; ++c)
 			for(unsigned int j=0; j<LPF_MAX_TIMES; ++j)
 				for(unsigned int i=0; i<LPF_ORDER; ++i)
 					rd->ch[c].lpf_w[j][i] *= scale;
+		// Full smoothness with present stage history: Let the lowpass roll.
+		// Preemp needs to be re-configured beforehand!
+		// This is the icing on the cake with much more work,
+		// relaxing the filters to get rid of the trouble.
+		if(rd->stage_history)
+		{
+			// Feed the final stage output through the filters,
+			// manipulate the interpolator history to match.
+			float *in = rd->stage_history
+			+	rd->decim_stages*STAGE_HISTORY*rd->channels;
+			// Pointer to the last 5 filtered samples
+			float *last5 = NULL;
+			if(rd->sflags & oversample_2x)
+			{
+				rd->lowpass_2x_func(rd,in, STAGE_HISTORY, rd->upbuf);
+				last5 = rd->upbuf+(2*STAGE_HISTORY-5)*rd->channels;
+			} else
+			{
+				memcpy(rd->prebuf, in, STAGE_HISTORY*sizeof(*in)*rd->channels);
+				rd->lowpass_func(rd, rd->prebuf, STAGE_HISTORY);
+				last5 = rd->prebuf+(STAGE_HISTORY-5)*rd->channels;
+			}
+			// The above wrote preemp and lowpass channel histories.
+			// Now store the last samples for the interpolator history.
+			for(unsigned int c=0; c<rd->channels; ++c)
+				for(unsigned int i=0; i<5; ++i)
+					rd->ch[c].x[i] = last5[c+i*rd->channels];
+		}
 	}
 	else
 		lpf_init(rd);
-	preemp_init(rd);
+
 	rd->input_limit = syn123_resample_maxincount(inrate, outrate);
 	return 0;
 setup_resample_cleanup:

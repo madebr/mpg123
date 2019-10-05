@@ -653,9 +653,8 @@ static void setup_wavegen(void)
 				error1("Bad value for resampler type given: %s\n", resampler);
 			safe_exit(132);
 		}
-		check_fatal_syn( syn123_setup_resample(waver
-		,	inputrate, outputrate, channels, dirty ) );
-		
+		check_fatal_syn( syn123_setup_resample( waver
+		,	inputrate, outputrate, channels, dirty, 0 ) );
 	}
 	// At least have waver handy for conversions.
 	if(!generate)
