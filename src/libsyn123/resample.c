@@ -461,7 +461,7 @@ typedef float lpf_sum_type;
 
 // Number of samples to keep for smooth rate changes on
 // addition/removal of stages.
-#define STAGE_HISTORY 32
+#define STAGE_HISTORY 48
 
 enum state_flags
 {
