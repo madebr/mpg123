@@ -723,6 +723,10 @@ int syn123_filter( syn123_handle *sh
  *  you to continue on prior data. This means you can vary the resampling
  *  ratio during operation, somewhat smoothly depending on your buffer size.
  *
+ *  Also note that even on identical input and output rates, the resampler
+ *  will apply the full filtering as for any ratio close to that, including
+ *  oversampling. No special shortcuts.
+ *
  *  A returned error guarantees that the internal resampler setup has
  *  been cleared (frees a little bit of memory). You can provide zero
  *  inrate, outrate, and channel count at the same time to that effect
@@ -823,26 +827,6 @@ size_t syn123_resample_history(long inrate, long outrate, int dirty);
 MPG123_EXPORT
 size_t syn123_resample_incount(long input_rate, long output_rate, size_t outs);
 
-/** Compute the minimal input sample count needed for given output sample count.
- *
- *  The reverse of syn123_resample_count(), in a way. This gives you the
- *  minimum amount of input samples to guarantee at least the desired amount
- *  of output samples. Once you got that, ensure to call syn123_resample_count()
- *  to get a safe buffer size for that amount of input and prepare accordingly.
- *  With this approach, you can ensure that you get your realtime output device
- *  buffer filled with each loop run fetching a bit of input, at the expense
- *  of handling some additional buffering for the returned sample counts above
- *  the minimum.
- *
- *  \param input_rate input sample rate
- *  \param output_rate output sample rate
- *  \param outs desired minimal output sample count for one input buffer
- *  \return number of minimal input samples in one buffer, or zero if no
- *    sensible value exists (invalid input parameters, or zero outs)
- */
-MPG123_EXPORT
-size_t syn123_resample_incount(long input_rate, long output_rate, size_t outs);
-
 /** Compute the maximum number of input samples for a resampling buffer.
  *
  *  Upsampling means that you will get more output samples than input samples.
@@ -855,6 +839,35 @@ size_t syn123_resample_incount(long input_rate, long output_rate, size_t outs);
  */
 MPG123_EXPORT
 size_t syn123_resample_maxincount(long input_rate, long output_rate);
+
+/** Give exact output sample count for feeding given input now.
+ *
+ *  This gives you the exact number of samples you will get returned
+ *  when feeding the resampler the given additional input samples now,
+ *  given the current resampler state contained in the handle.
+ *
+ *  \param sh syn123 handle
+ *  \param ins input sample count
+ *  \return output sample count (>=0) or error code
+ */
+MPG123_EXPORT
+ssize_t syn123_resample_expect(syn123_handle *sh, size_t ins);
+
+/** Give minimum input sample count needed now for given output.
+ *
+ *  This give you the minimal number of input samples needed right
+ *  now to yield at least the specified amount of output samples.
+ *  Since one input sample can result in several output sampels in one
+ *  go, you have to check using syn123_resample_expect() how many
+ *  output samples to really expect.
+ *
+ *  \param sh syn123 handle
+ *  \param outs output sample count
+ *  \return minimal input sample count (>= 0) or error code
+ */
+MPG123_EXPORT
+ssize_t syn123_resample_inexpect(syn123_handle *sh, size_t outs);
+
 
 /* Lightweight large file hackery to enable worry-reduced use of off_t.
    Depending on the size of off_t in your client build, the corresponding
@@ -943,7 +956,7 @@ MPG123_EXPORT
 size_t syn123_resample( syn123_handle *sh,
 	float * MPG123_RESTRICT dst, float * MPG123_RESTRICT src, size_t samples );
 
-/** Clear any historic sample values for filters/interpolation.
+/** TODO: Clear any historic sample values for filters/interpolation.
  *
  *  The filters and resampling interpolators of syn123_filter() and
  *  syn123_resample() remember past samples in some form to produce

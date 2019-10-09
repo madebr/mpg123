@@ -63,10 +63,11 @@ TODO: initialize with first sample or zero? is there an actual benefit? impulse
 	but is behind the FFT-based approach of libsoxr. You trade in massive
 	latency for a performance gain, there. Vectorization of the code does
 	not seem to bring much. A test with SSE intrinsics yielded about 10%
-	speedup. This is a basic problem of recursive computations. There is
-	not that much dumb parallelism --- and the SIMD parallelism offered in
-	current CPUs is rather dumb and useless without the specific data flow
-	to be efficient. Or maybe I am just doing it wrong.
+	speedup for single-channel operation. This is a basic problem of recursive
+	computations. There is not that much dumb parallelism --- and the SIMD
+	parallelism offered in current CPUs is rather dumb and useless without
+	the specific data flow to be efficient. Or maybe I am just doing it
+	wrong. Perhaps many channels may benefit from SIMD.
 
 	If you want to optimize: Most time is spent in the low pass filtering. The
 	interpolation itself is rather cheap. The decimation filter is also worth
@@ -1658,7 +1659,12 @@ static void mul64(uint64_t a, uint64_t b, uint64_t * m1, uint64_t * m0)
 // The division result is computed on two halves of 128 bit internally,
 // and discarded if the higher half contains set bits.
 // Also, if m != NULL, the remainder is stored there.
-static uint64_t muldiv64(uint64_t a, uint64_t b, uint64_t c, int *err, uint64_t *m)
+// The actually interesting function for the interpolation:
+// e = (a*b+off)/d
+// This is bounded by zero: If (a*b+off) < 0, this returns just
+// zero, also zero remainder.
+static uint64_t muloffdiv64( uint64_t a, uint64_t b, int64_t off, uint64_t c
+,	int *err, uint64_t *m )
 {
 	uint64_t prod1, prod0;
 	uint64_t div1, div0, div0old;
@@ -1669,6 +1675,35 @@ static uint64_t muldiv64(uint64_t a, uint64_t b, uint64_t c, int *err, uint64_t 
 		return 0;
 	}
 	mul64(a, b, &prod1, &prod0);
+	if(off)
+	{
+		uint64_t prod0old = prod0;
+		prod0 += off;
+		// Offset can be positive or negative, small or large.
+		// When adding to prod0, these cases can happen:
+		// offset > 0, result > prod0: All fine.
+		// offset > 0, result < prod0: Overflow.
+		// offset < 0, result < prod0: All fine.
+		// offset < 0, result > prod0: Underflow.
+		if(off > 0 && prod0 < prod0old)
+		{
+			if(prod1 == UINT64_MAX)
+			{
+				if(err)
+					*err = 1;
+				return 0;
+			}
+			++prod1;
+		}
+		if(off < 0 && prod0 > prod0old)
+		{
+			// Pin to zero on total underflow.
+			if(prod1 == 0)
+				prod0 = 0;
+			else
+				--prod1;
+		}
+	}
 	if(c == 1)
 	{
 		div1 = prod1;
@@ -1782,7 +1817,7 @@ syn123_resample_maxincount(long inrate, long outrate)
 		// ins = (SIZE_MAX-1)*inrate/outrate
 		// Integer math always rounding down, this must be below the limit.
 		int err;
-		uint64_t maxin = muldiv64(outlimit, inrate, outrate, &err, NULL);
+		uint64_t maxin = muloffdiv64(outlimit, inrate, 0, outrate, &err, NULL);
 		// The only possible error is genuine overflow. Meaning: We can
 		// give as much input as can be represented in the variable.
 		if(err)
@@ -1874,15 +1909,13 @@ syn123_resample_total_64(long inrate, long outrate, int64_t ins)
 		return SYN123_WEIRD;
 
 	uint64_t vins = ins;
-	// Oversampling is easy: It doubles the input sample count.
-	// It also doubles the input rate. For the final compuation,
-	// it changes nothing, it's (2*ins)*outrate/(2*inrate).
-	// Same as ins*outrate/inrate, by all means. So just do nothing.
+	uint64_t vinrate = inrate;
+	uint64_t voutrate = outrate;
 	if(decim_stages)
 	{
 		// The interpolation uses the virtual output rate to get the same
 		// ratio as with decimated input rate.
-		outrate <<= decim_stages;
+		voutrate <<= decim_stages;
 		// The first sample of a block gets used, the following are dropped.
 		// So I get one sample out of the first input sample, regardless of
 		// decimation stage count. But the next sample comes only after
@@ -1894,19 +1927,20 @@ syn123_resample_total_64(long inrate, long outrate, int64_t ins)
 		for(unsigned int i=0; i<decim_stages; ++i)
 			vins = (vins+1)/2;
 	}
-	uint64_t mod;
+	if(oversample)
+	{
+		vins    *= 2;
+		vinrate *= 2;
+	}
 	int err;
-	uint64_t tot = muldiv64(vins, outrate, inrate, &err, &mod);
+	// Interpolation model:
+	//   outs = (vins*voutrate - offset - 1)/vinrate
+	// with offset = -vinrate at the beginning. This is the rounding, no
+	// need to deal with the remainder.
+	uint64_t tot = muloffdiv64(vins, voutrate, vinrate-1, vinrate, &err, NULL);
 	// Any error is treated as overflow (div by zero -> infinity).
 	if(err)
 		return SYN123_OVERFLOW;
-	// Any remainder triggers one sample more.
-	if(mod)
-	{
-		if(tot == UINT64_MAX)
-			return SYN123_OVERFLOW;
-		++tot;
-	}
 	return (tot <= INT64_MAX) ? (int64_t)tot : SYN123_OVERFLOW;
 }
 
@@ -1930,43 +1964,40 @@ syn123_resample_intotal_64(long inrate, long outrate, int64_t outs)
 		return SYN123_BAD_FMT;
 	if(oversample && decim_stages)
 		return SYN123_WEIRD;
-	if(decim_stages)
-		outrate <<=decim_stages;
-	// The normal case is rounding up once an output interval is scratched.
-	// ins*outrate/inrate = (outs-1) + rest -> outs
-	// The special case is no remainder and no rounding.
-	// ins*outrate/inrate = outs
-	// Hence, let's compute
-	// ins' = (outs-1)*inrate/outrate
-	// If that works out without rest, we hit exactly the last input sample
-	// count that reaches (outs-1). Adding 1 brings us into the next interval
-	// and gives outs.
-	// In short:
-	// ins = int((outs-1)*inrate/outrate) + 1
-	// No consideration of remainder even required. Just integer division.
+	uint64_t voutrate = outrate;
+	voutrate <<= decim_stages;
+	uint64_t vinrate  = inrate;
+	if(oversample)
+		vinrate *= 2;
+	// This works for outs > 0:
+	// ins = (outs*inrate+offset)/outrate+1
+	// First offset is -inrate.
+	// You may want to work it out for yourself. Or trust me;-)
 	int err;
-	uint64_t tot = muldiv64(outs-1, inrate, outrate, &err, NULL);
+	uint64_t vtot = muloffdiv64(outs, vinrate, -vinrate, voutrate, &err, NULL);
 	if(err)
 		return SYN123_OVERFLOW;
-	if(tot == UINT64_MAX)
+	if(vtot == UINT64_MAX)
 		return SYN123_OVERFLOW;
-	++tot; // Must be at least 1 now!
-	// Now tot is the minimum needed input sample count before interpolation.
-	// Decimation or oversampling still needs to be accounted for.
-	// Oversampling is a simple factor of two that enters both numerator
-	// and denumerator in the above division, so it can be ignored.
-	// In the case of oversampling, I only get pairs of input samples.
-	// With decimation, I need the smallest input that fulfills out=(2*in+1)/2.
-	if(decim_stages)
+	++vtot; // Must be at least 1 now!
+	uint64_t tot = vtot;
+	// Un-do oversampling, taking care not to hit overflow.
+	if(oversample)
 	{
-		for(unsigned int i=0; i<decim_stages; ++i)
-		{
-			if(!tot)
-				return 0;
-			if(tot > UINT64_MAX/2+1)
-				return SYN123_OVERFLOW;
-			tot = (tot - 1) + tot;
-		}
+		tot /= 2;
+		if(tot*2 < vtot)
+			++tot;
+	}
+	// Now tot is the minimum needed input sample count before interpolation.
+	// Decimation still needs to be accounted for.
+	// With decimation, I need the smallest input that fulfills out=(2*in+1)/2.
+	for(unsigned int i=0; i<decim_stages; ++i)
+	{
+		if(!tot)
+			return 0;
+		if(tot > UINT64_MAX/2+1)
+			return SYN123_OVERFLOW;
+		tot = (tot - 1) + tot;
 	}
 	return (tot <= INT64_MAX) ? (int64_t)tot : SYN123_OVERFLOW;
 }
@@ -2003,33 +2034,156 @@ syn123_resample_count(long inrate, long outrate, size_t ins)
 size_t attribute_align_arg
 syn123_resample_incount(long inrate, long outrate, size_t outs)
 {
-	/*
-		Oh, here I need to think. You get the largest output right from the start.
-		This means intotal returns less than the worst-case minimal input sample count.
-		How do I get the minimal input count to guarantee the desired output at any
-		location in the stream? Shouldn't the worst case be right after the best case?
-
-
-		123456
-		1 2 3
-
-		Does that scale down with multiple stages?
-		can feed 123 and get output 12
-		can feed 234 and get output 2 only
-
-		The first sample always produces one sample, eh? When I rephrase the question
-		to how many input samples do I need to feed after the first one to get <n> _more_
-		samples of output, I think I got my worst case. Can I prove it?
-
-		Does this only cover decimation? My feeling is that this is true for my interpolation,
-		too. Let's try.
-	*/
+	// I had logic here about abusing syn123_resample_intotal(), but that is wrong.
+	// Do not assume you know what interval to pick to get the maximum value.
+	// Work the algorithm for the theoretical maximum at each point, even if that
+	// may not be hit with your particular rate ratio and playback time.
 	if(outs > INT64_MAX-1)
 		return 0;
-	int64_t tot1 = syn123_resample_intotal_64(inrate, outrate, 1);
-	int64_t tot  = syn123_resample_intotal_64(inrate, outrate, (int64_t)outs+1);
-	tot -= tot1;
-	return (tot >= 0 && tot <= SIZE_MAX) ? (size_t)tot : 0;
+	int oversample;
+	unsigned int decim_stages;
+	if(rate_setup(inrate, outrate, &oversample, &decim_stages))
+		return 0;
+	if(oversample && decim_stages)
+		return 0;
+	uint64_t voutrate = outrate;
+	voutrate <<= decim_stages;
+	uint64_t vinrate  = inrate;
+	if(oversample)
+		vinrate *= 2;
+	// This works for outs > 0:
+	// ins = (outs*inrate+offset)/outrate+1
+	// First offset is -inrate, maximum offset is -1. I think.
+	// You may want to work it out for yourself. Or trust me;-)
+	int err;
+	uint64_t vtot = muloffdiv64(outs, vinrate, -1, voutrate, &err, NULL);
+	if(err)
+		return SYN123_OVERFLOW;
+	if(vtot == UINT64_MAX)
+		return SYN123_OVERFLOW;
+	++vtot; // Must be at least 1 now!
+	uint64_t tot = vtot;
+	// Un-do oversampling, taking care not to hit overflow.
+	if(oversample)
+	{
+		tot /= 2;
+		if(tot*2 < vtot)
+			++tot;
+	}
+	// Now tot is the minimum needed input sample count before interpolation.
+	// Decimation still needs to be accounted for. Worst case: We got no
+	// sample buffered (dropped) in any stage: So just multiply.
+	if(tot > UINT64_MAX>>decim_stages)
+		return SYN123_OVERFLOW;
+	tot<<=decim_stages;
+	return (tot <= SIZE_MAX) ? (size_t)tot : 0;
+}
+
+// The exact predictor: How many output samples will I get _now_
+// after feeding the indicated amount? This is concerned with
+// Buffer sizes, so let's drop the 32/64 bit distinction.
+// Since overflow can occur, we need a sign bit to signal errors.
+ssize_t attribute_align_arg
+syn123_resample_expect(syn123_handle *sh, size_t ins)
+{
+	if(!sh || !sh->rd)
+		return SYN123_BAD_HANDLE;
+	if(ins < 1)
+		return 0;
+	struct resample_data *rd = sh->rd;
+	// Need to account for the current resampler state. That is:
+	// 1. decimation stages having swallowed a sample or not,
+	// 2. current interpolator offset.
+	// The first sample of a block gets used, the following are dropped.
+	// So I get one sample out of the first input sample, regardless of
+	// decimation stage count. But the next sample comes only after
+	// 2^decim_stages further input samples.
+	// The formula for one stage: y = (x+1)/2
+	// For n stages ... my guess is wrong. Heck, n is small, less than
+	// 64 (see RATE_LIMIT). Let's just mimick the decimations in a loop.
+	// Since vins < UINT64_MAX/2, adding 1 is no issue.
+	for(unsigned int i=0; i<rd->decim_stages; ++i)
+	{
+		// If the stage is fresh or has explictly a past sample in memorian,
+		// we can add one virtual input sample. Divide first to avoid overflow.
+		size_t nins = ins / 2;
+		// When there is one sample left over, a second one from storage
+		// adds to the decimated count.
+		if( nins*2 < ins && (!(rd->decim[i].sflags & lowpass_flow)
+		||	(rd->decim[i].sflags & decimate_store)) )
+			++nins;
+		ins = nins;
+	}
+	if(ins > UINT64_MAX) // Really?
+		return SYN123_OVERFLOW;
+	uint64_t vins = ins;
+	if(rd->sflags & oversample_2x)
+	{
+		if(vins > UINT64_MAX/2)
+			return SYN123_OVERFLOW;
+		vins *= 2;
+	}
+	int err;
+	int64_t offset = rd->sflags & inter_flow ? rd->offset : -rd->vinrate;
+	// Interpolation model:
+	//   outs = (vins*voutrate - offset - 1)/vinrate
+fprintf(stderr, "offset: %"PRIi64"\n", offset);
+	uint64_t tot = muloffdiv64( vins, (uint64_t)rd->voutrate
+	,	(int64_t)(-offset-1), (uint64_t)rd->vinrate, &err, NULL );
+	// Any error is treated as overflow (div by zero -> infinity).
+	if(err)
+		return SYN123_OVERFLOW;
+	return (tot <= SSIZE_MAX) ? (ssize_t)tot : SYN123_OVERFLOW;
+}
+
+// How many input samples are minimally needed to get at least the
+// minimally desired output right now?
+ssize_t attribute_align_arg
+syn123_resample_inexpect(syn123_handle *sh, size_t outs)
+{
+	if(!sh || !sh->rd)
+		return SYN123_BAD_HANDLE;
+	if(outs < 1)
+		return 0;
+	struct resample_data *rd = sh->rd;
+	// This works for outs > 0:
+	// ins = (outs*inrate+offset)/outrate+1
+	int err;
+	int64_t offset = rd->sflags & inter_flow ? rd->offset : -rd->vinrate;
+	uint64_t vtot = muloffdiv64(outs, sh->rd->vinrate, offset, rd->voutrate
+	,	&err, NULL);
+	if(err)
+		return SYN123_OVERFLOW;
+	if(vtot == UINT64_MAX)
+		return SYN123_OVERFLOW;
+	++vtot;
+	uint64_t tot = vtot;
+	// Un-do oversampling, taking care not to hit overflow.
+	if(rd->sflags & oversample_2x)
+	{
+		tot /= 2;
+		if(tot*2 < vtot)
+			++tot;
+	}
+	// Still: tot > 0
+	// Got needed output of deciation, for each stage
+	// a) need twice that amount if there is no sample buffered
+	// b) need one less than twice the amount if there is a sample buffered
+	for(unsigned int j=0; j<rd->decim_stages; ++j)
+	{
+		unsigned int i = rd->decim_stages - 1 - j;
+		if(tot > UINT64_MAX/2+1)
+			return SYN123_OVERFLOW;
+		tot = (tot - 1) + tot;
+		if( (rd->decim[i].sflags & lowpass_flow)
+		&&	!(rd->decim[i].sflags & decimate_store) )
+		{
+			if(tot == UINT64_MAX)
+				return SYN123_OVERFLOW;
+			++tot;
+		}
+	}
+	return (tot <= SSIZE_MAX) ? (ssize_t)tot : SYN123_OVERFLOW;
 }
 
 void resample_free(struct resample_data *rd)
@@ -2218,8 +2372,8 @@ syn123_setup_resample( syn123_handle *sh, long inrate, long outrate
 		// smooth.
 		long sign = rd->offset < 0 ? -1 : +1;
 		// Zero on overflow, suits me just fine.
-		uint64_t noff = muldiv64( (uint64_t)(sign*rd->offset)
-		,	(uint64_t)vinrate, (uint64_t)rd->vinrate, NULL, NULL );
+		uint64_t noff = muloffdiv64( (uint64_t)(sign*rd->offset)
+		,	(uint64_t)vinrate, 0, (uint64_t)rd->vinrate, NULL, NULL );
 		// Magnitude must not be too large. Too small is OK.
 		if(noff > LONG_MAX)
 			noff = LONG_MAX;
