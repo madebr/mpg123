@@ -632,7 +632,7 @@ int syn123_mix( void * MPG123_RESTRICT dst, int dst_enc, int dst_channels
  *             
  *    H(z) = \frac
  *            {b_0 + b_1 z^{-1} + ... + b_N z^{-N}}
- *            {1 + a_1 z^-1 + ... + a_N z^{-N}}
+ *            {1 + a_1 z^{-1} + ... + a_N z^{-N}}
  *  \f]
  *  It is your task to come up with fun values for the coefficients
  *  b_n and a_n to implement various FIR and IIR filters.
