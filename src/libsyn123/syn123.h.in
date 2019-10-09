@@ -628,11 +628,12 @@ int syn123_mix( void * MPG123_RESTRICT dst, int dst_enc, int dst_channels
  *  This takes a filter order N and coefficient set to prepare
  *  the internal state of a digital filter defined by the transfer
  *  function
- *
- *             b_0 + b_1 z^-1 + ... + b_N z^-N
- *    H(z) = -----------------------------------
- *               1 + a_1 z^-1 + ... + a_N z^-N
- *
+ *  \f[
+ *             
+ *    H(z) = \frac
+ *            {b_0 + b_1 z^{-1} + ... + b_N z^{-N}}
+ *            {1 + a_1 z^-1 + ... + a_N z^{-N}}
+ *  \f]
  *  It is your task to come up with fun values for the coefficients
  *  b_n and a_n to implement various FIR and IIR filters.
  *
