@@ -59,10 +59,15 @@ int main(int argc, char **argv)
 	long maxrate = firstrate > lastrate ? firstrate : lastrate;
 	long minrate = firstrate < lastrate ? firstrate : lastrate;
 	fprintf(stderr, "rate %ld to [%ld;%ld]\n", rate, minrate, maxrate);
+	// Need to add 1 to incount to account for rates in between.
+	// A slightly lower rate than maxrate might cause an increase in
+	// the max incount for that rate, resulting in _more_ outcount
+	// than the lower incount for the maxrate.
 	size_t maxoutblock = syn123_resample_count( rate, maxrate
-	,	syn123_resample_incount(rate, maxrate, block) );
+	,	syn123_resample_incount(rate, maxrate, block)+1 );
 	size_t maxinblock  = syn123_resample_incount(rate, minrate, block);
-	//fprintf(stderr, "maxinblock %zu, maxoutblock %zu\n", maxinblock, maxoutblock);
+	fprintf( stderr, "maxinblock %zu, maxoutblock %zu\n"
+	,	maxinblock, maxoutblock );
 	if(!maxoutblock || !maxinblock)
 		return -7;
 	float *outbuf = malloc(sizeof(float)*maxoutblock);
