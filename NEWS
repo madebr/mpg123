@@ -34,6 +34,8 @@ bodies or see it as a feature
 -- It also hosts sample format conversions as a necessity to be able to
    directly produce the format output devices need.
 -- Well, also channel mixing while we're at it.
+-- Oh, and a minimal-latency-and-reasonably-efficient resampler that only
+   took me over a year to finish.
 TODO: Make libout123 and/or mpg123 use that to convert on the fly. Optionally?
       A new incompatible version of libmpg123 would drop duplicate code for
       conversions …
