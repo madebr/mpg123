@@ -133,6 +133,7 @@ enum syn123_error
 ,	SYN123_BAD_SWEEP /**< Invalid sweep curve given. */
 ,	SYN123_OVERFLOW  /**< Some fatal (integer) overflow that prevents proper operation. */
 ,	SYN123_NO_DATA   /**< Not enough data to do something. */
+,	SYN123_BAD_DATA  /**< Data present, but not usable. */
 };
 
 /** Give a short phrase explaining an error code.
@@ -667,30 +668,51 @@ int syn123_mix( void * MPG123_RESTRICT dst, int dst_enc, int dst_channels
  *  It is your task to come up with fun values for the coefficients
  *  b_n and a_n to implement various FIR and IIR filters.
  *
+ *  Since it is easy to do and useful, this configures not only a single
+ *  filter but a chain of them. If you do configure a chain, the choice
+ *  of mixenc and channels must match. No conversion between filters.
+ *
  *  \param sh mandatory handle
- *  \param order filter order (filter length minus one)
+ *  \param append if true, append a filter to the chain, fresh chain otherwise
+ *  \param order filter order N (filter length minus one)
  *  \param b nominator coefficients, starting with b_0 (order+1 elements)
  *  \param a denominator coefficients, starting with a_0=1 (order+1 elements).
  *    It is an error to provide a sequence that does not start with 1.
  *    For a non-recursive (FIR) filter, you can set all following
  *    values from a_1 on to zero or choose to provide a NULL pointer.
  *  \param mixenc either MPG123_ENC_FLOAT_32 or MPG123_ENC_FLOAT_64 for
- *    computation in single or double precision
- *  \param channels number of channels in the audio signal
+ *    computation in single or double precision, can be zero to refer to
+ *    the value demanded by an already present filter
+ *  \param channels number of channels in the audio signal, can be zero
+ *    to refer to the value demanded by an already present filter
  *  \param init_firstval If non-zero, initialize the filter history with
  *    a constant stream of the first encountered sample instead of zero.
  *  \return success code
  */
 MPG123_EXPORT
 int syn123_setup_filter( syn123_handle *sh
-,	unsigned int order, double *b, double *a
+,	int append, unsigned int order, double *b, double *a
 ,	int mixenc, int channels, int init_firstval );
+
+/** init_firstval is the effective setting (extreme coefficients may remove the distinction) */
+
+MPG123_EXPORT
+int syn123_query_filter( syn123_handle *sh, size_t position
+,	size_t *count, unsigned int *order, double *b, double *a
+,	int *mixenc, int *channels, int *init_firstval );
+
+/** drop the n last filters */
+MPG123_EXPORT
+void syn123_drop_filter(syn123_handle *sh, size_t count);
 
 /** Apply a prepared digital filter.
  * 
  *  This applies the filter prepared by syn123_setup_filter
  *  This converts to/from the configured mixing encoding on the fly,
  *  if necessary.
+ *
+ *  If you got no filters configured, this always succeeds and
+ *  does nothing.
  *
  *  \param sh handle
  *  \param buf audio data to work on (channel count matching what
@@ -986,18 +1008,6 @@ off_t syn123_resample_intotal(long inrate, long outrate, off_t outs);
 MPG123_EXPORT
 size_t syn123_resample( syn123_handle *sh,
 	float * MPG123_RESTRICT dst, float * MPG123_RESTRICT src, size_t samples );
-
-/** TODO: Clear any historic sample values for filters/interpolation.
- *
- *  The filters and resampling interpolators of syn123_filter() and
- *  syn123_resample() remember past samples in some form to produce
- *  continous output. If you want a fresh start, this function clears
- *  that history.
- *
- *  \param sh handle that should get history cleared
- */
-MPG123_EXPORT
-void syn123_clear_history(syn123_handle *sh);
 
 /** Swap byte order between little/big endian.
  *  \param buf buffer to work on

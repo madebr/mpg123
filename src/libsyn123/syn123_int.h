@@ -50,6 +50,18 @@ struct syn123_sweep
 // Not sure if synergies will emerge eventually.
 struct resample_data;
 
+struct filter_chain
+{
+	int mixenc;   // double or float
+	int channels;
+	size_t count; // of filters
+	size_t maxcount; // storage allocated for that many, to avoid
+	                 // realloc in syn123_drop_filter()
+	// Only one type is configured!
+	struct d_filter *df; // double precision filters
+	struct f_filter *ff; // single precision filters
+};
+
 struct syn123_struct
 {
 	// Temporary storage in internal precision.
@@ -83,6 +95,7 @@ struct syn123_struct
 	size_t samples; // samples (PCM frames) in period buffer
 	size_t offset;  // offset in buffer for extraction helper
 	struct resample_data *rd; // resampler data, if initialized
+	struct filter_chain fc;
 };
 
 #ifndef NO_SMIN

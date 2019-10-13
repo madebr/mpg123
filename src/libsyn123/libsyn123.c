@@ -801,6 +801,9 @@ syn123_new(long rate, int channels, int encoding
 	sh->dither = 0;
 	sh->do_dither = 0;
 	sh->dither_seed = 0;
+	sh->fc.count = sh->fc.maxcount = 0;
+	sh->fc.df = NULL;
+	sh->fc.ff = NULL;
 
 syn123_new_end:
 	if(err)
@@ -820,6 +823,11 @@ syn123_del(syn123_handle* sh)
 		return;
 	syn123_setup_silence(sh);
 	syn123_setup_resample(sh, 0, 0, 0, 0, 0);
+	syn123_drop_filter(sh, sh->fc.count);
+	if(sh->fc.ff)
+		free(sh->fc.ff);
+	if(sh->fc.df)
+		free(sh->fc.df);
 	if(sh->buf)
 		free(sh->buf);
 	free(sh);
