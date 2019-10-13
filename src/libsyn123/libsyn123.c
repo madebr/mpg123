@@ -466,6 +466,33 @@ setup_wave_end:
 	return ret;
 }
 
+int attribute_align_arg
+syn123_query_waves( syn123_handle *sh, size_t *count
+,	int *id, double *freq, double *phase, int *backwards
+,	size_t *common_period )
+{
+	if(!sh)
+		return SYN123_BAD_HANDLE;
+	if(count)
+		*count = sh->wave_count;
+	if((id || freq || phase || backwards || common_period) && !sh->waves)
+		return SYN123_NO_DATA;
+	for(size_t c=0; c<sh->wave_count; ++c)
+	{
+		if(id)
+			id[c] = sh->waves[c].id;
+		if(backwards)
+			backwards[c] = sh->waves[c].backwards;
+		if(freq)
+			freq[c] = sh->waves[c].freq;
+		if(phase)
+			phase[c] = sh->waves[c].phase;
+	}
+	if(common_period)
+		*common_period = sh->samples;
+	return SYN123_OK;
+}
+
 // Given time normalized to the sweep duration, return the
 // current frequency.
 

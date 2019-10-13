@@ -249,14 +249,44 @@ enum syn123_wave_id
  *     Your provided frequencies are overwritten with the actual
  *     values if the periodic buffer is chosen.
  *  \param phase array of wave phases, may be NULL
- *  \param backwards array of true (non-zero) or false indication
-      of the wave being inverted in time, may be NULL
+ *  \param backwards array of true (non-zero) or false (zero), indicating
+      whether the wave is being inverted in time, may be NULL
  *  \param period address to store the size of the period buffer
  *    in samples (zero if not using the buffer), ignored if NULL
  *  \return success code
  */
 MPG123_EXPORT
 int syn123_setup_waves( syn123_handle* sh, size_t count
+,	int *id, double *freq, double *phase, int* backwards
+,	size_t *period );
+
+/** Query current wave generator setup and state.
+ *
+ *  This lets you extract the setup of the wave generator and
+ *  the current phases to be able to re-create it and continue
+ *  seamlessly, or maybe intentionally in some tweaked form with
+ *  slight phase or frequency shifts.
+ *
+ *  You only need to set target pointers to non-NULL where you
+ *  want the corresponding values extracted. You need to have
+ *  the storage prepared for the correct wave count. A common
+ *  mode of usage might be to make a first call to only query
+ *  the count, allocate storage, then a do a second call for the
+ *  wave data.
+ *
+ *  \param sh handle
+ *  \param count address to store number of waves
+ *  \param id storage for array of wave IDs
+ *  \param freq storage for array of wave frequencies
+ *  \param phase storage for array of wave phases
+ *  \param backwards storage for array of true (non-zero) or false (zero),
+ *    indicating whether the wave is being inverted in time
+ *  \param period address to store the size of the period buffer
+ *    in samples (zero if not using the buffer)
+ *  \return success code
+ */
+MPG123_EXPORT
+int syn123_query_waves( syn123_handle* sh, size_t *count
 ,	int *id, double *freq, double *phase, int* backwards
 ,	size_t *period );
 
