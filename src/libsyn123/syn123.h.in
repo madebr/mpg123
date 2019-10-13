@@ -727,7 +727,7 @@ int syn123_filter( syn123_handle *sh
 
 /** Set up the resampler.
  *
- *  This works independent of the signal generators. You can combine
+ *  This works independently of the signal generators. You can combine
  *  syn123_setup_resample() with syn123_setup_geiger(), for example.
  *
  *  People can get worked up a lot about differing algorithms for resampling,
