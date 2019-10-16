@@ -79,6 +79,8 @@ TODO: initialize with first sample or zero? is there an actual benefit? impulse
 #define NO_GROW_BUF
 #define NO_SMAX
 #define NO_SMIN
+// SSIZE_MAX is not standard C:-/
+#define _POSIX_C_SOURCE 200809L
 #include "syn123_int.h"
 #include "debug.h"
 
@@ -1127,38 +1129,6 @@ static void lowpass##times##_df2_preemp(struct resample_data *rd, float *in, siz
 		} \
 	} \
 	LPF_DF2_END \
-} \
-\
-static void lowpass##times##_df2(struct resample_data *rd, float *in, size_t ins) \
-{ \
-	if(!ins) \
-		return; \
-	float *out = in; \
-	LPF_DF2_BEGIN(times, in, rd->channels,) \
-	switch(rd->channels) \
-	{ \
-		case 1:  for(size_t i=0; i<ins; ++i) \
-		{ \
-			LPF_DF2_SAMPLE(times, in, out, 1) \
-			in++; \
-			out++; \
-		} \
-		break; \
-		case 2:  for(size_t i=0; i<ins; ++i) \
-		{ \
-			LPF_DF2_SAMPLE(times, in, out, 2) \
-			in  += 2; \
-			out += 2; \
-		} \
-		break; \
-		default: for(size_t i=0; i<ins; ++i) \
-		{ \
-			LPF_DF2_SAMPLE(times, in, out, rd->channels) \
-			in  += rd->channels; \
-			out += rd->channels; \
-		} \
-	} \
-	LPF_DF2_END \
 }
 #else
 #define LOWPASS_DF2_FUNCSX(times) \
@@ -1197,21 +1167,6 @@ static void lowpass##times##_df2_preemp(struct resample_data *rd, float *in, siz
 	{ \
 		PREEMP_DF2_SAMPLE(in, rd->frame, rd->channels) \
 		LPF_DF2_SAMPLE(times, rd->frame, out, rd->channels) \
-		in  += rd->channels; \
-		out += rd->channels; \
-	} \
-	LPF_DF2_END \
-} \
-\
-static void lowpass##times##_df2(struct resample_data *rd, float *in, size_t ins) \
-{ \
-	if(!ins) \
-		return; \
-	float *out = in; \
-	LPF_DF2_BEGIN(times, in, rd->channels,) \
-	for(size_t i=0; i<ins; ++i) \
-	{ \
-		LPF_DF2_SAMPLE(times, in, out, rd->channels) \
 		in  += rd->channels; \
 		out += rd->channels; \
 	} \
