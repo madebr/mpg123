@@ -65,6 +65,9 @@
 #ifndef SIZE_MAX
 #define SIZE_MAX ((size_t)-1)
 #endif
+#ifndef SSIZE_MAX
+#define SSIZE_MAX ((size_t)-1/2)
+#endif
 #ifndef ULONG_MAX
 #define ULONG_MAX ((unsigned long)-1)
 #endif
