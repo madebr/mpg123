@@ -69,96 +69,96 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{67CAA87B-7CF1-4F93-BB67-21C513F40803}</ProjectGuid>
     <RootNamespace>libmpg123</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_x86_Dll|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_x86_Dll|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_x86_Dll|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_x86_Dll|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_x86|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_x86|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_x86|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_x86|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Generic_Dll|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Generic_Dll|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Generic_Dll|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Generic_Dll|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Generic|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Generic|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Generic|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Generic|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -265,7 +265,7 @@
       <ExceptionHandling>
       </ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -285,7 +285,7 @@
       <ExceptionHandling>
       </ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -312,7 +312,7 @@
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;OPT_GENERIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>
       </ExceptionHandling>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
@@ -336,7 +336,7 @@
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;OPT_GENERIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>
       </ExceptionHandling>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
@@ -474,7 +474,7 @@
       <ExceptionHandling>
       </ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -482,70 +482,70 @@
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <PreLinkEvent>
-      <Command>cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnow.S" /nologo &gt; "$(IntDir)dct36_3dnow.asm"
+      <Command>cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnow.S" /nologo &gt; "$(IntDir)dct36_3dnow.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct36_3dnow.o" "$(IntDir)dct36_3dnow.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnowext.S" /nologo &gt; "$(IntDir)dct36_3dnowext.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnowext.S" /nologo &gt; "$(IntDir)dct36_3dnowext.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct36_3dnowext.o" "$(IntDir)dct36_3dnowext.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_sse.S" /nologo &gt; "$(IntDir)dct36_sse.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_sse.S" /nologo &gt; "$(IntDir)dct36_sse.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct36_sse.o" "$(IntDir)dct36_sse.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnow.S" /nologo &gt; "$(IntDir)dct64_3dnow.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnow.S" /nologo &gt; "$(IntDir)dct64_3dnow.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct64_3dnow.o" "$(IntDir)dct64_3dnow.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnowext.S" /nologo &gt; "$(IntDir)dct64_3dnowext.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnowext.S" /nologo &gt; "$(IntDir)dct64_3dnowext.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct64_3dnowext.o" "$(IntDir)dct64_3dnowext.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_mmx.S" /nologo &gt; "$(IntDir)dct64_mmx.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_mmx.S" /nologo &gt; "$(IntDir)dct64_mmx.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct64_mmx.o" "$(IntDir)dct64_mmx.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse.S" /nologo &gt; "$(IntDir)dct64_sse.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse.S" /nologo &gt; "$(IntDir)dct64_sse.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct64_sse.o" "$(IntDir)dct64_sse.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse_float.S" /nologo &gt; "$(IntDir)dct64_sse_float.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse_float.S" /nologo &gt; "$(IntDir)dct64_sse_float.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)dct64_sse_float.o" "$(IntDir)dct64_sse_float.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\equalizer_3dnow.S" /nologo &gt; "$(IntDir)equalizer_3dnow.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\equalizer_3dnow.S" /nologo &gt; "$(IntDir)equalizer_3dnow.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)equalizer_3dnow.o" "$(IntDir)equalizer_3dnow.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\getcpuflags.S" /nologo &gt; "$(IntDir)getcpuflags.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\getcpuflags.S" /nologo &gt; "$(IntDir)getcpuflags.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)getcpuflags.o" "$(IntDir)getcpuflags.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnow.S" /nologo &gt; "$(IntDir)synth_3dnow.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnow.S" /nologo &gt; "$(IntDir)synth_3dnow.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_3dnow.o" "$(IntDir)synth_3dnow.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnowext.S" /nologo &gt; "$(IntDir)synth_3dnowext.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnowext.S" /nologo &gt; "$(IntDir)synth_3dnowext.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_3dnowext.o" "$(IntDir)synth_3dnowext.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_i586.S" /nologo &gt; "$(IntDir)synth_i586.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_i586.S" /nologo &gt; "$(IntDir)synth_i586.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_i586.o" "$(IntDir)synth_i586.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_mmx.S" /nologo &gt; "$(IntDir)synth_mmx.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_mmx.S" /nologo &gt; "$(IntDir)synth_mmx.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_mmx.o" "$(IntDir)synth_mmx.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse.S" /nologo &gt; "$(IntDir)synth_sse.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse.S" /nologo &gt; "$(IntDir)synth_sse.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_sse.o" "$(IntDir)synth_sse.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_float.S" /nologo &gt; "$(IntDir)synth_sse_float.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_float.S" /nologo &gt; "$(IntDir)synth_sse_float.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_sse_float.o" "$(IntDir)synth_sse_float.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_float.S" /nologo &gt; "$(IntDir)synth_stereo_sse_float.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_float.S" /nologo &gt; "$(IntDir)synth_stereo_sse_float.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_stereo_sse_float.o" "$(IntDir)synth_stereo_sse_float.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\tabinit_mmx.S" /nologo &gt; "$(IntDir)tabinit_mmx.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\tabinit_mmx.S" /nologo &gt; "$(IntDir)tabinit_mmx.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)tabinit_mmx.o" "$(IntDir)tabinit_mmx.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_accurate.S" /nologo &gt; "$(IntDir)synth_sse_accurate.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_accurate.S" /nologo &gt; "$(IntDir)synth_sse_accurate.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_sse_accurate.o" "$(IntDir)synth_sse_accurate.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_s32.S" /nologo &gt; "$(IntDir)synth_sse_s32.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_s32.S" /nologo &gt; "$(IntDir)synth_sse_s32.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_sse_s32.o" "$(IntDir)synth_sse_s32.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_accurate.S" /nologo &gt; "$(IntDir)synth_stereo_sse_accurate.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_accurate.S" /nologo &gt; "$(IntDir)synth_stereo_sse_accurate.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_stereo_sse_accurate.o" "$(IntDir)synth_stereo_sse_accurate.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_s32.S" /nologo &gt; "$(IntDir)synth_stereo_sse_s32.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_s32.S" /nologo &gt; "$(IntDir)synth_stereo_sse_s32.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_stereo_sse_s32.o" "$(IntDir)synth_stereo_sse_s32.asm"
 </Command>
     </PreLinkEvent>
@@ -562,7 +562,7 @@ yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_stereo_sse_
       <ExceptionHandling>
       </ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -623,7 +623,7 @@ yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x8
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;OPT_MULTI;OPT_GENERIC;OPT_I386;OPT_I586;OPT_MMX;OPT_3DNOW;OPT_3DNOWEXT;OPT_SSE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>
       </ExceptionHandling>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
@@ -632,70 +632,70 @@ yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x8
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <PreLinkEvent>
-      <Command>cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnow.S" /nologo &gt; "$(IntDir)dct36_3dnow.asm"
+      <Command>cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnow.S" /nologo &gt; "$(IntDir)dct36_3dnow.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct36_3dnow.o" "$(IntDir)dct36_3dnow.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnowext.S" /nologo &gt; "$(IntDir)dct36_3dnowext.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnowext.S" /nologo &gt; "$(IntDir)dct36_3dnowext.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct36_3dnowext.o" "$(IntDir)dct36_3dnowext.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_sse.S" /nologo &gt; "$(IntDir)dct36_sse.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_sse.S" /nologo &gt; "$(IntDir)dct36_sse.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct36_sse.o" "$(IntDir)dct36_sse.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnow.S" /nologo &gt; "$(IntDir)dct64_3dnow.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnow.S" /nologo &gt; "$(IntDir)dct64_3dnow.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct64_3dnow.o" "$(IntDir)dct64_3dnow.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnowext.S" /nologo &gt; "$(IntDir)dct64_3dnowext.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnowext.S" /nologo &gt; "$(IntDir)dct64_3dnowext.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct64_3dnowext.o" "$(IntDir)dct64_3dnowext.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_mmx.S" /nologo &gt; "$(IntDir)dct64_mmx.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_mmx.S" /nologo &gt; "$(IntDir)dct64_mmx.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct64_mmx.o" "$(IntDir)dct64_mmx.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse.S" /nologo &gt; "$(IntDir)dct64_sse.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse.S" /nologo &gt; "$(IntDir)dct64_sse.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct64_sse.o" "$(IntDir)dct64_sse.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse_float.S" /nologo &gt; "$(IntDir)dct64_sse_float.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse_float.S" /nologo &gt; "$(IntDir)dct64_sse_float.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)dct64_sse_float.o" "$(IntDir)dct64_sse_float.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\equalizer_3dnow.S" /nologo &gt; "$(IntDir)equalizer_3dnow.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\equalizer_3dnow.S" /nologo &gt; "$(IntDir)equalizer_3dnow.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)equalizer_3dnow.o" "$(IntDir)equalizer_3dnow.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\getcpuflags.S" /nologo &gt; "$(IntDir)getcpuflags.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\getcpuflags.S" /nologo &gt; "$(IntDir)getcpuflags.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)getcpuflags.o" "$(IntDir)getcpuflags.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnow.S" /nologo &gt; "$(IntDir)synth_3dnow.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnow.S" /nologo &gt; "$(IntDir)synth_3dnow.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_3dnow.o" "$(IntDir)synth_3dnow.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnowext.S" /nologo &gt; "$(IntDir)synth_3dnowext.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnowext.S" /nologo &gt; "$(IntDir)synth_3dnowext.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_3dnowext.o" "$(IntDir)synth_3dnowext.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_i586.S" /nologo &gt; "$(IntDir)synth_i586.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_i586.S" /nologo &gt; "$(IntDir)synth_i586.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_i586.o" "$(IntDir)synth_i586.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_mmx.S" /nologo &gt; "$(IntDir)synth_mmx.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_mmx.S" /nologo &gt; "$(IntDir)synth_mmx.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_mmx.o" "$(IntDir)synth_mmx.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse.S" /nologo &gt; "$(IntDir)synth_sse.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse.S" /nologo &gt; "$(IntDir)synth_sse.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_sse.o" "$(IntDir)synth_sse.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_float.S" /nologo &gt; "$(IntDir)synth_sse_float.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_float.S" /nologo &gt; "$(IntDir)synth_sse_float.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_sse_float.o" "$(IntDir)synth_sse_float.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_float.S" /nologo &gt; "$(IntDir)synth_stereo_sse_float.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_float.S" /nologo &gt; "$(IntDir)synth_stereo_sse_float.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_stereo_sse_float.o" "$(IntDir)synth_stereo_sse_float.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\tabinit_mmx.S" /nologo &gt; "$(IntDir)tabinit_mmx.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\tabinit_mmx.S" /nologo &gt; "$(IntDir)tabinit_mmx.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)tabinit_mmx.o" "$(IntDir)tabinit_mmx.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_accurate.S" /nologo &gt; "$(IntDir)synth_sse_accurate.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_accurate.S" /nologo &gt; "$(IntDir)synth_sse_accurate.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_sse_accurate.o" "$(IntDir)synth_sse_accurate.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_s32.S" /nologo &gt; "$(IntDir)synth_sse_s32.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_s32.S" /nologo &gt; "$(IntDir)synth_sse_s32.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_sse_s32.o" "$(IntDir)synth_sse_s32.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_accurate.S" /nologo &gt; "$(IntDir)synth_stereo_sse_accurate.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_accurate.S" /nologo &gt; "$(IntDir)synth_stereo_sse_accurate.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_stereo_sse_accurate.o" "$(IntDir)synth_stereo_sse_accurate.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_s32.S" /nologo &gt; "$(IntDir)synth_stereo_sse_s32.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_s32.S" /nologo &gt; "$(IntDir)synth_stereo_sse_s32.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_stereo_sse_s32.o" "$(IntDir)synth_stereo_sse_s32.asm"
 </Command>
     </PreLinkEvent>
@@ -716,7 +716,7 @@ yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_stereo_sse_
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;OPT_MULTI;OPT_GENERIC;OPT_X86_64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>
       </ExceptionHandling>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
@@ -785,70 +785,70 @@ yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x8
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <PreLinkEvent>
-      <Command>cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnow.S" /nologo &gt; "$(IntDir)dct36_3dnow.asm"
+      <Command>cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnow.S" /nologo &gt; "$(IntDir)dct36_3dnow.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct36_3dnow.o" "$(IntDir)dct36_3dnow.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnowext.S" /nologo &gt; "$(IntDir)dct36_3dnowext.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnowext.S" /nologo &gt; "$(IntDir)dct36_3dnowext.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct36_3dnowext.o" "$(IntDir)dct36_3dnowext.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_sse.S" /nologo &gt; "$(IntDir)dct36_sse.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_sse.S" /nologo &gt; "$(IntDir)dct36_sse.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct36_sse.o" "$(IntDir)dct36_sse.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnow.S" /nologo &gt; "$(IntDir)dct64_3dnow.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnow.S" /nologo &gt; "$(IntDir)dct64_3dnow.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct64_3dnow.o" "$(IntDir)dct64_3dnow.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnowext.S" /nologo &gt; "$(IntDir)dct64_3dnowext.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnowext.S" /nologo &gt; "$(IntDir)dct64_3dnowext.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct64_3dnowext.o" "$(IntDir)dct64_3dnowext.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_mmx.S" /nologo &gt; "$(IntDir)dct64_mmx.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_mmx.S" /nologo &gt; "$(IntDir)dct64_mmx.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct64_mmx.o" "$(IntDir)dct64_mmx.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse.S" /nologo &gt; "$(IntDir)dct64_sse.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse.S" /nologo &gt; "$(IntDir)dct64_sse.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct64_sse.o" "$(IntDir)dct64_sse.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse_float.S" /nologo &gt; "$(IntDir)dct64_sse_float.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse_float.S" /nologo &gt; "$(IntDir)dct64_sse_float.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)dct64_sse_float.o" "$(IntDir)dct64_sse_float.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\equalizer_3dnow.S" /nologo &gt; "$(IntDir)equalizer_3dnow.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\equalizer_3dnow.S" /nologo &gt; "$(IntDir)equalizer_3dnow.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)equalizer_3dnow.o" "$(IntDir)equalizer_3dnow.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\getcpuflags.S" /nologo &gt; "$(IntDir)getcpuflags.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\getcpuflags.S" /nologo &gt; "$(IntDir)getcpuflags.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)getcpuflags.o" "$(IntDir)getcpuflags.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnow.S" /nologo &gt; "$(IntDir)synth_3dnow.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnow.S" /nologo &gt; "$(IntDir)synth_3dnow.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_3dnow.o" "$(IntDir)synth_3dnow.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnowext.S" /nologo &gt; "$(IntDir)synth_3dnowext.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnowext.S" /nologo &gt; "$(IntDir)synth_3dnowext.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_3dnowext.o" "$(IntDir)synth_3dnowext.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_i586.S" /nologo &gt; "$(IntDir)synth_i586.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_i586.S" /nologo &gt; "$(IntDir)synth_i586.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_i586.o" "$(IntDir)synth_i586.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_mmx.S" /nologo &gt; "$(IntDir)synth_mmx.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_mmx.S" /nologo &gt; "$(IntDir)synth_mmx.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_mmx.o" "$(IntDir)synth_mmx.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse.S" /nologo &gt; "$(IntDir)synth_sse.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse.S" /nologo &gt; "$(IntDir)synth_sse.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_sse.o" "$(IntDir)synth_sse.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_float.S" /nologo &gt; "$(IntDir)synth_sse_float.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_float.S" /nologo &gt; "$(IntDir)synth_sse_float.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_sse_float.o" "$(IntDir)synth_sse_float.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_float.S" /nologo &gt; "$(IntDir)synth_stereo_sse_float.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_float.S" /nologo &gt; "$(IntDir)synth_stereo_sse_float.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_stereo_sse_float.o" "$(IntDir)synth_stereo_sse_float.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\tabinit_mmx.S" /nologo &gt; "$(IntDir)tabinit_mmx.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\tabinit_mmx.S" /nologo &gt; "$(IntDir)tabinit_mmx.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)tabinit_mmx.o" "$(IntDir)tabinit_mmx.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_accurate.S" /nologo &gt; "$(IntDir)synth_sse_accurate.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_accurate.S" /nologo &gt; "$(IntDir)synth_sse_accurate.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_sse_accurate.o" "$(IntDir)synth_sse_accurate.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_s32.S" /nologo &gt; "$(IntDir)synth_sse_s32.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_s32.S" /nologo &gt; "$(IntDir)synth_sse_s32.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_sse_s32.o" "$(IntDir)synth_sse_s32.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_accurate.S" /nologo &gt; "$(IntDir)synth_stereo_sse_accurate.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_accurate.S" /nologo &gt; "$(IntDir)synth_stereo_sse_accurate.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_stereo_sse_accurate.o" "$(IntDir)synth_stereo_sse_accurate.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_s32.S" /nologo &gt; "$(IntDir)synth_stereo_sse_s32.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_s32.S" /nologo &gt; "$(IntDir)synth_stereo_sse_s32.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_stereo_sse_s32.o" "$(IntDir)synth_stereo_sse_s32.asm"
 </Command>
     </PreLinkEvent>
@@ -879,40 +879,40 @@ yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_stereo_sse_
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <PreLinkEvent>
-      <Command>cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\getcpuflags_x86_64.S" /nologo &gt; "$(IntDir)getcpuflags_x86_64.asm"
+      <Command>cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_X86_64" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\getcpuflags_x86_64.S" /nologo &gt; "$(IntDir)getcpuflags_x86_64.asm"
 yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)getcpuflags_x86_64.o" "$(IntDir)getcpuflags_x86_64.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_x86_64.S" /nologo &gt; "$(IntDir)dct36_x86_64.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_X86_64" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_x86_64.S" /nologo &gt; "$(IntDir)dct36_x86_64.asm"
 yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)dct36_x86_64.o" "$(IntDir)dct36_x86_64.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64_float.S" /nologo &gt; "$(IntDir)synth_x86_64_float.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_X86_64" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64_float.S" /nologo &gt; "$(IntDir)synth_x86_64_float.asm"
 yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_x86_64_float.o" "$(IntDir)synth_x86_64_float.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64_s32.S" /nologo &gt; "$(IntDir)synth_x86_64_s32.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_X86_64" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64_s32.S" /nologo &gt; "$(IntDir)synth_x86_64_s32.asm"
 yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_x86_64_s32.o" "$(IntDir)synth_x86_64_s32.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64_float.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64_float.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_X86_64" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64_float.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64_float.asm"
 yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x86_64_float.o" "$(IntDir)synth_stereo_x86_64_float.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64_s32.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64_s32.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_X86_64" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64_s32.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64_s32.asm"
 yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x86_64_s32.o" "$(IntDir)synth_stereo_x86_64_s32.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64.S" /nologo &gt; "$(IntDir)synth_x86_64.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_X86_64" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64.S" /nologo &gt; "$(IntDir)synth_x86_64.asm"
 yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_x86_64.o" "$(IntDir)synth_x86_64.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_x86_64.S" /nologo &gt; "$(IntDir)dct64_x86_64.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_X86_64" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_x86_64.S" /nologo &gt; "$(IntDir)dct64_x86_64.asm"
 yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)dct64_x86_64.o" "$(IntDir)dct64_x86_64.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_x86_64_float.S" /nologo &gt; "$(IntDir)dct64_x86_64_float.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_X86_64" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_x86_64_float.S" /nologo &gt; "$(IntDir)dct64_x86_64_float.asm"
 yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)dct64_x86_64_float.o" "$(IntDir)dct64_x86_64_float.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_X86_64" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64.asm"
 yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x86_64.o" "$(IntDir)synth_stereo_x86_64.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64_accurate.S" /nologo &gt; "$(IntDir)synth_x86_64_accurate.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_X86_64" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64_accurate.S" /nologo &gt; "$(IntDir)synth_x86_64_accurate.asm"
 yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_x86_64_accurate.o" "$(IntDir)synth_x86_64_accurate.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64_accurate.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64_accurate.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_X86_64" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64_accurate.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64_accurate.asm"
 yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x86_64_accurate.o" "$(IntDir)synth_stereo_x86_64_accurate.asm"
 </Command>
     </PreLinkEvent>
@@ -951,70 +951,70 @@ yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x8
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <PreLinkEvent>
-      <Command>cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnow.S" /nologo &gt; "$(IntDir)dct36_3dnow.asm"
+      <Command>cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnow.S" /nologo &gt; "$(IntDir)dct36_3dnow.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct36_3dnow.o" "$(IntDir)dct36_3dnow.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnowext.S" /nologo &gt; "$(IntDir)dct36_3dnowext.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_3dnowext.S" /nologo &gt; "$(IntDir)dct36_3dnowext.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct36_3dnowext.o" "$(IntDir)dct36_3dnowext.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_sse.S" /nologo &gt; "$(IntDir)dct36_sse.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_sse.S" /nologo &gt; "$(IntDir)dct36_sse.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct36_sse.o" "$(IntDir)dct36_sse.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnow.S" /nologo &gt; "$(IntDir)dct64_3dnow.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnow.S" /nologo &gt; "$(IntDir)dct64_3dnow.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct64_3dnow.o" "$(IntDir)dct64_3dnow.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnowext.S" /nologo &gt; "$(IntDir)dct64_3dnowext.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_3dnowext.S" /nologo &gt; "$(IntDir)dct64_3dnowext.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct64_3dnowext.o" "$(IntDir)dct64_3dnowext.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_mmx.S" /nologo &gt; "$(IntDir)dct64_mmx.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_mmx.S" /nologo &gt; "$(IntDir)dct64_mmx.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct64_mmx.o" "$(IntDir)dct64_mmx.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse.S" /nologo &gt; "$(IntDir)dct64_sse.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse.S" /nologo &gt; "$(IntDir)dct64_sse.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o  "$(IntDir)dct64_sse.o" "$(IntDir)dct64_sse.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse_float.S" /nologo &gt; "$(IntDir)dct64_sse_float.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_sse_float.S" /nologo &gt; "$(IntDir)dct64_sse_float.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)dct64_sse_float.o" "$(IntDir)dct64_sse_float.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\equalizer_3dnow.S" /nologo &gt; "$(IntDir)equalizer_3dnow.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\equalizer_3dnow.S" /nologo &gt; "$(IntDir)equalizer_3dnow.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)equalizer_3dnow.o" "$(IntDir)equalizer_3dnow.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\getcpuflags.S" /nologo &gt; "$(IntDir)getcpuflags.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\getcpuflags.S" /nologo &gt; "$(IntDir)getcpuflags.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)getcpuflags.o" "$(IntDir)getcpuflags.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnow.S" /nologo &gt; "$(IntDir)synth_3dnow.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnow.S" /nologo &gt; "$(IntDir)synth_3dnow.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_3dnow.o" "$(IntDir)synth_3dnow.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnowext.S" /nologo &gt; "$(IntDir)synth_3dnowext.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_3dnowext.S" /nologo &gt; "$(IntDir)synth_3dnowext.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_3dnowext.o" "$(IntDir)synth_3dnowext.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_i586.S" /nologo &gt; "$(IntDir)synth_i586.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_i586.S" /nologo &gt; "$(IntDir)synth_i586.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_i586.o" "$(IntDir)synth_i586.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_mmx.S" /nologo &gt; "$(IntDir)synth_mmx.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_mmx.S" /nologo &gt; "$(IntDir)synth_mmx.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_mmx.o" "$(IntDir)synth_mmx.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse.S" /nologo &gt; "$(IntDir)synth_sse.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse.S" /nologo &gt; "$(IntDir)synth_sse.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_sse.o" "$(IntDir)synth_sse.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_float.S" /nologo &gt; "$(IntDir)synth_sse_float.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_float.S" /nologo &gt; "$(IntDir)synth_sse_float.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_sse_float.o" "$(IntDir)synth_sse_float.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_float.S" /nologo &gt; "$(IntDir)synth_stereo_sse_float.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_float.S" /nologo &gt; "$(IntDir)synth_stereo_sse_float.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_stereo_sse_float.o" "$(IntDir)synth_stereo_sse_float.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\tabinit_mmx.S" /nologo &gt; "$(IntDir)tabinit_mmx.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\tabinit_mmx.S" /nologo &gt; "$(IntDir)tabinit_mmx.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)tabinit_mmx.o" "$(IntDir)tabinit_mmx.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_accurate.S" /nologo &gt; "$(IntDir)synth_sse_accurate.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_accurate.S" /nologo &gt; "$(IntDir)synth_sse_accurate.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_sse_accurate.o" "$(IntDir)synth_sse_accurate.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_s32.S" /nologo &gt; "$(IntDir)synth_sse_s32.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_sse_s32.S" /nologo &gt; "$(IntDir)synth_sse_s32.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_sse_s32.o" "$(IntDir)synth_sse_s32.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_accurate.S" /nologo &gt; "$(IntDir)synth_stereo_sse_accurate.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_accurate.S" /nologo &gt; "$(IntDir)synth_stereo_sse_accurate.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_stereo_sse_accurate.o" "$(IntDir)synth_stereo_sse_accurate.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_s32.S" /nologo &gt; "$(IntDir)synth_stereo_sse_s32.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_I386" /D "OPT_I586" /D "OPT_MMX" /D "OPT_3DNOW" /D "OPT_3DNOWEXT" /D "OPT_SSE" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_sse_s32.S" /nologo &gt; "$(IntDir)synth_stereo_sse_s32.asm"
 yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_stereo_sse_s32.o" "$(IntDir)synth_stereo_sse_s32.asm"
 </Command>
     </PreLinkEvent>
@@ -1053,40 +1053,40 @@ yasm -a x86 -p gas -r raw -f win32 -g null -m x86 -o "$(IntDir)synth_stereo_sse_
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <PreLinkEvent>
-      <Command>cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\getcpuflags_x86_64.S" /nologo &gt; "$(IntDir)getcpuflags_x86_64.asm"
+      <Command>cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_X86_64" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\getcpuflags_x86_64.S" /nologo &gt; "$(IntDir)getcpuflags_x86_64.asm"
 yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)getcpuflags_x86_64.o" "$(IntDir)getcpuflags_x86_64.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_x86_64.S" /nologo &gt; "$(IntDir)dct36_x86_64.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_X86_64" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct36_x86_64.S" /nologo &gt; "$(IntDir)dct36_x86_64.asm"
 yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)dct36_x86_64.o" "$(IntDir)dct36_x86_64.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64_float.S" /nologo &gt; "$(IntDir)synth_x86_64_float.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_X86_64" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64_float.S" /nologo &gt; "$(IntDir)synth_x86_64_float.asm"
 yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_x86_64_float.o" "$(IntDir)synth_x86_64_float.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64_s32.S" /nologo &gt; "$(IntDir)synth_x86_64_s32.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_X86_64" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64_s32.S" /nologo &gt; "$(IntDir)synth_x86_64_s32.asm"
 yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_x86_64_s32.o" "$(IntDir)synth_x86_64_s32.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64_float.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64_float.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_X86_64" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64_float.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64_float.asm"
 yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x86_64_float.o" "$(IntDir)synth_stereo_x86_64_float.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64_s32.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64_s32.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_X86_64" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64_s32.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64_s32.asm"
 yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x86_64_s32.o" "$(IntDir)synth_stereo_x86_64_s32.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64.S" /nologo &gt; "$(IntDir)synth_x86_64.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_X86_64" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64.S" /nologo &gt; "$(IntDir)synth_x86_64.asm"
 yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_x86_64.o" "$(IntDir)synth_x86_64.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_x86_64.S" /nologo &gt; "$(IntDir)dct64_x86_64.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_X86_64" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_x86_64.S" /nologo &gt; "$(IntDir)dct64_x86_64.asm"
 yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)dct64_x86_64.o" "$(IntDir)dct64_x86_64.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_x86_64_float.S" /nologo &gt; "$(IntDir)dct64_x86_64_float.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_X86_64" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\dct64_x86_64_float.S" /nologo &gt; "$(IntDir)dct64_x86_64_float.asm"
 yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)dct64_x86_64_float.o" "$(IntDir)dct64_x86_64_float.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_X86_64" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64.asm"
 yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x86_64.o" "$(IntDir)synth_stereo_x86_64.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64_accurate.S" /nologo &gt; "$(IntDir)synth_x86_64_accurate.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_X86_64" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_x86_64_accurate.S" /nologo &gt; "$(IntDir)synth_x86_64_accurate.asm"
 yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_x86_64_accurate.o" "$(IntDir)synth_x86_64_accurate.asm"
 
-cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src"  /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64_accurate.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64_accurate.asm"
+cl /I "..\..\.." /I "$(ProjectDir)..\..\..\..\..\src" /D "OPT_MULTI" /D "OPT_GENERIC" /D "OPT_X86_64" /EP /TC "$(ProjectDir)..\..\..\..\..\src\libmpg123\synth_stereo_x86_64_accurate.S" /nologo &gt; "$(IntDir)synth_stereo_x86_64_accurate.asm"
 yasm -a x86 -m amd64 -f win64 -p gas -r raw -g null -o "$(IntDir)synth_stereo_x86_64_accurate.o" "$(IntDir)synth_stereo_x86_64_accurate.asm"
 </Command>
     </PreLinkEvent>
