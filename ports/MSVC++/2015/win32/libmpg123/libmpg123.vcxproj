@@ -475,6 +475,54 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Generic|x64'">
     <OutDir>$(SolutionDir)$(Platform)\Debug\</OutDir>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_x86_Dll|ARM'">
+    <OutDir>$(SolutionDir)$(Platform)\Debug\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_x86_Dll|ARM64'">
+    <OutDir>$(SolutionDir)$(Platform)\Debug\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Generic|ARM'">
+    <OutDir>$(SolutionDir)$(Platform)\Debug\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Generic|ARM64'">
+    <OutDir>$(SolutionDir)$(Platform)\Debug\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Generic_Dll|ARM'">
+    <OutDir>$(SolutionDir)$(Platform)\Debug\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Generic_Dll|ARM64'">
+    <OutDir>$(SolutionDir)$(Platform)\Debug\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_x86|ARM'">
+    <OutDir>$(SolutionDir)$(Platform)\Debug\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_x86|ARM64'">
+    <OutDir>$(SolutionDir)$(Platform)\Debug\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Generic|ARM'">
+    <OutDir>$(SolutionDir)$(Platform)\Release\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Generic|ARM64'">
+    <OutDir>$(SolutionDir)$(Platform)\Release\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Generic_Dll|ARM'">
+    <OutDir>$(SolutionDir)$(Platform)\Release\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Generic_Dll|ARM64'">
+    <OutDir>$(SolutionDir)$(Platform)\Release\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_x86|ARM'">
+    <OutDir>$(SolutionDir)$(Platform)\Release\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_x86|ARM64'">
+    <OutDir>$(SolutionDir)$(Platform)\Release\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_x86_Dll|ARM'">
+    <OutDir>$(SolutionDir)$(Platform)\Release\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_x86_Dll|ARM64'">
+    <OutDir>$(SolutionDir)$(Platform)\Release\</OutDir>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Generic|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
