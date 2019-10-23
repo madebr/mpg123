@@ -567,16 +567,28 @@ char* compat_nextdir(struct compat_dir *cd)
 	This is what I expected the platform-specific dance for dynamic module
 	support to be. Little did I know about the peculiarities of (long)
 	paths and directory/file search on Windows.
+
+	LoadLibrary throws GUI error boxes, use SetThreadErrorMode to suppress.
+	It needs to be done on per-thread basis to avoid race conditions
+	clobbering each other when setting/restoring across different threads.
 */
 
 void *compat_dlopen(const char *path)
 {
 	void *handle = NULL;
+	int mode_ok;
+	DWORD emode;
 #ifdef WANT_WIN32_UNICODE
 	wchar_t *wpath;
 	wpath = u2wlongpath(path);
-	if(wpath)
+	if(wpath) {
+		emode = GetThreadErrorMode();
+		mode_ok = SetThreadErrorMode(emode | SEM_FAILCRITICALERRORS, NULL);
 		handle = LoadLibraryW(wpath);
+		if(mode_ok) {
+			SetThreadErrorMode(emode, NULL);
+		}
+	}
 	free(wpath);
 #else
 	handle = dlopen(path, RTLD_NOW);
