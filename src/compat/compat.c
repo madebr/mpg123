@@ -576,14 +576,12 @@ char* compat_nextdir(struct compat_dir *cd)
 void *compat_dlopen(const char *path)
 {
 	void *handle = NULL;
-	int mode_ok;
-	DWORD emode;
 #ifdef WANT_WIN32_UNICODE
 	wchar_t *wpath;
 	wpath = u2wlongpath(path);
 	if(wpath) {
-		emode = GetThreadErrorMode();
-		mode_ok = SetThreadErrorMode(emode | SEM_FAILCRITICALERRORS, NULL);
+		DWORD emode = GetThreadErrorMode();
+		int mode_ok = SetThreadErrorMode(emode | SEM_FAILCRITICALERRORS, NULL);
 		handle = LoadLibraryW(wpath);
 		if(mode_ok) {
 			SetThreadErrorMode(emode, NULL);
