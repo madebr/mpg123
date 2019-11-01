@@ -8,4 +8,5 @@ Description: An optimised MPEG Audio decoder
 Requires: 
 Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -lmpg123 
+Libs.private: @LIBMPG123_LIBS@
 Cflags: -I${includedir} 

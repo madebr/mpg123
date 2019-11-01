@@ -11,7 +11,8 @@ src_libsyn123_libsyn123_la_LDFLAGS = \
   -export-symbols-regex '^syn123_'
 
 src_libsyn123_libsyn123_la_LIBADD = \
-  src/compat/libcompat.la
+  src/compat/libcompat_str.la \
+  @LIBSYN123_LIBS@
 
 src_libsyn123_libsyn123_la_SOURCES = \
   src/libsyn123/syn123.h \

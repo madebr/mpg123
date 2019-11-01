@@ -106,7 +106,10 @@ AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_CPP
 AC_PROG_INSTALL
+# Just look, no touch.
+oldLIBS=$LIBS
 AC_CHECK_LIBM
+LIBS=$oldLIBS
 AC_SUBST(LIBM)
 dnl "Checking for egrep is broken after removal of libltdl stuff... checks use $EGREP, so searching it here."
 AC_PROG_EGREP
@@ -165,6 +168,8 @@ case "$host" in
 	;;
 esac
 
+LIBDL=
+
 if test x"$modules" = xdisabled
 then
   echo "Modules disabled, not checking for dynamic loading."
@@ -190,11 +195,22 @@ int main() {
     ],
   [AC_MSG_RESULT([no])])
   else
+    # Check for libdl functions, but only apply them for libcompat_dl.
+    # This looks too messy. Can I avoid messing with LIBS here?
+    oldLIBS=$LIBS
     AC_SEARCH_LIBS(dlopen, dl)
     AC_SEARCH_LIBS(dlsym, dl)
     AC_SEARCH_LIBS(dlclose, dl)
     AC_CHECK_HEADER(dlfcn.h)
     AC_CHECK_FUNCS(dlopen dlsym dlclose, [ have_dl=yes ], [ dl_missing=yes] )
+    LIBS=$oldLIBS
+    # A better way to check if the library was really needed?
+    if test "x$ac_cv_search_dlopen"  = x-ldl ||
+       test "x$ac_cv_search_dlsym"   = x-ldl ||
+       test "x$ac_cv_search_dlclose" = x-ldl
+    then
+       LIBDL=-ldl
+    fi
   fi
   if test x"$dl_missing" = xyes; then
     AC_MSG_WARN([Some dynamic loading functions missing.])
@@ -213,6 +229,8 @@ int main() {
     fi
   fi
 fi
+
+AC_SUBST(LIBDL)
 
 dnl Configure libtool
 
@@ -2243,6 +2261,8 @@ win32_sockets_working=no
 win32_wide_working=no
 win32_winver_bump=no
 
+COMPAT_LIBS=
+
 dnl We do not support non-unicode Windows.
 if test "x$win32_specific_codes" = xenabled; then
 #### Check for Wide functions
@@ -2283,11 +2303,12 @@ if test "x$win32_specific_codes" = xenabled; then
         }
       ])], [win32_wide_working=yes], [AC_MSG_RESULT([no])])
     fi
+    LIBS=$oldlibs
     if test "x$win32_wide_working" = xyes; then
+      COMPAT_LIBS="-lshlwapi $COMPAT_LIBS"
       AC_MSG_RESULT([yes])
       AC_DEFINE([WANT_WIN32_UNICODE], [1], [ Define to use Unicode for Windows ])
     else
-      LIBS=$oldlibs
       AC_MSG_ERROR([Unicode support for Win32 not working])
     fi
   else
@@ -2452,6 +2473,19 @@ if test x"$ipv6" = xenabled; then
 	fi
 fi
 
+dnl ############## Library cleanup
+
+PROG_LIBS=$LIBS
+LIBS=
+LIBMPG123_LIBS="$LIBM $COMPAT_LIBS"
+LIBSYN123_LIBS=$LIBM
+LIBOUT123_LIBS="$LIBM $COMPAT_LIBS"
+
+AC_SUBST(PROG_LIBS)
+AC_SUBST(LIBMPG123_LIBS)
+AC_SUBST(LIBSYN123_LIBS)
+AC_SUBST(LIBOUT123_LIBS)
+
 dnl ############## Final Output
 
 AC_CONFIG_FILES([
@@ -2557,6 +2591,7 @@ fi
 echo
 echo "  CPPFLAGS='$CPPFLAGS'"
 echo "  CFLAGS='$CFLAGS'"
-echo "  LIBS='$LIBS'"
+echo "  LIBS='$PROG_LIBS'"
+echo "       (derived from LIBS, only used for end-user binaries)"
 echo
 echo "Next type 'make' and then 'make install'."

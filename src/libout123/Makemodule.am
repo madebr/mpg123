@@ -31,11 +31,19 @@ src_libout123_libout123_la_LDFLAGS = \
 
 src_libout123_libout123_la_LIBADD = \
   src/libout123/libmodule.la \
-  src/compat/libcompat.la
+  src/compat/libcompat.la \
+  @LIBOUT123_LIBS@
 
-if !HAVE_MODULES
+if HAVE_MODULES
+
+src_libout123_libout123_la_LIBADD += \
+  src/compat/libcompat_dl.la
+
+else
+
 src_libout123_libout123_la_LIBADD += \
   src/libout123/modules/libdefaultmodule.la
+
 endif
 
 src_libout123_libmodule_la_SOURCES = src/libout123/module.h

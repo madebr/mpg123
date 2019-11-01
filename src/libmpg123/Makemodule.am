@@ -22,7 +22,7 @@ src_libmpg123_libmpg123_la_LDFLAGS = \
   -export-symbols-regex '^mpg123_'
 src_libmpg123_libmpg123_la_LIBADD = \
   src/compat/libcompat.la \
-  @DECODER_LOBJ@ @LFS_LOBJ@ @LIBS@
+  @DECODER_LOBJ@ @LFS_LOBJ@ @LIBMPG123_LIBS@
 src_libmpg123_libmpg123_la_DEPENDENCIES = \
   src/compat/libcompat.la \
   @DECODER_LOBJ@ @LFS_LOBJ@

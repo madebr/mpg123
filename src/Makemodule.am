@@ -15,14 +15,15 @@ src_mpg123_LDADD = \
   src/compat/libcompat.la \
   src/libmpg123/libmpg123.la \
   src/libout123/libout123.la \
-  $(LIBM)
+  @PROG_LIBS@
 
 src_mpg123_LDFLAGS = @EXEC_LT_LDFLAGS@
 
 src_out123_LDADD = \
   src/compat/libcompat.la \
   src/libsyn123/libsyn123.la \
-  src/libout123/libout123.la
+  src/libout123/libout123.la \
+  @PROG_LIBS@
 
 src_out123_LDFLAGS = @EXEC_LT_LDFLAGS@
 
@@ -35,11 +36,13 @@ CLEANFILES += src/*.a
 
 src_mpg123_id3dump_LDADD = \
   src/compat/libcompat.la \
-  src/libmpg123/libmpg123.la
+  src/libmpg123/libmpg123.la \
+  @PROG_LIBS@
 
 src_mpg123_strip_LDADD = \
   src/compat/libcompat.la \
-  src/libmpg123/libmpg123.la
+  src/libmpg123/libmpg123.la \
+  @PROG_LIBS@
 
 EXTRA_PROGRAMS += \
   src/tests/seek_whence \
@@ -133,8 +136,7 @@ src_tests_sweeper_SOURCES = \
 src_tests_sweeper_LDADD = \
   src/compat/libcompat.la \
   src/libsyn123/libsyn123.la \
-  src/libout123/libout123.la \
-  $(LIBM)
+  src/libout123/libout123.la
 
 src_tests_text_SOURCES = \
   src/tests/text.c \
