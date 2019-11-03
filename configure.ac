@@ -1768,7 +1768,11 @@ do
 			fi
 		;;
 		sdl)
-			PKG_CHECK_MODULES(SDL, sdl, output_modules="$output_modules sdl" HAVE_SDL="yes", HAVE_SDL="no" check_failed=yes)
+			PKG_CHECK_MODULES(SDL, sdl2, output_modules="$output_modules sdl" HAVE_SDL="yes", HAVE_SDL="no" check_failed=yes)
+			if ! test "$HAVE_SDL" = "yes"; then
+				check_failed=no
+				PKG_CHECK_MODULES(SDL, sdl, output_modules="$output_modules sdl" HAVE_SDL="yes", HAVE_SDL="no" check_failed=yes)
+			fi
 		;;
 		nas)
 			NAS_LIBS=-laudio
