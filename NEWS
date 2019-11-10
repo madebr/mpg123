@@ -85,6 +85,7 @@ TODO: Make libout123 and/or mpg123 use that to convert on the fly. Optionally?
    checks before it may happen.
 -- Optionally enforce output endianess (big/little) away from native.
 -- Fix build without error messages.
+-- Fix build without gapless decoding.
 -- Disable buffer when neither mmap nor shm functions detected (fixes
    build for Android, thanks to vquicksilver).
 -- Some support for extremely small streams (below 128 bytes). Those are

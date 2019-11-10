@@ -385,9 +385,10 @@ MPEG 2.5
 576
 */
 
-#ifdef GAPLESS
-/* well, I take that one for granted... at least layer3 */
+// Well, I take that one for granted... at least layer3.
+// The value is needed for mpg123_getstate() in any build.
 #define GAPLESS_DELAY 529
+#ifdef GAPLESS
 void frame_gapless_init(mpg123_handle *fr, off_t framecount, off_t bskip, off_t eskip);
 void frame_gapless_realinit(mpg123_handle *fr);
 void frame_gapless_update(mpg123_handle *mh, off_t total_samples);
