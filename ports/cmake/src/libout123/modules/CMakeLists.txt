@@ -1,0 +1,36 @@
+if(NOT USE_MODULES)
+    add_library(defaultmodule STATIC
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/$<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},dummy>:dummy.c>"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/$<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},coreaudio>:coreaudio.c>"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/$<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},alsa>:alsa.c>"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/$<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},pulse>:pulse.c>"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/$<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},win32>:win32.c>")
+    target_link_libraries(defaultmodule PUBLIC
+        $<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},alsa>:ALSA::ALSA>
+        $<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},coreaudio>:${AUDIO_TOOLBOX}>
+        $<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},pulse>:${PULSE_LIBRARIES}>)
+    target_compile_definitions(defaultmodule PRIVATE
+        $<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},pulse>:${PULSE_CFLAGS}>)
+else()
+    set(CMAKE_SHARED_MODULE_PREFIX "")
+    list(FIND OUTPUT_MODULES coreaudio INDEX)
+    if(NOT INDEX EQUAL -1)
+        add_library(output_coreaudio MODULE "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/coreaudio.c")
+        target_link_libraries(output_coreaudio PRIVATE ${AUDIO_TOOLBOX})
+    endif()
+    list(FIND OUTPUT_MODULES alsa INDEX)
+    if(NOT INDEX EQUAL -1)
+        add_library(output_alsa MODULE "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/alsa.c")
+        target_link_libraries(output_alsa PRIVATE ALSA::ALSA)
+    endif()
+    list(FIND OUTPUT_MODULES pulse INDEX)
+    if(NOT INDEX EQUAL -1)
+        add_library(output_pulse MODULE "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/pulse.c")
+        target_compile_definitions(output_pulse PRIVATE ${PULSE_CFLAGS})
+        target_link_libraries(output_pulse PRIVATE ${PULSE_LIBRARIES})
+    endif()
+    list(FIND OUTPUT_MODULES win32 INDEX)
+    if(NOT INDEX EQUAL -1)
+        add_library(output_pulse MODULE "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/win32.c")
+    endif()
+endif()

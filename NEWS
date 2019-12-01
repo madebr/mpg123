@@ -9,6 +9,9 @@ TODO: avoid MPG123_NEED_MORE from non-feed reader reading frame
 bodies or see it as a feature
 - Starting to intentionally use C99 in the codebase. API headers are still
   supposed to be compatible to C89.
+- AUTORS now in UTF-8;-)
+- CMake build files in ports/cmake, as an alternative to create MSVC
+  project files and the like (thanks to Vitaly Kirsanov)
 - Default build with proper integer rounding (--enable-int-quality) now.
 - Cygwin/midipix autoconf fixes (thanks to Redfoxmoon).
 - Rework library dependency handling to avoid unnecessary linking for
