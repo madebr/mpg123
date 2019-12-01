@@ -45,6 +45,7 @@ src_mpg123_strip_LDADD = \
   @PROG_LIBS@
 
 EXTRA_PROGRAMS += \
+  src/tests/volume \
   src/tests/seek_whence \
   src/tests/noise \
   src/tests/sweeper \
@@ -117,6 +118,11 @@ src_out123_SOURCES+= \
 src_mpg123_id3dump_SOURCES += \
   src/win32_support.c
 endif
+
+src_tests_volume_SOURCES = \
+  src/tests/volume.c
+src_tests_volume_LDADD = \
+  src/libsyn123/libsyn123.la
 
 src_tests_seek_whence_SOURCES = \
   src/tests/seek_whence.c
