@@ -9,8 +9,9 @@ if(NOT USE_MODULES)
         $<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},alsa>:ALSA::ALSA>
         $<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},coreaudio>:${AUDIO_TOOLBOX}>
         $<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},pulse>:${PULSE_LIBRARIES}>)
-    target_compile_definitions(defaultmodule PRIVATE
-        $<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},pulse>:${PULSE_CFLAGS}>)
+    if(${DEFAULT_OUTPUT_MODULE} STREQUAL "pulse")
+        target_compile_definitions(defaultmodule PRIVATE ${PULSE_CFLAGS})
+    endif()
 else()
     set(CMAKE_SHARED_MODULE_PREFIX "")
     list(FIND OUTPUT_MODULES coreaudio INDEX)

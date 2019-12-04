@@ -18,7 +18,8 @@ add_library(${TARGET}
 
 target_link_libraries(${TARGET} PRIVATE
     compat
-    $<TARGET_NAME_IF_EXISTS:defaultmodule>)
+    $<TARGET_NAME_IF_EXISTS:defaultmodule>
+    $<$<BOOL:${USE_MODULES}>:compat_dl>)
 target_include_directories(${TARGET} INTERFACE
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")

@@ -39,4 +39,8 @@ install(
         "${CMAKE_CURRENT_BINARY_DIR}/libout123.pc"
         "${CMAKE_CURRENT_BINARY_DIR}/libsyn123.pc"
     DESTINATION "${CMAKE_INSTALL_DATADIR}/pkgconfig")
-install(FILES "man1/mpg123.1" "man1/out123.1" DESTINATION "${CMAKE_INSTALL_MANDIR}")
+install(
+    FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../man1/mpg123.1"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../man1/out123.1"
+    DESTINATION "${CMAKE_INSTALL_MANDIR}")
