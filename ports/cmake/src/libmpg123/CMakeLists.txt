@@ -44,7 +44,8 @@ add_library(${TARGET}
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/$<$<AND:$<BOOL:${HAVE_FPU}>,$<NOT:$<BOOL:${NO_REAL}>>>:synth_real.c>"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/$<$<NOT:$<BOOL:${NO_STRING}>>:stringbuf.c>"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/$<$<NOT:$<BOOL:${NO_FEATURE_REPORT}>>:feature.c>"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/$<$<BOOL:${LFS_SENSITIVE}>:lfs_wrap.c>")
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/$<$<BOOL:${LFS_SENSITIVE}>:lfs_wrap.c>"
+    $<TARGET_OBJECTS:compat>)
 
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "([xX]86_|AMD|amd)64")
     if(HAVE_FPU)
@@ -105,6 +106,8 @@ elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "i386")
     endif()
 endif()
 
+set_target_properties(${TARGET} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
+
 target_compile_definitions(${TARGET} PRIVATE
     ${PLATFORM_DEFINITIONS}
     $<$<BOOL:${HAVE_FPU}>:REAL_IS_FLOAT>
@@ -143,7 +146,6 @@ if(BUILD_SHARED_LIBS)
 endif()
 
 target_link_libraries(${TARGET} PRIVATE
-    compat
     $<$<BOOL:${HAVE_M}>:m>)
 target_include_directories(${TARGET} INTERFACE
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"

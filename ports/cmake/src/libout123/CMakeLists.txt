@@ -14,12 +14,16 @@ add_library(${TARGET}
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libout123/$<$<NOT:$<BOOL:${NO_BUFFER}>>:buffer.c>"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libout123/$<$<NOT:$<BOOL:${NO_BUFFER}>>:xfermem.c>"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libout123/$<$<BOOL:${USE_MODULES}>:module.c>"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libout123/$<$<NOT:$<BOOL:${USE_MODULES}>>:legacy_module.c>")
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libout123/$<$<NOT:$<BOOL:${USE_MODULES}>>:legacy_module.c>"
+    $<TARGET_OBJECTS:compat>
+    $<$<BOOL:${USE_MODULES}>:$<TARGET_OBJECTS:compat_dl>>)
+
+set_target_properties(${TARGET} PROPERTIES OUTPUT_NAME out123)
 
 target_link_libraries(${TARGET} PRIVATE
-    compat
     $<TARGET_NAME_IF_EXISTS:defaultmodule>
-    $<$<BOOL:${USE_MODULES}>:compat_dl>)
+    $<$<BOOL:${HAVE_UNIX_DL}>:dl>)
+
 target_include_directories(${TARGET} INTERFACE
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")

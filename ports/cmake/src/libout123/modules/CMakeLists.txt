@@ -18,20 +18,36 @@ else()
     if(NOT INDEX EQUAL -1)
         add_library(output_coreaudio MODULE "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/coreaudio.c")
         target_link_libraries(output_coreaudio PRIVATE ${AUDIO_TOOLBOX})
+        install(TARGETS output_coreaudio
+            ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}"
+            LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}"
+            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}")
     endif()
     list(FIND OUTPUT_MODULES alsa INDEX)
     if(NOT INDEX EQUAL -1)
         add_library(output_alsa MODULE "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/alsa.c")
         target_link_libraries(output_alsa PRIVATE ALSA::ALSA)
+        install(TARGETS output_alsa
+            ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}"
+            LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}"
+            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}")
     endif()
     list(FIND OUTPUT_MODULES pulse INDEX)
     if(NOT INDEX EQUAL -1)
         add_library(output_pulse MODULE "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/pulse.c")
         target_compile_definitions(output_pulse PRIVATE ${PULSE_CFLAGS})
         target_link_libraries(output_pulse PRIVATE ${PULSE_LIBRARIES})
+        install(TARGETS output_pulse
+            ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}"
+            LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}"
+            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}")
     endif()
     list(FIND OUTPUT_MODULES win32 INDEX)
     if(NOT INDEX EQUAL -1)
-        add_library(output_pulse MODULE "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/win32.c")
+        add_library(output_win32 MODULE "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/win32.c")
+        install(TARGETS output_win32
+            ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}"
+            LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}"
+            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}")
     endif()
 endif()
