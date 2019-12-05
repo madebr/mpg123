@@ -320,6 +320,8 @@ if(UNIX)
         libout123
         ${GETHOSTBYNAME_LIB}
         ${SOCKET_LIB})
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        $<$<BOOL:${HAVE_M}>:m>)
 
     add_executable(out123
         "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/sysutil.c"
