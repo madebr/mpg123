@@ -8,10 +8,13 @@
 
 #include "out123_int.h"
 
+#undef VERSION /* The VERSION macro conflicts with the OS/2 multimedia headers */
+
 #define INCL_OS2MM
 #define INCL_DOS
 #define INCL_VIO
 #define INCL_KBD
+#include <os2safe.h>
 #include <os2.h>
 #include <os2me.h>
 #include <stdlib.h>

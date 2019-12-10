@@ -1927,7 +1927,7 @@ int main(){
 			fi
 		;;
 		os2)
-			OS2_LIBS="-los2me -lmmpm2 -lsocket"
+			OS2_LIBS="-lcx -lmmpm2"
 			AC_CHECK_HEADERS([os2.h])
 			# os2me.h depends on os2.h
 			# Yes, that way of coding it is ugly.
