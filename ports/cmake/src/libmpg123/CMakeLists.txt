@@ -47,7 +47,7 @@ add_library(${TARGET}
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/$<$<BOOL:${LFS_SENSITIVE}>:lfs_wrap.c>"
     $<TARGET_OBJECTS:compat>)
 
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "([xX]86_|AMD|amd)64")
+if((MSVC AND CMAKE_GENERATOR_PLATFORM STREQUAL "x64") OR (NOT MSVC AND CMAKE_SYSTEM_PROCESSOR MATCHES "([xX]86_|AMD|amd)64"))
     if(HAVE_FPU)
         set(PLATFORM_DEFINITIONS OPT_MULTI OPT_X86_64 OPT_AVX OPT_GENERIC OPT_GENERIC_DITHER)
         set(PLATFORM_SOURCES
@@ -80,10 +80,10 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "([xX]86_|AMD|amd)64")
     else()
         set(PLATFORM_DEFINITIONS OPT_GENERIC)
     endif()
-elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "i386")
+elseif((MSVC AND CMAKE_GENERATOR_PLATFORM MATCHES "|Win32") OR (NOT MSVC AND CMAKE_SYSTEM_PROCESSOR MATCHES "i386"))
     if(TRUE)
         set(PLATFORM_DEFINITIONS OPT_I386)
-        set(PLATFORM_SOURCES
+        target_sources(${TARGET} PRIVATE
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dct64_i386.c")
     endif()
 
@@ -91,7 +91,6 @@ elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "i386")
     if(HAVE_SSE)
         set(PLATFORM_DEFINITIONS OPT_SSE)
         set(PLATFORM_SOURCES
-            "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dct64_i386.c"
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/tabinit_mmx.S"
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dct64_sse_float.S"
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_sse_float.S"
@@ -99,10 +98,16 @@ elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "i386")
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_sse_s32.S"
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_sse_s32.S")
         if(ACCURATE_ROUNDING)
-            list(APPEND PLATFORM_SOURCES synth_sse_accurate.S synth_stereo_sse_accurate.S)
+            list(APPEND PLATFORM_SOURCES
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_sse_accurate.S"
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_sse_accurate.S")
         else()
-            list(APPEND PLATFORM_SOURCES dct64_sse.S synth_sse.S)
+            list(APPEND PLATFORM_SOURCES
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dct64_sse.S"
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_sse.S")
         endif()
+        target_sources(${TARGET} PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dct64_i386.c")
     endif()
 endif()
 
@@ -118,22 +123,26 @@ if(MSVC)
     if(NOT YASM_ASSEMBLER)
         message(FATAL_ERROR "Couldn't find yasm assembler. Please set YASM_ASSEMBLER variable")
     endif()
-    if(CMAKE_SYSTEM_PROCESSOR MATCHES "([xX]86_|AMD|amd)64")
+    if((MSVC AND CMAKE_GENERATOR_PLATFORM STREQUAL "x64") OR (NOT MSVC AND CMAKE_SYSTEM_PROCESSOR MATCHES "([xX]86_|AMD|amd)64"))
         set(MACHINE amd64)
-    elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "i386")
+    elseif((MSVC AND CMAKE_GENERATOR_PLATFORM MATCHES "|Win32") OR (NOT MSVC AND CMAKE_SYSTEM_PROCESSOR MATCHES "i386"))
         set(MACHINE x86)
     endif()
+    list(TRANSFORM PLATFORM_DEFINITIONS PREPEND /D)
     foreach(FILE ${PLATFORM_SOURCES})
+        get_filename_component(FILENAME ${FILE} NAME)
         add_custom_command(
-            OUTPUT ${FILE}.asm
-            COMMAND ${CMAKE_C_COMPILER} /DASMALIGN_BALIGN
-            /I"${PROJECT_SOURCE_DIR}/src" /I"${PROJECT_BINARY_DIR}/src" /P /Fi${FILE}.asm /Tc "${CMAKE_CURRENT_SOURCE_DIR}/../../src/libmpg123/${FILE}"
-            DEPENDS ${FILE})
+            OUTPUT ${FILENAME}.asm
+            COMMAND ${CMAKE_C_COMPILER} /DASMALIGN_BALIGN ${PLATFORM_DEFINITIONS}
+            /I"${PROJECT_SOURCE_DIR}/../../src" /I"${PROJECT_BINARY_DIR}/src" /P /Fi${FILENAME}.asm /Tc "${FILE}"
+            DEPENDS ${FILE}
+            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         add_custom_command(
-            OUTPUT ${FILE}.o
-            COMMAND ${YASM_ASSEMBLER} -a x86 -m ${MACHINE} -p gas -r raw -f win32 -g null -o ${FILE}.o ${FILE}.asm
-            DEPENDS ${FILE}.asm)
-        target_sources(${TARGET} PRIVATE ${FILE}.o)
+            OUTPUT ${FILENAME}.o
+            COMMAND ${YASM_ASSEMBLER} -a x86 -m ${MACHINE} -p gas -r raw -f win32 -g null -o ${FILENAME}.o ${FILENAME}.asm
+            DEPENDS ${FILENAME}.asm
+            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+        target_sources(${TARGET} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o")
     endforeach()
 else()
     target_sources(${TARGET} PRIVATE ${PLATFORM_SOURCES})

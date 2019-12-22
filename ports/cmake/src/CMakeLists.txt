@@ -319,8 +319,7 @@ if(UNIX)
         lib${PROJECT_NAME}
         libout123
         ${GETHOSTBYNAME_LIB}
-        ${SOCKET_LIB})
-    target_link_libraries(${PROJECT_NAME} PRIVATE
+        ${SOCKET_LIB}
         $<$<BOOL:${HAVE_M}>:m>)
 
     add_executable(out123
