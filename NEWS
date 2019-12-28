@@ -77,6 +77,8 @@ TODO: Make libout123 and/or mpg123 use that to convert on the fly. Optionally?
    rather rare.
 -- Add mpg123_new_string() and mpg123_delete_string() to avoid confusion
    about what mpg123_init_string() and mpg123_free_string() do.
+-- Make mpg123_resize_string() terminate the string if shrinking (fill now
+   limited to new size).
 -- Improve layer III frame parsing/error reporting for bad part2_3_length.
 -- Do not remove CRC bits twice from possibly available bit reservoir.
    This move needed recomputation of the layer3is reference data for 8 and
