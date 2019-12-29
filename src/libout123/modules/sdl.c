@@ -6,6 +6,10 @@
 	initially written by Nicholas J. Humfrey
 */
 
+/* Want usleep */
+#define _XOPEN_SOURCE 500
+#define _DEFAULT_SOURCE
+
 #include "out123_int.h"
 #include <math.h>
 
