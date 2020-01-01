@@ -135,8 +135,8 @@ static int initialize_device(out123_handle *ao)
 		if(!AOQUIET) error("initialize_device(): cannot get sw params");
 		return -1;
 	}
-	/* start playing right away */
-	if (snd_pcm_sw_params_set_start_threshold(pcm, sw, 1) < 0) {
+	/* Start playing once we got at least full period ... this is not default? */
+	if (snd_pcm_sw_params_set_start_threshold(pcm, sw, buffer_size/2) < 0) {
 		if(!AOQUIET) error("initialize_device(): cannot set start threshold");
 		return -1;
 	}

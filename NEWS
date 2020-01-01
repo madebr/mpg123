@@ -64,6 +64,9 @@ TODO: Make libout123 and/or mpg123 use that to convert on the fly. Optionally?
    sudo to allow users to run mpg123 with arbitrary arguments.
    You should treat out123_open just like the regular open(): You can
    write to any file/device depending on your permissions.
+- Finally maybe fixed the damaged playback when using pulse hidden
+  behind the ALSA API (on Ubuntu, for example) by setting a high value
+  for device start threshold.
 - out123: Changed output of --test-encodings to list of encoding names
   instead of raw bitmask value.
 - libout123: Added hex and txt (plain text) printout.
