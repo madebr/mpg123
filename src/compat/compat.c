@@ -66,7 +66,7 @@ char *compat_getenv(const char* name)
 
 #endif
 
-#include "wpathconv.c"
+#include "wpathconv.h"
 
 /* Always add a default permission mask in case of flags|O_CREAT. */
 int compat_open(const char *filename, int flags)

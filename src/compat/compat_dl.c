@@ -47,7 +47,7 @@
 
 #include "debug.h"
 
-#include "wpathconv.c"
+#include "wpathconv.h"
 
 #ifdef USE_MODULES
 /*

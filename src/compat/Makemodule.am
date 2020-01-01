@@ -5,7 +5,7 @@ noinst_LTLIBRARIES += src/compat/libcompat_dl.la
 src_compat_libcompat_la_SOURCES = \
   src/compat/compat_str.c \
   src/compat/compat.c \
-  src/compat/wpathconv.c \
+  src/compat/wpathconv.h \
   src/compat/compat.h
 
 # A smaller one for the output modules. Do not want to grow them
@@ -18,7 +18,7 @@ src_compat_libcompat_str_la_SOURCES = \
 # A separate lib for the dlopen stuff, less linker noise.
 src_compat_libcompat_dl_la_SOURCES = \
   src/compat/compat_dl.c \
-  src/compat/wpathconv.c \
+  src/compat/wpathconv.h \
   src/compat/compat.h
 
 src_compat_libcompat_dl_la_LIBADD = @LIBDL@
