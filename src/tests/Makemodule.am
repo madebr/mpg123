@@ -1,0 +1,50 @@
+# Module for non-recursive mpg123 build system.
+
+TESTS += \
+  src/tests/text
+
+EXTRA_PROGRAMS += \
+  src/tests/volume \
+  src/tests/seek_whence \
+  src/tests/noise \
+  src/tests/sweeper \
+  src/tests/text \
+  src/tests/plain_id3
+
+src_tests_volume_SOURCES = \
+  src/tests/volume.c
+src_tests_volume_LDADD = \
+  src/libsyn123/libsyn123.la
+
+src_tests_seek_whence_SOURCES = \
+  src/tests/seek_whence.c
+src_tests_seek_whence_LDADD = \
+  src/compat/libcompat.la \
+  src/libmpg123/libmpg123.la
+
+src_tests_noise_SOURCES = \
+  src/tests/noise.c \
+  src/libmpg123/dither.h \
+  src/libmpg123/dither_impl.h
+src_tests_noise_LDADD = \
+  src/compat/libcompat.la
+
+src_tests_sweeper_SOURCES = \
+  src/tests/sweeper.c
+src_tests_sweeper_LDADD = \
+  src/compat/libcompat.la \
+  src/libsyn123/libsyn123.la \
+  src/libout123/libout123.la
+
+src_tests_text_SOURCES = \
+  src/tests/text.c \
+  src/tests/testtext.h
+src_tests_text_LDADD = \
+  src/compat/libcompat.la \
+  src/libmpg123/libmpg123.la
+
+src_tests_plain_id3_SOURCES = \
+  src/tests/plain_id3.c
+src_tests_plain_id3_LDADD = \
+  src/compat/libcompat.la \
+  src/libmpg123/libmpg123.la

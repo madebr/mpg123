@@ -18,6 +18,7 @@ nodist_include_HEADERS =
 include_HEADERS =
 dist_man_MANS =
 CLEANFILES =
+TESTS =
 
 AM_CPPFLAGS = -DPKGLIBDIR="\"$(pkglibdir)\""
 # That can be trimmed down later when adapting the sources to
