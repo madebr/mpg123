@@ -4,13 +4,15 @@ TESTS += \
   src/tests/text \
   src/tests/textprint
 
+check_PROGRAMS += \
+  src/tests/text \
+  src/tests/textprint
+
 EXTRA_PROGRAMS += \
   src/tests/volume \
   src/tests/seek_whence \
   src/tests/noise \
   src/tests/sweeper \
-  src/tests/text \
-  src/tests/textprint \
   src/tests/plain_id3
 
 src_tests_volume_SOURCES = \

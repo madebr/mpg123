@@ -19,6 +19,7 @@ include_HEADERS =
 dist_man_MANS =
 CLEANFILES =
 TESTS =
+check_PROGRAMS =
 
 AM_CPPFLAGS = -DPKGLIBDIR="\"$(pkglibdir)\""
 # That can be trimmed down later when adapting the sources to
