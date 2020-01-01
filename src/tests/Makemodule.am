@@ -1,7 +1,8 @@
 # Module for non-recursive mpg123 build system.
 
 TESTS += \
-  src/tests/text
+  src/tests/text \
+  src/tests/textprint
 
 EXTRA_PROGRAMS += \
   src/tests/volume \
@@ -9,6 +10,7 @@ EXTRA_PROGRAMS += \
   src/tests/noise \
   src/tests/sweeper \
   src/tests/text \
+  src/tests/textprint \
   src/tests/plain_id3
 
 src_tests_volume_SOURCES = \
@@ -41,6 +43,15 @@ src_tests_text_SOURCES = \
   src/tests/testtext.h
 src_tests_text_LDADD = \
   src/compat/libcompat.la \
+  src/libmpg123/libmpg123.la
+
+src_tests_textprint_SOURCES =\
+  src/tests/textprint.c \
+  src/local.c \
+  src/metaprint.c \
+  src/genre.c
+
+src_tests_textprint_LDADD = \
   src/libmpg123/libmpg123.la
 
 src_tests_plain_id3_SOURCES = \

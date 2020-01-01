@@ -1,7 +1,9 @@
 /*
 	common: misc stuff... audio flush, status display...
 
-	copyright ?-2015 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2020 by the mpg123 project
+	free software under the terms of the LGPL 2.1
+
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp
 */
@@ -31,14 +33,14 @@ int stopped = 0;
 int paused = 0;
 static int term_is_fun = -1;
 
-int term_have_fun(int fd)
+int term_have_fun(int fd, struct parameter *param)
 {
 	if(term_is_fun > -1)
 		return term_is_fun;
 	else
 		term_is_fun = 0;
 #ifdef HAVE_TERMIOS
-	if(term_width(fd) > 0 && param.term_visual)
+	if(term_width(fd) > 0 && param->term_visual)
 	{
 		/* Only play with non-dumb terminals. */
 		char *tname = compat_getenv("TERM");
@@ -215,7 +217,8 @@ void print_buf(const char* prefix, out123_handle *ao)
    Negative positions mean that the previous track is still playing from the
    buffer. It's a countdown. The frame counter always relates to the last
    decoded frame, what entered the buffer right now. */
-void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar)
+void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar
+,	struct parameter *param)
 {
 	size_t buffered;
 	off_t decoded;
@@ -324,7 +327,7 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar)
 		/* Just cut it. */
 		if(len >= linelen)
 			len=linelen;
-		if(len >= 0 && param.usebuffer && len < linelen )
+		if(len >= 0 && param->usebuffer && len < linelen )
 		{ /* Buffer info. */
 			int len_add = snprintf( line+len, linelen-len
 			,	" [%02lu:%02lu%c%02lu]"
@@ -336,7 +339,7 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar)
 		{ /* Volume info. */
 			int len_add = snprintf( line+len, linelen-len
 			,	" %s %03u=%03u"
-			,	rva_statname[param.rva], roundui(basevol*100), roundui(realvol*100)
+			,	rva_statname[param->rva], roundui(basevol*100), roundui(realvol*100)
 			);
 			if(len_add > 0)
 				len += len_add;
@@ -379,7 +382,7 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar)
 		{ /* Size of frame in bytes. */
 			int len_add = 0;
 			len_add = snprintf( line+len, linelen-len
-			,	" p%+.3f", param.pitch );
+			,	" p%+.3f", param->pitch );
 			if(len_add > 0)
 				len += len_add;
 		}
@@ -405,7 +408,7 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar)
 			if(maxlen > 0)
 				memset(line+len, ' ', linelen-len);
 #ifdef HAVE_TERMIOS
-			draw_bar = draw_bar && term_have_fun(STDERR_FILENO);
+			draw_bar = draw_bar && term_have_fun(STDERR_FILENO,param);
 			/* Use inverse color to draw a progress bar. */
 			if(maxlen > 0 && draw_bar)
 			{

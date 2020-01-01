@@ -109,7 +109,7 @@ void term_init(void)
 	const char hide_cursor[] = "\x1b[?25l";
 	debug("term_init");
 
-	if(term_have_fun(STDERR_FILENO))
+	if(term_have_fun(STDERR_FILENO, &param))
 		fprintf(stderr, "%s", hide_cursor);
 
 	debug1("param.term_ctrl: %i", param.term_ctrl);
@@ -199,7 +199,7 @@ off_t term_control(mpg123_handle *fr, out123_handle *ao)
 		term_handle_input(fr, ao, stopped|seeking);
 		if((offset < 0) && (-offset > framenum)) offset = - framenum;
 		if(param.verbose && offset != old_offset)
-			print_stat(fr,offset,ao,1);
+			print_stat(fr,offset,ao,1,&param);
 	} while (!intflag && stopped);
 
 	/* Make the seeking experience with buffer less annoying.
@@ -228,7 +228,7 @@ static void seekmode(mpg123_handle *mh, out123_handle *ao)
 		stopped = TRUE;
 		out123_pause(ao);
 		if(param.verbose)
-			print_stat(mh, 0, ao, 0);
+			print_stat(mh, 0, ao, 0, &param);
 		mpg123_getformat(mh, NULL, &channels, &encoding);
 		pcmframe = out123_encsize(encoding)*channels;
 		if(pcmframe > 0)
@@ -243,7 +243,7 @@ static void seekmode(mpg123_handle *mh, out123_handle *ao)
 			,	(off_p)mpg123_tell(mh));
 		fprintf(stderr, "%s", MPG123_STOPPED_STRING);
 		if(param.verbose)
-			print_stat(mh, 0, ao, 1);
+			print_stat(mh, 0, ao, 1, &param);
 	}
 }
 
@@ -330,7 +330,7 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 		if(stopped)
 			stopped=0;
 		if(param.verbose)
-			print_stat(fr, 0, ao, 1);
+			print_stat(fr, 0, ao, 1, &param);
 		else
 			fprintf(stderr, "%s", (paused) ? MPG123_PAUSED_STRING : MPG123_EMPTY_STRING);
 	break;
@@ -352,7 +352,7 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 			/* No out123_continue(), that's triggered by out123_play(). */
 		}
 		if(param.verbose)
-			print_stat(fr, 0, ao, 1);
+			print_stat(fr, 0, ao, 1, &param);
 		else
 			fprintf(stderr, "%s", (stopped) ? MPG123_STOPPED_STRING : MPG123_EMPTY_STRING);
 	break;
@@ -404,9 +404,9 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 		set_pitch(fr, ao, new_pitch);
 		if(param.verbose > 1)
 		{
-			print_stat(fr,0,ao,0);
+			print_stat(fr,0,ao,0,&param);
 			fprintf(stderr, "\nNew pitch: %f\n", param.pitch);
-			print_stat(fr,0,ao,1);
+			print_stat(fr,0,ao,1,&param);
 		}
 	}
 	break;
@@ -424,7 +424,7 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 		mpg123_param(fr, MPG123_RVA, param.rva, 0);
 		mpg123_volume_change(fr, 0.);
 		if(param.verbose)
-			print_stat(fr,0,ao,1);
+			print_stat(fr,0,ao,1,&param);
 	break;
 	case MPG123_PREV_KEY:
 		out123_pause(ao);
@@ -439,21 +439,21 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 	break;
 	case MPG123_PLAYLIST_KEY:
 		if(param.verbose)
-			print_stat(fr,0,ao,0);
+			print_stat(fr,0,ao,0,&param);
 		fprintf(stderr, "%s\nPlaylist (\">\" indicates current track):\n", param.verbose ? "\n" : "");
 		print_playlist(stderr, 1);
 		fprintf(stderr, "\n");
 	break;
 	case MPG123_TAG_KEY:
 		if(param.verbose)
-			print_stat(fr,0,ao,0);
+			print_stat(fr,0,ao,0,&param);
 		fprintf(stderr, "%s\n", param.verbose ? "\n" : "");
-		print_id3_tag(fr, param.long_id3, stderr);
+		print_id3_tag(fr, param.long_id3, stderr, term_width(STDERR_FILENO));
 		fprintf(stderr, "\n");
 	break;
 	case MPG123_MPEG_KEY:
 		if(param.verbose)
-			print_stat(fr,0,ao,0);
+			print_stat(fr,0,ao,0,&param);
 		fprintf(stderr, "\n");
 		if(param.verbose > 1)
 			print_header(fr);
@@ -465,7 +465,7 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 	{ /* This is more than the one-liner before, but it's less spaghetti. */
 		int i;
 		if(param.verbose)
-			print_stat(fr,0,ao,0);
+			print_stat(fr,0,ao,0,&param);
 		fprintf(stderr,"\n\n -= terminal control keys =-\n");
 		for(i=0; i<(sizeof(term_help)/sizeof(struct keydef)); ++i)
 		{
@@ -550,7 +550,7 @@ void term_exit(void)
 {
 	const char cursor_restore[] = "\x1b[?25h";
 	/* Bring cursor back. */
-	if(term_have_fun(STDERR_FILENO))
+	if(term_have_fun(STDERR_FILENO, &param))
 		fprintf(stderr, "%s", cursor_restore);
 
 	if(!term_enable) return;

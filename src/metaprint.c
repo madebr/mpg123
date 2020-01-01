@@ -1,7 +1,9 @@
 /*
-	id3print: display routines for ID3 tags (including filtering of UTF8 to ASCII)
+	metaprint: display routines for ID3 tags (including filtering of UTF8 to ASCII)
 
-	copyright 2006-2016 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2006-2020 by the mpg123 project
+	free software under the terms of the LGPL 2.1
+
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis
 */
@@ -9,12 +11,28 @@
 /* Need snprintf(). */
 #define _DEFAULT_SOURCE
 #define _BSD_SOURCE
-#include "mpg123app.h"
+// wchar stuff
+#define _XOPEN_SOURCE 600
+#define _POSIX_C_SOURCE 200112L
 #include "common.h"
 #include "genre.h"
+
+#include "metaprint.h"
+
+#ifdef HAVE_WCHAR_H
+#include <wchar.h>
+#endif
+#ifdef HAVE_WCTYPE_H
+#include <wctype.h>
+#endif
+
 #include "debug.h"
 
-static const char joker_symbol = '*';
+int meta_show_lyrics = 0;
+
+static const char joker_symbol = '?';
+static const char *uni_repl = "\xef\xbf\xbd";
+const int uni_repl_len = 3;
 
 /* Metadata name field texts with index enumeration. */
 enum tagcode { TITLE=0, ARTIST, ALBUM, COMMENT, YEAR, GENRE, FIELDS };
@@ -37,40 +55,61 @@ static const int namelen[2] = {7, 6};
 const int overhead[2] = { namelen[0]+2, namelen[1]+4 }; */
 static const int overhead[2] = { 9, 10 };
 
-static void utf8_ascii(mpg123_string *dest, mpg123_string *source);
-/* Copy UTF-8 string or melt it down to ASCII, also returning the character length. */
-static size_t transform(mpg123_string *dest, mpg123_string *source)
-{
-	debug("transform!");
-	if(source == NULL) return 0;
+static void utf8_ascii_print(mpg123_string *dest, mpg123_string *source);
 
-	if(utf8env) mpg123_copy_string(source, dest);
-	else        utf8_ascii(dest, source);
-
-	return mpg123_strlen(dest, utf8env);
-}
-
+// If the given ID3 string is empty, possibly replace it with ID3v1 data.
+// I know count is a small number far from SIZE_MAX.
 static void id3_gap(mpg123_string *dest, size_t count, char *v1, size_t *len)
 {
-	if(!dest->fill)
+	if(dest->fill)
+		return;
+	// First construct some UTF-8 from the id3v1 data, then run through
+	// the same filter as everything else.
+	// We have no idea what encoding this is. We cannot sensibly
+	// translate more than 7-bit ASCII and the C1 control chars to UTF-8.
+	// Should there really be a mode to dump ID3v1 to the screen, without
+	// modification? It does not sound sensible to me. Use tools to fix
+	// up your metadata.
+	// Make a somewhat proper UTF-8 string out of this. Testing for valid
+	// UTF-8 is futile. It will be some unspecified legacy 8-bit encoding.
+	// I am keeping C0 chars, but replace everything above 7 bits with
+	// the Unicode replacement character as most custom 8-bit encodings
+	// placed some symbols into the C1 range, we just don't know which.
+	size_t ulen = 0;
+	for(size_t i=0; i<count; ++i)
 	{
-		if(dest->size >= count+1 || mpg123_resize_string(dest, count+1))
-		{
-			strncpy(dest->p,v1,count);
-			dest->p[count] = 0;
-			*len = strlen(dest->p);
-			dest->fill = *len + 1;
-			/* We have no idea what encoding this is.
-			   So, to prevent mess up of our UTF-8 display, filter anything above ASCII.
-			   But in non-UTF-8 mode, we pray that the verbatim contents are meaningful to the user. Might filter non-printable characters, though. */
-			if(utf8env)
-			{
-				size_t i;
-				for(i=0; i<dest->fill-1; ++i)
-				if(dest->p[i] & 0x80) dest->p[i] = joker_symbol;
-			}
-		}
+		unsigned char c = ((unsigned char*)v1)[i];
+		if(!c)
+			break;
+		ulen += c >= 0x80 ? uni_repl_len : 1;
 	}
+	++ulen; // trailing zero
+
+	mpg123_string utf8tmp;
+	mpg123_init_string(&utf8tmp);
+	if(mpg123_resize_string(&utf8tmp, ulen))
+	{
+		unsigned char *p = (unsigned char*)utf8tmp.p;
+		for(size_t i=0; i<count; ++i)
+		{
+			unsigned char c = ((unsigned char*)v1)[i];
+			if(!c)
+				break;
+			if(c >= 0x80)
+			{
+				for(int r=0; r<uni_repl_len; ++r)
+					*p++ = uni_repl[r];
+			}
+			else
+				*p++ = c;
+		}
+		*p = 0;
+		utf8tmp.fill = ulen;
+		*len = outstr(dest, &utf8tmp);
+	}
+	else
+		*len = 0;
+	mpg123_free_string(&utf8tmp);
 }
 
 /* Print one metadata entry on a line, aligning the beginning. */
@@ -133,11 +172,11 @@ static void print_pair
 }
 
 /* Print tags... limiting the UTF-8 to ASCII, if necessary. */
-void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
+void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out, int linelimit)
 {
-	char genre_from_v1 = 0;
 	enum tagcode ti;
 	mpg123_string tag[FIELDS];
+	mpg123_string genretmp;
 	size_t len[FIELDS];
 	mpg123_id3v1 *v1;
 	mpg123_id3v2 *v2;
@@ -147,14 +186,14 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 	mpg123_id3(mh, &v1, &v2);
 	/* Only work if something there... */
 	if(v1 == NULL && v2 == NULL) return;
+
 	if(v2 != NULL) /* fill from ID3v2 data */
 	{
-		len[TITLE]   = transform(&tag[TITLE],   v2->title);
-		len[ARTIST]  = transform(&tag[ARTIST],  v2->artist);
-		len[ALBUM]   = transform(&tag[ALBUM],   v2->album);
-		len[COMMENT] = transform(&tag[COMMENT], v2->comment);
-		len[YEAR]    = transform(&tag[YEAR],    v2->year);
-		len[GENRE]   = transform(&tag[GENRE],   v2->genre);
+		len[TITLE]   = outstr(&tag[TITLE],   v2->title);
+		len[ARTIST]  = outstr(&tag[ARTIST],  v2->artist);
+		len[ALBUM]   = outstr(&tag[ALBUM],   v2->album);
+		len[COMMENT] = outstr(&tag[COMMENT], v2->comment);
+		len[YEAR]    = outstr(&tag[YEAR],    v2->year);
 	}
 	if(v1 != NULL) /* fill gaps with ID3v1 data */
 	{
@@ -164,31 +203,11 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 		id3_gap(&tag[ALBUM],   30, v1->album,   &len[ALBUM]);
 		id3_gap(&tag[COMMENT], 30, v1->comment, &len[COMMENT]);
 		id3_gap(&tag[YEAR],    4,  v1->year,    &len[YEAR]);
-		/*
-			genre is special... v1->genre holds an index, id3v2 genre may contain indices in textual form and raw textual genres...
-		*/
-		if(!tag[GENRE].fill)
-		{
-			if(tag[GENRE].size >= 31 || mpg123_resize_string(&tag[GENRE],31))
-			{
-				if(v1->genre <= genre_count)
-				{
-					strncpy(tag[GENRE].p, genre_table[v1->genre], 30);
-				}
-				else
-				{
-					strncpy(tag[GENRE].p,"Unknown",30);
-				}
-				tag[GENRE].p[30] = 0;
-				/* V1 was plain ASCII, so strlen is fine. */
-				len[GENRE] = strlen(tag[GENRE].p);
-				tag[GENRE].fill = len[GENRE] + 1;
-				genre_from_v1 = 1;
-			}
-		}
 	}
-
-	if(tag[GENRE].fill && !genre_from_v1)
+	// Genre is special... v1->genre holds an index, id3v2 genre may contain
+	// indices in textual form and raw textual genres...
+	mpg123_init_string(&genretmp);
+	if(v2 && v2->genre && v2->genre->fill)
 	{
 		/*
 			id3v2.3 says (id)(id)blabla and in case you want ot have (blabla) write ((blabla)
@@ -201,106 +220,112 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 
 			Now I am very sure that I'll encounter hellishly mixed up id3v2 frames, so try to parse both at once.
 		*/
-		mpg123_string tmp;
-		mpg123_init_string(&tmp);
-		debug1("interpreting genre: %s\n", tag[GENRE].p);
-		if(mpg123_copy_string(&tag[GENRE], &tmp))
+		size_t num = 0;
+		size_t nonum = 0;
+		size_t i;
+		enum { nothing, number, outtahere } state = nothing;
+		/* number\n -> id3v1 genre */
+		/* (number) -> id3v1 genre */
+		/* (( -> ( */
+		debug1("interpreting genre: %s\n", v2->genre->p);
+		for(i = 0; i < v2->genre->fill; ++i)
 		{
-			size_t num = 0;
-			size_t nonum = 0;
-			size_t i;
-			enum { nothing, number, outtahere } state = nothing;
-			tag[GENRE].fill = 0; /* going to be refilled */
-			/* number\n -> id3v1 genre */
-			/* (number) -> id3v1 genre */
-			/* (( -> ( */
-			for(i = 0; i < tmp.fill; ++i)
+			debug1("i=%lu", (unsigned long) i);
+			switch(state)
 			{
-				debug1("i=%lu", (unsigned long) i);
-				switch(state)
-				{
-					case nothing:
+				case nothing:
+					nonum = i;
+					if(v2->genre->p[i] == '(')
+					{
+						num = i+1; /* number starting as next? */
+						state = number;
+						debug1("( before number at %lu?", (unsigned long) num);
+					}
+					else if(v2->genre->p[i] >= '0' && v2->genre->p[i] <= '9')
+					{
+						num = i;
+						state = number;
+						debug1("direct number at %lu", (unsigned long) num);
+					}
+					else state = outtahere;
+				break;
+				case number:
+					/* fake number alert: (( -> ( */
+					if(v2->genre->p[i] == '(')
+					{
 						nonum = i;
-						if(tmp.p[i] == '(')
+						state = outtahere;
+						debug("no, it was ((");
+					}
+					else if(v2->genre->p[i] == ')' || v2->genre->p[i] == '\n' || v2->genre->p[i] == 0)
+					{
+						if(i-num > 0)
 						{
-							num = i+1; /* number starting as next? */
-							state = number;
-							debug1("( before number at %lu?", (unsigned long) num);
-						}
-						/* you know an encoding where this doesn't work? */
-						else if(tmp.p[i] >= '0' && tmp.p[i] <= '9')
-						{
-							num = i;
-							state = number;
-							debug1("direct number at %lu", (unsigned long) num);
-						}
-						else state = outtahere;
-					break;
-					case number:
-						/* fake number alert: (( -> ( */
-						if(tmp.p[i] == '(')
-						{
-							nonum = i;
-							state = outtahere;
-							debug("no, it was ((");
-						}
-						else if(tmp.p[i] == ')' || tmp.p[i] == '\n' || tmp.p[i] == 0)
-						{
-							if(i-num > 0)
-							{
-								/* we really have a number */
-								int gid;
-								char* genre = "Unknown";
-								tmp.p[i] = 0;
-								gid = atoi(tmp.p+num);
+							/* we really have a number */
+							int gid;
+							char* genre = "Unknown";
+							v2->genre->p[i] = 0;
+							gid = atoi(v2->genre->p+num);
 
-								/* get that genre */
-								if(gid >= 0 && gid <= genre_count) genre = genre_table[gid];
-								debug1("found genre: %s", genre);
+							/* get that genre */
+							if(gid >= 0 && gid <= genre_count) genre = genre_table[gid];
+							debug1("found genre: %s", genre);
 
-								if(tag[GENRE].fill) mpg123_add_string(&tag[GENRE], ", ");
-								mpg123_add_string(&tag[GENRE], genre);
-								nonum = i+1; /* next possible stuff */
-								state = nothing;
-								debug1("had a number: %i", gid);
-							}
-							else
-							{
-								/* wasn't a number, nonum is set */
-								state = outtahere;
-								debug("no (num) thing...");
-							}
-						}
-						else if(!(tmp.p[i] >= '0' && tmp.p[i] <= '9'))
-						{
-							/* no number at last... */
-							state = outtahere;
-							debug("nothing numeric here");
+							if(genretmp.fill) mpg123_add_string(&genretmp, ", ");
+							mpg123_add_string(&genretmp, genre);
+							nonum = i+1; /* next possible stuff */
+							state = nothing;
+							debug1("had a number: %i", gid);
 						}
 						else
 						{
-							debug("still number...");
+							/* wasn't a number, nonum is set */
+							state = outtahere;
+							debug("no (num) thing...");
 						}
-					break;
-					default: break;
-				}
-				if(state == outtahere) break;
+					}
+					else if(!(v2->genre->p[i] >= '0' && v2->genre->p[i] <= '9'))
+					{
+						/* no number at last... */
+						state = outtahere;
+						debug("nothing numeric here");
+					}
+					else
+					{
+						debug("still number...");
+					}
+				break;
+				default: break;
 			}
-			/* Small hack: Avoid repeating genre in case of stuff like
-			   (144)Thrash Metal being given. The simple cases. */
-			if(
-				nonum < tmp.fill-1 &&
-				(!tag[GENRE].fill || strncmp(tag[GENRE].p, tmp.p+nonum, tag[GENRE].fill))
-			)
-			{
-				if(tag[GENRE].fill) mpg123_add_string(&tag[GENRE], ", ");
-				mpg123_add_string(&tag[GENRE], tmp.p+nonum);
-			}
-			/* Do not like that ... assumes plain ASCII ... */
-			len[GENRE] = strlen(tag[GENRE].p);
+			if(state == outtahere) break;
 		}
-		mpg123_free_string(&tmp);
+		/* Small hack: Avoid repeating genre in case of stuff like
+			(144)Thrash Metal being given. The simple cases. */
+		if(
+			nonum < v2->genre->fill-1 &&
+			(!genretmp.fill || strncmp(genretmp.p, v2->genre->p+nonum, genretmp.fill))
+		)
+		{
+			if(genretmp.fill) mpg123_add_string(&genretmp, ", ");
+			mpg123_add_string(&genretmp, v2->genre->p+nonum);
+		}
 	}
+	else if(v1)
+	{
+		// Fill from v1 tag.
+		if(mpg123_resize_string(&genretmp, 31))
+		{
+			if(v1->genre <= genre_count)
+				strncpy(genretmp.p, genre_table[v1->genre], 30);
+			else
+				strncpy(genretmp.p,"Unknown",30);
+			genretmp.p[30] = 0;
+			genretmp.fill = strlen(genretmp.p)+1;
+		}
+	}
+	// Finally convert to safe output string and get display width.
+	len[GENRE] = outstr(&tag[GENRE], &genretmp);
+	mpg123_free_string(&genretmp);
 
 	if(long_id3)
 	{
@@ -319,11 +344,9 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 		/* We are trying to be smart here and conserve some vertical space.
 		   So we will skip tags not set, and try to show them in two parallel
 		   columns if they are short, which is by far the most common case. */
-		int linelimit;
 		int climit[2];
 
 		/* Adapt formatting width to terminal if possible. */
-		linelimit = term_width(fileno(out));
 		if(linelimit < 0)
 			linelimit=overhead[0]+30+overhead[1]+30; /* the old style, based on ID3v1 */
 		if(linelimit > 200)
@@ -346,7 +369,7 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 	}
 	for(ti=0; ti<FIELDS; ++ti) mpg123_free_string(&tag[ti]);
 
-	if(v2 != NULL && APPFLAG(MPG123APP_LYRICS))
+	if(v2 != NULL && meta_show_lyrics)
 	{
 		/* find and print texts that have USLT IDs */
 		size_t i;
@@ -374,7 +397,7 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out)
 					while(b < uslt->fill && uslt->p[b] != '\n' && uslt->p[b] != '\r') ++b;
 					/* Either found end of a line or end of the string (null byte) */
 					mpg123_set_substring(&innline, uslt->p, a, b-a);
-					transform(&outline, &innline);
+					outstr(&outline, &innline);
 					printf(" %s\n", outline.p);
 
 					if(uslt->p[b] == uslt->fill) break; /* nothing more */
@@ -405,9 +428,9 @@ void print_icy(mpg123_handle *mh, FILE *outstream)
 			mpg123_string out;
 			mpg123_init_string(&out);
 
-			transform(&out, &in);
+			outstr(&out, &in);
 			if(out.fill)
-			fprintf(outstream, "\nICY-META: %s\n", out.p);
+				fprintf(outstream, "\nICY-META: %s\n", out.p);
 
 			mpg123_free_string(&out);
 		}
@@ -415,37 +438,169 @@ void print_icy(mpg123_handle *mh, FILE *outstream)
 	}
 }
 
-static void utf8_ascii(mpg123_string *dest, mpg123_string *source)
+// Filter C1 control chars, using c2lead state.
+#define ASCII_C1(c, append) \
+	if(c2lead) \
+	{ \
+		if((c) >= 0x80 && (c) <= 0x9f) \
+		{ \
+			c2lead = 0; \
+			continue; \
+		} \
+		else \
+		{ \
+			append; \
+		} \
+	} \
+	c2lead = ((c) == 0xc2); \
+	if(c2lead) \
+		continue;
+
+// Reduce UTF-8 data to 7-bit ASCII, dropping non-printable characters.
+// Non-printable ASCII == everything below 0x20 (space), including
+// line breaks.
+// Also: 0x7f (DEL) and the C1 chars. The C0 and C1 chars should just be
+// dropped, not rendered. Or should they?
+static void utf8_ascii_print(mpg123_string *dest, mpg123_string *source)
 {
 	size_t spos = 0;
 	size_t dlen = 0;
-	char *p;
+	unsigned char *p;
 
-	/* Find length of ASCII string (count non-continuation bytes).
-	   Do _not_ change this to mpg123_strlen()!
-	   It needs to match the loop below. Especially dlen should not stop at embedded null bytes. You can get any trash from ID3! */
-	for(spos=0; spos < source->fill; ++spos)
-	if((source->p[spos] & 0xc0) == 0x80) continue;
-	else ++dlen;
-
-	/* The trailing zero is included in dlen; if there is none, one character will be cut. Bad input -> bad output. */
-	if(!mpg123_resize_string(dest, dlen)){ mpg123_free_string(dest); return; }
-	/* Just ASCII, we take it easy. */
-	p = dest->p;
-
+	// Find length of ASCII string (count non-continuation bytes).
+	// Do _not_ change this to mpg123_strlen()!
+	// It needs to match the loop below. 
+	// No UTF-8 continuation byte 0x10??????, nor control char.
+#define ASCII_PRINT_SOMETHING(c) \
+	(((c) & 0xc0) != 0x80 && (c) != 0x7f && (c) >= 0x20)
+	int c2lead = 0;
 	for(spos=0; spos < source->fill; ++spos)
 	{
-		/* UTF-8 continuation byte 0x10?????? */
-		if((source->p[spos] & 0xc0) == 0x80) continue;
-		/* UTF-8 lead byte 0x11?????? */
-		else if(source->p[spos] & 0x80) *p = joker_symbol;
-		/* just ASCII, 0x0??????? */
-		else *p = source->p[spos];
-
-		++p; /* next output char */
+		unsigned char c = ((unsigned char*)source->p)[spos];
+		ASCII_C1(c, ++dlen);
+		if(ASCII_PRINT_SOMETHING(c))
+			++dlen;
 	}
-	/* Always close the string, trailing zero might be missing. */
-	if(dest->size) dest->p[dest->size-1] = 0;
+	++dlen; // trailing zero
+	// Do nothing with nothing or if allocation fails. Neatly catches overflow
+	// of ++dlen.
+	if(!dlen || !mpg123_resize_string(dest, dlen))
+	{
+		mpg123_free_string(dest);
+		return;
+	}
 
+	p = (unsigned char*)dest->p;
+	c2lead = 0;
+	for(spos=0; spos < source->fill; ++spos)
+	{
+		unsigned char c = ((unsigned char*)source->p)[spos];
+		ASCII_C1(c, *p++ = joker_symbol)
+		if(!ASCII_PRINT_SOMETHING(c))
+			continue;
+		else if(c & 0x80) // UTF-8 lead byte 0x11??????
+			c = joker_symbol;
+		*p++ = c;
+	}
+#undef ASCII_PRINT_SOMETHING
+	// Always close the string, trailing zero might be missing.
+	if(dest->size)
+		dest->p[dest->size-1] = 0;
 	dest->fill = dest->size;
 }
+
+size_t outstr(mpg123_string *dest, mpg123_string *source)
+{
+	if(dest)
+		dest->fill = 0;
+	if(!source || !dest) return 0;
+
+	size_t width = 0;
+
+	if(utf8env)
+	{
+#if defined(HAVE_MBSTOWCS) && defined(HAVE_WCSWIDTH) && \
+    defined(HAVE_ISWPRINT) && defined(HAVE_WCSTOMBS)
+		if(utf8loc)
+		{
+			// Best case scenario: Convert to wide string, filter,
+			// compute printing width.
+			size_t wcharlen = mbstowcs(NULL, source->p, 0);
+			if(wcharlen == (size_t)-1)
+				return 0;
+			if(wcharlen+1 > SIZE_MAX/sizeof(wchar_t))
+				return 0;
+			wchar_t *pre = malloc(sizeof(wchar_t)*(wcharlen+1));
+			wchar_t *flt = malloc(sizeof(wchar_t)*(wcharlen+1));
+			if(!pre || !flt)
+			{
+				free(flt);
+				free(pre);
+				return 0;
+			}
+			if(mbstowcs(pre, source->p, wcharlen+1) == wcharlen)
+			{
+				size_t nwl = 0;
+				for(size_t i=0;  i<wcharlen; ++i)
+					if(iswprint(pre[i]))
+						flt[nwl++] = pre[i];
+				flt[nwl] = 0;
+				int columns = wcswidth(flt, nwl);
+				size_t bytelen = wcstombs(NULL, flt, 0);
+				if(
+					columns >= 0 && bytelen != (size_t)-1
+					&& mpg123_resize_string(dest, bytelen+1)
+					&& wcstombs(dest->p, flt, dest->size) == bytelen
+				){
+					dest->fill = bytelen+1;
+					width = columns;
+				}
+				else
+					mpg123_free_string(dest);
+			}
+			free(flt);
+			free(pre);
+		}
+		else
+#endif
+		{
+			// Only filter C0 and C1 control characters.
+			// That is, 0x01 to 0x19 (keeping 0x20, space) and 0x7f (DEL) to 0x9f.
+			// Since the input and output is UTF-8, we'll keep that intact.
+			// C1 is mapped to 0xc280 till 0xc29f.
+			if(!mpg123_grow_string(dest, source->fill))
+				return 0;
+			dest->fill = 0;
+			int c2lead = 0;
+			unsigned char *p = (unsigned char*)dest->p;
+			for(size_t i=0; i<source->fill; ++i)
+			{
+				unsigned char c = ((unsigned char*)source->p)[i];
+				ASCII_C1(c, *p++ = 0xc2)
+				if(c && c < 0x20)
+					continue; // no C0 control chars, except space
+				if(c == 0x7f)
+					continue; // also no DEL
+				*p++ = c;
+				if(!c)
+					break; // Up to zero is enough.
+				// Assume each 7 bit char and each sequence start make one character.
+				// So only continuation bytes need to be ignored.
+				if((c & 0xc0) != 0x80)
+					++width;
+			}
+			// Make damn sure that it ends.
+			dest->fill = (char*)p - dest->p;
+			dest->p[dest->fill-1] = 0;
+		}
+	}
+	else
+	{
+		// Last resort: just printable 7-bit ASCII.
+		utf8_ascii_print(dest, source);
+		width = dest->fill ? dest->fill-1 : 0;
+	}
+	return width;
+}
+
+#undef ASCII_C1

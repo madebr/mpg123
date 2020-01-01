@@ -7,6 +7,7 @@ TODO: drop special optimization flags, default to just -On ... but
   consider defaulting to O3 for auto-vectorization
 TODO: avoid MPG123_NEED_MORE from non-feed reader reading frame
 bodies or see it as a feature
+TODO: Figure out terminal printout encoding for Windows.
 - Starting to intentionally use C99 in the codebase. API headers are still
   supposed to be compatible to C89.
 - There is a make check target now that tests some text transformations.
@@ -25,6 +26,8 @@ bodies or see it as a feature
 - mpg123:
 -- Print out MPEG header info for each frame for mpg123 -vvvv.
 -- Added --no-visual to disable cursor/inverse video games explicitly.
+-- Filter control/non-printable characters from metadata printout, reduce
+   ID3v1 data to 7-bit ASCII (no way to know correct 8-bit encoding for sure).
 - out123:
 -- Removed the implicit phase shift that made generated waves exactly at
    Nyquist freq non-silent, but made little sense overall.

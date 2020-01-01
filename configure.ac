@@ -1221,7 +1221,7 @@ AC_CHECK_FUNCS( setpriority )
 
 AC_CHECK_FUNCS( strerror )
 
-AC_CHECK_FUNCS( setlocale nl_langinfo )
+AC_CHECK_FUNCS( setlocale nl_langinfo mbstowcs wcstombs wcswidth iswprint )
 
 AC_CHECK_FUNCS( atoll )
 
@@ -1230,7 +1230,7 @@ AC_CHECK_FUNCS( mkfifo, [ have_mkfifo=yes ], [ have_mkfifo=no ] )
 dnl ############## Header and Library Checks
 
 # locale headers
-AC_CHECK_HEADERS([locale.h langinfo.h])
+AC_CHECK_HEADERS([locale.h langinfo.h wchar.h wctype.h])
 # Headers for network (http) stuff
 network_type=Unknown
 AC_CHECK_HEADERS([netdb.h sys/param.h sys/socket.h netinet/in.h arpa/inet.h])

@@ -1034,7 +1034,9 @@ int main(int sys_argc, char ** sys_argv)
 			usage(1);
 	}
 	/* Do this _after_ parameter parsing. */
+	utf8force = param.force_utf8;
 	check_locale(); /* Check/set locale; store if it uses UTF-8. */
+	meta_show_lyrics = APPFLAG(MPG123APP_LYRICS);
 
 	if(param.list_cpu)
 	{
@@ -1374,7 +1376,8 @@ int main(int sys_argc, char ** sys_argv)
 				meta = mpg123_meta_check(mh);
 				if(meta & (MPG123_NEW_ID3|MPG123_NEW_ICY))
 				{
-					if(meta & MPG123_NEW_ID3) print_id3_tag(mh, param.long_id3, stderr);
+					if(meta & MPG123_NEW_ID3) print_id3_tag( mh, param.long_id3
+					,	stderr, term_width(STDERR_FILENO) );
 					if(meta & MPG123_NEW_ICY) print_icy(mh, stderr);
 
 #ifdef HAVE_TERMIOS
@@ -1385,7 +1388,7 @@ int main(int sys_argc, char ** sys_argv)
 			}
 			if(!fresh && param.verbose)
 			{
-				if(param.verbose > 1 || !(framenum & 0x7)) print_stat(mh,0,ao,1);
+				if(param.verbose > 1 || !(framenum & 0x7)) print_stat(mh,0,ao,1,&param);
 			}
 #ifdef HAVE_TERMIOS
 			if(!param.term_ctrl) continue;
@@ -1395,7 +1398,7 @@ int main(int sys_argc, char ** sys_argv)
 
 	if(!param.smooth && !intflag)
 		controlled_drain();
-	if(param.verbose) print_stat(mh,0,ao,0);
+	if(param.verbose) print_stat(mh,0,ao,0,&param);
 
 	if(!param.quiet)
 	{
