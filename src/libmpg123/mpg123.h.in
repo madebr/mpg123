@@ -1170,8 +1170,10 @@ MPG123_EXPORT int mpg123_set_string(mpg123_string* sb, const char* stuff);
 MPG123_EXPORT int mpg123_set_substring( mpg123_string *sb
 ,	const char *stuff, size_t from, size_t count );
 
-/** Count characters in a mpg123 string (non-null bytes or UTF-8 characters).
- *  Even with the fill property, the character count is not obvious as there could be multiple trailing null bytes.
+/** Count characters in a mpg123 string (non-null bytes or Unicode points).
+ *  This function is of limited use, as it does just count code points
+ *  encoded in an UTF-8 string, only loosely related to the count of visible
+ *  characters. Get your full Unicode handling support elsewhere.
  *  \param sb string handle
  *  \param utf8 a flag to tell if the string is in utf8 encoding
  *  \return character count
