@@ -652,17 +652,18 @@ out123_play(out123_handle *ao, void *bytes, size_t count)
 	do /* Playback in a loop to be able to continue after interruptions. */
 	{
 		errno = 0;
-		written = ao->write(ao, (unsigned char*)bytes, (int)count);
+		int block = count > INT_MAX ? INT_MAX : count;
+		written = ao->write(ao, (unsigned char*)bytes, block);
 		debug4( "written: %d errno: %i (%s), keep_on=%d"
 		,	written, errno, strerror(errno)
 		,	ao->flags & OUT123_KEEP_PLAYING );
-		if(written >= 0){ sum+=written; count -= written; }
-		else if(errno != EINTR)
+		if(written > 0){ sum+=written; count -= written; }
+		if(written < block && errno != EINTR)
 		{
 			ao->errcode = OUT123_DEV_PLAY;
 			if(!AOQUIET)
 				error1("Error in writing audio (%s?)!", strerror(errno));
-			/* If written < 0, this is a serious issue ending this playback round. */
+			/* This is a serious issue ending this playback round. */
 			break;
 		}
 	} while(count && ao->flags & OUT123_KEEP_PLAYING);
