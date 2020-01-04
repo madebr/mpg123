@@ -1,7 +1,7 @@
 /*
-	syn123: some signal synthesis born out of out123
+	syn123: some audio signal synthesis and format conversion
 
-	copyright 2017-2018 by the mpg123 project,
+	copyright 2017-2020 by the mpg123 project,
 	free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 
@@ -64,40 +64,67 @@ extern "C" {
 #endif
 
 /** \defgroup syn123_api syn123 library API
- *  With the need to present the generated signals with differing
- *  encodings for playback, the two-fold nature of this library
- *  emerges: Signal generation and encoding conversion. Both can be
- *  rather trivial indivdually, but become tedious when one wants
- *  to cover a certain range of options. So, here it is. This is
- *  not designed to be another full-fledged audio synthesis package.
- *  It is designed to be what one can use to get some test sound into
- *  (or out of) a program quickly without a big framework.
- *  I try to keep it small, adding gimmicks only if they have a high
- *  fun-to-code ratio (for me;-).
+ *  I wanted to create some test signals in different encodings for testing
+ *  libout123. Also, they shall serve to verify the decoding of libmpg123
+ *  in automated testing. Then, the awful drop-sample resampling inside the
+ *  latter needed replacement. As digital filtering is part of the resampler
+ *  dance, a chain of those can also be configured and applied. I hope I can
+ *  avoid adding yet more functionality. It's a little utility library to
+ *  accompany libmpg123 and libout123, OK?
  *
- *  The usage model is this:
+ *  This is what libsyn123 offers:
+ *
+ *  - signal generation (mix of differing wave shapes, noise, a simulated
+ *    Geiger counter for fun)
+ *  - format conversion and channel mixing and amplification, with hard and
+ *    soft clipping, also optional dithering
+ *  - near-zero-latency good-enough quite-fast resampling
+ *  - applying digital filters with user-provided coefficients
+ *
+ *  The usage model for signal generation is this:
  *
  *  1. Create handle with desired output format.
  *  2. Set up synthesis mode with parameters.
  *  3. Repeatedly extract buffers with PCM samples.
  *
- *  The other functions for encoding conversion, (de-)interleaving,
- *  and interleaved mixing work without a handle and only use the
- *  buffers you hand in. Only the functions that are able to return
- *  a success code do check arguments for obvious trouble like
- *  NULL pointers. You are supposed to act responsibly when calling.
+ *  If your hardware is slow on floating point operations, you may benefit
+ *  from the period buffer in the handle that only needs actual computation
+ *  once in the setup function. The frequencies of a wave mix may be fudged
+ *  a bit to make for a configured period size.
+ *
+ *  The usage model for resampling is this:
+ *
+ *  1. Create handle with any format or re-use a signal generation handle.
+ *  2. Set up resampling (rate ratio, channels, dirty mode).
+ *  3. Use predictor functions to work out matching sizes of input and
+ *     output buffers.
+ *  4. Call the resapler on chunks of input, immediately producing matching
+ *     chunks of output.
+ *
+ *  The resampler works on 32 bit float, exclusively. This is what is required
+ *  and appropriate for the provided quality.
+ *
+ *  The usage model for filtering is this:
+ *
+ *  1. Create or re-use a handle.
+ *  2. Set up the filter chain for single or double precision floating point.
+ *  3. Apply the filter to chunks of input in succession.
+ *
+ *  Computations are generally done in floating point, either 32 bit or 64
+ *  bit (single or double precision). The functions for encoding conversion,
+ *  (de-)interleaving, and interleaved mixing can work without a handle and
+ *  only use the buffers you hand in. Some support using a syn123 handle to
+ *  provide the temporary buffers for encoding conversion on the fly to apply
+ *  flotating-point processing to integer encodings.
+ *
+ *  Only the functions that are able to return a success code do check
+ *  arguments for obvious trouble like NULL pointers. You are supposed to
+ *  act responsibly when calling.
  *
  *  The size of buffers is either counted in bytes or samples, which,
  *  depending on the context, refer to individual PCM samples or to what is
  *  more strictly called a frame (one sample for each channel counted
  *  together).
- *
- *  So far, I am not considering fixed-point implementations. The main
- *  functionality of the generators can limit (emulated) floating-point
- *  work to the initial filling of the period buffer, with no computational
- *  overhead after that. The mixing code might benefit from a fixed-point
- *  variant on certain platforms, but I do not have such a platform at
- *  hand and do not feel the need.
  @{
  */
 
@@ -146,8 +173,6 @@ const char* syn123_strerror(int errcode);
  *  \param rate sampling rate
  *  \param channels channel count (duplicated mono channels)
  *  \param encoding sample encoding (see enum mpg123_enc_enum)
- *  \param dither choice of dithering for conversions to integer encodings
- *    (see enum syn123_dither for values or just use 0 for none, 1 for some).
  *  \param maxbuff maximum buffer size in bytes to allow for caching periodic
  *    signals. When this is given, it is attempted to fit any configured signal
  *    into this buffer in the hope it will work being played periodically. Maybe
@@ -464,8 +489,6 @@ int syn123_conv( void * MPG123_RESTRICT dst, int dst_enc, size_t dst_size
  */
 #define SYN123_DB_LIMIT 500
 
-/* TODO: Turn those two into macros? Too simple ... */
-
 /** Convert decibels to linear volume (amplitude factor).
  *  This just returns pow(10, db/20) in the supported range.
  *  The dB value is limited according to SYN123_DB_LIMIT, with
@@ -707,9 +730,10 @@ void syn123_drop_filter(syn123_handle *sh, size_t count);
 
 /** Apply a prepared digital filter.
  * 
- *  This applies the filter prepared by syn123_setup_filter
- *  This converts to/from the configured mixing encoding on the fly,
- *  if necessary.
+ *  This applies the filter prepared by syn123_setup_filter to yur
+ *  provided buffer in single or double precision float.
+ *  Handing in a non-float encoding is an error. You are supposed
+ *  to convert and clip before/after applying the filters.
  *
  *  If you got no filters configured, this always succeeds and
  *  does nothing.

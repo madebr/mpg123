@@ -18,7 +18,7 @@
 	Also, the coefficients are stored multiple times in a shifted manner
 	to avoid shifting the filter history around and keeping efficient
 	coefficient access. I guess this is a pretty standard optimization
-	which it worked well for the resampler.
+	which worked well for the resampler.
 
 	I use macros. Don't be scared.
 */
@@ -347,8 +347,7 @@ static void name( struct stype *f \
 APPLY_ONE_FILTER(apply_filter_float, f_filter, float)
 APPLY_ONE_FILTER(apply_filter_double, d_filter, double)
 
-// Finally, the filter application. This works on interleaved data and
-// needs to use our buffers for conversion.
+// Finally, the filter application.
 int attribute_align_arg
 syn123_filter(syn123_handle *sh, void* buf, int encoding, size_t samples)
 {
@@ -367,7 +366,6 @@ syn123_filter(syn123_handle *sh, void* buf, int encoding, size_t samples)
 			APPLY_FILTERS(sh->fc.df, apply_filter_double);
 	} else
 	{
-fprintf(stderr, "TODO: conversion\n");
 		return SYN123_BAD_ENC;
 	}
 	#undef APPLY_FILTERS
