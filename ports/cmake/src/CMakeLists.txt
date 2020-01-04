@@ -234,7 +234,7 @@ else()
     set_property(CACHE DEFAULT_OUTPUT_MODULE PROPERTY STRINGS ${OUTPUT_MODULES})
 endif()
 
-option(ACCURATE_ROUNDING "use rounding instead of fast truncation for integer output, where possible" OFF)
+option(ACCURATE_ROUNDING "use rounding instead of fast truncation for integer output, where possible" ON)
 cmake_dependent_option(FIFO "FIFO support for control interface" ON "HAVE_MKFIFO" OFF)
 option(GAPLESS "enable gapless" ON)
 option(IEEE_FLOAT "use special hackery relying on IEEE 754 floating point storage format (to accurately round to 16 bit integer at bit more efficiently in generic decoder, enabled by default, disable in case you have a very special computer)" ON)
