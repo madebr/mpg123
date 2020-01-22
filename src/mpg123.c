@@ -654,8 +654,10 @@ int open_track(char *fname)
 	httpdata_reset(&htd);
 	if(MPG123_OK != mpg123_param(mh, MPG123_ICY_INTERVAL, 0, 0))
 	error1("Cannot (re)set ICY interval: %s", mpg123_strerror(mh));
+	mpg123_param(mh, MPG123_REMOVE_FLAGS, MPG123_NO_PEEK_END, 0);
 	if(!strcmp(fname, "-"))
 	{
+		mpg123_param(mh, MPG123_ADD_FLAGS, MPG123_NO_PEEK_END, 0);
 		filept = STDIN_FILENO;
 #ifdef WIN32
 		_setmode(STDIN_FILENO, _O_BINARY);

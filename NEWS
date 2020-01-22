@@ -28,6 +28,9 @@ TODO: Figure out terminal printout encoding for Windows.
 -- Added --no-visual to disable cursor/inverse video games explicitly.
 -- Filter control/non-printable characters from metadata printout, reduce
    ID3v1 data to 7-bit ASCII (no way to know correct 8-bit encoding for sure).
+-- Set MPG123_NO_PEEK_END when opening specia file '-' (standard input).
+   That helps Windows where attempting to seek on the non-seekable stream
+   is undefined behaviour (bug 285).
 - out123:
 -- Removed the implicit phase shift that made generated waves exactly at
    Nyquist freq non-silent, but made little sense overall.
