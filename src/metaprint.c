@@ -513,7 +513,7 @@ size_t outstr(mpg123_string *dest, mpg123_string *source)
 {
 	if(dest)
 		dest->fill = 0;
-	if(!source || !dest) return 0;
+	if(!source || !dest || !source->fill) return 0;
 
 	size_t width = 0;
 
