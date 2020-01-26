@@ -23,6 +23,8 @@ TODO: Figure out terminal printout encoding for Windows.
   lib*123. Also add proper Libs.private to .pc files to enable static
   usage (especially on Windows with shlwapi).
 - Updated support for OS/2 in the form of ArcaOS.
+- Removed outdated Pascal port (ports/mpg123_.pas). There are others
+  out there.
 - mpg123:
 -- Print out MPEG header info for each frame for mpg123 -vvvv.
 -- Added --no-visual to disable cursor/inverse video games explicitly.
