@@ -138,7 +138,6 @@ EXTRA_DIST += \
   ports/Sony_PSP/README \
   ports/Sony_PSP/Makefile.psp \
   ports/Sony_PSP/readers.c.patch \
-  ports/mpg123_.pas \
   ports/Xcode/config.h \
   ports/Xcode/mpg123.h \
   ports/Xcode/mpg123.xcodeproj/project.pbxproj \
