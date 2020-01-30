@@ -23,24 +23,20 @@
 
 int hex_formats(out123_handle *ao)
 {
-	return
-		MPG123_ENC_SIGNED_8
-	|	MPG123_ENC_UNSIGNED_8
-	|	MPG123_ENC_ULAW_8
-	|	MPG123_ENC_ALAW_8
-	|	MPG123_ENC_SIGNED_16
-	|	MPG123_ENC_UNSIGNED_16
-	|	MPG123_ENC_SIGNED_24
-	|	MPG123_ENC_UNSIGNED_24
-	|	MPG123_ENC_SIGNED_32
-	|	MPG123_ENC_UNSIGNED_32;
+	return MPG123_ENC_ANY;
 }
 
+// This is about the same list as the above, but in case
+// any new format is added, the text printout will need
+// explicit changes, while hex printout does only care
+// about a sample's byte count.
 int txt_formats(out123_handle *ao)
 {
 	return
 		MPG123_ENC_SIGNED_8
 	|	MPG123_ENC_UNSIGNED_8
+	|	MPG123_ENC_ULAW_8 // Printed as unsigned integer.
+	|	MPG123_ENC_ALAW_8 // Printed as unsigned integer.
 	|	MPG123_ENC_SIGNED_16
 	|	MPG123_ENC_UNSIGNED_16
 	|	MPG123_ENC_SIGNED_24
@@ -85,7 +81,9 @@ int txt_open(out123_handle *ao)
 		return 0;
 	}
 
-	ao->userptr = open_file(ao->device);
+	ao->userptr = ( (ao->format & txt_formats(ao)) == ao->format)
+	?	open_file(ao->device)
+	:	NULL;
 	return ao->userptr ? 0 : -1;
 }
 
@@ -226,6 +224,8 @@ int txt_write(out123_handle *ao, unsigned char *buf, int len)
 				CHANPRINT(char, int, "%d")
 			break;
 			case MPG123_ENC_UNSIGNED_8:
+			case MPG123_ENC_ULAW_8:
+			case MPG123_ENC_ALAW_8:
 				CHANPRINT(unsigned char, int, "%u")
 			break;
 			case MPG123_ENC_SIGNED_16:
