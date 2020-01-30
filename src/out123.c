@@ -744,7 +744,7 @@ static void setup_wavegen(void)
 			char *next = wave_patterns;
 			wid = syn123_wave_id(mytok(&next));
 			if(wid < 0 && !quiet)
-				fprintf(stderr, "Warning: bad wave pattern: %s\n", wave_patterns);
+				fprintf(stderr, ME ": Warning: bad wave pattern: %s\n", wave_patterns);
 		}
 		if(wave_phases)
 		{
@@ -819,6 +819,13 @@ static void setup_wavegen(void)
 		}
 		memcpy(freq_real, freq, sizeof(double)*count);
 	}
+	else if(wave_patterns || wave_phases || wave_direction)
+	{
+		if(!quiet)
+			fprintf( stderr
+			,	ME ": Warning: wave setup ignored without specified frequency\n" );
+	}
+
 
 	if(count && wave_patterns)
 	{
@@ -833,7 +840,7 @@ static void setup_wavegen(void)
 			{
 				id[i] = syn123_wave_id(tok);
 				if(id[i] < 0 && !quiet)
-					fprintf(stderr, "Warning: bad wave pattern: %s\n", tok);
+					fprintf(stderr, ME ": Warning: bad wave pattern: %s\n", tok);
 			}
 			else
 				id[i] = id[i-1];
