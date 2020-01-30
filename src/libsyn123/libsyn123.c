@@ -201,7 +201,7 @@ static void evaluate_wave( double outbuf[bufblock], int samples
 			outbuf[pi] *= code;
 	switch(id)
 	{
-		case SYN123_WAVE_NONE:
+		case SYN123_WAVE_FLAT:
 			PI_LOOP( wave_none(PHASE) )
 		break;
 		case SYN123_WAVE_SINE:
@@ -234,7 +234,7 @@ static void evaluate_wave( double outbuf[bufblock], int samples
 
 static const char* wave_names[] =
 {
-	"null", "sine", "square", "triangle"
+	"flat", "sine", "square", "triangle"
 ,	"sawtooth", "gauss", "pulse", "shot"
 };
 

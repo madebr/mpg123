@@ -225,7 +225,7 @@ size_t syn123_read(syn123_handle *sh, void *dst, size_t dst_bytes);
 enum syn123_wave_id
 {
 	SYN123_WAVE_INVALID = -1 /**< invalid wave pattern */
-,	SYN123_WAVE_NONE = 0 /**< flat line, silence */
+,	SYN123_WAVE_FLAT = 0 /**< flat line, silence */
 ,	SYN123_WAVE_SINE     /**< sinusodial wave*/
 ,	SYN123_WAVE_SQUARE   /**< square wave */
 ,	SYN123_WAVE_TRIANGLE /**< triangle wave */
