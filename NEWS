@@ -98,6 +98,8 @@ TODO: Make libout123 and/or mpg123 use that to convert on the fly. Optionally?
 -- Make mpg123_resize_string() terminate the string if shrinking (fill now
    limited to new size).
 -- Improve layer III frame parsing/error reporting for bad part2_3_length.
+-- Fix crashing on stupidly low NtoM rates (exceeding downsampling factor 31).
+   This was only triggered by you specifying a forced sampling rate below 1550 Hz.
 -- Do not remove CRC bits twice from possibly available bit reservoir.
    This move needed recomputation of the layer3is reference data for 8 and
    24 kHz. Old mpg123 is _wrong_ in the first few frames.

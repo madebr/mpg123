@@ -564,6 +564,8 @@ int decode_update(mpg123_handle *mh)
 			{
 				mh->down_sample_sblimit = SBLIMIT * mh->af.rate;
 				mh->down_sample_sblimit /= frame_freq(mh);
+				if(mh->down_sample_sblimit < 1)
+					mh->down_sample_sblimit = 1;
 			}
 			else mh->down_sample_sblimit = SBLIMIT;
 			mh->outblock = outblock_bytes(mh,
