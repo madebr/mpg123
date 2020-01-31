@@ -95,6 +95,7 @@ out123_handle* attribute_align_arg out123_new(void)
 	ao->channels = -1;
 	ao->format = -1;
 	ao->framesize = 0;
+	memset(ao->zerosample, 0, 8);
 	ao->state = play_dead;
 	ao->auxflags = 0;
 	ao->preload = 0.;
@@ -220,6 +221,12 @@ out123_param( out123_handle *ao, enum out123_parms code
 		case OUT123_FLAGS:
 			ao->flags = (int)value;
 		break;
+		case OUT123_ADD_FLAGS:
+			ao->flags |= (int)value;
+		break;
+		case OUT123_REMOVE_FLAGS:
+			ao->flags &= ~((int)value);
+		break;
 		case OUT123_PRELOAD:
 			ao->preload = fvalue;
 		break;
@@ -279,6 +286,7 @@ out123_getparam( out123_handle *ao, enum out123_parms code
 	switch(code)
 	{
 		case OUT123_FLAGS:
+		case OUT123_ADD_FLAGS:
 			value = ao->flags;
 		break;
 		case OUT123_PRELOAD:
@@ -528,7 +536,16 @@ out123_start(out123_handle *ao, long rate, int channels, int encoding)
 	ao->rate      = rate;
 	ao->channels  = channels;
 	ao->format    = encoding;
-	ao->framesize = out123_encsize(encoding)*channels;
+	int samplesize = out123_encsize(encoding);
+	ao->framesize = samplesize*channels;
+	// The most convoluted way to say nothing at all.
+	for(int i=0; i<samplesize; ++i)
+#ifdef WORDS_BIGENDIAN
+		ao->zerosample[samplesize-1-i] =
+#else
+		ao->zerosample[i] =
+#endif
+		MPG123_ZEROSAMPLE(ao->format, samplesize, i);
 
 #ifndef NOXFERMEM
 	if(have_buffer(ao))
@@ -617,6 +634,30 @@ void attribute_align_arg out123_stop(out123_handle *ao)
 	ao->state = play_stopped;
 }
 
+// Replace the data in a given block of audio data with zeroes
+// in the correct encoding.
+static void mute_block( unsigned char *bytes, int count
+,	unsigned char* zerosample, int samplesize )
+{
+	// The count is expected to be a multiple of samplesize,
+	// this is just to ensure that the loop ends properly, should be noop.
+	count -= count % samplesize;
+	if(!count)
+		return;
+	// Initialize with one zero sample, then multiply that
+	// to eventually cover the whole buffer.
+	memcpy(bytes, zerosample, samplesize);
+	int offset = samplesize;
+	count     -= samplesize;
+	while(count)
+	{
+		int block = offset > count ? count : offset;
+		memcpy(bytes+offset, bytes, block);
+		offset += block;
+		count  -= block;
+	}
+}
+
 size_t attribute_align_arg
 out123_play(out123_handle *ao, void *bytes, size_t count)
 {
@@ -649,25 +690,29 @@ out123_play(out123_handle *ao, void *bytes, size_t count)
 		return buffer_write(ao, bytes, count);
 	else
 #endif
-	do /* Playback in a loop to be able to continue after interruptions. */
 	{
-		errno = 0;
-		int block = count > INT_MAX ? INT_MAX : count;
-		written = ao->write(ao, (unsigned char*)bytes, block);
-		debug4( "written: %d errno: %i (%s), keep_on=%d"
-		,	written, errno, strerror(errno)
-		,	ao->flags & OUT123_KEEP_PLAYING );
-		if(written > 0){ sum+=written; count -= written; }
-		if(written < block && errno != EINTR)
+		if(ao->flags & OUT123_MUTE)
+			mute_block( bytes, count, ao->zerosample
+			,	MPG123_SAMPLESIZE(ao->format) );
+		do /* Playback in a loop to be able to continue after interruptions. */
 		{
-			ao->errcode = OUT123_DEV_PLAY;
-			if(!AOQUIET)
-				error1("Error in writing audio (%s?)!", strerror(errno));
-			/* This is a serious issue ending this playback round. */
-			break;
-		}
-	} while(count && ao->flags & OUT123_KEEP_PLAYING);
-
+			errno = 0;
+			int block = count > INT_MAX ? INT_MAX : count;
+			written = ao->write(ao, bytes, block);
+			debug4( "written: %d errno: %i (%s), keep_on=%d"
+			,	written, errno, strerror(errno)
+			,	ao->flags & OUT123_KEEP_PLAYING );
+			if(written > 0){ sum+=written; count -= written; }
+			if(written < block && errno != EINTR)
+			{
+				ao->errcode = OUT123_DEV_PLAY;
+				if(!AOQUIET)
+					error1("Error in writing audio (%s?)!", strerror(errno));
+				/* This is a serious issue ending this playback round. */
+				break;
+			}
+		} while(count && ao->flags & OUT123_KEEP_PLAYING);
+	}
 	debug3( "out123_play(%p, %p, ...) = %"SIZE_P
 	,	(void*)ao, bytes, (size_p)sum );
 	return sum;

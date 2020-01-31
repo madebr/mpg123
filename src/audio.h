@@ -33,6 +33,8 @@ void print_capabilities(out123_handle *ao, mpg123_handle *mh);
 	Returns 1 if pitch setting succeeded, 0 otherwise.
 */
 int set_pitch(mpg123_handle *fr, out123_handle *ao, double new_pitch);
+// Enable/disable software mute state.
+int set_mute(out123_handle *ao, int mutestate);
 
 #endif
 

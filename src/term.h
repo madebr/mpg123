@@ -46,6 +46,7 @@
 
 #define MPG123_VOL_UP_KEY '+'
 #define MPG123_VOL_DOWN_KEY '-'
+#define MPG123_VOL_MUTE_KEY 'u'
 #define MPG123_VERBOSE_KEY 'v'
 #define MPG123_RVA_KEY 'r'
 #define MPG123_PLAYLIST_KEY 'l'

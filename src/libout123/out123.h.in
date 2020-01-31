@@ -117,6 +117,8 @@ enum out123_parms
  * (e.g. ../lib/mpg123 or ./plugins). The environment variable MPG123_MODDIR
  * is always tried first and the in-built installation path last.
  */
+,	OUT123_ADD_FLAGS /**< enable given flags */
+,	OUT123_REMOVE_FLAGS /**< disable diven flags */
 };
 
 /** Flags to tune out123 behaviour */
@@ -125,8 +127,8 @@ enum out123_flags
 	OUT123_HEADPHONES       = 0x01 /**< output to headphones (if supported) */
 ,	OUT123_INTERNAL_SPEAKER = 0x02 /**< output to speaker (if supported) */
 ,	OUT123_LINE_OUT         = 0x04 /**< output to line out (if supported) */
-,	OUT123_QUIET               = 0x08 /**< no printouts to standard error */
-,	OUT123_KEEP_PLAYING        = 0x10 /**<
+,	OUT123_QUIET            = 0x08 /**< no printouts to standard error */
+,	OUT123_KEEP_PLAYING     = 0x10 /**<
  *  When this is set (default), playback continues in a loop when the device
  *  does not consume all given data at once. This happens when encountering
  *  signals (like SIGSTOP, SIGCONT) that cause interruption of the underlying
@@ -136,6 +138,7 @@ enum out123_flags
  *  over the data given to it via out123_play(), unless a communication error
  *  arises.
  */
+,	OUT123_MUTE             = 0x20 /**< software mute (play silent audio) */
 };
 
 /** Read-only output driver/device property flags (OUT123_PROPFLAGS). */
@@ -510,7 +513,7 @@ void out123_stop(out123_handle *ao);
  *  Also note that it is no accident that the buffer parameter is not marked
  *  as constant. Some output drivers might need to do things like swap
  *  byte order. This is done in-place instead of wasting memory on yet
- *  another copy. 
+ *  another copy. Software muting also overwrites the data.
  * \param ao handle
  * \param buffer pointer to raw audio data to be played
  * \param bytes number of bytes to read from the buffer

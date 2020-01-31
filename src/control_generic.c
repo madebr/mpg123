@@ -513,6 +513,18 @@ int control_generic (mpg123_handle *fr)
 					continue;
 				}
 
+				if(!strcasecmp(comstr, "MUTE")) {
+					set_mute(ao, muted=TRUE);
+					generic_sendmsg("mute");
+					continue;
+				}
+
+				if(!strcasecmp(comstr, "UNMUTE")) {
+					set_mute(ao, muted=FALSE);
+					generic_sendmsg("unmute");
+					continue;
+				}
+
 				if(!strcasecmp(comstr, "T") || !strcasecmp(comstr, "TAG")) {
 					generic_sendalltag(fr);
 					continue;
@@ -594,6 +606,8 @@ int control_generic (mpg123_handle *fr)
 					generic_sendmsg("H STOP/S: stop playback (closes file)");
 					generic_sendmsg("H JUMP/J <frame>|<+offset>|<-offset>|<[+|-]seconds>s: jump to mpeg frame <frame> or change position by offset, same in seconds if number followed by \"s\"");
 					generic_sendmsg("H VOLUME/V <percent>: set volume in % (0..100...); float value");
+					generic_sendmsg("H MUTE: turn on software mute in output");
+					generic_sendmsg("H UNMUTE: turn off software mute in output");
 					generic_sendmsg("H RVA off|(mix|radio)|(album|audiophile): set rva mode");
 					generic_sendmsg("H EQ/E <channel> <band> <value>: set equalizer value for frequency band 0 to 31 on channel %i (left) or %i (right) or %i (both)", MPG123_LEFT, MPG123_RIGHT, MPG123_LR);
 					generic_sendmsg("H EQFILE <filename>: load EQ settings from a file");

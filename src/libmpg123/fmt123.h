@@ -100,8 +100,8 @@ enum mpg123_enc_enum
  */
 #define MPG123_SAMPLESIZE(enc) ( \
 	(enc) < 1 \
-	? 0 \
-	: ( (enc) & MPG123_ENC_8 \
+	?	0 \
+	:	( (enc) & MPG123_ENC_8 \
 		?	1 \
 		:	( (enc) & MPG123_ENC_16 \
 			?	2 \
@@ -114,6 +114,28 @@ enum mpg123_enc_enum
 						?	8 \
 						:	0 \
 )	)	)	)	)	)
+
+/** Representation of zero in differing encodings.
+ *  This exists to define proper silence in various encodings without
+ *  having to link to libsyn123 to do actual conversions at runtime.
+ *  You have to handle big/little endian order yourself, though.
+ *  This takes the shortcut that any signed encoding has a zero with
+ *  all-zero bits. Unsigned linear encodings just have the highest bit set
+ *  (2^(n-1) for n bits), while the nonlinear 8-bit ones are special.
+ *  \param enc the encoding (mpg123_enc_enum value)
+ *  \param siz bytes per sample (return value of MPG123_SAMPLESIZE(enc))
+ *  \param off byte (octet) offset counted from LSB
+ *  \return unsigned byte value for the designated octet
+ */
+#define MPG123_ZEROSAMPLE(enc, siz, off) ( \
+	(enc) == MPG123_ENC_ULAW_8 \
+	?	(off == 0 ? 0xff : 0x00) \
+	:	( (enc) == MPG123_ENC_ALAW_8 \
+		?	(off == 0 ? 0xd5 : 0x00) \
+		:	( (((enc) & (MPG123_ENC_SIGNED|MPG123_ENC_FLOAT)) || (siz) != ((off)+1)) \
+			?	0x00 \
+			:	0x80 \
+	)	)	)
 
 /** Structure defining an audio format.
  *  Providing the members as individual function arguments to define a certain

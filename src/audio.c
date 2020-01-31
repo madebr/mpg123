@@ -239,3 +239,10 @@ int set_pitch(mpg123_handle *fr, out123_handle *ao, double new_pitch)
 	}
 	return out123_start(ao, pitch_rate(rate), channels, format);
 }
+
+int set_mute(out123_handle *ao, int mutestate)
+{
+	return out123_param( ao
+	,	mutestate ? OUT123_ADD_FLAGS : OUT123_REMOVE_FLAGS
+	,	OUT123_MUTE, 0, NULL );
+}

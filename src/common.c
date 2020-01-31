@@ -31,6 +31,7 @@
 
 int stopped = 0;
 int paused = 0;
+int muted = 0;
 static int term_is_fun = -1;
 
 int term_have_fun(int fd, struct parameter *param)
@@ -338,9 +339,10 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar
 		if(len >= 0 && len < linelen)
 		{ /* Volume info. */
 			int len_add = snprintf( line+len, linelen-len
-			,	" %s %03u=%03u"
-			,	rva_statname[param->rva], roundui(basevol*100), roundui(realvol*100)
-			);
+			,	" %s %03u%c%03u"
+			,	rva_statname[param->rva]
+			,	roundui(basevol*100), muted ? 'm' : '=' 
+			,	roundui(realvol*100) );
 			if(len_add > 0)
 				len += len_add;
 		}

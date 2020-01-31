@@ -561,8 +561,10 @@ complete junk on the input side. Fatal errors were only considered
 for output. With version 1.26.0, this changed to the behaviour
 described below.
 .P
-The process exit code is zero (success) if all tracks in a playlist
-had at least one frame parsed, even if it did not decode cleanly, or
+When not using the remote control interface (which returns input
+errors as text messages), the process exit code is zero (success)
+only if all tracks in a playlist had at least one frame parsed,
+even if it did not decode cleanly, or
 are empty, MPEG-wise (perhaps only metadata, or really an empty file).
 When you decode nothing, nothing is the result and that is fine. When
 a track later aborts because of parser errors or breakdown of the

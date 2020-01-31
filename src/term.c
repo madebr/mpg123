@@ -49,17 +49,18 @@ struct keydef term_help[] =
 	,{ MPG123_FINE_REWIND_KEY,  0, "fine rewind" }
 	,{ MPG123_VOL_UP_KEY,   0, "volume up" }
 	,{ MPG123_VOL_DOWN_KEY, 0, "volume down" }
+	,{ MPG123_VOL_MUTE_KEY, 0, "(un)mute volume" }
 	,{ MPG123_RVA_KEY,      0, "RVA switch" }
 	,{ MPG123_VERBOSE_KEY,  0, "verbose switch" }
 	,{ MPG123_PLAYLIST_KEY, 0, "list current playlist, indicating current track there" }
 	,{ MPG123_TAG_KEY,      0, "display tag info (again)" }
 	,{ MPG123_MPEG_KEY,     0, "print MPEG header info (again)" }
-	,{ MPG123_HELP_KEY,     0, "this help" }
-	,{ MPG123_QUIT_KEY,     0, "quit" }
 	,{ MPG123_PITCH_UP_KEY, MPG123_PITCH_BUP_KEY, "pitch up (small step, big step)" }
 	,{ MPG123_PITCH_DOWN_KEY, MPG123_PITCH_BDOWN_KEY, "pitch down (small step, big step)" }
 	,{ MPG123_PITCH_ZERO_KEY, 0, "reset pitch to zero" }
 	,{ MPG123_BOOKMARK_KEY, 0, "print out current position in playlist and track, for the benefit of some external tool to store bookmarks" }
+	,{ MPG123_HELP_KEY,     0, "this help" }
+	,{ MPG123_QUIT_KEY,     0, "quit" }
 };
 
 void term_sigcont(int sig);
@@ -385,6 +386,9 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 	break;
 	case MPG123_VOL_DOWN_KEY:
 		mpg123_volume_change(fr, -0.02);
+	break;
+	case MPG123_VOL_MUTE_KEY:
+		set_mute(ao, muted=!muted);
 	break;
 	case MPG123_PITCH_UP_KEY:
 	case MPG123_PITCH_BUP_KEY:

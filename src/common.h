@@ -1,7 +1,7 @@
 /*
 	common: anything can happen here... frame reading, output, messages
 
-	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp
 */
@@ -14,6 +14,7 @@
 
 extern int stopped;
 extern int paused;
+extern int muted;
 
 /* Return non-zero if full terminal fun is desired/possible. */
 int term_have_fun(int fd, struct parameter *param);
