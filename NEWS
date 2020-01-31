@@ -28,6 +28,10 @@ still be shown, but only fatal ones (no junk in the beginning stuff)
 - Removed outdated Pascal port (ports/mpg123_.pas). There are others
   out there.
 - mpg123:
+-- Now sets non-zero exit code when any one track of the playlist
+   fails to either produce at least one frame of playback, if there
+   is data that should produce such (i.e. /dev/zero is bad, /dev/null is
+   fine). See man page for details.
 -- Print out MPEG header info for each frame for mpg123 -vvvv.
 -- Added --no-visual to disable cursor/inverse video games explicitly.
 -- Filter control/non-printable characters from metadata printout, reduce

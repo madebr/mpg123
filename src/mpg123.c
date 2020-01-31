@@ -130,6 +130,7 @@ struct httpdata htd;
 int fresh = TRUE;
 FILE* aux_out = NULL; /* Output for interesting information, normally on stdout to be parseable. */
 
+int got_played = 0; // State of attempted playback and success: 0, -1, 1
 int intflag = FALSE;
 int deathflag = FALSE;
 static int skip_tracks = 0;
@@ -826,11 +827,15 @@ int play_frame(void)
 			if(!param.quiet && mc == MPG123_ERR) error1("...in decoding next frame: %s", mpg123_strerror(mh));
 			if(!param.quiet && mc == MPG123_NEED_MORE)
 				error("The decoder expected more. File cut off early?");
+			if(mc != MPG123_DONE && !got_played)
+				got_played = -1;
 			return 0;
 		}
 		if(mc == MPG123_NO_SPACE)
 		{
 			error("I have not enough output space? I didn't plan for this.");
+			if(!got_played)
+				got_played = -1;
 			return 0;
 		}
 		if(mc == MPG123_NEW_FORMAT)
@@ -867,6 +872,7 @@ int play_frame(void)
 		else
 			print_header_compact(mh);
 	}
+
 	return 1;
 }
 
@@ -1258,8 +1264,14 @@ int main(int sys_argc, char ** sys_argv)
 		if(!APPFLAG(MPG123APP_CONTINUE)) frames_left = param.frame_number;
 
 		debug1("Going to play %s", strcmp(fname, "-") ? fname : "standard input");
-
-		if(intflag || !open_track(fname))
+		// If a previous track did not cause error, we forget the success to
+		// catch an error in this track.
+		if(got_played > -1)
+			got_played = 0;
+		int open_track_ret = open_track(fname);
+		if(!open_track_ret)
+			got_played = -1;
+		if(intflag || !open_track_ret)
 		{
 #ifdef HAVE_TERMIOS
 			/* We need the opportunity to cancel in case of --loop -1 . */
@@ -1373,6 +1385,10 @@ int main(int sys_argc, char ** sys_argv)
 				}
 			}
 			if(!play_frame()) break;
+			// At least one successful frame makes the whole run successful, unless
+			// a previous run erred.
+			if(!got_played)
+				got_played = 1;
 			if(!param.quiet)
 			{
 				meta = mpg123_meta_check(mh);
@@ -1438,8 +1454,8 @@ int main(int sys_argc, char ** sys_argv)
 	/* Free up memory used by playlist */    
 	if(!param.remote) free_playlist();
 
-	safe_exit(0); /* That closes output and restores terminal, too. */
-	return 0;
+	safe_exit(got_played < 0 ? 1 : 0); /* That closes output and restores terminal, too. */
+	return -1; // Should never be reached.
 }
 
 static void print_title(FILE *o)

@@ -554,6 +554,27 @@ audio output to be interrupted, then you should use
 the
 .B \-b
 option to use a buffer of reasonable size (at least 1000 Kbytes).
+.SH EXIT CODE
+.P
+Up to version 1.25.x, mpg123 always returned exit code 0 also for
+complete junk on the input side. Fatal errors were only considered
+for output. With version 1.26.0, this changed to the behaviour
+described below.
+.P
+The process exit code is zero (success) if all tracks in a playlist
+had at least one frame parsed, even if it did not decode cleanly, or
+are empty, MPEG-wise (perhaps only metadata, or really an empty file).
+When you decode nothing, nothing is the result and that is fine. When
+a track later aborts because of parser errors or breakdown of the
+network communication, this is treated as end of a track, but does
+not make the process as such fail. One really bad (or non-existing)
+stream in the playlist results in a non-zero error code, consistent
+with other UNIX tools.
+.P
+An error in audio output results in the process ending with a
+non-zero exit code immediately, regardless of how much data has
+been successfully played before. The forgiveness is only on the
+input side.
 .SH BUGS
 .P
 Mostly MPEG-1 layer 2 and 3 are tested in real life.

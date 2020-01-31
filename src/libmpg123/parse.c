@@ -1250,7 +1250,8 @@ static int skip_junk(mpg123_handle *fr, unsigned long *newheadp, long *headcount
 	if(limit >= 0 && *headcount >= limit)
 	{
 		if(NOQUIET) error1("Giving up searching valid MPEG header after %li bytes of junk.", *headcount);
-		return PARSE_END;
+		fr->err = MPG123_RESYNC_FAIL;
+		return PARSE_ERR;
 	}
 	else debug1("hopefully found one at %"OFF_P, (off_p)fr->rd->tell(fr));
 
