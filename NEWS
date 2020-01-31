@@ -8,6 +8,8 @@ TODO: drop special optimization flags, default to just -On ... but
 TODO: avoid MPG123_NEED_MORE from non-feed reader reading frame
 bodies or see it as a feature
 TODO: Figure out terminal printout encoding for Windows.
+TODO: Fix up --quiet: either all errors or none, I guess errors should
+still be shown, but only fatal ones (no junk in the beginning stuff)
 - Starting to intentionally use C99 in the codebase. API headers are still
   supposed to be compatible to C89.
 - There is a make check target now that tests some text transformations.
