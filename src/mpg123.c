@@ -1579,7 +1579,7 @@ static void long_usage(int err)
 	,	enclist != NULL ? enclist->p : "OOM!");
 	fprintf(o," -d n   --doublespeed n    play only every nth frame\n");
 	fprintf(o," -h n   --halfspeed   n    play every frame n times\n");
-	fprintf(o,"        --equalizer        exp.: scales freq. bands acrd. to 'equalizer.dat'\n");
+	fprintf(o,"        --equalizer   f    scales freq. bands acrd. to given file\n");
 	fprintf(o,"        --gapless          remove padding/junk on mp3s (best with Lame tag)\n");
 	fprintf(o,"                           This is on by default when libmpg123 supports it.\n");
 	fprintf(o,"        --no-gapless       disable gapless mode, not remove padding/junk\n");
