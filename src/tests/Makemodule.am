@@ -7,6 +7,8 @@ TESTS += \
   src/tests/textprint
 
 check_PROGRAMS += \
+  src/tests/seek_whence \
+  src/tests/seek_accuracy \
   src/tests/text \
   src/tests/textprint
 
