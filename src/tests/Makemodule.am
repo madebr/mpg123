@@ -6,6 +6,12 @@ TESTS += \
   src/tests/text \
   src/tests/textprint
 
+# Why do I have to repeat the test scripts here?
+EXTRA_DIST += \
+  src/tests/seek_whence.sh \
+  src/tests/seek_accuracy.sh \
+  src/tests/sweep.mp3
+
 check_PROGRAMS += \
   src/tests/seek_whence \
   src/tests/seek_accuracy \

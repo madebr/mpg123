@@ -1,2 +1,2 @@
 #!/bin/sh
-exec $(dirname $0)/seek_accuracy $(dirname $0)/sweep.mp3
+exec src/tests/seek_accuracy "$srcdir/src/tests/sweep.mp3"
