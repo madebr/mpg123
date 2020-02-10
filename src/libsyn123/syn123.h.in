@@ -98,7 +98,7 @@ extern "C" {
  *  2. Set up resampling (rate ratio, channels, dirty mode).
  *  3. Use predictor functions to work out matching sizes of input and
  *     output buffers.
- *  4. Call the resapler on chunks of input, immediately producing matching
+ *  4. Call the resampler on chunks of input, immediately producing matching
  *     chunks of output.
  *
  *  The resampler works on 32 bit float, exclusively. This is what is required
