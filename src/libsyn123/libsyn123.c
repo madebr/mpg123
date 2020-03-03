@@ -287,6 +287,10 @@ const char* syn123_strerror(int errcode)
 			return "Invalid sweep curve given.";
 		case SYN123_OVERFLOW:
 			return "An integer overflow occured.";
+		case SYN123_NO_DATA:
+			return "Not enough data.";
+		case SYN123_BAD_DATA:
+			return "Bad data given.";
 		default:
 			return "unkown error";
 	}
