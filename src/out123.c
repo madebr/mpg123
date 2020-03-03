@@ -54,6 +54,7 @@
 #include "getlopt.h"
 
 #include "syn123.h"
+#include "filters.h"
 
 #include "debug.h"
 
@@ -109,6 +110,7 @@ off_t timelimit = -1;
 const char *clip_mode = "implicit";
 int soft_clip = FALSE;
 int do_clip = FALSE;
+int do_filter = FALSE;
 int do_preamp = FALSE;
 int do_resample = FALSE;
 int dither = 0;
@@ -130,6 +132,8 @@ long wave_limit     = 300000;
 int pink_rows = 0;
 double geiger_activity = 17;
 char *resampler = "fine";
+
+char *filter_spec = NULL;
 
 size_t pcmblock = 1152; /* samples (pcm frames) we treat en bloc */
 size_t resample_block = 0; /* resample that many samples in one go */
@@ -522,6 +526,7 @@ topt opts[] = {
 	{'c', "channels",    GLO_ARG | GLO_INT,  0, &channels, 0},
 	{'C', "inputch",     GLO_ARG | GLO_INT,  0, &inputch, 0},
 	{'M', "mix",         GLO_ARG | GLO_CHAR, 0, &mixmat_string, 0},
+	{0,   "filter",      GLO_ARG | GLO_CHAR, 0, &filter_spec, 0},
 	{'P', "preamp",      GLO_ARG | GLO_DOUBLE, 0, &preamp, 0},
 	{0,   "offset",      GLO_ARG | GLO_DOUBLE, 0, &preamp_offset, 0},
 	{'r', "rate",        GLO_ARG | GLO_LONG, 0, &rate,  0},
@@ -655,6 +660,33 @@ static void setup_wavegen(void)
 		}
 		check_fatal_syn( syn123_setup_resample( waver
 		,	inputrate, outputrate, channels, dirty, 0 ) );
+	}
+	if(do_filter)
+	{
+		size_t err_count = 0;
+		struct filterlist *fl = parse_filterspec(filter_spec);
+		if(!fl)
+		{
+			error1("Got no valid filter specification out of: %s", filter_spec);
+			safe_exit(135);
+		}
+		for(size_t fi=0; fi<fl->count; ++fi)
+		{
+			int err = syn123_setup_filter( waver, 1
+			,	fl->f[fi].order, fl->f[fi].b, fl->f[fi].a
+			,	mixenc, channels, 1 );
+			if(err)
+			{
+				merror("Cannot init filter %zu: %s", fi, syn123_strerror(err));
+				++err_count;
+			}
+		}
+		free_filterlist(fl);
+		if(err_count)
+		{
+			merror("%zu errors during filter setup", err_count);
+			safe_exit(135);
+		}
 	}
 	// At least have waver handy for conversions.
 	if(!generate)
@@ -991,6 +1023,9 @@ int play_frame(void)
 		else
 			check_fatal_syn(syn123_conv( mixaudio, mixenc, got_samples*mixframe
 			,	inaudio, inputenc, got_samples*pcminframe, NULL, NULL, waver ));
+		// Apply filters.
+		if(do_filter)
+			check_fatal_syn(syn123_filter( waver, mixaudio, mixenc, got_samples ));
 		// Do pre-amplification in-place.
 		if(do_preamp)
 			check_fatal_syn(syn123_amp( mixaudio, mixenc, got_samples*channels
@@ -1271,7 +1306,13 @@ static void setup_processing(void)
 	if(do_clip)
 		++op_count;
 
-	if(do_resample || op_count > 1)
+	if(filter_spec && *filter_spec)
+	{
+		do_filter = TRUE;
+		++op_count;
+	}
+
+	if(do_filter || do_resample || op_count > 1)
 	{
 		// Create a separate mixing buffer for the complicated cases.
 		// Resampling limits quality to 32 bits float anyway, so avoid
@@ -1620,6 +1661,9 @@ static void long_usage(int err)
 	fprintf(o,"                           as linear factors, comma separated list for output\n");
 	fprintf(o,"                           channel 1, then 2, ... default unity if channel counts\n");
 	fprintf(o,"                           match, 0.5,0.5 for stereo to mono, 1,1 for the other way\n");
+	fprintf(o,"        --filter <coeff>   apply filter(s) before preamp stage, with coeff as\n");
+	fprintf(o,"                           b_0,...,b_N,a_0,...,a_N (a_0=1 is mandatory) and\n");
+	fprintf(o,"                           multiple filters separated by ':'.\n");
 	fprintf(o," -P <p> --preamp <p>       amplify signal with <p> dB before output\n");
 	fprintf(o,"        --offset <o>       apply PCM offset (floating point scaled in [-1:1]");
 	fprintf(o,"        --clip <s>         select clipping mode: soft or hard for forced\n"

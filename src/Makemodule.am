@@ -86,6 +86,8 @@ src_out123_SOURCES = \
   src/common.h \
   src/getlopt.c \
   src/getlopt.h \
+  src/filters.h \
+  src/filters.c \
   src/out123.c \
   src/mpg123app.h \
   src/win32_support.h
