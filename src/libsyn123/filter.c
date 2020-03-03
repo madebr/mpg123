@@ -145,7 +145,7 @@ syn123_setup_filter( syn123_handle *sh
 		#define EXPAND_FILTERS(list, stype) \
 		{ \
 			struct stype *tmp = realloc( list \
-			,	sizeof(struct stype)*sh->fc.maxcount ); \
+			,	sizeof(struct stype)*(sh->fc.maxcount+1) ); \
 			if(!tmp) \
 				return SYN123_DOOM; \
 			list = tmp; \
@@ -177,9 +177,9 @@ syn123_setup_filter( syn123_handle *sh
 			for(unsigned int o=0; o<order; ++o) \
 			{ \
 				unsigned int ri = F_RING_INDEX(*tmp, o); \
-				f_b[ri] = b[o]; \
+				f_b[ri] = b[o+1]; \
 				if(f_a) \
-					f_a[ri] = a[o]; \
+					f_a[ri] = a[o+1]; \
 			} \
 		} \
 		tmp->n1 = 0; \
