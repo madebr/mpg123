@@ -1,0 +1,1413 @@
+{
+   libasound_1
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_hook_load
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+}
+{
+   libasound_2
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_hook_load
+   obj:*
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+}
+{
+   libasound_3
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:strdup
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+   fun:aoopen
+   fun:check_output_module
+   fun:out123_open
+   fun:main
+}
+{
+   libasound_4
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:strdup
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+   fun:aoopen
+   fun:check_output_module
+   fun:out123_open
+}
+{
+   libasound_5
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_hook_load
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+}
+{
+   libasound_6
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_hook_load
+   obj:*
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_searcha_hooks
+}
+{
+   libasound_7
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:strdup
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+}
+{
+   libasound_8
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+}
+{
+   libasound_9
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+   fun:aoopen
+   fun:check_output_module
+   fun:out123_open
+}
+{
+   libasound_10
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_hook_load
+   obj:*
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_searcha_hooks
+   fun:snd_config_searchva_hooks
+}
+{
+   libasound_11
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_hook_load
+   obj:*
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_searcha_hooks
+   fun:snd_config_searchva_hooks
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+}
+{
+   libasound_12
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:strdup
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+   fun:aoopen
+   fun:check_output_module
+   fun:out123_open
+}
+{
+   libasound_13
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_hook_load
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+}
+{
+   libasound_14
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_hook_load
+   obj:*
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_searcha_hooks
+}
+{
+   libasound_15
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+}
+{
+   libasound_16
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:strdup
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_pcm_open
+   obj:*
+   fun:aoopen
+   fun:check_output_module
+   fun:out123_open
+   fun:main
+}
+{
+   libasound_17
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_hook_load
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+}
+{
+   libasound_18
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_hook_load
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+}
+{
+   libasound_19
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+}
+{
+   libasound_20
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:strdup
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+}
+{
+   libasound_21
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+   fun:aoopen
+   fun:check_output_module
+   fun:out123_open
+}
+{
+   libasound_22
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+}
+{
+   libasound_23
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+}
+{
+   libasound_24
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+}
+{
+   libasound_25
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_hook_load
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+}
+{
+   libasound_26
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_hook_load
+   obj:*
+}
+{
+   libasound_27
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_pcm_open
+   obj:*
+   fun:aoopen
+   fun:check_output_module
+   fun:out123_open
+   fun:main
+}
+{
+   libasound_28
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:strdup
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+   fun:aoopen
+   fun:check_output_module
+   fun:out123_open
+   fun:main
+}
+{
+   libasound_29
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_hook_load
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+}
+{
+   libasound_30
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:strdup
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_pcm_open
+   obj:*
+   fun:aoopen
+   fun:check_output_module
+   fun:out123_open
+   fun:main
+}
+{
+   libasound_31
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_hook_load
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+}
+{
+   libasound_32
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_hook_load
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+}
+{
+   libasound_33
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_hook_load
+   obj:*
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_searcha_hooks
+   fun:snd_config_searchva_hooks
+}
+{
+   libasound_34
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+}
+{
+   libasound_35
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+}
+{
+   libasound_36
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+   fun:aoopen
+   fun:check_output_module
+   fun:out123_open
+   fun:main
+}
+{
+   libasound_37
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+   fun:aoopen
+   fun:check_output_module
+   fun:out123_open
+}
+{
+   libasound_38
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+}
+{
+   libasound_39
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+}
+{
+   libasound_40
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+}
+{
+   libasound_41
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+}
+{
+   libasound_42
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_hook_load
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+}
+{
+   libasound_43
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_hook_load
+   obj:*
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_searcha_hooks
+   fun:snd_config_searchva_hooks
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+}
+{
+   libasound_44
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_hook_load
+   obj:*
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_searcha_hooks
+}
+{
+   libasound_45
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_hook_load
+   obj:*
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+}
+{
+   libasound_46
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+}
+{
+   libasound_47
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+}
+{
+   libasound_48
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+}
+{
+   libasound_49
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+}
+{
+   libasound_50
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+}
+{
+   libasound_51
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+}
+{
+   libasound_52
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+}
+{
+   libasound_53
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_hook_load
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+}
+{
+   libasound_54
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+}
+{
+   libasound_55
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+}
+{
+   libasound_56
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+   fun:aoopen
+   fun:check_output_module
+   fun:out123_open
+}
+{
+   libasound_57
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_hook_load
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+}
+{
+   libasound_58
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+}
+{
+   libasound_59
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+}
+{
+   libasound_60
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+}
+{
+   libasound_61
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+}
+{
+   libasound_62
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+   fun:aoopen
+   fun:check_output_module
+   fun:out123_open
+}
+{
+   libasound_63
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+   fun:aoopen
+   fun:check_output_module
+   fun:out123_open
+   fun:main
+}
+{
+   libasound_64
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+   fun:aoopen
+   fun:check_output_module
+   fun:out123_open
+   fun:main
+}
+{
+   libasound_65
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+   fun:aoopen
+   fun:check_output_module
+   fun:out123_open
+   fun:main
+}
+{
+   libasound_66
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+   fun:aoopen
+   fun:check_output_module
+   fun:out123_open
+   fun:main
+}
+{
+   libasound_67
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+}
+{
+   libasound_68
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+}
+{
+   libasound_69
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+}
+{
+   libasound_70
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+   fun:aoopen
+   fun:check_output_module
+   fun:out123_open
+   fun:main
+}
+{
+   libasound_71
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+   fun:aoopen
+   fun:check_output_module
+   fun:out123_open
+   fun:main
+}
+{
+   libasound_72
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+}
+{
+   libasound_73
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+   fun:aoopen
+   fun:check_output_module
+   fun:out123_open
+   fun:main
+}
+{
+   libasound_74
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+   fun:aoopen
+   fun:check_output_module
+   fun:out123_open
+}
+{
+   libasound_75
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+}
+{
+   libasound_76
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+   fun:aoopen
+   fun:check_output_module
+   fun:out123_open
+}
+{
+   libasound_77
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+   fun:aoopen
+   fun:check_output_module
+   fun:out123_open
+   fun:main
+}
+{
+   libasound_78
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+   fun:aoopen
+   fun:check_output_module
+   fun:out123_open
+   fun:main
+}
+{
+   libasound_79
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0
+   fun:snd_config_update_r
+   fun:snd_config_update_ref
+   fun:snd_pcm_open
+   obj:*
+}
+{
+   glibc_sse4_1_1
+   Memcheck:Cond
+   fun:__wcsnlen_sse4_1
+   fun:wcsrtombs
+   fun:wcstombs
+   fun:wcstombs
+   fun:outstr.part.1
+   fun:outstr
+   fun:print_id3_tag
+   fun:main
+}
+{
+   glibc_sse4_1_2
+   Memcheck:Addr16
+   fun:__wcsnlen_sse4_1
+   fun:wcsrtombs
+   fun:wcstombs
+   fun:wcstombs
+   fun:outstr.part.1
+   fun:outstr
+   fun:print_id3_tag
+   fun:main
+}
+{
+   glibc_sse4_1_3
+   Memcheck:Addr16
+   fun:__wcsnlen_sse4_1
+   fun:wcsrtombs
+   fun:wcstombs
+   fun:wcstombs
+   fun:outstr.part.1
+   fun:outstr
+   fun:print_id3_tag
+   fun:main
+}
