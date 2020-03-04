@@ -1,8 +1,3 @@
-BEFORE 1.23 RELEASE:
-
-- add client name as libout123 parameter, to be used by jack backend
-  PID still needed? JACK handles possibly non-unique names.
-
 Things that need to be done...
 
 ... as always, mostly outdated.
