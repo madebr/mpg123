@@ -27,6 +27,18 @@ Currently, we detect standard rates and resample when needed... but not new ones
 
 4. Prevent ID3v2 tags from being parsed multiple times after seek.
 
+Currently, the raw ID3v2 tag is always overwritten, but each parsing pass
+over an ID3v2 data structure adds to the data stored in the tag. It
+collects everything in the arrays (test: id3v2.texts increases). Is
+this a bug or a feature? In the case of the same tag being parsed over
+and over again, it's clearly a bug. But is it a feature to collect
+and aggregate multiple ID3v2 tags in a stream?
+
+I think not. We communicate new ID3v2 data to the caller. The caller
+can archive things if desired. The behaviour should be to overwrite
+what's in the current ID3v2 tag, with the possible optimization of
+skipping parsing if it's the same tag again.
+
 I need to carry a list of ID3v2 frame addresses that already have been parsed into the data structures.
 Currently, this is a possible memory leak when the seek index is disabled (tag data at file beginning) or id3 data is just somewhere in the stream.
 That being said, in the "normal" case, there is no leak.
