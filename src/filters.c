@@ -9,7 +9,6 @@
 #include "filters.h"
 #include <ctype.h>
 
-#define DEBUG
 #include "debug.h"
 
 // Validate syntax of filter specification, returning the number
