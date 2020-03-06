@@ -232,8 +232,7 @@ int attribute_align_arg mpg123_par(mpg123_pars *mp, enum mpg123_parms key, long 
 #ifdef FRAME_INDEX
 			mp->index_size = val;
 #else
-			if(val) // It is only an eror if you want to enable the index.
-				ret = MPG123_NO_INDEX;
+			ret = MPG123_NO_INDEX;
 #endif
 		break;
 		case MPG123_PREFRAMES:

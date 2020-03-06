@@ -1062,7 +1062,6 @@ tagparse_cleanup:
 			fr->id3v2_size = 0;
 		}
 	}
-fprintf(stderr, "\nID3v2 texts: %zu\n", fr->id3v2.texts);
 #endif /* NO_ID3V2 */
 	return ret;
 	#undef UNSYNC_FLAG
