@@ -1108,6 +1108,8 @@ MPG123_EXPORT void mpg123_delete_string(mpg123_string* sb);
 MPG123_EXPORT void mpg123_init_string(mpg123_string* sb);
 
 /** Free-up memory of the contents of an mpg123_string (not the struct itself).
+ *  This also calls mpg123_init_string() and hence is safe to be called
+ *  repeatedly.
  *  \param sb string handle
  */
 MPG123_EXPORT void mpg123_free_string(mpg123_string* sb);
@@ -1141,8 +1143,8 @@ MPG123_EXPORT int mpg123_copy_string(mpg123_string* from, mpg123_string* to);
 /** Move the contents of one mpg123_string string to another.
  *  This frees any memory associated with the target and moves over the
  *  pointers from the source, leaving the source without content after
- *  that. About the only error imaginable is that you hand in NULL pointers.
- *  In you handed in a valid source, its contents will be gone, even if
+ *  that. The only possible error is that you hand in NULL pointers.
+ *  If you handed in a valid source, its contents will be gone, even if
  *  there was no target to move to. If you hand in a valid target, its
  *  original contents will also always be gone, to be replaced with the
  *  source's contents if there was some.

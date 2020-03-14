@@ -129,6 +129,7 @@ int attribute_align_arg mpg123_move_string(mpg123_string *from, mpg123_string *t
 		*to = *from;
 	if(from)
 		mpg123_init_string(from);
+	return (from && to) ? 1 : 0;
 }
 
 int attribute_align_arg mpg123_add_string(mpg123_string* sb, const char* stuff)
