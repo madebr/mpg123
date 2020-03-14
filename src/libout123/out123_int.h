@@ -83,7 +83,7 @@ struct out123_struct
 	int channels;	/* number of channels */
 	int format;		/* encoding (TODO: rename this to "encoding"!) */
 	int framesize;	/* Output needs data in chunks of framesize bytes. */
-	char zerosample[8]; /* Zero in current encoding, max 64 bit. */
+	unsigned char zerosample[8]; /* Zero in current encoding, max 64 bit. */
 	enum playstate state; /* ... */
 	int auxflags;	/* For now just one: quiet mode (for probing). */
 	int propflags;	/* Property flags, set by driver. */
