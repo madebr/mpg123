@@ -845,9 +845,11 @@ int store_id3v2( mpg123_handle *fr
 int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 {
 	#define UNSYNC_FLAG 128
-	#define EXTHEAD_FLAG 64
+	#define EXTHEAD_FLAG 64  /* ID3v2.3+ */
+	#define COMPRESS_FLAG 64 /* ID3v2.2 */
 	#define EXP_FLAG 32
 	#define FOOTER_FLAG 16
+	#define EXT_UPDATE_FLAG 64 /* ID3v2.4 only: extended header update flag */
 	#define UNKNOWN_FLAGS 15 /* 00001111*/
 	unsigned char buf[6];
 	unsigned long length=0;
@@ -931,6 +933,14 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 			,	major, flags );
 		skiptag = 1;
 	}
+	// Standard says that compressed tags should be ignored as there isn't an agreed
+	// compressoion scheme.
+	if(major == 2 && flags & COMPRESS_FLAG)
+	{
+		if(NOQUIET)
+			warning("ID3v2: ignoring compressed ID3v2.2 tag");
+		skiptag = 1;
+	}
 	if(length < 10)
 	{
 		if(NOQUIET)
@@ -949,6 +959,9 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 #ifndef NO_ID3V2
 	if(skiptag)
 	{
+		if(VERBOSE3)
+			fprintf(stderr, "Note: skipped tag clearing possibly existing ID3v2 data");
+		reset_id3(fr); // Old data is invalid.
 #endif
 		if(!storetag && (ret2=fr->rd->skip_bytes(fr,length+footlen))<0)
 			ret=ret2;
@@ -957,30 +970,62 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 	else
 	{
 		unsigned char* tagdata = fr->id3v2_raw+10;
-		fr->id3v2.version = major;
 		/* try to interpret that beast */
 		debug("ID3v2: analysing frames...");
 		if(length > 0)
 		{
+			unsigned char extflags = 0;
 			unsigned long tagpos = 0;
 			/* bytes of frame title and of framesize value */
-			unsigned int head_part = fr->id3v2.version > 2 ? 4 : 3;
-			unsigned int flag_part = fr->id3v2.version > 2 ? 2 : 0;
+			unsigned int head_part = major > 2 ? 4 : 3;
+			unsigned int flag_part = major > 2 ? 2 : 0;
 			/* The amount of bytes that are unconditionally read for each frame: */
 			/* ID, size, flags. */
 			unsigned int framebegin = head_part+head_part+flag_part;
 			debug1("ID3v2: have read at all %lu bytes for the tag now", (unsigned long)length+6);
 			if(flags & EXTHEAD_FLAG)
 			{
-				debug("ID3v2: skipping extended header");
+				debug("ID3v2: extended header");
 				if(!bytes_to_long(tagdata, tagpos) || tagpos >= length)
 				{
 					ret = 0;
 					if(NOQUIET)
-						error4( "Bad (non-synchsafe/too large) tag offset:"
+						error4( "Bad (non-synchsafe/too large) tag offset from extended header:"
 							"0x%02x%02x%02x%02x"
 						,	tagdata[0], tagdata[1], tagdata[2], tagdata[3] );
+				} else if(tagpos < 6)
+				{
+					ret = 0;
+					if(NOQUIET)
+						merror("Extended header too small (%lu).", tagpos);
 				}
+				if(major == 3)
+				{
+					tagpos += 4; // The size itself is not included.
+					if(tagpos >= length)
+					{
+						ret = 0;
+						if(NOQUIET)
+							error("Too much extended v2.3 header.");
+					}
+				} else if(ret) // v2.4 and at least got my 6 bytes of ext header
+				{
+					// Only v4 knows update frames, check for that.
+					// Need to step back. Header is 4 bytes length, one byte flag size,
+					// one byte flags. Flag size has to be 1!
+					if(tagdata[4] == 1 && tagdata[5] & EXT_UPDATE_FLAG)
+					{
+						if(VERBOSE3)
+							fprintf(stderr, "Note: ID3v2.4 update tag\n");
+						extflags |= EXT_UPDATE_FLAG;
+					}
+				}
+			}
+			if(!(extflags & EXT_UPDATE_FLAG))
+			{
+				if(VERBOSE3)
+					fprintf(stderr, "Note: non-update tag replacing existing ID3v2 data\n");
+				reset_id3(fr);
 			}
 			if(ret > 0)
 			{
@@ -988,6 +1033,7 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 				unsigned long framesize;
 				unsigned long fflags; /* need 16 bits, actually */
 				id[4] = 0;
+				fr->id3v2.version = major;
 				/* Pos now advanced after ext head, now a frame has to follow. */
 				/* Note: tagpos <= length, which is 28 bit integer, so both */
 				/* far away from overflow for adding known small values. */
@@ -1182,7 +1228,17 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 					else break;
 					#undef KNOWN_FRAMES
 				}
+			} else
+			{
+				if(VERBOSE3)
+					fprintf(stderr, "Note: faulty ID3v2 tag still clearing old data\n");
+				reset_id3(fr);
 			}
+		} else // No new data, but still there was a tag that invalidates old data.
+		{
+			if(VERBOSE3)
+				fprintf(stderr, "Note: empty ID3v2 clearing old data\n");
+			reset_id3(fr);
 		}
 tagparse_cleanup:
 		/* Get rid of stored raw data that should not be kept. */
@@ -1197,8 +1253,10 @@ tagparse_cleanup:
 	return ret;
 	#undef UNSYNC_FLAG
 	#undef EXTHEAD_FLAG
+	#undef COMPRESS_FLAG
 	#undef EXP_FLAG
 	#undef FOOTER_FLAG
+	#undef EXT_UPDATE_FLAG
 	#undef UNKOWN_FLAGS
 }
 

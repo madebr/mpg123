@@ -128,6 +128,15 @@ TODO: Make libout123 and/or mpg123 use that to convert on the fly. Optionally?
    without feeding input, which was disabled by mistake. The use of
    mpg123_read() (instead of mpg123_decode_frame()) with mpg123_open()
    was broken in feederless builds since those were fixed in version 1.15.
+-- Fix ID3v2 parser logic for multiple ID3v2 tags being encountered in one
+   stream. New tags replace old data instead of appending to it when the
+   extended header update flag is not set (ID3v2.4). Update tags only
+   replace data that shall be unique. So far, I have never seen an update
+   tag in the wild, so the check for the flag is untested. The mechanism
+   of replacing parts of existing tag data has been tested, though.
+   Note that the updated libmpg123 also avoids a growing ID3 data structure
+   when repeatedly seeking back to the beginning in a file with disabled
+   seek index.
 
 1.25.13
 -------
