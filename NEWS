@@ -39,6 +39,7 @@ still be shown, but only fatal ones (no junk in the beginning stuff)
 -- Set MPG123_NO_PEEK_END when opening special file '-' (standard input).
    That helps Windows where attempting to seek on the non-seekable stream
    is undefined behaviour (bug 285).
+-- Ignore ID3v1 once a Frankenstein stream was detected.
 - out123:
 -- Removed the implicit phase shift that made generated waves exactly at
    Nyquist freq non-silent, but made little sense overall.

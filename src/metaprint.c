@@ -184,6 +184,13 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out, int linelimit)
 	for(ti=0; ti<FIELDS; ++ti){ len[ti]=0; mpg123_init_string(&tag[ti]); }
 	/* extract the data */
 	mpg123_id3(mh, &v1, &v2);
+	{
+		// Ignore v1 data for Frankenstein streams. It is just somewhere in between.
+		long frank;
+		if(mpg123_getstate(mh, MPG123_FRANKENSTEIN, &frank, NULL) == MPG123_OK && frank)
+			v1 = NULL;
+	}
+
 	/* Only work if something there... */
 	if(v1 == NULL && v2 == NULL) return;
 
