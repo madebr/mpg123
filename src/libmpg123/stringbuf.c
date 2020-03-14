@@ -1,7 +1,7 @@
 /*
 	stringbuf: mimicking a bit of C++ to more safely handle strings
 
-	copyright 2006-17 by the mpg123 project
+	copyright 2006-20 by the mpg123 project
 	    - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis
@@ -119,6 +119,18 @@ int attribute_align_arg mpg123_copy_string(mpg123_string* from, mpg123_string* t
 	else return 0;
 }
 
+int attribute_align_arg mpg123_move_string(mpg123_string *from, mpg123_string *to)
+{
+	if(to)
+		mpg123_free_string(to);
+	else
+		mpg123_free_string(from);
+	if(from && to)
+		*to = *from;
+	if(from)
+		mpg123_init_string(from);
+}
+
 int attribute_align_arg mpg123_add_string(mpg123_string* sb, const char* stuff)
 {
 	debug1("adding %s", stuff);
@@ -222,5 +234,16 @@ int attribute_align_arg mpg123_chomp_string(mpg123_string *sb)
 	   to accomodate the trailing zero. */
 	sb->fill = (size_t)i+2;
 
+	return 1;
+}
+
+int attribute_align_arg mpg123_same_string(mpg123_string *a, mpg123_string *b)
+{
+	if(!a || !b)
+		return 0;
+	if(a->fill != b->fill)
+		return 0;
+	if(memcmp(a->p, b->p, a->fill))
+		return 0;
 	return 1;
 }
