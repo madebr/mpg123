@@ -4,11 +4,14 @@ if(NOT USE_MODULES)
         "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/$<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},coreaudio>:coreaudio.c>"
         "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/$<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},alsa>:alsa.c>"
         "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/$<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},pulse>:pulse.c>"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/$<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},win32>:win32.c>")
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/$<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},win32>:win32.c>"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/$<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},win32_wasapi>:win32_wasapi.c>")
     target_link_libraries(defaultmodule PUBLIC
         $<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},alsa>:ALSA::ALSA>
         $<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},coreaudio>:${AUDIO_TOOLBOX}>
-        $<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},pulse>:${PULSE_LIBRARIES}>)
+        $<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},pulse>:${PULSE_LIBRARIES}>
+        $<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},win32>:${WIN32_LIBRARIES}>
+        $<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},win32_wasapi>:${WIN32_WASAPI_LIBRARIES}>)
     if(${DEFAULT_OUTPUT_MODULE} STREQUAL "pulse")
         target_compile_definitions(defaultmodule PRIVATE ${PULSE_CFLAGS})
     endif()
@@ -45,7 +48,17 @@ else()
     list(FIND OUTPUT_MODULES win32 INDEX)
     if(NOT INDEX EQUAL -1)
         add_library(output_win32 MODULE "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/win32.c")
+        target_link_libraries(output_win32 PRIVATE ${WIN32_LIBRARIES})
         install(TARGETS output_win32
+            ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}"
+            LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}"
+            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}")
+    endif()
+    list(FIND OUTPUT_MODULES win32_wasapi INDEX)
+    if(NOT INDEX EQUAL -1)
+        add_library(output_win32_wasapi MODULE "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/win32_wasapi.c")
+        target_link_libraries(output_win32_wasapi PRIVATE ${WIN32_WASAPI_LIBRARIES})
+        install(TARGETS output_win32_wasapi
             ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}"
             LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}"
             RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}")
