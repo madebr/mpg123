@@ -1,10 +1,5 @@
 1.26.0
 ------
-TODO: Think about mpg123_init() being safe to be called in parallel
-(writing the same numbers to the same arrays) and just call it
-automatically in mpg123_new().
-TODO: drop special optimization flags, default to just -On ... but
-  consider defaulting to O3 for auto-vectorization
 TODO: avoid MPG123_NEED_MORE from non-feed reader reading frame
 bodies or see it as a feature
 TODO: Figure out terminal printout encoding for Windows.
@@ -54,7 +49,8 @@ still be shown, but only fatal ones (no junk in the beginning stuff)
 -- Geiger-Mueller counter simulation from libsyn123.
 -- Wave sweep generator from libsyn123.
 -- Some rearrangement in help text.
--- Using SDL2 now if found. Output module code unchanged.
+-- Changed output of --test-encodings to list of encoding names
+   instead of raw bitmask value.
 - libsyn123:
 -- Created the library to host some simple signal generators for testing
    output.
@@ -82,9 +78,8 @@ TODO: Make libout123 and/or mpg123 use that to convert on the fly. Optionally?
 -- Fixed out_play() abortion logic to better detect fatal situations
    (broken pipe). Needed on FreeBSD, while Linux buffers the issue away.
    Should resolve bug 283.
-- out123: Changed output of --test-encodings to list of encoding names
-  instead of raw bitmask value.
-- libout123: Added hex and txt (plain text) printout.
+-- Using SDL2 now if found. Output module code unchanged.
+-- Added hex and txt (plain text) printout.
 - libmpg123:
 -- Added mpg123_free() for the benefit of library wrappers. (bug 276)
 -- Add mpg123_format2() and mpg123_fmt2() supporting special value 0 for all
