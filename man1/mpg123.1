@@ -161,15 +161,15 @@ Note that for layer 3, a minimum of 1 is enforced (because of frame overlap), an
 .TP
 \fB\-o \fImodule\fR, \-\^\-output \fImodule\fR
 Select audio output module. You can provide a comma-separated list to use the first one that works.
+Also see \fB\-a\fR.
 .TP
 \fB\-\^\-list\-modules
 List the available modules.
 .TP
 \fB\-a \fIdev\fR, \fB\-\^\-audiodevice \fIdev
-Specify the audio device to use.  The default is
-system-dependent (usually /dev/audio or /dev/dsp).
-Use this option if you have multiple audio devices and
-the default is not what you want.
+Specify the audio device to use.  The default as well as the possible values
+depend on the active output. For the JACK output, a comma-separated list
+of ports to connect to (for each channel) can be specified.
 .TP
 .BR \-s ", " \-\^\-stdout
 The decoded audio samples are written to standard output,
