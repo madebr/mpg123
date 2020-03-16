@@ -1,5 +1,4 @@
 targets = \
-  mpg123_test \
   feedseek \
   mpg123_to_out123 \
   mpg123_to_wav_replaced_io \
@@ -51,9 +50,6 @@ dump_seekindex: dump_seekindex.c
 
 mpglib: mpglib.c
 	$(compile) -o mpglib mpglib.c $(linkflags)
-
-mpg123_test: mpg123_test.c
-	$(compile) -o $@ $< $(linkflags)
 
 extract_frames: extract_frames.c
 	$(compile) -o $@ $< $(linkflags)
