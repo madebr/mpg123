@@ -826,7 +826,7 @@ int play_frame(void)
 		{
 			if(!param.quiet && mc == MPG123_ERR) error1("...in decoding next frame: %s", mpg123_strerror(mh));
 			if(!param.quiet && mc == MPG123_NEED_MORE)
-				error("The decoder expected more. File cut off early?");
+				error("The decoder expected more. Old libmpg123 that does this for non-feed readers?");
 			if(mc != MPG123_DONE && !got_played)
 				got_played = -1;
 			return 0;

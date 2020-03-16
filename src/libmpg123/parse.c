@@ -565,7 +565,7 @@ init_resync:
 		if((ret=fr->rd->read_frame_body(fr,newbuf,fr->framesize))<0)
 		{
 			/* if failed: flip back */
-			debug("need more?");
+			debug1("%s", ret == MPG123_NEED_MORE ? "need more" : "read error");
 			goto read_frame_bad;
 		}
 		fr->bsbufold = fr->bsbuf;

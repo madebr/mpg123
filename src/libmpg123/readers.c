@@ -384,18 +384,12 @@ static int stream_back_bytes(mpg123_handle *fr, off_t bytes)
 }
 
 
-/* returns size on success... */
+/* returns size on success... otherwise an error code < 0 */
 static int generic_read_frame_body(mpg123_handle *fr,unsigned char *buf, int size)
 {
 	long l;
-
-	if((l=fr->rd->fullread(fr,buf,size)) != size)
-	{
-		long ll = l;
-		if(ll <= 0) ll = 0;
-		return READER_MORE;
-	}
-	return l;
+	l=fr->rd->fullread(fr,buf,size);
+	return (l >= 0 && l<size) ? READER_ERROR : l;
 }
 
 static off_t generic_tell(mpg123_handle *fr)
@@ -849,6 +843,8 @@ static ssize_t buffered_fullread(mpg123_handle *fr, unsigned char *out, ssize_t 
 {
 	struct bufferchain *bc = &fr->rdat.buffer;
 	ssize_t gotcount;
+	if(VERBOSE3)
+		mdebug("buffered_fullread: want %zd", count);
 	if(bc->size - bc->pos < count)
 	{ /* Add more stuff to buffer. If hitting end of file, adjust count. */
 		unsigned char readbuf[4096];
@@ -881,9 +877,8 @@ static ssize_t buffered_fullread(mpg123_handle *fr, unsigned char *out, ssize_t 
 		count = bc->size - bc->pos; /* We want only what we got. */
 	}
 	gotcount = bc_give(bc, out, count);
-
-	if(VERBOSE3) debug2("wanted %li, got %li", (long)count, (long)gotcount);
-
+	if(VERBOSE3)
+		mdebug("buffered_fullread: got %zd", gotcount);
 	if(gotcount != count){ if(NOQUIET) error("gotcount != count"); return READER_ERROR; }
 	else return gotcount;
 }
@@ -1116,7 +1111,7 @@ static int default_init(mpg123_handle *fr)
 		bc_init(&fr->rdat.buffer);
 		fr->rdat.filelen = 0; /* We carry the offset, but never know how big the stream is. */
 		fr->rdat.flags |= READER_BUFFERED;
-#endif /* NO_FEEDER */
+#endif /* NO_ICY */
 	}
 	return 0;
 }
