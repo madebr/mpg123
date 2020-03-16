@@ -227,7 +227,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	fprintf(stderr, "Finished\n", (unsigned long)inc, (unsigned long)outc);
+	fprintf(stderr, "Finished\n");
 
 	closewav();
 	fclose(out);

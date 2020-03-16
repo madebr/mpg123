@@ -8,6 +8,7 @@
 
 #include <mpg123.h>
 #include <stdio.h>
+#include <inttypes.h>
 
 int main(int argc, char **argv)
 {
@@ -31,7 +32,7 @@ int main(int argc, char **argv)
 
 	mpg123_index(m, &offsets, &step, &fill);
 	for(i=0; i<fill;i++) {
-		printf("Frame number %d: file offset %d\n", i * step, offsets[i]);
+		printf("Frame number %"PRIiMAX": file offset %"PRIiMAX"\n", (intmax_t)(i * step), (intmax_t)offsets[i]);
 	}
 
 	mpg123_close(m);

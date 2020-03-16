@@ -17,6 +17,7 @@
 #endif
 
 #include <stdio.h>
+#include <string.h>
 
 int do_work(mpg123_handle *m);
 
@@ -79,7 +80,7 @@ int do_work(mpg123_handle *m)
 			/* Now write out both header and data, fire and forget. */
 			write(STDOUT_FILENO, hbuf, 4);
 			write(STDOUT_FILENO, bodydata, bodybytes);
-			fprintf(stderr, "%zu: header 0x%08x, %zu body bytes\n", ++count, header, bodybytes);
+			fprintf(stderr, "%zu: header 0x%08lx, %zu body bytes\n", ++count, header, bodybytes);
 		}
 	}
 
