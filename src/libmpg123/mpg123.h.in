@@ -1009,13 +1009,15 @@ MPG123_EXPORT size_t mpg123_safe_buffer(void);
  */
 MPG123_EXPORT int mpg123_scan(mpg123_handle *mh);
 
-/** Return, if possible, the full (expected) length of current track in frames.
+/** Return, if possible, the full (expected) length of current track in
+ *  MPEG frames.
  * \param mh handle
  * \return length >= 0 or MPG123_ERR if there is no length guess possible.
  */
 MPG123_EXPORT off_t mpg123_framelength(mpg123_handle *mh);
 
-/** Return, if possible, the full (expected) length of current track in samples.
+/** Return, if possible, the full (expected) length of current
+ *  track in samples (PCM frames).
  * \param mh handle
  * \return length >= 0 or MPG123_ERR if there is no length guess possible.
  */
