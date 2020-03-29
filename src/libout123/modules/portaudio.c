@@ -1,7 +1,7 @@
 /*
 	portaudio: audio output via PortAudio cross-platform audio API
 
-	copyright 2006-2016 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2006-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Nicholas J. Humfrey
 */
@@ -79,7 +79,7 @@ static int paCallback(
 	if(bytes_avail > bytes)
 		bytes_avail = bytes;
 	bytes_read = sfifo_read(&pa->fifo, outputBuffer, bytes_avail);
-	if(bytes_read != bytes_avail)
+	if(bytes_read != bytes_avail && !AOQUIET)
 		warning2("Error reading from the FIFO (wanted=%d, bytes_read=%d).\n"
 		,	bytes_avail, bytes_read);
 	if(bytes_read < 0)

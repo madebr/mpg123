@@ -1,7 +1,7 @@
 /*
 	control_generic.c: control interface for frontends and real console warriors
 
-	copyright 1997-99,2004-8 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1997-99,2004-20 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Andreas Neuhaus and Michael Hipp
 	reworked by Thomas Orgis - it was the entry point for eventually becoming maintainer...
@@ -411,13 +411,12 @@ int control_generic (mpg123_handle *fr)
 					break;
 			}
 		}
-
 		/*  on error */
-		if (n < 0) {
-			fprintf(stderr, "Error waiting for command: %s\n", strerror(errno));
+		if(n < 0)
+		{
+			merror("waiting for command: %s", strerror(errno));
 			return 1;
 		}
-
 		/* read & process commands */
 		if (n > 0)
 		{

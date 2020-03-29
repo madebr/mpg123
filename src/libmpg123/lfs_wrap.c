@@ -552,7 +552,6 @@ off_t wrap_lseek(void *handle, off_t offset, int whence)
 			case IO_FD: return ioh->r_lseek(ioh->fd, smalloff, whence);
 			case IO_HANDLE: return ioh->r_h_lseek(ioh->handle, smalloff, whence);
 		}
-		error("Serious breakage - bad IO type in LFS wrapper!");
 		return -1;
 	}
 	else

@@ -1,7 +1,7 @@
 /*
 	hp: audio output for HP-UX
 
-	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp
 */
@@ -38,10 +38,12 @@ static int set_format(out123_handle *ao)
 			fmt = MPG123_ENC_LINEAR16BIT;
 		break;
 		case MPG123_ENC_UNSIGNED_8:
-			error("unsigned 8 bit linear not supported");
+			if(!AOQUIET)
+				error("unsigned 8 bit linear not supported");
 			return -1;
 		case MPG123_ENC_SIGNED_8:
-			error("signed 8 bit linear not supported");
+			if(!AOQUIET)
+				error("signed 8 bit linear not supported");
 			return -1;
 		case MPG123_ENC_ALAW_8:
 			fmt = MPG123_ENC_ALAW;
@@ -88,12 +90,14 @@ static int open_hp(out123_handle *ao)
 	{
 		if(ao->gain > ades.max_transmit_gain)
 		{
-			error("your gainvalue was to high -> set to maximum.");
+			if(!AOQUIET)
+				error("your gainvalue was to high -> set to maximum.");
 			ao->gain = ades.max_transmit_gain;
 		}
 		if(ao->gain < ades.min_transmit_gain)
 		{
-			error("your gainvalue was to low -> set to minimum.");
+			if(!AOQUIET)
+				error("your gainvalue was to low -> set to minimum.");
 			ao->gain = ades.min_transmit_gain;
 		}
 		again.channel_mask = AUDIO_CHANNEL_0 | AUDIO_CHANNEL_1;
@@ -124,7 +128,8 @@ static int open_hp(out123_handle *ao)
 	}
 	if(i == ades.nrates)
 	{
-		error1("Can't set sample-rate to %ld.\n",ao->rate);
+		if(!AOQUIET)
+			error1("Can't set sample-rate to %ld.\n",ao->rate);
 		i = 0;
 	}
 	

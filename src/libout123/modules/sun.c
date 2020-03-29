@@ -1,7 +1,7 @@
 /*
 	sun: audio output for Sun systems
 
-	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp
 */
@@ -167,7 +167,7 @@ static int open_sun(out123_handle *ao)
 		struct audio_device ad;
 		if(ioctl(ao->fn, AUDIO_GETDEV, &ad) == -1)
 			return -1;
-		if(!strstr(ad.name,"dbri") && !strstr(ad.name,"CS4231"))
+		if(!strstr(ad.name,"dbri") && !strstr(ad.name,"CS4231") && !AOQUIET)
 			warning1("Unknown sound system %s. But we try it.",ad.name);
 	}
 #endif

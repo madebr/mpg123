@@ -1057,7 +1057,7 @@ int attribute_align_arg mpg123_info(mpg123_handle *mh, struct mpg123_frameinfo *
 		case 1: mi->mode = MPG123_M_JOINT;  break;
 		case 2: mi->mode = MPG123_M_DUAL;   break;
 		case 3: mi->mode = MPG123_M_MONO;   break;
-		default: error("That mode cannot be!");
+		default: mi->mode = 0; // Nothing good to do here.
 	}
 	mi->mode_ext = mh->mode_ext;
 	mi->framesize = mh->framesize+4; /* Include header. */

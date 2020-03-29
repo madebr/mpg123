@@ -1,7 +1,7 @@
 /*
 	audio: audio output interface
 
-	copyright ?-2016 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp
 */
@@ -928,7 +928,7 @@ static void check_output_module( out123_handle *ao
 	/* Check if module supports output */
 	if(!ao->module->init_output)
 	{
-		if(final)
+		if(final && !AOQUIET)
 			error1("Module '%s' does not support audio output.", name);
 		goto check_output_module_cleanup;
 	}

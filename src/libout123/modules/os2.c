@@ -1,7 +1,7 @@
 /*
 	os2: OS/2 RealTime DART Engine
 
-	copyright 1998-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1998-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Samuel Audet
 */
@@ -121,7 +121,7 @@ static LONG APIENTRY DARTEvent(ULONG ulStatus, MCI_MIX_BUFFER *PlayedBuffer, ULO
 } /* end DARTEvent */
 
 
-static void MciError(ULONG ulError)
+static void MciError(ULONG ulError, int quiet)
 {
 	unsigned char buffer[128];
 	ULONG rc;
@@ -132,8 +132,8 @@ static void MciError(ULONG ulError)
 		sprintf(mmerror,"MCI Error %d: %s",ULONG_LOWD(ulError),buffer);
 	else
 		sprintf(mmerror,"MCI Error %d: Cannot query error message.",ULONG_LOWD(rc));
-	
-	error1("%s",mmerror);
+	if(!quiet)
+		error1("%s",mmerror);
 }
 
 
@@ -193,7 +193,7 @@ int open_os2(out123_handle *ao)
 	
 	if (ULONG_LOWD(rc) != MCIERR_SUCCESS)
 	{
-		MciError(rc);
+		MciError(rc, AOQUIET);
 		maop.usDeviceID = 0;
 		return(-1);
 	}
@@ -222,7 +222,7 @@ int open_os2(out123_handle *ao)
 	
 	if ( ULONG_LOWD(rc) != MCIERR_SUCCESS )
 	{
-		MciError(rc);
+		MciError(rc, AOQUIET);
 		maop.usDeviceID = 0;
 		return(-1);
 	}
@@ -256,7 +256,7 @@ int open_os2(out123_handle *ao)
 	
 	if ( ULONG_LOWD(rc) != MCIERR_SUCCESS )
 	{
-		MciError(rc);
+		MciError(rc, AOQUIET);
 		maop.usDeviceID = 0;
 		return(-1);
 	}
@@ -403,7 +403,7 @@ static int write_os2(out123_handle *ao,unsigned char *buf,int len)
 		
 		if ( ULONG_LOWD(rc) != MCIERR_SUCCESS )
 		{
-			MciError(rc);
+			MciError(rc, AOQUIET);
 			maop.usDeviceID = 0;
 			return(-1);
 		}
@@ -483,7 +483,7 @@ static int close_os2(out123_handle *ao)
 	
 	if ( ULONG_LOWD(rc) != MCIERR_SUCCESS )
 	{
-		MciError(rc);
+		MciError(rc, AOQUIET);
 		return(-1);
 	}
 	
@@ -502,7 +502,7 @@ static int close_os2(out123_handle *ao)
 	
 	if ( ULONG_LOWD(rc) != MCIERR_SUCCESS )
 	{
-		MciError(rc);
+		MciError(rc, AOQUIET);
 		return(-1);
 	}
 	

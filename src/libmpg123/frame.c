@@ -1,7 +1,7 @@
 /*
 	frame: Heap of routines dealing with the core mpg123 data structure.
 
-	copyright 2008-2014 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2008-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis
 */
@@ -188,8 +188,9 @@ int frame_outbuffer(mpg123_handle *fr)
 		if(fr->buffer.size < size)
 		{
 			fr->err = MPG123_BAD_BUFFER;
-			if(NOQUIET) error2("have external buffer of size %"SIZE_P", need %"SIZE_P, (size_p)fr->buffer.size, (size_p)size);
-
+			if(NOQUIET)
+				merror( "have external buffer of size %"SIZE_P", need %"SIZE_P
+				,	(size_p)fr->buffer.size, (size_p)size );
 			return MPG123_ERR;
 		}
 	}
@@ -241,20 +242,19 @@ int frame_index_setup(mpg123_handle *fr)
 	if(fr->p.index_size >= 0)
 	{ /* Simple fixed index. */
 		fr->index.grow_size = 0;
-		debug1("resizing index to %li", fr->p.index_size);
 		ret = fi_resize(&fr->index, (size_t)fr->p.index_size);
-		debug2("index resized... %lu at %p", (unsigned long)fr->index.size, (void*)fr->index.data);
 	}
 	else
 	{ /* A growing index. We give it a start, though. */
 		fr->index.grow_size = (size_t)(- fr->p.index_size);
 		if(fr->index.size < fr->index.grow_size)
-		ret = fi_resize(&fr->index, fr->index.grow_size);
+			ret = fi_resize(&fr->index, fr->index.grow_size);
 		else
-		ret = MPG123_OK; /* We have minimal size already... and since growing is OK... */
+			ret = MPG123_OK; /* We have minimal size already... and since growing is OK... */
 	}
 	debug2("set up frame index of size %lu (ret=%i)", (unsigned long)fr->index.size, ret);
-
+	if(ret && NOQUIET)
+		error("frame index setup (initial resize) failed");
 	return ret;
 }
 #endif
@@ -763,7 +763,9 @@ off_t frame_ins2outs(mpg123_handle *fr, off_t ins)
 #		ifndef NO_NTOM
 		case 3: outs = ntom_ins2outs(fr, ins); break;
 #		endif
-		default: error1("Bad down_sample (%i) ... should not be possible!!", fr->down_sample);
+		default: if(NOQUIET)
+			merror( "Bad down_sample (%i) ... should not be possible!!"
+			,	fr->down_sample );
 	}
 	return outs;
 }
@@ -783,7 +785,9 @@ off_t frame_outs(mpg123_handle *fr, off_t num)
 #ifndef NO_NTOM
 		case 3: outs = ntom_frmouts(fr, num); break;
 #endif
-		default: error1("Bad down_sample (%i) ... should not be possible!!", fr->down_sample);
+		default: if(NOQUIET)
+			merror( "Bad down_sample (%i) ... should not be possible!!"
+			,	fr->down_sample );
 	}
 	return outs;
 }
@@ -805,7 +809,9 @@ off_t frame_expect_outsamples(mpg123_handle *fr)
 #ifndef NO_NTOM
 		case 3: outs = ntom_frame_outsamples(fr); break;
 #endif
-		default: error1("Bad down_sample (%i) ... should not be possible!!", fr->down_sample);
+		default: if(NOQUIET)
+			merror( "Bad down_sample (%i) ... should not be possible!!"
+			,	fr->down_sample );
 	}
 	return outs;
 }
@@ -825,7 +831,8 @@ off_t frame_offset(mpg123_handle *fr, off_t outs)
 #ifndef NO_NTOM
 		case 3: num = ntom_frameoff(fr, outs); break;
 #endif
-		default: error("Bad down_sample ... should not be possible!!");
+		default: if(NOQUIET)
+			error("Bad down_sample ... should not be possible!!");
 	}
 	return num;
 }
@@ -873,7 +880,10 @@ void frame_gapless_update(mpg123_handle *fr, off_t total_samples)
 
 	if(gapless_samples > total_samples)
 	{
-		if(NOQUIET) error2("End sample count smaller than gapless end! (%"OFF_P" < %"OFF_P"). Disabling gapless mode from now on.", (off_p)total_samples, (off_p)fr->end_s);
+		if(NOQUIET)
+			merror( "End sample count smaller than gapless end! (%"OFF_P
+				" < %"OFF_P"). Disabling gapless mode from now on."
+			,	(off_p)total_samples, (off_p)fr->end_s );
 		/* This invalidates the current position... but what should I do? */
 		frame_gapless_init(fr, -1, 0, 0);
 		frame_gapless_realinit(fr);

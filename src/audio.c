@@ -1,7 +1,7 @@
 /*
 	audio: audio output interface
 
-	copyright ?-2016 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp
 */
@@ -154,8 +154,7 @@ void audio_capabilities(out123_handle *ao, mpg123_handle *mh)
 	unpitch  = malloc(sizeof(*unpitch)*rlimit);
 	if(!outrates || !unpitch)
 	{
-		if(!param.quiet)
-			error("DOOM");
+		error("DOOM");
 		return;
 	}
 	for(ri = 0; ri<rlimit; ri++)

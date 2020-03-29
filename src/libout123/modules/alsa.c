@@ -1,7 +1,7 @@
 /*
 	alsa: sound output with Advanced Linux Sound Architecture 1.x API
 
-	copyright 2006-2016 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2006-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 
 	initially written by Clemens Ladisch <clemens@ladisch.de>
@@ -238,7 +238,8 @@ static int write_alsa(out123_handle *ao, unsigned char *buf, int bytes)
 	}
 	if(written < 0)
 	{
-		error1("Fatal problem with alsa output, error %i.", (int)written);
+		if(!AOQUIET)
+			error1("Fatal problem with alsa output, error %i.", (int)written);
 		return -1;
 	}
 	else return snd_pcm_frames_to_bytes(pcm, written);

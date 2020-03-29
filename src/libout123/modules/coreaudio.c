@@ -1,7 +1,7 @@
 /*
 	coreaudio: audio output on MacOS X
 
-	copyright ?-2016 by the mpg123 project - free software under the terms of the GPL 2
+	copyright ?-2020 by the mpg123 project - free software under the terms of the GPL 2
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Guillaume Outters
 	modified by Nicholas J Humfrey to use SFIFO code
@@ -124,7 +124,7 @@ static OSStatus playProc(AudioConverterRef inAudioConverter,
 		/* Read audio from FIFO to CoreAudio's buffer */
 		read = sfifo_read(&ca->fifo, dest, avail);
 		
-		if(read!=avail)
+		if(read!=avail && !AOQUIET)
 			warning2("Error reading from the ring buffer (avail=%u, read=%u).\n", avail, read);
 		
 		outOutputData->mBuffers[n].mDataByteSize = read;

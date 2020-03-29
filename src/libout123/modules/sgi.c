@@ -1,7 +1,7 @@
 /*
 	sgi: audio output on SGI boxen
 
-	copyright ?-2013 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written (as it seems) by Thomas Woerner
 */
@@ -20,7 +20,8 @@ static int set_rate(out123_handle *ao, ALconfig config)
 	/* Make sure the device is OK */
 	if(dev < 0)
 	{
-		error1("set_rate: %s", alGetErrorString(oserror()));
+		if(!AOQUIET)
+			error1("set_rate: %s", alGetErrorString(oserror()));
 		return -1;
 	}
 	if(ao->rate > 0)
@@ -29,7 +30,8 @@ static int set_rate(out123_handle *ao, ALconfig config)
 		params[0].value.ll = alDoubleToFixed((double)ao->rate);
 		if(alSetParams(dev, params, 1) < 0)
 		{
-			error1("set_rate: %s", alGetErrorString(oserror()));
+			if(!AOQUIET)
+				error1("set_rate: %s", alGetErrorString(oserror()));
 			return -1;
 		}
 	}
@@ -48,7 +50,8 @@ static int set_channels(out123_handle *ao, ALconfig config)
 
 	if(ret < 0)
 	{
-		error1("set_channels : %s", alGetErrorString(oserror()));
+		if(!AOQUIET)
+			error1("set_channels : %s", alGetErrorString(oserror()));
 		return -1;
 	}
 	return 0;
@@ -60,19 +63,22 @@ static int set_format(out123_handle *ao, ALconfig config)
 	{
 		if(alSetSampFmt(config, AL_SAMPFMT_FLOAT) < 0)
 		{
-			error1("SetSampFmt: %s", alGetErrorString(oserror()));
+			if(!AOQUIET)
+				error1("SetSampFmt: %s", alGetErrorString(oserror()));
 			return -1;
 		}
 	} else
 	{
 		if(alSetSampFmt(config, AL_SAMPFMT_TWOSCOMP) < 0)
 		{
-			error1("SetSampFmt: %s", alGetErrorString(oserror()));
+			if(!AOQUIET)
+				error1("SetSampFmt: %s", alGetErrorString(oserror()));
 			return -1;
 		}
 		if(alSetWidth(config, AL_SAMPLE_16) < 0)
 		{
-			error1("SetWidth: %s", alGetErrorString(oserror()));
+			if(!AOQUIET)
+				error1("SetWidth: %s", alGetErrorString(oserror()));
 			return -1;
 		}
 	}
@@ -91,7 +97,8 @@ static int open_sgi(out123_handle *ao)
 	/* Test for correct completion */
 	if(config == 0)
 	{
-		error1("open_sgi: %s", alGetErrorString(oserror()));
+		if(!AOQUIET)
+			error1("open_sgi: %s", alGetErrorString(oserror()));
 		return -1;
 	}
 
@@ -103,7 +110,7 @@ static int open_sgi(out123_handle *ao)
 
 		debug2("Dev: %s %i", ao->device, current_dev);
 
-		if(!current_dev)
+		if(!current_dev && !AOQUIET)
 		{
 			int i, numOut;
 			char devname[32];
@@ -137,13 +144,14 @@ static int open_sgi(out123_handle *ao)
 				}
 			}
 			free(alvalues);
-
-			goto open_sgi_bad;
 		}
+		if(!current_dev)
+			goto open_sgi_bad;
 
 		if(alSetDevice(config, current_dev) < 0)
 		{
-			error1("open: alSetDevice : %s",alGetErrorString(oserror()));
+			if(!AOQUIET)
+				error1("open: alSetDevice : %s",alGetErrorString(oserror()));
 			goto open_sgi_bad;
 		}
 	} else
@@ -152,7 +160,8 @@ static int open_sgi(out123_handle *ao)
 	/* Set the device */
 	if(alSetDevice(config, current_dev) < 0)
 	{
-		error1("open_sgi: %s", alGetErrorString(oserror()));
+		if(!AOQUIET)
+			error1("open_sgi: %s", alGetErrorString(oserror()));
 		goto open_sgi_bad;
 	}
 
@@ -160,7 +169,8 @@ static int open_sgi(out123_handle *ao)
 
 	if(alSetQueueSize(config, 131069) < 0)
 	{
-		error1("open_sgi: setting audio buffer failed: %s", alGetErrorString(oserror()));
+		if(!AOQUIET)
+			error1("open_sgi: setting audio buffer failed: %s", alGetErrorString(oserror()));
 		goto open_sgi_bad;
 	}
 	
@@ -173,7 +183,8 @@ static int open_sgi(out123_handle *ao)
 	port = alOpenPort("mpg123-VSC", "w", config);
 	if(port == NULL)
 	{
-		error1("Unable to open audio channel: %s", alGetErrorString(oserror()));
+		if(!AOQUIET)
+			error1("Unable to open audio channel: %s", alGetErrorString(oserror()));
 		goto open_sgi_bad;
 	}
 

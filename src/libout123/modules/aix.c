@@ -1,9 +1,11 @@
 /*
 	aix: Driver for IBM RS/6000 with AIX Ultimedia Services
 
-	copyright ?-2016 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Juergen Schoew and Tomas Oegren
+
+	untested since quite some years now ...
 */
 
 #include "out123_int.h"
@@ -144,7 +146,8 @@ static int reset_parameters(out123_handle *ao)
 		
 		ret = ioctl (ao->fn, AUDIO_INIT, & ainit);
 		if (ret < 0) {
-			error("Can't set new audio parameters!");
+			if (!AOQUIET)
+				error("Can't set new audio parameters!");
 			return ret;
 		}
 	}
@@ -155,8 +158,9 @@ static int reset_parameters(out123_handle *ao)
 	
 	ret = ioctl (ao->fn, AUDIO_CONTROL, & acontrol);
 	if (ret < 0) {
-	error("Can't reset audio!");
-	return ret;
+		if (!AOQUIET)
+			error("Can't reset audio!");
+		return ret;
 	}
 	return 0;
 }
@@ -182,7 +186,8 @@ static int open_aix(out123_handle *ao)
 	} else ao->fn = open(dev,O_WRONLY);
 	
 	if(ao->fn < 0) {
-		error("Can't open audio device!");
+		if(!AOQUIET)
+			error("Can't open audio device!");
 		return ao->fn;
 	}
 	
@@ -246,7 +251,8 @@ static int close_aix(out123_handle *ao)
 	
 	while (i-- > 0) {
 		if ((ioctl(ao->fn, AUDIO_BUFFER, &acontrol))< 0) {
-			error1("buffer read failed: %d", errno);
+			if (!AOQUIET)
+				error1("buffer read failed: %d", errno);
 			break;
 		} else {
 			if (abuffer.flags <= 0) break;
@@ -260,11 +266,11 @@ static int close_aix(out123_handle *ao)
 	acontrol.position      = 0;
 	
 	ret = ioctl ( ao->fn, AUDIO_CONTROL, & acontrol );
-	if (ret < 0) error("Can't close audio!");
-	
+	if (ret < 0 && !AOQUIET)
+		error("Can't close audio!");
 	ret = close (ao->fn);
-	if (ret < 0) error("Can't close audio!");
-	
+	if (ret < 0 && !AOQUIET)
+		error("Can't close audio!");
 	return 0;
 }
 

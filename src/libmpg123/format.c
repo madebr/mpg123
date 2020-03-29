@@ -1,7 +1,7 @@
 /*
-	format:routines to deal with audio (output) format
+	format: routines to deal with audio (output) format
 
-	copyright 2008-14 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2008-20 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis, starting with parts of the old audio.c, with only faintly manage to show now
 
@@ -252,12 +252,11 @@ int frame_output_format(mpg123_handle *fr)
 		if(cap_fit(fr,&nf,f0,2)) goto end;            /* 16bit encodings */
 		if(cap_fit(fr,&nf,f0<=2 ? 2 : f0,f2)) goto end; /*  8bit encodings */
 
-		if(NOQUIET)
-		error3( "Unable to set up output format! Constraints: %s%s%liHz.",
-		        ( p->flags & MPG123_FORCE_STEREO ? "stereo, " :
-		          (p->flags & MPG123_FORCE_MONO ? "mono, " : "") ),
-		        (p->flags & MPG123_FORCE_8BIT ? "8bit, " : ""),
-		        p->force_rate );
+		merror( "Unable to set up output format! Constraints: %s%s%liHz."
+		,	( p->flags & MPG123_FORCE_STEREO ? "stereo, " :
+				(p->flags & MPG123_FORCE_MONO ? "mono, " : "") )
+		,	(p->flags & MPG123_FORCE_8BIT ? "8bit, " : "")
+		,	p->force_rate );
 /*		if(NOQUIET && p->verbose <= 1) print_capabilities(fr); */
 
 		fr->err = MPG123_BAD_OUTFORMAT;
@@ -276,14 +275,11 @@ int frame_output_format(mpg123_handle *fr)
 	if(freq_fit(fr, &nf,  f0<=2 ? 2 : f0, f2)) goto end; /* ... 8bit */
 
 	/* Here is the _bad_ end. */
-	if(NOQUIET)
-	{
-		error5( "Unable to set up output format! Constraints: %s%s%li, %li or %liHz.",
-		        ( p->flags & MPG123_FORCE_STEREO ? "stereo, " :
-		          (p->flags & MPG123_FORCE_MONO ? "mono, "  : "") ),
-		        (p->flags & MPG123_FORCE_8BIT  ? "8bit, " : ""),
-		        frame_freq(fr),  frame_freq(fr)>>1, frame_freq(fr)>>2 );
-	}
+	merror( "Unable to set up output format! Constraints: %s%s%li, %li or %liHz."
+	,	( p->flags & MPG123_FORCE_STEREO ? "stereo, " :
+			(p->flags & MPG123_FORCE_MONO ? "mono, "  : "") )
+	,	(p->flags & MPG123_FORCE_8BIT  ? "8bit, " : "")
+	,	frame_freq(fr),  frame_freq(fr)>>1, frame_freq(fr)>>2 );
 /*	if(NOQUIET && p->verbose <= 1) print_capabilities(fr); */
 
 	fr->err = MPG123_BAD_OUTFORMAT;
@@ -306,7 +302,7 @@ end: /* Here is the _good_ end. */
 		fr->af.encsize = mpg123_encsize(fr->af.encoding);
 		if(fr->af.encsize < 1)
 		{
-			if(NOQUIET) error1("Some unknown encoding??? (%i)", fr->af.encoding);
+			error1("Some unknown encoding??? (%i)", fr->af.encoding);
 
 			fr->err = MPG123_BAD_OUTFORMAT;
 			return -1;

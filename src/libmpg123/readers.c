@@ -4,7 +4,7 @@
 /*
 	readers.c: reading input data
 
-	copyright ?-2008 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp
 */
@@ -1041,7 +1041,9 @@ static int default_init(mpg123_handle *fr)
 		int flags;
 		if(fr->rdat.r_read != NULL)
 		{
-			error("Timeout reading does not work with user-provided read function. Implement it yourself!");
+			if(NOQUIET)
+				error( "Timeout reading does not work with user-provided"
+					" read function. Implement it yourself!" );
 			return -1;
 		}
 		flags = fcntl(fr->rdat.filept, F_GETFL);
@@ -1085,7 +1087,8 @@ static int default_init(mpg123_handle *fr)
 	else if(fr->p.flags & MPG123_SEEKBUFFER)
 	{
 #ifdef NO_FEEDER
-		error("Buffered readers not supported in this build.");
+		if(NOQUIET)
+			error("Buffered readers not supported in this build.");
 		fr->err = MPG123_MISSING_FEATURE;
 		return -1;
 #else
@@ -1135,7 +1138,8 @@ int open_feed(mpg123_handle *fr)
 {
 	debug("feed reader");
 #ifdef NO_FEEDER
-	error("Buffered readers not supported in this build.");
+	if(NOQUIET)
+		error("Buffered readers not supported in this build.");
 	fr->err = MPG123_MISSING_FEATURE;
 	return -1;
 #else

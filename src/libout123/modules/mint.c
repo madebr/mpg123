@@ -1,7 +1,7 @@
 /*
 	mint: audio output for MINT
 
-	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Petr Stehlik
 */
@@ -45,7 +45,8 @@ static int set_rate(out123_handle *ao)
 		if (ret >= 0 && !real_rate_printed) {
 			ioctl(ao->fn,AIOCGSPEED,&real_rate);
 			if (real_rate != dsp_rate) {
-				fprintf(stderr, "Replay rate: %d Hz\n", real_rate);
+				if(!AOQUIET)
+					fprintf(stderr, "Replay rate: %d Hz\n", real_rate);
 				real_rate_printed = 1;
 			}
 		}
@@ -114,7 +115,8 @@ static int open_mint(out123_handle *ao)
 	
 	if(ao->fn < 0)
 	{
-		error1("Can't open %s!",dev);
+		if(!AOQUIET)
+			error1("Can't open %s!",dev);
 		return -1;
 	}
 	ioctl(ao->fn, AIOCGBLKSIZE, &outburst);

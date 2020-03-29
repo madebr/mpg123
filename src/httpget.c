@@ -1,7 +1,7 @@
 /*
 	httpget.c: http communication
 
-	copyright ?-2011 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written Oliver Fromme
 	old timestamp: Wed Apr  9 20:57:47 MET DST 1997
@@ -146,7 +146,7 @@ static int writestring (int fd, mpg123_string *string)
 		result = write(fd, ptr, bytes);
 		if(result < 0 && errno != EINTR)
 		{
-			perror ("writing http string");
+			merror("writing http string: %s", strerror(errno));
 			return FALSE;
 		}
 		else if(result == 0)

@@ -2,8 +2,6 @@
 ------
 
 TODO: Figure out terminal printout encoding for Windows.
-TODO: Fix up --quiet: either all errors or none, I guess errors should
-      still be shown, but only fatal ones (no junk in the beginning stuff)
 TODO: Make libout123 and/or mpg123 use that to convert on the fly. Optionally?
       A new incompatible version of libmpg123 would drop duplicate code for
       conversions …
@@ -37,6 +35,8 @@ TODO: Make libout123 and/or mpg123 use that to convert on the fly. Optionally?
 -- Set MPG123_NO_PEEK_END when opening special file '-' (standard input).
    That helps Windows where attempting to seek on the non-seekable stream
    is undefined behaviour (bug 285).
+-- Print errors in player code also for --quiet operation (just no messages
+   from the libraries).
 -- Ignore ID3v1 once a Frankenstein stream was detected.
 - out123:
 -- Removed the implicit phase shift that made generated waves exactly at
@@ -80,6 +80,8 @@ TODO: Make libout123 and/or mpg123 use that to convert on the fly. Optionally?
    Should resolve bug 283.
 -- Using SDL2 now if found. Output module code unchanged.
 -- Added hex and txt (plain text) printout.
+-- Eliminated a spots where error messages would still be printed
+   also for OUT123_QUIET being effect.
 - libmpg123:
 -- Added mpg123_free() for the benefit of library wrappers. (bug 276)
 -- Add mpg123_format2() and mpg123_fmt2() supporting special value 0 for all
@@ -135,6 +137,8 @@ TODO: Make libout123 and/or mpg123 use that to convert on the fly. Optionally?
    Note that the updated libmpg123 also avoids a growing ID3 data structure
    when repeatedly seeking back to the beginning in a file with disabled
    seek index.
+-- Eliminated a spots where error messages would still be printed
+   also for MPG123_QUIET being effect.
 
 1.25.13
 -------
