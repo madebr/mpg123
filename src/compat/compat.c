@@ -4,7 +4,7 @@
 	The mpg123 code is determined to keep it's legacy. A legacy of old, old UNIX.
 	So anything possibly somewhat advanced should be considered to be put here, with proper #ifdef;-)
 
-	copyright 2007-2019 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2007-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis, Windows Unicode stuff by JonY.
 */
@@ -453,18 +453,38 @@ char* compat_nextdir(struct compat_dir *cd)
 
 #endif
 
-/* This shall survive signals and any return value less than given byte count
-   is an error */
+// Revisit logic of write():
+// Return -1 if interrupted before any data was written,
+// set errno to EINTR. Any other error value is serious
+// for blocking I/O, which we assume here. EAGAIN should be
+// handed through.
+// Reaction to zero-sized write attempts could also be funky, so avoid that.
+// May return short count for various reasons. I assume that
+// any serious condition will show itself as return value -1
+// eventually.
+
+// These uninterruptible write/read functions shall persist as long as
+// possible to finish the desired operation. A short byte count is short
+// because of a serious reason (maybe EOF, maybe out of disk space). You
+// can inspect errno.
+
 size_t unintr_write(int fd, void const *buffer, size_t bytes)
 {
 	size_t written = 0;
+	errno = 0;
 	while(bytes)
 	{
+		errno = 0;
 		ssize_t part = write(fd, (char*)buffer+written, bytes);
-		if(part < 0 && errno != EINTR)
+		// Just on short writes, we do not abort. Only when
+		// there was no successful operation (even zero write) at all.
+		// Any other error than EINTR ends things here.
+		if(part >= 0)
+		{
+			bytes   -= part;
+			written += part;
+		} else if(errno != EINTR)
 			break;
-		bytes   -= part;
-		written += part;
 	}
 	return written;
 }
@@ -473,15 +493,38 @@ size_t unintr_write(int fd, void const *buffer, size_t bytes)
 size_t unintr_read(int fd, void *buffer, size_t bytes)
 {
 	size_t got = 0;
+	errno = 0;
 	while(bytes)
 	{
+		errno = 0;
 		ssize_t part = read(fd, (char*)buffer+got, bytes);
-		if(part < 0 && errno != EINTR)
+		if(part >= 0)
+		{
+			bytes -= part;
+			got   += part;
+		} else if(errno != EINTR)
 			break;
-		bytes -= part;
-		got   += part;
 	}
 	return got;
+}
+
+// and again for streams
+size_t unintr_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
+{
+	size_t written = 0;
+	errno = 0;
+	while(size && nmemb)
+	{
+		errno = 0;
+		size_t part = fwrite((char*)ptr+written*size, size, nmemb, stream);
+		if(part > 0)
+		{
+			nmemb   -= part;
+			written += part;
+		} else if(errno != EINTR)
+			break;
+	}
+	return written;
 }
 
 #ifndef NO_CATCHSIGNAL

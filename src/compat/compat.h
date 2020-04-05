@@ -266,10 +266,11 @@ void  compat_dlclose(void *handle);
 #endif
 
 /* Blocking write/read of data with signal resilience.
-   Both continue after being interrupted by signals and always return the
+   They continue after being interrupted by signals and always return the
    amount of processed data (shortage indicating actual problem or EOF). */
 size_t unintr_write(int fd, void const *buffer, size_t bytes);
 size_t unintr_read (int fd, void *buffer, size_t bytes);
+size_t unintr_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream);
 
 /* That one comes from Tellie on OS/2, needed in resolver. */
 #ifdef __KLIBC__

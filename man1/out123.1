@@ -46,8 +46,14 @@ The audio samples are written to standard output,
 instead of playing them through the audio device.
 The output format is the same as the input ... so in this mode, 
 .B out123
-acts like the standard tool \fB cat.
+acts similar the standard tool \fB cat, possibly with some conversions
+involved.
 This shortcut is equivalent to ``-o raw -a -''.
+.TP
+.BR \-S ", " \-\^\-STDOUT
+This variant additionally writes the data to stdout, while still
+playing it on the output device. So it is more like some flavour of
+\fB tee than a cat.
 .TP
 \fB\-O \fIfile\fR, \fB\-\^\-outfile
 Write raw output into a file (instead of simply redirecting standard output to a file with the shell).

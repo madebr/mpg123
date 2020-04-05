@@ -1,7 +1,7 @@
 /*
 	out123: stream data from libmpg123 or libsyn123 to an audio output device
 
-	copyright 1995-2019 by the mpg123 project,
+	copyright 1995-2020 by the mpg123 project,
 	free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 
@@ -158,8 +158,6 @@ char *cmd_name = NULL;
 /* ThOr: pointers are not TRUE or FALSE */
 char *equalfile = NULL;
 int fresh = TRUE;
-
-int OutputDescriptor;
 
 char *fullprogname = NULL; /* Copy of argv[0]. */
 char *binpath; /* Path to myself. */
@@ -969,10 +967,9 @@ void push_output(unsigned char *buf, size_t samples)
 	size_t bytes = samples*pcmframe;
 	mdebug("playing %zu bytes", bytes);
 	check_fatal_output(out123_play(ao, buf, bytes) < (int)bytes);
-	if(also_stdout && fwrite(buf, pcmframe, samples, stdout) < samples)
+	if(also_stdout && unintr_fwrite(buf, pcmframe, samples, stdout) < samples)
 	{
-		// TODO: I guess some signal handling should be considered here.
-		if(!quiet && errno != EINTR)
+		if(!quiet)
 			error1( "failed to copy stream to stdout: %s", strerror(errno));
 		safe_exit(133);
 	}

@@ -124,8 +124,6 @@ extern char *equalfile;
 extern off_t framenum;
 extern struct httpdata htd;
 
-extern int OutputDescriptor;
-
 extern int intflag;
 
 #ifdef VARMODESUPPORT

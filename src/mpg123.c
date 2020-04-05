@@ -1,7 +1,7 @@
 /*
 	mpg123: main code of the program (not of the decoder...)
 
-	copyright 1995-2019 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1995-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp
 */
@@ -134,7 +134,6 @@ int got_played = 0; // State of attempted playback and success: 0, -1, 1
 int intflag = FALSE;
 int deathflag = FALSE;
 static int skip_tracks = 0;
-int OutputDescriptor;
 
 static int filept = -1;
 
@@ -419,12 +418,6 @@ static void set_out_stdout(char *arg)
 	param.output_device = NULL;
 }
 
-static void set_out_stdout1(char *arg)
-{
-	param.output_module = "raw";
-	param.output_device = NULL;
-}
-
 #if !defined (HAVE_SCHED_SETSCHEDULER) && !defined (HAVE_WINDOWS_H)
 static void realtime_not_compiled(char *arg)
 {
@@ -509,7 +502,6 @@ topt opts[] = {
 	{'4', "4to1",        GLO_INT,  0, &param.down_sample, 2},
 	{'t', "test",        GLO_INT,  set_out_test, NULL, 0},
 	{'s', "stdout",      GLO_INT,  set_out_stdout,  NULL, 0},
-	{'S', "STDOUT",      GLO_INT,  set_out_stdout1, NULL, 0},
 	{'O', "outfile",     GLO_ARG | GLO_CHAR, set_out_file, NULL, 0},
 	{'c', "check",       GLO_INT,  0, &param.checkrange, TRUE},
 	{'v', "verbose",     0,        set_verbose, 0,           0},
@@ -1560,7 +1552,6 @@ static void long_usage(int err)
 	fprintf(o,"        --list-modules     list the available modules\n");
 	fprintf(o," -a <d> --audiodevice <d>  select audio device (depending on chosen module)\n");
 	fprintf(o," -s     --stdout           write raw audio to stdout (host native format)\n");
-	fprintf(o," -S     --STDOUT           play AND output stream (not implemented yet)\n");
 	fprintf(o," -w <f> --wav <f>          write samples as WAV file in <f> (- is stdout)\n");
 	fprintf(o,"        --au <f>           write samples as Sun AU file in <f> (- is stdout)\n");
 	fprintf(o,"        --cdr <f>          write samples as raw CD audio file in <f> (- is stdout)\n");

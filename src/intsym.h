@@ -28,6 +28,7 @@
 #define compat_dlclose INT123_compat_dlclose
 #define unintr_write INT123_unintr_write
 #define unintr_read INT123_unintr_read
+#define unintr_fwrite INT123_unintr_fwrite
 #define ntom_set_ntom INT123_ntom_set_ntom
 #define synth_1to1 INT123_synth_1to1
 #define synth_1to1_dither INT123_synth_1to1_dither

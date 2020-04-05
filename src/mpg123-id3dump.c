@@ -1,7 +1,7 @@
 /*
 	id3dump: Print ID3 tags of files, scanned using libmpg123.
 
-	copyright 2007 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2007-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis
 */
@@ -330,7 +330,7 @@ static void store_pictures(const char* prefix, mpg123_id3v2 *v2)
 			FILE* picfile = compat_fdopen(fd, "w");
 			if(picfile)
 			{
-				if(fwrite(pic->data, pic->size, 1, picfile) != 1)
+				if(unintr_fwrite(pic->data, pic->size, 1, picfile) != 1)
 				{
 					error("Failure to write data.");
 					++errors;

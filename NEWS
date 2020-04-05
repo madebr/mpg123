@@ -24,6 +24,7 @@ TODO: Make libout123 and/or mpg123 use that to convert on the fly. Optionally?
 - Removed outdated Pascal port (ports/mpg123_.pas). There are others
   out there.
 - mpg123:
+-- Drop --STDOUT (never properly implemented, use pipe to out123 instead).
 -- Now sets non-zero exit code when any one track of the playlist
    fails to either produce at least one frame of playback, if there
    is data that should produce such (i.e. /dev/zero is bad, /dev/null is
@@ -39,6 +40,7 @@ TODO: Make libout123 and/or mpg123 use that to convert on the fly. Optionally?
    from the libraries).
 -- Ignore ID3v1 once a Frankenstein stream was detected.
 - out123:
+-- Document --STDOUT, make it more robust regarding fwrite() interruptions.
 -- Removed the implicit phase shift that made generated waves exactly at
    Nyquist freq non-silent, but made little sense overall.
 -- Less high-frequency shifts to make waves fit into the table (not insisting
