@@ -2,9 +2,6 @@
 ------
 
 TODO: Figure out terminal printout encoding for Windows.
-TODO: Make libout123 and/or mpg123 use that to convert on the fly. Optionally?
-      A new incompatible version of libmpg123 would drop duplicate code for
-      conversions …
 
 - Starting to intentionally use C99 in the codebase. API headers are still
   supposed to be compatible to C89.
