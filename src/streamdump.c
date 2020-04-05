@@ -20,7 +20,7 @@ static ssize_t dump_read(int fd, void *buf, size_t count)
 	ssize_t ret = read(fd, buf, count);
 	if(ret > 0 && dump_fd > -1)
 	{
-		ret = write(dump_fd, buf, ret);
+		ret = unintr_write(dump_fd, buf, ret);
 	}
 	return ret;
 }

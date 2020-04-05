@@ -25,6 +25,7 @@ TODO: Make libout123 and/or mpg123 use that to convert on the fly. Optionally?
   out there.
 - mpg123:
 -- Drop --STDOUT (never properly implemented, use pipe to out123 instead).
+-- Make --streamdump use unintr_write() to avoid inconsistencies.
 -- Now sets non-zero exit code when any one track of the playlist
    fails to either produce at least one frame of playback, if there
    is data that should produce such (i.e. /dev/zero is bad, /dev/null is
