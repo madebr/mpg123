@@ -1,7 +1,8 @@
 1.26.0
 ------
 
-TODO: Figure out terminal printout encoding for Windows.
+TODO: Finish terminal output escape sequence filtering for playlists,
+at least ASCII limitation where encodings are unclear.
 
 - Starting to intentionally use C99 in the codebase. API headers are still
   supposed to be compatible to C89.
