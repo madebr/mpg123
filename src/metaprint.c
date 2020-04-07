@@ -58,57 +58,15 @@ static const int overhead[2] = { 9, 10 };
 static void utf8_ascii_print(mpg123_string *dest, mpg123_string *source);
 
 // If the given ID3 string is empty, possibly replace it with ID3v1 data.
-// I know count is a small number far from SIZE_MAX.
-static void id3_gap(mpg123_string *dest, size_t count, char *v1, size_t *len)
+static void id3_gap(mpg123_string *dest, int count, char *v1, size_t *len)
 {
 	if(dest->fill)
 		return;
-	// First construct some UTF-8 from the id3v1 data, then run through
-	// the same filter as everything else.
-	// We have no idea what encoding this is. We cannot sensibly
-	// translate more than 7-bit ASCII and the C1 control chars to UTF-8.
-	// Should there really be a mode to dump ID3v1 to the screen, without
-	// modification? It does not sound sensible to me. Use tools to fix
-	// up your metadata.
-	// Make a somewhat proper UTF-8 string out of this. Testing for valid
-	// UTF-8 is futile. It will be some unspecified legacy 8-bit encoding.
-	// I am keeping C0 chars, but replace everything above 7 bits with
-	// the Unicode replacement character as most custom 8-bit encodings
-	// placed some symbols into the C1 range, we just don't know which.
-	size_t ulen = 0;
-	for(size_t i=0; i<count; ++i)
-	{
-		unsigned char c = ((unsigned char*)v1)[i];
-		if(!c)
-			break;
-		ulen += c >= 0x80 ? uni_repl_len : 1;
-	}
-	++ulen; // trailing zero
-
 	mpg123_string utf8tmp;
 	mpg123_init_string(&utf8tmp);
-	if(mpg123_resize_string(&utf8tmp, ulen))
-	{
-		unsigned char *p = (unsigned char*)utf8tmp.p;
-		for(size_t i=0; i<count; ++i)
-		{
-			unsigned char c = ((unsigned char*)v1)[i];
-			if(!c)
-				break;
-			if(c >= 0x80)
-			{
-				for(int r=0; r<uni_repl_len; ++r)
-					*p++ = uni_repl[r];
-			}
-			else
-				*p++ = c;
-		}
-		*p = 0;
-		utf8tmp.fill = ulen;
-		*len = outstr(dest, &utf8tmp);
-	}
-	else
-		*len = 0;
+	// First construct some UTF-8 from the id3v1 data, then run through
+	// the same filter as everything else.
+	*len = unknown2utf8(&utf8tmp, v1, count) == 0 ? outstr(dest, &utf8tmp) : 0;
 	mpg123_free_string(&utf8tmp);
 }
 
@@ -443,6 +401,51 @@ void print_icy(mpg123_handle *mh, FILE *outstream)
 		}
 		mpg123_free_string(&in);
 	}
+}
+
+int unknown2utf8(mpg123_string *dest, const char *source, int len)
+{
+	if(!dest)
+		return -1;
+	dest->fill = 0;
+	if(!source)
+		return 0;
+	size_t count = len < 0 ? strlen(source) : (size_t)len;		
+	// Make a somewhat proper UTF-8 string out of this. Testing for valid
+	// UTF-8 is futile. It will be some unspecified legacy 8-bit encoding.
+	// I am keeping C0 chars, but replace everything above 7 bits with
+	// the Unicode replacement character as most custom 8-bit encodings
+	// placed some symbols into the C1 range, we just don't know which.
+	size_t ulen = 0;
+	for(size_t i=0; i<count; ++i)
+	{
+		unsigned char c = ((unsigned char*)source)[i];
+		if(!c)
+			break;
+		ulen += c >= 0x80 ? uni_repl_len : 1;
+	}
+	++ulen; // trailing zero
+
+	if(!mpg123_resize_string(dest, ulen))
+		return -1;
+
+	unsigned char *p = (unsigned char*)dest->p;
+	for(size_t i=0; i<count; ++i)
+	{
+		unsigned char c = ((unsigned char*)source)[i];
+		if(!c)
+			break;
+		if(c >= 0x80)
+		{
+			for(int r=0; r<uni_repl_len; ++r)
+				*p++ = uni_repl[r];
+		}
+		else
+			*p++ = c;
+	}
+	*p = 0;
+	dest->fill = ulen;
+	return 0;
 }
 
 // Filter C1 control chars, using c2lead state.

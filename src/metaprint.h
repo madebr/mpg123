@@ -25,10 +25,15 @@ void print_icy(mpg123_handle *mh, FILE *out);
 // locale, this should often be right, but there never is a guarantee
 // with Unicode.
 size_t outstr(mpg123_string *dest, mpg123_string *source);
+// Take an unspecified (assumed ASCII-based) encoding and at least
+// construct valid UTF-8 with 7-bit ASCII and replacement characters.
+// If count is >= 0, it is used instead of strlen(source), enabling
+// processing of data without closing zero byte.
+int unknown2utf8(mpg123_string *dest, const char *source, int count);
 // Wrapper around the above just for printing the string to some stream.
 // Return value is directly from fprintf or also -1 if there was trouble
 // processing the string.
-int print_outstr(FILE *out, const char *str);
+int print_outstr(FILE *out, const char *str, int is_utf8, mpg123_string *workbuf);
 
 // Set to true if lyrics shall be printed.
 extern int meta_show_lyrics;
