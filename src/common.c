@@ -16,66 +16,11 @@
 #include <sys/stat.h>
 #include "common.h"
 
-#ifdef __EMX__
-/* Special ways for OS/2 EMX */
-#include <stdlib.h>
-#else
-/* POSIX stuff */
-#ifdef HAVE_TERMIOS
-#include <termios.h>
-#include <sys/ioctl.h>
-#endif
-#endif
-
 #include "debug.h"
 
 int stopped = 0;
 int paused = 0;
 int muted = 0;
-static int term_is_fun = -1;
-
-int term_have_fun(int fd, struct parameter *param)
-{
-	if(term_is_fun > -1)
-		return term_is_fun;
-	else
-		term_is_fun = 0;
-#ifdef HAVE_TERMIOS
-	if(term_width(fd) > 0 && param->term_visual)
-	{
-		/* Only play with non-dumb terminals. */
-		char *tname = compat_getenv("TERM");
-		if(tname)
-		{
-			if(strcmp(tname, "") && strcmp(tname, "dumb"))
-				term_is_fun = 1;
-			free(tname);
-		}
-	}
-#endif
-	return term_is_fun;
-}
-
-/* Also serves as a way to detect if we have an interactive terminal. */
-int term_width(int fd)
-{
-#ifdef __EMX__
-/* OS/2 */
-	int s[2];
-	_scrsize (s);
-	if (s[0] >= 0)
-		return s[0];
-#else
-#ifdef HAVE_TERMIOS
-/* POSIX */
-	struct winsize geometry;
-	geometry.ws_col = 0;
-	if(ioctl(fd, TIOCGWINSZ, &geometry) >= 0)
-		return (int)geometry.ws_col;
-#endif
-#endif
-	return -1;
-}
 
 const char* rva_name[3] = { "off", "mix", "album" };
 static const char* rva_statname[3] = { "---", "mix", "alb" };
@@ -410,7 +355,7 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar
 			if(maxlen > 0)
 				memset(line+len, ' ', linelen-len);
 #ifdef HAVE_TERMIOS
-			draw_bar = draw_bar && term_have_fun(STDERR_FILENO,param);
+			draw_bar = draw_bar && term_have_fun(STDERR_FILENO,param->term_visual);
 			/* Use inverse color to draw a progress bar. */
 			if(maxlen > 0 && draw_bar)
 			{

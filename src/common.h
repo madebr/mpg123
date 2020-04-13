@@ -16,13 +16,6 @@ extern int stopped;
 extern int paused;
 extern int muted;
 
-/* Return non-zero if full terminal fun is desired/possible. */
-int term_have_fun(int fd, struct parameter *param);
-
-/* Return width of terminal associated with given descriptor,
-   -1 when there is none. */
-int term_width(int fd);
-
 void print_header(mpg123_handle *);
 void print_header_compact(mpg123_handle *);
 void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar

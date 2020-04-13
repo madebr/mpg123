@@ -1,9 +1,10 @@
 /*
 	local: some stuff for localisation
 
-	Currently, this is just about determining if we got UTF-8 locale.
+	Currently, this is just about determining if we got UTF-8 locale and
+	checking output terminal properties.
 
-	copyright 2008-2019 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2008-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis, based on a patch by Thorsten Glaser.
 */
@@ -16,11 +17,27 @@
 #include <langinfo.h>
 #endif
 #include "compat.h"
+
+#ifdef __EMX__
+/* Special ways for OS/2 EMX */
+#include <stdlib.h>
+#else
+/* POSIX stuff */
+#ifdef HAVE_TERMIOS
+#include <termios.h>
+#include <sys/ioctl.h>
+#endif
+#endif
+
+#include "local.h"
+
 #include "debug.h"
 
 int utf8force = 0; // enforce UTF-8 workings
 int utf8env = 0; // produce UTF-8 text output
 int utf8loc = 0; // have actual UTF-8 locale (so that mbstowcs() works)
+
+static int term_is_fun = -1;
 
 /* Check some language variable for UTF-8-ness. */
 static int is_utf8(const char *lang);
@@ -76,4 +93,47 @@ static int is_utf8(const char *lang)
 	return 1;
 	else
 	return 0;
+}
+
+int term_have_fun(int fd, int want_visuals)
+{
+	if(term_is_fun > -1)
+		return term_is_fun;
+	else
+		term_is_fun = 0;
+#ifdef HAVE_TERMIOS
+	if(term_width(fd) > 0 && want_visuals)
+	{
+		/* Only play with non-dumb terminals. */
+		char *tname = compat_getenv("TERM");
+		if(tname)
+		{
+			if(strcmp(tname, "") && strcmp(tname, "dumb"))
+				term_is_fun = 1;
+			free(tname);
+		}
+	}
+#endif
+	return term_is_fun;
+}
+
+/* Also serves as a way to detect if we have an interactive terminal. */
+int term_width(int fd)
+{
+#ifdef __EMX__
+/* OS/2 */
+	int s[2];
+	_scrsize (s);
+	if (s[0] >= 0)
+		return s[0];
+#else
+#ifdef HAVE_TERMIOS
+/* POSIX */
+	struct winsize geometry;
+	geometry.ws_col = 0;
+	if(ioctl(fd, TIOCGWINSZ, &geometry) >= 0)
+		return (int)geometry.ws_col;
+#endif
+#endif
+	return -1;
 }

@@ -3,9 +3,10 @@
 /*
 	local: some stuff for localisation
 
-	Currently, this is just about determining if we got UTF-8 locale.
+	Currently, this is just about determining if we got UTF-8 locale and
+	checking output terminal properties.
 
-	copyright 2008-2019 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2008-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis, based on a patch by Thorsten Glaser.
 
@@ -33,5 +34,12 @@ extern int utf8loc;
    After calling this, a locale for LC_CTYPE should be configured,
    but one that is based on UTF-8 only if utf8loc is set. */
 void check_locale(void);
+
+/* Return non-zero if full terminal fun is desired/possible. */
+int term_have_fun(int fd, int want_visuals);
+
+/* Return width of terminal associated with given descriptor,
+   -1 when there is none. */
+int term_width(int fd);
 
 #endif

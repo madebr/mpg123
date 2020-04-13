@@ -71,6 +71,7 @@ src_tests_textprint_SOURCES =\
   src/genre.c
 
 src_tests_textprint_LDADD = \
+  src/compat/libcompat.la \
   src/libmpg123/libmpg123.la
 
 src_tests_plain_id3_SOURCES = \

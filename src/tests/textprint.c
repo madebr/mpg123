@@ -87,7 +87,7 @@ int main()
 		int lerr = 0;
 		fprintf(stderr, "string %zu: ", t);
 		mpg123_set_string(&src, test_input[t].in);
-		size_t w = outstr(&dst, &src);
+		size_t w = outstr(&dst, &src, 1);
 		size_t l = strlen(test_input[t].ascii);
 		if(w == l)
 		{
@@ -116,7 +116,7 @@ int main()
 		int lerr = 0;
 		fprintf(stderr, "string %zu: ", t);
 		mpg123_set_string(&src, test_input[t].in);
-		size_t w = outstr(&dst, &src);
+		size_t w = outstr(&dst, &src, 1);
 		size_t l = test_input[t].chars;
 		if(w == l)
 		{
@@ -151,7 +151,7 @@ int main()
 			int lerr = 0;
 			fprintf(stderr, "string %zu: ", t);
 			mpg123_set_string(&src, test_input[t].in);
-			size_t w = outstr(&dst, &src);
+			size_t w = outstr(&dst, &src, 1);
 			size_t l = test_input[t].width;
 			if(w == l)
 			{
@@ -166,6 +166,14 @@ int main()
 				++lerr;
 				fprintf(stderr, "(bad length %zu != %zu) ", w, l);
 			}
+			err += lerr;
+			fprintf(stderr, "%s\n", lerr ? "FAIL" : "PASS");
+			fprintf(stderr, "non-terminal non-filtering: ");
+			lerr = 0;
+			mpg123_set_string(&dst, "");
+			w = outstr(&dst, &src, 0);
+			if(!dst.fill || strncmp(test_input[t].in, dst.p, dst.fill))
+				++lerr;
 			err += lerr;
 			fprintf(stderr, "%s\n", lerr ? "FAIL" : "PASS");
 		}

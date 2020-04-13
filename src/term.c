@@ -110,7 +110,7 @@ void term_init(void)
 	const char hide_cursor[] = "\x1b[?25l";
 	debug("term_init");
 
-	if(term_have_fun(STDERR_FILENO, &param))
+	if(term_have_fun(STDERR_FILENO, param.term_visual))
 		fprintf(stderr, "%s", hide_cursor);
 
 	debug1("param.term_ctrl: %i", param.term_ctrl);
@@ -554,7 +554,7 @@ void term_exit(void)
 {
 	const char cursor_restore[] = "\x1b[?25h";
 	/* Bring cursor back. */
-	if(term_have_fun(STDERR_FILENO, &param))
+	if(term_have_fun(STDERR_FILENO, param.term_visual))
 		fprintf(stderr, "%s", cursor_restore);
 
 	if(!term_enable) return;
