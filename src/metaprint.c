@@ -453,6 +453,24 @@ int unknown2utf8(mpg123_string *dest, const char *source, int len)
 	return 0;
 }
 
+static void ascii_space(unsigned char *c, int *wasspace)
+{
+	switch(*c)
+	{
+		case '\f':
+		case '\r':
+		case '\n':
+		case '\t':
+		case '\v':
+			if(!*wasspace)
+				*c = ' '; // Will be dropped by < 0x20 check otherwise.
+			*wasspace = 1;
+		break;
+		default:
+			*wasspace = 0;
+	}
+}
+
 // Filter C1 control chars, using c2lead state.
 #define ASCII_C1(c, append) \
 	if(c2lead) \
@@ -485,9 +503,12 @@ static void utf8_ascii_work(mpg123_string *dest, mpg123_string *source
 #define ASCII_PRINT_SOMETHING(c) \
 	(((c) & 0xc0) != 0x80 && (keep_nonprint || ((c) != 0x7f && (c) >= 0x20)))
 	int c2lead = 0;
+	int wasspace = 0;
 	for(spos=0; spos < source->fill; ++spos)
 	{
 		unsigned char c = ((unsigned char*)source->p)[spos];
+		if(!keep_nonprint)
+			ascii_space(&c, &wasspace);
 		ASCII_C1(c, ++dlen);
 		if(ASCII_PRINT_SOMETHING(c))
 			++dlen;
@@ -503,9 +524,12 @@ static void utf8_ascii_work(mpg123_string *dest, mpg123_string *source
 
 	p = (unsigned char*)dest->p;
 	c2lead = 0;
+	wasspace = 0;
 	for(spos=0; spos < source->fill; ++spos)
 	{
 		unsigned char c = ((unsigned char*)source->p)[spos];
+		if(!keep_nonprint)
+			ascii_space(&c, &wasspace);
 		ASCII_C1(c, *p++ = joker_symbol)
 		if(!ASCII_PRINT_SOMETHING(c))
 			continue;
@@ -569,9 +593,23 @@ size_t outstr(mpg123_string *dest, mpg123_string *source, int to_terminal)
 			if(mbstowcs(pre, source->p, wcharlen+1) == wcharlen)
 			{
 				size_t nwl = 0;
+				int wasspace = 0;
 				for(size_t i=0;  i<wcharlen; ++i)
-					if(iswprint(pre[i]))
-						flt[nwl++] = pre[i];
+				{
+					// Turn any funky space sequence (including line breaks) into
+					// one normal space.
+					if(iswspace(pre[i]) && pre[i] != ' ')
+					{
+						if(!wasspace)
+							flt[nwl++] = ' ';
+						wasspace = 1;
+					} else // Anything non-printing is skipped.
+					{
+						if(iswprint(pre[i]))
+							flt[nwl++] = pre[i];
+						wasspace = 0;
+					}
+				}
 				flt[nwl] = 0;
 				int columns = wcswidth(flt, nwl);
 				size_t bytelen = wcstombs(NULL, flt, 0);
@@ -601,10 +639,12 @@ size_t outstr(mpg123_string *dest, mpg123_string *source, int to_terminal)
 				return 0;
 			dest->fill = 0;
 			int c2lead = 0;
+			int wasspace = 0;
 			unsigned char *p = (unsigned char*)dest->p;
 			for(size_t i=0; i<source->fill; ++i)
 			{
 				unsigned char c = ((unsigned char*)source->p)[i];
+				ascii_space(&c, &wasspace);
 				ASCII_C1(c, *p++ = 0xc2)
 				if(c && c < 0x20)
 					continue; // no C0 control chars, except space

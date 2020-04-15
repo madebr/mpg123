@@ -44,11 +44,11 @@ const struct test_string test_input[] =
 	}
 ,	{
 		.in="U\xcc\x88""bel\nist mir."
-	,	.ascii="U?belist mir."
-	,	.utf8hack="U\xcc\x88""belist mir."
-	,	.utf8full="U\xcc\x88""belist mir."
-	,	.chars=13
-	,	.width=12
+	,	.ascii="U?bel ist mir."
+	,	.utf8hack="U\xcc\x88""bel ist mir."
+	,	.utf8full="U\xcc\x88""bel ist mir."
+	,	.chars=14
+	,	.width=13
 	}
 ,	{
 		.in=utf_string
@@ -60,11 +60,11 @@ const struct test_string test_input[] =
 	}
 ,	{
 		.in="Gimme\x0a  some\x0a\x0d""con\302\237tr\xc3\xb6l!\x7f\x7f""b \033]0;xtermed\x07"
-	,	.ascii="Gimme  somecontr?l!b ]0;xtermed"
-	,	.utf8hack="Gimme  somecontr\xc3\xb6l!b ]0;xtermed"
-	,	.utf8full="Gimme  somecontr\xc3\xb6l!b ]0;xtermed"
-	,	.chars=31
-	,	.width=31
+	,	.ascii="Gimme   some contr?l!b ]0;xtermed"
+	,	.utf8hack="Gimme   some contr\xc3\xb6l!b ]0;xtermed"
+	,	.utf8full="Gimme   some contr\xc3\xb6l!b ]0;xtermed"
+	,	.chars=33
+	,	.width=33
 	}
 };
 
