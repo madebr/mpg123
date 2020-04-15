@@ -152,7 +152,6 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out, int linelimit)
 		if(mpg123_getstate(mh, MPG123_FRANKENSTEIN, &frank, NULL) == MPG123_OK && frank)
 			v1 = NULL;
 	}
-fprintf(stderr, "album: %s\n", v2->album->p);
 
 	/* Only work if something there... */
 	if(v1 == NULL && v2 == NULL) return;
