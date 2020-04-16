@@ -1386,6 +1386,8 @@ int main(int sys_argc, char ** sys_argv)
 				meta = mpg123_meta_check(mh);
 				if(meta & (MPG123_NEW_ID3|MPG123_NEW_ICY))
 				{
+					if(framenum && param.verbose)
+						print_stat(mh,0,ao,0,&param);
 					if(meta & MPG123_NEW_ID3) print_id3_tag( mh, param.long_id3
 					,	stderr, term_width(STDERR_FILENO) );
 					if(meta & MPG123_NEW_ICY) print_icy(mh, stderr);

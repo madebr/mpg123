@@ -32,6 +32,7 @@ and pipe output.
    fine). See man page for details.
 -- Print out MPEG header info for each frame for mpg123 -vvvv.
 -- Added --no-visual to disable cursor/inverse video games explicitly.
+-- Clear progress bar before printing updated metadata within a stream.
 -- Filter control/non-printable characters from metadata printout, reduce
    ID3v1 data to 7-bit ASCII (no way to know correct 8-bit encoding for sure).
 -- Set MPG123_NO_PEEK_END when opening special file '-' (standard input).
