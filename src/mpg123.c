@@ -273,15 +273,16 @@ void safe_exit(int code)
 {
 	char *dummy, *dammy;
 
-	if(prebuffer)
-		free(prebuffer);
-
 	dump_close();
 	if(!code)
 		controlled_drain();
 	if(intflag)
 		out123_drop(ao);
 	out123_del(ao);
+
+	// Free the memory after the output is not working on it anymore!
+	if(prebuffer)
+		free(prebuffer);
 
 	if(mh != NULL) mpg123_delete(mh);
 

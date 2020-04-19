@@ -41,6 +41,9 @@ and pipe output.
 -- Print errors in player code also for --quiet operation (just no messages
    from the libraries).
 -- Ignore ID3v1 once a Frankenstein stream was detected.
+-- Prevent a cosmetic use-after-free in audio playback during program abortion just after
+   starting playback (prebuffer still in use, implication a blip of bad sound and
+   a complaining sanitizer).
 - out123:
 -- Document --STDOUT, make it more robust regarding fwrite() interruptions.
 -- Removed the implicit phase shift that made generated waves exactly at
