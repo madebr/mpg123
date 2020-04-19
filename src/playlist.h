@@ -1,7 +1,7 @@
 /*
 	playlist: playlist logic
 
-	copyright 1995-2007 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1995-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp, outsourced/reorganized by Thomas Orgis
 */
@@ -10,8 +10,8 @@
 
 #include "mpg123app.h"
 
-/* create playlist form argv including reading of playlist file */
-void prepare_playlist(int argc, char** argv);
+/* create playlist from argv including reading of playlist file */
+void prepare_playlist(int argc, char** argv, int args_utf8, int *is_utf8);
 /* returns the next url to play or NULL when there is none left */
 char *get_next_file(void);
 /* Get current track number, optionally the total count and loop counter. */

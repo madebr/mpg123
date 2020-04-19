@@ -1,11 +1,6 @@
 1.26.0
 ------
 
-TODO: Finish terminal output escape sequence filtering for playlists,
-at least ASCII limitation where encodings are unclear.
-document the changes ... difference in operation between terminal
-and pipe output.
-
 - Starting to intentionally use C99 in the codebase. API headers are still
   supposed to be compatible to C89.
 - There is a make check target now that tests some text transformations.
@@ -33,8 +28,9 @@ and pipe output.
 -- Print out MPEG header info for each frame for mpg123 -vvvv.
 -- Added --no-visual to disable cursor/inverse video games explicitly.
 -- Clear progress bar before printing updated metadata within a stream.
--- Filter control/non-printable characters from metadata printout, reduce
+-- Filter control/non-printable characters from user data printout, reduce
    ID3v1 data to 7-bit ASCII (no way to know correct 8-bit encoding for sure).
+   This should  cover bug 267.
 -- Set MPG123_NO_PEEK_END when opening special file '-' (standard input).
    That helps Windows where attempting to seek on the non-seekable stream
    is undefined behaviour (bug 285).

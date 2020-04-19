@@ -130,6 +130,8 @@ struct httpdata htd;
 int fresh = TRUE;
 FILE* aux_out = NULL; /* Output for interesting information, normally on stdout to be parseable. */
 
+int stdout_is_term = FALSE; // It's an interactive terminal.
+int stderr_is_term = FALSE; // It's an interactive terminal.
 int got_played = 0; // State of attempted playback and success: 0, -1, 1
 int intflag = FALSE;
 int deathflag = FALSE;
@@ -931,6 +933,8 @@ int main(int sys_argc, char ** sys_argv)
 	char *fname;
 	int libpar = 0;
 	mpg123_pars *mp;
+	int args_utf8 = FALSE;
+	int pl_utf8   = FALSE;
 #if !defined(WIN32) && !defined(GENERIC)
 	struct timeval start_time;
 #endif
@@ -941,6 +945,7 @@ int main(int sys_argc, char ** sys_argv)
 		error("Cannot convert command line to UTF8!");
 		safe_exit(76);
 	}
+	args_utf8 = TRUE;
 #else
 	argv = sys_argv;
 	argc = sys_argc;
@@ -1023,15 +1028,19 @@ int main(int sys_argc, char ** sys_argv)
 	/* Detect terminal on input side, enable control by default. */
 	param.term_ctrl = !(term_width(STDIN_FILENO) < 0);
 #endif
+	stderr_is_term = term_width(STDERR_FILENO) >= 0;
+	stdout_is_term = term_width(STDOUT_FILENO) >= 0;
 	while ((result = getlopt(argc, argv, opts)))
 	switch (result) {
 		case GLO_UNKNOWN:
-			fprintf (stderr, "%s: Unknown option \"%s\".\n", 
-				prgName, loptarg);
+			print_outstr(stderr, prgName, 0, stderr_is_term);
+			fprintf(stderr, ": Unknown option \"");
+			print_outstr(stderr, loptarg, 0, stderr_is_term);
+			fprintf(stderr, "\".\n");
 			usage(1);
 		case GLO_NOARG:
-			fprintf (stderr, "%s: Missing argument for option \"%s\".\n",
-				prgName, loptarg);
+			print_outstr(stderr, prgName, 0, stderr_is_term);
+			fprintf(stderr, ": Missing argument for option \"%s\".\n", loptarg);
 			usage(1);
 	}
 	/* Do this _after_ parameter parsing. */
@@ -1207,7 +1216,8 @@ int main(int sys_argc, char ** sys_argv)
 	,	param.output_module, param.output_device ));
 	out123_getparam_int(ao, OUT123_PROPFLAGS, &output_propflags);
 
-	if(!param.remote) prepare_playlist(argc, argv);
+	if(!param.remote)
+		prepare_playlist(argc, argv, args_utf8, &pl_utf8);
 
 #if !defined(WIN32) && !defined(GENERIC)
 	/* Remote mode is special... but normal console and terminal-controlled operation needs to catch the SIGINT.
@@ -1318,7 +1328,12 @@ int main(int sys_argc, char ** sys_argv)
 			size_t plfill;
 			long plloop;
 			plpos = playlist_pos(&plfill, &plloop);
-			if(newdir) fprintf(stderr, "Directory: %s\n", dirname);
+			if(newdir)
+			{
+				fprintf(stderr, "Directory:");
+				print_outstr(stderr, dirname, 0, stderr_is_term);
+				fprintf(stderr, "\n");
+			}
 
 #ifdef HAVE_TERMIOS
 		/* Reminder about terminal usage. */
@@ -1333,8 +1348,10 @@ int main(int sys_argc, char ** sys_argv)
 					fprintf( stderr, "Repeating %ld %s.\n"
 					,	plloop-1, plloop > 2 ? "times" : "time" );
 			}
-			fprintf( stderr, "Playing MPEG stream %"SIZE_P" of %"SIZE_P": %s ...\n"
-			,	(size_p)plpos, (size_p)plfill, filename );
+			fprintf( stderr, "Playing MPEG stream %"SIZE_P" of %"SIZE_P": "
+			,	(size_p)plpos, (size_p)plfill );
+			print_outstr(stderr, filename, 0, stderr_is_term);
+			fprintf(stderr, " ...\n");
 			if(htd.icy_name.fill) fprintf(stderr, "ICY-NAME: %s\n", htd.icy_name.p);
 			if(htd.icy_url.fill)  fprintf(stderr, "ICY-URL: %s\n",  htd.icy_url.p);
 		}
@@ -1344,14 +1361,20 @@ int main(int sys_argc, char ** sys_argv)
 	term_type = getenv("TERM");
 	if(term_type && param.xterm_title)
 	{
+		mpg123_string titlestring;
+		mpg123_init_string(&titlestring);
+		outstr(&titlestring, filename, pl_utf8, 1);
+		const char *ts = titlestring.fill ? titlestring.p : "???";
+
 		if(!strncmp(term_type,"xterm",5) || !strncmp(term_type,"rxvt",4))
-		fprintf(stderr, "\033]0;%s\007", filename);
+			fprintf(stderr, "\033]0;%s\007", ts);
 		else if(!strncmp(term_type,"screen",6))
-		fprintf(stderr, "\033k%s\033\\", filename);
+			fprintf(stderr, "\033k%s\033\\", ts);
 		else if(!strncmp(term_type,"iris-ansi",9))
-		fprintf(stderr, "\033P1.y %s\033\\\033P3.y%s\033\\", filename, filename);
+			fprintf(stderr, "\033P1.y %s\033\\\033P3.y%s\033\\", ts, ts);
 
 		fflush(stderr); /* Paranoia: will the buffer buffer the escapes? */
+		mpg123_free_string(&titlestring);
 	}
 }
 #endif

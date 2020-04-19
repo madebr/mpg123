@@ -67,7 +67,7 @@ static void id3_gap(mpg123_string *dest, int count, char *v1, size_t *len, int i
 	mpg123_init_string(&utf8tmp);
 	// First construct some UTF-8 from the id3v1 data, then run through
 	// the same filter as everything else.
-	*len = unknown2utf8(&utf8tmp, v1, count) == 0 ? outstr(dest, &utf8tmp, is_term) : 0;
+	*len = unknown2utf8(&utf8tmp, v1, count) == 0 ? utf8outstr(dest, &utf8tmp, is_term) : 0;
 	mpg123_free_string(&utf8tmp);
 }
 
@@ -158,11 +158,11 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out, int linelimit)
 
 	if(v2 != NULL) /* fill from ID3v2 data */
 	{
-		len[TITLE]   = outstr(&tag[TITLE],   v2->title,   is_term);
-		len[ARTIST]  = outstr(&tag[ARTIST],  v2->artist,  is_term);
-		len[ALBUM]   = outstr(&tag[ALBUM],   v2->album,   is_term);
-		len[COMMENT] = outstr(&tag[COMMENT], v2->comment, is_term);
-		len[YEAR]    = outstr(&tag[YEAR],    v2->year,    is_term);
+		len[TITLE]   = utf8outstr(&tag[TITLE],   v2->title,   is_term);
+		len[ARTIST]  = utf8outstr(&tag[ARTIST],  v2->artist,  is_term);
+		len[ALBUM]   = utf8outstr(&tag[ALBUM],   v2->album,   is_term);
+		len[COMMENT] = utf8outstr(&tag[COMMENT], v2->comment, is_term);
+		len[YEAR]    = utf8outstr(&tag[YEAR],    v2->year,    is_term);
 	}
 	if(v1 != NULL) /* fill gaps with ID3v1 data */
 	{
@@ -293,7 +293,7 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out, int linelimit)
 		}
 	}
 	// Finally convert to safe output string and get display width.
-	len[GENRE] = outstr(&tag[GENRE], &genretmp, is_term);
+	len[GENRE] = utf8outstr(&tag[GENRE], &genretmp, is_term);
 	mpg123_free_string(&genretmp);
 
 	if(long_id3)
@@ -366,7 +366,7 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out, int linelimit)
 					while(b < uslt->fill && uslt->p[b] != '\n' && uslt->p[b] != '\r') ++b;
 					/* Either found end of a line or end of the string (null byte) */
 					mpg123_set_substring(&innline, uslt->p, a, b-a);
-					outstr(&outline, &innline, is_term);
+					utf8outstr(&outline, &innline, is_term);
 					printf(" %s\n", outline.p);
 
 					if(uslt->p[b] == uslt->fill) break; /* nothing more */
@@ -398,7 +398,7 @@ void print_icy(mpg123_handle *mh, FILE *outstream)
 			mpg123_string out;
 			mpg123_init_string(&out);
 
-			outstr(&out, &in, is_term);
+			utf8outstr(&out, &in, is_term);
 			if(out.fill)
 				fprintf(outstream, "\nICY-META: %s\n", out.p);
 
@@ -431,7 +431,7 @@ int unknown2utf8(mpg123_string *dest, const char *source, int len)
 	}
 	++ulen; // trailing zero
 
-	if(!mpg123_resize_string(dest, ulen))
+	if(!mpg123_grow_string(dest, ulen))
 		return -1;
 
 	unsigned char *p = (unsigned char*)dest->p;
@@ -561,7 +561,7 @@ static void utf8_ascii(mpg123_string *dest, mpg123_string *source)
 	utf8_ascii_work(dest, source, 1);
 }
 
-size_t outstr(mpg123_string *dest, mpg123_string *source, int to_terminal)
+size_t utf8outstr(mpg123_string *dest, mpg123_string *source, int to_terminal)
 {
 	if(dest)
 		dest->fill = 0;
@@ -695,34 +695,35 @@ size_t outstr(mpg123_string *dest, mpg123_string *source, int to_terminal)
 	return width;
 }
 
+#undef ASCII_C1
+
 // I tried saving some malloc using provided work buffers, but
 // realized that the path of Unicode transformations is so full
 // of them regardless.
 // Can this include all the necessary logic?
-// - If UTF-8 input: Use outstr(), which includes terminal switch.
+// - If UTF-8 input: Use utf8outstr(), which includes terminal switch.
 // - If not:
 // -- If terminal: construct safe UTF-8, pass on to outstr().
 // -- If not: assume env encoding, unprocessed string that came
 //    from the environment.
-int print_outstr(FILE *out, char *str, int is_utf8, int is_term)
+
+int outstr(mpg123_string *dest, char *str, int is_utf8, int is_term)
 {
 	int ret = 0;
-	if(!str)
+	if(dest)
+		dest->fill = 0;
+	if(!str || !dest)
 		return -1;
-	mpg123_string outbuf;
-	mpg123_init_string(&outbuf);
-	if(is_utf8)
+	if(is_utf8 || utf8env)
 	{
 		// Just a structure around the input.
 		mpg123_string src;
 		mpg123_init_string(&src);
 		src.p = str;
 		src.size = src.fill = strlen(str)+1;
-		size_t len = outstr(&outbuf, &src, is_term);
+		size_t len = utf8outstr(dest, &src, is_term);
 		if(src.fill > 1 && !len)
 			ret = -1;
-		if(!ret)
-			ret = fprintf(out, "%s", outbuf.p);
 	} else if(is_term)
 	{
 		mpg123_string usrc;
@@ -730,18 +731,28 @@ int print_outstr(FILE *out, char *str, int is_utf8, int is_term)
 		ret = unknown2utf8(&usrc, str, -1);
 		if(!ret)
 		{
-			size_t len = outstr(&outbuf, &usrc, is_term);
+			size_t len = utf8outstr(dest, &usrc, is_term);
 			if(usrc.fill > 1 && !len)
 				ret = -1;
-			if(!ret)
-				ret = fprintf(out, "%s", outbuf.p);
 		}
 		mpg123_free_string(&usrc);
 	} else
-		ret = fprintf(out, "%s", str);
-	mpg123_free_string(&outbuf);
+		ret = mpg123_set_string(dest, str) ? 0 : -1;
+	if(ret)
+		dest->fill = 0;
 	return ret;
 }
 
-
-#undef ASCII_C1
+int print_outstr(FILE *out, char *str, int is_utf8, int is_term)
+{
+	int ret = 0;
+	if(!str)
+		return -1;
+	mpg123_string outbuf;
+	mpg123_init_string(&outbuf);
+	ret = outstr(&outbuf, str, is_utf8, is_term);
+	if(!ret)
+		ret = fprintf(out, "%s", outbuf.fill ? outbuf.p : "");
+	mpg123_free_string(&outbuf);
+	return ret;
+}
