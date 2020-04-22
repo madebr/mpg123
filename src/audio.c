@@ -52,10 +52,10 @@ static void capline(mpg123_handle *mh, long rate)
 	{
 		switch(mpg123_format_support(mh, rate, encs[enci]))
 		{
-			case MPG123_MONO:               fprintf(stderr, "   M   |"); break;
-			case MPG123_STEREO:             fprintf(stderr, "   S   |"); break;
-			case MPG123_MONO|MPG123_STEREO: fprintf(stderr, "  M/S  |"); break;
-			default:                        fprintf(stderr, "       |");
+			case MPG123_MONO:               fprintf(stderr, "   M  "); break;
+			case MPG123_STEREO:             fprintf(stderr, "   S  "); break;
+			case MPG123_MONO|MPG123_STEREO: fprintf(stderr, "  M/S "); break;
+			default:                        fprintf(stderr, "      ");
 		}
 	}
 	fprintf(stderr, "\n");
@@ -73,15 +73,15 @@ void print_capabilities(out123_handle *ao, mpg123_handle *mh)
 	out123_driver_info(ao, &name, &dev);
 	mpg123_rates(&rates, &num_rates);
 	mpg123_encodings(&encs, &num_encs);
-	fprintf(stderr,"\nAudio driver: %s\nAudio device: %s\nAudio capabilities:\n(matrix of [S]tereo or [M]ono support for sample format and rate in Hz)\n       |", name, dev);
+	fprintf(stderr,"\nAudio driver: %s\nAudio device: %s\nAudio capabilities:\n(matrix of [S]tereo or [M]ono support for sample format and rate in Hz)\n rate  |", name, dev);
 	for(e=0;e<num_encs;e++)
 	{
 		const char *encname = out123_enc_name(encs[e]);
-		fprintf(stderr," %5s |", encname ? encname : "???");
+		fprintf(stderr," %4s ", encname ? encname : "???");
 	}
 
-	fprintf(stderr,"\n ------|");
-	for(e=0;e<num_encs;e++) fprintf(stderr,"-------|");
+	fprintf(stderr,"\n -------");
+	for(e=0;e<num_encs;e++) fprintf(stderr,"------");
 
 	fprintf(stderr, "\n");
 	for(r=0; r<num_rates; ++r) capline(mh, rates[r]);
