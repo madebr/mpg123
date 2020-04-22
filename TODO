@@ -37,3 +37,10 @@ the length in the header. Also, both programs need a switch to enable
 treating input as WAV, though out123 might get away with a default
 mode of looking out for a header unless format options were given. Yes,
 that makes sense. And perhaps I really should limit this to out123.
+
+4. Enable some way to avoid libmpg123 messages (Note: …) messing up display
+   of the progress bar.
+
+- cleanup callback from app
+- fprintf callback from app
+- log buffer
