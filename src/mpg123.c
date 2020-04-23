@@ -319,7 +319,7 @@ static void check_fatal_output(int code)
 {
 	if(code)
 	{
-		if(!param.quiet && out123_errcode(ao))
+		if(out123_errcode(ao))
 			error2( "out123 error %i: %s"
 			,	out123_errcode(ao), out123_strerror(ao) );
 		safe_exit(code);
@@ -1202,8 +1202,7 @@ int main(int sys_argc, char ** sys_argv)
 	ao = out123_new();
 	if(!ao)
 	{
-		if(!param.quiet)
-			error("Failed to allocate output.");
+		error("Failed to allocate output.");
 		safe_exit(97);
 	}
 	if
@@ -1217,8 +1216,7 @@ int main(int sys_argc, char ** sys_argv)
 	|| out123_param_float(ao, OUT123_DEVICEBUFFER, param.device_buffer)
 	)
 	{
-		if(!param.quiet)
-			error("Error setting output parameters. Do you need a usage reminder?");
+		error("Error setting output parameters. Do you need a usage reminder?");
 		safe_exit(98);
 	}
 	check_fatal_output(out123_set_buffer(ao, param.usebuffer*1024));
