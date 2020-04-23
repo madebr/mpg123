@@ -28,7 +28,7 @@
 #include "mpg123.h"
 #define MPG123_REMOTE
 #define REMOTE_BUFFER_SIZE 2048
-#define MAXOUTBURST 32768
+//#define MAXOUTBURST 32768
 
 #ifdef __GNUC__
 #define INLINE inline

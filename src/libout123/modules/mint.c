@@ -15,7 +15,7 @@
 #include "debug.h"
 
 /* Globals */
-extern int outburst;
+/* extern int outburst; */
 int real_rate_printed = 0;
 
 
@@ -119,9 +119,9 @@ static int open_mint(out123_handle *ao)
 			error1("Can't open %s!",dev);
 		return -1;
 	}
-	ioctl(ao->fn, AIOCGBLKSIZE, &outburst);
+/*	ioctl(ao->fn, AIOCGBLKSIZE, &outburst);
 	if(outburst > MAXOUTBURST)
-		outburst = MAXOUTBURST;
+		outburst = MAXOUTBURST; */
 	if(audio_reset_parameters(ai) < 0) {
 		close(ao->fn);
 		return -1;
