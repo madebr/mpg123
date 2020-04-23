@@ -41,6 +41,7 @@
    starting playback (prebuffer still in use, implication a blip of bad sound and
    a complaining sanitizer).
 -- Reformat audio capabilities table, more condensed, fits into 80 columns.
+   Forced rate on a separated line.
 - out123:
 -- Document --STDOUT, make it more robust regarding fwrite() interruptions.
 -- Removed the implicit phase shift that made generated waves exactly at

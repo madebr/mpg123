@@ -93,6 +93,7 @@ struct parameter
 	long outscale;
 	int flags;
 	long force_rate;
+	int resample;
 	int talk_icy;
 	long resync_limit;
 	int smooth;

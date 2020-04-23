@@ -99,6 +99,11 @@ struct parameter param = {
 	,0 /* outscale */
 	,0 /* flags */
 	,0 /* force_rate */
+#ifndef NO_REAL
+	,0 /* In future 1 for by default good-enough resampling */
+#else
+	,0 /* NtoM resampler */
+#endif
 	,1 /* ICY */
 	,1024 /* resync_limit */
 	,0 /* smooth */
@@ -122,6 +127,7 @@ mpg123_handle *mh = NULL;
 off_t framenum;
 off_t frames_left;
 out123_handle *ao = NULL;
+
 static long output_propflags = 0;
 char *prgName = NULL;
 /* ThOr: pointers are not TRUE or FALSE */
@@ -280,6 +286,7 @@ void safe_exit(int code)
 		controlled_drain();
 	if(intflag)
 		out123_drop(ao);
+	audio_cleanup();
 	out123_del(ao);
 
 	// Free the memory after the output is not working on it anymore!
@@ -523,6 +530,7 @@ topt opts[] = {
 	{0,   "reopen",      GLO_INT,  0, &param.force_reopen, 1},
 	{'g', "gain",        GLO_ARG | GLO_LONG, 0, &param.gain,    0},
 	{'r', "rate",        GLO_ARG | GLO_LONG, 0, &param.force_rate,  0},
+	{0, "resample",      GLO_ARG | GLO_INT, 0, &param.resample,  0},
 	{0,   "8bit",        GLO_INT,  set_frameflag, &frameflag, MPG123_FORCE_8BIT},
 	{0,   "float",       GLO_INT,  set_frameflag, &frameflag, MPG123_FORCE_FLOAT},
 	{0,   "headphones",  0,                  set_output_h, 0,0},
@@ -1098,6 +1106,7 @@ int main(int sys_argc, char ** sys_argv)
 	if(dnow != 0) param.cpu = (dnow == SET_3DNOW) ? "3dnow" : "i586";
 #endif
 	if(param.cpu != NULL && (!strcmp(param.cpu, "auto") || !strcmp(param.cpu, ""))) param.cpu = NULL;
+	long ntom_rate = param.resample ? 0 : param.force_rate;
 	if(!(  MPG123_OK == (result = mpg123_par(mp, MPG123_VERBOSE, param.verbose, 0))
 	    && ++libpar
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_FLAGS, param.flags, 0))
@@ -1106,7 +1115,7 @@ int main(int sys_argc, char ** sys_argv)
 	    && ++libpar
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_RVA, param.rva, 0))
 	    && ++libpar
-	    && MPG123_OK == (result = mpg123_par(mp, MPG123_FORCE_RATE, param.force_rate, 0))
+	    && MPG123_OK == (result = mpg123_par(mp, MPG123_FORCE_RATE, ntom_rate, 0))
 	    && ++libpar
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_DOWNSPEED, param.halfspeed, 0))
 	    && ++libpar
@@ -1230,7 +1239,11 @@ int main(int sys_argc, char ** sys_argv)
 	catchsignal(SIGPIPE, catch_fatal_pipe);
 #endif
 	/* Now either check caps myself or query buffer for that. */
-	audio_capabilities(ao, mh);
+	if(audio_setup(ao, mh))
+	{
+		error("Failed to set up audio output.");
+		safe_exit(7);
+	}
 
 	if(param.remote) {
 		int ret;
@@ -1330,7 +1343,7 @@ int main(int sys_argc, char ** sys_argv)
 			plpos = playlist_pos(&plfill, &plloop);
 			if(newdir)
 			{
-				fprintf(stderr, "Directory:");
+				fprintf(stderr, "Directory: ");
 				print_outstr(stderr, dirname, 0, stderr_is_term);
 				fprintf(stderr, "\n");
 			}
@@ -1603,6 +1616,8 @@ static void long_usage(int err)
 	fprintf(o," -m     --mono --mix       mix stereo to mono\n");
 	fprintf(o,"        --stereo           duplicate mono channel\n");
 	fprintf(o," -r     --rate             force a specific audio output rate\n");
+	fprintf(o,"        --resample         choose resampling mode for forced rate (0: old NtoM\n"
+	          "                           decoder, 1: dirty (default), and 2: smooth resampler\n");
 	fprintf(o," -2     --2to1             2:1 downsampling\n");
 	fprintf(o," -4     --4to1             4:1 downsampling\n");
   fprintf(o,"        --pitch <value>    set hardware pitch (speedup/down, 0 is neutral; 0.05 is 5%%)\n");

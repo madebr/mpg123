@@ -16,6 +16,7 @@ src_mpg123_LDADD = \
   src/compat/libcompat.la \
   src/libmpg123/libmpg123.la \
   src/libout123/libout123.la \
+  src/libsyn123/libsyn123.la \
   @PROG_LIBS@
 
 src_mpg123_LDFLAGS = @EXEC_LT_LDFLAGS@
