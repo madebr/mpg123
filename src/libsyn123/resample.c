@@ -2082,7 +2082,6 @@ syn123_resample_expect(syn123_handle *sh, size_t ins)
 	int64_t offset = rd->sflags & inter_flow ? rd->offset : -rd->vinrate;
 	// Interpolation model:
 	//   outs = (vins*voutrate - offset - 1)/vinrate
-fprintf(stderr, "offset: %"PRIi64"\n", offset);
 	uint64_t tot = muloffdiv64( vins, (uint64_t)rd->voutrate
 	,	(int64_t)(-offset-1), (uint64_t)rd->vinrate, &err, NULL );
 	// Any error is treated as overflow (div by zero -> infinity).
