@@ -24,6 +24,7 @@
 
 void audio_cleanup(void);
 int audio_setup(out123_handle *ao, mpg123_handle *mh);
+int audio_prepare(out123_handle *ao, long rate, int channels, int encoding);
 
 mpg123_string* audio_enclist(void);
 void print_capabilities(out123_handle *ao, mpg123_handle *mh);

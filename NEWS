@@ -42,6 +42,7 @@
    a complaining sanitizer).
 -- Reformat audio capabilities table, more condensed, fits into 80 columns.
    Forced rate on a separated line.
+-- Make --pitch actually work, not just interactive changes.
 - out123:
 -- Document --STDOUT, make it more robust regarding fwrite() interruptions.
 -- Removed the implicit phase shift that made generated waves exactly at

@@ -319,7 +319,7 @@ static void check_fatal_output(int code)
 {
 	if(code)
 	{
-		if(!param.quiet)
+		if(!param.quiet && out123_errcode(ao))
 			error2( "out123 error %i: %s"
 			,	out123_errcode(ao), out123_strerror(ao) );
 		safe_exit(code);
@@ -861,7 +861,8 @@ int play_frame(void)
 				,	rate, channels, encname ? encname : "???" );
 			}
 			new_header = TRUE;
-			check_fatal_output(out123_start(ao, rate, channels, encoding));
+			
+			check_fatal_output(audio_prepare(ao, rate, channels, encoding));
 			/* We may take some time feeding proper data, so pause by default. */
 			out123_pause(ao);
 		}

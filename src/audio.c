@@ -81,6 +81,16 @@ int audio_setup(out123_handle *ao, mpg123_handle *mh)
 	return 0;
 }
 
+int audio_prepare(out123_handle *ao, long rate, int channels, int encoding)
+{
+	if(do_resample)
+	{
+		rate     = outfmt.rate;
+		encoding = outfmt.encoding;
+	} else
+	return out123_start(ao, pitch_rate(rate), channels, encoding);
+}
+
 mpg123_string* audio_enclist(void)
 {
 	int i;
@@ -411,7 +421,8 @@ int set_pitch(mpg123_handle *fr, out123_handle *ao, double new_pitch)
 	/* Remember: This takes param.pitch into account. */
 	audio_capabilities(ao, fr);
 	if(!(mpg123_format_support(fr, rate, format) & smode))
-	{
+	{	return out123_start(ao, pitch_rate(rate), channels, format);
+
 		/* Note: When using --pitch command line parameter, you can go higher
 		   because a lower decoder sample rate is automagically chosen.
 		   Here, we'd need to switch decoder rate during track... good? */
