@@ -23,19 +23,19 @@
 
 #include "debug.h"
 
-syn123_handle *sh = NULL;
-struct mpg123_fmt outfmt = { .encoding=0, .rate=0, .channels=0 };
+static syn123_handle *sh = NULL;
+static struct mpg123_fmt outfmt = { .encoding=0, .rate=0, .channels=0 };
+static int outch = 0; // currently used number of output channels
+// A convoluted way to say outch*4, for semantic clarity.
+#define RESAMPLE_FRAMESIZE(ch) ((ch)*MPG123_SAMPLESIZE(MPG123_ENC_FLOAT_32))
+#define OUTPUT_FRAMESIZE(ch)   ((ch)*MPG123_SAMPLESIZE(outfmt.encoding))
 // Resampler buffers, first for resampling output, then for conversion.
 // Instead of sizing them for any possible input rate, I'll try to
 // loop in the output wrapper over a fixed buffer size. The syn123 resampler
 // can tell me how many samples to feed to avoid exceeding the output buffer.
-// Keep that efficient: Check if the expected samples with the input sample
-// count from last time still fit (keep one sample of headroom, generally),
-// only if not, do a full recomputation of the safe input sample count,
-// as that involves two syn123 calls instead of one ... not that it matters
-// compare to the cost of actually resampling.
 static char *resample_buffer = NULL;
 static char* resample_outbuf = NULL;
+static size_t resample_block = 0;
 // A good buffer size:
 // 1152*48/44.1*2*4 = 10032 ... let's go 16K.
 // This should work for final output data, too.
@@ -58,13 +58,14 @@ void audio_cleanup(void)
 int audio_setup(out123_handle *ao, mpg123_handle *mh)
 {
 	do_resample = (param.force_rate > 0 && param.resample);
+	resample_block = 0;
 	// Settle formats.
 	if(audio_capabilities(ao, mh))
 		return -1;
 	// Prepare resample.
 	// Resampling only for forced rate for now. In future, pitching should
 	// also be handled.
-	if(param.resample && param.force_rate)
+	if(do_resample)
 	{
 		int err;
 		sh = syn123_new(outfmt.rate, 1, outfmt.encoding, 0, &err);
@@ -73,8 +74,8 @@ int audio_setup(out123_handle *ao, mpg123_handle *mh)
 			merror("Cannot initialize syn123: %s\n", syn123_strerror(err));
 			return -1;
 		}
-		resample_buffer = malloc(1<<14);
-		resample_outbuf = malloc(1<<14);
+		resample_buffer = malloc(resample_bytes);
+		resample_outbuf = malloc(resample_bytes);
 		if(!resample_buffer || !resample_outbuf)
 			return -1;
 	}
@@ -85,10 +86,77 @@ int audio_prepare(out123_handle *ao, long rate, int channels, int encoding)
 {
 	if(do_resample)
 	{
+		// Smooth option could be considered once pitching is implemented with the resampler.
+		int err = syn123_setup_resample( sh, rate, outfmt.rate, channels
+		,	(param.resample < 2), 0 );
+		if(err)
+		{
+			merror("failed to set up resampler: %s", syn123_strerror(err));
+			return -1;
+		}
+		outch = channels;
+		// We can store a certain ammount of frames in the resampler buffer
+		// and the final output buffer after conversion.
+		size_t frames = resample_bytes / (
+			RESAMPLE_FRAMESIZE(channels) > OUTPUT_FRAMESIZE(channels)
+			?	RESAMPLE_FRAMESIZE(channels)
+			:	OUTPUT_FRAMESIZE(channels) );
+		// Minimum amount of input samples to fill the buffer.
+		resample_block = syn123_resample_incount(rate, outfmt.rate, frames);
+		// Reduce that to ensure that we never get more than a buffer's fill.
+		while( resample_block &&
+			syn123_resample_count(rate, outfmt.rate, resample_block) > frames )
+			--resample_block;
+		if(!resample_block)
+			return -1; // WTF? No comment.
+		mdebug("resampler setup %ld -> %ld, block %zu", rate, outfmt.rate, resample_block);
 		rate     = outfmt.rate;
 		encoding = outfmt.encoding;
-	} else
+	}
 	return out123_start(ao, pitch_rate(rate), channels, encoding);
+}
+
+// Loop over blocks with the resampler, think about intflag.
+size_t audio_play(out123_handle *ao, void *buffer, size_t bytes)
+{
+	if(do_resample)
+	{
+		int fs = RESAMPLE_FRAMESIZE(outch);
+		size_t pcmframes = bytes/fs;
+		size_t done = 0;
+		while(pcmframes && !intflag)
+		{
+			size_t block = resample_block > pcmframes
+			?	pcmframes
+			:	resample_block;
+			size_t oblock = syn123_resample( sh, (float*)resample_buffer
+			,	(float*)((char*)buffer+done), block );
+			if(!oblock)
+				break;
+			size_t obytes = 0;
+			if(syn123_conv( resample_outbuf, outfmt.encoding, resample_bytes
+			,	resample_buffer, MPG123_ENC_FLOAT_32, oblock*fs
+			,	&obytes, NULL, sh ))
+				break;
+			size_t oplay = out123_play(ao, resample_outbuf, obytes);
+			if(oplay < obytes)
+			{
+				// Need to translate that. How many input samples got played,
+				// actually? A bit of roundoff error doesn't hurt, so let's just
+				// wing it. Close is enough.
+				size_t iframes = (size_t)((double)oplay/obytes*block);
+				while(iframes >= block)
+					--iframes;
+				done += iframes*fs;
+				break;
+			}
+			pcmframes -= block;
+			done      += block*fs;
+		}
+		return done;
+	}
+	else
+		return out123_play(ao, buffer, bytes);
 }
 
 mpg123_string* audio_enclist(void)
@@ -421,7 +489,7 @@ int set_pitch(mpg123_handle *fr, out123_handle *ao, double new_pitch)
 	/* Remember: This takes param.pitch into account. */
 	audio_capabilities(ao, fr);
 	if(!(mpg123_format_support(fr, rate, format) & smode))
-	{	return out123_start(ao, pitch_rate(rate), channels, format);
+	{
 
 		/* Note: When using --pitch command line parameter, you can go higher
 		   because a lower decoder sample rate is automagically chosen.

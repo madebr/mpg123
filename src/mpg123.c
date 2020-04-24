@@ -238,7 +238,7 @@ static void play_prebuffer(void)
 	/* Ensure that the prebuffer bit has been posted. */
 	if(prebuffer_fill)
 	{
-		if(out123_play(ao, prebuffer, prebuffer_fill) < prebuffer_fill)
+		if(audio_play(ao, prebuffer, prebuffer_fill) < prebuffer_fill)
 		{
 			error("Deep trouble! Cannot flush to my output anymore!");
 			safe_exit(133);
@@ -322,6 +322,8 @@ static void check_fatal_output(int code)
 		if(out123_errcode(ao))
 			error2( "out123 error %i: %s"
 			,	out123_errcode(ao), out123_strerror(ao) );
+		else
+			error("fatal output (setup) error");
 		safe_exit(code);
 	}
 }
@@ -804,7 +806,7 @@ int play_frame(void)
 				bytes -= missing;
 				prebuffer_fill += missing;
 			}
-			if(   out123_play(ao, prebuffer, prebuffer_fill) < prebuffer_fill
+			if(   audio_play(ao, prebuffer, prebuffer_fill) < prebuffer_fill
 			   && !intflag )
 			{
 				error("Deep trouble! Cannot flush to my output anymore!");
@@ -816,7 +818,7 @@ int play_frame(void)
 		   I wonder if that makes us miss errors. Actual issues should
 		   just be postponed. */
 		if(bytes && !intflag) /* Previous piece could already be interrupted. */
-		if(out123_play(ao, playbuf, bytes) < bytes && !intflag)
+		if(audio_play(ao, playbuf, bytes) < bytes && !intflag)
 		{
 			error("Deep trouble! Cannot flush to my output anymore!");
 			safe_exit(133);
