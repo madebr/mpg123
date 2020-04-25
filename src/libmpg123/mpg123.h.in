@@ -485,7 +485,9 @@ enum mpg123_channelcount
 
 /** An array of supported standard sample rates
  *  These are possible native sample rates of MPEG audio files.
- *  You can still force mpg123 to resample to a different one, but by default you will only get audio in one of these samplings.
+ *  You can still force mpg123 to resample to a different one, but by
+ *  default you will only get audio in one of these samplings.
+ *  This list is in ascending order.
  *  \param list Store a pointer to the sample rates array there.
  *  \param number Store the number of sample rates there. */
 MPG123_EXPORT void mpg123_rates(const long **list, size_t *number);
