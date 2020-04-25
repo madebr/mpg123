@@ -372,11 +372,6 @@ static int audio_capabilities(out123_handle *ao, mpg123_handle *mh)
 			,	(unsigned)force_fmt, out123_enc_name(force_fmt));
 	}
 
-//TODO: also enable downsampled decoding to avoid resampler decimation steps
-//How could I achieve that? Provide a target rate as libmpg123 parametger to indicate
-//that I'd like the smallest rate that's larger than that and the native rate.
-//A bit silly but this is why it makes sense to integrate the resampler with
-//libmpg123 usage.
 	if(do_resample)
 	{
 		if(param.pitch != 0)
@@ -489,11 +484,23 @@ static int audio_capabilities(out123_handle *ao, mpg123_handle *mh)
 			long decode_rate = brate(unpitch, outfmts[fi].rate, rlimit, &unpitch_i);
 			if(do_resample && decode_rate != outfmt.rate)
 			{
+				fmts = 0;
 				// Only enable float outupt for resampler if needed and channel
 				// count supported for real output format.
-				fmts = 0;
 				if((outfmts[fi].channels & outfmt.channels) == outfmts[fi].channels)
 					fmts = MPG123_ENC_FLOAT_32;
+				// Also, be smart and let the internal downsampling work for small output
+				// rates. If target is 22050, decoding to 44100 and 48000 is not sensible,
+				// rather do 22050 or 24000. We have a factor of 4 to play with.
+				// So any input file, with max rate of 48000, can be decoded down to
+				// 12000 at least, actually saving computing time, if not in the decoder,
+				// then in the resampler.
+				// Every rate above 12000 can be halved to still get a valid MPEG rate.
+				// Output of 12001 Hz needs decoding to 16000 up to 23999, but not more.
+				// My resampler does not care about very small resampling steps; the less
+				// samples, the less work.
+				if(decode_rate > 12000 && decode_rate > outfmt.rate*2)
+					fmts = 0;
 			}
 			mpg123_format(mh, decode_rate, outfmts[fi].channels, fmts);
 		}
