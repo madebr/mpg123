@@ -1255,7 +1255,7 @@ static void setup_processing(void)
 		resaudio = fatal_malloc(resample_out*sizeof(float)*channels);
 	}
 
-	audio = fatal_malloc((resample_out ? resample_out : pcmblock)*pcmframe);
+	audio = fatal_malloc((resample_out>pcmblock ? resample_out : pcmblock)*pcmframe);
 
 	// If converting or mixing, use separate input buffer.
 	if(inputenc != encoding || mixmat)
