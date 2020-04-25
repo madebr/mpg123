@@ -40,7 +40,7 @@ static void frame_default_pars(mpg123_pars *mp)
 #ifdef GAPLESS
 	mp->flags |= MPG123_GAPLESS;
 #endif
-	mp->flags |= MPG123_AUTO_RESAMPLE;
+	mp->flags |= MPG123_AUTO_RESAMPLE|MPG123_FLOAT_FALLBACK;
 #ifndef NO_NTOM
 	mp->force_rate = 0;
 #endif

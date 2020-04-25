@@ -61,6 +61,10 @@ static const int my_encodings[MPG123_ENCODINGS] =
 static const int enc_float_range[2] = { 6, 8 };
 /* same for 8 bit encodings */
 static const int enc_8bit_range[2] = { 8, 12 };
+// for 24 bit quality (24 and 32 bit integers)
+static const int enc_24bit_range[2] = { 2, 6 };
+// for completeness, the 16 bits
+static const int enc_16bit_range[2] = { 0, 2};
 
 /*
 	Only one type of float is supported.
@@ -151,14 +155,14 @@ static int enc2num(int encoding)
 	return -1;
 }
 
-static int cap_fit(mpg123_handle *fr, struct audioformat *nf, int f0, int f2)
+static int cap_fit(mpg123_pars *p, struct audioformat *nf, int f0, int f2)
 {
 	int i;
 	int c  = nf->channels-1;
-	int rn = rate2num(&fr->p, nf->rate);
+	int rn = rate2num(p, nf->rate);
 	if(rn >= 0)	for(i=f0;i<f2;i++)
 	{
-		if(fr->p.audio_caps[c][rn][i])
+		if(p->audio_caps[c][rn][i])
 		{
 			nf->encoding = my_encodings[i];
 			return 1;
@@ -167,48 +171,54 @@ static int cap_fit(mpg123_handle *fr, struct audioformat *nf, int f0, int f2)
 	return 0;
 }
 
-static int freq_fit(mpg123_handle *fr, struct audioformat *nf, int f0, int f2)
+static int imin(int a, int b)
 {
-	nf->rate = frame_freq(fr)>>fr->p.down_sample;
-	if(cap_fit(fr,nf,f0,f2)) return 1;
-	if(fr->p.flags & MPG123_AUTO_RESAMPLE)
-	{
-		nf->rate>>=1;
-		if(cap_fit(fr,nf,f0,f2)) return 1;
-		nf->rate>>=1;
-		if(cap_fit(fr,nf,f0,f2)) return 1;
-	}
-#ifndef NO_NTOM
-	/* If nothing worked, try the other rates, only without constrains from user.
-	   In case you didn't guess: We enable flexible resampling if we find a working rate. */
-	if(  fr->p.flags & MPG123_AUTO_RESAMPLE &&
-	    !fr->p.force_rate && fr->p.down_sample == 0)
-	{
-		int i;
-		int c  = nf->channels-1;
-		int rn = rate2num(&fr->p, frame_freq(fr));
-		int rrn;
-		if(rn < 0) return 0;
-		/* Try higher rates first. */
-		for(i=f0;i<f2;i++) for(rrn=rn+1; rrn<MPG123_RATES; ++rrn)
-		if(fr->p.audio_caps[c][rrn][i])
-		{
-			nf->rate = my_rates[rrn];
-			nf->encoding = my_encodings[i];
-			return 1;
-		}
-		/* Then lower rates. */
-		for(i=f0;i<f2;i++) for(rrn=rn-1; rrn>=0; --rrn)
-		if(fr->p.audio_caps[c][rrn][i])
-		{
-			nf->rate = my_rates[rrn];
-			nf->encoding = my_encodings[i];
-			return 1;
-		}
-	}
-#endif
+	return a < b ? a : b;
+}
 
-	return 0;
+static int imax(int a, int b)
+{
+	return a > b ? a : b;
+}
+
+// Find a possible encoding with given rate and channel count,
+// try differing channel count, too.
+// This updates the given format and returns TRUE if an encoding
+// was found.
+static int enc_chan_fit( mpg123_pars *p, long rate, struct audioformat *nnf
+,	int f0, int f2, int try_float )
+{
+#define ENCRANGE(range) imax(f0, range[0]), imin(f2, range[1])
+	struct audioformat nf = *nnf;
+	nf.rate = rate;
+	if(cap_fit(p, &nf, ENCRANGE(enc_16bit_range)))
+		goto eend;
+	if(cap_fit(p, &nf, ENCRANGE(enc_24bit_range)))
+		goto eend;
+	if(try_float &&
+		cap_fit(p, &nf, ENCRANGE(enc_float_range)))
+		goto eend;
+	if(cap_fit(p, &nf, ENCRANGE(enc_8bit_range)))
+		goto eend;
+
+	/* try again with different stereoness */
+	if(nf.channels == 2 && !(p->flags & MPG123_FORCE_STEREO)) nf.channels = 1;
+	else if(nf.channels == 1 && !(p->flags & MPG123_FORCE_MONO)) nf.channels = 2;
+
+	if(cap_fit(p, &nf, ENCRANGE(enc_16bit_range)))
+		goto eend;
+	if(cap_fit(p, &nf, ENCRANGE(enc_24bit_range)))
+		goto eend;
+	if(try_float &&
+		cap_fit(p, &nf, ENCRANGE(enc_float_range)))
+		goto eend;
+	if(cap_fit(p, &nf, ENCRANGE(enc_8bit_range)))
+		goto eend;
+	return FALSE;
+eend:
+	*nnf = nf;
+	return TRUE;
+#undef ENCRANGE
 }
 
 /* match constraints against supported audio formats, store possible setup in frame
@@ -217,12 +227,17 @@ int frame_output_format(mpg123_handle *fr)
 {
 	struct audioformat nf;
 	int f0=0;
-	int f2=MPG123_ENCODINGS; /* Omit the 32bit and float encodings. */
+	int f2=MPG123_ENCODINGS+1; // Include all encodings by default.
 	mpg123_pars *p = &fr->p;
+	int try_float = (p->flags & MPG123_FLOAT_FALLBACK) ? 0 : 1;
 	/* initialize new format, encoding comes later */
 	nf.channels = fr->stereo;
 
-	/* All this forcing should be removed in favour of the capabilities table... */
+	// I intended the forcing stuff to be weaved into the format support table,
+	// but this probably will never happen, as this would change library behaviour.
+	// One could introduce an additional effective format table that takes for
+	// forcings into account, but that would have to be updated on any flag
+	// change. Tedious.
 	if(p->flags & MPG123_FORCE_8BIT)
 	{
 		f0 = enc_8bit_range[0];
@@ -230,6 +245,7 @@ int frame_output_format(mpg123_handle *fr)
 	}
 	if(p->flags & MPG123_FORCE_FLOAT)
 	{
+		try_float = 1;
 		f0 = enc_float_range[0];
 		f2 = enc_float_range[1];
 	}
@@ -238,24 +254,31 @@ int frame_output_format(mpg123_handle *fr)
 	if(p->flags & MPG123_FORCE_MONO)   nf.channels = 1;
 	if(p->flags & MPG123_FORCE_STEREO) nf.channels = 2;
 
+	// Strategy update: Avoid too early triggering of the NtoM decoder.
+	// Main target is the native rate, with any encoding.
+	// Then, native rate with any channel count and any encoding.
+	// Then, it's down_sample from native rate.
+	// As last resort: NtoM rate.
+	// So the priority is 1. rate 2. channels 3. encoding.
+	// As encodings go, 16 bit is tranditionally preferred as efficient choice.
+	// Next in line are wider float and integer encodings, then 8 bit as
+	// last resort.
+
 #ifndef NO_NTOM
 	if(p->force_rate)
 	{
-		nf.rate = p->force_rate;
-		if(cap_fit(fr,&nf,f0,2)) goto end;            /* 16bit encodings */
-		if(cap_fit(fr,&nf,f0<=2 ? 2 : f0,f2)) goto end; /*  8bit encodings */
-
-		/* try again with different stereoness */
-		if(nf.channels == 2 && !(p->flags & MPG123_FORCE_STEREO)) nf.channels = 1;
-		else if(nf.channels == 1 && !(p->flags & MPG123_FORCE_MONO)) nf.channels = 2;
-
-		if(cap_fit(fr,&nf,f0,2)) goto end;            /* 16bit encodings */
-		if(cap_fit(fr,&nf,f0<=2 ? 2 : f0,f2)) goto end; /*  8bit encodings */
+		if(enc_chan_fit(p, p->force_rate, &nf, f0, f2, try_float))
+			goto end;
+		// Keep the order consistent if float is considered fallback only.
+		if(!try_float && 
+			enc_chan_fit(p, p->force_rate, &nf, f0, f2, TRUE))
+				goto end;
 
 		merror( "Unable to set up output format! Constraints: %s%s%liHz."
 		,	( p->flags & MPG123_FORCE_STEREO ? "stereo, " :
 				(p->flags & MPG123_FORCE_MONO ? "mono, " : "") )
-		,	(p->flags & MPG123_FORCE_8BIT ? "8bit, " : "")
+		,	( p->flags & MPG123_FORCE_FLOAT ? "float, " :
+				(p->flags & MPG123_FORCE_8BIT ? "8bit, " : "") )
 		,	p->force_rate );
 /*		if(NOQUIET && p->verbose <= 1) print_capabilities(fr); */
 
@@ -263,22 +286,72 @@ int frame_output_format(mpg123_handle *fr)
 		return -1;
 	}
 #endif
-
-	if(freq_fit(fr, &nf, f0, 2)) goto end; /* try rates with 16bit */
-	if(freq_fit(fr, &nf, f0<=2 ? 2 : f0, f2)) goto end; /* ... 8bit */
-
-	/* try again with different stereoness */
-	if(nf.channels == 2 && !(p->flags & MPG123_FORCE_STEREO)) nf.channels = 1;
-	else if(nf.channels == 1 && !(p->flags & MPG123_FORCE_MONO)) nf.channels = 2;
-
-	if(freq_fit(fr, &nf, f0, 2)) goto end; /* try rates with 16bit */
-	if(freq_fit(fr, &nf,  f0<=2 ? 2 : f0, f2)) goto end; /* ... 8bit */
+	// Native decoder rate first.
+	if(enc_chan_fit(p, frame_freq(fr)>>p->down_sample, &nf, f0, f2, try_float))
+		goto end;
+	// Then downsamplings.
+	if(p->flags & MPG123_AUTO_RESAMPLE && p->down_sample < 2)
+	{
+		if(enc_chan_fit( p, frame_freq(fr)>>(p->down_sample+1), &nf
+		,	f0, f2, try_float ))
+			goto end;
+		if(p->down_sample < 1 && enc_chan_fit( p, frame_freq(fr)>>2, &nf
+		,	f0, f2, try_float ))
+			goto end;
+	}
+	// And again the whole deal with float fallback.
+	if(!try_float)
+	{
+		if(enc_chan_fit(p, frame_freq(fr)>>p->down_sample, &nf, f0, f2, TRUE))
+			goto end;
+		// Then downsamplings.
+		if(p->flags & MPG123_AUTO_RESAMPLE && p->down_sample < 2)
+		{
+			if(enc_chan_fit( p, frame_freq(fr)>>(p->down_sample+1), &nf
+			,	f0, f2, TRUE ))
+				goto end;
+			if(p->down_sample < 1 && enc_chan_fit( p, frame_freq(fr)>>2, &nf
+			,	f0, f2, TRUE ))
+				goto end;
+		}
+	}
+#ifndef NO_NTOM
+	// Try to find any rate that works and resample using NtoM hackery.
+	if(  p->flags & MPG123_AUTO_RESAMPLE && fr->p.down_sample == 0)
+	{
+		int i;
+		int rn = rate2num(p, frame_freq(fr));
+		int rrn;
+		if(rn < 0) return 0;
+		/* Try higher rates first. */
+		for(rrn=rn+1; rrn<MPG123_RATES; ++rrn)
+			if(enc_chan_fit(p, my_rates[rrn], &nf, f0, f2, try_float))
+				goto end;
+		/* Then lower rates. */
+		for(i=f0;i<f2;i++) for(rrn=rn-1; rrn>=0; --rrn)
+			if(enc_chan_fit(p, my_rates[rrn], &nf, f0, f2, try_float))
+				goto end;
+		// And again for float fallback.
+		if(!try_float)
+		{
+			/* Try higher rates first. */
+			for(rrn=rn+1; rrn<MPG123_RATES; ++rrn)
+				if(enc_chan_fit(p, my_rates[rrn], &nf, f0, f2, TRUE))
+					goto end;
+			/* Then lower rates. */
+			for(i=f0;i<f2;i++) for(rrn=rn-1; rrn>=0; --rrn)
+				if(enc_chan_fit(p, my_rates[rrn], &nf, f0, f2, TRUE))
+					goto end;
+		}
+	}
+#endif
 
 	/* Here is the _bad_ end. */
 	merror( "Unable to set up output format! Constraints: %s%s%li, %li or %liHz."
 	,	( p->flags & MPG123_FORCE_STEREO ? "stereo, " :
-			(p->flags & MPG123_FORCE_MONO ? "mono, "  : "") )
-	,	(p->flags & MPG123_FORCE_8BIT  ? "8bit, " : "")
+			(p->flags & MPG123_FORCE_MONO ? "mono, " : "") )
+	,	( p->flags & MPG123_FORCE_FLOAT ? "float, " :
+			(p->flags & MPG123_FORCE_8BIT ? "8bit, " : "") )
 	,	frame_freq(fr),  frame_freq(fr)>>1, frame_freq(fr)>>2 );
 /*	if(NOQUIET && p->verbose <= 1) print_capabilities(fr); */
 

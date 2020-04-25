@@ -241,6 +241,14 @@ enum mpg123_param_flags
 	 * free format support unless you provide a frame size using
 	 * MPG123_FREEFORMAT_SIZE.
 	 */
+	,MPG123_FLOAT_FALLBACK /**< Consider floating point output encoding only after
+	 * trying other (possibly downsampled) rates and encodings first. This is to
+	 * support efficient playback where floating point output is only configured for
+	 * an external resampler, bypassing that resampler when the desired rate can
+	 * be produced directly. This is enabled by default to be closer to older versions
+	 * of libmpg123 which did not enable float automatically at all. If disabled,
+	 * float is considered after the 16 bit default and higher-bit integer encodings
+	 * for any rate. */
 };
 
 /** choices for MPG123_RVA */
