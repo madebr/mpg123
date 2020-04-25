@@ -2034,6 +2034,18 @@ syn123_resample_incount(long inrate, long outrate, size_t outs)
 	return (tot <= SIZE_MAX) ? (size_t)tot : 0;
 }
 
+// A bit of convenience. Just rely on the other functions.
+size_t attribute_align_arg
+syn123_resample_fillcount(long input_rate, long output_rate, size_t outs)
+{
+	size_t block = syn123_resample_incount(input_rate, output_rate, outs);
+	// Reduce that to ensure that we never get more than a buffer's fill.
+	while( block &&
+		syn123_resample_count(input_rate, output_rate, block) > outs )
+		--block;
+	return block;
+}
+
 // The exact predictor: How many output samples will I get _now_
 // after feeding the indicated amount? This is concerned with
 // Buffer sizes, so let's drop the 32/64 bit distinction.

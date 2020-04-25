@@ -904,6 +904,24 @@ size_t syn123_resample_history(long inrate, long outrate, int dirty);
 MPG123_EXPORT
 size_t syn123_resample_incount(long input_rate, long output_rate, size_t outs);
 
+/** Compute the input sample count needed for close to given output sample
+ *  count, but never more.
+ *
+ *  Call this to get a safe fixed count of input samples to make best use
+ *  of a preallocated output buffer, filling it as much as safely possible.
+ *  This can also be achieved by calling syn123_resample_incount() and reducing
+ *  the value until syn123_resample_count() fits into your buffer.
+ *
+ *  \param input_rate input sample rate
+ *  \param output_rate output sample rate
+ *  \param outs desired output sample count for one input buffer
+ *  \return number of input samples in one buffer, or zero if no
+ *    sensible value exists (invalid input parameters, or zero outs)
+ */
+MPG123_EXPORT
+size_t syn123_resample_fillcount(long input_rate, long output_rate, size_t outs);
+
+
 /** Compute the maximum number of input samples for a resampling buffer.
  *
  *  Upsampling means that you will get more output samples than input samples.
