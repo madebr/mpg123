@@ -100,7 +100,7 @@ struct parameter param = {
 	,0 /* flags */
 	,0 /* force_rate */
 #ifndef NO_REAL
-	,0 /* In future 1 for by default good-enough resampling */
+	,2 /* fine resampling */
 #else
 	,0 /* NtoM resampler */
 #endif
@@ -383,6 +383,21 @@ static void set_output(char *arg)
 	else set_output_module(arg);
 }
 
+static void set_resample(char *arg)
+{
+	if(!strcasecmp("ntom", arg))
+		param.resample = 0;
+	else if(!strcasecmp("dirty", arg))
+		param.resample = 1;
+	else if(!strcasecmp("fine", arg))
+		param.resample = 2;
+	else
+	{
+		merror("\"%s\" is no valid resampler choice", arg);
+		safe_exit(1);
+	}
+}
+
 static void set_verbose (char *arg)
 {
     param.verbose++;
@@ -532,7 +547,7 @@ topt opts[] = {
 	{0,   "reopen",      GLO_INT,  0, &param.force_reopen, 1},
 	{'g', "gain",        GLO_ARG | GLO_LONG, 0, &param.gain,    0},
 	{'r', "rate",        GLO_ARG | GLO_LONG, 0, &param.force_rate,  0},
-	{0, "resample",      GLO_ARG | GLO_INT, 0, &param.resample,  0},
+	{0, "resample",      GLO_ARG | GLO_CHAR, set_resample, NULL,  0},
 	{0,   "8bit",        GLO_INT,  set_frameflag, &frameflag, MPG123_FORCE_8BIT},
 	{0,   "float",       GLO_INT,  set_frameflag, &frameflag, MPG123_FORCE_FLOAT},
 	{0,   "headphones",  0,                  set_output_h, 0,0},
@@ -1617,8 +1632,8 @@ static void long_usage(int err)
 	fprintf(o," -m     --mono --mix       mix stereo to mono\n");
 	fprintf(o,"        --stereo           duplicate mono channel\n");
 	fprintf(o," -r     --rate             force a specific audio output rate\n");
-	fprintf(o,"        --resample         choose resampling mode for forced rate (0: old NtoM\n"
-	          "                           decoder, 1: dirty (default), and 2: smooth resampler\n");
+	fprintf(o,"        --resample         choose resampling mode for forced rate:\n"
+	          "                           NtoM, dirty, fine (default)\n");
 	fprintf(o," -2     --2to1             2:1 downsampling\n");
 	fprintf(o," -4     --4to1             4:1 downsampling\n");
   fprintf(o,"        --pitch <value>    set hardware pitch (speedup/down, 0 is neutral; 0.05 is 5%%)\n");
