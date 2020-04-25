@@ -23,7 +23,7 @@ static int open_dummy(out123_handle *ao)
 static int get_formats_dummy(out123_handle *ao)
 {
 	debug("get_formats_dummy()");
-	return MPG123_ENC_SIGNED_16;
+	return MPG123_ENC_ANY;
 }
 
 static int write_dummy(out123_handle *ao,unsigned char *buf,int len)
