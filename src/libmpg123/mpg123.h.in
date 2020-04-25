@@ -241,7 +241,7 @@ enum mpg123_param_flags
 	 * free format support unless you provide a frame size using
 	 * MPG123_FREEFORMAT_SIZE.
 	 */
-	,MPG123_FLOAT_FALLBACK /**< Consider floating point output encoding only after
+	,MPG123_FLOAT_FALLBACK = 0x800000 /**< Consider floating point output encoding only after
 	 * trying other (possibly downsampled) rates and encodings first. This is to
 	 * support efficient playback where floating point output is only configured for
 	 * an external resampler, bypassing that resampler when the desired rate can
