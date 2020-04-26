@@ -1,5 +1,8 @@
-1.0.1
-	- initial version
+3.0.3
+	- added out123_free()
 
 2.0.2
 	- added OUT123_BINDIR
+
+1.0.1
+	- initial version
