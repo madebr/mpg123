@@ -62,7 +62,7 @@ static size_t resample_block = 0;
 // 1152*48/44.1*2*4 = 10032 ... let's go 16K.
 // This should work for final output data, too.
 // We'll loop over pieces if the buffer size is not enough for upsampling.
-static size_t resample_bytes = 1<<16;
+static size_t resample_bytes = 1<<14;
 int do_resample = 0;
 int do_resample_now = 0; // really apply resampler for current stream.
 
