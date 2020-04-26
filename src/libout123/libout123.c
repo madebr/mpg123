@@ -691,13 +691,19 @@ out123_play(out123_handle *ao, void *bytes, size_t count)
 	else
 #endif
 	{
+		// Write 16K in a piece as maximum, as I've seen random short
+		// writes of big blocks with ALSA.
+		int maxcount = 1<<14;
+		maxcount -= maxcount % ao->framesize;
+		if(maxcount < 1)
+			maxcount = ao->framesize;
 		if(ao->flags & OUT123_MUTE)
 			mute_block( bytes, count, ao->zerosample
 			,	MPG123_SAMPLESIZE(ao->format) );
 		do /* Playback in a loop to be able to continue after interruptions. */
 		{
 			errno = 0;
-			int block = count > INT_MAX ? INT_MAX : count;
+			int block = count > maxcount ? maxcount : count;
 			written = ao->write(ao, bytes, block);
 			debug4( "written: %d errno: %i (%s), keep_on=%d"
 			,	written, errno, strerror(errno)
@@ -707,7 +713,8 @@ out123_play(out123_handle *ao, void *bytes, size_t count)
 			{
 				ao->errcode = OUT123_DEV_PLAY;
 				if(!AOQUIET)
-					error1("Error in writing audio (%s?)!", strerror(errno));
+					merror( "Error in writing audio, wrote only %d of %d (%s?)!"
+					,	written, block, strerror(errno) );
 				/* This is a serious issue ending this playback round. */
 				break;
 			}

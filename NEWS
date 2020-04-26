@@ -84,6 +84,8 @@
 -- Fixed out_play() abortion logic to better detect fatal situations
    (broken pipe). Needed on FreeBSD, while Linux buffers the issue away.
    Should resolve bug 283.
+-- Limit size of buffer block being written in out123_play to 16K, avoiding
+   unnecessary failure with ALSA at least.
 -- Using SDL2 now if found. Output module code unchanged.
 -- Added hex and txt (plain text) printout.
 -- Eliminated a spots where error messages would still be printed
