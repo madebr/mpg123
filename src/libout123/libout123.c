@@ -710,8 +710,8 @@ out123_play(out123_handle *ao, void *bytes, size_t count)
 			,	ao->flags & OUT123_KEEP_PLAYING );
 			if(written > 0)
 			{
-				bytes = (char*)bytes+written;
-				sum+=written;
+				bytes  = (char*)bytes+written;
+				sum   += written;
 				count -= written;
 			}
 			if(written < block && errno != EINTR)
