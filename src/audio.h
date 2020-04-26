@@ -21,6 +21,8 @@
 #include "out123.h"
 
 #define pitch_rate(rate)	(param.pitch == 0 ? (rate) : (long) ((param.pitch+1.0)*(rate)))
+#define bpitch_rate(rate)	(param.pitch == 0 ? (rate) : (long) ((rate)/(param.pitch+1.0)))
+
 
 void audio_cleanup(void);
 int audio_setup(out123_handle *ao, mpg123_handle *mh);

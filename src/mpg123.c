@@ -1124,7 +1124,6 @@ int main(int sys_argc, char ** sys_argv)
 	if(dnow != 0) param.cpu = (dnow == SET_3DNOW) ? "3dnow" : "i586";
 #endif
 	if(param.cpu != NULL && (!strcmp(param.cpu, "auto") || !strcmp(param.cpu, ""))) param.cpu = NULL;
-	long ntom_rate = param.resample ? 0 : param.force_rate;
 	if(!(  MPG123_OK == (result = mpg123_par(mp, MPG123_VERBOSE, param.verbose, 0))
 	    && ++libpar
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_FLAGS, param.flags, 0))
@@ -1132,8 +1131,6 @@ int main(int sys_argc, char ** sys_argv)
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_DOWN_SAMPLE, param.down_sample, 0))
 	    && ++libpar
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_RVA, param.rva, 0))
-	    && ++libpar
-	    && MPG123_OK == (result = mpg123_par(mp, MPG123_FORCE_RATE, ntom_rate, 0))
 	    && ++libpar
 	    && MPG123_OK == (result = mpg123_par(mp, MPG123_DOWNSPEED, param.halfspeed, 0))
 	    && ++libpar
@@ -1632,11 +1629,11 @@ static void long_usage(int err)
 	fprintf(o," -m     --mono --mix       mix stereo to mono\n");
 	fprintf(o,"        --stereo           duplicate mono channel\n");
 	fprintf(o," -r     --rate             force a specific audio output rate\n");
-	fprintf(o,"        --resample         choose resampling mode for forced rate:\n"
+	fprintf(o,"        --resample <s>     choose resampling mode for forced rate:\n"
 	          "                           NtoM, dirty, fine (default)\n");
 	fprintf(o," -2     --2to1             2:1 downsampling\n");
 	fprintf(o," -4     --4to1             4:1 downsampling\n");
-  fprintf(o,"        --pitch <value>    set hardware pitch (speedup/down, 0 is neutral; 0.05 is 5%%)\n");
+	fprintf(o,"        --pitch <value>    set pitch (speedup/down, 0 is neutral; 0.05 is 5%%)\n");
 	fprintf(o,"        --8bit             force 8 bit output\n");
 	fprintf(o,"        --float            force floating point output (internal precision)\n");
 	fprintf(o," -e <c> --encoding <c>     force a specific encoding (%s)\n"

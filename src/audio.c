@@ -47,6 +47,7 @@
 static syn123_handle *sh = NULL;
 static struct mpg123_fmt outfmt = { .encoding=0, .rate=0, .channels=0 };
 static int outch = 0; // currently used number of output channels
+
 // A convoluted way to say outch*4, for semantic clarity.
 #define RESAMPLE_FRAMESIZE(ch) ((ch)*MPG123_SAMPLESIZE(MPG123_ENC_FLOAT_32))
 #define OUTPUT_FRAMESIZE(ch)   ((ch)*MPG123_SAMPLESIZE(outfmt.encoding))
@@ -61,20 +62,28 @@ static size_t resample_block = 0;
 // 1152*48/44.1*2*4 = 10032 ... let's go 16K.
 // This should work for final output data, too.
 // We'll loop over pieces if the buffer size is not enough for upsampling.
-static size_t resample_bytes = 1<<14;
+static size_t resample_bytes = 1<<16;
 int do_resample = 0;
 int do_resample_now = 0; // really apply resampler for current stream.
 
+/* Quick-shot paired table setup with remembering search in it.
+   this is for storing pairs of output sampling rate and decoding
+   sampling rate. */
+struct ratepair { long a; long b; };
+static long *outrates = NULL;
+static struct ratepair *unpitch = NULL;
+
+
 static int audio_capabilities(out123_handle *ao, mpg123_handle *mh);
 
+#define CLEAN_POINTER(p, func) if(p) func(p); p = NULL;
 void audio_cleanup(void)
 {
-	if(sh)
-		syn123_del(sh);
-	if(resample_outbuf)
-		free(resample_outbuf);
-	if(resample_buffer)
-		free(resample_buffer);
+	CLEAN_POINTER(outrates, free)
+	CLEAN_POINTER(unpitch, free)
+	CLEAN_POINTER(sh, syn123_del)
+	CLEAN_POINTER(resample_outbuf, free)
+	CLEAN_POINTER(resample_buffer, free)
 }
 
 int audio_setup(out123_handle *ao, mpg123_handle *mh)
@@ -96,8 +105,8 @@ int audio_setup(out123_handle *ao, mpg123_handle *mh)
 			merror("Cannot initialize syn123: %s\n", syn123_strerror(err));
 			return -1;
 		}
-		resample_buffer = malloc(resample_bytes);
-		resample_outbuf = malloc(resample_bytes);
+		resample_buffer = malloc(resample_bytes*10);
+		resample_outbuf = malloc(resample_bytes*10);
 		if(!resample_buffer || !resample_outbuf)
 			return -1;
 	}
@@ -106,9 +115,9 @@ int audio_setup(out123_handle *ao, mpg123_handle *mh)
 
 int audio_prepare(out123_handle *ao, long rate, int channels, int encoding)
 {
-	mdebug( "audio_prepare %ld Hz / %ld Hz, %i ch, enc %i"
-	,	rate, outfmt.rate, channels, encoding );
-	if(do_resample && rate == outfmt.rate)
+	mdebug( "audio_prepare %ld Hz / %ld Hz, %i ch, enc %s"
+	,	rate, outfmt.rate, channels, out123_enc_name(encoding) );
+	if(do_resample && param.pitch == 0. && rate == outfmt.rate)
 	{
 		do_resample_now = 0;
 		debug("disabled resampler for native rate");
@@ -116,11 +125,11 @@ int audio_prepare(out123_handle *ao, long rate, int channels, int encoding)
 	{
 		do_resample_now = 1;
 		// Smooth option could be considered once pitching is implemented with the
-		// resampler.The exiting state might fit the coming data if this is two
+		// resampler.The existing state might fit the coming data if this is two
 		// seamless tracks. If not, it's jut the first few samples that differ
 		// significantly depending on which data went through the resampler
 		// previously.
-		int err = syn123_setup_resample( sh, rate, outfmt.rate, channels
+		int err = syn123_setup_resample( sh, pitch_rate(rate), outfmt.rate, channels
 		,	(param.resample < 2), 0 );
 		if(err)
 		{
@@ -135,14 +144,17 @@ int audio_prepare(out123_handle *ao, long rate, int channels, int encoding)
 			?	RESAMPLE_FRAMESIZE(channels)
 			:	OUTPUT_FRAMESIZE(channels) );
 		// Minimum amount of input samples to fill the buffer.
-		resample_block = syn123_resample_fillcount(rate, outfmt.rate, frames);
+		resample_block = syn123_resample_fillcount(pitch_rate(rate), outfmt.rate, frames);
 		if(!resample_block)
 			return -1; // WTF? No comment.
-		mdebug("resampler setup %ld -> %ld, block %zu", rate, outfmt.rate, resample_block);
+		mdebug("resampler setup %ld -> %ld, block %zu", pitch_rate(rate), outfmt.rate, resample_block);
 		rate     = outfmt.rate;
 		encoding = outfmt.encoding;
-	}
-	return out123_start(ao, pitch_rate(rate), channels, encoding);
+	} else if(outfmt.rate)
+		rate = outfmt.rate; // That's pitching with NtoM.
+	else
+		rate = pitch_rate(rate); // That's plain hardware pitching.
+	return out123_start(ao, rate, channels, encoding);
 }
 
 // Loop over blocks with the resampler, think about intflag.
@@ -216,7 +228,7 @@ static void capline(mpg123_handle *mh, long rate, struct mpg123_fmt *outfmt)
 	const int  *encs;
 	size_t      num_encs;
 	mpg123_encodings(&encs, &num_encs);
-	fprintf(stderr," %5ld |", pitch_rate(outfmt ? outfmt->rate : rate));
+	fprintf(stderr," %5ld |", outfmt ? outfmt->rate : rate);
 	for(enci=0; enci<num_encs; ++enci)
 	{
 		int fmt = outfmt
@@ -272,22 +284,29 @@ void print_capabilities(out123_handle *ao, mpg123_handle *mh)
 		if(do_resample)
 			capline(mh, 0, &outfmt);
 		else
-			capline(mh, param.force_rate, NULL);
+			capline(mh,  bpitch_rate(param.force_rate), NULL);
 	}
 	fprintf(stderr,"\n");
 	if(do_resample)
+	{
+		if(param.pitch != 0.)
+			fprintf( stderr, "Resampler with pitch: %g\n"
+			,	param.pitch );
+		else
+			fprintf(stderr, "Resampler configured.\n");
 		fprintf( stderr, "%s\n%s\n"
-		,	"Resampler configured. Decoding to f32 as intermediate if needed."
+		,	"Decoding to f32 as intermediate if needed."
 		,	"Resampler output format is in the last line." );
+	}
 	else if(param.force_rate)
-		fprintf( stderr, "%s\n"
-		,	"Decoder rate forced. Resulting format support shown in last line." );
+		fprintf( stderr
+		,	"%s rate forced. Resulting format support shown in last line.\n"
+		,	param.pitch != 0. ? "Pitched decoder" : "Decoder" );
+	else if(param.pitch != 0.)
+		fprintf( stderr, "Actual output rates adjusted by pitch value %g.\n"
+		,	param.pitch );
 }
 
-/* Quick-shot paired table setup with remembering search in it.
-   this is for storing pairs of output sampling rate and decoding
-   sampling rate. */
-struct ratepair { long a; long b; };
 
 long brate(struct ratepair *table, long arate, int count, int *last)
 {
@@ -330,12 +349,12 @@ static int audio_capabilities(out123_handle *ao, mpg123_handle *mh)
 	/* Pitching introduces a difference between decoder rate and playback rate. */
 	long decode_rate;
 	const long *rates;
-	long *outrates;
-	struct ratepair *unpitch;
 	struct mpg123_fmt *outfmts = NULL;
 	int fmtcount;
 	size_t num_rates, rlimit;
-	long ntom_rate = do_resample ? 0 : param.force_rate;
+	if(param.pitch < -0.99)
+		param.pitch = -0.99;
+	long ntom_rate = do_resample ? 0 : bpitch_rate(param.force_rate);
 	outfmt.rate = param.force_rate;
 	outfmt.channels = 0;
 	outfmt.encoding = 0;
@@ -371,14 +390,18 @@ static int audio_capabilities(out123_handle *ao, mpg123_handle *mh)
 			,	(unsigned)force_fmt, out123_enc_name(force_fmt));
 	}
 
+	// A possible optimization for resampling mode is to keep existing output
+	// format support configured and don't even interrupt the output device at
+	// all. If you change pitch, you just change a number for the resampler.
+	// But currently, the idea of re-opening the output device on format
+	// changes is rather ingrained in mpg123.
+
 	if(do_resample)
 	{
-		if(param.pitch != 0)
-			fprintf(stderr, "WARNING: interaction of pitch and resampler not yet settled\n");
 		// If really doing the extra resampling, output will always run with
 		// this setup, regardless of decoder.
-		int enc1 = out123_encodings(ao, param.force_rate, 1);
-		int enc2 = out123_encodings(ao, param.force_rate, 2);
+		int enc1 = out123_encodings(ao, outfmt.rate, 1);
+		int enc2 = out123_encodings(ao, outfmt.rate, 2);
 		if(force_fmt)
 		{
 			enc1 &= force_fmt;
@@ -431,81 +454,106 @@ static int audio_capabilities(out123_handle *ao, mpg123_handle *mh)
 				error("Perhaps your forced output encoding is not supported.");
 			return -1;
 		}
+		const char *encname = out123_enc_name(outfmt.encoding);
+		if(param.verbose > 1)
+			for(int ch=MPG123_MONO; ch<=MPG123_STEREO; ++ch)
+				if(outfmt.channels & ch)
+					fprintf(stderr, "Note: output format %li Hz, %s, %s\n"
+					,	outfmt.rate, ch==MPG123_MONO ? "mono" : "stereo"
+					,	encname ? encname : "???" );
 	}
 
-	/* Lots of preparation of rate lists. */
-	rlimit = ntom_rate > 0 ? num_rates+1 : num_rates;
-	outrates = malloc(sizeof(*rates)*rlimit);
-	unpitch  = malloc(sizeof(*unpitch)*rlimit);
-	if(!outrates || !unpitch)
+	// Either enable or disable rate forcing, whith ntom_rate non-zero or not.
+	if(mpg123_param(mh, MPG123_FORCE_RATE, ntom_rate, 0) != MPG123_OK)
 	{
-		error("DOOM");
+		merror("Cannot force NtoM rate: %s", mpg123_strerror(mh));
 		return -1;
 	}
-	for(ri = 0; ri<rlimit; ri++)
+
+	if(ntom_rate)
 	{
-		decode_rate = ri < num_rates ? rates[ri] : ntom_rate;
-		outrates[ri] = pitch_rate(decode_rate);
-		unpitch[ri].a = outrates[ri];
-		unpitch[ri].b = decode_rate;
-	}
-	/* Actually query formats possible with given rates. */
-	fmtcount = out123_formats(ao, outrates, rlimit, 1, 2, &outfmts);
-	free(outrates);
-	if(fmtcount > 0)
-	{
-		int fi;
-		int unpitch_i = 0;
-		if(param.verbose > 1 && outfmts[0].encoding > 0)
+		// Only that one rate is enforced. Nothing else needs to be checked.
+		// For pitching, ntom_rate has been adjusted. The output uses outfmt.rate.
+		// Need to tell mpg123 about the forced rate to make it work.
+		for(int ch=1; ch<=2; ++ch)
 		{
-			const char *encname = out123_enc_name(outfmts[0].encoding);
-			fprintf(stderr, "Note: default format %li Hz, %i channels, %s\n"
-			,	outfmts[0].rate, outfmts[0].channels
-			,	encname ? encname : "???" );
-		}
-		for(fi=1; fi<fmtcount; ++fi)
-		{
-			int fmts = outfmts[fi].encoding;
+			int fmts = out123_encodings(ao, outfmt.rate, ch);
 			if(param.verbose > 2)
 				fprintf( stderr
-				,	"Note: output support for %li Hz, %i channels: 0x%x\n"
-				,	outfmts[fi].rate, outfmts[fi].channels, outfmts[fi].encoding );
+				,	"Note: output support for %li Hz, %s: 0x%x\n"
+				,	outfmt.rate, ch==MPG123_MONO ? "mono" : "stereo", fmts );
 			if(force_fmt)
-			{ /* Filter for forced encoding. */
-				if((fmts & force_fmt) == force_fmt)
-					fmts = force_fmt;
-				else /* Nothing else! */
-					fmts = 0;
-			}
-			// Support the resampler or native playback. Condition for the resampler
-			// to work is decoding to float and keeping a channel count compatible
-			// with configured output (in a case that might differ for various encodings).
-			long decode_rate = brate(unpitch, outfmts[fi].rate, rlimit, &unpitch_i);
-			if(do_resample && decode_rate != outfmt.rate)
-			{
-				fmts = 0;
-				// Only enable float outupt for resampler if needed and channel
-				// count supported for real output format.
-				if((outfmts[fi].channels & outfmt.channels) == outfmts[fi].channels)
-					fmts = MPG123_ENC_FLOAT_32;
-				// Also, be smart and let the internal downsampling work for small output
-				// rates. If target is 22050, decoding to 44100 and 48000 is not sensible,
-				// rather do 22050 or 24000. We have a factor of 4 to play with.
-				// So any input file, with max rate of 48000, can be decoded down to
-				// 12000 at least, actually saving computing time, if not in the decoder,
-				// then in the resampler.
-				// Every rate above 12000 can be halved to still get a valid MPEG rate.
-				// Output of 12001 Hz needs decoding to 16000 up to 23999, but not more.
-				// My resampler does not care about very small resampling steps; the less
-				// samples, the less work.
-				if(decode_rate > 12000 && decode_rate > outfmt.rate*2)
-					fmts = 0;
-			}
-			mpg123_format(mh, decode_rate, outfmts[fi].channels, fmts);
+				fmts = ((fmts & force_fmt) == force_fmt) ? force_fmt : 0;
+			mpg123_format(mh, ntom_rate, ch, fmts);
 		}
+	} else if(do_resample)
+	{
+		// Support any decoding rate with float output for the resampler and also
+		// direct decoding to confiugred output format.
+		// One twist: Disable high rates with signal that the resampler will throw
+		// away anyway. This includes pitch. 22040 Hz output rate with pitch 0.5
+		// still wants the full 44100 Hz input data, as original signal up to
+		// 22040 Hz will be heard as up to 11020 Hz. So we want pitch_rate()
+		// to be above outfmt.rate. Final resampling ratio not above 2.
+		for(ri=0; ri<num_rates; ++ri)
+		{
+			if(rates[ri] > 12000 && pitch_rate(rates[ri]) > outfmt.rate*2)
+				break;
+			int fmt = (param.pitch == 0. && rates[ri] == outfmt.rate)
+			? outfmt.encoding
+			: MPG123_ENC_FLOAT_32;
+			mpg123_format(mh, rates[ri], outfmt.channels, fmt);
+		}
+	} else
+	{
+		// Finally, the old style, direct decoding to possibly pitched output.
+		if(!outrates)
+			outrates = malloc(sizeof(*rates)*num_rates);
+		if(!unpitch)
+			unpitch  = malloc(sizeof(*unpitch)*num_rates);
+		if(!outrates || !unpitch)
+		{
+			CLEAN_POINTER(outrates, free)
+			CLEAN_POINTER(unpitch, free)
+			error("DOOM");
+			return -1;
+		}
+		for(ri = 0; ri<num_rates; ri++)
+		{
+			decode_rate   = rates[ri];
+			outrates[ri]  = pitch_rate(decode_rate);
+			unpitch[ri].a = outrates[ri];
+			unpitch[ri].b = decode_rate;
+		}
+		/* Actually query formats possible with given rates. */
+		fmtcount = out123_formats(ao, outrates, num_rates, 1, 2, &outfmts);
+		// Remember: First one is a default format, then come my rates.
+		if(fmtcount > 0)
+		{
+			int fi;
+			int unpitch_i = 0;
+			if(param.verbose > 1 && outfmts[0].encoding > 0)
+			{
+				const char *encname = out123_enc_name(outfmts[0].encoding);
+				fprintf(stderr, "Note: default format %li Hz, %i channels, %s\n"
+				,	outfmts[0].rate, outfmts[0].channels
+				,	encname ? encname : "???" );
+			}
+			for(fi=1; fi<fmtcount; ++fi)
+			{
+				int fmts = outfmts[fi].encoding;
+				if(param.verbose > 2)
+					fprintf( stderr
+					,	"Note: output support for %li Hz, %i channels: 0x%x\n"
+					,	outfmts[fi].rate, outfmts[fi].channels, outfmts[fi].encoding );
+				if(force_fmt)
+					fmts = ((fmts & force_fmt) == force_fmt) ? force_fmt : 0;
+				decode_rate = brate(unpitch, outfmts[fi].rate, num_rates, &unpitch_i);
+				mpg123_format(mh, decode_rate, outfmts[fi].channels, fmts);
+			}
+		}
+		free(outfmts);
 	}
-	free(outfmts);
-	free(unpitch);
 
 	if(param.verbose > 1) print_capabilities(ao, mh);
 
@@ -534,7 +582,6 @@ int set_pitch(mpg123_handle *fr, out123_handle *ao, double new_pitch)
 	}
 
 	param.pitch = new_pitch;
-	if(param.pitch < -0.99) param.pitch = -0.99;
 
 	if(channels == 1) smode = MPG123_MONO;
 	if(channels == 2) smode = MPG123_STEREO;
@@ -552,7 +599,7 @@ int set_pitch(mpg123_handle *fr, out123_handle *ao, double new_pitch)
 		param.pitch = old_pitch;
 		audio_capabilities(ao, fr);
 	}
-	return out123_start(ao, pitch_rate(rate), channels, format);
+	return audio_prepare(ao, rate, channels, format);
 }
 
 int set_mute(out123_handle *ao, int mutestate)

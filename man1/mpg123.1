@@ -254,13 +254,25 @@ change this if you need a constant bitrate independent of
 the mpeg stream rate. mpg123 automagically converts the
 rate. You should then combine this with \-\-stereo or \-\-mono.
 .TP
+\fB\-\^\-resample \fImethod
+Set resampling method to employ if forcing an output rate. Choices (case-insensitive) are NtoM,
+dirty, and fine. The fine resampler is the default. It employs libsyn123's low-latency fairly
+efficient resampler to postprocess the output from libmpg123 instead of the fast but very crude
+NtoM decoder (drop sample method) that mpg123 offers since decades. If you are really low on
+CPU time, choose NtoM, as the resampler usually needs more time than the MPEG decoder itself.
+The mpg123 program is smart enough to combine the 2to1 or 4to1 downsampling modes with the
+postprocessing for extreme downsampling.
+.TP
 .BR \-2 ", " \-\^\-2to1 "; " \-4 ", " \-\^\-4to1
-Performs a downsampling of ratio 2:1 (22 kHz) or 4:1 (11 kHz) 
-on the output stream, respectively. Saves some CPU cycles, but 
-at least the 4:1 ratio sounds ugly.
+Performs a downsampling of ratio 2:1 (22 kHz from 44.1 kHz) or 4:1 (11 kHz) 
+on the output stream, respectively. Saves some CPU cycles, but of course throws away
+the high frequencies, as the decoder does not bother producing them.
 .TP
 .BR \-\-pitch\ \fIvalue
-Set hardware pitch (speedup/down, 0 is neutral; 0.05 is 5%). This changes the output sampling rate, so it only works in the range your audio system/hardware supports.
+Set a pitch change (speedup/down, 0 is neutral; 0.05 is 5% speedup).  When not enforcing an
+output rate, this changes the output sampling rate, so it only works in the range your audio
+system/hardware supports. When you combine this with a fixed output rate, it modifies a
+software resampling ratio instead.
 .TP
 .BR \-\-8bit
 Forces 8bit output
