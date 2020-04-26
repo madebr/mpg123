@@ -192,6 +192,9 @@ static void safe_exit(int code)
 {
 	char *dummy, *dammy;
 
+	if(input && input != stdin)
+		compat_fclose(input);
+
 	if(!code)
 		controlled_drain();
 	if(intflag || code)
@@ -584,7 +587,7 @@ topt opts[] = {
 	{0, "sweep-time", GLO_ARG|GLO_DOUBLE, 0, &sweep_time, 0},
 	{0, "sweep-hard", GLO_INT, 0, &sweep_hard, TRUE},
 	{0, "sweep-count", GLO_ARG|GLO_LONG, 0, &sweep_count, 0},
-	{0, "resampler", GLO_ARG|GLO_CHAR, 0, &resampler, 0},
+	{0, "resample", GLO_ARG|GLO_CHAR, 0, &resampler, 0},
 	{0, 0, 0, 0, 0, 0}
 };
 
@@ -987,10 +990,35 @@ void clip(void *buf, int enc, size_t samples)
 		fprintf(stderr, ME ": explicitly clipped %"SIZE_P" samples\n", clipped);
 }
 
+static int had_something = 0;
+static int just_stdin = 0;
+FILE* open_next_file(int argc, char** argv, int firstrun)
+{
+	FILE *in = NULL;
+	if(firstrun && loptind >= argc)
+	{
+		just_stdin = 1;
+		had_something = 1;
+		in = stdin;
+	} else
+	while(!in && loptind < argc)
+	{
+		char *filename = argv[loptind++];
+		errno = 0;
+		in = strcmp(filename, "-") ? compat_fopen(filename, "rb") : stdin;
+		if(!in)
+			merror( "Failed to open input file '%s' (%s), ignoring."
+			,	filename, strerror(errno) );
+		else
+			had_something = 1;
+	}
+	return in;
+}
+
 /* return 1 on success, 0 on failure */
 int play_frame(void)
 {
-	size_t got_samples;
+	size_t got_samples = 0;
 	size_t get_samples = pcmblock;
 	debug("play_frame");
 	if(timelimit >= 0)
@@ -1004,7 +1032,7 @@ int play_frame(void)
 		got_samples = syn123_read(waver, inaudio, get_samples*pcminframe)
 		/	pcminframe;
 	else
-		got_samples = fread(inaudio, pcminframe, get_samples, input);
+		got_samples = input ? fread(inaudio, pcminframe, get_samples, input) : 0;
 	/* Play what is there to play (starting with second decode_frame call!) */
 	if(!got_samples)
 		return 0;
@@ -1323,6 +1351,7 @@ static void setup_processing(void)
 	}
 }
 
+
 int main(int sys_argc, char ** sys_argv)
 {
 	int result;
@@ -1458,9 +1487,10 @@ int main(int sys_argc, char ** sys_argv)
 		}
 	}
 
-	input = stdin;
 	if(strcmp(signal_source, "file"))
 		generate = TRUE;
+	else
+		input = open_next_file(argc, argv, 1);
 
 	// Genererally generate signal in floating point for later conversion
 	// after possible additional processing.
@@ -1537,10 +1567,19 @@ int main(int sys_argc, char ** sys_argv)
 
 	setup_wavegen(); // Used also for conversion/mixing.
 
-	while(play_frame() && !intflag)
+	do
 	{
-		/* be happy */
-	}
+		while(play_frame() && !intflag)
+		{
+			/* be happy */
+		}
+		if(!intflag && !generate && !just_stdin)
+		{
+			if(input && input != stdin)
+				compat_fclose(input);
+			input = open_next_file(argc, argv, 0);
+		}
+	} while(!intflag && !generate && input && !just_stdin);
 	if(intflag) /* Make it quick! */
 	{
 		if(!quiet)
@@ -1548,7 +1587,7 @@ int main(int sys_argc, char ** sys_argv)
 		out123_drop(ao);
 	}
 
-	safe_exit(0); /* That closes output and restores terminal, too. */
+	safe_exit(had_something ? 0 : 2); /* That closes output and restores terminal, too. */
 	return 0;
 }
 
@@ -1629,7 +1668,7 @@ static void long_usage(int err)
 	}
 	enclist = output_enclist();
 	print_title(o);
-	fprintf(o,"\nusage: %s [option(s)] [file(s) | URL(s) | -]\n", cmd_name);
+	fprintf(o,"\nusage: %s [option(s)] [file(s) | -]\n", cmd_name);
 
 	fprintf(o,"        --name <n>         set instance name (p.ex. JACK client)\n");
 	fprintf(o," -o <o> --output <o>       select audio output module\n");
@@ -1637,7 +1676,7 @@ static void long_usage(int err)
 	fprintf(o," -a <d> --audiodevice <d>  select audio device (for files, empty or - is stdout)\n");
 	fprintf(o," -s     --stdout           write raw audio to stdout (-o raw -a -)\n");
 	fprintf(o," -S     --STDOUT           play AND output stream to stdout\n");
-	fprintf(o," -O <f> --output <f>       raw output to given file (-o raw -a <f>)\n");
+	fprintf(o," -O <f> --outfile <f>      raw output to given file (-o raw -a <f>)\n");
 	fprintf(o," -w <f> --wav <f>          write samples as WAV file in <f> (-o wav -a <f>)\n");
 	fprintf(o,"        --au <f>           write samples as Sun AU file in <f> (-o au -a <f>)\n");
 	fprintf(o,"        --cdr <f>          write samples as raw CD audio file in <f> (-o cdr -a <f>)\n");
@@ -1645,11 +1684,11 @@ static void long_usage(int err)
 	fprintf(o," -R <r> --inputrate <r>    set intput rate in Hz for conversion (if > 0)\n"
 	          "                           (always last operation before output)\n");
 	fprintf(o,"        --speed <f>        play at given speed factor by resampling\n");
-	fprintf(o,"        --resampler <s>    set resampler method (fine (default) or dirty)\n");
+	fprintf(o,"        --resample <s>     set resampler method (fine (default) or dirty)\n");
 	fprintf(o," -c <n> --channels <n>     set channel count to <n>\n");
 	fprintf(o," -m     --mono             set output channel count to 1\n");
 	fprintf(o,"        --stereo           set output channel count to 2 (default)\n");
-	fprintf(o," -C <n  --inputch <n>      set input channel count for conversion\n");
+	fprintf(o," -C <n> --inputch <n>      set input channel count for conversion\n");
 	fprintf(o," -e <c> --encoding <c>     set output encoding (%s)\n"
 	,	enclist != NULL ? enclist : "OOM!");
 	fprintf(o," -E <c> --inputenc <c>     set input encoding for conversion\n");
@@ -1681,9 +1720,10 @@ static void long_usage(int err)
 	fprintf(o,"        --timelimit <s>    set time limit in PCM samples if >= 0\n");
 	fprintf(o,"        --seconds <s>      set time limit in seconds if >= 0\n");
 	fprintf(o,"        --source <s>       choose signal source: file (default),\n");
-	fprintf(o,"                           wave, sweep, pink, geiger; implied by\n");
+	fprintf(o,"                           wave, sweep, pink, geiger (implied by\n");
 	fprintf(o,"                           --wave-freq, --wave-sweep,\n");
-	fprintf(o,"                           --pink-rows, --geiger-activity\n");
+	fprintf(o,"                           --pink-rows, --geiger-activity), or white for\n");
+	fprintf(o,"                           white noise\n");
 	fprintf(o,"        --wave-freq <f>    set wave generator frequency or list of those\n");
 	fprintf(o,"                           with comma separation for enabling a generated\n");
 	fprintf(o,"                           test signal instead of standard input,\n");
@@ -1707,7 +1747,8 @@ static void long_usage(int err)
 	fprintf(o,"                           first wave pattern and direction, too\n");
 	fprintf(o,"        --sweep-time <s>   set frequency sweep duration to s seconds if > 0\n");
 	fprintf(o,"                           (defaulting to timelimit if set, otherwise one second)\n");
-	fprintf(o,"        --sweep-count <c>  set timelimit to exactly produce that many (smooth) sweeps");
+	fprintf(o,"        --sweep-count <c>  set timelimit to exactly produce that many\n");
+	fprintf(o,"                           (smooth) sweeps\n");
 	fprintf(o,"        --sweep-type <t>   set sweep type: lin(ear), qua(d) (default),\n");
 	fprintf(o,"                           exp(onential)\n");
 	fprintf(o,"        --sweep-hard       disable post-sweep smoothing for periodicity\n");
