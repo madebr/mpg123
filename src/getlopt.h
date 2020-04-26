@@ -18,14 +18,16 @@ extern int loptind;	/* index in argv[] */
 extern int loptchr;	/* index in argv[loptind] */
 extern char *loptarg;	/* points to argument if present, else to option */
 
-typedef struct {
+struct topt;
+typedef struct topt topt;
+struct topt {
 	char sname;	/* short option name, can be 0 */
 	char *lname;	/* long option name, can be 0 */
 	int flags;	/* see below */
-	void (*func)(char *);	/* called if != 0 (after setting of var) */
+	void (*func)(char *, topt *);	/* called if != 0 (after setting of var) */
 	void *var;	/* type is *long, *char or **char, see below */
 	long value;
-} topt;
+};
 
 /* ThOr: make this clear; distict long from int (since this is != on my Alpha) and really use a flag for every case (spare the 0 case 
 for .... no flag) */
@@ -34,6 +36,8 @@ for .... no flag) */
 #define GLO_INT  4
 #define GLO_LONG 8
 #define GLO_DOUBLE 16
+/* This is set if getlopt allocates memory for var. */
+#define GLO_VAR_MEM 32
 
 /* flags:
  *	bit 0 = 0 - no argument
@@ -64,7 +68,8 @@ for .... no flag) */
 #define GLO_CONTINUE	-3
 
 int getlopt (int argc, char *argv[], topt *opts);
-
+// Helper to set a char parameter, avoiding memory leaks.
+void getlopt_set_char(topt *opts, char *name, char *value);
 /* return values:
  *	GLO_END		(0)	end of options
  *	GLO_UNKNOWN	(-1)	unknown option *loptarg

@@ -46,12 +46,12 @@ static void usage(int err)
 	exit(err);
 }
 
-static void want_usage(char* bla)
+static void want_usage(char* bla, topt *opts)
 {
 	usage(0);
 }
 
-static void set_verbose (char *arg)
+static void set_verbose (char *arg, topt *opts)
 {
     param.verbose++;
 }

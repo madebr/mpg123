@@ -45,11 +45,11 @@
 #include "debug.h"
 
 static void usage(int err);
-static void want_usage(char* arg);
+static void want_usage(char* arg, topt *);
 static void long_usage(int err);
-static void want_long_usage(char* arg);
+static void want_long_usage(char* arg, topt *);
 static void print_title(FILE* o);
-static void give_version(char* arg);
+static void give_version(char* arg, topt *);
 
 struct parameter param = { 
   FALSE , /* aggressiv */
@@ -328,7 +328,7 @@ static void check_fatal_output(int code)
 	}
 }
 
-static void set_output_module( char *arg )
+static void set_output_module(char *arg, topt *opts)
 {
 	unsigned int i;
 		
@@ -336,7 +336,7 @@ static void set_output_module( char *arg )
 	for(i=0; i< strlen( arg ); i++) {
 		if (arg[i] == ':') {
 			arg[i] = 0;
-			param.output_device = &arg[i+1];
+			getlopt_set_char(opts, "audiodevice", &arg[i+1]);
 			debug1("Setting output device: %s", param.output_device);
 			break;
 		}	
@@ -352,38 +352,38 @@ static void set_output_flag(int flag)
   else param.output_flags |= flag;
 }
 
-static void set_output_h(char *a)
+static void set_output_h(char *a, topt *opts)
 {
 	set_output_flag(OUT123_HEADPHONES);
 }
 
-static void set_output_s(char *a)
+static void set_output_s(char *a, topt *opts)
 {
 	set_output_flag(OUT123_INTERNAL_SPEAKER);
 }
 
-static void set_output_l(char *a)
+static void set_output_l(char *a, topt *opts)
 {
 	set_output_flag(OUT123_LINE_OUT);
 }
 
-static void set_output(char *arg)
+static void set_output(char *arg, topt *opts)
 {
 	/* If single letter, it's the legacy output switch for AIX/HP/Sun.
 	   If longer, it's module[:device] . If zero length, it's rubbish. */
 	if(strlen(arg) <= 1) switch(arg[0])
 	{
-		case 'h': set_output_h(arg); break;
-		case 's': set_output_s(arg); break;
-		case 'l': set_output_l(arg); break;
+		case 'h': set_output_h(arg, opts); break;
+		case 's': set_output_s(arg, opts); break;
+		case 'l': set_output_l(arg, opts); break;
 		default:
 			error1("\"%s\" is no valid output", arg);
 			safe_exit(1);
 	}
-	else set_output_module(arg);
+	else set_output_module(arg, opts);
 }
 
-static void set_resample(char *arg)
+static void set_resample(char *arg, topt *opts)
 {
 	if(!strcasecmp("ntom", arg))
 		param.resample = 0;
@@ -398,51 +398,51 @@ static void set_resample(char *arg)
 	}
 }
 
-static void set_verbose (char *arg)
+static void set_verbose (char *arg, topt *opts)
 {
     param.verbose++;
 }
 
-static void set_quiet (char *arg)
+static void set_quiet (char *arg, topt *opts)
 {
 	param.verbose=0;
 	param.quiet=TRUE;
 }
 
-static void set_out_wav(char *arg)
+static void set_out_wav(char *arg, topt *opts)
 {
 	param.output_module = "wav";
-	param.output_device = arg;
+	getlopt_set_char(opts, "audiodevice", arg);
 }
 
-void set_out_cdr(char *arg)
+void set_out_cdr(char *arg, topt *opts)
 {
 	param.output_module = "cdr";
-	param.output_device = arg;
+	getlopt_set_char(opts, "audiodevice", arg);
 }
 
-void set_out_au(char *arg)
+void set_out_au(char *arg, topt *opts)
 {
 	param.output_module = "au";
-	param.output_device = arg;
+	getlopt_set_char(opts, "audiodevice", arg);
 }
 
-void set_out_test(char *arg)
+void set_out_test(char *arg, topt *opts)
 {
 	param.output_module = "test";
-	param.output_device = NULL;
+	getlopt_set_char(opts, "audiodevice", NULL);
 }
 
-static void set_out_file(char *arg)
+static void set_out_file(char *arg, topt *opts)
 {
 	param.output_module = "raw";
-	param.output_device = arg;
+	getlopt_set_char(opts, "audiodevice", arg);
 }
 
-static void set_out_stdout(char *arg)
+static void set_out_stdout(char *arg, topt *opts)
 {
 	param.output_module = "raw";
-	param.output_device = NULL;
+	getlopt_set_char(opts, "audiodevice", NULL);
 }
 
 #if !defined (HAVE_SCHED_SETSCHEDULER) && !defined (HAVE_WINDOWS_H)
@@ -453,24 +453,24 @@ static void realtime_not_compiled(char *arg)
 #endif
 
 static int frameflag; /* ugly, but that's the way without hacking getlopt */
-static void set_frameflag(char *arg)
+static void set_frameflag(char *arg, topt *opts)
 {
 	/* Only one mono flag at a time! */
 	if(frameflag & MPG123_FORCE_MONO) param.flags &= ~MPG123_FORCE_MONO;
 	param.flags |= frameflag;
 }
-static void unset_frameflag(char *arg)
+static void unset_frameflag(char *arg, topt *opts)
 {
 	param.flags &= ~frameflag;
 }
 
 static int appflag; /* still ugly, but works */
-static void set_appflag(char *arg)
+static void set_appflag(char *arg, topt *opts)
 {
 	param.appflags |= appflag;
 }
 
-static void list_output_modules(char *arg)
+static void list_output_modules(char *arg, topt *opts)
 {
 	char **names = NULL;
 	char **descr = NULL;
@@ -1556,7 +1556,7 @@ static void usage(int err)  /* print syntax & exit */
 	safe_exit(err);
 }
 
-static void want_usage(char* arg)
+static void want_usage(char* arg, topt *opts)
 {
 	usage(0);
 }
@@ -1707,12 +1707,12 @@ static void long_usage(int err)
 	safe_exit(err);
 }
 
-static void want_long_usage(char* arg)
+static void want_long_usage(char* arg, topt *opts)
 {
 	long_usage(0);
 }
 
-static void give_version(char* arg)
+static void give_version(char* arg, topt *opts)
 {
 	fprintf(stdout, PACKAGE_NAME" "PACKAGE_VERSION"\n");
 	safe_exit(0);
