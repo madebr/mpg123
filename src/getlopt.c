@@ -47,7 +47,10 @@ static void setcharoption(topt *opt, char *value)
 		*((char **) opt->var) = compat_strdup(value);
 		opt->flags |= GLO_VAR_MEM;
 	} else
+	{
+		*((char **) opt->var) = NULL;
 		opt->flags &= ~GLO_VAR_MEM;
+	}
 }
 
 void getlopt_set_char(topt *opts, char *name, char *value)
