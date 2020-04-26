@@ -66,11 +66,11 @@
 static int intflag = FALSE;
 
 static void usage(int err);
-static void want_usage(char* arg);
+static void want_usage(char* arg, topt *opts);
 static void long_usage(int err);
-static void want_long_usage(char* arg);
+static void want_long_usage(char* arg, topt *opts);
 static void print_title(FILE* o);
-static void give_version(char* arg);
+static void give_version(char* arg, topt *opts);
 
 static int verbose = 0;
 static int quiet = FALSE;
@@ -233,7 +233,7 @@ static void check_fatal_syn(int code)
 	}
 }
 
-static void set_output_module( char *arg )
+static void set_output_module(char *arg, topt *opts)
 {
 	unsigned int i;
 		
@@ -241,7 +241,7 @@ static void set_output_module( char *arg )
 	for(i=0; i< strlen( arg ); i++) {
 		if (arg[i] == ':') {
 			arg[i] = 0;
-			device = &arg[i+1];
+			getlopt_set_char(opts, "audiodevice", &arg[i+1]);
 			debug1("Setting output device: %s", device);
 			break;
 		}	
@@ -257,85 +257,85 @@ static void set_output_flag(int flag)
   else outflags |= flag;
 }
 
-static void set_output_h(char *a)
+static void set_output_h(char *a, topt *opts)
 {
 	set_output_flag(OUT123_HEADPHONES);
 }
 
-static void set_output_s(char *a)
+static void set_output_s(char *a, topt *opts)
 {
 	set_output_flag(OUT123_INTERNAL_SPEAKER);
 }
 
-static void set_output_l(char *a)
+static void set_output_l(char *a, topt *opts)
 {
 	set_output_flag(OUT123_LINE_OUT);
 }
 
-static void set_output(char *arg)
+static void set_output(char *arg, topt *opts)
 {
 	/* If single letter, it's the legacy output switch for AIX/HP/Sun.
 	   If longer, it's module[:device] . If zero length, it's rubbish. */
 	if(strlen(arg) <= 1) switch(arg[0])
 	{
-		case 'h': set_output_h(arg); break;
-		case 's': set_output_s(arg); break;
-		case 'l': set_output_l(arg); break;
+		case 'h': set_output_h(arg, opts); break;
+		case 's': set_output_s(arg, opts); break;
+		case 'l': set_output_l(arg, opts); break;
 		default:
 			error1("\"%s\" is no valid output", arg);
 			safe_exit(1);
 	}
-	else set_output_module(arg);
+	else set_output_module(arg, opts);
 }
 
-static void set_verbose (char *arg)
+static void set_verbose (char *arg, topt *opts)
 {
     verbose++;
 }
 
-static void set_quiet (char *arg)
+static void set_quiet (char *arg, topt *opts)
 {
 	verbose=0;
 	quiet=TRUE;
 }
 
-static void set_out_wav(char *arg)
+static void set_out_wav(char *arg, topt *opts)
 {
 	driver = "wav";
-	device = arg;
+	getlopt_set_char(opts, "audiodevice", arg);
 }
 
-void set_out_cdr(char *arg)
+void set_out_cdr(char *arg, topt *opts)
 {
 	driver = "cdr";
-	device = arg;
+	getlopt_set_char(opts, "audiodevice", arg);
 }
 
-void set_out_au(char *arg)
+void set_out_au(char *arg, topt *opts)
 {
 	driver = "au";
-	device = arg;
+	getlopt_set_char(opts, "audiodevice", arg);
 }
 
-void set_out_test(char *arg)
+void set_out_test(char *arg, topt *opts)
 {
 	driver = "test";
-	device = NULL;
+	getlopt_set_char(opts, "audiodevice", NULL);
 }
 
-static void set_out_file(char *arg)
+static void set_out_file(char *arg, topt *opts)
 {
 	driver = "raw";
-	device = arg;
+	getlopt_set_char(opts, "audiodevice", arg);
 }
 
-static void set_out_stdout(char *arg)
+static void set_out_stdout(char *arg, topt *opts)
 {
 	driver = "raw";
-	device = NULL;
+	getlopt_set_char(opts, "audiodevice", NULL);
 }
 
-static void set_out_stdout1(char *arg)
+static void set_out_stdout1(char *arg, topt *opts)
 {
 	also_stdout = TRUE;
 }
@@ -347,7 +347,7 @@ static void realtime_not_compiled(char *arg)
 }
 #endif
 
-static void list_output_modules(char *arg)
+static void list_output_modules(char *arg, topt *opts)
 {
 	char **names = NULL;
 	char **descr = NULL;
@@ -379,7 +379,7 @@ static void list_output_modules(char *arg)
 	exit(count >= 0 ? 0 : 1);
 }
 
-static void list_encodings(char *arg)
+static void list_encodings(char *arg, topt *opts)
 {
 	int i;
 	int enc_count = 0;
@@ -419,14 +419,14 @@ static int getencs(void)
 	return encs;
 }
 
-static void test_format(char *arg)
+static void test_format(char *arg, topt *opts)
 {
 	int encs;
 	encs = getencs();
 	exit((encs & encoding) ? 0 : -1);
 }
 
-static void test_encodings(char *arg)
+static void test_encodings(char *arg, topt *opts)
 {
 	int encs, enc_count, *enc_codes, i;
 
@@ -441,7 +441,7 @@ static void test_encodings(char *arg)
 	exit(!encs);
 }
 
-static void query_format(char *arg)
+static void query_format(char *arg, topt *opts)
 {
 	out123_handle *lao;
 
@@ -480,27 +480,27 @@ static void query_format(char *arg)
 	exit(0);
 }
 
-void set_wave_freqs(char *arg)
+void set_wave_freqs(char *arg, topt *opts)
 {
-	signal_source = "wave";
+	getlopt_set_char(opts, "source", "wave");
 	wave_freqs = arg;
 }
 
-void set_pink_rows(char *arg)
+void set_pink_rows(char *arg, topt *opts)
 {
-	signal_source = "pink";
+	getlopt_set_char(opts, "source", "pink");
 	pink_rows = atoi(arg);
 }
 
-void set_geiger_act(char *arg)
+void set_geiger_act(char *arg, topt *opts)
 {
-	signal_source = "geiger";
+	getlopt_set_char(opts, "source", "geiger");
 	geiger_activity = atof(arg);
 }
 
-void set_sweep_freq(char *arg)
+void set_sweep_freq(char *arg, topt *opts)
 {
-	signal_source = "sweep";
+	getlopt_set_char(opts, "source", "sweep");
 	sweep_freq = atof(arg);
 }
 
@@ -1613,7 +1613,7 @@ static void usage(int err)  /* print syntax & exit */
 	safe_exit(err);
 }
 
-static void want_usage(char* arg)
+static void want_usage(char* arg, topt *opts)
 {
 	usage(0);
 }
@@ -1743,12 +1743,12 @@ static void long_usage(int err)
 	safe_exit(err);
 }
 
-static void want_long_usage(char* arg)
+static void want_long_usage(char* arg, topt *opts)
 {
 	long_usage(0);
 }
 
-static void give_version(char* arg)
+static void give_version(char* arg, topt *opts)
 {
 	fprintf(stdout, "out123 "PACKAGE_VERSION"\n");
 	safe_exit(0);
