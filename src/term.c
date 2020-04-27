@@ -405,13 +405,13 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 			case MPG123_PITCH_BDOWN_KEY: new_pitch -= MPG123_PITCH_BVAL; break;
 			case MPG123_PITCH_ZERO_KEY:  new_pitch = 0.0; break;
 		}
+		if(param.verbose)
+			print_stat(fr,offset,ao,0,&param);
 		set_pitch(fr, ao, new_pitch);
 		if(param.verbose > 1)
-		{
-			print_stat(fr,0,ao,0,&param);
 			fprintf(stderr, "\nNew pitch: %f\n", param.pitch);
+		if(param.verbose)
 			print_stat(fr,0,ao,1,&param);
-		}
 	}
 	break;
 	case MPG123_VERBOSE_KEY:
@@ -484,7 +484,11 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 	break;
 	case MPG123_FRAME_INDEX_KEY:
 	case MPG123_VARIOUS_INFO_KEY:
-		if(param.verbose) fprintf(stderr, "\n");
+		if(param.verbose)
+		{
+			print_stat(fr,0,ao,0,&param);
+			fprintf(stderr, "\n");
+		}
 		switch(val) /* because of tolower() ... */
 		{
 			case MPG123_FRAME_INDEX_KEY:
