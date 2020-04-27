@@ -7,26 +7,24 @@
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp
 
-	Pitching can work in two ways:
+	Pitching can work in three ways:
 	- fixed (native) decoder rate, varied hardware playback rate
 	- fixed hardware playback rate, any decoder rate, resampler
+	- pitched NtoM decoder rate, fixed hardware
 
-	I want to keep the two choices for low-cost hack and proper work. So the
-	hardware-varied pitch is combined with native decoder output. But when we
-	already employ the NtoM resampler, shouldn't it be used for pitching, too?
-	Issue is that it will really not sound so good. Nah, don't complicate things.
-	If there is a resampling layer between decoder and output, it's syn123. So
-	if you force NtoM decoder, that rate is still subject to hardware pitch.
+	Just because ...
 
-	To enable software pitching, you decide on a fixed output rate and have the
-	proper resampler configured. Then the pitch is just a modification of the
-	resampling ratio. But if resampling is not necessary, playing a 44100 Hz
-	track with focecd rate of 44100 Hz, the resampler should step aside.
+	If you force an output rate, either the NtoM resampler in libmpg123 or the syn123
+	resampler wrapped here adapts the data.
 
-	On the other hand ... for smooth pitching, you'll want the resampler active,
-	also if the rate is identical for a moment. But is mpg123's pitch control that
-	smooth? The fulll smoothness matters for a true sweep, a pitch ramp. I'll check
-	if it matters. holding the pitch key pressed in terminal control.
+	TODO: If the proper resampler is configured, it should fill in unsupported output
+	rates automatically ... or not? Right now, I have the rule that you don't get
+	the expensive resampler unless you forced an output rate. But you do get the
+	libmpg123 NtoM resampling now if it finds only a working output rate that is
+	reachable via that. Well, imposing a resampler that needs more CPU time than
+	the decoder is just something that should not happen without being called for.
+	So I rather provide a warning to the user that the NtoM resampler has been
+	triggered. Yes, inform the user.
 */
 
 #include <errno.h>
@@ -113,14 +111,16 @@ int audio_setup(out123_handle *ao, mpg123_handle *mh)
 	return 0;
 }
 
-int audio_prepare(out123_handle *ao, long rate, int channels, int encoding)
+int audio_prepare( out123_handle *ao, mpg123_handle *mh
+,	long rate, int channels, int encoding )
 {
 	mdebug( "audio_prepare %ld Hz / %ld Hz, %i ch, enc %s"
 	,	rate, outfmt.rate, channels, out123_enc_name(encoding) );
 	if(do_resample && param.pitch == 0. && rate == outfmt.rate)
 	{
 		do_resample_now = 0;
-		debug("disabled resampler for native rate");
+		if(param.verbose > 1)
+			fprintf(stderr, "Note: resampler disabled for native rate\n");
 	} else if(do_resample)
 	{
 		do_resample_now = 1;
@@ -147,13 +147,33 @@ int audio_prepare(out123_handle *ao, long rate, int channels, int encoding)
 		resample_block = syn123_resample_fillcount(pitch_rate(rate), outfmt.rate, frames);
 		if(!resample_block)
 			return -1; // WTF? No comment.
-		mdebug("resampler setup %ld -> %ld, block %zu", pitch_rate(rate), outfmt.rate, resample_block);
+		if(param.verbose > 1)
+			fprintf(stderr, "Note: resampler setup: %ld Hz -> %ld Hz\n", pitch_rate(rate), outfmt.rate);
 		rate     = outfmt.rate;
 		encoding = outfmt.encoding;
 	} else if(outfmt.rate)
 		rate = outfmt.rate; // That's pitching with NtoM.
 	else
+	{
+		struct mpg123_frameinfo fi;
+		static int ntom_warn = 0;
+		if( !ntom_warn && !param.quiet &&
+			MPG123_OK == mpg123_info(mh, &fi) && fi.rate != rate )
+		{
+			fprintf(stderr,
+				"\nWarning: You triggered the NtoM drop-sample resampler inside libmpg123.\n"
+				"Warning: You could trade CPU for quality by forcing a supported output rate.\n" );
+			ntom_warn = 1;
+		}
 		rate = pitch_rate(rate); // That's plain hardware pitching.
+	}
+	if(param.verbose > 1)
+	{
+		const char* encname = out123_enc_name(encoding);
+		fprintf( stderr // No extra line break, as this is a follow-up note.
+		,	"Note: Hardware output format %li Hz, %i channels, encoding %s.\n"
+		,	rate, channels, encname ? encname : "???" );
+	}
 	return out123_start(ao, rate, channels, encoding);
 }
 
@@ -575,10 +595,10 @@ int set_pitch(mpg123_handle *fr, out123_handle *ao, double new_pitch)
 		return 0;
 	}
 
-	if(do_resample)
+	if(outfmt.rate && !do_resample)
 	{
-		rate = outfmt.rate;
-		format = outfmt.encoding;
+		error("Runtime pitching requires either proper resampler or flexible hardware rate.");
+		return 0;
 	}
 
 	param.pitch = new_pitch;
@@ -589,7 +609,7 @@ int set_pitch(mpg123_handle *fr, out123_handle *ao, double new_pitch)
 	out123_stop(ao);
 	/* Remember: This takes param.pitch into account. */
 	audio_capabilities(ao, fr);
-	if(!(mpg123_format_support(fr, rate, format) & smode))
+	if(!do_resample && !(mpg123_format_support(fr, rate, format) & smode))
 	{
 
 		/* Note: When using --pitch command line parameter, you can go higher
@@ -599,7 +619,9 @@ int set_pitch(mpg123_handle *fr, out123_handle *ao, double new_pitch)
 		param.pitch = old_pitch;
 		audio_capabilities(ao, fr);
 	}
-	return audio_prepare(ao, rate, channels, format);
+	else
+		fprintf(stderr, "decoder reset: %d\n", mpg123_decoder(fr, NULL));
+	return audio_prepare(ao, fr, rate, channels, format);
 }
 
 int set_mute(out123_handle *ao, int mutestate)
