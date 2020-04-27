@@ -406,7 +406,7 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 			case MPG123_PITCH_ZERO_KEY:  new_pitch = 0.0; break;
 		}
 		if(param.verbose)
-			print_stat(fr,offset,ao,0,&param);
+			print_stat(fr,0,ao,0,&param);
 		set_pitch(fr, ao, new_pitch);
 		if(param.verbose > 1)
 			fprintf(stderr, "\nNew pitch: %f\n", param.pitch);
