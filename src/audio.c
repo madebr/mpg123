@@ -620,7 +620,7 @@ int set_pitch(mpg123_handle *fr, out123_handle *ao, double new_pitch)
 		audio_capabilities(ao, fr);
 	}
 	else
-		fprintf(stderr, "decoder reset: %d\n", mpg123_decoder(fr, NULL));
+		mpg123_decoder(fr, NULL);
 	return audio_prepare(ao, fr, rate, channels, format);
 }
 
