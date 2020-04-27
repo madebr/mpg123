@@ -870,7 +870,9 @@ int play_frame(void)
 				minbytes = out123_encsize(encoding)*channels*384;
 			else
 				minbytes = 0;
-			if(param.verbose > 2)
+			if(framenum && param.verbose)
+				print_stat(mh,0,ao,0,&param);
+			if(param.verbose > 1)
 			{
 				const char* encname = out123_enc_name(encoding);
 				fprintf( stderr
@@ -879,7 +881,7 @@ int play_frame(void)
 			}
 			new_header = TRUE;
 			
-			check_fatal_output(audio_prepare(ao, rate, channels, encoding));
+			check_fatal_output(audio_prepare(ao, mh, rate, channels, encoding));
 			/* We may take some time feeding proper data, so pause by default. */
 			out123_pause(ao);
 		}
@@ -887,6 +889,8 @@ int play_frame(void)
 	if((param.verbose > 3 || new_header) && !param.quiet)
 	{
 		new_header = FALSE;
+		if(framenum)
+			print_stat(mh,0,ao,0,&param);
 		fprintf(stderr, "\n");
 		if(param.verbose > 1)
 			print_header(mh);
