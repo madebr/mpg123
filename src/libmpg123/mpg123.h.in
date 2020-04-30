@@ -632,6 +632,10 @@ MPG123_EXPORT int mpg123_open_feed(mpg123_handle *mh);
 MPG123_EXPORT int mpg123_close(mpg123_handle *mh);
 
 /** Read from stream and decode up to outmemsize bytes.
+ *
+ *  Note: The type of outmemory changed to a void pointer in mpg123 1.26.0
+ *  (API version 45).
+ *
  *  \param mh handle
  *  \param outmemory address of output buffer to write to
  *  \param outmemsize maximum number of bytes to write
@@ -658,6 +662,10 @@ MPG123_EXPORT int mpg123_feed( mpg123_handle *mh
  *  without taking decoded data.
  *  Think of this function being the union of mpg123_read() and mpg123_feed() (which it actually is, sort of;-).
  *  You can actually always decide if you want those specialized functions in separate steps or one call this one here.
+ *
+ *  Note: The type of outmemory changed to a void pointer in mpg123 1.26.0
+ *  (API version 45).
+ *
  *  \param mh handle
  *  \param inmemory input buffer
  *  \param inmemsize number of input bytes
@@ -1547,6 +1555,10 @@ MPG123_EXPORT int mpg123_getpar( mpg123_pars *mp
   * Note that the required buffer size could be bigger than expected from output
   * encoding if libmpg123 has to convert from primary decoder output (p.ex. 32 bit
   * storage for 24 bit output).
+  *
+  *  Note: The type of data changed to a void pointer in mpg123 1.26.0
+  *  (API version 45).
+  *
   * \param mh handle
   * \param data pointer to user buffer
   * \param size of buffer in bytes
