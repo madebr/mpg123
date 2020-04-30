@@ -371,7 +371,7 @@ static int audio_capabilities(out123_handle *ao, mpg123_handle *mh)
 	const long *rates;
 	struct mpg123_fmt *outfmts = NULL;
 	int fmtcount;
-	size_t num_rates, rlimit;
+	size_t num_rates;
 	if(param.pitch < -0.99)
 		param.pitch = -0.99;
 	long ntom_rate = do_resample ? 0 : bpitch_rate(param.force_rate);
