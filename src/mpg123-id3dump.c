@@ -51,7 +51,7 @@ static void usage(int err)
 	fprintf(o,"\nNote that text output will always be in UTF-8, regardless of locale.\n");
 	exit(err);
 }
-static void want_usage(char* bla)
+static void want_usage(char* bla, topt *opts)
 {
 	usage(0);
 }
