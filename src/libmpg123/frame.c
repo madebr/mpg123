@@ -216,7 +216,7 @@ int frame_outbuffer(mpg123_handle *fr)
 	return MPG123_OK;
 }
 
-int attribute_align_arg mpg123_replace_buffer(mpg123_handle *mh, unsigned char *data, size_t size)
+int attribute_align_arg mpg123_replace_buffer(mpg123_handle *mh, void *data, size_t size)
 {
 	debug2("replace buffer with %p size %"SIZE_P, data, (size_p)size);
 	if(mh == NULL) return MPG123_BAD_HANDLE;

@@ -639,7 +639,7 @@ MPG123_EXPORT int mpg123_close(mpg123_handle *mh);
  *  \return MPG123_OK or error/message code
  */
 MPG123_EXPORT int mpg123_read(mpg123_handle *mh
-,	unsigned char *outmemory, size_t outmemsize, size_t *done );
+,	void *outmemory, size_t outmemsize, size_t *done );
 
 /** Feed data for a stream that has been opened with mpg123_open_feed().
  *  It's give and take: You provide the bytestream, mpg123 gives you the decoded samples.
@@ -668,7 +668,7 @@ MPG123_EXPORT int mpg123_feed( mpg123_handle *mh
  */
 MPG123_EXPORT int mpg123_decode( mpg123_handle *mh
 ,	const unsigned char *inmemory, size_t inmemsize
-,	unsigned char *outmemory, size_t outmemsize, size_t *done );
+,	void *outmemory, size_t outmemsize, size_t *done );
 
 /** Decode next MPEG frame to internal buffer
  *  or read a frame and return after setting a new format.
@@ -1553,7 +1553,7 @@ MPG123_EXPORT int mpg123_getpar( mpg123_pars *mp
   * \return MPG123_OK on success
   */
 MPG123_EXPORT int mpg123_replace_buffer(mpg123_handle *mh
-,	unsigned char *data, size_t size);
+,	void *data, size_t size);
 
 /** The max size of one frame's decoded output with current settings.
  *  Use that to determine an appropriate minimum buffer size for decoding one frame.

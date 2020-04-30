@@ -891,7 +891,7 @@ int attribute_align_arg mpg123_decode_frame(mpg123_handle *mh, off_t *num, unsig
 	}
 }
 
-int attribute_align_arg mpg123_read(mpg123_handle *mh, unsigned char *out, size_t size, size_t *done)
+int attribute_align_arg mpg123_read(mpg123_handle *mh, void *out, size_t size, size_t *done)
 {
 	return mpg123_decode(mh, NULL, 0, out, size, done);
 }
@@ -941,10 +941,11 @@ int attribute_align_arg mpg123_feed(mpg123_handle *mh, const unsigned char *in, 
 	}
 */
 
-int attribute_align_arg mpg123_decode(mpg123_handle *mh, const unsigned char *inmemory, size_t inmemsize, unsigned char *outmemory, size_t outmemsize, size_t *done)
+int attribute_align_arg mpg123_decode(mpg123_handle *mh, const unsigned char *inmemory, size_t inmemsize, void *outmem, size_t outmemsize, size_t *done)
 {
 	int ret = MPG123_OK;
 	size_t mdone = 0;
+	unsigned char *outmemory = outmem;
 
 	if(done != NULL) *done = 0;
 	if(mh == NULL) return MPG123_BAD_HANDLE;

@@ -94,6 +94,10 @@
    also for OUT123_QUIET being effect.
 -- Dummy output accepts any encoding now.
 - libmpg123:
+-- The user buffers for audio output data are now declared as void* for
+   mpg123_read(), mpg123_decode(), and mpg123_replace_buffer() to avoid
+   the useless need for casting your nice int16_t buffer to unsigned char
+   for decoding MPG123_ENC_SIGNED_16 data to it.
 -- Added mpg123_free() for the benefit of library wrappers. (bug 276)
 -- Add mpg123_format2() and mpg123_fmt2() supporting special value 0 for all
    rates.
