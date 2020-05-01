@@ -1,18 +1,25 @@
 # Module for non-recursive mpg123 build system.
 
 TESTS += \
+  src/tests/decode_fixed.sh \
   src/tests/seek_whence.sh \
   src/tests/seek_accuracy.sh \
   src/tests/text \
   src/tests/textprint
 
+if NO_16_BIT
+XFAIL_TESTS += src/tests/decode_fixed.sh
+endif
+
 # Why do I have to repeat the test scripts here?
 EXTRA_DIST += \
+  src/tests/decode_fixed.sh \
   src/tests/seek_whence.sh \
   src/tests/seek_accuracy.sh \
   src/tests/sweep.mp3
 
 check_PROGRAMS += \
+  src/tests/decode_fixed \
   src/tests/seek_whence \
   src/tests/seek_accuracy \
   src/tests/text \
@@ -20,6 +27,7 @@ check_PROGRAMS += \
 
 EXTRA_PROGRAMS += \
   src/tests/volume \
+  src/tests/decode_fixed \
   src/tests/seek_whence \
   src/tests/seek_accuracy \
   src/tests/noise \
@@ -30,6 +38,12 @@ src_tests_volume_SOURCES = \
   src/tests/volume.c
 src_tests_volume_LDADD = \
   src/libsyn123/libsyn123.la
+
+src_tests_decode_fixed_SOURCES = \
+  src/tests/decode_fixed.c
+src_tests_decode_fixed_LDADD = \
+  src/compat/libcompat.la \
+  src/libmpg123/libmpg123.la
 
 src_tests_seek_whence_SOURCES = \
   src/tests/seek_whence.c

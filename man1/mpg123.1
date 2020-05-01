@@ -61,6 +61,17 @@ With this switch you can make it bail out on data errors
 (and perhaps spare your ears a bad time). Note that this switch has been renamed from \-\-resync.
 The old name still works, but is not advertised or recommened to use (subject to removal in future).
 .TP
+.BR \-F ", " \-\^\-no\-frankenstein
+Disable support for Frankenstein streams. Normally, mpg123 stays true to the concept of MPEG audio being
+just a concatenation of MPEG frames. It will continue decoding even if the type of MPEG frames varies
+wildly. With this switch, it will only decode the input as long as it does not change its character
+(from layer I to layer III, changing sampling rate, from mono to stereo), silently assuming end of
+stream on such occasion. The switch also stops decoding of compatible MPEG frames if there was an
+Info frame (Xing header, Lame tag) that contained a length of the track in MPEG frames.
+This comes a bit closer to the notion of a MP3 file as a defined collection
+of MPEG frames that belong together, but gets rid of the flexibility that can be fun at times but
+mostly is hell for the programmer of the parser and decoder ...
+.TP
 \fB\-\^-resync\-limit \fIbytes\fR
 Set number of bytes to search for valid MPEG data once lost in stream; <0 means search whole stream.
 If you know there are huge chunks of invalid data in your files... here is your hammer.

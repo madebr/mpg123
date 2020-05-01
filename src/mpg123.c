@@ -452,7 +452,7 @@ static void realtime_not_compiled(char *arg)
 }
 #endif
 
-static int frameflag; /* ugly, but that's the way without hacking getlopt */
+static long frameflag; /* ugly, but that's the way without hacking getlopt */
 static void set_frameflag(char *arg, topt *opts)
 {
 	/* Only one mono flag at a time! */
@@ -464,7 +464,7 @@ static void unset_frameflag(char *arg, topt *opts)
 	param.flags &= ~frameflag;
 }
 
-static int appflag; /* still ugly, but works */
+long appflag; /* still ugly, but works */
 static void set_appflag(char *arg, topt *opts)
 {
 	param.appflags |= appflag;
@@ -533,23 +533,24 @@ topt opts[] = {
 	{'c', "check",       GLO_INT,  0, &param.checkrange, TRUE},
 	{'v', "verbose",     0,        set_verbose, 0,           0},
 	{'q', "quiet",       0,        set_quiet,   0,           0},
-	{'y', "no-resync",      GLO_INT,  set_frameflag, &frameflag, MPG123_NO_RESYNC},
+	{'y', "no-resync",       GLO_LONG,  set_frameflag, &frameflag, MPG123_NO_RESYNC},
+	{'F', "no-frankenstein", GLO_LONG,  set_frameflag, &frameflag, MPG123_NO_FRANKENSTEIN},
 	/* compatibility, no-resync is to be used nowadays */
-	{0, "resync",      GLO_INT,  set_frameflag, &frameflag, MPG123_NO_RESYNC},
-	{'0', "single0",     GLO_INT,  set_frameflag, &frameflag, MPG123_MONO_LEFT},
-	{0,   "left",        GLO_INT,  set_frameflag, &frameflag, MPG123_MONO_LEFT},
-	{'1', "single1",     GLO_INT,  set_frameflag, &frameflag, MPG123_MONO_RIGHT},
-	{0,   "right",       GLO_INT,  set_frameflag, &frameflag, MPG123_MONO_RIGHT},
-	{'m', "singlemix",   GLO_INT,  set_frameflag, &frameflag, MPG123_MONO_MIX},
-	{0,   "mix",         GLO_INT,  set_frameflag, &frameflag, MPG123_MONO_MIX},
-	{0,   "mono",        GLO_INT,  set_frameflag, &frameflag, MPG123_MONO_MIX},
-	{0,   "stereo",      GLO_INT,  set_frameflag, &frameflag, MPG123_FORCE_STEREO},
+	{0, "resync",        GLO_LONG,  set_frameflag, &frameflag, MPG123_NO_RESYNC},
+	{'0', "single0",     GLO_LONG,  set_frameflag, &frameflag, MPG123_MONO_LEFT},
+	{0,   "left",        GLO_LONG,  set_frameflag, &frameflag, MPG123_MONO_LEFT},
+	{'1', "single1",     GLO_LONG,  set_frameflag, &frameflag, MPG123_MONO_RIGHT},
+	{0,   "right",       GLO_LONG,  set_frameflag, &frameflag, MPG123_MONO_RIGHT},
+	{'m', "singlemix",   GLO_LONG,  set_frameflag, &frameflag, MPG123_MONO_MIX},
+	{0,   "mix",         GLO_LONG,  set_frameflag, &frameflag, MPG123_MONO_MIX},
+	{0,   "mono",        GLO_LONG,  set_frameflag, &frameflag, MPG123_MONO_MIX},
+	{0,   "stereo",      GLO_LONG,  set_frameflag, &frameflag, MPG123_FORCE_STEREO},
 	{0,   "reopen",      GLO_INT,  0, &param.force_reopen, 1},
 	{'g', "gain",        GLO_ARG | GLO_LONG, 0, &param.gain,    0},
 	{'r', "rate",        GLO_ARG | GLO_LONG, 0, &param.force_rate,  0},
 	{0, "resample",      GLO_ARG | GLO_CHAR, set_resample, NULL,  0},
-	{0,   "8bit",        GLO_INT,  set_frameflag, &frameflag, MPG123_FORCE_8BIT},
-	{0,   "float",       GLO_INT,  set_frameflag, &frameflag, MPG123_FORCE_FLOAT},
+	{0,   "8bit",        GLO_LONG,  set_frameflag, &frameflag, MPG123_FORCE_8BIT},
+	{0,   "float",       GLO_LONG,  set_frameflag, &frameflag, MPG123_FORCE_FLOAT},
 	{0,   "headphones",  0,                  set_output_h, 0,0},
 	{0,   "speaker",     0,                  set_output_s, 0,0},
 	{0,   "lineout",     0,                  set_output_l, 0,0},
@@ -611,14 +612,14 @@ topt opts[] = {
 	{'w', "wav",         GLO_ARG | GLO_CHAR, set_out_wav, 0, 0 },
 	{0, "cdr",           GLO_ARG | GLO_CHAR, set_out_cdr, 0, 0 },
 	{0, "au",            GLO_ARG | GLO_CHAR, set_out_au, 0, 0 },
-	{0,   "gapless",	 GLO_INT,  set_frameflag, &frameflag, MPG123_GAPLESS},
-	{0,   "no-gapless", GLO_INT, unset_frameflag, &frameflag, MPG123_GAPLESS},
-	{0, "no-infoframe", GLO_INT, set_frameflag, &frameflag, MPG123_IGNORE_INFOFRAME},
+	{0,   "gapless",	   GLO_LONG, set_frameflag,   &frameflag, MPG123_GAPLESS},
+	{0,   "no-gapless",  GLO_LONG, unset_frameflag, &frameflag, MPG123_GAPLESS},
+	{0, "no-infoframe",  GLO_LONG, set_frameflag,   &frameflag, MPG123_IGNORE_INFOFRAME},
 	{'?', "help",            0,  want_usage, 0,           0 },
 	{0 , "longhelp" ,        0,  want_long_usage, 0,      0 },
 	{0 , "version" ,         0,  give_version, 0,         0 },
 	{'l', "listentry",       GLO_ARG | GLO_LONG, 0, &param.listentry, 0 },
-	{0, "continue", GLO_INT, set_appflag, &appflag, MPG123APP_CONTINUE },
+	{0, "continue",      GLO_LONG, set_appflag, &appflag, MPG123APP_CONTINUE },
 	{0, "rva-mix",         GLO_INT,  0, &param.rva, 1 },
 	{0, "rva-radio",         GLO_INT,  0, &param.rva, 1 },
 	{0, "rva-album",         GLO_INT,  0, &param.rva, 2 },
@@ -635,20 +636,20 @@ topt opts[] = {
 	{0, "resync-limit", GLO_ARG | GLO_LONG, 0, &param.resync_limit, 0},
 	{0, "pitch", GLO_ARG|GLO_DOUBLE, 0, &param.pitch, 0},
 #ifdef NETWORK
-	{0, "ignore-mime", GLO_INT, set_appflag, &appflag, MPG123APP_IGNORE_MIME },
+	{0, "ignore-mime", GLO_LONG, set_appflag, &appflag, MPG123APP_IGNORE_MIME },
 #endif
-	{0, "lyrics", GLO_INT, set_appflag, &appflag, MPG123APP_LYRICS},
+	{0, "lyrics", GLO_LONG, set_appflag, &appflag, MPG123APP_LYRICS},
 	{0, "keep-open", GLO_INT, 0, &param.keep_open, 1},
 	{0, "utf8", GLO_INT, 0, &param.force_utf8, 1},
-	{0, "fuzzy", GLO_INT,  set_frameflag, &frameflag, MPG123_FUZZY},
+	{0, "fuzzy", GLO_LONG,  set_frameflag, &frameflag, MPG123_FUZZY},
 	{0, "index-size", GLO_ARG|GLO_LONG, 0, &param.index_size, 0},
-	{0, "no-seekbuffer", GLO_INT, unset_frameflag, &frameflag, MPG123_SEEKBUFFER},
+	{0, "no-seekbuffer", GLO_LONG, unset_frameflag, &frameflag, MPG123_SEEKBUFFER},
 	{'e', "encoding", GLO_ARG|GLO_CHAR, 0, &param.force_encoding, 0},
 	{0, "preframes", GLO_ARG|GLO_LONG, 0, &param.preframes, 0},
-	{0, "skip-id3v2", GLO_INT, set_frameflag, &frameflag, MPG123_SKIP_ID3V2},
+	{0, "skip-id3v2", GLO_LONG, set_frameflag, &frameflag, MPG123_SKIP_ID3V2},
 	{0, "streamdump", GLO_ARG|GLO_CHAR, 0, &param.streamdump, 0},
 	{0, "icy-interval", GLO_ARG|GLO_LONG, 0, &param.icy_interval, 0},
-	{0, "ignore-streamlength", GLO_INT, set_frameflag, &frameflag, MPG123_IGNORE_STREAMLENGTH},
+	{0, "ignore-streamlength", GLO_LONG, set_frameflag, &frameflag, MPG123_IGNORE_STREAMLENGTH},
 	{0, "name", GLO_ARG|GLO_CHAR, 0, &param.name, 0},
 	{0, "devbuffer", GLO_ARG|GLO_DOUBLE, 0, &param.device_buffer, 0},
 	{0, 0, 0, 0, 0, 0}
@@ -1581,6 +1582,7 @@ static void long_usage(int err)
 	fprintf(o," -n     --frames <n>       play only <n> frames of every stream\n");
 	fprintf(o,"        --fuzzy            Enable fuzzy seeks (guessing byte offsets or using approximate seek points from Xing TOC)\n");
 	fprintf(o," -y     --no-resync        DISABLES resync on error (--resync is deprecated)\n");
+	fprintf(o," -F     --no-frankenstein  disable support for Frankenstein streams\n");
 #ifdef NETWORK
 	fprintf(o," -p <f> --proxy <f>        set WWW proxy\n");
 	fprintf(o," -u     --auth             set auth values for HTTP access\n");

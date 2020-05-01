@@ -91,7 +91,7 @@ struct parameter
 	long start_frame;  /* frame offset to begin with */
 	long frame_number; /* number of frames to decode */
 	long outscale;
-	int flags;
+	long flags;
 	long force_rate;
 	int resample;
 	int talk_icy;

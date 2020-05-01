@@ -45,6 +45,8 @@
 -- Reformat audio capabilities table, more condensed, fits into 80 columns.
    Forced rate on a separated line.
 -- Make --pitch actually work, not just interactive changes.
+-- Added --no-frankenstein.
+-- Frameflags as long variable, 32 bits are needed since some time now.
 - out123:
 -- Document --STDOUT, make it more robust regarding fwrite() interruptions.
 -- Removed the implicit phase shift that made generated waves exactly at
@@ -94,6 +96,8 @@
    also for OUT123_QUIET being effect.
 -- Dummy output accepts any encoding now.
 - libmpg123:
+-- Added mpg123_open_fixed() to ease API for applications that just
+   want to decode well-behaved local files.
 -- The user buffers for audio output data are now declared as void* for
    mpg123_read(), mpg123_decode(), and mpg123_replace_buffer() to avoid
    the useless need for casting your nice int16_t buffer to unsigned char
@@ -154,6 +158,11 @@
    seek index.
 -- Eliminated a spots where error messages would still be printed
    also for MPG123_QUIET being effect.
+-- Added MPG123_NO_FRANKENSTEIN, MPG123_FLOAT_FALLBACK flags.
+-- Now actually try floating point encoding if format matrix allows it
+   (can be disabled by unsetting MPG123_FLOAT_FALLBACK).
+-- Added mpg123_feature2() that takes an int, as enums are not ABI-safe,
+   also added feature queries for floating point output. 
 
 1.25.13
 -------

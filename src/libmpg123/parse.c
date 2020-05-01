@@ -1,7 +1,7 @@
 /*
 	parse: spawned from common; clustering around stream/frame parsing
 
-	copyright ?-2014 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp & Thomas Orgis
 */
@@ -513,6 +513,20 @@ int read_frame(mpg123_handle *fr)
 
 	/* From now on, old frame data is tainted by parsing attempts. */
 	fr->to_decode = fr->to_ignore = FALSE;
+
+	if( fr->p.flags & MPG123_NO_FRANKENSTEIN &&
+		( (fr->track_frames > 0 && fr->num >= fr->track_frames-1)
+#ifdef GAPLESS
+		|| (fr->gapless_frames > 0 && fr->num >= fr->gapless_frames-1)
+#endif
+		) )
+	{
+		mdebug( "stopping parsing at %"OFF_P
+			" frames as indicated fixed track length"
+		,	(off_p)fr->num+1 );
+		return 0;
+	}
+
 read_again:
 	/* In case we are looping to find a valid frame, discard any buffered data before the current position.
 	   This is essential to prevent endless looping, always going back to the beginning when feeder buffer is exhausted. */
@@ -554,6 +568,16 @@ init_resync:
 	}
 
 	/* Now we should have our valid header and proceed to reading the frame. */
+
+	if(fr->p.flags & MPG123_NO_FRANKENSTEIN)
+	{
+		if(fr->firsthead && !head_compatible(fr->firsthead, newhead))
+		{
+			mdebug( "stopping before reading frame %"OFF_P
+				" as its header indicates Frankenstein coming for you", (off_p)fr->num );
+			return 0;
+		}
+	}
 
 	/* if filepos is invalid, so is framepos */
 	framepos = fr->rd->tell(fr) - 4;

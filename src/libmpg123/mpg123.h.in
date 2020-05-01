@@ -83,6 +83,7 @@ typedef ptrdiff_t ssize_t;
 #endif
 #define MPG123_LARGENAME(func) MPG123_MACROCAT(func, MPG123_LARGESUFFIX)
 
+#define mpg123_open_fixed   MPG123_LARGENAME(mpg123_open_fixed)
 #define mpg123_open         MPG123_LARGENAME(mpg123_open)
 #define mpg123_open_fd      MPG123_LARGENAME(mpg123_open_fd)
 #define mpg123_open_handle  MPG123_LARGENAME(mpg123_open_handle)
@@ -249,6 +250,14 @@ enum mpg123_param_flags
 	 * of libmpg123 which did not enable float automatically at all. If disabled,
 	 * float is considered after the 16 bit default and higher-bit integer encodings
 	 * for any rate. */
+	,MPG123_NO_FRANKENSTEIN = 0x1000000 /**< Disable support for Frankenstein streams
+	 * (different MPEG streams stiched together). Do not accept serious change of MPEG
+	 * header inside a single stream. With this flag, the audio output format cannot
+	 * change during decoding unless you open a new stream. This also stops decoding
+	 * after an announced end of stream (Info header contained a number of frames
+	 * and this number has been reached). This makes your MP3 files behave more like
+	 * ordinary media files with defined structure, rather than stream dumps with
+	 * some sugar. */
 };
 
 /** choices for MPG123_RVA */
@@ -301,6 +310,8 @@ enum mpg123_feature_set
 	,MPG123_FEATURE_TIMEOUT_READ         /**< Reader with timeout (network). */
 	,MPG123_FEATURE_EQUALIZER            /**< tunable equalizer */
 	,MPG123_FEATURE_MOREINFO             /**< more info extraction (for frame analyzer) */
+	,MPG123_FEATURE_OUTPUT_FLOAT32      /**< 32 bit float output */
+	,MPG123_FEATURE_OUTPUT_FLOAT64      /**< 64 bit float output (usually never) */
 };
 
 /** Query libmpg123 features.
@@ -308,6 +319,17 @@ enum mpg123_feature_set
  *  \return 1 for success, 0 for unimplemented functions
  */
 MPG123_EXPORT int mpg123_feature(const enum mpg123_feature_set key);
+
+/** Query libmpg123 features with better ABI compatibility
+ *
+ *  This is the same as mpg123_feature(), but this time not using
+ *  the enum as argument. Compilers don't have to agree on the size of
+ *  enums and hence they are not safe in public API.
+ *
+ *  \param key feature selection
+ *  \return 1 for success, 0 for unimplemented functions
+ */
+MPG123_EXPORT int mpg123_feature2(int key);
 
 /* @} */
 
@@ -463,7 +485,12 @@ MPG123_EXPORT const char* mpg123_current_decoder(mpg123_handle *mh);
  *
  * Functions to get and select the format of the decoded audio.
  *
- * Before you dive in, please be warned that you might get confused by this. This seems to happen a lot, therefore I am trying to explain in advance.
+ * Before you dive in, please be warned that you might get confused by this.
+ * This seems to happen a lot, therefore I am trying to explain in advance.
+ * If you do feel confused and just want to decode your normal MPEG audio files that
+ * don't alter properties in the middle, just use mpg123_open_fixed() with a fixed encoding
+ * and channel count and forget about a matrix of audio formats. If you want to get funky,
+ * read ahead ...
  *
  * The mpg123 library decides what output format to use when encountering the first frame in a stream, or actually any frame that is still valid but differs from the frames before in the prompted output format. At such a deciding point, an internal table of allowed encodings, sampling rates and channel setups is consulted. According to this table, an output format is chosen and the decoding engine set up accordingly (including optimized routines for different output formats). This might seem unusual but it just follows from the non-existence of "MPEG audio files" with defined overall properties. There are streams, streams are concatenations of (semi) independent frames. We store streams on disk and call them "MPEG audio files", but that does not change their nature as the decoder is concerned (the LAME/Xing header for gapless decoding makes things interesting again).
  *
@@ -587,8 +614,51 @@ MPG123_EXPORT int mpg123_getformat2( mpg123_handle *mh
  * @{
  */
 
-/* reading samples / triggering decoding, possible return values: */
-/** Enumeration of the error codes returned by libmpg123 functions. */
+/** Open a simple MPEG file with fixed properties.
+ *
+ *  This function shall simplify the common use case of a plain MPEG
+ *  file on disk that you want to decode, with one fixed sample
+ *  rate and channel count, and usually a length defined by a Lame/Info/Xing
+ *  tag. It will:
+ *
+ *  - set the MPG123_NO_FRANKENSTEIN flag
+ *  - set up format support according to given parameters,
+ *  - open the file,
+ *  - query audio format,
+ *  - fix the audio format support table to ensure the format stays the same,
+ *  - call mpg123_scan() if there is no header frame to tell the track length.
+ *
+ *  From that on, you can call mpg123_getformat() for querying the sample
+ *  rate (and channel count in case you allowed both) and mpg123_length()
+ *  to get a pretty safe number for the duration.
+ *  Only the sample rate is left open as that indeed is a fixed property of
+ *  MPEG files. You could set MPG123_FORCE_RATE beforehand, but that may trigger
+ *  low-quality resampling in the decoder, only do so if in dire need.
+ *  The library will convert mono files to stereo for you, and vice versa.
+ *  If any constraint cannot be satisified (most likely because of a non-default
+ *  build of libmpg123), you get MPG123_ERR returned and can query the detailed
+ *  cause from the handle. Only on MPG123_OK there will an open file that you
+ *  then close using mpg123_close(), or implicitly on mpg123_delete() or the next
+ *  call to open another file.
+ *
+ *  So, for your usual CD rip collection, you could use
+ *
+ *    mpg123_open_fixed(mh, path, MPG123_STEREO, MPG123_ENC_SIGNED_16)
+ *
+ *  and be happy calling mpg123_getformat() to verify 44100 Hz rate, then just
+ *  playing away with mpg123_read(). The occasional mono file, or MP2 file,
+ *  will also be decoded without you really noticing. Just the speed could be
+ *  wrong if you do not care about sample rate at all.
+ *  \param mh handle
+ *  \param path filesystem path
+ *  \param channels allowed channel count, either 1 (MPG123_MONO) or
+ *    2 (MPG123_STEREO), or bitwise or of them, but then you're halfway back to
+ *    calling mpg123_format() again;-)
+ *  \param encoding a definite encoding from enum mpg123_enc_enum
+ *    or a bitmask like for mpg123_format(), defeating the purpose somewhat
+ */
+MPG123_EXPORT int mpg123_open_fixed(mpg123_handle *mh, const char *path
+,	int channels, int encoding);
 
 /** Open and prepare to decode the specified file by filesystem path.
  *  This does not open HTTP urls; libmpg123 contains no networking code.
@@ -1036,6 +1106,13 @@ MPG123_EXPORT off_t mpg123_framelength(mpg123_handle *mh);
 
 /** Return, if possible, the full (expected) length of current
  *  track in samples (PCM frames).
+ *
+ *  This relies either on an Info frame at the beginning or a previous
+ *  call to mpg123_scan() to get the real number of MPEG frames in a
+ *  file. It will guess based on file size if neither Info frame nor
+ *  scan data are present. In any case, there is no guarantee that the
+ *  decoder will not give you more data, for example in case the open
+ *  file gets appended to during decoding.
  * \param mh handle
  * \return length >= 0 or MPG123_ERR if there is no length guess possible.
  */

@@ -463,6 +463,54 @@ int attribute_align_arg mpg123_open(mpg123_handle *mh, const char *path)
 	return open_stream(mh, path, -1);
 }
 
+// The convenience function mpg123_open_fixed() wraps over acual mpg123_open
+// and hence needs to have the exact same code in lfs_wrap.c. The flesh is
+// in open_fixed_pre() and open_fixed_post(), wich are only defined here.
+int open_fixed_pre(mpg123_handle *mh, int channels, int encoding)
+{
+	if(!mh)
+		return MPG123_BAD_HANDLE;
+	mh->p.flags |= MPG123_NO_FRANKENSTEIN;
+	int err = mpg123_format_none(mh);
+	if(err == MPG123_OK)
+		err = mpg123_format2(mh, 0, channels, encoding);
+	return err;
+}
+
+int open_fixed_post(mpg123_handle *mh, int channels, int encoding)
+{
+	if(!mh)
+		return MPG123_BAD_HANDLE;
+	long rate;
+	int err = mpg123_getformat(mh, &rate, &channels, &encoding);
+	if(err == MPG123_OK)
+		err = mpg123_format_none(mh);
+	if(err == MPG123_OK)
+		err = mpg123_format(mh, rate, channels, encoding);
+	if(err == MPG123_OK)
+	{
+		if(mh->track_frames < 1 && (mh->rdat.flags & READER_SEEKABLE))
+		{
+			debug("open_fixed_post: scan because we can seek and do not know track_frames");
+			err = mpg123_scan(mh);
+		}
+	}
+	if(err != MPG123_OK)
+		mpg123_close(mh);
+	return err;
+}
+
+int attribute_align_arg mpg123_open_fixed( mpg123_handle *mh, const char *path
+,	int channels, int encoding )
+{
+	int err = open_fixed_pre(mh, channels, encoding);
+	if(err == MPG123_OK)
+		err = mpg123_open(mh, path);
+	if(err == MPG123_OK)
+		err = open_fixed_post(mh, channels, encoding);
+	return err;
+}
+
 int attribute_align_arg mpg123_open_fd(mpg123_handle *mh, int fd)
 {
 	if(mh == NULL) return MPG123_BAD_HANDLE;
