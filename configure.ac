@@ -102,7 +102,7 @@ if test "x$all_static" = xyes; then
 fi
 
 AM_PROG_AS
-AC_PROG_CC
+AC_PROG_CC_C99
 AM_PROG_CC_C_O
 AC_PROG_CPP
 AC_PROG_INSTALL
@@ -857,6 +857,8 @@ else
   DECODER_OBJ="$DECODER_OBJ synth.\$(OBJEXT)"
   DECODER_LOBJ="$DECODER_LOBJ synth.lo"
 fi
+
+AM_CONDITIONAL( [NO_16_BIT], [test "x$int16" = "xdisabled"])
 
 # 8bit works only through 16bit
 if test "x$int16" = "xdisabled"; then
