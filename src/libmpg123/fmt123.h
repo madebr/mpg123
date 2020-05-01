@@ -4,7 +4,7 @@
 	separate header just for audio format definitions not tied to
 	library code
 
-	copyright 1995-2015 by the mpg123 project
+	copyright 1995-2020 by the mpg123 project
 	free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 */
