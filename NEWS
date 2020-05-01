@@ -75,7 +75,7 @@
    directly produce the format output devices need.
 -- Well, also channel mixing while we're at it.
 -- Oh, and a minimal-latency-and-reasonably-efficient resampler that only
-   took me over a year to finish.
+   took me over a year to figure out. I should write a paper about it.
 - libout123:
 -- Added out123_free() for the benefit of library wrappers. (bug 276)
 -- Removed change of effective user ID in the WAV/RAW/AU/CDR writer.
