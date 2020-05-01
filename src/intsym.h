@@ -226,6 +226,8 @@
 #define bytes_to_samples INT123_bytes_to_samples
 #define outblock_bytes INT123_outblock_bytes
 #define postprocess_buffer INT123_postprocess_buffer
+#define open_fixed_pre INT123_open_fixed_pre
+#define open_fixed_post INT123_open_fixed_post
 #define frame_cpu_opt INT123_frame_cpu_opt
 #define set_synth_functions INT123_set_synth_functions
 #define dectype INT123_dectype
