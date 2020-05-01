@@ -20,7 +20,10 @@
 - Updated support for OS/2 in the form of ArcaOS.
 - Removed outdated Pascal port (ports/mpg123_.pas). There are others
   out there.
+- Updated man pages, been a while.
 - mpg123:
+-- Fixed-rate playback now prefers the libsyn123 resampler instead of NtoM
+   in libmpg123, see --resample parameter.
 -- Drop --STDOUT (never properly implemented, use pipe to out123 instead).
 -- Make --streamdump use unintr_write() to avoid inconsistencies.
 -- Now sets non-zero exit code when any one track of the playlist
@@ -44,7 +47,8 @@
    a complaining sanitizer).
 -- Reformat audio capabilities table, more condensed, fits into 80 columns.
    Forced rate on a separated line.
--- Make --pitch actually work, not just interactive changes.
+-- Make --pitch actually work, not just interactive changes. Pitching uses
+   a resampler now if a fixed output rate is specified.
 -- Added --no-frankenstein.
 -- Frameflags as long variable, 32 bits are needed since some time now.
 - out123:
