@@ -11,6 +11,12 @@ if NO_16_BIT
 XFAIL_TESTS += src/tests/decode_fixed.sh
 endif
 
+# Those are created by decode_fixed.sh. Could add targets.
+clean-local: clean-local-check
+.PHONY: clean-local-check
+clean-local-check:
+	rm -f src/tests/sweepsweep.mp3 src/tests/stripsweep.mp3
+
 # Why do I have to repeat the test scripts here?
 EXTRA_DIST += \
   src/tests/decode_fixed.sh \
