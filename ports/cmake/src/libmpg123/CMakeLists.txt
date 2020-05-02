@@ -92,6 +92,7 @@ elseif((MSVC AND CMAKE_GENERATOR_PLATFORM MATCHES "|Win32") OR (NOT MSVC AND CMA
         set(PLATFORM_DEFINITIONS OPT_SSE)
         set(PLATFORM_SOURCES
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/tabinit_mmx.S"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dct36_sse.S"
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dct64_sse_float.S"
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_sse_float.S"
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_sse_float.S"
@@ -138,11 +139,11 @@ if(MSVC)
             DEPENDS ${FILE}
             WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         add_custom_command(
-            OUTPUT ${FILENAME}.o
-            COMMAND ${YASM_ASSEMBLER} -a x86 -m ${MACHINE} -p gas -r raw -f win32 -g null -o ${FILENAME}.o ${FILENAME}.asm
+            OUTPUT ${FILENAME}.obj
+            COMMAND ${YASM_ASSEMBLER} -a x86 -m ${MACHINE} -p gas -r raw -f win32 -g null -o ${FILENAME}.obj ${FILENAME}.asm
             DEPENDS ${FILENAME}.asm
             WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-        target_sources(${TARGET} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o")
+        target_sources(${TARGET} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.obj")
     endforeach()
 else()
     target_sources(${TARGET} PRIVATE ${PLATFORM_SOURCES})
@@ -155,7 +156,8 @@ if(BUILD_SHARED_LIBS)
 endif()
 
 target_link_libraries(${TARGET} PRIVATE
-    $<$<BOOL:${HAVE_M}>:m>)
+    $<$<BOOL:${HAVE_M}>:m>
+    $<$<BOOL:${WANT_WIN32_UNICODE}>:shlwapi>)
 target_include_directories(${TARGET} INTERFACE
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")

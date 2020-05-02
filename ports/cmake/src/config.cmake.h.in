@@ -152,6 +152,11 @@
 // Define to use Unicode for Windows
 #cmakedefine WANT_WIN32_UNICODE 1
 
+#if WANT_WIN32_UNICODE == 1
+# define strcasecmp _stricmp
+# define strncasecmp _strnicmp
+#endif
+
 // Define to use Win32 named pipes
 #cmakedefine WANT_WIN32_FIFO 1
 

@@ -22,7 +22,8 @@ set_target_properties(${TARGET} PROPERTIES OUTPUT_NAME out123)
 
 target_link_libraries(${TARGET} PRIVATE
     $<TARGET_NAME_IF_EXISTS:defaultmodule>
-    $<$<BOOL:${HAVE_UNIX_DL}>:dl>)
+    $<$<BOOL:${HAVE_UNIX_DL}>:dl>
+    $<$<BOOL:${WANT_WIN32_UNICODE}>:shlwapi>)
 
 target_include_directories(${TARGET} INTERFACE
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
