@@ -1,8 +1,4 @@
 /*
-TODO: efficient ringbuffer access for the decimation filter
-TODO: initialize with first sample or zero? is there an actual benefit? impulse
-      response?
-
 	resample: low-latency usable and quick resampler
 
 	copyright 2018-2019 by the mpg123 project
@@ -74,6 +70,10 @@ TODO: initialize with first sample or zero? is there an actual benefit? impulse
 	considering. Currently, it is not even optimized for efficient coefficient
 	access (that's a TODO), let alone using the more efficient Direct Form II,
 	or anything more fancy.
+
+TODO: efficient ringbuffer access for the decimation filter
+TODO: initialize with first sample or zero? is there an actual benefit? impulse
+      response?
 */
 
 #define NO_GROW_BUF
