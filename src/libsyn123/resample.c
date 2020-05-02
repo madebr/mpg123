@@ -1899,12 +1899,14 @@ syn123_resample_total_64(long inrate, long outrate, int64_t ins)
 	return (tot <= INT64_MAX) ? (int64_t)tot : SYN123_OVERFLOW;
 }
 
-int32_t attribute_align_arg
-syn123_resample_total_32(long inrate, long outrate, int32_t ins)
+#if SIZEOF_LONG == 4
+long attribute_align_arg
+syn123_resample_total_32(long inrate, long outrate, long ins)
 {
 	int64_t tot = syn123_resample_total_64(inrate, outrate, ins);
-	return (tot <= INT32_MAX) ? (int32_t)tot : SYN123_OVERFLOW;
+	return (tot <= LONG_MAX) ? (long)tot : SYN123_OVERFLOW;
 }
+#endif
 
 // The inverse function: How many input samples are needed to get at least
 // the desired amount of output?
@@ -1957,12 +1959,14 @@ syn123_resample_intotal_64(long inrate, long outrate, int64_t outs)
 	return (tot <= INT64_MAX) ? (int64_t)tot : SYN123_OVERFLOW;
 }
 
-int32_t attribute_align_arg
-syn123_resample_intotal_32(long inrate, long outrate, int32_t outs)
+#if SIZEOF_LONG == 4
+long attribute_align_arg
+syn123_resample_intotal_32(long inrate, long outrate, long outs)
 {
 	int64_t tot = syn123_resample_intotal_64(inrate, outrate, outs);
-	return (tot <= INT32_MAX) ? (int32_t)tot : SYN123_OVERFLOW;
+	return (tot <= LONG_MAX) ? (long)tot : SYN123_OVERFLOW;
 }
+#endif
 
 #define syn123_resample_total syn123_resample_total_64
 
