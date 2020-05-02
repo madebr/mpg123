@@ -338,6 +338,7 @@ if(UNIX)
         compat
         lib${PROJECT_NAME}
         libout123
+        libsyn123
         ${GETHOSTBYNAME_LIB}
         ${SOCKET_LIB}
         $<$<BOOL:${HAVE_M}>:m>)
@@ -345,6 +346,7 @@ if(UNIX)
     add_executable(out123
         "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/sysutil.c"
         "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/getlopt.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/filters.c"
         "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/out123.c")
     target_link_libraries(out123 PRIVATE
         lib${PROJECT_NAME}
@@ -361,7 +363,8 @@ if(UNIX)
         "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/mpg123-strip.c"
         "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/getlopt.c")
     target_link_libraries(${PROJECT_NAME}-strip  PRIVATE
-        lib${PROJECT_NAME})
+        lib${PROJECT_NAME}
+        libsyn123)
 
     install(TARGETS ${PROJECT_NAME} out123 ${PROJECT_NAME}-id3dump ${PROJECT_NAME}-strip
         EXPORT targets
