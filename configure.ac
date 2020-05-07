@@ -2269,6 +2269,17 @@ win32_winver_bump=no
 
 COMPAT_LIBS=
 
+### mingw.org may not work properly for newer APIs
+case $host_os in
+  *mingw*)
+    AC_CHECK_HEADER([_mingw_mac.h], [], [
+      AC_WARN([You are using the mingw.org distribution])
+      AC_WARN([mpg123 may not build properly])
+      AC_WARN([Please switch to using mingw-w64 if possible])
+    ])
+  ;;
+esac
+
 dnl We do not support non-unicode Windows.
 if test "x$win32_specific_codes" = xenabled; then
 #### Check for Wide functions
@@ -2372,6 +2383,7 @@ if test "x$win32_specific_codes" = xenabled; then
 
 #### Check for Win32 Named Pipe functions
 win32_fifo_working=no
+winver=""
 if test x$win32_specific_codes = xenabled; then
   AC_MSG_CHECKING([if we have Named Pipes])
   if test "x$fifo" != "xdisabled"; then
@@ -2401,6 +2413,29 @@ if test x$win32_specific_codes = xenabled; then
   else
     AC_MSG_RESULT([no])
   fi
+# Check GetThreadErrorMode
+  AC_MSG_CHECKING([if we have GetThreadErrorMode])
+    AC_LINK_IFELSE([AC_LANG_SOURCE([
+    #include <windows.h>
+    int main(){
+      return GetThreadErrorMode();
+    }])],[win32_thread_error=yes],[win32_winver_bump=yes])
+  if test "x$win32_thread_error" != "xyes"; then
+    AC_MSG_CHECKING([if we have GetThreadErrorMode])
+      AC_LINK_IFELSE([AC_LANG_SOURCE([
+      #define WINVER 0x600
+      #define _WIN32_WINNT 0x600
+      #include <windows.h>
+      int main(){
+        return GetThreadErrorMode();
+      }])],[win32_thread_error=yes],[win32_thread_error=no])
+  fi
+  if test "x$win32_thread_error" = "xyes"; then
+    AC_MSG_RESULT([yes])
+  else
+    AC_MSG_RESULT([no])
+    AC_ERROR([GetThreadErrorMode is required but not found])
+  fi
 fi
 
 #### WINVER Bump
@@ -2408,11 +2443,12 @@ if test x$win32_specific_codes = xenabled; then
   AC_MSG_CHECKING([if WINVER and _WIN32_WINNT needs version bumps])
   if test "x$win32_winver_bump" = "xyes"; then
     AC_MSG_RESULT([yes])
-    AC_DEFINE([WINVER], [0x0501], [ WinXP and above for ipv6 ])
-    AC_DEFINE([_WIN32_WINNT], [0x0501], [ WinXP and above for ipv6 ])
+    AC_DEFINE([WINVER], [0x0600], [ Windows Vista and later APIs ])
+    AC_DEFINE([_WIN32_WINNT], [0x0600], [ Windows Vista and later APIs ])
     # getaddrinfo and freeaddrinfo are available for Win2K and above
     # Bug: MinGW.org w32api ws2tcpip.h incorrectly wants (_WIN32_WINNT >= 0x0501) for getaddrinfo and freeaddrinfo
     # MultiByteToWideChar and WideCharToMultiByte are available for Win2K and above
+    # GetThreadErrorMode only available on Vista and Later
   else
     AC_MSG_RESULT([no])
   fi
