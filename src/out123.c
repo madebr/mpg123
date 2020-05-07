@@ -1,4 +1,3 @@
-#define DEBUG
 /*
 	out123: stream data from libmpg123 or libsyn123 to an audio output device
 
