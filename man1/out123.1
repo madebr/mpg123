@@ -115,8 +115,22 @@ Choose output sample encoding. Possible values look like f32 (32-bit floating po
 See the output of \fBout123\fR's longhelp for actually available encodings.
 Default is s16.
 .TP
+\fB\-\^\-endian \fIchoice
+Select output endianess (byte order). Choice is big, little, or native, which is the default.
+The processing can only work in native mode, so you need to specify input or output byte order
+if that does not match your machine. This also sets the input endianess if that is
+not set separately. See also \fB\-\^\-inputend\fR and \fB\-\^\-byteswap\fR.
+.TP
 \fB\-E \fIenc\fR, \fB\-\^\-inputenc \fIenc
 Specify input encoding different from output encoding for conversion.
+.TP
+\fB\-\^\-inputend \fIchoice
+Select input endianess (byte order). By default it is the same as output byte order.
+See \fB\-\^\-endian\fR.
+.TP
+.BR \-\^\-byteswap
+A switch to trigger swapping of byte order just before output, after any other transformations.
+This works on top of any endianess you specify with 
 .TP
 .BR \-m ", " \-\^\-mono "
 Set for single-channel audio (default is two channels, stereo).

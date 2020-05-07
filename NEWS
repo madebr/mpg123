@@ -68,6 +68,7 @@
 -- Some rearrangement in help text.
 -- Changed output of --test-encodings to list of encoding names
    instead of raw bitmask value.
+-- Added --endian, --inputend, and --byteswap.
 - libsyn123:
 -- Created the library to host some simple signal generators for testing
    output.

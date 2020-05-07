@@ -1,3 +1,4 @@
+#define DEBUG
 /*
 	out123: stream data from libmpg123 or libsyn123 to an audio output device
 
@@ -152,6 +153,9 @@ double *mixmat = NULL;
 // Also used for conversions.
 syn123_handle *waver = NULL;
 int generate = FALSE; // Wheter to use the syn123 generator.
+// Input and output byte swappery.
+long byte_in_flags  = 0;
+long byte_out_flags = 0;
 
 out123_handle *ao = NULL;
 char *cmd_name = NULL;
@@ -289,6 +293,51 @@ static void set_output(char *arg, topt *opts)
 			safe_exit(1);
 	}
 	else set_output_module(arg, opts);
+}
+
+enum byteflags
+{
+	byte_nothing = 0
+,	byte_native  = 1
+,	byte_swap    = 2
+,	byte_little  = 4
+,	byte_big     = 8
+};
+
+// Input has same endianess as output unless something was specified.
+static void finish_endian(void)
+{
+	long outbyte = byte_out_flags & (byte_big|byte_little|byte_native);
+	if(outbyte && !byte_in_flags)
+		byte_in_flags = outbyte;
+}
+
+static void set_endian(char *arg, long *flags)
+{
+	*flags &= ~(byte_big|byte_little|byte_native);
+	if(!strcmp(arg, "big"))
+		*flags |= byte_big;
+	else if(!strcmp(arg, "little"))
+		*flags |= byte_little;
+	else if(!strcmp(arg, "native"))
+		*flags |= byte_native;
+	else
+		merror("bad endianess choice: %s", arg);
+}
+
+static void set_in_endian(char *arg, topt *opts)
+{
+	set_endian(arg, &byte_in_flags);
+}
+
+static void set_out_endian(char *arg, topt *opts)
+{
+	set_endian(arg, &byte_out_flags);
+}
+
+static void set_byteswap(char *arg, topt *opts)
+{
+	byte_out_flags |= byte_swap;
 }
 
 static void set_verbose (char *arg, topt *opts)
@@ -564,7 +613,10 @@ topt opts[] = {
 	{0 , "longhelp" ,        0,  want_long_usage, 0,      0 },
 	{0 , "version" ,         0,  give_version, 0,         0 },
 	{'e', "encoding", GLO_ARG|GLO_CHAR, 0, &encoding_name, 0},
-	{'E', "inputenc", GLO_ARG|GLO_CHAR, 0, &inputenc_name, 0}, 
+	{0, "endian",     GLO_ARG|GLO_CHAR, set_out_endian, 0, 0},
+	{'E', "inputenc", GLO_ARG|GLO_CHAR, 0, &inputenc_name, 0},
+	{0, "inputend",   GLO_ARG|GLO_CHAR, set_in_endian,  0, 0},
+	{0, "byteswap",                  0, set_byteswap,   0, 0},
 	{0, "list-encodings", 0, list_encodings, 0, 0 },
 	{0, "test-format", 0, test_format, 0, 0 },
 	{0, "test-encodings", 0, test_encodings, 0, 0},
@@ -968,6 +1020,14 @@ void push_output(unsigned char *buf, size_t samples)
 {
 	errno = 0;
 	size_t bytes = samples*pcmframe;
+
+	if(byte_out_flags & byte_big)
+		syn123_host2be(   buf, pcmframe/channels, samples*channels);
+	if(byte_out_flags & byte_little)
+		syn123_host2le(   buf, pcmframe/channels, samples*channels);
+	if(byte_out_flags & byte_swap)
+		syn123_swap_bytes(buf, pcmframe/channels, samples*channels);
+
 	mdebug("playing %zu bytes", bytes);
 	check_fatal_output(out123_play(ao, buf, bytes) < (int)bytes);
 	if(also_stdout && unintr_fwrite(buf, pcmframe, samples, stdout) < samples)
@@ -1036,6 +1096,11 @@ int play_frame(void)
 	/* Play what is there to play (starting with second decode_frame call!) */
 	if(!got_samples)
 		return 0;
+
+	if(byte_in_flags & byte_big)
+		syn123_be2host(inaudio, pcminframe/channels, got_samples*inputch);
+	if(byte_in_flags & byte_little)
+		syn123_le2host(inaudio, pcminframe/channels, got_samples*inputch);
 
 	if(mixaudio)
 	{
@@ -1410,6 +1475,8 @@ int main(int sys_argc, char ** sys_argv)
 			fprintf (stderr, ME": missing argument for parameter: %s\n", loptarg);
 			usage(1);
 	}
+	finish_endian();
+	mdebug("input byte flags: %ld, output byte flags: %ld", byte_in_flags, byte_out_flags);
 
 	if(quiet)
 		verbose = 0;
@@ -1691,7 +1758,11 @@ static void long_usage(int err)
 	fprintf(o," -C <n> --inputch <n>      set input channel count for conversion\n");
 	fprintf(o," -e <c> --encoding <c>     set output encoding (%s)\n"
 	,	enclist != NULL ? enclist : "OOM!");
+	fprintf(o,"        --endian <s>       set output endianess: big, little, native (default)\n");
 	fprintf(o," -E <c> --inputenc <c>     set input encoding for conversion\n");
+	fprintf(o,"        --inputend <s>     set input endianess: big, little, or native\n");
+	fprintf(o,"                           (default being same as output endianess)\n");
+	fprintf(o,"        --byteswap         swap byte order at end (possibly again)\n");
 	fprintf(o,"        --list-encodings   list of encoding short and long names\n");
 	fprintf(o,"        --mix <m>          mixing matrix <m> between input and output channels\n");
 	fprintf(o,"                           as linear factors, comma separated list for output\n");
