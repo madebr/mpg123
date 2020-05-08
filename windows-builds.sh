@@ -8,14 +8,17 @@ build_type=$1
 if test -z "$build_type"; then
   echo "Please specify a build type as argument, one of:"
   echo "x86, x86_64, x86-cross, x86_64-cross"
-  echo "Optionally limit the number of parallel make processes as second argument."
+  echo "Optionally set a number of parallel make processes as second argument."
   exit 1
 fi
 
 build_procs=$2
-if test -z "$build_procs"; then
-  build_procs=$(nproc 2>/dev/null)
-fi
+# Could use parallel make with number of cores in system,
+# but it turns out we burn most time in configure with
+# slow forks anyway.
+#if test -z "$build_procs"; then
+#  build_procs=$(nproc 2>/dev/null)
+#fi
 
 # -D__MINGW_USE_VC2005_COMPAT=1 use 64bit time internally for 32bit, so XP and earlier don't get into
 # missing _time32 errors

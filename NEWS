@@ -15,7 +15,8 @@
 - Default build with proper integer rounding (--enable-int-quality) now.
 - Cygwin/midipix autoconf fixes (thanks to Redfoxmoon).
 - Updated Windows build script, notably renaming .dll.def to .def.
-  Requires an argument now for build type, defaults to parallel make.
+  Requires an argument now for build type, an optional one for
+  parallel make (not that useful on MinGW).
 - Rework library dependency handling to avoid unnecessary linking for
   lib*123. Also add proper Libs.private to .pc files to enable static
   usage (especially on Windows with shlwapi).
