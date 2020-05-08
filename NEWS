@@ -99,7 +99,7 @@
    unnecessary failure with ALSA at least.
 -- Using SDL2 now if found. Output module code unchanged.
 -- Added hex and txt (plain text) printout.
--- Eliminated a spots where error messages would still be printed
+-- Eliminated spots where error messages would still be printed
    also for OUT123_QUIET being effect.
 -- Dummy output accepts any encoding now.
 - libmpg123:
