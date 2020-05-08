@@ -44,7 +44,7 @@ include src/Makemodule.am
 include doc/Makemodule.am
 
 # Stuff from this directory.
-pkgconfig_DATA += libmpg123.pc libout123.pc
+pkgconfig_DATA += libmpg123.pc libout123.pc libsyn123.pc
 
 dist_man_MANS += man1/mpg123.1 man1/out123.1
 
