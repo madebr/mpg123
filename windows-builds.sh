@@ -131,11 +131,15 @@ mpg123_build()
 	else
 		cp -v "$tmp"/bin/lib*123*.dll "$tmp"/include/*123*.h "$final/$name" &&
 		cp -v src/lib*123/.libs/lib*123*.dll.def "$final/$name" &&
+		for f in src/lib*123/.libs/lib*123*.dll.def
+		do
+			cp -v "$f" "$final/$name/$(basename ${f%.dll.def}.def)"
+		done &&
 		if test "$debug" = y; then
 			echo "Not stripping the debug build..."
 		else
 			$strip --strip-unneeded "$final/$name/"*.dll || exit 1
-		fi
+		fi &&
 		for i in $tmp/lib/mpg123/*.dll
 		do
 			if test -e "$i"; then
