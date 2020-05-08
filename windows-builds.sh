@@ -6,23 +6,9 @@
 # x86, x86_64, x86-cross, x86_64-cross
 build_type=$1
 if test -z "$build_type"; then
-  case "$(build/config.guess)" in
-  i[34567]86-*-mingw32)
-    build_type=x86
-  ;;
-  x86_64-*-mingw32)
-    build_type=x86_64
-  ;;
-  x86_64-*)
-    build_type=x86_64-cross
-  ;;
-  i[34567]86-*)
-    build_type=x86-cross
-  ;;
-  *)
-    build_type=x86
-  ;;
-  esac
+  echo "Please specify a build type as argument, one of:"
+  echo "x86, x86_64, x86-cross, x86_64-cross"
+  exit 1
 fi
 
 # -D__MINGW_USE_VC2005_COMPAT=1 use 64bit time internally for 32bit, so XP and earlier don't get into
@@ -76,7 +62,7 @@ prepare_unix2dos()
 {
 	echo "preparing unix2dos tool"
 	# I'll include documentation in DOS-style, with the help of this little unix2dos variant.
-	test -x "unix2dos" || echo "
+	test -x "unix2dos" || cat <<'EOT' > unix2dos.c && gcc -O -o unix2dos unix2dos.c
 #include <unistd.h>
 #include <stdio.h>
 int main()
@@ -92,13 +78,14 @@ int main()
 			if(buf[end] == '\n')
 			{
 				write(1, buf+pos, end-pos);
-				write(1, \"\r\n\", 2);
+				write(1, "\r\n", 2);
 				pos=end+1;
 			}
 		}
 		write(1, buf+pos, end-pos);
 	}
-}" > unix2dos.c && gcc -O -o unix2dos unix2dos.c
+}
+EOT
 }
 
 mpg123_build()
