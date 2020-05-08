@@ -3,9 +3,27 @@
 # A dirty script to create some windows binaries (shared, static, debug, ...) using the MSYS environment.
 
 # give build type as command line argument
-# x86 or x86_64-cross
+# x86, x86_64, x86-cross, x86_64-cross
 build_type=$1
-test -z "$build_type" && build_type=x86
+if test -z "$build_type"; then
+  case "$(build/config.guess)" in
+  i[34567]86-*-mingw32)
+    build_type=x86
+  ;;
+  x86_64-*-mingw32)
+    build_type=x86_64
+  ;;
+  x86_64-*)
+    build_type=x86_64-cross
+  ;;
+  i[34567]86-*)
+    build_type=x86-cross
+  ;;
+  *)
+    build_type=x86
+  ;;
+  esac
+fi
 
 # -D__MINGW_USE_VC2005_COMPAT=1 use 64bit time internally for 32bit, so XP and earlier don't get into
 # missing _time32 errors
@@ -16,6 +34,11 @@ case $build_type in
     decoder=x86
     strip=strip
     hostopt="CPPFLAGS=-D__MINGW_USE_VC2005_COMPAT=1"
+  ;;
+  x86_64)
+    decoder=x86-64
+    strip=strip
+    hostopt=
   ;;
   x86-cross)
     decoder=x86
