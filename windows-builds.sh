@@ -136,7 +136,6 @@ mpg123_build()
 		echo "No DLL there..."
 	else
 		cp -v "$tmp"/bin/lib*123*.dll "$tmp"/include/*123*.h "$final/$name" &&
-		cp -v src/lib*123/.libs/lib*123*.dll.def "$final/$name" &&
 		for f in src/lib*123/.libs/lib*123*.dll.def
 		do
 			cp -v "$f" "$final/$name/$(basename ${f%.dll.def}.def)"
