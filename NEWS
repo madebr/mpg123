@@ -5,8 +5,7 @@
   supposed to be compatible to C89.
 - There is a make check target now that tests some text transformations.
   It is an open question how that should be developed in relation to the
-  external regression and compliance test suite. Maybe some really small
-  example streams and decode tests will follow.
+  external regression and compliance test suite.
 - Finally silenced memory checkers about leaking memory from getlopt()
   (main code overwriting values without freeing strdup() strings).
 - AUTORS now in UTF-8;-)
