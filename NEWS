@@ -8,7 +8,7 @@
   external regression and compliance test suite.
 - Finally silenced memory checkers about leaking memory from getlopt()
   (main code overwriting values without freeing strdup() strings).
-- AUTORS now in UTF-8;-)
+- AUTHORS now in UTF-8;-)
 - CMake build files in ports/cmake, as an alternative to create MSVC
   project files and the like (thanks to Vitaly Kirsanov)
 - Default build with proper integer rounding (--enable-int-quality) now.
