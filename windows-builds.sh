@@ -8,7 +8,13 @@ build_type=$1
 if test -z "$build_type"; then
   echo "Please specify a build type as argument, one of:"
   echo "x86, x86_64, x86-cross, x86_64-cross"
+  echo "Optionally limit the number of parallel make processes as second argument."
   exit 1
+fi
+
+build_procs=$2
+if test -z "$build_procs"; then
+  build_procs=$(nproc 2>/dev/null)
 fi
 
 # -D__MINGW_USE_VC2005_COMPAT=1 use 64bit time internally for 32bit, so XP and earlier don't get into
@@ -117,7 +123,7 @@ mpg123_build()
 	# it is an option.
 	./configure $hostopt \
 	  --prefix=$tmp $myopts --with-cpu=$cpu &&
-	make && make install &&
+	make -j${build_procs:-1} && make install &&
 	rm -rf "$final/$name" &&
 	mkdir  "$final/$name" &&
 	cp -v "$tmp/bin/"*.exe "$final/$name" &&
