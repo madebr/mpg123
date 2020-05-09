@@ -1984,7 +1984,11 @@ syn123_resample_count(long inrate, long outrate, size_t ins)
 {
 	// The largest output you get from the beginning. So this can just treat ins
 	// as offset from there.
-	if(ins > syn123_resample_maxincount(inrate, outrate) || ins > INT64_MAX)
+	if( ins > syn123_resample_maxincount(inrate, outrate)
+#if SIZE_MAX > INT64_MAX
+		|| ins > INT64_MAX
+#endif
+	)
 		return 0;
 	int64_t tot = syn123_resample_total_64(inrate, outrate, (int64_t)ins);
 	return (tot >= 0 && tot <= SIZE_MAX) ? (size_t)tot : 0;
@@ -1997,8 +2001,10 @@ syn123_resample_incount(long inrate, long outrate, size_t outs)
 	// Do not assume you know what interval to pick to get the maximum value.
 	// Work the algorithm for the theoretical maximum at each point, even if that
 	// may not be hit with your particular rate ratio and playback time.
+#if SIZE_MAX > INT64_MAX
 	if(outs > INT64_MAX-1)
 		return 0;
+#endif
 	int oversample;
 	unsigned int decim_stages;
 	if(rate_setup(inrate, outrate, &oversample, &decim_stages))
@@ -2085,8 +2091,10 @@ syn123_resample_expect(syn123_handle *sh, size_t ins)
 			++nins;
 		ins = nins;
 	}
+#if SIZE_MAX > UINT64_MAX
 	if(ins > UINT64_MAX) // Really?
 		return SYN123_OVERFLOW;
+#endif
 	uint64_t vins = ins;
 	if(rd->sflags & oversample_2x)
 	{
