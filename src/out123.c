@@ -859,9 +859,9 @@ static void setup_wavegen(void)
 			timelimit = sweep_count * period;
 		if(verbose)
 		{
-			fprintf( stderr, ME ": %s sweep of %"SIZE_P" samples (%s)\n"
+			fprintf( stderr, ME ": %s sweep of %zu samples (%s)\n"
 			,	sweep_type
-			,	(timelimit > -1 && timelimit < period) ? (size_t)timelimit : period
+			,	(timelimit > -1 && timelimit < period) ? (size_t)timelimit : (size_t)period
 			,	(timelimit > -1 && timelimit < period)
 			?	((timelimit == duration) ? "exactly" : "cut off" )
 			:	(sweep_hard ? "periodic with phase jumps" : "smoothly periodic") );
@@ -987,7 +987,7 @@ static void setup_wavegen(void)
 	if(verbose)
 	{
 		if(count) for(i=0; i<count; ++i)
-			fprintf( stderr, ME ": wave %" SIZE_P ": %s @ %g Hz (%g Hz) p %g\n"
+			fprintf( stderr, ME ": wave %zu: %s @ %g Hz (%g Hz) p %g\n"
 			,	i
 			,	syn123_wave_name(id ? id[i] : SYN123_WAVE_SINE)
 			,	freq[i], freq_real[i]
@@ -1000,7 +1000,7 @@ setup_waver_end:
 	if(verbose)
 	{
 		if(common)
-			fprintf(stderr, ME ": periodic signal table of %" SIZE_P " samples\n", common);
+			fprintf(stderr, ME ": periodic signal table of %zu samples\n", common);
 		else
 			fprintf(stderr, ME ": live signal generation\n");
 	}
@@ -1046,7 +1046,7 @@ void clip(void *buf, int enc, size_t samples)
 		,	clip_limit, clip_width, waver )
 	:	syn123_clip(buf, enc, samples*channels);
 	if(verbose > 1 && clipped)
-		fprintf(stderr, ME ": explicitly clipped %"SIZE_P" samples\n", clipped);
+		fprintf(stderr, ME ": explicitly clipped %zu samples\n", clipped);
 }
 
 static int had_something = 0;
@@ -1149,7 +1149,7 @@ int play_frame(void)
 				,	resaudio, MPG123_ENC_FLOAT_32, outsamples*sizeof(float)*channels
 				,	NULL, &clipped, waver ));
 				if(verbose > 1 && clipped)
-					fprintf(stderr, ME ": clipped %"SIZE_P" samples\n", clipped);
+					fprintf(stderr, ME ": clipped %zu samples\n", clipped);
 				// Finally, some output!
 				push_output(audio, outsamples);
 				// Advance.
@@ -1168,7 +1168,7 @@ int play_frame(void)
 			check_fatal_syn(syn123_conv( audio, encoding, got_samples*pcmframe
 			,	mixaudio, mixenc, got_samples*mixframe, NULL, &clipped, waver ));
 			if(verbose > 1 && clipped)
-				fprintf(stderr, ME ": clipped %"SIZE_P" samples\n", clipped);
+				fprintf(stderr, ME ": clipped %zu samples\n", clipped);
 		}
 	} else
 	{
@@ -1198,7 +1198,7 @@ int play_frame(void)
 			check_fatal_syn(syn123_amp (audio, encoding, got_samples*channels
 			,	preamp_factor, preamp_offset, &clipped, waver ));
 			if(verbose > 1 && clipped)
-				fprintf(stderr, ME ": clipped %"SIZE_P" samples\n", clipped);
+				fprintf(stderr, ME ": clipped %zu samples\n", clipped);
 		}
 		if(do_clip)
 			clip(audio, encoding, got_samples);
