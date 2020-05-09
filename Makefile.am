@@ -56,6 +56,7 @@ EXTRA_DIST += \
   equalize.dat \
   NEWS.libmpg123 \
   NEWS.libout123 \
+  NEWS.libsyn123 \
   ports/cmake/CMakeLists.txt \
   ports/cmake/mpg123-config.cmake.in \
   ports/cmake/cmake/search_libs.cmake \
