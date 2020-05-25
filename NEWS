@@ -1,3 +1,8 @@
+1.26.1
+------
+- Fix cmake build by actually including the read_api_version file in the distro.
+- Fix big-endian build, stupid omission of a variable declaration (bug 289).
+
 1.26.0
 ------
 

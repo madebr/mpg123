@@ -194,7 +194,7 @@ int txt_write(out123_handle *ao, unsigned char *buf, int len)
 #define CHANPRINT24(type, ptype, fmt) \
 	{ \
 		unsigned char *ff = f; \
-		for(c=0; c<ao->channels; ++c) \
+		for(int c=0; c<ao->channels; ++c) \
 		{ \
 			uint32_t tmp = 0; \
 			tmp |= ((uint32_t)(*(ff++))) << 24; \
@@ -208,8 +208,7 @@ int txt_write(out123_handle *ao, unsigned char *buf, int len)
 #define CHANPRINT24(type, ptype, fmt) \
 	{ \
 		unsigned char *ff = f; \
-		int c; \
-		for(c=0; c<ao->channels; ++c) \
+		for(int c=0; c<ao->channels; ++c) \
 		{ \
 			uint32_t tmp = 0; \
 			tmp |= ((uint32_t)(*(ff++))) << 8; \
