@@ -2,6 +2,7 @@
 ------
 - Fix cmake build by actually including the read_api_version file in the distro.
 - Fix big-endian build, stupid omission of a variable declaration (bug 289).
+- Silence a harmless warning for build without realtime priority.
 
 1.26.0
 ------
