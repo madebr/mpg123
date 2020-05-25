@@ -60,7 +60,7 @@ EXTRA_DIST += \
   ports/cmake/CMakeLists.txt \
   ports/cmake/mpg123-config.cmake.in \
   ports/cmake/cmake/search_libs.cmake \
-  ports/cmake/read_api_version.cmake \
+  ports/cmake/cmake/read_api_version.cmake \
   ports/cmake/src/CMakeLists.txt \
   ports/cmake/src/config.cmake.h.in \
   ports/cmake/src/libmpg123/CMakeLists.txt \
