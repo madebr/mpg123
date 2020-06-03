@@ -8,7 +8,7 @@ dnl Require autoconf version >= 2.57
 AC_PREREQ(2.57)
 
 dnl ############# Initialisation
-AC_INIT([mpg123], [1.26.1], [maintainer@mpg123.org])
+AC_INIT([mpg123], [1.26.2], [maintainer@mpg123.org])
 dnl Increment API_VERSION when the API gets changes (new functions).
 
 dnl libmpg123
@@ -2414,27 +2414,29 @@ if test x$win32_specific_codes = xenabled; then
     AC_MSG_RESULT([no])
   fi
 # Check GetThreadErrorMode
-  AC_MSG_CHECKING([if we have GetThreadErrorMode])
-    AC_LINK_IFELSE([AC_LANG_SOURCE([
-    #include <windows.h>
-    int main(){
-      return GetThreadErrorMode();
-    }])],[win32_thread_error=yes],[win32_winver_bump=yes])
-  if test "x$win32_thread_error" != "xyes"; then
+  if test x"$modules" != xdisabled; then
     AC_MSG_CHECKING([if we have GetThreadErrorMode])
       AC_LINK_IFELSE([AC_LANG_SOURCE([
-      #define WINVER 0x600
-      #define _WIN32_WINNT 0x600
       #include <windows.h>
       int main(){
         return GetThreadErrorMode();
-      }])],[win32_thread_error=yes],[win32_thread_error=no])
-  fi
-  if test "x$win32_thread_error" = "xyes"; then
-    AC_MSG_RESULT([yes])
-  else
-    AC_MSG_RESULT([no])
-    AC_ERROR([GetThreadErrorMode is required but not found])
+      }])],[win32_thread_error=yes],[win32_winver_bump=yes])
+    if test "x$win32_thread_error" != "xyes"; then
+      AC_MSG_CHECKING([if we have GetThreadErrorMode])
+        AC_LINK_IFELSE([AC_LANG_SOURCE([
+        #define WINVER 0x600
+        #define _WIN32_WINNT 0x600
+        #include <windows.h>
+        int main(){
+          return GetThreadErrorMode();
+        }])],[win32_thread_error=yes],[win32_thread_error=no])
+    fi
+    if test "x$win32_thread_error" = "xyes"; then
+      AC_MSG_RESULT([yes])
+    else
+      AC_MSG_RESULT([no])
+      AC_ERROR([GetThreadErrorMode is required but not found])
+    fi
   fi
 fi
 

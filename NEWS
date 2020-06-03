@@ -1,3 +1,7 @@
+1.26.2
+- Windows build fixes for UWP and without GetThreadErrorMode when not
+  building modules, thanks to Steve LHomme.
+
 1.26.1
 ------
 - Fix cmake build by actually including the read_api_version file in the distro.
