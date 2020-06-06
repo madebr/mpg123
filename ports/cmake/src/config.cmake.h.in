@@ -162,5 +162,8 @@
 
 #cmakedefine WORDS_BIGENDIAN 1
 
+// Number of bits in a file offset, on hosts where this is settable.
+#cmakedefine _FILE_OFFSET_BITS @_FILE_OFFSET_BITS@
+
 // Define to the native offset type (long or actually off_t).
 #define lfs_alias_t @LFS_ALIAS_TYPE@

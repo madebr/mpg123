@@ -1,6 +1,8 @@
 1.26.2
+------
 - Windows build fixes for UWP and without GetThreadErrorMode when not
   building modules, thanks to Steve LHomme.
+- More CMake build fixes thanks to David Callu (bug 290).
 
 1.26.1
 ------
