@@ -1141,7 +1141,6 @@ AC_CHECK_TYPE(uint16_t, unsigned short)
 AC_CHECK_SIZEOF(size_t,4)
 AC_CHECK_SIZEOF(ssize_t,4)
 AC_CHECK_SIZEOF(off_t,4)
-AC_CHECK_SIZEOF(off64_t,8)
 AC_CHECK_SIZEOF(int32_t)
 AC_CHECK_SIZEOF(long,4)
 
@@ -1152,8 +1151,8 @@ if test "x$largefile_sensitive" = xyes; then
   lfs_alias_type=long
   lfs_alias_size=$ac_cv_sizeof_long
 else
-  lfs_alias_type=off64_t
-  lfs_alias_size=$ac_cv_sizeof_off64_t
+  lfs_alias_type=off_t
+  lfs_alias_size=$ac_cv_sizeof_off_t
 fi
 
 if test "x$lfs_alias_size" = "x"; then 
