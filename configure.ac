@@ -162,6 +162,23 @@ AC_CHECK_HEADERS([windows.h])
 case "$host" in
 	*-*-mingw*)
 		win32=yes
+		AC_MSG_CHECKING([if this is a UWP build])
+			AC_PREPROC_IFELSE([AC_LANG_PROGRAM(
+			  [[#include <winapifamily.h>
+			   #if WINAPI_FAMILY_PARTITION (WINAPI_PARTITION_DESKTOP)
+			   # error Win32 Desktop build
+			   #endif
+			  ]],[[;]])
+			],[
+				uwp_build=yes
+				AC_MSG_RESULT([yes])
+			],[
+				uwp_build=no
+				AC_MSG_RESULT([no])
+			])
+		if test x"$uwp_build" = xyes; then
+		  AC_DEFINE( [WINDOWS_UWP], 1, [Windows UWP build] )
+		fi
 	;;
 	*)
 		win32=no
@@ -2284,6 +2301,9 @@ dnl We do not support non-unicode Windows.
 if test "x$win32_specific_codes" = xenabled; then
 #### Check for Wide functions
   AC_CHECK_FUNC([_wopen], [win32_unicode=enabled],[win32_unicode=disabled])
+  if test "x$uwp_build" = xyes; then
+    AC_DEFINE([WANT_WIN32_UNICODE], [1], [ Define to use Unicode for Windows ])
+  else
   AC_MSG_CHECKING([if we want Unicode File Open for Win32])
   if test "x$win32_unicode" = xenabled; then
     dnl We need to include the header for PathCombineW checking as
@@ -2330,6 +2350,7 @@ if test "x$win32_specific_codes" = xenabled; then
     fi
   else
     AC_MSG_ERROR([Unicode File Open for Win32 not available])
+  fi
   fi
 
 #### Check for Network functions
