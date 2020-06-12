@@ -2656,7 +2656,7 @@ fi
 echo
 echo "  CPPFLAGS='$CPPFLAGS'"
 echo "  CFLAGS='$CFLAGS'"
-echo "  LIBS='$PROG_LIBS'"
+echo "  PROG_LIBS='$PROG_LIBS'"
 echo "       (derived from LIBS, only used for end-user binaries)"
 echo
 echo "Next type 'make' and then 'make install'."
