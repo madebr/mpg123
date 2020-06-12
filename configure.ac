@@ -2657,6 +2657,10 @@ echo
 echo "  CPPFLAGS='$CPPFLAGS'"
 echo "  CFLAGS='$CFLAGS'"
 echo "  PROG_LIBS='$PROG_LIBS'"
-echo "       (derived from LIBS, only used for end-user binaries)"
+echo "       (derived from LIBS, only used for end-user binaries and modules)"
+echo "  LIBDL='$LIBDL'"
+echo "  LIBMPG123_LIBS='$LIBMPG123_LIBS'"
+echo "  LIBSYN123_LIBS='$LIBSYN123_LIBS'"
+echo "  LIBOUT123_LIBS='$LIBOUT123_LIBS'"
 echo
 echo "Next type 'make' and then 'make install'."
