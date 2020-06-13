@@ -159,6 +159,7 @@ fi
 dnl We need the windows header also for checking the module mechanism.
 AC_CHECK_HEADERS([windows.h])
 
+android_build=no
 case "$host" in
 	*-*-mingw*)
 		win32=yes
@@ -179,6 +180,21 @@ case "$host" in
 		if test x"$uwp_build" = xyes; then
 		  AC_DEFINE( [WINDOWS_UWP], 1, [Windows UWP build] )
 		fi
+	;;
+	linux*)
+		dnl Android is linux, but a bit different
+		AC_MSG_CHECKING([for an Android system])
+		AC_PREPROC_IFELSE([AC_LANG_PROGRAM(
+				[[#ifndef __ANDROID__
+				 # error Not Android
+				 #endif
+				]],[[;]])
+		],[
+		  android_build=yes
+		  AC_MSG_RESULT([yes])
+		],[
+		  AC_MSG_RESULT([no])
+		])
 	;;
 	*)
 		win32=no
@@ -1158,6 +1174,7 @@ AC_CHECK_TYPE(uint16_t, unsigned short)
 AC_CHECK_SIZEOF(size_t,4)
 AC_CHECK_SIZEOF(ssize_t,4)
 AC_CHECK_SIZEOF(off_t,4)
+AC_CHECK_SIZEOF(off64_t,8)
 AC_CHECK_SIZEOF(int32_t)
 AC_CHECK_SIZEOF(long,4)
 
@@ -1167,6 +1184,9 @@ dnl but it is actual plain off_t if the system does not have such switches.
 if test "x$largefile_sensitive" = xyes; then
   lfs_alias_type=long
   lfs_alias_size=$ac_cv_sizeof_long
+elif test "x$android_build" = xyes; then
+  lfs_alias_type=off64_t
+  lfs_alias_size=$ac_cv_sizeof_off64_t
 else
   lfs_alias_type=off_t
   lfs_alias_size=$ac_cv_sizeof_off_t
