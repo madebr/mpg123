@@ -1056,8 +1056,12 @@ int main(int sys_argc, char ** sys_argv)
         _wildcard(&argc,&argv);
 #endif
 #ifdef HAVE_TERMIOS
-	/* Detect terminal on input side, enable control by default. */
-	param.term_ctrl = !(term_width(STDIN_FILENO) < 0);
+	// Detect terminal, enable control by default.
+	// Only if both input and output are connected, though. You got strange effects
+	// otherwise, for example mpg123 messing up settings if piping debugging output
+	// to another interactive program.
+	param.term_ctrl = !(term_width(STDIN_FILENO) < 0) &&
+		!(term_width(STDERR_FILENO) < 0);
 #endif
 	stderr_is_term = term_width(STDERR_FILENO) >= 0;
 	stdout_is_term = term_width(STDOUT_FILENO) >= 0;

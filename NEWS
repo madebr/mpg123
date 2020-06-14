@@ -1,5 +1,9 @@
 1.26.2
 ------
+- Enable terminal control by default only when both input and output
+  are connected to a terminal. This avoids messing with terminal settings
+  when piping stderr to a pager, which takes over terminal input anyway,
+  while mpg123 still thinks it got control.
 - Windows build fixes for UWP and without GetThreadErrorMode when not
   building modules, thanks to Steve LHomme.
 - Android build fix regarding off64_t use, thanks to Steve LHomme.
