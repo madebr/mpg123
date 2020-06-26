@@ -1899,14 +1899,24 @@ syn123_resample_total_64(long inrate, long outrate, int64_t ins)
 	return (tot <= INT64_MAX) ? (int64_t)tot : SYN123_OVERFLOW;
 }
 
-#if SIZEOF_LONG == 4
-long attribute_align_arg
-syn123_resample_total_32(long inrate, long outrate, long ins)
+int32_t attribute_align_arg
+syn123_resample_total_32(int32_t inrate, int32_t outrate, int32_t ins)
 {
 	int64_t tot = syn123_resample_total_64(inrate, outrate, ins);
-	return (tot <= LONG_MAX) ? (long)tot : SYN123_OVERFLOW;
+	return (tot <= INT32_MAX) ? (int32_t)tot : SYN123_OVERFLOW;
 }
+
+lfs_alias_t syn123_resample_total(long inrate, long outrate, lfs_alias_t ins)
+{
+#if   LFS_ALIAS_BITS+0 == 64
+	return syn123_resample_total_64(inrate, outrate, ins);
+#elif LFS_ALIAS_BITS+0 == 32
+	return syn123_resample_total_32(inrate, outrate, ins);
+#else
+	#error "Unexpected LFS_ALIAS_BITS value."
 #endif
+}
+
 
 // The inverse function: How many input samples are needed to get at least
 // the desired amount of output?
@@ -1959,16 +1969,23 @@ syn123_resample_intotal_64(long inrate, long outrate, int64_t outs)
 	return (tot <= INT64_MAX) ? (int64_t)tot : SYN123_OVERFLOW;
 }
 
-#if SIZEOF_LONG == 4
-long attribute_align_arg
-syn123_resample_intotal_32(long inrate, long outrate, long outs)
+int32_t attribute_align_arg
+syn123_resample_intotal_32(int32_t inrate, int32_t outrate, int32_t outs)
 {
 	int64_t tot = syn123_resample_intotal_64(inrate, outrate, outs);
-	return (tot <= LONG_MAX) ? (long)tot : SYN123_OVERFLOW;
+	return (tot <= INT32_MAX) ? (int32_t)tot : SYN123_OVERFLOW;
 }
-#endif
 
-#define syn123_resample_total syn123_resample_total_64
+lfs_alias_t syn123_resample_intotal(long inrate, long outrate, lfs_alias_t outs)
+{
+#if   LFS_ALIAS_BITS+0 == 64
+	return syn123_resample_intotal_64(inrate, outrate, outs);
+#elif LFS_ALIAS_BITS+0 == 32
+	return syn123_resample_intotal_32(inrate, outrate, outs);
+#else
+	#error "Unexpected LFS_ALIAS_BITS value."
+#endif
+}
 
 // As any sensible return value is at least 1, this uses the unsigned
 // type and 0 for error/pathological input.

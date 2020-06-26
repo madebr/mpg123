@@ -10,6 +10,8 @@
 - More CMake build fixes thanks to David Callu (bug 290).
 - Use PROG_LIBS for output modules, to reinstate not necessarily proper but
   previous behaviour and fix FreeBSD port build (bug 291).
+- Refine LFS support in libsyn123, avoiding architecture-dependent syn123.h
+  (debian bug 963205).
 
 1.26.1
 ------

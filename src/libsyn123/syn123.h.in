@@ -977,9 +977,6 @@ ssize_t syn123_resample_inexpect(syn123_handle *sh, size_t outs);
 #  else
 #    error "Unpredicted _FILE_OFFSET_BITS value."
 #  endif
-#else
-#    define syn123_resample_total   syn123_resample_total_@LFS_ALIAS_BITS@
-#    define syn123_resample_intotal syn123_resample_intotal_@LFS_ALIAS_BITS@
 #endif
 
 /** Give exact output sample count for total input sample count.
