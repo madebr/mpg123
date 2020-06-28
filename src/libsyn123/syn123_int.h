@@ -17,6 +17,7 @@
 #include "intsym.h"
 #include "compat.h"
 #include "abi_align.h"
+#define SYN123_NO_LARGENAME
 #include "syn123.h"
 
 // Generally, a number of samples we work on in one go to
