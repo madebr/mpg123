@@ -4,6 +4,7 @@ TESTS += \
   src/tests/decode_fixed.sh \
   src/tests/seek_whence.sh \
   src/tests/seek_accuracy.sh \
+  src/tests/resample_total \
   src/tests/text \
   src/tests/textprint
 
@@ -28,6 +29,7 @@ check_PROGRAMS += \
   src/tests/decode_fixed \
   src/tests/seek_whence \
   src/tests/seek_accuracy \
+  src/tests/resample_total \
   src/tests/text \
   src/tests/textprint
 
@@ -76,6 +78,11 @@ src_tests_sweeper_LDADD = \
   src/compat/libcompat.la \
   src/libsyn123/libsyn123.la \
   src/libout123/libout123.la
+
+src_tests_resample_total_SOURCES = \
+  src/tests/resample_total.c
+src_tests_resample_total_LDADD = \
+  src/libsyn123/libsyn123.la
 
 src_tests_text_SOURCES = \
   src/tests/text.c \
