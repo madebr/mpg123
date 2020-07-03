@@ -964,7 +964,12 @@ MPG123_EXPORT
 ssize_t syn123_resample_inexpect(syn123_handle *sh, size_t outs);
 
 
-#ifndef SYN123_NO_LARGENAME
+#ifndef SYN123_NO_LARGEFUNC
+
+/* The whole block of off_t-using API is optional to be able to build
+   the underlying code without confusing the compiler with prototype
+   mismatch. */
+
 /* Lightweight large file hackery to enable worry-reduced use of off_t.
    Depending on the size of off_t in your client build, the corresponding
    library function needs to be chosen. */
@@ -978,7 +983,6 @@ ssize_t syn123_resample_inexpect(syn123_handle *sh, size_t outs);
 #  else
 #    error "Unpredicted _FILE_OFFSET_BITS value."
 #  endif
-#endif
 #endif
 
 /** Give exact output sample count for total input sample count.
@@ -1017,6 +1021,8 @@ off_t syn123_resample_total(long inrate, long outrate, off_t ins);
  */
 MPG123_EXPORT
 off_t syn123_resample_intotal(long inrate, long outrate, off_t outs);
+
+#endif
 
 /** Resample input buffer to output buffer.
  *

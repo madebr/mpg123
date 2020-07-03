@@ -1,7 +1,7 @@
 /*
 	syn123_int: internal header for libsyn123
 
-	copyright 2018 by the mpg123 project,
+	copyright 2018-2020 by the mpg123 project,
 	licensed under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 
@@ -17,7 +17,7 @@
 #include "intsym.h"
 #include "compat.h"
 #include "abi_align.h"
-#define SYN123_NO_LARGENAME
+#define SYN123_NO_LARGEFUNC
 #include "syn123.h"
 
 // Generally, a number of samples we work on in one go to
