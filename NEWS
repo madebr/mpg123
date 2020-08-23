@@ -1,3 +1,7 @@
+1.27.0
+------
+- Clarify seeking documentation regarding samples and PCM frames.
+
 1.26.3
 ------
 - Fix accurate (--enable-int-quality) and s32 x86-64 assembly for Windows ABI
