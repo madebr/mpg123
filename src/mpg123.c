@@ -1608,7 +1608,7 @@ static void long_usage(int err)
 	fprintf(o,"        --resync-limit <n> Set number of bytes to search for valid MPEG data; <0 means search whole stream.\n");
 	fprintf(o,"        --streamdump <f>   Dump a copy of input data (as read by libmpg123) to given file.\n");
 	fprintf(o,"        --icy-interval <n> Enforce ICY interval in bytes (for playing a stream dump.\n");
-	fprintf(o,"        --ignore-streamlength Ignore header info about length of MPEG streams.");
+	fprintf(o,"        --ignore-streamlength Ignore header info about length of MPEG streams.\n");
 	fprintf(o,"\noutput/processing options\n\n");
 	fprintf(o," -o <o> --output <o>       select audio output module\n");
 	fprintf(o,"        --list-modules     list the available modules\n");
