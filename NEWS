@@ -2,6 +2,7 @@
 ------
 - Clarify seeking documentation regarding samples and PCM frames.
 - Fix build on MorphOS (patch by Ozkan Sezer, bug 295).
+- Fix cmake build to install fmt123.h.
 
 1.26.3
 ------
