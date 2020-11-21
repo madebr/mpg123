@@ -176,6 +176,7 @@ if(CHECK_MODULES)
     list(FIND CHECK_MODULES alsa ALSA_REQUIRED)
     list(FIND CHECK_MODULES coreaudio COREAUDIO_REQUIRED)
     list(FIND CHECK_MODULES pulse PULSE_REQUIRED)
+    list(FIND CHECK_MODULES tinyalsa TINYALSA_REQUIRED)
     list(FIND CHECK_MODULES win32 WIN32_REQUIRED)
     list(FIND CHECK_MODULES win32_wasapi WIN32_WASAPI_REQUIRED)
     set(MODULE_NOT_FOUND_MESSAGE "module required but couldn't be found")
@@ -209,6 +210,15 @@ if(PKG_CONFIG_FOUND)
             message(FATAL_ERROR "pulse ${MODULE_NOT_FOUND_MESSAGE}")
         endif()
     endif()
+
+    if(NOT CHECK_MODULES OR NOT TINYALSA_REQUIRED EQUAL -1)
+        pkg_search_module(TINYALSA tinyalsa)
+        if(TINYALSA_FOUND)
+            list(APPEND OUTPUT_MODULES tinyalsa)
+        elseif(CHECK_MODULES AND NOT TINYALSA_REQUIRED EQUAL -1)
+            message(FATAL_ERROR "tinyalsa ${MODULE_NOT_FOUND_MESSAGE}")
+        endif()
+    endif()
 endif()
 
 if(NOT CHECK_MODULES OR NOT WIN32_REQUIRED EQUAL -1)
@@ -233,11 +243,12 @@ endif()
 
 if(CHECK_MODULES)
     list(REMOVE_AT CHECK_MODULES
-        ALSA_REQUIRED
-        COREAUDIO_REQUIRED
-        PULSE_REQUIRED
-        WIN32_REQUIRED
-        WIN32_WASAPI_REQUIRED)
+        ${ALSA_REQUIRED}
+        ${COREAUDIO_REQUIRED}
+        ${PULSE_REQUIRED}
+        ${TINYALSA_REQUIRED}
+        ${WIN32_REQUIRED}
+        ${WIN32_WASAPI_REQUIRED})
     list(LENGTH CHECK_MODULES CHECK_MODULES_LENGTH)
     if(NOT CHECK_MODULES_LENGTH EQUAL 0)
         message(FATAL_ERROR "Dunno how to find modules: ${CHECK_MODULES}")
