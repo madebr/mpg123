@@ -79,6 +79,13 @@ check_c_source_compiles(
     "int main() { __attribute__((aligned(16))) float var; return 0; }"
     CCALIGN)
 
+option(MPG123_LARGE_FILE_SUPPORT "Support large files (define _FILE_OFFSET_BITS)" ON)
+if(MPG123_LARGE_FILE_SUPPORT)
+    set(_FILE_OFFSET_BITS 64)
+else()
+    unset(__FILE_OFFSET_BITS)
+endif()
+
 check_c_source_compiles("
     #include <sys/types.h>
      /* Check that off_t can represent 2**63 - 1 correctly.
