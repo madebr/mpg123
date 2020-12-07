@@ -1,0 +1,28 @@
+on:
+  schedule:
+    - cron: "0 0/3 * * *" # Run every 3 hour
+
+jobs:
+  git_svn_sync:
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Install git and git-svn"
+        run: |
+          sudo apt-get install git git-svn
+          git --version
+          git svn --version
+      - name: "Checkout git mpg123 clone"
+        uses: "actions/checkout@v2"
+        with:
+          fetch-depth: 0
+      - name: "Download (new) revisions from SVN"
+        run: |
+          git svn init svn://scm.orgis.org/mpg123/trunk
+          git svn fetch
+      - name: "Reset master to git-svn"
+        run: |
+          git checkout master
+          git reset --hard git-svn
+      - name: "Force push (new) master"
+        run: |
+          git push origin master -f
