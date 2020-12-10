@@ -14,10 +14,9 @@ jobs:
         run: |
           git remote add mpg123 https://mpg123.org/trunk/.git/
           git fetch mpg123
-      - name: "Reset master to mpg123's master"
+      - name: "Checkout mpg123's current master"
         run: |
-          git checkout master
-          git reset --hard mpg123/master
+          git checkout --track mpg123/master master
       - name: "Force push (new) master"
         run: |
           git push origin master -f
