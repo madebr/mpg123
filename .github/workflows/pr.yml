@@ -4,7 +4,7 @@ on:
       - opened
 
 jobs:
-  git_svn_sync:
+  send_mail:
     runs-on: "ubuntu-latest"
     steps:
       - name: "Checkout git mpg123 clone"

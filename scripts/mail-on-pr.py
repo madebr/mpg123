@@ -13,7 +13,7 @@ logging.root.setLevel(logging.INFO)
 pr_id = int(re.match("refs/pull/([0-9]+)/merge", os.environ["GITHUB_REF"]).group(1))
 logging.info("pull id: %d", pr_id)
 
-g = github.Github(os.environ["GITHUB_TOKEN"])
+g = github.Github(os.environ["PUSH_GITHUB_TOKEN"])
 repo = g.get_repo(os.environ["GITHUB_REPOSITORY"])
 issue = repo.get_issue(pr_id)
 
