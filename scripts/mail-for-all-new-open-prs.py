@@ -34,7 +34,7 @@ Please visit [{pr.html_url}]({pr.html_url}) to give feedback and review the code
 
 ---
 
-{markdown.markdown(pr.body)}
+{pr.body}
 
 ---
 
