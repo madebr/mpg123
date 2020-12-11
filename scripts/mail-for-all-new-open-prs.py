@@ -10,7 +10,7 @@ logging.basicConfig(format='[%(asctime)s] %(message)s')
 logging.root.setLevel(logging.INFO)
 
 mailinglist_message = "The [mpg123-devel mailing list](https://sourceforge.net/p/mpg123/mailman/mpg123-devel/) has been notified of the existence of this pr."
-mailinglist_label = "mailinglist-notified"
+mailinglist_label = "mailing-list-notified"
 
 g = github.Github(os.environ["PUSH_GITHUB_TOKEN"])
 user_me = g.get_user()
