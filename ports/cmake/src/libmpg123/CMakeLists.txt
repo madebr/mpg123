@@ -129,7 +129,7 @@ elseif(MACHINE STREQUAL "arm64")
         set(PLATFORM_DEFINITIONS OPT_GENERIC)
         message(WARNING "Cannot use platform-specific assembly sources on MSVC")
     else()
-        set(PLATFORM_DEFINITIONS DOPT_MULTI OPT_GENERIC OPT_GENERIC_DITHER OPT_NEON64)
+        set(PLATFORM_DEFINITIONS OPT_MULTI OPT_GENERIC OPT_GENERIC_DITHER OPT_NEON64)
         set(PLATFORM_SOURCES
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dct36_neon64.S"
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dct64_neon64_float.S"
@@ -159,12 +159,15 @@ elseif(MACHINE STREQUAL "arm32")
         else()
             set(PLATFORM_DEFINITIONS OPT_MULTI OPT_GENERIC OPT_GENERIC_DITHER OPT_NEON)
             set(PLATFORM_SOURCES
-                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/dct36_neon.S"
-                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/dct64_neon_float.S"
-                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/synth_neon_float.S"
-                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/synth_neon_s32.S"
-                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/synth_stereo_neon_float.S"
-                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/synth_stereo_neon_s32.S")
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dct36_neon.S"
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dct64_neon_float.S"
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_neon_float.S"
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_neon_s32.S"
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_neon_float.S"
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_neon_s32.S"
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/check_neon.S")
+            target_sources(${TARGET} PRIVATE
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/getcpuflags_arm.c")
             if(ACCURATE_ROUNDING)
                 list(APPEND PLATFORM_SOURCES
                     "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_neon_accurate.S"
@@ -175,7 +178,7 @@ elseif(MACHINE STREQUAL "arm32")
                     "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_neon.S"
                     "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_neon.S")
             endif()
-            target_sources(${TARGET} ${PLATFORM_SOURCES})
+            target_sources(${TARGET} PRIVATE ${PLATFORM_SOURCES})
             target_sources(${TARGET} PRIVATE
                 "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dither.c")
         endif()
