@@ -16,9 +16,7 @@ jobs:
           git fetch mpg123
       - name: "Set mpg123's master as new master"
         run: |
-          git checkout origin/master
-          git branch -D master
-          git checkout --track mpg123/master master
+          git switch -C master mpg123/master
       - name: "Force push (new) master"
         run: |
           git push origin master -f
