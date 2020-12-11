@@ -57,8 +57,8 @@ Subject: {mail_title}
 {mail_body}
 """
 
-    sender_email = "{} <{}>".format("GitHub User {}".format(pr.user.login), os.environ["MAIL_SENDER"])
-    receiver_email = "contact list <{}>".format(os.environ["MAIL_RECEIVER"])
+    sender_email = "{} <{}>".format("{} (via github PR)".format(pr.user.login), os.environ["MAIL_SENDER"])
+    receiver_email = os.environ["MAIL_RECEIVER"].split(";")
 
     port = 465
     server = os.environ["MAIL_SERVER"]
