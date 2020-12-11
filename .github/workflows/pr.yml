@@ -1,7 +1,6 @@
 on:
-  pull_request:
-    types:
-      - opened
+  schedule:
+    - cron: "0 * * * *" # Run every hour
 
 jobs:
   send_mail:
@@ -20,4 +19,4 @@ jobs:
           python -m pip install --user markdown pygithub
       - name: "Send mail"
         run: |
-          python scripts/mail-on-pr.py
+          python scripts/mail-for-all-new-open-prs.py
