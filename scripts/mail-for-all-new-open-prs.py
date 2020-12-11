@@ -10,6 +10,7 @@ logging.basicConfig(format='[%(asctime)s] %(message)s')
 logging.root.setLevel(logging.INFO)
 
 mailinglist_message = "The [mpg123-devel mailing list](https://sourceforge.net/p/mpg123/mailman/mpg123-devel/) has been notified of the existence of this pr."
+mailinglist_label = "mailinglist-notified"
 
 g = github.Github(os.environ["PUSH_GITHUB_TOKEN"])
 user_me = g.get_user()
@@ -18,9 +19,8 @@ repo = g.get_repo(os.environ["GITHUB_REPOSITORY"])
 for pr in repo.get_pulls(state="open"):
     logging.info("Checking PR #%d", pr.id)
     already_handled = False
-    for comment in pr.get_comments():
-        if comment.user == user_me and mailinglist_message in comment.body:
-            logging.info("PR#%d was already handled", pr.id)
+    for label in pr.get_labels():
+        if label.name == mailinglist_label:
             already_handled = True
     if already_handled:
         continue
@@ -72,6 +72,7 @@ Subject: {mail_title}
         server.sendmail(sender_email, receiver_email, mail_message)
 
     logging.info("Creating comment at PR#%d", pr.id)
+    pr.add_to_labels(mailinglist_label)
     comment = pr.create_issue_comment(mailinglist_message)
     logging.info("Visit comment at %s", comment.html_url)
 
