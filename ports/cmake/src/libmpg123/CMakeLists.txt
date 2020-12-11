@@ -16,6 +16,20 @@ else()
     set(INCLUDE_SYS_TYPE_H "/* #include <sys/types.h> is not available on this system */")
 endif()
 
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "([xX]86_|AMD|amd)64" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(MACHINE amd64)
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86|i[0-9]86|Win32|([xX]86_|AMD|amd)64" AND CMAKE_SIZEOF_VOID_P EQUAL 4)
+    set(MACHINE x86)
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "(amd|AMD|arm|ARM|aarch|AARCH)(64)?" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(MACHINE arm64)
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "(amd|AMD|arm|ARM|aarch|AARCH)(64)?" AND CMAKE_SIZEOF_VOID_P EQUAL 4)
+    set(MACHINE arm32)
+else()
+    message(WARNING "Unknown processor. Using generic optimizations.")
+    set(MACHINE generic)
+endif()
+message(STATUS "Detected machine: ${MACHINE}")
+
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/mpg123.h.in" mpg123.h)
 
 set(TARGET lib${PROJECT_NAME})
@@ -47,7 +61,7 @@ add_library(${TARGET}
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/$<$<BOOL:${LFS_SENSITIVE}>:lfs_wrap.c>"
     $<TARGET_OBJECTS:compat>)
 
-if((MSVC AND CMAKE_GENERATOR_PLATFORM STREQUAL "x64") OR (NOT MSVC AND CMAKE_SYSTEM_PROCESSOR MATCHES "([xX]86_|AMD|amd)64"))
+if(MACHINE STREQUAL "amd64")
     if(HAVE_FPU)
         set(PLATFORM_DEFINITIONS OPT_MULTI OPT_X86_64 OPT_AVX OPT_GENERIC OPT_GENERIC_DITHER)
         set(PLATFORM_SOURCES
@@ -80,7 +94,7 @@ if((MSVC AND CMAKE_GENERATOR_PLATFORM STREQUAL "x64") OR (NOT MSVC AND CMAKE_SYS
     else()
         set(PLATFORM_DEFINITIONS OPT_GENERIC)
     endif()
-elseif((MSVC AND CMAKE_GENERATOR_PLATFORM MATCHES "|Win32") OR (NOT MSVC AND CMAKE_SYSTEM_PROCESSOR MATCHES "i.86"))
+elseif(MACHINE STREQUAL "x86")
     if(TRUE)
         set(PLATFORM_DEFINITIONS OPT_I386)
         target_sources(${TARGET} PRIVATE
@@ -110,6 +124,66 @@ elseif((MSVC AND CMAKE_GENERATOR_PLATFORM MATCHES "|Win32") OR (NOT MSVC AND CMA
         target_sources(${TARGET} PRIVATE
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dct64_i386.c")
     endif()
+elseif(MACHINE STREQUAL "arm64")
+    if(MSVC)
+        set(PLATFORM_DEFINITIONS OPT_GENERIC)
+        message(WARNING "Cannot use platform-specific assembly sources on MSVC")
+    else()
+        set(PLATFORM_DEFINITIONS DOPT_MULTI OPT_GENERIC OPT_GENERIC_DITHER OPT_NEON64)
+        set(PLATFORM_SOURCES
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dct36_neon64.S"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dct64_neon64_float.S"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_neon64_float.S"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_neon64_s32.S"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_neon64_float.S"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_neon64_s32.S"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/check_neon.S")
+        if(ACCURATE_ROUNDING)
+            list(APPEND PLATFORM_SOURCES
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_neon64_accurate.S"
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_neon64_accurate.S")
+        else()
+            list(APPEND PLATFORM_SOURCES
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_neon64.S"
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_neon64.S")
+        endif()
+        target_sources(${TARGET} PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dither.c"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/getcpuflags_arm.c")
+    endif()
+elseif(MACHINE STREQUAL "arm32")
+    if(HAVE_FPU)
+        if(MSVC)
+            set(PLATFORM_DEFINITIONS OPT_GENERIC)
+            message(WARNING "Cannot use platform-specific assembly sources on MSVC")
+        else()
+            set(PLATFORM_DEFINITIONS OPT_MULTI OPT_GENERIC OPT_GENERIC_DITHER OPT_NEON)
+            set(PLATFORM_SOURCES
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/dct36_neon.S"
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/dct64_neon_float.S"
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/synth_neon_float.S"
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/synth_neon_s32.S"
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/synth_stereo_neon_float.S"
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/synth_stereo_neon_s32.S")
+            if(ACCURATE_ROUNDING)
+                list(APPEND PLATFORM_SOURCES
+                    "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_neon_accurate.S"
+                    "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_neon_accurate.S")
+            else()
+                list(APPEND PLATFORM_SOURCES
+                    "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dct64_neon.S"
+                    "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_neon.S"
+                    "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_neon.S")
+            endif()
+            target_sources(${TARGET} ${PLATFORM_SOURCES})
+            target_sources(${TARGET} PRIVATE
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dither.c")
+        endif()
+    else()
+        set(PLATFORM_DEFINITIONS OPT_GENERIC)
+    endif()
+elseif(MACHINE STREQUAL "generic")
+    set(PLATFORM_DEFINITIONS OPT_GENERIC)
 endif()
 
 set_target_properties(${TARGET} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
@@ -119,15 +193,10 @@ target_compile_definitions(${TARGET} PRIVATE
     $<$<BOOL:${HAVE_FPU}>:REAL_IS_FLOAT>
     $<$<NOT:$<BOOL:${HAVE_FPU}>>:REAL_IS_FIXED>)
 
-if(MSVC)
+if(MSVC AND MACHINE MATCHES "x86|amd64")
     find_program(YASM_ASSEMBLER yasm)
     if(NOT YASM_ASSEMBLER)
         message(FATAL_ERROR "Couldn't find yasm assembler. Please set YASM_ASSEMBLER variable")
-    endif()
-    if((MSVC AND CMAKE_GENERATOR_PLATFORM STREQUAL "x64") OR (NOT MSVC AND CMAKE_SYSTEM_PROCESSOR MATCHES "([xX]86_|AMD|amd)64"))
-        set(MACHINE amd64)
-    elseif((MSVC AND CMAKE_GENERATOR_PLATFORM MATCHES "|Win32") OR (NOT MSVC AND CMAKE_SYSTEM_PROCESSOR MATCHES "i.86"))
-        set(MACHINE x86)
     endif()
     list(TRANSFORM PLATFORM_DEFINITIONS PREPEND /D)
     foreach(FILE ${PLATFORM_SOURCES})
