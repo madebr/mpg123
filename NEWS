@@ -4,6 +4,8 @@
 - Fix build on MorphOS (patch by Ozkan Sezer, bug 295).
 - Fix cmake build to install fmt123.h.
 - Some cmake build fixes, tinyalsa addition by Maarten (bug 299).
+- libmpg123: explicitly handle some irrelevant corner cases in tabinit
+  (bug 279)
 
 1.26.3
 ------
