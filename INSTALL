@@ -32,8 +32,9 @@ There is one main supported way to get your mpg123 installation
 consisting of
 
 a) the mpg123 binary file
-  - with libmpg123 as shared library or statically linked
-  - with audio output plugins, or one statically linked
+  - with libmpg123, libout123, and libsyn123 as shared libraries or
+    statically linked
+  - with audio output plugins for libout123, or one statically linked
 b) a man page
 
 (you may want to copy some of the documentation - README, etc - to
@@ -99,13 +100,15 @@ to prepare the configure script. Then you can build as per point 1.
 
 3. Library-only build
 
-If you do not want to build the whole thing, but only the library, run
+Mpg123 uses a non-recursive build. If you want to build only one of the
+libraries, specify it as a target:
 
 	./configure
-	cd src/libmpg123
-	make
+	make src/libmpg123/libmpg123.la
+	make src/libsyn123/libsyn123.la
+	make src/libout123/libout123.la
 
-You can then find the library itself under src/libmpg123/.libs (libtool
+You can then find the library itself under src/lib*123/.libs (libtool
 likes to hide things there).
 
 
@@ -118,6 +121,11 @@ correct listing of all source files involved in that configuration
 (there are optional files for different decoder choices, for example).
 
 Then compile objects, link.
+
+Instead of manually curated MSVC project files, there is a CMake port
+now in ports/cmake to build mpg123 with the MS compilers. It might be
+helpful for other platforms, too. But the main build system for
+POSIX-like systems is the autotools one.
 
 
 4a. Preparing Win32 binary packages.
