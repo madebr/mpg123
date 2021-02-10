@@ -31,11 +31,11 @@ sdl for sdl...)
 There is one main supported way to get your mpg123 installation
 consisting of
 
-a) the mpg123 binary file
+a) the mpg123, mpg123-strip, out123 program binaries
   - with libmpg123, libout123, and libsyn123 as shared libraries or
     statically linked
   - with audio output plugins for libout123, or one statically linked
-b) a man page
+b) man pages
 
 (you may want to copy some of the documentation - README, etc - to
 /usr/share/doc/mpg123 or the like, too)
