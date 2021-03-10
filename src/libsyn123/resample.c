@@ -1,7 +1,7 @@
 /*
 	resample: low-latency usable and quick resampler
 
-	copyright 2018-2019 by the mpg123 project
+	copyright 2018-2020 by the mpg123 project
 	licensed under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 
@@ -422,12 +422,36 @@ struct lpf4_hist
 	float y[LPF_4_ORDER];
 };
 
+#ifndef NO_DE_DENORM
+// Battling denormals. They naturally occur in IIR filters and
+// need to be avoided since they hurt performance on many CPUs.
+// Usually, gcc -ffast-math would also avoid them, but we cannot
+// count on that and debugging performance issues becomes confusing.
+// The idea is to add an alternatingly positive/negative small number
+// that is orders of magnitude above denormals to freshly computed
+// samples.
+// Downside: You never see a true zero if ther is true zero on input.
+// Upside would be that you'd convert to 24 or 32 bit integer anyway,
+// where you'd get your zero back (1 in 32 bit is around 5e-10.
+static const float denorm_base = 1e-15;
+#define DE_DENORM(val, base) (val) += (base);
+#define DE_DENORM_FLIP(base) (base) = -(base);
+#define DE_DENORM_INIT(base, sign) (base) = (sign)*denorm_base;
+#else
+#define DE_DENORM(val, base)
+#define DE_DENORM_FLIP(base)
+#define DE_DENORM_INIT(base, sign)
+#endif
+
 struct decimator_state
 {
 	unsigned int sflags; // also stores decimation position (0 or 1)
 	unsigned int n1;
 	struct lpf4_hist *ch; // one for each channel, pointer into common array
 	float *out_hist; // channels*STAGE_HISTORY, pointer to common block
+#ifndef NO_DE_DENORM
+	float dede; // current de-denormalization offset
+#endif
 };
 
 #ifdef SYN123_HIGH_PREC
@@ -524,6 +548,9 @@ struct resample_data
 	float *frame;  // One PCM frame to work on (one sample for each channel).
 	float *prebuf; // [channels*BATCH]
 	float *upbuf;  // [channels*2*BATCH]
+#ifndef NO_DE_DENORM
+	float dede; // de-denormalization offset, alternatingly used both in preemp and lpf
+#endif
 	// Final lowpass filter setup.
 	float lpf_cutoff;
 	float lpf_w_c;
@@ -808,6 +835,7 @@ static size_t decimate( struct resample_data *rrd, unsigned int dstage
 				rd->ch[c].x[j] = rd->ch[c].y[j] = in[c];
 		rd->n1 = 0;
 		rd->sflags |= lowpass_flow|decimate_store;
+		DE_DENORM_INIT(rd->dede, dstage % 2 ? -1 : +1)
 		stage_history_init(rrd, dstage+1, in);
 	}
 	float *out  = in; // output worker
@@ -832,12 +860,14 @@ static size_t decimate( struct resample_data *rrd, unsigned int dstage
 				ny += rd->ch[0].x[ni[j]]*lpf_4_coeff[0][j+1];
 				ny -= rd->ch[0].y[ni[j]]*lpf_4_coeff[1][j+1];
 			}
+			DE_DENORM(ny, rd->dede)
 			rd->ch[0].x[rd->n1] = in[i];
 			rd->ch[0].y[rd->n1] = ny;
 			// Drop every second sample.
 			// Maybe its faster doing this in a separate step after all?
 			if(rd->sflags & decimate_store)
 			{
+				DE_DENORM_FLIP(rd->dede)
 				*(out++) = ny;
 				rd->sflags &= ~decimate_store;
 				++outs;
@@ -864,6 +894,7 @@ static size_t decimate( struct resample_data *rrd, unsigned int dstage
 					ny += rd->ch[c].x[ni[j]]*lpf_4_coeff[0][j+1];
 					ny -= rd->ch[c].y[ni[j]]*lpf_4_coeff[1][j+1];
 				}
+				DE_DENORM(ny, rd->dede)
 				rd->ch[c].x[rd->n1] = in[c];
 				rd->ch[c].y[rd->n1] = ny;
 				frame[c] = ny;
@@ -873,6 +904,7 @@ static size_t decimate( struct resample_data *rrd, unsigned int dstage
 			// Maybe its faster doing this in a separate step after all?
 			if(rd->sflags & decimate_store)
 			{
+				DE_DENORM_FLIP(rd->dede)
 				*(out++) = frame[0];
 				*(out++) = frame[1];
 				rd->sflags &= ~decimate_store;
@@ -901,6 +933,7 @@ static size_t decimate( struct resample_data *rrd, unsigned int dstage
 					ny += rd->ch[c].x[ni[j]]*lpf_4_coeff[0][j+1];
 					ny -= rd->ch[c].y[ni[j]]*lpf_4_coeff[1][j+1];
 				}
+				DE_DENORM(ny, rd->dede)
 				rd->ch[c].x[rd->n1] = in[c];
 				rd->ch[c].y[rd->n1] = ny;
 				rrd->frame[c] = ny;
@@ -910,6 +943,7 @@ static size_t decimate( struct resample_data *rrd, unsigned int dstage
 			// Maybe its faster doing this in a separate step after all?
 			if(rd->sflags & decimate_store)
 			{
+				DE_DENORM_FLIP(rd->dede)
 				for(unsigned int c=0; c<rrd->channels; ++c)
 					*(out++) = rrd->frame[c];
 				rd->sflags &= ~decimate_store;
@@ -975,6 +1009,7 @@ static float df2_initval(unsigned int order, float *filter_a, float insample)
 				nw -= rd->ch[c].pre_w[i]*rd->pre_a[n1][i]; \
 			} \
 			nw += in[c]; \
+			DE_DENORM(nw, rd->dede) \
 			ny += rd->pre_b0 * nw; \
 			rd->ch[c].pre_w[rd->pre_n1] = nw; \
 			out[c] = ny; \
@@ -1020,6 +1055,7 @@ static float df2_initval(unsigned int order, float *filter_a, float insample)
 				y += rd->ch[c].lpf_w[j][k]*rd->lpf_b[n1][k]; \
 				w -= rd->ch[c].lpf_w[j][k]*rd->lpf_a[n1][k]; \
 			} \
+			DE_DENORM(w, rd->dede) \
 			rd->ch[c].lpf_w[j][n1n] = w; \
 			y += rd->lpf_b0*w; \
 			old_y = y; \
@@ -1056,6 +1092,7 @@ static void lowpass##times##_df2_preemp_2x(struct resample_data *rd, float *in, 
 			out++; \
 			sample = 0; \
 			LPF_DF2_SAMPLE(times, (&sample), out, 1) \
+			DE_DENORM_FLIP(rd->dede) \
 			out++; \
 			in++; \
 		} \
@@ -1071,6 +1108,7 @@ static void lowpass##times##_df2_preemp_2x(struct resample_data *rd, float *in, 
 			out += 2; \
 			frame[1] = frame[0] = 0; \
 			LPF_DF2_SAMPLE(times, frame, out, 2) \
+			DE_DENORM_FLIP(rd->dede) \
 			out += 2; \
 			in  += 2; \
 		} \
@@ -1086,6 +1124,7 @@ static void lowpass##times##_df2_preemp_2x(struct resample_data *rd, float *in, 
 			for(unsigned int c=0; c<rd->channels; ++c) \
 				rd->frame[c] = 0; \
 			LPF_DF2_SAMPLE(times, rd->frame, out, rd->channels) \
+			DE_DENORM_FLIP(rd->dede) \
 			out += rd->channels; \
 			in  += rd->channels; \
 		} \
@@ -1107,6 +1146,7 @@ static void lowpass##times##_df2_preemp(struct resample_data *rd, float *in, siz
 			float sample; \
 			PREEMP_DF2_SAMPLE(in, (&sample), 1) \
 			LPF_DF2_SAMPLE(times, (&sample), out, 1) \
+			DE_DENORM_FLIP(rd->dede) \
 			in++; \
 			out++; \
 		} \
@@ -1116,6 +1156,7 @@ static void lowpass##times##_df2_preemp(struct resample_data *rd, float *in, siz
 			float frame[2]; \
 			PREEMP_DF2_SAMPLE(in, frame, 2) \
 			LPF_DF2_SAMPLE(times, frame, out, 2) \
+			DE_DENORM_FLIP(rd->dede) \
 			in  += 2; \
 			out += 2; \
 		} \
@@ -1124,6 +1165,7 @@ static void lowpass##times##_df2_preemp(struct resample_data *rd, float *in, siz
 		{ \
 			PREEMP_DF2_SAMPLE(in, rd->frame, rd->channels) \
 			LPF_DF2_SAMPLE(times, rd->frame, out, rd->channels) \
+			DE_DENORM_FLIP(rd->dede) \
 			in  += rd->channels; \
 			out += rd->channels; \
 		} \
@@ -1150,6 +1192,7 @@ static void lowpass##times##_df2_preemp_2x(struct resample_data *rd, float *in, 
 		for(unsigned int c=0; c<rd->channels; ++c) \
 			rd->frame[c] = 0; \
 		LPF_DF2_SAMPLE(times, rd->frame, out, rd->channels) \
+		DE_DENORM_FLIP(rd->dede) \
 		out += rd->channels; \
 		in  += rd->channels; \
 	} \
@@ -1167,6 +1210,7 @@ static void lowpass##times##_df2_preemp(struct resample_data *rd, float *in, siz
 	{ \
 		PREEMP_DF2_SAMPLE(in, rd->frame, rd->channels) \
 		LPF_DF2_SAMPLE(times, rd->frame, out, rd->channels) \
+		DE_DENORM_FLIP(rd->dede) \
 		in  += rd->channels; \
 		out += rd->channels; \
 	} \
@@ -2279,6 +2323,7 @@ syn123_setup_resample( syn123_handle *sh, long inrate, long outrate
 		rd->decim_hist = NULL;
 		rd->channels = channels;
 		rd->stage_history = NULL;
+		DE_DENORM_INIT(rd->dede, +1)
 		rd->frame = NULL;
 #ifndef SYN123_NO_CASES
 		if(channels > 2)

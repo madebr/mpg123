@@ -1,6 +1,8 @@
 1.26.5
 ------
 - Add ./configure --enable-xdebug (for the resampler issue).
+- Avoid denormals in the resampler by adding an alternating offset
+  (helps performance without -ffast-math, depending on platform).
 
 1.26.4
 ------
