@@ -1470,6 +1470,7 @@ static size_t resample_opt6p5o_2batch(struct resample_data *rd, float*in
 static size_t name( struct resample_data *rd \
 ,	float *in, size_t ins, float *out ) \
 { \
+	mxdebug(#name " in %zu", ins); \
 	float *iin = in; \
 	size_t iins = ins; \
 	if(!(rd->sflags & inter_flow) && ins) \
@@ -1480,16 +1481,21 @@ static size_t name( struct resample_data *rd \
 	for(size_t bi = 0; bi<blocks; ++bi) \
 	{ \
 		/* One batch in, two batches out. */ \
+		mxdebug(#name " batch %zu lowpass " #lpf_2x, bi); \
 		lpf_2x(rd, in, BATCH, rd->upbuf); \
+		mxdebug(#name " batch %zu interpol " #interpolate_2batch, bi); \
 		nouts = interpolate_2batch(rd, rd->upbuf, out); \
 		outs += nouts; \
 		out  += nouts*rd->channels; \
 		in   += BATCH*rd->channels; \
 	} \
 	ins -= blocks*BATCH; \
+	xdebug(#name " end lowpass " #lpf_2x); \
 	lpf_2x(rd, in, ins, rd->upbuf); \
+	xdebug(#name " end interpol " #interpolate); \
 	nouts = interpolate(rd, rd->upbuf, 2*ins, out); \
 	outs += nouts; \
+	mxdebug(#name " out %zu", outs); \
 	stage_history(rd, 0, iin, iins); \
 	return outs; \
 }
@@ -1499,6 +1505,7 @@ static size_t name( struct resample_data *rd \
 static size_t name( struct resample_data *rd \
 ,	float *in, size_t ins, float *out ) \
 { \
+	mxdebug(#name " in %zu", ins); \
 	float *iin = in; \
 	size_t iins = ins; \
 	if(!(rd->sflags & inter_flow) && ins) \
@@ -1508,18 +1515,23 @@ static size_t name( struct resample_data *rd \
 	size_t blocks = ins/BATCH; \
 	for(size_t bi = 0; bi<blocks; ++bi) \
 	{ \
+		mxdebug(#name " batch %zu lowpass " #lpf, bi); \
 		memcpy(rd->prebuf, in, BATCH*sizeof(*in)*rd->channels); \
 		lpf(rd, rd->prebuf, BATCH); \
+		mxdebug(#name " batch %zu interpol " #interpolate, bi); \
 		nouts = interpolate(rd, rd->prebuf, BATCH, out); \
 		outs += nouts; \
 		out  += nouts*rd->channels; \
 		in   += BATCH*rd->channels; \
 	} \
 	ins -= blocks*BATCH; \
+	xdebug(#name " end lowpass " #lpf); \
 	memcpy(rd->prebuf, in, ins*sizeof(*in)*rd->channels); \
 	lpf(rd, rd->prebuf, ins); \
+	xdebug(#name " end interpol " #interpolate); \
 	nouts = interpolate(rd, rd->prebuf, ins, out); \
 	outs += nouts; \
+	mxdebug(#name " out %zu", outs); \
 	stage_history(rd, 0, iin, iins); \
 	return outs; \
 }
@@ -1529,6 +1541,7 @@ static size_t name( struct resample_data *rd \
 static size_t name( struct resample_data *rd \
 ,	float *in, size_t ins, float *out ) \
 { \
+	mxdebug(#name " in %zu", ins); \
 	float *iin = in; \
 	size_t iins = ins; \
 	if(!(rd->sflags & inter_flow) && ins) \
@@ -1538,11 +1551,14 @@ static size_t name( struct resample_data *rd \
 	size_t blocks = ins/BATCH; \
 	for(size_t bi = 0; bi<blocks; ++bi) \
 	{ \
+		mxdebug( #name " batch %zu decim %d and lowpass " #lpf \
+		,	bi, rd->decim_stages ); \
 		int fill = BATCH; \
 		memcpy(rd->prebuf, in, fill*sizeof(*in)*rd->channels); \
 		for(int ds = 0; ds<rd->decim_stages; ++ds) \
 			fill = decimate(rd, ds, rd->prebuf, fill); \
 		lpf(rd, rd->prebuf, fill); \
+		mxdebug(#name " batch %zu interpol " #interpolate, bi); \
 		nouts = interpolate(rd, rd->prebuf, fill, out); \
 		outs += nouts; \
 		out  += nouts*rd->channels; \
@@ -1550,12 +1566,16 @@ static size_t name( struct resample_data *rd \
 	} \
 	ins -= blocks*BATCH; \
 	int fill = ins; \
+	mxdebug( #name " end decim %d and lowpass " #lpf \
+	, rd->decim_stages ); \
 	memcpy(rd->prebuf, in, fill*sizeof(*in)*rd->channels); \
 	for(int ds = 0; ds<rd->decim_stages; ++ds) \
 		fill = decimate(rd, ds, rd->prebuf, fill); \
 	lpf(rd, rd->prebuf, fill); \
+	xdebug(#name " end interpol " #interpolate); \
 	nouts = interpolate(rd, rd->prebuf, fill, out); \
 	outs += nouts; \
+	mxdebug(#name " out %zu", outs); \
 	stage_history(rd, 0, iin, iins); \
 	return outs; \
 }
