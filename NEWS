@@ -1,3 +1,7 @@
+1.26.5
+------
+- Add ./configure --enable-xdebug (for the resampler issue).
+
 1.26.4
 ------
 - Clarify seeking documentation regarding samples and PCM frames.

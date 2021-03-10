@@ -299,6 +299,24 @@ AC_ARG_ENABLE(debug,
               [ debugging="disabled" ]
 )
 
+AC_ARG_ENABLE(xdebug,
+              [  --enable-xdebug=[no/yes] turn on extreme debugging],
+              [
+                if test "x$enableval" = xyes
+                then
+                  xdebugging="enabled"
+                else
+                  xdebugging="disabled"
+                fi
+              ],
+              [ xdebugging="disabled" ]
+)
+
+if test x"$xdebugging" = xenabled; then
+  debugging=enabled
+  AC_DEFINE(XDEBUG, 1, [ Define for extreme debugging. ])
+fi
+
 AC_ARG_ENABLE(nagging,
               [  --enable-nagging=[no/yes] turn on GCC's pedantic nagging with error on warnings, does not include --enable-debug anymore ],
               [
@@ -2598,6 +2616,7 @@ echo "
   Compiler Optimization ... $with_optimization
   Gapless Support ......... $gapless
   Debugging ............... $debugging
+  Extreme debugging ....... $xdebugging
   Seek table size ......... $seektable
   FIFO support ............ $fifo
   Buffer .................. $buffer
