@@ -1,7 +1,7 @@
 /*
 	id3dump: Print ID3 tags of files, scanned using libmpg123.
 
-	copyright 2007-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2007-2021 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis
 */
@@ -24,10 +24,12 @@ static struct
 {
 	int store_pics;
 	int do_scan;
+	int verbose;
 } param =
 {
 	  FALSE
 	, TRUE
+	, FALSE
 };
 
 static const char* progname;
@@ -48,6 +50,7 @@ static void usage(int err)
 	fprintf(o," -n     --no-scan           do not scan entire file (just beginning)\n");
 	fprintf(o," -p     --store-pics        write APIC frames (album art pictures) to files\n");
 	fprintf(o,"                            file names using whole input file name as prefix\n");
+	fprintf(o," -v     --verbose           verbose messages from parser\n");
 	fprintf(o,"\nNote that text output will always be in UTF-8, regardless of locale.\n");
 	exit(err);
 }
@@ -61,6 +64,7 @@ static topt opts[] =
 	 {'h', "help",         0,       want_usage, 0,                 0}
 	,{'n', "no-scan",      GLO_INT, 0,          &param.do_scan,    FALSE}
 	,{'p', "store-pics",   GLO_INT, 0,          &param.store_pics, TRUE}
+	,{'v', "verbose",      GLO_INT, 0,          &param.verbose, TRUE}
 	,{0, 0, 0, 0, 0, 0}
 };
 
@@ -379,6 +383,7 @@ int main(int argc, char **argv)
 	mpg123_init();
 	m = mpg123_new(NULL, NULL);
 	mpg123_param(m, MPG123_ADD_FLAGS, MPG123_PICTURE, 0.);
+	mpg123_param(m, MPG123_VERBOSE, param.verbose ? 4 : 0, 0.);
 
 	for(i=loptind; i < argc; ++i)
 	{
