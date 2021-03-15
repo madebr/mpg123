@@ -1179,8 +1179,7 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 									} else
 									{
 										if(NOQUIET)
-											merror( "frame data length mismatch (%lu != %lu), skipping"
-											,	datlen, realsize );
+											error("frame data length bad, skipping");
 										realsize = 0;
 									}
 								} else
