@@ -3,6 +3,11 @@
 - Add ./configure --enable-xdebug (for the resampler issue).
 - Avoid denormals in the resampler by adding an alternating offset
   (helps performance without -ffast-math, depending on platform).
+- libmpg123:
+-- Fix ID3v2 APIC parsing when frame length bit is set (bug 306).
+-- Also fix up frame flag handling for ID3v2.3. Did not crop up yet,
+   but it was just wrong. Impact was not detecting and bailing out on
+   compressed or encrypted frames properly.
 
 1.26.4
 ------
