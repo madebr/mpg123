@@ -5,6 +5,7 @@
   (helps performance without -ffast-math, depending on platform).
 - libmpg123:
 -- Fix ID3v2 APIC parsing when frame length bit is set (bug 306).
+-- Also handle the group flag (skip the group byte).
 -- Also fix up frame flag handling for ID3v2.3. Did not crop up yet,
    but it was just wrong. Impact was not detecting and bailing out on
    compressed or encrypted frames properly.
