@@ -1172,10 +1172,11 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 								if(realsize >= 4)
 								{
 									unsigned long datlen;
-									bytes_to_long(realdata, datlen);
-									realsize  -= 4;
-									realdata  += 4;
-									if(datlen != realsize)
+									if(bytes_to_long(realdata, datlen) && datlen == realsize-4)
+									{
+										realsize  -= 4;
+										realdata  += 4;
+									} else
 									{
 										if(NOQUIET)
 											merror( "frame data length mismatch (%lu != %lu), skipping"
