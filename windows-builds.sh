@@ -162,7 +162,7 @@ mpg123_build()
 		echo "text file $i -> $final/$name/$i.txt"
 		./unix2dos < "$i" > "$final/$name/$i.txt"
 	done &&
-	cp doc/windows-notes.html "$final/"
+	cp doc/windows-notes.html "$final/$name/"
 }
 
 prepare_dir &&
