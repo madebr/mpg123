@@ -91,6 +91,9 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 #endif
 	fr->layerscratch = NULL;
 	fr->xing_toc = NULL;
+#ifdef OPT_CPU_FLAGS
+	getcpuflags(&(fr->cpu_flags));
+#endif
 	fr->cpu_opts.type = defdec();
 	fr->cpu_opts.class = decclass(fr->cpu_opts.type);
 #ifndef NO_NTOM

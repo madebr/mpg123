@@ -27,7 +27,6 @@ int attribute_align_arg mpg123_init(void)
 	init_layer3();
 #endif
 	prepare_decode_tables();
-	check_decoders();
 	return MPG123_OK;
 }
 

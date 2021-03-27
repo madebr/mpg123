@@ -13,6 +13,7 @@
 #include "config.h"
 #include "mpg123.h"
 #include "optimize.h"
+#include "getcpuflags.h"
 #include "id3.h"
 #include "icy.h"
 #include "reader.h"
@@ -172,7 +173,9 @@ struct mpg123_handle_struct
 		enum optdec type;
 		enum optcla class;
 	} cpu_opts;
-
+#ifdef OPT_CPU_FLAGS
+	struct cpuflags cpu_flags;
+#endif
 	int verbose;    /* 0: nothing, 1: just print chosen decoder, 2: be verbose */
 
 	const struct al_table *alloc;

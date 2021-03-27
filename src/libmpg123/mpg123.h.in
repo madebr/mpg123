@@ -457,6 +457,10 @@ MPG123_EXPORT int mpg123_errcode(mpg123_handle *mh);
 MPG123_EXPORT const char **mpg123_decoders(void);
 
 /** Get supported decoder list.
+ *
+ * This possibly writes to static storage in the library, so avoid
+ * calling concurrently, please.
+ *
  *  \return NULL-terminated array of the decoders supported by the CPU (plain 8bit ASCII)
  */
 MPG123_EXPORT const char **mpg123_supported_decoders(void);

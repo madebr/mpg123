@@ -12,24 +12,7 @@
 #include "mpg123lib_intern.h" /* includes optimize.h */
 #include "debug.h"
 
-#if ((defined OPT_X86) || (defined OPT_X86_64) || (defined OPT_NEON) || (defined OPT_NEON64)) && (defined OPT_MULTI)
 #include "getcpuflags.h"
-static struct cpuflags cpu_flags;
-#else
-/* Faking stuff for non-multi builds. The same code for synth function choice is used.
-   Just no runtime dependency of result... */
-#define cpu_flags nothing
-#define cpu_i586(s)     1
-#define cpu_fpu(s)      1
-#define cpu_mmx(s)      1
-#define cpu_3dnow(s)    1
-#define cpu_3dnowext(s) 1
-#define cpu_sse(s)      1
-#define cpu_sse2(s)     1
-#define cpu_sse3(s)     1
-#define cpu_avx(s)      1
-#define cpu_neon(s)     1
-#endif
 
 /* Ugly macros to build conditional synth function array values. */
 
@@ -528,20 +511,20 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 #endif
 	/* covers any i386+ cpu; they actually differ only in the synth_1to1 function, mostly... */
 #ifdef OPT_X86
-	if(cpu_i586(cpu_flags))
+	if(cpu_i586(fr->cpu_flags))
 	{
 #		ifdef OPT_MULTI
-		debug2("standard flags: 0x%08x\textended flags: 0x%08x", cpu_flags.std, cpu_flags.ext);
+		debug2("standard flags: 0x%08x\textended flags: 0x%08x", fr->cpu_flags.std, fr->cpu_flags.ext);
 #		endif
 #		ifdef OPT_SSE
 		if(   !done && (auto_choose || want_dec == sse)
-		   && cpu_sse(cpu_flags) && cpu_mmx(cpu_flags) )
+		   && cpu_sse(fr->cpu_flags) && cpu_mmx(fr->cpu_flags) )
 		{
 			chosen = dn_sse;
 			fr->cpu_opts.type = sse;
 #ifdef OPT_MULTI
 #			ifndef NO_LAYER3
-			/* if(cpu_fast_sse(cpu_flags)) */ fr->cpu_opts.the_dct36 = dct36_sse;
+			/* if(cpu_fast_sse(fr->cpu_flags)) */ fr->cpu_opts.the_dct36 = dct36_sse;
 #			endif
 #endif
 #			ifndef NO_16BIT
@@ -563,7 +546,7 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 #		endif
 #		ifdef OPT_SSE_VINTAGE
 		if(   !done && (auto_choose || want_dec == sse_vintage)
-		   && cpu_sse(cpu_flags) && cpu_mmx(cpu_flags) )
+		   && cpu_sse(fr->cpu_flags) && cpu_mmx(fr->cpu_flags) )
 		{
 			chosen = dn_sse_vintage;
 			fr->cpu_opts.type = sse_vintage;
@@ -586,9 +569,9 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 #		endif
 #		ifdef OPT_3DNOWEXT
 		if(   !done && (auto_choose || want_dec == dreidnowext)
-		   && cpu_3dnow(cpu_flags)
-		   && cpu_3dnowext(cpu_flags)
-		   && cpu_mmx(cpu_flags) )
+		   && cpu_3dnow(fr->cpu_flags)
+		   && cpu_3dnowext(fr->cpu_flags)
+		   && cpu_mmx(fr->cpu_flags) )
 		{
 			chosen = dn_dreidnowext;
 			fr->cpu_opts.type = dreidnowext;
@@ -600,9 +583,9 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 #		endif
 #		ifdef OPT_3DNOWEXT_VINTAGE
 		if(   !done && (auto_choose || want_dec == dreidnowext_vintage)
-		   && cpu_3dnow(cpu_flags)
-		   && cpu_3dnowext(cpu_flags)
-		   && cpu_mmx(cpu_flags) )
+		   && cpu_3dnow(fr->cpu_flags)
+		   && cpu_3dnowext(fr->cpu_flags)
+		   && cpu_mmx(fr->cpu_flags) )
 		{
 			chosen = dn_dreidnowext_vintage;
 			fr->cpu_opts.type = dreidnowext_vintage;
@@ -619,7 +602,7 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 #		endif
 #		ifdef OPT_3DNOW
 		if(    !done && (auto_choose || want_dec == dreidnow)
-		    && cpu_3dnow(cpu_flags) && cpu_mmx(cpu_flags) )
+		    && cpu_3dnow(fr->cpu_flags) && cpu_mmx(fr->cpu_flags) )
 		{
 			chosen = dn_dreidnow;
 			fr->cpu_opts.type = dreidnow;
@@ -631,7 +614,7 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 #		endif
 #		ifdef OPT_3DNOW_VINTAGE
 		if(    !done && (auto_choose || want_dec == dreidnow_vintage)
-		    && cpu_3dnow(cpu_flags) && cpu_mmx(cpu_flags) )
+		    && cpu_3dnow(fr->cpu_flags) && cpu_mmx(fr->cpu_flags) )
 		{
 			chosen = dn_dreidnow_vintage;
 			fr->cpu_opts.type = dreidnow_vintage;
@@ -648,7 +631,7 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 #		endif
 		#ifdef OPT_MMX
 		if(   !done && (auto_choose || want_dec == mmx)
-		   && cpu_mmx(cpu_flags) )
+		   && cpu_mmx(fr->cpu_flags) )
 		{
 			chosen = dn_mmx;
 			fr->cpu_opts.type = mmx;
@@ -735,7 +718,7 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 #endif /* OPT_X86 */
 
 #ifdef OPT_AVX
-	if(!done && (auto_choose || want_dec == avx) && cpu_avx(cpu_flags))
+	if(!done && (auto_choose || want_dec == avx) && cpu_avx(fr->cpu_flags))
 	{
 		chosen = "x86-64 (AVX)";
 		fr->cpu_opts.type = avx;
@@ -808,7 +791,7 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 #	endif
 
 #	ifdef OPT_NEON
-	if(!done && (auto_choose || want_dec == neon) && cpu_neon(cpu_flags))
+	if(!done && (auto_choose || want_dec == neon) && cpu_neon(fr->cpu_flags))
 	{
 		chosen = dn_neon;
 		fr->cpu_opts.type = neon;
@@ -846,7 +829,7 @@ int frame_cpu_opt(mpg123_handle *fr, const char* cpu)
 #	endif
 
 #	ifdef OPT_NEON64
-	if(!done && (auto_choose || want_dec == neon64) && cpu_neon(cpu_flags))
+	if(!done && (auto_choose || want_dec == neon64) && cpu_neon(fr->cpu_flags))
 	{
 		chosen = dn_neon64;
 		fr->cpu_opts.type = neon64;
@@ -1081,7 +1064,7 @@ static const char *mpg123_decoder_list[] =
 	NULL
 };
 
-void check_decoders(void )
+void check_decoders(void)
 {
 #ifndef OPT_MULTI
 	/* In non-multi mode, only the full list (one entry) is used. */
@@ -1089,6 +1072,7 @@ void check_decoders(void )
 #else
 	const char **d = mpg123_supported_decoder_list;
 #if (defined OPT_X86) || (defined OPT_X86_64) || (defined OPT_NEON) || (defined OPT_NEON64)
+	struct cpuflags cpu_flags;
 	getcpuflags(&cpu_flags);
 #endif
 #ifdef OPT_X86
@@ -1170,6 +1154,7 @@ const char* attribute_align_arg mpg123_current_decoder(mpg123_handle *mh)
 const char attribute_align_arg **mpg123_decoders(void){ return mpg123_decoder_list; }
 const char attribute_align_arg **mpg123_supported_decoders(void)
 {
+	check_decoders();
 #ifdef OPT_MULTI
 	return mpg123_supported_decoder_list;
 #else
