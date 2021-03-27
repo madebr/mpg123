@@ -17,6 +17,12 @@ add_library(${TARGET}
 
 set_target_properties(${TARGET} PROPERTIES OUTPUT_NAME syn123)
 
+if(BUILD_SHARED_LIBS)
+    target_compile_definitions(${TARGET}
+        PRIVATE $<$<BOOL:${WIN32}>:BUILD_MPG123_DLL>
+        INTERFACE $<$<BOOL:${WIN32}>:LINK_MPG123_DLL>)
+endif()
+
 target_include_directories(${TARGET} INTERFACE
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")

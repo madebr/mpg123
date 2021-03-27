@@ -189,7 +189,7 @@ elseif(MACHINE STREQUAL "generic")
     set(PLATFORM_DEFINITIONS OPT_GENERIC)
 endif()
 
-set_target_properties(${TARGET} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
+set_target_properties(${TARGET} PROPERTIES OUTPUT_NAME mpg123)
 
 target_compile_definitions(${TARGET} PRIVATE
     ${PLATFORM_DEFINITIONS}
