@@ -416,6 +416,7 @@ enum mpg123_errors
 	,MPG123_BAD_CUSTOM_IO /**< Custom I/O not prepared. */
 	,MPG123_LFS_OVERFLOW /**< Offset value overflow during translation of large file API calls -- your client program cannot handle that large file. */
 	,MPG123_INT_OVERFLOW /**< Some integer overflow. */
+	,MPG123_BAD_FLOAT /**< Floating-point computations work not as expected. */
 };
 
 /** Look up error strings given integer code.

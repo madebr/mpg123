@@ -18,14 +18,8 @@
 
 #define SEEKFRAME(mh) ((mh)->ignoreframe < 0 ? 0 : (mh)->ignoreframe)
 
-static int initialized = 0;
-
 int attribute_align_arg mpg123_init(void)
 {
-	if((sizeof(short) != 2) || (sizeof(long) < 4)) return MPG123_BAD_TYPES;
-
-	if(initialized) return MPG123_OK; /* no need to initialize twice */
-
 #ifndef NO_LAYER12
 	init_layer12(); /* inits also shared tables with layer1 */
 #endif
@@ -34,16 +28,6 @@ int attribute_align_arg mpg123_init(void)
 #endif
 	prepare_decode_tables();
 	check_decoders();
-	initialized = 1;
-#if (defined REAL_IS_FLOAT) && (defined IEEE_FLOAT)
-	/* This is rather pointless but it eases my mind to check that we did
-	   not enable the special rounding on a VAX or something. */
-	if(12346 != REAL_TO_SHORT_ACCURATE(12345.67f))
-	{
-		error("Bad IEEE 754 rounding. Re-build libmpg123 properly.");
-		return MPG123_ERR;
-	}
-#endif
 	return MPG123_OK;
 }
 
@@ -65,8 +49,25 @@ mpg123_handle attribute_align_arg *mpg123_parnew(mpg123_pars *mp, const char* de
 	mpg123_handle *fr = NULL;
 	int err = MPG123_OK;
 
-	if(initialized) fr = (mpg123_handle*) malloc(sizeof(mpg123_handle));
-	else err = MPG123_NOT_INITIALIZED;
+	// Silly paranoia checks. Really silly, but libmpg123 has been ported to strange
+	// platforms in the past.
+	if((sizeof(short) != 2) || (sizeof(long) < 4))
+	{
+		if(error != NULL) *error = MPG123_BAD_TYPES;
+		return NULL;
+	}
+
+#if (defined REAL_IS_FLOAT) && (defined IEEE_FLOAT)
+	/* This is rather pointless but it eases my mind to check that we did
+	   not enable the special rounding on a VAX or something. */
+	if(12346 != REAL_TO_SHORT_ACCURATE(12345.67f))
+	{
+		if(error != NULL) *error = MPG123_BAD_FLOAT;
+		return NULL;
+	}
+#endif
+
+	fr = (mpg123_handle*) malloc(sizeof(mpg123_handle));
 	if(fr != NULL)
 	{
 		frame_init_par(fr, mp);
@@ -1770,6 +1771,7 @@ static const char *mpg123_error[] =
 	,"Custom I/O obviously not prepared."
 	,"Overflow in LFS (large file support) conversion."
 	,"Overflow in integer conversion."
+	,"Bad IEEE 754 rounding. Re-build libmpg123 properly."
 };
 
 const char* attribute_align_arg mpg123_plain_strerror(int errcode)
