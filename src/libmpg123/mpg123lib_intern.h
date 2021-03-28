@@ -198,10 +198,9 @@ static inline int32_t scale_rounded(int32_t x, int shift)
 # endif
 
 #else
-/* Just define a symbol to make things clear.
-   Existing code still uses (not (float or fixed)) for that. */
-#  define REAL_IS_DOUBLE
-#  define real double
+
+#error "32 bit float or fixed-point, nothing else makes sense."
+
 #endif
 
 #ifndef REAL_IS_FIXED
