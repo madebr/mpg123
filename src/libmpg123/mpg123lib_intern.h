@@ -41,9 +41,9 @@
 /* We don't really do long double... there are 3 options for REAL:
    float, long and double. */
 
-#ifdef REAL_IS_FLOAT
+#if defined(REAL_IS_FLOAT) && !defined(FORCE_FIXED)
 #  define real float
-#elif defined(REAL_IS_FIXED)
+#elif defined(REAL_IS_FIXED) || defined(FORCE_FIXED)
 
 # define real  int32_t
 # define dreal int64_t

@@ -244,7 +244,7 @@ void  init_layer12_stuff(mpg123_handle *fr, real* (*init_table)(mpg123_handle *f
 
 void prepare_decode_tables(void);
 
-extern real *pnts[5]; /* tabinit provides, dct64 needs */
+extern const real *pnts[5]; /* tabinit provides, dct64 needs */
 
 /* Runtime (re)init functions; needed more often. */
 void make_decode_tables(mpg123_handle *fr); /* For every volume change. */

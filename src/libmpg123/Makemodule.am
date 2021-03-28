@@ -9,6 +9,10 @@ src_libmpg123_testcpu_LDADD = \
   src/compat/libcompat.la \
   src/libmpg123/getcpuflags.$(OBJEXT)
 
+EXTRA_PROGRAMS += src/libmpg123/calctables
+src_libmpg123_calctables_SOURCES = src/libmpg123/calctables.c
+src_libmpg123_calctables_LDADD = @LIBM@
+
 # Necessary?
 CLEANFILES += src/libmpg123/*.a
 
@@ -58,6 +62,7 @@ src_libmpg123_libmpg123_la_SOURCES = \
   src/libmpg123/optimize.h \
   src/libmpg123/optimize.c \
   src/libmpg123/readers.c \
+  src/libmpg123/costabs.h \
   src/libmpg123/tabinit.c \
   src/libmpg123/libmpg123.c \
   src/libmpg123/gapless.h \
