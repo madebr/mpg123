@@ -199,7 +199,7 @@ static inline int32_t scale_rounded(int32_t x, int shift)
 
 #else
 
-#error "32 bit float or fixed-point, nothing else makes sense."
+#error "Simple float or fixed-point, nothing else makes sense."
 
 #endif
 
