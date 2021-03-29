@@ -79,6 +79,7 @@ EXTRA_src_libmpg123_libmpg123_la_SOURCES = \
   src/libmpg123/icy.c \
   src/libmpg123/icy2utf8.c \
   src/libmpg123/l2tables.h \
+  src/libmpg123/l12tabs.h \
   src/libmpg123/layer1.c \
   src/libmpg123/layer2.c \
   src/libmpg123/layer3.c \
@@ -166,7 +167,6 @@ EXTRA_src_libmpg123_libmpg123_la_SOURCES = \
   src/libmpg123/getcpuflags_x86_64.S \
   src/libmpg123/getcpuflags_arm.c \
   src/libmpg123/check_neon.S \
-  src/libmpg123/l12_integer_tables.h \
   src/libmpg123/l3_integer_tables.h
 
 if USE_YASM_FOR_AVX

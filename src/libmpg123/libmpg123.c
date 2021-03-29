@@ -20,9 +20,6 @@
 
 int attribute_align_arg mpg123_init(void)
 {
-#ifndef NO_LAYER12
-	init_layer12(); /* inits also shared tables with layer1 */
-#endif
 #ifndef NO_LAYER3
 	init_layer3();
 #endif
