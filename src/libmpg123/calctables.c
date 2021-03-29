@@ -126,7 +126,7 @@ static void print_array( int fixed, double fixed_scale
 			printf( "%s%c%11ld", i ? "," : "", j ? ' ' : '\t'
 			,	(long)(DOUBLE_TO_REAL(fixed_scale*tab[i])) );
 		else for(size_t j=0; j<line; ++j, ++i)
-			printf("%s%c%15.8e", i ? "," : "", j ? ' ' : '\t', tab[i]);
+			printf("%s%c%+15.8e", i ? "," : "", j ? ' ' : '\t', tab[i]);
 		printf("\n");
 	}
 	printf("%s}%s\n", indent, name ? ";" : "");
