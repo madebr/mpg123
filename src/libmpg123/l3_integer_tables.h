@@ -886,7 +886,6 @@ static const real tfcos12[3] =
 	8684526,11863283,32411092
 };
 
-#ifdef NEW_DCT9
 static const real cos9[3] =
 {
 	15765426,-2913333,-12852093
@@ -896,7 +895,6 @@ static const real cos18[3] =
 {
 	16522332,-5738146,-10784187
 };
-#endif
 
 static const real tan1_1[16] =
 {
@@ -974,11 +972,9 @@ real COS9[9]; /* dct36_3dnow wants to use that */
 static real COS6_1,COS6_2;
 real tfcos36[9]; /* dct36_3dnow wants to use that */
 static real tfcos12[3];
-#ifdef NEW_DCT9
 static real cos9[3],cos18[3];
 static real tan1_1[16],tan2_1[16],tan1_2[16],tan2_2[16];
 static real pow1_1[2][16],pow2_1[2][16],pow1_2[2][16],pow2_2[2][16];
-#endif
 #endif
 
 static real win1[4][36];

@@ -31,7 +31,6 @@
 #endif
 
 #ifdef REAL_IS_FIXED
-#define NEW_DCT9
 #include "l3_integer_tables.h"
 #else
 /* static one-time calculated tables... or so */
@@ -43,12 +42,10 @@ real COS9[9]; /* dct36_3dnow wants to use that */
 static real COS6_1,COS6_2;
 real tfcos36[9]; /* dct36_3dnow wants to use that */
 static real tfcos12[3];
-#define NEW_DCT9
-#ifdef NEW_DCT9
 static real cos9[3],cos18[3];
 static real tan1_1[16],tan2_1[16],tan1_2[16],tan2_2[16];
 static real pow1_1[2][32],pow2_1[2][32],pow1_2[2][32],pow2_2[2][32];
-#endif
+
 #endif
 
 /* Decoder state data, living on the stack of do_layer3. */
@@ -224,14 +221,12 @@ void init_layer3(void)
 	COS6_1 = DOUBLE_TO_REAL(cos( M_PI / 6.0 * (double) 1));
 	COS6_2 = DOUBLE_TO_REAL(cos( M_PI / 6.0 * (double) 2));
 
-#ifdef NEW_DCT9
 	cos9[0]  = DOUBLE_TO_REAL(cos(1.0*M_PI/9.0));
 	cos9[1]  = DOUBLE_TO_REAL(cos(5.0*M_PI/9.0));
 	cos9[2]  = DOUBLE_TO_REAL(cos(7.0*M_PI/9.0));
 	cos18[0] = DOUBLE_TO_REAL(cos(1.0*M_PI/18.0));
 	cos18[1] = DOUBLE_TO_REAL(cos(11.0*M_PI/18.0));
 	cos18[2] = DOUBLE_TO_REAL(cos(13.0*M_PI/18.0));
-#endif
 
 	for(i=0;i<12;i++)
 	{
@@ -1579,9 +1574,7 @@ static void III_antialias(real xr[SBLIMIT][SSLIMIT],struct gr_info_s *gr_info)
    used to be static without 3dnow - does that really matter? */
 void dct36(real *inbuf,real *o1,real *o2,real *wintab,real *tsbuf)
 {
-#ifdef NEW_DCT9
 	real tmp[18];
-#endif
 
 	{
 		register real *in = inbuf;
@@ -1596,8 +1589,6 @@ void dct36(real *inbuf,real *o1,real *o2,real *wintab,real *tsbuf)
 		in[17]+=in[15]; in[15]+=in[13]; in[13]+=in[11]; in[11]+=in[9];
 		in[9] +=in[7];  in[7] +=in[5];  in[5] +=in[3];  in[3] +=in[1];
 
-
-#ifdef NEW_DCT9
 #if 1
 		{
 			real t3;
@@ -1767,94 +1758,6 @@ void dct36(real *inbuf,real *o1,real *o2,real *wintab,real *tsbuf)
 			MACRO(7);
 			MACRO(8);
 		}
-
-#else
-
-		{
-
-#define MACRO0(v) { \
-	real tmp; \
-	out2[9+(v)] = REAL_MUL((tmp = sum0 + sum1), w[27+(v)]); \
-	out2[8-(v)] = REAL_MUL(tmp, w[26-(v)]);   } \
-	sum0 -= sum1; \
-	ts[SBLIMIT*(8-(v))] = out1[8-(v)] + REAL_MUL(sum0, w[8-(v)]); \
-	ts[SBLIMIT*(9+(v))] = out1[9+(v)] + REAL_MUL(sum0, w[9+(v)]);
-#define MACRO1(v) { \
-	real sum0,sum1; \
-	sum0 = tmp1a + tmp2a; \
-	sum1 = REAL_MUL((tmp1b + tmp2b), tfcos36[(v)]); \
-	MACRO0(v); }
-#define MACRO2(v) { \
-	real sum0,sum1; \
-	sum0 = tmp2a - tmp1a; \
-	sum1 = REAL_MUL((tmp2b - tmp1b), tfcos36[(v)]); \
-	MACRO0(v); }
-
-			register const real *c = COS9;
-			register real *out2 = o2;
-			register real *w = wintab;
-			register real *out1 = o1;
-			register real *ts = tsbuf;
-
-			real ta33,ta66,tb33,tb66;
-
-			ta33 = REAL_MUL(in[2*3+0], c[3]);
-			ta66 = REAL_MUL(in[2*6+0], c[6]);
-			tb33 = REAL_MUL(in[2*3+1], c[3]);
-			tb66 = REAL_MUL(in[2*6+1], c[6]);
-
-			{ 
-				real tmp1a,tmp2a,tmp1b,tmp2b;
-				tmp1a = REAL_MUL(in[2*1+0], c[1]) + ta33 + REAL_MUL(in[2*5+0], c[5]) + REAL_MUL(in[2*7+0], c[7]);
-				tmp1b = REAL_MUL(in[2*1+1], c[1]) + tb33 + REAL_MUL(in[2*5+1], c[5]) + REAL_MUL(in[2*7+1], c[7]);
-				tmp2a = REAL_MUL(in[2*2+0], c[2]) + REAL_MUL(in[2*4+0], c[4]) + ta66 + REAL_MUL(in[2*8+0], c[8]);
-				tmp2b = REAL_MUL(in[2*2+1], c[2]) + REAL_MUL(in[2*4+1], c[4]) + tb66 + REAL_MUL(in[2*8+1], c[8]);
-
-				MACRO1(0);
-				MACRO2(8);
-			}
-
-			{
-				real tmp1a,tmp2a,tmp1b,tmp2b;
-				tmp1a = REAL_MUL(( in[2*1+0] - in[2*5+0] - in[2*7+0] ), c[3]);
-				tmp1b = REAL_MUL(( in[2*1+1] - in[2*5+1] - in[2*7+1] ), c[3]);
-				tmp2a = REAL_MUL(( in[2*2+0] - in[2*4+0] - in[2*8+0] ), c[6]) - in[2*6+0] + in[2*0+0];
-				tmp2b = REAL_MUL(( in[2*2+1] - in[2*4+1] - in[2*8+1] ), c[6]) - in[2*6+1] + in[2*0+1];
-
-				MACRO1(1);
-				MACRO2(7);
-			}
-
-			{
-				real tmp1a,tmp2a,tmp1b,tmp2b;
-				tmp1a =   REAL_MUL(in[2*1+0], c[5]) - ta33 - REAL_MUL(in[2*5+0], c[7]) + REAL_MUL(in[2*7+0], c[1]);
-				tmp1b =   REAL_MUL(in[2*1+1], c[5]) - tb33 - REAL_MUL(in[2*5+1], c[7]) + REAL_MUL(in[2*7+1], c[1]);
-				tmp2a = - REAL_MUL(in[2*2+0], c[8]) - REAL_MUL(in[2*4+0], c[2]) + ta66 + REAL_MUL(in[2*8+0], c[4]);
-				tmp2b = - REAL_MUL(in[2*2+1], c[8]) - REAL_MUL(in[2*4+1], c[2]) + tb66 + REAL_MUL(in[2*8+1], c[4]);
-
-				MACRO1(2);
-				MACRO2(6);
-			}
-
-			{
-				real tmp1a,tmp2a,tmp1b,tmp2b;
-				tmp1a =   REAL_MUL(in[2*1+0], c[7]) - ta33 + REAL_MUL(in[2*5+0], c[1]) - REAL_MUL(in[2*7+0], c[5]);
-				tmp1b =   REAL_MUL(in[2*1+1], c[7]) - tb33 + REAL_MUL(in[2*5+1], c[1]) - REAL_MUL(in[2*7+1], c[5]);
-				tmp2a = - REAL_MUL(in[2*2+0], c[4]) + REAL_MUL(in[2*4+0], c[8]) + ta66 - REAL_MUL(in[2*8+0], c[2]);
-				tmp2b = - REAL_MUL(in[2*2+1], c[4]) + REAL_MUL(in[2*4+1], c[8]) + tb66 - REAL_MUL(in[2*8+1], c[2]);
-
-				MACRO1(3);
-				MACRO2(5);
-			}
-
-			{
-				real sum0,sum1;
-				sum0 =  in[2*0+0] - in[2*2+0] + in[2*4+0] - in[2*6+0] + in[2*8+0];
-				sum1 = REAL_MUL((in[2*0+1] - in[2*2+1] + in[2*4+1] - in[2*6+1] + in[2*8+1] ), tfcos36[4]);
-				MACRO0(4);
-			}
-		}
-#endif
 
 	}
 }
