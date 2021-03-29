@@ -1,3 +1,9 @@
+1.27.0
+------
+- libmpg123: Running on precomputed tables now, no need to call
+  mpg123_init() anymore. That and mpg123_exit() are both just
+  empty shells now.
+
 1.26.5
 ------
 - Add ./configure --enable-xdebug (for the resampler issue).

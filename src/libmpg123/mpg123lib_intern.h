@@ -166,8 +166,10 @@ static inline int32_t scale_rounded(int32_t x, int shift)
 
 /* I just changed the (int) to (real) there... seemed right. */
 # define DOUBLE_TO_REAL(x)					(double_to_long_rounded(x, REAL_FACTOR))
-# define DOUBLE_TO_REAL_15(x)				(double_to_long_rounded(x, 32768.0))
-# define DOUBLE_TO_REAL_POW43(x)			(double_to_long_rounded(x, 8192.0))
+# define SCALE_15								32768.0
+# define DOUBLE_TO_REAL_15(x)				(double_to_long_rounded(x, SCALE_15))
+# define SCALE_POW43							8192.0
+# define DOUBLE_TO_REAL_POW43(x)			(double_to_long_rounded(x, SCALE_POW43))
 # define SCALE_LAYER12                  1073741824.0
 # define DOUBLE_TO_REAL_SCALE_LAYER12(x)	(double_to_long_rounded(x, SCALE_LAYER12))
 # define DOUBLE_TO_REAL_SCALE_LAYER3(x, y)	(double_to_long_rounded(x, pow(2.0,gainpow2_scale[y])))

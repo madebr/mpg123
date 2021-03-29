@@ -83,6 +83,9 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 	fr->rawbuffss = 0;
 	fr->rawdecwin = NULL;
 	fr->rawdecwins = 0;
+#ifdef REAL_IS_FIXED
+	fr->gainpow2 = NULL; // At least crash early if I get it wrong.
+#endif
 #ifndef NO_8BIT
 	fr->conv16to8_buf = NULL;
 #endif

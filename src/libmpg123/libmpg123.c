@@ -20,16 +20,13 @@
 
 int attribute_align_arg mpg123_init(void)
 {
-#ifndef NO_LAYER3
-	init_layer3();
-#endif
+	// Since 1.27.0, this is a no-op and shall stay that way.
 	return MPG123_OK;
 }
 
 void attribute_align_arg mpg123_exit(void)
 {
-	/* nothing yet, but something later perhaps */
-	/* Nope. This is dead space. */
+	// Nothing to ever happen here.
 }
 
 /* create a new handle with specified decoder, decoder can be "", "auto" or NULL for auto-detection */

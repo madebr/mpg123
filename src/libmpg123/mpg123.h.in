@@ -131,10 +131,16 @@ struct mpg123_handle_struct;
  */
 typedef struct mpg123_handle_struct mpg123_handle;
 
-/** Function to initialise the mpg123 library. 
- * This should be called once in a non-parallel context. It is not explicitly
- * thread-safe, but repeated/concurrent calls still _should_ be safe as static
- * tables are filled with the same values anyway.
+/** Useless no-op that used to do initialization work.
+ *
+ * For API version before 46 (mpg123 1.27.0), you had to ensure to have
+ * this called once before creating a handle. To be pure, this had to
+ * happen in a single-threaded context, too (while in practice, there was no
+ * harm done possibly racing to compute the same numbers again).
+ *
+ * Now this function really does nothing anymore. The only reason to call
+ * it is to be compatible with old versions of the library that still require
+ * it.
  *
  *	\return MPG123_OK if successful, otherwise an error number.
  */

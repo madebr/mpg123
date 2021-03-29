@@ -140,8 +140,11 @@ struct mpg123_handle_struct
 	/* layer3 */
 	int longLimit[9][23];
 	int shortLimit[9][14];
+#ifdef REAL_IS_FIXED
+	const real *gainpow2; // Actually static storage elsewhere.
+#else
 	real gainpow2[256+118+4]; /* not really dynamic, just different for mmx */
-
+#endif
 	/* layer2 */
 	real muls[27][64];	/* also used by layer 1 */
 
@@ -165,7 +168,7 @@ struct mpg123_handle_struct
 
 #ifndef NO_LAYER3
 #if (defined OPT_3DNOW_VINTAGE || defined OPT_3DNOWEXT_VINTAGE || defined OPT_SSE || defined OPT_X86_64 || defined OPT_AVX || defined OPT_NEON || defined OPT_NEON64)
-		void (*the_dct36)(real *,real *,real *,real *,real *);
+		void (*the_dct36)(real *,real *,real *,const real *,real *);
 #endif
 #endif
 

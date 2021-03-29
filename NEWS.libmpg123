@@ -1,5 +1,12 @@
 Changes in libmpg123 libtool interface versions...
 
+46.0.46
+	- Functions mpg123_init() and mpg123_exit() are really no-ops now.
+	  There is no need to call them, and no harm done calling them in
+	  parallel. The latter used to be the case before, too, but only in
+	  practice, not in theory.
+	- Common tables provided in precomputed form now, both float and fixed.
+
 45.0.45
 	- mpg123_read(), mpg123_decode(), and mpg123_replace_buffer() now taking
           void* for output buffers
