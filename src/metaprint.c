@@ -75,14 +75,17 @@ static void id3_gap(mpg123_string *dest, int count, char *v1, size_t *len, int i
 static void print_oneline( FILE* out
 ,	const mpg123_string *tag, enum tagcode fi, int long_mode )
 {
+	int ret;
 	char fmt[14]; /* "%s:%-XXXs%s\n" plus one null */
 	if(!tag[fi].fill && !long_mode)
 		return;
 
 	if(long_mode)
 		fprintf(out, "\t");
-	snprintf( fmt, sizeof(fmt)-1, "%%s:%%-%ds%%s\n"
+	ret = snprintf( fmt, sizeof(fmt)-1, "%%s:%%-%ds%%s\n"
 	,	1+namelen[0]-(int)strlen(name[fi]) );
+	if(ret >= sizeof(fmt)-1)
+		fmt[sizeof(fmt)-1] = 0;
 	fprintf(out, fmt, name[fi], " ", tag[fi].fill ? tag[fi].p : "");
 }
 
@@ -106,6 +109,7 @@ static void print_pair
 	if(  tag[f0].fill         && tag[f1].fill
 	  && len[f0] <= (size_t)climit[0] && len[f1] <= (size_t)climit[1] )
 	{
+		int ret; // Need to store return value of snprintf to silence gcc.
 		char cfmt[35]; /* "%s:%-XXXs%-XXXs  %s:%-XXXs%-XXXs\n" plus one extra null from snprintf */
 		int chardiff[2];
 		size_t bytelen;
@@ -117,9 +121,11 @@ static void print_pair
 		chardiff[1] = len[f1] < bytelen ? bytelen-len[f1] : 0;
 
 		/* Two-column format string with added padding for multibyte chars. */
-		snprintf( cfmt, sizeof(cfmt)-1, "%%s:%%-%ds%%-%ds  %%s:%%-%ds%%-%ds\n"
+		ret = snprintf( cfmt, sizeof(cfmt)-1, "%%s:%%-%ds%%-%ds  %%s:%%-%ds%%-%ds\n"
 		,	1+namelen[0]-(int)strlen(name[f0]), climit[0]+chardiff[0]
 		,	1+namelen[1]-(int)strlen(name[f1]), climit[1]+chardiff[1] );
+		if(ret >= sizeof(cfmt)-1)
+			cfmt[sizeof(cfmt)-1] = 0;
 		/* Actual printout of name and value pairs. */
 		fprintf(out, cfmt, name[f0], " ", tag[f0].p, name[f1], " ", tag[f1].p);
 	}
