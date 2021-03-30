@@ -3,9 +3,10 @@
 
 	copyright ?-2021 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
-	initially written by Michael Hipp (as tabinit.c, and parts of layer2.c and layer3.c)
+	initially written by Michael Hipp (as tabinit.c, and parts of layer2.c and layer3.c),
+	then printout added by Thomas Orgis
 
-	This is supposed to compute the suppesdly fixed tables that used to be computed
+	This is supposed to compute the supposedly fixed tables that used to be computed
 	live on library startup in mpg123_init().
 */
 
@@ -106,8 +107,12 @@ static double cos9[3],cos18[3];
 // scale with SCALE_15
 static double tan1_1[16],tan2_1[16],tan1_2[16],tan2_2[16];
 // This used to be [2][32] initially, but already Taihei noticed that
-// only [2][16] is used for the integer tables. What was the point?
-static double pow1_1[2][16],pow2_1[2][16],pow1_2[2][16],pow2_2[2][16];
+// _apparently_ only [2][16] is used for the integer tables. But
+// this is misleading: Accesses beyond that happen, at least in pathologic
+// cases. Taihei's fixed-point decoding introduced read-only buffer
+// overflows:-/ Those are rather harmless, though, as only bad numbers
+// enter calculation. Nothing about pointers or code.
+static double pow1_1[2][32],pow2_1[2][32],pow1_2[2][32],pow2_2[2][32];
 
 #include "l3bandgain.h"
 
@@ -218,7 +223,7 @@ void init_layer3(void)
 		}
 	}
 
-	for(i=0;i<16;i++)
+	for(i=0;i<32;i++)
 	{
 		for(j=0;j<2;j++)
 		{
@@ -560,13 +565,13 @@ int main(int argc, char **argv)
 			print_array( 1, fixed, SCALE_15/REAL_FACTOR, ""
 			,	"tan2_2", ASIZE(tan2_2), tan2_2 );
 			print_array2d( fixed, SCALE_15/REAL_FACTOR
-			,	"pow1_1", 2, 16, pow1_1 );
+			,	"pow1_1", 2, 32, pow1_1 );
 			print_array2d( fixed, SCALE_15/REAL_FACTOR
-			,	"pow2_1", 2, 16, pow2_1 );
+			,	"pow2_1", 2, 32, pow2_1 );
 			print_array2d( fixed, SCALE_15/REAL_FACTOR
-			,	"pow1_2", 2, 16, pow1_2 );
+			,	"pow1_2", 2, 32, pow1_2 );
 			print_array2d( fixed, SCALE_15/REAL_FACTOR
-			,	"pow2_2", 2, 16, pow2_2 );
+			,	"pow2_2", 2, 32, pow2_2 );
 		}
 		if(fixed)
 			print_fixed_array("", "gainpow2", ASIZE(gainpow2), gainpow2);
