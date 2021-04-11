@@ -50,9 +50,11 @@ int main(int argc, char **argv)
 		printf("Gimme a MPEG file name...\n");
 		return 0;
 	}
-	mpg123_init();
 	// Intentionally no error checking here. Let's see how the lib deals with it.
 	mpg123_handle *mh = mpg123_new(NULL, NULL);
+	// Try to set decoder to generic to avoid memory sanitizer freaking out about
+	// asssembly synth routines.
+	mpg123_decoder(mh, "generic");
 	// Let's fix it to mono.
 	if(mpg123_open_fixed(mh, argv[1], MPG123_MONO, enc) == MPG123_OK)
 		ret = work(mh, 1, enc);

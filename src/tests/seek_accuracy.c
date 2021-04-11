@@ -61,8 +61,10 @@ int main(int argc, char **argv)
 		preframes = argv[arg_preframes];
 		filename  = argv[arg_file];
 	}
-	mpg123_init();
 	m = mpg123_new(decoder, NULL);
+	// Try to set decoder to generic to avoid memory sanitizer freaking out about
+	// asssembly synth routines.
+	mpg123_decoder(m, "generic");
 	mpg123_param(m, MPG123_RESYNC_LIMIT, -1, 0);
 	mpg123_param(m, MPG123_REMOVE_FLAGS, MPG123_GAPLESS, 0);
 

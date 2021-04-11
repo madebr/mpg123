@@ -43,7 +43,13 @@ struct cpuflags
 };
 
 unsigned int getcpuflags(struct cpuflags* cf);
-
+// Wrapper needed for ignorant clang memory sanitizer that chokes
+// because it does not know the assembly code intialized the vlaues.
+static unsigned int wrap_getcpuflags(struct cpuflags* cf)
+{
+	memset(cf, 0, sizeof(*cf));
+	return getcpuflags(cf);
+}
 
 #if ((defined OPT_X86) || (defined OPT_X86_64) || (defined OPT_NEON) || (defined OPT_NEON64)) && (defined OPT_MULTI)
 
