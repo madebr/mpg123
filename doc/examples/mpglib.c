@@ -1,9 +1,8 @@
 /*
 	mpglib: test program for libmpg123, in the style of the legacy mpglib test program
 
-	copyright 2007 by the mpg123 project - free software under the terms of the LGPL 2.1
-	see COPYING and AUTHORS files in distribution or http://mpg123.org
-	initially written by Thomas Orgis
+	This is example code only sensible to be considered in the public domain.
+	Initially written by Thomas Orgis.
 */
 
 #include <mpg123.h>
@@ -40,7 +39,11 @@ _setmode(_fileno(stdin),_O_BINARY);
 _setmode(_fileno(stdout),_O_BINARY);
 #endif
 
+#if MPG123_API_VERSION < 46
+	// Newer versions of the library don't need that anymore, but it is safe
+	// to have the no-op call present for compatibility with old versions.
 	mpg123_init();
+#endif
 	m = mpg123_new(argc > 1 ? argv[1] : NULL, &ret);
 	if(m == NULL)
 	{
@@ -87,6 +90,5 @@ _setmode(_fileno(stdout),_O_BINARY);
 
 	/* Done decoding, now just clean up and leave. */
 	mpg123_delete(m);
-	mpg123_exit();
 	return 0;
 }

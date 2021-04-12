@@ -1,9 +1,8 @@
 /*
 	mpg123_to_wav_replaced_io.c
 
-	copyright 2007-2015 by the mpg123 project - free software under the terms of the LGPL 2.1
-	see COPYING and AUTHORS files in distribution or http://mpg123.org
-	initially written by Nicholas Humfrey (moved to handle I/O by Thomas Orgis)
+	This is example code only sensible to be considered in the public domain.
+	Initially written by Nicholas Humfrey (moved to handle I/O by Thomas Orgis).
 
 	This example program demonstrates how to use libmpg123 to decode a file to WAV (writing via libsndfile), while doing the I/O (read and seek) with custom callback functions.
 	This should cater for any situation where you have some special means to get to the data (like, mmapped files / plain buffers in memory, funky network streams).
@@ -105,7 +104,11 @@ int main(int argc, char *argv[])
 	printf( "Input file: %s\n", argv[1]);
 	printf( "Output file: %s\n", argv[2]);
 
+#if MPG123_API_VERSION < 46
+	// Newer versions of the library don't need that anymore, but it is safe
+	// to have the no-op call present for compatibility with old versions.
 	err = mpg123_init();
+#endif
 
 	errno = 0;
 	iohandle = malloc(sizeof(struct ioh));

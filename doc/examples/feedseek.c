@@ -1,7 +1,7 @@
 /*
 	feedseek: test program for libmpg123, showing how to use fuzzy seeking in feeder mode
-	copyright 2008 by the mpg123 project - free software under the terms of the LGPL 2.1
-	see COPYING and AUTHORS files in distribution or http://mpg123.org	
+
+	This is example code only sensible to be considered in the public domain.
 */
 
 #include <mpg123.h>
@@ -110,7 +110,11 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
+#if MPG123_API_VERSION < 46
+	// Newer versions of the library don't need that anymore, but it is safe
+	// to have the no-op call present for compatibility with old versions.
 	mpg123_init();
+#endif
 
 	m = mpg123_new(NULL, &ret);
 	if(m == NULL)
@@ -233,6 +237,5 @@ int main(int argc, char **argv)
 	fclose(out);
 	fclose(in);
 	mpg123_delete(m);
-	mpg123_exit();
 	return 0;
 }

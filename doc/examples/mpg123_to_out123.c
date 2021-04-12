@@ -1,9 +1,8 @@
 /*
 	mpg123_to_wav.c
 
-	copyright 2007-2016 by the mpg123 project - free software under the terms of the LGPL 2.1
-	see COPYING and AUTHORS files in distribution or http://mpg123.org
-	initially written by Nicholas Humfrey
+	This is example code only sensible to be considered in the public domain.
+	Initially written by Nicholas Humfrey.
 
 	The most complicated part is about the choices to make about output format,
 	and prepare for the unlikely case a bastard mp3 might file change it.
@@ -29,7 +28,6 @@ void cleanup(mpg123_handle *mh, out123_handle *ao)
 	/* It's really to late for error checks here;-) */
 	mpg123_close(mh);
 	mpg123_delete(mh);
-	mpg123_exit();
 }
 
 int main(int argc, char *argv[])
@@ -62,7 +60,11 @@ int main(int argc, char *argv[])
 	printf("Output driver: %s\n", driver ? driver : "<nil> (default)");
 	printf("Output file:   %s\n", outfile ? outfile : "<nil> (default)");
 
+#if MPG123_API_VERSION < 46
+	// Newer versions of the library don't need that anymore, but it is safe
+	// to have the no-op call present for compatibility with old versions.
 	err = mpg123_init();
+#endif
 	if(err != MPG123_OK || (mh = mpg123_new(NULL, &err)) == NULL)
 	{
 		fprintf(stderr, "Basic setup goes wrong: %s", mpg123_plain_strerror(err));

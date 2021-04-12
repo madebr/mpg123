@@ -3,6 +3,8 @@
 - libmpg123: Running on precomputed tables now, no need to call
   mpg123_init() anymore. That and mpg123_exit() are both just
   empty shells now.
+- examples: Update for dropped mpg123_init(), more sensible
+  copyright notes.
 
 1.26.5
 ------

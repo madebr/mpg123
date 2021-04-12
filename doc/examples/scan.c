@@ -1,9 +1,8 @@
 /*
 	scan: Estimate length (sample count) of a mpeg file and compare to length from exact scan.
 
-	copyright 2007 by the mpg123 project - free software under the terms of the LGPL 2.1
-	see COPYING and AUTHORS files in distribution or http://mpg123.org
-	initially written by Thomas Orgis
+	This is example code only sensible to be considered in the public domain.
+	Initially written by Thomas Orgis
 */
 
 /* Note the lack of error checking here.
@@ -23,7 +22,9 @@ int main(int argc, char **argv)
 		fprintf(stderr, "\nUsage: %s <mpeg audio file list>\n\n", argv[0]);
 		return -1;
 	}
+#if MPG123_API_VERSION < 46
 	mpg123_init();
+#endif
 	m = mpg123_new(NULL, NULL);
 	mpg123_param(m, MPG123_RESYNC_LIMIT, -1, 0); /* New in library version 0.0.1 . */
 	for(i = 1; i < argc; ++i)
@@ -42,6 +43,5 @@ int main(int argc, char **argv)
 	}
 
 	mpg123_delete(m);
-	mpg123_exit();
 	return 0;
 }

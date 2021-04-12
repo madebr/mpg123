@@ -2,6 +2,8 @@
 	A simple and dumb decoder that does not even query the mpg123 output format.
 	It shall get MPG123_NEW_FORMAT once, but after that data!
 
+	This is example code only sensible to be considered in the public domain.
+
 	Beware: It writes raw audio to standard out!
 */
 
@@ -17,7 +19,11 @@ int main(int argc, char **argv)
 	int i;
 	int err;
 	mpg123_handle* mh;
+#if MPG123_API_VERSION < 46
+	// Newer versions of the library don't need that anymore, but it is safe
+	// to have the no-op call present for compatibility with old versions.
 	mpg123_init();
+#endif
 	mh = mpg123_new(NULL, NULL);
 	for(i=1; i<argc; ++i)
 	{
@@ -31,7 +37,6 @@ int main(int argc, char **argv)
 		}
 		else fprintf(stderr, "Failed to open file: %s\n", mpg123_strerror(mh));
 	}
-	mpg123_exit();
 }
 
 void decode_track(mpg123_handle *mh)

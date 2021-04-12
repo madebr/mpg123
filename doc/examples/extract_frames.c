@@ -1,9 +1,8 @@
 /*
 	extract_frams: utlize the framebyframe API and mpg123_framedata to extract the MPEG frames out of a stream (strip off anything else).
 
-	copyright 2011 by the mpg123 project - free software under the terms of the LGPL 2.1
-	see COPYING and AUTHORS files in distribution or http://mpg123.org
-	initially written by Thomas Orgis
+	This is example code only sensible to be considered in the public domain.
+	Initially written by Thomas Orgis.
 */
 
 #include <mpg123.h>
@@ -26,7 +25,11 @@ int main(int argc, char **argv)
 	int ret = 0;
 	mpg123_handle *m;
 
+#if MPG123_API_VERSION < 46
+	// Newer versions of the library don't need that anymore, but it is safe
+	// to have the no-op call present for compatibility with old versions.
 	mpg123_init();
+#endif
 	m = mpg123_new(NULL, &ret);
 
 	if(m == NULL)
@@ -53,7 +56,6 @@ int main(int argc, char **argv)
 
 		mpg123_delete(m); /* Closes, too. */
 	}
-	mpg123_exit();
 
 	return ret;
 }
