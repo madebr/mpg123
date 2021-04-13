@@ -10,6 +10,9 @@
 - examples: Update for dropped mpg123_init(), more sensible
   copyright notes.
 - out123: safer limiting of maximum playback rate
+- mpg123: Fix --continue output to print track_count+1 as continue
+  position after hitting the end of playlist. Makes scripts/conplay
+  go to back to the beginning again (regression in 1.24.0, bug 250).
 
 1.26.5
 ------

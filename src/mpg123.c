@@ -1727,6 +1727,8 @@ static void give_version(char* arg, topt *opts)
 
 void continue_msg(const char *name)
 {
+	size_t tot = 0;
+	size_t pos = playlist_pos(&tot, NULL);
 	fprintf( aux_out, "\n[%s] track %"SIZE_P" frame %"OFF_P"\n", name
-	,	(size_p)playlist_pos(NULL, NULL), (off_p)framenum );
+	,	(size_p)pos, (off_p)(tot >= pos ? framenum : 0));
 }

@@ -59,6 +59,7 @@ typedef struct playlist_struct
 	mpg123_string dir;
 	enum playlist_type type;
 	int is_utf8; /* if we really know the contents are UTF-8-encooded */
+	int hit_end;
 #if defined (WANT_WIN32_SOCKETS)
 	int sockd; /* Is Win32 socket descriptor working? */
 #endif
@@ -163,7 +164,11 @@ char *get_next_file(void)
 		newitem->playcount = pl.playcount;
 		return newitem->url;
 	}
-	else return NULL;
+	else
+	{
+		pl.hit_end = TRUE;
+		return NULL;
+	}
 }
 
 size_t playlist_pos(size_t *total, long *loop)
@@ -172,7 +177,7 @@ size_t playlist_pos(size_t *total, long *loop)
 		*total = pl.fill;
 	if(loop)
 		*loop = pl.loop;
-	return pl.num;
+	return pl.hit_end ? pl.fill+1 : pl.num;
 }
 
 void playlist_jump(ssize_t incr)
@@ -288,6 +293,7 @@ static void init_playlist(void)
 	mpg123_init_string(&pl.linebuf);
 	pl.type = UNKNOWN;
 	pl.is_utf8 = FALSE;
+	pl.hit_end = FALSE;
 	pl.loop = param.loop;
 #ifdef WANT_WIN32_SOCKETS
 	pl.sockd = -1;
