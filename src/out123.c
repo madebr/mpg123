@@ -1482,14 +1482,26 @@ int main(int sys_argc, char ** sys_argv)
 
 	if(inputrate < 1)
 		inputrate = rate;
-	double outputrater = (1./speed) * rate;
-	if(outputrater+0.5 > LONG_MAX)
-		outputrate = LONG_MAX;
-	else
-		outputrate = (long)(outputrater+0.5);
+	outputrate = -1;
+	if(speed > 0)
+	{ // Compute rate from speed and safely convert to long.
+		double outputrater = (1./speed) * rate;
+		double limit = (double)syn123_resample_maxrate();
+		double diff = 1;
+		// LONG_MAX will likely be rounded in the conversion to float.
+		// Ensure that the resulting limit is _smaller_ by subtracting
+		// until we see a rounding step down.
+		while((limit-diff) == limit)
+			diff *= 2;
+		limit -= diff;
+		if(outputrater+0.5 > limit)
+			outputrate = syn123_resample_maxrate();
+		else if(outputrater > 0)
+			outputrate = (long)(outputrater+0.5);
+	}
 	if(outputrate < 1)
 	{
-		fprintf(stderr, ME": negative or too large speed given for current output rate\n");
+		fprintf(stderr, ME": no valid output rate with given speed and input rate\n");
 		exit(1);
 	}
 	/* Ensure cleanup before we cause too much mess. */

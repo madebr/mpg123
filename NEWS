@@ -5,6 +5,7 @@
   empty shells now.
 - examples: Update for dropped mpg123_init(), more sensible
   copyright notes.
+- out123: safer limiting of maximum playback rate
 
 1.26.5
 ------
