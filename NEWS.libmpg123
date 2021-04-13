@@ -6,6 +6,8 @@ Changes in libmpg123 libtool interface versions...
 	  parallel. The latter used to be the case before, too, but only in
 	  practice, not in theory.
 	- Common tables provided in precomputed form now, both float and fixed.
+	- There are enum-less variants of all API entry points now, mapped to
+	  by default unless MPG123_ENUM_API is defined.
 
 45.0.45
 	- mpg123_read(), mpg123_decode(), and mpg123_replace_buffer() now taking

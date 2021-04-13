@@ -1,8 +1,12 @@
 1.27.0
 ------
-- libmpg123: Running on precomputed tables now, no need to call
-  mpg123_init() anymore. That and mpg123_exit() are both just
-  empty shells now.
+- libmpg123:
+-- Running on precomputed tables now, no need to call
+   mpg123_init() anymore. That and mpg123_exit() are both just
+   empty shells. You can omit them if you do not care about earlier
+   libmpg123. You can check for MPG123_API_VERSION >= 46.
+-- Added API that avoids enums, mapped-to by default unless
+   MPG123_ENUM_API is defined.
 - examples: Update for dropped mpg123_init(), more sensible
   copyright notes.
 - out123: safer limiting of maximum playback rate

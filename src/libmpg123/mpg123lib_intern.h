@@ -23,6 +23,7 @@
 #define BUILD_MPG123_DLL
 #endif
 #include "compat.h"
+#define MPG123_ENUM_API
 #include "mpg123.h"
 
 #define SKIP_JUNK 1
