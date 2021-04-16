@@ -2,113 +2,62 @@
 	feedseek: test program for libmpg123, showing how to use fuzzy seeking in feeder mode
 
 	This is example code only sensible to be considered in the public domain.
+
+	It takes MPEG data from standard input and feeds that to libmpg123, combined
+	with a fuzzy seek. Libmpg123 could access stdin in other ways directly, but
+	usage of the feeder API is the point here.
 */
 
+#define _POSIX_C_SOURCE 200112L /**< POSIX standard for ftello. */
 #include <mpg123.h>
+#include <out123.h>
+#include <stdlib.h>
 #include <stdio.h>
 
-#define INBUFF  16384 * 2 * 2
-#define WAVE_FORMAT_PCM 0x0001
-#define WAVE_FORMAT_IEEE_FLOAT 0x0003
+#define INBUFF  16384 * 2 * 2 /**< input buffer size */
 
-FILE *out;
-size_t totaloffset, dataoffset;
-long rate;
-int channels, enc;
-unsigned short bitspersample, wavformat;
+/** Error handling helper, end program if condition is not met. 
+ *  Yes, a goto for error handling. Controlled cleanup in a final section instead
+ *  of just jumping out of the program.
+ */
+#define CHECK(cond, ...) if(!(cond)){ fprintf(stderr,  __VA_ARGS__); goto bad_end; }
 
-// write wav header
-void initwav()
-{
-	unsigned int tmp32 = 0;
-	unsigned short tmp16 = 0;
-
-	fwrite("RIFF", 1, 4, out);
-	totaloffset = ftell(out);
-
-	fwrite(&tmp32, 1, 4, out); // total size
-	fwrite("WAVE", 1, 4, out);
-	fwrite("fmt ", 1, 4, out);
-	tmp32 = 16;
-	fwrite(&tmp32, 1, 4, out); // format length
-	tmp16 = wavformat;
-	fwrite(&tmp16, 1, 2, out); // format
-	tmp16 = channels;
-	fwrite(&tmp16, 1, 2, out); // channels
-	tmp32 = rate;
-	fwrite(&tmp32, 1, 4, out); // sample rate
-	tmp32 = rate * bitspersample/8 * channels;
-	fwrite(&tmp32, 1, 4, out); // bytes / second
-	tmp16 = bitspersample/8 * channels; // float 16 or signed int 16
-	fwrite(&tmp16, 1, 2, out); // block align
-	tmp16 = bitspersample;
-	fwrite(&tmp16, 1, 2, out); // bits per sample
-	fwrite("data ", 1, 4, out);
-	tmp32 = 0;
-	dataoffset = ftell(out);
-	fwrite(&tmp32, 1, 4, out); // data length
-}
-
-// rewrite wav header with final length infos
-void closewav()
-{
-	unsigned int tmp32 = 0;
-	unsigned short tmp16 = 0;
-
-	long total = ftell(out);
-	fseek(out, totaloffset, SEEK_SET);
-	tmp32 = total - (totaloffset + 4);
-	fwrite(&tmp32, 1, 4, out);
-	fseek(out, dataoffset, SEEK_SET);
-	tmp32 = total - (dataoffset + 4);
-
-	fwrite(&tmp32, 1, 4, out);
-}
-
-// determine correct wav format and bits per sample
-// from mpg123 enc value
-void initwavformat()
-{
-	if(enc & MPG123_ENC_FLOAT_64)
-	{
-		bitspersample = 64;
-		wavformat = WAVE_FORMAT_IEEE_FLOAT;
-	}
-	else if(enc & MPG123_ENC_FLOAT_32)
-	{
-		bitspersample = 32;
-		wavformat = WAVE_FORMAT_IEEE_FLOAT;
-	}
-	else if(enc & MPG123_ENC_16)
-	{
-		bitspersample = 16;
-		wavformat = WAVE_FORMAT_PCM;
-	}
-	else
-	{
-		bitspersample = 8;
-		wavformat = WAVE_FORMAT_PCM;
-	}
-}
-
+/** The whole operation. */
 int main(int argc, char **argv)
 {
 	unsigned char buf[INBUFF];
-	unsigned char *audio;
-	FILE *in;
-	mpg123_handle *m;
-	int ret, state;
-	size_t inc, outc;
-	off_t len, num;
-	size_t bytes;
+	mpg123_handle *m = NULL;
+	out123_handle *o = NULL;
+	const char *driver = NULL;
+	char *device = NULL;
+	int ret = 0;
 	off_t inoffset;
-	inc = outc = 0;
+	off_t cur_inoffset;
+	off_t seek_point = 0;
+	off_t seek_target;
 
-	if(argc < 3)
+	// 0. Argument parsing.
+
+	if(argc < 2)
 	{
-		fprintf(stderr,"Please supply in and out filenames\n");
-		return -1;
+		fprintf(stderr, "Usage:\n\n  %s <offset> [outfile] < <MPEG input data>\n", argv[0]);
+		fprintf( stderr, "\n"
+			"This will decode standard input to the default audio device or the\n"
+			"given output file as decoded WAV after seeking to the given PCM sample\n"
+			"offset to demonstrate fuzzy seeking\n" );
+		return 1;
 	}
+
+	seek_point = atol(argv[1]);
+	CHECK(seek_point >= 0, "No negative offset, please.\n")
+
+	if(argc >= 3)
+	{
+		driver = "wav";
+		device = argv[2];
+	}
+
+	// 1. Initialize libmpg123 and libout123 handles.
 
 #if MPG123_API_VERSION < 46
 	// Newer versions of the library don't need that anymore, but it is safe
@@ -117,125 +66,99 @@ int main(int argc, char **argv)
 #endif
 
 	m = mpg123_new(NULL, &ret);
-	if(m == NULL)
-	{
-		fprintf(stderr,"Unable to create mpg123 handle: %s\n", mpg123_plain_strerror(ret));
-		return -1;
-	}
+	CHECK(m != NULL, "Unable to create mpg123 handle: %s\n", mpg123_plain_strerror(ret))
+
+	o = out123_new();
+	CHECK(o != NULL, "Unable to create out123 handle.\n")
+
+	ret = out123_open(o, driver, device);
+	CHECK(ret == OUT123_OK, "Failed to open output device: %s\n", out123_strerror(o))
 
 	mpg123_param(m, MPG123_VERBOSE, 2, 0);
 
-	ret = mpg123_param(m, MPG123_FLAGS, MPG123_FUZZY | MPG123_SEEKBUFFER | MPG123_GAPLESS, 0);
-	if(ret != MPG123_OK)
-	{
-		fprintf(stderr,"Unable to set library options: %s\n", mpg123_plain_strerror(ret));
-		return -1;
-	}
+	mpg123_param(m, MPG123_FLAGS, MPG123_FUZZY | MPG123_SEEKBUFFER | MPG123_GAPLESS, 0);
+	CHECK(ret == MPG123_OK, "Unable to set library options: %s\n", mpg123_plain_strerror(ret))
 
-	// Let the seek index auto-grow and contain an entry for every frame
-	ret = mpg123_param(m, MPG123_INDEX_SIZE, -1, 0);
-	if(ret != MPG123_OK)
-	{
-		fprintf(stderr,"Unable to set index size: %s\n", mpg123_plain_strerror(ret));
-		return -1;
-	}
-
-	ret = mpg123_format_none(m);
-	if(ret != MPG123_OK)
-	{
-		fprintf(stderr,"Unable to disable all output formats: %s\n", mpg123_plain_strerror(ret));
-		return -1;
-	}
-	
-	// Use float output
-	ret = mpg123_format(m, 44100, MPG123_MONO | MPG123_STEREO,  MPG123_ENC_FLOAT_32);
-	if(ret != MPG123_OK)
-	{
-		fprintf(stderr,"Unable to set float output formats: %s\n", mpg123_plain_strerror(ret));
-		return -1;
-	}
+	// 2. Open the feeder, feed data until libmpg123 can tell us where to go in the input
+	//    for the desired output offset.
 
 	ret = mpg123_open_feed(m);
-	if(ret != MPG123_OK)
-	{
-		fprintf(stderr,"Unable open feed: %s\n", mpg123_plain_strerror(ret));
-		return -1;
-	}
+	CHECK(ret == MPG123_OK, "Unable open feed: %s\n", mpg123_plain_strerror(ret))
 
-	in = fopen(argv[1], "rb");
-	if(in == NULL)
-	{
-		fprintf(stderr,"Unable to open input file %s\n", argv[1]);
-		return -1;
-	}
-	
-	out = fopen(argv[2], "wb");
-	if(out == NULL)
-	{
-		fclose(in);
-		fprintf(stderr,"Unable to open output file %s\n", argv[2]);
-		return -1;
-	}
-
-	fprintf(stderr, "Seeking...\n");
+	fprintf(stderr, "\nDetermining input offset for seek ...\n");
 	/* That condition is tricky... parentheses are crucial... */
-	while((ret = mpg123_feedseek(m, 95000, SEEK_SET, &inoffset)) == MPG123_NEED_MORE)
+	while( (seek_target = mpg123_feedseek(m, seek_point, SEEK_SET, &inoffset))
+		 == MPG123_NEED_MORE )
 	{
-		len = fread(buf, sizeof(unsigned char), INBUFF, in);
-		if(len <= 0)
+		fprintf(stderr, " *** need more data before deciding on fuzzy input offset ***\n");
+		size_t len = fread(buf, 1, INBUFF, stdin);
+		if(len < 0 || (len == 0 && (feof(stdin) || ferror(stdin))))
 			break;
-		inc += len;
-
-		state = mpg123_feed(m, buf, len);
-		if(state == MPG123_ERR)
-		{
-			fprintf(stderr, "Error: %s", mpg123_strerror(m));
-			return -1; 
-		}
+		ret = mpg123_feed(m, buf, len);
+		CHECK(ret == MPG123_OK, "Error feeding the decoder: %s", mpg123_strerror(m))
 	}
-	if(ret == MPG123_ERR)
+	CHECK(ret == MPG123_OK, "Feedseek failed: %s\n", mpg123_strerror(m))
+	fprintf( stderr, "Fuzzy seek to %lld, actually to %lld.\n"
+	,	(long long)seek_point, (long long)seek_target );
+	CHECK(inoffset >=0 , "Bogus input offset: %lld\n", (long long)inoffset)
+
+	// 3. Go to the indicated input offset.
+
+	fprintf(stderr, "\nSeeking to input offset ...\n");
+	// In a normal file, we would call fseek() here, for stdin, we just consume data.
+	while( (cur_inoffset=ftello(stdin)) < inoffset && !ferror(stdin) )
 	{
-		fprintf(stderr, "Feedseek failed: %s\n", mpg123_strerror(m));
-		return -1;
+		CHECK(cur_inoffset >= 0, "Cannot tell input position.\n")
+		off_t block = inoffset - cur_inoffset;
+		if(block > INBUFF)
+			block = INBUFF;
+		if(fread(buf, 1, block, stdin) == 0 && feof(stdin))
+			break;
 	}
+	CHECK( ftello(stdin) == inoffset, "Input seeking failed: %lld != %lld\n"
+	,	(long long)ftello(stdin), (long long)inoffset )
 
-	fseek(in, inoffset, SEEK_SET);	
-	
-	fprintf(stderr, "Starting decode...\n");
+	// 4. Feed the decoder from that point on and get the decoded audio.
+
+	fprintf(stderr, "\nStarting decode...\n");
 	while(1)
 	{
-		len = fread(buf, sizeof(unsigned char), INBUFF, in);
+		size_t len = fread(buf, sizeof(unsigned char), INBUFF, stdin);
 		if(len <= 0)
 			break;
-		inc += len;
 		ret = mpg123_feed(m, buf, len);
 
 		while(ret != MPG123_ERR && ret != MPG123_NEED_MORE)
 		{
+			off_t num;
+			unsigned char *audio;
+			size_t bytes;
 			ret = mpg123_decode_frame(m, &num, &audio, &bytes);
 			if(ret == MPG123_NEW_FORMAT)
 			{
+				long rate;
+				int channels, enc;
 				mpg123_getformat(m, &rate, &channels, &enc);
-				initwavformat();
-				initwav();
-				fprintf(stderr, "New format: %li Hz, %i channels, encoding value %i\n", rate, channels, enc);
+				fprintf(stderr
+				,	"New format: %li Hz, %i channels, encoding value %i\n"
+				,	rate, channels, enc );
+				ret = out123_start(o, rate, channels, enc);
+				CHECK(ret == OUT123_OK, "Cannot (re)start audio output with given format.\n")
 			}
-			fwrite(audio, sizeof(unsigned char), bytes, out);
-			outc += bytes;
+			CHECK(out123_play(o, audio, bytes) == bytes, "Output error: %s", out123_strerror(o))
 		}
 
-		if(ret == MPG123_ERR)
-		{
-			fprintf(stderr, "Error: %s", mpg123_strerror(m));
-			break; 
-		}
+		CHECK(ret != MPG123_ERR, "Error: %s", mpg123_strerror(m))
 	}
 
 	fprintf(stderr, "Finished\n");
 
-	closewav();
-	fclose(out);
-	fclose(in);
+good_end: // Everything went fine: go directly to the cleanup section.
+	goto end;
+bad_end: // Some unspecified error, set error state and clean up.
+	ret = -1;
+end: // Clean up and return.
+	out123_del(o);
 	mpg123_delete(m);
-	return 0;
+	return ret ? EXIT_FAILURE : EXIT_SUCCESS;
 }
