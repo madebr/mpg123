@@ -10,7 +10,7 @@
 #include "stdio.h"
 #include "sys/types.h"
 
-/* Helper for v1 printing, get these strings their zero byte. */
+/** Helper for v1 printing, get these strings their zero byte. */
 void safe_print(char* name, char *data, size_t size)
 {
 	char safe[31];
@@ -21,7 +21,7 @@ void safe_print(char* name, char *data, size_t size)
 	printf("%s: %s\n", name, safe);
 }
 
-/* Print out ID3v1 info. */
+/** Print out ID3v1 info. */
 void print_v1(mpg123_id3v1 *v1)
 {
 	safe_print("Title",   v1->title,   sizeof(v1->title));
@@ -32,7 +32,7 @@ void print_v1(mpg123_id3v1 *v1)
 	printf("Genre: %i", v1->genre);
 }
 
-/* Split up a number of lines separated by \n, \r, both or just zero byte
+/** Split up a number of lines separated by \\n, \\r, both or just zero byte
    and print out each line with specified prefix. */
 void print_lines(const char* prefix, mpg123_string *inlines)
 {
@@ -75,7 +75,7 @@ void print_lines(const char* prefix, mpg123_string *inlines)
 	}
 }
 
-/* Print out the named ID3v2  fields. */
+/** Print out the named ID3v2  fields. */
 void print_v2(mpg123_id3v2 *v2)
 {
 	print_lines("Title: ",   v2->title);
@@ -86,7 +86,7 @@ void print_v2(mpg123_id3v2 *v2)
 	print_lines("Genre: ",   v2->genre);
 }
 
-/* Print out all stored ID3v2 fields with their 4-character IDs. */
+/** Print out all stored ID3v2 fields with their 4-character IDs. */
 void print_raw_v2(mpg123_id3v2 *v2)
 {
 	size_t i;
@@ -130,6 +130,7 @@ void print_raw_v2(mpg123_id3v2 *v2)
 	}
 }
 
+/** The whole operation. */
 int main(int argc, char **argv)
 {
 	int i;

@@ -12,6 +12,7 @@
 #include <mpg123.h>
 #include <stdio.h>
 
+/** The whole operation. */
 int main(int argc, char **argv)
 {
 	mpg123_handle *m;

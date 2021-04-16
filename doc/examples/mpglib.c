@@ -21,9 +21,10 @@
 
 #include <stdio.h>
 
-#define INBUFF  16384
-#define OUTBUFF 32768 
+#define INBUFF  16384 /**< input buffer size */
+#define OUTBUFF 32768 /**< output buffer size */
 
+/** The whole operation. */
 int main(int argc, char **argv)
 {
 	size_t size;
@@ -76,12 +77,14 @@ _setmode(_fileno(stdout),_O_BINARY);
 			mpg123_getformat(m, &rate, &channels, &enc);
 			fprintf(stderr, "New format: %li Hz, %i channels, encoding value %i\n", rate, channels, enc);
 		}
-		write(1,out,size);
+		if(write(1,out,size) != size)
+			fprintf(stderr, "Output truncated.\n");
 		outc += size;
 		while(ret != MPG123_ERR && ret != MPG123_NEED_MORE)
 		{ /* Get all decoded audio that is available now before feeding more input. */
 			ret = mpg123_decode(m,NULL,0,out,OUTBUFF,&size);
-			write(1,out,size);
+			if(write(1,out,size) != size)
+				fprintf(stderr, "Output truncated.\n");
 			outc += size;
 		}
 		if(ret == MPG123_ERR){ fprintf(stderr, "some error: %s", mpg123_strerror(m)); break; }

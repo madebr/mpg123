@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <strings.h>
 
+/** Print usage info. */
 void usage(const char *cmd)
 {
 	printf("Usage: %s <input> [<driver> [<output> [encoding [buffersize]]]]\n"
@@ -22,6 +23,7 @@ void usage(const char *cmd)
 	exit(99);
 }
 
+/** Free handles. */
 void cleanup(mpg123_handle *mh, out123_handle *ao)
 {
 	out123_del(ao);
@@ -30,6 +32,7 @@ void cleanup(mpg123_handle *mh, out123_handle *ao)
 	mpg123_delete(mh);
 }
 
+/** The whole operation. */
 int main(int argc, char *argv[])
 {
 	mpg123_handle *mh = NULL;
