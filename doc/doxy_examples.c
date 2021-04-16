@@ -18,4 +18,4 @@
 
 /** \file feedseek.c Fuzzy feeder seeking. */
 
-/* @} */
+/** @} */
