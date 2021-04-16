@@ -44,7 +44,9 @@
 #endif
 #endif
 
-/** Support the restrict keyword for handed-in pointers. */
+/** Support the restrict keyword for handed-in pointers. Defined to
+    'restrict' if available.
+ */
 #ifndef MPG123_RESTRICT
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #define MPG123_RESTRICT restrict
