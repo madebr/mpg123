@@ -325,7 +325,7 @@ MPG123_EXPORT int mpg123_param( mpg123_handle *mh
  *  unless MPG123_ENUM_API is defined.
  *
  *  \param mh handle
- *  \param type parameter choice (from enum mpg123_parms)
+ *  \param type parameter choice (from enum #mpg123_parms)
  *  \param value integer value
  *  \param fvalue floating point value
  *  \return MPG123_OK on success
@@ -408,7 +408,7 @@ MPG123_EXPORT int mpg123_feature(const enum mpg123_feature_set key);
  */
 MPG123_EXPORT int mpg123_feature2(int key);
 
-/* @} */
+/** @} */
 
 
 /** \defgroup mpg123_error mpg123 error handling
@@ -517,7 +517,7 @@ MPG123_EXPORT const char* mpg123_strerror(mpg123_handle *mh);
  */
 MPG123_EXPORT int mpg123_errcode(mpg123_handle *mh);
 
-/*@}*/
+/** @} */
 
 
 /** \defgroup mpg123_decoder mpg123 decoder selection
@@ -560,7 +560,7 @@ MPG123_EXPORT int mpg123_decoder(mpg123_handle *mh, const char* decoder_name);
  */
 MPG123_EXPORT const char* mpg123_current_decoder(mpg123_handle *mh);
 
-/*@}*/
+/** @} */
 
 
 /** \defgroup mpg123_output mpg123 output audio format 
@@ -686,7 +686,7 @@ MPG123_EXPORT int mpg123_getformat( mpg123_handle *mh
 MPG123_EXPORT int mpg123_getformat2( mpg123_handle *mh
 ,	long *rate, int *channels, int *encoding, int clear_flag );
 
-/*@}*/
+/** @} */
 
 
 /** \defgroup mpg123_input mpg123 file input and decoding
@@ -888,7 +888,7 @@ MPG123_EXPORT int mpg123_framedata( mpg123_handle *mh
  */
 MPG123_EXPORT off_t mpg123_framepos(mpg123_handle *mh);
 
-/*@}*/
+/** @} */
 
 
 /** \defgroup mpg123_seek mpg123 position and seeking
@@ -1022,7 +1022,7 @@ MPG123_EXPORT int mpg123_set_index( mpg123_handle *mh
  */
 MPG123_EXPORT int mpg123_position( mpg123_handle *mh, off_t frame_offset, off_t buffered_bytes, off_t *current_frame, off_t *frames_left, double *current_seconds, double *seconds_left);
 
-/*@}*/
+/** @} */
 
 
 /** \defgroup mpg123_voleq mpg123 volume and equalizer
@@ -1128,7 +1128,7 @@ MPG123_EXPORT int mpg123_getvolume(mpg123_handle *mh, double *base, double *real
 
 /* TODO: Set some preamp in addition / to replace internal RVA handling? */
 
-/*@}*/
+/** @} */
 
 
 /** \defgroup mpg123_status mpg123 status and information
@@ -1210,21 +1210,21 @@ struct mpg123_frameinfo2
   * if you want use this structure. */
 struct mpg123_moreinfo
 {
-	double xr[2][2][576];
-	double sfb[2][2][22];  /* [2][2][SBMAX_l] */
-	double sfb_s[2][2][3*13]; /* [2][2][3*SBMAX_s] */
-	int qss[2][2];
-	int big_values[2][2];
-	int sub_gain[2][2][3];
-	int scalefac_scale[2][2];
-	int preflag[2][2];
-	int blocktype[2][2];
-	int mixed[2][2];
-	int mainbits[2][2];
-	int sfbits[2][2];
-	int scfsi[2];
-	int maindata;
-	int padding;
+	double xr[2][2][576];  /**< internal data */
+	double sfb[2][2][22];  /**< [2][2][SBMAX_l] */
+	double sfb_s[2][2][3*13]; /**< [2][2][3*SBMAX_s] */
+	int qss[2][2];  /**< internal data */
+	int big_values[2][2]; /**< internal data */
+	int sub_gain[2][2][3]; /**< internal data */
+	int scalefac_scale[2][2]; /**< internal data */
+	int preflag[2][2]; /**< internal data */
+	int blocktype[2][2]; /**< internal data */
+	int mixed[2][2]; /**< internal data */
+	int mainbits[2][2]; /**< internal data */
+	int sfbits[2][2]; /**< internal data */
+	int scfsi[2]; /**< internal data */
+	int maindata; /**< internal data */
+	int padding; /**< internal data */
 };
 
 #ifdef MPG123_ENUM_API
@@ -1367,7 +1367,7 @@ MPG123_EXPORT int mpg123_getstate( mpg123_handle *mh
 MPG123_EXPORT int mpg123_getstate2( mpg123_handle *mh
 ,	int key, long *val, double *fval );
 
-/*@}*/
+/** @} */
 
 
 /** \defgroup mpg123_metadata mpg123 metadata handling
@@ -1717,6 +1717,8 @@ MPG123_EXPORT int mpg123_id3( mpg123_handle *mh
  *  been configured with MPG123_RAW_ID3 and stream parsing passed the
  *  metadata already. Null value with zero size is a possibility!
  *  The storage can change at any next API call.
+ *
+ *  \param mh mpg123 handle
  *  \param v1 address to store pointer to v1 tag
  *  \param v1_size size of v1 data in bytes
  *  \param v2 address to store pointer to v2 tag
@@ -1742,7 +1744,7 @@ MPG123_EXPORT int mpg123_icy(mpg123_handle *mh, char **icy_meta);
 MPG123_EXPORT char* mpg123_icy2utf8(const char* icy_text);
 
 
-/* @} */
+/** @} */
 
 
 /** \defgroup mpg123_advpar mpg123 advanced parameter API
@@ -1894,7 +1896,7 @@ MPG123_EXPORT int mpg123_getpar( mpg123_pars *mp
 MPG123_EXPORT int mpg123_getpar2( mpg123_pars *mp
 ,	int type, long *value, double *fvalue );
 
-/* @} */
+/** @} */
 
 
 /** \defgroup mpg123_lowio mpg123 low level I/O
@@ -1963,7 +1965,7 @@ MPG123_EXPORT int mpg123_replace_reader_handle( mpg123_handle *mh
 ,	off_t (*r_lseek)(void *, off_t, int)
 ,	void (*cleanup)(void*) );
 
-/* @} */
+/** @} */
 
 #ifdef __cplusplus
 }
