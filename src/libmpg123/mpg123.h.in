@@ -48,11 +48,11 @@
 typedef ptrdiff_t ssize_t;
 #endif
 
-/* Earlier versions of libmpg123 put enums into public API calls,
+/** Earlier versions of libmpg123 put enums into public API calls,
  * thich is not exactly safe. There are ABI rules, but you can use
  * compiler switches to change the sizes of enums. It is safer not
  * to have them in API calls. Thus, the default is to remap calls and
- * structs to variants that use plain ints. Define #MPG123_ENUM_API to
+ * structs to variants that use plain ints. Define MPG123_ENUM_API to
  * prevent that remapping.
  *
  * You might want to define this to increase the chance of your binary
@@ -307,7 +307,7 @@ enum mpg123_param_rva
 /** Set a specific parameter on a handle.
  *
  *  Note that this name is mapped to mpg123_param2() instead unless
- *  #MPG123_ENUM_API is defined.
+ *  MPG123_ENUM_API is defined.
  *
  *  \param mh handle
  *  \param type parameter choice
@@ -322,7 +322,7 @@ MPG123_EXPORT int mpg123_param( mpg123_handle *mh
 /** Set a specific parameter on a handle. No enums.
  *
  *  This is actually called instead of mpg123_param()
- *  unless #MPG123_ENUM_API is defined.
+ *  unless MPG123_ENUM_API is defined.
  *
  *  \param mh handle
  *  \param type parameter choice (from enum #mpg123_parms)
@@ -337,7 +337,7 @@ MPG123_EXPORT int mpg123_param2( mpg123_handle *mh
 /** Get a specific parameter from a handle.
  *
  *  Note that this name is mapped to mpg123_getparam2() instead unless
- *  #MPG123_ENUM_API is defined.
+ *  MPG123_ENUM_API is defined.
  *
  *  \param mh handle
  *  \param type parameter choice
@@ -351,7 +351,7 @@ MPG123_EXPORT int mpg123_getparam( mpg123_handle *mh
 
 /** Get a specific parameter from a handle. No enums.
  *
- *  This is actually called instead of mpg123_getparam() unless #MPG123_ENUM_API
+ *  This is actually called instead of mpg123_getparam() unless MPG123_ENUM_API
  *  is defined.
  *
  *  \param mh handle
@@ -390,7 +390,7 @@ enum mpg123_feature_set
 /** Query libmpg123 features.
  *
  *  Note that this name is mapped to mpg123_feature2() instead unless
- *  #MPG123_ENUM_API is defined.
+ *  MPG123_ENUM_API is defined.
  *
  *  \param key feature selection
  *  \return 1 for success, 0 for unimplemented functions
@@ -400,7 +400,7 @@ MPG123_EXPORT int mpg123_feature(const enum mpg123_feature_set key);
 
 /** Query libmpg123 features. No enums.
  *
- *  This is actually called instead of mpg123_feature() unless #MPG123_ENUM_API
+ *  This is actually called instead of mpg123_feature() unless MPG123_ENUM_API
  *  is defined.
  *
  *  \param key feature selection (from enum #mpg123_feature_set)
@@ -1042,11 +1042,12 @@ enum mpg123_channels
 /** Set the 32 Band Audio Equalizer settings.
  *
  *  Note that this name is mapped to mpg123_eq2() instead unless
- *  #MPG123_ENUM_API is defined.
+ *  MPG123_ENUM_API is defined.
  *
  *  \param mh handle
  *  \param channel Can be #MPG123_LEFT, #MPG123_RIGHT or
  *    #MPG123_LEFT|#MPG123_RIGHT for both.
+ *  \param band The equaliser band to change (from 0 to 31)
  *  \param val The (linear) adjustment factor.
  *  \return MPG123_OK on success
  */
@@ -1056,7 +1057,7 @@ MPG123_EXPORT int mpg123_eq( mpg123_handle *mh
 
 /** Set the 32 Band Audio Equalizer settings. No enums.
  *
- *  This is actually called instead of mpg123_eq() unless #MPG123_ENUM_API
+ *  This is actually called instead of mpg123_eq() unless MPG123_ENUM_API
  *  is defined.
  *
  *  \param mh handle
@@ -1073,7 +1074,7 @@ MPG123_EXPORT int mpg123_eq2( mpg123_handle *mh
 /** Get the 32 Band Audio Equalizer settings.
  *
  *  Note that this name is mapped to mpg123_geteq2() instead unless
- *  #MPG123_ENUM_API is defined.
+ *  MPG123_ENUM_API is defined.
  *
  *  \param mh handle
  *  \param channel Can be #MPG123_LEFT, #MPG123_RIGHT or
@@ -1086,7 +1087,7 @@ MPG123_EXPORT double mpg123_geteq(mpg123_handle *mh
 
 /** Get the 32 Band Audio Equalizer settings.
  *
- *  This is actually called instead of mpg123_geteq() unless #MPG123_ENUM_API
+ *  This is actually called instead of mpg123_geteq() unless MPG123_ENUM_API
  *  is defined.
  *
  *  \param mh handle
@@ -1235,7 +1236,7 @@ struct mpg123_moreinfo
  *  it in a mpg123_frameinfo structure.
  *
  *  Note that this name is mapped to mpg123_info2() instead unless
- *  #MPG123_ENUM_API is defined.
+ *  MPG123_ENUM_API is defined.
  *
  *  \param mh handle
  *  \param mi address of existing frameinfo structure to write to
@@ -1248,7 +1249,7 @@ MPG123_EXPORT int mpg123_info(mpg123_handle *mh, struct mpg123_frameinfo *mi);
  *  it in a mpg123_frameinfo2 structure.
  *
  *  This is actually called instead of mpg123_info()
- *  unless #MPG123_ENUM_API is defined.
+ *  unless MPG123_ENUM_API is defined.
  *
  *  \param mh handle
  *  \param mi address of existing frameinfo structure to write to
@@ -1344,7 +1345,7 @@ enum mpg123_state
 /** Get various current decoder/stream state information.
  *
  *  Note that this name is mapped to mpg123_getstate2() instead unless
- *  #MPG123_ENUM_API is defined.
+ *  MPG123_ENUM_API is defined.
  *
  *  \param mh handle
  *  \param key the key to identify the information to give.
@@ -1359,7 +1360,7 @@ MPG123_EXPORT int mpg123_getstate( mpg123_handle *mh
 /** Get various current decoder/stream state information. No enums.
  *
  *  This is actually called instead of mpg123_getstate()
- *  unless #MPG123_ENUM_API is defined.
+ *  unless MPG123_ENUM_API is defined.
  *
  *  \param mh handle
  *  \param key the key to identify the information to give (enum mpg123_state)
@@ -1547,7 +1548,7 @@ enum mpg123_id3_enc
 /** Convert ID3 encoding byte to mpg123 encoding index.
  *
  *  Note that this name is mapped to mpg123_enc_from_id3_2() instead unless
- *  #MPG123_ENUM_API is defined.
+ *  MPG123_ENUM_API is defined.
  *
  *  \param id3_enc_byte the ID3 encoding code
  *  \return the mpg123 encoding index
@@ -1558,7 +1559,7 @@ MPG123_EXPORT enum mpg123_text_encoding mpg123_enc_from_id3(unsigned char id3_en
 /** Convert ID3 encoding byte to mpg123 encoding index. No enums.
  *
  *  This is actually called instead of mpg123_enc_from_id3()
- *  unless #MPG123_ENUM_API is defined.
+ *  unless MPG123_ENUM_API is defined.
  *
  *  \param id3_enc_byte the ID3 encoding code
  *  \return the mpg123 encoding index
@@ -1569,7 +1570,7 @@ MPG123_EXPORT int mpg123_enc_from_id3_2(unsigned char id3_enc_byte);
 /** Store text data in string, after converting to UTF-8 from indicated encoding.
  *
  *  Note that this name is mapped to mpg123_store_utf8_2() instead unless
- *  #MPG123_ENUM_API is defined.
+ *  MPG123_ENUM_API is defined.
  *
  *  A prominent error can be that you provided an unknown encoding value, or this build of libmpg123 lacks support for certain encodings (ID3 or ICY stuff missing).
  *  Also, you might want to take a bit of care with preparing the data; for example, strip leading zeroes (I have seen that).
@@ -1585,7 +1586,7 @@ MPG123_EXPORT int mpg123_store_utf8(mpg123_string *sb, enum mpg123_text_encoding
 /** Store text data in string, after converting to UTF-8 from indicated encoding. No enums.
  *
  *  This is actually called instead of mpg123_store_utf8()
- *  unless #MPG123_ENUM_API is defined.
+ *  unless MPG123_ENUM_API is defined.
  *
  *  A prominent error can be that you provided an unknown encoding value, or this build of libmpg123 lacks support for certain encodings (ID3 or ICY stuff missing).
  *  Also, you might want to take a bit of care with preparing the data; for example, strip leading zeroes (I have seen that).
@@ -1843,7 +1844,7 @@ MPG123_EXPORT int mpg123_fmt_support(mpg123_pars *mp, long rate, int encoding);
 /** Set a specific parameter in a par handle.
  *
  *  Note that this name is mapped to mpg123_par2() instead unless
- *  #MPG123_ENUM_API is defined.
+ *  MPG123_ENUM_API is defined.
  *
  *  \param mp parameter handle
  *  \param type parameter choice
@@ -1858,7 +1859,7 @@ MPG123_EXPORT int mpg123_par( mpg123_pars *mp
 /** Set a specific parameter in a par handle. No enums.
  *
  *  This is actually called instead of mpg123_par()
- *  unless #MPG123_ENUM_API is defined.
+ *  unless MPG123_ENUM_API is defined.
  *
  *  \param mp parameter handle
  *  \param type parameter choice (enum mpg123_parms)
@@ -1873,7 +1874,7 @@ MPG123_EXPORT int mpg123_par2( mpg123_pars *mp
 /** Get a specific parameter from a par handle.
  *
  *  Note that this name is mapped to mpg123_getpar2() instead unless
- *  #MPG123_ENUM_API is defined.
+ *  MPG123_ENUM_API is defined.
  *
  *  \param mp parameter handle
  *  \param type parameter choice
@@ -1888,7 +1889,7 @@ MPG123_EXPORT int mpg123_getpar( mpg123_pars *mp
 /** Get a specific parameter from a par handle. No enums.
  *
  *  This is actually called instead of mpg123_getpar()
- *  unless #MPG123_ENUM_API is defined.
+ *  unless MPG123_ENUM_API is defined.
  *
  *  \param mp parameter handle
  *  \param type parameter choice (enum mpg123_parms)
