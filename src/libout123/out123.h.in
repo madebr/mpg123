@@ -218,6 +218,7 @@ enum out123_error
 ,	OUT123_BAD_PARAM /**< unknown parameter code */
 ,	OUT123_SET_RO_PARAM /**< attempt to set read-only parameter */
 ,	OUT123_BAD_HANDLE /**< bad handle pointer (NULL, usually) */
+,	OUT123_NOT_SUPPORTED /**< some requested operation is not supported (right now) */
 ,	OUT123_ERRCOUNT /**< placeholder for shaping arrays */
 };
 
@@ -389,12 +390,16 @@ MPG123_EXPORT
 int out123_param_from(out123_handle *ao, out123_handle* from_ao);
 
 /** Get list of driver modules reachable in system in C argv-style format.
+ *
  *  The client is responsible for freeing the memory of both the individual
- *  strings and the lists themselves.
+ *  strings and the lists themselves.  There is out123_stringlists_free()
+ *  to assist.
+ *
  *  A module that is not loadable because of missing libraries is simply
  *  skipped. You will get stderr messages about that unless OUT123_QUIET was
  *  was set, though. Failure to open the module directory is a serious error,
  *  resulting in negative return value.
+ *
  * \param ao handle
  * \param names address for storing list of names
  * \param descr address for storing list of descriptions
@@ -403,6 +408,53 @@ int out123_param_from(out123_handle *ao, out123_handle* from_ao);
 MPG123_EXPORT
 int out123_drivers(out123_handle *ao, char ***names, char ***descr);
 
+/** Get a list of available output devices for a given driver.
+ *
+ *  If the driver supports enumeration, you can get a listing of possible
+ *  output devices. If this list is exhaustive, depends on the driver.
+ *  Note that this implies out123_close(). When you have a device already
+ *  open, you don't need to look for one anymore. If you really do, just
+ *  create another handle.
+ *
+ *  Your provided pointers are only used for non-negative return values.
+ *  In this case, you are responsible for freeing the associated memory of
+ *  the strings and the lists themselves. The format of the lists is an
+ *  array of char pointers, with the returned count just like the usual
+ *  C argv and argc. There is out123_stringlists_free() to assist.
+ *
+ *  Note: Calling this on a handle with a configured buffer process will
+ *  yield #OUT123_NOT_SUPPORTED.
+ *
+ * \param ao handle
+ * \param driver driver name or comma-separated list of names
+ *   to try, just like for out123_open(), possibly NULL for some default
+ * \param names address for storing list of names
+ * \param descr address for storing list of descriptions
+ * \param active_driver address for storing a copy of the actually active
+ *    driver name (in case you gave a list or NULL as driver), can be NULL
+ *    if not interesting
+ * \return count of devices or #OUT123_ERR if some error was encountered,
+ *   possibly just #OUT123_NOT_SUPPORTED if the driver lacks enumeration support
+ */
+MPG123_EXPORT
+int out123_devices( out123_handle *ao, const char *driver
+,	char ***names, char ***descr, char **active_driver );
+
+/** Helper to free string list memory.
+ *
+ *  This aids in freeing the memory allocated by out123_devices() and
+ *  out123_drivers().
+ *
+ *  Any of the given lists can be NULL and nothing will happen to it.
+ *
+ * \param name first string list
+ * \param descr second string list
+ * \param count count of strings
+ */
+MPG123_EXPORT
+void out123_stringlists_free(char **name, char **descr, int count);
+
+
 /** Open an output device with a certain driver
  *  Note: Opening means that the driver code is loaded and the desired
  *  device name recorded, possibly tested for availability or tentatively
@@ -410,8 +462,9 @@ int out123_drivers(out123_handle *ao, char ***names, char ***descr);
  *  and then really open the device for playback with out123_start().
  * \param ao handle
  * \param driver (comma-separated list of) output driver name(s to try),
- *               NULL for default (stdout for file-based drivers)
- * \param device device name to open, NULL for default
+ *               NULL for default
+ * \param device device name to open, NULL for default 
+ *               (stdout for file-based drivers)
  * \return 0 on success, -1 on error.
  */
 MPG123_EXPORT

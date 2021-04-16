@@ -140,7 +140,7 @@ struct filterlist* parse_filterspec(const char *spec)
 			return NULL;
 		}
 	}
-	mdebug("%zu filters, %zu coefficients, fl=%p", count, count ? coeffs : 0, fl);
+	mdebug("%zu filters, %zu coefficients, fl=%p", count, count ? coeffs : 0, (void*)fl);
 	if(fl)
 	{
 		fl->count = count;

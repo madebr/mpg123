@@ -34,6 +34,11 @@ Also see \fB\-a\fR.
 \fB\-\^\-list\-modules
 List the available modules.
 .TP
+\fB\-\^\-list\-devices
+List the available output devices for given output module. If there is no functionality
+to list devices in the chosen module, an error will be printed and out123 will exit with
+a non-zero code.
+.TP
 \fB\-a \fIdev\fR, \fB\-\^\-audiodevice \fIdev
 Specify the audio device to use.  The default as well as the possible values
 depend on the active output. For the JACK output, a comma-separated list

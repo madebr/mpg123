@@ -10,8 +10,8 @@
 
 #define I_AM_OPTIMIZE
 #define WANT_GETCPUFLAGS
-#include "getcpuflags.h"
 #include "mpg123lib_intern.h" /* includes optimize.h */
+#include "getcpuflags.h"
 #include "debug.h"
 
 

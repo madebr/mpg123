@@ -1,5 +1,9 @@
 1.27.0
 ------
+
+TODO: Decide if out123 gets linked to libmpg123 just for safely printing
+device names and descriptions.
+
 - libmpg123:
 -- Running on precomputed tables now, no need to call
    mpg123_init() anymore. That and mpg123_exit() are both just
@@ -10,12 +14,17 @@
 - libout123:
 -- Added API that avoids enums, mapped-to by default unless
    MPG123_ENUM_API is defined.
+-- Added device enumeration (for dummy module only right now).
 - examples: Update for dropped mpg123_init(), more sensible
   copyright notes.
-- out123: safer limiting of maximum playback rate
-- mpg123: Fix --continue output to print track_count+1 as continue
-  position after hitting the end of playlist. Makes scripts/conplay
-  go to back to the beginning again (regression in 1.24.0, bug 250).
+- out123:
+-- safer limiting of maximum playback rate
+-- Added --list-devices.
+- mpg123:
+-- Fix --continue output to print track_count+1 as continue
+   position after hitting the end of playlist. Makes scripts/conplay
+   go to back to the beginning again (regression in 1.24.0, bug 250).
+-- Added --list-devices.
 
 1.26.5
 ------

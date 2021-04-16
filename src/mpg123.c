@@ -71,8 +71,6 @@ struct parameter param = {
 #endif
   FALSE , /* checkrange */
   0 ,	  /* force_reopen, always (re)opens audio device for next song */
-  /* test_cpu flag is valid for multi and 3dnow.. even if 3dnow is built alone; ensure it appears only once */
-  FALSE , /* normal operation */
   FALSE,  /* try to run process in 'realtime mode' */
 #ifdef HAVE_WINDOWS_H 
   0, /* win32 process priority */
@@ -80,7 +78,6 @@ struct parameter param = {
 	0, /* default is to play all titles in playlist */
 	NULL, /* no playlist per default */
 	0 /* condensed id3 per default */
-	,0 /* list_cpu */
 	,NULL /* cpu */ 
 #ifdef FIFO
 	,NULL
@@ -135,6 +132,17 @@ char *equalfile = NULL;
 struct httpdata htd;
 int fresh = TRUE;
 FILE* aux_out = NULL; /* Output for interesting information, normally on stdout to be parseable. */
+
+enum runmodes
+{
+	RUN_MAIN = 0
+,	LIST_CPU
+,	TEST_CPU
+,	LIST_MODULES
+,	LIST_DEVICES
+};
+
+static int runmode = RUN_MAIN;
 
 int stdout_is_term = FALSE; // It's an interactive terminal.
 int stderr_is_term = FALSE; // It's an interactive terminal.
@@ -470,7 +478,7 @@ static void set_appflag(char *arg, topt *opts)
 	param.appflags |= appflag;
 }
 
-static void list_output_modules(char *arg, topt *opts)
+static void list_output_modules(void)
 {
 	char **names = NULL;
 	char **descr = NULL;
@@ -506,7 +514,34 @@ static void list_output_modules(char *arg, topt *opts)
 	exit(count >= 0 ? 0 : 1);
 }
 
-
+static void list_output_devices(void)
+{
+	int count = 0;
+	char **names = NULL;
+	char **descr = NULL;
+	out123_handle *ao = NULL;
+	ao = out123_new();
+	char *driver = NULL;
+	count = out123_devices(ao, param.output_module, &names, &descr, &driver);
+	if(count >= 0)
+	{
+		printf("Devices for output module %s:\n", driver);
+		for(int i=0; i<count; ++i)
+		{
+			print_outstr(stdout, names[i], 1, stdout_is_term);
+			printf("\t");
+			print_outstr(stdout, descr[i], 1, stdout_is_term);
+			printf("\n");
+		}
+		out123_stringlists_free(names, descr, count);
+		free(driver);
+	} else
+	{
+		merror("Failed to enumerate output devices: %s", out123_strerror(ao));
+	}
+	out123_del(ao);
+	exit(count < 0 ? 1 : 0);
+}
 /* static void unset_appflag(char *arg)
 {
 	param.appflags &= ~appflag;
@@ -555,7 +590,8 @@ topt opts[] = {
 	{0,   "speaker",     0,                  set_output_s, 0,0},
 	{0,   "lineout",     0,                  set_output_l, 0,0},
 	{'o', "output",      GLO_ARG | GLO_CHAR, set_output, 0,  0},
-	{0,   "list-modules",0,       list_output_modules, NULL, 0},
+	{0,   "list-modules", GLO_INT,      0, &runmode, LIST_MODULES},
+	{0,   "list-devices", GLO_INT,      0, &runmode, LIST_DEVICES},
 	{'a', "audiodevice", GLO_ARG | GLO_CHAR, 0, &param.output_device,  0},
 	{'f', "scale",       GLO_ARG | GLO_LONG, 0, &param.outscale,   0},
 	{'n', "frames",      GLO_ARG | GLO_LONG, 0, &param.frame_number,  0},
@@ -591,11 +627,11 @@ topt opts[] = {
 #define SET_I586  2
 	{0,   "force-3dnow", GLO_CHAR,  0, &dnow, SET_3DNOW},
 	{0,   "no-3dnow",    GLO_CHAR,  0, &dnow, SET_I586},
-	{0,   "test-3dnow",  GLO_INT,  0, &param.test_cpu, TRUE},
+	{0,   "test-3dnow",  GLO_INT,  0, &runmode, TEST_CPU},
 	#endif
 	{0, "cpu", GLO_ARG | GLO_CHAR, 0, &param.cpu,  0},
-	{0, "test-cpu",  GLO_INT,  0, &param.test_cpu, TRUE},
-	{0, "list-cpu", GLO_INT,  0, &param.list_cpu , 1},
+	{0, "test-cpu",  GLO_INT,  0, &runmode, TEST_CPU},
+	{0, "list-cpu", GLO_INT,  0, &runmode , LIST_CPU},
 #ifdef NETWORK
 	{'u', "auth",        GLO_ARG | GLO_CHAR, 0, &httpauth,   0},
 #endif
@@ -1083,23 +1119,35 @@ int main(int sys_argc, char ** sys_argv)
 	check_locale(); /* Check/set locale; store if it uses UTF-8. */
 	meta_show_lyrics = APPFLAG(MPG123APP_LYRICS);
 
-	if(param.list_cpu)
+	switch(runmode)
 	{
-		const char **all_dec = mpg123_decoders();
-		printf("Builtin decoders:");
-		while(*all_dec != NULL){ printf(" %s", *all_dec); ++all_dec; }
-		printf("\n");
-		mpg123_delete_pars(mp);
-		return 0;
-	}
-	if(param.test_cpu)
-	{
-		const char **all_dec = mpg123_supported_decoders();
-		printf("Supported decoders:");
-		while(*all_dec != NULL){ printf(" %s", *all_dec); ++all_dec; }
-		printf("\n");
-		mpg123_delete_pars(mp);
-		return 0;
+		case RUN_MAIN:
+		break;
+		case LIST_MODULES:
+			list_output_modules();
+		case LIST_DEVICES:
+			list_output_devices();
+		case LIST_CPU:
+		{
+			const char **all_dec = mpg123_decoders();
+			printf("Builtin decoders:");
+			while(*all_dec != NULL){ printf(" %s", *all_dec); ++all_dec; }
+			printf("\n");
+			mpg123_delete_pars(mp);
+			return 0;
+		}
+		case TEST_CPU:	
+		{
+			const char **all_dec = mpg123_supported_decoders();
+			printf("Supported decoders:");
+			while(*all_dec != NULL){ printf(" %s", *all_dec); ++all_dec; }
+			printf("\n");
+			mpg123_delete_pars(mp);
+			return 0;
+		}
+		default:
+			merror("Invalid run mode %d", runmode);
+			safe_exit(79);
 	}
 	if(param.gain != -1)
 	{
@@ -1612,6 +1660,7 @@ static void long_usage(int err)
 	fprintf(o,"\noutput/processing options\n\n");
 	fprintf(o," -o <o> --output <o>       select audio output module\n");
 	fprintf(o,"        --list-modules     list the available modules\n");
+	fprintf(o,"        --list-devices     list the available output devices for given output module\n");
 	fprintf(o," -a <d> --audiodevice <d>  select audio device (depending on chosen module)\n");
 	fprintf(o," -s     --stdout           write raw audio to stdout (host native format)\n");
 	fprintf(o," -w <f> --wav <f>          write samples as WAV file in <f> (- is stdout)\n");

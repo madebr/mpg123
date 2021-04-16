@@ -87,6 +87,8 @@ src_out123_SOURCES = \
   src/common.h \
   src/getlopt.c \
   src/getlopt.h \
+  src/local.h \
+  src/local.c \
   src/filters.h \
   src/filters.c \
   src/out123.c \

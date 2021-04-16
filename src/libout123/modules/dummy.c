@@ -49,6 +49,16 @@ static int deinit_dummy(out123_handle *ao)
 	return 0;
 }
 
+static int enumerate_dummy(int (*store_device)(void *devlist
+,	const char *name, const char *description), void *devlist)
+{
+	if(store_device(devlist, "foo", "some dummy device"))
+		return -1;
+	if(store_device(devlist, "bar", "some other dummy device"))
+		return -1;
+	return 0;
+}
+
 
 static int init_dummy(out123_handle* ao)
 {
@@ -62,6 +72,7 @@ static int init_dummy(out123_handle* ao)
 	ao->get_formats = get_formats_dummy;
 	ao->close = close_dummy;
 	ao->deinit = deinit_dummy;
+	ao->enumerate = enumerate_dummy;
 
 	/* Success */
 	return 0;

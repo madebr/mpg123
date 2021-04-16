@@ -1,7 +1,7 @@
 /*
 	stringlists: creation of paired string lists for one-time consumption
 
-	copyright 2015 by the mpg123 project
+	copyright 2015-2021 by the mpg123 project
 	free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis
@@ -11,6 +11,7 @@
 */
 
 #include "compat.h"
+#include "out123.h"
 
 /* Construction helper for paired string lists.
    Returns 0 on success. */
@@ -44,8 +45,24 @@ int stringlists_add( char ***alist, char ***blist
 	}
 	else
 	{
+		free(btextcopy);
 		free(atextcopy);
 		return -1;
 	}
 }
 
+void out123_stringlists_free(char **alist, char **blist, int count)
+{
+	if(alist)
+	{
+		for(int i=0; i<count; ++i)
+			free(alist[i]);
+		free(alist);
+	}
+	if(blist)
+	{
+		for(int i=0; i<count; ++i)
+			free(blist[i]);
+		free(blist);
+	}
+}

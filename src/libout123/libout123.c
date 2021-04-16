@@ -49,6 +49,7 @@ static void out123_clear_module(out123_handle *ao)
 	ao->drain = NULL;
 	ao->close = NULL;
 	ao->deinit = NULL;
+	ao->enumerate = NULL;
 
 	ao->module = NULL;
 	ao->userptr = NULL;
@@ -147,6 +148,7 @@ static const char *const errstring[] =
 ,	"unknown parameter code"
 ,	"attempt to set read-only parameter"
 ,	"invalid out123 handle"
+,	"operation not supported"
 };
 
 const char* attribute_align_arg out123_strerror(out123_handle *ao)
@@ -1013,7 +1015,6 @@ out123_drivers(out123_handle *ao, char ***names, char ***descr)
 	char **tmpnames;
 	char **tmpdescr;
 	int count;
-	int i;
 
 	if(!ao)
 		return -1;
@@ -1052,22 +1053,97 @@ out123_drivers(out123_handle *ao, char ***names, char ***descr)
 
 	/* Return or free gathered lists of names or descriptions. */
 	if(names)
-		*names = tmpnames;
-	else
 	{
-		for(i=0; i<count; ++i)
-			free(tmpnames[i]);
-		free(tmpnames);
+		*names = tmpnames;
+		tmpnames = NULL;
 	}
 	if(descr)
-		*descr = tmpdescr;
-	else
 	{
-		for(i=0; i<count; ++i)
-			free(tmpdescr[i]);
-		free(tmpdescr);
+		*descr = tmpdescr;
+		tmpdescr = NULL;
 	}
+	out123_stringlists_free(tmpnames, tmpdescr, count);
 	return count;
+}
+
+struct devlist
+{
+	int count;
+	char **names;
+	char **descr;
+};
+
+static int devlist_add(void *dll, const char *name, const char *descr)
+{
+	struct devlist *dl = (struct devlist*)dll;
+	return dl
+	?	stringlists_add(&(dl->names), &(dl->descr), name, descr, &(dl->count))
+	:	-1;
+}
+
+int out123_devices( out123_handle *ao, const char *driver, char ***names, char ***descr
+,	char **active_driver )
+{
+	int ret = 0;
+	struct devlist dl = {0, NULL, NULL};
+	char *realdrv = NULL;
+	if(!ao)
+		return -1;
+	if(have_buffer(ao))
+		return out123_seterr(ao, OUT123_NOT_SUPPORTED);
+
+	ao->errcode = OUT123_OK;
+	// Just always try to actually open the driver first. Carries out
+	// the search for the actual driver to use.
+	if(out123_open(ao, driver, NULL) != OUT123_OK)
+		return out123_seterr(ao, OUT123_BAD_DRIVER);
+	mdebug("deduced driver: %s", ao->driver);
+	realdrv = compat_strdup(ao->driver);
+	if(realdrv == NULL)
+		return out123_seterr(ao, OUT123_DOOM);
+
+	out123_close(ao);
+
+	if(open_fake_module(ao, realdrv) != OUT123_OK)
+	{
+		ao->module = open_module( "output", realdrv
+		,	modverbose(ao, 0), ao->bindir );
+		/* Open the module, initial check for availability+libraries. */
+		if( !ao->module || !ao->module->init_output
+			|| ao->module->init_output(ao) )
+			ret = out123_seterr(ao, OUT123_BAD_DRIVER);
+	}
+
+	if(!ret && ao->enumerate)
+	{
+		ao->enumerate(devlist_add, &dl);
+		ret = dl.count;
+		if(names)
+		{
+			*names = dl.names;
+			dl.names = NULL;
+		}
+		if(descr)
+		{
+			*descr = dl.descr;
+			dl.descr = NULL;
+		}
+		if(active_driver)
+		{
+			*active_driver = realdrv;
+			realdrv = NULL;
+		}
+		out123_stringlists_free(dl.names, dl.descr, dl.count);
+		if(ao->deinit)
+			ao->deinit(ao);
+	} else if(!ret)
+		ret = out123_seterr(ao, OUT123_NOT_SUPPORTED);
+
+	free(realdrv);
+	if(ao->module)
+		close_module(ao->module, modverbose(ao, 0));
+	out123_clear_module(ao);
+	return ret;
 }
 
 /* We always have ao->driver and ao->device set, also with buffer.

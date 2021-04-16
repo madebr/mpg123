@@ -12,7 +12,7 @@
 #include "out123.h"
 
 /* TODO: put that into out123_int.h instead? */
-#define MPG123_MODULE_API_VERSION		(2)
+#define MPG123_MODULE_API_VERSION		(3)
 
 /* The full structure is delared in audio.h */
 struct audio_output_struct;

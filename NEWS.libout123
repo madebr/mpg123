@@ -1,6 +1,8 @@
 4.0.4
 	- added enum-less variants out123_param2() and out123_getparam2(), replacing
 	  the enum variants unless MPG123_ENUM_API is defined
+	- added out123_devices()
+	- added out123_stringlists_free()
 
 3.0.3
 	- added out123_free()

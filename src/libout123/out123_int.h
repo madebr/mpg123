@@ -71,7 +71,10 @@ struct out123_struct
 	void (*drain)(out123_handle *);
 	int (*close)(out123_handle *);
 	int (*deinit)(out123_handle *);
-	
+	// Enumerate the available devices, if possible. NULL pointer if module doesn't support this.
+	int (*enumerate)(int (*store_device)(void *devlist
+	,	const char *name, const char *description), void *devlist);
+
 	/* the loaded that has set the above */
 	mpg123_module_t *module;
 

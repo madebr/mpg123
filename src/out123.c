@@ -35,6 +35,8 @@
 #endif
 #include "out123.h"
 
+#include "local.h"
+
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
 #endif
@@ -74,6 +76,17 @@ static void give_version(char* arg, topt *opts);
 
 static int verbose = 0;
 static int quiet = FALSE;
+enum runmodes
+{
+	RUN_MAIN = 0
+,	LIST_MODULES
+,	LIST_DEVICES
+};
+
+static int runmode = RUN_MAIN;
+
+int stdout_is_term = FALSE; // It's an interactive terminal.
+int stderr_is_term = FALSE; // It's an interactive terminal.
 
 static FILE* input = NULL;
 static char *encoding_name = NULL;
@@ -398,7 +411,7 @@ static void realtime_not_compiled(char *arg, topt *opts)
 }
 #endif
 
-static void list_output_modules(char *arg, topt *opts)
+static void list_output_modules(void)
 {
 	char **names = NULL;
 	char **descr = NULL;
@@ -428,6 +441,51 @@ static void list_output_modules(char *arg, topt *opts)
 	else if(!quiet)
 		error("Failed to create an out123 handle.");
 	exit(count >= 0 ? 0 : 1);
+}
+
+static void stringsafe(char *s)
+{
+	size_t l = strlen(s);
+	for(int j = 0; j<l; ++j)
+	{
+		if(s[j] < 20) // covers 127..255, too, via sign
+			s[j] = ' ';
+	}
+}
+
+static void list_output_devices(void)
+{
+	int count = 0;
+	char **names = NULL;
+	char **descr = NULL;
+	out123_handle *ao = NULL;
+	ao = out123_new();
+	char *real_driver = NULL;
+	count = out123_devices(ao, driver, &names, &descr, &real_driver);
+	fprintf(stderr, "TODO: fix printout of unsafe strings, decide if pulling in libmpg123 is fine for this.\n");
+	if(count >= 0)
+	{
+		printf("Devices for output module %s:\n", real_driver);
+		for(int i=0; i<count; ++i)
+		{
+			if(stdout_is_term)
+			{
+				stringsafe(names[i]);
+				stringsafe(descr[i]);
+			}
+			fprintf(stdout, "%s", names[i]);
+			printf("\t");
+			fprintf(stdout, "%s", descr[i]);
+			printf("\n");
+		}
+		out123_stringlists_free(names, descr, count);
+		free(real_driver);
+	} else
+	{
+		merror("Failed to enumerate output devices: %s", out123_strerror(ao));
+	}
+	out123_del(ao);
+	exit(count < 0 ? 1 : 0);
 }
 
 static void list_encodings(char *arg, topt *opts)
@@ -587,7 +645,8 @@ topt opts[] = {
 	{0,   "speaker",     0,                  set_output_s, 0,0},
 	{0,   "lineout",     0,                  set_output_l, 0,0},
 	{'o', "output",      GLO_ARG | GLO_CHAR, set_output, 0,  0},
-	{0,   "list-modules",0,       list_output_modules, NULL,  0},
+	{0,   "list-modules",GLO_INT,      0, &runmode, LIST_MODULES},
+	{0,   "list-devices",GLO_INT,      0, &runmode, LIST_DEVICES},
 	{'a', "audiodevice", GLO_ARG | GLO_CHAR, 0, &device,  0},
 #ifndef NOXFERMEM
 	{'b', "buffer",      GLO_ARG | GLO_LONG, 0, &buffer_kb,  0},
@@ -1465,6 +1524,8 @@ int main(int sys_argc, char ** sys_argv)
         _wildcard(&argc,&argv);
 #endif
 
+	stderr_is_term = term_width(STDERR_FILENO) >= 0;
+	stdout_is_term = term_width(STDOUT_FILENO) >= 0;
 	while ((result = getlopt(argc, argv, opts)))
 	switch (result) {
 		case GLO_UNKNOWN:
@@ -1479,6 +1540,19 @@ int main(int sys_argc, char ** sys_argv)
 
 	if(quiet)
 		verbose = 0;
+
+	switch(runmode)
+	{
+		case RUN_MAIN:
+		break;
+		case LIST_MODULES:
+			list_output_modules();
+		case LIST_DEVICES:
+			list_output_devices();
+		default:
+			merror("Invalid run mode %d", runmode);
+			safe_exit(79);
+	}
 
 	if(inputrate < 1)
 		inputrate = rate;
@@ -1751,6 +1825,7 @@ static void long_usage(int err)
 	fprintf(o,"        --name <n>         set instance name (p.ex. JACK client)\n");
 	fprintf(o," -o <o> --output <o>       select audio output module\n");
 	fprintf(o,"        --list-modules     list the available modules\n");
+	fprintf(o,"        --list-devices     list the available output devices for given output module\n");
 	fprintf(o," -a <d> --audiodevice <d>  select audio device (for files, empty or - is stdout)\n");
 	fprintf(o," -s     --stdout           write raw audio to stdout (-o raw -a -)\n");
 	fprintf(o," -S     --STDOUT           play AND output stream to stdout\n");
