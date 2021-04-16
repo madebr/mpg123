@@ -14,7 +14,8 @@ device names and descriptions.
 - libout123:
 -- Added API that avoids enums, mapped-to by default unless
    MPG123_ENUM_API is defined.
--- Added device enumeration (for dummy module only right now).
+-- Added device enumeration (for dummy module only right now). This
+   increments the output module ABI version to 3.
 - examples: Update for dropped mpg123_init(), more sensible
   copyright notes.
 - out123:
