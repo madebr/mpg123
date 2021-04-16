@@ -1,7 +1,7 @@
 /*
 	optimize: get a grip on the different optimizations
 
-	copyright 2006-9 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2006-21 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis, inspired by 3DNow stuff in mpg123.[hc]
 
@@ -9,10 +9,11 @@
 */
 
 #define I_AM_OPTIMIZE
+#define WANT_GETCPUFLAGS
+#include "getcpuflags.h"
 #include "mpg123lib_intern.h" /* includes optimize.h */
 #include "debug.h"
 
-#include "getcpuflags.h"
 
 /* Ugly macros to build conditional synth function array values. */
 
