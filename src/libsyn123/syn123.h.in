@@ -44,6 +44,7 @@
 #endif
 #endif
 
+/** Support the restrict keyword for handed-in pointers. */
 #ifndef MPG123_RESTRICT
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #define MPG123_RESTRICT restrict
@@ -173,7 +174,7 @@ const char* syn123_strerror(int errcode);
  *  \param rate sampling rate
  *  \param channels channel count (duplicated mono channels)
  *  \param encoding sample encoding (see enum mpg123_enc_enum)
- *  \param maxbuff maximum buffer size in bytes to allow for caching periodic
+ *  \param maxbuf maximum buffer size in bytes to allow for caching periodic
  *    signals. When this is given, it is attempted to fit any configured signal
  *    into this buffer in the hope it will work being played periodically. Maybe
  *    there will be tricks with non-periodic signals.
@@ -374,7 +375,7 @@ enum syn123_sweep_id
  *    rate. On top of that, you can use the returned endphase to chop
  *    your monster sweep into pieces.
  *  \param phase initial phase of the sweep
- *  \param backwards invert the waveform in time
+ *  \param backwards invert the waveform in time if true
  *  \param endphase address to store the normal phase that would
  *    smoothly continue the signal without the period correction
  *    (You can create a following sweep that continues smoothly to a new
@@ -386,7 +387,6 @@ enum syn123_sweep_id
  *    back down; does not imply use of the internal period buffer
  *  \param buffer_period address to store the period count only if the
  *    period buffer is actually in use
- *  \param backwards invert the waveform in time if true
  */
 MPG123_EXPORT
 int syn123_setup_sweep( syn123_handle* sh
@@ -1099,7 +1099,7 @@ void syn123_le2host(void *buf, size_t samplesize, size_t samplecount);
 MPG123_EXPORT
 void syn123_be2host(void *buf, size_t samplesize, size_t samplecount);
 
-/* @} */
+/** @} */
 
 #ifdef __cplusplus
 }
