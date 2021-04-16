@@ -48,7 +48,7 @@
 typedef ptrdiff_t ssize_t;
 #endif
 
-/* Earlier versions of the libmpg123 put enums into public API calls,
+/* Earlier versions of libmpg123 put enums into public API calls,
  * thich is not exactly safe. There are ABI rules, but you can use
  * compiler switches to change the sizes of enums. It is safer not
  * to have them in API calls. Thus, the default is to remap calls and
