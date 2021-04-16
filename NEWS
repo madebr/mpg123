@@ -7,6 +7,9 @@
    libmpg123. You can check for MPG123_API_VERSION >= 46.
 -- Added API that avoids enums, mapped-to by default unless
    MPG123_ENUM_API is defined.
+- libout123:
+-- Added API that avoids enums, mapped-to by default unless
+   MPG123_ENUM_API is defined.
 - examples: Update for dropped mpg123_init(), more sensible
   copyright notes.
 - out123: safer limiting of maximum playback rate

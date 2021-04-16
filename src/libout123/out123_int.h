@@ -9,6 +9,8 @@
 #ifndef _MPG123_OUT123_INT_H_
 #define _MPG123_OUT123_INT_H_
 
+#define MPG123_ENUM_API
+
 #include "config.h"
 #include "intsym.h"
 #include "abi_align.h"

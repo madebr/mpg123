@@ -206,6 +206,13 @@ out123_set_buffer(out123_handle *ao, size_t buffer_bytes)
 }
 
 int attribute_align_arg
+out123_param2( out123_handle *ao, int code
+            , long value, double fvalue, const char *svalue )
+{
+	return out123_param(ao, code, value, fvalue, svalue);
+}
+
+int attribute_align_arg
 out123_param( out123_handle *ao, enum out123_parms code
             , long value, double fvalue, const char *svalue )
 {
@@ -266,6 +273,13 @@ out123_param( out123_handle *ao, enum out123_parms code
 		buffer_sync_param(ao);
 #endif
 	return ret;
+}
+
+int attribute_align_arg
+out123_getparam2( out123_handle *ao, int code
+               , long *ret_value, double *ret_fvalue, char* *ret_svalue )
+{
+	return out123_getparam(ao, code, ret_value, ret_fvalue, ret_svalue);
 }
 
 int attribute_align_arg

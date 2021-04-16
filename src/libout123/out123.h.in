@@ -53,6 +53,24 @@
 #endif
 #endif
 
+/* Earlier versions of libout123 put enums into public API calls,
+ * thich is not exactly safe. There are ABI rules, but you can use
+ * compiler switches to change the sizes of enums. It is safer not
+ * to have them in API calls. Thus, the default is to remap calls and
+ * structs to variants that use plain ints. Define MPG123_ENUM_API to
+ * prevent that remapping.
+ *
+ * You might want to define this to increase the chance of your binary
+ * working with an older version of the library. But if that is your goal,
+ * you should better build with an older version to begin with.
+ */
+#ifndef MPG123_ENUM_API
+
+#define out123_param    out123_param2
+#define out123_getparam out123_getparam2
+
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -95,7 +113,7 @@ typedef struct out123_struct out123_handle;
 /** Enumeration of codes for the parameters that it is possible to set/get. */
 enum out123_parms
 {
-	OUT123_FLAGS = 1 /**< integer, various flags, see enum out123_flags */
+	OUT123_FLAGS = 1 /**< integer, various flags, see enum #out123_flags */
 ,	OUT123_PRELOAD /**< float, fraction of buffer to fill before playback */
 ,	OUT123_GAIN    /**< integer, output device gain (module-specific) */
 ,	OUT123_VERBOSE /**< integer, verbosity to stderr, >= 0 */
@@ -261,10 +279,17 @@ const char* out123_plain_strerror(int errcode);
 MPG123_EXPORT
 int out123_set_buffer(out123_handle *ao, size_t buffer_bytes);
 
-/** Set a specific parameter, for a specific out123_handle, using a parameter 
- *  code chosen from the out123_parms enumeration, to the specified value.
+#ifdef MPG123_ENUM_API
+/** Set a parameter on a out123_handle.
+ *
+ *  Note that this name is mapped to out123_param2() instead unless
+ *  MPG123_ENUM_API is defined.
+ *
  *  The parameters usually only change what happens on next out123_open, not
- *  incfluencing running operation.
+ *  incfluencing running operation. There are macros To ease the API a bit:
+ *  You can call out123_param_int(ao, code, value) for integer (long) values,
+ *  same with out123_param_float() and out123_param_string().
+ *
  * \param ao handle
  * \param code parameter code
  * \param value input value for integer parameters
@@ -275,15 +300,46 @@ int out123_set_buffer(out123_handle *ao, size_t buffer_bytes);
 MPG123_EXPORT
 int out123_param( out123_handle *ao, enum out123_parms code
 ,                 long value, double fvalue, const char *svalue );
+#endif
+
+/** Set a parameter on a out123_handle. No enum.
+ *
+ *  This is actually called instead of out123_param()
+ *  unless MPG123_ENUM_API is defined.
+ *
+ *  The parameters usually only change what happens on next out123_open, not
+ *  incfluencing running operation. There are macros To ease the API a bit:
+ *  You can call out123_param_int(ao, code, value) for integer (long) values,
+ *  same with out123_param_float() and out123_param_string().
+ *
+ * \param ao handle
+ * \param code parameter code (from enum #out123_parms)
+ * \param value input value for integer parameters
+ * \param fvalue input value for floating point parameters
+ * \param svalue input value for string parameters (contens are copied)
+ * \return 0 on success, OUT123_ERR on error.
+ */
+MPG123_EXPORT
+int out123_param2( out123_handle *ao, int code
+,                 long value, double fvalue, const char *svalue );
+
+
+/** Shortcut for out123_param() to set an integer parameter. */
 #define out123_param_int(ao, code, value) \
 	out123_param((ao), (code), (value), 0., NULL)
+/** Shortcut for out123_param() to set a float parameter. */
 #define out123_param_float(ao, code, value) \
 	out123_param((ao), (code), 0, (value), NULL)
+/** Shortcut for out123_param() to set an string parameter. */
 #define out123_param_string(ao, code, value) \
 	out123_param((ao), (code), 0, 0., (value))
 
-/** Get a specific parameter, for a specific out123_handle, using a parameter
- *  code chosen from the out123_parms enumeration, to the specified value.
+#ifdef MPG123_ENUM_API
+/** Get a parameter from an out123_handle.
+ *
+ *  Note that this name is mapped to out123_param2() instead unless
+ *  MPG123_ENUM_API is defined.
+ *
  * \param ao handle
  * \param code parameter code
  * \param ret_value output address for integer parameters
@@ -295,10 +351,32 @@ int out123_param( out123_handle *ao, enum out123_parms code
 MPG123_EXPORT
 int out123_getparam( out123_handle *ao, enum out123_parms code
 ,                    long *ret_value, double *ret_fvalue, char* *ret_svalue );
+#endif
+
+/** Get a parameter from an out123_handle. No enum.
+ *
+ *  This is actually called instead of out123_getparam()
+ *  unless MPG123_ENUM_API is defined.
+ *
+ * \param ao handle
+ * \param code parameter code (from enum #out123_parms)
+ * \param ret_value output address for integer parameters
+ * \param ret_fvalue output address for floating point parameters
+ * \param ret_svalue output address for string parameters (pointer to
+ *        internal memory, so no messing around, please)
+ * \return 0 on success, OUT123_ERR on error (bad parameter name or bad handle).
+ */
+MPG123_EXPORT
+int out123_getparam2( out123_handle *ao, int code
+,                    long *ret_value, double *ret_fvalue, char* *ret_svalue );
+
+/** Shortcut for out123_getparam() to get an integer parameter. */
 #define out123_getparam_int(ao, code, value) \
 	out123_getparam((ao), (code), (value), NULL, NULL)
+/** Shortcut for out123_getparam() to get a float parameter. */
 #define out123_getparam_float(ao, code, value) \
 	out123_getparam((ao), (code), NULL, (value), NULL)
+/** Shortcut for out123_getparam() to get a string parameter. */
 #define out123_getparam_string(ao, code, value) \
 	out123_getparam((ao), (code), NULL, NULL, (value))
 
@@ -366,10 +444,6 @@ void out123_close(out123_handle *ao);
 
 /** Get supported audio encodings for given rate and channel count,
  *  for the currently openend audio device.
- *  TODO: Reopening the underlying audio device for each query
- *        is dumb, at least when dealing with JACK. It takes
- *        a long time and is just a waste. Reconsider that.
- *        Make sure that all output modules are fine with it, though!
  *  Usually, a wider range of rates is supported, but the number
  *  of sample encodings is limited, as is the number of channels.
  *  So you can call this with some standard rate and hope that the
@@ -436,20 +510,20 @@ int out123_enc_list(int **enclist);
 
 /** Find encoding code by name.
  * \param name short or long name to find encoding code for
- * \return encoding if found (enum mpg123_enc_enum), else 0
+ * \return encoding if found (enum #mpg123_enc_enum), else 0
  */
 MPG123_EXPORT
 int out123_enc_byname(const char *name);
 
 /** Get name of encoding.
- * \param encoding code (enum mpg123_enc_enum)
+ * \param encoding code (enum #mpg123_enc_enum)
  * \return short name for valid encodings, NULL otherwise
  */
 MPG123_EXPORT
 const char* out123_enc_name(int encoding);
 
 /** Get long name of encoding.
- * \param encoding code (enum mpg123_enc_enum)
+ * \param encoding code (enum #mpg123_enc_enum)
  * \return long name for valid encodings, NULL otherwise
  */
 MPG123_EXPORT
@@ -588,7 +662,7 @@ MPG123_EXPORT
 int out123_getformat( out123_handle *ao
 ,	long *rate, int *channels, int *encoding, int *framesize );
 
-/* @} */
+/** @} */
 
 #ifdef __cplusplus
 }
