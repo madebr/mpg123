@@ -18,8 +18,10 @@
 #include <stdio.h>
 #include <string.h>
 
+/** The actual work on the existing handle. */
 int do_work(mpg123_handle *m);
 
+/** The main program. */
 int main(int argc, char **argv)
 {
 	int ret = 0;
