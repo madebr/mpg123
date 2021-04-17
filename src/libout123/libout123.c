@@ -1089,8 +1089,10 @@ int out123_devices( out123_handle *ao, const char *driver, char ***names, char *
 	char *realdrv = NULL;
 	if(!ao)
 		return -1;
+#ifndef NOXFERMEM
 	if(have_buffer(ao))
 		return out123_seterr(ao, OUT123_NOT_SUPPORTED);
+#endif
 
 	ao->errcode = OUT123_OK;
 	// Just always try to actually open the driver first. Carries out
