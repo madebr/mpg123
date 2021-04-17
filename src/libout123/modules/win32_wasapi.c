@@ -13,6 +13,7 @@
 #include <audioclient.h>
 #include <mmdeviceapi.h>
 #include <avrt.h>
+#include <functiondiscoverykeys_devpkey.h>
 #include "debug.h"
 
 #ifdef _MSC_VER
@@ -28,10 +29,13 @@
 #define __DEFINE_GUID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) static const GUID n GUID_SECT = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
 #define __DEFINE_IID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) static const IID n GUID_SECT = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
 #define __DEFINE_CLSID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) static const CLSID n GUID_SECT = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
+#define __DEFINE_PROPERTYKEY(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) static const PROPERTYKEY n GUID_SECT = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
 #define MPG123_DEFINE_CLSID(className, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
     __DEFINE_CLSID(mpg123_CLSID_##className, 0x##l, 0x##w1, 0x##w2, 0x##b1, 0x##b2, 0x##b3, 0x##b4, 0x##b5, 0x##b6, 0x##b7, 0x##b8)
 #define MPG123_DEFINE_IID(interfaceName, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
     __DEFINE_IID(mpg123_IID_##interfaceName, 0x##l, 0x##w1, 0x##w2, 0x##b1, 0x##b2, 0x##b3, 0x##b4, 0x##b5, 0x##b6, 0x##b7, 0x##b8)
+#define MPG123_DEFINE_PROPERTYKEY(interfaceName, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
+    __DEFINE_PROPERTYKEY(mpg123_IID_##interfaceName, 0x##l, 0x##w1, 0x##w2, 0x##b1, 0x##b2, 0x##b3, 0x##b4, 0x##b5, 0x##b6, 0x##b7, 0x##b8)
 
 // "1CB9AD4C-DBFA-4c32-B178-C2F568A703B2"
 MPG123_DEFINE_IID(IAudioClient, 1cb9ad4c, dbfa, 4c32, b1, 78, c2, f5, 68, a7, 03, b2);
@@ -41,11 +45,13 @@ MPG123_DEFINE_IID(IMMDeviceEnumerator, a95664d2, 9614, 4f35, a7, 46, de, 8d, b6,
 MPG123_DEFINE_CLSID(IMMDeviceEnumerator, bcde0395, e52f, 467c, 8e, 3d, c4, 57, 92, 91, 69, 2e);
 // "F294ACFC-3146-4483-A7BF-ADDCA7C260E2"
 MPG123_DEFINE_IID(IAudioRenderClient, f294acfc, 3146, 4483, a7, bf, ad, dc, a7, c2, 60, e2);
+MPG123_DEFINE_PROPERTYKEY(PKEY_Device_FriendlyName, a45c254e, df1c, 4efd, 80, 20, 67, d1, 46, a8, 50, e0, 14);
 #else
 #define mpg123_IID_IAudioClient IID_IAudioClient
 #define mpg123_IID_IMMDeviceEnumerator IID_IMMDeviceEnumerator
 #define mpg123_CLSID_IMMDeviceEnumerator CLSID_MMDeviceEnumerator
 #define mpg123_IID_IAudioRenderClient IID_IAudioRenderClient
+#define mpg123_PKEY_Device_FriendlyName PKEY_Device_FriendlyName
 #endif
 
 /* Push mode does not work right yet, noisy audio, probably something to do with timing and buffers */
@@ -100,27 +106,49 @@ typedef struct _wasapi_state_struct {
   DWORD taskIndex;
   char is_playing;
   DWORD framesize;
+  DWORD renderMode;
 } wasapi_state_struct;
+
+typedef struct _wasapi_userptr {
+  LPCWSTR pwstrId;
+} wasapi_userptr;
 
 /* setup endpoints */
 static int open_win32(out123_handle *ao){
   HRESULT hr = 0;
+  wchar_t *device = NULL;
+  int devlen;
   wasapi_state_struct *state;
 
   debug1("%s",__FUNCTION__);
   if(!ao || ao->userptr) return -1; /* userptr should really be null */
   state = calloc(sizeof(*state),1);
+
   if(!state) return -1;
   state->hnsRequestedDuration = REFTIMES_PER_SEC;
   ao->userptr = (void *)state;
 
-  CoInitialize(NULL);
+  state->renderMode = AUDCLNT_SHAREMODE_EXCLUSIVE;
+  CoInitializeEx(NULL, COINIT_MULTITHREADED);
+
   hr = CoCreateInstance(&mpg123_CLSID_IMMDeviceEnumerator,NULL,CLSCTX_ALL, &mpg123_IID_IMMDeviceEnumerator,(void**)&state->pEnumerator);
   debug("CoCreateInstance");
   EXIT_ON_ERROR(hr)
 
-  hr = IMMDeviceEnumerator_GetDefaultAudioEndpoint(state->pEnumerator,eRender, eConsole, &state->pDevice);
-  debug("IMMDeviceEnumerator_GetDefaultAudioEndpoint");
+  if (ao->device) {
+    devlen = win32_utf8_wide(ao->device, &device, NULL);
+    if(device && devlen > 0) {
+      hr = IMMDeviceEnumerator_GetDevice(state->pEnumerator, device, &state->pDevice);
+      debug("IMMDeviceEnumerator_GetDevice");
+      free(device);
+    } else {
+      debug("IMMDeviceEnumerator_GetDevice convert fail");
+      return 1;
+    }
+  } else {
+    hr = IMMDeviceEnumerator_GetDefaultAudioEndpoint(state->pEnumerator,eRender, eConsole, &state->pDevice);
+    debug("IMMDeviceEnumerator_GetDefaultAudioEndpoint");
+  }
   EXIT_ON_ERROR(hr)
 
   hr = IMMDeviceActivator_Activate(state->pDevice,
@@ -198,35 +226,35 @@ static int get_formats_win32(out123_handle *ao){
 
    if(ao->format & MPG123_ENC_SIGNED_8){
       formats_generator(ao,MPG123_ENC_SIGNED_8,&wf);
-      if((hr = IAudioClient_IsFormatSupported(state->pAudioClient,AUDCLNT_SHAREMODE_EXCLUSIVE, &wf, NULL)) == S_OK)
+      if((hr = IAudioClient_IsFormatSupported(state->pAudioClient,state->renderMode, &wf, NULL)) == S_OK)
       ret |= MPG123_ENC_SIGNED_8;
       if(hr == AUDCLNT_E_UNSUPPORTED_FORMAT) debug1("MPG123_ENC_SIGNED_8 %ld not supported", ao->rate);
    }
 
    if(ao->format & MPG123_ENC_SIGNED_16){
       formats_generator(ao,MPG123_ENC_SIGNED_16,&wf);
-      if((hr = IAudioClient_IsFormatSupported(state->pAudioClient,AUDCLNT_SHAREMODE_EXCLUSIVE, &wf, NULL)) == S_OK)
+      if((hr = IAudioClient_IsFormatSupported(state->pAudioClient,state->renderMode, &wf, NULL)) == S_OK)
       ret |= MPG123_ENC_SIGNED_16;
       if(hr == AUDCLNT_E_UNSUPPORTED_FORMAT) debug1("MPG123_ENC_SIGNED_16 %ld not supported", ao->rate);
    }
 
    if(ao->format & MPG123_ENC_SIGNED_32){
       formats_generator(ao,MPG123_ENC_SIGNED_32,&wf);
-      if((hr = IAudioClient_IsFormatSupported(state->pAudioClient,AUDCLNT_SHAREMODE_EXCLUSIVE, &wf, NULL)) == S_OK)
+      if((hr = IAudioClient_IsFormatSupported(state->pAudioClient,state->renderMode, &wf, NULL)) == S_OK)
       ret |= MPG123_ENC_SIGNED_32;
       if(hr == AUDCLNT_E_UNSUPPORTED_FORMAT) debug1("MPG123_ENC_SIGNED_32 %ld not supported", ao->rate);
    }
 
    if(ao->format & MPG123_ENC_FLOAT_32){
       formats_generator(ao,MPG123_ENC_FLOAT_32,&wf);
-      if((hr = IAudioClient_IsFormatSupported(state->pAudioClient,AUDCLNT_SHAREMODE_EXCLUSIVE, &wf, NULL)) == S_OK)
+      if((hr = IAudioClient_IsFormatSupported(state->pAudioClient,state->renderMode, &wf, NULL)) == S_OK)
       ret |= MPG123_ENC_FLOAT_32;
       if(hr == AUDCLNT_E_UNSUPPORTED_FORMAT) debug1("MPG123_ENC_FLOAT_32 %ld not supported", ao->rate);
    }
 
    if(ao->format & MPG123_ENC_SIGNED_24){
       formats_generator(ao,MPG123_ENC_SIGNED_24,&wf);
-      if((hr = IAudioClient_IsFormatSupported(state->pAudioClient,AUDCLNT_SHAREMODE_EXCLUSIVE, &wf, NULL)) == S_OK)
+      if((hr = IAudioClient_IsFormatSupported(state->pAudioClient,state->renderMode, &wf, NULL)) == S_OK)
       ret |= MPG123_ENC_SIGNED_24;
       if(hr == AUDCLNT_E_UNSUPPORTED_FORMAT) debug1("MPG123_ENC_SIGNED_24 %ld not supported", ao->rate);
    }
@@ -252,7 +280,7 @@ static int write_init(out123_handle *ao){
   debug("IAudioClient_GetDevicePeriod OK");
   reinit:
   hr = IAudioClient_Initialize(state->pAudioClient,
-                       AUDCLNT_SHAREMODE_EXCLUSIVE,
+                       state->renderMode,
                        Init_Flag,
                        state->hnsRequestedDuration,
                        state->hnsRequestedDuration,
@@ -275,7 +303,6 @@ static int write_init(out123_handle *ao){
     debug("IMMDeviceActivator_Activate");
     goto reinit;
   }
-  EXIT_ON_ERROR(hr)
   EXIT_ON_ERROR(hr)
   hr = IAudioClient_GetService(state->pAudioClient,
                         &mpg123_IID_IAudioRenderClient,
@@ -469,7 +496,7 @@ static int close_win32(out123_handle *ao)
   }
 #endif
   if(state->pAudioClient) IAudioClient_Stop(state->pAudioClient);
-  if(state->pRenderClient) IAudioRenderClient_Release(state->pRenderClient);  
+  if(state->pRenderClient) IAudioRenderClient_Release(state->pRenderClient);
   if(state->pAudioClient) IAudioClient_Release(state->pAudioClient);
   if(state->hTask) AvRevertMmThreadCharacteristics(state->hTask);
   if(state->pEnumerator) IMMDeviceEnumerator_Release(state->pEnumerator);
@@ -478,6 +505,86 @@ static int close_win32(out123_handle *ao)
   free(state);
   ao->userptr = NULL;
   return 0;
+}
+
+static int enumerate_win32(int (*store_device)(void *devlist
+,       const char *name, const char *description), void *devlist)
+{
+	int len;
+	char *pszID = NULL, *pszDesc = NULL;
+	HRESULT hr = S_OK;
+	UINT pcDevices = 0, i = 0;
+	LPWSTR pwszID = NULL;
+	IMMDeviceEnumerator *pEnumerator = NULL;
+	IMMDeviceCollection *pCollection = NULL;
+	IPropertyStore *pProps = NULL;
+	IMMDevice *pDevice = NULL;
+	PROPVARIANT varName;
+
+	CoInitializeEx(NULL, COINIT_MULTITHREADED);
+
+	hr = CoCreateInstance(&mpg123_CLSID_IMMDeviceEnumerator,NULL,CLSCTX_ALL, &mpg123_IID_IMMDeviceEnumerator,(void**)&pEnumerator);
+	if(FAILED(hr) || pEnumerator == NULL) goto Exit;
+	hr = IMMDeviceEnumerator_EnumAudioEndpoints(pEnumerator, eRender, DEVICE_STATE_ACTIVE, &pCollection);
+	if(FAILED(hr) || pCollection == NULL) goto Exit;
+	hr = IMMDeviceCollection_GetCount(pCollection, &pcDevices);
+	EXIT_ON_ERROR(hr)
+
+	for(i = 0; i < pcDevices; i++) {
+		/* init */
+		hr = IMMDeviceCollection_Item(pCollection, i, &pDevice);
+		if(FAILED(hr) || pDevice == NULL) goto Exit;
+		hr = IMMDevice_GetId(pDevice, &pwszID);
+		if(FAILED(hr) || pwszID == NULL) goto Exit;
+		hr = IMMDevice_OpenPropertyStore(pDevice, STGM_READ, &pProps);
+		if(FAILED(hr) || pProps == NULL) goto Exit;
+
+		/* get ID */
+		win32_wide_utf8(pwszID, &pszID, NULL);
+		if(pszID == NULL) goto Exit;
+
+		/* get Property */
+		PropVariantInit(&varName);
+		hr = IPropertyStore_GetValue(pProps, &mpg123_PKEY_Device_FriendlyName, &varName);
+		if(FAILED(hr)) {
+			PropVariantClear(&varName);
+			goto Exit;
+		}
+
+		/* get Description*/
+		win32_wide_utf8(varName.pwszVal, &pszDesc, NULL);
+		PropVariantClear(&varName);
+		if(pszDesc == NULL) goto Exit;
+
+		/* store */
+		if(store_device(devlist, pszID, pszDesc))
+			goto Exit;
+
+		/* release */
+		free(pszID);
+		pszID = NULL;
+		free(pszDesc);
+		pszDesc = NULL;
+		CoTaskMemFree(pwszID);
+		pwszID = NULL;
+		IMMDeviceEnumerator_Release(pDevice);
+	}
+
+	IMMDeviceCollection_Release(pCollection);
+	IMMDeviceEnumerator_Release(pEnumerator);
+	CoUninitialize();
+        return 0;
+
+	Exit:
+	if(pszDesc) free(pszDesc);
+	if(pszID) free(pszID);
+	if(pwszID) CoTaskMemFree(pwszID);
+	if(pProps) IPropertyStore_Release(pProps);
+	if(pDevice) IMMDeviceEnumerator_Release(pDevice);
+	if(pCollection) IMMDeviceCollection_Release(pCollection);
+	if(pEnumerator) IMMDeviceEnumerator_Release(pEnumerator);
+	CoUninitialize();
+	return -1;
 }
 
 static int init_win32(out123_handle* ao){
@@ -490,7 +597,8 @@ static int init_win32(out123_handle* ao){
 	ao->write = write_win32;
 	ao->get_formats = get_formats_win32;
 	ao->close = close_win32;
-    ao->userptr = NULL;
+	ao->userptr = NULL;
+	ao->enumerate = enumerate_win32;
 
 	/* Success */
 	return 0;
