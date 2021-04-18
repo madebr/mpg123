@@ -98,20 +98,6 @@ typedef struct _wasapi_state_struct {
   char is_EventMode;
 } wasapi_state_struct;
 
-typedef struct _wasapi_userptr {
-  LPCWSTR pwstrId;
-} wasapi_userptr;
-
-static HRESULT coinit;
-static int tryinit(){
-  coinit = CoInitializeEx(NULL, COINIT_MULTITHREADED);
-  return !(coinit == S_OK || coinit == S_FALSE);
-}
-static void tryuninit(){
-  if(coinit == S_OK || coinit == S_FALSE)
-    CoUninitialize();
-}
-
 /* setup endpoints */
 static int open_win32(out123_handle *ao){
   HRESULT hr = 0;
@@ -129,9 +115,6 @@ static int open_win32(out123_handle *ao){
 
   state->renderMode = AUDCLNT_SHAREMODE_SHARED;
   state->is_EventMode = 1;
-
-  if(tryinit())
-    return -1; /* failed to init COM system */
 
   hr = CoCreateInstance(&mpg123_CLSID_IMMDeviceEnumerator,NULL,CLSCTX_ALL, &mpg123_IID_IMMDeviceEnumerator,(void**)&state->pEnumerator);
   debug("CoCreateInstance");
@@ -533,7 +516,6 @@ static int close_win32(out123_handle *ao)
   if(state->hTask) AvRevertMmThreadCharacteristics(state->hTask);
   if(state->pEnumerator) IMMDeviceEnumerator_Release(state->pEnumerator);
   if(state->pDevice) IMMDevice_Release(state->pDevice);
-  tryuninit();
   free(state);
   ao->userptr = NULL;
   return 0;
@@ -552,9 +534,6 @@ static int enumerate_win32(int (*store_device)(void *devlist
 	IPropertyStore *pProps = NULL;
 	IMMDevice *pDevice = NULL;
 	PROPVARIANT varName;
-
-	if(tryinit())
-		return -1;
 
 	hr = CoCreateInstance(&mpg123_CLSID_IMMDeviceEnumerator,NULL,CLSCTX_ALL, &mpg123_IID_IMMDeviceEnumerator,(void**)&pEnumerator);
 	if(FAILED(hr) || pEnumerator == NULL) goto Exit;
@@ -605,7 +584,6 @@ static int enumerate_win32(int (*store_device)(void *devlist
 
 	IMMDeviceCollection_Release(pCollection);
 	IMMDeviceEnumerator_Release(pEnumerator);
-	tryuninit();
         return 0;
 
 	Exit:
@@ -616,17 +594,23 @@ static int enumerate_win32(int (*store_device)(void *devlist
 	if(pDevice) IMMDeviceEnumerator_Release(pDevice);
 	if(pCollection) IMMDeviceCollection_Release(pCollection);
 	if(pEnumerator) IMMDeviceEnumerator_Release(pEnumerator);
-	tryuninit();
 	return -1;
 }
 static void deinit_win32(out123_handle* ao)
 {
 	/* Deinitialize things from init_win32(). */
+	CoUninitialize();
 }
 
 static int init_win32(out123_handle* ao){
-    debug1("%s",__FUNCTION__);
+	HRESULT hr;
+	debug1("%s",__FUNCTION__);
 	if(!ao) return -1;
+
+	hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+	mdebug("CoInitializeEx %u", hr);
+	if(!(hr == S_OK || hr == S_FALSE))
+		return -1;
 
 	/* Set callbacks */
 	ao->open = open_win32;
