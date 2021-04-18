@@ -343,10 +343,10 @@ static int close_win32(out123_handle *ao)
     return 0;
 }
 
-static char id[10];
 static int enumerate_win32(int (*store_device)(void *devlist
 ,	const char *name, const char *description), void *devlist)
 {
+  char id[10];
   WAVEOUTCAPSA caps;
   MMRESULT mr;
   UINT i, devices = waveOutGetNumDevs();
