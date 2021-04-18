@@ -528,9 +528,10 @@ static void list_output_devices(void)
 		printf("Devices for output module %s:\n", driver);
 		for(int i=0; i<count; ++i)
 		{
-			print_outstr(stdout, names[i], 1, stdout_is_term);
+			// Always print like it's a terminal to avoid confusion with extra line breaks.
+			print_outstr(stdout, names[i], 1, 1);
 			printf("\t");
-			print_outstr(stdout, descr[i], 1, stdout_is_term);
+			print_outstr(stdout, descr[i], 1, 1);
 			printf("\n");
 		}
 		out123_stringlists_free(names, descr, count);
