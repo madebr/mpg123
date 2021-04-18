@@ -36,6 +36,16 @@ struct queue_state
     HWAVEOUT waveout;
 };
 
+static UINT dev_select(out123_handle *ao){
+  UINT ret;
+  if(ao->device) {
+    sscanf(ao->device, "%u", &ret);
+  } else {
+    ret = WAVE_MAPPER;
+  }
+  return ret;
+}
+
 static int open_win32(out123_handle *ao)
 {
     struct queue_state* state;
@@ -47,6 +57,11 @@ static int open_win32(out123_handle *ao)
     if(!ao) return -1;
     if(ao->rate == -1) return 0;
 
+    /* only 8 and 16 supported */
+    if(!(ao->format == MPG123_ENC_SIGNED_8 || ao->format == MPG123_ENC_SIGNED_16)) return -1;
+    /* only mono and stereo supported */
+    if(!(ao->channels == 1 || ao->channels == 2)) return -1;
+
     /* Allocate queue state struct for this device */
     state = calloc(1, sizeof(struct queue_state));
     if(!state) return -1;
@@ -56,11 +71,10 @@ static int open_win32(out123_handle *ao)
     state->play_done_event = CreateEvent(0,FALSE,FALSE,0);
     if(state->play_done_event == INVALID_HANDLE_VALUE) return -1;
 
-    /* FIXME: real device enumeration by capabilities? */
-    dev_id = WAVE_MAPPER;    /* probably does the same thing */
-    /* FIXME: support for smth besides MPG123_ENC_SIGNED_16? */
+    dev_id = dev_select(ao);
+
     out_fmt.wFormatTag = WAVE_FORMAT_PCM;
-    out_fmt.wBitsPerSample = 16;
+    out_fmt.wBitsPerSample = ao->format == MPG123_ENC_SIGNED_8 ? 8 : 16;
     out_fmt.nChannels = ao->channels;
     out_fmt.nSamplesPerSec = ao->rate;
     out_fmt.nBlockAlign = out_fmt.nChannels*out_fmt.wBitsPerSample/8;
@@ -139,8 +153,61 @@ static void wait_for_buffer(WAVEHDR* hdr, HANDLE hEvent)
 
 static int get_formats_win32(out123_handle *ao)
 {
-    /* FIXME: support for smth besides MPG123_ENC_SIGNED_16? */
-    return MPG123_ENC_SIGNED_16;
+    WAVEOUTCAPSA caps;
+    MMRESULT mr;
+    int ret = 0;
+    UINT dev_id = dev_select(ao);
+
+    mr = waveOutGetDevCaps(dev_id, &caps, sizeof(caps));
+    if(mr != MMSYSERR_NOERROR)
+      return 0; /* no formats? */
+
+    if(ao->channels == 1) {
+      switch(ao->rate) {
+        case 44100:
+          if(caps.dwFormats & WAVE_FORMAT_4M08)
+            ret |= MPG123_ENC_SIGNED_8;
+          if(caps.dwFormats & WAVE_FORMAT_4M16)
+            ret |= MPG123_ENC_SIGNED_16;
+          break;
+        case 22050:
+          if(caps.dwFormats & WAVE_FORMAT_2M08)
+            ret |= MPG123_ENC_SIGNED_8;
+          if(caps.dwFormats & WAVE_FORMAT_2M16)
+            ret |= MPG123_ENC_SIGNED_16;
+          break;
+        case 11025:
+          if(caps.dwFormats & WAVE_FORMAT_1M08)
+            ret |= MPG123_ENC_SIGNED_8;
+          if(caps.dwFormats & WAVE_FORMAT_1M16)
+            ret |= MPG123_ENC_SIGNED_16;
+          break;
+       }
+    }
+
+    if(ao->channels == 2) {
+      switch(ao->rate) {
+        case 44100:
+          if(caps.dwFormats & WAVE_FORMAT_4S08)
+            ret |= MPG123_ENC_SIGNED_8;
+          if(caps.dwFormats & WAVE_FORMAT_4S16)
+            ret |= MPG123_ENC_SIGNED_16;
+          break;
+        case 22050:
+          if(caps.dwFormats & WAVE_FORMAT_2S08)
+            ret |= MPG123_ENC_SIGNED_8;
+          if(caps.dwFormats & WAVE_FORMAT_2S16)
+            ret |= MPG123_ENC_SIGNED_16;
+          break;
+        case 11025:
+          if(caps.dwFormats & WAVE_FORMAT_2S08)
+            ret |= MPG123_ENC_SIGNED_8;
+          if(caps.dwFormats & WAVE_FORMAT_2S16)
+            ret |= MPG123_ENC_SIGNED_16;
+          break;
+        }
+     }
+    return ret;
 }
 
 /* Stores audio data to the fixed size buffers and pushes them into the playback queue.
@@ -276,6 +343,24 @@ static int close_win32(out123_handle *ao)
     return 0;
 }
 
+static char id[10];
+static int enumerate_win32(int (*store_device)(void *devlist
+,	const char *name, const char *description), void *devlist)
+{
+  WAVEOUTCAPSA caps;
+  MMRESULT mr;
+  UINT i, devices = waveOutGetNumDevs();
+  for(i = 0; i < devices; i++){
+    memset(id, 0, sizeof(id));
+    memset(&caps, 0, sizeof(caps));
+    mr = waveOutGetDevCaps(i, &caps, sizeof(caps));
+    mdebug("waveOutGetDevCaps mr %x", mr)
+    snprintf(id, sizeof(id) - 1, "%u", i);
+    store_device(devlist, id, caps.szPname);
+  }
+  return 0;
+}
+
 static int init_win32(out123_handle* ao)
 {
     if(!ao) return -1;
@@ -286,6 +371,7 @@ static int init_win32(out123_handle* ao)
     ao->write = write_win32;
     ao->get_formats = get_formats_win32;
     ao->close = close_win32;
+    ao->enumerate = enumerate_win32;
 
     /* Success */
     return 0;
