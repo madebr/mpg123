@@ -1673,7 +1673,7 @@ fi
 dnl ############## Output module choice
 
 # The full list of supported modules to check, first come, first serve.
-check_modules="alsa tinyalsa oss coreaudio sndio sun win32 win32_wasapi os2 esd jack portaudio pulse sdl nas arts openal dummy"
+check_modules="pulse alsa tinyalsa oss coreaudio sndio sun win32 win32_wasapi os2 esd jack portaudio sdl nas arts openal dummy"
 # Only check qsa before all else on QNX.
 # It would mask ALSA otherwise.
 case $host in

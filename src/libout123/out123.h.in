@@ -225,6 +225,7 @@ enum out123_error
 ,	OUT123_SET_RO_PARAM /**< attempt to set read-only parameter */
 ,	OUT123_BAD_HANDLE /**< bad handle pointer (NULL, usually) */
 ,	OUT123_NOT_SUPPORTED /**< some requested operation is not supported (right now) */
+,	OUT123_DEV_ENUMERATE /**< device enumeration itself failed */
 ,	OUT123_ERRCOUNT /**< placeholder for shaping arrays */
 };
 

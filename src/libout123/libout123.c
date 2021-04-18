@@ -149,6 +149,7 @@ static const char *const errstring[] =
 ,	"attempt to set read-only parameter"
 ,	"invalid out123 handle"
 ,	"operation not supported"
+,	"device enumeration failed"
 };
 
 const char* attribute_align_arg out123_strerror(out123_handle *ao)
@@ -1087,6 +1088,7 @@ int out123_devices( out123_handle *ao, const char *driver, char ***names, char *
 	int ret = 0;
 	struct devlist dl = {0, NULL, NULL};
 	char *realdrv = NULL;
+	debug("");
 	if(!ao)
 		return -1;
 #ifndef NOXFERMEM
@@ -1095,12 +1097,18 @@ int out123_devices( out123_handle *ao, const char *driver, char ***names, char *
 #endif
 
 	ao->errcode = OUT123_OK;
-	// Just always try to actually open the driver first. Carries out
-	// the search for the actual driver to use.
-	if(out123_open(ao, driver, NULL) != OUT123_OK)
-		return out123_seterr(ao, OUT123_BAD_DRIVER);
-	mdebug("deduced driver: %s", ao->driver);
-	realdrv = compat_strdup(ao->driver);
+	// If the driver is a single word, not a list with commas.
+	// Then don't try to open drivers just to know which we are talking about.
+	if(driver && strchr(driver, ',') == NULL)
+		realdrv = compat_strdup(driver);
+	else
+	{
+		mdebug("need to find a driver from: %s", driver ? driver : DEFAULT_OUTPUT_MODULE);
+		if(out123_open(ao, driver, NULL) != OUT123_OK)
+			return out123_seterr(ao, OUT123_BAD_DRIVER);
+		mdebug("deduced driver: %s", ao->driver);
+		realdrv = compat_strdup(ao->driver);
+	}
 	if(realdrv == NULL)
 		return out123_seterr(ao, OUT123_DOOM);
 
@@ -1118,23 +1126,26 @@ int out123_devices( out123_handle *ao, const char *driver, char ***names, char *
 
 	if(!ret && ao->enumerate)
 	{
-		ao->enumerate(ao, devlist_add, &dl);
-		ret = dl.count;
-		if(names)
+		if(!ao->enumerate(ao, devlist_add, &dl))
 		{
-			*names = dl.names;
-			dl.names = NULL;
-		}
-		if(descr)
-		{
-			*descr = dl.descr;
-			dl.descr = NULL;
-		}
-		if(active_driver)
-		{
-			*active_driver = realdrv;
-			realdrv = NULL;
-		}
+			ret = dl.count;
+			if(names)
+			{
+				*names = dl.names;
+				dl.names = NULL;
+			}
+			if(descr)
+			{
+				*descr = dl.descr;
+				dl.descr = NULL;
+			}
+			if(active_driver)
+			{
+				*active_driver = realdrv;
+				realdrv = NULL;
+			}
+		} else
+			ret = out123_seterr(ao, OUT123_DEV_ENUMERATE);
 		out123_stringlists_free(dl.names, dl.descr, dl.count);
 		if(ao->deinit)
 			ao->deinit(ao);

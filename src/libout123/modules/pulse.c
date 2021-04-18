@@ -21,6 +21,71 @@
 
 #include "debug.h"
 
+// Since we learned the async API for enumeration, let's abuse it for
+// a simple check if a pulse server is active before accidentally
+// starting one.
+
+static void state_callback(pa_context *c, void *userdata)
+{
+	pa_context_state_t state;
+	int *pa_ready = userdata;
+
+	state = pa_context_get_state(c);
+	switch(state)
+	{
+		case PA_CONTEXT_FAILED:
+		case PA_CONTEXT_TERMINATED:
+			*pa_ready = 2;
+		break;
+		case PA_CONTEXT_READY:
+			*pa_ready = 1;
+		break;
+	}
+}
+
+static int check_for_server()
+{
+	pa_mainloop *pa_ml;
+	pa_mainloop_api *pa_mlapi;
+	pa_context *pa_ctx;
+	int ret = 0;
+	int pa_ready = 0;
+
+	pa_ml = pa_mainloop_new();
+	pa_mlapi = pa_mainloop_get_api(pa_ml);
+	pa_ctx = pa_context_new(pa_mlapi, "out123 server check");
+	if(!pa_context_connect(pa_ctx, NULL, PA_CONTEXT_NOAUTOSPAWN, NULL))
+	{
+		debug("context connection worked, checking for readiness");
+		pa_context_set_state_callback(pa_ctx, state_callback, &pa_ready);
+		while(!pa_ready)
+		{
+			if(pa_ready == 0)
+			{
+				pa_mainloop_iterate(pa_ml, 1, NULL);
+				continue;
+			}
+			if(pa_ready == 2)
+			{
+				ret = -1;
+				break;
+			}
+			pa_mainloop_iterate(pa_ml, 1, NULL);
+		}
+		pa_context_disconnect(pa_ctx);
+	} else
+	{
+		debug("pa_context_connect() failed right away");
+		ret = -1;
+	}
+
+	pa_context_unref(pa_ctx);
+	pa_mainloop_free(pa_ml);
+
+	return ret;
+}
+
+
 static int open_pulse(out123_handle *ao)
 {
 	int err;
@@ -91,6 +156,19 @@ static int open_pulse(out123_handle *ao)
 		break;
 	}
 
+	// It used to be a default config that pa_simple_new() just starts
+	// an instance of pulseaudio if it is not running. This is undesirable
+	// for probing. Libout123 should not change the system config like that.
+	// Nowadays, you got socket activation on Linux with systemd instead,
+	// anyway, but this little check should not hurt in the grand scheme. Also,
+	// we could use it as starting point to convert to the async API if it
+	// is deemed useful.
+	if(check_for_server())
+	{
+		if(!AOQUIET)
+			error("No PulseAudio running. I will not accidentally trigger starting one.");
+		return -1;
+	}
 
 	/* Perform the open */
 	pas = pa_simple_new(
@@ -188,24 +266,6 @@ static void sinklist_callback( pa_context *c
 		ed->ret = ed->store_device(ed->devlist, l->name, l->description);
 }
 
-static void state_callback(pa_context *c, void *userdata)
-{
-	pa_context_state_t state;
-	int *pa_ready = userdata;
-
-	state = pa_context_get_state(c);
-	switch(state)
-	{
-		case PA_CONTEXT_FAILED:
-		case PA_CONTEXT_TERMINATED:
-			*pa_ready = 2;
-		break;
-		case PA_CONTEXT_READY:
-			*pa_ready = 1;
-		break;
-	}
-}
-
 static int enumerate_pulse( out123_handle *ao, int (*store_device)(void *devlist
 ,	const char *name, const char *description), void *devlist )
 {
@@ -223,11 +283,18 @@ static int enumerate_pulse( out123_handle *ao, int (*store_device)(void *devlist
 	pa_ml = pa_mainloop_new();
 	pa_mlapi = pa_mainloop_get_api(pa_ml);
 	pa_ctx = pa_context_new(pa_mlapi, "out123 enumeration");
-	pa_context_connect(pa_ctx, NULL, PA_CONTEXT_NOAUTOSPAWN, NULL);
+	if(pa_context_connect(pa_ctx, NULL, PA_CONTEXT_NOAUTOSPAWN, NULL))
+	{
+		error("Connection to PulseAudio failed right away.");
+		ed.ret = -1;
+		goto enumerate_end;
+	}
+
 	pa_context_set_state_callback(pa_ctx, state_callback, &pa_ready);
 
 	while(state < 2)
 	{
+		debug("in the loop");
 		if(pa_ready == 0)
 		{
 			pa_mainloop_iterate(pa_ml, 1, NULL);
@@ -249,16 +316,18 @@ static int enumerate_pulse( out123_handle *ao, int (*store_device)(void *devlist
 			break;
 			case 1:
 				if(pa_operation_get_state(pa_op) == PA_OPERATION_DONE)
-					goto enumerate_end;
+					goto enumerate_preend;
 			break;
 		}
 		pa_mainloop_iterate(pa_ml, 1, NULL);
 	}
 
-enumerate_end:
+enumerate_preend:
 	if(pa_op)
 		pa_operation_unref(pa_op);
 	pa_context_disconnect(pa_ctx);
+
+enumerate_end:
 	pa_context_unref(pa_ctx);
 	pa_mainloop_free(pa_ml);
 
