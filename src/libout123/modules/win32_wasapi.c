@@ -78,9 +78,6 @@ mpg123_module_t mpg123_output_module_info = {
 
 #define EXIT_ON_ERROR(hres)  \
               if (FAILED(hres)) { goto Exit; }
-#define SAFE_RELEASE(punk)  \
-              if ((punk) != NULL)  \
-                { (punk)->Release(); (punk) = NULL; }
 
 /* todo: move into handle struct */
 typedef struct _wasapi_state_struct {
@@ -105,6 +102,16 @@ typedef struct _wasapi_userptr {
   LPCWSTR pwstrId;
 } wasapi_userptr;
 
+static HRESULT coinit;
+static int tryinit(){
+  coinit = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+  return !(coinit == S_OK || coinit == S_FALSE);
+}
+static void tryuninit(){
+  if(coinit == S_OK || coinit == S_FALSE)
+    CoUninitialize();
+}
+
 /* setup endpoints */
 static int open_win32(out123_handle *ao){
   HRESULT hr = 0;
@@ -123,7 +130,8 @@ static int open_win32(out123_handle *ao){
   state->renderMode = AUDCLNT_SHAREMODE_SHARED;
   state->is_EventMode = 1;
 
-  CoInitializeEx(NULL, COINIT_MULTITHREADED);
+  if(tryinit())
+    return -1; /* failed to init COM system */
 
   hr = CoCreateInstance(&mpg123_CLSID_IMMDeviceEnumerator,NULL,CLSCTX_ALL, &mpg123_IID_IMMDeviceEnumerator,(void**)&state->pEnumerator);
   debug("CoCreateInstance");
@@ -525,7 +533,7 @@ static int close_win32(out123_handle *ao)
   if(state->hTask) AvRevertMmThreadCharacteristics(state->hTask);
   if(state->pEnumerator) IMMDeviceEnumerator_Release(state->pEnumerator);
   if(state->pDevice) IMMDevice_Release(state->pDevice);
-  CoUninitialize();
+  tryuninit();
   free(state);
   ao->userptr = NULL;
   return 0;
@@ -545,7 +553,8 @@ static int enumerate_win32(int (*store_device)(void *devlist
 	IMMDevice *pDevice = NULL;
 	PROPVARIANT varName;
 
-	CoInitializeEx(NULL, COINIT_MULTITHREADED);
+	if(tryinit())
+		return -1;
 
 	hr = CoCreateInstance(&mpg123_CLSID_IMMDeviceEnumerator,NULL,CLSCTX_ALL, &mpg123_IID_IMMDeviceEnumerator,(void**)&pEnumerator);
 	if(FAILED(hr) || pEnumerator == NULL) goto Exit;
@@ -596,7 +605,7 @@ static int enumerate_win32(int (*store_device)(void *devlist
 
 	IMMDeviceCollection_Release(pCollection);
 	IMMDeviceEnumerator_Release(pEnumerator);
-	CoUninitialize();
+	tryuninit();
         return 0;
 
 	Exit:
@@ -607,7 +616,7 @@ static int enumerate_win32(int (*store_device)(void *devlist
 	if(pDevice) IMMDeviceEnumerator_Release(pDevice);
 	if(pCollection) IMMDeviceCollection_Release(pCollection);
 	if(pEnumerator) IMMDeviceEnumerator_Release(pEnumerator);
-	CoUninitialize();
+	tryuninit();
 	return -1;
 }
 
