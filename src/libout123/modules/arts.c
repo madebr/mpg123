@@ -67,7 +67,7 @@ static void flush_arts(out123_handle *ao)
   /* aRts doesn't have a flush statement! */
 }
 
-static int deinit_arts(out123_handle* ao)
+static void deinit_arts(out123_handle* ao)
 {
 	if(ao->userptr)
 	{
@@ -75,7 +75,6 @@ static int deinit_arts(out123_handle* ao)
 		ao->userptr = NULL;
 	}
 	arts_free();
-	return 0;
 }
 
 static int init_arts(out123_handle* ao)

@@ -126,7 +126,7 @@ static int close_tinyalsa(out123_handle *ao)
 }
 
 
-static int deinit_tinyalsa(out123_handle* ao)
+static void deinit_tinyalsa(out123_handle* ao)
 {
 	mpg123_tinyalsa_t* ta = (mpg123_tinyalsa_t*)ao->userptr;
 
@@ -139,9 +139,6 @@ static int deinit_tinyalsa(out123_handle* ao)
                 free( ao->userptr );
                 ao->userptr = NULL;
         }
-
-        /* Success */
-        return 0;
 }
 
 

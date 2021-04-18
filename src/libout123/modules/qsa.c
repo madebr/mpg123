@@ -238,11 +238,6 @@ static int close_qsa(out123_handle* ao)
     return TRUE;
 }
 
-static int deinit_qsa(out123_handle* ao)
-{
-    return TRUE;
-}
-
 static int init_qsa(out123_handle* ao)
 {
     if (ao==NULL) return -1;
@@ -253,7 +248,6 @@ static int init_qsa(out123_handle* ao)
     ao->write = write_qsa;
     ao->get_formats = get_formats_qsa;
     ao->close = close_qsa;
-    ao->deinit = deinit_qsa;
 
     /* Success */
     return 0;

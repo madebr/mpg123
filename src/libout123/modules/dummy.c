@@ -43,10 +43,9 @@ static int close_dummy(out123_handle *ao)
 	return 0;
 }
 
-static int deinit_dummy(out123_handle *ao)
+static void deinit_dummy(out123_handle *ao)
 {
 	debug("deinit_dummy()");
-	return 0;
 }
 
 static int enumerate_dummy(int (*store_device)(void *devlist

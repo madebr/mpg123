@@ -145,7 +145,7 @@ static void flush_openal(out123_handle *ao)
 	}
 }
 
-static int deinit_openal(out123_handle* ao)
+static void deinit_openal(out123_handle* ao)
 {
 	/* Free up memory */
 	if(ao->userptr)
@@ -153,9 +153,6 @@ static int deinit_openal(out123_handle* ao)
 		free( ao->userptr );
 		ao->userptr = NULL;
 	}
-
-	/* Success */
-	return 0;
 }
 
 static int init_openal(out123_handle* ao)

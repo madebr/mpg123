@@ -619,6 +619,10 @@ static int enumerate_win32(int (*store_device)(void *devlist
 	tryuninit();
 	return -1;
 }
+static void deinit_win32(out123_handle* ao)
+{
+	/* Deinitialize things from init_win32(). */
+}
 
 static int init_win32(out123_handle* ao){
     debug1("%s",__FUNCTION__);

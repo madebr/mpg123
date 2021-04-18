@@ -379,16 +379,13 @@ static void flush_coreaudio(out123_handle *ao)
 	sfifo_flush( &ca->fifo );	
 }
 
-static int deinit_coreaudio(out123_handle* ao)
+static void deinit_coreaudio(out123_handle* ao)
 {
 	/* Free up memory */
 	if (ao->userptr) {
 		free( ao->userptr );
 		ao->userptr = NULL;
 	}
-
-	/* Success */
-	return 0;
 }
 
 static int init_coreaudio(out123_handle* ao)

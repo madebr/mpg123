@@ -256,7 +256,7 @@ static void flush_portaudio(out123_handle *ao)
 }
 
 
-static int deinit_portaudio(out123_handle* ao)
+static void deinit_portaudio(out123_handle* ao)
 {
 	/* Free up memory */
 	if (ao->userptr) {
@@ -266,9 +266,6 @@ static int deinit_portaudio(out123_handle* ao)
 
 	/* Shut down PortAudio */
 	Pa_Terminate();
-
-	/* Success */
-	return 0;
 }
 
 

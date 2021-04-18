@@ -3,6 +3,7 @@
 	  the enum variants unless MPG123_ENUM_API is defined
 	- added out123_devices()
 	- added out123_stringlists_free()
+	- module API version 3 with enumeration and void deinit()
 
 3.0.3
 	- added out123_free()
