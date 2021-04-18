@@ -354,7 +354,7 @@ static int enumerate_win32(int (*store_device)(void *devlist
     memset(id, 0, sizeof(id));
     memset(&caps, 0, sizeof(caps));
     mr = waveOutGetDevCaps(i, &caps, sizeof(caps));
-    mdebug("waveOutGetDevCaps mr %x", mr)
+    mdebug("waveOutGetDevCaps mr %x", mr);
     snprintf(id, sizeof(id) - 1, "%u", i);
     store_device(devlist, id, caps.szPname);
   }
