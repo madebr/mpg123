@@ -468,11 +468,8 @@ static void list_output_devices(void)
 		printf("Devices for output module %s:\n", real_driver);
 		for(int i=0; i<count; ++i)
 		{
-			if(stdout_is_term)
-			{
-				stringsafe(names[i]);
-				stringsafe(descr[i]);
-			}
+			stringsafe(names[i]);
+			stringsafe(descr[i]);
 			fprintf(stdout, "%s", names[i]);
 			printf("\t");
 			fprintf(stdout, "%s", descr[i]);
