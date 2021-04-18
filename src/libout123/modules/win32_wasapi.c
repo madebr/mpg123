@@ -9,6 +9,7 @@
 #define _WIN32_WINNT 0x601
 #define COBJMACROS 1
 #include "out123_int.h"
+#include <inttypes.h>
 #include <initguid.h>
 #include <audioclient.h>
 #include <mmdeviceapi.h>
@@ -117,22 +118,22 @@ static int open_win32(out123_handle *ao){
   state->is_EventMode = 1;
 
   hr = CoCreateInstance(&mpg123_CLSID_IMMDeviceEnumerator,NULL,CLSCTX_ALL, &mpg123_IID_IMMDeviceEnumerator,(void**)&state->pEnumerator);
-  debug("CoCreateInstance");
+  mdebug("CoCreateInstance %x", hr);
   EXIT_ON_ERROR(hr)
 
   if (ao->device) {
     devlen = win32_utf8_wide(ao->device, &device, NULL);
     if(device && devlen > 0) {
       hr = IMMDeviceEnumerator_GetDevice(state->pEnumerator, device, &state->pDevice);
-      debug("IMMDeviceEnumerator_GetDevice");
+      mdebug("IMMDeviceEnumerator_GetDevice %x", hr);
       free(device);
     } else {
       debug("IMMDeviceEnumerator_GetDevice convert fail");
-      return 1;
+      return -1;
     }
   } else {
     hr = IMMDeviceEnumerator_GetDefaultAudioEndpoint(state->pEnumerator,eRender, eConsole, &state->pDevice);
-    debug("IMMDeviceEnumerator_GetDefaultAudioEndpoint");
+    mdebug("IMMDeviceEnumerator_GetDefaultAudioEndpoint %x", hr);
   }
   EXIT_ON_ERROR(hr)
 
@@ -144,27 +145,14 @@ static int open_win32(out123_handle *ao){
 
   return 0;
   Exit:
-  debug2("%s failed with %lx", __FUNCTION__, hr);
+  mdebug("%s failed with %lx", __FUNCTION__, hr);
   return 1;
 }
-
-/*
-  typedef struct tWAVEFORMATEX {
-    WORD wFormatTag;
-    WORD nChannels;
-    DWORD nSamplesPerSec;
-    DWORD nAvgBytesPerSec;
-    WORD nBlockAlign;
-    WORD wBitsPerSample;
-    WORD cbSize;
-
-  } WAVEFORMATEX;
-*/
 
 static int formats_generator(const out123_handle * const ao, const int waveformat, WAVEFORMATEX *const format){
   DWORD bytes_per_sample = 0;
   WORD tag = WAVE_FORMAT_PCM;
-  debug1("%s",__FUNCTION__);
+  mdebug("%s",__FUNCTION__);
   int ret = waveformat;
   switch(waveformat){
     case MPG123_ENC_ULAW_8:
@@ -191,7 +179,7 @@ static int formats_generator(const out123_handle * const ao, const int waveforma
       bytes_per_sample = 3;
       break;
     default:
-      debug1("uh oh unknown %d",waveformat);
+      mdebug("uh oh unknown %x",waveformat);
       ret = 0;
       break;
   }
@@ -227,35 +215,35 @@ static int get_formats_win32(out123_handle *ao){
   HRESULT hr;
   WAVEFORMATEX wf, *pClosestMatch = NULL;
   int ret = 0, i;
-  debug1("%s",__FUNCTION__);
+  mdebug("%s",__FUNCTION__);
 
   if(!ao || !ao->userptr) return -1;
   wasapi_state_struct *state = (wasapi_state_struct *) ao->userptr;
-  debug3("format %lx, channels %d, rate %ld",ao->format, ao->channels, ao->rate);
+  mdebug("format %lx, channels %d, rate %ld",ao->format, ao->channels, ao->rate);
 
   for(i = 0; known_formats[i].name; i++) {
     if(ao->format & known_formats[i].format) {
       formats_generator(ao, known_formats[i].format, &wf);
       if((hr = IAudioClient_IsFormatSupported(state->pAudioClient, state->renderMode, &wf, &pClosestMatch)) == S_OK) {
-        debug2("OK format %s rate %ld supported", known_formats[i].name, ao->rate);
+        mdebug("OK format %s rate %ld supported", known_formats[i].name, ao->rate);
         ret |= known_formats[i].format;
       } else {
         if(hr & AUDCLNT_E_UNSUPPORTED_FORMAT) debug2("format %s rate %ld not supported", known_formats[i].name, ao->rate);
         if(pClosestMatch) {
-          debug1("Suggested: wFormatTag %x", pClosestMatch->wFormatTag);
-          debug1("Suggested: nChannels %u",  pClosestMatch->nChannels);
-          debug1("Suggested: nSamplesPerSec %lu", pClosestMatch->nSamplesPerSec);
-          debug1("Suggested: nAvgBytesPerSec %lu", pClosestMatch->nAvgBytesPerSec);
-          debug1("Suggested: nBlockAlign %u", pClosestMatch->nBlockAlign);
-          debug1("Suggested: wBitsPerSample %u", pClosestMatch->wBitsPerSample);
-          debug1("Suggested: cbSize %u", pClosestMatch->cbSize);
+          mdebug("Suggested: wFormatTag %x", pClosestMatch->wFormatTag);
+          mdebug("Suggested: nChannels %u",  pClosestMatch->nChannels);
+          mdebug("Suggested: nSamplesPerSec %lu", pClosestMatch->nSamplesPerSec);
+          mdebug("Suggested: nAvgBytesPerSec %lu", pClosestMatch->nAvgBytesPerSec);
+          mdebug("Suggested: nBlockAlign %u", pClosestMatch->nBlockAlign);
+          mdebug("Suggested: wBitsPerSample %u", pClosestMatch->wBitsPerSample);
+          mdebug("Suggested: cbSize %u", pClosestMatch->cbSize);
         }
       }
       if(pClosestMatch) CoTaskMemFree(pClosestMatch);
       pClosestMatch = NULL;
     }
   }
-  debug3("supported format %lx, channels %d, rate %ld",ret, ao->channels, ao->rate);
+  mdebug("supported format %lx, channels %d, rate %ld",ret, ao->channels, ao->rate);
 
   return ret; /* afaik only 16bit 44.1kHz/48kHz has been known to work */
 }
@@ -265,17 +253,17 @@ static int write_init(out123_handle *ao){
   HRESULT hr;
   double offset = 0.5;
 
-  debug1("%s",__FUNCTION__);
+  mdebug("%s",__FUNCTION__);
   if(!ao || !ao->userptr) return -1;
   wasapi_state_struct *state = (wasapi_state_struct *) ao->userptr;
 
   WAVEFORMATEX s16;
   formats_generator(ao,ao->format,&s16);
   state->framesize = s16.nBlockAlign;
-  debug1("block size %ld", state->framesize);
+  mdebug("block size %ld", state->framesize);
   /* cargo cult code */
   hr = IAudioClient_GetDevicePeriod(state->pAudioClient,NULL, &state->hnsRequestedDuration);
-  debug1("IAudioClient_GetDevicePeriod %x", hr);
+  mdebug("IAudioClient_GetDevicePeriod %x", hr);
   reinit:
   hr = IAudioClient_Initialize(state->pAudioClient,
                        state->renderMode,
@@ -284,7 +272,7 @@ static int write_init(out123_handle *ao){
                        state->renderMode == AUDCLNT_SHAREMODE_EXCLUSIVE ? state->hnsRequestedDuration : 0,
                        &s16,
                        NULL);
-  debug1("IAudioClient_Initialize %x", hr);
+  mdebug("IAudioClient_Initialize %x", hr);
   if(hr == AUDCLNT_E_DEVICE_IN_USE){
     debug("AUDCLNT_SHAREMODE_EXCLUSIVE not possible, another application is using IAudioClient");
   }
@@ -301,29 +289,29 @@ static int write_init(out123_handle *ao){
 	hr = IMMDeviceActivator_Activate(state->pDevice,
                   &mpg123_IID_IAudioClient, CLSCTX_ALL,
                   NULL, (void**)&state->pAudioClient);
-    debug1("IMMDeviceActivator_Activate %x", hr);
+    mdebug("IMMDeviceActivator_Activate %x", hr);
     goto reinit;
   }
   EXIT_ON_ERROR(hr)
   hr = IAudioClient_GetService(state->pAudioClient,
                         &mpg123_IID_IAudioRenderClient,
                         (void**)&state->pRenderClient);
-  debug1("IAudioClient_GetService %x", hr);
+  mdebug("IAudioClient_GetService %x", hr);
   EXIT_ON_ERROR(hr)
   if (state->is_EventMode) {
     state->hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-    debug1("CreateEvent %p", state->hEvent);
+    mdebug("CreateEvent %p", state->hEvent);
     if(!state->hEvent) goto Exit;
     hr = IAudioClient_SetEventHandle(state->pAudioClient,state->hEvent);
-    debug1("IAudioClient_SetEventHandle %x", hr);
+    mdebug("IAudioClient_SetEventHandle %x", hr);
     EXIT_ON_ERROR(hr);
   }
   hr = IAudioClient_GetBufferSize(state->pAudioClient,&state->bufferFrameCount);
-  debug1("IAudioClient_GetBufferSize %x", hr);
+  mdebug("IAudioClient_GetBufferSize %x", hr);
   EXIT_ON_ERROR(hr)
   return 0;
 Exit:
-  debug2("%s failed with %lx", __FUNCTION__, hr);
+  mdebug("%s failed with %lx", __FUNCTION__, hr);
   return 1;
 }
 
@@ -333,16 +321,16 @@ static HRESULT play_init(out123_handle *ao){
   if(!ao || !ao->userptr) return -1;
   wasapi_state_struct *state = (wasapi_state_struct *) ao->userptr;
   if(!state->is_playing){
-    debug1("%s",__FUNCTION__);
+    mdebug("%s",__FUNCTION__);
     state->hTask = AvSetMmThreadCharacteristicsW(L"Pro Audio", &state->taskIndex);
     hr = IAudioClient_Start(state->pAudioClient);
-    state->is_playing = 1;
-    debug("IAudioClient_Start");
+    mdebug("IAudioClient_Start %x", hr);
     EXIT_ON_ERROR(hr)
-    }
+    state->is_playing = 1;
+  }
   return hr;
 Exit:
-  debug2("%s failed with %lx", __FUNCTION__, hr);
+  mdebug("%s failed with %lx", __FUNCTION__, hr);
   return hr;
 }
 
@@ -351,13 +339,13 @@ static int write_win32(out123_handle *ao, unsigned char *buf, int len){
   HRESULT hr;
   UINT32 numFramesPadding = 0;
   size_t to_copy = 0;
-  debug1("%s",__FUNCTION__);
+  mdebug("%s",__FUNCTION__);
   if(!ao || !ao->userptr) return -1;
   wasapi_state_struct *state = (wasapi_state_struct *) ao->userptr;
   if(!len) return 0;
   if(!state->pRenderClient) write_init(ao);
   size_t frames_in = len/state->framesize; /* Frames in buf, is framesize even correct? */
-  debug("mode entered");
+  mdebug("%s mode entered", state->is_EventMode ? "Event" : "Push");
 
   if(state->is_EventMode) {
     /* Event mode WASAPI */
@@ -367,31 +355,31 @@ feed_again_event:
     if(!state->pData){
       /* Acquire buffer */
       hr = IAudioClient_GetCurrentPadding(state->pAudioClient,&numFramesPadding);
-      debug1("IAudioClient_GetCurrentPadding %x", hr);
+      mdebug("IAudioClient_GetCurrentPadding %x", hr);
       EXIT_ON_ERROR(hr)
 
       state->numFramesAvailable = state->bufferFrameCount - numFramesPadding;
 
       hr = IAudioRenderClient_GetBuffer(state->pRenderClient, state->numFramesAvailable, &state->pData);
-      debug2("IAudioRenderClient_GetBuffer %lu %x", state->numFramesAvailable, hr);
+      mdebug("IAudioRenderClient_GetBuffer %lu %x", state->numFramesAvailable, hr);
       EXIT_ON_ERROR(hr)
     }
     if(frames_in){ /* Did we get half a frame?? non-zero len smaller than framesize? */
       /* We must put in exactly the amount of frames specified by IAudioRenderClient_GetBuffer */
-      debug3("frames_in %I64u, state->pData_off %u, numFramesAvailable %u", frames_in, state->pData_off, state->numFramesAvailable);
+      mdebug("frames_in %"PRIu64", state->pData_off %u, numFramesAvailable %u", frames_in, state->pData_off, state->numFramesAvailable);
       while(state->pData_off < state->numFramesAvailable){
         to_copy = state->numFramesAvailable - state->pData_off;
-        debug3("pData_off %I64d, numFramesAvailable %d, to_copy %I64d", state->pData_off, state->numFramesAvailable, to_copy);
+        mdebug("pData_off %"PRId64", numFramesAvailable %d, to_copy %"PRIu64, state->pData_off, state->numFramesAvailable, to_copy);
         if(to_copy > frames_in){
           /* buf can fit in provided buffer space */
-          debug1("all buffers copied, %I64d", frames_in);
+          mdebug("all buffers copied, %"PRIu64, frames_in);
           memcpy(state->pData+state->pData_off*state->framesize,buf,state->framesize*(frames_in));
           state->pData_off += frames_in;
           frames_in = 0;
           break;
         } else {
           /* buf too big, needs spliting */
-          debug1("partial buffers %I64d", to_copy);
+          mdebug("partial buffers %"PRIu64, to_copy);
           memcpy(state->pData+state->pData_off*state->framesize,buf,state->framesize*(to_copy));
           state->pData_off += to_copy;
           buf+=(to_copy*state->framesize);
@@ -403,7 +391,7 @@ feed_again_event:
       /* In case we ever get half a frame, is it possible? */
       flag = AUDCLNT_BUFFERFLAGS_SILENT;
     }
-    debug2("Copied %I64d, left %I64d", state->pData_off, frames_in);
+    mdebug("Copied %"PRIu64", left %"PRIu64, state->pData_off, frames_in);
     if(state->pData_off == state->numFramesAvailable) {
       /* Tell IAudioRenderClient that buffer is filled and released */
       hr = IAudioRenderClient_ReleaseBuffer(state->pRenderClient,state->pData_off, flag);
@@ -427,18 +415,18 @@ feed_again_event:
     if(frames_in > 0)
       goto feed_again_event;
   } else { /* PUSH mode code */
-      debug3("block size %ld, %d len, %u number of frames", state->framesize, len, frames_in);
+      mdebug("block size %"PRIu64", %d len, %"PRIu64" number of frames", state->framesize, len, frames_in);
 feed_again_push:
       /* How much buffer do we get to use? */
       hr = IAudioClient_GetBufferSize(state->pAudioClient,&state->bufferFrameCount);
-      debug("IAudioClient_GetBufferSize");
+      mdebug("IAudioClient_GetBufferSize %x", hr);
       EXIT_ON_ERROR(hr)
       hr = IAudioClient_GetCurrentPadding(state->pAudioClient,&numFramesPadding);
-      debug("IAudioClient_GetCurrentPadding");
+      mdebug("IAudioClient_GetCurrentPadding %x", hr);
       EXIT_ON_ERROR(hr)
       /* How much buffer is writable at the moment? */
       state->numFramesAvailable = state->bufferFrameCount - numFramesPadding;
-      debug3("numFramesAvailable %d, bufferFrameCount %d, numFramesPadding %d", state->numFramesAvailable, state->bufferFrameCount, numFramesPadding);
+      mdebug("numFramesAvailable %d, bufferFrameCount %d, numFramesPadding %d", state->numFramesAvailable, state->bufferFrameCount, numFramesPadding);
 
       if(state->numFramesAvailable > frames_in){
         /* can fit all frames now */
@@ -452,7 +440,7 @@ feed_again_push:
 
       /* Acquire buffer */
       hr = IAudioRenderClient_GetBuffer(state->pRenderClient, to_copy, &state->pData);
-      debug1("IAudioRenderClient_GetBuffer %lu frames", to_copy);
+      mdebug("IAudioRenderClient_GetBuffer %"PRIu64" frames", to_copy);
       EXIT_ON_ERROR(hr)
 
       /* Copy buffer */
@@ -460,7 +448,7 @@ feed_again_push:
 
       /* Release buffer */
       hr = IAudioRenderClient_ReleaseBuffer(state->pRenderClient, to_copy, 0);
-      debug("IAudioRenderClient_ReleaseBuffer");
+      mdebug("IAudioRenderClient_ReleaseBuffer %x", hr);
 
       EXIT_ON_ERROR(hr)
       if(!state->is_playing){
@@ -470,20 +458,20 @@ feed_again_push:
       frames_in -= to_copy;
       /* Wait sometime for buffer to empty? */
       DWORD sleeptime = ((double)REFTIMES_PER_SEC) * to_copy / ao->rate / REFTIMES_PER_MILLISEC / 2;
-      debug1("Sleeping %ld msec", sleeptime);
+      mdebug("Sleeping %ld msec", sleeptime);
       Sleep(sleeptime);
       if (frames_in > 0)
         goto feed_again_push;
   }
   return len;
 Exit:
-  debug2("%s failed with %lx", __FUNCTION__, hr);
+  mdebug("%s failed with %lx", __FUNCTION__, hr);
   return -1;
 }
 
 static void flush_win32(out123_handle *ao){
   /* Wait for the last buffer to play before stopping. */
-  debug1("%s",__FUNCTION__);
+  mdebug("%s",__FUNCTION__);
   if(!ao || !ao->userptr) return;
   wasapi_state_struct *state = (wasapi_state_struct *) ao->userptr;
   HRESULT hr;
@@ -495,12 +483,12 @@ static void flush_win32(out123_handle *ao){
   EXIT_ON_ERROR(hr)
   return;
   Exit:
-  debug2("%s IAudioClient_Stop with %lx", __FUNCTION__, hr);
+  mdebug("%s IAudioClient_Stop with %lx", __FUNCTION__, hr);
 }
 
 static int close_win32(out123_handle *ao)
 {
-  debug1("%s",__FUNCTION__);
+  mdebug("%s",__FUNCTION__);
   if(!ao || !ao->userptr) return -1;
   wasapi_state_struct *state = (wasapi_state_struct *) ao->userptr;
   if(state->is_EventMode && state->pData){
@@ -604,11 +592,11 @@ static void deinit_win32(out123_handle* ao)
 
 static int init_win32(out123_handle* ao){
 	HRESULT hr;
-	debug1("%s",__FUNCTION__);
+	mdebug("%s",__FUNCTION__);
 	if(!ao) return -1;
 
 	hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
-	mdebug("CoInitializeEx %u", hr);
+	mdebug("CoInitializeEx %x", hr);
 	if(!(hr == S_OK || hr == S_FALSE))
 		return -1;
 
