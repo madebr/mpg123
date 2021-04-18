@@ -102,6 +102,12 @@ extern "C" {
  *
  *  There are other functions for specific needs, but the basic idea should be
  *  covered by the above.
+ *
+ *  Note that the driver modules that bind to the operating system API for
+ *  output might impose restrictions on what you can safely do regarding your
+ *  out123_handle and multiple threads or processes. You should be on the safe
+ *  side ensuring that you confine usage of a handle to a single thread instead
+ *  of passing it around.
  @{
  */
 
