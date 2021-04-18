@@ -72,7 +72,7 @@ struct out123_struct
 	int (*close)(out123_handle *);
 	void (*deinit)(out123_handle *);
 	// Enumerate the available devices, if possible. NULL pointer if module doesn't support this.
-	int (*enumerate)(int (*store_device)(void *devlist
+	int (*enumerate)(out123_handle *, int (*store_device)(void *devlist
 	,	const char *name, const char *description), void *devlist);
 
 	/* the loaded that has set the above */

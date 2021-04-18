@@ -277,6 +277,36 @@ static int close_alsa(out123_handle *ao)
 	else return 0;
 }
 
+static int enumerate_alsa( out123_handle *ao, int (*store_device)(void *devlist
+,	const char *name, const char *description), void *devlist )
+{
+	void ** hints;
+	int ret = snd_device_name_hint(-1, "pcm", &hints);
+	if(ret)
+	{
+		if(!AOQUIET)
+			merror("ALSA device listing failed with code %d.", ret);
+		return -1;
+	}
+	void ** hint = hints;
+	while(!ret && *hint)
+	{
+		char *io = snd_device_name_get_hint(*hint, "IOID");
+		if((io == NULL || !strcmp("Output", io)))
+		{
+			char *name = snd_device_name_get_hint(*hint, "NAME");
+			char *desc = snd_device_name_get_hint(*hint, "DESC");
+			ret = store_device(devlist, name, desc);
+			free(name);
+			free(desc);
+		}
+		free(io);
+		++hint;
+	}
+	snd_device_name_free_hint(hints);
+	return 0;
+}
+
 static int init_alsa(out123_handle* ao)
 {
 	if (ao==NULL) return -1;
@@ -288,13 +318,11 @@ static int init_alsa(out123_handle* ao)
 	ao->write = write_alsa;
 	ao->get_formats = get_formats_alsa;
 	ao->close = close_alsa;
+	ao->enumerate = enumerate_alsa;
 
 	/* Success */
 	return 0;
 }
-
-
-
 /* 
 	Module information data structure
 */

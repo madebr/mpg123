@@ -48,7 +48,7 @@ static void deinit_dummy(out123_handle *ao)
 	debug("deinit_dummy()");
 }
 
-static int enumerate_dummy(int (*store_device)(void *devlist
+static int enumerate_dummy( out123_handle *ao, int (*store_device)(void *devlist
 ,	const char *name, const char *description), void *devlist)
 {
 	if(store_device(devlist, "foo", "some dummy device"))

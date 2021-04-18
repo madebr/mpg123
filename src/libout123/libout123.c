@@ -1118,7 +1118,7 @@ int out123_devices( out123_handle *ao, const char *driver, char ***names, char *
 
 	if(!ret && ao->enumerate)
 	{
-		ao->enumerate(devlist_add, &dl);
+		ao->enumerate(ao, devlist_add, &dl);
 		ret = dl.count;
 		if(names)
 		{
