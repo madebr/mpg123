@@ -26,6 +26,8 @@ device names and descriptions.
    position after hitting the end of playlist. Makes scripts/conplay
    go to back to the beginning again (regression in 1.24.0, bug 250).
 -- Added --list-devices.
+- Updated debugging/warning/error message macros to include the function
+  name.
 
 1.26.5
 ------
