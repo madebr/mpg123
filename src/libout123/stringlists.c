@@ -13,8 +13,17 @@
 #include "compat.h"
 #include "out123.h"
 
+static char* always_strdup(const char *in)
+{
+	char *out = in ? compat_strdup(in) : malloc(1);
+	if(!in && out)
+		out[0] = 0;
+	return out;
+}
+
 /* Construction helper for paired string lists.
    Returns 0 on success. */
+// Also converts NULL to empty string for safer use later.
 int stringlists_add( char ***alist, char ***blist
                    , const char *atext, const char *btext, int *count)
 {
