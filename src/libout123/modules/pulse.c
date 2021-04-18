@@ -12,8 +12,12 @@
 #include <stdio.h>
 #include <math.h>
 
+// Using simple API for playback, but now also async API for enumeration.
+// Maybe we should switch to the latter for playback, too, let alone for
+// PA_CONTEXT_NOAUTOSPAWN. Or we hack something only for probing.
 #include <pulse/simple.h>
 #include <pulse/error.h>
+#include <pulse/pulseaudio.h>
 
 #include "debug.h"
 
@@ -162,6 +166,104 @@ static void flush_pulse(out123_handle *ao)
 	}
 }
 
+struct enumerate_data
+{
+	int (*store_device)(void *devlist
+	,	const char *name, const char *description);
+	void *devlist;
+	int ret;
+};
+
+// Device enumeration is apparently not so simple. Seems to need the full API.
+// I paraphrase the usage out of the example at
+//   https://gist.github.com/andrewrk/6470f3786d05999fcb48
+// and assume that the code is in public domain or at least generic enough
+// since it just shows the public API.
+
+static void sinklist_callback( pa_context *c
+,	const pa_sink_info *l, int eol, void *userdata )
+{
+	struct enumerate_data *ed = userdata;
+	if(!eol && !ed->ret)
+		ed->ret = ed->store_device(ed->devlist, l->name, l->description);
+}
+
+static void state_callback(pa_context *c, void *userdata)
+{
+	pa_context_state_t state;
+	int *pa_ready = userdata;
+
+	state = pa_context_get_state(c);
+	switch(state)
+	{
+		case PA_CONTEXT_FAILED:
+		case PA_CONTEXT_TERMINATED:
+			*pa_ready = 2;
+		break;
+		case PA_CONTEXT_READY:
+			*pa_ready = 1;
+		break;
+	}
+}
+
+static int enumerate_pulse( out123_handle *ao, int (*store_device)(void *devlist
+,	const char *name, const char *description), void *devlist )
+{
+	pa_mainloop *pa_ml;
+	pa_mainloop_api *pa_mlapi;
+	pa_operation *pa_op = NULL;
+	pa_context *pa_ctx;
+	int state = 0;
+	int pa_ready = 0;
+	struct enumerate_data ed;
+	ed.store_device = store_device;
+	ed.devlist = devlist;
+	ed.ret = 0;
+
+	pa_ml = pa_mainloop_new();
+	pa_mlapi = pa_mainloop_get_api(pa_ml);
+	pa_ctx = pa_context_new(pa_mlapi, "out123 enumeration");
+	pa_context_connect(pa_ctx, NULL, PA_CONTEXT_NOAUTOSPAWN, NULL);
+	pa_context_set_state_callback(pa_ctx, state_callback, &pa_ready);
+
+	while(state < 2)
+	{
+		if(pa_ready == 0)
+		{
+			pa_mainloop_iterate(pa_ml, 1, NULL);
+			continue;
+		}
+		if(pa_ready == 2)
+		{
+			if(!AOQUIET)
+				error("Querying PulseAudio server failed.");
+			ed.ret = -1;
+			break;
+		}
+		switch(state)
+		{
+			case 0:
+				pa_op = pa_context_get_sink_info_list( pa_ctx,
+				sinklist_callback, &ed );
+				++state;
+			break;
+			case 1:
+				if(pa_operation_get_state(pa_op) == PA_OPERATION_DONE)
+					goto enumerate_end;
+			break;
+		}
+		pa_mainloop_iterate(pa_ml, 1, NULL);
+	}
+
+enumerate_end:
+	if(pa_op)
+		pa_operation_unref(pa_op);
+	pa_context_disconnect(pa_ctx);
+	pa_context_unref(pa_ctx);
+	pa_mainloop_free(pa_ml);
+
+	return ed.ret;
+}
 
 static int init_pulse(out123_handle* ao)
 {
@@ -173,6 +275,7 @@ static int init_pulse(out123_handle* ao)
 	ao->write = write_pulse;
 	ao->get_formats = get_formats_pulse;
 	ao->close = close_pulse;
+	ao->enumerate = enumerate_pulse;
 
 	/* Success */
 	return 0;
