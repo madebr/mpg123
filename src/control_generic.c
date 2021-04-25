@@ -218,6 +218,7 @@ static void generic_sendinfoid3(mpg123_handle *mh)
 		error1("Cannot get ID3 data: %s", mpg123_strerror(mh));
 		return;
 	}
+	generic_sendmsg("I {");
 	if(v1 != NULL)
 	{
 		generic_sendv1(v1, "I");
@@ -231,6 +232,7 @@ static void generic_sendinfoid3(mpg123_handle *mh)
 		generic_send_lines(1, "I ID3v2.comment:%s", v2->comment);
 		generic_send_lines(1, "I ID3v2.genre:%s",   v2->genre);
 	}
+	generic_sendmsg("I }");
 }
 
 void generic_sendalltag(mpg123_handle *mh)
@@ -345,6 +347,8 @@ static void generic_loadlist(mpg123_handle *fr, char *arg)
 		return;
 	}
 
+	generic_sendmsg("I {");
+
 	/* Now got the plain playlist path in arg. On to evil manupulation of mpg123's playlist code. */
 	param.listname = arg;
 	param.listentry = 0; /* The playlist shall not filter. */
@@ -362,6 +366,8 @@ static void generic_loadlist(mpg123_handle *fr, char *arg)
 		generic_sendmsg("I LISTENTRY %li: %s", i, outbuf ? outbuf : "???");
 	}
 	if(!i) generic_sendmsg("I LIST EMPTY");
+
+	generic_sendmsg("I }");
 
 	/* If we have something to play, play it. */
 	if(thefile) generic_load(fr, thefile, MODE_PLAYING);
@@ -402,7 +408,7 @@ int control_generic (mpg123_handle *fr)
 #endif
 	/* the command behaviour is different, so is the ID */
 	/* now also with version for command availability */
-	fprintf(outstream, "@R MPG123 (ThOr) v8\n");
+	fprintf(outstream, "@R MPG123 (ThOr) v9\n");
 #ifdef FIFO
 	if(param.fifo)
 	{

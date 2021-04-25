@@ -31,6 +31,8 @@
 -- Fix --continue output to print track_count+1 as continue
    position after hitting the end of playlist. Makes scripts/conplay
    go to back to the beginning again (regression in 1.24.0, bug 250).
+-- Remote control API version 9 with @I { .. @I } wrapping of ID3 and
+   playlist display.
 -- Added --list-devices.
 - Updated debugging/warning/error message macros to include the function
   name.
