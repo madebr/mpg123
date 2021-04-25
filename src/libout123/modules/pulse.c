@@ -40,6 +40,7 @@ static void state_callback(pa_context *c, void *userdata)
 		case PA_CONTEXT_READY:
 			*pa_ready = 1;
 		break;
+		default: break; // Make -Wall happy.
 	}
 }
 
