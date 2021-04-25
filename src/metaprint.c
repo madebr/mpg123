@@ -19,20 +19,9 @@
 
 #include "metaprint.h"
 
-#ifdef HAVE_WCHAR_H
-#include <wchar.h>
-#endif
-#ifdef HAVE_WCTYPE_H
-#include <wctype.h>
-#endif
-
 #include "debug.h"
 
 int meta_show_lyrics = 0;
-
-static const char joker_symbol = '?';
-static const char *uni_repl = "\xef\xbf\xbd";
-const int uni_repl_len = 3;
 
 /* Metadata name field texts with index enumeration. */
 enum tagcode { TITLE=0, ARTIST, ALBUM, COMMENT, YEAR, GENRE, FIELDS };
@@ -55,20 +44,26 @@ static const int namelen[2] = {7, 6};
 const int overhead[2] = { namelen[0]+2, namelen[1]+4 }; */
 static const int overhead[2] = { 9, 10 };
 
-static void utf8_ascii_print(mpg123_string *dest, mpg123_string *source);
-static void utf8_ascii(mpg123_string *dest, mpg123_string *source);
+static size_t mpg_utf8outstr( mpg123_string *dest, mpg123_string *source
+,	int to_terminal )
+{
+	size_t ret = utf8outstr( &(dest->p), source->fill ? source->p : NULL
+	,	to_terminal );
+	dest->size = dest->fill = dest->p ? strlen(dest->p)+1 : 0;
+	return ret;
+}
 
 // If the given ID3 string is empty, possibly replace it with ID3v1 data.
 static void id3_gap(mpg123_string *dest, int count, char *v1, size_t *len, int is_term)
 {
 	if(dest->fill)
 		return;
-	mpg123_string utf8tmp;
-	mpg123_init_string(&utf8tmp);
+	char *utf8tmp = NULL;
 	// First construct some UTF-8 from the id3v1 data, then run through
 	// the same filter as everything else.
-	*len = unknown2utf8(&utf8tmp, v1, count) == 0 ? utf8outstr(dest, &utf8tmp, is_term) : 0;
-	mpg123_free_string(&utf8tmp);
+	*len = unknown2utf8(&utf8tmp, v1, count) == 0 ? utf8outstr(&(dest->p), utf8tmp, is_term) : 0;
+	dest->size = dest->fill = dest->p ? strlen(dest->p)+1 : 0;
+	free(utf8tmp);
 }
 
 /* Print one metadata entry on a line, aligning the beginning. */
@@ -164,11 +159,11 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out, int linelimit)
 
 	if(v2 != NULL) /* fill from ID3v2 data */
 	{
-		len[TITLE]   = utf8outstr(&tag[TITLE],   v2->title,   is_term);
-		len[ARTIST]  = utf8outstr(&tag[ARTIST],  v2->artist,  is_term);
-		len[ALBUM]   = utf8outstr(&tag[ALBUM],   v2->album,   is_term);
-		len[COMMENT] = utf8outstr(&tag[COMMENT], v2->comment, is_term);
-		len[YEAR]    = utf8outstr(&tag[YEAR],    v2->year,    is_term);
+		len[TITLE]   = mpg_utf8outstr(&tag[TITLE],   v2->title,   is_term);
+		len[ARTIST]  = mpg_utf8outstr(&tag[ARTIST],  v2->artist,  is_term);
+		len[ALBUM]   = mpg_utf8outstr(&tag[ALBUM],   v2->album,   is_term);
+		len[COMMENT] = mpg_utf8outstr(&tag[COMMENT], v2->comment, is_term);
+		len[YEAR]    = mpg_utf8outstr(&tag[YEAR],    v2->year,    is_term);
 	}
 	if(v1 != NULL) /* fill gaps with ID3v1 data */
 	{
@@ -299,7 +294,7 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out, int linelimit)
 		}
 	}
 	// Finally convert to safe output string and get display width.
-	len[GENRE] = utf8outstr(&tag[GENRE], &genretmp, is_term);
+	len[GENRE] = mpg_utf8outstr(&tag[GENRE], &genretmp, is_term);
 	mpg123_free_string(&genretmp);
 
 	if(long_id3)
@@ -372,7 +367,7 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out, int linelimit)
 					while(b < uslt->fill && uslt->p[b] != '\n' && uslt->p[b] != '\r') ++b;
 					/* Either found end of a line or end of the string (null byte) */
 					mpg123_set_substring(&innline, uslt->p, a, b-a);
-					utf8outstr(&outline, &innline, is_term);
+					mpg_utf8outstr(&outline, &innline, is_term);
 					printf(" %s\n", outline.p);
 
 					if(uslt->p[b] == uslt->fill) break; /* nothing more */
@@ -401,364 +396,13 @@ void print_icy(mpg123_handle *mh, FILE *outstream)
 		mpg123_init_string(&in);
 		if(mpg123_store_utf8(&in, mpg123_text_icy, (unsigned char*)icy, strlen(icy)+1))
 		{
-			mpg123_string out;
-			mpg123_init_string(&out);
+			char *out = NULL;
+			utf8outstr(&out, in.p, is_term);
+			if(out)
+				fprintf(outstream, "\nICY-META: %s\n", out);
 
-			utf8outstr(&out, &in, is_term);
-			if(out.fill)
-				fprintf(outstream, "\nICY-META: %s\n", out.p);
-
-			mpg123_free_string(&out);
+			free(out);
 		}
 		mpg123_free_string(&in);
 	}
-}
-
-int unknown2utf8(mpg123_string *dest, const char *source, int len)
-{
-	if(!dest)
-		return -1;
-	dest->fill = 0;
-	if(!source)
-		return 0;
-	size_t count = len < 0 ? strlen(source) : (size_t)len;		
-	// Make a somewhat proper UTF-8 string out of this. Testing for valid
-	// UTF-8 is futile. It will be some unspecified legacy 8-bit encoding.
-	// I am keeping C0 chars, but replace everything above 7 bits with
-	// the Unicode replacement character as most custom 8-bit encodings
-	// placed some symbols into the C1 range, we just don't know which.
-	size_t ulen = 0;
-	for(size_t i=0; i<count; ++i)
-	{
-		unsigned char c = ((unsigned char*)source)[i];
-		if(!c)
-			break;
-		ulen += c >= 0x80 ? uni_repl_len : 1;
-	}
-	++ulen; // trailing zero
-
-	if(!mpg123_grow_string(dest, ulen))
-		return -1;
-
-	unsigned char *p = (unsigned char*)dest->p;
-	for(size_t i=0; i<count; ++i)
-	{
-		unsigned char c = ((unsigned char*)source)[i];
-		if(!c)
-			break;
-		if(c >= 0x80)
-		{
-			for(int r=0; r<uni_repl_len; ++r)
-				*p++ = uni_repl[r];
-		}
-		else
-			*p++ = c;
-	}
-	*p = 0;
-	dest->fill = ulen;
-	return 0;
-}
-
-static void ascii_space(unsigned char *c, int *wasspace)
-{
-	switch(*c)
-	{
-		case '\f':
-		case '\r':
-		case '\n':
-		case '\t':
-		case '\v':
-			if(!*wasspace)
-				*c = ' '; // Will be dropped by < 0x20 check otherwise.
-			*wasspace = 1;
-		break;
-		default:
-			*wasspace = 0;
-	}
-}
-
-// Filter C1 control chars, using c2lead state.
-#define ASCII_C1(c, append) \
-	if(c2lead) \
-	{ \
-		if((c) >= 0x80 && (c) <= 0x9f) \
-		{ \
-			c2lead = 0; \
-			continue; \
-		} \
-		else \
-		{ \
-			append; \
-		} \
-	} \
-	c2lead = ((c) == 0xc2); \
-	if(c2lead) \
-		continue;
-
-static void utf8_ascii_work(mpg123_string *dest, mpg123_string *source
-,	int keep_nonprint)
-{
-	size_t spos = 0;
-	size_t dlen = 0;
-	unsigned char *p;
-
-	// Find length of ASCII string (count non-continuation bytes).
-	// Do _not_ change this to mpg123_strlen()!
-	// It needs to match the loop below. 
-	// No UTF-8 continuation byte 0x10??????, nor control char.
-#define ASCII_PRINT_SOMETHING(c) \
-	(((c) & 0xc0) != 0x80 && (keep_nonprint || ((c) != 0x7f && (c) >= 0x20)))
-	int c2lead = 0;
-	int wasspace = 0;
-	for(spos=0; spos < source->fill; ++spos)
-	{
-		unsigned char c = ((unsigned char*)source->p)[spos];
-		if(!keep_nonprint)
-			ascii_space(&c, &wasspace);
-		ASCII_C1(c, ++dlen);
-		if(ASCII_PRINT_SOMETHING(c))
-			++dlen;
-	}
-	++dlen; // trailing zero
-	// Do nothing with nothing or if allocation fails. Neatly catches overflow
-	// of ++dlen.
-	if(!dlen || !mpg123_resize_string(dest, dlen))
-	{
-		mpg123_free_string(dest);
-		return;
-	}
-
-	p = (unsigned char*)dest->p;
-	c2lead = 0;
-	wasspace = 0;
-	for(spos=0; spos < source->fill; ++spos)
-	{
-		unsigned char c = ((unsigned char*)source->p)[spos];
-		if(!keep_nonprint)
-			ascii_space(&c, &wasspace);
-		ASCII_C1(c, *p++ = joker_symbol)
-		if(!ASCII_PRINT_SOMETHING(c))
-			continue;
-		else if(c & 0x80) // UTF-8 lead byte 0x11??????
-			c = joker_symbol;
-		*p++ = c;
-	}
-#undef ASCII_PRINT_SOMETHING
-	// Always close the string, trailing zero might be missing.
-	if(dest->size)
-		dest->p[dest->size-1] = 0;
-	dest->fill = dest->size;
-}
-
-// Reduce UTF-8 data to 7-bit ASCII, dropping non-printable characters.
-// Non-printable ASCII == everything below 0x20 (space), including
-// line breaks.
-// Also: 0x7f (DEL) and the C1 chars. The C0 and C1 chars should just be
-// dropped, not rendered. Or should they?
-static void utf8_ascii_print(mpg123_string *dest, mpg123_string *source)
-{
-	utf8_ascii_work(dest, source, 0);
-}
-
-// Same as above, but keeping non-printable and control chars in the
-// 7 bit realm.
-static void utf8_ascii(mpg123_string *dest, mpg123_string *source)
-{
-	utf8_ascii_work(dest, source, 1);
-}
-
-size_t utf8outstr(mpg123_string *dest, mpg123_string *source, int to_terminal)
-{
-	if(dest)
-		dest->fill = 0;
-	if(!source || !dest || !source->fill) return 0;
-
-	size_t width = 0;
-
-	if(utf8env)
-	{
-#if defined(HAVE_MBSTOWCS) && defined(HAVE_WCSWIDTH) && \
-    defined(HAVE_ISWPRINT) && defined(HAVE_WCSTOMBS)
-		if(utf8loc && to_terminal)
-		{
-			// Best case scenario: Convert to wide string, filter,
-			// compute printing width.
-			size_t wcharlen = mbstowcs(NULL, source->p, 0);
-			if(wcharlen == (size_t)-1)
-				return 0;
-			if(wcharlen+1 > SIZE_MAX/sizeof(wchar_t))
-				return 0;
-			wchar_t *pre = malloc(sizeof(wchar_t)*(wcharlen+1));
-			wchar_t *flt = malloc(sizeof(wchar_t)*(wcharlen+1));
-			if(!pre || !flt)
-			{
-				free(flt);
-				free(pre);
-				return 0;
-			}
-			if(mbstowcs(pre, source->p, wcharlen+1) == wcharlen)
-			{
-				size_t nwl = 0;
-				int wasspace = 0;
-				for(size_t i=0;  i<wcharlen; ++i)
-				{
-					// Turn any funky space sequence (including line breaks) into
-					// one normal space.
-					if(iswspace(pre[i]) && pre[i] != ' ')
-					{
-						if(!wasspace)
-							flt[nwl++] = ' ';
-						wasspace = 1;
-					} else // Anything non-printing is skipped.
-					{
-						if(iswprint(pre[i]))
-							flt[nwl++] = pre[i];
-						wasspace = 0;
-					}
-				}
-				flt[nwl] = 0;
-				int columns = wcswidth(flt, nwl);
-				size_t bytelen = wcstombs(NULL, flt, 0);
-				if(
-					columns >= 0 && bytelen != (size_t)-1
-					&& mpg123_resize_string(dest, bytelen+1)
-					&& wcstombs(dest->p, flt, dest->size) == bytelen
-				){
-					dest->fill = bytelen+1;
-					width = columns;
-				}
-				else
-					mpg123_free_string(dest);
-			}
-			free(flt);
-			free(pre);
-		}
-		else
-#endif
-		if(to_terminal)
-		{
-			// Only filter C0 and C1 control characters.
-			// That is, 0x01 to 0x19 (keeping 0x20, space) and 0x7f (DEL) to 0x9f.
-			// Since the input and output is UTF-8, we'll keep that intact.
-			// C1 is mapped to 0xc280 till 0xc29f.
-			if(!mpg123_grow_string(dest, source->fill))
-				return 0;
-			dest->fill = 0;
-			int c2lead = 0;
-			int wasspace = 0;
-			unsigned char *p = (unsigned char*)dest->p;
-			for(size_t i=0; i<source->fill; ++i)
-			{
-				unsigned char c = ((unsigned char*)source->p)[i];
-				ascii_space(&c, &wasspace);
-				ASCII_C1(c, *p++ = 0xc2)
-				if(c && c < 0x20)
-					continue; // no C0 control chars, except space
-				if(c == 0x7f)
-					continue; // also no DEL
-				*p++ = c;
-				if(!c)
-					break; // Up to zero is enough.
-				// Assume each 7 bit char and each sequence start make one character.
-				// So only continuation bytes need to be ignored.
-				if((c & 0xc0) != 0x80)
-					++width;
-			}
-			// Make damn sure that it ends.
-			dest->fill = (char*)p - dest->p;
-			dest->p[dest->fill-1] = 0;
-		} else
-		{
-			if(!mpg123_grow_string(dest, source->fill))
-				return 0;
-			dest->fill = 0;
-			unsigned char *p = (unsigned char*)dest->p;
-			for(size_t i=0; i<source->fill; ++i)
-			{
-				unsigned char c = ((unsigned char*)source->p)[i];
-				*p++ = c;
-				if(!c)
-					break; // Up to zero is enough.
-				// Actual width should not matter that much for non-terminal,
-				// as we should use less formatting in that case, but anyway.
-				if((c & 0xc0) != 0x80)
-					++width;
-			}
-			dest->fill = (char*)p - dest->p;
-			dest->p[dest->fill-1] = 0;
-		}
-	} else if(to_terminal)
-	{
-		// Last resort: just printable 7-bit ASCII.
-		utf8_ascii_print(dest, source);
-		width = dest->fill ? dest->fill-1 : 0;
-	} else
-	{
-		utf8_ascii(dest, source);
-		// Width will be possibly very wrong.
-		width = dest->fill ? dest->fill-1 : 0;
-	}
-	return width;
-}
-
-#undef ASCII_C1
-
-// I tried saving some malloc using provided work buffers, but
-// realized that the path of Unicode transformations is so full
-// of them regardless.
-// Can this include all the necessary logic?
-// - If UTF-8 input: Use utf8outstr(), which includes terminal switch.
-// - If not:
-// -- If terminal: construct safe UTF-8, pass on to outstr().
-// -- If not: assume env encoding, unprocessed string that came
-//    from the environment.
-
-int outstr(mpg123_string *dest, char *str, int is_utf8, int is_term)
-{
-	int ret = 0;
-	if(dest)
-		dest->fill = 0;
-	if(!str || !dest)
-		return -1;
-	if(is_utf8 || utf8env)
-	{
-		// Just a structure around the input.
-		mpg123_string src;
-		mpg123_init_string(&src);
-		src.p = str;
-		src.size = src.fill = strlen(str)+1;
-		size_t len = utf8outstr(dest, &src, is_term);
-		if(src.fill > 1 && !len)
-			ret = -1;
-	} else if(is_term)
-	{
-		mpg123_string usrc;
-		mpg123_init_string(&usrc);
-		ret = unknown2utf8(&usrc, str, -1);
-		if(!ret)
-		{
-			size_t len = utf8outstr(dest, &usrc, is_term);
-			if(usrc.fill > 1 && !len)
-				ret = -1;
-		}
-		mpg123_free_string(&usrc);
-	} else
-		ret = mpg123_set_string(dest, str) ? 0 : -1;
-	if(ret)
-		dest->fill = 0;
-	return ret;
-}
-
-int print_outstr(FILE *out, char *str, int is_utf8, int is_term)
-{
-	int ret = 0;
-	if(!str)
-		return -1;
-	mpg123_string outbuf;
-	mpg123_init_string(&outbuf);
-	ret = outstr(&outbuf, str, is_utf8, is_term);
-	if(!ret)
-		ret = fprintf(out, "%s", outbuf.fill ? outbuf.p : "");
-	mpg123_free_string(&outbuf);
-	return ret;
 }

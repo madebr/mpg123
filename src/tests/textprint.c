@@ -9,7 +9,7 @@
 */
 
 #include "mpg123app.h"
-#include "metaprint.h"
+#include "local.h"
 
 // A number of UTF-8 strings to test.
 
@@ -71,13 +71,9 @@ const struct test_string test_input[] =
 
 int main()
 {
-	mpg123_string src;
-	mpg123_string dst;
+	char *dst = NULL;
 	const size_t test_count = sizeof(test_input)/sizeof(*test_input);
 	int err = 0;
-
-	mpg123_init_string(&src);
-	mpg123_init_string(&dst);
 
 	// First, without any locale check, we should work like in C locale.
 	// Only ASCII is safe.
@@ -86,12 +82,16 @@ int main()
 	{
 		int lerr = 0;
 		fprintf(stderr, "string %zu: ", t);
-		mpg123_set_string(&src, test_input[t].in);
-		size_t w = utf8outstr(&dst, &src, 1);
+		size_t w = utf8outstr(&dst, test_input[t].in, 1);
 		size_t l = strlen(test_input[t].ascii);
-		if(w == l)
+		if(!dst)
 		{
-			if(strncmp(test_input[t].ascii, dst.p, dst.fill))
+			++lerr;
+			fprintf(stderr, "(conversion failed) ");
+		}
+		else if(w == l)
+		{
+			if(strcmp(test_input[t].ascii, dst))
 			{
 				++lerr;
 				fprintf(stderr, "(mismatch) ");
@@ -115,12 +115,16 @@ int main()
 	{
 		int lerr = 0;
 		fprintf(stderr, "string %zu: ", t);
-		mpg123_set_string(&src, test_input[t].in);
-		size_t w = utf8outstr(&dst, &src, 1);
+		size_t w = utf8outstr(&dst, test_input[t].in, 1);
 		size_t l = test_input[t].chars;
-		if(w == l)
+		if(!dst)
 		{
-			if(strncmp(test_input[t].utf8hack, dst.p, dst.fill))
+			++lerr;
+			fprintf(stderr, "(conversion failed) ");
+		}
+		else if(w == l)
+		{
+			if(strcmp(test_input[t].utf8hack, dst))
 			{
 				++lerr;
 				fprintf(stderr, "(mismatch) ");
@@ -150,12 +154,16 @@ int main()
 		{
 			int lerr = 0;
 			fprintf(stderr, "string %zu: ", t);
-			mpg123_set_string(&src, test_input[t].in);
-			size_t w = utf8outstr(&dst, &src, 1);
+			size_t w = utf8outstr(&dst, test_input[t].in, 1);
 			size_t l = test_input[t].width;
-			if(w == l)
+			if(!dst)
 			{
-				if(strncmp(test_input[t].utf8full, dst.p, dst.fill))
+				++lerr;
+				fprintf(stderr, "(conversion failed) ");
+			}
+			else if(w == l)
+			{
+				if(strcmp(test_input[t].utf8full, dst))
 				{
 					++lerr;
 					fprintf(stderr, "(mismatch) ");
@@ -170,9 +178,8 @@ int main()
 			fprintf(stderr, "%s\n", lerr ? "FAIL" : "PASS");
 			fprintf(stderr, "non-terminal non-filtering: ");
 			lerr = 0;
-			mpg123_set_string(&dst, "");
-			w = utf8outstr(&dst, &src, 0);
-			if(!dst.fill || strncmp(test_input[t].in, dst.p, dst.fill))
+			w = utf8outstr(&dst, test_input[t].in, 0);
+			if(!dst || strcmp(test_input[t].in, dst))
 				++lerr;
 			err += lerr;
 			fprintf(stderr, "%s\n", lerr ? "FAIL" : "PASS");
@@ -182,8 +189,7 @@ int main()
 #endif
 		fprintf(stderr, "Skipped locale-based conversion\n");
 
-	mpg123_free_string(&dst);
-	mpg123_free_string(&src);
+	free(dst);
 
 	printf("%s\n", err ? "FAIL" : "PASS");
 	return err ? 1 : 0;

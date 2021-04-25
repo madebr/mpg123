@@ -1,7 +1,7 @@
 /*
 	out123: stream data from libmpg123 or libsyn123 to an audio output device
 
-	copyright 1995-2020 by the mpg123 project,
+	copyright 1995-2021 by the mpg123 project,
 	free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 
@@ -443,16 +443,6 @@ static void list_output_modules(void)
 	exit(count >= 0 ? 0 : 1);
 }
 
-static void stringsafe(char *s)
-{
-	size_t l = strlen(s);
-	for(int j = 0; j<l; ++j)
-	{
-		if(s[j] < 20) // covers 127..255, too, via sign
-			s[j] = ' ';
-	}
-}
-
 static void list_output_devices(void)
 {
 	int count = 0;
@@ -462,17 +452,15 @@ static void list_output_devices(void)
 	ao = out123_new();
 	char *real_driver = NULL;
 	count = out123_devices(ao, driver, &names, &descr, &real_driver);
-	fprintf(stderr, "TODO: fix printout of unsafe strings, decide if pulling in libmpg123 is fine for this.\n");
 	if(count >= 0)
 	{
 		printf("Devices for output module %s:\n", real_driver);
 		for(int i=0; i<count; ++i)
 		{
-			stringsafe(names[i]);
-			stringsafe(descr[i]);
-			fprintf(stdout, "%s", names[i]);
+			// Always print like it's a terminal to avoid confusion with extra line breaks.
+			print_outstr(stdout, names[i], 1, 1);
 			printf("\t");
-			fprintf(stdout, "%s", descr[i]);
+			print_outstr(stdout, descr[i], 1, 1);
 			printf("\n");
 		}
 		out123_stringlists_free(names, descr, count);
@@ -1478,6 +1466,7 @@ int main(int sys_argc, char ** sys_argv)
 #if defined(WIN32)
 	_setmode(STDIN_FILENO,  _O_BINARY);
 #endif
+	check_locale();
 
 #if defined (WANT_WIN32_UNICODE)
 	if(win32_cmdline_utf8(&argc, &argv) != 0)

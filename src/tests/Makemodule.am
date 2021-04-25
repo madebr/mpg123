@@ -94,7 +94,6 @@ src_tests_text_LDADD = \
 src_tests_textprint_SOURCES =\
   src/tests/textprint.c \
   src/local.c \
-  src/metaprint.c \
   src/genre.c
 
 src_tests_textprint_LDADD = \

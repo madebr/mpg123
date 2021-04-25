@@ -1445,10 +1445,9 @@ int main(int sys_argc, char ** sys_argv)
 	term_type = getenv("TERM");
 	if(term_type && param.xterm_title)
 	{
-		mpg123_string titlestring;
-		mpg123_init_string(&titlestring);
+		char *titlestring = NULL;
 		outstr(&titlestring, filename, pl_utf8, 1);
-		const char *ts = titlestring.fill ? titlestring.p : "???";
+		const char *ts = titlestring ? titlestring : "???";
 
 		if(!strncmp(term_type,"xterm",5) || !strncmp(term_type,"rxvt",4))
 			fprintf(stderr, "\033]0;%s\007", ts);
@@ -1458,7 +1457,7 @@ int main(int sys_argc, char ** sys_argv)
 			fprintf(stderr, "\033P1.y %s\033\\\033P3.y%s\033\\", ts, ts);
 
 		fflush(stderr); /* Paranoia: will the buffer buffer the escapes? */
-		mpg123_free_string(&titlestring);
+		free(titlestring);
 	}
 }
 #endif

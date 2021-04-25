@@ -397,13 +397,12 @@ static int add_next_file (int argc, char *argv[], int args_utf8)
 								return 1;
 							}
 						}
-						mpg123_string  ptmp;
-						mpg123_init_string(&ptmp);
+						char *ptmp = NULL;
 						outstr(&ptmp, htd.content_type.p, 0, stderr_is_term);
 						error1( "Unknown playlist MIME type %s; maybe "PACKAGE_NAME
 							" can support it in future if you report this to the maintainer."
-						,	ptmp.fill ? ptmp.p : "" );
-						mpg123_free_string(&ptmp);
+						,	PSTR(ptmp) );
+						free(ptmp);
 					}
 					httpdata_free(&htd);
 				}

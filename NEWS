@@ -1,9 +1,6 @@
 1.27.0
 ------
 
-TODO: Decide if out123 gets linked to libmpg123 just for safely printing
-device names and descriptions.
-
 - libmpg123:
 -- Running on precomputed tables now, no need to call
    mpg123_init() anymore. That and mpg123_exit() are both just

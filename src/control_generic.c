@@ -75,11 +75,10 @@ static void generic_sendstr(int is_utf8, const char *fmt, char* str, ...)
 {
 	va_list ap;
 	va_start(ap, str);
-	mpg123_string outbuf;
-	mpg123_init_string(&outbuf);
+	char *outbuf = NULL;
 	outstr(&outbuf, str, is_utf8, out_is_term);
-	generic_sendmsg(fmt, MPGSTR(outbuf), ap);
-	mpg123_free_string(&outbuf);
+	generic_sendmsg(fmt, PSTR(outbuf), ap);
+	free(outbuf);
 	va_end(ap);
 }
 
@@ -89,14 +88,13 @@ static void generic_send2str( int is_utf8, const char *fmt
 {
 	va_list ap;
 	va_start(ap, str2);
-	mpg123_string outbuf[2];
-	mpg123_init_string(outbuf);
-	mpg123_init_string(outbuf+1);
-	outstr(outbuf,   str,  is_utf8, out_is_term);
-	outstr(outbuf+1, str2, is_utf8, out_is_term);
-	generic_sendmsg(fmt, MPGSTR(outbuf[0]), MPGSTR(outbuf[1]), ap);
-	mpg123_free_string(outbuf+1);
-	mpg123_free_string(outbuf);
+	char *outbuf1 = NULL;
+	char *outbuf2 = NULL;
+	outstr(&outbuf1, str,  is_utf8, out_is_term);
+	outstr(&outbuf2, str2, is_utf8, out_is_term);
+	generic_sendmsg(fmt, PSTR(outbuf1), PSTR(outbuf2), ap);
+	free(outbuf2);
+	free(outbuf1);
 	va_end(ap);
 }
 
@@ -106,19 +104,18 @@ static void generic_send3str( int is_utf8, const char *fmt
 {
 	va_list ap;
 	va_start(ap, str3);
-	mpg123_string outbuf[3];
-	mpg123_init_string(outbuf);
-	mpg123_init_string(outbuf+1);
-	mpg123_init_string(outbuf+2);
-	outstr(outbuf,   str,  is_utf8, out_is_term);
-	outstr(outbuf+1, str2, is_utf8, out_is_term);
-	outstr(outbuf+2, str3, is_utf8, out_is_term);
+	char *outbuf1 = NULL;
+	char *outbuf2 = NULL;
+	char *outbuf3 = NULL;
+	outstr(&outbuf1, str,  is_utf8, out_is_term);
+	outstr(&outbuf2, str2, is_utf8, out_is_term);
+	outstr(&outbuf3, str3, is_utf8, out_is_term);
 	generic_sendmsg( fmt
-	,	MPGSTR(outbuf[0]), MPGSTR(outbuf[1]), MPGSTR(outbuf[2])
+	,	PSTR(outbuf1), PSTR(outbuf2), PSTR(outbuf3)
 	,	ap );
-	mpg123_free_string(outbuf+2);
-	mpg123_free_string(outbuf+1);
-	mpg123_free_string(outbuf);
+	free(outbuf3);
+	free(outbuf2);
+	free(outbuf1);
 	va_end(ap);
 }
 
@@ -131,8 +128,7 @@ static void generic_send_lines(int is_utf8, const char* fmt, mpg123_string *inli
 	char *lines = NULL;
 	char *line  = NULL;
 	size_t len = 0;
-	mpg123_string outbuf;
-	mpg123_init_string(&outbuf);
+	char *outbuf = NULL;
 
 	if(inlines != NULL && inlines->fill)
 	{
@@ -155,7 +151,7 @@ static void generic_send_lines(int is_utf8, const char* fmt, mpg123_string *inli
 			{
 				lines[i] = 0;
 				outstr(&outbuf, line, is_utf8, out_is_term);
-				generic_sendmsg(fmt, outbuf.fill ? outbuf.p : "???");
+				generic_sendmsg(fmt, outbuf ? outbuf : "???");
 				line = NULL;
 				lines[i] = save;
 			}
@@ -166,7 +162,7 @@ static void generic_send_lines(int is_utf8, const char* fmt, mpg123_string *inli
 			if(line == NULL) line = lines+i;
 		}
 	}
-	mpg123_free_string(&outbuf);
+	free(outbuf);
 }
 
 void generic_sendstat (mpg123_handle *fr)
@@ -178,13 +174,14 @@ void generic_sendstat (mpg123_handle *fr)
 }
 
 // This is only valid as herlper to generic_sendv1, observe info memory usage!
-static void v1add(mpg123_string *buf, char *info, const char *str, size_t len)
+static void v1add(char *buf[], char *info, const char *str, size_t len)
 {
 	memset(info, 0, len);
 	if(!unknown2utf8(buf, str, len))
 	{
-		outstr(buf+1, buf[0].p, 1, out_is_term);
-		memcpy(info, buf[1].fill ? buf[1].p : "", buf[1].fill >=len ? len : buf[1].fill);
+		outstr(buf+1, buf[0], 1, out_is_term);
+		size_t slen = buf[1] ? strlen(buf[1])+1 : 0;
+		memcpy(info, PSTR(buf[1]), slen >=len ? len : slen);
 	}
 }
 
@@ -192,9 +189,9 @@ static void generic_sendv1(mpg123_id3v1 *v1, const char *prefix)
 {
 	int i;
 	char info[125] = "";
-	mpg123_string buf[2];
-	mpg123_init_string(buf);
-	mpg123_init_string(buf+1);
+	char *buf[2];
+	buf[0] = NULL;
+	buf[1] = NULL;
 
 	v1add(buf, info,    v1->title,   30);
 	v1add(buf, info+30, v1->artist,  30);
@@ -208,8 +205,8 @@ static void generic_sendv1(mpg123_id3v1 *v1, const char *prefix)
 	generic_sendmsg("%s ID3.genre:%i", prefix, v1->genre);
 	if(v1->comment[28] == 0 && v1->comment[29] != 0)
 	generic_sendmsg("%s ID3.track:%i", prefix, (unsigned char)v1->comment[29]);
-	mpg123_free_string(buf+1);
-	mpg123_free_string(buf);
+	free(buf[1]);
+	free(buf[0]);
 }
 
 static void generic_sendinfoid3(mpg123_handle *mh)
@@ -335,8 +332,7 @@ static void generic_loadlist(mpg123_handle *fr, char *arg)
 	long i = 0;
 	char *file = NULL;
 	char *thefile = NULL;
-	mpg123_string outbuf;
-	mpg123_init_string(&outbuf);
+	char *outbuf = NULL;
 
 	/* I feel retarted with string parsing outside Perl. */
 	while(*arg && isspace(*arg)) ++arg;
@@ -363,7 +359,7 @@ static void generic_loadlist(mpg123_handle *fr, char *arg)
 		if(entry == 0 || entry == i) thefile = file;
 
 		outstr(&outbuf, file, pl_utf8, out_is_term);
-		generic_sendmsg("I LISTENTRY %li: %s", i, outbuf.fill ? outbuf.p : "???");
+		generic_sendmsg("I LISTENTRY %li: %s", i, outbuf ? outbuf : "???");
 	}
 	if(!i) generic_sendmsg("I LIST EMPTY");
 
@@ -371,7 +367,7 @@ static void generic_loadlist(mpg123_handle *fr, char *arg)
 	if(thefile) generic_load(fr, thefile, MODE_PLAYING);
 
 	free_playlist(); /* Free memory after it is not needed anymore. */
-	mpg123_free_string(&outbuf);
+	free(outbuf);
 }
 
 int control_generic (mpg123_handle *fr)

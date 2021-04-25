@@ -397,12 +397,11 @@ static int audio_capabilities(out123_handle *ao, mpg123_handle *mh)
 		force_fmt = out123_enc_byname(param.force_encoding);
 		if(!force_fmt)
 		{
-			mpg123_string fs;
-			mpg123_init_string(&fs);
+			char *fs = NULL;
 			outstr(&fs, param.force_encoding, 0, stderr_is_term);
 			error1("Failed to find an encoding to match requested \"%s\"!\n"
-			,	MPGSTR(fs));
-			mpg123_free_string(&fs);
+			,	PSTR(fs));
+			free(fs);
 			return -1; /* No capabilities at all... */
 		}
 		else if(param.verbose > 2)
