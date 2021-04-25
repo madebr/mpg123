@@ -111,6 +111,10 @@ typedef ptrdiff_t ssize_t;
 
 /* A safe realloc also for very old systems where realloc(NULL, size) returns NULL. */
 void *safe_realloc(void *ptr, size_t size);
+// Also freeing ptr if result is NULL. You can do
+// ptr = safer_realloc(ptr, size)
+// Also, ptr = safer_realloc(ptr, 0) will do free(ptr); ptr=NULL;.
+void *safer_realloc(void *ptr, size_t size);
 #ifndef HAVE_STRERROR
 const char *strerror(int errnum);
 #endif

@@ -28,6 +28,16 @@ void *safe_realloc(void *ptr, size_t size)
 	else return realloc(ptr, size);
 }
 
+// A more sensible variant of realloc: It deallocates the original memory if
+// realloc fails or if size zero was requested.
+void *safer_realloc(void *ptr, size_t size)
+{
+	void *nptr = size ? safe_realloc(ptr, size) : NULL;
+	if(!nptr && ptr)
+		free(ptr);
+	return nptr;
+}
+
 #ifndef HAVE_STRERROR
 const char *strerror(int errnum)
 {
