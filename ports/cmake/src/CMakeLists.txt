@@ -373,6 +373,7 @@ if(UNIX)
         "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/sysutil.c"
         "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/getlopt.c"
         "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/filters.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/local.c"
         "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/out123.c")
     target_link_libraries(out123 PRIVATE
         lib${PROJECT_NAME}
