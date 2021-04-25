@@ -20,12 +20,14 @@
 #define DBGPRFX ""
 #endif
 
+#define noop ((void)0)
+
 #ifdef XDEBUG
 #define mxdebug(s, ...) mdebug(s, __VA_ARGS__)
 #define xdebug(s) debug(s)
 #else
-#define mxdebug(s, ...)
-#define xdebug(s)
+#define mxdebug(s, ...) noop
+#define xdebug(s) noop
 #endif
 
 // Used for debugging and warning messages.
@@ -35,7 +37,7 @@
 #ifdef DEBUG
 #define mdebug(s, ...) debug_print("debug", s, __VA_ARGS__)
 #else
-#define mdebug(s, ...) 
+#define mdebug(s, ...) noop
 #endif
 #define debug(s) mdebug("%s", s)
 
@@ -51,7 +53,7 @@
 #ifndef NO_ERRORMSG
 #define merror(s, ...) debug_print("error", s, __VA_ARGS__)
 #else
-#define merror(s, ...) 
+#define merror(s, ...) noop
 #endif
 #define error(s) merror("%s", s)
 
