@@ -43,8 +43,8 @@ int stringlists_add( char ***alist, char ***blist
 		return -1;
 
 	if(
-		(atextcopy = compat_strdup(atext))
-	&&	(btextcopy = compat_strdup(btext))
+		(atextcopy = always_strdup(atext))
+	&&	(btextcopy = always_strdup(btext))
 	)
 	{
 		(*alist)[*count] = atextcopy;
