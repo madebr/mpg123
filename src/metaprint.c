@@ -47,7 +47,7 @@ static const int overhead[2] = { 9, 10 };
 static size_t mpg_utf8outstr( mpg123_string *dest, mpg123_string *source
 ,	int to_terminal )
 {
-	size_t ret = utf8outstr( &(dest->p), source->fill ? source->p : NULL
+	size_t ret = utf8outstr( &(dest->p), (source && source->fill) ? source->p : NULL
 	,	to_terminal );
 	dest->size = dest->fill = dest->p ? strlen(dest->p)+1 : 0;
 	return ret;
