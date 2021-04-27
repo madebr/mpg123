@@ -163,6 +163,9 @@ int term_width(int fd)
 	DWORD handle;
 
 	switch(fd){
+	case STDIN_FILENO:
+		handle = STD_INPUT_HANDLE;
+		break;
 	case STDOUT_FILENO:
 		handle = STD_OUTPUT_HANDLE;
 		break;
