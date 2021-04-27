@@ -63,6 +63,8 @@ typedef struct playlist_struct
 #if defined (WANT_WIN32_SOCKETS)
 	int sockd; /* Is Win32 socket descriptor working? */
 #endif
+	// If the playlist itself or an input file was '-' (stdin not usable for terminal.).
+	int stdin_used;
 } playlist_struct;
 
 /* one global instance... add a pointer to this to every function definition and you have OO-style... */
@@ -157,7 +159,7 @@ char *get_next_file(void)
 		pl.num = pl.pos+1;
 	}
 
-	/* "-" is STDOUT, "" is dumb, NULL is nothing */
+	/* "-" is STDIN, "" is dumb, NULL is nothing */
 	if(newitem != NULL)
 	{
 		/* Remember the playback position of the track. */
@@ -298,6 +300,12 @@ static void init_playlist(void)
 #ifdef WANT_WIN32_SOCKETS
 	pl.sockd = -1;
 #endif
+	pl.stdin_used = FALSE;
+}
+
+int playlist_stdin()
+{
+	return pl.stdin_used;
 }
 
 /*
@@ -349,6 +357,7 @@ static int add_next_file (int argc, char *argv[], int args_utf8)
 			if (!*param.listname || !strcmp(param.listname, "-"))
 			{
 				pl.file = stdin;
+				pl.stdin_used = TRUE;
 				param.listname = NULL;
 				pl.entry = 0;
 			}
@@ -750,6 +759,8 @@ static int add_to_playlist(char* new_entry, char freeit)
 	/* paranoid */
 	if(pl.fill < pl.size)
 	{
+		if(!strcmp(new_entry, "-") || !strcmp(new_entry, "/dev/stdin"))
+			pl.stdin_used = TRUE;
 		pl.list[pl.fill].freeit = freeit;
 		pl.list[pl.fill].url = new_entry;
 		pl.list[pl.fill].playcount = 0;

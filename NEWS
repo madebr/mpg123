@@ -34,6 +34,10 @@
 -- Remote control API version 9 with @I { .. @I } wrapping of ID3 and
    playlist display.
 -- Added --list-devices.
+-- Fix console printout on Windows.
+-- Fix terminal control logic to better handle cases where stdin or
+   stderr is not a terminal, also avoid enabling control if you specify
+   stdin as input file.
 - Updated debugging/warning/error message macros to include the function
   name.
 

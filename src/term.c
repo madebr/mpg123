@@ -20,6 +20,11 @@
 #include "debug.h"
 
 static int term_enable = 0;
+// We can work with the terminal either via stdin or stderr.
+// It can be that only one side is hooked to an interactive terminal.
+// You should be able to pipe terminal control commands (for testing)
+// and still have proper display.
+static int term_fd = -1;
 static struct termios old_tio;
 int seeking = FALSE;
 
@@ -69,6 +74,7 @@ static void term_sigusr(int sig);
 /* This must call only functions safe inside a signal handler. */
 int term_setup(struct termios *pattern)
 {
+	mdebug("setup on fd %d", term_fd);
 	struct termios tio = *pattern;
 
 	/* One might want to use sigaction instead. */
@@ -79,7 +85,7 @@ int term_setup(struct termios *pattern)
 	tio.c_lflag &= ~(ICANON|ECHO); 
 	tio.c_cc[VMIN] = 1;
 	tio.c_cc[VTIME] = 0;
-	return tcsetattr(0,TCSANOW,&tio);
+	return tcsetattr(term_fd,TCSANOW,&tio);
 }
 
 void term_sigcont(int sig)
@@ -119,7 +125,8 @@ void term_init(void)
 
 	term_enable = 0;
 
-	if(tcgetattr(0,&old_tio) < 0)
+	if( tcgetattr(term_fd=STDERR_FILENO,&old_tio) < 0
+		&& tcgetattr(term_fd=STDIN_FILENO,&old_tio) < 0 )
 	{
 		fprintf(stderr,"Can't get terminal attributes\n");
 		return;
@@ -268,10 +275,10 @@ static int get_key(int do_delay, char *val)
 	t.tv_usec=(do_delay) ? 10*1000 : 0;
 
 	FD_ZERO(&r);
-	FD_SET(0,&r);
+	FD_SET(STDIN_FILENO,&r);
 	if(select(1,&r,NULL,NULL,&t) > 0 && FD_ISSET(0,&r))
 	{
-		if(read(0,val,1) <= 0)
+		if(read(STDIN_FILENO,val,1) <= 0)
 		return 0; /* Well, we couldn't read the key, so there is none. */
 		else
 		return 1;
@@ -556,6 +563,7 @@ static void term_handle_input(mpg123_handle *fr, out123_handle *ao, int do_delay
 
 void term_exit(void)
 {
+	mdebug("term_enable=%i", term_enable);
 	const char cursor_restore[] = "\x1b[?25h";
 	/* Bring cursor back. */
 	if(term_have_fun(STDERR_FILENO, param.term_visual))
@@ -563,7 +571,8 @@ void term_exit(void)
 
 	if(!term_enable) return;
 
-	tcsetattr(0,TCSAFLUSH,&old_tio);
+	debug("reset attrbutes");
+	tcsetattr(term_fd,TCSAFLUSH,&old_tio);
 }
 
 #endif

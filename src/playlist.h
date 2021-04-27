@@ -12,6 +12,8 @@
 
 /* create playlist from argv including reading of playlist file */
 void prepare_playlist(int argc, char** argv, int args_utf8, int *is_utf8);
+/* Return TRUE if standard put is used up by the playlist. */
+int playlist_stdin();
 /* returns the next url to play or NULL when there is none left */
 char *get_next_file(void);
 /* Get current track number, optionally the total count and loop counter. */

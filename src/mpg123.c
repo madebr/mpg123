@@ -1097,8 +1097,10 @@ int main(int sys_argc, char ** sys_argv)
 	// Only if both input and output are connected, though. You got strange effects
 	// otherwise, for example mpg123 messing up settings if piping debugging output
 	// to another interactive program.
-	param.term_ctrl = !(term_width(STDIN_FILENO) < 0) &&
+	// Also, the playlist better not reference stdin, fighting with term_control().
+	int term_ctrl_default = !(term_width(STDIN_FILENO) < 0) &&
 		!(term_width(STDERR_FILENO) < 0);
+	param.term_ctrl = MAYBE;
 #endif
 	stderr_is_term = term_width(STDERR_FILENO) >= 0;
 	stdout_is_term = term_width(STDOUT_FILENO) >= 0;
@@ -1322,7 +1324,14 @@ int main(int sys_argc, char ** sys_argv)
 		safe_exit(ret);
 	}
 #ifdef HAVE_TERMIOS
-			term_init();
+	if(param.term_ctrl == MAYBE)
+		param.term_ctrl = (term_ctrl_default && !playlist_stdin());
+	if(param.term_ctrl && playlist_stdin())
+	{
+		error("no terminal control because standard input is being played");
+		param.term_ctrl = FALSE;
+	}
+	term_init();
 #endif
 	if(APPFLAG(MPG123APP_CONTINUE)) frames_left = param.frame_number;
 
