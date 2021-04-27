@@ -1,4 +1,4 @@
-/*
+	/*
 	local: some stuff for localisation, safe terminal printout
 
 	This is about determining if we got UTF-8 locale and
@@ -42,6 +42,12 @@
 #endif
 #ifdef HAVE_WCTYPE_H
 #include <wctype.h>
+#endif
+
+#ifdef WIN32
+#define WIN32_LEAN_AND_MEAN 1
+#include <windows.h>
+#include <wincon.h>
 #endif
 
 #include "debug.h"
@@ -150,6 +156,30 @@ int term_width(int fd)
 	geometry.ws_col = 0;
 	if(ioctl(fd, TIOCGWINSZ, &geometry) >= 0)
 		return (int)geometry.ws_col;
+#else
+#ifdef WIN32
+	CONSOLE_SCREEN_BUFFER_INFO pinfo;
+	HANDLE hStdout;
+	DWORD handle;
+
+	switch(fd){
+	case STDOUT_FILENO:
+		handle = STD_OUTPUT_HANDLE;
+		break;
+	case STDERR_FILENO:
+		handle = STD_ERROR_HANDLE;
+		break;
+	default:
+		return -1;
+	}
+
+	hStdout = GetStdHandle(handle);
+	if(hStdout == INVALID_HANDLE_VALUE || hStdout == NULL)
+		return -1;
+	if(GetConsoleScreenBufferInfo(hStdout, &pinfo)){
+		return pinfo.dwMaximumWindowSize.X;
+	}
+#endif
 #endif
 #endif
 	return -1;
