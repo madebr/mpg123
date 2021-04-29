@@ -1,7 +1,7 @@
 /*
 	coreaudio: audio output on MacOS X
 
-	copyright ?-2020 by the mpg123 project - free software under the terms of the GPL 2
+	copyright ?-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Guillaume Outters
 	modified by Nicholas J Humfrey to use SFIFO code
