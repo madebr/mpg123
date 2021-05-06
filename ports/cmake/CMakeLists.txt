@@ -1,13 +1,14 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(mpg123 VERSION 1.26.0 LANGUAGES C ASM)
+include(cmake/read_api_version.cmake)
+read_api_version(MPG123_VERSION API_VERSION OUTAPI_VERSION SYNAPI_VERSION)
+
+project(mpg123 VERSION ${MPG123_VERSION} LANGUAGES C ASM)
 
 include(cmake/search_libs.cmake)
-include(cmake/read_api_version.cmake)
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
 
-read_api_version(API_VERSION OUTAPI_VERSION SYNAPI_VERSION)
 set(PACKAGE_VERSION ${PROJECT_VERSION})
 add_subdirectory("src")
 
