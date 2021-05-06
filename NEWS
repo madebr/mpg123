@@ -13,6 +13,7 @@
    MPG123_ENUM_API is defined.
 -- Added device enumeration for win32, win32_wasapi, alsa, pulse.
    This increments the output module ABI version to 3.
+-- You can choose output devices now on Windows.
 -- Changed default output module order to put pulse before alsa since
    we now ensure that pulse is not inadvertedly started by the
    autospawn feature. This improves the experience on desktop
