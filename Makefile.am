@@ -74,9 +74,6 @@ EXTRA_DIST += \
   ports/Sony_PSP/README \
   ports/Sony_PSP/Makefile.psp \
   ports/Sony_PSP/readers.c.patch \
-  ports/Xcode/config.h \
-  ports/Xcode/mpg123.h \
-  ports/Xcode/mpg123.xcodeproj/project.pbxproj \
   scripts/benchmark-cpu.pl \
   scripts/tag_lyrics.py \
   scripts/conplay \
