@@ -2,7 +2,9 @@
 ------
 
 - Removed ports/Xcode, ports/cmake should handle that case.
-
+- Ensure debug.h is included last where it matters to avoid
+  conflicts with debug/warning macros in system headers
+  (bug 308).
 
 1.27.0
 ------

@@ -10,7 +10,6 @@
 */
 
 #include "compat.h"
-#include "debug.h"
 
 /* Win32 is only supported with unicode now. These headers also cover
    module stuff. The WANT_WIN32_UNICODE macro is synonymous with
@@ -20,6 +19,8 @@
 #include <windows.h>
 #include <winnls.h>
 #endif
+
+#include "debug.h"
 
 /* A safe realloc also for very old systems where realloc(NULL, size) returns NULL. */
 void *safe_realloc(void *ptr, size_t size)
