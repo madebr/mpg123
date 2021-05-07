@@ -1,3 +1,9 @@
+1.27.1
+------
+
+- Removed ports/Xcode, ports/cmake should handle that case.
+
+
 1.27.0
 ------
 
