@@ -1,10 +1,14 @@
-1.27.1
+1.27.2
 ------
+
+(Trying some svn tag discipline: 1.27.1 has been tagged before, but
+not released. Let's increment for any change.)
 
 - Removed ports/Xcode, ports/cmake should handle that case.
 - Ensure debug.h is included last where it matters to avoid
   conflicts with debug/warning macros in system headers
   (bug 308).
+- Fix some debug/printf integer casts for 32 bit platforms (bug 309).
 
 1.27.0
 ------
