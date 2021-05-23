@@ -67,9 +67,10 @@ make
 %{_libdir}/libsyn123.a
 %{_libdir}/libsyn123.la
 %{_libdir}/libsyn123.so
-%exclude %{_libdir}/mpg123/output_*.a
 
 %changelog
+* 2021-05-23 Thomas Orgis <thomas@orgis.org>
+- removed output_*.a exclude, because build is fixed
 * 2018-02-17 Thomas Orgis <thomas@orgis.org>
 - added libsyn123
 * 2017-02-27 Thomas Orgis <thomas@orgis.org>

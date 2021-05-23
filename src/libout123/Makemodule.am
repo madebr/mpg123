@@ -26,6 +26,8 @@ src_libout123_libout123_la_SOURCES += \
   src/libout123/xfermem.h
 endif
 
+src_libout123_libout123_la_CFLAGS = @LIB_CFLAGS@
+
 src_libout123_libout123_la_LDFLAGS = \
   -no-undefined -version-info @LIBOUT123_VERSION@ -export-symbols-regex '^out123_'
 

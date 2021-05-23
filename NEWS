@@ -1,3 +1,9 @@
+1.28.0
+------
+- Fix up the build to actually build all library objects with libtool
+  consistently, also ensuring no pointless static archives for output
+  modules.
+
 1.27.2
 ------
 

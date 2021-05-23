@@ -8,7 +8,7 @@ dnl Require autoconf version >= 2.57
 AC_PREREQ(2.57)
 
 dnl ############# Initialisation
-AC_INIT([mpg123], [1.27.2], [maintainer@mpg123.org])
+AC_INIT([mpg123], [1.28.0], [maintainer@mpg123.org])
 dnl Increment API_VERSION when the API gets changes (new functions).
 
 dnl libmpg123
@@ -126,7 +126,6 @@ fi
 dnl ############# Use Libtool for dynamic module loading
 
 modules=auto
-OUTPUT_OBJ="module.\$(OBJEXT)"
 AC_ARG_ENABLE(modules,
 [  --enable-modules=[no/yes] dynamically loadable output modules],
 [
@@ -281,6 +280,14 @@ else
 fi
 AM_CONDITIONAL( [HAVE_MODULES], [test "x$modules" = xenabled] )
 
+# Ensure that a possibly hijacked libtool does not build any static libs.
+if test x"$enable_static" = xno; then
+	LIB_CFLAGS=-shared
+else
+	LIB_CFLAGS=
+fi
+
+AC_SUBST(LIB_CFLAGS)
 AC_SUBST(LT_LDFLAGS)
 AC_SUBST(EXEC_LT_LDFLAGS)
 
@@ -398,9 +405,6 @@ AC_ARG_ENABLE(network,
 
 dnl Optional objects list, depends on decoder choice and core feature selection.
 dnl Not just for specific decoders anymore...
-s_fpu=
-DECODER_OBJ=
-DECODER_LOBJ=
 
 dnl Core features that can be disabled to reduce binary size.
 
@@ -426,11 +430,9 @@ AC_ARG_ENABLE(string,
 if test "x$string" = "xdisabled"; then
   AC_DEFINE(NO_STRING, 1, [ Define to disable string functions. ])
   id3v2=disabled
- 	AC_MSG_WARN([ID3v2 support disabled because of string API being disabled.])
-else
-  DECODER_OBJ="$DECODER_OBJ stringbuf.\$(OBJEXT)"
-  DECODER_LOBJ="$DECODER_LOBJ stringbuf.lo"
+  AC_MSG_WARN([ID3v2 support disabled because of string API being disabled.])
 fi
+AM_CONDITIONAL([HAVE_STRING], [test "x$string" = xenabled])
 
 if test "x$id3v2" = "xdisabled"; then
   AC_DEFINE(NO_ID3V2, 1, [ Define to disable ID3v2 parsing. ])
@@ -447,10 +449,8 @@ AC_ARG_ENABLE(icy,
 
 if test "x$icy" = "xdisabled"; then
   AC_DEFINE(NO_ICY, 1, [ Define to disable ICY handling. ])
-else
-  DECODER_OBJ="$DECODER_OBJ icy.\$(OBJEXT) icy2utf8.\$(OBJEXT)"
-  DECODER_LOBJ="$DECODER_LOBJ icy.lo icy2utf8.lo"
 fi
+AM_CONDITIONAL([HAVE_ICY], [test "x$icy" = xenabled])
 
 ntom=enabled
 AC_ARG_ENABLE(ntom,
@@ -463,10 +463,8 @@ AC_ARG_ENABLE(ntom,
 
 if test "x$ntom" = "xdisabled"; then
   AC_DEFINE(NO_NTOM, 1, [ Define to disable ntom resampling. ])
-else
-  DECODER_OBJ="$DECODER_OBJ ntom.\$(OBJEXT)"
-  DECODER_LOBJ="$DECODER_LOBJ ntom.lo"
 fi
+AM_CONDITIONAL([HAVE_NTOM], [test "x$ntom" = xenabled])
 
 downsample=enabled
 AC_ARG_ENABLE(downsample,
@@ -547,7 +545,8 @@ AC_ARG_ENABLE(int-quality,
 
 if test $integers = quality; then
   AC_DEFINE(ACCURATE_ROUNDING,   1, [ Define to use proper rounding. ])
-fi  
+fi
+AM_CONDITIONAL([HAVE_ACCURATE], [ test x"$integers" = xquality ])
 
 int16=enabled
 AC_ARG_ENABLE(16bit,
@@ -594,7 +593,6 @@ AC_ARG_ENABLE(equalizer,
                 fi
               ], [])
 
-			  
 AC_ARG_WITH([cpu], [
   --with-cpu=generic[[_fpu]]      Use generic processor code with floating point arithmetic
   --with-cpu=generic_float      Plain alias to generic_fpu now... float output is a normal runtime option!
@@ -637,6 +635,9 @@ AC_ARG_ENABLE(yasm,
                   use_yasm="disabled"
                 fi
               ], [])
+if test x"$use_yasm" = xenabled; then
+  AC_MSG_ERROR([Yasm for AVX is currently broken and might go away.])
+fi
 
 AC_ARG_ENABLE(ieeefloat,
   [  --enable-ieeefloat=[yes/no] use special hackery relying on IEEE 754 floating point storage format (to accurately round to 16 bit integer at bit more efficiently in generic decoder, enabled by default, disable in case you have a very special computer) ],
@@ -904,12 +905,9 @@ esac
 
 if test "x$int16" = "xdisabled"; then
   AC_DEFINE(NO_16BIT, 1, [ Define to disable 16 bit integer output. ])
-else
-  DECODER_OBJ="$DECODER_OBJ synth.\$(OBJEXT)"
-  DECODER_LOBJ="$DECODER_LOBJ synth.lo"
 fi
 
-AM_CONDITIONAL( [NO_16_BIT], [test "x$int16" = "xdisabled"])
+AM_CONDITIONAL([HAVE_SYNTH16], [test "x$int16" = "xenabled"])
 
 # 8bit works only through 16bit
 if test "x$int16" = "xdisabled"; then
@@ -917,30 +915,24 @@ if test "x$int16" = "xdisabled"; then
 fi
 if test "x$int8" = "xdisabled"; then
   AC_DEFINE(NO_8BIT, 1, [ Define to disable 8 bit integer output. ])
-else
-  DECODER_OBJ="$DECODER_OBJ synth_8bit.\$(OBJEXT)"
-  DECODER_LOBJ="$DECODER_LOBJ synth_8bit.lo"
 fi
+
+AM_CONDITIONAL([HAVE_SYNTH8], [test "x$int16" = "xenabled"])
 
 if test "x$int32" = "xdisabled"; then
   AC_DEFINE(NO_32BIT, 1, [ Define to disable 32 bit and 24 bit integer output. ])
-else
-  if $synth32; then
-    s_fpu="$s_fpu synth_s32"
-  fi
 fi
+AM_CONDITIONAL([HAVE_SYNTH32], [ $synth32 && test x"$int32" = xenabled ])
 
 if test "x$real" = "xdisabled"; then
   AC_DEFINE(NO_REAL, 1, [ Define to disable real output. ])
-else
-  if $synth32; then
-    s_fpu="$s_fpu synth_real"
-  fi
 fi
+AM_CONDITIONAL([HAVE_SYNTHREAL], [ $synth32 && test x"$real" = xenabled ] )
 
 if test "x$equalizer" = "xdisabled"; then
-  AC_DEFINE(NO_EQUALIZER, 1, [ Define to disable equalizer. ])
+  AC_DEFINE(NO_EQUALIZER, 1, [ Define to disable equalizer. ] )
 fi
+AM_CONDITIONAL([HAVE_EQUALIZER], [ test x"$equalizer" = xenabled ] )
 
 layer1=enabled
 AC_ARG_ENABLE(layer1,
@@ -948,16 +940,11 @@ AC_ARG_ENABLE(layer1,
               [
                 if test "x$enableval" = xno; then
                   layer1="disabled"
+                  AC_DEFINE(NO_LAYER1, 1, [ Define to disable layer I. ])
                 fi
               ], [])
 
-if test "x$layer1" = "xdisabled"; then
-  AC_DEFINE(NO_LAYER1, 1, [ Define to disable layer I. ])
-else
-  # layer1 needs code in layer2
-  DECODER_OBJ="$DECODER_OBJ layer1.\$(OBJEXT) layer2.\$(OBJEXT)"
-  DECODER_LOBJ="$DECODER_LOBJ layer1.lo layer2.lo"
-fi
+AM_CONDITIONAL([HAVE_LAYER1], [test "x$layer1" = xenabled] )
 
 layer2=enabled
 AC_ARG_ENABLE(layer2,
@@ -965,18 +952,11 @@ AC_ARG_ENABLE(layer2,
               [
                 if test "x$enableval" = xno; then
                   layer2="disabled"
+                  AC_DEFINE(NO_LAYER2, 1, [ Define to disable layer II. ])
                 fi
               ], [])
 
-if test "x$layer2" = "xdisabled"; then
-  AC_DEFINE(NO_LAYER2, 1, [ Define to disable layer II. ])
-else
-  # layer1 may have added the objects already
-  if test "x$layer1" = "xdisabled"; then
-    DECODER_OBJ="$DECODER_OBJ layer2.\$(OBJEXT)"
-    DECODER_LOBJ="$DECODER_LOBJ layer2.lo"
-  fi
-fi
+AM_CONDITIONAL([HAVE_LAYER2], [test "x$layer2" = xenabled] )
 
 layer3=enabled
 AC_ARG_ENABLE(layer3,
@@ -984,15 +964,11 @@ AC_ARG_ENABLE(layer3,
               [
                 if test "x$enableval" = xno; then
                   layer3="disabled"
+                  AC_DEFINE(NO_LAYER3, 1, [ Define to disable layer III. ])
                 fi
               ], [])
 
-if test "x$layer3" = "xdisabled"; then
-  AC_DEFINE(NO_LAYER3, 1, [ Define to disable layer III. ])
-else
-  DECODER_OBJ="$DECODER_OBJ layer3.\$(OBJEXT)"
-  DECODER_LOBJ="$DECODER_LOBJ layer3.lo"
-fi
+AM_CONDITIONAL([HAVE_LAYER3], [test "x$layer3" = xenabled] )
 
 AC_ARG_WITH([audio], [
   --with-audio=<list of modules>  Select a list (or only one) of audio output modules (comma or space separated list).
@@ -1171,13 +1147,12 @@ dnl It is also assumed that a system that does not set file offset bits is not
 dnl sensitive to largefile changes, i.e. FreeBSD always using 64 bit off_t.
 if test "x$ac_cv_sys_file_offset_bits" = x || echo "$ac_cv_sys_file_offset_bits" | $GREP  '@<:@^0-9@:>@' > /dev/null; then
 	dnl if it has non-numeric chars or is empty... ignore...
-	LFS_LOBJ=
 	largefile_sensitive=no
 else
-	# Add dual-mode wrapper code.
-	LFS_LOBJ=lfs_wrap.lo
 	largefile_sensitive=yes
 fi
+# Add dual-mode wrapper code.
+AM_CONDITIONAL([HAVE_LFS_WRAP], [ test x"$largefile_sensitive" = xyes ] )
 
 # Using the lower level macros instead of AC_TYPE_* for compatibility with not freshest autoconf.
 AC_CHECK_TYPE(size_t, unsigned long)
@@ -1243,15 +1218,10 @@ AC_ARG_ENABLE(lfs-alias,
 AC_MSG_CHECKING([if we want to enable alias wrappers for largefile])
 if test "x$lfs_alias" = "xenabled"; then
   AC_MSG_RESULT([yes])
-  LFS_LOBJ="$LFS_LOBJ lfs_alias.lo"
 else
   AC_MSG_RESULT([no])
 fi
-
-# Again, prepend path for non-recursive make.
-LFS_LOBJ=`for i in $LFS_LOBJ; do printf ' src/libmpg123/%s' $i; done`
-AC_SUBST(LFS_LOBJ)
-
+AM_CONDITIONAL([HAVE_LFS_ALIAS], [ test x"$lfs_alias" = xenabled ])
 
 dnl ############## Function Checks
 
@@ -1384,70 +1354,54 @@ case $host in
  ;;
 esac
 
-s_altivec="synth_altivec dct64_altivec"
-s_i386="dct64_i386"
-s_i486="$s_i386 synth_i486 dct64_i486"
-s_i586="$s_i386 synth_i586"
-s_i586d="$s_i386 synth_i586_dither"
-s_3dnow="$s_i386 synth_3dnow dct64_3dnow equalizer_3dnow"
-s_3dnowext="$s_i386 dct64_3dnowext tabinit_mmx synth_3dnowext"
-s_3dnow_vintage=$s_3dnow
-s_3dnowext_vintage=$s_3dnowext
-if test "x$layer3" = "xenabled"; then
-  s_3dnow_vintage="$s_3dnow_vintage dct36_3dnow"
-  s_3dnowext_vintage="$s_3dnowext_vintage dct36_3dnowext"
-fi
-s_mmx="$s_i386 dct64_mmx tabinit_mmx synth_mmx"
-s_sse_vintage="$s_i386 tabinit_mmx dct64_sse_float synth_sse_float synth_stereo_sse_float synth_sse_s32 synth_stereo_sse_s32 "
-s_sse="$s_sse_vintage dct36_sse"
-s_x86_64="dct36_x86_64 dct64_x86_64_float synth_x86_64_float synth_x86_64_s32 synth_stereo_x86_64_float synth_stereo_x86_64_s32"
-s_x86_64_mono_synths="synth_x86_64_float synth_x86_64_s32"
-s_x86_64_avx="dct36_avx dct64_avx_float synth_stereo_avx_float synth_stereo_avx_s32"
-s_x86multi="getcpuflags"
-s_x86_64_multi="getcpuflags_x86_64"
-s_dither="dither"
-s_neon="dct36_neon dct64_neon_float synth_neon_float synth_neon_s32 synth_stereo_neon_float synth_stereo_neon_s32"
-s_neon64="dct36_neon64 dct64_neon64_float synth_neon64_float synth_neon64_s32 synth_stereo_neon64_float synth_stereo_neon64_s32"
-s_arm_multi="getcpuflags_arm check_neon"
+dnl Choice of extra libmpg12 sources via lots of AM_CONDITIONALS.
+dnl Those are defined after this block of CPU selection. Make sure
+dnl that any new conditional gets added down there before using it
+dnl here in definitions.
 
-# choose optimized 16bit decoder for SSE, quality or fast
-# note: supporting deactivation of output formats for these decoders would need more logic here
-if test "x$integers" = "xquality"; then
-  s_sse="$s_sse synth_sse_accurate synth_stereo_sse_accurate"
-  s_sse_vintage="$s_sse_vintage synth_sse_accurate synth_stereo_sse_accurate"
-  s_x86_64="$s_x86_64 synth_x86_64_accurate synth_stereo_x86_64_accurate"
-  s_x86_64_mono_synths="$s_x86_64_mono_synths synth_x86_64_accurate"
-  s_x86_64_avx="$s_x86_64_avx synth_stereo_avx_accurate"
-  s_arm="synth_arm_accurate"
-  s_neon="$s_neon synth_neon_accurate synth_stereo_neon_accurate"
-  s_neon64="$s_neon64 synth_neon64_accurate synth_stereo_neon64_accurate"
-else
-  s_sse="$s_sse dct64_sse synth_sse" # no stereo
-  s_sse_vintage="$s_sse_vintage dct64_sse synth_sse" # no stereo
-  s_x86_64="$s_x86_64 synth_x86_64 dct64_x86_64 synth_stereo_x86_64"
-  s_x86_64_mono_synths="$s_x86_64_mono_synths synth_x86_64"
-  s_x86_64_avx="$s_x86_64_avx dct64_avx synth_stereo_avx"
-  s_arm="synth_arm"
-  s_neon="$s_neon dct64_neon synth_neon synth_stereo_neon"
-  s_neon64="$s_neon64 dct64_neon64 synth_neon64 synth_stereo_neon64"
-fi
+s_altivec="HAVE_ALTIVEC"
+s_i386="HAVE_I386"
+s_i486="$s_i386 HAVE_I486"
+s_i586="$s_i386 HAVE_I586"
+s_i586d="$s_i386 HAVE_I586_DITHER"
+s_3dnow="$s_i386 HAVE_3DNOW"
+s_3dnowext="$s_i386 HAVE_3DNOWEXT HAVE_MMXTAB"
+s_3dnow_vintage="$s_3dnow HAVE_3DNOW_VINTAGE"
+s_3dnowext_vintage="$s_3dnowext HAVE_3DNOWEXT_VINTAGE"
+
+s_mmx="$s_i386 HAVE_MMX HAVE_MMXTAB"
+s_sse_vintage="$s_i386 HAVE_MMXTAB HAVE_SSE_VINTAGE"
+s_sse="$s_sse_vintage HAVE_SSE"
+s_x86_64="HAVE_X86_64 HAVE_X86_64_MONO"
+s_x86_64_mono_synths="HAVE_X86_64_MONO"
+s_x86_64_avx="HAVE_AVX"
+s_x86multi="HAVE_GETCPUFLAGS"
+s_x86_64_multi="HAVE_GETCPUFLAGS_X86_64"
+s_dither="HAVE_DITHER"
+s_neon="HAVE_NEON"
+s_neon64="HAVE_NEON64"
+s_arm_multi="HAVE_GETCPUFLAGS_ARM"
+s_arm="HAVE_ARM"
+
+# SSE and newer invoke dct64 for float numbers when producing s32 or float output,
+# as well as accurate rounding.
+AM_CONDITIONAL([HAVE_FLOATDCT], [ test x"$integers" = xquality || test x"$int32" = xenabled || test x"$real" = xenabled ])
 
 dnl CPU specific compiler flags and sources
 case $cpu_type in
   generic)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC -DREAL_IS_FLOAT"
-    more_sources="$s_fpu"
+    more_sources=""
     ccalign=no
   ;;
   generic_dither)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC_DITHER -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_dither"
+    more_sources="$s_dither"
     ccalign=no
   ;;
-dnl Not disabling buffer for float mode... check that this is OK now!
   generic_fpu | generic_float)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_GENERIC -DREAL_IS_FLOAT"
-    more_sources="$s_fpu"
+    more_sources=""
     ccalign=no
   ;;
   generic_nofpu)
@@ -1468,7 +1422,7 @@ dnl Not disabling buffer for float mode... check that this is OK now!
   altivec)
     ADD_CFLAGS="$ADD_CFLAGS -maltivec"
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DREAL_IS_FLOAT -DOPT_ALTIVEC"
-    more_sources="$s_altivec $s_fpu"
+    more_sources="$s_altivec"
     AC_MSG_CHECKING([if $CC accepts -faltivec])
     touch conftest.c
     if $CC -faltivec -c -o conftest.o conftest.c >/dev/null 2>&1; then
@@ -1481,88 +1435,89 @@ dnl Not disabling buffer for float mode... check that this is OK now!
   ;;
   neon)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_NEON -DREAL_IS_FLOAT"
-    more_sources="$s_neon $s_fpu"
+    more_sources="$s_neon"
   ;;
   arm_fpu)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_GENERIC_DITHER -DOPT_NEON -DREAL_IS_FLOAT"
-    more_sources="$s_neon $s_fpu $s_dither $s_arm_multi"
+    more_sources="$s_neon$s_dither $s_arm_multi"
   ;;
   neon64)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_NEON64 -DREAL_IS_FLOAT"
-    more_sources="$s_neon64 $s_fpu"
+    more_sources="$s_neon64"
   ;;
   aarch64)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_GENERIC_DITHER -DOPT_NEON64 -DREAL_IS_FLOAT"
-    more_sources="$s_neon64 $s_fpu $s_dither $s_arm_multi"
+    more_sources="$s_neon64 $s_dither $s_arm_multi"
   ;;
   i386) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_I386 -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_i386"
+    more_sources="$s_i386"
     ccalign=no
   ;;
   i386_fpu) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_I386 -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_i386"
+    more_sources="$s_i386"
     ccalign=no
   ;;
   i386_nofpu) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_I386 -DREAL_IS_FIXED"
     more_sources="$s_i386"
+    have_cond
     ccalign=no
   ;;
   i486) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_I486 -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_i486"
+    more_sources="$s_i486"
     ccalign=no
   ;;
   i586) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_I586 -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_i586"
+    more_sources="$s_i586"
   ;;
   i586_dither) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_I586_DITHER -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_i586d $s_dither"
+    more_sources="$s_i586d $s_dither"
   ;;
   3dnow)
     # legacy 3dnow had the 3dnow paired with i586...
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_I586 -DOPT_3DNOW -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_i586 $s_3dnow $s_x86multi "
+    more_sources="$s_i586 $s_3dnow $s_x86multi "
   ;;
   3dnow_vintage)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_I586 -DOPT_3DNOW_VINTAGE -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_i586 $s_3dnow_vintage $s_x86multi "
+    more_sources="$s_i586 $s_3dnow_vintage $s_x86multi "
   ;;
   3dnow_alone)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_3DNOW -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_3dnow"
+    more_sources="$s_3dnow"
   ;;
   3dnowext_alone) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_3DNOWEXT -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_3dnowext"
+    more_sources="$s_3dnowext"
   ;;
   3dnowext_vintage) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_3DNOW -DOPT_3DNOWEXT_VINTAGE -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_3dnowext_vintage $s_3dnow $s_x86multi"
+    more_sources="$s_3dnowext_vintage $s_3dnow $s_x86multi"
   ;;
   3dnowext) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_3DNOW -DOPT_3DNOWEXT -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_3dnowext $s_3dnow $s_x86multi"
+    more_sources="$s_3dnowext $s_3dnow $s_x86multi"
   ;;
   mmx_alone|mmx) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MMX -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_mmx"
+    more_sources="$s_mmx"
   ;;
   sse_alone|sse) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_SSE -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_sse"
+    more_sources="$s_sse"
   ;;
   sse_vintage) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_SSE_VINTAGE -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_sse_vintage"
+    more_sources="$s_sse_vintage"
   ;;
   avx) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_AVX -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_x86_64_avx $s_x86_64_mono_synths"
+    more_sources="$s_x86_64_avx $s_x86_64_mono_synths"
 	if test "x$YASM" != "xno"; then
 		use_yasm_for_avx="yes"
 	fi
@@ -1573,15 +1528,15 @@ dnl Not disabling buffer for float mode... check that this is OK now!
     # $s_3dnow_vintage contains $s_3dnow,
     # $s_sse contains $s_sse_vintage.
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_GENERIC_DITHER -DOPT_I386 -DOPT_I586 -DOPT_I586_DITHER -DOPT_MMX -DOPT_3DNOW -DOPT_3DNOW_VINTAGE -DOPT_3DNOWEXT -DOPT_3DNOWEXT_VINTAGE -DOPT_SSE -DOPT_SSE_VINTAGE -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_i386 $s_i586 $s_i586d $s_mmx $s_3dnow_vintage $s_3dnowext_vintage $s_sse $s_x86multi $s_dither"
+    more_sources="$s_i386 $s_i586 $s_i586d $s_mmx $s_3dnow_vintage $s_3dnowext_vintage $s_sse $s_x86multi $s_dither"
   ;;
   x86-64_alone) 
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_X86_64 -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_x86_64"
+    more_sources="$s_x86_64"
   ;;
   x86-64|x86-64_all|x86-64_dither)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_X86_64 -DOPT_GENERIC -DOPT_GENERIC_DITHER -DREAL_IS_FLOAT"
-    more_sources="$s_fpu $s_x86_64 $s_dither $s_x86_64_multi"
+    more_sources="$s_x86_64 $s_dither $s_x86_64_multi"
 	if test "x$avx_support" = "xyes"; then
 		ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_AVX"
 		more_sources="$more_sources $s_x86_64_avx"
@@ -1610,7 +1565,7 @@ if test "x$use_yasm_for_avx" = "xyes"; then
 	esac
 	AC_DEFINE(USE_YASM_FOR_AVX, 1, [Define to use yasm for assemble AVX sources.])
 fi
-AM_CONDITIONAL( [USE_YASM_FOR_AVX], [test "x$use_yasm_for_avx" = xyes] )
+AM_CONDITIONAL([USE_YASM_FOR_AVX], [test "x$use_yasm_for_avx" = xyes])
 AC_SUBST(YASM_FORMAT)
 
 # Check if we want feature report function.
@@ -1628,9 +1583,7 @@ AC_ARG_ENABLE(feature_report,
 	],
 	[AC_MSG_RESULT([yes])])
 
-if test "x$feature_report" = xenabled; then
-	more_sources="$more_sources feature"
-fi
+AM_CONDITIONAL([HAVE_FEATURE], [test "x$feature_report" = xenabled])
 
 # Return 0 if first arg appears in list of following arguments.
 # Return 1 otherwise.
@@ -1648,27 +1601,48 @@ word_in_list() {
   return 1
 }
 
-for i in $more_sources
-do
-  # Make sure every file is only once in the list.
-  word_in_list "$i.\$(OBJEXT)" $DECODER_OBJ || DECODER_OBJ="$DECODER_OBJ $i.\$(OBJEXT)"
-  word_in_list "$i.lo" $DECODER_LOBJ || DECODER_LOBJ="$DECODER_LOBJ $i.lo"
-done
+dnl Really, having to write code again to generate configure.ac code
+dnl because I cannot generate macro invocations in a shell loop?
+dnl Autoconf is a bit ridiculous here. There's something to say about
+dnl a build system with one language that can express the stuff, not this
+dnl intermingling of m4 and shell on top of each other.
+dnl for c in HAVE_ALTIVEC HAVE_I386 HAVE_I486 HAVE_I586 HAVE_I586_DITHER \
+dnl   HAVE_3DNOW HAVE_3DNOWEXT HAVE_MMXTAB HAVE_3DNOW_VINTAGE HAVE_3DNOWEXT_VINTAGE \
+dnl   HAVE_MMX HAVE_SSE_VINTAGE HAVE_SSE HAVE_X86_64 HAVE_X86_64_MONO HAVE_AVX \
+dnl   HAVE_GETCPUFLAGS HAVE_GETCPUFLAGS_X86_64 HAVE_DITHER HAVE_NEON HAVE_NEON64 \
+dnl   HAVE_GETCPUFLAGS_ARM HAVE_ARM
+dnl do
+dnl   echo "AM_CONDITIONAL([$c], [word_in_list $c \$more_sources])"
+dnl done
 
-# Another preprocessing step: Append prefix for non-recursive make.
-# Just because $(addprefix ...) is a GNU extension.
-
-DECODER_OBJ=`for i in $DECODER_OBJ; do printf ' src/libmpg123/%s' $i; done`
-DECODER_LOBJ=`for i in $DECODER_LOBJ; do printf ' src/libmpg123/%s' $i; done`
-
-AC_SUBST(DECODER_OBJ)
-AC_SUBST(DECODER_LOBJ)
+AM_CONDITIONAL([HAVE_ALTIVEC], [word_in_list HAVE_ALTIVEC $more_sources])
+AM_CONDITIONAL([HAVE_I386], [word_in_list HAVE_I386 $more_sources])
+AM_CONDITIONAL([HAVE_I486], [word_in_list HAVE_I486 $more_sources])
+AM_CONDITIONAL([HAVE_I586], [word_in_list HAVE_I586 $more_sources])
+AM_CONDITIONAL([HAVE_I586_DITHER], [word_in_list HAVE_I586_DITHER $more_sources])
+AM_CONDITIONAL([HAVE_3DNOW], [word_in_list HAVE_3DNOW $more_sources])
+AM_CONDITIONAL([HAVE_3DNOWEXT], [word_in_list HAVE_3DNOWEXT $more_sources])
+AM_CONDITIONAL([HAVE_MMXTAB], [word_in_list HAVE_MMXTAB $more_sources])
+AM_CONDITIONAL([HAVE_3DNOW_VINTAGE], [word_in_list HAVE_3DNOW_VINTAGE $more_sources])
+AM_CONDITIONAL([HAVE_3DNOWEXT_VINTAGE], [word_in_list HAVE_3DNOWEXT_VINTAGE $more_sources])
+AM_CONDITIONAL([HAVE_MMX], [word_in_list HAVE_MMX $more_sources])
+AM_CONDITIONAL([HAVE_SSE_VINTAGE], [word_in_list HAVE_SSE_VINTAGE $more_sources])
+AM_CONDITIONAL([HAVE_SSE], [word_in_list HAVE_SSE $more_sources])
+AM_CONDITIONAL([HAVE_X86_64], [word_in_list HAVE_X86_64 $more_sources])
+AM_CONDITIONAL([HAVE_X86_64_MONO], [word_in_list HAVE_X86_64_MONO $more_sources])
+AM_CONDITIONAL([HAVE_AVX], [word_in_list HAVE_AVX $more_sources])
+AM_CONDITIONAL([HAVE_GETCPUFLAGS], [word_in_list HAVE_GETCPUFLAGS $more_sources])
+AM_CONDITIONAL([HAVE_GETCPUFLAGS_X86_64], [word_in_list HAVE_GETCPUFLAGS_X86_64 $more_sources])
+AM_CONDITIONAL([HAVE_DITHER], [word_in_list HAVE_DITHER $more_sources])
+AM_CONDITIONAL([HAVE_NEON], [word_in_list HAVE_NEON $more_sources])
+AM_CONDITIONAL([HAVE_NEON64], [word_in_list HAVE_NEON64 $more_sources])
+AM_CONDITIONAL([HAVE_GETCPUFLAGS_ARM], [word_in_list HAVE_GETCPUFLAGS_ARM $more_sources])
+AM_CONDITIONAL([HAVE_ARM], [word_in_list HAVE_ARM $more_sources])
 
 dnl Finally insert the code switch for alignment, above cpu selection having possibly changed the setting.
 if test x"$ccalign" = xyes; then
 	AC_DEFINE(CCALIGN, 1, [ Define if __attribute__((aligned(16))) shall be used ])
 fi
-
 
 dnl ############## Output module choice
 

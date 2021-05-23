@@ -8,7 +8,7 @@ TESTS += \
   src/tests/text \
   src/tests/textprint
 
-if NO_16_BIT
+if !HAVE_SYNTH16
 XFAIL_TESTS += src/tests/decode_fixed.sh
 endif
 
