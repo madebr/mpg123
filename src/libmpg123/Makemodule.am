@@ -318,7 +318,7 @@ endif
 
 if HAVE_SSE_VINTAGE
 if HAVE_ACCURATE
-src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/dct64_sse_float.S src/libmpg123/synth_sse_accurate.S src/libmpg123/synth_stereo_sse_accurate.S
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_sse_accurate.S src/libmpg123/synth_stereo_sse_accurate.S
 endif
 endif
 
