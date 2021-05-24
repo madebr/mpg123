@@ -131,7 +131,7 @@ src_libmpg123_libmpg123_la_SOURCES = \
 #SSE_VINTAGE+SYNTHREAL     synth_sse_float.S synth_stereo_sse_float.S
 #SSE_VINTAGE+SYNTH32      synth_sse_s32.S synth_stereo_sse_s32.S
 #SSE+LAYER3                dct36_sse.S
-#SSE_VINTAGE+ACCURATE      dct64_sse_float.S synth_sse_accurate.S synth_stereo_sse_accurate.S
+#SSE_VINTAGE+ACCURATE      synth_sse_accurate.S synth_stereo_sse_accurate.S
 #SSE_VINTAGE+!ACCURATE     dct64_sse.S synth_sse.S
 #X86_64+LAYER3             dct36_x86_64.S
 #X86_64+SYNTHREAL          synth_stereo_x86_64_float.S
