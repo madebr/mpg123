@@ -4,8 +4,9 @@ dnl copyright by the mpg123 project - free software under the terms of the LGPL 
 dnl see COPYING and AUTHORS files in distribution or http://mpg123.org
 dnl initially written by Nicholas J. Humfrey
 
-dnl Require autoconf version >= 2.57
-AC_PREREQ(2.57)
+dnl Autoconf 2.71 wants some changes, hope we kept it fine for
+dnl 2.69 at least.
+AC_PREREQ([2.69])
 
 dnl ############# Initialisation
 AC_INIT([mpg123], [1.28.0], [maintainer@mpg123.org])
@@ -102,19 +103,20 @@ if test "x$all_static" = xyes; then
 fi
 
 AM_PROG_AS
-AC_PROG_CC_C99
+dnl We really mean C99 here. The specific macro for that is gone.
+AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_CPP
 AC_PROG_INSTALL
 # Just look, no touch.
 oldLIBS=$LIBS
-AC_CHECK_LIBM
+LT_LIB_M
 LIBS=$oldLIBS
 AC_SUBST(LIBM)
 dnl "Checking for egrep is broken after removal of libltdl stuff... checks use $EGREP, so searching it here."
 AC_PROG_EGREP
 AC_C_CONST
-AC_INLINE
+AC_C_INLINE
 AC_C_BIGENDIAN
 
 if test "x$lib_static" = xyes; then
@@ -143,10 +145,6 @@ AC_ARG_ENABLE(modules,
 		modules=auto
 	fi
 ])
-
-dnl We only want shared libraries by default
-AC_DISABLE_STATIC
-AC_ENABLE_SHARED
 
 if test x"$enable_shared" = xno; then
 	modules=disabled
@@ -266,8 +264,7 @@ AC_SUBST(LIBDL)
 
 dnl Configure libtool
 
-AC_LIBTOOL_WIN32_DLL
-AM_PROG_LIBTOOL
+LT_INIT([win32-dll disable-static])
 
 if test x"$modules" = xdisabled
 then
@@ -1128,7 +1125,6 @@ AC_SUBST(YASMFLAGS)
 
 dnl ############## Really basic headers, needed for other checks.
 
-AC_HEADER_STDC
 dnl Is it too paranoid to specifically check for stdint.h and limits.h?
 AC_CHECK_HEADERS([stdio.h stdlib.h string.h unistd.h sched.h sys/ioctl.h sys/types.h stdint.h limits.h inttypes.h sys/time.h sys/wait.h sys/resource.h sys/signal.h signal.h sys/select.h dirent.h sys/stat.h])
 
@@ -1278,8 +1274,6 @@ dnl OK, two lines... Solaris needs -lnsl -lsocket
 AC_SEARCH_LIBS(socket, socket) 
 
 AC_CHECK_FUNCS( getaddrinfo, [ have_ipv6=yes ], [ have_ipv6=no ] )
-
-APR_CHECK_GETADDRINFO_ADDRCONFIG()
 
 # Substitutions for the installable mpg123.h header
 if test "x$ac_cv_header_stdio_h" = "xyes"; then
@@ -1896,13 +1890,9 @@ int main(){
 				OLD_LIBS=$LIBS
 				LIBS="$LIBS $COREAUDIO_LIBS"
     			AC_MSG_CHECKING([if AudioUnit functions are available within AudioToolbox])
-				AC_TRY_LINK(
-					[#include <AudioUnit/AudioUnit.h>],
-					[AudioUnitInitialize(NULL);],
-					[AC_MSG_RESULT([yes])],
-					[AC_MSG_RESULT([no])
-					 COREAUDIO_LIBS="$COREAUDIO_LIBS -framework AudioUnit"]
-				)
+				AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <AudioUnit/AudioUnit.h>]], [[AudioUnitInitialize(NULL);]])],[AC_MSG_RESULT([yes])],[AC_MSG_RESULT([no])
+					 COREAUDIO_LIBS="$COREAUDIO_LIBS -framework AudioUnit"
+				])
 				LIBS=$OLD_LIBS
 				AC_CHECK_HEADERS([CoreServices/CoreServices.h],
 					[COREAUDIO_LIBS="$COREAUDIO_LIBS -framework CoreServices"]
@@ -2302,9 +2292,9 @@ COMPAT_LIBS=
 case $host_os in
   *mingw*)
     AC_CHECK_HEADER([_mingw_mac.h], [], [
-      AC_WARN([You are using the mingw.org distribution])
-      AC_WARN([mpg123 may not build properly])
-      AC_WARN([Please switch to using mingw-w64 if possible])
+      AC_MSG_WARN(You are using the mingw.org distribution)
+      AC_MSG_WARN(mpg123 may not build properly)
+      AC_MSG_WARN(Please switch to using mingw-w64 if possible)
     ])
   ;;
 esac
@@ -2468,7 +2458,7 @@ if test x$win32_specific_codes = xenabled; then
       AC_MSG_RESULT([yes])
     else
       AC_MSG_RESULT([no])
-      AC_ERROR([GetThreadErrorMode is required but not found])
+      AC_MSG_ERROR(GetThreadErrorMode is required but not found)
     fi
   fi
 fi

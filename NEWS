@@ -3,6 +3,8 @@
 - Fix up the build to actually build all library objects with libtool
   consistently, also ensuring no pointless static archives for output
   modules.
+- Adapted things to autoconf 2.71, requiring 2.69 now (the latter tested
+  on Debian, with their patches).
 
 1.27.2
 ------
