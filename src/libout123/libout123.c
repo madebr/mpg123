@@ -30,11 +30,10 @@ static const char *default_name = "out123";
 
 static int modverbose(out123_handle *ao, int final)
 {
-	debug3("modverbose: %x %x %x"
-	,	(unsigned)ao->flags, (unsigned)ao->auxflags, (unsigned)OUT123_QUIET);
-	return AOQUIET
-	?	(final ? 0 : -1)
-	:	ao->verbose;
+	mdebug( "modverbose: %x %x %x %d %d"
+	,	(unsigned)ao->flags, (unsigned)ao->auxflags, (unsigned)OUT123_QUIET
+	,	final, ao->verbose );
+	return final ? (AOQUIET ? 0 : ao->verbose) : -1;
 }
 
 static void check_output_module( out123_handle *ao
