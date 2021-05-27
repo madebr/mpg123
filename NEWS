@@ -5,6 +5,9 @@
   modules.
 - Adapted things to autoconf 2.71, requiring 2.69 now (the latter tested
   on Debian, with their patches).
+- Improved configure to be more useful --with-default-audio to define
+  the search order, fix static build for --with-audio being a list
+  (just choosing the first one).
 
 1.27.2
 ------

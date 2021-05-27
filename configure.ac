@@ -1009,11 +1009,6 @@ AC_ARG_WITH([seektable], [
 ])
 
 
-dnl ############## Modules
-
-# Dummy audio output module is always supported
-output_modules="dummy"
-
 dnl ############## Assembler, compiler properties
 
 # based on posting from John Dalgliesh <johnd@defyne.org> on ffmpeg (LGPL) mailing list
@@ -2130,6 +2125,8 @@ AC_SUBST(DUMMY_LDFLAGS)
 AC_SUBST(DUMMY_CFLAGS)
 AM_CONDITIONAL( [HAVE_DUMMY], [test "x$HAVE_DUMMY" = xyes] )
 # Hackery to get rid of module .la files.
+
+output_modules=`echo $output_modules`
 AC_SUBST(output_modules)
 for f in $output_modules
 do
@@ -2137,15 +2134,33 @@ do
 done
 AC_SUBST(output_modules_la)
 
+list_without()
+{
+  lw_word=$1
+  lw_spc=
+  for w in "$@"
+  do
+    if test x"$w" != x"$lw_word"; then
+      printf '%s%s' "$lw_spc" "$w"
+      lw_spc=' '
+    fi
+  done
+}
+
+first_word()
+{
+  echo $1
+}
+
 # Did user choose default audio subsystem ?
+# That's (beginning of) the list for mpg123's internal default.
 if test "x$with_default_audio" != "x"; then
-	default_output_module=$with_default_audio
+	default_output_modules=`echo "$with_default_audio" | tr , ' '`
 else
-	default_output_module=`echo "$output_modules" | $AWK '{ print $1 }'`
+	default_output_modules=`list_without dummy $output_modules`
 fi
 
-# That's (beginning of) the list for mpg123's internal default.
-default_output_modules=$default_output_module
+default_output_module=`first_word $default_output_modules`
 
 # Setup the static build.
 # The conditionals always need to be defined by configure, even if
@@ -2183,19 +2198,12 @@ AM_CONDITIONAL([BUILD_SGI], [ test "sgi" = $default_output_module ])
 AM_CONDITIONAL([BUILD_MINT], [ test "mint" = $default_output_module ])
 AM_CONDITIONAL([BUILD_OPENAL], [ test "openal" = $default_output_module ])
 
-if test "x$modules" = xenabled
-then
-
-  # Now make a comma-separated list again... eliminating the possible duplicate and dummy.
-  for i in $output_modules
-  do
-    if test $i != $default_output_module && test $i != dummy; then
-      default_output_modules=$default_output_modules,$i
-    fi
-  done
+# Without actual modules, there is only the builtin one.
+if test x"$modules" = xdisabled; then
+  default_output_modules=$default_output_module
 fi
-
-AC_DEFINE_UNQUOTED( DEFAULT_OUTPUT_MODULE, "$default_output_modules", [The default audio output module(s) to use] )
+default_modstring=`echo "$default_output_modules"|tr ' ' ,`
+AC_DEFINE_UNQUOTED( DEFAULT_OUTPUT_MODULE, "$default_modstring", [The default audio output module(s) to use] )
 
 dnl ############## Compiler Optimizations
 
@@ -2628,28 +2636,31 @@ echo "
   New/old WRITE_SAMPLE .... $newoldwritesample
   new Huffman scheme ...... $newhuff
 
-Note: Disabling core features is not commonly done and some combinations might not build/work. If you encounter such a case, help yourself (and provide a patch) or just poke the maintainers."
-# just an empty line
+Note: Disabling core features is not commonly done and some combinations might
+      not build/work. If you encounter such a case, help yourself (and provide
+      a patch) or just poke the maintainers."
+
 echo
 
 echo "  libsyn123 special cases . $specialcases"
 echo
 
 echo "  Modules ................. $modules"
-echo "  Checked audio modules ... $check_modules
-  Detected audio support ..$output_modules
-  Default output module ... $default_output_module
-"
+echo "  Checked audio modules ... $check_modules"
+echo "  Detected audio support .. $output_modules"
+echo "  Runtime order ........... $default_output_modules"
+
 if test x"$modules" = xdisabled; then
-echo "The _single_ active output module is being statically linked in.
-"
+  echo
+  echo "The _single_ active output module $default_output_module is being statically linked in."
 fi
 if test x"$with_optimization" = x0; then
-	echo "No optimization flags chosen, make sure you have something basic in your CFLAGS at least...
-"
+  echo
+  echo "No optimization flags chosen, ensure something basic in your CFLAGS at least..."
 fi
 
 if test x"$cpu_type" = xi486; then
+  echo
   echo "WARNING: You selected the i486 decoder. This is not recommened for regular use."
   echo "It was designed for actual i486 CPUs a long time ago. Generic C code is likely"
   echo "to perform better nowadays. Also, the decoder misses features like volume"
