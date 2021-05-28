@@ -2,6 +2,8 @@
 	Geiger-Mueller counter simulator.
 	(c)2016-2018 Thomas Orgis <thomas@orgis.org>, licensed MIT-style.
 	Essentially: This is just a bit of code that you can use as you please.
+	See full license text at the bottom. As part of the mpg123 distribution,
+	the GNU LPGL version 2.1 can be used instead.
 
 	This generates random pulses with a configured likelihood (event
 	activity) that drive a simulated speaker to emit the characteristic
@@ -272,3 +274,12 @@ setup_geiger_end:
 		*period = sh->samples;
 	return ret;
 }
+
+// Full license text:
+// Copyright (c) 2016-2018 Thomas Orgis
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
