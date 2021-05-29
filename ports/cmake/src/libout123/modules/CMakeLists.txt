@@ -5,6 +5,7 @@ if(NOT USE_MODULES)
         "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/$<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},alsa>:alsa.c>"
         "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/$<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},tinyalsa>:tinyalsa.c>"
         "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/$<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},pulse>:pulse.c>"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/$<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},jack>:jack.c>"
         "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/$<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},win32>:win32.c>"
         "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/$<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},win32_wasapi>:win32_wasapi.c>")
     target_link_libraries(defaultmodule PUBLIC
@@ -12,10 +13,13 @@ if(NOT USE_MODULES)
         $<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},tinyalsa>:${TINYALSA_LIBRARIES}>
         $<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},coreaudio>:${AUDIO_TOOLBOX}>
         $<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},pulse>:${PULSE_LIBRARIES}>
+        $<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},jack>:${JACK_LIBRARIES}>
         $<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},win32>:${WIN32_LIBRARIES}>
         $<$<STREQUAL:${DEFAULT_OUTPUT_MODULE},win32_wasapi>:${WIN32_WASAPI_LIBRARIES}>)
     if(DEFAULT_OUTPUT_MODULE STREQUAL "pulse")
         target_compile_definitions(defaultmodule PRIVATE ${PULSE_CFLAGS})
+    elif(DEFAULT_OUTPUT_MODULE STREQUAL "jack")
+        target_compile_definitions(defaultmodule PRIVATE ${JACK_CFLAGS})
     elif(DEFAULT_OUTPUT_MODULE STREQUAL "tinyalsa")
         target_compile_definitions(defaultmodule PRIVATE ${TINYALSA_CFLAGS})
     endif()
@@ -52,6 +56,17 @@ else()
             LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}"
             RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}")
     endif()
+    list(FIND OUTPUT_MODULES jack INDEX)
+    if(NOT INDEX EQUAL -1)
+        add_library(output_jack MODULE "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/jack.c"
+            $<TARGET_OBJECTS:compat_str>)
+        target_compile_options(output_jack PRIVATE ${JACK_CFLAGS})
+        target_link_libraries(output_jack PRIVATE ${JACK_LIBRARIES})
+        install(TARGETS output_jack
+            ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}"
+            LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}"
+            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}")
+    endif()
     list(FIND OUTPUT_MODULES tinyalsa INDEX)
     if(NOT INDEX EQUAL -1)
         add_library(output_tinyalsa MODULE "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/tinyalsa.c")
@@ -73,7 +88,8 @@ else()
     endif()
     list(FIND OUTPUT_MODULES win32_wasapi INDEX)
     if(NOT INDEX EQUAL -1)
-        add_library(output_win32_wasapi MODULE "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/win32_wasapi.c")
+        add_library(output_win32_wasapi MODULE "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../src/libout123/modules/win32_wasapi.c"
+            $<TARGET_OBJECTS:compat_str>)
         target_link_libraries(output_win32_wasapi PRIVATE ${WIN32_WASAPI_LIBRARIES})
         install(TARGETS output_win32_wasapi
             ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}"

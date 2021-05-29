@@ -187,6 +187,7 @@ if(CHECK_MODULES)
     list(FIND CHECK_MODULES alsa ALSA_REQUIRED)
     list(FIND CHECK_MODULES coreaudio COREAUDIO_REQUIRED)
     list(FIND CHECK_MODULES pulse PULSE_REQUIRED)
+    list(FIND CHECK_MODULES jack JACK_REQUIRED)
     list(FIND CHECK_MODULES tinyalsa TINYALSA_REQUIRED)
     list(FIND CHECK_MODULES win32 WIN32_REQUIRED)
     list(FIND CHECK_MODULES win32_wasapi WIN32_WASAPI_REQUIRED)
@@ -219,6 +220,15 @@ if(PKG_CONFIG_FOUND)
             list(APPEND OUTPUT_MODULES pulse)
         elseif(CHECK_MODULES AND NOT PULSE_REQUIRED EQUAL -1)
             message(FATAL_ERROR "pulse ${MODULE_NOT_FOUND_MESSAGE}")
+        endif()
+    endif()
+
+    if(NOT CHECK_MODULES OR NOT JACK_REQUIRED EQUAL -1)
+        pkg_search_module(JACK jack)
+        if(JACK_FOUND)
+            list(APPEND OUTPUT_MODULES jack)
+        elseif(CHECK_MODULES AND NOT JACK_REQUIRED EQUAL -1)
+            message(FATAL_ERROR "jack ${MODULE_NOT_FOUND_MESSAGE}")
         endif()
     endif()
 
@@ -257,6 +267,7 @@ if(CHECK_MODULES)
         ${ALSA_REQUIRED}
         ${COREAUDIO_REQUIRED}
         ${PULSE_REQUIRED}
+        ${JACK_REQUIRED}
         ${TINYALSA_REQUIRED}
         ${WIN32_REQUIRED}
         ${WIN32_WASAPI_REQUIRED})
