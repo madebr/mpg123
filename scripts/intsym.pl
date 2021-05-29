@@ -62,8 +62,10 @@ for my $i (@instances)
 			if(/^([^\s\(#][^\(]*)\s\*?([a-z][a-z_0-9]+)\s*\(/)
 			{
 				# Skip preprocessing/comment stuff and official API.
-				unless($1 =~ '^#' or $1 =~ '/\*' or $2 =~ $apiex or $1 =~ /\bstatic\b/)
+				unless($1 =~ '^#' or $1 =~ '/[/\*]' or $2 =~ $apiex or $1 =~ /\bstatic\b/)
 				{
+					die "second definition of $2 in $header\n"
+						if grep {$_ eq $2} @symbols;
 					push(@symbols, $2) unless grep {$_ eq $2} (keys %{$i->{conditional}});
 				}
 			}
