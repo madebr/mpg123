@@ -30,13 +30,13 @@
 #define __DEFINE_GUID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) static const GUID n GUID_SECT = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
 #define __DEFINE_IID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) static const IID n GUID_SECT = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
 #define __DEFINE_CLSID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) static const CLSID n GUID_SECT = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
-#define __DEFINE_PROPERTYKEY(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) static const PROPERTYKEY n GUID_SECT = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
+#define __DEFINE_PROPERTYKEY(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8,pid) static const PROPERTYKEY n GUID_SECT = {{l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}},pid}
 #define MPG123_DEFINE_CLSID(className, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
     __DEFINE_CLSID(mpg123_CLSID_##className, 0x##l, 0x##w1, 0x##w2, 0x##b1, 0x##b2, 0x##b3, 0x##b4, 0x##b5, 0x##b6, 0x##b7, 0x##b8)
 #define MPG123_DEFINE_IID(interfaceName, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
     __DEFINE_IID(mpg123_IID_##interfaceName, 0x##l, 0x##w1, 0x##w2, 0x##b1, 0x##b2, 0x##b3, 0x##b4, 0x##b5, 0x##b6, 0x##b7, 0x##b8)
-#define MPG123_DEFINE_PROPERTYKEY(interfaceName, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
-    __DEFINE_PROPERTYKEY(mpg123_IID_##interfaceName, 0x##l, 0x##w1, 0x##w2, 0x##b1, 0x##b2, 0x##b3, 0x##b4, 0x##b5, 0x##b6, 0x##b7, 0x##b8)
+#define MPG123_DEFINE_PROPERTYKEY(interfaceName, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8, pid) \
+    __DEFINE_PROPERTYKEY(mpg123_PKEY_##interfaceName, 0x##l, 0x##w1, 0x##w2, 0x##b1, 0x##b2, 0x##b3, 0x##b4, 0x##b5, 0x##b6, 0x##b7, 0x##b8, pid)
 
 // "1CB9AD4C-DBFA-4c32-B178-C2F568A703B2"
 MPG123_DEFINE_IID(IAudioClient, 1cb9ad4c, dbfa, 4c32, b1, 78, c2, f5, 68, a7, 03, b2);
@@ -46,13 +46,13 @@ MPG123_DEFINE_IID(IMMDeviceEnumerator, a95664d2, 9614, 4f35, a7, 46, de, 8d, b6,
 MPG123_DEFINE_CLSID(IMMDeviceEnumerator, bcde0395, e52f, 467c, 8e, 3d, c4, 57, 92, 91, 69, 2e);
 // "F294ACFC-3146-4483-A7BF-ADDCA7C260E2"
 MPG123_DEFINE_IID(IAudioRenderClient, f294acfc, 3146, 4483, a7, bf, ad, dc, a7, c2, 60, e2);
-MPG123_DEFINE_PROPERTYKEY(PKEY_Device_FriendlyName, a45c254e, df1c, 4efd, 80, 20, 67, d1, 46, a8, 50, e0, 14);
+MPG123_DEFINE_PROPERTYKEY(Device_FriendlyName, a45c254e, df1c, 4efd, 80, 20, 67, d1, 46, a8, 50, e0, 14);
 #else
 #define mpg123_IID_IAudioClient IID_IAudioClient
 #define mpg123_IID_IMMDeviceEnumerator IID_IMMDeviceEnumerator
 #define mpg123_CLSID_IMMDeviceEnumerator CLSID_MMDeviceEnumerator
 #define mpg123_IID_IAudioRenderClient IID_IAudioRenderClient
-#define mpg123_IID_PKEY_Device_FriendlyName PKEY_Device_FriendlyName
+#define mpg123_PKEY_Device_FriendlyName PKEY_Device_FriendlyName
 #endif
 
 /* Push mode does not work right yet, noisy audio, probably something to do with timing and buffers */
@@ -545,7 +545,7 @@ static int enumerate_win32( out123_handle *ao, int (*store_device)(void *devlist
 
 		/* get Property */
 		PropVariantInit(&varName);
-		hr = IPropertyStore_GetValue(pProps, &mpg123_IID_PKEY_Device_FriendlyName, &varName);
+		hr = IPropertyStore_GetValue(pProps, &mpg123_PKEY_Device_FriendlyName, &varName);
 		if(FAILED(hr)) {
 			PropVariantClear(&varName);
 			goto Exit;
