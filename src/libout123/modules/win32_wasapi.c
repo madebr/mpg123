@@ -46,7 +46,7 @@ MPG123_DEFINE_IID(IMMDeviceEnumerator, a95664d2, 9614, 4f35, a7, 46, de, 8d, b6,
 MPG123_DEFINE_CLSID(IMMDeviceEnumerator, bcde0395, e52f, 467c, 8e, 3d, c4, 57, 92, 91, 69, 2e);
 // "F294ACFC-3146-4483-A7BF-ADDCA7C260E2"
 MPG123_DEFINE_IID(IAudioRenderClient, f294acfc, 3146, 4483, a7, bf, ad, dc, a7, c2, 60, e2);
-MPG123_DEFINE_PROPERTYKEY(Device_FriendlyName, a45c254e, df1c, 4efd, 80, 20, 67, d1, 46, a8, 50, e0, 14);
+MPG123_DEFINE_PROPERTYKEY(Device_FriendlyName, a45c254e, df1c, 4efd, 80, 20, 67, d1, 46, a8, 50, e0, 14);
 #else
 #define mpg123_IID_IAudioClient IID_IAudioClient
 #define mpg123_IID_IMMDeviceEnumerator IID_IMMDeviceEnumerator
