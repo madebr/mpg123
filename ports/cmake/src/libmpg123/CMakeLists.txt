@@ -5,6 +5,9 @@ option(NO_LFS_ALIAS "disable alias wrappers for largefile bitness (mpg123_seek_3
 
 include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/")
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../../)
+include(CheckCPUArch)
+
 if(HAVE_STDLIB_H)
     set(INCLUDE_STDLIB_H "#include <stdlib.h>")
 else()
@@ -16,13 +19,21 @@ else()
     set(INCLUDE_SYS_TYPE_H "/* #include <sys/types.h> is not available on this system */")
 endif()
 
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "([xX]86_|AMD|amd)64" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+
+check_cpu_arch_x86(ARCH_IS_X86)
+check_cpu_arch_x64(ARCH_IS_X64)
+check_cpu_arch_arm32(ARCH_IS_ARM32)
+check_cpu_arch_arm64(ARCH_IS_ARM64)
+
+# PPC with AltiVec is missing. But probably obsolete enough for CMake users.
+
+if(ARCH_IS_X64)
     set(MACHINE amd64)
-elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86|i[0-9]86|Win32|([xX]86_|AMD|amd)64" AND CMAKE_SIZEOF_VOID_P EQUAL 4)
+elseif(ARCH_IS_X86)
     set(MACHINE x86)
-elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "(amd|AMD|arm|ARM|aarch|AARCH)(64)?" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+elseif(ARCH_IS_ARM64)
     set(MACHINE arm64)
-elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "(amd|AMD|arm|ARM|aarch|AARCH)(64)?" AND CMAKE_SIZEOF_VOID_P EQUAL 4)
+elseif(ARCH_IS_ARM32)
     set(MACHINE arm32)
 else()
     message(WARNING "Unknown processor. Using generic optimizations.")
