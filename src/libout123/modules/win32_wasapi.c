@@ -52,7 +52,7 @@ MPG123_DEFINE_PROPERTYKEY(PKEY_Device_FriendlyName, a45c254e, df1c, 4efd, 80, 20
 #define mpg123_IID_IMMDeviceEnumerator IID_IMMDeviceEnumerator
 #define mpg123_CLSID_IMMDeviceEnumerator CLSID_MMDeviceEnumerator
 #define mpg123_IID_IAudioRenderClient IID_IAudioRenderClient
-#define mpg123_PKEY_Device_FriendlyName PKEY_Device_FriendlyName
+#define mpg123_IID_PKEY_Device_FriendlyName PKEY_Device_FriendlyName
 #endif
 
 /* Push mode does not work right yet, noisy audio, probably something to do with timing and buffers */
@@ -545,7 +545,7 @@ static int enumerate_win32( out123_handle *ao, int (*store_device)(void *devlist
 
 		/* get Property */
 		PropVariantInit(&varName);
-		hr = IPropertyStore_GetValue(pProps, &mpg123_PKEY_Device_FriendlyName, &varName);
+		hr = IPropertyStore_GetValue(pProps, &mpg123_IID_PKEY_Device_FriendlyName, &varName);
 		if(FAILED(hr)) {
 			PropVariantClear(&varName);
 			goto Exit;
