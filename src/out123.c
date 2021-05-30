@@ -33,6 +33,9 @@
 #if WIN32
 #include "win32_support.h"
 #endif
+#if defined(WIN32) && defined(DYNAMIC_BUILD)
+#define LINK_MPG123_DLL
+#endif
 #include "out123.h"
 
 #include "local.h"

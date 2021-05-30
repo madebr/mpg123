@@ -8,6 +8,10 @@
 
 #include "config.h"
 #include "compat.h"
+
+#if defined(WIN32) && defined(DYNAMIC_BUILD)
+#define LINK_MPG123_DLL
+#endif
 #include <mpg123.h>
 
 #include "getlopt.h"

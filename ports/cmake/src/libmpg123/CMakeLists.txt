@@ -245,12 +245,6 @@ else()
     target_sources(${TARGET} PRIVATE ${PLATFORM_SOURCES})
 endif()
 
-if(BUILD_SHARED_LIBS)
-    target_compile_definitions(${TARGET}
-        PRIVATE $<$<BOOL:${WIN32}>:BUILD_MPG123_DLL>
-        INTERFACE $<$<BOOL:${WIN32}>:LINK_MPG123_DLL>)
-endif()
-
 target_link_libraries(${TARGET} PRIVATE
     $<$<BOOL:${HAVE_M}>:m>
     $<$<BOOL:${WANT_WIN32_UNICODE}>:shlwapi>)
