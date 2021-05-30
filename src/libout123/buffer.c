@@ -34,7 +34,6 @@
 #include "out123_int.h"
 #include "xfermem.h"
 #include <errno.h>
-#include "debug.h"
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
 #endif
@@ -46,6 +45,7 @@
 #endif
 #endif
 
+#include "debug.h"
 
 #define BUF_CMD_OPEN     XF_CMD_CUSTOM1
 #define BUF_CMD_CLOSE    XF_CMD_CUSTOM2

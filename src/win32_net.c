@@ -2,10 +2,11 @@
 #include "mpg123.h"
 #include "mpg123app.h"
 #include "httpget.h"
-#include "debug.h"
 #include "resolver.h"
 #include "compat.h"
 #include <errno.h>
+
+#include "debug.h"
 
 #if defined (WANT_WIN32_SOCKETS)
 #ifdef DEBUG

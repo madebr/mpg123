@@ -18,8 +18,9 @@
 #include "getlopt.h"
 #include <errno.h>
 #include <ctype.h>
-#include "debug.h"
 #include "win32_support.h"
+
+#include "debug.h"
 
 static int errors = 0;
 
