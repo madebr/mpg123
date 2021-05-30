@@ -80,7 +80,12 @@ check_c_source_compiles(
     CCALIGN)
 
 if(MSVC)
+    # Here, off_t is always 32 bit, the whole machinery doesn't work without explicit
+    # API for 64 bit file access.
     unset(_FILE_OFFSET_BITS)
+    set(LFS_SENSITIVE OFF)
+    set(LFS_INSENSITIVE ON)
+    set(MPG123_LARGE_FILE_SUPPORT OFF)
 else()
     option(MPG123_LARGE_FILE_SUPPORT "Support large files (define _FILE_OFFSET_BITS)" ON)
     if(MPG123_LARGE_FILE_SUPPORT)
@@ -90,17 +95,19 @@ else()
     endif()
 endif()
 
-check_c_source_compiles("
-    #include <sys/types.h>
-     /* Check that off_t can represent 2**63 - 1 correctly.
-        We can't simply define LARGE_OFF_T to be 9223372036854775807,
-        since some C++ compilers masquerading as C compilers
-        incorrectly reject 9223372036854775807.  */
-    #define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
-    int off_t_is_large[
-        (LARGE_OFF_T % 2147483629 == 721 && LARGE_OFF_T % 2147483647 == 1) ? 1 : -1];
-    int main() { return 0; }"
-    LFS_INSENSITIVE)
+if(NOT LFS_INSENSITIVE)
+    check_c_source_compiles("
+        #include <sys/types.h>
+          /* Check that off_t can represent 2**63 - 1 correctly.
+            We can't simply define LARGE_OFF_T to be 9223372036854775807,
+            since some C++ compilers masquerading as C compilers
+            incorrectly reject 9223372036854775807.  */
+        #define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+        int off_t_is_large[
+            (LARGE_OFF_T % 2147483629 == 721 && LARGE_OFF_T % 2147483647 == 1) ? 1 : -1];
+        int main() { return 0; }"
+        LFS_INSENSITIVE)
+endif()
 if(NOT LFS_INSENSITIVE)
     check_c_source_compiles("
         #define _FILE_OFFSET_BITS 64
@@ -311,6 +318,8 @@ option(NO_EQUALIZER "no equalizer support" OFF)
 option(NO_FEEDER "no feeder decoding, no buffered readers" OFF)
 if(CYGWIN)
     option(NO_LFS_ALIAS "disable alias wrappers for largefile bitness (mpg123_seek_32 or mpg123_seek_64 in addition to mpg123_seek, or the other way around; It is a mess, do not play with this!)" ON)
+elseif(MSVC)
+    set(NO_LFS_ALIAS ON)
 else()
     option(NO_LFS_ALIAS "disable alias wrappers for largefile bitness (mpg123_seek_32 or mpg123_seek_64 in addition to mpg123_seek, or the other way around; It is a mess, do not play with this!)" OFF)
 endif()
