@@ -76,9 +76,16 @@ typedef ptrdiff_t ssize_t;
 
 #endif
 
-#ifndef MPG123_NO_CONFIGURE /* Enable use of this file without configure. */
 @INCLUDE_STDLIB_H@
 @INCLUDE_SYS_TYPE_H@
+
+/* You can always enforce largefile hackery by setting MPG123_LARGESUFFIX. */
+/* Otherwise, this header disables it if the build system decided so. */
+#if !defined(MPG123_LARGESUFFIX) && @BUILD_NO_LARGENAME@
+#ifndef MPG123_NO_LARGENAME
+#define MPG123_NO_LARGENAME
+#endif
+#endif
 
 /* Simplified large file handling.
 	I used to have a check here that prevents building for a library with conflicting large file setup
@@ -135,8 +142,6 @@ typedef ptrdiff_t ssize_t;
 #define mpg123_framepos MPG123_LARGENAME(mpg123_framepos)
 
 #endif /* largefile hackery */
-
-#endif /* MPG123_NO_CONFIGURE */
 
 #ifdef __cplusplus
 extern "C" {

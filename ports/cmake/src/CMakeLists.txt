@@ -86,6 +86,9 @@ if(MSVC)
     set(LFS_SENSITIVE OFF)
     set(LFS_INSENSITIVE ON)
     set(MPG123_LARGE_FILE_SUPPORT OFF)
+    # We disable all the dynamic naming with MSVC to avoid confusing consumers.
+    # Maybe it would be more proper to conditionit on LFS_INSENSTIIVE.
+    set(BUILD_NO_LARGENAME 1)
 else()
     option(MPG123_LARGE_FILE_SUPPORT "Support large files (define _FILE_OFFSET_BITS)" ON)
     if(MPG123_LARGE_FILE_SUPPORT)
@@ -93,6 +96,7 @@ else()
     else()
         unset(_FILE_OFFSET_BITS)
     endif()
+    set(BUILD_NO_LARGENAME 0)
 endif()
 
 if(NOT LFS_INSENSITIVE)

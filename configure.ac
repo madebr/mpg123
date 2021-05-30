@@ -1270,6 +1270,13 @@ AC_SEARCH_LIBS(socket, socket)
 
 AC_CHECK_FUNCS( getaddrinfo, [ have_ipv6=yes ], [ have_ipv6=no ] )
 
+# A Hack for MSVC builds by cmake: Disable largefile hackery.
+# Maybe one time we support hat wretched environment directly, but
+# for now configure lives in a world where large file support is
+# properly defined and served by off_t.
+BUILD_NO_LARGENAME=0
+AC_SUBST(BUILD_NO_LARGENAME)
+
 # Substitutions for the installable mpg123.h header
 if test "x$ac_cv_header_stdio_h" = "xyes"; then
 	INCLUDE_STDIO_H="#include <stdio.h>"
