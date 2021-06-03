@@ -5,8 +5,7 @@ option(NO_LFS_ALIAS "disable alias wrappers for largefile bitness (mpg123_seek_3
 
 include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/")
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../../)
-include(CheckCPUArch)
+include(../../cmake/CheckCPUArch.cmake)
 
 if(HAVE_STDLIB_H)
     set(INCLUDE_STDLIB_H "#include <stdlib.h>")
