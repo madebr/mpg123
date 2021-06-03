@@ -245,12 +245,12 @@ static void check_fatal_output(int code)
 	}
 }
 
-static void check_fatal_syn(int code)
+static void check_fatal_syn(const char *step, int code)
 {
 	if(code)
 	{
 		if(!quiet)
-			merror("syn123 error %i: %s", code, syn123_strerror(code));
+			merror("%s: syn123 error %i: %s", step, code, syn123_strerror(code));
 		safe_exit(132);
 	}
 }
@@ -740,8 +740,8 @@ static void setup_wavegen(void)
 	if(!generate)
 		wave_limit = 0;
 	waver = syn123_new(inputrate, inputch, inputenc, wave_limit, &synerr);
-	check_fatal_syn(synerr);
-	check_fatal_syn(syn123_dither(waver, dither, NULL));
+	check_fatal_syn("waver init", synerr);
+	check_fatal_syn("dither", syn123_dither(waver, dither, NULL));
 	if(!waver)
 		safe_exit(132);
 	if(do_resample)
@@ -757,7 +757,7 @@ static void setup_wavegen(void)
 				error1("Bad value for resampler type given: %s\n", resampler);
 			safe_exit(132);
 		}
-		check_fatal_syn( syn123_setup_resample( waver
+		check_fatal_syn( "resampling setup", syn123_setup_resample( waver
 		,	inputrate, outputrate, channels, dirty, 0 ) );
 	}
 	if(do_filter)
@@ -1154,17 +1154,17 @@ int play_frame(void)
 		// buffer.
 		// First either mix or convert into the mixing buffer.
 		if(mixmat)
-			check_fatal_syn(syn123_mix( mixaudio, mixenc, channels
+			check_fatal_syn("buffer mix", syn123_mix( mixaudio, mixenc, channels
 			,	inaudio, inputenc, inputch, mixmat, got_samples, TRUE, NULL, waver ));
 		else
-			check_fatal_syn(syn123_conv( mixaudio, mixenc, got_samples*mixframe
+			check_fatal_syn("buffer conv", syn123_conv( mixaudio, mixenc, got_samples*mixframe
 			,	inaudio, inputenc, got_samples*pcminframe, NULL, NULL, waver ));
 		// Apply filters.
 		if(do_filter)
-			check_fatal_syn(syn123_filter( waver, mixaudio, mixenc, got_samples ));
+			check_fatal_syn("buffer filter", syn123_filter( waver, mixaudio, mixenc, got_samples ));
 		// Do pre-amplification in-place.
 		if(do_preamp)
-			check_fatal_syn(syn123_amp( mixaudio, mixenc, got_samples*channels
+			check_fatal_syn("buffer amp", syn123_amp( mixaudio, mixenc, got_samples*channels
 			,	preamp_factor, preamp_offset, NULL, NULL ));
 		// Resampling needs another buffer.
 		if(do_resample)
@@ -1192,7 +1192,7 @@ int play_frame(void)
 				// expected resampling block output!
 				size_t clipped = 0;
 				debug("conv");
-				check_fatal_syn(syn123_conv( audio, encoding, outsamples*pcmframe
+				check_fatal_syn("buffer resample conv", syn123_conv( audio, encoding, outsamples*pcmframe
 				,	resaudio, MPG123_ENC_FLOAT_32, outsamples*sizeof(float)*channels
 				,	NULL, &clipped, waver ));
 				if(verbose > 1 && clipped)
@@ -1212,7 +1212,7 @@ int play_frame(void)
 				clip(mixaudio, mixenc, got_samples);
 			// Finally, convert to output.
 			size_t clipped = 0;
-			check_fatal_syn(syn123_conv( audio, encoding, got_samples*pcmframe
+			check_fatal_syn("buffer conv", syn123_conv( audio, encoding, got_samples*pcmframe
 			,	mixaudio, mixenc, got_samples*mixframe, NULL, &clipped, waver ));
 			if(verbose > 1 && clipped)
 				fprintf(stderr, ME ": clipped %zu samples\n", clipped);
@@ -1230,19 +1230,19 @@ int play_frame(void)
 		{
 			if(mixmat)
 			{
-				check_fatal_syn(syn123_mix( audio, encoding, channels
+				check_fatal_syn("direct mix", syn123_mix( audio, encoding, channels
 				,	inaudio, inputenc, inputch, mixmat, got_samples, TRUE, &clipped
 				,	waver ));
 			} else
 			{
-				check_fatal_syn(syn123_conv( audio, encoding, got_samples*pcmframe
+				check_fatal_syn("direct conv", syn123_conv( audio, encoding, got_samples*pcmframe
 				,	inaudio, inputenc, got_samples*pcminframe, NULL, &clipped
 				,	waver ));
 			}
 		}
 		if(do_preamp)
 		{
-			check_fatal_syn(syn123_amp (audio, encoding, got_samples*channels
+			check_fatal_syn("preamp", syn123_amp (audio, encoding, got_samples*channels
 			,	preamp_factor, preamp_offset, &clipped, waver ));
 			if(verbose > 1 && clipped)
 				fprintf(stderr, ME ": clipped %zu samples\n", clipped);
