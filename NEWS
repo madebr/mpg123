@@ -11,6 +11,10 @@
 - libsyn123: Fix syn123_mix() to actually do intermediate conversion
   when input and output encoding are the same but non-float. This makes
   out123 --mix work with s16 input and output, which is not that special!
+- libmpg123: Fix misguided handling of part2_3_length checks in
+  III_get_scale_factors_1() and III_get_scale_factors_2() which invalidated
+  decoding of a mono source encoded as ms+i-stereo (bug 312). This was
+  a regression introduced with version 1.25.7.
 
 1.27.2
 ------
