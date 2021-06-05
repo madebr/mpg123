@@ -1,13 +1,27 @@
 1.28.0
 ------
-- Fix up the build to actually build all library objects with libtool
-  consistently, also ensuring no pointless static archives for output
-  modules.
-- Adapted things to autoconf 2.71, requiring 2.69 now (the latter tested
-  on Debian, with their patches).
-- Improved configure to be more useful --with-default-audio to define
-  the search order, fix static build for --with-audio being a list
-  (just choosing the first one).
+- build:
+-- Fix up the build to actually build all library objects with libtool
+   consistently, also ensuring no pointless static archives for output
+   modules.
+-- Adapted things to autoconf 2.71, requiring 2.69 now (the latter tested
+   on Debian, with their patches).
+-- Improved configure to be more useful --with-default-audio to define
+   the search order, fix static build for --with-audio being a list
+   (just choosing the first one).
+-- Ensure consistent use of LINK_MPG123_DLL in headers.
+- build (ports/cmake):
+-- Thanks to Evgeni Poberezhnikov for working with us on that.
+-- Fix up ports/cmake to really work in MSVC also for users of the lib
+   (tested in vcpkg, bug 310).
+-- Hardcode ports/cmake CPU detection for x64 and ARM as
+   CMAKE_SYSTEM_PROCESSOR is useless crap (bug 298 for real).
+-- Add missing io.h for _setmode() MSVC warned about (bug 311).
+-- Added BUILD_NO_LARGENAME define to be used by MSVC builds. Note that
+   an MSVC build of libmpg123 does not support 64 bit file offsets.
+   That would need more morting to the explicit API. Thanks to MS for
+   making off_t even more messy and less useful.
+-- Added JACK output, fixed handling of compat_str there and in win32_wasapi.
 - libsyn123: Fix syn123_mix() to actually do intermediate conversion
   when input and output encoding are the same but non-float. This makes
   out123 --mix work with s16 input and output, which is not that special!
@@ -15,6 +29,11 @@
   III_get_scale_factors_1() and III_get_scale_factors_2() which invalidated
   decoding of a mono source encoded as ms+i-stereo (bug 312). This was
   a regression introduced with version 1.25.7.
+- libout123:
+-- Print basic module loading errors only for last one in list.
+   This enables use of an output module search list that anticipates module
+   files not installed with the main package.
+-- Fixes for win32_wasapi build with MSVC.
 
 1.27.2
 ------
