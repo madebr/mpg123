@@ -1,3 +1,8 @@
+1.28.1
+------
+- libout123: Pulse module advertises wider format support now, not
+  just s16. This makes mpg123 -e s24 work with it, not just out123.
+
 1.28.0
 ------
 - build:

@@ -199,8 +199,9 @@ static int open_pulse(out123_handle *ao)
 
 static int get_formats_pulse(out123_handle *ao)
 {
-	/* Only implemented Signed 16-bit audio for now */
-	return MPG123_ENC_SIGNED_16;
+	return MPG123_ENC_SIGNED_16 | MPG123_ENC_SIGNED_24 |MPG123_ENC_SIGNED_32
+	|	MPG123_ENC_FLOAT_32 | MPG123_ENC_ALAW_8 | MPG123_ENC_ULAW_8
+	|	MPG123_ENC_UNSIGNED_8;
 }
 
 
