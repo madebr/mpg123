@@ -17,7 +17,9 @@
  * This should be incremented at least each time a new symbol is added
  * to the header.
  */
+#ifndef MPG123_API_VERSION
 #define MPG123_API_VERSION @API_VERSION@
+#endif
 
 #ifndef MPG123_EXPORT
 /** Defines needed for MS Visual Studio(tm) DLL builds.
@@ -76,6 +78,11 @@ typedef ptrdiff_t ssize_t;
 
 #endif
 
+/* You can use this file directly, avoiding the autoconf replacements.
+   Might have to set MPG123_NO_LARGENAME, too, in case you have
+   _FILE_OFFSET_BITS defined where it does not make sense. */
+#ifndef MPG123_NO_CONFIGURE
+
 @INCLUDE_STDLIB_H@
 @INCLUDE_SYS_TYPE_H@
 
@@ -86,6 +93,8 @@ typedef ptrdiff_t ssize_t;
 #define MPG123_NO_LARGENAME
 #endif
 #endif
+
+#endif /* MPG123_NO_CONFIGURE */
 
 /* Simplified large file handling.
 	I used to have a check here that prevents building for a library with conflicting large file setup
