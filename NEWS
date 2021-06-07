@@ -7,6 +7,8 @@
 -- Make mpg123.h.in usable again with MPG123_NO_CONFIGURE,
    for external uses (bug 313).
 -- Use predefined MPG123_API_VERSION in mpg123.h.in for the same.
+-- Better handle the ssize_t situation via typedef mpg123_ssize_t, less
+   likely to be broken in future MSVC versions.
 - libsyn123:
 -- More support for MPG123_NO_CONFIGURE.
 -- Optionally use predefined SYN123_API_VERSION in syn123.h.in for the same.
