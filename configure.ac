@@ -968,32 +968,33 @@ AC_ARG_ENABLE(layer3,
 AM_CONDITIONAL([HAVE_LAYER3], [test "x$layer3" = xenabled] )
 
 AC_ARG_WITH([audio], [
-  --with-audio=<list of modules>  Select a list (or only one) of audio output modules (comma or space separated list).
+  --with-audio=<list of modules>  Select a list (or only one) of audio output modules (comma or space separated list). Choices are:
+	aix            Use AIX as default audio output sub-system
+	alib           Use Alib as default audio output sub-system (for HPUX)
+	alsa           Use ALSA as default audio output sub-system (libasound)
+	tinyalsa       Use ALSA as default audio output sub-system (tinyalsa)
+	arts           Use aRts as default audio output sub-system (KDE sound server)
+	dummy          Use dummy as default audio (when no sound card is available)
+	esd            Use ESoundD as default audio output sub-system
+	hp             Use HP as default audio output sub-system
+	jack           Use JACK as default low-latency audio server
+	coreaudio      Use Mac OS X as default audio output sub-system (CoreAudio)
+	mint           Use MinT as default audio output sub-system (Atari)
+	nas            Use NAS as default audio output (Network Audio System)
+	os2            Use OS2 as default audio output sub-system
+	oss            Use OSS as default audio output sub-system (/dev/dsp)
+	portaudio      Use PortAudio as default audio output sub-system
+	pulse          Use Pulse audio server as default audio output sub-system
+	qsa            Use QSA as default audio output sub-system
+	sdl            Use SDL as default audio output sub-system (Simple DirectMedia Layer)
+	sgi            Use SGI as default audio output sub-system (IRIX)
+	sndio          Use OpenBSD's sndio as default audio output sub-system
+	sun            Use Sun as default audio output sub-system (/dev/audio)
+	win32          Use Win32 audio as default audio output sub-system
+	win32_wasapi   Use Win32 wasapi audio as default audio output sub-system
 ])
 AC_ARG_WITH([default-audio], [
-  --with-default-audio=aix            Use AIX as default audio output sub-system
-  --with-default-audio=alib           Use Alib as default audio output sub-system (for HPUX)
-  --with-default-audio=alsa           Use ALSA as default audio output sub-system (libasound)
-  --with-default-audio=tinyalsa       Use ALSA as default audio output sub-system (tinyalsa)
-  --with-default-audio=arts           Use aRts as default audio output sub-system (KDE sound server)
-  --with-default-audio=dummy          Use dummy as default audio (when no sound card is available)
-  --with-default-audio=esd            Use ESoundD as default audio output sub-system
-  --with-default-audio=hp             Use HP as default audio output sub-system
-  --with-default-audio=jack           Use JACK as default low-latency audio server
-  --with-default-audio=coreaudio      Use Mac OS X as default audio output sub-system (CoreAudio)
-  --with-default-audio=mint           Use MinT as default audio output sub-system (Atari)
-  --with-default-audio=nas            Use NAS as default audio output (Network Audio System)
-  --with-default-audio=os2            Use OS2 as default audio output sub-system
-  --with-default-audio=oss            Use OSS as default audio output sub-system (/dev/dsp)
-  --with-default-audio=portaudio      Use PortAudio as default audio output sub-system
-  --with-default-audio=pulse          Use Pulse audio server as default audio output sub-system
-  --with-default-audio=qsa            Use QSA as default audio output sub-system
-  --with-default-audio=sdl            Use SDL as default audio output sub-system (Simple DirectMedia Layer)
-  --with-default-audio=sgi            Use SGI as default audio output sub-system (IRIX)
-  --with-default-audio=sndio          Use OpenBSD's sndio as default audio output sub-system
-  --with-default-audio=sun            Use Sun as default audio output sub-system (/dev/audio)
-  --with-default-audio=win32          Use Win32 audio as default audio output sub-system
-  --with-default-audio=win32_wasapi   Use Win32 wasapi audio as default audio output sub-system
+  --with-default-audio=<list of modules>  Select a list of audio output modules to try at runtime, even if not built right now (comma or space separated). See --with-audio for options.
 ])
 
 AC_ARG_WITH([optimization], [
