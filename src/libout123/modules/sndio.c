@@ -30,7 +30,10 @@ static int open_sndio(out123_handle *ao)
 
 	hdl = sio_open(ao->device /* NULL is fine */, SIO_PLAY, 0);
 	if (hdl == NULL)
+	{
+		error("Got nothing from sio_open(). ");
 		return -1;
+	}
 
 	sio_initpar(&par);
 	par.rate = ao->rate;
@@ -64,7 +67,7 @@ static int open_sndio(out123_handle *ao)
 		break;
 	default:
 		if (!AOQUIET)
-			error1("open_sndio: invalid sample format %d",
+			error1("invalid sample format %d",
 			    ao->format);
 		sio_close(hdl);
 		return -1;
@@ -72,11 +75,15 @@ static int open_sndio(out123_handle *ao)
 
 	if (!sio_setpar(hdl, &par) || !sio_getpar(hdl, &par) || 
 	    !sio_start(hdl)) {
+		if(!AOQUIET)
+			error("parameter setup  failure");
 		sio_close(hdl);
 		return -1;
 	}
 	if ((par.bits != 8 && par.bits != 16 && par.bits != 32) ||
 	    par.le != SIO_LE_NATIVE) {
+		if(!AOQUIET)
+			error("actual parameters unsupported");
 		sio_close(hdl);
 		return -1;
 	}
