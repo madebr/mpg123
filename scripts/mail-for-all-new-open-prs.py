@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import smtplib
 import ssl
 
@@ -59,6 +60,9 @@ Subject: {mail_title}
 
     sender_email = "{} <{}>".format("{} (via github PR)".format(pr.user.login), os.environ["MAIL_SENDER"])
     receiver_email = os.environ["MAIL_RECEIVER"].split(";")
+
+    logging.info("mail from: %s", re.sub("[a-z0-9]", "x", receiver_email, flags=re.I))
+    logging.info("receiver to: %s", receiver_email)
 
     port = 465
     server = os.environ["MAIL_SERVER"]
