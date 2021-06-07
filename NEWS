@@ -3,8 +3,16 @@
 - build: Explain --with-default-audio in configure help better.
 - libout123: Pulse module advertises wider format support now, not
   just s16. This makes mpg123 -e s24 work with it, not just out123.
-- libmpg123: Make mpg123.h.in usable again with MPG123_NO_CONFIGURE,
-  for external uses (bug 313).
+- libmpg123:
+-- Make mpg123.h.in usable again with MPG123_NO_CONFIGURE,
+   for external uses (bug 313).
+-- Use predefined MPG123_API_VERSION in mpg123.h.in for the same.
+- libsyn123:
+-- More support for MPG123_NO_CONFIGURE.
+-- Optionally use predefined SYN123_API_VERSION in syn123.h.in for the same.
+- libout123:
+-- Optionally use predefined OUT123_API_VERSION in out123.h.in for
+   non-configure use.
 
 1.28.0
 ------

@@ -20,7 +20,9 @@
  * This should be incremented at least each time a new symbol is added
  * to the header.
  */
+#ifndef SYN123_API_VERSION
 #define SYN123_API_VERSION @SYNAPI_VERSION@
+#endif
 
 #ifndef MPG123_EXPORT
 /** Defines needed for MS Visual Studio(tm) DLL builds.
@@ -975,7 +977,13 @@ ssize_t syn123_resample_inexpect(syn123_handle *sh, size_t outs);
 /* Lightweight large file hackery to enable worry-reduced use of off_t.
    Depending on the size of off_t in your client build, the corresponding
    library function needs to be chosen. */
-#if defined(_FILE_OFFSET_BITS) && !@BUILD_NO_LARGENAME@
+#ifndef MPG123_NO_CONFIGURE
+#if !defined(MPG123_NO_LARGENAME) && @BUILD_NO_LARGENAME@
+#define MPG123_NO_LARGENAME
+#endif
+#endif
+
+#if defined(_FILE_OFFSET_BITS) && !defined(MPG123_NO_LARGENAME)
 #  if _FILE_OFFSET_BITS+0 == 32
 #    define syn123_resample_total   syn123_resample_total_32
 #    define syn123_resample_intotal syn123_resample_intotal_32
