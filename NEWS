@@ -1,6 +1,8 @@
 1.28.1
 ------
-- build: Explain --with-default-audio in configure help better.
+- build:
+-- Explain --with-default-audio in configure help better.
+-- Fix build of arm_fpu (regression of configure reorg).
 - libout123: Pulse module advertises wider format support now, not
   just s16. This makes mpg123 -e s24 work with it, not just out123.
 - libmpg123:

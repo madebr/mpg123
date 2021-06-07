@@ -1436,7 +1436,7 @@ case $cpu_type in
   ;;
   arm_fpu)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_MULTI -DOPT_GENERIC -DOPT_GENERIC_DITHER -DOPT_NEON -DREAL_IS_FLOAT"
-    more_sources="$s_neon$s_dither $s_arm_multi"
+    more_sources="$s_neon $s_dither $s_arm_multi"
   ;;
   neon64)
     ADD_CPPFLAGS="$ADD_CPPFLAGS -DOPT_NEON64 -DREAL_IS_FLOAT"
