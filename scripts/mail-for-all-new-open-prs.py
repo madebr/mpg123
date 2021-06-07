@@ -18,7 +18,7 @@ user_me = g.get_user()
 repo = g.get_repo(os.environ["GITHUB_REPOSITORY"])
 
 for pr in repo.get_pulls(state="open"):
-    logging.info("Checking PR #%d", pr.id)
+    logging.info("Checking PR #%d", pr.number)
     already_handled = False
     for label in pr.get_labels():
         if label.name == mailinglist_label:
@@ -26,7 +26,7 @@ for pr in repo.get_pulls(state="open"):
     if already_handled:
         continue
 
-    logging.info("PR #%d was NOT handled already", pr.id)
+    logging.info("PR #%d was NOT handled already", pr.number)
 
     mail_markdown = f"""\
 A pull request by [{pr.user.login}]({pr.user.html_url}) was opened at {pr.created_at}.
@@ -44,7 +44,7 @@ Please visit [{pr.html_url}]({pr.html_url}) to give feedback and review the code
 """
     logging.info("markdown message: %s", mail_markdown)
 
-    mail_title = "Opened GH-#{}: {} [{}]".format(pr.id, pr.title, pr.user.login)
+    mail_title = "Opened GH-#{}: {} [{}]".format(pr.number, pr.title, pr.user.login)
     mail_body = markdown.markdown(mail_markdown)
 
     logging.info("mail title: %s", mail_title)
@@ -75,7 +75,7 @@ Subject: {mail_title}
         server.login(login, password)
         server.sendmail(sender_email, receiver_email, mail_message)
 
-    logging.info("Creating comment at PR#%d", pr.id)
+    logging.info("Creating comment at PR#%d", pr.number)
     pr.add_to_labels(mailinglist_label)
     comment = pr.create_issue_comment(mailinglist_message)
     logging.info("Visit comment at %s", comment.html_url)
