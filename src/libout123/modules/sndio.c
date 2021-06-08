@@ -106,6 +106,7 @@ static int open_sndio(out123_handle *ao)
 
 	if(ao->format != -1)
 	{
+		mdebug("Actually opening with %d channels, rate %ld.", ao->channels, ao->rate);
 		par.rate = ao->rate;
 		par.pchan = ao->channels;
 	}
