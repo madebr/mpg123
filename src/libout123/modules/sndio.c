@@ -23,6 +23,73 @@
 
 #include "debug.h"
 
+static int sndio_to_mpg123_enc(int sign, int bits)
+{
+	switch(bits)
+	{
+		case 8:
+			return sign ? MPG123_ENC_SIGNED_8 : MPG123_ENC_UNSIGNED_8;
+		case 16:
+			return sign ? MPG123_ENC_SIGNED_16 : MPG123_ENC_UNSIGNED_16;
+		case 24:
+			return sign ? MPG123_ENC_SIGNED_24 : MPG123_ENC_UNSIGNED_24;
+		case 32:
+			return sign ? MPG123_ENC_SIGNED_32 : MPG123_ENC_UNSIGNED_32;
+	}
+	return -1;
+}
+
+static double rate_diff(long a, unsigned int b)
+{
+	double ar = (double)a;
+	double br = (double)b;
+	return ( a>b ? (ar-br)/ar : ( a <= 0 ? 1. : (br-ar)/ar ) );
+}
+
+static int mpg123_to_sndio_enc(int enc, unsigned int *sig, unsigned int *bits)
+{
+	switch(enc) {
+	case -1:
+		// Query default format only.
+		break;
+	case MPG123_ENC_SIGNED_32:
+		*sig = 1;
+		*bits = 32;
+		break;
+	case MPG123_ENC_UNSIGNED_32:
+		*sig = 0;
+		*bits = 32;
+		break;
+	case MPG123_ENC_SIGNED_24:
+		*sig = 1;
+		*bits = 24;
+		break;
+	case MPG123_ENC_UNSIGNED_24:
+		*sig = 0;
+		*bits = 24;
+		break;
+	case MPG123_ENC_SIGNED_16:
+		*sig = 1;
+		*bits = 16;
+		break;
+	case MPG123_ENC_UNSIGNED_16:
+		*sig = 0;
+		*bits = 16;
+		break;
+	case MPG123_ENC_UNSIGNED_8:
+		*sig = 0;
+		*bits = 8;
+		break;
+	case MPG123_ENC_SIGNED_8:
+		*sig = 1;
+		*bits = 8;
+		break;
+	default:
+		return -1;
+	}
+	return 0;
+}
+
 static int open_sndio(out123_handle *ao)
 {
 	struct sio_hdl *hdl;
@@ -36,36 +103,16 @@ static int open_sndio(out123_handle *ao)
 	}
 
 	sio_initpar(&par);
-	par.rate = ao->rate;
-	par.pchan = ao->channels;
+
+	if(ao->format != -1)
+	{
+		par.rate = ao->rate;
+		par.pchan = ao->channels;
+	}
 	par.le = SIO_LE_NATIVE;
-	switch(ao->format) {
-	case MPG123_ENC_SIGNED_32:
-		par.sig = 1;
-		par.bits = 32;
-		break;
-	case MPG123_ENC_UNSIGNED_32:
-		par.sig = 0;
-		par.bits = 32;
-		break;
-	case MPG123_ENC_SIGNED_16:
-	case -1: /* query mode */
-		par.sig = 1;
-		par.bits = 16;
-		break;
-	case MPG123_ENC_UNSIGNED_16:
-		par.sig = 0;
-		par.bits = 16;
-		break;
-	case MPG123_ENC_UNSIGNED_8:
-		par.sig = 0;
-		par.bits = 8;
-		break;
-	case MPG123_ENC_SIGNED_8:
-		par.sig = 1;
-		par.bits = 8;
-		break;
-	default:
+
+	if(mpg123_to_sndio_enc(ao->format, &par.sig, &par.bits))
+	{
 		if (!AOQUIET)
 			error1("invalid sample format %d",
 			    ao->format);
@@ -73,35 +120,39 @@ static int open_sndio(out123_handle *ao)
 		return -1;
 	}
 
-	if (!sio_setpar(hdl, &par) || !sio_getpar(hdl, &par) || 
-	    !sio_start(hdl)) {
+	if (!sio_setpar(hdl, &par) || !sio_getpar(hdl, &par)
+		|| par.le != SIO_LE_NATIVE )
+	{
 		if(!AOQUIET)
 			error("parameter setup  failure");
 		sio_close(hdl);
 		return -1;
 	}
-	if ((par.bits != 8 && par.bits != 16 && par.bits != 32) ||
-	    par.le != SIO_LE_NATIVE) {
-		if(!AOQUIET)
-			error("actual parameters unsupported");
-		sio_close(hdl);
-		return -1;
+	if(ao->format == -1) // Store default format.
+	{
+		ao->format = sndio_to_mpg123_enc(par.sig, par.bits);
+		ao->rate = par.rate;
+		ao->channels = par.pchan;
 	}
-	ao->rate = par.rate;
-	ao->channels = par.pchan;
-	switch (par.bits) {
-	case 8:
-		ao->format = par.sig ? MPG123_ENC_SIGNED_8 :
-		    MPG123_ENC_UNSIGNED_8;
-		break;
-	case 16:
-		ao->format = par.sig ? MPG123_ENC_SIGNED_16 :
-		    MPG123_ENC_UNSIGNED_16;
-		break;
-	case 32:
-		ao->format = par.sig ? MPG123_ENC_SIGNED_32 :
-		    MPG123_ENC_UNSIGNED_32;
-		break;
+	else
+	{
+		 if( ao->format != sndio_to_mpg123_enc(par.sig, par.bits)
+			|| ao->channels != par.pchan
+			|| rate_diff(ao->rate, par.rate) > 0.005
+			)
+		{
+			if(!AOQUIET)
+				error("format not accepted as given");
+			sio_close(hdl);
+			return -1;
+		}
+		if(!sio_start(hdl))
+		{
+			if(!AOQUIET)
+				error("cannot start");
+			sio_close(hdl);
+			return -1;
+		}
 	}
 	ao->userptr = hdl;
 	return 0;
@@ -109,9 +160,101 @@ static int open_sndio(out123_handle *ao)
 
 static int get_formats_sndio(out123_handle *ao)
 {
-	return (MPG123_ENC_SIGNED_32|MPG123_ENC_UNSIGNED_32|
-	    MPG123_ENC_SIGNED_16|MPG123_ENC_UNSIGNED_16|
-	    MPG123_ENC_UNSIGNED_8|MPG123_ENC_SIGNED_8);
+	struct sio_hdl *hdl = (struct sio_hdl *)ao->userptr;
+	struct sio_cap cap;
+	int fmt = 0;
+
+	// Direct querying with sio_setpar()/sio_getpar is too slow, so let's
+	// learn about the funky bitmask indexing of the capability stuff.
+	if(!sio_getcap(hdl, &cap))
+	{
+		if(!AOQUIET)
+			error("failure getting caps");
+		return 0;
+	}
+
+	unsigned int rmask = 0;
+	for(int ri=0; ri<SIO_NRATE; ++ri)
+	{
+		if(ao->rate == cap.rate[ri])
+		{
+			rmask |= 1 << ri;
+			break;
+		}
+	}
+	if(!rmask)
+	{
+		for(int ri=0; ri<SIO_NRATE; ++ri)
+		{
+			if(rate_diff(ao->rate, cap.rate[ri]) <= 0.005)
+			{
+				rmask |= 1 << ri;
+				break;
+			}
+		}
+	}
+
+	unsigned int cmask = 0;
+	for(int ci=0; ci<SIO_NCHAN; ++ci)
+	{
+		if(ao->channels == cap.pchan[ci])
+		{
+			cmask |= 1 << ci;
+			break;
+		}
+	}
+
+	if(!rmask || !cmask)
+	{
+		// no rate match, do the elaborate check.
+		debug("cap table does not help, doing elaborate format check");
+		static int fmts[] =
+		{
+			MPG123_ENC_SIGNED_8,  MPG123_ENC_UNSIGNED_8
+		,	MPG123_ENC_SIGNED_16, MPG123_ENC_UNSIGNED_16
+		,	MPG123_ENC_SIGNED_24, MPG123_ENC_UNSIGNED_24
+		,	MPG123_ENC_SIGNED_32, MPG123_ENC_UNSIGNED_32
+		};
+
+		for(int i=0;i<sizeof(fmts)/sizeof(int);i++) 
+		{
+			struct sio_par par;
+			sio_initpar(&par);
+			par.le = SIO_LE_NATIVE;
+			mpg123_to_sndio_enc(fmts[i], &par.sig, &par.bits);
+			par.rate = ao->rate;
+			par.pchan = ao->channels;
+			if(sio_setpar(hdl, &par) && sio_getpar(hdl, &par))
+			{
+				if( par.le == SIO_LE_NATIVE
+					&& fmts[i]  == sndio_to_mpg123_enc(par.sig, par.bits)
+					&& ao->channels == par.pchan
+					&& rate_diff(ao->rate, par.rate) <= 0.005
+				)
+				fmt |= fmts[i];
+			}
+		}
+	} else
+	{
+		int menc[SIO_NENC];
+		for(int ei=0; ei<SIO_NENC; ++ei)
+		{
+			if(cap.enc[ei].le != SIO_LE_NATIVE)
+				menc[ei] = 0;
+			else
+				menc[ei] = sndio_to_mpg123_enc(cap.enc[ei].sig, cap.enc[ei].bits);
+			if(menc[ei] < 0)
+				menc[ei] = 0;
+		}
+		for(unsigned int i=0; i<cap.nconf; ++i)
+		{
+			if(cap.confs[i].pchan & cmask && cap.confs[i].rate & rmask)
+			for(int ei=0; ei<SIO_NENC; ++ei)
+			if(cap.confs[i].enc & (1<<ei))
+				fmt |= menc[ei];
+		}
+	}
+	return fmt;
 }
 
 static int write_sndio(out123_handle *ao, unsigned char *buf, int len)
@@ -134,7 +277,8 @@ static int close_sndio(out123_handle *ao)
 {
 	struct sio_hdl *hdl = (struct sio_hdl *)ao->userptr;
 
-	sio_close(hdl);
+	if(hdl)
+		sio_close(hdl);
 	return 0;
 }
 

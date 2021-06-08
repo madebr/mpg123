@@ -17,6 +17,7 @@
 - libout123:
 -- Optionally use predefined OUT123_API_VERSION in out123.h.in for
    non-configure use.
+-- Fix sndio output to properly query device format support (bug 314).
 
 1.28.0
 ------
