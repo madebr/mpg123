@@ -93,7 +93,7 @@ static int mpg123_to_sndio_enc(int enc, unsigned int *sig, unsigned int *bits)
 static int open_sndio(out123_handle *ao)
 {
 	struct sio_hdl *hdl;
-	struct sio_par par = {0,}; // sio_initpar() not reliably intiailizing all of it?
+	struct sio_par par;
 
 	hdl = sio_open(ao->device /* NULL is fine */, SIO_PLAY, 0);
 	if (hdl == NULL)
@@ -109,7 +109,11 @@ static int open_sndio(out123_handle *ao)
 		mdebug("Actually opening with %d channels, rate %ld.", ao->channels, ao->rate);
 		par.rate = ao->rate;
 		par.pchan = ao->channels;
-	}
+	} else
+		// This seems to be needed on FreeBSD, against documentation that suggests that
+		// not changing things after sio_initpar() counts as unset. Not so. The zero
+		// seems to work in practice.
+		par.pchan = 0; 
 	par.le = SIO_LE_NATIVE;
 
 	if(mpg123_to_sndio_enc(ao->format, &par.sig, &par.bits))
