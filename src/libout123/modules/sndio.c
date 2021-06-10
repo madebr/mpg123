@@ -93,7 +93,7 @@ static int mpg123_to_sndio_enc(int enc, unsigned int *sig, unsigned int *bits)
 static int open_sndio(out123_handle *ao)
 {
 	struct sio_hdl *hdl;
-	struct sio_par par;
+	struct sio_par par = {0,}; // sio_initpar() not reliably intiailizing all of it?
 
 	hdl = sio_open(ao->device /* NULL is fine */, SIO_PLAY, 0);
 	if (hdl == NULL)
