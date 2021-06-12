@@ -103,8 +103,8 @@ if test "x$all_static" = xyes; then
 fi
 
 AM_PROG_AS
-dnl We really mean C99 here. The specific macro for that is gone.
-AC_PROG_CC
+dnl For autocinf 2.69, the C99 macro still does something.
+AC_PROG_CC_C99
 AM_PROG_CC_C_O
 AC_PROG_CPP
 AC_PROG_INSTALL
