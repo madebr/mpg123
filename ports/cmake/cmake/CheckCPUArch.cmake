@@ -2,7 +2,7 @@ macro(_CHECK_CPU_ARCH ARCH ARCH_DEFINES VARIABLE)
     if(NOT DEFINED HAVE_${VARIABLE})
         message(STATUS "Check CPU architecture is ${ARCH}")
         set(CHECK_CPU_ARCH_DEFINES ${ARCH_DEFINES})
-        configure_file(${PROJECT_SOURCE_DIR}/CheckCPUArch.c.in ${PROJECT_BINARY_DIR}/CMakeFiles/CMakeTmp/CheckCPUArch.c @ONLY)
+        configure_file(${PROJECT_SOURCE_DIR}/cmake/CheckCPUArch.c.in ${PROJECT_BINARY_DIR}/CMakeFiles/CMakeTmp/CheckCPUArch.c @ONLY)
         try_compile(HAVE_${VARIABLE} "${PROJECT_BINARY_DIR}"
             "${PROJECT_BINARY_DIR}/CMakeFiles/CMakeTmp/CheckCPUArch.c")
         if(HAVE_${VARIABLE})
