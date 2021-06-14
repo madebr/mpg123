@@ -12,6 +12,8 @@
 #define NO_SMAX
 #include "syn123_int.h"
 #include "debug.h"
+// Avoid conflict with pragmas in isnan() and friends.
+#undef warning
 
 static const double db_min = -SYN123_DB_LIMIT;
 static const double db_max =  SYN123_DB_LIMIT;

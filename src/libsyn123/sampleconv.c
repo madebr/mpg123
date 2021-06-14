@@ -21,6 +21,8 @@
 #include "syn123_int.h"
 #include "sample.h"
 #include "debug.h"
+// Avoid conflict with pragmas in isnan() and friends.
+#undef warning
 
 /* Conversions between native byte order encodings. */
 

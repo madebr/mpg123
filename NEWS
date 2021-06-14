@@ -5,7 +5,8 @@
 -- Fix build of arm_fpu (regression of configure reorg).
 -- Re-introduce AC_PROG_C_C99 macro for autoconf 2.69, it's only
    obsolete after that.
--- Un-break CMake build for botched move of CheckCPUArch.c.in (bug 315)
+-- Un-break CMake build for botched move of CheckCPUArch.c.in (bug 315).
+-- Avoid conflict of warning macro with MSVC pragmas in two places.
 - libout123: Pulse module advertises wider format support now, not
   just s16. This makes mpg123 -e s24 work with it, not just out123.
 - libmpg123:
