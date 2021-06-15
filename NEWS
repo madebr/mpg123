@@ -7,7 +7,8 @@
    obsolete after that.
 -- Un-break CMake build for botched move of CheckCPUArch.c.in (bug 315).
 -- Avoid conflict of warning macro with MSVC pragmas in two places. Also
-   fix UWP build with strerror check (bug 316).
+   fix UWP build with strerror check and move down inclusion of intsym.h
+   (bug 316).
 - libout123: Pulse module advertises wider format support now, not
   just s16. This makes mpg123 -e s24 work with it, not just out123.
 - libmpg123:
