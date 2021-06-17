@@ -90,6 +90,38 @@ static int mpg123_to_sndio_enc(int enc, unsigned int *sig, unsigned int *bits)
 	return 0;
 }
 
+
+// Just check if there seems some support for stereo audio,
+// take maximum channel count otherwise.
+static unsigned int guess_channels(struct sio_hdl *hdl)
+{
+	struct sio_cap cap;
+	unsigned int maxchan = 0;
+	unsigned int stereo_mask = 0;
+	unsigned int all_mask = 0;
+	unsigned int all_conf = 0;
+	if(!sio_getcap(hdl, &cap))
+		return 0; // Zero is as good as nothing.
+	// There is no specification of order in pchan[], So no guessing
+	// about which index for stereo.
+	for(int ci=0; ci<SIO_NCHAN; ++ci)
+	{
+		if(2 == cap.pchan[ci])
+			stereo_mask |= 1 << ci; // Maybe even multiple entries, eh?
+	}
+	for(unsigned int i=0; i<cap.nconf; ++i)
+	{
+		all_conf |= cap.confs[i].pchan;
+	}
+	for(int ci=0; ci<SIO_NCHAN; ++ci)
+	{
+		if(all_conf & (1 << ci) && cap.pchan[ci] > maxchan)
+			maxchan = cap.pchan[ci];
+	}
+	mdebug("maximum device channels: %u\n", maxchan);
+	return all_conf & stereo_mask ? 2 : maxchan;
+}
+
 static int open_sndio(out123_handle *ao)
 {
 	struct sio_hdl *hdl;
@@ -104,17 +136,19 @@ static int open_sndio(out123_handle *ao)
 
 	sio_initpar(&par);
 
+	par.le = SIO_LE_NATIVE;
 	if(ao->format != -1)
 	{
 		mdebug("Actually opening with %d channels, rate %ld.", ao->channels, ao->rate);
 		par.rate = ao->rate;
 		par.pchan = ao->channels;
 	} else
-		// This seems to be needed on FreeBSD, against documentation that suggests that
-		// not changing things after sio_initpar() counts as unset. Not so. The zero
-		// seems to work in practice.
-		par.pchan = 0; 
-	par.le = SIO_LE_NATIVE;
+	{
+		// Hack around buggy sndio versions up to 1.8.0 that fail to 
+		// neuter the default value before handing to OSS driver.
+		if(!sio_setpar(hdl, &par))
+			par.pchan = guess_channels(hdl);
+	}
 
 	if(mpg123_to_sndio_enc(ao->format, &par.sig, &par.bits))
 	{
