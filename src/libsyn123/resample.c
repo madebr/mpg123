@@ -2005,7 +2005,7 @@ syn123_resample_intotal_64(long inrate, long outrate, int64_t outs)
 	// First offset is -inrate.
 	// You may want to work it out for yourself. Or trust me;-)
 	int err;
-	uint64_t vtot = muloffdiv64(outs, vinrate, -vinrate, voutrate, &err, NULL);
+	uint64_t vtot = muloffdiv64(outs, vinrate, -(int64_t)vinrate, voutrate, &err, NULL);
 	if(err)
 		return SYN123_OVERFLOW;
 	if(vtot == UINT64_MAX)

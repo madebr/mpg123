@@ -19,9 +19,13 @@
 -- Use predefined MPG123_API_VERSION in mpg123.h.in for the same.
 -- Better handle the ssize_t situation via typedef mpg123_ssize_t, less
    likely to be broken in future MSVC versions.
+-- Fix an integer constant definition for the most negative 32 bit numnber to
+   avoid justified compiler complaints.
 - libsyn123:
 -- More support for MPG123_NO_CONFIGURE.
 -- Optionally use predefined SYN123_API_VERSION in syn123.h.in for the same.
+-- Add a cast to silence integer sign warning for offset in muloffdiv64()
+   (bug 317)
 - libout123:
 -- Optionally use predefined OUT123_API_VERSION in out123.h.in for
    non-configure use.
