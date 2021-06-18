@@ -98,7 +98,6 @@ static unsigned int guess_channels(struct sio_hdl *hdl)
 	struct sio_cap cap;
 	unsigned int maxchan = 0;
 	unsigned int stereo_mask = 0;
-	unsigned int all_mask = 0;
 	unsigned int all_conf = 0;
 	if(!sio_getcap(hdl, &cap))
 		return 0; // Zero is as good as nothing.
