@@ -193,112 +193,114 @@ endif()
 
 # Modules
 
-if(CHECK_MODULES)
-    list(FIND CHECK_MODULES alsa ALSA_REQUIRED)
-    list(FIND CHECK_MODULES coreaudio COREAUDIO_REQUIRED)
-    list(FIND CHECK_MODULES pulse PULSE_REQUIRED)
-    list(FIND CHECK_MODULES jack JACK_REQUIRED)
-    list(FIND CHECK_MODULES tinyalsa TINYALSA_REQUIRED)
-    list(FIND CHECK_MODULES win32 WIN32_REQUIRED)
-    list(FIND CHECK_MODULES win32_wasapi WIN32_WASAPI_REQUIRED)
-    set(MODULE_NOT_FOUND_MESSAGE "module required but couldn't be found")
-endif()
-
-if(NOT CHECK_MODULES OR NOT ALSA_REQUIRED EQUAL -1)
-    find_package(ALSA)
-    if(TARGET ALSA::ALSA)
-        list(APPEND OUTPUT_MODULES alsa)
-    elseif(CHECK_MODULES AND NOT ALSA_REQUIRED EQUAL -1)
-        message(FATAL_ERROR "alsa ${MODULE_NOT_FOUND_MESSAGE}")
+if(BUILD_LIBOUT123)
+    if(CHECK_MODULES)
+        list(FIND CHECK_MODULES alsa ALSA_REQUIRED)
+        list(FIND CHECK_MODULES coreaudio COREAUDIO_REQUIRED)
+        list(FIND CHECK_MODULES pulse PULSE_REQUIRED)
+        list(FIND CHECK_MODULES jack JACK_REQUIRED)
+        list(FIND CHECK_MODULES tinyalsa TINYALSA_REQUIRED)
+        list(FIND CHECK_MODULES win32 WIN32_REQUIRED)
+        list(FIND CHECK_MODULES win32_wasapi WIN32_WASAPI_REQUIRED)
+        set(MODULE_NOT_FOUND_MESSAGE "module required but couldn't be found")
     endif()
-endif()
 
-if(NOT CHECK_MODULES OR NOT COREAUDIO_REQUIRED EQUAL -1)
-    if(APPLE)
-        find_library(AUDIO_TOOLBOX AudioToolbox)
-        list(APPEND OUTPUT_MODULES coreaudio)
-    elseif(CHECK_MODULES AND NOT COREAUDIO_REQUIRED EQUAL -1)
-        message(FATAL_ERROR "coreaudio ${MODULE_NOT_FOUND_MESSAGE}")
-    endif()
-endif()
-
-find_package(PkgConfig)
-if(PKG_CONFIG_FOUND)
-    if(NOT CHECK_MODULES OR NOT PULSE_REQUIRED EQUAL -1)
-        pkg_search_module(PULSE libpulse-simple)
-        if(PULSE_FOUND)
-            list(APPEND OUTPUT_MODULES pulse)
-        elseif(CHECK_MODULES AND NOT PULSE_REQUIRED EQUAL -1)
-            message(FATAL_ERROR "pulse ${MODULE_NOT_FOUND_MESSAGE}")
+    if(NOT CHECK_MODULES OR NOT ALSA_REQUIRED EQUAL -1)
+        find_package(ALSA)
+        if(TARGET ALSA::ALSA)
+            list(APPEND OUTPUT_MODULES alsa)
+        elseif(CHECK_MODULES AND NOT ALSA_REQUIRED EQUAL -1)
+            message(FATAL_ERROR "alsa ${MODULE_NOT_FOUND_MESSAGE}")
         endif()
     endif()
 
-    if(NOT CHECK_MODULES OR NOT JACK_REQUIRED EQUAL -1)
-        pkg_search_module(JACK jack)
-        if(JACK_FOUND)
-            list(APPEND OUTPUT_MODULES jack)
-        elseif(CHECK_MODULES AND NOT JACK_REQUIRED EQUAL -1)
-            message(FATAL_ERROR "jack ${MODULE_NOT_FOUND_MESSAGE}")
+    if(NOT CHECK_MODULES OR NOT COREAUDIO_REQUIRED EQUAL -1)
+        if(APPLE)
+            find_library(AUDIO_TOOLBOX AudioToolbox)
+            list(APPEND OUTPUT_MODULES coreaudio)
+        elseif(CHECK_MODULES AND NOT COREAUDIO_REQUIRED EQUAL -1)
+            message(FATAL_ERROR "coreaudio ${MODULE_NOT_FOUND_MESSAGE}")
         endif()
     endif()
 
-    if(NOT CHECK_MODULES OR NOT TINYALSA_REQUIRED EQUAL -1)
-        pkg_search_module(TINYALSA tinyalsa)
-        if(TINYALSA_FOUND)
-            list(APPEND OUTPUT_MODULES tinyalsa)
-        elseif(CHECK_MODULES AND NOT TINYALSA_REQUIRED EQUAL -1)
-            message(FATAL_ERROR "tinyalsa ${MODULE_NOT_FOUND_MESSAGE}")
+    find_package(PkgConfig)
+    if(PKG_CONFIG_FOUND)
+        if(NOT CHECK_MODULES OR NOT PULSE_REQUIRED EQUAL -1)
+            pkg_search_module(PULSE libpulse-simple)
+            if(PULSE_FOUND)
+                list(APPEND OUTPUT_MODULES pulse)
+            elseif(CHECK_MODULES AND NOT PULSE_REQUIRED EQUAL -1)
+                message(FATAL_ERROR "pulse ${MODULE_NOT_FOUND_MESSAGE}")
+            endif()
+        endif()
+
+        if(NOT CHECK_MODULES OR NOT JACK_REQUIRED EQUAL -1)
+            pkg_search_module(JACK jack)
+            if(JACK_FOUND)
+                list(APPEND OUTPUT_MODULES jack)
+            elseif(CHECK_MODULES AND NOT JACK_REQUIRED EQUAL -1)
+                message(FATAL_ERROR "jack ${MODULE_NOT_FOUND_MESSAGE}")
+            endif()
+        endif()
+
+        if(NOT CHECK_MODULES OR NOT TINYALSA_REQUIRED EQUAL -1)
+            pkg_search_module(TINYALSA tinyalsa)
+            if(TINYALSA_FOUND)
+                list(APPEND OUTPUT_MODULES tinyalsa)
+            elseif(CHECK_MODULES AND NOT TINYALSA_REQUIRED EQUAL -1)
+                message(FATAL_ERROR "tinyalsa ${MODULE_NOT_FOUND_MESSAGE}")
+            endif()
         endif()
     endif()
-endif()
 
-if(NOT CHECK_MODULES OR NOT WIN32_REQUIRED EQUAL -1)
-    if(HAVE_WINDOWS_H)
-        set(WIN32_LIBRARIES winmm)
-        list(APPEND OUTPUT_MODULES win32)
-    elseif(CHECK_MODULES AND NOT WIN32_REQUIRED EQUAL -1)
-        message(FATAL_ERROR "win32 ${MODULE_NOT_FOUND_MESSAGE}")
+    if(NOT CHECK_MODULES OR NOT WIN32_REQUIRED EQUAL -1)
+        if(HAVE_WINDOWS_H)
+            set(WIN32_LIBRARIES winmm)
+            list(APPEND OUTPUT_MODULES win32)
+        elseif(CHECK_MODULES AND NOT WIN32_REQUIRED EQUAL -1)
+            message(FATAL_ERROR "win32 ${MODULE_NOT_FOUND_MESSAGE}")
+        endif()
     endif()
-endif()
 
-if(NOT CHECK_MODULES OR NOT WIN32_WASAPI_REQUIRED EQUAL -1)
-    set(WASAPI_INCLUDES "initguid.h" "audioclient.h" "mmdeviceapi.h" "avrt.h")
-    check_include_files("${WASAPI_INCLUDES}" HAVE_WASAPI)
-    if(HAVE_WASAPI)
-        set(WIN32_WASAPI_LIBRARIES ole32 avrt)
-        list(APPEND OUTPUT_MODULES win32_wasapi)
-    elseif(CHECK_MODULES AND NOT WIN32_WASAPI_REQUIRED EQUAL -1)
-        message(FATAL_ERROR "win32_wasapi ${MODULE_NOT_FOUND_MESSAGE}")
+    if(NOT CHECK_MODULES OR NOT WIN32_WASAPI_REQUIRED EQUAL -1)
+        set(WASAPI_INCLUDES "initguid.h" "audioclient.h" "mmdeviceapi.h" "avrt.h")
+        check_include_files("${WASAPI_INCLUDES}" HAVE_WASAPI)
+        if(HAVE_WASAPI)
+            set(WIN32_WASAPI_LIBRARIES ole32 avrt)
+            list(APPEND OUTPUT_MODULES win32_wasapi)
+        elseif(CHECK_MODULES AND NOT WIN32_WASAPI_REQUIRED EQUAL -1)
+            message(FATAL_ERROR "win32_wasapi ${MODULE_NOT_FOUND_MESSAGE}")
+        endif()
     endif()
-endif()
 
-if(CHECK_MODULES)
-    list(REMOVE_AT CHECK_MODULES
-        ${ALSA_REQUIRED}
-        ${COREAUDIO_REQUIRED}
-        ${PULSE_REQUIRED}
-        ${JACK_REQUIRED}
-        ${TINYALSA_REQUIRED}
-        ${WIN32_REQUIRED}
-        ${WIN32_WASAPI_REQUIRED})
-    list(LENGTH CHECK_MODULES CHECK_MODULES_LENGTH)
-    if(NOT CHECK_MODULES_LENGTH EQUAL 0)
-        message(FATAL_ERROR "Dunno how to find modules: ${CHECK_MODULES}")
+    if(CHECK_MODULES)
+        list(REMOVE_AT CHECK_MODULES
+            ${ALSA_REQUIRED}
+            ${COREAUDIO_REQUIRED}
+            ${PULSE_REQUIRED}
+            ${JACK_REQUIRED}
+            ${TINYALSA_REQUIRED}
+            ${WIN32_REQUIRED}
+            ${WIN32_WASAPI_REQUIRED})
+        list(LENGTH CHECK_MODULES CHECK_MODULES_LENGTH)
+        if(NOT CHECK_MODULES_LENGTH EQUAL 0)
+            message(FATAL_ERROR "Dunno how to find modules: ${CHECK_MODULES}")
+        endif()
     endif()
-endif()
 
-if(NOT OUTPUT_MODULES)
-    set(DEFAULT_OUTPUT_MODULE dummy)
-    set(DEFAULT_OUTPUT_MODULES ${DEFAULT_OUTPUT_MODULE})
-else()
-    list(GET OUTPUT_MODULES 0 _DEFAULT_OUTPUT_MODULE)
-    set(DEFAULT_OUTPUT_MODULE ${_DEFAULT_OUTPUT_MODULE} CACHE STRING "Default output module")
-    if(BUILD_SHARED_LIBS)
-        string(REPLACE ";" "," DEFAULT_OUTPUT_MODULES "${OUTPUT_MODULES}")
-    else()
+    if(NOT OUTPUT_MODULES)
+        set(DEFAULT_OUTPUT_MODULE dummy)
         set(DEFAULT_OUTPUT_MODULES ${DEFAULT_OUTPUT_MODULE})
+    else()
+        list(GET OUTPUT_MODULES 0 _DEFAULT_OUTPUT_MODULE)
+        set(DEFAULT_OUTPUT_MODULE ${_DEFAULT_OUTPUT_MODULE} CACHE STRING "Default output module")
+        if(BUILD_SHARED_LIBS)
+            string(REPLACE ";" "," DEFAULT_OUTPUT_MODULES "${OUTPUT_MODULES}")
+        else()
+            set(DEFAULT_OUTPUT_MODULES ${DEFAULT_OUTPUT_MODULE})
+        endif()
+        set_property(CACHE DEFAULT_OUTPUT_MODULE PROPERTY STRINGS ${OUTPUT_MODULES})
     endif()
-    set_property(CACHE DEFAULT_OUTPUT_MODULE PROPERTY STRINGS ${OUTPUT_MODULES})
 endif()
 
 option(ACCURATE_ROUNDING "use rounding instead of fast truncation for integer output, where possible" ON)
@@ -361,47 +363,56 @@ add_compile_options(
 
 add_subdirectory("compat")
 add_subdirectory("libmpg123")
-add_subdirectory("libout123")
+if(BUILD_LIBOUT123)
+    add_subdirectory("libout123")
+endif()
 add_subdirectory("libsyn123")
 
 if(UNIX)
     add_subdirectory("tests")
 
-    add_executable(${PROJECT_NAME}
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/audio.c"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/common.c"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/sysutil.c"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/control_generic.c"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/equalizer.c"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/getlopt.c"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/httpget.c"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/resolver.c"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/genre.c"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/mpg123.c"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/metaprint.c"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/local.c"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/playlist.c"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/streamdump.c"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/term.c")
-    target_link_libraries(${PROJECT_NAME} PRIVATE
-        compat
-        lib${PROJECT_NAME}
-        libout123
-        libsyn123
-        ${GETHOSTBYNAME_LIB}
-        ${SOCKET_LIB}
-        $<$<BOOL:${HAVE_M}>:m>)
+    if(BUILD_LIBOUT123)
+        add_executable(${PROJECT_NAME}
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/audio.c"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/common.c"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/sysutil.c"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/control_generic.c"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/equalizer.c"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/getlopt.c"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/httpget.c"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/resolver.c"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/genre.c"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/mpg123.c"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/metaprint.c"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/local.c"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/playlist.c"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/streamdump.c"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/term.c")
+        target_link_libraries(${PROJECT_NAME} PRIVATE
+            compat
+            lib${PROJECT_NAME}
+            libout123
+            libsyn123
+            ${GETHOSTBYNAME_LIB}
+            ${SOCKET_LIB}
+            $<$<BOOL:${HAVE_M}>:m>)
 
-    add_executable(out123
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/sysutil.c"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/getlopt.c"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/filters.c"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/local.c"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/out123.c")
-    target_link_libraries(out123 PRIVATE
-        lib${PROJECT_NAME}
-        libout123
-        libsyn123)
+        add_executable(out123
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/sysutil.c"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/getlopt.c"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/filters.c"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/local.c"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/out123.c")
+        target_link_libraries(out123 PRIVATE
+            lib${PROJECT_NAME}
+            libout123
+            libsyn123)
+        install(TARGETS ${PROJECT_NAME} out123
+            EXPORT targets
+            ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}/"
+            LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/"
+            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}/")
+    endif()
 
     add_executable(${PROJECT_NAME}-id3dump
         "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/mpg123-id3dump.c"
@@ -416,7 +427,7 @@ if(UNIX)
         lib${PROJECT_NAME}
         libsyn123)
 
-    install(TARGETS ${PROJECT_NAME} out123 ${PROJECT_NAME}-id3dump ${PROJECT_NAME}-strip
+    install(TARGETS ${PROJECT_NAME}-id3dump ${PROJECT_NAME}-strip
         EXPORT targets
         ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}/"
         LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/"

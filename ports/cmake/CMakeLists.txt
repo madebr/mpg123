@@ -5,6 +5,13 @@ read_api_version(MPG123_VERSION API_VERSION OUTAPI_VERSION SYNAPI_VERSION)
 
 project(mpg123 VERSION ${MPG123_VERSION} LANGUAGES C ASM)
 
+option(BUILD_LIBOUT123 "build libout123" ON)
+if(CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+    message(WARNING "Output module is not implemented for '${CMAKE_SYSTEM_NAME}' platform.")
+    message(WARNING "To prevent build errors 'BUILD_LIBOUT123' option is set to OFF.")
+    set(BUILD_LIBOUT123 OFF)
+endif()
+
 include(cmake/search_libs.cmake)
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
@@ -34,17 +41,29 @@ set(exec_prefix "${CMAKE_INSTALL_PREFIX}")
 set(libdir "${CMAKE_INSTALL_FULL_LIBDIR}")
 set(includedir "${CMAKE_INSTALL_FULL_INCLUDEDIR}")
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/../../libmpg123.pc.in" libmpg123.pc @ONLY)
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/../../libout123.pc.in" libout123.pc @ONLY)
+if(BUILD_LIBOUT123)
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/../../libout123.pc.in" libout123.pc @ONLY)
+endif()
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/../../libsyn123.pc.in" libsyn123.pc @ONLY)
 
 install(
     FILES
         "${CMAKE_CURRENT_BINARY_DIR}/libmpg123.pc"
-        "${CMAKE_CURRENT_BINARY_DIR}/libout123.pc"
         "${CMAKE_CURRENT_BINARY_DIR}/libsyn123.pc"
     DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+if(BUILD_LIBOUT123)
 install(
     FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/../../man1/mpg123.1"
         "${CMAKE_CURRENT_SOURCE_DIR}/../../man1/out123.1"
     DESTINATION "${CMAKE_INSTALL_MANDIR}")
+
+    install(
+        FILES
+            "${CMAKE_CURRENT_BINARY_DIR}/libout123.pc"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+    install(
+        FILES
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../man1/out123.1"
+        DESTINATION "${CMAKE_INSTALL_MANDIR}")
+endif()
