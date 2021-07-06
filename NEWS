@@ -11,6 +11,8 @@
    (bug 316).
 -- Disable libout123 (and mpg123, out123) on UWP with cmake to get at least
    the decoder lib built (317).
+-- Hack around CMake bug(?) with QUERY_HAS_FPU to make ports/cmake also
+   work in MinGW (bug 318).
 - libout123: Pulse module advertises wider format support now, not
   just s16. This makes mpg123 -e s24 work with it, not just out123.
 - libmpg123:

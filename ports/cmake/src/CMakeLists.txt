@@ -185,7 +185,11 @@ if(NO_MESSAGES)
     set(NO_ERETURN ON)
 endif()
 
-cmake_host_system_information(RESULT HAVE_FPU QUERY HAS_FPU)
+if(WIN32)
+    set(HAVE_FPU 1)
+else()
+    cmake_host_system_information(RESULT HAVE_FPU QUERY HAS_FPU)
+endif()
 
 if(NOT HAVE_FPU)
     set(NO_SYNTH32 ON)
