@@ -9,20 +9,20 @@ dnl 2.69 at least.
 AC_PREREQ([2.69])
 
 dnl ############# Initialisation
-AC_INIT([mpg123], [1.28.0], [maintainer@mpg123.org])
+AC_INIT([mpg123], [1.28.1], [maintainer@mpg123.org])
 dnl Increment API_VERSION when the API gets changes (new functions).
 
 dnl libmpg123
 API_VERSION=46
-LIB_PATCHLEVEL=2
+LIB_PATCHLEVEL=3
 
 dnl libout123
 OUTAPI_VERSION=4
-OUTLIB_PATCHLEVEL=0
+OUTLIB_PATCHLEVEL=1
 
 dnl libsyn123
 SYNAPI_VERSION=1
-SYNLIB_PATCHLEVEL=3
+SYNLIB_PATCHLEVEL=4
 
 dnl Since we want to be backwards compatible, both sides get set to API_VERSION.
 LIBMPG123_VERSION=$API_VERSION:$LIB_PATCHLEVEL:$API_VERSION
