@@ -1,3 +1,9 @@
+1.28.2
+------
+- libout123
+-- Complete the fix for bug 314, reopening the device after format
+   setup failure.
+
 1.28.1
 ------
 - build:

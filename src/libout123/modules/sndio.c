@@ -145,8 +145,18 @@ static int open_sndio(out123_handle *ao)
 	{
 		// Hack around buggy sndio versions up to 1.8.0 that fail to 
 		// neuter the default value before handing to OSS driver.
+		// Also need to re-open, as sndio likes errors to be fatal.
 		if(!sio_setpar(hdl, &par))
+		{
+			sio_close(hdl);
+			hdl = sio_open(ao->device, SIO_PLAY, 0);
+			if(hdl == NULL)
+			{
+				error("Re-opening of device for channel guessing failed.");
+				return -1;
+			}
 			par.pchan = guess_channels(hdl);
+		}
 	}
 
 	if(mpg123_to_sndio_enc(ao->format, &par.sig, &par.bits))
