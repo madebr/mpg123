@@ -10,7 +10,11 @@ src_libmpg123_testcpu_LDADD = \
   src/libmpg123/getcpuflags.$(OBJEXT)
 
 EXTRA_PROGRAMS += src/libmpg123/calctables
-src_libmpg123_calctables_SOURCES = src/libmpg123/calctables.c
+src_libmpg123_calctables_SOURCES = src/libmpg123/calctables.c \
+  src/libmpg123/init_costabs.h \
+  src/libmpg123/init_layer12.h \
+  src/libmpg123/init_layer3.h
+
 src_libmpg123_calctables_LDADD = @LIBM@
 
 # Necessary?

@@ -517,6 +517,22 @@ if test "x$messages" = "xdisabled"; then
   AC_DEFINE(NO_ERETURN, 1, [ Define to disable error messages in combination with a return value (the return is left intact). ])
 fi
 
+runtimetables=disabled
+AC_ARG_ENABLE(runtime-tables,
+[  --enable-runtime-tables=[yes/no] calculate tables at runtime saving size at the expense of additional computation at load time ],
+[
+  if test "x$enableval" = xyes; then
+    runtimetables=enabled
+  fi
+]
+, [])
+
+if test "x$runtimetables" = "xenabled"; then
+  AC_DEFINE(RUNTIME_TABLES, 1, [ Define for calculating tables at runtime. ])
+fi
+
+AM_CONDITIONAL([HAVE_RUNTIME_TABLES], [test "x$runtimetables" = xenabled] )
+
 newhuff=enabled
 AC_ARG_ENABLE(new-huffman,
 [  --enable-new-huffman=[yes/no] use new huffman decoding scheme by Taihei (faster on modern CPUs at least, so on by default) ],
@@ -2643,6 +2659,7 @@ echo "
   IEEE 754 hackery ........ $ieee
   New/old WRITE_SAMPLE .... $newoldwritesample
   new Huffman scheme ...... $newhuff
+  runtime tables .......... $runtimetables
 
 Note: Disabling core features is not commonly done and some combinations might
       not build/work. If you encounter such a case, help yourself (and provide
