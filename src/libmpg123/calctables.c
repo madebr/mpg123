@@ -28,9 +28,9 @@ static double layer12_table[27][64];
 
 // Storing only values 0 to 26, so char is fine.
 // The size of those might be reduced ... 
-static char grp_3tab[32 * 3] = { 0, };   /* used: 27 */
-static char grp_5tab[128 * 3] = { 0, };  /* used: 125 */
-static char grp_9tab[1024 * 3] = { 0, }; /* used: 729 */
+static unsigned char grp_3tab[32 * 3] = { 0, };   /* used: 27 */
+static unsigned char grp_5tab[128 * 3] = { 0, };  /* used: 125 */
+static unsigned char grp_9tab[1024 * 3] = { 0, }; /* used: 729 */
 
 #include "init_layer12.h"
 
@@ -79,7 +79,7 @@ static real gainpow2[256+118+4];
 // helpers
 
 static void print_char_array( const char *indent, const char *name
-,	size_t count, char tab[], int calc )
+,	size_t count, unsigned char tab[], int calc )
 {
 	if(calc)
 	{

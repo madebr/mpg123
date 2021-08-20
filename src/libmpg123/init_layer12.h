@@ -31,7 +31,7 @@ void init_layer12(void)
 	}
 
 	// void init_layer12()
-	const char base[3][9] =
+	const unsigned char base[3][9] =
 	{
 		{ 1 , 0, 2 , } ,
 		{ 17, 18, 0 , 19, 20 , } ,
@@ -39,8 +39,8 @@ void init_layer12(void)
 	};
 	int i,j,k,l,len;
 	const int tablen[3] = { 3 , 5 , 9 };
-	char *itable;
-	char *tables[3] = { grp_3tab , grp_5tab , grp_9tab };
+	unsigned char *itable;
+	unsigned char *tables[3] = { grp_3tab , grp_5tab , grp_9tab };
 
 	for(i=0;i<3;i++)
 	{
