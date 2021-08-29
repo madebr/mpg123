@@ -6,20 +6,22 @@ TESTS += \
   src/tests/seek_accuracy.sh \
   src/tests/resample_total \
   src/tests/text \
-  src/tests/textprint
+  src/tests/textprint \
+  src/tests/plain_id3.sh
 
 if !HAVE_SYNTH16
 XFAIL_TESTS += src/tests/decode_fixed.sh
 endif
 
-# Those are created by decode_fixed.sh. Could add targets.
+# Those are created by test scrips. Could add targets?
 clean-local: clean-local-check
 .PHONY: clean-local-check
 clean-local-check:
-	rm -f src/tests/sweepsweep.mp3 src/tests/stripsweep.mp3
+	rm -f src/tests/sweepsweep.mp3 src/tests/stripsweep.mp3 src/tests/plain_id3.out.txt
 
 # Why do I have to repeat the test scripts here?
 EXTRA_DIST += \
+  src/tests/testtext.sh \
   src/tests/decode_fixed.sh \
   src/tests/seek_whence.sh \
   src/tests/seek_accuracy.sh \
@@ -31,7 +33,8 @@ check_PROGRAMS += \
   src/tests/seek_accuracy \
   src/tests/resample_total \
   src/tests/text \
-  src/tests/textprint
+  src/tests/textprint \
+  src/tests/plain_id3
 
 EXTRA_PROGRAMS += \
   src/tests/volume \
@@ -39,8 +42,7 @@ EXTRA_PROGRAMS += \
   src/tests/seek_whence \
   src/tests/seek_accuracy \
   src/tests/noise \
-  src/tests/sweeper \
-  src/tests/plain_id3
+  src/tests/sweeper
 
 src_tests_volume_SOURCES = \
   src/tests/volume.c
