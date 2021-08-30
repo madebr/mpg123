@@ -25,6 +25,8 @@ EXTRA_DIST += \
   src/tests/decode_fixed.sh \
   src/tests/seek_whence.sh \
   src/tests/seek_accuracy.sh \
+  src/tests/plain_id3.sh \
+  src/tests/plain_id3.txt \
   src/tests/sweep.mp3
 
 check_PROGRAMS += \
