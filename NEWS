@@ -1,3 +1,11 @@
+1.29.1
+------
+- mpg123: Keep default output encoding of s16 for raw and file outputs
+  also with the new resampler. This reverts the unintentional change in
+  1.26.0 of switching to f32 for forced output rate unless the NtoM
+  resampler is selected. In any case, you should make sure to specify
+  your desired --encoding if you depend on it.
+
 1.29.0
 ------
 - build: added --enable-runtime-tables
