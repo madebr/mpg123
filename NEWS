@@ -5,6 +5,7 @@
   1.26.0 of switching to f32 for forced output rate unless the NtoM
   resampler is selected. In any case, you should make sure to specify
   your desired --encoding if you depend on it.
+- libout123: fix reporting of device property flags for buffer
 
 1.29.0
 ------

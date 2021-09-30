@@ -443,7 +443,8 @@ static int audio_capabilities(out123_handle *ao, mpg123_handle *mh)
 				}
 				free(outfmts);
 				outfmts = NULL;
-			}
+			} else if(param.verbose > 1)
+				fprintf(stderr, "Note: negotiating the best encoding with live sink\n");
 		}
 		mdebug("enc mono=0x%x stereo=0x%x", (unsigned)enc1, (unsigned)enc2);
 		if(!enc1 && !enc2)
