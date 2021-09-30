@@ -1,4 +1,3 @@
-#define DEBUG
 /*
 	audio: audio output interface
 
