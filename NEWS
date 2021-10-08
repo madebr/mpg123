@@ -8,6 +8,8 @@
    your desired --encoding if you depend on it.
 -- Catch error in indexing (mpg123_scan() return value was ignored
    before, bug 322).
+- mpg123-strip: Lift the resync limit, as it should be to clean up really
+  dirty streams.
 - libout123: fix reporting of device property flags for buffer
 - libmpg123: more safeguarding against attempts to decode if decoder
   setup failed and user ignored the returned error code (bug 322)
