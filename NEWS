@@ -10,6 +10,7 @@
    before, bug 322).
 - mpg123-strip: Lift the resync limit, as it should be to clean up really
   dirty streams.
+- mpg123-id3dump: Also lift resync limit for the same reasons.
 - libout123: fix reporting of device property flags for buffer
 - libmpg123: more safeguarding against attempts to decode if decoder
   setup failed and user ignored the returned error code (bug 322)
