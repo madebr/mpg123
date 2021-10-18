@@ -1,3 +1,8 @@
+1.29.2
+------
+- libmpg123: Fix non-live-decoder safeguard for mpg123_framebyframe_decode()
+  (was a no-op in practice, bug 324).
+
 1.29.1
 ------
 - mpg123:
