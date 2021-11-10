@@ -1,3 +1,8 @@
+1.29.3
+------
+- mpg123: Fix typos in man page (thanks to Naglis Jonaitis).
+
+
 1.29.2
 ------
 - libmpg123: Fix non-live-decoder safeguard for mpg123_framebyframe_decode()
