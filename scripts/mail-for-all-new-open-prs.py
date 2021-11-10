@@ -5,7 +5,6 @@ import smtplib
 import ssl
 
 import github
-import markdown
 
 logging.basicConfig(format='[%(asctime)s] %(message)s')
 logging.root.setLevel(logging.INFO)
@@ -28,10 +27,10 @@ for pr in repo.get_pulls(state="open"):
 
     logging.info("PR #%d was NOT handled already", pr.number)
 
-    mail_markdown = f"""\
-A pull request by [{pr.user.login}]({pr.user.html_url}) was opened at {pr.created_at}.
+    mail_body = f"""\
+A pull request by {pr.user.login}  was opened at {pr.created_at}.
 
-Please visit [{pr.html_url}]({pr.html_url}) to give feedback and review the code.
+Please visit {pr.html_url} to give feedback and review the code.
 
 ---
 
@@ -39,20 +38,24 @@ Please visit [{pr.html_url}]({pr.html_url}) to give feedback and review the code
 
 ---
 
+patch details:
 - url: {pr.html_url}
 - patch: {pr.html_url}.patch
+
+url details:
+- user name: {pr.user.login}
+- user url: {pr.user.html_url}
 """
-    logging.info("markdown message: %s", mail_markdown)
+    logging.info("mail body: %s", mail_body)
 
     mail_title = "Opened GH-#{}: {} [{}]".format(pr.number, pr.title, pr.user.login)
-    mail_body = markdown.markdown(mail_markdown)
 
     logging.info("mail title: %s", mail_title)
     logging.info("mail body: %s", mail_body)
 
     mail_message = f"""\
 MIME-Version: 1.0
-Content-type: text/html; charset=utf-8
+Content-type: text/plain; charset=utf-8
 Subject: {mail_title}
 
 {mail_body}
