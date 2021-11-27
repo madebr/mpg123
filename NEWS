@@ -1,7 +1,7 @@
 1.29.3
 ------
 - mpg123: Fix typos in man page (thanks to Naglis Jonaitis).
-
+- build: add BUILD_PROGRAMS option to ports/cmake
 
 1.29.2
 ------
