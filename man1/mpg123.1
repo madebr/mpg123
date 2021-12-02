@@ -335,6 +335,10 @@ whitespace.  They specify the multipliers for left and right channel of
 a certain frequency band, respectively.  The first line corresponds to the
 lowest, the 32nd to the highest frequency band.
 Note that you can control the equalizer interactively with the generic control interface.
+Also note that these are the 32 bands of the MPEG codec, not spaced like you
+would see for a usual graphic equalizer. The upside is that there is zero computational
+cost in addition to decoding. The downside is that you roughly have bass in band 0,
+(upper) mids in band 1, treble in all others.
 .TP
 \fB\-\^\-gapless
 Enable code that cuts (junk) samples at beginning and end of tracks, enabling gapless transitions between MPEG files when encoder padding and codec delays would prevent it.
