@@ -449,6 +449,7 @@ static void set_out_file(char *arg, topt *opts)
 
 static void set_out_stdout(char *arg, topt *opts)
 {
+	param.remote_err = TRUE;
 	param.output_module = "raw";
 	getlopt_set_char(opts, "audiodevice", NULL);
 }

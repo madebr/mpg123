@@ -1,6 +1,7 @@
 1.29.3
 ------
 - mpg123:
+-- Fix regression that did _not_ enable --remote-err on -s anymore.
 -- Fix typos in man page (thanks to Naglis Jonaitis).
 -- Drop mixed-up value limits on remote control SEQ command. It is up to you
    if you want to distort your sound.
