@@ -1,3 +1,8 @@
+1.29.4
+------
+- libmpg123: saturate reader file position at off_t limit to satisfy
+  undefined behaviour checkers
+
 1.29.3
 ------
 - libmpg123: Catch more NULL pointer arguments in LFS wrappers

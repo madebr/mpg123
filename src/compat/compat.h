@@ -67,6 +67,19 @@
 #define ULONG_MAX ((unsigned long)-1)
 #endif
 
+#ifndef OFF_MAX
+#if SIZEOF_OFF_T == 4
+#define OFF_MAX ((uint32_t)-1/2)
+#elif SIZEOF_OFF_T == 8
+#define OFF_MAX ((uint64_t)-1/2)
+#else
+#error "Unexpected width of off_t."
+#endif
+#endif
+
+// Add two values (themselves assumed to be < limit), saturating to given limit.
+#define SATURATE_ADD(inout, add, limit) inout = (limit-add >= inout) ? inout+add : limit;
+
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
