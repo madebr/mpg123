@@ -465,6 +465,7 @@ static off_t get_fileinfo(mpg123_handle *fr)
 		debug("cannot seek back");
 		return -1;
 	}
+	fr->rdat.filepos = 0; // un-do our seeking here
 
 	debug1("returning length: %"OFF_P, (off_p)len);
 	return len;
@@ -1072,8 +1073,8 @@ static int default_init(mpg123_handle *fr)
 	if(fr->p.icy_interval > 0) fr->rdat.lseek = nix_lseek;
 #endif
 
-	fr->rdat.filelen = fr->p.flags & MPG123_NO_PEEK_END ? -1 : get_fileinfo(fr);
 	fr->rdat.filepos = 0;
+	fr->rdat.filelen = fr->p.flags & MPG123_NO_PEEK_END ? -1 : get_fileinfo(fr);
 	if(fr->p.flags & MPG123_FORCE_SEEKABLE)
 		fr->rdat.flags |= READER_SEEKABLE;
 	/*

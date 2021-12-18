@@ -1,7 +1,10 @@
 1.29.4
 ------
-- libmpg123: saturate reader file position at off_t limit to satisfy
-  undefined behaviour checkers
+- libmpg123:
+-- Saturate reader file position at off_t limit to satisfy
+   undefined behaviour checkers.
+-- Avoid harmless unitialized value in ID3v1 check (filepos, later being
+   set before actual use).
 
 1.29.3
 ------
