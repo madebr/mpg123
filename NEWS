@@ -5,6 +5,9 @@
    undefined behaviour checkers.
 -- Avoid harmless unitialized value in ID3v1 check (filepos, later being
    set before actual use).
+- libout123:
+-- Build fix for win32_wasapi output for predefined _WIN32_WINNT (bug 329),
+   thanks to Vincent Torri.
 
 1.29.3
 ------

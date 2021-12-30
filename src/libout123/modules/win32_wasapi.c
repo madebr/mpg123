@@ -6,7 +6,13 @@
 
 	based on win32.c
 */
-#define _WIN32_WINNT 0x601
+#if  defined(_WIN32_WINNT)
+# if _WIN32_WINNT < 0x0601
+#  error "wrong _WIN32_WINNT value"
+# endif
+#else
+# define _WIN32_WINNT 0x0601
+#endif
 #define COBJMACROS 1
 #include "out123_int.h"
 #include <inttypes.h>
