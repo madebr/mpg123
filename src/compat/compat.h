@@ -197,7 +197,7 @@ int compat_fclose(FILE* stream);
 
 /* Those do make sense in a separate file, but I chose to include them in compat.c because that's the one source whose object is shared between mpg123 and libmpg123 -- and both need the functionality internally. */
 
-#ifdef WANT_WIN32_UNICODE
+#if defined (_WIN32) || defined (__CYGWIN__)
 /**
  * win32_uni2mbc
  * Converts a null terminated UCS-2 string to a multibyte (UTF-8) equivalent.
