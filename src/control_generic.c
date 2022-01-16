@@ -408,7 +408,7 @@ int control_generic (mpg123_handle *fr)
 #endif
 	/* the command behaviour is different, so is the ID */
 	/* now also with version for command availability */
-	fprintf(outstream, "@R MPG123 (ThOr) v9\n");
+	fprintf(outstream, "@R MPG123 (ThOr) v10\n");
 #ifdef FIFO
 	if(param.fifo)
 	{
@@ -451,6 +451,7 @@ int control_generic (mpg123_handle *fr)
 			if (n == 0) {
 				if (!play_frame())
 				{
+					generic_sendmsg("P 3");
 					out123_pause(ao);
 					/* When the track ended, user may want to keep it open (to seek back),
 					   so there is a decision between stopping and pausing at the end. */
@@ -598,6 +599,13 @@ int control_generic (mpg123_handle *fr)
 					continue;
 				}
 
+				/* PROGRESS, opposite of silence */
+				if(!strcasecmp(comstr, "PROGRESS")) {
+					silent = 0;
+					generic_sendmsg("progress");
+					continue;
+				}
+
 				if(!strcasecmp(comstr, "MUTE")) {
 					set_mute(ao, muted=TRUE);
 					generic_sendmsg("mute");
@@ -703,7 +711,8 @@ int control_generic (mpg123_handle *fr)
 					generic_sendmsg("H FORMAT: print out sampling rate in Hz and channel count");
 					generic_sendmsg("H SEQ <bass> <mid> <treble>: simple eq setting...");
 					generic_sendmsg("H PITCH <[+|-]value>: adjust playback speed (+0.01 is 1 %% faster)");
-					generic_sendmsg("H SILENCE: be silent during playback (meaning silence in text form)");
+					generic_sendmsg("H SILENCE: be silent during playback (no progress info, opposite of PROGRESS)");
+					generic_sendmsg("H PROGRESS: turn on progress display (opposite of SILENCE)");
 					generic_sendmsg("H STATE: Print auxiliary state info in several lines (just try it to see what info is there).");
 					generic_sendmsg("H TAG/T: Print all available (ID3) tag info, for ID3v2 that gives output of all collected text fields, using the ID3v2.3/4 4-character names. NOTE: ID3v2 data will be deleted on non-forward seeks.");
 					generic_sendmsg("H    The output is multiple lines, begin marked by \"@T {\", end by \"@T }\".");
