@@ -4,6 +4,10 @@
 -- remote control API v10 with "@P 3" as additonal message on track end
 -- also added PROGRESS command as opposite of SILENCE
 -- fix some verbosity, tweak help for --icy-interval
+- libmpg123:
+-- Cygwin/MinGW: Provide _win32_utf8_wide and _win32_wide_utf8 unconditionally.
+   It is needed by the WASAPI plugins, the underlying conversion functions
+   should be present since Windows 2000. Fixes WASAPI support on Cygwin.
 
 1.29.4
 ------
