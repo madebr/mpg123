@@ -504,7 +504,8 @@ static int add_next_file (int argc, char *argv[], int args_utf8)
 					{
 						if(!strcmp("[playlist]", pl.linebuf.p))
 						{
-							fprintf(stderr, "Note: detected Shoutcast/Winamp PLS playlist\n");
+							if(param.verbose)
+								fprintf(stderr, "Note: detected Shoutcast/Winamp PLS playlist\n");
 							pl.type = PLS;
 							continue;
 						}
