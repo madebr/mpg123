@@ -1675,7 +1675,10 @@ output_modules=
 check_forced=no
 check_failed=no
 if test "x$with_audio" != "x"; then
-	check_modules="`echo $with_audio|tr , ' '` dummy"
+	check_modules=`echo $with_audio|tr , ' '`
+	if ! echo "$check_modules" | grep -qw dummy; then
+		check_modules="$check_modules dummy"
+	fi
 	echo "Limiting outputs to build according to your preference: $check_modules"
 	check_forced=yes
 fi
@@ -2182,6 +2185,13 @@ if test "x$with_default_audio" != "x"; then
 	default_output_modules=`echo "$with_default_audio" | tr , ' '`
 else
 	default_output_modules=`list_without dummy $output_modules`
+fi
+
+Think again! Should dummy be tried for normal builds, even a module build that did not build any modules?
+
+# The dummy is only part of the list if it is the only part of the list.
+if test -z "$default_output_modules"  then
+  default_output_modules=dummy
 fi
 
 default_output_module=`first_word $default_output_modules`
