@@ -2188,7 +2188,7 @@ else
 fi
 
 # The dummy is only part of the list if it is the only part of the list.
-if test -z "$default_output_modules"  then
+if test -z "$default_output_modules"; then
   default_output_modules=dummy
 fi
 
