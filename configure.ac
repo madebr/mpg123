@@ -2187,8 +2187,6 @@ else
 	default_output_modules=`list_without dummy $output_modules`
 fi
 
-Think again! Should dummy be tried for normal builds, even a module build that did not build any modules?
-
 # The dummy is only part of the list if it is the only part of the list.
 if test -z "$default_output_modules"  then
   default_output_modules=dummy
