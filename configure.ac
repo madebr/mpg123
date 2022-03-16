@@ -2187,11 +2187,6 @@ else
 	default_output_modules=`list_without dummy $output_modules`
 fi
 
-# The dummy is only part of the list if it is the only part of the list.
-if test -z "$default_output_modules"; then
-  default_output_modules=dummy
-fi
-
 default_output_module=`first_word $default_output_modules`
 
 # Setup the static build.
@@ -2233,6 +2228,12 @@ AM_CONDITIONAL([BUILD_OPENAL], [ test "openal" = $default_output_module ])
 # Without actual modules, there is only the builtin one.
 if test x"$modules" = xdisabled; then
   default_output_modules=$default_output_module
+  # Module-less build needs _some_ default module.
+  if test -z "$default_output_module"; then
+    default_output_module=dummy
+  fi
+fi
+
 fi
 default_modstring=`echo "$default_output_modules"|tr ' ' ,`
 AC_DEFINE_UNQUOTED( DEFAULT_OUTPUT_MODULE, "$default_modstring", [The default audio output module(s) to use] )
