@@ -37,23 +37,23 @@ typedef struct net123_handle_struct net123_handle;
 
 net123_handle * net123_new(void);
 
-// Open a new URL, store headers.
-int net123_open(net123_handle *nh, const char *url)
+// Open a new URL, store headers indicated by (case-insensitive) optinal
+// NULL-terminated list. If NULL is handed in, all headers are stored.
+int net123_open(net123_handle *nh, const char *url, const char** headerfields)
 int net123_close(net123_handle *nh);
 
-// Set a client header to be sent on each request.
+// These are settings on the handle that can only be revoked by overwriting
+// or deleting/creating a new handle. Simplicity.
+// Add a client header to be sent on each request.
 int net123_client_header(net123_handle *nh, const char *name,  const char *value);
-// Case-insenstive header name we are interested in, others are dropped.
-// If not provided, all headers are stored.
-int net123_keep_header(net123_handle *nh, const char *name);
+// Set authentication data to use for each request.
+int net123_auth(net123_handle *nh, const char *user, const char *password);
+
 // Get count and names of stored server headers.
 // Set after each successful net123_open().
 size_t net123_server_headers(net123_handle *nh, const char **names);
-// Fetch value of named header. Returns MPG123_OK if found and value non-null.
-int net123_header_value(net123_handle *nh, const char *name, const char **value);
-
-// Set authentication data to use.
-int net123_auth(net123_handle *nh, const char *user, const char *password);
+// Fetch value of named server header. Returns MPG123_OK if found and value non-null.
+int net123_server_header(net123_handle *nh, const char *name, const char **value);
 
 // MPG123_OK or error code returned
 int net123_read(net123_handle *nh, void *buf, size_t bufsize, size_t *gotbytes);
