@@ -28,34 +28,28 @@
 #ifndef _MPG123_NET123_H_
 #define _MPG123_NET123_H_
 
-// Question: Keep abstract or predefine the struct with a void *handle inside?
-// The header handling stuff should be common code, constructing and parsing
-// header lines. Or do external libs do that for us?
-
+// The network implementation defines the struct for private use.
+// The purpose if just to keep enough context to be able to
+// call net123_read() and net123_close() afterwards.
 struct net123_handle_struct;
 typedef struct net123_handle_struct net123_handle;
 
 net123_handle * net123_new(void);
 
-// Open a new URL, store headers indicated by (case-insensitive) optinal
-// NULL-terminated list. If NULL is handed in, all headers are stored.
-int net123_open(net123_handle *nh, const char *url, const char** headerfields)
-int net123_close(net123_handle *nh);
+// TODO: decide if mpg123_strings should be used
 
-// These are settings on the handle that can only be revoked by overwriting
-// or deleting/creating a new handle. Simplicity.
-// Add a client header to be sent on each request.
-int net123_client_header(net123_handle *nh, const char *name,  const char *value);
-// Set authentication data to use for each request.
-int net123_auth(net123_handle *nh, const char *user, const char *password);
-
-// Get count and names of stored server headers.
-// Set after each successful net123_open().
-size_t net123_server_headers(net123_handle *nh, const char **names);
-// Fetch value of named server header. Returns MPG123_OK if found and value non-null.
-int net123_server_header(net123_handle *nh, const char *name, const char **value);
-
+// Open stream from URL, parsing headers and storing the selected ones.
+// nh: handle
+// url: stream URL
+// client_head: NULL-terminated list of client header lines
+// head: NULL-terminated list of response header field names (case-insensitive)
+// val: matching storage for header values, individual entries being nulled by the call
+//   and only those with new values allocated and set
+// HTTP auth parameters are taken from mpg123 parameter struct behind the scenes or from
+// the URL itself by the backend (ponder that, maybe just always put user:pw@host in there, if set?)
+int net123_open(net123_handle *nh, const char *url, const char **client_head, const char **head, char **val);
 // MPG123_OK or error code returned
 int net123_read(net123_handle *nh, void *buf, size_t bufsize, size_t *gotbytes);
+int net123_close(net123_handle *nh);
 
 #endif
