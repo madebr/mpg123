@@ -34,7 +34,10 @@
 struct net123_handle_struct;
 typedef struct net123_handle_struct net123_handle;
 
+// Just prepare storage and whatever intiializations are needed.
 net123_handle * net123_new(void);
+// Free resources, implying a close, too.
+void net123_del(net123_handle *nh);
 
 // TODO: decide if mpg123_strings should be used
 
