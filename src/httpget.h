@@ -61,6 +61,5 @@ extern char *proxyurl;
 extern unsigned long proxyip;
 /* takes url and content type string address, opens resource, returns fd for data, allocates and sets content type */
 extern int http_open (char* url, struct httpdata *hd);
-extern char *httpauth;
 
 #endif

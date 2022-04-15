@@ -268,8 +268,6 @@ void get_header_string(mpg123_string *response, const char *fieldname, mpg123_st
 
 /* shoutcsast meta data: 1=on, 0=off */
 
-char *httpauth = NULL;
-
 size_t accept_length(void)
 {
 	int i,j;
@@ -427,7 +425,7 @@ int fill_request(mpg123_string *request, mpg123_string *host, mpg123_string *por
 	return FALSE;
 
 	/* Authorization. */
-	if (httpauth1->fill || httpauth) {
+	if (httpauth1->fill || param.httpauth) {
 		char *buf;
 		if(!mpg123_add_string(request,"Authorization: Basic ")) return FALSE;
 		if(httpauth1->fill) {
@@ -441,15 +439,15 @@ int fill_request(mpg123_string *request, mpg123_string *host, mpg123_string *por
 			}
 			encode64(httpauth1->p,buf);
 		} else {
-			if(strlen(httpauth) > SIZE_MAX / 4 - 4 ) return FALSE;
+			if(strlen(param.httpauth) > SIZE_MAX / 4 - 4 ) return FALSE;
 
-			buf=(char *)malloc((strlen(httpauth) + 1) * 4);
+			buf=(char *)malloc((strlen(param.httpauth) + 1) * 4);
 			if(!buf)
 			{
 				error("malloc() for http auth failed, out of memory.");
 				return FALSE;
 			}
-			encode64(httpauth,buf);
+			encode64(param.httpauth,buf);
 		}
 
 		if( !mpg123_add_string(request, buf) || !mpg123_add_string(request, "\r\n"))

@@ -109,6 +109,9 @@ struct parameter
 	long icy_interval;
 	const char* name; /* name for this player instance */
 	double device_buffer; /* output device buffer */
+#ifdef NETWORK
+	char *httpauth; /* HTTP auth data */
+#endif
 };
 
 enum mpg123app_flags

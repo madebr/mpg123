@@ -118,6 +118,7 @@ struct parameter param = {
 	,0 /* ICY interval */
 	,"mpg123" /* name */
 	,0. /* device buffer */
+	,NULL /* auth */
 };
 
 mpg123_handle *mh = NULL;
@@ -478,6 +479,46 @@ static void set_appflag(char *arg, topt *opts)
 {
 	param.appflags |= appflag;
 }
+#ifdef NETWORK
+static void set_httpauth(char *arg, topt *opts)
+{
+	param.httpauth = strdup(arg);
+	// Do not advertise the password for all system users.
+	memset(arg, 'x', strlen(arg));
+}
+static void set_httpauth_file(char *arg, topt *opts)
+{
+	char buf[4096];
+	int fd = open(arg, 0);
+	int good = 0;
+	if(fd >= 0)
+	{
+		ssize_t rdb = read(fd, buf, sizeof(buf));
+		// If the file filled the whole buffer, this is too much.
+		// realistic limits for aith are 255:255.
+		if(rdb > 0 && rdb < sizeof(buf))
+		{
+			buf[sizeof(buf)-1] = 0;
+			for(size_t i=0; i<sizeof(buf); ++i)
+			{
+				if(buf[i] == '\r' || buf[i] == '\n' || buf[i] == 0)
+				{
+					buf[i] = 0;
+					break;
+				}
+			}
+			set_httpauth(buf, opts);
+			good = 1;
+		}
+		close(fd);
+	}
+	if(!good)
+	{
+		error("failed to apply given auth file");
+		safe_exit(12);
+	}
+}
+#endif
 
 static void list_output_modules(void)
 {
@@ -635,7 +676,8 @@ topt opts[] = {
 	{0, "test-cpu",  GLO_INT,  0, &runmode, TEST_CPU},
 	{0, "list-cpu", GLO_INT,  0, &runmode , LIST_CPU},
 #ifdef NETWORK
-	{'u', "auth",        GLO_ARG | GLO_CHAR, 0, &httpauth,   0},
+	{'u', "auth",        GLO_ARG | GLO_CHAR, set_httpauth, 0,   0},
+	{0, "auth-file",     GLO_ARG | GLO_CHAR, set_httpauth_file, 0,   0},
 #endif
 	#if defined (HAVE_SCHED_SETSCHEDULER) || defined (HAVE_WINDOWS_H)
 	/* check why this should be a long variable instead of int! */
@@ -1659,6 +1701,7 @@ static void long_usage(int err)
 #ifdef NETWORK
 	fprintf(o," -p <f> --proxy <f>        set WWW proxy\n");
 	fprintf(o," -u     --auth             set auth values for HTTP access\n");
+	fprintf(o,"        --auth-file        set auth values for HTTP access from given file\n");
 	fprintf(o,"        --ignore-mime      ignore HTTP MIME types (content-type)\n");
 #endif
 	fprintf(o,"        --no-seekbuffer    disable seek buffer\n");

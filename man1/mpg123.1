@@ -91,7 +91,11 @@ from the respective servers.  See also the
 .TP
 \fB\-u \fIauth\fR, \fB\-\^\-auth \fIauth
 HTTP authentication to use when receiving files via HTTP.
-The format used is user:password.
+The format used is user:password. Mpg123 will clear this quickly, but it may still appear
+in sight of other users or even just in your shell history.
+.TP
+\fB\-\^\-auth-file \fIauthfile
+Provide the authentication info via given file instead of command line directly.
 .TP
 \fB\-\^\-ignore\-mime
 Ignore MIME types given by HTTP server. If you know better and want mpg123
