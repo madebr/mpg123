@@ -318,6 +318,7 @@ void safe_exit(int code)
 	split_dir_file("", &dummy, &dammy);
 	if(fullprogname) free(fullprogname);
 
+	if(param.httpauth) free(param.httpauth);
 #ifdef HAVE_TERMIOS
 	term_exit();
 #endif
