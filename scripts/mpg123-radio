@@ -15,7 +15,7 @@ metaint=$(wget --quiet \
 
 track=$url
 
-mpg123 --icy-interval "$metaint" "$@" <(wget \
+mpg123 -b 4096 --icy-interval "$metaint" "$@" <(wget \
   --quiet --output-document=- \
   --user-agent=mpg123-radio/0.1 \
   --header="Icy-MetaData: $icy" \
