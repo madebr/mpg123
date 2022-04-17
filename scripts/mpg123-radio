@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# needs plain stream URL, not playlist
+
+url=$1
+shift
+
+icy=1
+
+metaint=$(wget --quiet \
+  --user-agent=mpg123-radio/0.1\
+  --header="Icy-MetaData: $icy" \
+  --save-headers "$url" --output-document=- \
+  | perl -ne 'if(/^\s*ICY-meTaint:\s(\d+)/i){ print "$1"; last } last unless /\S/;' )
+
+track=$url
+
+mpg123 --icy-interval "$metaint" "$@" <(wget \
+  --quiet --output-document=- \
+  --user-agent=mpg123-radio/0.1 \
+  --header="Icy-MetaData: $icy" \
+  "$track")
+
+# | grep -i icy-metaint: | tail -n 1 | cut -f 2 -d :
+
+#wget --spider -nd "$url"
