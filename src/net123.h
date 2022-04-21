@@ -42,9 +42,13 @@ typedef struct net123_handle_struct net123_handle;
 //   and only those with new values allocated and set
 // HTTP auth parameters are taken from mpg123 parameter struct behind the scenes or from
 // the URL itself by the backend (ponder that, maybe just always put user:pw@host in there, if set?)
-net123_handle * net123_open(const char *url, const char **client_head, const char **head, char **val);
-// MPG123_OK or error code returned
+net123_handle * net123_open(const char *url, const char * const *client_head, const char * const * head, char **val);
+
+// 0 or -1 returned, number of bytes stored in gotbytes
+// End of file is just a short byte count.
 int net123_read(net123_handle *nh, void *buf, size_t bufsize, size_t *gotbytes);
+
+// Call that to free up resources, end processes.
 void net123_close(net123_handle *nh);
 
 #endif
