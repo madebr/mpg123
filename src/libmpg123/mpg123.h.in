@@ -1741,7 +1741,7 @@ MPG123_EXPORT int mpg123_id3( mpg123_handle *mh
 ,	mpg123_id3v1 **v1, mpg123_id3v2 **v2 );
 
 /** Return pointers to and size of stored raw ID3 data if storage has
- *  been configured with MPG123_RAW_ID3 and stream parsing passed the
+ *  been configured with MPG123_STORE_RAW_ID3 and stream parsing passed the
  *  metadata already. Null value with zero size is a possibility!
  *  The storage can change at any next API call.
  *
