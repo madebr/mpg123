@@ -212,6 +212,19 @@ int compat_fclose(FILE* stream);
 int win32_wide_utf8(const wchar_t * const wptr, char **mbptr, size_t * buflen);
 
 /**
+ * win32_uni2mbc
+ * Converts a null terminated UCS-2 string to a multibyte (UTF-7) equivalent.
+ * Caller is supposed to free allocated buffer.
+ * @param[in] wptr Pointer to wide string.
+ * @param[out] mbptr Pointer to multibyte string.
+ * @param[out] buflen Optional parameter for length of allocated buffer.
+ * @return status of WideCharToMultiByte conversion.
+ *
+ * WideCharToMultiByte - http://msdn.microsoft.com/en-us/library/dd374130(VS.85).aspx
+ */
+int win32_wide_utf7(const wchar_t * const wptr, char **mbptr, size_t * buflen);
+
+/**
  * win32_mbc2uni
  * Converts a null terminated UTF-8 string to a UCS-2 equivalent.
  * Caller is supposed to free allocated buffer.
