@@ -39,6 +39,7 @@
 #ifndef _MPG123_NET123_H_
 #define _MPG123_NET123_H_
 
+#include <sys/types.h>
 
 // The network implementation defines the struct for private use.
 // The purpose is just to keep enough context to be able to
@@ -53,11 +54,12 @@ typedef struct net123_handle_struct net123_handle;
 // line ending
 net123_handle *net123_open(const char *url, const char * const *client_head);
 
-// 0 or -1 returned, number of bytes stored in gotbytes
-// End of file is just a short byte count.
-// EINTR and EAGAIN are handled inside. A short byte count really means end of file.
-// -1 only returned on actual I/O error (or bad handle).
-int net123_read(net123_handle *nh, void *buf, size_t bufsize, size_t *gotbytes);
+// Read data into buffer, return bytes read.
+// This handles interrupts (EAGAIN, EINTR, ..) internally and only returns
+// a short byte count on EOF or error. End of file or error is not distinguished:
+// For the user, it only matters if there will be more bytes or not.
+// Feel free to communicate errors via error() / merror() functions inside.
+size_t net123_read(net123_handle *nh, void *buf, size_t bufsize);
 
 // Call that to free up resources, end processes.
 void net123_close(net123_handle *nh);

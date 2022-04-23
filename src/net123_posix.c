@@ -10,13 +10,17 @@
 
 #include "config.h"
 #include "net123.h"
+// for strings
+#include "mpg123.h"
 
 // Just for parameter struct that we use for HTTP auth and proxy info.
 #include "mpg123app.h"
 
 #include "compat.h"
+
 #include "debug.h"
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 // Those are set via environment variables:
@@ -31,25 +35,9 @@
 
 struct net123_handle_struct
 {
-	FILE *pipept;
+	int fd;
 	pid_t worker;
 };
-
-// Zero line end in given string, return 0 if one was found, -1 if not.
-static int chomp(char *line, size_t n)
-{
-	int gotend = 0;
-	for(size_t i=0; i<sizeof(line) && line[i]; ++i)
-	{
-		if(line[i] == '\r' || line[i] == '\n')
-		{
-			line[i] = 0;
-			return 0;
-		}
-	}
-	error("skipping excessively long header");
-	return -1;
-}
 
 // Combine two given strings into one newly allocated one.
 // Use: (--parameter=, value) -> --parameter=value
@@ -65,15 +53,14 @@ static char *catstr(const char *par, const char *value)
 	return res;
 }
 
-net123_handle *net123_open(const char *url, const char * const * client_head, const char * const *head, char **val)
+net123_handle *net123_open(const char *url, const char * const * client_head)
 {
-	char line[4096];
 	int fd[2];
 	int hi = -1; // index of header value that might get a continuation line
 	net123_handle *nh = malloc(sizeof(net123_handle));
 	if(!nh)
 		return NULL;
-	nh->pipept = NULL;
+	nh->fd = -1;
 	nh->worker = 0;
 	errno = 0;
 	if(pipe(fd))
@@ -96,7 +83,7 @@ net123_handle *net123_open(const char *url, const char * const * client_head, co
 		close(fd[0]);
 		int errfd = open("/dev/null", O_WRONLY);
 		int infd  = open("/dev/null", O_RDONLY);
-		dup2(intfd, STDIN_FILENO);
+		dup2(infd,  STDIN_FILENO);
 		dup2(fd[1], STDOUT_FILENO);
 		dup2(errfd, STDERR_FILENO);
 		// child
@@ -140,7 +127,7 @@ net123_handle *net123_open(const char *url, const char * const * client_head, co
 		argv[an++] = compat_strdup("wget");
 		argv[an++] = compat_strdup("--user-agent=" PACKAGE_NAME "/" PACKAGE_VERSION);
 		for(size_t ch=0; ch < cheads; ++ch)
-			argv[an++] = catstr("--header=", client_header[ch]);
+			argv[an++] = catstr("--header=", client_head[ch]);
 		if(user)
 			argv[an++] = catstr("--user=", user);
 		if(password)
@@ -155,96 +142,15 @@ net123_handle *net123_open(const char *url, const char * const * client_head, co
 	// parent
 	errno = 0;
 	close(fd[1]);
-	nh->pipept = fdopen(fd[0], "r");
-	if(!nh->pipept)
-	{
-		merror("failed to open stream for worker pipe: %s", strerror(errno));
-		net123_close(nh);
-		free(nh);
-		return NULL;
-	}
-	// fork, exec
-	// read headers, end at the empty line
-	// use bufferd I/O and getline?
-	while(fgets(line, sizeof(line), nh->pipept))
-	{
-		if(chomp(line, sizeof(line))
-		{
-			error("skipping excessively long header");
-			while(fgets(line, sizeof(line), nh->pipept) && chomp(line, sizeof(line)))
-			{
-				# skip, skip
-			}
-			continue;
-		}
-		if(line[0] == 0)
-		{
-			break; // This is the content separator line.
-		}
-		// Only store headers if we got names and storage locations.
-		if(!head || !val)
-			continue;
-		if(hi >= 0 && (line[0] == ' ' || line[0] == '\t'))
-		{
-			debug("header continuation");
-			// nh continuation line, appending to already stored value.
-			char *v = line+1;
-			while(*v == ' ' || *v == '\t'){ ++v; }
-			val[hi] = safer_realloc(val[hi], strlen(val[hi])+strlen(v)+1);
-			if(!val[hi])
-			{
-				error("failed to grow header value for %s", head[hi]);
-				hi = -1;
-				continue;
-			}
-			strcat(val[hi], v);
-		}
-		char *n = line;
-		char *v = strchr(line, ':');
-		if(!v)
-			continue; // No proper header line.
-		// Got a header line.
-		*v = 0; // Terminate the header name.
-		mdebug("got header: %s", n);
-		++v; // Value starts after : and whitespace.
-		while(*v == ' ' || *v == '\t'){ ++v; }
-		for(hi = 0; head[hi] != NULL; ++hi)
-		{
-			if(!strcasecmp(n, head[hi]))
-				break;
-		}
-		if(head[hi] == NULL)
-		{
-			debug("skipping uninteresting header");
-			hi = -1;
-			continue;
-		}
-		debug("storing value for %s", head[hi]);
-		val[hi] = safer_realloc(val[hi], strlen(v)+1);
-		if(!val[hi])
-		{
-			error("failed to allocate header value storage");
-			hi = -1;
-			continue;
-		}
-		val[hi][0] = 0;
-		strcat(val[hi], v);
-	}
-	// If we got here, things are somewhat cool.
-	// Caller sees trouble already if no headers are returned, or the read doesn't give.
+	nh->fd = fd[0];
 	return nh;
 }
 
-int net123_read(net123_handle *nh, void *buf, size_t bufsize, size_t *gotbytes);
+size_t net123_read(net123_handle *nh, void *buf, size_t bufsize)
 {
 	if(!nh || (bufsize && !buf))
-		return -1;
-	size_t got = fread(buf, 1, bufsize, nh->pipept);
-	if(gotbytes)
-		*gotbytes = got;
-	if(!got && ferror(nh->pipept))
-		return -1;
-	return 0;
+		return 0;
+	return unintr_read(nh->fd, buf, bufsize);
 }
 
 void net123_close(net123_handle *nh)
@@ -258,8 +164,8 @@ void net123_close(net123_handle *nh)
 		if(waitpid(nh->worker, NULL, 0) < 0)
 			merror("failed to wait for worker process: %s", strerror(errno));
 	}
-	if(nh->pipept)
-		fclose(nh->pipept);
+	if(nh->fd > -1)
+		close(nh->fd);
 	free(nh);
 }
 
