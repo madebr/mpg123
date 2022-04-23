@@ -24,9 +24,21 @@
 	We need to support:
 	- client headers (ICY yes or no, client name)
 	- HTTP auth parameters
+
+	The idea is that this just handles the network and protocol part
+	of fetching data from an URL, returning
+
+	<server response headers>
+	<empty line>
+	<stream data>
+
+	via net123_read(). Header part is with <cr><lf>, just passing through
+	what the server gives should be OK. The only HTTP thing mpg123 shall do
+	is to parse headers.
 */
 #ifndef _MPG123_NET123_H_
 #define _MPG123_NET123_H_
+
 
 // The network implementation defines the struct for private use.
 // The purpose is just to keep enough context to be able to
@@ -34,18 +46,17 @@
 struct net123_handle_struct;
 typedef struct net123_handle_struct net123_handle;
 
-// Open stream from URL, parsing headers and storing the selected ones.
-// url: stream URL
-// client_head: NULL-terminated list of client header lines
-// head: NULL-terminated list of response header field names (case-insensitive)
-// val: matching storage for header values, individual entries being nulled by the call
-//   and only those with new values allocated and set
-// HTTP auth parameters are taken from mpg123 parameter struct behind the scenes or from
-// the URL itself by the backend (ponder that, maybe just always put user:pw@host in there, if set?)
-net123_handle * net123_open(const char *url, const char * const *client_head, const char * const * head, char **val);
+// Open stream from URL, preparing output such that net123_read()
+// later on gets the response header lines followed by one empty line
+// and then the raw data.
+// client_head contains header lines to send with the request, without
+// line ending
+net123_handle *net123_open(const char *url, const char * const *client_head);
 
 // 0 or -1 returned, number of bytes stored in gotbytes
 // End of file is just a short byte count.
+// EINTR and EAGAIN are handled inside. A short byte count really means end of file.
+// -1 only returned on actual I/O error (or bad handle).
 int net123_read(net123_handle *nh, void *buf, size_t bufsize, size_t *gotbytes);
 
 // Call that to free up resources, end processes.
