@@ -460,7 +460,7 @@ size_t unintr_read(int fd, void *buffer, size_t bytes)
 		{
 			bytes -= part;
 			got   += part;
-		} else if(errno != EINTR)
+		} else if(errno != EINTR && errno != EAGAIN && errno != EWOULDBLOCK)
 			break;
 	}
 	return got;
