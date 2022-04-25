@@ -87,12 +87,12 @@ int win32_wide_common(const wchar_t * const wptr, char **mbptr, size_t * buflen,
 
 int win32_wide_utf8(const wchar_t * const wptr, char **mbptr, size_t * buflen)
 {
-  return win32_wide_common(wptr, mbptr, nufflen, CP_UTF8);
+  return win32_wide_common(wptr, mbptr, buflen, CP_UTF8);
 }
 
 int win32_wide_utf7(const wchar_t * const wptr, char **mbptr, size_t * buflen)
 {
-  return win32_wide_common(wptr, mbptr, nufflen, CP_UTF7);
+  return win32_wide_common(wptr, mbptr, buflen, CP_UTF7);
 }
 
 int win32_utf8_wide(const char *const mbptr, wchar_t **wptr, size_t *buflen)
