@@ -441,7 +441,7 @@ size_t unintr_write(int fd, void const *buffer, size_t bytes)
 		{
 			bytes   -= part;
 			written += part;
-		} else if(errno != EINTR)
+		} else if(errno != EINTR && errno != EAGAIN && errno != EWOULDBLOCK)
 			break;
 	}
 	return written;
@@ -456,7 +456,7 @@ size_t unintr_read(int fd, void *buffer, size_t bytes)
 	{
 		errno = 0;
 		ssize_t part = read(fd, (char*)buffer+got, bytes);
-		if(part >= 0)
+		if(part > 0) // == 0 is end of file
 		{
 			bytes -= part;
 			got   += part;
