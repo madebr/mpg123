@@ -22,6 +22,8 @@
 #include "win32_support.h"
 #endif
 
+#include "streamdump.h"
+
 #if defined(WIN32) && defined(DYNAMIC_BUILD)
 #define LINK_MPG123_DLL
 #endif
@@ -109,7 +111,7 @@ struct parameter
 	long icy_interval;
 	const char* name; /* name for this player instance */
 	double device_buffer; /* output device buffer */
-#ifdef NETWORK
+#if defined(NETWORK) || defined(NET123)
 	char *httpauth; /* HTTP auth data */
 #endif
 };
@@ -126,8 +128,7 @@ enum mpg123app_flags
 
 extern char *equalfile;
 extern off_t framenum;
-extern struct httpdata htd;
-
+extern struct stream *filept;
 extern int intflag;
 
 #ifdef VARMODESUPPORT

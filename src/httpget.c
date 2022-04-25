@@ -93,6 +93,25 @@ static const char* mime_pls[]	=
 };
 static const char** mimes[] = { mime_file, mime_m3u, mime_pls, NULL };
 
+int append_accept(mpg123_string *s)
+{
+	size_t i,j;
+	if(!mpg123_add_string(s, "Accept: ")) return FALSE;
+
+	/* We prefer what we know. */
+	for(i=0; mimes[i]    != NULL; ++i)
+	for(j=0; mimes[i][j] != NULL; ++j)
+	{
+		if(   !mpg123_add_string(s, mimes[i][j])
+			 || !mpg123_add_string(s, ", ") )
+		return FALSE;
+	}
+	/* Well... in the end, we accept everything, trying to make sense with reality. */
+	if(!mpg123_add_string(s, "*/*")) return FALSE;
+
+	return TRUE;
+}
+
 int debunk_mime(const char* mime)
 {
 	int i,j;
@@ -318,26 +337,6 @@ int proxy_init(struct httpdata *hd)
 	return ret;
 }
 
-static int append_accept(mpg123_string *s)
-{
-	size_t i,j;
-	if(!mpg123_add_string(s, "Accept: ")) return FALSE;
-
-	/* We prefer what we know. */
-	for(i=0; mimes[i]    != NULL; ++i)
-	for(j=0; mimes[i][j] != NULL; ++j)
-	{
-		if(   !mpg123_add_string(s, mimes[i][j])
-			 || !mpg123_add_string(s, ", ") )
-		return FALSE;
-	}
-	/* Well... in the end, we accept everything, trying to make sense with reality. */
-	if(!mpg123_add_string(s, "*/*\r\n")) return FALSE;
-
-	return TRUE;
-}
-
-
 /*
 	Converts spaces to "%20" ... actually, I have to ask myself why.
 	What about converting them to "+" instead? Would make things a lot easier.
@@ -419,9 +418,11 @@ int fill_request(mpg123_string *request, mpg123_string *host, mpg123_string *por
 	}
 
 	/* Acceptance, stream setup. */
-	if(   !append_accept(request)
+	if(    !append_accept(request)
+		 || !mpg123_add_string(request, "\r\n")
 		 || !mpg123_add_string(request, CONN_HEAD)
-		 || !mpg123_add_string(request, icy) )
+		 || !mpg123_add_string(request, icy)
+		 || !mpg123_add_string(request, "\r\n") )
 	return FALSE;
 
 	/* Authorization. */
@@ -500,7 +501,7 @@ static int resolve_redirect(mpg123_string *response, mpg123_string *request_url,
 	return TRUE;
 }
 
-int http_open(char* url, struct httpdata *hd)
+int http_open(const char* url, struct httpdata *hd)
 {
 	mpg123_string purl, host, port, path;
 	mpg123_string request, response, request_url;
@@ -717,7 +718,7 @@ exit: /* The end as well as the exception handling point... */
 #else /* NETWORK */
 
 /* stub */
-int http_open (char* url, struct httpdata *hd)
+int http_open (const char* url, struct httpdata *hd)
 {
 	if(!param.quiet)
 		error("HTTP support not built in.");

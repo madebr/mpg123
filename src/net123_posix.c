@@ -81,11 +81,9 @@ net123_handle *net123_open(const char *url, const char * const * client_head)
 	if(nh->worker == 0)
 	{
 		close(fd[0]);
-		int errfd = open("/dev/null", O_WRONLY);
+		dup2(fd[1], STDOUT_FILENO);
 		int infd  = open("/dev/null", O_RDONLY);
 		dup2(infd,  STDIN_FILENO);
-		dup2(fd[1], STDOUT_FILENO);
-		dup2(errfd, STDERR_FILENO);
 		// child
 		// Construct command line, this needs 
 		// Proxy environment variables can just be set in the user and inherited here, right?
@@ -93,14 +91,16 @@ net123_handle *net123_open(const char *url, const char * const * client_head)
 		{
 			"wget" // begins with program name
 		,	"--output-document=-"
+#ifndef DEBUG
 		,	"--quiet"
+#endif
 		,	"--save-headers"
 		};
 		size_t cheads = 0;
 		while(client_head && client_head[cheads]){ ++cheads; }
 		// Get the count of argument strings right!
-		// Fixed args + client headers [+ auth] + URL + NULL
-		size_t argc = sizeof(wget_args)/sizeof(char*)+cheads+1;
+		// Fixed args + agent + client headers [+ auth] + URL + NULL
+		size_t argc = sizeof(wget_args)/sizeof(char*)+1+cheads+1+1;
 		char *httpauth = NULL;
 		char *user = NULL;
 		char *password = NULL;
@@ -124,7 +124,6 @@ net123_handle *net123_open(const char *url, const char * const * client_head)
 		int an = 0;
 		for(;an<sizeof(wget_args)/sizeof(char*); ++an)
 			argv[an] = compat_strdup(wget_args[an]);
-		argv[an++] = compat_strdup("wget");
 		argv[an++] = compat_strdup("--user-agent=" PACKAGE_NAME "/" PACKAGE_VERSION);
 		for(size_t ch=0; ch < cheads; ++ch)
 			argv[an++] = catstr("--header=", client_head[ch]);
@@ -135,11 +134,27 @@ net123_handle *net123_open(const char *url, const char * const * client_head)
 		argv[an++] = compat_strdup(url);
 		argv[an++] = NULL;
 		errno = 0;
-		execvp("wget", argv);
-		merror("cannot execute wget: %s", strerror(errno));
+		if(param.verbose > 2)
+		{
+			char **a = argv;
+			fprintf(stderr, "HTTP helper command:\n");
+			while(*a)
+			{
+				fprintf(stderr, " %s\n", *a);
+				++a;
+			}
+		}
+#ifndef DEBUG
+		int errfd = open("/dev/null", O_WRONLY);
+		dup2(errfd, STDERR_FILENO);
+#endif
+		execvp(argv[0], argv);
+		merror("cannot execute %s: %s", argv[0], strerror(errno));
 		exit(1);
 	}
 	// parent
+	if(param.verbose > 1)
+		fprintf(stderr, "Note: started network helper with PID %"PRIiMAX"\n", (intmax_t)nh->worker);
 	errno = 0;
 	close(fd[1]);
 	nh->fd = fd[0];
@@ -163,6 +178,8 @@ void net123_close(net123_handle *nh)
 		errno = 0;
 		if(waitpid(nh->worker, NULL, 0) < 0)
 			merror("failed to wait for worker process: %s", strerror(errno));
+		else if(param.verbose > 1)
+			fprintf(stderr, "Note: network helper %"PRIiMAX" finished\n", (intmax_t)nh->worker);
 	}
 	if(nh->fd > -1)
 		close(nh->fd);

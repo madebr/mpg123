@@ -14,6 +14,8 @@
 #define _HTTPGET_H_
 #include "mpg123.h"
 
+#include "net123.h"
+
 /* Pulled in by mpg123app.h! */
 
 struct httpdata
@@ -54,12 +56,13 @@ char *get_header_val(const char *hname, mpg123_string *response);
 /* needed for HTTP/1.1 non-pipelining mode */
 /* #define CONN_HEAD "Connection: close\r\n" */
 #define CONN_HEAD ""
-#define icy_yes "Icy-MetaData: 1\r\n"
-#define icy_no "Icy-MetaData: 0\r\n"
+#define icy_yes "Icy-MetaData: 1"
+#define icy_no "Icy-MetaData: 0"
 
-extern char *proxyurl;
-extern unsigned long proxyip;
+// Append an accept header line to the string, without line end.
+int append_accept(mpg123_string *s);
+
 /* takes url and content type string address, opens resource, returns fd for data, allocates and sets content type */
-extern int http_open (char* url, struct httpdata *hd);
+extern int http_open (const char* url, struct httpdata *hd);
 
 #endif

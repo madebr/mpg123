@@ -18,6 +18,7 @@
 #include "term.h" /* for term_restore */
 #include "playlist.h"
 #include "httpget.h"
+#include "streamdump.h"
 #include "local.h"
 #include "metaprint.h"
 #include <time.h> /* For srand(). */
@@ -31,9 +32,6 @@
 #define SRAND srand
 #endif
 
-/* increase linebuf in blocks of ... bytes */
-#define LINEBUF_STEP 100
-
 enum playlist_type { UNKNOWN = 0, M3U, PLS, NO_LIST };
 
 typedef struct listitem
@@ -45,7 +43,7 @@ typedef struct listitem
 
 typedef struct playlist_struct
 {
-	FILE* file; /* the current playlist stream */
+	struct stream *file; /* the current playlist stream */
 	size_t entry; /* entry in the playlist file */
 	size_t playcount; /* overall track counter for playback */
 	long loop;    /* repeat a track n times */
@@ -60,9 +58,6 @@ typedef struct playlist_struct
 	enum playlist_type type;
 	int is_utf8; /* if we really know the contents are UTF-8-encooded */
 	int hit_end;
-#if defined (WANT_WIN32_SOCKETS)
-	int sockd; /* Is Win32 socket descriptor working? */
-#endif
 	// If the playlist itself or an input file was '-' (stdin not usable for terminal.).
 	int stdin_used;
 } playlist_struct;
@@ -347,50 +342,38 @@ static int add_next_file (int argc, char *argv[], int args_utf8)
 	{
 		size_t line_offset = 0;
 		pl.is_utf8 = 0; // Playlist files in env encoding (HTTP lists should be ASCII-clean).
-#ifndef WANT_WIN32_SOCKETS
-		if (!pl.file)
-#else
-		if (!pl.file && pl.sockd == -1)
-#endif
+		if(!pl.file)
 		{
-			/* empty or "-" */
-			if (!*param.listname || !strcmp(param.listname, "-"))
+			pl.file = stream_open(param.listname);
+			if(pl.file)
 			{
-				pl.file = stdin;
-				pl.stdin_used = TRUE;
-				param.listname = NULL;
-				pl.entry = 0;
+				firstline = 1; /* just opened */
+				if(pl.file->fd == STDIN_FILENO)
+				{
+					pl.stdin_used = TRUE;
+					param.listname = NULL;
+				}
 			}
-			else if (!strncmp(param.listname, "http://", 7))
+			pl.entry = 0;
+			if(pl.file && pl.file->network)
 			{
-				int fd;
-				struct httpdata htd;
-				httpdata_init(&htd);
-#ifndef WANT_WIN32_SOCKETS
-				fd = http_open(param.listname, &htd);
-#else
-				fd = win32_net_http_open(param.listname, &htd);
-#endif
-				debug1("htd.content_type.p: %p", (void*) htd.content_type.p);
-				if(!APPFLAG(MPG123APP_IGNORE_MIME) && htd.content_type.p != NULL)
+				debug1("htd.content_type.p: %p", (void*) pl.file->htd.content_type.p);
+				if(!APPFLAG(MPG123APP_IGNORE_MIME) && pl.file->htd.content_type.p != NULL)
 				{
 					int mimi;
-					debug1("htd.content_type.p value: %s", htd.content_type.p);
-					mimi = debunk_mime(htd.content_type.p);
+					debug1("htd.content_type.p value: %s", pl.file->htd.content_type.p);
+					mimi = debunk_mime(pl.file->htd.content_type.p);
 
-					if(mimi & IS_M3U) pl.type = M3U;
-					else if(mimi & IS_PLS)	pl.type = PLS;
+					if(mimi & IS_M3U)
+						pl.type = M3U;
+					else if(mimi & IS_PLS)
+						pl.type = PLS;
 					else
 					{
-#ifndef WANT_WIN32_SOCKETS
-						if(fd >= 0) close(fd);
-#else
-						if(fd != SOCKET_ERROR) win32_net_close(fd);
-#endif
-						fd = -1;
-						
 						if(mimi & IS_FILE)
 						{
+							stream_close(pl.file);
+							pl.file = NULL;
 							pl.type = NO_LIST;
 							if(param.listentry < 0)
 							{
@@ -407,258 +390,181 @@ static int add_next_file (int argc, char *argv[], int args_utf8)
 							}
 						}
 						char *ptmp = NULL;
-						outstr(&ptmp, htd.content_type.p, 0, stderr_is_term);
+						outstr(&ptmp, pl.file->htd.content_type.p, 0, stderr_is_term);
 						error1( "Unknown playlist MIME type %s; maybe "PACKAGE_NAME
 							" can support it in future if you report this to the maintainer."
 						,	PSTR(ptmp) );
 						free(ptmp);
+						stream_close(pl.file);
+						pl.file = NULL;
 					}
-					httpdata_free(&htd);
-				}
-				if(fd < 0)
-				{
-					param.listname = NULL;
-					pl.file = NULL;
-#ifdef WANT_WIN32_SOCKETS
-					pl.sockd = -1;
-#endif
-					error("Invalid playlist from http_open()!\n");
-				}
-				else
-				{
-					pl.entry = 0;
-#ifndef WANT_WIN32_SOCKETS
-					pl.file = compat_fdopen(fd,"r");
-#else
-					pl.sockd = fd;
-#endif
 				}
 			}
-			else if (!(pl.file = compat_fopen(param.listname, "rb")))
+			if(!pl.file)
 			{
-				perror (param.listname);
+				param.listname = NULL; // why?
+				error("failed to open playlist file");
 				return 0;
-			}
-			else
-			{
-				debug("opened ordinary list file");
-				pl.entry = 0;
-			}
-			if (param.verbose && pl.file)
+			} else if(param.verbose)
 			{
 				fprintf(stderr, "Using playlist from ");
 				print_outstr( stderr, param.listname ? param.listname : "standard input"
 				,	args_utf8, stderr_is_term );
 				fprintf(stderr, " ...\n");
 			}
-			firstline = 1; /* just opened */
 		}
 		/* reading the file line by line */
-#ifndef WANT_WIN32_SOCKETS
-		while (pl.file)
-#else
-		while (pl.file || (pl.sockd) != -1)
-#endif
+		while(pl.file && stream_getline(pl.file, &pl.linebuf) > 0)
 		{
-			/*
-				now read a string of arbitrary size...
-				read a chunk, see if lineend, realloc, read another chunk
-				
-				fgets reads at most size-1 bytes and always appends the \0 
-			*/
-			size_t have = 0;
-			do
+			/* a bit of fuzzyness */
+			if(firstline)
 			{
-				/* have is the length of the string read, without the closing \0 */
-				if(pl.linebuf.size <= have+1)
+				if(pl.type == UNKNOWN)
 				{
-					if(!mpg123_resize_string(&pl.linebuf, pl.linebuf.size+LINEBUF_STEP))
+					if(!strcmp("[playlist]", pl.linebuf.p))
 					{
-						error("cannot increase line buffer");
-						break;
+						if(param.verbose)
+							fprintf(stderr, "Note: detected Shoutcast/Winamp PLS playlist\n");
+						pl.type = PLS;
+						continue;
 					}
-				}
-				/* I rely on fgets writing the \0 at the end! */
-#ifndef WANT_WIN32_SOCKETS
-				if(fgets(pl.linebuf.p+have, pl.linebuf.size-have, pl.file))
-#else
-				if( (pl.file ? (fgets(pl.linebuf.p+have, pl.linebuf.size-have, pl.file)) : (win32_net_fgets(pl.linebuf.p+have, pl.linebuf.size-have, pl.sockd))))
-#endif
-				{
-					have += strlen(pl.linebuf.p+have);
-					debug2("have read %lu characters into linebuf: [%s]", (unsigned long)have, pl.linebuf.p);
-				}
-				else
-				{
-					debug("fgets failed to deliver something... file ended?");
-					break;
-				}
-			} while(have && pl.linebuf.p[have-1] != '\r' && pl.linebuf.p[have-1] != '\n');
-			if(have)
-			{
-				pl.linebuf.p[strcspn(pl.linebuf.p, "\t\n\r")] = '\0';
-				/* a bit of fuzzyness */
-				if(firstline)
-				{
-					if(pl.type == UNKNOWN)
+					else if
+					(
+						(!strncasecmp("#M3U", pl.linebuf.p ,4))
+						||
+						(!strncasecmp("#EXTM3U", pl.linebuf.p ,7))
+						||
+						(param.listname != NULL && (strrchr(param.listname, '.')) != NULL && !strcasecmp(".m3u", strrchr(param.listname, '.')))
+					)
 					{
-						if(!strcmp("[playlist]", pl.linebuf.p))
-						{
-							if(param.verbose)
-								fprintf(stderr, "Note: detected Shoutcast/Winamp PLS playlist\n");
-							pl.type = PLS;
-							continue;
-						}
-						else if
-						(
-							(!strncasecmp("#M3U", pl.linebuf.p ,4))
-							||
-							(!strncasecmp("#EXTM3U", pl.linebuf.p ,7))
-							||
-							(param.listname != NULL && (strrchr(param.listname, '.')) != NULL && !strcasecmp(".m3u", strrchr(param.listname, '.')))
-						)
-						{
-							if(param.verbose) fprintf(stderr, "Note: detected M3U playlist type\n");
-							pl.type = M3U;
-						}
-						else
-						{
-							if(param.verbose) fprintf(stderr, "Note: guessed M3U playlist type\n");
-							pl.type = M3U;
-						}
+						if(param.verbose) fprintf(stderr, "Note: detected M3U playlist type\n");
+						pl.type = M3U;
 					}
 					else
 					{
-						if(param.verbose)
-						{
-							fprintf(stderr, "Note: Interpreting as ");
-							switch(pl.type)
-							{
-								case M3U: fprintf(stderr, "M3U"); break;
-								case PLS: fprintf(stderr, "PLS (Winamp/Shoutcast)"); break;
-								default: fprintf(stderr, "???");
-							}
-							fprintf(stderr, " playlist\n");
-						}
+						if(param.verbose) fprintf(stderr, "Note: guessed M3U playlist type\n");
+						pl.type = M3U;
 					}
-					firstline = 0;
 				}
-				#if !defined(WIN32)
+				else
 				{
+					if(param.verbose)
+					{
+						fprintf(stderr, "Note: Interpreting as ");
+						switch(pl.type)
+						{
+							case M3U: fprintf(stderr, "M3U"); break;
+							case PLS: fprintf(stderr, "PLS (Winamp/Shoutcast)"); break;
+							default: fprintf(stderr, "???");
+						}
+						fprintf(stderr, " playlist\n");
+					}
+				}
+				firstline = 0;
+			}
+#if !defined(WIN32)
+			{
 				size_t i;
 				/* convert \ to / (from MS-like directory format) */
 				for (i=0;pl.linebuf.p[i]!='\0';i++)
 				{
 					if (pl.linebuf.p[i] == '\\')	pl.linebuf.p[i] = '/';
 				}
-				}
-				#endif
-				if (pl.linebuf.p[0]=='\0') continue; /* skip empty lines... */
-
-				if (((pl.type == M3U) && (pl.linebuf.p[0]=='#')))
+			}
+#endif
+			if (pl.linebuf.p[0]=='\0')
+				continue; // skip empty lines...
+			if (((pl.type == M3U) && (pl.linebuf.p[0]=='#')))
+			{
+				/* a comment line in m3u file */
+				if(param.listentry < 0)
 				{
-					/* a comment line in m3u file */
-					if(param.listentry < 0)
-					{
-						print_outstr(stdout, pl.linebuf.p, 0, stdout_is_term);
-						printf("\n");
-					}
-					continue;
+					print_outstr(stdout, pl.linebuf.p, 0, stdout_is_term);
+					printf("\n");
 				}
+				continue;
+			}
 
-				/* real filename may start at an offset */
-				line_offset = 0;
-				/* extract path out of PLS */
-				if(pl.type == PLS)
+			/* real filename may start at an offset */
+			line_offset = 0;
+			/* extract path out of PLS */
+			if(pl.type == PLS)
+			{
+				if(!strncasecmp("File", pl.linebuf.p, 4))
 				{
-					if(!strncasecmp("File", pl.linebuf.p, 4))
+					/* too lazy to really check for file number... would have to change logic to support unordered file entries anyway */
+					char* in_line;
+					if((in_line = strchr(pl.linebuf.p+4, '=')) != NULL)
 					{
-						/* too lazy to really check for file number... would have to change logic to support unordered file entries anyway */
-						char* in_line;
-						if((in_line = strchr(pl.linebuf.p+4, '=')) != NULL)
+						/* FileN=? */
+						if(in_line[1] != 0)
 						{
-							/* FileN=? */
-							if(in_line[1] != 0)
-							{
-								++in_line;
-								line_offset = (size_t) (in_line-pl.linebuf.p);
-							}
-							else
-							{
-								fprintf(stderr, "Warning: Invalid PLS line (empty filename) - corrupt playlist file?\n");
-								continue;
-							}
+							++in_line;
+							line_offset = (size_t) (in_line-pl.linebuf.p);
 						}
 						else
 						{
-							fprintf(stderr, "Warning: Invalid PLS line (no '=' after 'File') - corrupt playlist file?\n");
+							fprintf(stderr, "Warning: Invalid PLS line (empty filename) - corrupt playlist file?\n");
 							continue;
 						}
 					}
 					else
 					{
-						if(param.listentry < 0)
-						{
-							printf("#metainfo ");
-							print_outstr(stdout, pl.linebuf.p, 0, stdout_is_term);
-							printf("\n");
-						}
+						fprintf(stderr, "Warning: Invalid PLS line (no '=' after 'File') - corrupt playlist file?\n");
 						continue;
 					}
 				}
-
-				/* make paths absolute */
-				/* Windows knows absolute paths with c: in front... should handle this if really supporting win32 again */
-				if
-				(
-					(pl.dir.p != NULL)
-					&& (pl.linebuf.p[line_offset]!='/')
-					&& (pl.linebuf.p[line_offset]!='\\')
-					&& strncmp(pl.linebuf.p+line_offset, "http://", 7)
-				)
+				else
 				{
-					size_t need;
-					need = pl.dir.size + strlen(pl.linebuf.p+line_offset);
-					if(pl.linebuf.size < need)
+					if(param.listentry < 0)
 					{
-						if(!mpg123_resize_string(&pl.linebuf, need))
-						{
-							error("unable to enlarge linebuf for appending path! skipping");
-							continue;
-						}
+						printf("#metainfo ");
+						print_outstr(stdout, pl.linebuf.p, 0, stdout_is_term);
+						printf("\n");
 					}
-					/* move to have the space at beginning */
-					memmove(pl.linebuf.p+pl.dir.size-1, pl.linebuf.p+line_offset, strlen(pl.linebuf.p+line_offset)+1);
-					/* prepend path */
-					memcpy(pl.linebuf.p, pl.dir.p, pl.dir.size-1);
-					line_offset = 0;
-				}
-				++pl.entry;
-				if(param.listentry < 0)
-				{
-					printf("#entry %zu\n", pl.entry);
-					print_outstr(stdout, pl.linebuf.p+line_offset, 0, stdout_is_term);
-					printf("\n");
-				}
-				else if((param.listentry == 0) || (param.listentry == pl.entry) || APPFLAG(MPG123APP_CONTINUE))
-				{
-					add_copy_to_playlist(pl.linebuf.p+line_offset);
-					return 1;
+					continue;
 				}
 			}
-			else
+
+			/* make paths absolute */
+			/* Windows knows absolute paths with c: in front... should handle this if really supporting win32 again */
+			if
+			(
+				(pl.dir.p != NULL)
+				&& (pl.linebuf.p[line_offset]!='/')
+				&& (pl.linebuf.p[line_offset]!='\\')
+				&& strncmp(pl.linebuf.p+line_offset, "http://", 7)
+				&& strncmp(pl.linebuf.p+line_offset, "https://", 8)
+				&& strncmp(pl.linebuf.p+line_offset, "file://", 7)
+			)
 			{
-				if (param.listname)
-				if(pl.file) fclose (pl.file);
-				param.listname = NULL;
-				pl.file = NULL;
-#ifdef WANT_WIN32_SOCKETS
-				if( pl.sockd != -1)
+				size_t need;
+				need = pl.dir.size + strlen(pl.linebuf.p+line_offset);
+				if(pl.linebuf.size < need)
 				{
-				  win32_net_close(pl.sockd);
-				  pl.sockd = -1;
+					if(!mpg123_resize_string(&pl.linebuf, need))
+					{
+						error("unable to enlarge linebuf for appending path! skipping");
+						continue;
+					}
 				}
-#endif
+				/* move to have the space at beginning */
+				memmove(pl.linebuf.p+pl.dir.size-1, pl.linebuf.p+line_offset, strlen(pl.linebuf.p+line_offset)+1);
+				/* prepend path */
+				memcpy(pl.linebuf.p, pl.dir.p, pl.dir.size-1);
+				line_offset = 0;
+			}
+			++pl.entry;
+			if(param.listentry < 0)
+			{
+				printf("#entry %zu\n", pl.entry);
+				print_outstr(stdout, pl.linebuf.p+line_offset, 0, stdout_is_term);
+				printf("\n");
+			}
+			else if((param.listentry == 0) || (param.listentry == pl.entry) || APPFLAG(MPG123APP_CONTINUE))
+			{
+				add_copy_to_playlist(pl.linebuf.p+line_offset);
+				return 1;
 			}
 		}
 	}

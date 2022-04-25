@@ -37,7 +37,6 @@
 #include "getlopt.h"
 #include "term.h"
 #include "playlist.h"
-#include "httpget.h"
 #include "metaprint.h"
 #include "httpget.h"
 #include "streamdump.h"
@@ -130,7 +129,6 @@ static long output_propflags = 0;
 char *prgName = NULL;
 /* ThOr: pointers are not TRUE or FALSE */
 char *equalfile = NULL;
-struct httpdata htd;
 int fresh = TRUE;
 FILE* aux_out = NULL; /* Output for interesting information, normally on stdout to be parseable. */
 
@@ -152,9 +150,7 @@ int intflag = FALSE;
 int deathflag = FALSE;
 static int skip_tracks = 0;
 
-static int filept = -1;
-
-static int network_sockets_used = 0; /* Win32 socket open/close Support */
+struct stream *filept = NULL;
 
 char *fullprogname = NULL; /* Copy of argv[0]. */
 char *binpath; /* Path to myself. */
@@ -306,7 +302,8 @@ void safe_exit(int code)
 
 	if(cleanup_mpg123) mpg123_exit();
 
-	httpdata_free(&htd);
+	stream_close(filept);
+	filept = NULL;
 
 #ifdef WANT_WIN32_UNICODE
 	win32_cmdline_free(argc, argv); /* This handles the premature argv == NULL, too. */
@@ -736,91 +733,27 @@ topt opts[] = {
 	{0, 0, 0, 0, 0, 0}
 };
 
-static int open_track_fd (void)
-{
-	/* Let reader handle invalid filept */
-	if(mpg123_open_fd(mh, filept) != MPG123_OK)
-	{
-		error2("Cannot open fd %i: %s", filept, mpg123_strerror(mh));
-		return 0;
-	}
-	debug("Track successfully opened.");
-	fresh = TRUE;
-	return 1;
-	/*1 for success, 0 for failure */
-}
-
 /* 1 on success, 0 on failure */
 int open_track(char *fname)
 {
-	filept=-1;
-	httpdata_reset(&htd);
-	if(MPG123_OK != mpg123_param(mh, MPG123_ICY_INTERVAL, 0, 0))
-	error1("Cannot (re)set ICY interval: %s", mpg123_strerror(mh));
-	mpg123_param(mh, MPG123_REMOVE_FLAGS, MPG123_NO_PEEK_END, 0);
-	if(!strcmp(fname, "-"))
-	{
-		mpg123_param(mh, MPG123_ADD_FLAGS, MPG123_NO_PEEK_END, 0);
-		filept = STDIN_FILENO;
-#ifdef WIN32
-		_setmode(STDIN_FILENO, _O_BINARY);
-#endif
-	}
-	else if (!strncmp(fname, "http://", 7)) /* http stream */
-	{
-#if defined (WANT_WIN32_SOCKETS)
-	if(param.streamdump != NULL)
-	{
-		fprintf(stderr, "\nWarning: win32 networking conflicts with stream dumping. Aborting the dump.\n");
-		dump_close();
-	}
-	/*Use recv instead of stdio functions */
-	win32_net_replace(mh);
-	filept = win32_net_http_open(fname, &htd);
-#else
-	filept = http_open(fname, &htd);
-#endif
-	network_sockets_used = 1;
-/* utf-8 encoded URLs might not work under Win32 */
-		
-		/* now check if we got sth. and if we got sth. good */
-		if(    (filept >= 0) && (htd.content_type.p != NULL)
-			  && !APPFLAG(MPG123APP_IGNORE_MIME) && !(debunk_mime(htd.content_type.p) & IS_FILE) )
-		{
-			error1("Unknown mpeg MIME type %s - is it perhaps a playlist (use -@)?", htd.content_type.p == NULL ? "<nil>" : htd.content_type.p);
-			error("If you know the stream is mpeg1/2 audio, then please report this as "PACKAGE_NAME" bug");
-			return 0;
-		}
-		if(filept < 0)
-		{
-			error1("Access to http resource %s failed.", fname);
-			return 0;
-		}
-		if(MPG123_OK != mpg123_param(mh, MPG123_ICY_INTERVAL, htd.icy_interval, 0))
-		error1("Cannot set ICY interval: %s", mpg123_strerror(mh));
-		if(param.verbose > 1) fprintf(stderr, "Info: ICY interval %li\n", (long)htd.icy_interval);
-	}
+	if(filept) // total paranoia
+		stream_close(filept);
+	filept = stream_open(fname);
+	if(!filept)
+		return 0;
 
-	if(param.icy_interval > 0)
+	/* now check if we got sth. and if we got sth. good */
+	if( filept->htd.content_type.p != NULL
+		&& !APPFLAG(MPG123APP_IGNORE_MIME) && !(debunk_mime(filept->htd.content_type.p) & IS_FILE) )
 	{
-		if(MPG123_OK != mpg123_param(mh, MPG123_ICY_INTERVAL, param.icy_interval, 0))
-		error1("Cannot set ICY interval: %s", mpg123_strerror(mh));
-		if(param.verbose > 1) fprintf(stderr, "Info: Forced ICY interval %li\n", param.icy_interval);
-	}
-
-	debug("OK... going to finally open.");
-	/* Now hook up the decoder on the opened stream or the file. */
-	if(filept > -1)
-	{
-		return open_track_fd();
-	}
-	else if(mpg123_open(mh, fname) != MPG123_OK)
-	{
-		error2("Cannot open %s: %s", fname, mpg123_strerror(mh));
+		error1("Unknown mpeg MIME type %s - is it perhaps a playlist (use -@)?", filept->htd.content_type.p == NULL ? "<nil>" : filept->htd.content_type.p);
+		error("If you know the stream is mpeg1/2 audio, then please report this as "PACKAGE_NAME" bug");
 		return 0;
 	}
-	debug("Track successfully opened.");
 
+	debug("OK... going to hook up libmpg123 and dump.");
+	if(dump_setup(filept, mh))
+		return 0;
 	fresh = TRUE;
 	return 1;
 }
@@ -829,15 +762,8 @@ int open_track(char *fname)
 void close_track(void)
 {
 	mpg123_close(mh);
-#if defined (WANT_WIN32_SOCKETS)
-	if (network_sockets_used)
-	win32_net_close(filept);
-	filept = -1;
-	return;
-#endif
-	network_sockets_used = 0;
-	if(filept > -1) close(filept);
-	filept = -1;
+	stream_close(filept);
+	filept = NULL;
 }
 
 /* return 1 on success, 0 on failure */
@@ -1220,8 +1146,6 @@ int main(int sys_argc, char ** sys_argv)
 	/* Don't just exit() or return out...                                                                        */
 	/* ========================================================================================================= */
 
-	httpdata_init(&htd);
-
 #if !defined(WIN32) && !defined(GENERIC)
 	if(param.remote && !param.verbose)
 		param.quiet = 1;
@@ -1287,9 +1211,6 @@ int main(int sys_argc, char ** sys_argv)
 		safe_exit(77);
 	}
 	mpg123_delete_pars(mp); /* Don't need the parameters anymore ,they're in the handle now. */
-
-	/* Prepare stream dumping, possibly replacing mpg123 reader. */
-	if(dump_open(mh) != 0) safe_exit(78);
 
 	load_equalizer(mh);
 
@@ -1500,8 +1421,10 @@ int main(int sys_argc, char ** sys_argv)
 			,	(size_p)plpos, (size_p)plfill );
 			print_outstr(stderr, filename, 0, stderr_is_term);
 			fprintf(stderr, " ...\n");
-			if(htd.icy_name.fill) fprintf(stderr, "ICY-NAME: %s\n", htd.icy_name.p);
-			if(htd.icy_url.fill)  fprintf(stderr, "ICY-URL: %s\n",  htd.icy_url.p);
+			if(filept->htd.icy_name.fill)
+				fprintf(stderr, "ICY-NAME: %s\n", filept->htd.icy_name.p);
+			if(filept->htd.icy_url.fill)
+				fprintf(stderr, "ICY-URL: %s\n",  filept->htd.icy_url.p);
 		}
 #if !defined(GENERIC)
 {

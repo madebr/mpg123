@@ -319,8 +319,8 @@ static void generic_load(mpg123_handle *fr, char *arg, int state)
 	}
 	else generic_sendinfo(arg);
 
-	if(htd.icy_name.fill) generic_sendstr(1, "I ICY-NAME: %s", htd.icy_name.p);
-	if(htd.icy_url.fill)  generic_sendstr(1, "I ICY-URL: %s",  htd.icy_url.p);
+	if(filept->htd.icy_name.fill) generic_sendstr(1, "I ICY-NAME: %s", filept->htd.icy_name.p);
+	if(filept->htd.icy_url.fill)  generic_sendstr(1, "I ICY-URL: %s",  filept->htd.icy_url.p);
 
 	mode = state;
 	init = 1;

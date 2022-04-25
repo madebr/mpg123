@@ -400,6 +400,23 @@ AC_ARG_ENABLE(network,
               ]
 )
 
+AC_ARG_ENABLE(net123,
+              [  --enable-net123k=[no/yes] experimental new network support (http streams / webradio) ],
+              [
+                if test "x$enableval" = xyes
+                then
+                  net123="enabled"
+                else
+                  net123="disabled"
+                fi
+              ],
+              [
+                net123="disabled"
+              ]
+)
+
+
+
 dnl Optional objects list, depends on decoder choice and core feature selection.
 dnl Not just for specific decoders anymore...
 
@@ -1261,6 +1278,8 @@ AC_CHECK_FUNCS( setlocale nl_langinfo mbstowcs wcstombs wcswidth iswprint )
 AC_CHECK_FUNCS( atoll )
 
 AC_CHECK_FUNCS( mkfifo, [ have_mkfifo=yes ], [ have_mkfifo=no ] )
+
+AC_CHECK_FUNCS( fork execvp, [ have_fork=yes ], [have_fork=no] )
 
 dnl ############## Header and Library Checks
 
@@ -2313,12 +2332,17 @@ AC_DEFINE_UNQUOTED(INDEX_SIZE, $seektable, [size of the frame index seek table])
 
 dnl ############## Win32 function checks
 # Check if we want Unicode for Win32. Cygwin and Midipix does not need _wopen
+net123_type=
 if test "x$ac_cv_header_windows_h" = xyes &&
    test "x$host_os" != xcygwin &&
    test "x$host_os" != xmidipix; then
   win32_specific_codes=enabled
+  net123_type=winhttp
 else
   win32_specific_codes=disabled
+  if test x$have_fork = xyes; then
+    net123_type=posix
+  fi
 fi
 win32_unicode=unneeded
 win32_sockets=disabled
@@ -2327,6 +2351,16 @@ win32_wide_working=no
 win32_winver_bump=no
 
 COMPAT_LIBS=
+
+if test x$net123 = xenabled; then
+  if test x$net123_type = x; then
+    AC_MSG_ERROR([no backend for net123 found])
+  fi
+  AC_DEFINE([NET123], [1], [ Define to for new net123 network backend. ])
+fi
+if test x$net123 = xdisabled; then
+  net123_type=disabled
+fi
 
 ### mingw.org may not work properly for newer APIs
 case $host_os in
@@ -2548,6 +2582,14 @@ if test x"$ipv6" = xauto; then
 	fi
 fi
 
+if test x$net123 = xenabled; then
+  network=disabled
+  ipv6=disabled
+fi
+
+AM_CONDITIONAL([NET123_POSIX], [ test x$net123_type = xposix ])
+AM_CONDITIONAL([NET123_WINHTTP], [ test x$net123_type = xwinhttp ])
+
 dnl ############## FIFO enable
 
 if test x"$fifo" = xauto; then
@@ -2625,6 +2667,7 @@ echo "
   Seek table size ......... $seektable
   FIFO support ............ $fifo
   Buffer .................. $buffer
+  New Network ............. $net123_type
   Network (http streams) .. $network
   Network Sockets ......... $network_type
   IPv6 (getaddrinfo) ...... $ipv6"
