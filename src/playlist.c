@@ -292,9 +292,6 @@ static void init_playlist(void)
 	pl.is_utf8 = FALSE;
 	pl.hit_end = FALSE;
 	pl.loop = param.loop;
-#ifdef WANT_WIN32_SOCKETS
-	pl.sockd = -1;
-#endif
 	pl.stdin_used = FALSE;
 }
 
