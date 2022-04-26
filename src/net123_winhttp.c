@@ -1,6 +1,7 @@
 #include "config.h"
 #include "net123.h"
 #include "compat.h"
+#include "debug.h"
 #include <ws2tcpip.h>
 #include <winhttp.h>
 
@@ -21,6 +22,8 @@ struct net123_handle_struct {
   DWORD supportedAuth, firstAuth, authTarget, authTried;
   char *headers;
   size_t headers_pos, headers_len;
+  DWORD internetStatus, internetStatusLength;
+  LPVOID additionalInfo;
 };
 
 #define MPG123CONCAT_(x,y) x ## y
@@ -52,19 +55,43 @@ static DWORD wrap_auth(net123_handle *nh){
   }
 }
 
-// Open stream from URL, preparing output such that net123_read()
-// later on gets the response header lines followed by one empty line
-// and then the raw data.
-// client_head contains header lines to send with the request, without
-// line ending
+#if DEBUG
+static void debug_crack(URL_COMPONENTS *comps){
+  wprintf(L"dwStructSize: %lu\n", comps->dwStructSize);
+  //wprintf(L"lpszScheme: %s\n", comps->lpszScheme ? comps->lpszScheme : L"null");
+  //wprintf(L"dwSchemeLength: %lu\n", comps->dwSchemeLength);
+  wprintf(L"nScheme: %u %s\n", comps->nScheme, comps->nScheme == 1 ? L"INTERNET_SCHEME_HTTP": comps->nScheme == 2 ? L"INTERNET_SCHEME_HTTPS" : L"UNKNOWN");
+  wprintf(L"lpszHostName: %s\n", comps->lpszHostName ? comps->lpszHostName : L"null");
+  wprintf(L"dwHostNameLength: %u\n", comps->dwHostNameLength);
+  wprintf(L"nPort: %u\n", comps->nPort);
+  wprintf(L"lpszUserName: %s\n", comps->lpszUserName ? comps->lpszUserName : L"null");
+  wprintf(L"dwUserNameLength: %lu\n", comps->dwUserNameLength);
+  wprintf(L"lpszPassword: %s\n", comps->lpszPassword ? comps->lpszPassword : L"null");
+  wprintf(L"dwPasswordLength: %lu\n", comps->dwPasswordLength);
+  wprintf(L"lpszUrlPath: %s\n", comps->lpszUrlPath ? comps->lpszUrlPath : L"null");
+  wprintf(L"dwUrlPathLength: %lu\n", comps->dwUrlPathLength);
+  wprintf(L"lpszExtraInfo: %s\n", comps->lpszExtraInfo? comps->lpszExtraInfo : L"null");
+  wprintf(L"dwExtraInfoLength: %lu\n", comps->dwExtraInfoLength);
+}
+#else
+static void debug_crack(URL_COMPONENTS *comps){}
+#endif
+
+static
+void WINAPI net123_ssl_errors(HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength){
+  net123_handle *nh = (net123_handle *)dwContext;
+  nh->internetStatus = dwInternetStatus;
+  nh->additionalInfo = lpvStatusInformation;
+  nh->internetStatusLength = dwStatusInformationLength;
+}
 
 net123_handle *net123_open(const char *url, const char * const *client_head){
   LPWSTR urlW = NULL, headers = NULL;
-  URL_COMPONENTS comps;
   size_t ii;
   WINBOOL res;
   DWORD headerlen;
   const LPCWSTR useragent = MPG123WSTR(PACKAGE_NAME) L"/" MPG123WSTR(PACKAGE_VERSION);
+  WINHTTP_STATUS_CALLBACK cb;
 
   if(!WinHttpCheckPlatform())
     return NULL;
@@ -75,7 +102,7 @@ net123_handle *net123_open(const char *url, const char * const *client_head){
   net123_handle *ret = calloc(1, sizeof(net123_handle));
   if (!ret) return ret;
 
-  ret->comps.dwStructSize = sizeof(comps);
+  ret->comps.dwStructSize = sizeof(ret->comps);
   ret->comps.dwSchemeLength    = 0;
   ret->comps.dwUserNameLength  = URL_COMPONENTS_LENGTH - 1;
   ret->comps.dwPasswordLength  = URL_COMPONENTS_LENGTH - 1;
@@ -88,18 +115,36 @@ net123_handle *net123_open(const char *url, const char * const *client_head){
   ret->comps.lpszUrlPath = ret->lpszUrlPath;
   ret->comps.lpszExtraInfo = ret->lpszExtraInfo;
 
-  if(WinHttpCrackUrl(urlW, 0, 0, &comps)) goto cleanup;
+  debug1("net123_open start crack %S", urlW);
+
+  if(!(res = WinHttpCrackUrl(urlW, 0, 0, &ret->comps))) {
+    debug1("net123_open crack fail %lu", GetLastError());
+    goto cleanup;
+  }
+
+  debug("net123_open crack OK");
+  debug_crack(&ret->comps);
 
   ret->session = WinHttpOpen(useragent, WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
   free(urlW);
   urlW = NULL;
+  debug("net123_open WinHttpOpen OK");
   if(!ret->session) goto cleanup;
 
-  ret->connect = WinHttpConnect(ret->session, ret->comps.lpszHostName, comps.nPort, 0);
+  debug2("net123_open WinHttpConnect %S %u", ret->comps.lpszHostName, ret->comps.nPort);
+  ret->connect = WinHttpConnect(ret->session, ret->comps.lpszHostName, ret->comps.nPort, 0);
   if(!ret->connect) goto cleanup;
+  debug("net123_open WinHttpConnect OK");
 
+  debug1("WinHttpOpenRequest GET %S", ret->comps.lpszUrlPath);
   ret->request = WinHttpOpenRequest(ret->connect, L"GET", ret->comps.lpszUrlPath, NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, ret->comps.nScheme == INTERNET_SCHEME_HTTPS ? WINHTTP_FLAG_SECURE : 0);
   if(!ret->request) goto cleanup;
+  debug("WinHttpOpenRequest GET OK");
+
+  cb = WinHttpSetStatusCallback(ret->request, (WINHTTP_STATUS_CALLBACK)net123_ssl_errors, WINHTTP_CALLBACK_FLAG_SECURE_FAILURE, 0);
+  if(cb == WINHTTP_INVALID_STATUS_CALLBACK){
+    error1("WinHttpSetStatusCallback failed to install callback, errors might not be reported properly! (%lu)", GetLastError());
+  }
 
   wrap_auth(ret);
 
@@ -107,14 +152,43 @@ net123_handle *net123_open(const char *url, const char * const *client_head){
     win32_utf8_wide(client_head[ii], &headers, NULL);
     if(!headers)
       goto cleanup;
+    debug1("WinHttpAddRequestHeaders add %S", headers);
     res = WinHttpAddRequestHeaders(ret->request, headers, (DWORD) -1, WINHTTP_ADDREQ_FLAG_ADD | WINHTTP_ADDREQ_FLAG_REPLACE);
+    debug2("WinHttpAddRequestHeaders returns %u %lu", res, res ? 0 : GetLastError());
     free(headers);
     headers = NULL;
   }
 
-  res = WinHttpSendRequest(ret->request, WINHTTP_NO_ADDITIONAL_HEADERS, 0, WINHTTP_NO_REQUEST_DATA, 0, 0, 0);
+  debug("net123_open ADD HEADERS OK");
+
+  res = WinHttpSendRequest(ret->request, WINHTTP_NO_ADDITIONAL_HEADERS, 0, WINHTTP_NO_REQUEST_DATA, 0, 0, (DWORD_PTR)ret);
+
+  if (!res) {
+    res = GetLastError();
+    error1("WinHttpSendRequest failed with %lu", res);
+    if(res == ERROR_WINHTTP_SECURE_FAILURE){
+      res = *(DWORD *)ret->additionalInfo;
+      error("Additionally, the ERROR_WINHTTP_SECURE_FAILURE failed with:");
+      if (res & WINHTTP_CALLBACK_STATUS_FLAG_CERT_REV_FAILED) error("  WINHTTP_CALLBACK_STATUS_FLAG_CERT_REV_FAILED");
+      if (res & WINHTTP_CALLBACK_STATUS_FLAG_INVALID_CERT) error("  WINHTTP_CALLBACK_STATUS_FLAG_INVALID_CERT");
+      if (res & WINHTTP_CALLBACK_STATUS_FLAG_CERT_REVOKED) error("  WINHTTP_CALLBACK_STATUS_FLAG_CERT_REVOKED");
+      if (res & WINHTTP_CALLBACK_STATUS_FLAG_INVALID_CA) error("  WINHTTP_CALLBACK_STATUS_FLAG_INVALID_CA");
+      if (res & WINHTTP_CALLBACK_STATUS_FLAG_CERT_CN_INVALID) error("  WINHTTP_CALLBACK_STATUS_FLAG_CERT_CN_INVALID");
+      if (res & WINHTTP_CALLBACK_STATUS_FLAG_CERT_DATE_INVALID) error("  WINHTTP_CALLBACK_STATUS_FLAG_CERT_DATE_INVALID");
+      if (res & WINHTTP_CALLBACK_STATUS_FLAG_SECURITY_CHANNEL_ERROR) error("  WINHTTP_CALLBACK_STATUS_FLAG_SECURITY_CHANNEL_ERROR");
+    }
+    goto cleanup;
+  }
+
   res = WinHttpReceiveResponse(ret->request, NULL);
+
+  if (!res) {
+    error1("WinHttpReceiveResponse failed with %lu", GetLastError());
+    goto cleanup;
+  }
+
   res = WinHttpQueryHeaders(ret->request, WINHTTP_QUERY_RAW_HEADERS_CRLF, WINHTTP_HEADER_NAME_BY_INDEX, WINHTTP_NO_OUTPUT_BUFFER, &headerlen, WINHTTP_NO_HEADER_INDEX);
+
   if(GetLastError() == ERROR_INSUFFICIENT_BUFFER && headerlen > 0) {
     headers = calloc(1, headerlen);
     if (!headers) goto cleanup;
@@ -124,10 +198,15 @@ net123_handle *net123_open(const char *url, const char * const *client_head){
     ret->headers_len --;
     free(headers);
     headers = NULL;
-  } else goto cleanup;
+  } else {
+    error("WinHttpQueryHeaders did not execute as expected");
+    goto cleanup;
+  }
+  debug("net123_open OK");
 
   return ret;
 cleanup:
+  debug("net123_open error");
   if (urlW) free(urlW);
   net123_close(ret);
   ret = NULL;
