@@ -114,6 +114,9 @@ struct parameter
 #if defined(NETWORK) || defined(NET123)
 	char *httpauth; /* HTTP auth data */
 #endif
+#if defined(NET123)
+	char *network_backend;
+#endif
 };
 
 enum mpg123app_flags

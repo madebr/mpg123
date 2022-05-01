@@ -118,6 +118,7 @@ struct parameter param = {
 	,"mpg123" /* name */
 	,0. /* device buffer */
 	,NULL /* auth */
+	,"auto" /* network_backend */
 };
 
 mpg123_handle *mh = NULL;
@@ -477,7 +478,7 @@ static void set_appflag(char *arg, topt *opts)
 {
 	param.appflags |= appflag;
 }
-#ifdef NETWORK
+#if defined(NETWORK) || defined(NET123)
 static void set_httpauth(char *arg, topt *opts)
 {
 	param.httpauth = strdup(arg);
@@ -673,7 +674,10 @@ topt opts[] = {
 	{0, "cpu", GLO_ARG | GLO_CHAR, 0, &param.cpu,  0},
 	{0, "test-cpu",  GLO_INT,  0, &runmode, TEST_CPU},
 	{0, "list-cpu", GLO_INT,  0, &runmode , LIST_CPU},
-#ifdef NETWORK
+#if defined(NETWORK) || defined(NET123)
+#ifdef NET123
+	{0, "network", GLO_ARG|GLO_CHAR, 0, &param.network_backend, 0},
+#endif
 	{'u', "auth",        GLO_ARG | GLO_CHAR, set_httpauth, 0,   0},
 	{0, "auth-file",     GLO_ARG | GLO_CHAR, set_httpauth_file, 0,   0},
 #endif
@@ -1622,8 +1626,12 @@ static void long_usage(int err)
 	fprintf(o,"        --fuzzy            Enable fuzzy seeks (guessing byte offsets or using approximate seek points from Xing TOC)\n");
 	fprintf(o," -y     --no-resync        DISABLES resync on error (--resync is deprecated)\n");
 	fprintf(o," -F     --no-frankenstein  disable support for Frankenstein streams\n");
+#if defined(NETWORK) || defined(NET123)
 #ifdef NETWORK
 	fprintf(o," -p <f> --proxy <f>        set WWW proxy\n");
+#else
+	fprintf(o,"        --network <b>      select network backend\n");
+#endif
 	fprintf(o," -u     --auth             set auth values for HTTP access\n");
 	fprintf(o,"        --auth-file        set auth values for HTTP access from given file\n");
 	fprintf(o,"        --ignore-mime      ignore HTTP MIME types (content-type)\n");
