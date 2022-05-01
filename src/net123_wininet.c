@@ -153,14 +153,15 @@ net123_handle *net123_open(const char *url, const char * const *client_head){
     error("Cannot allocate dummy buffer for HttpQueryInfoW");
     goto cleanup;
   }
-  res = HttpQueryInfoW(ret->request, HTTP_QUERY_RAW_HEADERS, headers, &headerlen, &ret->HttpQueryInfoIndex);
+  res = HttpQueryInfoW(ret->request, HTTP_QUERY_RAW_HEADERS_CRLF, headers, &headerlen, &ret->HttpQueryInfoIndex);
   free(headers);
 
   if(!res && GetLastError() == ERROR_INSUFFICIENT_BUFFER && headerlen > 0) {
     /* buffer size is in bytes, not including terminator */
     headers = calloc(1, headerlen + sizeof(*headers));
     if (!headers) goto cleanup;
-    HttpQueryInfoW(ret->request, HTTP_QUERY_RAW_HEADERS, headers, &headerlen, &ret->HttpQueryInfoIndex);
+    res = HttpQueryInfoW(ret->request, HTTP_QUERY_RAW_HEADERS_CRLF, headers, &headerlen, &ret->HttpQueryInfoIndex);
+    debug3("HttpQueryInfoW returned %u, err %u : %S", res, GetLastError(), headers ? headers : L"null");
     win32_wide_utf7(headers, &ret->headers, &ret->headers_len);
     /* bytes written, skip the terminating null, we want to stop at the \r\n\r\n */
     ret->headers_len --;
@@ -181,11 +182,6 @@ cleanup:
   return ret;
 }
 
-// Read data into buffer, return bytes read.
-// This handles interrupts (EAGAIN, EINTR, ..) internally and only returns
-// a short byte count on EOF or error. End of file or error is not distinguished:
-// For the user, it only matters if there will be more bytes or not.
-// Feel free to communicate errors via error() / merror() functions inside.
 size_t net123_read(net123_handle *nh, void *buf, size_t bufsize){
   size_t ret;
   size_t to_copy = nh->headers_len - nh->headers_pos;
