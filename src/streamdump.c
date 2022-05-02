@@ -278,7 +278,7 @@ struct stream *stream_open(const char *url)
 	else if(!strncasecmp("file://", url, 7))
 		url+= 7; // use local file access for files, the scheme may be useful
 #ifdef NET123
-	if(!strncasecmp("http://", url, 7) || !strncasecmp("https://", url, 8))
+	else if(!strncasecmp("http://", url, 7) || !strncasecmp("https://", url, 8))
 	{
 		sd->network = 1;
 		// Network stream with header parsing.
@@ -295,9 +295,8 @@ struct stream *stream_open(const char *url)
 			return NULL;
 		}
 	}
-	else
 #elif defined(NETWORK)
-	if(!strncasecmp("http://", url, 7))
+	else if(!strncasecmp("http://", url, 7))
 	{
 #ifdef WANT_WIN32_SOCKETS
 		sd->fd = win32_net_http_open(url, &sd->htd);
@@ -310,8 +309,8 @@ struct stream *stream_open(const char *url)
 			return NULL;
 		}
 	}
-	else
 #endif
+	else
 	{
 		// plain file access
 		errno = 0;
