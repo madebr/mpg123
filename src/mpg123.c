@@ -118,7 +118,9 @@ struct parameter param = {
 	,"mpg123" /* name */
 	,0. /* device buffer */
 	,NULL /* auth */
+#ifdef NET123
 	,"auto" /* network_backend */
+#endif
 };
 
 mpg123_handle *mh = NULL;
