@@ -1281,6 +1281,8 @@ AC_CHECK_FUNCS( mkfifo, [ have_mkfifo=yes ], [ have_mkfifo=no ] )
 
 AC_CHECK_FUNCS( fork execvp, [ have_fork=yes ], [have_fork=no] )
 
+AC_CHECK_FUNCS( ctermid )
+
 dnl ############## Header and Library Checks
 
 # locale headers

@@ -1079,12 +1079,9 @@ int main(int sys_argc, char ** sys_argv)
         _wildcard(&argc,&argv);
 #endif
 #ifdef HAVE_TERMIOS
-	// Detect terminal, enable control by default.
-	// Only if both input and output are connected, though. You got strange effects
-	// otherwise, for example mpg123 messing up settings if piping debugging output
-	// to another interactive program.
-	// Also, the playlist better not reference stdin, fighting with term_control().
-	int term_ctrl_default = !(term_width(STDIN_FILENO) < 0) &&
+	// If either stdin or stderr look like a terminal, we enable things.
+	// Actually checking for terminal properties is safer than calling ctermid() here.
+	int term_ctrl_default = !(term_width(STDIN_FILENO) < 0) ||
 		!(term_width(STDERR_FILENO) < 0);
 	param.term_ctrl = MAYBE;
 #endif
@@ -1306,12 +1303,7 @@ int main(int sys_argc, char ** sys_argv)
 	}
 #ifdef HAVE_TERMIOS
 	if(param.term_ctrl == MAYBE)
-		param.term_ctrl = (term_ctrl_default && !playlist_stdin());
-	if(param.term_ctrl && playlist_stdin())
-	{
-		error("no terminal control because standard input is being played");
-		param.term_ctrl = FALSE;
-	}
+		param.term_ctrl = term_ctrl_default;
 	term_init();
 #endif
 	if(APPFLAG(MPG123APP_CONTINUE)) frames_left = param.frame_number;

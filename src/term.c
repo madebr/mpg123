@@ -20,10 +20,8 @@
 #include "debug.h"
 
 static int term_enable = 0;
-// We can work with the terminal either via stdin or stderr.
-// It can be that only one side is hooked to an interactive terminal.
-// You should be able to pipe terminal control commands (for testing)
-// and still have proper display.
+// This now always refers to a freshly opened terminal descriptor (e.g. /dev/tty).
+// Printouts to stderr are independent of this.
 static int term_fd = -1;
 static struct termios old_tio;
 int seeking = FALSE;
@@ -124,16 +122,35 @@ void term_init(void)
 		return;
 
 	term_enable = 0;
-
-	if( tcgetattr(term_fd=STDERR_FILENO,&old_tio) < 0
-		&& tcgetattr(term_fd=STDIN_FILENO,&old_tio) < 0 )
+	const char *term_name;
+#ifdef HAVE_CTERMID
+	term_name = ctermid(NULL);
+#else
+	term_name = "/dev/tty";
+#endif
+	if(term_name)
+		mdebug("accessing terminal for control via %s", term_name);
+	else
 	{
-		fprintf(stderr,"Can't get terminal attributes\n");
+		error("no controlling terminal");
 		return;
 	}
+	term_fd = open(term_name, O_RDONLY);
+	if(term_fd < 0)
+	{
+		merror("failed to open terminal: %s", strerror(errno));
+		return;
+	}
+	if(tcgetattr(term_fd, &old_tio) < 0)
+	{
+		merror("failed to get terminal attributes: %s", strerror(errno));
+		return;
+	}
+
 	if(term_setup(&old_tio) < 0)
 	{
-		fprintf(stderr,"Can't set terminal attributes\n");
+		close(term_fd);
+		error("failure setting terminal attributes");
 		return;
 	}
 
@@ -275,10 +292,10 @@ static int get_key(int do_delay, char *val)
 	t.tv_usec=(do_delay) ? 10*1000 : 0;
 
 	FD_ZERO(&r);
-	FD_SET(STDIN_FILENO,&r);
-	if(select(1,&r,NULL,NULL,&t) > 0 && FD_ISSET(0,&r))
+	FD_SET(term_fd,&r);
+	if(select(term_fd+1,&r,NULL,NULL,&t) > 0 && FD_ISSET(term_fd,&r))
 	{
-		if(read(STDIN_FILENO,val,1) <= 0)
+		if(read(term_fd,val,1) <= 0)
 		return 0; /* Well, we couldn't read the key, so there is none. */
 		else
 		return 1;
@@ -573,6 +590,10 @@ void term_exit(void)
 
 	debug("reset attrbutes");
 	tcsetattr(term_fd,TCSAFLUSH,&old_tio);
+
+	if(term_fd > -1)
+		close(term_fd);
+	term_fd = -1;
 }
 
 #endif
