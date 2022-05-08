@@ -396,7 +396,7 @@ static int win32_net_resolve_redirect(mpg123_string *response, mpg123_string *re
 	return TRUE;
 }
 
-int win32_net_http_open(char* url, struct httpdata *hd)
+int win32_net_http_open(const char* url, struct httpdata *hd)
 {
 	mpg123_string purl, host, port, path;
 	mpg123_string request, response, request_url;
@@ -600,7 +600,7 @@ exit: /* The end as well as the exception handling point... */
 	return 1;
 }
 #else
-int win32_net_http_open(char* url, struct httpdata *hd)
+int win32_net_http_open(const char* url, struct httpdata *hd)
 {
   return -1;
 }

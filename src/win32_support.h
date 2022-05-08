@@ -40,7 +40,7 @@ so the socket handle is always associated with the last call to win32_net_http_o
  * @param[out] hd http data info
  * @return -1 for failure, 1 for success
  */
-int win32_net_http_open(char* url, struct httpdata *hd);
+int win32_net_http_open(const char* url, struct httpdata *hd);
 
 /**
  * Reads from network socket
