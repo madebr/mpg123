@@ -2525,7 +2525,7 @@ dnl This is to be kept in sync with --with-network, it is a shortcut that
 dnl keep the old semantics of being able to --disable-network support altogether.
 dnl The default should match the --with-network default.
 AC_ARG_ENABLE(network,
-              [  --enable-network=[no/yes] network support (http streams / webradio), if available ],
+              [  --enable-network=[no/yes] network support (http streams / webradio), if available (overruled by --with-network!) ],
               [
                 if test "x$enableval" = xyes
                 then
