@@ -81,6 +81,11 @@ void prepare_playlist(int argc, char** argv, int args_utf8, int *is_utf8)
 	*/
 	init_playlist();
 	while (add_next_file(argc, argv, args_utf8)) {}
+	if(pl.file)
+	{
+		stream_close(pl.file);
+		pl.file = NULL;
+	}
 	if(param.verbose > 1)
 	{
 		fprintf(stderr, "\nplaylist in normal order:\n");
