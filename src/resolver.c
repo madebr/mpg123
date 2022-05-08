@@ -269,7 +269,7 @@ int open_connection(mpg123_string *host, mpg123_string *port)
 	{ /* Name lookup. */
 		if (!(myhostent = gethostbyname(host->p))) return -1;
 
-		memcpy (&myaddr, myhostent->h_addr, sizeof(myaddr));
+		memcpy (&myaddr, myhostent->h_addr_list[0], sizeof(myaddr));
 		server.sin_addr.s_addr = myaddr.s_addr;
 	}
 	else  /* Just use the IP. */
