@@ -385,38 +385,6 @@ AC_ARG_ENABLE(ipv6,
               ]
 )
 
-AC_ARG_ENABLE(network,
-              [  --enable-network=[no/yes] network support (http streams / webradio) ],
-              [
-                if test "x$enableval" = xyes
-                then
-                  network="enabled"
-                else
-                  network="disabled"
-                fi
-              ],
-              [
-                network="auto"
-              ]
-)
-
-AC_ARG_ENABLE(net123,
-              [  --enable-net123k=[no/yes] experimental new network support (http streams / webradio) ],
-              [
-                if test "x$enableval" = xyes
-                then
-                  net123="enabled"
-                else
-                  net123="disabled"
-                fi
-              ],
-              [
-                net123="disabled"
-              ]
-)
-
-
-
 dnl Optional objects list, depends on decoder choice and core feature selection.
 dnl Not just for specific decoders anymore...
 
@@ -1279,7 +1247,7 @@ AC_CHECK_FUNCS( atoll )
 
 AC_CHECK_FUNCS( mkfifo, [ have_mkfifo=yes ], [ have_mkfifo=no ] )
 
-AC_CHECK_FUNCS( fork execvp, [ have_fork=yes ], [have_fork=no] )
+AC_CHECK_FUNCS( fork execvp, [ have_fork=yes ], [have_fork=no; break] )
 
 AC_CHECK_FUNCS( ctermid )
 
@@ -2334,35 +2302,13 @@ AC_DEFINE_UNQUOTED(INDEX_SIZE, $seektable, [size of the frame index seek table])
 
 dnl ############## Win32 function checks
 # Check if we want Unicode for Win32. Cygwin and Midipix does not need _wopen
-net123_type=
-if test "x$ac_cv_header_windows_h" = xyes &&
-   test "x$host_os" != xcygwin &&
-   test "x$host_os" != xmidipix; then
-  win32_specific_codes=enabled
-  net123_type=winhttp
-else
-  win32_specific_codes=disabled
-  if test x$have_fork = xyes; then
-    net123_type=posix
-  fi
-fi
+COMPAT_LIBS=
+
 win32_unicode=unneeded
 win32_sockets=disabled
 win32_sockets_working=no
 win32_wide_working=no
 win32_winver_bump=no
-
-COMPAT_LIBS=
-
-if test x$net123 = xenabled; then
-  if test x$net123_type = x; then
-    AC_MSG_ERROR([no backend for net123 found])
-  fi
-  AC_DEFINE([NET123], [1], [ Define to for new net123 network backend. ])
-fi
-if test x$net123 = xdisabled; then
-  net123_type=disabled
-fi
 
 ### mingw.org may not work properly for newer APIs
 case $host_os in
@@ -2374,6 +2320,11 @@ case $host_os in
     ])
   ;;
 esac
+
+# enable win32 code
+if test "x$ac_cv_header_windows_h" = xyes -a "x$host_os" != xcygwin -a "x$host_os" != xmidipix; then
+  win32_specific_codes=enabled
+fi
 
 dnl We do not support non-unicode Windows.
 if test "x$win32_specific_codes" = xenabled; then
@@ -2434,7 +2385,7 @@ if test "x$win32_specific_codes" = xenabled; then
 #### Check for Network functions
   AC_CHECK_HEADERS([ws2tcpip.h], [win32_sockets=enabled], [AC_MSG_WARN([Please update your headers to support winsock 2.2.])])
   AC_MSG_CHECKING([if we want Win32 sockets])
-  if test "x$win32_sockets" = "xenabled" && test "x$network" != "xdisabled"; then
+  if test "x$win32_sockets" = "xenabled"; then
   AC_MSG_RESULT([yes])
   AC_MSG_CHECKING([if winsock2 API is available])
     wsoldlibs="$LIBS"
@@ -2468,14 +2419,13 @@ if test "x$win32_specific_codes" = xenabled; then
     fi
     if test "x$win32_sockets_working" = "xyes"; then
       AC_MSG_RESULT([yes])
-      AC_DEFINE([WANT_WIN32_SOCKETS], [1], [ Define to use Win32 sockets ])
       network_type=Winsock2
       have_network=yes
       have_ipv6=yes
     else
-      LIBS="$wsoldlibs"
       AC_MSG_WARN([Please update your headers to support winsock 2.2.])
     fi
+      LIBS="$wsoldlibs"
   else
     AC_MSG_RESULT([no])
   fi
@@ -2566,31 +2516,85 @@ int i = (EOVERFLOW) + 0;
 AC_MSG_RESULT([$eoverflow_present])
 AS_IF([test "x$eoverflow_present" = "xyes"],[],[AC_DEFINE([EOVERFLOW],[EFBIG],[Use EFBIG as substitude for EOVERFLOW, mingw.org may lack the latter])])
 
+# defaults to "internal", the old tcp/ip code
+AC_MSG_CHECKING([for preferred network backend])
+AC_ARG_WITH([network],
+  [AS_HELP_STRING([--with-network], [Available options are internal, winhttp, wininet, and posix])],
+  [
+    case "$withval" in
+      posix)
+        net123_type="posix"
+        AC_MSG_RESULT([posix])
+        ;;
+      winhttp)
+        net123_type="winhttp"
+        AC_MSG_RESULT([winhttp])
+        ;;
+      wininet)
+        net123_type="wininet"
+        AC_MSG_RESULT([wininet])
+        ;;
+      internal)
+        net123_type="internal"
+        AC_MSG_RESULT([internal])
+        ;;
+      auto)
+        net123_type="internal"
+        AC_MSG_RESULT([internal])
+        ;;
+      yes)
+        net123_type="internal"
+        AC_MSG_RESULT([internal])
+        ;;
+      no)
+        net123_type="disabled"
+        AC_MSG_RESULT([none])
+        ;;
+      *)
+        AC_MSG_ERROR([Unknown network backend "$withval"])
+        ;;
+     esac
+  ],
+  [
+    if test "x$have_network" = "xyes"; then
+      net123_type="internal"
+    else
+      net123_type="disabled"
+    fi
+    AC_MSG_RESULT([$net123_type])
+  ]
+)
+
+# new net123
+if test x$net123_type != xinternal -a x$net123_type != xno; then
+  AC_DEFINE([NET123], [1], [ Define to for new net123 network backend. ])
+fi
+if test x$net123_type = xposix -a x$have_fork != xyes; then
+  AC_MSG_ERROR([posix network backend selected but fork not available])
+fi
+if test x$net123_type = xwininet -o x$net123_type = xwinhttp && test x$win32_specific_codes != xenabled; then
+  AC_MSG_ERROR([wininet or winhttp is currently only for Windows])
+fi
+
 #### Use Win32 support codes
 AM_CONDITIONAL([WIN32_CODES], [ test "x$win32_specific_codes" = xenabled ])
 
-if test x"$network" = xauto; then
-	if test x"$have_network" = xyes; then
-		network=enabled
-	else
-		network=disabled
-	fi
-fi
 if test x"$ipv6" = xauto; then
-	if test x"$have_ipv6" = xyes; then
+	if test x"$have_ipv6" = xyes -a x"$net123_type" = "internal"; then
 		ipv6=enabled
 	else
 		ipv6=disabled
 	fi
 fi
 
-if test x$net123 = xenabled; then
-  network=disabled
-  ipv6=disabled
+if test x$net123_type = xinternal -a x$network_type = xWinsock2; then
+  AC_DEFINE([WANT_WIN32_SOCKETS], [1], [ Define to use Win32 sockets ])
 fi
 
+AM_CONDITIONAL([NET123_INTERNAL_WIN], [ test x$net123_type = xinternal -a x$network_type = xWinsock2 ])
 AM_CONDITIONAL([NET123_POSIX], [ test x$net123_type = xposix ])
 AM_CONDITIONAL([NET123_WINHTTP], [ test x$net123_type = xwinhttp ])
+AM_CONDITIONAL([NET123_WININET], [ test x$net123_type = xwininet ])
 
 dnl ############## FIFO enable
 
@@ -2610,7 +2614,7 @@ if test x"$fifo" = xenabled; then
 fi
 
 dnl ############## Network enable
-if test x"$network" = xenabled; then
+if test x"$net123_type" = xinternal; then
 	AC_DEFINE(NETWORK, 1, [ Define if network support is enabled. ])
 	if test x"$have_network" = xno; then
 		AC_MSG_WARN( [ You forced network code while I think there is support missing! ] )
@@ -2727,6 +2731,7 @@ echo "  Modules ................. $modules"
 echo "  Checked audio modules ... $check_modules"
 echo "  Detected audio support .. $output_modules"
 echo "  Runtime order ........... $default_output_modules"
+echo "  Network backend module .. $net123_type"
 
 if test x"$modules" = xdisabled; then
   echo
