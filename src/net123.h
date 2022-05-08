@@ -47,6 +47,8 @@
 struct net123_handle_struct;
 typedef struct net123_handle_struct net123_handle;
 
+extern const char *net123_backends[];
+
 // Open stream from URL, preparing output such that net123_read()
 // later on gets the response header lines followed by one empty line
 // and then the raw data.

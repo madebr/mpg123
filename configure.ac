@@ -370,21 +370,6 @@ AC_ARG_ENABLE(fifo,
               ]
 )
 
-AC_ARG_ENABLE(ipv6,
-              [  --enable-ipv6=[no/yes] IPv6 support (actually any protocol your libc does with getaddrinfo) ],
-              [
-                if test "x$enableval" = xyes
-                then
-                  ipv6="enabled"
-                else
-                  ipv6="disabled"
-                fi
-              ],
-              [
-                ipv6="auto"
-              ]
-)
-
 dnl Optional objects list, depends on decoder choice and core feature selection.
 dnl Not just for specific decoders anymore...
 
@@ -1256,7 +1241,7 @@ dnl ############## Header and Library Checks
 # locale headers
 AC_CHECK_HEADERS([locale.h langinfo.h wchar.h wctype.h])
 # Headers for network (http) stuff
-network_type=Unknown
+network_internal=unknown
 AC_CHECK_HEADERS([netdb.h sys/param.h sys/socket.h netinet/in.h arpa/inet.h])
 if test "x$ac_cv_header_netdb_h" = "xyes"      &&
    test "x$ac_cv_header_sys_param_h" = "xyes"  &&
@@ -1264,7 +1249,7 @@ if test "x$ac_cv_header_netdb_h" = "xyes"      &&
    test "x$ac_cv_header_netinet_in_h" = "xyes" &&
    test "x$ac_cv_header_arpa_inet_h"  = "xyes"; then
   have_network=yes
-  network_type=Posix
+  network_internal=posix
 else
   have_network=no
 fi
@@ -2419,7 +2404,7 @@ if test "x$win32_specific_codes" = xenabled; then
     fi
     if test "x$win32_sockets_working" = "xyes"; then
       AC_MSG_RESULT([yes])
-      network_type=Winsock2
+      network_internal=winsock2
       have_network=yes
       have_ipv6=yes
     else
@@ -2516,63 +2501,104 @@ int i = (EOVERFLOW) + 0;
 AC_MSG_RESULT([$eoverflow_present])
 AS_IF([test "x$eoverflow_present" = "xyes"],[],[AC_DEFINE([EOVERFLOW],[EFBIG],[Use EFBIG as substitude for EOVERFLOW, mingw.org may lack the latter])])
 
-# defaults to "internal", the old tcp/ip code
-AC_MSG_CHECKING([for preferred network backend])
+# old network choice
+
+AC_ARG_ENABLE(ipv6,
+              [  --enable-ipv6=[no/yes] IPv6 support in internal network stack ],
+              [
+                if test "x$enableval" = xyes
+                then
+                  ipv6="enabled"
+                else
+                  ipv6="disabled"
+                fi
+              ],
+              [
+                ipv6="auto"
+              ]
+)
+
+dnl make it clear that auto is the default for both enable and with options.
+network_type=auto
+
+dnl This is to be kept in sync with --with-network, it is a shortcut that
+dnl keep the old semantics of being able to --disable-network support altogether.
+dnl The default should match the --with-network default.
+AC_ARG_ENABLE(network,
+              [  --enable-network=[no/yes] network support (http streams / webradio), if available ],
+              [
+                if test "x$enableval" = xyes
+                then
+                  network_type=auto
+                else
+                  network_type=disabled
+                fi
+              ],
+              [
+              ]
+)
+
+# new network choice
+
+AC_MSG_CHECKING([for preferred network support])
 AC_ARG_WITH([network],
-  [AS_HELP_STRING([--with-network], [Available options are internal, winhttp, wininet, and posix])],
+  [AS_HELP_STRING([--with-network=<type>], [Available options, depending on platform, are auto, none, internal, winhttp, wininet, and exec (wget or curl binaries).])],
   [
     case "$withval" in
-      posix)
-        net123_type="posix"
-        AC_MSG_RESULT([posix])
+      exec)
+        network_type="exec"
+        AC_MSG_RESULT([exec])
         ;;
       winhttp)
-        net123_type="winhttp"
+        network_type="winhttp"
         AC_MSG_RESULT([winhttp])
         ;;
       wininet)
-        net123_type="wininet"
+        network_type="wininet"
         AC_MSG_RESULT([wininet])
         ;;
       internal)
-        net123_type="internal"
+        network_type="internal"
         AC_MSG_RESULT([internal])
         ;;
-      auto)
-        net123_type="internal"
-        AC_MSG_RESULT([internal])
+      yes|auto)
+        network_type="auto"
+        AC_MSG_RESULT([autol])
         ;;
-      yes)
-        net123_type="internal"
-        AC_MSG_RESULT([internal])
-        ;;
-      no)
-        net123_type="disabled"
+      no|none)
+        network_type="disabled"
         AC_MSG_RESULT([none])
         ;;
       *)
-        AC_MSG_ERROR([Unknown network backend "$withval"])
+        AC_MSG_ERROR([Unknown network option "$withval"])
         ;;
      esac
   ],
   [
-    if test "x$have_network" = "xyes"; then
-      net123_type="internal"
-    else
-      net123_type="disabled"
-    fi
-    AC_MSG_RESULT([$net123_type])
+    AC_MSG_RESULT([$network_type])
   ]
 )
 
+if test x$network_type = xauto; then
+  AC_MSG_CHECKING([for automatic network support])
+  # Old internal stack as default for now, will change to
+  # have_fork -> exec, win32 specific -> wininet
+  if test "x$have_network" = "xyes"; then
+    network_type="internal"
+  else
+    network_type="disabled"
+  fi
+  AC_MSG_RESULT([$network_type])
+fi
+
 # new net123
-if test x$net123_type != xinternal -a x$net123_type != xno; then
-  AC_DEFINE([NET123], [1], [ Define to for new net123 network backend. ])
+if test x$network_type != xinternal -a x$network_type != xdisabled; then
+  AC_DEFINE([NET123], [1], [ Define to for new net123 network stack. ])
 fi
-if test x$net123_type = xposix -a x$have_fork != xyes; then
-  AC_MSG_ERROR([posix network backend selected but fork not available])
+if test x$network_type = xexec -a x$have_fork != xyes; then
+  AC_MSG_ERROR([exec network support selected but fork not available])
 fi
-if test x$net123_type = xwininet -o x$net123_type = xwinhttp && test x$win32_specific_codes != xenabled; then
+if test x$network_type = xwininet -o x$network_type = xwinhttp && test x$win32_specific_codes != xenabled; then
   AC_MSG_ERROR([wininet or winhttp is currently only for Windows])
 fi
 
@@ -2580,21 +2606,23 @@ fi
 AM_CONDITIONAL([WIN32_CODES], [ test "x$win32_specific_codes" = xenabled ])
 
 if test x"$ipv6" = xauto; then
-	if test x"$have_ipv6" = xyes -a x"$net123_type" = "internal"; then
+	AC_MSG_CHECKING([IPv6 use])
+	if test x"$have_ipv6" = xyes -a x"$network_type" = xinternal; then
 		ipv6=enabled
 	else
 		ipv6=disabled
 	fi
+	AC_MSG_RESULT([$ipv6])
 fi
 
-if test x$net123_type = xinternal -a x$network_type = xWinsock2; then
+if test x$network_type = xinternal -a x$network_internal = xwinsock2; then
   AC_DEFINE([WANT_WIN32_SOCKETS], [1], [ Define to use Win32 sockets ])
 fi
 
-AM_CONDITIONAL([NET123_INTERNAL_WIN], [ test x$net123_type = xinternal -a x$network_type = xWinsock2 ])
-AM_CONDITIONAL([NET123_POSIX], [ test x$net123_type = xposix ])
-AM_CONDITIONAL([NET123_WINHTTP], [ test x$net123_type = xwinhttp ])
-AM_CONDITIONAL([NET123_WININET], [ test x$net123_type = xwininet ])
+AM_CONDITIONAL([NETWORK_WINSOCK], [ test x$network_type = xinternal -a x$network_internal = xwinsock2 ])
+AM_CONDITIONAL([NET123_EXEC], [ test x$network_type = xexec ])
+AM_CONDITIONAL([NET123_WINHTTP], [ test x$network_type = xwinhttp ])
+AM_CONDITIONAL([NET123_WININET], [ test x$network_type = xwininet ])
 
 dnl ############## FIFO enable
 
@@ -2614,7 +2642,7 @@ if test x"$fifo" = xenabled; then
 fi
 
 dnl ############## Network enable
-if test x"$net123_type" = xinternal; then
+if test x"$network_type" = xinternal; then
 	AC_DEFINE(NETWORK, 1, [ Define if network support is enabled. ])
 	if test x"$have_network" = xno; then
 		AC_MSG_WARN( [ You forced network code while I think there is support missing! ] )
@@ -2673,10 +2701,11 @@ echo "
   Seek table size ......... $seektable
   FIFO support ............ $fifo
   Buffer .................. $buffer
-  New Network ............. $net123_type
-  Network (http streams) .. $network
-  Network Sockets ......... $network_type
+  Network (http streams) .. $network_type"
+if test x$network_type = xinternal; then
+  echo "  Internal network type ... $network_internal
   IPv6 (getaddrinfo) ...... $ipv6"
+fi
 if test x"$LARGEFILE_BITS" = x; then
   echo "  File offsets ............ default"
 else
@@ -2731,7 +2760,6 @@ echo "  Modules ................. $modules"
 echo "  Checked audio modules ... $check_modules"
 echo "  Detected audio support .. $output_modules"
 echo "  Runtime order ........... $default_output_modules"
-echo "  Network backend module .. $net123_type"
 
 if test x"$modules" = xdisabled; then
   echo

@@ -5,6 +5,8 @@
 #include <ws2tcpip.h>
 #include <winhttp.h>
 
+const char *net123_backends[] = { "(always winhttp)", NULL };
+
 // The network implementation defines the struct for private use.
 // The purpose is just to keep enough context to be able to
 // call net123_read() and net123_close() afterwards.

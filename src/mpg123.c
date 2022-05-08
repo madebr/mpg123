@@ -117,7 +117,9 @@ struct parameter param = {
 	,0 /* ICY interval */
 	,"mpg123" /* name */
 	,0. /* device buffer */
+#if defined(NETWORK) || defined(NET123)
 	,NULL /* auth */
+#endif
 #ifdef NET123
 	,"auto" /* network_backend */
 #endif
@@ -318,7 +320,9 @@ void safe_exit(int code)
 	split_dir_file("", &dummy, &dammy);
 	if(fullprogname) free(fullprogname);
 
+#if defined(NETWORK) || defined(NET123)
 	if(param.httpauth) free(param.httpauth);
+#endif
 #ifdef HAVE_TERMIOS
 	term_exit();
 #endif
@@ -1624,7 +1628,10 @@ static void long_usage(int err)
 #ifdef NETWORK
 	fprintf(o," -p <f> --proxy <f>        set WWW proxy\n");
 #else
-	fprintf(o,"        --network <b>      select network backend\n");
+	fprintf(o,"        --network <b>      select network backend, available: auto");
+	const char **nb = net123_backends;
+	while(*nb){ fprintf(o, " %s", *nb++); }
+	fprintf(o, "\n");
 #endif
 	fprintf(o," -u     --auth             set auth values for HTTP access\n");
 	fprintf(o,"        --auth-file        set auth values for HTTP access from given file\n");

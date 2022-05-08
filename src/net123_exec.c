@@ -1,10 +1,11 @@
 /*
-	net123_posix: network (HTTP(S)) streaming for mpg123 via fork+exec
+	net123_exec: network (HTTP(S)) streaming for mpg123 via fork+exec
 
 	This avoids linking any network code directly into mpg123, just using external
 	tools at runtime.
 
-	I will start with hardcoded wget, will add curl and some parameters later.
+	This calls wget with fallback to curl by default, one of those two
+	specifically if param.network_backend is set accordingly.
 */
 
 
@@ -32,6 +33,13 @@
 //    same
 // wget --user=... --password=... 
 // Alternatively: Have them in .netrc.
+
+const char *net123_backends[] =
+{
+	"wget"
+,	"curl"
+,	NULL
+};
 
 struct net123_handle_struct
 {

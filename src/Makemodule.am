@@ -105,8 +105,8 @@ src_mpg123_strip_SOURCES = \
   src/getlopt.c \
   src/getlopt.h
 
-if NET123_POSIX
-src_mpg123_SOURCES += src/net123.h src/net123_posix.c
+if NET123_EXEC
+src_mpg123_SOURCES += src/net123.h src/net123_exec.c
 endif
 
 if NET123_WINHTTP
@@ -123,7 +123,7 @@ if WIN32_CODES
 src_mpg123_SOURCES += \
   src/win32_support.c
 
-if NET123_INTERNAL_WIN
+if NETWORK_WINSOCK
 src_mpg123_SOURCES += src/win32_net.c
 src_mpg123_LDADD += -lws2_32
 endif
