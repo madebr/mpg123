@@ -6,6 +6,7 @@
 -- Use CMAKE_CURRENT_SOURCE_DIR in CMake build to help nested use (bug 335).
 - mpg123:
 -- new network backend using external tools/libraries to also support HTTPS
+-- old network backend changed to use h_addr_list[0] instead of h_addr
 -- terminal control now also with audio from stdin (bug 338) via
    /dev/tty or ctermid()
 -- remote control API v10 with "@P 3" as additonal message on track end
