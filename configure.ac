@@ -13,8 +13,8 @@ AC_INIT([mpg123], [1.30.0], [maintainer@mpg123.org])
 dnl Increment API_VERSION when the API gets changes (new functions).
 
 dnl libmpg123
-API_VERSION=46
-LIB_PATCHLEVEL=9
+API_VERSION=47
+LIB_PATCHLEVEL=0
 
 dnl libout123
 OUTAPI_VERSION=4

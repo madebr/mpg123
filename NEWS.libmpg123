@@ -1,5 +1,7 @@
 Changes in libmpg123 libtool interface versions...
 
+47.0.47 - Added mpg123_eq_bands(), mpg123_eq_change() and mpg123_volume_change_db().
+
 46.0.46
 	- Functions mpg123_init() and mpg123_exit() are really no-ops now.
 	  There is no need to call them, and no harm done calling them in
