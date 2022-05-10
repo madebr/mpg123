@@ -307,11 +307,6 @@ size_t unintr_write(int fd, void const *buffer, size_t bytes);
 size_t unintr_read (int fd, void *buffer, size_t bytes);
 size_t unintr_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream);
 
-/* That one comes from Tellie on OS/2, needed in resolver. */
-#ifdef __KLIBC__
-typedef int socklen_t;
-#endif
-
 /* OSX SDK defines an enum with "normal" as value. That clashes with
    optimize.h */
 #ifdef __APPLE__

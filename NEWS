@@ -4,6 +4,7 @@
 -- Use dummy as default module when no other outputs are enabled. This also
    fixes a non-module build with just the dummy (bug 333).
 -- Use CMAKE_CURRENT_SOURCE_DIR in CMake build to help nested use (bug 335).
+-- some updates for OS/2 support
 - mpg123:
 -- new network backend using external tools/libraries to also support HTTPS
 -- old network backend changed to use h_addr_list[0] instead of h_addr
