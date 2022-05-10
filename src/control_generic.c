@@ -749,13 +749,9 @@ int control_generic (mpg123_handle *fr)
 						int cn;
 						if(sscanf(arg, "%lf %lf %lf", &b, &m, &t) == 3)
 						{
-							/* Consider adding mpg123_seq()... but also, on could define a nicer courve for that. */
-							for(cn=0; cn < 1; ++cn)	mpg123_eq(fr, MPG123_LEFT|MPG123_RIGHT, cn, b);
-
-							for(cn=1; cn < 2; ++cn) mpg123_eq(fr, MPG123_LEFT|MPG123_RIGHT, cn, m);
-
-							for(cn=2; cn < 32; ++cn) mpg123_eq(fr, MPG123_LEFT|MPG123_RIGHT, cn, t);
-
+							mpg123_eq_bands(fr, MPG123_LR, 0,  0, b);
+							mpg123_eq_bands(fr, MPG123_LR, 1,  1, m);
+							mpg123_eq_bands(fr, MPG123_LR, 2, 31, t);
 							generic_sendmsg("bass: %f mid: %f treble: %f", b, m, t);
 						}
 						else generic_sendmsg("E invalid arguments for SEQ: %s", arg);

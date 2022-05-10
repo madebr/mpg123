@@ -58,6 +58,16 @@
 #define MPG123_PITCH_DOWN_KEY  'x'
 #define MPG123_PITCH_BDOWN_KEY 'X'
 #define MPG123_PITCH_ZERO_KEY  'w'
+
+#define MPG123_EQ_RESET_KEY 'e'
+#define MPG123_EQ_SHOW_KEY 'E'
+#define MPG123_BASS_UP_KEY 'A'
+#define MPG123_BASS_DOWN_KEY 'a'
+#define MPG123_MID_UP_KEY 'J'
+#define MPG123_MID_DOWN_KEY 'j'
+#define MPG123_TREBLE_UP_KEY 'N'
+#define MPG123_TREBLE_DOWN_KEY 'n'
+
 #define MPG123_BOOKMARK_KEY    'k'
 /* This counts as "undocumented" and can disappear */
 #define MPG123_FRAME_INDEX_KEY 'i'

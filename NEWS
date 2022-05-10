@@ -8,6 +8,10 @@
 - mpg123:
 -- new network backend using external tools/libraries to also support HTTPS
 -- old network backend changed to use h_addr_list[0] instead of h_addr
+-- terminal control keys now case-sensitive (fixing smal/big pitch controls)
+-- additional terminal control keys for simple equalizer control (A/a for bass,
+   J/j for mids, N/n for treble, e for reset, E for printout)
+-- terminal volume control now in decibel steps and bounded to +/- 60 dB
 -- terminal control now also with audio from stdin (bug 338) via
    /dev/tty or ctermid()
 -- remote control API v10 with "@P 3" as additonal message on track end

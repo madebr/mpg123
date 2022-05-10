@@ -64,6 +64,14 @@ struct keydef term_help[] =
 	,{ MPG123_BOOKMARK_KEY, 0, "print out current position in playlist and track, for the benefit of some external tool to store bookmarks" }
 	,{ MPG123_HELP_KEY,     0, "this help" }
 	,{ MPG123_QUIT_KEY,     0, "quit" }
+	,{ MPG123_EQ_RESET_KEY,    0, "reset to a flat equalizer" }
+	,{ MPG123_EQ_SHOW_KEY,     0, "show our current rough equalizer settings" }
+	,{ MPG123_BASS_UP_KEY,     0, "more bass" }
+	,{ MPG123_BASS_DOWN_KEY,   0, "less bass" }
+	,{ MPG123_MID_UP_KEY,      0, "more mids" }
+	,{ MPG123_MID_DOWN_KEY,    0, "less mids" }
+	,{ MPG123_TREBLE_UP_KEY,   0, "more treble" }
+	,{ MPG123_TREBLE_DOWN_KEY, 0, "less treble" }
 };
 
 void term_sigcont(int sig);
@@ -306,7 +314,7 @@ static int get_key(int do_delay, char *val)
 static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 {
 	debug1("term_handle_key: %c", val);
-	switch(tolower(val))
+	switch(val)
 	{
 	case MPG123_BACK_KEY:
 		out123_pause(ao);
@@ -331,7 +339,9 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 	case MPG123_QUIT_KEY:
 		debug("QUIT");
 		if(stopped)
-		{
+		{		if(param.verbose)
+			print_stat(fr,0,ao,0,&param);
+
 			stopped = 0;
 			out123_pause(ao); /* no chance for annoying underrun warnings */
 			out123_drop(ao);
@@ -406,13 +416,47 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 		offset+=50;
 	break;
 	case MPG123_VOL_UP_KEY:
-		mpg123_volume_change(fr, 0.02);
+		mpg123_volume_change_db(fr, +1);
 	break;
 	case MPG123_VOL_DOWN_KEY:
-		mpg123_volume_change(fr, -0.02);
+		mpg123_volume_change_db(fr, -1);
 	break;
 	case MPG123_VOL_MUTE_KEY:
 		set_mute(ao, muted=!muted);
+	break;
+	case MPG123_EQ_RESET_KEY:
+		mpg123_reset_eq(fr);
+	break;
+	case MPG123_EQ_SHOW_KEY:
+	{
+		if(param.verbose)
+			print_stat(fr,0,ao,0,&param);
+		// Assuming only changes happen via terminal control, these 3 values
+		// are what counts.
+		fprintf( stderr, "\n\nbass:   %.3f\nmid:    %.3f\ntreble: %.3f\n\n"
+		,	mpg123_geteq(fr, MPG123_LEFT, 0)
+		,	mpg123_geteq(fr, MPG123_LEFT, 1)
+		,	mpg123_geteq(fr, MPG123_LEFT, 2)
+		);
+	}
+	break;
+	case MPG123_BASS_UP_KEY:
+		mpg123_eq_change(fr, MPG123_LR, 0, 0, +1);
+	break;
+	case MPG123_BASS_DOWN_KEY:
+		mpg123_eq_change(fr, MPG123_LR, 0, 0, -1);
+	break;
+	case MPG123_MID_UP_KEY:
+		mpg123_eq_change(fr, MPG123_LR, 1, 1, +1);
+	break;
+	case MPG123_MID_DOWN_KEY:
+		mpg123_eq_change(fr, MPG123_LR, 1, 1, -1);
+	break;
+	case MPG123_TREBLE_UP_KEY:
+		mpg123_eq_change(fr, MPG123_LR, 2, 31, +1);
+	break;
+	case MPG123_TREBLE_DOWN_KEY:
+		mpg123_eq_change(fr, MPG123_LR, 2, 31, -1);
 	break;
 	case MPG123_PITCH_UP_KEY:
 	case MPG123_PITCH_BUP_KEY:
