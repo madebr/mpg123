@@ -441,7 +441,12 @@ size_t unintr_write(int fd, void const *buffer, size_t bytes)
 		{
 			bytes   -= part;
 			written += part;
-		} else if(errno != EINTR && errno != EAGAIN && errno != EWOULDBLOCK)
+		} else if(errno != EINTR && errno != EAGAIN
+#ifndef __KLIBC__
+			// OS/2 is funny with POSIX.
+			&& errno != EWOULDBLOCK
+#endif
+		)
 			break;
 	}
 	return written;
