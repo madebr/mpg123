@@ -32,8 +32,7 @@ src_out123_LDFLAGS = @EXEC_LT_LDFLAGS@
 EXTRA_DIST += \
   src/intsym.h \
   src/mpg123-with-modules \
-  src/out123-with-modules \
-  doc/windows-notes.html
+  src/out123-with-modules
 
 CLEANFILES += src/*.a
 
@@ -106,17 +105,18 @@ src_mpg123_strip_SOURCES = \
   src/getlopt.c \
   src/getlopt.h
 
-if NET123_COMMON
-src_mpg123_SOURCES += src/net123.h src/net123_common.c
-endif
-
 if NET123_EXEC
-src_mpg123_SOURCES += src/net123_exec.c
+src_mpg123_SOURCES += src/net123.h src/net123_exec.c
 endif
 
-if NET123_WINDOWS
-src_mpg123_SOURCES += src/net123_winhttp.c src/net123_wininet.c
-src_mpg123_LDADD += -lwinhttp -lwininet
+if NET123_WINHTTP
+src_mpg123_SOURCES += src/net123.h src/net123_winhttp.c
+src_mpg123_LDADD += -lwinhttp
+endif
+
+if NET123_WININET
+src_mpg123_SOURCES += src/net123.h src/net123_wininet.c
+src_mpg123_LDADD += -lwininet
 endif
 
 if WIN32_CODES
