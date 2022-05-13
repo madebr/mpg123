@@ -227,6 +227,9 @@ net123_handle *net123_open(const char *url, const char * const * client_head)
 		return NULL;
 	}
 
+	compat_binmode(fd[0], TRUE);
+	compat_binmode(fd[1], TRUE);
+
 	nh->worker = fork();
 	if(nh->worker == -1)
 	{

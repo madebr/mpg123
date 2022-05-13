@@ -133,6 +133,8 @@ int do_work(mpg123_handle *m)
 {
 	int ret;
 	size_t count = 0;
+	compat_binmode(STDIN_FILENO, TRUE);
+	compat_binmode(STDOUT_FILENO, TRUE);
 	ret = mpg123_open_fd(m, STDIN_FILENO);
 	if(ret != MPG123_OK) return ret;
 

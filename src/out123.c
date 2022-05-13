@@ -1466,9 +1466,7 @@ static void setup_processing(void)
 int main(int sys_argc, char ** sys_argv)
 {
 	int result;
-#if defined(WIN32)
-	_setmode(STDIN_FILENO,  _O_BINARY);
-#endif
+	compat_binmode(STDIN_FILENO, TRUE);
 	check_locale();
 
 #if defined (WANT_WIN32_UNICODE)

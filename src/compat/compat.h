@@ -195,6 +195,14 @@ FILE* compat_fdopen(int fd, const char *mode);
 int compat_close(int infd);
 int compat_fclose(FILE* stream);
 
+
+/**
+ * Setting binary mode on a descriptor, where necessary.
+ * We do not bother with errors. This has to work.
+ * You can enable or disable binary mode.
+ */
+void compat_binmode(int fd, int enable);
+
 /* Those do make sense in a separate file, but I chose to include them in compat.c because that's the one source whose object is shared between mpg123 and libmpg123 -- and both need the functionality internally. */
 
 #if defined (_WIN32) || defined (__CYGWIN__)

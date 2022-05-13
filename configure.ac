@@ -1236,6 +1236,9 @@ AC_CHECK_FUNCS( fork execvp, [ have_fork=yes ], [have_fork=no; break] )
 
 AC_CHECK_FUNCS( ctermid )
 
+# For Windows and OS/2.
+AC_CHECK_FUNCS( _setmode setmode )
+
 dnl ############## Header and Library Checks
 
 # locale headers

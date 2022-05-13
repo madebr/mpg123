@@ -271,9 +271,7 @@ struct stream *stream_open(const char *url)
 	if(!strcmp(url, "-"))
 	{
 		sd->fd = STDIN_FILENO;
-#ifdef WIN32
-		_setmode(STDIN_FILENO, _O_BINARY);
-#endif
+		compat_binmode(STDIN_FILENO, TRUE);
 	}
 	else if(!strncasecmp("file://", url, 7))
 		url+= 7; // use local file access for files, the scheme may be useful

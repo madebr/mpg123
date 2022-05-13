@@ -155,6 +155,15 @@ int compat_fclose(FILE *stream)
 	return fclose(stream);
 }
 
+void compat_binmode(int fd, int enable)
+{
+#if   defined(HAVE__SETMODE)
+	_setmode(fd, enable ? _O_BINARY : _O_TEXT)
+#elif defined(HAVE_SETMODE)
+	setmode(fd, enable ? O_BINARY : O_TEXT)
+#endif
+}
+
 #ifndef WINDOWS_UWP
 
 /*
