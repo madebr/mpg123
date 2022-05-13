@@ -1236,8 +1236,30 @@ AC_CHECK_FUNCS( fork execvp, [ have_fork=yes ], [have_fork=no; break] )
 
 AC_CHECK_FUNCS( ctermid )
 
-# For Windows and OS/2.
-AC_CHECK_FUNCS( _setmode setmode )
+dnl For Windows and OS/2.
+dnl Checking for both the functions as well as the flag symbols.
+dnl Taking care with _setmode() being preferred on Windows, and
+dnl OS/2 providing _setmode, but not the underscored flags.
+#AC_CHECK_FUNCS( _setmode setmode )
+AC_LINK_IFELSE( [AC_LANG_SOURCE(
+#include <io.h>
+#include <fcntl.h>
+
+int main()
+{
+  _setmode(STDIN_FILENO, _O_BINARY);
+  _setmode(STDOUT_FILENO, _O_TEXT);
+} )], [AC_DEFINE( HAVE__SETMODE, 1, [for Win/DOS system with _setmode()] )], [] )
+
+AC_LINK_IFELSE( [AC_LANG_SOURCE(
+#include <io.h>
+#include <fcntl.h>
+
+int main()
+{
+  setmode(STDIN_FILENO, O_BINARY);
+  setmode(STDOUT_FILENO, O_TEXT);
+} )], [AC_DEFINE( HAVE_SETMODE, 1, [for Win/DOS system with setmode()] )], [] )
 
 dnl ############## Header and Library Checks
 
