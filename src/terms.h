@@ -7,7 +7,7 @@
 
 	- get at the width of the terminal (if there is one)
 	- be able to read single keys being pressed for control
-	- maybe also switch of echoing of input
+	- maybe also switch off echoing of input
 
 	copyright 2008-2022 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
