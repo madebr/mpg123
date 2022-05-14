@@ -1250,6 +1250,7 @@ int main()
 {
   _setmode(STDIN_FILENO, _O_BINARY);
   _setmode(STDOUT_FILENO, _O_TEXT);
+  return 0;
 } )], [AC_DEFINE( HAVE__SETMODE, 1, [for Win/DOS system with _setmode()] )], [] )
 
 AC_LINK_IFELSE( [AC_LANG_SOURCE(
@@ -1261,6 +1262,7 @@ int main()
 {
   setmode(STDIN_FILENO, O_BINARY);
   setmode(STDOUT_FILENO, O_TEXT);
+  return 0;
 } )], [AC_DEFINE( HAVE_SETMODE, 1, [for Win/DOS system with setmode()] )], [] )
 
 dnl ############## Header and Library Checks
