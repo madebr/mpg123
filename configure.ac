@@ -1244,6 +1244,7 @@ dnl OS/2 providing _setmode, but not the underscored flags.
 AC_LINK_IFELSE( [AC_LANG_SOURCE(
 #include <io.h>
 #include <fcntl.h>
+#include <stdio.h>
 
 int main()
 {
@@ -1254,6 +1255,7 @@ int main()
 AC_LINK_IFELSE( [AC_LANG_SOURCE(
 #include <io.h>
 #include <fcntl.h>
+#include <stdio.h>
 
 int main()
 {
