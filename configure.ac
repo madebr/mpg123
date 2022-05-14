@@ -1974,6 +1974,9 @@ int main(){
 		;;
 		os2)
 			OS2_LIBS="-lcx -lmmpm2"
+			OS2_CFLAGS="-idirafter /@unixroot/usr/include/os2tk45"
+			oldcflags="$CFLAGS"
+			CFLAGS="$CFLAGS $OS2_CFLAGS"
 			AC_CHECK_HEADERS([os2.h])
 			# os2me.h depends on os2.h
 			# Yes, that way of coding it is ugly.
@@ -1982,6 +1985,7 @@ int main(){
 				# We mimick exactly the way how the header will be used.
 				# It seems to be picky...
 				AC_CHECK_HEADERS([os2me.h], [], [], [#define INCL_OS2MM
+#undef VERSION
 #define INCL_DOS
 #define INCL_VIO
 #define INCL_KBD
@@ -1996,6 +2000,7 @@ int main(){
 			else
 				check_failed=yes
 			fi
+			CFLAGS="oldcflags"
 		;;
 # from here on only forced tests, untested code
 		hp)
