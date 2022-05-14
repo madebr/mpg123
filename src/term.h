@@ -12,8 +12,6 @@
 #include "mpg123app.h"
 #include "audio.h"
 
-#ifdef HAVE_TERMIOS
-
 #define LOOP_CYCLES	0.500000	/* Loop time in sec */
 
 /* 
@@ -93,7 +91,5 @@ void term_init(void);
 void term_exit(void);
 off_t term_control(mpg123_handle *mh, out123_handle *ao);
 void term_hint(void); /* Print a message hinting at terminal usage. */
-
-#endif
 
 #endif

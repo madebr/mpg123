@@ -24,11 +24,6 @@
 #endif
 #include "compat.h"
 
-#ifdef HAVE_TERMIOS
-#include <termios.h>
-#include <sys/ioctl.h>
-#endif
-
 #include "local.h"
 
 #ifdef HAVE_WCHAR_H

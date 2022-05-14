@@ -1350,8 +1350,6 @@ LIBS="$LIBS"
 # Remove that if it is settled that tcsetattr on OS/2 is unsalvageable anyway.
 # The only user of os2.h is the output module.
 AC_CHECK_HEADERS([os2.h])
-# On OS/2, we need to link to os2term to make terminal control actually work.
-AC_CHECK_LIB([os2term], [tcsetattr], [ADD_LDFLAGS="$ADD_LDFLAGS -los2term"])
 
 # If debugging is enabled, just enable debugging symbols.
 # All other stuff enters nagging territory.
@@ -2726,14 +2724,7 @@ AC_CONFIG_FILES([
 	src/libsyn123/syn123.h
 ])
 
-
-AM_CONDITIONAL( [TERM_POSIX], [test "x$term_type" = xposix] )
-AM_CONDITIONAL( [TERM_NONE], [test "x$term_type" = xnone] )
-
-
 AC_OUTPUT
-
-
 
 dnl ############## Display Message
 

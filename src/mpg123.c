@@ -63,12 +63,10 @@ struct parameter param = {
   DEFAULT_OUTPUT_MODULE,	/* output module */
   NULL,   /* output device */
   0,      /* destination (headphones, ...) */
-#ifdef HAVE_TERMIOS
   FALSE,  /* term control */
   TRUE,   /* term visuals */
   MPG123_TERM_USR1,
   MPG123_TERM_USR2,
-#endif
   FALSE , /* checkrange */
   0 ,	  /* force_reopen, always (re)opens audio device for next song */
   FALSE,  /* try to run process in 'realtime mode' */
@@ -278,10 +276,8 @@ static void controlled_drain(void)
 		out123_ndrain(ao, drain_block);
 		if(param.verbose)
 			print_buf("Draining buffer: ", ao);
-#ifdef HAVE_TERMIOS
 		if(param.term_ctrl)
 			term_control(mh, ao);
-#endif
 	}
 	while(!intflag && out123_buffered(ao));
 	if(param.verbose)
@@ -324,9 +320,7 @@ void safe_exit(int code)
 #if defined(NETWORK) || defined(NET123)
 	if(param.httpauth) free(param.httpauth);
 #endif
-#ifdef HAVE_TERMIOS
 	term_exit();
-#endif
 	exit(code);
 }
 
@@ -644,13 +638,11 @@ topt opts[] = {
 	{'a', "audiodevice", GLO_ARG | GLO_CHAR, 0, &param.output_device,  0},
 	{'f', "scale",       GLO_ARG | GLO_LONG, 0, &param.outscale,   0},
 	{'n', "frames",      GLO_ARG | GLO_LONG, 0, &param.frame_number,  0},
-#ifdef HAVE_TERMIOS
 	{0, "no-visual",     GLO_INT,  0, &param.term_visual, FALSE},
 	{'C', "control",     GLO_INT,  0, &param.term_ctrl, TRUE},
 	{0, "no-control",    GLO_INT,  0, &param.term_ctrl, FALSE},
 	{0,   "ctrlusr1",    GLO_ARG | GLO_CHAR, 0, &param.term_usr1, 0},
 	{0,   "ctrlusr2",    GLO_ARG | GLO_CHAR, 0, &param.term_usr2, 0},
-#endif
 #ifndef NOXFERMEM
 	{'b', "buffer",      GLO_ARG | GLO_LONG, 0, &param.usebuffer,  0},
 	{0,  "smooth",      GLO_INT,  0, &param.smooth, 1},
@@ -937,9 +929,7 @@ int skip_or_die(struct timeval *start_time)
  * ThOr: Yep, I deactivated the Ctrl+C hack for active control modes.
  *       Though, some sort of hack remains, still using intflag for track skip.
  */
-#ifdef HAVE_TERMIOS
 	if(!param.term_ctrl)
-#endif
 	{
 		struct timeval now;
 		unsigned long secdiff;
@@ -960,13 +950,11 @@ int skip_or_die(struct timeval *start_time)
 			++skip_tracks;
 		}
 	}
-#ifdef HAVE_TERMIOS
 	else if(skip_tracks == 0)
 	{
 		debug("breaking up");
 		return FALSE;
 	}
-#endif
 	return TRUE; /* Track advancement... no instant kill on generic/windows... */
 }
 #else
@@ -1083,13 +1071,11 @@ int main(int sys_argc, char ** sys_argv)
 #ifdef __OS2__
         _wildcard(&argc,&argv);
 #endif
-#ifdef HAVE_TERMIOS
 	// If either stdin or stderr look like a terminal, we enable things.
 	// Actually checking for terminal properties is safer than calling ctermid() here.
 	int term_ctrl_default = !(term_width(STDIN_FILENO) < 0) ||
 		!(term_width(STDERR_FILENO) < 0);
 	param.term_ctrl = MAYBE;
-#endif
 	stderr_is_term = term_width(STDERR_FILENO) >= 0;
 	stdout_is_term = term_width(STDOUT_FILENO) >= 0;
 	while ((result = getlopt(argc, argv, opts)))
@@ -1306,11 +1292,9 @@ int main(int sys_argc, char ** sys_argv)
 		ret = control_generic(mh);
 		safe_exit(ret);
 	}
-#ifdef HAVE_TERMIOS
 	if(param.term_ctrl == MAYBE)
 		param.term_ctrl = term_ctrl_default;
 	term_init();
-#endif
 	if(APPFLAG(MPG123APP_CONTINUE)) frames_left = param.frame_number;
 
 	while ((fname = get_next_file()))
@@ -1347,11 +1331,9 @@ int main(int sys_argc, char ** sys_argv)
 			got_played = -1;
 		if(intflag || !open_track_ret)
 		{
-#ifdef HAVE_TERMIOS
 			/* We need the opportunity to cancel in case of --loop -1 . */
 			if(param.term_ctrl) term_control(mh, ao);
 			else
-#endif
 			/* No wait for a second interrupt before we started playing. */
 			if(intflag) break;
 
@@ -1407,10 +1389,8 @@ int main(int sys_argc, char ** sys_argv)
 				fprintf(stderr, "\n");
 			}
 
-#ifdef HAVE_TERMIOS
 		/* Reminder about terminal usage. */
 		if(param.term_ctrl) term_hint();
-#endif
 
 			if(param.verbose)
 			{
@@ -1454,9 +1434,7 @@ int main(int sys_argc, char ** sys_argv)
 
 /* Rethink that SIGINT logic... */
 #if !defined(WIN32) && !defined(GENERIC)
-#ifdef HAVE_TERMIOS
 		if(!param.term_ctrl)
-#endif
 			gettimeofday (&start_time, NULL);
 #endif
 
@@ -1489,20 +1467,16 @@ int main(int sys_argc, char ** sys_argv)
 					,	stderr, term_width(STDERR_FILENO) );
 					if(meta & MPG123_NEW_ICY) print_icy(mh, stderr);
 
-#ifdef HAVE_TERMIOS
 					if(!param.term_ctrl) /* Terminal user can query meta data again. */
-#endif
-					mpg123_meta_free(mh); /* Do not waste memory after delivering. */
+						mpg123_meta_free(mh); /* Do not waste memory after delivering. */
 				}
 			}
 			if(!fresh && param.verbose)
 			{
 				if(param.verbose > 1 || !(framenum & 0x7)) print_stat(mh,0,ao,1,&param);
 			}
-#ifdef HAVE_TERMIOS
 			if(!param.term_ctrl) continue;
 			else term_control(mh, ao);
-#endif
 		}
 
 	if(!param.smooth && !intflag)
@@ -1590,11 +1564,7 @@ static void usage(int err)  /* print syntax & exit */
 	#endif
 	fprintf(o,"   -z    shuffle play (with wildcards)  -Z    random play\n");
 	fprintf(o,"   -u a  HTTP authentication string     -E f  Equalizer, data from file\n");
-#ifdef HAVE_TERMIOS
 	fprintf(o,"   -C    enable control keys            --no-gapless  not skip junk/padding in mp3s\n");
-#else
-	fprintf(o,"                                        --no-gapless  not skip junk/padding in mp3s\n");
-#endif
 	fprintf(o,"   -?    this help                      --version  print name + version\n");
 	fprintf(o,"See the manpage "PACKAGE_NAME"(1) or call %s with --longhelp for more parameters and information.\n", prgName);
 	safe_exit(err);
@@ -1719,7 +1689,6 @@ static void long_usage(int err)
 	fprintf(o," -c     --check            count and display clipped samples\n");
 	fprintf(o," -v[*]  --verbose          increase verboselevel\n");
 	fprintf(o," -q     --quiet            quiet mode\n");
-	#ifdef HAVE_TERMIOS
 	fprintf(o," -C     --control          enable terminal control keys (else auto detect)\n");
 	fprintf(o,"        --no-control       disable terminal control keys (disable auto detect)\n");
 	fprintf(o,"        --no-visual        disable visual enhancements in output (hide cursor,\n"
@@ -1728,7 +1697,6 @@ static void long_usage(int err)
 	fprintf(o,"                           (default is for stop/start)\n");
 	fprintf(o,"        --ctrlusr2 <c>     control key (characer) to map to SIGUSR2\n");
 	fprintf(o,"                           (default is for next track)\n");
-	#endif
 	#ifndef GENERIC
 	fprintf(o,"        --title            set terminal title to filename\n");
 	#endif

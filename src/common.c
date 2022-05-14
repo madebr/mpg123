@@ -355,7 +355,6 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar
 			   Shouldn't we always fill to maxlen? */
 			if(maxlen > 0)
 				memset(line+len, ' ', linelen-len);
-#ifdef HAVE_TERMIOS
 			draw_bar = draw_bar && term_have_fun(STDERR_FILENO,param->term_visual);
 			/* Use inverse color to draw a progress bar. */
 			if(maxlen > 0 && draw_bar)
@@ -378,7 +377,6 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar
 				fprintf(stderr, "%s", line+barlen);
 			}
 			else
-#endif
 			fprintf(stderr, "\r%s", line);
 		}
 	}
