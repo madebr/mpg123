@@ -24,15 +24,9 @@
 #endif
 #include "compat.h"
 
-#ifdef __EMX__
-/* Special ways for OS/2 EMX */
-#include <stdlib.h>
-#else
-/* POSIX stuff */
 #ifdef HAVE_TERMIOS
 #include <termios.h>
 #include <sys/ioctl.h>
-#endif
 #endif
 
 #include "local.h"
@@ -143,21 +137,13 @@ int term_have_fun(int fd, int want_visuals)
 /* Also serves as a way to detect if we have an interactive terminal. */
 int term_width(int fd)
 {
-#ifdef __EMX__
-/* OS/2 */
-	int s[2];
-	_scrsize (s);
-	if (s[0] >= 0)
-		return s[0];
-#else
 #ifdef HAVE_TERMIOS
 /* POSIX */
 	struct winsize geometry;
 	geometry.ws_col = 0;
 	if(ioctl(fd, TIOCGWINSZ, &geometry) >= 0)
 		return (int)geometry.ws_col;
-#else
-#ifdef WIN32
+#elif defined(WIN32)
 	CONSOLE_SCREEN_BUFFER_INFO pinfo;
 	HANDLE hStdout;
 	DWORD handle;
@@ -182,8 +168,6 @@ int term_width(int fd)
 	if(GetConsoleScreenBufferInfo(hStdout, &pinfo)){
 		return pinfo.dwMaximumWindowSize.X;
 	}
-#endif
-#endif
 #endif
 	return -1;
 }

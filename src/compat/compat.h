@@ -87,7 +87,7 @@
 #include <strings.h>
 #endif
 
-#ifdef OS2
+#ifdef __OS2__
 #include <float.h>
 #endif
 

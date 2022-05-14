@@ -1345,8 +1345,9 @@ ADD_CPPFLAGS="$sys_cppflags"
 ADD_LDFLAGS=""
 LIBS="$LIBS"
 
-# Consider moving that stuff.
-AC_CHECK_HEADER([os2.h], [ADD_CPPFLAGS="$ADD_CPPFLAGS -DOS2"])
+# Remove that if it is settled that tcsetattr on OS/2 is unsalvageable anyway.
+# The only user of os2.h is the output module.
+AC_CHECK_HEADERS([os2.h])
 # On OS/2, we need to link to os2term to make terminal control actually work.
 AC_CHECK_LIB([os2term], [tcsetattr], [ADD_LDFLAGS="$ADD_LDFLAGS -los2term"])
 

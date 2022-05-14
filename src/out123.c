@@ -1507,7 +1507,7 @@ int main(int sys_argc, char ** sys_argv)
 		out123_del(paro);
 	}
 
-#ifdef OS2
+#ifdef __OS2__
         _wildcard(&argc,&argv);
 #endif
 
