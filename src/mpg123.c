@@ -36,6 +36,7 @@
 #include "sysutil.h"
 #include "getlopt.h"
 #include "term.h"
+#include "terms.h"
 #include "playlist.h"
 #include "metaprint.h"
 #include "httpget.h"

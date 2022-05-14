@@ -75,6 +75,7 @@ src_mpg123_SOURCES = \
   src/streamdump.c \
   src/term.c \
   src/term.h \
+  src/terms.h \
   src/win32_support.h
 
 # Does that finally work to build/link the correct object file?
@@ -104,6 +105,18 @@ src_mpg123_strip_SOURCES = \
   src/mpg123-strip.c \
   src/getlopt.c \
   src/getlopt.h
+
+if TERM_POSIX
+src_mpg123_SOURCES += src/term_posix.c
+endif
+
+if TERM_WIN32
+src_mpg123_SOURCES += src/term_win32.c
+endif
+
+if TERM_NONE
+src_mpg123_SOURCES += src/term_none.c
+endif
 
 if NET123_EXEC
 src_mpg123_SOURCES += src/net123.h src/net123_exec.c

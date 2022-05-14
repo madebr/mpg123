@@ -112,66 +112,6 @@ static int is_utf8(const char *lang)
 	return 0;
 }
 
-int term_have_fun(int fd, int want_visuals)
-{
-	if(term_is_fun > -1)
-		return term_is_fun;
-	else
-		term_is_fun = 0;
-#ifdef HAVE_TERMIOS
-	if(term_width(fd) > 0 && want_visuals)
-	{
-		/* Only play with non-dumb terminals. */
-		char *tname = compat_getenv("TERM");
-		if(tname)
-		{
-			if(strcmp(tname, "") && strcmp(tname, "dumb"))
-				term_is_fun = 1;
-			free(tname);
-		}
-	}
-#endif
-	return term_is_fun;
-}
-
-/* Also serves as a way to detect if we have an interactive terminal. */
-int term_width(int fd)
-{
-#ifdef HAVE_TERMIOS
-/* POSIX */
-	struct winsize geometry;
-	geometry.ws_col = 0;
-	if(ioctl(fd, TIOCGWINSZ, &geometry) >= 0)
-		return (int)geometry.ws_col;
-#elif defined(WIN32)
-	CONSOLE_SCREEN_BUFFER_INFO pinfo;
-	HANDLE hStdout;
-	DWORD handle;
-
-	switch(fd){
-	case STDIN_FILENO:
-		handle = STD_INPUT_HANDLE;
-		break;
-	case STDOUT_FILENO:
-		handle = STD_OUTPUT_HANDLE;
-		break;
-	case STDERR_FILENO:
-		handle = STD_ERROR_HANDLE;
-		break;
-	default:
-		return -1;
-	}
-
-	hStdout = GetStdHandle(handle);
-	if(hStdout == INVALID_HANDLE_VALUE || hStdout == NULL)
-		return -1;
-	if(GetConsoleScreenBufferInfo(hStdout, &pinfo)){
-		return pinfo.dwMaximumWindowSize.X;
-	}
-#endif
-	return -1;
-}
-
 // Moved encoding stuff over from metaprint.c and removed references to libmpg123,
 // meaning no mpg123_string for you!
 

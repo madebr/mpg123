@@ -1209,11 +1209,13 @@ if test "x$have_mmap" = "xno"; then
   AC_CHECK_FUNCS([shmget shmat shmdt shmctl],[], [buffer=disabled])
 fi
 
+term_type=none
 # Check if system supports termios
 AC_SYS_POSIX_TERMIOS
 if test "x$ac_cv_sys_posix_termios" = "xyes"; then
   AC_DEFINE_UNQUOTED([HAVE_TERMIOS], 1, 
   [Define this if you have the POSIX termios library])
+  term_type=posix
 fi
 
 AC_CHECK_FUNCS( random )
@@ -2659,6 +2661,12 @@ AM_CONDITIONAL([NET123_EXEC], [ test x$network_type = xexec ])
 AM_CONDITIONAL([NET123_WINHTTP], [ test x$network_type = xwinhttp ])
 AM_CONDITIONAL([NET123_WININET], [ test x$network_type = xwininet ])
 
+dnl ############## Terminal choice
+
+AM_CONDITIONAL( [TERM_POSIX], [test "x$term_type" = xposix] )
+AM_CONDITIONAL( [TERM_NONE], [test "x$term_type" = xnone] )
+AM_CONDITIONAL( [TERM_WIN32], [test "x$term_type" = xwin32] )
+
 dnl ############## FIFO enable
 
 if test x"$fifo" = xauto; then
@@ -2718,6 +2726,11 @@ AC_CONFIG_FILES([
 	src/libsyn123/syn123.h
 ])
 
+
+AM_CONDITIONAL( [TERM_POSIX], [test "x$term_type" = xposix] )
+AM_CONDITIONAL( [TERM_NONE], [test "x$term_type" = xnone] )
+
+
 AC_OUTPUT
 
 
@@ -2732,6 +2745,7 @@ echo "
   Compiler Optimization ... $with_optimization
   Gapless Support ......... $gapless
   Debugging ............... $debugging
+  Terminal control ........ $term_type
   Extreme debugging ....... $xdebugging
   Seek table size ......... $seektable
   FIFO support ............ $fifo

@@ -8,29 +8,20 @@
 
 #include "mpg123app.h"
 
-#ifdef HAVE_TERMIOS
-
 #include <termios.h>
 #include <ctype.h>
 
 #include "term.h"
+#include "terms.h"
 #include "common.h"
 #include "playlist.h"
 #include "metaprint.h"
 #include "debug.h"
 
 static int term_enable = 0;
-// This now always refers to a freshly opened terminal descriptor (e.g. /dev/tty).
-// Printouts to stderr are independent of this.
-static int term_fd = -1;
-static struct termios old_tio;
 int seeking = FALSE;
 
 extern out123_handle *ao;
-
-/* Buffered key from a signal or whatnot.
-   We ignore the null character... */
-static char prekey = 0;
 
 /* Hm, next step would be some system in this, plus configurability...
    Two keys for everything? It's just stop/pause for now... */
@@ -74,51 +65,6 @@ struct keydef term_help[] =
 	,{ MPG123_TREBLE_DOWN_KEY, 0, "less treble" }
 };
 
-void term_sigcont(int sig);
-static void term_sigusr(int sig);
-
-/* This must call only functions safe inside a signal handler. */
-int term_setup(struct termios *pattern)
-{
-	mdebug("setup on fd %d", term_fd);
-
-	/* One might want to use sigaction instead. */
-	signal(SIGCONT, term_sigcont);
-	signal(SIGUSR1, term_sigusr);
-	signal(SIGUSR2, term_sigusr);
-#ifndef __OS2__
-	struct termios tio = *pattern;
-	tio.c_lflag &= ~(ICANON|ECHO); 
-	tio.c_cc[VMIN] = 1;
-	tio.c_cc[VTIME] = 0;
-	return tcsetattr(term_fd,TCSANOW,&tio);
-#else
-	return 0;
-#endif
-}
-
-void term_sigcont(int sig)
-{
-	term_enable = 0;
-
-	if (term_setup(&old_tio) < 0)
-	{
-		fprintf(stderr,"Can't set terminal attributes\n");
-		return;
-	}
-
-	term_enable = 1;
-}
-
-static void term_sigusr(int sig)
-{
-	switch(sig)
-	{
-		case SIGUSR1: prekey=*param.term_usr1; break;
-		case SIGUSR2: prekey=*param.term_usr2; break;
-	}
-}
-
 /* initialze terminal */
 void term_init(void)
 {
@@ -133,41 +79,15 @@ void term_init(void)
 		return;
 
 	term_enable = 0;
-	const char *term_name;
-#ifdef HAVE_CTERMID
-	term_name = ctermid(NULL);
-#else
-	term_name = "/dev/tty";
-#endif
-	if(term_name)
-		mdebug("accessing terminal for control via %s", term_name);
-	else
+	errno = 0;
+	if(term_setup() < 0)
 	{
-		error("no controlling terminal");
+		if(errno)
+			merror("failed to set up terminal: %s", strerror(errno));
+		else
+			error("failed to set up terminal");
 		return;
 	}
-	term_fd = open(term_name, O_RDONLY);
-	if(term_fd < 0)
-	{
-		merror("failed to open terminal: %s", strerror(errno));
-		return;
-	}
-// Testing if OS2 works without the attr fun, at all.
-#ifndef __OS2__
-	if(tcgetattr(term_fd, &old_tio) < 0)
-	{
-		merror("failed to get terminal attributes: %s", strerror(errno));
-		return;
-	}
-
-	if(term_setup(&old_tio) < 0)
-	{
-		close(term_fd);
-		error("failure setting terminal attributes");
-		return;
-	}
-#endif
-
 	term_enable = 1;
 }
 
@@ -284,37 +204,6 @@ static void seekmode(mpg123_handle *mh, out123_handle *ao)
 		if(param.verbose)
 			print_stat(mh, 0, ao, 1, &param);
 	}
-}
-
-/* Get the next pressed key, if any.
-   Returns 1 when there is a key, 0 if not. */
-static int get_key(int do_delay, char *val)
-{
-	fd_set r;
-	struct timeval t;
-
-	/* Shortcut: If some other means sent a key, use it. */
-	if(prekey)
-	{
-		debug1("Got prekey: %c\n", prekey);
-		*val = prekey;
-		prekey = 0;
-		return 1;
-	}
-
-	t.tv_sec=0;
-	t.tv_usec=(do_delay) ? 10*1000 : 0;
-
-	FD_ZERO(&r);
-	FD_SET(term_fd,&r);
-	if(select(term_fd+1,&r,NULL,NULL,&t) > 0 && FD_ISSET(term_fd,&r))
-	{
-		if(read(term_fd,val,1) <= 0)
-		return 0; /* Well, we couldn't read the key, so there is none. */
-		else
-		return 1;
-	}
-	else return 0;
 }
 
 static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
@@ -622,7 +511,7 @@ static void term_handle_input(mpg123_handle *fr, out123_handle *ao, int do_delay
 {
 	char val;
 	/* Do we really want that while loop? This means possibly handling multiple inputs that come very rapidly in one go. */
-	while(get_key(do_delay, &val))
+	while(term_get_key(do_delay, &val))
 	{
 		term_handle_key(fr, ao, val);
 	}
@@ -638,15 +527,5 @@ void term_exit(void)
 
 	if(!term_enable) return;
 
-#ifndef __OS2__
-	debug("reset attrbutes");
-	tcsetattr(term_fd,TCSAFLUSH,&old_tio);
-#endif
-
-	if(term_fd > -1)
-		close(term_fd);
-	term_fd = -1;
+	term_restore();
 }
-
-#endif
-

@@ -88,9 +88,6 @@ enum runmodes
 
 static int runmode = RUN_MAIN;
 
-int stdout_is_term = FALSE; // It's an interactive terminal.
-int stderr_is_term = FALSE; // It's an interactive terminal.
-
 static FILE* input = NULL;
 static char *encoding_name = NULL;
 static int  encoding = MPG123_ENC_SIGNED_16;
@@ -1511,8 +1508,6 @@ int main(int sys_argc, char ** sys_argv)
         _wildcard(&argc,&argv);
 #endif
 
-	stderr_is_term = term_width(STDERR_FILENO) >= 0;
-	stdout_is_term = term_width(STDOUT_FILENO) >= 0;
 	while ((result = getlopt(argc, argv, opts)))
 	switch (result) {
 		case GLO_UNKNOWN:

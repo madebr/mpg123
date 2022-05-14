@@ -15,6 +15,7 @@
 #include "out123.h"
 #include <sys/stat.h>
 #include "common.h"
+#include "terms.h"
 
 #include "debug.h"
 
