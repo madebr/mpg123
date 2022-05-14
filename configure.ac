@@ -2000,7 +2000,7 @@ int main(){
 			else
 				check_failed=yes
 			fi
-			CFLAGS="oldcflags"
+			CFLAGS="$oldcflags"
 		;;
 # from here on only forced tests, untested code
 		hp)
