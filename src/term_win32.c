@@ -19,47 +19,74 @@
 #include "terms.h"
 
 #define WIN32_LEAN_AND_MEAN 1
+#include <io.h>
 #include <windows.h>
 #include <wincon.h>
 
 #include "debug.h"
 
+static HANDLE consoleinput = INVALID_HANDLE_VALUE;
+static HANDLE getconsole(void){
+  if(consoleinput == INVALID_HANDLE_VALUE){
+    consoleinput = GetStdHandle(STD_ERROR_HANDLE);
+  }
+  return consoleinput;
+}
+
 // No fun for windows until we reorganize control character stuff.
 int term_have_fun(int fd, int want_visuals)
 {
-	return 0;
+        return 0;
 }
 
-// Also serves as a way to detect if we have an interactive terminal.
-// It is important right now to really honour the fd given, usually
-// either stdin or stderr.
+static DWORD lastmode;
+static int modeset;
+int term_setup(void)
+{
+  DWORD mode, r;
+  HANDLE c = getconsole();
+  if(c == INVALID_HANDLE_VALUE) return -1;
+
+  r = GetConsoleMode(c, &mode);
+  if(!r) return -1;
+  lastmode = mode;
+  modeset = 1;
+
+  mode |= ENABLE_LINE_INPUT|ENABLE_PROCESSED_INPUT|ENABLE_WINDOW_INPUT;
+  mode &= ~(ENABLE_ECHO_INPUT|ENABLE_QUICK_EDIT_MODE|ENABLE_MOUSE_INPUT);
+
+  r = SetConsoleMode(c, mode);
+  return r ? -1 : 0;
+}
+
+void term_restore(void){
+  HANDLE c = getconsole();
+  if(modeset && c != INVALID_HANDLE_VALUE)
+    SetConsoleMode(c, lastmode);
+}
+
+static int width_cache[3] = { -1, -1, -1};
 int term_width(int fd)
 {
-	CONSOLE_SCREEN_BUFFER_INFO pinfo;
-	HANDLE hStdout;
-	DWORD handle;
+  CONSOLE_SCREEN_BUFFER_INFO pinfo;
+  HANDLE h;
+  if(fd < 3 && width_cache[fd] != -1)
+    return width_cache[fd];
 
-	switch(fd){
-	case STDIN_FILENO:
-		handle = STD_INPUT_HANDLE;
-		break;
-	case STDOUT_FILENO:
-		handle = STD_OUTPUT_HANDLE;
-		break;
-	case STDERR_FILENO:
-		handle = STD_ERROR_HANDLE;
-		break;
-	default:
-		return -1;
-	}
+  h = (HANDLE) _get_osfhandle(fd);
 
-	hStdout = GetStdHandle(handle);
-	if(hStdout == INVALID_HANDLE_VALUE || hStdout == NULL)
-		return -1;
-	if(GetConsoleScreenBufferInfo(hStdout, &pinfo)){
-		return pinfo.dwMaximumWindowSize.X;
-	}
-	return -1;
+  if(h == INVALID_HANDLE_VALUE || h == NULL)
+    return -1;
+  if(GetConsoleScreenBufferInfo(h, &pinfo)){
+    if(fd < 3)
+      width_cache[fd] = pinfo.dwMaximumWindowSize.X;
+    return pinfo.dwMaximumWindowSize.X;
+   }
+  return -1;
 }
 
-// TODO: term_setup(); term_restore(); term_get_key()
+int term_present(void){
+  return _fileno(stderr) != -2 ? 1 : 0;
+}
+
+// TODO: term_get_key()
