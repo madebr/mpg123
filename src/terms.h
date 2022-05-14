@@ -29,8 +29,6 @@ int term_width(int fd);
 	This is for more serious work with the terminal: It is sensible to
 	open some internal handle and continue to operate on that on subsequent
 	calls.
-
-	No printouts please, also in case of errors.
 */
 
 /** Setup terminal for control work (things like disabling echo and
