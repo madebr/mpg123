@@ -81,17 +81,20 @@ static void term_sigusr(int sig);
 int term_setup(struct termios *pattern)
 {
 	mdebug("setup on fd %d", term_fd);
-	struct termios tio = *pattern;
 
 	/* One might want to use sigaction instead. */
 	signal(SIGCONT, term_sigcont);
 	signal(SIGUSR1, term_sigusr);
 	signal(SIGUSR2, term_sigusr);
-
+#ifndef __OS2__
+	struct termios tio = *pattern;
 	tio.c_lflag &= ~(ICANON|ECHO); 
 	tio.c_cc[VMIN] = 1;
 	tio.c_cc[VTIME] = 0;
 	return tcsetattr(term_fd,TCSANOW,&tio);
+#else
+	return 0;
+#endif
 }
 
 void term_sigcont(int sig)
@@ -149,6 +152,8 @@ void term_init(void)
 		merror("failed to open terminal: %s", strerror(errno));
 		return;
 	}
+// Testing if OS2 works without the attr fun, at all.
+#ifndef __OS2__
 	if(tcgetattr(term_fd, &old_tio) < 0)
 	{
 		merror("failed to get terminal attributes: %s", strerror(errno));
@@ -161,6 +166,7 @@ void term_init(void)
 		error("failure setting terminal attributes");
 		return;
 	}
+#endif
 
 	term_enable = 1;
 }
@@ -632,8 +638,10 @@ void term_exit(void)
 
 	if(!term_enable) return;
 
+#ifndef __OS2__
 	debug("reset attrbutes");
 	tcsetattr(term_fd,TCSAFLUSH,&old_tio);
+#endif
 
 	if(term_fd > -1)
 		close(term_fd);
