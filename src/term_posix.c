@@ -181,7 +181,7 @@ int term_get_key(int do_delay, char *val)
 	key.chChar = 0;
 	key.chScan = 0;
 	if(do_delay)
-		DosSleep(5);
+		DosSleep(10);
 	if(!KbdCharIn(&key,IO_NOWAIT,0) && key.chChar)
 	{
 		*val = key.chChar;
