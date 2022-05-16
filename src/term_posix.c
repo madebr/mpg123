@@ -10,6 +10,14 @@
 
 #include "config.h"
 
+#ifdef __OS2__
+// Hoping for properly working termios in some future (?!), but until then,
+// we need keyboard access bypassing that.
+#define INCL_KBD
+#define INCL_DOSPROCESS
+#include <os2.h>
+#endif
+
 #include "compat.h"
 
 #ifndef HAVE_TERMIOS
@@ -59,10 +67,17 @@ int term_have_fun(int fd, int want_visuals)
 /* Also serves as a way to detect if we have an interactive terminal. */
 int term_width(int fd)
 {
+#ifdef __OS2__
+	int s[2];
+	_scrsize (s);
+	if (s[0] >= 0)
+		return s[0];
+#else
 	struct winsize geometry;
 	geometry.ws_col = 0;
 	if(ioctl(fd, TIOCGWINSZ, &geometry) >= 0)
 		return (int)geometry.ws_col;
+#endif
 	return -1;
 }
 
@@ -161,6 +176,18 @@ int term_setup(void)
    Returns 1 when there is a key, 0 if not. */
 int term_get_key(int do_delay, char *val)
 {
+#ifdef __OS2__
+	KBDKEYINFO key;
+	key.chChar = 0;
+	key.chScan = 0;
+	if(do_delay)
+		DosSleep(5);
+	if(!KbdCharIn(&key,IO_NOWAIT,0) && key.chChar)
+	{
+		*val = key.chChar;
+		return 1;
+	}
+#else
 	fd_set r;
 	struct timeval t;
 
@@ -185,6 +212,7 @@ int term_get_key(int do_delay, char *val)
 		else
 		return 1;
 	}
+#endif
 	else return 0;
 }
 
