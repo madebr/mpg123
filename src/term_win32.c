@@ -26,12 +26,20 @@
 
 #include "debug.h"
 
-static HANDLE consoleinput = INVALID_HANDLE_VALUE;
-static HANDLE getconsole(void){
-  if(consoleinput == INVALID_HANDLE_VALUE){
-    consoleinput = GetStdHandle(STD_ERROR_HANDLE);
+static HANDLE consoleintput = INVALID_HANDLE_VALUE;
+static HANDLE consoleoutput = INVALID_HANDLE_VALUE;
+static HANDLE getconsoleintput(void){
+  if(consoleintput == INVALID_HANDLE_VALUE){
+    consoleintput = CreateFileW(L"CONIN$", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
   }
-  return consoleinput;
+  return consoleintput;
+}
+
+static HANDLE getconsole(void){
+  if(consoleoutput == INVALID_HANDLE_VALUE){
+    consoleoutput = CreateFileW(L"CONOUT$", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+  }
+  return consoleoutput;
 }
 
 // No fun for windows until we reorganize control character stuff.
@@ -57,37 +65,41 @@ int term_setup(void)
   mode &= ~(ENABLE_ECHO_INPUT|ENABLE_QUICK_EDIT_MODE|ENABLE_MOUSE_INPUT);
 
   r = SetConsoleMode(c, mode);
-  return r ? -1 : 0;
+  return r ? 0 : -1;
 }
 
 void term_restore(void){
   HANDLE c = getconsole();
   if(modeset && c != INVALID_HANDLE_VALUE)
     SetConsoleMode(c, lastmode);
+  CloseHandle(consoleintput);
+  CloseHandle(consoleoutput);
+  consoleintput = INVALID_HANDLE_VALUE;
+  consoleoutput = INVALID_HANDLE_VALUE;
 }
 
-static int width_cache[3] = { -1, -1, -1};
+static int width_cache = -1;
 int term_width(int fd)
 {
   CONSOLE_SCREEN_BUFFER_INFO pinfo;
   HANDLE h;
-  if(fd < 3 && width_cache[fd] != -1)
-    return width_cache[fd];
 
-  h = (HANDLE) _get_osfhandle(fd);
+  if(width_cache != -1)
+    return width_cache;
+
+  h = getconsole();
 
   if(h == INVALID_HANDLE_VALUE || h == NULL)
     return -1;
   if(GetConsoleScreenBufferInfo(h, &pinfo)){
-    if(fd < 3)
-      width_cache[fd] = pinfo.dwMaximumWindowSize.X;
+    width_cache = pinfo.dwMaximumWindowSize.X;
     return pinfo.dwMaximumWindowSize.X;
    }
   return -1;
 }
 
 int term_present(void){
-  return _fileno(stderr) != -2 ? 1 : 0;
+  return GetConsoleWindow() ? 1 : 0;
 }
 
 /* Get the next pressed key, if any.
@@ -97,7 +109,7 @@ int term_get_key(int do_delay, char *val){
   HANDLE input;
   DWORD res;
 
-  input = getconsole();
+  input = getconsoleintput();
   if(input == NULL || input == INVALID_HANDLE_VALUE)
     return 0;
 
