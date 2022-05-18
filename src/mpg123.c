@@ -147,6 +147,7 @@ enum runmodes
 
 static int runmode = RUN_MAIN;
 
+int stdin_is_term  = FALSE; // It's an interactive terminal.
 int stdout_is_term = FALSE; // It's an interactive terminal.
 int stderr_is_term = FALSE; // It's an interactive terminal.
 int got_played = 0; // State of attempted playback and success: 0, -1, 1
@@ -1073,11 +1074,13 @@ int main(int sys_argc, char ** sys_argv)
 #endif
 	// If either stdin or stderr look like a terminal, we enable things.
 	// Actually checking for terminal properties is safer than calling ctermid() here.
-	int term_ctrl_default = !(term_width(STDIN_FILENO) < 0) ||
-		!(term_width(STDERR_FILENO) < 0);
-	param.term_ctrl = MAYBE;
-	stderr_is_term = term_width(STDERR_FILENO) >= 0;
+	int stderr_width = term_width(STDERR_FILENO);
+	int stdin_width = term_width(STDIN_FILENO);
+	stderr_is_term = stderr_width >= 0;
+	stdin_is_term  = stdin_width  >= 0;
 	stdout_is_term = term_width(STDOUT_FILENO) >= 0;
+	int term_ctrl_default = stdin_is_term || stdout_is_term || stderr_is_term;
+	param.term_ctrl = MAYBE;
 	while ((result = getlopt(argc, argv, opts)))
 	switch (result) {
 		case GLO_UNKNOWN:
@@ -1269,6 +1272,9 @@ int main(int sys_argc, char ** sys_argv)
 
 	if(!param.remote)
 		prepare_playlist(argc, argv, args_utf8, &pl_utf8);
+
+	if(param.verbose > 2)
+		fprintf(stderr, "Note: stderr terminal width: %i\n", stderr_width);
 
 #if !defined(WIN32) && !defined(GENERIC)
 	/* Remote mode is special... but normal console and terminal-controlled operation needs to catch the SIGINT.
@@ -1466,9 +1472,6 @@ int main(int sys_argc, char ** sys_argv)
 					if(meta & MPG123_NEW_ID3) print_id3_tag( mh, param.long_id3
 					,	stderr, term_width(STDERR_FILENO) );
 					if(meta & MPG123_NEW_ICY) print_icy(mh, stderr);
-
-					if(!param.term_ctrl) /* Terminal user can query meta data again. */
-						mpg123_meta_free(mh); /* Do not waste memory after delivering. */
 				}
 			}
 			if(!fresh && param.verbose)

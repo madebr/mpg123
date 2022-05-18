@@ -43,6 +43,7 @@
 #define VERBOSE_MAX 3
 
 extern char* binpath; /* argv[0], actually... */
+extern int stdin_is_term;
 extern int stdout_is_term;
 extern int stderr_is_term;
 

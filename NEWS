@@ -14,6 +14,7 @@
 -- terminal volume control now in decibel steps and bounded to +/- 60 dB
 -- terminal control now also with audio from stdin (bug 338) via
    /dev/tty or ctermid()
+-- re-print tag info on decrease of terminal width for a bit less mess
 -- remote control API v10 with "@P 3" as additonal message on track end
 -- also added PROGRESS command as opposite of SILENCE
 -- fix some verbosity, tweak help for --icy-interval
