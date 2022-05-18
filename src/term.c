@@ -7,8 +7,6 @@
 */
 
 #include "mpg123app.h"
-
-#include <termios.h>
 #include <ctype.h>
 
 #include "term.h"
