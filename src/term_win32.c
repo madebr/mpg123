@@ -101,17 +101,12 @@ int term_get_key(int do_delay, char *val){
   if(input == NULL || input == INVALID_HANDLE_VALUE)
     return 0;
 
-  if(do_delay){
-    res = WaitForSingleObject(input, 10);
-    if(res != WAIT_OBJECT_0)
-      return 0;
-  }
-
-  while(WaitForSingleObject(input, 0) == WAIT_OBJECT_0){
+  while(WaitForSingleObject(input, do_delay ? 10 : 0) == WAIT_OBJECT_0){
+    do_delay = 0;
     if(!ReadConsoleInput(input, &record, 1, &res))
       return 0;
     if(record.EventType == KEY_EVENT && record.Event.KeyEvent.bKeyDown){
-      *val = tolower(record.Event.KeyEvent.uChar.AsciiChar);
+      *val = record.Event.KeyEvent.uChar.AsciiChar;
       return 1;
     }
   }
