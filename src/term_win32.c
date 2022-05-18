@@ -20,6 +20,7 @@
 
 #define WIN32_LEAN_AND_MEAN 1
 #include <io.h>
+#include <ctype.h>
 #include <windows.h>
 #include <wincon.h>
 
@@ -89,4 +90,31 @@ int term_present(void){
   return _fileno(stderr) != -2 ? 1 : 0;
 }
 
-// TODO: term_get_key()
+/* Get the next pressed key, if any.
+   Returns 1 when there is a key, 0 if not. */
+int term_get_key(int do_delay, char *val){
+  INPUT_RECORD record;
+  HANDLE input;
+  DWORD res;
+
+  input = getconsole();
+  if(input == NULL || input == INVALID_HANDLE_VALUE)
+    return 0;
+
+  if(do_delay){
+    res = WaitForSingleObject(input, 10);
+    if(res != WAIT_OBJECT_0)
+      return 0;
+  }
+
+  while(WaitForSingleObject(input, 0) == WAIT_OBJECT_0){
+    if(!ReadConsoleInput(input, &record, 1, &res))
+      return 0;
+    if(record.EventType == KEY_EVENT && record.Event.KeyEvent.bKeyDown){
+      *val = tolower(record.Event.KeyEvent.uChar.AsciiChar);
+      return 1;
+    }
+  }
+
+  return 0;
+}
