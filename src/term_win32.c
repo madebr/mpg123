@@ -29,8 +29,15 @@
 static HANDLE consoleintput = INVALID_HANDLE_VALUE;
 static HANDLE consoleoutput = INVALID_HANDLE_VALUE;
 static HANDLE getconsoleintput(void){
+  DWORD mode, r;
   if(consoleintput == INVALID_HANDLE_VALUE){
     consoleintput = CreateFileW(L"CONIN$", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+    if(consoleintput == INVALID_HANDLE_VALUE || consoleintput == NULL)
+      return consoleintput;
+    GetConsoleMode(consoleintput, &mode);
+    mode |= ENABLE_LINE_INPUT|ENABLE_PROCESSED_INPUT|ENABLE_WINDOW_INPUT;
+    mode &= ~(ENABLE_ECHO_INPUT|ENABLE_QUICK_EDIT_MODE|ENABLE_MOUSE_INPUT);
+    SetConsoleMode(consoleintput, mode);
   }
   return consoleintput;
 }
@@ -49,50 +56,28 @@ int term_have_fun(int fd, int want_visuals)
 }
 
 static DWORD lastmode;
-static int modeset;
 int term_setup(void)
 {
-  DWORD mode, r;
-  HANDLE c = getconsole();
-  if(c == INVALID_HANDLE_VALUE) return -1;
-
-  r = GetConsoleMode(c, &mode);
-  if(!r) return -1;
-  lastmode = mode;
-  modeset = 1;
-
-  mode |= ENABLE_LINE_INPUT|ENABLE_PROCESSED_INPUT|ENABLE_WINDOW_INPUT;
-  mode &= ~(ENABLE_ECHO_INPUT|ENABLE_QUICK_EDIT_MODE|ENABLE_MOUSE_INPUT);
-
-  r = SetConsoleMode(c, mode);
-  return r ? 0 : -1;
+  return 0;
 }
 
 void term_restore(void){
-  HANDLE c = getconsole();
-  if(modeset && c != INVALID_HANDLE_VALUE)
-    SetConsoleMode(c, lastmode);
   CloseHandle(consoleintput);
   CloseHandle(consoleoutput);
   consoleintput = INVALID_HANDLE_VALUE;
   consoleoutput = INVALID_HANDLE_VALUE;
 }
 
-static int width_cache = -1;
 int term_width(int fd)
 {
   CONSOLE_SCREEN_BUFFER_INFO pinfo;
   HANDLE h;
-
-  if(width_cache != -1)
-    return width_cache;
 
   h = getconsole();
 
   if(h == INVALID_HANDLE_VALUE || h == NULL)
     return -1;
   if(GetConsoleScreenBufferInfo(h, &pinfo)){
-    width_cache = pinfo.dwMaximumWindowSize.X;
     return pinfo.dwMaximumWindowSize.X;
    }
   return -1;
