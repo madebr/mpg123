@@ -70,8 +70,10 @@ int term_width(int fd)
 #ifdef __OS2__
 	int s[2];
 	_scrsize (s);
+	// It seems like we cannot really use the last character of the
+	// term and have to stop one short to avoid advancing a line.
 	if (s[0] >= 0)
-		return s[0];
+		return s[0] - 1;
 #else
 	struct winsize geometry;
 	geometry.ws_col = 0;
