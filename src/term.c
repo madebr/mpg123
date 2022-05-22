@@ -414,7 +414,6 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 			print_stat(fr,0,ao,0,&param);
 		fprintf(stderr, "%s\n", param.verbose ? "\n" : "");
 		print_id3_tag(fr, param.long_id3, stderr, term_width(STDERR_FILENO));
-		fprintf(stderr, "\n");
 	break;
 	case MPG123_MPEG_KEY:
 		if(param.verbose)

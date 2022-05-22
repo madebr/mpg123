@@ -385,6 +385,8 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out, int linelimit)
 			}
 		}
 	}
+	// A separator line just looks nicer.
+	fprintf(out, "\n");
 }
 
 void print_icy(mpg123_handle *mh, FILE *outstream)

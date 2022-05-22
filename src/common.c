@@ -1,7 +1,7 @@
 /*
 	common: misc stuff... audio flush, status display...
 
-	copyright ?-2020 by the mpg123 project
+	copyright ?-2022 by the mpg123 project
 	free software under the terms of the LGPL 2.1
 
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
@@ -255,7 +255,6 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar
 			else
 				print_header_compact(fr);
 			print_id3_tag(fr, param->long_id3, stderr, maxlen);
-			fprintf(stderr, "\n");
 		}
 		if(draw_bar)
 			old_term_width = maxlen;
