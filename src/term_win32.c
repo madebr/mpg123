@@ -78,7 +78,7 @@ int term_width(int fd)
   if(h == INVALID_HANDLE_VALUE || h == NULL)
     return -1;
   if(GetConsoleScreenBufferInfo(h, &pinfo)){
-    return pinfo.dwMaximumWindowSize.X;
+    return pinfo.dwMaximumWindowSize.X -1;
    }
   return -1;
 }
