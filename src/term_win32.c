@@ -77,9 +77,10 @@ int term_width(int fd)
 
   if(h == INVALID_HANDLE_VALUE || h == NULL)
     return -1;
-  if(GetConsoleScreenBufferInfo(h, &pinfo)){
+  if(GetConsoleScreenBufferInfo(h, &pinfo))
+    // One less than actual width, as Terminal advances
+    // to next line with the last character.
     return pinfo.dwMaximumWindowSize.X -1;
-   }
   return -1;
 }
 
