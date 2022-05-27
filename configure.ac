@@ -2618,7 +2618,11 @@ if test x$network_type = xauto; then
   AC_MSG_CHECKING([for automatic network support])
   # Old internal stack as default for now, will change to
   # have_fork -> exec, win32 specific -> wininet
-  if test "x$have_network" = "xyes"; then
+  if test "x$have_fork" = "xyes"; then
+    network_type=exec
+  elif test "x$win32_specific_codes" = "xyes"; then
+    network_type=wininet
+  elif test "x$have_network" = "xyes"; then
     network_type="internal"
   else
     network_type="disabled"
