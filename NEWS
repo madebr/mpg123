@@ -14,6 +14,7 @@
 -- terminal volume control now in decibel steps and bounded to +/- 60 dB
 -- terminal control now also with audio from stdin (bug 338) via
    /dev/tty or ctermid()
+-- terminal control also available for OS/2 and Windows platforms
 -- re-print tag info on decrease of terminal width for a bit less mess
 -- always print an empty line after tag info for cleaner appearance
 -- print lyrics also to stderr
