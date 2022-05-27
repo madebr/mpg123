@@ -130,7 +130,13 @@ or an URL pointing to a an appropriate list file.  Note: only
 one
 .B \-@
 option can be used (if more than one is specified, only the
-last one will be recognized).
+last one will be recognized). Furthermore, for HTTP resources, the
+MIME type information will be used to re-open an actual MPEG stream as
+such instead of treating it as playlist file. So you could just always
+use
+.B \-@
+for web resources without bothering if it is a playlist or already the resolved
+stream address.
 .TP
 \fB\-l \fIn\fR, \fB\-\^\-listentry \fIn
 Of the playlist, play specified entry only. 
