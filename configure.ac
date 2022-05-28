@@ -2598,7 +2598,7 @@ AC_ARG_WITH([network],
         ;;
       yes|auto)
         network_type="auto"
-        AC_MSG_RESULT([autol])
+        AC_MSG_RESULT([auto])
         ;;
       no|none)
         network_type="disabled"
@@ -2620,7 +2620,7 @@ if test x$network_type = xauto; then
   # have_fork -> exec, win32 specific -> wininet
   if test "x$have_fork" = "xyes"; then
     network_type=exec
-  elif test "x$win32_specific_codes" = "xyes"; then
+  elif test "x$win32_specific_codes" = "xenabled"; then
     network_type=wininet
   elif test "x$have_network" = "xyes"; then
     network_type="internal"
