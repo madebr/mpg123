@@ -29,6 +29,9 @@
    should be present since Windows 2000. Fixes WASAPI support on Cygwin.
 - libout123:
 -- pulse: initialize more error codes to avoid bogus error messages
+-- os2: considerable fixup for proper writes of full buffers avoiding
+   nasty effects from the ... special audio system, more cleanup still
+   nice-to-have, but still lacking
 
 1.29.4
 ------

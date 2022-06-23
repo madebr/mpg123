@@ -23,8 +23,8 @@
 #include "debug.h"
 
 /* complementary audio parameters */
-int numbuffers = 5;     /* total audio buffers, _bare_ minimum = 4 (cuz of prio boost check) */
-int audiobufsize = 4884;
+int numbuffers = 8;     /* total audio buffers, _bare_ minimum = 4 (cuz of prio boost check) */
+#define audiobufsize 4096
 int lockdevice = FALSE;
 USHORT volume = 100;
 char *boostprio = NULL;
@@ -45,11 +45,22 @@ static MCI_SET_PARMS       msp = {0};
 static MCI_STATUS_PARMS    mstatp = {0};
 static MCI_MIX_BUFFER      *MixBuffers = NULL;
 
+struct prebuf
+{
+	unsigned char d[audiobufsize]; // data area
+	int fill; // number of bytes in there
+};
+// Being lazy for draining.
+static unsigned char zbuf[audiobufsize] = {0};
+
 typedef struct
 {
 	MCI_MIX_BUFFER  *NextBuffer;
 	int frameNum;
 } BUFFERINFO;
+
+// This static business is EVIL!
+// All this needs to go into userptr to allow multiple instances.
 
 BUFFERINFO *bufferinfo = NULL;
 
@@ -164,6 +175,7 @@ int open_os2(out123_handle *ao)
 	PPIB ppib;
 	USHORT bits;
 	const char *dev = ao->device;
+	struct prebuf *pb = NULL;
 
 	if(maop.usDeviceID) return (maop.usDeviceID);
 	
@@ -180,7 +192,13 @@ int open_os2(out123_handle *ao)
 	else if(ao->format == MPG123_ENC_UNSIGNED_8)
 		bits = 8;
 	else return -1;
-	
+
+	ao->userptr = malloc(sizeof(struct prebuf));
+	if(!ao->userptr)
+		return -1;
+	pb = (struct prebuf*)ao->userptr;
+	pb->fill = 0;
+
 	/* open the mixer device */
 	memset (&maop, 0, sizeof(maop));
 	maop.usDeviceID = 0;
@@ -328,50 +346,83 @@ int open_os2(out123_handle *ao)
 	return maop.usDeviceID;
 }
 
+// Always write full blocks of audiobufsize. The engine does not like
+// things otherwise. Using a local prebuffer for the leftovers.
 
 static int write_os2(out123_handle *ao,unsigned char *buf,int len)
 {
-	/* if we're too quick, let's wait */
-	if(nobuffermode)
+	int written = 0;
+	struct prebuf *pb = ao->userptr;
+	debug("write_os2(%p, %p, %d)", ao, buf, len);
+	while(len > 0)
 	{
-		MCI_MIX_BUFFER *temp = playingbuffer;
-		
-		while(
-			(tobefilled != (temp = ((BUFFERINFO *) temp->ulUserParm)->NextBuffer)) &&
-			(tobefilled != (temp = ((BUFFERINFO *) temp->ulUserParm)->NextBuffer)) &&
-			(tobefilled != (temp = ((BUFFERINFO *) temp->ulUserParm)->NextBuffer)) )
+		if(len + pb->fill < audiobufsize)
 		{
-			DosResetEventSem(dataplayed,&resetcount);
-			DosWaitEventSem(dataplayed, -1);
-			temp = playingbuffer;
+			debug("storing into pb %p @ %p, %d on top of %d", pb->d, pb->d+pb->fill, len, pb->fill);
+			// just collect until we got a full buffer
+			memcpy(pb->d + pb->fill, buf, len);
+			pb->fill += len;
+			written += len;
+			break;
 		}
-		
-	} else {
-		while(tobefilled == playingbuffer)
+		// Now, we at least got one full buffer to serve.
+
+		/* if we're too quick, let's wait */
+		if(nobuffermode)
 		{
-			DosResetEventSem(dataplayed,&resetcount);
-			DosWaitEventSem(dataplayed, -1);
+			MCI_MIX_BUFFER *temp = playingbuffer;
+
+			while(
+				(tobefilled != (temp = ((BUFFERINFO *) temp->ulUserParm)->NextBuffer)) &&
+				(tobefilled != (temp = ((BUFFERINFO *) temp->ulUserParm)->NextBuffer)) &&
+				(tobefilled != (temp = ((BUFFERINFO *) temp->ulUserParm)->NextBuffer)) )
+			{
+				DosResetEventSem(dataplayed,&resetcount);
+				DosWaitEventSem(dataplayed, -1);
+				temp = playingbuffer;
+			}
+
+		} else {
+			while(tobefilled == playingbuffer)
+			{
+				DosResetEventSem(dataplayed,&resetcount);
+				DosWaitEventSem(dataplayed, -1);
+			}
+		}
+
+		if (justflushed) {
+			justflushed = FALSE;
+		} else {
+			nomoredata = FALSE;
+			int got = 0;
+			// First the rest from the prebuffer, then the remaining part from the new stuff.
+			if(pb->fill)
+			{
+				debug("copy all %d bytes of prebuffer from %p to %p", pb->fill, pb->d, tobefilled->pBuffer);
+				memcpy(tobefilled->pBuffer, pb->d, pb->fill);
+				got = pb->fill;
+				pb->fill = 0;
+			}
+			int therest = audiobufsize - got;
+			// len + got >= audiobufsize!!
+			debug("copy therest %d from %p to %p", therest, buf, ((unsigned char*)tobefilled->pBuffer)+got);
+			memcpy(((unsigned char*)tobefilled->pBuffer)+got, buf, therest);
+			debug("done with buffer writes");
+			buf += therest;
+			len -= therest;
+			written += therest;
+			tobefilled->ulBufferLength = got+therest; // always == audiobufsize!
+			//      ((BUFFERINFO *) tobefilled->ulUserParm)->frameNum = fr->frameNum;
+
+			/* if we're out of the water (3rd ahead buffer filled),
+			let's reduce our priority */
+			if(tobefilled == ( (BUFFERINFO *) ( (BUFFERINFO *) ((BUFFERINFO *) playingbuffer->ulUserParm)->NextBuffer->ulUserParm)->NextBuffer->ulUserParm)->NextBuffer)
+				DosSetPriority(PRTYS_THREAD,normalclass,normaldelta,mainthread->tib_ptib2->tib2_ultid);
+
+			tobefilled = ((BUFFERINFO *) tobefilled->ulUserParm)->NextBuffer;
 		}
 	}
-		
-	if (justflushed) {
-		justflushed = FALSE;
-	} else {
-		nomoredata = FALSE;
-		
-		memcpy(tobefilled->pBuffer, buf, len);
-		tobefilled->ulBufferLength = len;
-		//      ((BUFFERINFO *) tobefilled->ulUserParm)->frameNum = fr->frameNum;
-		
-		/* if we're out of the water (3rd ahead buffer filled),
-		let's reduce our priority */
-		if(tobefilled == ( (BUFFERINFO *) ( (BUFFERINFO *) ((BUFFERINFO *) playingbuffer->ulUserParm)->NextBuffer->ulUserParm)->NextBuffer->ulUserParm)->NextBuffer)
-			DosSetPriority(PRTYS_THREAD,normalclass,normaldelta,mainthread->tib_ptib2->tib2_ultid);
-		
-		tobefilled = ((BUFFERINFO *) tobefilled->ulUserParm)->NextBuffer;
-	}
-	
-	return len;
+	return written;
 }
 
 #if 0
@@ -457,6 +508,11 @@ int audio_trash_buffers(out123_handle *ao)
 
 static int close_os2(out123_handle *ao)
 {
+	if(ao && ao->userptr)
+	{
+		free(ao->userptr);
+		ao->userptr = NULL;
+	}
 	ULONG rc;
 	
 	if(!maop.usDeviceID)
@@ -626,9 +682,21 @@ static int get_devices_os2(char *info, int deviceid)
 	}
 }
 
+// at least drain out our prebuffer, proper draining
+// should be (re?)enabled, too
+static void drain_os2(out123_handle *ao)
+{
+	if(!ao)
+		return;
+	ao->write(ao, zbuf, audiobufsize);
+	if(ao->userptr)
+		((struct prebuf*)ao->userptr)->fill = 0;
+}
 
 static void flush_os2(out123_handle *ao)
 {
+	if(ao && ao->userptr)
+		((struct prebuf*)ao->userptr)->fill = 0;
 }
 
 
@@ -642,7 +710,8 @@ static int init_os2(out123_handle* ao)
 	ao->write = write_os2;
 	ao->get_formats = get_formats_os2;
 	ao->close = close_os2;
-	
+	ao->drain = drain_os2;
+
 	/* Success */
 	return 0;
 }
