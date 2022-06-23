@@ -724,6 +724,8 @@ out123_play(out123_handle *ao, void *bytes, size_t count)
 			,	ao->flags & OUT123_KEEP_PLAYING );
 			if(written > 0)
 			{
+				if(written > block)
+					written = block; // Safeguard against sloppy output modules.
 				bytes  = (char*)bytes+written;
 				sum   += written;
 				count -= written;
