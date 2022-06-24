@@ -22,17 +22,20 @@
 
 #include "debug.h"
 
+// Only one instance at a time! This all needs to go into userptr!
+static BOOL opened = FALSE;
+
 /* complementary audio parameters */
-int numbuffers = 8;     /* total audio buffers, _bare_ minimum = 4 (cuz of prio boost check) */
+static int numbuffers = 8;     /* total audio buffers, _bare_ minimum = 4 (cuz of prio boost check) */
 #define audiobufsize 4096
-int lockdevice = FALSE;
-USHORT volume = 100;
-char *boostprio = NULL;
-char *normalprio = NULL;
-unsigned char boostclass = 3, normalclass = 2;
-signed char   boostdelta = 0, normaldelta = 31;
-unsigned char mmerror[160] = {0};
-int playingframe;
+static int lockdevice = FALSE;
+static USHORT volume = 100;
+static char *boostprio = NULL;
+static char *normalprio = NULL;
+static unsigned char boostclass = 3, normalclass = 2;
+static signed char   boostdelta = 0, normaldelta = 31;
+static unsigned char mmerror[160] = {0};
+static int playingframe;
 
 /* audio buffers */
 static ULONG ulMCIBuffers;
@@ -62,7 +65,7 @@ typedef struct
 // This static business is EVIL!
 // All this needs to go into userptr to allow multiple instances.
 
-BUFFERINFO *bufferinfo = NULL;
+static BUFFERINFO *bufferinfo = NULL;
 
 
 static HEV dataplayed = 0;
@@ -76,7 +79,7 @@ static BOOL nomoredata,nobuffermode,justflushed;
 
 static TIB *mainthread; /* thread info to set thread priority */
 
-ULONG keyboardtid;
+static ULONG keyboardtid;
 
 
 static LONG APIENTRY DARTEvent(ULONG ulStatus, MCI_MIX_BUFFER *PlayedBuffer, ULONG ulFlags)
@@ -169,6 +172,9 @@ static int set_volume(out123_handle *ao, USHORT setvolume)
 
 int open_os2(out123_handle *ao)
 {
+	if(opened)
+		return -1;
+
 	ULONG rc,i;
 	char *temp;
 	ULONG openflags;
@@ -342,7 +348,8 @@ int open_os2(out123_handle *ao)
 	rc = mmp.pmixWrite( mmp.ulMixHandle,
 		MixBuffers,
 		ulMCIBuffers );
-	
+
+	opened = TRUE;
 	return maop.usDeviceID;
 }
 
@@ -508,6 +515,7 @@ int audio_trash_buffers(out123_handle *ao)
 
 static int close_os2(out123_handle *ao)
 {
+	opened = FALSE;
 	if(ao && ao->userptr)
 	{
 		free(ao->userptr);
@@ -691,6 +699,11 @@ static void drain_os2(out123_handle *ao)
 	ao->write(ao, zbuf, audiobufsize);
 	if(ao->userptr)
 		((struct prebuf*)ao->userptr)->fill = 0;
+	while(!nomoredata)
+	{
+		DosResetEventSem(dataplayed,&resetcount);
+		DosWaitEventSem(dataplayed, -1);
+	}
 }
 
 static void flush_os2(out123_handle *ao)
