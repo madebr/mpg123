@@ -353,12 +353,12 @@ static int write_os2(out123_handle *ao,unsigned char *buf,int len)
 {
 	int written = 0;
 	struct prebuf *pb = ao->userptr;
-	debug("write_os2(%p, %p, %d)", ao, buf, len);
+	mdebug("write_os2(%p, %p, %d)", ao, buf, len);
 	while(len > 0)
 	{
 		if(len + pb->fill < audiobufsize)
 		{
-			debug("storing into pb %p @ %p, %d on top of %d", pb->d, pb->d+pb->fill, len, pb->fill);
+			mdebug("storing into pb %p @ %p, %d on top of %d", pb->d, pb->d+pb->fill, len, pb->fill);
 			// just collect until we got a full buffer
 			memcpy(pb->d + pb->fill, buf, len);
 			pb->fill += len;
@@ -398,14 +398,14 @@ static int write_os2(out123_handle *ao,unsigned char *buf,int len)
 			// First the rest from the prebuffer, then the remaining part from the new stuff.
 			if(pb->fill)
 			{
-				debug("copy all %d bytes of prebuffer from %p to %p", pb->fill, pb->d, tobefilled->pBuffer);
+				mdebug("copy all %d bytes of prebuffer from %p to %p", pb->fill, pb->d, tobefilled->pBuffer);
 				memcpy(tobefilled->pBuffer, pb->d, pb->fill);
 				got = pb->fill;
 				pb->fill = 0;
 			}
 			int therest = audiobufsize - got;
 			// len + got >= audiobufsize!!
-			debug("copy therest %d from %p to %p", therest, buf, ((unsigned char*)tobefilled->pBuffer)+got);
+			mdebug("copy therest %d from %p to %p", therest, buf, ((unsigned char*)tobefilled->pBuffer)+got);
 			memcpy(((unsigned char*)tobefilled->pBuffer)+got, buf, therest);
 			debug("done with buffer writes");
 			buf += therest;
