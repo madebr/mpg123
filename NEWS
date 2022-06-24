@@ -23,10 +23,10 @@
 -- fix some verbosity, tweak help for --icy-interval
 -- added --auth-file
 -- also obscure argument to --auth for others
-- libmpg123:
 -- Cygwin/MinGW: Provide _win32_utf8_wide and _win32_wide_utf8 unconditionally.
    It is needed by the WASAPI plugins, the underlying conversion functions
    should be present since Windows 2000. Fixes WASAPI support on Cygwin.
+   Also needed for new network code.
 - libout123:
 -- pulse: initialize more error codes to avoid bogus error messages
 -- os2: considerable fixup for proper writes of full buffers avoiding
