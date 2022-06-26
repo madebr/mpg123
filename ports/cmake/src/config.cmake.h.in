@@ -69,8 +69,9 @@
 #define LFS_ALIAS_BITS @LFS_ALIAS_BITS@
 #define LT_MODULE_EXT "@CMAKE_SHARED_MODULE_SUFFIX@"
 
-// Define if network support is enabled.
-#cmakedefine NETWORK 1
+// Define for new-style network code.
+#cmakedefine NET123 1
+#cmakedefine 
 
 // Define to disable downsampled decoding.
 #cmakedefine NO_DOWNSAMPLE 1
