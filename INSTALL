@@ -18,8 +18,9 @@ You really need:
 
 - For other exotic platforms, also see ports/
 
-- If building from direct SCM checkout, you need GNU autotools installed
-  (see developer build below).
+- If building from direct source code repository checkout, as opposed to
+  a release or snapshot tarball, you need GNU autotools installed
+  (see Developer Build below).
 
 You want:
 
