@@ -2619,7 +2619,7 @@ if test x$network_type = xauto; then
   if test "x$have_fork" = "xyes"; then
     network_type=exec
   elif test "x$win32_specific_codes" = "xenabled"; then
-    network_type=wininet
+    network_type=winhttp
   elif test "x$have_network" = "xyes"; then
     network_type="internal"
   else
