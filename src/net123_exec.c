@@ -65,12 +65,28 @@ static char *catstr(const char *par, const char *value)
 static int got_curl = -1;
 static int got_wget = -1;
 
-static int check_program(char **argv)
+// Check if program executes, also test if given token occurs in its output.
+// Returns 0 if not, 1 if exec works, 2 if also token found.
+// Token has to be < 1024 characters in length.
+static int check_program(char **argv, const char *token)
 {
+	int fd[2];
+	int gottoken = 0;
+	if(token)
+	{
+		if(pipe(fd))
+			return 0;
+		compat_binmode(fd[0], TRUE);
+		compat_binmode(fd[1], TRUE);
+	}
 	pid_t pid = fork();
 	if(pid == 0)
 	{
-		int outfd = open("/dev/null", O_WRONLY);
+		int outfd = fd[1];
+		if(token)
+			close(fd[0]);
+		else
+			outfd = open("/dev/null", O_WRONLY);
 		dup2(outfd, STDOUT_FILENO);
 		int infd  = open("/dev/null", O_RDONLY);
 		dup2(infd,  STDIN_FILENO);
@@ -81,10 +97,41 @@ static int check_program(char **argv)
 	}
 	else if(pid > 0)
 	{
+		if(token)
+		{
+			char buf[1024];
+			close(fd[1]);
+			size_t toklen = strlen(token);
+			if(toklen > 0 && toklen < sizeof(buf))
+			{
+				size_t bufoff = 0;
+				size_t got;
+				while( (got = unintr_read(fd[0], buf+bufoff, sizeof(buf)-1-bufoff)) )
+				{
+					bufoff += got;
+					buf[bufoff] = 0; // Now it's a terminated string.
+					if(!gottoken && strstr(buf, token))
+						gottoken = 1;
+					if(gottoken)
+						bufoff = 0; // just forget everything
+					else if(bufoff > toklen)
+					{
+						// Remember the last toklen-1 bytes to compare later.
+						memmove(buf, buf+bufoff-toklen+1, toklen-1);
+						bufoff = toklen-1;
+					}
+				}
+			}
+			close(fd[0]);
+		}
 		int stat;
 		if( (waitpid(pid, &stat, 0) == pid)
 			&& WIFEXITED(stat) && WEXITSTATUS(stat)==0 )
-			return 1;
+			return 1+gottoken;
+	} else if(token)
+	{
+		close(fd[0]);
+		close(fd[1]);
 	}
 	return 0; // false, not there
 }
@@ -159,6 +206,8 @@ static char **curl_argv(const char *url, const char * const * client_head)
 	// Get the count of argument strings right!
 	// Fixed args + agent + client headers [+ auth] + URL + NULL
 	int argc = sizeof(base_args)/sizeof(char*)+2+2*cheads+1+1;
+	if(got_curl > 1)
+		argc++; // add --http0.9
 	char *httpauth = NULL;
 	if(param.httpauth && (httpauth = compat_strdup(param.httpauth)))
 		argc += 2;
@@ -171,6 +220,8 @@ static char **curl_argv(const char *url, const char * const * client_head)
 	int an = 0;
 	for(;an<sizeof(base_args)/sizeof(char*); ++an)
 		argv[an] = compat_strdup(base_args[an]);
+	if(got_curl > 1)
+		argv[an++] = compat_strdup("--http0.9");
 	argv[an++] = compat_strdup("--user-agent");
 	argv[an++] = compat_strdup(PACKAGE_NAME "/" PACKAGE_VERSION);
 	for(size_t ch=0; ch < cheads; ++ch)
@@ -191,20 +242,22 @@ static char **curl_argv(const char *url, const char * const * client_head)
 net123_handle *net123_open(const char *url, const char * const * client_head)
 {
 	int use_curl = 0;
+	char *curl_check_argv[] = { "curl", "--help", NULL };
 	// Semi-threadsafe: The check might take place multiple times, but writing the integer
 	// should be safe enough.
 	if(!strcmp("auto",param.network_backend))
 	{
-		char *curl_argv[] = { "curl", "--version", NULL };
-		char *wget_argv[] = { "wget", "--version", NULL };
-		if(got_curl < 0)
-			got_curl = check_program(curl_argv);
+		char *wget_check_argv[] = { "wget", "--version", NULL };
 		if(got_wget < 0)
-			got_wget = check_program(wget_argv);
+			got_wget = check_program(wget_check_argv, NULL);
+		if(!got_wget && got_curl < 0)
+			got_curl = check_program(curl_check_argv, "--http0.9");
 		if(got_wget < 1 && got_curl == 1)
 			use_curl = 1;
 	} else if(!strcmp("curl", param.network_backend))
 	{
+		if(got_curl < 0) // Still need to know if HTTP/0.9 option is there.
+			got_curl = check_program(curl_check_argv, "--http0.9");
 		use_curl = 1;
 	} else if(!strcmp("wget", param.network_backend))
 	{
