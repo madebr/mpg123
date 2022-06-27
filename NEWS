@@ -1,3 +1,8 @@
+1.30.1
+------
+- mpg123:
+-- show stderr of network helpers in -vvv mode
+
 1.30.0
 ------
 - build:

@@ -147,6 +147,9 @@ static char **curl_argv(const char *url, const char * const * client_head)
 		"curl" // begins with program name
 #ifdef DEBUG
 	,	"--verbose"
+#else
+	,	"--silent"
+	,	"--show-error"
 #endif
 	,	"--dump-header"
 	,	"-"
@@ -261,11 +264,11 @@ net123_handle *net123_open(const char *url, const char * const * client_head)
 				fprintf(stderr, " %s\n", *a);
 				++a;
 			}
+		} else
+		{
+			int errfd = open("/dev/null", O_WRONLY);
+			dup2(errfd, STDERR_FILENO);
 		}
-#ifndef DEBUG
-		int errfd = open("/dev/null", O_WRONLY);
-		dup2(errfd, STDERR_FILENO);
-#endif
 		execvp(argv[0], argv);
 		merror("cannot execute %s: %s", argv[0], strerror(errno));
 		exit(1);
