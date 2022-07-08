@@ -267,6 +267,11 @@ net123_handle *net123_open(const char *url, const char * const * client_head)
 		merror("invalid network backend specified: %s", param.network_backend);
 		return NULL;
 	}
+	if((!use_curl && !got_wget) || (use_curl && !got_curl))
+	{
+		error("missing working network helper program (wget or curl)");
+		return NULL;
+	}
 
 	int fd[2];
 	int hi = -1; // index of header value that might get a continuation line

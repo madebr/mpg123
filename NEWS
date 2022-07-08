@@ -6,6 +6,7 @@
    without wget (wget not needing such switch, yet).
 -- Support file:// URLs for local access as was intended with the last
    release.
+-- Give more helpful error message if neither wget nor curl are usable.
 
 1.30.0
 ------
