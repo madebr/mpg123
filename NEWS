@@ -4,6 +4,8 @@
 -- Show stderr of network helpers in -vvv mode.
 -- Use curl --http0.9, if available, to support shoutcast v1 streams
    without wget (wget not needing such switch, yet).
+-- Support file:// URLs for local access as was intended with the last
+   release.
 
 1.30.0
 ------

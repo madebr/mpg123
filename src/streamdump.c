@@ -268,13 +268,13 @@ struct stream *stream_open(const char *url)
 		return NULL;
 	stream_init(sd);
 	mdebug("opening resource %s", url);
+	if(!strncasecmp("file://", url, 7))
+		url+= 7; // use local file access for files, the scheme may be useful
 	if(!strcmp(url, "-"))
 	{
 		sd->fd = STDIN_FILENO;
 		compat_binmode(STDIN_FILENO, TRUE);
 	}
-	else if(!strncasecmp("file://", url, 7))
-		url+= 7; // use local file access for files, the scheme may be useful
 #ifdef NET123
 	else if(!strncasecmp("http://", url, 7) || !strncasecmp("https://", url, 8))
 	{
