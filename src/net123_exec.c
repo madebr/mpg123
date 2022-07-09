@@ -68,7 +68,7 @@ static int got_wget = -1;
 // Check if program executes, also test if given token occurs in its output.
 // Returns 0 if not, 1 if exec works, 2 if also token found.
 // Token has to be < 1024 characters in length.
-static int check_program(char **argv, const char *token)
+static int check_program(char * const *argv, const char *token)
 {
 	int fd[2];
 	int gottoken = 0;
@@ -242,12 +242,12 @@ static char **curl_argv(const char *url, const char * const * client_head)
 net123_handle *net123_open(const char *url, const char * const * client_head)
 {
 	int use_curl = 0;
-	char *curl_check_argv[] = { "curl", "--help", NULL };
+	char * const curl_check_argv[] = { "curl", "--help", NULL };
+	char * const wget_check_argv[] = { "wget", "--version", NULL };
 	// Semi-threadsafe: The check might take place multiple times, but writing the integer
 	// should be safe enough.
 	if(!strcmp("auto",param.network_backend))
 	{
-		char *wget_check_argv[] = { "wget", "--version", NULL };
 		if(got_wget < 0)
 			got_wget = check_program(wget_check_argv, NULL);
 		if(!got_wget && got_curl < 0)
@@ -261,6 +261,8 @@ net123_handle *net123_open(const char *url, const char * const * client_head)
 		use_curl = 1;
 	} else if(!strcmp("wget", param.network_backend))
 	{
+		if(got_wget < 0)
+			got_wget = check_program(wget_check_argv, NULL);
 		use_curl = 0;
 	} else
 	{
@@ -313,14 +315,17 @@ net123_handle *net123_open(const char *url, const char * const * client_head)
 		if(!argv)
 			exit(1);
 		errno = 0;
-		if(param.verbose > 2)
+		if(!param.quiet)
 		{
-			char **a = argv;
-			fprintf(stderr, "HTTP helper command:\n");
-			while(*a)
+			if(param.verbose > 2)
 			{
-				fprintf(stderr, " %s\n", *a);
-				++a;
+				char **a = argv;
+				fprintf(stderr, "HTTP helper command:\n");
+				while(*a)
+				{
+					fprintf(stderr, " %s\n", *a);
+					++a;
+				}
 			}
 		} else
 		{
