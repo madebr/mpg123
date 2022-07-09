@@ -242,7 +242,7 @@ static char **curl_argv(const char *url, const char * const * client_head)
 net123_handle *net123_open(const char *url, const char * const * client_head)
 {
 	int use_curl = 0;
-	char * const curl_check_argv[] = { "curl", "--help", NULL };
+	char * const curl_check_argv[] = { "curl", "--help", "all", NULL };
 	char * const wget_check_argv[] = { "wget", "--version", NULL };
 	// Semi-threadsafe: The check might take place multiple times, but writing the integer
 	// should be safe enough.
