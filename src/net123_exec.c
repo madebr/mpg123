@@ -252,7 +252,7 @@ net123_handle *net123_open(const char *url, const char * const * client_head)
 			got_wget = check_program(wget_check_argv, NULL);
 		if(!got_wget && got_curl < 0)
 			got_curl = check_program(curl_check_argv, "--http0.9");
-		if(got_wget < 1 && got_curl == 1)
+		if(got_wget < 1 && got_curl)
 			use_curl = 1;
 	} else if(!strcmp("curl", param.network_backend))
 	{
