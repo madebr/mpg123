@@ -274,8 +274,6 @@ struct stream *stream_open(const char *url)
 		return NULL;
 	stream_init(sd);
 	mdebug("opening resource %s", url);
-	if(!strncasecmp("file://", url, 7))
-		url+= 7; // use local file access for files, the scheme may be useful
 	if(!strcmp(url, "-"))
 	{
 		sd->fd = STDIN_FILENO;
@@ -317,11 +315,13 @@ struct stream *stream_open(const char *url)
 	else
 	{
 		// plain file access
+		if(!strncasecmp("file://", url, 7))
+			url+= 7; // Might be useful to prepend file scheme prefix for local stuff.
 		errno = 0;
 		sd->fd = compat_open(url, O_RDONLY|O_BINARY);
 		if(sd->fd < 0)
 		{
-			merror("failed to open file: %s", strerror(errno));
+			merror("failed to open file: %s: %s", url, strerror(errno));
 			stream_close(sd);
 			return NULL;
 		}
