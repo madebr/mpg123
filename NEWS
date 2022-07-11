@@ -8,6 +8,7 @@
    release.
 -- Give more helpful error message if neither wget nor curl are usable, also
    allow error messages from curl to appear when not --quiet.
+-- Update the man page.
 
 1.30.0
 ------

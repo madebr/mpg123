@@ -1,4 +1,4 @@
-.TH mpg123 1 "26 Apr 2020"
+.TH mpg123 1 "11 Jul 2022"
 .SH NAME
 mpg123 \- play audio MPEG 1.0/2.0/2.5 stream (layers 1, 2 and 3)
 .SH SYNOPSIS
@@ -25,9 +25,10 @@ The path name(s) of one or more input files.  They must be
 valid MPEG-1.0/2.0/2.5 audio layer 1, 2 or 3 bit streams.
 If a dash ``\-'' is specified, MPEG data will
 be read from the standard input.  Furthermore, any name
-starting with ``http://'' is recognized as
+starting with ``http://'' or ``https://'' is recognized as
 .I URL
-(see next section).
+(see next section), while a leading ``file://'' is being stripped for
+normal local file access, for consistency (since mpg123 1.30.1).
 .SH OPTIONS
 .B mpg123
 options may be either the traditional POSIX one letter options,
@@ -72,27 +73,20 @@ This comes a bit closer to the notion of a MP3 file as a defined collection
 of MPEG frames that belong together, but gets rid of the flexibility that can be fun at times but
 mostly is hell for the programmer of the parser and decoder ...
 .TP
+\fB\-\^\-network \fI backend
+Select network  backend (helper program), choices are usually auto, wget, and curl.
+Auto means to try the first available backend.
+.TP
 \fB\-\^-resync\-limit \fIbytes\fR
 Set number of bytes to search for valid MPEG data once lost in stream; <0 means search whole stream.
 If you know there are huge chunks of invalid data in your files... here is your hammer.
 Note: Only since version 1.14 this also increases the amount of junk skipped on beginning.
 .TP
-\fB\-p \fIURL \fR| \fBnone\fR, \fB\-\^\-proxy \fIURL \fR| \fBnone
-The specified
-.I proxy
-will be used for HTTP requests.  It
-should be specified as full URL (``http://host.domain:port/''),
-but the ``http://'' prefix, the port number and the trailing
-slash are optional (the default port is 80).  Specifying
-.B none
-means not to use any proxy, and to retrieve files directly
-from the respective servers.  See also the
-``HTTP SUPPORT'' section.
-.TP
 \fB\-u \fIauth\fR, \fB\-\^\-auth \fIauth
 HTTP authentication to use when receiving files via HTTP.
 The format used is user:password. Mpg123 will clear this quickly, but it may still appear
-in sight of other users or even just in your shell history.
+in sight of other users or even just in your shell history. You may seek alternative ways
+to specify that to your network backend.
 .TP
 \fB\-\^\-auth-file \fIauthfile
 Provide the authentication info via given file instead of command line directly.
@@ -469,28 +463,25 @@ Print the version string.
 In addition to reading MPEG audio streams from ordinary
 files and from the standard input,
 .B mpg123
-supports retrieval of MPEG audio files or playlists via the HTTP protocol, 
+supports retrieval of MPEG audio streams or playlists via the HTTP  protocol,
 which is used in the World Wide Web (WWW).  Such files are
-specified using a so-called URL, which starts with ``http://''.  When a file with
-that prefix is encountered,
+specified using a so-called URL, which starts with http:// or https://.
+When a file with that prefix is encountered,
 .B mpg123
-attempts to open an HTTP connection to the server in order to
-retrieve that file to decode and play it.
-.P
-It is often useful to retrieve files through a WWW cache or
-so-called proxy.  To accomplish this,
+since 1.30.0 will by default call an external helper program (either
+.BR wget (1)
+or
+.BR curl (1),
+see the
+.B \-\^\-network
+option)
+to retrieve the resource. You can configure access via a proxy
+server using the standard environment variables those programs support. The
+.BR \-\^\-proxy
+option that
 .B mpg123
-examines the environment for variables named
-.BR MP3_HTTP_PROXY ", " http_proxy " and " HTTP_PROXY ,
-in this order.  The value of the first one that is set will
-be used as proxy specification.  To override this, you can
-use the
-.B \-p
-command line option (see the ``OPTIONS'' section).  Specifying
-.B "\-p none"
-will enforce contacting the server directly without using
-any proxy, even if one of the above environment variables
-is set.
+before 1.30.0 used for its internal network code is gone
+in the default build now and will probably disappear for good with 1.31.1.
 .P
 Note that, in order to play MPEG audio files from a WWW
 server, it is necessary that the connection to that server
@@ -506,9 +497,8 @@ to your local harddisk (e.g. using
 .BR wget (1))
 and then play them from there.
 .P
-If authentication is needed to access the file it can be
-specified with the 
-.BR "\-u user:pass".
+Streams with embedded ICY metadata are supported, the interval being communicated via HTTP
+headers or \fB\-\^\-icy-interval\fR.
 .SH INTERRUPT
 When in terminal control mode, you can quit via pressing the q key, 
 while any time you can abort
@@ -622,7 +612,9 @@ input side.
 Mostly MPEG-1 layer 2 and 3 are tested in real life.
 Please report any issues and provide test files to help fixing them.
 .P
-No CRC error checking is performed.
+No CRC error checking is performed. But the decoder is built and tested
+to behave nicely with damaged streams. Mostly, damaged frames will just be
+silent.
 .P
 Some platforms lack audio hardware support; you may be able to use the
 .B -s
