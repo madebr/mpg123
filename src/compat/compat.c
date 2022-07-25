@@ -451,8 +451,9 @@ size_t unintr_write(int fd, void const *buffer, size_t bytes)
 			bytes   -= part;
 			written += part;
 		} else if(errno != EINTR && errno != EAGAIN
-#ifndef __KLIBC__
-			// OS/2 is funny with POSIX.
+#ifdef EWOULDBLOCK
+			// Not all platforms define it (or only in more modern POSIX modes).
+			// Standard says it is supposed to be a macro, so simple check here.
 			&& errno != EWOULDBLOCK
 #endif
 		)
