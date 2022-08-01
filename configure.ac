@@ -9,7 +9,7 @@ dnl 2.69 at least.
 AC_PREREQ([2.69])
 
 dnl ############# Initialisation
-AC_INIT([mpg123], [1.30.1], [maintainer@mpg123.org])
+AC_INIT([mpg123], [1.30.2], [maintainer@mpg123.org])
 dnl Increment API_VERSION when the API gets changes (new functions).
 
 dnl libmpg123
