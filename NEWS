@@ -1,5 +1,9 @@
 1.31.0
 ------
+
+TODO: Let curl handle redirects again, or make this an option somehow.
+Right now this eases testing of redirect code in streamdump.c.
+
 - mpg123:
 -- TODO: Revert to internal network code for plain HTTP to ensure continued
   support for original shoutcast servers that do not talk proper HTTP.
