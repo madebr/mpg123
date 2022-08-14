@@ -198,6 +198,8 @@ static char **curl_argv(const char *url, const char * const * client_head)
 	,	"--silent"
 	,	"--show-error"
 #endif
+	,	"--max-redirs"
+	,	"0"
 	,	"--dump-header"
 	,	"-"
 	};

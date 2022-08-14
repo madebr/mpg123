@@ -1,3 +1,10 @@
+1.31.0
+------
+- mpg123:
+-- TODO: Revert to internal network code for plain HTTP to ensure continued
+  support for original shoutcast servers that do not talk proper HTTP.
+-- Handle redirections independently of the backend behind net123. 
+
 1.30.2
 ------
 - Only use EWOULDBLOCK if the macro is defined (FreeBSD misses it for

@@ -18,6 +18,10 @@
 #define O_BINARY 0
 #endif
 
+#ifndef HTTP_MAX_RELOCATIONS
+#define HTTP_MAX_RELOCATIONS 20
+#endif
+
 /* Stream dump descriptor. */
 static int dump_fd = -1;
 
@@ -147,15 +151,21 @@ ssize_t stream_getline(struct stream *sd, mpg123_string *line)
 	}
 }
 
-int stream_parse_headers(struct stream *sd)
+// Return 0 on success, non-zero when there is an error or more work to do.
+// -1: error, 1: redirection to given location
+static int stream_parse_headers(struct stream *sd, mpg123_string *location)
 {
 	int ret = 0;
 	mpg123_string line;
 	mpg123_init_string(&line);
 	mpg123_string icyint;
 	mpg123_init_string(&icyint);
-	const char   *head[] = { "content-type",        "icy-name",        "icy-url",        "icy-metaint" };
-	mpg123_string *val[] = { &sd->htd.content_type, &sd->htd.icy_name, &sd->htd.icy_url, &icyint };
+	int redirect = 0;
+	location->fill = 0;
+	const char   *head[] = { "content-type",        "icy-name"
+	,	"icy-url",        "icy-metaint", "location" };
+	mpg123_string *val[] = { &sd->htd.content_type, &sd->htd.icy_name
+	,	&sd->htd.icy_url, &icyint,        location };
 	int hn = sizeof(head)/sizeof(char*);
 	int hi = -1;
 	int got_ok = 0;
@@ -171,6 +181,8 @@ int stream_parse_headers(struct stream *sd)
 		}
 		// React to HTTP error codes, but do not enforce an OK being sent as Shoutcast
 		// only produces very minimal headers, not even a HTTP response code.
+		// Well, ICY 200 OK could be there, but then we got other headers to know
+		// things are fine.
 		if(!strncasecmp("http/", line.p, 5))
 		{
 			// HTTP/1.1 200 OK
@@ -181,9 +193,17 @@ int stream_parse_headers(struct stream *sd)
 				++tok;
 			if(tok && *tok != '2')
 			{
-				merror("HTTP error response: %s", line.p);
-				ret = -1;
-				break;
+				if(*tok == '3')
+				{
+					redirect = ret = 1;
+					if(param.verbose > 2)
+						fprintf(stderr, "Note: HTTP redirect\n");
+				} else
+				{
+					merror("HTTP error response: %s", line.p);
+					ret = -1;
+					break;
+				}
 			} else if(tok && *tok == '2')
 			{
 				if(param.verbose > 2)
@@ -235,7 +255,7 @@ int stream_parse_headers(struct stream *sd)
 			continue;
 		}
 	}
-	if(icyint.fill)
+	if(!redirect && icyint.fill)
 	{
 		sd->htd.icy_interval = atol(icyint.p);
 		if(param.verbose > 1)
@@ -245,6 +265,9 @@ int stream_parse_headers(struct stream *sd)
 	{
 		error("no data at all from network resource");
 		ret = -1;
+	} else if(redirect && !location->fill)
+	{
+		error("redirect but no location given");
 	} else if(!got_ok)
 	{
 		error("missing positive server response");
@@ -265,6 +288,31 @@ static void stream_init(struct stream *sd)
 	sd->nh = NULL;
 #endif
 	httpdata_init(&sd->htd);
+}
+
+// Clean up things for another connection.
+// Does not reset the network flag.
+static void stream_reset(struct stream *sd)
+{
+#ifdef NET123
+	if(sd->nh)
+		net123_close(sd->nh);
+	sd->nh = NULL;
+#endif
+#ifdef WANT_WIN32_SOCKETS
+	if(sd->fd >= 0 && sd->network)
+	{
+		if(sd->fd != SOCKET_ERROR)
+			win32_net_close(sd->fd);
+	}
+#endif
+	if(sd->fd >= 0) // plain file or network socket
+		close(sd->fd);
+	sd->fd = -1;
+	httpdata_free(&sd->htd);
+	httpdata_init(&sd->htd);
+	sd->bufp = sd->buf;
+	sd->fill = 0;
 }
 
 struct stream *stream_open(const char *url)
@@ -290,12 +338,40 @@ struct stream *stream_open(const char *url)
 		mpg123_init_string(&accept);
 		append_accept(&accept);
 		client_head[1] = accept.p;
-		sd->nh = net123_open(url, client_head);
-		if(!sd->nh || stream_parse_headers(sd))
+		mpg123_string location;
+		mpg123_init_string(&location);
+		int numrelocs = 0;
+		while(sd)
 		{
-			stream_close(sd);
-			return NULL;
+			sd->nh = net123_open(url, client_head);
+			if(!sd->nh)
+			{
+				stream_close(sd);
+				sd = NULL;
+			}
+			location.fill = 0;
+			if(stream_parse_headers(sd, &location))
+			{
+				stream_reset(sd);
+				if(location.fill)
+				{
+					if(++numrelocs > HTTP_MAX_RELOCATIONS)
+					{
+						merror("too many HTTP redirections: %i", numrelocs);
+						stream_close(sd);
+						sd = NULL;
+					} else
+						url = location.p; // Used one time, then possibly overwritten.
+				} else
+				{
+					stream_close(sd);
+					sd = NULL;
+				}
+			} else break; // Successful end.
 		}
+		mpg123_free_string(&location);
+		mpg123_free_string(&accept);
+		// Either sd is NULL or we got a stream ready.
 	}
 #elif defined(NETWORK)
 	else if(!strncasecmp("http://", url, 7))
@@ -333,20 +409,7 @@ void stream_close(struct stream *sd)
 {
 	if(!sd)
 		return;
-#ifdef NET123
-	if(sd->nh)
-		net123_close(sd->nh);
-#endif
-#ifdef WANT_WIN32_SOCKETS
-	if(sd->fd >= 0 && sd->network)
-	{
-		if(sd->fd != SOCKET_ERROR)
-			win32_net_close(sd->fd);
-	}
-#endif
-	if(sd->fd >= 0) // plain file or network socket
-		close(sd->fd);
-	httpdata_free(&sd->htd);
+	stream_reset(sd);
 	free(sd);
 }
 
