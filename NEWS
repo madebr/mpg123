@@ -8,6 +8,8 @@ Right now this eases testing of redirect code in streamdump.c.
 -- TODO: Revert to internal network code for plain HTTP to ensure continued
   support for original shoutcast servers that do not talk proper HTTP.
 -- Handle redirections independently of the backend behind net123. 
+-- Continue reading for long commands in generic control, avoiding
+   unnecessary unfinished command errors.
 
 1.30.2
 ------

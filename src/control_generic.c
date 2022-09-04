@@ -435,6 +435,10 @@ int control_generic (mpg123_handle *fr)
 	}
 #endif
 
+	// Persist over loop iterations to remember unfinished commands.
+	char buf[REMOTE_BUFFER_SIZE]; // command buffer
+	short int last_len = 0; // length of partial command in there
+
 	while (alive)
 	{
 		tv.tv_sec = 0;
@@ -510,16 +514,15 @@ int control_generic (mpg123_handle *fr)
 			short int len = 1; /* length of buffer */
 			char *cmd, *arg; /* variables for parsing, */
 			char *comstr = NULL; /* gcc thinks that this could be used uninitialited... */ 
-			char buf[REMOTE_BUFFER_SIZE];
 			short int counter;
 			char *next_comstr = buf; /* have it initialized for first command */
 
 			/* read as much as possible, maybe multiple commands */
 			/* When there is nothing to read (EOF) or even an error, it is the end */
 #ifdef WANT_WIN32_FIFO
-			len = win32_fifo_read(buf,REMOTE_BUFFER_SIZE);
+			len = win32_fifo_read(buf+last_len,REMOTE_BUFFER_SIZE-last_len);
 #else
-			len = read(control_file, buf, REMOTE_BUFFER_SIZE);
+			len = read(control_file, buf+last_len, REMOTE_BUFFER_SIZE-last_len);
 #endif
 			if(len < 1)
 			{
@@ -542,7 +545,9 @@ int control_generic (mpg123_handle *fr)
 			}
 
 			debug1("read %i bytes of commands", len);
+			len += last_len; // on top of remembered piece
 			/* one command on a line - separation by \n -> C strings in a row */
+			last_len = 0;
 			for(counter = 0; counter < len; ++counter)
 			{
 				/* line end is command end */
@@ -899,30 +904,19 @@ int control_generic (mpg123_handle *fr)
 				} /* end of single command processing */
 			} /* end of scanning the command buffer */
 
-			/*
-			   when last command had no \n... should I discard it?
-			   Ideally, I should remember the part and wait for next
-				 read() to get the rest up to a \n. But that can go
-				 to infinity. Too long commands too quickly are just
-				 bad. Cannot/Won't change that. So, discard the unfinished
-				 command and have fingers crossed that the rest of this
-				 unfinished one qualifies as "unknown". 
-			*/
+			// Last character not nulled if we did not use all command text.
 			if(buf[len-1] != 0)
 			{
-				// All that jazz because I did not reserve space for a zero.
-				char *last_command;
-				size_t last_len = len-(size_t)(next_comstr-buf);
-				last_command = malloc(last_len+1);
-				if(last_command)
+				if(next_comstr == buf)
 				{
-					memcpy(last_command, next_comstr, last_len);
-					last_command[last_len] = 0;
-					generic_sendstr(0, "E Unfinished command: %s", last_command);
-					free(last_command);
+					generic_sendmsg("E Too long command, cannot parse.");
+					// Just skipping it, provoking furhter parsing erros, but maybe not fatal.
+				} else
+				{
+					last_len = len-(short)(next_comstr-buf);
+					mdebug("keeping %d bytes of old command", last_len);
+					memmove(buf, next_comstr, last_len);
 				}
-				else
-					generic_sendmsg("E Unfinished command: <DOOM>");
 			}
 		} /* end command reading & processing */
 	} /* end main (alive) loop */
