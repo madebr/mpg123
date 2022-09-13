@@ -896,7 +896,7 @@ int control_generic (mpg123_handle *fr)
 					if (!strcasecmp(cmd, "LP") || !strcasecmp(cmd, "LOADPAUSED")){ generic_load(fr, arg, MODE_PAUSED); continue; }
 
 					/* no command matched */
-					generic_sendstr(0, "E Unknown command: %s", cmd);
+					generic_send2str(0, "E Unknown command with arguments: %s %s", cmd, arg);
 				} /* end commands with arguments */
 				else generic_sendstr( 0, "E Unknown command or no arguments: %s"
 				,	comstr );

@@ -10,6 +10,9 @@ Right now this eases testing of redirect code in streamdump.c.
 -- Handle redirections independently of the backend behind net123. 
 -- Continue reading for long commands in generic control, avoiding
    unnecessary unfinished command errors.
+-- Change error message from 'unknown command' to
+   'unknown command with arguments' to avoid confusion why 'help foo'
+   is unknown, as opposed to 'help'.
 
 1.30.2
 ------
