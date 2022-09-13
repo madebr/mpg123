@@ -907,7 +907,7 @@ int control_generic (mpg123_handle *fr)
 			// Last character not nulled if we did not use all command text.
 			if(buf[len-1] != 0)
 			{
-				if(next_comstr == buf)
+				if(next_comstr == buf && len == REMOTE_BUFFER_SIZE)
 				{
 					generic_sendmsg("E Too long command, cannot parse.");
 					// Just skipping it, provoking furhter parsing erros, but maybe not fatal.
