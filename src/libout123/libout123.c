@@ -730,8 +730,14 @@ out123_play(out123_handle *ao, void *bytes, size_t count)
 				sum   += written;
 				count -= written;
 			}
-			if(written < block && errno != EINTR)
-			{
+			if(written < block && errno != EINTR
+				&& errno != EAGAIN
+#if defined(EWOULDBLOCK) && (EWOULDBLOCK != EAGAIN)
+				// Not all platforms define it (or only in more modern POSIX modes).
+				// Standard says it is supposed to be a macro, so simple check here.
+				&& errno != EWOULDBLOCK
+#endif
+			){
 				ao->errcode = OUT123_DEV_PLAY;
 				if(!AOQUIET)
 					merror( "Error in writing audio, wrote only %d of %d (%s?)!"

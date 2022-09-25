@@ -14,6 +14,12 @@ Right now this eases testing of redirect code in streamdump.c.
    'unknown command with arguments' to avoid confusion why 'help foo'
    is unknown, as opposed to 'help'.
 
+1.30.3
+------
+- libout123: Add same interruption handling to out123_write() as to
+  unintr_write(), adding EAGAIN to fix bug 342 (thanks to Steffen Nurpmeso)
+  for certain ALSA setups.
+
 1.30.2
 ------
 - Only use EWOULDBLOCK if the macro is defined (FreeBSD misses it for
