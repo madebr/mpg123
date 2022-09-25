@@ -25,7 +25,7 @@ void term_restore(void)
 {
 }
 
-int term_get_key(int do_delay, char *val)
+int term_get_key(int stopped, int do_delay, char *val)
 {
 	return 0;
 }
