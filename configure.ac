@@ -1126,11 +1126,15 @@ dnl sensitive to largefile changes, i.e. FreeBSD always using 64 bit off_t.
 if test "x$ac_cv_sys_file_offset_bits" = x || echo "$ac_cv_sys_file_offset_bits" | $GREP  '@<:@^0-9@:>@' > /dev/null; then
 	dnl if it has non-numeric chars or is empty... ignore...
 	largefile_sensitive=no
+	BUILD_NO_LARGENAME=1
 else
 	largefile_sensitive=yes
+	BUILD_NO_LARGENAME=0
 fi
 # Add dual-mode wrapper code.
 AM_CONDITIONAL([HAVE_LFS_WRAP], [ test x"$largefile_sensitive" = xyes ] )
+# Any non-sensitive platform does not bother with off_t-based function renaming.
+AC_SUBST(BUILD_NO_LARGENAME)
 
 # Using the lower level macros instead of AC_TYPE_* for compatibility with not freshest autoconf.
 AC_CHECK_TYPE(size_t, unsigned long)
@@ -1291,13 +1295,6 @@ dnl OK, two lines... Solaris needs -lnsl -lsocket
 AC_SEARCH_LIBS(socket, socket) 
 
 AC_CHECK_FUNCS( getaddrinfo, [ have_ipv6=yes ], [ have_ipv6=no ] )
-
-# A Hack for MSVC builds by cmake: Disable largefile hackery.
-# Maybe one time we support hat wretched environment directly, but
-# for now configure lives in a world where large file support is
-# properly defined and served by off_t.
-BUILD_NO_LARGENAME=0
-AC_SUBST(BUILD_NO_LARGENAME)
 
 # Substitutions for the installable mpg123.h header
 if test "x$ac_cv_header_stdio_h" = "xyes"; then

@@ -17,6 +17,9 @@
    'unknown command with arguments' to avoid confusion why 'help foo'
    is unknown, as opposed to 'help'.
 - some build fixes for compiler pickyness
+- Disable largefile renames also for non-sensitive POSIX systems
+  (in some distant future, the alias symbols could go away, then …
+  bug 330).
 
 1.30.3
 ------
