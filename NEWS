@@ -1,18 +1,22 @@
 1.31.0
 ------
 
-TODO: Let curl handle redirects again, or make this an option somehow.
-Right now this eases testing of redirect code in streamdump.c.
-
 - mpg123:
--- TODO: Revert to internal network code for plain HTTP to ensure continued
-  support for original shoutcast servers that do not talk proper HTTP.
+-- Revert to internal network code for plain HTTP to ensure continued
+   support for original shoutcast servers that do not talk proper HTTP.
+   External backends are built at the same time and can be enforced using
+   --network <backend>.
+-- Try-witout-port for internal network code is gone. We do not need to
+   keep each ancient hack for specific hosts.
 -- Handle redirections independently of the backend behind net123. 
+-- Set proxy environment variables when --proxy is specified, for net123
+   backends to use.
 -- Continue reading for long commands in generic control, avoiding
    unnecessary unfinished command errors.
 -- Change error message from 'unknown command' to
    'unknown command with arguments' to avoid confusion why 'help foo'
    is unknown, as opposed to 'help'.
+- some build fixes for compiler pickyness
 
 1.30.3
 ------

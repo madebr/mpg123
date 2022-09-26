@@ -357,7 +357,8 @@ static int add_next_file (int argc, char *argv[], int args_utf8)
 				}
 			}
 			pl.entry = 0;
-			if(pl.file && pl.file->network)
+#ifdef NET123
+			if(pl.file && pl.file->nh)
 			{
 				debug1("htd.content_type.p: %p", (void*) pl.file->htd.content_type.p);
 				if(!APPFLAG(MPG123APP_IGNORE_MIME) && pl.file->htd.content_type.p != NULL)
@@ -402,6 +403,7 @@ static int add_next_file (int argc, char *argv[], int args_utf8)
 					}
 				}
 			}
+#endif
 			if(!pl.file)
 			{
 				param.listname = NULL; // why?

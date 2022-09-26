@@ -5,13 +5,11 @@
 #include <ws2tcpip.h>
 #include <winhttp.h>
 
-const char *net123_backends[] = { "(always winhttp)", NULL };
-
 // The network implementation defines the struct for private use.
 // The purpose is just to keep enough context to be able to
 // call net123_read() and net123_close() afterwards.
 #define URL_COMPONENTS_LENGTH 255
-struct net123_handle_struct {
+typedef struct {
   HINTERNET session;
   HINTERNET connect;
   HINTERNET request;
@@ -26,7 +24,7 @@ struct net123_handle_struct {
   size_t headers_pos, headers_len;
   DWORD internetStatus, internetStatusLength;
   LPVOID additionalInfo;
-};
+} winhttp_handle;
 
 #define MPG123CONCAT_(x,y) x ## y
 #define MPG123CONCAT(x,y) MPG123CONCAT_(x,y)
@@ -34,7 +32,7 @@ struct net123_handle_struct {
 #define MPG123STRINGIFY(x) MPG123STRINGIFY_(x)
 #define MPG123WSTR(x) MPG123CONCAT(L,MPG123STRINGIFY(x))
 
-static DWORD wrap_auth(net123_handle *nh){
+static DWORD wrap_auth(winhttp_handle *nh){
   DWORD mode;
   DWORD ret;
 
@@ -81,13 +79,16 @@ static void debug_crack(URL_COMPONENTS *comps){}
 
 static
 void WINAPI net123_ssl_errors(HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength){
-  net123_handle *nh = (net123_handle *)dwContext;
+  winhttp_handle *nh = (winhttp_handle *)dwContext;
   nh->internetStatus = dwInternetStatus;
   nh->additionalInfo = lpvStatusInformation;
   nh->internetStatusLength = dwStatusInformationLength;
 }
 
-net123_handle *net123_open(const char *url, const char * const *client_head){
+static size_t net123_read(net123_handle *nh, void *buf, size_t bufsize);
+static void net123_close(net123_handle *nh);
+
+net123_handle *net123_open_winhttp(const char *url, const char * const *client_head){
   LPWSTR urlW = NULL, headers = NULL;
   size_t ii;
   WINBOOL res;
@@ -101,8 +102,18 @@ net123_handle *net123_open(const char *url, const char * const *client_head){
   win32_utf8_wide(url, &urlW, NULL);
   if(urlW == NULL) goto cleanup;
 
-  net123_handle *ret = calloc(1, sizeof(net123_handle));
-  if (!ret) return ret;
+  winhttp_handle *ret = calloc(1, sizeof(winhttp_handle));
+  if (!ret) goto cleanup;
+
+  net123_handle *handle = calloc(1, sizeof(net123_handle));
+  if (!handle) {
+    free(ret);
+    goto cleanup;
+  }
+
+  handle->parts = ret;
+  handle->read = net123_read;
+  handle->close = net123_close;
 
   ret->comps.dwStructSize = sizeof(ret->comps);
   ret->comps.dwSchemeLength    = 0;
@@ -206,13 +217,13 @@ net123_handle *net123_open(const char *url, const char * const *client_head){
   }
   debug("net123_open OK");
 
-  return ret;
+  return handle;
 cleanup:
   debug("net123_open error");
   if (urlW) free(urlW);
-  net123_close(ret);
-  ret = NULL;
-  return ret;
+  net123_close(handle);
+  handle = NULL;
+  return handle;
 }
 
 // Read data into buffer, return bytes read.
@@ -221,20 +232,21 @@ cleanup:
 // For the user, it only matters if there will be more bytes or not.
 // Feel free to communicate errors via error() / merror() functions inside.
 size_t net123_read(net123_handle *nh, void *buf, size_t bufsize){
+  winhttp_handle *h = nh->parts;
   size_t ret;
-  size_t to_copy = nh->headers_len - nh->headers_pos;
+  size_t to_copy = h->headers_len - h->headers_pos;
   DWORD bytesread = 0;
 
   if(to_copy){
      ret = to_copy <= bufsize ? to_copy : bufsize;
-     memcpy(buf, nh->headers + nh->headers_pos, ret);
-     nh->headers_pos += ret;
+     memcpy(buf, h->headers + h->headers_pos, ret);
+     h->headers_pos += ret;
      return ret;
   }
 
   /* is this needed? */
   to_copy = bufsize > ULONG_MAX ? ULONG_MAX : bufsize;
-  if(!WinHttpReadData(nh->request, buf, to_copy, &bytesread)){
+  if(!WinHttpReadData(h->request, buf, to_copy, &bytesread)){
     return EOF;
   }
   return bytesread;
@@ -242,21 +254,26 @@ size_t net123_read(net123_handle *nh, void *buf, size_t bufsize){
 
 // Call that to free up resources, end processes.
 void net123_close(net123_handle *nh){
-  if(nh->headers) {
-    free(nh->headers);
-    nh->headers = NULL;
-  }
-  if(nh->request) {
-    WinHttpCloseHandle(nh->request);
-    nh->request = NULL;
-  }
-  if(nh->connect) {
-    WinHttpCloseHandle(nh->connect);
-    nh->connect = NULL;
-  }
-  if(nh->session) {
-    WinHttpCloseHandle(nh->session);
-    nh->session = NULL;
+  if (!nh) return;
+  winhttp_handle *h = nh->parts;
+  if(h) {
+    if(h->headers) {
+      free(h->headers);
+      h->headers = NULL;
+    }
+    if(h->request) {
+      WinHttpCloseHandle(h->request);
+      h->request = NULL;
+    }
+    if(h->connect) {
+      WinHttpCloseHandle(h->connect);
+      h->connect = NULL;
+    }
+    if(h->session) {
+      WinHttpCloseHandle(h->session);
+      h->session = NULL;
+    }
+    free(h);
   }
   free(nh);
 }

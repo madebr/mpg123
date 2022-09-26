@@ -4,10 +4,14 @@
 	This evolved into the generic I/O interposer for direct file or http stream
 	access, with explicit buffering for getline.
 
-	copyright 2010-2019 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2010-2022 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp
 */
+
+// setenv
+#define _XOPEN_SOURCE 600
+#define _POSIX_C_SOURCE 200112L
 
 #include "streamdump.h"
 #include <fcntl.h>
@@ -22,6 +26,139 @@
 #define HTTP_MAX_RELOCATIONS 20
 #endif
 
+#if defined(NETWORK) && !defined(NET123)
+#error "NETWORK only with NET123 from now on!"
+#endif
+#if !defined(NETWORK) && defined(NET123)
+#error "NET123 only with NETWORK from now on!"
+#endif
+
+
+#ifdef NETWORK
+
+const char *net123_backends[] =
+{
+	"internal"
+#ifdef NET123_EXEC
+,	"wget"
+,	"curl"
+#endif
+#ifdef NET123_WINHTTP
+,	"winhttp"
+#endif
+#ifdef NET123_WININET
+,	"wininet"
+#endif
+,	NULL
+};
+
+// Net123 variant for our internal code that has safer legacy support for HTTP shoutcast.
+
+static size_t net123_read_internal( struct net123_handle_struct *nh,
+void *buf, size_t bufsize )
+{
+	if(!nh)
+		return 0;
+	int *fdp = nh->parts;
+#ifdef WANT_WIN32_SOCKETS
+	return win32_net_read(*fdp, buf, bufsize);
+#else
+	return unintr_read(*fdp, buf, bufsize);
+#endif
+
+}
+
+static void net123_close_internal(struct net123_handle_struct *nh)
+{
+	if(nh)
+		return;
+	int *fdp = nh->parts;
+#ifdef WANT_WIN32_SOCKETS
+	if(*fdp != SOCKET_ERROR)
+		win32_net_close(*fdp);
+#else
+	close(*fdp);
+#endif
+	free(fdp);
+	free(nh);
+}
+
+static net123_handle *net123_open_internal( const char *url
+,	const char * const  *client_head, struct httpdata *hd )
+{
+	net123_handle *nh = malloc(sizeof(net123_handle));
+	if(!nh)
+		return NULL;
+	int *fdp = malloc(sizeof(int));
+	if(!fdp)
+	{
+		free(nh);
+		return NULL;
+	}
+	nh->parts = fdp;
+	nh->read = net123_read_internal;
+	nh->close = net123_close_internal;
+	// Handles win32_net internally.
+	*fdp = http_open(url, hd, client_head);
+	if(*fdp >= 0)
+		return nh;
+	free(fdp);
+	free(nh);
+	return NULL;
+}
+
+// Decide which backend to load.
+static net123_handle *net123_open( const char *url
+,	const char * const  *client_head, struct httpdata *hd )
+{
+	int autochoose = !strcmp("auto", param.network_backend);
+	int https      = !strncasecmp("https://", url, 8);
+	if(param.proxyurl)
+	{
+		if(strcmp(param.proxyurl, "none"))
+		{
+#ifdef HAVE_SETENV
+			setenv("http_proxy",  param.proxyurl, 1);
+			setenv("HTTP_PROXY",  param.proxyurl, 1);
+			setenv("https_proxy", param.proxyurl, 1);
+			setenv("HTTPS_PROXY", param.proxyurl, 1);
+#endif
+		} else
+		{
+#ifdef HAVE_UNSETENV
+			unsetenv("http_proxy");
+			unsetenv("HTTP_PROXY");
+			unsetenv("https_proxy");
+			unsetenv("HTTPS_PROXY");
+#endif
+		}
+	}
+	if(   (autochoose && !https)
+	   || !strcmp("internal", param.network_backend) )
+	{
+		if(https && !param.quiet)
+			fprintf(stderr, "Note: HTTPS will fail with internal network code.\n");
+		return net123_open_internal(url, client_head, hd);
+	}
+#ifdef NET123_EXEC
+	if( autochoose
+		|| !strcmp("wget", param.network_backend)
+		|| !strcmp("curl", param.network_backend) )
+		return net123_open_exec(url, client_head);
+#endif
+#ifdef NET123_WINHTTP
+	if(autochoose || !strcmp("winhttp", param.network_backend))
+		return net123_open_winhttp(url, client_head);
+#endif
+#ifdef NET123_WININET
+	if(autochoose || !strcmp("wininet", param.network_backend))
+		return net123_open_wininet(url, client_head);
+#endif
+	merror("no network backend for %s", https ? "HTTPS" : "HTTP");
+	return NULL;
+}
+#endif
+
 /* Stream dump descriptor. */
 static int dump_fd = -1;
 
@@ -31,13 +168,9 @@ static int dump_fd = -1;
 static ssize_t stream_read_raw(struct stream *sd, void *buf, size_t count)
 {
 	ssize_t ret = -1;
-#ifdef NET123
+#ifdef NETWORK
 	if(sd->nh)
-		ret = net123_read(sd->nh, buf, count);
-#endif
-#ifdef WANT_WIN32_SOCKETS
-	if(sd->fd >= 0 && sd->network)
-		ret = win32_net_read(sd->fd, buf, count);
+		ret = (ssize_t) sd->nh->read(sd->nh, buf, count);
 #endif
 	if(sd->fd >= 0) // plain file or network socket
 		ret = (ssize_t) unintr_read(sd->fd, buf, count);
@@ -79,8 +212,12 @@ static ssize_t stream_read(struct stream *sd, void *buf, size_t count)
 
 static off_t stream_seek(struct stream *sd, off_t pos, int whence)
 {
-	if(!sd || sd->network)
+	if(!sd)
 		return -1;
+#ifdef NET123
+	if(sd->nh)
+		return -1;
+#endif
 	return lseek(sd->fd, pos, whence);
 }
 
@@ -151,6 +288,7 @@ ssize_t stream_getline(struct stream *sd, mpg123_string *line)
 	}
 }
 
+#ifdef NETWORK
 // Return 0 on success, non-zero when there is an error or more work to do.
 // -1: error, 1: redirection to given location
 static int stream_parse_headers(struct stream *sd, mpg123_string *location)
@@ -278,11 +416,84 @@ static int stream_parse_headers(struct stream *sd, mpg123_string *location)
 	return ret;
 }
 
+// resolve relative locations given the initial full URL
+// full URL ensured to either start with http:// or https://
+// (case-insensitive), location non-empty
+static void relocate_url(mpg123_string *location, const char *url)
+{
+	if(!strncasecmp(location->p, "http://", 7) || !strncasecmp(location->p, "https://", 8))
+		return;
+	if(!url || (strncasecmp(url, "http://", 7) && strncasecmp(url, "https://", 8)))
+	{
+		mpg123_resize_string(location, 0);
+		return;
+	}
+
+	if(!param.quiet)
+		fprintf(stderr, "NOTE: no complete URL in redirect, constructing one\n");
+
+	mpg123_string purl;
+	mpg123_string workbuf;
+	mpg123_init_string(&purl);
+	mpg123_init_string(&workbuf);
+
+	if(mpg123_set_string(&purl, url) && mpg123_move_string(location, &workbuf))
+	{
+		debug1("relocate request_url: %s", purl.p);
+		// location somewhat relative, either /some/path or even just some/path
+		char* ptmp = NULL;
+		// Though it's not RFC (?), accept relative URIs as wget does.
+		if(workbuf.p[0] == '/')
+		{
+			// server-absolute only prepend http://server/
+			// I null the first / after http:// or https://
+			size_t off = (purl.p[4] == 's') ? 8 : 7;
+			ptmp = strchr(purl.p+off,'/');
+			if(ptmp != NULL)
+			{
+				purl.fill = ptmp-purl.p+1;
+				purl.p[purl.fill-1] = 0;
+			}
+		}
+		else
+		{
+			// relative to current directory
+			// prepend http://server/path/
+			// first cutting off parameter stuff from URL
+			for(size_t i=0; i<purl.fill; ++i)
+			{
+				if(purl.p[i] == '?' || purl.p[i] == '#')
+				{
+					purl.p[i] = 0;
+					purl.fill = i+1;
+					break;
+				}
+			}
+			// now the last slash, keeping it
+			ptmp = strrchr(purl.p, '/');
+			if(ptmp != NULL)
+			{
+				purl.fill = ptmp-purl.p+2;
+				purl.p[purl.fill-1] = 0;
+			}
+		}
+		// only the prefix left
+		debug1("prefix=%s", purl.p);
+		mpg123_add_string(location, purl.p);
+	}
+
+	mpg123_add_string(location, workbuf.p);
+
+	mpg123_free_string(&workbuf);
+	mpg123_free_string(&purl);
+}
+
+#endif
+
 static void stream_init(struct stream *sd)
 {
 	sd->bufp = sd->buf;
 	sd->fill = 0;
-	sd->network = 0;
 	sd->fd = -1;
 #ifdef NET123
 	sd->nh = NULL;
@@ -296,15 +507,8 @@ static void stream_reset(struct stream *sd)
 {
 #ifdef NET123
 	if(sd->nh)
-		net123_close(sd->nh);
+		sd->nh->close(sd->nh);
 	sd->nh = NULL;
-#endif
-#ifdef WANT_WIN32_SOCKETS
-	if(sd->fd >= 0 && sd->network)
-	{
-		if(sd->fd != SOCKET_ERROR)
-			win32_net_close(sd->fd);
-	}
 #endif
 	if(sd->fd >= 0) // plain file or network socket
 		close(sd->fd);
@@ -327,10 +531,9 @@ struct stream *stream_open(const char *url)
 		sd->fd = STDIN_FILENO;
 		compat_binmode(STDIN_FILENO, TRUE);
 	}
-#ifdef NET123
+#ifdef NETWORK
 	else if(!strncasecmp("http://", url, 7) || !strncasecmp("https://", url, 8))
 	{
-		sd->network = 1;
 		// Network stream with header parsing.
 		const char *client_head[] = { NULL, NULL, NULL };
 		client_head[0] = param.talk_icy ? icy_yes : icy_no;
@@ -339,15 +542,18 @@ struct stream *stream_open(const char *url)
 		append_accept(&accept);
 		client_head[1] = accept.p;
 		mpg123_string location;
+		mpg123_string urlcopy;
 		mpg123_init_string(&location);
+		mpg123_init_string(&urlcopy);
 		int numrelocs = 0;
 		while(sd)
 		{
-			sd->nh = net123_open(url, client_head);
+			sd->nh = net123_open(url, client_head, &sd->htd);
 			if(!sd->nh)
 			{
 				stream_close(sd);
 				sd = NULL;
+				break;
 			}
 			location.fill = 0;
 			if(stream_parse_headers(sd, &location))
@@ -358,34 +564,28 @@ struct stream *stream_open(const char *url)
 					if(++numrelocs > HTTP_MAX_RELOCATIONS)
 					{
 						merror("too many HTTP redirections: %i", numrelocs);
-						stream_close(sd);
-						sd = NULL;
+						url = NULL;
 					} else
-						url = location.p; // Used one time, then possibly overwritten.
+					{
+						relocate_url(&location, url); // resolve relative locations
+						mpg123_copy_string(&location, &urlcopy);
+						url = urlcopy.p;
+					}
 				} else
+				{
+					url = NULL;
+				}
+				if(!url)
 				{
 					stream_close(sd);
 					sd = NULL;
 				}
 			} else break; // Successful end.
 		}
+		mpg123_free_string(&urlcopy);
 		mpg123_free_string(&location);
 		mpg123_free_string(&accept);
 		// Either sd is NULL or we got a stream ready.
-	}
-#elif defined(NETWORK)
-	else if(!strncasecmp("http://", url, 7))
-	{
-#ifdef WANT_WIN32_SOCKETS
-		sd->fd = win32_net_http_open(url, &sd->htd);
-#else
-		sd->fd = http_open(url, &sd->htd);
-#endif
-		if(sd->fd < 0)
-		{
-			stream_close(sd);
-			return NULL;
-		}
 	}
 #endif
 	else
@@ -482,12 +682,7 @@ int dump_setup(struct stream *sd, mpg123_handle *mh)
 		ret = mpg123_open_handle(mh, sd);
 	} else
 	{
-#ifdef WANT_WIN32_SOCKETS
-		if(sd->network)
-			win32_net_replace(mh);
-		else // ensure libmpg123 is using its own reader otherwise
-#endif
-			mpg123_replace_reader(mh, NULL, NULL);
+		mpg123_replace_reader(mh, NULL, NULL);
 		ret = mpg123_open_fd(mh, sd->fd);
 	}
 	if(ret != MPG123_OK)

@@ -45,7 +45,7 @@ int utf8force = 0; // enforce UTF-8 workings
 int utf8env = 0; // produce UTF-8 text output
 int utf8loc = 0; // have actual UTF-8 locale (so that mbstowcs() works)
 
-static int term_is_fun = -1;
+//static int term_is_fun = -1;
 
 static const char joker_symbol = '?';
 static const char *uni_repl = "\xef\xbf\xbd";

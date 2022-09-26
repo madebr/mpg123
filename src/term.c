@@ -232,8 +232,9 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 	case MPG123_QUIT_KEY:
 		debug("QUIT");
 		if(stopped)
-		{		if(param.verbose)
-			print_stat(fr,0,ao,0,&param);
+		{
+			if(param.verbose)
+				print_stat(fr,0,ao,0,&param);
 
 			stopped = 0;
 			out123_pause(ao); /* no chance for annoying underrun warnings */

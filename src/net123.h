@@ -39,12 +39,17 @@
 #ifndef _MPG123_NET123_H_
 #define _MPG123_NET123_H_
 
+#include "config.h"
 #include <sys/types.h>
 
-// The network implementation defines the struct for private use.
-// The purpose is just to keep enough context to be able to
-// call net123_read() and net123_close() afterwards.
-struct net123_handle_struct;
+// stream handle for differing implementations, build-time plugins
+struct net123_handle_struct
+{
+	void *parts; // custom internal data
+	// callbacks
+	size_t (*read)(struct net123_handle_struct *nh, void *buf, size_t bufsize);
+	void (*close)(struct net123_handle_struct *nh);
+};
 typedef struct net123_handle_struct net123_handle;
 
 extern const char *net123_backends[];
@@ -54,16 +59,16 @@ extern const char *net123_backends[];
 // and then the raw data.
 // client_head contains header lines to send with the request, without
 // line ending
-net123_handle *net123_open(const char *url, const char * const *client_head);
 
-// Read data into buffer, return bytes read.
-// This handles interrupts (EAGAIN, EINTR, ..) internally and only returns
-// a short byte count on EOF or error. End of file or error is not distinguished:
-// For the user, it only matters if there will be more bytes or not.
-// Feel free to communicate errors via error() / merror() functions inside.
-size_t net123_read(net123_handle *nh, void *buf, size_t bufsize);
-
-// Call that to free up resources, end processes.
-void net123_close(net123_handle *nh);
+// Variant for the external binding.
+#ifdef NET123_EXEC
+net123_handle *net123_open_exec(const char *url, const char * const *client_head);
+#endif
+#ifdef NET123_WININET
+net123_handle *net123_open_wininet(const char *url, const char * const *client_head);
+#endif
+#ifdef NET123_WINHTTP
+net123_handle *net123_open_winhttp(const char *url, const char * const *client_head);
+#endif
 
 #endif

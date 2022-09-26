@@ -118,17 +118,21 @@ if TERM_NONE
 src_mpg123_SOURCES += src/term_none.c
 endif
 
+if NET123
+src_mpg123_SOURCES += src/net123.h
+endif
+
 if NET123_EXEC
-src_mpg123_SOURCES += src/net123.h src/net123_exec.c
+src_mpg123_SOURCES += src/net123_exec.c
 endif
 
 if NET123_WINHTTP
-src_mpg123_SOURCES += src/net123.h src/net123_winhttp.c
+src_mpg123_SOURCES += src/net123_winhttp.c
 src_mpg123_LDADD += -lwinhttp
 endif
 
 if NET123_WININET
-src_mpg123_SOURCES += src/net123.h src/net123_wininet.c
+src_mpg123_SOURCES += src/net123_wininet.c
 src_mpg123_LDADD += -lwininet
 endif
 

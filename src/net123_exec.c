@@ -8,6 +8,9 @@
 	specifically if param.network_backend is set accordingly.
 */
 
+// kill
+#define _XOPEN_SOURCE 600
+#define _POSIX_C_SOURCE 200112L
 
 #include "config.h"
 #include "net123.h"
@@ -34,18 +37,11 @@
 // wget --user=... --password=... 
 // Alternatively: Have them in .netrc.
 
-const char *net123_backends[] =
-{
-	"wget"
-,	"curl"
-,	NULL
-};
-
-struct net123_handle_struct
+typedef struct
 {
 	int fd;
 	pid_t worker;
-};
+} exec_handle;
 
 // Combine two given strings into one newly allocated one.
 // Use: (--parameter=, value) -> --parameter=value
@@ -198,8 +194,6 @@ static char **curl_argv(const char *url, const char * const * client_head)
 	,	"--silent"
 	,	"--show-error"
 #endif
-	,	"--max-redirs"
-	,	"0"
 	,	"--dump-header"
 	,	"-"
 	};
@@ -241,7 +235,36 @@ static char **curl_argv(const char *url, const char * const * client_head)
 	return argv;
 }
 
-net123_handle *net123_open(const char *url, const char * const * client_head)
+
+static size_t net123_read(net123_handle *nh, void *buf, size_t bufsize)
+{
+	if(!nh || (bufsize && !buf))
+		return 0;
+	return unintr_read(((exec_handle*)nh->parts)->fd, buf, bufsize);
+}
+
+static void net123_close(net123_handle *nh)
+{
+	if(!nh)
+		return;
+	exec_handle *eh = nh->parts;
+	if(eh->worker)
+	{
+		kill(eh->worker, SIGKILL);
+		errno = 0;
+		if(waitpid(eh->worker, NULL, 0) < 0)
+			merror("failed to wait for worker process: %s", strerror(errno));
+		else if(param.verbose > 1)
+			fprintf(stderr, "Note: network helper %"PRIiMAX" finished\n", (intmax_t)eh->worker);
+	}
+	if(eh->fd > -1)
+		close(eh->fd);
+	free(nh->parts);
+	free(nh);
+}
+
+
+net123_handle *net123_open_exec(const char *url, const char * const * client_head)
 {
 	int use_curl = 0;
 	char * const curl_check_argv[] = { "curl", "--help", "all", NULL };
@@ -278,12 +301,21 @@ net123_handle *net123_open(const char *url, const char * const * client_head)
 	}
 
 	int fd[2];
-	int hi = -1; // index of header value that might get a continuation line
 	net123_handle *nh = malloc(sizeof(net123_handle));
-	if(!nh)
+	exec_handle *eh   = malloc(sizeof(exec_handle));
+	if(!nh || !eh)
+	{
+		if(nh)
+			free(nh);
+		if(eh)
+			free(eh);
 		return NULL;
-	nh->fd = -1;
-	nh->worker = 0;
+	}
+	nh->parts = eh;
+	nh->read  = net123_read;
+	nh->close = net123_close;
+	eh->fd = -1;
+	eh->worker = 0;
 	errno = 0;
 	if(pipe(fd))
 	{	
@@ -295,15 +327,15 @@ net123_handle *net123_open(const char *url, const char * const * client_head)
 	compat_binmode(fd[0], TRUE);
 	compat_binmode(fd[1], TRUE);
 
-	nh->worker = fork();
-	if(nh->worker == -1)
+	eh->worker = fork();
+	if(eh->worker == -1)
 	{
 		merror("fork failed: %s", strerror(errno));
 		free(nh);
 		return NULL;
 	}
 
-	if(nh->worker == 0)
+	if(eh->worker == 0)
 	{
 		close(fd[0]);
 		dup2(fd[1], STDOUT_FILENO);
@@ -311,7 +343,6 @@ net123_handle *net123_open(const char *url, const char * const * client_head)
 		dup2(infd,  STDIN_FILENO);
 		// child
 		// Proxy environment variables can just be set in the user and inherited here, right?
-		int argc;
 		
 		char **argv = use_curl ? curl_argv(url, client_head) : wget_argv(url, client_head);
 		if(!argv)
@@ -340,35 +371,9 @@ net123_handle *net123_open(const char *url, const char * const * client_head)
 	}
 	// parent
 	if(param.verbose > 1)
-		fprintf(stderr, "Note: started network helper with PID %"PRIiMAX"\n", (intmax_t)nh->worker);
+		fprintf(stderr, "Note: started network helper with PID %"PRIiMAX"\n", (intmax_t)eh->worker);
 	errno = 0;
 	close(fd[1]);
-	nh->fd = fd[0];
+	eh->fd = fd[0];
 	return nh;
 }
-
-size_t net123_read(net123_handle *nh, void *buf, size_t bufsize)
-{
-	if(!nh || (bufsize && !buf))
-		return 0;
-	return unintr_read(nh->fd, buf, bufsize);
-}
-
-void net123_close(net123_handle *nh)
-{
-	if(!nh)
-		return;
-	if(nh->worker)
-	{
-		kill(nh->worker, SIGKILL);
-		errno = 0;
-		if(waitpid(nh->worker, NULL, 0) < 0)
-			merror("failed to wait for worker process: %s", strerror(errno));
-		else if(param.verbose > 1)
-			fprintf(stderr, "Note: network helper %"PRIiMAX" finished\n", (intmax_t)nh->worker);
-	}
-	if(nh->fd > -1)
-		close(nh->fd);
-	free(nh);
-}
-

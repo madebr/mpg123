@@ -18,6 +18,9 @@
 #ifdef NET123
 #include "net123.h"
 #endif
+#ifdef NETWORK
+#include "httpget.h"
+#endif
 
 // The stream is either addressed via file descriptor or net123 handle.
 struct stream
@@ -25,7 +28,6 @@ struct stream
 	char buf[256]; // buffer for getline
 	char *bufp; // read pointer in buffer
 	int fill; // bytes in buffer
-	int network; // flag to mark network streams (with httpdata)
 	int fd; // if > 0: plain file descriptor or win32 net socket
 	struct httpdata htd;
 #ifdef NET123

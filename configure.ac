@@ -9,7 +9,7 @@ dnl 2.69 at least.
 AC_PREREQ([2.69])
 
 dnl ############# Initialisation
-AC_INIT([mpg123], [1.30.3], [maintainer@mpg123.org])
+AC_INIT([mpg123], [1.31.0], [maintainer@mpg123.org])
 dnl Increment API_VERSION when the API gets changes (new functions).
 
 dnl libmpg123
@@ -1218,7 +1218,7 @@ if test "x$ac_cv_sys_posix_termios" = "xyes"; then
   term_type=posix
 fi
 
-AC_CHECK_FUNCS( random )
+AC_CHECK_FUNCS( random setenv unsetenv )
 
 # Check for sched_setscheduler
 AC_CHECK_FUNCS( sched_setscheduler setuid getuid)
@@ -2577,7 +2577,10 @@ AC_ARG_ENABLE(network,
 
 AC_MSG_CHECKING([for preferred network support])
 AC_ARG_WITH([network],
-  [AS_HELP_STRING([--with-network=<type>], [Available options, depending on platform, are auto, none, internal, winhttp, wininet, and exec (wget or curl binaries).])],
+  [AS_HELP_STRING([--with-network=<type>],
+[Available options, depending on platform, are auto, none, internal, winhttp, wininet (or wininethttp for both), and exec (wget or curl binaries).
+The internal code is always built in addition to external options for plain HTTP (esp. Shoutcast v1) support.
+The external option is for HTTPS by default, but can be used for HTTP, too.])],
   [
     case "$withval" in
       exec)
@@ -2591,6 +2594,10 @@ AC_ARG_WITH([network],
       wininet)
         network_type="wininet"
         AC_MSG_RESULT([wininet])
+        ;;
+      wininethttp)
+        network_type="wininethttp"
+        AC_MSG_RESULT([wininethttp])
         ;;
       internal)
         network_type="internal"
@@ -2619,7 +2626,7 @@ if test x$network_type = xauto; then
   if test "x$have_fork" = "xyes"; then
     network_type=exec
   elif test "x$win32_specific_codes" = "xenabled"; then
-    network_type=wininet
+    network_type=wininethttp
   elif test "x$have_network" = "xyes"; then
     network_type="internal"
   else
@@ -2635,7 +2642,7 @@ fi
 if test x$network_type = xexec -a x$have_fork != xyes; then
   AC_MSG_ERROR([exec network support selected but fork not available])
 fi
-if test x$network_type = xwininet -o x$network_type = xwinhttp && test x$win32_specific_codes != xenabled; then
+if test x$network_type = xwininet -o x$network_type = xwinhttp -o x$network_type = xwininethttp && test x$win32_specific_codes != xenabled; then
   AC_MSG_ERROR([wininet or winhttp is currently only for Windows])
 fi
 
@@ -2644,7 +2651,7 @@ AM_CONDITIONAL([WIN32_CODES], [ test "x$win32_specific_codes" = xenabled ])
 
 if test x"$ipv6" = xauto; then
 	AC_MSG_CHECKING([IPv6 use])
-	if test x"$have_ipv6" = xyes -a x"$network_type" = xinternal; then
+	if test x"$have_ipv6" = xyes -a x"$network_type" != xdisabled; then
 		ipv6=enabled
 	else
 		ipv6=disabled
@@ -2652,14 +2659,31 @@ if test x"$ipv6" = xauto; then
 	AC_MSG_RESULT([$ipv6])
 fi
 
-if test x$network_type = xinternal -a x$network_internal = xwinsock2; then
+if test x$network_type != xdisabled -a x$network_internal = xwinsock2; then
   AC_DEFINE([WANT_WIN32_SOCKETS], [1], [ Define to use Win32 sockets ])
 fi
 
-AM_CONDITIONAL([NETWORK_WINSOCK], [ test x$network_type = xinternal -a x$network_internal = xwinsock2 ])
+AM_CONDITIONAL([NETWORK_WINSOCK], [ test x$network_type != xdisabled -a x$network_internal = xwinsock2 ])
+AM_CONDITIONAL([NET123], [ test x$network_type != xdisabled ])
 AM_CONDITIONAL([NET123_EXEC], [ test x$network_type = xexec ])
-AM_CONDITIONAL([NET123_WINHTTP], [ test x$network_type = xwinhttp ])
-AM_CONDITIONAL([NET123_WININET], [ test x$network_type = xwininet ])
+AM_CONDITIONAL([NET123_WINHTTP], [ test x$network_type = xwinhttp || test x$network_type = xwininethttp ])
+AM_CONDITIONAL([NET123_WININET], [ test x$network_type = xwininet || test x$network_type = xwininethttp ])
+
+case "$network_type" in
+  exec)
+    AC_DEFINE(NET123_EXEC,    1, [ Define for executable-based networking (for HTTPS). ])
+  ;;
+  winhttp)
+    AC_DEFINE(NET123_WINHTTP, 1, [ Define for winhttp networking (for HTTPS). ])
+  ;;
+  wininet)
+    AC_DEFINE(NET123_WININET, 1, [ Define for wininet networking (for HTTPS). ])
+  ;;
+  wininethttp)
+    AC_DEFINE(NET123_WININET, 1, [ Define for wininet networking (for HTTPS). ])
+    AC_DEFINE(NET123_WINHTTP, 1, [ Define for winhttp networking (for HTTPS). ])
+  ;;
+esac
 
 dnl ############## Terminal choice
 
@@ -2685,7 +2709,7 @@ if test x"$fifo" = xenabled; then
 fi
 
 dnl ############## Network enable
-if test x"$network_type" = xinternal; then
+if test x"$network_type" != xdisabled; then
 	AC_DEFINE(NETWORK, 1, [ Define if network support is enabled. ])
 	if test x"$have_network" = xno; then
 		AC_MSG_WARN( [ You forced network code while I think there is support missing! ] )
@@ -2742,9 +2766,11 @@ echo "
   Extreme debugging ....... $xdebugging
   Seek table size ......... $seektable
   FIFO support ............ $fifo
-  Buffer .................. $buffer
-  Network (http streams) .. $network_type"
-if test x$network_type = xinternal; then
+  Buffer .................. $buffer"
+if test x$network_type != xdisabled; then
+  if test x$network_type != xinternal; then
+    echo "  External network ........ $network_type"
+  fi
   echo "  Internal network type ... $network_internal
   IPv6 (getaddrinfo) ...... $ipv6"
 fi

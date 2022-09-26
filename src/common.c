@@ -179,7 +179,6 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar
 	off_t rframes;
 	int spf;
 	double basevol, realvol;
-	char *icy;
 	long rate;
 	int framesize;
 	struct mpg123_frameinfo mi;

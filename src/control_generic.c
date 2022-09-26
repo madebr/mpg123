@@ -751,7 +751,6 @@ int control_generic (mpg123_handle *fr)
 					/* Simple EQ: SEQ <BASS> <MID> <TREBLE>  */
 					if (!strcasecmp(cmd, "SEQ")) {
 						double b,m,t;
-						int cn;
 						if(sscanf(arg, "%lf %lf %lf", &b, &m, &t) == 3)
 						{
 							mpg123_eq_bands(fr, MPG123_LR, 0,  0, b);

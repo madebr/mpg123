@@ -49,20 +49,17 @@ int debunk_mime(const char* mime);
 int proxy_init(struct httpdata *hd);
 int translate_url(const char *url, mpg123_string *purl);
 size_t accept_length(void);
-int fill_request(mpg123_string *request, mpg123_string *host, mpg123_string *port, mpg123_string *httpauth1, int *try_without_port);
+int fill_request(mpg123_string *request, mpg123_string *host, mpg123_string *port, mpg123_string *httpauth1, const char * const *client_head);
 void get_header_string(mpg123_string *response, const char *fieldname, mpg123_string *store);
 char *get_header_val(const char *hname, mpg123_string *response);
 
-/* needed for HTTP/1.1 non-pipelining mode */
-/* #define CONN_HEAD "Connection: close\r\n" */
-#define CONN_HEAD ""
 #define icy_yes "Icy-MetaData: 1"
 #define icy_no "Icy-MetaData: 0"
 
 // Append an accept header line to the string, without line end.
 int append_accept(mpg123_string *s);
 
-/* takes url and content type string address, opens resource, returns fd for data, allocates and sets content type */
-extern int http_open (const char* url, struct httpdata *hd);
+// Open HTTP URL with internal network code.
+int http_open(const char* url, struct httpdata *hd, const char * const *client_head);
 
 #endif

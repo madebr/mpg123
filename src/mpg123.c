@@ -483,7 +483,7 @@ static void set_appflag(char *arg, topt *opts)
 #if defined(NETWORK) || defined(NET123)
 static void set_httpauth(char *arg, topt *opts)
 {
-	param.httpauth = strdup(arg);
+	param.httpauth = compat_strdup(arg);
 	// Do not advertise the password for all system users.
 	memset(arg, 'x', strlen(arg));
 }
@@ -1599,14 +1599,13 @@ static void long_usage(int err)
 	fprintf(o," -y     --no-resync        DISABLES resync on error (--resync is deprecated)\n");
 	fprintf(o," -F     --no-frankenstein  disable support for Frankenstein streams\n");
 #if defined(NETWORK) || defined(NET123)
-#ifdef NETWORK
-	fprintf(o," -p <f> --proxy <f>        set WWW proxy\n");
-#else
+	fprintf(o," -p <f> --proxy <f>        override proxy environemnt variable for plain HTTP\n");
 	fprintf(o,"        --network <b>      select network backend, available: auto");
 	const char **nb = net123_backends;
 	while(*nb){ fprintf(o, " %s", *nb++); }
 	fprintf(o, "\n");
-#endif
+	fprintf(o,"                           (auto meaning internal code for plain HTTP and the\n");
+	fprintf(o,"                           first external option for HTTPS)\n");
 	fprintf(o," -u     --auth             set auth values for HTTP access\n");
 	fprintf(o,"        --auth-file        set auth values for HTTP access from given file\n");
 	fprintf(o,"        --ignore-mime      ignore HTTP MIME types (content-type)\n");
@@ -1635,6 +1634,7 @@ static void long_usage(int err)
 	fprintf(o,"        --list-devices     list the available output devices for given output module\n");
 	fprintf(o," -a <d> --audiodevice <d>  select audio device (depending on chosen module)\n");
 	fprintf(o," -s     --stdout           write raw audio to stdout (host native format)\n");
+	fprintf(o," -O <f> --outfile <f>      write raw audio to given file (- is stdout)\n");
 	fprintf(o," -w <f> --wav <f>          write samples as WAV file in <f> (- is stdout)\n");
 	fprintf(o,"        --au <f>           write samples as Sun AU file in <f> (- is stdout)\n");
 	fprintf(o,"        --cdr <f>          write samples as raw CD audio file in <f> (- is stdout)\n");
