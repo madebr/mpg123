@@ -47,6 +47,6 @@ void term_restore(void);
  *  \param val address to store character to
  *  \return 1 if there is a key, 0 if not
  */
-int term_get_key(int do_delay, char *val);
+int term_get_key(int stopped, int do_delay, char *val);
 
 #endif

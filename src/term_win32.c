@@ -90,7 +90,7 @@ int term_present(void){
 
 /* Get the next pressed key, if any.
    Returns 1 when there is a key, 0 if not. */
-int term_get_key(int do_delay, char *val){
+int term_get_key(int stopped, int do_delay, char *val){
   INPUT_RECORD record;
   HANDLE input;
   DWORD res;
@@ -99,7 +99,7 @@ int term_get_key(int do_delay, char *val){
   if(input == NULL || input == INVALID_HANDLE_VALUE)
     return 0;
 
-  while(WaitForSingleObject(input, do_delay ? 10 : 0) == WAIT_OBJECT_0){
+  while(WaitForSingleObject(input, stopped ? INFINITE : (do_delay ? 10 : 0)) == WAIT_OBJECT_0){
     do_delay = 0;
     if(!ReadConsoleInput(input, &record, 1, &res))
       return 0;

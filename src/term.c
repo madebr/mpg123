@@ -153,7 +153,7 @@ off_t term_control(mpg123_handle *fr, out123_handle *ao)
 	do
 	{
 		off_t old_offset = offset;
-		term_handle_input(fr, ao, stopped|seeking);
+		term_handle_input(fr, ao, seeking);
 		if((offset < 0) && (-offset > framenum)) offset = - framenum;
 		if(param.verbose && offset != old_offset)
 			print_stat(fr,offset,ao,1,&param);
@@ -509,7 +509,7 @@ static void term_handle_input(mpg123_handle *fr, out123_handle *ao, int do_delay
 {
 	char val;
 	/* Do we really want that while loop? This means possibly handling multiple inputs that come very rapidly in one go. */
-	while(term_get_key(do_delay, &val))
+	while(term_get_key(stopped, do_delay, &val))
 	{
 		term_handle_key(fr, ao, val);
 	}
