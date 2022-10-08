@@ -16,18 +16,15 @@
 -- Change error message from 'unknown command' to
    'unknown command with arguments' to avoid confusion why 'help foo'
    is unknown, as opposed to 'help'.
+-- Reduce CPU load while just waiting for terminal input
+   (thanks to bolshoytoster on github).
+- libout123: Add same interruption handling to out123_write() as to
+  unintr_write(), adding EAGAIN to fix bug 342 (thanks to Steffen Nurpmeso)
+  for certain ALSA setups.
 - some build fixes for compiler pickyness
 - Disable largefile renames also for non-sensitive POSIX systems
   (in some distant future, the alias symbols could go away, then …
   bug 330).
-
-1.30.3
-------
-- libout123: Add same interruption handling to out123_write() as to
-  unintr_write(), adding EAGAIN to fix bug 342 (thanks to Steffen Nurpmeso)
-  for certain ALSA setups.
-- mpg123: Reduce CPU load while just waiting for terminal input
-  (thanks to bolshoytoster on github).
 
 1.30.2
 ------
