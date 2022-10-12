@@ -26,13 +26,13 @@ extern out123_handle *ao;
 struct keydef { const char key; const char key2; const char* desc; };
 struct keydef term_help[] =
 {
-	 { MPG123_STOP_KEY,  ' ', "interrupt/restart playback (i.e. '(un)pause')" }
+	 { MPG123_STOP_KEY,  ' ', "(un)pause playback')" }
 	,{ MPG123_NEXT_KEY,    0, "next track" }
 	,{ MPG123_PREV_KEY,    0, "previous track" }
-	,{ MPG123_NEXT_DIR_KEY, 0, "next directory (next track until directory part changes)" }
-	,{ MPG123_PREV_DIR_KEY, 0, "previous directory (previous track until directory part changes)" }
+	,{ MPG123_NEXT_DIR_KEY, 0, "next directory" }
+	,{ MPG123_PREV_DIR_KEY, 0, "previous directory" }
 	,{ MPG123_BACK_KEY,    0, "back to beginning of track" }
-	,{ MPG123_PAUSE_KEY,   0, "loop around current position (don't combine with output buffer)" }
+	,{ MPG123_PAUSE_KEY,   0, "loop around current position" }
 	,{ MPG123_FORWARD_KEY, 0, "forward" }
 	,{ MPG123_REWIND_KEY,  0, "rewind" }
 	,{ MPG123_FAST_FORWARD_KEY, 0, "fast forward" }
@@ -127,7 +127,7 @@ void pause_recycle(mpg123_handle *fr)
 {
 	/* Take care not to go backwards in time in steps of 1 frame
 		 That is what the +1 is for. */
-	pause_cycle=(int)(LOOP_CYCLES/mpg123_tpf(fr));
+	pause_cycle=(int)(param.pauseloop/mpg123_tpf(fr));
 	offset-=pause_cycle;
 }
 
@@ -212,7 +212,7 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 	case MPG123_BACK_KEY:
 		out123_pause(ao);
 		out123_drop(ao);
-		if(paused) pause_cycle=(int)(LOOP_CYCLES/mpg123_tpf(fr));
+		if(paused) pause_cycle=(int)(param.pauseloop/mpg123_tpf(fr));
 
 		if(mpg123_seek_frame(fr, 0, SEEK_SET) < 0)
 		error1("Seek to begin failed: %s", mpg123_strerror(fr));
@@ -245,13 +245,23 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 	break;
 	case MPG123_PAUSE_KEY:
 		paused=1-paused;
+		size_t buffered = out123_buffered(ao);
 		out123_pause(ao); /* underrun awareness */
 		out123_drop(ao);
 		if(paused)
 		{
-			/* Not really sure if that is what is wanted
-				 This jumps in audio output, but has direct reaction to pausing loop. */
+			// Make output buffer react immediately, dropping decoded audio
+			// and (at least trying to) seeking back in input.
 			out123_param_float(ao, OUT123_PRELOAD, 0.);
+			if(buffered)
+			{
+				int framesize = 1;
+				if(!out123_getformat(ao, NULL, NULL, NULL, &framesize))
+				{
+					buffered /= framesize;
+					mpg123_seek(fr, -buffered, SEEK_CUR);
+				}
+			}
 			pause_recycle(fr);
 		}
 		else

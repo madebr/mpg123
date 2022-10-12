@@ -221,7 +221,8 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar
 	/* Some sensible logic around offsets and time.
 	   Buffering makes the relationships between the numbers non-trivial. */
 	rframes = frames-frame;
-	elapsed = decoded + offset*spf - buffered; /* May be negative, a countdown. */
+	// May be negative, a countdown. Buffer only confuses in paused (looping) mode, though.
+	elapsed = decoded + offset*spf - (paused ? 0 : buffered);
 	remain  = elapsed > 0 ? length - elapsed : length;
 	if(  MPG123_OK == mpg123_info(fr, &mi)
 	  && MPG123_OK == mpg123_getvolume(fr, &basevol, &realvol, NULL) )

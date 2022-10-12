@@ -103,6 +103,7 @@ struct parameter param = {
 	,1024 /* resync_limit */
 	,0 /* smooth */
 	,0.0 /* pitch */
+	,0.5 // pauseloop
 	,0 /* appflags */
 	,NULL /* proxyurl */
 	,0 /* keep_open */
@@ -717,6 +718,7 @@ topt opts[] = {
 	{'D', "delay", GLO_ARG | GLO_INT, 0, &param.delay, 0},
 	{0, "resync-limit", GLO_ARG | GLO_LONG, 0, &param.resync_limit, 0},
 	{0, "pitch", GLO_ARG|GLO_DOUBLE, 0, &param.pitch, 0},
+	{0, "pauseloop", GLO_ARG|GLO_DOUBLE, 0, &param.pauseloop, 0},
 #ifdef NETWORK
 	{0, "ignore-mime", GLO_LONG, set_appflag, &appflag, MPG123APP_IGNORE_MIME },
 #endif
@@ -1703,6 +1705,7 @@ static void long_usage(int err)
 	#ifndef GENERIC
 	fprintf(o,"        --title            set terminal title to filename\n");
 	#endif
+	fprintf(o,"        --pauseloop <s>    loop interval in (fractional) seconds\n");
 	fprintf(o,"        --name <n>         set instance name (used in various places)\n");
 	fprintf(o,"        --long-tag         spacy id3 display with every item on a separate line\n");
 	fprintf(o,"        --lyrics           show lyrics (from ID3v2 USLT frame)\n");

@@ -12,8 +12,6 @@
 #include "mpg123app.h"
 #include "audio.h"
 
-#define LOOP_CYCLES	0.500000	/* Loop time in sec */
-
 /* 
  * Defines the keybindings in term.c - change to your 
  * own preferences.
