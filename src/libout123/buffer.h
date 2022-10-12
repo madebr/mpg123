@@ -54,13 +54,4 @@ size_t buffer_write(out123_handle *ao, void *buffer, size_t bytes);
 /* Thin wrapper over xfermem giving the current buffer fill. */
 size_t buffer_fill(out123_handle *ao);
 
-/* Special handler to safely read values from command channel with
-   an additional buffer handed in. Exported for read_parameters(). */
-int read_buf(int fd, void *addr, size_t size
-,	byte *prebuf, int *preoff, int presize);
-
-/* Read/write strings from/to command channel. 0 on success. */
-int xfer_write_string(out123_handle *ao, int who, const char *buf);
-int xfer_read_string(out123_handle *ao, int who, char* *buf);
-
 #endif

@@ -18,9 +18,15 @@
    is unknown, as opposed to 'help'.
 -- Reduce CPU load while just waiting for terminal input
    (thanks to bolshoytoster on github).
-- libout123: Add same interruption handling to out123_write() as to
-  unintr_write(), adding EAGAIN to fix bug 342 (thanks to Steffen Nurpmeso)
-  for certain ALSA setups.
+- libout123:
+-- Add same interruption handling to out123_write() as to
+   unintr_write(), adding EAGAIN to fix bug 342 (thanks to Steffen Nurpmeso)
+   for certain ALSA setups.
+-- Fix race condition to deadlock on buffer_sync_param() where parameters after
+   the command byte got read as more commands. This got triggered easily by
+   using the pause key in terminal mode with buffer (which was discouraged
+   before because of buffer flushing). Generally, changing parameters with
+   active buffer process was dangerous since libout123 entered the scene.
 - some build fixes for compiler pickyness
 - Disable largefile renames also for non-sensitive POSIX systems
   (in some distant future, the alias symbols could go away, then …

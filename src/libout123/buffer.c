@@ -68,6 +68,9 @@ static void catch_interrupt (void)
 	intflag = TRUE;
 }
 
+static int xfer_write_string(out123_handle *ao, int who, const char *buf);
+static int xfer_read_string(out123_handle *ao, int who, char **buf);
+static int read_buf(int fd, void *addr, size_t size, byte *prebuf, int *preoff, int presize);
 static int read_record(out123_handle *ao
 ,	int who, void **buf, byte *prebuf, int *preoff, int presize, size_t *recsize);
 static int buffer_loop(out123_handle *ao);
@@ -196,6 +199,47 @@ static int buffer_cmd_finish(out123_handle *ao)
 			ao->errcode = OUT123_BUFFER_ERROR;
 			return -1;
 	}
+}
+
+/* Serialization of tunable parameters to communicate them between
+   main process and buffer. Make sure these two stay in sync ... */
+
+static int write_parameters(out123_handle *ao, int who)
+{
+	int fd = ao->buffermem->fd[who];
+	if(
+		GOOD_WRITEVAL(fd, ao->flags)
+	&&	GOOD_WRITEVAL(fd, ao->preload)
+	&&	GOOD_WRITEVAL(fd, ao->gain)
+	&&	GOOD_WRITEVAL(fd, ao->device_buffer)
+	&&	GOOD_WRITEVAL(fd, ao->verbose)
+	&& !xfer_write_string(ao, who, ao->name)
+	&& !xfer_write_string(ao, who, ao->bindir)
+	)
+		return 0;
+	else
+		return -1;
+}
+
+static int read_parameters(out123_handle *ao
+,	int who, byte *prebuf, int *preoff, int presize)
+{
+	int fd = ao->buffermem->fd[who];
+#define GOOD_READVAL_BUF(fd, val) \
+	!read_buf(fd, &val, sizeof(val), prebuf, preoff, presize)
+	if(
+		GOOD_READVAL_BUF(fd, ao->flags)
+	&&	GOOD_READVAL_BUF(fd, ao->preload)
+	&&	GOOD_READVAL_BUF(fd, ao->gain)
+	&&	GOOD_READVAL_BUF(fd, ao->device_buffer)
+	&&	GOOD_READVAL_BUF(fd, ao->verbose)
+	&& !read_record(ao, who, (void**)&ao->name, prebuf, preoff, presize, NULL)
+	&& !read_record(ao, who, (void**)&ao->bindir, prebuf, preoff, presize, NULL)
+	)
+		return 0;
+	else
+		return -1;
+#undef GOOD_READVAL_BUF
 }
 
 int buffer_sync_param(out123_handle *ao)
@@ -524,7 +568,7 @@ int xfer_write_string(out123_handle *ao, int who, const char *buf)
 }
 
 
-int xfer_read_string(out123_handle *ao, int who, char **buf)
+static int xfer_read_string(out123_handle *ao, int who, char **buf)
 {
 	/* ao->errcode set in read_record() */
 	return read_record(ao, who, (void**)buf, NULL, NULL, 0, NULL)
@@ -536,7 +580,7 @@ int xfer_read_string(out123_handle *ao, int who, char **buf)
    This assumes responsible use and avoids needless checking of input.
    And, yes, it modifies the preoff argument!
    Returns 0 on success, modifies prebuffer fill. */
-int read_buf(int fd, void *addr, size_t size, byte *prebuf, int *preoff, int presize)
+static int read_buf(int fd, void *addr, size_t size, byte *prebuf, int *preoff, int presize)
 {
 	size_t need = size;
 

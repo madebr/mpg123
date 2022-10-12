@@ -117,9 +117,5 @@ struct audio_format_name {
 	char *sname;
 };
 
-int write_parameters(out123_handle *ao, int fd);
-int read_parameters(out123_handle *ao
-,	int fd, byte *prebuf, int *preoff, int presize);
-
 #endif
 
