@@ -34,6 +34,7 @@
 - Disable largefile renames also for non-sensitive POSIX systems
   (in some distant future, the alias symbols could go away, then …
   bug 330).
+- Fix Android NDK x86 builds with GLOBAL_VAR_PTR use in assembly (bug 345).
 
 1.30.2
 ------
