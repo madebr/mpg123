@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 	fprintf(stderr,"1to1 non-indexed seek errors: %"SIZE_P" / %"SIZE_P"\n", (size_p)errs[1],(size_p)samples);
 	fprintf(stderr,"NtoM indexed seek errors: %"SIZE_P" / %"SIZE_P"\n", (size_p)errs_ntom[0],(size_p)samples);
 	fprintf(stderr,"NtoM non-indexed seek errors: %"SIZE_P" / %"SIZE_P"\n", (size_p)errs_ntom[1],(size_p)samples);
-	fprintf(stderr,"Errors in getting first sample again: %"SIZE_P"\n", first_sample_errs);
+	fprintf(stderr,"Errors in getting first sample again: %"SIZE_P"\n", (size_p)first_sample_errs);
 	fprintf(stderr,"\n");
 
 	if(ret == 0)
