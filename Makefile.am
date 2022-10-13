@@ -58,6 +58,7 @@ EXTRA_DIST += \
   NEWS.libout123 \
   NEWS.libsyn123 \
   ports/cmake/CMakeLists.txt \
+  ports/cmake/linux_i686.toolchain.cmake \
   ports/cmake/mpg123-config.cmake.in \
   ports/cmake/cmake/search_libs.cmake \
   ports/cmake/cmake/read_api_version.cmake \
