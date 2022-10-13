@@ -215,6 +215,9 @@ endif()
 set_target_properties(${TARGET} PROPERTIES OUTPUT_NAME mpg123)
 
 target_compile_definitions(${TARGET} PRIVATE
+    $<$<BOOL:$<TARGET_PROPERTY:POSITION_INDEPENDENT_CODE>>:PIC>)
+
+target_compile_definitions(${TARGET} PRIVATE
     ${PLATFORM_DEFINITIONS}
     $<$<BOOL:${HAVE_FPU}>:REAL_IS_FLOAT>
     $<$<NOT:$<BOOL:${HAVE_FPU}>>:REAL_IS_FIXED>)
