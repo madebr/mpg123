@@ -32,7 +32,7 @@ struct keydef term_help[] =
 	,{ MPG123_NEXT_DIR_KEY, 0, "next directory" }
 	,{ MPG123_PREV_DIR_KEY, 0, "previous directory" }
 	,{ MPG123_BACK_KEY,    0, "back to beginning of track" }
-	,{ MPG123_PAUSE_KEY,   0, "loop around current position" }
+	,{ MPG123_PAUSE_KEY,   0, "loop (see --pauseloop)" }
 	,{ MPG123_FORWARD_KEY, 0, "forward" }
 	,{ MPG123_REWIND_KEY,  0, "rewind" }
 	,{ MPG123_FAST_FORWARD_KEY, 0, "fast forward" }
@@ -42,19 +42,19 @@ struct keydef term_help[] =
 	,{ MPG123_VOL_UP_KEY,   0, "volume up" }
 	,{ MPG123_VOL_DOWN_KEY, 0, "volume down" }
 	,{ MPG123_VOL_MUTE_KEY, 0, "(un)mute volume" }
-	,{ MPG123_RVA_KEY,      0, "RVA switch" }
-	,{ MPG123_VERBOSE_KEY,  0, "verbose switch" }
-	,{ MPG123_PLAYLIST_KEY, 0, "list current playlist, indicating current track there" }
-	,{ MPG123_TAG_KEY,      0, "display tag info (again)" }
-	,{ MPG123_MPEG_KEY,     0, "print MPEG header info (again)" }
-	,{ MPG123_PITCH_UP_KEY, MPG123_PITCH_BUP_KEY, "pitch up (small step, big step)" }
-	,{ MPG123_PITCH_DOWN_KEY, MPG123_PITCH_BDOWN_KEY, "pitch down (small step, big step)" }
+	,{ MPG123_RVA_KEY,      0, "cycle RVA modes" }
+	,{ MPG123_VERBOSE_KEY,  0, "cycle verbosity" }
+	,{ MPG123_PLAYLIST_KEY, 0, "show playlist" }
+	,{ MPG123_TAG_KEY,      0, "print tag info" }
+	,{ MPG123_MPEG_KEY,     0, "print MPEG header info" }
+	,{ MPG123_PITCH_UP_KEY, MPG123_PITCH_BUP_KEY, "pitch up + ++" }
+	,{ MPG123_PITCH_DOWN_KEY, MPG123_PITCH_BDOWN_KEY, "pitch down - --" }
 	,{ MPG123_PITCH_ZERO_KEY, 0, "reset pitch to zero" }
-	,{ MPG123_BOOKMARK_KEY, 0, "print out current position in playlist and track, for the benefit of some external tool to store bookmarks" }
+	,{ MPG123_BOOKMARK_KEY, 0, "print bookmark" }
 	,{ MPG123_HELP_KEY,     0, "this help" }
 	,{ MPG123_QUIT_KEY,     0, "quit" }
-	,{ MPG123_EQ_RESET_KEY,    0, "reset to a flat equalizer" }
-	,{ MPG123_EQ_SHOW_KEY,     0, "show our current rough equalizer settings" }
+	,{ MPG123_EQ_RESET_KEY,    0, "flat equalizer" }
+	,{ MPG123_EQ_SHOW_KEY,     0, "show equalizer" }
 	,{ MPG123_BASS_UP_KEY,     0, "more bass" }
 	,{ MPG123_BASS_DOWN_KEY,   0, "less bass" }
 	,{ MPG123_MID_UP_KEY,      0, "more mids" }
