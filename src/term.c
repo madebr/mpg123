@@ -17,6 +17,7 @@
 #include "debug.h"
 
 static int term_enable = 0;
+static const char *extrabreak = "";
 int seeking = FALSE;
 
 extern out123_handle *ao;
@@ -26,7 +27,7 @@ extern out123_handle *ao;
 struct keydef { const char key; const char key2; const char* desc; };
 struct keydef term_help[] =
 {
-	 { MPG123_STOP_KEY,  ' ', "(un)pause playback')" }
+	 { MPG123_STOP_KEY,  ' ', "(un)pause playback" }
 	,{ MPG123_NEXT_KEY,    0, "next track" }
 	,{ MPG123_PREV_KEY,    0, "previous track" }
 	,{ MPG123_NEXT_DIR_KEY, 0, "next directory" }
@@ -72,6 +73,8 @@ void term_init(void)
 	if(term_have_fun(STDERR_FILENO, param.term_visual))
 		fprintf(stderr, "%s", hide_cursor);
 
+	if(param.verbose)
+		extrabreak = "\n";
 	debug1("param.term_ctrl: %i", param.term_ctrl);
 	if(!param.term_ctrl)
 		return;
@@ -337,7 +340,8 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 			print_stat(fr,0,ao,0,&param);
 		// Assuming only changes happen via terminal control, these 3 values
 		// are what counts.
-		fprintf( stderr, "\n\nbass:   %.3f\nmid:    %.3f\ntreble: %.3f\n\n"
+		fprintf( stderr, "%s\nbass:   %.3f\nmid:    %.3f\ntreble: %.3f\n\n"
+		,	extrabreak
 		,	mpg123_geteq(fr, MPG123_LEFT, 0)
 		,	mpg123_geteq(fr, MPG123_LEFT, 1)
 		,	mpg123_geteq(fr, MPG123_LEFT, 2)
@@ -392,7 +396,9 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 		{
 			param.verbose = 0;
 			clear_stat();
-		}
+			extrabreak = "";
+		} else
+			extrabreak = "\n";
 		mpg123_param(fr, MPG123_VERBOSE, param.verbose, 0);
 	break;
 	case MPG123_RVA_KEY:
@@ -423,29 +429,34 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 	case MPG123_TAG_KEY:
 		if(param.verbose)
 			print_stat(fr,0,ao,0,&param);
-		fprintf(stderr, "%s\n", param.verbose ? "\n" : "");
+		fprintf(stderr, "%s", extrabreak);
 		print_id3_tag(fr, param.long_id3, stderr, term_width(STDERR_FILENO));
 	break;
 	case MPG123_MPEG_KEY:
 		if(param.verbose)
 			print_stat(fr,0,ao,0,&param);
-		fprintf(stderr, "\n");
+		fprintf(stderr, "%s", extrabreak);
 		if(param.verbose > 1)
 			print_header(fr);
 		else
 			print_header_compact(fr);
-		fprintf(stderr, "\n");
 	break;
 	case MPG123_HELP_KEY:
 	{ /* This is more than the one-liner before, but it's less spaghetti. */
 		int i;
 		if(param.verbose)
 			print_stat(fr,0,ao,0,&param);
-		fprintf(stderr,"\n\n -= terminal control keys =-\n");
+		fprintf(stderr,"%s\n -= terminal control keys =-\n", extrabreak);
 		for(i=0; i<(sizeof(term_help)/sizeof(struct keydef)); ++i)
 		{
-			if(term_help[i].key2) fprintf(stderr, "[%c] or [%c]", term_help[i].key, term_help[i].key2);
-			else fprintf(stderr, "[%c]", term_help[i].key);
+			if(term_help[i].key2)
+			{
+				if(isspace(term_help[i].key2))
+					fprintf(stderr, "%c '%c'", term_help[i].key, term_help[i].key2);
+				else
+					fprintf(stderr, "%c %c", term_help[i].key, term_help[i].key2);
+			}
+			else fprintf(stderr, "%c", term_help[i].key);
 
 			fprintf(stderr, "\t%s\n", term_help[i].desc);
 		}

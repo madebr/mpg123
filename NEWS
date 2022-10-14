@@ -18,7 +18,8 @@
    is unknown, as opposed to 'help'.
 -- Reduce CPU load while just waiting for terminal input
    (thanks to bolshoytoster on github).
--- Condense terminal control help output.
+-- Condense terminal control help output and excessive vertical whitespace
+   in printouts (inspired by Volkmar Klatt).
 -- Fix interaction of pause (looping) with buffer, adding --pauseloop
    to set the loop interval.
 - libout123:
