@@ -43,6 +43,7 @@
 #cmakedefine HAVE_STDLIB_H 1
 #cmakedefine HAVE_STRERROR 1
 #cmakedefine HAVE_STRING_H 1
+#cmakedefine HAVE_STRINGS_H 1
 #cmakedefine HAVE_SYS_IOCTL_H 1
 #cmakedefine HAVE_SYS_RESOURCE_H 1
 #cmakedefine HAVE_SYS_SELECT_H 1
@@ -69,9 +70,13 @@
 #define LFS_ALIAS_BITS @LFS_ALIAS_BITS@
 #define LT_MODULE_EXT "@CMAKE_SHARED_MODULE_SUFFIX@"
 
+// Define if network support is enabled.
+#cmakedefine NETWORK 1
 // Define for new-style network code.
 #cmakedefine NET123 1
-#cmakedefine 
+#cmakedefine NET123_EXEC 1
+#cmakedefine NET123_WINHTTP 1
+#cmakedefine NET123_WININET 1
 
 // Define to disable downsampled decoding.
 #cmakedefine NO_DOWNSAMPLE 1
