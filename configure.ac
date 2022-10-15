@@ -1882,15 +1882,7 @@ int main(){
 			fi
 		;;
 		sndio)
-			SNDIO_LIBS=-lsndio
-			AC_CHECK_LIB([sndio], [sio_open],
-				[AC_CHECK_HEADERS([sndio.h],
-					[output_modules="$output_modules sndio" HAVE_SNDIO="yes"])
-				]
-			)
-			if test "x$HAVE_SNDIO" != xyes; then
-				check_failed=yes
-			fi
+			PKG_CHECK_MODULES(SNDIO, sndio, output_modules="$output_modules sndio" HAVE_SNDIO="yes", HAVE_SNDIO="no" check_failed=yes)
 		;;
 		sun)
 			AC_CHECK_HEADERS([sun/audioio.h sys/audioio.h asm/audioio.h sys/audio.h])
