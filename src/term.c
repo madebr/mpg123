@@ -22,6 +22,9 @@ int seeking = FALSE;
 
 extern out123_handle *ao;
 
+static const int helplen = 18;
+#define HELPFMT "%-18s"
+
 /* Hm, next step would be some system in this, plus configurability...
    Two keys for everything? It's just stop/pause for now... */
 struct keydef { const char key; const char key2; const char* desc; };
@@ -32,8 +35,8 @@ struct keydef term_help[] =
 	,{ MPG123_PREV_KEY,    0, "previous track" }
 	,{ MPG123_NEXT_DIR_KEY, 0, "next directory" }
 	,{ MPG123_PREV_DIR_KEY, 0, "previous directory" }
-	,{ MPG123_BACK_KEY,    0, "back to beginning of track" }
-	,{ MPG123_PAUSE_KEY,   0, "loop (see --pauseloop)" }
+	,{ MPG123_BACK_KEY,    0, "back to beginning" }
+	,{ MPG123_PAUSE_KEY,   0, "loop (--pauseloop)" }
 	,{ MPG123_FORWARD_KEY, 0, "forward" }
 	,{ MPG123_REWIND_KEY,  0, "rewind" }
 	,{ MPG123_FAST_FORWARD_KEY, 0, "fast forward" }
@@ -46,11 +49,11 @@ struct keydef term_help[] =
 	,{ MPG123_RVA_KEY,      0, "cycle RVA modes" }
 	,{ MPG123_VERBOSE_KEY,  0, "cycle verbosity" }
 	,{ MPG123_PLAYLIST_KEY, 0, "show playlist" }
-	,{ MPG123_TAG_KEY,      0, "print tag info" }
-	,{ MPG123_MPEG_KEY,     0, "print MPEG header info" }
+	,{ MPG123_TAG_KEY,      0, "tag info" }
+	,{ MPG123_MPEG_KEY,     0, "MPEG header info" }
 	,{ MPG123_PITCH_UP_KEY, MPG123_PITCH_BUP_KEY, "pitch up + ++" }
 	,{ MPG123_PITCH_DOWN_KEY, MPG123_PITCH_BDOWN_KEY, "pitch down - --" }
-	,{ MPG123_PITCH_ZERO_KEY, 0, "reset pitch to zero" }
+	,{ MPG123_PITCH_ZERO_KEY, 0, "zero pitch" }
 	,{ MPG123_BOOKMARK_KEY, 0, "print bookmark" }
 	,{ MPG123_HELP_KEY,     0, "this help" }
 	,{ MPG123_QUIT_KEY,     0, "quit" }
@@ -205,6 +208,20 @@ static void seekmode(mpg123_handle *mh, out123_handle *ao)
 		if(param.verbose)
 			print_stat(mh, 0, ao, 1, &param);
 	}
+}
+
+static void print_term_help(struct keydef *def)
+{
+	if(def->key2)
+	{
+		if(isspace(def->key2))
+			fprintf(stderr, "%c '%c'", def->key, def->key2);
+		else
+			fprintf(stderr, "%c  %c ", def->key, def->key2);
+	}
+	else fprintf(stderr, "%c    ", def->key);
+
+	fprintf(stderr, " " HELPFMT, def->desc);
 }
 
 static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
@@ -446,22 +463,21 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 		int i;
 		if(param.verbose)
 			print_stat(fr,0,ao,0,&param);
-		fprintf(stderr,"%s\n -= terminal control keys =-\n", extrabreak);
+		fprintf(stderr,"%s\n -= terminal control keys =-\n\n", extrabreak);
+		int linelen = term_width(STDERR_FILENO);
+		int colwidth = helplen+6;
+		int columns = linelen > colwidth ? ((linelen+2)/(colwidth+2)) : 1;
+		int j = 0;
 		for(i=0; i<(sizeof(term_help)/sizeof(struct keydef)); ++i)
 		{
-			if(term_help[i].key2)
-			{
-				if(isspace(term_help[i].key2))
-					fprintf(stderr, "%c '%c'", term_help[i].key, term_help[i].key2);
-				else
-					fprintf(stderr, "%c %c", term_help[i].key, term_help[i].key2);
-			}
-			else fprintf(stderr, "%c", term_help[i].key);
-
-			fprintf(stderr, "\t%s\n", term_help[i].desc);
+			if(j)
+				fprintf(stderr, "  ");
+			print_term_help(term_help+i);
+			j = (j+1)%columns;
+			if(!j)
+				fprintf(stderr, "\n");
 		}
-		fprintf(stderr, "\nAlso, the number row (starting at 1, ending at 0) gives you jump points into the current track at 10%% intervals.\n");
-		fprintf(stderr, "\n");
+		fprintf(stderr, "\n\nNumber row jumps in 10%% steps.\n\n");
 	}
 	break;
 	case MPG123_FRAME_INDEX_KEY:
