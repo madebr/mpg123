@@ -1213,13 +1213,19 @@ if test "x$have_mmap" = "xno"; then
   AC_CHECK_FUNCS([shmget shmat shmdt shmctl],[], [buffer=disabled])
 fi
 
-term_type=none
+dnl We need the windows header also for checking the module mechanism.
+AC_CHECK_HEADERS([windows.h wincon.h])
 # Check if system supports termios
 AC_SYS_POSIX_TERMIOS
+
+term_type=none
 if test "x$ac_cv_sys_posix_termios" = "xyes"; then
   AC_DEFINE_UNQUOTED([HAVE_TERMIOS], 1, 
   [Define this if you have the POSIX termios library])
   term_type=posix
+elif test "x$ac_cv_header_windows_h" = "xyes" &&
+     test "x$ac_cv_header_wincon_h"  = "xyes"; then
+  term_type=win32
 fi
 
 AC_CHECK_FUNCS( random setenv unsetenv )
