@@ -23,6 +23,8 @@
 -- Fix interaction of pause (looping) with buffer, adding --pauseloop
    to set the loop interval.
 -- Finally make terminal control work on Windows, for real.
+-- The --control / -C switch will make mpg123 abort now if terminal
+   control cannot be enabled.
 - libout123:
 -- Add same interruption handling to out123_write() as to
    unintr_write(), adding EAGAIN to fix bug 342 (thanks to Steffen Nurpmeso)

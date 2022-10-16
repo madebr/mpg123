@@ -1300,9 +1300,16 @@ int main(int sys_argc, char ** sys_argv)
 		ret = control_generic(mh);
 		safe_exit(ret);
 	}
-	if(param.term_ctrl == MAYBE)
-		param.term_ctrl = term_ctrl_default;
-	term_init();
+	{
+		int term_forced = param.term_ctrl == TRUE;
+		if(param.term_ctrl == MAYBE)
+			param.term_ctrl = term_ctrl_default;
+		if(term_init() && term_forced)
+		{
+			error("Aborting since explicitly requested terminal control is not available.");
+			safe_exit(99);
+		}
+	}
 	if(APPFLAG(MPG123APP_CONTINUE)) frames_left = param.frame_number;
 
 	while ((fname = get_next_file()))

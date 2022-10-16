@@ -68,7 +68,7 @@ struct keydef term_help[] =
 };
 
 /* initialze terminal */
-void term_init(void)
+int term_init(void)
 {
 	const char hide_cursor[] = "\x1b[?25l";
 	debug("term_init");
@@ -80,7 +80,7 @@ void term_init(void)
 		extrabreak = "\n";
 	debug1("param.term_ctrl: %i", param.term_ctrl);
 	if(!param.term_ctrl)
-		return;
+		return 0;
 
 	term_enable = 0;
 	errno = 0;
@@ -90,9 +90,10 @@ void term_init(void)
 			merror("failed to set up terminal: %s", strerror(errno));
 		else
 			error("failed to set up terminal");
-		return;
+		return -1;
 	}
 	term_enable = 1;
+	return 0;
 }
 
 void term_hint(void)
