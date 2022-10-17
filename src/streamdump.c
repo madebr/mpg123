@@ -43,11 +43,11 @@ const char *net123_backends[] =
 ,	"wget"
 ,	"curl"
 #endif
+#ifdef NET123_WININET
+,       "wininet"
+#endif
 #ifdef NET123_WINHTTP
 ,	"winhttp"
-#endif
-#ifdef NET123_WININET
-,	"wininet"
 #endif
 ,	NULL
 };
