@@ -43,11 +43,11 @@ const char *net123_backends[] =
 ,	"wget"
 ,	"curl"
 #endif
-#ifdef NET123_WININET
-,       "wininet"
-#endif
 #ifdef NET123_WINHTTP
 ,	"winhttp"
+#endif
+#ifdef NET123_WININET
+,       "wininet"
 #endif
 ,	NULL
 };
@@ -146,13 +146,13 @@ static net123_handle *net123_open( const char *url
 		|| !strcmp("curl", param.network_backend) )
 		return net123_open_exec(url, client_head);
 #endif
-#ifdef NET123_WINHTTP
-	if(autochoose || !strcmp("winhttp", param.network_backend))
-		return net123_open_winhttp(url, client_head);
-#endif
 #ifdef NET123_WININET
 	if(autochoose || !strcmp("wininet", param.network_backend))
 		return net123_open_wininet(url, client_head);
+#endif
+#ifdef NET123_WINHTTP
+        if(autochoose || !strcmp("winhttp", param.network_backend))
+                return net123_open_winhttp(url, client_head);
 #endif
 	merror("no network backend for %s", https ? "HTTPS" : "HTTP");
 	return NULL;
