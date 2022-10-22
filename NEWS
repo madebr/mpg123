@@ -29,6 +29,7 @@
 -- Add same interruption handling to out123_write() as to
    unintr_write(), adding EAGAIN to fix bug 342 (thanks to Steffen Nurpmeso)
    for certain ALSA setups.
+-- Add --devbuffer support to win32 output and change default to xxx seconds.
 -- Fix race condition to deadlock on buffer_sync_param() where parameters after
    the command byte got read as more commands. This got triggered easily by
    using the pause key in terminal mode with buffer (which was discouraged
