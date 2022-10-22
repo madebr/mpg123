@@ -109,7 +109,7 @@ static int open_win32(out123_handle *ao)
     }
 
     state->bufsize = (size_t)( (double)
-    *   (ao->device_buffer > 0. ? ao->device_buffer : DEFAULT_DEVICE_BUFFER)
+      (ao->device_buffer > 0. ? ao->device_buffer : DEFAULT_DEVICE_BUFFER)
     *   out_fmt.nAvgBytesPerSec / NUM_BUFFERS / BUFFER_GRANULARITY);
     if(state->bufsize < 1)
         state->bufsize = 1;
