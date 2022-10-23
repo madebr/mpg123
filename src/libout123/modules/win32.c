@@ -24,7 +24,7 @@
     buffers leads to 2.97 s with CD-DA. Quite excessive. We will probably reduce this
     soon.
 */
-#define DEFAULT_DEVICE_BUFFER 2.975
+#define DEFAULT_DEVICE_BUFFER 0.25
 // Buffers are multiples of this.
 #define BUFFER_GRANULARITY 256
 #define NUM_BUFFERS 8
