@@ -1516,6 +1516,9 @@ int main(int sys_argc, char ** sys_argv)
 		case GLO_NOARG:
 			fprintf (stderr, ME": missing argument for parameter: %s\n", loptarg);
 			usage(1);
+		case GLO_BADARG:
+			fprintf(stderr, ME": bad option argument: %s\n", loptarg);
+			usage(1);
 	}
 	finish_endian();
 	mdebug("input byte flags: %ld, output byte flags: %ld", byte_in_flags, byte_out_flags);

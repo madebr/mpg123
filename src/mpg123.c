@@ -1095,6 +1095,10 @@ int main(int sys_argc, char ** sys_argv)
 			print_outstr(stderr, prgName, 0, stderr_is_term);
 			fprintf(stderr, ": Missing argument for option \"%s\".\n", loptarg);
 			usage(1);
+		case GLO_BADARG:
+			print_outstr(stderr, prgName, 0, stderr_is_term);
+			fprintf(stderr, ": Bad option argument \"%s\".\n", loptarg);
+			usage(1);
 	}
 	/* Do this _after_ parameter parsing. */
 	utf8force = param.force_utf8;

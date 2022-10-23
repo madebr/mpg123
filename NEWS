@@ -25,6 +25,9 @@
 -- Finally make terminal control work on Windows, for real.
 -- The --control / -C switch will make mpg123 abort now if terminal
    control cannot be enabled.
+-- Numeric option arguments are strictly checked now for conversion errors.
+   This also catches -devbuffer, which was interpretd as -d 0 before. This
+   also applies to out123.
 - libout123:
 -- Add same interruption handling to out123_write() as to
    unintr_write(), adding EAGAIN to fix bug 342 (thanks to Steffen Nurpmeso)
