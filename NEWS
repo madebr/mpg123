@@ -2,6 +2,10 @@
 ------
 
 - mpg123:
+-- Finally make terminal control work on Windows, for real. Building it
+   was broken in 1.30.x.
+-- The --control / -C switch will make mpg123 abort now if terminal
+   control cannot be enabled.
 -- Revert to internal network code for plain HTTP to ensure continued
    support for original shoutcast servers that do not talk proper HTTP.
    External backends are built at the same time and can be enforced using
@@ -22,9 +26,6 @@
    in printouts (inspired by Volkmar Klatt).
 -- Fix interaction of pause (looping) with buffer, adding --pauseloop
    to set the loop interval.
--- Finally make terminal control work on Windows, for real.
--- The --control / -C switch will make mpg123 abort now if terminal
-   control cannot be enabled.
 -- Numeric option arguments are strictly checked now for conversion errors.
    This also catches -devbuffer, which was interpretd as -d 0 before. This
    also applies to out123.
