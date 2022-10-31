@@ -1,3 +1,9 @@
+1.31.1
+------
+- Fix largefile aliases for the case of a largefile-insensitive build
+  that still does define _FILE_OFFSET_BITS from the outside
+  (sys/feature_tests.h on Illumos).
+
 1.31.0
 ------
 

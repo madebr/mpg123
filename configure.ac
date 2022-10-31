@@ -9,7 +9,7 @@ dnl 2.69 at least.
 AC_PREREQ([2.69])
 
 dnl ############# Initialisation
-AC_INIT([mpg123], [1.31.0], [maintainer@mpg123.org])
+AC_INIT([mpg123], [1.31.1], [maintainer@mpg123.org])
 dnl Increment API_VERSION when the API gets changes (new functions).
 
 dnl libmpg123
@@ -1127,6 +1127,7 @@ if test "x$ac_cv_sys_file_offset_bits" = x || echo "$ac_cv_sys_file_offset_bits"
 	dnl if it has non-numeric chars or is empty... ignore...
 	largefile_sensitive=no
 	BUILD_NO_LARGENAME=1
+	AC_DEFINE(BUILD_NO_LARGENAME, 1, [ No suffixed symbols for large file support (only alias for backwards compat.) ])
 else
 	largefile_sensitive=yes
 	BUILD_NO_LARGENAME=0
