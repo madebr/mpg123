@@ -1,0 +1,33 @@
+name: MSYS2
+
+on: push
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    strategy:
+      matrix:
+        include:
+          - { sys: MINGW32, rep: mingw32, env: i686,   mpg123build: x86    }
+          - { sys: MINGW64, rep: mingw64, env: x86_64, mpg123build: x86_64 }
+    steps:
+      - uses: actions/checkout@v3
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{matrix.sys}}
+          update: true
+          install: msys/base-devel msys/autoconf msys/autoconf-archive msys/automake msys/ccache msys/doxygen msys/libtool msys/git msys/zip ${{matrix.rep}}/mingw-w64-${{matrix.env}}-toolchain ${{matrix.rep}}/mingw-w64-${{matrix.env}}-yasm
+      - name: setup parallel make
+        run: echo MAKEFLAGS=-j${NUMBER_OF_PROCESSORS} >> $GITHUB_ENV
+      - name: prepare Autotools
+        run: autoreconf -iv
+      - name: build
+        run: ./windows-builds.sh ${{matrix.mpg123build}}
+      - name: publish artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{matrix.mpg123build}}
+          path: releases/*.zip
