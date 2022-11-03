@@ -1,0 +1,22 @@
+on:
+  schedule:
+    - cron: "0 0/3 * * *" # Run every 3 hour
+
+jobs:
+  git_svn_sync:
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Checkout git mpg123 clone"
+        uses: "actions/checkout@v2"
+        with:
+          fetch-depth: 0
+      - name: "Download (new) revisions from mpg123 git-svn"
+        run: |
+          git remote add mpg123 https://mpg123.org/trunk/.git/
+          git fetch mpg123
+      - name: "Set mpg123's master as new master"
+        run: |
+          git switch -C master mpg123/master
+      - name: "Force push (new) master"
+        run: |
+          git push origin master -f
