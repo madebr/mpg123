@@ -1,22 +1,28 @@
 on:
   schedule:
-    - cron: "0 0/3 * * *" # Run every 3 hour
+    - cron: "0 * * * *" # Run every hour
 
 jobs:
   git_svn_sync:
     runs-on: "ubuntu-latest"
     steps:
       - name: "Checkout git mpg123 clone"
-        uses: "actions/checkout@v2"
+        uses: "actions/checkout@v3"
         with:
           fetch-depth: 0
+      - name: "Configure git client"
+        run: |
+          git config --global user.name "mpg123 GitHub bot"
+          git config --global user.email "mpg123-github-bot@github.com"
       - name: "Download (new) revisions from mpg123 git-svn"
         run: |
           git remote add mpg123 https://mpg123.org/trunk/.git/
           git fetch mpg123
-      - name: "Set mpg123's master as new master"
+      - name: "Merge mpg123's master"
         run: |
+          git merge --into-name master-with-github-ci mpg123/master -X theirs
           git switch -C master mpg123/master
       - name: "Force push (new) master"
         run: |
+          git push origin master-with-github-ci -f
           git push origin master -f
