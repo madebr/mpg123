@@ -6,10 +6,7 @@ jobs:
   send_mail:
     runs-on: "ubuntu-latest"
     steps:
-      - name: "Checkout git mpg123 clone"
-        uses: "actions/checkout@v2"
-        with:
-          ref: "updater"
+      - uses: "actions/checkout@v3"
       - name: "Setup python"
         uses: "actions/setup-python@v2"
         with:
@@ -19,7 +16,7 @@ jobs:
           python -m pip install --user pygithub
       - name: "Send mail"
         run: |
-          python scripts/mail-for-all-new-open-prs.py
+          python .github/scripts/mail-for-all-new-open-prs.py
         env:
           PUSH_GITHUB_TOKEN: ${{ secrets.PUSH_GITHUB_TOKEN }}
           MAIL_RECEIVER: ${{ secrets.MAIL_RECEIVER }}
