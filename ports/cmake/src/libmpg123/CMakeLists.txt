@@ -218,18 +218,19 @@ if(MSVC AND MACHINE MATCHES "x86|amd64" AND YASM_ASSEMBLER)
     list(TRANSFORM PLATFORM_DEFINITIONS PREPEND /D)
     foreach(FILE ${PLATFORM_SOURCES})
         get_filename_component(FILENAME ${FILE} NAME)
+        set(INTERMEDIATE_FILENAME_NOEXT "${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}")
         add_custom_command(
-            OUTPUT ${FILENAME}.asm
-            COMMAND ${CMAKE_C_COMPILER} /DASMALIGN_BALIGN ${PLATFORM_DEFINITIONS}
-            /I"${PROJECT_SOURCE_DIR}/../../src" /I"${PROJECT_BINARY_DIR}/src" /P /Fi${FILENAME}.asm /Tc "${FILE}"
+            OUTPUT "${INTERMEDIATE_FILENAME_NOEXT}.asm"
+            COMMAND ${CMAKE_C_COMPILER} /nologo /DASMALIGN_BALIGN ${PLATFORM_DEFINITIONS}
+            /I"${PROJECT_SOURCE_DIR}/../../src" /I"${PROJECT_BINARY_DIR}/src" /P "/Fi${INTERMEDIATE_FILENAME_NOEXT}.asm" /Tc "${FILE}"
             DEPENDS ${FILE}
             WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         add_custom_command(
-            OUTPUT ${FILENAME}.obj
-            COMMAND ${YASM_ASSEMBLER} -a x86 -m ${MACHINE} -p gas -r raw -f win32 -g null -o ${FILENAME}.obj ${FILENAME}.asm
-            DEPENDS ${FILENAME}.asm
+            OUTPUT "${INTERMEDIATE_FILENAME_NOEXT}.obj"
+            COMMAND ${YASM_ASSEMBLER} -a x86 -m ${MACHINE} -p gas -r raw -f win32 -g null -o "${INTERMEDIATE_FILENAME_NOEXT}.obj" "${INTERMEDIATE_FILENAME_NOEXT}.asm"
+            DEPENDS "${INTERMEDIATE_FILENAME_NOEXT}.asm"
             WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-        target_sources(${TARGET} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.obj")
+        target_sources(${TARGET} PRIVATE "${INTERMEDIATE_FILENAME_NOEXT}.obj")
     endforeach()
 else()
     target_sources(${TARGET} PRIVATE ${PLATFORM_SOURCES})

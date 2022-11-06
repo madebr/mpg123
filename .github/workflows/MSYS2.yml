@@ -30,4 +30,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{matrix.mpg123build}}
-          path: releases/*.zip
+          path: ${{ github.workspace }}\releases\*.zip

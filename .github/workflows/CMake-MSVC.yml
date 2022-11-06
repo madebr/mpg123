@@ -13,6 +13,10 @@ jobs:
           path: |
             ${{ github.workspace }}/yasm
           key: yasm
+          enableCrossOsArchive: true
+      - name: Verify cached yasm
+        if: ${{ steps.restore-yasm.outputs.cache-hit }}
+        run: ${{ github.workspace }}\yasm\bin\vsyasm --help
       - name: Checkout sources
         uses: actions/checkout@v4
       - name: Download yasm sources
@@ -35,6 +39,10 @@ jobs:
           cmake -S yasm-src -B yasm-build -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/yasm -DCMAKE_INSTALL_LIBDIR=bin -DCMAKE_INSTALL_BINDIR=bin -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=ON -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
           cmake --build yasm-build --parallel
           cmake --install yasm-build
+      - name: Verify built yasm
+        if: ${{ !steps.restore-yasm.outputs.cache-hit }}
+        run: |
+          yasm\bin\vsyasm --help
       - name: Cache yasm
         if: ${{ !steps.restore-yasm.outputs.cache-hit }}
         uses: actions/cache/save@v4
@@ -42,7 +50,9 @@ jobs:
           path: |
             ${{ github.workspace }}/yasm
           key: yasm
+          enableCrossOsArchive: true
   build:
+    name: '${{ matrix.os }} ${{ matrix.arch }} shared=${{ matrix.shared }} yasm=${{ matrix.yasm }}'
     defaults:
       run:
         shell: cmd
@@ -58,6 +68,11 @@ jobs:
         arch: [x86, x64, amd64_arm, amd64_arm64]
         shared: [ON, OFF]
         yasm: [true, false]
+        exclude:
+          - arch: amd64_arm
+            yasm: true
+          - arch: amd64_arm64
+            yasm: true
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -68,14 +83,24 @@ jobs:
           path: |
             ${{ github.workspace }}/yasm
           key: yasm
+          fail-on-cache-miss: true
+          enableCrossOsArchive: true
       - name: Add yasm to PATH
         if: ${{ matrix.yasm }}
-        run: echo "${{ github.workspace }}/yasm/bin" >> %GITHUB_PATH%"
+        run: echo "${{ github.workspace }}\yasm\bin" >> %GITHUB_PATH%"
+      - name: dir yasm
+        if: ${{ matrix.yasm }}
+        run: |
+          dir "${{ github.workspace }}\yasm"
+          dir "${{ github.workspace }}\yasm\bin"
+      - name: Verify yasm
+        if: ${{ matrix.yasm }}
+        run: ${{ github.workspace }}\yasm\bin\vsyasm --help
       - name: Setup vcvars
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: ${{ matrix.arch }}
-          sdK: ${{ (matrix.arch == 'amd64_arm' && '10.0.22621.0') || '' }}
+          sdk: ${{ (matrix.arch == 'amd64_arm' && '10.0.22621.0') || '' }}
       - name: Setup ninja
         uses: ./.github/actions/setup-ninja
       - name: CMake (configure)
