@@ -1,0 +1,27 @@
+on:
+  schedule:
+    - cron: "0 * * * *" # Run every hour
+
+jobs:
+  send_mail:
+    if: ${{ github.repository == 'madebr/mpg123' }}
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@v3"
+      - name: "Setup python"
+        uses: "actions/setup-python@v2"
+        with:
+          python-version: "3.x"
+      - name: "Install Python requirements"
+        run: |
+          python -m pip install --user pygithub
+      - name: "Send mail"
+        run: |
+          python .github/scripts/mail-for-all-new-open-prs.py
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          MAIL_RECEIVER: ${{ secrets.MAIL_RECEIVER }}
+          MAIL_SENDER: ${{ secrets.MAIL_SENDER }}
+          MAIL_SERVER: ${{ secrets.MAIL_SERVER }}
+          MAIL_LOGIN: ${{ secrets.MAIL_LOGIN }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}

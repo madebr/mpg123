@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: install updates
-        run: sudo apt-get update && sudo apt-get dist-upgrade
+        run: sudo apt-get update
       - name: install build system
         run: sudo apt-get install -y autoconf autoconf-archive automake pkg-config libtool libtool-bin libltdl-dev doxygen gcc yasm
       - name: install dependencies
