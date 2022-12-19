@@ -1,3 +1,7 @@
+1.31.2
+------
+- Fix build --with-network=internal only (configure logic error, bug 348).
+
 1.31.1
 ------
 - Fix largefile aliases for the case of a largefile-insensitive build

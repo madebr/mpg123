@@ -2639,7 +2639,7 @@ if test x$network_type = xauto; then
 fi
 
 # new net123
-if test x$network_type != xinternal -a x$network_type != xdisabled; then
+if test x$network_type != xdisabled; then
   AC_DEFINE([NET123], [1], [ Define to for new net123 network stack. ])
 fi
 if test x$network_type = xexec -a x$have_fork != xyes; then
