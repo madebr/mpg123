@@ -1,6 +1,8 @@
 1.31.2
 ------
 - Fix build --with-network=internal only (configure logic error, bug 348).
+- Fix OS/2 build with getaddrinfo() (which may support IPv6 eventually, thanks
+  to Dave Yeo).
 
 1.31.1
 ------
