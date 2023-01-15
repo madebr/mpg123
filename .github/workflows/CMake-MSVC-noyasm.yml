@@ -1,0 +1,24 @@
+name: CMake MSVC noyasm
+
+on: push
+
+jobs:
+  build:
+    defaults:
+      run:
+        shell: cmd
+    strategy:
+      matrix:
+        # currently windows-latest==windows-2022
+        # windows-2022: VS2022
+        # windows-2019: VS2019
+        os: [windows-2022, windows-2019]
+        arch: [Win32, x64, ARM, ARM64]
+        shared: [ON, OFF]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: CMake
+        run: cd ports\cmake && cmake -A ${{ matrix.arch }} -DBUILD_SHARED_LIBS=${{ matrix.shared }} .
+      - name: CMake --build
+        run: cd ports\cmake && cmake --build .
