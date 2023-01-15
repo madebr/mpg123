@@ -71,6 +71,19 @@ add_library(${TARGET}
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/$<$<BOOL:${LFS_SENSITIVE}>:lfs_wrap.c>"
     $<TARGET_OBJECTS:compat>)
 
+if(MSVC)
+    if(MACHINE MATCHES "x86|amd64")
+      find_program(YASM_ASSEMBLER yasm)
+      if(NOT YASM_ASSEMBLER)
+          message(WARNING "Couldn't find yasm assembler for optimizded decoders. Please set YASM_ASSEMBLER variable")
+          set(MACHINE generic)
+      endif()
+    else()
+      message(WARNING "Need work to support non-x86 assembly optimizations with MSVC.")
+      set(MACHINE generic)
+    endif()
+endif()
+
 if(MACHINE STREQUAL "amd64")
     if(HAVE_FPU)
         set(PLATFORM_DEFINITIONS OPT_MULTI OPT_X86_64 OPT_AVX OPT_GENERIC OPT_GENERIC_DITHER)
@@ -135,10 +148,6 @@ elseif(MACHINE STREQUAL "x86")
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dct64_i386.c")
     endif()
 elseif(MACHINE STREQUAL "arm64")
-    if(MSVC)
-        set(PLATFORM_DEFINITIONS OPT_GENERIC)
-        message(WARNING "Cannot use platform-specific assembly sources on MSVC")
-    else()
         set(PLATFORM_DEFINITIONS OPT_MULTI OPT_GENERIC OPT_GENERIC_DITHER OPT_NEON64)
         set(PLATFORM_SOURCES
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dct36_neon64.S"
@@ -160,13 +169,8 @@ elseif(MACHINE STREQUAL "arm64")
         target_sources(${TARGET} PRIVATE
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dither.c"
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/getcpuflags_arm.c")
-    endif()
 elseif(MACHINE STREQUAL "arm32")
     if(HAVE_FPU)
-        if(MSVC)
-            set(PLATFORM_DEFINITIONS OPT_GENERIC)
-            message(WARNING "Cannot use platform-specific assembly sources on MSVC")
-        else()
             set(PLATFORM_DEFINITIONS OPT_MULTI OPT_GENERIC OPT_GENERIC_DITHER OPT_NEON)
             set(PLATFORM_SOURCES
                 "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dct36_neon.S"
@@ -191,12 +195,7 @@ elseif(MACHINE STREQUAL "arm32")
             target_sources(${TARGET} PRIVATE ${PLATFORM_SOURCES})
             target_sources(${TARGET} PRIVATE
                 "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dither.c")
-        endif()
     else()
-        if(MSVC)
-            set(PLATFORM_DEFINITIONS OPT_GENERIC)
-            message(WARNING "Cannot use platform-specific assembly sources on MSVC")
-        else()
             set(PLATFORM_DEFINITIONS OPT_ARM)
             if(ACCURATE_ROUNDING)
                 set(PLATFORM_SOURCES
@@ -206,7 +205,6 @@ elseif(MACHINE STREQUAL "arm32")
                     "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_arm.S")
             endif()
             target_sources(${TARGET} PRIVATE ${PLATFORM_SOURCES})
-        endif()
     endif()
 elseif(MACHINE STREQUAL "generic")
     set(PLATFORM_DEFINITIONS OPT_GENERIC)
@@ -222,11 +220,7 @@ target_compile_definitions(${TARGET} PRIVATE
     $<$<BOOL:${HAVE_FPU}>:REAL_IS_FLOAT>
     $<$<NOT:$<BOOL:${HAVE_FPU}>>:REAL_IS_FIXED>)
 
-if(MSVC AND MACHINE MATCHES "x86|amd64")
-    find_program(YASM_ASSEMBLER yasm)
-    if(NOT YASM_ASSEMBLER)
-        message(FATAL_ERROR "Couldn't find yasm assembler. Please set YASM_ASSEMBLER variable")
-    endif()
+if(MSVC AND MACHINE MATCHES "x86|amd64" AND YASM_ASSEMBLER)
     list(TRANSFORM PLATFORM_DEFINITIONS PREPEND /D)
     foreach(FILE ${PLATFORM_SOURCES})
         get_filename_component(FILENAME ${FILE} NAME)
