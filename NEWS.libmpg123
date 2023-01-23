@@ -1,5 +1,7 @@
 Changes in libmpg123 libtool interface versions...
 
+48.0.48 - Added mpg123_distversion() and mpg123_libversion().
+
 47.0.47 - Added mpg123_eq_bands(), mpg123_eq_change() and mpg123_volume_change_db().
 
 46.0.46

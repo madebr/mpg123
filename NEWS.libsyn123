@@ -1,3 +1,6 @@
+2.0.2
+	- Added syn123_distversion() and syn123_libversion().
+
 1.0.1
 	- initial version
 

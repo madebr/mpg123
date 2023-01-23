@@ -1,4 +1,5 @@
 #include "config.h"
+#include "version.h"
 #include "net123.h"
 #include "compat.h"
 #include "debug.h"
@@ -93,7 +94,7 @@ net123_handle *net123_open_winhttp(const char *url, const char * const *client_h
   size_t ii;
   WINBOOL res;
   DWORD headerlen;
-  const LPCWSTR useragent = MPG123WSTR(PACKAGE_NAME) L"/" MPG123WSTR(PACKAGE_VERSION);
+  const LPCWSTR useragent = MPG123WSTR(PACKAGE_NAME) L"/" MPG123WSTR(MPG123_VERSION);
   WINHTTP_STATUS_CALLBACK cb;
 
   if(!WinHttpCheckPlatform())

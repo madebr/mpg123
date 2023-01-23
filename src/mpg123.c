@@ -10,6 +10,8 @@
 #include "mpg123app.h"
 #include "mpg123.h"
 #include "out123.h"
+#include "syn123.h"
+#include "version.h"
 #include "local.h"
 
 #ifdef HAVE_SYS_WAIT_H
@@ -50,6 +52,7 @@ static void long_usage(int err);
 static void want_long_usage(char* arg, topt *);
 static void print_title(FILE* o);
 static void give_version(char* arg, topt *);
+static void give_libversion(char* arg, topt *);
 
 struct parameter param = { 
   FALSE , /* aggressiv */
@@ -701,6 +704,7 @@ topt opts[] = {
 	{'?', "help",            0,  want_usage, 0,           0 },
 	{0 , "longhelp" ,        0,  want_long_usage, 0,      0 },
 	{0 , "version" ,         0,  give_version, 0,         0 },
+	{0,   "libversion" ,     0,  give_libversion, 0,      0 },
 	{'l', "listentry",       GLO_ARG | GLO_LONG, 0, &param.listentry, 0 },
 	{0, "continue",      GLO_LONG, set_appflag, &appflag, MPG123APP_CONTINUE },
 	{0, "rva-mix",         GLO_INT,  0, &param.rva, 1 },
@@ -1740,6 +1744,7 @@ static void long_usage(int err)
 	fprintf(o," -?     --help             give compact help\n");
 	fprintf(o,"        --longhelp         give this long help listing\n");
 	fprintf(o,"        --version          give name / version string\n");
+	fprintf(o,"        --libversion       give version info on mpg123 libraries\n");
 
 	fprintf(o,"\nSee the manpage "PACKAGE_NAME"(1) for more information.\n");
 	mpg123_free_string(enclist);
@@ -1754,7 +1759,19 @@ static void want_long_usage(char* arg, topt *opts)
 
 static void give_version(char* arg, topt *opts)
 {
-	fprintf(stdout, PACKAGE_NAME" "PACKAGE_VERSION"\n");
+	fprintf(stdout, PACKAGE_NAME " " MPG123_VERSION "\n");
+	safe_exit(0);
+}
+
+static void give_libversion(char* arg, topt *opts)
+{
+	unsigned int pl = 0;
+	unsigned int al = mpg123_libversion(&pl);
+	printf("libmpg123 from mpg123 %s, API version %u, patchlevel %u\n", mpg123_distversion(NULL, NULL, NULL), al, pl);
+	al = out123_libversion(&pl);
+	printf("libout123 from mpg123 %s, API version %u, patchlevel %u\n", out123_distversion(NULL, NULL, NULL), al, pl);
+	al = syn123_libversion(&pl);
+	printf("libsyn123 from mpg123 %s, API version %u, patchlevel %u\n", syn123_distversion(NULL, NULL, NULL), al, pl);
 	safe_exit(0);
 }
 

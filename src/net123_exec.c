@@ -13,6 +13,7 @@
 #define _POSIX_C_SOURCE 200112L
 
 #include "config.h"
+#include "version.h"
 #include "net123.h"
 // for strings
 #include "mpg123.h"
@@ -171,7 +172,7 @@ static char **wget_argv(const char *url, const char * const * client_head)
 	int an = 0;
 	for(;an<sizeof(base_args)/sizeof(char*); ++an)
 		argv[an] = compat_strdup(base_args[an]);
-	argv[an++] = compat_strdup("--user-agent=" PACKAGE_NAME "/" PACKAGE_VERSION);
+	argv[an++] = compat_strdup("--user-agent=" PACKAGE_NAME "/" MPG123_VERSION);
 	for(size_t ch=0; ch < cheads; ++ch)
 		argv[an++] = catstr("--header=", client_head[ch]);
 	if(user)
@@ -219,7 +220,7 @@ static char **curl_argv(const char *url, const char * const * client_head)
 	if(got_curl > 1)
 		argv[an++] = compat_strdup("--http0.9");
 	argv[an++] = compat_strdup("--user-agent");
-	argv[an++] = compat_strdup(PACKAGE_NAME "/" PACKAGE_VERSION);
+	argv[an++] = compat_strdup(PACKAGE_NAME "/" MPG123_VERSION);
 	for(size_t ch=0; ch < cheads; ++ch)
 	{
 		argv[an++] = compat_strdup("--header");

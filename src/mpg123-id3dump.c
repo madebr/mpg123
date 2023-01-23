@@ -10,6 +10,7 @@
 #define _DEFAULT_SOURCE
 #define _BSD_SOURCE
 #include "config.h"
+#include "version.h"
 #include "compat.h"
 #if defined(WIN32) && defined(DYNAMIC_BUILD)
 #define LINK_MPG123_DLL
@@ -47,7 +48,7 @@ static void usage(int err)
 		fprintf(o, "You made some mistake in program usage... let me briefly remind you:\n\n");
 	}
 	fprintf(o, "Tool to dump ID3 meta data from MPEG audio files using libmpg123\n");
-	fprintf(o, "\tversion %s; written and copyright by Thomas Orgis and the mpg123 project\n", PACKAGE_VERSION);
+	fprintf(o, "\tversion %s; written and copyright by Thomas Orgis and the mpg123 project\n", MPG123_VERSION);
 	fprintf(o,"\nusage: %s [option(s)] file(s)\n", progname);
 	fprintf(o,"\noptions:\n");
 	fprintf(o," -h     --help              give usage help\n");

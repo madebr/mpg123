@@ -31,6 +31,7 @@ src_out123_LDFLAGS = @EXEC_LT_LDFLAGS@
 
 EXTRA_DIST += \
   src/intsym.h \
+  src/version.h \
   src/mpg123-with-modules \
   src/out123-with-modules
 

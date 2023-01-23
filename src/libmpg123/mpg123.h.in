@@ -14,12 +14,12 @@
 /** \file mpg123.h The header file for the libmpg123 MPEG Audio decoder */
 
 /** A macro to check at compile time which set of API functions to expect.
- * This should be incremented at least each time a new symbol is added
+ * This must be incremented at least each time a new symbol is added
  * to the header.
  */
-#ifndef MPG123_API_VERSION
-#define MPG123_API_VERSION @API_VERSION@
-#endif
+#define MPG123_API_VERSION 48
+/** library patch level at client build time */
+#define MPG123_PATCHLEVEL  0
 
 #ifndef MPG123_EXPORT
 /** Defines needed for MS Visual Studio(tm) DLL builds.
@@ -173,6 +173,21 @@ struct mpg123_handle_struct;
  *  Most functions take a pointer to a mpg123_handle as first argument and operate on its data in an object-oriented manner.
  */
 typedef struct mpg123_handle_struct mpg123_handle;
+
+/** Get version of the mpg123 distribution this library build came with.
+ * (optional means non-NULL)
+ * \param major optional address to store major version number
+ * \param minor optional address to store minor version number
+ * \param patch optional address to store patchlevel version number
+ * \return full version string (like "1.2.3-beta4 (experimental)")
+ */
+const char *mpg123_distversion(unsigned int *major, unsigned int *minor, unsigned int *patch);
+
+/** Get API version of library build.
+ * \param patch optional address to store patchlevel
+ * \return API version of library
+ */
+unsigned int mpg123_libversion(unsigned int *patch);
 
 /** Useless no-op that used to do initialization work.
  *

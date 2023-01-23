@@ -20,8 +20,27 @@
 */
 
 #include "syn123_int.h"
+#include "version.h"
 #include "sample.h"
 #include "debug.h"
+
+const char * attribute_align_arg syn123_distversion(unsigned int *major, unsigned int *minor, unsigned int *patch)
+{
+	if(major)
+		*major = MPG123_MAJOR;
+	if(minor)
+		*minor = MPG123_MINOR;
+	if(patch)
+		*patch = MPG123_PATCH;
+	return MPG123_VERSION;
+}
+
+unsigned int attribute_align_arg syn123_libversion(unsigned int *patch)
+{
+	if(patch)
+		*patch = SYN123_PATCHLEVEL;
+	return SYN123_API_VERSION;
+}
 
 static const double freq_error = 1e-4;
 /* For our precisions, that value will always be good enough. */

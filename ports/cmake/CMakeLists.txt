@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 
 include(cmake/read_api_version.cmake)
-read_api_version(MPG123_VERSION API_VERSION OUTAPI_VERSION SYNAPI_VERSION)
+read_api_version(MPG123_VERSION)
 
 project(mpg123 VERSION ${MPG123_VERSION} LANGUAGES C ASM)
 

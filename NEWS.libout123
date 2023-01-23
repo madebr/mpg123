@@ -1,3 +1,6 @@
+5.0.5
+	- Added out123_distversion() and out123_libversion().
+
 4.0.4
 	- added enum-less variants out123_param2() and out123_getparam2(), replacing
 	  the enum variants unless MPG123_ENUM_API is defined

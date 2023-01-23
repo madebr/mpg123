@@ -28,6 +28,7 @@
 
 #include "mpg123app.h"
 #include "httpget.h"
+#include "version.h"
 
 #ifdef NETWORK
 #include "resolver.h"
@@ -329,7 +330,7 @@ int fill_request(mpg123_string *request, mpg123_string *host, mpg123_string *por
 	if(   !mpg123_add_string(request, " HTTP/1.0\r\nUser-Agent: ")
 		 || !mpg123_add_string(request, PACKAGE_NAME)
 		 || !mpg123_add_string(request, "/")
-		 || !mpg123_add_string(request, PACKAGE_VERSION)
+		 || !mpg123_add_string(request, MPG123_VERSION)
 		 || !mpg123_add_string(request, "\r\n") )
 	return FALSE;
 

@@ -7,6 +7,7 @@
 */
 
 #include "out123_int.h"
+#include "version.h"
 #include "wav.h"
 #include "hextxt.h"
 #ifndef NOXFERMEM
@@ -19,6 +20,24 @@ static int have_buffer(out123_handle *ao)
 #include "stringlists.h"
 
 #include "debug.h"
+
+const char * attribute_align_arg out123_distversion(unsigned int *major, unsigned int *minor, unsigned int *patch)
+{
+	if(major)
+		*major = MPG123_MAJOR;
+	if(minor)
+		*minor = MPG123_MINOR;
+	if(patch)
+		*patch = MPG123_PATCH;
+	return MPG123_VERSION;
+}
+
+unsigned int attribute_align_arg out123_libversion(unsigned int *patch)
+{
+	if(patch)
+		*patch = OUT123_PATCHLEVEL;
+	return OUT123_API_VERSION;
+}
 
 /* An output that is live and does not deal with pausing itself.
    The device needs to be closed if we stop feeding. */

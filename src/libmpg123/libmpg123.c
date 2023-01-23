@@ -7,6 +7,7 @@
 */
 
 #include "mpg123lib_intern.h"
+#include "version.h"
 #include "icy2utf8.h"
 
 #include "gapless.h"
@@ -18,6 +19,24 @@
 #include "debug.h"
 
 #define SEEKFRAME(mh) ((mh)->ignoreframe < 0 ? 0 : (mh)->ignoreframe)
+
+const char * attribute_align_arg mpg123_distversion(unsigned int *major, unsigned int *minor, unsigned int *patch)
+{
+	if(major)
+		*major = MPG123_MAJOR;
+	if(minor)
+		*minor = MPG123_MINOR;
+	if(patch)
+		*patch = MPG123_PATCH;
+	return MPG123_VERSION;
+}
+
+unsigned int attribute_align_arg mpg123_libversion(unsigned int *patch)
+{
+	if(patch)
+		*patch = MPG123_PATCHLEVEL;
+	return MPG123_API_VERSION;
+}
 
 int attribute_align_arg mpg123_init(void)
 {

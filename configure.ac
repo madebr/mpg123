@@ -9,32 +9,64 @@ dnl 2.69 at least.
 AC_PREREQ([2.69])
 
 dnl ############# Initialisation
-AC_INIT([mpg123], [1.31.2], [maintainer@mpg123.org])
-dnl Increment API_VERSION when the API gets changes (new functions).
+
+dnl Set version numbers from header version.h and each library API header.
+dnl Do not forget the re-generate configure on version changes. This does
+dnl not happen automatically, as it would with m4_include() usage, wich
+dnl is too fragile with arbitrary header contents.
+
+m4_define([V_HEADER], m4_esyscmd(grep MPG123_ src/version.h))
+m4_define([V_MAJOR], m4_bregexp(V_HEADER,
+        [#define MPG123_MAJOR\s+\([0-9]+\)],
+        [\1]))
+m4_define([V_MINOR], m4_bregexp(V_HEADER,
+        [\#define MPG123_MINOR\s+\([0-9]+\)],
+        [\1]))
+m4_define([V_PATCH], m4_bregexp(V_HEADER,
+        [\#define MPG123_PATCH\s+\([0-9]+\)],
+        [\1]))
+m4_define([V_SUFFIX], m4_bregexp(V_HEADER,
+        [\#define MPG123_SUFFIX\s+"\(.+\)"],
+        [\1]))
+m4_undefine([V_HEADER])
+
+AC_INIT([mpg123], V_MAJOR.V_MINOR.V_PATCH[]V_SUFFIX, [maintainer@mpg123.org])
+
+m4_define([V_HEADER], m4_esyscmd(grep -e _API_VERSION -e _PATCHLEVEL src/libmpg123/mpg123.h.in src/libout123/out123.h.in src/libsyn123/syn123.h.in))
 
 dnl libmpg123
-API_VERSION=47
-LIB_PATCHLEVEL=0
+m4_define([API_VERSION], m4_bregexp(V_HEADER,
+        [\#define MPG123_API_VERSION\s+\([0-9]+\)],
+        [\1]))
+m4_define([LIB_PATCHLEVEL], m4_bregexp(V_HEADER,
+        [\#define MPG123_PATCHLEVEL\s+\([0-9]+\)],
+        [\1]))
 
 dnl libout123
-OUTAPI_VERSION=4
-OUTLIB_PATCHLEVEL=7
+m4_define([OUTAPI_VERSION], m4_bregexp(V_HEADER,
+        [\#define OUT123_API_VERSION\s+\([0-9]+\)],
+        [\1]))
+m4_define([OUTLIB_PATCHLEVEL], m4_bregexp(V_HEADER,
+        [\#define OUT123_PATCHLEVEL\s+\([0-9]+\)],
+        [\1]))
 
 dnl libsyn123
-SYNAPI_VERSION=1
-SYNLIB_PATCHLEVEL=4
+m4_define([SYNAPI_VERSION], m4_bregexp(V_HEADER,
+        [\#define SYN123_API_VERSION\s+\([0-9]+\)],
+        [\1]))
+m4_define([SYNLIB_PATCHLEVEL], m4_bregexp(V_HEADER,
+        [\#define SYN123_PATCHLEVEL\s+\([0-9]+\)],
+        [\1]))
+
+m4_undefine([V_HEADER])
 
 dnl Since we want to be backwards compatible, both sides get set to API_VERSION.
-LIBMPG123_VERSION=$API_VERSION:$LIB_PATCHLEVEL:$API_VERSION
-LIBOUT123_VERSION=$OUTAPI_VERSION:$OUTLIB_PATCHLEVEL:$OUTAPI_VERSION
-LIBSYN123_VERSION=$SYNAPI_VERSION:$SYNLIB_PATCHLEVEL:$SYNAPI_VERSION
-AC_SUBST(LIBMPG123_VERSION)
-AC_SUBST(API_VERSION)
-AC_SUBST(LIBOUT123_VERSION)
-AC_SUBST(OUTAPI_VERSION)
-AC_SUBST(LIBSYN123_VERSION)
-AC_SUBST(SYNAPI_VERSION)
-
+LIBMPG123_VERSION=API_VERSION:LIB_PATCHLEVEL:API_VERSION
+LIBOUT123_VERSION=OUTAPI_VERSION:OUTLIB_PATCHLEVEL:OUTAPI_VERSION
+LIBSYN123_VERSION=SYNAPI_VERSION:SYNLIB_PATCHLEVEL:SYNAPI_VERSION
+AC_SUBST([LIBMPG123_VERSION])
+AC_SUBST([LIBOUT123_VERSION])
+AC_SUBST([LIBSYN123_VERSION])
 
 AC_CONFIG_SRCDIR(src/mpg123.c)
 AC_CONFIG_AUX_DIR(build)

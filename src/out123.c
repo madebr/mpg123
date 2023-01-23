@@ -28,6 +28,7 @@
 
 #define ME "out123"
 #include "config.h"
+#include "version.h"
 #include "compat.h"
 #include <ctype.h>
 #if WIN32
@@ -1759,7 +1760,7 @@ static char* output_enclist(void)
 static void print_title(FILE *o)
 {
 	fprintf(o, "Simple audio output with raw PCM input\n");
-	fprintf(o, "\tversion %s; derived from mpg123 by Michael Hipp and others\n", PACKAGE_VERSION);
+	fprintf(o, "\tversion %s; derived from mpg123 by Michael Hipp and others\n", MPG123_VERSION);
 	fprintf(o, "\tfree software (LGPL) without any warranty but with best wishes\n");
 }
 
@@ -1933,6 +1934,6 @@ static void want_long_usage(char* arg, topt *opts)
 
 static void give_version(char* arg, topt *opts)
 {
-	fprintf(stdout, "out123 "PACKAGE_VERSION"\n");
+	fprintf(stdout, "out123 "MPG123_VERSION"\n");
 	safe_exit(0);
 }
