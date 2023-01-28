@@ -3,6 +3,7 @@
 - build:
 -- Fall back to generic decoder if no yasm for MSVC (bug 346).
 -- Move version handling out of configure.ac to ease other build systems.
+-- Fix --disable-8bit.
 - mpg123: added --libversion
 - libmpg123, libout123, libsyn123: bumped API version for version query
   functions

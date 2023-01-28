@@ -932,7 +932,7 @@ if test "x$int8" = "xdisabled"; then
   AC_DEFINE(NO_8BIT, 1, [ Define to disable 8 bit integer output. ])
 fi
 
-AM_CONDITIONAL([HAVE_SYNTH8], [test "x$int16" = "xenabled"])
+AM_CONDITIONAL([HAVE_SYNTH8], [test "x$int8" = "xenabled"])
 
 if test "x$int32" = "xdisabled"; then
   AC_DEFINE(NO_32BIT, 1, [ Define to disable 32 bit and 24 bit integer output. ])
