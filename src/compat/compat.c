@@ -179,7 +179,9 @@ void compat_binmode(int fd, int enable)
 	it late to some official APIs, that's still fine with us.
 */
 
+#ifdef WANT_WIN32_UNICODE
 typedef HRESULT (__stdcall *PCA_ptr)( const wchar_t *, const wchar_t*, unsigned long, wchar_t **);
+#endif
 
 char* compat_catpath(const char *prefix, const char* path)
 {
