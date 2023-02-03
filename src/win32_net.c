@@ -99,6 +99,7 @@ ssize_t win32_net_read (int fildes, void *buf, size_t nbyte)
   return ret;
 }
 
+/*
 static int get_sock_ch (int sock)
 {
   char c;
@@ -108,6 +109,7 @@ static int get_sock_ch (int sock)
     return (((int) c)&0xff);
   return -1;
 }
+*/
 
 ssize_t win32_net_write (int fildes, const void *buf, size_t nbyte)
 {
