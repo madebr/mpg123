@@ -186,7 +186,7 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar
 	char *line = NULL;
 
 #ifndef __OS2__
-#ifndef WIN32
+#ifndef _WIN32
 #ifndef GENERIC
 /* Only generate new stat line when stderr is ready... don't overfill... */
 	{

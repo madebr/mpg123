@@ -54,6 +54,7 @@ static DWORD wrap_auth(winhttp_handle *nh){
     ret = WinHttpSetCredentials(nh->request, WINHTTP_AUTH_TARGET_SERVER, mode, nh->comps.lpszUserName, nh->comps.lpszPassword, NULL);
     return GetLastError();
   }
+  return TRUE;
 }
 
 #if DEBUG
@@ -96,6 +97,7 @@ net123_handle *net123_open_winhttp(const char *url, const char * const *client_h
   DWORD headerlen;
   const LPCWSTR useragent = MPG123WSTR(PACKAGE_NAME) L"/" MPG123WSTR(MPG123_VERSION);
   WINHTTP_STATUS_CALLBACK cb;
+  net123_handle *handle = NULL;
 
   if(!WinHttpCheckPlatform())
     return NULL;
@@ -106,7 +108,7 @@ net123_handle *net123_open_winhttp(const char *url, const char * const *client_h
   winhttp_handle *ret = calloc(1, sizeof(winhttp_handle));
   if (!ret) goto cleanup;
 
-  net123_handle *handle = calloc(1, sizeof(net123_handle));
+  handle = calloc(1, sizeof(net123_handle));
   if (!handle) {
     free(ret);
     goto cleanup;
@@ -179,7 +181,7 @@ net123_handle *net123_open_winhttp(const char *url, const char * const *client_h
 
   if (!res) {
     res = GetLastError();
-    error1("WinHttpSendRequest failed with %lu", res);
+    error1("WinHttpSendRequest failed with %d", res);
     if(res == ERROR_WINHTTP_SECURE_FAILURE){
       res = *(DWORD *)ret->additionalInfo;
       error("Additionally, the ERROR_WINHTTP_SECURE_FAILURE failed with:");
@@ -222,8 +224,10 @@ net123_handle *net123_open_winhttp(const char *url, const char * const *client_h
 cleanup:
   debug("net123_open error");
   if (urlW) free(urlW);
-  net123_close(handle);
-  handle = NULL;
+  if (handle) {
+    net123_close(handle);
+    handle = NULL;
+  }
   return handle;
 }
 

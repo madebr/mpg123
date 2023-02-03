@@ -18,7 +18,7 @@
 /* import DLL symbols on windows */
 
 #include "httpget.h"
-#if WIN32
+#if _WIN32
 #include "win32_support.h"
 #endif
 

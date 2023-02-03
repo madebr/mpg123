@@ -518,7 +518,6 @@ static int close_win32(out123_handle *ao)
 static int enumerate_win32( out123_handle *ao, int (*store_device)(void *devlist
 ,       const char *name, const char *description), void *devlist )
 {
-	int len;
 	char *pszID = NULL, *pszDesc = NULL;
 	HRESULT hr = S_OK;
 	UINT pcDevices = 0, i = 0;
@@ -614,6 +613,7 @@ static int init_win32(out123_handle* ao){
 	ao->close = close_win32;
 	ao->userptr = NULL;
 	ao->enumerate = enumerate_win32;
+	ao->deinit = deinit_win32;
 
 	/* Success */
 	return 0;

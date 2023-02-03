@@ -31,10 +31,10 @@
 #include "version.h"
 #include "compat.h"
 #include <ctype.h>
-#if WIN32
+#if _WIN32
 #include "win32_support.h"
 #endif
-#if defined(WIN32) && defined(DYNAMIC_BUILD)
+#if defined(_WIN32) && defined(DYNAMIC_BUILD)
 #define LINK_MPG123_DLL
 #endif
 #include "out123.h"
@@ -109,7 +109,9 @@ static int realtime = FALSE;
 #ifdef HAVE_WINDOWS_H
 static int w32_priority = 0;
 #endif
+#ifdef HAVE_SETPRIORITY
 static int aggressive = FALSE;
+#endif
 static double preload = 0.2;
 static long outflags = 0;
 double preamp = 0.;

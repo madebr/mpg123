@@ -74,13 +74,14 @@ net123_handle *net123_open_wininet(const char *url, const char * const *client_h
   size_t ii;
   WINBOOL res;
   DWORD headerlen;
+  net123_handle *ret = NULL;
   const LPCWSTR useragent = MPG123WSTR(PACKAGE_NAME) L"/" MPG123WSTR(MPG123_VERSION);
   INTERNET_STATUS_CALLBACK cb;
 
   win32_utf8_wide(url, &urlW, NULL);
   if(urlW == NULL) goto cleanup;
 
-  net123_handle *ret = calloc(1, sizeof(net123_handle));
+  ret = calloc(1, sizeof(net123_handle));
   wininet_handle *wh = calloc(1, sizeof(wininet_handle));
   if(!ret || !wh)
   {
@@ -159,7 +160,7 @@ net123_handle *net123_open_wininet(const char *url, const char * const *client_h
 
   if (!res) {
     res = GetLastError();
-    error1("HttpSendRequestW failed with %lu", res);
+    error1("HttpSendRequestW failed with %d", res);
     goto cleanup;
   }
   debug("HttpSendRequestW OK");
@@ -197,8 +198,10 @@ net123_handle *net123_open_wininet(const char *url, const char * const *client_h
 cleanup:
   debug("net123_open error");
   if (urlW) free(urlW);
-  net123_close(ret);
-  ret = NULL;
+  if(ret) {
+    net123_close(ret);
+    ret = NULL;
+  }
   return ret;
 }
 
@@ -220,7 +223,7 @@ static size_t net123_read(net123_handle *nh, void *buf, size_t bufsize){
   /* is this needed? */
   to_copy = bufsize > ULONG_MAX ? ULONG_MAX : bufsize;
   if(!InternetReadFile(wh->request, buf, to_copy, &bytesread)){
-    error1("InternetReadFile exited with %d", GetLastError());
+    error1("InternetReadFile exited with %ld", GetLastError());
     return EOF;
   }
   return bytesread;

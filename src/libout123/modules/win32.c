@@ -169,11 +169,10 @@ static void wait_for_buffer(WAVEHDR* hdr, HANDLE hEvent)
 static int get_formats_win32(out123_handle *ao)
 {
     WAVEOUTCAPSA caps;
-    MMRESULT mr;
     int ret = 0;
     UINT dev_id = dev_select(ao);
 
-    mr = waveOutGetDevCaps(dev_id, &caps, sizeof(caps));
+    MMRESULT mr = waveOutGetDevCaps(dev_id, &caps, sizeof(caps));
     if(mr != MMSYSERR_NOERROR)
       return 0; /* no formats? */
 
@@ -369,6 +368,21 @@ static int enumerate_win32( out123_handle *ao, int (*store_device)(void *devlist
     memset(id, 0, sizeof(id));
     memset(&caps, 0, sizeof(caps));
     mr = waveOutGetDevCaps(i, &caps, sizeof(caps));
+    if (mr != MMSYSERR_NOERROR) {
+      switch(mr) {
+        case MMSYSERR_BADDEVICEID:
+          error("enumerate_win32: Specified device identifier is out of range.");
+          break;
+        case MMSYSERR_NODRIVER:
+          error("enumerate_win32: No device driver is present.");
+          break;
+        case MMSYSERR_NOMEM:
+          error("enumerate_win32: Unable to allocate or lock memory.");
+          break;
+        default:
+          merror("enumerate_win32: Uknown error 0x%x.", mr);
+        }
+    }
     mdebug("waveOutGetDevCaps mr %x", mr);
     snprintf(id, sizeof(id) - 1, "%u", i);
     store_device(devlist, id, caps.szPname);

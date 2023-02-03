@@ -12,6 +12,8 @@
 #include "config.h"
 /* This source file does need _POSIX_SOURCE to get some sigaction. */
 #define _POSIX_SOURCE
+/* Fix pedantic error about w2upath being unused */
+#define HIDE_w2upath
 #include "compat.h"
 
 #ifdef _MSC_VER
@@ -87,7 +89,7 @@ void *compat_dlsym(void *handle, const char *name)
 	if(!handle)
 		return NULL;
 #ifdef WANT_WIN32_UNICODE
-	sym = GetProcAddress(handle, name);
+	sym = (void *)(uintptr_t)GetProcAddress(handle, name);
 #else
 	sym = dlsym(handle, name);
 #endif
