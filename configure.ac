@@ -1400,9 +1400,11 @@ if test x"$debugging" = xenabled; then
 	ADD_CFLAGS="-g"
 fi
 # gcc specific...
+# -Wall -Werror breaks libtool wrappers, do it only for compiling phase, not the linking phase
 if test x"$GCC" = xyes; then
 	if test x"$nagging" = xenabled; then
-		ADD_CFLAGS="$ADD_CFLAGS -Wall -Werror -std=c99 -pedantic"
+		ADD_CPPFLAGS="$ADD_CPPFLAGS -Wall -Werror -pedantic"
+		ADD_CLAGS="$ADD_CFLAGS -std=c99"
 	fi
 fi
 
