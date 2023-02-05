@@ -31,7 +31,7 @@
  *  know sizes of encodings added to fmt123.h later on.
  *  If you don't care, just use the macro.
  */
-#include <fmt123.h>
+#include "fmt123.h"
 
 #ifndef MPG123_EXPORT
 /** Defines needed for MS Visual Studio(tm) DLL builds.

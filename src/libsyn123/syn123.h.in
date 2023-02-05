@@ -14,7 +14,7 @@
 /** \file syn123.h The header file for the libsyn123 library. */
 
 /* Common audio encoding specification. */
-#include <fmt123.h>
+#include "fmt123.h"
 
 /** A macro to check at compile time which set of API functions to expect.
  * This must be incremented at least each time a new symbol is added
