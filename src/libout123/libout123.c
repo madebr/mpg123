@@ -7,7 +7,10 @@
 */
 
 #include "out123_int.h"
+
+#ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
+#endif
 
 // unistd.h sets those 
 #if _POSIX_TIMERS > 0
