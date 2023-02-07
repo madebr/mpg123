@@ -7,6 +7,7 @@
 -- Include "fmt123.h" instead of <fmt123.h> in main API headers to make it more likely the
    correct one is included (at least gcc picks the one in the same directory as the
    including header first).
+-- TODO: make headers build-independent (some lfs aliasing for non-sensitive)
 - mpg123: added --libversion
 - libmpg123, libout123, libsyn123: bumped API version for version query
   functions
