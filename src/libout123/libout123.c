@@ -12,6 +12,11 @@
 #include <sys/time.h>
 #endif
 
+#ifdef _WIN32
+// for Sleep()
+#include <windows.h>
+#endif
+
 // unistd.h sets those 
 #if _POSIX_TIMERS > 0
 #include <time.h>
@@ -891,6 +896,16 @@ static void ts_update(struct timespec  *mytime)
 	mytime[0] = now;
 	ts_sub_zero(mytime+1, &passed);
 }
+#else
+// Sleep coarslely. Proper operation only with clock.
+static void sleep_seconds(unsigned long s)
+{
+#ifdef _WIN32
+	Sleep(s*1000);
+#else
+	sleep(s);
+#endif
+}
 #endif
 
 
@@ -969,7 +984,7 @@ static int sleep_write(out123_handle *ao, unsigned char *buf, int len)
 	// Just sleep off the whole seconds;
 	unsigned long *ms = ao->userptr;
 	*ms += (unsigned long)(duration*1000);
-	sleep(*ms/1000);
+	sleep_seconds(*ms/1000);
 	*ms %= 1000;
 #endif
 	return len;
@@ -989,9 +1004,9 @@ static void sleep_drain(out123_handle *ao)
 	}
 #else
 	unsigned long *ms = ao->userptr;
-	sleep(*ms/1000);
+	sleep_seconds(*ms/1000);
 	if(*ms%1000 > 500)
-		sleep(1);
+		sleep_seconds(1);
 	*ms = 0;
 #endif
 }
