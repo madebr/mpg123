@@ -11,6 +11,8 @@
 - mpg123: added --libversion
 - libmpg123, libout123, libsyn123: bumped API version for version query
   functions
+- libout123:
+-- Add sleep builtin output module (silent, but proper timing).
 
 1.31.2
 ------

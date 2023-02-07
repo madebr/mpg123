@@ -7,6 +7,18 @@
 */
 
 #include "out123_int.h"
+#include <sys/time.h>
+
+// unistd.h sets those 
+#if _POSIX_TIMERS > 0
+#include <time.h>
+#ifdef _POSIX_MONOTONIC_CLOCK
+#define SLEEP_CLOCK CLOCK_MONOTONIC
+#else
+#define SLEEP_CLOCK CLOCK_REALTIME
+#endif
+#endif
+
 #include "version.h"
 #include "wav.h"
 #include "hextxt.h"
@@ -831,6 +843,156 @@ static int test_close(out123_handle *ao)
 	return 0;
 }
 
+#ifdef SLEEP_CLOCK
+// Sleep output sleeps for the proper time, but
+// in a way that still allows overlap with actual
+// computation, keeping this amount of milliseconds
+// in a pretend buffer and returning. This has to be less
+// than 1000(less than a second).
+static long sleep_buf = 500;
+// Otherwise, coarse sleep()ing is used.
+static const long billion = 1000000000;
+
+// zero-saturating subtraction of time, paranoid about time_t being signed
+static void ts_sub_zero(struct timespec *a, const struct timespec *b)
+{
+	long long nsec = a->tv_nsec - b->tv_nsec;
+	long long sec  = a->tv_sec  - b->tv_sec;
+	sec  += nsec/billion;
+	nsec =  nsec%billion;
+	if(nsec < 0)
+	{
+		sec -= 1;
+		nsec = billion+nsec;
+	}
+	if(sec < 0)
+	{
+		sec = 0;
+		nsec = 0;
+	}
+	a->tv_sec = (time_t)sec;
+	a->tv_nsec = (long)nsec;
+}
+
+static void ts_update(struct timespec  *mytime)
+{
+	struct timespec now, passed;
+	if(clock_gettime(SLEEP_CLOCK, &now))
+	{
+		mytime[1].tv_sec = 0;
+		mytime[1].tv_nsec = 0;
+		return;
+	}
+	passed = now;
+	ts_sub_zero(&passed, mytime);
+	mytime[0] = now;
+	ts_sub_zero(mytime+1, &passed);
+}
+#endif
+
+
+static int sleep_open(out123_handle *ao)
+{
+	if(!ao)
+		return OUT123_ERR;
+	if(ao->format < 0)
+	{
+		ao->rate = 44100;
+		ao->channels = 2;
+		ao->format = MPG123_ENC_SIGNED_16;
+		return 0;
+	}
+	if(ao->rate < 1)
+		return OUT123_ERR;
+#ifdef SLEEP_CLOCK
+	// Two time counters:
+	// 0: last time we played something
+	// 1: remaining time in buffer
+	struct timespec *mytime = malloc(2*sizeof(struct timespec));
+	ao->userptr = mytime;
+	if(mytime)
+	{
+		mytime[0].tv_sec  = 0;
+		mytime[0].tv_nsec = 0;
+		mytime[1].tv_sec  = 0;
+		mytime[1].tv_nsec = 0;
+		// Check once if clock_gettime() actually works.
+		if(clock_gettime(SLEEP_CLOCK, mytime))
+		{
+			free(mytime);
+			ao->userptr = NULL;
+		}
+	}
+#else
+	unsigned long *buffer_ms = malloc(sizeof(unsigned long));
+	ao->userptr = buffer_ms;
+	if(buffer_ms)
+		*buffer_ms = 0;
+#endif
+	return (ao->userptr ? OUT123_OK : OUT123_ERR);
+}
+
+static int sleep_close(out123_handle *ao)
+{
+	if(!ao)
+		return -1;
+	if(ao->userptr)
+		free(ao->userptr);
+	ao->userptr = NULL;
+	return 0;
+}
+
+static int sleep_write(out123_handle *ao, unsigned char *buf, int len)
+{
+	if(!ao)
+		return -1;
+	double duration = (double)len/((double)ao->framesize*ao->rate);
+#ifdef SLEEP_CLOCK
+	struct timespec *mytime = ao->userptr;
+	mytime[1].tv_sec  += (time_t)duration;
+	mytime[1].tv_nsec += (long)((duration-(time_t)duration)*billion);
+	ts_update(mytime);
+	while(mytime[1].tv_sec > 0 || mytime[1].tv_nsec > sleep_buf*1000000)
+	{
+		suseconds_t sleep_ms;
+		if(mytime[1].tv_sec > 0)
+			sleep_ms = 1000 - sleep_buf;
+		else
+			sleep_ms = mytime[1].tv_nsec/1000000 - sleep_buf;
+		usleep(sleep_ms);
+		ts_update(mytime);
+	}
+#else
+	// Just sleep off the whole seconds;
+	unsigned long *ms = ao->userptr;
+	*ms += (unsigned long)(duration*1000);
+	sleep(*ms/1000);
+	*ms %= 1000;
+#endif
+	return len;
+}
+
+static void sleep_drain(out123_handle *ao)
+{
+	if(!ao || !ao->userptr)
+		return;
+#ifdef SLEEP_CLOCK
+	struct timespec *mytime = ao->userptr;
+	ts_update(mytime);
+	while(mytime[1].tv_sec || mytime[1].tv_nsec)
+	{
+		usleep(mytime[1].tv_sec ? 1000000 : mytime[1].tv_nsec/1000000);
+		ts_update(mytime);
+	}
+#else
+	unsigned long *ms = ao->userptr;
+	sleep(*ms/1000);
+	if(*ms%1000 > 500)
+		sleep(1);
+	*ms = 0;
+#endif
+}
+
 /* Open one of our builtin driver modules. */
 static int open_fake_module(out123_handle *ao, const char *driver)
 {
@@ -843,6 +1005,18 @@ static int open_fake_module(out123_handle *ao, const char *driver)
 		ao->flush = test_flush;
 		ao->drain = test_drain;
 		ao->close = test_close;
+	}
+	else
+	if(!strcmp("sleep", driver))
+	{
+		ao->propflags |= OUT123_PROP_LIVE|OUT123_PROP_PERSISTENT;
+		ao->open = sleep_open;
+		ao->close = sleep_close;
+		ao->get_formats = test_get_formats;
+		ao->write = sleep_write;
+		ao->flush = builtin_nothing;
+		ao->drain = sleep_drain;
+		ao->close = sleep_close;
 	}
 	else
 	if(!strcmp("raw", driver))
@@ -1030,6 +1204,8 @@ out123_drivers(out123_handle *ao, char ***names, char ***descr)
 		,	"au", "Sun AU file (builtin)", &count )
 	||	stringlists_add( &tmpnames, &tmpdescr
 		,	"test", "output into the void (builtin)", &count )
+	||	stringlists_add( &tmpnames, &tmpdescr
+		,	"sleep", "output into the void that takes its time (builtin)", &count )
 	||	stringlists_add( &tmpnames, &tmpdescr
 		,	"hex", "interleaved hex printout (builtin)", &count )
 	||	stringlists_add( &tmpnames, &tmpdescr
