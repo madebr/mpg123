@@ -57,12 +57,8 @@
 #endif
 #endif
 
-/* Enable use of this file without configure. */
-/* Also make sure to define _FILE_OFFSET_BITS, too. */
-#ifndef MPG123_NO_CONFIGURE
-@INCLUDE_STDLIB_H@
-@INCLUDE_SYS_TYPE_H@
-#endif
+#include <stdlib.h>
+#include <sys/types.h>
 
 #ifdef __cplusplus
 extern "C" {
