@@ -1,5 +1,6 @@
 1.32.0
 ------
+TODO: fix up position calculations with syn123 resampling, drop 2to1, 4to1 decoding for proper resampling
 - build:
 -- Fall back to generic decoder if no yasm for MSVC (bug 346).
 -- Move version handling out of configure.ac to ease other build systems.
