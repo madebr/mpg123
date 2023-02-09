@@ -21,6 +21,7 @@
 #define MPG123_BACK_KEY	'b'
 #define MPG123_NEXT_KEY	'f'
 #define MPG123_PAUSE_KEY	'p'
+#define MPG123_LOOP_KEY	'o'
 #define MPG123_QUIT_KEY	'q'
 /* space bar is alias for that */
 #define MPG123_STOP_KEY	's'
@@ -76,8 +77,9 @@
 #define MPG123_PITCH_VAL 0.001
 #define MPG123_PITCH_BVAL 0.01
 
-#define MPG123_PAUSED_STRING	"Paused. \b\b\b\b\b\b\b\b"
+#define MPG123_PAUSED_STRING	"Looping.\b\b\b\b\b\b\b\b"
 #define MPG123_STOPPED_STRING	"Stopped.\b\b\b\b\b\b\b\b"
+#define MPG123_AB_STRING		"Loop A-?\b\b\b\b\b\b\b\b"
 #define MPG123_EMPTY_STRING	"        \b\b\b\b\b\b\b\b"
 
 /* Need it as string for the param struct, change according to the above. */
@@ -87,6 +89,7 @@
 
 int term_init(void); // -1 on error, 0 success or no terminal desired
 void term_exit(void);
+void term_new_track(void); // prepare for a new track being played
 off_t term_control(mpg123_handle *mh, out123_handle *ao);
 void term_hint(void); /* Print a message hinting at terminal usage. */
 

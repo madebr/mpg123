@@ -20,8 +20,8 @@
 
 #include "debug.h"
 
-int stopped = 0;
-int paused = 0;
+enum player_state playstate = STATE_PLAYING;
+const char playsym[STATE_COUNT] = { '>', '_', '=', '?' };
 int muted = 0;
 
 const char* rva_name[3] = { "off", "mix", "album" };
@@ -222,7 +222,7 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar
 	   Buffering makes the relationships between the numbers non-trivial. */
 	rframes = frames-frame;
 	// May be negative, a countdown. Buffer only confuses in paused (looping) mode, though.
-	elapsed = decoded + offset*spf - (paused ? 0 : buffered);
+	elapsed = decoded + offset*spf - (playstate==STATE_LOOPING ? 0 : buffered);
 	remain  = elapsed > 0 ? length - elapsed : length;
 	if(  MPG123_OK == mpg123_info(fr, &mi)
 	  && MPG123_OK == mpg123_getvolume(fr, &basevol, &realvol, NULL) )
@@ -285,7 +285,7 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar
 		/* Start with position info. */
 		len = snprintf( line, linelen
 		,	"%c %s+%s %c%02lu:%02lu%c%02lu+%02lu:%02lu%c%02lu"
-		,	stopped ? '_' : (paused ? '=' : '>')
+		,	playsym[playstate]
 		,	framestr[0], framestr[1]
 		,	sign[0]
 		,	times[0][0], times[0][1], timesep[0], times[0][2]

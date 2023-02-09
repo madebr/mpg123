@@ -723,6 +723,7 @@ topt opts[] = {
 	{0, "resync-limit", GLO_ARG | GLO_LONG, 0, &param.resync_limit, 0},
 	{0, "pitch", GLO_ARG|GLO_DOUBLE, 0, &param.pitch, 0},
 	{0, "pauseloop", GLO_ARG|GLO_DOUBLE, 0, &param.pauseloop, 0},
+	{0, "presetloop", GLO_ARG|GLO_DOUBLE, 0, &param.pauseloop, 0},
 #ifdef NETWORK
 	{0, "ignore-mime", GLO_LONG, set_appflag, &appflag, MPG123APP_IGNORE_MIME },
 #endif
@@ -1343,6 +1344,7 @@ int main(int sys_argc, char ** sys_argv)
 #endif
 		}
 		if(!APPFLAG(MPG123APP_CONTINUE)) frames_left = param.frame_number;
+		term_new_track();
 
 		debug1("Going to play %s", strcmp(fname, "-") ? fname : "standard input");
 		// If a previous track did not cause error, we forget the success to
@@ -1720,7 +1722,7 @@ static void long_usage(int err)
 	#ifndef GENERIC
 	fprintf(o,"        --title            set terminal title to filename\n");
 	#endif
-	fprintf(o,"        --pauseloop <s>    loop interval in (fractional) seconds\n");
+	fprintf(o,"        --presetloop <s>   preset loop interval in (fractional) seconds\n");
 	fprintf(o,"        --name <n>         set instance name (used in various places)\n");
 	fprintf(o,"        --long-tag         spacy id3 display with every item on a separate line\n");
 	fprintf(o,"        --lyrics           show lyrics (from ID3v2 USLT frame)\n");

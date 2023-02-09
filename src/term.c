@@ -18,7 +18,7 @@
 
 static int term_enable = 0;
 static const char *extrabreak = "";
-int seeking = FALSE;
+static int seeking = FALSE;
 
 extern out123_handle *ao;
 
@@ -36,7 +36,8 @@ struct keydef term_help[] =
 	,{ MPG123_NEXT_DIR_KEY, 0, "next directory" }
 	,{ MPG123_PREV_DIR_KEY, 0, "previous directory" }
 	,{ MPG123_BACK_KEY,    0, "back to beginning" }
-	,{ MPG123_PAUSE_KEY,   0, "loop (--pauseloop)" }
+	,{ MPG123_LOOP_KEY,    0, "A-B loop" }
+	,{ MPG123_PAUSE_KEY,   0, "preset loop" }
 	,{ MPG123_FORWARD_KEY, 0, "forward" }
 	,{ MPG123_REWIND_KEY,  0, "rewind" }
 	,{ MPG123_FAST_FORWARD_KEY, 0, "fast forward" }
@@ -104,7 +105,11 @@ void term_hint(void)
 
 static void term_handle_input(mpg123_handle *, out123_handle *, int);
 
-static int pause_cycle;
+// A-B looping sets pause_cycle at runtime baseon the difference to
+// pause_begin. Keeping the broken wording for 'pause' for now. To the
+// outside world, it is 'looping'.
+static double pause_begin = -1;
+static off_t pause_cycle;
 
 static int print_index(mpg123_handle *mh)
 {
@@ -129,28 +134,27 @@ static int print_index(mpg123_handle *mh)
 
 static off_t offset = 0;
 
+void term_new_track(void)
+{
+	pause_begin = -1;
+}
+
 /* Go back to the start for the cyclic pausing. */
 void pause_recycle(mpg123_handle *fr)
 {
 	/* Take care not to go backwards in time in steps of 1 frame
 		 That is what the +1 is for. */
-	pause_cycle=(int)(param.pauseloop/mpg123_tpf(fr));
+	pause_cycle=(off_t)(param.pauseloop/mpg123_tpf(fr));
 	offset-=pause_cycle;
-}
-
-/* Done with pausing, no offset anymore. Just continuous playback from now. */
-void pause_uncycle(void)
-{
-	offset += pause_cycle;
 }
 
 off_t term_control(mpg123_handle *fr, out123_handle *ao)
 {
 	offset = 0;
-	debug2("control for frame: %li, enable: %i", (long)mpg123_tellframe(fr), term_enable);
+	debug2("control for frame: %"OFF_P", enable: %i", (off_p)mpg123_tellframe(fr), term_enable);
 	if(!term_enable) return 0;
 
-	if(paused)
+	if(playstate==STATE_LOOPING)
 	{
 		/* pause_cycle counts the remaining frames _after_ this one, thus <0, not ==0 . */
 		if(--pause_cycle < 0)
@@ -164,14 +168,14 @@ off_t term_control(mpg123_handle *fr, out123_handle *ao)
 		if((offset < 0) && (-offset > framenum)) offset = - framenum;
 		if(param.verbose && offset != old_offset)
 			print_stat(fr,offset,ao,1,&param);
-	} while (!intflag && stopped);
+	} while (!intflag && playstate==STATE_STOPPED);
 
 	/* Make the seeking experience with buffer less annoying.
 	   No sound during seek, but at least it is possible to go backwards. */
 	if(offset)
 	{
 		if((offset = mpg123_seek_frame(fr, offset, SEEK_CUR)) >= 0)
-		debug1("seeked to %li", (long)offset);
+		debug1("seeked to %"OFF_P, (off_p)offset);
 		else error1("seek failed: %s!", mpg123_strerror(fr));
 		/* Buffer resync already happened on un-stop? */
 		/* if(param.usebuffer) audio_drop(ao);*/
@@ -182,14 +186,14 @@ off_t term_control(mpg123_handle *fr, out123_handle *ao)
 /* Stop playback while seeking if buffer is involved. */
 static void seekmode(mpg123_handle *mh, out123_handle *ao)
 {
-	if(param.usebuffer && !stopped)
+	if(param.usebuffer && playstate!=STATE_STOPPED)
 	{
 		int channels = 0;
 		int encoding = 0;
 		int pcmframe;
 		off_t back_samples = 0;
 
-		stopped = TRUE;
+		playstate = STATE_STOPPED;
 		out123_pause(ao);
 		if(param.verbose)
 			print_stat(mh, 0, ao, 0, &param);
@@ -233,7 +237,9 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 	case MPG123_BACK_KEY:
 		out123_pause(ao);
 		out123_drop(ao);
-		if(paused) pause_cycle=(int)(param.pauseloop/mpg123_tpf(fr));
+		// Revisit: What does that really achieve?
+		if(playstate==STATE_LOOPING)
+			pause_cycle=(int)(param.pauseloop/mpg123_tpf(fr));
 
 		if(mpg123_seek_frame(fr, 0, SEEK_SET) < 0)
 		error1("Seek to begin failed: %s", mpg123_strerror(fr));
@@ -252,24 +258,61 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 	break;
 	case MPG123_QUIT_KEY:
 		debug("QUIT");
-		if(stopped)
+		if(playstate==STATE_STOPPED)
 		{
 			if(param.verbose)
 				print_stat(fr,0,ao,0,&param);
 
-			stopped = 0;
+			playstate=STATE_PLAYING; // really necessary/sensible?
 			out123_pause(ao); /* no chance for annoying underrun warnings */
 			out123_drop(ao);
 		}
 		set_intflag();
 		offset = 0;
 	break;
+	case MPG123_LOOP_KEY:
+	// In paused (looping) state, the loop key ends the loop just like the other one.
+	// Otherwise, it starts playback and enters A-? mode. If in A-? mode, it
+	// sets the loop interval and then again falls through.
+	if(playstate != STATE_LOOPING)
+	{
+		playstate = STATE_AB;
+		// Careful with positioning, output might have 
+		long outrate = 0;
+		int outframesize = 0;
+		long inrate = 0;
+		if(out123_getformat(ao, &outrate, NULL, NULL, &outframesize) || outrate==0)
+			break;
+		if(mpg123_getformat(fr, &inrate, NULL, NULL) || inrate==0)
+			break;
+
+		double position = (double)mpg123_tell(fr)/inrate + (double)out123_buffered(ao)/(outrate * outframesize);
+		if(pause_begin < 0)
+		{
+			pause_begin = position;
+			if(param.verbose)
+				print_stat(fr, 0, ao, 1, &param);
+			else
+				fprintf(stderr, "%s", MPG123_AB_STRING);
+			break;
+		} else if(position <= pause_begin)
+		{
+			// Pathological situation: You seeked around, whatever. No loop.
+			playstate=STATE_LOOPING; // Let fall-through fix up things.
+		}
+		{
+			param.pauseloop = (position > pause_begin) ? (position-pause_begin) : mpg123_tpf(fr);
+			// Fall throuth to start looping.
+		}
+	}
 	case MPG123_PAUSE_KEY:
-		paused=1-paused;
+	{
+		playstate = playstate == STATE_LOOPING ? STATE_PLAYING : STATE_LOOPING;
+		pause_begin = -1;
 		size_t buffered = out123_buffered(ao);
 		out123_pause(ao); /* underrun awareness */
 		out123_drop(ao);
-		if(paused)
+		if(playstate == STATE_LOOPING)
 		{
 			// Make output buffer react immediately, dropping decoded audio
 			// and (at least trying to) seeking back in input.
@@ -287,23 +330,20 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 		}
 		else
 			out123_param_float(ao, OUT123_PRELOAD, param.preload);
-		if(stopped)
-			stopped=0;
 		if(param.verbose)
 			print_stat(fr, 0, ao, 1, &param);
 		else
-			fprintf(stderr, "%s", (paused) ? MPG123_PAUSED_STRING : MPG123_EMPTY_STRING);
+			fprintf(stderr, "%s", (playstate == STATE_LOOPING) ? MPG123_PAUSED_STRING : MPG123_EMPTY_STRING);
+	}
 	break;
 	case MPG123_STOP_KEY:
 	case ' ':
 		/* TODO: Verify/ensure that there is no "chirp from the past" when
 		   seeking while stopped. */
-		stopped=1-stopped;
-		if(paused) {
-			paused=0;
+		if(playstate == STATE_LOOPING)
 			offset -= pause_cycle;
-		}
-		if(stopped)
+		playstate = playstate == STATE_STOPPED ? STATE_PLAYING : STATE_STOPPED;
+		if(playstate == STATE_STOPPED)
 			out123_pause(ao);
 		else
 		{
@@ -314,7 +354,7 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 		if(param.verbose)
 			print_stat(fr, 0, ao, 1, &param);
 		else
-			fprintf(stderr, "%s", (stopped) ? MPG123_STOPPED_STRING : MPG123_EMPTY_STRING);
+			fprintf(stderr, "%s", (playstate==STATE_STOPPED) ? MPG123_STOPPED_STRING : MPG123_EMPTY_STRING);
 	break;
 	case MPG123_FINE_REWIND_KEY:
 		seekmode(fr, ao);
@@ -547,7 +587,7 @@ static void term_handle_input(mpg123_handle *fr, out123_handle *ao, int do_delay
 {
 	char val;
 	/* Do we really want that while loop? This means possibly handling multiple inputs that come very rapidly in one go. */
-	while(term_get_key(stopped, do_delay, &val))
+	while(term_get_key(playstate==STATE_STOPPED, do_delay, &val))
 	{
 		term_handle_key(fr, ao, val);
 	}
