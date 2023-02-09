@@ -136,6 +136,7 @@ static off_t offset = 0;
 
 void term_new_track(void)
 {
+	playstate = STATE_PLAYING;
 	pause_begin = -1;
 }
 
