@@ -1,6 +1,6 @@
 1.32.0
 ------
-TODO: fix up position calculations with syn123 resampling, drop 2to1, 4to1 decoding for proper resampling
+TODO:  drop 2to1, 4to1 decoding for proper resampling
 - build:
 -- Fall back to generic decoder if no yasm for MSVC (bug 346).
 -- Move version handling out of configure.ac to ease other build systems.
@@ -10,6 +10,8 @@ TODO: fix up position calculations with syn123 resampling, drop 2to1, 4to1 decod
    including header first).
 -- TODO: make headers build-independent (some lfs aliasing for non-sensitive)
 - mpg123:
+-- Fix verbose position printout for new resampling outside libmpg123 (where
+   output rate differs from decoding rate).
 -- Added --libversion.
 -- Added proper A-B looping with terminal control key 'o', renamed
    --pauseloop to --presetloop.

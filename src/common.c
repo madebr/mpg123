@@ -171,14 +171,15 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar
 	static int old_term_width = -1;
 	size_t buffered;
 	off_t decoded;
-	off_t elapsed;
-	off_t remain;
-	off_t length;
+	double elapsed;
+	double remain;
+	double length;
 	off_t frame;
 	off_t frames;
 	off_t rframes;
 	int spf;
 	double basevol, realvol;
+	long inrate;
 	long rate;
 	int framesize;
 	struct mpg123_frameinfo mi;
@@ -204,11 +205,13 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar
 #endif
 #endif
 #endif
+	if(mpg123_getformat(fr, &inrate, NULL, NULL))
+		return;
 	if(out123_getformat(ao, &rate, NULL, NULL, &framesize))
 		return;
 	buffered = out123_buffered(ao)/framesize;
 	decoded  = mpg123_tell(fr);
-	length   = mpg123_length(fr);
+	length   = (double)mpg123_length(fr)/inrate;
 	frame    = mpg123_tellframe(fr);
 	frames   = mpg123_framelength(fr);
 	spf      = mpg123_spf(fr);
@@ -222,7 +225,7 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar
 	   Buffering makes the relationships between the numbers non-trivial. */
 	rframes = frames-frame;
 	// May be negative, a countdown. Buffer only confuses in paused (looping) mode, though.
-	elapsed = decoded + offset*spf - (playstate==STATE_LOOPING ? 0 : buffered);
+	elapsed = (double)(decoded + offset*spf)/inrate - (double)(playstate==STATE_LOOPING ? 0 : buffered)/rate;
 	remain  = elapsed > 0 ? length - elapsed : length;
 	if(  MPG123_OK == mpg123_info(fr, &mi)
 	  && MPG123_OK == mpg123_getvolume(fr, &basevol, &realvol, NULL) )
@@ -263,8 +266,8 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar
 		?	malloc(linelen+1) /* Only malloc if it is a really long line. */
 		:	linebuf; /* Small buffer on stack is enough. */
 
-		tim[0] = (double)elapsed/rate;
-		tim[1] = (double)remain/rate;
+		tim[0] = elapsed;
+		tim[1] = remain;
 		tim[2] = (double)buffered/rate;
 		for(ti=0; ti<3; ++ti)
 		{
