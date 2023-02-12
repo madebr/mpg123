@@ -1182,7 +1182,6 @@ AC_CHECK_TYPE(uint16_t, unsigned short)
 AC_CHECK_SIZEOF(size_t,4)
 AC_CHECK_SIZEOF(ssize_t,4)
 AC_CHECK_SIZEOF(off_t,4)
-AC_CHECK_SIZEOF(off64_t,8)
 AC_CHECK_SIZEOF(int32_t)
 AC_CHECK_SIZEOF(long,4)
 

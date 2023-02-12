@@ -2046,21 +2046,27 @@ resample_total_wrap(lfs_alias_t, INT32_MAX, syn123_resample_intotal, syn123_resa
 #error "Unexpected LFS_ALIAS_BITS value."
 #endif
 
+// Try to keep it minimal. Ensure correct type for largefile off_t, define the other
+// using fixed integer type. This is not totally proper, but it is just annoying
+// to do overly correct definitions matching all possible prototypes.
+
 #if SIZEOF_OFF_T == 4
 // This used to have int32_t in the rate arguments. This does not match the header
 // prototype. But in practice, relevant platforms with 32 bit off_t by default
 // also have long == int32_t.
 resample_total_wrap(off_t, INT32_MAX, syn123_resample_total_32, syn123_resample_total64)
 resample_total_wrap(off_t, INT32_MAX, syn123_resample_intotal_32, syn123_resample_intotal64)
-#elif (SIZEOF_OFF_T == 8) && (SIZEOF_OFF64_T == 0)
+// If we didn't enable largefile support at all, user cannot expect _64 aliases.
+#elif (SIZEOF_OFF_T == 8)
 resample_total_alias(off_t, syn123_resample_total_64, syn123_resample_total64)
 resample_total_alias(off_t, syn123_resample_intotal_64, syn123_resample_intotal64)
+#if LFS_ALIAS_BITS+0 == 32
+// This platform has smaller native off_t, give it the wrapper.
+resample_total_wrap(int32_t, INT32_MAX, syn123_resample_total_32, syn123_resample_total64)
+resample_total_wrap(int32_t, INT32_MAX, syn123_resample_intotal_32, syn123_resample_intotal64)
+#endif
 #endif
 
-#if SIZEOF_OFF64_T == 8
-resample_total_alias(off64_t, syn123_resample_total_64, syn123_resample_total64)
-resample_total_alias(off64_t, syn123_resample_intotal_64, syn123_resample_intotal64)
-#endif
 
 // As any sensible return value is at least 1, this uses the unsigned
 // type and 0 for error/pathological input.
