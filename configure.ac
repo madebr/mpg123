@@ -32,7 +32,7 @@ m4_undefine([V_HEADER])
 
 AC_INIT([mpg123], V_MAJOR.V_MINOR.V_PATCH[]V_SUFFIX, [maintainer@mpg123.org])
 
-m4_define([V_HEADER], m4_esyscmd(grep -e _API_VERSION -e _PATCHLEVEL src/libmpg123/mpg123.h.in src/libout123/out123.h.in src/libsyn123/syn123.h.in))
+m4_define([V_HEADER], m4_esyscmd(grep -e _API_VERSION -e _PATCHLEVEL src/libmpg123/mpg123.h.in src/libout123/out123.h.in src/libsyn123/syn123.h))
 
 dnl libmpg123
 m4_define([API_VERSION], m4_bregexp(V_HEADER,
@@ -2784,7 +2784,6 @@ AC_CONFIG_FILES([
 	mpg123.spec
 	src/libmpg123/mpg123.h
 	src/libout123/out123.h
-	src/libsyn123/syn123.h
 ])
 
 AC_OUTPUT

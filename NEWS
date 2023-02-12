@@ -18,6 +18,7 @@
   functions
 - libout123:
 -- Add sleep builtin output module (silent, but proper timing).
+- libsyn123: Introduce SYN123_PORTABLE_API with explicit int64_t protopytes.
 
 1.31.2
 ------

@@ -140,8 +140,10 @@
 
 #define PKGLIBDIR "@CMAKE_INSTALL_LIBDIR@/@PROJECT_NAME@"
 
-#define SIZEOF_LONG @SIZEOF_LONG@
-#define SIZEOF_OFF_T @SIZEOF_OFF_T@
+// CMake leaves it emtpy for non-existing type. Autoconf sets it to 0.
+#define SIZEOF_LONG (@SIZEOF_LONG@+0)
+#define SIZEOF_OFF_T (@SIZEOF_OFF_T@+0)
+#define SIZEOF_OFF64_T (@SIZEOF_OFF64_T@+0)
 
 #cmakedefine STDERR_FILENO @STDERR_FILENO@
 #cmakedefine STDIN_FILENO @STDIN_FILENO@

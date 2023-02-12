@@ -981,33 +981,6 @@ MPG123_EXPORT
 ssize_t syn123_resample_inexpect(syn123_handle *sh, size_t outs);
 
 
-#ifndef SYN123_NO_LARGEFUNC
-
-/* The whole block of off_t-using API is optional to be able to build
-   the underlying code without confusing the compiler with prototype
-   mismatch. */
-
-/* Lightweight large file hackery to enable worry-reduced use of off_t.
-   Depending on the size of off_t in your client build, the corresponding
-   library function needs to be chosen. */
-#ifndef MPG123_NO_CONFIGURE
-#if !defined(MPG123_NO_LARGENAME) && @BUILD_NO_LARGENAME@
-#define MPG123_NO_LARGENAME
-#endif
-#endif
-
-#if defined(_FILE_OFFSET_BITS) && !defined(MPG123_NO_LARGENAME)
-#  if _FILE_OFFSET_BITS+0 == 32
-#    define syn123_resample_total   syn123_resample_total_32
-#    define syn123_resample_intotal syn123_resample_intotal_32
-#  elif _FILE_OFFSET_BITS+0 == 64
-#    define syn123_resample_total   syn123_resample_total_64
-#    define syn123_resample_intotal syn123_resample_intotal_64
-#  else
-#    error "Unpredicted _FILE_OFFSET_BITS value."
-#  endif
-#endif
-
 /** Give exact output sample count for total input sample count.
  *
  *  Use this to determine the total length of your output stream
@@ -1023,7 +996,7 @@ ssize_t syn123_resample_inexpect(syn123_handle *sh, size_t outs);
  *    (bad/too large sampling rates, integer overflow)
  */
 MPG123_EXPORT
-off_t syn123_resample_total(long inrate, long outrate, off_t ins);
+int64_t syn123_resample_total64(long inrate, long outrate, int64_t ins);
 
 /** Give minimum input sample count for total output sample count.
  *
@@ -1043,9 +1016,7 @@ off_t syn123_resample_total(long inrate, long outrate, off_t ins);
  *    (bad/too large sampling rates, integer overflow)
  */
 MPG123_EXPORT
-off_t syn123_resample_intotal(long inrate, long outrate, off_t outs);
-
-#endif
+int64_t syn123_resample_intotal64(long inrate, long outrate, int64_t outs);
 
 /** Resample input buffer to output buffer.
  *
@@ -1121,6 +1092,56 @@ void syn123_le2host(void *buf, size_t samplesize, size_t samplecount);
  */
 MPG123_EXPORT
 void syn123_be2host(void *buf, size_t samplesize, size_t samplecount);
+
+// You are invited to defined SYN123_PORTABLE_API to avoid seeing shape-shifting off_t
+// anywhere.
+#if !defined(SYN123_PORTABLE_API) && !defined(SYN123_NO_LARGEFUNC)
+
+/* Lightweight large file hackery to enable worry-reduced use of off_t.
+   Depending on the size of off_t in your client build, the corresponding
+   library function needs to be chosen. */
+
+#if defined(_FILE_OFFSET_BITS) && !defined(MPG123_NO_LARGENAME)
+#  if _FILE_OFFSET_BITS+0 == 32
+#    define syn123_resample_total   syn123_resample_total_32
+#    define syn123_resample_intotal syn123_resample_intotal_32
+#  elif _FILE_OFFSET_BITS+0 == 64
+#    define syn123_resample_total   syn123_resample_total_64
+#    define syn123_resample_intotal syn123_resample_intotal_64
+#  else
+#    error "Unpredicted _FILE_OFFSET_BITS value."
+#  endif
+#endif
+
+/** Give exact output sample count for total input sample count.
+ *
+ *  This is syn123_resample_total64() with shape-shifting off_t,
+ *  possibly renamed by macro. For type safety, use the former.
+ *
+ *  \param inrate input sample rate
+ *  \param outrate output sample rate
+ *  \param ins input sample count for the whole stream
+ *  \return number of output samples or -1 if the computation fails
+ *    (bad/too large sampling rates, integer overflow)
+ */
+MPG123_EXPORT
+off_t syn123_resample_total(long inrate, long outrate, off_t ins);
+
+/** Give minimum input sample count for total output sample count.
+ *
+ *  This is syn123_resample_intotal64() with shape-shifting off_t,
+ *  possibly renamed by macro. For type safety, use the former.
+ *
+ *  \param inrate input sample rate
+ *  \param outrate output sample rate
+ *  \param outs output sample count for the whole stream
+ *  \return number of input samples or -1 if the computation fails
+ *    (bad/too large sampling rates, integer overflow)
+ */
+MPG123_EXPORT
+off_t syn123_resample_intotal(long inrate, long outrate, off_t outs);
+
+#endif
 
 /** @} */
 

@@ -1916,7 +1916,7 @@ int64_t simulate_interpolate(long vinrate, long voutrate, int64_t ins)
 // for more than simple integer division. The overall rounding error
 // is limited at 2 samples, btw.
 int64_t attribute_align_arg
-syn123_resample_total_64(long inrate, long outrate, int64_t ins)
+syn123_resample_total64(long inrate, long outrate, int64_t ins)
 {
 	if(ins < 0)
 		return -1;
@@ -1963,29 +1963,10 @@ syn123_resample_total_64(long inrate, long outrate, int64_t ins)
 	return (tot <= INT64_MAX) ? (int64_t)tot : SYN123_OVERFLOW;
 }
 
-int32_t attribute_align_arg
-syn123_resample_total_32(int32_t inrate, int32_t outrate, int32_t ins)
-{
-	int64_t tot = syn123_resample_total_64(inrate, outrate, ins);
-	return (tot <= INT32_MAX) ? (int32_t)tot : SYN123_OVERFLOW;
-}
-
-lfs_alias_t syn123_resample_total(long inrate, long outrate, lfs_alias_t ins)
-{
-#if   LFS_ALIAS_BITS+0 == 64
-	return syn123_resample_total_64(inrate, outrate, ins);
-#elif LFS_ALIAS_BITS+0 == 32
-	return syn123_resample_total_32(inrate, outrate, ins);
-#else
-	#error "Unexpected LFS_ALIAS_BITS value."
-#endif
-}
-
-
 // The inverse function: How many input samples are needed to get at least
 // the desired amount of output?
 int64_t attribute_align_arg
-syn123_resample_intotal_64(long inrate, long outrate, int64_t outs)
+syn123_resample_intotal64(long inrate, long outrate, int64_t outs)
 {
 	if(outs < 1)
 		return outs == 0 ? 0 : -1;
@@ -2033,23 +2014,53 @@ syn123_resample_intotal_64(long inrate, long outrate, int64_t outs)
 	return (tot <= INT64_MAX) ? (int64_t)tot : SYN123_OVERFLOW;
 }
 
-int32_t attribute_align_arg
-syn123_resample_intotal_32(int32_t inrate, int32_t outrate, int32_t outs)
-{
-	int64_t tot = syn123_resample_intotal_64(inrate, outrate, outs);
-	return (tot <= INT32_MAX) ? (int32_t)tot : SYN123_OVERFLOW;
+// Again the dreadful business of dealing with shape-shifting off_t API.
+// The real implementation is the function with suffix 64, using int64_t.
+// Depending on your OS, there is a native off_t with 32 or 64 bits, and
+// possibly a 64 bit off64_t. The macros here define the appropriate wrappers
+// for the _32 and _64 suffixes promised in the API header, depending on
+// _FILE_OFFSET_BITS value.
+// A special case is a system that does ignore _FILE_OFFSET BITS but has
+// 64 bit offsets: That should still get the plain alias and one with _64,
+// making the header agnostic to that fact, not depending on any build properties
+
+#define resample_total_wrap(type, limit, name, name64) \
+type attribute_align_arg name(long inrate, long outrate, type io) \
+{ \
+	int64_t tot = name64(inrate, outrate, io); \
+	return (tot <= limit) ? (type)tot : SYN123_OVERFLOW; \
+}
+#define resample_total_alias(type, name, name64) \
+type attribute_align_arg name(long inrate, long outrate, type io) \
+{ \
+	return name64(inrate, outrate, io); \
 }
 
-lfs_alias_t syn123_resample_intotal(long inrate, long outrate, lfs_alias_t outs)
-{
 #if   LFS_ALIAS_BITS+0 == 64
-	return syn123_resample_intotal_64(inrate, outrate, outs);
+resample_total_alias(lfs_alias_t, syn123_resample_total, syn123_resample_total64)
+resample_total_alias(lfs_alias_t, syn123_resample_intotal, syn123_resample_intotal64)
 #elif LFS_ALIAS_BITS+0 == 32
-	return syn123_resample_intotal_32(inrate, outrate, outs);
+resample_total_wrap(lfs_alias_t, INT32_MAX, syn123_resample_total, syn123_resample_total64)
+resample_total_wrap(lfs_alias_t, INT32_MAX, syn123_resample_intotal, syn123_resample_intotal64)
 #else
-	#error "Unexpected LFS_ALIAS_BITS value."
+#error "Unexpected LFS_ALIAS_BITS value."
 #endif
-}
+
+#if SIZEOF_OFF_T == 4
+// This used to have int32_t in the rate arguments. This does not match the header
+// prototype. But in practice, relevant platforms with 32 bit off_t by default
+// also have long == int32_t.
+resample_total_wrap(off_t, INT32_MAX, syn123_resample_total_32, syn123_resample_total64)
+resample_total_wrap(off_t, INT32_MAX, syn123_resample_intotal_32, syn123_resample_intotal64)
+#elif (SIZEOF_OFF_T == 8) && (SIZEOF_OFF64_T == 0)
+resample_total_alias(off_t, syn123_resample_total_64, syn123_resample_total64)
+resample_total_alias(off_t, syn123_resample_intotal_64, syn123_resample_intotal64)
+#endif
+
+#if SIZEOF_OFF64_T == 8
+resample_total_alias(off64_t, syn123_resample_total_64, syn123_resample_total64)
+resample_total_alias(off64_t, syn123_resample_intotal_64, syn123_resample_intotal64)
+#endif
 
 // As any sensible return value is at least 1, this uses the unsigned
 // type and 0 for error/pathological input.
@@ -2071,7 +2082,7 @@ syn123_resample_count(long inrate, long outrate, size_t ins)
 #endif
 	)
 		return 0;
-	int64_t tot = syn123_resample_total_64(inrate, outrate, (int64_t)ins);
+	int64_t tot = syn123_resample_total64(inrate, outrate, (int64_t)ins);
 	return (tot >= 0 && tot <= SIZE_MAX) ? (size_t)tot : 0;
 }
 

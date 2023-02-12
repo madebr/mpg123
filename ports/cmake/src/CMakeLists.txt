@@ -132,11 +132,12 @@ if(NOT LFS_INSENSITIVE)
 endif()
 check_type_size(long SIZEOF_LONG)
 check_type_size(off_t SIZEOF_OFF_T)
+check_type_size(off64_t SIZEOF_OFF64_T)
+
 if(LFS_SENSITIVE)
     set(LFS_ALIAS_TYPE long)
     math(EXPR LFS_ALIAS_BITS "${SIZEOF_LONG} * 8")
 elseif(CMAKE_ANDROID_ARCH_ABI)
-    check_type_size(off64_t SIZEOF_OFF64_T)
     set(LFS_ALIAS_TYPE off64_t)
     math(EXPR LFS_ALIAS_BITS "${SIZEOF_OFF64_T} * 8")
 else()
@@ -359,6 +360,7 @@ include_directories(
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/"
     "${CMAKE_CURRENT_BINARY_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/compat"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/libsyn123"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/libmpg123")
 
 add_compile_definitions(
