@@ -361,6 +361,7 @@ include_directories(
     "${CMAKE_CURRENT_BINARY_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/compat"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/libsyn123"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/libout123"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/libmpg123")
 
 add_compile_definitions(

@@ -8,6 +8,7 @@ noinst_LTLIBRARIES += src/libout123/libmodule.la
 
 lib_LTLIBRARIES += src/libout123/libout123.la
 src_libout123_libout123_la_SOURCES = \
+  src/libout123/out123.h \
   src/libout123/libout123.c \
   src/libout123/stringlists.h \
   src/libout123/stringlists.c \
@@ -63,9 +64,6 @@ endif
 
 # The sfifo code is directly used in some modules.
 EXTRA_DIST += \
-  src/libout123/out123.h.in \
   src/libout123/sfifo.c \
   src/libout123/sfifo.h
 
-nodist_include_HEADERS += \
-  src/libout123/out123.h
