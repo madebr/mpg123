@@ -1112,6 +1112,14 @@ void syn123_be2host(void *buf, size_t samplesize, size_t samplecount);
 // anywhere, also to avoid using non-standard types like ssize_t.
 #if !defined(SYN123_PORTABLE_API) && !defined(SYN123_NO_LARGEFUNC)
 
+/* A little hack to help MSVC not having ssize_t. */
+#ifdef _MSC_VER
+#include <stddef.h>
+typedef ptrdiff_t syn123_ssize_t;
+#else
+typedef ssize_t syn123_ssize_t;
+#endif
+
 /** Give exact output sample count for feeding given input now.
  *
  *  Old variant of syn123_resample_out() that (ab)uses ssize_t.
@@ -1126,7 +1134,7 @@ void syn123_be2host(void *buf, size_t samplesize, size_t samplecount);
  *  \return output sample count or error code, hard to distinguish
  */
 MPG123_EXPORT
-ssize_t syn123_resample_expect(syn123_handle *sh, size_t ins);
+syn123_ssize_t syn123_resample_expect(syn123_handle *sh, size_t ins);
 
 /** Give minimum input sample count needed now for given output.
  *
@@ -1142,7 +1150,7 @@ ssize_t syn123_resample_expect(syn123_handle *sh, size_t ins);
  *  \return minimal input sample count or error code, hard to distinguish
  */
 MPG123_EXPORT
-ssize_t syn123_resample_inexpect(syn123_handle *sh, size_t outs);
+syn123_ssize_t syn123_resample_inexpect(syn123_handle *sh, size_t outs);
 
 /* Lightweight large file hackery to enable worry-reduced use of off_t.
    Depending on the size of off_t in your client build, the corresponding
