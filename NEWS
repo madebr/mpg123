@@ -1,7 +1,5 @@
 1.32.0
 ------
-TODO: add timestretching by granular synthesis to libsyn123 and hence mpg123,
-  should be usable to listen to podcasts with speedup, at least
 - build:
 -- Fall back to generic decoder if no yasm for MSVC (bug 346).
 -- Move version handling out of configure.ac to ease other build systems.
