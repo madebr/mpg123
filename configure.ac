@@ -143,6 +143,11 @@ AC_PROG_INSTALL
 # Just look, no touch.
 oldLIBS=$LIBS
 LT_LIB_M
+dnl Test if -lrt is required for clock_gettime() (old glibc).
+AC_SEARCH_LIBS([clock_gettime], [rt])
+if echo " $LIBS" | grep -q -w -- -lrt; then
+  LIBRT=-lrt
+fi
 LIBS=$oldLIBS
 AC_SUBST(LIBM)
 dnl "Checking for egrep is broken after removal of libltdl stuff... checks use $EGREP, so searching it here."
@@ -2765,7 +2770,7 @@ PROG_LIBS=$LIBS
 LIBS=
 LIBMPG123_LIBS="$LIBM $COMPAT_LIBS"
 LIBSYN123_LIBS=$LIBM
-LIBOUT123_LIBS="$LIBM $COMPAT_LIBS"
+LIBOUT123_LIBS="$LIBRT $LIBM $COMPAT_LIBS"
 
 AC_SUBST(PROG_LIBS)
 AC_SUBST(LIBM)
