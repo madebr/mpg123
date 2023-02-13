@@ -1,3 +1,4 @@
+#define SYN123_PORTABLE_API
 #include <syn123.h>
 #include <out123.h>
 
@@ -73,7 +74,10 @@ int main(int argc, char **argv)
 	float *outbuf = malloc(sizeof(float)*maxoutblock);
 	float *inbuf = malloc(sizeof(float)*maxinblock);
 	if(!outbuf || !inbuf)
+	{
+		fprintf(stderr, "D'OOM!\n");
 		return -13;
+	}
 
 	off_t intotal  = 0;
 	off_t outtotal = 0;
@@ -87,18 +91,19 @@ int main(int argc, char **argv)
 			break;
 		}
 		// Determine how many input samples to feed to get block output samples.
-		ssize_t inblock = syn123_resample_inexpect(syn, block);
-		if(inblock <= 0 || inblock > maxinblock)
+		int err;
+		size_t inblock = syn123_resample_in(syn, block, &err);
+		if(err || inblock <= 0 || inblock > maxinblock)
 		{
-			fprintf(stderr, "bad inblock: %zd\n", inblock);
+			fprintf(stderr, "bad inblock: %zu (%i)\n", inblock, err);
 			ret = -15;
 			break;
 		}
-		ssize_t outblock = syn123_resample_expect(syn, inblock);
+		size_t outblock = syn123_resample_out(syn, inblock, &err);
 		fprintf(stderr, "in %zu out %zu\n", inblock, outblock);
-		if(outblock <= 0 || outblock > maxoutblock || outblock < block)
+		if(err || outblock <= 0 || outblock > maxoutblock || outblock < block)
 		{
-			fprintf(stderr, "bad outblock: %zd\n", outblock);
+			fprintf(stderr, "bad outblock: %zu (%d)\n", outblock, err);
 			ret = -16;
 			break;
 		}

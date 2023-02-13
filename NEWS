@@ -20,7 +20,9 @@ TODO: add timestretching by granular synthesis to libsyn123 and hence mpg123,
   functions
 - libout123:
 -- Add sleep builtin output module (silent, but proper timing).
-- libsyn123: Introduce SYN123_PORTABLE_API with explicit int64_t protopytes.
+- libsyn123:
+-- Introduced SYN123_PORTABLE_API for an API without off_t and ssize_t
+   (see NEWS.libsyn123).
 
 1.31.2
 ------

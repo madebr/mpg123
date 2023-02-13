@@ -1,11 +1,14 @@
 /*
 	syn123: some audio signal synthesis and format conversion
 
-	copyright 2017-2020 by the mpg123 project,
+	copyright 2017-2023 by the mpg123 project,
 	free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 
 	initially written by Thomas Orgis
+
+	Consider defining SYN123_PORTABLE_API to limit the definitions to
+	a safer subset without some problematic features (mainly off_t usage).
 */
 
 #ifndef SYN123_H
@@ -57,8 +60,13 @@
 #endif
 #endif
 
-#include <stdlib.h>
+// for off_t and ssize_t
+#ifndef SYN123_PORTABLE_API
 #include <sys/types.h>
+#endif
+
+#include <stddef.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -958,28 +966,35 @@ size_t syn123_resample_maxincount(long input_rate, long output_rate);
  *  when feeding the resampler the given additional input samples now,
  *  given the current resampler state contained in the handle.
  *
+ *  On error, zero is returned and the error code is set to a nonzero
+ *  syn123 error code.
+ *
  *  \param sh syn123 handle
  *  \param ins input sample count
- *  \return output sample count (>=0) or error code
+ *  \param err location to store error code
+ *  \return output sample count
  */
 MPG123_EXPORT
-ssize_t syn123_resample_expect(syn123_handle *sh, size_t ins);
+size_t syn123_resample_out(syn123_handle *sh, size_t ins, int *err);
 
 /** Give minimum input sample count needed now for given output.
  *
  *  This give you the minimal number of input samples needed right
  *  now to yield at least the specified amount of output samples.
  *  Since one input sample can result in several output sampels in one
- *  go, you have to check using syn123_resample_expect() how many
+ *  go, you have to check using syn123_resample_out() how many
  *  output samples to really expect.
+ *
+ *  On error, zero is returned and the error code is set to a nonzero
+ *  syn123 error code.
  *
  *  \param sh syn123 handle
  *  \param outs output sample count
- *  \return minimal input sample count (>= 0) or error code
+ *  \param err location to store error code
+ *  \return minimal input sample count
  */
 MPG123_EXPORT
-ssize_t syn123_resample_inexpect(syn123_handle *sh, size_t outs);
-
+size_t syn123_resample_in(syn123_handle *sh, size_t outs, int *err);
 
 /** Give exact output sample count for total input sample count.
  *
@@ -1094,8 +1109,40 @@ MPG123_EXPORT
 void syn123_be2host(void *buf, size_t samplesize, size_t samplecount);
 
 // You are invited to defined SYN123_PORTABLE_API to avoid seeing shape-shifting off_t
-// anywhere.
+// anywhere, also to avoid using non-standard types like ssize_t.
 #if !defined(SYN123_PORTABLE_API) && !defined(SYN123_NO_LARGEFUNC)
+
+/** Give exact output sample count for feeding given input now.
+ *
+ *  Old variant of syn123_resample_out() that (ab)uses ssize_t.
+ *
+ *  \deprecated Use syn123_resample_out() instead.
+ *    The return of errors (integer overflow in
+ *    calculation)is broken, as both the error codes and the valid results
+ *    are positive integers. I screwed up.
+ *
+ *  \param sh syn123 handle
+ *  \param ins input sample count
+ *  \return output sample count or error code, hard to distinguish
+ */
+MPG123_EXPORT
+ssize_t syn123_resample_expect(syn123_handle *sh, size_t ins);
+
+/** Give minimum input sample count needed now for given output.
+ *
+ *  Old variant of syn123_resample_in() that (ab)uses ssize_t.
+ *
+ *  \deprecated Use syn123_resample_in() instead.
+ *    The return of errors (integer overflow in
+ *    calculation)is broken, as both the error codes and the valid results
+ *    are positive integers. I screwed up.
+ *
+ *  \param sh syn123 handle
+ *  \param outs output sample count
+ *  \return minimal input sample count or error code, hard to distinguish
+ */
+MPG123_EXPORT
+ssize_t syn123_resample_inexpect(syn123_handle *sh, size_t outs);
 
 /* Lightweight large file hackery to enable worry-reduced use of off_t.
    Depending on the size of off_t in your client build, the corresponding
@@ -1118,6 +1165,8 @@ void syn123_be2host(void *buf, size_t samplesize, size_t samplecount);
  *  This is syn123_resample_total64() with shape-shifting off_t,
  *  possibly renamed by macro. For type safety, use the former.
  *
+ *  \deprecated Use syn123_resample_total64() instead.
+ *
  *  \param inrate input sample rate
  *  \param outrate output sample rate
  *  \param ins input sample count for the whole stream
@@ -1131,6 +1180,8 @@ off_t syn123_resample_total(long inrate, long outrate, off_t ins);
  *
  *  This is syn123_resample_intotal64() with shape-shifting off_t,
  *  possibly renamed by macro. For type safety, use the former.
+ *
+ *  \deprecated Use syn123_resample_intotal64() instead.
  *
  *  \param inrate input sample rate
  *  \param outrate output sample rate

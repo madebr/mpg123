@@ -2154,15 +2154,25 @@ syn123_resample_fillcount(long input_rate, long output_rate, size_t outs)
 	return block;
 }
 
+// Store given error value to storage, if non-NULL, return
+// given return value for pass-through usage.
+static size_t size_err(int *err, int value, size_t ret)
+{
+	if(err)
+		*err = value;
+	return ret;
+}
+
 // The exact predictor: How many output samples will I get _now_
 // after feeding the indicated amount? This is concerned with
 // Buffer sizes, so let's drop the 32/64 bit distinction.
 // Since overflow can occur, we need a sign bit to signal errors.
-ssize_t attribute_align_arg
-syn123_resample_expect(syn123_handle *sh, size_t ins)
+size_t attribute_align_arg
+syn123_resample_out(syn123_handle *sh, size_t ins, int *err)
 {
+	size_err(err, SYN123_OK, 0);
 	if(!sh || !sh->rd)
-		return SYN123_BAD_HANDLE;
+		return size_err(err, SYN123_BAD_HANDLE, 0);
 	if(ins < 1)
 		return 0;
 	struct resample_data *rd = sh->rd;
@@ -2191,47 +2201,56 @@ syn123_resample_expect(syn123_handle *sh, size_t ins)
 	}
 #if SIZE_MAX > UINT64_MAX
 	if(ins > UINT64_MAX) // Really?
-		return SYN123_OVERFLOW;
+		return size_err(err, SYN123_OVERFLOW, 0);
 #endif
 	uint64_t vins = ins;
 	if(rd->sflags & oversample_2x)
 	{
 		if(vins > UINT64_MAX/2)
-			return SYN123_OVERFLOW;
+			return size_err(err, SYN123_OVERFLOW, 0);
 		vins *= 2;
 	}
-	int err;
+	int myerr = SYN123_OK;
 	int64_t offset = rd->sflags & inter_flow ? rd->offset : -rd->vinrate;
 	// Interpolation model:
 	//   outs = (vins*voutrate - offset - 1)/vinrate
 	uint64_t tot = muloffdiv64( vins, (uint64_t)rd->voutrate
-	,	(int64_t)(-offset-1), (uint64_t)rd->vinrate, &err, NULL );
+	,	(int64_t)(-offset-1), (uint64_t)rd->vinrate, &myerr, NULL );
 	// Any error is treated as overflow (div by zero -> infinity).
-	if(err)
-		return SYN123_OVERFLOW;
-	return (tot <= SSIZE_MAX) ? (ssize_t)tot : SYN123_OVERFLOW;
+	if(myerr || tot > SIZE_MAX)
+		return size_err(err, SYN123_OVERFLOW, 0);
+	return (size_t)tot;
+}
+
+ssize_t attribute_align_arg
+syn123_resample_expect(syn123_handle *sh, size_t ins)
+{
+	int err = 0;
+	size_t tot = syn123_resample_out(sh, ins, &err);
+	if(tot >= SSIZE_MAX)
+		err = SYN123_OVERFLOW;
+	return (ssize_t)(err ? err : tot);
 }
 
 // How many input samples are minimally needed to get at least the
 // minimally desired output right now?
-ssize_t attribute_align_arg
-syn123_resample_inexpect(syn123_handle *sh, size_t outs)
+size_t attribute_align_arg
+syn123_resample_in(syn123_handle *sh, size_t outs, int *err)
 {
+	size_err(err, SYN123_OK, 0);
 	if(!sh || !sh->rd)
-		return SYN123_BAD_HANDLE;
+		return size_err(err, SYN123_BAD_HANDLE, 0);
 	if(outs < 1)
 		return 0;
 	struct resample_data *rd = sh->rd;
 	// This works for outs > 0:
 	// ins = (outs*inrate+offset)/outrate+1
-	int err;
+	int myerr;
 	int64_t offset = rd->sflags & inter_flow ? rd->offset : -rd->vinrate;
 	uint64_t vtot = muloffdiv64(outs, sh->rd->vinrate, offset, rd->voutrate
-	,	&err, NULL);
-	if(err)
-		return SYN123_OVERFLOW;
-	if(vtot == UINT64_MAX)
-		return SYN123_OVERFLOW;
+	,	&myerr, NULL);
+	if(myerr || vtot == UINT64_MAX)
+		return size_err(err, SYN123_OVERFLOW, 0);
 	++vtot;
 	uint64_t tot = vtot;
 	// Un-do oversampling, taking care not to hit overflow.
@@ -2249,17 +2268,27 @@ syn123_resample_inexpect(syn123_handle *sh, size_t outs)
 	{
 		unsigned int i = rd->decim_stages - 1 - j;
 		if(tot > UINT64_MAX/2+1)
-			return SYN123_OVERFLOW;
+			return size_err(err, SYN123_OVERFLOW, 0);
 		tot = (tot - 1) + tot;
 		if( (rd->decim[i].sflags & lowpass_flow)
 		&&	!(rd->decim[i].sflags & decimate_store) )
 		{
 			if(tot == UINT64_MAX)
-				return SYN123_OVERFLOW;
+				return size_err(err, SYN123_OVERFLOW, 0);
 			++tot;
 		}
 	}
-	return (tot <= SSIZE_MAX) ? (ssize_t)tot : SYN123_OVERFLOW;
+	return (size_t)(tot <= SIZE_MAX ? tot : size_err(err, SYN123_OVERFLOW, 0));
+}
+
+ssize_t attribute_align_arg
+syn123_resample_inexpect(syn123_handle *sh, size_t outs)
+{
+	int err = 0;
+	size_t tot = syn123_resample_in(sh, outs, &err);
+	if(tot >= SSIZE_MAX)
+		err = SYN123_OVERFLOW;
+	return (ssize_t)(err ? err : tot);
 }
 
 void resample_free(struct resample_data *rd)
