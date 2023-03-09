@@ -25,7 +25,7 @@
  */
 #define SYN123_API_VERSION 2
 /** library patch level at client build time */
-#define SYN123_PATCHLEVEL  0
+#define SYN123_PATCHLEVEL  1
 
 #ifndef MPG123_EXPORT
 /** Defines needed for MS Visual Studio(tm) DLL builds.

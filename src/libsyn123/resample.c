@@ -2423,24 +2423,31 @@ syn123_setup_resample( syn123_handle *sh, long inrate, long outrate
 			}
 			rd->stage_history = sth;
 		}
-		struct decimator_state *nd = safe_realloc( rd->decim
-		,	sizeof(*rd->decim)*decim_stages );
-		struct lpf4_hist *ndh = safe_realloc( rd->decim_hist
-		,	sizeof(*rd->decim_hist)*decim_stages*channels );
-		if(nd)
-			rd->decim = nd;
-		if(ndh)
-			rd->decim_hist = ndh;
-		if(!nd || !ndh)
+		if(decim_stages)
 		{
-			perror("cannot allocate decimator state");
-			err = SYN123_DOOM;
-			goto setup_resample_cleanup;
+			struct decimator_state *nd = safe_realloc( rd->decim
+			,	sizeof(*rd->decim)*decim_stages );
+			struct lpf4_hist *ndh = safe_realloc( rd->decim_hist
+			,	sizeof(*rd->decim_hist)*decim_stages*channels );
+			if(nd)
+				rd->decim = nd;
+			if(ndh)
+				rd->decim_hist = ndh;
+			if(!nd || !ndh)
+			{
+				perror("cannot allocate decimator state");
+				err = SYN123_DOOM;
+				goto setup_resample_cleanup;
+			}
+		} else
+		{
+			free(rd->decim); rd->decim = NULL;
+			free(rd->decim_hist); rd->decim_hist = NULL;
 		}
 		// Link up the common memory blocks after each realloc.
 		for(unsigned int dc=0; dc<decim_stages; ++dc)
 		{
-			rd->decim[dc].ch = ndh+dc*channels;
+			rd->decim[dc].ch = rd->decim_hist+dc*channels;
 			rd->decim[dc].out_hist = rd->stage_history
 			?	rd->stage_history+(dc+1)*STAGE_HISTORY*channels
 			:	NULL;
