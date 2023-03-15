@@ -24,7 +24,6 @@
 - build:
 -- Fix --disable-8bit.
 -- Fall back to generic decoder if no yasm for MSVC (bug 346).
--- Link in -lrt where necessary for clock_gettime (CentOS 6.10).
 -- Fix some pedantic compiler warnings, avoid breaking libtool wrappers.
 - mpg123:
 -- Fix verbose position printout for new resampling outside libmpg123 (where
