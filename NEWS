@@ -26,6 +26,7 @@
 -- Fall back to generic decoder if no yasm for MSVC (bug 346).
 -- Link in -lrt where necessary for clock_gettime (CentOS 6.10).
 -- Be more careful with header inclusion (sys/time.h in libout123).
+-- Fix some pedantic compiler warnings, avoid breaking libtool wrappers.
 - mpg123:
 -- Fix verbose position printout for new resampling outside libmpg123 (where
    output rate differs from decoding rate).
