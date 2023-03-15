@@ -1,16 +1,12 @@
 1.32.0
 ------
 - build:
--- Fall back to generic decoder if no yasm for MSVC (bug 346).
 -- Move version handling out of configure.ac to ease other build systems.
--- Fix --disable-8bit.
 -- Include "fmt123.h" instead of <fmt123.h> in main API headers to make it more likely the
    correct one is included (at least gcc picks the one in the same directory as the
    including header first).
 -- TODO: make headers build-independent (some lfs aliasing for non-sensitive)
 - mpg123:
--- Fix verbose position printout for new resampling outside libmpg123 (where
-   output rate differs from decoding rate).
 -- Added --libversion.
 -- Added proper A-B looping with terminal control key 'o', renamed
    --pauseloop to --presetloop.
@@ -21,6 +17,17 @@
 - libsyn123:
 -- Introduced SYN123_PORTABLE_API for an API without off_t and ssize_t
    (see NEWS.libsyn123).
+
+1.31.3
+------
+
+- build:
+-- Fix --disable-8bit.
+-- Fall back to generic decoder if no yasm for MSVC (bug 346).
+- mpg123:
+-- Fix verbose position printout for new resampling outside libmpg123 (where
+   output rate differs from decoding rate).
+- libsyn123:
 -- Fix reconfiguration of resampler to avoid double free when reducing
    decimator stages to zero (bug 350). Thanks to Youngseok Choi for reporting
    this fuzzed issue.
