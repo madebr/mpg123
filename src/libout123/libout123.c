@@ -972,7 +972,7 @@ static int sleep_write(out123_handle *ao, unsigned char *buf, int len)
 	ts_update(mytime);
 	while(mytime[1].tv_sec > 0 || mytime[1].tv_nsec > sleep_buf*1000000)
 	{
-		suseconds_t sleep_ms;
+		useconds_t sleep_ms;
 		if(mytime[1].tv_sec > 0)
 			sleep_ms = 1000 - sleep_buf;
 		else
