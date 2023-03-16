@@ -1408,7 +1408,7 @@ fi
 if test x"$GCC" = xyes; then
 	if test x"$nagging" = xenabled; then
 		ADD_CPPFLAGS="$ADD_CPPFLAGS -Wall -Werror -pedantic"
-		ADD_CLAGS="$ADD_CFLAGS -std=c99"
+		ADD_CFLAGS="$ADD_CFLAGS -std=c99"
 	fi
 fi
 
