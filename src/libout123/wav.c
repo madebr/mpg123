@@ -144,11 +144,12 @@ static long from_little(byte *inval, int b)
 
 static int testEndian(void) 
 {
-  long i,a=0,b=0,c=0;
+  long a=0,b=0,c=0;
   int ret = 0;
+  size_t i;
 
   for(i=0;i<sizeof(long);i++) {
-    ((byte *)&a)[i] = i;
+    ((byte *)&a)[i] = (byte)i;
     b<<=8;
     b |= i;
     c |= i << (i*8);
