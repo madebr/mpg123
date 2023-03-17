@@ -640,13 +640,13 @@ static float lpf_deriv( const float x[LPF_POINTS]
 	{
 		float w1 = x[i+1]-x[i];
 		m += (val[i+1]-val[i])/(w1*w1);
-		w += 1./w1; 
+		w += 1.f/w1; 
 	}
 	if(i>0)
 	{
 		float w0 = x[i]-x[i-1];
 		m += (val[i]-val[i-1])/(w0*w0);
-		w += 1./w0;
+		w += 1.f/w0;
 	}
 	return m/w; 
 }
@@ -1599,7 +1599,7 @@ static size_t name( struct resample_data *rd \
 		,	bi, rd->decim_stages ); \
 		int fill = BATCH; \
 		memcpy(rd->prebuf, in, fill*sizeof(*in)*rd->channels); \
-		for(int ds = 0; ds<rd->decim_stages; ++ds) \
+		for(unsigned int ds = 0; ds<rd->decim_stages; ++ds) \
 			fill = decimate(rd, ds, rd->prebuf, fill); \
 		lpf(rd, rd->prebuf, fill); \
 		mxdebug(#name " batch %zu interpol " #interpolate, bi); \
@@ -1613,7 +1613,7 @@ static size_t name( struct resample_data *rd \
 	mxdebug( #name " end decim %d and lowpass " #lpf \
 	, rd->decim_stages ); \
 	memcpy(rd->prebuf, in, fill*sizeof(*in)*rd->channels); \
-	for(int ds = 0; ds<rd->decim_stages; ++ds) \
+	for(unsigned int ds = 0; ds<rd->decim_stages; ++ds) \
 		fill = decimate(rd, ds, rd->prebuf, fill); \
 	lpf(rd, rd->prebuf, fill); \
 	xdebug(#name " end interpol " #interpolate); \
@@ -2490,7 +2490,7 @@ syn123_setup_resample( syn123_handle *sh, long inrate, long outrate
 		// Magnitude must not be too large. Too small is OK.
 		if(noff > LONG_MAX)
 			noff = LONG_MAX;
-		rd->offset = sign*noff;
+		rd->offset = sign*(long)noff;
 		// Total paranoia. This is the crucial condition.
 		if(rd->offset < -vinrate)
 			rd->offset = -vinrate;
@@ -2524,7 +2524,7 @@ syn123_setup_resample( syn123_handle *sh, long inrate, long outrate
 
 	// Round result to single precision, but compute with double to be able
 	// to correctly represent 32 bit longs first.
-	rd->lpf_cutoff = (double)(rd->inrate < rd->outrate ? rd->inrate : rd->voutrate)/rd->vinrate;
+	rd->lpf_cutoff = (float)((double)(rd->inrate < rd->outrate ? rd->inrate : rd->voutrate)/rd->vinrate);
 	mdebug( "lowpass cutoff: %.8f of virtual %.0f Hz = %.0f Hz"
 	,	rd->lpf_cutoff, 0.5*rd->vinrate, rd->lpf_cutoff*0.5*rd->vinrate );
 	mdebug("rates final: %ld|%ld -> %ld|%ld"
@@ -2540,7 +2540,7 @@ syn123_setup_resample( syn123_handle *sh, long inrate, long outrate
 		lpf_init(rd);
 		mdebug( "smooth old scale: %g, new scale: %g"
 		,	scale, lpf_history_scale(rd) );
-		scale = scale > 1e-10 ? lpf_history_scale(rd) / scale : 1.;
+		scale = scale > 1e-10f ? lpf_history_scale(rd) / scale : 1.f;
 		for(unsigned int c=0; c<rd->channels; ++c)
 			for(unsigned int j=0; j<LPF_MAX_TIMES; ++j)
 				for(unsigned int i=0; i<LPF_ORDER; ++i)

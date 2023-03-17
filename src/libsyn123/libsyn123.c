@@ -397,7 +397,7 @@ static void wave_generator(syn123_handle *sh, int samples)
 	for(int i=0; i<samples; ++i)
 		sh->workbuf[1][i] = 1;
 	/* Add individual waves. */
-	for(int c=0; c<sh->wave_count; ++c)
+	for(size_t c=0; c<sh->wave_count; ++c)
 		wave_add_buffer( sh->workbuf[1], samples, sh->fmt.rate, sh->waves+c
 		,	sh->workbuf[0] );
 }
