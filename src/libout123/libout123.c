@@ -6,6 +6,9 @@
 	initially written by Michael Hipp
 */
 
+#define _XOPEN_SOURCE 600
+#define _POSIX_C_SOURCE 200112L
+
 #include "out123_int.h"
 
 #ifdef HAVE_SYS_TIME_H
@@ -20,7 +23,7 @@
 // unistd.h sets those 
 #if _POSIX_TIMERS > 0
 #include <time.h>
-#ifdef _POSIX_MONOTONIC_CLOCK
+#ifdef _POSIX_MONSLEEP_CLOCKOTONIC_CLOCK
 #define SLEEP_CLOCK CLOCK_MONOTONIC
 #else
 #define SLEEP_CLOCK CLOCK_REALTIME
@@ -713,7 +716,7 @@ out123_play(out123_handle *ao, void *bytes, size_t count)
 		do /* Playback in a loop to be able to continue after interruptions. */
 		{
 			errno = 0;
-			int block = count > maxcount ? maxcount : count;
+			int block = count > (size_t)maxcount ? maxcount : (int)count;
 			written = ao->write(ao, bytes, block);
 			debug4( "written: %d errno: %i (%s), keep_on=%d"
 			,	written, errno, strerror(errno)
