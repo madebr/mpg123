@@ -23,6 +23,21 @@ int string_good(mpg123_string *sb)
 	return 0;
 }
 
+int chomp_check(const char *in, const char *out)
+{
+	int ret = 1;
+	mpg123_string work;
+	mpg123_init_string(&work);
+	if( mpg123_set_string(&work, in) && mpg123_chomp_string(&work)
+		&& mpg123_strlen(&work, 0) == strlen(out)
+		&& !strcmp(work.p, out) )
+	{
+		ret = 0;
+	}
+	mpg123_free_string(&work);
+	return ret;
+}
+
 int check_string(const char* name, enum mpg123_text_encoding enc, const unsigned char* source, size_t source_size)
 {
 	int ret = 0;
@@ -73,6 +88,16 @@ int main()
 	else printf("PASS\n");
 
 	mpg123_free_string(&trans_utf16le);
+
+	printf("Now some basic usage of chomp and strlen.\n");
+	ret += chomp_check(
+		"This is the longest text evaah     \n\n\r"
+	,	"This is the longest text evaah     "
+	);
+	ret += chomp_check(
+		"Foo."
+	,	"Foo."
+	);
 
 	printf("\n%s\n", ret == 0 ? "PASS" : "FAIL");
 
