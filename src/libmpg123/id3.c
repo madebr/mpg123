@@ -403,9 +403,12 @@ static unsigned char *next_text(unsigned char* prev, unsigned char encoding, siz
 	unsigned char *text = prev;
 	size_t width = encoding_widths[encoding];
 
+	if(limit > PTRDIFF_MAX)
+		return NULL;
+
 	/* So I go lengths to find zero or double zero...
 	   Remember bug 2834636: Only check for aligned NULLs! */
-	while(text-prev < (ssize_t)limit)
+	while(text-prev < (ptrdiff_t)limit)
 	{
 		if(text[0] == 0)
 		{

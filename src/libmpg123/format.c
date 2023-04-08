@@ -636,7 +636,7 @@ static void conv_s16_to_u16(struct outbuffer *buf)
 #ifndef NO_REAL
 static void conv_s16_to_f32(struct outbuffer *buf)
 {
-	ssize_t i;
+	ptrdiff_t i;
 	int16_t *in = (int16_t*) buf->data;
 	float  *out = (float*)   buf->data;
 	size_t count = buf->fill/sizeof(int16_t);
@@ -662,7 +662,7 @@ static void conv_s16_to_f32(struct outbuffer *buf)
 #ifndef NO_32BIT
 static void conv_s16_to_s32(struct outbuffer *buf)
 {
-	ssize_t i;
+	ptrdiff_t i;
 	int16_t  *in = (int16_t*) buf->data;
 	int32_t *out = (int32_t*) buf->data;
 	size_t count = buf->fill/sizeof(int16_t);

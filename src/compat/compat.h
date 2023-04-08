@@ -6,7 +6,7 @@
 	It is envisioned to include this compat header instead of any of the "standard" headers, to catch compatibility issues.
 	So, don't include stdlib.h or string.h ... include compat.h.
 
-	copyright 2007-21 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2007-23 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis
 */
@@ -25,6 +25,8 @@
 /* realloc, size_t */
 #include <stdlib.h>
 #endif
+
+#include <stddef.h>
 
 #include        <stdio.h>
 #include        <math.h>
@@ -62,6 +64,9 @@
 #endif
 #ifndef SSIZE_MAX
 #define SSIZE_MAX ((size_t)-1/2)
+#endif
+#ifndef PTRDIFF_MAX
+#define PTRDIFF_MAX ((size_t)-1/2)
 #endif
 #ifndef ULONG_MAX
 #define ULONG_MAX ((unsigned long)-1)
@@ -112,16 +117,8 @@
 typedef unsigned char byte;
 
 #if defined(_MSC_VER)
-
 // For _setmode(), at least.
 #include <io.h>
-
-#if !defined(MPG123_DEF_SSIZE_T)
-#define MPG123_DEF_SSIZE_T
-#include <stddef.h>
-typedef ptrdiff_t ssize_t;
-#endif
-
 #endif
 
 // Not too early, leave system headers alone (strerror).
