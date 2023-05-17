@@ -1507,13 +1507,13 @@ int main(int sys_argc, char ** sys_argv)
 
 	if(!param.quiet)
 	{
-		double secs;
+		double secs = 0;
 		long frank;
 		fprintf(stderr, "\n");
 		if(mpg123_getstate(mh, MPG123_FRANKENSTEIN, &frank, NULL) == MPG123_OK && frank)
 		fprintf(stderr, "This was a Frankenstein track.\n");
 
-		mpg123_position(mh, 0, 0, NULL, NULL, &secs, NULL);
+		position_info(mh, 0, ao, NULL, NULL, &secs, NULL, NULL, NULL);
 		fprintf(stderr,"[%d:%02d] Decoding of %s finished.\n", (int)(secs / 60), ((int)secs) % 60, filename);
 	}
 	else if(param.verbose) fprintf(stderr, "\n");

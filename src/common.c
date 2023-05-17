@@ -159,6 +159,61 @@ void print_buf(const char* prefix, out123_handle *ao)
 	,	prefix, times[0], times[1], timesep, times[2] );
 }
 
+// This is a massively complicated function just for telling where we are.
+// Blame buffering. Blame format conversion. Blame the universe.
+int position_info( mpg123_handle *fr, long offset, out123_handle *ao
+,	off_t *frame, off_t *frame_remain
+,	double *seconds, double *seconds_remain, double *seconds_buffered, double *seconds_total )
+{
+	size_t buffered;
+	off_t decoded;
+	double elapsed;
+	double remain;
+	double length;
+	off_t frameo;
+	off_t frames;
+	off_t rframes;
+	int framesize;
+	int spf;
+	long inrate;
+	long rate;
+	if(mpg123_getformat(fr, &inrate, NULL, NULL) || inrate < 1)
+		return -1;
+	if(out123_getformat(ao, &rate, NULL, NULL, &framesize) || rate < 1 || framesize < 1)
+		return -1;
+	buffered = out123_buffered(ao)/framesize;
+	decoded  = mpg123_tell(fr);
+	length   = (double)mpg123_length(fr)/inrate;
+	frameo   = mpg123_tellframe(fr);
+	frames   = mpg123_framelength(fr);
+	spf      = mpg123_spf(fr);
+	if(decoded < 0 || length < 0 || frameo < 0 || frames <= 0 || spf <= 0)
+		return -1;
+	frameo += offset;
+	if(frameo < 0)
+		frameo = 0;
+	/* Some sensible logic around offsets and time.
+	   Buffering makes the relationships between the numbers non-trivial. */
+	rframes = frames-frameo;
+	// May be negative, a countdown. Buffer only confuses in paused (looping) mode, though.
+	elapsed = (double)(decoded + offset*spf)/inrate - (double)(playstate==STATE_LOOPING ? 0 : buffered)/rate;
+	remain  = elapsed > 0 ? length - elapsed : length;
+
+	if(frame)
+		*frame = frameo;
+	if(frame_remain)
+		*frame_remain = rframes;
+	if(seconds)
+		*seconds = elapsed;
+	if(seconds_remain)
+		*seconds_remain = remain;
+	if(seconds_buffered)
+		*seconds_buffered = (double)buffered/rate;
+	if(seconds_total)
+		*seconds_total = length;
+
+	return 0;
+}
 
 
 /* Note about position info with buffering:
@@ -169,19 +224,13 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar
 ,	struct parameter *param)
 {
 	static int old_term_width = -1;
-	size_t buffered;
-	off_t decoded;
+	double basevol, realvol;
 	double elapsed;
 	double remain;
+	double bufsec;
 	double length;
 	off_t frame;
-	off_t frames;
 	off_t rframes;
-	int spf;
-	double basevol, realvol;
-	long inrate;
-	long rate;
-	int framesize;
 	struct mpg123_frameinfo mi;
 	char linebuf[256];
 	char *line = NULL;
@@ -205,28 +254,8 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar
 #endif
 #endif
 #endif
-	if(mpg123_getformat(fr, &inrate, NULL, NULL))
+	if(position_info(fr, offset, ao, &frame, &rframes, &elapsed, &remain, &bufsec, &length))
 		return;
-	if(out123_getformat(ao, &rate, NULL, NULL, &framesize))
-		return;
-	buffered = out123_buffered(ao)/framesize;
-	decoded  = mpg123_tell(fr);
-	length   = (double)mpg123_length(fr)/inrate;
-	frame    = mpg123_tellframe(fr);
-	frames   = mpg123_framelength(fr);
-	spf      = mpg123_spf(fr);
-	if(decoded < 0 || length < 0 || frame < 0 || frames <= 0 || spf <= 0)
-		return;
-	/* Apply offset. */
-	frame += offset;
-	if(frame < 0)
-		frame = 0;
-	/* Some sensible logic around offsets and time.
-	   Buffering makes the relationships between the numbers non-trivial. */
-	rframes = frames-frame;
-	// May be negative, a countdown. Buffer only confuses in paused (looping) mode, though.
-	elapsed = (double)(decoded + offset*spf)/inrate - (double)(playstate==STATE_LOOPING ? 0 : buffered)/rate;
-	remain  = elapsed > 0 ? length - elapsed : length;
 	if(  MPG123_OK == mpg123_info(fr, &mi)
 	  && MPG123_OK == mpg123_getvolume(fr, &basevol, &realvol, NULL) )
 	{
@@ -268,7 +297,7 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar
 
 		tim[0] = elapsed;
 		tim[1] = remain;
-		tim[2] = (double)buffered/rate;
+		tim[2] = bufsec;
 		for(ti=0; ti<3; ++ti)
 		{
 			if(tim[ti] < 0.){ sign[ti] = '-'; tim[ti] = -tim[ti]; }
@@ -276,7 +305,7 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar
 		}
 		/* Taking pains to properly size the frame number fields. */
 		len = snprintf( framefmt, sizeof(framefmt)
-		,	"%%0%d"OFF_P, (int)log10(frames)+1 );
+		,	"%%0%d"OFF_P, (int)log10(frame+rframes)+1 );
 		if(len < 0 || len >= sizeof(framefmt))
 			memcpy(framefmt, "%05"OFF_P, sizeof("%05"OFF_P));
 		snprintf( framestr[0], sizeof(framestr[0])-1, framefmt, (off_p)frame);

@@ -27,6 +27,9 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar
 ,	struct parameter *param);
 void print_buf(const char* prefix, out123_handle *ao);
 void clear_stat();
+// input: decoder and output handle, frame offset
+// output: frames, frames_remain, seconds, seconds_remain, seconds_buffered, seconds_total
+int position_info( mpg123_handle *, off_t, out123_handle *,  off_t *, off_t *, double *, double *, double *, double *);
 /* for control_generic */
 extern const char* remote_header_help;
 void print_remote_header(mpg123_handle *mh);
