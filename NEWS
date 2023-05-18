@@ -1,6 +1,8 @@
 TODO: Fix -R with buffer … that behaves badly, pausing and draining at unexpected
 moments if interacting with commands near the end of track.
 
+TODO: Seeking with buffer is without visual feedback in terminal. When did that change?
+
 1.32.0
 ------
 - build:
