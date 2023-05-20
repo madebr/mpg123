@@ -23,6 +23,13 @@
 #endif
 #define SYN123_NO_LARGEFUNC
 #include "syn123.h"
+// A little hack to help MSVC not having ssize_t, duplicated in external header with largefuncs.
+#ifdef _MSC_VER
+typedef ptrdiff_t syn123_ssize_t;
+#else
+typedef ssize_t syn123_ssize_t;
+#endif
+
 
 // Generally, a number of samples we work on in one go to
 // allow the compiler to know our loops.

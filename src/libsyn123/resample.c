@@ -2222,14 +2222,14 @@ syn123_resample_out(syn123_handle *sh, size_t ins, int *err)
 	return (size_t)tot;
 }
 
-ssize_t attribute_align_arg
+syn123_ssize_t attribute_align_arg
 syn123_resample_expect(syn123_handle *sh, size_t ins)
 {
 	int err = 0;
 	size_t tot = syn123_resample_out(sh, ins, &err);
 	if(tot >= SSIZE_MAX)
 		err = SYN123_OVERFLOW;
-	return (ssize_t)(err ? err : tot);
+	return (syn123_ssize_t)(err ? err : tot);
 }
 
 // How many input samples are minimally needed to get at least the
@@ -2281,14 +2281,14 @@ syn123_resample_in(syn123_handle *sh, size_t outs, int *err)
 	return (size_t)(tot <= SIZE_MAX ? tot : size_err(err, SYN123_OVERFLOW, 0));
 }
 
-ssize_t attribute_align_arg
+syn123_ssize_t attribute_align_arg
 syn123_resample_inexpect(syn123_handle *sh, size_t outs)
 {
 	int err = 0;
 	size_t tot = syn123_resample_in(sh, outs, &err);
 	if(tot >= SSIZE_MAX)
 		err = SYN123_OVERFLOW;
-	return (ssize_t)(err ? err : tot);
+	return (syn123_ssize_t)(err ? err : tot);
 }
 
 void resample_free(struct resample_data *rd)
