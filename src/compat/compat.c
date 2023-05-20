@@ -445,7 +445,7 @@ size_t unintr_write(int fd, void const *buffer, size_t bytes)
 	while(bytes)
 	{
 		errno = 0;
-		ssize_t part = write(fd, (char*)buffer+written, bytes);
+		int64_t part = write(fd, (char*)buffer+written, bytes);
 		// Just on short writes, we do not abort. Only when
 		// there was no successful operation (even zero write) at all.
 		// Any other error than EINTR ends things here.
@@ -473,7 +473,7 @@ size_t unintr_read(int fd, void *buffer, size_t bytes)
 	while(bytes)
 	{
 		errno = 0;
-		ssize_t part = read(fd, (char*)buffer+got, bytes);
+		int64_t part = read(fd, (char*)buffer+got, bytes);
 		if(part > 0) // == 0 is end of file
 		{
 			bytes -= part;
