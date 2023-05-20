@@ -82,11 +82,11 @@ struct wrap_data
 	int fd;
 	int my_fd; /* A descriptor that the wrapper code opened itself. */
 	/* The actual callbacks from the outside. */
-	ssize_t (*r_read) (int, void *, size_t);
+	mpg123_ssize_t (*r_read) (int, void *, size_t);
 	long (*r_lseek)(int, long, int);
 	/* Data for IO_HANDLE. */
 	void* handle;
-	ssize_t (*r_h_read)(void *, void *, size_t);
+	mpg123_ssize_t (*r_h_read)(void *, void *, size_t);
 	long (*r_h_lseek)(void*, long, int);
 	void (*h_cleanup)(void*);
 };
@@ -540,7 +540,7 @@ int attribute_align_arg mpg123_set_filesize(mpg123_handle *mh, long size)
 #endif
 
 /* Read callback needs nothing special. */
-ssize_t wrap_read(void* handle, void *buf, size_t count)
+mpg123_ssize_t wrap_read(void* handle, void *buf, size_t count)
 {
 	struct wrap_data *ioh = handle;
 	switch(ioh->iotype)
@@ -588,9 +588,9 @@ off_t wrap_lseek(void *handle, off_t offset, int whence)
 
 
 /* Normal reader replacement needs fallback implementations. */
-static ssize_t fallback_read(int fd, void *buf, size_t count)
+static mpg123_ssize_t fallback_read(int fd, void *buf, size_t count)
 {
-	return read(fd, buf, count);
+	return (mpg123_ssize_t)read(fd, buf, count);
 }
 
 static long fallback_lseek(int fd, long offset, int whence)
@@ -610,7 +610,7 @@ static long fallback_lseek(int fd, long offset, int whence)
 }
 
 /* Reader replacement prepares the hidden handle storage for next mpg123_open_fd() or plain mpg123_open(). */
-int attribute_align_arg mpg123_replace_reader(mpg123_handle *mh, ssize_t (*r_read) (int, void *, size_t), long (*r_lseek)(int, long, int) )
+int attribute_align_arg mpg123_replace_reader(mpg123_handle *mh, mpg123_ssize_t (*r_read) (int, void *, size_t), long (*r_lseek)(int, long, int) )
 {
 	struct wrap_data* ioh;
 
@@ -641,7 +641,7 @@ int attribute_align_arg mpg123_replace_reader(mpg123_handle *mh, ssize_t (*r_rea
 	return MPG123_OK;
 }
 
-int attribute_align_arg mpg123_replace_reader_handle(mpg123_handle *mh, ssize_t (*r_read) (void*, void *, size_t), long (*r_lseek)(void*, long, int), void (*cleanup)(void*))
+int attribute_align_arg mpg123_replace_reader_handle(mpg123_handle *mh, mpg123_ssize_t (*r_read) (void*, void *, size_t), long (*r_lseek)(void*, long, int), void (*cleanup)(void*))
 {
 	struct wrap_data* ioh;
 

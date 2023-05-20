@@ -498,7 +498,7 @@ static void set_httpauth_file(char *arg, topt *opts)
 	int good = 0;
 	if(fd >= 0)
 	{
-		ssize_t rdb = read(fd, buf, sizeof(buf));
+		mpg123_ssize_t rdb = read(fd, buf, sizeof(buf));
 		// If the file filled the whole buffer, this is too much.
 		// realistic limits for aith are 255:255.
 		if(rdb > 0 && rdb < sizeof(buf))

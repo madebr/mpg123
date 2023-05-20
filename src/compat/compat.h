@@ -152,16 +152,12 @@ typedef long off_p;
 #if (defined SIZEOF_SIZE_T) && (SIZEOF_SIZE_T > SIZEOF_LONG) && (defined PRIuMAX)
 # define SIZE_P PRIuMAX
 typedef uintmax_t size_p;
+# define SSIZE_P PRIuMAX
+typedef intmax_p ssize_p;
 #else
 # define SIZE_P "lu"
 typedef unsigned long size_p;
-#endif
-
-#if (defined SIZEOF_SSIZE_T) && (SIZEOF_SSIZE_T > SIZEOF_LONG) && (defined PRIiMAX)
-# define SSIZE_P PRIuMAX
-typedef intmax_t ssize_p;
-#else
-# define SSIZE_P "li"
+# define SSIZE_P "ld"
 typedef long ssize_p;
 #endif
 

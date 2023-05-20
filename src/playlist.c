@@ -182,7 +182,7 @@ size_t playlist_pos(size_t *total, long *loop)
 	return pl.hit_end ? pl.fill+1 : pl.num;
 }
 
-void playlist_jump(ssize_t incr)
+void playlist_jump(mpg123_ssize_t incr)
 {
 	size_t off = incr < 0 ? -incr : incr;
 

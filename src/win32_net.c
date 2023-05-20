@@ -89,11 +89,11 @@ static void win32_net_block(int sock)
   msgme_sock_err(ioctlsocket(ws.local_socket, FIONBIO, &mode));
 }
 
-ssize_t win32_net_read (int fildes, void *buf, size_t nbyte)
+mpg123_ssize_t win32_net_read (int fildes, void *buf, size_t nbyte)
 {
   debug1("Attempting to read %"SIZE_P" bytes from network.", (size_p)nbyte);
-  ssize_t ret;
-  msgme_sock_err(ret = (ssize_t) recv(ws.local_socket, buf, nbyte, 0));
+  mpg123_ssize_t ret;
+  msgme_sock_err(ret = (mpg123_ssize_t) recv(ws.local_socket, buf, nbyte, 0));
   debug1("Read %"SSIZE_P" bytes from network.", (ssize_p)ret);
 
   return ret;
@@ -111,12 +111,12 @@ static int get_sock_ch (int sock)
 }
 */
 
-ssize_t win32_net_write (int fildes, const void *buf, size_t nbyte)
+mpg123_ssize_t win32_net_write (int fildes, const void *buf, size_t nbyte)
 {
   debug1("Attempting to write %"SIZE_P" bytes to network.", (size_p)nbyte);
-  ssize_t ret;
-  msgme_sock_err((ret = (ssize_t) send(ws.local_socket, buf, nbyte, 0)));
-  debug1("wrote %"SSIZE_P" bytes to network.", (ssize_t)ret);
+  mpg123_ssize_t ret;
+  msgme_sock_err((ret = (mpg123_ssize_t) send(ws.local_socket, buf, nbyte, 0)));
+  debug1("wrote %"SSIZE_P" bytes to network.", (ssize_p)ret);
 
   return ret;
 }

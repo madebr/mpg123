@@ -35,6 +35,7 @@
 /* Hack for Solaris: Some system headers included from compat.h might force _FILE_OFFSET_BITS. Need to follow that here.
    Also, want it around to have types defined. */
 #include "compat.h"
+#include "mpg123.h"
 
 #ifndef LFS_ALIAS_BITS
 #error "I need the count of alias bits here."
@@ -222,14 +223,14 @@ int attribute_align_arg ALIAS_NAME(mpg123_set_filesize)(mpg123_handle *mh, lfs_a
 	return NATIVE_NAME(mpg123_set_filesize)(mh, size);
 }
 
-int NATIVE_NAME(mpg123_replace_reader)(mpg123_handle *mh, ssize_t (*r_read) (int, void *, size_t), lfs_alias_t (*r_lseek)(int, lfs_alias_t, int));
-int attribute_align_arg ALIAS_NAME(mpg123_replace_reader)(mpg123_handle *mh, ssize_t (*r_read) (int, void *, size_t), lfs_alias_t (*r_lseek)(int, lfs_alias_t, int))
+int NATIVE_NAME(mpg123_replace_reader)(mpg123_handle *mh, mpg123_ssize_t (*r_read) (int, void *, size_t), lfs_alias_t (*r_lseek)(int, lfs_alias_t, int));
+int attribute_align_arg ALIAS_NAME(mpg123_replace_reader)(mpg123_handle *mh, mpg123_ssize_t (*r_read) (int, void *, size_t), lfs_alias_t (*r_lseek)(int, lfs_alias_t, int))
 {
 	return NATIVE_NAME(mpg123_replace_reader)(mh, r_read, r_lseek);
 }
 
-int NATIVE_NAME(mpg123_replace_reader_handle)(mpg123_handle *mh, ssize_t (*r_read) (void *, void *, size_t), lfs_alias_t (*r_lseek)(void *, lfs_alias_t, int), void (*cleanup)(void*));
-int attribute_align_arg ALIAS_NAME(mpg123_replace_reader_handle)(mpg123_handle *mh, ssize_t (*r_read) (void *, void *, size_t), lfs_alias_t (*r_lseek)(void *, lfs_alias_t, int), void (*cleanup)(void*))
+int NATIVE_NAME(mpg123_replace_reader_handle)(mpg123_handle *mh, mpg123_ssize_t (*r_read) (void *, void *, size_t), lfs_alias_t (*r_lseek)(void *, lfs_alias_t, int), void (*cleanup)(void*));
+int attribute_align_arg ALIAS_NAME(mpg123_replace_reader_handle)(mpg123_handle *mh, mpg123_ssize_t (*r_read) (void *, void *, size_t), lfs_alias_t (*r_lseek)(void *, lfs_alias_t, int), void (*cleanup)(void*))
 {
 	return NATIVE_NAME(mpg123_replace_reader_handle)(mh, r_read, r_lseek, cleanup);
 }

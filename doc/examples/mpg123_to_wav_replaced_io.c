@@ -57,9 +57,9 @@ struct ioh { int fd; };
 /* The callback functions; simple wrappers over standard I/O.
    They could be anything you like... */
 
-static ssize_t read_cb(void *handle, void *buf, size_t sz)
+static mpg123_ssize_t read_cb(void *handle, void *buf, size_t sz)
 {
-	ssize_t ret;
+	mpg123_ssize_t ret;
 	struct ioh *h = handle;
 	errno = 0;
 	ret = read(h->fd, buf, sz);

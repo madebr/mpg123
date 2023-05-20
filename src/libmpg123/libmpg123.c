@@ -642,7 +642,7 @@ int attribute_align_arg mpg123_open_feed(mpg123_handle *mh)
 }
 
 int attribute_align_arg mpg123_replace_reader( mpg123_handle *mh,
-                           ssize_t (*r_read) (int, void *, size_t),
+                           mpg123_ssize_t (*r_read) (int, void *, size_t),
                            off_t   (*r_lseek)(int, off_t, int) )
 {
 	if(mh == NULL) return MPG123_BAD_HANDLE;
@@ -654,7 +654,7 @@ int attribute_align_arg mpg123_replace_reader( mpg123_handle *mh,
 }
 
 int attribute_align_arg mpg123_replace_reader_handle( mpg123_handle *mh,
-                           ssize_t (*r_read) (void*, void *, size_t),
+                           mpg123_ssize_t (*r_read) (void*, void *, size_t),
                            off_t   (*r_lseek)(void*, off_t, int),
                            void    (*cleanup)(void*)  )
 {

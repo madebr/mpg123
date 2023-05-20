@@ -93,7 +93,7 @@ VOID CALLBACK ReadComplete(
 	return;
 }
 
-ssize_t win32_fifo_read(void *buf, size_t nbyte)
+mpg123_ssize_t win32_fifo_read(void *buf, size_t nbyte)
 {
 	int check;
 	DWORD readbuff;

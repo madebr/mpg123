@@ -165,24 +165,24 @@ static int dump_fd = -1;
 // Read without the buffer. This is used to fill the buffer explicitly in getline.
 // This is the function that finally wraps around all the different types of input.
 
-static ssize_t stream_read_raw(struct stream *sd, void *buf, size_t count)
+static mpg123_ssize_t stream_read_raw(struct stream *sd, void *buf, size_t count)
 {
-	ssize_t ret = -1;
+	mpg123_ssize_t ret = -1;
 #ifdef NETWORK
 	if(sd->nh)
-		ret = (ssize_t) sd->nh->read(sd->nh, buf, count);
+		ret = (mpg123_ssize_t) sd->nh->read(sd->nh, buf, count);
 #endif
 	if(sd->fd >= 0) // plain file or network socket
-		ret = (ssize_t) unintr_read(sd->fd, buf, count);
+		ret = (mpg123_ssize_t) unintr_read(sd->fd, buf, count);
 	return ret;
 }
 
-static ssize_t stream_read(struct stream *sd, void *buf, size_t count)
+static mpg123_ssize_t stream_read(struct stream *sd, void *buf, size_t count)
 {
 	if(!sd)
 		return -1;
 	char *bbuf = buf;
-	ssize_t ret = 0;
+	mpg123_ssize_t ret = 0;
 	if(count > SSIZE_MAX)
 		return -1;
 	while(count)
@@ -196,7 +196,7 @@ static ssize_t stream_read(struct stream *sd, void *buf, size_t count)
 			sd->bufp += get;
 		} else
 		{ // get it from the source
-			ssize_t rret = stream_read_raw(sd, bbuf, count);
+			mpg123_ssize_t rret = stream_read_raw(sd, bbuf, count);
 			if(rret < 0)
 				return ret > 0 ? ret : -1;
 			if(rret == 0)
@@ -226,7 +226,7 @@ static off_t stream_seek(struct stream *sd, off_t pos, int whence)
 // Yes, either \r or \n ends a line, a following \n or \r is just swallowed.
 // Need to catch the case where the buffer ends with \r and the next buffer
 // contents start with the matching \n, and the other way round.
-ssize_t stream_getline(struct stream *sd, mpg123_string *line)
+mpg123_ssize_t stream_getline(struct stream *sd, mpg123_string *line)
 {
 	if(!sd || !line)
 		return -1;
@@ -273,7 +273,7 @@ ssize_t stream_getline(struct stream *sd, mpg123_string *line)
 		{
 			debug("re-filling buffer");
 			// refill buffer
-			ssize_t ret = stream_read_raw(sd, sd->buf, sizeof(sd->buf));
+			mpg123_ssize_t ret = stream_read_raw(sd, sd->buf, sizeof(sd->buf));
 			mdebug("raw read return: %zd", ret);
 			if(ret < 0)
 				return -1;
@@ -614,10 +614,10 @@ void stream_close(struct stream *sd)
 }
 
 /* Read data from input, write copy to dump file. */
-static ssize_t dump_read(void *handle, void *buf, size_t count)
+static mpg123_ssize_t dump_read(void *handle, void *buf, size_t count)
 {
 	struct stream *sd = handle;
-	ssize_t ret = stream_read(sd, buf, count);
+	mpg123_ssize_t ret = stream_read(sd, buf, count);
 	if(ret > 0 && dump_fd > -1)
 	{
 		ret = unintr_write(dump_fd, buf, ret);

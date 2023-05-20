@@ -51,7 +51,7 @@ int win32_net_open_connection(mpg123_string *host, mpg123_string *port);
  * @param[in] nbyte bytes to read.
  * @return bytes read successfully from socket
  */
-ssize_t win32_net_read (int fildes, void *buf, size_t nbyte);
+mpg123_ssize_t win32_net_read (int fildes, void *buf, size_t nbyte);
 
 /**
  * Writes to network socket
@@ -60,7 +60,7 @@ ssize_t win32_net_read (int fildes, void *buf, size_t nbyte);
  * @param[in] nbyte bytes to write.
  * @return bytes written successfully to socket
  */
-ssize_t win32_net_write (int fildes, const void *buf, size_t nbyte);
+mpg123_ssize_t win32_net_write (int fildes, const void *buf, size_t nbyte);
 
 /**
  * Writes a whole mpg123_string to the network socket
@@ -140,7 +140,7 @@ DWORD win32_fifo_read_peek(struct timeval *tv);
  * @param[in] nbyte Number of bytes to read up to.
  * @return Number of bytes actually read.
  */
-ssize_t win32_fifo_read(void *buf, size_t nbyte);
+mpg123_ssize_t win32_fifo_read(void *buf, size_t nbyte);
 #endif /* #ifdef WANT_WIN32_FIFO */
 
 #endif /* HAVE_WINDOWS_H */
