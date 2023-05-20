@@ -71,11 +71,6 @@
 
 #endif
 
-/* You can use this file directly, avoiding the autoconf replacements.
-   Might have to set MPG123_NO_LARGENAME, too, in case you have
-   _FILE_OFFSET_BITS defined where it does not make sense. */
-#ifndef MPG123_NO_CONFIGURE
-
 #include <stdlib.h>
 #include <sys/types.h>
 
@@ -86,6 +81,11 @@ typedef ptrdiff_t mpg123_ssize_t;
 #else
 typedef ssize_t mpg123_ssize_t;
 #endif
+
+/* You can use this file directly, avoiding the autoconf replacements.
+   Might have to set MPG123_NO_LARGENAME, too, in case you have
+   _FILE_OFFSET_BITS defined where it does not make sense. */
+#ifndef MPG123_NO_CONFIGURE
 
 /* You can always enforce largefile hackery by setting MPG123_LARGESUFFIX. */
 /* Otherwise, this header disables it if the build system decided so. */
