@@ -276,7 +276,7 @@ switch(dst_enc) \
 	break; \
 	case MPG123_ENC_FLOAT_32: \
 		for(; tsrc!=tend; ++tsrc, tdest+=4) \
-			*((float*)tdest) = *tsrc; \
+			*((float*)tdest) = (float)*tsrc; \
 	break; \
 	case MPG123_ENC_FLOAT_64: \
 		for(; tsrc!=tend; ++tsrc, tdest+=8) \
@@ -369,7 +369,7 @@ switch(src_enc) \
 	break; \
 	case MPG123_ENC_SIGNED_32: \
 		for(; tdest!=tend; ++tdest, tsrc+=4) \
-			*tdest = s32_d(*(int32_t*)tsrc); \
+			*tdest = (type)s32_d(*(int32_t*)tsrc); \
 	break; \
 	case MPG123_ENC_SIGNED_24: \
 		for(; tdest!=tend; ++tdest, tsrc+=3) \

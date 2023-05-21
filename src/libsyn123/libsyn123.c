@@ -208,7 +208,7 @@ static double wave_shot(double p)
 // Actual wave worker function, to be used to give up to
 // bufblock samples in one go. This takes a vector of phases
 // and multiplies the resulting amplitudes into the output buffer.
-static void evaluate_wave( double outbuf[bufblock], int samples
+static void evaluate_wave( double outbuf[bufblock], size_t samples
 ,	enum syn123_wave_id id, double phase[bufblock] )
 {
 	// Ensuring that the inner loop is inside the switch.
@@ -216,7 +216,7 @@ static void evaluate_wave( double outbuf[bufblock], int samples
 	// to write it down the right way from the beginning.
 	#define PHASE phase[pi]
 	#define PI_LOOP( code ) \
-		for(int pi=0; pi<samples; ++pi) \
+		for(size_t pi=0; pi<samples; ++pi) \
 			outbuf[pi] *= code;
 	switch(id)
 	{
@@ -322,11 +322,11 @@ const char* syn123_strerror(int errcode)
 // task from actually evaluating the wave functions.
 // The code is actually smaller and better abstracted that way.
 
-static void add_some_wave( double outbuf[bufblock], int samples
+static void add_some_wave( double outbuf[bufblock], size_t samples
 ,	enum syn123_wave_id id, double pps, double phase
 ,	double workbuf[bufblock] )
 {
-	for(int pi=0; pi<samples; ++pi)
+	for(size_t pi=0; pi<samples; ++pi)
 		workbuf[pi] = phasefrac(pi*pps+phase);
 	evaluate_wave(outbuf, samples, id, workbuf);
 }

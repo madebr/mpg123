@@ -433,7 +433,7 @@ struct lpf4_hist
 // Downside: You never see a true zero if ther is true zero on input.
 // Upside would be that you'd convert to 24 or 32 bit integer anyway,
 // where you'd get your zero back (1 in 32 bit is around 5e-10.
-static const float denorm_base = 1e-15;
+static const float denorm_base = 1e-15f;
 #define DE_DENORM(val, base) (val) += (base);
 #define DE_DENORM_FLIP(base) (base) = -(base);
 #define DE_DENORM_INIT(base, sign) (base) = (sign)*denorm_base;
@@ -591,7 +591,7 @@ struct resample_data
 
 // Constructing the low pass filter for a bit less than claimed cutoff,
 // numerics shift things a bit.
-static const float lpf_cut_scale = 0.995;
+static const float lpf_cut_scale = 0.995f;
 
 // Reference implementation of the cubic spline evaluation.
 // x: time coordinate to evaluate at
