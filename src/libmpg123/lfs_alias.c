@@ -62,10 +62,6 @@
 
 #endif
 
-/* Copy of necessary definitions, actually just forward declarations. */
-struct mpg123_handle_struct;
-typedef struct mpg123_handle_struct mpg123_handle;
-
 
 /* Get attribute_align_arg, to stay safe. */
 #include "abi_align.h"
