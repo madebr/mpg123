@@ -117,7 +117,7 @@ static void print_value( int fixed, double fixed_scale
 	if(fixed)
 		printf("%ld;\n", (long)(DOUBLE_TO_REAL(fixed_scale*val)));
 	else
-		printf("%15.8e;\n", val);
+		printf("%15.8ef;\n", val);
 }
 
 // I feal uneasy about inf appearing as literal.
@@ -143,7 +143,7 @@ static void print_array( int statick, int fixed, double fixed_scale
 			,	statick ? "static " : "", name, count );
 		return;
 	}
-	size_t block = 72/17;
+	size_t block = 72/18;
 	size_t i = 0;
 	if(name)
 		printf( "%sconst%s real %s[%zu] = \n", statick ? "static " : ""
@@ -157,7 +157,7 @@ static void print_array( int statick, int fixed, double fixed_scale
 			printf( "%s%c%11ld", i ? "," : "", j ? ' ' : '\t'
 			,	(long)(DOUBLE_TO_REAL(fixed_scale*tab[i])) );
 		else for(size_t j=0; j<line; ++j, ++i)
-			printf("%s%c%15.8e", i ? "," : "", j ? ' ' : '\t', limit_val(tab[i]));
+			printf("%s%c%15.8ef", i ? "," : "", j ? ' ' : '\t', limit_val(tab[i]));
 		printf("\n");
 	}
 	printf("%s}%s\n", indent, name ? ";" : "");
