@@ -1,6 +1,18 @@
 TODO: Fix -R with buffer … that behaves badly, pausing and draining at unexpected
 moments if interacting with commands near the end of track.
 
+TODO: play_frame needs to handle buffer draining for full symmetry
+
+bonus: buffer draining is non-special for remote control interface, too
+and things can be fixed there. The control logic needs to be sanitized.
+Actually, couldn't control_generic be unified with term control?
+This would mean term control gets the option of loading additional tracks,
+remote control might gain playlist support ...
+
+Buffer draining in play_frame works against smooth playback, though.
+This needs serious thought.
+
+
 TODO: Seeking with buffer is without visual feedback in terminal. When did that change?
 
 1.32.0

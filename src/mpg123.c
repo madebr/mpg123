@@ -1334,8 +1334,10 @@ int main(int sys_argc, char ** sys_argv)
 		}
 		if(param.delay > 0)
 		{
+			// How much control do we want here? Jumping around would mean to get out of the
+			// delay phase and just mess everything up. Pause/unpause would be the only
+			// sensible playback controls. Maybe we can enforce that.
 			controlled_drain();
-			/* One should enable terminal control during that sleeping phase! */
 			if(param.verbose > 2) fprintf(stderr, "Note: pausing %i seconds before next track.\n", param.delay);
 #ifdef WIN32
 			Sleep(param.delay*1000);
