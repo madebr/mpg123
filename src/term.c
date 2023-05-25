@@ -1,7 +1,7 @@
 /*
 	term: terminal control
 
-	copyright ?-2019 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2023 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp
 */
@@ -587,8 +587,7 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 static void term_handle_input(mpg123_handle *fr, out123_handle *ao, int do_delay)
 {
 	char val;
-	/* Do we really want that while loop? This means possibly handling multiple inputs that come very rapidly in one go. */
-	while(term_get_key(playstate==STATE_STOPPED, do_delay, &val))
+	if(term_get_key(playstate==STATE_STOPPED, do_delay, &val))
 	{
 		term_handle_key(fr, ao, val);
 	}

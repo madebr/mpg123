@@ -28,6 +28,7 @@ TODO: Seeking with buffer is without visual feedback in terminal. When did that 
 -- Added proper A-B looping with terminal control key 'o', renamed
    --pauseloop to --presetloop.
 -- Really get rid of mpg123_position() usage. (It was all lies before!)
+-- Fix terminal progress info when seeking in stopped mode (1.31 regression).
 - libmpg123, libout123, libsyn123: bumped API version for version query
   functions
 - libout123:
