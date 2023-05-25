@@ -12,9 +12,6 @@ remote control might gain playlist support ...
 Buffer draining in play_frame works against smooth playback, though.
 This needs serious thought.
 
-
-TODO: Seeking with buffer is without visual feedback in terminal. When did that change?
-
 1.32.0
 ------
 - build:
