@@ -247,7 +247,7 @@ void prev_dir(void)
 
 void safe_exit(int code);
 
-static void play_prebuffer(void)
+void play_prebuffer(void)
 {
 	/* Ensure that the prebuffer bit has been posted. */
 	if(prebuffer_fill)

@@ -140,6 +140,7 @@ extern int playlimit;
 #endif
 
 /* why extern? */
+void play_prebuffer();
 extern int play_frame(void);
 
 extern int control_generic(mpg123_handle *fr);

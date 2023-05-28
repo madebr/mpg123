@@ -179,6 +179,10 @@ to help parsers decide if they got the whole list.
 	a = 2: playing unpaused
 	a = 3: end of track reached (followed by another status response)
 
+@DRAIN <s>
+	Output buffer of s seconds is being drained, without chance of interruption.
+	(since v11)
+
 @E <a>
 	An error occured
 	Errors may be also reported by mpg123 through

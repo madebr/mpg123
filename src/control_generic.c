@@ -409,7 +409,7 @@ int control_generic (mpg123_handle *fr)
 #endif
 	/* the command behaviour is different, so is the ID */
 	/* now also with version for command availability */
-	fprintf(outstream, "@R MPG123 (ThOr) v10\n");
+	fprintf(outstream, "@R MPG123 (ThOr) v11\n");
 #ifdef FIFO
 	if(param.fifo)
 	{
@@ -456,8 +456,34 @@ int control_generic (mpg123_handle *fr)
 			if (n == 0) {
 				if (!play_frame())
 				{
-					generic_sendmsg("P 3");
+					size_t drain_block;
+					size_t buffered;
+
+					// Ensure that prepared audio really got played, drain buffer.
+					// There is no control during draining. This mode was not planned for big buffers.
+					play_prebuffer();
+					buffered = out123_buffered(ao);
+					if(buffered)
+					{
+						int framesize = 1;
+						long rate = 1;
+						out123_getformat(ao, &rate, NULL, NULL, &framesize);
+						generic_sendmsg("DRAIN %.1f", (double)buffered/framesize/rate);
+						if(silent == 0)
+						{
+							generic_sendstat(fr);
+							drain_block = 1152*framesize;
+							do
+							{
+								out123_ndrain(ao, drain_block);
+								generic_sendstat(fr);
+							}
+							while(out123_buffered(ao));
+						} else
+							out123_drain(ao);
+					}
 					out123_pause(ao);
+					generic_sendmsg("P 3");
 					/* When the track ended, user may want to keep it open (to seek back),
 					   so there is a decision between stopping and pausing at the end. */
 					if(param.keep_open)
@@ -601,26 +627,26 @@ int control_generic (mpg123_handle *fr)
 				/* SILENCE */
 				if(!strcasecmp(comstr, "SILENCE")) {
 					silent = 1;
-					generic_sendmsg("silence");
+					generic_sendmsg("SILENCE");
 					continue;
 				}
 
 				/* PROGRESS, opposite of silence */
 				if(!strcasecmp(comstr, "PROGRESS")) {
 					silent = 0;
-					generic_sendmsg("progress");
+					generic_sendmsg("PROGRESS");
 					continue;
 				}
 
 				if(!strcasecmp(comstr, "MUTE")) {
 					set_mute(ao, muted=TRUE);
-					generic_sendmsg("mute");
+					generic_sendmsg("MUTE");
 					continue;
 				}
 
 				if(!strcasecmp(comstr, "UNMUTE")) {
 					set_mute(ao, muted=FALSE);
-					generic_sendmsg("unmute");
+					generic_sendmsg("UNMUTE");
 					continue;
 				}
 
@@ -691,6 +717,7 @@ int control_generic (mpg123_handle *fr)
 
 				/* QUIT */
 				if (!strcasecmp(comstr, "Q") || !strcasecmp(comstr, "QUIT")){
+					out123_drop(ao);
 					alive = FALSE; continue;
 				}
 
