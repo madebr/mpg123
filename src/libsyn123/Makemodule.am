@@ -3,6 +3,8 @@
 # This bulds libsyn123, a basic library for some sound synthesis
 # and format conversion for the mpg123 project.
 
+include_HEADERS += src/libsyn123/syn123.h
+
 lib_LTLIBRARIES += src/libsyn123/libsyn123.la
 
 src_libsyn123_libsyn123_la_CFLAGS = @LIB_CFLAGS@

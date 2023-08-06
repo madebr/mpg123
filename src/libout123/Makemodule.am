@@ -2,8 +2,8 @@
 
 include src/libout123/modules/Makemodule.am
 
-# Precursor to the proper libout123.
-# For now only wrapping the module loader or the legacy module.
+include_HEADERS += src/libout123/out123.h
+
 noinst_LTLIBRARIES += src/libout123/libmodule.la
 
 lib_LTLIBRARIES += src/libout123/libout123.la
