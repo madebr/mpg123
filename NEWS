@@ -6,6 +6,8 @@
    correct one is included (at least gcc picks the one in the same directory as the
    including header first).
 -- TODO: make headers build-independent (some lfs aliasing for non-sensitive)
+-- fix build for picky linkers by avoiding definition of wrap_getcpuflags() where it is not
+   used (spurious linker error to non-exitent getcpuflags(), bug 353).
 - mpg123:
 -- Added --libversion.
 -- Added proper A-B looping with terminal control key 'o', renamed

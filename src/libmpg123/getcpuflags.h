@@ -44,6 +44,8 @@ struct cpuflags
 
 unsigned int getcpuflags(struct cpuflags* cf);
 
+#if ((defined OPT_X86) || (defined OPT_X86_64) || (defined OPT_NEON) || (defined OPT_NEON64)) && (defined OPT_MULTI)
+
 #ifdef WANT_GETCPUFLAGS
 #include <string.h>
 // Wrapper needed for ignorant clang memory sanitizer that chokes
@@ -54,8 +56,6 @@ static unsigned int wrap_getcpuflags(struct cpuflags* cf)
 	return getcpuflags(cf);
 }
 #endif
-
-#if ((defined OPT_X86) || (defined OPT_X86_64) || (defined OPT_NEON) || (defined OPT_NEON64)) && (defined OPT_MULTI)
 
 // We really evaluate the CPU flags.
 #define OPT_CPU_FLAGS
