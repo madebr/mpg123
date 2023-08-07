@@ -1072,7 +1072,7 @@ void check_decoders(void)
 	return;
 #else
 	const char **d = mpg123_supported_decoder_list;
-#if (defined OPT_X86) || (defined OPT_X86_64) || (defined OPT_NEON) || (defined OPT_NEON64)
+#ifdef OPT_CPU_FLAGS
 	struct cpuflags cpu_flags;
 	wrap_getcpuflags(&cpu_flags);
 #endif
