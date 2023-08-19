@@ -838,7 +838,8 @@ off_t feed_set_pos(mpg123_handle *fr, off_t pos)
 
 /* The specific stuff for buffered stream reader. */
 
-static ptrdiff_t buffered_fullread(mpg123_handle *fr, unsigned char *out, ptrdiff_t count)
+static ptrdiff_t buffered_fullread(mpg123_handle *fr, unsigned char *out, ptrdiff_t count
+,	ptrdiff_t (*fullread)(mpg123_handle *, unsigned char *, ptrdiff_t))
 {
 	struct bufferchain *bc = &fr->rdat.buffer;
 	ptrdiff_t gotcount;
@@ -851,7 +852,7 @@ static ptrdiff_t buffered_fullread(mpg123_handle *fr, unsigned char *out, ptrdif
 		while(need>0)
 		{
 			int ret;
-			ptrdiff_t got = fr->rdat.fullread(fr, readbuf, sizeof(readbuf));
+			ptrdiff_t got = fullread(fr, readbuf, sizeof(readbuf));
 			if(got < 0)
 			{
 				if(NOQUIET) error("buffer reading");
@@ -881,6 +882,17 @@ static ptrdiff_t buffered_fullread(mpg123_handle *fr, unsigned char *out, ptrdif
 	if(gotcount != count){ if(NOQUIET) error("gotcount != count"); return READER_ERROR; }
 	else return gotcount;
 }
+
+static ptrdiff_t buffered_plain_fullread(mpg123_handle *fr, unsigned char *out, ptrdiff_t count)
+{
+	return buffered_fullread(fr, out, count, plain_fullread);
+}
+
+static ptrdiff_t buffered_icy_fullread(mpg123_handle *fr, unsigned char *out, ptrdiff_t count)
+{
+	return buffered_fullread(fr, out, count, icy_fullread);
+}
+
 #else
 int feed_more(mpg123_handle *fr, const unsigned char *in, long count)
 {
@@ -951,6 +963,8 @@ static struct reader readers[] =
 #define feed_init NULL
 #define feed_read NULL
 #define buffered_fullread NULL
+#define buffered_plain_fullread NULL
+#define buffered_icy_fullread NULL
 #define feed_seek_frame NULL
 #define feed_back_bytes NULL
 #define feed_skip_bytes NULL
@@ -973,7 +987,7 @@ static struct reader readers[] =
 	{ /* READER_BUF_STREAM */
 		default_init,
 		stream_close,
-		buffered_fullread,
+		buffered_plain_fullread,
 		generic_head_read,
 		generic_head_shift,
 		stream_skip_bytes,
@@ -987,7 +1001,7 @@ static struct reader readers[] =
 	{ /* READER_BUF_ICY_STREAM */
 		default_init,
 		stream_close,
-		buffered_fullread,
+		buffered_icy_fullread,
 		generic_head_read,
 		generic_head_shift,
 		stream_skip_bytes,
@@ -1079,14 +1093,12 @@ static int default_init(mpg123_handle *fr)
 		{
 			debug("switching to buffered stream reader");
 			fr->rd = &readers[READER_BUF_STREAM];
-			fr->rdat.fullread = plain_fullread;
 		}
 #ifndef NO_ICY
 		else if(fr->rd == &readers[READER_ICY_STREAM])
 		{
 			debug("switching to buffered ICY stream reader");
 			fr->rd = &readers[READER_BUF_ICY_STREAM];
-			fr->rdat.fullread = icy_fullread;
 		}
 #endif
 		else

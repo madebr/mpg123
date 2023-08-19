@@ -73,8 +73,6 @@ struct reader_data
 	/* These two pointers are the actual workers (default map to POSIX read/lseek). */
 	ptrdiff_t (*read) (int fd, void *buf, size_t count);
 	off_t   (*lseek)(int fd, off_t offset, int whence);
-	/* Buffered readers want that abstracted, set internally. */
-	ptrdiff_t (*fullread)(mpg123_handle *, unsigned char *, ptrdiff_t);
 #ifndef NO_FEEDER
 	struct bufferchain buffer; /* Not dynamically allocated, these few struct bytes aren't worth the trouble. */
 #endif
