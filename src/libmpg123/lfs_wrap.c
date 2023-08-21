@@ -35,6 +35,16 @@
 // This code _offers_ the other functions.
 #define MPG123_PORTABLE_API
 #include "mpg123.h"
+
+#include <sys/types.h>
+// Copied from mpg123.h, since we don't want non-portable API defined,
+// but need this type to implement it.
+#ifdef _MSC_VER
+typedef ptrdiff_t mpg123_ssize_t;
+#else
+typedef ssize_t mpg123_ssize_t;
+#endif
+
 #include "lfs_wrap.h"
 #include "abi_align.h"
 #include "compat.h"

@@ -71,16 +71,19 @@
 
 #endif
 
-#include <stdlib.h>
-#include <sys/types.h>
+#include <stddef.h>
+#include <stdint.h>
 
+#ifndef MPG123_PORTABLE_API
+#include <sys/types.h>
 /* A little hack to help MSVC not having ssize_t. */
 #ifdef _MSC_VER
-#include <stddef.h>
 typedef ptrdiff_t mpg123_ssize_t;
 #else
 typedef ssize_t mpg123_ssize_t;
 #endif
+#endif
+
 
 /* Handling of large file offsets.
 	When client code defines _FILE_OFFSET_BITS, it wants non-default large file support,
