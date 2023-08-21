@@ -4,7 +4,7 @@
 	This file is strongly tied with optimize.h concerning the synth functions.
 	Perhaps one should restructure that a bit.
 
-	copyright 2007-8 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2007-2023 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis, taking WRITE_SAMPLE from decode.c
 */
@@ -30,7 +30,7 @@
 #define NTOM_MAX 8          /* maximum allowed factor for upsampling */
 #define NTOM_MAX_FREQ 96000 /* maximum frequency to upsample to / downsample from */
 #define NTOM_MUL (32768)
-void ntom_set_ntom(mpg123_handle *fr, off_t num);
+void ntom_set_ntom(mpg123_handle *fr, int64_t num);
 #endif
 
 /* Let's collect all possible synth functions here, for an overview.
@@ -215,18 +215,18 @@ void dct36_neon64  (real *,real *,real *,const real *,real *);
 
 /* Tools for NtoM resampling synth, defined in ntom.c . */
 int synth_ntom_set_step(mpg123_handle *fr); /* prepare ntom decoding */
-unsigned long ntom_val(mpg123_handle *fr, off_t frame); /* compute ntom_val for frame offset */
+unsigned long ntom_val(mpg123_handle *fr, int64_t frame); /* compute ntom_val for frame offset */
 /* Frame and sample offsets. */
 #ifndef NO_NTOM
 /*
 	Outsamples of _this_ frame.
 	To be exact: The samples to be expected from the next frame decode (using the current ntom_val). When you already decoded _this_ frame, this is the number of samples to be expected from the next one.
 */
-off_t ntom_frame_outsamples(mpg123_handle *fr);
+int64_t ntom_frame_outsamples(mpg123_handle *fr);
 /* Total out/insample offset. */
-off_t ntom_frmouts(mpg123_handle *fr, off_t frame);
-off_t ntom_ins2outs(mpg123_handle *fr, off_t ins);
-off_t ntom_frameoff(mpg123_handle *fr, off_t soff);
+int64_t ntom_frmouts(mpg123_handle *fr, int64_t frame);
+int64_t ntom_ins2outs(mpg123_handle *fr, int64_t ins);
+int64_t ntom_frameoff(mpg123_handle *fr, int64_t soff);
 #endif
 
 /* Initialization of any static data that majy be needed at runtime.

@@ -6,11 +6,13 @@ include src/libmpg123/Makemodule.am
 include src/libout123/Makemodule.am
 include src/libsyn123/Makemodule.am
 
+bin_PROGRAMS += src/out123
+if HAVE_LFS_WRAP
 bin_PROGRAMS += \
   src/mpg123 \
-  src/out123 \
   src/mpg123-id3dump \
   src/mpg123-strip
+endif
 
 src_mpg123_LDADD = \
   src/compat/libcompat.la \

@@ -250,7 +250,6 @@
 #define bc_cleanup INT123_bc_cleanup
 #define bc_poolsize INT123_bc_poolsize
 #define bc_fill INT123_bc_fill
-#define open_stream INT123_open_stream
 #define open_stream_handle INT123_open_stream_handle
 #define open_feed INT123_open_feed
 #define feed_more INT123_feed_more

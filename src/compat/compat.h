@@ -66,17 +66,33 @@
 #define SSIZE_MAX ((size_t)-1/2)
 #endif
 #ifndef PTRDIFF_MAX
-#define PTRDIFF_MAX ((size_t)-1/2)
+#define PTRDIFF_MAX SSIZE_MAX
 #endif
 #ifndef ULONG_MAX
 #define ULONG_MAX ((unsigned long)-1)
 #endif
 
+#ifndef INT64_MAX
+#define INT64_MAX 9223372036854775807LL
+#endif
+#ifndef INT64_MIN
+#define INT64_MIN (-INT64_MAX - 1)
+#endif
+#ifndef INT32_MAX
+#define INT32_MAX 2147483647L
+#endif
+#ifndef INT32_MIN
+#define INT32_MIN (-INT32_MAX - 1)
+#endif
+
 #ifndef OFF_MAX
+#undef OFF_MIN
 #if SIZEOF_OFF_T == 4
-#define OFF_MAX ((uint32_t)-1/2)
+#define OFF_MAX INT32_MAX
+#define OFF_MIN INT32_MIN
 #elif SIZEOF_OFF_T == 8
-#define OFF_MAX ((uint64_t)-1/2)
+#define OFF_MAX INT64_MAX
+#define OFF_MIN INT64_MIN
 #else
 #error "Unexpected width of off_t."
 #endif
@@ -84,6 +100,7 @@
 
 // Add two values (themselves assumed to be < limit), saturating to given limit.
 #define SATURATE_ADD(inout, add, limit) inout = (limit-add >= inout) ? inout+add : limit;
+#define SATURATE_SUB(inout, sub, limit) inout = (limit+sub >= inout) ? inout-sub : limit;
 
 #ifdef HAVE_STRING_H
 #include <string.h>

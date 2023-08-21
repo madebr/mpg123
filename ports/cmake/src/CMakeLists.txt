@@ -8,6 +8,8 @@ include(CheckSymbolExists)
 include(CMakeDependentOption)
 include(TestBigEndian)
 
+option(PORTABLE_API "Only build portable library API (no off_t, no internal I/O." OFF)
+
 check_include_file("arpa/inet.h" HAVE_ARPA_INET_H)
 check_include_file("dirent.h" HAVE_DIRENT_H)
 check_include_file("dlfcn.h" HAVE_DLFCN_H)
@@ -64,6 +66,8 @@ check_function_exists(fork HAVE_FORK)
 check_function_exists(execvp HAVE_EXECVP)
 check_function_exists(ctermid HAVE_CTERMID)
 
+check_function_exists(lseek64 LFS_LARGEFILE_64)
+
 search_libs(gethostbyname GETHOSTBYNAME_LIB nsl socket network)
 search_libs(socket SOCKET_LIB socket)
 
@@ -82,26 +86,6 @@ endif()
 check_c_source_compiles(
     "int main() { __attribute__((aligned(16))) float var; return 0; }"
     CCALIGN)
-
-if(MSVC)
-    # Here, off_t is always 32 bit, the whole machinery doesn't work without explicit
-    # API for 64 bit file access.
-    unset(_FILE_OFFSET_BITS)
-    set(LFS_SENSITIVE OFF)
-    set(LFS_INSENSITIVE ON)
-    set(MPG123_LARGE_FILE_SUPPORT OFF)
-    # We disable all the dynamic naming with MSVC to avoid confusing consumers.
-    # Maybe it would be more proper to conditionit on LFS_INSENSTIIVE.
-    set(BUILD_NO_LARGENAME 1)
-else()
-    option(MPG123_LARGE_FILE_SUPPORT "Support large files (define _FILE_OFFSET_BITS)" ON)
-    if(MPG123_LARGE_FILE_SUPPORT)
-        set(_FILE_OFFSET_BITS 64)
-    else()
-        unset(_FILE_OFFSET_BITS)
-    endif()
-    set(BUILD_NO_LARGENAME 0)
-endif()
 
 if(NOT LFS_INSENSITIVE)
     check_c_source_compiles("
@@ -132,18 +116,6 @@ if(NOT LFS_INSENSITIVE)
 endif()
 check_type_size(long SIZEOF_LONG)
 check_type_size(off_t SIZEOF_OFF_T)
-
-if(LFS_SENSITIVE)
-    set(LFS_ALIAS_TYPE long)
-    math(EXPR LFS_ALIAS_BITS "${SIZEOF_LONG} * 8")
-elseif(CMAKE_ANDROID_ARCH_ABI)
-    check_type_size(off64_t SIZEOF_OFF64_T)
-    set(LFS_ALIAS_TYPE off64_t)
-    math(EXPR LFS_ALIAS_BITS "${SIZEOF_OFF64_T} * 8")
-else()
-    set(LFS_ALIAS_TYPE off_t)
-    math(EXPR LFS_ALIAS_BITS "${SIZEOF_OFF_T} * 8")
-endif()
 
 if(WIN32 AND HAVE_WINDOWS_H)
     check_c_source_compiles("
@@ -331,13 +303,6 @@ cmake_dependent_option(NO_BUFFER "enable audio buffer code (default uses system 
 option(NO_DOWNSAMPLE "no downsampled decoding" OFF)
 option(NO_EQUALIZER "no equalizer support" OFF)
 option(NO_FEEDER "no feeder decoding, no buffered readers" OFF)
-if(CYGWIN)
-    option(NO_LFS_ALIAS "disable alias wrappers for largefile bitness (mpg123_seek_32 or mpg123_seek_64 in addition to mpg123_seek, or the other way around; It is a mess, do not play with this!)" ON)
-elseif(MSVC)
-    set(NO_LFS_ALIAS ON)
-else()
-    option(NO_LFS_ALIAS "disable alias wrappers for largefile bitness (mpg123_seek_32 or mpg123_seek_64 in addition to mpg123_seek, or the other way around; It is a mess, do not play with this!)" OFF)
-endif()
 option(NO_ICY "ICY metainfo parsing/conversion" OFF)
 option(NO_LAYER1 "no layer I decoding" OFF)
 option(NO_LAYER2 "no layer II decoding" OFF)
@@ -379,7 +344,7 @@ if(BUILD_LIBOUT123)
 endif()
 add_subdirectory("libsyn123")
 
-if(UNIX)
+if(UNIX AND NOT PORTABLE_API)
     option(BUILD_PROGRAMS "Build programs" ON)
 
     if(BUILD_PROGRAMS)

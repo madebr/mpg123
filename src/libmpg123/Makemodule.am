@@ -1,7 +1,5 @@
 # Module for non-recursive mpg123 build system.
 
-EXTRA_DIST += src/libmpg123/mpg123.h.in
-
 EXTRA_PROGRAMS += src/libmpg123/testcpu
 src_libmpg123_testcpu_DEPENDENCIES = src/libmpg123/getcpuflags.$(OBJEXT)
 src_libmpg123_testcpu_SOURCES = src/libmpg123/testcpu.c
@@ -21,7 +19,7 @@ src_libmpg123_calctables_LDADD = @LIBM@
 #CLEANFILES += src/libmpg123/*.a
 
 lib_LTLIBRARIES += src/libmpg123/libmpg123.la
-nodist_include_HEADERS += src/libmpg123/mpg123.h
+include_HEADERS += src/libmpg123/mpg123.h
 include_HEADERS += src/libmpg123/fmt123.h
 
 src_libmpg123_libmpg123_la_CFLAGS = @LIB_CFLAGS@
@@ -66,6 +64,7 @@ src_libmpg123_libmpg123_la_SOURCES = \
   src/libmpg123/optimize.h \
   src/libmpg123/optimize.c \
   src/libmpg123/readers.c \
+  src/libmpg123/lfs_wrap.h \
   src/libmpg123/costabs.h \
   src/libmpg123/tabinit.c \
   src/libmpg123/libmpg123.c \
@@ -110,7 +109,6 @@ src_libmpg123_libmpg123_la_SOURCES = \
 #SYNTH16                   synth.c
 #SYNTH32                   synth_s32.c
 #SYNTHREAL                 synth_real.c
-#LFS_ALIAS                 lfs_alias.c
 #LFS_WRAP                  lfs_wrap.c
 #ICY                       icy.c icy2utf8.c
 #FEATURE                   feature.c
@@ -204,10 +202,6 @@ endif
 
 if HAVE_SYNTHREAL
 src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_real.c
-endif
-
-if HAVE_LFS_ALIAS
-src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/lfs_alias.c
 endif
 
 if HAVE_LFS_WRAP

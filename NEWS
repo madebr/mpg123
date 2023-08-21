@@ -5,9 +5,15 @@
 -- Include "fmt123.h" instead of <fmt123.h> in main API headers to make it more likely the
    correct one is included (at least gcc picks the one in the same directory as the
    including header first).
--- TODO: make headers build-independent (some lfs aliasing for non-sensitive)
--- fix build for picky linkers by avoiding definition of wrap_getcpuflags() where it is not
+-- All headers are build-independent now.
+-- Fix build for picky linkers by avoiding definition of wrap_getcpuflags() where it is not
    used (spurious linker error to non-exitent getcpuflags(), bug 353).
+-- Handle deprecation of C99 detection macro in autoconf 2.70.
+-- No use of AC_SYS_LARGEFILE anymore for explicit handling and differing choice for
+   the libraries and frontend programs.
+-- Added --enable-portable and --disable-largefile to configure, removing the other
+   largefile-related options.
+- ports/Sony_PSP: removed
 - mpg123:
 -- Added --libversion.
 -- Added proper A-B looping with terminal control key 'o', renamed
@@ -25,6 +31,14 @@
 - libsyn123:
 -- Introduced SYN123_PORTABLE_API for an API without off_t and ssize_t
    (see NEWS.libsyn123).
+- libmpg123:
+-- Internal I/O using explicit largefile support via off64_t, lseek64, fallback
+   to plain 32 bit off_t.
+-- Added explicit 64 bit API with 64 suffix (mpg123_tell64(), not mpg123_tell_64()).
+   This allows full avoidance of ambiguus off_t. The API is always using 64 bit
+   integers, regardless of internal implementation. (bug 344)
+-- Introduced MPG123_PORTABLE_API for an API subset without off_t and
+   ssize_t.
 
 1.31.3
 ------

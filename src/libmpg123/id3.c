@@ -1,7 +1,7 @@
 /*
 	id3: ID3v2.3 and ID3v2.4 parsing (a relevant subset)
 
-	copyright 2006-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2006-2023 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis
 
@@ -798,7 +798,7 @@ int store_id3v2( mpg123_handle *fr
 ,	unsigned long first4bytes, unsigned char buf[6], unsigned long length )
 {
 	int ret = 1;
-	off_t ret2;
+	int64_t ret2;
 	unsigned long fullen = 10+length;
 	if(fr->id3v2_raw)
 		free(fr->id3v2_raw);
@@ -858,7 +858,7 @@ int parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 	unsigned long length=0;
 	unsigned char flags = 0;
 	int ret = 1;
-	off_t ret2;
+	int64_t ret2;
 	int storetag = 0;
 	unsigned int footlen = 0;
 #ifndef NO_ID3V2

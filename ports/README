@@ -13,5 +13,7 @@ it to work with minimal fuzz.
 
 - cmake: CMake build to get started on non-Unix-like platforms, especially
   for just libmpg123 on Windows
-- Sony PSP: Sony_PSP/; building libmpg123 for the PSP (used for the MODO player).
-  ...by Bastian Pflieger <wb@illogical.de>
+
+There used to be other ports, last of those for the Sony PSP. There was not
+much porting involved on that one, though, just a custom Makefile for building
+a generic libmpg123.

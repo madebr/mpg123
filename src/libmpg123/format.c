@@ -1,7 +1,7 @@
 /*
 	format: routines to deal with audio (output) format
 
-	copyright 2008-20 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2008-23 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis, starting with parts of the old audio.c, with only faintly manage to show now
 
@@ -557,25 +557,25 @@ void invalidate_format(struct audioformat *af)
 }
 
 /* Number of bytes the decoder produces. */
-off_t decoder_synth_bytes(mpg123_handle *fr, off_t s)
+int64_t decoder_synth_bytes(mpg123_handle *fr, int64_t s)
 {
 	return s * fr->af.dec_encsize * fr->af.channels;
 }
 
 /* Samples/bytes for output buffer after post-processing. */
 /* take into account: channels, bytes per sample -- NOT resampling!*/
-off_t samples_to_bytes(mpg123_handle *fr , off_t s)
+int64_t samples_to_bytes(mpg123_handle *fr , int64_t s)
 {
 	return s * fr->af.encsize * fr->af.channels;
 }
 
-off_t bytes_to_samples(mpg123_handle *fr , off_t b)
+int64_t bytes_to_samples(mpg123_handle *fr , int64_t b)
 {
 	return b / fr->af.encsize / fr->af.channels;
 }
 
 /* Number of bytes needed for decoding _and_ post-processing. */
-off_t outblock_bytes(mpg123_handle *fr, off_t s)
+int64_t outblock_bytes(mpg123_handle *fr, int64_t s)
 {
 	int encsize = (fr->af.encoding & MPG123_ENC_24)
 	? 4 /* Intermediate 32 bit. */

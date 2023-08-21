@@ -1,7 +1,7 @@
 /*
 	mpg123lib_intern: Common non-public stuff for libmpg123
 
-	copyright 1995-2021 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1995-2023 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 
 	derived from the old mpg123.h
@@ -323,10 +323,10 @@ static inline int32_t scale_rounded(int32_t x, int shift)
 
 int decode_update(mpg123_handle *mh);
 /* residing in format.c  */
-off_t decoder_synth_bytes(mpg123_handle *fr , off_t s);
-off_t samples_to_bytes(mpg123_handle *fr , off_t s);
-off_t bytes_to_samples(mpg123_handle *fr , off_t b);
-off_t outblock_bytes(mpg123_handle *fr, off_t s);
+int64_t decoder_synth_bytes(mpg123_handle *fr , int64_t s);
+int64_t samples_to_bytes(mpg123_handle *fr , int64_t s);
+int64_t bytes_to_samples(mpg123_handle *fr , int64_t b);
+int64_t outblock_bytes(mpg123_handle *fr, int64_t s);
 /* Postprocessing format conversion of freshly decoded buffer. */
 void postprocess_buffer(mpg123_handle *fr);
 

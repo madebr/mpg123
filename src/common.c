@@ -161,7 +161,7 @@ void print_buf(const char* prefix, out123_handle *ao)
 
 // This is a massively complicated function just for telling where we are.
 // Blame buffering. Blame format conversion. Blame the universe.
-int position_info( mpg123_handle *fr, long offset, out123_handle *ao
+int position_info( mpg123_handle *fr, off_t offset, out123_handle *ao
 ,	off_t *frame, off_t *frame_remain
 ,	double *seconds, double *seconds_remain, double *seconds_buffered, double *seconds_total )
 {

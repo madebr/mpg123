@@ -1,3 +1,6 @@
+// Define to only include portable API in libraries.
+#cmakedefine PORTABLE_API 1
+
 // Define to use proper rounding.
 #cmakedefine ACCURATE_ROUNDING 1
 
@@ -42,6 +45,9 @@
 #cmakedefine HAVE_STDINT_H 1
 #cmakedefine HAVE_STDLIB_H 1
 #cmakedefine HAVE_STRERROR 1
+#cmakedefine HAVE_FORK 1
+#cmakedefine HAVE_EXECVP 1
+#cmakedefine HAVE_CTERMID 1
 #cmakedefine HAVE_STRING_H 1
 #cmakedefine HAVE_STRINGS_H 1
 #cmakedefine HAVE_SYS_IOCTL_H 1
@@ -67,7 +73,6 @@
 // Define if IPV6 support is enabled.
 #cmakedefine IPV6 1
 
-#define LFS_ALIAS_BITS @LFS_ALIAS_BITS@
 #define LT_MODULE_EXT "@CMAKE_SHARED_MODULE_SUFFIX@"
 
 // Define if network support is enabled.
@@ -143,6 +148,7 @@
 // CMake leaves it emtpy for non-existing type. Autoconf sets it to 0.
 #define SIZEOF_LONG (@SIZEOF_LONG@+0)
 #define SIZEOF_OFF_T (@SIZEOF_OFF_T@+0)
+#define SIZEOF_OFF64_T (@SIZEOF_OFF64_T@+0)
 
 #cmakedefine STDERR_FILENO @STDERR_FILENO@
 #cmakedefine STDIN_FILENO @STDIN_FILENO@
@@ -169,8 +175,5 @@
 
 #cmakedefine WORDS_BIGENDIAN 1
 
-// Number of bits in a file offset, on hosts where this is settable.
-#cmakedefine _FILE_OFFSET_BITS @_FILE_OFFSET_BITS@
-
-// Define to the native offset type (long or actually off_t).
-#define lfs_alias_t @LFS_ALIAS_TYPE@
+#cmakedefine LFS_LARGEFILE_64 1
+#cmakedefine LFS_SENSITIVE 1

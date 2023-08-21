@@ -14,6 +14,9 @@
 #define _ISOC99_SOURCE
 
 #include "config.h"
+#ifdef LFS_LARGEFILE_64
+#define _LARGEFILE64_SOURCE
+#endif
 #include "intsym.h"
 #include "compat.h"
 #include "abi_align.h"

@@ -74,10 +74,6 @@ EXTRA_DIST += \
   ports/cmake/src/tests/CMakeLists.txt \
   ports/cmake/src/compat/CMakeLists.txt \
   ports/README \
-  ports/Sony_PSP/config.h \
-  ports/Sony_PSP/README \
-  ports/Sony_PSP/Makefile.psp \
-  ports/Sony_PSP/readers.c.patch \
   scripts/benchmark-cpu.pl \
   scripts/tag_lyrics.py \
   scripts/conplay \

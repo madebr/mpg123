@@ -32,7 +32,7 @@ m4_undefine([V_HEADER])
 
 AC_INIT([mpg123], V_MAJOR.V_MINOR.V_PATCH[]V_SUFFIX, [maintainer@mpg123.org])
 
-m4_define([V_HEADER], m4_esyscmd(grep -e _API_VERSION -e _PATCHLEVEL src/libmpg123/mpg123.h.in src/libout123/out123.h src/libsyn123/syn123.h))
+m4_define([V_HEADER], m4_esyscmd(grep -e _API_VERSION -e _PATCHLEVEL src/libmpg123/mpg123.h src/libout123/out123.h src/libsyn123/syn123.h))
 
 dnl libmpg123
 m4_define([API_VERSION], m4_bregexp(V_HEADER,
@@ -135,9 +135,7 @@ if test "x$all_static" = xyes; then
 fi
 
 AM_PROG_AS
-dnl For autocinf 2.69, the C99 macro still does something.
-AC_PROG_CC_C99
-AM_PROG_CC_C_O
+m4_version_prereq(2.70, [AC_PROG_CC], [AC_PROG_CC_C99])
 AC_PROG_CPP
 AC_PROG_INSTALL
 # Just look, no touch.
@@ -1149,98 +1147,118 @@ AC_CHECK_HEADERS([stdio.h stdlib.h string.h unistd.h sched.h sys/ioctl.h sys/typ
 
 dnl ############## Types
 
-dnl Large file support stuff needs cleanup. There are superfluous variables.
-
-dnl Detect large file support, enable switches if needed.
-AC_SYS_LARGEFILE
-dnl If we do have a switch for large files, rename off_t-aware API calls.
-dnl Using the file_offset_bits variable here is fine for linux (possibly Solaris),
-dnl Others... we'll have to see.
-dnl Note: I started writing this with with multiline replacements.
-dnl Does not work. Automake insists on putting these into Makefiles where they break things.
-dnl It is also assumed that a system that does not set file offset bits is not
-dnl sensitive to largefile changes, i.e. FreeBSD always using 64 bit off_t.
-if test "x$ac_cv_sys_file_offset_bits" = x || echo "$ac_cv_sys_file_offset_bits" | $GREP  '@<:@^0-9@:>@' > /dev/null; then
-	dnl if it has non-numeric chars or is empty... ignore...
-	largefile_sensitive=no
-	BUILD_NO_LARGENAME=1
-	AC_DEFINE(BUILD_NO_LARGENAME, 1, [ No suffixed symbols for large file support (only alias for backwards compat.) ])
-else
-	largefile_sensitive=yes
-	BUILD_NO_LARGENAME=0
-fi
-# Add dual-mode wrapper code.
-AM_CONDITIONAL([HAVE_LFS_WRAP], [ test x"$largefile_sensitive" = xyes ] )
-# Any non-sensitive platform does not bother with off_t-based function renaming.
-AC_SUBST(BUILD_NO_LARGENAME)
-
 # Using the lower level macros instead of AC_TYPE_* for compatibility with not freshest autoconf.
+# Re-think this list. Some things just should be a given. We assume C99 now.
+# Rather think about assumptions like int64_t >= ptrdiff_t.
 AC_CHECK_TYPE(size_t, unsigned long)
 AC_CHECK_TYPE(uintptr_t, unsigned long)
 AC_CHECK_TYPE(ssize_t, long)
-AC_CHECK_TYPE(off_t,  long int)
+AC_CHECK_TYPE(ptrdiff_t, long)
 AC_CHECK_TYPE(int32_t, int)
 AC_CHECK_TYPE(int64_t, long long)
 AC_CHECK_TYPE(uint32_t, unsigned int)
 AC_CHECK_TYPE(int16_t, short)
 AC_CHECK_TYPE(uint16_t, unsigned short)
-AC_CHECK_SIZEOF(size_t,4)
-AC_CHECK_SIZEOF(ssize_t,4)
-AC_CHECK_SIZEOF(off_t,4)
+AC_CHECK_SIZEOF(size_t)
+AC_CHECK_SIZEOF(ssize_t)
 AC_CHECK_SIZEOF(int32_t)
-AC_CHECK_SIZEOF(long,4)
+AC_CHECK_SIZEOF(long)
 
-dnl The native type used for aliases is what off_t maps to without any largefile-
-dnl enabling switches. So, it's long int if the system is largefile-senstive,
-dnl but it is actual plain off_t if the system does not have such switches.
-if test "x$largefile_sensitive" = xyes; then
-  lfs_alias_type=long
-  lfs_alias_size=$ac_cv_sizeof_long
-elif test "x$android_build" = xyes; then
-  lfs_alias_type=off64_t
-  lfs_alias_size=$ac_cv_sizeof_off64_t
-else
-  lfs_alias_type=off_t
-  lfs_alias_size=$ac_cv_sizeof_off_t
-fi
+# We do not need to know if off_t actually changes size using
+# _FILE_OFFSET_BITS, only need to know what size it has.
 
-if test "x$lfs_alias_size" = "x"; then 
-  AC_MSG_ERROR([Cannot determine sizeof(lfs_alias_t)?])
-else
-  LFS_ALIAS_BITS=`expr "$lfs_alias_size" "*" "8"`
-  AC_DEFINE_UNQUOTED([lfs_alias_t], $lfs_alias_type,
-    [Define to the native offset type (long or actually off_t).])
-  AC_DEFINE_UNQUOTED([LFS_ALIAS_BITS], $LFS_ALIAS_BITS,
-    [Define this to the size of native offset type in bits, used for LFS alias functions.])
-fi
+dnl ############## LFS stuff
 
-AC_SUBST(LFS_ALIAS_BITS)
-
-lfs_alias=enabled
-AC_ARG_ENABLE(lfs-alias,
-              [  --disable-lfs-alias disable alias wrappers for largefile bitness (mpg123_seek_32 or mpg123_seek_64 in addition to mpg123_seek, or the other way around; It is a mess, do not play with this!) ],
+portable_api=no
+AC_ARG_ENABLE(portable,
+              [  --enable-portable=[no/yes] only build portable API (no off_t, no internal I/O) ],
               [
-                if test "x$enableval" = xno; then
-                  lfs_alias="disabled"
+                if test "x$enableval" = xyes; then
+                  portable_api="yes"
                 fi
-              ],
-              [
-                case $host in
-                *-cygwin*)
-                  lfs_alias="disabled"
-                  AC_MSG_NOTICE([lfs-alias disabled for Cygwin, use --enable-lfs-alias explicitly to enable, only if you know what you are doing])
-                ;;
-                esac
+              ], [])
+if test "x$portable_api" = xyes; then
+  AC_DEFINE(PORTABLE_API, 1, [ Define to only include portable library API (no off_t, no internal I/O). ])
+fi
 
-              ])
+AM_CONDITIONAL([HAVE_LFS_WRAP], [ test x"$portable_api" = xno ] )
 
-AC_MSG_CHECKING([if we want to enable alias wrappers for largefile])
-if test "x$lfs_alias" = "xenabled"; then
+# Check for shape-shifting off_t just for the mpg123 client application.
+# At least at first, mpg123 itself will excercise the wrappers, otherwise
+# we don't know they work.
+AC_CHECK_SIZEOF(off_t, [], [
+#undef  _FILE_OFFSET_BITS
+#define _FILE_OFFSET_BITS 64
+#include <sys/types.h>
+])
+switched_off_size=$ac_cv_sizeof_off_t
+AS_UNSET([ac_cv_sizeof_off_t])
+# If you have predefined _FILE_OFFSET_BITS, I will treat that as a system
+# property.
+AC_CHECK_SIZEOF(off_t, [], [
+#include <sys/types.h>
+])
+
+# Some paranoia about the limited choices we accept.
+# 32 or 64 bit offsets, an the switched one better not be smaller.
+if test "x$ac_cv_sizeof_off_t" = x0; then
+  AC_MSG_ERROR([Not even off_t found. I need some POSIX.])
+fi
+if test "x$ac_cv_sizeof_off_t" != x8 && 
+   test "x$ac_cv_sizeof_off_t" != x4; then
+  AC_MSG_ERROR([unexpected size of off_t])
+fi
+
+if test "x$ac_cv_sizeof_off_t" != "x$switched_off_size"; then
+  if test "x$switched_off_size" != x8; then
+    AC_MSG_ERROR([bad switched off_t size])
+  fi
+  lfs_sensitive=yes
+  AC_DEFINE(LFS_SENSITIVE, 1, [ System redefines off_t when defining _FILE_OFFSET_BITS to 64. ])
+else
+  lfs_sensitive=no
+fi
+
+use_largefile=auto
+
+AC_MSG_CHECKING([if native off_t is already 64 bits])
+if test "x$ac_cv_sizeof_off_t" = x8; then
   AC_MSG_RESULT([yes])
+  use_largefile=no
 else
   AC_MSG_RESULT([no])
 fi
-AM_CONDITIONAL([HAVE_LFS_ALIAS], [ test x"$lfs_alias" = xenabled ])
+
+AC_ARG_ENABLE(largefile,
+              [  --disable-largefile to not attempt to use 64 bit file offsets internally ],
+              [  if test "x$enableval" = xno; then
+                  use_largefile=no
+                fi
+              ],
+              [])
+
+# Large file support without the magic. Check for the API explicitly.
+# The shape-shifting off_t has to be avoided for the library builds.
+# The mpg123 application might still use it to check if the API works.
+# Or we limit it to portable, off_t-less API at some point.
+
+if test x"$use_largefile" != xno; then
+
+# Expect usual_LARGEFILE64_SOURCE mechanics with off64_t and lseek64 present.
+AC_CHECK_FUNCS([lseek64])
+AC_CHECK_TYPE(off64_t, [have_off64_t=yes], [have_off64_t=no], [[
+#define _LARGEFILE64_SOURCE
+#include <sys/types.h>
+#include <unistd.h>
+]])
+if test "x$have_off64_t" = xyes && test "x$ac_cv_func_lseek64" = xyes; then
+  use_largefile=yes
+  AC_DEFINE(LFS_LARGEFILE_64, 1, [ Define if we use _LARGEFILE64_SOURCE with off64_t and lseek64. ])
+else
+  use_largefile=no
+fi
+
+fi # use_largefile auto or yes
 
 dnl ############## Function Checks
 
@@ -1345,29 +1363,6 @@ dnl OK, two lines... Solaris needs -lnsl -lsocket
 AC_SEARCH_LIBS(socket, socket) 
 
 AC_CHECK_FUNCS( getaddrinfo, [ have_ipv6=yes ], [ have_ipv6=no ] )
-
-# Substitutions for the installable mpg123.h header
-if test "x$ac_cv_header_stdio_h" = "xyes"; then
-	INCLUDE_STDIO_H="#include <stdio.h>"
-else
-	INCLUDE_STDIO_H="/* #include <stdio.h> is not available on this system */"
-fi
-AC_SUBST(INCLUDE_STDIO_H)
-
-if test "x$ac_cv_header_stdlib_h" = "xyes"; then
-	INCLUDE_STDLIB_H="#include <stdlib.h>"
-else
-	INCLUDE_STDLIB_H="/* #include <stdlib.h> is not available on this system */"
-fi
-AC_SUBST(INCLUDE_STDLIB_H)
-
-if test "x$ac_cv_header_sys_types_h" = "xyes"; then
-	INCLUDE_SYS_TYPE_H="#include <sys/types.h>"
-else
-	INCLUDE_SYS_TYPE_H="/* #include <sys/types.h> is not available on this system */"
-fi
-AC_SUBST(INCLUDE_SYS_TYPE_H)
-
 
 # Checks for maths libraries.
 AC_CHECK_LIB([m], [sqrt])
@@ -2784,20 +2779,27 @@ AC_CONFIG_FILES([
 	libout123.pc
 	libsyn123.pc
 	mpg123.spec
-	src/libmpg123/mpg123.h
 ])
 
 AC_OUTPUT
 
 dnl ############## Display Message
 
+default_offset_bits=`expr "$ac_cv_sizeof_off_t" "*" "8"`
+
 echo "
   $PACKAGE_NAME $PACKAGE_VERSION
 
   Install path ............ $prefix
   CPU Optimization ........ $cpu_type
-  Compiler Optimization ... $with_optimization
-  Gapless Support ......... $gapless
+  Compiler Optimization ... $with_optimization"
+if test x"$use_yasm_for_avx" = xyes; then
+  echo "  Use yasm (for AVX only) . enabled"
+else
+  echo "  Use yasm (for AVX only) . disabled"
+fi
+
+echo "  Gapless Support ......... $gapless
   Debugging ............... $debugging
   Terminal control ........ $term_type
   Extreme debugging ....... $xdebugging
@@ -2811,19 +2813,10 @@ if test x$network_type != xdisabled; then
   echo "  Internal network type ... $network_internal
   IPv6 (getaddrinfo) ...... $ipv6"
 fi
-if test x"$LARGEFILE_BITS" = x; then
-  echo "  File offsets ............ default"
-else
-  echo "  File offsets ............ $LARGEFILE_BITS"
-  echo "    The lib will (try to) support default offset size, too."
-fi
-echo "  LFS alias symbols ....... $lfs_alias ($LFS_ALIAS_BITS)"
-echo "  LFS alias type .......... $lfs_alias_type"
-if test x"$use_yasm_for_avx" = xyes; then
-  echo "  Use yasm (for AVX only) . enabled"
-else
-  echo "  Use yasm (for AVX only) . disabled"
-fi
+echo "  largefile sensitive ..... $lfs_sensitive"
+echo "  default offsets ......... $default_offset_bits"
+echo "  explicit 64 bit offsets . $use_largefile"
+echo "  only portable API ....... $portable_api"
 
 echo "
   Core libmpg123 features:

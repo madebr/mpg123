@@ -52,6 +52,7 @@ for my $i (@instances)
 	my %ident;
 	my @symbols = @{$i->{symbols}};
 	my $apiex = qr/^$i->{apiprefix}/;
+	my $preex = qr/^$i->{prefix}/;
 
 	foreach my $header (@{$i->{headers}})
 	{
@@ -62,7 +63,7 @@ for my $i (@instances)
 			if(/^([^\s\(#][^\(]*)\s\*?([a-z][a-z_0-9]+)\s*\(/)
 			{
 				# Skip preprocessing/comment stuff and official API.
-				unless($1 =~ '^#' or $1 =~ '/[/\*]' or $2 =~ $apiex or $1 =~ /\bstatic\b/)
+				unless($1 =~ '^#' or $1 =~ '/[/\*]' or $2 =~ $apiex or $2 =~ $preex or $1 =~ /\bstatic\b/)
 				{
 					die "second definition of $2 in $header\n"
 						if grep {$_ eq $2} @symbols;

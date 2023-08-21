@@ -2,8 +2,16 @@ Changes in libmpg123 libtool interface versions. Next to the version
 the mpg123 release where its changes first appeared to the public
 is given.
 
-48.0.48
+48.0.48 (mpg123 1.32)
 	- Added mpg123_distversion() and mpg123_libversion().
+	- Added mpg123_reader64() and the other int64_t-based functions:
+	  mpg123_framebyframe_decode64(), mpg123_framepos64(), mpg123_tell64(),
+	  mpg123_tellframe64(), mpg123_tell_stream64(), mpg123_seek64(),
+	  mpg123_feedseek64(), mpg123_seek_frame64(), mpg123_timeframe64(),
+	  mpg123_index64(), mpg123_set_index64(), mpg123_framelength64(),
+	  mpg123_length64(), and mpg123_set_filesize64().
+	- Added MPG123_PORTABLE_API to hide non-portable API (off_t, ssize_t)
+	  from mpg123.h.
 
 47.0.47 (mpg123 1.30)
 	- Added mpg123_eq_bands(), mpg123_eq_change() and mpg123_volume_change_db().

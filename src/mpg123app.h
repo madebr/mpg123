@@ -13,6 +13,12 @@
 #define MPG123_H
 #include "config.h"
 
+#ifdef LFS_SENSITIVE
+#ifdef LFS_LARGEFILE_64
+#define _FILE_OFFSET_BITS 64
+#endif
+#endif
+
 /* everyone needs it */
 #include "compat.h"
 /* import DLL symbols on windows */
