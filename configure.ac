@@ -146,6 +146,8 @@ AC_SEARCH_LIBS([clock_gettime], [rt])
 if echo " $LIBS" | grep -q -w -- -lrt; then
   LIBRT=-lrt
 fi
+# Could actually be missing.
+AC_CHECK_FUNCS([clock_gettime])
 LIBS=$oldLIBS
 AC_SUBST(LIBM)
 dnl "Checking for egrep is broken after removal of libltdl stuff... checks use $EGREP, so searching it here."
@@ -1254,6 +1256,18 @@ AC_CHECK_TYPE(off64_t, [have_off64_t=yes], [have_off64_t=no], [[
 if test "x$have_off64_t" = xyes && test "x$ac_cv_func_lseek64" = xyes; then
   use_largefile=yes
   AC_DEFINE(LFS_LARGEFILE_64, 1, [ Define if we use _LARGEFILE64_SOURCE with off64_t and lseek64. ])
+  AC_MSG_CHECKING([if we have O_LARGEFILE])
+  AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+    #define _LARGEFILE64_SOURCE
+    #include <sys/types.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+    #include <fcntl.h>
+
+    int fd = open("/foo", O_RDONLY|O_LARGEFILE);
+  ])],[have_o_largefile=yes],[have_o_largefile=no])
+  AC_MSG_RESULT([$have_o_largefile])
+  AC_DEFINE(O_LARGEFILE, 0, [ Define to 0 if system does not have/need it. ])
 else
   use_largefile=no
 fi

@@ -65,8 +65,21 @@ check_function_exists(strerror HAVE_STRERROR)
 check_function_exists(fork HAVE_FORK)
 check_function_exists(execvp HAVE_EXECVP)
 check_function_exists(ctermid HAVE_CTERMID)
+check_function_exists(clock_gettime HAVE_CLOCK_GETTIME)
 
 check_function_exists(lseek64 LFS_LARGEFILE_64)
+
+if(LFS_LARGEFILE_64)
+check_c_source_compiles(
+    "    #define _LARGEFILE64_SOURCE
+    #include <sys/types.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+    #include <fcntl.h>
+
+    int fd = open(\"/foo\", O_RDONLY|O_LARGEFILE);
+    " HAVE_O_LARGEFILE)
+endif()
 
 search_libs(gethostbyname GETHOSTBYNAME_LIB nsl socket network)
 search_libs(socket SOCKET_LIB socket)

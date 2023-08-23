@@ -48,6 +48,7 @@
 #cmakedefine HAVE_FORK 1
 #cmakedefine HAVE_EXECVP 1
 #cmakedefine HAVE_CTERMID 1
+#cmakedefine HAVE_CLOCK_GETTIME 1
 #cmakedefine HAVE_STRING_H 1
 #cmakedefine HAVE_STRINGS_H 1
 #cmakedefine HAVE_SYS_IOCTL_H 1
@@ -165,7 +166,7 @@
 // Define to use Unicode for Windows
 #cmakedefine WANT_WIN32_UNICODE 1
 
-#if WANT_WIN32_UNICODE == 1
+#ifdef WANT_WIN32_UNICODE
 # define strcasecmp _stricmp
 # define strncasecmp _strnicmp
 #endif
@@ -177,3 +178,7 @@
 
 #cmakedefine LFS_LARGEFILE_64 1
 #cmakedefine LFS_SENSITIVE 1
+#cmakedefine HAVE_O_LARGEFILE 1
+#ifndef HAVE_O_LARGEFILE
+#define O_LARGEFILE 0
+#endif

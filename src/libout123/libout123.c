@@ -21,12 +21,14 @@
 #endif
 
 // unistd.h sets those 
+#ifdef HAVE_CLOCK_GETTIME
 #if _POSIX_TIMERS > 0
 #include <time.h>
 #ifdef _POSIX_MONSLEEP_CLOCKOTONIC_CLOCK
 #define SLEEP_CLOCK CLOCK_MONOTONIC
 #else
 #define SLEEP_CLOCK CLOCK_REALTIME
+#endif
 #endif
 #endif
 

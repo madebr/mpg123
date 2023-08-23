@@ -31,9 +31,9 @@
 #define _LARGEFILE64_SOURCE
 #endif
 
-// Needs the official portable API. Only.
-// This code _offers_ the other functions.
-#define MPG123_PORTABLE_API
+// Need the full header with non-portable API, for the bare mpg123_open*()
+// declarations. But no renaming shenanigans.
+#define MPG123_NO_LARGENAME
 #include "mpg123.h"
 
 #include <sys/types.h>
@@ -775,6 +775,7 @@ int INT123_wrap_open(mpg123_handle *mh, void *handle, const char *path, int fd, 
 #ifdef O_BINARY
 		flags |= O_BINARY;
 #endif
+//#if defined(LFS_LARGEFILE_64) && defined(O_LARGEFILE)
 #ifdef LFS_LARGEFILE_64
 		flags |= O_LARGEFILE;
 #endif
@@ -831,6 +832,16 @@ int INT123_wrap_open(mpg123_handle *mh, void *handle, const char *path, int fd, 
 
 // So, native off_t reader replacement.
 
+// Defining a wrapper to the native read to be sure the prototype matches.
+// There are platforms where it is read(int, void*, unsigned int).
+// We know that we read small chunks where the difference does not matter. Could
+// apply specific hackery, use a common compat_read() (unintr_read()?) with system
+// specifics.
+static mpg123_ssize_t fallback_read(int fd, void *buf, size_t count)
+{
+	return read(fd, buf, count);
+}
+
 /* Reader replacement prepares the hidden handle storage for next mpg123_open_fd() or plain mpg123_open(). */
 int attribute_align_arg mpg123_replace_reader(mpg123_handle *mh, mpg123_ssize_t (*r_read) (int, void *, size_t), off_t (*r_lseek)(int, off_t, int) )
 {
@@ -854,7 +865,7 @@ int attribute_align_arg mpg123_replace_reader(mpg123_handle *mh, mpg123_ssize_t 
 	{
 		ioh->iotype = IO_FD;
 		ioh->fd = -1; /* On next mpg123_open_fd(), this gets a value. */
-		ioh->r_read = r_read != NULL ? r_read : read;
+		ioh->r_read = r_read != NULL ? r_read : fallback_read;
 		ioh->r_lseek = r_lseek != NULL ? r_lseek : lseek;
 	}
 
@@ -919,7 +930,7 @@ int attribute_align_arg mpg123_replace_reader_64(mpg123_handle *mh, mpg123_ssize
 	{
 		ioh->iotype = IO_FD_64;
 		ioh->fd = -1; /* On next mpg123_open_fd(), this gets a value. */
-		ioh->r_read_64 = r_read != NULL ? r_read : read;
+		ioh->r_read_64 = r_read != NULL ? r_read : fallback_read;
 		ioh->r_lseek_64 = r_lseek != NULL ? r_lseek : lseek64;
 	}
 
