@@ -1188,13 +1188,15 @@ AM_CONDITIONAL([HAVE_LFS_WRAP], [ test x"$portable_api" = xno ] )
 # Check for shape-shifting off_t just for the mpg123 client application.
 # At least at first, mpg123 itself will excercise the wrappers, otherwise
 # we don't know they work.
-AC_CHECK_SIZEOF(off_t, [], [
+# Do not use AC_CHECK_SIZEOF twice to avoid redefinition of SIZEOF_OFF_T
+# in further tests via confdefs.h.
+AC_MSG_CHECKING([switched off_t size])
+AC_COMPUTE_INT(switched_off_size, sizeof(off_t), [
 #undef  _FILE_OFFSET_BITS
 #define _FILE_OFFSET_BITS 64
 #include <sys/types.h>
 ])
-switched_off_size=$ac_cv_sizeof_off_t
-AS_UNSET([ac_cv_sizeof_off_t])
+AC_MSG_RESULT([$switched_off_size])
 # If you have predefined _FILE_OFFSET_BITS, I will treat that as a system
 # property.
 AC_CHECK_SIZEOF(off_t, [], [
@@ -1264,10 +1266,15 @@ if test "x$have_off64_t" = xyes && test "x$ac_cv_func_lseek64" = xyes; then
     #include <unistd.h>
     #include <fcntl.h>
 
-    int fd = open("/foo", O_RDONLY|O_LARGEFILE);
+    int foo()
+    {
+      return open("foo", O_RDONLY|O_LARGEFILE);
+    }
   ])],[have_o_largefile=yes],[have_o_largefile=no])
   AC_MSG_RESULT([$have_o_largefile])
-  AC_DEFINE(O_LARGEFILE, 0, [ Define to 0 if system does not have/need it. ])
+  if test x"$have_o_largefile" = xno; then
+    AC_DEFINE(O_LARGEFILE, 0, [ Define to 0 if system does not have/need it. ])
+  fi
 else
   use_largefile=no
 fi
