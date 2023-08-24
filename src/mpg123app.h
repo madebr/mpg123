@@ -13,9 +13,11 @@
 #define MPG123_H
 #include "config.h"
 
+#ifndef _FILE_OFFSET_BITS
 #ifdef LFS_SENSITIVE
 #ifdef LFS_LARGEFILE_64
 #define _FILE_OFFSET_BITS 64
+#endif
 #endif
 #endif
 

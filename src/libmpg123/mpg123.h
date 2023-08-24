@@ -96,7 +96,9 @@ typedef ssize_t mpg123_ssize_t;
 	API version 48 (mpg123 1.32).
 
 	When in doubt, use the explicit 64 bit functions and avoid off_t in the API. You can define
-	MPG123_PORTABLE_API to ensure that.
+	MPG123_PORTABLE_API to ensure that. That being said, if you and your compiler do not have
+	problems with the	concept of off_t, just use the normal API and be happy. Both 32 and 64
+	bit versions will be present where appropriate.
 */
 
 #ifndef MPG123_PORTABLE_API

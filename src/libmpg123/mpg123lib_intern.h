@@ -23,6 +23,10 @@
 #define BUILD_MPG123_DLL
 #endif
 #include "compat.h"
+
+// Only portable API plays a role in the library itself, outside of lfs_wrap.c.
+// Also, we need to ensure no suffix renaming for the primary implementations.
+#define MPG123_PORTABLE_API
 #define MPG123_ENUM_API
 #include "mpg123.h"
 
