@@ -242,10 +242,7 @@
 #define read_frame_recover INT123_read_frame_recover
 #define read_frame INT123_read_frame
 #define set_pointer INT123_set_pointer
-#define position_info INT123_position_info
 #define compute_bpf INT123_compute_bpf
-#define time_to_frame INT123_time_to_frame
-#define get_songlen INT123_get_songlen
 #define bc_prepare INT123_bc_prepare
 #define bc_cleanup INT123_bc_cleanup
 #define bc_poolsize INT123_bc_poolsize
