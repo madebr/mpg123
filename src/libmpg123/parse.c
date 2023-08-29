@@ -1,7 +1,7 @@
 /*
 	parse: spawned from common; clustering around stream/frame parsing
 
-	copyright ?-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2023 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp & Thomas Orgis
 */
@@ -1043,23 +1043,6 @@ int attribute_align_arg mpg123_position64(mpg123_handle *fr, int64_t no, int64_t
 	if(current_seconds != NULL) *current_seconds = curs;
 	if(seconds_left    != NULL) *seconds_left   = lefts;
 	return MPG123_OK;
-}
-
-int get_songlen(mpg123_handle *fr,int no)
-{
-	double tpf;
-	
-	if(!fr)
-		return 0;
-	
-	if(no < 0) {
-		if(!fr->rd || fr->rdat.filelen < 0)
-			return 0;
-		no = (int) ((double) fr->rdat.filelen / compute_bpf(fr));
-	}
-
-	tpf = mpg123_tpf(fr);
-	return (int) (no*tpf);
 }
 
 /* first attempt of read ahead check to find the real first header; cannot believe what junk is out there! */
