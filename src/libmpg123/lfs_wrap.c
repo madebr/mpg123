@@ -36,15 +36,6 @@
 #define MPG123_NO_LARGENAME
 #include "mpg123.h"
 
-#include <sys/types.h>
-// Copied from mpg123.h, since we don't want non-portable API defined,
-// but need this type to implement it.
-#ifdef _MSC_VER
-typedef ptrdiff_t mpg123_ssize_t;
-#else
-typedef ssize_t mpg123_ssize_t;
-#endif
-
 #include "lfs_wrap.h"
 #include "abi_align.h"
 #include "compat.h"
@@ -775,7 +766,6 @@ int INT123_wrap_open(mpg123_handle *mh, void *handle, const char *path, int fd, 
 #ifdef O_BINARY
 		flags |= O_BINARY;
 #endif
-//#if defined(LFS_LARGEFILE_64) && defined(O_LARGEFILE)
 #ifdef LFS_LARGEFILE_64
 		flags |= O_LARGEFILE;
 #endif
