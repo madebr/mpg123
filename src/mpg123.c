@@ -810,7 +810,7 @@ int play_frame(void)
 			memcpy(prebuffer, audio, bytes);
 			prebuffer_fill = bytes;
 			bytes = 0;
-			debug1("prebuffered %"SIZE_P" bytes", prebuffer_fill);
+			debug1("prebuffered %"SIZE_P" bytes", (size_p)prebuffer_fill);
 		}
 		if(param.checkrange)
 		{

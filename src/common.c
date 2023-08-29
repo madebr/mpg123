@@ -23,6 +23,9 @@
 enum player_state playstate = STATE_PLAYING;
 const char playsym[STATE_COUNT] = { '>', '_', '=', '?' };
 int muted = 0;
+// On LFS conversion trouble with large files, print_stat() gets disabled.
+// Some heuristic re-enables it (when you print headers).
+static int print_stat_disabled = FALSE;
 
 const char* rva_name[3] = { "off", "mix", "album" };
 static const char* rva_statname[3] = { "---", "mix", "alb" };
@@ -60,6 +63,7 @@ void print_remote_header(mpg123_handle *mh)
 		i.bitrate,
 		i.flags & MPG123_PRIVATE ? 1 : 0,
 		i.vbr);
+	print_stat_disabled=FALSE;
 }
 
 void print_header(mpg123_handle *mh)
@@ -89,6 +93,7 @@ void print_header(mpg123_handle *mh)
 		default: fprintf(stderr, "???");
 	}
 	fprintf(stderr, " Extension value: %d\n",	i.flags & MPG123_PRIVATE ? 1 : 0);
+	print_stat_disabled=FALSE;
 }
 
 void print_header_compact(mpg123_handle *mh)
@@ -111,6 +116,7 @@ void print_header_compact(mpg123_handle *mh)
 		default: fprintf(stderr, "???");
 	}
 	fprintf(stderr," %ld %s\n", i.rate, smodes[i.mode]);
+	print_stat_disabled=FALSE;
 }
 
 unsigned int roundui(double val)
@@ -188,7 +194,10 @@ int position_info( mpg123_handle *fr, off_t offset, out123_handle *ao
 	frames   = mpg123_framelength(fr);
 	spf      = mpg123_spf(fr);
 	if(decoded < 0 || length < 0 || frameo < 0 || frames <= 0 || spf <= 0)
+	{
+		merror("Failed to gather position data: %s", mpg123_strerror(fr));
 		return -1;
+	}
 	frameo += offset;
 	if(frameo < 0)
 		frameo = 0;
@@ -223,6 +232,8 @@ int position_info( mpg123_handle *fr, off_t offset, out123_handle *ao
 void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar
 ,	struct parameter *param)
 {
+	if(print_stat_disabled)
+		return;
 	static int old_term_width = -1;
 	double basevol, realvol;
 	double elapsed;
@@ -255,7 +266,11 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar
 #endif
 #endif
 	if(position_info(fr, offset, ao, &frame, &rframes, &elapsed, &remain, &bufsec, &length))
+	{
+		debug("position_info() failed");
+		print_stat_disabled=TRUE;
 		return;
+	}
 	if(  MPG123_OK == mpg123_info(fr, &mi)
 	  && MPG123_OK == mpg123_getvolume(fr, &basevol, &realvol, NULL) )
 	{

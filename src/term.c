@@ -574,6 +574,8 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 		out123_drop(ao);
 		if(len > 0)
 			mpg123_seek(fr, (off_t)( (num/10.)*len ), SEEK_SET);
+		else
+			error("Not seeking as track length cannot be determined.");
 	}
 	break;
 	case MPG123_BOOKMARK_KEY:

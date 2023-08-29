@@ -57,6 +57,7 @@ FILE *outstream;
 int out_is_term = FALSE;
 static int mode = MODE_STOPPED;
 static int init = 0;
+static int sendstat_disabled = FALSE;
 
 #include "debug.h"
 
@@ -167,11 +168,18 @@ static void generic_send_lines(int is_utf8, const char* fmt, mpg123_string *inli
 
 void generic_sendstat (mpg123_handle *fr)
 {
+	if(sendstat_disabled)
+		return;
 	off_t current_frame, frames_left;
 	double current_seconds, seconds_left;
 
 	if(!position_info(fr, 0, ao, &current_frame, &frames_left, &current_seconds, &seconds_left, NULL, NULL))
 	generic_sendmsg("F %"OFF_P" %"OFF_P" %3.2f %3.2f", (off_p)current_frame, (off_p)frames_left, current_seconds, seconds_left);
+	else
+	{
+		sendstat_disabled = TRUE;
+		generic_sendmsg("E Error getting position information, disabling playback status.");
+	}
 }
 
 // This is only valid as herlper to generic_sendv1, observe info memory usage!
@@ -301,6 +309,7 @@ void generic_sendinfo (char *filename)
 
 static void generic_load(mpg123_handle *fr, char *arg, int state)
 {
+	sendstat_disabled = FALSE;
 	out123_drop(ao);
 	if(mode != MODE_STOPPED)
 	{

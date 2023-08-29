@@ -190,7 +190,7 @@ void playlist_jump(mpg123_ssize_t incr)
 	/* Straight or shuffled lists can be jumped around in. */
 	if(pl.fill && param.shuffle < 2)
 	{
-		debug3("jump %"SIZE_P" (%ld) + %"SSIZE_P, pl.pos, pl.loop, incr);
+		debug3("jump %"SIZE_P" (%ld) + %"SSIZE_P, (size_p)pl.pos, pl.loop, (ssize_p)incr);
 		if(pl.pos)
 			--pl.pos;
 		/* Now we're at the _current_ position. */
@@ -203,7 +203,7 @@ void playlist_jump(mpg123_ssize_t incr)
 			else
 				pl.pos += off;
 		}
-		debug2("jumped %"SIZE_P" (%ld)", pl.pos, pl.loop);
+		debug2("jumped %"SIZE_P" (%ld)", (size_p)pl.pos, pl.loop);
 	}
 }
 
