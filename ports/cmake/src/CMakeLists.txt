@@ -358,7 +358,7 @@ endif()
 add_subdirectory("libsyn123")
 
 if(UNIX AND NOT PORTABLE_API)
-    option(BUILD_PROGRAMS "Build programs" ON)
+    option(BUILD_PROGRAMS "Build programs (mpg123 executable and others)" ON)
 
     if(BUILD_PROGRAMS)
 

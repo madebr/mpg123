@@ -1,5 +1,6 @@
 # Module for non-recursive mpg123 build system.
 
+if BUILD_LIBOUT123
 include src/libout123/modules/Makemodule.am
 
 include_HEADERS += src/libout123/out123.h
@@ -7,6 +8,8 @@ include_HEADERS += src/libout123/out123.h
 noinst_LTLIBRARIES += src/libout123/libmodule.la
 
 lib_LTLIBRARIES += src/libout123/libout123.la
+endif
+
 src_libout123_libout123_la_SOURCES = \
   src/libout123/out123.h \
   src/libout123/libout123.c \

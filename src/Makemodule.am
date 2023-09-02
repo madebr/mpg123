@@ -6,12 +6,15 @@ include src/libmpg123/Makemodule.am
 include src/libout123/Makemodule.am
 include src/libsyn123/Makemodule.am
 
+
+if BUILD_PROGRAMS
 bin_PROGRAMS += src/out123
 if HAVE_LFS_WRAP
 bin_PROGRAMS += \
   src/mpg123 \
   src/mpg123-id3dump \
   src/mpg123-strip
+endif
 endif
 
 src_mpg123_LDADD = \

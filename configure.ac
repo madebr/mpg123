@@ -2778,6 +2778,95 @@ if test x"$ipv6" = xenabled; then
 	fi
 fi
 
+dnl ############## Component selection
+
+AC_ARG_ENABLE(components,
+  [ AS_HELP_STRING([--disable-components], [(not) build all default components, select individual components via --enable-libmpg123 etc.]) ],
+  [
+    if test "x$enableval" = xyes
+    then
+      build_all=yes
+    else
+      build_all=no
+    fi
+  ],
+  [
+    build_all=yes
+  ]
+)
+
+AC_ARG_ENABLE(libmpg123,
+  [ AS_HELP_STRING([--enable-libmpg123], [build (only) libmpg123 (with --disable-components)]) ],
+  [
+    if test "x$enableval" = xyes
+    then
+      build_libmpg123=yes
+    else
+      build_libmpg123=no
+    fi
+  ],
+  [
+    build_libmpg123=no
+  ]
+)
+
+AC_ARG_ENABLE(libout123,
+  [ AS_HELP_STRING([--enable-libout123], [build (only) libout123 (with --disable-components)]) ],
+  [
+    if test "x$enableval" = xyes
+    then
+      build_libout123=yes
+    else
+      build_libout123=no
+    fi
+  ],
+  [
+    build_libout123=no
+  ]
+)
+
+AC_ARG_ENABLE(libsyn123,
+  [ AS_HELP_STRING([--enable-libsyn123], [build (only) libsyn123 (with --disable-components)]) ],
+  [
+    if test "x$enableval" = xyes
+    then
+      build_libsyn123=yes
+    else
+      build_libsyn123=no
+    fi
+  ],
+  [
+    build_libsyn123=no
+  ]
+)
+
+if test "x$build_all" = xyes; then
+  build_programs=yes
+  build_libmpg123=yes
+  build_libout123=yes
+  build_libsyn123=yes
+  components="programs"
+else
+  build_programs=no
+fi
+
+AM_CONDITIONAL([BUILD_PROGRAMS],  [ test "x$build_all" = xyes ])
+AM_CONDITIONAL([BUILD_LIBMPG123], [ test "x$build_libmpg123" = xyes ])
+AM_CONDITIONAL([BUILD_LIBOUT123], [ test "x$build_libout123" = xyes ])
+AM_CONDITIONAL([BUILD_LIBSYN123], [ test "x$build_libsyn123" = xyes ])
+AM_CONDITIONAL([NEED_FMT123], [ test "x$build_libmpg123" = xyes || test "x$build_libout123" = xyes || test "x$build_libsyn123" = xyes ])
+
+if test "x$build_libmpg123" = xyes; then
+  components="$components libmpg123"
+fi
+if test "x$build_libout123" = xyes; then
+  components="$components libout123"
+fi
+if test "x$build_libsyn123" = xyes; then
+  components="$components libsyn123"
+fi
+components=$(echo $components)
+
 dnl ############## Library cleanup
 
 PROG_LIBS=$LIBS
@@ -2812,6 +2901,7 @@ echo "
   $PACKAGE_NAME $PACKAGE_VERSION
 
   Install path ............ $prefix
+  Components .............. $components
   CPU Optimization ........ $cpu_type
   Compiler Optimization ... $with_optimization"
 if test x"$use_yasm_for_avx" = xyes; then

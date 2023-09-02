@@ -1,13 +1,18 @@
 # Module for non-recursive mpg123 build system.
 
+if BUILD_LIBMPG123
+if BUILD_PROGRAMS
 TESTS += \
-  src/tests/decode_fixed.sh \
+  src/tests/decode_fixed.sh
+endif
+TESTS += \
   src/tests/seek_whence.sh \
   src/tests/seek_accuracy.sh \
   src/tests/resample_total \
   src/tests/text \
   src/tests/textprint \
   src/tests/plain_id3.sh
+endif
 
 if !HAVE_SYNTH16
 XFAIL_TESTS += src/tests/decode_fixed.sh
@@ -29,6 +34,7 @@ EXTRA_DIST += \
   src/tests/plain_id3.txt \
   src/tests/sweep.mp3
 
+if BUILD_LIBMPG123
 check_PROGRAMS += \
   src/tests/decode_fixed \
   src/tests/seek_whence \
@@ -45,6 +51,7 @@ EXTRA_PROGRAMS += \
   src/tests/seek_accuracy \
   src/tests/noise \
   src/tests/sweeper
+endif
 
 src_tests_volume_SOURCES = \
   src/tests/volume.c
