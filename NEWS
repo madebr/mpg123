@@ -43,6 +43,9 @@
    integers, regardless of internal implementation. (bug 344)
 -- Introduced MPG123_PORTABLE_API for an API subset without off_t and
    ssize_t.
+-- Made mpg123_seek() and friends ignore offset sign for SEEK_END (always seeking
+   towards beginning, assuming negative offset) to make lseek()-conforming usage
+   possible. Seeking beyond the end never made sense, so no loss of valid functionality.
 
 1.31.3
 ------

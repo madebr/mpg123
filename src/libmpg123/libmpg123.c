@@ -1411,12 +1411,20 @@ int64_t attribute_align_arg mpg123_seek64(mpg123_handle *mh, int64_t sampleoff, 
 		case SEEK_CUR: pos += sampleoff; break;
 		case SEEK_SET: pos  = sampleoff; break;
 		case SEEK_END:
+			// Fix for a bug that existed since the beginning of libmpg123: SEEK_END offsets are
+			// also pointing forward for SEEK_END in lseek(). In libmpg123, they used to interpreted
+			// as positive from the end towards the beginning. Since just swapping the sign now would
+			// break existing programs and seeks beyond the end just don't make sense for a
+			// read-only library, we simply ignore the sign and always assumne negative offsets
+			// (pointing towards the beginning). Assuming INT64_MIN <= -INT64_MAX.
+			if(sampleoff > 0)
+				sampleoff = -sampleoff;
 			/* When we do not know the end already, we can try to find it. */
 			if(mh->track_frames < 1 && (mh->rdat.flags & READER_SEEKABLE))
 			mpg123_scan(mh);
-			if(mh->track_frames > 0) pos = SAMPLE_ADJUST(mh,frame_outs(mh, mh->track_frames)) - sampleoff;
+			if(mh->track_frames > 0) pos = SAMPLE_ADJUST(mh,frame_outs(mh, mh->track_frames)) + sampleoff;
 #ifdef GAPLESS
-			else if(mh->end_os > 0) pos = SAMPLE_ADJUST(mh,mh->end_os) - sampleoff;
+			else if(mh->end_os > 0) pos = SAMPLE_ADJUST(mh,mh->end_os) + sampleoff;
 #endif
 			else
 			{

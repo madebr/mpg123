@@ -12,6 +12,8 @@ is given.
 	  mpg123_length64(), and mpg123_set_filesize64().
 	- Added MPG123_PORTABLE_API to hide non-portable API (off_t, ssize_t)
 	  from mpg123.h.
+	- Made mpg123_seek() family ignore sign with SEEK_END offsets, always
+	  putting a negative one on it to allow usage consistent with lseek().
 
 47.0.47 (mpg123 1.30)
 	- Added mpg123_eq_bands(), mpg123_eq_change() and mpg123_volume_change_db().
