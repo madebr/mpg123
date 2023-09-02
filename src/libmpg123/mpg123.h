@@ -979,6 +979,12 @@ MPG123_EXPORT int64_t mpg123_framepos64(mpg123_handle *mh);
  * - SEEK_CUR: change position by offset from now
  * - SEEK_END: set position to offset from end
  *
+ * Since API version 48 (mpg123 1.32), the offset given with SEEK_END is always
+ * taken to be  negative in the terms of standard lseek(). You can only seek from
+ * the end towards the beginning. All earlier versions had the sign wrong, positive
+ * was towards the beginning, negative past the end (which results in error,
+ * anyway).
+ *
  * Note that sample-accurate seek only works when gapless support has been
  * enabled at compile time; seek is frame-accurate otherwise.
  * Also, really sample-accurate seeking (meaning that you get the identical
