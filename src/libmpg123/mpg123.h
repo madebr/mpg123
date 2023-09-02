@@ -1050,6 +1050,8 @@ MPG123_EXPORT int64_t mpg123_tell_stream64(mpg123_handle *mh);
  * \param mh handle
  * \param sampleoff offset in samples (PCM frames)
  * \param whence one of SEEK_SET, SEEK_CUR or SEEK_END
+ *        (Offset for SEEK_END is always effectively negative since API
+ *        version 48, was inverted from lseek() usage since ever before.)
  * \return The resulting offset >= 0 or error/message code
  */
 MPG123_EXPORT off_t mpg123_seek( mpg123_handle *mh
@@ -1061,6 +1063,7 @@ MPG123_EXPORT off_t mpg123_seek( mpg123_handle *mh
  * \param mh handle
  * \param sampleoff offset in samples (PCM frames)
  * \param whence one of SEEK_SET, SEEK_CUR or SEEK_END
+ *        (Offset for SEEK_END is always effectively negative.)
  * \return The resulting offset >= 0 or error/message code
  */
 MPG123_EXPORT int64_t mpg123_seek64( mpg123_handle *mh
@@ -1073,6 +1076,8 @@ MPG123_EXPORT int64_t mpg123_seek64( mpg123_handle *mh
  * \param mh handle
  * \param sampleoff offset in samples (PCM frames)
  * \param whence one of SEEK_SET, SEEK_CUR or SEEK_END
+ *        (Offset for SEEK_END is always effectively negative since API
+ *        version 48, was inverted from lseek() usage since ever before.)
  * \param input_offset The position it expects to be at the 
  *                     next time data is fed to mpg123_decode().
  * \return The resulting offset >= 0 or error/message code
@@ -1087,6 +1092,7 @@ MPG123_EXPORT off_t mpg123_feedseek( mpg123_handle *mh
  * \param mh handle
  * \param sampleoff offset in samples (PCM frames)
  * \param whence one of SEEK_SET, SEEK_CUR or SEEK_END
+ *        (Offset for SEEK_END is always effectively negative.)
  * \param input_offset The position it expects to be at the 
  *                     next time data is fed to mpg123_decode().
  * \return The resulting offset >= 0 or error/message code
@@ -1100,6 +1106,8 @@ MPG123_EXPORT int64_t mpg123_feedseek64( mpg123_handle *mh
  * \param mh handle
  * \param frameoff offset in MPEG frames
  * \param whence one of SEEK_SET, SEEK_CUR or SEEK_END
+ *        (Offset for SEEK_END is always effectively negative since API
+ *        version 48, was inverted from lseek() usage since ever before.)
  * \return The resulting offset >= 0 or error/message code */
 MPG123_EXPORT off_t mpg123_seek_frame( mpg123_handle *mh
 ,	off_t frameoff, int whence );
@@ -1110,6 +1118,7 @@ MPG123_EXPORT off_t mpg123_seek_frame( mpg123_handle *mh
  * \param mh handle
  * \param frameoff offset in MPEG frames
  * \param whence one of SEEK_SET, SEEK_CUR or SEEK_END
+ *        (Offset for SEEK_END is always effectively negative.)
  * \return The resulting offset >= 0 or error/message code */
 MPG123_EXPORT int64_t mpg123_seek_frame64( mpg123_handle *mh
 ,	int64_t frameoff, int whence );
