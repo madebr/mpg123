@@ -166,7 +166,7 @@ dnl ############# Use Libtool for dynamic module loading
 
 modules=auto
 AC_ARG_ENABLE(modules,
-[  --enable-modules=[no/yes] dynamically loadable output modules],
+[AS_HELP_STRING([--disable-modules], [dynamically loadable output modules (default enabled in shared library builds)])],
 [
 	if test "x$enableval" = xyes
 	then
@@ -328,7 +328,7 @@ AC_SUBST(EXEC_LT_LDFLAGS)
 dnl ############## Configurable Options
 
 AC_ARG_ENABLE(debug,
-              [  --enable-debug=[no/yes] turn on debugging],
+              [AS_HELP_STRING([--enable-debug], [turn on (lots of) debugging printouts])],
               [
                 if test "x$enableval" = xyes
                 then
@@ -341,7 +341,7 @@ AC_ARG_ENABLE(debug,
 )
 
 AC_ARG_ENABLE(xdebug,
-              [  --enable-xdebug=[no/yes] turn on extreme debugging],
+              [AS_HELP_STRING([--enable-xdebug], [turn on (yet more) extreme debugging printouts])],
               [
                 if test "x$enableval" = xyes
                 then
@@ -359,7 +359,7 @@ if test x"$xdebugging" = xenabled; then
 fi
 
 AC_ARG_ENABLE(nagging,
-              [  --enable-nagging=[no/yes] turn on GCC's pedantic nagging with error on warnings, does not include --enable-debug anymore ],
+              [AS_HELP_STRING([--enable-nagging], [turn on GCC's pedantic nagging with error on warnings])],
               [
                 if test "x$enableval" = xyes
                 then
@@ -376,24 +376,23 @@ if test x"$debugging" = xenabled; then
 fi
 
 AC_ARG_ENABLE(gapless,
-              [  --enable-gapless=[no/yes] turn on gapless (enabled per default)],
+              [AS_HELP_STRING( [--disable-gapless], [turn off gapless decoding (please don't)])],
               [
                 if test "x$enableval" = xyes
                 then
                   gapless="enabled"
-                  AC_DEFINE(GAPLESS, 1, [ Define if gapless is enabled. ])
                 else
                   gapless="disabled"
                 fi
               ],
-              [
-                gapless="enabled"
-                AC_DEFINE(GAPLESS, 1, [ Define if gapless is enabled. ])
-              ]
+              [ gapless="enabled" ]
 )
+if test "x$gapless" = xenabled; then
+  AC_DEFINE(GAPLESS, 1, [ Define if gapless is enabled. ])
+fi
 
 AC_ARG_ENABLE(fifo,
-              [  --enable-fifo=[no/yes] FIFO support for control interface (auto-enabled on linux) ],
+              [AS_HELP_STRING( [--enable-fifo], [FIFO support for control interface (auto-enabled on linux)])],
               [
                 if test "x$enableval" = xyes
                 then
@@ -414,7 +413,7 @@ dnl Core features that can be disabled to reduce binary size.
 
 id3v2=enabled
 AC_ARG_ENABLE(id3v2,
-              [  --disable-id3v2=[no/yes] no ID3v2 parsing ],
+              [AS_HELP_STRING( [--disable-id3v2], [no ID3v2 parsing])],
               [
                 if test "x$enableval" = xno; then
                   id3v2="disabled"
@@ -424,7 +423,7 @@ AC_ARG_ENABLE(id3v2,
 # id3v2 depends on strings... so check that in between.
 string=enabled
 AC_ARG_ENABLE(string,
-              [  --disable-string=[no/yes] no string API (this will disable ID3v2; main mpg123 won't build anymore) ],
+              [AS_HELP_STRING( [--disable-string], [no string API (this will disable ID3v2; main mpg123 won't build anymore)])],
               [
                 if test "x$enableval" = xno; then
                   string="disabled"
@@ -444,7 +443,7 @@ fi
 
 icy=enabled
 AC_ARG_ENABLE(icy,
-              [  --disable-icy=[no/yes] no ICY metainfo parsing/conversion (main mpg123 won't build!) ],
+              [AS_HELP_STRING( [--disable-icy], [no ICY metainfo parsing/conversion (main mpg123 won't build!)])],
               [
                 if test "x$enableval" = xno; then
                   icy="disabled"
@@ -458,7 +457,7 @@ AM_CONDITIONAL([HAVE_ICY], [test "x$icy" = xenabled])
 
 ntom=enabled
 AC_ARG_ENABLE(ntom,
-              [  --disable-ntom=[no/yes] no flexible resampling ],
+              [AS_HELP_STRING( [--disable-ntom], [no flexible resampling])],
               [
                 if test "x$enableval" = xno; then
                   ntom="disabled"
@@ -472,7 +471,7 @@ AM_CONDITIONAL([HAVE_NTOM], [test "x$ntom" = xenabled])
 
 downsample=enabled
 AC_ARG_ENABLE(downsample,
-              [  --disable-downsample=[no/yes] no downsampled decoding ],
+              [AS_HELP_STRING( [--disable-downsample], [no downsampled decoding])],
               [
                 if test "x$enableval" = xno; then
                   downsample="disabled"
@@ -485,7 +484,7 @@ fi
 
 feeder=enabled
 AC_ARG_ENABLE(feeder,
-              [  --disable-feeder=[no/yes] no feeder decoding, no buffered readers ],
+              [AS_HELP_STRING( [--disable-feeder], [no feeder decoding, no buffered readers])],
               [
                 if test "x$enableval" = xno; then
                   feeder="disabled"
@@ -498,7 +497,7 @@ fi
 
 moreinfo=enabled
 AC_ARG_ENABLE(moreinfo,
-              [  --disable-moreinfo=[no/yes] no extra information for frame analyzers ],
+              [AS_HELP_STRING( [--disable-moreinfo], [no extra information for frame analyzers])],
               [
                 if test "x$enableval" = xno; then
                   moreinfo="disabled"
@@ -511,7 +510,7 @@ fi
 
 messages=enabled
 AC_ARG_ENABLE(messages,
-              [  --disable-messages=[no/yes] no error/warning messages on the console ],
+              [AS_HELP_STRING( [--disable-messages], [no error/warning messages on the console])],
               [
                 if test "x$enableval" = xno; then
                   messages="disabled"
@@ -526,7 +525,7 @@ fi
 
 runtimetables=disabled
 AC_ARG_ENABLE(runtime-tables,
-[  --enable-runtime-tables=[yes/no] calculate tables at runtime saving size at the expense of additional computation at load time ],
+[AS_HELP_STRING([--enable-runtime-tables], [calculate tables at runtime saving size at the expense of additional computation at load time])],
 [
   if test "x$enableval" = xyes; then
     runtimetables=enabled
@@ -542,7 +541,7 @@ AM_CONDITIONAL([HAVE_RUNTIME_TABLES], [test "x$runtimetables" = xenabled] )
 
 newhuff=enabled
 AC_ARG_ENABLE(new-huffman,
-[  --enable-new-huffman=[yes/no] use new huffman decoding scheme by Taihei (faster on modern CPUs at least, so on by default) ],
+[AS_HELP_STRING([--disable-new-huffman], [new huffman decoding scheme by Taihei (faster on modern CPUs at least, so on by default)])],
 [
   if test "x$enableval" = xno; then
     newhuff=disabled
@@ -556,7 +555,7 @@ fi
 
 integers=quality
 AC_ARG_ENABLE(int-quality,
-[  --enable-int-quality=[yes/no] use rounding instead of fast truncation for integer output, where possible ],
+[AS_HELP_STRING([--disable-int-quality], [use rounding instead of fast truncation for integer output, where possible])],
 [
   if test "x$enableval" = xno; then
     integers=fast
@@ -570,7 +569,7 @@ AM_CONDITIONAL([HAVE_ACCURATE], [ test x"$integers" = xquality ])
 
 int16=enabled
 AC_ARG_ENABLE(16bit,
-              [  --disable-16bit=[no/yes] no 16 bit integer output ],
+              [AS_HELP_STRING( [--disable-16bit], [no 16 bit integer output])],
               [
                 if test "x$enableval" = xno; then
                   int16="disabled"
@@ -579,7 +578,7 @@ AC_ARG_ENABLE(16bit,
 
 int8=enabled
 AC_ARG_ENABLE(8bit,
-              [  --disable-8bit=[no/yes] no 8 bit integer output ],
+              [AS_HELP_STRING( [--disable-8bit], [no 8 bit integer output])],
               [
                 if test "x$enableval" = xno; then
                   int8="disabled"
@@ -588,7 +587,7 @@ AC_ARG_ENABLE(8bit,
 
 int32=enabled
 AC_ARG_ENABLE(32bit,
-              [  --disable-32bit=[no/yes] no 32 bit integer output (also 24 bit) ],
+              [AS_HELP_STRING( [--disable-32bit], [no 32 bit integer output (also 24 bit)])],
               [
                 if test "x$enableval" = xno; then
                   int32="disabled"
@@ -597,7 +596,7 @@ AC_ARG_ENABLE(32bit,
 
 real=enabled
 AC_ARG_ENABLE(real,
-              [  --disable-real=[no/yes] no real (floating point) output ],
+              [AS_HELP_STRING( [--disable-real], [no real (floating point) output])],
               [
                 if test "x$enableval" = xno; then
                   real="disabled"
@@ -606,48 +605,49 @@ AC_ARG_ENABLE(real,
 
 equalizer=enabled
 AC_ARG_ENABLE(equalizer,
-              [  --disable-equalizer=[no/yes] no equalizer support ],
+              [AS_HELP_STRING( [--disable-equalizer], [no equalizer support])],
               [
                 if test "x$enableval" = xno; then
                   equalizer="disabled"
                 fi
               ], [])
 
-AC_ARG_WITH([cpu], [
-  --with-cpu=generic[[_fpu]]      Use generic processor code with floating point arithmetic
-  --with-cpu=generic_float      Plain alias to generic_fpu now... float output is a normal runtime option!
-  --with-cpu=generic_nofpu      Use generic processor code with fixed point arithmetic (p.ex. ARM)
-  --with-cpu=generic_dither     Use generic processor code with floating point arithmetic and dithering for 1to1 16bit decoding.
-  --with-cpu=i386[[_fpu]]         Use code optimized for i386 processors with floating point arithmetic
-  --with-cpu=i386_nofpu         Use code optimized for i386 processors with fixed point arithmetic
-  --with-cpu=i486         Use code optimized for i486 processors (only usable alone!)
-  --with-cpu=i586         Use code optimized for i586 processors
-  --with-cpu=i586_dither  Use code optimized for i586 processors with dithering (noise shaping), adds 256K to binary size
-  --with-cpu=3dnow         Use code optimized for 3DNow processors
-  --with-cpu=3dnow_vintage Use code optimized for older 3DNow processors (K6 family)
-  --with-cpu=3dnowext      Use code optimized for 3DNowExt processors (K6-3+, Athlon)
-  --with-cpu=3dnowext_alone     Really only 3DNowExt decoder, without 3DNow fallback for flexible rate
-  --with-cpu=3dnow_vintage       Use code optimized for older extended 3DNow processors (like K6-III+)
-  --with-cpu=mmx          Use code optimized for MMX processors
-  --with-cpu=mmx_alone          Really only MMX decoder, without i586 fallback for flexible rate
-  --with-cpu=sse          Use code optimized for SSE processors
-  --with-cpu=sse_vintage  Use code optimized for older SSE processors (plain C DCT36)
-  --with-cpu=sse_alone          Really only SSE decoder, without i586 fallback for flexible rate
-  --with-cpu=avx          Use code optimized for x86-64 with AVX processors
-  --with-cpu=x86          Pack all x86 opts into one binary (excluding i486, including dither)
-  --with-cpu=x86-64       Use code optimized for x86-64 processors (AMD64 and Intel64, including AVX and dithered generic)
-  --with-cpu=altivec      Use code optimized for Altivec processors (PowerPC G4 and G5)
-  --with-cpu=ppc_nofpu    Use code optimized for PowerPC processors with fixed point arithmetic
-  --with-cpu=neon         Use code optimized for ARM NEON SIMD engine (Cortex-A series)
-  --with-cpu=arm_fpu      Pack neon and generic[[_dither]] decoders, for ARM processors with FPU and/or NEON
-  --with-cpu=arm_nofpu    Use code optimized for ARM processors with fixed point arithmetic
-  --with-cpu=neon64       Use code optimized for AArch64 NEON SIMD engine
-  --with-cpu=aarch64      Pack neon64 and generic[[_dither]] decoders, for 64bit ARM processors
+AC_ARG_WITH([cpu], [AS_HELP_STRING([--with-cpu=<type>], [select CPU optimization. Choices are:])
+
+	generic[[_fpu]]    Use generic processor code with floating point arithmetic
+	generic_float    Plain alias to generic_fpu now... float output is a normal runtime option!
+	generic_nofpu    Use generic processor code with fixed point arithmetic (p.ex. ARM)
+	generic_dither   Use generic processor code with floating point arithmetic and dithering for 1to1 16bit decoding.
+	i386[[_fpu]]       Use code optimized for i386 processors with floating point arithmetic
+	i386_nofpu       Use code optimized for i386 processors with fixed point arithmetic
+	i486             Use code optimized for i486 processors (only usable alone!)
+	i586             Use code optimized for i586 processors
+	i586_dither      Use code optimized for i586 processors with dithering (noise shaping), adds 256K to binary size
+	3dnow            Use code optimized for 3DNow processors
+	3dnow_vintage    Use code optimized for older 3DNow processors (K6 family)
+	3dnowext         Use code optimized for 3DNowExt processors (K6-3+, Athlon)
+	3dnowext_alone   Really only 3DNowExt decoder, without 3DNow fallback for flexible rate
+	3dnow_vintage    Use code optimized for older extended 3DNow processors (like K6-III+)
+	mmx              Use code optimized for MMX processors
+	mmx_alone        Really only MMX decoder, without i586 fallback for flexible rate
+	sse              Use code optimized for SSE processors
+	sse_vintage      Use code optimized for older SSE processors (plain C DCT36)
+	sse_alone        Really only SSE decoder, without i586 fallback for flexible rate
+	avx              Use code optimized for x86-64 with AVX processors
+	x86              Pack all x86 opts into one binary (excluding i486, including dither)
+	x86-64           Use code optimized for x86-64 processors (AMD64 and Intel64, including AVX and dithered generic)
+	altivec          Use code optimized for Altivec processors (PowerPC G4 and G5)
+	ppc_nofpu        Use code optimized for PowerPC processors with fixed point arithmetic
+	neon             Use code optimized for ARM NEON SIMD engine (Cortex-A series)
+	arm_fpu          Pack neon and generic[[_dither]] decoders, for ARM processors with FPU and/or NEON
+	arm_nofpu        Use code optimized for ARM processors with fixed point arithmetic
+	neon64           Use code optimized for AArch64 NEON SIMD engine
+	aarch64          Pack neon64 and generic[[_dither]] decoders, for 64bit ARM processors
 ])
 
 use_yasm=auto
 AC_ARG_ENABLE(yasm,
-              [  --enable-yasm=[no/yes] enforce yasm instad of default assembler for some optimizations (AVX, currently) ],
+              [AS_HELP_STRING( [--enable-yasm], [enforce yasm instad of default assembler for some optimizations (AVX, currently)])],
               [
                 if test "x$enableval" = xyes; then
                   use_yasm="enabled"
@@ -660,7 +660,7 @@ if test x"$use_yasm" = xenabled; then
 fi
 
 AC_ARG_ENABLE(ieeefloat,
-  [  --enable-ieeefloat=[yes/no] use special hackery relying on IEEE 754 floating point storage format (to accurately round to 16 bit integer at bit more efficiently in generic decoder, enabled by default, disable in case you have a very special computer) ],
+  [AS_HELP_STRING( [--disable-ieeefloat], [use special hackery relying on IEEE 754 floating point storage format (to accurately round to 16 bit integer at bit more efficiently in generic decoder, enabled by default, disable in case you have a very special computer)])],
   [
     if test "x$enableval" = xyes; then
       ieee=enabled
@@ -675,7 +675,7 @@ if test "x$ieee" = xenabled; then
 fi
 
 AC_ARG_ENABLE(cases,
-  [ --enable-cases=[yes/no] include special cases for likely parameter values (channel count, encoding sizes in libsyn123 routines) in the hope of better optimization at the expense of some code bloat (default enabled) ],
+  [AS_HELP_STRING([--disable-cases], [include special cases for likely parameter values (channel count, encoding sizes in libsyn123 routines) in the hope of better optimization at the expense of some code bloat])],
   [
      if test "x$enableval" = xyes; then
        specialcases=enabled
@@ -883,7 +883,7 @@ case $host in
 esac
 
 AC_ARG_ENABLE(buffer,
-  [  --enable-buffer=[yes/no] disable audio buffer code (default uses system whitelist... proper checks later) ],
+  [AS_HELP_STRING([--disable-buffer], [disable audio buffer code (default enabled by some heuristics)])],
   [
     if test "x$enableval" = xyes
     then
@@ -897,7 +897,7 @@ AC_ARG_ENABLE(buffer,
 )
 
 AC_ARG_ENABLE(newoldwritesample,
-[  --enable-newoldwritesample=[no/yes] enable new/old WRITE_SAMPLE macro for non-accurate 16 bit output, faster on certain CPUs (default on on x86-32)],
+[AS_HELP_STRING( [--enable-newoldwritesample], [new/old WRITE_SAMPLE macro for non-accurate 16 bit output, faster on certain CPUs (default on on 32 bit x86)])],
 [
 	if test "x$enableval" = xyes
 	then
@@ -956,7 +956,7 @@ AM_CONDITIONAL([HAVE_EQUALIZER], [ test x"$equalizer" = xenabled ] )
 
 layer1=enabled
 AC_ARG_ENABLE(layer1,
-              [  --disable-layer1=[no/yes] no layer I decoding ],
+              [AS_HELP_STRING( [--disable-layer1], [no layer I decoding])],
               [
                 if test "x$enableval" = xno; then
                   layer1="disabled"
@@ -968,7 +968,7 @@ AM_CONDITIONAL([HAVE_LAYER1], [test "x$layer1" = xenabled] )
 
 layer2=enabled
 AC_ARG_ENABLE(layer2,
-              [  --disable-layer2=[no/yes] no layer II decoding ],
+              [AS_HELP_STRING( [--disable-layer2], [no layer II decoding])],
               [
                 if test "x$enableval" = xno; then
                   layer2="disabled"
@@ -980,7 +980,7 @@ AM_CONDITIONAL([HAVE_LAYER2], [test "x$layer2" = xenabled] )
 
 layer3=enabled
 AC_ARG_ENABLE(layer3,
-              [  --disable-layer3=[no/yes] no layer III decoding ],
+              [AS_HELP_STRING( [--disable-layer3], [no layer III decoding])],
               [
                 if test "x$enableval" = xno; then
                   layer3="disabled"
@@ -991,7 +991,8 @@ AC_ARG_ENABLE(layer3,
 AM_CONDITIONAL([HAVE_LAYER3], [test "x$layer3" = xenabled] )
 
 AC_ARG_WITH([audio], [
-  --with-audio=<list of modules>  Select a list (or only one) of audio output modules (comma or space separated list). Choices are:
+AS_HELP_STRING([--with-audio=<list of modules>], [Select a list (or only one) of audio output modules (comma or space separated list). Choices are:])
+
 	aix            Use AIX as default audio output sub-system
 	alib           Use Alib as default audio output sub-system (for HPUX)
 	alsa           Use ALSA as default audio output sub-system (libasound)
@@ -1173,7 +1174,7 @@ dnl ############## LFS stuff
 
 portable_api=no
 AC_ARG_ENABLE(portable,
-              [  --enable-portable=[no/yes] only build portable API (no off_t, no internal I/O) ],
+              [AS_HELP_STRING( [--enable-portable], [only build portable API (no off_t, no internal I/O)])],
               [
                 if test "x$enableval" = xyes; then
                   portable_api="yes"
@@ -1234,7 +1235,7 @@ else
 fi
 
 AC_ARG_ENABLE(largefile,
-              [  --disable-largefile to not attempt to use 64 bit file offsets internally ],
+              [AS_HELP_STRING([--disable-largefile], [to not attempt to use 64 bit file offsets internally])],
               [  if test "x$enableval" = xno; then
                   use_largefile=no
                 fi
@@ -1652,7 +1653,7 @@ AC_SUBST(YASM_FORMAT)
 AC_MSG_CHECKING([if we want feature report function])
 feature_report=enabled
 AC_ARG_ENABLE(feature_report,
-	[  --disable-feature_report Disable feature report function ],
+	[AS_HELP_STRING([--disable-feature_report], [Disable feature report function])],
 	[
 		if test "x$enableval" = xno; then
 		AC_MSG_RESULT([no])
@@ -2594,7 +2595,7 @@ AS_IF([test "x$eoverflow_present" = "xyes"],[],[AC_DEFINE([EOVERFLOW],[EFBIG],[U
 # old network choice
 
 AC_ARG_ENABLE(ipv6,
-              [  --enable-ipv6=[no/yes] IPv6 support in internal network stack ],
+              [AS_HELP_STRING( [--enable-ipv6], [IPv6 support in internal network stack])],
               [
                 if test "x$enableval" = xyes
                 then
@@ -2615,7 +2616,7 @@ dnl This is to be kept in sync with --with-network, it is a shortcut that
 dnl keep the old semantics of being able to --disable-network support altogether.
 dnl The default should match the --with-network default.
 AC_ARG_ENABLE(network,
-              [  --enable-network=[no/yes] network support (http streams / webradio), if available (overruled by --with-network!) ],
+              [AS_HELP_STRING( [--enable-network], [network support (http streams / webradio), if available (overruled by --with-network!)])],
               [
                 if test "x$enableval" = xyes
                 then
@@ -2781,7 +2782,7 @@ fi
 dnl ############## Component selection
 
 AC_ARG_ENABLE(components,
-  [ AS_HELP_STRING([--disable-components], [(not) build all default components, select individual components via --enable-libmpg123 etc.]) ],
+  [AS_HELP_STRING([--disable-components], [(not) build all default components, select individual components via --enable-libmpg123 etc.])],
   [
     if test "x$enableval" = xyes
     then
@@ -2796,7 +2797,7 @@ AC_ARG_ENABLE(components,
 )
 
 AC_ARG_ENABLE(libmpg123,
-  [ AS_HELP_STRING([--enable-libmpg123], [build (only) libmpg123 (with --disable-components)]) ],
+  [AS_HELP_STRING([--enable-libmpg123], [build (only) libmpg123 (with --disable-components)])],
   [
     if test "x$enableval" = xyes
     then
@@ -2811,7 +2812,7 @@ AC_ARG_ENABLE(libmpg123,
 )
 
 AC_ARG_ENABLE(libout123,
-  [ AS_HELP_STRING([--enable-libout123], [build (only) libout123 (with --disable-components)]) ],
+  [AS_HELP_STRING([--enable-libout123], [build (only) libout123 (with --disable-components)])],
   [
     if test "x$enableval" = xyes
     then
@@ -2826,7 +2827,7 @@ AC_ARG_ENABLE(libout123,
 )
 
 AC_ARG_ENABLE(libsyn123,
-  [ AS_HELP_STRING([--enable-libsyn123], [build (only) libsyn123 (with --disable-components)]) ],
+  [AS_HELP_STRING([--enable-libsyn123], [build (only) libsyn123 (with --disable-components)])],
   [
     if test "x$enableval" = xyes
     then

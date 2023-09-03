@@ -17,6 +17,7 @@
    --enable-libout123, --enable-libsyn123) to autoconf build. CMake build has something
    similar with BUILD_PROGRAMS and BUILD_LIBOUT123, which leave only libmpg123 and libsyn123
    if disabled). (bug 351)
+-- Consistent formatting of ./configure --help with AS_HELP_STRING().
 - ports/Sony_PSP: removed
 - mpg123:
 -- Added --libversion.
