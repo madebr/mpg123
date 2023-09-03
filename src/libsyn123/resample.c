@@ -984,7 +984,7 @@ static float df2_initval(unsigned int order, float *filter_a, float insample)
 			fprintf(stderr, "unconfigured pre-emphasis\n"); \
 			return ret; \
 		} \
-		for(int c=0; c<channels; ++c) \
+		for(unsigned int c=0; c<channels; ++c) \
 		{ \
 			float iv = df2_initval(PREEMP_ORDER, rd->pre_a[0], initval[c]); \
 			for(int i=0; i<PREEMP_ORDER; ++i) \
