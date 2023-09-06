@@ -52,7 +52,7 @@ static FILE* open_file(const char *path)
 	if(!path || !strcmp("-",path) || !strcmp("",path))
 		return stdout;
 	else
-		return compat_fopen(path, "w");
+		return INT123_compat_fopen(path, "w");
 }
 
 /* Hex output defaults to what FhG compliance files used. */
@@ -93,7 +93,7 @@ int hextxt_close(out123_handle *ao)
 	{
 		FILE *fp = ao->userptr;
 		ao->userptr = NULL;
-		if(fp != stdout && compat_fclose(fp))
+		if(fp != stdout && INT123_compat_fclose(fp))
 		{
 			if(!AOQUIET)
 				error1("problem closing the output: %s\n", strerror(errno));

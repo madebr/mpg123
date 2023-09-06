@@ -43,9 +43,9 @@
 
 	.text
 	ALIGN32
-.globl ASM_NAME(dct36_3dnowext)
-	/* .type	ASM_NAME(dct36_3dnowext), @function */
-ASM_NAME(dct36_3dnowext):
+.globl ASM_NAME(INT123_dct36_3dnowext)
+	/* .type	ASM_NAME(INT123_dct36_3dnowext), @function */
+ASM_NAME(INT123_dct36_3dnowext):
 	pushl	%ebp
 	movl	%esp, %ebp
 // Not entirely sure about this PIC_GLOBAL_PTR here, but this is highly
@@ -557,15 +557,15 @@ ASM_NAME(dct36_3dnowext):
 	popl	%esi
 	leave
 	ret
-	/* .size	ASM_NAME(dct36_3dnowext), .-ASM_NAME(dct36_3dnowext) */
+	/* .size	ASM_NAME(INT123_dct36_3dnowext), .-ASM_NAME(INT123_dct36_3dnowext) */
 
 #if defined(PIC) && defined(__APPLE__)
 	.section	__IMPORT,__pointers,non_lazy_symbol_pointers
 L_tfcos36:
-	.indirect_symbol	ASM_NAME(tfcos36)
+	.indirect_symbol	ASM_NAME(INT123_tfcos36)
 	.long	0
 L_COS9:
-	.indirect_symbol	ASM_NAME(COS9)
+	.indirect_symbol	ASM_NAME(INT123_COS9)
 	.long	0
 #endif
 

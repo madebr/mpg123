@@ -14,9 +14,9 @@
 
 #include "mangle.h"
 
-	.globl ASM_NAME(dct64_3dnow)
-/*	.type	 ASM_NAME(dct64_3dnow),@function */
-ASM_NAME(dct64_3dnow):
+	.globl ASM_NAME(INT123_dct64_3dnow)
+/*	.type	 ASM_NAME(INT123_dct64_3dnow),@function */
+ASM_NAME(INT123_dct64_3dnow):
 	subl $256,%esp
 	pushl %ebp
 	pushl %edi
@@ -742,7 +742,7 @@ ASM_NAME(dct64_3dnow):
 #if defined(PIC) && defined(__APPLE__)
 	.section	__IMPORT,__pointers,non_lazy_symbol_pointers
 L_pnts:
-	.indirect_symbol	ASM_NAME(pnts)
+	.indirect_symbol	ASM_NAME(INT123_pnts)
 	.long	0
 #endif
 

@@ -1204,7 +1204,7 @@ MPG123_EXPORT int mpg123_set_index64( mpg123_handle *mh
  *  for various cases (p.ex. 24 bit output). Do never use. It might eventually
  *  be purged from the library.
  */
-MPG123_EXPORT int mpg123_position( mpg123_handle *mh, off_t frame_offset, off_t buffered_bytes, off_t *current_frame, off_t *frames_left, double *current_seconds, double *seconds_left);
+MPG123_EXPORT int mpg123_position( mpg123_handle *mh, off_t INT123_frame_offset, off_t buffered_bytes, off_t *current_frame, off_t *frames_left, double *current_seconds, double *seconds_left);
 #endif
 
 /** @} */

@@ -29,8 +29,10 @@
    non-interruptible drain after P 3, and dropping buffer on QUIT.
 -- Uppercase some generic control replies for consinstency: SILENCE, PROGRESS,
    MUTE, UNMUTE
-- libmpg123, libout123, libsyn123: bumped API version for version query
-  functions
+- libmpg123, libout123, libsyn123:
+-- Bumped API version for version query functions.
+-- Replaced nearly all symbol renames with explicit INT123_ prefix declarations
+   (intsym.h close to empty now).
 - libout123:
 -- Add sleep builtin output module (silent, but proper timing).
 - libsyn123:

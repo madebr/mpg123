@@ -106,10 +106,10 @@ struct out123_struct
 /* Lazy. */
 #define AOQUIET ((ao->auxflags | ao->flags) & OUT123_QUIET)
 #define AOVERBOSE(v) (!AOQUIET && ao->verbose >= (v))
-#define GOOD_WRITEVAL(fd, val)     (unintr_write(fd, &(val), sizeof((val))) == sizeof((val)))
-#define GOOD_WRITEBUF(fd, addr, n) (unintr_write(fd, (addr), (n)) == (n))
-#define GOOD_READVAL(fd, val)      (unintr_read(fd, &(val), sizeof((val))) == sizeof((val)))
-#define GOOD_READBUF(fd, addr, n)  (unintr_read(fd, (addr), (n)) == (n))
+#define GOOD_WRITEVAL(fd, val)     (INT123_unintr_write(fd, &(val), sizeof((val))) == sizeof((val)))
+#define GOOD_WRITEBUF(fd, addr, n) (INT123_unintr_write(fd, (addr), (n)) == (n))
+#define GOOD_READVAL(fd, val)      (INT123_unintr_read(fd, &(val), sizeof((val))) == sizeof((val)))
+#define GOOD_READBUF(fd, addr, n)  (INT123_unintr_read(fd, (addr), (n)) == (n))
 
 struct audio_format_name {
 	int  val;

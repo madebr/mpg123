@@ -128,7 +128,7 @@ out123_handle* attribute_align_arg out123_new(void)
 #endif
 
 	out123_clear_module(ao);
-	ao->name = compat_strdup(default_name);
+	ao->name = INT123_compat_strdup(default_name);
 	ao->realname = NULL;
 	ao->driver = NULL;
 	ao->device = NULL;
@@ -157,7 +157,7 @@ void attribute_align_arg out123_del(out123_handle *ao)
 	out123_close(ao); /* TODO: That talks to the buffer if present. */
 	out123_set_buffer(ao, 0);
 #ifndef NOXFERMEM
-	if(have_buffer(ao)) buffer_exit(ao);
+	if(have_buffer(ao)) INT123_buffer_exit(ao);
 #endif
 	if(ao->name)
 		free(ao->name);
@@ -244,9 +244,9 @@ out123_set_buffer(out123_handle *ao, size_t buffer_bytes)
 	out123_close(ao);
 #ifndef NOXFERMEM
 	if(have_buffer(ao))
-		buffer_exit(ao);
+		INT123_buffer_exit(ao);
 	if(buffer_bytes)
-		return buffer_init(ao, buffer_bytes);
+		return INT123_buffer_init(ao, buffer_bytes);
 #endif
 	return 0;
 }
@@ -299,12 +299,12 @@ out123_param( out123_handle *ao, enum out123_parms code
 		case OUT123_NAME:
 			if(ao->name)
 				free(ao->name);
-			ao->name = compat_strdup(svalue ? svalue : default_name);
+			ao->name = INT123_compat_strdup(svalue ? svalue : default_name);
 		break;
 		case OUT123_BINDIR:
 			if(ao->bindir)
 				free(ao->bindir);
-			ao->bindir = compat_strdup(svalue);
+			ao->bindir = INT123_compat_strdup(svalue);
 		break;
 		default:
 			ao->errcode = OUT123_BAD_PARAM;
@@ -316,7 +316,7 @@ out123_param( out123_handle *ao, enum out123_parms code
 	if(have_buffer(ao))
 		/* No error check; if that fails, buffer is dead and we will notice
 		   soon enough. */
-		buffer_sync_param(ao);
+		INT123_buffer_sync_param(ao);
 #endif
 	return ret;
 }
@@ -397,10 +397,10 @@ out123_param_from(out123_handle *ao, out123_handle* from_ao)
 	ao->verbose   = from_ao->verbose;
 	if(ao->name)
 		free(ao->name);
-	ao->name = compat_strdup(from_ao->name);
+	ao->name = INT123_compat_strdup(from_ao->name);
 	if(ao->bindir)
 		free(ao->bindir);
-	ao->bindir = compat_strdup(from_ao->bindir);
+	ao->bindir = INT123_compat_strdup(from_ao->bindir);
 
 	return 0;
 }
@@ -426,7 +426,7 @@ out123_open(out123_handle *ao, const char* driver, const char* device)
 #ifndef NOXFERMEM
 	if(have_buffer(ao))
 	{
-		if(buffer_open(ao, driver, device))
+		if(INT123_buffer_open(ao, driver, device))
 			return OUT123_ERR;
 	}
 	else
@@ -441,13 +441,13 @@ out123_open(out123_handle *ao, const char* driver, const char* device)
 
 		/* It is ridiculous how these error messages are larger than the pieces
 		   of memory they are about! */
-		if(device && !(ao->device = compat_strdup(device)))
+		if(device && !(ao->device = INT123_compat_strdup(device)))
 		{
 			if(!AOQUIET) error("OOM device name copy");
 			return out123_seterr(ao, OUT123_DOOM);
 		}
 
-		if(!(modnames = compat_strdup(names)))
+		if(!(modnames = INT123_compat_strdup(names)))
 		{
 			out123_close(ao); /* Frees ao->device, too. */
 			if(!AOQUIET) error("OOM driver names");
@@ -466,7 +466,7 @@ out123_open(out123_handle *ao, const char* driver, const char* device)
 				if(AOVERBOSE(2))
 					fprintf(stderr, "Chosen output module: %s\n", curname);
 				/* A bit redundant, but useful when it's a fake module. */
-				if(!(ao->driver = compat_strdup(curname)))
+				if(!(ao->driver = INT123_compat_strdup(curname)))
 				{
 					out123_close(ao);
 					if(!AOQUIET) error("OOM driver name");
@@ -506,14 +506,14 @@ void attribute_align_arg out123_close(out123_handle *ao)
 
 #ifndef NOXFERMEM
 	if(have_buffer(ao))
-		buffer_close(ao);
+		INT123_buffer_close(ao);
 	else
 #endif
 	{
 		if(ao->deinit)
 			ao->deinit(ao);
 		if(ao->module)
-			close_module(ao->module, modverbose(ao, 0));
+			INT123_close_module(ao->module, modverbose(ao, 0));
 		/* Null module methods and pointer. */
 		out123_clear_module(ao);
 	}
@@ -565,7 +565,7 @@ out123_start(out123_handle *ao, long rate, int channels, int encoding)
 #ifndef NOXFERMEM
 	if(have_buffer(ao))
 	{
-		if(!buffer_start(ao))
+		if(!INT123_buffer_start(ao))
 		{
 			ao->state = play_live;
 			return OUT123_OK;
@@ -590,7 +590,7 @@ void attribute_align_arg out123_pause(out123_handle *ao)
 	if(ao && ao->state == play_live)
 	{
 #ifndef NOXFERMEM
-		if(have_buffer(ao)){ debug("pause with buffer"); buffer_pause(ao); }
+		if(have_buffer(ao)){ debug("pause with buffer"); INT123_buffer_pause(ao); }
 		else
 #endif
 		{
@@ -611,7 +611,7 @@ void attribute_align_arg out123_continue(out123_handle *ao)
 	if(ao && ao->state == play_paused)
 	{
 #ifndef NOXFERMEM
-		if(have_buffer(ao)) buffer_continue(ao);
+		if(have_buffer(ao)) INT123_buffer_continue(ao);
 		else
 #endif
 		/* Re-open live devices to avoid underruns. */
@@ -637,7 +637,7 @@ void attribute_align_arg out123_stop(out123_handle *ao)
 		return;
 #ifndef NOXFERMEM
 	if(have_buffer(ao))
-		buffer_stop(ao);
+		INT123_buffer_stop(ao);
 	else
 #endif
 	if(   ao->state == play_live
@@ -702,7 +702,7 @@ out123_play(out123_handle *ao, void *bytes, size_t count)
 
 #ifndef NOXFERMEM
 	if(have_buffer(ao))
-		return buffer_write(ao, bytes, count);
+		return INT123_buffer_write(ao, bytes, count);
 	else
 #endif
 	{
@@ -762,7 +762,7 @@ void attribute_align_arg out123_drop(out123_handle *ao)
 	ao->errcode = 0;
 #ifndef NOXFERMEM
 	if(have_buffer(ao))
-		buffer_drop(ao);
+		INT123_buffer_drop(ao);
 	else
 #endif
 	if(ao->state == play_live)
@@ -788,7 +788,7 @@ void attribute_align_arg out123_drain(out123_handle *ao)
 	}
 #ifndef NOXFERMEM
 	if(have_buffer(ao))
-		buffer_drain(ao);
+		INT123_buffer_drain(ao);
 	else
 #endif
 	{
@@ -814,7 +814,7 @@ void attribute_align_arg out123_ndrain(out123_handle *ao, size_t bytes)
 	}
 #ifndef NOXFERMEM
 	if(have_buffer(ao))
-		buffer_ndrain(ao, bytes);
+		INT123_buffer_ndrain(ao, bytes);
 	else
 #endif
 	{
@@ -1045,45 +1045,45 @@ static int open_fake_module(out123_handle *ao, const char *driver)
 	if(!strcmp("raw", driver))
 	{
 		ao->propflags &= ~OUT123_PROP_LIVE;
-		ao->open  = raw_open;
-		ao->get_formats = raw_formats;
-		ao->write = wav_write;
+		ao->open  = INT123_raw_open;
+		ao->get_formats = INT123_raw_formats;
+		ao->write = INT123_wav_write;
 		ao->flush = builtin_nothing;
-		ao->drain = wav_drain;
-		ao->close = raw_close;
+		ao->drain = INT123_wav_drain;
+		ao->close = INT123_raw_close;
 	}
 	else
 	if(!strcmp("wav", driver))
 	{
 		ao->propflags &= ~OUT123_PROP_LIVE;
-		ao->open = wav_open;
-		ao->get_formats = wav_formats;
-		ao->write = wav_write;
+		ao->open = INT123_wav_open;
+		ao->get_formats = INT123_wav_formats;
+		ao->write = INT123_wav_write;
 		ao->flush = builtin_nothing;
-		ao->drain = wav_drain;
-		ao->close = wav_close;
+		ao->drain = INT123_wav_drain;
+		ao->close = INT123_wav_close;
 	}
 	else
 	if(!strcmp("cdr", driver))
 	{
 		ao->propflags &= ~OUT123_PROP_LIVE;
-		ao->open  = cdr_open;
-		ao->get_formats = cdr_formats;
-		ao->write = wav_write;
+		ao->open  = INT123_cdr_open;
+		ao->get_formats = INT123_cdr_formats;
+		ao->write = INT123_wav_write;
 		ao->flush = builtin_nothing;
-		ao->drain = wav_drain;
-		ao->close = raw_close;
+		ao->drain = INT123_wav_drain;
+		ao->close = INT123_raw_close;
 	}
 	else
 	if(!strcmp("au", driver))
 	{
 		ao->propflags &= ~OUT123_PROP_LIVE;
-		ao->open  = au_open;
-		ao->get_formats = au_formats;
-		ao->write = wav_write;
+		ao->open  = INT123_au_open;
+		ao->get_formats = INT123_au_formats;
+		ao->write = INT123_wav_write;
 		ao->flush = builtin_nothing;
-		ao->drain = wav_drain;
-		ao->close = au_close;
+		ao->drain = INT123_wav_drain;
+		ao->close = INT123_au_close;
 	}
 	else
 	if(!strcmp("hex", driver))
@@ -1129,7 +1129,7 @@ static void check_output_module( out123_handle *ao
 		return;
 
 	/* Open the module, initial check for availability+libraries. */
-	ao->module = open_module( "output", name, modverbose(ao, final), ao->bindir);
+	ao->module = INT123_open_module( "output", name, modverbose(ao, final), ao->bindir);
 	if(!ao->module)
 		return;
 	/* Check if module supports output */
@@ -1175,7 +1175,7 @@ static void check_output_module( out123_handle *ao
 
 check_output_module_cleanup:
 	/* Only if module did not check out we get to clean up here. */
-	close_module(ao->module, modverbose(ao, final));
+	INT123_close_module(ao->module, modverbose(ao, final));
 	out123_clear_module(ao);
 	return;
 }
@@ -1207,8 +1207,8 @@ out123_drivers(out123_handle *ao, char ***names, char ***descr)
 	/* Wrap the call to isolate the lower levels from the user not being
 	   interested in both lists. it's a bit wasteful, but the code looks
 	   ugly enough already down there. */
-	count = list_modules("output", &tmpnames, &tmpdescr, modverbose(ao, 0), ao->bindir);
-	debug1("list_modules()=%i", count);
+	count = INT123_list_modules("output", &tmpnames, &tmpdescr, modverbose(ao, 0), ao->bindir);
+	debug1("INT123_list_modules()=%i", count);
 	if(count < 0)
 	{
 		if(!AOQUIET)
@@ -1217,21 +1217,21 @@ out123_drivers(out123_handle *ao, char ***names, char ***descr)
 	}
 
 	if(
-		stringlists_add( &tmpnames, &tmpdescr
+		INT123_stringlists_add( &tmpnames, &tmpdescr
 		,	"raw", "raw headerless stream (builtin)", &count )
-	||	stringlists_add( &tmpnames, &tmpdescr
+	||	INT123_stringlists_add( &tmpnames, &tmpdescr
 		,	"cdr", "compact disc digital audio stream (builtin)", &count )
-	||	stringlists_add( &tmpnames, &tmpdescr
+	||	INT123_stringlists_add( &tmpnames, &tmpdescr
 		,	"wav", "RIFF WAVE file (builtin)", &count )
-	||	stringlists_add( &tmpnames, &tmpdescr
+	||	INT123_stringlists_add( &tmpnames, &tmpdescr
 		,	"au", "Sun AU file (builtin)", &count )
-	||	stringlists_add( &tmpnames, &tmpdescr
+	||	INT123_stringlists_add( &tmpnames, &tmpdescr
 		,	"test", "output into the void (builtin)", &count )
-	||	stringlists_add( &tmpnames, &tmpdescr
+	||	INT123_stringlists_add( &tmpnames, &tmpdescr
 		,	"sleep", "output into the void that takes its time (builtin)", &count )
-	||	stringlists_add( &tmpnames, &tmpdescr
+	||	INT123_stringlists_add( &tmpnames, &tmpdescr
 		,	"hex", "interleaved hex printout (builtin)", &count )
-	||	stringlists_add( &tmpnames, &tmpdescr
+	||	INT123_stringlists_add( &tmpnames, &tmpdescr
 		,	"txt", "plain text printout, a column per channel (builtin)", &count )
 	)
 		if(!AOQUIET)
@@ -1263,7 +1263,7 @@ static int devlist_add(void *dll, const char *name, const char *descr)
 {
 	struct devlist *dl = (struct devlist*)dll;
 	return dl
-	?	stringlists_add(&(dl->names), &(dl->descr), name, descr, &(dl->count))
+	?	INT123_stringlists_add(&(dl->names), &(dl->descr), name, descr, &(dl->count))
 	:	-1;
 }
 
@@ -1285,14 +1285,14 @@ int out123_devices( out123_handle *ao, const char *driver, char ***names, char *
 	// If the driver is a single word, not a list with commas.
 	// Then don't try to open drivers just to know which we are talking about.
 	if(driver && strchr(driver, ',') == NULL)
-		realdrv = compat_strdup(driver);
+		realdrv = INT123_compat_strdup(driver);
 	else
 	{
 		mdebug("need to find a driver from: %s", driver ? driver : DEFAULT_OUTPUT_MODULE);
 		if(out123_open(ao, driver, NULL) != OUT123_OK)
 			return out123_seterr(ao, OUT123_BAD_DRIVER);
 		mdebug("deduced driver: %s", ao->driver);
-		realdrv = compat_strdup(ao->driver);
+		realdrv = INT123_compat_strdup(ao->driver);
 	}
 	if(realdrv == NULL)
 		return out123_seterr(ao, OUT123_DOOM);
@@ -1301,7 +1301,7 @@ int out123_devices( out123_handle *ao, const char *driver, char ***names, char *
 
 	if(open_fake_module(ao, realdrv) != OUT123_OK)
 	{
-		ao->module = open_module( "output", realdrv
+		ao->module = INT123_open_module( "output", realdrv
 		,	modverbose(ao, 0), ao->bindir );
 		/* Open the module, initial check for availability+libraries. */
 		if( !ao->module || !ao->module->init_output
@@ -1339,7 +1339,7 @@ int out123_devices( out123_handle *ao, const char *driver, char ***names, char *
 
 	free(realdrv);
 	if(ao->module)
-		close_module(ao->module, modverbose(ao, 0));
+		INT123_close_module(ao->module, modverbose(ao, 0));
 	out123_clear_module(ao);
 	return ret;
 }
@@ -1381,7 +1381,7 @@ out123_encodings(out123_handle *ao, long rate, int channels)
 	ao->rate     = rate;
 #ifndef NOXFERMEM
 	if(have_buffer(ao))
-		return buffer_encodings(ao);
+		return INT123_buffer_encodings(ao);
 	else
 #endif
 	{
@@ -1437,7 +1437,7 @@ out123_formats( out123_handle *ao, const long *rates, int ratecount
 
 #ifndef NOXFERMEM
 	if(have_buffer(ao))
-		return buffer_formats( ao, rates, ratecount
+		return INT123_buffer_formats( ao, rates, ratecount
 		                     , minchannels, maxchannels, fmtlist );
 	else
 #endif
@@ -1506,7 +1506,7 @@ size_t attribute_align_arg out123_buffered(out123_handle *ao)
 #ifndef NOXFERMEM
 	if(have_buffer(ao))
 	{
-		size_t fill = buffer_fill(ao);
+		size_t fill = INT123_buffer_fill(ao);
 		debug2("out123_buffered(%p) = %"SIZE_P, (void*)ao, (size_p)fill);
 		return fill;
 	}

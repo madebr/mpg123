@@ -13,10 +13,10 @@ static ALIGNED(16) real aa_ca[8];
 static ALIGNED(16) real aa_cs[8];
 static ALIGNED(16) real win[4][36];
 static ALIGNED(16) real win1[4][36];
-ALIGNED(16) real COS9[9];
+ALIGNED(16) real INT123_COS9[9];
 static real COS6_1;
 static real COS6_2;
-ALIGNED(16) real tfcos36[9];
+ALIGNED(16) real INT123_tfcos36[9];
 static ALIGNED(16) real tfcos12[3];
 static ALIGNED(16) real cos9[3];
 static ALIGNED(16) real cos18[3];
@@ -2204,7 +2204,7 @@ static const ALIGNED(16) real win1[4][36] =
 	,	-1.69505145e-01f,  1.28315040e-01f, -8.22623323e-02f,  2.95813971e-02f
 	}
 };
-const ALIGNED(16) real COS9[9] = 
+const ALIGNED(16) real INT123_COS9[9] = 
 {
 	 1.00000000e+00f,  9.84807753e-01f,  9.39692621e-01f,  8.66025404e-01f
 ,	 7.66044443e-01f,  6.42787610e-01f,  5.00000000e-01f,  3.42020143e-01f
@@ -2212,7 +2212,7 @@ const ALIGNED(16) real COS9[9] =
 };
 static const real COS6_1 =  8.66025404e-01f;
 static const real COS6_2 =  5.00000000e-01f;
-const ALIGNED(16) real tfcos36[9] = 
+const ALIGNED(16) real INT123_tfcos36[9] = 
 {
 	 5.01909919e-01f,  5.17638090e-01f,  5.51688959e-01f,  6.10387294e-01f
 ,	 7.07106781e-01f,  8.71723398e-01f,  1.18310079e+00f,  1.93185165e+00f
@@ -4514,7 +4514,7 @@ static const real win1[4][36] =
 	,	   -2843824,     2152769,    -1380133,      496293
 	}
 };
-const real COS9[9] = 
+const real INT123_COS9[9] = 
 {
 	   16777216,    16522332,    15765426,    14529495
 ,	   12852093,    10784187,     8388608,     5738146
@@ -4522,7 +4522,7 @@ const real COS9[9] =
 };
 static const real COS6_1 = 14529495;
 static const real COS6_2 = 8388608;
-const real tfcos36[9] = 
+const real INT123_tfcos36[9] = 
 {
 	    8420651,     8684526,     9255805,    10240599
 ,	   11863283,    14625092,    19849138,    32411092

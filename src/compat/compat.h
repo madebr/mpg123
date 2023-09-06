@@ -121,7 +121,7 @@
 #include <sys/select.h>
 #endif
 
-/* compat_open makes little sense without */
+/* INT123_compat_open makes little sense without */
 #include <fcntl.h>
 
 /* To parse big numbers... */
@@ -142,18 +142,18 @@ typedef unsigned char byte;
 #include "intsym.h"
 
 /* A safe realloc also for very old systems where realloc(NULL, size) returns NULL. */
-void *safe_realloc(void *ptr, size_t size);
+void *INT123_safe_realloc(void *ptr, size_t size);
 // Also freeing ptr if result is NULL. You can do
-// ptr = safer_realloc(ptr, size)
-// Also, ptr = safer_realloc(ptr, 0) will do free(ptr); ptr=NULL;.
-void *safer_realloc(void *ptr, size_t size);
+// ptr = INT123_safer_realloc(ptr, size)
+// Also, ptr = INT123_safer_realloc(ptr, 0) will do free(ptr); ptr=NULL;.
+void *INT123_safer_realloc(void *ptr, size_t size);
 #ifndef HAVE_STRERROR
 const char *strerror(int errnum);
 #endif
 
 /* Roll our own strdup() that does not depend on libc feature test macros
    and returns NULL on NULL input instead of crashing. */
-char* compat_strdup(const char *s);
+char* INT123_compat_strdup(const char *s);
 
 /* If we have the size checks enabled, try to derive some sane printfs.
    Simple start: Use max integer type and format if long is not big enough.
@@ -180,7 +180,7 @@ typedef long ssize_p;
 
 /* Get an environment variable, possibly converted to UTF-8 from wide string.
    The return value is a copy that you shall free. */
-char *compat_getenv(const char* name);
+char *INT123_compat_getenv(const char* name);
 
 /**
  * Opening a file handle can be different.
@@ -189,12 +189,12 @@ char *compat_getenv(const char* name);
  * @param[in] mbptr Pointer to multibyte string.
  * @return file descriptor (>=0) or error code.
  */
-int compat_open(const char *filename, int flags);
-FILE* compat_fopen(const char *filename, const char *mode);
+int INT123_compat_open(const char *filename, int flags);
+FILE* INT123_compat_fopen(const char *filename, const char *mode);
 /**
  * Also fdopen to avoid having to define POSIX macros in various source files.
  */
-FILE* compat_fdopen(int fd, const char *mode);
+FILE* INT123_compat_fdopen(int fd, const char *mode);
 
 /**
  * Closing a file handle can be platform specific.
@@ -202,8 +202,8 @@ FILE* compat_fdopen(int fd, const char *mode);
  * @param[in] infd File descriptor to be closed.
  * @return 0 if the file was successfully closed. A return value of -1 indicates an error.
  */
-int compat_close(int infd);
-int compat_fclose(FILE* stream);
+int INT123_compat_close(int infd);
+int INT123_compat_fclose(FILE* stream);
 
 
 /**
@@ -211,7 +211,7 @@ int compat_fclose(FILE* stream);
  * We do not bother with errors. This has to work.
  * You can enable or disable binary mode.
  */
-void compat_binmode(int fd, int enable);
+void INT123_compat_binmode(int fd, int enable);
 
 /* Those do make sense in a separate file, but I chose to include them in compat.c because that's the one source whose object is shared between mpg123 and libmpg123 -- and both need the functionality internally. */
 
@@ -227,7 +227,7 @@ void compat_binmode(int fd, int enable);
  *
  * WideCharToMultiByte - http://msdn.microsoft.com/en-us/library/dd374130(VS.85).aspx
  */
-int win32_wide_utf8(const wchar_t * const wptr, char **mbptr, size_t * buflen);
+int INT123_win32_wide_utf8(const wchar_t * const wptr, char **mbptr, size_t * buflen);
 
 /**
  * win32_uni2mbc
@@ -240,7 +240,7 @@ int win32_wide_utf8(const wchar_t * const wptr, char **mbptr, size_t * buflen);
  *
  * WideCharToMultiByte - http://msdn.microsoft.com/en-us/library/dd374130(VS.85).aspx
  */
-int win32_wide_utf7(const wchar_t * const wptr, char **mbptr, size_t * buflen);
+int INT123_win32_wide_utf7(const wchar_t * const wptr, char **mbptr, size_t * buflen);
 
 /**
  * win32_mbc2uni
@@ -254,7 +254,7 @@ int win32_wide_utf7(const wchar_t * const wptr, char **mbptr, size_t * buflen);
  * MultiByteToWideChar - http://msdn.microsoft.com/en-us/library/dd319072(VS.85).aspx
  */
 
-int win32_utf8_wide(const char *const mbptr, wchar_t **wptr, size_t *buflen);
+int INT123_win32_utf8_wide(const char *const mbptr, wchar_t **wptr, size_t *buflen);
 #endif
 
 /*
@@ -280,11 +280,11 @@ int win32_utf8_wide(const char *const mbptr, wchar_t **wptr, size_t *buflen);
 	(meaning: for Windows), else they are preserved (on POSIX, actual
 	file system access would be needed because of symlinks).
 */
-char* compat_catpath(const char *prefix, const char* path);
+char* INT123_compat_catpath(const char *prefix, const char* path);
 
 /* Return 1 if the given path indicates an existing directory,
    0 otherwise. */
-int compat_isdir(const char *path);
+int INT123_compat_isdir(const char *path);
 
 /*
 	Directory traversal. This talks ASCII/UTF-8 paths externally, converts
@@ -296,14 +296,14 @@ struct compat_dir;
 /* Returns NULL if either directory failed to open or listing is empty.
    Listing can still be empty even if non-NULL, so always rely on the
    nextfile/nextdir functions. */
-struct compat_dir* compat_diropen(char *path);
-void               compat_dirclose(struct compat_dir*);
+struct compat_dir* INT123_compat_diropen(char *path);
+void               INT123_compat_dirclose(struct compat_dir*);
 /* Get the next entry that is a file (or symlink to one).
    The returned string is a copy that needs to be freed after use. */
-char* compat_nextfile(struct compat_dir*);
+char* INT123_compat_nextfile(struct compat_dir*);
 /* Get the next entry that is a directory (or symlink to one).
    The returned string is a copy that needs to be freed after use. */
-char* compat_nextdir (struct compat_dir*);
+char* INT123_compat_nextdir (struct compat_dir*);
 
 #ifdef USE_MODULES
 /*
@@ -313,17 +313,17 @@ char* compat_nextdir (struct compat_dir*);
 	Use of absolute paths is a good idea if you want to be sure which
 	file is openend, as default search paths vary.
 */
-void *compat_dlopen (const char *path);
-void *compat_dlsym  (void *handle, const char* name);
-void  compat_dlclose(void *handle);
+void *INT123_compat_dlopen (const char *path);
+void *INT123_compat_dlsym  (void *handle, const char* name);
+void  INT123_compat_dlclose(void *handle);
 #endif
 
 /* Blocking write/read of data with signal resilience.
    They continue after being interrupted by signals and always return the
    amount of processed data (shortage indicating actual problem or EOF). */
-size_t unintr_write(int fd, void const *buffer, size_t bytes);
-size_t unintr_read (int fd, void *buffer, size_t bytes);
-size_t unintr_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream);
+size_t INT123_unintr_write(int fd, void const *buffer, size_t bytes);
+size_t INT123_unintr_read (int fd, void *buffer, size_t bytes);
+size_t INT123_unintr_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream);
 
 /* OSX SDK defines an enum with "normal" as value. That clashes with
    optimize.h */
@@ -334,7 +334,7 @@ size_t unintr_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream);
 #include "true.h"
 
 #if (!defined(WIN32) || defined (__CYGWIN__)) && defined(HAVE_SIGNAL_H)
-void (*catchsignal(int signum, void(*handler)()))();
+void (*INT123_catchsignal(int signum, void(*handler)()))();
 #endif
 
 #endif

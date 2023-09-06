@@ -68,12 +68,12 @@ static void frame_default_pars(mpg123_pars *mp)
 	mp->freeformat_framesize = -1;
 }
 
-void frame_init(mpg123_handle *fr)
+void INT123_frame_init(mpg123_handle *fr)
 {
-	frame_init_par(fr, NULL);
+	INT123_frame_init_par(fr, NULL);
 }
 
-void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
+void INT123_frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 {
 	fr->own_buffer = TRUE;
 	fr->buffer.data = NULL;
@@ -98,22 +98,22 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 #ifdef OPT_CPU_FLAGS
 	wrap_getcpuflags(&(fr->cpu_flags));
 #endif
-	fr->cpu_opts.type = defdec();
-	fr->cpu_opts.class = decclass(fr->cpu_opts.type);
+	fr->cpu_opts.type = INT123_defdec();
+	fr->cpu_opts.class = INT123_decclass(fr->cpu_opts.type);
 #ifndef NO_NTOM
-	/* these two look unnecessary, check guarantee for synth_ntom_set_step (in control_generic, even)! */
-	fr->ntom_val[0] = NTOM_MUL>>1;
-	fr->ntom_val[1] = NTOM_MUL>>1;
+	/* these two look unnecessary, check guarantee for INT123_synth_ntom_set_step (in control_generic, even)! */
+	fr->INT123_ntom_val[0] = NTOM_MUL>>1;
+	fr->INT123_ntom_val[1] = NTOM_MUL>>1;
 	fr->ntom_step = NTOM_MUL;
 #endif
 	/* unnecessary: fr->buffer.size = fr->buffer.fill = 0; */
 	mpg123_reset_eq(fr);
-	init_icy(&fr->icy);
-	init_id3(fr);
-	/* frame_outbuffer is missing... */
-	/* frame_buffers is missing... that one needs cpu opt setting! */
-	/* after these... frame_reset is needed before starting full decode */
-	invalidate_format(&fr->af);
+	INT123_init_icy(&fr->icy);
+	INT123_init_id3(fr);
+	/* INT123_frame_outbuffer is missing... */
+	/* INT123_frame_buffers is missing... that one needs cpu opt setting! */
+	/* after these... INT123_frame_reset is needed before starting full decode */
+	INT123_invalidate_format(&fr->af);
 	fr->rdat.iohandle = NULL;
 	fr->rdat.r_read64 = NULL;
 	fr->rdat.r_lseek64 = NULL;
@@ -125,7 +125,7 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 	else memcpy(&fr->p, mp, sizeof(struct mpg123_pars_struct));
 
 #ifndef NO_FEEDER
-	bc_prepare(&fr->rdat.buffer, fr->p.feedpool, fr->p.feedbuffer);
+	INT123_bc_prepare(&fr->rdat.buffer, fr->p.feedpool, fr->p.feedbuffer);
 #endif
 
 	fr->down_sample = 0; /* Initialize to silence harmless errors when debugging. */
@@ -133,10 +133,10 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 	frame_fixed_reset(fr); /* Reset only the fixed data, dynamic buffers are not there yet! */
 	fr->synth = NULL;
 	fr->synth_mono = NULL;
-	fr->make_decode_tables = NULL;
+	fr->INT123_make_decode_tables = NULL;
 #ifdef FRAME_INDEX
-	fi_init(&fr->index);
-	frame_index_setup(fr); /* Apply the size setting. */
+	INT123_fi_init(&fr->index);
+	INT123_frame_index_setup(fr); /* Apply the size setting. */
 #endif
 #ifndef NO_MOREINFO
 	fr->pinfo = NULL;
@@ -146,7 +146,7 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 #ifdef OPT_DITHER
 /* Also, only allocate the memory for the table on demand.
    In future, one could create special noise for different sampling frequencies(?). */
-int frame_dither_init(mpg123_handle *fr)
+int INT123_frame_dither_init(mpg123_handle *fr)
 {
 	/* run-time dither noise table generation */
 	if(fr->dithernoise == NULL)
@@ -154,7 +154,7 @@ int frame_dither_init(mpg123_handle *fr)
 		fr->dithernoise = malloc(sizeof(float)*DITHERSIZE);
 		if(fr->dithernoise == NULL) return 0;
 
-		dither_table_init(fr->dithernoise);
+		INT123_dither_table_init(fr->dithernoise);
 	}
 	return 1;
 }
@@ -184,7 +184,7 @@ int attribute_align_arg mpg123_reset_eq(mpg123_handle *mh)
 	return MPG123_OK;
 }
 
-int frame_outbuffer(mpg123_handle *fr)
+int INT123_frame_outbuffer(mpg123_handle *fr)
 {
 	size_t size = fr->outblock;
 	if(!fr->own_buffer)
@@ -240,19 +240,19 @@ int attribute_align_arg mpg123_replace_buffer(mpg123_handle *mh, void *data, siz
 }
 
 #ifdef FRAME_INDEX
-int frame_index_setup(mpg123_handle *fr)
+int INT123_frame_index_setup(mpg123_handle *fr)
 {
 	int ret = MPG123_ERR;
 	if(fr->p.index_size >= 0)
 	{ /* Simple fixed index. */
 		fr->index.grow_size = 0;
-		ret = fi_resize(&fr->index, (size_t)fr->p.index_size);
+		ret = INT123_fi_resize(&fr->index, (size_t)fr->p.index_size);
 	}
 	else
 	{ /* A growing index. We give it a start, though. */
 		fr->index.grow_size = (size_t)(- fr->p.index_size);
 		if(fr->index.size < fr->index.grow_size)
-			ret = fi_resize(&fr->index, fr->index.grow_size);
+			ret = INT123_fi_resize(&fr->index, fr->index.grow_size);
 		else
 			ret = MPG123_OK; /* We have minimal size already... and since growing is OK... */
 	}
@@ -269,7 +269,7 @@ static void frame_decode_buffers_reset(mpg123_handle *fr)
 		memset(fr->rawbuffs, 0, fr->rawbuffss);
 }
 
-int frame_buffers(mpg123_handle *fr)
+int INT123_frame_buffers(mpg123_handle *fr)
 {
 	int buffssize = 0;
 	debug1("frame %p buffer", (void*)fr);
@@ -442,7 +442,7 @@ int frame_buffers(mpg123_handle *fr)
 	return 0;
 }
 
-int frame_buffers_reset(mpg123_handle *fr)
+int INT123_frame_buffers_reset(mpg123_handle *fr)
 {
 	fr->buffer.fill = 0; /* hm, reset buffer fill... did we do a flush? */
 	fr->bsnum = 0;
@@ -474,7 +474,7 @@ static void frame_free_toc(mpg123_handle *fr)
 }
 
 /* Just copy the Xing TOC over... */
-int frame_fill_toc(mpg123_handle *fr, unsigned char* in)
+int INT123_frame_fill_toc(mpg123_handle *fr, unsigned char* in)
 {
 	if(fr->xing_toc == NULL) fr->xing_toc = malloc(100);
 	if(fr->xing_toc != NULL)
@@ -495,13 +495,13 @@ int frame_fill_toc(mpg123_handle *fr, unsigned char* in)
 
 /* Prepare the handle for a new track.
    Reset variables, buffers... */
-int frame_reset(mpg123_handle* fr)
+int INT123_frame_reset(mpg123_handle* fr)
 {
-	frame_buffers_reset(fr);
+	INT123_frame_buffers_reset(fr);
 	frame_fixed_reset(fr);
 	frame_free_toc(fr);
 #ifdef FRAME_INDEX
-	fi_reset(&fr->index);
+	INT123_fi_reset(&fr->index);
 #endif
 
 	return 0;
@@ -511,7 +511,7 @@ int frame_reset(mpg123_handle* fr)
 static void frame_fixed_reset(mpg123_handle *fr)
 {
 	frame_icy_reset(fr);
-	open_bad(fr);
+	INT123_open_bad(fr);
 	fr->to_decode = FALSE;
 	fr->to_ignore = FALSE;
 	fr->metaflags = 0;
@@ -549,7 +549,7 @@ static void frame_fixed_reset(mpg123_handle *fr)
 	fr->fresh = 1;
 	fr->new_format = 0;
 #ifdef GAPLESS
-	frame_gapless_init(fr,-1,0,0);
+	INT123_frame_gapless_init(fr,-1,0,0);
 	fr->lastoff = 0;
 	fr->firstoff = 0;
 #endif
@@ -560,8 +560,8 @@ static void frame_fixed_reset(mpg123_handle *fr)
 #ifdef OPT_DITHER
 	fr->ditherindex = 0;
 #endif
-	reset_id3(fr);
-	reset_icy(&fr->icy);
+	INT123_reset_id3(fr);
+	INT123_reset_icy(&fr->icy);
 	/* ICY stuff should go into icy.c, eh? */
 #ifndef NO_ICY
 	fr->icy.interval = 0;
@@ -594,7 +594,7 @@ static void frame_free_buffers(mpg123_handle *fr)
 	if(fr->layerscratch != NULL) free(fr->layerscratch);
 }
 
-void frame_exit(mpg123_handle *fr)
+void INT123_frame_exit(mpg123_handle *fr)
 {
 	if(fr->buffer.rdata != NULL)
 	{
@@ -605,7 +605,7 @@ void frame_exit(mpg123_handle *fr)
 	frame_free_buffers(fr);
 	frame_free_toc(fr);
 #ifdef FRAME_INDEX
-	fi_exit(&fr->index);
+	INT123_fi_exit(&fr->index);
 #endif
 #ifdef OPT_DITHER
 	if(fr->dithernoise != NULL)
@@ -614,10 +614,10 @@ void frame_exit(mpg123_handle *fr)
 		fr->dithernoise = NULL;
 	}
 #endif
-	exit_id3(fr);
-	clear_icy(&fr->icy);
+	INT123_exit_id3(fr);
+	INT123_clear_icy(&fr->icy);
 #ifndef NO_FEEDER
-	bc_cleanup(&fr->rdat.buffer);
+	INT123_bc_cleanup(&fr->rdat.buffer);
 #endif
 }
 
@@ -696,14 +696,14 @@ static int64_t frame_fuzzy_find(mpg123_handle *fr, int64_t want_frame, int64_t* 
 
 /*
 	find the best frame in index just before the wanted one, seek to there
-	then step to just before wanted one with read_frame
+	then step to just before wanted one with INT123_read_frame
 	do not care tabout the stuff that was in buffer but not played back
 	everything that left the decoder is counted as played
 	
 	Decide if you want low latency reaction and accurate timing info or stable long-time playback with buffer!
 */
 
-int64_t frame_index_find(mpg123_handle *fr, int64_t want_frame, int64_t* get_frame)
+int64_t INT123_frame_index_find(mpg123_handle *fr, int64_t want_frame, int64_t* get_frame)
 {
 	/* default is file start if no index position */
 	int64_t gopos = 0;
@@ -748,7 +748,7 @@ int64_t frame_index_find(mpg123_handle *fr, int64_t want_frame, int64_t* get_fra
 	return gopos;
 }
 
-int64_t frame_ins2outs(mpg123_handle *fr, int64_t ins)
+int64_t INT123_frame_ins2outs(mpg123_handle *fr, int64_t ins)
 {	
 	int64_t outs = 0;
 	switch(fr->down_sample)
@@ -761,7 +761,7 @@ int64_t frame_ins2outs(mpg123_handle *fr, int64_t ins)
 			outs = ins>>fr->down_sample;
 		break;
 #		ifndef NO_NTOM
-		case 3: outs = ntom_ins2outs(fr, ins); break;
+		case 3: outs = INT123_ntom_ins2outs(fr, ins); break;
 #		endif
 		default: if(NOQUIET)
 			merror( "Bad down_sample (%i) ... should not be possible!!"
@@ -770,7 +770,7 @@ int64_t frame_ins2outs(mpg123_handle *fr, int64_t ins)
 	return outs;
 }
 
-int64_t frame_outs(mpg123_handle *fr, int64_t num)
+int64_t INT123_frame_outs(mpg123_handle *fr, int64_t num)
 {
 	int64_t outs = 0;
 	switch(fr->down_sample)
@@ -783,7 +783,7 @@ int64_t frame_outs(mpg123_handle *fr, int64_t num)
 			outs = (fr->spf>>fr->down_sample)*num;
 		break;
 #ifndef NO_NTOM
-		case 3: outs = ntom_frmouts(fr, num); break;
+		case 3: outs = INT123_ntom_frmouts(fr, num); break;
 #endif
 		default: if(NOQUIET)
 			merror( "Bad down_sample (%i) ... should not be possible!!"
@@ -794,7 +794,7 @@ int64_t frame_outs(mpg123_handle *fr, int64_t num)
 
 /* Compute the number of output samples we expect from this frame.
    This is either simple spf() or a tad more elaborate for ntom. */
-int64_t frame_expect_outsamples(mpg123_handle *fr)
+int64_t INT123_frame_expect_outsamples(mpg123_handle *fr)
 {
 	int64_t outs = 0;
 	switch(fr->down_sample)
@@ -807,7 +807,7 @@ int64_t frame_expect_outsamples(mpg123_handle *fr)
 			outs = fr->spf>>fr->down_sample;
 		break;
 #ifndef NO_NTOM
-		case 3: outs = ntom_frame_outsamples(fr); break;
+		case 3: outs = INT123_ntom_frame_outsamples(fr); break;
 #endif
 		default: if(NOQUIET)
 			merror( "Bad down_sample (%i) ... should not be possible!!"
@@ -816,7 +816,7 @@ int64_t frame_expect_outsamples(mpg123_handle *fr)
 	return outs;
 }
 
-int64_t frame_offset(mpg123_handle *fr, int64_t outs)
+int64_t INT123_frame_offset(mpg123_handle *fr, int64_t outs)
 {
 	int64_t num = 0;
 	switch(fr->down_sample)
@@ -829,7 +829,7 @@ int64_t frame_offset(mpg123_handle *fr, int64_t outs)
 			num = outs/(fr->spf>>fr->down_sample);
 		break;
 #ifndef NO_NTOM
-		case 3: num = ntom_frameoff(fr, outs); break;
+		case 3: num = INT123_ntom_frameoff(fr, outs); break;
 #endif
 		default: if(NOQUIET)
 			error("Bad down_sample ... should not be possible!!");
@@ -839,9 +839,9 @@ int64_t frame_offset(mpg123_handle *fr, int64_t outs)
 
 #ifdef GAPLESS
 /* input in _input_ samples */
-void frame_gapless_init(mpg123_handle *fr, int64_t framecount, int64_t bskip, int64_t eskip)
+void INT123_frame_gapless_init(mpg123_handle *fr, int64_t framecount, int64_t bskip, int64_t eskip)
 {
-	debug3("frame_gapless_init: given %"PRIi64" frames, skip %"PRIi64" and %"PRIi64, framecount, bskip, eskip);
+	debug3("INT123_frame_gapless_init: given %"PRIi64" frames, skip %"PRIi64" and %"PRIi64, framecount, bskip, eskip);
 	fr->gapless_frames = framecount;
 	if(fr->gapless_frames > 0 && bskip >=0 && eskip >= 0)
 	{
@@ -853,23 +853,23 @@ void frame_gapless_init(mpg123_handle *fr, int64_t framecount, int64_t bskip, in
 	fr->begin_os = 0;
 	fr->end_os = 0;
 	fr->fullend_os = 0;
-	debug2("frame_gapless_init: from %"PRIi64" to %"PRIi64" samples", fr->begin_s, fr->end_s);
+	debug2("INT123_frame_gapless_init: from %"PRIi64" to %"PRIi64" samples", fr->begin_s, fr->end_s);
 }
 
-void frame_gapless_realinit(mpg123_handle *fr)
+void INT123_frame_gapless_realinit(mpg123_handle *fr)
 {
-	fr->begin_os = frame_ins2outs(fr, fr->begin_s);
-	fr->end_os   = frame_ins2outs(fr, fr->end_s);
+	fr->begin_os = INT123_frame_ins2outs(fr, fr->begin_s);
+	fr->end_os   = INT123_frame_ins2outs(fr, fr->end_s);
 	if(fr->gapless_frames > 0)
-	fr->fullend_os = frame_ins2outs(fr, fr->gapless_frames*fr->spf);
+	fr->fullend_os = INT123_frame_ins2outs(fr, fr->gapless_frames*fr->spf);
 	else fr->fullend_os = 0;
 
-	debug4("frame_gapless_realinit: from %"PRIi64" to %"PRIi64" samples (%"PRIi64", %"PRIi64")"
+	debug4("INT123_frame_gapless_realinit: from %"PRIi64" to %"PRIi64" samples (%"PRIi64", %"PRIi64")"
 	,	fr->begin_os, fr->end_os, fr->fullend_os, fr->gapless_frames);
 }
 
 /* At least note when there is trouble... */
-void frame_gapless_update(mpg123_handle *fr, int64_t total_samples)
+void INT123_frame_gapless_update(mpg123_handle *fr, int64_t total_samples)
 {
 	int64_t gapless_samples = fr->gapless_frames*fr->spf;
 	if(fr->gapless_frames < 1) return;
@@ -887,8 +887,8 @@ void frame_gapless_update(mpg123_handle *fr, int64_t total_samples)
 				" < %"PRIi64"). Disabling gapless mode from now on."
 			,	total_samples, fr->end_s );
 		/* This invalidates the current position... but what should I do? */
-		frame_gapless_init(fr, -1, 0, 0);
-		frame_gapless_realinit(fr);
+		INT123_frame_gapless_init(fr, -1, 0, 0);
+		INT123_frame_gapless_realinit(fr);
 		fr->lastframe = -1;
 		fr->lastoff = 0;
 	}
@@ -912,66 +912,66 @@ static int64_t ignoreframe(mpg123_handle *fr)
    Seek to frame offset 1 may be just seek to 200 samples offset in output since the beginning of first frame is delay/padding.
    Hm, is that right? OK for the padding stuff, but actually, should the decoder delay be better totally hidden or not?
    With gapless, even the whole frame position could be advanced further than requested (since Homey don't play dat). */
-void frame_set_frameseek(mpg123_handle *fr, int64_t fe)
+void INT123_frame_set_frameseek(mpg123_handle *fr, int64_t fe)
 {
 	fr->firstframe = fe;
 #ifdef GAPLESS
 	if(fr->p.flags & MPG123_GAPLESS && fr->gapless_frames > 0)
 	{
 		/* Take care of the beginning... */
-		int64_t beg_f = frame_offset(fr, fr->begin_os);
+		int64_t beg_f = INT123_frame_offset(fr, fr->begin_os);
 		if(fe <= beg_f)
 		{
 			fr->firstframe = beg_f;
-			fr->firstoff   = fr->begin_os - frame_outs(fr, beg_f);
+			fr->firstoff   = fr->begin_os - INT123_frame_outs(fr, beg_f);
 		}
 		else fr->firstoff = 0;
-		/* The end is set once for a track at least, on the frame_set_frameseek called in get_next_frame() */
+		/* The end is set once for a track at least, on the INT123_frame_set_frameseek called in get_next_frame() */
 		if(fr->end_os > 0)
 		{
-			fr->lastframe  = frame_offset(fr,fr->end_os);
-			fr->lastoff    = fr->end_os - frame_outs(fr, fr->lastframe);
+			fr->lastframe  = INT123_frame_offset(fr,fr->end_os);
+			fr->lastoff    = fr->end_os - INT123_frame_outs(fr, fr->lastframe);
 		} else {fr->lastframe = -1; fr->lastoff = 0; }
 	} else { fr->firstoff = fr->lastoff = 0; fr->lastframe = -1; }
 #endif
 	fr->ignoreframe = ignoreframe(fr);
 #ifdef GAPLESS
-	debug5("frame_set_frameseek: begin at %" PRIi64 " frames and %" PRIi64
+	debug5("INT123_frame_set_frameseek: begin at %" PRIi64 " frames and %" PRIi64
 		" samples, end at %" PRIi64 " and %" PRIi64 "; ignore from %" PRIi64,
 		fr->firstframe,  fr->firstoff
 	,	fr->lastframe,   fr->lastoff,  fr->ignoreframe);
 #else
-	debug3("frame_set_frameseek: begin at %" PRIi64 " frames, end at %" PRIi64
+	debug3("INT123_frame_set_frameseek: begin at %" PRIi64 " frames, end at %" PRIi64
 		"; ignore from %" PRIi64
 	,	fr->firstframe,  fr->lastframe,  fr->ignoreframe);
 #endif
 }
 
-void frame_skip(mpg123_handle *fr)
+void INT123_frame_skip(mpg123_handle *fr)
 {
 #ifndef NO_LAYER3
-	if(fr->lay == 3) set_pointer(fr, 1, 512);
+	if(fr->lay == 3) INT123_set_pointer(fr, 1, 512);
 #endif
 }
 
 /* Sample accurate seek prepare for decoder. */
 /* This gets unadjusted output samples and takes resampling into account */
-void frame_set_seek(mpg123_handle *fr, int64_t sp)
+void INT123_frame_set_seek(mpg123_handle *fr, int64_t sp)
 {
-	fr->firstframe = frame_offset(fr, sp);
-	debug1("frame_set_seek: from %" PRIi64, fr->num);
+	fr->firstframe = INT123_frame_offset(fr, sp);
+	debug1("INT123_frame_set_seek: from %" PRIi64, fr->num);
 #ifndef NO_NTOM
-	if(fr->down_sample == 3) ntom_set_ntom(fr, fr->firstframe);
+	if(fr->down_sample == 3) INT123_ntom_set_ntom(fr, fr->firstframe);
 #endif
 	fr->ignoreframe = ignoreframe(fr);
 #ifdef GAPLESS /* The sample offset is used for non-gapless mode, too! */
-	fr->firstoff = sp - frame_outs(fr, fr->firstframe);
-	debug5("frame_set_seek: begin at %" PRIi64 " frames and %" PRIi64
+	fr->firstoff = sp - INT123_frame_outs(fr, fr->firstframe);
+	debug5("INT123_frame_set_seek: begin at %" PRIi64 " frames and %" PRIi64
 		" samples, end at %" PRIi64 " and %" PRIi64 "; ignore from %" PRIi64,
 		fr->firstframe,  fr->firstoff
 	,	fr->lastframe,   fr->lastoff,  fr->ignoreframe);
 #else
-	debug3("frame_set_seek: begin at %" PRIi64 " frames, end at %" PRIi64
+	debug3("INT123_frame_set_seek: begin at %" PRIi64 " frames, end at %" PRIi64
 		"; ignore from %" PRIi64
 	,	 fr->firstframe,  fr->lastframe,  fr->ignoreframe);
 #endif
@@ -996,7 +996,7 @@ int attribute_align_arg mpg123_volume(mpg123_handle *mh, double vol)
 	if(vol >= 0) mh->p.outscale = vol;
 	else mh->p.outscale = 0.;
 
-	do_rva(mh);
+	INT123_do_rva(mh);
 	return MPG123_OK;
 }
 
@@ -1023,7 +1023,7 @@ static int get_rva(mpg123_handle *fr, double *peak, double *gain)
 }
 
 /* adjust the volume, taking both fr->outscale and rva values into account */
-void do_rva(mpg123_handle *fr)
+void INT123_do_rva(mpg123_handle *fr)
 {
 	double peak = 0;
 	double gain = 0;
@@ -1049,7 +1049,7 @@ void do_rva(mpg123_handle *fr)
 		debug3("changing scale value from %f to %f (peak estimated to %f)", fr->lastscale != -1 ? fr->lastscale : fr->p.outscale, newscale, (double) (newscale*peak));
 		fr->lastscale = newscale;
 		/* It may be too early, actually. */
-		if(fr->make_decode_tables != NULL) fr->make_decode_tables(fr); /* the actual work */
+		if(fr->INT123_make_decode_tables != NULL) fr->INT123_make_decode_tables(fr); /* the actual work */
 	}
 }
 

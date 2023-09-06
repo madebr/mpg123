@@ -473,7 +473,7 @@ int http_open(const char* url, struct httpdata *hd, const char * const *client_h
 #ifdef WANT_WIN32_SOCKETS
 		if(!win32_net_writestring (sock, &request))
 #else
-		if(unintr_write(sock, request.p, request.fill-1) != request.fill-1)
+		if(INT123_unintr_write(sock, request.p, request.fill-1) != request.fill-1)
 #endif
 		{
 			http_failure;

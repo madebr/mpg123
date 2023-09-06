@@ -42,7 +42,7 @@ struct cpuflags
 #endif
 };
 
-unsigned int getcpuflags(struct cpuflags* cf);
+unsigned int INT123_getcpuflags(struct cpuflags* cf);
 
 #if ((defined OPT_X86) || (defined OPT_X86_64) || (defined OPT_NEON) || (defined OPT_NEON64)) && (defined OPT_MULTI)
 
@@ -53,7 +53,7 @@ unsigned int getcpuflags(struct cpuflags* cf);
 static unsigned int wrap_getcpuflags(struct cpuflags* cf)
 {
 	memset(cf, 0, sizeof(*cf));
-	return getcpuflags(cf);
+	return INT123_getcpuflags(cf);
 }
 #endif
 

@@ -116,7 +116,7 @@ int unknown2utf8(char **dest, const char *source, int len)
 		return -1;
 	if(!source)
 	{
-		*dest = safer_realloc(*dest, 0);
+		*dest = INT123_safer_realloc(*dest, 0);
 		return -1;
 	}
 	size_t count = len < 0 ? strlen(source) : (size_t)len;
@@ -134,7 +134,7 @@ int unknown2utf8(char **dest, const char *source, int len)
 		ulen += c >= 0x80 ? uni_repl_len : 1;
 	}
 
-	if(NULL == (*dest = safer_realloc(*dest, ulen)))
+	if(NULL == (*dest = INT123_safer_realloc(*dest, ulen)))
 		return -1;
 
 	unsigned char *p = (unsigned char*)*dest;
@@ -201,7 +201,7 @@ static size_t utf8_ascii_work(char **dest_, const char *source
 		return 0;
 	if(!source)
 	{
-		*dest_ = safer_realloc(*dest_, 0);
+		*dest_ = INT123_safer_realloc(*dest_, 0);
 		return 0;
 	}
 
@@ -230,7 +230,7 @@ static size_t utf8_ascii_work(char **dest_, const char *source
 	}
 	// Do nothing with nothing or if allocation fails. Neatly catches overflow
 	// of ++dlen.
-	if(!dlen || !(dest=safer_realloc(dest, dlen)))
+	if(!dlen || !(dest=INT123_safer_realloc(dest, dlen)))
 		goto utf8_ascii_bad;
 	p = (unsigned char*)dest;
 	c2lead = 0;
@@ -253,7 +253,7 @@ static size_t utf8_ascii_work(char **dest_, const char *source
 		dest[dlen-1] = 0;
 	goto utf8_ascii_end;
 utf8_ascii_bad:
-	dest = safer_realloc(dest, 0);
+	dest = INT123_safer_realloc(dest, 0);
 utf8_ascii_end:
 	*dest_ = dest;
 	return dest ? strlen(dest)+1 : 0;
@@ -282,7 +282,7 @@ size_t utf8outstr(char **dest_, const char *source, int to_terminal)
 		return 0;
 	if(!source)
 	{
-		*dest_ = safer_realloc(*dest_, 0);
+		*dest_ = INT123_safer_realloc(*dest_, 0);
 		return 0;
 	}
 	char *dest = *dest_;
@@ -335,13 +335,13 @@ size_t utf8outstr(char **dest_, const char *source, int to_terminal)
 				size_t bytelen = wcstombs(NULL, flt, 0);
 				if(
 					columns >= 0 && bytelen != (size_t)-1
-					&& (dest=safer_realloc(dest, bytelen+1))
+					&& (dest=INT123_safer_realloc(dest, bytelen+1))
 					&& wcstombs(dest, flt, bytelen+1) == bytelen
 				){
 					width = columns;
 				}
 				else
-					dest=safer_realloc(dest, 0);
+					dest=INT123_safer_realloc(dest, 0);
 			}
 			free(flt);
 			free(pre);
@@ -354,7 +354,7 @@ size_t utf8outstr(char **dest_, const char *source, int to_terminal)
 			// That is, 0x01 to 0x19 (keeping 0x20, space) and 0x7f (DEL) to 0x9f.
 			// Since the input and output is UTF-8, we'll keep that intact.
 			// C1 is mapped to 0xc280 till 0xc29f.
-			dest = safer_realloc(dest, source_fill);
+			dest = INT123_safer_realloc(dest, source_fill);
 			if(!dest)
 				goto utf8outstr_bad;
 			size_t dest_fill = 0;
@@ -383,7 +383,7 @@ size_t utf8outstr(char **dest_, const char *source, int to_terminal)
 			dest[dest_fill-1] = 0;
 		} else
 		{
-			dest = safer_realloc(dest, source_fill);
+			dest = INT123_safer_realloc(dest, source_fill);
 			if(!dest)
 				goto utf8outstr_bad;
 			size_t dest_fill = 0;
@@ -415,7 +415,7 @@ size_t utf8outstr(char **dest_, const char *source, int to_terminal)
 
 	goto utf8outstr_end;
 utf8outstr_bad:
-	dest = safer_realloc(dest, 0);
+	dest = INT123_safer_realloc(dest, 0);
 	width = 0;
 utf8outstr_end:
 	*dest_ = dest;
@@ -440,7 +440,7 @@ int outstr(char **dest, const char *str, int is_utf8, int is_term)
 		return -1;
 	if(!str)
 	{
-		*dest = safer_realloc(*dest, 0);
+		*dest = INT123_safer_realloc(*dest, 0);
 		return -1;
 	}
 	int ret = 0;
@@ -462,7 +462,7 @@ int outstr(char **dest, const char *str, int is_utf8, int is_term)
 		free(usrc);
 	} else
 	{
-		*dest = compat_strdup(str);
+		*dest = INT123_compat_strdup(str);
 		if(!*dest)
 			ret = -1;
 	}

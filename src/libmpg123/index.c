@@ -36,7 +36,7 @@ static void fi_shrink(struct frame_index *fi)
 	fi->next = fi_next(fi);
 }
 
-void fi_init(struct frame_index *fi)
+void INT123_fi_init(struct frame_index *fi)
 {
 	fi->data = NULL;
 	fi->step = 1;
@@ -46,15 +46,15 @@ void fi_init(struct frame_index *fi)
 	fi->next = fi_next(fi);
 }
 
-void fi_exit(struct frame_index *fi)
+void INT123_fi_exit(struct frame_index *fi)
 {
-	debug2("fi_exit: %p and %lu", (void*)fi->data, (unsigned long)fi->size);
+	debug2("INT123_fi_exit: %p and %lu", (void*)fi->data, (unsigned long)fi->size);
 	if(fi->size && fi->data != NULL) free(fi->data);
 
-	fi_init(fi); /* Be prepared for further fun, still. */
+	INT123_fi_init(fi); /* Be prepared for further fun, still. */
 }
 
-int fi_resize(struct frame_index *fi, size_t newsize)
+int INT123_fi_resize(struct frame_index *fi, size_t newsize)
 {
 	int64_t *newdata = NULL;
 	if(newsize == fi->size) return 0;
@@ -64,7 +64,7 @@ int fi_resize(struct frame_index *fi, size_t newsize)
 		while(fi->fill > newsize){ fi_shrink(fi); }
 	}
 
-	newdata = safe_realloc(fi->data, newsize*sizeof(int64_t));
+	newdata = INT123_safe_realloc(fi->data, newsize*sizeof(int64_t));
 	if(newsize == 0 || newdata != NULL)
 	{
 		fi->data = newdata;
@@ -78,7 +78,7 @@ int fi_resize(struct frame_index *fi, size_t newsize)
 		return -1;
 }
 
-void fi_add(struct frame_index *fi, int64_t pos)
+void INT123_fi_add(struct frame_index *fi, int64_t pos)
 {
 	debug3("wanting to add to fill %lu, step %lu, size %lu", (unsigned long)fi->fill, (unsigned long)fi->step, (unsigned long)fi->size);
 	if(fi->fill == fi->size)
@@ -86,7 +86,7 @@ void fi_add(struct frame_index *fi, int64_t pos)
 		/* Store the current frame number to check later if we still want it. */
 		int64_t framenum = fi->fill*fi->step;
 		/* If we want not / cannot grow, we shrink. */	
-		if( !(fi->grow_size && fi_resize(fi, fi->size+fi->grow_size)==0) )
+		if( !(fi->grow_size && INT123_fi_resize(fi, fi->size+fi->grow_size)==0) )
 		fi_shrink(fi);
 
 		/* Now check if we still want to add this frame (could be that not, because of changed step). */
@@ -103,9 +103,9 @@ void fi_add(struct frame_index *fi, int64_t pos)
 	}
 }
 
-int fi_set(struct frame_index *fi, int64_t *offsets, int64_t step, size_t fill)
+int INT123_fi_set(struct frame_index *fi, int64_t *offsets, int64_t step, size_t fill)
 {
-	if(fi_resize(fi, fill) == -1) return -1;
+	if(INT123_fi_resize(fi, fill) == -1) return -1;
 	fi->step = step;
 	if(offsets != NULL)
 	{
@@ -123,7 +123,7 @@ int fi_set(struct frame_index *fi, int64_t *offsets, int64_t step, size_t fill)
 	return 0;
 }
 
-void fi_reset(struct frame_index *fi)
+void INT123_fi_reset(struct frame_index *fi)
 {
 	debug1("reset with size %"SIZE_P, (size_p)fi->size);
 	fi->fill = 0;

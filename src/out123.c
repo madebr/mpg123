@@ -212,7 +212,7 @@ static void safe_exit(int code)
 	char *dummy, *dammy;
 
 	if(input && input != stdin)
-		compat_fclose(input);
+		INT123_compat_fclose(input);
 
 	if(!code)
 		controlled_drain();
@@ -1076,7 +1076,7 @@ void push_output(unsigned char *buf, size_t samples)
 
 	mdebug("playing %zu bytes", bytes);
 	check_fatal_output(out123_play(ao, buf, bytes) < (int)bytes);
-	if(also_stdout && unintr_fwrite(buf, pcmframe, samples, stdout) < samples)
+	if(also_stdout && INT123_unintr_fwrite(buf, pcmframe, samples, stdout) < samples)
 	{
 		if(!quiet)
 			error1( "failed to copy stream to stdout: %s", strerror(errno));
@@ -1111,7 +1111,7 @@ FILE* open_next_file(int argc, char** argv, int firstrun)
 	{
 		char *filename = argv[loptind++];
 		errno = 0;
-		in = strcmp(filename, "-") ? compat_fopen(filename, "rb") : stdin;
+		in = strcmp(filename, "-") ? INT123_compat_fopen(filename, "rb") : stdin;
 		if(!in)
 			merror( "Failed to open input file '%s' (%s), ignoring."
 			,	filename, strerror(errno) );
@@ -1466,7 +1466,7 @@ static void setup_processing(void)
 int main(int sys_argc, char ** sys_argv)
 {
 	int result;
-	compat_binmode(STDIN_FILENO, TRUE);
+	INT123_compat_binmode(STDIN_FILENO, TRUE);
 	check_locale();
 
 #if defined (WANT_WIN32_UNICODE)
@@ -1480,7 +1480,7 @@ int main(int sys_argc, char ** sys_argv)
 	argc = sys_argc;
 #endif
 
-	if(!(fullprogname = compat_strdup(argv[0])))
+	if(!(fullprogname = INT123_compat_strdup(argv[0])))
 	{
 		error("OOM"); /* Out Of Memory. Don't waste bytes on that error. */
 		safe_exit(1);
@@ -1568,8 +1568,8 @@ int main(int sys_argc, char ** sys_argv)
 	}
 	/* Ensure cleanup before we cause too much mess. */
 #if !defined(WIN32) && !defined(GENERIC)
-	catchsignal(SIGINT, catch_interrupt);
-	catchsignal(SIGTERM, catch_interrupt);
+	INT123_catchsignal(SIGINT, catch_interrupt);
+	INT123_catchsignal(SIGTERM, catch_interrupt);
 #endif
 	ao = out123_new();
 	if(!ao){ error("Failed to allocate output."); exit(1); }
@@ -1716,7 +1716,7 @@ int main(int sys_argc, char ** sys_argv)
 		if(!intflag && !generate && !just_stdin)
 		{
 			if(input && input != stdin)
-				compat_fclose(input);
+				INT123_compat_fclose(input);
 			input = open_next_file(argc, argv, 0);
 		}
 	} while(!intflag && !generate && input && !just_stdin);

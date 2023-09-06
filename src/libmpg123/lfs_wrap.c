@@ -314,7 +314,7 @@ int attribute_align_arg mpg123_index(mpg123_handle *mh, off_t **offsets, off_t *
 	if(*fill == 0) return MPG123_OK;
 
 	/* Construct a copy of the index to hand over to the small-minded client. */
-	*offsets = safe_realloc(whd->indextable, (*fill)*sizeof(int32_t));
+	*offsets = INT123_safe_realloc(whd->indextable, (*fill)*sizeof(int32_t));
 	if(*offsets == NULL)
 		return INT123_set_err(mh, MPG123_OUT_OF_MEM);
 	whd->indextable = *offsets;
@@ -344,7 +344,7 @@ int attribute_align_arg mpg123_set_index(mpg123_handle *mh, off_t *offsets, off_
 	else
 	{
 		/* Expensive temporary storage... for staying outside at the API layer. */
-		indextmp = safe_realloc(whd->set_indextable, fill*sizeof(int64_t));
+		indextmp = INT123_safe_realloc(whd->set_indextable, fill*sizeof(int64_t));
 		if(indextmp == NULL)
 			return INT123_set_err(mh, MPG123_OUT_OF_MEM);
 		whd->set_indextable = indextmp;
@@ -364,14 +364,14 @@ off_t attribute_align_arg mpg123_framepos(mpg123_handle *mh)
 	OFF_RETURN(pos, mh)
 }
 
-int attribute_align_arg mpg123_position( mpg123_handle *mh, off_t frame_offset
+int attribute_align_arg mpg123_position( mpg123_handle *mh, off_t INT123_frame_offset
 ,	off_t buffered_bytes, off_t *current_frame, off_t *frames_left
 ,	double *current_seconds, double *seconds_left )
 {
 	int64_t curframe, frameleft;
 	int err;
 
-	err = mpg123_position64( mh, (int64_t)frame_offset, (int64_t)buffered_bytes
+	err = mpg123_position64( mh, (int64_t)INT123_frame_offset, (int64_t)buffered_bytes
 	,	&curframe, &frameleft, current_seconds, seconds_left );
 	if(err != MPG123_OK) return err;
 
@@ -483,11 +483,11 @@ off_t attribute_align_arg mpg123_framepos_32(mpg123_handle *mh)
 	return mpg123_framepos(mh);
 }
 
-int attribute_align_arg mpg123_position_32( mpg123_handle *mh, off_t frame_offset
+int attribute_align_arg mpg123_position_32( mpg123_handle *mh, off_t INT123_frame_offset
 ,	off_t buffered_bytes, off_t *current_frame, off_t *frames_left
 ,	double *current_seconds, double *seconds_left )
 {
-	return mpg123_position( mh, frame_offset, buffered_bytes
+	return mpg123_position( mh, INT123_frame_offset, buffered_bytes
 	,	current_frame, frames_left, current_seconds, seconds_left );
 }
 
@@ -592,11 +592,11 @@ off64_t attribute_align_arg mpg123_framepos_64(mpg123_handle *mh)
 	return mpg123_framepos64(mh);
 }
 
-int attribute_align_arg mpg123_position_64( mpg123_handle *mh, off64_t frame_offset
+int attribute_align_arg mpg123_position_64( mpg123_handle *mh, off64_t INT123_frame_offset
 ,	off64_t buffered_bytes, off64_t *current_frame, off64_t *frames_left
 ,	double *current_seconds, double *seconds_left )
 {
-	return mpg123_position64( mh, (int64_t)frame_offset, (int64_t)buffered_bytes
+	return mpg123_position64( mh, (int64_t)INT123_frame_offset, (int64_t)buffered_bytes
 	,	(int64_t*)current_frame, (int64_t*)frames_left, current_seconds, seconds_left );
 }
 
@@ -770,7 +770,7 @@ int INT123_wrap_open(mpg123_handle *mh, void *handle, const char *path, int fd, 
 		flags |= O_LARGEFILE;
 #endif
 		errno = 0;
-		ioh->my_fd = fd = compat_open(path, flags);
+		ioh->my_fd = fd = INT123_compat_open(path, flags);
 		if(fd < 0)
 		{
 			if(!quiet)
@@ -825,7 +825,7 @@ int INT123_wrap_open(mpg123_handle *mh, void *handle, const char *path, int fd, 
 // Defining a wrapper to the native read to be sure the prototype matches.
 // There are platforms where it is read(int, void*, unsigned int).
 // We know that we read small chunks where the difference does not matter. Could
-// apply specific hackery, use a common compat_read() (unintr_read()?) with system
+// apply specific hackery, use a common compat_read() (INT123_unintr_read()?) with system
 // specifics.
 static mpg123_ssize_t fallback_read(int fd, void *buf, size_t count)
 {

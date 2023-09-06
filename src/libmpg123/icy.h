@@ -20,18 +20,18 @@ struct icy_meta
 	int64_t next;
 };
 
-void init_icy(struct icy_meta *);
-void clear_icy(struct icy_meta *);
-void reset_icy(struct icy_meta *);
+void INT123_init_icy(struct icy_meta *);
+void INT123_clear_icy(struct icy_meta *);
+void INT123_reset_icy(struct icy_meta *);
 
 #else
 
-#undef init_icy
-#define init_icy(a)
-#undef clear_icy
-#define clear_icy(a)
-#undef reset_icy
-#define reset_icy(a)
+#undef INT123_init_icy
+#define INT123_init_icy(a)
+#undef INT123_clear_icy
+#define INT123_clear_icy(a)
+#undef INT123_reset_icy
+#define INT123_reset_icy(a)
 
 #endif /* NO_ICY */
 

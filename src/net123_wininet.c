@@ -78,7 +78,7 @@ net123_handle *net123_open_wininet(const char *url, const char * const *client_h
   const LPCWSTR useragent = MPG123WSTR(PACKAGE_NAME) L"/" MPG123WSTR(MPG123_VERSION);
   INTERNET_STATUS_CALLBACK cb;
 
-  win32_utf8_wide(url, &urlW, NULL);
+  INT123_win32_utf8_wide(url, &urlW, NULL);
   if(urlW == NULL) goto cleanup;
 
   ret = calloc(1, sizeof(net123_handle));
@@ -144,7 +144,7 @@ net123_handle *net123_open_wininet(const char *url, const char * const *client_h
   }
 
   for(ii = 0; client_head[ii]; ii++){
-    win32_utf8_wide(client_head[ii], &headers, NULL);
+    INT123_win32_utf8_wide(client_head[ii], &headers, NULL);
     if(!headers)
       goto cleanup;
     debug1("HttpAddRequestHeadersW add %S", headers);
@@ -183,7 +183,7 @@ net123_handle *net123_open_wininet(const char *url, const char * const *client_h
     if (!headers) goto cleanup;
     res = HttpQueryInfoW(wh->request, HTTP_QUERY_RAW_HEADERS_CRLF, headers, &headerlen, &wh->HttpQueryInfoIndex);
     debug3("HttpQueryInfoW returned %u, err %u : %S", res, GetLastError(), headers ? headers : L"null");
-    win32_wide_utf7(headers, &wh->headers, &wh->headers_len);
+    INT123_win32_wide_utf7(headers, &wh->headers, &wh->headers_len);
     /* bytes written, skip the terminating null, we want to stop at the \r\n\r\n */
     wh->headers_len --;
     free(headers);

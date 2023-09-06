@@ -45,8 +45,8 @@
 	ALIGN8
 .text
 /* int synth_1to1_i586_asm(real *bandPtr, int channel, unsigned char *out, unsigned char *buffs, int *bo, real *decwin); */
-.globl ASM_NAME(synth_1to1_i586_asm)
-ASM_NAME(synth_1to1_i586_asm):
+.globl ASM_NAME(INT123_synth_1to1_i586_asm)
+ASM_NAME(INT123_synth_1to1_i586_asm):
 	subl $12,%esp
 	pushl %ebp
 	pushl %edi
@@ -336,7 +336,7 @@ ASM_NAME(synth_1to1_i586_asm):
 #if defined(PIC) && defined(__APPLE__)
 	.section __IMPORT,__jump_table,symbol_stubs,self_modifying_code+pure_instructions,5
 L_dct64_i386:
-	.indirect_symbol ASM_NAME(dct64_i386)
+	.indirect_symbol ASM_NAME(INT123_dct64_i386)
 	hlt ; hlt ; hlt ; hlt ; hlt
 #endif
 

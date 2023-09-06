@@ -62,7 +62,7 @@
 	clobbering each other when setting/restoring across different threads.
 */
 
-void *compat_dlopen(const char *path)
+void *INT123_compat_dlopen(const char *path)
 {
 	void *handle = NULL;
 #ifdef WANT_WIN32_UNICODE
@@ -83,7 +83,7 @@ void *compat_dlopen(const char *path)
 	return handle;
 }
 
-void *compat_dlsym(void *handle, const char *name)
+void *INT123_compat_dlsym(void *handle, const char *name)
 {
 	void *sym = NULL;
 	if(!handle)
@@ -96,7 +96,7 @@ void *compat_dlsym(void *handle, const char *name)
 	return sym;
 }
 
-void compat_dlclose(void *handle)
+void INT123_compat_dlclose(void *handle)
 {
 	if(!handle)
 		return;

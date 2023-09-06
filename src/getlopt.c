@@ -44,7 +44,7 @@ static void setcharoption(topt *opt, char *value)
 		free(*((char**)opt->var));
 	if(value)
 	{
-		*((char **) opt->var) = compat_strdup(value);
+		*((char **) opt->var) = INT123_compat_strdup(value);
 		opt->flags |= GLO_VAR_MEM;
 	} else
 	{

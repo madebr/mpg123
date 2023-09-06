@@ -24,7 +24,7 @@
 
 #ifdef OPT_DITHER
 #include "dither.h"
-int frame_dither_init(mpg123_handle *fr);
+int INT123_frame_dither_init(mpg123_handle *fr);
 #endif
 
 /* max = 1728 */
@@ -56,7 +56,7 @@ struct audioformat
 	long rate;
 };
 
-void invalidate_format(struct audioformat *af);
+void INT123_invalidate_format(struct audioformat *af);
 
 struct mpg123_pars_struct
 {
@@ -151,7 +151,7 @@ struct mpg123_handle_struct
 
 #ifndef NO_NTOM
 	/* decode_ntom */
-	unsigned long ntom_val[2];
+	unsigned long INT123_ntom_val[2];
 	unsigned long ntom_step;
 #endif
 	/* special i486 fun */
@@ -188,7 +188,7 @@ struct mpg123_handle_struct
 	func_synth_stereo synth_stereo;
 	func_synth_mono synth_mono;
 	/* Yes, this function is runtime-switched, too. */
-	void (*make_decode_tables)(mpg123_handle *fr); /* That is the volume control. */
+	void (*INT123_make_decode_tables)(mpg123_handle *fr); /* That is the volume control. */
 
 	int stereo; /* I _think_ 1 for mono and 2 for stereo */
 	int jsbound;
@@ -350,27 +350,27 @@ struct mpg123_handle_struct
 };
 
 /* generic init, does not include dynamic buffers */
-void frame_init(mpg123_handle *fr);
-void frame_init_par(mpg123_handle *fr, mpg123_pars *mp);
+void INT123_frame_init(mpg123_handle *fr);
+void INT123_frame_init_par(mpg123_handle *fr, mpg123_pars *mp);
 /* output buffer and format */
-int  frame_outbuffer(mpg123_handle *fr);
-int  frame_output_format(mpg123_handle *fr);
+int  INT123_frame_outbuffer(mpg123_handle *fr);
+int  INT123_frame_output_format(mpg123_handle *fr);
 
-int frame_buffers(mpg123_handle *fr); /* various decoder buffers, needed once */
-int frame_reset(mpg123_handle* fr);   /* reset for next track */
-int frame_buffers_reset(mpg123_handle *fr);
-void frame_exit(mpg123_handle *fr);   /* end, free all buffers */
+int INT123_frame_buffers(mpg123_handle *fr); /* various decoder buffers, needed once */
+int INT123_frame_reset(mpg123_handle* fr);   /* reset for next track */
+int INT123_frame_buffers_reset(mpg123_handle *fr);
+void INT123_frame_exit(mpg123_handle *fr);   /* end, free all buffers */
 
 /* Index functions... */
 /* Well... print it... */
 int mpg123_print_index(mpg123_handle *fr, FILE* out);
 /* Find a seek position in index. */
-int64_t frame_index_find(mpg123_handle *fr, int64_t want_frame, int64_t* get_frame);
+int64_t INT123_frame_index_find(mpg123_handle *fr, int64_t want_frame, int64_t* get_frame);
 /* Apply index_size setting. */
-int frame_index_setup(mpg123_handle *fr);
+int INT123_frame_index_setup(mpg123_handle *fr);
 
-void do_volume(mpg123_handle *fr, double factor);
-void do_rva(mpg123_handle *fr);
+void INT123_do_volume(mpg123_handle *fr, double factor);
+void INT123_do_rva(mpg123_handle *fr);
 
 /* samples per frame ...
 Layer I
@@ -394,20 +394,20 @@ MPEG 2.5
 // The value is needed for mpg123_getstate() in any build.
 #define GAPLESS_DELAY 529
 #ifdef GAPLESS
-void frame_gapless_init(mpg123_handle *fr, int64_t framecount, int64_t bskip, int64_t eskip);
-void frame_gapless_realinit(mpg123_handle *fr);
-void frame_gapless_update(mpg123_handle *mh, int64_t total_samples);
+void INT123_frame_gapless_init(mpg123_handle *fr, int64_t framecount, int64_t bskip, int64_t eskip);
+void INT123_frame_gapless_realinit(mpg123_handle *fr);
+void INT123_frame_gapless_update(mpg123_handle *mh, int64_t total_samples);
 /*void frame_gapless_position(mpg123_handle* fr);
-void frame_gapless_bytify(mpg123_handle *fr);
-void frame_gapless_ignore(mpg123_handle *fr, int64_t frames);*/
+void INT123_frame_gapless_bytify(mpg123_handle *fr);
+void INT123_frame_gapless_ignore(mpg123_handle *fr, int64_t frames);*/
 /* void frame_gapless_buffercheck(mpg123_handle *fr); */
 #endif
 
 /* Number of samples the decoding of the current frame should yield. */
-int64_t frame_expect_outsamples(mpg123_handle *fr);
+int64_t INT123_frame_expect_outsamples(mpg123_handle *fr);
 
 /* Skip this frame... do some fake action to get away without actually decoding it. */
-void frame_skip(mpg123_handle *fr);
+void INT123_frame_skip(mpg123_handle *fr);
 
 /*
 	Seeking core functions:
@@ -416,14 +416,14 @@ void frame_skip(mpg123_handle *fr);
 	- get leading frame offset for output sample offset
 	The offsets are "unadjusted"/internal; resampling is being taken care of.
 */
-int64_t frame_ins2outs(mpg123_handle *fr, int64_t ins);
-int64_t frame_outs(mpg123_handle *fr, int64_t num);
+int64_t INT123_frame_ins2outs(mpg123_handle *fr, int64_t ins);
+int64_t INT123_frame_outs(mpg123_handle *fr, int64_t num);
 /* This one just computes the expected sample count for _this_ frame. */
-int64_t frame_expect_outsampels(mpg123_handle *fr);
-int64_t frame_offset(mpg123_handle *fr, int64_t outs);
-void frame_set_frameseek(mpg123_handle *fr, int64_t fe);
-void frame_set_seek(mpg123_handle *fr, int64_t sp);
-int64_t frame_tell_seek(mpg123_handle *fr);
+int64_t INT123_frame_expect_outsampels(mpg123_handle *fr);
+int64_t INT123_frame_offset(mpg123_handle *fr, int64_t outs);
+void INT123_frame_set_frameseek(mpg123_handle *fr, int64_t fe);
+void INT123_frame_set_seek(mpg123_handle *fr, int64_t sp);
+int64_t INT123_frame_tell_seek(mpg123_handle *fr);
 /* Take a copy of the Xing VBR TOC for fuzzy seeking. */
-int frame_fill_toc(mpg123_handle *fr, unsigned char* in);
+int INT123_frame_fill_toc(mpg123_handle *fr, unsigned char* in);
 #endif

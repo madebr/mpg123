@@ -293,7 +293,7 @@ int open_picfile(const char* prefix, mpg123_picture* pic)
 	pfn[len] = 0;
 
 	errno = 0;
-	fd = compat_open(pfn, O_CREAT|O_WRONLY|O_EXCL);
+	fd = INT123_compat_open(pfn, O_CREAT|O_WRONLY|O_EXCL);
 	while(fd < 0 && errno == EEXIST && ++count < ULONG_MAX)
 	{
 		char dum[3];
@@ -303,12 +303,12 @@ int open_picfile(const char* prefix, mpg123_picture* pic)
 		// Modern compiler diagnostics complain if limit is smaller than
 		// format string, so increasing dummy to 3 characters.
 		digits = snprintf(dum, 3, "%lu", count);
-		if(!(pfn=safe_realloc(pfn, len+digits+1))) exit(11);
+		if(!(pfn=INT123_safe_realloc(pfn, len+digits+1))) exit(11);
 
 		sprintf(pfn, "%s.%s%lu.%s", prefix, typestr, count, end);
 		pfn[len+digits] = 0;
 		errno = 0;		
-		fd = compat_open(pfn, O_CREAT|O_WRONLY|O_EXCL);
+		fd = INT123_compat_open(pfn, O_CREAT|O_WRONLY|O_EXCL);
 	}
 	printf("writing %s\n", pfn);
 	if(fd < 0)
@@ -336,10 +336,10 @@ static void store_pictures(const char* prefix, mpg123_id3v2 *v2)
 		fd = open_picfile(prefix, pic);
 		if(fd >= 0)
 		{ /* stream I/O for not having to care about interruptions */
-			FILE* picfile = compat_fdopen(fd, "w");
+			FILE* picfile = INT123_compat_fdopen(fd, "w");
 			if(picfile)
 			{
-				if(unintr_fwrite(pic->data, pic->size, 1, picfile) != 1)
+				if(INT123_unintr_fwrite(pic->data, pic->size, 1, picfile) != 1)
 				{
 					error("Failure to write data.");
 					++errors;

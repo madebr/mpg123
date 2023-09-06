@@ -71,8 +71,8 @@ int attribute_align_arg mpg123_resize_string(mpg123_string* sb, size_t new)
 	{
 		char* t;
 		debug("really!");
-		t = (char*) safe_realloc(sb->p, new*sizeof(char));
-		debug1("safe_realloc returned %p", (void*) t); 
+		t = (char*) INT123_safe_realloc(sb->p, new*sizeof(char));
+		debug1("INT123_safe_realloc returned %p", (void*) t); 
 		if(t != NULL)
 		{
 			sb->p = t;

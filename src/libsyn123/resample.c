@@ -2399,7 +2399,7 @@ syn123_setup_resample( syn123_handle *sh, long inrate, long outrate
 	{
 		if(smooth)
 		{
-			float *sth = safe_realloc( rd->stage_history
+			float *sth = INT123_safe_realloc( rd->stage_history
 			,	sizeof(float)*STAGE_HISTORY*channels*(decim_stages+1) );
 			if(!sth)
 			{
@@ -2410,9 +2410,9 @@ syn123_setup_resample( syn123_handle *sh, long inrate, long outrate
 		}
 		if(decim_stages)
 		{
-			struct decimator_state *nd = safe_realloc( rd->decim
+			struct decimator_state *nd = INT123_safe_realloc( rd->decim
 			,	sizeof(*rd->decim)*decim_stages );
-			struct lpf4_hist *ndh = safe_realloc( rd->decim_hist
+			struct lpf4_hist *ndh = INT123_safe_realloc( rd->decim_hist
 			,	sizeof(*rd->decim_hist)*decim_stages*channels );
 			if(nd)
 				rd->decim = nd;

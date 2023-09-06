@@ -325,17 +325,17 @@ static inline int32_t scale_rounded(int32_t x, int shift)
 #define VERBOSE4 (NOQUIET && fr->p.verbose > 3)
 #define PVERB(mp, level) (!((mp)->flags & MPG123_QUIET) && (mp)->verbose >= (level))
 
-int decode_update(mpg123_handle *mh);
+int INT123_decode_update(mpg123_handle *mh);
 /* residing in format.c  */
-int64_t decoder_synth_bytes(mpg123_handle *fr , int64_t s);
-int64_t samples_to_bytes(mpg123_handle *fr , int64_t s);
-int64_t bytes_to_samples(mpg123_handle *fr , int64_t b);
-int64_t outblock_bytes(mpg123_handle *fr, int64_t s);
+int64_t INT123_decoder_synth_bytes(mpg123_handle *fr , int64_t s);
+int64_t INT123_samples_to_bytes(mpg123_handle *fr , int64_t s);
+int64_t INT123_bytes_to_samples(mpg123_handle *fr , int64_t b);
+int64_t INT123_outblock_bytes(mpg123_handle *fr, int64_t s);
 /* Postprocessing format conversion of freshly decoded buffer. */
-void postprocess_buffer(mpg123_handle *fr);
+void INT123_postprocess_buffer(mpg123_handle *fr);
 
-int open_fixed_pre(mpg123_handle *mh, int channels, int encoding);
-int open_fixed_post(mpg123_handle *mh, int channels, int encoding);
+int INT123_open_fixed_pre(mpg123_handle *mh, int channels, int encoding);
+int INT123_open_fixed_post(mpg123_handle *mh, int channels, int encoding);
 
 /* If networking is enabled and we really mean internal networking, the timeout_read function is available. */
 #if defined (NETWORK) && !defined (WANT_WIN32_SOCKETS)

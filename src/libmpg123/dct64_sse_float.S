@@ -36,8 +36,8 @@ mask:
 	
 	.text
 	ALIGN16
-.globl ASM_NAME(dct64_real_sse)
-ASM_NAME(dct64_real_sse):
+.globl ASM_NAME(INT123_dct64_real_sse)
+ASM_NAME(INT123_dct64_real_sse):
 	pushl		%ebp
 	movl		%esp, %ebp
 	
@@ -410,7 +410,7 @@ ASM_NAME(dct64_real_sse):
 #if defined(PIC) && defined(__APPLE__)
 	.section	__IMPORT,__pointers,non_lazy_symbol_pointers
 L_costab_mmxsse:
-	.indirect_symbol	ASM_NAME(costab_mmxsse)
+	.indirect_symbol	ASM_NAME(INT123_costab_mmxsse)
 	.long	0
 #endif
 

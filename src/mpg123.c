@@ -487,7 +487,7 @@ static void set_appflag(char *arg, topt *opts)
 #if defined(NETWORK) || defined(NET123)
 static void set_httpauth(char *arg, topt *opts)
 {
-	param.httpauth = compat_strdup(arg);
+	param.httpauth = INT123_compat_strdup(arg);
 	// Do not advertise the password for all system users.
 	memset(arg, 'x', strlen(arg));
 }
@@ -1014,9 +1014,9 @@ int main(int sys_argc, char ** sys_argv)
 	 * so using _wpgmptr with unicode paths after UTF8 conversion is broken on Windows
 	 */
 	
-	fullprogname = compat_strdup(_pgmptr);
+	fullprogname = INT123_compat_strdup(_pgmptr);
 #else
-	fullprogname = compat_strdup(argv[0]);
+	fullprogname = INT123_compat_strdup(argv[0]);
 #endif
 
 	if(!fullprogname)
@@ -1292,10 +1292,10 @@ int main(int sys_argc, char ** sys_argv)
 	   For one it serves for track skip when not in terminal control mode.
 	   The more important use being a graceful exit, including telling the buffer process what's going on. */
 	if(!param.remote)
-		catchsignal(SIGINT, catch_interrupt);
+		INT123_catchsignal(SIGINT, catch_interrupt);
 	/* Need to catch things to exit cleanly, not messing up the terminal. */
-	catchsignal(SIGTERM, catch_fatal_term);
-	catchsignal(SIGPIPE, catch_fatal_pipe);
+	INT123_catchsignal(SIGTERM, catch_fatal_term);
+	INT123_catchsignal(SIGPIPE, catch_fatal_pipe);
 #endif
 	/* Now either check caps myself or query buffer for that. */
 	if(audio_setup(ao, mh))

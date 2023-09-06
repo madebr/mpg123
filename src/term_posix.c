@@ -57,7 +57,7 @@ int term_have_fun(int fd, int want_visuals)
 	if(term_width(fd) > 0 && want_visuals)
 	{
 		/* Only play with non-dumb terminals. */
-		char *tname = compat_getenv("TERM");
+		char *tname = INT123_compat_getenv("TERM");
 		if(tname)
 		{
 			if(strcmp(tname, "") && strcmp(tname, "dumb"))

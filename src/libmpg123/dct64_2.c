@@ -1,5 +1,5 @@
 /*
-	dct64.c: DCT64, another plain C version
+	INT123_dct64.c: DCT64, another plain C version
 
 	copyright ?-2006 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
@@ -20,7 +20,7 @@
 
 #include "mpg123lib_intern.h"
 
-void dct64(real *out0,real *out1,real * samples)
+void INT123_dct64(real *out0,real *out1,real * samples)
 {
 	real bufs[64];
 
@@ -29,20 +29,20 @@ void dct64(real *out0,real *out1,real * samples)
 
 		for(i=0; i<16; ++i) bufs[i] = samples[i] + samples[31-i];
 
-		for(i=0;i<16;++i) bufs[16+i] = REAL_MUL(samples[15-i] - samples[16+i], pnts[0][15-i]);
+		for(i=0;i<16;++i) bufs[16+i] = REAL_MUL(samples[15-i] - samples[16+i], INT123_pnts[0][15-i]);
 
 		for(i=0;i<8;++i) bufs[32+i] = bufs[i]    + bufs[15-i];
-		for(i=0;i<8;++i) bufs[40+i] = REAL_MUL( bufs[7-i]  - bufs[8+i],  pnts[1][7-i] );
+		for(i=0;i<8;++i) bufs[40+i] = REAL_MUL( bufs[7-i]  - bufs[8+i],  INT123_pnts[1][7-i] );
 		for(i=0;i<8;++i) bufs[48+i] = bufs[16+i] + bufs[31-i];
-		for(i=0;i<8;++i) bufs[56+i] = REAL_MUL( bufs[24+i] - bufs[23-i], pnts[1][7-i] );
+		for(i=0;i<8;++i) bufs[56+i] = REAL_MUL( bufs[24+i] - bufs[23-i], INT123_pnts[1][7-i] );
 
 		for(j=0;j<2;++j)
 		{
 			int off = j*16;
 			for(i=0;i<4;++i) bufs[off+i]    = bufs[off+32+i] + bufs[off+39-i];
-			for(i=0;i<4;++i) bufs[off+4+i]  = REAL_MUL( bufs[off+35-i] - bufs[off+36+i], pnts[2][3-i] );
+			for(i=0;i<4;++i) bufs[off+4+i]  = REAL_MUL( bufs[off+35-i] - bufs[off+36+i], INT123_pnts[2][3-i] );
 			for(i=0;i<4;++i) bufs[off+8+i]  = bufs[off+40+i] + bufs[off+47-i];
-			for(i=0;i<4;++i) bufs[off+12+i] = REAL_MUL( bufs[off+44+i] - bufs[off+43-i], pnts[2][3-i] );
+			for(i=0;i<4;++i) bufs[off+12+i] = REAL_MUL( bufs[off+44+i] - bufs[off+43-i], INT123_pnts[2][3-i] );
 		}
 
 		for(j=0;j<4;++j)
@@ -50,12 +50,12 @@ void dct64(real *out0,real *out1,real * samples)
 			int off = j*8;
 			bufs[off+32+0] = bufs[off+0] + bufs[off+3];
 			bufs[off+32+1] = bufs[off+1] + bufs[off+2];
-			bufs[off+32+2] = REAL_MUL( bufs[off+1] - bufs[off+2], pnts[3][1] );
-			bufs[off+32+3] = REAL_MUL( bufs[off+0] - bufs[off+3], pnts[3][0] );
+			bufs[off+32+2] = REAL_MUL( bufs[off+1] - bufs[off+2], INT123_pnts[3][1] );
+			bufs[off+32+3] = REAL_MUL( bufs[off+0] - bufs[off+3], INT123_pnts[3][0] );
 			bufs[off+32+4] = bufs[off+4] + bufs[off+7];
 			bufs[off+32+5] = bufs[off+5] + bufs[off+6];
-			bufs[off+32+6] = REAL_MUL( bufs[off+6] - bufs[off+5], pnts[3][1] );
-			bufs[off+32+7] = REAL_MUL( bufs[off+7] - bufs[off+4], pnts[3][0] );
+			bufs[off+32+6] = REAL_MUL( bufs[off+6] - bufs[off+5], INT123_pnts[3][1] );
+			bufs[off+32+7] = REAL_MUL( bufs[off+7] - bufs[off+4], INT123_pnts[3][0] );
 		}
 
 		for(j=0;j<8;++j)
@@ -64,10 +64,10 @@ void dct64(real *out0,real *out1,real * samples)
 			real v0,v1;
 			v0 = bufs[off+32+0]; v1 = bufs[off+32+1];
 			bufs[off+0] = v0 + v1;
-			bufs[off+1] = REAL_MUL( v0-v1, pnts[4][0] );
+			bufs[off+1] = REAL_MUL( v0-v1, INT123_pnts[4][0] );
 			v0 = bufs[off+32+2]; v1 = bufs[off+32+3];
 			bufs[off+2] = v0 + v1;
-			bufs[off+3] = REAL_MUL( v1-v0, pnts[4][0] );
+			bufs[off+3] = REAL_MUL( v1-v0, INT123_pnts[4][0] );
 		}
 	}
 

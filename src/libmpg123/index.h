@@ -34,26 +34,26 @@ struct frame_index
 };
 
 /* The condition for a framenum to be appended to the index. 
-  if(FI_NEXT(fr->index, fr->num)) fi_add(offset); */
+  if(FI_NEXT(fr->index, fr->num)) INT123_fi_add(offset); */
 #define FI_NEXT(fi, framenum) ((fi).size && framenum == (fi).next)
 
 /* Initialize stuff, set things to zero and NULL... */
-void fi_init(struct frame_index *fi);
+void INT123_fi_init(struct frame_index *fi);
 /* Deallocate/zero things. */
-void fi_exit(struct frame_index *fi);
+void INT123_fi_exit(struct frame_index *fi);
 
 /* Prepare a given size, preserving current fill, if possible.
    If the new size is smaller than fill, the entry density is reduced.
    Return 0 on success. */
-int fi_resize(struct frame_index *fi, size_t newsize);
+int INT123_fi_resize(struct frame_index *fi, size_t newsize);
 
 /* Append a frame position, reducing index density if needed. */
-void fi_add(struct frame_index *fi, int64_t pos);
+void INT123_fi_add(struct frame_index *fi, int64_t pos);
 
 /* Replace the frame index */
-int fi_set(struct frame_index *fi, int64_t *offsets, int64_t step, size_t fill);
+int INT123_fi_set(struct frame_index *fi, int64_t *offsets, int64_t step, size_t fill);
 
 /* Empty the index (setting fill=0 and step=1), but keep current size. */
-void fi_reset(struct frame_index *fi);
+void INT123_fi_reset(struct frame_index *fi);
 
 #endif

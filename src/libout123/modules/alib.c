@@ -15,7 +15,7 @@
  *  CC=cc \
  *  LDFLAGS=-L/opt/audio/lib \
  *  AUDIO_LIB=-lAlib \
- *  OBJECTS=decode.o dct64.o \
+ *  OBJECTS=decode.o INT123_dct64.o \
  *  CFLAGS=-Ae +O3 -DREAL_IS_FLOAT -D_HPUX_SOURCE -DHPUX -I/opt/audio/include \
  *  mpg123
  */

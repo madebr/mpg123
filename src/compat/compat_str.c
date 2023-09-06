@@ -23,7 +23,7 @@
 #include "debug.h"
 
 /* A safe realloc also for very old systems where realloc(NULL, size) returns NULL. */
-void *safe_realloc(void *ptr, size_t size)
+void *INT123_safe_realloc(void *ptr, size_t size)
 {
 	if(ptr == NULL) return malloc(size);
 	else return realloc(ptr, size);
@@ -31,9 +31,9 @@ void *safe_realloc(void *ptr, size_t size)
 
 // A more sensible variant of realloc: It deallocates the original memory if
 // realloc fails or if size zero was requested.
-void *safer_realloc(void *ptr, size_t size)
+void *INT123_safer_realloc(void *ptr, size_t size)
 {
-	void *nptr = size ? safe_realloc(ptr, size) : NULL;
+	void *nptr = size ? INT123_safe_realloc(ptr, size) : NULL;
 	if(!nptr && ptr)
 		free(ptr);
 	return nptr;
@@ -49,7 +49,7 @@ const char *strerror(int errnum)
 }
 #endif
 
-char* compat_strdup(const char *src)
+char* INT123_compat_strdup(const char *src)
 {
 	char *dest = NULL;
 	if(src)
@@ -85,17 +85,17 @@ int win32_wide_common(const wchar_t * const wptr, char **mbptr, size_t * buflen,
   return ret;
 }
 
-int win32_wide_utf8(const wchar_t * const wptr, char **mbptr, size_t * buflen)
+int INT123_win32_wide_utf8(const wchar_t * const wptr, char **mbptr, size_t * buflen)
 {
   return win32_wide_common(wptr, mbptr, buflen, CP_UTF8);
 }
 
-int win32_wide_utf7(const wchar_t * const wptr, char **mbptr, size_t * buflen)
+int INT123_win32_wide_utf7(const wchar_t * const wptr, char **mbptr, size_t * buflen)
 {
   return win32_wide_common(wptr, mbptr, buflen, CP_UTF7);
 }
 
-int win32_utf8_wide(const char *const mbptr, wchar_t **wptr, size_t *buflen)
+int INT123_win32_utf8_wide(const char *const mbptr, wchar_t **wptr, size_t *buflen)
 {
   size_t len;
   wchar_t *buf;

@@ -11,12 +11,12 @@
 .text
 
 	ALIGN32
-.globl ASM_NAME(dct64_mmx)
-ASM_NAME(dct64_mmx):
+.globl ASM_NAME(INT123_dct64_mmx)
+ASM_NAME(INT123_dct64_mmx):
 
 	xorl %ecx,%ecx
-.globl ASM_NAME(dct64_MMX)
-ASM_NAME(dct64_MMX):
+.globl ASM_NAME(INT123_dct64_MMX)
+ASM_NAME(INT123_dct64_MMX):
 	pushl %ebx
 	pushl %esi
 	pushl %edi
@@ -818,7 +818,7 @@ ASM_NAME(dct64_MMX):
 #if defined(PIC) && defined(__APPLE__)
 	.section	__IMPORT,__pointers,non_lazy_symbol_pointers
 L_costab_mmxsse:
-	.indirect_symbol	ASM_NAME(costab_mmxsse)
+	.indirect_symbol	ASM_NAME(INT123_costab_mmxsse)
 	.long	0
 #endif
 

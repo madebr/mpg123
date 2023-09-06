@@ -128,7 +128,7 @@ static int open_win32(out123_handle *ao){
   EXIT_ON_ERROR(hr)
 
   if (ao->device) {
-    devlen = win32_utf8_wide(ao->device, &device, NULL);
+    devlen = INT123_win32_utf8_wide(ao->device, &device, NULL);
     if(device && devlen > 0) {
       hr = IMMDeviceEnumerator_GetDevice(state->pEnumerator, device, &state->pDevice);
       mdebug("IMMDeviceEnumerator_GetDevice %x", hr);
@@ -545,7 +545,7 @@ static int enumerate_win32( out123_handle *ao, int (*store_device)(void *devlist
 		if(FAILED(hr) || pProps == NULL) goto Exit;
 
 		/* get ID */
-		win32_wide_utf8(pwszID, &pszID, NULL);
+		INT123_win32_wide_utf8(pwszID, &pszID, NULL);
 		if(pszID == NULL) goto Exit;
 
 		/* get Property */
@@ -557,7 +557,7 @@ static int enumerate_win32( out123_handle *ao, int (*store_device)(void *devlist
 		}
 
 		/* get Description*/
-		win32_wide_utf8(varName.pwszVal, &pszDesc, NULL);
+		INT123_win32_wide_utf8(varName.pwszVal, &pszDesc, NULL);
 		PropVariantClear(&varName);
 		if(pszDesc == NULL) goto Exit;
 

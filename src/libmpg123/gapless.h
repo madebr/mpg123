@@ -74,7 +74,7 @@ static void frame_buffercheck(mpg123_handle *fr)
 	if(fr->lastframe > -1 && fr->num >= fr->lastframe)
 	{
 		/* There can be more than one frame of padding at the end, so we ignore the whole frame if we are beyond lastframe. */
-		int64_t byteoff = (fr->num == fr->lastframe) ? samples_to_bytes(fr, fr->lastoff) : 0;
+		int64_t byteoff = (fr->num == fr->lastframe) ? INT123_samples_to_bytes(fr, fr->lastoff) : 0;
 		if((int64_t)fr->buffer.fill > byteoff)
 		{
 			fr->buffer.fill = byteoff;
@@ -88,7 +88,7 @@ static void frame_buffercheck(mpg123_handle *fr)
 	/* The first interesting frame: Skip some leading samples. */
 	if(fr->firstoff && fr->num == fr->firstframe)
 	{
-		int64_t byteoff = samples_to_bytes(fr, fr->firstoff);
+		int64_t byteoff = INT123_samples_to_bytes(fr, fr->firstoff);
 		if((int64_t)fr->buffer.fill > byteoff)
 		{
 			fr->buffer.fill -= byteoff;

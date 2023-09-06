@@ -37,7 +37,7 @@ int win32_cmdline_utf8(int * argc, char *** argv)
 
 	for(argcounter = 0; argcounter < *argc; argcounter++)
 	{
-		win32_wide_utf8(argv_wide[argcounter], &argvptr, NULL);
+		INT123_win32_wide_utf8(argv_wide[argcounter], &argvptr, NULL);
 		(*argv)[argcounter] = argvptr;
 	}
 	return 0;
@@ -166,7 +166,7 @@ int win32_fifo_mkfifo(const char *path)
 	win32_fifo_close();
 #ifdef WANT_WIN32_UNICODE
 	wchar_t *str;
-	if(win32_utf8_wide(path,&str,NULL) == 0)
+	if(INT123_win32_utf8_wide(path,&str,NULL) == 0)
 	{
 		fprintf(stderr,"Cannot get FIFO name, likely out of memory\n");
 		return -1;

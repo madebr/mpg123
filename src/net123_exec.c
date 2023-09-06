@@ -73,8 +73,8 @@ static int check_program(char * const *argv, const char *token)
 	{
 		if(pipe(fd))
 			return 0;
-		compat_binmode(fd[0], TRUE);
-		compat_binmode(fd[1], TRUE);
+		INT123_compat_binmode(fd[0], TRUE);
+		INT123_compat_binmode(fd[1], TRUE);
 	}
 	pid_t pid = fork();
 	if(pid == 0)
@@ -103,7 +103,7 @@ static int check_program(char * const *argv, const char *token)
 			{
 				size_t bufoff = 0;
 				size_t got;
-				while( (got = unintr_read(fd[0], buf+bufoff, sizeof(buf)-1-bufoff)) )
+				while( (got = INT123_unintr_read(fd[0], buf+bufoff, sizeof(buf)-1-bufoff)) )
 				{
 					bufoff += got;
 					buf[bufoff] = 0; // Now it's a terminated string.
@@ -152,7 +152,7 @@ static char **wget_argv(const char *url, const char * const * client_head)
 	char *httpauth = NULL;
 	char *user = NULL;
 	char *password = NULL;
-	if(param.httpauth && (httpauth = compat_strdup(param.httpauth)))
+	if(param.httpauth && (httpauth = INT123_compat_strdup(param.httpauth)))
 	{
 		char *sep = strchr(httpauth, ':');
 		if(sep)
@@ -171,15 +171,15 @@ static char **wget_argv(const char *url, const char * const * client_head)
 	}
 	int an = 0;
 	for(;an<sizeof(base_args)/sizeof(char*); ++an)
-		argv[an] = compat_strdup(base_args[an]);
-	argv[an++] = compat_strdup("--user-agent=" PACKAGE_NAME "/" MPG123_VERSION);
+		argv[an] = INT123_compat_strdup(base_args[an]);
+	argv[an++] = INT123_compat_strdup("--user-agent=" PACKAGE_NAME "/" MPG123_VERSION);
 	for(size_t ch=0; ch < cheads; ++ch)
 		argv[an++] = catstr("--header=", client_head[ch]);
 	if(user)
 		argv[an++] = catstr("--user=", user);
 	if(password)
 		argv[an++] = catstr("--password=", password);
-	argv[an++] = compat_strdup(url);
+	argv[an++] = INT123_compat_strdup(url);
 	argv[an++] = NULL;
 	return argv;
 }
@@ -206,7 +206,7 @@ static char **curl_argv(const char *url, const char * const * client_head)
 	if(got_curl > 1)
 		argc++; // add --http0.9
 	char *httpauth = NULL;
-	if(param.httpauth && (httpauth = compat_strdup(param.httpauth)))
+	if(param.httpauth && (httpauth = INT123_compat_strdup(param.httpauth)))
 		argc += 2;
 	char ** argv = malloc(sizeof(char*)*(argc+1));
 	if(!argv)
@@ -216,22 +216,22 @@ static char **curl_argv(const char *url, const char * const * client_head)
 	}
 	int an = 0;
 	for(;an<sizeof(base_args)/sizeof(char*); ++an)
-		argv[an] = compat_strdup(base_args[an]);
+		argv[an] = INT123_compat_strdup(base_args[an]);
 	if(got_curl > 1)
-		argv[an++] = compat_strdup("--http0.9");
-	argv[an++] = compat_strdup("--user-agent");
-	argv[an++] = compat_strdup(PACKAGE_NAME "/" MPG123_VERSION);
+		argv[an++] = INT123_compat_strdup("--http0.9");
+	argv[an++] = INT123_compat_strdup("--user-agent");
+	argv[an++] = INT123_compat_strdup(PACKAGE_NAME "/" MPG123_VERSION);
 	for(size_t ch=0; ch < cheads; ++ch)
 	{
-		argv[an++] = compat_strdup("--header");
-		argv[an++] = compat_strdup(client_head[ch]);
+		argv[an++] = INT123_compat_strdup("--header");
+		argv[an++] = INT123_compat_strdup(client_head[ch]);
 	}
 	if(httpauth)
 	{
-		argv[an++] = compat_strdup("--user");
+		argv[an++] = INT123_compat_strdup("--user");
 		argv[an++] = httpauth;
 	}
-	argv[an++] = compat_strdup(url);
+	argv[an++] = INT123_compat_strdup(url);
 	argv[an++] = NULL;
 	return argv;
 }
@@ -241,7 +241,7 @@ static size_t net123_read(net123_handle *nh, void *buf, size_t bufsize)
 {
 	if(!nh || (bufsize && !buf))
 		return 0;
-	return unintr_read(((exec_handle*)nh->parts)->fd, buf, bufsize);
+	return INT123_unintr_read(((exec_handle*)nh->parts)->fd, buf, bufsize);
 }
 
 static void net123_close(net123_handle *nh)
@@ -325,8 +325,8 @@ net123_handle *net123_open_exec(const char *url, const char * const * client_hea
 		return NULL;
 	}
 
-	compat_binmode(fd[0], TRUE);
-	compat_binmode(fd[1], TRUE);
+	INT123_compat_binmode(fd[0], TRUE);
+	INT123_compat_binmode(fd[1], TRUE);
 
 	eh->worker = fork();
 	if(eh->worker == -1)

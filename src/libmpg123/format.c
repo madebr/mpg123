@@ -223,7 +223,7 @@ eend:
 
 /* match constraints against supported audio formats, store possible setup in frame
   return: -1: error; 0: no format change; 1: format change */
-int frame_output_format(mpg123_handle *fr)
+int INT123_frame_output_format(mpg123_handle *fr)
 {
 	struct audioformat nf;
 	int f0=0;
@@ -232,7 +232,7 @@ int frame_output_format(mpg123_handle *fr)
 	int try_float = (p->flags & MPG123_FLOAT_FALLBACK) ? 0 : 1;
 	/* initialize new format, encoding comes later */
 	nf.channels = fr->stereo;
-	mdebug("native frame format: %d ch @ %ld Hz", fr->stereo, frame_freq(fr));
+	mdebug("native frame format: %d ch @ %ld Hz", fr->stereo, INT123_frame_freq(fr));
 	// I intended the forcing stuff to be weaved into the format support table,
 	// but this probably will never happen, as this would change library behaviour.
 	// One could introduce an additional effective format table that takes for
@@ -287,30 +287,30 @@ int frame_output_format(mpg123_handle *fr)
 	}
 #endif
 	// Native decoder rate first.
-	if(enc_chan_fit(p, frame_freq(fr)>>p->down_sample, &nf, f0, f2, try_float))
+	if(enc_chan_fit(p, INT123_frame_freq(fr)>>p->down_sample, &nf, f0, f2, try_float))
 		goto end;
 	// Then downsamplings.
 	if(p->flags & MPG123_AUTO_RESAMPLE && p->down_sample < 2)
 	{
-		if(enc_chan_fit( p, frame_freq(fr)>>(p->down_sample+1), &nf
+		if(enc_chan_fit( p, INT123_frame_freq(fr)>>(p->down_sample+1), &nf
 		,	f0, f2, try_float ))
 			goto end;
-		if(p->down_sample < 1 && enc_chan_fit( p, frame_freq(fr)>>2, &nf
+		if(p->down_sample < 1 && enc_chan_fit( p, INT123_frame_freq(fr)>>2, &nf
 		,	f0, f2, try_float ))
 			goto end;
 	}
 	// And again the whole deal with float fallback.
 	if(!try_float)
 	{
-		if(enc_chan_fit(p, frame_freq(fr)>>p->down_sample, &nf, f0, f2, TRUE))
+		if(enc_chan_fit(p, INT123_frame_freq(fr)>>p->down_sample, &nf, f0, f2, TRUE))
 			goto end;
 		// Then downsamplings.
 		if(p->flags & MPG123_AUTO_RESAMPLE && p->down_sample < 2)
 		{
-			if(enc_chan_fit( p, frame_freq(fr)>>(p->down_sample+1), &nf
+			if(enc_chan_fit( p, INT123_frame_freq(fr)>>(p->down_sample+1), &nf
 			,	f0, f2, TRUE ))
 				goto end;
-			if(p->down_sample < 1 && enc_chan_fit( p, frame_freq(fr)>>2, &nf
+			if(p->down_sample < 1 && enc_chan_fit( p, INT123_frame_freq(fr)>>2, &nf
 			,	f0, f2, TRUE ))
 				goto end;
 		}
@@ -320,7 +320,7 @@ int frame_output_format(mpg123_handle *fr)
 	if(  p->flags & MPG123_AUTO_RESAMPLE && fr->p.down_sample == 0)
 	{
 		int i;
-		int rn = rate2num(p, frame_freq(fr));
+		int rn = rate2num(p, INT123_frame_freq(fr));
 		int rrn;
 		if(rn < 0) return 0;
 		/* Try higher rates first. */
@@ -352,9 +352,9 @@ int frame_output_format(mpg123_handle *fr)
 			(p->flags & MPG123_FORCE_MONO ? "mono, " : "") )
 	,	( p->flags & MPG123_FORCE_FLOAT ? "float, " :
 			(p->flags & MPG123_FORCE_8BIT ? "8bit, " : "") )
-	,	frame_freq(fr)>>p->down_sample
-	,	frame_freq(fr)>>(p->down_sample ? p->down_sample : 1)
-	,	frame_freq(fr)>>2 );
+	,	INT123_frame_freq(fr)>>p->down_sample
+	,	INT123_frame_freq(fr)>>(p->down_sample ? p->down_sample : 1)
+	,	INT123_frame_freq(fr)>>2 );
 /*	if(NOQUIET && p->verbose <= 1) print_capabilities(fr); */
 
 	fr->err = MPG123_BAD_OUTFORMAT;
@@ -549,7 +549,7 @@ int attribute_align_arg mpg123_fmt_support(mpg123_pars *mp, long rate, int encod
 }
 
 /* Call this one to ensure that any valid format will be something different than this. */
-void invalidate_format(struct audioformat *af)
+void INT123_invalidate_format(struct audioformat *af)
 {
 	af->encoding = 0;
 	af->rate     = 0;
@@ -557,25 +557,25 @@ void invalidate_format(struct audioformat *af)
 }
 
 /* Number of bytes the decoder produces. */
-int64_t decoder_synth_bytes(mpg123_handle *fr, int64_t s)
+int64_t INT123_decoder_synth_bytes(mpg123_handle *fr, int64_t s)
 {
 	return s * fr->af.dec_encsize * fr->af.channels;
 }
 
 /* Samples/bytes for output buffer after post-processing. */
 /* take into account: channels, bytes per sample -- NOT resampling!*/
-int64_t samples_to_bytes(mpg123_handle *fr , int64_t s)
+int64_t INT123_samples_to_bytes(mpg123_handle *fr , int64_t s)
 {
 	return s * fr->af.encsize * fr->af.channels;
 }
 
-int64_t bytes_to_samples(mpg123_handle *fr , int64_t b)
+int64_t INT123_bytes_to_samples(mpg123_handle *fr , int64_t b)
 {
 	return b / fr->af.encsize / fr->af.channels;
 }
 
 /* Number of bytes needed for decoding _and_ post-processing. */
-int64_t outblock_bytes(mpg123_handle *fr, int64_t s)
+int64_t INT123_outblock_bytes(mpg123_handle *fr, int64_t s)
 {
 	int encsize = (fr->af.encoding & MPG123_ENC_24)
 	? 4 /* Intermediate 32 bit. */
@@ -699,7 +699,7 @@ void swap_endian(struct outbuffer *buf, int block)
 	}
 }
 
-void postprocess_buffer(mpg123_handle *fr)
+void INT123_postprocess_buffer(mpg123_handle *fr)
 {
 	/*
 		This caters for the final output formats that are never produced by

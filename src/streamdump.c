@@ -63,7 +63,7 @@ void *buf, size_t bufsize )
 #ifdef WANT_WIN32_SOCKETS
 	return win32_net_read(*fdp, buf, bufsize);
 #else
-	return unintr_read(*fdp, buf, bufsize);
+	return INT123_unintr_read(*fdp, buf, bufsize);
 #endif
 
 }
@@ -173,7 +173,7 @@ static mpg123_ssize_t stream_read_raw(struct stream *sd, void *buf, size_t count
 		ret = (mpg123_ssize_t) sd->nh->read(sd->nh, buf, count);
 #endif
 	if(sd->fd >= 0) // plain file or network socket
-		ret = (mpg123_ssize_t) unintr_read(sd->fd, buf, count);
+		ret = (mpg123_ssize_t) INT123_unintr_read(sd->fd, buf, count);
 	return ret;
 }
 
@@ -529,7 +529,7 @@ struct stream *stream_open(const char *url)
 	if(!strcmp(url, "-"))
 	{
 		sd->fd = STDIN_FILENO;
-		compat_binmode(STDIN_FILENO, TRUE);
+		INT123_compat_binmode(STDIN_FILENO, TRUE);
 	}
 #ifdef NETWORK
 	else if(!strncasecmp("http://", url, 7) || !strncasecmp("https://", url, 8))
@@ -594,7 +594,7 @@ struct stream *stream_open(const char *url)
 		if(!strncasecmp("file://", url, 7))
 			url+= 7; // Might be useful to prepend file scheme prefix for local stuff.
 		errno = 0;
-		sd->fd = compat_open(url, O_RDONLY|O_BINARY);
+		sd->fd = INT123_compat_open(url, O_RDONLY|O_BINARY);
 		if(sd->fd < 0)
 		{
 			merror("failed to open file: %s: %s", url, strerror(errno));
@@ -620,7 +620,7 @@ static mpg123_ssize_t dump_read(void *handle, void *buf, size_t count)
 	mpg123_ssize_t ret = stream_read(sd, buf, count);
 	if(ret > 0 && dump_fd > -1)
 	{
-		ret = unintr_write(dump_fd, buf, ret);
+		ret = INT123_unintr_write(dump_fd, buf, ret);
 	}
 	return ret;
 }
@@ -658,7 +658,7 @@ int dump_setup(struct stream *sd, mpg123_handle *mh)
 		{
 			if(!param.quiet)
 				fprintf(stderr, "Note: Dumping stream to %s\n", param.streamdump);
-			dump_fd = compat_open(param.streamdump, O_CREAT|O_TRUNC|O_RDWR);
+			dump_fd = INT123_compat_open(param.streamdump, O_CREAT|O_TRUNC|O_RDWR);
 		}
 		if(dump_fd < 0)
 		{
@@ -696,7 +696,7 @@ int dump_setup(struct stream *sd, mpg123_handle *mh)
 
 void dump_close(void)
 {
-	if(dump_fd > -1) compat_close(dump_fd);
+	if(dump_fd > -1) INT123_compat_close(dump_fd);
 
 	dump_fd = -1;
 }

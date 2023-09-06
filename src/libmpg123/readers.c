@@ -246,7 +246,7 @@ static int stream_seek_frame(mpg123_handle *fr, int64_t newframe)
 			We use skip_bytes, which handles seekable and non-seekable streams
 			(the latter only for positive offset, which we ensured before entering here).
 		*/
-		seek_to = frame_index_find(fr, newframe, &preframe);
+		seek_to = INT123_frame_index_find(fr, newframe, &preframe);
 		/* No need to seek to index position if we are closer already.
 		   But I am picky about fr->num == newframe, play safe by reading the frame again.
 		   If you think that's stupid, don't call a seek to the current frame. */
@@ -262,7 +262,7 @@ static int stream_seek_frame(mpg123_handle *fr, int64_t newframe)
 		while(fr->num < newframe)
 		{
 			/* try to be non-fatal now... frameNum only gets advanced on success anyway */
-			if(!read_frame(fr)) break;
+			if(!INT123_read_frame(fr)) break;
 		}
 		/* Now the wanted frame should be ready for decoding. */
 		debug1("arrived at %"PRIi64, fr->num);
@@ -488,26 +488,26 @@ static void buffy_del_chain(struct buffy* buf)
 	}
 }
 
-void bc_prepare(struct bufferchain *bc, size_t pool_size, size_t bufblock)
+void INT123_bc_prepare(struct bufferchain *bc, size_t pool_size, size_t bufblock)
 {
-	bc_poolsize(bc, pool_size, bufblock);
+	INT123_bc_poolsize(bc, pool_size, bufblock);
 	bc->pool = NULL;
 	bc->pool_fill = 0;
 	bc_init(bc); /* Ensure that members are zeroed for read-only use. */
 }
 
-size_t bc_fill(struct bufferchain *bc)
+size_t INT123_bc_fill(struct bufferchain *bc)
 {
 	return (size_t)(bc->size - bc->pos);
 }
 
-void bc_poolsize(struct bufferchain *bc, size_t pool_size, size_t bufblock)
+void INT123_bc_poolsize(struct bufferchain *bc, size_t pool_size, size_t bufblock)
 {
 	bc->pool_size = pool_size;
 	bc->bufblock = bufblock;
 }
 
-void bc_cleanup(struct bufferchain *bc)
+void INT123_bc_cleanup(struct bufferchain *bc)
 {
 	buffy_del_chain(bc->pool);
 	bc->pool = NULL;
@@ -757,10 +757,10 @@ static int feed_init(mpg123_handle *fr)
 /* externally called function, returns 0 on success, -1 on error */
 // External API uses size_t, we use signed ptrdiff_t internally. Overflow
 // is a theoretical possibility.
-int feed_more(mpg123_handle *fr, const unsigned char *in, size_t count)
+int INT123_feed_more(mpg123_handle *fr, const unsigned char *in, size_t count)
 {
 	int ret = 0;
-	if(VERBOSE3) debug("feed_more");
+	if(VERBOSE3) debug("INT123_feed_more");
 	if(count > PTRDIFF_MAX)
 		return READER_ERROR;
 	if((ret = bc_add(&fr->rdat.buffer, in, (ptrdiff_t)count)) != 0)
@@ -770,7 +770,7 @@ int feed_more(mpg123_handle *fr, const unsigned char *in, size_t count)
 	}
 	else /* Not talking about filelen... that stays at 0. */
 
-	if(VERBOSE3) debug3("feed_more: %p %luB bufsize=%lu", fr->rdat.buffer.last->data,
+	if(VERBOSE3) debug3("INT123_feed_more: %p %luB bufsize=%lu", fr->rdat.buffer.last->data,
 		(unsigned long)fr->rdat.buffer.last->size, (unsigned long)fr->rdat.buffer.size);
 	return ret;
 }
@@ -810,20 +810,20 @@ static void buffered_forget(mpg123_handle *fr)
 	SATURATE_ADD(fr->rdat.filepos, fr->rdat.buffer.pos, INT64_MAX);
 }
 
-int64_t feed_set_pos(mpg123_handle *fr, int64_t pos)
+int64_t INT123_feed_set_pos(mpg123_handle *fr, int64_t pos)
 {
 	struct bufferchain *bc = &fr->rdat.buffer;
 	if(pos >= bc->fileoff && pos-bc->fileoff < bc->size)
 	{ /* We have the position! */
 		bc->pos = (ptrdiff_t)(pos - bc->fileoff);
-		debug1("feed_set_pos inside, next feed from %"PRIi64, (int64_t)(bc->fileoff+bc->size));
+		debug1("INT123_feed_set_pos inside, next feed from %"PRIi64, (int64_t)(bc->fileoff+bc->size));
 		return bc->fileoff+bc->size; /* Next input after end of buffer... */
 	}
 	else
 	{ /* I expect to get the specific position on next feed. Forget what I have now. */
 		bc_reset(bc);
 		bc->fileoff = pos;
-		debug1("feed_set_pos outside, buffer reset, next feed from %"PRIi64, pos);
+		debug1("INT123_feed_set_pos outside, buffer reset, next feed from %"PRIi64, pos);
 		return pos; /* Next input from exactly that position. */
 	}
 }
@@ -887,12 +887,12 @@ static ptrdiff_t buffered_icy_fullread(mpg123_handle *fr, unsigned char *out, pt
 }
 
 #else
-int feed_more(mpg123_handle *fr, const unsigned char *in, size_t count)
+int INT123_feed_more(mpg123_handle *fr, const unsigned char *in, size_t count)
 {
 	fr->err = MPG123_MISSING_FEATURE;
 	return -1;
 }
-int64_t feed_set_pos(mpg123_handle *fr, int64_t pos)
+int64_t INT123_feed_set_pos(mpg123_handle *fr, int64_t pos)
 {
 	fr->err = MPG123_MISSING_FEATURE;
 	return -1;
@@ -1087,11 +1087,11 @@ static int stream_init(mpg123_handle *fr)
 }
 
 
-void open_bad(mpg123_handle *mh)
+void INT123_open_bad(mpg123_handle *mh)
 {
-	debug("open_bad");
+	debug("INT123_open_bad");
 #ifndef NO_ICY
-	clear_icy(&mh->icy);
+	INT123_clear_icy(&mh->icy);
 #endif
 	mh->rd = &bad_reader;
 	mh->rdat.flags = 0;
@@ -1117,7 +1117,7 @@ int INT123_open_feed(mpg123_handle *fr)
 
 		return -1;
 	}
-	clear_icy(&fr->icy);
+	INT123_clear_icy(&fr->icy);
 #endif
 	fr->rd = &readers[READER_FEED];
 	fr->rdat.flags = 0;
@@ -1128,10 +1128,10 @@ int INT123_open_feed(mpg123_handle *fr)
 #endif /* NO_FEEDER */
 }
 
-/* Final code common to open_stream and open_stream_handle. */
+/* Final code common to open_stream and INT123_open_stream_handle. */
 int INT123_open_stream_handle(mpg123_handle *fr, void *iohandle)
 {
-	clear_icy(&fr->icy); /* can be done inside frame_clear ...? */
+	INT123_clear_icy(&fr->icy); /* can be done inside frame_clear ...? */
 	fr->rdat.filelen = -1;
 	fr->rdat.iohandle = iohandle;
 	fr->rdat.flags = 0;

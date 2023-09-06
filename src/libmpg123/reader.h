@@ -43,13 +43,13 @@ struct bufferchain
 };
 
 /* Call this before any buffer chain use (even bc_init()). */
-void bc_prepare(struct bufferchain *, size_t pool_size, size_t bufblock);
+void INT123_bc_prepare(struct bufferchain *, size_t pool_size, size_t bufblock);
 /* Free persistent data in the buffer chain, after bc_reset(). */
-void bc_cleanup(struct bufferchain *);
+void INT123_bc_cleanup(struct bufferchain *);
 /* Change pool size. This does not actually allocate/free anything on itself, just instructs later operations to free less / allocate more buffers. */
-void bc_poolsize(struct bufferchain *, size_t pool_size, size_t bufblock);
+void INT123_bc_poolsize(struct bufferchain *, size_t pool_size, size_t bufblock);
 /* Return available byte count in the buffer. */
-size_t bc_fill(struct bufferchain *bc);
+size_t INT123_bc_fill(struct bufferchain *bc);
 
 #endif
 
@@ -91,16 +91,16 @@ struct reader
 };
 
 /* Open an external handle. */
-int open_stream_handle(mpg123_handle *, void *iohandle);
+int INT123_open_stream_handle(mpg123_handle *, void *iohandle);
 
 /* feed based operation has some specials */
-int open_feed(mpg123_handle *);
+int INT123_open_feed(mpg123_handle *);
 /* externally called function, returns 0 on success, -1 on error */
-int  feed_more(mpg123_handle *fr, const unsigned char *in, size_t count);
-void feed_forget(mpg123_handle *fr);  /* forget the data that has been read (free some buffers) */
-int64_t feed_set_pos(mpg123_handle *fr, int64_t pos); /* Set position (inside available data if possible), return wanted byte offset of next feed. */
+int  INT123_feed_more(mpg123_handle *fr, const unsigned char *in, size_t count);
+void INT123_feed_forget(mpg123_handle *fr);  /* forget the data that has been read (free some buffers) */
+int64_t INT123_feed_set_pos(mpg123_handle *fr, int64_t pos); /* Set position (inside available data if possible), return wanted byte offset of next feed. */
 
-void open_bad(mpg123_handle *);
+void INT123_open_bad(mpg123_handle *);
 
 #define READER_ID3TAG    0x2
 #define READER_SEEKABLE  0x4

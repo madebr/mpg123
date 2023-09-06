@@ -11,12 +11,12 @@
 
 #include "frame.h"
 
-int read_frame_init(mpg123_handle* fr);
-int frame_bitrate(mpg123_handle *fr);
-long frame_freq(mpg123_handle *fr);
-int read_frame_recover(mpg123_handle* fr); /* dead? */
-int read_frame(mpg123_handle *fr);
-void set_pointer(mpg123_handle *fr, int part2, long backstep);
-double compute_bpf(mpg123_handle *fr);
+int INT123_read_frame_init(mpg123_handle* fr);
+int INT123_frame_bitrate(mpg123_handle *fr);
+long INT123_frame_freq(mpg123_handle *fr);
+int INT123_read_frame_recover(mpg123_handle* fr); /* dead? */
+int INT123_read_frame(mpg123_handle *fr);
+void INT123_set_pointer(mpg123_handle *fr, int part2, long backstep);
+double INT123_compute_bpf(mpg123_handle *fr);
 
 #endif

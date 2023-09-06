@@ -134,8 +134,8 @@ int do_work(mpg123_handle *m)
 {
 	int ret;
 	size_t count = 0;
-	compat_binmode(STDIN_FILENO, TRUE);
-	compat_binmode(STDOUT_FILENO, TRUE);
+	INT123_compat_binmode(STDIN_FILENO, TRUE);
+	INT123_compat_binmode(STDOUT_FILENO, TRUE);
 	ret = mpg123_open_fd(m, STDIN_FILENO);
 	if(ret != MPG123_OK) return ret;
 
@@ -152,8 +152,8 @@ int do_work(mpg123_handle *m)
 			for(i=0; i<4; ++i) hbuf[i] = (unsigned char) ((header >> ((3-i)*8)) & 0xff);
 
 			/* Now write out both header and data, fire and forget. */
-			if( 4 != unintr_write(STDOUT_FILENO, hbuf, 4) ||
-			    bodybytes != unintr_write(STDOUT_FILENO, bodydata, bodybytes) )
+			if( 4 != INT123_unintr_write(STDOUT_FILENO, hbuf, 4) ||
+			    bodybytes != INT123_unintr_write(STDOUT_FILENO, bodydata, bodybytes) )
 			{
 				fprintf(stderr, "Failed to write data: %s\n", strerror(errno));
 				return MPG123_ERR;
