@@ -88,7 +88,7 @@ int term_init(void)
 	if(term_setup() < 0)
 	{
 		if(errno)
-			merror("failed to set up terminal: %s", strerror(errno));
+			merror("failed to set up terminal: %s", INT123_strerror(errno));
 		else
 			error("failed to set up terminal");
 		return -1;

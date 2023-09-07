@@ -1,13 +1,12 @@
 /*
 	icy: Puny code to pretend for a serious ICY data structure.
 
-	copyright 2007-2015 by the mpg123 project
+	copyright 2007-2023 by the mpg123 project
 	-= free software under the terms of the LGPL 2.1 =-
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis
 */
 
-#include "intsym.h"
 #include "icy.h"
 
 void INT123_init_icy(struct icy_meta *icy)

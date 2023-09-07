@@ -1,7 +1,7 @@
 /*
 	out123: stream data from libmpg123 or libsyn123 to an audio output device
 
-	copyright 1995-2021 by the mpg123 project,
+	copyright 1995-2023 by the mpg123 project,
 	free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 
@@ -1079,7 +1079,7 @@ void push_output(unsigned char *buf, size_t samples)
 	if(also_stdout && INT123_unintr_fwrite(buf, pcmframe, samples, stdout) < samples)
 	{
 		if(!quiet)
-			error1( "failed to copy stream to stdout: %s", strerror(errno));
+			error1( "failed to copy stream to stdout: %s", INT123_strerror(errno));
 		safe_exit(133);
 	}
 }
@@ -1114,7 +1114,7 @@ FILE* open_next_file(int argc, char** argv, int firstrun)
 		in = strcmp(filename, "-") ? INT123_compat_fopen(filename, "rb") : stdin;
 		if(!in)
 			merror( "Failed to open input file '%s' (%s), ignoring."
-			,	filename, strerror(errno) );
+			,	filename, INT123_strerror(errno) );
 		else
 			had_something = 1;
 	}

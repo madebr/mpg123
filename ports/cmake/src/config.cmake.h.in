@@ -39,12 +39,14 @@
 #cmakedefine HAVE_RANDOM 1
 #cmakedefine HAVE_SCHED_H 1
 #cmakedefine HAVE_SETLOCALE 1
+#cmakedefine HAVE_USELOCALE 1
 #cmakedefine HAVE_SETPRIORITY 1
 #cmakedefine HAVE_SIGNAL_H 1
 #cmakedefine HAVE_STDIO_H 1
 #cmakedefine HAVE_STDINT_H 1
 #cmakedefine HAVE_STDLIB_H 1
 #cmakedefine HAVE_STRERROR 1
+#cmakedefine HAVE_STRERROR_L 1
 #cmakedefine HAVE_FORK 1
 #cmakedefine HAVE_EXECVP 1
 #cmakedefine HAVE_CTERMID 1

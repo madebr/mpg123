@@ -1,7 +1,7 @@
 /*
 	xfermem: unidirectional fast pipe
 
-	copyright ?-2015 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2023 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Oliver Fromme
 	old timestamp: Sun Apr  6 02:26:26 MET DST 1997
@@ -222,7 +222,7 @@ int INT123_xfermem_putcmd (int fd, byte cmd)
 				if (errno != EINTR)
 				{
 					debug3("INT123_xfermem_putcmd(%i, %i) = -1 (%s)"
-					,	fd, cmd, strerror(errno));
+					,	fd, cmd, INT123_strerror(errno));
 					return (-1);
 				}
 		}

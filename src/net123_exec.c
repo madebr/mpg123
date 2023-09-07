@@ -1,6 +1,11 @@
 /*
 	net123_exec: network (HTTP(S)) streaming for mpg123 via fork+exec
 
+	copyright 2022-2023 by the mpg123 project
+	free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.org
+	initially written by Thomas Orgis
+
 	This avoids linking any network code directly into mpg123, just using external
 	tools at runtime.
 
@@ -254,7 +259,7 @@ static void net123_close(net123_handle *nh)
 		kill(eh->worker, SIGKILL);
 		errno = 0;
 		if(waitpid(eh->worker, NULL, 0) < 0)
-			merror("failed to wait for worker process: %s", strerror(errno));
+			merror("failed to wait for worker process: %s", INT123_strerror(errno));
 		else if(param.verbose > 1)
 			fprintf(stderr, "Note: network helper %"PRIiMAX" finished\n", (intmax_t)eh->worker);
 	}
@@ -320,7 +325,7 @@ net123_handle *net123_open_exec(const char *url, const char * const * client_hea
 	errno = 0;
 	if(pipe(fd))
 	{	
-		merror("failed creating a pipe: %s", strerror(errno));
+		merror("failed creating a pipe: %s", INT123_strerror(errno));
 		free(nh);
 		return NULL;
 	}
@@ -331,7 +336,7 @@ net123_handle *net123_open_exec(const char *url, const char * const * client_hea
 	eh->worker = fork();
 	if(eh->worker == -1)
 	{
-		merror("fork failed: %s", strerror(errno));
+		merror("fork failed: %s", INT123_strerror(errno));
 		free(nh);
 		return NULL;
 	}
@@ -367,7 +372,7 @@ net123_handle *net123_open_exec(const char *url, const char * const * client_hea
 			dup2(errfd, STDERR_FILENO);
 		}
 		execvp(argv[0], argv);
-		merror("cannot execute %s: %s", argv[0], strerror(errno));
+		merror("cannot execute %s: %s", argv[0], INT123_strerror(errno));
 		exit(1);
 	}
 	// parent

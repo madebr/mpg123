@@ -1,7 +1,7 @@
 /*
 	module.c: modular code loader
 
-	copyright 1995-2015 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1995-2023 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Nicholas J Humfrey
 */
@@ -10,7 +10,6 @@
 #define _DEFAULT_SOURCE
 #define _BSD_SOURCE
 #include "config.h"
-#include "intsym.h"
 #include "stringlists.h"
 #include "compat.h"
 #include <errno.h>
@@ -109,7 +108,7 @@ mpg123_module_t* open_module_here( const char *dir, const char* type
 	if(!module_file)
 	{
 		if(verbose > -1)
-			error1( "Failed to allocate memory for module name: %s", strerror(errno) );
+			error1( "Failed to allocate memory for module name: %s", INT123_strerror(errno) );
 		return NULL;
 	}
 	snprintf(module_file, module_file_len, "%s_%s%s", type, name, LT_MODULE_EXT);
@@ -141,7 +140,7 @@ mpg123_module_t* open_module_here( const char *dir, const char* type
 	module_symbol = malloc(module_symbol_len);
 	if (module_symbol == NULL) {
 		if(verbose > -1)
-			error1( "Failed to allocate memory for module symbol: %s", strerror(errno) );
+			error1( "Failed to allocate memory for module symbol: %s", INT123_strerror(errno) );
 		return NULL;
 	}
 	snprintf( module_symbol, module_symbol_len, "%s%s%s", MODULE_SYMBOL_PREFIX, type, MODULE_SYMBOL_SUFFIX );
@@ -224,7 +223,7 @@ int INT123_list_modules( const char *type, char ***names, char ***descr, int ver
 	if (dir==NULL) {
 		if(verbose > -1)
 			error2("Failed to open the module directory (%s): %s\n"
-			,	moddir, strerror(errno));
+			,	moddir, INT123_strerror(errno));
 		free(moddir);
 		return -1;
 	}

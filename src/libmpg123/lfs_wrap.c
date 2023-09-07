@@ -774,7 +774,7 @@ int INT123_wrap_open(mpg123_handle *mh, void *handle, const char *path, int fd, 
 		if(fd < 0)
 		{
 			if(!quiet)
-				error2("Cannot open file %s: %s", path, strerror(errno));
+				error2("Cannot open file %s: %s", path, INT123_strerror(errno));
 			return INT123_set_err(mh, MPG123_BAD_FILE);
 		}
 	}

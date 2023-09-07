@@ -4,7 +4,7 @@
 	This evolved into the generic I/O interposer for direct file or http stream
 	access, with explicit buffering for getline.
 
-	copyright 2010-2022 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2010-2023 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp
 */
@@ -597,7 +597,7 @@ struct stream *stream_open(const char *url)
 		sd->fd = INT123_compat_open(url, O_RDONLY|O_BINARY);
 		if(sd->fd < 0)
 		{
-			merror("failed to open file: %s: %s", url, strerror(errno));
+			merror("failed to open file: %s: %s", url, INT123_strerror(errno));
 			stream_close(sd);
 			return NULL;
 		}
@@ -662,7 +662,7 @@ int dump_setup(struct stream *sd, mpg123_handle *mh)
 		}
 		if(dump_fd < 0)
 		{
-			error1("Failed to open dump file: %s\n", strerror(errno));
+			error1("Failed to open dump file: %s\n", INT123_strerror(errno));
 			return -1;
 		}
 #ifdef WIN32

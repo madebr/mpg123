@@ -27,7 +27,6 @@
  */
 
 #include "config.h"
-#include "intsym.h"
 /* Includes string and stdlib headers... */
 #include "compat.h"
 

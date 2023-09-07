@@ -1,8 +1,8 @@
 /*
 	hextxt: hex or printf text output (ASCII/UTF-8)
 
-	copyright 2017 by the mpg123 project
-	                  - free software under the terms of the LGPL 2.1
+	copyright 2017-2023 by the mpg123 project
+	free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis
 
@@ -96,7 +96,7 @@ int hextxt_close(out123_handle *ao)
 		if(fp != stdout && INT123_compat_fclose(fp))
 		{
 			if(!AOQUIET)
-				error1("problem closing the output: %s\n", strerror(errno));
+				error1("problem closing the output: %s\n", INT123_strerror(errno));
 			return -1;
 		}
 	}
@@ -262,5 +262,5 @@ void hextxt_drain(out123_handle *ao)
 	if(!ao || !ao->userptr)
 		return;
 	if(fflush(ao->userptr) && !AOQUIET)
-		error1("flushing failed: %s\n", strerror(errno));
+		error1("flushing failed: %s\n", INT123_strerror(errno));
 }

@@ -7,7 +7,6 @@
 	initially written by Thomas Orgis
 */
 
-#include "intsym.h"
 #include "index.h"
 #include "debug.h"
 

@@ -49,6 +49,7 @@
 -- Made mpg123_seek() and friends ignore offset sign for SEEK_END (always seeking
    towards beginning, assuming negative offset) to make lseek()-conforming usage
    possible. Seeking beyond the end never made sense, so no loss of valid functionality.
+- Overall use of INT123_strerror(), trying to use thread-safe strerror_l() if possible.
 
 1.31.3
 ------

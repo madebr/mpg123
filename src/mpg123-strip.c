@@ -1,7 +1,7 @@
 /*
 	extract_frams: utlize the framebyframe API and mpg123_framedata to extract the MPEG frames out of a stream (strip off anything else).
 
-	copyright 2011-2013 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2011-2023 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis
 */
@@ -155,7 +155,7 @@ int do_work(mpg123_handle *m)
 			if( 4 != INT123_unintr_write(STDOUT_FILENO, hbuf, 4) ||
 			    bodybytes != INT123_unintr_write(STDOUT_FILENO, bodydata, bodybytes) )
 			{
-				fprintf(stderr, "Failed to write data: %s\n", strerror(errno));
+				fprintf(stderr, "Failed to write data: %s\n", INT123_strerror(errno));
 				return MPG123_ERR;
 			}
 			if(param.verbose)

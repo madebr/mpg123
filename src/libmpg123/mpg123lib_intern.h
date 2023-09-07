@@ -14,7 +14,6 @@
 #define MPG123_ENCODINGS 12
 
 #include "config.h" /* Load this before _anything_ */
-#include "intsym.h" /* Prefixing of internal symbols that still are public in a static lib. */
 
 #include "abi_align.h"
 

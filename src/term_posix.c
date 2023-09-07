@@ -3,7 +3,7 @@
 
 	HAVE_TERMIOS is a prerequisite.
 
-	copyright 2008-2022 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2008-2023 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis
 */
@@ -149,7 +149,7 @@ int term_setup(void)
 		term_fd = open(term_name, O_RDONLY);
 		if(term_fd < 0)
 		{
-			merror("failed to open terminal: %s", strerror(errno));
+			merror("failed to open terminal: %s", INT123_strerror(errno));
 			return -1;
 		}
 	}
@@ -159,7 +159,7 @@ int term_setup(void)
 		// For now, this always fails on OS/2, but they might fix things.
 		// So just try to move on.
 #ifndef __OS2__
-		merror("failed to get terminal attributes: %s", strerror(errno));
+		merror("failed to get terminal attributes: %s", INT123_strerror(errno));
 		return -1;
 #endif
 	}
@@ -170,7 +170,7 @@ int term_setup(void)
 		close(term_fd);
 		term_fd = -1;
 		if(errno)
-			merror("failure setting terminal attributes: %s", strerror(errno));
+			merror("failure setting terminal attributes: %s", INT123_strerror(errno));
 		else
 			error("failure setting terminal attributes");
 		return -1;

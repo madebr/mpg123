@@ -4,11 +4,13 @@
 	The mpg123 code is determined to keep it's legacy. A legacy of old, old UNIX.
 	So anything possibly somewhat advanced should be considered to be put here, with proper #ifdef;-)
 
-	copyright 2007-2016 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2007-2023 by the mpg123 project
+	free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis, Windows Unicode stuff by JonY.
 */
-
+// Need POSIX 2008 for uselocale stuff.
+#define _POSIX_C_SOURCE 200809L
 #include "compat.h"
 
 /* Win32 is only supported with unicode now. These headers also cover
@@ -18,6 +20,10 @@
 #include <wchar.h>
 #include <windows.h>
 #include <winnls.h>
+#endif
+
+#if HAVE_LOCALE_H
+#include <locale.h>
 #endif
 
 #include "debug.h"
@@ -39,15 +45,23 @@ void *INT123_safer_realloc(void *ptr, size_t size)
 	return nptr;
 }
 
-#ifndef HAVE_STRERROR
-const char *strerror(int errnum)
+const char *INT123_strerror(int errnum)
 {
+#if defined(HAVE_STRERROR_L) && defined(HAVE_USELOCALE)
+	locale_t curloc = uselocale((locale_t)0);
+	if(curloc != LC_GLOBAL_LOCALE)
+		return strerror_l(errnum, curloc);
+#endif
+// Also fall back to strerror() in case of no set locale.
+#if defined(HAVE_STRERROR)
+	return strerror(errnum);
+#else
 	extern int sys_nerr;
 	extern char *sys_errlist[];
 
 	return (errnum < sys_nerr) ?  sys_errlist[errnum]  :  "";
-}
 #endif
+}
 
 char* INT123_compat_strdup(const char *src)
 {

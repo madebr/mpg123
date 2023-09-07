@@ -1,7 +1,7 @@
 /*
 	audio: audio output interface
 
-	copyright ?-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2023 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp
 */
@@ -721,7 +721,7 @@ out123_play(out123_handle *ao, void *bytes, size_t count)
 			int block = count > (size_t)maxcount ? maxcount : (int)count;
 			written = ao->write(ao, bytes, block);
 			debug4( "written: %d errno: %i (%s), keep_on=%d"
-			,	written, errno, strerror(errno)
+			,	written, errno, INT123_strerror(errno)
 			,	ao->flags & OUT123_KEEP_PLAYING );
 			if(written > 0)
 			{
@@ -742,7 +742,7 @@ out123_play(out123_handle *ao, void *bytes, size_t count)
 				ao->errcode = OUT123_DEV_PLAY;
 				if(!AOQUIET)
 					merror( "Error in writing audio, wrote only %d of %d (%s?)!"
-					,	written, block, strerror(errno) );
+					,	written, block, INT123_strerror(errno) );
 				/* This is a serious issue ending this playback round. */
 				break;
 			}

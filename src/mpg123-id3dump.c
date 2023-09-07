@@ -1,7 +1,7 @@
 /*
 	id3dump: Print ID3 tags of files, scanned using libmpg123.
 
-	copyright 2007-2021 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2007-2023 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis
 */
@@ -352,7 +352,7 @@ static void store_pictures(const char* prefix, mpg123_id3v2 *v2)
 			}
 			else
 			{
-				error1("Unable to fdopen output: %s)", strerror(errno));
+				error1("Unable to fdopen output: %s)", INT123_strerror(errno));
 				++errors;
 			}
 		}

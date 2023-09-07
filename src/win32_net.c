@@ -1,3 +1,11 @@
+/*
+	win32_net: Windows-specific network code
+
+	copyright 2009-2023 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.org
+	initially written by Jonathan Yong (extracting out of httpget.c)
+*/
+
 #include "win32_support.h"
 #include "mpg123app.h"
 #include "debug.h"
@@ -170,7 +178,7 @@ static int win32_net_timeout_connect(int sockfd, const struct sockaddr *serv_add
 			}
 			else
 			{
-				/*error1("error from select(): %s", strerror(errno));*/
+				/*error1("error from select(): %s", INT123_strerror(errno));*/
 				debug("error from select():");
 				msgme1;
 				return -1;
@@ -178,7 +186,7 @@ static int win32_net_timeout_connect(int sockfd, const struct sockaddr *serv_add
 		}
 		else
 		{
-			/*error1("connection failed: %s", strerror(errno));*/
+			/*error1("connection failed: %s", INT123_strerror(errno));*/
 			debug("connection failed: ");
 			msgme1;
 			return err;
@@ -188,7 +196,7 @@ static int win32_net_timeout_connect(int sockfd, const struct sockaddr *serv_add
 	{
 		if(connect(ws.local_socket, serv_addr, addrlen) == SOCKET_ERROR)
 		{
-			/*error1("connection failed: %s", strerror(errno));*/
+			/*error1("connection failed: %s", INT123_strerror(errno));*/
 			debug("connection failed");
 			msgme1;
 			return -1;

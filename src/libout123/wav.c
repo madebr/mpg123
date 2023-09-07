@@ -1,7 +1,7 @@
 /*
 	wav.c: write wav/au/cdr files (and headerless raw
 
-	copyright ?-2015 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2023 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Samuel Audet
 
@@ -201,7 +201,7 @@ static int close_file(out123_handle *ao)
 		if(INT123_compat_fclose(wdat->wavfp))
 		{
 			if(!AOQUIET)
-				error1("problem closing the audio file, probably because of flushing to disk: %s\n", strerror(errno));
+				error1("problem closing the audio file, probably because of flushing to disk: %s\n", INT123_strerror(errno));
 			ret = -1;
 		}
 	}
@@ -230,7 +230,7 @@ static int write_header(out123_handle *ao)
 	)
 	{
 		if(!AOQUIET)
-			error1("cannot write header: %s", strerror(errno));
+			error1("cannot write header: %s", INT123_strerror(errno));
 		return -1;
 	}
 	else return 0;
@@ -596,7 +596,7 @@ int INT123_wav_write(out123_handle *ao, unsigned char *buf, int len)
 if(fflush(wdat->wavfp))
 {
 	if(!AOQUIET)
-		error1("flushing failed: %s\n", strerror(errno));
+		error1("flushing failed: %s\n", INT123_strerror(errno));
 	return -1;
 }
 #endif
@@ -619,7 +619,7 @@ int INT123_wav_close(out123_handle *ao)
 	if(fflush(wdat->wavfp))
 	{
 		if(!AOQUIET)
-			error1("cannot flush WAV stream: %s", strerror(errno));
+			error1("cannot flush WAV stream: %s", INT123_strerror(errno));
 		return close_file(ao);
 	}
 	if(fseek(wdat->wavfp, 0L, SEEK_SET) >= 0)
@@ -673,7 +673,7 @@ int INT123_au_close(out123_handle *ao)
 	if(fflush(wdat->wavfp))
 	{
 		if(!AOQUIET)
-			error1("cannot flush WAV stream: %s", strerror(errno));
+			error1("cannot flush WAV stream: %s", INT123_strerror(errno));
 		return close_file(ao);
 	}
 	if(fseek(wdat->wavfp, 0L, SEEK_SET) >= 0)
@@ -746,5 +746,5 @@ void INT123_wav_drain(out123_handle *ao)
 		return;
 
 	if(fflush(wdat->wavfp) && !AOQUIET)
-		error1("flushing failed: %s\n", strerror(errno));
+		error1("flushing failed: %s\n", INT123_strerror(errno));
 }

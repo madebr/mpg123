@@ -1,7 +1,8 @@
 /*
 	control_generic.c: control interface for frontends and real console warriors
 
-	copyright 1997-99,2004-20 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1997-99,2004-23 by the mpg123 project
+	free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Andreas Neuhaus and Michael Hipp
 	reworked by Thomas Orgis - it was the entry point for eventually becoming maintainer...
@@ -431,7 +432,7 @@ int control_generic (mpg123_handle *fr)
 		unlink(param.fifo);
 		if(mkfifo(param.fifo, 0666) == -1)
 		{
-			error2("Failed to create FIFO at %s (%s)", param.fifo, strerror(errno));
+			error2("Failed to create FIFO at %s (%s)", param.fifo, INT123_strerror(errno));
 			return 1;
 		}
 		debug("going to open named pipe ... blocking until someone gives command");
@@ -541,7 +542,7 @@ int control_generic (mpg123_handle *fr)
 		/*  on error */
 		if(n < 0)
 		{
-			merror("waiting for command: %s", strerror(errno));
+			merror("waiting for command: %s", INT123_strerror(errno));
 			return 1;
 		}
 		/* read & process commands */
@@ -572,11 +573,11 @@ int control_generic (mpg123_handle *fr)
 					close(control_file);
 					control_file = open(param.fifo,O_RDONLY|O_NONBLOCK);
 #endif
-					if(control_file < 0){ error1("open of fifo failed... %s", strerror(errno)); break; }
+					if(control_file < 0){ error1("open of fifo failed... %s", INT123_strerror(errno)); break; }
 					continue;
 				}
 #endif
-				if(len < 0) error1("command read error: %s", strerror(errno));
+				if(len < 0) error1("command read error: %s", INT123_strerror(errno));
 				break;
 			}
 
