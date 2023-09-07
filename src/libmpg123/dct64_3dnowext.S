@@ -57,9 +57,9 @@ ASM_NAME(INT123_dct64_3dnowext):
 	movl 8(%ebp),%esi
 	movl 12(%ebp),%edi
 #if defined(PIC) && defined(__APPLE__)
-	movl GLOBAL_VAR_PTR(costab_mmxsse),%ebx
+	movl GLOBAL_VAR_PTR(INT123_costab_mmxsse),%ebx
 #else
-	leal GLOBAL_VAR(costab_mmxsse),%ebx
+	leal GLOBAL_VAR(INT123_costab_mmxsse),%ebx
 #endif
 	leal -268(%ebp),%ecx
 	movq	(%eax), %mm0

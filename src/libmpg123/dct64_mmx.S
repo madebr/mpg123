@@ -33,9 +33,9 @@ ASM_NAME(INT123_dct64_MMX):
 	movl 276(%esp),%edi
 	flds    4(%eax)
 #ifdef PIC_GLOBAL_PTR
-	movl GLOBAL_VAR_PTR(costab_mmxsse),%ebx
+	movl GLOBAL_VAR_PTR(INT123_costab_mmxsse),%ebx
 #else
-	leal GLOBAL_VAR(costab_mmxsse),%ebx
+	leal GLOBAL_VAR(INT123_costab_mmxsse),%ebx
 #endif
 	fadds 120(%eax)
 	orl %ecx,%ecx

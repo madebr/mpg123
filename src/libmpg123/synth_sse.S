@@ -1,5 +1,5 @@
 #include "mangle.h"
-#define MPL_DCT64 FUNC(dct64_sse)
+#define MPL_DCT64 FUNC(INT123_dct64_sse)
 #define SYNTH_NAME ASM_NAME(INT123_synth_1to1_sse_asm)
 #include "synth_sse3d.h"
 

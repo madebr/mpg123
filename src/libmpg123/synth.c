@@ -237,14 +237,14 @@ int INT123_synth_1to1_stereo_sse(real *bandPtr_l, real *bandPtr_r, mpg123_handle
 }
 #else
 /* This is defined in assembler. */
-void synth_1to1_sse_asm(real *bandPtr, int channel, short *samples, short *buffs, int *bo, real *decwin);
+void INT123_synth_1to1_sse_asm(real *bandPtr, int channel, short *samples, short *buffs, int *bo, real *decwin);
 /* This is just a hull to use the mpg123 handle. */
 int INT123_synth_1to1_sse(real *bandPtr, int channel, mpg123_handle *fr, int final)
 {
 #ifndef NO_EQUALIZER
 	if(fr->have_eq_settings) INT123_do_equalizer(bandPtr,channel,fr->equalizer);
 #endif
-	synth_1to1_sse_asm(bandPtr, channel, (short*) (fr->buffer.data+fr->buffer.fill), (short *) fr->rawbuffs, &fr->bo, fr->decwins);
+	INT123_synth_1to1_sse_asm(bandPtr, channel, (short*) (fr->buffer.data+fr->buffer.fill), (short *) fr->rawbuffs, &fr->bo, fr->decwins);
 	if(final) fr->buffer.fill += 128;
 	return 0;
 }
@@ -253,14 +253,14 @@ int INT123_synth_1to1_sse(real *bandPtr, int channel, mpg123_handle *fr, int fin
 
 #if defined(OPT_3DNOWEXT) || defined(OPT_3DNOWEXT_VINTAGE)
 /* This is defined in assembler. */
-void synth_1to1_3dnowext_asm(real *bandPtr, int channel, short *samples, short *buffs, int *bo, real *decwin);
+void INT123_synth_1to1_3dnowext_asm(real *bandPtr, int channel, short *samples, short *buffs, int *bo, real *decwin);
 /* This is just a hull to use the mpg123 handle. */
 int INT123_synth_1to1_3dnowext(real *bandPtr, int channel, mpg123_handle *fr, int final)
 {
 #ifndef NO_EQUALIZER
 	if(fr->have_eq_settings) INT123_do_equalizer(bandPtr,channel,fr->equalizer);
 #endif
-	synth_1to1_3dnowext_asm(bandPtr, channel, (short*) (fr->buffer.data+fr->buffer.fill), (short *) fr->rawbuffs, &fr->bo, fr->decwins);
+	INT123_synth_1to1_3dnowext_asm(bandPtr, channel, (short*) (fr->buffer.data+fr->buffer.fill), (short *) fr->rawbuffs, &fr->bo, fr->decwins);
 	if(final) fr->buffer.fill += 128;
 	return 0;
 }

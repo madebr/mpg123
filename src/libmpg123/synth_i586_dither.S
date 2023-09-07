@@ -98,7 +98,7 @@ ASM_NAME(INT123_synth_1to1_i586_asm_dither):
 	leal (%ecx,%ebp,4),%eax
 .L74:
 	pushl %eax
-	call FUNC(dct64_i386)
+	call FUNC(INT123_dct64_i386)
 	addl $12,%esp
 /* Now removed the parameters.
    stack: 0(%esp)=%ebx 4=esi 8=edi 12=ebp 16,20,24,28=local 32=back 36=bandptr 40=channel 44=out 48=buffs 52=bo 56=decwin 60=dithernoise */

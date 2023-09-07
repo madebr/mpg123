@@ -96,7 +96,7 @@ ASM_NAME(INT123_synth_1to1_i586_asm):
 	leal (%ecx,%ebp,4),%eax
 .L74:
 	pushl %eax
-	call FUNC(dct64_i386)
+	call FUNC(INT123_dct64_i386)
 	addl $12,%esp
 /* stack now back on track */
 	movl 16(%esp),%edx

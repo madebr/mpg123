@@ -63,12 +63,12 @@ ASM_NAME(INT123_dct36_3dnowext):
 #ifdef PIC_GLOBAL_PTR
 	#define _COS9_ 0(%edi)
 	#define _tfcos36_ 0(%eax)
-	mov GLOBAL_VAR_PTR(tfcos36), %eax
-	mov GLOBAL_VAR_PTR(COS9), %edi
+	mov GLOBAL_VAR_PTR(INT123_tfcos36), %eax
+	mov GLOBAL_VAR_PTR(INT123_COS9), %edi
 	mov %eax, -4(%ebp)
 #else
-	#define _COS9_ GLOBAL_VAR(COS9)
-	#define _tfcos36_ GLOBAL_VAR(tfcos36)
+	#define _COS9_ GLOBAL_VAR(INT123_COS9)
+	#define _tfcos36_ GLOBAL_VAR(INT123_tfcos36)
 #endif
 
 	movl	8(%ebp), %eax

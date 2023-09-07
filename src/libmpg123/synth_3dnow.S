@@ -122,7 +122,7 @@ ASM_NAME(INT123_synth_1to1_3dnow_asm):
 	leal 1088(,%eax,4),%eax
 	addl %ebx,%eax
 	pushl %eax
-	call FUNC(dct64_3dnow)
+	call FUNC(INT123_dct64_3dnow)
 	addl $12,%esp
 	jmp .L29
 .L28:
@@ -136,7 +136,7 @@ ASM_NAME(INT123_synth_1to1_3dnow_asm):
 	sall $2,%esi
 	leal (%ecx,%edx,4),%eax
 	pushl %eax
-	call FUNC(dct64_3dnow)
+	call FUNC(INT123_dct64_3dnow)
 	addl $12,%esp
 	movl %esi,LOCAL1
 .L29:

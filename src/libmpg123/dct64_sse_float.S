@@ -78,9 +78,9 @@ ASM_NAME(INT123_dct64_real_sse):
 	subps 		%xmm1, %xmm4
 	
 #ifdef PIC_GLOBAL_PTR
-	mov			GLOBAL_VAR_PTR(costab_mmxsse), %eax
+	mov			GLOBAL_VAR_PTR(INT123_costab_mmxsse), %eax
 #else
-	lea			GLOBAL_VAR(costab_mmxsse), %eax
+	lea			GLOBAL_VAR(INT123_costab_mmxsse), %eax
 #endif
 	mulps		(%eax), %xmm7
 	mulps		16(%eax), %xmm6
