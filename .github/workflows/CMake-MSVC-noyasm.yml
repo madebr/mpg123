@@ -13,12 +13,18 @@ jobs:
         # windows-2022: VS2022
         # windows-2019: VS2019
         os: [windows-2022, windows-2019]
-        arch: [Win32, x64, ARM, ARM64]
+        arch: [x86, x64, amd64_arm, amd64_arm64]
         shared: [ON, OFF]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
-      - name: CMake
-        run: cd ports\cmake && cmake -A ${{ matrix.arch }} -DBUILD_SHARED_LIBS=${{ matrix.shared }} .
+      - name: Setup vcvars
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch }}
+      - name: Install ninja
+        uses: turtlesec-no/get-ninja@main
+      - name: CMake (configure)
+        run: cmake -S ports\cmake -B build -GNinja -DBUILD_SHARED_LIBS=${{ matrix.shared }} .
       - name: CMake --build
-        run: cd ports\cmake && cmake --build .
+        run: cmake --build build

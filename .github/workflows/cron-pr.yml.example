@@ -4,6 +4,7 @@ on:
 
 jobs:
   send_mail:
+    if: ${{ github.repository == 'madebr/mpg123' }}
     runs-on: "ubuntu-latest"
     steps:
       - uses: "actions/checkout@v3"
@@ -18,7 +19,7 @@ jobs:
         run: |
           python .github/scripts/mail-for-all-new-open-prs.py
         env:
-          PUSH_GITHUB_TOKEN: ${{ secrets.PUSH_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
           MAIL_RECEIVER: ${{ secrets.MAIL_RECEIVER }}
           MAIL_SENDER: ${{ secrets.MAIL_SENDER }}
           MAIL_SERVER: ${{ secrets.MAIL_SERVER }}

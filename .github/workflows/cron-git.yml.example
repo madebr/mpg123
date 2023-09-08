@@ -4,12 +4,14 @@ on:
 
 jobs:
   git_svn_sync:
+    if: ${{ github.repository == 'madebr/mpg123' }}
     runs-on: "ubuntu-latest"
     steps:
       - name: "Checkout git mpg123 clone"
         uses: "actions/checkout@v3"
         with:
           fetch-depth: 0
+          token: ${{ secrets.PUSH_GITHUB_TOKEN }}
       - name: "Configure git client"
         run: |
           git config --global user.name "mpg123 GitHub bot"
@@ -20,9 +22,9 @@ jobs:
           git fetch mpg123
       - name: "Merge mpg123's master"
         run: |
-          git merge --into-name master-with-github-ci mpg123/master -X theirs
-          git switch -C master mpg123/master
+          git checkout master-with-github-ci
+          git merge mpg123/master -X ours
       - name: "Force push (new) master"
         run: |
           git push origin master-with-github-ci -f
-          git push origin master -f
+          git push origin mpg123/master:master -f
