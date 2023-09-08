@@ -536,8 +536,7 @@ AVX_OBJS = $(AVX_SRCS:.S=.@OBJEXT@)
 
 ASM_DEPS = \
   src/libmpg123/mangle.h \
-  $(top_builddir)/src/config.h \
-  src/intsym.h
+  $(top_builddir)/src/config.h
 
 $(AVX_OBJS): %.@OBJEXT@: %.S $(ASM_DEPS)
 	$(CPP) $(DEFAULT_INCLUDES) $(INCLUDES) -DASMALIGN_BALIGN $< | @YASM@ - @YASMFLAGS@ @YASM_FORMAT@ -o $@
