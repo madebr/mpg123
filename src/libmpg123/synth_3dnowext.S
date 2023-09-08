@@ -5,7 +5,7 @@
 
 #if defined(PIC) && defined(__APPLE__)
 	.section __IMPORT,__jump_table,symbol_stubs,self_modifying_code+pure_instructions,5
-L_INT123_dct64_3dnowext:
+FUNC(INT123_dct64_3dnowext):
 	.indirect_symbol ASM_NAME(INT123_dct64_3dnowext)
 	hlt ; hlt ; hlt ; hlt ; hlt
 #endif

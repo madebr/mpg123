@@ -93,13 +93,13 @@
 #if defined(PIC) && defined(__ELF__)
 
 /* ELF binaries (Unix/Linux) */
-#define LOCAL_VAR(a) a ## @GOTOFF(_EBX_)
-#define GLOBAL_VAR(a) ASM_NAME(a) ## @GOTOFF(_EBX_)
-#define GLOBAL_VAR_PTR(a) ASM_NAME(a) ## @GOT(_EBX_)
+#define LOCAL_VAR(a) MANGLE_MACROCAT(a, @GOTOFF(_EBX_))
+#define GLOBAL_VAR(a) MANGLE_MACROCAT(ASM_NAME(a), @GOTOFF(_EBX_))
+#define GLOBAL_VAR_PTR(a) MANGLE_MACROCAT(ASM_NAME(a), @GOT(_EBX_))
 #define FUNC(a) ASM_NAME(a)
-#define EXTERNAL_FUNC(a) ASM_NAME(a) ## @PLT
+#define EXTERNAL_FUNC(a) MANGLE_MACROCAT(ASM_NAME(a), @PLT)
 #undef ASM_VALUE
-#define ASM_VALUE(a) MANGLE_MACROCAT($,a) ##@GOTOFF
+#define ASM_VALUE(a) MANGLE_MACROCAT(MANGLE_MACROCAT($,a), @GOTOFF)
 #define GET_GOT \
 	call 1f; \
 1: \
@@ -112,11 +112,11 @@
 #elif defined(PIC) && defined(__APPLE__)
 
 /* Mach-O binaries (OSX/iOS) */
-#define LOCAL_VAR(a) a ## - Lpic_base(_EBX_)
+#define LOCAL_VAR(a) MANGLE_MACROCAT(a, - Lpic_base(_EBX_))
 #define GLOBAL_VAR(a) .err This ABI cannot access non-local symbols directly.
-#define GLOBAL_VAR_PTR(a) L_ ## a ## - Lpic_base(_EBX_)
-#define FUNC(a) L_ ## a
-#define EXTERNAL_FUNC(a) L_ ## a
+#define GLOBAL_VAR_PTR(a) MANGLE_MACROCAT(MANGLE_MACROCAT(L_, a), - Lpic_base(_EBX_))
+#define FUNC(a) MANGLE_MACROCAT(L_, a)
+#define EXTERNAL_FUNC(a) MANGLE_MACROCAT(L_, a)
 #define GET_GOT \
 	call Lpic_base; \
 Lpic_base: \
