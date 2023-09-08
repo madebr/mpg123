@@ -817,7 +817,7 @@ ASM_NAME(INT123_dct64_MMX):
 
 #if defined(PIC) && defined(__APPLE__)
 	.section	__IMPORT,__pointers,non_lazy_symbol_pointers
-L_costab_mmxsse:
+L_INT123_costab_mmxsse:
 	.indirect_symbol	ASM_NAME(INT123_costab_mmxsse)
 	.long	0
 #endif

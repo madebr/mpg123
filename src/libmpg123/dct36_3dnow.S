@@ -551,10 +551,10 @@ ASM_NAME(INT123_dct36_3dnow):
 
 #if defined(PIC) && defined(__APPLE__)
 	.section	__IMPORT,__pointers,non_lazy_symbol_pointers
-L_tfcos36:
+L_INT123_tfcos36:
 	.indirect_symbol	ASM_NAME(INT123_tfcos36)
 	.long	0
-L_COS9:
+L_INT123_COS9:
 	.indirect_symbol	ASM_NAME(INT123_COS9)
 	.long	0
 #endif

@@ -741,7 +741,7 @@ ASM_NAME(INT123_dct64_3dnow):
 
 #if defined(PIC) && defined(__APPLE__)
 	.section	__IMPORT,__pointers,non_lazy_symbol_pointers
-L_pnts:
+L_INT123_pnts:
 	.indirect_symbol	ASM_NAME(INT123_pnts)
 	.long	0
 #endif
