@@ -14,9 +14,9 @@
 -- Added --enable-portable and --disable-largefile to configure, removing the other
    largefile-related options.
 -- Added --disable-components --enable-libmpg123 to only build libmpg123 (and likewise
-   --enable-libout123, --enable-libsyn123) to autoconf build. CMake build has something
-   similar with BUILD_PROGRAMS and BUILD_LIBOUT123, which leave only libmpg123 and libsyn123
-   if disabled). (bug 351)
+   --enable-libout123, --enable-libout123-modules, --enable-libsyn123) to autoconf
+   build. CMake build has something  similar with BUILD_PROGRAMS and BUILD_LIBOUT123,
+   which leave only libmpg123 and libsyn123 if disabled). (bug 351)
 -- Consistent formatting of ./configure --help with AS_HELP_STRING().
 - ports/Sony_PSP: removed
 - mpg123:

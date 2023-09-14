@@ -2,18 +2,23 @@
 
 include src/tests/Makemodule.am
 include src/compat/Makemodule.am
-include src/libmpg123/Makemodule.am
+if NEED_LIB
 include src/libout123/Makemodule.am
+if NEED_MAINLIB
+include src/libmpg123/Makemodule.am
 include src/libsyn123/Makemodule.am
-
+endif
+endif
 
 if BUILD_PROGRAMS
+if NEED_BIN
 bin_PROGRAMS += src/out123
 if HAVE_LFS_WRAP
 bin_PROGRAMS += \
   src/mpg123 \
   src/mpg123-id3dump \
   src/mpg123-strip
+endif
 endif
 endif
 

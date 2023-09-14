@@ -166,7 +166,7 @@ dnl ############# Use Libtool for dynamic module loading
 
 modules=auto
 AC_ARG_ENABLE(modules,
-[AS_HELP_STRING([--disable-modules], [dynamically loadable output modules (default enabled in shared library builds)])],
+[AS_HELP_STRING([--disable-modules], [dynamically loadable output module support (default enabled in shared library builds)])],
 [
 	if test "x$enableval" = xyes
 	then
@@ -192,6 +192,10 @@ fi
 
 dnl We need the windows header also for checking the module mechanism.
 AC_CHECK_HEADERS([windows.h])
+# enable win32 code
+if test "x$ac_cv_header_windows_h" = xyes -a "x$host_os" != xcygwin -a "x$host_os" != xmidipix; then
+  win32_specific_codes=enabled
+fi
 
 android_build=no
 case "$host" in
@@ -234,6 +238,40 @@ case "$host" in
 		win32=no
 	;;
 esac
+
+
+if test x$win32_specific_codes = xenabled; then
+  # Check GetThreadErrorMode
+  if test x"$modules" != xdisabled; then
+    AC_MSG_CHECKING([if we have GetThreadErrorMode])
+      AC_LINK_IFELSE([AC_LANG_SOURCE([
+      #include <windows.h>
+      int main(){
+        return GetThreadErrorMode();
+      }])],[win32_thread_error=yes],[win32_winver_bump=yes])
+    if test "x$win32_thread_error" != "xyes"; then
+      AC_MSG_CHECKING([if we have GetThreadErrorMode])
+        AC_LINK_IFELSE([AC_LANG_SOURCE([
+        #define WINVER 0x600
+        #define _WIN32_WINNT 0x600
+        #include <windows.h>
+        int main(){
+          return GetThreadErrorMode();
+        }])],[win32_thread_error=yes],[win32_thread_error=no])
+    fi
+    if test "x$win32_thread_error" = "xyes"; then
+      AC_MSG_RESULT([yes])
+    else
+      AC_MSG_RESULT([no])
+      if test "x$modules" = xenabled; then
+        AC_MSG_ERROR([GetThreadErrorMode is required for modules but not found.])
+      else
+        AC_MSG_WARN([Disabling modules because of missing GetThreadErrorMode()])
+        modules=disabled
+      fi
+    fi
+  fi
+fi
 
 LIBDL=
 
@@ -2397,11 +2435,6 @@ case $host_os in
   ;;
 esac
 
-# enable win32 code
-if test "x$ac_cv_header_windows_h" = xyes -a "x$host_os" != xcygwin -a "x$host_os" != xmidipix; then
-  win32_specific_codes=enabled
-fi
-
 dnl We do not support non-unicode Windows.
 if test "x$win32_specific_codes" = xenabled; then
 #### Check for Wide functions
@@ -2537,31 +2570,6 @@ if test x$win32_specific_codes = xenabled; then
     AC_DEFINE([WANT_WIN32_FIFO], [1], [ Define to use Win32 named pipes ])
   else
     AC_MSG_RESULT([no])
-  fi
-# Check GetThreadErrorMode
-  if test x"$modules" != xdisabled; then
-    AC_MSG_CHECKING([if we have GetThreadErrorMode])
-      AC_LINK_IFELSE([AC_LANG_SOURCE([
-      #include <windows.h>
-      int main(){
-        return GetThreadErrorMode();
-      }])],[win32_thread_error=yes],[win32_winver_bump=yes])
-    if test "x$win32_thread_error" != "xyes"; then
-      AC_MSG_CHECKING([if we have GetThreadErrorMode])
-        AC_LINK_IFELSE([AC_LANG_SOURCE([
-        #define WINVER 0x600
-        #define _WIN32_WINNT 0x600
-        #include <windows.h>
-        int main(){
-          return GetThreadErrorMode();
-        }])],[win32_thread_error=yes],[win32_thread_error=no])
-    fi
-    if test "x$win32_thread_error" = "xyes"; then
-      AC_MSG_RESULT([yes])
-    else
-      AC_MSG_RESULT([no])
-      AC_MSG_ERROR(GetThreadErrorMode is required but not found)
-    fi
   fi
 fi
 
@@ -2782,7 +2790,7 @@ fi
 dnl ############## Component selection
 
 AC_ARG_ENABLE(components,
-  [AS_HELP_STRING([--disable-components], [(not) build all default components, select individual components via --enable-libmpg123 etc.])],
+  [AS_HELP_STRING([--disable-components], [(not) build end-user programs with default components, select individual components via --enable-libmpg123 etc.])],
   [
     if test "x$enableval" = xyes
     then
@@ -2826,6 +2834,21 @@ AC_ARG_ENABLE(libout123,
   ]
 )
 
+AC_ARG_ENABLE(libout123-modules,
+  [AS_HELP_STRING([--enable-libout123-modules], [build (only) libout123 modules (with --disable-components)])],
+  [
+    if test "x$enableval" = xyes
+    then
+      build_libout123_modules=yes
+    else
+      build_libout123_modules=no
+    fi
+  ],
+  [
+    build_libout123_modules=no
+  ]
+)
+
 AC_ARG_ENABLE(libsyn123,
   [AS_HELP_STRING([--enable-libsyn123], [build (only) libsyn123 (with --disable-components)])],
   [
@@ -2845,23 +2868,34 @@ if test "x$build_all" = xyes; then
   build_programs=yes
   build_libmpg123=yes
   build_libout123=yes
+  build_libout123_modules=yes
   build_libsyn123=yes
   components="programs"
 else
   build_programs=no
 fi
 
-AM_CONDITIONAL([BUILD_PROGRAMS],  [ test "x$build_all" = xyes ])
+AM_CONDITIONAL([BUILD_PROGRAMS],  [ test "x$build_programs" = xyes ])
 AM_CONDITIONAL([BUILD_LIBMPG123], [ test "x$build_libmpg123" = xyes ])
 AM_CONDITIONAL([BUILD_LIBOUT123], [ test "x$build_libout123" = xyes ])
+AM_CONDITIONAL([BUILD_LIBOUT123_MODULES], [ test "x$build_libout123_modules" = xyes ])
 AM_CONDITIONAL([BUILD_LIBSYN123], [ test "x$build_libsyn123" = xyes ])
 AM_CONDITIONAL([NEED_FMT123], [ test "x$build_libmpg123" = xyes || test "x$build_libout123" = xyes || test "x$build_libsyn123" = xyes ])
+# If we install libraries, prompting pkgconfig and include directories.
+AM_CONDITIONAL([NEED_LIB], [ test "x$build_libmpg123" = xyes || test "x$build_libout123" = xyes || test "x$build_libout123_modules" = xyes || test "x$build_libsyn123" = xyes ])
+AM_CONDITIONAL([NEED_MAINLIB], [ test "x$build_libmpg123" = xyes || test "x$build_libout123" = xyes || test "x$build_libsyn123" = xyes ])
+AM_CONDITIONAL([NEED_BIN], [ test "x$build_programs"= = xyes ])
+AM_CONDITIONAL([NEED_MAN], [ test "x$build_programs"= = xyes ])
+
 
 if test "x$build_libmpg123" = xyes; then
   components="$components libmpg123"
 fi
 if test "x$build_libout123" = xyes; then
   components="$components libout123"
+fi
+if test "x$build_libout123_modules" = xyes; then
+  components="$components libout123-modules"
 fi
 if test "x$build_libsyn123" = xyes; then
   components="$components libsyn123"

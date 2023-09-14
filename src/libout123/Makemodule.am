@@ -1,13 +1,32 @@
 # Module for non-recursive mpg123 build system.
 
-if BUILD_LIBOUT123
+# Component selection:
+# If HAVE_MODULES, the library can be built fully independently.
+# If not, the library depends on the one builtin module from
+# the subdirectory.
+
+# For dynamic modules.
+if HAVE_MODULES
+if BUILD_LIBOUT123_MODULES
 include src/libout123/modules/Makemodule.am
+endif
+endif
+
+if NEED_MAINLIB
+if BUILD_LIBOUT123
+
+# Just for libdefaultmodule.la.
+if !HAVE_MODULES
+include src/libout123/modules/Makemodule.am
+endif
 
 include_HEADERS += src/libout123/out123.h
 
 noinst_LTLIBRARIES += src/libout123/libmodule.la
 
 lib_LTLIBRARIES += src/libout123/libout123.la
+
+endif
 endif
 
 src_libout123_libout123_la_SOURCES = \
