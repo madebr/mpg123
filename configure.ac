@@ -2884,7 +2884,6 @@ AM_CONDITIONAL([NEED_FMT123], [ test "x$build_libmpg123" = xyes || test "x$build
 # If we install libraries, prompting pkgconfig and include directories.
 AM_CONDITIONAL([NEED_LIB], [ test "x$build_libmpg123" = xyes || test "x$build_libout123" = xyes || test "x$build_libout123_modules" = xyes || test "x$build_libsyn123" = xyes ])
 AM_CONDITIONAL([NEED_MAINLIB], [ test "x$build_libmpg123" = xyes || test "x$build_libout123" = xyes || test "x$build_libsyn123" = xyes ])
-AM_CONDITIONAL([NEED_BIN], [ test "x$build_programs"= = xyes ])
 AM_CONDITIONAL([NEED_MAN], [ test "x$build_programs"= = xyes ])
 
 

@@ -11,14 +11,12 @@ endif
 endif
 
 if BUILD_PROGRAMS
-if NEED_BIN
 bin_PROGRAMS += src/out123
 if HAVE_LFS_WRAP
 bin_PROGRAMS += \
   src/mpg123 \
   src/mpg123-id3dump \
   src/mpg123-strip
-endif
 endif
 endif
 

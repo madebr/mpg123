@@ -2,8 +2,10 @@
 
 if BUILD_LIBMPG123
 if BUILD_PROGRAMS
+if HAVE_LFS_WRAP
 TESTS += \
   src/tests/decode_fixed.sh
+endif
 endif
 TESTS += \
   src/tests/seek_whence.sh \

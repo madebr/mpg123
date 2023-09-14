@@ -7,9 +7,7 @@
 
 # Mention all global variables first before including Make modules.
 ACLOCAL_AMFLAGS = -I m4
-if NEED_BIN
 bin_PROGRAMS =
-endif
 EXTRA_PROGRAMS =
 EXTRA_DIST =
 if NEED_LIB
