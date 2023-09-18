@@ -31,6 +31,9 @@
 #define _LARGEFILE64_SOURCE
 #endif
 
+// For correct MPG123_EXPORT.
+#include "abi_align.h"
+
 // Need the full header with non-portable API, for the bare mpg123_open*()
 // declarations. But no renaming shenanigans.
 #define MPG123_NO_LARGENAME

@@ -13,10 +13,6 @@
 
 #include "config.h"
 #include "abi_align.h"
-/* export DLL symbols */
-#if defined(WIN32) && defined(DYNAMIC_BUILD)
-#define BUILD_MPG123_DLL
-#endif
 #include "compat.h"
 #include "out123.h"
 #include "module.h"

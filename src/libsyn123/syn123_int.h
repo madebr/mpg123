@@ -17,12 +17,9 @@
 #ifdef LFS_LARGEFILE_64
 #define _LARGEFILE64_SOURCE
 #endif
-#include "compat.h"
 #include "abi_align.h"
-/* export DLL symbols */
-#if defined(WIN32) && defined(DYNAMIC_BUILD)
-#define BUILD_MPG123_DLL
-#endif
+#include "compat.h"
+
 #define SYN123_NO_LARGEFUNC
 #include "syn123.h"
 // A little hack to help MSVC not having ssize_t, duplicated in external header with largefuncs.
