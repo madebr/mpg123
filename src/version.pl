@@ -19,6 +19,16 @@ if(@ARGV == 1)
 	{
 		die "$0: Give me a proper version to set!\n";
 	}
+} elsif(@ARGV == 2)
+{
+	$set = 1;
+	for($ARGV[0])
+	{
+		if(/-a/){ $v{MAJOR}  = $ARGV[1]; }
+		if(/-i/){ $v{MINOR}  = $ARGV[1]; }
+		if(/-p/){ $v{PATCH}  = $ARGV[1]; }
+		if(/-s/){ $v{SUFFIX} = $ARGV[1]; }
+	}
 }
 
 chdir($Bin) or die "$0: cannot cd into $Bin: $!\n";
@@ -30,7 +40,7 @@ while(<$i>)
 {
 	if(/^(#define\s+MPG123_)(MAJOR|MINOR|PATCH|SUFFIX)(\s+)(.+)$/)
 	{
-		if($set)
+		if($set and defined $v{$2})
 		{
 			my $val = $2 eq 'SUFFIX' ? '"'.$v{$2}.'"' : $v{$2};
 			$_ = $1.$2.$3.$val."\n";
