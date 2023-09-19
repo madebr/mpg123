@@ -2,9 +2,9 @@
 	mpg123_to_wav_replaced_io.c
 
 	This is example code only sensible to be considered in the public domain.
-	Initially written by Nicholas Humfrey (moved to handle I/O by Thomas Orgis).
+	Initially written by Nicholas Humfrey (moved to 64 bit handle I/O by Thomas Orgis).
 
-	This example program demonstrates how to use libmpg123 to decode a file to WAV (writing via libout123), while doing the I/O (read and seek) with custom callback functions.
+	This example program demonstrates how to use libmpg123 to decode a file to WAV (writing via libsndfile), while doing the I/O (read and seek) with custom callback functions.
 	This should cater for any situation where you have some special means to get to the data (like, mmapped files / plain buffers in memory, funky network streams).
 
 	Disregarding format negotiations, the basic synopsis is:
@@ -20,7 +20,6 @@
 	mpg123_delete()
 	mpg123_exit()
 */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
@@ -36,6 +35,11 @@
 #include <io.h>
 #endif
 #include <string.h>
+
+#if MPG123_API_VERSION < 48
+#error "Need minimum mpg123 API version 48."
+#endif
+
 
 void usage(const char *cmd)
 {
@@ -58,22 +62,34 @@ struct ioh { int fd; };
 /* The callback functions; simple wrappers over standard I/O.
    They could be anything you like... */
 
-static mpg123_ssize_t read_cb(void *handle, void *buf, size_t sz)
+static int read_cb(void *handle, void *buf, size_t sz, size_t *got)
 {
-	mpg123_ssize_t ret;
+	if(!handle)
+		return -1;
 	struct ioh *h = handle;
 	errno = 0;
-	ret = read(h->fd, buf, sz);
-	if(ret < 0) fprintf(stderr, "read error: %s\n", strerror(errno));
-
-	return ret;
+	// Ideally, you check for singnals in here where they should not interrupt
+	// operations (handle EINTR, for example).
+	ssize_t gots = read(h->fd, buf, sz);
+	if(gots < 0)
+	{
+		fprintf(stderr, "read error: %s\n", strerror(errno));
+		return -1;
+	}
+	if(got)
+		*got = (size_t)gots;
+	return 0;
 }
 
-static off_t lseek_cb(void *handle, off_t offset, int whence)
+// You should be more careful if off_t < int64_t. Ideally, you know
+// you have 64 bit I/O.
+static int64_t lseek_cb(void *handle, int64_t offset, int whence)
 {
-	off_t ret;
+	if(!handle)
+		return -1;
+	int64_t ret;
 	struct ioh *h = handle;
-	ret = lseek(h->fd, offset, whence);
+	ret = (int64_t)lseek(h->fd, (off_t)offset, whence);
 	if(ret < 0) fprintf(stderr, "seek error: %s\n", strerror(errno));
 
 	return ret;
@@ -82,6 +98,8 @@ static off_t lseek_cb(void *handle, off_t offset, int whence)
 /* The cleanup handler is called on mpg123_close(), it can cleanup your part of the mess... */
 void cleanup_cb(void *handle)
 {
+	if(!handle)
+		return;
 	struct ioh *h = handle;
 	close(h->fd);
 	h->fd = -1;
@@ -122,7 +140,7 @@ int main(int argc, char *argv[])
 
 	if( err != MPG123_OK || (mh = mpg123_new(NULL, &err)) == NULL
 	    /* Let mpg123 work with the file, that excludes MPG123_NEED_MORE messages. */
-	    || mpg123_replace_reader_handle(mh, read_cb, lseek_cb, cleanup_cb) != MPG123_OK
+	    || mpg123_reader64(mh, read_cb, lseek_cb, cleanup_cb) != MPG123_OK
 	    || mpg123_open_handle(mh, iohandle) != MPG123_OK
 	    /* Peek into track and get first output format. */
 	    || mpg123_getformat(mh, &rate, &channels, &encoding) != MPG123_OK )
