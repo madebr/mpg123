@@ -63,7 +63,7 @@ int outburst = 32768;
    Another forked buffer process will have its on value. */
 static int intflag = FALSE;
 
-static void catch_interrupt (void)
+static void catch_interrupt (int sig)
 {
 	intflag = TRUE;
 }
@@ -75,7 +75,7 @@ static int read_record(out123_handle *ao
 ,	int who, void **buf, byte *prebuf, int *preoff, int presize, size_t *recsize);
 static int buffer_loop(out123_handle *ao);
 
-static void catch_child(void)
+static void catch_child(int sig)
 {
 	/* Disabled for now. We do not really need that.
 	   Rather get return status in a controlled way in INT123_buffer_exit(). */

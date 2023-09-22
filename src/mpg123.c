@@ -186,7 +186,7 @@ void set_intflag()
 }
 
 #if !defined(WIN32) && !defined(GENERIC)
-static void catch_interrupt(void)
+static void catch_interrupt(int sig)
 {
 	intflag = TRUE;
 }
@@ -203,11 +203,11 @@ static void handle_fatal_msg(const char *msg)
 		fprintf(stderr, "%s", msg);
 	handle_fatal();
 }
-static void catch_fatal_term(void)
+static void catch_fatal_term(int sig)
 {
 	handle_fatal_msg("\nmpg123: death by SIGTERM\n");
 }
-static void catch_fatal_pipe(void)
+static void catch_fatal_pipe(int sig)
 {
 	/* If the SIGPIPE is because of piped stderr, trying to write
 	   in the signal handler hangs the program. */
