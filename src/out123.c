@@ -1271,7 +1271,7 @@ int play_frame(void)
 }
 
 #if !defined(WIN32) && !defined(GENERIC)
-static void catch_interrupt(void)
+static void catch_interrupt(int sig)
 {
         intflag = TRUE;
 }
