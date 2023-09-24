@@ -1,5 +1,6 @@
 1.32.1
 ------
+- build: fix signal handler prototype, avoiding some justified warnings
 - ports/cmake:
 -- Include CheckTypeSize, which seems to be needed sometimes (bug 357).
 -- Avoid O_LARGEFILE redefinition, logic closer to autoconf.
