@@ -5,6 +5,7 @@ include(CheckFunctionExists)
 include(CheckIncludeFile)
 include(CheckIncludeFiles)
 include(CheckSymbolExists)
+include(CheckTypeSize)
 include(CMakeDependentOption)
 include(TestBigEndian)
 
