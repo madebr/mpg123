@@ -70,6 +70,10 @@ check_function_exists(execvp HAVE_EXECVP)
 check_function_exists(ctermid HAVE_CTERMID)
 check_function_exists(clock_gettime HAVE_CLOCK_GETTIME)
 
+check_type_size(long SIZEOF_LONG)
+check_type_size(off_t SIZEOF_OFF_T)
+
+if(SIZEOF_OFF_T LESS 8)
 check_function_exists(lseek64 LFS_LARGEFILE_64)
 
 if(LFS_LARGEFILE_64)
@@ -82,6 +86,7 @@ check_c_source_compiles(
 
     int fd = open(\"/foo\", O_RDONLY|O_LARGEFILE);
     " HAVE_O_LARGEFILE)
+endif()
 endif()
 
 search_libs(gethostbyname GETHOSTBYNAME_LIB nsl socket network)
