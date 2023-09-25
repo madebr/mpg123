@@ -5,6 +5,7 @@
 - ports/cmake:
 -- Include CheckTypeSize, which seems to be needed sometimes (bug 357).
 -- Avoid O_LARGEFILE redefinition, logic closer to autoconf.
+-- Typo fix and cleanup, also manual SSE switch for Android on old x86 (bug 359).
 
 1.32.0
 ------
