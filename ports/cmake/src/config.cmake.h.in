@@ -181,6 +181,3 @@
 #cmakedefine LFS_LARGEFILE_64 1
 #cmakedefine LFS_SENSITIVE 1
 #cmakedefine HAVE_O_LARGEFILE 1
-#ifndef HAVE_O_LARGEFILE
-#define O_LARGEFILE 0
-#endif

@@ -84,7 +84,7 @@ check_c_source_compiles(
     #include <unistd.h>
     #include <fcntl.h>
 
-    int fd = open(\"/foo\", O_RDONLY|O_LARGEFILE);
+    int main(){ return open(\"/foo\", O_RDONLY|O_LARGEFILE); }
     " HAVE_O_LARGEFILE)
 endif()
 endif()

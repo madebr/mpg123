@@ -769,7 +769,7 @@ int INT123_wrap_open(mpg123_handle *mh, void *handle, const char *path, int fd, 
 #ifdef O_BINARY
 		flags |= O_BINARY;
 #endif
-#ifdef LFS_LARGEFILE_64
+#if defined(LFS_LARGEFILE_64) && defined(HAVE_O_LARGEFILE)
 		flags |= O_LARGEFILE;
 #endif
 		errno = 0;

@@ -1311,8 +1311,8 @@ if test "x$have_off64_t" = xyes && test "x$ac_cv_func_lseek64" = xyes; then
     }
   ])],[have_o_largefile=yes],[have_o_largefile=no])
   AC_MSG_RESULT([$have_o_largefile])
-  if test x"$have_o_largefile" = xno; then
-    AC_DEFINE(O_LARGEFILE, 0, [ Define to 0 if system does not have/need it. ])
+  if test x"$have_o_largefile" = xyes; then
+    AC_DEFINE(HAVE_O_LARGEFILE, 1, [ Define if O_LARGEFILE flag for open(2) exists. ])
   fi
 else
   use_largefile=no
