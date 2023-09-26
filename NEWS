@@ -1,6 +1,7 @@
 1.32.1
 ------
-- Include man pages again in tarball.
+- Include man pages again in tarball and install. We cannot avoid the empty
+  man directory when disabling programs with autoconf.
 - Fix signal handler prototype, avoiding some justified warnings.
 - ports/cmake:
 -- Include CheckTypeSize, which seems to be needed sometimes (bug 357).
