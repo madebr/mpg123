@@ -1,3 +1,12 @@
+1.32.2
+------
+- build:
+-- Better O_LARGEFILE logic, avoiding redefintion.
+- ports/cmake:
+-- Require C99 (bug 360, among other points, thanks to Ozkan Sezer).
+-- Fix broken O_LARGEFILE logic (bug 360).
+-- Typo fix and cleanup, also manual SSE switch for Android on old x86 (bug 359).
+
 1.32.1
 ------
 - Include man pages again in tarball and install. We cannot avoid the empty
@@ -6,7 +15,6 @@
 - ports/cmake:
 -- Include CheckTypeSize, which seems to be needed sometimes (bug 357).
 -- Avoid O_LARGEFILE redefinition, logic closer to autoconf.
--- Typo fix and cleanup, also manual SSE switch for Android on old x86 (bug 359).
 
 1.32.0
 ------
