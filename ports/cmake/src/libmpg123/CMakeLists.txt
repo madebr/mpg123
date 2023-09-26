@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 
 option(NO_FEATURE_REPORT "Disable feature report function" OFF)
 if(CMAKE_SYSTEM_NAME STREQUAL "Android")
-    option(WITH_SSE "Turn OFF for x86 build without SSE support - targets older devices" ON)
+    option(WITH_SSE "x86: build with SSE support if detected. Turn OFF for older devices where autodetection is misleading." ON)
 endif()
 
 include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/")
