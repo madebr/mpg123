@@ -139,15 +139,20 @@ check_type_size(long SIZEOF_LONG)
 check_type_size(off_t SIZEOF_OFF_T)
 
 if(WIN32 AND HAVE_WINDOWS_H)
-    check_c_source_compiles("
-        #include <windows.h>
+    check_function_exists(GetThreadErrorMode HAVE_GETTHREADERRORMODE)
+    if(HAVE_GETTHREADERRORMODE)
+        check_c_source_compiles("
+            #include <windows.h>
 
-        int main() {
-          LoadLibraryW(0);
-          GetProcAddress(0, 0);
-          FreeLibrary(0);
-        }"
-        HAVE_WIN_DL)
+            int main() {
+              LoadLibraryW(0);
+              GetProcAddress(0, 0);
+              FreeLibrary(0);
+            }"
+            HAVE_WIN_DL)
+    else()
+        set(HAVE_WIN_DL OFF)
+    endif()
 else()
     function(check_dl)
         set(CMAKE_REQUIRED_LIBRARIES dl)
