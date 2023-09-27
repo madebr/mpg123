@@ -1,5 +1,9 @@
 1.32.2
 ------
+
+- libmpg123: Re-introduce _64 symbols on native 64 bit offset platforms. This
+  was a regression since 1.31 series. Sorry, too much cleanup, not enough
+  testing.
 - build:
 -- Better O_LARGEFILE logic, avoiding redefintion.
 - ports/cmake:
