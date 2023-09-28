@@ -1,6 +1,7 @@
 1.32.3
 ------
 - ports/cmake: Only enable modules with GetThreadErrorMode() on Windows.
+- compat: Define EOVERFLOW for ancient Windows toolchains.
 
 1.32.2
 ------
