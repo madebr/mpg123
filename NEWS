@@ -2,7 +2,7 @@
 ------
 - ports/cmake: Only enable modules with GetThreadErrorMode() on Windows.
 - compat: Define EOVERFLOW for ancient Windows toolchains.
-- libmpg123: always ifdef LFS_LARGEFILE_64 (not just if)
+- libmpg123, libsyn123: always ifdef LFS_LARGEFILE_64 (not just if)
 
 1.32.2
 ------

@@ -2043,7 +2043,7 @@ resample_total_alias(off_t, syn123_resample_intotal, syn123_resample_intotal64)
 #elif SIZEOF_OFF_T == 4
 resample_total_wrap(off_t, INT32_MAX, syn123_resample_total, syn123_resample_total64)
 resample_total_wrap(off_t, INT32_MAX, syn123_resample_intotal, syn123_resample_intotal64)
-#if LFS_LARGEFILE_64
+#ifdef LFS_LARGEFILE_64
 resample_total_alias(off64_t, syn123_resample_total_64, syn123_resample_total64)
 resample_total_alias(off64_t, syn123_resample_intotal_64, syn123_resample_intotal64)
 #endif
