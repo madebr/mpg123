@@ -1,7 +1,7 @@
 /*
 	mpg123: main code of the program (not of the decoder...)
 
-	copyright 1995-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1995-2023 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp
 */
@@ -810,7 +810,7 @@ int play_frame(void)
 			memcpy(prebuffer, audio, bytes);
 			prebuffer_fill = bytes;
 			bytes = 0;
-			debug1("prebuffered %"SIZE_P" bytes", (size_p)prebuffer_fill);
+			debug1("prebuffered %zu bytes", prebuffer_fill);
 		}
 		if(param.checkrange)
 		{
@@ -1427,8 +1427,7 @@ int main(int sys_argc, char ** sys_argv)
 					fprintf( stderr, "Repeating %ld %s.\n"
 					,	plloop-1, plloop > 2 ? "times" : "time" );
 			}
-			fprintf( stderr, "Playing MPEG stream %"SIZE_P" of %"SIZE_P": "
-			,	(size_p)plpos, (size_p)plfill );
+			fprintf(stderr, "Playing MPEG stream %zu of %zu: ", plpos, plfill);
 			print_outstr(stderr, filename, 0, stderr_is_term);
 			fprintf(stderr, " ...\n");
 			if(filept->htd.icy_name.fill)
@@ -1783,6 +1782,6 @@ void continue_msg(const char *name)
 {
 	size_t tot = 0;
 	size_t pos = playlist_pos(&tot, NULL);
-	fprintf( aux_out, "\n[%s] track %"SIZE_P" frame %"OFF_P"\n", name
-	,	(size_p)pos, (off_p)(tot >= pos ? framenum : 0));
+	fprintf( aux_out, "\n[%s] track %zu frame %" PRIiMAX "\n", name
+	,	pos, (intmax_t)(tot >= pos ? framenum : 0) );
 }

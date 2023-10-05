@@ -1,7 +1,7 @@
 /*
 	libsyn123: libsyn123 entry code and wave generators
 
-	copyright 2017-2018 by the mpg123 project
+	copyright 2017-2023 by the mpg123 project
 	licensed under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 
@@ -96,7 +96,7 @@ static double common_samples_per_period( long rate, size_t count
 		)
 			periods++;
 		spp*=periods;
-		debug3( "samples_per_period + %f Hz = %g (%" SIZE_P " periods)"
+		debug3( "samples_per_period + %f Hz = %g (%zu periods)"
 		,	waves[i].freq, spp, periods );
 	}
 	return spp;
@@ -127,7 +127,7 @@ static size_t tablesize( long rate, size_t count
 
 	/* Ensure size limit. Even it is ridiculous. */
 	ts = smin(ts, size_limit);
-	debug1("table size: %" SIZE_P, ts);
+	debug1("table size: %zu", ts);
 	return ts;
 }
 
@@ -336,7 +336,7 @@ static void wave_fit_table( size_t samples
 , long rate, struct syn123_wave *wave )
 {
 	double pps = wave->freq/rate;
-	debug3("wave_fit_table %" SIZE_P " %ld %g", samples, rate, wave->freq);
+	debug3("wave_fit_table %zu %ld %g", samples, rate, wave->freq);
 	size_t periods = smax(round2size(pps*samples), 1);
 	pps = (double)periods/samples;
 	wave->freq = pps*rate;
@@ -350,7 +350,7 @@ static void wave_add_buffer( double outbuf[bufblock], size_t samples
 ,	long rate, struct syn123_wave *wave, double workbuf[bufblock] )
 {
 	double pps = wave->freq/rate;
-	debug3("wave_add_buffer %" SIZE_P " %ld %g", samples, rate, wave->freq);
+	debug3("wave_add_buffer %zu %ld %g", samples, rate, wave->freq);
 	debug4( "adding wave: %c %i @ %g Hz + %g"
 	,	wave->backwards ? '<' : '>', wave->id, wave->freq, wave->phase );
 	if(wave->backwards)
@@ -875,8 +875,7 @@ syn123_read( syn123_handle *sh, void *dest, size_t dest_bytes )
 		while(dest_samples)
 		{
 			size_t block = smin(dest_samples, sh->samples - sh->offset);
-			debug3( "offset: %"SIZE_P" block: %" SIZE_P" out of %"SIZE_P
-			,	sh->offset, block, sh->samples );
+			debug3("offset: %zu block: %zu out of %zu", sh->offset, block, sh->samples);
 			syn123_mono2many(cdest, (char*)sh->buf+sh->offset*samplesize
 			,	sh->fmt.channels, samplesize, block );
 			cdest  += framesize*block;
@@ -918,7 +917,7 @@ syn123_read( syn123_handle *sh, void *dest, size_t dest_bytes )
 			extracted += block;
 		}
 	}
-	debug1("extracted: %" SIZE_P, extracted);
+	debug1("extracted: %zu", extracted);
 	return extracted*framesize;
 }
 

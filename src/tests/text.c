@@ -1,7 +1,7 @@
 /*
 	text: Test text transformations in libmpg123 (conversion to UTF-8).
 
-	copyright 2009 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2009-2023 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis
 
@@ -52,7 +52,7 @@ int check_string(const char* name, enum mpg123_text_encoding enc, const unsigned
 	}
 	else
 	{
-		printf("FAIL (%"SIZE_P" vs. %"SIZE_P")\n", (size_p)sb.fill, (size_p)sizeof(utf8));
+		printf("FAIL (%zu vs. %zu)\n", sb.fill, sizeof(utf8));
 		ret = 1;
 	}
 

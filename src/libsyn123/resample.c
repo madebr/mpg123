@@ -1,7 +1,7 @@
 /*
 	resample: low-latency usable and quick resampler
 
-	copyright 2018-2020 by the mpg123 project
+	copyright 2018-2023 by the mpg123 project
 	licensed under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 
@@ -2586,7 +2586,7 @@ syn123_resample( syn123_handle *sh,
 	// Input limit is zero if no resampler configured.
 	if(!samples || samples > sh->rd->input_limit)
 		return 0;
-	mdebug( "calling actual resample function from %p to %p with %"SIZE_P" samples"
-	,	(void*)src, (void*)dst, (size_p)samples );
+	mdebug( "calling actual resample function from %p to %p with %zu samples"
+	,	(void*)src, (void*)dst, samples );
 	return rd->resample_func(rd, src, samples, dst);
 }

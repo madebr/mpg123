@@ -20,7 +20,7 @@
  */
 #define OUT123_API_VERSION 5
 /** library patch level at client build time */
-#define OUT123_PATCHLEVEL  0
+#define OUT123_PATCHLEVEL  1
 
 /* We only need size_t definition. */
 #include <stddef.h>

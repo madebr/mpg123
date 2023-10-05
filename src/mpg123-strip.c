@@ -159,16 +159,16 @@ int do_work(mpg123_handle *m)
 				return MPG123_ERR;
 			}
 			if(param.verbose)
-			fprintf(stderr, "%"SIZE_P": header 0x%08lx, %"SIZE_P" body bytes\n"
-			, (size_p)++count, header, (size_p)bodybytes);
+			fprintf(stderr, "%zu: header 0x%08lx, %zu body bytes\n"
+			, ++count, header, bodybytes);
 		}
 	}
 
 	if(ret != MPG123_DONE)
 	fprintf(stderr, "Some error occured (non-fatal?): %s\n", mpg123_strerror(m));
 
-	if(param.verbose) fprintf(stderr, "Done with %"SIZE_P" MPEG frames.\n"
-	, (size_p)count);
+	if(param.verbose)
+		fprintf(stderr, "Done with %zu MPEG frames.\n", count);
 
 	return MPG123_OK;
 }

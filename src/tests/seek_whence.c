@@ -27,7 +27,7 @@ int test_whence(const char* path, int scan_before)
 	mpg123_close(mh);
 	mpg123_delete(mh);
 
-	fprintf(stdout, "length %"OFF_P" vs. pos %"OFF_P"\n", length, pos);
+	fprintf(stdout, "length %" PRIiMAX " vs. pos %" PRIiMAX "\n", (intmax_t)length, (intmax_t)pos);
 
 	return (pos == length) ? 0 : -1;
 }

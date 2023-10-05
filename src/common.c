@@ -1,7 +1,7 @@
 /*
 	common: misc stuff... audio flush, status display...
 
-	copyright ?-2022 by the mpg123 project
+	copyright ?-2023 by the mpg123 project
 	free software under the terms of the LGPL 2.1
 
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
@@ -320,12 +320,12 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar
 		}
 		/* Taking pains to properly size the frame number fields. */
 		len = snprintf( framefmt, sizeof(framefmt)
-		,	"%%0%d"OFF_P, (int)log10(frame+rframes)+1 );
+		,	"%%0%d" PRIiMAX, (int)log10(frame+rframes)+1 );
 		if(len < 0 || len >= sizeof(framefmt))
-			memcpy(framefmt, "%05"OFF_P, sizeof("%05"OFF_P));
-		snprintf( framestr[0], sizeof(framestr[0])-1, framefmt, (off_p)frame);
+			memcpy(framefmt, "%05" PRIiMAX, sizeof("%05" PRIiMAX));
+		snprintf( framestr[0], sizeof(framestr[0])-1, framefmt, (intmax_t)frame);
 		framestr[0][sizeof(framestr[0])-1] = 0;
-		snprintf( framestr[1], sizeof(framestr[1])-1, framefmt, (off_p)rframes);
+		snprintf( framestr[1], sizeof(framestr[1])-1, framefmt, (intmax_t)rframes);
 		framestr[1][sizeof(framestr[1])-1] = 0;
 		/* Now start with the state line. */
 		memset(line, 0, linelen+1); /* Always one zero more. */

@@ -234,7 +234,7 @@ static int out123_seterr(out123_handle *ao, enum out123_error errcode)
 int attribute_align_arg
 out123_set_buffer(out123_handle *ao, size_t buffer_bytes)
 {
-	debug2("out123_set_buffer(%p, %"SIZE_P")", (void*)ao, (size_p)buffer_bytes);
+	debug2("out123_set_buffer(%p, %zu)", (void*)ao, buffer_bytes);
 	if(!ao)
 		return OUT123_ERR;
 	ao->errcode = 0;
@@ -679,8 +679,8 @@ out123_play(out123_handle *ao, void *bytes, size_t count)
 	size_t sum = 0;
 	int written;
 
-	debug5( "[%ld]out123_play(%p, %p, %"SIZE_P") (%i)", (long)getpid()
-	,	(void*)ao, bytes, (size_p)count, ao ? (int)ao->state : -1 );
+	debug5( "[%ld]out123_play(%p, %p, %zu) (%i)", (long)getpid()
+	,	(void*)ao, bytes, count, ao ? (int)ao->state : -1 );
 	if(!ao)
 		return 0;
 	ao->errcode = 0;
@@ -748,8 +748,8 @@ out123_play(out123_handle *ao, void *bytes, size_t count)
 			}
 		} while(count && ao->flags & OUT123_KEEP_PLAYING);
 	}
-	debug3( "out123_play(%p, %p, ...) = %"SIZE_P
-	,	(void*)ao, bytes, (size_p)sum );
+	debug3( "out123_play(%p, %p, ...) = %zu"
+	,	(void*)ao, bytes, sum );
 	return sum;
 }
 
@@ -800,7 +800,7 @@ void attribute_align_arg out123_drain(out123_handle *ao)
 
 void attribute_align_arg out123_ndrain(out123_handle *ao, size_t bytes)
 {
-	debug3("[%ld]out123_ndrain(%p, %"SIZE_P")", (long)getpid(), (void*)ao, (size_p)bytes);
+	debug3("[%ld]out123_ndrain(%p, %zu)", (long)getpid(), (void*)ao, bytes);
 	if(!ao)
 		return;
 	ao->errcode = 0;
@@ -1507,7 +1507,7 @@ size_t attribute_align_arg out123_buffered(out123_handle *ao)
 	if(have_buffer(ao))
 	{
 		size_t fill = INT123_buffer_fill(ao);
-		debug2("out123_buffered(%p) = %"SIZE_P, (void*)ao, (size_p)fill);
+		debug2("out123_buffered(%p) = %zu", (void*)ao, fill);
 		return fill;
 	}
 	else

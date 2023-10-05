@@ -1183,30 +1183,18 @@ AC_SUBST(YASMFLAGS)
 
 dnl ############## Really basic headers, needed for other checks.
 
+AC_MSG_CHECKING([for basic C99 features])
+AC_LINK_IFELSE(
+   [AC_LANG_SOURCE([`cat "$srcdir/test_c99.c"`])],
+   [have_c99=yes; AC_MSG_RESULT([yes])],
+   [have_c99=no; AC_MSG_RESULT([no])]
+)
+if test "x$have_c99" = xno; then
+  AC_MSG_ERROR([Your toolchain lacks basic C99 features. See test_c99.c for the requirements.])
+fi
+
 dnl Is it too paranoid to specifically check for stdint.h and limits.h?
-AC_CHECK_HEADERS([stdio.h stdlib.h string.h unistd.h sched.h sys/ioctl.h sys/types.h stdint.h limits.h inttypes.h sys/time.h sys/wait.h sys/resource.h sys/signal.h signal.h sys/select.h dirent.h sys/stat.h])
-
-dnl ############## Types
-
-# Using the lower level macros instead of AC_TYPE_* for compatibility with not freshest autoconf.
-# Re-think this list. Some things just should be a given. We assume C99 now.
-# Rather think about assumptions like int64_t >= ptrdiff_t.
-AC_CHECK_TYPE(size_t, unsigned long)
-AC_CHECK_TYPE(uintptr_t, unsigned long)
-AC_CHECK_TYPE(ssize_t, long)
-AC_CHECK_TYPE(ptrdiff_t, long)
-AC_CHECK_TYPE(int32_t, int)
-AC_CHECK_TYPE(int64_t, long long)
-AC_CHECK_TYPE(uint32_t, unsigned int)
-AC_CHECK_TYPE(int16_t, short)
-AC_CHECK_TYPE(uint16_t, unsigned short)
-AC_CHECK_SIZEOF(size_t)
-AC_CHECK_SIZEOF(ssize_t)
-AC_CHECK_SIZEOF(int32_t)
-AC_CHECK_SIZEOF(long)
-
-# We do not need to know if off_t actually changes size using
-# _FILE_OFFSET_BITS, only need to know what size it has.
+AC_CHECK_HEADERS([unistd.h sched.h sys/ioctl.h sys/types.h sys/time.h sys/wait.h sys/resource.h sys/signal.h signal.h sys/select.h dirent.h sys/stat.h])
 
 dnl ############## LFS stuff
 

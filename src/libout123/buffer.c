@@ -1,7 +1,7 @@
 /*
 	buffer.c: output buffer
 
-	copyright 1997-2015 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1997-2023 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Oliver Fromme
 
@@ -667,8 +667,8 @@ int buffer_loop(out123_handle *ao)
 		if(mystate == play_live)
 		{
 			size_t bytes = INT123_xfermem_get_usedspace(xf);
-			debug4( "Play or preload? Got %"SIZE_P" B / %"SIZE_P" B (%i,%i)."
-			,	(size_p)bytes, (size_p)preload_size(ao), preloading, draining );
+			debug4( "Play or preload? Got %zu B / %zu B (%i,%i)."
+			,	bytes, preload_size(ao), preloading, draining );
 			if(preloading)
 				preloading = (bytes < preload_size(ao));
 			if(!preloading)
@@ -860,8 +860,7 @@ int buffer_loop(out123_handle *ao)
 						int success;
 
 						blocksize = sizeof(*fmtlist)*fmtcount;
-						debug2("responding with %i formats (block: %"SIZE_P")"
-						, fmtcount, (size_p)blocksize);
+						debug2("responding with %i formats (block: %zu)", fmtcount, blocksize);
 						INT123_xfermem_putcmd(my_fd, XF_CMD_OK);
 						success =
 							GOOD_WRITEVAL(my_fd, fmtcount)
@@ -977,8 +976,7 @@ int buffer_loop(out123_handle *ao)
 							mystate = ao->state;
 							draining = FALSE;
 						}
-						debug2( "buffer drained %"SIZE_P" / %"SIZE_P
-						,	oldfill-bytes, limit );
+						debug2("buffer drained %zu / %zu", oldfill-bytes, limit);
 					}
 					else
 						debug("drain without playback ... not good");

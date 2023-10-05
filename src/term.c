@@ -152,7 +152,7 @@ void pause_recycle(mpg123_handle *fr)
 off_t term_control(mpg123_handle *fr, out123_handle *ao)
 {
 	offset = 0;
-	debug2("control for frame: %"OFF_P", enable: %i", (off_p)mpg123_tellframe(fr), term_enable);
+	debug2("control for frame: %" PRIiMAX ", enable: %i", (intmax_t)mpg123_tellframe(fr), term_enable);
 	if(!term_enable) return 0;
 
 	if(playstate==STATE_LOOPING)
@@ -176,7 +176,7 @@ off_t term_control(mpg123_handle *fr, out123_handle *ao)
 	if(offset)
 	{
 		if((offset = mpg123_seek_frame(fr, offset, SEEK_CUR)) >= 0)
-		debug1("seeked to %"OFF_P, (off_p)offset);
+		debug1("seeked to %" PRIiMAX, (intmax_t)offset);
 		else error1("seek failed: %s!", mpg123_strerror(fr));
 		/* Buffer resync already happened on un-stop? */
 		/* if(param.usebuffer) audio_drop(ao);*/
@@ -203,13 +203,13 @@ static void seekmode(mpg123_handle *mh, out123_handle *ao)
 		if(pcmframe > 0)
 			back_samples = out123_buffered(ao)/pcmframe;
 		if(param.verbose > 2)
-			fprintf(stderr, "\nseeking back %"OFF_P" samples from %"OFF_P"\n"
-			,	(off_p)back_samples, (off_p)mpg123_tell(mh));
+			fprintf(stderr, "\nseeking back %" PRIiMAX " samples from %" PRIiMAX "\n"
+			, (intmax_t)back_samples, (intmax_t)mpg123_tell(mh));
 		mpg123_seek(mh, -back_samples, SEEK_CUR);
 		out123_drop(ao);
 		if(param.verbose > 2)
-			fprintf(stderr, "\ndropped, now at %"OFF_P"\n"
-			,	(off_p)mpg123_tell(mh));
+			fprintf(stderr, "\ndropped, now at %" PRIiMAX "\n"
+			,	(intmax_t)mpg123_tell(mh));
 		fprintf(stderr, "%s", MPG123_STOPPED_STRING);
 		if(param.verbose)
 			print_stat(mh, 0, ao, 1, &param);
