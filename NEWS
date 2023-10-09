@@ -1,3 +1,8 @@
+1.32.4
+------
+- build: Only enforce dummy module together with libout123, to be able
+  to build individual modules using --disable-components logic.
+
 1.32.3
 ------
 - ports/cmake: Only enable modules with GetThreadErrorMode() on Windows.

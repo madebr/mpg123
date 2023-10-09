@@ -363,6 +363,119 @@ AC_SUBST(LIB_CFLAGS)
 AC_SUBST(LT_LDFLAGS)
 AC_SUBST(EXEC_LT_LDFLAGS)
 
+dnl ############## Component selection
+
+AC_ARG_ENABLE(components,
+  [AS_HELP_STRING([--disable-components], [(not) build end-user programs with default components, select individual components via --enable-libmpg123 etc.])],
+  [
+    if test "x$enableval" = xyes
+    then
+      build_all=yes
+    else
+      build_all=no
+    fi
+  ],
+  [
+    build_all=yes
+  ]
+)
+
+AC_ARG_ENABLE(libmpg123,
+  [AS_HELP_STRING([--enable-libmpg123], [build (only) libmpg123 (with --disable-components)])],
+  [
+    if test "x$enableval" = xyes
+    then
+      build_libmpg123=yes
+    else
+      build_libmpg123=no
+    fi
+  ],
+  [
+    build_libmpg123=no
+  ]
+)
+
+AC_ARG_ENABLE(libout123,
+  [AS_HELP_STRING([--enable-libout123], [build (only) libout123 (with --disable-components)])],
+  [
+    if test "x$enableval" = xyes
+    then
+      build_libout123=yes
+    else
+      build_libout123=no
+    fi
+  ],
+  [
+    build_libout123=no
+  ]
+)
+
+AC_ARG_ENABLE(libout123-modules,
+  [AS_HELP_STRING([--enable-libout123-modules], [build (only) libout123 modules (with --disable-components)])],
+  [
+    if test "x$enableval" = xyes
+    then
+      build_libout123_modules=yes
+    else
+      build_libout123_modules=no
+    fi
+  ],
+  [
+    build_libout123_modules=no
+  ]
+)
+
+AC_ARG_ENABLE(libsyn123,
+  [AS_HELP_STRING([--enable-libsyn123], [build (only) libsyn123 (with --disable-components)])],
+  [
+    if test "x$enableval" = xyes
+    then
+      build_libsyn123=yes
+    else
+      build_libsyn123=no
+    fi
+  ],
+  [
+    build_libsyn123=no
+  ]
+)
+
+if test "x$build_all" = xyes; then
+  build_programs=yes
+  build_libmpg123=yes
+  build_libout123=yes
+  build_libout123_modules=yes
+  build_libsyn123=yes
+  components="programs"
+else
+  build_programs=no
+fi
+
+AM_CONDITIONAL([BUILD_PROGRAMS],  [ test "x$build_programs" = xyes ])
+AM_CONDITIONAL([BUILD_LIBMPG123], [ test "x$build_libmpg123" = xyes ])
+AM_CONDITIONAL([BUILD_LIBOUT123], [ test "x$build_libout123" = xyes ])
+AM_CONDITIONAL([BUILD_LIBOUT123_MODULES], [ test "x$build_libout123_modules" = xyes ])
+AM_CONDITIONAL([BUILD_LIBSYN123], [ test "x$build_libsyn123" = xyes ])
+AM_CONDITIONAL([NEED_FMT123], [ test "x$build_libmpg123" = xyes || test "x$build_libout123" = xyes || test "x$build_libsyn123" = xyes ])
+# If we install libraries, prompting pkgconfig and include directories.
+AM_CONDITIONAL([NEED_LIB], [ test "x$build_libmpg123" = xyes || test "x$build_libout123" = xyes || test "x$build_libout123_modules" = xyes || test "x$build_libsyn123" = xyes ])
+AM_CONDITIONAL([NEED_MAINLIB], [ test "x$build_libmpg123" = xyes || test "x$build_libout123" = xyes || test "x$build_libsyn123" = xyes ])
+
+
+if test "x$build_libmpg123" = xyes; then
+  components="$components libmpg123"
+fi
+if test "x$build_libout123" = xyes; then
+  components="$components libout123"
+fi
+if test "x$build_libout123_modules" = xyes; then
+  components="$components libout123-modules"
+fi
+if test "x$build_libsyn123" = xyes; then
+  components="$components libsyn123"
+fi
+components=$(echo $components)
+
 dnl ############## Configurable Options
 
 AC_ARG_ENABLE(debug,
@@ -1754,7 +1867,7 @@ fi
 dnl ############## Output module choice
 
 # The full list of supported modules to check, first come, first serve.
-check_modules="pulse alsa tinyalsa oss coreaudio sndio sun win32 win32_wasapi os2 esd jack portaudio sdl nas arts openal dummy"
+check_modules="pulse alsa tinyalsa oss coreaudio sndio sun win32 win32_wasapi os2 esd jack portaudio sdl nas arts openal"
 # Only check qsa before all else on QNX.
 # It would mask ALSA otherwise.
 case $host in
@@ -1770,11 +1883,14 @@ check_forced=no
 check_failed=no
 if test "x$with_audio" != "x"; then
 	check_modules=`echo $with_audio|tr , ' '`
-	if ! echo "$check_modules" | grep -qw dummy; then
-		check_modules="$check_modules dummy"
-	fi
 	echo "Limiting outputs to build according to your preference: $check_modules"
 	check_forced=yes
+fi
+
+# Dummy output module is always built alongside libout123, but not
+# when just building the modules.
+if test "x$build_libout123" = xyes && ! echo "$check_modules" | grep -qw dummy; then
+	check_modules="$check_modules dummy"
 fi
 
 PKG_PROG_PKG_CONFIG([])
@@ -2774,119 +2890,6 @@ if test x"$ipv6" = xenabled; then
 		AC_MSG_WARN( [ You forced IPv6 code while I think there is no getaddrinfo() available! ] )
 	fi
 fi
-
-dnl ############## Component selection
-
-AC_ARG_ENABLE(components,
-  [AS_HELP_STRING([--disable-components], [(not) build end-user programs with default components, select individual components via --enable-libmpg123 etc.])],
-  [
-    if test "x$enableval" = xyes
-    then
-      build_all=yes
-    else
-      build_all=no
-    fi
-  ],
-  [
-    build_all=yes
-  ]
-)
-
-AC_ARG_ENABLE(libmpg123,
-  [AS_HELP_STRING([--enable-libmpg123], [build (only) libmpg123 (with --disable-components)])],
-  [
-    if test "x$enableval" = xyes
-    then
-      build_libmpg123=yes
-    else
-      build_libmpg123=no
-    fi
-  ],
-  [
-    build_libmpg123=no
-  ]
-)
-
-AC_ARG_ENABLE(libout123,
-  [AS_HELP_STRING([--enable-libout123], [build (only) libout123 (with --disable-components)])],
-  [
-    if test "x$enableval" = xyes
-    then
-      build_libout123=yes
-    else
-      build_libout123=no
-    fi
-  ],
-  [
-    build_libout123=no
-  ]
-)
-
-AC_ARG_ENABLE(libout123-modules,
-  [AS_HELP_STRING([--enable-libout123-modules], [build (only) libout123 modules (with --disable-components)])],
-  [
-    if test "x$enableval" = xyes
-    then
-      build_libout123_modules=yes
-    else
-      build_libout123_modules=no
-    fi
-  ],
-  [
-    build_libout123_modules=no
-  ]
-)
-
-AC_ARG_ENABLE(libsyn123,
-  [AS_HELP_STRING([--enable-libsyn123], [build (only) libsyn123 (with --disable-components)])],
-  [
-    if test "x$enableval" = xyes
-    then
-      build_libsyn123=yes
-    else
-      build_libsyn123=no
-    fi
-  ],
-  [
-    build_libsyn123=no
-  ]
-)
-
-if test "x$build_all" = xyes; then
-  build_programs=yes
-  build_libmpg123=yes
-  build_libout123=yes
-  build_libout123_modules=yes
-  build_libsyn123=yes
-  components="programs"
-else
-  build_programs=no
-fi
-
-AM_CONDITIONAL([BUILD_PROGRAMS],  [ test "x$build_programs" = xyes ])
-AM_CONDITIONAL([BUILD_LIBMPG123], [ test "x$build_libmpg123" = xyes ])
-AM_CONDITIONAL([BUILD_LIBOUT123], [ test "x$build_libout123" = xyes ])
-AM_CONDITIONAL([BUILD_LIBOUT123_MODULES], [ test "x$build_libout123_modules" = xyes ])
-AM_CONDITIONAL([BUILD_LIBSYN123], [ test "x$build_libsyn123" = xyes ])
-AM_CONDITIONAL([NEED_FMT123], [ test "x$build_libmpg123" = xyes || test "x$build_libout123" = xyes || test "x$build_libsyn123" = xyes ])
-# If we install libraries, prompting pkgconfig and include directories.
-AM_CONDITIONAL([NEED_LIB], [ test "x$build_libmpg123" = xyes || test "x$build_libout123" = xyes || test "x$build_libout123_modules" = xyes || test "x$build_libsyn123" = xyes ])
-AM_CONDITIONAL([NEED_MAINLIB], [ test "x$build_libmpg123" = xyes || test "x$build_libout123" = xyes || test "x$build_libsyn123" = xyes ])
-
-
-if test "x$build_libmpg123" = xyes; then
-  components="$components libmpg123"
-fi
-if test "x$build_libout123" = xyes; then
-  components="$components libout123"
-fi
-if test "x$build_libout123_modules" = xyes; then
-  components="$components libout123-modules"
-fi
-if test "x$build_libsyn123" = xyes; then
-  components="$components libsyn123"
-fi
-components=$(echo $components)
 
 dnl ############## Library cleanup
 

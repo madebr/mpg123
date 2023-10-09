@@ -7,9 +7,7 @@
 
 # For dynamic modules.
 if HAVE_MODULES
-if BUILD_LIBOUT123_MODULES
 include src/libout123/modules/Makemodule.am
-endif
 endif
 
 if NEED_MAINLIB
