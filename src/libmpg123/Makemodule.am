@@ -45,12 +45,9 @@ src_libmpg123_libmpg123_la_SOURCES = \
   src/libmpg123/parse.h \
   src/libmpg123/frame.c \
   src/libmpg123/format.c \
-  src/libmpg123/swap_bytes_impl.h \
   src/libmpg123/frame.h \
   src/libmpg123/reader.h \
-  src/libmpg123/debug.h \
   src/libmpg123/decode.h \
-  src/libmpg123/sample.h \
   src/libmpg123/dct64.c \
   src/libmpg123/synth.h \
   src/libmpg123/synth_mono.h \
@@ -63,7 +60,6 @@ src_libmpg123_libmpg123_la_SOURCES = \
   src/libmpg123/icy2utf8.h \
   src/libmpg123/id3.h \
   src/libmpg123/id3.c \
-  src/libmpg123/true.h \
   src/libmpg123/getbits.h \
   src/libmpg123/optimize.h \
   src/libmpg123/optimize.c \
@@ -74,7 +70,6 @@ src_libmpg123_libmpg123_la_SOURCES = \
   src/libmpg123/libmpg123.c \
   src/libmpg123/gapless.h \
   src/libmpg123/mpg123lib_intern.h \
-  src/libmpg123/abi_align.h \
   src/libmpg123/mangle.h \
   src/libmpg123/getcpuflags.h \
   src/libmpg123/index.h \
