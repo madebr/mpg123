@@ -472,7 +472,7 @@ AM_CONDITIONAL([BUILD_LIBSYN123], [ test "x$build_libsyn123" = xyes ])
 AM_CONDITIONAL([NEED_FMT123], [ test "x$build_libmpg123" = xyes || test "x$build_libout123" = xyes || test "x$build_libsyn123" = xyes ])
 # If we install libraries, prompting pkgconfig and include directories.
 AM_CONDITIONAL([NEED_LIB], [ test "x$build_libmpg123" = xyes || test "x$build_libout123" = xyes || test "x$build_libout123_modules" = xyes || test "x$build_libsyn123" = xyes ])
-AM_CONDITIONAL([NEED_MAINLIB], [ test "x$build_libmpg123" = xyes || test "x$build_libout123" = xyes || test "x$build_libsyn123" = xyes ])
+AM_CONDITIONAL([NEED_MAINLIB], [ test "x$build_libmpg123" = xyes || test "x$build_libout123" = xyes || test "x$build_libsyn123" = xyes || test "x$build_programs" = xyes ])
 
 
 if test "x$build_libmpg123" = xyes; then
@@ -2911,15 +2911,28 @@ dnl ############## Library cleanup
 
 PROG_LIBS=$LIBS
 LIBS=
-LIBMPG123_LIBS="$LIBM $COMPAT_LIBS"
-LIBSYN123_LIBS=$LIBM
-LIBOUT123_LIBS="$LIBRT $LIBM $COMPAT_LIBS"
+
+if test "x$build_libmpg123" = xyes; then
+  LIBMPG123_DEP_LIBS="$LIBM $COMPAT_LIBS"
+else
+  PKG_CHECK_MODULES(LIBMPG123, libmpg123, HAVE_LIBMPG123="yes", HAVE_LIBMPG123="no" check_failed=yes)
+fi
+if test "x$build_libsyn123" = xyes; then
+  LIBSYN123_DEP_LIBS=$LIBM
+else
+  PKG_CHECK_MODULES(LIBSYN123, libsyn123, HAVE_LIBSYN123="yes", HAVE_LIBSYN123="no" check_failed=yes)
+fi
+if test "x$build_libout123" = xyes; then
+  LIBOUT123_DEP_LIBS="$LIBRT $LIBM $COMPAT_LIBS"
+else
+  PKG_CHECK_MODULES(LIBOUT123, libout123, HAVE_LIBOUT123="yes", HAVE_LIBOUT123="no" check_failed=yes)
+fi
 
 AC_SUBST(PROG_LIBS)
 AC_SUBST(LIBM)
-AC_SUBST(LIBMPG123_LIBS)
-AC_SUBST(LIBSYN123_LIBS)
-AC_SUBST(LIBOUT123_LIBS)
+AC_SUBST(LIBMPG123_DEP_LIBS)
+AC_SUBST(LIBSYN123_DEP_LIBS)
+AC_SUBST(LIBOUT123_DEP_LIBS)
 
 dnl ############## Final Output
 
@@ -3034,8 +3047,8 @@ echo "  CFLAGS='$CFLAGS'"
 echo "  PROG_LIBS='$PROG_LIBS'"
 echo "       (derived from LIBS, only used for end-user binaries and modules)"
 echo "  LIBDL='$LIBDL'"
-echo "  LIBMPG123_LIBS='$LIBMPG123_LIBS'"
-echo "  LIBSYN123_LIBS='$LIBSYN123_LIBS'"
-echo "  LIBOUT123_LIBS='$LIBOUT123_LIBS'"
+echo "  LIBMPG123_DEP_LIBS='$LIBMPG123_DEP_LIBS'"
+echo "  LIBSYN123_DEP_LIBS='$LIBSYN123_DEP_LIBS'"
+echo "  LIBOUT123_DEP_LIBS='$LIBOUT123_DEP_LIBS'"
 echo
 echo "Next type 'make' and then 'make install'."

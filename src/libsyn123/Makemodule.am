@@ -18,7 +18,7 @@ src_libsyn123_libsyn123_la_LDFLAGS = \
 
 src_libsyn123_libsyn123_la_LIBADD = \
   src/compat/libcompat_str.la \
-  @LIBSYN123_LIBS@
+  @LIBSYN123_DEP_LIBS@
 
 src_libsyn123_libsyn123_la_SOURCES = \
   src/libsyn123/syn123.h \

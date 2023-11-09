@@ -8,5 +8,5 @@ Description: A signal synthesis library accompanying mpg123
 Requires: 
 Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -lsyn123 
-Libs.private: @LIBSYN123_LIBS@
+Libs.private: @LIBSYN123_DEP_LIBS@
 Cflags: -I${includedir} 

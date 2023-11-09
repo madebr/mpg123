@@ -4,10 +4,26 @@ include src/tests/Makemodule.am
 include src/compat/Makemodule.am
 include src/common/Makemodule.am
 if NEED_LIB
+if BUILD_LIBOUT123
 include src/libout123/Makemodule.am
+LIBOUT123_LINK_LIBS = src/libout123/libout123.la
+else
+LIBOUT123_LINK_LIBS = @LIBOUT123_LIBS@
+endif
 if NEED_MAINLIB
+if BUILD_LIBMPG123
 include src/libmpg123/Makemodule.am
+LIBMPG123_LINK_LIBS = src/libmpg123/libmpg123.la
+else
+LIBMPG123_LINK_LIBS = @LIBMPG123_LIBS@
+endif
+
+if BUILD_LIBSYN123
 include src/libsyn123/Makemodule.am
+LIBSYN123_LINK_LIBS = src/libsyn123/libsyn123.la
+else
+LIBSYN123_LINK_LIBS = @LIBSYN123_LIBS@
+endif
 endif
 endif
 
@@ -23,17 +39,17 @@ endif
 
 src_mpg123_LDADD = \
   src/compat/libcompat.la \
-  src/libmpg123/libmpg123.la \
-  src/libout123/libout123.la \
-  src/libsyn123/libsyn123.la \
+  ${LIBMPG123_LINK_LIBS} \
+  ${LIBOUT123_LINK_LIBS} \
+  ${LIBSYN123_LINK_LIBS} \
   @PROG_LIBS@
 
 src_mpg123_LDFLAGS = @EXEC_LT_LDFLAGS@
 
 src_out123_LDADD = \
   src/compat/libcompat.la \
-  src/libsyn123/libsyn123.la \
-  src/libout123/libout123.la \
+  ${LIBSYN123_LINK_LIBS} \
+  ${LIBOUT123_LINK_LIBS} \
   @PROG_LIBS@
 
 src_out123_LDFLAGS = @EXEC_LT_LDFLAGS@
@@ -47,12 +63,12 @@ CLEANFILES += src/*.a
 
 src_mpg123_id3dump_LDADD = \
   src/compat/libcompat.la \
-  src/libmpg123/libmpg123.la \
+  ${LIBMPG123_LINK_LIBS} \
   @PROG_LIBS@
 
 src_mpg123_strip_LDADD = \
   src/compat/libcompat.la \
-  src/libmpg123/libmpg123.la \
+  ${LIBMPG123_LINK_LIBS} \
   @PROG_LIBS@
 
 src_mpg123_SOURCES = \
