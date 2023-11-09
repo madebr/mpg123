@@ -440,6 +440,21 @@ AC_ARG_ENABLE(libsyn123,
   ]
 )
 
+AC_ARG_ENABLE(programs,
+  [AS_HELP_STRING([--enable-programs], [build (only) programs (with --disable-components)])],
+  [
+    if test "x$enableval" = xyes
+    then
+      build_programs=yes
+    else
+      build_programs=no
+    fi
+  ],
+  [
+    build_programs=no
+  ]
+)
+
 if test "x$build_all" = xyes; then
   build_programs=yes
   build_libmpg123=yes
@@ -447,8 +462,6 @@ if test "x$build_all" = xyes; then
   build_libout123_modules=yes
   build_libsyn123=yes
   components="programs"
-else
-  build_programs=no
 fi
 
 AM_CONDITIONAL([BUILD_PROGRAMS],  [ test "x$build_programs" = xyes ])
@@ -473,6 +486,9 @@ if test "x$build_libout123_modules" = xyes; then
 fi
 if test "x$build_libsyn123" = xyes; then
   components="$components libsyn123"
+fi
+if test "x$build_programs" = xyes; then
+  components="$components programs"
 fi
 components=$(echo $components)
 
