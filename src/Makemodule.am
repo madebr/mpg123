@@ -2,6 +2,7 @@
 
 include src/tests/Makemodule.am
 include src/compat/Makemodule.am
+include src/common/Makemodule.am
 if NEED_LIB
 include src/libout123/Makemodule.am
 if NEED_MAINLIB

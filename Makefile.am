@@ -38,12 +38,7 @@ AM_CPPFLAGS += \
   $(LTDLINCL) \
   -I$(top_srcdir)/src \
   -I$(top_srcdir)/src/compat \
-  -I$(top_srcdir)/src/libmpg123 \
-  -I$(top_srcdir)/src/libsyn123 \
-  -I$(top_srcdir)/src/libout123 \
-  -I$(top_builddir)/src/libmpg123 \
-  -I$(top_builddir)/src/libsyn123 \
-  -I$(top_builddir)/src/libout123
+  -I$(top_srcdir)/src/common
 
 # Include Make modules from subdirectories.
 include src/Makemodule.am
@@ -53,15 +48,18 @@ if NEED_MAINLIB
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = 
 
-# Stuff from this directory.
+# Pkg-config files and library includes.
 if BUILD_LIBMPG123
 pkgconfig_DATA += libmpg123.pc
+AM_CPPFLAGS += -I$(top_srcdir)/src/libmpg123
 endif
 if BUILD_LIBOUT123
 pkgconfig_DATA += libout123.pc
+AM_CPPFLAGS += -I$(top_srcdir)/src/libout123
 endif
 if BUILD_LIBSYN123
 pkgconfig_DATA += libsyn123.pc
+AM_CPPFLAGS += -I$(top_srcdir)/src/libsyn123
 endif
 endif
 

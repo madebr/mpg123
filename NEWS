@@ -1,6 +1,7 @@
 1.32.4
 ------
 - build:
+-- Reorganize shared headers.
 -- Group C99 feature checks and make several standard headers
    mandatory.
 -- Get rid of SIZE_P, OFF_P and friends.
