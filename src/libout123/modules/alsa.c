@@ -17,7 +17,7 @@
 /* Things are still missing if _DEFAULT_SOURCE is not defined (for recent
    glibc, I presume. */
 #define _DEFAULT_SOURCE
-#include "out123_int.h"
+#include "../out123_int.h"
 #include <errno.h>
 
 /* make ALSA 0.9.x compatible to the 1.0.x API */

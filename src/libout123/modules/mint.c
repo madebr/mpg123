@@ -6,7 +6,7 @@
 	initially written by Petr Stehlik
 */
 
-#include "out123_int.h"
+#include "../out123_int.h"
 
 /* derived from LINUX, VOXWARE and SUN for MiNT Audio Device by Petr Stehlik */
 #include <fcntl.h>

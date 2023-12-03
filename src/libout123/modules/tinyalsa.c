@@ -7,7 +7,7 @@
 	initially written by Jarno Lehtinen <lehtinen@sci.fi>
 */
 
-#include "out123_int.h"
+#include "../out123_int.h"
 #include <errno.h>
 
 #include <tinyalsa/asoundlib.h>

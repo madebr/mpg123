@@ -9,7 +9,7 @@
 */
 
 
-#include "out123_int.h"
+#include "../out123_int.h"
 
 /* has been around since at least 10.4 */
 #include <AvailabilityMacros.h>
@@ -44,7 +44,7 @@
 
 /* Including the sfifo code locally, to avoid module linkage issues. */
 #define SFIFO_STATIC
-#include "sfifo.c"
+#include "../sfifo.c"
 
 #include "debug.h"
 

@@ -380,6 +380,21 @@ AC_ARG_ENABLE(components,
   ]
 )
 
+AC_ARG_ENABLE(programs,
+  [AS_HELP_STRING([--enable-programs], [build (only) programs (with --disable-components)])],
+  [
+    if test "x$enableval" = xyes
+    then
+      build_programs=yes
+    else
+      build_programs=no
+    fi
+  ],
+  [
+    build_programs=no
+  ]
+)
+
 AC_ARG_ENABLE(libmpg123,
   [AS_HELP_STRING([--enable-libmpg123], [build (only) libmpg123 (with --disable-components)])],
   [
@@ -446,34 +461,69 @@ if test "x$build_all" = xyes; then
   build_libout123=yes
   build_libout123_modules=yes
   build_libsyn123=yes
-  components="programs"
-else
-  build_programs=no
 fi
 
 AM_CONDITIONAL([BUILD_PROGRAMS],  [ test "x$build_programs" = xyes ])
 AM_CONDITIONAL([BUILD_LIBMPG123], [ test "x$build_libmpg123" = xyes ])
 AM_CONDITIONAL([BUILD_LIBOUT123], [ test "x$build_libout123" = xyes ])
 AM_CONDITIONAL([BUILD_LIBOUT123_MODULES], [ test "x$build_libout123_modules" = xyes ])
+AM_CONDITIONAL([BUILD_LIBOUT123_OR_MODULES], [ test "x$build_libout123" = xyes || test "x$build_libout123_modules" = xyes ])
 AM_CONDITIONAL([BUILD_LIBSYN123], [ test "x$build_libsyn123" = xyes ])
-AM_CONDITIONAL([NEED_FMT123], [ test "x$build_libmpg123" = xyes || test "x$build_libout123" = xyes || test "x$build_libsyn123" = xyes ])
 # If we install libraries, prompting pkgconfig and include directories.
 AM_CONDITIONAL([NEED_LIB], [ test "x$build_libmpg123" = xyes || test "x$build_libout123" = xyes || test "x$build_libout123_modules" = xyes || test "x$build_libsyn123" = xyes ])
 AM_CONDITIONAL([NEED_MAINLIB], [ test "x$build_libmpg123" = xyes || test "x$build_libout123" = xyes || test "x$build_libsyn123" = xyes ])
 
+dnl Some support for using separately installed lib*123. This is not perfect,
+dnl with per-library CFLAGS just being lumped into global CFLAGS. So do not
+dnl expect to mix differing prefixes with possibly conflicting versions of
+dnl the libraries. The expectation is a version matching this source distribution,
+dnl anyway.
 
+missing_lib=no
+
+components=""
+
+if test "x$build_programs" = xyes; then
+  components="$components programs"
+fi
+
+LIBMPG123_LD=abugifused
 if test "x$build_libmpg123" = xyes; then
   components="$components libmpg123"
+elif test "x$build_programs" = xyes; then
+  PKG_CHECK_MODULES(LIBMPG123_PKG, libmpg123, HAVE_LIBMPG123="yes", HAVE_LIBMPG123="no" missing_lib=yes)
+  CFLAGS="$CFLAGS $LIBMPG123_PKG_CFLAGS"
+  LIBMPG123_LD="$LIBMPG123_PKG_LIBS"
 fi
+LIBOUT123_LD=abugifused
 if test "x$build_libout123" = xyes; then
   components="$components libout123"
+elif test "x$build_programs" = xyes; then
+  PKG_CHECK_MODULES(LIBOUT123_PKG, libout123, HAVE_LIBOUT123="yes", HAVE_LIBOUT123="no" missing_lib=yes)
+  CFLAGS="$CFLAGS $LIBOUT123_PKG_CFLAGS"
+  LIBOUT123_LD="$LIBOUT123_PKG_LIBS"
 fi
 if test "x$build_libout123_modules" = xyes; then
   components="$components libout123-modules"
 fi
+LIBSYN123=abugifused
 if test "x$build_libsyn123" = xyes; then
   components="$components libsyn123"
+elif test "x$build_programs" = xyes; then
+  PKG_CHECK_MODULES(LIBSYN123_PKG, libsyn123, HAVE_LIBSYN123="yes", HAVE_LIBSYN123="no" missing_lib=yes)
+  CFLAGS="$CFLAGS $LIBSYN123_PKG_CFLAGS"
+  LIBSYN123_LD="$LIBSYN123_PKG_LIBS"
 fi
+
+if test "x$missing_lib" = xyes; then
+  AC_MSG_ERROR([Missing an external mpg123 library for the programs.])
+fi
+
+dnl Stupid names because @foo@ cannot coexist with foo.
+AC_SUBST(LIBMPG123_LD)
+AC_SUBST(LIBOUT123_LD)
+AC_SUBST(LIBSYN123_LD)
+
 components=$(echo $components)
 
 dnl ############## Configurable Options

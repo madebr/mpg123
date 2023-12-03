@@ -6,7 +6,7 @@
 	initially written by Nicholas J. Humfrey
 */
 
-#include "out123_int.h"
+#include "../out123_int.h"
 
 #include <stdlib.h>
 #include <stdio.h>

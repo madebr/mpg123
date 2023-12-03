@@ -7,6 +7,12 @@
 -- Get rid of SIZE_P, OFF_P and friends.
 -- Only enforce dummy module together with libout123, to be able
    to build individual modules using --disable-components logic.
+-- Allow building of programs with installed mpg123 libraries (--enable-programs,
+   using pkg-config to locate libmpg123 et al., prompted by
+   https://github.com/madebr/mpg123/pull/11).
+-- Only libmpg123 component installs fmt123.h.
+- out123:
+-- added --libversion
 
 1.32.3
 ------

@@ -761,6 +761,7 @@ src_libout123_modules_libdefaultmodule_la_CPPFLAGS = \
 endif
 endif
 
+if BUILD_LIBOUT123_OR_MODULES
 if HAVE_MODULES
 # Get rid of .la files, at least _after_ install.
 install-exec-hook:
@@ -768,4 +769,5 @@ install-exec-hook:
 # The above breaks uninstall of module .so files?
 uninstall-hook:
 	for m in @output_modules_la@; do eval $$(grep dlname= src/libout123/modules/$$m) && rm -f $(DESTDIR)$(pkglibdir)/$$dlname; done
+endif
 endif

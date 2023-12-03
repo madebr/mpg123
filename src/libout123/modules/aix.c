@@ -8,7 +8,7 @@
 	untested since quite some years now ...
 */
 
-#include "out123_int.h"
+#include "../out123_int.h"
 
 #include <stdio.h>
 #include <unistd.h>
