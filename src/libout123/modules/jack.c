@@ -14,7 +14,7 @@
 	There's always a deadlock. --ThOr
 */
 
-#include "out123_int.h"
+#include "../out123_int.h"
 
 #include <math.h>
 

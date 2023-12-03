@@ -5,7 +5,7 @@
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 */
 
-#include "out123_int.h"
+#include "../out123_int.h"
 #include "debug.h"
 
 static int open_dummy(out123_handle *ao)

@@ -7,7 +7,7 @@
     written by Mike Gorchak <mike.gorchak.qnx@gmail.com>
 */
 
-#include "out123_int.h"
+#include "../out123_int.h"
 #include <errno.h>
 
 #include <stdint.h>

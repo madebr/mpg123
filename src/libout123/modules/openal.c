@@ -10,7 +10,7 @@
 #define _DEFAULT_SOURCE
 #define _BSD_SOURCE
 
-#include "out123_int.h"
+#include "../out123_int.h"
 
 #ifdef OPENAL_SUBDIR_OPENAL
 	#include <OpenAL/al.h>

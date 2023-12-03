@@ -6,7 +6,7 @@
 	initially written by Samuel Audet
 */
 
-#include "out123_int.h"
+#include "../out123_int.h"
 
 #undef VERSION /* The VERSION macro conflicts with the OS/2 multimedia headers */
 
