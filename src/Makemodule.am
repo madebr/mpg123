@@ -23,17 +23,17 @@ endif
 
 src_mpg123_LDADD = \
   src/compat/libcompat.la \
-  @LIBMPG123@ \
-  @LIBOUT123@ \
-  @LIBSYN123@ \
+  $(LIBMPG123) \
+  $(LIBOUT123) \
+  $(LIBSYN123) \
   @PROG_LIBS@
 
 src_mpg123_LDFLAGS = @EXEC_LT_LDFLAGS@
 
 src_out123_LDADD = \
   src/compat/libcompat.la \
-  @LIBSYN123@ \
-  @LIBOUT123@ \
+  $(LIBSYN123) \
+  $(LIBOUT123) \
   @PROG_LIBS@
 
 src_out123_LDFLAGS = @EXEC_LT_LDFLAGS@
@@ -47,12 +47,12 @@ CLEANFILES += src/*.a
 
 src_mpg123_id3dump_LDADD = \
   src/compat/libcompat.la \
-  @LIBMPG123@ \
+  $(LIBMPG123) \
   @PROG_LIBS@
 
 src_mpg123_strip_LDADD = \
   src/compat/libcompat.la \
-  @LIBMPG123@ \
+  $(LIBMPG123) \
   @PROG_LIBS@
 
 src_mpg123_SOURCES = \

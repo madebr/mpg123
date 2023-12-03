@@ -487,47 +487,42 @@ if test "x$build_programs" = xyes; then
   components="$components programs"
 fi
 
+LIBMPG123_LD=abugifused
 if test "x$build_libmpg123" = xyes; then
   components="$components libmpg123"
-  LIBMPG123=src/libmpg123/libmpg123.la
 elif test "x$build_programs" = xyes; then
   PKG_CHECK_MODULES(LIBMPG123_PKG, libmpg123, HAVE_LIBMPG123="yes", HAVE_LIBMPG123="no" missing_lib=yes)
   CFLAGS="$CFLAGS $LIBMPG123_PKG_CFLAGS"
-  LIBMPG123="$LIBMPG123_PKG_LIBS"
-else
-  LIBMPG123=abugifused
+  LIBMPG123_LD="$LIBMPG123_PKG_LIBS"
 fi
+LIBOUT123_LD=abugifused
 if test "x$build_libout123" = xyes; then
   components="$components libout123"
-  LIBOUT123=src/libout123/libout123.la
 elif test "x$build_programs" = xyes; then
   PKG_CHECK_MODULES(LIBOUT123_PKG, libout123, HAVE_LIBOUT123="yes", HAVE_LIBOUT123="no" missing_lib=yes)
   CFLAGS="$CFLAGS $LIBOUT123_PKG_CFLAGS"
-  LIBOUT123="$LIBOUT123_PKG_LIBS"
-else
-  LIBOUT123=abugifused
+  LIBOUT123_LD="$LIBOUT123_PKG_LIBS"
 fi
 if test "x$build_libout123_modules" = xyes; then
   components="$components libout123-modules"
 fi
+LIBSYN123=abugifused
 if test "x$build_libsyn123" = xyes; then
   components="$components libsyn123"
-  LIBSYN123=src/libsyn123/libsyn123.la
 elif test "x$build_programs" = xyes; then
   PKG_CHECK_MODULES(LIBSYN123_PKG, libsyn123, HAVE_LIBSYN123="yes", HAVE_LIBSYN123="no" missing_lib=yes)
   CFLAGS="$CFLAGS $LIBSYN123_PKG_CFLAGS"
-  LIBSYN123="$LIBSYN123_PKG_LIBS"
-else
-  LIBSYN123=abugifused
+  LIBSYN123_LD="$LIBSYN123_PKG_LIBS"
 fi
 
 if test "x$missing_lib" = xyes; then
   AC_MSG_ERROR([Missing an external mpg123 library for the programs.])
 fi
 
-AC_SUBST(LIBMPG123)
-AC_SUBST(LIBOUT123)
-AC_SUBST(LIBSYN123)
+dnl Stupid names because @foo@ cannot coexist with foo.
+AC_SUBST(LIBMPG123_LD)
+AC_SUBST(LIBOUT123_LD)
+AC_SUBST(LIBSYN123_LD)
 
 components=$(echo $components)
 
