@@ -77,6 +77,7 @@ static void long_usage(int err);
 static void want_long_usage(char* arg, topt *opts);
 static void print_title(FILE* o);
 static void give_version(char* arg, topt *opts);
+static void give_libversion(char* arg, topt *);
 
 static int verbose = 0;
 static int quiet = FALSE;
@@ -658,6 +659,7 @@ topt opts[] = {
 	{'?', "help",            0,  want_usage, 0,           0 },
 	{0 , "longhelp" ,        0,  want_long_usage, 0,      0 },
 	{0 , "version" ,         0,  give_version, 0,         0 },
+	{0 , "libversion" ,      0,  give_libversion, 0,      0 },
 	{'e', "encoding", GLO_ARG|GLO_CHAR, 0, &encoding_name, 0},
 	{0, "endian",     GLO_ARG|GLO_CHAR, set_out_endian, 0, 0},
 	{'E', "inputenc", GLO_ARG|GLO_CHAR, 0, &inputenc_name, 0},
@@ -1939,3 +1941,14 @@ static void give_version(char* arg, topt *opts)
 	fprintf(stdout, "out123 "MPG123_VERSION"\n");
 	safe_exit(0);
 }
+
+static void give_libversion(char* arg, topt *opts)
+{
+	unsigned int pl = 0;
+	unsigned int al = out123_libversion(&pl);
+	printf("libout123 from mpg123 %s, API version %u, patchlevel %u\n", out123_distversion(NULL, NULL, NULL), al, pl);
+	al = syn123_libversion(&pl);
+	printf("libsyn123 from mpg123 %s, API version %u, patchlevel %u\n", syn123_distversion(NULL, NULL, NULL), al, pl);
+	safe_exit(0);
+}
+
