@@ -28,7 +28,6 @@ endif
 endif
 
 src_libout123_libout123_la_SOURCES = \
-  src/libout123/out123.h \
   src/libout123/libout123.c \
   src/libout123/stringlists.h \
   src/libout123/stringlists.c \
