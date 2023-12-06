@@ -21,7 +21,6 @@ src_libsyn123_libsyn123_la_LIBADD = \
   @LIBSYN123_LIBS@
 
 src_libsyn123_libsyn123_la_SOURCES = \
-  src/libsyn123/syn123.h \
   src/libsyn123/syn123_int.h \
   src/libsyn123/g711_impl.h \
   src/libsyn123/pinknoise.c \
