@@ -18,7 +18,7 @@ if !HAVE_MODULES
 include src/libout123/modules/Makemodule.am
 endif
 
-include_HEADERS += src/libout123/out123.h
+include_HEADERS += src/include/out123.h
 
 noinst_LTLIBRARIES += src/libout123/libmodule.la
 

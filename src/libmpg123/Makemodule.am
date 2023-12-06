@@ -20,10 +20,7 @@ src_libmpg123_calctables_LDADD = @LIBM@
 
 if BUILD_LIBMPG123
 lib_LTLIBRARIES += src/libmpg123/libmpg123.la
-include_HEADERS += src/libmpg123/mpg123.h
-# All libs need it, but only libmpg123 installs it.
-# Placing it in src/ helps other components to always find it.
-include_HEADERS += src/fmt123.h
+include_HEADERS += src/include/mpg123.h
 endif
 
 src_libmpg123_libmpg123_la_CFLAGS = @LIB_CFLAGS@
@@ -39,7 +36,6 @@ src_libmpg123_libmpg123_la_DEPENDENCIES = \
   src/compat/libcompat.la
 
 src_libmpg123_libmpg123_la_SOURCES = \
-  src/fmt123.h \
   src/libmpg123/mpeghead.h \
   src/libmpg123/parse.c \
   src/libmpg123/parse.h \

@@ -33,7 +33,7 @@ check_PROGRAMS =
 AM_CPPFLAGS = -DPKGLIBDIR="\"$(pkglibdir)\""
 # That can be trimmed down later when adapting the sources to
 # use relative paths for includes.
-# Watch out for generated headers (that's why top_builddir is also present).
+# TODO: Actually do more relative includes.
 AM_CPPFLAGS += \
   $(LTDLINCL) \
   -I$(top_srcdir)/src \
@@ -64,6 +64,9 @@ endif
 include src/Makemodule.am
 include doc/Makemodule.am
 
+# Always use our set of API headers.
+AM_CPPFLAGS+= -I$(top_srcdir)/src/include
+
 if NEED_MAINLIB
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = 
@@ -71,15 +74,12 @@ pkgconfig_DATA =
 # Pkg-config files and library includes.
 if BUILD_LIBMPG123
 pkgconfig_DATA += libmpg123.pc
-AM_CPPFLAGS += -I$(top_srcdir)/src/libmpg123
 endif
 if BUILD_LIBOUT123
 pkgconfig_DATA += libout123.pc
-AM_CPPFLAGS += -I$(top_srcdir)/src/libout123
 endif
 if BUILD_LIBSYN123
 pkgconfig_DATA += libsyn123.pc
-AM_CPPFLAGS += -I$(top_srcdir)/src/libsyn123
 endif
 endif
 
