@@ -11,11 +11,11 @@
 #define _BSD_SOURCE
 #include "config.h"
 #include "stringlists.h"
-#include "compat.h"
+#include "../compat/compat.h"
 #include <errno.h>
 
 #include "module.h"
-#include "debug.h"
+#include "../common/debug.h"
 
 #ifndef USE_MODULES
 #error This is a build without modules. Why am I here?

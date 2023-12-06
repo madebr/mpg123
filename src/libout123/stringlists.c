@@ -10,7 +10,7 @@
 	functions just for returning driver module lists.
 */
 
-#include "compat.h"
+#include "../compat/compat.h"
 #include "out123.h"
 
 static char* always_strdup(const char *in)

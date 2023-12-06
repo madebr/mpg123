@@ -27,7 +27,7 @@
 #include <alloca.h> /* GCC complains about missing declaration of alloca. */
 #include <alsa/asoundlib.h>
 
-#include "debug.h"
+#include "../../common/debug.h"
 
 /* Total buffer size in seconds, 0.2 is more true to what ALSA maximally uses
    here (8192 samples). The earlier default of 0.5 was never true. */

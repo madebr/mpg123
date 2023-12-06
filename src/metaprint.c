@@ -19,7 +19,7 @@
 
 #include "metaprint.h"
 
-#include "debug.h"
+#include "common/debug.h"
 
 int meta_show_lyrics = 0;
 

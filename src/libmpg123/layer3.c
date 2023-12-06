@@ -21,7 +21,7 @@
 #include "huffman.h"
 #endif
 #include "getbits.h"
-#include "debug.h"
+#include "../common/debug.h"
 
 
 

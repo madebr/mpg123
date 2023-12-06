@@ -25,7 +25,7 @@
 #include <errno.h>
 #include <unistd.h>
 
-#include "debug.h"
+#include "../../common/debug.h"
 
 #define NUM_BUFFERS 16
 

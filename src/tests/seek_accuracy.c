@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include "mpg123.h"
-#include "compat.h"
+#include "../compat/compat.h"
 
 #define SAMPLES 187
 /* Cannot use the const value as fixed array size:-( */

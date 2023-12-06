@@ -22,7 +22,7 @@
 #include <os2.h>
 #endif
 
-#include "compat.h"
+#include "compat/compat.h"
 
 #ifndef HAVE_TERMIOS
 #error "No TERMIOS? Here?"
@@ -36,7 +36,7 @@
 
 #include "terms.h"
 
-#include "debug.h"
+#include "common/debug.h"
 
 static int term_is_fun = -1;
 // This now always refers to a ;freshly opened terminal descriptor (e.g. /dev/tty).

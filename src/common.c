@@ -18,7 +18,7 @@
 #include "terms.h"
 #include "metaprint.h"
 
-#include "debug.h"
+#include "common/debug.h"
 
 enum player_state playstate = STATE_PLAYING;
 const char playsym[STATE_COUNT] = { '>', '_', '=', '?' };

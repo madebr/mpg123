@@ -21,7 +21,7 @@
 #include <mmdeviceapi.h>
 #include <avrt.h>
 #include <functiondiscoverykeys_devpkey.h>
-#include "debug.h"
+#include "../../common/debug.h"
 
 #ifdef _MSC_VER
 

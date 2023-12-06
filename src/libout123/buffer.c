@@ -45,7 +45,7 @@
 #endif
 #endif
 
-#include "debug.h"
+#include "../common/debug.h"
 
 #define BUF_CMD_OPEN     XF_CMD_CUSTOM1
 #define BUF_CMD_CLOSE    XF_CMD_CUSTOM2

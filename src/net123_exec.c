@@ -26,9 +26,9 @@
 // Just for parameter struct that we use for HTTP auth and proxy info.
 #include "mpg123app.h"
 
-#include "compat.h"
+#include "compat/compat.h"
 
-#include "debug.h"
+#include "common/debug.h"
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>

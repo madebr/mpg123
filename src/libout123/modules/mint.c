@@ -12,7 +12,7 @@
 #include <fcntl.h>
 #include <ioctl.h>
 #include <audios.h>
-#include "debug.h"
+#include "../../common/debug.h"
 
 /* Globals */
 /* extern int outburst; */

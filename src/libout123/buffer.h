@@ -17,7 +17,7 @@
 #define _MPG123_BUFFER_H_
 
 #include "out123_int.h"
-#include "compat.h"
+#include "../compat/compat.h"
 
 int  INT123_buffer_init(out123_handle *ao, size_t bytes);
 void INT123_buffer_exit(out123_handle *ao);

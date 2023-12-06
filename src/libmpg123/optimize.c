@@ -12,7 +12,7 @@
 #define WANT_GETCPUFLAGS
 #include "mpg123lib_intern.h" /* includes optimize.h */
 #include "getcpuflags.h"
-#include "debug.h"
+#include "../common/debug.h"
 
 
 /* Ugly macros to build conditional synth function array values. */

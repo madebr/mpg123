@@ -16,7 +16,7 @@
 #include "streamdump.h"
 #include <fcntl.h>
 #include <errno.h>
-#include "debug.h"
+#include "common/debug.h"
 
 #ifndef O_BINARY
 #define O_BINARY 0

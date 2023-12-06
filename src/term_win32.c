@@ -14,7 +14,7 @@
 
 
 #include "config.h"
-#include "compat.h"
+#include "compat/compat.h"
 
 #include "terms.h"
 
@@ -24,7 +24,7 @@
 #include <windows.h>
 #include <wincon.h>
 
-#include "debug.h"
+#include "common/debug.h"
 
 static HANDLE consoleintput = INVALID_HANDLE_VALUE;
 static HANDLE consoleoutput = INVALID_HANDLE_VALUE;

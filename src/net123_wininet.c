@@ -1,8 +1,8 @@
 #include "config.h"
 #include "version.h"
 #include "net123.h"
-#include "compat.h"
-#include "debug.h"
+#include "compat/compat.h"
+#include "common/debug.h"
 #include <ws2tcpip.h>
 #include <wininet.h>
 

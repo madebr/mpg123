@@ -17,8 +17,8 @@
 #ifdef LFS_LARGEFILE_64
 #define _LARGEFILE64_SOURCE
 #endif
-#include "abi_align.h"
-#include "compat.h"
+#include "../common/abi_align.h"
+#include "../compat/compat.h"
 
 #define SYN123_NO_LARGEFUNC
 #include "syn123.h"

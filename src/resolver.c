@@ -16,7 +16,7 @@
 #include "mpg123app.h"
 
 #ifdef NETWORK
-#include "true.h"
+#include "common/true.h"
 #include "resolver.h"
 #if !defined (WANT_WIN32_SOCKETS)
 #include <netdb.h>
@@ -39,7 +39,7 @@
 #include <sys/types.h>
 #endif
 #include <unistd.h>
-#include "debug.h"
+#include "common/debug.h"
 
 int split_url(mpg123_string *url, mpg123_string *auth, mpg123_string *host, mpg123_string *port, mpg123_string *path)
 {

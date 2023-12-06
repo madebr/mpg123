@@ -341,8 +341,6 @@ option(USE_NEW_HUFFTABLE "use new huffman decoding scheme by Taihei (faster on m
 include_directories(
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/"
     "${CMAKE_CURRENT_BINARY_DIR}"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/compat"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/common"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/include")
 
 add_compile_definitions(

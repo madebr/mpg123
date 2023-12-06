@@ -8,9 +8,9 @@
 */
 
 #include "config.h"
-#include "compat.h"
+#include "compat/compat.h"
 #include "getlopt.h"
-#include "debug.h"
+#include "common/debug.h"
 
 int loptind = 1;	/* index in argv[] */
 int loptchr = 0;	/* index in argv[loptind] */

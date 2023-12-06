@@ -20,9 +20,9 @@
 */
 
 #include "syn123_int.h"
-#include "version.h"
-#include "sample.h"
-#include "debug.h"
+#include "../version.h"
+#include "../common/sample.h"
+#include "../common/debug.h"
 
 const char * attribute_align_arg syn123_distversion(unsigned int *major, unsigned int *minor, unsigned int *patch)
 {

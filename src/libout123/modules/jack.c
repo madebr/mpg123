@@ -26,7 +26,7 @@
 #include <semaphore.h>
 #include <sys/errno.h>
 
-#include "debug.h"
+#include "../../common/debug.h"
 
 typedef struct {
 	int alive;

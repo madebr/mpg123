@@ -47,7 +47,7 @@
 #  endif
 #endif
 
-#include "debug.h"
+#include "../common/debug.h"
 
 #include "wpathconv.h"
 

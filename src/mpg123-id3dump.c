@@ -11,7 +11,7 @@
 #define _BSD_SOURCE
 #include "config.h"
 #include "version.h"
-#include "compat.h"
+#include "compat/compat.h"
 #if defined(WIN32) && defined(DYNAMIC_BUILD)
 #define LINK_MPG123_DLL
 #endif
@@ -21,7 +21,7 @@
 #include <ctype.h>
 #include "win32_support.h"
 
-#include "debug.h"
+#include "common/debug.h"
 
 static int errors = 0;
 
