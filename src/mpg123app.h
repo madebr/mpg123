@@ -22,7 +22,7 @@
 #endif
 
 /* everyone needs it */
-#include "compat.h"
+#include "compat/compat.h"
 /* import DLL symbols on windows */
 
 #include "httpget.h"

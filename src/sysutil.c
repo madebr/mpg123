@@ -10,7 +10,7 @@
 #include <sys/stat.h>
 #include "sysutil.h"
 
-#include "debug.h"
+#include "common/debug.h"
 
 #if 0
 /* removed the strndup for better portability */

@@ -2,7 +2,7 @@
 #include <syn123.h>
 #include <out123.h>
 
-#include "compat.h"
+#include "../compat/compat.h"
 
 static long block_rate(long rate, double speed, double factor, off_t bi)
 {

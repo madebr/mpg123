@@ -22,7 +22,7 @@
 #include "local.h"
 #include "metaprint.h"
 #include <time.h> /* For srand(). */
-#include "debug.h"
+#include "common/debug.h"
 
 #ifdef HAVE_RANDOM
 #define RAND random

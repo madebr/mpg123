@@ -9,7 +9,7 @@
 */
 
 #include <mpg123.h>
-#include <compat.h>
+#include "../compat/compat.h"
 
 #include "testtext.h"
 

@@ -22,7 +22,7 @@
 #ifdef HAVE_LANGINFO_H
 #include <langinfo.h>
 #endif
-#include "compat.h"
+#include "compat/compat.h"
 
 #include "local.h"
 
@@ -39,7 +39,7 @@
 #include <wincon.h>
 #endif
 
-#include "debug.h"
+#include "common/debug.h"
 
 int utf8force = 0; // enforce UTF-8 workings
 int utf8env = 0; // produce UTF-8 text output

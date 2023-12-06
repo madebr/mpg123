@@ -19,8 +19,8 @@
 #define NO_SMAX
 #define RAND_XORSHIFT32
 #include "syn123_int.h"
-#include "sample.h"
-#include "debug.h"
+#include "../common/sample.h"
+#include "../common/debug.h"
 // Avoid conflict with pragmas in isnan() and friends.
 #undef warning
 
@@ -988,7 +988,7 @@ mix_end:
 
 /* All the byte-swappery for those little big endian boxes. */
 
-#include "swap_bytes_impl.h"
+#include "../common/swap_bytes_impl.h"
 
 void attribute_align_arg
 syn123_swap_bytes(void* buf, size_t samplesize, size_t samplecount)

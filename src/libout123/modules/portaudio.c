@@ -21,7 +21,7 @@
 #define SFIFO_STATIC
 #include "../sfifo.c"
 
-#include "debug.h"
+#include "../../common/debug.h"
 
 #define SAMPLE_SIZE			(2)
 #define FRAMES_PER_BUFFER	(256)

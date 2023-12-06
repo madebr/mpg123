@@ -19,7 +19,7 @@
 
 #include "out123_int.h"
 #include "hextxt.h"
-#include "debug.h"
+#include "../common/debug.h"
 
 int hex_formats(out123_handle *ao)
 {

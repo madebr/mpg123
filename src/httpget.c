@@ -34,12 +34,12 @@
 #include "resolver.h"
 
 #include <errno.h>
-#include "true.h"
+#include "common/true.h"
 #endif
 
 #include <ctype.h>
 
-#include "debug.h"
+#include "common/debug.h"
 
 void httpdata_init(struct httpdata *e)
 {

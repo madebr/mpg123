@@ -19,7 +19,7 @@
 #include <pulse/error.h>
 #include <pulse/pulseaudio.h>
 
-#include "debug.h"
+#include "../../common/debug.h"
 
 // Since we learned the async API for enumeration, let's abuse it for
 // a simple check if a pulse server is active before accidentally

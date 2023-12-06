@@ -10,7 +10,7 @@
 */
 
 #include "config.h"
-#include "compat.h"
+#include "../compat/compat.h"
 #include "xfermem.h"
 #include <string.h>
 #include <errno.h>
@@ -24,7 +24,7 @@
 #include <sys/shm.h>
 #endif
 
-#include "debug.h"
+#include "../common/debug.h"
 
 #if defined (HAVE_MMAP) && defined(MAP_ANONYMOUS) && !defined(MAP_ANON)
 #define MAP_ANON MAP_ANONYMOUS

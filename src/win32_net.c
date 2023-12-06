@@ -8,7 +8,7 @@
 
 #include "win32_support.h"
 #include "mpg123app.h"
-#include "debug.h"
+#include "common/debug.h"
 
 #ifdef DEBUG
 #define msgme(x) win32_net_msg(x,__FILE__,__LINE__)

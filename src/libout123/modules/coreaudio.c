@@ -46,7 +46,7 @@
 #define SFIFO_STATIC
 #include "../sfifo.c"
 
-#include "debug.h"
+#include "../../common/debug.h"
 
 /* Duration of the ring buffer in seconds.
    Is that all that there is to tunable latency?

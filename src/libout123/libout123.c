@@ -32,7 +32,7 @@
 #endif
 #endif
 
-#include "version.h"
+#include "../version.h"
 #include "wav.h"
 #include "hextxt.h"
 #ifndef NOXFERMEM
@@ -44,7 +44,7 @@ static int have_buffer(out123_handle *ao)
 #endif
 #include "stringlists.h"
 
-#include "debug.h"
+#include "../common/debug.h"
 
 const char * attribute_align_arg out123_distversion(unsigned int *major, unsigned int *minor, unsigned int *patch)
 {

@@ -44,7 +44,7 @@
 #include "httpget.h"
 #include "streamdump.h"
 
-#include "debug.h"
+#include "common/debug.h"
 
 static void usage(int err);
 static void want_usage(char* arg, topt *);

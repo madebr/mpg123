@@ -7,7 +7,7 @@
 */
 
 #include "out123_int.h"
-#include "debug.h"
+#include "../common/debug.h"
 
 /* A single module is staticly compiled in for each type */
 extern mpg123_module_t mpg123_output_module_info;

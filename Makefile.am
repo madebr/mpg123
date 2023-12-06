@@ -31,14 +31,7 @@ XFAIL_TESTS =
 check_PROGRAMS =
 
 AM_CPPFLAGS = -DPKGLIBDIR="\"$(pkglibdir)\""
-# That can be trimmed down later when adapting the sources to
-# use relative paths for includes.
-# TODO: Actually do more relative includes.
-AM_CPPFLAGS += \
-  $(LTDLINCL) \
-  -I$(top_srcdir)/src \
-  -I$(top_srcdir)/src/compat \
-  -I$(top_srcdir)/src/common
+AM_CPPFLAGS += $(LTDLINCL)
 
 # Automake cannot handle dependencies behind an autoconf expansion.
 # So we need elaborate ifelsery here to make it see the libtool

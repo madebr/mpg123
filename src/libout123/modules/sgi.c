@@ -9,8 +9,8 @@
 #include "../out123_int.h"
 #include <fcntl.h>
 #include <dmedia/audio.h>
-#include "errno.h"
-#include "debug.h"
+#include <errno.h>
+#include "../../common/debug.h"
 
 static int set_rate(out123_handle *ao, ALconfig config)
 {

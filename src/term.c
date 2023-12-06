@@ -14,7 +14,7 @@
 #include "common.h"
 #include "playlist.h"
 #include "metaprint.h"
-#include "debug.h"
+#include "common/debug.h"
 
 static int term_enable = 0;
 static const char *extrabreak = "";

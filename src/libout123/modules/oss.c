@@ -39,7 +39,7 @@
 # endif
 #endif
 
-#include "debug.h"
+#include "../../common/debug.h"
 
 struct oss_stuff
 {

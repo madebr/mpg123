@@ -1,6 +1,6 @@
-#include "compat.h"
+#include "../compat/compat.h"
 #include <mpg123.h>
-#include "debug.h"
+#include "../common/debug.h"
 
 
 int work(mpg123_handle *mh, int ch, int enc)

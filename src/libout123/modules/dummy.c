@@ -6,7 +6,7 @@
 */
 
 #include "../out123_int.h"
-#include "debug.h"
+#include "../../common/debug.h"
 
 static int open_dummy(out123_handle *ao)
 {

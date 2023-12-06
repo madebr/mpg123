@@ -29,7 +29,7 @@
 #define ME "out123"
 #include "config.h"
 #include "version.h"
-#include "compat.h"
+#include "compat/compat.h"
 #include <ctype.h>
 #if _WIN32
 #include "win32_support.h"
@@ -62,7 +62,7 @@
 #include "syn123.h"
 #include "filters.h"
 
-#include "debug.h"
+#include "common/debug.h"
 
 /* be paranoid about setpriority support */
 #ifndef PRIO_PROCESS

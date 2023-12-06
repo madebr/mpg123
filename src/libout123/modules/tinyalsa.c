@@ -12,7 +12,7 @@
 
 #include <tinyalsa/asoundlib.h>
 
-#include "debug.h"
+#include "../../common/debug.h"
 
 
 typedef struct

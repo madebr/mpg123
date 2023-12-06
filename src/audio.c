@@ -40,7 +40,7 @@
 #include <sys/wait.h>
 #endif
 
-#include "debug.h"
+#include "common/debug.h"
 
 static syn123_handle *sh = NULL;
 static struct mpg123_fmt outfmt = { .encoding=0, .rate=0, .channels=0 };

@@ -20,7 +20,7 @@
 #ifndef _XFERMEM_H_
 #define _XFERMEM_H_
 
-#include "compat.h"
+#include "../compat/compat.h"
 
 typedef struct {
 	size_t freeindex;	/* [W] next free index */

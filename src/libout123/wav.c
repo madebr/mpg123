@@ -28,7 +28,7 @@
 #include "wav.h"
 
 #include <errno.h>
-#include "debug.h"
+#include "../common/debug.h"
 
 /* Create the two WAV headers. */
 

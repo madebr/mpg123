@@ -9,7 +9,7 @@
 #include "filters.h"
 #include <ctype.h>
 
-#include "debug.h"
+#include "common/debug.h"
 
 // Validate syntax of filter specification, returning the number
 // of configured filters.

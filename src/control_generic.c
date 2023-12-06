@@ -21,7 +21,7 @@
 #ifndef _BSD_SOURCE
 #define _BSD_SOURCE
 #endif
-#include "compat.h"
+#include "compat/compat.h"
 
 #include "mpg123app.h"
 #include "out123.h"
@@ -60,7 +60,7 @@ static int mode = MODE_STOPPED;
 static int init = 0;
 static int sendstat_disabled = FALSE;
 
-#include "debug.h"
+#include "common/debug.h"
 
 void generic_sendmsg (const char *fmt, ...)
 {

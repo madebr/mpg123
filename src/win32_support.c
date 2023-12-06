@@ -1,6 +1,6 @@
 #include "config.h"
 #include "mpg123app.h"
-#include "debug.h"
+#include "common/debug.h"
 
 #ifdef WANT_WIN32_UNICODE
 

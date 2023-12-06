@@ -29,7 +29,7 @@
 #endif
 
 #include <fcntl.h>
-#include "debug.h"
+#include "../../common/debug.h"
 
 static void set_format_helper(out123_handle *ao, audio_info_t *ainfo)
 {

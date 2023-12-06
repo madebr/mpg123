@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-#include "debug.h"
+#include "../../common/debug.h"
 
 // Only one instance at a time! This all needs to go into userptr!
 static BOOL opened = FALSE;

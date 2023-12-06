@@ -82,7 +82,7 @@ TODO: initialize with first sample or zero? is there an actual benefit? impulse
 // SSIZE_MAX is not standard C:-/
 #define _POSIX_C_SOURCE 200809L
 #include "syn123_int.h"
-#include "debug.h"
+#include "../common/debug.h"
 
 // coefficient tables generated from coeff-ellip-6-0.01-36-16.txd
 // (coeff-{filter_type}-{order}-{passband_ripple}-{rejection_dB}-{points})

@@ -12,8 +12,8 @@
 #define MPG123_ENUM_API
 
 #include "config.h"
-#include "abi_align.h"
-#include "compat.h"
+#include "../common/abi_align.h"
+#include "../compat/compat.h"
 #include "out123.h"
 #include "module.h"
 
