@@ -21,6 +21,13 @@ bin_PROGRAMS += \
 endif
 endif
 
+if NEED_LIB
+if NEED_MAINLIB
+# All main libraries need fmt123 header installed.
+include_HEADERS += src/include/fmt123.h
+endif
+endif
+
 src_mpg123_LDADD = \
   src/compat/libcompat.la \
   $(LIBMPG123) \

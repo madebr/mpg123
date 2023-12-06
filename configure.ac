@@ -32,7 +32,7 @@ m4_undefine([V_HEADER])
 
 AC_INIT([mpg123], V_MAJOR.V_MINOR.V_PATCH[]V_SUFFIX, [maintainer@mpg123.org])
 
-m4_define([V_HEADER], m4_esyscmd(grep -e _API_VERSION -e _PATCHLEVEL src/libmpg123/mpg123.h src/libout123/out123.h src/libsyn123/syn123.h))
+m4_define([V_HEADER], m4_esyscmd(grep -e _API_VERSION -e _PATCHLEVEL src/include/mpg123.h src/include/out123.h src/include/syn123.h))
 
 dnl libmpg123
 m4_define([API_VERSION], m4_bregexp(V_HEADER,
@@ -487,20 +487,21 @@ if test "x$build_programs" = xyes; then
   components="$components programs"
 fi
 
+use_extlib=no
 LIBMPG123_LD=abugifused
 if test "x$build_libmpg123" = xyes; then
   components="$components libmpg123"
 elif test "x$build_programs" = xyes; then
+  use_extlib=yes
   PKG_CHECK_MODULES(LIBMPG123_PKG, libmpg123, HAVE_LIBMPG123="yes", HAVE_LIBMPG123="no" missing_lib=yes)
-  CFLAGS="$CFLAGS $LIBMPG123_PKG_CFLAGS"
   LIBMPG123_LD="$LIBMPG123_PKG_LIBS"
 fi
 LIBOUT123_LD=abugifused
 if test "x$build_libout123" = xyes; then
   components="$components libout123"
 elif test "x$build_programs" = xyes; then
+  use_extlib=yes
   PKG_CHECK_MODULES(LIBOUT123_PKG, libout123, HAVE_LIBOUT123="yes", HAVE_LIBOUT123="no" missing_lib=yes)
-  CFLAGS="$CFLAGS $LIBOUT123_PKG_CFLAGS"
   LIBOUT123_LD="$LIBOUT123_PKG_LIBS"
 fi
 if test "x$build_libout123_modules" = xyes; then
@@ -510,8 +511,8 @@ LIBSYN123=abugifused
 if test "x$build_libsyn123" = xyes; then
   components="$components libsyn123"
 elif test "x$build_programs" = xyes; then
+  use_extlib=yes
   PKG_CHECK_MODULES(LIBSYN123_PKG, libsyn123, HAVE_LIBSYN123="yes", HAVE_LIBSYN123="no" missing_lib=yes)
-  CFLAGS="$CFLAGS $LIBSYN123_PKG_CFLAGS"
   LIBSYN123_LD="$LIBSYN123_PKG_LIBS"
 fi
 
@@ -3060,6 +3061,14 @@ if test x"$cpu_type" = xi486; then
   echo "to perform better nowadays. Also, the decoder misses features like volume"
   echo "scaling and has clipping issues. Continue if you are into software archeology"
   echo "only."
+fi
+
+if test "x$use_extlib" = xyes; then
+  echo
+  echo "Warning: You opted to use external builds of the mpg123 libraries. They need to"
+  echo "         match the headers shipped with this source (which are used during build"
+  echo "         regardless)."
+  echo
 fi
 
 echo
