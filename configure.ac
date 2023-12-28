@@ -473,57 +473,24 @@ AM_CONDITIONAL([BUILD_LIBSYN123], [ test "x$build_libsyn123" = xyes ])
 AM_CONDITIONAL([NEED_LIB], [ test "x$build_libmpg123" = xyes || test "x$build_libout123" = xyes || test "x$build_libout123_modules" = xyes || test "x$build_libsyn123" = xyes ])
 AM_CONDITIONAL([NEED_MAINLIB], [ test "x$build_libmpg123" = xyes || test "x$build_libout123" = xyes || test "x$build_libsyn123" = xyes ])
 
-dnl Some support for using separately installed lib*123. This is not perfect,
-dnl with per-library CFLAGS just being lumped into global CFLAGS. So do not
-dnl expect to mix differing prefixes with possibly conflicting versions of
-dnl the libraries. The expectation is a version matching this source distribution,
-dnl anyway.
-
-missing_lib=no
-
 components=""
 
 if test "x$build_programs" = xyes; then
   components="$components programs"
 fi
 
-use_extlib=no
-LIBMPG123_LD=abugifused
 if test "x$build_libmpg123" = xyes; then
   components="$components libmpg123"
-elif test "x$build_programs" = xyes; then
-  use_extlib=yes
-  PKG_CHECK_MODULES(LIBMPG123_PKG, libmpg123, HAVE_LIBMPG123="yes", HAVE_LIBMPG123="no" missing_lib=yes)
-  LIBMPG123_LD="$LIBMPG123_PKG_LIBS"
 fi
-LIBOUT123_LD=abugifused
 if test "x$build_libout123" = xyes; then
   components="$components libout123"
-elif test "x$build_programs" = xyes; then
-  use_extlib=yes
-  PKG_CHECK_MODULES(LIBOUT123_PKG, libout123, HAVE_LIBOUT123="yes", HAVE_LIBOUT123="no" missing_lib=yes)
-  LIBOUT123_LD="$LIBOUT123_PKG_LIBS"
 fi
 if test "x$build_libout123_modules" = xyes; then
   components="$components libout123-modules"
 fi
-LIBSYN123=abugifused
 if test "x$build_libsyn123" = xyes; then
   components="$components libsyn123"
-elif test "x$build_programs" = xyes; then
-  use_extlib=yes
-  PKG_CHECK_MODULES(LIBSYN123_PKG, libsyn123, HAVE_LIBSYN123="yes", HAVE_LIBSYN123="no" missing_lib=yes)
-  LIBSYN123_LD="$LIBSYN123_PKG_LIBS"
 fi
-
-if test "x$missing_lib" = xyes; then
-  AC_MSG_ERROR([Missing an external mpg123 library for the programs.])
-fi
-
-dnl Stupid names because @foo@ cannot coexist with foo.
-AC_SUBST(LIBMPG123_LD)
-AC_SUBST(LIBOUT123_LD)
-AC_SUBST(LIBSYN123_LD)
 
 components=$(echo $components)
 

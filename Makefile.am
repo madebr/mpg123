@@ -33,25 +33,11 @@ check_PROGRAMS =
 AM_CPPFLAGS = -DPKGLIBDIR="\"$(pkglibdir)\""
 AM_CPPFLAGS += $(LTDLINCL)
 
-# Automake cannot handle dependencies behind an autoconf expansion.
-# So we need elaborate ifelsery here to make it see the libtool
-# files for dependency rule generation. That is stupid. One point
-# for those usurping build systems with new flaws.
-if BUILD_LIBMPG123
+# Central place defining the mpg123 libraries to be used. You could
+# put -lmpg123 in here to use an external one (for whatever reason).
 LIBMPG123 = src/libmpg123/libmpg123.la
-else
-LIBMPG123 = @LIBMPG123_LD@
-endif
-if BUILD_LIBOUT123
 LIBOUT123 = src/libout123/libout123.la
-else
-LIBOUT123 = @LIBOUT123_LD@
-endif
-if BUILD_LIBSYN123
 LIBSYN123 = src/libsyn123/libsyn123.la
-else
-LIBSYN123 = @LIBSYN123_LD@
-endif
 
 # Include Make modules from subdirectories.
 include src/Makemodule.am
