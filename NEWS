@@ -11,6 +11,9 @@
    to build individual modules using --disable-components logic.
 - out123:
 -- added --libversion
+- libmpg123:
+-- Avoid indirect branches into the assembly routines by using C wrappers,
+   relieving us of the need to care for bti / endbr instructions.
 
 1.32.3
 ------
