@@ -50,6 +50,6 @@ void stream_close(struct stream *sd);
 // Return value is 0 for no error, -1 when bad.
 int dump_setup(struct stream *sd, mpg123_handle *mh);
 // Just close the dump output, not touching anything else.
-void dump_close();
+void dump_close(void);
 
 #endif
