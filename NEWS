@@ -12,8 +12,9 @@
 - out123:
 -- added --libversion
 - libmpg123:
--- Avoid indirect branches into the assembly routines by using C wrappers,
-   relieving us of the need to care for bti / endbr instructions.
+-- Avoid indirect branches into the assembly routines by using C wrappers
+   also for dct36, relieving us of the need to care for bti / endbr
+   instructions for control flow integrity.
 
 1.32.3
 ------
