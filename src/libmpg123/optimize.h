@@ -265,7 +265,7 @@ enum optcla INT123_decclass(const enum optdec);
 #define OPT_X86
 #ifndef OPT_MULTI
 #	define defopt sse
-#	define opt_dct36(fr) INT123_dct36_sse
+#	define opt_dct36(fr) INT123_dct36_sse_wrap
 #endif
 #endif
 
@@ -294,7 +294,7 @@ enum optcla INT123_decclass(const enum optdec);
 #define OPT_X86
 #ifndef OPT_MULTI
 #	define defopt dreidnowext_vintage
-#	define opt_dct36(fr) INT123_dct36_3dnowext
+#	define opt_dct36(fr) INT123_dct36_3dnowext_wrap
 #endif
 #endif
 
@@ -316,7 +316,7 @@ extern const int INT123_costab_mmxsse[];
 #define OPT_X86
 #ifndef OPT_MULTI
 #	define defopt dreidnow_vintage
-#	define opt_dct36(fr) INT123_dct36_3dnow
+#	define opt_dct36(fr) INT123_dct36_3dnow_wrap
 #endif
 #endif
 
@@ -330,7 +330,7 @@ extern const int INT123_costab_mmxsse[];
 #define OPT_MMXORSSE
 #ifndef OPT_MULTI
 #	define defopt x86_64
-#	define opt_dct36(fr) INT123_dct36_x86_64
+#	define opt_dct36(fr) INT123_dct36_x86_64_wrap
 #endif
 #endif
 
@@ -338,7 +338,7 @@ extern const int INT123_costab_mmxsse[];
 #define OPT_MMXORSSE
 #ifndef OPT_MULTI
 #	define defopt avx
-#	define opt_dct36(fr) INT123_dct36_avx
+#	define opt_dct36(fr) INT123_dct36_avx_wrap
 #endif
 #endif
 
@@ -352,7 +352,7 @@ extern const int INT123_costab_mmxsse[];
 #define OPT_MMXORSSE
 #ifndef OPT_MULTI
 #	define defopt neon
-#	define opt_dct36(fr) INT123_dct36_neon
+#	define opt_dct36(fr) INT123_dct36_neon_wrap
 #endif
 #endif
 
@@ -360,7 +360,7 @@ extern const int INT123_costab_mmxsse[];
 #define OPT_MMXORSSE
 #ifndef OPT_MULTI
 #	define defopt neon64
-#	define opt_dct36(fr) INT123_dct36_neon64
+#	define opt_dct36(fr) INT123_dct36_neon64_wrap
 #endif
 #endif
 
