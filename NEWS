@@ -4,8 +4,6 @@
 - build:
 -- CMake port uses CFLAGS for pulse/jack/tinyalsa properly now (bug 366).
 - libmpg123:
--- Also avoid indirect branches for builds with a single CPU optmization
-   (no OPT_MULTI) by actually using the wrappers in that case (bug 367).
 -- Fix --enable-portable (no usage of LFS_WRAP_NONE, bug 368).
 
 1.32.4
