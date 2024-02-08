@@ -3,6 +3,7 @@
 
 - build:
 -- CMake port uses CFLAGS for pulse/jack/tinyalsa properly now (bug 366).
+-- CMake port links libsyn123 with libm now (bug 370).
 - libmpg123:
 -- Fix --enable-portable (no usage of LFS_WRAP_NONE, bug 368).
 
