@@ -20,6 +20,7 @@ target_include_directories(${TARGET} INTERFACE
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
 
 target_link_libraries(${TARGET} PRIVATE
+    $<$<BOOL:${HAVE_M}>:m>
     $<$<BOOL:${WANT_WIN32_UNICODE}>:shlwapi>)
 
 install(TARGETS ${TARGET} EXPORT targets
