@@ -6,6 +6,8 @@
 -- CMake port links libsyn123 with libm now (bug 370).
 - libmpg123:
 -- Fix --enable-portable (no usage of LFS_WRAP_NONE, bug 368).
+-- Fix dct36 wrapper usage for x86-64 and NEON. Stupid (bug 367) and
+   also avoid returning void.
 
 1.32.4
 ------
