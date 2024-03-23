@@ -25,7 +25,7 @@
 
 // Only activate the explicit largefile stuff here. The rest of the code shall
 // work with abstract 64 bit offsets, or just plain default off_t (possibly
-// using _FILE_OFFSET_BYTES magic).
+// using _FILE_OFFSET_BITS magic).
 // Note that this macro does not influence normal off_t-using code.
 #ifdef LFS_LARGEFILE_64
 #define _LARGEFILE64_SOURCE
