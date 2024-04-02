@@ -3,9 +3,11 @@
 //#define _FILE_OFFSET_BITS 64
 //#define _FILE_OFFSET_BITS 32
 #define SYN123_PORTABLE_API
+#include "config.h"
 #include <syn123.h>
 
 #include <inttypes.h>
+
 
 #ifdef SYN123_PORTABLE_API
 typedef int64_t synoff;

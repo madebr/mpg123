@@ -8,6 +8,7 @@
 	arguments: decoder testfile.mpeg
 */
 
+#include "config.h"
 #include <mpg123.h>
 #include "../compat/compat.h"
 
