@@ -1,5 +1,6 @@
 /* Just printing out ID3 tags with plain data from libmpg123 and explicitly called conversion routine. */
 
+#include "config.h"
 #include "../compat/compat.h"
 #include <mpg123.h>
 #include "../common/debug.h"

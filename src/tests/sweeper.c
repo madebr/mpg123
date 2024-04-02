@@ -1,3 +1,4 @@
+#include "config.h"
 #define SYN123_PORTABLE_API
 #include <syn123.h>
 #include <out123.h>
