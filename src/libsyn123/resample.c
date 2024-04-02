@@ -2038,8 +2038,10 @@ type attribute_align_arg name(long inrate, long outrate, type io) \
 }
 
 #if  SIZEOF_OFF_T == 8
+#ifndef FORCED_OFF_64
 resample_total_alias(off_t, syn123_resample_total, syn123_resample_total64)
 resample_total_alias(off_t, syn123_resample_intotal, syn123_resample_intotal64)
+#endif
 resample_total_alias(off_t, syn123_resample_total_64, syn123_resample_total64)
 resample_total_alias(off_t, syn123_resample_intotal_64, syn123_resample_intotal64)
 #elif SIZEOF_OFF_T == 4

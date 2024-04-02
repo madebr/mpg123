@@ -1355,8 +1355,13 @@ AC_COMPUTE_INT(switched_off_size, sizeof(off_t), [
 #include <sys/types.h>
 ])
 AC_MSG_RESULT([$switched_off_size])
-# If you have predefined _FILE_OFFSET_BITS, I will treat that as a system
-# property.
+AC_MSG_CHECKING([unswitched off_t size])
+AC_COMPUTE_INT(unswitched_off_size, sizeof(off_t), [
+#undef  _FILE_OFFSET_BITS
+#include <sys/types.h>
+])
+AC_MSG_RESULT([$unswitched_off_size])
+# Now the size without meddling, possibly enforced to 64 bits by system settings.
 AC_CHECK_SIZEOF(off_t, [], [
 #include <sys/types.h>
 ])
@@ -1379,6 +1384,15 @@ if test "x$ac_cv_sizeof_off_t" != "x$switched_off_size"; then
   AC_DEFINE(LFS_SENSITIVE, 1, [ System redefines off_t when defining _FILE_OFFSET_BITS to 64. ])
 else
   lfs_sensitive=no
+fi
+
+forced_off_64=no
+if test "x$unswitched_off_size" != "x$ac_cv_sizeof_off_t"; then
+  if test "x$ac_cv_sizeof_off_t" = x8; then
+    AC_MSG_NOTICE([Detected system with enforced 64 bit offsets, dropping suffixless symbols for uncryptic ABI breakage.])
+    AC_DEFINE([FORCED_OFF_64], 1, [System setup enforces 64 bit offsets where 32 bit would be native.])
+    forced_off_64=yes
+  fi
 fi
 
 use_largefile=auto
@@ -2969,7 +2983,15 @@ fi
 echo "  largefile sensitive ..... $lfs_sensitive"
 echo "  default offsets ......... $default_offset_bits"
 echo "  explicit 64 bit offsets . $use_largefile"
+echo "  forced 64 bit offsets ... $forced_off_64"
 echo "  only portable API ....... $portable_api"
+
+if test "x$forced_off_64" = xyes; then
+  echo
+  echo "Note: Ensure that client programs are built with _FILE_OFFSET_BITS defined to 64, too."
+  echo "      Old binaries built for 32 bit off_t may fail missing symbols in mpg123 libraries."
+  echo
+fi
 
 echo "
   Core libmpg123 features:
