@@ -7,8 +7,6 @@ endif()
 
 include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/")
 
-include(../../cmake/CheckCPUArch.cmake)
-
 if(HAVE_STDLIB_H)
     set(INCLUDE_STDLIB_H "#include <stdlib.h>")
 else()
@@ -21,10 +19,6 @@ else()
 endif()
 
 
-check_cpu_arch_x86(ARCH_IS_X86)
-check_cpu_arch_x64(ARCH_IS_X64)
-check_cpu_arch_arm32(ARCH_IS_ARM32)
-check_cpu_arch_arm64(ARCH_IS_ARM64)
 
 # PPC with AltiVec is missing. But probably obsolete enough for CMake users.
 
