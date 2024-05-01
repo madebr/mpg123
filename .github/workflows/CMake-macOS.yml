@@ -1,0 +1,20 @@
+name: CMake macOS
+
+on: push
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [macos-latest, macos-13]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ninja & yasm
+        run: brew install ninja yasm
+      - name: Configure (CMake)
+        run: |
+          cmake -S ports/cmake -B build -GNinja
+      - name: Build (CMake)
+        run: |
+          cmake --build build
