@@ -1,3 +1,8 @@
+1.32.7
+------
+- ports/cmake: Work around bug in CMake that does not detect FPU on
+  Apple ARM CPUs (github PR 14).
+
 1.32.6
 ------
 - build: Detect forced 64 bit offsets on a dual-mode system that used
