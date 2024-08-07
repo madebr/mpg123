@@ -178,7 +178,7 @@ static size_t prebuffer_size = 0;
 static size_t prebuffer_fill = 0;
 static size_t minbytes = 0;
 
-void set_intflag()
+void set_intflag(void)
 {
 	debug("set_intflag TRUE");
 	intflag = TRUE;

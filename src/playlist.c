@@ -300,7 +300,7 @@ static void init_playlist(void)
 	pl.stdin_used = FALSE;
 }
 
-int playlist_stdin()
+int playlist_stdin(void)
 {
 	return pl.stdin_used;
 }
