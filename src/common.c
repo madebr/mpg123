@@ -451,7 +451,7 @@ void print_stat(mpg123_handle *fr, long offset, out123_handle *ao, int draw_bar
 		free(line);
 }
 
-void clear_stat()
+void clear_stat(void)
 {
 	int len = term_width(STDERR_FILENO);
 	if(len > 0)
