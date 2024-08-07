@@ -2,6 +2,7 @@
 ------
 - ports/cmake: Work around bug in CMake that does not detect FPU on
   Apple ARM CPUs (github PR 14).
+- Fix some laziness (func() to func(void)) for standards conformance.
 
 1.32.6
 ------
