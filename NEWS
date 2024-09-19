@@ -1,3 +1,9 @@
+1.32.8
+------
+- libmpg123: Add sections to assembly to support PAC/BTI code
+  for aarch64 (-mbranch-protection variants), thanks to Bill Roberts
+  (github PR 15).
+
 1.32.7
 ------
 - ports/cmake: Work around bug in CMake that does not detect FPU on
