@@ -588,6 +588,12 @@ init_resync:
 		debug2("read frame body of %i at %"PRIi64, fr->framesize, framepos+4);
 		if((ret=fr->rd->read_frame_body(fr,newbuf,fr->framesize))<0)
 		{
+			freeformat_count = 0;
+			// Re-decoding the old header again _must_ work.
+			// Need to ensure that we do not prepare for actual frame data when there is none
+			// (messing with header change info and decoder state).
+			if(ret != MPG123_NEED_MORE && fr->oldhead)
+				decode_header(fr, fr->oldhead, &freeformat_count);
 			/* if failed: flip back */
 			debug1("%s", ret == MPG123_NEED_MORE ? "need more" : "read error");
 			goto read_frame_bad;
