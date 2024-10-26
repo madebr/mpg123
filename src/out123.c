@@ -1910,6 +1910,7 @@ static void long_usage(int err)
 	fprintf(o,"                           <a> average events per second\n");
 	fprintf(o," -t     --test             no output, just read and discard data (-o test)\n");
 	fprintf(o," -v[*]  --verbose          increase verboselevel\n");
+	fprintf(o," -q     --quiet            quiet mode\n");
 	#ifdef HAVE_SETPRIORITY
 	fprintf(o,"        --aggressive       tries to get higher priority (nice)\n");
 	#endif
