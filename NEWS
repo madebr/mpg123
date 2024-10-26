@@ -7,6 +7,7 @@
 -- Prevent premature application of header info into decoding structure,
    at worst having triggered out-of-bounds writes of decoded PCM data
    (bug 322, again).
+- out123: Show --quiet in --longhelp.
 
 1.32.7
 ------
