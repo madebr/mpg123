@@ -1,3 +1,6 @@
+One current thing: Cleanup mpg123_noise() ... remove that accidentally public symbol
+or make it official. The functionality is in syn123 and it was never documented.
+
 Things that need to be done...
 
 ... as always, mostly outdated.
