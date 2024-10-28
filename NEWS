@@ -1,3 +1,8 @@
+1.32.9
+------
+- libmpg123: enable 64 bit offset path for MSVCRT and avoid warnings about
+  MS's game about POSIX API with and without underscores (bug 373).
+
 1.32.8
 ------
 - libmpg123:
