@@ -147,7 +147,7 @@ FILE* INT123_compat_fdopen(int fd, const char *mode)
 
 int INT123_compat_close(int infd)
 {
-#if (defined(WIN32) && !defined (__CYGWIN__)) /* MSDN says POSIX function is deprecated beginning in Visual C++ 2005 */
+#if defined(MPG123_COMPAT_MSVCRT_IO)
 	return _close(infd);
 #else
 	return close(infd);
