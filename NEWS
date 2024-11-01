@@ -1,7 +1,12 @@
 1.32.9
 ------
-- libmpg123: enable 64 bit offset path for MSVCRT and avoid warnings about
-  MS's game about POSIX API with and without underscores (bug 373).
+- libmpg123:
+-- enable 64 bit offset path for MSVCRT and avoid warnings about
+   MS's game about POSIX API with and without underscores (bug 373).
+-- Increase the library patchlevel, as was forgotten on previous
+   release. Now you can check for distversion >= 1.32.8 or
+   mpg123 libversion >= 48 patchlevel 3 to see if you're vulnerable
+   to CVE-2024-10573.
 
 1.32.8
 ------
@@ -11,7 +16,7 @@
    (github PR 15).
 -- Prevent premature application of header info into decoding structure,
    at worst having triggered out-of-bounds writes of decoded PCM data
-   (bug 322, again).
+   (bug 322, again). The bug got named CVE-2024-10573.
 - out123: Show --quiet in --longhelp.
 
 1.32.7
