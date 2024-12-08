@@ -2,6 +2,8 @@
 ------
 - scripts/tag_lyrics.py: fix for python3 (thanks to cclauss,
   github PR 16)
+- libout123: Use strtok_r() to avoid conflicts multithreaded contexts
+  (both sides should avoid plain strtok()!).
 
 1.32.9
 ------

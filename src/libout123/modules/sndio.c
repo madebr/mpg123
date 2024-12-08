@@ -129,7 +129,8 @@ static int open_sndio(out123_handle *ao)
 	hdl = sio_open(ao->device /* NULL is fine */, SIO_PLAY, 0);
 	if (hdl == NULL)
 	{
-		error("Got nothing from sio_open(). ");
+		if(!AOQUIET)
+			error("Got nothing from sio_open(). ");
 		return -1;
 	}
 
@@ -152,7 +153,8 @@ static int open_sndio(out123_handle *ao)
 			hdl = sio_open(ao->device, SIO_PLAY, 0);
 			if(hdl == NULL)
 			{
-				error("Re-opening of device for channel guessing failed.");
+				if(!AOQUIET)
+					error("Re-opening of device for channel guessing failed.");
 				return -1;
 			}
 			par.pchan = guess_channels(hdl);
