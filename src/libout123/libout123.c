@@ -1,7 +1,7 @@
 /*
 	audio: audio output interface
 
-	copyright ?-2023 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright ?-2024 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp
 */
@@ -455,11 +455,12 @@ out123_open(out123_handle *ao, const char* driver, const char* device)
 		}
 
 		/* Now loop over the list of possible modules to find one that works. */
-		nextname = strtok(modnames, ",");
+		char *toksave = NULL;
+		nextname = strtok_r(modnames, ",", &toksave);
 		while(!ao->open && nextname)
 		{
 			char *curname = nextname;
-			nextname = strtok(NULL, ",");
+			nextname = strtok_r(NULL, ",", &toksave);
 			check_output_module(ao, curname, device, !nextname);
 			if(ao->open)
 			{
