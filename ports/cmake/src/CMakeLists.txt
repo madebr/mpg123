@@ -41,6 +41,14 @@ function(check_m)
     check_function_exists(sin HAVE_M)
 endfunction(check_m)
 check_m()
+# Cargo coding the check if there is a library rt, possibly providing
+# a canary symbol. I am not sure if this logic really mirrors what
+# autotools does.
+function(check_rt)
+    set(CMAKE_REQUIRED_LIBRARIES rt)
+    check_function_exists(clock_gettime HAVE_RT)
+endfunction(check_rt)
+check_rt()
 
 check_function_exists(atoll HAVE_ATOLL)
 check_function_exists(getaddrinfo HAVE_IPV6)
@@ -450,3 +458,7 @@ if(UNIX AND NOT PORTABLE_API)
 endif()
 
 configure_file(config.cmake.h.in config.h)
+
+set(LIBMPG123_LIBS "${LIBMPG123_LIBS}" PARENT_SCOPE)
+set(LIBOUT123_LIBS "${LIBOUT123_LIBS}" PARENT_SCOPE)
+set(LIBSYN123_LIBS "${LIBSYN123_LIBS}" PARENT_SCOPE)

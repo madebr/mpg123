@@ -18,9 +18,24 @@ add_library(${TARGET}
 
 set_target_properties(${TARGET} PROPERTIES OUTPUT_NAME out123)
 
+if(HAVE_UNIX_DL)
+    string(APPEND LIBOUT123_LIBS " -ldl")
+endif()
+if(HAVE_M)
+    string(APPEND LIBOUT123_LIBS " -lm")
+endif()
+if(HAVE_RT)
+    string(APPEND LIBOUT123_LIBS " -lrt")
+endif()
+if(WANT_WIN32_UNICODE)
+    string(APPEND LIBOUT123_LIBS " -lshlwapi")
+endif()
+set(LIBOUT123_LIBS "${LIBOUT123_LIBS}" PARENT_SCOPE)
 target_link_libraries(${TARGET} PRIVATE
     $<TARGET_NAME_IF_EXISTS:defaultmodule>
     $<$<BOOL:${HAVE_UNIX_DL}>:dl>
+    $<$<BOOL:${HAVE_M}>:m>
+    $<$<BOOL:${HAVE_RT}>:rt>
     $<$<BOOL:${WANT_WIN32_UNICODE}>:shlwapi>)
 
 target_include_directories(${TARGET} INTERFACE
