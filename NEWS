@@ -7,6 +7,7 @@
 - libmpg123:
 -- Un-break DLL builds that need I/O functions defined in libmpg123.c
    (like mpg123_open(), bug 374).
+- ports/cmake: More fixup to also produce .pc files with Libs.private.
 
 1.32.9
 ------

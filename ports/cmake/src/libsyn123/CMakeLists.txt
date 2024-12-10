@@ -19,9 +19,12 @@ target_include_directories(${TARGET} INTERFACE
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
 
+if(HAVE_M)
+    string(APPEND LIBSYN123_LIBS " -lm")
+endif()
+set(LIBSYN123_LIBS "${LIBSYN123_LIBS}" PARENT_SCOPE)
 target_link_libraries(${TARGET} PRIVATE
-    $<$<BOOL:${HAVE_M}>:m>
-    $<$<BOOL:${WANT_WIN32_UNICODE}>:shlwapi>)
+    $<$<BOOL:${HAVE_M}>:m>)
 
 install(TARGETS ${TARGET} EXPORT targets
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}/"

@@ -235,6 +235,13 @@ else()
     target_sources(${TARGET} PRIVATE ${PLATFORM_SOURCES})
 endif()
 
+if(HAVE_M)
+    string(APPEND LIBMPG123_LIBS " -lm")
+endif()
+if(WANT_WIN32_UNICODE)
+    string(APPEND LIBMPG123_LIBS " -lshlwapi")
+endif()
+set(LIBMPG123_LIBS "${LIBMPG123_LIBS}" PARENT_SCOPE)
 target_link_libraries(${TARGET} PRIVATE
     $<$<BOOL:${HAVE_M}>:m>
     $<$<BOOL:${WANT_WIN32_UNICODE}>:shlwapi>)
