@@ -172,7 +172,7 @@ static int get_formats_win32(out123_handle *ao)
     int ret = 0;
     UINT dev_id = dev_select(ao);
 
-    MMRESULT mr = waveOutGetDevCaps(dev_id, &caps, sizeof(caps));
+    MMRESULT mr = waveOutGetDevCapsA(dev_id, &caps, sizeof(caps));
     if(mr != MMSYSERR_NOERROR)
       return 0; /* no formats? */
 
@@ -367,7 +367,7 @@ static int enumerate_win32( out123_handle *ao, int (*store_device)(void *devlist
   for(i = 0; i < devices; i++){
     memset(id, 0, sizeof(id));
     memset(&caps, 0, sizeof(caps));
-    mr = waveOutGetDevCaps(i, &caps, sizeof(caps));
+    mr = waveOutGetDevCapsA(i, &caps, sizeof(caps));
     if (mr != MMSYSERR_NOERROR) {
       switch(mr) {
         case MMSYSERR_BADDEVICEID:

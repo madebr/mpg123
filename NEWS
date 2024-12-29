@@ -1,3 +1,9 @@
+1.32.11
+------
+- libout123:
+-- modules/win32: Align waveOutGetDevCapsA to WAVEOUTCAPSA, in anticipation
+   of some UNICODE change.
+
 1.32.10
 ------
 - scripts/tag_lyrics.py: fix for python3 (thanks to cclauss,
