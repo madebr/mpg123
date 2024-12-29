@@ -11,7 +11,7 @@ typedef struct
 } _startupinfo;
 
 /* XP and later has an int return though */
-void __cdecl __declspec(dllimport) __wgetmainargs (
+int __cdecl __declspec(dllimport) __wgetmainargs (
 	int *_Argc,
 	wchar_t ***_Argv,
 	wchar_t ***_Env,
