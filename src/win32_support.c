@@ -11,7 +11,7 @@ typedef struct
 } _startupinfo;
 
 /* XP and later has an int return though */
-int __cdecl __declspec(dllimport) __wgetmainargs (
+void __cdecl __declspec(dllimport) __wgetmainargs (
 	int *_Argc,
 	wchar_t ***_Argv,
 	wchar_t ***_Env,
@@ -31,10 +31,7 @@ int win32_cmdline_utf8(int * argc, char *** argv)
 	if(argv == NULL || argc == NULL) return -1;
 
 	startup.newmode = 0;
-	if (__wgetmainargs(argc, &argv_wide, &env, 1, &startup) != 0) {
-		error("Cannot allocate memory for command line.");
-		return -1;
-	}
+	__wgetmainargs(argc, &argv_wide,&env,1, &startup);
 	*argv = (char **)calloc(sizeof (char *), *argc);
 	if(*argv == NULL){ error("Cannot allocate memory for command line."); return -1; }
 
