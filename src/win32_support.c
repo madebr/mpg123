@@ -31,7 +31,10 @@ int win32_cmdline_utf8(int * argc, char *** argv)
 	if(argv == NULL || argc == NULL) return -1;
 
 	startup.newmode = 0;
-	__wgetmainargs(argc, &argv_wide,&env,1, &startup);
+	if (__wgetmainargs(argc, &argv_wide, &env, 1, &startup) != 0) {
+		error("Cannot allocate memory for command line.");
+		return -1;
+	}
 	*argv = (char **)calloc(sizeof (char *), *argc);
 	if(*argv == NULL){ error("Cannot allocate memory for command line."); return -1; }
 
