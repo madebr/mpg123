@@ -1515,7 +1515,9 @@ int main(int sys_argc, char ** sys_argv)
 		fprintf(stderr, "This was a Frankenstein track.\n");
 
 		position_info(mh, 0, ao, NULL, NULL, &secs, NULL, NULL, NULL);
-		fprintf(stderr,"[%d:%02d] Decoding of %s finished.\n", (int)(secs / 60), ((int)secs) % 60, filename);
+		fprintf(stderr,"[%d:%02d] Decoding of ", (int)(secs / 60), ((int)secs) % 60);
+		print_outstr(stderr, filename, 0, stderr_is_term);
+		fprintf(stderr," finished.\n");
 	}
 	else if(param.verbose) fprintf(stderr, "\n");
 

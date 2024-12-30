@@ -1,5 +1,6 @@
 1.32.11
 ------
+- mpg123: Fix printout of filenames at end (convert/limit text encoding).
 - libout123:
 -- modules/win32: Align waveOutGetDevCapsA to WAVEOUTCAPSA, in anticipation
    of some UNICODE change.
