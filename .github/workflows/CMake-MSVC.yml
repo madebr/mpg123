@@ -8,14 +8,14 @@ jobs:
     steps:
       - name: Restore yasm
         id: restore-yasm
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v4
         with:
           path: |
             ${{ github.workspace }}/yasm
           key: yasm
       - name: Download yasm sources
         if: ${{ !steps.restore-yasm.outputs.cache-hit }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: yasm/yasm
           path: yasm-src
@@ -24,9 +24,9 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
-      - name: Install ninja
+      - name: Setup ninja
         if: ${{ !steps.restore-yasm.outputs.cache-hit }}
-        uses: turtlesec-no/get-ninja@main
+        uses: ./.github/actions/setup-ninja
       - name: Build and install yasm
         if: ${{ !steps.restore-yasm.outputs.cache-hit }}
         run: |
@@ -55,24 +55,28 @@ jobs:
         os: [windows-2022, windows-2019]
         arch: [x86, x64, amd64_arm, amd64_arm64]
         shared: [ON, OFF]
+        yasm: [true, false]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Restore yasm
-        uses: actions/cache/restore@v3
+        if: ${{ matrix.yasm }}
+        uses: actions/cache/restore@v4
         with:
           path: |
             ${{ github.workspace }}/yasm
           key: yasm
       - name: Add yasm to PATH
+        if: ${{ matrix.yasm }}
         run: echo "${{ github.workspace }}/yasm/bin" >> %GITHUB_PATH%"
       - name: Setup vcvars
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: ${{ matrix.arch }}
-      - name: Install ninja
-        uses: turtlesec-no/get-ninja@main
+          sdK: ${{ (matrix.arch == 'amd64_arm' && '10.0.22621.0') || '' }}
+      - name: Setup ninja
+        uses: ./.github/actions/setup-ninja
       - name: CMake (configure)
-        run: cmake -S ports/cmake -B build -GNinja -DYASM_ASSEMBLER=${{ github.workspace }}/yasm/bin/vsyasm.exe -DBUILD_SHARED_LIBS=${{ matrix.shared }}
+        run: cmake -S ports/cmake -B build -GNinja ${{ (matrix.yasm && format('-DYASM_ASSEMBLER={0}/yasm/bin/vsyasm.exe', github.workspace)) || '' }} -DBUILD_SHARED_LIBS=${{ matrix.shared }}
       - name: CMake (Build)
         run: cmake --build build --verbose
