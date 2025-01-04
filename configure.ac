@@ -1491,7 +1491,8 @@ AC_CHECK_FUNCS( sched_setscheduler setuid getuid)
 # Check for setpriority
 AC_CHECK_FUNCS( setpriority )
 
-AC_CHECK_FUNCS( strerror strerror_l uselocale )
+# strtok_s for MSVCRT, not the C11 variant
+AC_CHECK_FUNCS( strerror strerror_l uselocale strtok_r strtok_s)
 
 AC_CHECK_FUNCS( setlocale nl_langinfo mbstowcs wcstombs wcswidth iswprint )
 

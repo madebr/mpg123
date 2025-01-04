@@ -780,8 +780,9 @@ int control_generic (mpg123_handle *fr)
 				/* commands with arguments */
 				cmd = NULL;
 				arg = NULL;
-				cmd = strtok(comstr," \t"); /* get the main command */
-				arg = strtok(NULL,""); /* get the args */
+				char *toksave = NULL;
+				cmd = INT123_compat_strtok(comstr, " \t", &toksave); /* get the main command */
+				arg = INT123_compat_strtok(NULL, "", &toksave); /* get the args */
 
 				if (cmd && strlen(cmd) && arg && strlen(arg))
 				{

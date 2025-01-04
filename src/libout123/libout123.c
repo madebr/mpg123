@@ -456,11 +456,11 @@ out123_open(out123_handle *ao, const char* driver, const char* device)
 
 		/* Now loop over the list of possible modules to find one that works. */
 		char *toksave = NULL;
-		nextname = strtok_r(modnames, ",", &toksave);
+		nextname = INT123_compat_strtok(modnames, ",", &toksave);
 		while(!ao->open && nextname)
 		{
 			char *curname = nextname;
-			nextname = strtok_r(NULL, ",", &toksave);
+			nextname = INT123_compat_strtok(NULL, ",", &toksave);
 			check_output_module(ao, curname, device, !nextname);
 			if(ao->open)
 			{

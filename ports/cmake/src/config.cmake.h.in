@@ -43,6 +43,8 @@
 #cmakedefine HAVE_SIGNAL_H 1
 #cmakedefine HAVE_STRERROR 1
 #cmakedefine HAVE_STRERROR_L 1
+#cmakedefine HAVE_STRTOK_R 1
+#cmakedefine HAVE_STRTOK_S 1
 #cmakedefine HAVE_FORK 1
 #cmakedefine HAVE_EXECVP 1
 #cmakedefine HAVE_CTERMID 1
