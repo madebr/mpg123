@@ -317,6 +317,17 @@ static int stream_parse_headers(struct stream *sd, mpg123_string *location)
 		{
 			break; // This is the content separator line.
 		}
+		{ // Convert from unknown/ASCII encoding to UTF-8. Play safe.
+			char *buf = NULL;
+			if(unknown2utf8(&buf, line.p, -1))
+			{
+				error("failed converting HTTP header line");
+				continue;
+			}
+			// Avoiding extra allocation here would be nice. mpg123_adopt_string()?
+			mpg123_set_string(&line, buf);
+			free(buf);
+		}
 		// React to HTTP error codes, but do not enforce an OK being sent as Shoutcast
 		// only produces very minimal headers, not even a HTTP response code.
 		// Well, ICY 200 OK could be there, but then we got other headers to know

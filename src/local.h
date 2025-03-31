@@ -59,6 +59,7 @@ size_t utf8outstr(char **dest, const char *source, int to_terminal);
 // If count is >= 0, it is used instead of strlen(source), enabling
 // processing of data without closing zero byte.
 // Returns 0 if all went well, as do the others following.
+// On error, the dest memory is freed and the pointer nulled.
 int unknown2utf8(char **dest, const char *source, int count);
 // Wrapper around the above for printing the string to some stream.
 // Return value is directly from fprintf or also -1 if there was trouble

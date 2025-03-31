@@ -1431,9 +1431,17 @@ int main(int sys_argc, char ** sys_argv)
 			print_outstr(stderr, filename, 0, stderr_is_term);
 			fprintf(stderr, " ...\n");
 			if(filept->htd.icy_name.fill)
-				fprintf(stderr, "ICY-NAME: %s\n", filept->htd.icy_name.p);
+			{
+				fprintf(stderr, "ICY-NAME: ");
+				print_outstr(stderr, filept->htd.icy_name.p, 1, stderr_is_term);
+				fprintf(stderr, "\n");
+			}
 			if(filept->htd.icy_url.fill)
-				fprintf(stderr, "ICY-URL: %s\n",  filept->htd.icy_url.p);
+			{
+				fprintf(stderr, "ICY-URL: ");
+				print_outstr(stderr, filept->htd.icy_url.p, 1, stderr_is_term);
+				fprintf(stderr, "\n");
+			}
 		}
 #if !defined(GENERIC)
 {

@@ -3,7 +3,9 @@
 - compat: Map strtok use to strtok_r or strtok_s (MS platforms), if possible.
   users only in control_generic and libout123 so far. Out123 itself uses mytok.
   Shall fix bug 376 (build with MSVC again).
-- mpg123: Fix printout of filenames at end (convert/limit text encoding).
+- mpg123
+-- Fix printout of filenames at end (convert/limit text encoding).
+-- Treat HTTP header encoding as unknown/ASCII and formally convert to UTF-8.
 - libout123:
 -- modules/win32: Align waveOutGetDevCapsA to WAVEOUTCAPSA, in anticipation
    of some UNICODE change.
