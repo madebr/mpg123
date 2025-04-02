@@ -1,3 +1,9 @@
+1.33.0
+------
+- mpg123: Make --continue mode work with --random (faking an initial loop to
+  actually play the given --listentry once).
+
+
 1.32.11
 ------
 - compat: Map strtok use to strtok_r or strtok_s (MS platforms), if possible.

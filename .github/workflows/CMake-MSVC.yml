@@ -13,6 +13,8 @@ jobs:
           path: |
             ${{ github.workspace }}/yasm
           key: yasm
+      - name: Checkout sources
+        uses: actions/checkout@v4
       - name: Download yasm sources
         if: ${{ !steps.restore-yasm.outputs.cache-hit }}
         uses: actions/checkout@v4
@@ -35,7 +37,7 @@ jobs:
           cmake --install yasm-build
       - name: Cache yasm
         if: ${{ !steps.restore-yasm.outputs.cache-hit }}
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v4
         with:
           path: |
             ${{ github.workspace }}/yasm
