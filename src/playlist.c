@@ -142,8 +142,8 @@ char *get_next_file(void)
 	}
 	else
 	{
-		// Handle looping first, but only if there is a random track selection
-		// Also applies to continue mode.
+		/* Handle looping first, but only if there is a random track selection
+		   presently active (see playlist_jump() for interaction). */
 		if(!(pl.num && ((pl.loop > 0 && --pl.loop) || pl.loop < 0)))
 		{
 			/* Randomly select the next track. */
@@ -286,6 +286,9 @@ static void init_playlist(void)
 	pl.fill = 0;
 	pl.pos = 0;
 	pl.num = 0;
+	if(APPFLAG(MPG123APP_CONTINUE) && param.listentry > 0)
+	pl.pos = param.listentry - 1;
+
 	pl.list = NULL;
 	pl.alloc_step = 10;
 	mpg123_init_string(&pl.dir);
@@ -295,17 +298,6 @@ static void init_playlist(void)
 	pl.hit_end = FALSE;
 	pl.loop = param.loop;
 	pl.stdin_used = FALSE;
-	if(APPFLAG(MPG123APP_CONTINUE) && param.listentry > 0)
-	{
-		pl.pos = param.listentry - 1;
-		if(param.shuffle > 1)
-		{
-TODO: That interaction is _not_ trivial! Maybe a separate flag for disabling random-selection for the first tack, after all.
-
-			pl.num = param.listentry;
-			pl.loop = pl.loop > -1 ? 2 : -1; // Ensure the track is played once even for random mode.
-		}
-	}
 }
 
 int playlist_stdin(void)

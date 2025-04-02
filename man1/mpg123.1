@@ -141,10 +141,9 @@ is the number of entry starting at 1. A value of 0 is the default and means play
 Enable playlist continuation mode. This changes frame skipping to apply only to the first track and also continues to play following tracks in playlist after the selected one. Also, the option to play a number of frames only applies to the whole playlist. Basically, this tries to treat the playlist more like one big stream (like, an audio book).
 The current track number in list (1-based) and frame number (0-based) are printed at exit (useful if you interrupted playback and want to continue later).
 Note that the continuation info is printed to standard output unless the switch for piping audio data to standard out is used. Also, it really makes sense to work with actual playlist files instead of lists of file names as arguments, to keep track positions consistent.
-This interacts fine with \-\-random since version 1.33, but not \-\-shuffle, as that destroys the notion of a stable position in the playlist.
 .TP
 \fB\-\-loop \fItimes\fR
-for playing track(s) a certain number of times in a loop, < 0 means infinite loop.
+for looping track(s) a certain number of times, < 0 means infinite loop (not with \-\-random!).
 .TP
 .BR \-\-keep\-open
 For remote control mode: Keep loaded file open after reaching end.
