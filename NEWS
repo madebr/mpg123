@@ -10,7 +10,10 @@
 - libout123:
 -- modules/win32: Align waveOutGetDevCapsA to WAVEOUTCAPSA, in anticipation
    of some UNICODE change.
-- libmpg123: more silence on errors (sideband limit messagE)
+- libmpg123
+-- API verion 49 with added mpg123_open64() that is not subject to largefile
+   renaming
+-- more silence on errors (sideband limit message)
 
 1.32.10
 ------

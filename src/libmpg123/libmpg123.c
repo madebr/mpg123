@@ -650,6 +650,14 @@ int attribute_align_arg mpg123_open_fd(mpg123_handle *mh, int fd)
 }
 #endif // PORTABLE_API
 
+int attribute_align_arg mpg123_open64(mpg123_handle *mh, void *iohandle)
+{
+	if(mh == NULL) return MPG123_BAD_HANDLE;
+
+	mpg123_close(mh);
+	return INT123_open_stream_handle(mh, iohandle);
+}
+
 int attribute_align_arg mpg123_open_handle(mpg123_handle *mh, void *iohandle)
 {
 	if(mh == NULL) return MPG123_BAD_HANDLE;

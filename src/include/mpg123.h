@@ -13,11 +13,15 @@
 
 /** \file mpg123.h The header file for the libmpg123 MPEG Audio decoder */
 
+/** \defgroup mpg123_h mpg123 header general settings and notes
+ * @{
+ */
+
 /** A macro to check at compile time which set of API functions to expect.
  * This must be incremented at least each time a new symbol is added
  * to the header.
  */
-#define MPG123_API_VERSION 48
+#define MPG123_API_VERSION 49
 /** library patch level at client build time */
 #define MPG123_PATCHLEVEL  3
 
@@ -43,7 +47,8 @@
 #endif
 #endif
 
-/** Earlier versions of libmpg123 put enums into public API calls,
+/** \page enumapi About enum API
+ * Earlier versions of libmpg123 put enums into public API calls,
  * thich is not exactly safe. There are ABI rules, but you can use
  * compiler switches to change the sizes of enums. It is safer not
  * to have them in API calls. Thus, the default is to remap calls and
@@ -76,7 +81,7 @@
 
 #ifndef MPG123_PORTABLE_API
 #include <sys/types.h>
-/* A little hack to help MSVC not having ssize_t. */
+/** A little hack to help MSVC not having ssize_t. */
 #ifdef _MSC_VER
 typedef ptrdiff_t mpg123_ssize_t;
 #else
@@ -85,21 +90,22 @@ typedef ssize_t mpg123_ssize_t;
 #endif
 
 
-/* Handling of large file offsets.
-	When client code defines _FILE_OFFSET_BITS, it wants non-default large file support,
-	and thus functions with added suffix (mpg123_open_64). The default library build provides
-	wrapper and alias functions to accomodate client code variations (dual-mode library like glibc).
-
-	Client code can definie MPG123_NO_LARGENAME and MPG123_LARGESUFFIX, respectively, for disabling
-	or enforcing the suffixes. If explicit usage of 64 bit offsets is desired, the int64_t API
-	(functions with 64 suffix without underscore, notablly mpg123_reader64()) can be used since
-	API version 48 (mpg123 1.32).
-
-	When in doubt, use the explicit 64 bit functions and avoid off_t in the API. You can define
-	MPG123_PORTABLE_API to ensure that. That being said, if you and your compiler do not have
-	problems with the	concept of off_t, just use the normal API and be happy. Both 32 and 64
-	bit versions will be present where appropriate.
-*/
+/** \page lfs Handling of large file offsets
+ * When client code defines _FILE_OFFSET_BITS, it wants non-default large file support,
+ * and thus functions with added suffix (mpg123_open_64). The default library build provides
+ * wrapper and alias functions to accomodate client code variations (dual-mode library like glibc).
+ *
+ * Client code can definie MPG123_NO_LARGENAME and MPG123_LARGESUFFIX, respectively, for disabling
+ * or enforcing the suffixes. If explicit usage of 64 bit offsets is desired, the int64_t API
+ * (functions with 64 suffix without underscore, notably mpg123_reader64()) can be used since
+ * API version 48 (mpg123 1.32). The matching mpg123_open64() (stripped-down mpg123_open_handle_64())
+ * is present since API version 49 (mpg123 1.33).
+ *
+ * When in doubt, use the explicit 64 bit functions and avoid off_t in the API. You can define
+ * MPG123_PORTABLE_API to ensure that. That being said, if you and your compiler do not have
+ * problems with the	concept of off_t, just use the normal API and be happy. Both 32 and 64
+ * bit versions will be present where appropriate.
+ */
 
 #ifndef MPG123_PORTABLE_API
 /*
@@ -141,6 +147,8 @@ typedef ssize_t mpg123_ssize_t;
 
 #endif /* largefile hackery */
 #endif
+
+/** @} */
 
 #ifdef __cplusplus
 extern "C" {
@@ -788,6 +796,16 @@ MPG123_EXPORT int mpg123_open(mpg123_handle *mh, const char *path);
 MPG123_EXPORT int mpg123_open_fd(mpg123_handle *mh, int fd);
 #endif
 
+/** Use an opaque handle as bitstream input, portable API.
+ *  This is a stable symbol name that does not depend on largefile setup.
+ *  It is functionally equivalent to mpg123_open_handle(), but only in
+ *  combination with mpg123_reader64().
+ *  \param mh handle
+ *  \param iohandle your handle
+ *  \return MPG123_OK on success
+ */
+MPG123_EXPORT int mpg123_open64(mpg123_handle *mh, void *iohandle);
+
 /** Use an opaque handle as bitstream input. This works only with the
  *  replaced I/O from mpg123_replace_reader_handle() or mpg123_reader64()!
  *  mpg123_close() will call the cleanup callback for your non-NULL
@@ -1258,6 +1276,7 @@ MPG123_EXPORT int mpg123_eq2( mpg123_handle *mh
 /** Set a range of equalizer bands
  *  \param channel Can be #MPG123_LEFT, #MPG123_RIGHT or
  *    #MPG123_LEFT|#MPG123_RIGHT for both.
+ *  \param mh handle
  *  \param a The first equalizer band to set (from 0 to 31)
  *  \param b The last equalizer band to set (from 0 to 31)
  *  \param factor The (linear) adjustment factor, 1 being neutral.
@@ -1267,6 +1286,7 @@ MPG123_EXPORT int mpg123_eq_bands( mpg123_handle *mh
 ,	int channel, int a, int b, double factor );
 
 /** Change a range of equalizer bands
+ *  \param mh handle
  *  \param channel Can be #MPG123_LEFT, #MPG123_RIGHT or
  *    #MPG123_LEFT|#MPG123_RIGHT for both.
  *  \param a The first equalizer band to change (from 0 to 31)
@@ -2218,7 +2238,8 @@ MPG123_EXPORT int mpg123_replace_reader_handle( mpg123_handle *mh
 
 /** Set up portable read functions on an opaque handle.
  *  The handle is a void pointer, so you can pass any data you want...
- *  mpg123_open_handle() is the call you make to use the I/O defined here.
+ *  mpg123_open64() (since API 49) or mpg123_open_handle() is the call you make
+ *  to use the I/O defined here.
  *  There is no fallback to internal read/seek here.
  *  Note: As it would be troublesome to mess with this while having a file open,
  *  this mpg123_close() is implied here.
