@@ -2,6 +2,11 @@ Changes in libmpg123 libtool interface versions. Next to the version
 the mpg123 release where its changes first appeared to the public
 is given.
 
+49.0.49 (mpg123 1.33)
+        - Added mpg123_open64() as clearly portable match for
+          mpg123_reader64(). It is just mpg123_open_handle() without
+          code path for non-portable API.
+
 48.0.48 (mpg123 1.32)
 	- Added mpg123_distversion() and mpg123_libversion().
 	- Added mpg123_reader64() and the other int64_t-based functions:
