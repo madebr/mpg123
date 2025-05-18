@@ -4,13 +4,15 @@
 -- Fix printout of filenames at end (convert/limit text encoding).
 -- Treat HTTP header encoding as unknown/ASCII and formally convert to UTF-8.
 -- Make --continue mode work with --random.
+-- Handle possible failure of __wgetmainargs on Windows (bug 375).
+- mpg123-id3dump: Fix up command line arg handling for Windows.
 - build:
 -- Use CCASFLAGS for assembler tests, to enable builds that enable instruction
    sets that way (bug 377).
 - compat: Map strtok use to strtok_r or strtok_s (MS platforms), if possible.
   users only in control_generic and libout123 so far. Out123 itself uses mytok.
   Shall fix bug 376 (build with MSVC again).
-- libout123:
+- libout123
 -- modules/win32: Align waveOutGetDevCapsA to WAVEOUTCAPSA, in anticipation
    of some UNICODE change.
 - libmpg123

@@ -49,9 +49,9 @@
 
 #include "../common/debug.h"
 
-#include "wpathconv.h"
 
 #ifdef USE_MODULES
+#include "wpathconv.h"
 /*
 	This is what I expected the platform-specific dance for dynamic module
 	support to be. Little did I know about the peculiarities of (long)
