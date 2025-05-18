@@ -1209,7 +1209,7 @@ dnl ############## Assembler, compiler properties
 # extended to use balign if present
 AC_MSG_CHECKING([if .balign is present])
 echo '.balign 4' > conftest.s
-if $CCAS -c -o conftest.o conftest.s 1>/dev/null 2>&1; then
+if $CCAS $CFLAGS -c -o conftest.o conftest.s 1>/dev/null 2>&1; then
 
   AC_MSG_RESULT([yes])
   AC_DEFINE(ASMALIGN_BALIGN, 1, [ Define if .balign is present. ])
@@ -1224,7 +1224,7 @@ if test x"$asmalign_exp" = xunknown; then
 	AC_MSG_CHECKING([if .align takes 2-exponent])
 	asmalign_exp="no"
 	echo '.align 3' > conftest.s
-	if $CCAS -c -o conftest.o conftest.s 1>/dev/null 2>&1; then
+	if $CCAS $CFLAGS -c -o conftest.o conftest.s 1>/dev/null 2>&1; then
 		asmalign_exp="yes"
 		AC_MSG_RESULT([yes])
 	else
@@ -1263,7 +1263,7 @@ if test x"$avx_support" = xunknown; then
 	avx_support="no"
 	echo '.text' > conftest.s
 	echo 'vaddps %ymm0,%ymm0,%ymm0' >> conftest.s
-	if $CCAS -c -o conftest.o conftest.s 1>/dev/null 2>&1; then
+	if $CCAS $CFLAGS -c -o conftest.o conftest.s 1>/dev/null 2>&1; then
 		avx_support="yes"
 		AC_MSG_RESULT([yes])
 	else

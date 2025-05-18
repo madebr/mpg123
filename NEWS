@@ -4,6 +4,9 @@
 -- Fix printout of filenames at end (convert/limit text encoding).
 -- Treat HTTP header encoding as unknown/ASCII and formally convert to UTF-8.
 -- Make --continue mode work with --random.
+- build:
+-- Use CFLAGS for assembler tests, to enable builds that enable instruction
+   sets that way (bug 377).
 - compat: Map strtok use to strtok_r or strtok_s (MS platforms), if possible.
   users only in control_generic and libout123 so far. Out123 itself uses mytok.
   Shall fix bug 376 (build with MSVC again).
@@ -14,6 +17,7 @@
 -- API verion 49 with added mpg123_open64() that is not subject to largefile
    renaming
 -- more silence on errors (sideband limit message)
+
 
 1.32.10
 ------
