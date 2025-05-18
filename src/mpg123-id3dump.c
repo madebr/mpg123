@@ -364,7 +364,11 @@ int main(int argc, char **argv)
 	int i, result;
 	mpg123_handle* m;
 #if defined(WANT_WIN32_UNICODE)
-	win32_cmdline_utf8(&argc,&argv);
+	if(win32_cmdline_utf8(&argc,&argv) != 0)
+	{
+		error("Cannot convert command line to UTF8!");
+		return 1;
+	}
 #endif
 	progname = argv[0];
 
@@ -428,9 +432,9 @@ int main(int argc, char **argv)
 	mpg123_delete(m);
 	mpg123_exit();
 
-	if(errors) error1("Encountered %i errors along the way.", errors);
-	return errors != 0;
 #if defined(WANT_WIN32_UNICODE)
 	win32_cmdline_free(argc,argv);
 #endif
+	if(errors) error1("Encountered %i errors along the way.", errors);
+	return errors != 0;
 }
