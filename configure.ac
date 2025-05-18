@@ -1331,7 +1331,7 @@ dnl ############## LFS stuff
 
 portable_api=no
 AC_ARG_ENABLE(portable,
-              [AS_HELP_STRING( [--enable-portable], [only build portable API (no off_t, no internal I/O)])],
+              [AS_HELP_STRING( [--enable-portable], [only build portable API (no off_t, no internal I/O -- and no end-user programs)])],
               [
                 if test "x$enableval" = xyes; then
                   portable_api="yes"
@@ -2954,11 +2954,18 @@ dnl ############## Display Message
 
 default_offset_bits=`expr "$ac_cv_sizeof_off_t" "*" "8"`
 
+if test "x$build_programs" = xyes && ! test "x$portable_api" = xyes; then
+  build_mpg123_programs=yes
+else
+  build_mpg123_programs=no
+fi
+
 echo "
   $PACKAGE_NAME $PACKAGE_VERSION
 
   Install path ............ $prefix
   Components .............. $components
+  Main mpg123 program(s)... $build_mpg123_programs
   CPU Optimization ........ $cpu_type
   Compiler Optimization ... $with_optimization"
 if test x"$use_yasm_for_avx" = xyes; then
