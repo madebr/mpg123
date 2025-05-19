@@ -16,10 +16,13 @@
 -- modules/win32: Align waveOutGetDevCapsA to WAVEOUTCAPSA, in anticipation
    of some UNICODE change.
 - libmpg123
--- API verion 49 with added mpg123_open64() that is not subject to largefile
-   renaming
+-- API version 49 with added mpg123_open_handle64(), mpg123_open64(), and
+   mpg123_open_fixed64() that are not subject to largefile renaming. This
+   means you can still access internal I/O with MPG123_PORTABLE_API. The
+   code has been there before, anyway.
+-- With MPG123_PORTABLE_API, mpg123_open_handle() is hidden now (use
+   mpg123_open_handle64() instead).
 -- more silence on errors (sideband limit message)
-
 
 1.32.10
 ------

@@ -3,9 +3,14 @@ the mpg123 release where its changes first appeared to the public
 is given.
 
 49.0.49 (mpg123 1.33)
-        - Added mpg123_open64() as clearly portable match for
-          mpg123_reader64(). It is just mpg123_open_handle() without
-          code path for non-portable API.
+	- Added mpg123_open_handle64() as clearly portable match for
+	  mpg123_reader64(). It is just mpg123_open_handle() without
+	  code path for non-portable API.
+	- Remove mpg123_open_handle() and renamed variants from builds
+	  with MPG123_PORTABLE_API. Code must switch to
+	  mpg123_open_handle64() there if MPG123_API_VERSION >= 49!
+	- Added mpg123_open64() and mpg123_open_fixed64() as portable
+	  variants of mpg123_open() and mpg123_open_fixed().
 
 48.0.48 (mpg123 1.32)
 	- Added mpg123_distversion() and mpg123_libversion().
