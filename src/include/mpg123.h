@@ -832,7 +832,7 @@ MPG123_EXPORT int mpg123_open_fixed(mpg123_handle *mh, const char *path
  *  UTF-8, which also fits any sane modern install of Unix-like systems.
  *
  *  \param mh handle
- *  \param path filesystem
+ *  \param path filesystem path
  *  \return MPG123_OK on success
  */
 MPG123_EXPORT int mpg123_open(mpg123_handle *mh, const char *path);
@@ -844,27 +844,63 @@ MPG123_EXPORT int mpg123_open(mpg123_handle *mh, const char *path);
  *  \return MPG123_OK on success
  */
 MPG123_EXPORT int mpg123_open_fd(mpg123_handle *mh, int fd);
-#endif
-
-/** Use an opaque handle as bitstream input, portable API.
- *  This is a stable symbol name that does not depend on largefile setup.
- *  It is functionally equivalent to mpg123_open_handle(), but only in
- *  combination with mpg123_reader64().
- *  \param mh handle
- *  \param iohandle your handle
- *  \return MPG123_OK on success
- */
-MPG123_EXPORT int mpg123_open64(mpg123_handle *mh, void *iohandle);
 
 /** Use an opaque handle as bitstream input. This works only with the
  *  replaced I/O from mpg123_replace_reader_handle() or mpg123_reader64()!
  *  mpg123_close() will call the cleanup callback for your non-NULL
  *  handle (if you gave one).
+ *  Note that this used to be usable with MPG123_PORTABLE_API defined in
+ *  mpg123 1.32.x and was in fact the only entry point for handle I/O.
+ *  Since mpg123 1.33.0 and MPG123_API_VERSION 49, there is
+ *  mpg123_open_handle64() for the portable case and has to be used
+ *  instead of this function here, even if it _would_ work just fine,
+ *  the inclusion of a largefile-renamed symbol in the portable set was wrong.
+ *
  *  \param mh handle
  *  \param iohandle your handle
  *  \return MPG123_OK on success
  */
 MPG123_EXPORT int mpg123_open_handle(mpg123_handle *mh, void *iohandle);
+#endif
+
+/** Open and prepare to decode the specified file by filesystem path.
+ *  This works exactly like mpg123_open() in modern libmpg123, see there
+ *  for more description. This name is not subject to largefile symbol renaming.
+ *  You can also use it with MPG123_PORTABLE_API.
+ *
+ *  \param mh handle
+ *  \param path filesystem path of your resource
+ *  \return MPG123_OK on success
+ */
+MPG123_EXPORT int mpg123_open64(mpg123_handle *mh, const char *path);
+
+/** Open a simple MPEG file with fixed properties.
+ *  This is the same as mpg123_open_fixed(), just with a stable
+ *  symbol name for int64_t portable API.
+ *
+ *  \param mh handle
+ *  \param path filesystem path (see mpg123_open())
+ *  \param channels allowed channel count, either 1 (MPG123_MONO) or
+ *    2 (MPG123_STEREO), or bitwise or of them, but then you're halfway back to
+ *    calling mpg123_format() again;-)
+ *  \param encoding a definite encoding from enum mpg123_enc_enum
+ *    or a bitmask like for mpg123_format(), defeating the purpose somewhat
+ */
+MPG123_EXPORT int mpg123_open_fixed64(mpg123_handle *mh, const char *path
+,	int channels, int encoding);
+
+/** Use an opaque handle as bitstream input. This works only with the
+ *  replaced I/O from mpg123_reader64()!
+ *  mpg123_close() will call the cleanup callback for your non-NULL
+ *  handle (if you gave one).
+ *  This is a simplified variant of mpg123_open_handle() that only
+ *  supports the int64_t API, available with MPG123_PORTABLE_API.
+ *
+ *  \param mh handle
+ *  \param iohandle your handle
+ *  \return MPG123_OK on success
+ */
+MPG123_EXPORT int mpg123_open_handle64(mpg123_handle *mh, void *iohandle);
 
 /** Open a new bitstream and prepare for direct feeding
  *  This works together with mpg123_decode(); you are responsible for reading and feeding the input bitstream.
