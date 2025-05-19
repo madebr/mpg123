@@ -32,6 +32,11 @@ You want:
 
 1. Build
 
+Note: If you want the full range of output modules, you might
+run into cirucular dependencies, as pulseaudio or SDL might also
+want to use parts of the mpg123 distribution. You can split the
+build avoid that circle.
+
 There is one main supported way to get your mpg123 installation
 consisting of
 
@@ -50,6 +55,43 @@ This way is the usual GNU 3-step procedure:
 	./configure
 	make
 	make install
+
+If you want to separate components (for avoiding circular dependencies,
+for example), you can split things at various points. Either you build
+all libraries and programs first, then all output modules via
+
+	# Build programs and libs only.
+	./configure --disable-components --enable-programs \
+          --enable-libmpg123 --enable-libsyn123 --enable-libout123 \
+          --with-default-audio=$OUTPUT_MODULES
+	make && make install
+	# Build packges relying on mpg123 libraries.
+	# After that, build out123 modules with external dependencies
+	./configure --disable-components --enable-libout123-modules \
+          --with-audio=$OUTPUT_MODULES
+	make && make install
+
+or you can build each component individually, or just separate out the
+problematic modules by
+
+	# Build all components, but dummy output only. 
+	./configure --with-audio=dummy,$SAFE_MODULES \
+          --with-default-audio=$OUTPUT_MODULES
+	make && install
+	# Build other packages, like SDL, pulse.
+	# After that, build output modules depending on those.
+	# Without --with-audio, auto-detection will build a list.
+	./configure --disable-components --enable-libout123-modules \
+	  --with-audio=$UNSAFE_MODULES
+	make && make install
+
+The variables OUTPUT_MODULES, SAFE_MOULES, and UNSAFE_MODULES are
+supposed to contain comma-separated lists of output modules like
+"oss,pulse,alsa,jack". You need to give a full list when building
+libout123 without modules to setup the default search order. Without
+this, it won't find modules automatically without specifying one with
+mpg123 -o $module. There is no module registry, just a simple build-time
+list and the option to specify a module at runtime.
 
 Run
 
