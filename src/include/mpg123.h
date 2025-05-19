@@ -851,7 +851,7 @@ MPG123_EXPORT int mpg123_open_fd(mpg123_handle *mh, int fd);
  *  handle (if you gave one).
  *  Note that this used to be usable with MPG123_PORTABLE_API defined in
  *  mpg123 1.32.x and was in fact the only entry point for handle I/O.
- *  Since mpg123 1.33.0 and MPG123_API_VERSION 49, there is
+ *  Since mpg123 1.33.0 and API version 49, there is
  *  mpg123_open_handle64() for the portable case and has to be used
  *  instead of this function here, even if it _would_ work just fine,
  *  the inclusion of a largefile-renamed symbol in the portable set was wrong.
