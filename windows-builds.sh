@@ -9,6 +9,7 @@ if test -z "$build_type"; then
   echo "Please specify a build type as argument, one of:"
   echo "x86, x86_64, x86-cross, x86_64-cross"
   echo "Optionally set a number of parallel make processes as second argument."
+  echo "A third argument might override the list of output modules to build."
   exit 1
 fi
 
@@ -22,6 +23,8 @@ build_procs=$2
 
 # -D__MINGW_USE_VC2005_COMPAT=1 use 64bit time internally for 32bit, so XP and earlier don't get into
 # missing _time32 errors
+
+modules=${3:-win32_wasapi,win32}
 
 echo "build type: $build_type"
 case $build_type in
@@ -55,8 +58,7 @@ temp="$PWD/tmp"
 final="$PWD/releases"
 txt="README COPYING NEWS"
 # let's try with modules
-opts="LDFLAGS=-static-libgcc"
-#opts="--with-audio=win32 --disable-modules"
+opts="--with-audio=$modules LDFLAGS=-static-libgcc"
 
 # Get the version for the build from version.h.
 major=$(grep '#define MPG123_MAJOR' src/version.h | cut -f 3 -d ' ')
