@@ -9,9 +9,14 @@
 - build:
 -- Use CCASFLAGS for assembler tests, to enable builds that enable instruction
    sets that way (bug 377).
-- compat: Map strtok use to strtok_r or strtok_s (MS platforms), if possible.
-  users only in control_generic and libout123 so far. Out123 itself uses mytok.
-  Shall fix bug 376 (build with MSVC again).
+-- PIC for compat libs (convenience libs used during build) only if building
+   shared libs (github PR 17 by Wouter Wijsman).
+- compat:
+-- Map strtok use to strtok_r or strtok_s (MS platforms), if possible.
+   users only in control_generic and libout123 so far. Out123 itself uses mytok.
+   Shall fix bug 376 (build with MSVC again).
+-- Enable build on PSP by merging in the hotfix of opmitting signal code
+   (github PR 18 by Wouter Wijsman).
 - libout123
 -- modules/win32: Align waveOutGetDevCapsA to WAVEOUTCAPSA, in anticipation
    of some UNICODE change.
@@ -23,8 +28,6 @@
 -- With MPG123_PORTABLE_API, mpg123_open_handle() is hidden now (use
    mpg123_open_handle64() instead).
 -- more silence on errors (sideband limit message)
--- Enable build on PSP by merging in the hotfix of opmitting signal code
-   (github PR 18).
 
 1.32.10
 ------
