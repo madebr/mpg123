@@ -23,6 +23,8 @@
 -- With MPG123_PORTABLE_API, mpg123_open_handle() is hidden now (use
    mpg123_open_handle64() instead).
 -- more silence on errors (sideband limit message)
+-- Enable build on PSP by merging in the hotfix of opmitting signal code
+   (github PR 18).
 
 1.32.10
 ------
