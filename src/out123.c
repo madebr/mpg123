@@ -1,7 +1,7 @@
 /*
 	out123: stream data from libmpg123 or libsyn123 to an audio output device
 
-	copyright 1995-2023 by the mpg123 project,
+	copyright 1995-2025 by the mpg123 project,
 	free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 
@@ -1630,7 +1630,10 @@ int main(int sys_argc, char ** sys_argv)
 	}
 
 	if(strcmp(signal_source, "file"))
+	{
+		had_something = 1;
 		generate = TRUE;
+	}
 	else
 		input = open_next_file(argc, argv, 1);
 
