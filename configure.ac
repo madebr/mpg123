@@ -1471,7 +1471,7 @@ AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 void *v = &ReadConsoleInput;
 ])],[ac_cv_header_wincon_h=yes],[ac_cv_header_wincon_h=no])
 AC_MSG_RESULT([$ac_cv_header_wincon_h])
-AS_IF([test "x$ac_cv_header_wincon_h" = "xyes"],[],[AC_DEFINE([HAVE_WINCON_H],[1],[Define to 1 if you have the <wincon.h> header file.])])
+AS_IF([test "x$ac_cv_header_wincon_h" = "xyes"],[AC_DEFINE([HAVE_WINCON_H],[1],[Define to 1 if you have the <wincon.h> header file.])],[])
 
 term_type=none
 if test "x$ac_cv_sys_posix_termios" = "xyes"; then
