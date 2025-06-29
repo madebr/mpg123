@@ -456,7 +456,14 @@ if(UNIX AND NOT PORTABLE_API)
             ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}/"
             LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/"
             RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}/")
-    endif()
+
+        install(
+           FILES
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../man1/mpg123.1"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../man1/out123.1"
+           DESTINATION "${CMAKE_INSTALL_MANDIR}")
+
+   endif()
 endif()
 
 configure_file(config.cmake.h.in config.h)
