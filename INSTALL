@@ -7,20 +7,22 @@ You really need:
 
 - a C99 compiler (moderate C99 support)
 
-- an (UNIX-like) operating system with standard tools; MinGW32 and
+- an (UNIX-like) operating system with standard tools; mingw-w64 and
   Cygwin are working for Microsoft Windows, too. We also have users happily
-  on OS/2.
+  playing on OS/2.
 
 - For the library only, you may get lucky with MSVC++ using CMake and
-  ports/cmake as source directory. You can also use CMake on other
+  ports/cmake as source directory. You can also use CMake on UNIX-like
   platforms for a full build, but its main purpose is for portability
   where autotools don't do the trick.
 
-- For other exotic platforms, also see ports/
+- There used to be some additional ports in ports/, now there is a single
+  CMake structure there that handles most systems that cannot use autotools
+  to at least build the decoder library.
 
 - If building from direct source code repository checkout, as opposed to
   a release or snapshot tarball, you need GNU autotools installed
-  (see Developer Build below).
+  (see Developer Build below) or have cmake present for ports/cmake/.
 
 You want:
 
@@ -158,38 +160,57 @@ libraries, specify it as a target:
 You can then find the library itself under src/lib*123/.libs (libtool
 likes to hide things there).
 
+Alternatively, you can use --disable-components and --enable-foo for
+building only component foo (like libmpg123).
+
 
 4. Exotic platforms
 
-See the ports/ directory for some help for building at least libmpg123
-without the UNIX shell / autotools. The main strategy is to write
-a config.h to replace what configure would generate and then have a
-correct listing of all source files involved in that configuration
-(there are optional files for different decoder choices, for example).
+There used to be (and still are in revsion control history) special
+ports for some platforms or language bindings in the ports/ directory.
 
-Then compile objects, link.
+Right now, there is only ports/cmake for an alternate CMake-based
+build, mainly for libmpg123 itself, but also libsyn123 and possibly
+the full set if the platform is UNIX-like.
 
-Instead of manually curated MSVC project files, there is a CMake port
-now in ports/cmake to build mpg123 with the MS compilers. It might be
-helpful for other platforms, too. But the main build system for
-POSIX-like systems is the autotools one.
+If autotools and also ports/cmake do not do the trick, you need to
+construct a src/config.h and build and gather the object files you want.
+The autotools input files should help here, too.
 
+4a. Microsoft Windows
 
-4a. Preparing Win32 binary packages.
+Under Windows, you can use Cygwin, MSYS2 or probably also the WSL
+environment to build mpg123 binaries. If you want binaries that
+work nicely stand-alone, and also at least being able to force correct
+printout of UTF-8 text using chcp 65001 and mpg123 --utf8, the MSYS2
+UCRT64 shell and accompanying toolchain seem to work (see MSYS2
+documentation on how to set up, it is not that hard).
 
-Caution: You should make sure to use some gcc >= 4.2.0, even if it's
-still the experimental package for MinGW32.
-This helps preventing incompatibilities between generated DLL files and
-other compilers (it's about stack alignment).
+To generate a set of binary builds matching the erstwhile official mpg123
+binaries, run
 
-Get MinGW/MSYS installed, run the MSYS shell.
-Enter the mpg123 source directory.
-Execute sh ./windows-builds.sh .
+	sh ./windows-builds.sh x86
+
+or
+
+	sh ./windows-builds.sh x86_64
+
+(optionally followed by a number to indicate the count of parallel make
+tasks).
 
 After some time, you should have some relevant files under releases/
 (or releases\, for Windows people;-).
 You don't just get one build -- there are several variants, corresponding
-to what usually is to be found under http://mpg123.org/download/win32 .
+to what usually was to be found under https://mpg123.org/download/win32/ and
+https://mpg123.org/download/win64/ .
+
+Notet hat, depending on you msys/mingw variant, you might have to copy
+libwinpthread-1.dll to the respective release directory. This is a quirk
+of the toolchain which insists on linking in a threading runtime. You
+might be able to statically link it in with some extra magic.
+
+You can also run this script on a Linux host with mingw-w64 cross toolchain
+installed, with arguments x86-cross and x86_64-cross.
 
 
 5. Note on large file support
@@ -205,6 +226,11 @@ the mpg123.h header file selects different library symbols to use for
 your app.
 In both large-file and normal mode, the library should just work for
 your app.
+
+In the meantime a portable API with fixed 64 bit integers (and some irony
+on top) also was added. You can limit yourself to that api by defining
+MPG123_PORTABLE_API in client code.
+
 
 6. Security
 

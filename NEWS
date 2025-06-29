@@ -1,3 +1,11 @@
+1.33.1
+------
+- INSTALL updated with hints for Windows, mainly.
+- Finally formatted README. Maybe do it in Markdown sometime, as that's
+  the fashion.
+- build:
+-- ports/cmake only installs manpages for BUILD_PROGRAMS now.
+
 1.33.0
 ------
 - mpg123
