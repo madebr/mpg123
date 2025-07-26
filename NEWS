@@ -4,7 +4,9 @@
 - Finally formatted README. Maybe do it in Markdown sometime, as that's
   the fashion.
 - build:
--- ports/cmake only installs manpages for BUILD_PROGRAMS now.
+-- The ports/cmake only installs manpages for BUILD_PROGRAMS now.
+-- The configure gives better hint if pkg-config was missing during generation
+   (bug 378).
 
 1.33.0
 ------

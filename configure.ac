@@ -80,6 +80,13 @@ dnl Testing with 1.14.
 AM_INIT_AUTOMAKE([subdir-objects])
 AC_CONFIG_HEADERS([src/config.h])
 
+dnl You tell me how quoting this normally would work to avoid expansion!
+if test 2 -lt "$(grep "PKG_"CHECK_MODULES "$0"|wc -l)"; then
+  AC_MSG_ERROR([Pkg-config was absent when generating this configure script.
+  Re-run autoreconf with pkg-config installed top get a working one.])
+fi
+dnl For some reason, this has to be after the check above.
+PKG_PROG_PKG_CONFIG([])
 
 # You get strange symptoms like jack module build failing because the AC_C_CONST failed to detect the working const support.
 # In that case, the test failed because -Werror, not because no const there...
@@ -1925,8 +1932,6 @@ fi
 if test "x$build_libout123" = xyes && ! echo "$check_modules" | grep -qw dummy; then
 	check_modules="$check_modules dummy"
 fi
-
-PKG_PROG_PKG_CONFIG([])
 
 # Now go through the modules to check and do the chores.
 for m in $check_modules
