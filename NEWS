@@ -7,6 +7,10 @@
 -- The ports/cmake only installs manpages for BUILD_PROGRAMS now.
 -- The configure gives better hint if pkg-config was missing during generation
    (bug 378).
+- mpg123:
+-- Replace usage of signal() in terminal code with our sigaction() wrapper
+   to fix repeated handling for --sigusr1 and --sigusr2, which got subtly
+   broken on Linux + glibc by a feature test macro change in mpg123 1.31.
 
 1.33.0
 ------

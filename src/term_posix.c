@@ -112,10 +112,10 @@ static int term_setup_detail(struct termios *pattern)
 {
 	mdebug("setup on fd %d", term_fd);
 
-	/* One might want to use sigaction instead. */
-	signal(SIGCONT, term_sigcont);
-	signal(SIGUSR1, term_sigusr);
-	signal(SIGUSR2, term_sigusr);
+	INT123_catchsignal(SIGCONT, term_sigcont);
+	INT123_catchsignal(SIGUSR1, term_sigusr);
+	INT123_catchsignal(SIGUSR2, term_sigusr);
+
 	struct termios tio = *pattern;
 	tio.c_lflag &= ~(ICANON|ECHO); 
 	tio.c_cc[VMIN] = 1;
