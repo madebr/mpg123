@@ -345,14 +345,15 @@ static void store_id3_text(mpg123_string *sb, unsigned char encoding, unsigned c
 	if(notranslate)
 	{
 		/* Future: Add a path for ID3 errors. */
-		if(!mpg123_grow_string(sb, source_size))
+		if(!mpg123_grow_string(sb, source_size+1))
 		{
 			if(noquiet) error("Cannot resize target string, out of memory?");
 			return;
 		}
-		memcpy(sb->p, source, source_size);
-		sb->fill = source_size;
-		debug1("stored undecoded ID3 text of size %zu", source_size);
+		sb->p[0] = (char)encoding;
+		memcpy(sb->p+1, source, source_size);
+		sb->fill = source_size+1;
+		debug1("stored undecoded ID3 text of size %zu", source_size+1);
 		return;
 	}
 
