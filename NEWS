@@ -1,3 +1,9 @@
+1.33.2
+------
+- libmpg123:
+-- Do not modify raw ID3v2 data while parsing (bug 379). This used to be fine
+   before MPG123_STORE_RAW_ID3 got introduced. Not anymore.
+
 1.33.1
 ------
 - INSTALL updated with hints for Windows, mainly.
