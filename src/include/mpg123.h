@@ -23,7 +23,7 @@
  */
 #define MPG123_API_VERSION 49
 /** library patch level at client build time */
-#define MPG123_PATCHLEVEL  3
+#define MPG123_PATCHLEVEL  4
 
 #ifndef MPG123_EXPORT
 /** Defines needed for MS Visual Studio(tm) DLL builds.
