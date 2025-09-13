@@ -84,6 +84,12 @@
 #define ASM_VALUE(a) MANGLE_MACROCAT($,a)
 #endif
 
+#if !defined(__APPLE__) && !defined (__OS2__)
+#define RODATA .section .rodata
+#else
+#define RODATA .data
+#endif
+
 /* Enable position-independent code for certain platforms. */
 
 #if defined(OPT_X86)
