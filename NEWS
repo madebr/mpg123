@@ -1,3 +1,9 @@
+1.33.3
+------
+- libmpg123:
+-- Fix build with newer toolchain on Android by using __ANDROID__ macro (bug 380).
+-- Consolidate and more consistently use .rodata switch in macro.
+
 1.33.2
 ------
 - libmpg123:
