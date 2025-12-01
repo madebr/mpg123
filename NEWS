@@ -1,3 +1,8 @@
+1.33.4
+------
+- mpg123: In terminal control, ignore 7-bit escape sequences to avoid spurious
+  actions, e.g. when hitting cursor keys. Inspired by Peter Tirsek.
+
 1.33.3
 ------
 - libmpg123:

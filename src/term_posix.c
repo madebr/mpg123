@@ -207,7 +207,7 @@ int term_get_key(int stopped, int do_delay, char *val)
 	}
 
 	t.tv_sec=0;
-	t.tv_usec=(do_delay) ? 10*1000 : 0;
+	t.tv_usec = do_delay==1 ? 10*1000 : (do_delay==-1 ? 1*1000 : 0);
 
 	FD_ZERO(&r);
 	FD_SET(term_fd,&r);
