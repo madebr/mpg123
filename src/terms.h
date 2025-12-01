@@ -43,7 +43,7 @@ int term_setup(void);
 void term_restore(void);
 
 /** Check for and return a key press event.
- *  \param do_delay Wait for up to 10 ms for a key event if true.
+ *  \param do_delay Wait for up to 10 ms for key event if 1, for 1 ms if -1, without delay for 0.
  *  \param val address to store character to
  *  \return 1 if there is a key, 0 if not
  */

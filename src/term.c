@@ -1,4 +1,4 @@
-/*
+	/*
 	term: terminal control
 
 	copyright ?-2023 by the mpg123 project - free software under the terms of the LGPL 2.1
@@ -589,8 +589,34 @@ static void term_handle_key(mpg123_handle *fr, out123_handle *ao, char val)
 static void term_handle_input(mpg123_handle *fr, out123_handle *ao, int do_delay)
 {
 	char val;
-	if(term_get_key(playstate==STATE_STOPPED, do_delay, &val))
+	if(term_get_key(playstate==STATE_STOPPED, do_delay ? 1 : 0, &val))
 	{
+		// Crude ignoring of 7-bit escape sequences. 8-bit ones you better really handle
+		// in the terminal and do not pass on. The idea is that pressing cursor keys
+		// that contain plain characters in the triggered escape sequences should
+		// not confuse mpg123 terminal control At the same time, the user pressing
+		// ESC on its own should not confuse mpg123 into starting a sequence.
+		// So the assumption is quick succession of the bytes for real sequences.
+		// If the sequence has been ignoret, return, as this has been handled. Come
+		// back for real control.
+		if(val == 0x1b) // ESC, get next key, if any
+		{
+			int seq_len = 1;
+			if(term_get_key(FALSE, -1, &val))
+			{
+				++seq_len;
+				if(val == 'Z') // SCI, single character to drop, if any
+					term_get_key(FALSE, -1, &val);
+				else if(val == '[') // sequence begin
+				{
+					while(term_get_key(FALSE, -1, &val) && strchr("0123456789;", val))
+						++seq_len;
+				} // else simple single-character escape
+			}
+			mdebug("dropped escape sequence of length %d", seq_len);
+			return;
+		} else
+			mdebug("got key: %02x", val);
 		term_handle_key(fr, ao, val);
 	}
 }
