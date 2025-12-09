@@ -74,9 +74,9 @@ check_function_exists(execvp HAVE_EXECVP)
 check_function_exists(ctermid HAVE_CTERMID)
 check_function_exists(clock_gettime HAVE_CLOCK_GETTIME)
 
-check_type_size(off_t SIZEOF_OFF_T)
+check_type_size(off_t MPG123_SIZEOF_OFF_T)
 
-if(SIZEOF_OFF_T LESS 8)
+if(MPG123_SIZEOF_OFF_T LESS 8)
 check_function_exists(lseek64 LFS_LARGEFILE_64)
 
 if(LFS_LARGEFILE_64)
