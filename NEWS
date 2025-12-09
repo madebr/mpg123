@@ -2,6 +2,9 @@
 ------
 - mpg123: In terminal control, ignore 7-bit escape sequences to avoid spurious
   actions, e.g. when hitting cursor keys. Inspired by Peter Tirsek.
+- ports/cmake: Avoid possibly conflicting use of SIZEOF_OFF_T CMake variable
+  when embedding mpg123 with other projects using cmake and different off_t
+  semantics. (bug 382)
 
 1.33.3
 ------
