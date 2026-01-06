@@ -636,6 +636,10 @@ static int read_record(out123_handle *ao
 		*buf = NULL;
 		return 2;
 	}
+	// If caller is not interested in the length, a zero-terminated string
+	// is assumed. Ensure that zero byte for defense in depth.
+	if(len && !reclen)
+		((byte*)(*buf))[len-1] = 0;
 	return 0;
 }
 
