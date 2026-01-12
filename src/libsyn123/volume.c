@@ -47,6 +47,25 @@ double attribute_align_arg syn123_lin2db(double volume)
 }
 
 
+#define CONVAMP(fXX) \
+	err = syn123_conv( \
+		sh->workbuf.fXX, mixenc, sizeof(sh->workbuf.fXX) \
+	,	cbuf, encoding, inframe*block \
+	,	NULL, NULL, NULL ); \
+	if(!err) \
+	{ \
+		err = syn123_amp( sh->workbuf.fXX, mixenc, block \
+		,	volume, offset, NULL, NULL ); \
+		if(err) \
+			return err; \
+		err = syn123_conv( \
+			cbuf, encoding, inframe*block \
+		,	sh->workbuf.fXX, mixenc, mixframe*block \
+		,	NULL, &clips_block, NULL ); \
+		clips += clips_block; \
+	}
+
+
 int attribute_align_arg
 syn123_amp( void* buf, int encoding, size_t samples
 ,	double volume, double offset, size_t *clipped, syn123_handle *sh )
@@ -94,22 +113,14 @@ syn123_amp( void* buf, int encoding, size_t samples
 		while(samples)
 		{
 			int block = (int)smin(samples, mbufblock);
-			int err = syn123_conv(
-				sh->workbuf, mixenc, sizeof(sh->workbuf)
-			,	cbuf, encoding, inframe*block
-			,	NULL, NULL, NULL );
-			if(!err)
+			size_t clips_block = 0;
+			int err = 0;
+			if(mixenc == MPG123_ENC_FLOAT_64)
 			{
-				err = syn123_amp( sh->workbuf, mixenc, block
-				,	volume, offset, NULL, NULL );
-				if(err)
-					return err;
-				size_t clips_block = 0;
-				err = syn123_conv(
-					cbuf, encoding, inframe*block
-				,	sh->workbuf, mixenc, mixframe*block
-				,	NULL, &clips_block, NULL );
-				clips += clips_block;
+				CONVAMP(f64)
+			} else
+			{
+				CONVAMP(f32)
 			}
 			if(err)
 			{

@@ -24,7 +24,7 @@
 static void white_generator(syn123_handle *sh, int samples)
 {
 	for(int i=0; i<samples; ++i)
-		sh->workbuf[1][i] = 2*rand_xorshift32(&sh->seed);
+		sh->workbuf.f64[1][i] = 2*rand_xorshift32(&sh->seed);
 }
 
 int attribute_align_arg
@@ -234,11 +234,11 @@ static void geiger_generator(syn123_handle *sh, int samples)
 {
 	struct geigerspace *gs = sh->handle;
 	for(int i=0; i<samples; ++i)
-		sh->workbuf[1][i] = speaker( gs
+		sh->workbuf.f64[1][i] = speaker( gs
 		,	discharge_force(gs, (rand_xorshift32(&sh->seed)+0.5)>gs->thres) );
 	// Soft clipping as speaker property. It can only move so far.
 	// Of course this could be produced by a nicely nonlinear force, too.
-	syn123_soft_clip( sh->workbuf[1], MPG123_ENC_FLOAT_64, samples
+	syn123_soft_clip( sh->workbuf.f64[1], MPG123_ENC_FLOAT_64, samples
 	,	1., 0.1, NULL );
 }
 

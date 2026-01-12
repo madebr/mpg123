@@ -189,23 +189,35 @@ syn123_soft_clip( void *buf, int encoding, size_t samples
 		if(!mixenc || !mixframe || !inframe)
 			return 0;
 		// Use the whole workbuf, both halves.
-		int mbufblock = 2*bufblock*sizeof(double)/mixframe;
+		int mbufblock = sizeof(sh->workbuf)/mixframe;
 		mdebug("mbufblock=%i (enc %i)", mbufblock, mixenc);
 		while(samples)
 		{
 			int block = (int)smin(samples, mbufblock);
-			int err = syn123_conv(
-				sh->workbuf, mixenc, sizeof(sh->workbuf)
-			,	cbuf, encoding, inframe*block
-			,	NULL, NULL, NULL );
+			int err = mixenc == MPG123_ENC_FLOAT_64
+			?	syn123_conv(
+					sh->workbuf.f64, mixenc, sizeof(sh->workbuf.f64)
+				,	cbuf, encoding, inframe*block
+				,	NULL, NULL, NULL )
+			:	syn123_conv(
+					sh->workbuf.f32, mixenc, sizeof(sh->workbuf.f32)
+				,	cbuf, encoding, inframe*block
+				,	NULL, NULL, NULL );
 			if(!err)
 			{
-				clipped += syn123_soft_clip(sh->workbuf, mixenc, block, limit, width, NULL);
+				clipped += mixenc == MPG123_ENC_FLOAT_64
+				?	syn123_soft_clip(sh->workbuf.f64, mixenc, block, limit, width, NULL)
+				:	syn123_soft_clip(sh->workbuf.f32, mixenc, block, limit, width, NULL);
 				// No additional clipping can happen here.
-				err = syn123_conv(
-					cbuf, encoding, inframe*block
-				,	sh->workbuf, mixenc, mixframe*block
-				,	NULL, NULL, NULL );
+				err = mixenc == MPG123_ENC_FLOAT_64
+				?	syn123_conv(
+						cbuf, encoding, inframe*block
+					,	sh->workbuf.f64, mixenc, mixframe*block
+					,	NULL, NULL, NULL )
+				:	syn123_conv(
+						cbuf, encoding, inframe*block
+					,	sh->workbuf.f32, mixenc, mixframe*block
+					,	NULL, NULL, NULL );
 			}
 			if(err)
 			{
@@ -542,7 +554,7 @@ syn123_conv( void * MPG123_RESTRICT dst, int dst_enc, size_t dst_size
 		if(!mixenc || !mixframe)
 			return SYN123_BAD_CONV;
 		// Use the whole workbuf, both halves.
-		int mbufblock = 2*bufblock*sizeof(double)/mixframe;
+		int mbufblock = sizeof(sh->workbuf)/mixframe;
 		mdebug("mbufblock=%i (enc %i)", mbufblock, mixenc);
 		// Abuse the handle workbuf for intermediate storage.
 		size_t samples_left = samples;
@@ -555,16 +567,26 @@ syn123_conv( void * MPG123_RESTRICT dst, int dst_enc, size_t dst_size
 		{
 			int block = (int)smin(samples_left, mbufblock);
 			size_t clipped_now = 0;
-			int err = syn123_conv(
-				sh->workbuf, mixenc, sizeof(sh->workbuf)
-			,	csrc, src_enc, srcframe*block
-			,	NULL, NULL, NULL );
+			int err = mixenc == MPG123_ENC_FLOAT_64
+			?	syn123_conv(
+					sh->workbuf.f64, mixenc, sizeof(sh->workbuf.f64)
+				,	csrc, src_enc, srcframe*block
+				,	NULL, NULL, NULL )
+			:	syn123_conv(
+					sh->workbuf.f32, mixenc, sizeof(sh->workbuf.f32)
+				,	csrc, src_enc, srcframe*block
+				,	NULL, NULL, NULL );
 			sh->do_dither = do_dither; // possibly dither now
 			if(!err)
-				err = syn123_conv(
-					cdst, dst_enc, dstframe*block
-				,	sh->workbuf, mixenc, mixframe*block
-				,	NULL, &clipped_now, sh );
+				err = mixenc == MPG123_ENC_FLOAT_64
+				?	syn123_conv(
+						cdst, dst_enc, dstframe*block
+					,	sh->workbuf.f64, mixenc, mixframe*block
+					,	NULL, &clipped_now, sh )
+				:	syn123_conv(
+						cdst, dst_enc, dstframe*block
+					,	sh->workbuf.f32, mixenc, mixframe*block
+					,	NULL, &clipped_now, sh );
 			if(err)
 			{
 				mdebug("conv error: %i", err);
@@ -861,6 +883,38 @@ static void syn123_mix_f64( double * MPG123_RESTRICT dst, int dst_channels
 	SYN123_MIX_FUNC(double)
 }
 
+// Call with f64 or f32 for conversion mixer code piece.
+#define CONVMIX(fXX) \
+	err = syn123_conv( \
+		sh->workbuf.fXX[0], mixenc, sizeof(sh->workbuf.fXX[0]) \
+	,	csrc, src_enc, srcframe*block \
+	,	NULL, NULL, NULL ); \
+	if(err) \
+		goto mix_end; \
+	/* Initialize to zero or convert from old output signal. */ \
+	if(silence) \
+		for(int i=0; i<block*dst_channels; ++i) \
+			sh->workbuf.fXX[1][i] = 0.; \
+	else \
+		err = syn123_conv( \
+			sh->workbuf.fXX[1], mixenc, sizeof(sh->workbuf.fXX[1]) \
+		,	cdst, dst_enc, dstframe*block \
+		,	NULL, NULL, NULL ); \
+	/* Now mix one work buffer into the other. */ \
+	if(err) \
+		goto mix_end; \
+	err = syn123_mix( sh->workbuf.fXX[1], mixenc, dst_channels \
+		,	sh->workbuf.fXX[0], mixenc, src_channels, mixmatrix, block \
+		,	0, NULL, NULL ); \
+	if(err) \
+		goto mix_end; \
+	/* And convert to the final output format. */ \
+	err = syn123_conv( \
+		cdst, dst_enc, dstframe*block \
+	,	sh->workbuf.fXX[1], mixenc, mixoutframe*block \
+	,	NULL, &clips_block, NULL );
+
+
 int attribute_align_arg
 syn123_mix( void * MPG123_RESTRICT dst, int dst_enc, int dst_channels
 ,	void * MPG123_RESTRICT src, int src_enc, int src_channels
@@ -926,7 +980,7 @@ syn123_mix( void * MPG123_RESTRICT dst, int dst_enc, int dst_channels
 			goto mix_end;
 		}
 		// Mix from buffblock[0] to buffblock[1].
-		int mbufblock = bufblock*sizeof(double)/mixframe;
+		int mbufblock = sizeof(sh->workbuf)/2/mixframe;
 		mdebug("mbufblock=%i (enc %i)", mbufblock, mixenc);
 		// Need at least one sample per round to avoid endless loop.
 		// Of course, we would prefer more, but it's your fault for
@@ -940,38 +994,15 @@ syn123_mix( void * MPG123_RESTRICT dst, int dst_enc, int dst_channels
 		while(samples)
 		{
 			int block = (int)smin(samples, mbufblock);
-			err = syn123_conv( sh->workbuf[0], mixenc, sizeof(sh->workbuf[0])
-			,	csrc, src_enc, srcframe*block
-			,	NULL, NULL, NULL );
-			if(err)
-				goto mix_end;
-			// Initialize to zero or convert from old output signal.
-			if(silence)
-			{
-				if(mixenc == MPG123_ENC_FLOAT_32)
-					for(int i=0; i<block*dst_channels; ++i)
-						((float*)(sh->workbuf[1]))[i] = 0.;
-				else
-					for(int i=0; i<block*dst_channels; ++i)
-						sh->workbuf[1][i] = 0.;
-			}
-			else
-				err = syn123_conv( sh->workbuf[1], mixenc, sizeof(sh->workbuf[1])
-				,	cdst, dst_enc, dstframe*block
-				,	NULL, NULL, NULL );
-			// Now mix one work buffer into the other.
-			if(!err)
-				err = syn123_mix( sh->workbuf[1], mixenc, dst_channels
-				,	sh->workbuf[0], mixenc, src_channels, mixmatrix, block
-				,	0, NULL, NULL );
-			if(err)
-				goto mix_end;
-			// And convert to the final output format.
 			size_t clips_block = 0;
-			err = syn123_conv(
-					cdst, dst_enc, dstframe*block
-				,	sh->workbuf[1], mixenc, mixoutframe*block
-				,	NULL, &clips_block, NULL );
+			// The same logic for f64 and f32, just written explictly for buffer type clarity.
+			if(mixenc == MPG123_ENC_FLOAT_64)
+			{
+				CONVMIX(f64)
+			} else
+			{
+				CONVMIX(f32)
+			}
 			clips += clips_block;
 			if(err)
 				goto mix_end;

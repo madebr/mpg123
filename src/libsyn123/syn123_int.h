@@ -79,10 +79,25 @@ struct syn123_struct
 	// This is a set of two to accomodate x and y=function(x, y).
 	// Working in blocks reduces function call overhead and gives
 	// chance of vectorization.
-	// This may also be used as buffer for data with output encoding,
-	// exploiting the fact that double is the biggest data type we
-	// handle, also with the biggest alignment.
-	double workbuf[2][bufblock];
+	// This may also be used as buffer for data with various encodings,
+	// hence a union to express this in the nicest possible way. This storage
+	// is used in a number of ways.
+	// All members have to be the same size, utilizing the whole storage
+	// block. Code using it assumes that sizeof(workbuf) gives the numbers
+	// of bytes accessible via any member.
+	union {
+		double   f64[2][bufblock];
+		float    f32[2][2*bufblock];
+		uint32_t u32[2][2*bufblock];
+		int32_t  i32[2][2*bufblock];
+		uint16_t u16[2][4*bufblock];
+		int16_t  i16[2][4*bufblock];
+		uint8_t   u8[2][8*bufblock];
+		int8_t    i8[2][8*bufblock];
+		// Yes, again the same, to be overly explicit about type names.
+		char           c[2][8*bufblock];
+		unsigned char uc[2][8*bufblock];
+	} workbuf;
 	struct mpg123_fmt fmt;
 	int dither; // if dithering is activated for the handle
 	int do_dither; // flag for recursive calls of syn123_conv()
