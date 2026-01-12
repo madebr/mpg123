@@ -365,7 +365,7 @@ static void wave_add_buffer( double outbuf[bufblock], size_t samples
 static void silence_generator(syn123_handle *sh, int samples)
 {
 	for(int i=0; i<samples; ++i)
-		sh->workbuf[1][i] = 0;
+		sh->workbuf.f64[1][i] = 0;
 }
 
 // Clear the handle of generator data structures.
@@ -395,11 +395,11 @@ static void wave_generator(syn123_handle *sh, int samples)
 {
 	/* Initialise to zero amplitude. */
 	for(int i=0; i<samples; ++i)
-		sh->workbuf[1][i] = 1;
+		sh->workbuf.f64[1][i] = 1;
 	/* Add individual waves. */
 	for(size_t c=0; c<sh->wave_count; ++c)
-		wave_add_buffer( sh->workbuf[1], samples, sh->fmt.rate, sh->waves+c
-		,	sh->workbuf[0] );
+		wave_add_buffer( sh->workbuf.f64[1], samples, sh->fmt.rate, sh->waves+c
+		,	sh->workbuf.f64[0] );
 }
 
 /* Build internal table, allocate external table, convert to that one, */
@@ -625,11 +625,11 @@ static void sweep_generator(syn123_handle *sh, int samples)
 {
 	struct syn123_sweep *sw = sh->handle;
 	// Precompute phases into work buffer.
-	sweep_phase(sh, 0, sh->workbuf[0], samples);
+	sweep_phase(sh, 0, sh->workbuf.f64[0], samples);
 	// Initialise output to zero amplitude and multiply by the wave.
 	for(int i=0; i<samples; ++i)
-		sh->workbuf[1][i] = 1.;
-	evaluate_wave(sh->workbuf[1], samples, sw->wave.id, sh->workbuf[0]);
+		sh->workbuf.f64[1][i] = 1.;
+	evaluate_wave(sh->workbuf.f64[1], samples, sw->wave.id, sh->workbuf.f64[0]);
 	// Advance.
 	sw->i = (sw->i+samples) % (sw->d + sw->post);
 }
@@ -702,9 +702,9 @@ syn123_setup_sweep( syn123_handle* sh
 	// The last phase served by the sweep, and the one after that that
 	// tryly concludes the sweep (f==f2, not infinitesimally smaller).
 	mdebug("computing endphase, with 2 points from %zu - 1 on", duration);
-	sweep_phase(sh, duration-1, sh->workbuf[0], 2);
-	double before_endphase = sh->workbuf[0][0];
-	sw->endphase = sh->workbuf[0][1];
+	sweep_phase(sh, duration-1, sh->workbuf.f64[0], 2);
+	double before_endphase = sh->workbuf.f64[0][0];
+	sw->endphase = sh->workbuf.f64[0][1];
 	sw->post = 0; // Reset that again, only increasing if really needed.
 	// The phase that would smoothly continue the sweep, one sample
 	// after the last one.
@@ -895,22 +895,22 @@ syn123_read( syn123_handle *sh, void *dest, size_t dest_bytes )
 			// Compute data into workbuf[1], possibly using workbuf[0]
 			// in the process.
 			// TODO for the future: Compute only in single precision if
-			// it is enough.
+			// it is enough. Right now generators always write to workbuf.f64[1].
 			sh->generator(sh, block);
 			// Convert to external format, mono. We are abusing workbuf[0] here,
 			// because it is big enough.
 			// The converter does not use workbuf if converting from float. Dither is
 			// added on the fly.
 			int err = syn123_conv(
-				sh->workbuf[0], sh->fmt.encoding, sizeof(sh->workbuf[0])
-			,	sh->workbuf[1], MPG123_ENC_FLOAT_64, sizeof(double)*block
+				sh->workbuf.c[0], sh->fmt.encoding, sizeof(sh->workbuf.c[0])
+			,	sh->workbuf.c[1], MPG123_ENC_FLOAT_64, sizeof(double)*block
 			,	NULL, NULL, NULL );
 			if(err)
 			{
 				debug1("conv error: %i", err);
 				break;
 			}
-			syn123_mono2many( cdest, sh->workbuf[0]
+			syn123_mono2many( cdest, sh->workbuf.c[0]
 			,	sh->fmt.channels, samplesize, block );
 			cdest += framesize*block;
 			dest_samples -= block;

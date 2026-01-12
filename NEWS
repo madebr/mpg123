@@ -2,6 +2,8 @@
 ------
 - libout123: Add a safeguard to ensure variable-length records from buffer
   communication are always zero-terminated.
+- libsyn123: Use union work buffer to avoid casts that may look like breaking
+  strict aliasing.
 
 1.33.4
 ------

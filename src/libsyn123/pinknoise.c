@@ -122,7 +122,7 @@ static float GeneratePinkNoise( PinkNoise *pink )
 static void pink_generator(syn123_handle *sh, int samples)
 {
 	for(int i=0; i<samples; ++i)
-		sh->workbuf[1][i] = GeneratePinkNoise(sh->handle);
+		sh->workbuf.f64[1][i] = GeneratePinkNoise(sh->handle);
 }
 
 int attribute_align_arg
