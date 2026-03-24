@@ -1,5 +1,8 @@
 1.33.5
 ------
+- libmpg123:
+-- Announce support for shadow stack / IBT in x86-64 assembly.
+-- Also announce PAC/BTI for non-accurate neon64 (aarch64) synth.
 - libout123: Add a safeguard to ensure variable-length records from buffer
   communication are always zero-terminated.
 - libsyn123: Use union work buffer to avoid casts that may look like breaking
