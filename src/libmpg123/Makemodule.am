@@ -68,6 +68,7 @@ src_libmpg123_libmpg123_la_SOURCES = \
   src/libmpg123/mpg123lib_intern.h \
   src/libmpg123/mangle.h \
   src/libmpg123/aarch64_defs.h \
+  src/libmpg123/x86_64_defs.h \
   src/libmpg123/getcpuflags.h \
   src/libmpg123/index.h \
   src/libmpg123/index.c
