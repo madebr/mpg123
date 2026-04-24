@@ -9,17 +9,16 @@
 /* Need snprintf(). */
 #define _DEFAULT_SOURCE
 #define _BSD_SOURCE
-#include "config.h"
+#include "mpg123config.h"
 #include "version.h"
 #include "compat/compat.h"
-#if defined(WIN32) && defined(DYNAMIC_BUILD)
-#define LINK_MPG123_DLL
-#endif
 #include "mpg123.h"
 #include "getlopt.h"
 #include <errno.h>
 #include <ctype.h>
+#ifdef _WIN32
 #include "win32_support.h"
+#endif
 
 #include "common/debug.h"
 

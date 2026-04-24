@@ -1,7 +1,7 @@
 /*
 	mpg123: main code of the program (not of the decoder...)
 
-	copyright 1995-2020 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 1995-2026 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Michael Hipp
 
@@ -11,30 +11,20 @@
 
 #ifndef MPG123_H
 #define MPG123_H
-#include "config.h"
 
-#ifndef _FILE_OFFSET_BITS
-#ifdef LFS_SENSITIVE
-#ifdef LFS_LARGEFILE_64
-#define _FILE_OFFSET_BITS 64
-#endif
-#endif
-#endif
+#include "mpg123config.h"
 
 /* everyone needs it */
 #include "compat/compat.h"
 /* import DLL symbols on windows */
 
 #include "httpget.h"
-#if _WIN32
+#ifdef _WIN32
 #include "win32_support.h"
 #endif
 
 #include "streamdump.h"
 
-#if defined(WIN32) && defined(DYNAMIC_BUILD)
-#define LINK_MPG123_DLL
-#endif
 #include "mpg123.h"
 #define MPG123_REMOTE
 #define REMOTE_BUFFER_SIZE 2048
