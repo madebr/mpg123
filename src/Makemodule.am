@@ -81,6 +81,7 @@ src_mpg123_SOURCES = \
   src/genre.c \
   src/mpg123.c \
   src/mpg123app.h \
+  src/mpg123config.h \
   src/metaprint.c \
   src/metaprint.h \
   src/local.h \

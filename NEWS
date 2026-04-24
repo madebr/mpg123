@@ -1,5 +1,13 @@
 1.33.5
 ------
+- mpg123: Fix generic control mode for largefile-sensitive builds, where 32 bit
+  off_t was used with mpg123 API calls expecting 64 bit off_t.
+  I am appalled that it took a user on 32 bit ARM and a specific https stream
+  to notice this (bug 385, regression since 1.32.0).
+  The security impact of this could be serious, with memory corruption including
+  segfault being observed.
+- mpg123-id3dump, out123: Enable 64 bit offset usage on largefile-sensitive
+  platforms (regression since 1.32.0).
 - libmpg123:
 -- Announce support for shadow stack / IBT in x86-64 assembly.
 -- Also announce PAC/BTI for non-accurate neon64 (aarch64) synth.
