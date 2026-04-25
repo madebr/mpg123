@@ -1,3 +1,8 @@
+1.33.6
+------
+- mpg123-strip: Also use largefile API properly using mpg123config.h, but without
+  actual effect at least on Linux/x86. It is cleaner that way, though.
+
 1.33.5
 ------
 - mpg123: Fix generic control mode for largefile-sensitive builds, where 32 bit
