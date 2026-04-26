@@ -118,7 +118,7 @@ int debunk_mime(const char* mime)
 	int i,j;
 	size_t len;
 	int r = 0;
-	char *aux;
+	const char *aux;
 	/* Watch out for such: "audio/x-mpegurl; charset=utf-8" */
 	aux = strchr(mime, ';');
 	if(aux != NULL)

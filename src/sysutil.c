@@ -33,7 +33,7 @@ char *strndup (const char *src, int num)
 
 size_t dir_length(const char *path)
 {
-	char * slashpos = strrchr(path, '/');
+	const char * slashpos = strrchr(path, '/');
 	return (slashpos ? slashpos-path : 0);
 }
 
@@ -48,32 +48,33 @@ size_t dir_length(const char *path)
  *   is different from the previous one (if any).
  */
 
-int split_dir_file (const char *path, char **dname, char **fname)
+int split_dir_file (const char *path, const char **dname,  const char **fname)
 {
 	static char *lastdir = NULL;
-	char *slashpos;
+	static size_t lastlen = 0;
+	size_t dlen = dir_length(path);
 
-	if ((slashpos = strrchr(path, '/'))) {
-		*fname = slashpos + 1;
-		*dname = INT123_compat_strdup(path); /* , 1 + slashpos - path); */
+	if (dlen) {
+		*fname = path + dlen + 1; // a one-byte separator is implied
+		if (lastdir && dlen == lastlen && !strncmp(lastdir, path, dlen)) {
+			/***   same as previous directory   ***/
+			*dname = lastdir;
+			return 0;
+		}
+		// a temporary pointer to be able to modify the string before const
+		// Care to optimize that strdup to only copy directory part?
+		char *pre_dname = INT123_compat_strdup(path); /* , 1 + slashpos - path); */
+		*dname = pre_dname;
 		if(!(*dname)) {
 			perror("failed to allocate memory for dir name");
 			return 0;
 		}
-		(*dname)[1 + slashpos - path] = 0;
-		if (lastdir && !strcmp(lastdir, *dname)) {
-			/***   same as previous directory   ***/
-			free (*dname);
-			*dname = lastdir;
-			return 0;
-		}
-		else {
-			/***   different directory   ***/
-			if (lastdir)
-				free (lastdir);
-			lastdir = *dname;
-			return 1;
-		}
+		pre_dname[dlen+1] = 0; // keep separator (or not?)
+		if (lastdir)
+			free (lastdir);
+		lastdir = pre_dname;
+		lastlen = dlen;
+		return 1;
 	}
 	else {
 		/***   no directory specified   ***/
@@ -81,8 +82,9 @@ int split_dir_file (const char *path, char **dname, char **fname)
 			free (lastdir);
 			lastdir = NULL;
 		};
+		lastlen = 0;
 		*dname = NULL;
-		*fname = (char *)path;
+		*fname = path;
 		return 0;
 	}
 }
