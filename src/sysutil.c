@@ -33,7 +33,7 @@ char *strndup (const char *src, int num)
 
 size_t dir_length(const char *path)
 {
-	char * slashpos = strrchr(path, '/');
+	const char * slashpos = strrchr(path, '/');
 	return (slashpos ? slashpos-path : 0);
 }
 
@@ -51,10 +51,10 @@ size_t dir_length(const char *path)
 int split_dir_file (const char *path, char **dname, char **fname)
 {
 	static char *lastdir = NULL;
-	char *slashpos;
+	const char *slashpos;
 
 	if ((slashpos = strrchr(path, '/'))) {
-		*fname = slashpos + 1;
+		*fname = (char *)(slashpos + 1);
 		*dname = INT123_compat_strdup(path); /* , 1 + slashpos - path); */
 		if(!(*dname)) {
 			perror("failed to allocate memory for dir name");
