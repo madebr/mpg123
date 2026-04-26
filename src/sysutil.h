@@ -9,7 +9,7 @@
 #ifndef _MPG123_SYSUTIL_H_
 #define _MPG123_SYSUTIL_H_
 
-int split_dir_file(const char *path, char **dname, char **fname);
+int split_dir_file(const char *path, const char **dname, const char **fname);
 /* Length of directory part in given path. */
 size_t dir_length(const char *path);
 

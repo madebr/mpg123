@@ -291,7 +291,7 @@ static void controlled_drain(void)
 
 void safe_exit(int code)
 {
-	char *dummy, *dammy;
+	const char *dummy, *dammy;
 
 	dump_close();
 	if(!code)
@@ -1323,7 +1323,7 @@ int main(int sys_argc, char ** sys_argv)
 
 	while ((fname = get_next_file()))
 	{
-		char *dirname, *filename;
+		const char *dirname, *filename;
 		int newdir;
 		/* skip_tracks includes the previous one. */
 		if(skip_tracks) --skip_tracks;

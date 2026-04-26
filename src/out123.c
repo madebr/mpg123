@@ -207,7 +207,7 @@ static void controlled_drain(void)
 
 static void safe_exit(int code)
 {
-	char *dummy, *dammy;
+	const char *dummy, *dammy;
 
 	if(input && input != stdin)
 		INT123_compat_fclose(input);
