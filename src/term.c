@@ -601,16 +601,24 @@ static void term_handle_input(mpg123_handle *fr, out123_handle *ao, int do_delay
 		// back for real control.
 		if(val == 0x1b) // ESC, get next key, if any
 		{
+#ifdef DEBUG
 			int seq_len = 1;
+#endif
 			if(term_get_key(FALSE, -1, &val))
 			{
+#ifdef DEBUG
 				++seq_len;
+#endif
 				if(val == 'Z') // SCI, single character to drop, if any
 					term_get_key(FALSE, -1, &val);
 				else if(val == '[') // sequence begin
 				{
 					while(term_get_key(FALSE, -1, &val) && strchr("0123456789;", val))
+					{
+#ifdef DEBUG
 						++seq_len;
+#endif
+					}
 				} // else simple single-character escape
 			}
 			mdebug("dropped escape sequence of length %d", seq_len);
