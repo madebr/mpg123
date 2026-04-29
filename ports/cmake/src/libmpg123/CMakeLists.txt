@@ -64,7 +64,7 @@ add_library(${TARGET}
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/$<$<NOT:$<BOOL:${PORTABLE_API}>>:lfs_wrap.c>"
     $<TARGET_OBJECTS:compat>)
 
-if(MSVC)
+if(MSVC AND NOT CMAKE_C_COMPILER_ID STREQUAL "Clang")
     if(MACHINE MATCHES "x86|amd64")
       find_program(YASM_ASSEMBLER yasm)
       if(NOT YASM_ASSEMBLER)
@@ -214,7 +214,7 @@ target_compile_definitions(${TARGET} PRIVATE
     $<$<BOOL:${HAVE_FPU}>:REAL_IS_FLOAT>
     $<$<NOT:$<BOOL:${HAVE_FPU}>>:REAL_IS_FIXED>)
 
-if(MSVC AND MACHINE MATCHES "x86|amd64" AND YASM_ASSEMBLER)
+if(MSVC AND NOT CMAKE_C_COMPILER_ID STREQUAL "Clang" AND MACHINE MATCHES "x86|amd64" AND YASM_ASSEMBLER)
     list(TRANSFORM PLATFORM_DEFINITIONS PREPEND /D)
     foreach(FILE ${PLATFORM_SOURCES})
         get_filename_component(FILENAME ${FILE} NAME)
