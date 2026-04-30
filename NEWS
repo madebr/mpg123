@@ -6,6 +6,8 @@
   as C23 (handles PR 19 on the github mirror).
 - mpg123-strip: Also use largefile API properly using mpg123config.h, but without
   actual effect at least on Linux/x86. It is cleaner that way, though.
+- ports/cmake: Yasm is not neeeded for Clang on MSVC (github PR 23, thanks to Alexander
+  Lobakin).
 
 1.33.5
 ------
