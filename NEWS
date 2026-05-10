@@ -8,6 +8,8 @@
   actual effect at least on Linux/x86. It is cleaner that way, though.
 - ports/cmake: Yasm is not neeeded for Clang on MSVC (github PR 23, thanks to Alexander
   Lobakin).
+- libmpg123: Remove unused loop variable in layer2 left over from runtime table
+  elimination (32 bit mmx/sse code, prompted by github PR 22).
 
 1.33.5
 ------
