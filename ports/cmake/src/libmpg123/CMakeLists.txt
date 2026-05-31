@@ -204,7 +204,12 @@ elseif(MACHINE STREQUAL "generic")
     set(PLATFORM_DEFINITIONS OPT_GENERIC)
 endif()
 
+read_mpg123_api_version(mpg123_soversion mpg123_version)
 set_target_properties(${TARGET} PROPERTIES OUTPUT_NAME mpg123)
+set_target_properties(${TARGET} PROPERTIES PREFIX lib)
+set_target_properties(${TARGET} PROPERTIES SOVERSION ${mpg123_soversion})
+set_target_properties(${TARGET} PROPERTIES VERSION ${mpg123_version})
+set_target_properties(${TARGET} PROPERTIES DLL_NAME_WITH_SOVERSION TRUE)
 
 target_compile_definitions(${TARGET} PRIVATE
     $<$<BOOL:$<TARGET_PROPERTY:POSITION_INDEPENDENT_CODE>>:PIC>)

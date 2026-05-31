@@ -1,7 +1,9 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.27)
+
+set(MPG123_SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../..")
 
 include(cmake/read_api_version.cmake)
-read_api_version(MPG123_VERSION)
+read_project_version(MPG123_VERSION)
 
 project(mpg123 VERSION ${MPG123_VERSION} LANGUAGES C ASM)
 set(CMAKE_C_STANDARD 99)
