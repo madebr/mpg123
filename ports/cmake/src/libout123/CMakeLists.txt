@@ -16,7 +16,12 @@ add_library(${TARGET}
     $<TARGET_OBJECTS:compat>
     $<$<BOOL:${USE_MODULES}>:$<TARGET_OBJECTS:compat_dl>>)
 
+read_out123_api_version(out123_soversion out123_version)
 set_target_properties(${TARGET} PROPERTIES OUTPUT_NAME out123)
+set_target_properties(${TARGET} PROPERTIES PREFIX lib)
+set_target_properties(${TARGET} PROPERTIES SOVERSION ${out123_soversion})
+set_target_properties(${TARGET} PROPERTIES VERSION ${out123_version})
+set_target_properties(${TARGET} PROPERTIES DLL_NAME_WITH_SOVERSION TRUE)
 
 if(HAVE_UNIX_DL)
     string(APPEND LIBOUT123_LIBS " -ldl")
