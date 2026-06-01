@@ -13,7 +13,12 @@ add_library(${TARGET}
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libsyn123/sampleconv.c"
     $<TARGET_OBJECTS:compat_str>)
 
+read_syn123_api_version(syn123_soversion syn123_version)
 set_target_properties(${TARGET} PROPERTIES OUTPUT_NAME syn123)
+set_target_properties(${TARGET} PROPERTIES PREFIX lib)
+set_target_properties(${TARGET} PROPERTIES SOVERSION ${syn123_soversion})
+set_target_properties(${TARGET} PROPERTIES VERSION ${syn123_version})
+set_target_properties(${TARGET} PROPERTIES DLL_NAME_WITH_SOVERSION TRUE)
 
 target_include_directories(${TARGET} INTERFACE
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
