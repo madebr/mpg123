@@ -1,6 +1,7 @@
 1.34.0
 ------
 - ports/cmake: now versioned library files (github PR 24 by madebr)
+  This raises the minimum CMake version to 3.27.
 
 1.33.6
 ------
