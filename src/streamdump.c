@@ -70,7 +70,7 @@ void *buf, size_t bufsize )
 
 static void net123_close_internal(struct net123_handle_struct *nh)
 {
-	if(nh)
+	if(!nh)
 		return;
 	int *fdp = nh->parts;
 #ifdef WANT_WIN32_SOCKETS
