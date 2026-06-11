@@ -10,6 +10,7 @@ endif
 TESTS += \
   src/tests/seek_whence.sh \
   src/tests/seek_accuracy.sh \
+  src/tests/resample_buffer \
   src/tests/resample_total \
   src/tests/text \
   src/tests/textprint \
@@ -41,7 +42,6 @@ check_PROGRAMS += \
   src/tests/decode_fixed \
   src/tests/seek_whence \
   src/tests/seek_accuracy \
-  src/tests/resample_total \
   src/tests/text \
   src/tests/textprint \
   src/tests/plain_id3
@@ -53,6 +53,12 @@ EXTRA_PROGRAMS += \
   src/tests/seek_accuracy \
   src/tests/noise \
   src/tests/sweeper
+endif
+
+if BUILD_LIBSYN123
+check_PROGRAMS += \
+  src/tests/resample_total \
+  src/tests/resample_buffer
 endif
 
 src_tests_volume_SOURCES = \
@@ -91,6 +97,11 @@ src_tests_sweeper_LDADD = \
   src/compat/libcompat.la \
   $(LIBSYN123) \
   $(LIBOUT123)
+
+src_tests_resample_buffer_SOURCES = \
+  src/tests/resample_buffer.c
+src_tests_resample_buffer_LDADD = \
+  $(LIBSYN123)
 
 src_tests_resample_total_SOURCES = \
   src/tests/resample_total.c
