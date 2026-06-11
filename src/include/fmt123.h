@@ -95,11 +95,17 @@ enum mpg123_enc_enum
  *  encoding to appear. But who knows? Perhaps the encoding type
  *  will be abused for funny things in future, not even plain PCM.
  *  And, by the way: Thomas really likes the ?: operator.
+ * 
+ *  This does a cheap check if any unknown bits are set, no deep
+ *  testing if the bit combination really is a valid encoding. It
+ *  shall be a quick macro. You can use out123_enc_name() to check
+ *  if your value is really a known encoding.
+ *
  * \param enc the encoding (mpg123_enc_enum value)
  * \return size of one sample in bytes
  */
 #define MPG123_SAMPLESIZE(enc) ( \
-	(enc) < 1 \
+	((enc) < 1 || ((enc) & ~MPG123_ENC_ANY)) \
 	?	0 \
 	:	( (enc) & MPG123_ENC_8 \
 		?	1 \
