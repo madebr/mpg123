@@ -2,6 +2,8 @@
 ------
 - ports/cmake: now versioned library files (github PR 24 by madebr)
   This raises the minimum CMake version to 3.27.
+- fmt123.h: Check for obviously invalid encoding in MPG123_ENC_SIZE()
+  via the MPG123_ENC_ANY mask.
 
 1.33.6
 ------
