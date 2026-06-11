@@ -38,32 +38,49 @@ int main()
 		mereturn(1, "resample setup failure: %s", syn123_strerror(err));
 
 	// Default sine wave as source signal.
-	if(SYN123_OK != (err =syn123_setup_waves( sh, 0, NULL, NULL, NULL, NULL, NULL)))
+	if( SYN123_OK !=
+		(err =syn123_setup_waves( sh, 0, NULL, NULL, NULL, NULL, NULL)) )
 		mereturn(1, "wave setup failure: %s", syn123_strerror(err));
 
 	float *inbuf = malloc(sizeof(float)*ins);
 	float *outbuf = malloc(sizeof(float)*(outs2+10));
 	if(!inbuf || !outbuf)
 		ereturn(1, "buffer alloc failure");
+
 	for(int r=0; r<buffer_runs; ++r)
 	{
 		// Prepare input, 
 		size_t got = syn123_read(sh, inbuf, sizeof(float)*ins);
 		if(got != sizeof(float)*ins)
-			ereturn(1, "unexpected sample count from generator");
+			mereturn( 1
+			,	"unexpected byte count from generator in run %d: %zu != %zu"
+			,	r, got, sizeof(float)*ins);
 		// Prime output buffer with some weird large number.
 		for(int o=0; o<(outs2+10); ++o) outbuf[o] = canary;
-		// Resample into it, check if anything is overwritten beyond the desired end.
+		size_t exp = syn123_resample_out(sh, ins, NULL);
+		// Resample, check if anything is overwritten beyond the desired end.
 		got = syn123_resample(sh, outbuf, inbuf, ins);
+		if(!got || exp != got)
+			mereturn( 1
+			,	"got nothing or at least not what was expected"
+				" in run %d: %zu != %zu"
+			,	r, got, exp );
 		if(got < outs)
-			mereturn(1,"got less than promised minimum output sample count: %zu < %zu", got, outs);
+			mereturn( 1
+			,	"got less than promised minimum output sample count"
+				" in run %d: %zu < %zu"
+			,	r, got, outs );
 		if(got > outs2)
-			mereturn(1, "got more than promised maximum output sample count: %zu > %zu", got, outs2);
+			mereturn( 1
+			,	"got more than promised maximum output sample count"
+				" in run %d: %zu > %zu"
+			,	r, got, outs2 );
 		size_t over = 0;
 		for(int o=outs2; o<(outs2+10); ++o)
 			if(outbuf[o] != canary)
 			{
-				merror("resample output overflow at %zu+%zu: %f != %f", outs2, o-outs2, outbuf[o], canary);
+				merror( "resample output overflow at %zu+%zu in run %d: %f != %f"
+				,	outs2, o-outs2, r, outbuf[o], canary );
 				++over;
 			}
 		if(over)
@@ -76,6 +93,5 @@ int main()
 	free(inbuf);
 	syn123_del(sh);
 
-	// Actually check behaviour of resampler, how many samples it overwrites, with a canary.
 	return 0;
 }
