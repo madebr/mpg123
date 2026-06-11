@@ -981,7 +981,7 @@ size_t syn123_resample_out(syn123_handle *sh, size_t ins, int *err);
  *
  *  This give you the minimal number of input samples needed right
  *  now to yield at least the specified amount of output samples.
- *  Since one input sample can result in several output sampels in one
+ *  Since one input sample can result in several output samples in one
  *  go, you have to check using syn123_resample_out() how many
  *  output samples to really expect.
  *
