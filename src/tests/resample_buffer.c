@@ -1,14 +1,14 @@
 // Test the various sample count computations and against output
 // buffer overflow of libsyn123.
 
-#include "mpg123config.h"
+#include "../mpg123config.h"
 #include <syn123.h>
 #include <inttypes.h>
 
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "common/debug.h"
+#include "../common/debug.h"
 
 const long arate = 22050;
 const long brate = 48000;
