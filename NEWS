@@ -4,6 +4,9 @@
   This raises the minimum CMake version to 3.27.
 - fmt123.h: Check for obviously invalid encoding in MPG123_ENC_SIZE()
   via the MPG123_ENC_ANY mask.
+- libmpg123: Also parse UFID and include it among TXXX fields in
+  mpg123_id3v2.extra with description = owner and text = hex-encoded bytes
+  (bug 384).
 
 1.33.6
 ------
