@@ -90,9 +90,9 @@
 #ifndef NO_ID3V2 /* Only the main parsing routine will always be there. */
 
 /* We know the usual text frames plus some specifics. */
-#define KNOWN_FRAMES 5
-static const char frame_type[KNOWN_FRAMES][5] = { "COMM", "TXXX", "RVA2", "USLT", "APIC" };
-enum frame_types { unknown = -2, text = -1, comment, extra, rva2, uslt, picture };
+#define KNOWN_FRAMES 6
+static const char frame_type[KNOWN_FRAMES][5] = { "COMM", "TXXX", "RVA2", "USLT", "APIC", "UFID" };
+enum frame_types { unknown = -2, text = -1, comment, extra, rva2, uslt, picture, ufid };
 
 /* UTF support definitions */
 
@@ -209,14 +209,14 @@ static void free_id3_picture(mpg123_picture **list, size_t *size)
 #define add_comment(mh, l, d) add_id3_text(&((mh)->id3v2.comment_list), &((mh)->id3v2.comments), NULL,    l, d)
 #define add_text(mh, id)      add_id3_text(&((mh)->id3v2.text),         &((mh)->id3v2.texts),      id, NULL, NULL)
 #define add_uslt(mh, l, d)    add_id3_text(&((mh)->id3v2.text),         &((mh)->id3v2.texts),      id, l, d)
-#define add_extra(mh, d)      add_id3_text(&((mh)->id3v2.extra),        &((mh)->id3v2.extras),   NULL, NULL, d)
+#define add_extra(mh, id, d)      add_id3_text(&((mh)->id3v2.extra),        &((mh)->id3v2.extras), id, NULL, d)
 #define add_picture(mh, t, d) add_id3_picture(&((mh)->id3v2.picture), &((mh)->id3v2.pictures), t, d)
 static mpg123_text *add_id3_text( mpg123_text **list, size_t *size
-,	char id[4], char lang[3], mpg123_string *description )
+,	const char id[4], const char lang[3], mpg123_string *description )
 {
 	mdebug( "add_id3_text id=%s lang=%s, desc=%s"
-	,	id ? (char[5]) { id[0], id[1], id[2], id[3], 0 } : "(nil)"
-	,	lang ? (char[4]) { lang[0], lang[1], lang[2], 0 }  : "(nil)"
+	,	id ? (const char[5]) { id[0], id[1], id[2], id[3], 0 } : "(nil)"
+	,	lang ? (const char[4]) { lang[0], lang[1], lang[2], 0 }  : "(nil)"
 	,	description ? (description->fill ? description->p : "(empty)") : "(nil)" );
 	if(lang && !description)
 		return NULL; // no lone language intended
@@ -696,7 +696,7 @@ static void process_extra(mpg123_handle *fr, unsigned char* realdata, size_t rea
 		   Remember that we really need the -1 here to hand in the encoding byte!*/
 		store_id3_text( &description, encoding, descr, text-descr
 		,	NOQUIET, fr->p.flags & MPG123_PLAIN_ID3TEXT );
-		xex = add_extra(fr, &description);
+		xex = add_extra(fr, id, &description);
 		if(xex)
 			mpg123_move_string(&description, &xex->description);
 		else
@@ -763,6 +763,73 @@ static void process_extra(mpg123_handle *fr, unsigned char* realdata, size_t rea
 
 	free_mpg123_text(&localex);
 }
+
+static void process_ufid(mpg123_handle *fr, unsigned char* realdata, size_t realsize, const char id[4])
+{
+	// Owner Identifier   <text> $00
+	// Identifier         <up to 64 bytes binary data>
+	// There is no text encoding. So assume ASCII (supposed to be URL or mail addresses).
+	unsigned char *owner = realdata;
+	unsigned char *identifier;
+	mpg123_string descr;
+	mpg123_string hexid;
+	mpg123_init_string(&descr);
+	mpg123_init_string(&hexid);
+
+	identifier = next_text(owner, mpg123_id3_latin1, realsize);
+	if(!identifier)
+	{
+		if(NOQUIET)
+			error("UFID tag with non-terminated owner or empty id");
+		goto process_ufid_end;
+	}
+	// No encoding information, be strict and enforce ASCII for owner.
+	for(unsigned char *oc = owner; oc < identifier; ++oc)
+	{
+		if(*oc > 127)
+		{
+			if(NOQUIET)
+				merror("non ASCII byte of value %02x in UFID owner", *oc);
+			goto process_ufid_end;
+		}
+	}
+	mpg123_set_string(&descr, (char*)owner);
+	size_t ufid_bytes = realsize - (identifier-owner);
+	mdebug("UFID identifier with %zu bytes of owner: %s", ufid_bytes, descr.p);
+
+	if(!mpg123_resize_string(&hexid, 2*ufid_bytes+1))
+	{
+		if(NOQUIET)
+			merror("failed to allocate UFID hex string for %zu bytes", ufid_bytes);
+		goto process_ufid_end;
+	}
+	// Try not to be efficient, but simple here.
+	for(int bi=0; bi<ufid_bytes; ++bi)
+	{
+		char hb[3];
+		if(snprintf(hb, 3, "%02X", identifier[bi]) != 2)
+		{ // Just so that static analyzers are happy. No unchecked return.
+			hb[0] = hb[1] = '0';
+			hb[2] = 0;
+		}
+		// Has to work.
+		mpg123_add_string(&hexid, hb);
+	}
+
+	mpg123_text *xex = add_extra(fr, id, &descr);
+	if(xex)
+	{
+		memcpy(xex->id, id, 4);
+		mpg123_move_string(&descr, &xex->description);
+		mpg123_move_string(&hexid, &xex->text);
+	} else
+		error("failed to add UFID to extras");
+
+process_ufid_end:
+	mpg123_free_string(&hexid);
+	mpg123_free_string(&descr);
+}
+
 
 /* Make a ID3v2.3+ 4-byte ID from a ID3v2.2 3-byte ID
    Note that not all frames survived to 2.4; the mapping goes to 2.3 .
@@ -1209,6 +1276,9 @@ int INT123_parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 								break;
 								case extra: /* perhaps foobar2000's work */
 									process_extra(fr, realdata, realsize, extra+1, id);
+								break;
+								case ufid:
+									process_ufid(fr, realdata, realsize, id);
 								break;
 								case rva2: /* "the" RVA tag */
 								{
