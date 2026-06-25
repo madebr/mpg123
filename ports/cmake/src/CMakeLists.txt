@@ -98,10 +98,10 @@ search_libs(socket SOCKET_LIB socket)
 test_big_endian(WORDS_BIGENDIAN)
 
 check_c_source_compiles(
-    "int main() { __asm__(\".balign 4\"); return 0; }"
+    "__asm__(\".balign 4\"); int main() { return 0; }"
     ASMALIGN_BALIGN)
 check_c_source_compiles(
-    "int main() { __asm__(\".align 3\"); return 0; }"
+    "__asm__(\".align 3\"); int main() { return 0; }"
     ASMALIGN_EXP)
 if(NOT ASMALIGN_EXP)
     set(ASMALIGN_BYTE ON)
