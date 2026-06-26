@@ -4,6 +4,7 @@
 -- now versioned library files (github PR 24 by madebr)
    This raises the minimum CMake version to 3.27.
 -- Fix asm alignment detection on Windows ARM (github PR 25 by mstorsjo).
+-- More fixup of ARM building on Windows (github PR 26 by mstorsjo).
 - fmt123.h: Check for obviously invalid encoding in MPG123_ENC_SIZE()
   via the MPG123_ENC_ANY mask.
 - libmpg123: Also parse UFID and include it among TXXX fields in
