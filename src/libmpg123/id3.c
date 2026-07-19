@@ -1,15 +1,3 @@
-#define DEBUG
-
-
-MCI -> MCDI also as hex
-URL frames
-verify v2.3 unsync scheme seems wrong here
-
-2.3 (and before?!) should de-unsync whole tag
-2.4 de-unsyncs per frame
-if global unsync flag is set, but frame flag is not: That is a problem.
-I need real-world examples!
-
 /*
 	id3: ID3v2.3 and ID3v2.4 parsing (a relevant subset)
 
@@ -338,8 +326,6 @@ void INT123_id3_link(mpg123_handle *fr)
 	Store ID3 text data in an mpg123_string; either verbatim copy or
 	everything translated to UTF-8 encoding.
 	Preserve the zero string separator (I don't need strlen for the total size).
-	Actually: Preserve any number of string separators, as there can be
-	lists of strings in one text frame.
 
 	Since we can overwrite strings with ID3 update frames, don't free
 	memory, just grow strings.
@@ -857,18 +843,14 @@ static int promote_framename(mpg123_handle *fr, char *id) /* fr because of VERBO
 		"COM",  "TAL",  "TBP",  "TCM",  "TCO",  "TCR",  "TDA",  "TDY",  "TEN",  "TFT",
 		"TIM",  "TKE",  "TLA",  "TLE",  "TMT",  "TOA",  "TOF",  "TOL",  "TOR",  "TOT",
 		"TP1",  "TP2",  "TP3",  "TP4",  "TPA",  "TPB",  "TRC",  "TDA",  "TRK",  "TSI",
-		"TSS",  "TT1",  "TT2",  "TT3",  "TXT",  "TXX",  "TYE",
-		"WAF",  "WAR", "WAS", "WCM", "WCP", "WPB", "WXX",
-		"IPL", "MCI"
+		"TSS",  "TT1",  "TT2",  "TT3",  "TXT",  "TXX",  "TYE"
 	};
 	char *new[] =
 	{
 		"COMM", "TALB", "TBPM", "TCOM", "TCON", "TCOP", "TDAT", "TDLY", "TENC", "TFLT",
 		"TIME", "TKEY", "TLAN", "TLEN", "TMED", "TOPE", "TOFN", "TOLY", "TORY", "TOAL",
 		"TPE1", "TPE2", "TPE3", "TPE4", "TPOS", "TPUB", "TSRC", "TRDA", "TRCK", "TSIZ",
-		"TSSE", "TIT1", "TIT2", "TIT3", "TEXT", "TXXX", "TYER",
-		"WOAF", "WOAR", "WOAS", "WCOM", "WCOP", "WPUB", "WXXX",
-		"TIPL", "MCDI"
+		"TSSE", "TIT1", "TIT2", "TIT3", "TEXT", "TXXX", "TYER"
 	};
 	for(i=0; i<sizeof(old)/sizeof(char*); ++i)
 	{
