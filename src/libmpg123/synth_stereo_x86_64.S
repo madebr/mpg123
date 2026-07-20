@@ -11,28 +11,28 @@
 
 #ifdef IS_MSABI
 /* short *window; */
-#define WINDOW %r10
+#define WINDOW r10
 /* short *b0l; */
-#define B0L %rdx
+#define B0L rdx
 /* short *b0r; */
-#define B0R %r8
+#define B0R r8
 /* short *samples; */
-#define SAMPLES %r9
+#define SAMPLES r9
 #else
 /* short *window; */
-#define WINDOW %rdi
+#define WINDOW rdi
 /* short *b0l; */
-#define B0L %rsi
+#define B0L rsi
 /* short *b0r; */
-#define B0R %rdx
+#define B0R rdx
 /* short *samples; */
-#define SAMPLES %r9
+#define SAMPLES r9
 #endif
 
-#define XMMREG_CLIP %xmm15
-#define XMMREG_MAX %xmm14 /* {32767, 32767, 32767, 32767} */
-#define XMMREG_MIN %xmm13 /* {-32769, -32769, -32769, -32769} : not -32768 because SSE doesn't have "less than" comparison... */
-#define XMMREG_FULL %xmm12 /* {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF} */
+#define XMMREG_CLIP xmm15
+#define XMMREG_MAX xmm14 /* {32767, 32767, 32767, 32767} */
+#define XMMREG_MIN xmm13 /* {-32769, -32769, -32769, -32769} : not -32768 because SSE doesn't have "less than" comparison... */
+#define XMMREG_FULL xmm12 /* {HEX(FFFFFFFF), HEX(FFFFFFFF), HEX(FFFFFFFF), HEX(FFFFFFFF)} */
 
 /*
 	int synth_1to1_s_x86_64_asm(short *window, short *b0l, short *b0r, short *samples, int bo1);
@@ -42,291 +42,293 @@
 	RODATA
 	ALIGN32
 ASM_NAME(INT123_maxmin_x86_64):
-	.long   32767
-	.long   32767
-	.long   32767
-	.long   32767
-	.long   -32769
-	.long   -32769
-	.long   -32769
-	.long   -32769
-	.text
+	DATA_LONG   32767
+	DATA_LONG   32767
+	DATA_LONG   32767
+	DATA_LONG   32767
+	DATA_LONG   -32769
+	DATA_LONG   -32769
+	DATA_LONG   -32769
+	DATA_LONG   -32769
+	SECTION_TEXT
 	ALIGN16
-.globl ASM_NAME(INT123_synth_1to1_s_x86_64_asm)
+GLOBAL ASM_NAME(INT123_synth_1to1_s_x86_64_asm)
 ASM_NAME(INT123_synth_1to1_s_x86_64_asm):
 #ifdef IS_MSABI /* should save xmm6-15 */
-	movl		40(%rsp), %eax /* 5th argument; placed after 32-byte shadow space */
-	subq		$168, %rsp /* stack alignment + 10 xmm registers */
-	movaps		%xmm6, (%rsp)
-	movaps		%xmm7, 16(%rsp)
-	movaps		%xmm8, 32(%rsp)
-	movaps		%xmm9, 48(%rsp)
-	movaps		%xmm10, 64(%rsp)
-	movaps		%xmm11, 80(%rsp)
-	movaps		%xmm12, 96(%rsp)
-	movaps		%xmm13, 112(%rsp)
-	movaps		%xmm14, 128(%rsp)
-	movaps		%xmm15, 144(%rsp)
+	mov		eax, dword ptr 40[rsp] /* 5th argument; placed after 32-byte shadow space */
+	sub		rsp, 168 /* stack alignment + 10 xmm registers */
+	movaps		[rsp], xmm6
+	movaps		16[rsp], xmm7
+	movaps		32[rsp], xmm8
+	movaps		48[rsp], xmm9
+	movaps		64[rsp], xmm10
+	movaps		80[rsp], xmm11
+	movaps		96[rsp], xmm12
+	movaps		112[rsp], xmm13
+	movaps		128[rsp], xmm14
+	movaps		144[rsp], xmm15
 #endif
 	
 #ifdef IS_MSABI
-	shlq		$32, %rax
-	shrq		$31, %rax
-	movq		%rcx, %r10
+	shl		rax, 32
+	shr		rax, 31
+	mov		r10, rcx
 #else
-	movq		%r8, %rax
-	shlq		$32, %rax
-	shrq		$31, %rax
-	movq		%rcx, %r9
+	mov		rax, r8
+	shl		rax, 32
+	shr		rax, 31
+	mov		r9, rcx
 #endif
-	leaq		32(WINDOW), WINDOW
-	subq		%rax, WINDOW
-	
-	leaq		ASM_NAME(INT123_maxmin_x86_64)(%rip), %rax
-	movaps		(%rax), XMMREG_MAX
-	movaps		16(%rax), XMMREG_MIN
+	lea		WINDOW, qword ptr 32[WINDOW]
+	sub		WINDOW, rax
+
+	lea		rax, qword ptr ASM_NAME(INT123_maxmin_x86_64) RIP_REL
+	movaps		XMMREG_MAX, [rax]
+	movaps		XMMREG_MIN, 16[rax]
 	pxor		XMMREG_CLIP, XMMREG_CLIP
 	pcmpeqd		XMMREG_FULL, XMMREG_FULL
 	
-	movl		$4, %ecx
+	mov		ecx, 4
 	
 	ALIGN16
-1:
-	movups		(WINDOW), %xmm0
-	movups		16(WINDOW), %xmm1
-	movups		64(WINDOW), %xmm2
-	movups		80(WINDOW), %xmm3
-	movups		128(WINDOW), %xmm4
-	movups		144(WINDOW), %xmm5
-	movups		192(WINDOW), %xmm6
-	movups		208(WINDOW), %xmm7
-	movaps		%xmm0, %xmm8
-	movaps		%xmm1, %xmm9
-	movaps		%xmm2, %xmm10
-	movaps		%xmm3, %xmm11
-	pmaddwd		(B0L), %xmm0
-	pmaddwd		16(B0L), %xmm1
-	pmaddwd		32(B0L), %xmm2
-	pmaddwd		48(B0L), %xmm3
-	pmaddwd		(B0R), %xmm8
-	pmaddwd		16(B0R), %xmm9
-	pmaddwd		32(B0R), %xmm10
-	pmaddwd		48(B0R), %xmm11
-	paddd		%xmm1, %xmm0
-	paddd		%xmm3, %xmm2
-	paddd		%xmm9, %xmm8
-	paddd		%xmm11, %xmm10
-	movaps		%xmm4, %xmm1
-	movaps		%xmm5, %xmm9
-	movaps		%xmm6, %xmm3
-	movaps		%xmm7, %xmm11
-	pmaddwd		64(B0L), %xmm4
-	pmaddwd		80(B0L), %xmm5
-	pmaddwd		96(B0L), %xmm6
-	pmaddwd		112(B0L), %xmm7
-	pmaddwd		64(B0R), %xmm1
-	pmaddwd		80(B0R), %xmm9
-	pmaddwd		96(B0R), %xmm3
-	pmaddwd		112(B0R), %xmm11
-	paddd		%xmm5, %xmm4
-	paddd		%xmm7, %xmm6
-	paddd		%xmm1, %xmm9
-	paddd		%xmm3, %xmm11
+loop1:
+	movups		xmm0, [WINDOW]
+	movups		xmm1, 16[WINDOW]
+	movups		xmm2, 64[WINDOW]
+	movups		xmm3, 80[WINDOW]
+	movups		xmm4, 128[WINDOW]
+	movups		xmm5, 144[WINDOW]
+	movups		xmm6, 192[WINDOW]
+	movups		xmm7, 208[WINDOW]
+	movaps		xmm8, xmm0
+	movaps		xmm9, xmm1
+	movaps		xmm10, xmm2
+	movaps		xmm11, xmm3
+	pmaddwd		xmm0, [B0L]
+	pmaddwd		xmm1, 16[B0L]
+	pmaddwd		xmm2, 32[B0L]
+	pmaddwd		xmm3, 48[B0L]
+	pmaddwd		xmm8, [B0R]
+	pmaddwd		xmm9, 16[B0R]
+	pmaddwd		xmm10, 32[B0R]
+	pmaddwd		xmm11, 48[B0R]
+	paddd		xmm0, xmm1
+	paddd		xmm2, xmm3
+	paddd		xmm8, xmm9
+	paddd		xmm10, xmm11
+	movaps		xmm1, xmm4
+	movaps		xmm9, xmm5
+	movaps		xmm3, xmm6
+	movaps		xmm11, xmm7
+	pmaddwd		xmm4, 64[B0L]
+	pmaddwd		xmm5, 80[B0L]
+	pmaddwd		xmm6, 96[B0L]
+	pmaddwd		xmm7, 112[B0L]
+	pmaddwd		xmm1, 64[B0R]
+	pmaddwd		xmm9, 80[B0R]
+	pmaddwd		xmm3, 96[B0R]
+	pmaddwd		xmm11, 112[B0R]
+	paddd		xmm4, xmm5
+	paddd		xmm6, xmm7
+	paddd		xmm9, xmm1
+	paddd		xmm11, xmm3
 	
-	movaps		%xmm0, %xmm1
-	movaps		%xmm4, %xmm3
-	movaps		%xmm8, %xmm5
-	movaps		%xmm9, %xmm7
-	punpckldq	%xmm2, %xmm0
-	punpckldq	%xmm6, %xmm4
-	punpckhdq	%xmm2, %xmm1
-	punpckhdq	%xmm6, %xmm3
-	punpckldq	%xmm10, %xmm8
-	punpckldq	%xmm11, %xmm9
-	punpckhdq	%xmm10, %xmm5
-	punpckhdq	%xmm11, %xmm7
-	movaps		%xmm0, %xmm2
-	movaps		%xmm1, %xmm6
-	movaps		%xmm8, %xmm10
-	movaps		%xmm5, %xmm11
-	movlhps		%xmm4, %xmm0
-	movhlps		%xmm2, %xmm4
-	movlhps		%xmm3, %xmm1
-	movhlps		%xmm6, %xmm3
-	movlhps		%xmm9, %xmm8
-	movhlps		%xmm10, %xmm9
-	movlhps		%xmm7, %xmm5
-	movhlps		%xmm11, %xmm7
-	paddd		%xmm4, %xmm0
-	paddd		%xmm3, %xmm1
-	paddd		%xmm9, %xmm8
-	paddd		%xmm7, %xmm5
-	paddd		%xmm1, %xmm0
-	paddd		%xmm5, %xmm8
-	psrad		$13, %xmm0
-	psrad		$13, %xmm8
+	movaps		xmm1, xmm0
+	movaps		xmm3, xmm4
+	movaps		xmm5, xmm8
+	movaps		xmm7, xmm9
+	punpckldq	xmm0, xmm2
+	punpckldq	xmm4, xmm6
+	punpckhdq	xmm1, xmm2
+	punpckhdq	xmm3, xmm6
+	punpckldq	xmm8, xmm10
+	punpckldq	xmm9, xmm11
+	punpckhdq	xmm5, xmm10
+	punpckhdq	xmm7, xmm11
+	movaps		xmm2, xmm0
+	movaps		xmm6, xmm1
+	movaps		xmm10, xmm8
+	movaps		xmm11, xmm5
+	movlhps		xmm0, xmm4
+	movhlps		xmm4, xmm2
+	movlhps		xmm1, xmm3
+	movhlps		xmm3, xmm6
+	movlhps		xmm8, xmm9
+	movhlps		xmm9, xmm10
+	movlhps		xmm5, xmm7
+	movhlps		xmm7, xmm11
+	paddd		xmm0, xmm4
+	paddd		xmm1, xmm3
+	paddd		xmm8, xmm9
+	paddd		xmm5, xmm7
+	paddd		xmm0, xmm1
+	paddd		xmm8, xmm5
+	psrad		xmm0, 13
+	psrad		xmm8, 13
 	
-	movaps		%xmm0, %xmm1
-	movaps		%xmm0, %xmm2
-	movaps		%xmm0, %xmm3
-	movaps		%xmm8, %xmm4
-	punpckldq	%xmm8, %xmm0
-	punpckhdq	%xmm8, %xmm1
-	packssdw	%xmm1, %xmm0
-	movups		%xmm0, (SAMPLES)
+	movaps		xmm1, xmm0
+	movaps		xmm2, xmm0
+	movaps		xmm3, xmm0
+	movaps		xmm4, xmm8
+	punpckldq	xmm0, xmm8
+	punpckhdq	xmm1, xmm8
+	packssdw	xmm0, xmm1
+	movups		[SAMPLES], xmm0
 	
-	pcmpgtd		XMMREG_MAX, %xmm2
-	pcmpgtd		XMMREG_MIN, %xmm3
-	pcmpgtd		XMMREG_MAX, %xmm4
-	pcmpgtd		XMMREG_MIN, %xmm8
-	packssdw	%xmm4, %xmm2
-	packssdw	%xmm8, %xmm3
-	pxor		XMMREG_FULL, %xmm3
-	psrlw		$15, %xmm2
-	psrlw		$15, %xmm3
-	paddw		%xmm3, %xmm2
-	paddw		%xmm2, XMMREG_CLIP
+	pcmpgtd		xmm2, XMMREG_MAX
+	pcmpgtd		xmm3, XMMREG_MIN
+	pcmpgtd		xmm4, XMMREG_MAX
+	pcmpgtd		xmm8, XMMREG_MIN
+	packssdw	xmm2, xmm4
+	packssdw	xmm3, xmm8
+	pxor		xmm3, XMMREG_FULL
+	psrlw		xmm2, 15
+	psrlw		xmm3, 15
+	paddw		xmm2, xmm3
+	paddw		XMMREG_CLIP, xmm2
 	
-	leaq		256(WINDOW), WINDOW
-	leaq		128(B0L), B0L
-	leaq		128(B0R), B0R
-	leaq		16(SAMPLES), SAMPLES
+	lea		WINDOW, qword ptr 256[WINDOW]
+	lea		B0L, qword ptr 128[B0L]
+	lea		B0R, qword ptr 128[B0R]
+	lea		SAMPLES, qword ptr 16[SAMPLES]
 	
-	decl		%ecx
-	jnz			1b
+	dec		ecx
+	jnz			loop1
 	
-	movl		$4, %ecx
+	mov		ecx, 4
 	
 	ALIGN16
-1:
-	movups		(WINDOW), %xmm0
-	movups		16(WINDOW), %xmm1
-	movups		64(WINDOW), %xmm2
-	movups		80(WINDOW), %xmm3
-	movups		128(WINDOW), %xmm4
-	movups		144(WINDOW), %xmm5
-	movups		192(WINDOW), %xmm6
-	movups		208(WINDOW), %xmm7
-	movaps		%xmm0, %xmm8
-	movaps		%xmm1, %xmm9
-	movaps		%xmm2, %xmm10
-	movaps		%xmm3, %xmm11
-	pmaddwd		(B0L), %xmm0
-	pmaddwd		16(B0L), %xmm1
-	pmaddwd		-32(B0L), %xmm2
-	pmaddwd		-16(B0L), %xmm3
-	pmaddwd		(B0R), %xmm8
-	pmaddwd		16(B0R), %xmm9
-	pmaddwd		-32(B0R), %xmm10
-	pmaddwd		-16(B0R), %xmm11
-	paddd		%xmm1, %xmm0
-	paddd		%xmm3, %xmm2
-	paddd		%xmm9, %xmm8
-	paddd		%xmm11, %xmm10
-	movaps		%xmm4, %xmm1
-	movaps		%xmm5, %xmm9
-	movaps		%xmm6, %xmm3
-	movaps		%xmm7, %xmm11
-	pmaddwd		-64(B0L), %xmm4
-	pmaddwd		-48(B0L), %xmm5
-	pmaddwd		-96(B0L), %xmm6
-	pmaddwd		-80(B0L), %xmm7
-	pmaddwd		-64(B0R), %xmm1
-	pmaddwd		-48(B0R), %xmm9
-	pmaddwd		-96(B0R), %xmm3
-	pmaddwd		-80(B0R), %xmm11
-	paddd		%xmm5, %xmm4
-	paddd		%xmm7, %xmm6
-	paddd		%xmm1, %xmm9
-	paddd		%xmm3, %xmm11
+loop2:
+	movups		xmm0, [WINDOW]
+	movups		xmm1, 16[WINDOW]
+	movups		xmm2, 64[WINDOW]
+	movups		xmm3, 80[WINDOW]
+	movups		xmm4, 128[WINDOW]
+	movups		xmm5, 144[WINDOW]
+	movups		xmm6, 192[WINDOW]
+	movups		xmm7, 208[WINDOW]
+	movaps		xmm8, xmm0
+	movaps		xmm9, xmm1
+	movaps		xmm10, xmm2
+	movaps		xmm11, xmm3
+	pmaddwd		xmm0, [B0L]
+	pmaddwd		xmm1, 16[B0L]
+	pmaddwd		xmm2, [B0L-32]
+	pmaddwd		xmm3, [B0L-16]
+	pmaddwd		xmm8, [B0R]
+	pmaddwd		xmm9, 16[B0R]
+	pmaddwd		xmm10, [B0R-32]
+	pmaddwd		xmm11, [B0R-16]
+	paddd		xmm0, xmm1
+	paddd		xmm2, xmm3
+	paddd		xmm8, xmm9
+	paddd		xmm10, xmm11
+	movaps		xmm1, xmm4
+	movaps		xmm9, xmm5
+	movaps		xmm3, xmm6
+	movaps		xmm11, xmm7
+	pmaddwd		xmm4, [B0L-64]
+	pmaddwd		xmm5, [B0L-48]
+	pmaddwd		xmm6, [B0L-96]
+	pmaddwd		xmm7, [B0L-80]
+	pmaddwd		xmm1, [B0R-64]
+	pmaddwd		xmm9, -48[B0R]
+	pmaddwd		xmm3, -96[B0R]
+	pmaddwd		xmm11, -80[B0R]
+	paddd		xmm4, xmm5
+	paddd		xmm6, xmm7
+	paddd		xmm9, xmm1
+	paddd		xmm11, xmm3
 	
-	movaps		%xmm0, %xmm1
-	movaps		%xmm4, %xmm3
-	movaps		%xmm8, %xmm5
-	movaps		%xmm9, %xmm7
-	punpckldq	%xmm2, %xmm0
-	punpckldq	%xmm6, %xmm4
-	punpckhdq	%xmm2, %xmm1
-	punpckhdq	%xmm6, %xmm3
-	punpckldq	%xmm10, %xmm8
-	punpckldq	%xmm11, %xmm9
-	punpckhdq	%xmm10, %xmm5
-	punpckhdq	%xmm11, %xmm7
-	movaps		%xmm0, %xmm2
-	movaps		%xmm1, %xmm6
-	movaps		%xmm8, %xmm10
-	movaps		%xmm5, %xmm11
-	movlhps		%xmm4, %xmm0
-	movhlps		%xmm2, %xmm4
-	movlhps		%xmm3, %xmm1
-	movhlps		%xmm6, %xmm3
-	movlhps		%xmm9, %xmm8
-	movhlps		%xmm10, %xmm9
-	movlhps		%xmm7, %xmm5
-	movhlps		%xmm11, %xmm7
-	paddd		%xmm4, %xmm0
-	paddd		%xmm3, %xmm1
-	paddd		%xmm9, %xmm8
-	paddd		%xmm7, %xmm5
-	paddd		%xmm1, %xmm0
-	paddd		%xmm5, %xmm8
-	psrad		$13, %xmm0
-	psrad		$13, %xmm8
+	movaps		xmm1, xmm0
+	movaps		xmm3, xmm4
+	movaps		xmm5, xmm8
+	movaps		xmm7, xmm9
+	punpckldq	xmm0, xmm2
+	punpckldq	xmm4, xmm6
+	punpckhdq	xmm1, xmm2
+	punpckhdq	xmm3, xmm6
+	punpckldq	xmm8, xmm10
+	punpckldq	xmm9, xmm11
+	punpckhdq	xmm5, xmm10
+	punpckhdq	xmm7, xmm11
+	movaps		xmm2, xmm0
+	movaps		xmm6, xmm1
+	movaps		xmm10, xmm8
+	movaps		xmm11, xmm5
+	movlhps		xmm0, xmm4
+	movhlps		xmm4, xmm2
+	movlhps		xmm1, xmm3
+	movhlps		xmm3, xmm6
+	movlhps		xmm8, xmm9
+	movhlps		xmm9, xmm10
+	movlhps		xmm5, xmm7
+	movhlps		xmm7, xmm11
+	paddd		xmm0, xmm4
+	paddd		xmm1, xmm3
+	paddd		xmm8, xmm9
+	paddd		xmm5, xmm7
+	paddd		xmm0, xmm1
+	paddd		xmm8, xmm5
+	psrad		xmm0, 13
+	psrad		xmm8, 13
 	
-	movaps		%xmm0, %xmm1
-	movaps		%xmm0, %xmm2
-	movaps		%xmm0, %xmm3
-	movaps		%xmm8, %xmm4
-	punpckldq	%xmm8, %xmm0
-	punpckhdq	%xmm8, %xmm1
-	packssdw	%xmm1, %xmm0
-	movups		%xmm0, (SAMPLES)
+	movaps		xmm1, xmm0
+	movaps		xmm2, xmm0
+	movaps		xmm3, xmm0
+	movaps		xmm4, xmm8
+	punpckldq	xmm0, xmm8
+	punpckhdq	xmm1, xmm8
+	packssdw	xmm0, xmm1
+	movups		[SAMPLES], xmm0
 	
-	pcmpgtd		XMMREG_MAX, %xmm2
-	pcmpgtd		XMMREG_MIN, %xmm3
-	pcmpgtd		XMMREG_MAX, %xmm4
-	pcmpgtd		XMMREG_MIN, %xmm8
-	packssdw	%xmm4, %xmm2
-	packssdw	%xmm8, %xmm3
-	pxor		XMMREG_FULL, %xmm3
-	psrlw		$15, %xmm2
-	psrlw		$15, %xmm3
-	paddw		%xmm3, %xmm2
-	paddw		%xmm2, XMMREG_CLIP
+	pcmpgtd		xmm2, XMMREG_MAX
+	pcmpgtd		xmm3, XMMREG_MIN
+	pcmpgtd		xmm4, XMMREG_MAX
+	pcmpgtd		xmm8, XMMREG_MIN
+	packssdw	xmm2, xmm4
+	packssdw	xmm3, xmm8
+	pxor		xmm3, XMMREG_FULL
+	psrlw		xmm2, 15
+	psrlw		xmm3, 15
+	paddw		xmm2, xmm3
+	paddw		XMMREG_CLIP, xmm2
 	
-	leaq		256(WINDOW), WINDOW
-	leaq		-128(B0L), B0L
-	leaq		-128(B0R), B0R
-	leaq		16(SAMPLES), SAMPLES
+	lea		WINDOW, qword ptr 256[WINDOW]
+	lea		B0L, qword ptr -128[B0L]
+	lea		B0R, qword ptr -128[B0R]
+	lea		SAMPLES, qword ptr 16[SAMPLES]
 	
-	decl		%ecx
-	jnz			1b
+	dec		ecx
+	jnz			loop2
 	
-	movhlps		XMMREG_CLIP, %xmm0
-	paddw		XMMREG_CLIP, %xmm0
-	pshuflw		$0x55, %xmm0, %xmm1
-	pshuflw		$0xaa, %xmm0, %xmm2
-	pshuflw		$0xff, %xmm0, %xmm3
-	paddw		%xmm1, %xmm0
-	paddw		%xmm2, %xmm0
-	paddw		%xmm3, %xmm0
+	movhlps		xmm0, XMMREG_CLIP
+	paddw		xmm0, XMMREG_CLIP
+	pshuflw		xmm1, xmm0, HEX(55)
+	pshuflw		xmm2, xmm0, HEX(aa)
+	pshuflw		xmm3, xmm0, HEX(ff)
+	paddw		xmm0, xmm1
+	paddw		xmm0, xmm2
+	paddw		xmm0, xmm3
 	
-	movd		%xmm0, %eax
-	andl		$0xffff, %eax
+	movd		eax, xmm0
+	and		eax, HEX(ffff)
 	
 #ifdef IS_MSABI
-	movaps		(%rsp), %xmm6
-	movaps		16(%rsp), %xmm7
-	movaps		32(%rsp), %xmm8
-	movaps		48(%rsp), %xmm9
-	movaps		64(%rsp), %xmm10
-	movaps		80(%rsp), %xmm11
-	movaps		96(%rsp), %xmm12
-	movaps		112(%rsp), %xmm13
-	movaps		128(%rsp), %xmm14
-	movaps		144(%rsp), %xmm15
-	addq		$168, %rsp
+	movaps		xmm6, [rsp]
+	movaps		xmm7, 16[rsp]
+	movaps		xmm8, 32[rsp]
+	movaps		xmm9, 48[rsp]
+	movaps		xmm10, 64[rsp]
+	movaps		xmm11, 80[rsp]
+	movaps		xmm12, 96[rsp]
+	movaps		xmm13, 112[rsp]
+	movaps		xmm14, 128[rsp]
+	movaps		xmm15, 144[rsp]
+	add		rsp, 168
 #endif
 	ret
 
 NONEXEC_STACK
+
+END_MODULE

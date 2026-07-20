@@ -22,6 +22,7 @@ set_target_properties(${TARGET} PROPERTIES PREFIX lib)
 set_target_properties(${TARGET} PROPERTIES SOVERSION ${out123_soversion})
 set_target_properties(${TARGET} PROPERTIES VERSION ${out123_version})
 set_target_properties(${TARGET} PROPERTIES DLL_NAME_WITH_SOVERSION TRUE)
+set_target_properties(${TARGET} PROPERTIES DEFINE_SYMBOL "")
 
 if(HAVE_UNIX_DL)
     string(APPEND LIBOUT123_LIBS " -ldl")

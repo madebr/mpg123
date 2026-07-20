@@ -19,6 +19,7 @@ set_target_properties(${TARGET} PROPERTIES PREFIX lib)
 set_target_properties(${TARGET} PROPERTIES SOVERSION ${syn123_soversion})
 set_target_properties(${TARGET} PROPERTIES VERSION ${syn123_version})
 set_target_properties(${TARGET} PROPERTIES DLL_NAME_WITH_SOVERSION TRUE)
+set_target_properties(${TARGET} PROPERTIES DEFINE_SYMBOL "")
 
 target_include_directories(${TARGET} INTERFACE
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"

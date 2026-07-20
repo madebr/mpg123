@@ -11,25 +11,25 @@
 
 #ifdef IS_MSABI
 /* short *window; */
-#define ARG0 %r10
+#define ARG0 r10
 /* short *b0; */
-#define ARG1 %rdx
+#define ARG1 rdx
 /* short *samples; */
-#define ARG2 %r8
+#define ARG2 r8
 /* int bo1; */
-#define ARG3 %r9
+#define ARG3 r9
 #else
 /* real *window; */
-#define ARG0 %rdi
+#define ARG0 rdi
 /* real *b0; */
-#define ARG1 %rsi
+#define ARG1 rsi
 /* real *samples; */
-#define ARG2 %rdx
+#define ARG2 rdx
 /* int bo1; */
-#define ARG3 %rcx
+#define ARG3 rcx
 #endif
 
-#define XMMREG_SCALE %xmm15  /* {1/32768.0, 1/32768.0, 1/32768.0, 1/32768.0} */
+#define XMMREG_SCALE xmm15  /* {1/32768.0, 1/32768.0, 1/32768.0, 1/32768.0} */
 
 /*
 	int synth_1to1_real_x86_64_asm(real *window, real *b0, real *samples, int bo1);
@@ -39,218 +39,220 @@
 	RODATA
 	ALIGN32
 ASM_NAME(INT123_scale_x86_64):
-	.long   939524096
-	.long   939524096
-	.long   939524096
-	.long   939524096
-	.text
+	DATA_LONG   939524096
+	DATA_LONG   939524096
+	DATA_LONG   939524096
+	DATA_LONG   939524096
+	SECTION_TEXT
 	ALIGN16
-.globl ASM_NAME(INT123_synth_1to1_real_x86_64_asm)
+GLOBAL ASM_NAME(INT123_synth_1to1_real_x86_64_asm)
 ASM_NAME(INT123_synth_1to1_real_x86_64_asm):
 #ifdef IS_MSABI /* should save xmm6-15 */
-	movq		%rcx, ARG0
-	subq		$120, %rsp /* stack alignment + 7 xmm registers */
-	movaps		%xmm6, (%rsp)
-	movaps		%xmm7, 16(%rsp)
-	movaps		%xmm8, 32(%rsp)
-	movaps		%xmm9, 48(%rsp)
-	movaps		%xmm10, 64(%rsp)
-	movaps		%xmm11, 80(%rsp)
-	movaps		%xmm15, 96(%rsp)
+	mov		ARG0, rcx
+	sub		rsp, 120 /* stack alignment + 7 xmm registers */
+	movaps		[rsp], xmm6
+	movaps		[rsp+16], xmm7
+	movaps		[rsp+32], xmm8
+	movaps		[rsp+48], xmm9
+	movaps		[rsp+64], xmm10
+	movaps		[rsp+80], xmm11
+	movaps		[rsp+96], xmm15
 #endif
 
-	leaq		ASM_NAME(INT123_scale_x86_64)(%rip), %rax
-	movaps		(%rax), XMMREG_SCALE
+	lea		rax, ASM_NAME(INT123_scale_x86_64) RIP_REL
+	movaps		XMMREG_SCALE, [rax]
 	
-	andq		$0xf, ARG3
-	shlq		$2, ARG3
-	leaq		64(ARG0), ARG0
-	subq		ARG3, ARG0
+	and		ARG3, HEX(f)
+	shl		ARG3, 2
+	lea		ARG0, 64[ARG0]
+	sub		ARG0, ARG3
 
-	movl		$4, %ecx
+	mov		ecx, 4
 	
 	ALIGN16
-1:
-	movups		(ARG0), %xmm8
-	movups		16(ARG0), %xmm1
-	movups		32(ARG0), %xmm2
-	movups		48(ARG0), %xmm3
-	movups		128(ARG0), %xmm9
-	movups		144(ARG0), %xmm5
-	movups		160(ARG0), %xmm6
-	movups		176(ARG0), %xmm7
-	mulps		(ARG1), %xmm8
-	mulps		16(ARG1), %xmm1
-	mulps		32(ARG1), %xmm2
-	mulps		48(ARG1), %xmm3
-	mulps		64(ARG1), %xmm9
-	mulps		80(ARG1), %xmm5
-	mulps		96(ARG1), %xmm6
-	mulps		112(ARG1), %xmm7
+loop1:
+	movups		xmm8, [ARG0]
+	movups		xmm1, [ARG0+16]
+	movups		xmm2, [ARG0+32]
+	movups		xmm3, [ARG0+48]
+	movups		xmm9, [ARG0+128]
+	movups		xmm5, [ARG0+144]
+	movups		xmm6, [ARG0+160]
+	movups		xmm7, [ARG0+176]
+	mulps		xmm8, [ARG1]
+	mulps		xmm1, [ARG1+16]
+	mulps		xmm2, [ARG1+32]
+	mulps		xmm3, [ARG1+48]
+	mulps		xmm9, [ARG1+64]
+	mulps		xmm5, [ARG1+80]
+	mulps		xmm6, [ARG1+96]
+	mulps		xmm7, [ARG1+112]
 	
-	addps		%xmm1, %xmm8
-	addps		%xmm2, %xmm3
-	addps		%xmm5, %xmm9
-	addps		%xmm7, %xmm6
-	addps		%xmm3, %xmm8
-	addps		%xmm6, %xmm9
-	leaq		256(ARG0), ARG0
-	leaq		128(ARG1), ARG1
+	addps		xmm8, xmm1
+	addps		xmm3, xmm2
+	addps		xmm9, xmm5
+	addps		xmm6, xmm7
+	addps		xmm8, xmm3
+	addps		xmm9, xmm6
+	lea		ARG0, 256[ARG0]
+	lea		ARG1, 128[ARG1]
 	
-	movups		(ARG0), %xmm10
-	movups		16(ARG0), %xmm1
-	movups		32(ARG0), %xmm2
-	movups		48(ARG0), %xmm3
-	movups		128(ARG0), %xmm11
-	movups		144(ARG0), %xmm5
-	movups		160(ARG0), %xmm6
-	movups		176(ARG0), %xmm7
-	mulps		(ARG1), %xmm10
-	mulps		16(ARG1), %xmm1
-	mulps		32(ARG1), %xmm2
-	mulps		48(ARG1), %xmm3
-	mulps		64(ARG1), %xmm11
-	mulps		80(ARG1), %xmm5
-	mulps		96(ARG1), %xmm6
-	mulps		112(ARG1), %xmm7
+	movups		xmm10, [ARG0]
+	movups		xmm1, [ARG0+16]
+	movups		xmm2, [ARG0+32]
+	movups		xmm3, [ARG0+48]
+	movups		xmm11, [ARG0+128]
+	movups		xmm5, [ARG0+144]
+	movups		xmm6, [ARG0+160]
+	movups		xmm7, [ARG0+176]
+	mulps		xmm10, [ARG1]
+	mulps		xmm1, [ARG1+16]
+	mulps		xmm2, [ARG1+32]
+	mulps		xmm3, [ARG1+48]
+	mulps		xmm11, [ARG1+64]
+	mulps		xmm5, [ARG1+80]
+	mulps		xmm6, [ARG1+96]
+	mulps		xmm7, [ARG1+112]
 	
-	addps		%xmm1, %xmm10
-	addps		%xmm2, %xmm3
-	addps		%xmm5, %xmm11
-	addps		%xmm7, %xmm6
-	addps		%xmm3, %xmm10
-	addps		%xmm6, %xmm11
-	leaq		256(ARG0), ARG0
-	leaq		128(ARG1), ARG1
+	addps		xmm10, xmm1
+	addps		xmm3, xmm2
+	addps		xmm11, xmm5
+	addps		xmm6, xmm7
+	addps		xmm10, xmm3
+	addps		xmm11, xmm6
+	lea		ARG0, 256[ARG0]
+	lea		ARG1, 128[ARG1]
 	
-	movaps		%xmm8, %xmm0
-	movaps		%xmm10, %xmm1
-	unpcklps	%xmm9, %xmm8
-	unpcklps	%xmm11, %xmm10
-	unpckhps	%xmm9, %xmm0
-	unpckhps	%xmm11, %xmm1
-	movaps		%xmm8, %xmm2
-	movaps		%xmm0, %xmm3
-	movlhps		%xmm10, %xmm8
-	movhlps		%xmm2, %xmm10
-	movlhps		%xmm1, %xmm0
-	movhlps		%xmm3, %xmm1
-	subps		%xmm10, %xmm8
-	subps		%xmm1, %xmm0
-	addps		%xmm8, %xmm0
+	movaps		xmm0, xmm8
+	movaps		xmm1, xmm10
+	unpcklps	xmm8, xmm9
+	unpcklps	xmm10, xmm11
+	unpckhps	xmm0, xmm9
+	unpckhps	xmm1, xmm11
+	movaps		xmm2, xmm8
+	movaps		xmm3, xmm0
+	movlhps		xmm8, xmm10
+	movhlps		xmm10, xmm2
+	movlhps		xmm0, xmm1
+	movhlps		xmm1, xmm3
+	subps		xmm8, xmm10
+	subps		xmm0, xmm1
+	addps		xmm0, xmm8
 	
-	movups		(ARG2), %xmm1
-	movups		16(ARG2), %xmm2
-	mulps		XMMREG_SCALE, %xmm0
-	shufps		$0xdd, %xmm2, %xmm1
-	movaps		%xmm0, %xmm2
-	unpcklps	%xmm1, %xmm0
-	unpckhps	%xmm1, %xmm2
-	movups		%xmm0, (ARG2)
-	movups		%xmm2, 16(ARG2)
+	movups		xmm1, [ARG2]
+	movups		xmm2, 16[ARG2]
+	mulps		xmm0, XMMREG_SCALE
+	shufps		xmm1, xmm2, HEX(dd)
+	movaps		xmm2, xmm0
+	unpcklps	xmm0, xmm1
+	unpckhps	xmm2, xmm1
+	movups		[ARG2], xmm0
+	movups		[ARG2+16], xmm2
 	
-	leaq		32(ARG2), ARG2
-	decl		%ecx
-	jnz			1b
+	lea		ARG2, [ARG2+32]
+	dec		ecx
+	jnz			loop1
 	
-	movl		$4, %ecx
+	mov		ecx, 4
 	
 	ALIGN16
-1:
-	movups		(ARG0), %xmm8
-	movups		16(ARG0), %xmm1
-	movups		32(ARG0), %xmm2
-	movups		48(ARG0), %xmm3
-	movups		128(ARG0), %xmm9
-	movups		144(ARG0), %xmm5
-	movups		160(ARG0), %xmm6
-	movups		176(ARG0), %xmm7
-	mulps		(ARG1), %xmm8
-	mulps		16(ARG1), %xmm1
-	mulps		32(ARG1), %xmm2
-	mulps		48(ARG1), %xmm3
-	mulps		-64(ARG1), %xmm9
-	mulps		-48(ARG1), %xmm5
-	mulps		-32(ARG1), %xmm6
-	mulps		-16(ARG1), %xmm7
+loop2:
+	movups		xmm8, [ARG0]
+	movups		xmm1, 16[ARG0]
+	movups		xmm2, 32[ARG0]
+	movups		xmm3, 48[ARG0]
+	movups		xmm9, 128[ARG0]
+	movups		xmm5, 144[ARG0]
+	movups		xmm6, 160[ARG0]
+	movups		xmm7, 176[ARG0]
+	mulps		xmm8, [ARG1]
+	mulps		xmm1, 16[ARG1]
+	mulps		xmm2, 32[ARG1]
+	mulps		xmm3, 48[ARG1]
+	mulps		xmm9, [ARG1-64]
+	mulps		xmm5, [ARG1-48]
+	mulps		xmm6, [ARG1-32]
+	mulps		xmm7, [ARG1-16]
 	
-	addps		%xmm1, %xmm8
-	addps		%xmm2, %xmm3
-	addps		%xmm5, %xmm9
-	addps		%xmm7, %xmm6
-	addps		%xmm3, %xmm8
-	addps		%xmm6, %xmm9
-	leaq		256(ARG0), ARG0
-	leaq		-128(ARG1), ARG1
+	addps		xmm8, xmm1
+	addps		xmm3, xmm2
+	addps		xmm9, xmm5
+	addps		xmm6, xmm7
+	addps		xmm8, xmm3
+	addps		xmm9, xmm6
+	lea		ARG0, [ARG0+256]
+	lea		ARG1, [ARG1-128]
 	
-	movups		(ARG0), %xmm10
-	movups		16(ARG0), %xmm1
-	movups		32(ARG0), %xmm2
-	movups		48(ARG0), %xmm3
-	movups		128(ARG0), %xmm11
-	movups		144(ARG0), %xmm5
-	movups		160(ARG0), %xmm6
-	movups		176(ARG0), %xmm7
-	mulps		(ARG1), %xmm10
-	mulps		16(ARG1), %xmm1
-	mulps		32(ARG1), %xmm2
-	mulps		48(ARG1), %xmm3
-	mulps		-64(ARG1), %xmm11
-	mulps		-48(ARG1), %xmm5
-	mulps		-32(ARG1), %xmm6
-	mulps		-16(ARG1), %xmm7
+	movups		xmm10, [ARG0]
+	movups		xmm1, [ARG0+16]
+	movups		xmm2, [ARG0+32]
+	movups		xmm3, [ARG0+48]
+	movups		xmm11, [ARG0+128]
+	movups		xmm5, [ARG0+144]
+	movups		xmm6, [ARG0+160]
+	movups		xmm7, [ARG0+176]
+	mulps		xmm10, [ARG1]
+	mulps		xmm1, [ARG1+16]
+	mulps		xmm2, [ARG1+32]
+	mulps		xmm3, [ARG1+48]
+	mulps		xmm11, [ARG1-64]
+	mulps		xmm5, [ARG1-48]
+	mulps		xmm6, [ARG1-32]
+	mulps		xmm7, [ARG1-16]
 	
-	addps		%xmm1, %xmm10
-	addps		%xmm2, %xmm3
-	addps		%xmm5, %xmm11
-	addps		%xmm7, %xmm6
-	addps		%xmm3, %xmm10
-	addps		%xmm6, %xmm11
-	leaq		256(ARG0), ARG0
-	leaq		-128(ARG1), ARG1
+	addps		xmm10, xmm1
+	addps		xmm3, xmm2
+	addps		xmm11, xmm5
+	addps		xmm6, xmm7
+	addps		xmm10, xmm3
+	addps		xmm11, xmm6
+	lea		ARG0, 256[ARG0]
+	lea		ARG1, -128[ARG1]
 	
-	movaps		%xmm8, %xmm0
-	movaps		%xmm10, %xmm1
-	unpcklps	%xmm9, %xmm8
-	unpcklps	%xmm11, %xmm10
-	unpckhps	%xmm9, %xmm0
-	unpckhps	%xmm11, %xmm1
-	movaps		%xmm8, %xmm2
-	movaps		%xmm0, %xmm3
-	movlhps		%xmm10, %xmm8
-	movhlps		%xmm2, %xmm10
-	movlhps		%xmm1, %xmm0
-	movhlps		%xmm3, %xmm1
-	addps		%xmm10, %xmm8
-	addps		%xmm1, %xmm0
-	addps		%xmm8, %xmm0
+	movaps		xmm0, xmm8
+	movaps		xmm1, xmm10
+	unpcklps	xmm8, xmm9
+	unpcklps	xmm10, xmm11
+	unpckhps	xmm0, xmm9
+	unpckhps	xmm1, xmm11
+	movaps		xmm2, xmm8
+	movaps		xmm3, xmm0
+	movlhps		xmm8, xmm10
+	movhlps		xmm10, xmm2
+	movlhps		xmm0, xmm1
+	movhlps		xmm1, xmm3
+	addps		xmm8, xmm10
+	addps		xmm0, xmm1
+	addps		xmm0, xmm8
 	
-	movups		(ARG2), %xmm1
-	movups		16(ARG2), %xmm2
-	mulps		XMMREG_SCALE, %xmm0
-	shufps		$0xdd, %xmm2, %xmm1
-	movaps		%xmm0, %xmm2
-	unpcklps	%xmm1, %xmm0
-	unpckhps	%xmm1, %xmm2
-	movups		%xmm0, (ARG2)
-	movups		%xmm2, 16(ARG2)
+	movups		xmm1, [ARG2]
+	movups		xmm2, 16[ARG2]
+	mulps		xmm0, XMMREG_SCALE
+	shufps		xmm1, xmm2, HEX(dd)
+	movaps		xmm2, xmm0
+	unpcklps	xmm0, xmm1
+	unpckhps	xmm2, xmm1
+	movups		[ARG2], xmm0
+	movups		16[ARG2], xmm2
 	
-	leaq		32(ARG2), ARG2
-	decl		%ecx
-	jnz			1b
+	lea		ARG2, 32[ARG2]
+	dec		ecx
+	jnz			loop2
 	
-	xorl		%eax, %eax
+	xor		eax, eax
 	
 #ifdef IS_MSABI
-	movaps		(%rsp), %xmm6
-	movaps		16(%rsp), %xmm7
-	movaps		32(%rsp), %xmm8
-	movaps		48(%rsp), %xmm9
-	movaps		64(%rsp), %xmm10
-	movaps		80(%rsp), %xmm11
-	movaps		96(%rsp), %xmm15
-	addq		$120, %rsp
+	movaps		xmm6, [rsp]
+	movaps		xmm7, 16[rsp]
+	movaps		xmm8, 32[rsp]
+	movaps		xmm9, 48[rsp]
+	movaps		xmm10, 64[rsp]
+	movaps		xmm11, 80[rsp]
+	movaps		xmm15, 96[rsp]
+	add		rsp, 120
 #endif
 	ret
 
 NONEXEC_STACK
+
+END_MODULE

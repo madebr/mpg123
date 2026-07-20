@@ -11,25 +11,25 @@
 
 #ifdef IS_MSABI
 /* short *window; */
-#define WINDOW %r10
+#define WINDOW r10
 /* short *b0l; */
-#define B0L %rdx
+#define B0L rdx
 /* short *b0r; */
-#define B0R %r8
+#define B0R r8
 /* short *samples; */
-#define SAMPLES %r9
+#define SAMPLES r9
 #else
 /* real *window; */
-#define WINDOW %rdi
+#define WINDOW rdi
 /* real *b0l; */
-#define B0L %rsi
+#define B0L rsi
 /* real *b0r; */
-#define B0R %rdx
+#define B0R rdx
 /* real *samples; */
-#define SAMPLES %r9
+#define SAMPLES r9
 #endif
 
-#define XMMREG_SCALE (%r11)  /* {1/32768.0, 1/32768.0, 1/32768.0, 1/32768.0} */
+#define XMMREG_SCALE [r11]  /* {1/32768.0, 1/32768.0, 1/32768.0, 1/32768.0} */
 
 /*
 	int synth_1to1_real_s_x86_64_asm(real *window, real *b0l, real *b0r, real *samples, int bo1);
@@ -39,355 +39,357 @@
 	RODATA
 	ALIGN32
 ASM_NAME(INT123_scale_x86_64):
-	.long   939524096
-	.long   939524096
-	.long   939524096
-	.long   939524096
-	.text
+	DATA_LONG   939524096
+	DATA_LONG   939524096
+	DATA_LONG   939524096
+	DATA_LONG   939524096
+	SECTION_TEXT
 	ALIGN16
-.globl ASM_NAME(INT123_synth_1to1_real_s_x86_64_asm)
+GLOBAL ASM_NAME(INT123_synth_1to1_real_s_x86_64_asm)
 ASM_NAME(INT123_synth_1to1_real_s_x86_64_asm):
 #ifdef IS_MSABI /* should save xmm6-15 */
-	movl		40(%rsp), %eax /* 5th argument; placed after 32-byte shadow space */
-	subq		$168, %rsp /* stack alignment + 10 xmm registers */
-	movaps		%xmm6, (%rsp)
-	movaps		%xmm7, 16(%rsp)
-	movaps		%xmm8, 32(%rsp)
-	movaps		%xmm9, 48(%rsp)
-	movaps		%xmm10, 64(%rsp)
-	movaps		%xmm11, 80(%rsp)
-	movaps		%xmm12, 96(%rsp)
-	movaps		%xmm13, 112(%rsp)
-	movaps		%xmm14, 128(%rsp)
-	movaps		%xmm15, 144(%rsp)
+	mov		eax, dword ptr 40[rsp] /* 5th argument; placed after 32-byte shadow space */
+	sub		rsp, 168 /* stack alignment + 10 xmm registers */
+	movaps		[rsp], xmm6
+	movaps		16[rsp], xmm7
+	movaps		32[rsp], xmm8
+	movaps		48[rsp], xmm9
+	movaps		64[rsp], xmm10
+	movaps		80[rsp], xmm11
+	movaps		96[rsp], xmm12
+	movaps		112[rsp], xmm13
+	movaps		128[rsp], xmm14
+	movaps		144[rsp], xmm15
 #endif
 
-	leaq		ASM_NAME(INT123_scale_x86_64)(%rip), %r11
+	lea		r11, ASM_NAME(INT123_scale_x86_64) RIP_REL
 	
 #ifdef IS_MSABI
-	shlq		$32, %rax
-	shrq		$30, %rax
-	movq		%rcx, %r10
+	shl		rax, 32
+	shr		rax, 30
+	mov		r10, rcx
 #else
-	movq		%r8, %rax
-	shlq		$32, %rax
-	shrq		$30, %rax
-	movq		%rcx, %r9
+	mov		rax, r8
+	shl		rax, 32
+	shr		rax, 30
+	mov		r9, rcx
 #endif
-	leaq		64(WINDOW), WINDOW
-	subq		%rax, WINDOW
+	lea		WINDOW, 64[WINDOW]
+	sub		WINDOW, rax
 
-	movl		$4, %ecx
+	mov		ecx, 4
 	
 	ALIGN16
-1:
-	movups		(WINDOW), %xmm8
-	movups		16(WINDOW), %xmm1
-	movups		32(WINDOW), %xmm2
-	movups		48(WINDOW), %xmm3
-	movups		128(WINDOW), %xmm9
-	movups		144(WINDOW), %xmm5
-	movups		160(WINDOW), %xmm6
-	movups		176(WINDOW), %xmm7
-	movaps		%xmm8, %xmm0
-	movaps		%xmm1, %xmm4
-	movaps		%xmm2, %xmm10
-	movaps		%xmm3, %xmm11
-	movaps		%xmm9, %xmm12
-	movaps		%xmm5, %xmm13
-	movaps		%xmm6, %xmm14
-	movaps		%xmm7, %xmm15
-	mulps		(B0L), %xmm8
-	mulps		16(B0L), %xmm1
-	mulps		32(B0L), %xmm2
-	mulps		48(B0L), %xmm3
-	mulps		64(B0L), %xmm9
-	mulps		80(B0L), %xmm5
-	mulps		96(B0L), %xmm6
-	mulps		112(B0L), %xmm7
-	mulps		(B0R), %xmm0
-	mulps		16(B0R), %xmm4
-	mulps		32(B0R), %xmm10
-	mulps		48(B0R), %xmm11
-	mulps		64(B0R), %xmm12
-	mulps		80(B0R), %xmm13
-	mulps		96(B0R), %xmm14
-	mulps		112(B0R), %xmm15
+loop1:
+	movups		xmm8, [WINDOW]
+	movups		xmm1, 16[WINDOW]
+	movups		xmm2, 32[WINDOW]
+	movups		xmm3, 48[WINDOW]
+	movups		xmm9, 128[WINDOW]
+	movups		xmm5, 144[WINDOW]
+	movups		xmm6, 160[WINDOW]
+	movups		xmm7, 176[WINDOW]
+	movaps		xmm0, xmm8
+	movaps		xmm4, xmm1
+	movaps		xmm10, xmm2
+	movaps		xmm11, xmm3
+	movaps		xmm12, xmm9
+	movaps		xmm13, xmm5
+	movaps		xmm14, xmm6
+	movaps		xmm15, xmm7
+	mulps		xmm8, [B0L]
+	mulps		xmm1, 16[B0L]
+	mulps		xmm2, 32[B0L]
+	mulps		xmm3, 48[B0L]
+	mulps		xmm9, 64[B0L]
+	mulps		xmm5, 80[B0L]
+	mulps		xmm6, 96[B0L]
+	mulps		xmm7, 112[B0L]
+	mulps		xmm0, [B0R]
+	mulps		xmm4, 16[B0R]
+	mulps		xmm10, 32[B0R]
+	mulps		xmm11, 48[B0R]
+	mulps		xmm12, 64[B0R]
+	mulps		xmm13, 80[B0R]
+	mulps		xmm14, 96[B0R]
+	mulps		xmm15, 112[B0R]
 	
-	addps		%xmm1, %xmm8
-	addps		%xmm2, %xmm3
-	addps		%xmm4, %xmm0
-	addps		%xmm11, %xmm10
-	addps		%xmm5, %xmm9
-	addps		%xmm7, %xmm6
-	addps		%xmm13, %xmm12
-	addps		%xmm15, %xmm14
-	addps		%xmm3, %xmm8
-	addps		%xmm6, %xmm9
-	addps		%xmm10, %xmm0
-	addps		%xmm12, %xmm14
-	movaps		%xmm0, %xmm12
-	movaps		%xmm14, %xmm13
-	leaq		256(WINDOW), WINDOW
-	leaq		128(B0L), B0L
-	leaq		128(B0R), B0R
+	addps		xmm8, xmm1
+	addps		xmm3, xmm2
+	addps		xmm0, xmm4
+	addps		xmm10, xmm11
+	addps		xmm9, xmm5
+	addps		xmm6, xmm7
+	addps		xmm12, xmm13
+	addps		xmm14, xmm15
+	addps		xmm8, xmm3
+	addps		xmm9, xmm6
+	addps		xmm0, xmm10
+	addps		xmm14, xmm12
+	movaps		xmm12, xmm0
+	movaps		xmm13, xmm14
+	lea		WINDOW, 256[WINDOW]
+	lea		B0L, 128[B0L]
+	lea		B0R, 128[B0R]
 	
-	movups		(WINDOW), %xmm10
-	movups		16(WINDOW), %xmm1
-	movups		32(WINDOW), %xmm2
-	movups		48(WINDOW), %xmm3
-	movups		128(WINDOW), %xmm11
-	movups		144(WINDOW), %xmm5
-	movups		160(WINDOW), %xmm6
-	movups		176(WINDOW), %xmm7
-	movaps		%xmm10, %xmm0
-	movaps		%xmm1, %xmm4
-	movaps		%xmm2, %xmm14
-	movaps		%xmm3, %xmm15
-	mulps		(B0L), %xmm10
-	mulps		16(B0L), %xmm1
-	mulps		32(B0L), %xmm2
-	mulps		48(B0L), %xmm3
-	mulps		(B0R), %xmm0
-	mulps		16(B0R), %xmm4
-	mulps		32(B0R), %xmm14
-	mulps		48(B0R), %xmm15
-	addps		%xmm1, %xmm10
-	addps		%xmm2, %xmm3
-	addps		%xmm4, %xmm0
-	addps		%xmm15, %xmm14
-	movaps		%xmm11, %xmm1
-	movaps		%xmm5, %xmm2
-	movaps		%xmm6, %xmm4
-	movaps		%xmm7, %xmm15
-	mulps		64(B0L), %xmm11
-	mulps		80(B0L), %xmm5
-	mulps		96(B0L), %xmm6
-	mulps		112(B0L), %xmm7
-	mulps		64(B0R), %xmm1
-	mulps		80(B0R), %xmm2
-	mulps		96(B0R), %xmm4
-	mulps		112(B0R), %xmm15
-	addps		%xmm5, %xmm11
-	addps		%xmm7, %xmm6
-	addps		%xmm2, %xmm1
-	addps		%xmm15, %xmm4
+	movups		xmm10, [WINDOW]
+	movups		xmm1, 16[WINDOW]
+	movups		xmm2, 32[WINDOW]
+	movups		xmm3, 48[WINDOW]
+	movups		xmm11, 128[WINDOW]
+	movups		xmm5, 144[WINDOW]
+	movups		xmm6, 160[WINDOW]
+	movups		xmm7, 176[WINDOW]
+	movaps		xmm0, xmm10
+	movaps		xmm4, xmm1
+	movaps		xmm14, xmm2
+	movaps		xmm15, xmm3
+	mulps		xmm10, [B0L]
+	mulps		xmm1, 16[B0L]
+	mulps		xmm2, 32[B0L]
+	mulps		xmm3, 48[B0L]
+	mulps		xmm0, [B0R]
+	mulps		xmm4, 16[B0R]
+	mulps		xmm14, 32[B0R]
+	mulps		xmm15, 48[B0R]
+	addps		xmm10, xmm1
+	addps		xmm3, xmm2
+	addps		xmm0, xmm4
+	addps		xmm14, xmm15
+	movaps		xmm1, xmm11
+	movaps		xmm2, xmm5
+	movaps		xmm4, xmm6
+	movaps		xmm15, xmm7
+	mulps		xmm11, 64[B0L]
+	mulps		xmm5, 80[B0L]
+	mulps		xmm6, 96[B0L]
+	mulps		xmm7, 112[B0L]
+	mulps		xmm1, 64[B0R]
+	mulps		xmm2, 80[B0R]
+	mulps		xmm4, 96[B0R]
+	mulps		xmm15, 112[B0R]
+	addps		xmm11, xmm5
+	addps		xmm6, xmm7
+	addps		xmm1, xmm2
+	addps		xmm4, xmm15
 	
-	addps		%xmm3, %xmm10
-	addps		%xmm6, %xmm11
-	addps		%xmm0, %xmm14
-	addps		%xmm4, %xmm1
-	movaps		%xmm1, %xmm15
-	leaq		256(WINDOW), WINDOW
-	leaq		128(B0L), B0L
-	leaq		128(B0R), B0R
+	addps		xmm10, xmm3
+	addps		xmm11, xmm6
+	addps		xmm14, xmm0
+	addps		xmm1, xmm4
+	movaps		xmm15, xmm1
+	lea		WINDOW, 256[WINDOW]
+	lea		B0L, 128[B0L]
+	lea		B0R, 128[B0R]
 	
-	movaps		%xmm8, %xmm0
-	movaps		%xmm10, %xmm1
-	movaps		%xmm12, %xmm4
-	movaps		%xmm14, %xmm5
-	unpcklps	%xmm9, %xmm8
-	unpcklps	%xmm11, %xmm10
-	unpckhps	%xmm9, %xmm0
-	unpckhps	%xmm11, %xmm1
-	unpcklps	%xmm13, %xmm12
-	unpcklps	%xmm15, %xmm14
-	unpckhps	%xmm13, %xmm4
-	unpckhps	%xmm15, %xmm5
-	movaps		%xmm8, %xmm2
-	movaps		%xmm0, %xmm3
-	movaps		%xmm12, %xmm6
-	movaps		%xmm4, %xmm7
-	movlhps		%xmm10, %xmm8
-	movhlps		%xmm2, %xmm10
-	movlhps		%xmm1, %xmm0
-	movhlps		%xmm3, %xmm1
-	movlhps		%xmm14, %xmm12
-	movhlps		%xmm6, %xmm14
-	movlhps		%xmm5, %xmm4
-	movhlps		%xmm7, %xmm5
-	subps		%xmm10, %xmm8
-	subps		%xmm1, %xmm0
-	subps		%xmm14, %xmm12
-	subps		%xmm5, %xmm4
-	addps		%xmm8, %xmm0
-	addps		%xmm12, %xmm4
+	movaps		xmm0, xmm8
+	movaps		xmm1, xmm10
+	movaps		xmm4, xmm12
+	movaps		xmm5, xmm14
+	unpcklps	xmm8, xmm9
+	unpcklps	xmm10, xmm11
+	unpckhps	xmm0, xmm9
+	unpckhps	xmm1, xmm11
+	unpcklps	xmm12, xmm13
+	unpcklps	xmm14, xmm15
+	unpckhps	xmm4, xmm13
+	unpckhps	xmm5, xmm15
+	movaps		xmm2, xmm8
+	movaps		xmm3, xmm0
+	movaps		xmm6, xmm12
+	movaps		xmm7, xmm4
+	movlhps		xmm8, xmm10
+	movhlps		xmm10, xmm2
+	movlhps		xmm0, xmm1
+	movhlps		xmm1, xmm3
+	movlhps		xmm12, xmm14
+	movhlps		xmm14, xmm6
+	movlhps		xmm4, xmm5
+	movhlps		xmm5, xmm7
+	subps		xmm8, xmm10
+	subps		xmm0, xmm1
+	subps		xmm12, xmm14
+	subps		xmm4, xmm5
+	addps		xmm0, xmm8
+	addps		xmm4, xmm12
 	
-	mulps		XMMREG_SCALE, %xmm0
-	mulps		XMMREG_SCALE, %xmm4
-	movaps		%xmm0, %xmm1
-	unpcklps	%xmm4, %xmm0
-	unpckhps	%xmm4, %xmm1
-	movups		%xmm0, (SAMPLES)
-	movups		%xmm1, 16(SAMPLES)
+	mulps		xmm0, XMMREG_SCALE
+	mulps		xmm4, XMMREG_SCALE
+	movaps		xmm1, xmm0
+	unpcklps	xmm0, xmm4
+	unpckhps	xmm1, xmm4
+	movups		[SAMPLES], xmm0
+	movups		16[SAMPLES], xmm1
 	
-	leaq		32(SAMPLES), SAMPLES
-	decl		%ecx
-	jnz			1b
+	lea		SAMPLES, 32[SAMPLES]
+	dec		ecx
+	jnz			loop1
 	
-	movl		$4, %ecx
+	mov		ecx, 4
 	
 	ALIGN16
-1:
-	movups		(WINDOW), %xmm8
-	movups		16(WINDOW), %xmm1
-	movups		32(WINDOW), %xmm2
-	movups		48(WINDOW), %xmm3
-	movups		128(WINDOW), %xmm9
-	movups		144(WINDOW), %xmm5
-	movups		160(WINDOW), %xmm6
-	movups		176(WINDOW), %xmm7
-	movaps		%xmm8, %xmm0
-	movaps		%xmm1, %xmm4
-	movaps		%xmm2, %xmm10
-	movaps		%xmm3, %xmm11
-	movaps		%xmm9, %xmm12
-	movaps		%xmm5, %xmm13
-	movaps		%xmm6, %xmm14
-	movaps		%xmm7, %xmm15
-	mulps		(B0L), %xmm8
-	mulps		16(B0L), %xmm1
-	mulps		32(B0L), %xmm2
-	mulps		48(B0L), %xmm3
-	mulps		-64(B0L), %xmm9
-	mulps		-48(B0L), %xmm5
-	mulps		-32(B0L), %xmm6
-	mulps		-16(B0L), %xmm7
-	mulps		(B0R), %xmm0
-	mulps		16(B0R), %xmm4
-	mulps		32(B0R), %xmm10
-	mulps		48(B0R), %xmm11
-	mulps		-64(B0R), %xmm12
-	mulps		-48(B0R), %xmm13
-	mulps		-32(B0R), %xmm14
-	mulps		-16(B0R), %xmm15
+loop2:
+	movups		xmm8, [WINDOW]
+	movups		xmm1, 16[WINDOW]
+	movups		xmm2, 32[WINDOW]
+	movups		xmm3, 48[WINDOW]
+	movups		xmm9, 128[WINDOW]
+	movups		xmm5, 144[WINDOW]
+	movups		xmm6, 160[WINDOW]
+	movups		xmm7, 176[WINDOW]
+	movaps		xmm0, xmm8
+	movaps		xmm4, xmm1
+	movaps		xmm10, xmm2
+	movaps		xmm11, xmm3
+	movaps		xmm12, xmm9
+	movaps		xmm13, xmm5
+	movaps		xmm14, xmm6
+	movaps		xmm15, xmm7
+	mulps		xmm8, [B0L]
+	mulps		xmm1, 16[B0L]
+	mulps		xmm2, 32[B0L]
+	mulps		xmm3, 48[B0L]
+	mulps		xmm9, -64[B0L]
+	mulps		xmm5, -48[B0L]
+	mulps		xmm6, -32[B0L]
+	mulps		xmm7, -16[B0L]
+	mulps		xmm0, [B0R]
+	mulps		xmm4, 16[B0R]
+	mulps		xmm10, 32[B0R]
+	mulps		xmm11, 48[B0R]
+	mulps		xmm12, -64[B0R]
+	mulps		xmm13, -48[B0R]
+	mulps		xmm14, -32[B0R]
+	mulps		xmm15, -16[B0R]
 	
-	addps		%xmm1, %xmm8
-	addps		%xmm2, %xmm3
-	addps		%xmm4, %xmm0
-	addps		%xmm11, %xmm10
-	addps		%xmm5, %xmm9
-	addps		%xmm7, %xmm6
-	addps		%xmm13, %xmm12
-	addps		%xmm15, %xmm14
-	addps		%xmm3, %xmm8
-	addps		%xmm6, %xmm9
-	addps		%xmm10, %xmm0
-	addps		%xmm12, %xmm14
-	movaps		%xmm0, %xmm12
-	movaps		%xmm14, %xmm13
-	leaq		256(WINDOW), WINDOW
-	leaq		-128(B0L), B0L
-	leaq		-128(B0R), B0R
+	addps		xmm8, xmm1
+	addps		xmm3, xmm2
+	addps		xmm0, xmm4
+	addps		xmm10, xmm11
+	addps		xmm9, xmm5
+	addps		xmm6, xmm7
+	addps		xmm12, xmm13
+	addps		xmm14, xmm15
+	addps		xmm8, xmm3
+	addps		xmm9, xmm6
+	addps		xmm0, xmm10
+	addps		xmm14, xmm12
+	movaps		xmm12, xmm0
+	movaps		xmm13, xmm14
+	lea		WINDOW, 256[WINDOW]
+	lea		B0L, -128[B0L]
+	lea		B0R, -128[B0R]
 	
-	movups		(WINDOW), %xmm10
-	movups		16(WINDOW), %xmm1
-	movups		32(WINDOW), %xmm2
-	movups		48(WINDOW), %xmm3
-	movups		128(WINDOW), %xmm11
-	movups		144(WINDOW), %xmm5
-	movups		160(WINDOW), %xmm6
-	movups		176(WINDOW), %xmm7
-	movaps		%xmm10, %xmm0
-	movaps		%xmm1, %xmm4
-	movaps		%xmm2, %xmm14
-	movaps		%xmm3, %xmm15
-	mulps		(B0L), %xmm10
-	mulps		16(B0L), %xmm1
-	mulps		32(B0L), %xmm2
-	mulps		48(B0L), %xmm3
-	mulps		(B0R), %xmm0
-	mulps		16(B0R), %xmm4
-	mulps		32(B0R), %xmm14
-	mulps		48(B0R), %xmm15
-	addps		%xmm1, %xmm10
-	addps		%xmm2, %xmm3
-	addps		%xmm4, %xmm0
-	addps		%xmm15, %xmm14
-	movaps		%xmm11, %xmm1
-	movaps		%xmm5, %xmm2
-	movaps		%xmm6, %xmm4
-	movaps		%xmm7, %xmm15
-	mulps		-64(B0L), %xmm11
-	mulps		-48(B0L), %xmm5
-	mulps		-32(B0L), %xmm6
-	mulps		-16(B0L), %xmm7
-	mulps		-64(B0R), %xmm1
-	mulps		-48(B0R), %xmm2
-	mulps		-32(B0R), %xmm4
-	mulps		-16(B0R), %xmm15
-	addps		%xmm5, %xmm11
-	addps		%xmm7, %xmm6
-	addps		%xmm2, %xmm1
-	addps		%xmm15, %xmm4
+	movups		xmm10, [WINDOW]
+	movups		xmm1, 16[WINDOW]
+	movups		xmm2, 32[WINDOW]
+	movups		xmm3, 48[WINDOW]
+	movups		xmm11, 128[WINDOW]
+	movups		xmm5, 144[WINDOW]
+	movups		xmm6, 160[WINDOW]
+	movups		xmm7, 176[WINDOW]
+	movaps		xmm0, xmm10
+	movaps		xmm4, xmm1
+	movaps		xmm14, xmm2
+	movaps		xmm15, xmm3
+	mulps		xmm10, [B0L]
+	mulps		xmm1, 16[B0L]
+	mulps		xmm2, 32[B0L]
+	mulps		xmm3, 48[B0L]
+	mulps		xmm0, [B0R]
+	mulps		xmm4, 16[B0R]
+	mulps		xmm14, 32[B0R]
+	mulps		xmm15, 48[B0R]
+	addps		xmm10, xmm1
+	addps		xmm3, xmm2
+	addps		xmm0, xmm4
+	addps		xmm14, xmm15
+	movaps		xmm1, xmm11
+	movaps		xmm2, xmm5
+	movaps		xmm4, xmm6
+	movaps		xmm15, xmm7
+	mulps		xmm11, -64[B0L]
+	mulps		xmm5, -48[B0L]
+	mulps		xmm6, -32[B0L]
+	mulps		xmm7, -16[B0L]
+	mulps		xmm1, -64[B0R]
+	mulps		xmm2, -48[B0R]
+	mulps		xmm4, -32[B0R]
+	mulps		xmm15, -16[B0R]
+	addps		xmm11, xmm5
+	addps		xmm6, xmm7
+	addps		xmm1, xmm2
+	addps		xmm4, xmm15
 	
-	addps		%xmm3, %xmm10
-	addps		%xmm6, %xmm11
-	addps		%xmm0, %xmm14
-	addps		%xmm4, %xmm1
-	movaps		%xmm1, %xmm15
-	leaq		256(WINDOW), WINDOW
-	leaq		-128(B0L), B0L
-	leaq		-128(B0R), B0R
+	addps		xmm10, xmm3
+	addps		xmm11, xmm6
+	addps		xmm14, xmm0
+	addps		xmm1, xmm4
+	movaps		xmm15, xmm1
+	lea		WINDOW, 256[WINDOW]
+	lea		B0L, -128[B0L]
+	lea		B0R, -128[B0R]
 	
-	movaps		%xmm8, %xmm0
-	movaps		%xmm10, %xmm1
-	movaps		%xmm12, %xmm4
-	movaps		%xmm14, %xmm5
-	unpcklps	%xmm9, %xmm8
-	unpcklps	%xmm11, %xmm10
-	unpckhps	%xmm9, %xmm0
-	unpckhps	%xmm11, %xmm1
-	unpcklps	%xmm13, %xmm12
-	unpcklps	%xmm15, %xmm14
-	unpckhps	%xmm13, %xmm4
-	unpckhps	%xmm15, %xmm5
-	movaps		%xmm8, %xmm2
-	movaps		%xmm0, %xmm3
-	movaps		%xmm12, %xmm6
-	movaps		%xmm4, %xmm7
-	movlhps		%xmm10, %xmm8
-	movhlps		%xmm2, %xmm10
-	movlhps		%xmm1, %xmm0
-	movhlps		%xmm3, %xmm1
-	movlhps		%xmm14, %xmm12
-	movhlps		%xmm6, %xmm14
-	movlhps		%xmm5, %xmm4
-	movhlps		%xmm7, %xmm5
-	addps		%xmm10, %xmm8
-	addps		%xmm1, %xmm0
-	addps		%xmm14, %xmm12
-	addps		%xmm5, %xmm4
-	addps		%xmm8, %xmm0
-	addps		%xmm12, %xmm4
+	movaps		xmm0, xmm8
+	movaps		xmm1, xmm10
+	movaps		xmm4, xmm12
+	movaps		xmm5, xmm14
+	unpcklps	xmm8, xmm9
+	unpcklps	xmm10, xmm11
+	unpckhps	xmm0, xmm9
+	unpckhps	xmm1, xmm11
+	unpcklps	xmm12, xmm13
+	unpcklps	xmm14, xmm15
+	unpckhps	xmm4, xmm13
+	unpckhps	xmm5, xmm15
+	movaps		xmm2, xmm8
+	movaps		xmm3, xmm0
+	movaps		xmm6, xmm12
+	movaps		xmm7, xmm4
+	movlhps		xmm8, xmm10
+	movhlps		xmm10, xmm2
+	movlhps		xmm0, xmm1
+	movhlps		xmm1, xmm3
+	movlhps		xmm12, xmm14
+	movhlps		xmm14, xmm6
+	movlhps		xmm4, xmm5
+	movhlps		xmm5, xmm7
+	addps		xmm8, xmm10
+	addps		xmm0, xmm1
+	addps		xmm12, xmm14
+	addps		xmm4, xmm5
+	addps		xmm0, xmm8
+	addps		xmm4, xmm12
 	
-	mulps		XMMREG_SCALE, %xmm0
-	mulps		XMMREG_SCALE, %xmm4
-	movaps		%xmm0, %xmm1
-	unpcklps	%xmm4, %xmm0
-	unpckhps	%xmm4, %xmm1
-	movups		%xmm0, (SAMPLES)
-	movups		%xmm1, 16(SAMPLES)
+	mulps		xmm0, XMMREG_SCALE
+	mulps		xmm4, XMMREG_SCALE
+	movaps		xmm1, xmm0
+	unpcklps	xmm0, xmm4
+	unpckhps	xmm1, xmm4
+	movups		[SAMPLES], xmm0
+	movups		16[SAMPLES], xmm1
 	
-	leaq		32(SAMPLES), SAMPLES
-	decl		%ecx
-	jnz			1b
+	lea		SAMPLES, 32[SAMPLES]
+	dec		ecx
+	jnz			loop2
 	
-	xorl		%eax, %eax
+	xor		eax, eax
 	
 #ifdef IS_MSABI
-	movaps		(%rsp), %xmm6
-	movaps		16(%rsp), %xmm7
-	movaps		32(%rsp), %xmm8
-	movaps		48(%rsp), %xmm9
-	movaps		64(%rsp), %xmm10
-	movaps		80(%rsp), %xmm11
-	movaps		96(%rsp), %xmm12
-	movaps		112(%rsp), %xmm13
-	movaps		128(%rsp), %xmm14
-	movaps		144(%rsp), %xmm15
-	addq		$168, %rsp
+	movaps		xmm6, [rsp]
+	movaps		xmm7, 16[rsp]
+	movaps		xmm8, 32[rsp]
+	movaps		xmm9, 48[rsp]
+	movaps		xmm10, 64[rsp]
+	movaps		xmm11, 80[rsp]
+	movaps		xmm12, 96[rsp]
+	movaps		xmm13, 112[rsp]
+	movaps		xmm14, 128[rsp]
+	movaps		xmm15, 144[rsp]
+	add		rsp, 168
 #endif
 	ret
 
 NONEXEC_STACK
+
+END_MODULE

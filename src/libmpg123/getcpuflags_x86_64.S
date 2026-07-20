@@ -9,50 +9,51 @@
 #include "x86_64_defs.h"
 #include "mangle.h"
 
-	.text
+	SECTION_TEXT
 	ALIGN4
-	.globl ASM_NAME(INT123_getcpuflags)
+	GLOBAL ASM_NAME(INT123_getcpuflags)
 ASM_NAME(INT123_getcpuflags):
-	push	%rbp
-	mov		%rsp, %rbp
-	push	%rbx
+	push	rbp
+	mov		rbp, rsp
+	push	rbx
 	
 #ifdef IS_MSABI
-	push	%rdi
-	mov		%rcx, %rdi
+	push	rdi
+	mov		rdi, rcx
 #endif
+	mov	dword ptr 12[rdi], 0
+	mov	dword ptr 16[rdi], 0
 
-	movl	$0, 12(%rdi)
-	movl	$0, 16(%rdi)
-
-	mov		$0x80000000, %eax
+	mov		eax, HEX(80000000)
 	cpuid
-	cmp		$0x80000001, %eax
-	jb		1f
-	mov		$0x80000001, %eax
+	cmp		eax, HEX(80000001)
+	jb		cpu_features
+	mov		eax, HEX(80000001)
 	cpuid
-	movl	%edx, 12(%rdi)
-1:
-	mov		$0x00000001, %eax
+	mov	12[rdi], edx
+cpu_features:
+	mov		eax, HEX(00000001)
 	cpuid
-	movl	%eax, (%rdi)
-	movl	%ecx, 4(%rdi)
-	movl	%edx, 8(%rdi)
-	test	$0x04000000, %ecx
-	jz		2f
-	test	$0x08000000, %ecx
-	jz		2f
-	xor		%ecx, %ecx
-	.byte	0x0f, 0x01, 0xd0 /* xgetbv instruction */
-	movl	%eax, 16(%rdi)
-	movl	(%rdi), %eax
-2:
+	mov	[rdi], eax
+	mov	4[rdi], ecx
+	mov	8[rdi], edx
+	test	ecx, HEX(04000000)
+	jz		end_cpuflags
+	test	ecx, HEX(08000000)
+	jz		end_cpuflags
+	xor		ecx, ecx
+	DATA_BYTE	HEX(0f), HEX(01), HEX(d0) /* xgetbv instruction */
+	mov	16[rdi], eax
+	mov	eax, [rdi]
+end_cpuflags:
 #ifdef IS_MSABI
-	pop		%rdi
+	pop		rdi
 #endif
-	pop		%rbx
-	mov		%rbp, %rsp
-	pop		%rbp
+	pop		rbx
+	mov		rsp, rbp
+	pop		rbp
 	ret
 	
 NONEXEC_STACK
+
+END_MODULE

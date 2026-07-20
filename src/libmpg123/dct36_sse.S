@@ -8,12 +8,12 @@
 
 #include "mangle.h"
 
-#define in %edi
-#define out1 %edi
-#define out2 %edx
-#define w  %ecx
-#define ts %eax
-#define tmp %esi
+#define in edi
+#define out1 edi
+#define out2 edx
+#define w  ecx
+#define ts eax
+#define tmp esi
 
 /*
 	void dct36_sse(real *inbuf,real *o1,real *o2,real *wintab,real *tsbuf);
@@ -22,106 +22,107 @@
 	RODATA
 	ALIGN16
 dct36_sse_COS9:
-	.long 0x3f5db3d7
-	.long 0x3f5db3d7
-	.long 0x3f000000
-	.long 0x3f000000
-	.long 0x3f7c1c5c
-	.long 0x3f7c1c5c
-	.long 0x3f708fb2
-	.long 0x3f708fb2
-	.long 0x3f248dbb
-	.long 0x3f248dbb
-	.long 0x3e31d0d4
-	.long 0x3e31d0d4
-	.long 0x3eaf1d44
-	.long 0x3eaf1d44
-	.long 0x3f441b7d
-	.long 0x3f441b7d
+	DATA_LONG HEX(3f5db3d7)
+	DATA_LONG HEX(3f5db3d7)
+	DATA_LONG HEX(3f000000)
+	DATA_LONG HEX(3f000000)
+	DATA_LONG HEX(3f7c1c5c)
+	DATA_LONG HEX(3f7c1c5c)
+	DATA_LONG HEX(3f708fb2)
+	DATA_LONG HEX(3f708fb2)
+	DATA_LONG HEX(3f248dbb)
+	DATA_LONG HEX(3f248dbb)
+	DATA_LONG HEX(3e31d0d4)
+	DATA_LONG HEX(3e31d0d4)
+	DATA_LONG HEX(3eaf1d44)
+	DATA_LONG HEX(3eaf1d44)
+	DATA_LONG HEX(3f441b7d)
+	DATA_LONG HEX(3f441b7d)
 	ALIGN16
 dct36_sse_tfcos36:
-	.long 0x3f007d2b
-	.long 0x3f0483ee
-	.long 0x3f0d3b7d
-	.long 0x3f1c4257
-	.long 0x40b79454
-	.long 0x3ff746ea
-	.long 0x3f976fd9
-	.long 0x3f5f2944
-	.long 0x3f3504f3
+	DATA_LONG HEX(3f007d2b)
+	DATA_LONG HEX(3f0483ee)
+	DATA_LONG HEX(3f0d3b7d)
+	DATA_LONG HEX(3f1c4257)
+	DATA_LONG HEX(40b79454)
+	DATA_LONG HEX(3ff746ea)
+	DATA_LONG HEX(3f976fd9)
+	DATA_LONG HEX(3f5f2944)
+	DATA_LONG HEX(3f3504f3)
 	ALIGN16
 dct36_sse_mask:
-	.long 0,0xffffffff,0,0xffffffff
+	DATA_LONG 0,HEX(ffffffff),0,HEX(ffffffff)
 	ALIGN16
 dct36_sse_sign:
-	.long 0x80000000,0x80000000,0x80000000,0x80000000
-	.text
-	ALIGN16
-	.globl ASM_NAME(INT123_dct36_sse)
+	DATA_LONG HEX(80000000),HEX(80000000),HEX(80000000),HEX(80000000)
+
+	SECTION_TEXT
+	ALIGN 16
+	GLOBAL ASM_NAME(INT123_dct36_sse)
 ASM_NAME(INT123_dct36_sse):
-	push		%ebp
-	mov			%esp, %ebp
-	and			$-16, %esp
-	sub			$80, %esp
-	push		%ebx
-	push		%esi
-	push		%edi
-	lea			12(%esp), tmp
-	movl		8(%ebp), in
+	push		ebp
+	mov			ebp, esp
+	and			esp, -16
+	sub			esp, 80
+	push		ebx
+	push		esi
+	push		edi
+	lea			tmp, [esp+12]
+	mov		in, dword ptr [ebp+8]
 
 	GET_GOT
 	
-	lea			LOCAL_VAR(dct36_sse_COS9), %eax
-	lea			LOCAL_VAR(dct36_sse_tfcos36), %edx
+	lea			eax, dword ptr [LOCAL_VAR(dct36_sse_COS9)]
+	lea			edx, dword ptr [LOCAL_VAR(dct36_sse_tfcos36)]
 
-	xorps		%xmm0, %xmm0
-	xorps		%xmm5, %xmm5
-	movlps		64(in), %xmm5
-	movups		48(in), %xmm4
-	movups		32(in), %xmm3
-	movups		16(in), %xmm2
-	movups		(in), %xmm1
-	movaps		%xmm5, %xmm6
-	shufps		$0xe1, %xmm6, %xmm6
-	movaps		%xmm4, %xmm7
-	shufps		$0x93, %xmm7, %xmm7
-	movss		%xmm7, %xmm6
-	addps		%xmm6, %xmm5
-	movaps		%xmm3, %xmm6
-	shufps		$0x93, %xmm6, %xmm6
-	movss		%xmm6, %xmm7
-	addps		%xmm7, %xmm4
-	movaps		%xmm2, %xmm7
-	shufps		$0x93, %xmm7, %xmm7
-	movss		%xmm7, %xmm6
-	addps		%xmm6, %xmm3
-	movaps		%xmm1, %xmm6
-	shufps		$0x93, %xmm6, %xmm6
-	movss		%xmm6, %xmm7
-	addps		%xmm7, %xmm2
-	movss		%xmm0, %xmm6
-	addps		%xmm6, %xmm1
+	xorps		xmm0, xmm0
+	xorps		xmm5, xmm5
+	movlps		xmm5, qword ptr [in+64]
+	movups		xmm4, [in+48]
+	movups		xmm3, [in+32]
+	movups		xmm2, [in+16]
+	movups		xmm1, [in]
+	movaps		xmm6, xmm5
+	shufps		xmm6, xmm6, HEX(e1)
+	movaps		xmm7, xmm4
+	shufps		xmm7, xmm7, HEX(93)
+	movss		xmm6, xmm7
+	addps		xmm5, xmm6
+	movaps		xmm6, xmm3
+	shufps		xmm6, xmm6, HEX(93)
+	movss		xmm7, xmm6
+	addps		xmm4, xmm7
+	movaps		xmm7, xmm2
+	shufps		xmm7, xmm7, HEX(93)
+	movss		xmm6, xmm7
+	addps		xmm3, xmm6
+	movaps		xmm6, xmm1
+	shufps		xmm6, xmm6, HEX(93)
+	movss		xmm7, xmm6
+	addps		xmm2, xmm7
+	movss		xmm6, xmm0
+	addps		xmm1, xmm6
 	
-	movaps		LOCAL_VAR(dct36_sse_mask), %xmm0
-	movaps		%xmm4, %xmm6
-	shufps		$0x4e, %xmm5, %xmm4
-	movaps		%xmm3, %xmm7
-	shufps		$0x4e, %xmm6, %xmm3
-	andps		%xmm0, %xmm6
-	addps		%xmm6, %xmm4
-	movaps		%xmm2, %xmm6
-	shufps		$0x4e, %xmm7, %xmm2
-	andps		%xmm0, %xmm7
-	addps		%xmm7, %xmm3
-	movaps		%xmm1, %xmm7
-	shufps		$0x4e, %xmm6, %xmm1
-	andps		%xmm0, %xmm6
-	addps		%xmm6, %xmm2
-	movaps		%xmm7, %xmm6
-	andps		%xmm0, %xmm7
-	xorps		%xmm0, %xmm0
-	addps		%xmm7, %xmm1
-	movlhps		%xmm6, %xmm0
+	movaps		xmm0, xmmword ptr [LOCAL_VAR(dct36_sse_mask)]
+	movaps		xmm6, xmm4
+	shufps		xmm4, xmm5, HEX(4e)
+	movaps		xmm7, xmm3
+	shufps		xmm3, xmm6, HEX(4e)
+	andps		xmm6, xmm0
+	addps		xmm4, xmm6
+	movaps		xmm6, xmm2
+	shufps		xmm2, xmm7, HEX(4e)
+	andps		xmm7, xmm0
+	addps		xmm3, xmm7
+	movaps		xmm7, xmm1
+	shufps		xmm1, xmm6, HEX(4e)
+	andps		xmm6, xmm0
+	addps		xmm2, xmm6
+	movaps		xmm6, xmm7
+	andps		xmm7, xmm0
+	xorps		xmm0, xmm0
+	addps		xmm1, xmm7
+	movlhps		xmm0, xmm6
 
 /*
 xmm0 in[-,-,0,1]
@@ -131,11 +132,11 @@ xmm3 in[10,11,12,13]
 xmm4 in[14,15,16,17]
 */
 
-	movaps		%xmm2, %xmm5
-	shufps		$0xe4, %xmm3, %xmm5
-	shufps		$0xe4, %xmm4, %xmm3
-	shufps		$0xe4, %xmm2, %xmm4
-	movaps		%xmm5, %xmm2
+	movaps		xmm5, xmm2
+	shufps		xmm5, xmm3, HEX(e4)
+	shufps		xmm3, xmm4, HEX(e4)
+	shufps		xmm4, xmm2, HEX(e4)
+	movaps		xmm2, xmm5
 
 /*
 xmm2 in[6,7,12,13]
@@ -143,73 +144,73 @@ xmm3 in[10,11,16,17]
 xmm4 in[14,15,8,9]
 */
 
-	mulps		(%eax), %xmm5
-	addps		%xmm0, %xmm5
+	mulps		xmm5, [eax]
+	addps		xmm5, xmm0
 	
-	movaps		%xmm0, (tmp)
-	movaps		%xmm2, 16(tmp)
+	movaps		xmmword ptr [tmp], xmm0
+	movaps		xmmword ptr [tmp+16], xmm2
 
 /*
 0(tmp) in[-,-,0,1]
 xmm5 [ta33,tb33,ta66,tb66]
 */
 
-	movaps		%xmm1, %xmm6
-	subps		%xmm3, %xmm6
-	subps		%xmm4, %xmm6
-	xorps		%xmm7, %xmm7
-	shufps		$0xe0, %xmm2, %xmm7
-	mulps		(%eax), %xmm6
-	subps		%xmm7, %xmm0
-	addps		%xmm0, %xmm6
-	movaps		%xmm6, 48(tmp)
+	movaps		xmm6, xmm1
+	subps		xmm6, xmm3
+	subps		xmm6, xmm4
+	xorps		xmm7, xmm7
+	shufps		xmm7, xmm2, HEX(e0)
+	mulps		xmm6, [eax]
+	subps		xmm0, xmm7
+	addps		xmm6, xmm0
+	movaps		[tmp+48], xmm6
 	
-	movaps		16(%eax), %xmm2
+	movaps		xmm2, [eax+16]
 
-	movaps		%xmm1, %xmm0
-	movaps		%xmm3, %xmm6
-	movaps		%xmm4, %xmm7
-	mulps		%xmm2, %xmm0
-	mulps		32(%eax), %xmm6
-	mulps		48(%eax), %xmm7
-	addps		%xmm5, %xmm0
-	addps		%xmm7, %xmm6
-	addps		%xmm6, %xmm0
-	movaps		%xmm0, 32(tmp)
+	movaps		xmm0, xmm1
+	movaps		xmm6, xmm3
+	movaps		xmm7, xmm4
+	mulps		xmm0, xmm2
+	mulps		xmm6, [eax+32]
+	mulps		xmm7, [eax+48]
+	addps		xmm0, xmm5
+	addps		xmm6, xmm7
+	addps		xmm0, xmm6
+	movaps		[tmp+32], xmm0
 	
-	movaps		%xmm1, %xmm0
-	movaps		%xmm3, %xmm6
-	movaps		%xmm4, %xmm7
-	mulps		32(%eax), %xmm0
-	mulps		48(%eax), %xmm6
-	mulps		%xmm2, %xmm7
-	subps		%xmm5, %xmm0
-	subps		%xmm6, %xmm7
-	addps		%xmm7, %xmm0
-	movaps		%xmm0, 64(tmp)
+	movaps		xmm0, xmm1
+	movaps		xmm6, xmm3
+	movaps		xmm7, xmm4
+	mulps		xmm0, [eax+32]
+	mulps		xmm6, [eax+48]
+	mulps		xmm7, xmm2
+	subps		xmm0, xmm5
+	subps		xmm7, xmm6
+	addps		xmm0, xmm7
+	movaps		[tmp+64], xmm0
 	
-	movaps		%xmm1, %xmm6
-	movaps		%xmm4, %xmm7
-	mulps		48(%eax), %xmm6
-	mulps		%xmm3, %xmm2
-	mulps		32(%eax), %xmm7
-	subps		%xmm5, %xmm6
-	subps		%xmm7, %xmm2
-	addps		%xmm2, %xmm6
+	movaps		xmm6, xmm1
+	movaps		xmm7, xmm4
+	mulps		xmm6, [eax+48]
+	mulps		xmm2, xmm3
+	mulps		xmm7, [eax+32]
+	subps		xmm6, xmm5
+	subps		xmm2, xmm7
+	addps		xmm6, xmm2
 	
-	movaps		(tmp), %xmm0
-	movss		32(%edx), %xmm5
-	subps		%xmm1, %xmm0
-	subps		16(tmp), %xmm4
-	addps		%xmm3, %xmm0
-	addps		%xmm4, %xmm0
-	shufps		$0xaf, %xmm0, %xmm0
-	mulss		%xmm5, %xmm0
-	movaps		%xmm0, (tmp)
+	movaps		xmm0, [tmp]
+	movss		xmm5, dword ptr [edx+32]
+	subps		xmm0, xmm1
+	subps		xmm4, [tmp+16]
+	addps		xmm0, xmm3
+	addps		xmm0, xmm4
+	shufps		xmm0, xmm0, HEX(af)
+	mulss		xmm0, xmm5
+	movaps		[tmp], xmm0
 	
-	movaps		32(tmp), %xmm0
-	movaps		48(tmp), %xmm1
-	movaps		64(tmp), %xmm2
+	movaps		xmm0, 32[tmp]
+	movaps		xmm1, 48[tmp]
+	movaps		xmm2, 64[tmp]
 
 /*
 xmm0 [1a-0,1b-0, 2a-0, 2b-0]
@@ -218,13 +219,13 @@ xmm2 [1a-2,1b-2,-2a-2,-2b-2]
 xmm6 [1a-3,1b-3,-2a-3,-2b-3]
 */
 
-	movaps		%xmm0, %xmm3
-	unpcklps	%xmm1, %xmm0
-	unpckhps	%xmm1, %xmm3
-	movaps		%xmm2, %xmm5
-	unpcklps	%xmm6, %xmm2
-	unpckhps	%xmm6, %xmm5
-	xorps		LOCAL_VAR(dct36_sse_sign), %xmm5
+	movaps		xmm3, xmm0
+	unpcklps	xmm0, xmm1
+	unpckhps	xmm3, xmm1
+	movaps		xmm5, xmm2
+	unpcklps	xmm2, xmm6
+	unpckhps	xmm5, xmm6
+	xorps		xmm5, xmmword ptr [LOCAL_VAR(dct36_sse_sign)]
 
 /*
 xmm0 [1a-0,1a-1,1b-0,1b-1]
@@ -233,12 +234,12 @@ xmm2 [1a-2,1a-3,1b-2,1b-3]
 xmm5 [2a-2,2a-3,2b-2,2b-3]
 */
 
-	movaps		%xmm0, %xmm1
-	movlhps		%xmm2, %xmm0
-	movhlps		%xmm1, %xmm2
-	movaps		%xmm3, %xmm4
-	movlhps		%xmm5, %xmm3
-	movhlps		%xmm4, %xmm5
+	movaps		xmm1, xmm0
+	movlhps		xmm0, xmm2
+	movhlps		xmm2, xmm1
+	movaps		xmm4, xmm3
+	movlhps		xmm3, xmm5
+	movhlps		xmm5, xmm4
 
 /*
 xmm0 tmp1a
@@ -247,137 +248,139 @@ xmm2 tmp1b
 xmm5 tmp2b
 */
 
-	movaps		(%edx), %xmm6
-	movaps		16(%edx), %xmm7
-	movaps		%xmm5, %xmm1
-	addps		%xmm2, %xmm5
-	subps		%xmm2, %xmm1
-	movaps		%xmm3, %xmm2
-	addps		%xmm0, %xmm3
-	subps		%xmm0, %xmm2
-	mulps		%xmm6, %xmm5
-	mulps		%xmm1, %xmm7
+	movaps		xmm6, [edx]
+	movaps		xmm7, 16[edx]
+	movaps		xmm1, xmm5
+	addps		xmm5, xmm2
+	subps		xmm1, xmm2
+	movaps		xmm2, xmm3
+	addps		xmm3, xmm0
+	subps		xmm2, xmm0
+	mulps		xmm5, xmm6
+	mulps		xmm7, xmm1
 	
-	movaps		%xmm2, 16(tmp)
+	movaps		16[tmp], xmm2
 
 /*
-%xmm3 tmp[0,1,2,3]
-%xmm5 tmp[17,16,15,14]
-16(tmp) tmp[8,7,6,5]
-%xmm7 tmp[9,10,11,12]
-0(tmp) tmp[13,-,4,-]
+xmm3 tmp[0,1,2,3]
+xmm5 tmp[17,16,15,14]
+16[tmp] tmp[8,7,6,5]
+xmm7 tmp[9,10,11,12]
+0[tmp] tmp[13,-,4,-]
 */
 
-	movl		12(%ebp), out1
-	movl		16(%ebp), out2
-	movl		20(%ebp), w
-	movl		24(%ebp), ts
+	mov		out1, dword ptr 12[ebp]
+	mov		out2, dword ptr 16[ebp]
+	mov		w, dword ptr 20[ebp]
+	mov		ts, dword ptr 24[ebp]
 
-	movaps		%xmm3, %xmm0
-	movaps		%xmm5, %xmm1
-	movups		108(w), %xmm2
-	movups		92(w), %xmm3
-	shufps		$0x1b, %xmm3, %xmm3
-	movups		36(w), %xmm4
-	movups		20(w), %xmm5
-	shufps		$0x1b, %xmm5, %xmm5
-	movaps		%xmm0, %xmm6
-	addps		%xmm1, %xmm0
-	subps		%xmm1, %xmm6
-	mulps		%xmm0, %xmm2
-	mulps		%xmm3, %xmm0
-	mulps		%xmm6, %xmm4
-	mulps		%xmm5, %xmm6
-	movups		36(out1), %xmm1
-	movups		20(out1), %xmm3
-	shufps		$0x1b, %xmm6, %xmm6
-	addps		%xmm4, %xmm1
-	addps		%xmm6, %xmm3
-	shufps		$0x1b, %xmm0, %xmm0
-	movups		%xmm2, 36(out2)
-	movups		%xmm0, 20(out2)
-	movss		%xmm1, 32*36(ts)
-	movss		%xmm3, 32*20(ts)
-	movhlps		%xmm1, %xmm2
-	movhlps		%xmm3, %xmm4
-	movss		%xmm2, 32*44(ts)
-	movss		%xmm4, 32*28(ts)
-	shufps		$0xb1, %xmm1, %xmm1
-	shufps		$0xb1, %xmm3, %xmm3
-	movss		%xmm1, 32*40(ts)
-	movss		%xmm3, 32*24(ts)
-	movhlps		%xmm1, %xmm2
-	movhlps		%xmm3, %xmm4
-	movss		%xmm2, 32*48(ts)
-	movss		%xmm4, 32*32(ts)
+	movaps		xmm0, xmm3
+	movaps		xmm1, xmm5
+	movups		xmm2, [w+108]
+	movups		xmm3, [w+92]
+	shufps		xmm3, xmm3, HEX(1b)
+	movups		xmm4, [w+36]
+	movups		xmm5, [w+20]
+	shufps		xmm5, xmm5, HEX(1b)
+	movaps		xmm6, xmm0
+	addps		xmm0, xmm1
+	subps		xmm6, xmm1
+	mulps		xmm2, xmm0
+	mulps		xmm0, xmm3
+	mulps		xmm4, xmm6
+	mulps		xmm6, xmm5
+	movups		xmm1, [out1+36]
+	movups		xmm3, [out1+20]
+	shufps		xmm6, xmm6, HEX(1b)
+	addps		xmm1, xmm4
+	addps		xmm3, xmm6
+	shufps		xmm0, xmm0, HEX(1b)
+	movups		[out2+36], xmm2
+	movups		[out2+20], xmm0
+	movss		dword ptr[ts+32*36], xmm1
+	movss		dword ptr[ts+32*20], xmm3
+	movhlps		xmm2, xmm1
+	movhlps		xmm4, xmm3
+	movss		dword ptr [ts+32*44], xmm2
+	movss		dword ptr [ts+32*28], xmm4
+	shufps		xmm1, xmm1, HEX(b1)
+	shufps		xmm3, xmm3, HEX(b1)
+	movss		dword ptr [ts+32*40], xmm1
+	movss		dword ptr [ts+32*24], xmm3
+	movhlps		xmm2, xmm1
+	movhlps		xmm4, xmm3
+	movss		dword ptr [ts+32*48], xmm2
+	movss		dword ptr [ts+32*32], xmm4
 	
-	movss		8(tmp), %xmm0
-	movss		(tmp), %xmm1
-	movss		124(w), %xmm2
-	movss		88(w), %xmm3
-	movss		52(w), %xmm4
-	movss		16(w), %xmm5
-	movss		%xmm0, %xmm6
-	addss		%xmm1, %xmm0
-	subss		%xmm1, %xmm6
-	mulss		%xmm0, %xmm2
-	mulss		%xmm3, %xmm0
-	mulss		%xmm6, %xmm4
-	mulss		%xmm5, %xmm6
-	addss		52(out1), %xmm4
-	addss		16(out1), %xmm6
-	movss		%xmm2, 52(out2)
-	movss		%xmm0, 16(out2)
-	movss		%xmm4, 32*52(ts)
-	movss		%xmm6, 32*16(ts)
+	movss		xmm0, dword ptr [tmp+8]
+	movss		xmm1, dword ptr [tmp]
+	movss		xmm2, dword ptr [w+124]
+	movss		xmm3, dword ptr [w+88]
+	movss		xmm4, dword ptr [w+52]
+	movss		xmm5, dword ptr [w+16]
+	movss		xmm6, xmm0
+	addss		xmm0, xmm1
+	subss		xmm6, xmm1
+	mulss		xmm2, xmm0
+	mulss		xmm0, xmm3
+	mulss		xmm4, xmm6
+	mulss		xmm6, xmm5
+	addss		xmm4, dword ptr [out1+52]
+	addss		xmm6, dword ptr [out1+16]
+	movss		dword ptr [out2+52], xmm2
+	movss		dword ptr [out2+16], xmm0
+	movss		dword ptr [ts+32*52], xmm4
+	movss		dword ptr [ts+32*16], xmm6
 	
-	movaps		16(tmp), %xmm0
-	movaps		%xmm7, %xmm1
-	MOVUAPS		128(w), %xmm2
-	movups		72(w), %xmm3
-	shufps		$0x1b, %xmm2, %xmm2
-	movlps		56(w), %xmm4
-	movhps		64(w), %xmm4
-	MOVUAPS		(w), %xmm5
-	shufps		$0x1b, %xmm4, %xmm4
-	movaps		%xmm0, %xmm6
-	addps		%xmm1, %xmm0
-	subps		%xmm1, %xmm6
-	mulps		%xmm0, %xmm2
-	mulps		%xmm3, %xmm0
-	mulps		%xmm6, %xmm4
-	mulps		%xmm5, %xmm6
-	movlps		56(out1), %xmm1
-	movhps		64(out1), %xmm1
-	movups		(out1), %xmm3
-	shufps		$0x1b, %xmm4, %xmm4
-	addps		%xmm6, %xmm3
-	addps		%xmm4, %xmm1
-	shufps		$0x1b, %xmm2, %xmm2
-	movups		%xmm0, (out2)
-	movlps		%xmm2, 56(out2)
-	movhps		%xmm2, 64(out2)
-	movss		%xmm1, 32*56(ts)
-	movss		%xmm3, (ts)
-	movhlps		%xmm1, %xmm2
-	movhlps		%xmm3, %xmm4
-	movss		%xmm2, 32*64(ts)
-	movss		%xmm4, 32*8(ts)
-	shufps		$0xb1, %xmm1, %xmm1
-	shufps		$0xb1, %xmm3, %xmm3
-	movss		%xmm1, 32*60(ts)
-	movss		%xmm3, 32*4(ts)
-	movhlps		%xmm1, %xmm2
-	movhlps		%xmm3, %xmm4
-	movss		%xmm2, 32*68(ts)
-	movss		%xmm4, 32*12(ts)
+	movaps		xmm0, [tmp+16]
+	movaps		xmm1, xmm7
+	MOVUAPS		xmm2, [w+128]
+	movups		xmm3, [w+72]
+	shufps		xmm2, xmm2, HEX(1b)
+	movlps		xmm4, qword ptr [w+56]
+	movhps		xmm4, qword ptr [w+64]
+	MOVUAPS		xmm5, [w]
+	shufps		xmm4, xmm4, HEX(1b)
+	movaps		xmm6, xmm0
+	addps		xmm0, xmm1
+	subps		xmm6, xmm1
+	mulps		xmm2, xmm0
+	mulps		xmm0, xmm3
+	mulps		xmm4, xmm6
+	mulps		xmm6, xmm5
+	movlps		xmm1, qword ptr [out1+56]
+	movhps		xmm1, qword ptr [out1+64]
+	movups		xmm3, [out1]
+	shufps		xmm4, xmm4, HEX(1b)
+	addps		xmm3, xmm6
+	addps		xmm1, xmm4
+	shufps		xmm2, xmm2, HEX(1b)
+	movups		[out2], xmm0
+	movlps		qword ptr [out2+56], xmm2
+	movhps		qword ptr [out2+64], xmm2
+	movss		dword ptr [ts+32*56], xmm1
+	movss		dword ptr [ts], xmm3
+	movhlps		xmm2, xmm1
+	movhlps		xmm4, xmm3
+	movss		dword ptr [ts+32*64], xmm2
+	movss		dword ptr [ts+32*8], xmm4
+	shufps		xmm1, xmm1, HEX(b1)
+	shufps		xmm3, xmm3, HEX(b1)
+	movss		dword ptr [ts+32*60], xmm1
+	movss		dword ptr [ts+32*4], xmm3
+	movhlps		xmm2, xmm1
+	movhlps		xmm4, xmm3
+	movss		dword ptr [ts+32*68], xmm2
+	movss		dword ptr [ts+32*12], xmm4
 	
-	pop			%edi
-	pop			%esi
-	pop			%ebx
-	mov			%ebp, %esp
-	pop			%ebp
+	pop			edi
+	pop			esi
+	pop			ebx
+	mov			esp, ebp
+	pop			ebp
 	
 	ret
 
 NONEXEC_STACK
+
+END_MODULE

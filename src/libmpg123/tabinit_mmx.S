@@ -12,218 +12,221 @@
 
 	RODATA
 	ALIGN32
-.globl ASM_NAME(INT123_costab_mmxsse)
+GLOBAL ASM_NAME(INT123_costab_mmxsse)
 ASM_NAME(INT123_costab_mmxsse):
-	.long 1056974725
-	.long 1057056395
-	.long 1057223771
-	.long 1057485416
-	.long 1057855544
-	.long 1058356026
-	.long 1059019886
-	.long 1059897405
-	.long 1061067246
-	.long 1062657950
-	.long 1064892987
-	.long 1066774581
-	.long 1069414683
-	.long 1073984175
-	.long 1079645762
-	.long 1092815430
-	.long 1057005197
-	.long 1057342072
-	.long 1058087743
-	.long 1059427869
-	.long 1061799040
-	.long 1065862217
-	.long 1071413542
-	.long 1084439708
-	.long 1057128951
-	.long 1058664893
-	.long 1063675095
-	.long 1076102863
-	.long 1057655764
-	.long 1067924853
-	.long 1060439283
+	DATA_LONG 1056974725
+	DATA_LONG 1057056395
+	DATA_LONG 1057223771
+	DATA_LONG 1057485416
+	DATA_LONG 1057855544
+	DATA_LONG 1058356026
+	DATA_LONG 1059019886
+	DATA_LONG 1059897405
+	DATA_LONG 1061067246
+	DATA_LONG 1062657950
+	DATA_LONG 1064892987
+	DATA_LONG 1066774581
+	DATA_LONG 1069414683
+	DATA_LONG 1073984175
+	DATA_LONG 1079645762
+	DATA_LONG 1092815430
+	DATA_LONG 1057005197
+	DATA_LONG 1057342072
+	DATA_LONG 1058087743
+	DATA_LONG 1059427869
+	DATA_LONG 1061799040
+	DATA_LONG 1065862217
+	DATA_LONG 1071413542
+	DATA_LONG 1084439708
+	DATA_LONG 1057128951
+	DATA_LONG 1058664893
+	DATA_LONG 1063675095
+	DATA_LONG 1076102863
+	DATA_LONG 1057655764
+	DATA_LONG 1067924853
+	DATA_LONG 1060439283
 	ALIGN32
 intwinbase:
-	.short      0,    -1,    -1,    -1,    -1,    -1,    -1,    -2
-	.short     -2,    -2,    -2,    -3,    -3,    -4,    -4,    -5
-	.short     -5,    -6,    -7,    -7,    -8,    -9,   -10,   -11
-	.short    -13,   -14,   -16,   -17,   -19,   -21,   -24,   -26
-	.short    -29,   -31,   -35,   -38,   -41,   -45,   -49,   -53
-	.short    -58,   -63,   -68,   -73,   -79,   -85,   -91,   -97
-	.short   -104,  -111,  -117,  -125,  -132,  -139,  -147,  -154
-	.short   -161,  -169,  -176,  -183,  -190,  -196,  -202,  -208
-	.short   -213,  -218,  -222,  -225,  -227,  -228,  -228,  -227
-	.short   -224,  -221,  -215,  -208,  -200,  -189,  -177,  -163
-	.short   -146,  -127,  -106,   -83,   -57,   -29,     2,    36
-	.short     72,   111,   153,   197,   244,   294,   347,   401
-	.short    459,   519,   581,   645,   711,   779,   848,   919
-	.short    991,  1064,  1137,  1210,  1283,  1356,  1428,  1498
-	.short   1567,  1634,  1698,  1759,  1817,  1870,  1919,  1962
-	.short   2001,  2032,  2057,  2075,  2085,  2087,  2080,  2063
-	.short   2037,  2000,  1952,  1893,  1822,  1739,  1644,  1535
-	.short   1414,  1280,  1131,   970,   794,   605,   402,   185
-	.short    -45,  -288,  -545,  -814, -1095, -1388, -1692, -2006
-	.short  -2330, -2663, -3004, -3351, -3705, -4063, -4425, -4788
-	.short  -5153, -5517, -5879, -6237, -6589, -6935, -7271, -7597
-	.short  -7910, -8209, -8491, -8755, -8998, -9219, -9416, -9585
-	.short  -9727, -9838, -9916, -9959, -9966, -9935, -9863, -9750
-	.short  -9592, -9389, -9139, -8840, -8492, -8092, -7640, -7134
-	.short  -6574, -5959, -5288, -4561, -3776, -2935, -2037, -1082
-	.short    -70,   998,  2122,  3300,  4533,  5818,  7154,  8540
-	.short   9975, 11455, 12980, 14548, 16155, 17799, 19478, 21189
-	.short  22929, 24694, 26482, 28289, 30112, 31947,-26209,-24360
-	.short -22511,-20664,-18824,-16994,-15179,-13383,-11610, -9863
-	.short  -8147, -6466, -4822, -3222, -1667,  -162,  1289,  2684
-	.short   4019,  5290,  6494,  7629,  8692,  9679, 10590, 11420
-	.short  12169, 12835, 13415, 13908, 14313, 14630, 14856, 14992
-	.short  15038
+	DATA_SHORT      0,    -1,    -1,    -1,    -1,    -1,    -1,    -2
+	DATA_SHORT     -2,    -2,    -2,    -3,    -3,    -4,    -4,    -5
+	DATA_SHORT     -5,    -6,    -7,    -7,    -8,    -9,   -10,   -11
+	DATA_SHORT    -13,   -14,   -16,   -17,   -19,   -21,   -24,   -26
+	DATA_SHORT    -29,   -31,   -35,   -38,   -41,   -45,   -49,   -53
+	DATA_SHORT    -58,   -63,   -68,   -73,   -79,   -85,   -91,   -97
+	DATA_SHORT   -104,  -111,  -117,  -125,  -132,  -139,  -147,  -154
+	DATA_SHORT   -161,  -169,  -176,  -183,  -190,  -196,  -202,  -208
+	DATA_SHORT   -213,  -218,  -222,  -225,  -227,  -228,  -228,  -227
+	DATA_SHORT   -224,  -221,  -215,  -208,  -200,  -189,  -177,  -163
+	DATA_SHORT   -146,  -127,  -106,   -83,   -57,   -29,     2,    36
+	DATA_SHORT     72,   111,   153,   197,   244,   294,   347,   401
+	DATA_SHORT    459,   519,   581,   645,   711,   779,   848,   919
+	DATA_SHORT    991,  1064,  1137,  1210,  1283,  1356,  1428,  1498
+	DATA_SHORT   1567,  1634,  1698,  1759,  1817,  1870,  1919,  1962
+	DATA_SHORT   2001,  2032,  2057,  2075,  2085,  2087,  2080,  2063
+	DATA_SHORT   2037,  2000,  1952,  1893,  1822,  1739,  1644,  1535
+	DATA_SHORT   1414,  1280,  1131,   970,   794,   605,   402,   185
+	DATA_SHORT    -45,  -288,  -545,  -814, -1095, -1388, -1692, -2006
+	DATA_SHORT  -2330, -2663, -3004, -3351, -3705, -4063, -4425, -4788
+	DATA_SHORT  -5153, -5517, -5879, -6237, -6589, -6935, -7271, -7597
+	DATA_SHORT  -7910, -8209, -8491, -8755, -8998, -9219, -9416, -9585
+	DATA_SHORT  -9727, -9838, -9916, -9959, -9966, -9935, -9863, -9750
+	DATA_SHORT  -9592, -9389, -9139, -8840, -8492, -8092, -7640, -7134
+	DATA_SHORT  -6574, -5959, -5288, -4561, -3776, -2935, -2037, -1082
+	DATA_SHORT    -70,   998,  2122,  3300,  4533,  5818,  7154,  8540
+	DATA_SHORT   9975, 11455, 12980, 14548, 16155, 17799, 19478, 21189
+	DATA_SHORT  22929, 24694, 26482, 28289, 30112, 31947,-26209,-24360
+	DATA_SHORT -22511,-20664,-18824,-16994,-15179,-13383,-11610, -9863
+	DATA_SHORT  -8147, -6466, -4822, -3222, -1667,  -162,  1289,  2684
+	DATA_SHORT   4019,  5290,  6494,  7629,  8692,  9679, 10590, 11420
+	DATA_SHORT  12169, 12835, 13415, 13908, 14313, 14630, 14856, 14992
+	DATA_SHORT  15038
 
 intwindiv:
-	.long 0x47800000			# 65536.0
-.text
-	ALIGN32
+	DATA_LONG HEX(47800000)			// 65536.0
+
+SECTION_TEXT
+	ALIGN 16
 /* void make_decode_tables_mmx_asm(long scaleval, float* decwin_mmx, float *decwins); */
-.globl ASM_NAME(INT123_make_decode_tables_mmx_asm)
+GLOBAL ASM_NAME(INT123_make_decode_tables_mmx_asm)
 ASM_NAME(INT123_make_decode_tables_mmx_asm):
-	pushl %ebp
-	mov %esp,%ebp
-	sub $12,%esp
-	pushl %edi
-	pushl %esi
-	pushl %ebx
+	push ebp
+	mov ebp, esp
+	sub esp, 12
+	push edi
+	push esi
+	push ebx
 
 	GET_GOT
-	lea LOCAL_VAR(intwinbase),%edi
-	mov LOCAL_VAR(intwindiv),%ecx
-	mov %edi,-4(%ebp)
-	lea 444(%edi),%eax
-	mov %eax,-8(%ebp)
-	mov %ecx,-12(%ebp)
+	lea edi, word ptr [LOCAL_VAR(intwinbase)]
+	mov ecx, [LOCAL_VAR(intwindiv)]
+	mov [ebp-4], edi
+	lea eax, [edi+444]
+	mov [ebp-8], eax
+	mov [ebp-12], ecx
 
-/* stack: -12(%ebp)=*intwindiv, -8(%ebp)=intwinbase+444, -4(%ebp)=intwinbase, ... ,
-          4(%ebp)=back, 8(%ebp)=scaleval, 12(%ebp)=decwin_mmx, 16(%ebp)=decwins */
-#define INTWINDIV -12(%ebp)
-#define INTWINBASE_PLUS_444 -8(%ebp)
-#define INTWINBASE -4(%ebp)
-#define SCALEVAL 8(%ebp)
-#define DECWIN_MMX 12(%ebp)
-#define DECWINS 16(%ebp)
+/* stack: [ebp-12]=*intwindiv, [ebp-8]=intwinbase+444, [ebp-4]=intwinbase, ... ,
+          [ebp+4]=back, [ebp+8]=scaleval, [ebp+12]=decwin_mmx, [ebp+16]=decwins */
+#define INTWINDIV [ebp-12]
+#define INTWINBASE_PLUS_444 [ebp-8]
+#define INTWINBASE [ebp-4]
+#define SCALEVAL [ebp+8]
+#define DECWIN_MMX [ebp+12]
+#define DECWINS [ebp+16]
 	
-	xorl %ecx,%ecx
-	xorl %ebx,%ebx
-	movl $32,%esi
+	xor ecx,ecx
+	xor ebx,ebx
+	mov esi,32
 	
-	negl SCALEVAL	/* scaleval */
-	pushl $2	/* intwinbase step */
-.L00:
-	cmpl $528,%ecx
-	jnc .L02
-	movswl (%edi),%eax
-	cmpl INTWINBASE_PLUS_444,%edi
-	jc .L01
-	addl $60000,%eax
-.L01:
-	pushl %eax
-	fildl (%esp)
-	fdivs INTWINDIV
-	fimull SCALEVAL /* scaleval */
+	neg dword ptr SCALEVAL	/* scaleval */
+	push 2	/* intwinbase step */
+label00:
+	cmp ecx,528
+	jnc label02
+	movsx eax, word ptr [edi]
+	cmp edi, INTWINBASE_PLUS_444
+	jc label01
+	add eax, 60000
+label01:
+	push eax
+	fild dword ptr [esp]
+	fdiv dword ptr INTWINDIV
+	fimul dword ptr SCALEVAL /* scaleval */
 /* eax used to be popped the line before... I'll just use it here a bit */
-	movl DECWIN_MMX,%eax /* decwin_mmx */
-	fsts    (%eax,%ecx,4)
-	fstps 64(%eax,%ecx,4)
-	popl %eax
-.L02:
-	leal -1(%esi),%edx
-	andl %ebx,%edx
-	cmpl $31,%edx
-	jnz .L03
-	addl $-1023,%ecx
-	testl %esi,%ebx
-	jz  .L03
-	negl SCALEVAL
-.L03:
-	addl %esi,%ecx
-	addl (%esp),%edi
-	incl %ebx
-	cmpl INTWINBASE,%edi
-	jz .L04
-	cmpl $256,%ebx
-	jnz .L00
-	negl (%esp)
-	jmp .L00
-.L04:
-	popl %eax
+	mov eax, DECWIN_MMX /* decwin_mmx */
+	fst dword ptr    [eax+ecx*4]
+	fstp dword ptr [eax+ecx*4+64]
+	pop eax
+label02:
+	lea edx, dword ptr [esi-1]
+	and edx, ebx
+	cmp edx, 31
+	jnz label03
+	add ecx, -1023
+	test ebx, esi
+	jz  label03
+	neg dword ptr SCALEVAL
+label03:
+	add ecx, esi
+	add edi,dword ptr [esp]
+	inc ebx
+	cmp edi, INTWINBASE
+	jz label04
+	cmp ebx, 256
+	jnz label00
+	neg dword ptr [esp]
+	jmp label00
+label04:
+	pop eax
 
-	xorl %ecx,%ecx
-	xorl %ebx,%ebx
-	pushl $2 /* paired with popl above */
-.L05:
-	cmpl $528,%ecx
-	jnc .L11
-	movswl (%edi),%eax
-	cmpl INTWINBASE_PLUS_444,%edi
-	jc .L06
-	addl $60000,%eax
-.L06:
-	cltd
-	imull SCALEVAL
-	shrdl $17,%edx,%eax
-	cmpl $32767,%eax
-	movl $1055,%edx
-	jle .L07
-	movl $32767,%eax
-	jmp .L08
-.L07:
-	cmpl $-32767,%eax
-	jge .L08
-	movl $-32767,%eax
-.L08:
+	xor ecx, ecx
+	xor ebx, ebx
+	push 2 /* paired with popl above */
+label05:
+	cmp ecx, 528
+	jnc label11
+	movsx eax, word ptr [edi]
+	cmp edi, INTWINBASE_PLUS_444
+	jc label06
+	add eax, 60000
+label06:
+	cdq
+	imul dword ptr SCALEVAL
+	shrd eax, edx, 17
+	cmp eax, 32767
+	mov edx, 1055
+	jle label07
+	mov eax, 32767
+	jmp label08
+label07:
+	cmp eax, -32767
+	jge label08
+	mov eax, -32767
+label08:
 /* going to use ebx for decwins, watch the jumps */
-	pushl %ebx 
-	movl DECWINS,%ebx
-	cmpl $512,%ecx
-	jnc .L09
-	subl %ecx,%edx
-	movw %ax,(%ebx,%edx,2) /* decwins */
-	movw %ax,-32(%ebx,%edx,2)
-.L09:
-	testl $1,%ecx
-	jnz .L10
-	negl %eax
-.L10:
-	movw %ax,(%ebx,%ecx,2)
-	movw %ax,32(%ebx,%ecx,2)
-	popl %ebx /* that has to match the pushl before */
-.L11:
-	leal -1(%esi),%edx
-	andl %ebx,%edx
-	cmpl $31,%edx
-	jnz .L12
-	addl $-1023,%ecx
-	testl %esi,%ebx
-	jz  .L12
-	negl SCALEVAL
-.L12:
-	addl %esi,%ecx
-	addl (%esp),%edi
-	incl %ebx
-	cmpl INTWINBASE,%edi
-	jz .L13
-	cmpl $256,%ebx
-	jnz .L05
-	negl (%esp)
-	jmp .L05
-.L13:
-	popl %eax
+	push ebx 
+	mov ebx, DECWINS
+	cmp ecx, 512
+	jnc label09
+	sub edx, ecx
+	mov word ptr [ebx+edx*2], ax /* decwins */
+	mov word ptr [ebx+edx*2-32], ax
+label09:
+	test ecx,1
+	jnz label10
+	neg eax
+label10:
+	mov word ptr [ebx+ecx*2], ax
+	mov word ptr [ebx+ecx*2+32], ax
+	pop ebx /* that has to match the pushl before */
+label11:
+	lea edx, dword ptr [esi-1]
+	and edx, ebx
+	cmp edx, 31
+	jnz label12
+	add ecx, -1023
+	test ebx, esi
+	jz  label12
+	neg dword ptr SCALEVAL
+label12:
+	add ecx, esi
+	add edi, dword ptr [esp]
+	inc ebx
+	cmp edi, INTWINBASE
+	jz label13
+	cmp ebx, 256
+	jnz label05
+	neg dword ptr [esp]
+	jmp label05
+label13:
+	pop eax
 	
-	popl %ebx
-	popl %esi
-	popl %edi
-	mov %ebp,%esp
-	pop %ebp
+	pop ebx
+	pop esi
+	pop edi
+	mov esp, ebp
+	pop ebp
 	ret
 
 NONEXEC_STACK
+
+END_MODULE
