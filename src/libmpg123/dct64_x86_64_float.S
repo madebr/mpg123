@@ -11,18 +11,18 @@
 
 #ifdef IS_MSABI
 /* short *out0 */
-#define ARG0 %r9
+#define ARG0 r9
 /* short *out1 */
-#define ARG1 %rdx
+#define ARG1 rdx
 /* real *samples */
-#define ARG2 %r8
+#define ARG2 r8
 #else
 /* real *out0 */
-#define ARG0 %rdi
+#define ARG0 rdi
 /* real *out1 */
-#define ARG1 %rsi
+#define ARG1 rsi
 /* real *samples */
-#define ARG2 %rdx
+#define ARG2 rdx
 #endif
 
 /*
@@ -32,392 +32,394 @@
 	RODATA
 	ALIGN32
 ASM_NAME(INT123_costab_x86_64):
-	.long 1056974725
-	.long 1057056395
-	.long 1057223771
-	.long 1057485416
-	.long 1057855544
-	.long 1058356026
-	.long 1059019886
-	.long 1059897405
-	.long 1061067246
-	.long 1062657950
-	.long 1064892987
-	.long 1066774581
-	.long 1069414683
-	.long 1073984175
-	.long 1079645762
-	.long 1092815430
-	.long 1057005197
-	.long 1057342072
-	.long 1058087743
-	.long 1059427869
-	.long 1061799040
-	.long 1065862217
-	.long 1071413542
-	.long 1084439708
-	.long 1057128951
-	.long 1058664893
-	.long 1063675095
-	.long 1076102863
-	.long 1057655764
-	.long 1067924853
-	.long 1060439283
-	.long 0
-	.text
+	DATA_LONG 1056974725
+	DATA_LONG 1057056395
+	DATA_LONG 1057223771
+	DATA_LONG 1057485416
+	DATA_LONG 1057855544
+	DATA_LONG 1058356026
+	DATA_LONG 1059019886
+	DATA_LONG 1059897405
+	DATA_LONG 1061067246
+	DATA_LONG 1062657950
+	DATA_LONG 1064892987
+	DATA_LONG 1066774581
+	DATA_LONG 1069414683
+	DATA_LONG 1073984175
+	DATA_LONG 1079645762
+	DATA_LONG 1092815430
+	DATA_LONG 1057005197
+	DATA_LONG 1057342072
+	DATA_LONG 1058087743
+	DATA_LONG 1059427869
+	DATA_LONG 1061799040
+	DATA_LONG 1065862217
+	DATA_LONG 1071413542
+	DATA_LONG 1084439708
+	DATA_LONG 1057128951
+	DATA_LONG 1058664893
+	DATA_LONG 1063675095
+	DATA_LONG 1076102863
+	DATA_LONG 1057655764
+	DATA_LONG 1067924853
+	DATA_LONG 1060439283
+	DATA_LONG 0
+	SECTION_TEXT
 	ALIGN16
-.globl ASM_NAME(INT123_dct64_real_x86_64)
+GLOBAL ASM_NAME(INT123_dct64_real_x86_64)
 ASM_NAME(INT123_dct64_real_x86_64):
 #ifdef IS_MSABI /* should save xmm6-15 */
-	movq		%rcx, ARG0
-	subq		$168, %rsp /* stack alignment + 10 xmm registers */
-	movaps		%xmm6, (%rsp)
-	movaps		%xmm7, 16(%rsp)
-	movaps		%xmm8, 32(%rsp)
-	movaps		%xmm9, 48(%rsp)
-	movaps		%xmm10, 64(%rsp)
-	movaps		%xmm11, 80(%rsp)
-	movaps		%xmm12, 96(%rsp)
-	movaps		%xmm13, 112(%rsp)
-	movaps		%xmm14, 128(%rsp)
-	movaps		%xmm15, 144(%rsp)
+	mov		ARG0, rcx
+	sub		rsp, 168 /* stack alignment + 10 xmm registers */
+	movaps		[rsp], xmm6
+	movaps		[rsp+16], xmm7
+	movaps		[rsp+32], xmm8
+	movaps		[rsp+48], xmm9
+	movaps		[rsp+64], xmm10
+	movaps		[rsp+80], xmm11
+	movaps		[rsp+96], xmm12
+	movaps		[rsp+112], xmm13
+	movaps		[rsp+128], xmm14
+	movaps		[rsp+144], xmm15
 #endif
 
-	leaq		ASM_NAME(INT123_costab_x86_64)(%rip), %rcx
+	lea		rcx, ASM_NAME(INT123_costab_x86_64) RIP_REL
 
-	MOVUAPS 	(ARG2), %xmm15
-	MOVUAPS 	16(ARG2), %xmm14
-	MOVUAPS 	112(ARG2), %xmm0
-	MOVUAPS 	96(ARG2), %xmm1
-	shufps 		$0x1b, %xmm0, %xmm0
-	shufps 		$0x1b, %xmm1, %xmm1
-	movaps 		%xmm15, %xmm8
-	movaps		%xmm14, %xmm9
-	addps 		%xmm0, %xmm8
-	addps 		%xmm1, %xmm9
-	subps 		%xmm0, %xmm15
-	subps 		%xmm1, %xmm14
+	MOVUAPS 	xmm15, [ARG2]
+	MOVUAPS 	xmm14, [ARG2+16]
+	MOVUAPS 	xmm0, [ARG2+112]
+	MOVUAPS 	xmm1, [ARG2+96]
+	shufps 		xmm0, xmm0, HEX(1b)
+	shufps 		xmm1, xmm1, HEX(1b)
+	movaps 		xmm8, xmm15
+	movaps		xmm9, xmm14
+	addps 		xmm8, xmm0
+	addps 		xmm9, xmm1
+	subps 		xmm15, xmm0
+	subps 		xmm14, xmm1
 	
-	MOVUAPS 	32(ARG2), %xmm13
-	MOVUAPS 	48(ARG2), %xmm12
-	MOVUAPS 	80(ARG2), %xmm0
-	MOVUAPS 	64(ARG2), %xmm1
-	shufps		$0x1b, %xmm0, %xmm0
-	shufps		$0x1b, %xmm1, %xmm1
-	movaps		%xmm13, %xmm10
-	movaps		%xmm12, %xmm11
-	addps		%xmm0, %xmm10
-	addps		%xmm1, %xmm11
-	subps		%xmm0, %xmm13
-	subps		%xmm1, %xmm12
+	MOVUAPS 	xmm13, [ARG2+32]
+	MOVUAPS 	xmm12, [ARG2+48]
+	MOVUAPS 	xmm0, [ARG2+80]
+	MOVUAPS 	xmm1, [ARG2+64]
+	shufps		xmm0, xmm0, HEX(1b)
+	shufps		xmm1, xmm1, HEX(1b)
+	movaps		xmm10, xmm13
+	movaps		xmm11, xmm12
+	addps		xmm10, xmm0
+	addps		xmm11, xmm1
+	subps		xmm13, xmm0
+	subps		xmm12, xmm1
 	
-	movaps		(%rcx), %xmm0
-	movaps		16(%rcx), %xmm1
-	movaps		32(%rcx), %xmm2
-	movaps		48(%rcx), %xmm3
-	mulps		%xmm0, %xmm15
-	mulps		%xmm1, %xmm14
-	mulps		%xmm2, %xmm13
-	mulps		%xmm3, %xmm12
+	movaps		xmm0, [rcx]
+	movaps		xmm1, [rcx+16]
+	movaps		xmm2, [rcx+32]
+	movaps		xmm3, [rcx+48]
+	mulps		xmm15, xmm0
+	mulps		xmm14, xmm1
+	mulps		xmm13, xmm2
+	mulps		xmm12, xmm3
 	
-	movaps		64(%rcx), %xmm0
-	movaps		80(%rcx), %xmm1
+	movaps		xmm0, 64[rcx]
+	movaps		xmm1, 80[rcx]
 	
-	pshufd		$0x1b, %xmm11, %xmm2
-	pshufd		$0x1b, %xmm10, %xmm3
-	shufps		$0x1b, %xmm13, %xmm13
-	shufps		$0x1b, %xmm12, %xmm12
-	movaps		%xmm8, %xmm11
-	movaps		%xmm9, %xmm10
-	movaps		%xmm14, %xmm4
-	movaps		%xmm15, %xmm5
-	subps		%xmm2, %xmm11
-	subps		%xmm3, %xmm10
-	subps		%xmm13, %xmm14
-	subps		%xmm12, %xmm15
-	addps		%xmm2, %xmm8
-	addps		%xmm3, %xmm9
-	addps		%xmm5, %xmm12
-	addps		%xmm4, %xmm13
-	mulps		%xmm0, %xmm11
-	mulps		%xmm1, %xmm10
-	mulps		%xmm1, %xmm14
-	mulps		%xmm0, %xmm15
+	pshufd		xmm2, xmm11, HEX(1b)
+	pshufd		xmm3, xmm10, HEX(1b)
+	shufps		xmm13, xmm13, HEX(1b)
+	shufps		xmm12, xmm12, HEX(1b)
+	movaps		xmm11, xmm8
+	movaps		xmm10, xmm9
+	movaps		xmm4, xmm14
+	movaps		xmm5, xmm15
+	subps		xmm11, xmm2
+	subps		xmm10, xmm3
+	subps		xmm14, xmm13
+	subps		xmm15, xmm12
+	addps		xmm8, xmm2
+	addps		xmm9, xmm3
+	addps		xmm12, xmm5
+	addps		xmm13, xmm4
+	mulps		xmm11, xmm0
+	mulps		xmm10, xmm1
+	mulps		xmm14, xmm1
+	mulps		xmm15, xmm0
 	
-	movaps		96(%rcx), %xmm0
+	movaps		xmm0, 96[rcx]
 	
-	pshufd		$0x1b, %xmm9, %xmm1
-	pshufd		$0x1b, %xmm13, %xmm2
-	shufps		$0x1b, %xmm10, %xmm10
-	shufps		$0x1b, %xmm14, %xmm14
-	movaps		%xmm8, %xmm9
-	movaps		%xmm12, %xmm13
-	movaps		%xmm11, %xmm3
-	movaps		%xmm15, %xmm4
-	subps		%xmm1, %xmm9
-	subps		%xmm2, %xmm13
-	subps		%xmm10, %xmm11
-	subps		%xmm14, %xmm15
-	addps		%xmm1, %xmm8
-	addps		%xmm2, %xmm12
-	addps		%xmm3, %xmm10
-	addps		%xmm4, %xmm14
-	mulps		%xmm0, %xmm9
-	mulps		%xmm0, %xmm13
-	mulps		%xmm0, %xmm11
-	mulps		%xmm0, %xmm15
+	pshufd		xmm1, xmm9, HEX(1b)
+	pshufd		xmm2, xmm13, HEX(1b)
+	shufps		xmm10, xmm10, HEX(1b)
+	shufps		xmm14, xmm14, HEX(1b)
+	movaps		xmm9, xmm8
+	movaps		xmm13, xmm12
+	movaps		xmm3, xmm11
+	movaps		xmm4, xmm15
+	subps		xmm9, xmm1
+	subps		xmm13, xmm2
+	subps		xmm11, xmm10
+	subps		xmm15, xmm14
+	addps		xmm8, xmm1
+	addps		xmm12, xmm2
+	addps		xmm10, xmm3
+	addps		xmm14, xmm4
+	mulps		xmm9, xmm0
+	mulps		xmm13, xmm0
+	mulps		xmm11, xmm0
+	mulps		xmm15, xmm0
 	
-	movaps		112(%rcx), %xmm0
-	movaps		%xmm0, %xmm1
-	movlhps		%xmm1, %xmm1
+	movaps		xmm0, [rcx+112]
+	movaps		xmm1, xmm0
+	movlhps		xmm1, xmm1
 	
-	movaps		%xmm8, %xmm2
-	movaps		%xmm9, %xmm3
-	shufps		$0x44, %xmm10, %xmm2
-	shufps		$0xbb, %xmm11, %xmm9
-	shufps		$0xbb, %xmm10, %xmm8
-	shufps		$0x44, %xmm11, %xmm3
-	movaps		%xmm2, %xmm4
-	movaps		%xmm3, %xmm5
-	subps		%xmm8, %xmm2
-	subps		%xmm9, %xmm3
-	addps		%xmm4, %xmm8
-	addps		%xmm5, %xmm9
-	mulps		%xmm1, %xmm2
-	mulps		%xmm1, %xmm3
-	movaps		%xmm8, %xmm10
-	movaps		%xmm9, %xmm11
-	shufps		$0x14, %xmm2, %xmm8
-	shufps		$0xbe, %xmm2, %xmm10
-	shufps		$0x14, %xmm3, %xmm9
-	shufps		$0xbe, %xmm3, %xmm11
+	movaps		xmm2, xmm8
+	movaps		xmm3, xmm9
+	shufps		xmm2, xmm10, HEX(44)
+	shufps		xmm9, xmm11, HEX(bb)
+	shufps		xmm8, xmm10, HEX(bb)
+	shufps		xmm3, xmm11, HEX(44)
+	movaps		xmm4, xmm2
+	movaps		xmm5, xmm3
+	subps		xmm2, xmm8
+	subps		xmm3, xmm9
+	addps		xmm8, xmm4
+	addps		xmm9, xmm5
+	mulps		xmm2, xmm1
+	mulps		xmm3, xmm1
+	movaps		xmm10, xmm8
+	movaps		xmm11, xmm9
+	shufps		xmm8, xmm2, HEX(14)
+	shufps		xmm10, xmm2, HEX(be)
+	shufps		xmm9, xmm3, HEX(14)
+	shufps		xmm11, xmm3, HEX(be)
 	
-	movaps		%xmm12, %xmm2
-	movaps		%xmm13, %xmm3
-	shufps		$0x44, %xmm14, %xmm2
-	shufps		$0xbb, %xmm15, %xmm13
-	shufps		$0xbb, %xmm14, %xmm12
-	shufps		$0x44, %xmm15, %xmm3
-	movaps		%xmm2, %xmm4
-	movaps		%xmm3, %xmm5
-	subps		%xmm12, %xmm2
-	subps		%xmm13, %xmm3
-	addps		%xmm4, %xmm12
-	addps		%xmm5, %xmm13
-	mulps		%xmm1, %xmm2
-	mulps		%xmm1, %xmm3
-	movaps		%xmm12, %xmm14
-	movaps		%xmm13, %xmm15
-	shufps		$0x14, %xmm2, %xmm12
-	shufps		$0xbe, %xmm2, %xmm14
-	shufps		$0x14, %xmm3, %xmm13
-	shufps		$0xbe, %xmm3, %xmm15
+	movaps		xmm2, xmm12
+	movaps		xmm3, xmm13
+	shufps		xmm2, xmm14, HEX(44)
+	shufps		xmm13, xmm15, HEX(bb)
+	shufps		xmm12, xmm14, HEX(bb)
+	shufps		xmm3, xmm15, HEX(44)
+	movaps		xmm4, xmm2
+	movaps		xmm5, xmm3
+	subps		xmm2, xmm12
+	subps		xmm3, xmm13
+	addps		xmm12, xmm4
+	addps		xmm13, xmm5
+	mulps		xmm2, xmm1
+	mulps		xmm3, xmm1
+	movaps		xmm14, xmm12
+	movaps		xmm15, xmm13
+	shufps		xmm12, xmm2, HEX(14)
+	shufps		xmm14, xmm2, HEX(be)
+	shufps		xmm13, xmm3, HEX(14)
+	shufps		xmm15, xmm3, HEX(be)
 	
-	shufps		$0xaa, %xmm0, %xmm0
-	pcmpeqd		%xmm1, %xmm1
-	pslld		$31, %xmm1
-	psllq		$32, %xmm1
-	xorps		%xmm1, %xmm0
+	shufps		xmm0, xmm0, HEX(aa)
+	pcmpeqd		xmm1, xmm1
+	pslld		xmm1, 31
+	psllq		xmm1, 32
+	xorps		xmm0, xmm1
 	
-	movaps		%xmm8, %xmm1
-	movaps		%xmm10, %xmm2
-	unpcklps	%xmm9, %xmm8
-	unpckhps	%xmm9, %xmm1
-	unpcklps	%xmm11, %xmm10
-	unpckhps	%xmm11, %xmm2
-	movaps		%xmm8, %xmm3
-	movaps		%xmm10, %xmm4
-	unpcklps	%xmm1, %xmm8
-	unpckhps	%xmm1, %xmm3
-	unpcklps	%xmm2, %xmm10
-	unpckhps	%xmm2, %xmm4
-	movaps		%xmm8, %xmm1
-	movaps		%xmm10, %xmm2
-	subps		%xmm3, %xmm1
-	subps		%xmm4, %xmm2
-	addps		%xmm3, %xmm8
-	addps		%xmm4, %xmm10
-	mulps		%xmm0, %xmm1
-	mulps		%xmm0, %xmm2
-	movaps		%xmm8, %xmm9
-	movaps		%xmm10, %xmm11
-	unpcklps	%xmm1, %xmm8
-	unpckhps	%xmm1, %xmm9
-	unpcklps	%xmm2, %xmm10
-	unpckhps	%xmm2, %xmm11
+	movaps		xmm1, xmm8
+	movaps		xmm2, xmm10
+	unpcklps	xmm8, xmm9
+	unpckhps	xmm1, xmm9
+	unpcklps	xmm10, xmm11
+	unpckhps	xmm2, xmm11
+	movaps		xmm3, xmm8
+	movaps		xmm4, xmm10
+	unpcklps	xmm8, xmm1
+	unpckhps	xmm3, xmm1
+	unpcklps	xmm10, xmm2
+	unpckhps	xmm4, xmm2
+	movaps		xmm1, xmm8
+	movaps		xmm2, xmm10
+	subps		xmm1, xmm3
+	subps		xmm2, xmm4
+	addps		xmm8, xmm3
+	addps		xmm10, xmm4
+	mulps		xmm1, xmm0
+	mulps		xmm2, xmm0
+	movaps		xmm9, xmm8
+	movaps		xmm11, xmm10
+	unpcklps	xmm8, xmm1
+	unpckhps	xmm9, xmm1
+	unpcklps	xmm10, xmm2
+	unpckhps	xmm11, xmm2
 	
-	movaps		%xmm12, %xmm1
-	movaps		%xmm14, %xmm2
-	unpcklps	%xmm13, %xmm12
-	unpckhps	%xmm13, %xmm1
-	unpcklps	%xmm15, %xmm14
-	unpckhps	%xmm15, %xmm2
-	movaps		%xmm12, %xmm3
-	movaps		%xmm14, %xmm4
-	unpcklps	%xmm1, %xmm12
-	unpckhps	%xmm1, %xmm3
-	unpcklps	%xmm2, %xmm14
-	unpckhps	%xmm2, %xmm4
-	movaps		%xmm12, %xmm1
-	movaps		%xmm14, %xmm2
-	subps		%xmm3, %xmm1
-	subps		%xmm4, %xmm2
-	addps		%xmm3, %xmm12
-	addps		%xmm4, %xmm14
-	mulps		%xmm0, %xmm1
-	mulps		%xmm0, %xmm2
-	movaps		%xmm12, %xmm13
-	movaps		%xmm14, %xmm15
-	unpcklps	%xmm1, %xmm12
-	unpckhps	%xmm1, %xmm13
-	unpcklps	%xmm2, %xmm14
-	unpckhps	%xmm2, %xmm15
-	
-	
-	xorps		%xmm0, %xmm0
-	xorps		%xmm1, %xmm1
-	shufpd		$0x2, %xmm8, %xmm0
-	shufpd		$0x2, %xmm9, %xmm1
-	psrlq		$32, %xmm0
-	psrlq		$32, %xmm1
-	addps		%xmm0, %xmm8
-	addps		%xmm1, %xmm9
-	
-	xorps		%xmm0, %xmm0
-	xorps		%xmm1, %xmm1
-	shufpd		$0x2, %xmm10, %xmm0
-	shufpd		$0x2, %xmm11, %xmm1
-	psrlq		$32, %xmm0
-	psrlq		$32, %xmm1
-	addps		%xmm0, %xmm10
-	addps		%xmm1, %xmm11
-	
-	xorps		%xmm0, %xmm0
-	xorps		%xmm1, %xmm1
-	shufpd		$0x2, %xmm12, %xmm0
-	shufpd		$0x2, %xmm13, %xmm1
-	psrlq		$32, %xmm0
-	psrlq		$32, %xmm1
-	addps		%xmm0, %xmm12
-	addps		%xmm1, %xmm13
-	
-	xorps		%xmm0, %xmm0
-	xorps		%xmm1, %xmm1
-	shufpd		$0x2, %xmm14, %xmm0
-	shufpd		$0x2, %xmm15, %xmm1
-	psrlq		$32, %xmm0
-	psrlq		$32, %xmm1
-	addps		%xmm0, %xmm14
-	addps		%xmm1, %xmm15
-	
-	pshufd		$0x78, %xmm9, %xmm0
-	pshufd		$0x78, %xmm11, %xmm1
-	pshufd		$0x78, %xmm13, %xmm2
-	pshufd		$0x78, %xmm15, %xmm3
-	psrldq		$4, %xmm0
-	psrldq		$4, %xmm1
-	psrldq		$4, %xmm2
-	psrldq		$4, %xmm3
-	addps		%xmm0, %xmm9
-	addps		%xmm1, %xmm11
-	addps		%xmm2, %xmm13
-	addps		%xmm3, %xmm15
-	
-	pshufd		$0x78, %xmm10, %xmm0
-	pshufd		$0x78, %xmm14, %xmm1
-	psrldq		$4, %xmm0
-	psrldq		$4, %xmm1
-	addps		%xmm11, %xmm10
-	addps		%xmm15, %xmm14
-	addps		%xmm0, %xmm11
-	addps		%xmm1, %xmm15
+	movaps		xmm1, xmm12
+	movaps		xmm2, xmm14
+	unpcklps	xmm12, xmm13
+	unpckhps	xmm1, xmm13
+	unpcklps	xmm14, xmm15
+	unpckhps	xmm2, xmm15
+	movaps		xmm3, xmm12
+	movaps		xmm4, xmm14
+	unpcklps	xmm12, xmm1
+	unpckhps	xmm3, xmm1
+	unpcklps	xmm14, xmm2
+	unpckhps	xmm4, xmm2
+	movaps		xmm1, xmm12
+	movaps		xmm2, xmm14
+	subps		xmm1, xmm3
+	subps		xmm2, xmm4
+	addps		xmm12, xmm3
+	addps		xmm14, xmm4
+	mulps		xmm1, xmm0
+	mulps		xmm2, xmm0
+	movaps		xmm13, xmm12
+	movaps		xmm15, xmm14
+	unpcklps	xmm12, xmm1
+	unpckhps	xmm13, xmm1
+	unpcklps	xmm14, xmm2
+	unpckhps	xmm15, xmm2
 	
 	
-	movss		%xmm8, 1024(ARG0)
-	movss		%xmm10, 896(ARG0)
-	movss		%xmm9, 768(ARG0)
-	movss		%xmm11, 640(ARG0)
-	movhlps		%xmm8, %xmm0
-	movhlps		%xmm10, %xmm1
-	movhlps		%xmm9, %xmm2
-	movhlps		%xmm11, %xmm3
-	movss		%xmm0, 512(ARG0)
-	movss		%xmm1, 384(ARG0)
-	movss		%xmm2, 256(ARG0)
-	movss		%xmm3, 128(ARG0)
+	xorps		xmm0, xmm0
+	xorps		xmm1, xmm1
+	shufpd		xmm0, xmm8, HEX(2)
+	shufpd		xmm1, xmm9, HEX(2)
+	psrlq		xmm0, 32
+	psrlq		xmm1, 32
+	addps		xmm8, xmm0
+	addps		xmm9, xmm1
 	
-	pshuflw		$0xee, %xmm8, %xmm4
-	pshuflw		$0xee, %xmm10, %xmm5
-	pshuflw		$0xee, %xmm9, %xmm6
-	pshuflw		$0xee, %xmm11, %xmm7
-	movss		%xmm4, (ARG0)
-	movss		%xmm4, (ARG1)
-	movss		%xmm5, 128(ARG1)
-	movss		%xmm6, 256(ARG1)
-	movss		%xmm7, 384(ARG1)
+	xorps		xmm0, xmm0
+	xorps		xmm1, xmm1
+	shufpd		xmm0, xmm10, HEX(2)
+	shufpd		xmm1, xmm11, HEX(2)
+	psrlq		xmm0, 32
+	psrlq		xmm1, 32
+	addps		xmm10, xmm0
+	addps		xmm11, xmm1
 	
-	pshuflw		$0xee, %xmm0, %xmm0
-	pshuflw		$0xee, %xmm1, %xmm1
-	pshuflw		$0xee, %xmm2, %xmm2
-	pshuflw		$0xee, %xmm3, %xmm3
-	movss		%xmm0, 512(ARG1)
-	movss		%xmm1, 640(ARG1)
-	movss		%xmm2, 768(ARG1)
-	movss		%xmm3, 896(ARG1)
+	xorps		xmm0, xmm0
+	xorps		xmm1, xmm1
+	shufpd		xmm0, xmm12, HEX(2)
+	shufpd		xmm1, xmm13, HEX(2)
+	psrlq		xmm0, 32
+	psrlq		xmm1, 32
+	addps		xmm12, xmm0
+	addps		xmm13, xmm1
 	
-	pshufd		$0x78, %xmm12, %xmm0
-	movaps		%xmm13, %xmm1
-	psrldq		$4, %xmm0
+	xorps		xmm0, xmm0
+	xorps		xmm1, xmm1
+	shufpd		xmm0, xmm14, HEX(2)
+	shufpd		xmm1, xmm15, HEX(2)
+	psrlq		xmm0, 32
+	psrlq		xmm1, 32
+	addps		xmm14, xmm0
+	addps		xmm15, xmm1
 	
-	addps		%xmm14, %xmm12
-	addps		%xmm15, %xmm13
-	addps		%xmm1, %xmm14
-	addps		%xmm0, %xmm15
+	pshufd		xmm0, xmm9, HEX(78)
+	pshufd		xmm1, xmm11, HEX(78)
+	pshufd		xmm2, xmm13, HEX(78)
+	pshufd		xmm3, xmm15, HEX(78)
+	psrldq		xmm0, 4
+	psrldq		xmm1, 4
+	psrldq		xmm2, 4
+	psrldq		xmm3, 4
+	addps		xmm9, xmm0
+	addps		xmm11, xmm1
+	addps		xmm13, xmm2
+	addps		xmm15, xmm3
 	
-	movss		%xmm12, 960(ARG0)
-	movss		%xmm14, 832(ARG0)
-	movss		%xmm13, 704(ARG0)
-	movss		%xmm15, 576(ARG0)
-	movhlps		%xmm12, %xmm0
-	movhlps		%xmm14, %xmm1
-	movhlps		%xmm13, %xmm2
-	movhlps		%xmm15, %xmm3
-	movss		%xmm0, 448(ARG0)
-	movss		%xmm1, 320(ARG0)
-	movss		%xmm2, 192(ARG0)
-	movss		%xmm3, 64(ARG0)
+	pshufd		xmm0, xmm10, HEX(78)
+	pshufd		xmm1, xmm14, HEX(78)
+	psrldq		xmm0, 4
+	psrldq		xmm1, 4
+	addps		xmm10, xmm11
+	addps		xmm14, xmm15
+	addps		xmm11, xmm0
+	addps		xmm15, xmm1
 	
-	pshuflw		$0xee, %xmm12, %xmm4
-	pshuflw		$0xee, %xmm14, %xmm5
-	pshuflw		$0xee, %xmm13, %xmm6
-	pshuflw		$0xee, %xmm15, %xmm7
-	movss		%xmm4, 64(ARG1)
-	movss		%xmm5, 192(ARG1)
-	movss		%xmm6, 320(ARG1)
-	movss		%xmm7, 448(ARG1)
 	
-	pshuflw		$0xee, %xmm0, %xmm0
-	pshuflw		$0xee, %xmm1, %xmm1
-	pshuflw		$0xee, %xmm2, %xmm2
-	pshuflw		$0xee, %xmm3, %xmm3
-	movss		%xmm0, 576(ARG1)
-	movss		%xmm1, 704(ARG1)
-	movss		%xmm2, 832(ARG1)
-	movss		%xmm3, 960(ARG1)
+	movss		dword ptr [ARG0+1024], xmm8
+	movss		dword ptr [ARG0+896], xmm10
+	movss		dword ptr [ARG0+768], xmm9
+	movss		dword ptr [ARG0+640], xmm11
+	movhlps		xmm0, xmm8
+	movhlps		xmm1, xmm10
+	movhlps		xmm2, xmm9
+	movhlps		xmm3, xmm11
+	movss		dword ptr [ARG0+512], xmm0
+	movss		dword ptr [ARG0+384], xmm1
+	movss		dword ptr [ARG0+256], xmm2
+	movss		dword ptr [ARG0+128], xmm3
+	
+	pshuflw		xmm4, xmm8, HEX(ee)
+	pshuflw		xmm5, xmm10, HEX(ee)
+	pshuflw		xmm6, xmm9, HEX(ee)
+	pshuflw		xmm7, xmm11, HEX(ee)
+	movss		dword ptr [ARG0], xmm4
+	movss		dword ptr [ARG1], xmm4
+	movss		dword ptr [ARG1+128], xmm5
+	movss		dword ptr [ARG1+256], xmm6
+	movss		dword ptr [ARG1+384], xmm7
+	
+	pshuflw		xmm0, xmm0, HEX(ee)
+	pshuflw		xmm1, xmm1, HEX(ee)
+	pshuflw		xmm2, xmm2, HEX(ee)
+	pshuflw		xmm3, xmm3, HEX(ee)
+	movss		dword ptr [ARG1+512], xmm0
+	movss		dword ptr [ARG1+640], xmm1
+	movss		dword ptr [ARG1+768], xmm2
+	movss		dword ptr [ARG1+896], xmm3
+	
+	pshufd		xmm0, xmm12, HEX(78)
+	movaps		xmm1, xmm13
+	psrldq		xmm0, 4
+	
+	addps		xmm12, xmm14
+	addps		xmm13, xmm15
+	addps		xmm14, xmm1
+	addps		xmm15, xmm0
+	
+	movss		dword ptr [ARG0+960], xmm12
+	movss		dword ptr [ARG0+832], xmm14
+	movss		dword ptr [ARG0+704], xmm13
+	movss		dword ptr [ARG0+576], xmm15
+	movhlps		xmm0, xmm12
+	movhlps		xmm1, xmm14
+	movhlps		xmm2, xmm13
+	movhlps		xmm3, xmm15
+	movss		dword ptr [ARG0+448], xmm0
+	movss		dword ptr [ARG0+320], xmm1
+	movss		dword ptr [ARG0+192], xmm2
+	movss		dword ptr [ARG0+64], xmm3
+	
+	pshuflw		xmm4, xmm12, HEX(ee)
+	pshuflw		xmm5, xmm14, HEX(ee)
+	pshuflw		xmm6, xmm13, HEX(ee)
+	pshuflw		xmm7, xmm15, HEX(ee)
+	movss		dword ptr [ARG1+64], xmm4
+	movss		dword ptr [ARG1+192], xmm5
+	movss		dword ptr [ARG1+320], xmm6
+	movss		dword ptr [ARG1+448], xmm7
+	
+	pshuflw		xmm0, xmm0, HEX(ee)
+	pshuflw		xmm1, xmm1, HEX(ee)
+	pshuflw		xmm2, xmm2, HEX(ee)
+	pshuflw		xmm3, xmm3, HEX(ee)
+	movss		dword ptr [ARG1+576], xmm0
+	movss		dword ptr [ARG1+704], xmm1
+	movss		dword ptr [ARG1+832], xmm2
+	movss		dword ptr [ARG1+960], xmm3
 	
 #ifdef IS_MSABI
-	movaps		(%rsp), %xmm6
-	movaps		16(%rsp), %xmm7
-	movaps		32(%rsp), %xmm8
-	movaps		48(%rsp), %xmm9
-	movaps		64(%rsp), %xmm10
-	movaps		80(%rsp), %xmm11
-	movaps		96(%rsp), %xmm12
-	movaps		112(%rsp), %xmm13
-	movaps		128(%rsp), %xmm14
-	movaps		144(%rsp), %xmm15
-	addq		$168, %rsp
+	movaps		xmm6, [rsp]
+	movaps		xmm7, [rsp+16]
+	movaps		xmm8, [rsp+32]
+	movaps		xmm9, [rsp+48]
+	movaps		xmm10, [rsp+64]
+	movaps		xmm11, [rsp+80]
+	movaps		xmm12, [rsp+96]
+	movaps		xmm13, [rsp+112]
+	movaps		xmm14, [rsp+128]
+	movaps		xmm15, [rsp+144]
+	add		rsp, 168
 #endif
 	ret
 
 NONEXEC_STACK
+
+END_MODULE

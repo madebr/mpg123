@@ -18,6 +18,39 @@ else()
     set(INCLUDE_SYS_TYPE_H "/* #include <sys/types.h> is not available on this system */")
 endif()
 
+macro(libmpg123_assembly_sources TARGET)
+    cmake_parse_arguments(ARG "" "MSVC_ASM_LANGUAGE" "SOURCES;DEFINITIONS" ${ARGN})
+
+    if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
+        set(assembly_sources )
+        set(cc_flags "${CMAKE_C_FLAGS}")
+        separate_arguments(cc_flags NATIVE_COMMAND)
+        list(APPEND cc_flags -nologo)
+        set(asm_definitions "${ARG_DEFINITIONS}")
+        list(TRANSFORM asm_definitions PREPEND /D)
+        foreach(platform_source ${ARG_SOURCES})
+            get_filename_component(source_name "${platform_source}" NAME)
+            set(preprocessed_path "${CMAKE_CURRENT_BINARY_DIR}/${source_name}")
+            set(preproc_command ${CMAKE_C_COMPILER} /nologo ${cc_flags} ${asm_definitions} "/I${PROJECT_SOURCE_DIR}/../../src" "/I${PROJECT_BINARY_DIR}/src" /EP "/Tc${platform_source}" ">${preprocessed_path}")
+            add_custom_command(OUTPUT "${preprocessed_path}"
+                COMMAND ${preproc_command}
+                MAIN_DEPENDENCY "${platform_source}"
+            )
+            list(APPEND assembly_sources "${preprocessed_path}")
+        endforeach()
+
+        enable_language(${ARG_MSVC_ASM_LANGUAGE})
+        target_sources(${TARGET} PRIVATE ${assembly_sources})
+        set_property(SOURCE ${assembly_sources} PROPERTY LANGUAGE ${ARG_MSVC_ASM_LANGUAGE})
+        target_compile_options(${TARGET} PRIVATE $<$<COMPILE_LANGUAGE:${ARG_MSVC_ASM_LANGUAGE}>:-nologo>)
+    else()
+        set(assembly_sources ${ARG_SOURCES})
+
+        enable_language(ASM)
+        target_sources(${TARGET} PRIVATE ${assembly_sources})
+        set_property(SOURCE ${assembly_sources} PROPERTY LANGUAGE ASM)
+    endif()
+endmacro()
 
 
 # PPC with AltiVec is missing. But probably obsolete enough for CMake users.
@@ -64,19 +97,6 @@ add_library(${TARGET}
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/$<$<NOT:$<BOOL:${PORTABLE_API}>>:lfs_wrap.c>"
     $<TARGET_OBJECTS:compat>)
 
-if(MSVC AND NOT CMAKE_C_COMPILER_ID STREQUAL "Clang")
-    if(MACHINE MATCHES "x86|amd64")
-      find_program(YASM_ASSEMBLER yasm)
-      if(NOT YASM_ASSEMBLER)
-          message(WARNING "Couldn't find yasm assembler for optimizded decoders. Please set YASM_ASSEMBLER variable")
-          set(MACHINE generic)
-      endif()
-    else()
-      message(WARNING "Need work to support non-x86 assembly optimizations with MSVC.")
-      set(MACHINE generic)
-    endif()
-endif()
-
 if(MACHINE STREQUAL "amd64")
     if(HAVE_FPU)
         set(PLATFORM_DEFINITIONS OPT_MULTI OPT_X86_64 OPT_AVX OPT_GENERIC OPT_GENERIC_DITHER)
@@ -91,22 +111,31 @@ if(MACHINE STREQUAL "amd64")
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dct64_avx_float.S"
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_avx_float.S"
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_avx_s32.S"
-            "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/getcpuflags_x86_64.S")
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/getcpuflags_x86_64.S"
+        )
         target_sources(${TARGET} PRIVATE
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dither.c")
         if(ACCURATE_ROUNDING)
             list(APPEND PLATFORM_SOURCES
                 "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_x86_64_accurate.S"
                 "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_x86_64_accurate.S"
-                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_avx_accurate.S")
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_avx_accurate.S"
+            )
         else()
             list(APPEND PLATFORM_SOURCES
                 "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dct64_x86_64.S"
                 "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_x86_64.S"
                 "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_x86_64.S"
                 "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_avx.S"
-                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dct64_avx.S")
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dct64_avx.S"
+            )
         endif()
+
+        libmpg123_assembly_sources(${TARGET}
+            SOURCES ${PLATFORM_SOURCES}
+            DEFINITIONS ${PLATFORM_DEFINITIONS}
+            MSVC_ASM_LANGUAGE ASM_MASM
+        )
     else()
         set(PLATFORM_DEFINITIONS OPT_GENERIC)
     endif()
@@ -130,17 +159,26 @@ elseif(MACHINE STREQUAL "x86")
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_sse_float.S"
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_sse_float.S"
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_sse_s32.S"
-            "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_sse_s32.S")
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_sse_s32.S"
+        )
         if(ACCURATE_ROUNDING)
             list(APPEND PLATFORM_SOURCES
                 "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_sse_accurate.S"
-                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_sse_accurate.S")
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_sse_accurate.S"
+            )
         else()
             list(APPEND PLATFORM_SOURCES
                 "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dct64_sse.S"
-                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_sse.S")
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_sse.S"
+            )
         endif()
     endif()
+
+    libmpg123_assembly_sources(${TARGET}
+        SOURCES ${PLATFORM_SOURCES}
+        DEFINITIONS ${PLATFORM_DEFINITIONS}
+        MSVC_ASM_LANGUAGE ASM_MASM
+    )
 elseif(MACHINE STREQUAL "arm64")
         set(PLATFORM_DEFINITIONS OPT_MULTI OPT_GENERIC OPT_GENERIC_DITHER OPT_NEON64)
         set(PLATFORM_SOURCES
@@ -163,6 +201,12 @@ elseif(MACHINE STREQUAL "arm64")
         target_sources(${TARGET} PRIVATE
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dither.c"
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/getcpuflags_arm.c")
+
+        libmpg123_assembly_sources(${TARGET}
+            SOURCES ${PLATFORM_SOURCES}
+            DEFINITIONS ${PLATFORM_DEFINITIONS}
+            MSVC_ASM_LANGUAGE ASM_MARMASM
+        )
 elseif(MACHINE STREQUAL "arm32")
     if(HAVE_FPU)
             set(PLATFORM_DEFINITIONS OPT_MULTI OPT_GENERIC OPT_GENERIC_DITHER OPT_NEON)
@@ -186,7 +230,6 @@ elseif(MACHINE STREQUAL "arm32")
                     "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_neon.S"
                     "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_neon.S")
             endif()
-            target_sources(${TARGET} PRIVATE ${PLATFORM_SOURCES})
             target_sources(${TARGET} PRIVATE
                 "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dither.c")
     else()
@@ -198,8 +241,13 @@ elseif(MACHINE STREQUAL "arm32")
                 set(PLATFORM_SOURCES
                     "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_arm.S")
             endif()
-            target_sources(${TARGET} PRIVATE ${PLATFORM_SOURCES})
     endif()
+
+    libmpg123_assembly_sources(${TARGET}
+        SOURCES ${PLATFORM_SOURCES}
+        DEFINITIONS ${PLATFORM_DEFINITIONS}
+        MSVC_ASM_LANGUAGE ASM_MARMASM
+    )
 elseif(MACHINE STREQUAL "generic")
     set(PLATFORM_DEFINITIONS OPT_GENERIC)
 endif()
@@ -210,6 +258,7 @@ set_target_properties(${TARGET} PROPERTIES PREFIX lib)
 set_target_properties(${TARGET} PROPERTIES SOVERSION ${mpg123_soversion})
 set_target_properties(${TARGET} PROPERTIES VERSION ${mpg123_version})
 set_target_properties(${TARGET} PROPERTIES DLL_NAME_WITH_SOVERSION TRUE)
+set_target_properties(${TARGET} PROPERTIES DEFINE_SYMBOL "")
 
 target_compile_definitions(${TARGET} PRIVATE
     $<$<BOOL:$<TARGET_PROPERTY:POSITION_INDEPENDENT_CODE>>:PIC>)
@@ -218,27 +267,6 @@ target_compile_definitions(${TARGET} PRIVATE
     ${PLATFORM_DEFINITIONS}
     $<$<BOOL:${HAVE_FPU}>:REAL_IS_FLOAT>
     $<$<NOT:$<BOOL:${HAVE_FPU}>>:REAL_IS_FIXED>)
-
-if(MSVC AND NOT CMAKE_C_COMPILER_ID STREQUAL "Clang" AND MACHINE MATCHES "x86|amd64" AND YASM_ASSEMBLER)
-    list(TRANSFORM PLATFORM_DEFINITIONS PREPEND /D)
-    foreach(FILE ${PLATFORM_SOURCES})
-        get_filename_component(FILENAME ${FILE} NAME)
-        add_custom_command(
-            OUTPUT ${FILENAME}.asm
-            COMMAND ${CMAKE_C_COMPILER} /NOLOGO /DASMALIGN_BALIGN ${PLATFORM_DEFINITIONS}
-            /I"${PROJECT_SOURCE_DIR}/../../src" /I"${PROJECT_BINARY_DIR}/src" /P /Fi${FILENAME}.asm /Tc "${FILE}"
-            DEPENDS ${FILE}
-            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-        add_custom_command(
-            OUTPUT ${FILENAME}.obj
-            COMMAND ${YASM_ASSEMBLER} -a x86 -m ${MACHINE} -p gas -r raw -f win32 -g null -o ${FILENAME}.obj ${FILENAME}.asm
-            DEPENDS ${FILENAME}.asm
-            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-        target_sources(${TARGET} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.obj")
-    endforeach()
-else()
-    target_sources(${TARGET} PRIVATE ${PLATFORM_SOURCES})
-endif()
 
 if(HAVE_M)
     string(APPEND LIBMPG123_LIBS " -lm")

@@ -365,7 +365,7 @@ add_compile_definitions(
     $<$<BOOL:${NEWOLD_WRITE_SAMPLE}>:NEWOLD_WRITE_SAMPLE>)
 
 add_compile_options(
-    $<$<BOOL:${MSVC}>:/wd4996>)
+    $<$<AND:$<BOOL:${MSVC}>,$<COMPILE_LANGUAGE:C>>:/wd4996>)
 
 add_subdirectory("compat")
 add_subdirectory("libmpg123")
