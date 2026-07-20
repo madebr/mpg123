@@ -9,15 +9,15 @@
 #include "mangle.h"
 
 /* real *window; */
-#define WINDOW %ebx
+#define WINDOW ebx
 /* real *b0l; */
-#define B0L %edx
+#define B0L edx
 /* real *b0r; */
-#define B0R %esi
+#define B0R esi
 /* real *samples; */
-#define SAMPLES %edi
+#define SAMPLES edi
 
-#define TEMP(n) (12+16*n)(%esp)
+#define TEMP(n) [esp+12+16*n]
 
 /*
 	int synth_1to1_real_s_sse_asm(real *window, real *b0l, real *b0r, real *samples, int bo1);
@@ -27,390 +27,393 @@
 	RODATA
 	ALIGN32
 scale_sse:
-	.long   939524096
-	.long   939524096
-	.long   939524096
-	.long   939524096
-	.text
-	ALIGN16
-.globl ASM_NAME(INT123_synth_1to1_real_s_sse_asm)
+	DATA_LONG   939524096
+	DATA_LONG   939524096
+	DATA_LONG   939524096
+	DATA_LONG   939524096
+
+	SECTION_TEXT
+	ALIGN 16
+GLOBAL ASM_NAME(INT123_synth_1to1_real_s_sse_asm)
 ASM_NAME(INT123_synth_1to1_real_s_sse_asm):
-	pushl		%ebp
-	movl		%esp, %ebp
-	andl		$-16, %esp
-	subl		$128, %esp
-	pushl		%ebx
-	pushl		%esi
-	pushl		%edi
+	push		ebp
+	mov		ebp, esp
+	and		esp, -16
+	sub		esp, 128
+	push		ebx
+	push		esi
+	push		edi
 	
-	movl		8(%ebp), WINDOW
-	movl		12(%ebp), B0L
-	movl		16(%ebp), B0R
-	movl		20(%ebp), SAMPLES
-	movl		24(%ebp), %eax
-	shll		$2, %eax
+	mov		WINDOW, dword ptr [ebp+8]
+	mov		B0L, dword ptr [ebp+12]
+	mov		B0R, dword ptr [ebp+16]
+	mov		SAMPLES, dword ptr [ebp+20]
+	mov		eax, dword ptr [ebp+24]
+	shl		eax, 2
 	
-	leal		64(WINDOW), WINDOW
-	subl		%eax, WINDOW
+	lea		WINDOW, dword ptr [WINDOW+64]
+	sub		WINDOW, eax
 
 	#undef _EBX_
-	#define _EBX_ %eax
+	#define _EBX_ eax
 	GET_GOT
 
-	movl		$4, %ecx
+	mov		ecx, 4
 	
-	ALIGN16
-1:
-	movups		(WINDOW), %xmm0
-	movups		16(WINDOW), %xmm1
-	movups		32(WINDOW), %xmm2
-	movups		48(WINDOW), %xmm3
-	movaps		%xmm0, %xmm4
-	movaps		%xmm1, %xmm5
-	movaps		%xmm2, %xmm6
-	movaps		%xmm3, %xmm7
-	mulps		0(B0L), %xmm0
-	mulps		16(B0L), %xmm1
-	mulps		32(B0L), %xmm2
-	mulps		48(B0L), %xmm3
-	mulps		0(B0R), %xmm4
-	mulps		16(B0R), %xmm5
-	mulps		32(B0R), %xmm6
-	mulps		48(B0R), %xmm7
-	addps		%xmm1, %xmm0
-	addps		%xmm3, %xmm2
-	addps		%xmm5, %xmm4
-	addps		%xmm7, %xmm6
-	addps		%xmm2, %xmm0
-	addps		%xmm6, %xmm4
-	movaps		%xmm0, TEMP(0)
-	movaps		%xmm4, TEMP(4)
+	ALIGN 16
+loop1:
+	movups		xmm0, [WINDOW]
+	movups		xmm1, [WINDOW+16]
+	movups		xmm2, [WINDOW+32]
+	movups		xmm3, [WINDOW+48]
+	movaps		xmm4, xmm0
+	movaps		xmm5, xmm1
+	movaps		xmm6, xmm2
+	movaps		xmm7, xmm3
+	mulps		xmm0, [B0L+0]
+	mulps		xmm1, [B0L+16]
+	mulps		xmm2, [B0L+32]
+	mulps		xmm3, [B0L+48]
+	mulps		xmm4, [B0R+0]
+	mulps		xmm5, [B0R+16]
+	mulps		xmm6, [B0R+32]
+	mulps		xmm7, [B0R+48]
+	addps		xmm0, xmm1
+	addps		xmm2, xmm3
+	addps		xmm4, xmm5
+	addps		xmm6, xmm7
+	addps		xmm0, xmm2
+	addps		xmm4, xmm6
+	movaps		TEMP(0), xmm0
+	movaps		TEMP(4), xmm4
 	
-	leal		128(WINDOW), WINDOW
-	leal		64(B0L), B0L
-	leal		64(B0R), B0R
+	lea		WINDOW, dword ptr [WINDOW+128]
+	lea		B0L, dword ptr [B0L+64]
+	lea		B0R, dword ptr [B0R+64]
 	
-	movups		(WINDOW), %xmm0
-	movups		16(WINDOW), %xmm1
-	movups		32(WINDOW), %xmm2
-	movups		48(WINDOW), %xmm3
-	movaps		%xmm0, %xmm4
-	movaps		%xmm1, %xmm5
-	movaps		%xmm2, %xmm6
-	movaps		%xmm3, %xmm7
-	mulps		0(B0L), %xmm0
-	mulps		16(B0L), %xmm1
-	mulps		32(B0L), %xmm2
-	mulps		48(B0L), %xmm3
-	mulps		0(B0R), %xmm4
-	mulps		16(B0R), %xmm5
-	mulps		32(B0R), %xmm6
-	mulps		48(B0R), %xmm7
-	addps		%xmm1, %xmm0
-	addps		%xmm3, %xmm2
-	addps		%xmm5, %xmm4
-	addps		%xmm7, %xmm6
-	addps		%xmm2, %xmm0
-	addps		%xmm6, %xmm4
-	movaps		%xmm0, TEMP(1)
-	movaps		%xmm4, TEMP(5)
+	movups		xmm0, [WINDOW]
+	movups		xmm1, [WINDOW+16]
+	movups		xmm2, [WINDOW+32]
+	movups		xmm3, [WINDOW+48]
+	movaps		xmm4, xmm0
+	movaps		xmm5, xmm1
+	movaps		xmm6, xmm2
+	movaps		xmm7, xmm3
+	mulps		xmm0, [B0L+0]
+	mulps		xmm1, [B0L+16]
+	mulps		xmm2, [B0L+32]
+	mulps		xmm3, [B0L+48]
+	mulps		xmm4, [B0R+0]
+	mulps		xmm5, [B0R+16]
+	mulps		xmm6, [B0R+32]
+	mulps		xmm7, [B0R+48]
+	addps		xmm0, xmm1
+	addps		xmm2, xmm3
+	addps		xmm4, xmm5
+	addps		xmm6, xmm7
+	addps		xmm0, xmm2
+	addps		xmm4, xmm6
+	movaps		TEMP(1), xmm0
+	movaps		TEMP(5), xmm4
 	
-	leal		128(WINDOW), WINDOW
-	leal		64(B0L), B0L
-	leal		64(B0R), B0R
+	lea		WINDOW, dword ptr [WINDOW+128]
+	lea		B0L, dword ptr [B0L+64]
+	lea		B0R, dword ptr [B0R+64]
 	
-	movups		(WINDOW), %xmm0
-	movups		16(WINDOW), %xmm1
-	movups		32(WINDOW), %xmm2
-	movups		48(WINDOW), %xmm3
-	movaps		%xmm0, %xmm4
-	movaps		%xmm1, %xmm5
-	movaps		%xmm2, %xmm6
-	movaps		%xmm3, %xmm7
-	mulps		0(B0L), %xmm0
-	mulps		16(B0L), %xmm1
-	mulps		32(B0L), %xmm2
-	mulps		48(B0L), %xmm3
-	mulps		0(B0R), %xmm4
-	mulps		16(B0R), %xmm5
-	mulps		32(B0R), %xmm6
-	mulps		48(B0R), %xmm7
-	addps		%xmm1, %xmm0
-	addps		%xmm3, %xmm2
-	addps		%xmm5, %xmm4
-	addps		%xmm7, %xmm6
-	addps		%xmm2, %xmm0
-	addps		%xmm6, %xmm4
-	movaps		%xmm0, TEMP(2)
-	movaps		%xmm4, TEMP(6)
+	movups		xmm0, [WINDOW]
+	movups		xmm1, [WINDOW+16]
+	movups		xmm2, [WINDOW+32]
+	movups		xmm3, [WINDOW+48]
+	movaps		xmm4, xmm0
+	movaps		xmm5, xmm1
+	movaps		xmm6, xmm2
+	movaps		xmm7, xmm3
+	mulps		xmm0, [B0L+0]
+	mulps		xmm1, [B0L+16]
+	mulps		xmm2, [B0L+32]
+	mulps		xmm3, [B0L+48]
+	mulps		xmm4, [B0R+0]
+	mulps		xmm5, [B0R+16]
+	mulps		xmm6, [B0R+32]
+	mulps		xmm7, [B0R+48]
+	addps		xmm0, xmm1
+	addps		xmm2, xmm3
+	addps		xmm4, xmm5
+	addps		xmm6, xmm7
+	addps		xmm0, xmm2
+	addps		xmm4, xmm6
+	movaps		TEMP(2), xmm0
+	movaps		TEMP(6), xmm4
 	
-	leal		128(WINDOW), WINDOW
-	leal		64(B0L), B0L
-	leal		64(B0R), B0R
+	lea		WINDOW, dword ptr [WINDOW+128]
+	lea		B0L, dword ptr [B0L+64]
+	lea		B0R, dword ptr [B0R+64]
 	
-	movups		(WINDOW), %xmm0
-	movups		16(WINDOW), %xmm1
-	movups		32(WINDOW), %xmm2
-	movups		48(WINDOW), %xmm3
-	movaps		%xmm0, %xmm4
-	movaps		%xmm1, %xmm5
-	movaps		%xmm2, %xmm6
-	movaps		%xmm3, %xmm7
-	mulps		0(B0L), %xmm0
-	mulps		16(B0L), %xmm1
-	mulps		32(B0L), %xmm2
-	mulps		48(B0L), %xmm3
-	mulps		0(B0R), %xmm4
-	mulps		16(B0R), %xmm5
-	mulps		32(B0R), %xmm6
-	mulps		48(B0R), %xmm7
-	addps		%xmm1, %xmm0
-	addps		%xmm3, %xmm2
-	addps		%xmm5, %xmm4
-	addps		%xmm7, %xmm6
-	addps		%xmm2, %xmm0
-	addps		%xmm6, %xmm4
-	movaps		%xmm0, %xmm7
-	movaps		%xmm4, TEMP(7)
+	movups		xmm0, [WINDOW]
+	movups		xmm1, [WINDOW+16]
+	movups		xmm2, [WINDOW+32]
+	movups		xmm3, [WINDOW+48]
+	movaps		xmm4, xmm0
+	movaps		xmm5, xmm1
+	movaps		xmm6, xmm2
+	movaps		xmm7, xmm3
+	mulps		xmm0, [B0L+0]
+	mulps		xmm1, [B0L+16]
+	mulps		xmm2, [B0L+32]
+	mulps		xmm3, [B0L+48]
+	mulps		xmm4, [B0R+0]
+	mulps		xmm5, [B0R+16]
+	mulps		xmm6, [B0R+32]
+	mulps		xmm7, [B0R+48]
+	addps		xmm0, xmm1
+	addps		xmm2, xmm3
+	addps		xmm4, xmm5
+	addps		xmm6, xmm7
+	addps		xmm0, xmm2
+	addps		xmm4, xmm6
+	movaps		xmm7, xmm0
+	movaps		TEMP(7), xmm4
 	
-	leal		128(WINDOW), WINDOW
-	leal		64(B0L), B0L
-	leal		64(B0R), B0R
+	lea		WINDOW, dword ptr [WINDOW+128]
+	lea		B0L, dword ptr [B0L+64]
+	lea		B0R, dword ptr [B0R+64]
 	
-	movaps		TEMP(0), %xmm4
-	movaps		TEMP(1), %xmm5
-	movaps		TEMP(2), %xmm6
-	movaps		%xmm4, %xmm0
-	movaps		%xmm6, %xmm1
-	unpcklps	%xmm5, %xmm4
-	unpcklps	%xmm7, %xmm6
-	unpckhps	%xmm5, %xmm0
-	unpckhps	%xmm7, %xmm1
-	movaps		%xmm4, %xmm2
-	movaps		%xmm0, %xmm3
-	movlhps		%xmm6, %xmm4
-	movhlps		%xmm2, %xmm6
-	movlhps		%xmm1, %xmm0
-	movhlps		%xmm3, %xmm1
-	subps		%xmm6, %xmm4
-	subps		%xmm1, %xmm0
-	addps		%xmm4, %xmm0
-	movaps		%xmm0, %xmm2
+	movaps		xmm4, TEMP(0)
+	movaps		xmm5, TEMP(1)
+	movaps		xmm6, TEMP(2)
+	movaps		xmm0, xmm4
+	movaps		xmm1, xmm6
+	unpcklps	xmm4, xmm5
+	unpcklps	xmm6, xmm7
+	unpckhps	xmm0, xmm5
+	unpckhps	xmm1, xmm7
+	movaps		xmm2, xmm4
+	movaps		xmm3, xmm0
+	movlhps		xmm4, xmm6
+	movhlps		xmm6, xmm2
+	movlhps		xmm0, xmm1
+	movhlps		xmm1, xmm3
+	subps		xmm4, xmm6
+	subps		xmm0, xmm1
+	addps		xmm0, xmm4
+	movaps		xmm2, xmm0
 	
-	movaps		TEMP(4), %xmm4
-	movaps		TEMP(5), %xmm5
-	movaps		TEMP(6), %xmm6
-	movaps		TEMP(7), %xmm7
-	movaps		%xmm4, %xmm0
-	movaps		%xmm6, %xmm1
-	unpcklps	%xmm5, %xmm4
-	unpcklps	%xmm7, %xmm6
-	unpckhps	%xmm5, %xmm0
-	unpckhps	%xmm7, %xmm1
-	movaps		%xmm2, %xmm5
-	movaps		%xmm4, %xmm2
-	movaps		%xmm0, %xmm3
-	movlhps		%xmm6, %xmm4
-	movhlps		%xmm2, %xmm6
-	movlhps		%xmm1, %xmm0
-	movhlps		%xmm3, %xmm1
-	subps		%xmm6, %xmm4
-	subps		%xmm1, %xmm0
-	addps		%xmm4, %xmm0
+	movaps		xmm4, TEMP(4)
+	movaps		xmm5, TEMP(5)
+	movaps		xmm6, TEMP(6)
+	movaps		xmm7, TEMP(7)
+	movaps		xmm0, xmm4
+	movaps		xmm1, xmm6
+	unpcklps	xmm4, xmm5
+	unpcklps	xmm6, xmm7
+	unpckhps	xmm0, xmm5
+	unpckhps	xmm1, xmm7
+	movaps		xmm5, xmm2
+	movaps		xmm2, xmm4
+	movaps		xmm3, xmm0
+	movlhps		xmm4, xmm6
+	movhlps		xmm6, xmm2
+	movlhps		xmm0, xmm1
+	movhlps		xmm1, xmm3
+	subps		xmm4, xmm6
+	subps		xmm0, xmm1
+	addps		xmm0, xmm4
 	
-	mulps		LOCAL_VAR(scale_sse), %xmm5
-	mulps		LOCAL_VAR(scale_sse), %xmm0
-	movaps		%xmm5, %xmm1
-	unpcklps	%xmm0, %xmm5
-	unpckhps	%xmm0, %xmm1
-	movups		%xmm5, (SAMPLES)
-	movups		%xmm1, 16(SAMPLES)
+	mulps		xmm5, xmmword ptr [LOCAL_VAR(scale_sse)]
+	mulps		xmm0, xmmword ptr [LOCAL_VAR(scale_sse)]
+	movaps		xmm1, xmm5
+	unpcklps	xmm5, xmm0
+	unpckhps	xmm1, xmm0
+	movups		[SAMPLES], xmm5
+	movups		[SAMPLES+16], xmm1
 	
-	leal		32(SAMPLES), SAMPLES
-	decl		%ecx
-	jnz			1b
+	lea		SAMPLES, dword ptr [SAMPLES+32]
+	dec		ecx
+	jnz			loop1
 	
-	movl		$4, %ecx
+	mov		ecx, 4
 	
-	ALIGN16
-1:
-	movups		(WINDOW), %xmm0
-	movups		16(WINDOW), %xmm1
-	movups		32(WINDOW), %xmm2
-	movups		48(WINDOW), %xmm3
-	movaps		%xmm0, %xmm4
-	movaps		%xmm1, %xmm5
-	movaps		%xmm2, %xmm6
-	movaps		%xmm3, %xmm7
-	mulps		0(B0L), %xmm0
-	mulps		16(B0L), %xmm1
-	mulps		32(B0L), %xmm2
-	mulps		48(B0L), %xmm3
-	mulps		0(B0R), %xmm4
-	mulps		16(B0R), %xmm5
-	mulps		32(B0R), %xmm6
-	mulps		48(B0R), %xmm7
-	addps		%xmm1, %xmm0
-	addps		%xmm3, %xmm2
-	addps		%xmm5, %xmm4
-	addps		%xmm7, %xmm6
-	addps		%xmm2, %xmm0
-	addps		%xmm6, %xmm4
-	movaps		%xmm0, TEMP(0)
-	movaps		%xmm4, TEMP(4)
+	ALIGN 16
+loop2:
+	movups		xmm0, [WINDOW]
+	movups		xmm1, [WINDOW+16]
+	movups		xmm2, [WINDOW+32]
+	movups		xmm3, [WINDOW+48]
+	movaps		xmm4, xmm0
+	movaps		xmm5, xmm1
+	movaps		xmm6, xmm2
+	movaps		xmm7, xmm3
+	mulps		xmm0, [B0L+0]
+	mulps		xmm1, [B0L+16]
+	mulps		xmm2, [B0L+32]
+	mulps		xmm3, [B0L+48]
+	mulps		xmm4, [B0R+0]
+	mulps		xmm5, [B0R+16]
+	mulps		xmm6, [B0R+32]
+	mulps		xmm7, [B0R+48]
+	addps		xmm0, xmm1
+	addps		xmm2, xmm3
+	addps		xmm4, xmm5
+	addps		xmm6, xmm7
+	addps		xmm0, xmm2
+	addps		xmm4, xmm6
+	movaps		TEMP(0), xmm0
+	movaps		TEMP(4), xmm4
 	
-	leal		128(WINDOW), WINDOW
-	leal		-64(B0L), B0L
-	leal		-64(B0R), B0R
+	lea		WINDOW, dword ptr [WINDOW+128]
+	lea		B0L, dword ptr [B0L-64]
+	lea		B0R, dword ptr [B0R-64]
 	
-	movups		(WINDOW), %xmm0
-	movups		16(WINDOW), %xmm1
-	movups		32(WINDOW), %xmm2
-	movups		48(WINDOW), %xmm3
-	movaps		%xmm0, %xmm4
-	movaps		%xmm1, %xmm5
-	movaps		%xmm2, %xmm6
-	movaps		%xmm3, %xmm7
-	mulps		0(B0L), %xmm0
-	mulps		16(B0L), %xmm1
-	mulps		32(B0L), %xmm2
-	mulps		48(B0L), %xmm3
-	mulps		0(B0R), %xmm4
-	mulps		16(B0R), %xmm5
-	mulps		32(B0R), %xmm6
-	mulps		48(B0R), %xmm7
-	addps		%xmm1, %xmm0
-	addps		%xmm3, %xmm2
-	addps		%xmm5, %xmm4
-	addps		%xmm7, %xmm6
-	addps		%xmm2, %xmm0
-	addps		%xmm6, %xmm4
-	movaps		%xmm0, TEMP(1)
-	movaps		%xmm4, TEMP(5)
+	movups		xmm0, [WINDOW]
+	movups		xmm1, [WINDOW+16]
+	movups		xmm2, [WINDOW+32]
+	movups		xmm3, [WINDOW+48]
+	movaps		xmm4, xmm0
+	movaps		xmm5, xmm1
+	movaps		xmm6, xmm2
+	movaps		xmm7, xmm3
+	mulps		xmm0, [B0L+0]
+	mulps		xmm1, [B0L+16]
+	mulps		xmm2, [B0L+32]
+	mulps		xmm3, [B0L+48]
+	mulps		xmm4, [B0R+0]
+	mulps		xmm5, [B0R+16]
+	mulps		xmm6, [B0R+32]
+	mulps		xmm7, [B0R+48]
+	addps		xmm0, xmm1
+	addps		xmm2, xmm3
+	addps		xmm4, xmm5
+	addps		xmm6, xmm7
+	addps		xmm0, xmm2
+	addps		xmm4, xmm6
+	movaps		TEMP(1), xmm0
+	movaps		TEMP(5), xmm4
 	
-	leal		128(WINDOW), WINDOW
-	leal		-64(B0L), B0L
-	leal		-64(B0R), B0R
+	lea		WINDOW, dword ptr [WINDOW+128]
+	lea		B0L, dword ptr [B0L-64]
+	lea		B0R, dword ptr [B0R-64]
 	
-	movups		(WINDOW), %xmm0
-	movups		16(WINDOW), %xmm1
-	movups		32(WINDOW), %xmm2
-	movups		48(WINDOW), %xmm3
-	movaps		%xmm0, %xmm4
-	movaps		%xmm1, %xmm5
-	movaps		%xmm2, %xmm6
-	movaps		%xmm3, %xmm7
-	mulps		0(B0L), %xmm0
-	mulps		16(B0L), %xmm1
-	mulps		32(B0L), %xmm2
-	mulps		48(B0L), %xmm3
-	mulps		0(B0R), %xmm4
-	mulps		16(B0R), %xmm5
-	mulps		32(B0R), %xmm6
-	mulps		48(B0R), %xmm7
-	addps		%xmm1, %xmm0
-	addps		%xmm3, %xmm2
-	addps		%xmm5, %xmm4
-	addps		%xmm7, %xmm6
-	addps		%xmm2, %xmm0
-	addps		%xmm6, %xmm4
-	movaps		%xmm0, TEMP(2)
-	movaps		%xmm4, TEMP(6)
+	movups		xmm0, [WINDOW]
+	movups		xmm1, [WINDOW+16]
+	movups		xmm2, [WINDOW+32]
+	movups		xmm3, [WINDOW+48]
+	movaps		xmm4, xmm0
+	movaps		xmm5, xmm1
+	movaps		xmm6, xmm2
+	movaps		xmm7, xmm3
+	mulps		xmm0, [B0L+0]
+	mulps		xmm1, [B0L+16]
+	mulps		xmm2, [B0L+32]
+	mulps		xmm3, [B0L+48]
+	mulps		xmm4, [B0R+0]
+	mulps		xmm5, [B0R+16]
+	mulps		xmm6, [B0R+32]
+	mulps		xmm7, [B0R+48]
+	addps		xmm0, xmm1
+	addps		xmm2, xmm3
+	addps		xmm4, xmm5
+	addps		xmm6, xmm7
+	addps		xmm0, xmm2
+	addps		xmm4, xmm6
+	movaps		TEMP(2), xmm0
+	movaps		TEMP(6), xmm4
 	
-	leal		128(WINDOW), WINDOW
-	leal		-64(B0L), B0L
-	leal		-64(B0R), B0R
+	lea		WINDOW, dword ptr [WINDOW+128]
+	lea		B0L, dword ptr [B0L-64]
+	lea		B0R, dword ptr [B0R-64]
 	
-	movups		(WINDOW), %xmm0
-	movups		16(WINDOW), %xmm1
-	movups		32(WINDOW), %xmm2
-	movups		48(WINDOW), %xmm3
-	movaps		%xmm0, %xmm4
-	movaps		%xmm1, %xmm5
-	movaps		%xmm2, %xmm6
-	movaps		%xmm3, %xmm7
-	mulps		0(B0L), %xmm0
-	mulps		16(B0L), %xmm1
-	mulps		32(B0L), %xmm2
-	mulps		48(B0L), %xmm3
-	mulps		0(B0R), %xmm4
-	mulps		16(B0R), %xmm5
-	mulps		32(B0R), %xmm6
-	mulps		48(B0R), %xmm7
-	addps		%xmm1, %xmm0
-	addps		%xmm3, %xmm2
-	addps		%xmm5, %xmm4
-	addps		%xmm7, %xmm6
-	addps		%xmm2, %xmm0
-	addps		%xmm6, %xmm4
-	movaps		%xmm0, %xmm7
-	movaps		%xmm4, TEMP(7)
+	movups		xmm0, [WINDOW]
+	movups		xmm1, [WINDOW+16]
+	movups		xmm2, [WINDOW+32]
+	movups		xmm3, [WINDOW+48]
+	movaps		xmm4, xmm0
+	movaps		xmm5, xmm1
+	movaps		xmm6, xmm2
+	movaps		xmm7, xmm3
+	mulps		xmm0, [B0L+0]
+	mulps		xmm1, [B0L+16]
+	mulps		xmm2, [B0L+32]
+	mulps		xmm3, [B0L+48]
+	mulps		xmm4, [B0R+0]
+	mulps		xmm5, [B0R+16]
+	mulps		xmm6, [B0R+32]
+	mulps		xmm7, [B0R+48]
+	addps		xmm0, xmm1
+	addps		xmm2, xmm3
+	addps		xmm4, xmm5
+	addps		xmm6, xmm7
+	addps		xmm0, xmm2
+	addps		xmm4, xmm6
+	movaps		xmm7, xmm0
+	movaps		TEMP(7), xmm4
 	
-	leal		128(WINDOW), WINDOW
-	leal		-64(B0L), B0L
-	leal		-64(B0R), B0R
+	lea		WINDOW, dword ptr [WINDOW+128]
+	lea		B0L, dword ptr [B0L-64]
+	lea		B0R, dword ptr [B0R-64]
 	
-	movaps		TEMP(0), %xmm4
-	movaps		TEMP(1), %xmm5
-	movaps		TEMP(2), %xmm6
-	movaps		%xmm4, %xmm0
-	movaps		%xmm6, %xmm1
-	unpcklps	%xmm5, %xmm4
-	unpcklps	%xmm7, %xmm6
-	unpckhps	%xmm5, %xmm0
-	unpckhps	%xmm7, %xmm1
-	movaps		%xmm4, %xmm2
-	movaps		%xmm0, %xmm3
-	movlhps		%xmm6, %xmm4
-	movhlps		%xmm2, %xmm6
-	movlhps		%xmm1, %xmm0
-	movhlps		%xmm3, %xmm1
-	addps		%xmm6, %xmm4
-	addps		%xmm1, %xmm0
-	addps		%xmm4, %xmm0
-	movaps		%xmm0, %xmm2
+	movaps		xmm4, TEMP(0)
+	movaps		xmm5, TEMP(1)
+	movaps		xmm6, TEMP(2)
+	movaps		xmm0, xmm4
+	movaps		xmm1, xmm6
+	unpcklps	xmm4, xmm5
+	unpcklps	xmm6, xmm7
+	unpckhps	xmm0, xmm5
+	unpckhps	xmm1, xmm7
+	movaps		xmm2, xmm4
+	movaps		xmm3, xmm0
+	movlhps		xmm4, xmm6
+	movhlps		xmm6, xmm2
+	movlhps		xmm0, xmm1
+	movhlps		xmm1, xmm3
+	addps		xmm4, xmm6
+	addps		xmm0, xmm1
+	addps		xmm0, xmm4
+	movaps		xmm2, xmm0
 	
-	movaps		TEMP(4), %xmm4
-	movaps		TEMP(5), %xmm5
-	movaps		TEMP(6), %xmm6
-	movaps		TEMP(7), %xmm7
-	movaps		%xmm4, %xmm0
-	movaps		%xmm6, %xmm1
-	unpcklps	%xmm5, %xmm4
-	unpcklps	%xmm7, %xmm6
-	unpckhps	%xmm5, %xmm0
-	unpckhps	%xmm7, %xmm1
-	movaps		%xmm2, %xmm5
-	movaps		%xmm4, %xmm2
-	movaps		%xmm0, %xmm3
-	movlhps		%xmm6, %xmm4
-	movhlps		%xmm2, %xmm6
-	movlhps		%xmm1, %xmm0
-	movhlps		%xmm3, %xmm1
-	addps		%xmm6, %xmm4
-	addps		%xmm1, %xmm0
-	addps		%xmm4, %xmm0
+	movaps		xmm4, TEMP(4)
+	movaps		xmm5, TEMP(5)
+	movaps		xmm6, TEMP(6)
+	movaps		xmm7, TEMP(7)
+	movaps		xmm0, xmm4
+	movaps		xmm1, xmm6
+	unpcklps	xmm4, xmm5
+	unpcklps	xmm6, xmm7
+	unpckhps	xmm0, xmm5
+	unpckhps	xmm1, xmm7
+	movaps		xmm5, xmm2
+	movaps		xmm2, xmm4
+	movaps		xmm3, xmm0
+	movlhps		xmm4, xmm6
+	movhlps		xmm6, xmm2
+	movlhps		xmm0, xmm1
+	movhlps		xmm1, xmm3
+	addps		xmm4, xmm6
+	addps		xmm0, xmm1
+	addps		xmm0, xmm4
 	
-	mulps		LOCAL_VAR(scale_sse), %xmm5
-	mulps		LOCAL_VAR(scale_sse), %xmm0
-	movaps		%xmm5, %xmm1
-	unpcklps	%xmm0, %xmm5
-	unpckhps	%xmm0, %xmm1
-	movups		%xmm5, (SAMPLES)
-	movups		%xmm1, 16(SAMPLES)
+	mulps		xmm5, xmmword ptr [LOCAL_VAR(scale_sse)]
+	mulps		xmm0, xmmword ptr [LOCAL_VAR(scale_sse)]
+	movaps		xmm1, xmm5
+	unpcklps	xmm5, xmm0
+	unpckhps	xmm1, xmm0
+	movups		[SAMPLES], xmm5
+	movups		[SAMPLES+16], xmm1
 	
-	leal		32(SAMPLES), SAMPLES
-	decl		%ecx
-	jnz			1b
+	lea		SAMPLES, dword ptr [SAMPLES+32]
+	dec		ecx
+	jnz			loop2
 	
-	xorl		%eax, %eax
+	xor		eax, eax
 	
-	popl		%edi
-	popl		%esi
-	popl		%ebx
-	movl		%ebp, %esp
-	popl		%ebp
+	pop		edi
+	pop		esi
+	pop		ebx
+	mov		esp, ebp
+	pop		ebp
 	
 	ret
 
 NONEXEC_STACK
+
+END_MODULE

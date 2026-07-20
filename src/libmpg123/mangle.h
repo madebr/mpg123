@@ -33,11 +33,11 @@
 
 #ifdef ASMALIGN_BALIGN
 
-#define ALIGN4  .balign 4
-#define ALIGN8  .balign 8
-#define ALIGN16 .balign 16
-#define ALIGN32 .balign 32
-#define ALIGN64 .balign 64
+#define ALIGN4  ALIGN 4
+#define ALIGN8  ALIGN 8
+#define ALIGN16 ALIGN 16
+#define ALIGN32 ALIGN 32
+#define ALIGN64 ALIGN 64
 
 #else
 
@@ -49,11 +49,19 @@
 #define ALIGN64 .align 6
 #else
 #ifdef ASMALIGN_BYTE
+#if defined(_MSC_VER)
+#define ALIGN4  align 4
+#define ALIGN8  align 8
+#define ALIGN16 align 16
+#define ALIGN32 align 32
+#define ALIGN64 align 64
+#else
 #define ALIGN4  .align 4
 #define ALIGN8  .align 8
 #define ALIGN16 .align 16
 #define ALIGN32 .align 32
 #define ALIGN64 .align 64
+#endif
 #else
 #ifdef ASMALIGN_ARMASM
 #define ALIGN4  ALIGN 4
@@ -84,34 +92,45 @@
 #define ASM_VALUE(a) MANGLE_MACROCAT($,a)
 #endif
 
-#if !defined(__APPLE__) && !defined (__OS2__)
-#define RODATA .section .rodata
+#if defined(_MSC_VER)
+#if defined(_M_IX86) || defined(_M_AMD64)
+#define RODATA rodata_segment SEGMENT ALIGN(32) READ 'CONST'
+#define ENDRODATA rodata_segment SEGMENT ALIGN(32) READ 'CONST'
+#elif defined(_M_ARM) || defined(_M_ARM64)
+#define RODATA AREA    |.rodata|, DATA, READONLY, ALIGN=4
+#else
+#error "Not implemented
+#endif
+#elif !defined(__APPLE__) && !defined (__OS2__)
+#define RODATA SECTION .rodata
+#define ENDRODATA
 #else
 #define RODATA .data
+#define ENDRODATA
 #endif
 
 /* Enable position-independent code for certain platforms. */
 
 #if defined(OPT_X86)
 
-#define _EBX_ %ebx
+#define _EBX_ ebx
 
 #if defined(PIC) && defined(__ELF__)
 
 /* ELF binaries (Unix/Linux) */
-#define LOCAL_VAR(a) MANGLE_MACROCAT(a, @GOTOFF(_EBX_))
-#define GLOBAL_VAR(a) MANGLE_MACROCAT(ASM_NAME(a), @GOTOFF(_EBX_))
-#define GLOBAL_VAR_PTR(a) MANGLE_MACROCAT(ASM_NAME(a), @GOT(_EBX_))
+#define LOCAL_VAR(a) MANGLE_MACROCAT(a,@GOTOFF)+_EBX_
+#define GLOBAL_VAR(a) MANGLE_MACROCAT(ASM_NAME(a),@GOTOFF)+_EBX_
+#define GLOBAL_VAR_PTR(a) MANGLE_MACROCAT(ASM_NAME(a),@GOT)+_EBX_
 #define FUNC(a) ASM_NAME(a)
 #define EXTERNAL_FUNC(a) MANGLE_MACROCAT(ASM_NAME(a), @PLT)
 #undef ASM_VALUE
-#define ASM_VALUE(a) MANGLE_MACROCAT(MANGLE_MACROCAT($,a), @GOTOFF)
+#define ASM_VALUE(a) MANGLE_MACROCAT(a, @GOTOFF)
 #define GET_GOT \
 	call 1f; \
 1: \
 	pop _EBX_; \
 2: \
-	addl $_GLOBAL_OFFSET_TABLE_ + (2b-1b), _EBX_
+	add _EBX_, _GLOBAL_OFFSET_TABLE_ + (2b-1b)
 #define PREPARE_GOT pushl _EBX_
 #define RESTORE_GOT popl _EBX_
 
@@ -164,7 +183,7 @@ Lpic_base: \
 #endif
 
 /* armasm for WIN32 UWP */
-#ifdef _M_ARM
+#if defined(_M_ARM) || defined(_M_ARM64)
 #define GLOBAL_SYMBOL EXPORT
 #else
 #define GLOBAL_SYMBOL .globl
@@ -176,7 +195,7 @@ Lpic_base: \
 #if defined(__arm__)
 #define NONEXEC_STACK .section .note.GNU-stack,"",%progbits
 #else
-#define NONEXEC_STACK .section .note.GNU-stack,"",@progbits
+#define NONEXEC_STACK SECTION .note.GNU-stack,"",@progbits
 #endif
 #else
 #define NONEXEC_STACK
@@ -203,6 +222,80 @@ Lpic_base: \
 #define AARCH64_DUP_4S(dst, src, elem) dup dst.4s, src.s[elem]
 #define AARCH64_DUP_2D(dst, src, elem) dup dst.2d, src.d[elem]
 #define AARCH64_SQXTN2_8H(dst, src) sqxtn2 dst.8h, src.4s
+#endif
+
+#ifdef _M_ARM64
+#define AARCH64_EXT ext
+#define LABEL(NAME) NAME
+#else
+#define AARCH64_EXT ext
+#define LABEL(NAME) NAME:
+#endif
+
+#if defined(_MSC_VER)
+#if defined(_M_IX86) || defined(_M_AMD64)
+#define DATA_LONG dd
+#define DATA_SHORT dw
+#define DATA_BYTE db
+#elif defined(_M_ARM) || defined(_M_ARM64)
+#define DATA_LONG dcd
+#define DATA_SHORT dcw
+#define DATA_BYTE dcb
+#else
+#error "Not implemented
+#endif
+#define SECTION section
+#if defined(_M_IX86) || defined(_M_AMD64)
+#define SECTION_TEXT .code
+#elif defined(_M_ARM) || defined(_M_ARM64)
+#define SECTION_TEXT AREA    |.text|, CODE, READONLY
+#else
+#error "Not implemented
+#endif
+#define ALIGN align
+#define GLOBAL PUBLIC
+#define END_MODULE END
+
+#if defined(_M_IX86) || defined(_M_AMD64)
+#define RIP_REL
+#define RIP_REL_F(ADDR) [ADDR]
+#define RIP_REL_ADD_F(ADDR, ADD) [ADDR + ADD]
+#define HEX(V) 0##V##h
+#define EXTERN(NAME) extern NAME:BYTE
+option casemap:none
+#endif
+#ifdef _M_IX86
+.386
+.486
+.586
+.686
+.mmx
+.xmm
+.model flat
+#endif
+
+#else
+
+#define DATA_LONG .long
+#define DATA_SHORT .short
+#define DATA_BYTE .byte
+#define SECTION .section
+#define SECTION_TEXT .text
+#define ALIGN .balign
+#define GLOBAL .globl
+
+#if defined(__i386__) || defined(__x86_64__)
+#define RIP_REL [rip]
+#define RIP_REL_F(ADDR) [ADDR+rip]
+#define RIP_REL_ADD_F(ADDR, ADD) [ADDR+rip+ADD]
+#define HEX(V) 0x##V
+#define EXTERN(NAME)
+#endif
+#define END_MODULE
+
+#if defined(__i386__) || defined(__x86_64__)
+.intel_syntax noprefix
+#endif
 #endif
 
 #endif /* !__MANGLE_H */
