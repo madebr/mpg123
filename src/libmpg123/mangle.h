@@ -94,7 +94,7 @@
 
 #if defined(OPT_X86)
 
-#define _EBX_ %ebx
+#define _EBX_ ebx
 
 #if defined(PIC) && defined(__ELF__)
 
@@ -105,13 +105,13 @@
 #define FUNC(a) ASM_NAME(a)
 #define EXTERNAL_FUNC(a) MANGLE_MACROCAT(ASM_NAME(a), @PLT)
 #undef ASM_VALUE
-#define ASM_VALUE(a) MANGLE_MACROCAT(MANGLE_MACROCAT($,a), @GOTOFF)
+#define ASM_VALUE(a) MANGLE_MACROCAT(a @GOTOFF)
 #define GET_GOT \
 	call 1f; \
 1: \
 	pop _EBX_; \
 2: \
-	addl $_GLOBAL_OFFSET_TABLE_ + (2b-1b), _EBX_
+	add _EBX_, _GLOBAL_OFFSET_TABLE_ + (2b-1b)
 #define PREPARE_GOT pushl _EBX_
 #define RESTORE_GOT popl _EBX_
 

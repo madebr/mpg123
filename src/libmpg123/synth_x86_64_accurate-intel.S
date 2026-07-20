@@ -1,0 +1,299 @@
+#include "gas_nasm_compat.h"
+/*
+	synth_x86_64_accurate: SSE optimized synth for x86-64 (MPEG-compliant 16bit output version)
+
+	copyright 1995-2026 by the mpg123 project - free software under the terms of the LGPL 2.1
+	see COPYING and AUTHORS files in distribution or http://mpg123.org
+	initially written by Taihei Monma
+*/
+
+#include "x86_64_defs.h"
+#include "mangle.h"
+
+#ifdef IS_MSABI
+/* short *window; */
+#define ARG0 r10
+/* short *b0; */
+#define ARG1 rdx
+/* short *samples; */
+#define ARG2 r8
+/* int bo1; */
+#define ARG3 r9
+#else
+/* real *window; */
+#define ARG0 rdi
+/* real *b0; */
+#define ARG1 rsi
+/* real *samples; */
+#define ARG2 rdx
+/* int bo1; */
+#define ARG3 rcx
+#endif
+
+#define XMMREG_MAX %xmm15  /* {32767.0, 32767.0, 32767.0, 32767.0} */
+#define XMMREG_MIN %xmm14  /* {-32768.0, -32768.0, -32768.0, -32768.0} */
+#define XMMREG_CLIP %xmm13
+
+/*
+	int synth_1to1_x86_64_accurate_asm(real *window, real *b0, short *samples, int bo1);
+	return value: number of clipped samples
+*/
+
+	RODATA
+	ALIGN32
+ASM_NAME(INT123_maxmin_s16):
+	DATA_LONG   1191181824
+	DATA_LONG   1191181824
+	DATA_LONG   1191181824
+	DATA_LONG   1191181824
+	DATA_LONG   -956301312
+	DATA_LONG   -956301312
+	DATA_LONG   -956301312
+	DATA_LONG   -956301312
+	.text
+	ALIGN16
+.globl ASM_NAME(INT123_synth_1to1_x86_64_accurate_asm)
+ASM_NAME(INT123_synth_1to1_x86_64_accurate_asm):
+#ifdef IS_MSABI /* should save xmm6-15 */
+	mov		ARG0, rcx
+	sub		rsp, 152 /* stack alignment + 9 xmm registers */
+	movaps		[rsp], xmm6
+	movaps		16[rsp], xmm7
+	movaps		32[rsp], xmm8
+	movaps		48[rsp], xmm9
+	movaps		64[rsp], xmm10
+	movaps		80[rsp], xmm11
+	movaps		96[rsp], xmm13
+	movaps		112[rsp], xmm14
+	movaps		128[rsp], xmm15
+#endif
+
+	lea		rax, qword ptr ASM_NAME(INT123_maxmin_s16)[rip]
+	movaps		XMMREG_MAX, [rax]
+	movaps		XMMREG_MIN, 16[rax]
+	
+	xorps		XMMREG_CLIP, XMMREG_CLIP
+	
+	and		ARG3, 0xf
+	shl		ARG3, 2
+	lea		ARG0, qword ptr 64[ARG0]
+	sub		ARG0, ARG3
+
+	mov		ecx, 4
+	
+	ALIGN16
+1:
+	movups		xmm8, [ARG0]
+	movups		xmm1, 16[ARG0]
+	movups		xmm2, 32[ARG0]
+	movups		xmm3, 48[ARG0]
+	movups		xmm9, 128[ARG0]
+	movups		xmm5, 144[ARG0]
+	movups		xmm6, 160[ARG0]
+	movups		xmm7, 176[ARG0]
+	mulps		xmm8, [ARG1]
+	mulps		xmm1, 16[ARG1]
+	mulps		xmm2, 32[ARG1]
+	mulps		xmm3, 48[ARG1]
+	mulps		xmm9, 64[ARG1]
+	mulps		xmm5, 80[ARG1]
+	mulps		xmm6, 96[ARG1]
+	mulps		xmm7, 112[ARG1]
+	
+	addps		xmm8, xmm1
+	addps		xmm3, xmm2
+	addps		xmm9, xmm5
+	addps		xmm6, xmm7
+	addps		xmm8, xmm3
+	addps		xmm9, xmm6
+	lea		ARG0, qword ptr 256[ARG0]
+	lea		ARG1, qword ptr 128[ARG1]
+	
+	movups		xmm10, [ARG0]
+	movups		xmm1, 16[ARG0]
+	movups		xmm2, 32[ARG0]
+	movups		xmm3, 48[ARG0]
+	movups		xmm11, 128[ARG0]
+	movups		xmm5, 144[ARG0]
+	movups		xmm6, 160[ARG0]
+	movups		xmm7, 176[ARG0]
+	mulps		xmm10, [ARG1]
+	mulps		xmm1, 16[ARG1]
+	mulps		xmm2, 32[ARG1]
+	mulps		xmm3, 48[ARG1]
+	mulps		xmm11, 64[ARG1]
+	mulps		xmm5, 80[ARG1]
+	mulps		xmm6, 96[ARG1]
+	mulps		xmm7, 112[ARG1]
+	
+	addps		xmm10, xmm1
+	addps		xmm3, xmm2
+	addps		xmm11, xmm5
+	addps		xmm6, xmm7
+	addps		xmm10, xmm3
+	addps		xmm11, xmm6
+	lea		ARG0, qword ptr 256[ARG0]
+	lea		ARG1, qword ptr 128[ARG1]
+	
+	movaps		xmm0, xmm8
+	movaps		xmm1, xmm10
+	unpcklps	xmm8, xmm9
+	unpcklps	xmm10, xmm11
+	unpckhps	xmm0, xmm9
+	unpckhps	xmm1, xmm11
+	movaps		xmm2, xmm8
+	movaps		xmm3, xmm0
+	movlhps		xmm8, xmm10
+	movhlps		xmm10, xmm2
+	movlhps		xmm0, xmm1
+	movhlps		xmm1, xmm3
+	subps		xmm8, xmm10
+	subps		xmm0, xmm1
+	addps		xmm0, xmm8
+	
+	movups		xmm3, [ARG2]
+	movaps		xmm1, xmm0
+	movaps		xmm2, xmm0
+	cmpnleps	xmm1, XMMREG_MAX
+	cmpltps		xmm2, XMMREG_MIN
+	cvtps2dq	xmm0, xmm0
+	packssdw	xmm0, xmm0
+	movhlps		xmm4, xmm3
+	pshuflw		xmm3, xmm3, 0xdd
+	pshuflw		xmm4, xmm4, 0xdd
+	psrlq		xmm3, 32
+	psllq		xmm4, 32
+	por			xmm3, xmm4
+	punpcklwd	xmm0, xmm3
+	movups		[ARG2], xmm0
+	
+	psrld		xmm1, 31
+	psrld		xmm2, 31
+	paddd		xmm1, xmm2
+	paddd		XMMREG_CLIP, xmm1
+	
+	lea		ARG2, qword ptr 16[ARG2]
+	dec		ecx
+	jnz			1b
+	
+	mov		ecx, 4
+	
+	ALIGN16
+1:
+	movups		xmm8, [ARG0]
+	movups		xmm1, 16[ARG0]
+	movups		xmm2, 32[ARG0]
+	movups		xmm3, 48[ARG0]
+	movups		xmm9, 128[ARG0]
+	movups		xmm5, 144[ARG0]
+	movups		xmm6, 160[ARG0]
+	movups		xmm7, 176[ARG0]
+	mulps		xmm8, [ARG1]
+	mulps		xmm1, 16[ARG1]
+	mulps		xmm2, 32[ARG1]
+	mulps		xmm3, 48[ARG1]
+	mulps		xmm9, -64[ARG1]
+	mulps		xmm5, -48[ARG1]
+	mulps		xmm6, -32[ARG1]
+	mulps		xmm7, -16[ARG1]
+	
+	addps		xmm8, xmm1
+	addps		xmm3, xmm2
+	addps		xmm9, xmm5
+	addps		xmm6, xmm7
+	addps		xmm8, xmm3
+	addps		xmm9, xmm6
+	lea		ARG0, qword ptr 256[ARG0]
+	lea		ARG1, qword ptr -128[ARG1]
+	
+	movups		xmm10, [ARG0]
+	movups		xmm1, 16[ARG0]
+	movups		xmm2, 32[ARG0]
+	movups		xmm3, 48[ARG0]
+	movups		xmm11, 128[ARG0]
+	movups		xmm5, 144[ARG0]
+	movups		xmm6, 160[ARG0]
+	movups		xmm7, 176[ARG0]
+	mulps		xmm10, [ARG1]
+	mulps		xmm1, 16[ARG1]
+	mulps		xmm2, 32[ARG1]
+	mulps		xmm3, 48[ARG1]
+	mulps		xmm11, -64[ARG1]
+	mulps		xmm5, -48[ARG1]
+	mulps		xmm6, -32[ARG1]
+	mulps		xmm7, -16[ARG1]
+	
+	addps		xmm10, xmm1
+	addps		xmm3, xmm2
+	addps		xmm11, xmm5
+	addps		xmm6, xmm7
+	addps		xmm10, xmm3
+	addps		xmm11, xmm6
+	lea		ARG0, qword ptr 256[ARG0]
+	lea		ARG1, qword ptr -128[ARG1]
+	
+	movaps		xmm0, xmm8
+	movaps		xmm1, xmm10
+	unpcklps	xmm8, xmm9
+	unpcklps	xmm10, xmm11
+	unpckhps	xmm0, xmm9
+	unpckhps	xmm1, xmm11
+	movaps		xmm2, xmm8
+	movaps		xmm3, xmm0
+	movlhps		xmm8, xmm10
+	movhlps		xmm10, xmm2
+	movlhps		xmm0, xmm1
+	movhlps		xmm1, xmm3
+	addps		xmm8, xmm10
+	addps		xmm0, xmm1
+	addps		xmm0, xmm8
+	
+	movups		xmm3, [ARG2]
+	movaps		xmm1, xmm0
+	movaps		xmm2, xmm0
+	cmpnleps	xmm1, XMMREG_MAX
+	cmpltps		xmm2, XMMREG_MIN
+	cvtps2dq	xmm0, xmm0
+	packssdw	xmm0, xmm0
+	movhlps		xmm4, xmm3
+	pshuflw		xmm3, xmm3, 0xdd
+	pshuflw		xmm4, xmm4, 0xdd
+	psrlq		xmm3, 32
+	psllq		xmm4, 32
+	por			xmm3, xmm4
+	punpcklwd	xmm0, xmm3
+	movups		[ARG2], xmm0
+	
+	psrld		xmm1, 31
+	psrld		xmm2, 31
+	paddd		xmm1, xmm2
+	paddd		XMMREG_CLIP, xmm1
+	
+	lea		ARG2, qword ptr 16[ARG2]
+	dec		ecx
+	jnz			1b
+	
+	pshuflw		xmm0, XMMREG_CLIP, 0xee
+	movhlps		xmm1, XMMREG_CLIP
+	pshuflw		xmm2, xmm1, 0xee
+	paddd		XMMREG_CLIP, xmm0
+	paddd		XMMREG_CLIP, xmm1
+	paddd		XMMREG_CLIP, xmm2
+	
+	movd		eax, XMMREG_CLIP
+	
+#ifdef IS_MSABI
+	movaps		xmm6, [rsp]
+	movaps		xmm7, 16[rsp]
+	movaps		xmm8, 32[rsp]
+	movaps		xmm9, 48[rsp]
+	movaps		xmm10, 64[rsp]
+	movaps		xmm11, 80[rsp]
+	movaps		xmm13, 96[rsp]
+	movaps		xmm14, 112[rsp]
+	movaps		xmm15, 128[rsp]
+	add		rsp, 152
+#endif
+	ret
+
+NONEXEC_STACK
