@@ -13,7 +13,7 @@
 
 	RODATA
 	ALIGN32
-.globl ASM_NAME(INT123_costab_mmxsse)
+GLOBAL ASM_NAME(INT123_costab_mmxsse)
 ASM_NAME(INT123_costab_mmxsse):
 	DATA_LONG 1056974725
 	DATA_LONG 1057056395
@@ -84,10 +84,10 @@ intwinbase:
 
 intwindiv:
 	DATA_LONG 0x47800000			# 65536.0
-.text
+SECTION_TEXT
 	ALIGN32
 /* void make_decode_tables_mmx_asm(long scaleval, float* decwin_mmx, float *decwins); */
-.globl ASM_NAME(INT123_make_decode_tables_mmx_asm)
+GLOBAL ASM_NAME(INT123_make_decode_tables_mmx_asm)
 ASM_NAME(INT123_make_decode_tables_mmx_asm):
 	push ebp
 	mov ebp,esp
@@ -104,8 +104,8 @@ ASM_NAME(INT123_make_decode_tables_mmx_asm):
 	mov -8[ebp],eax
 	mov -12[ebp],ecx
 
-/* stack: -12(%ebp)=*intwindiv, -8(%ebp)=intwinbase+444, -4(%ebp)=intwinbase, ... ,
-          4(%ebp)=back, 8(%ebp)=scaleval, 12(%ebp)=decwin_mmx, 16(%ebp)=decwins */
+/* stack: -12[ebp]=*intwindiv, -8[ebp]=intwinbase+444, -4[ebp]=intwinbase, ... ,
+          4[ebp]=back, 8[ebp]=scaleval, 12[ebp]=decwin_mmx, 16[ebp]=decwins */
 #define INTWINDIV -12[ebp]
 #define INTWINBASE_PLUS_444 -8[ebp]
 #define INTWINBASE -4[ebp]

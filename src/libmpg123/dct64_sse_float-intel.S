@@ -31,9 +31,9 @@ mask:
 	DATA_LONG	-1
 	DATA_LONG	0
 	
-	.text
+	SECTION_TEXT
 	ALIGN16
-.globl ASM_NAME(INT123_dct64_real_sse)
+GLOBAL ASM_NAME(INT123_dct64_real_sse)
 ASM_NAME(INT123_dct64_real_sse):
 	push		ebp
 	mov		ebp, esp
@@ -405,7 +405,7 @@ ASM_NAME(INT123_dct64_real_sse):
 	ret
 
 #if defined(PIC) && defined(__APPLE__)
-	.section	__IMPORT,__pointers,non_lazy_symbol_pointers
+	SECTION	__IMPORT,__pointers,non_lazy_symbol_pointers
 L_INT123_costab_mmxsse:
 	.indirect_symbol	ASM_NAME(INT123_costab_mmxsse)
 	DATA_LONG	0

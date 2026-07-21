@@ -39,9 +39,9 @@
 	ALIGN16
 scale_avx:
 	DATA_LONG   939524096
-	.text
+	SECTION_TEXT
 	ALIGN16
-	.globl ASM_NAME(INT123_synth_1to1_real_s_avx_asm)
+	GLOBAL ASM_NAME(INT123_synth_1to1_real_s_avx_asm)
 ASM_NAME(INT123_synth_1to1_real_s_avx_asm):
 #ifdef IS_MSABI /* should save xmm6-15 */
 	push		rbp
@@ -59,7 +59,7 @@ ASM_NAME(INT123_synth_1to1_real_s_avx_asm):
 	mov		eax, dword ptr 48[rbp] /* 5th argument; placed after 32-byte shadow space */
 #endif
 
-	vbroadcastss	ymm14, scale_avx[rip]
+	vbroadcastss	ymm14, RIP_REL_F(scale_avx)
 	
 #ifdef IS_MSABI
 	shl			eax, 2
@@ -76,7 +76,7 @@ ASM_NAME(INT123_synth_1to1_real_s_avx_asm):
 	mov			ecx, 4
 	
 	ALIGN16
-1:
+loop1:
 	vmovups		ymm8, [WINDOW]
 	vmovups		ymm9, 32[WINDOW]
 	vmovups		ymm10, [WINDOW+rax]
@@ -144,12 +144,12 @@ ASM_NAME(INT123_synth_1to1_real_s_avx_asm):
 	vmovups		[SAMPLES], ymm0
 	add			SAMPLES, 32
 	dec			ecx
-	jnz			1b
+	jnz			loop1
 	
 	mov			ecx, 4
 	
 	ALIGN16
-1:
+loop2:
 	vmovups		ymm8, [WINDOW]
 	vmovups		ymm9, 32[WINDOW]
 	vmovups		ymm10, [WINDOW+rax]
@@ -217,7 +217,7 @@ ASM_NAME(INT123_synth_1to1_real_s_avx_asm):
 	vmovups		[SAMPLES], ymm0
 	add			SAMPLES, 32
 	dec			ecx
-	jnz			1b
+	jnz			loop2
 	
 	vzeroupper
 	

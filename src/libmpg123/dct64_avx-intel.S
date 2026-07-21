@@ -54,9 +54,9 @@ costab_avx:
 	DATA_LONG 1067924853
 	DATA_LONG 1060439283
 	DATA_LONG 0
-	.text
+	SECTION_TEXT
 	ALIGN16
-.globl ASM_NAME(INT123_dct64_avx)
+GLOBAL ASM_NAME(INT123_dct64_avx)
 ASM_NAME(INT123_dct64_avx):
 #ifdef IS_MSABI
 	push		rbp
@@ -75,7 +75,7 @@ ASM_NAME(INT123_dct64_avx):
 	mov			rsi, rdx
 	mov			rdx, r8
 #endif
-	lea		costab, qword ptr costab_avx[rip]
+	lea		costab, qword ptr costab_avx RIP_REL
 
 	vmovups		ymm0, [samples]			# input[0,1,2,3,4,5,6,7]
 	vmovups		ymm1, 32[samples]			# input[8,9,10,11,12,13,14,15]

@@ -30,10 +30,10 @@
 #define SAMPLES r9
 #endif
 
-#define XMMREG_CLIP %xmm15
-#define XMMREG_MAX %xmm14 /* {32767, 32767, 32767, 32767} */
-#define XMMREG_MIN %xmm13 /* {-32769, -32769, -32769, -32769} : not -32768 because SSE doesn't have "less than" comparison... */
-#define XMMREG_FULL %xmm12 /* {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF} */
+#define XMMREG_CLIP xmm15
+#define XMMREG_MAX xmm14 /* {32767, 32767, 32767, 32767} */
+#define XMMREG_MIN xmm13 /* {-32769, -32769, -32769, -32769} : not -32768 because SSE doesn't have "less than" comparison... */
+#define XMMREG_FULL xmm12 /* {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF} */
 
 /*
 	int synth_1to1_s_x86_64_asm(short *window, short *b0l, short *b0r, short *samples, int bo1);
@@ -51,9 +51,9 @@ ASM_NAME(INT123_maxmin_x86_64):
 	DATA_LONG   -32769
 	DATA_LONG   -32769
 	DATA_LONG   -32769
-	.text
+	SECTION_TEXT
 	ALIGN16
-.globl ASM_NAME(INT123_synth_1to1_s_x86_64_asm)
+GLOBAL ASM_NAME(INT123_synth_1to1_s_x86_64_asm)
 ASM_NAME(INT123_synth_1to1_s_x86_64_asm):
 #ifdef IS_MSABI /* should save xmm6-15 */
 	mov		eax, dword ptr 40[rsp] /* 5th argument; placed after 32-byte shadow space */
@@ -83,7 +83,7 @@ ASM_NAME(INT123_synth_1to1_s_x86_64_asm):
 	lea		WINDOW, qword ptr 32[WINDOW]
 	sub		WINDOW, rax
 	
-	lea		rax, qword ptr ASM_NAME(INT123_maxmin_x86_64)[rip]
+	lea		rax, qword ptr ASM_NAME(INT123_maxmin_x86_64) RIP_REL
 	movaps		XMMREG_MAX, [rax]
 	movaps		XMMREG_MIN, 16[rax]
 	pxor		XMMREG_CLIP, XMMREG_CLIP

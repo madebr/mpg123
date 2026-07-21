@@ -30,10 +30,10 @@
 #define ARG3 rcx
 #endif
 
-#define XMMREG_SCALE %xmm15  /* {65536.0, 65536.0, 65536.0, 65536.0} */
-#define XMMREG_MAX %xmm14  /* {32767.999, 32767.999, 32767.999, 32767.999} */
-#define XMMREG_MIN %xmm13  /* {-32768.0, -32768.0, -32768.0, -32768.0} */
-#define XMMREG_CLIP %xmm12
+#define XMMREG_SCALE xmm15  /* {65536.0, 65536.0, 65536.0, 65536.0} */
+#define XMMREG_MAX xmm14  /* {32767.999, 32767.999, 32767.999, 32767.999} */
+#define XMMREG_MIN xmm13  /* {-32768.0, -32768.0, -32768.0, -32768.0} */
+#define XMMREG_CLIP xmm12
 
 /*
 	int synth_1to1_s32_x86_64_asm(real *window, real *b0, int32_t *samples, int bo1);
@@ -57,9 +57,9 @@ ASM_NAME(INT123_maxmin_s32):
 	DATA_LONG   -956301312
 	DATA_LONG   -956301312
 	DATA_LONG   -956301312
-	.text
+	SECTION_TEXT
 	ALIGN16
-.globl ASM_NAME(INT123_synth_1to1_s32_x86_64_asm)
+GLOBAL ASM_NAME(INT123_synth_1to1_s32_x86_64_asm)
 ASM_NAME(INT123_synth_1to1_s32_x86_64_asm):
 #ifdef IS_MSABI /* should save xmm6-15 */
 	mov		ARG0, rcx
@@ -76,9 +76,9 @@ ASM_NAME(INT123_synth_1to1_s32_x86_64_asm):
 	movaps		144[rsp], xmm15
 #endif
 	
-	lea		rax, qword ptr ASM_NAME(INT123_scale_s32)[rip]
+	lea		rax, ASM_NAME(INT123_scale_s32) RIP_REL
 	movaps		XMMREG_SCALE, [rax]
-	lea		rax, qword ptr ASM_NAME(INT123_maxmin_s32)[rip]
+	lea		rax, ASM_NAME(INT123_maxmin_s32) RIP_REL
 	movaps		XMMREG_MAX, [rax]
 	movaps		XMMREG_MIN, 16[rax]
 	
@@ -86,13 +86,13 @@ ASM_NAME(INT123_synth_1to1_s32_x86_64_asm):
 	
 	and		ARG3, 0xf
 	shl		ARG3, 2
-	lea		ARG0, qword ptr 64[ARG0]
+	lea		ARG0, 64[ARG0]
 	sub		ARG0, ARG3
 
 	mov		ecx, 4
 	
 	ALIGN16
-1:
+loop1:
 	movups		xmm8, [ARG0]
 	movups		xmm1, 16[ARG0]
 	movups		xmm2, 32[ARG0]
@@ -116,8 +116,8 @@ ASM_NAME(INT123_synth_1to1_s32_x86_64_asm):
 	addps		xmm6, xmm7
 	addps		xmm8, xmm3
 	addps		xmm9, xmm6
-	lea		ARG0, qword ptr 256[ARG0]
-	lea		ARG1, qword ptr 128[ARG1]
+	lea		ARG0, 256[ARG0]
+	lea		ARG1, 128[ARG1]
 	
 	movups		xmm10, [ARG0]
 	movups		xmm1, 16[ARG0]
@@ -142,8 +142,8 @@ ASM_NAME(INT123_synth_1to1_s32_x86_64_asm):
 	addps		xmm6, xmm7
 	addps		xmm10, xmm3
 	addps		xmm11, xmm6
-	lea		ARG0, qword ptr 256[ARG0]
-	lea		ARG1, qword ptr 128[ARG1]
+	lea		ARG0, 256[ARG0]
+	lea		ARG1, 128[ARG1]
 	
 	movaps		xmm0, xmm8
 	movaps		xmm1, xmm10
@@ -182,14 +182,14 @@ ASM_NAME(INT123_synth_1to1_s32_x86_64_asm):
 	paddd		xmm3, xmm4
 	paddd		XMMREG_CLIP, xmm3
 	
-	lea		ARG2, qword ptr 32[ARG2]
+	lea		ARG2, 32[ARG2]
 	dec		ecx
-	jnz			1b
+	jnz			loop1
 	
 	mov		ecx, 4
 	
 	ALIGN16
-1:
+loop2:
 	movups		xmm8, [ARG0]
 	movups		xmm1, 16[ARG0]
 	movups		xmm2, 32[ARG0]
@@ -213,8 +213,8 @@ ASM_NAME(INT123_synth_1to1_s32_x86_64_asm):
 	addps		xmm6, xmm7
 	addps		xmm8, xmm3
 	addps		xmm9, xmm6
-	lea		ARG0, qword ptr 256[ARG0]
-	lea		ARG1, qword ptr -128[ARG1]
+	lea		ARG0, 256[ARG0]
+	lea		ARG1, -128[ARG1]
 	
 	movups		xmm10, [ARG0]
 	movups		xmm1, 16[ARG0]
@@ -239,8 +239,8 @@ ASM_NAME(INT123_synth_1to1_s32_x86_64_asm):
 	addps		xmm6, xmm7
 	addps		xmm10, xmm3
 	addps		xmm11, xmm6
-	lea		ARG0, qword ptr 256[ARG0]
-	lea		ARG1, qword ptr -128[ARG1]
+	lea		ARG0, 256[ARG0]
+	lea		ARG1, -128[ARG1]
 	
 	movaps		xmm0, xmm8
 	movaps		xmm1, xmm10
@@ -279,9 +279,9 @@ ASM_NAME(INT123_synth_1to1_s32_x86_64_asm):
 	paddd		xmm3, xmm4
 	paddd		XMMREG_CLIP, xmm3
 	
-	lea		ARG2, qword ptr 32[ARG2]
+	lea		ARG2, 32[ARG2]
 	dec		ecx
-	jnz			1b
+	jnz			loop2
 	
 	pshuflw		xmm0, XMMREG_CLIP, 0xee
 	movhlps		xmm1, XMMREG_CLIP

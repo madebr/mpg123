@@ -68,9 +68,9 @@ dct36_x86_64_mask:
 	ALIGN16
 dct36_x86_64_sign:
 	DATA_LONG 0x80000000,0x80000000,0x80000000,0x80000000
-	.text
+	SECTION_TEXT
 	ALIGN16
-	.globl ASM_NAME(INT123_dct36_x86_64)
+	GLOBAL ASM_NAME(INT123_dct36_x86_64)
 ASM_NAME(INT123_dct36_x86_64):
 #ifdef IS_MSABI
 	push		rbp
@@ -88,8 +88,8 @@ ASM_NAME(INT123_dct36_x86_64):
 	movaps		144[rsp], xmm15
 	mov		ts, qword ptr 48[rbp]
 #endif
-	lea			COS9_, dct36_x86_64_COS9[rip]
-	lea			tfcos36_, dct36_x86_64_tfcos36[rip]
+	lea			COS9_, dct36_x86_64_COS9 RIP_REL
+	lea			tfcos36_, dct36_x86_64_tfcos36 RIP_REL
 	
 	xorps		xmm5, xmm5
 	movups		xmm1, [in]
@@ -119,7 +119,7 @@ ASM_NAME(INT123_dct36_x86_64):
 	movss		xmm7, xmm6
 	addps		xmm1, xmm7
 	
-	movaps		xmm0, dct36_x86_64_mask[rip]
+	movaps		xmm0, RIP_REL_F(dct36_x86_64_mask)
 	movaps		xmm6, xmm4
 	shufps		xmm4, xmm5, 0x4e
 	movaps		xmm7, xmm3
@@ -232,7 +232,7 @@ xmm15 [1a-3,1b-3,-2a-3,-2b-3]
 	movaps		xmm6, xmm14
 	unpckhps	xmm6, xmm15
 	unpcklps	xmm14, xmm15
-	xorps		xmm6, dct36_x86_64_sign[rip]
+	xorps		xmm6, RIP_REL_F(dct36_x86_64_sign)
 
 /*
 xmm12 [1a-0,1a-1,1b-0,1b-1]
@@ -268,11 +268,11 @@ xmm15 tmp2b
 	mulps		xmm7, xmm10
 
 /*
-%xmm0  tmp[0,1,2,3]
-%xmm15 tmp[17,16,15,14]
-%xmm14 tmp[8,7,6,5]
-%xmm7  tmp[9,10,11,12]
-%xmm11 tmp[13,-,4,-]
+xmm0  tmp[0,1,2,3]
+xmm15 tmp[17,16,15,14]
+xmm14 tmp[8,7,6,5]
+xmm7  tmp[9,10,11,12]
+xmm11 tmp[13,-,4,-]
 */
 
 	movaps		xmm1, xmm15

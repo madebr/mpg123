@@ -44,9 +44,9 @@ ASM_NAME(INT123_scale_x86_64):
 	DATA_LONG   939524096
 	DATA_LONG   939524096
 	DATA_LONG   939524096
-	.text
+	SECTION_TEXT
 	ALIGN16
-.globl ASM_NAME(INT123_synth_1to1_real_s_x86_64_asm)
+GLOBAL ASM_NAME(INT123_synth_1to1_real_s_x86_64_asm)
 ASM_NAME(INT123_synth_1to1_real_s_x86_64_asm):
 #ifdef IS_MSABI /* should save xmm6-15 */
 	mov		eax, dword ptr 40[rsp] /* 5th argument; placed after 32-byte shadow space */
@@ -63,7 +63,7 @@ ASM_NAME(INT123_synth_1to1_real_s_x86_64_asm):
 	movaps		144[rsp], xmm15
 #endif
 
-	lea		r11, qword ptr ASM_NAME(INT123_scale_x86_64)[rip]
+	lea		r11, ASM_NAME(INT123_scale_x86_64) RIP_REL
 	
 #ifdef IS_MSABI
 	shl		rax, 32
@@ -75,13 +75,13 @@ ASM_NAME(INT123_synth_1to1_real_s_x86_64_asm):
 	shr		rax, 30
 	mov		r9, rcx
 #endif
-	lea		WINDOW, qword ptr 64[WINDOW]
+	lea		WINDOW, 64[WINDOW]
 	sub		WINDOW, rax
 
 	mov		ecx, 4
 	
 	ALIGN16
-1:
+loop1:
 	movups		xmm8, [WINDOW]
 	movups		xmm1, 16[WINDOW]
 	movups		xmm2, 32[WINDOW]
@@ -129,9 +129,9 @@ ASM_NAME(INT123_synth_1to1_real_s_x86_64_asm):
 	addps		xmm14, xmm12
 	movaps		xmm12, xmm0
 	movaps		xmm13, xmm14
-	lea		WINDOW, qword ptr 256[WINDOW]
-	lea		B0L, qword ptr 128[B0L]
-	lea		B0R, qword ptr 128[B0R]
+	lea		WINDOW, 256[WINDOW]
+	lea		B0L, 128[B0L]
+	lea		B0R, 128[B0R]
 	
 	movups		xmm10, [WINDOW]
 	movups		xmm1, 16[WINDOW]
@@ -179,9 +179,9 @@ ASM_NAME(INT123_synth_1to1_real_s_x86_64_asm):
 	addps		xmm14, xmm0
 	addps		xmm1, xmm4
 	movaps		xmm15, xmm1
-	lea		WINDOW, qword ptr 256[WINDOW]
-	lea		B0L, qword ptr 128[B0L]
-	lea		B0R, qword ptr 128[B0R]
+	lea		WINDOW, 256[WINDOW]
+	lea		B0L, 128[B0L]
+	lea		B0R, 128[B0R]
 	
 	movaps		xmm0, xmm8
 	movaps		xmm1, xmm10
@@ -222,14 +222,14 @@ ASM_NAME(INT123_synth_1to1_real_s_x86_64_asm):
 	movups		[SAMPLES], xmm0
 	movups		16[SAMPLES], xmm1
 	
-	lea		SAMPLES, qword ptr 32[SAMPLES]
+	lea		SAMPLES, 32[SAMPLES]
 	dec		ecx
-	jnz			1b
+	jnz			loop1
 	
 	mov		ecx, 4
 	
 	ALIGN16
-1:
+loop2:
 	movups		xmm8, [WINDOW]
 	movups		xmm1, 16[WINDOW]
 	movups		xmm2, 32[WINDOW]
@@ -277,9 +277,9 @@ ASM_NAME(INT123_synth_1to1_real_s_x86_64_asm):
 	addps		xmm14, xmm12
 	movaps		xmm12, xmm0
 	movaps		xmm13, xmm14
-	lea		WINDOW, qword ptr 256[WINDOW]
-	lea		B0L, qword ptr -128[B0L]
-	lea		B0R, qword ptr -128[B0R]
+	lea		WINDOW, 256[WINDOW]
+	lea		B0L, -128[B0L]
+	lea		B0R, -128[B0R]
 	
 	movups		xmm10, [WINDOW]
 	movups		xmm1, 16[WINDOW]
@@ -327,9 +327,9 @@ ASM_NAME(INT123_synth_1to1_real_s_x86_64_asm):
 	addps		xmm14, xmm0
 	addps		xmm1, xmm4
 	movaps		xmm15, xmm1
-	lea		WINDOW, qword ptr 256[WINDOW]
-	lea		B0L, qword ptr -128[B0L]
-	lea		B0R, qword ptr -128[B0R]
+	lea		WINDOW, 256[WINDOW]
+	lea		B0L, -128[B0L]
+	lea		B0R, -128[B0R]
 	
 	movaps		xmm0, xmm8
 	movaps		xmm1, xmm10
@@ -370,9 +370,9 @@ ASM_NAME(INT123_synth_1to1_real_s_x86_64_asm):
 	movups		[SAMPLES], xmm0
 	movups		16[SAMPLES], xmm1
 	
-	lea		SAMPLES, qword ptr 32[SAMPLES]
+	lea		SAMPLES, 32[SAMPLES]
 	dec		ecx
-	jnz			1b
+	jnz			loop2
 	
 	xor		eax, eax
 	

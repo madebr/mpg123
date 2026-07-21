@@ -65,9 +65,9 @@ ASM_NAME(INT123_costab_x86_64):
 	DATA_LONG 1067924853
 	DATA_LONG 1060439283
 	DATA_LONG 0
-	.text
+	SECTION_TEXT
 	ALIGN16
-.globl ASM_NAME(INT123_dct64_real_x86_64)
+GLOBAL ASM_NAME(INT123_dct64_real_x86_64)
 ASM_NAME(INT123_dct64_real_x86_64):
 #ifdef IS_MSABI /* should save xmm6-15 */
 	mov		ARG0, rcx
@@ -84,7 +84,7 @@ ASM_NAME(INT123_dct64_real_x86_64):
 	movaps		144[rsp], xmm15
 #endif
 
-	lea		rcx, qword ptr ASM_NAME(INT123_costab_x86_64)[rip]
+	lea		rcx, ASM_NAME(INT123_costab_x86_64) RIP_REL
 
 	MOVUAPS 	xmm15, [ARG2]
 	MOVUAPS 	xmm14, 16[ARG2]

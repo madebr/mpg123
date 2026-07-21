@@ -40,9 +40,9 @@ maxmin_s32:
 	DATA_LONG   -956301312
 	DATA_LONG   -956301312
 	DATA_LONG   -956301312
-	.text
+	SECTION_TEXT
 	ALIGN16
-.globl ASM_NAME(INT123_synth_1to1_s32_sse_asm)
+GLOBAL ASM_NAME(INT123_synth_1to1_s32_sse_asm)
 ASM_NAME(INT123_synth_1to1_s32_sse_asm):
 	push		ebp
 	mov		ebp, esp

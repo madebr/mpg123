@@ -65,9 +65,9 @@ dct36_avx_tfcos36:
 	ALIGN16
 dct36_avx_sign:
 	DATA_LONG 0x80000000,0x80000000,0x80000000,0x80000000
-	.text
+	SECTION_TEXT
 	ALIGN16
-	.globl ASM_NAME(INT123_dct36_avx)
+	GLOBAL ASM_NAME(INT123_dct36_avx)
 ASM_NAME(INT123_dct36_avx):
 #ifdef IS_MSABI
 	push		rbp
@@ -85,8 +85,8 @@ ASM_NAME(INT123_dct36_avx):
 	movaps		144[rsp], xmm15
 	mov		ts, qword ptr 48[rbp]
 #endif
-	lea			COS9_, dct36_avx_COS9[rip]
-	lea			tfcos36_, dct36_avx_tfcos36[rip]
+	lea			COS9_, dct36_avx_COS9 RIP_REL
+	lea			tfcos36_, dct36_avx_tfcos36 RIP_REL
 	
 	xorps		xmm4, xmm4
 	movups		xmm0, [in]
@@ -99,17 +99,17 @@ ASM_NAME(INT123_dct36_avx):
 	vshufps		xmm7, xmm2, xmm2, 0x93
 	vshufps		xmm8, xmm3, xmm3, 0x93
 	vshufps		xmm9, xmm4, xmm4, 0xe1
-	movss		xmm9, xmm8 #[fg--]
-	addps		xmm4, xmm9 #[gh--]
+	movss		xmm9, xmm8 COMMENT [fg--]
+	addps		xmm4, xmm9 COMMENT [gh--]
 	movss		xmm8, xmm7
-	addps		xmm3, xmm8 #[cdef]
+	addps		xmm3, xmm8 COMMENT [cdef]
 	movss		xmm7, xmm6
-	addps		xmm2, xmm7 #[89ab]
+	addps		xmm2, xmm7 COMMENT [89ab]
 	movss		xmm6, xmm5
-	addps		xmm1, xmm6 #[4567]
+	addps		xmm1, xmm6 COMMENT [4567]
 	xorps		xmm6, xmm6
 	movss		xmm5, xmm6
-	addps		xmm0, xmm5 #[0123]
+	addps		xmm0, xmm5 COMMENT [0123]
 	
 	vblendps	xmm7, xmm3, xmm6, 0x5
 	vshufps		xmm4, xmm3, xmm4, 0x4e
@@ -205,7 +205,7 @@ xmm15 [1a-3,1b-3,-2a-3,-2b-3]
 	vunpcklps	xmm12, xmm12, xmm13
 	vunpckhps	xmm6, xmm14, xmm15
 	vunpcklps	xmm14, xmm14, xmm15
-	xorps		xmm6, dct36_avx_sign[rip]
+	xorps		xmm6, RIP_REL_F(dct36_avx_sign)
 
 /*
 xmm12 [1a-0,1a-1,1b-0,1b-1]
@@ -236,11 +236,11 @@ xmm15 tmp2b
 	mulps		xmm7, xmm10
 
 /*
-%xmm0 tmp[0,1,2,3]
-%xmm1 tmp[17,16,15,14]
-%xmm14 tmp[8,7,6,5]
-%xmm7 tmp[9,10,11,12]
-%xmm11 tmp[13,-,4,-]
+xmm0 tmp[0,1,2,3]
+xmm1 tmp[17,16,15,14]
+xmm14 tmp[8,7,6,5]
+xmm7 tmp[9,10,11,12]
+xmm11 tmp[13,-,4,-]
 */
 
 	movups		xmm2, 108[w]

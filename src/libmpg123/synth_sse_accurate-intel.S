@@ -34,9 +34,9 @@ maxmin_s16:
 	DATA_LONG   -956301312
 	DATA_LONG   -956301312
 	DATA_LONG   -956301312
-	.text
+	SECTION_TEXT
 	ALIGN16
-.globl ASM_NAME(INT123_synth_1to1_sse_accurate_asm)
+GLOBAL ASM_NAME(INT123_synth_1to1_sse_accurate_asm)
 ASM_NAME(INT123_synth_1to1_sse_accurate_asm):
 	push		ebp
 	mov		ebp, esp

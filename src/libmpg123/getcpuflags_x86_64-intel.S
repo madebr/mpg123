@@ -10,9 +10,9 @@
 #include "x86_64_defs.h"
 #include "mangle.h"
 
-	.text
+	SECTION_TEXT
 	ALIGN4
-	.globl ASM_NAME(INT123_getcpuflags)
+	GLOBAL ASM_NAME(INT123_getcpuflags)
 ASM_NAME(INT123_getcpuflags):
 	push	rbp
 	mov		rbp, rsp
@@ -23,31 +23,31 @@ ASM_NAME(INT123_getcpuflags):
 	mov		rdi, rcx
 #endif
 
-	mov	dword ptr 12[rdi], 0
-	mov	dword ptr 16[rdi], 0
+	mov	DWORD_PTR 12[rdi], 0
+	mov	DWORD_PTR 16[rdi], 0
 
 	mov		eax, 0x80000000
 	cpuid
 	cmp		eax, 0x80000001
-	jb		1f
+	jb		cpu_features
 	mov		eax, 0x80000001
 	cpuid
-	mov	dword ptr 12[rdi], edx
-1:
+	mov	12[rdi], edx
+cpu_features:
 	mov		eax, 0x00000001
 	cpuid
-	mov	dword ptr [rdi], eax
-	mov	dword ptr 4[rdi], ecx
-	mov	dword ptr 8[rdi], edx
+	mov	[rdi], eax
+	mov	4[rdi], ecx
+	mov	8[rdi], edx
 	test	ecx, 0x04000000
-	jz		2f
+	jz		end
 	test	ecx, 0x08000000
-	jz		2f
+	jz		end
 	xor		ecx, ecx
 	DATA_BYTE	0x0f, 0x01, 0xd0 /* xgetbv instruction */
-	mov	dword ptr 16[rdi], eax
-	mov	eax, dword ptr [rdi]
-2:
+	mov	16[rdi], eax
+	mov	eax, [rdi]
+end:
 #ifdef IS_MSABI
 	pop		rdi
 #endif

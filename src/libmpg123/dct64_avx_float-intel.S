@@ -54,9 +54,9 @@ costab_avx:
 	DATA_LONG 1067924853
 	DATA_LONG 1060439283
 	DATA_LONG 0
-	.text
+	SECTION_TEXT
 	ALIGN16
-.globl ASM_NAME(INT123_dct64_real_avx)
+GLOBAL ASM_NAME(INT123_dct64_real_avx)
 ASM_NAME(INT123_dct64_real_avx):
 #ifdef IS_MSABI
 	push		rbp
@@ -75,108 +75,108 @@ ASM_NAME(INT123_dct64_real_avx):
 	mov			rsi, rdx
 	mov			rdx, r8
 #endif
-	lea		costab, qword ptr costab_avx[rip]
+	lea		costab, costab_avx RIP_REL
 
-	vmovups		ymm0, [samples]			# input[0,1,2,3,4,5,6,7]
-	vmovups		ymm1, 32[samples]			# input[8,9,10,11,12,13,14,15]
+	vmovups		ymm0, [samples]			COMMENT input[0,1,2,3,4,5,6,7]
+	vmovups		ymm1, 32[samples]			COMMENT input[8,9,10,11,12,13,14,15]
 	vperm2f128	ymm2, ymm2, 64[samples], 0x23
 	vperm2f128	ymm3, ymm3, 96[samples], 0x23
-	vshufps		ymm2, ymm2, ymm2, 0x1b	# input[23,22,21,20,19,18,17,16]
-	vshufps		ymm3, ymm3, ymm3, 0x1b	# input[31,30,29,28,27,26,25,24]
+	vshufps		ymm2, ymm2, ymm2, 0x1b	COMMENT input[23,22,21,20,19,18,17,16]
+	vshufps		ymm3, ymm3, ymm3, 0x1b	COMMENT input[31,30,29,28,27,26,25,24]
 	vsubps		ymm6, ymm1, ymm2
 	vsubps		ymm7, ymm0, ymm3
-	vaddps		ymm4, ymm3, ymm0			# bufs[0,1,2,3,4,5,6,7]
-	vaddps		ymm5, ymm2, ymm1			# bufs[8,9,10,11,12,13,14,15]
-	vmulps		ymm7, ymm7, [costab]		# bufs[31,30,29,28,27,26,25,24] cos64[0,1,2,3,4,5,6,7]
-	vmulps		ymm6, ymm6, 32[costab]	# bufs[23,22,21,20,19,18,17,16] cos64[8,9,10,11,12,13,14,15]
+	vaddps		ymm4, ymm3, ymm0			COMMENT bufs[0,1,2,3,4,5,6,7]
+	vaddps		ymm5, ymm2, ymm1			COMMENT bufs[8,9,10,11,12,13,14,15]
+	vmulps		ymm7, ymm7, [costab]		COMMENT bufs[31,30,29,28,27,26,25,24] cos64[0,1,2,3,4,5,6,7]
+	vmulps		ymm6, ymm6, 32[costab]	COMMENT bufs[23,22,21,20,19,18,17,16] cos64[8,9,10,11,12,13,14,15]
 	
-	vmovaps		ymm8, 64[costab]			# cos32[0,1,2,3,4,5,6,7]
+	vmovaps		ymm8, 64[costab]			COMMENT cos32[0,1,2,3,4,5,6,7]
 	
 	vshufps		ymm5, ymm5, ymm5, 0x1b
 	vshufps		ymm6, ymm6, ymm6, 0x1b
-	vperm2f128	ymm5, ymm5, ymm5, 0x01	# bufs[15,14,13,12,11,10,9,8]
-	vperm2f128	ymm6, ymm6, ymm6, 0x01	# bufs[16,17,18,19,20,21,22,23]
+	vperm2f128	ymm5, ymm5, ymm5, 0x01	COMMENT bufs[15,14,13,12,11,10,9,8]
+	vperm2f128	ymm6, ymm6, ymm6, 0x01	COMMENT bufs[16,17,18,19,20,21,22,23]
 	vsubps		ymm1, ymm4, ymm5
 	vsubps		ymm3, ymm7, ymm6
-	vaddps		ymm0, ymm4, ymm5			# bufs[32,33,34,35,36,37,38,39]
-	vaddps		ymm2, ymm7, ymm6			# bufs[48,49,50,51,52,53,54,55]
-	vmulps		ymm1, ymm8, ymm1			# bufs[47,46,45,44,43,42,41,40]
-	vmulps		ymm3, ymm8, ymm3			# bufs[63,62,61,60,59,58,57,56]
+	vaddps		ymm0, ymm4, ymm5			COMMENT bufs[32,33,34,35,36,37,38,39]
+	vaddps		ymm2, ymm7, ymm6			COMMENT bufs[48,49,50,51,52,53,54,55]
+	vmulps		ymm1, ymm8, ymm1			COMMENT bufs[47,46,45,44,43,42,41,40]
+	vmulps		ymm3, ymm8, ymm3			COMMENT bufs[63,62,61,60,59,58,57,56]
 	
-	vmovaps		ymm8, 96[costab]			# cos16[0,1,2,3]:cos8[0,1]:cos4[0]:-
-	vperm2f128	ymm9, ymm8, ymm8, 0x00	# cos16[0,1,2,3,0,1,2,3]
+	vmovaps		ymm8, 96[costab]			COMMENT cos16[0,1,2,3]:cos8[0,1]:cos4[0]:-
+	vperm2f128	ymm9, ymm8, ymm8, 0x00	COMMENT cos16[0,1,2,3,0,1,2,3]
 	
-	vperm2f128	ymm4, ymm0, ymm1, 0x20	# bufs[32,33,34,35,47,46,45,44]
+	vperm2f128	ymm4, ymm0, ymm1, 0x20	COMMENT bufs[32,33,34,35,47,46,45,44]
 	vperm2f128	ymm5, ymm0, ymm1, 0x31
-	vshufps		ymm5, ymm5, ymm5, 0x1b	# bufs[39,38,37,36,40,41,42,43]
-	vperm2f128	ymm6, ymm2, ymm3, 0x20	# bufs[48,49,50,51,63,62,61,60]
+	vshufps		ymm5, ymm5, ymm5, 0x1b	COMMENT bufs[39,38,37,36,40,41,42,43]
+	vperm2f128	ymm6, ymm2, ymm3, 0x20	COMMENT bufs[48,49,50,51,63,62,61,60]
 	vperm2f128	ymm7, ymm2, ymm3, 0x31
-	vshufps		ymm7, ymm7, ymm7, 0x1b	# bufs[55,54,53,52,56,57,58,59]
+	vshufps		ymm7, ymm7, ymm7, 0x1b	COMMENT bufs[55,54,53,52,56,57,58,59]
 	vsubps		ymm1, ymm4, ymm5
 	vsubps		ymm3, ymm6, ymm7
-	vaddps		ymm0, ymm4, ymm5			# bufs[0,1,2,3,8,9,10,11]
-	vaddps		ymm2, ymm6, ymm7			# bufs[16,17,18,19,24,25,26,27]
-	vmulps		ymm1, ymm9, ymm1			# bufs[7,6,5,4,15,14,13,12]
-	vmulps		ymm3, ymm9, ymm3			# bufs[23,22,21,20,31,30,29,28]
+	vaddps		ymm0, ymm4, ymm5			COMMENT bufs[0,1,2,3,8,9,10,11]
+	vaddps		ymm2, ymm6, ymm7			COMMENT bufs[16,17,18,19,24,25,26,27]
+	vmulps		ymm1, ymm9, ymm1			COMMENT bufs[7,6,5,4,15,14,13,12]
+	vmulps		ymm3, ymm9, ymm3			COMMENT bufs[23,22,21,20,31,30,29,28]
 	
-	vperm2f128	ymm8, ymm8, ymm8, 0x11	# cos8[0,1]:cos4[0]:-:cos8[0,1]:cos4[0]:-
-	vmovddup	ymm9, ymm8				# cos8[0,1,0,1,0,1,0,1]
+	vperm2f128	ymm8, ymm8, ymm8, 0x11	COMMENT cos8[0,1]:cos4[0]:-:cos8[0,1]:cos4[0]:-
+	vmovddup	ymm9, ymm8				COMMENT cos8[0,1,0,1,0,1,0,1]
 	
-	vunpcklps	ymm4, ymm0, ymm1			# bufs[0,7,1,6,8,15,9,14]
-	vunpckhps	ymm5, ymm0, ymm1			# bufs[2,5,3,4,10,13,11,12]
-	vunpcklps	ymm6, ymm2, ymm3			# bufs[16,23,17,22,24,31,25,30]
-	vunpckhps	ymm7, ymm2, ymm3			# bufs[18,21,19,20,26,29,27,28]
-	vshufps		ymm4, ymm4, ymm4, 0xd8	# bufs[0,1,7,6,8,9,15,14]
-	vshufps		ymm5, ymm5, ymm5, 0x72	# bufs[3,2,4,5,11,10,12,13]
-	vshufps		ymm6, ymm6, ymm6, 0xd8	# bufs[16,17,23,22,24,25,31,30]
-	vshufps		ymm7, ymm7, ymm7, 0x72	# bufs[19,18,20,21,27,26,28,29]
+	vunpcklps	ymm4, ymm0, ymm1			COMMENT bufs[0,7,1,6,8,15,9,14]
+	vunpckhps	ymm5, ymm0, ymm1			COMMENT bufs[2,5,3,4,10,13,11,12]
+	vunpcklps	ymm6, ymm2, ymm3			COMMENT bufs[16,23,17,22,24,31,25,30]
+	vunpckhps	ymm7, ymm2, ymm3			COMMENT bufs[18,21,19,20,26,29,27,28]
+	vshufps		ymm4, ymm4, ymm4, 0xd8	COMMENT bufs[0,1,7,6,8,9,15,14]
+	vshufps		ymm5, ymm5, ymm5, 0x72	COMMENT bufs[3,2,4,5,11,10,12,13]
+	vshufps		ymm6, ymm6, ymm6, 0xd8	COMMENT bufs[16,17,23,22,24,25,31,30]
+	vshufps		ymm7, ymm7, ymm7, 0x72	COMMENT bufs[19,18,20,21,27,26,28,29]
 	vsubps		ymm1, ymm4, ymm5
 	vsubps		ymm3, ymm6, ymm7
-	vaddps		ymm0, ymm4, ymm5			# bufs[32,33,36,37,40,41,44,45]
-	vaddps		ymm2, ymm6, ymm7			# bufs[48,49,52,53,56,57,60,61]
-	vmulps		ymm1, ymm9, ymm1			# bufs[35,34,39,38,43,42,47,46]
-	vmulps		ymm3, ymm9, ymm3			# bufs[51,50,55,54,59,58,63,62]
+	vaddps		ymm0, ymm4, ymm5			COMMENT bufs[32,33,36,37,40,41,44,45]
+	vaddps		ymm2, ymm6, ymm7			COMMENT bufs[48,49,52,53,56,57,60,61]
+	vmulps		ymm1, ymm9, ymm1			COMMENT bufs[35,34,39,38,43,42,47,46]
+	vmulps		ymm3, ymm9, ymm3			COMMENT bufs[51,50,55,54,59,58,63,62]
 	
-	vpermilps	ymm8, ymm8, 0xaa			# cos4[0,0,0,0,0,0,0,0]
+	vpermilps	ymm8, ymm8, 0xaa			COMMENT cos4[0,0,0,0,0,0,0,0]
 	
-	vshufps		ymm0, ymm0, ymm0, 0xd8	# bufs[32,36,33,37,40,44,41,45]
-	vshufps		ymm1, ymm1, ymm1, 0xd8	# bufs[35,39,34,38,43,47,42,46]
-	vshufps		ymm2, ymm2, ymm2, 0xd8	# bufs[48,52,49,53,56,60,57,61]
-	vshufps		ymm3, ymm3, ymm3, 0xd8	# bufs[51,55,50,54,59,63,58,62]
-	vunpcklps	ymm4, ymm0, ymm1			# bufs[32,35,36,39,40,43,44,47]
-	vunpckhps	ymm5, ymm0, ymm1			# bufs[33,34,37,38,41,42,45,46]
-	vunpcklps	ymm6, ymm2, ymm3			# bufs[48,51,52,55,56,59,60,63]
-	vunpckhps	ymm7, ymm2, ymm3			# bufs[49,50,53,54,57,58,61,62]
+	vshufps		ymm0, ymm0, ymm0, 0xd8	COMMENT bufs[32,36,33,37,40,44,41,45]
+	vshufps		ymm1, ymm1, ymm1, 0xd8	COMMENT bufs[35,39,34,38,43,47,42,46]
+	vshufps		ymm2, ymm2, ymm2, 0xd8	COMMENT bufs[48,52,49,53,56,60,57,61]
+	vshufps		ymm3, ymm3, ymm3, 0xd8	COMMENT bufs[51,55,50,54,59,63,58,62]
+	vunpcklps	ymm4, ymm0, ymm1			COMMENT bufs[32,35,36,39,40,43,44,47]
+	vunpckhps	ymm5, ymm0, ymm1			COMMENT bufs[33,34,37,38,41,42,45,46]
+	vunpcklps	ymm6, ymm2, ymm3			COMMENT bufs[48,51,52,55,56,59,60,63]
+	vunpckhps	ymm7, ymm2, ymm3			COMMENT bufs[49,50,53,54,57,58,61,62]
 	vsubps		ymm1, ymm4, ymm5
 	vsubps		ymm3, ymm6, ymm7
-	vaddps		ymm0, ymm4, ymm5			# bufs[0,2,4,6,8,10,12,14]
-	vaddps		ymm2, ymm6, ymm7			# bufs[16,18,20,22,24,26,28,30]
-	vmulps		ymm1, ymm8, ymm1			# bufs[1,3,5,7,9,11,13,15]
-	vmulps		ymm3, ymm8, ymm3			# bufs[17,19,21,23,25,27,29,31]
+	vaddps		ymm0, ymm4, ymm5			COMMENT bufs[0,2,4,6,8,10,12,14]
+	vaddps		ymm2, ymm6, ymm7			COMMENT bufs[16,18,20,22,24,26,28,30]
+	vmulps		ymm1, ymm8, ymm1			COMMENT bufs[1,3,5,7,9,11,13,15]
+	vmulps		ymm3, ymm8, ymm3			COMMENT bufs[17,19,21,23,25,27,29,31]
 	
 	vxorps		ymm8, ymm8, ymm8
 	vblendps	ymm5, ymm8, ymm1, 0xaa
 	vblendps	ymm6, ymm8, ymm3, 0xaa
 	vaddps		ymm0, ymm0, ymm5
 	vaddps		ymm2, ymm2, ymm6
-	vunpcklps	ymm4, ymm0, ymm1			# bufs[0,1,2,3,8,9,10,11]
-	vunpckhps	ymm5, ymm0, ymm1			# bufs[4,5,6,7,12,13,14,15]
-	vunpcklps	ymm6, ymm2, ymm3			# bufs[16,17,18,19,24,25,26,27]
-	vunpckhps	ymm7, ymm2, ymm3			# bufs[20,21,22,23,28,29,30,31]
+	vunpcklps	ymm4, ymm0, ymm1			COMMENT bufs[0,1,2,3,8,9,10,11]
+	vunpckhps	ymm5, ymm0, ymm1			COMMENT bufs[4,5,6,7,12,13,14,15]
+	vunpcklps	ymm6, ymm2, ymm3			COMMENT bufs[16,17,18,19,24,25,26,27]
+	vunpckhps	ymm7, ymm2, ymm3			COMMENT bufs[20,21,22,23,28,29,30,31]
 	
-	vextractf128	xmm0, ymm4, 0x1		# bufs[8,9,10,11]
-	vextractf128	xmm1, ymm5, 0x1		# bufs[12,13,14,15]
-	vextractf128	xmm2, ymm6, 0x1		# bufs[24,25,26,27]
-	vextractf128	xmm3, ymm7, 0x1		# bufs[28,29,30,31]
+	vextractf128	xmm0, ymm4, 0x1		COMMENT bufs[8,9,10,11]
+	vextractf128	xmm1, ymm5, 0x1		COMMENT bufs[12,13,14,15]
+	vextractf128	xmm2, ymm6, 0x1		COMMENT bufs[24,25,26,27]
+	vextractf128	xmm3, ymm7, 0x1		COMMENT bufs[28,29,30,31]
 	
-	vshufps		xmm9, xmm5, xmm5, 0x1e	# bufs[6,7,5,4]
-	vshufps		xmm10, xmm1, xmm1, 0x1e	# bufs[14,15,13,12]
-	vshufps		xmm11, xmm7, xmm7, 0x1e	# bufs[22,23,21,20]
-	vshufps		xmm12, xmm3, xmm3, 0x1e	# bufs[30,31,29,28]
-	vblendps	xmm9, xmm8, xmm9, 0x7	# bufs[6,7,5,-]
-	vblendps	xmm10, xmm8, xmm10, 0x7 # bufs[14,15,13,-]
-	vblendps	xmm11, xmm8, xmm11, 0x7	# bufs[22,23,21,-]
-	vblendps	xmm12, xmm8, xmm12, 0x7	# bufs[30,31,29,-]
+	vshufps		xmm9, xmm5, xmm5, 0x1e	COMMENT bufs[6,7,5,4]
+	vshufps		xmm10, xmm1, xmm1, 0x1e	COMMENT bufs[14,15,13,12]
+	vshufps		xmm11, xmm7, xmm7, 0x1e	COMMENT bufs[22,23,21,20]
+	vshufps		xmm12, xmm3, xmm3, 0x1e	COMMENT bufs[30,31,29,28]
+	vblendps	xmm9, xmm8, xmm9, 0x7	COMMENT bufs[6,7,5,-]
+	vblendps	xmm10, xmm8, xmm10, 0x7 COMMENT bufs[14,15,13,-]
+	vblendps	xmm11, xmm8, xmm11, 0x7	COMMENT bufs[22,23,21,-]
+	vblendps	xmm12, xmm8, xmm12, 0x7	COMMENT bufs[30,31,29,-]
 	vaddps		xmm5, xmm9, xmm5
 	vaddps		xmm1, xmm10, xmm1
 	vaddps		xmm7, xmm11, xmm7
@@ -184,12 +184,12 @@ ASM_NAME(INT123_dct64_real_avx):
 	
 	prefetcht0	1024[out0]
 	
-	vshufps		xmm9, xmm0, xmm0, 0x1e	# bufs[10,11,9,8]
-	vshufps		xmm10, xmm2, xmm2, 0x1e	# bufs[26,27,25,24]
+	vshufps		xmm9, xmm0, xmm0, 0x1e	COMMENT bufs[10,11,9,8]
+	vshufps		xmm10, xmm2, xmm2, 0x1e	COMMENT bufs[26,27,25,24]
 	vaddps		xmm0, xmm0, xmm1
 	vaddps		xmm2, xmm2, xmm3
-	vblendps	xmm9, xmm8, xmm9, 0x7	# bufs[10,11,9,-]
-	vblendps	xmm10, xmm8, xmm10, 0x7	# bufs[26,27,25,-]
+	vblendps	xmm9, xmm8, xmm9, 0x7	COMMENT bufs[10,11,9,-]
+	vblendps	xmm10, xmm8, xmm10, 0x7	COMMENT bufs[26,27,25,-]
 	vaddps		xmm1, xmm9, xmm1
 	vaddps		xmm3, xmm10, xmm3
 	
@@ -202,7 +202,7 @@ ASM_NAME(INT123_dct64_real_avx):
 	movss		[out0+rax*1], xmm0
 	movss		[out0+rax*2], xmm5
 	movss		-128[out0+rax*2], xmm1
-	lea		out0, qword ptr [out0+rax*4]
+	lea		out0, [out0+rax*4]
 	movhlps		xmm9, xmm4
 	movhlps		xmm10, xmm0
 	movhlps		xmm11, xmm5
@@ -211,7 +211,7 @@ ASM_NAME(INT123_dct64_real_avx):
 	vmovss		[out0+rax*1], xmm10
 	vmovss		[out0+rax*2], xmm11
 	vmovss		-128[out0+rax*2], xmm12
-	lea		out0, qword ptr [out0+rax*4]
+	lea		out0, [out0+rax*4]
 	neg		rax
 	shufps		xmm4, xmm4, 0xb1
 	shufps		xmm0, xmm0, 0xb1
@@ -219,11 +219,11 @@ ASM_NAME(INT123_dct64_real_avx):
 	shufps		xmm1, xmm1, 0xb1
 	movss		[out0], xmm4
 	movss		[out1], xmm4
-	lea		out1, qword ptr [out1+rax*1]
+	lea		out1, [out1+rax*1]
 	movss		[out1], xmm0
 	movss		[out1+rax*1], xmm5
 	movss		[out1+rax*2], xmm1
-	lea		out1, qword ptr [out1+rax*4]
+	lea		out1, [out1+rax*4]
 	movhlps		xmm4, xmm4
 	movhlps		xmm0, xmm0
 	movhlps		xmm5, xmm5
@@ -233,7 +233,7 @@ ASM_NAME(INT123_dct64_real_avx):
 	movss		[out1+rax*1], xmm5
 	movss		[out1+rax*2], xmm1
 	
-	lea		out0, qword ptr -64[out0+rax*8]
+	lea		out0, -64[out0+rax*8]
 	neg		rax
 	vshufps		xmm0, xmm6, xmm6, 0x1e
 	vblendps	xmm0, xmm8, xmm0, 0x7
@@ -245,7 +245,7 @@ ASM_NAME(INT123_dct64_real_avx):
 	movss		[out0+rax*1], xmm2
 	movss		[out0+rax*2], xmm7
 	movss		-128[out0+rax*2], xmm3
-	lea		out0, qword ptr [out0+rax*4]
+	lea		out0, [out0+rax*4]
 	movhlps		xmm0, xmm6
 	movhlps		xmm1, xmm2
 	movhlps		xmm4, xmm7
@@ -254,7 +254,7 @@ ASM_NAME(INT123_dct64_real_avx):
 	movss		[out0+rax*1], xmm1
 	movss		[out0+rax*2], xmm4
 	movss		-128[out0+rax*2], xmm5
-	lea		out1, qword ptr 64[out1+rax*4]
+	lea		out1, 64[out1+rax*4]
 	neg		rax
 	shufps		xmm6, xmm6, 0xb1
 	shufps		xmm2, xmm2, 0xb1
@@ -264,7 +264,7 @@ ASM_NAME(INT123_dct64_real_avx):
 	movss		[out1], xmm2
 	movss		[out1+rax*1], xmm7
 	movss		[out1+rax*2], xmm3
-	lea		out1, qword ptr [out1+rax*4]
+	lea		out1, [out1+rax*4]
 	movhlps		xmm6, xmm6
 	movhlps		xmm2, xmm2
 	movhlps		xmm7, xmm7

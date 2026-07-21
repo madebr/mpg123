@@ -56,9 +56,9 @@ dct36_sse_mask:
 	ALIGN16
 dct36_sse_sign:
 	DATA_LONG 0x80000000,0x80000000,0x80000000,0x80000000
-	.text
+	SECTION_TEXT
 	ALIGN16
-	.globl ASM_NAME(INT123_dct36_sse)
+	GLOBAL ASM_NAME(INT123_dct36_sse)
 ASM_NAME(INT123_dct36_sse):
 	push		ebp
 	mov			ebp, esp
@@ -262,11 +262,11 @@ xmm5 tmp2b
 	movaps		16[tmp], xmm2
 
 /*
-%xmm3 tmp[0,1,2,3]
-%xmm5 tmp[17,16,15,14]
-16(tmp) tmp[8,7,6,5]
-%xmm7 tmp[9,10,11,12]
-0(tmp) tmp[13,-,4,-]
+xmm3 tmp[0,1,2,3]
+xmm5 tmp[17,16,15,14]
+16[tmp] tmp[8,7,6,5]
+xmm7 tmp[9,10,11,12]
+0[tmp] tmp[13,-,4,-]
 */
 
 	mov		out1, dword ptr 12[ebp]

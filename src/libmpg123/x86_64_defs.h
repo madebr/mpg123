@@ -27,7 +27,7 @@
 #if defined(__ASSEMBLER__) && defined(__ELF__)
 #if GNU_PROPERTY_X86_64_IBT != 0 || GNU_PROPERTY_X86_64_SHSTK != 0
     .pushsection .note.gnu.property, "a"; /* Start a new allocatable section */
-    .balign 8; /* align it on a byte boundry */
+    ALIGN 8; /* align it on a byte boundry */
     .long 4; /* size of "GNU\0" */
     .long 0x10; /* size of descriptor */
     .long 0x5; /* NT_GNU_PROPERTY_TYPE_0 */

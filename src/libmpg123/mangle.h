@@ -33,11 +33,11 @@
 
 #ifdef ASMALIGN_BALIGN
 
-#define ALIGN4  .balign 4
-#define ALIGN8  .balign 8
-#define ALIGN16 .balign 16
-#define ALIGN32 .balign 32
-#define ALIGN64 .balign 64
+#define ALIGN4  ALIGN 4
+#define ALIGN8  ALIGN 8
+#define ALIGN16 ALIGN 16
+#define ALIGN32 ALIGN 32
+#define ALIGN64 ALIGN 64
 
 #else
 
@@ -85,7 +85,7 @@
 #endif
 
 #if !defined(__APPLE__) && !defined (__OS2__)
-#define RODATA .section .rodata
+#define RODATA SECTION .rodata
 #else
 #define RODATA .data
 #endif
@@ -176,7 +176,7 @@ Lpic_base: \
 #if defined(__arm__)
 #define NONEXEC_STACK .section .note.GNU-stack,"",%progbits
 #else
-#define NONEXEC_STACK .section .note.GNU-stack,"",@progbits
+#define NONEXEC_STACK SECTION .note.GNU-stack,"",@progbits
 #endif
 #else
 #define NONEXEC_STACK

@@ -32,9 +32,9 @@ scale_sse:
 	DATA_LONG   939524096
 	DATA_LONG   939524096
 	DATA_LONG   939524096
-	.text
+	SECTION_TEXT
 	ALIGN16
-.globl ASM_NAME(INT123_synth_1to1_real_s_sse_asm)
+GLOBAL ASM_NAME(INT123_synth_1to1_real_s_sse_asm)
 ASM_NAME(INT123_synth_1to1_real_s_sse_asm):
 	push		ebp
 	mov		ebp, esp

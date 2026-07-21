@@ -5,7 +5,7 @@
 #include "synth_sse3d.h"
 
 #if defined(PIC) && defined(__APPLE__)
-	.section __IMPORT,__jump_table,symbol_stubs,self_modifying_code+pure_instructions,5
+	SECTION __IMPORT,__jump_table,symbol_stubs,self_modifying_code+pure_instructions,5
 FUNC(INT123_dct64_sse):
 	.indirect_symbol ASM_NAME(INT123_dct64_sse)
 	hlt  hlt  hlt  hlt  hlt

@@ -36,7 +36,7 @@
 */
 
 	ALIGN16
-.globl ASM_NAME(INT123_synth_1to1_s_avx_asm)
+GLOBAL ASM_NAME(INT123_synth_1to1_s_avx_asm)
 ASM_NAME(INT123_synth_1to1_s_avx_asm):
 #ifdef IS_MSABI /* should save xmm6-15 */
 	push		rbp
@@ -70,7 +70,7 @@ ASM_NAME(INT123_synth_1to1_s_avx_asm):
 	vpxor		xmm14, xmm14, xmm14
 	
 	ALIGN16
-1:
+loop1:
 	movups		xmm8, [WINDOW]
 	movups		xmm9, 16[WINDOW]
 	movups		xmm10, [WINDOW+rax]
@@ -146,12 +146,12 @@ ASM_NAME(INT123_synth_1to1_s_avx_asm):
 	movups		[SAMPLES], xmm2
 	add			SAMPLES, 16
 	dec			ecx
-	jnz			1b
+	jnz			loop1
 	
 	mov		ecx, 4
 	
 	ALIGN16
-1:
+loop2:
 	movups		xmm8, [WINDOW]
 	movups		xmm9, 16[WINDOW]
 	movups		xmm10, [WINDOW+rax]
@@ -227,7 +227,7 @@ ASM_NAME(INT123_synth_1to1_s_avx_asm):
 	movups		[SAMPLES], xmm2
 	add			SAMPLES, 16
 	dec			ecx
-	jnz			1b
+	jnz			loop2
 	
 	pxor		xmm1, xmm1
 	psubw		xmm1, xmm14

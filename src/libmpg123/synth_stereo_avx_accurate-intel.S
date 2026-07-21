@@ -54,9 +54,9 @@ maxmin_avx:
 	DATA_LONG   -956301312
 	DATA_LONG   -956301312
 	DATA_LONG   -956301312
-	.text
+	SECTION_TEXT
 	ALIGN16
-	.globl ASM_NAME(INT123_synth_1to1_s_avx_accurate_asm)
+	GLOBAL ASM_NAME(INT123_synth_1to1_s_avx_accurate_asm)
 ASM_NAME(INT123_synth_1to1_s_avx_accurate_asm):
 #ifdef IS_MSABI /* should save xmm6-15 */
 	push		rbp
@@ -90,7 +90,7 @@ ASM_NAME(INT123_synth_1to1_s_avx_accurate_asm):
 	vpxor		xmm14, xmm14, xmm14
 	
 	ALIGN16
-1:
+loop1:
 	vmovups		ymm8, [WINDOW]
 	vmovups		ymm9, 32[WINDOW]
 	vmovups		ymm10, [WINDOW+rax]
@@ -153,8 +153,8 @@ ASM_NAME(INT123_synth_1to1_s_avx_accurate_asm):
 	vperm2f128	ymm2, ymm0, ymm1, 0x20
 	vperm2f128	ymm3, ymm0, ymm1, 0x31
 	vaddps		ymm0, ymm2, ymm3
-	vcmpnleps	ymm1, ymm0, maxmin_avx[rip]
-	vcmpltps	ymm2, ymm0, 32+maxmin_avx[rip]
+	vcmpnleps	ymm1, ymm0, RIP_REL_F(maxmin_avx)
+	vcmpltps	ymm2, ymm0,  RIP_REL_ADD_F(maxmin_avx, 32)
 	vextractf128	xmm3, ymm1, 0x1
 	vextractf128	xmm4, ymm2, 0x1
 	vpackssdw	xmm1, xmm1, xmm2
@@ -168,12 +168,12 @@ ASM_NAME(INT123_synth_1to1_s_avx_accurate_asm):
 	vmovups		[SAMPLES], xmm0
 	add			SAMPLES, 16
 	dec			ecx
-	jnz			1b
+	jnz			loop1
 	
 	mov			ecx, 4
 	
 	ALIGN16
-1:
+loop2:
 	vmovups		ymm8, [WINDOW]
 	vmovups		ymm9, 32[WINDOW]
 	vmovups		ymm10, [WINDOW+rax]
@@ -236,8 +236,8 @@ ASM_NAME(INT123_synth_1to1_s_avx_accurate_asm):
 	vperm2f128	ymm2, ymm0, ymm1, 0x20
 	vperm2f128	ymm3, ymm0, ymm1, 0x31
 	vaddps		ymm0, ymm2, ymm3
-	vcmpnleps	ymm1, ymm0, maxmin_avx[rip]
-	vcmpltps	ymm2, ymm0, 32+maxmin_avx[rip]
+	vcmpnleps	ymm1, ymm0, RIP_REL_F(maxmin_avx)
+	vcmpltps	ymm2, ymm0, RIP_REL_ADD_F(maxmin_avx, 32)
 	vextractf128	xmm3, ymm1, 0x1
 	vextractf128	xmm4, ymm2, 0x1
 	vpackssdw	xmm1, xmm1, xmm2
@@ -251,7 +251,7 @@ ASM_NAME(INT123_synth_1to1_s_avx_accurate_asm):
 	vmovups		[SAMPLES], xmm0
 	add			SAMPLES, 16
 	dec			ecx
-	jnz			1b
+	jnz			loop2
 	
 	vzeroupper
 	
