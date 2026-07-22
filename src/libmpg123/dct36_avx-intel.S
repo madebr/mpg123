@@ -83,7 +83,7 @@ ASM_NAME(INT123_dct36_avx):
 	movaps		112[rsp], xmm13
 	movaps		128[rsp], xmm14
 	movaps		144[rsp], xmm15
-	mov		ts, qword ptr 48[rbp]
+	mov		ts, QWORD_PTR 48[rbp]
 #endif
 	lea			COS9_, dct36_avx_COS9 RIP_REL
 	lea			tfcos36_, dct36_avx_tfcos36 RIP_REL

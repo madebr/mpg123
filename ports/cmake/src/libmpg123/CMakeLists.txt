@@ -64,18 +64,18 @@ add_library(${TARGET}
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/$<$<NOT:$<BOOL:${PORTABLE_API}>>:lfs_wrap.c>"
     $<TARGET_OBJECTS:compat>)
 
-if(MSVC AND NOT CMAKE_C_COMPILER_ID STREQUAL "Clang")
-    if(MACHINE MATCHES "x86|amd64")
-      find_program(YASM_ASSEMBLER yasm)
-      if(NOT YASM_ASSEMBLER)
-          message(WARNING "Couldn't find yasm assembler for optimizded decoders. Please set YASM_ASSEMBLER variable")
-          set(MACHINE generic)
-      endif()
-    else()
-      message(WARNING "Need work to support non-x86 assembly optimizations with MSVC.")
-      set(MACHINE generic)
-    endif()
-endif()
+#if(MSVC AND NOT CMAKE_C_COMPILER_ID STREQUAL "Clang")
+#    if(MACHINE MATCHES "x86|amd64")
+#      find_program(YASM_ASSEMBLER yasm)
+#      if(NOT YASM_ASSEMBLER)
+#          message(WARNING "Couldn't find yasm assembler for optimizded decoders. Please set YASM_ASSEMBLER variable")
+#          set(MACHINE generic)
+#      endif()
+#    else()
+#      message(WARNING "Need work to support non-x86 assembly optimizations with MSVC.")
+#      set(MACHINE generic)
+#    endif()
+#endif()
 
 if(MACHINE STREQUAL "amd64")
     if(HAVE_FPU)
@@ -139,14 +139,28 @@ if(MACHINE STREQUAL "amd64")
     set(USE_NASM 1)
     if(USE_NASM)
         set(cc_flags "${CMAKE_C_FLAGS}")
+        if(MSVC)
+            list(APPEND cc_flags -nologo)
+        endif()
         separate_arguments(cc_flags NATIVE_COMMAND)
         set(preprocessed_paths )
-        list(TRANSFORM PLATFORM_DEFINITIONS PREPEND -D)
+        set(asm_definitions ${PLATFORM_DEFINITIONS} NASM_ASSEMBLER ASMALIGN_BALIGN)
+        if(CMAKE_C_COMPILER_ID MATCHES MSVC)
+            list(TRANSFORM asm_definitions PREPEND /D)
+        else()
+            list(TRANSFORM asm_definitions PREPEND -D)
+        endif()
         foreach(platform_source ${PLATFORM_SOURCES})
             get_filename_component(source_name "${platform_source}" NAME)
             set(preprocessed_path "${CMAKE_CURRENT_BINARY_DIR}/${source_name}")
+            if(CMAKE_C_COMPILER_ID MATCHES MSVC)
+                #            -DASMALIGN_BALIGN
+                set(preproc_command ${CMAKE_C_COMPILER} /nologo ${asm_definitions} "/I${PROJECT_SOURCE_DIR}/../../src" "/I${PROJECT_BINARY_DIR}/src" /EP "/Tc${platform_source}" ">${preprocessed_path}" )
+            else()
+                set(preproc_command ${CMAKE_C_COMPILER} ${cc_flags} -E -P ${asm_definitions} "-I${PROJECT_SOURCE_DIR}/../../src" "-I${PROJECT_BINARY_DIR}/src" "${platform_source}" -o "${preprocessed_path}")
+            endif()
             add_custom_command(OUTPUT "${preprocessed_path}"
-                COMMAND "${CMAKE_C_COMPILER}" ${cc_flags} -E -P -DNASM_ASSEMBLER ${PLATFORM_DEFINITIONS} -I "${PROJECT_SOURCE_DIR}/../../src" -I"${PROJECT_BINARY_DIR}/src" ${platform_source} -o "${preprocessed_path}"
+                COMMAND ${preproc_command}
             )
             list(APPEND preprocessed_paths "${preprocessed_path}")
         endforeach()
@@ -277,27 +291,6 @@ target_compile_definitions(${TARGET} PRIVATE
     ${PLATFORM_DEFINITIONS}
     $<$<BOOL:${HAVE_FPU}>:REAL_IS_FLOAT>
     $<$<NOT:$<BOOL:${HAVE_FPU}>>:REAL_IS_FIXED>)
-
-if(MSVC AND NOT CMAKE_C_COMPILER_ID STREQUAL "Clang" AND MACHINE MATCHES "x86|amd64" AND YASM_ASSEMBLER)
-    list(TRANSFORM PLATFORM_DEFINITIONS PREPEND /D)
-    foreach(FILE ${PLATFORM_SOURCES})
-        get_filename_component(FILENAME ${FILE} NAME)
-        add_custom_command(
-            OUTPUT ${FILENAME}.asm
-            COMMAND ${CMAKE_C_COMPILER} /NOLOGO /DASMALIGN_BALIGN ${PLATFORM_DEFINITIONS}
-            /I"${PROJECT_SOURCE_DIR}/../../src" /I"${PROJECT_BINARY_DIR}/src" /P /Fi${FILENAME}.asm /Tc "${FILE}"
-            DEPENDS ${FILE}
-            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-        add_custom_command(
-            OUTPUT ${FILENAME}.obj
-            COMMAND ${YASM_ASSEMBLER} -a x86 -m ${MACHINE} -p gas -r raw -f win32 -g null -o ${FILENAME}.obj ${FILENAME}.asm
-            DEPENDS ${FILENAME}.asm
-            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-        target_sources(${TARGET} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.obj")
-    endforeach()
-else()
-    target_sources(${TARGET} PRIVATE ${PLATFORM_SOURCES})
-endif()
 
 if(HAVE_M)
     string(APPEND LIBMPG123_LIBS " -lm")

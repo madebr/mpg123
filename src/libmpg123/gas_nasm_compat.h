@@ -10,6 +10,7 @@
 #define RIP_REL_F(ADDR) [rel ADDR]
 #define RIP_REL_ADD_F(ADDR, ADD) [rel ADDR + ADD]
 #define DWORD_PTR dword
+#define QWORD_PTR qword
 #define COMMENT ;
 default rel
 
@@ -25,6 +26,7 @@ default rel
 #define RIP_REL_F(ADDR) ADDR[rip]
 #define RIP_REL_ADD_F(ADDR, ADD) ADD+ADDR[rip]
 #define DWORD_PTR dword ptr
+#define QWORD_PTR qword ptr
 #define COMMENT #
 
 .intel_syntax noprefix
