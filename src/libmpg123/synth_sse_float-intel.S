@@ -129,7 +129,7 @@ ASM_NAME(INT123_synth_1to1_real_sse_asm):
 	movups		xmm1, [SAMPLES]
 	movups		xmm2, 16[SAMPLES]
 	mulps		xmm0, LOCAL_VAR[scale_sse]
-	shufps		xmm1, xmm2, 0xdd
+	shufps		xmm1, xmm2, HEX(dd)
 	movaps		xmm2, xmm0
 	unpcklps	xmm0, xmm1
 	unpckhps	xmm2, xmm1
@@ -219,7 +219,7 @@ ASM_NAME(INT123_synth_1to1_real_sse_asm):
 	movups		xmm1, [SAMPLES]
 	movups		xmm2, 16[SAMPLES]
 	mulps		xmm0, LOCAL_VAR[scale_sse]
-	shufps		xmm1, xmm2, 0xdd
+	shufps		xmm1, xmm2, HEX(dd)
 	movaps		xmm2, xmm0
 	unpcklps	xmm0, xmm1
 	unpckhps	xmm2, xmm1
@@ -240,3 +240,5 @@ ASM_NAME(INT123_synth_1to1_real_sse_asm):
 	ret
 
 NONEXEC_STACK
+
+END_MODULE

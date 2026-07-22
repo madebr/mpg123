@@ -83,7 +83,7 @@ intwinbase:
 	DATA_SHORT  15038
 
 intwindiv:
-	DATA_LONG 0x47800000			# 65536.0
+	DATA_LONG HEX(47800000)			# 65536.0
 SECTION_TEXT
 	ALIGN32
 /* void make_decode_tables_mmx_asm(long scaleval, float* decwin_mmx, float *decwins); */
@@ -228,3 +228,5 @@ ASM_NAME(INT123_make_decode_tables_mmx_asm):
 	ret
 
 NONEXEC_STACK
+
+END_MODULE

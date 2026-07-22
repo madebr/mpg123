@@ -73,25 +73,25 @@ ASM_NAME(INT123_dct64_real_x86_64):
 	mov		ARG0, rcx
 	sub		rsp, 168 /* stack alignment + 10 xmm registers */
 	movaps		[rsp], xmm6
-	movaps		16[rsp], xmm7
-	movaps		32[rsp], xmm8
-	movaps		48[rsp], xmm9
-	movaps		64[rsp], xmm10
-	movaps		80[rsp], xmm11
-	movaps		96[rsp], xmm12
-	movaps		112[rsp], xmm13
-	movaps		128[rsp], xmm14
-	movaps		144[rsp], xmm15
+	movaps		MEM_OFFSET(rsp, 16), xmm7
+	movaps		MEM_OFFSET(rsp, 32), xmm8
+	movaps		MEM_OFFSET(rsp, 48), xmm9
+	movaps		MEM_OFFSET(rsp, 64), xmm10
+	movaps		MEM_OFFSET(rsp, 80), xmm11
+	movaps		MEM_OFFSET(rsp, 96), xmm12
+	movaps		MEM_OFFSET(rsp, 112), xmm13
+	movaps		MEM_OFFSET(rsp, 128), xmm14
+	movaps		MEM_OFFSET(rsp, 144), xmm15
 #endif
 
 	lea		rcx, ASM_NAME(INT123_costab_x86_64) RIP_REL
 
 	MOVUAPS 	xmm15, [ARG2]
-	MOVUAPS 	xmm14, 16[ARG2]
-	MOVUAPS 	xmm0, 112[ARG2]
-	MOVUAPS 	xmm1, 96[ARG2]
-	shufps 		xmm0, xmm0, 0x1b
-	shufps 		xmm1, xmm1, 0x1b
+	MOVUAPS 	xmm14, MEM_OFFSET(ARG2, 16)
+	MOVUAPS 	xmm0, MEM_OFFSET(ARG2, 112)
+	MOVUAPS 	xmm1, MEM_OFFSET(ARG2, 96)
+	shufps 		xmm0, xmm0, HEX(1b)
+	shufps 		xmm1, xmm1, HEX(1b)
 	movaps 		xmm8, xmm15
 	movaps		xmm9, xmm14
 	addps 		xmm8, xmm0
@@ -99,12 +99,12 @@ ASM_NAME(INT123_dct64_real_x86_64):
 	subps 		xmm15, xmm0
 	subps 		xmm14, xmm1
 	
-	MOVUAPS 	xmm13, 32[ARG2]
-	MOVUAPS 	xmm12, 48[ARG2]
-	MOVUAPS 	xmm0, 80[ARG2]
-	MOVUAPS 	xmm1, 64[ARG2]
-	shufps		xmm0, xmm0, 0x1b
-	shufps		xmm1, xmm1, 0x1b
+	MOVUAPS 	xmm13, MEM_OFFSET(ARG2, 32)
+	MOVUAPS 	xmm12, MEM_OFFSET(ARG2, 48)
+	MOVUAPS 	xmm0, MEM_OFFSET(ARG2, 80)
+	MOVUAPS 	xmm1, MEM_OFFSET(ARG2, 64)
+	shufps		xmm0, xmm0, HEX(1b)
+	shufps		xmm1, xmm1, HEX(1b)
 	movaps		xmm10, xmm13
 	movaps		xmm11, xmm12
 	addps		xmm10, xmm0
@@ -113,9 +113,9 @@ ASM_NAME(INT123_dct64_real_x86_64):
 	subps		xmm12, xmm1
 	
 	movaps		xmm0, [rcx]
-	movaps		xmm1, 16[rcx]
-	movaps		xmm2, 32[rcx]
-	movaps		xmm3, 48[rcx]
+	movaps		xmm1, MEM_OFFSET(rcx, 16)
+	movaps		xmm2, MEM_OFFSET(rcx, 32)
+	movaps		xmm3, MEM_OFFSET(rcx, 48)
 	mulps		xmm15, xmm0
 	mulps		xmm14, xmm1
 	mulps		xmm13, xmm2
@@ -124,10 +124,10 @@ ASM_NAME(INT123_dct64_real_x86_64):
 	movaps		xmm0, 64[rcx]
 	movaps		xmm1, 80[rcx]
 	
-	pshufd		xmm2, xmm11, 0x1b
-	pshufd		xmm3, xmm10, 0x1b
-	shufps		xmm13, xmm13, 0x1b
-	shufps		xmm12, xmm12, 0x1b
+	pshufd		xmm2, xmm11, HEX(1b)
+	pshufd		xmm3, xmm10, HEX(1b)
+	shufps		xmm13, xmm13, HEX(1b)
+	shufps		xmm12, xmm12, HEX(1b)
 	movaps		xmm11, xmm8
 	movaps		xmm10, xmm9
 	movaps		xmm4, xmm14
@@ -147,10 +147,10 @@ ASM_NAME(INT123_dct64_real_x86_64):
 	
 	movaps		xmm0, 96[rcx]
 	
-	pshufd		xmm1, xmm9, 0x1b
-	pshufd		xmm2, xmm13, 0x1b
-	shufps		xmm10, xmm10, 0x1b
-	shufps		xmm14, xmm14, 0x1b
+	pshufd		xmm1, xmm9, HEX(1b)
+	pshufd		xmm2, xmm13, HEX(1b)
+	shufps		xmm10, xmm10, HEX(1b)
+	shufps		xmm14, xmm14, HEX(1b)
 	movaps		xmm9, xmm8
 	movaps		xmm13, xmm12
 	movaps		xmm3, xmm11
@@ -168,16 +168,16 @@ ASM_NAME(INT123_dct64_real_x86_64):
 	mulps		xmm11, xmm0
 	mulps		xmm15, xmm0
 	
-	movaps		xmm0, 112[rcx]
+	movaps		xmm0, MEM_OFFSET(rcx, 112)
 	movaps		xmm1, xmm0
 	movlhps		xmm1, xmm1
 	
 	movaps		xmm2, xmm8
 	movaps		xmm3, xmm9
-	shufps		xmm2, xmm10, 0x44
-	shufps		xmm9, xmm11, 0xbb
-	shufps		xmm8, xmm10, 0xbb
-	shufps		xmm3, xmm11, 0x44
+	shufps		xmm2, xmm10, HEX(44)
+	shufps		xmm9, xmm11, HEX(bb)
+	shufps		xmm8, xmm10, HEX(bb)
+	shufps		xmm3, xmm11, HEX(44)
 	movaps		xmm4, xmm2
 	movaps		xmm5, xmm3
 	subps		xmm2, xmm8
@@ -188,17 +188,17 @@ ASM_NAME(INT123_dct64_real_x86_64):
 	mulps		xmm3, xmm1
 	movaps		xmm10, xmm8
 	movaps		xmm11, xmm9
-	shufps		xmm8, xmm2, 0x14
-	shufps		xmm10, xmm2, 0xbe
-	shufps		xmm9, xmm3, 0x14
-	shufps		xmm11, xmm3, 0xbe
+	shufps		xmm8, xmm2, HEX(14)
+	shufps		xmm10, xmm2, HEX(be)
+	shufps		xmm9, xmm3, HEX(14)
+	shufps		xmm11, xmm3, HEX(be)
 	
 	movaps		xmm2, xmm12
 	movaps		xmm3, xmm13
-	shufps		xmm2, xmm14, 0x44
-	shufps		xmm13, xmm15, 0xbb
-	shufps		xmm12, xmm14, 0xbb
-	shufps		xmm3, xmm15, 0x44
+	shufps		xmm2, xmm14, HEX(44)
+	shufps		xmm13, xmm15, HEX(bb)
+	shufps		xmm12, xmm14, HEX(bb)
+	shufps		xmm3, xmm15, HEX(44)
 	movaps		xmm4, xmm2
 	movaps		xmm5, xmm3
 	subps		xmm2, xmm12
@@ -209,12 +209,12 @@ ASM_NAME(INT123_dct64_real_x86_64):
 	mulps		xmm3, xmm1
 	movaps		xmm14, xmm12
 	movaps		xmm15, xmm13
-	shufps		xmm12, xmm2, 0x14
-	shufps		xmm14, xmm2, 0xbe
-	shufps		xmm13, xmm3, 0x14
-	shufps		xmm15, xmm3, 0xbe
+	shufps		xmm12, xmm2, HEX(14)
+	shufps		xmm14, xmm2, HEX(be)
+	shufps		xmm13, xmm3, HEX(14)
+	shufps		xmm15, xmm3, HEX(be)
 	
-	shufps		xmm0, xmm0, 0xaa
+	shufps		xmm0, xmm0, HEX(aa)
 	pcmpeqd		xmm1, xmm1
 	pslld		xmm1, 31
 	psllq		xmm1, 32
@@ -277,8 +277,8 @@ ASM_NAME(INT123_dct64_real_x86_64):
 	
 	xorps		xmm0, xmm0
 	xorps		xmm1, xmm1
-	shufpd		xmm0, xmm8, 0x2
-	shufpd		xmm1, xmm9, 0x2
+	shufpd		xmm0, xmm8, HEX(2)
+	shufpd		xmm1, xmm9, HEX(2)
 	psrlq		xmm0, 32
 	psrlq		xmm1, 32
 	addps		xmm8, xmm0
@@ -286,8 +286,8 @@ ASM_NAME(INT123_dct64_real_x86_64):
 	
 	xorps		xmm0, xmm0
 	xorps		xmm1, xmm1
-	shufpd		xmm0, xmm10, 0x2
-	shufpd		xmm1, xmm11, 0x2
+	shufpd		xmm0, xmm10, HEX(2)
+	shufpd		xmm1, xmm11, HEX(2)
 	psrlq		xmm0, 32
 	psrlq		xmm1, 32
 	addps		xmm10, xmm0
@@ -295,8 +295,8 @@ ASM_NAME(INT123_dct64_real_x86_64):
 	
 	xorps		xmm0, xmm0
 	xorps		xmm1, xmm1
-	shufpd		xmm0, xmm12, 0x2
-	shufpd		xmm1, xmm13, 0x2
+	shufpd		xmm0, xmm12, HEX(2)
+	shufpd		xmm1, xmm13, HEX(2)
 	psrlq		xmm0, 32
 	psrlq		xmm1, 32
 	addps		xmm12, xmm0
@@ -304,17 +304,17 @@ ASM_NAME(INT123_dct64_real_x86_64):
 	
 	xorps		xmm0, xmm0
 	xorps		xmm1, xmm1
-	shufpd		xmm0, xmm14, 0x2
-	shufpd		xmm1, xmm15, 0x2
+	shufpd		xmm0, xmm14, HEX(2)
+	shufpd		xmm1, xmm15, HEX(2)
 	psrlq		xmm0, 32
 	psrlq		xmm1, 32
 	addps		xmm14, xmm0
 	addps		xmm15, xmm1
 	
-	pshufd		xmm0, xmm9, 0x78
-	pshufd		xmm1, xmm11, 0x78
-	pshufd		xmm2, xmm13, 0x78
-	pshufd		xmm3, xmm15, 0x78
+	pshufd		xmm0, xmm9, HEX(78)
+	pshufd		xmm1, xmm11, HEX(78)
+	pshufd		xmm2, xmm13, HEX(78)
+	pshufd		xmm3, xmm15, HEX(78)
 	psrldq		xmm0, 4
 	psrldq		xmm1, 4
 	psrldq		xmm2, 4
@@ -324,8 +324,8 @@ ASM_NAME(INT123_dct64_real_x86_64):
 	addps		xmm13, xmm2
 	addps		xmm15, xmm3
 	
-	pshufd		xmm0, xmm10, 0x78
-	pshufd		xmm1, xmm14, 0x78
+	pshufd		xmm0, xmm10, HEX(78)
+	pshufd		xmm1, xmm14, HEX(78)
 	psrldq		xmm0, 4
 	psrldq		xmm1, 4
 	addps		xmm10, xmm11
@@ -334,39 +334,39 @@ ASM_NAME(INT123_dct64_real_x86_64):
 	addps		xmm15, xmm1
 	
 	
-	movss		1024[ARG0], xmm8
-	movss		896[ARG0], xmm10
-	movss		768[ARG0], xmm9
-	movss		640[ARG0], xmm11
+	movss		DWORD_PTR MEM_OFFSET(ARG0, 1024), xmm8
+	movss		DWORD_PTR MEM_OFFSET(ARG0, 896), xmm10
+	movss		DWORD_PTR MEM_OFFSET(ARG0, 768), xmm9
+	movss		DWORD_PTR MEM_OFFSET(ARG0, 640), xmm11
 	movhlps		xmm0, xmm8
 	movhlps		xmm1, xmm10
 	movhlps		xmm2, xmm9
 	movhlps		xmm3, xmm11
-	movss		512[ARG0], xmm0
-	movss		384[ARG0], xmm1
-	movss		256[ARG0], xmm2
-	movss		128[ARG0], xmm3
+	movss		DWORD_PTR MEM_OFFSET(ARG0, 512), xmm0
+	movss		DWORD_PTR MEM_OFFSET(ARG0, 384), xmm1
+	movss		DWORD_PTR MEM_OFFSET(ARG0, 256), xmm2
+	movss		DWORD_PTR MEM_OFFSET(ARG0, 128), xmm3
 	
-	pshuflw		xmm4, xmm8, 0xee
-	pshuflw		xmm5, xmm10, 0xee
-	pshuflw		xmm6, xmm9, 0xee
-	pshuflw		xmm7, xmm11, 0xee
-	movss		[ARG0], xmm4
-	movss		[ARG1], xmm4
-	movss		128[ARG1], xmm5
-	movss		256[ARG1], xmm6
-	movss		384[ARG1], xmm7
+	pshuflw		xmm4, xmm8, HEX(ee)
+	pshuflw		xmm5, xmm10, HEX(ee)
+	pshuflw		xmm6, xmm9, HEX(ee)
+	pshuflw		xmm7, xmm11, HEX(ee)
+	movss		DWORD_PTR [ARG0], xmm4
+	movss		DWORD_PTR [ARG1], xmm4
+	movss		DWORD_PTR MEM_OFFSET(ARG1, 128), xmm5
+	movss		DWORD_PTR MEM_OFFSET(ARG1, 256), xmm6
+	movss		DWORD_PTR MEM_OFFSET(ARG1, 384), xmm7
 	
-	pshuflw		xmm0, xmm0, 0xee
-	pshuflw		xmm1, xmm1, 0xee
-	pshuflw		xmm2, xmm2, 0xee
-	pshuflw		xmm3, xmm3, 0xee
-	movss		512[ARG1], xmm0
-	movss		640[ARG1], xmm1
-	movss		768[ARG1], xmm2
-	movss		896[ARG1], xmm3
+	pshuflw		xmm0, xmm0, HEX(ee)
+	pshuflw		xmm1, xmm1, HEX(ee)
+	pshuflw		xmm2, xmm2, HEX(ee)
+	pshuflw		xmm3, xmm3, HEX(ee)
+	movss		DWORD_PTR MEM_OFFSET(ARG1, 512), xmm0
+	movss		DWORD_PTR MEM_OFFSET(ARG1, 640), xmm1
+	movss		DWORD_PTR MEM_OFFSET(ARG1, 768), xmm2
+	movss		DWORD_PTR MEM_OFFSET(ARG1, 896), xmm3
 	
-	pshufd		xmm0, xmm12, 0x78
+	pshufd		xmm0, xmm12, HEX(78)
 	movaps		xmm1, xmm13
 	psrldq		xmm0, 4
 	
@@ -375,50 +375,52 @@ ASM_NAME(INT123_dct64_real_x86_64):
 	addps		xmm14, xmm1
 	addps		xmm15, xmm0
 	
-	movss		960[ARG0], xmm12
-	movss		832[ARG0], xmm14
-	movss		704[ARG0], xmm13
-	movss		576[ARG0], xmm15
+	movss		DWORD_PTR MEM_OFFSET(ARG0, 960), xmm12
+	movss		DWORD_PTR MEM_OFFSET(ARG0, 832), xmm14
+	movss		DWORD_PTR MEM_OFFSET(ARG0, 704), xmm13
+	movss		DWORD_PTR MEM_OFFSET(ARG0, 576), xmm15
 	movhlps		xmm0, xmm12
 	movhlps		xmm1, xmm14
 	movhlps		xmm2, xmm13
 	movhlps		xmm3, xmm15
-	movss		448[ARG0], xmm0
-	movss		320[ARG0], xmm1
-	movss		192[ARG0], xmm2
-	movss		64[ARG0], xmm3
+	movss		DWORD_PTR MEM_OFFSET(ARG0, 448), xmm0
+	movss		DWORD_PTR MEM_OFFSET(ARG0, 320), xmm1
+	movss		DWORD_PTR MEM_OFFSET(ARG0, 192), xmm2
+	movss		DWORD_PTR MEM_OFFSET(ARG0, 64), xmm3
 	
-	pshuflw		xmm4, xmm12, 0xee
-	pshuflw		xmm5, xmm14, 0xee
-	pshuflw		xmm6, xmm13, 0xee
-	pshuflw		xmm7, xmm15, 0xee
-	movss		64[ARG1], xmm4
-	movss		192[ARG1], xmm5
-	movss		320[ARG1], xmm6
-	movss		448[ARG1], xmm7
+	pshuflw		xmm4, xmm12, HEX(ee)
+	pshuflw		xmm5, xmm14, HEX(ee)
+	pshuflw		xmm6, xmm13, HEX(ee)
+	pshuflw		xmm7, xmm15, HEX(ee)
+	movss		DWORD_PTR MEM_OFFSET(ARG1, 64), xmm4
+	movss		DWORD_PTR MEM_OFFSET(ARG1, 192), xmm5
+	movss		DWORD_PTR MEM_OFFSET(ARG1, 320), xmm6
+	movss		DWORD_PTR MEM_OFFSET(ARG1, 448), xmm7
 	
-	pshuflw		xmm0, xmm0, 0xee
-	pshuflw		xmm1, xmm1, 0xee
-	pshuflw		xmm2, xmm2, 0xee
-	pshuflw		xmm3, xmm3, 0xee
-	movss		576[ARG1], xmm0
-	movss		704[ARG1], xmm1
-	movss		832[ARG1], xmm2
-	movss		960[ARG1], xmm3
+	pshuflw		xmm0, xmm0, HEX(ee)
+	pshuflw		xmm1, xmm1, HEX(ee)
+	pshuflw		xmm2, xmm2, HEX(ee)
+	pshuflw		xmm3, xmm3, HEX(ee)
+	movss		DWORD_PTR MEM_OFFSET(ARG1, 576), xmm0
+	movss		DWORD_PTR MEM_OFFSET(ARG1, 704), xmm1
+	movss		DWORD_PTR MEM_OFFSET(ARG1, 832), xmm2
+	movss		DWORD_PTR MEM_OFFSET(ARG1, 960), xmm3
 	
 #ifdef IS_MSABI
 	movaps		xmm6, [rsp]
-	movaps		xmm7, 16[rsp]
-	movaps		xmm8, 32[rsp]
-	movaps		xmm9, 48[rsp]
-	movaps		xmm10, 64[rsp]
-	movaps		xmm11, 80[rsp]
-	movaps		xmm12, 96[rsp]
-	movaps		xmm13, 112[rsp]
-	movaps		xmm14, 128[rsp]
-	movaps		xmm15, 144[rsp]
+	movaps		xmm7, MEM_OFFSET(rsp, 16)
+	movaps		xmm8, MEM_OFFSET(rsp, 32)
+	movaps		xmm9, MEM_OFFSET(rsp, 48)
+	movaps		xmm10, MEM_OFFSET(rsp, 64)
+	movaps		xmm11, MEM_OFFSET(rsp, 80)
+	movaps		xmm12, MEM_OFFSET(rsp, 96)
+	movaps		xmm13, MEM_OFFSET(rsp, 112)
+	movaps		xmm14, MEM_OFFSET(rsp, 128)
+	movaps		xmm15, MEM_OFFSET(rsp, 144)
 	add		rsp, 168
 #endif
 	ret
 
 NONEXEC_STACK
+
+END_MODULE

@@ -65,6 +65,7 @@ ASM_NAME(INT123_costab_x86_64):
 	DATA_LONG 1067924853
 	DATA_LONG 1060439283
 	DATA_LONG 0
+	END_RODATA
 	SECTION_TEXT
 	ALIGN16
 GLOBAL ASM_NAME(INT123_dct64_x86_64)
@@ -90,8 +91,8 @@ ASM_NAME(INT123_dct64_x86_64):
 	MOVUAPS 	xmm14, 16[ARG2]
 	MOVUAPS 	xmm0, 112[ARG2]
 	MOVUAPS 	xmm1, 96[ARG2]
-	shufps 		xmm0, xmm0, 0x1b
-	shufps 		xmm1, xmm1, 0x1b
+	shufps 		xmm0, xmm0, HEX(1b)
+	shufps 		xmm1, xmm1, HEX(1b)
 	movaps 		xmm8, xmm15
 	movaps		xmm9, xmm14
 	addps 		xmm8, xmm0
@@ -103,8 +104,8 @@ ASM_NAME(INT123_dct64_x86_64):
 	MOVUAPS 	xmm12, 48[ARG2]
 	MOVUAPS 	xmm0, 80[ARG2]
 	MOVUAPS 	xmm1, 64[ARG2]
-	shufps		xmm0, xmm0, 0x1b
-	shufps		xmm1, xmm1, 0x1b
+	shufps		xmm0, xmm0, HEX(1b)
+	shufps		xmm1, xmm1, HEX(1b)
 	movaps		xmm10, xmm13
 	movaps		xmm11, xmm12
 	addps		xmm10, xmm0
@@ -113,9 +114,9 @@ ASM_NAME(INT123_dct64_x86_64):
 	subps		xmm12, xmm1
 	
 	movaps		xmm0, [rcx]
-	movaps		xmm1, 16[rcx]
-	movaps		xmm2, 32[rcx]
-	movaps		xmm3, 48[rcx]
+	movaps		xmm1, [rcx+16]
+	movaps		xmm2, [rcx+32]
+	movaps		xmm3, [rcx+48]
 	mulps		xmm15, xmm0
 	mulps		xmm14, xmm1
 	mulps		xmm13, xmm2
@@ -124,10 +125,10 @@ ASM_NAME(INT123_dct64_x86_64):
 	movaps		xmm0, 64[rcx]
 	movaps		xmm1, 80[rcx]
 	
-	pshufd		xmm2, xmm11, 0x1b
-	pshufd		xmm3, xmm10, 0x1b
-	shufps		xmm13, xmm13, 0x1b
-	shufps		xmm12, xmm12, 0x1b
+	pshufd		xmm2, xmm11, HEX(1b)
+	pshufd		xmm3, xmm10, HEX(1b)
+	shufps		xmm13, xmm13, HEX(1b)
+	shufps		xmm12, xmm12, HEX(1b)
 	movaps		xmm11, xmm8
 	movaps		xmm10, xmm9
 	movaps		xmm4, xmm14
@@ -147,10 +148,10 @@ ASM_NAME(INT123_dct64_x86_64):
 	
 	movaps		xmm0, 96[rcx]
 	
-	pshufd		xmm1, xmm9, 0x1b
-	pshufd		xmm2, xmm13, 0x1b
-	shufps		xmm10, xmm10, 0x1b
-	shufps		xmm14, xmm14, 0x1b
+	pshufd		xmm1, xmm9, HEX(1b)
+	pshufd		xmm2, xmm13, HEX(1b)
+	shufps		xmm10, xmm10, HEX(1b)
+	shufps		xmm14, xmm14, HEX(1b)
 	movaps		xmm9, xmm8
 	movaps		xmm13, xmm12
 	movaps		xmm3, xmm11
@@ -174,10 +175,10 @@ ASM_NAME(INT123_dct64_x86_64):
 	
 	movaps		xmm2, xmm8
 	movaps		xmm3, xmm9
-	shufps		xmm2, xmm10, 0x44
-	shufps		xmm9, xmm11, 0xbb
-	shufps		xmm8, xmm10, 0xbb
-	shufps		xmm3, xmm11, 0x44
+	shufps		xmm2, xmm10, HEX(44)
+	shufps		xmm9, xmm11, HEX(bb)
+	shufps		xmm8, xmm10, HEX(bb)
+	shufps		xmm3, xmm11, HEX(44)
 	movaps		xmm4, xmm2
 	movaps		xmm5, xmm3
 	subps		xmm2, xmm8
@@ -188,17 +189,17 @@ ASM_NAME(INT123_dct64_x86_64):
 	mulps		xmm3, xmm1
 	movaps		xmm10, xmm8
 	movaps		xmm11, xmm9
-	shufps		xmm8, xmm2, 0x14
-	shufps		xmm10, xmm2, 0xbe
-	shufps		xmm9, xmm3, 0x14
-	shufps		xmm11, xmm3, 0xbe
+	shufps		xmm8, xmm2, HEX(14)
+	shufps		xmm10, xmm2, HEX(be)
+	shufps		xmm9, xmm3, HEX(14)
+	shufps		xmm11, xmm3, HEX(be)
 	
 	movaps		xmm2, xmm12
 	movaps		xmm3, xmm13
-	shufps		xmm2, xmm14, 0x44
-	shufps		xmm13, xmm15, 0xbb
-	shufps		xmm12, xmm14, 0xbb
-	shufps		xmm3, xmm15, 0x44
+	shufps		xmm2, xmm14, HEX(44)
+	shufps		xmm13, xmm15, HEX(bb)
+	shufps		xmm12, xmm14, HEX(bb)
+	shufps		xmm3, xmm15, HEX(44)
 	movaps		xmm4, xmm2
 	movaps		xmm5, xmm3
 	subps		xmm2, xmm12
@@ -209,12 +210,12 @@ ASM_NAME(INT123_dct64_x86_64):
 	mulps		xmm3, xmm1
 	movaps		xmm14, xmm12
 	movaps		xmm15, xmm13
-	shufps		xmm12, xmm2, 0x14
-	shufps		xmm14, xmm2, 0xbe
-	shufps		xmm13, xmm3, 0x14
-	shufps		xmm15, xmm3, 0xbe
+	shufps		xmm12, xmm2, HEX(14)
+	shufps		xmm14, xmm2, HEX(be)
+	shufps		xmm13, xmm3, HEX(14)
+	shufps		xmm15, xmm3, HEX(be)
 	
-	shufps		xmm0, xmm0, 0xaa
+	shufps		xmm0, xmm0, HEX(aa)
 	pcmpeqd		xmm1, xmm1
 	pslld		xmm1, 31
 	psllq		xmm1, 32
@@ -277,8 +278,8 @@ ASM_NAME(INT123_dct64_x86_64):
 	
 	xorps		xmm0, xmm0
 	xorps		xmm1, xmm1
-	shufpd		xmm0, xmm8, 0x2
-	shufpd		xmm1, xmm9, 0x2
+	shufpd		xmm0, xmm8, HEX(2)
+	shufpd		xmm1, xmm9, HEX(2)
 	psrlq		xmm0, 32
 	psrlq		xmm1, 32
 	addps		xmm8, xmm0
@@ -286,8 +287,8 @@ ASM_NAME(INT123_dct64_x86_64):
 	
 	xorps		xmm0, xmm0
 	xorps		xmm1, xmm1
-	shufpd		xmm0, xmm10, 0x2
-	shufpd		xmm1, xmm11, 0x2
+	shufpd		xmm0, xmm10, HEX(2)
+	shufpd		xmm1, xmm11, HEX(2)
 	psrlq		xmm0, 32
 	psrlq		xmm1, 32
 	addps		xmm10, xmm0
@@ -295,8 +296,8 @@ ASM_NAME(INT123_dct64_x86_64):
 	
 	xorps		xmm0, xmm0
 	xorps		xmm1, xmm1
-	shufpd		xmm0, xmm12, 0x2
-	shufpd		xmm1, xmm13, 0x2
+	shufpd		xmm0, xmm12, HEX(2)
+	shufpd		xmm1, xmm13, HEX(2)
 	psrlq		xmm0, 32
 	psrlq		xmm1, 32
 	addps		xmm12, xmm0
@@ -304,17 +305,17 @@ ASM_NAME(INT123_dct64_x86_64):
 	
 	xorps		xmm0, xmm0
 	xorps		xmm1, xmm1
-	shufpd		xmm0, xmm14, 0x2
-	shufpd		xmm1, xmm15, 0x2
+	shufpd		xmm0, xmm14, HEX(2)
+	shufpd		xmm1, xmm15, HEX(2)
 	psrlq		xmm0, 32
 	psrlq		xmm1, 32
 	addps		xmm14, xmm0
 	addps		xmm15, xmm1
 	
-	pshufd		xmm0, xmm9, 0x78
-	pshufd		xmm1, xmm11, 0x78
-	pshufd		xmm2, xmm13, 0x78
-	pshufd		xmm3, xmm15, 0x78
+	pshufd		xmm0, xmm9, HEX(78)
+	pshufd		xmm1, xmm11, HEX(78)
+	pshufd		xmm2, xmm13, HEX(78)
+	pshufd		xmm3, xmm15, HEX(78)
 	psrldq		xmm0, 4
 	psrldq		xmm1, 4
 	psrldq		xmm2, 4
@@ -324,8 +325,8 @@ ASM_NAME(INT123_dct64_x86_64):
 	addps		xmm13, xmm2
 	addps		xmm15, xmm3
 	
-	pshufd		xmm0, xmm10, 0x78
-	pshufd		xmm1, xmm14, 0x78
+	pshufd		xmm0, xmm10, HEX(78)
+	pshufd		xmm1, xmm14, HEX(78)
 	psrldq		xmm0, 4
 	psrldq		xmm1, 4
 	addps		xmm10, xmm11
@@ -361,8 +362,8 @@ ASM_NAME(INT123_dct64_x86_64):
 	mov		word ptr 64[ARG1], ax
 	mov		word ptr 192[ARG1], cx
 	
-	pshuflw		xmm2, xmm8, 0xee
-	pshuflw		xmm3, xmm9, 0xee
+	pshuflw		xmm2, xmm8, HEX(ee)
+	pshuflw		xmm3, xmm9, HEX(ee)
 	movd		eax, xmm2
 	movd		ecx, xmm3
 	mov		word ptr 256[ARG0], ax
@@ -372,8 +373,8 @@ ASM_NAME(INT123_dct64_x86_64):
 	mov		word ptr 256[ARG1], ax
 	mov		word ptr 384[ARG1], cx
 	
-	pshuflw		xmm0, xmm0, 0xee
-	pshuflw		xmm1, xmm1, 0xee
+	pshuflw		xmm0, xmm0, HEX(ee)
+	pshuflw		xmm1, xmm1, HEX(ee)
 	movd		eax, xmm0
 	movd		ecx, xmm1
 	mov		word ptr 192[ARG0], ax
@@ -387,7 +388,7 @@ ASM_NAME(INT123_dct64_x86_64):
 	movaps		xmm1, xmm13
 	movaps		xmm2, xmm14
 	movaps		xmm3, xmm15
-	shufps		xmm0, xmm0, 0x1e
+	shufps		xmm0, xmm0, HEX(1e)
 	pslldq		xmm0, 4
 	psrldq		xmm0, 4
 	addps		xmm12, xmm2
@@ -411,8 +412,8 @@ ASM_NAME(INT123_dct64_x86_64):
 	mov		word ptr 32[ARG1], ax
 	mov		word ptr 96[ARG1], cx
 	
-	pshuflw		xmm0, xmm12, 0xee
-	pshuflw		xmm1, xmm14, 0xee
+	pshuflw		xmm0, xmm12, HEX(ee)
+	pshuflw		xmm1, xmm14, HEX(ee)
 	movd		eax, xmm0
 	movd		ecx, xmm1
 	mov		word ptr 224[ARG0], ax
@@ -433,8 +434,8 @@ ASM_NAME(INT123_dct64_x86_64):
 	mov		word ptr 160[ARG1], ax
 	mov		word ptr 224[ARG1], cx
 	
-	pshuflw		xmm0, xmm0, 0xee
-	pshuflw		xmm1, xmm1, 0xee
+	pshuflw		xmm0, xmm0, HEX(ee)
+	pshuflw		xmm1, xmm1, HEX(ee)
 	movd		eax, xmm0
 	movd		ecx, xmm1
 	mov		word ptr 96[ARG0], ax
@@ -460,3 +461,5 @@ ASM_NAME(INT123_dct64_x86_64):
 	ret
 
 NONEXEC_STACK
+
+END_MODULE

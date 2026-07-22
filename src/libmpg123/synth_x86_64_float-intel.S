@@ -63,7 +63,7 @@ ASM_NAME(INT123_synth_1to1_real_x86_64_asm):
 	lea		rax, ASM_NAME(INT123_scale_x86_64) RIP_REL
 	movaps		XMMREG_SCALE, [rax]
 	
-	and		ARG3, 0xf
+	and		ARG3, HEX(f)
 	shl		ARG3, 2
 	lea		ARG0, 64[ARG0]
 	sub		ARG0, ARG3
@@ -143,7 +143,7 @@ loop1:
 	movups		xmm1, [ARG2]
 	movups		xmm2, 16[ARG2]
 	mulps		xmm0, XMMREG_SCALE
-	shufps		xmm1, xmm2, 0xdd
+	shufps		xmm1, xmm2, HEX(dd)
 	movaps		xmm2, xmm0
 	unpcklps	xmm0, xmm1
 	unpckhps	xmm2, xmm1
@@ -229,7 +229,7 @@ loop2:
 	movups		xmm1, [ARG2]
 	movups		xmm2, 16[ARG2]
 	mulps		xmm0, XMMREG_SCALE
-	shufps		xmm1, xmm2, 0xdd
+	shufps		xmm1, xmm2, HEX(dd)
 	movaps		xmm2, xmm0
 	unpcklps	xmm0, xmm1
 	unpckhps	xmm2, xmm1
@@ -255,3 +255,5 @@ loop2:
 	ret
 
 NONEXEC_STACK
+
+END_MODULE

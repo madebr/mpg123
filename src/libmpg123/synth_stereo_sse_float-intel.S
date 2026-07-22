@@ -415,3 +415,5 @@ ASM_NAME(INT123_synth_1to1_real_s_sse_asm):
 	ret
 
 NONEXEC_STACK
+
+END_MODULE

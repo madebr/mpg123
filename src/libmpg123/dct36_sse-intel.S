@@ -23,39 +23,39 @@
 	RODATA
 	ALIGN16
 dct36_sse_COS9:
-	DATA_LONG 0x3f5db3d7
-	DATA_LONG 0x3f5db3d7
-	DATA_LONG 0x3f000000
-	DATA_LONG 0x3f000000
-	DATA_LONG 0x3f7c1c5c
-	DATA_LONG 0x3f7c1c5c
-	DATA_LONG 0x3f708fb2
-	DATA_LONG 0x3f708fb2
-	DATA_LONG 0x3f248dbb
-	DATA_LONG 0x3f248dbb
-	DATA_LONG 0x3e31d0d4
-	DATA_LONG 0x3e31d0d4
-	DATA_LONG 0x3eaf1d44
-	DATA_LONG 0x3eaf1d44
-	DATA_LONG 0x3f441b7d
-	DATA_LONG 0x3f441b7d
+	DATA_LONG HEX(3f5db3d7)
+	DATA_LONG HEX(3f5db3d7)
+	DATA_LONG HEX(3f000000)
+	DATA_LONG HEX(3f000000)
+	DATA_LONG HEX(3f7c1c5c)
+	DATA_LONG HEX(3f7c1c5c)
+	DATA_LONG HEX(3f708fb2)
+	DATA_LONG HEX(3f708fb2)
+	DATA_LONG HEX(3f248dbb)
+	DATA_LONG HEX(3f248dbb)
+	DATA_LONG HEX(3e31d0d4)
+	DATA_LONG HEX(3e31d0d4)
+	DATA_LONG HEX(3eaf1d44)
+	DATA_LONG HEX(3eaf1d44)
+	DATA_LONG HEX(3f441b7d)
+	DATA_LONG HEX(3f441b7d)
 	ALIGN16
 dct36_sse_tfcos36:
-	DATA_LONG 0x3f007d2b
-	DATA_LONG 0x3f0483ee
-	DATA_LONG 0x3f0d3b7d
-	DATA_LONG 0x3f1c4257
-	DATA_LONG 0x40b79454
-	DATA_LONG 0x3ff746ea
-	DATA_LONG 0x3f976fd9
-	DATA_LONG 0x3f5f2944
-	DATA_LONG 0x3f3504f3
+	DATA_LONG HEX(3f007d2b)
+	DATA_LONG HEX(3f0483ee)
+	DATA_LONG HEX(3f0d3b7d)
+	DATA_LONG HEX(3f1c4257)
+	DATA_LONG HEX(40b79454)
+	DATA_LONG HEX(3ff746ea)
+	DATA_LONG HEX(3f976fd9)
+	DATA_LONG HEX(3f5f2944)
+	DATA_LONG HEX(3f3504f3)
 	ALIGN16
 dct36_sse_mask:
-	DATA_LONG 0,0xffffffff,0,0xffffffff
+	DATA_LONG 0,HEX(ffffffff),0,HEX(ffffffff)
 	ALIGN16
 dct36_sse_sign:
-	DATA_LONG 0x80000000,0x80000000,0x80000000,0x80000000
+	DATA_LONG HEX(80000000),HEX(80000000),HEX(80000000),HEX(80000000)
 	SECTION_TEXT
 	ALIGN16
 	GLOBAL ASM_NAME(INT123_dct36_sse)
@@ -83,21 +83,21 @@ ASM_NAME(INT123_dct36_sse):
 	movups		xmm2, 16[in]
 	movups		xmm1, [in]
 	movaps		xmm6, xmm5
-	shufps		xmm6, xmm6, 0xe1
+	shufps		xmm6, xmm6, HEX(e1)
 	movaps		xmm7, xmm4
-	shufps		xmm7, xmm7, 0x93
+	shufps		xmm7, xmm7, HEX(93)
 	movss		xmm6, xmm7
 	addps		xmm5, xmm6
 	movaps		xmm6, xmm3
-	shufps		xmm6, xmm6, 0x93
+	shufps		xmm6, xmm6, HEX(93)
 	movss		xmm7, xmm6
 	addps		xmm4, xmm7
 	movaps		xmm7, xmm2
-	shufps		xmm7, xmm7, 0x93
+	shufps		xmm7, xmm7, HEX(93)
 	movss		xmm6, xmm7
 	addps		xmm3, xmm6
 	movaps		xmm6, xmm1
-	shufps		xmm6, xmm6, 0x93
+	shufps		xmm6, xmm6, HEX(93)
 	movss		xmm7, xmm6
 	addps		xmm2, xmm7
 	movss		xmm6, xmm0
@@ -105,17 +105,17 @@ ASM_NAME(INT123_dct36_sse):
 	
 	movaps		xmm0, LOCAL_VAR[dct36_sse_mask]
 	movaps		xmm6, xmm4
-	shufps		xmm4, xmm5, 0x4e
+	shufps		xmm4, xmm5, HEX(4e)
 	movaps		xmm7, xmm3
-	shufps		xmm3, xmm6, 0x4e
+	shufps		xmm3, xmm6, HEX(4e)
 	andps		xmm6, xmm0
 	addps		xmm4, xmm6
 	movaps		xmm6, xmm2
-	shufps		xmm2, xmm7, 0x4e
+	shufps		xmm2, xmm7, HEX(4e)
 	andps		xmm7, xmm0
 	addps		xmm3, xmm7
 	movaps		xmm7, xmm1
-	shufps		xmm1, xmm6, 0x4e
+	shufps		xmm1, xmm6, HEX(4e)
 	andps		xmm6, xmm0
 	addps		xmm2, xmm6
 	movaps		xmm6, xmm7
@@ -133,9 +133,9 @@ xmm4 in[14,15,16,17]
 */
 
 	movaps		xmm5, xmm2
-	shufps		xmm5, xmm3, 0xe4
-	shufps		xmm3, xmm4, 0xe4
-	shufps		xmm4, xmm2, 0xe4
+	shufps		xmm5, xmm3, HEX(e4)
+	shufps		xmm3, xmm4, HEX(e4)
+	shufps		xmm4, xmm2, HEX(e4)
 	movaps		xmm2, xmm5
 
 /*
@@ -159,7 +159,7 @@ xmm5 [ta33,tb33,ta66,tb66]
 	subps		xmm6, xmm3
 	subps		xmm6, xmm4
 	xorps		xmm7, xmm7
-	shufps		xmm7, xmm2, 0xe0
+	shufps		xmm7, xmm2, HEX(e0)
 	mulps		xmm6, [eax]
 	subps		xmm0, xmm7
 	addps		xmm6, xmm0
@@ -204,7 +204,7 @@ xmm5 [ta33,tb33,ta66,tb66]
 	subps		xmm4, 16[tmp]
 	addps		xmm0, xmm3
 	addps		xmm0, xmm4
-	shufps		xmm0, xmm0, 0xaf
+	shufps		xmm0, xmm0, HEX(af)
 	mulss		xmm0, xmm5
 	movaps		[tmp], xmm0
 	
@@ -278,10 +278,10 @@ xmm7 tmp[9,10,11,12]
 	movaps		xmm1, xmm5
 	movups		xmm2, 108[w]
 	movups		xmm3, 92[w]
-	shufps		xmm3, xmm3, 0x1b
+	shufps		xmm3, xmm3, HEX(1b)
 	movups		xmm4, 36[w]
 	movups		xmm5, 20[w]
-	shufps		xmm5, xmm5, 0x1b
+	shufps		xmm5, xmm5, HEX(1b)
 	movaps		xmm6, xmm0
 	addps		xmm0, xmm1
 	subps		xmm6, xmm1
@@ -291,10 +291,10 @@ xmm7 tmp[9,10,11,12]
 	mulps		xmm6, xmm5
 	movups		xmm1, 36[out1]
 	movups		xmm3, 20[out1]
-	shufps		xmm6, xmm6, 0x1b
+	shufps		xmm6, xmm6, HEX(1b)
 	addps		xmm1, xmm4
 	addps		xmm3, xmm6
-	shufps		xmm0, xmm0, 0x1b
+	shufps		xmm0, xmm0, HEX(1b)
 	movups		36[out2], xmm2
 	movups		20[out2], xmm0
 	movss		32*36[ts], xmm1
@@ -303,8 +303,8 @@ xmm7 tmp[9,10,11,12]
 	movhlps		xmm4, xmm3
 	movss		32*44[ts], xmm2
 	movss		32*28[ts], xmm4
-	shufps		xmm1, xmm1, 0xb1
-	shufps		xmm3, xmm3, 0xb1
+	shufps		xmm1, xmm1, HEX(b1)
+	shufps		xmm3, xmm3, HEX(b1)
 	movss		32*40[ts], xmm1
 	movss		32*24[ts], xmm3
 	movhlps		xmm2, xmm1
@@ -336,11 +336,11 @@ xmm7 tmp[9,10,11,12]
 	movaps		xmm1, xmm7
 	MOVUAPS		xmm2, 128[w]
 	movups		xmm3, 72[w]
-	shufps		xmm2, xmm2, 0x1b
+	shufps		xmm2, xmm2, HEX(1b)
 	movlps		xmm4, 56[w]
 	movhps		xmm4, 64[w]
 	MOVUAPS		xmm5, [w]
-	shufps		xmm4, xmm4, 0x1b
+	shufps		xmm4, xmm4, HEX(1b)
 	movaps		xmm6, xmm0
 	addps		xmm0, xmm1
 	subps		xmm6, xmm1
@@ -351,10 +351,10 @@ xmm7 tmp[9,10,11,12]
 	movlps		xmm1, 56[out1]
 	movhps		xmm1, 64[out1]
 	movups		xmm3, [out1]
-	shufps		xmm4, xmm4, 0x1b
+	shufps		xmm4, xmm4, HEX(1b)
 	addps		xmm3, xmm6
 	addps		xmm1, xmm4
-	shufps		xmm2, xmm2, 0x1b
+	shufps		xmm2, xmm2, HEX(1b)
 	movups		[out2], xmm0
 	movlps		56[out2], xmm2
 	movhps		64[out2], xmm2
@@ -364,8 +364,8 @@ xmm7 tmp[9,10,11,12]
 	movhlps		xmm4, xmm3
 	movss		32*64[ts], xmm2
 	movss		32*8[ts], xmm4
-	shufps		xmm1, xmm1, 0xb1
-	shufps		xmm3, xmm3, 0xb1
+	shufps		xmm1, xmm1, HEX(b1)
+	shufps		xmm3, xmm3, HEX(b1)
 	movss		32*60[ts], xmm1
 	movss		32*4[ts], xmm3
 	movhlps		xmm2, xmm1
@@ -382,3 +382,5 @@ xmm7 tmp[9,10,11,12]
 	ret
 
 NONEXEC_STACK
+
+END_MODULE

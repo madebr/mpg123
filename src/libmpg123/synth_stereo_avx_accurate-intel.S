@@ -150,19 +150,19 @@ loop1:
 	vunpckhpd	ymm1, ymm2, ymm3
 	vsubps		ymm0, ymm4, ymm0
 	vsubps		ymm1, ymm5, ymm1
-	vperm2f128	ymm2, ymm0, ymm1, 0x20
-	vperm2f128	ymm3, ymm0, ymm1, 0x31
+	vperm2f128	ymm2, ymm0, ymm1, HEX(20)
+	vperm2f128	ymm3, ymm0, ymm1, HEX(31)
 	vaddps		ymm0, ymm2, ymm3
-	vcmpnleps	ymm1, ymm0, RIP_REL_F(maxmin_avx)
-	vcmpltps	ymm2, ymm0,  RIP_REL_ADD_F(maxmin_avx, 32)
-	vextractf128	xmm3, ymm1, 0x1
-	vextractf128	xmm4, ymm2, 0x1
+	vcmpnleps	ymm1, ymm0, YMMWORD_PTR RIP_REL_F(maxmin_avx)
+	vcmpltps	ymm2, ymm0, YMMWORD_PTR RIP_REL_ADD_F(maxmin_avx, 32)
+	vextractf128	xmm3, ymm1, HEX(1)
+	vextractf128	xmm4, ymm2, HEX(1)
 	vpackssdw	xmm1, xmm1, xmm2
 	vpackssdw	xmm3, xmm3, xmm4
 	vpaddw		xmm1, xmm1, xmm3
 	vpaddw		xmm14, xmm14, xmm1
 	vcvtps2dq	ymm0, ymm0
-	vextractf128	xmm1, ymm0, 0x1
+	vextractf128	xmm1, ymm0, HEX(1)
 	vpackssdw	xmm0, xmm0, xmm1
 	
 	vmovups		[SAMPLES], xmm0
@@ -233,19 +233,19 @@ loop2:
 	vunpckhpd	ymm1, ymm2, ymm3
 	vaddps		ymm0, ymm4, ymm0
 	vaddps		ymm1, ymm5, ymm1
-	vperm2f128	ymm2, ymm0, ymm1, 0x20
-	vperm2f128	ymm3, ymm0, ymm1, 0x31
+	vperm2f128	ymm2, ymm0, ymm1, HEX(20)
+	vperm2f128	ymm3, ymm0, ymm1, HEX(31)
 	vaddps		ymm0, ymm2, ymm3
-	vcmpnleps	ymm1, ymm0, RIP_REL_F(maxmin_avx)
-	vcmpltps	ymm2, ymm0, RIP_REL_ADD_F(maxmin_avx, 32)
-	vextractf128	xmm3, ymm1, 0x1
-	vextractf128	xmm4, ymm2, 0x1
+	vcmpnleps	ymm1, ymm0, YMMWORD_PTR RIP_REL_F(maxmin_avx)
+	vcmpltps	ymm2, ymm0, YMMWORD_PTR RIP_REL_ADD_F(maxmin_avx, 32)
+	vextractf128	xmm3, ymm1, HEX(1)
+	vextractf128	xmm4, ymm2, HEX(1)
 	vpackssdw	xmm1, xmm1, xmm2
 	vpackssdw	xmm3, xmm3, xmm4
 	vpaddw		xmm1, xmm1, xmm3
 	vpaddw		xmm14, xmm14, xmm1
 	vcvtps2dq	ymm0, ymm0
-	vextractf128	xmm1, ymm0, 0x1
+	vextractf128	xmm1, ymm0, HEX(1)
 	vpackssdw	xmm0, xmm0, xmm1
 	
 	vmovups		[SAMPLES], xmm0
@@ -257,14 +257,14 @@ loop2:
 	
 	pxor		xmm1, xmm1
 	psubw		xmm1, xmm14
-	pshufd		xmm0, xmm1, 0x4e
+	pshufd		xmm0, xmm1, HEX(4e)
 	paddw		xmm0, xmm1
-	pshuflw		xmm1, xmm0, 0x4e
+	pshuflw		xmm1, xmm0, HEX(4e)
 	paddw		xmm0, xmm1
-	pshuflw		xmm1, xmm0, 0x11
+	pshuflw		xmm1, xmm0, HEX(11)
 	paddw		xmm0, xmm1
 	movd		eax, xmm0
-	and			eax, 0x7f
+	and			eax, HEX(7f)
 	
 #ifdef IS_MSABI
 	movaps		xmm6, [rsp]
@@ -282,3 +282,5 @@ loop2:
 	ret
 
 NONEXEC_STACK
+
+END_MODULE

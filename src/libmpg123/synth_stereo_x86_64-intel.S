@@ -33,7 +33,7 @@
 #define XMMREG_CLIP xmm15
 #define XMMREG_MAX xmm14 /* {32767, 32767, 32767, 32767} */
 #define XMMREG_MIN xmm13 /* {-32769, -32769, -32769, -32769} : not -32768 because SSE doesn't have "less than" comparison... */
-#define XMMREG_FULL xmm12 /* {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF} */
+#define XMMREG_FULL xmm12 /* {HEX(FFFFFFFF), HEX(FFFFFFFF), HEX(FFFFFFFF), HEX(FFFFFFFF)} */
 
 /*
 	int synth_1to1_s_x86_64_asm(short *window, short *b0l, short *b0r, short *samples, int bo1);
@@ -305,15 +305,15 @@ ASM_NAME(INT123_synth_1to1_s_x86_64_asm):
 	
 	movhlps		xmm0, XMMREG_CLIP
 	paddw		xmm0, XMMREG_CLIP
-	pshuflw		xmm1, xmm0, 0x55
-	pshuflw		xmm2, xmm0, 0xaa
-	pshuflw		xmm3, xmm0, 0xff
+	pshuflw		xmm1, xmm0, HEX(55)
+	pshuflw		xmm2, xmm0, HEX(aa)
+	pshuflw		xmm3, xmm0, HEX(ff)
 	paddw		xmm0, xmm1
 	paddw		xmm0, xmm2
 	paddw		xmm0, xmm3
 	
 	movd		eax, xmm0
-	and		eax, 0xffff
+	and		eax, HEX(ffff)
 	
 #ifdef IS_MSABI
 	movaps		xmm6, [rsp]
@@ -331,3 +331,5 @@ ASM_NAME(INT123_synth_1to1_s_x86_64_asm):
 	ret
 
 NONEXEC_STACK
+
+END_MODULE

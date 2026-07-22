@@ -11,8 +11,33 @@
 #define RIP_REL_ADD_F(ADDR, ADD) [rel ADDR + ADD]
 #define DWORD_PTR dword
 #define QWORD_PTR qword
+#define XMMWORD_PTR
+#define YMMWORD_PTR
 #define COMMENT ;
+#define END_MODULE
+#define HEX(V) 0x##V
+#define MEM_OFFSET(B,O) O[B]
 default rel
+#elif defined(MASM_ASSEMBLER)
+option casemap:none
+#define DATA_LONG dd
+#define DATA_SHORT dw
+#define DATA_BYTE db
+#define SECTION section
+#define SECTION_TEXT .code
+#define ALIGN align
+#define GLOBAL PUBLIC
+#define RIP_REL
+#define RIP_REL_F(ADDR) [ADDR]
+#define RIP_REL_ADD_F(ADDR, ADD) [ADDR + ADD]
+#define DWORD_PTR dword ptr
+#define QWORD_PTR qword ptr
+#define XMMWORD_PTR xmmword ptr
+#define YMMWORD_PTR ymmword ptr
+#define COMMENT ;
+#define END_MODULE end
+#define HEX(V) 0##V##h
+#define MEM_OFFSET(B,O) [B+O]
 
 #else
 #define DATA_LONG .long
@@ -27,7 +52,12 @@ default rel
 #define RIP_REL_ADD_F(ADDR, ADD) ADD+ADDR[rip]
 #define DWORD_PTR dword ptr
 #define QWORD_PTR qword ptr
+#define XMMWORD_PTR
+#define YMMWORD_PTR
 #define COMMENT #
+#define END_MODULE
+#define HEX(V) 0x##V
+#define MEM_OFFSET(B,O) O[B]
 
 .intel_syntax noprefix
 #endif

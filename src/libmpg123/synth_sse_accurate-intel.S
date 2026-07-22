@@ -136,8 +136,8 @@ ASM_NAME(INT123_synth_1to1_sse_accurate_asm):
 	
 	movaps		xmm1, xmm0
 	movaps		xmm2, xmm0
-	pshufw		mm2, [SAMPLES], 0xdd
-	pshufw		mm3, 8[SAMPLES], 0xdd
+	pshufw		mm2, [SAMPLES], HEX(dd)
+	pshufw		mm3, 8[SAMPLES], HEX(dd)
 	cmpnleps	xmm1, LOCAL_VAR[maxmin_s16]
 	cmpltps		xmm2, 16+LOCAL_VAR[maxmin_s16]
 	cvtps2pi	mm0, xmm0
@@ -245,8 +245,8 @@ ASM_NAME(INT123_synth_1to1_sse_accurate_asm):
 	
 	movaps		xmm1, xmm0
 	movaps		xmm2, xmm0
-	pshufw		mm2, [SAMPLES], 0xdd
-	pshufw		mm3, 8[SAMPLES], 0xdd
+	pshufw		mm2, [SAMPLES], HEX(dd)
+	pshufw		mm3, 8[SAMPLES], HEX(dd)
 	cmpnleps	xmm1, LOCAL_VAR[maxmin_s16]
 	cmpltps		xmm2, 16+LOCAL_VAR[maxmin_s16]
 	cvtps2pi	mm0, xmm0
@@ -276,12 +276,12 @@ ASM_NAME(INT123_synth_1to1_sse_accurate_asm):
 	dec		ecx
 	jnz			1b
 	
-	pshufw		mm0, MMREG_CLIP, 0xee
+	pshufw		mm0, MMREG_CLIP, HEX(ee)
 	paddw		mm0, MMREG_CLIP
-	pshufw		mm1, mm0, 0x55
+	pshufw		mm1, mm0, HEX(55)
 	paddw		mm0, mm1
 	movd		eax, mm0
-	and		eax, 0xffff
+	and		eax, HEX(ffff)
 
 	pop		esi
 	pop		ebx
@@ -293,3 +293,6 @@ ASM_NAME(INT123_synth_1to1_sse_accurate_asm):
 	ret
 
 NONEXEC_STACK
+
+END_MODULE
+

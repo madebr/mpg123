@@ -421,15 +421,15 @@ loop2:
 	movaps		xmm4, TEMP_CLIP
 	movhlps		xmm0, xmm4
 	paddw		xmm0, xmm4
-	pshuflw		xmm1, xmm0, 0x55
-	pshuflw		xmm2, xmm0, 0xaa
-	pshuflw		xmm3, xmm0, 0xff
+	pshuflw		xmm1, xmm0, HEX(55)
+	pshuflw		xmm2, xmm0, HEX(aa)
+	pshuflw		xmm3, xmm0, HEX(ff)
 	paddw		xmm0, xmm1
 	paddw		xmm0, xmm2
 	paddw		xmm0, xmm3
 	
 	movd		eax, xmm0
-	and		eax, 0xffff
+	and		eax, HEX(ffff)
 	
 #ifdef IS_MSABI
 	movaps		xmm6, 16[rsp]
@@ -450,3 +450,5 @@ loop2:
 	ret
 
 NONEXEC_STACK
+
+END_MODULE

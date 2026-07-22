@@ -392,3 +392,5 @@ loop2:
 	ret
 
 NONEXEC_STACK
+
+END_MODULE

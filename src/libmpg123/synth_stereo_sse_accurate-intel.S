@@ -489,12 +489,12 @@ ASM_NAME(INT123_synth_1to1_s_sse_accurate_asm):
 	dec		ecx
 	jnz			1b
 	
-	pshufw		mm0, MMREG_CLIP, 0xee
+	pshufw		mm0, MMREG_CLIP, HEX(ee)
 	paddw		mm0, MMREG_CLIP
-	pshufw		mm1, mm0, 0x55
+	pshufw		mm1, mm0, HEX(55)
 	paddw		mm0, mm1
 	movd		eax, mm0
-	and		eax, 0xffff
+	and		eax, HEX(ffff)
 	
 	pop		edi
 	pop		esi
@@ -507,3 +507,5 @@ ASM_NAME(INT123_synth_1to1_s_sse_accurate_asm):
 	ret
 
 NONEXEC_STACK
+
+END_MODULE

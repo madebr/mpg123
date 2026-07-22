@@ -33,7 +33,7 @@
 #define XMMREG_CLIP xmm15
 #define XMMREG_MAX xmm14 /* {32767, 32767, 32767, 32767} */
 #define XMMREG_MIN xmm13 /* {-32769, -32769, -32769, -32769} : not -32768 because SSE doesn't have "less than" comparison... */
-#define XMMREG_FULL xmm12 /* {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF} */
+#define XMMREG_FULL xmm12 /* {HEX(FFFFFFFF), HEX(FFFFFFFF), HEX(FFFFFFFF), HEX(FFFFFFFF)} */
 
 /*
 	int synth_1to1_x86_64_asm(short *window, short *b0, short *samples, int bo1);
@@ -72,7 +72,7 @@ ASM_NAME(INT123_synth_1to1_x86_64_asm):
 	pxor		XMMREG_CLIP, XMMREG_CLIP
 	pcmpeqd		XMMREG_FULL, XMMREG_FULL
 	
-	and		ARG3, 0xf
+	and		ARG3, HEX(f)
 	shl		ARG3, 1
 	lea		ARG0, qword ptr 32[ARG0]
 	sub		ARG0, ARG3
@@ -127,8 +127,8 @@ ASM_NAME(INT123_synth_1to1_x86_64_asm):
 	pcmpgtd		xmm1, XMMREG_MAX
 	pcmpgtd		xmm2, XMMREG_MIN
 	movhlps		xmm4, xmm3
-	pshuflw		xmm3, xmm3, 0xdd
-	pshuflw		xmm4, xmm4, 0xdd
+	pshuflw		xmm3, xmm3, HEX(dd)
+	pshuflw		xmm4, xmm4, HEX(dd)
 	psrlq		xmm3, 32
 	psllq		xmm4, 32
 	por			xmm3, xmm4
@@ -198,8 +198,8 @@ ASM_NAME(INT123_synth_1to1_x86_64_asm):
 	pcmpgtd		xmm1, XMMREG_MAX
 	pcmpgtd		xmm2, XMMREG_MIN
 	movhlps		xmm4, xmm3
-	pshuflw		xmm3, xmm3, 0xdd
-	pshuflw		xmm4, xmm4, 0xdd
+	pshuflw		xmm3, xmm3, HEX(dd)
+	pshuflw		xmm4, xmm4, HEX(dd)
 	psrlq		xmm3, 32
 	psllq		xmm4, 32
 	por			xmm3, xmm4
@@ -219,9 +219,9 @@ ASM_NAME(INT123_synth_1to1_x86_64_asm):
 	dec		ecx
 	jnz			1b
 	
-	pshuflw		xmm0, XMMREG_CLIP, 0xee
+	pshuflw		xmm0, XMMREG_CLIP, HEX(ee)
 	movhlps		xmm1, XMMREG_CLIP
-	pshuflw		xmm2, xmm1, 0xee
+	pshuflw		xmm2, xmm1, HEX(ee)
 	paddd		XMMREG_CLIP, xmm0
 	paddd		XMMREG_CLIP, xmm1
 	paddd		XMMREG_CLIP, xmm2
@@ -240,3 +240,5 @@ ASM_NAME(INT123_synth_1to1_x86_64_asm):
 	ret
 
 NONEXEC_STACK
+
+END_MODULE

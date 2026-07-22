@@ -26,28 +26,28 @@ ASM_NAME(INT123_getcpuflags):
 	mov	DWORD_PTR 12[rdi], 0
 	mov	DWORD_PTR 16[rdi], 0
 
-	mov		eax, 0x80000000
+	mov		eax, HEX(80000000)
 	cpuid
-	cmp		eax, 0x80000001
+	cmp		eax, HEX(80000001)
 	jb		cpu_features
-	mov		eax, 0x80000001
+	mov		eax, HEX(80000001)
 	cpuid
 	mov	12[rdi], edx
 cpu_features:
-	mov		eax, 0x00000001
+	mov		eax, HEX(00000001)
 	cpuid
 	mov	[rdi], eax
 	mov	4[rdi], ecx
 	mov	8[rdi], edx
-	test	ecx, 0x04000000
-	jz		end
-	test	ecx, 0x08000000
-	jz		end
+	test	ecx, HEX(04000000)
+	jz		end_cpuflags
+	test	ecx, HEX(08000000)
+	jz		end_cpuflags
 	xor		ecx, ecx
-	DATA_BYTE	0x0f, 0x01, 0xd0 /* xgetbv instruction */
+	DATA_BYTE	HEX(0f), HEX(01), HEX(d0) /* xgetbv instruction */
 	mov	16[rdi], eax
 	mov	eax, [rdi]
-end:
+end_cpuflags:
 #ifdef IS_MSABI
 	pop		rdi
 #endif
@@ -57,3 +57,5 @@ end:
 	ret
 	
 NONEXEC_STACK
+
+END_MODULE

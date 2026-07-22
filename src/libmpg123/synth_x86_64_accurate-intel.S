@@ -74,7 +74,7 @@ ASM_NAME(INT123_synth_1to1_x86_64_accurate_asm):
 	
 	xorps		XMMREG_CLIP, XMMREG_CLIP
 	
-	and		ARG3, 0xf
+	and		ARG3, HEX(f)
 	shl		ARG3, 2
 	lea		ARG0, 64[ARG0]
 	sub		ARG0, ARG3
@@ -159,8 +159,8 @@ loop1:
 	cvtps2dq	xmm0, xmm0
 	packssdw	xmm0, xmm0
 	movhlps		xmm4, xmm3
-	pshuflw		xmm3, xmm3, 0xdd
-	pshuflw		xmm4, xmm4, 0xdd
+	pshuflw		xmm3, xmm3, HEX(dd)
+	pshuflw		xmm4, xmm4, HEX(dd)
 	psrlq		xmm3, 32
 	psllq		xmm4, 32
 	por			xmm3, xmm4
@@ -256,8 +256,8 @@ loop2:
 	cvtps2dq	xmm0, xmm0
 	packssdw	xmm0, xmm0
 	movhlps		xmm4, xmm3
-	pshuflw		xmm3, xmm3, 0xdd
-	pshuflw		xmm4, xmm4, 0xdd
+	pshuflw		xmm3, xmm3, HEX(dd)
+	pshuflw		xmm4, xmm4, HEX(dd)
 	psrlq		xmm3, 32
 	psllq		xmm4, 32
 	por			xmm3, xmm4
@@ -273,9 +273,9 @@ loop2:
 	dec		ecx
 	jnz			loop2
 	
-	pshuflw		xmm0, XMMREG_CLIP, 0xee
+	pshuflw		xmm0, XMMREG_CLIP, HEX(ee)
 	movhlps		xmm1, XMMREG_CLIP
-	pshuflw		xmm2, xmm1, 0xee
+	pshuflw		xmm2, xmm1, HEX(ee)
 	paddd		XMMREG_CLIP, xmm0
 	paddd		XMMREG_CLIP, xmm1
 	paddd		XMMREG_CLIP, xmm2
@@ -297,3 +297,5 @@ loop2:
 	ret
 
 NONEXEC_STACK
+
+END_MODULE

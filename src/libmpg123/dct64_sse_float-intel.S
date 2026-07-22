@@ -50,8 +50,8 @@ ASM_NAME(INT123_dct64_real_sse):
 	MOVUAPS 	xmm6, 16[eax]
 	MOVUAPS 	xmm0, 112[eax]
 	MOVUAPS 	xmm1, 96[eax]
-	shufps 		xmm0, xmm0, 0x1b
-	shufps 		xmm1, xmm1, 0x1b
+	shufps 		xmm0, xmm0, HEX(1b)
+	shufps 		xmm1, xmm1, HEX(1b)
 	movaps 		xmm4, xmm7
 	movaps		xmm5, xmm6
 	addps 		xmm4, xmm0
@@ -65,8 +65,8 @@ ASM_NAME(INT123_dct64_real_sse):
 	MOVUAPS 	xmm3, 48[eax]
 	MOVUAPS 	xmm0, 80[eax]
 	MOVUAPS 	xmm1, 64[eax]
-	shufps 		xmm0, xmm0, 0x1b
-	shufps 		xmm1, xmm1, 0x1b
+	shufps 		xmm0, xmm0, HEX(1b)
+	shufps 		xmm1, xmm1, HEX(1b)
 	movaps 		xmm5, xmm2
 	movaps		xmm4, xmm3
 	addps 		xmm2, xmm0
@@ -84,10 +84,10 @@ ASM_NAME(INT123_dct64_real_sse):
 	mulps		xmm5, 32[eax]
 	mulps		xmm4, 48[eax]
 	
-	shufps		xmm2, xmm2, 0x1b
-	shufps		xmm3, xmm3, 0x1b
-	shufps		xmm4, xmm4, 0x1b
-	shufps		xmm5, xmm5, 0x1b
+	shufps		xmm2, xmm2, HEX(1b)
+	shufps		xmm3, xmm3, HEX(1b)
+	shufps		xmm4, xmm4, HEX(1b)
+	shufps		xmm5, xmm5, HEX(1b)
 	movaps		xmm0, TEMP[0]
 	movaps		xmm1, TEMP[1]
 	subps		xmm0, xmm3
@@ -109,10 +109,10 @@ ASM_NAME(INT123_dct64_real_sse):
 	
 	movaps		xmm2, TEMP[0]
 	movaps		xmm3, TEMP[1]
-	shufps		xmm3, xmm3, 0x1b
-	shufps		xmm5, xmm5, 0x1b
-	shufps		xmm1, xmm1, 0x1b
-	shufps		xmm6, xmm6, 0x1b
+	shufps		xmm3, xmm3, HEX(1b)
+	shufps		xmm5, xmm5, HEX(1b)
+	shufps		xmm1, xmm1, HEX(1b)
+	shufps		xmm6, xmm6, HEX(1b)
 	movaps		TEMP[1], xmm0
 	subps		xmm2, xmm3
 	subps		xmm0, xmm1
@@ -136,10 +136,10 @@ ASM_NAME(INT123_dct64_real_sse):
 	
 	movaps		xmm2, xmm4
 	movaps		xmm3, xmm5
-	shufps		xmm2, xmm6, 0x44
-	shufps		xmm5, xmm7, 0xbb
-	shufps		xmm4, xmm6, 0xbb
-	shufps		xmm3, xmm7, 0x44
+	shufps		xmm2, xmm6, HEX(44)
+	shufps		xmm5, xmm7, HEX(bb)
+	shufps		xmm4, xmm6, HEX(bb)
+	shufps		xmm3, xmm7, HEX(44)
 	movaps		xmm6, xmm2
 	movaps		xmm7, xmm3
 	subps		xmm2, xmm4
@@ -153,10 +153,10 @@ ASM_NAME(INT123_dct64_real_sse):
 	movaps		TEMP[4], xmm0
 	movaps		xmm6, xmm4
 	movaps		xmm7, xmm5
-	shufps		xmm4, xmm2, 0x14
-	shufps		xmm6, xmm2, 0xbe
-	shufps		xmm5, xmm3, 0x14
-	shufps		xmm7, xmm3, 0xbe
+	shufps		xmm4, xmm2, HEX(14)
+	shufps		xmm6, xmm2, HEX(be)
+	shufps		xmm5, xmm3, HEX(14)
+	shufps		xmm7, xmm3, HEX(be)
 	movaps		TEMP[5], xmm5
 	movaps		TEMP[7], xmm7
 	
@@ -164,10 +164,10 @@ ASM_NAME(INT123_dct64_real_sse):
 	movaps		xmm1, TEMP[1]
 	movaps		xmm2, xmm0
 	movaps		xmm3, xmm1
-	shufps		xmm2, TEMP[2], 0x44
-	shufps		xmm1, TEMP[3], 0xbb
-	shufps		xmm0, TEMP[2], 0xbb
-	shufps		xmm3, TEMP[3], 0x44
+	shufps		xmm2, TEMP[2], HEX(44)
+	shufps		xmm1, TEMP[3], HEX(bb)
+	shufps		xmm0, TEMP[2], HEX(bb)
+	shufps		xmm3, TEMP[3], HEX(44)
 	movaps		xmm5, xmm2
 	movaps		xmm7, xmm3
 	subps		xmm2, xmm0
@@ -178,10 +178,10 @@ ASM_NAME(INT123_dct64_real_sse):
 	mulps		xmm3, TEMP[4]
 	movaps		xmm5, xmm0
 	movaps		xmm7, xmm1
-	shufps		xmm0, xmm2, 0x14
-	shufps		xmm5, xmm2, 0xbe
-	shufps		xmm1, xmm3, 0x14
-	shufps		xmm7, xmm3, 0xbe
+	shufps		xmm0, xmm2, HEX(14)
+	shufps		xmm5, xmm2, HEX(be)
+	shufps		xmm1, xmm3, HEX(14)
+	shufps		xmm7, xmm3, HEX(be)
 	
 	movaps		TEMP[0], xmm0
 	movaps		TEMP[1], xmm1
@@ -189,7 +189,7 @@ ASM_NAME(INT123_dct64_real_sse):
 	movaps		TEMP[3], xmm7
 	
 	movss		xmm5, 120[eax]
-	shufps		xmm5, xmm5, 0x00
+	shufps		xmm5, xmm5, HEX(00)
 	xorps		xmm5, LOCAL_VAR[pnpn]
 	
 	movaps		xmm0, xmm4
@@ -292,10 +292,10 @@ ASM_NAME(INT123_dct64_real_sse):
 	movaps		xmm2, xmm3
 	movaps		xmm4, xmm5
 	movaps		xmm6, xmm7
-	shufps		xmm0, xmm0, 0x1e
-	shufps		xmm2, xmm2, 0x1e
-	shufps		xmm4, xmm4, 0x1e
-	shufps		xmm6, xmm6, 0x1e
+	shufps		xmm0, xmm0, HEX(1e)
+	shufps		xmm2, xmm2, HEX(1e)
+	shufps		xmm4, xmm4, HEX(1e)
+	shufps		xmm6, xmm6, HEX(1e)
 	lea			eax, LOCAL_VAR[mask]
 	andps		xmm0, [eax]
 	andps		xmm2, [eax]
@@ -310,8 +310,8 @@ ASM_NAME(INT123_dct64_real_sse):
 	movaps		xmm6, TEMP_BYTE[96]
 	movaps		xmm0, xmm2
 	movaps		xmm4, xmm6
-	shufps		xmm0, xmm0, 0x1e
-	shufps		xmm4, xmm4, 0x1e
+	shufps		xmm0, xmm0, HEX(1e)
+	shufps		xmm4, xmm4, HEX(1e)
 	andps		xmm0, [eax]
 	andps		xmm4, [eax]
 	addps		xmm2, xmm3
@@ -330,10 +330,10 @@ ASM_NAME(INT123_dct64_real_sse):
 	movss		768[ecx], xmm1
 	movss		640[ecx], xmm3
 	
-	shufps		xmm0, xmm0, 0xe1
-	shufps		xmm2, xmm2, 0xe1
-	shufps		xmm1, xmm1, 0xe1
-	shufps		xmm3, xmm3, 0xe1
+	shufps		xmm0, xmm0, HEX(e1)
+	shufps		xmm2, xmm2, HEX(e1)
+	shufps		xmm1, xmm1, HEX(e1)
+	shufps		xmm3, xmm3, HEX(e1)
 	movss		[ecx], xmm0
 	movss		[ebx], xmm0
 	movss		128[ebx], xmm2
@@ -349,17 +349,17 @@ ASM_NAME(INT123_dct64_real_sse):
 	movss		256[ecx], xmm1
 	movss		128[ecx], xmm3
 	
-	shufps		xmm0, xmm0, 0xe1
-	shufps		xmm2, xmm2, 0xe1
-	shufps		xmm1, xmm1, 0xe1
-	shufps		xmm3, xmm3, 0xe1
+	shufps		xmm0, xmm0, HEX(e1)
+	shufps		xmm2, xmm2, HEX(e1)
+	shufps		xmm1, xmm1, HEX(e1)
+	shufps		xmm3, xmm3, HEX(e1)
 	movss		512[ebx], xmm0
 	movss		640[ebx], xmm2
 	movss		768[ebx], xmm1
 	movss		896[ebx], xmm3
 	
 	movaps		xmm0, xmm4
-	shufps		xmm0, xmm0, 0x1e
+	shufps		xmm0, xmm0, HEX(1e)
 	movaps		xmm1, xmm5
 	andps		xmm0, [eax]
 	
@@ -381,19 +381,19 @@ ASM_NAME(INT123_dct64_real_sse):
 	movss		192[ecx], xmm2
 	movss		64[ecx], xmm3
 	
-	shufps		xmm4, xmm4, 0xe1
-	shufps		xmm6, xmm6, 0xe1
-	shufps		xmm5, xmm5, 0xe1
-	shufps		xmm7, xmm7, 0xe1
+	shufps		xmm4, xmm4, HEX(e1)
+	shufps		xmm6, xmm6, HEX(e1)
+	shufps		xmm5, xmm5, HEX(e1)
+	shufps		xmm7, xmm7, HEX(e1)
 	movss		64[ebx], xmm4
 	movss		192[ebx], xmm6
 	movss		320[ebx], xmm5
 	movss		448[ebx], xmm7
 	
-	shufps		xmm0, xmm0, 0xe1
-	shufps		xmm1, xmm1, 0xe1
-	shufps		xmm2, xmm2, 0xe1
-	shufps		xmm3, xmm3, 0xe1
+	shufps		xmm0, xmm0, HEX(e1)
+	shufps		xmm1, xmm1, HEX(e1)
+	shufps		xmm2, xmm2, HEX(e1)
+	shufps		xmm3, xmm3, HEX(e1)
 	movss		576[ebx], xmm0
 	movss		704[ebx], xmm1
 	movss		832[ebx], xmm2

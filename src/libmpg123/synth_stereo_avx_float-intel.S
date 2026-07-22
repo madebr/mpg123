@@ -59,7 +59,7 @@ ASM_NAME(INT123_synth_1to1_real_s_avx_asm):
 	mov		eax, DWORD_PTR 48[rbp] /* 5th argument; placed after 32-byte shadow space */
 #endif
 
-	vbroadcastss	ymm14, RIP_REL_F(scale_avx)
+	vbroadcastss	ymm14, DWORD_PTR RIP_REL_F(scale_avx)
 	
 #ifdef IS_MSABI
 	shl			eax, 2
@@ -136,8 +136,8 @@ loop1:
 	vunpckhpd	ymm1, ymm2, ymm3
 	vsubps		ymm0, ymm4, ymm0
 	vsubps		ymm1, ymm5, ymm1
-	vperm2f128	ymm2, ymm0, ymm1, 0x20
-	vperm2f128	ymm3, ymm0, ymm1, 0x31
+	vperm2f128	ymm2, ymm0, ymm1, HEX(20)
+	vperm2f128	ymm3, ymm0, ymm1, HEX(31)
 	vaddps		ymm0, ymm2, ymm3
 	vmulps		ymm0, ymm0, ymm14
 	
@@ -209,8 +209,8 @@ loop2:
 	vunpckhpd	ymm1, ymm2, ymm3
 	vaddps		ymm0, ymm4, ymm0
 	vaddps		ymm1, ymm5, ymm1
-	vperm2f128	ymm2, ymm0, ymm1, 0x20
-	vperm2f128	ymm3, ymm0, ymm1, 0x31
+	vperm2f128	ymm2, ymm0, ymm1, HEX(20)
+	vperm2f128	ymm3, ymm0, ymm1, HEX(31)
 	vaddps		ymm0, ymm2, ymm3
 	vmulps		ymm0, ymm0, ymm14
 	
@@ -239,3 +239,5 @@ loop2:
 	ret
 
 NONEXEC_STACK
+
+END_MODULE

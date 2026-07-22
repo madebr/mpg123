@@ -231,14 +231,14 @@ loop2:
 	
 	pxor		xmm1, xmm1
 	psubw		xmm1, xmm14
-	pshufd		xmm0, xmm1, 0x4e
+	pshufd		xmm0, xmm1, HEX(4e)
 	paddw		xmm0, xmm1
-	pshuflw		xmm1, xmm0, 0x4e
+	pshuflw		xmm1, xmm0, HEX(4e)
 	paddw		xmm0, xmm1
-	pshuflw		xmm1, xmm0, 0x11
+	pshuflw		xmm1, xmm0, HEX(11)
 	paddw		xmm0, xmm1
 	movd		eax, xmm0
-	and			eax, 0x7f
+	and			eax, HEX(7f)
 	
 #ifdef IS_MSABI
 	movaps		xmm6, [rsp]
@@ -256,3 +256,6 @@ loop2:
 	ret
 
 NONEXEC_STACK
+
+END_MODULE
+

@@ -49,11 +49,19 @@
 #define ALIGN64 .align 6
 #else
 #ifdef ASMALIGN_BYTE
+#if defined(MASM_ASSEMBLER) || defined(NASM_ASSEMBLER)
+#define ALIGN4  align 4
+#define ALIGN8  align 8
+#define ALIGN16 align 16
+#define ALIGN32 align 32
+#define ALIGN64 align 64
+#else
 #define ALIGN4  .align 4
 #define ALIGN8  .align 8
 #define ALIGN16 .align 16
 #define ALIGN32 .align 32
 #define ALIGN64 .align 64
+#endif
 #else
 #ifdef ASMALIGN_ARMASM
 #define ALIGN4  ALIGN 4
@@ -84,10 +92,15 @@
 #define ASM_VALUE(a) MANGLE_MACROCAT($,a)
 #endif
 
-#if !defined(__APPLE__) && !defined (__OS2__)
+#if defined(MASM_ASSEMBLER)
+#define RODATA rodata_segment SEGMENT ALIGN(32) READ 'CONST'
+#define ENDRODATA rodata_segment SEGMENT ALIGN(32) READ 'CONST'
+#elif !defined(__APPLE__) && !defined (__OS2__)
 #define RODATA SECTION .rodata
+#define ENDRODATA
 #else
 #define RODATA .data
+#define ENDRODATA
 #endif
 
 /* Enable position-independent code for certain platforms. */
