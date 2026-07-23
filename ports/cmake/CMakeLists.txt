@@ -5,7 +5,7 @@ set(MPG123_SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../..")
 include(cmake/read_api_version.cmake)
 read_project_version(MPG123_VERSION)
 
-project(mpg123 VERSION ${MPG123_VERSION} LANGUAGES C ASM_NASM)
+project(mpg123 VERSION ${MPG123_VERSION} LANGUAGES C)
 set(CMAKE_C_STANDARD 99)
 
 option(BUILD_LIBOUT123 "build libout123 (prerequisite for included programs)" ON)
