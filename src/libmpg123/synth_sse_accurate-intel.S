@@ -144,11 +144,11 @@ loop1:
 	movhlps		xmm0, xmm0
 	cvtps2pi	mm1, xmm0
 	packssdw	mm0, mm1
-	mov		mm1, mm0
+	movq		mm1, mm0
 	punpcklwd	mm0, mm2
 	punpckhwd	mm1, mm3
-	mov		QWORD_PTR [SAMPLES], mm0
-	mov		QWORD_PTR [SAMPLES+8], mm1
+	movq		QWORD_PTR [SAMPLES], mm0
+	movq		QWORD_PTR [SAMPLES+8], mm1
 	
 	cvtps2pi	mm0, xmm1
 	cvtps2pi	mm1, xmm2
@@ -253,11 +253,11 @@ loop2:
 	movhlps		xmm0, xmm0
 	cvtps2pi	mm1, xmm0
 	packssdw	mm0, mm1
-	mov		mm1, mm0
+	movq		mm1, mm0
 	punpcklwd	mm0, mm2
 	punpckhwd	mm1, mm3
-	mov		QWORD_PTR [SAMPLES], mm0
-	mov		QWORD_PTR [SAMPLES+8], mm1
+	movq		QWORD_PTR [SAMPLES], mm0
+	movq		QWORD_PTR [SAMPLES+8], mm1
 	
 	cvtps2pi	mm0, xmm1
 	cvtps2pi	mm1, xmm2

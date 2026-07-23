@@ -18,7 +18,7 @@
 /* real *samples; */
 #define SAMPLES edi
 
-#define TEMP(n) (12+16*n)(esp)
+#define TEMP(n) [esp+12+16*n]
 
 /*
 	int synth_1to1_real_s_sse_asm(real *window, real *b0l, real *b0r, real *samples, int bo1);
@@ -61,7 +61,7 @@ ASM_NAME(INT123_synth_1to1_real_s_sse_asm):
 	mov		ecx, 4
 	
 	ALIGN16
-loop11:
+loop1:
 	movups		xmm0, [WINDOW]
 	movups		xmm1, [WINDOW+16]
 	movups		xmm2, [WINDOW+32]
@@ -84,8 +84,8 @@ loop11:
 	addps		xmm6, xmm7
 	addps		xmm0, xmm2
 	addps		xmm4, xmm6
-	movaps		TEMP[0], xmm0
-	movaps		TEMP[4], xmm4
+	movaps		TEMP(0), xmm0
+	movaps		TEMP(4), xmm4
 	
 	lea		WINDOW, DWORD_PTR [WINDOW+128]
 	lea		B0L, DWORD_PTR [B0L+64]
@@ -113,8 +113,8 @@ loop11:
 	addps		xmm6, xmm7
 	addps		xmm0, xmm2
 	addps		xmm4, xmm6
-	movaps		TEMP[1], xmm0
-	movaps		TEMP[5], xmm4
+	movaps		TEMP(1), xmm0
+	movaps		TEMP(5), xmm4
 	
 	lea		WINDOW, DWORD_PTR [WINDOW+128]
 	lea		B0L, DWORD_PTR [B0L+64]
@@ -142,8 +142,8 @@ loop11:
 	addps		xmm6, xmm7
 	addps		xmm0, xmm2
 	addps		xmm4, xmm6
-	movaps		TEMP[2], xmm0
-	movaps		TEMP[6], xmm4
+	movaps		TEMP(2), xmm0
+	movaps		TEMP(6), xmm4
 	
 	lea		WINDOW, DWORD_PTR [WINDOW+128]
 	lea		B0L, DWORD_PTR [B0L+64]
@@ -172,15 +172,15 @@ loop11:
 	addps		xmm0, xmm2
 	addps		xmm4, xmm6
 	movaps		xmm7, xmm0
-	movaps		TEMP[7], xmm4
+	movaps		TEMP(7), xmm4
 	
 	lea		WINDOW, DWORD_PTR [WINDOW+128]
 	lea		B0L, DWORD_PTR [B0L+64]
 	lea		B0R, DWORD_PTR [B0R+64]
 	
-	movaps		xmm4, TEMP[0]
-	movaps		xmm5, TEMP[1]
-	movaps		xmm6, TEMP[2]
+	movaps		xmm4, TEMP(0)
+	movaps		xmm5, TEMP(1)
+	movaps		xmm6, TEMP(2)
 	movaps		xmm0, xmm4
 	movaps		xmm1, xmm6
 	unpcklps	xmm4, xmm5
@@ -198,10 +198,10 @@ loop11:
 	addps		xmm0, xmm4
 	movaps		xmm2, xmm0
 	
-	movaps		xmm4, TEMP[4]
-	movaps		xmm5, TEMP[5]
-	movaps		xmm6, TEMP[6]
-	movaps		xmm7, TEMP[7]
+	movaps		xmm4, TEMP(4)
+	movaps		xmm5, TEMP(5)
+	movaps		xmm6, TEMP(6)
+	movaps		xmm7, TEMP(7)
 	movaps		xmm0, xmm4
 	movaps		xmm1, xmm6
 	unpcklps	xmm4, xmm5
@@ -257,8 +257,8 @@ loop2:
 	addps		xmm6, xmm7
 	addps		xmm0, xmm2
 	addps		xmm4, xmm6
-	movaps		TEMP[0], xmm0
-	movaps		TEMP[4], xmm4
+	movaps		TEMP(0), xmm0
+	movaps		TEMP(4), xmm4
 	
 	lea		WINDOW, DWORD_PTR [WINDOW+128]
 	lea		B0L, DWORD_PTR -64[B0L]
@@ -286,8 +286,8 @@ loop2:
 	addps		xmm6, xmm7
 	addps		xmm0, xmm2
 	addps		xmm4, xmm6
-	movaps		TEMP[1], xmm0
-	movaps		TEMP[5], xmm4
+	movaps		TEMP(1), xmm0
+	movaps		TEMP(5), xmm4
 	
 	lea		WINDOW, DWORD_PTR [WINDOW+128]
 	lea		B0L, DWORD_PTR -64[B0L]
@@ -315,8 +315,8 @@ loop2:
 	addps		xmm6, xmm7
 	addps		xmm0, xmm2
 	addps		xmm4, xmm6
-	movaps		TEMP[2], xmm0
-	movaps		TEMP[6], xmm4
+	movaps		TEMP(2), xmm0
+	movaps		TEMP(6), xmm4
 	
 	lea		WINDOW, DWORD_PTR [WINDOW+128]
 	lea		B0L, DWORD_PTR -64[B0L]
@@ -345,15 +345,15 @@ loop2:
 	addps		xmm0, xmm2
 	addps		xmm4, xmm6
 	movaps		xmm7, xmm0
-	movaps		TEMP[7], xmm4
+	movaps		TEMP(7), xmm4
 	
 	lea		WINDOW, DWORD_PTR [WINDOW+128]
 	lea		B0L, DWORD_PTR -64[B0L]
 	lea		B0R, DWORD_PTR -64[B0R]
 	
-	movaps		xmm4, TEMP[0]
-	movaps		xmm5, TEMP[1]
-	movaps		xmm6, TEMP[2]
+	movaps		xmm4, TEMP(0)
+	movaps		xmm5, TEMP(1)
+	movaps		xmm6, TEMP(2)
 	movaps		xmm0, xmm4
 	movaps		xmm1, xmm6
 	unpcklps	xmm4, xmm5
@@ -371,10 +371,10 @@ loop2:
 	addps		xmm0, xmm4
 	movaps		xmm2, xmm0
 	
-	movaps		xmm4, TEMP[4]
-	movaps		xmm5, TEMP[5]
-	movaps		xmm6, TEMP[6]
-	movaps		xmm7, TEMP[7]
+	movaps		xmm4, TEMP(4)
+	movaps		xmm5, TEMP(5)
+	movaps		xmm6, TEMP(6)
+	movaps		xmm7, TEMP(7)
 	movaps		xmm0, xmm4
 	movaps		xmm1, xmm6
 	unpcklps	xmm4, xmm5
