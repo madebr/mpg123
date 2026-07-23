@@ -12,6 +12,10 @@
 #define COMMENT ;
 #define END_MODULE
 #define HEX(V) 0x##V
+#define DWORD_PTR dword
+#define QWORD_PTR qword
+#define XMMWORD_PTR xmmword
+#define YMMWORD_PTR ymmword
 default rel
 #elif defined(MASM_ASSEMBLER)
 option casemap:none
@@ -28,6 +32,10 @@ option casemap:none
 #define COMMENT ;
 #define END_MODULE end
 #define HEX(V) 0##V##h
+#define DWORD_PTR dword ptr
+#define QWORD_PTR qword ptr
+#define XMMWORD_PTR xmmword ptr
+#define YMMWORD_PTR ymmword ptr
 
 #else
 #define DATA_LONG .long
@@ -43,6 +51,10 @@ option casemap:none
 #define COMMENT #
 #define END_MODULE
 #define HEX(V) 0x##V
+#define DWORD_PTR dword ptr
+#define QWORD_PTR qword ptr
+#define XMMWORD_PTR xmmword ptr
+#define YMMWORD_PTR ymmword ptr
 
 .intel_syntax noprefix
 #endif

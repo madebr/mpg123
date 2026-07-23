@@ -68,7 +68,7 @@ ASM_NAME(INT123_dct36_sse):
 	push		esi
 	push		edi
 	lea			tmp, 12[esp]
-	mov		in, dword ptr 8[ebp]
+	mov		in, DWORD_PTR 8[ebp]
 
 	GET_GOT
 	
@@ -269,10 +269,10 @@ xmm7 tmp[9,10,11,12]
 0[tmp] tmp[13,-,4,-]
 */
 
-	mov		out1, dword ptr 12[ebp]
-	mov		out2, dword ptr 16[ebp]
-	mov		w, dword ptr 20[ebp]
-	mov		ts, dword ptr 24[ebp]
+	mov		out1, DWORD_PTR 12[ebp]
+	mov		out2, DWORD_PTR 16[ebp]
+	mov		w, DWORD_PTR 20[ebp]
+	mov		ts, DWORD_PTR 24[ebp]
 
 	movaps		xmm0, xmm3
 	movaps		xmm1, xmm5

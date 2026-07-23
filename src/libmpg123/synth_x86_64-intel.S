@@ -66,7 +66,7 @@ ASM_NAME(INT123_synth_1to1_x86_64_asm):
 	movaps		80[rsp], xmm15
 #endif
 
-	lea		rax, qword ptr ASM_NAME(INT123_maxmin_x86_64) RIP_REL
+	lea		rax, QWORD_PTR ASM_NAME(INT123_maxmin_x86_64) RIP_REL
 	movaps		XMMREG_MAX, [rax]
 	movaps		XMMREG_MIN, 16[rax]
 	pxor		XMMREG_CLIP, XMMREG_CLIP
@@ -74,7 +74,7 @@ ASM_NAME(INT123_synth_1to1_x86_64_asm):
 	
 	and		ARG3, HEX(f)
 	shl		ARG3, 1
-	lea		ARG0, qword ptr 32[ARG0]
+	lea		ARG0, QWORD_PTR 32[ARG0]
 	sub		ARG0, ARG3
 	
 	mov		ecx, 4
@@ -141,9 +141,9 @@ ASM_NAME(INT123_synth_1to1_x86_64_asm):
 	paddd		xmm1, xmm2
 	paddd		XMMREG_CLIP, xmm1
 	
-	lea		ARG0, qword ptr 256[ARG0]
-	lea		ARG1, qword ptr 128[ARG1]
-	lea		ARG2, qword ptr 16[ARG2]
+	lea		ARG0, QWORD_PTR 256[ARG0]
+	lea		ARG1, QWORD_PTR 128[ARG1]
+	lea		ARG2, QWORD_PTR 16[ARG2]
 	
 	dec		ecx
 	jnz			1b
@@ -212,9 +212,9 @@ ASM_NAME(INT123_synth_1to1_x86_64_asm):
 	paddd		xmm1, xmm2
 	paddd		XMMREG_CLIP, xmm1
 	
-	lea		ARG0, qword ptr 256[ARG0]
-	lea		ARG1, qword ptr -128[ARG1]
-	lea		ARG2, qword ptr 16[ARG2]
+	lea		ARG0, QWORD_PTR 256[ARG0]
+	lea		ARG1, QWORD_PTR -128[ARG1]
+	lea		ARG2, QWORD_PTR 16[ARG2]
 	
 	dec		ecx
 	jnz			1b

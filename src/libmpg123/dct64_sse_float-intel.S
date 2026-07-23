@@ -44,7 +44,7 @@ ASM_NAME(INT123_dct64_real_sse):
 
 	GET_GOT
 	
-	mov		eax, dword ptr ARG[2]
+	mov		eax, DWORD_PTR ARG[2]
 	
 	MOVUAPS 	xmm7, [eax]
 	MOVUAPS 	xmm6, 16[eax]
@@ -322,8 +322,8 @@ ASM_NAME(INT123_dct64_real_sse):
 	movaps		xmm0, TEMP_BYTE[0]
 	movaps		xmm4, TEMP_BYTE[64]
 	
-	mov		ecx, dword ptr ARG[0]
-	mov		ebx, dword ptr ARG[1]
+	mov		ecx, DWORD_PTR ARG[0]
+	mov		ebx, DWORD_PTR ARG[1]
 	
 	movss		1024[ecx], xmm0
 	movss		896[ecx], xmm2

@@ -45,13 +45,13 @@ ASM_NAME(INT123_synth_1to1_sse_accurate_asm):
 	
 	pxor		MMREG_CLIP, MMREG_CLIP
 	
-	mov		WINDOW, dword ptr 8[ebp]
-	mov		B0, dword ptr 12[ebp]
-	mov		SAMPLES, dword ptr 16[ebp]
-	mov		eax, dword ptr 20[ebp]
+	mov		WINDOW, DWORD_PTR 8[ebp]
+	mov		B0, DWORD_PTR 12[ebp]
+	mov		SAMPLES, DWORD_PTR 16[ebp]
+	mov		eax, DWORD_PTR 20[ebp]
 	shl		eax, 2
 	
-	lea		WINDOW, dword ptr 64[WINDOW]
+	lea		WINDOW, DWORD_PTR 64[WINDOW]
 	sub		WINDOW, eax
 	
 	#undef _EBX_
@@ -87,8 +87,8 @@ ASM_NAME(INT123_synth_1to1_sse_accurate_asm):
 	movaps		xmm5, xmm4
 	movaps		xmm4, xmm0
 	
-	lea		WINDOW, dword ptr 256[WINDOW]
-	lea		B0, dword ptr 128[B0]
+	lea		WINDOW, DWORD_PTR 256[WINDOW]
+	lea		B0, DWORD_PTR 128[B0]
 	
 	movups		xmm0, [WINDOW]
 	movups		xmm1, 16[WINDOW]
@@ -115,8 +115,8 @@ ASM_NAME(INT123_synth_1to1_sse_accurate_asm):
 	movaps		xmm7, xmm6
 	movaps		xmm6, xmm0
 	
-	lea		WINDOW, dword ptr 256[WINDOW]
-	lea		B0, dword ptr 128[B0]
+	lea		WINDOW, DWORD_PTR 256[WINDOW]
+	lea		B0, DWORD_PTR 128[B0]
 	
 	movaps		xmm0, xmm4
 	movaps		xmm1, xmm6
@@ -147,8 +147,8 @@ ASM_NAME(INT123_synth_1to1_sse_accurate_asm):
 	mov		mm1, mm0
 	punpcklwd	mm0, mm2
 	punpckhwd	mm1, mm3
-	mov		qword ptr [SAMPLES], mm0
-	mov		qword ptr 8[SAMPLES], mm1
+	mov		QWORD_PTR [SAMPLES], mm0
+	mov		QWORD_PTR 8[SAMPLES], mm1
 	
 	cvtps2pi	mm0, xmm1
 	cvtps2pi	mm1, xmm2
@@ -163,7 +163,7 @@ ASM_NAME(INT123_synth_1to1_sse_accurate_asm):
 	paddw		mm0, mm1
 	paddw		MMREG_CLIP, mm0
 	
-	lea		SAMPLES, dword ptr 16[SAMPLES]
+	lea		SAMPLES, DWORD_PTR 16[SAMPLES]
 	dec		ecx
 	jnz			1b
 	
@@ -196,8 +196,8 @@ ASM_NAME(INT123_synth_1to1_sse_accurate_asm):
 	movaps		xmm5, xmm4
 	movaps		xmm4, xmm0
 	
-	lea		WINDOW, dword ptr 256[WINDOW]
-	lea		B0, dword ptr -128[B0]
+	lea		WINDOW, DWORD_PTR 256[WINDOW]
+	lea		B0, DWORD_PTR -128[B0]
 	
 	movups		xmm0, [WINDOW]
 	movups		xmm1, 16[WINDOW]
@@ -224,8 +224,8 @@ ASM_NAME(INT123_synth_1to1_sse_accurate_asm):
 	movaps		xmm7, xmm6
 	movaps		xmm6, xmm0
 	
-	lea		WINDOW, dword ptr 256[WINDOW]
-	lea		B0, dword ptr -128[B0]
+	lea		WINDOW, DWORD_PTR 256[WINDOW]
+	lea		B0, DWORD_PTR -128[B0]
 	
 	movaps		xmm0, xmm4
 	movaps		xmm1, xmm6
@@ -256,8 +256,8 @@ ASM_NAME(INT123_synth_1to1_sse_accurate_asm):
 	mov		mm1, mm0
 	punpcklwd	mm0, mm2
 	punpckhwd	mm1, mm3
-	mov		qword ptr [SAMPLES], mm0
-	mov		qword ptr 8[SAMPLES], mm1
+	mov		QWORD_PTR [SAMPLES], mm0
+	mov		QWORD_PTR 8[SAMPLES], mm1
 	
 	cvtps2pi	mm0, xmm1
 	cvtps2pi	mm1, xmm2
@@ -272,7 +272,7 @@ ASM_NAME(INT123_synth_1to1_sse_accurate_asm):
 	paddw		mm0, mm1
 	paddw		MMREG_CLIP, mm0
 	
-	lea		SAMPLES, dword ptr 16[SAMPLES]
+	lea		SAMPLES, DWORD_PTR 16[SAMPLES]
 	dec		ecx
 	jnz			1b
 	

@@ -57,14 +57,14 @@ ASM_NAME(INT123_synth_1to1_s32_s_sse_asm):
 	
 	pxor		MMREG_CLIP, MMREG_CLIP
 	
-	mov		WINDOW, dword ptr 8[ebp]
-	mov		B0L, dword ptr 12[ebp]
-	mov		B0R, dword ptr 16[ebp]
-	mov		SAMPLES, dword ptr 20[ebp]
-	mov		eax, dword ptr 24[ebp]
+	mov		WINDOW, DWORD_PTR 8[ebp]
+	mov		B0L, DWORD_PTR 12[ebp]
+	mov		B0R, DWORD_PTR 16[ebp]
+	mov		SAMPLES, DWORD_PTR 20[ebp]
+	mov		eax, DWORD_PTR 24[ebp]
 	shl		eax, 2
 	
-	lea		WINDOW, dword ptr 64[WINDOW]
+	lea		WINDOW, DWORD_PTR 64[WINDOW]
 	sub		WINDOW, eax
 
 	#undef _EBX_
@@ -100,9 +100,9 @@ ASM_NAME(INT123_synth_1to1_s32_s_sse_asm):
 	movaps		TEMP[0], xmm0
 	movaps		TEMP[4], xmm4
 	
-	lea		WINDOW, dword ptr 128[WINDOW]
-	lea		B0L, dword ptr 64[B0L]
-	lea		B0R, dword ptr 64[B0R]
+	lea		WINDOW, DWORD_PTR 128[WINDOW]
+	lea		B0L, DWORD_PTR 64[B0L]
+	lea		B0R, DWORD_PTR 64[B0R]
 	
 	movups		xmm0, [WINDOW]
 	movups		xmm1, 16[WINDOW]
@@ -129,9 +129,9 @@ ASM_NAME(INT123_synth_1to1_s32_s_sse_asm):
 	movaps		TEMP[1], xmm0
 	movaps		TEMP[5], xmm4
 	
-	lea		WINDOW, dword ptr 128[WINDOW]
-	lea		B0L, dword ptr 64[B0L]
-	lea		B0R, dword ptr 64[B0R]
+	lea		WINDOW, DWORD_PTR 128[WINDOW]
+	lea		B0L, DWORD_PTR 64[B0L]
+	lea		B0R, DWORD_PTR 64[B0R]
 	
 	movups		xmm0, [WINDOW]
 	movups		xmm1, 16[WINDOW]
@@ -158,9 +158,9 @@ ASM_NAME(INT123_synth_1to1_s32_s_sse_asm):
 	movaps		TEMP[2], xmm0
 	movaps		TEMP[6], xmm4
 	
-	lea		WINDOW, dword ptr 128[WINDOW]
-	lea		B0L, dword ptr 64[B0L]
-	lea		B0R, dword ptr 64[B0R]
+	lea		WINDOW, DWORD_PTR 128[WINDOW]
+	lea		B0L, DWORD_PTR 64[B0L]
+	lea		B0R, DWORD_PTR 64[B0R]
 	
 	movups		xmm0, [WINDOW]
 	movups		xmm1, 16[WINDOW]
@@ -187,9 +187,9 @@ ASM_NAME(INT123_synth_1to1_s32_s_sse_asm):
 	movaps		xmm7, xmm0
 	movaps		TEMP[7], xmm4
 	
-	lea		WINDOW, dword ptr 128[WINDOW]
-	lea		B0L, dword ptr 64[B0L]
-	lea		B0R, dword ptr 64[B0R]
+	lea		WINDOW, DWORD_PTR 128[WINDOW]
+	lea		B0L, DWORD_PTR 64[B0L]
+	lea		B0R, DWORD_PTR 64[B0R]
 	
 	movaps		xmm4, TEMP[0]
 	movaps		xmm5, TEMP[1]
@@ -253,8 +253,8 @@ ASM_NAME(INT123_synth_1to1_s32_s_sse_asm):
 	mov		mm4, mm0
 	punpckldq	mm0, mm1
 	punpckhdq	mm4, mm1
-	mov		qword ptr [SAMPLES], mm0
-	mov		qword ptr 8[SAMPLES], mm4
+	mov		QWORD_PTR [SAMPLES], mm0
+	mov		QWORD_PTR 8[SAMPLES], mm4
 	movhlps		xmm5, xmm5
 	movhlps		xmm0, xmm0
 	movhlps		xmm1, xmm1
@@ -270,8 +270,8 @@ ASM_NAME(INT123_synth_1to1_s32_s_sse_asm):
 	mov		mm6, mm0
 	punpckldq	mm0, mm1
 	punpckhdq	mm6, mm1
-	mov		qword ptr 16[SAMPLES], mm0
-	mov		qword ptr 24[SAMPLES], mm6
+	mov		QWORD_PTR 16[SAMPLES], mm0
+	mov		QWORD_PTR 24[SAMPLES], mm6
 	
 	packssdw	mm2, mm4
 	packssdw	mm3, mm5
@@ -292,7 +292,7 @@ ASM_NAME(INT123_synth_1to1_s32_s_sse_asm):
 	paddw		mm0, mm2
 	paddw		MMREG_CLIP, mm0
 	
-	lea		SAMPLES, dword ptr 32[SAMPLES]
+	lea		SAMPLES, DWORD_PTR 32[SAMPLES]
 	dec		ecx
 	jnz			1b
 	
@@ -325,9 +325,9 @@ ASM_NAME(INT123_synth_1to1_s32_s_sse_asm):
 	movaps		TEMP[0], xmm0
 	movaps		TEMP[4], xmm4
 	
-	lea		WINDOW, dword ptr 128[WINDOW]
-	lea		B0L, dword ptr -64[B0L]
-	lea		B0R, dword ptr -64[B0R]
+	lea		WINDOW, DWORD_PTR 128[WINDOW]
+	lea		B0L, DWORD_PTR -64[B0L]
+	lea		B0R, DWORD_PTR -64[B0R]
 	
 	movups		xmm0, [WINDOW]
 	movups		xmm1, 16[WINDOW]
@@ -354,9 +354,9 @@ ASM_NAME(INT123_synth_1to1_s32_s_sse_asm):
 	movaps		TEMP[1], xmm0
 	movaps		TEMP[5], xmm4
 	
-	lea		WINDOW, dword ptr 128[WINDOW]
-	lea		B0L, dword ptr -64[B0L]
-	lea		B0R, dword ptr -64[B0R]
+	lea		WINDOW, DWORD_PTR 128[WINDOW]
+	lea		B0L, DWORD_PTR -64[B0L]
+	lea		B0R, DWORD_PTR -64[B0R]
 	
 	movups		xmm0, [WINDOW]
 	movups		xmm1, 16[WINDOW]
@@ -383,9 +383,9 @@ ASM_NAME(INT123_synth_1to1_s32_s_sse_asm):
 	movaps		TEMP[2], xmm0
 	movaps		TEMP[6], xmm4
 	
-	lea		WINDOW, dword ptr 128[WINDOW]
-	lea		B0L, dword ptr -64[B0L]
-	lea		B0R, dword ptr -64[B0R]
+	lea		WINDOW, DWORD_PTR 128[WINDOW]
+	lea		B0L, DWORD_PTR -64[B0L]
+	lea		B0R, DWORD_PTR -64[B0R]
 	
 	movups		xmm0, [WINDOW]
 	movups		xmm1, 16[WINDOW]
@@ -412,9 +412,9 @@ ASM_NAME(INT123_synth_1to1_s32_s_sse_asm):
 	movaps		xmm7, xmm0
 	movaps		TEMP[7], xmm4
 	
-	lea		WINDOW, dword ptr 128[WINDOW]
-	lea		B0L, dword ptr -64[B0L]
-	lea		B0R, dword ptr -64[B0R]
+	lea		WINDOW, DWORD_PTR 128[WINDOW]
+	lea		B0L, DWORD_PTR -64[B0L]
+	lea		B0R, DWORD_PTR -64[B0R]
 	
 	movaps		xmm4, TEMP[0]
 	movaps		xmm5, TEMP[1]
@@ -478,8 +478,8 @@ ASM_NAME(INT123_synth_1to1_s32_s_sse_asm):
 	mov		mm4, mm0
 	punpckldq	mm0, mm1
 	punpckhdq	mm4, mm1
-	mov		qword ptr [SAMPLES], mm0
-	mov		qword ptr 8[SAMPLES], mm4
+	mov		QWORD_PTR [SAMPLES], mm0
+	mov		QWORD_PTR 8[SAMPLES], mm4
 	movhlps		xmm5, xmm5
 	movhlps		xmm0, xmm0
 	movhlps		xmm1, xmm1
@@ -495,8 +495,8 @@ ASM_NAME(INT123_synth_1to1_s32_s_sse_asm):
 	mov		mm6, mm0
 	punpckldq	mm0, mm1
 	punpckhdq	mm6, mm1
-	mov		qword ptr 16[SAMPLES], mm0
-	mov		qword ptr 24[SAMPLES], mm6
+	mov		QWORD_PTR 16[SAMPLES], mm0
+	mov		QWORD_PTR 24[SAMPLES], mm6
 	
 	packssdw	mm2, mm4
 	packssdw	mm3, mm5
@@ -517,7 +517,7 @@ ASM_NAME(INT123_synth_1to1_s32_s_sse_asm):
 	paddw		mm0, mm2
 	paddw		MMREG_CLIP, mm0
 	
-	lea		SAMPLES, dword ptr 32[SAMPLES]
+	lea		SAMPLES, DWORD_PTR 32[SAMPLES]
 	dec		ecx
 	jnz			1b
 	

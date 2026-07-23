@@ -75,7 +75,7 @@ ASM_NAME(INT123_dct64_avx):
 	mov			rsi, rdx
 	mov			rdx, r8
 #endif
-	lea		costab, qword ptr costab_avx RIP_REL
+	lea		costab, QWORD_PTR costab_avx RIP_REL
 
 	vmovups		ymm0, [samples]			# input[0,1,2,3,4,5,6,7]
 	vmovups		ymm1, 32[samples]			# input[8,9,10,11,12,13,14,15]
@@ -216,7 +216,7 @@ ASM_NAME(INT123_dct64_avx):
 	mov		word ptr [out0+rax*1], dx
 	mov		word ptr [out0+rax*2], r8w
 	mov		word ptr -64[out0+rax*2], r9w
-	lea		out0, qword ptr [out0+rax*4]
+	lea		out0, QWORD_PTR [out0+rax*4]
 	shr			rcx, 16
 	shr			rdx, 16
 	shr			r8, 16
@@ -227,7 +227,7 @@ ASM_NAME(INT123_dct64_avx):
 	mov		word ptr [out1+rax*1], dx
 	mov		word ptr [out1+rax*2], r8w
 	mov		word ptr 64[out1+rax*2], r9w
-	lea		out1, qword ptr [out1+rax*4]
+	lea		out1, QWORD_PTR [out1+rax*4]
 	shr			rcx, 16
 	shr			rdx, 16
 	shr			r8, 16
@@ -247,9 +247,9 @@ ASM_NAME(INT123_dct64_avx):
 	mov		word ptr [out1+rax*2], r8w
 	mov		word ptr 64[out1+rax*2], r9w
 	
-	lea		out0, qword ptr -32[out0+rax*4]
+	lea		out0, QWORD_PTR -32[out0+rax*4]
 	neg		rax
-	lea		out1, qword ptr 32[out1+rax*4]
+	lea		out1, QWORD_PTR 32[out1+rax*4]
 	
 	vshufps		xmm0, xmm6, xmm6, HEX(1e)
 	vblendps	xmm0, xmm8, xmm0, HEX(7)
@@ -274,7 +274,7 @@ ASM_NAME(INT123_dct64_avx):
 	mov		word ptr [out0+rax*1], dx
 	mov		word ptr [out0+rax*2], r8w
 	mov		word ptr -64[out0+rax*2], r9w
-	lea		out0, qword ptr [out0+rax*4]
+	lea		out0, QWORD_PTR [out0+rax*4]
 	shr			rcx, 16
 	shr			rdx, 16
 	shr			r8, 16
@@ -284,7 +284,7 @@ ASM_NAME(INT123_dct64_avx):
 	mov		word ptr [out1+rax*1], dx
 	mov		word ptr [out1+rax*2], r8w
 	mov		word ptr 64[out1+rax*2], r9w
-	lea		out1, qword ptr [out1+rax*4]
+	lea		out1, QWORD_PTR [out1+rax*4]
 	shr			rcx, 16
 	shr			rdx, 16
 	shr			r8, 16

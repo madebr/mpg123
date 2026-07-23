@@ -56,7 +56,7 @@ ASM_NAME(INT123_maxmin_x86_64):
 GLOBAL ASM_NAME(INT123_synth_1to1_s_x86_64_asm)
 ASM_NAME(INT123_synth_1to1_s_x86_64_asm):
 #ifdef IS_MSABI /* should save xmm6-15 */
-	mov		eax, dword ptr 40[rsp] /* 5th argument; placed after 32-byte shadow space */
+	mov		eax, DWORD_PTR 40[rsp] /* 5th argument; placed after 32-byte shadow space */
 	sub		rsp, 168 /* stack alignment + 10 xmm registers */
 	movaps		[rsp], xmm6
 	movaps		16[rsp], xmm7
@@ -80,10 +80,10 @@ ASM_NAME(INT123_synth_1to1_s_x86_64_asm):
 	shr		rax, 31
 	mov		r9, rcx
 #endif
-	lea		WINDOW, qword ptr 32[WINDOW]
+	lea		WINDOW, QWORD_PTR 32[WINDOW]
 	sub		WINDOW, rax
 
-	lea		rax, qword ptr ASM_NAME(INT123_maxmin_x86_64) RIP_REL
+	lea		rax, QWORD_PTR ASM_NAME(INT123_maxmin_x86_64) RIP_REL
 	movaps		XMMREG_MAX, [rax]
 	movaps		XMMREG_MIN, 16[rax]
 	pxor		XMMREG_CLIP, XMMREG_CLIP
@@ -188,10 +188,10 @@ ASM_NAME(INT123_synth_1to1_s_x86_64_asm):
 	paddw		xmm2, xmm3
 	paddw		XMMREG_CLIP, xmm2
 	
-	lea		WINDOW, qword ptr 256[WINDOW]
-	lea		B0L, qword ptr 128[B0L]
-	lea		B0R, qword ptr 128[B0R]
-	lea		SAMPLES, qword ptr 16[SAMPLES]
+	lea		WINDOW, QWORD_PTR 256[WINDOW]
+	lea		B0L, QWORD_PTR 128[B0L]
+	lea		B0R, QWORD_PTR 128[B0R]
+	lea		SAMPLES, QWORD_PTR 16[SAMPLES]
 	
 	dec		ecx
 	jnz			1b
@@ -295,10 +295,10 @@ ASM_NAME(INT123_synth_1to1_s_x86_64_asm):
 	paddw		xmm2, xmm3
 	paddw		XMMREG_CLIP, xmm2
 	
-	lea		WINDOW, qword ptr 256[WINDOW]
-	lea		B0L, qword ptr -128[B0L]
-	lea		B0R, qword ptr -128[B0R]
-	lea		SAMPLES, qword ptr 16[SAMPLES]
+	lea		WINDOW, QWORD_PTR 256[WINDOW]
+	lea		B0L, QWORD_PTR -128[B0L]
+	lea		B0R, QWORD_PTR -128[B0R]
+	lea		SAMPLES, QWORD_PTR 16[SAMPLES]
 	
 	dec		ecx
 	jnz			1b

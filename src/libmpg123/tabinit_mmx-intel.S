@@ -117,7 +117,7 @@ ASM_NAME(INT123_make_decode_tables_mmx_asm):
 	xor ebx,ebx
 	mov esi,32
 	
-	neg dword ptr SCALEVAL	/* scaleval */
+	neg DWORD_PTR SCALEVAL	/* scaleval */
 	push 2	/* intwinbase step */
 .L00:
 	cmp ecx,528
@@ -128,32 +128,32 @@ ASM_NAME(INT123_make_decode_tables_mmx_asm):
 	add eax,60000
 .L01:
 	push eax
-	fild dword ptr [esp]
-	fdiv dword ptr INTWINDIV
-	fimul dword ptr SCALEVAL /* scaleval */
+	fild DWORD_PTR [esp]
+	fdiv DWORD_PTR INTWINDIV
+	fimul DWORD_PTR SCALEVAL /* scaleval */
 /* eax used to be popped the line before... I'll just use it here a bit */
 	mov eax,DECWIN_MMX /* decwin_mmx */
-	fst dword ptr    [eax+ecx*4]
-	fstp dword ptr 64[eax+ecx*4]
+	fst DWORD_PTR    [eax+ecx*4]
+	fstp DWORD_PTR 64[eax+ecx*4]
 	pop eax
 .L02:
-	lea edx,dword ptr -1[esi]
+	lea edx,DWORD_PTR -1[esi]
 	and edx,ebx
 	cmp edx,31
 	jnz .L03
 	add ecx,-1023
 	test ebx,esi
 	jz  .L03
-	neg dword ptr SCALEVAL
+	neg DWORD_PTR SCALEVAL
 .L03:
 	add ecx,esi
-	add edi,dword ptr [esp]
+	add edi,DWORD_PTR [esp]
 	inc ebx
 	cmp edi,INTWINBASE
 	jz .L04
 	cmp ebx,256
 	jnz .L00
-	neg dword ptr [esp]
+	neg DWORD_PTR [esp]
 	jmp .L00
 .L04:
 	pop eax
@@ -170,7 +170,7 @@ ASM_NAME(INT123_make_decode_tables_mmx_asm):
 	add eax,60000
 .L06:
 	cltd
-	imul dword ptr SCALEVAL
+	imul DWORD_PTR SCALEVAL
 	shrd eax,edx,17
 	cmp eax,32767
 	mov edx,1055
@@ -199,23 +199,23 @@ ASM_NAME(INT123_make_decode_tables_mmx_asm):
 	mov word ptr 32[ebx+ecx*2],ax
 	pop ebx /* that has to match the pushl before */
 .L11:
-	lea edx,dword ptr -1[esi]
+	lea edx,DWORD_PTR -1[esi]
 	and edx,ebx
 	cmp edx,31
 	jnz .L12
 	add ecx,-1023
 	test ebx,esi
 	jz  .L12
-	neg dword ptr SCALEVAL
+	neg DWORD_PTR SCALEVAL
 .L12:
 	add ecx,esi
-	add edi,dword ptr [esp]
+	add edi,DWORD_PTR [esp]
 	inc ebx
 	cmp edi,INTWINBASE
 	jz .L13
 	cmp ebx,256
 	jnz .L05
-	neg dword ptr [esp]
+	neg DWORD_PTR [esp]
 	jmp .L05
 .L13:
 	pop eax

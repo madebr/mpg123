@@ -85,7 +85,7 @@ ASM_NAME(INT123_dct64_x86_64):
 	movaps		144[rsp], xmm15
 #endif
 
-	lea		rcx, qword ptr ASM_NAME(INT123_costab_x86_64) RIP_REL
+	lea		rcx, QWORD_PTR ASM_NAME(INT123_costab_x86_64) RIP_REL
 
 	MOVUAPS 	xmm15, [ARG2]
 	MOVUAPS 	xmm14, 16[ARG2]

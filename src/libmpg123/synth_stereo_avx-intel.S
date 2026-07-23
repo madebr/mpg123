@@ -51,7 +51,7 @@ ASM_NAME(INT123_synth_1to1_s_avx_asm):
 	movaps		96[rsp], xmm12
 	movaps		112[rsp], xmm13
 	movaps		128[rsp], xmm14
-	mov		eax, dword ptr 48[rbp] /* 5th argument; placed after 32-byte shadow space */
+	mov		eax, DWORD_PTR 48[rbp] /* 5th argument; placed after 32-byte shadow space */
 #endif
 	
 #ifdef IS_MSABI

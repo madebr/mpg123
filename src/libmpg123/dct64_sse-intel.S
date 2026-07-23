@@ -44,7 +44,7 @@ ASM_NAME(INT123_dct64_sse):
 
 	GET_GOT
 
-	mov		eax, dword ptr ARG[2]
+	mov		eax, DWORD_PTR ARG[2]
 	
 	MOVUAPS 	xmm7, [eax]
 	MOVUAPS 	xmm6, 16[eax]
@@ -296,7 +296,7 @@ ASM_NAME(INT123_dct64_sse):
 	shufps		xmm2, xmm2, HEX(1e)
 	shufps		xmm4, xmm4, HEX(1e)
 	shufps		xmm6, xmm6, HEX(1e)
-	lea		ecx, dword ptr LOCAL_VAR[mask]
+	lea		ecx, DWORD_PTR LOCAL_VAR[mask]
 	andps		xmm0, [ecx]
 	andps		xmm2, [ecx]
 	andps		xmm4, [ecx]
@@ -341,8 +341,8 @@ ASM_NAME(INT123_dct64_sse):
 	packssdw	mm3, mm5
 	
 	mov			TEMP_BYTE[0], ecx
-	mov		ecx, dword ptr ARG[0]
-	mov		ebx, dword ptr ARG[1]
+	mov		ecx, DWORD_PTR ARG[0]
+	mov		ebx, DWORD_PTR ARG[1]
 	
 	movd		eax, mm0
 	movd		edx, mm1

@@ -37,13 +37,13 @@ ASM_NAME(INT123_synth_1to1_real_sse_asm):
 	push		ebx
 	push		esi
 	
-	mov		WINDOW, dword ptr 8[ebp]
-	mov		B0, dword ptr 12[ebp]
-	mov		SAMPLES, dword ptr 16[ebp]
-	mov		eax, dword ptr 20[ebp]
+	mov		WINDOW, DWORD_PTR 8[ebp]
+	mov		B0, DWORD_PTR 12[ebp]
+	mov		SAMPLES, DWORD_PTR 16[ebp]
+	mov		eax, DWORD_PTR 20[ebp]
 	shl		eax, 2
 	
-	lea		WINDOW, dword ptr 64[WINDOW]
+	lea		WINDOW, DWORD_PTR 64[WINDOW]
 	sub		WINDOW, eax
 	
 	#undef _EBX_
@@ -79,8 +79,8 @@ ASM_NAME(INT123_synth_1to1_real_sse_asm):
 	movaps		xmm5, xmm4
 	movaps		xmm4, xmm0
 	
-	lea		WINDOW, dword ptr 256[WINDOW]
-	lea		B0, dword ptr 128[B0]
+	lea		WINDOW, DWORD_PTR 256[WINDOW]
+	lea		B0, DWORD_PTR 128[B0]
 	
 	movups		xmm0, [WINDOW]
 	movups		xmm1, 16[WINDOW]
@@ -107,8 +107,8 @@ ASM_NAME(INT123_synth_1to1_real_sse_asm):
 	movaps		xmm7, xmm6
 	movaps		xmm6, xmm0
 	
-	lea		WINDOW, dword ptr 256[WINDOW]
-	lea		B0, dword ptr 128[B0]
+	lea		WINDOW, DWORD_PTR 256[WINDOW]
+	lea		B0, DWORD_PTR 128[B0]
 	
 	movaps		xmm0, xmm4
 	movaps		xmm1, xmm6
@@ -136,7 +136,7 @@ ASM_NAME(INT123_synth_1to1_real_sse_asm):
 	movups		[SAMPLES], xmm0
 	movups		16[SAMPLES], xmm2
 	
-	lea		SAMPLES, dword ptr 32[SAMPLES]
+	lea		SAMPLES, DWORD_PTR 32[SAMPLES]
 	dec		ecx
 	jnz			1b
 	
@@ -169,8 +169,8 @@ ASM_NAME(INT123_synth_1to1_real_sse_asm):
 	movaps		xmm5, xmm4
 	movaps		xmm4, xmm0
 	
-	lea		WINDOW, dword ptr 256[WINDOW]
-	lea		B0, dword ptr -128[B0]
+	lea		WINDOW, DWORD_PTR 256[WINDOW]
+	lea		B0, DWORD_PTR -128[B0]
 	
 	movups		xmm0, [WINDOW]
 	movups		xmm1, 16[WINDOW]
@@ -197,8 +197,8 @@ ASM_NAME(INT123_synth_1to1_real_sse_asm):
 	movaps		xmm7, xmm6
 	movaps		xmm6, xmm0
 	
-	lea		WINDOW, dword ptr 256[WINDOW]
-	lea		B0, dword ptr -128[B0]
+	lea		WINDOW, DWORD_PTR 256[WINDOW]
+	lea		B0, DWORD_PTR -128[B0]
 	
 	movaps		xmm0, xmm4
 	movaps		xmm1, xmm6
@@ -226,7 +226,7 @@ ASM_NAME(INT123_synth_1to1_real_sse_asm):
 	movups		[SAMPLES], xmm0
 	movups		16[SAMPLES], xmm2
 	
-	lea		SAMPLES, dword ptr 32[SAMPLES]
+	lea		SAMPLES, DWORD_PTR 32[SAMPLES]
 	dec		ecx
 	jnz			1b
 	
