@@ -17,6 +17,7 @@
 #define XMMWORD_PTR
 #define YMMWORD_PTR
 #define PTR_NONASM
+#define EXTERN(NAME) extern NAME
 default rel
 #elif defined(MASM_ASSEMBLER)
 option casemap:none
@@ -38,6 +39,7 @@ option casemap:none
 #define XMMWORD_PTR xmmword ptr
 #define YMMWORD_PTR ymmword ptr
 #define PTR_NONASM ptr
+#define EXTERN(NAME)
 
 #else
 #define DATA_LONG .long
@@ -58,6 +60,7 @@ option casemap:none
 #define XMMWORD_PTR xmmword ptr
 #define YMMWORD_PTR ymmword ptr
 #define PTR_NONASM ptr
+#define EXTERN(NAME)
 
 .intel_syntax noprefix
 #endif

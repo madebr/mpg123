@@ -404,6 +404,11 @@ ASM_NAME(INT123_dct64_real_sse):
 	pop		ebp
 	ret
 
+#ifdef PIC_GLOBAL_PTR
+	EXTERN(GLOBAL_VAR_PTR(INT123_costab_mmxsse))
+#else
+	EXTERN(GLOBAL_VAR(INT123_costab_mmxsse))
+#endif
 #if defined(PIC) && defined(__APPLE__)
 	SECTION	__IMPORT,__pointers,non_lazy_symbol_pointers
 L_INT123_costab_mmxsse:

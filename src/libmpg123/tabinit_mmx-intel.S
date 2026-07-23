@@ -122,7 +122,7 @@ ASM_NAME(INT123_make_decode_tables_mmx_asm):
 .L00:
 	cmp ecx,528
 	jnc .L02
-	movsw eax, [edi]
+	movsx eax, word PTR_NONASM [edi]
 	cmp edi,INTWINBASE_PLUS_444
 	jc .L01
 	add eax,60000

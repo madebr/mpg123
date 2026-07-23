@@ -118,7 +118,7 @@
 #define FUNC(a) ASM_NAME(a)
 #define EXTERNAL_FUNC(a) MANGLE_MACROCAT(ASM_NAME(a), @PLT)
 #undef ASM_VALUE
-#define ASM_VALUE(a) MANGLE_MACROCAT(a @GOTOFF)
+#define ASM_VALUE(a) MANGLE_MACROCAT(a, @GOTOFF)
 #define GET_GOT \
 	call 1f; \
 1: \
