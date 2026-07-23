@@ -80,7 +80,7 @@ static void debug_crack(URL_COMPONENTS *comps){}
 #endif
 
 static
-void WINAPI net123_ssl_errors(HINTERNET hInternet, dword ptr dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength){
+void WINAPI net123_ssl_errors(HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength){
   winhttp_handle *nh = (winhttp_handle *)dwContext;
   nh->internetStatus = dwInternetStatus;
   nh->additionalInfo = lpvStatusInformation;
@@ -177,7 +177,7 @@ net123_handle *net123_open_winhttp(const char *url, const char * const *client_h
 
   debug("net123_open ADD HEADERS OK");
 
-  res = WinHttpSendRequest(ret->request, WINHTTP_NO_ADDITIONAL_HEADERS, 0, WINHTTP_NO_REQUEST_DATA, 0, 0, (dword ptr)ret);
+  res = WinHttpSendRequest(ret->request, WINHTTP_NO_ADDITIONAL_HEADERS, 0, WINHTTP_NO_REQUEST_DATA, 0, 0, (DWORD_PTR)ret);
 
   if (!res) {
     res = GetLastError();

@@ -58,7 +58,7 @@ static void debug_crack(URL_COMPONENTSW *comps){}
 #endif
 
 static
-void WINAPI net123_ssl_errors(HINTERNET hInternet, dword ptr dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength){
+void WINAPI net123_ssl_errors(HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength){
   debug("In net123_ssl_errors");
   wininet_handle *nh = (wininet_handle *)(dwContext);
   nh->internetStatus = dwInternetStatus;
@@ -134,7 +134,7 @@ net123_handle *net123_open_wininet(const char *url, const char * const *client_h
   debug("net123_open InternetConnectW OK");
 
   debug1("HttpOpenRequestW GET %S", wh->comps.lpszUrlPath);
-  wh->request = HttpOpenRequestW(wh->connect, L"GET", wh->comps.lpszUrlPath, NULL, NULL, NULL, wh->comps.nScheme == INTERNET_SCHEME_HTTPS ? INTERNET_FLAG_SECURE : 0, (dword ptr)wh);
+  wh->request = HttpOpenRequestW(wh->connect, L"GET", wh->comps.lpszUrlPath, NULL, NULL, NULL, wh->comps.nScheme == INTERNET_SCHEME_HTTPS ? INTERNET_FLAG_SECURE : 0, (DWORD_PTR)wh);
   if(!wh->request) goto cleanup;
   debug("HttpOpenRequestW GET OK");
 
