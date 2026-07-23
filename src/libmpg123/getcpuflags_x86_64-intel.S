@@ -23,8 +23,8 @@ ASM_NAME(INT123_getcpuflags):
 	mov		rdi, rcx
 #endif
 
-	mov	DWORD_PTR 12[rdi], 0
-	mov	DWORD_PTR 16[rdi], 0
+	mov	dword ptr 12[rdi], 0
+	mov	dword ptr 16[rdi], 0
 
 	mov		eax, HEX(80000000)
 	cpuid

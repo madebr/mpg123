@@ -334,37 +334,37 @@ ASM_NAME(INT123_dct64_real_x86_64):
 	addps		xmm15, xmm1
 	
 	
-	movss		DWORD_PTR [ARG0+1024], xmm8
-	movss		DWORD_PTR [ARG0+896], xmm10
-	movss		DWORD_PTR [ARG0+768], xmm9
-	movss		DWORD_PTR [ARG0+640], xmm11
+	movss		dword ptr [ARG0+1024], xmm8
+	movss		dword ptr [ARG0+896], xmm10
+	movss		dword ptr [ARG0+768], xmm9
+	movss		dword ptr [ARG0+640], xmm11
 	movhlps		xmm0, xmm8
 	movhlps		xmm1, xmm10
 	movhlps		xmm2, xmm9
 	movhlps		xmm3, xmm11
-	movss		DWORD_PTR [ARG0+512], xmm0
-	movss		DWORD_PTR [ARG0+384], xmm1
-	movss		DWORD_PTR [ARG0+256], xmm2
-	movss		DWORD_PTR [ARG0+128], xmm3
+	movss		dword ptr [ARG0+512], xmm0
+	movss		dword ptr [ARG0+384], xmm1
+	movss		dword ptr [ARG0+256], xmm2
+	movss		dword ptr [ARG0+128], xmm3
 	
 	pshuflw		xmm4, xmm8, HEX(ee)
 	pshuflw		xmm5, xmm10, HEX(ee)
 	pshuflw		xmm6, xmm9, HEX(ee)
 	pshuflw		xmm7, xmm11, HEX(ee)
-	movss		DWORD_PTR [ARG0], xmm4
-	movss		DWORD_PTR [ARG1], xmm4
-	movss		DWORD_PTR [ARG1+128], xmm5
-	movss		DWORD_PTR [ARG1+256], xmm6
-	movss		DWORD_PTR [ARG1+384], xmm7
+	movss		dword ptr [ARG0], xmm4
+	movss		dword ptr [ARG1], xmm4
+	movss		dword ptr [ARG1+128], xmm5
+	movss		dword ptr [ARG1+256], xmm6
+	movss		dword ptr [ARG1+384], xmm7
 	
 	pshuflw		xmm0, xmm0, HEX(ee)
 	pshuflw		xmm1, xmm1, HEX(ee)
 	pshuflw		xmm2, xmm2, HEX(ee)
 	pshuflw		xmm3, xmm3, HEX(ee)
-	movss		DWORD_PTR [ARG1+512], xmm0
-	movss		DWORD_PTR [ARG1+640], xmm1
-	movss		DWORD_PTR [ARG1+768], xmm2
-	movss		DWORD_PTR [ARG1+896], xmm3
+	movss		dword ptr [ARG1+512], xmm0
+	movss		dword ptr [ARG1+640], xmm1
+	movss		dword ptr [ARG1+768], xmm2
+	movss		dword ptr [ARG1+896], xmm3
 	
 	pshufd		xmm0, xmm12, HEX(78)
 	movaps		xmm1, xmm13
@@ -375,36 +375,36 @@ ASM_NAME(INT123_dct64_real_x86_64):
 	addps		xmm14, xmm1
 	addps		xmm15, xmm0
 	
-	movss		DWORD_PTR [ARG0+960], xmm12
-	movss		DWORD_PTR [ARG0+832], xmm14
-	movss		DWORD_PTR [ARG0+704], xmm13
-	movss		DWORD_PTR [ARG0+576], xmm15
+	movss		dword ptr [ARG0+960], xmm12
+	movss		dword ptr [ARG0+832], xmm14
+	movss		dword ptr [ARG0+704], xmm13
+	movss		dword ptr [ARG0+576], xmm15
 	movhlps		xmm0, xmm12
 	movhlps		xmm1, xmm14
 	movhlps		xmm2, xmm13
 	movhlps		xmm3, xmm15
-	movss		DWORD_PTR [ARG0+448], xmm0
-	movss		DWORD_PTR [ARG0+320], xmm1
-	movss		DWORD_PTR [ARG0+192], xmm2
-	movss		DWORD_PTR [ARG0+64], xmm3
+	movss		dword ptr [ARG0+448], xmm0
+	movss		dword ptr [ARG0+320], xmm1
+	movss		dword ptr [ARG0+192], xmm2
+	movss		dword ptr [ARG0+64], xmm3
 	
 	pshuflw		xmm4, xmm12, HEX(ee)
 	pshuflw		xmm5, xmm14, HEX(ee)
 	pshuflw		xmm6, xmm13, HEX(ee)
 	pshuflw		xmm7, xmm15, HEX(ee)
-	movss		DWORD_PTR [ARG1+64], xmm4
-	movss		DWORD_PTR [ARG1+192], xmm5
-	movss		DWORD_PTR [ARG1+320], xmm6
-	movss		DWORD_PTR [ARG1+448], xmm7
+	movss		dword ptr [ARG1+64], xmm4
+	movss		dword ptr [ARG1+192], xmm5
+	movss		dword ptr [ARG1+320], xmm6
+	movss		dword ptr [ARG1+448], xmm7
 	
 	pshuflw		xmm0, xmm0, HEX(ee)
 	pshuflw		xmm1, xmm1, HEX(ee)
 	pshuflw		xmm2, xmm2, HEX(ee)
 	pshuflw		xmm3, xmm3, HEX(ee)
-	movss		DWORD_PTR [ARG1+576], xmm0
-	movss		DWORD_PTR [ARG1+704], xmm1
-	movss		DWORD_PTR [ARG1+832], xmm2
-	movss		DWORD_PTR [ARG1+960], xmm3
+	movss		dword ptr [ARG1+576], xmm0
+	movss		dword ptr [ARG1+704], xmm1
+	movss		dword ptr [ARG1+832], xmm2
+	movss		dword ptr [ARG1+960], xmm3
 	
 #ifdef IS_MSABI
 	movaps		xmm6, [rsp]

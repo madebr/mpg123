@@ -198,40 +198,40 @@ ASM_NAME(INT123_dct64_real_avx):
 	
 	add		out0, 1024
 	mov		rax, -128
-	movss		DWORD_PTR [out0], xmm4
-	movss		DWORD_PTR [out0+rax*1], xmm0
-	movss		DWORD_PTR [out0+rax*2], xmm5
-	movss		DWORD_PTR [out0+rax*2+-128], xmm1
+	movss		dword ptr [out0], xmm4
+	movss		dword ptr [out0+rax*1], xmm0
+	movss		dword ptr [out0+rax*2], xmm5
+	movss		dword ptr [out0+rax*2+-128], xmm1
 	lea		out0, [out0+rax*4]
 	movhlps		xmm9, xmm4
 	movhlps		xmm10, xmm0
 	movhlps		xmm11, xmm5
 	movhlps		xmm12, xmm1
-	vmovss		DWORD_PTR [out0], xmm9
-	vmovss		DWORD_PTR [out0+rax*1], xmm10
-	vmovss		DWORD_PTR [out0+rax*2], xmm11
-	vmovss		DWORD_PTR [out0+rax*2+-128], xmm12
+	vmovss		dword ptr [out0], xmm9
+	vmovss		dword ptr [out0+rax*1], xmm10
+	vmovss		dword ptr [out0+rax*2], xmm11
+	vmovss		dword ptr [out0+rax*2+-128], xmm12
 	lea		out0, [out0+rax*4]
 	neg		rax
 	shufps		xmm4, xmm4, HEX(b1)
 	shufps		xmm0, xmm0, HEX(b1)
 	shufps		xmm5, xmm5, HEX(b1)
 	shufps		xmm1, xmm1, HEX(b1)
-	movss		DWORD_PTR [out0], xmm4
-	movss		DWORD_PTR [out1], xmm4
+	movss		dword ptr [out0], xmm4
+	movss		dword ptr [out1], xmm4
 	lea		out1, [out1+rax*1]
-	movss		DWORD_PTR [out1], xmm0
-	movss		DWORD_PTR [out1+rax*1], xmm5
-	movss		DWORD_PTR [out1+rax*2], xmm1
+	movss		dword ptr [out1], xmm0
+	movss		dword ptr [out1+rax*1], xmm5
+	movss		dword ptr [out1+rax*2], xmm1
 	lea		out1, [out1+rax*4]
 	movhlps		xmm4, xmm4
 	movhlps		xmm0, xmm0
 	movhlps		xmm5, xmm5
 	movhlps		xmm1, xmm1
-	movss		DWORD_PTR [out1+-128], xmm4
-	movss		DWORD_PTR [out1], xmm0
-	movss		DWORD_PTR [out1+rax*1], xmm5
-	movss		DWORD_PTR [out1+rax*2], xmm1
+	movss		dword ptr [out1+-128], xmm4
+	movss		dword ptr [out1], xmm0
+	movss		dword ptr [out1+rax*1], xmm5
+	movss		dword ptr [out1+rax*2], xmm1
 	
 	lea		out0, [out0+rax*8+-64]
 	neg		rax
@@ -241,38 +241,38 @@ ASM_NAME(INT123_dct64_real_avx):
 	addps		xmm2, xmm7
 	addps		xmm7, xmm3
 	addps		xmm3, xmm0
-	movss		DWORD_PTR [out0], xmm6
-	movss		DWORD_PTR [out0+rax*1], xmm2
-	movss		DWORD_PTR [out0+rax*2], xmm7
-	movss		DWORD_PTR [out0+rax*2+-128], xmm3
+	movss		dword ptr [out0], xmm6
+	movss		dword ptr [out0+rax*1], xmm2
+	movss		dword ptr [out0+rax*2], xmm7
+	movss		dword ptr [out0+rax*2+-128], xmm3
 	lea		out0, [out0+rax*4]
 	movhlps		xmm0, xmm6
 	movhlps		xmm1, xmm2
 	movhlps		xmm4, xmm7
 	movhlps		xmm5, xmm3
-	movss		DWORD_PTR [out0], xmm0
-	movss		DWORD_PTR [out0+rax*1], xmm1
-	movss		DWORD_PTR [out0+rax*2], xmm4
-	movss		DWORD_PTR [out0+rax*2+-128], xmm5
+	movss		dword ptr [out0], xmm0
+	movss		dword ptr [out0+rax*1], xmm1
+	movss		dword ptr [out0+rax*2], xmm4
+	movss		dword ptr [out0+rax*2+-128], xmm5
 	lea		out1, 64[out1+rax*4]
 	neg		rax
 	shufps		xmm6, xmm6, HEX(b1)
 	shufps		xmm2, xmm2, HEX(b1)
 	shufps		xmm7, xmm7, HEX(b1)
 	shufps		xmm3, xmm3, HEX(b1)
-	movss		DWORD_PTR [out1+-128], xmm6
-	movss		DWORD_PTR [out1], xmm2
-	movss		DWORD_PTR [out1+rax*1], xmm7
-	movss		DWORD_PTR [out1+rax*2], xmm3
+	movss		dword ptr [out1+-128], xmm6
+	movss		dword ptr [out1], xmm2
+	movss		dword ptr [out1+rax*1], xmm7
+	movss		dword ptr [out1+rax*2], xmm3
 	lea		out1, [out1+rax*4]
 	movhlps		xmm6, xmm6
 	movhlps		xmm2, xmm2
 	movhlps		xmm7, xmm7
 	movhlps		xmm3, xmm3
-	movss		DWORD_PTR [out1+-128], xmm6
-	movss		DWORD_PTR [out1], xmm2
-	movss		DWORD_PTR [out1+rax*1], xmm7
-	movss		DWORD_PTR [out1+rax*2], xmm3
+	movss		dword ptr [out1+-128], xmm6
+	movss		dword ptr [out1], xmm2
+	movss		dword ptr [out1+rax*1], xmm7
+	movss		dword ptr [out1+rax*2], xmm3
 
 #ifdef IS_MSABI
 	pop			rsi

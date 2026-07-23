@@ -9,10 +9,6 @@
 #define RIP_REL
 #define RIP_REL_F(ADDR) [rel ADDR]
 #define RIP_REL_ADD_F(ADDR, ADD) [rel ADDR + ADD]
-#define DWORD_PTR dword ptr
-#define QWORD_PTR qword ptr
-#define XMMWORD_PTR xmmword ptr
-#define YMMWORD_PTR ymmword ptr
 #define COMMENT ;
 #define END_MODULE
 #define HEX(V) 0x##V
@@ -29,10 +25,6 @@ option casemap:none
 #define RIP_REL
 #define RIP_REL_F(ADDR) [ADDR]
 #define RIP_REL_ADD_F(ADDR, ADD) [ADDR + ADD]
-#define DWORD_PTR dword ptr
-#define QWORD_PTR qword ptr
-#define XMMWORD_PTR xmmword ptr
-#define YMMWORD_PTR ymmword ptr
 #define COMMENT ;
 #define END_MODULE end
 #define HEX(V) 0##V##h
@@ -48,10 +40,6 @@ option casemap:none
 #define RIP_REL [rip]
 #define RIP_REL_F(ADDR) [ADDR+rip]
 #define RIP_REL_ADD_F(ADDR, ADD) [ADDR+rip+ADD]
-#define DWORD_PTR dword ptr
-#define QWORD_PTR qword ptr
-#define XMMWORD_PTR xmmword ptr
-#define YMMWORD_PTR ymmword ptr
 #define COMMENT #
 #define END_MODULE
 #define HEX(V) 0x##V

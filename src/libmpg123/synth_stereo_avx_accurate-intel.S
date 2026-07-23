@@ -71,7 +71,7 @@ ASM_NAME(INT123_synth_1to1_s_avx_accurate_asm):
 	movaps		96[rsp], xmm12
 	movaps		112[rsp], xmm13
 	movaps		128[rsp], xmm14
-	mov		eax, DWORD_PTR 48[rbp] /* 5th argument; placed after 32-byte shadow space */
+	mov		eax, dword ptr 48[rbp] /* 5th argument; placed after 32-byte shadow space */
 #endif
 	
 #ifdef IS_MSABI
@@ -153,8 +153,8 @@ loop1:
 	vperm2f128	ymm2, ymm0, ymm1, HEX(20)
 	vperm2f128	ymm3, ymm0, ymm1, HEX(31)
 	vaddps		ymm0, ymm2, ymm3
-	vcmpnleps	ymm1, ymm0, YMMWORD_PTR RIP_REL_F(maxmin_avx)
-	vcmpltps	ymm2, ymm0, YMMWORD_PTR RIP_REL_ADD_F(maxmin_avx, 32)
+	vcmpnleps	ymm1, ymm0, ymmword ptr RIP_REL_F(maxmin_avx)
+	vcmpltps	ymm2, ymm0, ymmword ptr RIP_REL_ADD_F(maxmin_avx, 32)
 	vextractf128	xmm3, ymm1, HEX(1)
 	vextractf128	xmm4, ymm2, HEX(1)
 	vpackssdw	xmm1, xmm1, xmm2
@@ -236,8 +236,8 @@ loop2:
 	vperm2f128	ymm2, ymm0, ymm1, HEX(20)
 	vperm2f128	ymm3, ymm0, ymm1, HEX(31)
 	vaddps		ymm0, ymm2, ymm3
-	vcmpnleps	ymm1, ymm0, YMMWORD_PTR RIP_REL_F(maxmin_avx)
-	vcmpltps	ymm2, ymm0, YMMWORD_PTR RIP_REL_ADD_F(maxmin_avx, 32)
+	vcmpnleps	ymm1, ymm0, ymmword ptr RIP_REL_F(maxmin_avx)
+	vcmpltps	ymm2, ymm0, ymmword ptr RIP_REL_ADD_F(maxmin_avx, 32)
 	vextractf128	xmm3, ymm1, HEX(1)
 	vextractf128	xmm4, ymm2, HEX(1)
 	vpackssdw	xmm1, xmm1, xmm2

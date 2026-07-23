@@ -90,7 +90,7 @@ static int open_win32(out123_handle *ao)
     out_fmt.cbSize = 0;
 
     res = waveOutOpen(&state->waveout, dev_id, &out_fmt,
-                      (DWORD_PTR)state->play_done_event, 0, CALLBACK_EVENT);
+                      (dword ptr)state->play_done_event, 0, CALLBACK_EVENT);
 
     switch(res)
     {

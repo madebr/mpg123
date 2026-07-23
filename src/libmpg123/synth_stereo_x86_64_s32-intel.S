@@ -62,7 +62,7 @@ ASM_NAME(INT123_maxmin_s32):
 GLOBAL ASM_NAME(INT123_synth_1to1_s32_s_x86_64_asm)
 ASM_NAME(INT123_synth_1to1_s32_s_x86_64_asm):
 #ifdef IS_MSABI /* should save xmm6-15 */
-	mov		eax, DWORD_PTR 40[rsp] /* 5th argument; placed after 32-byte shadow space */
+	mov		eax, dword ptr 40[rsp] /* 5th argument; placed after 32-byte shadow space */
 	push		rsi
 	push		rdi
 	sub		rsp, 184 /* stack alignment + 10 xmm registers + temp */
