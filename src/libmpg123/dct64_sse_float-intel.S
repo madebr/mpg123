@@ -25,14 +25,17 @@ pnpn:
 	DATA_LONG	0
 	DATA_LONG	-2147483648
 	ALIGN16
-mask:
+masks:
 	DATA_LONG	-1
 	DATA_LONG	-1
 	DATA_LONG	-1
 	DATA_LONG	0
-	
+
+EXTERN(ASM_NAME(INT123_costab_mmxsse))
+
+	FLAT_MODEL
 	SECTION_TEXT
-	ALIGN16
+	//ALIGN16
 GLOBAL ASM_NAME(INT123_dct64_real_sse)
 ASM_NAME(INT123_dct64_real_sse):
 	push		ebp
@@ -47,9 +50,9 @@ ASM_NAME(INT123_dct64_real_sse):
 	mov		eax, DWORD_PTR ARG(2)
 	
 	MOVUAPS 	xmm7, [eax]
-	MOVUAPS 	xmm6, 16[eax]
-	MOVUAPS 	xmm0, 112[eax]
-	MOVUAPS 	xmm1, 96[eax]
+	MOVUAPS 	xmm6, [eax+16]
+	MOVUAPS 	xmm0, [eax+112]
+	MOVUAPS 	xmm1, [eax+96]
 	shufps 		xmm0, xmm0, HEX(1b)
 	shufps 		xmm1, xmm1, HEX(1b)
 	movaps 		xmm4, xmm7
@@ -61,10 +64,10 @@ ASM_NAME(INT123_dct64_real_sse):
 	movaps		TEMP(0), xmm4
 	movaps		TEMP(1), xmm5
 	
-	MOVUAPS 	xmm2, 32[eax]
-	MOVUAPS 	xmm3, 48[eax]
-	MOVUAPS 	xmm0, 80[eax]
-	MOVUAPS 	xmm1, 64[eax]
+	MOVUAPS 	xmm2, [eax+32]
+	MOVUAPS 	xmm3, [eax+48]
+	MOVUAPS 	xmm0, [eax+80]
+	MOVUAPS 	xmm1, [eax+64]
 	shufps 		xmm0, xmm0, HEX(1b)
 	shufps 		xmm1, xmm1, HEX(1b)
 	movaps 		xmm5, xmm2
@@ -80,9 +83,9 @@ ASM_NAME(INT123_dct64_real_sse):
 	lea			eax, [GLOBAL_VAR(INT123_costab_mmxsse)]
 #endif
 	mulps		xmm7, [eax]
-	mulps		xmm6, 16[eax]
-	mulps		xmm5, 32[eax]
-	mulps		xmm4, 48[eax]
+	mulps		xmm6, [eax+16]
+	mulps		xmm5, [eax+32]
+	mulps		xmm4, [eax+48]
 	
 	shufps		xmm2, xmm2, HEX(1b)
 	shufps		xmm3, xmm3, HEX(1b)
@@ -102,10 +105,10 @@ ASM_NAME(INT123_dct64_real_sse):
 	subps		xmm7, xmm4
 	addps		xmm4, xmm3
 	addps		xmm5, xmm2
-	mulps		xmm0, 64[eax]
-	mulps		xmm1, 80[eax]
-	mulps		xmm6, 80[eax]
-	mulps		xmm7, 64[eax]
+	mulps		xmm0, [eax+64]
+	mulps		xmm1, [eax+80]
+	mulps		xmm6, [eax+80]
+	mulps		xmm7, [eax+64]
 	
 	movaps		xmm2, TEMP(0)
 	movaps		xmm3, TEMP(1)
@@ -127,10 +130,10 @@ ASM_NAME(INT123_dct64_real_sse):
 	subps		xmm7, xmm6
 	addps		xmm4, xmm1
 	addps		xmm6, xmm3
-	mulps		xmm2, 96[eax]
-	mulps		xmm0, 96[eax]
-	mulps		xmm5, 96[eax]
-	mulps		xmm7, 96[eax]
+	mulps		xmm2, [eax+96]
+	mulps		xmm0, [eax+96]
+	mulps		xmm5, [eax+96]
+	mulps		xmm7, [eax+96]
 	movaps		TEMP(1), xmm2
 	movaps		TEMP(3), xmm0
 	
@@ -146,7 +149,7 @@ ASM_NAME(INT123_dct64_real_sse):
 	subps		xmm3, xmm5
 	addps		xmm4, xmm6
 	addps		xmm5, xmm7
-	movaps		xmm0, 112[eax]
+	movaps		xmm0, [eax+112]
 	movlhps		xmm0, xmm0
 	mulps		xmm2, xmm0
 	mulps		xmm3, xmm0
@@ -188,9 +191,9 @@ ASM_NAME(INT123_dct64_real_sse):
 	movaps		TEMP(2), xmm5
 	movaps		TEMP(3), xmm7
 	
-	movss		xmm5, 120[eax]
+	movss		xmm5, DWORD_PTR [eax+120]
 	shufps		xmm5, xmm5, HEX(00)
-	xorps		xmm5, [LOCAL_VAR(pnpn)]
+	xorps		xmm5, XMMWORD_PTR [LOCAL_VAR(pnpn)]
 	
 	movaps		xmm0, xmm4
 	movaps		xmm1, xmm6
@@ -259,30 +262,30 @@ ASM_NAME(INT123_dct64_real_sse):
 	movaps		TEMP(5), xmm5
 	movaps		TEMP(7), xmm7
 	
-	movss		xmm0, TEMP_BYTE(12)
-	movss		xmm1, TEMP_BYTE(28)
-	movss		xmm2, TEMP_BYTE(44)
-	movss		xmm3, TEMP_BYTE(60)
-	addss		xmm0, TEMP_BYTE(8)
-	addss		xmm1, TEMP_BYTE(24)
-	addss		xmm2, TEMP_BYTE(40)
-	addss		xmm3, TEMP_BYTE(56)
-	movss		TEMP_BYTE(8), xmm0
-	movss		TEMP_BYTE(24), xmm1
-	movss		TEMP_BYTE(40), xmm2
-	movss		TEMP_BYTE(56), xmm3
-	movss		xmm0, TEMP_BYTE(76)
-	movss		xmm1, TEMP_BYTE(92)
-	movss		xmm2, TEMP_BYTE(108)
-	movss		xmm3, TEMP_BYTE(124)
-	addss		xmm0, TEMP_BYTE(72)
-	addss		xmm1, TEMP_BYTE(88)
-	addss		xmm2, TEMP_BYTE(104)
-	addss		xmm3, TEMP_BYTE(120)
-	movss		TEMP_BYTE(72), xmm0
-	movss		TEMP_BYTE(88), xmm1
-	movss		TEMP_BYTE(104), xmm2
-	movss		TEMP_BYTE(120), xmm3
+	movss		xmm0, DWORD_PTR TEMP_BYTE(12)
+	movss		xmm1, DWORD_PTR TEMP_BYTE(28)
+	movss		xmm2, DWORD_PTR TEMP_BYTE(44)
+	movss		xmm3, DWORD_PTR TEMP_BYTE(60)
+	addss		xmm0, DWORD_PTR TEMP_BYTE(8)
+	addss		xmm1, DWORD_PTR TEMP_BYTE(24)
+	addss		xmm2, DWORD_PTR TEMP_BYTE(40)
+	addss		xmm3, DWORD_PTR TEMP_BYTE(56)
+	movss		DWORD_PTR TEMP_BYTE(8), xmm0
+	movss		DWORD_PTR TEMP_BYTE(24), xmm1
+	movss		DWORD_PTR TEMP_BYTE(40), xmm2
+	movss		DWORD_PTR TEMP_BYTE(56), xmm3
+	movss		xmm0, DWORD_PTR TEMP_BYTE(76)
+	movss		xmm1, DWORD_PTR TEMP_BYTE(92)
+	movss		xmm2, DWORD_PTR TEMP_BYTE(108)
+	movss		xmm3, DWORD_PTR TEMP_BYTE(124)
+	addss		xmm0, DWORD_PTR TEMP_BYTE(72)
+	addss		xmm1, DWORD_PTR TEMP_BYTE(88)
+	addss		xmm2, DWORD_PTR TEMP_BYTE(104)
+	addss		xmm3, DWORD_PTR TEMP_BYTE(120)
+	movss		DWORD_PTR TEMP_BYTE(72), xmm0
+	movss		DWORD_PTR TEMP_BYTE(88), xmm1
+	movss		DWORD_PTR TEMP_BYTE(104), xmm2
+	movss		DWORD_PTR TEMP_BYTE(120), xmm3
 	
 	movaps		xmm1, TEMP_BYTE(16)
 	movaps		xmm3, TEMP_BYTE(48)
@@ -296,7 +299,7 @@ ASM_NAME(INT123_dct64_real_sse):
 	shufps		xmm2, xmm2, HEX(1e)
 	shufps		xmm4, xmm4, HEX(1e)
 	shufps		xmm6, xmm6, HEX(1e)
-	lea			eax, [LOCAL_VAR(mask)]
+	mov			eax, OFFSET LOCAL_VAR(masks)
 	andps		xmm0, [eax]
 	andps		xmm2, [eax]
 	andps		xmm4, [eax]
@@ -325,38 +328,38 @@ ASM_NAME(INT123_dct64_real_sse):
 	mov		ecx, DWORD_PTR ARG(0)
 	mov		ebx, DWORD_PTR ARG(1)
 	
-	movss		1024[ecx], xmm0
-	movss		896[ecx], xmm2
-	movss		768[ecx], xmm1
-	movss		640[ecx], xmm3
+	movss		DWORD_PTR [ecx+1024], xmm0
+	movss		DWORD_PTR [ecx+896], xmm2
+	movss		DWORD_PTR [ecx+768], xmm1
+	movss		DWORD_PTR [ecx+640], xmm3
 	
 	shufps		xmm0, xmm0, HEX(e1)
 	shufps		xmm2, xmm2, HEX(e1)
 	shufps		xmm1, xmm1, HEX(e1)
 	shufps		xmm3, xmm3, HEX(e1)
-	movss		[ecx], xmm0
-	movss		[ebx], xmm0
-	movss		128[ebx], xmm2
-	movss		256[ebx], xmm1
-	movss		384[ebx], xmm3
+	movss		DWORD_PTR [ecx], xmm0
+	movss		DWORD_PTR [ebx], xmm0
+	movss		DWORD_PTR [ebx+128], xmm2
+	movss		DWORD_PTR [ebx+256], xmm1
+	movss		DWORD_PTR [ebx+384], xmm3
 	
 	movhlps		xmm0, xmm0
 	movhlps		xmm2, xmm2
 	movhlps		xmm1, xmm1
 	movhlps		xmm3, xmm3
-	movss		512[ecx], xmm0
-	movss		384[ecx], xmm2
-	movss		256[ecx], xmm1
-	movss		128[ecx], xmm3
+	movss		DWORD_PTR [ecx+512], xmm0
+	movss		DWORD_PTR [ecx+384], xmm2
+	movss		DWORD_PTR [ecx+256], xmm1
+	movss		DWORD_PTR [ecx+128], xmm3
 	
 	shufps		xmm0, xmm0, HEX(e1)
 	shufps		xmm2, xmm2, HEX(e1)
 	shufps		xmm1, xmm1, HEX(e1)
 	shufps		xmm3, xmm3, HEX(e1)
-	movss		512[ebx], xmm0
-	movss		640[ebx], xmm2
-	movss		768[ebx], xmm1
-	movss		896[ebx], xmm3
+	movss		DWORD_PTR [ebx+512], xmm0
+	movss		DWORD_PTR [ebx+640], xmm2
+	movss		DWORD_PTR [ebx+768], xmm1
+	movss		DWORD_PTR [ebx+896], xmm3
 	
 	movaps		xmm0, xmm4
 	shufps		xmm0, xmm0, HEX(1e)
@@ -368,43 +371,42 @@ ASM_NAME(INT123_dct64_real_sse):
 	addps		xmm6, xmm1
 	addps		xmm7, xmm0
 	
-	movss		960[ecx], xmm4
-	movss		832[ecx], xmm6
-	movss		704[ecx], xmm5
-	movss		576[ecx], xmm7
+	movss		DWORD_PTR [ecx+960], xmm4
+	movss		DWORD_PTR [ecx+832], xmm6
+	movss		DWORD_PTR [ecx+704], xmm5
+	movss		DWORD_PTR [ecx+576], xmm7
 	movhlps		xmm0, xmm4
 	movhlps		xmm1, xmm6
 	movhlps		xmm2, xmm5
 	movhlps		xmm3, xmm7
-	movss		448[ecx], xmm0
-	movss		320[ecx], xmm1
-	movss		192[ecx], xmm2
-	movss		64[ecx], xmm3
+	movss		DWORD_PTR [ecx+448], xmm0
+	movss		DWORD_PTR [ecx+320], xmm1
+	movss		DWORD_PTR [ecx+192], xmm2
+	movss		DWORD_PTR [ecx+64], xmm3
 	
 	shufps		xmm4, xmm4, HEX(e1)
 	shufps		xmm6, xmm6, HEX(e1)
 	shufps		xmm5, xmm5, HEX(e1)
 	shufps		xmm7, xmm7, HEX(e1)
-	movss		64[ebx], xmm4
-	movss		192[ebx], xmm6
-	movss		320[ebx], xmm5
-	movss		448[ebx], xmm7
+	movss		DWORD_PTR [ebx+64], xmm4
+	movss		DWORD_PTR [ebx+192], xmm6
+	movss		DWORD_PTR [ebx+320], xmm5
+	movss		DWORD_PTR [ebx+448], xmm7
 	
 	shufps		xmm0, xmm0, HEX(e1)
 	shufps		xmm1, xmm1, HEX(e1)
 	shufps		xmm2, xmm2, HEX(e1)
 	shufps		xmm3, xmm3, HEX(e1)
-	movss		576[ebx], xmm0
-	movss		704[ebx], xmm1
-	movss		832[ebx], xmm2
-	movss		960[ebx], xmm3
+	movss		DWORD_PTR [ebx+576], xmm0
+	movss		DWORD_PTR [ebx+704], xmm1
+	movss		DWORD_PTR [ebx+832], xmm2
+	movss		DWORD_PTR [ebx+960], xmm3
 
 	pop		ebx
 	mov		esp, ebp
 	pop		ebp
 	ret
 
-EXTERN(ASM_NAME(INT123_costab_mmxsse))
 #if defined(PIC) && defined(__APPLE__)
 	SECTION	__IMPORT,__pointers,non_lazy_symbol_pointers
 L_INT123_costab_mmxsse:
@@ -413,3 +415,5 @@ L_INT123_costab_mmxsse:
 #endif
 
 NONEXEC_STACK
+
+END_MODULE

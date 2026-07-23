@@ -34,8 +34,9 @@ maxmin_s16:
 	DATA_LONG   -956301312
 	DATA_LONG   -956301312
 	DATA_LONG   -956301312
+	FLAT_MODEL
 	SECTION_TEXT
-	ALIGN16
+	//ALIGN16
 GLOBAL ASM_NAME(INT123_synth_1to1_sse_accurate_asm)
 ASM_NAME(INT123_synth_1to1_sse_accurate_asm):
 	push		ebp
@@ -60,7 +61,7 @@ ASM_NAME(INT123_synth_1to1_sse_accurate_asm):
 
 	mov		ecx, 4
 	
-	ALIGN16
+	//ALIGN16
 loop1:
 	movups		xmm0, [WINDOW]
 	movups		xmm1, [WINDOW+16]
@@ -138,8 +139,8 @@ loop1:
 	movaps		xmm2, xmm0
 	pshufw		mm2, [SAMPLES], HEX(dd)
 	pshufw		mm3, [SAMPLES+8], HEX(dd)
-	cmpnleps	xmm1, [LOCAL_VAR(maxmin_s16)]
-	cmpltps		xmm2, [LOCAL_VAR(maxmin_s16)+16]
+	cmpnleps	xmm1, XMMWORD_PTR [LOCAL_VAR(maxmin_s16)]
+	cmpltps		xmm2, XMMWORD_PTR [LOCAL_VAR(maxmin_s16)+16]
 	cvtps2pi	mm0, xmm0
 	movhlps		xmm0, xmm0
 	cvtps2pi	mm1, xmm0
@@ -169,7 +170,7 @@ loop1:
 	
 	mov		ecx, 4
 	
-	ALIGN16
+	//ALIGN16
 loop2:
 	movups		xmm0, [WINDOW]
 	movups		xmm1, [WINDOW+16]
@@ -247,8 +248,8 @@ loop2:
 	movaps		xmm2, xmm0
 	pshufw		mm2, [SAMPLES], HEX(dd)
 	pshufw		mm3, [SAMPLES+8], HEX(dd)
-	cmpnleps	xmm1, [LOCAL_VAR(maxmin_s16)]
-	cmpltps		xmm2, [LOCAL_VAR(maxmin_s16)+16]
+	cmpnleps	xmm1, XMMWORD_PTR [LOCAL_VAR(maxmin_s16)]
+	cmpltps		xmm2, XMMWORD_PTR [LOCAL_VAR(maxmin_s16)+16]
 	cvtps2pi	mm0, xmm0
 	movhlps		xmm0, xmm0
 	cvtps2pi	mm1, xmm0

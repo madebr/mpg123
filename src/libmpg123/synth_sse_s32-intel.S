@@ -40,8 +40,10 @@ maxmin_s32:
 	DATA_LONG   -956301312
 	DATA_LONG   -956301312
 	DATA_LONG   -956301312
+	MMX
+	FLAT_MODEL
 	SECTION_TEXT
-	ALIGN16
+	//ALIGN16
 GLOBAL ASM_NAME(INT123_synth_1to1_s32_sse_asm)
 ASM_NAME(INT123_synth_1to1_s32_sse_asm):
 	push		ebp
@@ -66,7 +68,7 @@ ASM_NAME(INT123_synth_1to1_s32_sse_asm):
 
 	mov		ecx, 4
 	
-	ALIGN16
+	//ALIGN16
 loop1:
 	movups		xmm0, [WINDOW]
 	movups		xmm1, 16[WINDOW]
@@ -142,9 +144,9 @@ loop1:
 	
 	movaps		xmm1, xmm0
 	movaps		xmm2, xmm0
-	mulps		xmm0, [LOCAL_VAR(scale_s32)]
-	cmpnleps	xmm1, [LOCAL_VAR(maxmin_s32)]
-	cmpltps		xmm2, [16+LOCAL_VAR(maxmin_s32)]
+	mulps		xmm0, XMMWORD_PTR [LOCAL_VAR(scale_s32)]
+	cmpnleps	xmm1, XMMWORD_PTR [LOCAL_VAR(maxmin_s32)]
+	cmpltps		xmm2, XMMWORD_PTR [16+LOCAL_VAR(maxmin_s32)]
 	cvtps2pi	mm0, xmm0
 	movhlps		xmm0, xmm0
 	cvtps2pi	mm1, xmm0
@@ -155,12 +157,12 @@ loop1:
 	psrad		mm3, 31
 	pxor		mm0, mm2
 	pxor		mm1, mm3
-	movd		[SAMPLES], mm0
+	movd		DWORD_PTR [SAMPLES], mm0
 	psrlq		mm0, 32
-	movd		8[SAMPLES], mm0
-	movd		16[SAMPLES], mm1
+	movd		DWORD_PTR [SAMPLES+8], mm0
+	movd		DWORD_PTR [SAMPLES+16], mm1
 	psrlq		mm1, 32
-	movd		24[SAMPLES], mm1
+	movd		DWORD_PTR [SAMPLES+24], mm1
 	
 	cvtps2pi	mm0, xmm2
 	movhlps		xmm2, xmm2
@@ -178,20 +180,20 @@ loop1:
 	
 	mov		ecx, 4
 	
-	ALIGN16
+	//ALIGN16
 loop2:
 	movups		xmm0, [WINDOW]
-	movups		xmm1, 16[WINDOW]
-	movups		xmm2, 32[WINDOW]
-	movups		xmm3, 48[WINDOW]
-	movups		xmm4, 128[WINDOW]
-	movups		xmm5, 144[WINDOW]
-	movups		xmm6, 160[WINDOW]
-	movups		xmm7, 176[WINDOW]
-	mulps		xmm0, 0[B0]
-	mulps		xmm1, 16[B0]
-	mulps		xmm2, 32[B0]
-	mulps		xmm3, 48[B0]
+	movups		xmm1, [WINDOW+16]
+	movups		xmm2, [WINDOW+32]
+	movups		xmm3, [WINDOW+48]
+	movups		xmm4, [WINDOW+128]
+	movups		xmm5, [WINDOW+144]
+	movups		xmm6, [WINDOW+160]
+	movups		xmm7, [WINDOW+176]
+	mulps		xmm0, [B0+0]
+	mulps		xmm1, [B0+16]
+	mulps		xmm2, [B0+32]
+	mulps		xmm3, [B0+48]
 	mulps		xmm4, [B0-64]
 	mulps		xmm5, [B0-48]
 	mulps		xmm6, [B0-32]
@@ -205,26 +207,26 @@ loop2:
 	movaps		xmm5, xmm4
 	movaps		xmm4, xmm0
 	
-	lea		WINDOW, DWORD_PTR 256[WINDOW]
+	lea		WINDOW, DWORD_PTR [WINDOW+256]
 	lea		B0, DWORD_PTR [B0-128]
 	
 	movups		xmm0, [WINDOW]
-	movups		xmm1, 16[WINDOW]
-	movups		xmm2, 32[WINDOW]
-	movups		xmm3, 48[WINDOW]
-	movups		xmm6, 128[WINDOW]
-	movups		xmm7, 144[WINDOW]
+	movups		xmm1, [WINDOW+16]
+	movups		xmm2, [WINDOW+32]
+	movups		xmm3, [WINDOW+48]
+	movups		xmm6, [WINDOW+128]
+	movups		xmm7, [WINDOW+144]
 	mulps		xmm0, [B0]
-	mulps		xmm1, 16[B0]
-	mulps		xmm2, 32[B0]
-	mulps		xmm3, 48[B0]
+	mulps		xmm1, [B0+16]
+	mulps		xmm2, [B0+32]
+	mulps		xmm3, [B0+48]
 	mulps		xmm6, [B0-64]
 	mulps		xmm7, [B0-48]
 	addps		xmm0, xmm1
 	addps		xmm2, xmm3
 	addps		xmm6, xmm7
-	movups		xmm1, 160[WINDOW]
-	movups		xmm3, 176[WINDOW]
+	movups		xmm1, [WINDOW+160]
+	movups		xmm3, [WINDOW+176]
 	mulps		xmm1, [B0-32]
 	mulps		xmm3, [B0-16]
 	addps		xmm0, xmm2
@@ -233,7 +235,7 @@ loop2:
 	movaps		xmm7, xmm6
 	movaps		xmm6, xmm0
 	
-	lea		WINDOW, DWORD_PTR 256[WINDOW]
+	lea		WINDOW, DWORD_PTR [WINDOW+256]
 	lea		B0, DWORD_PTR [B0-128]
 	
 	movaps		xmm0, xmm4
@@ -254,9 +256,9 @@ loop2:
 	
 	movaps		xmm1, xmm0
 	movaps		xmm2, xmm0
-	mulps		xmm0, [LOCAL_VAR(scale_s32)]
-	cmpnleps	xmm1, [LOCAL_VAR(maxmin_s32)]
-	cmpltps		xmm2, [LOCAL_VAR(maxmin_s32)+16]
+	mulps		xmm0, XMMWORD_PTR [LOCAL_VAR(scale_s32)]
+	cmpnleps	xmm1, XMMWORD_PTR [LOCAL_VAR(maxmin_s32)]
+	cmpltps		xmm2, XMMWORD_PTR [LOCAL_VAR(maxmin_s32)+16]
 	cvtps2pi	mm0, xmm0
 	movhlps		xmm0, xmm0
 	cvtps2pi	mm1, xmm0
@@ -267,12 +269,12 @@ loop2:
 	psrad		mm3, 31
 	pxor		mm0, mm2
 	pxor		mm1, mm3
-	movd		[SAMPLES], mm0
+	movd		DWORD_PTR [SAMPLES], mm0
 	psrlq		mm0, 32
-	movd		8[SAMPLES], mm0
-	movd		16[SAMPLES], mm1
+	movd		DWORD_PTR [SAMPLES+8], mm0
+	movd		DWORD_PTR [SAMPLES+16], mm1
 	psrlq		mm1, 32
-	movd		24[SAMPLES], mm1
+	movd		DWORD_PTR [SAMPLES+24], mm1
 	
 	cvtps2pi	mm0, xmm2
 	movhlps		xmm2, xmm2

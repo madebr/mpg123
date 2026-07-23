@@ -3,6 +3,10 @@
 #define DATA_SHORT dw
 #define DATA_BYTE db
 #define SECTION section
+#define CPU_686
+#define MMX
+#define XMM
+#define FLAT_MODEL
 #define SECTION_TEXT SECTION .text
 #define ALIGN align
 #define GLOBAL global
@@ -26,6 +30,14 @@ option casemap:none
 #define DATA_SHORT dw
 #define DATA_BYTE db
 #define SECTION section
+#if defined(_IM_X86)
+#define CPU_686 .686
+#else
+#define CPU_686
+#endif
+#define MMX .mmx
+#define XMM .xmm
+#define FLAT_MODEL .model flat
 #define SECTION_TEXT .code
 #define ALIGN align
 #define GLOBAL PUBLIC
@@ -41,13 +53,17 @@ option casemap:none
 #define XMMWORD_PTR xmmword ptr
 #define YMMWORD_PTR ymmword ptr
 #define PTR_NONASM ptr
-#define EXTERN(NAME)
+#define EXTERN(NAME) extern NAME:BYTE
 
 #else
 #define DATA_LONG .long
 #define DATA_SHORT .short
 #define DATA_BYTE .byte
 #define SECTION .section
+#define CPU_686
+#define MMX
+#define XMM
+#define FLAT_MODEL
 #define SECTION_TEXT .text
 #define ALIGN .balign
 #define GLOBAL .globl

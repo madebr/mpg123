@@ -32,8 +32,10 @@ scale_sse:
 	DATA_LONG   939524096
 	DATA_LONG   939524096
 	DATA_LONG   939524096
+	CPU_686
+	FLAT_MODEL
 	SECTION_TEXT
-	ALIGN16
+	//ALIGN16
 GLOBAL ASM_NAME(INT123_synth_1to1_real_s_sse_asm)
 ASM_NAME(INT123_synth_1to1_real_s_sse_asm):
 	push		ebp
@@ -60,7 +62,7 @@ ASM_NAME(INT123_synth_1to1_real_s_sse_asm):
 
 	mov		ecx, 4
 	
-	ALIGN16
+	//ALIGN16
 loop1:
 	movups		xmm0, [WINDOW]
 	movups		xmm1, [WINDOW+16]
@@ -219,8 +221,8 @@ loop1:
 	subps		xmm0, xmm1
 	addps		xmm0, xmm4
 	
-	mulps		xmm5, [LOCAL_VAR(scale_sse)]
-	mulps		xmm0, [LOCAL_VAR(scale_sse)]
+	mulps		xmm5, XMMWORD_PTR [LOCAL_VAR(scale_sse)]
+	mulps		xmm0, XMMWORD_PTR [LOCAL_VAR(scale_sse)]
 	movaps		xmm1, xmm5
 	unpcklps	xmm5, xmm0
 	unpckhps	xmm1, xmm0
@@ -233,7 +235,7 @@ loop1:
 	
 	mov		ecx, 4
 	
-	ALIGN16
+	//ALIGN16
 loop2:
 	movups		xmm0, [WINDOW]
 	movups		xmm1, [WINDOW+16]
@@ -261,8 +263,8 @@ loop2:
 	movaps		TEMP(4), xmm4
 	
 	lea		WINDOW, DWORD_PTR [WINDOW+128]
-	lea		B0L, DWORD_PTR -64[B0L]
-	lea		B0R, DWORD_PTR -64[B0R]
+	lea		B0L, DWORD_PTR [B0L-64]
+	lea		B0R, DWORD_PTR [B0R-64]
 	
 	movups		xmm0, [WINDOW]
 	movups		xmm1, [WINDOW+16]
@@ -290,8 +292,8 @@ loop2:
 	movaps		TEMP(5), xmm4
 	
 	lea		WINDOW, DWORD_PTR [WINDOW+128]
-	lea		B0L, DWORD_PTR -64[B0L]
-	lea		B0R, DWORD_PTR -64[B0R]
+	lea		B0L, DWORD_PTR [B0L-64]
+	lea		B0R, DWORD_PTR [B0R-64]
 	
 	movups		xmm0, [WINDOW]
 	movups		xmm1, [WINDOW+16]
@@ -319,8 +321,8 @@ loop2:
 	movaps		TEMP(6), xmm4
 	
 	lea		WINDOW, DWORD_PTR [WINDOW+128]
-	lea		B0L, DWORD_PTR -64[B0L]
-	lea		B0R, DWORD_PTR -64[B0R]
+	lea		B0L, DWORD_PTR [B0L-64]
+	lea		B0R, DWORD_PTR [B0R-64]
 	
 	movups		xmm0, [WINDOW]
 	movups		xmm1, [WINDOW+16]
@@ -348,8 +350,8 @@ loop2:
 	movaps		TEMP(7), xmm4
 	
 	lea		WINDOW, DWORD_PTR [WINDOW+128]
-	lea		B0L, DWORD_PTR -64[B0L]
-	lea		B0R, DWORD_PTR -64[B0R]
+	lea		B0L, DWORD_PTR [B0L-64]
+	lea		B0R, DWORD_PTR [B0R-64]
 	
 	movaps		xmm4, TEMP(0)
 	movaps		xmm5, TEMP(1)
@@ -392,8 +394,8 @@ loop2:
 	addps		xmm0, xmm1
 	addps		xmm0, xmm4
 	
-	mulps		xmm5, [LOCAL_VAR(scale_sse)]
-	mulps		xmm0, [LOCAL_VAR(scale_sse)]
+	mulps		xmm5, XMMWORD_PTR [LOCAL_VAR(scale_sse)]
+	mulps		xmm0, XMMWORD_PTR [LOCAL_VAR(scale_sse)]
 	movaps		xmm1, xmm5
 	unpcklps	xmm5, xmm0
 	unpckhps	xmm1, xmm0

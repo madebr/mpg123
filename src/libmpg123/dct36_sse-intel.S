@@ -56,8 +56,11 @@ dct36_sse_mask:
 	ALIGN16
 dct36_sse_sign:
 	DATA_LONG HEX(80000000),HEX(80000000),HEX(80000000),HEX(80000000)
+	//CPU_686
+	//XMM
+	FLAT_MODEL
 	SECTION_TEXT
-	ALIGN16
+	//ALIGN16
 	GLOBAL ASM_NAME(INT123_dct36_sse)
 ASM_NAME(INT123_dct36_sse):
 	push		ebp
@@ -72,12 +75,12 @@ ASM_NAME(INT123_dct36_sse):
 
 	GET_GOT
 	
-	lea			eax, [LOCAL_VAR(dct36_sse_COS9)]
-	lea			edx, [LOCAL_VAR(dct36_sse_tfcos36)]
+	mov			eax, OFFSET LOCAL_VAR(dct36_sse_COS9)
+	mov			edx, OFFSET LOCAL_VAR(dct36_sse_tfcos36)
 
 	xorps		xmm0, xmm0
 	xorps		xmm5, xmm5
-	movlps		xmm5, [in+64]
+	movlps		xmm5, QWORD_PTR [in+64]
 	movups		xmm4, [in+48]
 	movups		xmm3, [in+32]
 	movups		xmm2, [in+16]
@@ -103,7 +106,7 @@ ASM_NAME(INT123_dct36_sse):
 	movss		xmm6, xmm0
 	addps		xmm1, xmm6
 	
-	movaps		xmm0, [LOCAL_VAR(dct36_sse_mask)]
+	movaps		xmm0, XMMWORD_PTR [LOCAL_VAR(dct36_sse_mask)]
 	movaps		xmm6, xmm4
 	shufps		xmm4, xmm5, HEX(4e)
 	movaps		xmm7, xmm3
@@ -147,8 +150,8 @@ xmm4 in[14,15,8,9]
 	mulps		xmm5, [eax]
 	addps		xmm5, xmm0
 	
-	movaps		[tmp], xmm0
-	movaps		[tmp+16], xmm2
+	movaps		DWORD_PTR [tmp], xmm0
+	movaps		DWORD_PTR [tmp+16], xmm2
 
 /*
 0(tmp) in[-,-,0,1]
@@ -199,7 +202,7 @@ xmm5 [ta33,tb33,ta66,tb66]
 	addps		xmm6, xmm2
 	
 	movaps		xmm0, [tmp]
-	movss		xmm5, [edx+32]
+	movss		xmm5, DWORD_PTR [edx+32]
 	subps		xmm0, xmm1
 	subps		xmm4, [tmp+16]
 	addps		xmm0, xmm3
@@ -225,7 +228,7 @@ xmm6 [1a-3,1b-3,-2a-3,-2b-3]
 	movaps		xmm5, xmm2
 	unpcklps	xmm2, xmm6
 	unpckhps	xmm5, xmm6
-	xorps		xmm5, [LOCAL_VAR(dct36_sse_sign)]
+	xorps		xmm5, DWORD_PTR [LOCAL_VAR(dct36_sse_sign)]
 
 /*
 xmm0 [1a-0,1a-1,1b-0,1b-1]
@@ -276,11 +279,11 @@ xmm7 tmp[9,10,11,12]
 
 	movaps		xmm0, xmm3
 	movaps		xmm1, xmm5
-	movups		xmm2, 108[w]
-	movups		xmm3, 92[w]
+	movups		xmm2, [w+108]
+	movups		xmm3, [w+92]
 	shufps		xmm3, xmm3, HEX(1b)
-	movups		xmm4, 36[w]
-	movups		xmm5, 20[w]
+	movups		xmm4, [w+36]
+	movups		xmm5, [w+20]
 	shufps		xmm5, xmm5, HEX(1b)
 	movaps		xmm6, xmm0
 	addps		xmm0, xmm1
@@ -289,35 +292,35 @@ xmm7 tmp[9,10,11,12]
 	mulps		xmm0, xmm3
 	mulps		xmm4, xmm6
 	mulps		xmm6, xmm5
-	movups		xmm1, 36[out1]
-	movups		xmm3, 20[out1]
+	movups		xmm1, [out1+36]
+	movups		xmm3, [out1+20]
 	shufps		xmm6, xmm6, HEX(1b)
 	addps		xmm1, xmm4
 	addps		xmm3, xmm6
 	shufps		xmm0, xmm0, HEX(1b)
-	movups		36[out2], xmm2
-	movups		20[out2], xmm0
-	movss		32*36[ts], xmm1
-	movss		32*20[ts], xmm3
+	movups		[out2+36], xmm2
+	movups		[out2+20], xmm0
+	movss		DWORD_PTR[ts+32*36], xmm1
+	movss		DWORD_PTR[ts+32*20], xmm3
 	movhlps		xmm2, xmm1
 	movhlps		xmm4, xmm3
-	movss		32*44[ts], xmm2
-	movss		32*28[ts], xmm4
+	movss		DWORD_PTR [ts+32*44], xmm2
+	movss		DWORD_PTR [ts+32*28], xmm4
 	shufps		xmm1, xmm1, HEX(b1)
 	shufps		xmm3, xmm3, HEX(b1)
-	movss		32*40[ts], xmm1
-	movss		32*24[ts], xmm3
+	movss		DWORD_PTR [ts+32*40], xmm1
+	movss		DWORD_PTR [ts+32*24], xmm3
 	movhlps		xmm2, xmm1
 	movhlps		xmm4, xmm3
-	movss		32*48[ts], xmm2
-	movss		32*32[ts], xmm4
+	movss		DWORD_PTR [ts+32*48], xmm2
+	movss		DWORD_PTR [ts+32*32], xmm4
 	
-	movss		xmm0, 8[tmp]
-	movss		xmm1, [tmp]
-	movss		xmm2, 124[w]
-	movss		xmm3, 88[w]
-	movss		xmm4, 52[w]
-	movss		xmm5, 16[w]
+	movss		xmm0, DWORD_PTR [tmp+8]
+	movss		xmm1, DWORD_PTR [tmp]
+	movss		xmm2, DWORD_PTR [w+124]
+	movss		xmm3, DWORD_PTR [w+88]
+	movss		xmm4, DWORD_PTR [w+52]
+	movss		xmm5, DWORD_PTR [w+16]
 	movss		xmm6, xmm0
 	addss		xmm0, xmm1
 	subss		xmm6, xmm1
@@ -325,20 +328,20 @@ xmm7 tmp[9,10,11,12]
 	mulss		xmm0, xmm3
 	mulss		xmm4, xmm6
 	mulss		xmm6, xmm5
-	addss		xmm4, 52[out1]
-	addss		xmm6, 16[out1]
-	movss		52[out2], xmm2
-	movss		16[out2], xmm0
-	movss		32*52[ts], xmm4
-	movss		32*16[ts], xmm6
+	addss		xmm4, DWORD_PTR [out1+52]
+	addss		xmm6, DWORD_PTR [out1+16]
+	movss		DWORD_PTR [out2+52], xmm2
+	movss		DWORD_PTR [out2+16], xmm0
+	movss		DWORD_PTR [ts+32*52], xmm4
+	movss		DWORD_PTR [ts+32*16], xmm6
 	
-	movaps		xmm0, 16[tmp]
+	movaps		xmm0, [tmp+16]
 	movaps		xmm1, xmm7
-	MOVUAPS		xmm2, 128[w]
-	movups		xmm3, 72[w]
+	MOVUAPS		xmm2, [w+128]
+	movups		xmm3, [w+72]
 	shufps		xmm2, xmm2, HEX(1b)
-	movlps		xmm4, 56[w]
-	movhps		xmm4, 64[w]
+	movlps		xmm4, QWORD_PTR [w+56]
+	movhps		xmm4, QWORD_PTR [w+64]
 	MOVUAPS		xmm5, [w]
 	shufps		xmm4, xmm4, HEX(1b)
 	movaps		xmm6, xmm0
@@ -348,30 +351,30 @@ xmm7 tmp[9,10,11,12]
 	mulps		xmm0, xmm3
 	mulps		xmm4, xmm6
 	mulps		xmm6, xmm5
-	movlps		xmm1, 56[out1]
-	movhps		xmm1, 64[out1]
+	movlps		xmm1, QWORD_PTR [out1+56]
+	movhps		xmm1, QWORD_PTR [out1+64]
 	movups		xmm3, [out1]
 	shufps		xmm4, xmm4, HEX(1b)
 	addps		xmm3, xmm6
 	addps		xmm1, xmm4
 	shufps		xmm2, xmm2, HEX(1b)
 	movups		[out2], xmm0
-	movlps		56[out2], xmm2
-	movhps		64[out2], xmm2
-	movss		32*56[ts], xmm1
-	movss		[ts], xmm3
+	movlps		QWORD_PTR [out2+56], xmm2
+	movhps		QWORD_PTR [out2+64], xmm2
+	movss		DWORD_PTR [ts+32*56], xmm1
+	movss		DWORD_PTR [ts], xmm3
 	movhlps		xmm2, xmm1
 	movhlps		xmm4, xmm3
-	movss		32*64[ts], xmm2
-	movss		32*8[ts], xmm4
+	movss		DWORD_PTR [ts+32*64], xmm2
+	movss		DWORD_PTR [ts+32*8], xmm4
 	shufps		xmm1, xmm1, HEX(b1)
 	shufps		xmm3, xmm3, HEX(b1)
-	movss		32*60[ts], xmm1
-	movss		32*4[ts], xmm3
+	movss		DWORD_PTR [ts+32*60], xmm1
+	movss		DWORD_PTR [ts+32*4], xmm3
 	movhlps		xmm2, xmm1
 	movhlps		xmm4, xmm3
-	movss		32*68[ts], xmm2
-	movss		32*12[ts], xmm4
+	movss		DWORD_PTR [ts+32*68], xmm2
+	movss		DWORD_PTR [ts+32*12], xmm4
 	
 	pop			edi
 	pop			esi

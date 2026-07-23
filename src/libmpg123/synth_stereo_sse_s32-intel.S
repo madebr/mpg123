@@ -43,8 +43,9 @@ maxmin_s32:
 	DATA_LONG   -956301312
 	DATA_LONG   -956301312
 	DATA_LONG   -956301312
+	FLAT_MODEL
 	SECTION_TEXT
-	ALIGN16
+	//ALIGN16
 GLOBAL ASM_NAME(INT123_synth_1to1_s32_s_sse_asm)
 ASM_NAME(INT123_synth_1to1_s32_s_sse_asm):
 	push		ebp
@@ -73,7 +74,7 @@ ASM_NAME(INT123_synth_1to1_s32_s_sse_asm):
 
 	mov		ecx, 4
 	
-	ALIGN16
+	//ALIGN16
 loop1:
 	movups		xmm0, [WINDOW]
 	movups		xmm1, 16[WINDOW]
@@ -236,12 +237,12 @@ loop1:
 	movaps		xmm2, xmm5
 	movaps		xmm3, xmm0
 	movaps		xmm4, xmm0
-	mulps		xmm5, [LOCAL_VAR(scale_s32)]
-	mulps		xmm0, [LOCAL_VAR(scale_s32)]
-	cmpnleps	xmm1, [LOCAL_VAR(maxmin_s32)]
-	cmpltps		xmm2, [LOCAL_VAR(maxmin_s32)+16]
-	cmpnleps	xmm3, [LOCAL_VAR(maxmin_s32)]
-	cmpltps		xmm4, [LOCAL_VAR(maxmin_s32)+16]
+	mulps		xmm5, XMMWORD_PTR [LOCAL_VAR(scale_s32)]
+	mulps		xmm0, XMMWORD_PTR [LOCAL_VAR(scale_s32)]
+	cmpnleps	xmm1, XMMWORD_PTR [LOCAL_VAR(maxmin_s32)]
+	cmpltps		xmm2, XMMWORD_PTR [LOCAL_VAR(maxmin_s32)+16]
+	cmpnleps	xmm3, XMMWORD_PTR [LOCAL_VAR(maxmin_s32)]
+	cmpltps		xmm4, XMMWORD_PTR [LOCAL_VAR(maxmin_s32)+16]
 	cvtps2pi	mm0, xmm5
 	cvtps2pi	mm1, xmm0
 	cvtps2pi	mm2, xmm1
@@ -298,7 +299,7 @@ loop1:
 	
 	mov		ecx, 4
 	
-	ALIGN16
+	//ALIGN16
 loop2:
 	movups		xmm0, [WINDOW]
 	movups		xmm1, 16[WINDOW]
@@ -325,7 +326,7 @@ loop2:
 	movaps		TEMP(0), xmm0
 	movaps		TEMP(4), xmm4
 	
-	lea		WINDOW, DWORD_PTR 128[WINDOW]
+	lea		WINDOW, DWORD_PTR [WINDOW+128]
 	lea		B0L, DWORD_PTR [B0L-64]
 	lea		B0R, DWORD_PTR [B0R-64]
 	
@@ -383,9 +384,9 @@ loop2:
 	movaps		TEMP(2), xmm0
 	movaps		TEMP(6), xmm4
 	
-	lea		WINDOW, DWORD_PTR 128[WINDOW]
-	lea		B0L, DWORD_PTR -64[B0L]
-	lea		B0R, DWORD_PTR -64[B0R]
+	lea		WINDOW, DWORD_PTR [WINDOW+128]
+	lea		B0L, DWORD_PTR [B0L-64]
+	lea		B0R, DWORD_PTR [B0R-64]
 	
 	movups		xmm0, [WINDOW]
 	movups		xmm1, 16[WINDOW]
@@ -412,9 +413,9 @@ loop2:
 	movaps		xmm7, xmm0
 	movaps		TEMP(7), xmm4
 	
-	lea		WINDOW, DWORD_PTR 128[WINDOW]
-	lea		B0L, DWORD_PTR -64[B0L]
-	lea		B0R, DWORD_PTR -64[B0R]
+	lea		WINDOW, DWORD_PTR [WINDOW+128]
+	lea		B0L, DWORD_PTR [B0L-64]
+	lea		B0R, DWORD_PTR [B0R-64]
 	
 	movaps		xmm4, TEMP(0)
 	movaps		xmm5, TEMP(1)
@@ -461,12 +462,12 @@ loop2:
 	movaps		xmm2, xmm5
 	movaps		xmm3, xmm0
 	movaps		xmm4, xmm0
-	mulps		xmm5, [LOCAL_VAR(scale_s32)]
-	mulps		xmm0, [LOCAL_VAR(scale_s32)]
-	cmpnleps	xmm1, [LOCAL_VAR(maxmin_s32)]
-	cmpltps		xmm2, [LOCAL_VAR(maxmin_s32)+16]
-	cmpnleps	xmm3, [LOCAL_VAR(maxmin_s32)]
-	cmpltps		xmm4, [LOCAL_VAR(maxmin_s32)+16]
+	mulps		xmm5, XMMWORD_PTR [LOCAL_VAR(scale_s32)]
+	mulps		xmm0, XMMWORD_PTR [LOCAL_VAR(scale_s32)]
+	cmpnleps	xmm1, XMMWORD_PTR [LOCAL_VAR(maxmin_s32)]
+	cmpltps		xmm2, XMMWORD_PTR [LOCAL_VAR(maxmin_s32)+16]
+	cmpnleps	xmm3, XMMWORD_PTR [LOCAL_VAR(maxmin_s32)]
+	cmpltps		xmm4, XMMWORD_PTR [LOCAL_VAR(maxmin_s32)+16]
 	cvtps2pi	mm0, xmm5
 	cvtps2pi	mm1, xmm0
 	cvtps2pi	mm2, xmm1

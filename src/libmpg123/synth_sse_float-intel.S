@@ -28,8 +28,9 @@ scale_sse:
 	DATA_LONG   939524096
 	DATA_LONG   939524096
 	DATA_LONG   939524096
+	FLAT_MODEL
 	SECTION_TEXT
-	ALIGN16
+	//ALIGN16
 GLOBAL ASM_NAME(INT123_synth_1to1_real_sse_asm)
 ASM_NAME(INT123_synth_1to1_real_sse_asm):
 	push		ebp
@@ -52,7 +53,7 @@ ASM_NAME(INT123_synth_1to1_real_sse_asm):
 
 	mov		ecx, 4
 	
-	ALIGN16
+	//ALIGN16
 loop1:
 	movups		xmm0, [WINDOW]
 	movups		xmm1, 16[WINDOW]
@@ -128,7 +129,7 @@ loop1:
 	
 	movups		xmm1, [SAMPLES]
 	movups		xmm2, [SAMPLES+16]
-	mulps		xmm0, [LOCAL_VAR(scale_sse)]
+	mulps		xmm0, XMMWORD_PTR [LOCAL_VAR(scale_sse)]
 	shufps		xmm1, xmm2, HEX(dd)
 	movaps		xmm2, xmm0
 	unpcklps	xmm0, xmm1
@@ -142,7 +143,7 @@ loop1:
 	
 	mov		ecx, 4
 	
-	ALIGN16
+	//ALIGN16
 loop2:
 	movups		xmm0, [WINDOW]
 	movups		xmm1, [WINDOW+16]
@@ -218,7 +219,7 @@ loop2:
 	
 	movups		xmm1, [SAMPLES]
 	movups		xmm2, [SAMPLES+16]
-	mulps		xmm0, [LOCAL_VAR(scale_sse)]
+	mulps		xmm0, XMMWORD_PTR [LOCAL_VAR(scale_sse)]
 	shufps		xmm1, xmm2, HEX(dd)
 	movaps		xmm2, xmm0
 	unpcklps	xmm0, xmm1
