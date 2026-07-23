@@ -82,7 +82,7 @@ ASM_NAME(INT123_synth_1to1_s_x86_64_asm):
 #endif
 	lea		WINDOW, qword ptr 32[WINDOW]
 	sub		WINDOW, rax
-	
+
 	lea		rax, qword ptr ASM_NAME(INT123_maxmin_x86_64) RIP_REL
 	movaps		XMMREG_MAX, [rax]
 	movaps		XMMREG_MIN, 16[rax]

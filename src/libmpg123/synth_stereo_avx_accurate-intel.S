@@ -226,7 +226,7 @@ loop2:
 	vunpckhps	ymm3, ymm4, ymm5
 	vaddps		ymm2, ymm2, ymm6
 	vaddps		ymm3, ymm3, ymm7
-	
+
 	vunpcklpd	ymm4, ymm0, ymm1
 	vunpckhpd	ymm0, ymm0, ymm1
 	vunpcklpd	ymm5, ymm2, ymm3
