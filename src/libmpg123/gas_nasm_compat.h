@@ -12,7 +12,7 @@
 #define COMMENT ;
 #define END_MODULE
 #define HEX(V) 0x##V
-#define DWORD_PTR 
+#define DWORD_PTR
 #define QWORD_PTR
 #define XMMWORD_PTR
 #define YMMWORD_PTR
