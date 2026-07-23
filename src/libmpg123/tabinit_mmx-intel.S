@@ -98,7 +98,7 @@ ASM_NAME(INT123_make_decode_tables_mmx_asm):
 	push ebx
 
 	GET_GOT
-	mov edi,OFFSET LOCAL_VAR(intwinbase)
+	LEA(edi, LOCAL_VAR(intwinbase))
 	mov ecx,[LOCAL_VAR(intwindiv)]
 	mov [ebp-4],edi
 	lea eax,[edi+444]

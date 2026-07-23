@@ -75,8 +75,8 @@ ASM_NAME(INT123_dct36_sse):
 
 	GET_GOT
 	
-	mov			eax, OFFSET LOCAL_VAR(dct36_sse_COS9)
-	mov			edx, OFFSET LOCAL_VAR(dct36_sse_tfcos36)
+	LEA(		eax, LOCAL_VAR(dct36_sse_COS9))
+	LEA(		edx, LOCAL_VAR(dct36_sse_tfcos36))
 
 	xorps		xmm0, xmm0
 	xorps		xmm5, xmm5

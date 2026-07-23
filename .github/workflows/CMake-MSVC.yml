@@ -15,8 +15,8 @@ jobs:
         # windows-2025: VS2026
         # windows-2022: VS2022
         os: [windows-2025, windows-2022]
-        arch: [x64] # FIXME: re-enable x86 and amd64_arm64
-#        arch: [x86, x64, amd64_arm, amd64_arm64]
+        arch: [x86, x64, amd64_arm64]
+        # amd64_arm is only supported by older MSVC toolchains
         shared: [true, false]
         nasm: [true, false]
     runs-on: ${{ matrix.os }}

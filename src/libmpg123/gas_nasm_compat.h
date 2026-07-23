@@ -6,6 +6,7 @@
 #define CPU_686
 #define MMX
 #define XMM
+#define LEA(REG, DATA) lea REG, DWORD_PTR [DATA]
 #define FLAT_MODEL
 #define SECTION_TEXT SECTION .text
 #define ALIGN align
@@ -37,6 +38,7 @@ option casemap:none
 #endif
 #define MMX .mmx
 #define XMM .xmm
+#define LEA(REG, DATA) mov REG, OFFSET DATA
 #define FLAT_MODEL .model flat
 #define SECTION_TEXT .code
 #define ALIGN align
@@ -63,6 +65,7 @@ option casemap:none
 #define CPU_686
 #define MMX
 #define XMM
+#define LEA(REG, DATA) lea REG, DWORD_PTR [DATA]
 #define FLAT_MODEL
 #define SECTION_TEXT .text
 #define ALIGN .balign
