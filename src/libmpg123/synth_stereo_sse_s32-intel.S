@@ -250,11 +250,11 @@ loop1:
 	psrad		mm3, 31
 	pxor		mm0, mm2
 	pxor		mm1, mm3
-	mov		mm4, mm0
+	movq		mm4, mm0
 	punpckldq	mm0, mm1
 	punpckhdq	mm4, mm1
-	mov		QWORD_PTR [SAMPLES], mm0
-	mov		QWORD_PTR [SAMPLES+8], mm4
+	movq		QWORD_PTR [SAMPLES], mm0
+	movq		QWORD_PTR [SAMPLES+8], mm4
 	movhlps		xmm5, xmm5
 	movhlps		xmm0, xmm0
 	movhlps		xmm1, xmm1
@@ -267,11 +267,11 @@ loop1:
 	psrad		mm5, 31
 	pxor		mm0, mm4
 	pxor		mm1, mm5
-	mov		mm6, mm0
+	movq		mm6, mm0
 	punpckldq	mm0, mm1
 	punpckhdq	mm6, mm1
-	mov		QWORD_PTR [SAMPLES+16], mm0
-	mov		QWORD_PTR [SAMPLES+24], mm6
+	movq		QWORD_PTR [SAMPLES+16], mm0
+	movq		QWORD_PTR [SAMPLES+24], mm6
 	
 	packssdw	mm2, mm4
 	packssdw	mm3, mm5
@@ -475,11 +475,11 @@ loop2:
 	psrad		mm3, 31
 	pxor		mm0, mm2
 	pxor		mm1, mm3
-	mov		mm4, mm0
+	movq		mm4, mm0
 	punpckldq	mm0, mm1
 	punpckhdq	mm4, mm1
-	mov		QWORD_PTR [SAMPLES], mm0
-	mov		QWORD_PTR 8[SAMPLES], mm4
+	movq		QWORD_PTR [SAMPLES], mm0
+	movq		QWORD_PTR 8[SAMPLES], mm4
 	movhlps		xmm5, xmm5
 	movhlps		xmm0, xmm0
 	movhlps		xmm1, xmm1
@@ -492,11 +492,11 @@ loop2:
 	psrad		mm5, 31
 	pxor		mm0, mm4
 	pxor		mm1, mm5
-	mov		mm6, mm0
+	movq		mm6, mm0
 	punpckldq	mm0, mm1
 	punpckhdq	mm6, mm1
-	mov		QWORD_PTR [SAMPLES+16], mm0
-	mov		QWORD_PTR [SAMPLES+24], mm6
+	movq		QWORD_PTR [SAMPLES+16], mm0
+	movq		QWORD_PTR [SAMPLES+24], mm6
 	
 	packssdw	mm2, mm4
 	packssdw	mm3, mm5
