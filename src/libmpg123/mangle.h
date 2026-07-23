@@ -112,19 +112,33 @@
 #if defined(PIC) && defined(__ELF__)
 
 /* ELF binaries (Unix/Linux) */
-#define LOCAL_VAR(a) MANGLE_MACROCAT(a, @GOTOFF)+_EBX_
-#define GLOBAL_VAR(a) MANGLE_MACROCAT(ASM_NAME(a), @GOTOFF)+_EBX_
-#define GLOBAL_VAR_PTR(a) MANGLE_MACROCAT(ASM_NAME(a), @GOT)+_EBX_
+#ifdef NASM_ASSEMBLER
+#define LOCAL_VAR(a) a-$$+_EBX_
+#define GLOBAL_VAR(a) _EBX_ + a wrt ..got
+#define GLOBAL_VAR_PTR(a) _EBX_ + a wrt ..got
+#else
+#define LOCAL_VAR(a) MANGLE_MACROCAT(a,@GOTOFF)+_EBX_
+#define GLOBAL_VAR(a) MANGLE_MACROCAT(ASM_NAME(a),@GOTOFF)+_EBX_
+#define GLOBAL_VAR_PTR(a) MANGLE_MACROCAT(ASM_NAME(a),@GOT)+_EBX_
+#endif
 #define FUNC(a) ASM_NAME(a)
 #define EXTERNAL_FUNC(a) MANGLE_MACROCAT(ASM_NAME(a), @PLT)
 #undef ASM_VALUE
 #define ASM_VALUE(a) MANGLE_MACROCAT(a, @GOTOFF)
+#ifdef NASM_ASSEMBLER
+#define GET_GOT \
+.get_eip: \
+	pop _EBX_; \
+	add _EBX_, _GLOBAL_OFFSET_TABLE_ + (.after - .get_eip); \
+.after:
+#else
 #define GET_GOT \
 	call 1f; \
 1: \
 	pop _EBX_; \
 2: \
 	add _EBX_, _GLOBAL_OFFSET_TABLE_ + (2b-1b)
+#endif
 #define PREPARE_GOT pushl _EBX_
 #define RESTORE_GOT popl _EBX_
 
