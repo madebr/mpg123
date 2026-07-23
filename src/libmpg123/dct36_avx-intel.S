@@ -74,16 +74,16 @@ ASM_NAME(INT123_dct36_avx):
 	mov			rbp, rsp
 	sub			rsp, 160
 	movaps		[rsp], xmm6
-	movaps		16[rsp], xmm7
-	movaps		32[rsp], xmm8
-	movaps		48[rsp], xmm9
-	movaps		64[rsp], xmm10
-	movaps		80[rsp], xmm11
-	movaps		96[rsp], xmm12
-	movaps		112[rsp], xmm13
-	movaps		128[rsp], xmm14
-	movaps		144[rsp], xmm15
-	mov		ts, QWORD_PTR 48[rbp]
+	movaps		[rsp+16], xmm7
+	movaps		[rsp+32], xmm8
+	movaps		[rsp+48], xmm9
+	movaps		[rsp+64], xmm10
+	movaps		[rsp+80], xmm11
+	movaps		[rsp+96], xmm12
+	movaps		[rsp+112], xmm13
+	movaps		[rsp+128], xmm14
+	movaps		[rsp+144], xmm15
+	mov		ts, QWORD_PTR [rbp+48]
 #endif
 	lea			COS9_, dct36_avx_COS9 RIP_REL
 	lea			tfcos36_, dct36_avx_tfcos36 RIP_REL

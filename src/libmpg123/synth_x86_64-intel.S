@@ -59,33 +59,33 @@ ASM_NAME(INT123_synth_1to1_x86_64_asm):
 	mov		ARG0, rcx
 	sub		rsp, 104 /* stack alignment + 6 xmm registers */
 	movaps		[rsp], xmm6
-	movaps		16[rsp], xmm7
-	movaps		32[rsp], xmm12
-	movaps		48[rsp], xmm13
-	movaps		64[rsp], xmm14
-	movaps		80[rsp], xmm15
+	movaps		[rsp+16], xmm7
+	movaps		[rsp+32], xmm12
+	movaps		[rsp+48], xmm13
+	movaps		[rsp+64], xmm14
+	movaps		[rsp+80], xmm15
 #endif
 
 	lea		rax, QWORD_PTR ASM_NAME(INT123_maxmin_x86_64) RIP_REL
 	movaps		XMMREG_MAX, [rax]
-	movaps		XMMREG_MIN, 16[rax]
+	movaps		XMMREG_MIN, [rax+16]
 	pxor		XMMREG_CLIP, XMMREG_CLIP
 	pcmpeqd		XMMREG_FULL, XMMREG_FULL
 	
 	and		ARG3, HEX(f)
 	shl		ARG3, 1
-	lea		ARG0, QWORD_PTR 32[ARG0]
+	lea		ARG0, QWORD_PTR [ARG0+32]
 	sub		ARG0, ARG3
 	
 	mov		ecx, 4
 	
 	ALIGN16
-1:
+loop1:
 	movups		xmm0, [ARG0]
-	movups		xmm1, 16[ARG0]
-	movups		xmm2, 64[ARG0]
-	movups		xmm3, 80[ARG0]
-	movups		xmm4, 128[ARG0]
+	movups		xmm1, [ARG0+16]
+	movups		xmm2, [ARG0+64]
+	movups		xmm3, [ARG0+80]
+	movups		xmm4, [ARG0+128]
 	movups		xmm5, 144[ARG0]
 	movups		xmm6, 192[ARG0]
 	movups		xmm7, 208[ARG0]
@@ -146,12 +146,12 @@ ASM_NAME(INT123_synth_1to1_x86_64_asm):
 	lea		ARG2, QWORD_PTR 16[ARG2]
 	
 	dec		ecx
-	jnz			1b
+	jnz			loop1
 	
 	mov		ecx, 4
 	
 	ALIGN16
-1:
+loop2:
 	movups		xmm0, [ARG0]
 	movups		xmm1, 16[ARG0]
 	movups		xmm2, 64[ARG0]
@@ -162,12 +162,12 @@ ASM_NAME(INT123_synth_1to1_x86_64_asm):
 	movups		xmm7, 208[ARG0]
 	pmaddwd		xmm0, [ARG1]
 	pmaddwd		xmm1, 16[ARG1]
-	pmaddwd		xmm2, -32[ARG1]
-	pmaddwd		xmm3, -16[ARG1]
-	pmaddwd		xmm4, -64[ARG1]
-	pmaddwd		xmm5, -48[ARG1]
-	pmaddwd		xmm6, -96[ARG1]
-	pmaddwd		xmm7, -80[ARG1]
+	pmaddwd		xmm2, [ARG1-32]
+	pmaddwd		xmm3, [ARG1-16]
+	pmaddwd		xmm4, [ARG1-64]
+	pmaddwd		xmm5, [ARG1-48]
+	pmaddwd		xmm6, [ARG1-96]
+	pmaddwd		xmm7, [ARG1-80]
 	
 	paddd		xmm0, xmm1
 	paddd		xmm2, xmm3
@@ -213,11 +213,11 @@ ASM_NAME(INT123_synth_1to1_x86_64_asm):
 	paddd		XMMREG_CLIP, xmm1
 	
 	lea		ARG0, QWORD_PTR 256[ARG0]
-	lea		ARG1, QWORD_PTR -128[ARG1]
+	lea		ARG1, QWORD_PTR [ARG1-128]
 	lea		ARG2, QWORD_PTR 16[ARG2]
 	
 	dec		ecx
-	jnz			1b
+	jnz			loop2
 	
 	pshuflw		xmm0, XMMREG_CLIP, HEX(ee)
 	movhlps		xmm1, XMMREG_CLIP

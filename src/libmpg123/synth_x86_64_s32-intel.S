@@ -202,10 +202,10 @@ loop2:
 	mulps		xmm1, 16[ARG1]
 	mulps		xmm2, 32[ARG1]
 	mulps		xmm3, 48[ARG1]
-	mulps		xmm9, -64[ARG1]
-	mulps		xmm5, -48[ARG1]
-	mulps		xmm6, -32[ARG1]
-	mulps		xmm7, -16[ARG1]
+	mulps		xmm9, [ARG1-64]
+	mulps		xmm5, [ARG1-48]
+	mulps		xmm6, [ARG1-32]
+	mulps		xmm7, [ARG1-16]
 	
 	addps		xmm8, xmm1
 	addps		xmm3, xmm2
@@ -214,7 +214,7 @@ loop2:
 	addps		xmm8, xmm3
 	addps		xmm9, xmm6
 	lea		ARG0, 256[ARG0]
-	lea		ARG1, -128[ARG1]
+	lea		ARG1, [ARG1-128]
 	
 	movups		xmm10, [ARG0]
 	movups		xmm1, 16[ARG0]
@@ -228,10 +228,10 @@ loop2:
 	mulps		xmm1, 16[ARG1]
 	mulps		xmm2, 32[ARG1]
 	mulps		xmm3, 48[ARG1]
-	mulps		xmm11, -64[ARG1]
-	mulps		xmm5, -48[ARG1]
-	mulps		xmm6, -32[ARG1]
-	mulps		xmm7, -16[ARG1]
+	mulps		xmm11, [ARG1-64]
+	mulps		xmm5, [ARG1-48]
+	mulps		xmm6, [ARG1-32]
+	mulps		xmm7, [ARG1-16]
 	
 	addps		xmm10, xmm1
 	addps		xmm3, xmm2

@@ -75,9 +75,9 @@ ASM_NAME(INT123_dct64_real_sse):
 	subps 		xmm4, xmm1
 	
 #ifdef PIC_GLOBAL_PTR
-	mov			eax, GLOBAL_VAR_PTR[INT123_costab_mmxsse]
+	mov			eax, [GLOBAL_VAR_PTR(INT123_costab_mmxsse)q]
 #else
-	lea			eax, GLOBAL_VAR[INT123_costab_mmxsse]
+	lea			eax, [GLOBAL_VAR(INT123_costab_mmxsse)]
 #endif
 	mulps		xmm7, [eax]
 	mulps		xmm6, 16[eax]
@@ -190,7 +190,7 @@ ASM_NAME(INT123_dct64_real_sse):
 	
 	movss		xmm5, 120[eax]
 	shufps		xmm5, xmm5, HEX(00)
-	xorps		xmm5, LOCAL_VAR[pnpn]
+	xorps		xmm5, [LOCAL_VAR(pnpn)]
 	
 	movaps		xmm0, xmm4
 	movaps		xmm1, xmm6
@@ -296,7 +296,7 @@ ASM_NAME(INT123_dct64_real_sse):
 	shufps		xmm2, xmm2, HEX(1e)
 	shufps		xmm4, xmm4, HEX(1e)
 	shufps		xmm6, xmm6, HEX(1e)
-	lea			eax, LOCAL_VAR[mask]
+	lea			eax, [LOCAL_VAR(mask)]
 	andps		xmm0, [eax]
 	andps		xmm2, [eax]
 	andps		xmm4, [eax]

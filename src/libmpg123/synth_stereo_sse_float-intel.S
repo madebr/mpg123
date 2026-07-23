@@ -44,14 +44,14 @@ ASM_NAME(INT123_synth_1to1_real_s_sse_asm):
 	push		esi
 	push		edi
 	
-	mov		WINDOW, DWORD_PTR 8[ebp]
-	mov		B0L, DWORD_PTR 12[ebp]
-	mov		B0R, DWORD_PTR 16[ebp]
-	mov		SAMPLES, DWORD_PTR 20[ebp]
-	mov		eax, DWORD_PTR 24[ebp]
+	mov		WINDOW, DWORD_PTR [ebp+8]
+	mov		B0L, DWORD_PTR [ebp+12]
+	mov		B0R, DWORD_PTR [ebp+16]
+	mov		SAMPLES, DWORD_PTR [ebp+20]
+	mov		eax, DWORD_PTR [ebp+24]
 	shl		eax, 2
 	
-	lea		WINDOW, DWORD_PTR 64[WINDOW]
+	lea		WINDOW, DWORD_PTR [WINDOW+64]
 	sub		WINDOW, eax
 
 	#undef _EBX_
@@ -61,23 +61,23 @@ ASM_NAME(INT123_synth_1to1_real_s_sse_asm):
 	mov		ecx, 4
 	
 	ALIGN16
-1:
+loop11:
 	movups		xmm0, [WINDOW]
-	movups		xmm1, 16[WINDOW]
-	movups		xmm2, 32[WINDOW]
-	movups		xmm3, 48[WINDOW]
+	movups		xmm1, [WINDOW+16]
+	movups		xmm2, [WINDOW+32]
+	movups		xmm3, [WINDOW+48]
 	movaps		xmm4, xmm0
 	movaps		xmm5, xmm1
 	movaps		xmm6, xmm2
 	movaps		xmm7, xmm3
-	mulps		xmm0, 0[B0L]
-	mulps		xmm1, 16[B0L]
-	mulps		xmm2, 32[B0L]
-	mulps		xmm3, 48[B0L]
-	mulps		xmm4, 0[B0R]
-	mulps		xmm5, 16[B0R]
-	mulps		xmm6, 32[B0R]
-	mulps		xmm7, 48[B0R]
+	mulps		xmm0, [B0L+0]
+	mulps		xmm1, [B0L+16]
+	mulps		xmm2, [B0L+32]
+	mulps		xmm3, [B0L+48]
+	mulps		xmm4, [B0R+0]
+	mulps		xmm5, [B0R+16]
+	mulps		xmm6, [B0R+32]
+	mulps		xmm7, [B0R+48]
 	addps		xmm0, xmm1
 	addps		xmm2, xmm3
 	addps		xmm4, xmm5
@@ -87,26 +87,26 @@ ASM_NAME(INT123_synth_1to1_real_s_sse_asm):
 	movaps		TEMP[0], xmm0
 	movaps		TEMP[4], xmm4
 	
-	lea		WINDOW, DWORD_PTR 128[WINDOW]
-	lea		B0L, DWORD_PTR 64[B0L]
-	lea		B0R, DWORD_PTR 64[B0R]
+	lea		WINDOW, DWORD_PTR [WINDOW+128]
+	lea		B0L, DWORD_PTR [B0L+64]
+	lea		B0R, DWORD_PTR [B0R+64]
 	
 	movups		xmm0, [WINDOW]
-	movups		xmm1, 16[WINDOW]
-	movups		xmm2, 32[WINDOW]
-	movups		xmm3, 48[WINDOW]
+	movups		xmm1, [WINDOW+16]
+	movups		xmm2, [WINDOW+32]
+	movups		xmm3, [WINDOW+48]
 	movaps		xmm4, xmm0
 	movaps		xmm5, xmm1
 	movaps		xmm6, xmm2
 	movaps		xmm7, xmm3
-	mulps		xmm0, 0[B0L]
-	mulps		xmm1, 16[B0L]
-	mulps		xmm2, 32[B0L]
-	mulps		xmm3, 48[B0L]
-	mulps		xmm4, 0[B0R]
-	mulps		xmm5, 16[B0R]
-	mulps		xmm6, 32[B0R]
-	mulps		xmm7, 48[B0R]
+	mulps		xmm0, [B0L+0]
+	mulps		xmm1, [B0L+16]
+	mulps		xmm2, [B0L+32]
+	mulps		xmm3, [B0L+48]
+	mulps		xmm4, [B0R+0]
+	mulps		xmm5, [B0R+16]
+	mulps		xmm6, [B0R+32]
+	mulps		xmm7, [B0R+48]
 	addps		xmm0, xmm1
 	addps		xmm2, xmm3
 	addps		xmm4, xmm5
@@ -116,26 +116,26 @@ ASM_NAME(INT123_synth_1to1_real_s_sse_asm):
 	movaps		TEMP[1], xmm0
 	movaps		TEMP[5], xmm4
 	
-	lea		WINDOW, DWORD_PTR 128[WINDOW]
-	lea		B0L, DWORD_PTR 64[B0L]
-	lea		B0R, DWORD_PTR 64[B0R]
+	lea		WINDOW, DWORD_PTR [WINDOW+128]
+	lea		B0L, DWORD_PTR [B0L+64]
+	lea		B0R, DWORD_PTR [B0R+64]
 	
 	movups		xmm0, [WINDOW]
-	movups		xmm1, 16[WINDOW]
-	movups		xmm2, 32[WINDOW]
-	movups		xmm3, 48[WINDOW]
+	movups		xmm1, [WINDOW+16]
+	movups		xmm2, [WINDOW+32]
+	movups		xmm3, [WINDOW+48]
 	movaps		xmm4, xmm0
 	movaps		xmm5, xmm1
 	movaps		xmm6, xmm2
 	movaps		xmm7, xmm3
-	mulps		xmm0, 0[B0L]
-	mulps		xmm1, 16[B0L]
-	mulps		xmm2, 32[B0L]
-	mulps		xmm3, 48[B0L]
-	mulps		xmm4, 0[B0R]
-	mulps		xmm5, 16[B0R]
-	mulps		xmm6, 32[B0R]
-	mulps		xmm7, 48[B0R]
+	mulps		xmm0, [B0L+0]
+	mulps		xmm1, [B0L+16]
+	mulps		xmm2, [B0L+32]
+	mulps		xmm3, [B0L+48]
+	mulps		xmm4, [B0R+0]
+	mulps		xmm5, [B0R+16]
+	mulps		xmm6, [B0R+32]
+	mulps		xmm7, [B0R+48]
 	addps		xmm0, xmm1
 	addps		xmm2, xmm3
 	addps		xmm4, xmm5
@@ -145,26 +145,26 @@ ASM_NAME(INT123_synth_1to1_real_s_sse_asm):
 	movaps		TEMP[2], xmm0
 	movaps		TEMP[6], xmm4
 	
-	lea		WINDOW, DWORD_PTR 128[WINDOW]
-	lea		B0L, DWORD_PTR 64[B0L]
-	lea		B0R, DWORD_PTR 64[B0R]
+	lea		WINDOW, DWORD_PTR [WINDOW+128]
+	lea		B0L, DWORD_PTR [B0L+64]
+	lea		B0R, DWORD_PTR [B0R+64]
 	
 	movups		xmm0, [WINDOW]
-	movups		xmm1, 16[WINDOW]
-	movups		xmm2, 32[WINDOW]
-	movups		xmm3, 48[WINDOW]
+	movups		xmm1, [WINDOW+16]
+	movups		xmm2, [WINDOW+32]
+	movups		xmm3, [WINDOW+48]
 	movaps		xmm4, xmm0
 	movaps		xmm5, xmm1
 	movaps		xmm6, xmm2
 	movaps		xmm7, xmm3
-	mulps		xmm0, 0[B0L]
-	mulps		xmm1, 16[B0L]
-	mulps		xmm2, 32[B0L]
-	mulps		xmm3, 48[B0L]
-	mulps		xmm4, 0[B0R]
-	mulps		xmm5, 16[B0R]
-	mulps		xmm6, 32[B0R]
-	mulps		xmm7, 48[B0R]
+	mulps		xmm0, [B0L+0]
+	mulps		xmm1, [B0L+16]
+	mulps		xmm2, [B0L+32]
+	mulps		xmm3, [B0L+48]
+	mulps		xmm4, [B0R+0]
+	mulps		xmm5, [B0R+16]
+	mulps		xmm6, [B0R+32]
+	mulps		xmm7, [B0R+48]
 	addps		xmm0, xmm1
 	addps		xmm2, xmm3
 	addps		xmm4, xmm5
@@ -174,9 +174,9 @@ ASM_NAME(INT123_synth_1to1_real_s_sse_asm):
 	movaps		xmm7, xmm0
 	movaps		TEMP[7], xmm4
 	
-	lea		WINDOW, DWORD_PTR 128[WINDOW]
-	lea		B0L, DWORD_PTR 64[B0L]
-	lea		B0R, DWORD_PTR 64[B0R]
+	lea		WINDOW, DWORD_PTR [WINDOW+128]
+	lea		B0L, DWORD_PTR [B0L+64]
+	lea		B0R, DWORD_PTR [B0R+64]
 	
 	movaps		xmm4, TEMP[0]
 	movaps		xmm5, TEMP[1]
@@ -219,38 +219,38 @@ ASM_NAME(INT123_synth_1to1_real_s_sse_asm):
 	subps		xmm0, xmm1
 	addps		xmm0, xmm4
 	
-	mulps		xmm5, LOCAL_VAR[scale_sse]
-	mulps		xmm0, LOCAL_VAR[scale_sse]
+	mulps		xmm5, [LOCAL_VAR(scale_sse)]
+	mulps		xmm0, [LOCAL_VAR(scale_sse)]
 	movaps		xmm1, xmm5
 	unpcklps	xmm5, xmm0
 	unpckhps	xmm1, xmm0
 	movups		[SAMPLES], xmm5
-	movups		16[SAMPLES], xmm1
+	movups		[SAMPLES+16], xmm1
 	
-	lea		SAMPLES, DWORD_PTR 32[SAMPLES]
+	lea		SAMPLES, DWORD_PTR [SAMPLES+32]
 	dec		ecx
-	jnz			1b
+	jnz			loop1
 	
 	mov		ecx, 4
 	
 	ALIGN16
-1:
+loop2:
 	movups		xmm0, [WINDOW]
-	movups		xmm1, 16[WINDOW]
-	movups		xmm2, 32[WINDOW]
-	movups		xmm3, 48[WINDOW]
+	movups		xmm1, [WINDOW+16]
+	movups		xmm2, [WINDOW+32]
+	movups		xmm3, [WINDOW+48]
 	movaps		xmm4, xmm0
 	movaps		xmm5, xmm1
 	movaps		xmm6, xmm2
 	movaps		xmm7, xmm3
-	mulps		xmm0, 0[B0L]
-	mulps		xmm1, 16[B0L]
-	mulps		xmm2, 32[B0L]
-	mulps		xmm3, 48[B0L]
-	mulps		xmm4, 0[B0R]
-	mulps		xmm5, 16[B0R]
-	mulps		xmm6, 32[B0R]
-	mulps		xmm7, 48[B0R]
+	mulps		xmm0, [B0L+0]
+	mulps		xmm1, [B0L+16]
+	mulps		xmm2, [B0L+32]
+	mulps		xmm3, [B0L+48]
+	mulps		xmm4, [B0R+0]
+	mulps		xmm5, [B0R+16]
+	mulps		xmm6, [B0R+32]
+	mulps		xmm7, [B0R+48]
 	addps		xmm0, xmm1
 	addps		xmm2, xmm3
 	addps		xmm4, xmm5
@@ -260,26 +260,26 @@ ASM_NAME(INT123_synth_1to1_real_s_sse_asm):
 	movaps		TEMP[0], xmm0
 	movaps		TEMP[4], xmm4
 	
-	lea		WINDOW, DWORD_PTR 128[WINDOW]
+	lea		WINDOW, DWORD_PTR [WINDOW+128]
 	lea		B0L, DWORD_PTR -64[B0L]
 	lea		B0R, DWORD_PTR -64[B0R]
 	
 	movups		xmm0, [WINDOW]
-	movups		xmm1, 16[WINDOW]
-	movups		xmm2, 32[WINDOW]
-	movups		xmm3, 48[WINDOW]
+	movups		xmm1, [WINDOW+16]
+	movups		xmm2, [WINDOW+32]
+	movups		xmm3, [WINDOW+48]
 	movaps		xmm4, xmm0
 	movaps		xmm5, xmm1
 	movaps		xmm6, xmm2
 	movaps		xmm7, xmm3
-	mulps		xmm0, 0[B0L]
-	mulps		xmm1, 16[B0L]
-	mulps		xmm2, 32[B0L]
-	mulps		xmm3, 48[B0L]
-	mulps		xmm4, 0[B0R]
-	mulps		xmm5, 16[B0R]
-	mulps		xmm6, 32[B0R]
-	mulps		xmm7, 48[B0R]
+	mulps		xmm0, [B0L+0]
+	mulps		xmm1, [B0L+16]
+	mulps		xmm2, [B0L+32]
+	mulps		xmm3, [B0L+48]
+	mulps		xmm4, [B0R+0]
+	mulps		xmm5, [B0R+16]
+	mulps		xmm6, [B0R+32]
+	mulps		xmm7, [B0R+48]
 	addps		xmm0, xmm1
 	addps		xmm2, xmm3
 	addps		xmm4, xmm5
@@ -289,26 +289,26 @@ ASM_NAME(INT123_synth_1to1_real_s_sse_asm):
 	movaps		TEMP[1], xmm0
 	movaps		TEMP[5], xmm4
 	
-	lea		WINDOW, DWORD_PTR 128[WINDOW]
+	lea		WINDOW, DWORD_PTR [WINDOW+128]
 	lea		B0L, DWORD_PTR -64[B0L]
 	lea		B0R, DWORD_PTR -64[B0R]
 	
 	movups		xmm0, [WINDOW]
-	movups		xmm1, 16[WINDOW]
-	movups		xmm2, 32[WINDOW]
-	movups		xmm3, 48[WINDOW]
+	movups		xmm1, [WINDOW+16]
+	movups		xmm2, [WINDOW+32]
+	movups		xmm3, [WINDOW+48]
 	movaps		xmm4, xmm0
 	movaps		xmm5, xmm1
 	movaps		xmm6, xmm2
 	movaps		xmm7, xmm3
-	mulps		xmm0, 0[B0L]
-	mulps		xmm1, 16[B0L]
-	mulps		xmm2, 32[B0L]
-	mulps		xmm3, 48[B0L]
-	mulps		xmm4, 0[B0R]
-	mulps		xmm5, 16[B0R]
-	mulps		xmm6, 32[B0R]
-	mulps		xmm7, 48[B0R]
+	mulps		xmm0, [B0L+0]
+	mulps		xmm1, [B0L+16]
+	mulps		xmm2, [B0L+32]
+	mulps		xmm3, [B0L+48]
+	mulps		xmm4, [B0R+0]
+	mulps		xmm5, [B0R+16]
+	mulps		xmm6, [B0R+32]
+	mulps		xmm7, [B0R+48]
 	addps		xmm0, xmm1
 	addps		xmm2, xmm3
 	addps		xmm4, xmm5
@@ -318,26 +318,26 @@ ASM_NAME(INT123_synth_1to1_real_s_sse_asm):
 	movaps		TEMP[2], xmm0
 	movaps		TEMP[6], xmm4
 	
-	lea		WINDOW, DWORD_PTR 128[WINDOW]
+	lea		WINDOW, DWORD_PTR [WINDOW+128]
 	lea		B0L, DWORD_PTR -64[B0L]
 	lea		B0R, DWORD_PTR -64[B0R]
 	
 	movups		xmm0, [WINDOW]
-	movups		xmm1, 16[WINDOW]
-	movups		xmm2, 32[WINDOW]
-	movups		xmm3, 48[WINDOW]
+	movups		xmm1, [WINDOW+16]
+	movups		xmm2, [WINDOW+32]
+	movups		xmm3, [WINDOW+48]
 	movaps		xmm4, xmm0
 	movaps		xmm5, xmm1
 	movaps		xmm6, xmm2
 	movaps		xmm7, xmm3
-	mulps		xmm0, 0[B0L]
-	mulps		xmm1, 16[B0L]
-	mulps		xmm2, 32[B0L]
-	mulps		xmm3, 48[B0L]
-	mulps		xmm4, 0[B0R]
-	mulps		xmm5, 16[B0R]
-	mulps		xmm6, 32[B0R]
-	mulps		xmm7, 48[B0R]
+	mulps		xmm0, [B0L+0]
+	mulps		xmm1, [B0L+16]
+	mulps		xmm2, [B0L+32]
+	mulps		xmm3, [B0L+48]
+	mulps		xmm4, [B0R+0]
+	mulps		xmm5, [B0R+16]
+	mulps		xmm6, [B0R+32]
+	mulps		xmm7, [B0R+48]
 	addps		xmm0, xmm1
 	addps		xmm2, xmm3
 	addps		xmm4, xmm5
@@ -347,7 +347,7 @@ ASM_NAME(INT123_synth_1to1_real_s_sse_asm):
 	movaps		xmm7, xmm0
 	movaps		TEMP[7], xmm4
 	
-	lea		WINDOW, DWORD_PTR 128[WINDOW]
+	lea		WINDOW, DWORD_PTR [WINDOW+128]
 	lea		B0L, DWORD_PTR -64[B0L]
 	lea		B0R, DWORD_PTR -64[B0R]
 	
@@ -392,17 +392,17 @@ ASM_NAME(INT123_synth_1to1_real_s_sse_asm):
 	addps		xmm0, xmm1
 	addps		xmm0, xmm4
 	
-	mulps		xmm5, LOCAL_VAR[scale_sse]
-	mulps		xmm0, LOCAL_VAR[scale_sse]
+	mulps		xmm5, [LOCAL_VAR(scale_sse)]
+	mulps		xmm0, [LOCAL_VAR(scale_sse)]
 	movaps		xmm1, xmm5
 	unpcklps	xmm5, xmm0
 	unpckhps	xmm1, xmm0
 	movups		[SAMPLES], xmm5
-	movups		16[SAMPLES], xmm1
+	movups		[SAMPLES+16], xmm1
 	
-	lea		SAMPLES, DWORD_PTR 32[SAMPLES]
+	lea		SAMPLES, DWORD_PTR [SAMPLES+32]
 	dec		ecx
-	jnz			1b
+	jnz			loop2
 	
 	xor		eax, eax
 	

@@ -67,20 +67,20 @@ ASM_NAME(INT123_dct36_sse):
 	push		ebx
 	push		esi
 	push		edi
-	lea			tmp, 12[esp]
-	mov		in, DWORD_PTR 8[ebp]
+	lea			tmp, [esp+12]
+	mov		in, DWORD_PTR [ebp+8]
 
 	GET_GOT
 	
-	lea			eax, LOCAL_VAR[dct36_sse_COS9]
-	lea			edx, LOCAL_VAR[dct36_sse_tfcos36]
+	lea			eax, [LOCAL_VAR(dct36_sse_COS9)]
+	lea			edx, [LOCAL_VAR(dct36_sse_tfcos36)]
 
 	xorps		xmm0, xmm0
 	xorps		xmm5, xmm5
-	movlps		xmm5, 64[in]
-	movups		xmm4, 48[in]
-	movups		xmm3, 32[in]
-	movups		xmm2, 16[in]
+	movlps		xmm5, [in+64]
+	movups		xmm4, [in+48]
+	movups		xmm3, [in+32]
+	movups		xmm2, [in+16]
 	movups		xmm1, [in]
 	movaps		xmm6, xmm5
 	shufps		xmm6, xmm6, HEX(e1)
@@ -103,7 +103,7 @@ ASM_NAME(INT123_dct36_sse):
 	movss		xmm6, xmm0
 	addps		xmm1, xmm6
 	
-	movaps		xmm0, LOCAL_VAR[dct36_sse_mask]
+	movaps		xmm0, [LOCAL_VAR(dct36_sse_mask)]
 	movaps		xmm6, xmm4
 	shufps		xmm4, xmm5, HEX(4e)
 	movaps		xmm7, xmm3
@@ -148,7 +148,7 @@ xmm4 in[14,15,8,9]
 	addps		xmm5, xmm0
 	
 	movaps		[tmp], xmm0
-	movaps		16[tmp], xmm2
+	movaps		[tmp+16], xmm2
 
 /*
 0(tmp) in[-,-,0,1]
@@ -163,45 +163,45 @@ xmm5 [ta33,tb33,ta66,tb66]
 	mulps		xmm6, [eax]
 	subps		xmm0, xmm7
 	addps		xmm6, xmm0
-	movaps		48[tmp], xmm6
+	movaps		[tmp+48], xmm6
 	
-	movaps		xmm2, 16[eax]
+	movaps		xmm2, [eax+16]
 
 	movaps		xmm0, xmm1
 	movaps		xmm6, xmm3
 	movaps		xmm7, xmm4
 	mulps		xmm0, xmm2
-	mulps		xmm6, 32[eax]
-	mulps		xmm7, 48[eax]
+	mulps		xmm6, [eax+32]
+	mulps		xmm7, [eax+48]
 	addps		xmm0, xmm5
 	addps		xmm6, xmm7
 	addps		xmm0, xmm6
-	movaps		32[tmp], xmm0
+	movaps		[tmp+32], xmm0
 	
 	movaps		xmm0, xmm1
 	movaps		xmm6, xmm3
 	movaps		xmm7, xmm4
-	mulps		xmm0, 32[eax]
-	mulps		xmm6, 48[eax]
+	mulps		xmm0, [eax+32]
+	mulps		xmm6, [eax+48]
 	mulps		xmm7, xmm2
 	subps		xmm0, xmm5
 	subps		xmm7, xmm6
 	addps		xmm0, xmm7
-	movaps		64[tmp], xmm0
+	movaps		[tmp+64], xmm0
 	
 	movaps		xmm6, xmm1
 	movaps		xmm7, xmm4
-	mulps		xmm6, 48[eax]
+	mulps		xmm6, [eax+48]
 	mulps		xmm2, xmm3
-	mulps		xmm7, 32[eax]
+	mulps		xmm7, [eax+32]
 	subps		xmm6, xmm5
 	subps		xmm2, xmm7
 	addps		xmm6, xmm2
 	
 	movaps		xmm0, [tmp]
-	movss		xmm5, 32[edx]
+	movss		xmm5, [edx+32]
 	subps		xmm0, xmm1
-	subps		xmm4, 16[tmp]
+	subps		xmm4, [tmp+16]
 	addps		xmm0, xmm3
 	addps		xmm0, xmm4
 	shufps		xmm0, xmm0, HEX(af)
@@ -225,7 +225,7 @@ xmm6 [1a-3,1b-3,-2a-3,-2b-3]
 	movaps		xmm5, xmm2
 	unpcklps	xmm2, xmm6
 	unpckhps	xmm5, xmm6
-	xorps		xmm5, LOCAL_VAR[dct36_sse_sign]
+	xorps		xmm5, [LOCAL_VAR(dct36_sse_sign)]
 
 /*
 xmm0 [1a-0,1a-1,1b-0,1b-1]

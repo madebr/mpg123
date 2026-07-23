@@ -92,7 +92,7 @@ ASM_NAME(INT123_synth_1to1_s_x86_64_asm):
 	mov		ecx, 4
 	
 	ALIGN16
-1:
+loop1:
 	movups		xmm0, [WINDOW]
 	movups		xmm1, 16[WINDOW]
 	movups		xmm2, 64[WINDOW]
@@ -194,12 +194,12 @@ ASM_NAME(INT123_synth_1to1_s_x86_64_asm):
 	lea		SAMPLES, QWORD_PTR 16[SAMPLES]
 	
 	dec		ecx
-	jnz			1b
+	jnz			loop1
 	
 	mov		ecx, 4
 	
 	ALIGN16
-1:
+loop2:
 	movups		xmm0, [WINDOW]
 	movups		xmm1, 16[WINDOW]
 	movups		xmm2, 64[WINDOW]
@@ -214,12 +214,12 @@ ASM_NAME(INT123_synth_1to1_s_x86_64_asm):
 	movaps		xmm11, xmm3
 	pmaddwd		xmm0, [B0L]
 	pmaddwd		xmm1, 16[B0L]
-	pmaddwd		xmm2, -32[B0L]
-	pmaddwd		xmm3, -16[B0L]
+	pmaddwd		xmm2, [B0L-32]
+	pmaddwd		xmm3, [B0L-16]
 	pmaddwd		xmm8, [B0R]
 	pmaddwd		xmm9, 16[B0R]
-	pmaddwd		xmm10, -32[B0R]
-	pmaddwd		xmm11, -16[B0R]
+	pmaddwd		xmm10, [B0R-32]
+	pmaddwd		xmm11, [B0R-16]
 	paddd		xmm0, xmm1
 	paddd		xmm2, xmm3
 	paddd		xmm8, xmm9
@@ -228,11 +228,11 @@ ASM_NAME(INT123_synth_1to1_s_x86_64_asm):
 	movaps		xmm9, xmm5
 	movaps		xmm3, xmm6
 	movaps		xmm11, xmm7
-	pmaddwd		xmm4, -64[B0L]
-	pmaddwd		xmm5, -48[B0L]
-	pmaddwd		xmm6, -96[B0L]
-	pmaddwd		xmm7, -80[B0L]
-	pmaddwd		xmm1, -64[B0R]
+	pmaddwd		xmm4, [B0L-64]
+	pmaddwd		xmm5, [B0L-48]
+	pmaddwd		xmm6, [B0L-96]
+	pmaddwd		xmm7, [B0L-80]
+	pmaddwd		xmm1, [B0R-64]
 	pmaddwd		xmm9, -48[B0R]
 	pmaddwd		xmm3, -96[B0R]
 	pmaddwd		xmm11, -80[B0R]
@@ -301,7 +301,7 @@ ASM_NAME(INT123_synth_1to1_s_x86_64_asm):
 	lea		SAMPLES, QWORD_PTR 16[SAMPLES]
 	
 	dec		ecx
-	jnz			1b
+	jnz			loop2
 	
 	movhlps		xmm0, XMMREG_CLIP
 	paddw		xmm0, XMMREG_CLIP

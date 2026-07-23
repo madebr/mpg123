@@ -67,7 +67,7 @@ ASM_NAME(INT123_synth_1to1_s_sse_accurate_asm):
 	movl		$4, %ecx
 	
 	ALIGN16
-1:
+loop1:
 	movups		(WINDOW), %xmm0
 	movups		16(WINDOW), %xmm1
 	movups		32(WINDOW), %xmm2
@@ -274,12 +274,12 @@ ASM_NAME(INT123_synth_1to1_s_sse_accurate_asm):
 	
 	leal		16(SAMPLES), SAMPLES
 	decl		%ecx
-	jnz			1b
+	jnz			loop1
 	
 	movl		$4, %ecx
 	
 	ALIGN16
-1:
+loop2:
 	movups		(WINDOW), %xmm0
 	movups		16(WINDOW), %xmm1
 	movups		32(WINDOW), %xmm2
@@ -486,7 +486,7 @@ ASM_NAME(INT123_synth_1to1_s_sse_accurate_asm):
 	
 	leal		16(SAMPLES), SAMPLES
 	decl		%ecx
-	jnz			1b
+	jnz			loop2
 	
 	pshufw		$0xee, MMREG_CLIP, %mm0
 	paddw		MMREG_CLIP, %mm0

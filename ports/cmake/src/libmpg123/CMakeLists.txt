@@ -234,15 +234,88 @@ elseif(MACHINE STREQUAL "x86")
         )
         if(ACCURATE_ROUNDING)
             list(APPEND PLATFORM_SOURCES
-                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_sse_accurate.S"
-                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_sse_accurate.S"
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_sse_accurate-intel.S"
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_sse_accurate-intel.S"
+
+#                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_sse_accurate.S"
+#                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_stereo_sse_accurate.S"
             )
         else()
             list(APPEND PLATFORM_SOURCES
-                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dct64_sse.S"
-                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_sse.S"
+#                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dct64_sse.S"
+#                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_sse.S"
+
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dct64_sse-intel.S"
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/synth_sse-intel.S"
             )
         endif()
+    endif()
+
+    option(USE_ASSEMBLER "Enable assembler" TRUE)
+    include(CMakeDependentOption)
+    cmake_dependent_option(USE_NASM "Use NASM assembler" FALSE USE_ASSEMBLER FALSE)
+    if(USE_ASSEMBLER)
+        set(need_preproc FALSE)
+        if(USE_NASM OR CMAKE_C_COMPILER_ID MATCHES "MSVC")
+            set(need_preproc TRUE)
+        endif()
+        set(assembly_sources )
+        if(need_preproc)
+            set(cc_flags "${CMAKE_C_FLAGS}")
+            if(MSVC)
+                list(APPEND cc_flags -nologo)
+            endif()
+            separate_arguments(cc_flags NATIVE_COMMAND)
+            # ASMALIGN_BALIGN
+            set(asm_definitions ${PLATFORM_DEFINITIONS})
+            if(USE_NASM)
+                list(APPEND asm_definitions NASM_ASSEMBLER)
+            elseif(CMAKE_C_COMPILER MATCHES MSVC)
+                list(APPEND asm_definitions MASM_ASSEMBLER)
+            endif()
+            if(CMAKE_C_COMPILER_ID MATCHES MSVC)
+                list(TRANSFORM asm_definitions PREPEND /D)
+            else()
+                list(TRANSFORM asm_definitions PREPEND -D)
+            endif()
+            #            -DASMALIGN_BALIGN
+            foreach(platform_source ${PLATFORM_SOURCES})
+                get_filename_component(source_name "${platform_source}" NAME)
+                set(preprocessed_path "${CMAKE_CURRENT_BINARY_DIR}/${source_name}")
+                if(CMAKE_C_COMPILER_ID MATCHES MSVC)
+                    set(preproc_command ${CMAKE_C_COMPILER} /nologo ${cc_flags} ${asm_definitions} "/I${PROJECT_SOURCE_DIR}/../../src" "/I${PROJECT_BINARY_DIR}/src" /EP "/Tc${platform_source}" ">${preprocessed_path}" )
+                else()
+                    set(preproc_command ${CMAKE_C_COMPILER} ${cc_flags} -E -P ${asm_definitions} "-I${PROJECT_SOURCE_DIR}/../../src" "-I${PROJECT_BINARY_DIR}/src" "${platform_source}" -o "${preprocessed_path}")
+                endif()
+                add_custom_command(OUTPUT "${preprocessed_path}"
+                        COMMAND ${preproc_command}
+                        MAIN_DEPENDENCY "${platform_source}"
+                )
+                list(APPEND assembly_sources "${preprocessed_path}")
+            endforeach()
+        else()
+            set(assembly_sources ${PLATFORM_SOURCES})
+        endif()
+        if(USE_NASM)
+            enable_language(ASM_NASM)
+            target_sources(${TARGET} PRIVATE ${assembly_sources})
+            set_property(SOURCE ${assembly_sources} PROPERTY LANGUAGE ASM_NASM)
+        else()
+            if(MSVC)
+                enable_language(ASM_MASM)
+                target_sources(${TARGET} PRIVATE ${assembly_sources})
+                set_property(SOURCE ${assembly_sources} PROPERTY LANGUAGE ASM_MASM)
+                target_compile_options(${TARGET} PRIVATE $<$<COMPILE_LANGUAGE:ASM_MASM>:-nologo>)
+            else()
+                enable_language(ASM)
+                target_sources(${TARGET} PRIVATE ${assembly_sources})
+                set_property(SOURCE ${assembly_sources} PROPERTY LANGUAGE ASM)
+            endif()
+        endif()
+    else()
+        # FIXME: how to build mpg123 without any simd code?
+        target_sources(${TARGET} PRIVATE ${PLATFORM_SOURCES})
+        target_compile_definitions(${TARGET} PRIVATE OPT_GENERIC)
     endif()
 elseif(MACHINE STREQUAL "arm64")
         set(PLATFORM_DEFINITIONS OPT_MULTI OPT_GENERIC OPT_GENERIC_DITHER OPT_NEON64)

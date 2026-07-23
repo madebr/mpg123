@@ -192,7 +192,7 @@ loop2:
 	mulps		xmm1, 16[ARG1]
 	mulps		xmm2, 32[ARG1]
 	mulps		xmm3, 48[ARG1]
-	mulps		xmm9, -64[ARG1]
+	mulps		xmm9, [ARG1-64]
 	mulps		xmm5, -48[ARG1]
 	mulps		xmm6, -32[ARG1]
 	mulps		xmm7, -16[ARG1]

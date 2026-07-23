@@ -67,7 +67,7 @@ ASM_NAME(INT123_synth_1to1_s32_sse_asm):
 	mov		ecx, 4
 	
 	ALIGN16
-1:
+loop1:
 	movups		xmm0, [WINDOW]
 	movups		xmm1, 16[WINDOW]
 	movups		xmm2, 32[WINDOW]
@@ -142,9 +142,9 @@ ASM_NAME(INT123_synth_1to1_s32_sse_asm):
 	
 	movaps		xmm1, xmm0
 	movaps		xmm2, xmm0
-	mulps		xmm0, LOCAL_VAR[scale_s32]
-	cmpnleps	xmm1, LOCAL_VAR[maxmin_s32]
-	cmpltps		xmm2, 16+LOCAL_VAR[maxmin_s32]
+	mulps		xmm0, [LOCAL_VAR(scale_s32)]
+	cmpnleps	xmm1, [LOCAL_VAR(maxmin_s32)]
+	cmpltps		xmm2, [16+LOCAL_VAR(maxmin_s32)]
 	cvtps2pi	mm0, xmm0
 	movhlps		xmm0, xmm0
 	cvtps2pi	mm1, xmm0
@@ -174,12 +174,12 @@ ASM_NAME(INT123_synth_1to1_s32_sse_asm):
 	
 	lea		SAMPLES, DWORD_PTR 32[SAMPLES]
 	dec		ecx
-	jnz			1b
+	jnz			loop1
 	
 	mov		ecx, 4
 	
 	ALIGN16
-1:
+loop2:
 	movups		xmm0, [WINDOW]
 	movups		xmm1, 16[WINDOW]
 	movups		xmm2, 32[WINDOW]
@@ -192,10 +192,10 @@ ASM_NAME(INT123_synth_1to1_s32_sse_asm):
 	mulps		xmm1, 16[B0]
 	mulps		xmm2, 32[B0]
 	mulps		xmm3, 48[B0]
-	mulps		xmm4, -64[B0]
-	mulps		xmm5, -48[B0]
-	mulps		xmm6, -32[B0]
-	mulps		xmm7, -16[B0]
+	mulps		xmm4, [B0-64]
+	mulps		xmm5, [B0-48]
+	mulps		xmm6, [B0-32]
+	mulps		xmm7, [B0-16]
 	addps		xmm0, xmm1
 	addps		xmm2, xmm3
 	addps		xmm4, xmm5
@@ -206,7 +206,7 @@ ASM_NAME(INT123_synth_1to1_s32_sse_asm):
 	movaps		xmm4, xmm0
 	
 	lea		WINDOW, DWORD_PTR 256[WINDOW]
-	lea		B0, DWORD_PTR -128[B0]
+	lea		B0, DWORD_PTR [B0-128]
 	
 	movups		xmm0, [WINDOW]
 	movups		xmm1, 16[WINDOW]
@@ -218,15 +218,15 @@ ASM_NAME(INT123_synth_1to1_s32_sse_asm):
 	mulps		xmm1, 16[B0]
 	mulps		xmm2, 32[B0]
 	mulps		xmm3, 48[B0]
-	mulps		xmm6, -64[B0]
-	mulps		xmm7, -48[B0]
+	mulps		xmm6, [B0-64]
+	mulps		xmm7, [B0-48]
 	addps		xmm0, xmm1
 	addps		xmm2, xmm3
 	addps		xmm6, xmm7
 	movups		xmm1, 160[WINDOW]
 	movups		xmm3, 176[WINDOW]
-	mulps		xmm1, -32[B0]
-	mulps		xmm3, -16[B0]
+	mulps		xmm1, [B0-32]
+	mulps		xmm3, [B0-16]
 	addps		xmm0, xmm2
 	addps		xmm1, xmm3
 	addps		xmm6, xmm1
@@ -234,7 +234,7 @@ ASM_NAME(INT123_synth_1to1_s32_sse_asm):
 	movaps		xmm6, xmm0
 	
 	lea		WINDOW, DWORD_PTR 256[WINDOW]
-	lea		B0, DWORD_PTR -128[B0]
+	lea		B0, DWORD_PTR [B0-128]
 	
 	movaps		xmm0, xmm4
 	movaps		xmm1, xmm6
@@ -254,9 +254,9 @@ ASM_NAME(INT123_synth_1to1_s32_sse_asm):
 	
 	movaps		xmm1, xmm0
 	movaps		xmm2, xmm0
-	mulps		xmm0, LOCAL_VAR[scale_s32]
-	cmpnleps	xmm1, LOCAL_VAR[maxmin_s32]
-	cmpltps		xmm2, 16+LOCAL_VAR[maxmin_s32]
+	mulps		xmm0, [LOCAL_VAR(scale_s32)]
+	cmpnleps	xmm1, [LOCAL_VAR(maxmin_s32)]
+	cmpltps		xmm2, [LOCAL_VAR(maxmin_s32)+16]
 	cvtps2pi	mm0, xmm0
 	movhlps		xmm0, xmm0
 	cvtps2pi	mm1, xmm0
@@ -286,7 +286,7 @@ ASM_NAME(INT123_synth_1to1_s32_sse_asm):
 	
 	lea		SAMPLES, DWORD_PTR 32[SAMPLES]
 	dec		ecx
-	jnz			1b
+	jnz			loop2
 	
 	pshufw		mm0, MMREG_CLIP, HEX(ee)
 	paddw		mm0, MMREG_CLIP

@@ -112,9 +112,9 @@
 #if defined(PIC) && defined(__ELF__)
 
 /* ELF binaries (Unix/Linux) */
-#define LOCAL_VAR(a) MANGLE_MACROCAT(a, @GOTOFF(_EBX_))
-#define GLOBAL_VAR(a) MANGLE_MACROCAT(ASM_NAME(a), @GOTOFF(_EBX_))
-#define GLOBAL_VAR_PTR(a) MANGLE_MACROCAT(ASM_NAME(a), @GOT(_EBX_))
+#define LOCAL_VAR(a) MANGLE_MACROCAT(a, @GOTOFF)+_EBX_
+#define GLOBAL_VAR(a) MANGLE_MACROCAT(ASM_NAME(a), @GOTOFF)+_EBX_
+#define GLOBAL_VAR_PTR(a) MANGLE_MACROCAT(ASM_NAME(a), @GOT)+_EBX_
 #define FUNC(a) ASM_NAME(a)
 #define EXTERNAL_FUNC(a) MANGLE_MACROCAT(ASM_NAME(a), @PLT)
 #undef ASM_VALUE

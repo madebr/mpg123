@@ -83,7 +83,7 @@ intwinbase:
 	DATA_SHORT  15038
 
 intwindiv:
-	DATA_LONG HEX(47800000)			# 65536.0
+	DATA_LONG HEX(47800000)			COMMENT 65536.0
 SECTION_TEXT
 	ALIGN32
 /* void make_decode_tables_mmx_asm(long scaleval, float* decwin_mmx, float *decwins); */
@@ -97,21 +97,21 @@ ASM_NAME(INT123_make_decode_tables_mmx_asm):
 	push ebx
 
 	GET_GOT
-	lea edi,LOCAL_VAR[intwinbase]
-	mov ecx,LOCAL_VAR[intwindiv]
-	mov -4[ebp],edi
-	lea eax,444[edi]
-	mov -8[ebp],eax
-	mov -12[ebp],ecx
+	lea edi,[LOCAL_VAR(intwinbase)]
+	mov ecx,[LOCAL_VAR(intwindiv)]
+	mov [ebp-4],edi
+	lea eax,[edi+444]
+	mov [ebp-8],eax
+	mov [ebp-12],ecx
 
-/* stack: -12[ebp]=*intwindiv, -8[ebp]=intwinbase+444, -4[ebp]=intwinbase, ... ,
-          4[ebp]=back, 8[ebp]=scaleval, 12[ebp]=decwin_mmx, 16[ebp]=decwins */
-#define INTWINDIV -12[ebp]
-#define INTWINBASE_PLUS_444 -8[ebp]
-#define INTWINBASE -4[ebp]
-#define SCALEVAL 8[ebp]
-#define DECWIN_MMX 12[ebp]
-#define DECWINS 16[ebp]
+/* stack: [ebp-12]=*intwindiv, [ebp-8]=intwinbase+444, [ebp-4]=intwinbase, ... ,
+          [ebp+4]=back, [ebp+8]=scaleval, [ebp+12]=decwin_mmx, [ebp+16]=decwins */
+#define INTWINDIV [ebp-12]
+#define INTWINBASE_PLUS_444 [ebp-8]
+#define INTWINBASE [ebp-4]
+#define SCALEVAL [ebp+8]
+#define DECWIN_MMX [ebp+12]
+#define DECWINS [ebp+16]
 	
 	xor ecx,ecx
 	xor ebx,ebx
@@ -134,10 +134,10 @@ ASM_NAME(INT123_make_decode_tables_mmx_asm):
 /* eax used to be popped the line before... I'll just use it here a bit */
 	mov eax,DECWIN_MMX /* decwin_mmx */
 	fst DWORD_PTR    [eax+ecx*4]
-	fstp DWORD_PTR 64[eax+ecx*4]
+	fstp DWORD_PTR [eax+ecx*4+64]
 	pop eax
 .L02:
-	lea edx,DWORD_PTR -1[esi]
+	lea edx,DWORD_PTR [esi-1]
 	and edx,ebx
 	cmp edx,31
 	jnz .L03
@@ -189,17 +189,17 @@ ASM_NAME(INT123_make_decode_tables_mmx_asm):
 	jnc .L09
 	sub edx,ecx
 	mov word ptr [ebx+edx*2],ax /* decwins */
-	mov word ptr -32[ebx+edx*2],ax
+	mov word ptr [ebx+edx*2-32],ax
 .L09:
 	test ecx,1
 	jnz .L10
 	neg eax
 .L10:
 	mov word ptr [ebx+ecx*2],ax
-	mov word ptr 32[ebx+ecx*2],ax
+	mov word ptr [ebx+ecx*2+32],ax
 	pop ebx /* that has to match the pushl before */
 .L11:
-	lea edx,DWORD_PTR -1[esi]
+	lea edx,DWORD_PTR [esi-1]
 	and edx,ebx
 	cmp edx,31
 	jnz .L12

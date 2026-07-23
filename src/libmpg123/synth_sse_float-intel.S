@@ -53,7 +53,7 @@ ASM_NAME(INT123_synth_1to1_real_sse_asm):
 	mov		ecx, 4
 	
 	ALIGN16
-1:
+loop1:
 	movups		xmm0, [WINDOW]
 	movups		xmm1, 16[WINDOW]
 	movups		xmm2, 32[WINDOW]
@@ -83,32 +83,32 @@ ASM_NAME(INT123_synth_1to1_real_sse_asm):
 	lea		B0, DWORD_PTR 128[B0]
 	
 	movups		xmm0, [WINDOW]
-	movups		xmm1, 16[WINDOW]
-	movups		xmm2, 32[WINDOW]
-	movups		xmm3, 48[WINDOW]
-	movups		xmm6, 128[WINDOW]
-	movups		xmm7, 144[WINDOW]
+	movups		xmm1, [WINDOW+16]
+	movups		xmm2, [WINDOW+32]
+	movups		xmm3, [WINDOW+48]
+	movups		xmm6, [WINDOW+128]
+	movups		xmm7, [WINDOW+144]
 	mulps		xmm0, [B0]
-	mulps		xmm1, 16[B0]
-	mulps		xmm2, 32[B0]
-	mulps		xmm3, 48[B0]
-	mulps		xmm6, 64[B0]
-	mulps		xmm7, 80[B0]
+	mulps		xmm1, [B0+16]
+	mulps		xmm2, [B0+32]
+	mulps		xmm3, [B0+48]
+	mulps		xmm6, [B0+64]
+	mulps		xmm7, [B0+80]
 	addps		xmm0, xmm1
 	addps		xmm2, xmm3
 	addps		xmm6, xmm7
-	movups		xmm1, 160[WINDOW]
-	movups		xmm3, 176[WINDOW]
-	mulps		xmm1, 96[B0]
-	mulps		xmm3, 112[B0]
+	movups		xmm1, [WINDOW+160]
+	movups		xmm3, [WINDOW+176]
+	mulps		xmm1, [B0+96]
+	mulps		xmm3, [B0+112]
 	addps		xmm0, xmm2
 	addps		xmm1, xmm3
 	addps		xmm6, xmm1
 	movaps		xmm7, xmm6
 	movaps		xmm6, xmm0
 	
-	lea		WINDOW, DWORD_PTR 256[WINDOW]
-	lea		B0, DWORD_PTR 128[B0]
+	lea		WINDOW, DWORD_PTR [WINDOW+256]
+	lea		B0, DWORD_PTR [B0+128]
 	
 	movaps		xmm0, xmm4
 	movaps		xmm1, xmm6
@@ -127,39 +127,39 @@ ASM_NAME(INT123_synth_1to1_real_sse_asm):
 	addps		xmm0, xmm4
 	
 	movups		xmm1, [SAMPLES]
-	movups		xmm2, 16[SAMPLES]
-	mulps		xmm0, LOCAL_VAR[scale_sse]
+	movups		xmm2, [SAMPLES+16]
+	mulps		xmm0, [LOCAL_VAR(scale_sse)]
 	shufps		xmm1, xmm2, HEX(dd)
 	movaps		xmm2, xmm0
 	unpcklps	xmm0, xmm1
 	unpckhps	xmm2, xmm1
 	movups		[SAMPLES], xmm0
-	movups		16[SAMPLES], xmm2
+	movups		[SAMPLES+16], xmm2
 	
 	lea		SAMPLES, DWORD_PTR 32[SAMPLES]
 	dec		ecx
-	jnz			1b
+	jnz			loop1
 	
 	mov		ecx, 4
 	
 	ALIGN16
-1:
+loop2:
 	movups		xmm0, [WINDOW]
-	movups		xmm1, 16[WINDOW]
-	movups		xmm2, 32[WINDOW]
-	movups		xmm3, 48[WINDOW]
-	movups		xmm4, 128[WINDOW]
-	movups		xmm5, 144[WINDOW]
-	movups		xmm6, 160[WINDOW]
-	movups		xmm7, 176[WINDOW]
-	mulps		xmm0, 0[B0]
-	mulps		xmm1, 16[B0]
-	mulps		xmm2, 32[B0]
-	mulps		xmm3, 48[B0]
-	mulps		xmm4, -64[B0]
-	mulps		xmm5, -48[B0]
-	mulps		xmm6, -32[B0]
-	mulps		xmm7, -16[B0]
+	movups		xmm1, [WINDOW+16]
+	movups		xmm2, [WINDOW+32]
+	movups		xmm3, [WINDOW+48]
+	movups		xmm4, [WINDOW+128]
+	movups		xmm5, [WINDOW+144]
+	movups		xmm6, [WINDOW+160]
+	movups		xmm7, [WINDOW+176]
+	mulps		xmm0, [B0+0]
+	mulps		xmm1, [B0+16]
+	mulps		xmm2, [B0+32]
+	mulps		xmm3, [B0+48]
+	mulps		xmm4, [B0-64]
+	mulps		xmm5, [B0-48]
+	mulps		xmm6, [B0-32]
+	mulps		xmm7, [B0-16]
 	addps		xmm0, xmm1
 	addps		xmm2, xmm3
 	addps		xmm4, xmm5
@@ -169,36 +169,36 @@ ASM_NAME(INT123_synth_1to1_real_sse_asm):
 	movaps		xmm5, xmm4
 	movaps		xmm4, xmm0
 	
-	lea		WINDOW, DWORD_PTR 256[WINDOW]
-	lea		B0, DWORD_PTR -128[B0]
+	lea		WINDOW, DWORD_PTR [WINDOW+256]
+	lea		B0, DWORD_PTR [B0-128]
 	
 	movups		xmm0, [WINDOW]
-	movups		xmm1, 16[WINDOW]
-	movups		xmm2, 32[WINDOW]
-	movups		xmm3, 48[WINDOW]
-	movups		xmm6, 128[WINDOW]
-	movups		xmm7, 144[WINDOW]
+	movups		xmm1, [WINDOW+16]
+	movups		xmm2, [WINDOW+32]
+	movups		xmm3, [WINDOW+48]
+	movups		xmm6, [WINDOW+128]
+	movups		xmm7, [WINDOW+144]
 	mulps		xmm0, [B0]
-	mulps		xmm1, 16[B0]
-	mulps		xmm2, 32[B0]
-	mulps		xmm3, 48[B0]
-	mulps		xmm6, -64[B0]
-	mulps		xmm7, -48[B0]
+	mulps		xmm1, [B0+16]
+	mulps		xmm2, [B0+32]
+	mulps		xmm3, [B0+48]
+	mulps		xmm6, [B0-64]
+	mulps		xmm7, [B0-48]
 	addps		xmm0, xmm1
 	addps		xmm2, xmm3
 	addps		xmm6, xmm7
-	movups		xmm1, 160[WINDOW]
-	movups		xmm3, 176[WINDOW]
-	mulps		xmm1, -32[B0]
-	mulps		xmm3, -16[B0]
+	movups		xmm1, [WINDOW+160]
+	movups		xmm3, [WINDOW+176]
+	mulps		xmm1, [B0-32]
+	mulps		xmm3, [B0-16]
 	addps		xmm0, xmm2
 	addps		xmm1, xmm3
 	addps		xmm6, xmm1
 	movaps		xmm7, xmm6
 	movaps		xmm6, xmm0
 	
-	lea		WINDOW, DWORD_PTR 256[WINDOW]
-	lea		B0, DWORD_PTR -128[B0]
+	lea		WINDOW, DWORD_PTR [WINDOW+256]
+	lea		B0, DWORD_PTR [B0-128]
 	
 	movaps		xmm0, xmm4
 	movaps		xmm1, xmm6
@@ -217,8 +217,8 @@ ASM_NAME(INT123_synth_1to1_real_sse_asm):
 	addps		xmm0, xmm4
 	
 	movups		xmm1, [SAMPLES]
-	movups		xmm2, 16[SAMPLES]
-	mulps		xmm0, LOCAL_VAR[scale_sse]
+	movups		xmm2, [SAMPLES+16]
+	mulps		xmm0, [LOCAL_VAR(scale_sse)]
 	shufps		xmm1, xmm2, HEX(dd)
 	movaps		xmm2, xmm0
 	unpcklps	xmm0, xmm1
@@ -226,9 +226,9 @@ ASM_NAME(INT123_synth_1to1_real_sse_asm):
 	movups		[SAMPLES], xmm0
 	movups		16[SAMPLES], xmm2
 	
-	lea		SAMPLES, DWORD_PTR 32[SAMPLES]
+	lea		SAMPLES, DWORD_PTR [SAMPLES+32]
 	dec		ecx
-	jnz			1b
+	jnz			loop2
 	
 	xor		eax, eax
 

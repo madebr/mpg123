@@ -187,10 +187,10 @@ loop2:
 	vmulps		ymm1, ymm9, 32[B0L]
 	vmulps		ymm2, ymm8, [B0R]
 	vmulps		ymm3, ymm9, 32[B0R]
-	vmulps		ymm4, ymm10, -64[B0L]
-	vmulps		ymm5, ymm11, -32[B0L]
-	vmulps		ymm6, ymm10, -64[B0R]
-	vmulps		ymm7, ymm11, -32[B0R]
+	vmulps		ymm4, ymm10, [B0L-64]
+	vmulps		ymm5, ymm11, [B0L-32]
+	vmulps		ymm6, ymm10, [B0R-64]
+	vmulps		ymm7, ymm11, [B0R-32]
 	vaddps		ymm8, ymm0, ymm1
 	vaddps		ymm0, ymm2, ymm3
 	vaddps		ymm9, ymm4, ymm5
@@ -207,10 +207,10 @@ loop2:
 	vmulps		ymm3, ymm11, 32[B0L]
 	vmulps		ymm4, ymm10, [B0R]
 	vmulps		ymm5, ymm11, 32[B0R]
-	vmulps		ymm6, ymm12, -64[B0L]
-	vmulps		ymm10, ymm13, -32[B0L]
-	vmulps		ymm7, ymm12, -64[B0R]
-	vmulps		ymm11, ymm13, -32[B0R]
+	vmulps		ymm6, ymm12, [B0L-64]
+	vmulps		ymm10, ymm13, [B0L-32]
+	vmulps		ymm7, ymm12, [B0R-64]
+	vmulps		ymm11, ymm13, [B0R-32]
 	vaddps		ymm2, ymm2, ymm3
 	vaddps		ymm3, ymm4, ymm5
 	vaddps		ymm4, ymm10, ymm6

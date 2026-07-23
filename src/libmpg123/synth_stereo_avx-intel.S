@@ -160,10 +160,10 @@ loop2:
 	vpmaddwd	xmm1, xmm9, 16[B0L]
 	vpmaddwd	xmm2, xmm8, [B0R]
 	vpmaddwd	xmm3, xmm9, 16[B0R]
-	vpmaddwd	xmm4, xmm10, -32[B0L]
-	vpmaddwd	xmm5, xmm11, -16[B0L]
-	vpmaddwd	xmm6, xmm10, -32[B0R]
-	vpmaddwd	xmm7, xmm11, -16[B0R]
+	vpmaddwd	xmm4, xmm10, [B0L-32]
+	vpmaddwd	xmm5, xmm11, [B0L-16]
+	vpmaddwd	xmm6, xmm10, [B0R-32]
+	vpmaddwd	xmm7, xmm11, [B0R-16]
 	vpaddd		xmm8, xmm0, xmm1
 	vpaddd		xmm0, xmm2, xmm3
 	vpaddd		xmm9, xmm4, xmm5
@@ -180,10 +180,10 @@ loop2:
 	vpmaddwd	xmm3, xmm11, 16[B0L]
 	vpmaddwd	xmm4, xmm10, [B0R]
 	vpmaddwd	xmm5, xmm11, 16[B0R]
-	vpmaddwd	xmm6, xmm12, -32[B0L]
-	vpmaddwd	xmm10, xmm13, -16[B0L]
-	vpmaddwd	xmm7, xmm12, -32[B0R]
-	vpmaddwd	xmm11, xmm13, -16[B0R]
+	vpmaddwd	xmm6, xmm12, [B0L-32]
+	vpmaddwd	xmm10, xmm13, [B0L-16]
+	vpmaddwd	xmm7, xmm12, [B0R-32]
+	vpmaddwd	xmm11, xmm13, [B0R-16]
 	vpaddd		xmm2, xmm2, xmm3
 	vpaddd		xmm3, xmm4, xmm5
 	vpaddd		xmm4, xmm10, xmm6

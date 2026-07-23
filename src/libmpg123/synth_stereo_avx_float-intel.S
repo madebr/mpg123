@@ -158,8 +158,8 @@ loop2:
 	vmulps		ymm1, ymm9, 32[B0L]
 	vmulps		ymm2, ymm8, [B0R]
 	vmulps		ymm3, ymm9, 32[B0R]
-	vmulps		ymm4, ymm10, -64[B0L]
-	vmulps		ymm5, ymm11, -32[B0L]
+	vmulps		ymm4, ymm10, [B0L-64]
+	vmulps		ymm5, ymm11, [B0L-32]
 	vmulps		ymm6, ymm10, -64[B0R]
 	vmulps		ymm7, ymm11, -32[B0R]
 	vaddps		ymm8, ymm0, ymm1

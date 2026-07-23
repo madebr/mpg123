@@ -74,7 +74,7 @@ ASM_NAME(INT123_synth_1to1_s32_s_sse_asm):
 	mov		ecx, 4
 	
 	ALIGN16
-1:
+loop1:
 	movups		xmm0, [WINDOW]
 	movups		xmm1, 16[WINDOW]
 	movups		xmm2, 32[WINDOW]
@@ -236,12 +236,12 @@ ASM_NAME(INT123_synth_1to1_s32_s_sse_asm):
 	movaps		xmm2, xmm5
 	movaps		xmm3, xmm0
 	movaps		xmm4, xmm0
-	mulps		xmm5, LOCAL_VAR[scale_s32]
-	mulps		xmm0, LOCAL_VAR[scale_s32]
-	cmpnleps	xmm1, LOCAL_VAR[maxmin_s32]
-	cmpltps		xmm2, 16+LOCAL_VAR[maxmin_s32]
-	cmpnleps	xmm3, LOCAL_VAR[maxmin_s32]
-	cmpltps		xmm4, 16+LOCAL_VAR[maxmin_s32]
+	mulps		xmm5, [LOCAL_VAR(scale_s32)]
+	mulps		xmm0, [LOCAL_VAR(scale_s32)]
+	cmpnleps	xmm1, [LOCAL_VAR(maxmin_s32)]
+	cmpltps		xmm2, [LOCAL_VAR(maxmin_s32)+16]
+	cmpnleps	xmm3, [LOCAL_VAR(maxmin_s32)]
+	cmpltps		xmm4, [LOCAL_VAR(maxmin_s32)+16]
 	cvtps2pi	mm0, xmm5
 	cvtps2pi	mm1, xmm0
 	cvtps2pi	mm2, xmm1
@@ -254,7 +254,7 @@ ASM_NAME(INT123_synth_1to1_s32_s_sse_asm):
 	punpckldq	mm0, mm1
 	punpckhdq	mm4, mm1
 	mov		QWORD_PTR [SAMPLES], mm0
-	mov		QWORD_PTR 8[SAMPLES], mm4
+	mov		QWORD_PTR [SAMPLES+8], mm4
 	movhlps		xmm5, xmm5
 	movhlps		xmm0, xmm0
 	movhlps		xmm1, xmm1
@@ -270,8 +270,8 @@ ASM_NAME(INT123_synth_1to1_s32_s_sse_asm):
 	mov		mm6, mm0
 	punpckldq	mm0, mm1
 	punpckhdq	mm6, mm1
-	mov		QWORD_PTR 16[SAMPLES], mm0
-	mov		QWORD_PTR 24[SAMPLES], mm6
+	mov		QWORD_PTR [SAMPLES+16], mm0
+	mov		QWORD_PTR [SAMPLES+24], mm6
 	
 	packssdw	mm2, mm4
 	packssdw	mm3, mm5
@@ -292,14 +292,14 @@ ASM_NAME(INT123_synth_1to1_s32_s_sse_asm):
 	paddw		mm0, mm2
 	paddw		MMREG_CLIP, mm0
 	
-	lea		SAMPLES, DWORD_PTR 32[SAMPLES]
+	lea		SAMPLES, DWORD_PTR [SAMPLES+32]
 	dec		ecx
-	jnz			1b
+	jnz			loop1
 	
 	mov		ecx, 4
 	
 	ALIGN16
-1:
+loop2:
 	movups		xmm0, [WINDOW]
 	movups		xmm1, 16[WINDOW]
 	movups		xmm2, 32[WINDOW]
@@ -326,8 +326,8 @@ ASM_NAME(INT123_synth_1to1_s32_s_sse_asm):
 	movaps		TEMP[4], xmm4
 	
 	lea		WINDOW, DWORD_PTR 128[WINDOW]
-	lea		B0L, DWORD_PTR -64[B0L]
-	lea		B0R, DWORD_PTR -64[B0R]
+	lea		B0L, DWORD_PTR [B0L-64]
+	lea		B0R, DWORD_PTR [B0R-64]
 	
 	movups		xmm0, [WINDOW]
 	movups		xmm1, 16[WINDOW]
@@ -355,8 +355,8 @@ ASM_NAME(INT123_synth_1to1_s32_s_sse_asm):
 	movaps		TEMP[5], xmm4
 	
 	lea		WINDOW, DWORD_PTR 128[WINDOW]
-	lea		B0L, DWORD_PTR -64[B0L]
-	lea		B0R, DWORD_PTR -64[B0R]
+	lea		B0L, DWORD_PTR [B0L-64]
+	lea		B0R, DWORD_PTR [B0R-64]
 	
 	movups		xmm0, [WINDOW]
 	movups		xmm1, 16[WINDOW]
@@ -461,12 +461,12 @@ ASM_NAME(INT123_synth_1to1_s32_s_sse_asm):
 	movaps		xmm2, xmm5
 	movaps		xmm3, xmm0
 	movaps		xmm4, xmm0
-	mulps		xmm5, LOCAL_VAR[scale_s32]
-	mulps		xmm0, LOCAL_VAR[scale_s32]
-	cmpnleps	xmm1, LOCAL_VAR[maxmin_s32]
-	cmpltps		xmm2, 16+LOCAL_VAR[maxmin_s32]
-	cmpnleps	xmm3, LOCAL_VAR[maxmin_s32]
-	cmpltps		xmm4, 16+LOCAL_VAR[maxmin_s32]
+	mulps		xmm5, [LOCAL_VAR(scale_s32)]
+	mulps		xmm0, [LOCAL_VAR(scale_s32)]
+	cmpnleps	xmm1, [LOCAL_VAR(maxmin_s32)]
+	cmpltps		xmm2, [LOCAL_VAR(maxmin_s32)+16]
+	cmpnleps	xmm3, [LOCAL_VAR(maxmin_s32)]
+	cmpltps		xmm4, [LOCAL_VAR(maxmin_s32)+16]
 	cvtps2pi	mm0, xmm5
 	cvtps2pi	mm1, xmm0
 	cvtps2pi	mm2, xmm1
@@ -495,8 +495,8 @@ ASM_NAME(INT123_synth_1to1_s32_s_sse_asm):
 	mov		mm6, mm0
 	punpckldq	mm0, mm1
 	punpckhdq	mm6, mm1
-	mov		QWORD_PTR 16[SAMPLES], mm0
-	mov		QWORD_PTR 24[SAMPLES], mm6
+	mov		QWORD_PTR [SAMPLES+16], mm0
+	mov		QWORD_PTR [SAMPLES+24], mm6
 	
 	packssdw	mm2, mm4
 	packssdw	mm3, mm5
@@ -517,9 +517,9 @@ ASM_NAME(INT123_synth_1to1_s32_s_sse_asm):
 	paddw		mm0, mm2
 	paddw		MMREG_CLIP, mm0
 	
-	lea		SAMPLES, DWORD_PTR 32[SAMPLES]
+	lea		SAMPLES, DWORD_PTR [SAMPLES+32]
 	dec		ecx
-	jnz			1b
+	jnz			loop2
 	
 	pshufw		mm0, MMREG_CLIP, HEX(ee)
 	paddw		mm0, MMREG_CLIP
