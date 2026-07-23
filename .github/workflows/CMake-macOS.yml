@@ -9,7 +9,7 @@ jobs:
         os: [macos-latest, macos-13]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install ninja & yasm
         run: brew install ninja yasm
       - name: Configure (CMake)

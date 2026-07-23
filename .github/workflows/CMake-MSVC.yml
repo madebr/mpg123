@@ -3,82 +3,32 @@ name: CMake MSVC
 on: push
 
 jobs:
-  yasm:
-    runs-on: windows-latest
-    steps:
-      - name: Restore yasm
-        id: restore-yasm
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            ${{ github.workspace }}/yasm
-          key: yasm
-      - name: Checkout sources
-        uses: actions/checkout@v4
-      - name: Download yasm sources
-        if: ${{ !steps.restore-yasm.outputs.cache-hit }}
-        uses: actions/checkout@v4
-        with:
-          repository: yasm/yasm
-          path: yasm-src
-      - name: Setup vcvars
-        if: ${{ !steps.restore-yasm.outputs.cache-hit }}
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: x64
-      - name: Setup ninja
-        if: ${{ !steps.restore-yasm.outputs.cache-hit }}
-        uses: ./.github/actions/setup-ninja
-      - name: Build and install yasm
-        if: ${{ !steps.restore-yasm.outputs.cache-hit }}
-        run: |
-          cmake -S yasm-src -B yasm-build -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/yasm -DCMAKE_INSTALL_LIBDIR=bin -DCMAKE_INSTALL_BINDIR=bin -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=ON -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
-          cmake --build yasm-build --parallel
-          cmake --install yasm-build
-      - name: Cache yasm
-        if: ${{ !steps.restore-yasm.outputs.cache-hit }}
-        uses: actions/cache/save@v4
-        with:
-          path: |
-            ${{ github.workspace }}/yasm
-          key: yasm
   build:
     defaults:
       run:
         shell: cmd
-    needs:
-      yasm
     strategy:
       fail-fast: false
       matrix:
         # currently windows-latest==windows-2022
+        # windows-2025: VS2026
         # windows-2022: VS2022
-        # windows-2019: VS2019
-        os: [windows-2022, windows-2019]
+        os: [windows-2025, windows-2022]
         arch: [x86, x64, amd64_arm, amd64_arm64]
         shared: [ON, OFF]
-        yasm: [true, false]
+        nasm: [true, false]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - name: Restore yasm
-        if: ${{ matrix.yasm }}
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            ${{ github.workspace }}/yasm
-          key: yasm
-      - name: Add yasm to PATH
-        if: ${{ matrix.yasm }}
-        run: echo "${{ github.workspace }}/yasm/bin" >> %GITHUB_PATH%"
+      - uses: ilammy/setup-nasm@v1
+        if: ${{ matrix.nasm }}
+      - uses: actions/checkout@v7
       - name: Setup vcvars
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: ${{ matrix.arch }}
-          sdK: ${{ (matrix.arch == 'amd64_arm' && '10.0.22621.0') || '' }}
       - name: Setup ninja
         uses: ./.github/actions/setup-ninja
       - name: CMake (configure)
-        run: cmake -S ports/cmake -B build -GNinja ${{ (matrix.yasm && format('-DYASM_ASSEMBLER={0}/yasm/bin/vsyasm.exe', github.workspace)) || '' }} -DBUILD_SHARED_LIBS=${{ matrix.shared }}
+        run: cmake -S ports/cmake -B build -GNinja -DUSE_ASSEMBLER=ON -DUSE_NASM=${{ matrix.nasm }} -DBUILD_SHARED_LIBS=${{ matrix.shared }}
       - name: CMake (Build)
         run: cmake --build build --verbose
