@@ -119,14 +119,14 @@ ASM_NAME(INT123_make_decode_tables_mmx_asm):
 	
 	neg DWORD_PTR SCALEVAL	/* scaleval */
 	push 2	/* intwinbase step */
-.L00:
+label00:
 	cmp ecx,528
-	jnc .L02
+	jnc label02
 	movsx eax, word PTR_NONASM [edi]
 	cmp edi,INTWINBASE_PLUS_444
-	jc .L01
+	jc label01
 	add eax,60000
-.L01:
+label01:
 	push eax
 	fild DWORD_PTR [esp]
 	fdiv DWORD_PTR INTWINDIV
@@ -136,88 +136,88 @@ ASM_NAME(INT123_make_decode_tables_mmx_asm):
 	fst DWORD_PTR    [eax+ecx*4]
 	fstp DWORD_PTR [eax+ecx*4+64]
 	pop eax
-.L02:
+label02:
 	lea edx,DWORD_PTR [esi-1]
 	and edx,ebx
 	cmp edx,31
-	jnz .L03
+	jnz label03
 	add ecx,-1023
 	test ebx,esi
-	jz  .L03
+	jz  label03
 	neg DWORD_PTR SCALEVAL
-.L03:
+label03:
 	add ecx,esi
 	add edi,DWORD_PTR [esp]
 	inc ebx
 	cmp edi,INTWINBASE
-	jz .L04
+	jz label04
 	cmp ebx,256
-	jnz .L00
+	jnz label00
 	neg DWORD_PTR [esp]
-	jmp .L00
-.L04:
+	jmp label00
+label04:
 	pop eax
 
 	xor ecx,ecx
 	xor ebx,ebx
 	push 2 /* paired with popl above */
-.L05:
+label05:
 	cmp ecx,528
-	jnc .L11
-	movsw eax, [edi]
+	jnc label11
+	movsx eax, word PTR_NONASM [edi]
 	cmp edi,INTWINBASE_PLUS_444
-	jc .L06
+	jc label06
 	add eax,60000
-.L06:
-	cltd
+label06:
+	cdq
 	imul DWORD_PTR SCALEVAL
 	shrd eax,edx,17
 	cmp eax,32767
 	mov edx,1055
-	jle .L07
+	jle label07
 	mov eax,32767
-	jmp .L08
-.L07:
+	jmp label08
+label07:
 	cmp eax,-32767
-	jge .L08
+	jge label08
 	mov eax,-32767
-.L08:
+label08:
 /* going to use ebx for decwins, watch the jumps */
 	push ebx 
 	mov ebx,DECWINS
 	cmp ecx,512
-	jnc .L09
+	jnc label09
 	sub edx,ecx
-	mov word ptr [ebx+edx*2],ax /* decwins */
-	mov word ptr [ebx+edx*2-32],ax
-.L09:
+	mov WORD_PTR [ebx+edx*2],ax /* decwins */
+	mov WORD_PTR [ebx+edx*2-32],ax
+label09:
 	test ecx,1
-	jnz .L10
+	jnz label10
 	neg eax
-.L10:
-	mov word ptr [ebx+ecx*2],ax
-	mov word ptr [ebx+ecx*2+32],ax
+label10:
+	mov WORD_PTR [ebx+ecx*2],ax
+	mov WORD_PTR [ebx+ecx*2+32],ax
 	pop ebx /* that has to match the pushl before */
-.L11:
+label11:
 	lea edx,DWORD_PTR [esi-1]
 	and edx,ebx
 	cmp edx,31
-	jnz .L12
+	jnz label12
 	add ecx,-1023
 	test ebx,esi
-	jz  .L12
+	jz  label12
 	neg DWORD_PTR SCALEVAL
-.L12:
+label12:
 	add ecx,esi
 	add edi,DWORD_PTR [esp]
 	inc ebx
 	cmp edi,INTWINBASE
-	jz .L13
+	jz label13
 	cmp ebx,256
-	jnz .L05
+	jnz label05
 	neg DWORD_PTR [esp]
-	jmp .L05
-.L13:
+	jmp label05
+label13:
 	pop eax
 	
 	pop ebx

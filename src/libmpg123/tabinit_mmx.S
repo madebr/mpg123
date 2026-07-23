@@ -118,7 +118,7 @@ ASM_NAME(INT123_make_decode_tables_mmx_asm):
 	
 	negl SCALEVAL	/* scaleval */
 	pushl $2	/* intwinbase step */
-.L00:
+z:
 	cmpl $528,%ecx
 	jnc .L02
 	movswl (%edi),%eax

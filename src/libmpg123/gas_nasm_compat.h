@@ -12,6 +12,7 @@
 #define COMMENT ;
 #define END_MODULE
 #define HEX(V) 0x##V
+#define WORD_PTR
 #define DWORD_PTR
 #define QWORD_PTR
 #define XMMWORD_PTR
@@ -34,6 +35,7 @@ option casemap:none
 #define COMMENT ;
 #define END_MODULE end
 #define HEX(V) 0##V##h
+#define WORD_PTR word ptr
 #define DWORD_PTR dword ptr
 #define QWORD_PTR qword ptr
 #define XMMWORD_PTR xmmword ptr
@@ -55,6 +57,7 @@ option casemap:none
 #define COMMENT #
 #define END_MODULE
 #define HEX(V) 0x##V
+#define WORD_PTR word ptr
 #define DWORD_PTR dword ptr
 #define QWORD_PTR qword ptr
 #define XMMWORD_PTR xmmword ptr
