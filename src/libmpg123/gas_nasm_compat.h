@@ -16,6 +16,7 @@
 #define QWORD_PTR
 #define XMMWORD_PTR
 #define YMMWORD_PTR
+#define PTR_NONASM
 default rel
 #elif defined(MASM_ASSEMBLER)
 option casemap:none
@@ -36,6 +37,7 @@ option casemap:none
 #define QWORD_PTR qword ptr
 #define XMMWORD_PTR xmmword ptr
 #define YMMWORD_PTR ymmword ptr
+#define PTR_NONASM ptr
 
 #else
 #define DATA_LONG .long
@@ -55,6 +57,7 @@ option casemap:none
 #define QWORD_PTR qword ptr
 #define XMMWORD_PTR xmmword ptr
 #define YMMWORD_PTR ymmword ptr
+#define PTR_NONASM ptr
 
 .intel_syntax noprefix
 #endif
