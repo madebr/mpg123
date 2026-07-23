@@ -25,7 +25,7 @@ jobs:
         if: ${{ matrix.nasm }}
       - uses: actions/checkout@v7
       - name: Setup vcvars
-        uses: ilammy/msvc-dev-cmd@v1
+        uses: TheMrMilchmann/setup-msvc-dev@v4
         with:
           arch: ${{ matrix.arch }}
       - name: Setup ninja
