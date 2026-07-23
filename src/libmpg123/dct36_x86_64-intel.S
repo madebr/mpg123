@@ -93,10 +93,10 @@ ASM_NAME(INT123_dct36_x86_64):
 	
 	xorps		xmm5, xmm5
 	movups		xmm1, [in]
-	movups		xmm2, XMMWORD_PTR MEM_OFFSET(in, 16)
-	movups		xmm3, XMMWORD_PTR MEM_OFFSET(in, 32)
-	movups		xmm4, XMMWORD_PTR MEM_OFFSET(in, 48)
-	movlps		xmm5, QWORD_PTR MEM_OFFSET(in, 64)
+	movups		xmm2, XMMWORD_PTR [in+16]
+	movups		xmm3, XMMWORD_PTR [in+32]
+	movups		xmm4, XMMWORD_PTR [in+48]
+	movlps		xmm5, QWORD_PTR [in+64]
 	xorps		xmm6, xmm6
 	movaps		xmm7, xmm1
 	shufps		xmm7, xmm7, HEX(93)
@@ -160,9 +160,9 @@ xmm4 in[14,15,8,9]
 */
 
 	movaps		xmm15, [COS9_]
-	movaps		xmm6, MEM_OFFSET(COS9_, 16)
-	movaps		xmm7, MEM_OFFSET(COS9_, 32)
-	movaps		xmm8, MEM_OFFSET(COS9_, 48)
+	movaps		xmm6, [COS9_+16]
+	movaps		xmm7, [COS9_+32]
+	movaps		xmm8, [COS9_+48]
 	mulps		xmm5, xmm15
 	addps		xmm5, xmm0
 	
@@ -211,7 +211,7 @@ xmm15 COS9_[3,3,6,6]
 	addps		xmm8, xmm6
 	movaps		xmm15, xmm8
 	
-	movss		xmm5, DWORD_PTR MEM_OFFSET(tfcos36_, 32)
+	movss		xmm5, DWORD_PTR [tfcos36_+32]
 	subps		xmm0, xmm1
 	subps		xmm4, xmm2
 	addps		xmm0, xmm3
@@ -295,29 +295,29 @@ xmm11 tmp[13,-,4,-]
 	addps		xmm1, xmm4
 	addps		xmm3, xmm6
 	shufps		xmm0, xmm0, HEX(1b)
-	movups		MEM_OFFSET(out2, 36), xmm2
-	movups		MEM_OFFSET(out2, 20), xmm0
-	movss		DWORD_PTR MEM_OFFSET(ts, 32*36), xmm1
-	movss		DWORD_PTR MEM_OFFSET(ts, 32*20), xmm3
+	movups		[out2+36], xmm2
+	movups		[out2+20], xmm0
+	movss		DWORD_PTR [ts+32*36], xmm1
+	movss		DWORD_PTR [ts+32*20], xmm3
 	movhlps		xmm2, xmm1
 	movhlps		xmm4, xmm3
-	movss		DWORD_PTR MEM_OFFSET(ts, 32*44), xmm2
-	movss		DWORD_PTR MEM_OFFSET(ts, 32*28), xmm4
+	movss		DWORD_PTR [ts+32*44], xmm2
+	movss		DWORD_PTR [ts+32*28], xmm4
 	shufps		xmm1, xmm1, HEX(b1)
 	shufps		xmm3, xmm3, HEX(b1)
-	movss		DWORD_PTR MEM_OFFSET(ts, 32*40), xmm1
-	movss		DWORD_PTR MEM_OFFSET(ts, 32*24), xmm3
+	movss		DWORD_PTR [ts+32*40], xmm1
+	movss		DWORD_PTR [ts+32*24], xmm3
 	movhlps		xmm2, xmm1
 	movhlps		xmm4, xmm3
-	movss		DWORD_PTR MEM_OFFSET(ts, 32*48), xmm2
-	movss		DWORD_PTR MEM_OFFSET(ts, 32*32), xmm4
+	movss		DWORD_PTR [ts+32*48], xmm2
+	movss		DWORD_PTR [ts+32*32], xmm4
 	
 	movhlps		xmm0, xmm11
 	movaps		xmm1, xmm11
-	movss		xmm2, DWORD_PTR MEM_OFFSET(w, 124)
-	movss		xmm3, DWORD_PTR MEM_OFFSET(w, 88)
-	movss		xmm4, DWORD_PTR MEM_OFFSET(w, 52)
-	movss		xmm5, DWORD_PTR MEM_OFFSET(w, 16)
+	movss		xmm2, DWORD_PTR [w+124]
+	movss		xmm3, DWORD_PTR [w+88]
+	movss		xmm4, DWORD_PTR [w+52]
+	movss		xmm5, DWORD_PTR [w+16]
 	movss		xmm6, xmm0
 	addss		xmm0, xmm1
 	subss		xmm6, xmm1
@@ -325,20 +325,20 @@ xmm11 tmp[13,-,4,-]
 	mulss		xmm0, xmm3
 	mulss		xmm4, xmm6
 	mulss		xmm6, xmm5
-	addss		xmm4, DWORD_PTR MEM_OFFSET(out1, 52)
-	addss		xmm6, DWORD_PTR MEM_OFFSET(out1, 16)
-	movss		DWORD_PTR MEM_OFFSET(out2, 52), xmm2
-	movss		DWORD_PTR MEM_OFFSET(out2, 16), xmm0
-	movss		DWORD_PTR MEM_OFFSET(ts, 32*52), xmm4
-	movss		DWORD_PTR MEM_OFFSET(ts, 32*16), xmm6
+	addss		xmm4, DWORD_PTR [out1+52]
+	addss		xmm6, DWORD_PTR [out1+16]
+	movss		DWORD_PTR [out2+52], xmm2
+	movss		DWORD_PTR [out2+16], xmm0
+	movss		DWORD_PTR [ts+32*52], xmm4
+	movss		DWORD_PTR [ts+32*16], xmm6
 	
 	movaps		xmm0, xmm14
 	movaps		xmm1, xmm7
-	MOVUAPS		xmm2, MEM_OFFSET(w, 128)
-	movups		xmm3, MEM_OFFSET(w, 72)
+	MOVUAPS		xmm2, [w+128]
+	movups		xmm3, [w+72]
 	shufps		xmm2, xmm2, HEX(1b)
-	movlps		xmm4, QWORD_PTR MEM_OFFSET(w, 56)
-	movhps		xmm4, QWORD_PTR MEM_OFFSET(w, 64)
+	movlps		xmm4, QWORD_PTR [w+56]
+	movhps		xmm4, QWORD_PTR [w+64]
 	MOVUAPS		xmm5, [w]
 	shufps		xmm4, xmm4, HEX(1b)
 	movaps		xmm6, xmm0
@@ -356,34 +356,34 @@ xmm11 tmp[13,-,4,-]
 	addps		xmm1, xmm4
 	shufps		xmm2, xmm2, HEX(1b)
 	movups		[out2], xmm0
-	movlps		QWORD_PTR MEM_OFFSET(out2, 56), xmm2
-	movhps		QWORD_PTR MEM_OFFSET(out2, 64), xmm2
-	movss		DWORD_PTR MEM_OFFSET(ts, 32*56), xmm1
+	movlps		QWORD_PTR [out2+56], xmm2
+	movhps		QWORD_PTR [out2+64], xmm2
+	movss		DWORD_PTR [ts+32*56], xmm1
 	movss		DWORD_PTR [ts], xmm3
 	movhlps		xmm2, xmm1
 	movhlps		xmm4, xmm3
-	movss		DWORD_PTR MEM_OFFSET(ts, 32*64), xmm2
-	movss		DWORD_PTR MEM_OFFSET(ts, 32*8), xmm4
+	movss		DWORD_PTR [ts+32*64], xmm2
+	movss		DWORD_PTR [ts+32*8], xmm4
 	shufps		xmm1, xmm1, HEX(b1)
 	shufps		xmm3, xmm3, HEX(b1)
-	movss		DWORD_PTR MEM_OFFSET(ts, 32*60), xmm1
-	movss		DWORD_PTR MEM_OFFSET(ts, 32*4), xmm3
+	movss		DWORD_PTR [ts+32*60], xmm1
+	movss		DWORD_PTR [ts+32*4], xmm3
 	movhlps		xmm2, xmm1
 	movhlps		xmm4, xmm3
-	movss		DWORD_PTR MEM_OFFSET(ts, 32*68), xmm2
-	movss		DWORD_PTR MEM_OFFSET(ts, 32*12), xmm4
+	movss		DWORD_PTR [ts+32*68], xmm2
+	movss		DWORD_PTR [ts+32*12], xmm4
 	
 #ifdef IS_MSABI
 	movaps		xmm6, [rsp]
-	movaps		xmm7, MEM_OFFSET(rsp, 16)
-	movaps		xmm8, MEM_OFFSET(rsp, 32)
-	movaps		xmm9, MEM_OFFSET(rsp, 48)
-	movaps		xmm10, MEM_OFFSET(rsp, 64)
-	movaps		xmm11, MEM_OFFSET(rsp, 80)
-	movaps		xmm12, MEM_OFFSET(rsp, 96)
-	movaps		xmm13, MEM_OFFSET(rsp, 112)
-	movaps		xmm14, MEM_OFFSET(rsp, 128)
-	movaps		xmm15, MEM_OFFSET(rsp, 144)
+	movaps		xmm7, [rsp+16]
+	movaps		xmm8, [rsp+32]
+	movaps		xmm9, [rsp+48]
+	movaps		xmm10, [rsp+64]
+	movaps		xmm11, [rsp+80]
+	movaps		xmm12, [rsp+96]
+	movaps		xmm13, [rsp+112]
+	movaps		xmm14, [rsp+128]
+	movaps		xmm15, [rsp+144]
 	mov			rsp, rbp
 	pop			rbp
 #endif

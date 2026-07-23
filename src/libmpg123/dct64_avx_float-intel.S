@@ -194,14 +194,14 @@ ASM_NAME(INT123_dct64_real_avx):
 	vaddps		xmm3, xmm10, xmm3
 	
 	vzeroupper
-	prefetcht0	MEM_OFFSET(out1, 1024)
+	prefetcht0	[out1+1024]
 	
 	add		out0, 1024
 	mov		rax, -128
 	movss		DWORD_PTR [out0], xmm4
 	movss		DWORD_PTR [out0+rax*1], xmm0
 	movss		DWORD_PTR [out0+rax*2], xmm5
-	movss		DWORD_PTR MEM_OFFSET(out0+rax*2, -128), xmm1
+	movss		DWORD_PTR [out0+rax*2+-128], xmm1
 	lea		out0, [out0+rax*4]
 	movhlps		xmm9, xmm4
 	movhlps		xmm10, xmm0
@@ -210,7 +210,7 @@ ASM_NAME(INT123_dct64_real_avx):
 	vmovss		DWORD_PTR [out0], xmm9
 	vmovss		DWORD_PTR [out0+rax*1], xmm10
 	vmovss		DWORD_PTR [out0+rax*2], xmm11
-	vmovss		DWORD_PTR MEM_OFFSET(out0+rax*2, -128), xmm12
+	vmovss		DWORD_PTR [out0+rax*2+-128], xmm12
 	lea		out0, [out0+rax*4]
 	neg		rax
 	shufps		xmm4, xmm4, HEX(b1)
@@ -228,12 +228,12 @@ ASM_NAME(INT123_dct64_real_avx):
 	movhlps		xmm0, xmm0
 	movhlps		xmm5, xmm5
 	movhlps		xmm1, xmm1
-	movss		DWORD_PTR MEM_OFFSET(out1, -128), xmm4
+	movss		DWORD_PTR [out1+-128], xmm4
 	movss		DWORD_PTR [out1], xmm0
 	movss		DWORD_PTR [out1+rax*1], xmm5
 	movss		DWORD_PTR [out1+rax*2], xmm1
 	
-	lea		out0, MEM_OFFSET(out0+rax*8, -64)
+	lea		out0, [out0+rax*8+-64]
 	neg		rax
 	vshufps		xmm0, xmm6, xmm6, HEX(1e)
 	vblendps	xmm0, xmm8, xmm0, HEX(7)
@@ -244,7 +244,7 @@ ASM_NAME(INT123_dct64_real_avx):
 	movss		DWORD_PTR [out0], xmm6
 	movss		DWORD_PTR [out0+rax*1], xmm2
 	movss		DWORD_PTR [out0+rax*2], xmm7
-	movss		DWORD_PTR MEM_OFFSET(out0+rax*2, -128), xmm3
+	movss		DWORD_PTR [out0+rax*2+-128], xmm3
 	lea		out0, [out0+rax*4]
 	movhlps		xmm0, xmm6
 	movhlps		xmm1, xmm2
@@ -253,14 +253,14 @@ ASM_NAME(INT123_dct64_real_avx):
 	movss		DWORD_PTR [out0], xmm0
 	movss		DWORD_PTR [out0+rax*1], xmm1
 	movss		DWORD_PTR [out0+rax*2], xmm4
-	movss		DWORD_PTR MEM_OFFSET(out0+rax*2, -128), xmm5
+	movss		DWORD_PTR [out0+rax*2+-128], xmm5
 	lea		out1, 64[out1+rax*4]
 	neg		rax
 	shufps		xmm6, xmm6, HEX(b1)
 	shufps		xmm2, xmm2, HEX(b1)
 	shufps		xmm7, xmm7, HEX(b1)
 	shufps		xmm3, xmm3, HEX(b1)
-	movss		DWORD_PTR MEM_OFFSET(out1, -128), xmm6
+	movss		DWORD_PTR [out1+-128], xmm6
 	movss		DWORD_PTR [out1], xmm2
 	movss		DWORD_PTR [out1+rax*1], xmm7
 	movss		DWORD_PTR [out1+rax*2], xmm3
@@ -269,7 +269,7 @@ ASM_NAME(INT123_dct64_real_avx):
 	movhlps		xmm2, xmm2
 	movhlps		xmm7, xmm7
 	movhlps		xmm3, xmm3
-	movss		DWORD_PTR MEM_OFFSET(out1, -128), xmm6
+	movss		DWORD_PTR [out1+-128], xmm6
 	movss		DWORD_PTR [out1], xmm2
 	movss		DWORD_PTR [out1+rax*1], xmm7
 	movss		DWORD_PTR [out1+rax*2], xmm3
@@ -278,12 +278,12 @@ ASM_NAME(INT123_dct64_real_avx):
 	pop			rsi
 	pop			rdi
 	movaps		xmm6, [rsp]
-	movaps		xmm7, MEM_OFFSET(rsp, 16)
-	movaps		xmm8, MEM_OFFSET(rsp, 32)
-	movaps		xmm9, MEM_OFFSET(rsp, 48)
-	movaps		xmm10, MEM_OFFSET(rsp, 64)
-	movaps		xmm11, MEM_OFFSET(rsp, 80)
-	movaps		xmm12, MEM_OFFSET(rsp, 96)
+	movaps		xmm7, [rsp+16]
+	movaps		xmm8, [rsp+32]
+	movaps		xmm9, [rsp+48]
+	movaps		xmm10, [rsp+64]
+	movaps		xmm11, [rsp+80]
+	movaps		xmm12, [rsp+96]
 	mov			rsp, rbp
 	pop			rbp
 #endif

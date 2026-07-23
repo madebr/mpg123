@@ -16,7 +16,6 @@
 #define COMMENT ;
 #define END_MODULE
 #define HEX(V) 0x##V
-#define MEM_OFFSET(B,O) O[B]
 default rel
 #elif defined(MASM_ASSEMBLER)
 option casemap:none
@@ -37,7 +36,6 @@ option casemap:none
 #define COMMENT ;
 #define END_MODULE end
 #define HEX(V) 0##V##h
-#define MEM_OFFSET(B,O) [B+O]
 
 #else
 #define DATA_LONG .long
@@ -57,7 +55,6 @@ option casemap:none
 #define COMMENT #
 #define END_MODULE
 #define HEX(V) 0x##V
-#define MEM_OFFSET(B,O) O[B]
 
 .intel_syntax noprefix
 #endif
