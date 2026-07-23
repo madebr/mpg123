@@ -12,10 +12,10 @@
 #define COMMENT ;
 #define END_MODULE
 #define HEX(V) 0x##V
-#define DWORD_PTR dword
-#define QWORD_PTR qword
-#define XMMWORD_PTR xmmword
-#define YMMWORD_PTR ymmword
+#define DWORD_PTR 
+#define QWORD_PTR
+#define XMMWORD_PTR
+#define YMMWORD_PTR
 default rel
 #elif defined(MASM_ASSEMBLER)
 option casemap:none
