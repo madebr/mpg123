@@ -150,8 +150,8 @@ xmm4 in[14,15,8,9]
 	mulps		xmm5, [eax]
 	addps		xmm5, xmm0
 	
-	movaps		DWORD_PTR [tmp], xmm0
-	movaps		DWORD_PTR [tmp+16], xmm2
+	movaps		XMMWORD_PTR [tmp], xmm0
+	movaps		XMMWORD_PTR [tmp+16], xmm2
 
 /*
 0(tmp) in[-,-,0,1]
@@ -228,7 +228,7 @@ xmm6 [1a-3,1b-3,-2a-3,-2b-3]
 	movaps		xmm5, xmm2
 	unpcklps	xmm2, xmm6
 	unpckhps	xmm5, xmm6
-	xorps		xmm5, DWORD_PTR [LOCAL_VAR(dct36_sse_sign)]
+	xorps		xmm5, XMMWORD_PTR [LOCAL_VAR(dct36_sse_sign)]
 
 /*
 xmm0 [1a-0,1a-1,1b-0,1b-1]
