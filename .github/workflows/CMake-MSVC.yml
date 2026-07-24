@@ -20,7 +20,7 @@ jobs:
         shared: [true, false]
         nasm: [true, false]
         exclude:
-          - arch: amd6_arm64
+          - arch: amd64_arm64
             nasm: true
     runs-on: ${{ matrix.os }}
     steps:
