@@ -118,7 +118,7 @@ ASM_NAME(INT123_make_decode_tables_mmx_asm):
 	xor ebx,ebx
 	mov esi,32
 	
-	neg DWORD_PTR SCALEVAL	/* scaleval */
+	neg DWORD PTR_NONASM SCALEVAL	/* scaleval */
 	push 2	/* intwinbase step */
 label00:
 	cmp ecx,528
@@ -129,13 +129,13 @@ label00:
 	add eax,60000
 label01:
 	push eax
-	fild DWORD_PTR [esp]
-	fdiv DWORD_PTR INTWINDIV
-	fimul DWORD_PTR SCALEVAL /* scaleval */
+	fild DWORD PTR_NONASM [esp]
+	fdiv DWORD PTR_NONASM INTWINDIV
+	fimul DWORD PTR_NONASM SCALEVAL /* scaleval */
 /* eax used to be popped the line before... I'll just use it here a bit */
 	mov eax,DECWIN_MMX /* decwin_mmx */
-	fst DWORD_PTR    [eax+ecx*4]
-	fstp DWORD_PTR [eax+ecx*4+64]
+	fst DWORD PTR_NONASM    [eax+ecx*4]
+	fstp DWORD PTR_NONASM [eax+ecx*4+64]
 	pop eax
 label02:
 	lea edx,DWORD_PTR [esi-1]
@@ -145,7 +145,7 @@ label02:
 	add ecx,-1023
 	test ebx,esi
 	jz  label03
-	neg DWORD_PTR SCALEVAL
+	neg DWORD PTR_NONASM SCALEVAL
 label03:
 	add ecx,esi
 	add edi,DWORD_PTR [esp]
@@ -154,7 +154,7 @@ label03:
 	jz label04
 	cmp ebx,256
 	jnz label00
-	neg DWORD_PTR [esp]
+	neg DWORD PTR_NONASM [esp]
 	jmp label00
 label04:
 	pop eax
@@ -171,7 +171,7 @@ label05:
 	add eax,60000
 label06:
 	cdq
-	imul DWORD_PTR SCALEVAL
+	imul DWORD PTR_NONASM SCALEVAL
 	shrd eax,edx,17
 	cmp eax,32767
 	mov edx,1055
@@ -207,7 +207,7 @@ label11:
 	add ecx,-1023
 	test ebx,esi
 	jz  label12
-	neg DWORD_PTR SCALEVAL
+	neg DWORD PTR_NONASM SCALEVAL
 label12:
 	add ecx,esi
 	add edi,DWORD_PTR [esp]
@@ -216,7 +216,7 @@ label12:
 	jz label13
 	cmp ebx,256
 	jnz label05
-	neg DWORD_PTR [esp]
+	neg DWORD PTR_NONASM [esp]
 	jmp label05
 label13:
 	pop eax

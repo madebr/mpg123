@@ -388,6 +388,7 @@ set_target_properties(${TARGET} PROPERTIES PREFIX lib)
 set_target_properties(${TARGET} PROPERTIES SOVERSION ${mpg123_soversion})
 set_target_properties(${TARGET} PROPERTIES VERSION ${mpg123_version})
 set_target_properties(${TARGET} PROPERTIES DLL_NAME_WITH_SOVERSION TRUE)
+set_target_properties(${TARGET} PROPERTIES DEFINE_SYMBOL "")
 
 target_compile_definitions(${TARGET} PRIVATE
     $<$<BOOL:$<TARGET_PROPERTY:POSITION_INDEPENDENT_CODE>>:PIC>)
