@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import difflib
 import functools
 import os
 import pathlib
@@ -14,7 +15,7 @@ def find_objects(tree):
     result = []
     for root, _, files in os.walk(tree):
         for f in files:
-            if f.endswith(".S.obj") or f.endswith(".S.o"):
+            if f.endswith(".S.obj") or f.endswith(".S.o") or f.endswith("-intel.obj") or f.endswith("-intel.o"):
                 result.append(pathlib.Path(root) / f)
     return result
 
@@ -84,13 +85,21 @@ def compare_dirids(disassemble_callback: typing.Callback[[pathlib.Path], str], c
 
     print(f"== Comparing {dirid_original} and {dirid_intel} ==")
     for original_path in original_paths:
-        intel_path_name = original_path.name.replace(".S", "-intel.S")
-        intel_path = compare_dir / dirid_intel / intel_path_name
-        assert intel_path.is_file()
+        intel_path = None
+        normalized_name = original_path.name.replace(".S.txt", ".SUFFIX").replace(".txt", ".SUFFIX")
+        for intel_disasm_suffix in ("-intel.S.txt", "-intel.txt"):
+            try_intel_path_name = normalized_name.replace(".SUFFIX", intel_disasm_suffix)
+            try_intel_path = compare_dir / dirid_intel / try_intel_path_name
+            if try_intel_path.is_file():
+                intel_path = try_intel_path
+            intel_path_name = original_path.name.replace(".S", "-intel.S")
+        assert intel_path, f"Could not find intel object for {original_path}"
+
+        assert intel_path.is_file(), f"{intel_path} is not an object"
         diff_path = compare_dir / f"diff-{original_path.name}.diff"
-        proc = subprocess.run(["diff", "-u", original_path, intel_path], stdout=subprocess.PIPE, check=False, text=True)
-        diff_path.write_text(proc.stdout)
-        if proc.returncode == 0:
+        delta = "\n".join(difflib.unified_diff(original_path.read_text().strip().splitlines(keepends=False), intel_path.read_text().strip().splitlines(), fromfile=str(original_path), tofile=str(intel_path)))
+        diff_path.write_text(delta)
+        if not delta:
             print(f"OK   {original_path.name}")
         else:
             print(f"FAIL {original_path.name} ({diff_path})")
@@ -104,7 +113,8 @@ def disassemble_objdump(obj_path: pathlib.Path) -> str:
 
 
 def disassemble_dumpbin(obj_path: pathlib.Path, dumpbin: pathlib.Path) -> str:
-    disasm = subprocess.check_output([str(dumpbin), "/disasm", str(obj_path)], text=True)
+    disasm = subprocess.check_output([str(dumpbin), "/disasm:BYTES", str(obj_path)], text=True)
+    disasm = "\n".join(line for line in disasm.splitlines() if "Dump of file" not in line)
     return disasm
 
 

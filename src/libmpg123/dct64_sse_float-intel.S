@@ -33,6 +33,8 @@ masks:
 
 EXTERN(ASM_NAME(INT123_costab_mmxsse))
 
+	CPU_686
+	XMM
 	FLAT_MODEL
 	SECTION_TEXT
 	ALIGN_CODE(16)
