@@ -60,7 +60,7 @@ dct36_sse_sign:
 	//XMM
 	FLAT_MODEL
 	SECTION_TEXT
-	//ALIGN16
+	ALIGN_CODE(16)
 	GLOBAL ASM_NAME(INT123_dct36_sse)
 ASM_NAME(INT123_dct36_sse):
 	push		ebp

@@ -39,7 +39,7 @@ maxmin_s16:
 	DATA_LONG   -956301312
 	FLAT_MODEL
 	SECTION_TEXT
-	//ALIGN16
+	ALIGN_CODE(16)
 GLOBAL ASM_NAME(INT123_synth_1to1_s_sse_accurate_asm)
 ASM_NAME(INT123_synth_1to1_s_sse_accurate_asm):
 	push		ebp
@@ -68,7 +68,7 @@ ASM_NAME(INT123_synth_1to1_s_sse_accurate_asm):
 
 	mov		ecx, 4
 	
-	//ALIGN16
+	ALIGN_CODE(16)
 loop1:
 	movups		xmm0, [WINDOW]
 	movups		xmm1, [WINDOW+16]
@@ -280,7 +280,7 @@ loop1:
 	
 	mov		ecx, 4
 	
-	//ALIGN16
+	ALIGN_CODE(16)
 loop2:
 	movups		xmm0, [WINDOW]
 	movups		xmm1, [WINDOW+16]

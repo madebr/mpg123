@@ -86,7 +86,7 @@ intwindiv:
 	DATA_LONG HEX(47800000)			COMMENT 65536.0
 FLAT_MODEL
 SECTION_TEXT
-	//ALIGN32
+	ALIGN_CODE(32)
 /* void make_decode_tables_mmx_asm(long scaleval, float* decwin_mmx, float *decwins); */
 GLOBAL ASM_NAME(INT123_make_decode_tables_mmx_asm)
 ASM_NAME(INT123_make_decode_tables_mmx_asm):

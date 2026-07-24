@@ -35,7 +35,7 @@ EXTERN(ASM_NAME(INT123_costab_mmxsse))
 
 	FLAT_MODEL
 	SECTION_TEXT
-	//ALIGN16
+	ALIGN_CODE(16)
 GLOBAL ASM_NAME(INT123_dct64_real_sse)
 ASM_NAME(INT123_dct64_real_sse):
 	push		ebp
