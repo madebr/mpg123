@@ -6,16 +6,17 @@
 	initially written by Taihei Monma
 */
 
+#include "gas_nasm_compat.h"
 #include "aarch64_defs.h"
 #include "mangle.h"
 
 	RODATA
 	ALIGN16
 scale:
-	.word   939524096
-	.text
+	DATA_LONG   939524096
+	SECTION_TEXT
 	ALIGN4
-	.globl ASM_NAME(INT123_synth_1to1_real_neon64_asm)
+	GLOBAL_SYMBOL ASM_NAME(INT123_synth_1to1_real_neon64_asm)
 #ifdef __ELF__
 	.type ASM_NAME(INT123_synth_1to1_real_neon64_asm), %function
 #endif
@@ -28,7 +29,7 @@ ASM_NAME(INT123_synth_1to1_real_neon64_asm):
 	
 	mov		w4, #4
 	mov		x5, #128
-1:
+LABEL(loop1)
 	ld1		{v0.4s,v1.4s,v2.4s,v3.4s}, [x0], x5
 	ld1		{v4.4s,v5.4s,v6.4s,v7.4s}, [x0], x5
 	ld1		{v16.4s,v17.4s,v18.4s,v19.4s}, [x1], #64
@@ -65,11 +66,11 @@ ASM_NAME(INT123_synth_1to1_real_neon64_asm):
 	st2		{v4.4s,v5.4s}, [x2], #32
 	
 	subs	w4, w4, #1
-	b.ne	1b
+	b.ne	loop1
 	
 	mov		w4, #4
 	mov		x6, #-64
-2:
+LABEL(loop2)
 	ld1		{v0.4s,v1.4s,v2.4s,v3.4s}, [x0], x5
 	ld1		{v4.4s,v5.4s,v6.4s,v7.4s}, [x0], x5
 	ld1		{v16.4s,v17.4s,v18.4s,v19.4s}, [x1], x6
@@ -106,10 +107,12 @@ ASM_NAME(INT123_synth_1to1_real_neon64_asm):
 	st2		{v4.4s,v5.4s}, [x2], #32
 	
 	subs	w4, w4, #1
-	b.ne	2b
+	b.ne	loop2
 	
 	eor		w0, w0, w0
 	
 	ret
 
 NONEXEC_STACK
+
+END_MODULE

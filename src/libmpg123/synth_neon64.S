@@ -6,6 +6,7 @@
 	initially written by Taihei Monma
 */
 
+#include "gas_nasm_compat.h"
 #include "aarch64_defs.h"
 #include "mangle.h"
 
@@ -16,7 +17,7 @@ maxmin_s16:
 	.word   -32768
 	.text
 	ALIGN4
-	.globl ASM_NAME(INT123_synth_1to1_neon64_asm)
+	GLOBAL_SYMBOL ASM_NAME(INT123_synth_1to1_neon64_asm)
 #ifdef __ELF__
 	.type ASM_NAME(INT123_synth_1to1_neon64_asm), %function
 #endif
@@ -30,7 +31,7 @@ ASM_NAME(INT123_synth_1to1_neon64_asm):
 	
 	mov		w4, #4
 	mov		x5, #64
-1:
+LABEL(loop1)
 	ld1		{v0.8h,v1.8h}, [x0], x5
 	ld1		{v2.8h,v3.8h}, [x0], x5
 	ld1		{v4.8h,v5.8h}, [x0], x5
@@ -67,11 +68,11 @@ ASM_NAME(INT123_synth_1to1_neon64_asm):
 	st2		{v4.4h,v5.4h}, [x2], #16
 	
 	subs	w4, w4, #1
-	b.ne	1b
+	b.ne	loop1
 	
 	mov		w4, #4
 	mov		x6, #-32
-2:
+LABEL(loop2)
 	ld1		{v0.8h,v1.8h}, [x0], x5
 	ld1		{v2.8h,v3.8h}, [x0], x5
 	ld1		{v4.8h,v5.8h}, [x0], x5
@@ -110,7 +111,7 @@ ASM_NAME(INT123_synth_1to1_neon64_asm):
 	st2		{v4.4h,v5.4h}, [x2], #16
 	
 	subs	w4, w4, #1
-	b.ne	2b
+	b.ne	loop2
 	
 	AARCH64_DUP_2D(v0, v31, 1)
 	add		v0.4s, v0.4s, v31.4s
@@ -122,3 +123,5 @@ ASM_NAME(INT123_synth_1to1_neon64_asm):
 	ret
 
 NONEXEC_STACK
+
+END_MODULE

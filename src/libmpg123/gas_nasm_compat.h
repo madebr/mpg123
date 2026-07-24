@@ -21,7 +21,9 @@
 #define EXTERN(NAME) extern NAME
 default rel
 #elif defined(MASM_ASSEMBLER)
+#if defined(ARCH_X86) || defined(ARCH_X64)
 option casemap:none
+#endif
 #ifdef ARCH_X86
 .386
 .486
@@ -35,18 +37,32 @@ option casemap:none
 #endif
 .model flat
 #endif
+#if defined(ARCH_X86) || defined(ARCH_X64)
 #define DATA_LONG dd
 #define DATA_SHORT dw
 #define DATA_BYTE db
+#elif defined(ARCH_AARCH64)
+#define DATA_LONG dcd
+#define DATA_SHORT dcw
+#define DATA_BYTE dcb
+#else
+#error "NOT implemented
+#endif
 #define SECTION section
+#if defined(ARCH_X86) || defined(ARCH_X64)
 #define SECTION_TEXT .code
+#elif defined(ARCH_AARCH64)
+#define SECTION_TEXT AREA    |.text|, CODE, READONLY
+#else
+#error "NOT implemented
+#endif
 #define ALIGN align
 #define GLOBAL PUBLIC
 #define RIP_REL
 #define RIP_REL_F(ADDR) [ADDR]
 #define RIP_REL_ADD_F(ADDR, ADD) [ADDR + ADD]
 #define COMMENT ;
-#define END_MODULE end
+#define END_MODULE END
 #define HEX(V) 0##V##h
 #define WORD_PTR word ptr
 #define DWORD_PTR dword ptr

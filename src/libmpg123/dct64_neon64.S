@@ -45,7 +45,7 @@ costab_neon_aarch64:
 	.word 1060439283
 	.text
 	ALIGN4
-	.globl ASM_NAME(INT123_dct64_neon64)
+	GLOBAL_SYMBOL ASM_NAME(INT123_dct64_neon64)
 #ifdef __ELF__
 	.type ASM_NAME(INT123_dct64_neon64), %function
 #endif
@@ -61,10 +61,10 @@ ASM_NAME(INT123_dct64_neon64):
 	rev64	v18.4s, v18.4s
 	rev64	v17.4s, v17.4s
 	rev64	v16.4s, v16.4s
-	ext		v4.16b, v19.16b, v19.16b, #8
-	ext		v5.16b, v18.16b, v18.16b, #8
-	ext		v6.16b, v17.16b, v17.16b, #8
-	ext		v7.16b, v16.16b, v16.16b, #8
+	AARCH64_EXT		v4.16b, v19.16b, v19.16b, #8
+	AARCH64_EXT		v5.16b, v18.16b, v18.16b, #8
+	AARCH64_EXT		v6.16b, v17.16b, v17.16b, #8
+	AARCH64_EXT		v7.16b, v16.16b, v16.16b, #8
 	
 	fsub	v16.4s, v3.4s, v7.4s
 	fsub	v17.4s, v2.4s, v6.4s
@@ -84,10 +84,10 @@ ASM_NAME(INT123_dct64_neon64):
 	rev64	v23.4s, v2.4s
 	rev64	v24.4s, v16.4s
 	rev64	v25.4s, v17.4s
-	ext		v4.16b, v22.16b, v22.16b, #8	/* bs[15,14,13,12] */
-	ext		v5.16b, v23.16b, v23.16b, #8	/* bs[11,10,9,8] */
-	ext		v6.16b, v24.16b, v24.16b, #8	/* bs[16,17,18,19] */
-	ext		v7.16b, v25.16b, v25.16b, #8	/* bs[20,21,22,23] */
+	AARCH64_EXT		v4.16b, v22.16b, v22.16b, #8	/* bs[15,14,13,12] */
+	AARCH64_EXT		v5.16b, v23.16b, v23.16b, #8	/* bs[11,10,9,8] */
+	AARCH64_EXT		v6.16b, v24.16b, v24.16b, #8	/* bs[16,17,18,19] */
+	AARCH64_EXT		v7.16b, v25.16b, v25.16b, #8	/* bs[20,21,22,23] */
 	
 	fsub	v26.4s, v1.4s, v5.4s
 	fsub	v27.4s, v0.4s, v4.4s
@@ -107,10 +107,10 @@ ASM_NAME(INT123_dct64_neon64):
 	rev64	v17.4s, v26.4s
 	rev64	v18.4s, v7.4s
 	rev64	v19.4s, v28.4s
-	ext		v0.16b, v16.16b, v16.16b, #8	/* bs[39,38,37,36] */
-	ext		v1.16b, v17.16b, v17.16b, #8	/* bs[40,41,42,43] */
-	ext		v2.16b, v18.16b, v18.16b, #8	/* bs[55,54,53,52] */
-	ext		v3.16b, v19.16b, v19.16b, #8	/* bs[56,57,58,59] */
+	AARCH64_EXT		v0.16b, v16.16b, v16.16b, #8	/* bs[39,38,37,36] */
+	AARCH64_EXT		v1.16b, v17.16b, v17.16b, #8	/* bs[40,41,42,43] */
+	AARCH64_EXT		v2.16b, v18.16b, v18.16b, #8	/* bs[55,54,53,52] */
+	AARCH64_EXT		v3.16b, v19.16b, v19.16b, #8	/* bs[56,57,58,59] */
 	
 	fsub	v16.4s, v4.4s, v0.4s
 	fsub	v17.4s, v27.4s, v1.4s
@@ -293,3 +293,5 @@ ASM_NAME(INT123_dct64_neon64):
 	ret
 
 NONEXEC_STACK
+
+END_MODULE

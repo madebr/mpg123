@@ -6,42 +6,43 @@
 	initially written by Taihei Monma
 */
 
+#include "gas_nasm_compat.h"
 #include "aarch64_defs.h"
 #include "mangle.h"
 
 	RODATA
 	ALIGN16
 dct36_aarch64_COS9:
-	.word 0x3f5db3d7
-	.word 0x3f5db3d7
-	.word 0x3f000000
-	.word 0x3f000000
-	.word 0x3f7c1c5c
-	.word 0x3f7c1c5c
-	.word 0x3f708fb2
-	.word 0x3f708fb2
-	.word 0x3f248dbb
-	.word 0x3f248dbb
-	.word 0x3e31d0d4
-	.word 0x3e31d0d4
-	.word 0x3eaf1d44
-	.word 0x3eaf1d44
-	.word 0x3f441b7d
-	.word 0x3f441b7d
-	.word 0x3f007d2b
-	.word 0x3f0483ee
-	.word 0x3f0d3b7d
-	.word 0x3f1c4257
-	.word 0x40b79454
-	.word 0x3ff746ea
-	.word 0x3f976fd9
-	.word 0x3f5f2944
-	.word 0x3f800000
-	.word 0x3f3504f3
+	DATA_LONG 0x3f5db3d7
+	DATA_LONG 0x3f5db3d7
+	DATA_LONG 0x3f000000
+	DATA_LONG 0x3f000000
+	DATA_LONG 0x3f7c1c5c
+	DATA_LONG 0x3f7c1c5c
+	DATA_LONG 0x3f708fb2
+	DATA_LONG 0x3f708fb2
+	DATA_LONG 0x3f248dbb
+	DATA_LONG 0x3f248dbb
+	DATA_LONG 0x3e31d0d4
+	DATA_LONG 0x3e31d0d4
+	DATA_LONG 0x3eaf1d44
+	DATA_LONG 0x3eaf1d44
+	DATA_LONG 0x3f441b7d
+	DATA_LONG 0x3f441b7d
+	DATA_LONG 0x3f007d2b
+	DATA_LONG 0x3f0483ee
+	DATA_LONG 0x3f0d3b7d
+	DATA_LONG 0x3f1c4257
+	DATA_LONG 0x40b79454
+	DATA_LONG 0x3ff746ea
+	DATA_LONG 0x3f976fd9
+	DATA_LONG 0x3f5f2944
+	DATA_LONG 0x3f800000
+	DATA_LONG 0x3f3504f3
 	
-	.text
+	SECTION_TEXT
 	ALIGN4
-	.globl ASM_NAME(INT123_dct36_neon64)
+	GLOBAL_SYMBOL ASM_NAME(INT123_dct36_neon64)
 #ifdef __ELF__
 	.type ASM_NAME(INT123_dct36_neon64), %function
 #endif
@@ -54,23 +55,23 @@ ASM_NAME(INT123_dct36_neon64):
 	ld1			{v0.4s,v1.4s,v2.4s,v3.4s}, [x0], #64
 	ld1			{v4.2s}, [x0]
 	
-	ext			v16.16b, v29.16b, v0.16b, #12
-	ext			v17.16b, v0.16b, v1.16b, #12
-	ext			v18.16b, v1.16b, v2.16b, #12
-	ext			v19.16b, v2.16b, v3.16b, #12
-	ext			v20.16b, v3.16b, v4.16b, #12
+	AARCH64_EXT			v16.16b, v29.16b, v0.16b, #12
+	AARCH64_EXT			v17.16b, v0.16b, v1.16b, #12
+	AARCH64_EXT			v18.16b, v1.16b, v2.16b, #12
+	AARCH64_EXT			v19.16b, v2.16b, v3.16b, #12
+	AARCH64_EXT			v20.16b, v3.16b, v4.16b, #12
 	fadd		v0.4s, v0.4s, v16.4s
 	fadd		v1.4s, v1.4s, v17.4s
 	fadd		v2.4s, v2.4s, v18.4s
 	fadd		v3.4s, v3.4s, v19.4s
 	fadd		v4.2s, v4.2s, v20.2s
 	
-	ext			v16.16b, v0.16b, v1.16b, #8
-	ext			v17.16b, v1.16b, v2.16b, #8
-	ext			v18.16b, v2.16b, v3.16b, #8
-	ext			v19.16b, v3.16b, v4.16b, #8
+	AARCH64_EXT			v16.16b, v0.16b, v1.16b, #8
+	AARCH64_EXT			v17.16b, v1.16b, v2.16b, #8
+	AARCH64_EXT			v18.16b, v2.16b, v3.16b, #8
+	AARCH64_EXT			v19.16b, v3.16b, v4.16b, #8
 	and			v20.16b, v0.16b, v28.16b
-	ext			v0.16b, v29.16b, v0.16b, #8
+	AARCH64_EXT			v0.16b, v29.16b, v0.16b, #8
 	and			v21.16b, v1.16b, v28.16b
 	and			v22.16b, v2.16b, v28.16b
 	and			v23.16b, v3.16b, v28.16b
@@ -176,8 +177,8 @@ v0 tmp[4,13]
 	fmla		v6.4s, v21.4s, v2.4s
 	rev64		v20.4s, v20.4s
 	rev64		v21.4s, v21.4s
-	ext			v20.16b, v20.16b, v20.16b, #8
-	ext			v21.16b, v21.16b, v21.16b, #8
+	AARCH64_EXT			v20.16b, v20.16b, v20.16b, #8
+	AARCH64_EXT			v21.16b, v21.16b, v21.16b, #8
 	fmul		v3.4s, v20.4s, v3.4s
 	fmla		v5.4s, v21.4s, v1.4s
 	add			x5, x2, #20
@@ -207,8 +208,8 @@ v0 tmp[4,13]
 	fmla		v5.4s, v21.4s, v1.4s
 	rev64		v20.4s, v20.4s
 	rev64		v21.4s, v21.4s
-	ext			v20.16b, v20.16b, v20.16b, #8
-	ext			v21.16b, v21.16b, v21.16b, #8
+	AARCH64_EXT			v20.16b, v20.16b, v20.16b, #8
+	AARCH64_EXT			v21.16b, v21.16b, v21.16b, #8
 	fmul		v4.4s, v20.4s, v4.4s
 	fmla		v6.4s, v21.4s, v2.4s
 	add			x5, x2, #56
@@ -244,3 +245,5 @@ v0 tmp[4,13]
 	ret
 	
 NONEXEC_STACK
+
+END_MODULE

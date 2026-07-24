@@ -93,8 +93,14 @@
 #endif
 
 #if defined(MASM_ASSEMBLER)
+#if defined(ARCH_X86) || defined(ARCH_X64)
 #define RODATA rodata_segment SEGMENT ALIGN(32) READ 'CONST'
 #define ENDRODATA rodata_segment SEGMENT ALIGN(32) READ 'CONST'
+#elif defined(ARCH_AARCH64)
+#define RODATA AREA    |.rodata|, DATA, READONLY, ALIGN=4
+#else
+#error "Not implemented
+#endif
 #elif !defined(__APPLE__) && !defined (__OS2__)
 #define RODATA SECTION .rodata
 #define ENDRODATA
@@ -191,7 +197,7 @@ Lpic_base: \
 #endif
 
 /* armasm for WIN32 UWP */
-#ifdef _M_ARM
+#if defined(_M_ARM) || defined(_M_ARM64)
 #define GLOBAL_SYMBOL EXPORT
 #else
 #define GLOBAL_SYMBOL .globl
@@ -230,6 +236,14 @@ Lpic_base: \
 #define AARCH64_DUP_4S(dst, src, elem) dup dst.4s, src.s[elem]
 #define AARCH64_DUP_2D(dst, src, elem) dup dst.2d, src.d[elem]
 #define AARCH64_SQXTN2_8H(dst, src) sqxtn2 dst.8h, src.4s
+#endif
+
+#ifdef _M_ARM64
+#define AARCH64_EXT ext
+#define LABEL(NAME) NAME
+#else
+#define AARCH64_EXT ext
+#define LABEL(NAME) NAME:
 #endif
 
 #endif /* !__MANGLE_H */

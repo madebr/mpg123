@@ -19,6 +19,9 @@ jobs:
         # amd64_arm is only supported by older MSVC toolchains
         shared: [true, false]
         nasm: [true, false]
+        exclude:
+          - arch: amd6_arm64
+            nasm: true
     runs-on: ${{ matrix.os }}
     steps:
       - uses: ilammy/setup-nasm@v1

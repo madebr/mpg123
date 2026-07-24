@@ -6,6 +6,7 @@
 	initially written by Taihei Monma
 */
 
+#include "gas_nasm_compat.h"
 #include "aarch64_defs.h"
 #include "mangle.h"
 
@@ -16,7 +17,7 @@ maxmin_s16:
 	.word   -956301312
 	.text
 	ALIGN4
-	.globl ASM_NAME(INT123_synth_1to1_s_neon64_accurate_asm)
+	GLOBAL_SYMBOL ASM_NAME(INT123_synth_1to1_s_neon64_accurate_asm)
 #ifdef __ELF__
 	.type ASM_NAME(INT123_synth_1to1_s_neon64_accurate_asm), %function
 #endif
@@ -34,7 +35,7 @@ ASM_NAME(INT123_synth_1to1_s_neon64_accurate_asm):
 	
 	mov		w4, #4
 	mov		x5, #128
-1:
+LABEL(loop1)
 	ld1		{v0.4s,v1.4s,v2.4s,v3.4s}, [x0], x5
 	ld1		{v4.4s,v5.4s,v6.4s,v7.4s}, [x0], x5
 	ld1		{v16.4s,v17.4s,v18.4s,v19.4s}, [x1], #64
@@ -105,11 +106,11 @@ ASM_NAME(INT123_synth_1to1_s_neon64_accurate_asm):
 	st1		{v31.4s}, [x3], #16
 	
 	subs	w4, w4, #1
-	b.ne	1b
+	b.ne	loop1
 	
 	mov		w4, #4
 	mov		x6, #-64
-2:
+LABEL(loop2)
 	ld1		{v0.4s,v1.4s,v2.4s,v3.4s}, [x0], x5
 	ld1		{v4.4s,v5.4s,v6.4s,v7.4s}, [x0], x5
 	ld1		{v16.4s,v17.4s,v18.4s,v19.4s}, [x1], x6
@@ -180,7 +181,7 @@ ASM_NAME(INT123_synth_1to1_s_neon64_accurate_asm):
 	st1		{v31.4s}, [x3], #16
 	
 	subs	w4, w4, #1
-	b.ne	2b
+	b.ne	loop2
 	
 	AARCH64_DUP_2D(v0, v30, 1)
 	add		v0.4s, v0.4s, v30.4s
