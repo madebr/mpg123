@@ -298,7 +298,7 @@ ASM_NAME(INT123_dct64_real_sse):
 	shufps		xmm2, xmm2, HEX(1e)
 	shufps		xmm4, xmm4, HEX(1e)
 	shufps		xmm6, xmm6, HEX(1e)
-	LEA(		eax, LOCAL_VAR(masks))
+	lea         eax,  DWORD_PTR masks
 	andps		xmm0, [eax]
 	andps		xmm2, [eax]
 	andps		xmm4, [eax]

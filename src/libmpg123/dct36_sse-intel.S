@@ -73,8 +73,8 @@ ASM_NAME(INT123_dct36_sse):
 
 	GET_GOT
 	
-	LEA(		eax, LOCAL_VAR(dct36_sse_COS9))
-	LEA(		edx, LOCAL_VAR(dct36_sse_tfcos36))
+	lea         eax, DWORD_PTR dct36_sse_COS9
+	lea         edx, DWORD_PTR dct36_sse_tfcos36
 
 	xorps		xmm0, xmm0
 	xorps		xmm5, xmm5

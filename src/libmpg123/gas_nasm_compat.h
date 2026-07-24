@@ -3,7 +3,6 @@
 #define DATA_SHORT dw
 #define DATA_BYTE db
 #define SECTION section
-#define LEA(REG, DATA) lea REG, DWORD_PTR [DATA]
 #define SECTION_TEXT SECTION .text
 #define ALIGN align
 #define GLOBAL global
@@ -40,7 +39,6 @@ option casemap:none
 #define DATA_SHORT dw
 #define DATA_BYTE db
 #define SECTION section
-#define LEA(REG, DATA) mov REG, OFFSET DATA
 #define SECTION_TEXT .code
 #define ALIGN align
 #define GLOBAL PUBLIC
@@ -63,7 +61,6 @@ option casemap:none
 #define DATA_SHORT .short
 #define DATA_BYTE .byte
 #define SECTION .section
-#define LEA(REG, DATA) lea REG, DWORD_PTR [DATA]
 #define SECTION_TEXT .text
 #define ALIGN .balign
 #define GLOBAL .globl
