@@ -52,12 +52,12 @@ ASM_NAME(INT123_synth_1to1_real_x86_64_asm):
 	mov		ARG0, rcx
 	sub		rsp, 120 /* stack alignment + 7 xmm registers */
 	movaps		[rsp], xmm6
-	movaps		16[rsp], xmm7
-	movaps		32[rsp], xmm8
-	movaps		48[rsp], xmm9
-	movaps		64[rsp], xmm10
-	movaps		80[rsp], xmm11
-	movaps		96[rsp], xmm15
+	movaps		[rsp+16], xmm7
+	movaps		[rsp+32], xmm8
+	movaps		[rsp+48], xmm9
+	movaps		[rsp+64], xmm10
+	movaps		[rsp+80], xmm11
+	movaps		[rsp+96], xmm15
 #endif
 
 	lea		rax, ASM_NAME(INT123_scale_x86_64) RIP_REL
@@ -73,21 +73,21 @@ ASM_NAME(INT123_synth_1to1_real_x86_64_asm):
 	ALIGN16
 loop1:
 	movups		xmm8, [ARG0]
-	movups		xmm1, 16[ARG0]
-	movups		xmm2, 32[ARG0]
-	movups		xmm3, 48[ARG0]
-	movups		xmm9, 128[ARG0]
-	movups		xmm5, 144[ARG0]
-	movups		xmm6, 160[ARG0]
-	movups		xmm7, 176[ARG0]
+	movups		xmm1, [ARG0+16]
+	movups		xmm2, [ARG0+32]
+	movups		xmm3, [ARG0+48]
+	movups		xmm9, [ARG0+128]
+	movups		xmm5, [ARG0+144]
+	movups		xmm6, [ARG0+160]
+	movups		xmm7, [ARG0+176]
 	mulps		xmm8, [ARG1]
-	mulps		xmm1, 16[ARG1]
-	mulps		xmm2, 32[ARG1]
-	mulps		xmm3, 48[ARG1]
-	mulps		xmm9, 64[ARG1]
-	mulps		xmm5, 80[ARG1]
-	mulps		xmm6, 96[ARG1]
-	mulps		xmm7, 112[ARG1]
+	mulps		xmm1, [ARG1+16]
+	mulps		xmm2, [ARG1+32]
+	mulps		xmm3, [ARG1+48]
+	mulps		xmm9, [ARG1+64]
+	mulps		xmm5, [ARG1+80]
+	mulps		xmm6, [ARG1+96]
+	mulps		xmm7, [ARG1+112]
 	
 	addps		xmm8, xmm1
 	addps		xmm3, xmm2
@@ -99,21 +99,21 @@ loop1:
 	lea		ARG1, 128[ARG1]
 	
 	movups		xmm10, [ARG0]
-	movups		xmm1, 16[ARG0]
-	movups		xmm2, 32[ARG0]
-	movups		xmm3, 48[ARG0]
-	movups		xmm11, 128[ARG0]
-	movups		xmm5, 144[ARG0]
-	movups		xmm6, 160[ARG0]
-	movups		xmm7, 176[ARG0]
+	movups		xmm1, [ARG0+16]
+	movups		xmm2, [ARG0+32]
+	movups		xmm3, [ARG0+48]
+	movups		xmm11, [ARG0+128]
+	movups		xmm5, [ARG0+144]
+	movups		xmm6, [ARG0+160]
+	movups		xmm7, [ARG0+176]
 	mulps		xmm10, [ARG1]
-	mulps		xmm1, 16[ARG1]
-	mulps		xmm2, 32[ARG1]
-	mulps		xmm3, 48[ARG1]
-	mulps		xmm11, 64[ARG1]
-	mulps		xmm5, 80[ARG1]
-	mulps		xmm6, 96[ARG1]
-	mulps		xmm7, 112[ARG1]
+	mulps		xmm1, [ARG1+16]
+	mulps		xmm2, [ARG1+32]
+	mulps		xmm3, [ARG1+48]
+	mulps		xmm11, [ARG1+64]
+	mulps		xmm5, [ARG1+80]
+	mulps		xmm6, [ARG1+96]
+	mulps		xmm7, [ARG1+112]
 	
 	addps		xmm10, xmm1
 	addps		xmm3, xmm2
@@ -148,9 +148,9 @@ loop1:
 	unpcklps	xmm0, xmm1
 	unpckhps	xmm2, xmm1
 	movups		[ARG2], xmm0
-	movups		16[ARG2], xmm2
+	movups		[ARG2+16], xmm2
 	
-	lea		ARG2, 32[ARG2]
+	lea		ARG2, [ARG2+32]
 	dec		ecx
 	jnz			loop1
 	
@@ -181,25 +181,25 @@ loop2:
 	addps		xmm6, xmm7
 	addps		xmm8, xmm3
 	addps		xmm9, xmm6
-	lea		ARG0, 256[ARG0]
+	lea		ARG0, [ARG0+256]
 	lea		ARG1, [ARG1-128]
 	
 	movups		xmm10, [ARG0]
-	movups		xmm1, 16[ARG0]
-	movups		xmm2, 32[ARG0]
-	movups		xmm3, 48[ARG0]
-	movups		xmm11, 128[ARG0]
-	movups		xmm5, 144[ARG0]
-	movups		xmm6, 160[ARG0]
-	movups		xmm7, 176[ARG0]
+	movups		xmm1, [ARG0+16]
+	movups		xmm2, [ARG0+32]
+	movups		xmm3, [ARG0+48]
+	movups		xmm11, [ARG0+128]
+	movups		xmm5, [ARG0+144]
+	movups		xmm6, [ARG0+160]
+	movups		xmm7, [ARG0+176]
 	mulps		xmm10, [ARG1]
-	mulps		xmm1, 16[ARG1]
-	mulps		xmm2, 32[ARG1]
-	mulps		xmm3, 48[ARG1]
+	mulps		xmm1, [ARG1+16]
+	mulps		xmm2, [ARG1+32]
+	mulps		xmm3, [ARG1+48]
 	mulps		xmm11, [ARG1-64]
 	mulps		xmm5, [ARG1-48]
 	mulps		xmm6, [ARG1-32]
-	mulps		xmm7, -16[ARG1]
+	mulps		xmm7, [ARG1-16]
 	
 	addps		xmm10, xmm1
 	addps		xmm3, xmm2
@@ -207,8 +207,8 @@ loop2:
 	addps		xmm6, xmm7
 	addps		xmm10, xmm3
 	addps		xmm11, xmm6
-	lea		ARG0, [ARG0]
-	lea		ARG1, [ARG1]
+	lea		ARG0, 256[ARG0]
+	lea		ARG1, -128[ARG1]
 	
 	movaps		xmm0, xmm8
 	movaps		xmm1, xmm10
