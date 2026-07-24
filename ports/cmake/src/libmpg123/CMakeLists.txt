@@ -277,7 +277,8 @@ elseif(MACHINE STREQUAL "x86")
                 list(TRANSFORM asm_definitions PREPEND /D)
             else()
                 list(TRANSFORM asm_definitions PREPEND -D)
-                list(APPEND asm_definitions $<$<BOOL:$<TARGET_PROPERTY:${TARGET},POSITION_INDEPENDENT_CODE>>:-DPIC>)
+                # FIXME: REVERT FOLLOWING LINE?!!!!!!!!
+                #list(APPEND asm_definitions $<$<BOOL:$<TARGET_PROPERTY:${TARGET},POSITION_INDEPENDENT_CODE>>:-DPIC>)
             endif()
             #            -DASMALIGN_BALIGN
             foreach(platform_source ${PLATFORM_SOURCES})
@@ -405,8 +406,8 @@ set_target_properties(${TARGET} PROPERTIES VERSION ${mpg123_version})
 set_target_properties(${TARGET} PROPERTIES DLL_NAME_WITH_SOVERSION TRUE)
 set_target_properties(${TARGET} PROPERTIES DEFINE_SYMBOL "")
 
-target_compile_definitions(${TARGET} PRIVATE
-    $<$<BOOL:$<TARGET_PROPERTY:POSITION_INDEPENDENT_CODE>>:PIC>)
+#target_compile_definitions(${TARGET} PRIVATE
+#    $<$<BOOL:$<TARGET_PROPERTY:POSITION_INDEPENDENT_CODE>>:PIC>)
 
 target_compile_definitions(${TARGET} PRIVATE
     ${PLATFORM_DEFINITIONS}
