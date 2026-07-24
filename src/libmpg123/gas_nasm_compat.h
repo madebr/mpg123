@@ -32,11 +32,7 @@ option casemap:none
 #define DATA_SHORT dw
 #define DATA_BYTE db
 #define SECTION section
-#if defined(_IM_X86)
 #define CPU_686 .686
-#else
-#define CPU_686
-#endif
 #define MMX .mmx
 #define XMM .xmm
 #define LEA(REG, DATA) mov REG, OFFSET DATA
