@@ -3,11 +3,7 @@
 #define DATA_SHORT dw
 #define DATA_BYTE db
 #define SECTION section
-#define CPU_686
-#define MMX
-#define XMM
 #define LEA(REG, DATA) lea REG, DWORD_PTR [DATA]
-#define FLAT_MODEL
 #define SECTION_TEXT SECTION .text
 #define ALIGN align
 #define GLOBAL global
@@ -28,15 +24,24 @@
 default rel
 #elif defined(MASM_ASSEMBLER)
 option casemap:none
+#ifdef ARCH_X86
+.386
+.486
+.586
+.686
+#ifdef OPT_MMX
+.mmx
+#endif
+#ifdef OPT_SSE
+.xmm
+#endif
+.model flat
+#endif
 #define DATA_LONG dd
 #define DATA_SHORT dw
 #define DATA_BYTE db
 #define SECTION section
-#define CPU_686 .686
-#define MMX .mmx
-#define XMM .xmm
 #define LEA(REG, DATA) mov REG, OFFSET DATA
-#define FLAT_MODEL .model flat
 #define SECTION_TEXT .code
 #define ALIGN align
 #define GLOBAL PUBLIC
@@ -62,11 +67,7 @@ option casemap:none
 #define DATA_SHORT .short
 #define DATA_BYTE .byte
 #define SECTION .section
-#define CPU_686
-#define MMX
-#define XMM
 #define LEA(REG, DATA) lea REG, DWORD_PTR [DATA]
-#define FLAT_MODEL
 #define SECTION_TEXT .text
 #define ALIGN .balign
 #define GLOBAL .globl

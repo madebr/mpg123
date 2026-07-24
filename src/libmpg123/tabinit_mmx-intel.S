@@ -84,9 +84,7 @@ intwinbase:
 
 intwindiv:
 	DATA_LONG HEX(47800000)			COMMENT 65536.0
-CPU_686
-XMM
-FLAT_MODEL
+
 SECTION_TEXT
 	ALIGN_CODE(32)
 /* void make_decode_tables_mmx_asm(long scaleval, float* decwin_mmx, float *decwins); */
