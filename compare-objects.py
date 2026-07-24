@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import functools
 import os
 import pathlib
 import shutil
@@ -36,51 +37,50 @@ def configure_build(root: pathlib.Path, dirid: str, fast: bool, cmake_flags: lis
     if not fast:
         cmake_cmd += ["--fresh"]
     subprocess.check_call(cmake_cmd)
-    subprocess.check_call(["cmake", "--build", build_dir, "--target", "libmpg123"])
+    subprocess.check_call(["cmake", "--build", build_dir, "--target", "libmpg123", "--config", "Release"])
 
 def build_unix(root: pathlib.Path, fast: bool):
     subprocess.check_call(["git", "-C", str(root), "checkout", GIT_MASTER])
-    configure_build(root=root, fast=fast, dirid="original", cmake_flags=[])
-    configure_build(root=root, fast=fast, dirid="original32", cmake_flags=["-DCMAKE_C_FLAGS=-m32", "-DCMAKE_ASM_FLAGS=-m32"])
+    configure_build(root=root, fast=fast, dirid="original", cmake_flags=["-DUSE_ASSEMBLER=TRUE", "-DUSE_NASM=FALSE", "-DCMAKE_BUILD_TYPE=Release"])
+    configure_build(root=root, fast=fast, dirid="original32", cmake_flags=["-DUSE_ASSEMBLER=TRUE", "-DUSE_NASM=FALSE", "-DCMAKE_BUILD_TYPE=Release", "-DCMAKE_C_FLAGS=-m32", "-DCMAKE_ASM_FLAGS=-m32"])
 
     subprocess.check_call(["git", "-C", str(root), "checkout", GIT_INTEL])
-    configure_build(root=root, fast=fast, dirid="intel", cmake_flags=[])
-    configure_build(root=root, fast=fast, dirid="intel32", cmake_flags=["-DCMAKE_C_FLAGS=-m32", "-DCMAKE_ASM_FLAGS=-m32"])
+    configure_build(root=root, fast=fast, dirid="intel", cmake_flags=["-DUSE_ASSEMBLER=TRUE", "-DUSE_NASM=FALSE", "-DCMAKE_BUILD_TYPE=Release"])
+    configure_build(root=root, fast=fast, dirid="intel32", cmake_flags=["-DUSE_ASSEMBLER=TRUE", "-DUSE_NASM=FALSE", "-DCMAKE_BUILD_TYPE=Release", "-DCMAKE_C_FLAGS=-m32", "-DCMAKE_ASM_FLAGS=-m32"])
 
     print("Done")
 
-def build_msvc(root: pathlib.Path, fast: bool):
+def build_msvc(root: pathlib.Path, fast: bool, generator: str):
     subprocess.check_call(["git", "-C", str(root), "checkout", GIT_MASTER])
     yasm = shutil.which("yasm")
-    assert yasm
-    configure_build(root=root, fast=fast, dirid="original", cmake_flags=[f"-DYASM_ASSEMBLER={yasm}", "-A", "x64"])
-    configure_build(root=root, fast=fast, dirid="original32", cmake_flags=[f"-DYASM_ASSEMBLER={yasm}", "-A", "Win32"])
+    assert yasm, "Could not find yasm"
+    configure_build(root=root, fast=fast, dirid="original", cmake_flags=[f"-DYASM_ASSEMBLER={yasm}", "-G", generator, "-A", "x64"])
+    configure_build(root=root, fast=fast, dirid="original32", cmake_flags=[f"-DYASM_ASSEMBLER={yasm}", "-G", generator, "-A", "Win32"])
 
     subprocess.check_call(["git", "-C", str(root), "checkout", GIT_INTEL])
-    configure_build(root=root, fast=fast, dirid="intel", cmake_flags=["-DUSE_ASSEMBLER=TRUE", "-DUSE_NASM=FALSE", "-A", "x64"])
-    configure_build(root=root, fast=fast, dirid="intel32", cmake_flags=["-DUSE_ASSEMBLER=TRUE", "-DUSE_NASM=FALSE", "-DCMAKE_C_FLAGS=-m32", "-DCMAKE_ASM_FLAGS=-m32", "-A", "Win32"])
+    configure_build(root=root, fast=fast, dirid="intel", cmake_flags=["-DUSE_ASSEMBLER=TRUE", "-DUSE_NASM=FALSE", "-G", generator, "-A", "x64"])
+    configure_build(root=root, fast=fast, dirid="intel32", cmake_flags=["-DUSE_ASSEMBLER=TRUE", "-DUSE_NASM=FALSE", "-G", generator, "-A", "Win32"])
 
     print("Done")
 
-def disassemble(dirid: str, root: pathlib.Path, compare_dir: pathlib.Path):
-    objects = find_objects(build_directory_for_id(root=root, dirid=dirid))
+def disassemble(dirid: str, root: pathlib.Path, compare_dir: pathlib.Path, disassemble_callback: typing.Callback[[pathlib.Path], str]):
+    object_paths = find_objects(build_directory_for_id(root=root, dirid=dirid))
     d = compare_dir / dirid
     d.mkdir(parents=True)
     paths = []
-    for obj in objects:
-        disasm_path = (d / obj.name).with_suffix(".txt")
+    for obj_ath in object_paths:
+        disasm_path = (d / obj_ath.name).with_suffix(".txt")
         paths.append(disasm_path)
-        disasm = subprocess.check_output(["objdump", "-dr", obj], text=True)
-        disasm = "\n".join(line for line in disasm.splitlines() if "file format" not in line)
+        disasm = disassemble_callback(obj_ath)
         disasm_path.write_text(disasm)
     return paths
 
-def compare_dirids(compare_dir: pathlib.Path, root: pathlib.Path, dirid_original: str, dirid_intel: str):
+def compare_dirids(disassemble_callback: typing.Callback[[pathlib.Path], str], compare_dir: pathlib.Path, root: pathlib.Path, dirid_original: str, dirid_intel: str):
 
-    original_paths = disassemble(compare_dir=compare_dir, root=root, dirid=dirid_original)
-    intel_paths = disassemble(compare_dir=compare_dir, root=root, dirid=dirid_intel)
-    assert len(original_paths) > 0
-    assert len(original_paths) == len(intel_paths)
+    original_paths = disassemble(compare_dir=compare_dir, root=root, disassemble_callback=disassemble_callback, dirid=dirid_original)
+    intel_paths = disassemble(compare_dir=compare_dir, root=root, disassemble_callback=disassemble_callback, dirid=dirid_intel)
+    assert len(original_paths) > 0, f"Number of objects in {compare_dir} must be >0"
+    assert len(original_paths) == len(intel_paths), f"Number of objects of {dirid_original} ({len(original_paths)}) must be equal to number of objects of {dirid_intel} ({len(intel_paths)})"
 
     print(f"== Comparing {dirid_original} and {dirid_intel} ==")
     for original_path in original_paths:
@@ -96,12 +96,33 @@ def compare_dirids(compare_dir: pathlib.Path, root: pathlib.Path, dirid_original
             print(f"FAIL {original_path.name} ({diff_path})")
     print()
 
-def compare(root: pathlib.Path):
+
+def disassemble_objdump(obj_path: pathlib.Path) -> str:
+    disasm = subprocess.check_output(["objdump", "-dr", str(obj_path)], text=True)
+    disasm = "\n".join(line for line in disasm.splitlines() if "file format" not in line)
+    return disasm
+
+
+def disassemble_dumpbin(obj_path: pathlib.Path, dumpbin: pathlib.Path) -> str:
+    disasm = subprocess.check_output([str(dumpbin), "/disasm", str(obj_path)], text=True)
+    return disasm
+
+
+def compare_unix(root: pathlib.Path):
     compare_dir = root / "compare"
     shutil.rmtree(compare_dir, ignore_errors=True)
 
-    compare_dirids(compare_dir=compare_dir, root=root, dirid_original="original",   dirid_intel="intel")
-    compare_dirids(compare_dir=compare_dir, root=root, dirid_original="original32", dirid_intel="intel32")
+    compare_dirids(compare_dir=compare_dir, root=root, dirid_original="original",   disassemble_callback=disassemble_objdump, dirid_intel="intel")
+    compare_dirids(compare_dir=compare_dir, root=root, dirid_original="original32", disassemble_callback=disassemble_objdump, dirid_intel="intel32")
+
+def compare_msvc(dumpbin: pathlib.Path, root: pathlib.Path):
+    compare_dir = root / "compare"
+    shutil.rmtree(compare_dir, ignore_errors=True)
+
+    disassemble_callback = functools.partial(disassemble_dumpbin, dumpbin=dumpbin)
+
+    compare_dirids(compare_dir=compare_dir, root=root, dirid_original="original",   disassemble_callback=disassemble_callback, dirid_intel="intel")
+    compare_dirids(compare_dir=compare_dir, root=root, dirid_original="original32", disassemble_callback=disassemble_callback, dirid_intel="intel32")
 
 def main():
     parser = argparse.ArgumentParser(allow_abbrev=False)
@@ -120,9 +141,15 @@ def main():
     parser_build_msvc = subparsers.add_parser("build-msvc")
     parser_build_msvc.set_defaults(action="build_msvc")
     parser_build_msvc.add_argument("--fast", action="store_true")
+    parser_build_msvc.add_argument(
+        "--generator",
+        choices=("Visual Studio 15 2017", "Visual Studio 16 2019", "Visual Studio 17 2022", "Visual Studio 18 2016"),
+        default="Visual Studio 16 2019",
+    )
 
     parser_compare_msvc = subparsers.add_parser("compare-msvc")
     parser_compare_msvc.set_defaults(action="compare_msvc")
+    parser_compare_msvc.add_argument("--dumpbin", type=pathlib.Path, default=shutil.which("dumpbin"))
 
     args = parser.parse_args()
 
@@ -130,12 +157,15 @@ def main():
         case "build_unix":
             build_unix(root=args.root, fast=args.fast)
         case "compare_unix":
-            compare(root=args.root)
+            compare_unix(root=args.root)
         case "build_msvc":
-            build_msvc(root=args.root, fast=args.fast)
+            build_msvc(root=args.root, fast=args.fast, generator=args.generator)
         case "compare_msvc":
-            raise NotImplementedError
-            compare(root=args.root, fast=args.fast)
+            if not args.dumpbin:
+                parser.error("--dumpbin is required")
+            if not args.dumpbin.is_file():
+                parser.error("Invalid dumpbin path")
+            compare_msvc(root=args.root, dumpbin=args.dumpbin)
         case _:
             parser.error("Action required")
 
