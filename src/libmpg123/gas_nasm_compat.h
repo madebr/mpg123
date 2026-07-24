@@ -20,7 +20,6 @@
 #define YMMWORD_PTR
 #define PTR_NONASM
 #define EXTERN(NAME) extern NAME
-#define ALIGN_CODE(NUM) ALIGN NUM
 default rel
 #elif defined(MASM_ASSEMBLER)
 option casemap:none
@@ -59,9 +58,6 @@ option casemap:none
 #define PTR_NONASM ptr
 #define EXTERN(NAME) extern NAME:BYTE
 
-// FIXME: aligning code does not work
-#define ALIGN_CODE(NUM)
-
 #else
 #define DATA_LONG .long
 #define DATA_SHORT .short
@@ -84,7 +80,6 @@ option casemap:none
 #define YMMWORD_PTR ymmword ptr
 #define PTR_NONASM ptr
 #define EXTERN(NAME)
-#define ALIGN_CODE(NUM) ALIGN NUM
 
 .intel_syntax noprefix
 #endif

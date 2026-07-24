@@ -34,7 +34,7 @@ masks:
 EXTERN(ASM_NAME(INT123_costab_mmxsse))
 
 	SECTION_TEXT
-	ALIGN_CODE(16)
+	ALIGN 16
 GLOBAL ASM_NAME(INT123_dct64_real_sse)
 ASM_NAME(INT123_dct64_real_sse):
 	push		ebp

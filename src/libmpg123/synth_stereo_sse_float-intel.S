@@ -34,7 +34,7 @@ scale_sse:
 	DATA_LONG   939524096
 
 	SECTION_TEXT
-	ALIGN_CODE(16)
+	ALIGN 16
 GLOBAL ASM_NAME(INT123_synth_1to1_real_s_sse_asm)
 ASM_NAME(INT123_synth_1to1_real_s_sse_asm):
 	push		ebp
@@ -61,7 +61,7 @@ ASM_NAME(INT123_synth_1to1_real_s_sse_asm):
 
 	mov		ecx, 4
 	
-	ALIGN_CODE(16)
+	ALIGN 16
 loop1:
 	movups		xmm0, [WINDOW]
 	movups		xmm1, [WINDOW+16]
@@ -234,7 +234,7 @@ loop1:
 	
 	mov		ecx, 4
 	
-	ALIGN_CODE(16)
+	ALIGN 16
 loop2:
 	movups		xmm0, [WINDOW]
 	movups		xmm1, [WINDOW+16]
