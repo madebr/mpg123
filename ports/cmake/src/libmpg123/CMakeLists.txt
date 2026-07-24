@@ -339,6 +339,7 @@ elseif(MACHINE STREQUAL "arm64")
         target_sources(${TARGET} PRIVATE
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/dither.c"
             "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src/libmpg123/getcpuflags_arm.c")
+        target_sources(${TARGET} PRIVATE ${PLATFORM_SOURCES})
         if(CMAKE_C_COMPILER_ID MATCHES MSVC)
             enable_language(ASM_MARMASM)
             set_property(SOURCE ${PLATFORM_SOURCES} PROPERTY LANGUAGE ASM_MARMASM)
