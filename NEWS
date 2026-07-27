@@ -21,6 +21,9 @@
 - libmpg123:
 -- Fix a double free when deleting a handle after failed mpg123_decoder() call
    (possibly among others). (bug 389, thanks to Alejandro Romas)
+-- More strong wording in API that ID3 text convenience links are short-lived,
+   but safeguard against ignorant use by nulling them early.
+   (bug 389 by Alejandro Romas)
 
 1.33.6
 ------

@@ -1049,6 +1049,7 @@ int INT123_parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 	}
 	else
 	{
+		null_id3_links(fr); // Could be invalidated on frame update, null for hygiene.
 		unsigned char* tagdata = fr->id3v2_raw+10;
 		/* try to interpret that beast */
 		debug("ID3v2: analysing frames...");
