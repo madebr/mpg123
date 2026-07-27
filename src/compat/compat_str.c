@@ -35,6 +35,16 @@ void *INT123_safe_realloc(void *ptr, size_t size)
 	else return realloc(ptr, size);
 }
 
+/* A variant that checks for multiplication overflow. */
+void *INT123_safe_reallocn(void *ptr, size_t size_factor1, size_t size_factor2)
+{
+	if(size_factor2 && size_factor1 > SIZE_MAX/size_factor2)
+		return NULL;
+	size_t size = size_factor1 * size_factor2;
+	if(ptr == NULL) return malloc(size);
+	else return realloc(ptr, size);
+}
+
 // A more sensible variant of realloc: It deallocates the original memory if
 // realloc fails or if size zero was requested.
 void *INT123_safer_realloc(void *ptr, size_t size)

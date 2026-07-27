@@ -241,7 +241,9 @@ static mpg123_text *add_id3_text( mpg123_text **list, size_t *size
 	}
 	mdebug("add_id3_text: append to list of %zu", *size);
 	// Nothing found, add new one.
-	mpg123_text *x = INT123_safe_realloc(*list, sizeof(mpg123_text)*(*size+1));
+	mpg123_text *x = (*size < SIZE_MAX)
+	?	INT123_safe_reallocn(*list, sizeof(mpg123_text), (*size+1))
+	:	NULL;
 	if(x == NULL) return NULL; /* bad */
 
 	*list  = x;
@@ -269,7 +271,9 @@ static mpg123_picture *add_id3_picture(mpg123_picture **list, size_t *size, char
 			return entry;
 	}
 	// Append a new one.
-	mpg123_picture *x = INT123_safe_realloc(*list, sizeof(mpg123_picture)*(*size+1));
+	mpg123_picture *x = (*size < SIZE_MAX)
+	?	INT123_safe_reallocn(*list, sizeof(mpg123_picture), (*size+1))
+	:	NULL;
 	if(x == NULL) return NULL; /* bad */
 
 	*list  = x;
