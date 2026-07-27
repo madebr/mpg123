@@ -2067,6 +2067,8 @@ MPG123_EXPORT void mpg123_meta_free(mpg123_handle *mh);
 
 /** Point v1 and v2 to existing data structures wich may change on any next read/decode function call.
  *  v1 and/or v2 can be set to NULL when there is no corresponding data.
+ *  I repeat: Access of these pointed-to structures is only valid between mpg123_id3() and
+ *  any other API  call. Make copies if you want to keep things.
  *  \return MPG123_OK on success
  */
 MPG123_EXPORT int mpg123_id3( mpg123_handle *mh

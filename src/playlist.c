@@ -663,7 +663,9 @@ static int add_to_playlist(char* new_entry, char freeit)
 	{
 		struct listitem* tmp = NULL;
 		/* enlarge the list */
-		tmp = (struct listitem*) INT123_safe_realloc(pl.list, (pl.size + pl.alloc_step) * sizeof(struct listitem));
+		tmp = (pl.size <= (SIZE_MAX-pl.alloc_step))
+		?	INT123_safe_reallocn(pl.list, (pl.size + pl.alloc_step), sizeof(struct listitem))
+		:	NULL;
 		if(!tmp)
 		{
 			error("unable to allocate more memory for playlist");

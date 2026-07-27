@@ -503,7 +503,7 @@ static void set_httpauth_file(char *arg, topt *opts)
 		// realistic limits for aith are 255:255.
 		if(rdb > 0 && rdb < sizeof(buf))
 		{
-			buf[sizeof(buf)-1] = 0;
+			buf[rdb] = 0; // terminate string in case of missing EOL
 			for(size_t i=0; i<sizeof(buf); ++i)
 			{
 				if(buf[i] == '\r' || buf[i] == '\n' || buf[i] == 0)

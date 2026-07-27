@@ -32,12 +32,14 @@ int INT123_stringlists_add( char ***alist, char ***blist
 	char **morealist = NULL;
 	char **moreblist = NULL;
 
+	if(*count < 0 || *count > SIZE_MAX-1)
+		return -1;
 	/* If one of these succeeded, the old memory is gone, so always overwrite
 	   the old pointer, worst case is wasted but not leaked memory in an
 	   out-of-memory situation. */
-	if((morealist = INT123_safe_realloc(*alist, sizeof(char*)*(*count+1))))
+	if((morealist = INT123_safe_reallocn(*alist, sizeof(char*), (*count+1))))
 		*alist = morealist;
-	if((moreblist = INT123_safe_realloc(*blist, sizeof(char*)*(*count+1))))
+	if((moreblist = INT123_safe_reallocn(*blist, sizeof(char*), (*count+1))))
 		*blist = moreblist;
 	if(!morealist || !moreblist)
 		return -1;
