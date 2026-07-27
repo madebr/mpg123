@@ -11,6 +11,11 @@
   mpg123_id3v2.extra with description = owner and text = hex-encoded bytes
   (bug 384).
 
+1.33.7
+------
+- mpg123: Fix heap buffer overflows in unicode path conversion on Windows (bug 388,
+  thanks to Alejandro Ramos).
+
 1.33.6
 ------
 - mpg123
