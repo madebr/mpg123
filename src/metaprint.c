@@ -1,4 +1,4 @@
-/*
+	/*
 	metaprint: display routines for ID3 tags (including filtering of UTF8 to ASCII)
 
 	copyright 2006-2020 by the mpg123 project
@@ -371,7 +371,7 @@ void print_id3_tag(mpg123_handle *mh, int long_id3, FILE *out, int linelimit)
 					mpg_utf8outstr(&outline, &innline, is_term);
 					fprintf(out, " %s\n", outline.p);
 
-					if(uslt->p[b] == uslt->fill) break; /* nothing more */
+					if(b == uslt->fill) break; /* nothing more */
 
 					/* Swallow CRLF */
 					if(uslt->fill-b > 1 && uslt->p[b] == '\r' && uslt->p[b+1] == '\n') ++b;
