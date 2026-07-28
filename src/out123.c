@@ -770,6 +770,19 @@ static void setup_wavegen(void)
 		}
 		for(size_t fi=0; fi<fl->count; ++fi)
 		{
+			if(verbose)
+			{
+				fprintf( stderr, ME ": set up filter %zu of order %u\n"
+				,	fi, fl->f[fi].order );
+				fprintf(stderr, ME ": b =");
+				for(unsigned int ci=0; ci<=fl->f[fi].order; ++ci)
+					fprintf(stderr, " %g", fl->f[fi].b[ci]);
+				fprintf(stderr, "\n");
+				fprintf(stderr, ME ": a =");
+				for(unsigned int ci=0; ci<=fl->f[fi].order; ++ci)
+					fprintf(stderr, " %g", fl->f[fi].a[ci]);
+				fprintf(stderr, "\n");
+			}
 			int err = syn123_setup_filter( waver, 1
 			,	fl->f[fi].order, fl->f[fi].b, fl->f[fi].a
 			,	mixenc, channels, 1 );
@@ -1143,9 +1156,9 @@ int play_frame(void)
 		return 0;
 
 	if(byte_in_flags & byte_big)
-		syn123_be2host(inaudio, pcminframe/channels, got_samples*inputch);
+		syn123_be2host(inaudio, pcminframe/inputch, got_samples*inputch);
 	if(byte_in_flags & byte_little)
-		syn123_le2host(inaudio, pcminframe/channels, got_samples*inputch);
+		syn123_le2host(inaudio, pcminframe/inputch, got_samples*inputch);
 
 	if(mixaudio)
 	{

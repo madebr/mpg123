@@ -10,6 +10,7 @@
 - libmpg123: Also parse UFID and include it among TXXX fields in
   mpg123_id3v2.extra with description = owner and text = hex-encoded bytes
   (bug 384).
+- out123: Report filter setup for --verbose.
 
 1.33.7
 ------
@@ -18,10 +19,19 @@
    thanks to Alejandro Ramos).
 -- Fix information disclosure of uninitialied memory for --auth-file without
    line endings. (bug 390, thanks to Alejandro Romas)
+- out123:
+-- Fix heap overrun on --endian conversion with differing input and output
+   channel counts. (bug 391, thanks to Alejandro Romas)
+-- Fix parsing of filter specs with whitespace before commas, which resulted
+   in out-of-bounds writes before. (bug 391, thanks to Alejandro Romas)
 - libmpg123, mpg123: Harden memory realloc calls against multiplication overflow
   of size_t in arguments. Specifically, this addresses part of bug 389 with possible
   application abuse of mpg123_set_index64(). (bug 389 by Alejandro Ramos)
 - libmpg123:
+-- Fix possible use of uninitialized values in layer III dequantization.
+   III_dequantize_sample() for consistent output also for strange input.
+   (thanks to He Huang, Swinburne University of Technology (discovered using
+   NexusSan))
 -- Fix a double free when deleting a handle after failed mpg123_decoder() call
    (possibly among others). (bug 389, thanks to Alejandro Romas)
 -- More strong wording in API that ID3 text convenience links are short-lived,
