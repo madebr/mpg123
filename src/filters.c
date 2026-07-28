@@ -84,9 +84,9 @@ static int store_filters(struct filterlist *fl, const char *spec)
 			fl->coeff[ci+fcoeffs] = strtod(spec, &nspec);
 			fcoeffs++;
 			spec += nspec-spec;
-			if(*spec == ',')
-				++spec;
 			while(isspace(*spec))
+				++spec;
+			if(*spec == ',')
 				++spec;
 		}
 		if(errno)
