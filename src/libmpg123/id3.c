@@ -1532,8 +1532,8 @@ static void convert_utf16bom(mpg123_string *sb, const unsigned char* s, size_t l
 			*p++ = (unsigned char) (0x80 | (codepoint & 0x3f));
 		} /* ignore bigger ones (that are not possible here anyway) */
 	}
-	sb->p[sb->size-1] = 0; /* paranoia... */
-	sb->fill = sb->size;
+	sb->p[length] = 0;
+	sb->fill = length+1;
 }
 #undef UTF8LEN
 #undef FULLPOINT

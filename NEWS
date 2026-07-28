@@ -50,6 +50,10 @@
 -- Harden against an application wielding a foot gun by handing in an undersized
    decoding buffer betwee seek and read (return error before trying to decode
    and discard frames in that case). (bug 392 by Alejandro) 
+-- Do properly terminate ID3v2 texts coming in UTF16 encoding when they overwrite
+   previous frames, like with other encodings. The symptom was a shorter second
+   frame resulting in a combined text with the earlier longer frame.
+   (bug 392, thanks to Alejandro Ramos)
 - libsyn123:
 -- Explictly reject mismatched format for appending filters with
    syn123_setup_filter(), preventing memory errors from that API-violating use.
