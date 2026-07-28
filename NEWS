@@ -19,6 +19,9 @@
    thanks to Alejandro Ramos).
 -- Fix information disclosure of uninitialied memory for --auth-file without
    line endings. (bug 390, thanks to Alejandro Romas)
+-- Fix out-of-bounds read/write when combining --continue --random --listentry <n>
+   where n is larger than the playlist size. (bug 391, thanks to Alejandro Romas)
+-- Fix a harmless valgrind memory leak report by not nulling playlist name.
 - out123:
 -- Fix heap overrun on --endian conversion with differing input and output
    channel counts. (bug 391, thanks to Alejandro Romas)
