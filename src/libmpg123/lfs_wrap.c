@@ -371,7 +371,7 @@ int attribute_align_arg mpg123_set_index(mpg123_handle *mh, off_t *offsets, off_
 	{
 		/* Expensive temporary storage... for staying outside at the API layer. */
 		indextmp = INT123_safe_reallocn(whd->set_indextable, fill, sizeof(int64_t));
-		if(indextmp == NULL)
+		if(fill && indextmp == NULL)
 			return INT123_set_err(mh, MPG123_OUT_OF_MEM);
 		whd->set_indextable = indextmp;
 		/* Fill the large-file copy of the provided index, then feed it to mpg123. */

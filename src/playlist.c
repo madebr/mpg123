@@ -160,9 +160,16 @@ char *get_next_file(void)
 			pl.loop = param.loop;
 		}
 
-		newitem = &pl.list[pl.pos];
-		pl.num = pl.pos+1;
-		pl.flags &= ~PL_NO_RANDOM; // The random blocking works only once.
+		if(pl.pos < pl.fill)
+		{
+			newitem = &pl.list[pl.pos];
+			pl.num = pl.pos+1;
+			pl.flags &= ~PL_NO_RANDOM; // The random blocking works only once.
+		} else
+		{
+			merror("Playlist position %zu beyond end of list fill %zu!", pl.pos+1, pl.fill);
+			newitem = NULL;
+		}
 	}
 
 	/* "-" is STDIN, "" is dumb, NULL is nothing */
@@ -355,6 +362,7 @@ static int add_next_file (int argc, char *argv[], int args_utf8)
 		pl.flags &= ~PL_IS_UTF8; // Playlist files in env encoding (HTTP lists should be ASCII-clean).
 		if(!pl.file)
 		{
+			char *eff_listname = param.listname;
 			pl.file = stream_open(param.listname);
 			if(pl.file)
 			{
@@ -362,7 +370,7 @@ static int add_next_file (int argc, char *argv[], int args_utf8)
 				if(pl.file->fd == STDIN_FILENO)
 				{
 					pl.flags |= PL_STDIN_USED;
-					param.listname = NULL;
+					eff_listname = NULL;
 				}
 			}
 			pl.entry = 0;
@@ -415,13 +423,12 @@ static int add_next_file (int argc, char *argv[], int args_utf8)
 #endif
 			if(!pl.file)
 			{
-				param.listname = NULL; // why?
 				error("failed to open playlist file");
 				return 0;
 			} else if(param.verbose)
 			{
 				fprintf(stderr, "Using playlist from ");
-				print_outstr( stderr, param.listname ? param.listname : "standard input"
+				print_outstr( stderr, eff_listname ? eff_listname : "standard input"
 				,	args_utf8, stderr_is_term );
 				fprintf(stderr, " ...\n");
 			}

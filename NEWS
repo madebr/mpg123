@@ -18,12 +18,20 @@
 -- Fix heap buffer overflows in unicode path conversion on Windows (bug 388,
    thanks to Alejandro Ramos).
 -- Fix information disclosure of uninitialied memory for --auth-file without
-   line endings. (bug 390, thanks to Alejandro Romas)
+   line endings. (bug 390, thanks to Alejandro Ramos)
+-- Fix out-of-bounds read/write when combining --continue --random --listentry <n>
+   where n is larger than the playlist size. (bug 391, thanks to Alejandro Ramos)
+-- Fix a harmless valgrind memory leak report by not nulling playlist name.
+-- Fix error handling of win32_net_writestring() (Windows only) by actually using
+   a signed type, also preventing a OOB read on failure.
+   (bug 392 by Alejandro Ramos)
+-- Fix a mostly harmless OOB read of 1 byte when printing USLT lyrics.
+   (bug 392 by Alejandro Ramos)
 - out123:
 -- Fix heap overrun on --endian conversion with differing input and output
-   channel counts. (bug 391, thanks to Alejandro Romas)
+   channel counts. (bug 391, thanks to Alejandro Ramos)
 -- Fix parsing of filter specs with whitespace before commas, which resulted
-   in out-of-bounds writes before. (bug 391, thanks to Alejandro Romas)
+   in out-of-bounds writes before. (bug 391, thanks to Alejandro Ramos)
 - libmpg123, mpg123: Harden memory realloc calls against multiplication overflow
   of size_t in arguments. Specifically, this addresses part of bug 389 with possible
   application abuse of mpg123_set_index64(). (bug 389 by Alejandro Ramos)
@@ -33,10 +41,23 @@
    (thanks to He Huang, Swinburne University of Technology (discovered using
    NexusSan))
 -- Fix a double free when deleting a handle after failed mpg123_decoder() call
-   (possibly among others). (bug 389, thanks to Alejandro Romas)
+   (possibly among others). (bug 389, thanks to Alejandro Ramos)
 -- More strong wording in API that ID3 text convenience links are short-lived,
    but safeguard against ignorant use by nulling them early.
-   (bug 389 by Alejandro Romas)
+   (bug 389 by Alejandro Ramos)
+-- Prevent double free in mpg123_set_index() 32 bit wrapper being called with
+   index size 0. (bug 392 by Alejandro Ramos)
+-- Harden against an application wielding a foot gun by handing in an undersized
+   decoding buffer betwee seek and read (return error before trying to decode
+   and discard frames in that case). (bug 392 by Alejandro) 
+-- Do properly terminate ID3v2 texts coming in UTF16 encoding when they overwrite
+   previous frames, like with other encodings. The symptom was a shorter second
+   frame resulting in a combined text with the earlier longer frame.
+   (bug 392, thanks to Alejandro Ramos)
+- libsyn123:
+-- Explictly reject mismatched format for appending filters with
+   syn123_setup_filter(), preventing memory errors from that API-violating use.
+   (bug 392 by Alejandro Ramos)
 
 1.33.6
 ------

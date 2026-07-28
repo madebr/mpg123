@@ -128,6 +128,8 @@ syn123_setup_filter( syn123_handle *sh
 			mixenc = sh->fc.mixenc;
 		if(!channels)
 			channels = sh->fc.channels;
+		if(mixenc != sh->fc.mixenc || channels != sh->fc.channels)
+			return SYN123_BAD_FMT;
 	}
 	if(channels < 1)
 		return SYN123_BAD_FMT;
