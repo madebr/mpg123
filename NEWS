@@ -22,6 +22,9 @@
 -- Fix out-of-bounds read/write when combining --continue --random --listentry <n>
    where n is larger than the playlist size. (bug 391, thanks to Alejandro Ramos)
 -- Fix a harmless valgrind memory leak report by not nulling playlist name.
+-- Fix error handling of win32_net_writestring() (Windows only) by actually using
+   a signed type, also preventing a OOB read on failure.
+   (bug 392 by Alejandro Ramos)
 - out123:
 -- Fix heap overrun on --endian conversion with differing input and output
    channel counts. (bug 391, thanks to Alejandro Ramos)
