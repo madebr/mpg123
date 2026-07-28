@@ -1143,9 +1143,9 @@ int play_frame(void)
 		return 0;
 
 	if(byte_in_flags & byte_big)
-		syn123_be2host(inaudio, pcminframe/channels, got_samples*inputch);
+		syn123_be2host(inaudio, pcminframe/inputch, got_samples*inputch);
 	if(byte_in_flags & byte_little)
-		syn123_le2host(inaudio, pcminframe/channels, got_samples*inputch);
+		syn123_le2host(inaudio, pcminframe/inputch, got_samples*inputch);
 
 	if(mixaudio)
 	{
