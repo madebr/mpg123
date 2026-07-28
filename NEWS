@@ -21,9 +21,9 @@
    line endings. (bug 390, thanks to Alejandro Romas)
 - out123:
 -- Fix heap overrun on --endian conversion with differing input and output
-   channel counts. (thanks to Alejandro Romas)
+   channel counts. (bug 391, thanks to Alejandro Romas)
 -- Fix parsing of filter specs with whitespace before commas, which resulted
-   in out-of-bounds writes before. (thanks to Alejandro Romas)
+   in out-of-bounds writes before. (bug 391, thanks to Alejandro Romas)
 - libmpg123, mpg123: Harden memory realloc calls against multiplication overflow
   of size_t in arguments. Specifically, this addresses part of bug 389 with possible
   application abuse of mpg123_set_index64(). (bug 389 by Alejandro Ramos)
