@@ -45,6 +45,9 @@
    (bug 389 by Alejandro Ramos)
 -- Prevent double free in mpg123_set_index() 32 bit wrapper being called with
    index size 0. (bug 392 by Alejandro Ramos)
+-- Harden against an application wielding a foot gun by handing in an undersized
+   decoding buffer betwee seek and read (return error before trying to decode
+   and discard frames in that case). (bug 392 by Alejandro) 
 - libsyn123:
 -- Explictly reject mismatched format for appending filters with
    syn123_setup_filter(), preventing memory errors from that API-violating use.

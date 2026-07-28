@@ -848,6 +848,7 @@ static int get_next_frame(mpg123_handle *mh)
 		if(mh->to_ignore && mh->num < mh->firstframe && mh->num >= mh->ignoreframe)
 		{
 			debug1("ignoring frame %li", (long)mh->num);
+			if(mh->buffer.size < mh->outblock) return MPG123_NO_SPACE;
 			/* Decoder structure must be current! INT123_decode_update has been called before... */
 			(mh->do_layer)(mh); mh->buffer.fill = 0;
 #ifndef NO_NTOM
