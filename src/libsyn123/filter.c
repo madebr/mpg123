@@ -40,7 +40,7 @@
 
 // Theoretical limit on maximum order: data block must fit into size_t.
 // Checking overflow of order*order*2 + order*channels, in that order.
-#define ORDER_TOO_BIG(order, channels) \
+#define ORDER_TOO_BIG(order, channels) ( \
 	((order) == 0 || (channels) == 0) \
 	?	0 \
 	:	( (order) > SIZE_MAX/2/(order) \
@@ -49,7 +49,7 @@
 			?	1 \
 			:	0 \
 			)\
-		)
+		) )
 
 // size of filter data block
 #define F_DATABLOCK(f, channels) ((f).order*(2*(f).order+channels))
@@ -137,7 +137,7 @@ syn123_setup_filter( syn123_handle *sh
 		return SYN123_BAD_ENC;
 	if(!b)
 		return SYN123_NO_DATA;
-	if(a && a[0] != 1.)
+	if((a && a[0] != 1.) || order < 1)
 		return SYN123_BAD_DATA;
 	if(ORDER_TOO_BIG(order, channels) || sh->fc.count == SIZE_MAX)
 		return SYN123_OVERFLOW;
