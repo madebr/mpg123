@@ -62,6 +62,8 @@
 - libout123:
 -- Fix deadlock in buffer mode when combined with (stereo) 24 bit output. Now
    also mpg123 --buffer 4096 -e s24 shall actuallly work. Sorry. (bug 392)
+-- Abort early on zero/negative rate and channel count in out123_start().
+   (bug 392)
 - libsyn123:
 -- Explictly reject mismatched format for appending filters with
    syn123_setup_filter(), preventing memory errors from that API-violating use.
