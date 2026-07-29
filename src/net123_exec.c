@@ -184,6 +184,7 @@ static char **wget_argv(const char *url, const char * const * client_head)
 		argv[an++] = catstr("--user=", user);
 	if(password)
 		argv[an++] = catstr("--password=", password);
+	argv[an++] = INT123_compat_strdup("--");
 	argv[an++] = INT123_compat_strdup(url);
 	argv[an++] = NULL;
 	return argv;
@@ -236,6 +237,7 @@ static char **curl_argv(const char *url, const char * const * client_head)
 		argv[an++] = INT123_compat_strdup("--user");
 		argv[an++] = httpauth;
 	}
+	argv[an++] = INT123_compat_strdup("--");
 	argv[an++] = INT123_compat_strdup(url);
 	argv[an++] = NULL;
 	return argv;
