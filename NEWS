@@ -27,6 +27,7 @@
    (bug 392 by Alejandro Ramos)
 -- Fix a mostly harmless OOB read of 1 byte when printing USLT lyrics.
    (bug 392)
+-- Fix leaking file descriptor on read error from --equalizer file. (bug 392)
 - out123:
 -- Fix heap overrun on --endian conversion with differing input and output
    channel counts. (bug 391)

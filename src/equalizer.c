@@ -31,6 +31,7 @@ int load_equalizer(mpg123_handle *mh)
 					if(!fgets(line,255,fe))
 					{
 						error("equalizer file read error");
+						fclose(fe);
 						return -1;
 					}
 				}
