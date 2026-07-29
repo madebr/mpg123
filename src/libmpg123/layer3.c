@@ -522,8 +522,10 @@ static int III_dequantize_sample(mpg123_handle *fr, real xr[SBLIMIT][SSLIMIT],in
 	// that all values are correctly written to. Zero all values beforehand
 	// to have a clean slate, instead of trying to do that afterwards.
 	// All branches that zero a value can also be dropped, then.
-	// This gives about 1 % overall performance hit on the most optimized decoder
-	// (AVX) but I do not have time to work out a smarter variant.
+	// After some micro optimization here and there, the resulting code seems
+	// to be up to 3 % faster than before with AVX decoder, but this depends a
+	// lot on the target CPU, could give a small hit on some.
+	// This loop here also seems to be a bit faster than calling memset(0).
 	for(int i=0; i<SBLIMIT; ++i)
 		for(int j=0; j<SSLIMIT; ++j)
 			xr[i][j] = DOUBLE_TO_REAL(0.0);
