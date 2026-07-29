@@ -56,6 +56,9 @@
    (bug 392, thanks to Alejandro Ramos)
 -- Check and properly handle null source buffer and zero size in mpg123_store_utf8()
    instead of reading past (before) buffers. (bug 392 by Alejandro Ramos)
+-- Ensure clients get ID3v1 data with (unmotivated) mpg123_id3_raw()
+   only if the parser decided that it is there, not possibly the last 128 bytes of
+   a seekable stream without ID3v1 tag. (bug 392)
 - libsyn123:
 -- Explictly reject mismatched format for appending filters with
    syn123_setup_filter(), preventing memory errors from that API-violating use.

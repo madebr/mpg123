@@ -1742,9 +1742,9 @@ int attribute_align_arg mpg123_id3_raw( mpg123_handle *mh
 	if(!mh)
 		return MPG123_ERR;
 	if(v1 != NULL)
-		*v1 = mh->id3buf[0] ? mh->id3buf : NULL;
+		*v1 = (mh->rdat.flags & READER_ID3TAG) ? mh->id3buf : NULL;
 	if(v1_size != NULL)
-		*v1_size = mh->id3buf[0] ? 128 : 0;
+		*v1_size =(mh->rdat.flags & READER_ID3TAG) ? 128 : 0;
 	if(v2 != NULL)
 		*v2 = mh->id3v2_raw;
 	if(v2_size != NULL)
