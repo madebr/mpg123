@@ -27,6 +27,9 @@
    (bug 392 by Alejandro Ramos)
 -- Fix a mostly harmless OOB read of 1 byte when printing USLT lyrics.
    (bug 392)
+-- Fix leaking file descriptor on read error from --equalizer file. (bug 392)
+-- Hardening of loading HTTP(S) via curl or wget against funky URLs by including
+   the -- separator. No actual vulnerability, tough, just extra care. (bug 392)
 - out123:
 -- Fix heap overrun on --endian conversion with differing input and output
    channel counts. (bug 391)
@@ -59,6 +62,8 @@
 -- Ensure clients get ID3v1 data with (unmotivated) mpg123_id3_raw()
    only if the parser decided that it is there, not possibly the last 128 bytes of
    a seekable stream without ID3v1 tag. (bug 392)
+-- Prevent impossible NtoM resampling with too low target rate (like 1 Hz) which
+   would trgger endless looping. (bug 392)
 - libout123:
 -- Fix deadlock in buffer mode when combined with (stereo) 24 bit output. Now
    also mpg123 --buffer 4096 -e s24 shall actuallly work. Sorry. (bug 392)
