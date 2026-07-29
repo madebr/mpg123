@@ -1246,7 +1246,7 @@ LOWPASS_DF2_FUNCS(DIRTY_LPF_TIMES)
 #define OPT4P4O_INTERPOL(in, out, outs, channels) \
 	{ \
 		long sampleoff = rd->offset; \
-		if(sampleoff+rd->vinrate < rd->voutrate) \
+		if(sampleoff < rd->voutrate-rd->vinrate) \
 		{ \
 			for(unsigned int c=0; c<channels; ++c) \
 			{ \
@@ -1278,7 +1278,7 @@ LOWPASS_DF2_FUNCS(DIRTY_LPF_TIMES)
 					)*z + rd->ch[c].c[0]; \
 				outs++; \
 				out += channels; \
-			} while(sampleoff+rd->vinrate < rd->voutrate); \
+			} while(sampleoff < rd->voutrate-rd->vinrate); \
 		} \
 		for(unsigned int c=0; c<channels; ++c) \
 		{ \

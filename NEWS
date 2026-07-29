@@ -63,6 +63,9 @@
 -- Explictly reject mismatched format for appending filters with
    syn123_setup_filter(), preventing memory errors from that API-violating use.
    (bug 392)
+-- Harden the dirty resampling interpolator against extreme rates (around 1e18 Hz)
+   by fixing a sample offset check to not do the exact overflowing addition
+   that it is supposed to guard against. The fine resampler was … fine. (bug 392)
 
 1.33.6
 ------
