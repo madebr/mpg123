@@ -59,6 +59,9 @@
 -- Ensure clients get ID3v1 data with (unmotivated) mpg123_id3_raw()
    only if the parser decided that it is there, not possibly the last 128 bytes of
    a seekable stream without ID3v1 tag. (bug 392)
+- libout123:
+-- Fix deadlock in buffer mode when combined with (stereo) 24 bit output. Now
+   also mpg123 --buffer 4096 -e s24 shall actuallly work. Sorry. (bug 392)
 - libsyn123:
 -- Explictly reject mismatched format for appending filters with
    syn123_setup_filter(), preventing memory errors from that API-violating use.

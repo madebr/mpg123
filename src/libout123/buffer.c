@@ -365,6 +365,7 @@ int INT123_buffer_formats( out123_handle *ao, const long *rates, int ratecount
 int INT123_buffer_start(out123_handle *ao)
 {
 	int writerfd = ao->buffermem->fd[XF_WRITER];
+	INT123_xfermem_usesize(ao->buffermem, ao->framesize);
 	if(INT123_xfermem_putcmd(writerfd, BUF_CMD_START) != 1)
 	{
 		ao->errcode = OUT123_BUFFER_ERROR;
@@ -447,7 +448,11 @@ size_t INT123_buffer_write(out123_handle *ao, void *buffer, size_t bytes)
 	*/
 	size_t written = 0;
 	size_t max_piece = ao->buffermem->size / 2;
-	while(bytes)
+	// We always write whole frames only. The reader expects that and
+	// deadlock could occur otherwise.
+	max_piece -= max_piece % ao->framesize;
+	bytes -= bytes % ao->framesize;
+	while(bytes && max_piece)
 	{
 		size_t count_piece = bytes > max_piece
 		?	max_piece
@@ -892,6 +897,7 @@ int buffer_loop(out123_handle *ao)
 						return 2;
 					if(!out123_start(ao, ao->rate, ao->channels, ao->format))
 					{
+						INT123_xfermem_usesize(ao->buffermem, ao->framesize);
 						out123_pause(ao); /* Be nice, start only on buffer_play(). */
 						mystate = play_live;
 						preloading = TRUE;

@@ -80,7 +80,8 @@ void INT123_xfermem_init (txfermem **xf, size_t bufsize, size_t msize, size_t sk
 	(*xf)->freeindex = (*xf)->readindex = 0;
 	(*xf)->data = ((char *) *xf) + sizeof(txfermem) + msize;
 	(*xf)->metadata = ((char *) *xf) + sizeof(txfermem);
-	(*xf)->size = bufsize;
+	(*xf)->fullsize = bufsize;
+	(*xf)->size = bufsize; // Unless overridden for certain frame size.
 	(*xf)->metasize = msize + skipbuf;
 }
 
@@ -145,6 +146,13 @@ size_t INT123_xfermem_get_usedspace (txfermem *xf)
 		return (freeindex - readindex);
 	else
 		return (xf->size - (readindex - freeindex));
+}
+
+void INT123_xfermem_usesize(txfermem *xf, int framesize)
+{
+	if(!xf || framesize < 1)
+		return; // Just ignore stupid.
+	xf->size = xf->fullsize - (xf->fullsize % framesize);
 }
 
 static int xfermem_getcmd_raw (int fd, int block, byte *cmds, int count)
