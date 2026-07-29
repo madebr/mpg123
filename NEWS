@@ -26,12 +26,12 @@
    a signed type, also preventing a OOB read on failure.
    (bug 392 by Alejandro Ramos)
 -- Fix a mostly harmless OOB read of 1 byte when printing USLT lyrics.
-   (bug 392 by Alejandro Ramos)
+   (bug 392)
 - out123:
 -- Fix heap overrun on --endian conversion with differing input and output
-   channel counts. (bug 391, thanks to Alejandro Ramos)
+   channel counts. (bug 391)
 -- Fix parsing of filter specs with whitespace before commas, which resulted
-   in out-of-bounds writes before. (bug 391, thanks to Alejandro Ramos)
+   in out-of-bounds writes before. (bug 391)
 - libmpg123, mpg123: Harden memory realloc calls against multiplication overflow
   of size_t in arguments. Specifically, this addresses part of bug 389 with possible
   application abuse of mpg123_set_index64(). (bug 389 by Alejandro Ramos)
@@ -41,28 +41,28 @@
    (thanks to He Huang, Swinburne University of Technology (discovered using
    NexusSan))
 -- Fix a double free when deleting a handle after failed mpg123_decoder() call
-   (possibly among others). (bug 389, thanks to Alejandro Ramos)
+   (possibly among others). (bug 389)
 -- More strong wording in API that ID3 text convenience links are short-lived,
    but safeguard against ignorant use by nulling them early.
-   (bug 389 by Alejandro Ramos)
+   (bug 389)
 -- Prevent double free in mpg123_set_index() 32 bit wrapper being called with
-   index size 0. (bug 392 by Alejandro Ramos)
+   index size 0. (bug 392)
 -- Harden against an application wielding a foot gun by handing in an undersized
    decoding buffer betwee seek and read (return error before trying to decode
-   and discard frames in that case). (bug 392 by Alejandro) 
+   and discard frames in that case). (bug 392) 
 -- Do properly terminate ID3v2 texts coming in UTF16 encoding when they overwrite
    previous frames, like with other encodings. The symptom was a shorter second
    frame resulting in a combined text with the earlier longer frame.
-   (bug 392, thanks to Alejandro Ramos)
+   (bug 392)
 -- Check and properly handle null source buffer and zero size in mpg123_store_utf8()
-   instead of reading past (before) buffers. (bug 392 by Alejandro Ramos)
+   instead of reading past (before) buffers. (bug 392)
 -- Ensure clients get ID3v1 data with (unmotivated) mpg123_id3_raw()
    only if the parser decided that it is there, not possibly the last 128 bytes of
    a seekable stream without ID3v1 tag. (bug 392)
 - libsyn123:
 -- Explictly reject mismatched format for appending filters with
    syn123_setup_filter(), preventing memory errors from that API-violating use.
-   (bug 392 by Alejandro Ramos)
+   (bug 392)
 
 1.33.6
 ------
