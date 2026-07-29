@@ -1806,7 +1806,10 @@ int attribute_align_arg mpg123_enc_from_id3_2(unsigned char id3_enc_byte)
 #ifndef NO_STRING
 int attribute_align_arg mpg123_store_utf8(mpg123_string *sb, enum mpg123_text_encoding enc, const unsigned char *source, size_t source_size)
 {
-	switch(enc)
+	if(!sb)
+		return 0;
+	sb->fill = 0;
+	if(source) switch(enc)
 	{
 #ifndef NO_ID3V2
 		/* The encodings we get from ID3v2 tags. */
@@ -1832,7 +1835,7 @@ int attribute_align_arg mpg123_store_utf8(mpg123_string *sb, enum mpg123_text_en
 		{
 			mpg123_free_string(sb);
 			/* Paranoia: Make sure that the string ends inside the buffer... */
-			if(source[source_size-1] == 0)
+			if(source_size && source[source_size-1] == 0)
 			{
 				/* Convert from ICY encoding... with force applied or not. */
 				char *tmpstring = INT123_icy2utf8((const char*)source, enc == mpg123_text_cp1252 ? 1 : 0);
