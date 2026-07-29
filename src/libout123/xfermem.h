@@ -28,6 +28,9 @@ typedef struct {
 	int fd[2];
 	char *data;
 	char *metadata;
+	size_t fullsize;
+	// Usable size can be less than the above since we need to
+	// strictly work on audio frame boundaries.
 	size_t size;
 	size_t metasize;
 } txfermem;
@@ -40,6 +43,8 @@ typedef struct {
 void INT123_xfermem_init (txfermem **xf, size_t bufsize, size_t msize, size_t skipbuf);
 void INT123_xfermem_init_writer (txfermem *xf);
 void INT123_xfermem_init_reader (txfermem *xf);
+// Set up usesize as a multiple of framesize to be able to work in audio frames.
+void INT123_xfermem_usesize(txfermem *xf, int framesize);
 
 size_t INT123_xfermem_get_freespace (txfermem *xf);
 size_t INT123_xfermem_get_usedspace (txfermem *xf);

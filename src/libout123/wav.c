@@ -488,6 +488,10 @@ int INT123_wav_open(out123_handle *ao)
 		long2littleendian( (int)(ao->channels * bps)>>3
 		,	floathead->WAVE.fmt.BlockAlign
 		,	sizeof(floathead->WAVE.fmt.BlockAlign) );
+		// Sanity check of stored values, could be truncated/overflown.
+		if(from_little(floathead->WAVE.fmt.Channels,sizeof(floathead->WAVE.fmt.Channels)) < 1
+		||	from_little(floathead->WAVE.fmt.BitsPerSample,sizeof(floathead->WAVE.fmt.BitsPerSample))/8 < 1)
+			goto wav_open_bad;
 	}
 	else
 	{
@@ -501,6 +505,10 @@ int INT123_wav_open(out123_handle *ao)
 		long2littleendian( (int)(ao->channels * bps)>>3
 		,	inthead->WAVE.fmt.BlockAlign
 		,	sizeof(inthead->WAVE.fmt.BlockAlign) );
+		// Sanity check of stored values, could be truncated/overflown.
+		if(from_little(inthead->WAVE.fmt.Channels,sizeof(inthead->WAVE.fmt.Channels)) < 1
+		||	from_little(inthead->WAVE.fmt.BitsPerSample,sizeof(inthead->WAVE.fmt.BitsPerSample))/8 < 1)
+			goto wav_open_bad;
 	}
 
 	if(open_file(wdat, ao->device) < 0)

@@ -546,6 +546,9 @@ out123_start(out123_handle *ao, long rate, int channels, int encoding)
 	debug("out123_start() continuing");
 	if(ao->state != play_stopped)
 		return out123_seterr(ao, OUT123_NO_DRIVER);
+	// Stop stupid parameters early.
+	if(rate < 1 || channels < 1)
+		return out123_seterr(ao, OUT123_DEV_OPEN);
 
 	/* Stored right away as parameters for ao->open() and also for reference.
 	   framesize needed for out123_play(). */
