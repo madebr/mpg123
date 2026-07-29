@@ -64,6 +64,8 @@
    also mpg123 --buffer 4096 -e s24 shall actuallly work. Sorry. (bug 392)
 -- Abort early on zero/negative rate and channel count in out123_start().
    (bug 392)
+-- Fix divide by zero in WAV writing by catching channel counts that go zero in the
+   16 bit WAV header field. (bug 392)
 - libsyn123:
 -- Explictly reject mismatched format for appending filters with
    syn123_setup_filter(), preventing memory errors from that API-violating use.
