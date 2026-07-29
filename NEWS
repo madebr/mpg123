@@ -54,6 +54,8 @@
    previous frames, like with other encodings. The symptom was a shorter second
    frame resulting in a combined text with the earlier longer frame.
    (bug 392, thanks to Alejandro Ramos)
+-- Check and properly handle null source buffer and zero size in mpg123_store_utf8()
+   instead of reading past (before) buffers. (bug 392 by Alejandro Ramos)
 - libsyn123:
 -- Explictly reject mismatched format for appending filters with
    syn123_setup_filter(), preventing memory errors from that API-violating use.
