@@ -260,7 +260,7 @@ int win32_net_open_connection(mpg123_string *host, mpg123_string *port)
 
 int win32_net_writestring (int fd, mpg123_string *string)
 {
-	mpg123_ssize_t result
+	mpg123_ssize_t result;
 	size_t bytes;
 	char *ptr = string->p;
 	bytes = string->fill ? string->fill-1 : 0;
