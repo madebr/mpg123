@@ -119,6 +119,16 @@ void *INT123_compat_dlsym(void *handle, const char *name)
 	sym = (void *)(uintptr_t)GetProcAddress(handle, name);
 #else
 	sym = dlsym(handle, name);
+#ifdef __OS2__
+	/* OS/2 kLIBC prepends '_' prefix to symbols */
+	if(!sym) {
+		char *n = malloc(strlen(name) + 1 /* _ */ + 1 /* NUL */);
+		n[0] = '_';
+		strcpy(n + 1, name);
+		sym = dlsym(handle, n);
+		free(n);
+	}
+#endif
 #endif
 	return sym;
 }
