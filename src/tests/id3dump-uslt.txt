@@ -1,0 +1,16 @@
+
+====      ID3v1       ====
+
+====      ID3v2       ====
+Title: Lalala
+Artist: Funny Fanny
+
+==== ID3v2 Raw frames ====
+TIT2
+ Lalala
+TPE1
+ Funny Fanny
+USLT description(Sing-a-long) language(ITA)
+ Lalala
+ Lalala
+ La Lalalaaaaaaa

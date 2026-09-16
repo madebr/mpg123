@@ -14,7 +14,11 @@ TESTS += \
   src/tests/resample_total \
   src/tests/text \
   src/tests/textprint \
-  src/tests/plain_id3.sh
+  src/tests/plain_id3.sh \
+  src/tests/id3dump-lotsofid3text.sh \
+  src/tests/id3dump-cdi.sh \
+  src/tests/id3dump-tmcl.sh \
+  src/tests/id3dump-uslt.sh
 endif
 
 if !HAVE_SYNTH16
@@ -25,7 +29,7 @@ endif
 clean-local: clean-local-check
 .PHONY: clean-local-check
 clean-local-check:
-	rm -f src/tests/sweepsweep.mp3 src/tests/stripsweep.mp3 src/tests/plain_id3.out.txt
+	rm -f src/tests/sweepsweep.mp3 src/tests/stripsweep.mp3 src/tests/*.out.txt
 
 # Why do I have to repeat the test scripts here?
 EXTRA_DIST += \
@@ -35,6 +39,18 @@ EXTRA_DIST += \
   src/tests/seek_accuracy.sh \
   src/tests/plain_id3.sh \
   src/tests/plain_id3.txt \
+  src/tests/id3dump-lotsofid3text.sh \
+  src/tests/id3dump-lotsofid3text.txt \
+  src/tests/id3dump-cdi.sh \
+  src/tests/id3dump-cdi.txt \
+  src/tests/id3dump-tmcl.sh \
+  src/tests/id3dump-tmcl.txt \
+  src/tests/id3dump-uslt.sh \
+  src/tests/id3dump-uslt.txt \
+  src/tests/lots-of-id3text.mp3 \
+  src/tests/id3-2.3-with-cdi.mp3 \
+  src/tests/tmcl.id3 \
+  src/tests/uslt.id3 \
   src/tests/sweep.mp3
 
 if BUILD_LIBMPG123

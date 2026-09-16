@@ -7,9 +7,19 @@
 -- More fixup of ARM building on Windows (github PR 26 by mstorsjo).
 - fmt123.h: Check for obviously invalid encoding in MPG123_ENC_SIZE()
   via the MPG123_ENC_ANY mask.
-- libmpg123: Also parse UFID and include it among TXXX fields in
-  mpg123_id3v2.extra with description = owner and text = hex-encoded bytes
-  (bug 384).
+- libmpg123:
+-- Also parse UFID and include it among TXXX fields in
+   mpg123_id3v2.extra with description = owner and text = hex-encoded bytes
+   (bug 384).
+-- Parse ID3v2 URL frames (W...) and put them into mpg123_id3v2.text (bug 384).
+-- Parse ID3v2 WXXX and put it into mpg123_id3v2.extra (bug 384).
+-- Parse ID3v2 MCID and put it into mpg123_id3v2.text (bug 384).
+-- Move USLT from .text into .extra, where it belongs. Entries in .text
+   are supposed to be unique on frame ID.
+- mpg123-id3dump: Ignore language and descript for text frames printout, add
+  language to extra, where it belongs (depending on frame). Avoids lots of
+  unnecessary "language()". Fixed text frames never show description nor
+  language, extra texts and comments always show them.
 - out123: Report filter setup for --verbose.
 - compat: use _read and _write for MSVCRT to silence compiler warnings
 

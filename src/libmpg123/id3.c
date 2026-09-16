@@ -1,9 +1,16 @@
 /*
 	id3: ID3v2.3 and ID3v2.4 parsing (a relevant subset)
 
-	copyright 2006-2023 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2006-2026 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis
+
+	TODO for 1.34:
+	- introduce memory limit with sane default
+
+	TODO: De-unsync whole ID3v2.3 tag. Need real-world example.
+
+	(partially outdated comment(s) following ...)
 
 	WIP: Handling of multiple ID3 tags in a stream.
 
@@ -79,8 +86,12 @@
 	logic and glossing over the theoretical problem of re-parsing update
 	frames in the wrong order by ignoring it. They are not that relevant.
 
-	TODO: Cave in and add the missing frames from the spec. Not that far to go.
-	But need another data structure to communicate those ...
+	I did not bother with SEEK frames. Did anyone use those? In practice, ID3v2
+	data is parsed at the beginning or encountered at the end. The audio data
+	is inbetween. There the seeking-around happens. The parser doesn't encounter
+	the ID3v2 data again. This only happens for Frankenstein streams. And there
+	they should just replace the earlier data. Good test for memory leaking:
+	loop through a Frankenstein stream.
 */
 
 #include "mpg123lib_intern.h"
@@ -90,9 +101,9 @@
 #ifndef NO_ID3V2 /* Only the main parsing routine will always be there. */
 
 /* We know the usual text frames plus some specifics. */
-#define KNOWN_FRAMES 6
-static const char frame_type[KNOWN_FRAMES][5] = { "COMM", "TXXX", "RVA2", "USLT", "APIC", "UFID" };
-enum frame_types { unknown = -2, text = -1, comment, extra, rva2, uslt, picture, ufid };
+#define KNOWN_FRAMES 8
+static const char frame_type[KNOWN_FRAMES][5] = { "COMM", "TXXX", "RVA2", "USLT", "APIC", "UFID", "MCDI", "WXXX" };
+enum frame_types { unknown = -3, url = -2, text = -1, comment, extra, rva2, uslt, picture, ufid, mcdi, wextra };
 
 /* UTF support definitions */
 
@@ -208,7 +219,7 @@ static void free_id3_picture(mpg123_picture **list, size_t *size)
 
 #define add_comment(mh, l, d) add_id3_text(&((mh)->id3v2.comment_list), &((mh)->id3v2.comments), NULL,    l, d)
 #define add_text(mh, id)      add_id3_text(&((mh)->id3v2.text),         &((mh)->id3v2.texts),      id, NULL, NULL)
-#define add_uslt(mh, l, d)    add_id3_text(&((mh)->id3v2.text),         &((mh)->id3v2.texts),      id, l, d)
+#define add_uslt(mh, l, d)    add_id3_text(&((mh)->id3v2.extra),         &((mh)->id3v2.extras),      id, l, d)
 #define add_extra(mh, id, d)      add_id3_text(&((mh)->id3v2.extra),        &((mh)->id3v2.extras), id, NULL, d)
 #define add_picture(mh, t, d) add_id3_picture(&((mh)->id3v2.picture), &((mh)->id3v2.pictures), t, d)
 static mpg123_text *add_id3_text( mpg123_text **list, size_t *size
@@ -330,6 +341,8 @@ void INT123_id3_link(mpg123_handle *fr)
 	Store ID3 text data in an mpg123_string; either verbatim copy or
 	everything translated to UTF-8 encoding.
 	Preserve the zero string separator (I don't need strlen for the total size).
+	Actually: Preserve any number of string separators, as there can be
+	lists of strings in one text frame.
 
 	Since we can overwrite strings with ID3 update frames, don't free
 	memory, just grow strings.
@@ -449,17 +462,35 @@ static const char *enc_name(unsigned char enc)
 	}
 }
 
-static void process_text(mpg123_handle *fr, unsigned char *realdata, size_t realsize, char *id)
+static void process_text( mpg123_handle *fr, enum frame_types tt
+,	unsigned char *realdata, size_t realsize, char *id )
 {
-	/* Text encoding          $xx */
-	/* The text (encoded) ... */
+	// text frame:
+	// Text encoding          $xx
+	// The text (encoded) ... 
+	// URL frame:
+	// the URL (latin1)
 	if(realsize < 1)
 	{
-		if(NOQUIET) error("Not even an encoding byte?");
+		if(NOQUIET) error("Nothing at all?");
 		return;
 	}
+	unsigned char encoding = tt == url ? mpg123_id3_latin1 : realdata[0];
+	unsigned char *textdata = tt == url ? realdata : (realdata + 1);
 	mpg123_text *t = add_text(fr, id);
-	if(VERBOSE4) fprintf(stderr, "Note: Storing text from %s encoding\n", enc_name(realdata[0]));
+	if(tt == text)
+	{
+		if(VERBOSE4)
+			fprintf(stderr, "Note: Storing text from %s encoding\n", enc_name(encoding));
+	} else if(tt == url)
+	{
+		if(VERBOSE4)
+			fprintf(stderr, "Note: Storing URL.\n");
+	} else
+	{
+		if(NOQUIET)
+			error("Do not know what I am storing.");
+	}
 	if(t == NULL)
 	{
 		if(NOQUIET) error("Unable to attach new text!");
@@ -469,7 +500,7 @@ static void process_text(mpg123_handle *fr, unsigned char *realdata, size_t real
 	?	(char[5]) { t->id[0], t->id[1], t->id[2], t->id[3], 0 }
 	:	"(nil)" );
 	memcpy(t->id, id, 4);
-	store_id3_text( &t->text, realdata[0], realdata+1, realsize-1
+	store_id3_text( &t->text, encoding, textdata, realsize-(textdata-realdata)
 	,	NOQUIET, fr->p.flags & MPG123_PLAIN_ID3TEXT );
 	if(VERBOSE4) // Do not print unsanitized text to terminals!
 		fprintf(stderr, "Note: ID3v2 %c%c%c%c text frame stored\n", id[0], id[1], id[2], id[3]);
@@ -632,6 +663,7 @@ static void process_comment(mpg123_handle *fr, enum frame_types tt, unsigned cha
 	{
 		fprintf(stderr, "Note: ID3 comm/uslt desc of length %zu.\n", xcom->description.fill);
 		fprintf(stderr, "Note: ID3 comm/uslt text of length %zu.\n", xcom->text.fill);
+		fprintf(stderr, "Note: ID3 comm/uslt text with language %c%c%c.\n", xcom->lang[0], xcom->lang[1], xcom->lang[2]);
 	}
 	/* Look out for RVA info only when we really deal with a straight comment. */
 	if(tt == comment && localcom.description.fill > 0)
@@ -651,7 +683,7 @@ static void process_comment(mpg123_handle *fr, enum frame_types tt, unsigned cha
 			/* Only translate the contents in here where we really need them. */
 			store_id3_text( &localcom.text, encoding, text, realsize-(text-realdata)
 			,	NOQUIET, 0 );
-			if(localcom.text.fill > 0)
+			if(localcom.text.fill > 0 && localcom.text.p[0] != 0)
 			{
 				fr->rva.gain[rva_mode] = (float) atof(localcom.text.p);
 				if(VERBOSE3) fprintf(stderr, "Note: RVA value %fdB\n", fr->rva.gain[rva_mode]);
@@ -664,16 +696,18 @@ static void process_comment(mpg123_handle *fr, enum frame_types tt, unsigned cha
 	free_mpg123_text(&localcom);
 }
 
-static void process_extra(mpg123_handle *fr, unsigned char* realdata, size_t realsize, int rva_level, char *id)
+static void process_extra( mpg123_handle *fr, enum frame_types tt
+,	unsigned char* realdata, size_t realsize, int rva_level, char *id )
 {
 	/* Text encoding          $xx */
 	/* Description        ... $00 (00) */
 	/* Text ... */
 	unsigned char encoding = realdata[0];
 	unsigned char *descr   = realdata+1; /* remember, the encoding is descr[-1] */
+	// latin1 encoding for extra URL frame
+	unsigned char text_encoding = tt == wextra ? mpg123_id3_latin1 : encoding;
 	unsigned char *text;
 	mpg123_text *xex;
-	mpg123_text localex;
 
 	if((int)realsize < descr-realdata)
 	{
@@ -712,16 +746,20 @@ static void process_extra(mpg123_handle *fr, unsigned char* realdata, size_t rea
 		return;
 	}
 	memcpy(xex->id, id, 4);
+	store_id3_text( &xex->text, text_encoding, text, realsize-(text-realdata)
+	,	NOQUIET, fr->p.flags & MPG123_PLAIN_ID3TEXT );
+
+	if(tt == extra)
+	{ // special parsing for RVA info
+
+	mpg123_text localex;
 	init_mpg123_text(&localex); /* For our local copy. */
 
 	/* Our local copy is always stored in UTF-8! */
 	store_id3_text(&localex.description, encoding, descr, text-descr, NOQUIET, 0);
-	/* At first, only store the outside copy of the payload. We may not need the local copy. */
-	store_id3_text( &xex->text, encoding, text, realsize-(text-realdata)
-	,	NOQUIET, fr->p.flags & MPG123_PLAIN_ID3TEXT );
 
 	/* Now check if we would like to interpret this extra info for RVA. */
-	if(localex.description.fill > 0)
+	if(localex.description.fill > 0 && localex.description.p[0] != 0)
 	{
 		int is_peak = 0;
 		int rva_mode = -1; /* mix / album */
@@ -748,7 +786,7 @@ static void process_extra(mpg123_handle *fr, unsigned char* realdata, size_t rea
 			/* Now we need the translated copy of the data. */
 			store_id3_text( &localex.text, encoding, text, realsize-(text-realdata)
 			,	NOQUIET, 0 );
-			if(localex.text.fill > 0)
+			if(localex.text.fill > 0 && localex.text.p[0] != 0)
 			{
 				if(is_peak)
 				{
@@ -766,49 +804,65 @@ static void process_extra(mpg123_handle *fr, unsigned char* realdata, size_t rea
 	}
 
 	free_mpg123_text(&localex);
+	} // RVA
 }
 
-static void process_ufid(mpg123_handle *fr, unsigned char* realdata, size_t realsize, const char id[4])
+// Handle MCDI and UFID.
+static void process_binary_id( mpg123_handle *fr, const enum frame_types tt
+,	unsigned char* realdata, size_t realsize,	const char id[4] )
 {
+	// UFID:
 	// Owner Identifier   <text> $00
 	// Identifier         <up to 64 bytes binary data>
 	// There is no text encoding. So assume ASCII (supposed to be URL or mail addresses).
+	// MCDI:
+	// Binary Identifer <CD TOC>
+	// We do not care about identifer size here, just reproduce what is there.
 	unsigned char *owner = realdata;
-	unsigned char *identifier;
+	unsigned char *identifier = realdata;
+	size_t id_bytes = realsize;
 	mpg123_string descr;
 	mpg123_string hexid;
 	mpg123_init_string(&descr);
 	mpg123_init_string(&hexid);
 
-	identifier = next_text(owner, mpg123_id3_latin1, realsize);
-	if(!identifier)
+	if(tt == ufid)
 	{
-		if(NOQUIET)
-			error("UFID tag with non-terminated owner or empty id");
-		goto process_ufid_end;
-	}
-	// No encoding information, be strict and enforce ASCII for owner.
-	for(unsigned char *oc = owner; oc < identifier; ++oc)
-	{
-		if(*oc > 127)
+		identifier = next_text(owner, mpg123_id3_latin1, realsize);
+		if(!identifier)
 		{
 			if(NOQUIET)
-				merror("non ASCII byte of value %02x in UFID owner", *oc);
-			goto process_ufid_end;
+				error("UFID tag with non-terminated owner or empty id");
+			goto process_binid_end;
 		}
+		// No encoding information, be strict and enforce ASCII for owner.
+		for(unsigned char *oc = owner; oc < identifier; ++oc)
+		{
+			if(*oc > 127)
+			{
+				if(NOQUIET)
+					merror("non ASCII byte of value %02x in UFID owner", *oc);
+				goto process_binid_end;
+			}
+		}
+		if(owner[0] == 0)
+		{
+			if(NOQUIET)
+				error("bad UFID frame with empty owner string");
+			goto process_binid_end;
+		}
+		mpg123_set_string(&descr, (char*)owner);
+		id_bytes = realsize - (identifier-owner);
+		mdebug("UFID identifier with %zu bytes of owner: %s", id_bytes, descr.p);
 	}
-	mpg123_set_string(&descr, (char*)owner);
-	size_t ufid_bytes = realsize - (identifier-owner);
-	mdebug("UFID identifier with %zu bytes of owner: %s", ufid_bytes, descr.p);
-
-	if(!mpg123_resize_string(&hexid, 2*ufid_bytes+1))
+	if(!mpg123_resize_string(&hexid, 2*id_bytes+1))
 	{
 		if(NOQUIET)
-			merror("failed to allocate UFID hex string for %zu bytes", ufid_bytes);
-		goto process_ufid_end;
+			merror("failed to allocate ID hex string for %zu bytes", id_bytes);
+		goto process_binid_end;
 	}
 	// Try not to be efficient, but simple here.
-	for(int bi=0; bi<ufid_bytes; ++bi)
+	for(int bi=0; bi<id_bytes; ++bi)
 	{
 		char hb[3];
 		if(snprintf(hb, 3, "%02X", identifier[bi]) != 2)
@@ -819,21 +873,20 @@ static void process_ufid(mpg123_handle *fr, unsigned char* realdata, size_t real
 		// Has to work.
 		mpg123_add_string(&hexid, hb);
 	}
-
-	mpg123_text *xex = add_extra(fr, id, &descr);
+	mpg123_text *xex = tt == ufid ? add_extra(fr, id, &descr) : add_text(fr, id);
 	if(xex)
 	{
 		memcpy(xex->id, id, 4);
-		mpg123_move_string(&descr, &xex->description);
+		if(tt == ufid)
+			mpg123_move_string(&descr, &xex->description);
 		mpg123_move_string(&hexid, &xex->text);
 	} else
-		error("failed to add UFID to extras");
+		error("failed to add ID to (extra) texts");
 
-process_ufid_end:
+process_binid_end:
 	mpg123_free_string(&hexid);
 	mpg123_free_string(&descr);
 }
-
 
 /* Make a ID3v2.3+ 4-byte ID from a ID3v2.2 3-byte ID
    Note that not all frames survived to 2.4; the mapping goes to 2.3 .
@@ -847,14 +900,18 @@ static int promote_framename(mpg123_handle *fr, char *id) /* fr because of VERBO
 		"COM",  "TAL",  "TBP",  "TCM",  "TCO",  "TCR",  "TDA",  "TDY",  "TEN",  "TFT",
 		"TIM",  "TKE",  "TLA",  "TLE",  "TMT",  "TOA",  "TOF",  "TOL",  "TOR",  "TOT",
 		"TP1",  "TP2",  "TP3",  "TP4",  "TPA",  "TPB",  "TRC",  "TDA",  "TRK",  "TSI",
-		"TSS",  "TT1",  "TT2",  "TT3",  "TXT",  "TXX",  "TYE"
+		"TSS",  "TT1",  "TT2",  "TT3",  "TXT",  "TXX",  "TYE",
+		"WAF",  "WAR", "WAS", "WCM", "WCP", "WPB", "WXX",
+		"IPL", "MCI"
 	};
 	char *new[] =
 	{
 		"COMM", "TALB", "TBPM", "TCOM", "TCON", "TCOP", "TDAT", "TDLY", "TENC", "TFLT",
 		"TIME", "TKEY", "TLAN", "TLEN", "TMED", "TOPE", "TOFN", "TOLY", "TORY", "TOAL",
 		"TPE1", "TPE2", "TPE3", "TPE4", "TPOS", "TPUB", "TSRC", "TRDA", "TRCK", "TSIZ",
-		"TSSE", "TIT1", "TIT2", "TIT3", "TEXT", "TXXX", "TYER"
+		"TSSE", "TIT1", "TIT2", "TIT3", "TEXT", "TXXX", "TYER",
+		"WOAF", "WOAR", "WOAS", "WCOM", "WCOP", "WPUB", "WXXX",
+		"TIPL", "MCDI"
 	};
 	for(i=0; i<sizeof(old)/sizeof(char*); ++i)
 	{
@@ -1021,6 +1078,12 @@ int INT123_parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 			warning("ID3v2: ignoring compressed ID3v2.2 tag");
 		skiptag = 1;
 	}
+	if(major == 3 && flags & UNSYNC_FLAG)
+	{
+		if(NOQUIET)
+			warning("ID3v2: v2.3 de-unsync not implemented yet");
+		skiptag = 1;
+	}
 	if(length < 10)
 	{
 		if(NOQUIET)
@@ -1185,6 +1248,10 @@ int INT123_parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 						#define DATLEN_FFLAG    (unsigned long) (V3 ? 0 : 1)
 						if(head_part < 4 && promote_framename(fr, id) != 0) continue;
 
+						// Involved People List appeared as IPL, IPLS, TIPL, same data.
+						if(!strncmp(id, "IPLS", 4))
+							memcpy(id, "TIPL", 4);
+
 						/* shall not or want not handle these */
 						if(fflags & (BAD_FFLAGS | COMPR_FFLAG | ENCR_FFLAG))
 						{
@@ -1196,6 +1263,7 @@ int INT123_parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 						if(!strncmp(frame_type[i], id, 4)){ tt = i; break; }
 
 						if(id[0] == 'T' && tt != extra) tt = text;
+						if(id[0] == 'W' && tt != wextra) tt = url;
 
 						if(tt != unknown)
 						{
@@ -1203,7 +1271,10 @@ int INT123_parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 							unsigned long realsize = framesize;
 							unsigned char* realdata = tagdata+pos;
 							unsigned char* unsyncbuffer = NULL;
-							if(((flags & UNSYNC_FLAG) || (fflags & UNSYNC_FFLAG)) && framesize > 0)
+							// Used to look at global UNSYNC_FLAG here, which is wrong. For ID3v2.4, it is only a
+							// hint and the frame flag rules. For ID3v2.3, just the global flag exists and needs to
+							// be handled beforehand.
+							if((fflags & UNSYNC_FFLAG) && framesize > 0)
 							{
 								unsigned long ipos = 0;
 								unsigned long opos = 0;
@@ -1280,10 +1351,14 @@ int INT123_parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 									process_comment(fr, tt, realdata, realsize, comment+1, id);
 								break;
 								case extra: /* perhaps foobar2000's work */
-									process_extra(fr, realdata, realsize, extra+1, id);
+									process_extra(fr, tt, realdata, realsize, extra+1, id);
+								break;
+								case wextra:
+									process_extra(fr, tt, realdata, realsize, -1, id);
 								break;
 								case ufid:
-									process_ufid(fr, realdata, realsize, id);
+								case mcdi:
+									process_binary_id(fr, tt, realdata, realsize, id);
 								break;
 								case rva2: /* "the" RVA tag */
 								{
@@ -1328,7 +1403,10 @@ int INT123_parse_new_id3(mpg123_handle *fr, unsigned long first4bytes)
 								break;
 								/* non-rva metainfo, simply store... */
 								case text:
-									process_text(fr, realdata, realsize, id);
+									process_text(fr, tt, realdata, realsize, id);
+								break;
+								case url:
+									process_text(fr, tt, realdata, realsize, id);
 								break;
 								case picture:
 									if (fr->p.flags & MPG123_PICTURE)

@@ -184,28 +184,29 @@ static const char* pic_type(int id)
 void print_raw_v2(mpg123_id3v2 *v2)
 {
 	size_t i;
+	// Plain text frames have no langugage and no (variable) description.
+	// I could add a table with the descriptions from the spec.
 	for(i=0; i<v2->texts; ++i)
 	{
 		char id[5];
-		char lang[4];
 		memcpy(id, v2->text[i].id, 4);
 		id[4] = 0;
-		memcpy(lang, v2->text[i].lang, 3);
-		lang[3] = 0;
-		if(v2->text[i].description.fill)
-		printf("%s language(%s) description(%s)\n", id, lang, v2->text[i].description.p);
-		else printf("%s language(%s)\n", id, lang);
+		printf("%s\n", id);
 
 		print_lines(" ", &v2->text[i].text);
 	}
 	for(i=0; i<v2->extras; ++i)
 	{
 		char id[5];
+		char lang[4];
 		memcpy(id, v2->extra[i].id, 4);
 		id[4] = 0;
-		printf( "%s description(%s)\n",
+		memcpy(lang, v2->extra[i].lang, 3);
+		lang[3] = 0;
+		printf( "%s description(%s) language(%s)\n",
 		        id,
-		        v2->extra[i].description.fill ? v2->extra[i].description.p : "" );
+		        v2->extra[i].description.fill ? v2->extra[i].description.p : "",
+		        lang );
 		print_lines(" ", &v2->extra[i].text);
 	}
 	for(i=0; i<v2->comments; ++i)

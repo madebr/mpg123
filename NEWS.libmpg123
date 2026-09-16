@@ -2,6 +2,13 @@ Changes in libmpg123 libtool interface versions. Next to the version
 the mpg123 release where its changes first appeared to the public
 is given.
 
+50.0.50 (mpg123 1.34)
+	- Additonal ID3v2 frames are being parsed and sorted into struct
+	  mpg123_id3v2, UFID and WXXX into .extra (owner info == description),
+	  and MCDI and URL frames (W...) into .text.
+	- Moved USLT into .extra, as there can be multiple instances, breaking
+	  the assumption of uniqueness in .text. That was the whole point.
+
 49.0.49 (mpg123 1.33)
 	- Added mpg123_open_handle64() as clearly portable match for
 	  mpg123_reader64(). It is just mpg123_open_handle() without

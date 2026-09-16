@@ -1,0 +1,16 @@
+
+====      ID3v1       ====
+Title: 
+Artist: 
+Album: 
+Year: 
+Comment: 
+Genre: 255
+====      ID3v2       ====
+
+==== ID3v2 Raw frames ====
+TMCL
+ Drums
+ Muddy Kick
+ Vocals
+ Sore Looser

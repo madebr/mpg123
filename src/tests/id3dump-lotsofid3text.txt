@@ -1,0 +1,74 @@
+
+====      ID3v1       ====
+
+====      ID3v2       ====
+Title: Colorado
+Artist: Partition 36
+Album: Waveforms
+Year: 2014
+Comment: Creative Commons 3.0 Attribute-NonCommercial-ShareAlike
+Genre: Electronic
+
+==== ID3v2 Raw frames ====
+TIT2
+ Colorado
+TPE1
+ Partition 36
+TRCK
+ 13/13
+TALB
+ Waveforms
+TPOS
+ 1/1
+TPE2
+ Partition 36
+TSO2
+ Partition 36
+TSOP
+ Partition 36
+TMED
+ Digital Media
+TCOM
+ Alexa Jones-Gonzales
+WOAR
+ http://www.partition36.com
+TCOP
+ Copyright (C) 2014 Alexa Jones-Gonzales
+TORY
+ 2014
+TYER
+ 2014
+TDAT
+ 2504
+TCON
+ Electronic
+TXXX description(SCRIPT) language()
+ Latn
+TXXX description(originalyear) language()
+ 2014
+TXXX description(ARTISTS) language()
+ Partition 36
+TXXX description(CATALOGNUMBER) language()
+ PART-005
+WXXX description() language()
+ http://www.partition36.com
+TXXX description(MusicBrainz Album Type) language()
+ album
+TXXX description(MusicBrainz Album Status) language()
+ official
+TXXX description(MusicBrainz Album Release Country) language()
+ XW
+TXXX description(MusicBrainz Album Id) language()
+ b43d606b-9f52-44a9-8ccf-587a617c5e24
+UFID description(http://musicbrainz.org) language()
+ 61363061343237322D383734642D346131372D613532372D333663646364313861643136
+TXXX description(MusicBrainz Artist Id) language()
+ 02754aa4-b64a-4287-ac87-e20e3b01d28d
+TXXX description(MusicBrainz Album Artist Id) language()
+ 02754aa4-b64a-4287-ac87-e20e3b01d28d
+TXXX description(MusicBrainz Release Group Id) language()
+ 4ecb89f1-754e-480c-a384-dbf4e28b16d7
+TXXX description(MusicBrainz Release Track Id) language()
+ 50822202-0ac7-416f-bcd9-4f76bcb1fb84
+COMM description() language(XXX):
+ Creative Commons 3.0 Attribute-NonCommercial-ShareAlike

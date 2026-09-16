@@ -21,7 +21,7 @@
  * This must be incremented at least each time a new symbol is added
  * to the header.
  */
-#define MPG123_API_VERSION 49
+#define MPG123_API_VERSION 50
 /** library patch level at client build time */
 #define MPG123_PATCHLEVEL  4
 
@@ -313,48 +313,62 @@ enum mpg123_parms
 /** Flag bits for MPG123_FLAGS, use the usual binary or to combine. */
 enum mpg123_param_flags
 {
-	 MPG123_FORCE_MONO   = 0x7  /**<     0111 Force some mono mode: This is a test bitmask for seeing if any mono forcing is active. */
-	,MPG123_MONO_LEFT    = 0x1  /**<     0001 Force playback of left channel only.  */
-	,MPG123_MONO_RIGHT   = 0x2  /**<     0010 Force playback of right channel only. */
-	,MPG123_MONO_MIX     = 0x4  /**<     0100 Force playback of mixed mono.         */
-	,MPG123_FORCE_STEREO = 0x8  /**<     1000 Force stereo output.                  */
-	,MPG123_FORCE_8BIT   = 0x10 /**< 00010000 Force 8bit formats.                   */
-	,MPG123_QUIET        = 0x20 /**< 00100000 Suppress any printouts (overrules verbose).                    */
-	,MPG123_GAPLESS      = 0x40 /**< 01000000 Enable gapless decoding (default on if libmpg123 has support). */
-	,MPG123_NO_RESYNC    = 0x80 /**< 10000000 Disable resync stream after error.                             */
-	,MPG123_SEEKBUFFER   = 0x100 /**< 000100000000 Enable small buffer on non-seekable streams to allow some peek-ahead (for better MPEG sync). */
-	,MPG123_FUZZY        = 0x200 /**< 001000000000 Enable fuzzy seeks (guessing byte offsets or using approximate seek points from Xing TOC) */
-	,MPG123_FORCE_FLOAT  = 0x400 /**< 010000000000 Force floating point output (32 or 64 bits depends on mpg123 internal precision). */
-	,MPG123_PLAIN_ID3TEXT = 0x800 /**< 100000000000 Do not convert ID3 text data.
-	 *  ID3 strings will contain the raw text data, with the first byte
-         *  containing the ID3 encoding code. The bytes appear as in the ID3 tag.
-         *  This means that there is no zero termination, no sanitation.
-         *  You need to explicitly process the data with the given buffer fill
-         *  and encoding value before handing it over to library routins expecting
-         *  zero-terminated byte strings, for example.
-         */
-	,MPG123_IGNORE_STREAMLENGTH = 0x1000 /**< 1000000000000 Ignore any stream length information contained in the stream, which can be contained in a 'TLEN' frame of an ID3v2 tag or a Xing tag */
-	,MPG123_SKIP_ID3V2 = 0x2000 /**< 10 0000 0000 0000 Do not parse ID3v2 tags, just skip them. */
-	,MPG123_IGNORE_INFOFRAME = 0x4000 /**< 100 0000 0000 0000 Do not parse the LAME/Xing info frame, treat it as normal MPEG data. */
-	,MPG123_AUTO_RESAMPLE = 0x8000 /**< 1000 0000 0000 0000 Allow automatic internal resampling of any kind (default on if supported). Especially when going lowlevel with replacing output buffer, you might want to unset this flag. Setting MPG123_DOWNSAMPLE or MPG123_FORCE_RATE will override this. */
-	,MPG123_PICTURE = 0x10000 /**< 17th bit: Enable storage of pictures from tags (ID3v2 APIC). */
-	,MPG123_NO_PEEK_END    = 0x20000 /**< 18th bit: Do not seek to the end of
-	 *  the stream in order to probe
-	 *  the stream length and search for the id3v1 field. This also means
-	 *  the file size is unknown unless set using mpg123_set_filesize() and
-	 *  the stream is assumed as non-seekable unless overridden.
+	 MPG123_FORCE_MONO   = 0x7  /**< 0111 Force some mono mode:
+	 * This is a test bitmask for seeing if any mono forcing is active. */
+	,MPG123_MONO_LEFT    = 0x1  /**< 0001 Force playback of left channel only. */
+	,MPG123_MONO_RIGHT   = 0x2  /**< 0010 Force playback of right channel only. */
+	,MPG123_MONO_MIX     = 0x4  /**< 0100 Force playback of mixed mono. */
+	,MPG123_FORCE_STEREO = 0x8  /**< 1000 Force stereo output.   */
+	,MPG123_FORCE_8BIT   = 0x10 /**< Force 8bit formats.  */
+	,MPG123_QUIET        = 0x20 /**< Suppress any printouts (overrules verbose). */
+	,MPG123_GAPLESS      = 0x40 /**< Enable gapless decoding
+	 * (default on if libmpg123 has support). */
+	,MPG123_NO_RESYNC    = 0x80 /**< Disable resync stream after error. */
+	,MPG123_SEEKBUFFER   = 0x100 /**< Enable small buffer on non-seekable
+	 * streams to allow some peek-ahead (for better MPEG sync). */
+	,MPG123_FUZZY        = 0x200 /**< Enable fuzzy seeks
+	 * (guessing byte offsets or using approximate seek points from Xing TOC) */
+	,MPG123_FORCE_FLOAT  = 0x400 /**< Force floating point output
+	 * (32 or 64 bits, depending on mpg123 internal precision). */
+	,MPG123_PLAIN_ID3TEXT = 0x800 /**< Do not convert ID3 text data.
+	 * ID3 strings will contain the raw text data, with the first byte
+	 * containing the ID3 encoding code. The bytes appear as in the ID3 tag.
+	 * This means that there is no zero termination, no sanitation.
+	 * You need to explicitly process the data with the given buffer fill
+	 * and encoding value before handing it over to library routins expecting
+	 * zero-terminated byte strings, for example.
 	 */
-	,MPG123_FORCE_SEEKABLE = 0x40000 /**< 19th bit: Force the stream to be seekable. */
+	,MPG123_IGNORE_STREAMLENGTH = 0x1000 /**< Ignore any stream length
+	 * information contained in the stream, which can be contained in a 'TLEN'
+	 * frame of an ID3v2 tag or a Xing tag */
+	,MPG123_SKIP_ID3V2 = 0x2000 /**< Do not parse ID3v2 tags,
+	 * just skip them. */
+	,MPG123_IGNORE_INFOFRAME = 0x4000 /**< Do not parse the LAME/Xing info
+	 * frame, treat it as normal MPEG data. */
+	,MPG123_AUTO_RESAMPLE = 0x8000 /**<
+	 * Allow automatic internal resampling of any kind (default on if supported).
+	 * Especially when going lowlevel with replacing output buffer, you might
+	 * want to unset this flag. Setting MPG123_DOWNSAMPLE or MPG123_FORCE_RATE
+	 * will override this. */
+	,MPG123_PICTURE = 0x10000 /**< Enable storage of pictures
+	 * from tags (ID3v2 APIC). */
+	,MPG123_NO_PEEK_END    = 0x20000 /**< Do not seek to the end of
+	 * the stream in order to probe
+	 * the stream length and search for the id3v1 field. This also means
+	 * the file size is unknown unless set using mpg123_set_filesize() and
+	 * the stream is assumed as non-seekable unless overridden.
+	 */
+	,MPG123_FORCE_SEEKABLE = 0x40000 /**< Force the stream to be seekable. */
 	,MPG123_STORE_RAW_ID3  = 0x80000 /**< Store raw ID3 data (even if skipping).
-	 *  Before mpg123 1.33.2 (libmpg123 API 49, patchlevel 4), this has to be combined with
-	 *  MPG123_SKIP_ID3 to avoid getting corrupted data due to the ID3 parser inserting
-	 *  encoding bytes for its own convenience.
+	 * Before mpg123 1.33.2 (libmpg123 API 49, patchlevel 4), this has to be
+	 * combined with MPG123_SKIP_ID3 to avoid getting corrupted data due to
+	 * the ID3 parser inserting encoding bytes for its own convenience.
 	 */
 	,MPG123_FORCE_ENDIAN   = 0x100000 /**< Enforce endianess of output samples.
-	 *  This is not reflected in the format codes. If this flag is set along with
-	 *  MPG123_BIG_ENDIAN, MPG123_ENC_SIGNED16 means s16be, without
-	 *  MPG123_BIG_ENDIAN, it means s16le. Normal operation without
-	 *  MPG123_FORCE_ENDIAN produces output in native byte order.
+	 * This is not reflected in the format codes. If this flag is set along with
+	 * MPG123_BIG_ENDIAN, MPG123_ENC_SIGNED16 means s16be, without
+	 * MPG123_BIG_ENDIAN, it means s16le. Normal operation without
+	 * MPG123_FORCE_ENDIAN produces output in native byte order.
 	 */
 	,MPG123_BIG_ENDIAN     = 0x200000 /**< Choose big endian instead of little. */
 	,MPG123_NO_READAHEAD   = 0x400000 /**< Disable read-ahead in parser. If
@@ -364,7 +378,8 @@ enum mpg123_param_flags
 	 * free format support unless you provide a frame size using
 	 * MPG123_FREEFORMAT_SIZE.
 	 */
-	,MPG123_FLOAT_FALLBACK = 0x800000 /**< Consider floating point output encoding only after
+	,MPG123_FLOAT_FALLBACK = 0x800000 /**< Consider floating point output
+	 * encoding only after
 	 * trying other (possibly downsampled) rates and encodings first. This is to
 	 * support efficient playback where floating point output is only configured for
 	 * an external resampler, bypassing that resampler when the desired rate can
@@ -2015,10 +2030,21 @@ typedef struct
 } mpg123_picture;
 
 /** Data structure for storing IDV3v2 tags.
- *  This structure is not a direct binary mapping with the file contents.
- *  The ID3v2 text frames are allowed to contain multiple strings.
+ *
+ *  This structure is an attempt to aggregate the ID3v2 frames
+ *  in an reasonably accessible manner.
+ *
+ *  The ID3v2 text frames are (often) allowed to contain multiple strings.
  *  So check for null bytes until you reach the mpg123_string fill.
- *  All text is encoded in UTF-8. */
+ *  All text is encoded in UTF-8 and final string termination is
+ *  ensured. URLs are suposed to contain only one string, but this
+ *  data structure does not enforce that.
+ *
+ *  Since API_VERSION 50, you can expect URL frames folded into
+ *  .text among the normal text fields and the user-defined URL
+ *  frames into .extra, along with MCDI (.text) and UFID (.extra) as
+ *  uppercase hex-encoded binary data.
+*/
 typedef struct
 {
 	unsigned char version; /**< 3 or 4 for ID3v2.3 or ID3v2.4. */
@@ -2026,18 +2052,27 @@ typedef struct
 	mpg123_string *artist;  /**< Artist string (pointer into text_list). */
 	mpg123_string *album;   /**< Album string (pointer into text_list). */
 	mpg123_string *year;    /**< The year as a string (pointer into text_list). */
-	mpg123_string *genre;   /**< Genre String (pointer into text_list). The genre string(s) may very well need postprocessing, esp. for ID3v2.3. */
-	mpg123_string *comment; /**< Pointer to last encountered comment text with empty description. */
-	/* Encountered ID3v2 fields are appended to these lists.
-	   There can be multiple occurences, the pointers above always point to the last encountered data. */
+	mpg123_string *genre;   /**< Genre String (pointer into text_list). */
+	/* The genre string(s) may very well need postprocessing, esp. for ID3v2.3. */
+	mpg123_string *comment; /**< Pointer to last encountered comment
+	 * text with empty description.
+	 * Encountered ID3v2 fields are appended to the following lists.
+	 * There can be multiple occurences, the pointers above always point
+	 * to the last encountered data. */
 	mpg123_text    *comment_list; /**< Array of comments. */
 	size_t          comments;     /**< Number of comments. */
-	mpg123_text    *text;         /**< Array of ID3v2 text fields (including USLT) */
-	size_t          texts;        /**< Numer of text fields. */
-	mpg123_text    *extra;        /**< The array of extra (TXXX) fields. */
-	size_t          extras;       /**< Number of extra text (TXXX) fields. */
+	mpg123_text    *text;         /**< Array of ID3v2 text fields.
+	 * This includes a number of T(ext) frames, but also USLT, MCDI,
+	 * and URLs (IDs starting with W).
+	 * Each ID occurs at most once. Descriptions and languages are empty. */
+	size_t          texts;        /**< Numer of text fields.*/
+	mpg123_text    *extra;        /**< The array of extra text fields.
+	 * This includes TXXX, WXXX and UFID. Same ID can appear multiple
+	 * times with differing descriptions Also, UFID frames are hex-encoded
+	 * and added here with owner as description. */
+	size_t          extras;       /**< Number of extra text fields. */
 	mpg123_picture  *picture;     /**< Array of ID3v2 pictures fields (APIC).
-		Only populated if MPG123_PICTURE flag is set! */
+	 * Only populated if MPG123_PICTURE flag is set! */
 	size_t           pictures;    /**< Number of picture (APIC) fields. */
 } mpg123_id3v2;
 
