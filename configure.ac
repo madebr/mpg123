@@ -1183,6 +1183,7 @@ AS_HELP_STRING([--with-audio=<list of modules>], [Select a list (or only one) of
 	mint           Use MinT as default audio output sub-system (Atari)
 	nas            Use NAS as default audio output (Network Audio System)
 	os2            Use OS2 as default audio output sub-system
+	os2_kai        Use OS2 KAI as default audio output sub-system
 	oss            Use OSS as default audio output sub-system (/dev/dsp)
 	portaudio      Use PortAudio as default audio output sub-system
 	pulse          Use Pulse audio server as default audio output sub-system
@@ -1908,7 +1909,7 @@ fi
 dnl ############## Output module choice
 
 # The full list of supported modules to check, first come, first serve.
-check_modules="pulse alsa tinyalsa oss coreaudio sndio sun win32 win32_wasapi os2 esd jack portaudio sdl nas arts openal"
+check_modules="pulse alsa tinyalsa oss coreaudio sndio sun win32 win32_wasapi os2 os2_kai esd jack portaudio sdl nas arts openal"
 # Only check qsa before all else on QNX.
 # It would mask ALSA otherwise.
 case $host in
@@ -2240,6 +2241,22 @@ int main(){
 			fi
 			CFLAGS="$oldcflags"
 		;;
+		os2_kai)
+			OS2_KAI_LIBS="-lkai"
+			OS2_KAI_LDFLAGS="-Zhigh-mem"
+			OS2_KAI_CFLAGS="-idirafter /@unixroot/usr/include/os2tk45"
+			oldcflags="$CFLAGS"
+			CFLAGS="$CFLAGS $OS2_CFLAGS"
+			AC_CHECK_HEADERS([kai.h])
+			if test "x${ac_cv_header_kai_h}" = xyes
+			then
+				output_modules="$output_modules os2_kai"
+				HAVE_OS2_KAI=yes
+			else
+				check_failed=yes
+			fi
+			CFLAGS="$oldcflags"
+		;;
 # from here on only forced tests, untested code
 		hp)
 			# What's the deal with that and alib?
@@ -2292,7 +2309,7 @@ if test "x$check_forced" = xyes -a "x$check_failed" = "xyes"; then
 fi
 
 # When you extend check_modules, you should extend this:
-#for i in alsa qsa oss coreaudio sndio sun win32 win32_wasapi esd jack portaudio pulse sdl nas aix alib arts hp os2 sgi mint openal dummy
+#for i in alsa qsa oss coreaudio sndio sun win32 win32_wasapi esd jack portaudio pulse sdl nas aix alib arts hp os2 os2_kai sgi mint openal dummy
 #do echo $i; done |
 #perl -ne 'chomp; $big = uc($_); print <<EOT;
 #AC_SUBST(${big}_LIBS)
@@ -2381,6 +2398,10 @@ AC_SUBST(OS2_LIBS)
 AC_SUBST(OS2_LDFLAGS)
 AC_SUBST(OS2_CFLAGS)
 AM_CONDITIONAL( [HAVE_OS2], [test "x$HAVE_OS2" = xyes] )
+AC_SUBST(OS2_KAI_LIBS)
+AC_SUBST(OS2_KAI_LDFLAGS)
+AC_SUBST(OS2_KAI_CFLAGS)
+AM_CONDITIONAL( [HAVE_OS2_KAI], [test "x$HAVE_OS2_KAI" = xyes] )
 AC_SUBST(SGI_LIBS)
 AC_SUBST(SGI_LDFLAGS)
 AC_SUBST(SGI_CFLAGS)
@@ -2448,7 +2469,7 @@ fi
 # The conditionals always need to be defined by configure, even if
 # HAVE_MODULES is FALSE!
 # Here's a script for that tedious list, perhaps to be outsourced together with the one in #src/output/Makefile.am
-#for i in dummy tinyalsa alsa qsa coreaudio esd jack nas oss portaudio pulse sdl sndio sun win32 win32_wasapi aix alib arts hp os2 sgi mint openal
+#for i in dummy tinyalsa alsa qsa coreaudio esd jack nas oss portaudio pulse sdl sndio sun win32 win32_wasapi aix alib arts hp os2 os2_kai sgi mint openal
 #do echo $i; done |
 #perl -ne 'chomp; $big = uc($_); print <<EOT;
 #AM_CONDITIONAL([BUILD_${big}], [ test "$_" = "\$default_output_module" ])
@@ -2476,6 +2497,7 @@ AM_CONDITIONAL([BUILD_ALIB], [ test "alib" = "$default_output_module" ])
 AM_CONDITIONAL([BUILD_ARTS], [ test "arts" = "$default_output_module" ])
 AM_CONDITIONAL([BUILD_HP], [ test "hp" = "$default_output_module" ])
 AM_CONDITIONAL([BUILD_OS2], [ test "os2" = "$default_output_module" ])
+AM_CONDITIONAL([BUILD_OS2_KAI], [ test "os2_kai" = "$default_output_module" ])
 AM_CONDITIONAL([BUILD_SGI], [ test "sgi" = "$default_output_module" ])
 AM_CONDITIONAL([BUILD_MINT], [ test "mint" = "$default_output_module" ])
 AM_CONDITIONAL([BUILD_OPENAL], [ test "openal" = "$default_output_module" ])
