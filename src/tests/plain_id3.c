@@ -37,6 +37,8 @@ int test_whence(const char* path, int scan_before)
 
 void print_field(const char *name, mpg123_string *sb)
 {
+	if(!sb)
+		return;
 	const unsigned char *sbp = (unsigned char*)sb->p;
 	enum mpg123_text_encoding enc;
 	mpg123_string printer;
