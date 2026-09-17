@@ -6,7 +6,7 @@
 	It is envisioned to include this compat header instead of any of the "standard" headers, to catch compatibility issues.
 	So, don't include stdlib.h or string.h ... include compat.h.
 
-	copyright 2007-23 by the mpg123 project - free software under the terms of the LGPL 2.1
+	copyright 2007-26 by the mpg123 project - free software under the terms of the LGPL 2.1
 	see COPYING and AUTHORS files in distribution or http://mpg123.org
 	initially written by Thomas Orgis
 */
@@ -39,6 +39,15 @@
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#elif defined(_WIN32)
+#define  STDIN_FILENO _fileno(stdin)
+#define STDOUT_FILENO _fileno(stdout)
+#define STDERR_FILENO _fileno(stderr)
+#define
+#else
+#define  STDIN_FILENO 0
+#define STDOUT_FILENO 1
+#define STDERR_FILENO 2
 #endif
 
 /* Types, types, types. */
@@ -335,7 +344,7 @@ size_t INT123_unintr_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *st
 
 #include "../common/true.h"
 
-#if (!defined(WIN32) || defined (__CYGWIN__)) && defined(HAVE_SIGNAL_H)
+#if (!defined(_WIN32) || defined (__CYGWIN__)) && defined(HAVE_SIGNAL_H)
 void (*INT123_catchsignal(int signum, void(*handler)(int)))(int);
 #endif
 
