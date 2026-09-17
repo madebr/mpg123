@@ -38,16 +38,28 @@
 #endif
 
 #ifdef HAVE_UNISTD_H
+
 #include <unistd.h>
+
 #elif defined(_WIN32)
+
 #define  STDIN_FILENO _fileno(stdin)
 #define STDOUT_FILENO _fileno(stdout)
 #define STDERR_FILENO _fileno(stderr)
 #define
+
 #else
+
+#ifndef  STDIN_FILENO
 #define  STDIN_FILENO 0
+#endif
+#ifndef STDOUT_FILENO
 #define STDOUT_FILENO 1
+#endif
+#ifndef STDERR_FILENO
 #define STDERR_FILENO 2
+#endif
+
 #endif
 
 /* Types, types, types. */
