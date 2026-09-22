@@ -27,6 +27,9 @@ target_include_directories(${TARGET} INTERFACE
 if(HAVE_M)
     string(APPEND LIBSYN123_LIBS " -lm")
 endif()
+if(WANT_WIN32_UNICODE)
+    string(APPEND LIBSYN123_LIBS " -lshlwapi")
+endif()
 set(LIBSYN123_LIBS "${LIBSYN123_LIBS}" PARENT_SCOPE)
 target_link_libraries(${TARGET} PRIVATE
     $<$<BOOL:${HAVE_M}>:m>)
