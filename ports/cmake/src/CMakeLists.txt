@@ -198,8 +198,10 @@ check_cpu_arch_arm64(ARCH_IS_ARM64)
 
 if(WIN32 OR ARCH_IS_ARM64)
     set(HAVE_FPU 1)
-elseif(CMAKE_CROSSCOMPILING OR DEFINED HAVE_FPU)
-    set(HAVE_FPU 1 CACHE STRING "Override in triplet if needed")
+# This came from vcpkg, but it just does not seem right.
+# See https://github.com/madebr/mpg123/pull/30/.
+#elseif(CMAKE_CROSSCOMPILING OR DEFINED HAVE_FPU)
+#    set(HAVE_FPU 1 CACHE STRING "Override in triplet if needed")
 else()
     cmake_host_system_information(RESULT HAVE_FPU QUERY HAS_FPU)
 endif()
