@@ -44,6 +44,8 @@ that makes sense. And perhaps I really should limit this to out123.
 4. Enable some way to avoid libmpg123 messages (Note: …) messing up display
    of the progress bar.
 
+- well, just introduce a wrapper that frames messages with \n? Is it useful to
+  see the progress bar before the event?
 - cleanup callback from app
 - fprintf callback from app
 - log buffer
