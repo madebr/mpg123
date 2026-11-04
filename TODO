@@ -49,3 +49,4 @@ that makes sense. And perhaps I really should limit this to out123.
 - cleanup callback from app
 - fprintf callback from app
 - log buffer
+- get rid of that cursor flickering, introduced post-1.29, apparently
