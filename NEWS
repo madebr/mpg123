@@ -23,6 +23,13 @@
 - out123: Report filter setup for --verbose.
 - compat: use _read and _write for MSVCRT to silence compiler warnings
 
+1.33.8
+------
+- libmpg123: avoid possibly dangerous runtime NEON check on ARM where
+  NEON code generation is active or the auxval hwcaps are available
+  (Linux, Android). See bug 394). Not the full fix for the general
+  case yet.
+
 1.33.7
 ------
 - mpg123:
