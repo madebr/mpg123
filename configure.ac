@@ -1332,7 +1332,7 @@ if test "x$have_c99" = xno; then
 fi
 
 dnl Is it too paranoid to specifically check for stdint.h and limits.h?
-AC_CHECK_HEADERS([unistd.h sched.h sys/ioctl.h sys/types.h sys/time.h sys/wait.h sys/resource.h sys/signal.h signal.h sys/select.h dirent.h sys/stat.h])
+AC_CHECK_HEADERS([unistd.h sched.h sys/ioctl.h sys/types.h sys/time.h sys/wait.h sys/resource.h sys/signal.h signal.h sys/select.h dirent.h sys/stat.h sys/auxv.h])
 
 dnl ############## LFS stuff
 
