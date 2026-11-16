@@ -39,12 +39,14 @@
 #elif defined(HWCAP_ARM_ASIMD)
 #define NEON_FLAG HWCAP_ARM_ASIMD
 #endif /* flags */
-#else
+#endif
+
+#if !(defined(NEON_IS_BUILTIN) || defined(NEON_FLAG))
 #define NEON_CHECK
 #endif
 
 
-#ifdef NEON_CHECK
+#if defined(NEON_CHECK)
 extern void INT123_check_neon(void);
 
 #ifndef _WIN32
@@ -72,7 +74,7 @@ unsigned int INT123_getcpuflags(struct cpuflags* cf)
 	unsigned long hwcaps = getauxval(AT_HWCAP);
 	if(hwcaps & NEON_FLAG)
 		cf->has_neon = 1;
-#else
+#elif defined(NEON_CHECK)
 
 // This code should vanish at some point. It is dangerous.
 #ifndef _WIN32
