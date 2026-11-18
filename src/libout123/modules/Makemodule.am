@@ -676,6 +676,35 @@ endif
 
 if HAVE_MODULES
 if BUILD_LIBOUT123_MODULES
+if HAVE_OS2_KAI
+pkglib_LTLIBRARIES += src/libout123/modules/output_os2_kai.la
+src_libout123_modules_output_os2_kai_la_SOURCES = \
+  src/libout123/modules/os2_kai.c
+src_libout123_modules_output_os2_kai_la_LDFLAGS = $(MODULE_LDFLAGS) @OS2_KAI_LDFLAGS@ -os2dllname os2_kai
+src_libout123_modules_output_os2_kai_la_CFLAGS  = $(MODULE_CFLAGS) @OS2_KAI_CFLAGS@
+src_libout123_modules_output_os2_kai_la_LIBADD  = @PROG_LIBS@ \
+  src/compat/libcompat_str.la \
+  @OS2_KAI_LIBS@
+src_libout123_modules_outout_os2_kai_la_CPPFLAGS = \
+  $(AM_CPPFLAGS) \
+  $(libout123_mod_cppflags)
+endif
+endif
+else
+if BUILD_OS2_KAI
+src_libout123_modules_libdefaultmodule_la_SOURCES  = \
+  src/libout123/modules/os2_kai.c
+src_libout123_modules_libdefaultmodule_la_CFLAGS   = @OS2_KAI_CFLAGS@
+src_libout123_modules_libdefaultmodule_la_LDFLAGS  = @OS2_KAI_LDFLAGS@
+src_libout123_modules_libdefaultmodule_la_LIBADD   = @PROG_LIBS@ @OS2_KAI_LIBS@
+src_libout123_modules_libdefaultmodule_la_CPPFLAGS = \
+  $(AM_CPPFLAGS) \
+  $(libout123_mod_cppflags)
+endif
+endif
+
+if HAVE_MODULES
+if BUILD_LIBOUT123_MODULES
 if HAVE_SGI
 pkglib_LTLIBRARIES += src/libout123/modules/output_sgi.la
 src_libout123_modules_output_sgi_la_SOURCES = \

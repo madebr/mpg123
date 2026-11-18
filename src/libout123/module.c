@@ -237,9 +237,23 @@ int INT123_list_modules( const char *type, char ***names, char ***descr, int ver
 		mpg123_module_t *module = NULL;
 		char* ext;
 		size_t name_len;
+#ifdef __OS2__
+		char fname[PATH_MAX];
+		char *saved_filename = NULL;
+#endif
 
 		/* Various checks as loop shortcuts, avoiding too much nesting. */
 		debug1("checking entry: %s", filename);
+
+#ifdef __OS2__
+		/* Hack for 8.3 limitation on OS/2 */
+		if(strcmp(filename,"os2_kai" LT_MODULE_EXT) == 0)
+		{
+			saved_filename = filename;
+			strcpy(fname, "output_os2_kai" LT_MODULE_EXT);
+			filename = fname;
+		}
+#endif
 
 		name_len = strlen(filename);
 		if(name_len < strlen(LT_MODULE_EXT))
@@ -293,6 +307,10 @@ int INT123_list_modules( const char *type, char ***names, char ***descr, int ver
 			INT123_close_module(module, verbose);
 		}
 list_modules_continue:
+#ifdef __OS2__
+		if(saved_filename != NULL)
+			filename = saved_filename;
+#endif
 		free(filename);
 	}
 	INT123_compat_dirclose(dir);

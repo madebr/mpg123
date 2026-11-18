@@ -10,8 +10,13 @@
 */
 
 #include "config.h"
+#ifndef __OS2__
 /* This source file does need _POSIX_SOURCE to get some sigaction. */
 #define _POSIX_SOURCE
+#else
+/* This source file does need _GNU_SOURCE to control path. */
+#define _GNU_SOURCE
+#endif
 /* Fix pedantic error about w2upath being unused */
 #define HIDE_w2upath
 #include "compat.h"
@@ -79,6 +84,28 @@ void *INT123_compat_dlopen(const char *path)
 	free(wpath);
 #else
 	handle = dlopen(path, RTLD_NOW);
+#ifdef __OS2__
+	/* Hack for 8.3 limitation on OS/2 */
+	if(!handle) {
+		const char *name = _getname(path);
+		const char *ext = _getext2(path);
+		char *p = strdup(path);
+		if(p) {
+			if(strncmp(name, "output_", 7) == 0) {
+				/* First, try without output_ prefix */
+				strcpy(_getname(p), name + 7);
+				handle = dlopen(p, RTLD_NOW);
+			}
+			if(!handle && strlen(name) - strlen(ext) > 8) {
+				/* Truncate DLL name up to 8 chars */
+				strcpy(p, path);
+				strcpy(_getname(p) + 8, ext);
+				handle = dlopen(p, RTLD_NOW);
+			}
+			free(p);
+		}
+	}
+#endif
 #endif
 	return handle;
 }
@@ -92,6 +119,16 @@ void *INT123_compat_dlsym(void *handle, const char *name)
 	sym = (void *)(uintptr_t)GetProcAddress(handle, name);
 #else
 	sym = dlsym(handle, name);
+#ifdef __OS2__
+	/* OS/2 kLIBC prepends '_' prefix to symbols */
+	if(!sym) {
+		char *n = malloc(strlen(name) + 1 /* _ */ + 1 /* NUL */);
+		n[0] = '_';
+		strcpy(n + 1, name);
+		sym = dlsym(handle, n);
+		free(n);
+	}
+#endif
 #endif
 	return sym;
 }
