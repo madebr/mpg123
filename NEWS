@@ -25,10 +25,14 @@
 
 1.33.8
 ------
-- libmpg123: avoid possibly dangerous runtime NEON check on ARM where
-  NEON code generation is active or the auxval hwcaps are available
-  (Linux, Android). See bug 394). Not the full fix for the general
-  case yet.
+- libmpg123:
+-- avoid possibly dangerous runtime NEON check on ARM where
+   NEON code generation is active or the auxval hwcaps are available
+   (Linux, Android). See bug 394). Not the full fix for the general
+   case yet.
+-- DLL-export off_t wrappers regardless of build system by ensuring
+   MPG123_EXPORT on wrapper definitions (bug 395).
+- libsyn123: Also DLL-export off_t wrappers (bug 395).
 
 1.33.7
 ------

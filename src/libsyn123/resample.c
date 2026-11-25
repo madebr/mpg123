@@ -2026,13 +2026,13 @@ syn123_resample_intotal64(long inrate, long outrate, int64_t outs)
 // making the header agnostic to that fact, not depending on any build properties
 
 #define resample_total_wrap(type, limit, name, name64) \
-type attribute_align_arg name(long inrate, long outrate, type io) \
+MPG123_EXPORT type attribute_align_arg name(long inrate, long outrate, type io) \
 { \
 	int64_t tot = name64(inrate, outrate, io); \
 	return (tot <= limit) ? (type)tot : SYN123_OVERFLOW; \
 }
 #define resample_total_alias(type, name, name64) \
-type attribute_align_arg name(long inrate, long outrate, type io) \
+MPG123_EXPORT type attribute_align_arg name(long inrate, long outrate, type io) \
 { \
 	return name64(inrate, outrate, io); \
 }
